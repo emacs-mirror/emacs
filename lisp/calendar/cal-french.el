@@ -1,8 +1,10 @@
 ;;; cal-french.el --- calendar functions for the French Revolutionary calendar
 
-;; Copyright (C) 1988, 89, 92, 94, 95, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1989, 1992, 1994, 1995, 1997, 2001, 2002, 2003,
+;;   2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: French Revolutionary calendar, calendar, diary
 

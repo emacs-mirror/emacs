@@ -1471,6 +1471,9 @@ tar files.
 @end itemize
 
 @item
+Andrew Zhilin created the Emacs icons used beginning with Emacs 22.
+
+@item
 Shenghuo Zhu wrote:
 
 @itemize @minus

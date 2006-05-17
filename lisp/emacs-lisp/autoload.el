@@ -86,10 +86,10 @@ or macro definition or a defcustom)."
 
      ;; For special function-like operators, use the `autoload' function.
      ((memq car '(defun define-skeleton defmacro define-derived-mode
-                   define-compilation-mode
-		   define-generic-mode easy-mmode-define-minor-mode
-		   easy-mmode-define-global-mode
-		   define-minor-mode defun* defmacro*))
+                   define-compilation-mode define-generic-mode
+		   easy-mmode-define-global-mode define-global-minor-mode
+		   easy-mmode-define-minor-mode define-minor-mode
+		   defun* defmacro*))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (case car
@@ -109,6 +109,7 @@ or macro definition or a defcustom)."
 	      (or (and (memq car '(define-skeleton define-derived-mode
 				    define-generic-mode
 				    easy-mmode-define-global-mode
+				    define-global-minor-mode
 				    easy-mmode-define-minor-mode
 				    define-minor-mode)) t)
 		  (eq (car-safe (car body)) 'interactive))
@@ -134,6 +135,15 @@ or macro definition or a defcustom)."
                             (error nil))))
               (if (equal setter ''custom-set-minor-mode)
                   `(put ',varname 'custom-set 'custom-set-minor-mode))))))
+
+     ((eq car 'defgroup)
+      ;; In Emacs this is normally handled separately by cus-dep.el, but for
+      ;; third party packages, it can be convenient to explicitly autoload
+      ;; a group.
+      (let ((groupname (nth 1 form)))
+        `(let ((loads (get ',groupname 'custom-loads)))
+           (if (member ',file loads) nil
+             (put ',groupname 'custom-loads (cons ',file loads))))))
 
      ;; nil here indicates that this is not a special autoload form.
      (t nil))))

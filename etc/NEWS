@@ -260,10 +260,20 @@ Since the default input is the current directory, this has the effect
 of specifying the current directory.  Normally that means to visit the
 directory with Dired.
 
+You can get the old behavior by typing C-x C-f M-n RET, which fetches
+the actual file name into the minibuffer.
+
 +++
 ** The completion commands TAB, SPC and ? in the minibuffer apply only
 to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
+
++++
+** When Emacs prompts for file names, SPC no longer completes the file name.
+This is so filenames with embedded spaces could be input without the
+need to quote the space with a C-q.  The underlying changes in the
+keymaps that are active in the minibuffer are described below under
+"New keymaps for typing file names".
 
 +++
 ** M-o now is the prefix key for setting text properties;
@@ -297,39 +307,10 @@ a new Emacs.
 On 32bit machines, it is now 256M (i.e. 268435455).
 
 +++
-** M-g is now a prefix key.
-M-g g and M-g M-g run goto-line.
-M-g n and M-g M-n run next-error (like C-x `).
-M-g p and M-g M-p run previous-error.
-
-+++
-** C-u M-g M-g switches to the most recent previous buffer,
-and goes to the specified line in that buffer.
-
-When goto-line starts to execute, if there's a number in the buffer at
-point then it acts as the default argument for the minibuffer.
-
-+++
-** The old bindings C-M-delete and C-M-backspace have been deleted,
-since there are situations where one or the other will shut down
-the operating system or your X server.
-
-+++
-** line-move-ignore-invisible now defaults to t.
-
-+++
-** When the undo information of the current command gets really large
-(beyond the value of `undo-outer-limit'), Emacs discards it and warns
-you about it.
-
-+++
-** `apply-macro-to-region-lines' now operates on all lines that begin
-in the region, rather than on all complete lines in the region.
-
-+++
-** You can now switch buffers in a cyclic order with C-x C-left and
-(prev-buffer) and C-x C-right (next-buffer).  C-x left and C-x right
-can be used as well.
+** You can now switch buffers in a cyclic order with C-x C-left
+(previous-buffer) and C-x C-right (next-buffer).  C-x left and 
+C-x right can be used as well.  The functions keep a different buffer
+cycle for each frame, using the frame-local buffer list.
 
 +++
 ** `undo-only' does an undo which does not redo any previous undo.
@@ -342,7 +323,7 @@ converts whitespace around point to N spaces.
 ** New commands to operate on pairs of open and close characters:
 `insert-pair', `delete-pair', `raise-sexp'.
 
----
++++
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.
 
@@ -434,6 +415,8 @@ is already active in Transient Mark mode.
 
 C-h e displays the *Messages* buffer.
 
+C-h d runs apropos-documentation.
+
 C-h followed by a control character is used for displaying files
     that do not change:
 
@@ -444,23 +427,18 @@ The info-search bindings on C-h C-f, C-h C-k and C-h C-i
 have been moved to C-h F, C-h K and C-h S.
 
 C-h c, C-h k, C-h w, and C-h f now handle remapped interactive commands.
-
 - C-h c and C-h k report the actual command (after possible remapping)
   run by the key sequence.
-
 - C-h w and C-h f on a command which has been remapped now report the
   command it is remapped to, and the keys which can be used to run
   that command.
 
 For example, if C-k is bound to kill-line, and kill-line is remapped
 to new-kill-line, these commands now report:
-
 - C-h c and C-h k C-k reports:
   C-k runs the command new-kill-line
-
 - C-h w and C-h f kill-line reports:
   kill-line is remapped to new-kill-line which is on C-k, <deleteline>
-
 - C-h w and C-h f new-kill-line reports:
   new-kill-line is on C-k
 
@@ -671,6 +649,10 @@ So you can customize mode-require-final-newline to control what these
 modes do.
 
 ** Minibuffer changes:
+
++++
+*** The new file-name-shadow-mode is turned ON by default, so that when
+entering a file name, any prefix which Emacs will ignore is dimmed.
 
 +++
 *** There's a new face `minibuffer-prompt'.
@@ -1552,9 +1534,11 @@ in them.
 ** Calc is now part of the Emacs distribution.
 
 Calc is an advanced desk calculator and mathematical tool written in
-Emacs Lisp.  Its documentation is in a separate manual; within Emacs,
-type "C-h i m calc RET" to read that manual.  A reference card is
-available in `etc/calccard.tex' and `etc/calccard.ps'.
+Emacs Lisp.  The prefix for Calc has been changed to `C-x *' and Calc
+can be started with `C-x * *'.  The Calc manual is separate from the
+Emacs manual; within Emacs, type "C-h i m calc RET" to read the
+manual.  A reference card is available in `etc/calccard.tex' and
+`etc/calccard.ps'.
 
 ---
 ** The new package ibuffer provides a powerful, completely
@@ -1770,9 +1754,9 @@ table editing available in modern word processors.  The package also
 can generate a table source in typesetting and markup languages such
 as latex and html from the visually laid out text table.
 
-+++
-** The thumbs.el package allows you to preview image files as thumbnails
-and can be invoked from a Dired buffer.
+** The tumme.el package allows you to easily view, tag and in other ways
+manipulate image files and their thumbnails, using dired as the main interface.
+Tumme provides functionality to generate simple image galleries.
 
 +++
 ** Tramp is now part of the distribution.
@@ -1826,6 +1810,18 @@ instead and point will be kept vertically fixed relative to window
 boundaries during scrolling.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
+
+** Changes in Hi Lock:
+
++++
+*** hi-lock-mode now only affects a single buffer, and a new function
+`global-hi-lock-mode' enables Hi Lock in all buffers.  By default, if
+hi-lock-mode is used in what appears to be the initialization file, a
+warning message suggests to use global-hi-lock-mode instead.  However,
+if the new variable `hi-lock-archaic-interface-deduce' is non-nil,
+using hi-lock-mode in an initialization file will turn on Hi Lock in all
+buffers and no warning will be issued (for compatibility with the
+behavior in older versions of Emacs).
 
 ** Changes in Allout
 
@@ -2023,6 +2019,54 @@ function also defines the result format for `eval-expression' (M-:),
 +++
 ** CC mode changes.
 
+*** The CC Mode manual has been extensively revised.
+The information about using CC Mode has been separated from the larger
+and more difficult chapters about configuration.
+
+*** Changes in Key Sequences
+**** c-toggle-auto-hungry-state is no longer bound to C-c C-t.
+
+**** c-toggle-hungry-state is no longer bound to C-c C-d.
+This binding has been taken over by c-hungry-delete-forwards.
+
+**** c-toggle-auto-state (C-c C-t) has been renamed to c-toggle-auto-newline.
+c-toggle-auto-state remains as an alias.
+
+**** The new commands c-hungry-backspace and c-hungry-delete-forwards
+have key bindings C-c C-DEL (or C-c DEL, for the benefit of TTYs) and
+C-c C-d (or C-c C-<delete> or C-c <delete>) respectively.  These
+commands delete entire blocks of whitespace with a single
+key-sequence.  [N.B. "DEL" is the <backspace> key.]
+
+**** The new command c-toggle-electric-mode is bound to C-c C-l.
+
+**** The new command c-subword-mode is bound to C-c C-w.
+
+*** C-c C-s (`c-show-syntactic-information') now highlights the anchor
+position(s).
+
+*** New Minor Modes
+**** Electric Minor Mode toggles the electric action of non-alphabetic keys.
+The new command c-toggle-electric-mode is bound to C-c C-l.  Turning the
+mode off can be helpful for editing chaotically indented code and for
+users new to CC Mode, who sometimes find electric indentation
+disconcerting.  Its current state is displayed in the mode line with an
+'l', e.g. "C/al".
+
+**** Subword Minor Mode makes Emacs recognize word boundaries at upper case
+letters in StudlyCapsIdentifiers.  You enable this feature by C-c C-w.  It can
+also be used in non-CC Mode buffers.  :-) Contributed by Masatake YAMATO.
+
+*** New clean-ups
+
+**** `comment-close-slash'.
+With this clean-up, a block (i.e. c-style) comment can be terminated by
+typing a slash at the start of a line.
+
+**** `c-one-liner-defun'
+This clean-up compresses a short enough defun (for example, an AWK
+pattern/action pair) onto a single line.  "Short enough" is configurable.
+
 *** Font lock support.
 CC Mode now provides font lock support for all its languages.  This
 supersedes the font lock patterns that have been in the core font lock
@@ -2042,11 +2086,10 @@ therefore be disabled by choosing a lower decoration level with the
 variable font-lock-maximum-decoration.
 
 Note that the most demanding font lock level has been tuned with lazy
-fontification in mind, i.e.  there should be a support mode that waits
-with the fontification until the text is actually shown
-(e.g. Just-in-time Lock mode, which is the default, or Lazy Lock
-mode).  Fontifying a file with several thousand lines in one go can
-take the better part of a minute.
+fontification in mind; Just-In-Time-Lock mode should be enabled for
+the highest font lock level (by default, it is).  Fontifying a file
+with several thousand lines in one go can take the better part of a
+minute.
 
 **** The (c|c++|objc|java|idl|pike)-font-lock-extra-types variables
 are now used by CC Mode to recognize identifiers that are certain to
@@ -2061,10 +2104,11 @@ Javadoc and the markup within them.  It's independent of the host
 language, so it's possible to e.g. turn on Javadoc font locking in C
 buffers.  See the variable c-doc-comment-style for details.
 
-Currently two kinds of doc comment styles are recognized: Suns Javadoc
-and Autodoc which is used in Pike.  This is by no means a complete
-list of the most common tools; if your doc comment extractor of choice
-is missing then please drop a note to bug-cc-mode@gnu.org.
+Currently three kinds of doc comment styles are recognized: Sun's
+Javadoc, Autodoc (which is used in Pike) and GtkDoc (used in C).  (The
+last was contributed by Masatake YAMATO).  This is by no means a
+complete list of the most common tools; if your doc comment extractor
+of choice is missing then please drop a note to bug-cc-mode@gnu.org.
 
 **** Better handling of C++ templates.
 As a side effect of the more accurate font locking, C++ templates are
@@ -2099,14 +2143,9 @@ placed on the same line as the associated construct; the matching `}'s
 are normally placed under the start of the respective pattern, function
 definition, or structured statement.
 
-The predefined indentation functions haven't yet been adapted for AWK
-mode, though some of them may work serendipitously.  There shouldn't be
-any problems writing custom indentation functions for AWK mode.
-
-The command C-c C-q (c-indent-defun) hasn't yet been adapted for AWK,
-though in practice it works properly nearly all the time.  Should it
-fail, explicitly set the region around the function (using C-u C-SPC:
-C-M-h probably won't work either) then do C-M-\ (indent-region).
+The predefined line-up functions haven't yet been adapted for AWK
+mode, though some of them may work serendipitously.  There shouldn't
+be any problems writing custom indentation functions for AWK mode.
 
 **** Font Locking
 There is a single level of font locking in AWK mode, rather than the
@@ -2114,24 +2153,16 @@ three distinct levels the other modes have.  There are several
 idiosyncrasies in AWK mode's font-locking due to the peculiarities of
 the AWK language itself.
 
-**** Comment Commands
-M-; (indent-for-comment) works fine.  None of the other CC Mode
-comment formatting commands have yet been adapted for AWK mode.
+**** Comment and Movement Commands
+These commands all work for AWK buffers.  The notion of "defun" has
+been augmented to include AWK pattern-action pairs - the standard
+"defun" commands on key sequences C-M-a, C-M-e, and C-M-h use this
+extended definition.
 
-**** Movement Commands
-Most of the movement commands work in AWK mode.  The most important
-exceptions are M-a (c-beginning-of-statement) and M-e
-(c-end-of-statement) which haven't yet been adapted.
-
-The notion of "defun" has been augmented to include AWK pattern-action
-pairs.  C-M-a (c-awk-beginning-of-defun) and C-M-e (c-awk-end-of-defun)
-recognize these pattern-action pairs, as well as user defined
-functions.
-
-**** Auto-newline Insertion and Clean-ups
-Auto-newline insertion hasn't yet been adapted for AWK.  Some of
-the clean-ups can actually convert good AWK code into syntactically
-invalid code.  These features are best disabled in AWK buffers.
+**** "awk" style, Auto-newline Insertion and Clean-ups
+A new style, "awk" has been introduced, and this is now the default
+style for AWK code.  With auto-newline enabled, the clean-up
+c-one-liner-defun (see above) is useful.
 
 *** New syntactic symbols in IDL mode.
 The top level constructs "module" and "composition" (from CIDL) are
@@ -2140,8 +2171,10 @@ module-open, module-close, inmodule, composition-open,
 composition-close, and incomposition.
 
 *** New functions to do hungry delete without enabling hungry delete mode.
-The functions `c-hungry-backspace' and `c-hungry-delete-forward' can be
-bound to keys to get this feature without toggling a mode.
+The new functions `c-hungry-backspace' and `c-hungry-delete-forward'
+provide hungry deletion without having to toggle a mode.  They are
+bound to C-c C-DEL and C-c C-d (and several variants, for the benefit
+of different keyboard setups.  See "Changes in key sequences" above).
 
 *** Better control over `require-final-newline'.
 
@@ -2169,10 +2202,11 @@ is now analyzed as
 In some cases there are more than one position given for a syntactic
 symbol.
 
-This change might affect code that call `c-guess-basic-syntax' directly,
-and custom lineup functions if they use `c-syntactic-context'.  However,
-the argument given to lineup functions is still a single cons cell
-with nil or an integer in the cdr.
+This change might affect code that calls `c-guess-basic-syntax'
+directly, and custom lineup functions if they use
+`c-syntactic-context'.  However, the argument given to lineup
+functions is still a single cons cell with nil or an integer in the
+cdr.
 
 *** API changes for derived modes.
 
@@ -2183,7 +2217,8 @@ care has now been taken to make it possible to extend and modify CC
 Mode with less risk of such problems in the future.
 
 **** New language variable system.
-See the comment blurb near the top of cc-langs.el.
+These are variables whose values vary between CC Mode's different
+languages.  See the comment blurb near the top of cc-langs.el.
 
 **** New initialization functions.
 The initialization procedure has been split up into more functions to
@@ -2233,15 +2268,15 @@ This applies to the newlines inserted by the auto-newline mode, and to
 
 **** Better alignment of line continuation backslashes.
 `c-backslash-region' tries to adapt to surrounding backslashes.  New
-variable `c-backslash-max-column' which put a limit on how far out
+variable `c-backslash-max-column' puts a limit on how far out
 backslashes can be moved.
 
 **** Automatic alignment of line continuation backslashes.
 This is controlled by the new variable `c-auto-align-backslashes'.  It
 affects `c-context-line-break', `c-context-open-line' and newlines
 inserted in Auto-Newline mode.
-**** Line indentation works better inside macros.
 
+**** Line indentation works better inside macros.
 Regardless whether syntactic indentation and syntactic indentation
 inside macros are enabled or not, line indentation now ignores the
 line continuation backslashes.  This is most noticeable when syntactic
@@ -2250,10 +2285,10 @@ backslash) in the macro.
 
 *** indent-for-comment is more customizable.
 The behavior of M-; (indent-for-comment) is now configurable through
-the variable `c-indent-comment-alist'.  The indentation behavior based
-on the preceding code on the line, e.g. to get two spaces after #else
-and #endif but indentation to `comment-column' in most other cases
-(something which was hardcoded earlier).
+the variable `c-indent-comment-alist'.  The indentation behavior is
+based on the preceding code on the line, e.g. to get two spaces after
+#else and #endif but indentation to `comment-column' in most other
+cases (something which was hardcoded earlier).
 
 *** New function `c-context-open-line'.
 It's the open-line equivalent of `c-context-line-break'.
@@ -2504,6 +2539,10 @@ in multiple BibTeX files.
 
 *** The new command `bibtex-copy-summary-as-kill' pushes summary
 of BibTeX entry to kill ring (bound to C-c C-t).
+
+*** The new variables bibtex-expand-strings and
+bibtex-autokey-expand-strings control the expansion of strings when
+extracting the content of a BibTeX field.
 
 +++
 ** In Enriched mode, `set-left-margin' and `set-right-margin' are now
@@ -3343,6 +3382,9 @@ w32-use-full-screen-buffer to t.
 ** The variable `mac-keyboard-text-encoding' and the constants
 `kTextEncodingMacRoman', `kTextEncodingISOLatin1', and
 `kTextEncodingISOLatin2' are obsolete.
+
+** The variable `mac-command-key-is-meta' is obsolete.  Use
+`mac-command-modifier' and `mac-option-modifier' instead.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
@@ -3501,7 +3543,7 @@ dangerous; otherwise it returns a reason why the form might be unsafe
 evaluate when Emacs starts up.  If this is done after startup,
 it evaluates those expressions immediately.
 
-This is useful in packages that can be preloaded. 
+This is useful in packages that can be preloaded.
 
 *** `list-faces-display' takes an optional argument, REGEXP.
 
@@ -4144,6 +4186,11 @@ for directories, and completion inside it shows only directories.
 ** Completion changes:
 
 +++
+*** The new function `minibuffer-completion-contents' returns the contents
+of the minibuffer just before point.  That is what completion commands
+operate on.
+
++++
 *** The functions `all-completions' and `try-completion' now accept lists
 of strings as well as hash-tables additionally to alists, obarrays
 and functions.  Furthermore, the function `test-completion' is now
@@ -4178,6 +4225,15 @@ from which the minibuffer was entered. The return value of
 
 +++
 ** Enhancements to keymaps.
+
+*** New keymaps for typing file names
+
+Two new keymaps, `minibuffer-local-filename-completion-map'  and
+`minibuffer-local-must-match-filename-map', apply whenever
+Emacs reads a file name in the minibuffer.  These key maps override
+the usual binding of SPC to `minibuffer-complete-word' (so that file
+names with embedded spaces could be typed without the need to quote
+the spaces).
 
 *** Cleaner way to enter key sequences.
 
@@ -4484,6 +4540,10 @@ and scroll-bar settings.
 *** The functions `get-lru-window' and `get-largest-window' take an optional
 argument `dedicated'.  If non-nil, those functions do not ignore
 dedicated windows.
+
++++
+*** The new function `adjust-window-trailing-edge' moves the right
+or bottom edge of a window.  It does not move other window edges.
 
 +++
 ** Customizable fringe bitmaps
@@ -13344,10 +13404,10 @@ as soft, and paragraph boundaries are determined solely from the text.
 *** Custom support
 
 The variables font-lock-face-attributes, font-lock-display-type and
-font-lock-background-mode are now obsolete; the recommended way to specify the
-faces to use for Font Lock mode is with M-x customize-group on the new custom
-group font-lock-highlighting-faces.  If you set font-lock-face-attributes in
-your ~/.emacs file, Font Lock mode will respect its value.  However, you should
+font-lock-background-mode are now obsolete; the recommended way to specify
+the faces to use for Font Lock mode is with M-x customize-group on the new
+custom group font-lock-faces.  If you set font-lock-face-attributes in your
+~/.emacs file, Font Lock mode will respect its value.  However, you should
 consider converting from setting that variable to using M-x customize.
 
 You can still use X resources to specify Font Lock face appearances.

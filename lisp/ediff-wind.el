@@ -955,8 +955,9 @@ into icons, regardless of the window manager."
 		 (minibuffer-window
 		  designated-minibuffer-frame))
 	   (cons 'width fwidth)
-	   (cons 'height fheight))
-	  )
+	   (cons 'height fheight)
+	   (cons 'user-position t)
+	   ))
 
     ;; adjust autoraise
     (setq adjusted-parameters
@@ -1135,9 +1136,8 @@ It assumes that it is called from within the control buffer."
 	  (list (cons 'left (max 0 (eval (cdr (assoc 'left frame-A-params)))))
 		(cons 'width (cdr (assoc 'width frame-A-params))))
 	  ediff-wide-display-frame frame-A)
-    (modify-frame-parameters frame-A (list (cons 'left cw)
-						 (cons 'width wd)))))
-
+    (modify-frame-parameters
+     frame-A `((left . ,cw) (width . ,wd) (user-position t)))))
 
 
 ;; Revise the mode line to display which difference we have selected

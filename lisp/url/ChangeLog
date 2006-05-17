@@ -1,9 +1,44 @@
+2005-12-07  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-cookie.el (url-cookie-save-interval): Simplify.
+	(url-cookie-setup-save-timer): Simplify.
+
+2005-12-04  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-history.el (url-history-list): Var deleted.
+	(url-history-save-interval): Simplify.
+	(url-history-setup-save-timer): Simplify.
+
+2005-12-01  Kim F. Storm  <storm@cua.dk>
+
+	* url-history.el (url-history-track): Fix last change.
+
+2005-12-01  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-history.el (url-history-track):
+	Call url-history-setup-save-timer in :set function.
+	:type allows three alternatives.
+	(url-history-setup-save-timer): Test url-history-track.
+	* url.el (url-retrieve): Test url-history-track.
+
+2005-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el: Use with-current-buffer.
+	(url-http-target-url): Rename from url-http-cookies-sources.
+	(url-http-parse-headers): Use it.
+	(url-http-handle-authentication): Use subst-char-in-string.
+
+2005-11-16  Juergen Hoetzel  <emacs@hoetzel.info>  (tiny change)
+
+	* url-handlers.el (url-insert-file-contents): Use the charset info
+	provided by the HTTP server, if any.
+
 2005-10-20  CHENG Gao  <chenggao@gmail.com>  (tiny change)
 
-	* url-nfs.el (top level): 
-	* url-handlers.el (directory-files): 
+	* url-nfs.el (top level):
+	* url-handlers.el (directory-files):
 	* url-file.el (top level):
-	* url-dired.el (url-dired-minor-mode-map): 
+	* url-dired.el (url-dired-minor-mode-map):
 	* url-http.el (url-http-chunked-encoding-after-change-function):
 	Remove XEmacs support.
 

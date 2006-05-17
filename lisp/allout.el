@@ -80,9 +80,11 @@
 (provide 'allout)
 
 ;;;_* Dependency autoloads
-(eval-when-compile 'cl)                 ; otherwise, flet compilation fouls
 (eval-when-compile (progn (require 'pgg)
-                          (require 'pgg-gpg)))
+                          (require 'pgg-gpg)
+			  (fset 'allout-real-isearch-abort
+				(symbol-function 'isearch-abort))
+			  ))
 (autoload 'pgg-gpg-symmetric-key-p "pgg-gpg"
   "True if decoded armor MESSAGE-KEYS has symmetric encryption indicator.")
 
@@ -585,8 +587,7 @@ Emacs file variables adjustments are also inhibited if `enable-local-variables'
 is nil.
 
 Operations potentially causing edits include allout encryption routines.
-See the docstring for `allout-toggle-current-subtree-encryption' for
-details."
+For details, see `allout-toggle-current-subtree-encryption's docstring."
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-enable-file-variable-adjustment)
@@ -606,6 +607,10 @@ details."
     (if here (insert msg))
     (message "%s" msg)
     msg))
+;;;_  : Mode activation (defined here because it's referenced early)
+;;;_   = allout-mode
+(defvar allout-mode nil "Allout outline mode minor-mode flag.")
+(make-variable-buffer-local 'allout-mode)
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
 (defvar allout-regexp ""
@@ -898,7 +903,7 @@ activation.  Being deprecated.")
 
 First arg is NAME of variable affected.  Optional second arg is list
 containing allout-mode-specific VALUE to be imposed on named
-variable, and to be registered.  (It's a list so you can specify
+variable, and to be registered.  \(It's a list so you can specify
 registrations of null values.)  If no value is specified, the
 registered value is returned (encapsulated in the list, so the caller
 can distinguish nil vs no value), and the registration is popped
@@ -1033,6 +1038,12 @@ state, if file variable adjustments are enabled.  See
 This is used to decrypt the topic that was currently being edited, if it
 was encrypted automatically as part of a file write or autosave.")
 (make-variable-buffer-local 'allout-after-save-decrypt)
+;;;_   > allout-mode-p ()
+;; Must define this macro above any uses, or byte compilation will lack
+;; proper def, if file isn't loaded - eg, during emacs build!
+(defmacro allout-mode-p ()
+  "Return t if `allout-mode' is active in current buffer."
+  'allout-mode)
 ;;;_   > allout-write-file-hook-handler ()
 (defun allout-write-file-hook-handler ()
   "Implement `allout-encrypt-unencrypted-on-saves' policy for file writes."
@@ -1061,7 +1072,7 @@ was encrypted automatically as part of a file write or autosave.")
     nil)
 ;;;_   > allout-auto-save-hook-handler ()
 (defun allout-auto-save-hook-handler ()
-  "Implement `allout-encrypt-unencrypted-on-saves' policy for auto saves."
+  "Implement `allout-encrypt-unencrypted-on-saves' policy for auto save."
 
   (if (and (allout-mode-p) allout-encrypt-unencrypted-on-saves)
       ;; Always implement 'except-current policy when enabled.
@@ -1082,7 +1093,7 @@ and the place for the cursor after the decryption is done."
       t
     (goto-char (car allout-after-save-decrypt))
     (let ((was-modified (buffer-modified-p)))
-      (allout-toggle-current-subtree-encryption)
+      (allout-toggle-subtree-encryption)
       (if (not was-modified)
           (set-buffer-modified-p nil)))
     (goto-char (cadr allout-after-save-decrypt))
@@ -1090,13 +1101,6 @@ and the place for the cursor after the decryption is done."
   )
 
 ;;;_ #2 Mode activation
-;;;_  = allout-mode
-(defvar allout-mode () "Allout outline mode minor-mode flag.")
-(make-variable-buffer-local 'allout-mode)
-;;;_  > allout-mode-p ()
-(defmacro allout-mode-p ()
-  "Return t if `allout-mode' is active in current buffer."
-  'allout-mode)
 ;;;_  = allout-explicitly-deactivated
 (defvar allout-explicitly-deactivated nil
   "If t, `allout-mode's last deactivation was deliberate.
@@ -1297,7 +1301,7 @@ to enable reliable topic privacy while preventing accidents like neglected
 encryption, encryption with a mistaken passphrase, forgetting which
 passphrase was used, and other practical pitfalls.
 
-See the `allout-toggle-current-subtree-encryption' function and
+See `allout-toggle-current-subtree-encryption' function docstring and
 `allout-encrypt-unencrypted-on-saves' customization variable for details.
 
 		 HOT-SPOT Operation
@@ -1404,12 +1408,10 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 		     (or (and (listp toggle)(car toggle))
 			 toggle)))
 				       ; Activation specifically demanded?
-	 (explicit-activation (or
-			      ;;
-			      (and toggle
+	 (explicit-activation (and toggle
 				   (or (symbolp toggle)
-				       (and (natnump toggle)
-					    (not (zerop toggle)))))))
+				       (and (wholenump toggle)
+					    (not (zerop toggle))))))
 	 ;; allout-mode already called once during this complex command?
 	 (same-complex-command (eq allout-v18/19-file-var-hack
 				  (car command-history)))
@@ -3714,14 +3716,7 @@ by pops to non-distinctive yanks.  Bug..."
             (setq file-name
                   (if (re-search-forward "\\s-\\(\\S-*\\)" heading-end t)
                       (buffer-substring (match-beginning 1) (match-end 1))))))
-        (setq file-name
-              (if (not (= (aref file-name 0) ?:))
-                  (expand-file-name file-name)
-                                        ; A registry-files ref, strip the `:'
-                                        ; and try to follow it:
-                (let ((reg-ref (reference-registered-file
-                                (substring file-name 1) nil t)))
-                  (if reg-ref (car (cdr reg-ref))))))
+        (setq file-name (expand-file-name file-name))
         (if (or (file-exists-p file-name)
                 (if (file-writable-p file-name)
                     (y-or-n-p (format "%s not there, create one? "
@@ -4851,13 +4846,13 @@ With repeat count, copy the exposed portions of entire buffer."
 ;;;_ #8 Encryption
 ;;;_  > allout-toggle-current-subtree-encryption (&optional fetch-pass)
 (defun allout-toggle-current-subtree-encryption (&optional fetch-pass)
-  "Encrypt clear text or decrypt encoded topic contents \(body and subtopics.)
+  "Encrypt clear or decrypt encoded text of visibly-containing topic's contents.
 
 Optional FETCH-PASS universal argument provokes key-pair encryption with
 single universal argument.  With doubled universal argument \(value = 16),
 it forces prompting for the passphrase regardless of availability from the
 passphrase cache.  With no universal argument, the appropriate passphrase
-for the is obtained from the cache, if available, else from the user.
+is obtained from the cache, if available, else from the user.
 
 Currently only GnuPG encryption is supported.
 
@@ -4915,6 +4910,28 @@ when the hint is presented, or if passphrase hints are disabled.  If
 enabled \(see the `allout-passphrase-hint-handling' docstring for details),
 the hint string is stored in the local-variables section of the file, and
 solicited whenever the passphrase is changed."
+  (interactive "P")
+  (save-excursion
+    (allout-back-to-current-heading)
+    (allout-toggle-subtree-encryption)
+    )
+  )
+;;;_  > allout-toggle-subtree-encryption (&optional fetch-pass)
+(defun allout-toggle-subtree-encryption (&optional fetch-pass)
+  "Encrypt clear text or decrypt encoded topic contents \(body and subtopics.)
+
+Optional FETCH-PASS universal argument provokes key-pair encryption with
+single universal argument.  With doubled universal argument \(value = 16),
+it forces prompting for the passphrase regardless of availability from the
+passphrase cache.  With no universal argument, the appropriate passphrase
+is obtained from the cache, if available, else from the user.
+
+Currently only GnuPG encryption is supported.
+
+\**NOTE WELL** that the encrypted text must be ascii-armored.  For gnupg
+encryption, include the option ``armor'' in your ~/.gnupg/gpg.conf file.
+
+See `allout-toggle-current-subtree-encryption' for more details."
 
   (interactive "P")
   (save-excursion
@@ -5021,6 +5038,9 @@ for verification purposes.
 Returns the resulting string, or nil if the transformation fails."
 
   (require 'pgg)
+
+  (if (not (fboundp 'pgg-encrypt-symmetric))
+      (error "Allout encryption depends on a newer version of pgg"))
 
   (let* ((scheme (upcase
                   (format "%s" (or pgg-scheme pgg-default-scheme "GPG"))))
@@ -5498,7 +5518,7 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
                   ;; we had to wait for this 'til now so prior topics are
                   ;; encrypted, any relevant text shifts are in place:
                   editing-point (marker-position current-mark)))
-        (allout-toggle-current-subtree-encryption)
+        (allout-toggle-subtree-encryption)
         (if (not was-modified)
             (set-buffer-modified-p nil))
         )

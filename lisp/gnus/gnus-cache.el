@@ -730,9 +730,11 @@ If GROUP is non-nil, also cater to `gnus-cacheable-groups' and
 
 ;;;###autoload
 (defun gnus-cache-rename-group (old-group new-group)
-  "Rename OLD-GROUP as NEW-GROUP.  Always updates the cache, even when
-disabled, as the old cache files would corrupt gnus when the cache was
-next enabled. Depends upon the caller to determine whether group renaming is supported."
+  "Rename OLD-GROUP as NEW-GROUP.
+Always updates the cache, even when disabled, as the old cache
+files would corrupt Gnus when the cache was next enabled.  It
+depends on the caller to determine whether group renaming is
+supported."
   (let ((old-dir (gnus-cache-file-name old-group ""))
 	(new-dir (gnus-cache-file-name new-group "")))
     (gnus-rename-file old-dir new-dir t))
@@ -740,9 +742,12 @@ next enabled. Depends upon the caller to determine whether group renaming is sup
   (let ((no-save gnus-cache-active-hashtb))
     (unless gnus-cache-active-hashtb
       (gnus-cache-read-active))
-    (let* ((old-group-hash-value (gnus-gethash old-group gnus-cache-active-hashtb))
-	   (new-group-hash-value (gnus-gethash new-group gnus-cache-active-hashtb))
-	   (delta                (or old-group-hash-value new-group-hash-value)))
+    (let* ((old-group-hash-value
+	    (gnus-gethash old-group gnus-cache-active-hashtb))
+	   (new-group-hash-value
+	    (gnus-gethash new-group gnus-cache-active-hashtb))
+	   (delta
+	    (or old-group-hash-value new-group-hash-value)))
       (gnus-sethash new-group old-group-hash-value gnus-cache-active-hashtb)
       (gnus-sethash old-group nil gnus-cache-active-hashtb)
 
@@ -752,9 +757,11 @@ next enabled. Depends upon the caller to determine whether group renaming is sup
 
 ;;;###autoload
 (defun gnus-cache-delete-group (group)
-  "Delete GROUP.  Always updates the cache, even when
-disabled, as the old cache files would corrupt gnus when the cache was
-next enabled. Depends upon the caller to determine whether group deletion is supported."
+  "Delete GROUP from the cache.
+Always updates the cache, even when disabled, as the old cache
+files would corrupt gnus when the cache was next enabled.
+Depends upon the caller to determine whether group deletion is
+supported."
   (let ((dir (gnus-cache-file-name group "")))
     (gnus-delete-directory dir))
 

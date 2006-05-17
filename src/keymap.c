@@ -65,6 +65,13 @@ Lisp_Object Vminibuffer_local_ns_map;
 /* was MinibufLocalCompletionMap */
 Lisp_Object Vminibuffer_local_completion_map;
 
+/* keymap used for minibuffers when doing completion in filenames */
+Lisp_Object Vminibuffer_local_filename_completion_map;
+
+/* keymap used for minibuffers when doing completion in filenames 
+   with require-match*/
+Lisp_Object Vminibuffer_local_must_match_filename_map;
+
 /* keymap used for minibuffers when doing completion and require a match */
 /* was MinibufLocalMustMatchMap */
 Lisp_Object Vminibuffer_local_must_match_map;
@@ -389,6 +396,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
 	  if (EQ (XCDR (prev), parent))
 	    RETURN_UNGCPRO (parent);
 
+	  CHECK_IMPURE (prev);
 	  XSETCDR (prev, parent);
 	  break;
 	}
@@ -906,6 +914,7 @@ store_in_keymap (keymap, idx, def)
 	  {
 	    if (NATNUMP (idx) && XFASTINT (idx) < ASIZE (elt))
 	      {
+		CHECK_IMPURE (elt);
 		ASET (elt, XFASTINT (idx), def);
 		return def;
 	      }
@@ -931,6 +940,7 @@ store_in_keymap (keymap, idx, def)
 	  {
 	    if (EQ (idx, XCAR (elt)))
 	      {
+		CHECK_IMPURE (elt);
 		XSETCDR (elt, def);
 		return def;
 	      }
@@ -948,6 +958,7 @@ store_in_keymap (keymap, idx, def)
   keymap_end:
     /* We have scanned the entire keymap, and not found a binding for
        IDX.  Let's add one.  */
+    CHECK_IMPURE (insertion_point);
     XSETCDR (insertion_point,
 	     Fcons (Fcons (idx, def), XCDR (insertion_point)));
   }
@@ -1210,7 +1221,7 @@ A number as value means KEY is "too long";
 that is, characters or symbols in it except for the last one
 fail to be a valid sequence of prefix characters in KEYMAP.
 The number is how many characters at the front of KEY
-it takes to reach a non-prefix command.
+it takes to reach a non-prefix key.
 
 Normally, `lookup-key' ignores bindings for t, which act as default
 bindings, used when nothing else in the keymap applies; this makes it
@@ -2379,7 +2390,8 @@ shadow_lookup (shadow, key, flag)
       value = Flookup_key (XCAR (tail), key, flag);
       if (NATNUMP (value))
 	{
-	  value = Flookup_key (XCAR (tail), Fsubstring (key, 0, value), flag);
+	  value = Flookup_key (XCAR (tail),
+			       Fsubstring (key, make_number (0), value), flag);
 	  if (!NILP (value))
 	    return Qnil;
 	}
@@ -3781,11 +3793,26 @@ don't alter it yourself.  */);
   Vminibuffer_local_completion_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_completion_map, Vminibuffer_local_map);
 
+  DEFVAR_LISP ("minibuffer-local-filename-completion-map", 
+	       &Vminibuffer_local_filename_completion_map,
+	       doc: /* Local keymap for minibuffer input with completion for filenames.  */);
+  Vminibuffer_local_filename_completion_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (Vminibuffer_local_filename_completion_map, 
+		      Vminibuffer_local_completion_map);
+
+
   DEFVAR_LISP ("minibuffer-local-must-match-map", &Vminibuffer_local_must_match_map,
 	       doc: /* Local keymap for minibuffer input with completion, for exact match.  */);
   Vminibuffer_local_must_match_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_must_match_map,
 		      Vminibuffer_local_completion_map);
+
+  DEFVAR_LISP ("minibuffer-local-must-match-filename-map", 
+	       &Vminibuffer_local_must_match_filename_map,
+	       doc: /* Local keymap for minibuffer input with completion for filenames with exact match.  */);
+  Vminibuffer_local_must_match_filename_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (Vminibuffer_local_must_match_filename_map, 
+		      Vminibuffer_local_must_match_map);
 
   DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,
 	       doc: /* Alist of keymaps to use for minor modes.
@@ -3813,9 +3840,9 @@ the same way.  The "active" keymaps in each alist are used before
 
 
   DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
-	       doc: /* Keymap mapping ASCII function key sequences onto their preferred forms.
-This allows Emacs to recognize function keys sent from ASCII
-terminals at any point in a key sequence.
+	       doc: /* Keymap that translates key sequences to key sequences during input.
+This is used mainly for mapping ASCII function key sequences into
+real Emacs function key events (symbols).
 
 The `read-key-sequence' function replaces any subsequence bound by
 `function-key-map' with its binding.  More precisely, when the active

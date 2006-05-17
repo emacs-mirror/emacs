@@ -384,8 +384,9 @@ that."
                     (if sym
                         (cond
                          ((match-string 3)  ; `variable' &c
-                          (and (boundp sym) ; `variable' doesn't ensure
+                          (and (or (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
+				   (get sym 'variable-documentation))
                                (help-xref-button 8 'help-variable sym)))
                          ((match-string 4)   ; `function' &c
                           (and (fboundp sym) ; similarly
@@ -406,12 +407,15 @@ that."
                            (facep sym)
                            (save-match-data (looking-at "[ \t\n]+face\\W")))
                           (help-xref-button 8 'help-face sym))
-                         ((and (boundp sym) (fboundp sym))
+                         ((and (or (boundp sym)
+				   (get sym 'variable-documentation))
+			       (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
                           (help-xref-button 8 'help-symbol sym))
                          ((and
-			   (boundp sym)
+			   (or (boundp sym)
+			       (get sym 'variable-documentation))
  			   (or
  			    (documentation-property
  			     sym 'variable-documentation)
@@ -518,7 +522,10 @@ See `help-make-xrefs'."
 				     ((or (memq sym '(t nil))
 					  (keywordp sym))
 				      nil)
-				     ((and sym (boundp sym))
+				     ((and sym
+					   (or (boundp sym)
+					       (get sym
+						    'variable-documentation)))
 				      'help-variable))))
 		    (when type (help-xref-button 1 type sym)))
 		  (goto-char (match-end 1)))
@@ -542,7 +549,8 @@ help buffer."
 		  ;; Don't record the current entry in the stack.
 		  (setq help-xref-stack-item nil)
 		  (describe-function symbol)))
-	  (sdoc (when (boundp symbol)
+	  (sdoc (when (or (boundp symbol)
+			  (get symbol 'variable-documentation))
 		  ;; Don't record the current entry in the stack.
 		  (setq help-xref-stack-item nil)
 		  (describe-variable symbol))))
@@ -639,7 +647,9 @@ For the cross-reference format, see `help-make-xrefs'."
 	      (buffer-substring (point)
 				(progn (skip-syntax-forward "w_")
 				       (point)))))))
-      (when (or (boundp sym) (fboundp sym) (facep sym))
+      (when (or (boundp sym)
+		(get sym 'variable-documentation)
+		(fboundp sym) (facep sym))
 	(help-do-xref pos #'help-xref-interned (list sym))))))
 
 

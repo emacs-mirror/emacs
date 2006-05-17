@@ -5360,10 +5360,15 @@ static Lisp_Object
 code_convert_region_unwind (arg)
      Lisp_Object arg;
 {
+  struct gcpro gcpro1;
+  GCPRO1 (arg);
+
   inhibit_pre_post_conversion = 0;
   Vlast_coding_system_used = XCAR (arg);
   for (arg = XCDR (arg); ! NILP (arg); arg = XCDR (arg))
     Fkill_buffer (XCAR (arg));
+
+  UNGCPRO;
   return Qnil;
 }
 

@@ -95,6 +95,7 @@ Presently this includes some syntax, .OP.erators, and \"f$\" lexicals.")
 
 (defgroup dcl nil
   "Major mode for editing DCL command files."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defcustom dcl-basic-offset 4

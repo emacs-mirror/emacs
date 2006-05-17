@@ -254,7 +254,7 @@ MA 02110-1301, USA.
 \def\S#1{$S_{\scriptscriptstyle #1}$}
 \def\swap{$\leftrightarrow$}
 
-\def\mhash{M-\#\ }
+\def\calcprefix{C-x *\ }
 \def\,{{\rm ,\hskip.55em}\ignorespaces}
 \def\lesssectionskip{\vskip-1.5ex}
 
@@ -277,14 +277,14 @@ MA 02110-1301, USA.
 
 \section{Starting and Stopping}
 
-\wkey{start/stop standard Calc}{\mhash c}
-\wkey{start/stop X keypad Calc}{\mhash k}
-\wkey{\quad start/stop either: \kbd{\mhash \#} or \kbd{\mhash \mhash}}{}
+\wkey{start/stop standard Calc}{\calcprefix c}
+\wkey{start/stop X keypad Calc}{\calcprefix k}
+\wkey{\quad start/stop either: \kbd{\calcprefix *}}{}
 \wkey{stop standard Calc}{q}
 
-\wkey{Calc tutorial}{\mhash t}
-\wkey{run Calc in other window}{\mhash o}
-\wkey{quick calculation in minibuffer}{\mhash q}
+\wkey{Calc tutorial}{\calcprefix t}
+\wkey{run Calc in other window}{\calcprefix o}
+\wkey{quick calculation in minibuffer}{\calcprefix q}
 
 \section{Getting Help}
 
@@ -295,8 +295,8 @@ The \kbd{h} prefix key is Calc's analogue of \kbd{C-h} in Emacs.
 \key{describe key briefly}{h c}
 \key{describe key fully}{h k}
 \key{describe function or command}{h f}
-\key{read on-line manual}{h i{\rm\enskip or\enskip}\mhash i}
-\key{read full Calc summary}{h s{\rm\enskip or\enskip}\mhash s}
+\key{read on-line manual}{h i{\rm\enskip or\enskip}\calcprefix i}
+\key{read full Calc summary}{h s{\rm\enskip or\enskip}\calcprefix s}
 
 \section{Error Recovery}
 
@@ -306,16 +306,16 @@ The \kbd{h} prefix key is Calc's analogue of \kbd{C-h} in Emacs.
 \key{redo last operation}{D}
 \key{recall last arguments}{M-RET}
 \key{edit top of stack}{`}
-\wkey{reset Calc to initial state}{\mhash 0 {\rm (zero)}}
+\wkey{reset Calc to initial state}{\calcprefix 0 {\rm (zero)}}
 
 \section{Transferring Data}
 
-\wkey{grab region from a buffer}{\mhash g}
-\wkey{grab rectangle from a buffer}{\mhash r}
-\wkey{grab rectangle, summing columns}{\mhash :}
-\wkey{grab rectangle, summing rows}{\mhash \_}
+\wkey{grab region from a buffer}{\calcprefix g}
+\wkey{grab rectangle from a buffer}{\calcprefix r}
+\wkey{grab rectangle, summing columns}{\calcprefix :}
+\wkey{grab rectangle, summing rows}{\calcprefix \_}
 
-\wkey{yank data to a buffer}{\mhash y}
+\wkey{yank data to a buffer}{\calcprefix y}
 
 Also, try \kbd{C-k}/\kbd{C-y} or X cut and paste.
 
@@ -645,7 +645,7 @@ Variable names are single digits or whole words.
 
 \key{begin, end recording a macro}{C-x (\, C-x )}
 \key{replay keyboard macro}{X}
-\wkey{read region as written-out macro}{\mhash m}
+\wkey{read region as written-out macro}{\calcprefix m}
 \key{if, else, endif}{Z [\, Z :\, Z ]}
 \key{equal to, less than, member of}{a =\, a <\, a \{}
 \key{repeat {\it n} times, break from loop}{Z <\, Z >\, Z /}

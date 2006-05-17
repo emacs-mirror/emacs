@@ -1,3 +1,8 @@
+2005-11-18  Hideki IWAMOTO <h-iwamoto@kit.hi-ho.ne.jp>  (tiny change)
+
+	* etags.c (main): Cxref mode writes to stdout: do not close tagf,
+	which was never opened.
+
 2005-10-20  Olli Savia  <ops@iki.fi>  (tiny change)
 
 	* etags.c: Undef STDIN if defined.  (LynxOS defines it in system

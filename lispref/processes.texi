@@ -2244,7 +2244,7 @@ arguments specify repeated lookup of sub-structures.  An integer name
 acts as an array index.
 
 For example, if @var{name} is @code{(a b 2 c)}, that means to find
-field @code{c} in the second element of subfield @code{b} of field
+field @code{c} in the third element of subfield @code{b} of field
 @code{a}.  (This corresponds to @code{struct.a.b[2].c} in C.)
 @end defun
 

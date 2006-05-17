@@ -386,6 +386,8 @@ A value of nil means highlight all matches."
     (define-key map [iconify-frame] nil)
     (define-key map [make-frame-visible] nil)
     (define-key map [mouse-movement] nil)
+    (define-key map [language-change] nil)
+
     ;; For searching multilingual text.
     (define-key map "\C-\\" 'isearch-toggle-input-method)
     (define-key map "\C-^" 'isearch-toggle-specified-input-method)
@@ -1138,15 +1140,16 @@ Use `isearch-exit' to quit without signaling."
       ;; C-s in forward or C-r in reverse.
       (if (equal isearch-string "")
 	  ;; If search string is empty, use last one.
-	  (setq isearch-string
-		(or (if isearch-regexp
-			(car regexp-search-ring)
-		      (car search-ring))
-		    (error "No previous search string"))
-		isearch-message
-		(mapconcat 'isearch-text-char-description
-			   isearch-string "")
-		isearch-case-fold-search isearch-last-case-fold-search)
+	  (if (null (if isearch-regexp regexp-search-ring search-ring))
+	      (setq isearch-error "No previous search string")
+	    (setq isearch-string
+		  (if isearch-regexp
+		      (car regexp-search-ring)
+		    (car search-ring))
+		  isearch-message
+		  (mapconcat 'isearch-text-char-description
+			     isearch-string "")
+		  isearch-case-fold-search isearch-last-case-fold-search))
 	;; If already have what to search for, repeat it.
 	(or isearch-success
 	    (progn
@@ -1221,9 +1224,10 @@ Use `isearch-exit' to quit without signaling."
   (let ((case-fold-search isearch-case-fold-search))
     (isearch-done)
     (isearch-clean-overlays)
-    (if (and (< isearch-other-end (point))
+    (if (and isearch-other-end
+	     (< isearch-other-end (point))
              (not (and transient-mark-mode mark-active
-                       (< isearch-opoint (point)))))
+                       (< (mark) (point)))))
         (goto-char isearch-other-end))
     (set query-replace-from-history-variable
          (cons isearch-string
@@ -1806,6 +1810,8 @@ Isearch mode."
    ((eq   char ?|)       (isearch-fallback t nil t)))
 
   ;; Append the char to the search string, update the message and re-search.
+  (if (char-table-p translation-table-for-input)
+      (setq char (or (aref translation-table-for-input char) char)))
   (isearch-process-search-string
    (char-to-string char)
    (if (>= char ?\200)
@@ -2232,17 +2238,15 @@ since they have special meaning in a regexp."
 (defvar isearch-overlay nil)
 
 (defun isearch-highlight (beg end)
-  (unless (null search-highlight)
-    (cond (isearch-overlay
-	   ;; Overlay already exists, just move it.
-	   (move-overlay isearch-overlay beg end (current-buffer)))
-
-	  (t
-	   ;; Overlay doesn't exist, create it.
-	   (setq isearch-overlay (make-overlay beg end))
-	   (overlay-put isearch-overlay 'face isearch)
-           (overlay-put isearch-overlay 'priority 1) ;higher than lazy overlays
-           ))))
+  (if search-highlight
+      (if isearch-overlay
+	  ;; Overlay already exists, just move it.
+	  (move-overlay isearch-overlay beg end (current-buffer))
+	;; Overlay doesn't exist, create it.
+	(setq isearch-overlay (make-overlay beg end))
+	;; 1001 is higher than lazy's 1000 and ediff's 100+
+	(overlay-put isearch-overlay 'priority 1001)
+	(overlay-put isearch-overlay 'face isearch))))
 
 (defun isearch-dehighlight ()
   (when isearch-overlay
@@ -2406,8 +2410,10 @@ Attempt to do the search exactly the way the pending isearch would."
 			;; non-zero-length match
 			(let ((ov (make-overlay mb me)))
 			  (push ov isearch-lazy-highlight-overlays)
+			  ;; 1000 is higher than ediff's 100+,
+			  ;; but lower than isearch main overlay's 1001
+			  (overlay-put ov 'priority 1000)
 			  (overlay-put ov 'face lazy-highlight-face)
-			  (overlay-put ov 'priority 0) ;lower than main overlay
 			  (overlay-put ov 'window (selected-window))))
 		      (if isearch-forward
 			  (setq isearch-lazy-highlight-end (point))

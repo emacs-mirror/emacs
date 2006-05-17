@@ -291,7 +291,8 @@ you @emph{must} use a second @samp{\} to quote it: @samp{?\\}.
 vertical tab, formfeed, space, return, del, and escape as @samp{?\a},
 @samp{?\b}, @samp{?\t}, @samp{?\n}, @samp{?\v}, @samp{?\f},
 @samp{?\s}, @samp{?\r}, @samp{?\d}, and @samp{?\e}, respectively.
-Thus,
+(@samp{?\s} followed by a dash has a different meaning---it applies
+the ``super'' modifier to the following character.)  Thus,
 
 @example
 ?\a @result{} 7                 ; @r{control-g, @kbd{C-g}}
@@ -311,7 +312,7 @@ Thus,
   These sequences which start with backslash are also known as
 @dfn{escape sequences}, because backslash plays the role of an
 ``escape character''; this terminology has nothing to do with the
-character @key{ESC}.  @samp{\s} is meant for use only in character
+character @key{ESC}.  @samp{\s} is meant for use in character
 constants; in string constants, just write the space.
 
 @cindex control characters

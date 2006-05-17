@@ -167,7 +167,7 @@ longer Info tutorial.)
 * Embedded Mode::         Working with formulas embedded in a file.
 * Programming::           Calc as a programmable calculator.
 
-* Customizable Variables:: Customizable Variables.
+* Customizing Calc:: Customizing Calc.
 * Reporting Bugs::        How to report bugs and make suggestions.
 
 * Summary::               Summary of Calc commands and functions.
@@ -708,9 +708,9 @@ in the margin with its index entry.
 @c [fix-ref Help Commands]
 You can access this manual on-line at any time within Calc by
 pressing the @kbd{h i} key sequence.  Outside of the Calc window,
-you can press @kbd{M-# i} to read the manual on-line.  Also, you
-can jump directly to the Tutorial by pressing @kbd{h t} or @kbd{M-# t},
-or to the Summary by pressing @kbd{h s} or @kbd{M-# s}.  Within Calc,
+you can press @kbd{C-x * i} to read the manual on-line.  Also, you
+can jump directly to the Tutorial by pressing @kbd{h t} or @kbd{C-x * t},
+or to the Summary by pressing @kbd{h s} or @kbd{C-x * s}.  Within Calc,
 you can also go to the part of the manual describing any Calc key,
 function, or variable using @w{@kbd{h k}}, @kbd{h f}, or @kbd{h v},
 respectively.  @xref{Help Commands}.
@@ -773,8 +773,8 @@ that you must press @key{RET} to proceed.  For example, the @key{RET}
 is usually omitted in key sequences like @kbd{M-x calc-keypad @key{RET}}.
 
 Commands are generally shown like this:  @kbd{p} (@code{calc-precision})
-or @kbd{M-# k} (@code{calc-keypad}).  This means that the command is
-normally used by pressing the @kbd{p} key or @kbd{M-# k} key sequence,
+or @kbd{C-x * k} (@code{calc-keypad}).  This means that the command is
+normally used by pressing the @kbd{p} key or @kbd{C-x * k} key sequence,
 but it also has the full-name equivalent shown, e.g., @kbd{M-x calc-precision}.
 
 Commands that correspond to functions in algebraic notation
@@ -797,7 +797,7 @@ everything you see here will be covered more thoroughly in the
 Tutorial.
 
 To begin, start Emacs if necessary (usually the command @code{emacs}
-does this), and type @kbd{M-# c} (or @kbd{@key{ESC} # c}) to start the
+does this), and type @kbd{C-x * c} to start the
 Calculator.  (You can also use @kbd{M-x calc} if this doesn't work.
 @xref{Starting Calc}, for various ways of starting the Calculator.)
 
@@ -849,7 +849,7 @@ Type @kbd{' arcsinh($ - $$) @key{RET}} to subtract the second-most-recent
 result from the most-recent and compute the Inverse Hyperbolic sine.
 
 @strong{Keypad mode.}  If you are using the X window system, press
-@w{@kbd{M-# k}} to get Keypad mode.  (If you don't use X, skip to
+@w{@kbd{C-x * k}} to get Keypad mode.  (If you don't use X, skip to
 the next section.)
 
 @noindent
@@ -869,12 +869,12 @@ Click on @key{-}, @key{INV}, @key{HYP}, and @key{SIN}.
 Click on @key{<-} to erase the result, then click @key{OFF} to turn
 the Keypad Calculator off.
 
-@strong{Grabbing data.}  Type @kbd{M-# x} if necessary to exit Calc.
+@strong{Grabbing data.}  Type @kbd{C-x * x} if necessary to exit Calc.
 Now select the following numbers as an Emacs region:  ``Mark'' the
 front of the list by typing @kbd{C-@key{SPC}} or @kbd{C-@@} there,
 then move to the other end of the list.  (Either get this list from
-the on-line copy of this manual, accessed by @w{@kbd{M-# i}}, or just
-type these numbers into a scratch file.)  Now type @kbd{M-# g} to
+the on-line copy of this manual, accessed by @w{@kbd{C-x * i}}, or just
+type these numbers into a scratch file.)  Now type @kbd{C-x * g} to
 ``grab'' these numbers into Calc.
 
 @example
@@ -896,7 +896,7 @@ the product of the numbers.
 @noindent
 You can also grab data as a rectangular matrix.  Place the cursor on
 the upper-leftmost @samp{1} and set the mark, then move to just after
-the lower-right @samp{8} and press @kbd{M-# r}.
+the lower-right @samp{8} and press @kbd{C-x * r}.
 
 @noindent
 Type @kbd{v t} to transpose this 
@@ -908,7 +908,7 @@ matrix into a
 matrix.  Type @w{@kbd{v u}} to unpack the rows into two separate
 vectors.  Now type @w{@kbd{V R + @key{TAB} V R +}} to compute the sums
 of the two original columns. (There is also a special
-grab-and-sum-columns command, @kbd{M-# :}.)
+grab-and-sum-columns command, @kbd{C-x * :}.)
 
 @strong{Units conversion.}  Units are entered algebraically.
 Type @w{@kbd{' 43 mi/hr @key{RET}}} to enter the quantity 43 miles-per-hour.
@@ -939,21 +939,21 @@ Type @kbd{7.5}, then @kbd{s l a @key{RET}} to let @expr{a = 7.5} in these formul
 
 @iftex
 @strong{Help functions.}  You can read about any command in the on-line
-manual.  Type @kbd{M-# c} to return to Calc after each of these
+manual.  Type @kbd{C-x * c} to return to Calc after each of these
 commands: @kbd{h k t N} to read about the @kbd{t N} command,
 @kbd{h f sqrt @key{RET}} to read about the @code{sqrt} function, and
 @kbd{h s} to read the Calc summary.
 @end iftex
 @ifinfo
 @strong{Help functions.}  You can read about any command in the on-line
-manual.  Remember to type the letter @kbd{l}, then @kbd{M-# c}, to
+manual.  Remember to type the letter @kbd{l}, then @kbd{C-x * c}, to
 return here after each of these commands: @w{@kbd{h k t N}} to read
 about the @w{@kbd{t N}} command, @kbd{h f sqrt @key{RET}} to read about the
 @code{sqrt} function, and @kbd{h s} to read the Calc summary.
 @end ifinfo
 
 Press @key{DEL} repeatedly to remove any leftover results from the stack.
-To exit from Calc, press @kbd{q} or @kbd{M-# c} again.
+To exit from Calc, press @kbd{q} or @kbd{C-x * c} again.
 
 @node Using Calc, History and Acknowledgements, Demonstration of Calc, Getting Started
 @section Using Calc
@@ -970,54 +970,38 @@ there are Quick mode, Keypad mode, and Embedded mode.
 * Keypad Mode Overview::
 * Standalone Operation::
 * Embedded Mode Overview::
-* Other M-# Commands::
+* Other C-x * Commands::
 @end menu
 
 @node Starting Calc, The Standard Interface, Using Calc, Using Calc
 @subsection Starting Calc
 
 @noindent
-On most systems, you can type @kbd{M-#} to start the Calculator.
-The notation @kbd{M-#} is short for Meta-@kbd{#}.  On most
-keyboards this means holding down the Meta (or Alt) and
-Shift keys while typing @kbd{3}.
+On most systems, you can type @kbd{C-x *} to start the Calculator.
+The key sequence @kbd{C-x *} is bound to the command @code{calc-dispatch}, 
+which can be rebound if convenient (@pxref{Customizing Calc}).
 
-@cindex META key
-Once again, if you don't have a Meta key on your keyboard you can type
-@key{ESC} first, then @kbd{#}, to accomplish the same thing.  If you
-don't even have an @key{ESC} key, you can fake it by holding down
-Control or @key{CTRL} while typing a left square bracket
-(that's @kbd{C-[} in Emacs notation).
-
-The key @kbd{M-#} is bound to the command @code{calc-dispatch}, 
-which can be rebound if convenient.  
-(@xref{Key Bindings,,Customizing Key Bindings,emacs,
-The GNU Emacs Manual}.)
-
-When you press @kbd{M-#}, Emacs waits for you to press a second key to
-complete the command.  In this case, you will follow @kbd{M-#} with a
-letter (upper- or lower-case, it doesn't matter for @kbd{M-#}) that says
+When you press @kbd{C-x *}, Emacs waits for you to press a second key to
+complete the command.  In this case, you will follow @kbd{C-x *} with a
+letter (upper- or lower-case, it doesn't matter for @kbd{C-x *}) that says
 which Calc interface you want to use.
 
-To get Calc's standard interface, type @kbd{M-# c}.  To get
-Keypad mode, type @kbd{M-# k}.  Type @kbd{M-# ?} to get a brief
+To get Calc's standard interface, type @kbd{C-x * c}.  To get
+Keypad mode, type @kbd{C-x * k}.  Type @kbd{C-x * ?} to get a brief
 list of the available options, and type a second @kbd{?} to get
 a complete list.
 
-To ease typing, @kbd{M-# M-#} (or @kbd{M-# #} if that's easier)
-also works to start Calc.  It starts the same interface (either
-@kbd{M-# c} or @w{@kbd{M-# k}}) that you last used, selecting the
-@kbd{M-# c} interface by default.  (If your installation has
-a special function key set up to act like @kbd{M-#}, hitting that
-function key twice is just like hitting @kbd{M-# M-#}.)
+To ease typing, @kbd{C-x * *} also works to start Calc.  It starts the
+same interface (either @kbd{C-x * c} or @w{@kbd{C-x * k}}) that you last
+used, selecting the @kbd{C-x * c} interface by default.
 
-If @kbd{M-#} doesn't work for you, you can always type explicit
+If @kbd{C-x *} doesn't work for you, you can always type explicit
 commands like @kbd{M-x calc} (for the standard user interface) or
 @w{@kbd{M-x calc-keypad}} (for Keypad mode).  First type @kbd{M-x}
 (that's Meta with the letter @kbd{x}), then, at the prompt,
 type the full command (like @kbd{calc-keypad}) and press Return.
 
-The same commands (like @kbd{M-# c} or @kbd{M-# M-#}) that start
+The same commands (like @kbd{C-x * c} or @kbd{C-x * *}) that start
 the Calculator also turn it off if it is already on.
 
 @node The Standard Interface, Quick Mode Overview, Starting Calc, Using Calc
@@ -1026,7 +1010,7 @@ the Calculator also turn it off if it is already on.
 @noindent
 @cindex Standard user interface
 Calc's standard interface acts like a traditional RPN calculator,
-operated by the normal Emacs keyboard.  When you type @kbd{M-# c}
+operated by the normal Emacs keyboard.  When you type @kbd{C-x * c}
 to start the Calculator, the Emacs screen splits into two windows
 with the file you were editing on top and Calc on the bottom.
 
@@ -1082,55 +1066,55 @@ inside a regular window, Emacs acts just like normal.  When the
 cursor is in the Calc stack or trail windows, keys are interpreted
 as Calc commands.
 
-When you quit by pressing @kbd{M-# c} a second time, the Calculator
+When you quit by pressing @kbd{C-x * c} a second time, the Calculator
 windows go away but the actual Stack and Trail are not gone, just
-hidden.  When you press @kbd{M-# c} once again you will get the
+hidden.  When you press @kbd{C-x * c} once again you will get the
 same stack and trail contents you had when you last used the
 Calculator.
 
 The Calculator does not remember its state between Emacs sessions.
-Thus if you quit Emacs and start it again, @kbd{M-# c} will give you
+Thus if you quit Emacs and start it again, @kbd{C-x * c} will give you
 a fresh stack and trail.  There is a command (@kbd{m m}) that lets
 you save your favorite mode settings between sessions, though.
 One of the things it saves is which user interface (standard or
 Keypad) you last used; otherwise, a freshly started Emacs will
-always treat @kbd{M-# M-#} the same as @kbd{M-# c}.
+always treat @kbd{C-x * *} the same as @kbd{C-x * c}.
 
 The @kbd{q} key is another equivalent way to turn the Calculator off.
 
-If you type @kbd{M-# b} first and then @kbd{M-# c}, you get a
+If you type @kbd{C-x * b} first and then @kbd{C-x * c}, you get a
 full-screen version of Calc (@code{full-calc}) in which the stack and
 trail windows are still side-by-side but are now as tall as the whole
-Emacs screen.  When you press @kbd{q} or @kbd{M-# c} again to quit,
-the file you were editing before reappears.  The @kbd{M-# b} key
+Emacs screen.  When you press @kbd{q} or @kbd{C-x * c} again to quit,
+the file you were editing before reappears.  The @kbd{C-x * b} key
 switches back and forth between ``big'' full-screen mode and the
 normal partial-screen mode.
 
-Finally, @kbd{M-# o} (@code{calc-other-window}) is like @kbd{M-# c}
+Finally, @kbd{C-x * o} (@code{calc-other-window}) is like @kbd{C-x * c}
 except that the Calc window is not selected.  The buffer you were
-editing before remains selected instead.  @kbd{M-# o} is a handy
+editing before remains selected instead.  @kbd{C-x * o} is a handy
 way to switch out of Calc momentarily to edit your file; type
-@kbd{M-# c} to switch back into Calc when you are done.
+@kbd{C-x * c} to switch back into Calc when you are done.
 
 @node Quick Mode Overview, Keypad Mode Overview, The Standard Interface, Using Calc
 @subsection Quick Mode (Overview)
 
 @noindent
 @dfn{Quick mode} is a quick way to use Calc when you don't need the
-full complexity of the stack and trail.  To use it, type @kbd{M-# q}
+full complexity of the stack and trail.  To use it, type @kbd{C-x * q}
 (@code{quick-calc}) in any regular editing buffer.
 
 Quick mode is very simple:  It prompts you to type any formula in
 standard algebraic notation (like @samp{4 - 2/3}) and then displays
 the result at the bottom of the Emacs screen (@mathit{3.33333333333}
 in this case).  You are then back in the same editing buffer you
-were in before, ready to continue editing or to type @kbd{M-# q}
+were in before, ready to continue editing or to type @kbd{C-x * q}
 again to do another quick calculation.  The result of the calculation
 will also be in the Emacs ``kill ring'' so that a @kbd{C-y} command
 at this point will yank the result into your editing buffer.
 
 Calc mode settings affect Quick mode, too, though you will have to
-go into regular Calc (with @kbd{M-# c}) to change the mode settings.
+go into regular Calc (with @kbd{C-x * c}) to change the mode settings.
 
 @c [fix-ref Quick Calculator mode]
 @xref{Quick Calculator}, for further information.
@@ -1144,7 +1128,7 @@ It is designed for use with terminals that support a mouse.  If you
 don't have a mouse, you will have to operate Keypad mode with your
 arrow keys (which is probably more trouble than it's worth).
 
-Type @kbd{M-# k} to turn Keypad mode on or off.  Once again you
+Type @kbd{C-x * k} to turn Keypad mode on or off.  Once again you
 get two new windows, this time on the righthand side of the screen
 instead of at the bottom.  The upper window is the familiar Calc
 Stack; the lower window is a picture of a typical calculator keypad.
@@ -1206,7 +1190,7 @@ this buffer in the usual way while also clicking on the Calculator
 keypad.  One advantage of Keypad mode is that you don't need an
 explicit command to switch between editing and calculating.
 
-If you press @kbd{M-# b} first, you get a full-screen Keypad mode
+If you press @kbd{C-x * b} first, you get a full-screen Keypad mode
 (@code{full-calc-keypad}) with three windows:  The keypad in the lower
 left, the stack in the lower right, and the trail on top.
 
@@ -1234,13 +1218,13 @@ emacs -f full-calc-keypad
 @end example
 
 @noindent
-which run a full-screen Calculator (as if by @kbd{M-# b M-# c}) or
-a full-screen X-based Calculator (as if by @kbd{M-# b M-# k}).
+which run a full-screen Calculator (as if by @kbd{C-x * b C-x * c}) or
+a full-screen X-based Calculator (as if by @kbd{C-x * b C-x * k}).
 In standalone operation, quitting the Calculator (by pressing
 @kbd{q} or clicking on the keypad @key{EXIT} button) quits Emacs
 itself.
 
-@node Embedded Mode Overview, Other M-# Commands, Standalone Operation, Using Calc
+@node Embedded Mode Overview, Other C-x * Commands, Standalone Operation, Using Calc
 @subsection Embedded Mode (Overview)
 
 @noindent
@@ -1276,7 +1260,7 @@ is
 @end group
 @end smallexample
 
-Now, move the cursor onto this new formula and press @kbd{M-# e}.
+Now, move the cursor onto this new formula and press @kbd{C-x * e}.
 Calc will read the formula (using the surrounding blank lines to
 tell how much text to read), then push this formula (invisibly)
 onto the Calc stack.  The cursor will stay on the formula in the
@@ -1340,10 +1324,10 @@ righthand label:  Type @kbd{d @} (1) @key{RET}}.
 @end group
 @end smallexample
 
-To leave Embedded mode, type @kbd{M-# e} again.  The mode line
+To leave Embedded mode, type @kbd{C-x * e} again.  The mode line
 and keyboard will revert to the way they were before.
 
-The related command @kbd{M-# w} operates on a single word, which
+The related command @kbd{C-x * w} operates on a single word, which
 generally means a single number, inside text.  It uses any
 non-numeric characters rather than blank lines to delimit the
 formula it reads.  Here's an example of its use:
@@ -1352,10 +1336,10 @@ formula it reads.  Here's an example of its use:
 A slope of one-third corresponds to an angle of 1 degrees.
 @end smallexample
 
-Place the cursor on the @samp{1}, then type @kbd{M-# w} to enable
+Place the cursor on the @samp{1}, then type @kbd{C-x * w} to enable
 Embedded mode on that number.  Now type @kbd{3 /} (to get one-third),
 and @kbd{I T} (the Inverse Tangent converts a slope into an angle),
-then @w{@kbd{M-# w}} again to exit Embedded mode.
+then @w{@kbd{C-x * w}} again to exit Embedded mode.
 
 @smallexample
 A slope of one-third corresponds to an angle of 18.4349488229 degrees.
@@ -1364,47 +1348,50 @@ A slope of one-third corresponds to an angle of 18.4349488229 degrees.
 @c [fix-ref Embedded Mode]
 @xref{Embedded Mode}, for full details.
 
-@node Other M-# Commands, , Embedded Mode Overview, Using Calc
-@subsection Other @kbd{M-#} Commands
+@node Other C-x * Commands, , Embedded Mode Overview, Using Calc
+@subsection Other @kbd{C-x *} Commands
 
 @noindent
-Two more Calc-related commands are @kbd{M-# g} and @kbd{M-# r},
+Two more Calc-related commands are @kbd{C-x * g} and @kbd{C-x * r},
 which ``grab'' data from a selected region of a buffer into the
 Calculator.  The region is defined in the usual Emacs way, by
 a ``mark'' placed at one end of the region, and the Emacs
 cursor or ``point'' placed at the other.
 
-The @kbd{M-# g} command reads the region in the usual left-to-right,
+The @kbd{C-x * g} command reads the region in the usual left-to-right,
 top-to-bottom order.  The result is packaged into a Calc vector
 of numbers and placed on the stack.  Calc (in its standard
 user interface) is then started.  Type @kbd{v u} if you want
 to unpack this vector into separate numbers on the stack.  Also,
-@kbd{C-u M-# g} interprets the region as a single number or
+@kbd{C-u C-x * g} interprets the region as a single number or
 formula.
 
-The @kbd{M-# r} command reads a rectangle, with the point and
+The @kbd{C-x * r} command reads a rectangle, with the point and
 mark defining opposite corners of the rectangle.  The result
 is a matrix of numbers on the Calculator stack.
 
-Complementary to these is @kbd{M-# y}, which ``yanks'' the
+Complementary to these is @kbd{C-x * y}, which ``yanks'' the
 value at the top of the Calc stack back into an editing buffer.
-If you type @w{@kbd{M-# y}} while in such a buffer, the value is
-yanked at the current position.  If you type @kbd{M-# y} while
+If you type @w{@kbd{C-x * y}} while in such a buffer, the value is
+yanked at the current position.  If you type @kbd{C-x * y} while
 in the Calc buffer, Calc makes an educated guess as to which
 editing buffer you want to use.  The Calc window does not have
 to be visible in order to use this command, as long as there
 is something on the Calc stack.
 
-Here, for reference, is the complete list of @kbd{M-#} commands.
+Here, for reference, is the complete list of @kbd{C-x *} commands.
 The shift, control, and meta keys are ignored for the keystroke
-following @kbd{M-#}.
+following @kbd{C-x *}.
 
 @noindent
 Commands for turning Calc on and off:
 
 @table @kbd
-@item #
+@item *
 Turn Calc on or off, employing the same user interface as last time.
+
+@item =, +, -, /, \, &, #
+Alternatives for @kbd{*}.
 
 @item C
 Turn Calc on or off using its standard bottom-of-the-screen
@@ -1417,7 +1404,7 @@ Calc is already turned on and the cursor is in the Calc window,
 move it out of that window.
 
 @item B
-Control whether @kbd{M-# c} and @kbd{M-# k} use the full screen.
+Control whether @kbd{C-x * c} and @kbd{C-x * k} use the full screen.
 
 @item Q
 Use Quick mode for a single short calculation.
@@ -1628,7 +1615,7 @@ finished in two weeks.
 @c [tutorial]
 
 @ifinfo
-@c This node is accessed by the `M-# t' command.
+@c This node is accessed by the `C-x * t' command.
 @node Interactive Tutorial, , , Top
 @chapter Tutorial
 
@@ -1682,16 +1669,16 @@ the Embedded mode interface.
 The easiest way to read this tutorial on-line is to have two windows on
 your Emacs screen, one with Calc and one with the Info system.  (If you
 have a printed copy of the manual you can use that instead.)  Press
-@kbd{M-# c} to turn Calc on or to switch into the Calc window, and
-press @kbd{M-# i} to start the Info system or to switch into its window.
+@kbd{C-x * c} to turn Calc on or to switch into the Calc window, and
+press @kbd{C-x * i} to start the Info system or to switch into its window.
 Or, you may prefer to use the tutorial in printed form.
 @end ifinfo
 @iftex
 The easiest way to read this tutorial on-line is to have two windows on
 your Emacs screen, one with Calc and one with the Info system.  (If you
 have a printed copy of the manual you can use that instead.)  Press
-@kbd{M-# c} to turn Calc on or to switch into the Calc window, and
-press @kbd{M-# i} to start the Info system or to switch into its window.
+@kbd{C-x * c} to turn Calc on or to switch into the Calc window, and
+press @kbd{C-x * i} to start the Info system or to switch into its window.
 @end iftex
 
 This tutorial is designed to be done in sequence.  But the rest of this
@@ -1772,8 +1759,8 @@ number of operands from the stack and pushes back the result.
 Thus we could add the numbers 2 and 3 in an RPN calculator by typing:
 @kbd{2 @key{RET} 3 @key{RET} +}.  (The @key{RET} key, Return, corresponds to
 the @key{ENTER} key on traditional RPN calculators.)  Try this now if
-you wish; type @kbd{M-# c} to switch into the Calc window (you can type
-@kbd{M-# c} again or @kbd{M-# o} to switch back to the Tutorial window).
+you wish; type @kbd{C-x * c} to switch into the Calc window (you can type
+@kbd{C-x * c} again or @kbd{C-x * o} to switch back to the Tutorial window).
 The first four keystrokes ``push'' the numbers 2 and 3 onto the stack.
 The @kbd{+} key ``pops'' the top two numbers from the stack, adds them,
 and pushes the result (5) back onto the stack.  Here's how the stack
@@ -1785,7 +1772,7 @@ will look at various points throughout the calculation:
                    .          1:  3              .
                                   .
 
-  M-# c          2 @key{RET}          3 @key{RET}            +             @key{DEL}
+  C-x * c          2 @key{RET}          3 @key{RET}            +             @key{DEL}
 @end group
 @end smallexample
 
@@ -2434,7 +2421,7 @@ when we discuss the algebra and calculus features of the Calculator.
 @noindent
 If you make a mistake, you can usually correct it by pressing shift-@kbd{U},
 the ``undo'' command.  First, clear the stack (@kbd{M-0 @key{DEL}}) and exit
-and restart Calc (@kbd{M-# M-# M-# M-#}) to make sure things start off
+and restart Calc (@kbd{C-x * * C-x * *}) to make sure things start off
 with a clean slate.  Now:
 
 @smallexample
@@ -4093,7 +4080,7 @@ of values in a file we have loaded into Emacs:
 
 @noindent
 If you are reading this tutorial in printed form, you will find it
-easiest to press @kbd{M-# i} to enter the on-line Info version of
+easiest to press @kbd{C-x * i} to enter the on-line Info version of
 the manual and find this table there.  (Press @kbd{g}, then type
 @kbd{List Tutorial}, to jump straight to this section.)
 
@@ -4102,7 +4089,7 @@ to the left of the @expr{1.34}.  Press @kbd{C-@@} to set the mark.
 (On your system this may be @kbd{C-2}, @kbd{C-@key{SPC}}, or @kbd{NUL}.)
 Now position the cursor to the lower-right, just after the @expr{1.354}.
 You have now defined this region as an Emacs ``rectangle.''  Still
-in the Info buffer, type @kbd{M-# r}.  This command
+in the Info buffer, type @kbd{C-x * r}.  This command
 (@code{calc-grab-rectangle}) will pop you back into the Calculator, with
 the contents of the rectangle you specified in the form of a matrix.
 
@@ -4372,7 +4359,7 @@ to solve for @expr{m} and @expr{b}, duplicating the above result.
 
 @cindex Geometric mean
 (@bullet{}) @strong{Exercise 3.}  If the input data do not form a
-rectangle, you can use @w{@kbd{M-# g}} (@code{calc-grab-region})
+rectangle, you can use @w{@kbd{C-x * g}} (@code{calc-grab-region})
 to grab the data the way Emacs normally works with regions---it reads
 left-to-right, top-to-bottom, treating line breaks the same as spaces.
 Use this command to find the geometric mean of the following numbers.
@@ -4385,7 +4372,7 @@ Use this command to find the geometric mean of the following numbers.
 @end example
 
 @noindent
-The @kbd{M-# g} command accepts numbers separated by spaces or commas,
+The @kbd{C-x * g} command accepts numbers separated by spaces or commas,
 with or without surrounding vector brackets.
 @xref{List Answer 3, 3}. (@bullet{})
 
@@ -5120,7 +5107,7 @@ numbers are in which units:
 @end smallexample
 
 To see a complete list of built-in units, type @kbd{u v}.  Press
-@w{@kbd{M-# c}} again to re-enter the Calculator when you're done looking
+@w{@kbd{C-x * c}} again to re-enter the Calculator when you're done looking
 at the units table.
 
 (@bullet{}) @strong{Exercise 13.}  How many seconds are there really
@@ -6586,9 +6573,9 @@ The @file{edmacro} package defines a handy @code{read-kbd-macro} command
 which reads the current region of the current buffer as a sequence of
 keystroke names, and defines that sequence on the @kbd{X} 
 (and @kbd{C-x e}) key.  Because this is so useful, Calc puts this
-command on the @kbd{M-# m} key.  Try reading in this macro in the
+command on the @kbd{C-x * m} key.  Try reading in this macro in the
 following form:  Press @kbd{C-@@} (or @kbd{C-@key{SPC}}) at 
-one end of the text below, then type @kbd{M-# m} at the other.
+one end of the text below, then type @kbd{C-x * m} at the other.
 
 @example
 @group
@@ -6738,7 +6725,7 @@ it to a key with, e.g., @kbd{Z K s}.  Now enter the true definition,
 using the @kbd{z s} command to call itself recursively, then assign it
 to the same key with @kbd{Z K s}.  Now the @kbd{z s} command will run
 the complete recursive program.  (Another way is to use @w{@kbd{Z E}}
-or @kbd{M-# m} (@code{read-kbd-macro}) to read the whole macro at once,
+or @kbd{C-x * m} (@code{read-kbd-macro}) to read the whole macro at once,
 thus avoiding the ``training'' phase.)  The task:  Write a program
 that computes Stirling numbers of the first kind, given @expr{n} and
 @expr{m} on the stack.  Test it with @emph{small} inputs like
@@ -7530,7 +7517,7 @@ fits.  @xref{Curve Fitting}.
 @noindent
 Move to one end of the list and press @kbd{C-@@} (or @kbd{C-@key{SPC}} or
 whatever) to set the mark, then move to the other end of the list
-and type @w{@kbd{M-# g}}.
+and type @w{@kbd{C-x * g}}.
 
 @smallexample
 @group
@@ -9525,7 +9512,7 @@ the formula
 @infoline @expr{x - f(x)/f'(x)}.
 
 (Because this definition is long, it will be repeated in concise form
-below.  You can use @w{@kbd{M-# m}} to load it from there.  While you are
+below.  You can use @w{@kbd{C-x * m}} to load it from there.  While you are
 entering a @kbd{Z ` Z '} body in a macro, Calc simply collects
 keystrokes without executing them.  In the following diagrams we'll
 pretend Calc actually executed the keystrokes as you typed them,
@@ -9647,7 +9634,7 @@ and remember to add back a factor of @expr{-1/z} when we're done.  This
 step is repeated until @expr{z > 5}.
 
 (Because this definition is long, it will be repeated in concise form
-below.  You can use @w{@kbd{M-# m}} to load it from there.  While you are
+below.  You can use @w{@kbd{C-x * m}} to load it from there.  While you are
 entering a @kbd{Z ` Z '} body in a macro, Calc simply collects
 keystrokes without executing them.  In the following diagrams we'll
 pretend Calc actually executed the keystrokes as you typed them,
@@ -9768,7 +9755,7 @@ derivative of a polynomial, evaluated at @expr{x = 0}, will equal the
 coefficient on the @expr{x^n} term times @expr{n!}.
 
 (Because this definition is long, it will be repeated in concise form
-below.  You can use @w{@kbd{M-# m}} to load it from there.  While you are
+below.  You can use @w{@kbd{C-x * m}} to load it from there.  While you are
 entering a @kbd{Z ` Z '} body in a macro, Calc simply collects
 keystrokes without executing them.  In the following diagrams we'll
 pretend Calc actually executed the keystrokes as you typed them,
@@ -9877,7 +9864,7 @@ definition.  The recurrence needs to be rewritten slightly,
 to the form @expr{s(n,m) = s(n-1,m-1) - (n-1) s(n-1,m)}.
 
 (Because this definition is long, it will be repeated in concise form
-below.  You can use @kbd{M-# m} to load it from there.)
+below.  You can use @kbd{C-x * m} to load it from there.)
 
 @smallexample
 @group
@@ -9951,10 +9938,10 @@ C-x )
 @end group
 @end example
 
-You can read this definition using @kbd{M-# m} (@code{read-kbd-macro})
+You can read this definition using @kbd{C-x * m} (@code{read-kbd-macro})
 followed by @kbd{Z K s}, without having to make a dummy definition
 first, because @code{read-kbd-macro} doesn't need to execute the
-definition as it reads it in.  For this reason, @code{M-# m} is often
+definition as it reads it in.  For this reason, @code{C-x * m} is often
 the easiest way to create recursive programs in Calc.
 
 @node Programming Answer 12, , Programming Answer 11, Answers to Exercises
@@ -10044,15 +10031,14 @@ still work when the trail buffer's window is selected.  It is possible
 to turn the trail window off, but the @samp{*Calc Trail*} buffer itself
 still exists and is updated silently.  @xref{Trail Commands}.
 
-@kindex M-# c
-@kindex M-# M-#
+@kindex C-x * c
+@kindex C-x * *
 @ignore
 @mindex @null
 @end ignore
-@kindex M-# #
-In most installations, the @kbd{M-# c} key sequence is a more
-convenient way to start the Calculator.  Also, @kbd{M-# M-#} and
-@kbd{M-# #} are synonyms for @kbd{M-# c} unless you last used Calc
+In most installations, the @kbd{C-x * c} key sequence is a more
+convenient way to start the Calculator.  Also, @kbd{C-x * *} 
+is a synonym for @kbd{C-x * c} unless you last used Calc
 in its Keypad mode.
 
 @kindex x
@@ -10068,7 +10054,7 @@ for you.  For example, the following key sequences are equivalent:
 
 @cindex Extensions module
 @cindex @file{calc-ext} module
-The Calculator exists in many parts.  When you type @kbd{M-# c}, the
+The Calculator exists in many parts.  When you type @kbd{C-x * c}, the
 Emacs ``auto-load'' mechanism will bring in only the first part, which
 contains the basic arithmetic functions.  The other parts will be
 auto-loaded the first time you use the more advanced commands like trig
@@ -10076,48 +10062,48 @@ functions or matrix operations.  This is done to improve the response time
 of the Calculator in the common case when all you need to do is a
 little arithmetic.  If for some reason the Calculator fails to load an
 extension module automatically, you can force it to load all the
-extensions by using the @kbd{M-# L} (@code{calc-load-everything})
+extensions by using the @kbd{C-x * L} (@code{calc-load-everything})
 command.  @xref{Mode Settings}.
 
-If you type @kbd{M-x calc} or @kbd{M-# c} with any numeric prefix argument,
+If you type @kbd{M-x calc} or @kbd{C-x * c} with any numeric prefix argument,
 the Calculator is loaded if necessary, but it is not actually started.
 If the argument is positive, the @file{calc-ext} extensions are also
 loaded if necessary.  User-written Lisp code that wishes to make use
 of Calc's arithmetic routines can use @samp{(calc 0)} or @samp{(calc 1)}
 to auto-load the Calculator.
 
-@kindex M-# b
+@kindex C-x * b
 @pindex full-calc
-If you type @kbd{M-# b}, then next time you use @kbd{M-# c} you
+If you type @kbd{C-x * b}, then next time you use @kbd{C-x * c} you
 will get a Calculator that uses the full height of the Emacs screen.
-When full-screen mode is on, @kbd{M-# c} runs the @code{full-calc}
+When full-screen mode is on, @kbd{C-x * c} runs the @code{full-calc}
 command instead of @code{calc}.  From the Unix shell you can type
 @samp{emacs -f full-calc} to start a new Emacs specifically for use
 as a calculator.  When Calc is started from the Emacs command line
 like this, Calc's normal ``quit'' commands actually quit Emacs itself.
 
-@kindex M-# o
+@kindex C-x * o
 @pindex calc-other-window
-The @kbd{M-# o} command is like @kbd{M-# c} except that the Calc
+The @kbd{C-x * o} command is like @kbd{C-x * c} except that the Calc
 window is not actually selected.  If you are already in the Calc
-window, @kbd{M-# o} switches you out of it.  (The regular Emacs
+window, @kbd{C-x * o} switches you out of it.  (The regular Emacs
 @kbd{C-x o} command would also work for this, but it has a
 tendency to drop you into the Calc Trail window instead, which
-@kbd{M-# o} takes care not to do.)
+@kbd{C-x * o} takes care not to do.)
 
 @ignore
-@mindex M-# q
+@mindex C-x * q
 @end ignore
-For one quick calculation, you can type @kbd{M-# q} (@code{quick-calc})
+For one quick calculation, you can type @kbd{C-x * q} (@code{quick-calc})
 which prompts you for a formula (like @samp{2+3/4}).  The result is
 displayed at the bottom of the Emacs screen without ever creating
 any special Calculator windows.  @xref{Quick Calculator}.
 
 @ignore
-@mindex M-# k
+@mindex C-x * k
 @end ignore
 Finally, if you are using the X window system you may want to try
-@kbd{M-# k} (@code{calc-keypad}) which runs Calc with a
+@kbd{C-x * k} (@code{calc-keypad}) which runs Calc with a
 ``calculator keypad'' picture as well as a stack display.  Click on
 the keys with the mouse to operate the calculator.  @xref{Keypad Mode}.
 
@@ -10128,13 +10114,13 @@ the keys with the mouse to operate the calculator.  @xref{Keypad Mode}.
 The @kbd{q} key (@code{calc-quit}) exits Calc mode and closes the
 Calculator's window(s).  It does not delete the Calculator buffers.
 If you type @kbd{M-x calc} again, the Calculator will reappear with the
-contents of the stack intact.  Typing @kbd{M-# c} or @kbd{M-# M-#}
+contents of the stack intact.  Typing @kbd{C-x * c} or @kbd{C-x * *}
 again from inside the Calculator buffer is equivalent to executing
-@code{calc-quit}; you can think of @kbd{M-# M-#} as toggling the
+@code{calc-quit}; you can think of @kbd{C-x * *} as toggling the
 Calculator on and off.
 
-@kindex M-# x
-The @kbd{M-# x} command also turns the Calculator off, no matter which
+@kindex C-x * x
+The @kbd{C-x * x} command also turns the Calculator off, no matter which
 user interface (standard, Keypad, or Embedded) is currently active.
 It also cancels @code{calc-edit} mode if used from there.
 
@@ -10174,18 +10160,18 @@ The @kbd{@{} and @kbd{@}} keys are bound to @code{calc-scroll-down}
 and @code{calc-scroll-up}.  They scroll up or down by one-half the
 height of the Calc window.
 
-@kindex M-# 0
+@kindex C-x * 0
 @pindex calc-reset
-The @kbd{M-# 0} command (@code{calc-reset}; that's @kbd{M-#} followed
+The @kbd{C-x * 0} command (@code{calc-reset}; that's @kbd{C-x *} followed
 by a zero) resets the Calculator to its initial state.  This clears
 the stack, resets all the modes to their initial values (the values
 that were saved with @kbd{m m} (@code{calc-save-modes})), clears the
 caches (@pxref{Caches}), and so on.  (It does @emph{not} erase the
 values of any variables.) With an argument of 0, Calc will be reset to
 its default state; namely, the modes will be given their default values.
-With a positive prefix argument, @kbd{M-# 0} preserves the contents of
+With a positive prefix argument, @kbd{C-x * 0} preserves the contents of
 the stack but resets everything else to its initial state; with a
-negative prefix argument, @kbd{M-# 0} preserves the contents of the
+negative prefix argument, @kbd{C-x * 0} preserves the contents of the
 stack but resets everything else to its default state.
 
 @pindex calc-version
@@ -10219,21 +10205,21 @@ provide help within Calc.  Many of the @kbd{h} key functions are
 Calc-specific analogues to the @kbd{C-h} functions for Emacs help.
 
 @kindex h i
-@kindex M-# i
+@kindex C-x * i
 @kindex i
 @pindex calc-info
 The @kbd{h i} (@code{calc-info}) command runs the Emacs Info system
 to read this manual on-line.  This is basically the same as typing
 @kbd{C-h i} (the regular way to run the Info system), then, if Info
 is not already in the Calc manual, selecting the beginning of the
-manual.  The @kbd{M-# i} command is another way to read the Calc
+manual.  The @kbd{C-x * i} command is another way to read the Calc
 manual; it is different from @kbd{h i} in that it works any time,
 not just inside Calc.  The plain @kbd{i} key is also equivalent to
 @kbd{h i}, though this key is obsolete and may be replaced with a
 different command in a future version of Calc.
 
 @kindex h t
-@kindex M-# t
+@kindex C-x * t
 @pindex calc-tutorial
 The @kbd{h t} (@code{calc-tutorial}) command runs the Info system on
 the Tutorial section of the Calc manual.  It is like @kbd{h i},
@@ -10241,14 +10227,14 @@ except that it selects the starting node of the tutorial rather
 than the beginning of the whole manual.  (It actually selects the
 node ``Interactive Tutorial'' which tells a few things about
 using the Info system before going on to the actual tutorial.)
-The @kbd{M-# t} key is equivalent to @kbd{h t} (but it works at
+The @kbd{C-x * t} key is equivalent to @kbd{h t} (but it works at
 all times).
 
 @kindex h s
-@kindex M-# s
+@kindex C-x * s
 @pindex calc-info-summary
 The @kbd{h s} (@code{calc-info-summary}) command runs the Info system
-on the Summary node of the Calc manual.  @xref{Summary}.  The @kbd{M-# s}
+on the Summary node of the Calc manual.  @xref{Summary}.  The @kbd{C-x * s}
 key is equivalent to @kbd{h s}.
 
 @kindex h k
@@ -10526,11 +10512,11 @@ you might then press @kbd{=} when it is time to evaluate this formula.
 @section ``Quick Calculator'' Mode
 
 @noindent
-@kindex M-# q
+@kindex C-x * q
 @pindex quick-calc
 @cindex Quick Calculator
 There is another way to invoke the Calculator if all you need to do
-is make one or two quick calculations.  Type @kbd{M-# q} (or
+is make one or two quick calculations.  Type @kbd{C-x * q} (or
 @kbd{M-x quick-calc}), then type any formula as an algebraic entry.
 The Calculator will compute the result and display it in the echo
 area, without ever actually putting up a Calc window.
@@ -10539,11 +10525,11 @@ You can use the @kbd{$} character in a Quick Calculator formula to
 refer to the previous Quick Calculator result.  Older results are
 not retained; the Quick Calculator has no effect on the full
 Calculator's stack or trail.  If you compute a result and then
-forget what it was, just run @code{M-# q} again and enter
+forget what it was, just run @code{C-x * q} again and enter
 @samp{$} as the formula.
 
 If this is the first time you have used the Calculator in this Emacs
-session, the @kbd{M-# q} command will create the @code{*Calculator*}
+session, the @kbd{C-x * q} command will create the @code{*Calculator*}
 buffer and perform all the usual initializations; it simply will
 refrain from putting that buffer up in a new window.  The Quick
 Calculator refers to the @code{*Calculator*} buffer for all mode
@@ -10551,15 +10537,15 @@ settings.  Thus, for example, to set the precision that the Quick
 Calculator uses, simply run the full Calculator momentarily and use
 the regular @kbd{p} command.
 
-If you use @code{M-# q} from inside the Calculator buffer, the
+If you use @code{C-x * q} from inside the Calculator buffer, the
 effect is the same as pressing the apostrophe key (algebraic entry).
 
 The result of a Quick calculation is placed in the Emacs ``kill ring''
 as well as being displayed.  A subsequent @kbd{C-y} command will
 yank the result into the editing buffer.  You can also use this
-to yank the result into the next @kbd{M-# q} input line as a more
+to yank the result into the next @kbd{C-x * q} input line as a more
 explicit alternative to @kbd{$} notation, or to yank the result
-into the Calculator stack after typing @kbd{M-# c}.
+into the Calculator stack after typing @kbd{C-x * c}.
 
 If you finish your formula by typing @key{LFD} (or @kbd{C-j}) instead
 of @key{RET}, the result is inserted immediately into the current
@@ -10655,7 +10641,7 @@ queried whether or not to restore the variable to its original value.
 The @kbd{U} key may be pressed any number of times to undo successively
 farther back in time; with a numeric prefix argument it undoes a
 specified number of operations.  The undo history is cleared only by the
-@kbd{q} (@code{calc-quit}) command.  (Recall that @kbd{M-# c} is
+@kbd{q} (@code{calc-quit}) command.  (Recall that @kbd{C-x * c} is
 synonymous with @code{calc-quit} while inside the Calculator; this
 also clears the undo history.)
 
@@ -10731,7 +10717,7 @@ that you must always press @kbd{w} yourself to see the messages).
 @pindex another-calc
 It is possible to have any number of Calc mode buffers at once.
 Usually this is done by executing @kbd{M-x another-calc}, which
-is similar to @kbd{M-# c} except that if a @samp{*Calculator*}
+is similar to @kbd{C-x * c} except that if a @samp{*Calculator*}
 buffer already exists, a new, independent one with a name of the
 form @samp{*Calculator*<@var{n}>} is created.  You can also use the
 command @code{calc-mode} to put any buffer into Calculator mode, but
@@ -10778,9 +10764,9 @@ Occasionally Calc may lose track of when a certain component is
 necessary; typically this means you will type a command and it won't
 work because some function you've never heard of was undefined.
 
-@kindex M-# L
+@kindex C-x * L
 @pindex calc-load-everything
-If this happens, the easiest workaround is to type @kbd{M-# L}
+If this happens, the easiest workaround is to type @kbd{C-x * L}
 (@code{calc-load-everything}) to force all the parts of Calc to be
 loaded right away.  This will cause Emacs to take up a lot more
 memory than it would otherwise, but it's guaranteed to fix the problem.
@@ -10839,7 +10825,7 @@ data points computed by the graphing commands.
 If you suspect a Calculator cache has become corrupt, you can use the
 @code{calc-flush-caches} command to reset all caches to the empty state.
 (This should only be necessary in the event of bugs in the Calculator.)
-The @kbd{M-# 0} (with the zero key) command also resets caches along
+The @kbd{C-x * 0} (with the zero key) command also resets caches along
 with all other aspects of the Calculator's state.
 
 @node Debugging Calc, , Caches, Troubleshooting Commands
@@ -12049,8 +12035,8 @@ represent the same operation.
 
 Commands that interpret (``parse'') text as algebraic formulas include
 algebraic entry (@kbd{'}), editing commands like @kbd{`} which parse
-the contents of the editing buffer when you finish, the @kbd{M-# g}
-and @w{@kbd{M-# r}} commands, the @kbd{C-y} command, the X window system
+the contents of the editing buffer when you finish, the @kbd{C-x * g}
+and @w{@kbd{C-x * r}} commands, the @kbd{C-y} command, the X window system
 ``paste'' mouse operation, and Embedded mode.  All of these operations
 use the same rules for parsing formulas; in particular, language modes
 (@pxref{Language Modes}) affect them all in the same way.
@@ -12446,8 +12432,8 @@ This will cause Emacs to reestablish these modes each time it starts up.
 The modes saved in the file include everything controlled by the @kbd{m}
 and @kbd{d} prefix keys, the current precision and binary word size,
 whether or not the trail is displayed, the current height of the Calc
-window, and more.  The current interface (used when you type @kbd{M-#
-M-#}) is also saved.  If there were already saved mode settings in the
+window, and more.  The current interface (used when you type @kbd{C-x * *}) 
+is also saved.  If there were already saved mode settings in the
 file, they are replaced.  Otherwise, the new mode information is
 appended to the end of the file.
 
@@ -12473,7 +12459,7 @@ if this file exists, and this file becomes the one that Calc will
 use in the future for commands like @kbd{m m}.  The default settings
 file name is @file{~/.calc.el}.  You can see the current file name by
 giving a blank response to the @kbd{m F} prompt.  See also the
-discussion of the @code{calc-settings-file} variable; @pxref{Customizable Variables}.
+discussion of the @code{calc-settings-file} variable; @pxref{Customizing Calc}.
 
 If the file name you give is your user init file (typically
 @file{~/.emacs}), @kbd{m F} will not automatically load the new file.  This
@@ -12494,7 +12480,7 @@ extensions modules.  Otherwise, the extensions modules will not be loaded
 until the various advanced Calc features are used.  Since this mode only
 has effect when Calc is first loaded, @kbd{m x} is usually followed by
 @kbd{m m} to make the mode-setting permanent.  To load all of Calc just
-once, rather than always in the future, you can press @kbd{M-# L}.
+once, rather than always in the future, you can press @kbd{C-x * L}.
 
 @kindex m S
 @pindex calc-shift-prefix
@@ -12864,7 +12850,7 @@ recomputation is off, you can think of @kbd{m C m C} as a command
 to update all @samp{=>} operators while leaving recomputation off.)
 
 To update @samp{=>} operators in an Embedded buffer while
-automatic recomputation is off, use @w{@kbd{M-# u}}.
+automatic recomputation is off, use @w{@kbd{C-x * u}}.
 @xref{Embedded Mode}.
 
 @node Working Message, , Automatic Recomputation, Calculation Modes
@@ -13511,7 +13497,7 @@ uses it as the digit separator.  As a special case, @kbd{d , \} selects
 @samp{\,} (@TeX{}'s thin-space symbol) as the digit separator.
 
 Please note that grouped numbers will not generally be parsed correctly
-if re-read in textual form, say by the use of @kbd{M-# y} and @kbd{M-# g}.
+if re-read in textual form, say by the use of @kbd{C-x * y} and @kbd{C-x * g}.
 (@xref{Kill and Yank}, for details on these commands.)  One exception is
 the @samp{\,} separator, which doesn't interfere with parsing because it
 is ignored by @TeX{} language mode.
@@ -13571,7 +13557,7 @@ significant figures but displays only six.  (In fact, intermediate
 calculations are often carried to one or two more significant figures,
 but values placed on the stack will be rounded down to ten figures.)
 Numbers are never actually rounded to the display precision for storage,
-except by commands like @kbd{C-k} and @kbd{M-# y} which operate on the
+except by commands like @kbd{C-k} and @kbd{C-x * y} which operate on the
 actual displayed text in the Calculator buffer.
 
 @kindex d .
@@ -14133,9 +14119,9 @@ and use the standard notation by giving a numeric prefix, e.g., @kbd{C-u '}.
 For example, suppose the formula @samp{2*a[1] + atan(a[2])} occurs in a C
 program; elsewhere in the program you need the derivatives of this formula
 with respect to @samp{a[1]} and @samp{a[2]}.  First, type @kbd{d C}
-to switch to C notation.  Now use @code{C-u M-# g} to grab the formula
+to switch to C notation.  Now use @code{C-u C-x * g} to grab the formula
 into the Calculator, @kbd{a d a[1] @key{RET}} to differentiate with respect
-to the first variable, and @kbd{M-# y} to yank the formula for the derivative
+to the first variable, and @kbd{C-x * y} to yank the formula for the derivative
 back into your C program.  Press @kbd{U} to undo the differentiation and
 repeat with @kbd{a d a[2] @key{RET}} for the other derivative.
 
@@ -21278,8 +21264,8 @@ but they are not currently supported with @kbd{V U} or @kbd{I V U}.
 The obsolete reduce-by-columns function, @code{reducec}, is still
 supported but there is no way to get it through the @kbd{V R} command.
 
-The commands @kbd{M-# :} and @kbd{M-# _} are equivalent to typing
-@kbd{M-# r} to grab a rectangle of data into Calc, and then typing
+The commands @kbd{C-x * :} and @kbd{C-x * _} are equivalent to typing
+@kbd{C-x * r} to grab a rectangle of data into Calc, and then typing
 @kbd{V R : +} or @kbd{V R _ +}, respectively, to sum the columns or
 rows of the matrix.  @xref{Grabbing From Buffers}.
 
@@ -27934,7 +27920,7 @@ argument to @kbd{u v}.
 The @kbd{u V} (@code{calc-view-units-table}) command is like @kbd{u v} except
 that the cursor is not moved into the Units Table buffer.  You can
 type @kbd{u V} again to remove the Units Table from the display.  To
-return from the Units Table buffer after a @kbd{u v}, type @kbd{M-# c}
+return from the Units Table buffer after a @kbd{u v}, type @kbd{C-x * c}
 again or use the regular Emacs @w{@kbd{C-x o}} (@code{other-window})
 command.  You can also kill the buffer with @kbd{C-x k} if you wish;
 the actual units table is safely stored inside the Calculator.
@@ -29320,7 +29306,7 @@ display or print the output of GNUPLOT, respectively.  These may be
 @samp{%s} to signify the name of the file to be displayed or printed.
 Or, these variables may contain Lisp expressions which are evaluated
 to display or print the output.  These variables are customizable
-(@pxref{Customizable Variables}).
+(@pxref{Customizing Calc}).
 
 @kindex g x
 @pindex calc-graph-display
@@ -29479,20 +29465,20 @@ difference.)
 @section Grabbing from Other Buffers
 
 @noindent
-@kindex M-# g
+@kindex C-x * g
 @pindex calc-grab-region
-The @kbd{M-# g} (@code{calc-grab-region}) command takes the text between
+The @kbd{C-x * g} (@code{calc-grab-region}) command takes the text between
 point and mark in the current buffer and attempts to parse it as a
 vector of values.  Basically, it wraps the text in vector brackets
 @samp{[ ]} unless the text already is enclosed in vector brackets,
 then reads the text as if it were an algebraic entry.  The contents
 of the vector may be numbers, formulas, or any other Calc objects.
-If the @kbd{M-# g} command works successfully, it does an automatic
-@kbd{M-# c} to enter the Calculator buffer.
+If the @kbd{C-x * g} command works successfully, it does an automatic
+@kbd{C-x * c} to enter the Calculator buffer.
 
 A numeric prefix argument grabs the specified number of lines around
 point, ignoring the mark.  A positive prefix grabs from point to the
-@expr{n}th following newline (so that @kbd{M-1 M-# g} grabs from point
+@expr{n}th following newline (so that @kbd{M-1 C-x * g} grabs from point
 to the end of the current line); a negative prefix grabs from point
 back to the @expr{n+1}st preceding newline.  In these cases the text
 that is grabbed is exactly the same as the text that @kbd{C-k} would
@@ -29503,19 +29489,19 @@ line.
 
 A plain @kbd{C-u} prefix interprets the region between point and mark
 as a single number or formula rather than a vector.  For example,
-@kbd{M-# g} on the text @samp{2 a b} produces the vector of three
-values @samp{[2, a, b]}, but @kbd{C-u M-# g} on the same region
+@kbd{C-x * g} on the text @samp{2 a b} produces the vector of three
+values @samp{[2, a, b]}, but @kbd{C-u C-x * g} on the same region
 reads a formula which is a product of three things:  @samp{2 a b}.
 (The text @samp{a + b}, on the other hand, will be grabbed as a
-vector of one element by plain @kbd{M-# g} because the interpretation
+vector of one element by plain @kbd{C-x * g} because the interpretation
 @samp{[a, +, b]} would be a syntax error.)
 
 If a different language has been specified (@pxref{Language Modes}),
 the grabbed text will be interpreted according to that language.
 
-@kindex M-# r
+@kindex C-x * r
 @pindex calc-grab-rectangle
-The @kbd{M-# r} (@code{calc-grab-rectangle}) command takes the text between
+The @kbd{C-x * r} (@code{calc-grab-rectangle}) command takes the text between
 point and mark and attempts to parse it as a matrix.  If point and mark
 are both in the leftmost column, the lines in between are parsed in their
 entirety.  Otherwise, point and mark define the corners of a rectangle
@@ -29535,15 +29521,15 @@ were surrounded by square brackets.  Leading line numbers (in the
 format used in the Calc stack buffer) are ignored.  If you wish to
 force this interpretation (even if the line contains bracketed
 portions), give a negative numeric prefix argument to the
-@kbd{M-# r} command.
+@kbd{C-x * r} command.
 
 If you give a numeric prefix argument of zero or plain @kbd{C-u}, each
 line is instead interpreted as a single formula which is converted into
-a one-element vector.  Thus the result of @kbd{C-u M-# r} will be a
+a one-element vector.  Thus the result of @kbd{C-u C-x * r} will be a
 one-column matrix.  For example, suppose one line of the data is the
-expression @samp{2 a}.  A plain @w{@kbd{M-# r}} will interpret this as
+expression @samp{2 a}.  A plain @w{@kbd{C-x * r}} will interpret this as
 @samp{[2 a]}, which in turn is read as a two-element vector that forms
-one row of the matrix.  But a @kbd{C-u M-# r} will interpret this row
+one row of the matrix.  But a @kbd{C-u C-x * r} will interpret this row
 as @samp{[2*a]}.
 
 If you give a positive numeric prefix argument @var{n}, then each line
@@ -29558,35 +29544,35 @@ constituent rows and columns.  (If it is a
 @infoline 1x1
 matrix, just hit @kbd{v u} (@code{calc-unpack}) twice.)
 
-@kindex M-# :
-@kindex M-# _
+@kindex C-x * :
+@kindex C-x * _
 @pindex calc-grab-sum-across
 @pindex calc-grab-sum-down
 @cindex Summing rows and columns of data
-The @kbd{M-# :} (@code{calc-grab-sum-down}) command is a handy way to
+The @kbd{C-x * :} (@code{calc-grab-sum-down}) command is a handy way to
 grab a rectangle of data and sum its columns.  It is equivalent to
-typing @kbd{M-# r}, followed by @kbd{V R : +} (the vector reduction
+typing @kbd{C-x * r}, followed by @kbd{V R : +} (the vector reduction
 command that sums the columns of a matrix; @pxref{Reducing}).  The
 result of the command will be a vector of numbers, one for each column
-in the input data.  The @kbd{M-# _} (@code{calc-grab-sum-across}) command
+in the input data.  The @kbd{C-x * _} (@code{calc-grab-sum-across}) command
 similarly grabs a rectangle and sums its rows by executing @w{@kbd{V R _ +}}.
 
-As well as being more convenient, @kbd{M-# :} and @kbd{M-# _} are also
+As well as being more convenient, @kbd{C-x * :} and @kbd{C-x * _} are also
 much faster because they don't actually place the grabbed vector on
-the stack.  In a @kbd{M-# r V R : +} sequence, formatting the vector
+the stack.  In a @kbd{C-x * r V R : +} sequence, formatting the vector
 for display on the stack takes a large fraction of the total time
 (unless you have planned ahead and used @kbd{v .} and @kbd{t .} modes).
 
 For example, suppose we have a column of numbers in a file which we
 wish to sum.  Go to one corner of the column and press @kbd{C-@@} to
-set the mark; go to the other corner and type @kbd{M-# :}.  Since there
+set the mark; go to the other corner and type @kbd{C-x * :}.  Since there
 is only one column, the result will be a vector of one number, the sum.
 (You can type @kbd{v u} to unpack this vector into a plain number if
 you want to do further arithmetic with it.)
 
 To compute the product of the column of numbers, we would have to do
 it ``by hand'' since there's no special grab-and-multiply command.
-Use @kbd{M-# r} to grab the column of numbers into the calculator in
+Use @kbd{C-x * r} to grab the column of numbers into the calculator in
 the form of a column matrix.  The statistics command @kbd{u *} is a
 handy way to find the product of a vector or matrix of numbers.
 @xref{Statistical Operations}.  Another approach would be to use
@@ -29618,13 +29604,13 @@ latter strips off the trailing newline.
 With a lone @kbd{C-u} as a prefix argument, @kbd{y} @emph{replaces} the
 region in the other buffer with the yanked text, then quits the
 Calculator, leaving you in that buffer.  A typical use would be to use
-@kbd{M-# g} to read a region of data into the Calculator, operate on the
+@kbd{C-x * g} to read a region of data into the Calculator, operate on the
 data to produce a new matrix, then type @kbd{C-u y} to replace the
 original data with the new data.  One might wish to alter the matrix
 display style (@pxref{Vector and Matrix Formats}) or change the current
 display language (@pxref{Language Modes}) before doing this.  Also, note
 that this command replaces a linear region of text (as grabbed by
-@kbd{M-# g}), not a rectangle (as grabbed by @kbd{M-# r}).
+@kbd{C-x * g}), not a rectangle (as grabbed by @kbd{C-x * r}).
 
 If the editing buffer is in overwrite (as opposed to insert) mode,
 and the @kbd{C-u} prefix was not used, then the yanked number will
@@ -29641,8 +29627,8 @@ number, lengthening or shortening as necessary.  The concept of
 ``overwrite mode'' has thus been generalized from overwriting characters
 to overwriting one complete number with another.
 
-@kindex M-# y
-The @kbd{M-# y} key sequence is equivalent to @kbd{y} except that
+@kindex C-x * y
+The @kbd{C-x * y} key sequence is equivalent to @kbd{y} except that
 it can be typed anywhere, not just in Calc.  This provides an easy
 way to guarantee that Calc knows which editing buffer you want to use!
 
@@ -29679,9 +29665,9 @@ in the Calc window.
 @chapter Keypad Mode
 
 @noindent
-@kindex M-# k
+@kindex C-x * k
 @pindex calc-keypad
-The @kbd{M-# k} (@code{calc-keypad}) command starts the Calculator
+The @kbd{C-x * k} (@code{calc-keypad}) command starts the Calculator
 and displays a picture of a calculator-style keypad.  If you are using
 the X window system, you can click on any of the ``keys'' in the
 keypad using the left mouse button to operate the calculator.
@@ -29690,7 +29676,7 @@ you can type in your file while simultaneously performing
 calculations with the mouse.
 
 @pindex full-calc-keypad
-If you have used @kbd{M-# b} first, @kbd{M-# k} instead invokes
+If you have used @kbd{C-x * b} first, @kbd{C-x * k} instead invokes
 the @code{full-calc-keypad} command, which takes over the whole
 Emacs screen and displays the keypad, the Calc stack, and the Calc
 trail all at once.  This mode would normally be used when running
@@ -29851,9 +29837,9 @@ of 0 @samp{[]}, 1 @samp{[)}, 2 @samp{(]} or 3 @samp{()}, followed
 by the two limits of the interval.
 @end table
 
-The @kbd{OFF} key turns Calc off; typing @kbd{M-# k} or @kbd{M-# M-#}
+The @kbd{OFF} key turns Calc off; typing @kbd{C-x * k} or @kbd{C-x * *}
 again has the same effect.  This is analogous to typing @kbd{q} or
-hitting @kbd{M-# c} again in the normal calculator.  If Calc is
+hitting @kbd{C-x * c} again in the normal calculator.  If Calc is
 running standalone (the @code{full-calc-keypad} command appeared in the
 command line that started Emacs), then @kbd{OFF} is replaced with
 @kbd{EXIT}; clicking on this actually exits Emacs itself.
@@ -30093,11 +30079,11 @@ linked to the stack and this copying is taken care of automatically.
 @section Basic Embedded Mode
 
 @noindent
-@kindex M-# e
+@kindex C-x * e
 @pindex calc-embedded
 To enter Embedded mode, position the Emacs point (cursor) on a
-formula in any buffer and press @kbd{M-# e} (@code{calc-embedded}).
-Note that @kbd{M-# e} is not to be used in the Calc stack buffer
+formula in any buffer and press @kbd{C-x * e} (@code{calc-embedded}).
+Note that @kbd{C-x * e} is not to be used in the Calc stack buffer
 like most Calc commands, but rather in regular editing buffers that
 are visiting your own files.
 
@@ -30108,7 +30094,7 @@ Similarly, Calc will use @TeX{} language for @code{tex-mode},
 @code{plain-tex-mode} and @code{context-mode}, C language for
 @code{c-mode} and @code{c++-mode}, FORTRAN language for
 @code{fortran-mode} and @code{f90-mode}, Pascal for @code{pascal-mode},
-and eqn for @code{nroff-mode} (@pxref{Customizable Variables}).  
+and eqn for @code{nroff-mode} (@pxref{Customizing Calc}).  
 These can be overridden with Calc's mode
 changing commands (@pxref{Mode Settings in Embedded Mode}).  If no
 suitable language is available, Calc will continue with its current language.
@@ -30145,9 +30131,9 @@ With a prefix argument of zero, Calc uses the current region (delimited
 by point and mark) instead of formula delimiters.  With a prefix
 argument of @kbd{C-u} only, Calc uses the current line as the formula.
 
-@kindex M-# w
+@kindex C-x * w
 @pindex calc-embedded-word
-The @kbd{M-# w} (@code{calc-embedded-word}) command will start Embedded
+The @kbd{C-x * w} (@code{calc-embedded-word}) command will start Embedded
 mode on the current ``word''; in this case Calc will scan for the first
 non-numeric character (i.e., the first character that is not a digit,
 sign, decimal point, or upper- or lower-case @samp{e}) forward and
@@ -30165,7 +30151,7 @@ in Normal language mode, but the @code{atan} won't correspond to
 the built-in @code{arctan} function, and the @samp{a[1]} will be
 interpreted as @samp{a} times the vector @samp{[1]}!
 
-If you press @kbd{M-# e} or @kbd{M-# w} to activate an embedded
+If you press @kbd{C-x * e} or @kbd{C-x * w} to activate an embedded
 formula which is blank, say with the cursor on the space between
 the two delimiters @samp{$ $}, Calc will immediately prompt for
 an algebraic entry.
@@ -30179,10 +30165,10 @@ not affected by Embedded mode.
 When Embedded mode begins, Calc pushes the current formula onto
 the stack.  No Calc stack window is created; however, Calc copies
 the top-of-stack position into the original buffer at all times.
-You can create a Calc window by hand with @kbd{M-# o} if you
+You can create a Calc window by hand with @kbd{C-x * o} if you
 find you need to see the entire stack.
 
-For example, typing @kbd{M-# e} while somewhere in the formula
+For example, typing @kbd{C-x * e} while somewhere in the formula
 @samp{n>2} in the following line enables Embedded mode on that
 inequality:
 
@@ -30216,7 +30202,7 @@ needs to be commuted.
 We define $F_n = F_(n-1)+F_(n-2)$ for all $2 < n$.
 @end example
 
-The @kbd{M-# o} command is a useful way to open a Calc window
+The @kbd{C-x * o} command is a useful way to open a Calc window
 without actually selecting that window.  Giving this command
 verifies that @samp{2 < n} is also on the Calc stack.  Typing
 @kbd{17 @key{RET}} would produce:
@@ -30232,9 +30218,9 @@ at this point will exchange the two stack values and restore
 normally see the stack in Embedded mode, it is still there and
 it still operates in the same way.  But, as with old-fashioned
 RPN calculators, you can only see the value at the top of the
-stack at any given time (unless you use @kbd{M-# o}).
+stack at any given time (unless you use @kbd{C-x * o}).
 
-Typing @kbd{M-# e} again turns Embedded mode off.  The Calc
+Typing @kbd{C-x * e} again turns Embedded mode off.  The Calc
 window reveals that the formula @w{@samp{2 < n}} is automatically
 removed from the stack, but the @samp{17} is not.  Entering
 Embedded mode always pushes one thing onto the stack, and
@@ -30242,11 +30228,11 @@ leaving Embedded mode always removes one thing.  Anything else
 that happens on the stack is entirely your business as far as
 Embedded mode is concerned.
 
-If you press @kbd{M-# e} in the wrong place by accident, it is
+If you press @kbd{C-x * e} in the wrong place by accident, it is
 possible that Calc will be able to parse the nearby text as a
 formula and will mangle that text in an attempt to redisplay it
 ``properly'' in the current language mode.  If this happens,
-press @kbd{M-# e} again to exit Embedded mode, then give the
+press @kbd{C-x * e} again to exit Embedded mode, then give the
 regular Emacs ``undo'' command (@kbd{C-_} or @kbd{C-x u}) to put
 the text back the way it was before Calc edited it.  Note that Calc's
 own Undo command (typed before you turn Embedded mode back off)
@@ -30357,10 +30343,10 @@ and at x = 3 is
                             @r{(the value)}
 @end smallexample
 
-@kindex M-# d
+@kindex C-x * d
 @pindex calc-embedded-duplicate
-The @kbd{M-# d} (@code{calc-embedded-duplicate}) command is a
-handy way to make sequences like this.  If you type @kbd{M-# d},
+The @kbd{C-x * d} (@code{calc-embedded-duplicate}) command is a
+handy way to make sequences like this.  If you type @kbd{C-x * d},
 the formula under the cursor (which may or may not have Embedded
 mode enabled for it at the time) is copied immediately below and
 Embedded mode is then enabled for that copy.
@@ -30374,7 +30360,7 @@ The derivative of
 @end smallexample
 
 @noindent
-and press @kbd{M-# d} with the cursor on this formula.  The result
+and press @kbd{C-x * d} with the cursor on this formula.  The result
 is
 
 @smallexample
@@ -30389,12 +30375,12 @@ The derivative of
 @noindent
 with the second copy of the formula enabled in Embedded mode.
 You can now press @kbd{a d x @key{RET}} to take the derivative, and
-@kbd{M-# d M-# d} to make two more copies of the derivative.
+@kbd{C-x * d C-x * d} to make two more copies of the derivative.
 To complete the computations, type @kbd{3 s l x @key{RET}} to evaluate
 the last formula, then move up to the second-to-last formula
 and type @kbd{2 s l x @key{RET}}.
 
-Finally, you would want to press @kbd{M-# e} to exit Embedded
+Finally, you would want to press @kbd{C-x * e} to exit Embedded
 mode, then go up and insert the necessary text in between the
 various formulas and numbers.
 
@@ -30402,40 +30388,37 @@ various formulas and numbers.
 \bigskip
 @end tex
 
-@kindex M-# f
-@kindex M-# '
+@kindex C-x * f
+@kindex C-x * '
 @pindex calc-embedded-new-formula
-The @kbd{M-# f} (@code{calc-embedded-new-formula}) command
+The @kbd{C-x * f} (@code{calc-embedded-new-formula}) command
 creates a new embedded formula at the current point.  It inserts
 some default delimiters, which are usually just blank lines,
 and then does an algebraic entry to get the formula (which is
 then enabled for Embedded mode).  This is just shorthand for
 typing the delimiters yourself, positioning the cursor between
-the new delimiters, and pressing @kbd{M-# e}.  The key sequence
-@kbd{M-# '} is equivalent to @kbd{M-# f}.
+the new delimiters, and pressing @kbd{C-x * e}.  The key sequence
+@kbd{C-x * '} is equivalent to @kbd{C-x * f}.
 
-@kindex M-# n
-@kindex M-# p
+@kindex C-x * n
+@kindex C-x * p
 @pindex calc-embedded-next
 @pindex calc-embedded-previous
-The @kbd{M-# n} (@code{calc-embedded-next}) and @kbd{M-# p}
+The @kbd{C-x * n} (@code{calc-embedded-next}) and @kbd{C-x * p}
 (@code{calc-embedded-previous}) commands move the cursor to the
 next or previous active embedded formula in the buffer.  They
 can take positive or negative prefix arguments to move by several
 formulas.  Note that these commands do not actually examine the
 text of the buffer looking for formulas; they only see formulas
 which have previously been activated in Embedded mode.  In fact,
-@kbd{M-# n} and @kbd{M-# p} are a useful way to tell which
+@kbd{C-x * n} and @kbd{C-x * p} are a useful way to tell which
 embedded formulas are currently active.  Also, note that these
 commands do not enable Embedded mode on the next or previous
-formula, they just move the cursor.  (By the way, @kbd{M-# n} is
-not as awkward to type as it may seem, because @kbd{M-#} ignores
-Shift and Meta on the second keystroke:  @kbd{M-# M-N} can be typed
-by holding down Shift and Meta and alternately typing two keys.)
+formula, they just move the cursor.
 
-@kindex M-# `
+@kindex C-x * `
 @pindex calc-embedded-edit
-The @kbd{M-# `} (@code{calc-embedded-edit}) command edits the
+The @kbd{C-x * `} (@code{calc-embedded-edit}) command edits the
 embedded formula at the current point as if by @kbd{`} (@code{calc-edit}).
 Embedded mode does not have to be enabled for this to work.  Press
 @kbd{C-c C-c} to finish the edit, or @kbd{C-x k} to cancel.
@@ -30500,10 +30483,10 @@ will do the trick) to select the righthand side of the assignment.
 Then, @kbd{17 @key{TAB} @key{DEL}} will swap the 17 into place (@pxref{Selecting
 Subformulas}, to see how this works).
 
-@kindex M-# j
+@kindex C-x * j
 @pindex calc-embedded-select
-The @kbd{M-# j} (@code{calc-embedded-select}) command provides an
-easy way to operate on assignments.  It is just like @kbd{M-# e},
+The @kbd{C-x * j} (@code{calc-embedded-select}) command provides an
+easy way to operate on assignments.  It is just like @kbd{C-x * e},
 except that if the enabled formula is an assignment, it uses
 @kbd{j 2} to select the righthand side.  If the enabled formula
 is an evaluates-to, it uses @kbd{j 1} to select the lefthand side.
@@ -30514,20 +30497,18 @@ bar := foo + 3 => 20
 @end example
 
 @noindent
-in which case @kbd{M-# j} will select the middle part (@samp{foo + 3}).
+in which case @kbd{C-x * j} will select the middle part (@samp{foo + 3}).
 
 The formula is automatically deselected when you leave Embedded
 mode.
 
-@kindex M-# u
-@kindex M-# =
+@kindex C-x * u
 @pindex calc-embedded-update-formula
 Another way to change the assignment to @code{foo} would simply be
 to edit the number using regular Emacs editing rather than Embedded
 mode.  Then, we have to find a way to get Embedded mode to notice
-the change.  The @kbd{M-# u} or @kbd{M-# =}
-(@code{calc-embedded-update-formula}) command is a convenient way
-to do this.
+the change.  The @kbd{C-x * u} (@code{calc-embedded-update-formula})
+command is a convenient way to do this.
 
 @example
 foo := 6
@@ -30535,29 +30516,29 @@ foo := 6
 foo + 7 => 13
 @end example
 
-Pressing @kbd{M-# u} is much like pressing @kbd{M-# e = M-# e}, that
+Pressing @kbd{C-x * u} is much like pressing @kbd{C-x * e = C-x * e}, that
 is, temporarily enabling Embedded mode for the formula under the
-cursor and then evaluating it with @kbd{=}.  But @kbd{M-# u} does
-not actually use @kbd{M-# e}, and in fact another formula somewhere
-else can be enabled in Embedded mode while you use @kbd{M-# u} and
+cursor and then evaluating it with @kbd{=}.  But @kbd{C-x * u} does
+not actually use @kbd{C-x * e}, and in fact another formula somewhere
+else can be enabled in Embedded mode while you use @kbd{C-x * u} and
 that formula will not be disturbed.
 
-With a numeric prefix argument, @kbd{M-# u} updates all active
+With a numeric prefix argument, @kbd{C-x * u} updates all active
 @samp{=>} formulas in the buffer.  Formulas which have not yet
 been activated in Embedded mode, and formulas which do not have
 @samp{=>} as their top-level operator, are not affected by this.
 (This is useful only if you have used @kbd{m C}; see below.)
 
-With a plain @kbd{C-u} prefix, @kbd{C-u M-# u} updates only in the
+With a plain @kbd{C-u} prefix, @kbd{C-u C-x * u} updates only in the
 region between mark and point rather than in the whole buffer.
 
-@kbd{M-# u} is also a handy way to activate a formula, such as an
+@kbd{C-x * u} is also a handy way to activate a formula, such as an
 @samp{=>} formula that has freshly been typed in or loaded from a
 file.
 
-@kindex M-# a
+@kindex C-x * a
 @pindex calc-embedded-activate
-The @kbd{M-# a} (@code{calc-embedded-activate}) command scans
+The @kbd{C-x * a} (@code{calc-embedded-activate}) command scans
 through the current buffer and activates all embedded formulas
 that contain @samp{:=} or @samp{=>} symbols.  This does not mean
 that Embedded mode is actually turned on, but only that the
@@ -30565,7 +30546,7 @@ formulas' positions are registered with Embedded mode so that
 the @samp{=>} values can be properly updated as assignments are
 changed.
 
-It is a good idea to type @kbd{M-# a} right after loading a file
+It is a good idea to type @kbd{C-x * a} right after loading a file
 that uses embedded @samp{=>} operators.  Emacs includes a nifty
 ``buffer-local variables'' feature that you can use to do this
 automatically.  The idea is to place near the end of your file
@@ -30588,41 +30569,41 @@ trailing strings.
 When Emacs loads a file into memory, it checks for a Local Variables
 section like this one at the end of the file.  If it finds this
 section, it does the specified things (in this case, running
-@kbd{M-# a} automatically) before editing of the file begins.
+@kbd{C-x * a} automatically) before editing of the file begins.
 The Local Variables section must be within 3000 characters of the
 end of the file for Emacs to find it, and it must be in the last
 page of the file if the file has any page separators.
 @xref{File Variables, , Local Variables in Files, emacs, the
 Emacs manual}.
 
-Note that @kbd{M-# a} does not update the formulas it finds.
-To do this, type, say, @kbd{M-1 M-# u} after @w{@kbd{M-# a}}.
+Note that @kbd{C-x * a} does not update the formulas it finds.
+To do this, type, say, @kbd{M-1 C-x * u} after @w{@kbd{C-x * a}}.
 Generally this should not be a problem, though, because the
 formulas will have been up-to-date already when the file was
 saved.
 
-Normally, @kbd{M-# a} activates all the formulas it finds, but
+Normally, @kbd{C-x * a} activates all the formulas it finds, but
 any previous active formulas remain active as well.  With a
-positive numeric prefix argument, @kbd{M-# a} first deactivates
+positive numeric prefix argument, @kbd{C-x * a} first deactivates
 all current active formulas, then actives the ones it finds in
 its scan of the buffer.  With a negative prefix argument,
-@kbd{M-# a} simply deactivates all formulas.
+@kbd{C-x * a} simply deactivates all formulas.
 
 Embedded mode has two symbols, @samp{Active} and @samp{~Active},
 which it puts next to the major mode name in a buffer's mode line.
 It puts @samp{Active} if it has reason to believe that all
-formulas in the buffer are active, because you have typed @kbd{M-# a}
+formulas in the buffer are active, because you have typed @kbd{C-x * a}
 and Calc has not since had to deactivate any formulas (which can
 happen if Calc goes to update an @samp{=>} formula somewhere because
 a variable changed, and finds that the formula is no longer there
 due to some kind of editing outside of Embedded mode).  Calc puts
 @samp{~Active} in the mode line if some, but probably not all,
 formulas in the buffer are active.  This happens if you activate
-a few formulas one at a time but never use @kbd{M-# a}, or if you
-used @kbd{M-# a} but then Calc had to deactivate a formula
+a few formulas one at a time but never use @kbd{C-x * a}, or if you
+used @kbd{C-x * a} but then Calc had to deactivate a formula
 because it lost track of it.  If neither of these symbols appears
 in the mode line, no embedded formulas are active in the buffer
-(e.g., before Embedded mode has been used, or after a @kbd{M-- M-# a}).
+(e.g., before Embedded mode has been used, or after a @kbd{M-- C-x * a}).
 
 Embedded formulas can refer to assignments both before and after them
 in the buffer.  If there are several assignments to a variable, the
@@ -30658,15 +30639,15 @@ and loaded in a later Emacs session, unless you have used the
 
 The @kbd{m C} (@code{calc-auto-recompute}) command turns automatic
 recomputation of @samp{=>} forms on and off.  If you turn automatic
-recomputation off, you will have to use @kbd{M-# u} to update these
+recomputation off, you will have to use @kbd{C-x * u} to update these
 formulas manually after an assignment has been changed.  If you
 plan to change several assignments at once, it may be more efficient
-to type @kbd{m C}, change all the assignments, then use @kbd{M-1 M-# u}
+to type @kbd{m C}, change all the assignments, then use @kbd{M-1 C-x * u}
 to update the entire buffer afterwards.  The @kbd{m C} command also
 controls @samp{=>} formulas on the stack; @pxref{Evaluates-To
 Operator}.  When you turn automatic recomputation back on, the
 stack will be updated but the Embedded buffer will not; you must
-use @kbd{M-# u} to update the buffer by hand.
+use @kbd{C-x * u} to update the buffer by hand.
 
 @node Mode Settings in Embedded Mode, Customizing Embedded Mode, Assignments in Embedded Mode, Embedded Mode
 @section Mode Settings in Embedded Mode
@@ -30777,11 +30758,11 @@ mode annotations somewhere out of the way, say, on a new page of
 the file, as long as those mode settings are suitable for all
 formulas in the file.
 
-Enabling a formula with @kbd{M-# e} causes a fresh scan for local
+Enabling a formula with @kbd{C-x * e} causes a fresh scan for local
 mode annotations; you will have to use this after adding annotations
 above a formula by hand to get the formula to notice them.  Updating
-a formula with @kbd{M-# u} will also re-scan the local modes, but
-global modes are only re-scanned by @kbd{M-# a}.
+a formula with @kbd{C-x * u} will also re-scan the local modes, but
+global modes are only re-scanned by @kbd{C-x * a}.
 
 Another way that modes can get out of date is if you add a local
 mode annotation to a formula that has another formula after it.
@@ -30797,7 +30778,7 @@ rules of reading annotations the @samp{(sci 0)} applies to it, too.
 456.
 @end example
 
-We would have to go down to the other formula and press @kbd{M-# u}
+We would have to go down to the other formula and press @kbd{C-x * u}
 on it in order to get it to notice the new annotation.
 
 Two more mode-recording modes selectable by @kbd{m R} are available
@@ -30819,13 +30800,13 @@ for @code{Save} have no effect.
 @noindent
 You can modify Embedded mode's behavior by setting various Lisp
 variables described here.  These variables are customizable 
-(@pxref{Customizable Variables}), or you can use @kbd{M-x set-variable}
+(@pxref{Customizing Calc}), or you can use @kbd{M-x set-variable}
 or @kbd{M-x edit-options} to adjust a variable on the fly.
 (Another possibility would be to use a file-local variable annotation at
 the end of the file; 
 @pxref{File Variables, , Local Variables in Files, emacs, the Emacs manual}.)
 Many of the variables given mentioned here can be set to depend on the
-major mode of the editing buffer (@pxref{Customizable Variables}).
+major mode of the editing buffer (@pxref{Customizing Calc}).
 
 @vindex calc-embedded-open-formula
 The @code{calc-embedded-open-formula} variable holds a regular
@@ -30899,8 +30880,8 @@ case).
 @vindex calc-embedded-open-word
 @vindex calc-embedded-close-word
 The @code{calc-embedded-open-word} and @code{calc-embedded-close-word}
-variables are similar expressions used when you type @kbd{M-# w}
-instead of @kbd{M-# e} to enable Embedded mode.
+variables are similar expressions used when you type @kbd{C-x * w}
+instead of @kbd{C-x * e} to enable Embedded mode.
 
 @vindex calc-embedded-open-plain
 The @code{calc-embedded-open-plain} variable is a string which
@@ -30921,9 +30902,9 @@ that followed might be shifted over with respect to the other lines.
 @vindex calc-embedded-open-new-formula
 The @code{calc-embedded-open-new-formula} variable is a string
 which is inserted at the front of a new formula when you type
-@kbd{M-# f}.  Its default value is @code{"\n\n"}.  If this
-string begins with a newline character and the @kbd{M-# f} is
-typed at the beginning of a line, @kbd{M-# f} will skip this
+@kbd{C-x * f}.  Its default value is @code{"\n\n"}.  If this
+string begins with a newline character and the @kbd{C-x * f} is
+typed at the beginning of a line, @kbd{C-x * f} will skip this
 first newline to avoid introducing unnecessary blank lines in
 the file.
 
@@ -30931,15 +30912,15 @@ the file.
 The @code{calc-embedded-close-new-formula} variable is the corresponding
 string which is inserted at the end of a new formula.  Its default
 value is also @code{"\n\n"}.  The final newline is omitted by
-@w{@kbd{M-# f}} if typed at the end of a line.  (It follows that if
-@kbd{M-# f} is typed on a blank line, both a leading opening
+@w{@kbd{C-x * f}} if typed at the end of a line.  (It follows that if
+@kbd{C-x * f} is typed on a blank line, both a leading opening
 newline and a trailing closing newline are omitted.)
 
 @vindex calc-embedded-announce-formula
 The @code{calc-embedded-announce-formula} variable is a regular
 expression which is sure to be followed by an embedded formula.
-The @kbd{M-# a} command searches for this pattern as well as for
-@samp{=>} and @samp{:=} operators.  Note that @kbd{M-# a} will
+The @kbd{C-x * a} command searches for this pattern as well as for
+@samp{=>} and @samp{:=} operators.  Note that @kbd{C-x * a} will
 not activate just anything surrounded by formula delimiters; after
 all, blank lines are considered formula delimiters by default!
 But if your language includes a delimiter which can only occur
@@ -30967,7 +30948,7 @@ is simply a newline, @code{"\n"}, but may be different for different
 major modes.  If you change this, it is a good idea still to end with a
 newline so that mode annotations will appear on lines by themselves.
 
-@node Programming, Customizable Variables, Embedded Mode, Top
+@node Programming, Customizing Calc, Embedded Mode, Top
 @chapter Programming
 
 @noindent
@@ -31179,9 +31160,9 @@ takes some liberties with spaces: When we say @kbd{' [1 2 3] @key{RET}},
 we take it for granted that it is clear we really mean 
 @kbd{' [1 @key{SPC} 2 @key{SPC} 3] @key{RET}}.
 
-@kindex M-# m
+@kindex C-x * m
 @pindex read-kbd-macro
-The @kbd{M-# m} (@code{read-kbd-macro}) command reads an Emacs ``region''
+The @kbd{C-x * m} (@code{read-kbd-macro}) command reads an Emacs ``region''
 of spelled-out keystrokes and defines it as the current keyboard macro.
 It is a convenient way to define a keyboard macro that has been stored
 in a file, or to define a macro without executing it at the same time.
@@ -31289,7 +31270,7 @@ happened to be sitting on the stack before we typed the above definition!
 Another approach is to enter a harmless dummy definition for the macro,
 then go back and edit in the real one with a @kbd{Z E} command.  Yet
 another approach is to type the macro as written-out keystroke names
-in a buffer, then use @kbd{M-# m} (@code{read-kbd-macro}) to read the
+in a buffer, then use @kbd{C-x * m} (@code{read-kbd-macro}) to read the
 macro.
 
 @kindex Z /
@@ -31463,29 +31444,29 @@ return control to the keyboard macro.
 @node Invocation Macros, Algebraic Definitions, Keyboard Macros, Programming
 @section Invocation Macros
 
-@kindex M-# z
+@kindex C-x * z
 @kindex Z I
 @pindex calc-user-invocation
 @pindex calc-user-define-invocation
-Calc provides one special keyboard macro, called up by @kbd{M-# z}
+Calc provides one special keyboard macro, called up by @kbd{C-x * z}
 (@code{calc-user-invocation}), that is intended to allow you to define
 your own special way of starting Calc.  To define this ``invocation
 macro,'' create the macro in the usual way with @kbd{C-x (} and
 @kbd{C-x )}, then type @kbd{Z I} (@code{calc-user-define-invocation}).
 There is only one invocation macro, so you don't need to type any
 additional letters after @kbd{Z I}.  From now on, you can type
-@kbd{M-# z} at any time to execute your invocation macro.
+@kbd{C-x * z} at any time to execute your invocation macro.
 
 For example, suppose you find yourself often grabbing rectangles of
 numbers into Calc and multiplying their columns.  You can do this
-by typing @kbd{M-# r} to grab, and @kbd{V R : *} to multiply columns.
-To make this into an invocation macro, just type @kbd{C-x ( M-# r
+by typing @kbd{C-x * r} to grab, and @kbd{V R : *} to multiply columns.
+To make this into an invocation macro, just type @kbd{C-x ( C-x * r
 V R : * C-x )}, then @kbd{Z I}.  Then, to multiply a rectangle of data,
-just mark the data in its buffer in the usual way and type @kbd{M-# z}.
+just mark the data in its buffer in the usual way and type @kbd{C-x * z}.
 
 Invocation macros are treated like regular Emacs keyboard macros;
 all the special features described above for @kbd{Z K}-style macros
-do not apply.  @kbd{M-# z} is just like @kbd{C-x e}, except that it
+do not apply.  @kbd{C-x * z} is just like @kbd{C-x e}, except that it
 uses the macro that was last stored by @kbd{Z I}.  (In fact, the
 macro does not even have to have anything to do with Calc!)
 
@@ -34729,7 +34710,7 @@ per Emacs session.
 
 @defvar calc-end-hook
 This hook is called by @code{calc-quit}, generally because the user
-presses @kbd{q} or @kbd{M-# c} while in Calc.  The Calc buffer will
+presses @kbd{q} or @kbd{C-x * c} while in Calc.  The Calc buffer will
 be the current buffer.  The hook is called as the very first
 step, before the Calc window is destroyed.
 @end defvar
@@ -34781,7 +34762,7 @@ message is inserted.
 @end defvar
 
 @defvar calc-reset-hook
-This hook is called after @kbd{M-# 0} (@code{calc-reset}) has
+This hook is called after @kbd{C-x * 0} (@code{calc-reset}) has
 reset all modes.  The Calc buffer will be the current buffer.
 @end defvar
 
@@ -34846,10 +34827,27 @@ used the first time, your hook should add a variable to the
 list and also call @code{make-local-variable} itself.
 @end defvar
 
-@node Customizable Variables, Reporting Bugs, Programming, Top
-@appendix Customizable Variables
+@node Customizing Calc, Reporting Bugs, Programming, Top
+@appendix Customizing Calc
 
-GNU Calc is controlled by many variables, most of which can be reset
+The usual prefix for Calc is the key sequence @kbd{C-x *}.  If you wish
+to use a different prefix, you can put
+
+@example
+(global-set-key "NEWPREFIX" 'calc-dispatch)
+@end example
+
+@noindent
+in your .emacs file.  
+(@xref{Key Bindings,,Customizing Key Bindings,emacs,
+The GNU Emacs Manual}, for more information on binding keys.)
+A convenient way to start Calc is with @kbd{C-x * *}; to make it equally
+convenient for users who use a different prefix, the prefix can be
+followed by  @kbd{=}, @kbd{&}, @kbd{#}, @kbd{\}, @kbd{/}, @kbd{+} or
+@kbd{-} as well as @kbd{*} to start Calc, and so in many cases the last
+character of the prefix can simply be typed twice.
+
+Calc is controlled by many variables, most of which can be reset
 from within Calc.  Some variables are less involved with actual
 calculation, and can be set outside of Calc using Emacs's
 customization facilities.  These variables are listed below.
@@ -34882,7 +34880,7 @@ See @ref{Graphics}.@*
 The variable @code{calc-gnuplot-name} should be the name of the
 GNUPLOT program (a string).  If you have GNUPLOT installed on your
 system but Calc is unable to find it, you may need to set this
-variable.  (@pxref{Customizable Variables})
+variable.  (@pxref{Customizing Calc})
 You may also need to set some Lisp variables to show Calc how to run
 GNUPLOT on your system, see @ref{Devices, ,Graphical Devices} .  The default value
 of @code{calc-gnuplot-name} is @code{"gnuplot"}.
@@ -34936,9 +34934,9 @@ The default value of @code{calc-language-alist} is
 @defvarx calc-embedded-announce-formula-alist
 See @ref{Customizing Embedded Mode}.@*
 The variable @code{calc-embedded-announce-formula} helps determine
-what formulas @kbd{M-# a} will activate in a buffer.  It is a
+what formulas @kbd{C-x * a} will activate in a buffer.  It is a
 regular expression, and when activating embedded formulas with
-@kbd{M-# a}, it will tell Calc that what follows is a formula to be
+@kbd{C-x * a}, it will tell Calc that what follows is a formula to be
 activated.  (Calc also uses other patterns to find formulas, such as
 @samp{=>} and @samp{:=}.)  
 
@@ -34975,7 +34973,7 @@ and @code{calc-embedded-open-close-mode-alist}.
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-formula} and
 @code{calc-embedded-open-formula} control the region that Calc will
-activate as a formula when Embedded mode is entered with @kbd{M-# e}.
+activate as a formula when Embedded mode is entered with @kbd{C-x * e}.
 They are regular expressions; 
 Calc normally scans backward and forward in the buffer for the
 nearest text matching these regular expressions to be the ``formula
@@ -35013,7 +35011,7 @@ It consists of a list of lists of the form
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-word} and
 @code{calc-embedded-close-word} control the region that Calc will
-activate when Embedded mode is entered with @kbd{M-# w}.  They are
+activate when Embedded mode is entered with @kbd{C-x * w}.  They are
 regular expressions.
 
 The default values of @code{calc-embedded-open-word} and
@@ -35077,15 +35075,15 @@ and @code{calc-embedded-open-close-mode-alist}.
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-new-formula} and
 @code{calc-embedded-close-new-formula} are strings which are
-inserted before and after a new formula when you type @kbd{M-# f}.
+inserted before and after a new formula when you type @kbd{C-x * f}.
 
 The default value of @code{calc-embedded-open-new-formula} is
 @code{"\n\n"}.  If this string begins with a newline character and the
-@kbd{M-# f} is typed at the beginning of a line, @kbd{M-# f} will skip
+@kbd{C-x * f} is typed at the beginning of a line, @kbd{C-x * f} will skip
 this first newline to avoid introducing unnecessary blank lines in the
 file.  The default value of @code{calc-embedded-close-new-formula} is
-also @code{"\n\n"}.  The final newline is omitted by @w{@kbd{M-# f}}
-if typed at the end of a line.  (It follows that if @kbd{M-# f} is
+also @code{"\n\n"}.  The final newline is omitted by @w{@kbd{C-x * f}}
+if typed at the end of a line.  (It follows that if @kbd{C-x * f} is
 typed on a blank line, both a leading opening newline and a trailing
 closing newline are omitted.)
 
@@ -35141,7 +35139,7 @@ should also be added to @code{calc-embedded-announce-formula-alist}
 and @code{calc-embedded-open-close-plain-alist}.
 @end defvar
 
-@node Reporting Bugs, Summary, Customizable Variables, Top
+@node Reporting Bugs, Summary, Customizing Calc, Top
 @appendix Reporting Bugs
 
 @noindent
@@ -35225,35 +35223,34 @@ keystrokes are not listed in this summary.
 @advance@baselineskip-2.5pt
 @let@c@sumbreak
 @end iftex
-@r{       @:     M-# a  @:             @:    33  @:calc-embedded-activate@:}
-@r{       @:     M-# b  @:             @:        @:calc-big-or-small@:}
-@r{       @:     M-# c  @:             @:        @:calc@:}
-@r{       @:     M-# d  @:             @:        @:calc-embedded-duplicate@:}
-@r{       @:     M-# e  @:             @:    34  @:calc-embedded@:}
-@r{       @:     M-# f  @:formula      @:        @:calc-embedded-new-formula@:}
-@r{       @:     M-# g  @:             @:    35  @:calc-grab-region@:}
-@r{       @:     M-# i  @:             @:        @:calc-info@:}
-@r{       @:     M-# j  @:             @:        @:calc-embedded-select@:}
-@r{       @:     M-# k  @:             @:        @:calc-keypad@:}
-@r{       @:     M-# l  @:             @:        @:calc-load-everything@:}
-@r{       @:     M-# m  @:             @:        @:read-kbd-macro@:}
-@r{       @:     M-# n  @:             @:     4  @:calc-embedded-next@:}
-@r{       @:     M-# o  @:             @:        @:calc-other-window@:}
-@r{       @:     M-# p  @:             @:     4  @:calc-embedded-previous@:}
-@r{       @:     M-# q  @:formula      @:        @:quick-calc@:}
-@r{       @:     M-# r  @:             @:    36  @:calc-grab-rectangle@:}
-@r{       @:     M-# s  @:             @:        @:calc-info-summary@:}
-@r{       @:     M-# t  @:             @:        @:calc-tutorial@:}
-@r{       @:     M-# u  @:             @:        @:calc-embedded-update-formula@:}
-@r{       @:     M-# w  @:             @:        @:calc-embedded-word@:}
-@r{       @:     M-# x  @:             @:        @:calc-quit@:}
-@r{       @:     M-# y  @:            @:1,28,49  @:calc-copy-to-buffer@:}
-@r{       @:     M-# z  @:             @:        @:calc-user-invocation@:}
-@r{       @:     M-# =  @:             @:        @:calc-embedded-update-formula@:}
-@r{       @:     M-# :  @:             @:    36  @:calc-grab-sum-down@:}
-@r{       @:     M-# _  @:             @:    36  @:calc-grab-sum-across@:}
-@r{       @:     M-# `  @:editing      @:    30  @:calc-embedded-edit@:}
-@r{       @:     M-# 0  @:(zero)       @:        @:calc-reset@:}
+@r{       @:     C-x * a  @:             @:    33  @:calc-embedded-activate@:}
+@r{       @:     C-x * b  @:             @:        @:calc-big-or-small@:}
+@r{       @:     C-x * c  @:             @:        @:calc@:}
+@r{       @:     C-x * d  @:             @:        @:calc-embedded-duplicate@:}
+@r{       @:     C-x * e  @:             @:    34  @:calc-embedded@:}
+@r{       @:     C-x * f  @:formula      @:        @:calc-embedded-new-formula@:}
+@r{       @:     C-x * g  @:             @:    35  @:calc-grab-region@:}
+@r{       @:     C-x * i  @:             @:        @:calc-info@:}
+@r{       @:     C-x * j  @:             @:        @:calc-embedded-select@:}
+@r{       @:     C-x * k  @:             @:        @:calc-keypad@:}
+@r{       @:     C-x * l  @:             @:        @:calc-load-everything@:}
+@r{       @:     C-x * m  @:             @:        @:read-kbd-macro@:}
+@r{       @:     C-x * n  @:             @:     4  @:calc-embedded-next@:}
+@r{       @:     C-x * o  @:             @:        @:calc-other-window@:}
+@r{       @:     C-x * p  @:             @:     4  @:calc-embedded-previous@:}
+@r{       @:     C-x * q  @:formula      @:        @:quick-calc@:}
+@r{       @:     C-x * r  @:             @:    36  @:calc-grab-rectangle@:}
+@r{       @:     C-x * s  @:             @:        @:calc-info-summary@:}
+@r{       @:     C-x * t  @:             @:        @:calc-tutorial@:}
+@r{       @:     C-x * u  @:             @:        @:calc-embedded-update-formula@:}
+@r{       @:     C-x * w  @:             @:        @:calc-embedded-word@:}
+@r{       @:     C-x * x  @:             @:        @:calc-quit@:}
+@r{       @:     C-x * y  @:            @:1,28,49  @:calc-copy-to-buffer@:}
+@r{       @:     C-x * z  @:             @:        @:calc-user-invocation@:}
+@r{       @:     C-x * :  @:             @:    36  @:calc-grab-sum-down@:}
+@r{       @:     C-x * _  @:             @:    36  @:calc-grab-sum-across@:}
+@r{       @:     C-x * `  @:editing      @:    30  @:calc-embedded-edit@:}
+@r{       @:     C-x * 0  @:(zero)       @:        @:calc-reset@:}
 
 @c
 @r{       @:      0-9   @:number       @:        @:@:number}

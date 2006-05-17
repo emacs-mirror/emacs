@@ -164,6 +164,7 @@
 
 (defgroup f90 nil
   "Major mode for editing free format Fortran 90,95 code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defgroup f90-indent nil

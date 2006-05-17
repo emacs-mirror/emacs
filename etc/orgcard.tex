@@ -1,4 +1,4 @@
-% Reference Card for Org Mode 3.19
+% Reference Card for Org Mode 4.00
 %
 %**start of header
 \newcount\columnsperpage
@@ -32,8 +32,8 @@
 
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs; see the file COPYING.  If not, write to
-% the Free Software Foundation, 51 Franklin Street, Fifth Floor,
-% Boston, MA 02110-1301, USA.
+% the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+% Boston, MA 02111-1307, USA.
 
 % This file is intended to be processed by plain TeX (TeX82).
 %
@@ -58,7 +58,7 @@
 % Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
 % for their many good ideas.
 
-\def\orgversionnumber{3.19}
+\def\orgversionnumber{4.00}
 \def\year{2005}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
@@ -270,15 +270,16 @@ are preserved on all copies.
 
 \section{Getting Started}
 %
-Put the following in your \kbd{~/.emacs}$^1$
+%Put the following in your \kbd{~/.emacs}$^1$
 \vskip -1mm
 \beginexample%
-(autoload 'org-mode "org" "Org mode" t)
-(autoload 'org-diary "org" "Org mode diary entries")
-(autoload 'org-agenda "org" "Agenda from Org files" t)
-(autoload 'org-store-link "org" "Store org link" t)
-(autoload 'orgtbl-mode "org" "Orgtbl minor mode" t)
-(autoload 'turn-on-orgtbl "org" "Orgtbl minor mode")
+%(autoload 'org-mode "org" "Org mode" t)
+%(autoload 'org-diary "org" "Org mode diary entries")
+%(autoload 'org-agenda "org" "Agenda from Org files" t)
+%(autoload 'org-todo-list "org" "Global TODO list" t)
+%(autoload 'org-store-link "org" "Store org link" t)
+%(autoload 'orgtbl-mode "org" "Orgtbl minor mode" t)
+%(autoload 'turn-on-orgtbl "org" "Orgtbl minor mode")
 (add-to-list 'auto-mode-alist '("\\\\.org\$" . org-mode))
 (define-key global-map "\\C-cl" 'org-store-link)$^2$
 (define-key global-map "\\C-ca" 'org-agenda)$^2$
@@ -305,7 +306,7 @@ Put the following in your \kbd{~/.emacs}$^1$
 
 \section{Structure Editing}
 
-\key{insert new heading at same level as current}{M-RET}
+\key{insert new heading/item at current level}{M-RET}
 \key{insert new TODO entry}{M-S-RET}
 
 \key{promote current heading up one level}{M-LEFT}
@@ -313,8 +314,8 @@ Put the following in your \kbd{~/.emacs}$^1$
 \key{promote current subtree up one level}{M-S-LEFT}
 \key{demote current subtree down one level}{M-S-RIGHT}
 
-\key{move subtree up}{M-S-UP}
-\key{move subtree down}{M-S-DOWN}
+\key{move subtree/list item up}{M-S-UP}
+\key{move subtree/list item down}{M-S-DOWN}
 \key{kill subtree}{C-c C-x C-w}
 \key{copy subtree}{C-c C-x M-w}
 \key{yank subtree}{C-c C-x C-y}
@@ -330,15 +331,24 @@ To set archive location for current file, add a line like$^3$:
 
 \key{show sparse tree for all matches of a regexp}{C-c /}
 \key{view TODO's in sparse tree}{C-c C-v}
+\key{global TODO list in agenda mode}{C-c t$^2$}
 \key{create sparse tree with all deadlines due}{C-c C-w}
 \key{time sorted view of current org file}{C-c C-r}
-\key{agenda for the week}{C-c a$2$}
-\key{agenda for date at cursor}{C-c C-o}
+%\key{agenda for the week}{C-c a$^2$}
+%\key{agenda for date at cursor}{C-c C-o}
+
+\section{Tags}
+
+\key{set tags for current heading}{C-c C-c}
+\key{realign tags in all headings}{C-u C-c C-c}
+\key{create sparse tree with matching tags}{C-c \\}
+\key{globally (agenda) match tags at cursor}{C-c C-o}
 
 \section{TODO Items}
 
 \key{rotate the state of the current item}{C-c C-t}
 \key{view TODO items in a sparse tree}{C-c C-v}
+\key{view 3rd TODO keyword's sparse tree}{C-3 C-c C-v}
 
 \key{set the priority of the current item}{C-c , [ABC]}
 \key{remove priority cookie from current item}{C-c , SPC}
@@ -374,12 +384,12 @@ per-file TODO keywords: add line(s) like$^3$:
 \key{access the calendar for the current date}{C-c >}
 \key{insert timestamp matching date in calendar}{C-c <}
 \key{access agenda for current date}{C-c C-o}
-\key{While prompted for a date:}{}
-\key{... select date in calendar}{mouse-1/RET}
-\key{... scroll calendar back/forward one month}{< / >}
-\key{... forward/backward one day}{S-LEFT/RIGHT}
-\key{... forward/backward one week}{S-UP/DOWN}
-\key{... forward/backward one month}{M-S-LEFT/RIGT}
+\key{Select date while prompted}{mouse-1/RET}
+%\key{... select date in calendar}{mouse-1/RET}
+%\key{... scroll calendar back/forward one month}{< / >}
+%\key{... forward/backward one day}{S-LEFT/RIGHT}
+%\key{... forward/backward one week}{S-UP/DOWN}
+%\key{... forward/backward one month}{M-S-LEFT/RIGT}
 
 \section{Links}
 
@@ -394,19 +404,25 @@ per-file TODO keywords: add line(s) like$^3$:
 
 {\bf Link types}
 
-\key{\kbd{<http://www.astro.uva.nl/~dominik>}}{\rm on the web}
-\key{\kbd{<mailto:adent@galaxy.net>}}{\rm EMail address}
-\key{\kbd{<news:comp.emacs>}}{\rm Usenet group}
+\key{\kbd{*CamelCaseWord}}{\rm search headline}
+\key{\kbd{CamelCaseWord}}{\rm search in buffer}
 \key{\kbd{<file:/home/dominik/img/mars.jpg>}}{\rm file, absolute}
 \key{\kbd{<file:papers/last.pdf>}}{\rm file, relative}
 \key{\kbd{<file:~/code/main.c:255>}}{\rm file with line nr.}
+\key{\kbd{<file:projects.org::*CamelCaseWord>}}{\rm search headline}
+\key{\kbd{<file:projects.org::find me>}}{\rm search string}
+\key{\kbd{<file:projects.org::/regexp/>}}{\rm search regexp}
+\key{\kbd{<http://www.astro.uva.nl/~dominik>}}{\rm on the web}
+\key{\kbd{<mailto:adent@galaxy.net>}}{\rm EMail address}
+\key{\kbd{<news:comp.emacs>}}{\rm Usenet group}
 \key{\kbd{<bbdb:Richard Stallman>}}{\rm BBDB person}
 \key{\kbd{<shell:ls *.org>}}{\rm shell command}
 \key{\kbd{<gnus:group>}}{\rm GNUS group}
 \key{\kbd{<gnus:group\#id>}}{\rm GNUS message}
 \key{\kbd{<vm:folder>}}{\rm VM folder}
 \key{\kbd{<vm:folder\#id>}}{\rm VM message}
-\key{\kbd{<vm://myself@some.where.org/folder\#id>}}{\rm VM remote}
+% FIXME: would like to get this back in.
+%\key{\kbd{<vm://myself@some.where.org/folder\#id>}}{\rm VM remote}
 Wanderlust \kbd{<wl:...>} and RMAIL \kbd{<rmail:...>} like VM
 %\key{\kbd{<wl:folder>}}{\rm Wanderlust f.}
 %\key{\kbd{<wl:folder\#id>}}{\rm Wanderlust m.}
@@ -449,9 +465,9 @@ Outside of tables, the same keys may have other functionality.
 \key{move the current row down}{M-DOWN}
 \key{kill the current row or horizontal line}{M-S-UP}
 \key{insert new row above the current row}{M-S-DOWN}
-
 \key{insert horizontal line below the current row}{C-c -}
 \key{insert horizontal line above the current row}{C-u C-c -}
+\key{sort lines in region}{C-c \^{}}
 
 {\bf Regions}
 
@@ -462,8 +478,7 @@ Outside of tables, the same keys may have other functionality.
 
 {\bf Calculations}
 
-Except for the summation commands, these need the Emacs calc package
-installed.
+These need the Emacs calc package installed.
 
 \key{set and eval column formula}{C-c =}
 \key{set and eval named-field formula}{C-u C-c =}
@@ -507,17 +522,21 @@ introduces a column formula, \kbd{:=} a named-field formula.
 
 \centerline{(for version \orgversionnumber)}
 
-\section{Timeline and Agenda}
+\section{Agenda Views}
 
-\key{show timeline of current org file}{C-c C-r}
-\key{... include past dates}{C-u C-c C-r}
-
-\key{add current file to your agenda}{C-c [}
+\key{add/move current file to front of agenda}{C-c [}
 \key{remove current file from your agenda}{C-c ]}
-\key{compile agenda for the current week}{C-c a$^2$}
+\key{cycle through agenda file list}{C-,}
+
+\key{compile agenda for the current week}{C-c a a$^2$}
+\key{compile global TODO list}{C-c a t$^2$}
+\key{compile TODO list for specific keyword}{C-c a T$^2$}
+\key{match tags in agenda files}{C-c a m$^2$}
 \key{agenda for date at cursor}{C-c C-o}
+\key{show timeline of current org file}{C-c C-r}
+
 \vskip 1mm
-To set category for current file, add line$^3$:
+To set categories, add lines like$^3$:
 \vskip -1mm
 \beginexample%
 \#+CATEGORY: MyCateg
@@ -525,13 +544,11 @@ To set category for current file, add line$^3$:
 
 {\bf Commands available in an agenda buffer}
 
-The agenda buffer is electric: single key presses execute commands.
-
-{\bf View org file}
+{\bf View Org file}
 
 \key{show original location of item}{SPC}
 \key{... also available with}{mouse-3}
-\key{show and recenter window}{l}
+\key{show and recenter window}{L}
 \key{goto original location in other window}{TAB}
 \key{... also available with}{mouse-2}
 \key{goto original location, delete other windows}{RET}
@@ -544,6 +561,7 @@ The agenda buffer is electric: single key presses execute commands.
 \key{switch to daily view}{d}
 \key{toggle inclusion of diary entries}{D}
 \key{toggle time grid for daily schedule}{g}
+\key{toggle display of logbook entries}{l}
 \key{refresh agenda buffer with any changes}{r}
 \key{display the following \kbd{org-agenda-ndays}}{RIGHT}
 \key{display the previous \kbd{org-agenda-ndays}}{LEFT}
@@ -552,17 +570,14 @@ The agenda buffer is electric: single key presses execute commands.
 {\bf Remote editing}
 
 \key{digit argument}{0-9}
-
 \key{change state of current TODO item}{t}
 \key{set priority of current item}{p}
 \key{raise priority of current item}{S-UP$^4$}
 \key{lower priority of current item}{S-DOWN$^4$}
 \key{display weighted priority of current item}{P}
-
 \key{change timestamp to one day earlier}{S-LEFT$^4$}
 \key{change timestamp to one day later}{S-RIGHT$^4$}
 \key{change timestamp to today}{>}
-
 \key{insert new entry into diary}{i}
 
 {\bf Calendar commands}
@@ -649,8 +664,8 @@ Subtrees whose header starts with COMMENT are never exported.
 \section{Completion}
 
 In-buffer completion completes TODO keywords at headline start, TeX
-macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'', and
-dictionary words elsewhere.
+macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'', TAGS
+after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{Complete word at point}{M-TAB}
 
@@ -663,14 +678,14 @@ To include entries from the Emacs diary in your Org-mode agenda:
 (setq org-agenda-include-diary t)
 \endexample
 
-To include your Org-mode agenda in your normal diary, make sure you're
+To include the Org-mode agenda in the normal diary, make sure you're
 using the fancy diary display
 %
 %\beginexample%
 %(add-hook 'diary-display-hook 'fancy-diary-display)
 %\endexample
 %
-and in your \kbd{~/diary} file add
+and in the \kbd{~/diary} file add
 
 \beginexample%
 \&\%\%(org-diary)

@@ -39,7 +39,6 @@
 (require 'gnus-draft)
 (autoload 'parse-time-string "parse-time" nil nil)
 
-;;;###autoload
 (defgroup gnus-delay nil
   "Arrange for sending postings later."
   :version "22.1"
@@ -195,5 +194,5 @@ Checking delayed messages is skipped if optional arg NO-CHECK is non-nil."
 ;; coding: iso-8859-1
 ;; End:
 
-;;; arch-tag: fb2ad634-a897-4142-a503-f5991ec2349d
+;; arch-tag: fb2ad634-a897-4142-a503-f5991ec2349d
 ;;; gnus-delay.el ends here

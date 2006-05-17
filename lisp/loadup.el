@@ -132,11 +132,13 @@
 (load "frame")
 (load "term/tty-colors")
 (load "font-core")
+;; facemenu must be loaded before font-lock, because `facemenu-keymap'
+;; needs to be defined when font-lock is loaded.
+(load "facemenu")
 (load "emacs-lisp/syntax")
 (load "font-lock")
 (load "jit-lock")
 
-(load "facemenu")
 (if (fboundp 'track-mouse)
     (progn
       (load "mouse")
@@ -145,6 +147,7 @@
       (load "select")))
 (load "emacs-lisp/timer")
 (load "isearch")
+(load "rfn-eshadow")
 
 (message "%s" (garbage-collect))
 (load "menu-bar")

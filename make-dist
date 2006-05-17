@@ -316,10 +316,10 @@ for subdir in lisp site-lisp lispref lispintro \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      etc etc/e \
 	      etc/images etc/images/ezimage etc/images/gnus etc/images/gud \
-	      etc/images/low-color etc/images/mail etc/images/smilies \
-	      etc/tree-widget etc/tree-widget/default etc/tree-widget/folder \
-	      info man m4 msdos vms mac mac/inc mac/inc/sys \
-	      mac/src mac/Emacs.app mac/Emacs.app/Contents \
+	      etc/images/icons etc/images/low-color etc/images/mail \
+	      etc/images/smilies etc/tree-widget etc/tree-widget/default \
+	      etc/tree-widget/folder info man m4 msdos vms mac mac/inc \
+	      mac/inc/sys mac/src mac/Emacs.app mac/Emacs.app/Contents \
 	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
 	      mac/Emacs.app/Contents/Resources/English.lproj
 do
@@ -602,7 +602,7 @@ echo "Making links to \`etc/images'"
    fi
  done)
 
-for dir in etc/images/ezimage etc/images/gnus etc/images/gud \
+for dir in etc/images/ezimage etc/images/gnus etc/images/gud etc/images/icons \
            etc/images/low-color etc/images/mail etc/images/smilies \
            etc/tree-widget/default etc/tree-widget/folder ; do
     echo "Making links to \`${dir}'"

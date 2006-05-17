@@ -327,17 +327,14 @@ See also `mh-send'."
 
 ;;;###mh-autoload
 (defun mh-forward (to cc &optional range)
-  "Forward message(s).
+  "Forward message.
 
 You are prompted for the TO and CC recipients. You are given a draft to edit
 that looks like it would if you had run the MH command \"forw\". You are given
 a chance to add some text.
 
-You can forward several messages by using a RANGE. All of the messages in the
-range are inserted into your draft. Check the documentation of
+You can forward several messages by using a RANGE. Check the documentation of
 `mh-interactive-range' to see how RANGE is read in interactive use.
-
-The default message is the current message.
 
 See also `mh-compose-forward-as-mime-flag', `mh-forward-subject-format',
 and `mh-send'."
@@ -1000,8 +997,8 @@ When a message is composed, the hooks `text-mode-hook' and
   (mh-funcall-if-exists mh-toolbar-init :letter)
   (make-local-variable 'font-lock-defaults)
   (cond
-   ((or (equal mh-highlight-citation-p 'font-lock)
-        (equal mh-highlight-citation-p 'gnus))
+   ((or (equal mh-highlight-citation-style 'font-lock)
+        (equal mh-highlight-citation-style 'gnus))
     ;; Let's use font-lock even if gnus is used in show-mode.  The reason
     ;; is that gnus uses static text properties which are not appropriate
     ;; for a buffer that will be edited.  So the choice here is either fontify
@@ -1146,7 +1143,7 @@ By default, the text of your signature is taken from the file
 A signature separator (\"-- \") will be added if the signature block does not
 contain one and `mh-signature-separator-flag' is on.
 
-The value of `mh-letter-insert-signature-hook' is a list of functions to be
+The value of `mh-insert-signature-hook' is a list of functions to be
 called, with no arguments, after the signature is inserted. These functions
 may access the actual name of the file or the function used to insert the
 signature with `mh-signature-file-name'.
@@ -1184,7 +1181,7 @@ The signature can also be inserted using Identities (see `mh-identity-list')"
                  (funcall mh-signature-file-name)))))
         (save-restriction
           (widen)
-          (run-hooks 'mh-letter-insert-signature-hook))
+          (run-hooks 'mh-insert-signature-hook))
         (goto-char (point-min))
         (when (and (not (mh-file-is-vcard-p mh-signature-file-name))
                    mh-signature-separator-flag
@@ -1950,7 +1947,7 @@ except that it is callable from a mouse button."
 (defun mh-letter-toggle-header-field-display (arg)
   "Toggle display of header field at point.
 
-Use this command to display ellipsed header fields. This command is a toggle
+Use this command to display truncated header fields. This command is a toggle
 so entering it again will hide the field. This command takes a prefix argument
 ARG: if negative then the field is hidden, if positive then the field is
 displayed."

@@ -1,6 +1,6 @@
 ;;; mh-init.el --- MH-E initialization.
 
-;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -72,6 +72,31 @@ This directory contains, among other things, the mhl program.")
 (put 'mh-lib 'risky-local-variable t)
 ;;;###autoload
 (put 'mh-lib-progs 'risky-local-variable t)
+
+(defvar mh-variants nil
+  "List describing known MH variants.
+Created by the function `mh-variants'")
+
+;;;###mh-autoload
+(defun mh-variants ()
+  "Return a list of installed variants of MH on the system.
+This function looks for MH in `mh-sys-path', `mh-path' and
+`exec-path'. The format of the list of variants that is returned is described
+by the variable `mh-variants'."
+  (if mh-variants
+      mh-variants
+    (let ((list-unique))
+      ;; Make a unique list of directories, keeping the given order.
+      ;; We don't want the same MH variant to be listed multiple times.
+      (loop for dir in (append mh-path mh-sys-path exec-path) do
+            (setq dir (file-chase-links (directory-file-name dir)))
+            (add-to-list 'list-unique dir))
+      (loop for dir in (nreverse list-unique) do
+            (when (and dir (file-directory-p dir) (file-readable-p dir))
+              (let ((variant (mh-variant-info dir)))
+                (if variant
+                    (add-to-list 'mh-variants variant)))))
+      mh-variants)))
 
 (defvar mh-variant-in-use nil
   "The MH variant currently in use; a string with variant and version number.
@@ -170,17 +195,6 @@ Currently known variants are 'MH, 'nmh, and 'mu-mh."
 The list `exec-path' is searched in addition to this list.
 There's no need for users to modify this list.  Instead add extra
 directories to the customizable variable `mh-path'.")
-
-(defcustom mh-path nil
-  "*List of directories to search for variants of the MH variant.
-The directories will be searched for `mhparam' in addition to directories
-listed in `mh-sys-path' and `exec-path'."
-  :group 'mh-e
-  :type '(repeat (directory)))
-
-(defvar mh-variants nil
-  "List describing known MH variants.
-Created by the function `mh-variants'")
 
 (defun mh-variant-mh-info (dir)
   "Return info for MH variant in DIR assuming a temporary buffer is setup."
@@ -281,27 +295,6 @@ This assumes that a temporary buffer is setup."
        ((mh-variant-nmh-info dir))
        ((mh-variant-mu-mh-info dir))))))
 
-;;;###mh-autoload
-(defun mh-variants ()
-  "Return a list of installed variants of MH on the system.
-This function looks for MH in `mh-sys-path', `mh-path' and
-`exec-path'. The format of the list of variants that is returned is described
-by the variable `mh-variants'."
-  (if mh-variants
-      mh-variants
-    (let ((list-unique))
-      ;; Make a unique list of directories, keeping the given order.
-      ;; We don't want the same MH variant to be listed multiple times.
-      (loop for dir in (append mh-path mh-sys-path exec-path) do
-            (setq dir (file-chase-links (directory-file-name dir)))
-            (add-to-list 'list-unique dir))
-      (loop for dir in (nreverse list-unique) do
-            (when (and dir (file-directory-p dir) (file-readable-p dir))
-              (let ((variant (mh-variant-info dir)))
-                (if variant
-                    (add-to-list 'mh-variants variant)))))
-      mh-variants)))
-
 
 
 (defvar mh-image-load-path-called-flag nil)
@@ -336,7 +329,7 @@ directory is added to the `load-path' if it isn't already there."
   "Non-nil means defface supports min-colors display requirement.")
 
 (defun mh-defface-compat (spec)
-  "Converts SPEC for defface if necessary to run on older platforms.
+  "Convert SPEC for defface if necessary to run on older platforms.
 See `defface' for the spec definition.
 
 When `mh-min-colors-defined-flag' is nil, this function finds a display with a
@@ -354,7 +347,7 @@ single \"class\" requirement with a \"color\" item, renames the requirement to
           (when (not (eq (car entry) t))
             (if (assoc 'min-colors (car entry))
                 (delq (assoc 'min-colors (car entry)) (car entry)))))))
-  
+
 (provide 'mh-init)
 
 ;;; Local Variables:

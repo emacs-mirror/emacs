@@ -852,6 +852,7 @@ button end points."
 (defvar widget-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\t" 'widget-forward)
+    (define-key map "\e\t" 'widget-backward)
     (define-key map [(shift tab)] 'widget-backward)
     (define-key map [backtab] 'widget-backward)
     (define-key map [down-mouse-2] 'widget-button-click)
@@ -3575,7 +3576,7 @@ example:
 ;; Fixme: match
 (define-widget 'color 'editable-field
   "Choose a color name (with sample)."
-  :format "%t: %v (%{sample%})\n"
+  :format "%{%t%}: %v (%{sample%})\n"
   :size 10
   :tag "Color"
   :value "black"

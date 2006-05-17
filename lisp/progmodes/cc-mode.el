@@ -1,6 +1,7 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation,
+;; Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -92,10 +93,9 @@
 (cc-require 'cc-menus)
 
 ;; Silence the compiler.
-(cc-bytecomp-defvar comment-line-break-function) ; (X)Emacs 20+
-(cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs 20+
+(cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
 (cc-bytecomp-defun set-keymap-parents)	; XEmacs
-(cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1+
+(cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1
 (cc-bytecomp-obsolete-fun make-local-hook) ; Marked obsolete in Emacs 21.1.
 
 ;; We set these variables during mode init, yet we don't require
@@ -106,6 +106,11 @@
 ;; Menu support for both XEmacs and Emacs.  If you don't have easymenu
 ;; with your version of Emacs, you are incompatible!
 (cc-external-require 'easymenu)
+
+;; Autoload directive for emacsen that doesn't have an older CC Mode
+;; version in the dist.
+(autoload 'c-subword-mode "cc-subword"
+  "Mode enabling subword movement and editing keys." t)
 
 ;; Load cc-fonts first after font-lock is loaded, since it isn't
 ;; necessary until font locking is requested.
@@ -153,7 +158,6 @@ directly supported by CC Mode.  This can be used instead of the
 `c-init-language-vars' macro if the language you want to use is one of
 those, rather than a derived language defined through the language
 variable system (see \"cc-langs.el\")."
-  ;; This function does not do any hidden buffer changes.
   (cond ((eq mode 'c-mode)    (c-init-language-vars c-mode))
 	((eq mode 'c++-mode)  (c-init-language-vars c++-mode))
 	((eq mode 'objc-mode) (c-init-language-vars objc-mode))
@@ -171,8 +175,6 @@ initialization to run CC Mode for the C language is done.  Otherwise
 only some basic setup is done, and a call to `c-init-language-vars' or
 `c-init-language-vars-for' is necessary too (which gives more
 control).  See \"cc-mode.el\" for more info."
-  ;;
-  ;; This function does not do any hidden buffer changes.
 
   (setq c-buffer-is-cc-mode t)
 
@@ -220,7 +222,7 @@ control).  See \"cc-mode.el\" for more info."
 (defun c-define-abbrev-table (name defs)
   ;; Compatibility wrapper for `define-abbrev' which passes a non-nil
   ;; sixth argument for SYSTEM-FLAG in emacsen that support it
-  ;; (currently only Emacs 21.2).
+  ;; (currently only Emacs >= 21.2).
   (let ((table (or (symbol-value name)
 		   (progn (define-abbrev-table name nil)
 			  (symbol-value name)))))
@@ -232,20 +234,25 @@ control).  See \"cc-mode.el\" for more info."
       (setq defs (cdr defs)))))
 (put 'c-define-abbrev-table 'lisp-indent-function 1)
 
+(defun c-bind-special-erase-keys ()
+  ;; Only used in Emacs to bind C-c C-<delete> and C-c C-<backspace>
+  ;; to the proper keys depending on `normal-erase-is-backspace'.
+  (if normal-erase-is-backspace
+      (progn
+	(define-key c-mode-base-map (kbd "C-c C-<delete>")
+	  'c-hungry-delete-forward)
+	(define-key c-mode-base-map (kbd "C-c C-<backspace>")
+	  'c-hungry-backspace))
+    (define-key c-mode-base-map (kbd "C-c C-<delete>")
+      'c-hungry-backspace)
+    (define-key c-mode-base-map (kbd "C-c C-<backspace>")
+      'c-hungry-delete-forward)))
+
 (if c-mode-base-map
     nil
-  ;; TBD: should we even worry about naming this keymap. My vote: no,
-  ;; because Emacs and XEmacs do it differently.
+
   (setq c-mode-base-map (make-sparse-keymap))
-  ;; put standard keybindings into MAP
-  ;; the following mappings correspond more or less directly to BOCM
-  (define-key c-mode-base-map "{"         'c-electric-brace)
-  (define-key c-mode-base-map "}"         'c-electric-brace)
-  (define-key c-mode-base-map ";"         'c-electric-semi&comma)
-  (define-key c-mode-base-map "#"         'c-electric-pound)
-  (define-key c-mode-base-map ":"         'c-electric-colon)
-  (define-key c-mode-base-map "("         'c-electric-paren)
-  (define-key c-mode-base-map ")"         'c-electric-paren)
+
   ;; Separate M-BS from C-M-h.  The former should remain
   ;; backward-kill-word.
   (define-key c-mode-base-map [(control meta h)] 'c-mark-function)
@@ -259,21 +266,23 @@ control).  See \"cc-mode.el\" for more info."
   (substitute-key-definition 'indent-new-comment-line
 			     'c-indent-new-comment-line
 			     c-mode-base-map global-map)
+  (substitute-key-definition 'indent-for-tab-command
+			     'c-indent-command
+			     c-mode-base-map global-map)
   (when (fboundp 'comment-indent-new-line)
     ;; indent-new-comment-line has changed name to
     ;; comment-indent-new-line in Emacs 21.
     (substitute-key-definition 'comment-indent-new-line
 			       'c-indent-new-comment-line
 			       c-mode-base-map global-map))
+
   ;; RMS says don't make these the default.
 ;;  (define-key c-mode-base-map "\e\C-a"    'c-beginning-of-defun)
 ;;  (define-key c-mode-base-map "\e\C-e"    'c-end-of-defun)
+
   (define-key c-mode-base-map "\C-c\C-n"  'c-forward-conditional)
   (define-key c-mode-base-map "\C-c\C-p"  'c-backward-conditional)
   (define-key c-mode-base-map "\C-c\C-u"  'c-up-conditional)
-  (substitute-key-definition 'indent-for-tab-command
-			     'c-indent-command
-			     c-mode-base-map global-map)
 
   ;; It doesn't suffice to put `c-fill-paragraph' on
   ;; `fill-paragraph-function' since `c-fill-paragraph' must be called
@@ -290,34 +299,74 @@ control).  See \"cc-mode.el\" for more info."
   (substitute-key-definition 'fill-paragraph-or-region 'c-fill-paragraph
 			     c-mode-base-map global-map)
 
+  ;; We bind the forward deletion key and (implicitly) C-d to
+  ;; `c-electric-delete-forward', and the backward deletion key to
+  ;; `c-electric-backspace'.  The hungry variants are bound to the
+  ;; same keys but prefixed with C-c.  This implies that C-c C-d is
+  ;; `c-hungry-delete-forward'.  For consistency, we bind not only C-c
+  ;; <backspace> to `c-hungry-backspace' but also C-c C-<backspace>,
+  ;; so that the Ctrl key can be held down during the whole sequence
+  ;; regardless of the direction.  This in turn implies that we bind
+  ;; C-c C-<delete> to `c-hungry-delete-forward', for the same reason.
+
   ;; Bind the electric deletion functions to C-d and DEL.  Emacs 21
   ;; automatically maps the [delete] and [backspace] keys to these two
   ;; depending on window system and user preferences.  (In earlier
   ;; versions it's possible to do the same by using `function-key-map'.)
   (define-key c-mode-base-map "\C-d" 'c-electric-delete-forward)
   (define-key c-mode-base-map "\177" 'c-electric-backspace)
-  (when (boundp 'delete-key-deletes-forward)
-    ;; In XEmacs 20 and later we fix the forward and backward deletion
-    ;; behavior by binding the keysyms for the [delete] and
-    ;; [backspace] keys directly, and use `delete-forward-p' or
-    ;; `delete-key-deletes-forward' to decide what [delete] should do.
+  (define-key c-mode-base-map "\C-c\C-d"     'c-hungry-delete-forward)
+  (define-key c-mode-base-map [?\C-c ?\d]    'c-hungry-backspace)
+  (define-key c-mode-base-map [?\C-c ?\C-\d] 'c-hungry-backspace)
+  (define-key c-mode-base-map [?\C-c deletechar] 'c-hungry-delete-forward) ; C-c <delete> on a tty.
+  (define-key c-mode-base-map [?\C-c (control deletechar)] ; C-c C-<delete> on a tty.
+    'c-hungry-delete-forward)
+  (when (boundp 'normal-erase-is-backspace)
+    ;; The automatic C-d and DEL mapping functionality doesn't extend
+    ;; to special combinations like C-c C-<delete>, so we have to hook
+    ;; into the `normal-erase-is-backspace' system to bind it directly
+    ;; as appropriate.
+    (add-hook 'normal-erase-is-backspace-hook 'c-bind-special-erase-keys)
+    (c-bind-special-erase-keys))
+
+  (when (fboundp 'delete-forward-p)
+    ;; In XEmacs we fix the forward and backward deletion behavior by
+    ;; binding the keysyms for the [delete] and [backspace] keys
+    ;; directly, and use `delete-forward-p' to decide what [delete]
+    ;; should do.  That's done in the XEmacs specific
+    ;; `c-electric-delete' and `c-hungry-delete' functions.
     (define-key c-mode-base-map [delete]    'c-electric-delete)
-    (define-key c-mode-base-map [backspace] 'c-electric-backspace))
-  (define-key c-mode-base-map ","         'c-electric-semi&comma)
-  (define-key c-mode-base-map "*"         'c-electric-star)
+    (define-key c-mode-base-map [backspace] 'c-electric-backspace)
+    (define-key c-mode-base-map (kbd "C-c <delete>") 'c-hungry-delete)
+    (define-key c-mode-base-map (kbd "C-c C-<delete>") 'c-hungry-delete)
+    (define-key c-mode-base-map (kbd "C-c <backspace>") 'c-hungry-backspace)
+    (define-key c-mode-base-map (kbd "C-c C-<backspace>") 'c-hungry-backspace))
+
+  (define-key c-mode-base-map "#"         'c-electric-pound)
+  (define-key c-mode-base-map "{"         'c-electric-brace)
+  (define-key c-mode-base-map "}"         'c-electric-brace)
   (define-key c-mode-base-map "/"         'c-electric-slash)
-  (define-key c-mode-base-map "\C-c\C-q"  'c-indent-defun)
+  (define-key c-mode-base-map "*"         'c-electric-star)
+  (define-key c-mode-base-map ";"         'c-electric-semi&comma)
+  (define-key c-mode-base-map ","         'c-electric-semi&comma)
+  (define-key c-mode-base-map ":"         'c-electric-colon)
+  (define-key c-mode-base-map "("         'c-electric-paren)
+  (define-key c-mode-base-map ")"         'c-electric-paren)
+
   (define-key c-mode-base-map "\C-c\C-\\" 'c-backslash-region)
-  (define-key c-mode-base-map "\C-c\C-a"  'c-toggle-auto-state)
+  (define-key c-mode-base-map "\C-c\C-a"  'c-toggle-auto-newline)
   (define-key c-mode-base-map "\C-c\C-b"  'c-submit-bug-report)
   (define-key c-mode-base-map "\C-c\C-c"  'comment-region)
-  (define-key c-mode-base-map "\C-c\C-d"  'c-toggle-hungry-state)
+  (define-key c-mode-base-map "\C-c\C-l"  'c-toggle-electric-state)
   (define-key c-mode-base-map "\C-c\C-o"  'c-set-offset)
+  (define-key c-mode-base-map "\C-c\C-q"  'c-indent-defun)
   (define-key c-mode-base-map "\C-c\C-s"  'c-show-syntactic-information)
-  (define-key c-mode-base-map "\C-c\C-t"  'c-toggle-auto-hungry-state)
+  ;; (define-key c-mode-base-map "\C-c\C-t"  'c-toggle-auto-hungry-state)  Commented out by ACM, 2005-03-05.
   (define-key c-mode-base-map "\C-c."     'c-set-style)
   ;; conflicts with OOBR
   ;;(define-key c-mode-base-map "\C-c\C-v"  'c-version)
+  ;; (define-key c-mode-base-map "\C-c\C-y"  'c-toggle-hungry-state)  Commented out by ACM, 2005-11-22.
+  (define-key c-mode-base-map "\C-c\C-w" 'c-subword-mode)
   )
 
 ;; We don't require the outline package, but we configure it a bit anyway.
@@ -341,32 +390,47 @@ preferably use the `c-mode-menu' language constant directly."
     (let ((f (symbol-function 'c-populate-syntax-table)))
       (if (byte-code-function-p f) f (byte-compile f)))))
 
+;; CAUTION: Try to avoid installing things on
+;; `before-change-functions'.  The macro `combine-after-change-calls'
+;; is used and it doesn't work if there are things on that hook.  That
+;; can cause font lock functions to run in inconvenient places during
+;; temporary changes in some font lock support modes, causing extra
+;; unnecessary work and font lock glitches due to interactions between
+;; various text properties.
+
 (defun c-after-change (beg end len)
-  ;; Function put on `after-change-functions' to adjust various
-  ;; caches.  Prefer speed to finesse here, since there will be an
-  ;; order of magnitude more calls to this function than any of the
+  ;; Function put on `after-change-functions' to adjust various caches
+  ;; etc.  Prefer speed to finesse here, since there will be an order
+  ;; of magnitude more calls to this function than any of the
   ;; functions that use the caches.
   ;;
   ;; Note that care must be taken so that this is called before any
   ;; font-lock callbacks since we might get calls to functions using
   ;; these caches from inside them, and we must thus be sure that this
   ;; has already been executed.
-  ;;
-  ;; This function does not do any hidden buffer changes.
 
   (c-save-buffer-state ()
-    (when (> end (point-max))
-      ;; Some emacsen might return positions past the end. This has been
-      ;; observed in Emacs 20.7 when rereading a buffer changed on disk
-      ;; (haven't been able to minimize it, but Emacs 21.3 appears to
-      ;; work).
-      (setq end (point-max))
-      (when (> beg end)
-	(setq beg end)))
+    ;; When `combine-after-change-calls' is used we might get calls
+    ;; with regions outside the current narrowing.  This has been
+    ;; observed in Emacs 20.7.
+    (save-restriction
+      (widen)
 
-    (c-invalidate-sws-region-after beg end)
-    (c-invalidate-state-cache beg)
-    (c-invalidate-find-decl-cache beg)))
+      (when (> end (point-max))
+	;; Some emacsen might return positions past the end. This has been
+	;; observed in Emacs 20.7 when rereading a buffer changed on disk
+	;; (haven't been able to minimize it, but Emacs 21.3 appears to
+	;; work).
+	(setq end (point-max))
+	(when (> beg end)
+	  (setq beg end)))
+
+      (c-invalidate-sws-region-after beg end)
+      (c-invalidate-state-cache beg)
+      (c-invalidate-find-decl-cache beg)
+
+      (when c-recognize-<>-arglists
+	(c-after-change-check-<>-operators beg end)))))
 
 (defun c-basic-common-init (mode default-style)
   "Do the necessary initialization for the syntax handling routines
@@ -380,8 +444,6 @@ same format as `c-default-style'.
 Note that `c-init-language-vars' must be called before this function.
 This function cannot do that since `c-init-language-vars' is a macro
 that requires a literal mode spec at compile time."
-  ;;
-  ;; This function does not do any hidden buffer changes.
 
   (setq c-buffer-is-cc-mode mode)
 
@@ -395,13 +457,20 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start-skip)
   (make-local-variable 'comment-multi-line)
+  (make-local-variable 'comment-line-break-function)
+  (make-local-variable 'paragraph-start)
+  (make-local-variable 'paragraph-separate)
+  (make-local-variable 'paragraph-ignore-fill-prefix)
+  (make-local-variable 'adaptive-fill-mode)
+  (make-local-variable 'adaptive-fill-regexp)
 
   ;; now set their values
   (setq parse-sexp-ignore-comments t
 	indent-line-function 'c-indent-line
 	indent-region-function 'c-indent-region
 	normal-auto-fill-function 'c-do-auto-fill
-	comment-multi-line t)
+	comment-multi-line t
+	comment-line-break-function 'c-indent-new-comment-line)
 
   ;; Install `c-fill-paragraph' on `fill-paragraph-function' so that a
   ;; direct call to `fill-paragraph' behaves better.  This still
@@ -409,21 +478,25 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'fill-paragraph-function)
   (setq fill-paragraph-function 'c-fill-paragraph)
 
-  ;; (X)Emacs 20 and later.
-  (when (boundp 'comment-line-break-function)
-    (make-local-variable 'comment-line-break-function)
-    (setq comment-line-break-function
-	  'c-indent-new-comment-line))
+  (when (or c-recognize-<>-arglists
+	    (c-major-mode-is 'awk-mode))
+    ;; We'll use the syntax-table text property to change the syntax
+    ;; of some chars for this language, so do the necessary setup for
+    ;; that.
+    ;;
+    ;; Note to other package developers: It's ok to turn this on in CC
+    ;; Mode buffers when CC Mode doesn't, but it's not ok to turn it
+    ;; off if CC Mode has turned it on.
 
-  ;; Emacs 20 and later.
-  (when (boundp 'parse-sexp-lookup-properties)
-    (make-local-variable 'parse-sexp-lookup-properties)
-    (setq parse-sexp-lookup-properties t))
+    ;; Emacs.
+    (when (boundp 'parse-sexp-lookup-properties)
+      (make-local-variable 'parse-sexp-lookup-properties)
+      (setq parse-sexp-lookup-properties t))
 
-  ;; Same as above for XEmacs 21 (although currently undocumented).
-  (when (boundp 'lookup-syntax-properties)
-    (make-local-variable 'lookup-syntax-properties)
-    (setq lookup-syntax-properties t))
+    ;; Same as above for XEmacs.
+    (when (boundp 'lookup-syntax-properties)
+      (make-local-variable 'lookup-syntax-properties)
+      (setq lookup-syntax-properties t)))
 
   ;; Use this in Emacs 21 to avoid meddling with the rear-nonsticky
   ;; property on each character.
@@ -441,17 +514,11 @@ that requires a literal mode spec at compile time."
 
   ;; In Emacs 21 and later it's possible to turn off the ad-hoc
   ;; heuristic that open parens in column 0 are defun starters.  Since
-  ;; we have c-state-cache that isn't useful and only causes trouble
-  ;; so turn it off.
+  ;; we have c-state-cache, that heuristic isn't useful and only causes
+  ;; trouble, so turn it off.
   (when (memq 'col-0-paren c-emacs-features)
     (make-local-variable 'open-paren-in-column-0-is-defun-start)
     (setq open-paren-in-column-0-is-defun-start nil))
-
-  ;; The `c-type' text property with `c-decl-end' is used to mark the
-  ;; ends of access keys to make interactive refontification work
-  ;; better.
-  (when c-opt-access-key
-    (setq c-type-decl-end-used t))
 
   (c-clear-found-types)
 
@@ -483,14 +550,15 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'c-comment-indent)
 
-  ;; put auto-hungry designators onto minor-mode-alist, but only once
-  (or (assq 'c-auto-hungry-string minor-mode-alist)
+  ;; Put submode indicators onto minor-mode-alist, but only once.
+  (or (assq 'c-submode-indicators minor-mode-alist)
       (setq minor-mode-alist
-	    (cons '(c-auto-hungry-string c-auto-hungry-string)
+	    (cons '(c-submode-indicators c-submode-indicators)
 		  minor-mode-alist)))
 
   ;; Install the functions that ensure that various internal caches
   ;; don't become invalid due to buffer changes.
+  (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'c-after-change nil t))
 
 (defun c-after-font-lock-init ()
@@ -505,7 +573,7 @@ This does not load the font-lock package.  Use after
 
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
-	`(,(if (c-mode-is-new-awk-p)
+	`(,(if (c-major-mode-is 'awk-mode)
 	       ;; awk-mode currently has only one font lock level.
 	       'awk-font-lock-keywords
 	     (mapcar 'c-mode-symbol
@@ -517,6 +585,8 @@ This does not load the font-lock package.  Use after
 	  (font-lock-lines-before . 1)
 	  (font-lock-mark-block-function
 	   . c-mark-function)))
+
+  (make-local-hook 'font-lock-mode-hook)
   (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
 
 (defun c-setup-doc-comment-style ()
@@ -536,9 +606,7 @@ Mode to operate correctly.
 
 MODE is the symbol for the mode to initialize, like 'c-mode.  See
 `c-basic-common-init' for details.  It's only optional to be
-compatible with old code; callers should always specify it.
-
-This function does not do any hidden buffer changes."
+compatible with old code; callers should always specify it."
 
   (unless mode
     ;; Called from an old third party package.  The fallback is to
@@ -569,8 +637,6 @@ setting found in `c-file-style', then it applies any offset settings
 it finds in `c-file-offsets'.
 
 Note that the style variables are always made local to the buffer."
-  ;;
-  ;; This function does not do any hidden buffer changes.
 
   ;; apply file styles and offsets
   (when c-buffer-is-cc-mode
@@ -584,7 +650,18 @@ Note that the style variables are always made local to the buffer."
 	    (let ((langelem (car langentry))
 		  (offset (cdr langentry)))
 	      (c-set-offset langelem offset)))
-	  c-file-offsets))))
+	  c-file-offsets))
+    ;; Problem: The file local variable block might have explicitly set a
+    ;; style variable.  The `c-set-style' or `mapcar' call might have
+    ;; overwritten this.  So we run `hack-local-variables' again to remedy
+    ;; this.  There are no guarantees this will work properly, particularly as
+    ;; we have no control over what the other hook functions on
+    ;; `hack-local-variables-hook' would have done, or what any "eval"
+    ;; expression will do when evaluated again.  C'est la vie!  ACM,
+    ;; 2005/11/2.
+    (if (or c-file-style c-file-offsets)
+	(let ((hack-local-variables-hook nil))
+	  (hack-local-variables)))))
 
 (add-hook 'hack-local-variables-hook 'c-postprocess-file-styles)
 
@@ -794,9 +871,6 @@ Key bindings:
 	mode-name "ObjC"
 	local-abbrev-table objc-mode-abbrev-table
 	abbrev-mode t)
-  ;; The `c-type' text property with `c-decl-end' is used to mark the
-  ;; end of the @-style directives.
-  (setq c-type-decl-end-used t)
   (use-local-map objc-mode-map)
   (c-init-language-vars-for 'objc-mode)
   (c-common-init 'objc-mode)
@@ -996,8 +1070,7 @@ Key bindings:
   (c-update-modeline))
 
 
-;; Support for awk.  This is purposely disabled for older (X)Emacsen which
-;; don't support syntax-table properties.
+;; Support for AWK
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.awk\\'" . awk-mode))
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("awk" . awk-mode))
@@ -1009,37 +1082,34 @@ Key bindings:
 ;;; autoload form instead.
 ;;;###autoload (autoload 'awk-mode "cc-mode" "Major mode for editing AWK code." t)
 
-(if (not (memq 'syntax-properties c-emacs-features))
-    (autoload 'awk-mode "awk-mode" "Major mode for editing AWK code."  t)
+(defvar awk-mode-abbrev-table nil
+  "Abbreviation table used in awk-mode buffers.")
+(c-define-abbrev-table 'awk-mode-abbrev-table
+  '(("else" "else" c-electric-continued-statement 0)
+    ("while" "while" c-electric-continued-statement 0)))
 
-  (defvar awk-mode-abbrev-table nil
-    "Abbreviation table used in awk-mode buffers.")
-  (c-define-abbrev-table 'awk-mode-abbrev-table
-    '(("else" "else" c-electric-continued-statement 0)
-      ("while" "while" c-electric-continued-statement 0)))
+(defvar awk-mode-map ()
+  "Keymap used in awk-mode buffers.")
+(if awk-mode-map
+    nil
+  (setq awk-mode-map (c-make-inherited-keymap))
+  ;; add bindings which are only useful for awk.
+  (define-key awk-mode-map "#" 'self-insert-command)
+  (define-key awk-mode-map "/" 'self-insert-command)
+  (define-key awk-mode-map "*" 'self-insert-command)
+  (define-key awk-mode-map "\C-c\C-n" 'undefined) ; #if doesn't exist in awk.
+  (define-key awk-mode-map "\C-c\C-p" 'undefined)
+  (define-key awk-mode-map "\C-c\C-u" 'undefined)
+  (define-key awk-mode-map "\M-a" 'c-beginning-of-statement) ; 2003/10/7
+  (define-key awk-mode-map "\M-e" 'c-end-of-statement) ; 2003/10/7
+  (define-key awk-mode-map "\C-\M-a" 'c-awk-beginning-of-defun)
+  (define-key awk-mode-map "\C-\M-e" 'c-awk-end-of-defun))
 
-  (defvar awk-mode-map ()
-    "Keymap used in awk-mode buffers.")
-  (if awk-mode-map
-      nil
-    (setq awk-mode-map (c-make-inherited-keymap))
-    ;; add bindings which are only useful for awk.
-    (define-key awk-mode-map "#" 'self-insert-command)
-    (define-key awk-mode-map "/" 'self-insert-command)
-    (define-key awk-mode-map "*" 'self-insert-command)
-    (define-key awk-mode-map "\C-c\C-n" 'undefined) ; #if doesn't exist in awk.
-    (define-key awk-mode-map "\C-c\C-p" 'undefined)
-    (define-key awk-mode-map "\C-c\C-u" 'undefined)
-    (define-key awk-mode-map "\M-a" 'undefined) ; c-awk-beginning-of-statement isn't yet implemented.
-    (define-key awk-mode-map "\M-e" 'undefined) ; c-awk-end-of-statement isn't yet implemented.
-    (define-key awk-mode-map "\C-\M-a" 'c-awk-beginning-of-defun)
-    (define-key awk-mode-map "\C-\M-e" 'c-awk-end-of-defun))
+(easy-menu-define c-awk-menu awk-mode-map "AWK Mode Commands"
+		  (cons "AWK" (c-lang-const c-mode-menu awk)))
 
-  (easy-menu-define c-awk-menu awk-mode-map "AWK Mode Commands"
-    (cons "AWK" (c-lang-const c-mode-menu awk)))
-
-  (defun awk-mode ()
-    "Major mode for editing AWK code.
+(defun awk-mode ()
+  "Major mode for editing AWK code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
 awk-mode buffer.  This automatically sets up a mail buffer with version
 information already added.  You just need to add a description of the
@@ -1052,41 +1122,40 @@ initialization, then `awk-mode-hook'.
 
 Key bindings:
 \\{awk-mode-map}"
-    (interactive)
-    (require 'cc-awk)                   ; Added 2003/6/10.
-    (kill-all-local-variables)
-    (c-initialize-cc-mode t)
-    (set-syntax-table awk-mode-syntax-table)
-    (setq major-mode 'awk-mode
-          mode-name "AWK"
-          local-abbrev-table awk-mode-abbrev-table
-          abbrev-mode t)
-    (use-local-map awk-mode-map)
-    (c-init-language-vars-for 'awk-mode)
-    (c-common-init 'awk-mode)
-    ;; The rest of CC Mode does not (yet) use `font-lock-syntactic-keywords',
-    ;; so it's not set by `c-font-lock-init'.
-    (make-local-variable 'font-lock-syntactic-keywords)
-    (setq font-lock-syntactic-keywords
-          '((c-awk-set-syntax-table-properties
-             0 (0)                      ; Everything on this line is a dummy.
-             nil t)))
-    (c-awk-unstick-NL-prop)
-    (add-hook 'before-change-functions 'c-awk-before-change nil t)
-    (add-hook 'after-change-functions 'c-awk-after-change nil t)
-    (c-save-buffer-state nil
-      (save-restriction
-        (widen)
-        (c-awk-clear-NL-props (point-min) (point-max))
-        (c-awk-after-change (point-min) (point-max) 0))) ; Set syntax-table props.
+  (interactive)
+  (require 'cc-awk)			; Added 2003/6/10.
+  (kill-all-local-variables)
+  (c-initialize-cc-mode t)
+  (set-syntax-table awk-mode-syntax-table)
+  (setq major-mode 'awk-mode
+	mode-name "AWK"
+	local-abbrev-table awk-mode-abbrev-table
+	abbrev-mode t)
+  (use-local-map awk-mode-map)
+  (c-init-language-vars-for 'awk-mode)
+  (c-common-init 'awk-mode)
+  ;; The rest of CC Mode does not (yet) use `font-lock-syntactic-keywords',
+  ;; so it's not set by `c-font-lock-init'.
+  (make-local-variable 'font-lock-syntactic-keywords)
+  (setq font-lock-syntactic-keywords
+	'((c-awk-set-syntax-table-properties
+	   0 (0)			; Everything on this line is a dummy.
+	   nil t)))
+  (c-awk-unstick-NL-prop)
+  (add-hook 'before-change-functions 'c-awk-before-change nil t)
+  (add-hook 'after-change-functions 'c-awk-after-change nil t)
+  (c-save-buffer-state nil
+    (save-restriction
+      (widen)
+      (c-awk-clear-NL-props (point-min) (point-max))
+      (c-awk-after-change (point-min) (point-max) 0))) ; Set syntax-table props.
 
-    ;; Prevent Xemacs's buffer-syntactic-context being used.  See the comment
-    ;; in cc-engine.el, just before (defun c-fast-in-literal ...
-    (defalias 'c-in-literal 'c-slow-in-literal)
+  ;; Prevent Xemacs's buffer-syntactic-context being used.  See the comment
+  ;; in cc-engine.el, just before (defun c-fast-in-literal ...
+  (defalias 'c-in-literal 'c-slow-in-literal)
 
-    (c-run-mode-hooks 'c-mode-common-hook 'awk-mode-hook)
-    (c-update-modeline))
-) ;; closes the (if (not (memq 'syntax-properties c-emacs-features))
+  (c-run-mode-hooks 'c-mode-common-hook 'awk-mode-hook)
+  (c-update-modeline))
 
 
 ;; bug reporting
@@ -1175,5 +1244,5 @@ Key bindings:
 
 (cc-provide 'cc-mode)
 
-;; arch-tag: 7825e5c4-fd09-439f-a04d-4c13208ba3d7
+;;; arch-tag: 7825e5c4-fd09-439f-a04d-4c13208ba3d7
 ;;; cc-mode.el ends here

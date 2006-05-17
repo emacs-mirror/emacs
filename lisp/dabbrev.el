@@ -373,11 +373,7 @@ function pointed out by `dabbrev-friend-buffer-function' to find the
 completions.
 
 If the prefix argument is 16 (which comes from C-u C-u),
-then it searches *all* buffers.
-
-With no prefix argument, it reuses an old completion list
-if there is a suitable one already."
-
+then it searches *all* buffers."
   (interactive "*P")
   (dabbrev--reset-global-variables)
   (let* ((dabbrev-check-other-buffers (and arg t))
@@ -392,57 +388,43 @@ if there is a suitable one already."
 	 (my-obarray dabbrev--last-obarray)
 	 init)
     (save-excursion
-      (if (and (null arg)
-	       my-obarray
-	       (or (eq dabbrev--last-completion-buffer (current-buffer))
-		   (and (window-minibuffer-p (selected-window))
-			(eq dabbrev--last-completion-buffer
-			    (dabbrev--minibuffer-origin))))
-	       dabbrev--last-abbreviation
-	       (>= (length abbrev) (length dabbrev--last-abbreviation))
-	       (string= dabbrev--last-abbreviation
-			(substring abbrev 0
-				   (length dabbrev--last-abbreviation)))
-	       (setq init (try-completion abbrev my-obarray)))
-	  ;; We can reuse the existing completion list.
-	  nil
-	;;--------------------------------
-	;; New abbreviation to expand.
-	;;--------------------------------
-	(setq dabbrev--last-abbreviation abbrev)
-	;; Find all expansion
-	(let ((completion-list
-	       (dabbrev--find-all-expansions abbrev ignore-case-p))
-	      (completion-ignore-case ignore-case-p))
-	  ;; Make an obarray with all expansions
-	  (setq my-obarray (make-vector (length completion-list) 0))
-	  (or (> (length my-obarray) 0)
-	      (error "No dynamic expansion for \"%s\" found%s"
-		     abbrev
-		     (if dabbrev--check-other-buffers "" " in this-buffer")))
-	  (cond
-	   ((or (not ignore-case-p)
-		(not dabbrev-case-replace))
-	    (mapc (function (lambda (string)
-			      (intern string my-obarray)))
-		    completion-list))
-	   ((string= abbrev (upcase abbrev))
-	    (mapc (function (lambda (string)
-			      (intern (upcase string) my-obarray)))
-		    completion-list))
-	   ((string= (substring abbrev 0 1)
-		     (upcase (substring abbrev 0 1)))
-	    (mapc (function (lambda (string)
-			      (intern (capitalize string) my-obarray)))
-		    completion-list))
-	   (t
-	    (mapc (function (lambda (string)
-			      (intern (downcase string) my-obarray)))
-		    completion-list)))
-	  (setq dabbrev--last-obarray my-obarray)
-	  (setq dabbrev--last-completion-buffer (current-buffer))
-	  ;; Find the longest common string.
-	  (setq init (try-completion abbrev my-obarray)))))
+      ;;--------------------------------
+      ;; New abbreviation to expand.
+      ;;--------------------------------
+      (setq dabbrev--last-abbreviation abbrev)
+      ;; Find all expansion
+      (let ((completion-list
+	     (dabbrev--find-all-expansions abbrev ignore-case-p))
+	    (completion-ignore-case ignore-case-p))
+	;; Make an obarray with all expansions
+	(setq my-obarray (make-vector (length completion-list) 0))
+	(or (> (length my-obarray) 0)
+	    (error "No dynamic expansion for \"%s\" found%s"
+		   abbrev
+		   (if dabbrev--check-other-buffers "" " in this-buffer")))
+	(cond
+	 ((or (not ignore-case-p)
+	      (not dabbrev-case-replace))
+	  (mapc (function (lambda (string)
+			    (intern string my-obarray)))
+		completion-list))
+	 ((string= abbrev (upcase abbrev))
+	  (mapc (function (lambda (string)
+			    (intern (upcase string) my-obarray)))
+		completion-list))
+	 ((string= (substring abbrev 0 1)
+		   (upcase (substring abbrev 0 1)))
+	  (mapc (function (lambda (string)
+			    (intern (capitalize string) my-obarray)))
+		completion-list))
+	 (t
+	  (mapc (function (lambda (string)
+			    (intern (downcase string) my-obarray)))
+		completion-list)))
+	(setq dabbrev--last-obarray my-obarray)
+	(setq dabbrev--last-completion-buffer (current-buffer))
+	;; Find the longest common string.
+	(setq init (try-completion abbrev my-obarray))))
     ;;--------------------------------
     ;; Let the user choose between the expansions
     ;;--------------------------------

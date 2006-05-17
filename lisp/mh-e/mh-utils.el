@@ -414,10 +414,11 @@ Argument LIMIT limits search."
 
 (defun mh-show-font-lock-fontify-region (beg end loudly)
   "Limit font-lock in `mh-show-mode' to the header.
-Used when `mh-highlight-citation-p' is set to \"'gnus\", leaving the body to
-be dealt with by gnus highlighting. The region between BEG and END is given
-over to be fontified and LOUDLY controls if a user sees a message about the
-fontification operation."
+
+Used when the option `mh-highlight-citation-style' is set to \"Gnus\", leaving
+the body to be dealt with by Gnus highlighting. The region between BEG and END
+is given over to be fontified and LOUDLY controls if a user sees a message
+about the fontification operation."
   (let ((header-end (mh-mail-header-end)))
     (cond
      ((and (< beg header-end)(< end header-end))
@@ -874,12 +875,10 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-index-sequenced-messages
                       mh-index-sequenced-messages)
 (mh-defun-show-buffer mh-show-catchup mh-catchup)
-(mh-defun-show-buffer mh-show-ps-print-toggle-mime mh-ps-print-toggle-mime)
 (mh-defun-show-buffer mh-show-ps-print-toggle-color mh-ps-print-toggle-color)
 (mh-defun-show-buffer mh-show-ps-print-toggle-faces mh-ps-print-toggle-faces)
 (mh-defun-show-buffer mh-show-ps-print-msg-file mh-ps-print-msg-file)
 (mh-defun-show-buffer mh-show-ps-print-msg mh-ps-print-msg)
-(mh-defun-show-buffer mh-show-ps-print-msg-show mh-ps-print-msg-show)
 (mh-defun-show-buffer mh-show-toggle-mime-buttons mh-toggle-mime-buttons)
 (mh-defun-show-buffer mh-show-display-with-external-viewer
                       mh-display-with-external-viewer)
@@ -962,14 +961,11 @@ still visible.\n")
 
 (gnus-define-keys (mh-show-ps-print-map "P" mh-show-mode-map)
   "?"	mh-prefix-help
-  "A"	mh-show-ps-print-toggle-mime
   "C"	mh-show-ps-print-toggle-color
   "F"	mh-show-ps-print-toggle-faces
-  "M"	mh-show-ps-print-toggle-mime
   "f"	mh-show-ps-print-msg-file
   "l"   mh-show-print-msg
-  "p"	mh-show-ps-print-msg
-  "s"	mh-show-ps-print-msg-show)
+  "p"	mh-show-ps-print-msg)
 
 (gnus-define-keys (mh-show-thread-map "T" mh-show-mode-map)
   "?"    mh-prefix-help
@@ -1110,9 +1106,9 @@ See also `mh-folder-mode'.
   (make-local-variable 'font-lock-defaults)
   ;;(set (make-local-variable 'font-lock-support-mode) nil)
   (cond
-   ((equal mh-highlight-citation-p 'font-lock)
+   ((equal mh-highlight-citation-style 'font-lock)
     (setq font-lock-defaults '(mh-show-font-lock-keywords-with-cite t)))
-   ((equal mh-highlight-citation-p 'gnus)
+   ((equal mh-highlight-citation-style 'gnus)
     (setq font-lock-defaults '((mh-show-font-lock-keywords)
                                t nil nil nil
                                (font-lock-fontify-region-function
@@ -1258,7 +1254,7 @@ is used."
 (defun mh-show-xface ()
   "Display X-Face."
   (when (and window-system mh-show-use-xface-flag
-             (or mh-decode-mime-flag mhl-formfile
+             (or mh-decode-mime-flag mh-mhl-format-file
                  mh-clean-message-header-flag))
     (funcall mh-show-xface-function)))
 
@@ -1560,24 +1556,24 @@ If optional arg MSG is non-nil, display that message instead."
   (if mh-showing-mode (mh-show msg)))
 
 (defun mh-show (&optional message redisplay-flag)
-  "Show message at cursor.
-If optional argument MESSAGE is non-nil, display that message instead.
-Force a two-window display with the folder window on top (size given by the
-variable `mh-summary-height') and the show buffer below it.
-If the message is already visible, display the start of the message.
+  "Display message\\<mh-folder-mode-map>.
 
-If REDISPLAY-FLAG is non-nil, the default when called interactively, the
-message is redisplayed even if the show buffer was already displaying the
-correct message.
+If the message under the cursor is already displayed, this command scrolls to
+the beginning of the message. MH-E normally hides a lot of the superfluous
+header fields that mailers add to a message, but if you wish to see all of
+them, use the command \\[mh-header-display].
 
-Display of the message is controlled by setting the variables
-`mh-clean-message-header-flag' and `mhl-formfile'.  The default behavior is
-to scroll uninteresting headers off the top of the window.
-Type \"\\[mh-header-display]\" to see the message with all its headers."
+From a program, optional argument MESSAGE can be used to display an
+alternative message. The optional argument REDISPLAY-FLAG forces the redisplay
+of the message even if the show buffer was already displaying the correct
+message.
+
+See the \"mh-show\" customization group for a litany of options that control
+what displayed messages look like."
   (interactive (list nil t))
   (when (or redisplay-flag
             (and mh-showing-with-headers
-                 (or mhl-formfile mh-clean-message-header-flag)))
+                 (or mh-mhl-format-file mh-clean-message-header-flag)))
     (mh-invalidate-show-buffer))
   (mh-show-msg message))
 
@@ -1639,13 +1635,14 @@ arguments, after the message has been displayed."
     (run-hooks 'mh-show-hook)))
 
 (defun mh-modify (&optional message)
-  "Edit message at cursor.
-If optional argument MESSAGE is non-nil, edit that message instead.
-Force a two-window display with the folder window on top (size given by the
-value of the variable `mh-summary-height') and the message editing buffer below
-it.
+  "Edit message.
 
-The message is displayed in raw form."
+There are times when you need to edit a message. For example, you may need to
+fix a broken Content-Type header field. You can do this with this command. It
+displays the raw message in an editable buffer. When you are done editing,
+save and kill the buffer as you would any other.
+
+From a program, edit MESSAGE instead if it is non-nil."
   (interactive)
   (let* ((message (or message (mh-get-msg-num t)))
          (msg-filename (mh-msg-filename message))
@@ -1700,7 +1697,7 @@ Sets the current buffer to the show buffer."
     (unless (mh-buffer-data)
       (setf (mh-buffer-data) (mh-make-buffer-data)))
     ;; Bind variables in folder buffer in case they are local
-    (let ((formfile mhl-formfile)
+    (let ((formfile mh-mhl-format-file)
           (clean-message-header mh-clean-message-header-flag)
           (invisible-headers mh-invisible-header-fields-compiled)
           (visible-headers nil)
@@ -1849,11 +1846,15 @@ If NOTATION is nil then no change in the buffer occurs."
               (mh-thread-update-scan-line-map msg notation offset)))))))
 
 (defun mh-goto-msg (number &optional no-error-if-no-message dont-show)
-  "Position the cursor at message NUMBER.
-Optional non-nil second argument NO-ERROR-IF-NO-MESSAGE means return nil
-instead of signaling an error if message does not exist; in this case, the
-cursor is positioned near where the message would have been.
-Non-nil third argument DONT-SHOW means not to show the message."
+  "Go to a message\\<mh-folder-mode-map>.
+
+You can enter the message NUMBER either before or after typing
+\\[mh-goto-msg]. In the latter case, Emacs prompts you.
+
+In a program, optional non-nil second argument NO-ERROR-IF-NO-MESSAGE means
+return nil instead of signaling an error if message does not exist\; in this
+case, the cursor is positioned near where the message would have been. Non-nil
+third argument DONT-SHOW means not to show the message."
   (interactive "NGo to message: ")
   (setq number (prefix-numeric-value number))
   (let ((point (point))

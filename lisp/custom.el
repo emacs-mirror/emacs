@@ -210,12 +210,11 @@ The following keywords are meaningful:
         item.  This is a sentence containing an active field which
         references some other documentation.
 
-        There are three alternatives you can use for LINK-DATA:
+        There are several alternatives you can use for LINK-DATA:
 
         (custom-manual INFO-NODE)
              Link to an Info node; INFO-NODE is a string which specifies
-             the node name, as in \"(emacs)Top\".  The link appears as
-             `[manual]' in the customization buffer.
+             the node name, as in \"(emacs)Top\".
 
         (info-link INFO-NODE)
              Like `custom-manual' except that the link appears in the
@@ -223,7 +222,24 @@ The following keywords are meaningful:
 
         (url-link URL)
              Link to a web page; URL is a string which specifies the URL.
-             The link appears in the customization buffer as URL.
+
+        (emacs-commentary-link LIBRARY)
+             Link to the commentary section of LIBRARY.
+
+        (emacs-library-link LIBRARY)
+             Link to an Emacs Lisp LIBRARY file.
+
+        (file-link FILE)
+             Link to FILE.
+
+        (function-link FUNCTION)
+             Link to the documentation of FUNCTION.
+
+        (variable-link VARIABLE)
+             Link to the documentation of VARIABLE.
+
+        (custom-group-link GROUP)
+             Link to another customization GROUP.
 
         You can specify the text to use in the customization buffer by
         adding `:tag NAME' after the first element of the LINK-DATA; for
@@ -420,6 +436,7 @@ The following KEYWORDs are defined:
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
+  (declare (doc-string 3))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
@@ -1103,9 +1120,14 @@ See `custom-theme-load-themes' for more information on BODY."
 (defun enable-theme (theme)
   "Reenable all variable and face settings defined by THEME.
 The newly enabled theme gets the highest precedence (after `user').
-If it is already enabled, just give it highest precedence (after `user')."
+If it is already enabled, just give it highest precedence (after `user').
+
+This signals an error if THEME does not specify any theme
+settings.  Theme settings are set using `load-theme'."
   (interactive "SEnable Custom theme: ")
   (let ((settings (get theme 'theme-settings)))
+    (if (and (not (eq theme 'user)) (null settings))
+	(error "No theme settings defined in %s." (symbol-name theme)))
     (dolist (s settings)
       (let* ((prop (car s))
 	     (symbol (cadr s))
@@ -1113,7 +1135,8 @@ If it is already enabled, just give it highest precedence (after `user')."
 	(put symbol prop (cons (cddr s) (assq-delete-all theme spec-list)))
 	(if (eq prop 'theme-value)
 	    (custom-theme-recalc-variable symbol)
-	  (custom-theme-recalc-face symbol)))))
+	  (if (facep symbol)
+	      (custom-theme-recalc-face symbol))))))
   (setq custom-enabled-themes
         (cons theme (delq theme custom-enabled-themes)))
   ;; `user' must always be the highest-precedence enabled theme.

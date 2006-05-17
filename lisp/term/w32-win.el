@@ -1039,6 +1039,8 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
 			   global-map)
 
+(define-key function-key-map [S-tab] [backtab])
+
 
 ;;; Do the actual Windows setup here; the above code just defines
 ;;; functions and variables that we use now.

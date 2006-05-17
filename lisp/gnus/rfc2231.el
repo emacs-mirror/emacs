@@ -127,7 +127,17 @@ The list will be on the form
 		       (> c ?\177)) ;; EXTENSION: Support non-ascii chars.
 		   (not (memq c stoken)))
 	      (setq value (buffer-substring
-			   (point) (progn (forward-sexp) (point)))))
+			   (point)
+			   (progn
+			     (forward-sexp)
+			     ;; We might not have reached at the end of
+			     ;; the value because of non-ascii chars,
+			     ;; so we should jump over them if any.
+			     (while (and (not (eobp))
+					 (> (char-after) ?\177))
+			       (forward-char 1)
+			       (forward-sexp))
+			     (point)))))
 	     (t
 	      (error "Invalid header: %s" string)))
 	    (if number

@@ -1519,7 +1519,9 @@ Applies `ffap-menu-text-plist' text properties at all matches."
   (let ((ffap-next-regexp (or ffap-menu-regexp ffap-next-regexp))
 	(range (- (point-max) (point-min)))
 	(mod (buffer-modified-p))	; was buffer modified?
-	buffer-read-only		; to set text-properties
+	;; inhibit-read-only works on read-only text properties
+	;; as well as read-only buffers.
+	(inhibit-read-only t)		; to set text-properties
 	item
 	;; Avoid repeated searches of the *mode-alist:
 	(major-mode (if (assq major-mode ffap-string-at-point-mode-alist)

@@ -392,6 +392,32 @@
 (defvar w3m-minor-mode-map)
 
 ;; ======================================================================
+;;; Newsticker status
+;; ======================================================================
+
+(defvar newsticker--retrieval-timer-list nil
+  "List of timers for news retrieval.
+This is an alist, each element consisting of (feed-name . timer)")
+
+(defvar newsticker--display-timer nil
+  "Timer for newsticker display.")
+
+;;;###autoload
+(defun newsticker-running-p ()
+  "Check whether newsticker is running.
+Return t if newsticker is running, nil otherwise.  Newsticker is
+considered to be running if the newsticker timer list is not empty."
+  (> (length newsticker--retrieval-timer-list) 0))
+
+;;;###autoload
+(defun newsticker-ticker-running-p ()
+  "Check whether newsticker's actual ticker is running.
+Return t if ticker is running, nil otherwise.  Newsticker is
+considered to be running if the newsticker timer list is not
+empty."
+  (timerp newsticker--display-timer))
+
+;; ======================================================================
 ;;; Customizables
 ;; ======================================================================
 (defgroup newsticker nil
@@ -1188,11 +1214,6 @@ that can be added."
 ;; ======================================================================
 ;;; Internal variables
 ;; ======================================================================
-(defvar newsticker--display-timer nil
-  "Timer for newsticker display.")
-(defvar newsticker--retrieval-timer-list nil
-  "List of timers for news retrieval.
-This is an alist, each element consisting of (feed-name . timer)")
 (defvar newsticker--item-list nil
   "List of newsticker items.")
 (defvar newsticker--item-position 0
@@ -3077,24 +3098,6 @@ If VALUE is nil, auto-narrowing is turned off, otherwise it is turned on."
         (newsticker--buffer-beginning-of-item)
         (let ((age (get-text-property (point) 'nt-age)))
           (and (memq  age '(new old obsolete)) t)))))
-
-;; ======================================================================
-;;; Newsticker status
-;; ======================================================================
-;;;###autoload
-(defun newsticker-running-p ()
-  "Check whether newsticker is running.
-Return t if newsticker is running, nil otherwise.  Newsticker is
-considered to be running if the newsticker timer list is not empty."
-  (> (length newsticker--retrieval-timer-list) 0))
-
-;;;###autoload
-(defun newsticker-ticker-running-p ()
-  "Check whether newsticker's actual ticker is running.
-Return t if ticker is running, nil otherwise.  Newsticker is
-considered to be running if the newsticker timer list is not
-empty."
-  (timerp newsticker--display-timer))
 
 ;; ======================================================================
 ;;; local stuff

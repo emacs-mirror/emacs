@@ -481,7 +481,7 @@ A large number or nil slows down menu responsiveness."
 	      :enable (and (not buffer-read-only)
 			   (not (eq t buffer-undo-list))
 			   (if (eq last-command 'undo)
-			       pending-undo-list
+			       (listp pending-undo-list)
 			     (consp buffer-undo-list)))
 	      :help "Undo last operation"))
 
@@ -641,8 +641,7 @@ by \"Save Options\" in Custom buffers.")
     ;; put on a customized-value property.
     (dolist (elt '(line-number-mode column-number-mode size-indication-mode
 		   cua-mode show-paren-mode transient-mark-mode
-		   global-font-lock-mode blink-cursor-mode
-		   display-time-mode display-battery-mode))
+		   blink-cursor-mode display-time-mode display-battery-mode))
       (and (customize-mark-to-save elt)
 	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.
@@ -832,18 +831,6 @@ mail status in mode line"))
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq fringe-mode nil))))
 
-(defun menu-bar-showhide-fringe-menu-customize-left ()
-  "Display fringes only on the left of each window."
-  (interactive)
-  (require 'fringe)
-  (customize-set-variable 'fringe-mode '(nil . 0)))
-
-(define-key menu-bar-showhide-fringe-menu [left]
-  '(menu-item "On the Left" menu-bar-showhide-fringe-menu-customize-left
-	      :help "Fringe only on the left side"
-	      :visible (display-graphic-p)
-	      :button (:radio . (equal fringe-mode '(nil . 0)))))
-
 (defun menu-bar-showhide-fringe-menu-customize-right ()
   "Display fringes only on the right of each window."
   (interactive)
@@ -855,6 +842,18 @@ mail status in mode line"))
 	      :help "Fringe only on the right side"
 	      :visible (display-graphic-p)
 	      :button (:radio . (equal fringe-mode '(0 . nil)))))
+
+(defun menu-bar-showhide-fringe-menu-customize-left ()
+  "Display fringes only on the left of each window."
+  (interactive)
+  (require 'fringe)
+  (customize-set-variable 'fringe-mode '(nil . 0)))
+
+(define-key menu-bar-showhide-fringe-menu [left]
+  '(menu-item "On the Left" menu-bar-showhide-fringe-menu-customize-left
+	      :help "Fringe only on the left side"
+	      :visible (display-graphic-p)
+	      :button (:radio . (equal fringe-mode '(nil . 0)))))
 
 (defun menu-bar-showhide-fringe-menu-customize-disable ()
   "Do not display window fringes."
@@ -1053,10 +1052,6 @@ mail status in mode line"))
 			   "Active Region Highlighting"
 			   "Make text in active region stand out in color (Transient Mark mode)"
 			   (:enable (not cua-mode))))
-(define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
-  (menu-bar-make-mm-toggle global-font-lock-mode
-			   "Syntax Highlighting"
-			   "Colorize text based on language syntax (Global Font Lock mode)"))
 
 
 ;; The "Tools" menu items
@@ -1244,7 +1239,7 @@ mail status in mode line"))
 
 (define-key menu-bar-describe-menu [list-keybindings]
   '(menu-item "List Key Bindings" describe-bindings
-	      :help "Display a list of all current keybindings"))
+	      :help "Display all current keybindings (keyboard shortcuts)"))
 (define-key menu-bar-describe-menu [describe-current-display-table]
   '(menu-item "Describe Display Table" describe-current-display-table
 	      :help "Describe the current display table"))
@@ -1365,9 +1360,8 @@ key, a click, or a menu-item"))
   '(menu-item "Getting New Versions" describe-distribution
 	      :help "How to get latest versions of Emacs"))
 (define-key menu-bar-help-menu [more]
-  '(menu-item "Find Extra Packages"
-	      menu-bar-help-extra-packages
-	      :help "Where to find some extra packages and possible updates"))
+  '(menu-item "External Packages" menu-bar-help-extra-packages
+	      :help "Lisp packages distributed separately for use in Emacs"))
 (defun menu-bar-help-extra-packages ()
   "Display help about some additional packages available for Emacs."
   (interactive)
@@ -1438,7 +1432,7 @@ for the definition of the menu frame."
 		      (selected-frame))))
     (not (window-minibuffer-p (frame-selected-window menu-frame)))))
 
-(defun kill-this-buffer ()	; for the menubar
+(defun kill-this-buffer ()	; for the menu bar
   "Kill the current buffer."
   (interactive)
   (kill-buffer (current-buffer)))
@@ -1668,10 +1662,10 @@ Buffers menu is regenerated."
 			     "Next Buffer"
 			     'next-buffer
 			     :help "Switch to the \"next\" buffer in a cyclic order")
-		       (list 'prev-buffer
+		       (list 'previous-buffer
 			     'menu-item
 			     "Previous Buffer"
-			     'prev-buffer
+			     'previous-buffer
 			     :help "Switch to the \"previous\" buffer in a cyclic order")
 		       (list 'select-named-buffer
 			     'menu-item

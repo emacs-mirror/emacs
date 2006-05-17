@@ -71,6 +71,11 @@ Summary of changes to "Calc"
 
 Version 2.1:
 
+* New matrix mode for square matrices.  Improved handling of
+  non-commutative products.
+
+* New functions: powerexpand and ldiv.
+
 * Added new functions: sec, csc, cot, sech, csch, coth.
 
 * 0^0 now evaluates to 1.

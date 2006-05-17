@@ -1287,12 +1287,12 @@ then the folders are searched recursively. All parameters ARGS are ignored."
 (defun mh-index-sequenced-messages (folders sequence)
   "Display messages from FOLDERS in SEQUENCE.
 All messages in the sequence you provide from the folders in
-`mh-index-new-messages-folders' are listed. With a prefix argument, enter a
+`mh-new-messages-folders' are listed. With a prefix argument, enter a
 space-separated list of folders, or nothing to search all folders."
   (interactive
    (list (if current-prefix-arg
-             (split-string (read-string "Search folder(s): [all] "))
-           mh-index-new-messages-folders)
+             (split-string (read-string "Search folder(s) (default all): "))
+           mh-new-messages-folders)
          (mh-read-seq-default "Search" nil)))
   (unless sequence (setq sequence mh-unseen-seq))
   (let* ((mh-flists-search-folders folders)
@@ -1330,27 +1330,33 @@ space-separated list of folders, or nothing to search all folders."
 ;;;###mh-autoload
 (defun mh-index-new-messages (folders)
   "Display unseen messages.
+
 If you use a program such as `procmail' to use `rcvstore' to file your
 incoming mail automatically, you can display new, unseen, messages using this
 command. All messages in the `unseen' sequence from the folders in
-`mh-index-new-messages-folders' are listed. With a prefix argument, enter a
-space-separated list of FOLDERS, or nothing to search all folders."
+`mh-new-messages-folders' are listed.
+
+With a prefix argument, enter a space-separated list of FOLDERS, or nothing to
+search all folders."
   (interactive
    (list (if current-prefix-arg
-             (split-string (read-string "Search folder(s): [all] "))
-           mh-index-new-messages-folders)))
+             (split-string (read-string "Search folder(s) (default all): "))
+           mh-new-messages-folders)))
   (mh-index-sequenced-messages folders mh-unseen-seq))
 
 ;;;###mh-autoload
 (defun mh-index-ticked-messages (folders)
   "Display ticked messages.
-All messages in `mh-tick-seq' from the folders in
-`mh-index-ticked-messages-folders' are listed. With a prefix argument, enter a
-space-separated list of FOLDERS, or nothing to search all folders."
+
+All messages in `mh-tick-seq' from the folders in `mh-ticked-messages-folders'
+are listed.
+
+With a prefix argument, enter a space-separated list of FOLDERS, or nothing to
+search all folders."
   (interactive
    (list (if current-prefix-arg
-             (split-string (read-string "Search folder(s): [all] "))
-           mh-index-ticked-messages-folders)))
+             (split-string (read-string "Search folder(s) (default all): "))
+           mh-ticked-messages-folders)))
   (mh-index-sequenced-messages folders mh-tick-seq))
 
 

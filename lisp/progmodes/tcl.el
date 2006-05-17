@@ -119,6 +119,7 @@
 
 (defgroup tcl nil
   "Major mode for editing Tcl source in Emacs."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defcustom tcl-indent-level 4

@@ -158,17 +158,6 @@ character with code @var{n}.  This is a compact way to record lots of
 bindings.  A keymap with such a char-table is called a @dfn{full
 keymap}.  Other keymaps are called @dfn{sparse keymaps}.
 
-When a keymap contains a char-table vector, it always defines a
-binding for each character without modifiers.  However, if the binding
-is @code{nil}, it doesn't constitute a definition.  @code{nil} takes
-precedence over a default binding or a binding in the parent keymap.
-So in a full keymap, default bindings are not meaningful for
-characters without modifiers.  They can still apply to characters with
-modifier bits and to non-character events.  A binding of @code{nil}
-does @emph{not} override lower-precedence keymaps; thus, if the local
-map gives a binding of @code{nil}, Emacs uses the binding from the
-global map.
-
 @item @var{string}
 @cindex keymap prompt string
 @cindex overall prompt string
@@ -177,6 +166,13 @@ Aside from bindings, a keymap can also have a string as an element.
 This is called the @dfn{overall prompt string} and makes it possible to
 use the keymap as a menu.  @xref{Defining Menus}.
 @end table
+
+When the binding is @code{nil}, it doesn't constitute a definition
+but it does take precedence over a default binding or a binding in the
+parent keymap.  On the other hand, a binding of @code{nil} does
+@emph{not} override lower-precedence keymaps; thus, if the local map
+gives a binding of @code{nil}, Emacs uses the binding from the
+global map.
 
 @cindex meta characters lookup
   Keymaps do not directly record bindings for the meta characters.

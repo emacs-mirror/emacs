@@ -1,3 +1,83 @@
+2005-12-16  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Minibuffer Contents): Minor cleanup.
+
+2005-12-16  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Minibuffer Contents): Add minibuffer-completion-contents.
+
+2005-12-14  Romain Francoise  <romain@orebokech.com>
+
+	* modes.texi (Customizing Keywords): Rename `append' to `how'.
+	Fix typo.
+
+2005-12-11  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Completion Commands): Add mention of read-file-name
+	for filename completion keymaps.
+	(Reading File Names): Add mention of filename completion keymaps
+	for read-file-name and xref to `Completion Commands'.
+
+2005-12-10  Richard M. Stallman  <rms@gnu.org>
+
+	* customize.texi (Common Keywords): State caveats for use of :tag.
+
+2005-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Intro to Minibuffers): Replace list of local maps
+	with xrefs and better explanation.
+	(Completion Commands): Add the filename completion maps.
+
+	* objects.texi (Character Type): Clarify that \s is not space
+	if a dash follows.
+
+2005-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Resizing Windows): Delete preserve-before args.
+
+2005-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymaps.texi (Format of Keymaps): Remove mention of a quirk
+	in full keymaps, since the quirk has been fixed.
+
+2005-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* hooks.texi (Standard Hooks): Add index entries.  Mention
+	`compilation-finish-functions'.
+
+2005-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Resizing Windows): Add adjust-window-trailing-edge.
+
+2005-11-21  Juri Linkov  <juri@jurta.org>
+
+	* customize.texi (Common Keywords): Update links types
+	custom-manual and url-link.  Add link types emacs-library-link,
+	file-link, function-link, variable-link, custom-group-link.
+
+2005-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi: Revert 2005-11-20 change.
+
+2005-11-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Bindat Functions):
+	Say "third" to refer to zero-based index "2".
+
+2005-11-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loading.texi (Library Search): Update the default value of
+	`load-suffixes'.
+
+2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Attribute Functions): Mention :ignore-defface.
+
+2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Minor Mode Conventions): Use custom-set-minor-mode.
+	(Minor Mode Conventions): Mention the use of a hook.
+
 2005-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Magic File Names): find-file-name-handler checks the
@@ -31,9 +111,9 @@
 
 2005-10-27  Masatake YAMATO  <jet@gyve.org>
 
-	* minibuf.texi (Completion Commands): 
+	* minibuf.texi (Completion Commands):
 	Write about new optional argument for `display-completion-list'.
-	
+
 2005-10-23  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Overlay Arrow): Clarify about local bindings of

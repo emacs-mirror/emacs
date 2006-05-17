@@ -371,16 +371,9 @@ That means one whose bottom edge is at the same height as WINDOW's top edge."
 Move it down if GROWTH is positive, or up if GROWTH is negative.
 If this would make WINDOW too short,
 shrink the window or windows above it to make room."
-  (let ((excess (- window-min-height (+ (window-height window) growth))))
-    ;; EXCESS is the number of lines we need to take from windows above.
-    (if (> excess 0)
-	;; This can recursively shrink windows all the way up.
-	(let ((window-above (mouse-drag-window-above window)))
-	  (if window-above
-	      (mouse-drag-move-window-bottom window-above (- excess))))))
-  (save-selected-window
-    (select-window window)
-    (enlarge-window growth nil (> growth 0))))
+  (condition-case nil
+      (adjust-window-trailing-edge window growth nil)
+    (error nil)))
 
 (defsubst mouse-drag-move-window-top (window growth)
   "Move the top of WINDOW up or down by GROWTH lines.
@@ -601,14 +594,15 @@ resized by dragging their header-line."
 		((null (car (cdr mouse)))
 		 nil)
 		(t
-		 (save-selected-window
-		   ;; If the scroll bar is on the window's left,
-		   ;; adjust the window on the left.
-		   (unless (eq which-side 'right)
-		     (select-window (previous-window)))
+		 (let ((window
+			;; If the scroll bar is on the window's left,
+			;; adjust the window on the left.
+			(if (eq which-side 'right)
+			    (selected-window)
+			  (previous-window))))
 		   (setq x (- (car (cdr mouse))
 			      (if (eq which-side 'right) 0 2))
-			 edges (window-edges)
+			 edges (window-edges window)
 			 left (nth 0 edges)
 			 right (nth 2 edges))
 		   ;; scale back a move that would make the
@@ -616,19 +610,10 @@ resized by dragging their header-line."
 		   (if (< (- x left -1) window-min-width)
 		       (setq x (+ left window-min-width -1)))
 		   ;; compute size change needed
-		   (setq growth (- x right -1)
-			 wconfig (current-window-configuration))
-		   (enlarge-window growth t)
-		   ;; if this window's growth caused another
-		   ;; window to be deleted because it was too
-		   ;; thin, rescind the change.
-		   ;;
-		   ;; if size change caused space to be stolen
-		   ;; from a window to the left of this one,
-		   ;; rescind the change.
-		   (if (or (/= start-nwindows (count-windows t))
-			   (/= left (nth 0 (window-edges))))
-		       (set-window-configuration wconfig))))))))))
+		   (setq growth (- x right -1))
+		   (condition-case nil
+		       (adjust-window-trailing-edge window growth t)
+		     (error nil))))))))))
 
 (defun mouse-set-point (event)
   "Move point to the position clicked on with the mouse.

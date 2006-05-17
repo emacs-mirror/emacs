@@ -2499,8 +2499,8 @@ See also command `unify-8859-on-encoding-mode' and the user option
 ;; normal-mode and minibuffer-setup-hook.
 (defun ucs-set-table-for-input (&optional buffer)
   "Set up an appropriate `translation-table-for-input' for BUFFER.
-BUFFER defaults to the current buffer.
-This function is automatically called directly at the end of `get-buffer-create'."
+BUFFER defaults to the current buffer.  This function is
+automatically called directly at the end of `get-buffer-create'."
   (when (and unify-8859-on-encoding-mode
              (not unify-8859-on-decoding-mode)
 	     (char-table-p translation-table-for-input))
@@ -2523,9 +2523,9 @@ This function is automatically called directly at the end of `get-buffer-create'
 	(when (char-table-p table)
 	  (if buffer
 	      (with-current-buffer buffer
-		(set (make-variable-buffer-local 'translation-table-for-input)
+		(set (make-local-variable 'translation-table-for-input)
 		     table))
-	    (set (make-variable-buffer-local 'translation-table-for-input)
+	    (set (make-local-variable 'translation-table-for-input)
 		 table)))))))
 
 ;; The minibuffer needs to acquire a `buffer-file-coding-system' for

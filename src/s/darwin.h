@@ -269,7 +269,7 @@ Boston, MA 02110-1301, USA.  */
 #ifdef HAVE_CARBON
 #define LIBS_CARBON -framework Carbon -framework QuickTime
 #else
-#define LIBS_CARBON -framework Carbon
+#define LIBS_CARBON
 #endif
 
 /* The -headerpad option tells ld (see man page) to leave room at the

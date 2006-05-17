@@ -93,17 +93,16 @@
 		  (symbol :tag "Property")
 		  (sexp :tag "Value")))))
 
-;;;###autoload
 (defcustom file-name-shadow-properties
   '(face file-name-shadow field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
 Only used when `file-name-shadow-mode' is active.
-If emacs is not running under a window system,
+If Emacs is not running under a window system,
 `file-name-shadow-tty-properties' is used instead."
   :type file-name-shadow-properties-custom-type
-  :group 'minibuffer)
+  :group 'minibuffer
+  :version "22.1")
 
-;;;###autoload
 (defcustom file-name-shadow-tty-properties
   '(before-string "{" after-string "} " field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
@@ -111,29 +110,17 @@ Only used when `file-name-shadow-mode' is active and emacs
 is not running under a window-system; if emacs is running under a window
 system, `file-name-shadow-properties' is used instead."
   :type file-name-shadow-properties-custom-type
-  :group 'minibuffer)
+  :group 'minibuffer
+  :version "22.1")
 
 (defface file-name-shadow
   '((t :inherit shadow))
   "Face used by `file-name-shadow-mode' for the shadow."
-  :group 'minibuffer)
+  :group 'minibuffer
+  :version "22.1")
 
 
 ;;; Internal variables
-
-;; Regexp to locate dividing point between shadow and real pathname
-(defconst rfn-eshadow-regexp
-  (cond ((memq system-type '(ms-dos windows-nt))
-	 ;; This horrible regexp considers the following patterns as
-	 ;; starting an absolute pathname, when following a `/' or an `\':
-	 ;;   L:  /  //  ~  $  \\  \\\\
-	 "\\(.*[^/]+/+?\\|/*?\\|\\)\\(~\\|$[^$]\\|$\\'\\|[][\\^a-z]:\\|//?\\([^][\\^a-z/$~]\\|[^/$~][^:]\\|[^/$~]?\\'\\)\\)")
-	(t
-	 ;; default is for unix-style filenames
-	 "\\(.*/\\)\\([/~]\\|$[^$]\\|$\\'\\)"))
-  "Regular expression used to match shadowed filenames.
-There should be at least one regexp group; the end of the first one
-is used as the end of the shadowed portion of the filename.")
 
 ;; A list of minibuffers to which we've added a post-command-hook.
 (defvar rfn-eshadow-frobbed-minibufs nil)
@@ -168,32 +155,48 @@ The prompt and initial input should already have been inserted."
     (add-to-list 'rfn-eshadow-frobbed-minibufs (current-buffer))
     (add-hook 'post-command-hook #'rfn-eshadow-update-overlay nil t)))
 
+(defsubst rfn-eshadow-sifn-equal (goal pos)
+  (equal goal (condition-case nil
+		  (substitute-in-file-name
+		   (buffer-substring-no-properties pos (point-max)))
+		;; `substitute-in-file-name' can fail on partial input.
+		(error nil))))
+
 ;; post-command-hook to update overlay
 (defun rfn-eshadow-update-overlay ()
   "Update `rfn-eshadow-overlay' to cover shadowed part of minibuffer input.
-This is intended to be used as a minibuffer post-command-hook for
+This is intended to be used as a minibuffer `post-command-hook' for
 `file-name-shadow-mode'; the minibuffer should have already
 been set up by `rfn-eshadow-setup-minibuffer'."
-  ;; This is not really a correct implementation; it won't always do the
-  ;; right thing in the presence of environment variables that
-  ;; substitute-in-file-name would expand; currently it just assumes any
-  ;; environment variable contains an absolute filename.
-  (save-excursion
-    (let ((inhibit-point-motion-hooks t))
-      (goto-char (minibuffer-prompt-end))
-      ;; Update the overlay (which will evaporate if it's empty).
-      (move-overlay rfn-eshadow-overlay
-		    (point)
-		    (if (looking-at rfn-eshadow-regexp)
-			(match-end 1)
-		      (point))))))
-
+  (condition-case nil
+      (let ((goal (substitute-in-file-name (minibuffer-contents)))
+            (mid (overlay-end rfn-eshadow-overlay))
+            (start (minibuffer-prompt-end))
+            (end (point-max)))
+        (unless
+            ;; Catch the common case where the shadow does not need to move.
+            (and mid
+                 (or (eq mid end)
+                     (not (rfn-eshadow-sifn-equal goal (1+ mid))))
+                 (or (eq mid start)
+                     (rfn-eshadow-sifn-equal goal mid)))
+          ;; Binary search for the greatest position still equivalent to
+          ;; the whole.
+          (while (or (< (1+ start) end)
+                     (if (and (< (1+ end) (point-max))
+                              (rfn-eshadow-sifn-equal goal (1+ end)))
+                         ;; (SIFN end) != goal, but (SIFN (1+end)) == goal,
+                         ;; We've reached a discontinuity: this can happen
+                         ;; e.g. if `end' point to "/:...".
+                         (setq start (1+ end) end (point-max))))
+            (setq mid (/ (+ start end) 2))
+            (if (rfn-eshadow-sifn-equal goal mid)
+                (setq start mid)
+              (setq end mid)))
+          (move-overlay rfn-eshadow-overlay (minibuffer-prompt-end) start)))
+    ;; `substitute-in-file-name' can fail on partial input.
+    (error nil)))
 
-;;; Note this definition must be at the end of the file, because
-;;; `define-minor-mode' actually calls the mode-function if the
-;;; associated variable is non-nil, which requires that all needed
-;;; functions be already defined.  [This is arguably a bug in d-m-m]
-;;;###autoload
 (define-minor-mode file-name-shadow-mode
   "Toggle File-Name Shadow mode.
 When active, any part of a filename being read in the minibuffer
@@ -205,7 +208,9 @@ that portion dim, invisible, or otherwise less visually noticeable.
 With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled."
   :global t
+  :init-value t
   :group 'minibuffer
+  :version "22.1"
   (if file-name-shadow-mode
       ;; Enable the mode
       (add-hook 'minibuffer-setup-hook 'rfn-eshadow-setup-minibuffer)
@@ -220,5 +225,5 @@ Returns non-nil if the new state is enabled."
 
 (provide 'rfn-eshadow)
 
-;;; arch-tag: dcf70a52-0115-4ec2-b1e3-4f8d3541a888
+;; arch-tag: dcf70a52-0115-4ec2-b1e3-4f8d3541a888
 ;;; rfn-eshadow.el ends here

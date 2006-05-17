@@ -89,9 +89,19 @@
   :type 'number
   :group 'Buffer-menu)
 
+(defcustom Buffer-menu-use-frame-buffer-list t
+  "If non-nil, the Buffer Menu uses the selected frame's buffer list.
+Buffers that were never selected in that frame are listed at the end.
+If the value is nil, the Buffer Menu uses the global buffer list.
+This variable matters if the Buffer Menu is sorted by visited order,
+as it is by default."
+  :type 'boolean
+  :group 'Buffer-menu
+  :version "22.1")
+
 ;; This should get updated & resorted when you click on a column heading
 (defvar Buffer-menu-sort-column nil
-  "*2 for sorting by buffer names.  5 for sorting by file names.
+  "2 for sorting by buffer names.  5 for sorting by file names.
 nil for default sorting by visited order.")
 
 (defconst Buffer-menu-buffer-column 4)
@@ -210,7 +220,12 @@ Letters do not insert themselves; instead, they are commands.
 	(prop (point-min))
 	;; do not make undo records for the reversion.
 	(buffer-undo-list t))
-    (list-buffers-noselect Buffer-menu-files-only)
+    ;; We can be called by Auto Revert Mode with the "*Buffer Menu*"
+    ;; temporarily the current buffer.  Make sure that the
+    ;; interactively current buffer is correctly identified with a `.'
+    ;; by `list-buffers-noselect'.
+    (with-current-buffer (window-buffer)
+      (list-buffers-noselect Buffer-menu-files-only))
     (if oline
 	(while (setq prop (next-single-property-change prop 'buffer))
 	  (when (eq (get-text-property prop 'buffer) oline)
@@ -717,7 +732,10 @@ For more information, see the function `buffer-menu'."
 				   (if (memq c '(?\n ?\s)) c underline))
 				 header)))))
       ;; Collect info for every buffer we're interested in.
-      (dolist (buffer (or buffer-list (buffer-list)))
+      (dolist (buffer (or buffer-list
+			  (buffer-list
+			   (when Buffer-menu-use-frame-buffer-list
+			     (selected-frame)))))
 	(with-current-buffer buffer
 	  (let ((name (buffer-name))
 		(file buffer-file-name))

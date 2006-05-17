@@ -97,6 +97,7 @@
 
 (defgroup makefile nil
   "Makefile editing commands for Emacs."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'tools
   :prefix "makefile-")
 

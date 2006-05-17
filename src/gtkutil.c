@@ -41,6 +41,9 @@ Boston, MA 02110-1301, USA.  */
 #define FRAME_TOTAL_PIXEL_HEIGHT(f) \
   (FRAME_PIXEL_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f))
 
+/* Avoid "differ in sign" warnings */
+#define SSDATA(x)  ((char *) SDATA (x))
+
 
 /***********************************************************************
                       Display handling functions
@@ -347,9 +350,9 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
 	    xassert (STRINGP (file) != 0);
 
 	    if (! old_widget)
-	      old_widget = GTK_IMAGE (gtk_image_new_from_file (SDATA (file)));
+	      old_widget = GTK_IMAGE (gtk_image_new_from_file (SSDATA (file)));
 	    else
-	      gtk_image_set_from_file (old_widget, SDATA (file));
+	      gtk_image_set_from_file (old_widget, SSDATA (file));
 
 	    UNGCPRO;
 	    return GTK_WIDGET (old_widget);
@@ -735,11 +738,11 @@ xg_create_frame_widgets (f)
   /* Use same names as the Xt port does.  I.e. Emacs.pane.emacs by default */
   gtk_widget_set_name (wtop, EMACS_CLASS);
   gtk_widget_set_name (wvbox, "pane");
-  gtk_widget_set_name (wfixed, SDATA (Vx_resource_name));
+  gtk_widget_set_name (wfixed, SSDATA (Vx_resource_name));
 
   /* If this frame has a title or name, set it in the title bar.  */
-  if (! NILP (f->title)) title = SDATA (ENCODE_UTF_8 (f->title));
-  else if (! NILP (f->name)) title = SDATA (ENCODE_UTF_8 (f->name));
+  if (! NILP (f->title)) title = SSDATA (ENCODE_UTF_8 (f->title));
+  else if (! NILP (f->name)) title = SSDATA (ENCODE_UTF_8 (f->name));
 
   if (title) gtk_window_set_title (GTK_WINDOW (wtop), title);
 
@@ -780,8 +783,8 @@ xg_create_frame_widgets (f)
      can't shrink the window from its starting size.  */
   gtk_window_set_policy (GTK_WINDOW (wtop), TRUE, TRUE, TRUE);
   gtk_window_set_wmclass (GTK_WINDOW (wtop),
-                          SDATA (Vx_resource_name),
-                          SDATA (Vx_resource_class));
+                          SSDATA (Vx_resource_name),
+                          SSDATA (Vx_resource_class));
 
   /* Add callback to do nothing on WM_DELETE_WINDOW.  The default in
      GTK is to destroy the widget.  We want Emacs to do that instead.  */
@@ -1245,7 +1248,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
       if (default_filename[0] != '/')
         file = Fexpand_file_name (file, Qnil);
 
-      default_filename = SDATA (file);
+      default_filename = SSDATA (file);
       if (Ffile_directory_p (file))
         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filewin),
                                              default_filename);

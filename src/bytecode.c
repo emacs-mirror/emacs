@@ -591,15 +591,19 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	  }
 
 	case Bgotoifnil:
-	  MAYBE_GC ();
-	  op = FETCH2;
-	  if (NILP (POP))
-	    {
-	      BYTE_CODE_QUIT;
-	      CHECK_RANGE (op);
-	      stack.pc = stack.byte_string_start + op;
-	    }
-	  break;
+	  {
+	    Lisp_Object v1;
+	    MAYBE_GC ();
+	    op = FETCH2;
+	    v1 = POP;
+	    if (NILP (v1))
+	      {
+		BYTE_CODE_QUIT;
+		CHECK_RANGE (op);
+		stack.pc = stack.byte_string_start + op;
+	      }
+	    break;
+	  }
 
 	case Bcar:
 	  {
@@ -797,15 +801,19 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	  break;
 
 	case Bgotoifnonnil:
-	  MAYBE_GC ();
-	  op = FETCH2;
-	  if (!NILP (POP))
-	    {
-	      BYTE_CODE_QUIT;
-	      CHECK_RANGE (op);
-	      stack.pc = stack.byte_string_start + op;
-	    }
-	  break;
+	  {
+	    Lisp_Object v1;
+	    MAYBE_GC ();
+	    op = FETCH2;
+	    v1 = POP;
+	    if (!NILP (v1))
+	      {
+		BYTE_CODE_QUIT;
+		CHECK_RANGE (op);
+		stack.pc = stack.byte_string_start + op;
+	      }
+	    break;
+	  }
 
 	case Bgotoifnilelsepop:
 	  MAYBE_GC ();
@@ -838,24 +846,32 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	  break;
 
 	case BRgotoifnil:
-	  MAYBE_GC ();
-	  if (NILP (POP))
-	    {
-	      BYTE_CODE_QUIT;
-	      stack.pc += (int) *stack.pc - 128;
-	    }
-	  stack.pc++;
-	  break;
+	  {
+	    Lisp_Object v1;
+	    MAYBE_GC ();
+	    v1 = POP;
+	    if (NILP (v1))
+	      {
+		BYTE_CODE_QUIT;
+		stack.pc += (int) *stack.pc - 128;
+	      }
+	    stack.pc++;
+	    break;
+	  }
 
 	case BRgotoifnonnil:
-	  MAYBE_GC ();
-	  if (!NILP (POP))
-	    {
-	      BYTE_CODE_QUIT;
-	      stack.pc += (int) *stack.pc - 128;
-	    }
-	  stack.pc++;
-	  break;
+	  {
+	    Lisp_Object v1;
+	    MAYBE_GC ();
+	    v1 = POP;
+	    if (!NILP (v1))
+	      {
+		BYTE_CODE_QUIT;
+		stack.pc += (int) *stack.pc - 128;
+	      }
+	    stack.pc++;
+	    break;
+	  }
 
 	case BRgotoifnilelsepop:
 	  MAYBE_GC ();

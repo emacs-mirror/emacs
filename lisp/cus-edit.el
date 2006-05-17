@@ -121,10 +121,11 @@
 ;; 6. rogue
 
 ;;    There is no standard value.  This means that the variable was
-;;    not defined with defcustom, nor handled in cus-start.el.  You
-;;    can not create a Custom buffer for such variables using the
-;;    normal interactive Custom commands.  However, such Custom
-;;    buffers can be created in other ways, for instance, by calling
+;;    not defined with defcustom, nor handled in cus-start.el.  Most
+;;    standard interactive Custom commands do not let you create a
+;;    Custom buffer containing such variables.  However, such Custom
+;;    buffers can be created, for instance, by calling
+;;    `customize-apropos' with a prefix arg or by calling
 ;;    `customize-option' non-interactively.
 
 ;; 7. hidden
@@ -212,11 +213,13 @@
 
 (defgroup lisp nil
   "Lisp support, including Emacs Lisp."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages
   :group 'development)
 
 (defgroup c nil
   "Support for the C language and related languages."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :link '(custom-manual "(ccmode)")
   :group 'languages)
 
@@ -323,6 +326,7 @@
 
 (defgroup tex nil
   "Code related to the TeX formatter."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'wp)
 
 (defgroup faces nil
@@ -490,14 +494,14 @@ IF REGEXP is not a string, return it unchanged."
 (defun custom-variable-prompt ()
   "Prompt for a custom variable, defaulting to the variable at point.
 Return a list suitable for use in `interactive'."
-   (let ((v (variable-at-point))
-	 (enable-recursive-minibuffers t)
-	 val)
+   (let* ((v (variable-at-point))
+	  (default (and (symbolp v) (custom-variable-p v) (symbol-name v)))
+	  (enable-recursive-minibuffers t)
+	  val)
      (setq val (completing-read
-		(if (and (symbolp v) (custom-variable-p v))
-		    (format "Customize option (default %s): " v)
+		(if default (format "Customize option (default %s): " default)
 		  "Customize option: ")
-		obarray 'custom-variable-p t))
+		obarray 'custom-variable-p t nil nil default))
      (list (if (equal val "")
 	       (if (symbolp v) v nil)
 	     (intern val)))))
@@ -797,12 +801,18 @@ This operation eliminates any saved settings for the group members,
 making them as if they had never been customized at all."
   (interactive)
   (let ((children custom-options))
-    (mapc (lambda (widget)
-	    (and (widget-apply widget :custom-standard-value)
-		 (if (memq (widget-get widget :custom-state)
-			   '(modified set changed saved rogue))
-		     (widget-apply widget :custom-reset-standard))))
-	    children)))
+    (when (or (and (= 1 (length children))
+		   (memq (widget-type (car children))
+			 '(custom-variable custom-face)))
+	      (yes-or-no-p "Really erase all customizations in this buffer? "))
+      (mapc (lambda (widget)
+	      (and (if (widget-get widget :custom-standard-value)
+		       (widget-apply widget :custom-standard-value)
+		     t)
+		   (memq (widget-get widget :custom-state)
+			 '(modified set changed saved rogue))
+		   (widget-apply widget :custom-reset-standard)))
+	    children))))
 
 ;;; The Customize Commands
 
@@ -966,13 +976,15 @@ then prompt for the MODE to customize."
 ;;;###autoload
 (defun customize-group (group)
   "Customize GROUP, which must be a customization group."
-  (interactive (list (let ((completion-ignore-case t))
-		       (completing-read "Customize group (default emacs): "
-					obarray
-					(lambda (symbol)
-					  (or (get symbol 'custom-loads)
-					      (get symbol 'custom-group)))
-					t))))
+  (interactive
+   (list (let ((completion-ignore-case t))
+	   (completing-read "Customize group (default emacs): "
+			    obarray
+			    (lambda (symbol)
+			      (or (and (get symbol 'custom-loads)
+				       (not (get symbol 'custom-autoload)))
+				  (get symbol 'custom-group)))
+			    t))))
   (when (stringp group)
     (if (string-equal "" group)
 	(setq group 'emacs)
@@ -989,13 +1001,15 @@ then prompt for the MODE to customize."
 ;;;###autoload
 (defun customize-group-other-window (group)
   "Customize GROUP, which must be a customization group."
-  (interactive (list (let ((completion-ignore-case t))
-		       (completing-read "Customize group (default emacs): "
-					obarray
-					(lambda (symbol)
-					  (or (get symbol 'custom-loads)
-					      (get symbol 'custom-group)))
-					t))))
+  (interactive
+   (list (let ((completion-ignore-case t))
+	   (completing-read "Customize group (default emacs): "
+			    obarray
+			    (lambda (symbol)
+			      (or (and (get symbol 'custom-loads)
+				       (not (get symbol 'custom-autoload)))
+				  (get symbol 'custom-group)))
+			    t))))
   (when (stringp group)
     (if (string-equal "" group)
 	(setq group 'emacs)
@@ -1239,12 +1253,12 @@ suggest to customize that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-apropos (regexp &optional all)
-  "Customize all user options matching REGEXP.
+  "Customize all loaded options, faces and groups matching REGEXP.
 If ALL is `options', include only options.
 If ALL is `faces', include only faces.
 If ALL is `groups', include only groups.
-If ALL is t (interactively, with prefix arg), include options which are not
-user-settable, as well as faces and groups."
+If ALL is t (interactively, with prefix arg), include variables
+that are not customizable options, as well as faces and groups."
   (interactive "sCustomize regexp: \nP")
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1257,11 +1271,11 @@ user-settable, as well as faces and groups."
 		    (push (list symbol 'custom-face) found))
 		  (when (and (not (memq all '(groups faces)))
 			     (boundp symbol)
+			     (eq (indirect-variable symbol) symbol)
 			     (or (get symbol 'saved-value)
 				 (custom-variable-p symbol)
-				 (if (memq all '(nil options))
-				     (user-variable-p symbol)
-				   (get symbol 'variable-documentation))))
+				 (and (not (memq all '(nil options)))
+				      (get symbol 'variable-documentation))))
 		    (push (list symbol 'custom-variable) found)))))
     (if (not found)
 	(error "No matches")
@@ -1271,20 +1285,20 @@ user-settable, as well as faces and groups."
 
 ;;;###autoload
 (defun customize-apropos-options (regexp &optional arg)
-  "Customize all user options matching REGEXP.
-With prefix arg, include options which are not user-settable."
+  "Customize all loaded customizable options matching REGEXP.
+With prefix arg, include variables that are not customizable options."
   (interactive "sCustomize regexp: \nP")
   (customize-apropos regexp (or arg 'options)))
 
 ;;;###autoload
 (defun customize-apropos-faces (regexp)
-  "Customize all user faces matching REGEXP."
+  "Customize all loaded faces matching REGEXP."
   (interactive "sCustomize regexp: \n")
   (customize-apropos regexp 'faces))
 
 ;;;###autoload
 (defun customize-apropos-groups (regexp)
-  "Customize all user groups matching REGEXP."
+  "Customize all loaded groups matching REGEXP."
   (interactive "sCustomize regexp: \n")
   (customize-apropos regexp 'groups))
 
@@ -1453,7 +1467,7 @@ This updates your Emacs initialization file or creates a new one."
 				 (custom-reset event))))
     (widget-insert "\n ")
     (widget-create 'push-button
-		   :tag "Reset"
+		   :tag "Reset to Current"
 		   :help-echo "\
 Reset all edited text in this buffer to reflect current values."
 		   :action 'Custom-reset-current)
@@ -1744,7 +1758,7 @@ something in this group has been changed outside customize.")
 SAVED and set." "\
 something in this group has been set and saved.")
     (rogue "@" custom-rogue "\
-NO CUSTOMIZATION DATA; you should not see this." "\
+NO CUSTOMIZATION DATA; not intended to be customized." "\
 something in this group is not prepared for customization.")
     (standard " " nil "\
 STANDARD." "\
@@ -2123,7 +2137,7 @@ Insert PREFIX first if non-nil."
 
 (defun custom-add-parent-links (widget &optional initial-string)
   "Add \"Parent groups: ...\" to WIDGET if the group has parents.
-The value if non-nil if any parents were found.
+The value is non-nil if any parents were found.
 If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   (let ((name (widget-value widget))
 	(type (widget-type widget))
@@ -2132,18 +2146,21 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 	(parents nil))
     (insert (or initial-string "Parent groups:"))
     (mapatoms (lambda (symbol)
-		(let ((entry (assq name (get symbol 'custom-group))))
-		  (when (eq (nth 1 entry) type)
-		    (insert " ")
-		    (push (widget-create-child-and-convert
-			   widget 'custom-group-link
-			   :tag (custom-unlispify-tag-name symbol)
-			   symbol)
-			  buttons)
-		    (setq parents (cons symbol parents))))))
+		(when (member (list name type) (get symbol 'custom-group))
+		  (insert " ")
+		  (push (widget-create-child-and-convert
+			 widget 'custom-group-link
+			 :tag (custom-unlispify-tag-name symbol)
+			 symbol)
+			buttons)
+		  (setq parents (cons symbol parents)))))
     (and (null (get name 'custom-links)) ;No links of its own.
          (= (length parents) 1)         ;A single parent.
-         (let* ((links (get (car parents) 'custom-links))
+         (let* ((links (delq nil (mapcar (lambda (w)
+					   (unless (eq (widget-type w)
+						       'custom-group-link)
+					     w))
+					 (get (car parents) 'custom-links))))
                 (many (> (length links) 2)))
            (when links
              (insert "\nParent documentation: ")
@@ -3397,7 +3414,7 @@ restoring it to the state of a face that has never been customized."
 
 (define-widget 'face 'symbol
   "A Lisp face name (with sample)."
-  :format "%t: (%{sample%}) %v"
+  :format "%{%t%}: (%{sample%}) %v"
   :tag "Face"
   :value 'default
   :sample-face-get 'widget-face-sample-face-get

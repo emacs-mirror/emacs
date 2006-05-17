@@ -1,3 +1,8 @@
+2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Emacs.app/Contents/Info.plist: Add CFBundleURLTypes key and
+	data.  Make NSServices open-selection the first entry.
+
 2005-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* makefile.MPW (shortlisp): Sync with src/Makefile.in.

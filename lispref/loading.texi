@@ -291,7 +291,8 @@ tells @code{locate-library} to display the file name in the echo area.
 @defvar load-suffixes
 This variable is a list of suffixes (strings) that @code{load} should
 try adding to the specified file name.  The default value is
-@code{(".elc" ".el")}.  There is no need to include the null suffix.
+@code{(".elc" ".elc.gz" ".el" ".el.gz" ".gz")}.  There is no need to
+include the null suffix.
 @end defvar
 
 @node Loading Non-ASCII

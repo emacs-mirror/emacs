@@ -1049,6 +1049,7 @@ IDL process is made."
 
 (defgroup idlwave-misc nil
   "Miscellaneous options for IDLWAVE mode."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'idlwave)
 
 (defcustom idlwave-startup-message t

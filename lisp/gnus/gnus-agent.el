@@ -213,6 +213,17 @@ unplugged."
   :group 'gnus-agent
   :type 'boolean)
 
+(defcustom gnus-agent-article-alist-save-format 1
+  "Indicates whether to use compression(2), verses no
+  compression(1), when writing agentview files.  The compressed
+  files do save space but load times are 6-7 times higher.  A
+  group must be opened then closed for the agentview to be
+  updated using the new format."
+  :version "22.1"
+  :group 'gnus-agent
+  :type '(radio (const :format "Compressed" 2)
+		(const :format "Uncompressed" 1)))
+
 ;;; Internal variables
 
 (defvar gnus-agent-history-buffers nil)
@@ -357,17 +368,17 @@ manipulated as follows:
 (gnus-agent-cat-defaccessor
  gnus-agent-cat-high-score                 agent-high-score)
 (gnus-agent-cat-defaccessor
- gnus-agent-cat-length-when-long           agent-length-when-long)
+ gnus-agent-cat-length-when-long           agent-long-article)
 (gnus-agent-cat-defaccessor
- gnus-agent-cat-length-when-short          agent-length-when-short)
+ gnus-agent-cat-length-when-short          agent-short-article)
 (gnus-agent-cat-defaccessor
  gnus-agent-cat-low-score                  agent-low-score)
 (gnus-agent-cat-defaccessor
  gnus-agent-cat-predicate                  agent-predicate)
 (gnus-agent-cat-defaccessor
- gnus-agent-cat-score-file                 agent-score-file)
+ gnus-agent-cat-score-file                 agent-score)
 (gnus-agent-cat-defaccessor
- gnus-agent-cat-enable-undownloaded-faces agent-enable-undownloaded-faces)
+ gnus-agent-cat-enable-undownloaded-faces  agent-enable-undownloaded-faces)
 
 
 ;; This form is equivalent to defsetf except that it calls make-symbol
@@ -858,9 +869,11 @@ be a select method."
 
 ;;;###autoload
 (defun gnus-agent-rename-group (old-group new-group)
-  "Rename fully-qualified OLD-GROUP as NEW-GROUP.  Always updates the agent, even when
-disabled, as the old agent files would corrupt gnus when the agent was
-next enabled. Depends upon the caller to determine whether group renaming is supported."
+  "Rename fully-qualified OLD-GROUP as NEW-GROUP.
+Always updates the agent, even when disabled, as the old agent
+files would corrupt gnus when the agent was next enabled.
+Depends upon the caller to determine whether group renaming is
+supported."
   (let* ((old-command-method (gnus-find-method-for-group old-group))
 	 (old-path           (directory-file-name
 			      (let (gnus-command-method old-command-method)
@@ -888,9 +901,11 @@ next enabled. Depends upon the caller to determine whether group renaming is sup
 
 ;;;###autoload
 (defun gnus-agent-delete-group (group)
-  "Delete fully-qualified GROUP.  Always updates the agent, even when
-disabled, as the old agent files would corrupt gnus when the agent was
-next enabled. Depends upon the caller to determine whether group deletion is supported."
+  "Delete fully-qualified GROUP.
+Always updates the agent, even when disabled, as the old agent
+files would corrupt gnus when the agent was next enabled.
+Depends upon the caller to determine whether group deletion is
+supported."
   (let* ((command-method (gnus-find-method-for-group group))
 	 (path           (directory-file-name
 			  (let (gnus-command-method command-method)
@@ -1134,20 +1149,22 @@ downloadable."
   (when gnus-newsgroup-processable
     (setq gnus-newsgroup-downloadable
           (let* ((dl gnus-newsgroup-downloadable)
-                 (gnus-newsgroup-downloadable
-		  (sort (gnus-copy-sequence gnus-newsgroup-processable) '<))
-                 (fetched-articles (gnus-agent-summary-fetch-group)))
-            ;; The preceeding call to (gnus-agent-summary-fetch-group)
-            ;; updated gnus-newsgroup-downloadable to remove each
-            ;; article successfully fetched.
+		 (processable (sort (gnus-copy-sequence gnus-newsgroup-processable) '<))
+                 (gnus-newsgroup-downloadable processable))
+	    (gnus-agent-summary-fetch-group)
 
-            ;; For each article that I processed, remove its
-            ;; processable mark IF the article is no longer
-            ;; downloadable (i.e. it's already downloaded)
-            (dolist (article gnus-newsgroup-processable)
-              (unless (memq article gnus-newsgroup-downloadable)
-                (gnus-summary-remove-process-mark article)))
-            (gnus-sorted-ndifference dl fetched-articles)))))
+            ;; For each article that I processed that is no longer
+            ;; undownloaded, remove its processable mark.
+
+	    (mapc #'gnus-summary-remove-process-mark 
+		  (gnus-sorted-ndifference gnus-newsgroup-processable gnus-newsgroup-undownloaded))
+
+            ;; The preceeding call to (gnus-agent-summary-fetch-group)
+            ;; updated the temporary gnus-newsgroup-downloadable to
+            ;; remove each article successfully fetched.  Now, I
+            ;; update the real gnus-newsgroup-downloadable to only
+            ;; include undownloaded articles.
+	    (gnus-sorted-ndifference dl (gnus-sorted-ndifference processable gnus-newsgroup-undownloaded))))))
 
 (defun gnus-agent-summary-fetch-group (&optional all)
   "Fetch the downloadable articles in the group.
@@ -1240,7 +1257,13 @@ This can be added to `gnus-select-article-hook' or
 				  'gnus-range-add
 				'gnus-remove-from-range)
 			      (cdr info-marks)
-			      range)))))))))
+			      range))))))))
+
+      ;;Marks can be synchronized at any time by simply toggling from
+      ;;unplugged to plugged.  If that is what is happening right now, make
+      ;;sure that the group buffer is up to date.
+          (when (gnus-buffer-live-p gnus-group-buffer)
+            (gnus-group-update-group group t)))
     nil))
 
 (defun gnus-agent-save-active (method)
@@ -1330,7 +1353,7 @@ downloaded into the agent."
           (when (re-search-forward
                  (concat "^" (regexp-quote group) " ") nil t)
             (save-excursion
-	      (setq oactive-max (read (current-buffer)) ;; max
+              (setq oactive-max (read (current-buffer))	;; max
                     oactive-min (read (current-buffer)))) ;; min
             (gnus-delete-line)))
 	(when active
@@ -1824,7 +1847,7 @@ article numbers will be returned."
 (defsubst gnus-agent-read-article-number ()
   "Reads the article number at point.  Returns nil when a valid article number can not be read."
 
-  ;; It is unfortunite but the read function quietly overflows
+  ;; It is unfortunate but the read function quietly overflows
   ;; integer.  As a result, I have to use string operations to test
   ;; for overflow BEFORE calling read.
   (when (looking-at "[0-9]+\t")
@@ -1913,6 +1936,7 @@ doesn't exist, to valid the overview buffer."
 	(goto-char p))
 
       (setq last (or last -134217728))
+      (while (catch 'problems
       (let (sort art)
 	(while (not (eobp))
 	  (setq art (gnus-agent-read-article-number))
@@ -1924,12 +1948,27 @@ doesn't exist, to valid the overview buffer."
 		 ;; Art num out of order - enable sort
 		 (setq sort t)
 		 (forward-line 1))
+			 ((= art last)
+			  ;; Bad repeat of art number - delete this line
+			  (beginning-of-line)
+			  (delete-region (point) (progn (forward-line 1) (point))))
 		(t
 		 ;; Good art num
 		 (setq last art)
 		 (forward-line 1))))
 	(when sort
-	  (sort-numeric-fields 1 (point-min) (point-max)))))))
+		   ;; something is seriously wrong as we simply shouldn't see out-of-order data.
+		   ;; First, we'll fix the sort.
+		   (sort-numeric-fields 1 (point-min) (point-max))
+
+		   ;; but now we have to consider that we may have duplicate rows...	  
+		   ;; so reset to beginning of file
+		   (goto-char (point-min))
+		   (setq last -134217728)
+	  
+		   ;; and throw a code that restarts this scan
+		   (throw 'problems t))
+		 nil))))))
 
 ;; Keeps the compiler from warning about the free variable in
 ;; gnus-agent-read-agentview.
@@ -1946,11 +1985,6 @@ doesn't exist, to valid the overview buffer."
            'gnus-agent-file-loading-cache
            'gnus-agent-read-agentview))))
 
-;; Save format may be either 1 or 2.  Two is the new, compressed
-;; format that is still being tested.  Format 1 is uncompressed but
-;; known to be reliable.
-(defconst gnus-agent-article-alist-save-format 2)
-
 (defun gnus-agent-read-agentview (file)
   "Load FILE and do a `read' there."
   (with-temp-buffer
@@ -1964,8 +1998,6 @@ doesn't exist, to valid the overview buffer."
               changed-version)
 
           (cond
-           ((< version 2)
-            (error "gnus-agent-read-agentview no longer supports version %d.  Stop gnus, manually evaluate gnus-agent-convert-to-compressed-agentview, then restart gnus." version))
            ((= version 0)
             (let ((inhibit-quit t)
                   entry)
@@ -1996,7 +2028,8 @@ doesn't exist, to valid the overview buffer."
                              (setq uncomp (cons (cons article-id state) uncomp)))
                            sequence)))
                alist)
-              (setq alist (sort uncomp 'car-less-than-car)))))
+		(setq alist (sort uncomp 'car-less-than-car)))
+	      (setq changed-version (not (= 2 gnus-agent-article-alist-save-format)))))
           (when changed-version
             (let ((gnus-agent-article-alist alist))
               (gnus-agent-save-alist gnus-agent-read-agentview)))
@@ -2110,7 +2143,7 @@ modified) original contents, they are first saved to their own file."
               ;; NOTE: The '+ 0' ensure that min and max are both numerics.
               (set group (cons (+ 0 min) (+ 0 max))))
           (error
-           (gnus-message 3 "Warning - invalid agent local: %s on line %d: "
+           (gnus-message 3 "Warning - invalid agent local: %s on line %d: %s"
                          file line (error-message-string err))))
         (forward-line 1)
         (setq line (1+ line))))
@@ -2141,13 +2174,14 @@ modified) original contents, they are first saved to their own file."
 				((member (symbol-name symbol) '("+dirty" "+method"))
 				 nil)
 				(t
-				 (prin1 symbol)
 				 (let ((range (symbol-value symbol)))
+				   (when range
+				 (prin1 symbol)
 				   (princ " ")
 				   (princ (car range))
 				   (princ " ")
 				   (princ (cdr range))
-				   (princ "\n")))))
+				     (princ "\n"))))))
 			my-obarray))))))))
 
 (defun gnus-agent-get-local (group &optional gmane method)
@@ -2402,7 +2436,9 @@ modified) original contents, they are first saved to their own file."
                         (dolist (article marked-articles)
                           (gnus-summary-set-agent-mark article t))
                         (dolist (article fetched-articles)
-                          (if gnus-agent-mark-unread-after-downloaded
+                          (when gnus-agent-mark-unread-after-downloaded
+			    (setq gnus-newsgroup-downloadable
+				  (delq article gnus-newsgroup-downloadable))
                               (gnus-summary-mark-article
 			       article gnus-unread-mark))
                           (when (gnus-summary-goto-subject article nil t)
@@ -3191,7 +3227,7 @@ missing NOV entry.  Run gnus-agent-regenerate-group to restore it.")))
 	       ((setq type
 		      (cond
 		       ((not (integerp fetch-date))
-			'read) ;; never fetched article (may expire
+			 'read)	;; never fetched article (may expire
 		       ;; right now)
 		       ((not (file-exists-p
 			      (concat dir (number-to-string
@@ -3871,8 +3907,9 @@ If REREAD is not nil, downloaded articles are marked as unread."
                 (gnus-agent-possibly-alter-active group group-active)))))
 
         (when (and reread gnus-agent-article-alist)
-          (gnus-make-ascending-articles-unread
+	(gnus-agent-synchronize-group-flags 
            group
+	 (list (list
            (if (listp reread)
                reread
              (delq nil (mapcar (function (lambda (c)
@@ -3880,7 +3917,9 @@ If REREAD is not nil, downloaded articles are marked as unread."
                                                   (car c))
                                                  ((cdr c)
                                                   (car c)))))
-                               gnus-agent-article-alist))))
+				    gnus-agent-article-alist)))
+		'del '(read)))
+	 gnus-command-method)
 
           (when (gnus-buffer-live-p gnus-group-buffer)
             (gnus-group-update-group group t)))

@@ -667,7 +667,7 @@
   (or last-kbd-macro
       (error "No keyboard macro defined"))
   (setq calc-invocation-macro last-kbd-macro)
-  (message "Use `M-# Z' to invoke this macro"))
+  (message "Use `C-x * Z' to invoke this macro"))
 
 (defun calc-user-define-edit ()
   (interactive)  ; but no calc-wrapper!

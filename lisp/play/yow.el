@@ -102,7 +102,8 @@ If called interactively, display a list of matches."
                     (while l
                       (princ (car l))
                       (setq l (cdr l))
-                      (and l (princ "\n\n"))))))))
+                      (and l (princ "\n\n")))
+		    (print-help-return-message))))))
     matches))
 
 

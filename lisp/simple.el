@@ -52,25 +52,68 @@ wait this many seconds after Emacs becomes idle before doing an update."
   "Highlight (un)matching of parens and expressions."
   :group 'matching)
 
+(defun get-next-valid-buffer (list &optional buffer visible-ok frame) "\
+Search LIST for a valid buffer to display in FRAME.
+Return nil when all buffers in LIST are undesirable for display,
+otherwise return the first suitable buffer in LIST.
+
+Buffers not visible in windows are preferred to visible buffers,
+unless VISIBLE-OK is non-nil.
+If the optional argument FRAME is nil, it defaults to the selected frame.
+If BUFFER is non-nil, ignore occurances of that buffer in LIST."
+  ;; This logic is more or less copied from other-buffer.
+  (setq frame (or frame (selected-frame)))
+  (let ((pred (frame-parameter frame 'buffer-predicate))
+	found buf)
+    (while (and (not found) list)
+      (setq buf (car list))
+      (if (and (not (eq buffer buf))
+	       (buffer-live-p buf)
+	       (or (null pred) (funcall pred buf))
+	       (not (eq (aref (buffer-name buf) 0) ?\s))
+	       (or visible-ok (null (get-buffer-window buf 'visible))))
+	  (setq found buf)
+	(setq list (cdr list))))
+    (car list)))
+
+(defun last-buffer (&optional buffer visible-ok frame) "\
+Return the last non-hidden displayable buffer in the buffer list.
+If BUFFER is non-nil, last-buffer will ignore that buffer.
+Buffers not visible in windows are preferred to visible buffers,
+unless optional argument VISIBLE-OK is non-nil.
+If the optional third argument FRAME is non-nil, use that frame's
+buffer list instead of the selected frame's buffer list.
+If no other buffer exists, the buffer `*scratch*' is returned."
+  (setq frame (or frame (selected-frame)))
+  (or (get-next-valid-buffer (frame-parameter frame 'buried-buffer-list)
+			     buffer visible-ok frame)
+      (get-next-valid-buffer (nreverse (buffer-list frame))
+			     buffer visible-ok frame)
+      (progn
+	(set-buffer-major-mode (get-buffer-create "*scratch*"))
+	(get-buffer "*scratch*"))))
+
 (defun next-buffer ()
   "Switch to the next buffer in cyclic order."
   (interactive)
-  (let ((buffer (current-buffer)))
-    (switch-to-buffer (other-buffer buffer))
-    (bury-buffer buffer)))
+  (let ((buffer (current-buffer))
+	(bbl (frame-parameter nil 'buried-buffer-list)))
+    (switch-to-buffer (other-buffer buffer t))
+    (bury-buffer buffer)
+    (set-frame-parameter nil 'buried-buffer-list
+			 (cons buffer (delq buffer bbl)))))
 
-(defun prev-buffer ()
+(defun previous-buffer ()
   "Switch to the previous buffer in cyclic order."
   (interactive)
-  (let ((list (nreverse (buffer-list)))
-	found)
-    (while (and (not found) list)
-      (let ((buffer (car list)))
-	(if (and (not (get-buffer-window buffer))
-		 (not (string-match "\\` " (buffer-name buffer))))
-	    (setq found buffer)))
-      (setq list (cdr list)))
-    (switch-to-buffer found)))
+  (let ((buffer (last-buffer (current-buffer) t))
+	(bbl (frame-parameter nil 'buried-buffer-list)))
+    (switch-to-buffer buffer)
+    ;; Clean up buried-buffer-list up to and including the chosen buffer.
+    (while (and bbl (not (eq (car bbl) buffer)))
+      (setq bbl (cdr bbl)))
+    (set-frame-parameter nil 'buried-buffer-list bbl)))
+
 
 ;;; next-error support framework
 
@@ -348,6 +391,8 @@ Other major modes are defined by comparison with this one."
 
 ;; Making and deleting lines.
 
+(defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard)))
+
 (defun newline (&optional arg)
   "Insert a newline, and move to left margin of the new line if it's blank.
 If `use-hard-newlines' is non-nil, the newline is marked with the
@@ -607,7 +652,7 @@ In binary overwrite mode, this function does overwrite, and octal
 digits are interpreted as a character code.  This is intended to be
 useful for editing binary files."
   (interactive "*p")
-  (let* ((char (let (translation-table-for-input)
+  (let* ((char (let (translation-table-for-input input-method-function)
 		 (if (or (not overwrite-mode)
 			 (eq overwrite-mode 'overwrite-mode-binary))
 		     (read-quoted-char)
@@ -891,10 +936,10 @@ in *Help* buffer.  See also the command `describe-char'."
 	 (col (current-column)))
     (if (= pos end)
 	(if (or (/= beg 1) (/= end (1+ total)))
-	    (message "point=%d of %d (%d%%) <%d - %d> column %d %s"
+	    (message "point=%d of %d (%d%%) <%d-%d> column=%d%s"
 		     pos total percent beg end col hscroll)
-	  (message "point=%d of %d (%d%%) column %d %s"
-		   pos total percent col hscroll))
+	  (message "point=%d of %d (EOB) column=%d%s"
+		   pos total col hscroll))
       (let ((coding buffer-file-coding-system)
 	    encoded encoding-msg display-prop under-display)
 	(if (or (not coding)
@@ -902,7 +947,7 @@ in *Help* buffer.  See also the command `describe-char'."
 	    (setq coding default-buffer-file-coding-system))
 	(if (not (char-valid-p char))
 	    (setq encoding-msg
-		  (format "(0%o, %d, 0x%x, invalid)" char char char))
+		  (format "(%d, #o%o, #x%x, invalid)" char char char))
 	  ;; Check if the character is displayed with some `display'
 	  ;; text property.  In that case, set under-display to the
 	  ;; buffer substring covered by that property.
@@ -921,27 +966,27 @@ in *Help* buffer.  See also the command `describe-char'."
 	  (setq encoding-msg
 		(if display-prop
 		    (if (not (stringp display-prop))
-			(format "(0%o, %d, 0x%x, part of display \"%s\")"
+			(format "(%d, #o%o, #x%x, part of display \"%s\")"
 				char char char under-display)
-		      (format "(0%o, %d, 0x%x, part of display \"%s\"->\"%s\")"
+		      (format "(%d, #o%o, #x%x, part of display \"%s\"->\"%s\")"
 			      char char char under-display display-prop))
 		  (if encoded
-		      (format "(0%o, %d, 0x%x, file %s)"
+		      (format "(%d, #o%o, #x%x, file %s)"
 			      char char char
 			      (if (> (length encoded) 1)
 				  "..."
 				(encoded-string-description encoded coding)))
-		    (format "(0%o, %d, 0x%x)" char char char)))))
+		    (format "(%d, #o%o, #x%x)" char char char)))))
 	(if detail
 	    ;; We show the detailed information about CHAR.
 	    (describe-char (point)))
 	(if (or (/= beg 1) (/= end (1+ total)))
-	    (message "Char: %s %s point=%d of %d (%d%%) <%d - %d> column %d %s"
+	    (message "Char: %s %s point=%d of %d (%d%%) <%d-%d> column=%d%s"
 		     (if (< char 256)
 			 (single-key-description char)
 		       (buffer-substring-no-properties (point) (1+ (point))))
 		     encoding-msg pos total percent beg end col hscroll)
-	  (message "Char: %s %s point=%d of %d (%d%%) column %d %s"
+	  (message "Char: %s %s point=%d of %d (%d%%) column=%d%s"
 		   (if enable-multibyte-characters
 		       (if (< char 128)
 			   (single-key-description char)
@@ -2739,6 +2784,8 @@ and KILLP is t if a prefix arg was specified."
 Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found."
   (interactive "p\ncZap to char: ")
+  (if (char-table-p translation-table-for-input)
+      (setq char (or (aref translation-table-for-input char) char)))
   (kill-region (point) (progn
 			 (search-forward (char-to-string char) nil nil arg)
 ;			 (goto-char (if (> arg 0) (1- (point)) (1+ (point))))
@@ -3258,7 +3305,7 @@ default part of the buffer's text.  Examples of such commands include
 Invoke \\[apropos-documentation] and type \"transient\" or
 \"mark.*active\" at the prompt, to see the documentation of
 commands which are sensitive to the Transient Mark mode."
-  :global t :group 'editing-basics :require nil)
+  :global t :group 'editing-basics)
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -3324,7 +3371,7 @@ and more reliable (no dependence on goal column, etc.)."
 	  ;; When adding a newline, don't expand an abbrev.
 	  (let ((abbrev-mode nil))
 	    (end-of-line)
-	    (insert "\n"))
+	    (insert (if use-hard-newlines hard-newline "\n")))
 	(line-move arg nil nil try-vscroll))
     (if (interactive-p)
 	(condition-case nil
@@ -3718,11 +3765,11 @@ The goal column is stored in the variable `goal-column'."
     ;;"Goal column %d (use \\[set-goal-column] with an arg to unset it)")
     ;;goal-column)
     (message "%s"
-	     (concat 
+	     (concat
 	      (format "Goal column %d " goal-column)
 	      (substitute-command-keys
 	       "(use \\[set-goal-column] with an arg to unset it)")))
-    
+
     )
   nil)
 
@@ -4228,21 +4275,21 @@ in the mode line.
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
 and `line-number-display-limit-width'."
-  :init-value t :global t :group 'editing-basics :require nil)
+  :init-value t :global t :group 'editing-basics)
 
 (define-minor-mode column-number-mode
   "Toggle Column Number mode.
 With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
-  :global t :group 'editing-basics :require nil)
+  :global t :group 'editing-basics)
 
 (define-minor-mode size-indication-mode
   "Toggle Size Indication mode.
 With arg, turn Size Indication mode on iff arg is positive.  When
 Size Indication mode is enabled, the size of the accessible part
 of the buffer appears in the mode line."
-  :global t :group 'editing-basics :require nil)
+  :global t :group 'editing-basics)
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
@@ -4257,7 +4304,11 @@ of the buffer appears in the mode line."
 (defcustom blink-matching-paren-on-screen t
   "*Non-nil means show matching open-paren when it is on screen.
 If nil, means don't show it (but the open-paren can still be shown
-when it is off screen)."
+when it is off screen).
+
+This variable has no effect if `blink-matching-paren' is nil.
+\(In that case, the open-paren is never shown.)
+It is also ignored if `show-paren-mode' is enabled."
   :type 'boolean
   :group 'paren-blinking)
 
@@ -4314,9 +4365,11 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
 			  (eq (syntax-class syntax) 4)
 			  (cdr syntax)))))
 	(cond
-	 ((or (null matching-paren)
-	      (/= (char-before oldpos)
-		  matching-paren))
+	 ((not (or (eq matching-paren (char-before oldpos))
+                   ;; The cdr might hold a new paren-class info rather than
+                   ;; a matching-char info, in which case the two CDRs
+                   ;; should match.
+                   (eq matching-paren (cdr (syntax-after (1- oldpos))))))
 	  (message "Mismatched parentheses"))
 	 ((not blinkpos)
 	  (if (not blink-matching-paren-distance)
@@ -4324,10 +4377,11 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
 	 ((pos-visible-in-window-p blinkpos)
 	  ;; Matching open within window, temporarily move to blinkpos but only
 	  ;; if `blink-matching-paren-on-screen' is non-nil.
-	  (when blink-matching-paren-on-screen
-	    (save-excursion
-	      (goto-char blinkpos)
-	      (sit-for blink-matching-delay))))
+	  (and blink-matching-paren-on-screen
+	       (not show-paren-mode)
+	       (save-excursion
+		 (goto-char blinkpos)
+		 (sit-for blink-matching-delay))))
 	 (t
 	  (save-excursion
 	    (goto-char blinkpos)
@@ -4506,7 +4560,8 @@ See also `read-mail-command' concerning reading mail."
 	(unless (member-ignore-case (car (car other-headers))
 				    '("in-reply-to" "cc" "body"))
 	    (insert (car (car other-headers)) ": "
-		    (cdr (car other-headers)) "\n"))
+		    (cdr (car other-headers))
+		    (if use-hard-newlines hard-newline "\n")))
 	(setq other-headers (cdr other-headers)))
       (when body
 	(forward-line 1)
@@ -4732,7 +4787,7 @@ With prefix argument N, move N items (negative N means move backward)."
 	(error "No completion here"))
     (setq beg (previous-single-property-change beg 'mouse-face))
     (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
-    (setq completion (buffer-substring beg end))
+    (setq completion (buffer-substring-no-properties beg end))
     (let ((owindow (selected-window)))
       (if (and (one-window-p t 'selected-frame)
 	       (window-dedicated-p (selected-window)))
@@ -4860,7 +4915,7 @@ Called from `temp-buffer-show-hook'."
 When this hook is run, the current buffer is the one in which the
 command to display the completion list buffer was run.
 The completion list buffer is available as the value of `standard-output'.
-The common prefix substring for completion may be available as the 
+The common prefix substring for completion may be available as the
 value of `completion-common-substring'. See also `display-completion-list'.")
 
 
@@ -4889,56 +4944,52 @@ of the differing parts is, by contrast, slightly highlighted."
   "Common prefix substring to use in `completion-setup-function' to put faces.
 The value is set by `display-completion-list' during running `completion-setup-hook'.
 
-To put faces, `completions-first-difference' and `completions-common-part' 
-into \"*Completions*\* buffer, the common prefix substring in completions is
-needed as a hint. (Minibuffer is a special case. The content of minibuffer itself 
-is the substring.)")
+To put faces `completions-first-difference' and `completions-common-part'
+in the `*Completions*' buffer, the common prefix substring in completions
+is needed as a hint.  (The minibuffer is a special case.  The content
+of the minibuffer before point is always the common substring.)")
 
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
 (defun completion-setup-function ()
   (let* ((mainbuf (current-buffer))
-         (mbuf-contents (minibuffer-contents))
-         (common-string-length (length mbuf-contents)))
+         (mbuf-contents (minibuffer-completion-contents))
+         common-string-length)
     ;; When reading a file name in the minibuffer,
     ;; set default-directory in the minibuffer
     ;; so it will get copied into the completion list buffer.
     (if minibuffer-completing-file-name
 	(with-current-buffer mainbuf
 	  (setq default-directory (file-name-directory mbuf-contents))))
-    ;; If partial-completion-mode is on, point might not be after the
-    ;; last character in the minibuffer.
-    ;; FIXME: This still doesn't work if the text to be completed
-    ;; starts with a `-'.
-    (when (and partial-completion-mode (not (eobp)))
-      (setq common-string-length
-            (- common-string-length (- (point) (point-max)))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
-      (if minibuffer-completing-file-name
-	  ;; For file name completion,
-	  ;; use the number of chars before the start of the
-	  ;; last file name component.
-	  (setq completion-base-size
-		(with-current-buffer mainbuf
-		  (save-excursion
-		    (goto-char (point-max))
-		    (skip-chars-backward completion-root-regexp)
-		    (- (point) (minibuffer-prompt-end)))))
-	;; Otherwise, in minibuffer, the whole input is being completed.
-	(if (minibufferp mainbuf)
-	    (if (and (symbolp minibuffer-completion-table)
-		     (get minibuffer-completion-table 'completion-base-size-function))
-		(setq completion-base-size
-		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
-	      (setq completion-base-size 0))))
+      (setq completion-base-size
+	    (cond
+	     ((and (symbolp minibuffer-completion-table)
+		   (get minibuffer-completion-table 'completion-base-size-function))
+	      ;; To compute base size, a function can use the global value of
+	      ;; completion-common-substring or minibuffer-completion-contents.
+	      (with-current-buffer mainbuf
+		(funcall (get minibuffer-completion-table
+			      'completion-base-size-function))))
+	     (minibuffer-completing-file-name
+	      ;; For file name completion, use the number of chars before
+	      ;; the start of the file name component at point.
+	      (with-current-buffer mainbuf
+		(save-excursion
+		  (skip-chars-backward completion-root-regexp)
+		  (- (point) (minibuffer-prompt-end)))))
+	     ;; Otherwise, in minibuffer, the base size is 0.
+	     ((minibufferp mainbuf) 0)))
+      (setq common-string-length
+	    (cond
+	     (completion-common-substring
+	      (length completion-common-substring))
+	     (completion-base-size
+	      (- (length mbuf-contents) completion-base-size))))
       ;; Put faces on first uncommon characters and common parts.
-      (when (or completion-common-substring completion-base-size)
-        (setq common-string-length
-		(if completion-common-substring
-		    (length completion-common-substring)
-                  (- common-string-length completion-base-size)))
+      (when (and (integerp common-string-length) (>= common-string-length 0))
 	(let ((element-start (point-min))
               (maxp (point-max))
               element-common-end)
@@ -4948,12 +4999,14 @@ is the substring.)")
                       (< (setq element-common-end
                                (+ element-start common-string-length))
                          maxp))
-	    (when (and (get-char-property element-start 'mouse-face)
-		       (get-char-property element-common-end 'mouse-face))
-	      (put-text-property element-start element-common-end
-				 'font-lock-face 'completions-common-part)
-	      (put-text-property element-common-end (1+ element-common-end)
-				 'font-lock-face 'completions-first-difference)))))
+	    (when (get-char-property element-start 'mouse-face)
+	      (if (and (> common-string-length 0)
+		       (get-char-property (1- element-common-end) 'mouse-face))
+		  (put-text-property element-start element-common-end
+				     'font-lock-face 'completions-common-part))
+	      (if (get-char-property element-common-end 'mouse-face)
+		  (put-text-property element-common-end (1+ element-common-end)
+				     'font-lock-face 'completions-first-difference))))))
       ;; Insert help string.
       (goto-char (point-min))
       (if (display-mouse-p)

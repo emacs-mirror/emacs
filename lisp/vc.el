@@ -762,7 +762,7 @@ in their implementation of vc-BACKEND-diff.")
 (defun vc-default-previous-version (backend file rev)
   "Return the version number immediately preceding REV for FILE,
 or nil if there is no previous version.  This default
-implementation works for <major>.<minor>-style version numbers as
+implementation works for MAJOR.MINOR-style version numbers as
 used by RCS and CVS."
   (let ((branch (vc-branch-part rev))
         (minor-num (string-to-number (vc-minor-part rev))))
@@ -781,7 +781,7 @@ used by RCS and CVS."
 (defun vc-default-next-version (backend file rev)
   "Return the version number immediately following REV for FILE,
 or nil if there is no next version.  This default implementation
-works for <major>.<minor>-style version numbers as used by RCS
+works for MAJOR.MINOR-style version numbers as used by RCS
 and CVS."
   (when (not (string= rev (vc-workfile-version file)))
     (let ((branch (vc-branch-part rev))
@@ -930,8 +930,9 @@ Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the
 current buffer if BUFFER is t.  If the destination buffer is not
 already current, set it up properly and erase it.  The command is
 considered successful if its exit status does not exceed OKSTATUS (if
-OKSTATUS is nil, that means to ignore errors, if it is 'async, that
-means not to wait for termination of the subprocess).  FILE is the
+OKSTATUS is nil, that means to ignore error status, if it is `async', that
+means not to wait for termination of the subprocess; if it is t it means to
+ignore all execution errors).  FILE is the
 name of the working file (may also be nil, to execute commands that
 don't expect a file name).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename."
@@ -976,7 +977,9 @@ that is inserted into the command line before the filename."
 	       `(unless (active-minibuffer-window)
                   (message "Running %s in the background... done" ',command))))
 	  (setq status (apply 'process-file command nil t nil squeezed))
-	  (when (or (not (integerp status)) (and okstatus (< okstatus status)))
+	  (when (and (not (eq t okstatus))
+                     (or (not (integerp status))
+                         (and okstatus (< okstatus status))))
 	    (pop-to-buffer (current-buffer))
 	    (goto-char (point-min))
 	    (shrink-window-if-larger-than-buffer)
@@ -2525,6 +2528,33 @@ return its name; otherwise return nil."
         (setq backup-file (vc-version-backup-file-name file rev 'manual))
         (if (file-exists-p backup-file)
             backup-file)))))
+
+(defun vc-default-revert (backend file contents-done)
+  (unless contents-done
+    (let ((rev (vc-workfile-version file))
+          (file-buffer (or (get-file-buffer file) (current-buffer))))
+      (message "Checking out %s..." file)
+      (let ((failed t)
+            (backup-name (car (find-backup-file-name file))))
+        (when backup-name
+          (copy-file file backup-name 'ok-if-already-exists 'keep-date)
+          (unless (file-writable-p file)
+            (set-file-modes file (logior (file-modes file) 128))))
+        (unwind-protect
+            (let ((coding-system-for-read 'no-conversion)
+                  (coding-system-for-write 'no-conversion))
+              (with-temp-file file
+                (let ((outbuf (current-buffer)))
+                  ;; Change buffer to get local value of vc-checkout-switches.
+                  (with-current-buffer file-buffer
+                    (let ((default-directory (file-name-directory file)))
+                      (vc-call find-version file rev outbuf)))))
+              (setq failed nil))
+          (when backup-name
+            (if failed
+                (rename-file backup-name file 'ok-if-already-exists)
+              (and (not vc-make-backup-files) (delete-file backup-name))))))
+      (message "Checking out %s...done" file))))
 
 (defun vc-revert-file (file)
   "Revert FILE back to the version it was based on."

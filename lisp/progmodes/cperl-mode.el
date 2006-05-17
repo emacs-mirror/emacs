@@ -170,6 +170,7 @@
 
 (defgroup cperl-faces nil
   "Fontification colors."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :prefix "cperl-"
   :group 'cperl)
 

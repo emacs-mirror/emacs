@@ -2978,11 +2978,13 @@ handle_stop (it)
      struct it *it;
 {
   enum prop_handled handled;
-  int handle_overlay_change_p = 1;
+  int handle_overlay_change_p;
   struct props *p;
 
   it->dpvec = NULL;
   it->current.dpvec_index = -1;
+  handle_overlay_change_p = !it->ignore_overlay_strings_at_pos_p;
+  it->ignore_overlay_strings_at_pos_p = 0;
 
   /* Use face of preceding text for ellipsis (if invisible) */
   if (it->selective_display_ellipsis_p)
@@ -5686,6 +5688,9 @@ set_iterator_to_next (it, reseat_p)
 	    reseat_at_next_visible_line_start (it, 1);
 	  else if (it->dpvec_char_len > 0)
 	    {
+	      if (it->method == GET_FROM_STRING
+		  && it->n_overlay_strings > 0)
+		it->ignore_overlay_strings_at_pos_p = 1;
 	      it->len = it->dpvec_char_len;
 	      set_iterator_to_next (it, reseat_p);
 	    }
@@ -23627,7 +23632,11 @@ go back to their normal size.  */);
 Each element has the form (ON-STATE . OFF-STATE).  Whenever the
 `cursor-type' frame-parameter or variable equals ON-STATE,
 comparing using `equal', Emacs uses OFF-STATE to specify
-how to blink it off.  */);
+how to blink it off.  ON-STATE and OFF-STATE are values for
+the `cursor-type' frame parameter.
+
+If a frame's ON-STATE has no entry in this list,
+the frame's other specifications determine how to blink the cursor off.  */);
   Vblink_cursor_alist = Qnil;
 
   DEFVAR_BOOL ("auto-hscroll-mode", &automatic_hscrolling_p,

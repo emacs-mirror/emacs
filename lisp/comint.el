@@ -799,7 +799,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
   ;; for events without parameters.
   (interactive (list last-input-event))
   (let ((pos (point)))
-    (if event (mouse-set-point event))
+    (if event (posn-set-point (event-end event)))
     (if (not (eq (get-char-property (point) 'field) 'input))
 	;; No input at POS, fall back to the global definition.
 	(let* ((keys (this-command-keys))

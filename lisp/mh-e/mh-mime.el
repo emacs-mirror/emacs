@@ -799,11 +799,15 @@ This is used to decide if smileys and graphical emphasis will be displayed."
 Set from last use.")
 
 ;;;###mh-autoload
-(defun mh-mime-save-parts (arg)
-  "Store the MIME parts of the current message.
-If ARG, prompt for directory, else use that specified by the variable
-`mh-mime-save-parts-default-directory'. These directories may be superseded by
-MH profile components, since this function calls on mhstore to do the work."
+(defun mh-mime-save-parts (prompt)
+  "Save attachments.
+
+You can save all of the attachments at once with this command. The attachments
+are saved in the directory specified by the option
+`mh-mime-save-parts-default-directory' unless you use a prefix argument PROMPT
+in which case you are prompted for the directory. These directories may be
+superseded by MH profile components, since this function calls on
+\"mhstore\" (\"mhn\") to do the work."
   (interactive "P")
   (let ((msg (if (eq major-mode 'mh-show-mode)
                  (mh-show-buffer-message-number)
@@ -814,12 +818,12 @@ MH profile components, since this function calls on mhstore to do the work."
         (command (if (mh-variant-p 'nmh) "mhstore" "mhn"))
         (directory
          (cond
-          ((and (or arg
+          ((and (or prompt
                     (equal nil mh-mime-save-parts-default-directory)
                     (equal t mh-mime-save-parts-default-directory))
                 (not mh-mime-save-parts-directory))
            (read-file-name "Store in directory: " nil nil t nil))
-          ((and (or arg
+          ((and (or prompt
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
            (read-file-name (format
@@ -877,11 +881,13 @@ If message has been encoded for transfer take that into account."
 
 ;;;###mh-autoload
 (defun mh-toggle-mh-decode-mime-flag ()
-  "Toggle whether MH-E should decode MIME or not."
+  "Toggle the value of `mh-decode-mime-flag'."
   (interactive)
   (setq mh-decode-mime-flag (not mh-decode-mime-flag))
   (mh-show nil t)
-  (message "(setq mh-decode-mime-flag %s)" mh-decode-mime-flag))
+  (message "%s" (if mh-decode-mime-flag
+                    "Processing attachments normally"
+                  "Displaying raw message")))
 
 ;;;###mh-autoload
 (defun mh-decode-message-header ()
@@ -1184,7 +1190,7 @@ like \"K v\" which operate on individual MIME parts."
                   (goto-char (point-min))
                   (delete-char 1))
                 (when (equal (mm-handle-media-supertype handle) "text")
-                  (when (eq mh-highlight-citation-p 'gnus)
+                  (when (eq mh-highlight-citation-style 'gnus)
                     (mh-gnus-article-highlight-citation))
                   (mh-display-smileys)
                   (mh-display-emphasis)
@@ -1205,9 +1211,10 @@ like \"K v\" which operate on individual MIME parts."
 
 ;;;###mh-autoload
 (defun mh-press-button ()
-  "Press MIME button.
-If the MIME part is visible then it is removed. Otherwise the part is
-displayed."
+  "View contents of button.
+
+This command is a toggle so if you use it again on the same attachment, the
+attachment is hidden."
   (interactive)
   (let ((mm-inline-media-tests mh-mm-inline-media-tests)
         (data (get-text-property (point) 'mh-data))
@@ -1279,7 +1286,23 @@ button."
 
 ;;;###mh-autoload
 (defun mh-display-with-external-viewer (part-index)
-  "View MIME PART-INDEX externally."
+  "View attachment externally.
+
+If Emacs does not know how to view an attachment, you could save it into a
+file and then run some program to open it. It is easier, however, to launch
+the program directly from MH-E with this command. While you'll most likely use
+this to view spreadsheets and documents, it is also useful to use your browser
+to view HTML attachments with higher fidelity than what Emacs can provide.
+
+This command displays the attachment associated with the button under the
+cursor. If the cursor is not located over a button, then the cursor first
+moves to the next button, wrapping to the beginning of the message if
+necessary. You can provide a numeric prefix argument PART-INDEX to view the
+attachment labeled with that number.
+
+This command tries to provide a reasonable default for the viewer by calling
+the Emacs function `mailcap-mime-info'. This function usually reads the file
+\"/etc/mailcap\"."
   (interactive "P")
   (when (consp part-index) (setq part-index (car part-index)))
   (mh-folder-mime-action
@@ -1290,7 +1313,9 @@ button."
               (methods (mapcar (lambda (x) (list (cdr (assoc 'viewer x))))
                                (mailcap-mime-info type 'all)))
               (def (caar methods))
-              (prompt (format "Viewer: %s" (if def (format "[%s] " def) "")))
+              (prompt (format "Viewer%s: " (if def
+                                               (format " (default %s)" def)
+                                             "")))
               (method (completing-read prompt methods nil nil nil nil def))
               (folder mh-show-folder-buffer)
               (buffer-read-only nil))
@@ -1464,7 +1489,7 @@ message multiple times."
         (mh-decode-message-header)
         (mh-show-addr)
         ;; The other highlighting types don't need anything special
-        (when (eq mh-highlight-citation-p 'gnus)
+        (when (eq mh-highlight-citation-style 'gnus)
           (mh-gnus-article-highlight-citation))
         (goto-char (point-min))
         (insert "\n------- Forwarded Message\n\n")

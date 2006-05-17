@@ -95,11 +95,11 @@ now displayed in any window.
 @kindex C-x @key{LEFT}
 @kindex C-x @key{RIGHT}
 @findex next-buffer
-@findex prev-buffer
+@findex previous-buffer
   For conveniently switching between a few buffers, use the commands
 @kbd{C-x @key{LEFT}} and @kbd{C-x @key{RIGHT}}.  @kbd{C-x @key{RIGHT}}
-(@code{prev-buffer}) selects the previous buffer (following the order
-of most recent selection), while @kbd{C-x @key{LEFT}}
+(@code{previous-buffer}) selects the previous buffer (following the order
+of most recent selection in the current frame), while @kbd{C-x @key{LEFT}}
 (@code{next-buffer}) moves through buffers in the reverse direction.
 
 @kindex C-x 4 b

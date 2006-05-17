@@ -1704,6 +1704,7 @@ The value of this variable will only have any effect when
 
 (defgroup reftex-fontification-configurations nil
   "Options concerning the faces used in RefTeX."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'reftex)
 
 (defcustom reftex-use-fonts t

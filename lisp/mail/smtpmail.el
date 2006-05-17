@@ -365,7 +365,7 @@ This is relative to `smtpmail-queue-dir'.")
 		(make-directory smtpmail-queue-dir t))
 	      (with-current-buffer buffer-data
 		(erase-buffer)
-		(insert-buffer tembuf)
+		(insert-buffer-contents tembuf)
 		(write-file file-data)
 		(set-buffer buffer-elisp)
 		(erase-buffer)
@@ -569,7 +569,7 @@ This is relative to `smtpmail-queue-dir'.")
 					(concat "\0"
 						(smtpmail-cred-user cred)
 						"\0"
-						(smtpmail-cred-passwd cred))))
+						passwd)))
 	(if (or (null (car (setq ret (smtpmail-read-response process))))
 		(not (integerp (car ret)))
 		(not (equal (car ret) 235)))
@@ -605,6 +605,7 @@ This is relative to `smtpmail-queue-dir'.")
 
 	  ;; clear the trace buffer of old output
 	  (with-current-buffer process-buffer
+	    (setq buffer-undo-list t)
 	    (erase-buffer))
 
 	  ;; open the connection to the server

@@ -238,6 +238,7 @@ if that value is non-nil."
 
 (defgroup scheme nil
   "Editing Scheme code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'lisp)
 
 (defcustom scheme-mit-dialect t

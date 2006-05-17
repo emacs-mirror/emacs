@@ -1,5 +1,5 @@
 /* XPM */
-static char * gud_pstar_xpm[] = {
+static char * pstar_xpm[] = {
 "24 24 2 1",
 " 	c #BDBDBEBEBDBD",
 ".	c #000000000000",

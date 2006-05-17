@@ -211,6 +211,7 @@
 
 (defgroup sh-script nil
   "Shell script mode."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'sh
   :prefix "sh-")
 
@@ -985,7 +986,11 @@ Point is at the beginning of the next line."
 		  (when (memq (char-before) '(?\" ?\'))
 		    (condition-case nil (progn (backward-sexp 1) t)
 		      (error nil)))))
-	  (forward-comment (- (point-max)))
+          (while (progn
+                   (forward-comment (- (point-max)))
+                   ;; Maybe we've bumped into an escaped newline.
+                   (sh-is-quoted-p (point)))
+            (backward-char 1))
 	  (when (eq (char-before) ?|)
 	    (backward-char 1) t)))
     (when (save-excursion (backward-char 2) (looking-at ";;\\|in"))
@@ -997,6 +1002,8 @@ Point is at the beginning of the next line."
   ;; The list of special chars is taken from the single-unix spec
   ;; of the shell command language (under `quoting') but with `$' removed.
   `(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 ,sh-st-symbol)
+    ;; In a '...' the backslash is not escaping.
+    ("\\(\\\\\\)'" 1 ,sh-st-punc)
     ;; Make sure $@ and @? are correctly recognized as sexps.
     ("\\$\\([?@]\\)" 1 ,sh-st-symbol)
     ;; Find HEREDOC starters and add a corresponding rule for the ender.

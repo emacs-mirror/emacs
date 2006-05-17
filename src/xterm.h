@@ -1036,6 +1036,7 @@ extern int have_menus_p P_ ((void));
 
 #ifdef USE_GTK
 extern int xg_set_icon P_ ((struct frame *, Lisp_Object));
+extern int xg_set_icon_from_xpm_data P_ ((struct frame *, char**));
 #endif /* USE_GTK */
 
 extern void x_real_positions P_ ((struct frame *, int *, int *));

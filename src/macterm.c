@@ -87,14 +87,6 @@ Boston, MA 02110-1301, USA.  */
 #include "atimer.h"
 #include "keymap.h"
 
-/* Set of macros that handle mapping of Mac modifier keys to emacs.  */
-#define macCtrlKey     (NILP (Vmac_reverse_ctrl_meta) ? controlKey :	\
-			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey))
-#define macShiftKey    (shiftKey)
-#define macMetaKey     (NILP (Vmac_reverse_ctrl_meta) ?			\
-			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey) \
-			: controlKey)
-#define macAltKey      (NILP (Vmac_command_key_is_meta) ? cmdKey : optionKey)
 
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
@@ -207,7 +199,8 @@ extern EMACS_INT extra_keyboard_modifiers;
 
 /* The keysyms to use for the various modifiers.  */
 
-static Lisp_Object Qalt, Qhyper, Qsuper, Qmodifier_value;
+static Lisp_Object Qalt, Qhyper, Qsuper, Qcontrol,
+  Qmeta, Qmodifier_value;
 
 extern int inhibit_window_system;
 
@@ -629,7 +622,7 @@ atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
       ByteCount sizes[] = {sizeof (ATSLineLayoutOptions)};
       static ATSLineLayoutOptions line_layout =
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-	kATSLineDisableAllLayoutOperations  | kATSLineUseDeviceMetrics
+	kATSLineDisableAllLayoutOperations | kATSLineUseDeviceMetrics
 #else
 	kATSLineIsDisplayOnly | kATSLineFractDisable
 #endif
@@ -778,7 +771,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
 	      QDEndCGContext (port, &context);
 #if 0
 	      /* This doesn't work on Mac OS X 10.1.  */
-	      ATSUClearLayoutControls (text_layout, 
+	      ATSUClearLayoutControls (text_layout,
 				       sizeof (tags) / sizeof (tags[0]),
 				       tags);
 #else
@@ -869,6 +862,92 @@ mac_draw_image_string_16 (f, gc, x, y, buf, nchars)
 {
   mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, srcCopy, 2);
 }
+
+
+#if USE_CG_TEXT_DRAWING
+static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
+
+static int cg_text_anti_aliasing_threshold = 8;
+
+static void
+init_cg_text_anti_aliasing_threshold ()
+{
+  Lisp_Object val =
+    Fmac_get_preference (build_string ("AppleAntiAliasingThreshold"),
+			 Qnil, Qnil, Qnil);
+
+  if (INTEGERP (val))
+    cg_text_anti_aliasing_threshold = XINT (val);
+}
+
+static int
+mac_draw_string_cg (f, gc, x, y, buf, nchars)
+     struct frame *f;
+     GC gc;
+     int x, y;
+     XChar2b *buf;
+     int nchars;
+{
+  CGrafPtr port;
+  float port_height, gx, gy;
+  int i;
+  CGContextRef context;
+  CGGlyph *glyphs;
+  CGSize *advances;
+
+  if (NILP (Vmac_use_core_graphics) || GC_FONT (gc)->cg_font == NULL)
+    return 0;
+
+  port = GetWindowPort (FRAME_MAC_WINDOW (f));
+  port_height = FRAME_PIXEL_HEIGHT (f);
+  gx = x;
+  gy = port_height - y;
+  glyphs = (CGGlyph *)buf;
+  advances = xmalloc (sizeof (CGSize) * nchars);
+  for (i = 0; i < nchars; i++)
+    {
+      advances[i].width = x_per_char_metric (GC_FONT (gc), buf)->width;
+      advances[i].height = 0;
+      glyphs[i] = GC_FONT (gc)->cg_glyphs[buf->byte2];
+      buf++;
+    }
+
+  QDBeginCGContext (port, &context);
+  if (gc->n_clip_rects)
+    {
+      CGContextTranslateCTM (context, 0, port_height);
+      CGContextScaleCTM (context, 1, -1);
+      CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
+      CGContextScaleCTM (context, 1, -1);
+      CGContextTranslateCTM (context, 0, -port_height);
+    }
+  CGContextSetRGBFillColor (context,
+			    RED_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    1.0);
+  CGContextSetFont (context, GC_FONT (gc)->cg_font);
+  CGContextSetFontSize (context, GC_FONT (gc)->mac_fontsize);
+  if (GC_FONT (gc)->mac_fontsize <= cg_text_anti_aliasing_threshold)
+    CGContextSetShouldAntialias (context, false);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+  CGContextSetTextPosition (context, gx, gy);
+  CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
+#else
+  for (i = 0; i < nchars; i++)
+    {
+      CGContextShowGlyphsAtPoint (context, gx, gy, glyphs + i, 1);
+      gx += advances[i].width;
+    }
+#endif
+  CGContextSynchronize (context);
+  QDEndCGContext (port, &context);
+
+  xfree (advances);
+
+  return 1;
+}
+#endif
 
 
 /* Mac replacement for XCopyArea: dest must be window.  */
@@ -2265,6 +2344,13 @@ x_draw_glyph_string_foreground (s)
 	      || GC_FONT (s->gc)->mac_style
 #endif
 	      )
+#if USE_CG_TEXT_DRAWING
+	    if (!s->two_byte_p
+		&& mac_draw_string_cg (s->f, s->gc, x, s->ybase - boff,
+				       s->char2b, s->nchars))
+	      ;
+	    else
+#endif
 	    mac_draw_string_16 (s->f, s->gc, x,	s->ybase - boff,
 				s->char2b, s->nchars);
 	  else
@@ -6713,6 +6799,9 @@ init_font_name_table ()
   text_encoding_info_alist = create_text_encoding_info_alist ();
 
 #if USE_ATSUI
+#if USE_CG_TEXT_DRAWING
+  init_cg_text_anti_aliasing_threshold ();
+#endif
   if (!NILP (assq_no_quit (make_number (kTextEncodingMacUnicode),
 			   text_encoding_info_alist)))
     {
@@ -7288,6 +7377,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
   Str31 charset;
   SInt16 fontnum;
 #if USE_ATSUI
+  static ATSUFontID font_id;
   ATSUStyle mac_style = NULL;
 #endif
   Style fontface;
@@ -7322,7 +7412,6 @@ XLoadQueryFont (Display *dpy, char *fontname)
 				 kATSUQDBoldfaceTag, kATSUQDItalicTag};
       ByteCount sizes[] = {sizeof (ATSUFontID), sizeof (Fixed),
 			   sizeof (Boolean), sizeof (Boolean)};
-      static ATSUFontID font_id;
       static Fixed size_fixed;
       static Boolean bold_p, italic_p;
       ATSUAttributeValuePtr values[] = {&font_id, &size_fixed,
@@ -7376,6 +7465,10 @@ XLoadQueryFont (Display *dpy, char *fontname)
   font->mac_scriptcode = scriptcode;
 #if USE_ATSUI
   font->mac_style = mac_style;
+#if USE_CG_TEXT_DRAWING
+  font->cg_font = NULL;
+  font->cg_glyphs = NULL;
+#endif
 #endif
 
   /* Apple Japanese (SJIS) font is listed as both
@@ -7405,6 +7498,30 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	}
       bzero (font->per_char, sizeof (XCharStruct) * 0x10000);
 
+#if USE_CG_TEXT_DRAWING
+      {
+	FMFontFamily font_family;
+	FMFontStyle style;
+	ATSFontRef ats_font;
+
+	err = FMGetFontFamilyInstanceFromFont (font_id, &font_family, &style);
+	if (err == noErr)
+	  err = FMGetFontFromFontFamilyInstance (font_family, fontface,
+						 &font_id, &style);
+	/* Use CG text drawing if italic/bold is not synthesized.  */
+	if (err == noErr && style == fontface)
+	  {
+	    ats_font = FMGetATSFontRefFromFont (font_id);
+	    font->cg_font = CGFontCreateWithPlatformFont (&ats_font);
+	  }
+      }
+
+      if (font->cg_font)
+	font->cg_glyphs = xmalloc (sizeof (CGGlyph) * 0x100);
+      if (font->cg_glyphs)
+	bzero (font->cg_glyphs, sizeof (CGGlyph) * 0x100);
+#endif
+
       err = atsu_get_text_layout_with_text_ptr (&c, 1,
 						font->mac_style,
 						&text_layout);
@@ -7414,8 +7531,19 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	  return NULL;
 	}
 
-      for (c = 0x20; c <= 0x7e; c++)
+      for (c = 0x20; c <= 0xff; c++)
 	{
+	  if (c == 0xad)
+	    /* Soft hyphen is not supported in ATSUI.  */
+	    continue;
+	  else if (c == 0x7f)
+	    {
+	      STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
+	      STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
+	      c = 0x9f;
+	      continue;
+	    }
+
 	  err = ATSUClearLayoutCache (text_layout, kATSUFromTextBeginning);
 	  if (err == noErr)
 	    err = ATSUMeasureTextImage (text_layout,
@@ -7464,9 +7592,32 @@ XLoadQueryFont (Display *dpy, char *fontname)
 		    }
 		}
 	    }
+#if USE_CG_TEXT_DRAWING
+	  if (err == noErr && char_width > 0 && font->cg_font)
+	    {
+	      ATSUGlyphInfoArray glyph_info_array;
+	      ByteCount count = sizeof (ATSUGlyphInfoArray);
+
+	      err = ATSUMatchFontsToText (text_layout, kATSUFromTextBeginning,
+					  kATSUToTextEnd, NULL, NULL, NULL);
+	      if (err == noErr)
+		err = ATSUGetGlyphInfo (text_layout, kATSUFromTextBeginning,
+					kATSUToTextEnd, &count,
+					&glyph_info_array);
+	      if (err == noErr)
+		font->cg_glyphs[c] = glyph_info_array.glyphs[0].glyphID;
+	      else
+		{
+		  /* Don't use CG text drawing if font substitution
+		     occurs in ASCII or Latin-1 characters.  */
+		  CGFontRelease (font->cg_font);
+		  font->cg_font = NULL;
+		  xfree (font->cg_glyphs);
+		  font->cg_glyphs = NULL;
+		}
+	    }
+#endif
 	}
-      STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
-      STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
 
       font->min_byte1 = 0;
       font->max_byte1 = 0xff;
@@ -7579,6 +7730,13 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	  SetRect (&max_bounds, 0, 0, 0, 0);
 	  for (c = 0x20; c <= 0xff; c++)
 	    {
+	      if (c == 0x7f)
+		{
+		  STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
+		  STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
+		  continue;
+		}
+
 	      ch = c;
 	      char_width = CharWidth (ch);
 	      QDTextBounds (1, &ch, &char_bounds);
@@ -7601,8 +7759,6 @@ XLoadQueryFont (Display *dpy, char *fontname)
 		  UnionRect (&max_bounds, &char_bounds, &max_bounds);
 		}
 	    }
-	  STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
-	  STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
 	  if (min_width == max_width
 	      && max_bounds.left >= 0 && max_bounds.right <= max_width)
 	    {
@@ -7617,6 +7773,15 @@ XLoadQueryFont (Display *dpy, char *fontname)
       TextSize (old_fontsize);
       TextFace (old_fontface);
     }
+
+#if !defined (MAC_OS8) || USE_ATSUI
+  /* AppKit and WebKit do some adjustment to the heights of Courier,
+     Helvetica, and Times.  This only works on the environments where
+     the XDrawImageString counterpart is never used.  */
+  if (strcmp (family, "courier") == 0 || strcmp (family, "helvetica") == 0
+      || strcmp (family, "times") == 0)
+    font->ascent += (font->ascent + font->descent) * .15 + 0.5;
+#endif
 
   return font;
 }
@@ -7633,6 +7798,12 @@ mac_unload_font (dpyinfo, font)
 #if USE_ATSUI
   if (font->mac_style)
     ATSUDisposeStyle (font->mac_style);
+#if USE_CG_TEXT_DRAWING
+  if (font->cg_font)
+    CGFontRelease (font->cg_font);
+  if (font->cg_glyphs)
+    xfree (font->cg_glyphs);
+#endif
 #endif
   xfree (font);
 }
@@ -7920,14 +8091,18 @@ x_find_ccl_program (fontp)
 /* Contains the string "reverse", which is a constant for mouse button emu.*/
 Lisp_Object Qreverse;
 
-/* True if using command key as meta key.  */
-Lisp_Object Vmac_command_key_is_meta;
 
-/* Modifier associated with the option key, or nil for normal behavior. */
+/* Modifier associated with the control key, or nil to ignore. */
+Lisp_Object Vmac_control_modifier;
+
+/* Modifier associated with the option key, or nil to ignore. */
 Lisp_Object Vmac_option_modifier;
 
-/* True if the ctrl and meta keys should be reversed.  */
-Lisp_Object Vmac_reverse_ctrl_meta;
+/* Modifier associated with the command key, or nil to ignore. */
+Lisp_Object Vmac_command_modifier;
+
+/* Modifier associated with the function key, or nil to ignore. */
+Lisp_Object Vmac_function_modifier;
 
 /* True if the option and command modifiers should be used to emulate
    a three button mouse */
@@ -7952,20 +8127,18 @@ Lisp_Object Vmac_pass_control_to_system;
    Carbon/Apple event handlers.  */
 static struct input_event *read_socket_inev = NULL;
 
-/* Set in term/mac-win.el to indicate that event loop can now generate
-   drag and drop events.  */
-Lisp_Object Qmac_ready_for_drag_n_drop;
-
 Point saved_menu_event_location;
 
 /* Apple Events */
-static void init_required_apple_events (void);
-static pascal OSErr
-do_ae_open_application (const AppleEvent *, AppleEvent *, long);
-static pascal OSErr
-do_ae_print_documents (const AppleEvent *, AppleEvent *, long);
-static pascal OSErr do_ae_open_documents (AppleEvent *, AppleEvent *, long);
-static pascal OSErr do_ae_quit_application (AppleEvent *, AppleEvent *, long);
+#if USE_CARBON_EVENTS
+static Lisp_Object Qhicommand;
+#endif
+extern int mac_ready_for_apple_events;
+extern Lisp_Object Qundefined;
+extern void init_apple_event_handler P_ ((void));
+extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
+					   Lisp_Object *, Lisp_Object *,
+					   Lisp_Object *));
 
 #if TARGET_API_MAC_CARBON
 /* Drag and Drop */
@@ -7975,11 +8148,10 @@ static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
 static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
 #endif
 
-static Lisp_Object Qapplication, Qabout;
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
 extern void init_service_handler ();
-static Lisp_Object Qpreferences, Qservices, Qpaste, Qperform;
+static Lisp_Object Qservices, Qpaste, Qperform;
 #endif
 /* Window Event Handler */
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
@@ -8001,19 +8173,43 @@ mac_to_emacs_modifiers (EventModifiers mods)
 #endif
 {
   unsigned int result = 0;
-  if (mods & macShiftKey)
+  if (mods & shiftKey)
     result |= shift_modifier;
-  if (mods & macCtrlKey)
-    result |= ctrl_modifier;
-  if (mods & macMetaKey)
-    result |= meta_modifier;
-  if (NILP (Vmac_command_key_is_meta) && (mods & macAltKey))
-    result |= alt_modifier;
+
+
+
+  /* Deactivated to simplify configuration:
+     if Vmac_option_modifier is non-NIL, we fully process the Option
+     key. Otherwise, we only process it if an additional Ctrl or Command
+     is pressed. That way the system may convert the character to a
+     composed one.
+     if ((mods & optionKey) &&
+      (( !NILP(Vmac_option_modifier) ||
+      ((mods & cmdKey) || (mods & controlKey))))) */
+
   if (!NILP (Vmac_option_modifier) && (mods & optionKey)) {
-      Lisp_Object val = Fget(Vmac_option_modifier, Qmodifier_value);
-      if (!NILP(val))
-          result |= XUINT(val);
+    Lisp_Object val = Fget(Vmac_option_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
   }
+  if (!NILP (Vmac_command_modifier) && (mods & cmdKey)) {
+    Lisp_Object val = Fget(Vmac_command_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+  if (!NILP (Vmac_control_modifier) && (mods & controlKey)) {
+    Lisp_Object val = Fget(Vmac_control_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+
+#ifdef MAC_OSX
+  if (!NILP (Vmac_function_modifier) && (mods & kEventKeyModifierFnMask)) {
+    Lisp_Object val = Fget(Vmac_function_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+#endif
 
   return result;
 }
@@ -8035,7 +8231,7 @@ mac_get_emulated_btn ( UInt32 modifiers )
 #if USE_CARBON_EVENTS
 /* Obtains the event modifiers from the event ref and then calls
    mac_to_emacs_modifiers.  */
-static int
+static UInt32
 mac_event_to_emacs_modifiers (EventRef eventRef)
 {
   UInt32 mods = 0;
@@ -8500,179 +8696,49 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   x_real_positions (f, &f->left_pos, &f->top_pos);
 }
 
-/* Intialize AppleEvent dispatcher table for the required events.  */
-void
-init_required_apple_events ()
+OSErr
+mac_store_apple_event (class, id, desc)
+     Lisp_Object class, id;
+     const AEDesc *desc;
 {
-  OSErr err;
-  long result;
+  OSErr err = noErr;
+  struct input_event buf;
+  AEDesc *desc_copy;
 
-  /* Make sure we have apple events before starting.  */
-  err = Gestalt (gestaltAppleEventsAttr, &result);
-  if (err != noErr)
-    abort ();
+  desc_copy = xmalloc (sizeof (AEDesc));
+  if (desc_copy == NULL)
+    err = memFullErr;
+  else
+    err = AEDuplicateDesc (desc, desc_copy);
+  if (err == noErr)
+    {
+      EVENT_INIT (buf);
 
-  if (!(result & (1 << gestaltAppleEventsPresent)))
-    abort ();
+      buf.kind = MAC_APPLE_EVENT;
+      buf.x = class;
+      buf.y = id;
+      buf.code = (int)desc_copy;
+      XSETFRAME (buf.frame_or_window,
+		 mac_focus_frame (&one_mac_display_info));
+      buf.arg = Qnil;
+      kbd_buffer_store_event (&buf);
+    }
 
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenApplication,
-			      NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_open_application),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenApplication,
-			      NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_open_application),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments,
-                              NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_open_documents),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments,
-                              NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_open_documents),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments,
-                              NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_print_documents),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments,
-                              NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_print_documents),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication,
-                              NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_quit_application),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication,
-                              NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_quit_application),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
+  return err;
 }
 
-void
-mac_store_application_menu_event (event)
-#if USE_CARBON_EVENTS
-     EventRef event;
-#else
-     UInt32 event;
-#endif
+Lisp_Object
+mac_make_lispy_event_code (code)
+     int code;
 {
-  struct input_event buf;
-  Lisp_Object frame, entry;
+  AEDesc *desc = (AEDesc *)code;
+  Lisp_Object obj;
 
-  EVENT_INIT (buf);
+  obj = mac_aedesc_to_lisp (desc);
+  AEDisposeDesc (desc);
+  xfree (desc);
 
-  XSETFRAME (frame, mac_focus_frame (&one_mac_display_info));
-  buf.kind = MENU_BAR_EVENT;
-  buf.frame_or_window = frame;
-  buf.arg = frame;
-  kbd_buffer_store_event (&buf);
-
-  buf.arg = Qapplication;
-  kbd_buffer_store_event (&buf);
-
-#if USE_CARBON_EVENTS
-  switch (GetEventClass (event))
-    {
-#ifdef MAC_OSX
-    case kEventClassService:
-      buf.arg = Qservices;
-      kbd_buffer_store_event (&buf);
-      switch (GetEventKind (event))
-	{
-	case kEventServicePaste:
-	  entry = Qpaste;
-	  break;
-
-	case kEventServicePerform:
-	  {
-	    OSErr err;
-	    CFStringRef message;
-
-	    err = GetEventParameter (event, kEventParamServiceMessageName,
-				     typeCFStringRef, NULL,
-				     sizeof (CFStringRef), NULL, &message);
-	    buf.arg = Qperform;
-	    kbd_buffer_store_event (&buf);
-	    if (err == noErr && message)
-	      entry = intern (SDATA (cfstring_to_lisp (message)));
-	    else
-	      entry = Qnil;
-	  }
-	  break;
-
-	default:
-	  abort ();
-	}
-      break;
-#endif	/* MAC_OSX */
-    case kEventClassCommand:
-      {
-	HICommand command;
-
-	GetEventParameter(event, kEventParamDirectObject, typeHICommand,
-			  NULL, sizeof (HICommand), NULL, &command);
-	switch (command.commandID)
-	  {
-	  case kHICommandAbout:
-	    entry = Qabout;
-	    break;
-#ifdef MAC_OSX
-	  case kHICommandPreferences:
-	    entry = Qpreferences;
-	    break;
-#endif /* MAC_OSX */
-	  case kHICommandQuit:
-	    entry = Qquit;
-	    break;
-	  default:
-	    abort ();
-	  }
-      }
-      break;
-
-    default:
-      abort ();
-    }
-#else  /* USE_CARBON_EVENTS */
-  switch (event)
-    {
-    case kHICommandAbout:
-      entry = Qabout;
-      break;
-    case kHICommandQuit:
-      entry = Qquit;
-      break;
-    default:
-      abort ();
-    }
-#endif
-
-  buf.arg = entry;
-  kbd_buffer_store_event (&buf);
+  return obj;
 }
 
 #if USE_CARBON_EVENTS
@@ -8682,28 +8748,49 @@ mac_handle_command_event (next_handler, event, data)
      EventRef event;
      void *data;
 {
+  OSStatus result;
+  OSErr err;
   HICommand command;
-  OSErr result;
+  Lisp_Object class_key, id_key, binding;
 
-  GetEventParameter(event, kEventParamDirectObject, typeHICommand, NULL,
-		    sizeof (HICommand), NULL, &command);
+  result = CallNextEventHandler (next_handler, event);
+  if (result != eventNotHandledErr)
+    return result;
 
-  switch (command.commandID)
-    {
-    case kHICommandAbout:
-#ifdef MAC_OSX
-    case kHICommandPreferences:
-#endif	/* MAC_OSX */
-      result = CallNextEventHandler (next_handler, event);
-      if (result != eventNotHandledErr)
-	return result;
+  GetEventParameter (event, kEventParamDirectObject, typeHICommand, NULL,
+		     sizeof (HICommand), NULL, &command);
 
-      mac_store_application_menu_event (event);
-      return noErr;
+  if (command.commandID == 0)
+    return eventNotHandledErr;
 
-    default:
-      break;
-    }
+  /* A HICommand event is mapped to an Apple event whose event class
+     symbol is `hicommand' and event ID is its command ID.  */
+  class_key = Qhicommand;
+  mac_find_apple_event_spec (0, command.commandID,
+			     &class_key, &id_key, &binding);
+  if (!NILP (binding) && !EQ (binding, Qundefined))
+    if (INTEGERP (binding))
+      return XINT (binding);
+    else
+      {
+	AppleEvent apple_event;
+	UInt32 modifiers;
+	static EventParamName names[] = {kEventParamDirectObject,
+					 kEventParamKeyModifiers};
+	static EventParamType types[] = {typeHICommand,
+					 typeUInt32};
+	static UInt32 sizes[] = {sizeof (HICommand),
+				 sizeof (UInt32)};
+	err = create_apple_event_from_event_ref (event, 2, names, types,
+						 sizes, &apple_event);
+	if (err == noErr)
+	  {
+	    err = mac_store_apple_event (class_key, id_key, &apple_event);
+	    AEDisposeDesc (&apple_event);
+	  }
+	if (err == noErr)
+	  return noErr;
+      }
 
   return eventNotHandledErr;
 }
@@ -8865,6 +8952,52 @@ mac_handle_mouse_event (next_handler, event, data)
 
   return eventNotHandledErr;
 }
+
+#ifdef MAC_OSX
+OSErr
+mac_store_services_event (event)
+     EventRef event;
+{
+  OSErr err;
+  AppleEvent apple_event;
+  Lisp_Object id_key;
+
+  switch (GetEventKind (event))
+    {
+    case kEventServicePaste:
+      id_key = Qpaste;
+      err = create_apple_event_from_event_ref (event, 0, NULL,
+					       NULL, NULL, &apple_event);
+      break;
+
+    case kEventServicePerform:
+      {
+	static EventParamName names[] = {kEventParamServiceMessageName,
+					 kEventParamServiceUserData};
+	static EventParamType types[] = {typeCFStringRef,
+					 typeCFStringRef};
+	static UInt32 sizes[] = {sizeof (CFStringRef),
+				 sizeof (CFStringRef)};
+
+	id_key = Qperform;
+	err = create_apple_event_from_event_ref (event, 2, names, types,
+						 sizes, &apple_event);
+      }
+      break;
+
+    default:
+      abort ();
+    }
+
+  if (err == noErr)
+    {
+      err = mac_store_apple_event (Qservices, id_key, &apple_event);
+      AEDisposeDesc (&apple_event);
+    }
+
+  return err;
+}
+#endif	/* MAC_OSX */
 #endif	/* USE_CARBON_EVENTS */
 
 
@@ -8922,159 +9055,6 @@ remove_window_handler (window)
     RemoveReceiveHandler (mac_do_receive_dragUPP, window);
 #endif
 }
-
-/* Open Application Apple Event */
-static pascal OSErr
-do_ae_open_application(const AppleEvent *pae, AppleEvent *preply, long prefcon)
-{
-  return noErr;
-}
-
-
-/* Called when we receive an AppleEvent with an ID of
-   "kAEOpenDocuments".  This routine gets the direct parameter,
-   extracts the FSSpecs in it, and puts their names on a list.  */
-#pragma options align=mac68k
-typedef struct SelectionRange {
-  short unused1; // 0 (not used)
-  short lineNum; // line to select (<0 to specify range)
-  long startRange; // start of selection range (if line < 0)
-  long endRange; // end of selection range (if line < 0)
-  long unused2; // 0 (not used)
-  long theDate; // modification date/time
-} SelectionRange;
-#pragma options align=reset
-
-static pascal OSErr
-do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
-{
-  OSErr err, err2;
-  AEDesc the_desc;
-  AEKeyword keyword;
-  DescType actual_type;
-  Size actual_size;
-  SelectionRange position;
-  Lisp_Object file_list = Qnil;
-
-  xassert (read_socket_inev);
-
-  err = AEGetParamDesc (message, keyDirectObject, typeAEList, &the_desc);
-  if (err != noErr)
-    goto descriptor_error_exit;
-
-  err = AEGetParamPtr (message, keyAEPosition, typeChar, &actual_type, &position, sizeof(SelectionRange), &actual_size);
-  if (err == noErr)
-    file_list = Fcons (list3 (make_number (position.lineNum + 1),
-			      make_number (position.startRange + 1),
-			      make_number (position.endRange + 1)),
-		       file_list);
-
-  /* Check to see that we got all of the required parameters from the
-     event descriptor.  For an 'odoc' event this should just be the
-     file list.  */
-  err = AEGetAttributePtr(message, keyMissedKeywordAttr, typeWildCard,
-			  &actual_type, (Ptr) &keyword,
-                          sizeof (keyword), &actual_size);
-  /* No error means that we found some unused parameters.
-     errAEDescNotFound means that there are no more parameters.  If we
-     get an error code other than that, flag it.  */
-  if ((err == noErr) || (err != errAEDescNotFound))
-    {
-      err = errAEEventNotHandled;
-      goto error_exit;
-    }
-  err = noErr;
-
-  /* Got all the parameters we need.  Now, go through the direct
-     object list and parse it up.  */
-  {
-    long num_files_to_open;
-
-    err = AECountItems (&the_desc, &num_files_to_open);
-    if (err == noErr)
-      {
-        int i;
-
-        /* AE file list is one based so just use that for indexing here.  */
-        for (i = 1; i <= num_files_to_open; i++)
-	  {
-	    char unix_path_name[MAXPATHLEN];
-#ifdef MAC_OSX
-	    FSRef fref;
-
-	    err = AEGetNthPtr (&the_desc, i, typeFSRef, &keyword,
-			       &actual_type, &fref, sizeof (FSRef),
-			       &actual_size);
-	    if (err != noErr || actual_type != typeFSRef)
-	      continue;
-
-	    if (FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name))
-		== noErr)
-#else
-	    FSSpec fs;
-
-	    err = AEGetNthPtr(&the_desc, i, typeFSS, &keyword, &actual_type,
-			      (Ptr) &fs, sizeof (fs), &actual_size);
-	    if (err != noErr) continue;
-
-	    if (fsspec_to_posix_pathname (&fs, unix_path_name,
-					  sizeof (unix_path_name) - 1) == noErr)
-#endif
-	      /* x-dnd functions expect undecoded filenames.  */
-	      file_list = Fcons (make_unibyte_string (unix_path_name,
-						      strlen (unix_path_name)),
-				 file_list);
-	  }
-      }
-
-    /* Build a DRAG_N_DROP_EVENT type event as is done in
-       constuct_drag_n_drop in w32term.c.  */
-    if (!NILP (file_list))
-      {
-	struct frame *f = mac_focus_frame (&one_mac_display_info);
-	WindowPtr wp;
-	Lisp_Object frame;
-
-	read_socket_inev->kind = DRAG_N_DROP_EVENT;
-	read_socket_inev->code = 0;
-	read_socket_inev->modifiers = 0;
-
-	XSETINT (read_socket_inev->x, 0);
-	XSETINT (read_socket_inev->y, 0);
-
-	XSETFRAME (frame, f);
-	read_socket_inev->frame_or_window = Fcons (frame, file_list);
-
-#if 0
-	/* Regardless of whether Emacs was suspended or in the
-	   foreground, ask it to redraw its entire screen.  Otherwise
-	   parts of the screen can be left in an inconsistent
-	   state.  */
-	wp = FRAME_MAC_WINDOW (f);
-	if (wp)
-#if TARGET_API_MAC_CARBON
-	  {
-	    Rect r;
-
-	    GetWindowPortBounds (wp, &r);
-	    InvalWindowRect (wp, &r);
-	  }
-#else /* not TARGET_API_MAC_CARBON */
-	InvalRect (&(wp->portRect));
-#endif /* not TARGET_API_MAC_CARBON */
-#endif
-      }
-  }
-
-error_exit:
-  /* Nuke the coerced file list in any case */
-  err2 = AEDisposeDesc(&the_desc);
-
-descriptor_error_exit:
-  /* InvalRect(&(gFrontMacWindowP->mWP->portRect)); */
-  return err;
-}
-
 
 #if TARGET_API_MAC_CARBON
 static pascal OSErr
@@ -9230,44 +9210,6 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 #endif
 
 
-/* Print Document Apple Event */
-static pascal OSErr
-do_ae_print_documents (const AppleEvent *pAE, AppleEvent *reply, long refcon)
-{
-  return errAEEventNotHandled;
-}
-
-
-static pascal OSErr
-do_ae_quit_application (AppleEvent* message, AppleEvent *reply, long refcon)
-{
-#if USE_CARBON_EVENTS
-  OSErr err;
-  EventRef event = NULL;
-  static const HICommand quit_command = {kEventAttributeNone, kHICommandQuit};
-
-  err = CreateEvent (NULL, kEventClassCommand, kEventCommandProcess, 0,
-		     kEventAttributeUserEvent, &event);
-  if (err == noErr)
-    err = SetEventParameter (event, kEventParamDirectObject, typeHICommand,
-			     sizeof (HICommand), &quit_command);
-  if (err == noErr)
-    mac_store_application_menu_event (event);
-  if (event)
-    ReleaseEvent (event);
-
-  if (err == noErr)
-    return noErr;
-  else
-    return errAEEventNotHandled;
-#else
-  mac_store_application_menu_event (kHICommandQuit);
-
-  return noErr;
-#endif
-}
-
-
 #if __profile__
 void
 profiler_exit_proc ()
@@ -9321,7 +9263,7 @@ main (void)
 
   initialize_applescript ();
 
-  init_required_apple_events ();
+  init_apple_event_handler ();
 
   {
     char **argv;
@@ -9385,12 +9327,128 @@ static unsigned char keycode_to_xkeysym_table[] = {
   /*0x7C*/ 0x53 /*right*/, 0x54 /*down*/, 0x52 /*up*/, 0
 };
 
+
 static int
 keycode_to_xkeysym (int keyCode, int *xKeySym)
 {
   *xKeySym = keycode_to_xkeysym_table [keyCode & 0x7f];
   return *xKeySym != 0;
 }
+
+static unsigned char fn_keycode_to_xkeysym_table[] = {
+  /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x20*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+  /*0x30*/ 0, 0, 0, 0,
+  /*0x34*/ 0, 0, 0, 0,
+  /*0x38*/ 0, 0, 0, 0,
+  /*0x3C*/ 0, 0, 0, 0,
+
+  /*0x40*/ 0, 0x2e /*kp-. = .*/, 0, 0x50 /*kp-* = 'p'*/,
+  /*0x44*/ 0, '/' /*kp-+*/, 0, 0,
+  /*0x48*/ 0, 0, 0, 0x30 /*kp-/ = '0'*/,
+  /*0x4C*/ 0, 0, 0x3b /*kp-- = ';'*/, 0,
+
+  /*0x50*/ 0, 0x2d /*kp-= = '-'*/, 0x6d /*kp-0 = 'm'*/, 0x6a /*kp-1 = 'j'*/,
+  /*0x54*/ 0x6b /*kp-2 = 'k'*/, 0x6c /*kp-3 = 'l'*/, 'u' /*kp-4*/, 'i' /*kp-5*/,
+  /*0x58*/ 'o' /*kp-6*/, '7' /*kp-7*/, 0, '8' /*kp-8*/,
+  /*0x5C*/ '9' /*kp-9*/, 0, 0, 0,
+
+  /*0x60*/ 0, 0, 0, 0,
+  /*0x64*/ 0, 0, 0, 0,
+  /*0x68*/ 0, 0, 0, 0,
+  /*0x6C*/ 0, 0, 0, 0,
+
+  /*0x70*/ 0, 0, 0, 0,
+  /*0x74*/ 0, 0, 0, 0,
+  /*0x78*/ 0, 0, 0, 0,
+  /*0x7C*/ 0, 0, 0, 0
+};
+static int
+convert_fn_keycode (EventRef eventRef, int keyCode, int *newCode)
+{
+#ifdef MAC_OSX
+  /* Use the special map to translate keys when function modifier is
+     to be caught. KeyTranslate can't be used in that case.
+     We can't detect the function key using the input_event.modifiers,
+     because this uses the high word of an UInt32. Therefore,
+     we'll just read it out of the original eventRef.
+  */
+
+
+  /* TODO / known issues
+
+  - Fn-Shift-j is regonized as Fn-j and not Fn-J.
+  The above table always translates to lower characters. We need to use
+  the KCHR keyboard resource (KeyTranslate() ) to map k->K and 8->*.
+
+  - The table is meant for English language keyboards, and it will work
+  for many others with the exception of key combinations like Fn-ö on
+  a German keyboard, which is currently mapped to Fn-;.
+  How to solve this without keeping separate tables for all keyboards
+  around? KeyTranslate isn't of much help here, as it only takes a 16-bit
+  value for keycode with the modifiers in he high byte, i.e. no room for the
+  Fn modifier. That's why we need the table.
+
+  */
+
+  UInt32 mods = 0;
+  if (!NILP(Vmac_function_modifier))
+    {
+      GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
+			 sizeof (UInt32), NULL, &mods);
+      if (mods & kEventKeyModifierFnMask)
+	{  *newCode = fn_keycode_to_xkeysym_table [keyCode & 0x7f];
+
+	  return (*newCode != 0);
+	}
+    }
+#endif
+  return false;
+}
+
+static int
+backtranslate_modified_keycode(int mods, int keycode, int def)
+{
+  if  (mods &
+       (controlKey |
+	(NILP (Vmac_option_modifier) ? 0 : optionKey) |
+	cmdKey))
+    {
+      /* This code comes from Keyboard Resource,
+	 Appendix C of IM - Text.  This is necessary
+	 since shift is ignored in KCHR table
+	 translation when option or command is pressed.
+	 It also does not translate correctly
+	 control-shift chars like C-% so mask off shift
+	 here also.
+
+	 Not done for combinations with the option key (alt)
+	 unless it is to be caught by Emacs:  this is
+	 to preserve key combinations translated by the OS
+	 such as Alt-3.
+      */
+      /* mask off option and command */
+      int new_modifiers = mods & 0xe600;
+      /* set high byte of keycode to modifier high byte*/
+      int new_keycode = keycode | new_modifiers;
+      Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+      unsigned long some_state = 0;
+      return (int) KeyTranslate (kchr_ptr, new_keycode,
+			   &some_state) & 0xff;
+      /* TO DO: Recognize two separate resulting characters, "for
+	 example, when the user presses Option-E followed by N, you
+	 can map this through the KeyTranslate function using the
+	 U.S. 'KCHR' resource to produce ´n, which KeyTranslate
+	 returns as two characters in the bytes labeled Character code
+	 1 and Character code 2." (from Carbon API doc) */
+
+    }
+  else
+    return def;
+}
+
 
 #if !USE_CARBON_EVENTS
 static RgnHandle mouse_region = NULL;
@@ -9409,7 +9467,7 @@ mac_wait_next_event (er, sleep_time, dequeue)
     mouse_region = NewRgn ();
 
   event_mask = everyEvent;
-  if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
+  if (!mac_ready_for_apple_events)
     event_mask -= highLevelEventMask;
 
   current_tick = TickCount ();
@@ -9936,8 +9994,7 @@ XTread_socket (sd, expected, hold_quit)
 		 || !(er.modifiers & cmdKey))
 		&& (!NILP (Vmac_pass_control_to_system)
 		    || !(er.modifiers & controlKey))
-		&& (!NILP (Vmac_command_key_is_meta)
-		    && NILP (Vmac_option_modifier)
+		&& (NILP (Vmac_option_modifier)
 		    || !(er.modifiers & optionKey)))
 	      if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 		  != eventNotHandledErr)
@@ -9981,49 +10038,36 @@ XTread_socket (sd, expected, hold_quit)
 		dpyinfo->mouse_face_hidden = 1;
 	      }
 
-	    if (keycode_to_xkeysym (keycode, &xkeysym))
+	    /* translate the keycode back to determine the original key */
+	    /* Convert key code if function key is pressed.
+	       Otherwise, if non-ASCII-event, take care of that
+	       without re-translating the key code. */
+#if USE_CARBON_EVENTS
+	    if (convert_fn_keycode (eventRef, keycode, &xkeysym))
 	      {
-		inev.code = 0xff00 | xkeysym;
-		inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-	      }
-	    else
-	      {
-		if (er.modifiers & (controlKey |
-				    (NILP (Vmac_command_key_is_meta) ? optionKey
-				     : cmdKey)))
-		  {
-		    /* This code comes from Keyboard Resource,
-		       Appendix C of IM - Text.  This is necessary
-		       since shift is ignored in KCHR table
-		       translation when option or command is pressed.
-		       It also does not translate correctly
-		       control-shift chars like C-% so mask off shift
-		       here also */
-		    int new_modifiers = er.modifiers & 0xe600;
-		    /* mask off option and command */
-		    int new_keycode = keycode | new_modifiers;
-		    Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-		    unsigned long some_state = 0;
-		    inev.code = KeyTranslate (kchr_ptr, new_keycode,
-					      &some_state) & 0xff;
-		  }
-		else if (!NILP (Vmac_option_modifier)
-			 && (er.modifiers & optionKey))
-		  {
-		    /* When using the option key as an emacs modifier,
-		       convert the pressed key code back to one
-		       without the Mac option modifier applied. */
-		    int new_modifiers = er.modifiers & ~optionKey;
-		    int new_keycode = keycode | new_modifiers;
-		    Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-		    unsigned long some_state = 0;
-		    inev.code = KeyTranslate (kchr_ptr, new_keycode,
-					      &some_state) & 0xff;
-		  }
-		else
-		  inev.code = er.message & charCodeMask;
+		inev.code = xkeysym;
+		/* this doesn't work - tried to add shift modifiers */
+		  inev.code =
+		    backtranslate_modified_keycode(er.modifiers & (~0x2200),
+						   xkeysym | 0x80,  xkeysym);
 		inev.kind = ASCII_KEYSTROKE_EVENT;
 	      }
+	    else
+#endif
+	      if (keycode_to_xkeysym (keycode, &xkeysym))
+		{
+		  inev.code = 0xff00 | xkeysym;
+		  inev.kind = NON_ASCII_KEYSTROKE_EVENT;
+		}
+	      else
+		{
+
+		  inev.code =
+		    backtranslate_modified_keycode(er.modifiers, keycode,
+						   er.message & charCodeMask);
+		  inev.kind = ASCII_KEYSTROKE_EVENT;
+
+		}
 	  }
 
 #if USE_CARBON_EVENTS
@@ -10463,10 +10507,9 @@ mac_determine_quit_char_modifiers()
 
   /* Map modifiers */
   mac_quit_char_modifiers = 0;
-  if (qc_modifiers & ctrl_modifier)  mac_quit_char_modifiers |= macCtrlKey;
-  if (qc_modifiers & shift_modifier) mac_quit_char_modifiers |= macShiftKey;
-  if (qc_modifiers & meta_modifier)  mac_quit_char_modifiers |= macMetaKey;
-  if (qc_modifiers & alt_modifier)   mac_quit_char_modifiers |= macAltKey;
+  if (qc_modifiers & ctrl_modifier)  mac_quit_char_modifiers |= controlKey;
+  if (qc_modifiers & shift_modifier) mac_quit_char_modifiers |= shiftKey;
+  if (qc_modifiers & alt_modifier)   mac_quit_char_modifiers |= optionKey;
 }
 
 static void
@@ -10591,7 +10634,6 @@ mac_initialize ()
   BLOCK_INPUT;
 
 #if TARGET_API_MAC_CARBON
-  init_required_apple_events ();
 
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
@@ -10606,6 +10648,8 @@ mac_initialize ()
 #endif	/* USE_CARBON_EVENTS */
 
 #ifdef MAC_OSX
+  init_apple_event_handler ();
+
   if (!inhibit_window_system)
     MakeMeTheFrontProcess ();
 #endif
@@ -10622,22 +10666,27 @@ syms_of_macterm ()
   x_error_message_string = Qnil;
 #endif
 
+  Qcontrol = intern ("control");	staticpro (&Qcontrol);
+  Qmeta    = intern ("meta");		staticpro (&Qmeta);
+  Qalt     = intern ("alt");		staticpro (&Qalt);
+  Qhyper   = intern ("hyper");		staticpro (&Qhyper);
+  Qsuper   = intern ("super");		staticpro (&Qsuper);
   Qmodifier_value = intern ("modifier-value");
-  Qalt = intern ("alt");
-  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Qhyper = intern ("hyper");
-  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Qsuper = intern ("super");
-  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
+  staticpro (&Qmodifier_value);
 
-  Qapplication = intern ("application");  staticpro (&Qapplication);
-  Qabout       = intern ("about");	  staticpro (&Qabout);
+  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
+  Fput (Qmeta,    Qmodifier_value, make_number (meta_modifier));
+  Fput (Qalt,     Qmodifier_value, make_number (alt_modifier));
+  Fput (Qhyper,   Qmodifier_value, make_number (hyper_modifier));
+  Fput (Qsuper,   Qmodifier_value, make_number (super_modifier));
 
-#if USE_CARBON_EVENTS && defined (MAC_OSX)
-  Qpreferences = intern ("preferences");  staticpro (&Qpreferences);
+#if USE_CARBON_EVENTS
+  Qhicommand   = intern ("hicommand");    staticpro (&Qhicommand);
+#ifdef MAC_OSX
   Qservices    = intern ("services");	  staticpro (&Qservices);
   Qpaste       = intern ("paste");	  staticpro (&Qpaste);
   Qperform     = intern ("perform");	  staticpro (&Qperform);
+#endif
 #endif
 
 #ifdef MAC_OSX
@@ -10646,9 +10695,6 @@ syms_of_macterm ()
 
   staticpro (&Qreverse);
   Qreverse = intern ("reverse");
-
-  staticpro (&Qmac_ready_for_drag_n_drop);
-  Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
 
   staticpro (&x_display_name_list);
   x_display_name_list = Qnil;
@@ -10675,48 +10721,61 @@ syms_of_macterm ()
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-  DEFVAR_LISP ("mac-command-key-is-meta", &Vmac_command_key_is_meta,
-    doc: /* Non-nil means that the command key is used as the Emacs meta key.
-Otherwise the option key is used.  */);
-  Vmac_command_key_is_meta = Qt;
+/* Variables to configure modifier key assignment.  */
+
+  DEFVAR_LISP ("mac-control-modifier", &Vmac_control_modifier,
+    doc: /* Modifier key assumed when the Mac control key is pressed.
+The value can be `alt', `control', `hyper', or `super' for the
+respective modifier.  The default is `control'.  */);
+  Vmac_control_modifier = Qcontrol;
 
   DEFVAR_LISP ("mac-option-modifier", &Vmac_option_modifier,
-    doc: /* Modifier to use for the Mac alt/option key.  The value can
-be alt, hyper, or super for the respective modifier.  If the value is
-nil then the key will act as the normal Mac option modifier.  */);
+    doc: /* Modifier key assumed when the Mac alt/option key is pressed.
+The value can be `alt', `control', `hyper', or `super' for the
+respective modifier.  If the value is nil then the key will act as the
+normal Mac control modifier, and the option key can be used to compose
+characters depending on the chosen Mac keyboard setting.  */);
   Vmac_option_modifier = Qnil;
 
-  DEFVAR_LISP ("mac-reverse-ctrl-meta", &Vmac_reverse_ctrl_meta,
-    doc: /* Non-nil means that the control and meta keys are reversed.  This is
-useful for non-standard keyboard layouts.  */);
-  Vmac_reverse_ctrl_meta = Qnil;
+  DEFVAR_LISP ("mac-command-modifier", &Vmac_command_modifier,
+    doc: /* Modifier key assumed when the Mac command key is pressed.
+The value can be `alt', `control', `hyper', or `super' for the
+respective modifier.  The default is `meta'.  */);
+  Vmac_command_modifier = Qmeta;
+
+  DEFVAR_LISP ("mac-function-modifier", &Vmac_function_modifier,
+    doc: /* Modifier key assumed when the Mac function key is pressed.
+The value can be `alt', `control', `hyper', or `super' for the
+respective modifier.  Note that remapping the function key may lead to
+unexpected results for some keys on non-US/GB keyboards.  */);
+  Vmac_function_modifier = Qnil;
 
   DEFVAR_LISP ("mac-emulate-three-button-mouse",
 	       &Vmac_emulate_three_button_mouse,
-    doc: /* t means that when the option-key is held down while pressing the
-mouse button, the click will register as mouse-2 and while the
-command-key is held down, the click will register as mouse-3.
-'reverse means that the option-key will register for mouse-3
-and the command-key will register for mouse-2.  nil means that
-no emulation should be done and the modifiers should be placed
-on the mouse-1 event. */);
+    doc: /* Specify a way of three button mouse emulation.
+The value can be nil, t, or the symbol `reverse'.
+nil means that no emulation should be done and the modifiers should be
+placed on the mouse-1 event.
+t means that when the option-key is held down while pressing the mouse
+button, the click will register as mouse-2 and while the command-key
+is held down, the click will register as mouse-3.
+The symbol `reverse' means that the option-key will register for
+mouse-3 and the command-key will register for mouse-2.  */);
   Vmac_emulate_three_button_mouse = Qnil;
 
 #if USE_CARBON_EVENTS
   DEFVAR_LISP ("mac-wheel-button-is-mouse-2", &Vmac_wheel_button_is_mouse_2,
-   doc: /* Non-nil means that the wheel button will be treated as mouse-2 and
-the right click will be mouse-3.
-Otherwise, the right click will be mouse-2 and the wheel button mouse-3.*/);
+   doc: /* Non-nil if the wheel button is mouse-2 and the right click mouse-3.
+Otherwise, the right click will be treated as mouse-2 and the wheel
+button will be mouse-3.  */);
   Vmac_wheel_button_is_mouse_2 = Qt;
 
   DEFVAR_LISP ("mac-pass-command-to-system", &Vmac_pass_command_to_system,
-   doc: /* If non-nil, the Mac \"Command\" key is passed on to the Mac
-Toolbox for processing before Emacs sees it.  */);
+   doc: /* Non-nil if command key presses are passed on to the Mac Toolbox.  */);
   Vmac_pass_command_to_system = Qt;
 
   DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
-   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
-Toolbox for processing before Emacs sees it.  */);
+   doc: /* Non-nil if control key presses are passed on to the Mac Toolbox.  */);
   Vmac_pass_control_to_system = Qt;
 
 #endif
@@ -10731,14 +10790,14 @@ may anti-alias the text.  */);
      creating the terminal frame on Mac OS 9 before loading
      term/mac-win.elc.  */
   DEFVAR_LISP ("mac-charset-info-alist", &Vmac_charset_info_alist,
-               doc: /* Alist linking Emacs character sets to Mac text encoding and Emacs coding system.
+               doc: /* Alist of Emacs character sets vs text encodings and coding systems.
 Each entry should be of the form:
 
    (CHARSET-NAME TEXT-ENCODING CODING-SYSTEM)
 
 where CHARSET-NAME is a string used in font names to identify the
-charset, TEXT-ENCODING is a TextEncodingBase value, and CODING_SYSTEM
-is a coding system corresponding to TEXT-ENCODING.  */);
+charset, TEXT-ENCODING is a TextEncodingBase value in Mac, and
+CODING_SYSTEM is a coding system corresponding to TEXT-ENCODING.  */);
   Vmac_charset_info_alist =
     Fcons (list3 (build_string ("mac-roman"),
 		  make_number (smRoman), Qnil), Qnil);

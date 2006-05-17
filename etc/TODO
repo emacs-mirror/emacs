@@ -9,6 +9,10 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** revert-buffer should eliminate overlays and the mark.
+
+** erase-buffer should perhaps disregard read-only properties of text.
+
 ** Make occur correctly handle matches that span more than one line,
    as well as overlapping matches.
 
@@ -34,15 +38,33 @@ to the FSF.
 
 ** Make occur handle multi-line matches cleanly with context.
 
+** In Custom buffers, put the option that turns a mode on or off first,
+  using a heuristic of some kind?
+
+** Define recompute-arg and recompute-arg-if for fix_command to use.
+  See rms message of 11 Dec 05.
+
+** Height returned by frame-parameter ... and height given to
+   make-frame does not mean the same thing.  The former includes menu and
+   tool bar lines, the latter don't.  frame-parameter should return height
+   without menu and tool bar lines.
+
+** In Emacs Info, examples of using Customize should be clickable
+   and they should create Custom buffers.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
-   list fonts, display a font as a sample, etc.  [fx is looking at
-  multilingual font selection for Emacs 22.]
+   list fonts, display a font as a sample, etc.  [fx looked at
+  multilingual font selection for Unicode-based Emacs 23.]
+
+** Rewrite the face code to be simpler, clearer and faster.
 
 ** Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?  Maybe see info at
-  http://latex2rtf.sourceforge.net/.]
+  http://latex2rtf.sourceforge.net/.]  This task seems to be addressed
+  by http://savannah.nongnu.org/projects/emacs-rtf/, which is still in
+  very early stages.
 
 ** Implement something better than the current Refill mode.  This
   probably needs some primitive support.
@@ -68,8 +90,12 @@ to the FSF.
 *** Discretionary hyphens that are not visible when they are at end of line.
 
 ** Make movemail work with IMAP.
+  movemail from GNU mailutils does that, so switching to it will solve
+  the issue.
 
 ** Internationalize Emacs's messages.
+
+** Install mmc@maruska.dyndns.org's no-flicker change.
 
 ** Add a "current vertical pixel level" value that goes with point,
   so that motion commands can also move through tall images.
@@ -99,6 +125,11 @@ to the FSF.
 ** Maybe reinterpret `parse-error' as a category of errors
   and put some other errors under it.
 
+** A function to tell you the argument pattern of functions.
+  See `function-arity' in http://www.loveshack.ukfsn.org/emacs/fx-misc.el.
+
+** Make byte-compile warn when a doc string is too wide.
+
 ** A function to check for customizable options that have been
   set but not saved, and ask the user whether to save them.
   This could go in kill-emacs-query-functions, to remind people
@@ -113,6 +144,9 @@ to the FSF.
 
 ** ange-ftp
 *** understand sftp
+   This is hard to make work because sftp doesn't print status
+   messages.
+
 *** Use MLS for ange-ftp-insert-directory if a list of files is specified.
 
 ** Ability to map a key, including all modified-combinations.
@@ -144,7 +178,9 @@ to the FSF.
 ** Implement a clean way to use different major modes for
   different parts of a buffer.  This could be useful in editing
   Bison input files, for instance, or other kinds of text
-  where one language is embedded in another language.
+  where one language is embedded in another language.  See
+  http://www.loveshack.ukfsn.org/emacs/multi-mode.el and also
+  mmm-mode, as reference for approaches took by others.
 
 ** Arrange a way for an input method to return the first character
   immediately, then replace it later.  So that C-s a with
@@ -168,7 +204,8 @@ to the FSF.
 ** Implement a variant of uncompress.el or jka-compr.el that works with
   GNU Privacy Guard for encryption.  [Code exists but isn't assigned.
   See the Gnus development sources for assigned code concerning GPG
-  use with mail, which is probably a good start.]
+  use with mail, which is probably a good start.]  See also
+  http://www.loveshack.ukfsn.org/emacs/auto-crypt.tgz.
 
 ** Save undo information in special temporary files, and reload it
   when needed for undoing.  This could extend undo capacity.
@@ -212,8 +249,9 @@ to the FSF.
   this and can say where some of the problems are.]
 
 ** Eliminate the storm of warnings concerning char/unsigned char
-  mismatches that we get with proprietary compilers on various systems.
-  They make it difficult to spot the important warnings.
+  mismatches that we get with GCC 4.x and proprietary compilers on
+  various systems.  They make it difficult to spot the important
+  warnings.
 
 ** Fix anything necessary to use `long long' EMACS_INTs with GCC.
 
@@ -229,9 +267,15 @@ to the FSF.
   ignoring X resources (Doze equivalents?) and most of the
   environment.  What should not be ignored needs consideration.
 
-** Investigate using the language environment (or locale?) to set up
-  more things, such as the default Ispell dictionary, calendar
-  holidays, quoting characters, space after periods and colons, ...
+** Enhance locale handling:  handle language, territory and charset
+  orthogonally and de-emphasize language environments.  Use the locale
+  to set up more things, such as fontsets, the default Ispell
+  dictionary, diary format, calendar holidays and display, quoting
+  characters and phrase boundaries, sentence endings, collation for
+  sorting (at least for unicodes), HTTP Accept-language, patterns for
+  directory listings and compilation messages, yes-or-no replies,
+  common menu items when the toolkit supports it ...  `locale-info'
+  needs extending for LC_COLLATE &c.  [fx started on this.]
 
 ** Improve the GC (generational, incremental).  (We may be able to use
   the Boehm collector.)  [See the Boehm-GC branch in CVS for work on
@@ -292,7 +336,8 @@ when the body only calls primitives.
   XRender/Freetype.
 
 ** Port the conservative stack marking code of Emacs' garbage collector
-  to more systems, so that we can completely get rid of GCPROs.
+  to more systems, so that we can completely get rid of GCPROs.  Note
+  that Boehm garbage collector provides this.
 
 ** Reorder defcustom's in each package so that the more important
   options come first in the Customize buffers.  This could be done by

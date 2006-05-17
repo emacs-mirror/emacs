@@ -535,7 +535,8 @@ Gnus provides the following functions:
 		(function-item gnus-summary-save-in-file)
 		(function-item gnus-summary-save-body-in-file)
 		(function-item gnus-summary-save-in-vm)
-		(function-item gnus-summary-write-to-file)))
+		(function-item gnus-summary-write-to-file)
+		(function)))
 
 (defcustom gnus-rmail-save-name 'gnus-plain-save-name
   "A function generating a file name to save articles in Rmail format.

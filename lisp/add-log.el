@@ -551,7 +551,7 @@ non-nil, otherwise in local time."
 	  (forward-line 1)
 	(insert (nth (random (length new-entries))
 		     new-entries)
-		"\n\n")
+		hard-newline hard-newline)
 	(forward-line -1)))
 
     ;; Determine where we should stop searching for a usable
@@ -584,7 +584,7 @@ non-nil, otherwise in local time."
 	   ;; Delete excess empty lines; make just 2.
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (line-beginning-position 2)))
-	   (insert-char ?\n 2)
+	   (insert hard-newline hard-newline)
 	   (forward-line -2)
 	   (indent-relative-maybe))
 	  (t
@@ -593,7 +593,7 @@ non-nil, otherwise in local time."
 	     (forward-line 1))
 	   (while (and (not (eobp)) (looking-at "^\\s *$"))
 	     (delete-region (point) (line-beginning-position 2)))
-	   (insert-char ?\n 3)
+	   (insert hard-newline hard-newline hard-newline)
 	   (forward-line -2)
 	   (indent-to left-margin)
 	   (insert "* ")
@@ -1066,7 +1066,7 @@ old-style time formats for entries are supported."
 			(and (= ?\n (char-before))
 			     (or (<= (1- (point)) (point-min))
 				 (= ?\n (char-before (1- (point)))))))
-	      (insert "\n"))
+	      (insert hard-newline))
 	    ;; Move to the end of it to terminate outer loop.
 	    (with-current-buffer other-buf
 	      (goto-char (point-max)))

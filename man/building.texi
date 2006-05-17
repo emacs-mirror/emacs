@@ -153,10 +153,6 @@ variable settings override the usual ones.
 mode, whose main feature is to provide a convenient way to look at the
 source line where the error happened.
 
-  If you set the variable @code{compilation-scroll-output} to a
-non-@code{nil} value, then the compilation buffer always scrolls to
-follow output as it comes in.
-
 @table @kbd
 @item M-g M-n
 @itemx M-g n
@@ -214,6 +210,12 @@ message with @key{RET} or @kbd{Mouse-2}, subsequent @kbd{C-x `}
 commands advance from there.  When @kbd{C-x `} gets to the end of the
 buffer and finds no more error messages to visit, it fails and signals
 an Emacs error.
+
+@vindex compilation-skip-threshold
+  By default, @kbd{C-x `} skips less important messages.  The variable
+@code{compilation-skip-threshold} controls this.  If its value is 2,
+@kbd{C-x `} skips anything less than error, 1 skips anything less
+than warning, and 0 doesn't skip any messages.
 
 When the left fringe is displayed, an arrow points to the
 current message in the compilation buffer. The variable
@@ -766,6 +768,10 @@ you release the button, provided it is still in the same frame
 at some point in the fringe of this buffer and execution will advance
 to there.
 
+This mode requires that GDB think that the screen size is unlimited,
+and sets the height and width accordingly.  For correct operation it
+is important that you don't change these values during the session.
+
 @vindex gud-gdb-command-name
 @findex gdba
   You can also run GDB in text command mode, which creates a buffer
@@ -833,6 +839,8 @@ respectively.  If the menu-bar is unavailable, type @code{M-x
 gdb-display-@var{buffertype}-buffer} or @code{M-x
 gdb-frame-@var{buffertype}-buffer} respectively, where
 @var{buffertype} is the relevant buffer type e.g breakpoints.
+Most of these buffers are read-only and be killed by simply
+pressing @kbd{q} in them.
 
 When you finish debugging then kill the GUD buffer with @kbd{C-x k},
 which will also kill all the buffers associated with the session.
@@ -861,8 +869,8 @@ relevant line.  This is red when the breakpoint is enabled and grey
 when it is disabled.  Text-only terminals correspondingly display
 a @samp{B} or @samp{b}.
 
-@item d
-@kindex d @r{(GDB breakpoints buffer)}
+@item D
+@kindex D @r{(GDB breakpoints buffer)}
 @findex gdb-delete-breakpoint
 Delete the breakpoint at the current line (@code{gdb-delete-breakpoint}).
 
@@ -900,7 +908,12 @@ icon in the tool bar (@code{gud-watch}).
 
 Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree
-format.  To expand or contract a complex data type, click @kbd{Mouse-2}
+format.  Leaves and simple data types show the name of the expression
+and its value, and display the type as a tooltip.  Higher levels show
+the name, type and address value for pointers and just the name and
+type otherwise.
+
+To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
 
 @findex gdb-var-delete
@@ -947,14 +960,20 @@ The locals buffer displays the values of local variables of the
 current frame for simple data types (@pxref{Frame Info, Frame Info,
 Information on a frame, gdb, The GNU debugger}).
 
-Arrays and structures display their type only.  You must display them
-separately to examine their values.  @xref{Watch Expressions}.
+Arrays and structures display their type only.  With GDB 6.4 or later,
+move point to their name and press @key{RET}, or alternatively click
+@kbd{Mouse-2} there, to examine their values.  With earlier versions
+of GDB, move point to their type description ([struct/union] or
+[array]).  @xref{Watch Expressions}.
 
 @item Registers Buffer
 @findex toggle-gdb-all-registers
 The registers buffer displays the values held by the registers
-(@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{SPC} to
-toggle the display of floating point registers
+(@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{RET} or
+click @kbd{Mouse-2} on a register if you want to change its value.
+With GDB 6.4 or later, recently changed register values display with
+font-lock-warning-face.  With earlier versions of GDB, you can press
+@key{SPC} to toggle the display of floating point registers
 (@code{toggle-gdb-all-registers}).
 
 @item Assembler Buffer

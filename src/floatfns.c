@@ -508,7 +508,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 
 DEFUN ("log", Flog, Slog, 1, 2, 0,
        doc: /* Return the natural logarithm of ARG.
-If second optional argument BASE is given, return log ARG using that base.  */)
+If the optional argument BASE is given, return log ARG using that base.  */)
      (arg, base)
      register Lisp_Object arg, base;
 {

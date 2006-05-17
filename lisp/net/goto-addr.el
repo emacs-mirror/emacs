@@ -174,6 +174,7 @@ and `goto-address-fontify-p'."
                 (overlay-put this-overlay 'evaporate t)
 		(overlay-put this-overlay
                              'mouse-face goto-address-url-mouse-face)
+		(overlay-put this-overlay 'follow-link t)
 		(overlay-put this-overlay
 			     'help-echo "mouse-2, C-c RET: follow URL")
 		(overlay-put this-overlay
@@ -189,6 +190,7 @@ and `goto-address-fontify-p'."
                 (overlay-put this-overlay 'evaporate t)
                 (overlay-put this-overlay 'mouse-face
                              goto-address-mail-mouse-face)
+		(overlay-put this-overlay 'follow-link t)
 		(overlay-put this-overlay
 			     'help-echo "mouse-2, C-c RET: mail this address")
                 (overlay-put this-overlay
@@ -210,7 +212,7 @@ Send mail to address at point.  See documentation for
 there, then load the URL at or before point."
   (interactive (list last-input-event))
   (save-excursion
-    (if event (mouse-set-point event))
+    (if event (posn-set-point (event-end event)))
     (let ((address (save-excursion (goto-address-find-address-at-point))))
       (if (and address
 	       (save-excursion

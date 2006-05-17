@@ -350,7 +350,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
 
 (defun vc-mcvs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
-  (vc-default-revert file contents-done)
+  (vc-default-revert 'MCVS file contents-done)
   (unless (eq (vc-checkout-model file) 'implicit)
     (if vc-mcvs-use-edit
         (vc-mcvs-command nil 0 file "unedit")

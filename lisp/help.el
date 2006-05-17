@@ -38,7 +38,57 @@
 (add-hook 'temp-buffer-setup-hook 'help-mode-setup)
 (add-hook 'temp-buffer-show-hook 'help-mode-finish)
 
-(defvar help-map (make-sparse-keymap)
+(defvar help-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (char-to-string help-char) 'help-for-help)
+    (define-key map [help] 'help-for-help)
+    (define-key map [f1] 'help-for-help)
+    (define-key map "." 'display-local-help)
+    (define-key map "?" 'help-for-help)
+
+    (define-key map "\C-c" 'describe-copying)
+    (define-key map "\C-d" 'describe-distribution)
+    (define-key map "\C-e" 'view-emacs-problems)
+    (define-key map "\C-f" 'view-emacs-FAQ)
+    (define-key map "\C-m" 'view-order-manuals)
+    (define-key map "\C-n" 'view-emacs-news)
+    (define-key map "\C-p" 'describe-project)
+    (define-key map "\C-t" 'view-todo)
+    (define-key map "\C-w" 'describe-no-warranty)
+
+    ;; This does not fit the pattern, but it is natural given the C-\ command.
+    (define-key map "\C-\\" 'describe-input-method)
+
+    (define-key map "C" 'describe-coding-system)
+    (define-key map "F" 'Info-goto-emacs-command-node)
+    (define-key map "I" 'describe-input-method)
+    (define-key map "K" 'Info-goto-emacs-key-command-node)
+    (define-key map "L" 'describe-language-environment)
+    (define-key map "S" 'info-lookup-symbol)
+
+    (define-key map "a" 'apropos-command)
+    (define-key map "b" 'describe-bindings)
+    (define-key map "c" 'describe-key-briefly)
+    (define-key map "d" 'apropos-documentation)
+    (define-key map "e" 'view-echo-area-messages)
+    (define-key map "f" 'describe-function)
+    (define-key map "h" 'view-hello-file)
+
+    (define-key map "i" 'info)
+    (define-key map "4i" 'info-other-window)
+
+    (define-key map "k" 'describe-key)
+    (define-key map "l" 'view-lossage)
+    (define-key map "m" 'describe-mode)
+    (define-key map "n" 'view-emacs-news)
+    (define-key map "p" 'finder-by-keyword)
+    (define-key map "r" 'info-emacs-manual)
+    (define-key map "s" 'describe-syntax)
+    (define-key map "t" 'help-with-tutorial)
+    (define-key map "w" 'where-is)
+    (define-key map "v" 'describe-variable)
+    (define-key map "q" 'help-quit)
+    map)
   "Keymap for characters following the Help key.")
 
 (define-key global-map (char-to-string help-char) 'help-command)
@@ -46,70 +96,8 @@
 (define-key global-map [f1] 'help-command)
 (fset 'help-command help-map)
 
-(define-key help-map (char-to-string help-char) 'help-for-help)
-(define-key help-map [help] 'help-for-help)
-(define-key help-map [f1] 'help-for-help)
-(define-key help-map "." 'display-local-help)
-(define-key help-map "?" 'help-for-help)
-
-(define-key help-map "\C-c" 'describe-copying)
-(define-key help-map "\C-d" 'describe-distribution)
-(define-key help-map "\C-e" 'view-emacs-problems)
-(define-key help-map "\C-f" 'view-emacs-FAQ)
-(define-key help-map "\C-m" 'view-order-manuals)
-(define-key help-map "\C-n" 'view-emacs-news)
-(define-key help-map "\C-p" 'describe-project)
-(define-key help-map "\C-t" 'view-todo)
-(define-key help-map "\C-w" 'describe-no-warranty)
-
-;; This does not fit the pattern, but it is natural given the C-\ command.
-(define-key help-map "\C-\\" 'describe-input-method)
-
-(define-key help-map "C" 'describe-coding-system)
-(define-key help-map "F" 'Info-goto-emacs-command-node)
-(define-key help-map "I" 'describe-input-method)
-(define-key help-map "K" 'Info-goto-emacs-key-command-node)
-(define-key help-map "L" 'describe-language-environment)
-(define-key help-map "S" 'info-lookup-symbol)
-
-(define-key help-map "a" 'apropos-command)
-
-(define-key help-map "b" 'describe-bindings)
-
-(define-key help-map "c" 'describe-key-briefly)
-
-(define-key help-map "e" 'view-echo-area-messages)
-
-(define-key help-map "f" 'describe-function)
-
-(define-key help-map "h" 'view-hello-file)
-
-(define-key help-map "i" 'info)
-(define-key help-map "4i" 'info-other-window)
-
-(define-key help-map "k" 'describe-key)
-
-(define-key help-map "l" 'view-lossage)
-
-(define-key help-map "m" 'describe-mode)
-
-(define-key help-map "n" 'view-emacs-news)
-
-(define-key help-map "p" 'finder-by-keyword)
 (autoload 'finder-by-keyword "finder"
   "Find packages matching a given keyword." t)
-
-(define-key help-map "r" 'info-emacs-manual)
-
-(define-key help-map "s" 'describe-syntax)
-
-(define-key help-map "t" 'help-with-tutorial)
-
-(define-key help-map "w" 'where-is)
-
-(define-key help-map "v" 'describe-variable)
-
-(define-key help-map "q" 'help-quit)
 
 ;; insert-button makes the action nil if it is not store somewhere
 (defvar help-button-cache nil)
@@ -123,7 +111,8 @@
 (defvar help-return-method nil
   "What to do to \"exit\" the help buffer.
 This is a list
- (WINDOW . t)              delete the selected window, go to WINDOW.
+ (WINDOW . t)              delete the selected window (and possibly its frame,
+                           see `quit-window' and `View-quit'), go to WINDOW.
  (WINDOW . quit-window)    do quit-window, then select WINDOW.
  (WINDOW BUF START POINT)  display BUF at START, POINT, then select WINDOW.")
 
@@ -131,10 +120,14 @@ This is a list
   "Display or return message saying how to restore windows after help command.
 This function assumes that `standard-output' is the help buffer.
 It computes a message, and applies the optional argument FUNCTION to it.
-If FUNCTION is nil, it applies `message', thus displaying the message."
+If FUNCTION is nil, it applies `message', thus displaying the message.
+In addition, this function sets up `help-return-method', which see, that
+specifies what to do when the user exits the help buffer."
   (and (not (get-buffer-window standard-output))
        (let ((first-message
-	      (cond ((special-display-p (buffer-name standard-output))
+	      (cond ((or
+		      pop-up-frames
+		      (special-display-p (buffer-name standard-output)))
 		     (setq help-return-method (cons (selected-window) t))
 		     ;; If the help output buffer is a special display buffer,
 		     ;; don't say anything about how to get rid of it.
@@ -166,7 +159,8 @@ If FUNCTION is nil, it applies `message', thus displaying the message."
 		   (if first-message "  ")
 		   ;; If the help buffer will go in a separate frame,
 		   ;; it's no use mentioning a command to scroll, so don't.
-		   (if (special-display-p (buffer-name standard-output))
+		   (if (or pop-up-windows
+			   (special-display-p (buffer-name standard-output)))
 		       nil
 		     (if (same-window-p (buffer-name standard-output))
 			 ;; Say how to scroll this window.
@@ -184,19 +178,21 @@ If FUNCTION is nil, it applies `message', thus displaying the message."
 (defalias 'help-for-help 'help-for-help-internal)
 ;; It can't find this, but nobody will look.
 (make-help-screen help-for-help-internal
-  "a b c C e f F i I k C-k l L m p s t v w C-c C-d C-f C-n C-p C-t C-w . or ? :"
+  "a b c C e f F i I k C-k l L m p r s t v w C-c C-d C-f C-n C-p C-t C-w . or ? :"
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
-a  command-apropos.  Give a substring, and see a list of commands
-	(functions that are interactively callable) that contain
-	that substring.  See also the  apropos  command.
+a  command-apropos.  Give a list of words or a regexp, to get a list of
+        commands whose names match.  See also the  apropos  command.
 b  describe-bindings.  Display table of all key bindings.
 c  describe-key-briefly.  Type a command key sequence;
 	it prints the function name that sequence runs.
 C  describe-coding-system.  This describes either a specific coding system
         (if you type its name) or the coding systems currently in use
 	(if you type just RET).
+d  apropos-documentation.  Give a pattern (a list or words or a regexp), and
+	see a list of functions, variables, and other items whose built-in
+	doucmentation string matches that pattern.  See also the apropos command.
 e  view-echo-area-messages.  Show the buffer where the echo-area messages
 	are stored.
 f  describe-function.  Type a function name and get its documentation.
@@ -220,6 +216,7 @@ m  describe-mode.  Display documentation of current minor modes,
 	and the current major mode, including their special commands.
 n  view-emacs-news.  Display news of recent Emacs changes.
 p  finder-by-keyword. Find packages matching a given topic keyword.
+r  info-emacs-manual.  Display the Emacs manual in Info mode.
 s  describe-syntax.  Display contents of syntax table, plus explanations.
 S  info-lookup-symbol.  Display the definition of a specific symbol
         as found in the manual for the language this buffer is written in.
@@ -585,7 +582,7 @@ the last key hit are used."
 	    (goto-char position)))
       ;; Ok, now look up the key and name the command.
       (let ((defn (or (string-key-binding key)
-		      (key-binding key)))
+		      (key-binding key t)))
 	    key-desc)
 	;; Don't bother user with strings from (e.g.) the select-paste menu.
 	(if (stringp (aref key (1- (length key))))
@@ -606,13 +603,15 @@ the last key hit are used."
 
 (defun describe-key (key &optional untranslated up-event)
   "Display documentation of the function invoked by KEY.
-KEY should be a key sequence--when calling from a program,
-pass a string or a vector.
-If non-nil UNTRANSLATED is a vector of the untranslated events.
-It can also be a number in which case the untranslated events from
-the last key hit are used."
+KEY can be any kind of a key sequence; it can include keyboard events,
+mouse events, and/or menu events.  When calling from a program,
+pass KEY as a string or a vector.
+
+If non-nil, UNTRANSLATED is a vector of the corresponding untranslated events.
+It can also be a number, in which case the untranslated events from
+the last key sequence entered are used."
   ;; UP-EVENT is the up-event that was discarded by reading KEY, or nil.
-  (interactive "kDescribe key: \np\nU")
+  (interactive "kDescribe key (or click or menu item): \np\nU")
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))
   (save-excursion
@@ -628,7 +627,7 @@ the last key hit are used."
       (when (windowp window)
 	    (set-buffer (window-buffer window))
 	(goto-char position))
-      (let ((defn (or (string-key-binding key) (key-binding key))))
+      (let ((defn (or (string-key-binding key) (key-binding key t))))
 	(if (or (null defn) (integerp defn) (equal defn 'undefined))
 	    (message "%s is undefined" (help-key-description key untranslated))
 	  (help-setup-xref (list #'describe-function defn) (interactive-p))

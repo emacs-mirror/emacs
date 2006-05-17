@@ -30,121 +30,6 @@
 (defvar comint-prompt-regexp)
 
 ;;; Customizable settings
-
-(defgroup tooltip nil
-  "Customization group for the `tooltip' package."
-  :group 'help
-  :group 'gud
-  :group 'mouse
-  :group 'tools
-  :version "21.1"
-  :tag "Tool Tips")
-
-(defcustom tooltip-delay 0.7
-  "Seconds to wait before displaying a tooltip the first time."
-  :tag "Delay"
-  :type 'number
-  :group 'tooltip)
-
-(defcustom tooltip-short-delay 0.1
-  "Seconds to wait between subsequent tooltips on different items."
-  :tag "Short delay"
-  :type 'number
-  :group 'tooltip)
-
-(defcustom tooltip-recent-seconds 1
-  "Display tooltips if changing tip items within this many seconds.
-Do so after `tooltip-short-delay'."
-  :tag "Recent seconds"
-  :type 'number
-  :group 'tooltip)
-
-(defcustom tooltip-hide-delay 10
-  "Hide tooltips automatically after this many seconds."
-  :tag "Hide delay"
-  :type 'number
-  :group 'tooltip)
-
-(defcustom tooltip-x-offset 5
-  "X offset, in pixels, for the display of tooltips.
-The offset is relative to the position of the mouse.  It must
-be chosen so that the tooltip window doesn't contain the mouse
-when it pops up.
-
-If `tooltip-frame-parameters' includes the `left' parameter,
-the value of `tooltip-x-offset' is ignored."
-  :tag "X offset"
-  :type 'integer
-  :group 'tooltip)
-
-(defcustom tooltip-y-offset +40
-  "Y offset, in pixels, for the display of tooltips.
-The offset is relative to the position of the mouse.  It must
-be chosen so that the tooltip window doesn't contain the mouse
-when it pops up.
-
-If `tooltip-frame-parameters' includes the `top' parameter,
-the value of `tooltip-y-offset' is ignored."
-  :tag "Y offset"
-  :type 'integer
-  :group 'tooltip)
-
-(defcustom tooltip-frame-parameters
-  '((name . "tooltip")
-    (internal-border-width . 2)
-    (border-width . 1))
-  "Frame parameters used for tooltips.
-
-If `left' or `top' parameters are included, they specify the absolute
-position to pop up the tooltip."
-  :type 'sexp
-  :tag "Frame Parameters"
-  :group 'tooltip)
-
-(defface tooltip
-  '((((class color))
-     :background "lightyellow"
-     :foreground "black"
-     :inherit variable-pitch)
-    (t
-     :inherit variable-pitch))
-  "Face for tooltips."
-  :group 'tooltip
-  :group 'basic-faces)
-
-(defcustom tooltip-use-echo-area nil
-  "Use the echo area instead of tooltip frames for help and GUD tooltips."
-  :type 'boolean
-  :tag "Use echo area"
-  :group 'tooltip)
-
-
-;;; Variables that are not customizable.
-
-(defvar tooltip-hook nil
-  "Functions to call to display tooltips.
-Each function is called with one argument EVENT which is a copy of
-the last mouse movement event that occurred.")
-
-(defvar tooltip-timeout-id nil
-  "The id of the timeout started when Emacs becomes idle.")
-
-(defvar tooltip-last-mouse-motion-event nil
-  "A copy of the last mouse motion event seen.")
-
-(defvar tooltip-hide-time nil
-  "Time when the last tooltip was hidden.")
-
-(defvar gud-tooltip-mode) ;; Prevent warning.
-
-;;; Event accessors
-
-(defun tooltip-event-buffer (event)
-  "Return the buffer over which event EVENT occurred.
-This might return nil if the event did not occur over a buffer."
-  (let ((window (posn-window (event-end event))))
-    (and window (window-buffer window))))
-
 ;;; Switching tooltips on/off
 
 ;; We don't set track-mouse globally because this is a big redisplay
@@ -174,6 +59,112 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
     (remove-hook 'tooltip-hook 'tooltip-help-tips))
   (setq show-help-function
 	(if tooltip-mode 'tooltip-show-help nil)))
+
+(defgroup tooltip nil
+  "Customization group for the `tooltip' package."
+  :group 'help
+  :group 'gud
+  :group 'mouse
+  :group 'tools
+  :version "21.1"
+  :tag "Tool Tips")
+
+(defcustom tooltip-delay 0.7
+  "Seconds to wait before displaying a tooltip the first time."
+  :type 'number
+  :group 'tooltip)
+
+(defcustom tooltip-short-delay 0.1
+  "Seconds to wait between subsequent tooltips on different items."
+  :type 'number
+  :group 'tooltip)
+
+(defcustom tooltip-recent-seconds 1
+  "Display tooltips if changing tip items within this many seconds.
+Do so after `tooltip-short-delay'."
+  :type 'number
+  :group 'tooltip)
+
+(defcustom tooltip-hide-delay 10
+  "Hide tooltips automatically after this many seconds."
+  :type 'number
+  :group 'tooltip)
+
+(defcustom tooltip-x-offset 5
+  "X offset, in pixels, for the display of tooltips.
+The offset is relative to the position of the mouse.  It must
+be chosen so that the tooltip window doesn't contain the mouse
+when it pops up.
+
+If `tooltip-frame-parameters' includes the `left' parameter,
+the value of `tooltip-x-offset' is ignored."
+  :type 'integer
+  :group 'tooltip)
+
+(defcustom tooltip-y-offset +20
+  "Y offset, in pixels, for the display of tooltips.
+The offset is relative to the position of the mouse.  It must
+be chosen so that the tooltip window doesn't contain the mouse
+when it pops up.
+
+If `tooltip-frame-parameters' includes the `top' parameter,
+the value of `tooltip-y-offset' is ignored."
+  :type 'integer
+  :group 'tooltip)
+
+(defcustom tooltip-frame-parameters
+  '((name . "tooltip")
+    (internal-border-width . 2)
+    (border-width . 1))
+  "Frame parameters used for tooltips.
+
+If `left' or `top' parameters are included, they specify the absolute
+position to pop up the tooltip."
+  :type 'sexp
+  :group 'tooltip)
+
+(defface tooltip
+  '((((class color))
+     :background "lightyellow"
+     :foreground "black"
+     :inherit variable-pitch)
+    (t
+     :inherit variable-pitch))
+  "Face for tooltips."
+  :group 'tooltip
+  :group 'basic-faces)
+
+(defcustom tooltip-use-echo-area nil
+  "Use the echo area instead of tooltip frames for help and GUD tooltips."
+  :type 'boolean
+  :group 'tooltip)
+
+
+;;; Variables that are not customizable.
+
+(defvar tooltip-hook nil
+  "Functions to call to display tooltips.
+Each function is called with one argument EVENT which is a copy of
+the last mouse movement event that occurred.")
+
+(defvar tooltip-timeout-id nil
+  "The id of the timeout started when Emacs becomes idle.")
+
+(defvar tooltip-last-mouse-motion-event nil
+  "A copy of the last mouse motion event seen.")
+
+(defvar tooltip-hide-time nil
+  "Time when the last tooltip was hidden.")
+
+(defvar gud-tooltip-mode) ;; Prevent warning.
+
+;;; Event accessors
+
+(defun tooltip-event-buffer (event)
+  "Return the buffer over which event EVENT occurred.
+This might return nil if the event did not occur over a buffer."
+  (let ((window (posn-window (event-end event))))
+    (and window (window-buffer window))))
 
 
 ;;; Timeout for tooltip display

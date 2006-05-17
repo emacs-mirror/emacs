@@ -40,14 +40,14 @@
   "Emacs start-up procedure."
   :group 'internal)
 
-(defcustom inhibit-startup-message nil
-  "*Non-nil inhibits the initial startup message.
+(defcustom inhibit-splash-screen nil
+  "*Non-nil inhibits the startup screen.
 This is for use in your personal init file, once you are familiar
-with the contents of the startup message."
+with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
-(defvaralias 'inhibit-splash-screen 'inhibit-startup-message)
+(defvaralias 'inhibit-startup-message 'inhibit-splash-screen)
 
 (defcustom inhibit-startup-echo-area-message nil
   "*Non-nil inhibits the initial startup echo area message.
@@ -642,15 +642,22 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (set-locale-environment nil)
 
   ;; Convert preloaded file names to absolute.
-  (setq load-history
-	(mapcar (lambda (elt)
-		  (if (and (stringp (car elt))
-			   (not (file-name-absolute-p (car elt))))
-		      (cons (locate-file (car elt) load-path
-					 load-suffixes)
-			    (cdr elt))
-		    elt))
-		load-history))
+  (let ((lisp-dir
+	 (file-name-directory
+	  (locate-file "simple" load-path
+		       load-suffixes))))
+
+    (setq load-history
+	  (mapcar (lambda (elt)
+		    (if (and (stringp (car elt))
+			     (not (file-name-absolute-p (car elt))))
+			(cons (concat lisp-dir
+				      (car elt)
+				      (if (string-match "[.]el$" (car elt))
+					  "" ".elc"))
+			      (cdr elt))
+		      elt))
+		  load-history)))
 
   ;; Convert the arguments to Emacs internal representation.
   (let ((args (cdr command-line-args)))
@@ -768,6 +775,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'global-font-lock-mode)
   (custom-reevaluate-setting 'mouse-wheel-down-event)
   (custom-reevaluate-setting 'mouse-wheel-up-event)
+  (custom-reevaluate-setting 'file-name-shadow-mode)
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
@@ -921,6 +929,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	       (let ((pop-up-windows nil))
 		 (pop-to-buffer "*Messages*"))
 	       (setq init-file-had-error t)))))
+
+	(if (and deactivate-mark transient-mark-mode)
+	    (with-current-buffer (window-buffer)
+	      (deactivate-mark)))
 
 	;; If the user has a file of abbrevs, read it.
 	(if (file-exists-p abbrev-file-name)
@@ -1300,7 +1312,7 @@ This is an internal function used to turn off the splash screen after
 the user caused an input event by hitting a key or clicking with the
 mouse."
   (interactive)
-  (if (and (consp last-command-event)
+  (if (and (memq 'down (event-modifiers last-command-event))
 	   (eq (posn-window (event-start last-command-event))
 	       (selected-window)))
       ;; This is a mouse-down event in the spash screen window.

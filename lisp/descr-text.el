@@ -160,7 +160,7 @@ otherwise."
       (let ((buffer (current-buffer))
 	    (target-buffer "*Help*"))
 	(when (eq buffer (get-buffer target-buffer))
-	  (setq target-buffer "*Help-2*"))
+	  (setq target-buffer "*Help*<2>"))
 	(save-excursion
 	  (with-output-to-temp-buffer target-buffer
 	    (set-buffer standard-output)
@@ -458,6 +458,19 @@ as well as widgets, buttons, overlays, and text properties."
 	 (multibyte-p enable-multibyte-characters)
 	 (overlays (mapcar #'(lambda (o) (overlay-properties o))
 			   (overlays-at pos)))
+	 (char-description (if (not multibyte-p)
+			       (single-key-description char)
+			     (if (< char 128)
+				 (single-key-description char)
+			       (string-to-multibyte
+				(char-to-string char)))))
+         (text-props-desc
+          (let ((tmp-buf (generate-new-buffer " *text-props*")))
+            (unwind-protect
+                (progn
+                  (describe-text-properties pos tmp-buf)
+                  (with-current-buffer tmp-buf (buffer-string)))
+              (kill-buffer tmp-buf))))
 	 item-list max-width unicode)
 
     (if (or (< char 256)
@@ -467,13 +480,8 @@ as well as widgets, buttons, overlays, and text properties."
 			  (encode-char char 'ucs))))
     (setq item-list
 	  `(("character"
-	    ,(format "%s (0%o, %d, 0x%x%s)"
-		     (apply 'propertize (if (not multibyte-p)
-					    (single-key-description char)
-					  (if (< char 128)
-					      (single-key-description char)
-					    (string-to-multibyte
-					     (char-to-string char))))
+	    ,(format "%s (%d, #o%o, #x%x%s)"
+		     (apply 'propertize char-description
 			    (text-properties-at pos))
 		     char char char
 		     (if unicode
@@ -510,7 +518,7 @@ as well as widgets, buttons, overlays, and text properties."
 	     ,@(let ((category-set (char-category-set char)))
 		 (if (not category-set)
 		     '("-- none --")
-		   (mapcar #'(lambda (x) (format "%c:%s  "
+		   (mapcar #'(lambda (x) (format "%c:%s"
 						 x (category-docstring x)))
 			   (category-set-mnemonics category-set)))))
 	    ,@(let ((props (aref char-code-property-table char))
@@ -583,7 +591,7 @@ as well as widgets, buttons, overlays, and text properties."
 		      (if display
 			  (concat
 			   "by this font (glyph code)\n"
-			   (format "     %s (0x%02X)"
+			   (format "     %s (#x%02X)"
 				   (car display) (cdr display)))
 			"no font available")
 		    (if display
@@ -617,6 +625,8 @@ as well as widgets, buttons, overlays, and text properties."
 					 item-list)))
     (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
+	(let ((help-xref-following t))
+	  (help-setup-xref nil nil))
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
 	  (dolist (elt item-list)
@@ -635,17 +645,17 @@ as well as widgets, buttons, overlays, and text properties."
 		  (insert " " clm)))
 	      (insert "\n"))))
 
-	(save-excursion
-	  (goto-char (point-min))
-	  (re-search-forward "character:[ \t\n]+")
-	  (setq pos (point)))
-	(if overlays
-	    (mapc #'(lambda (props)
-		      (let ((o (make-overlay pos (1+ pos))))
-			(while props
-			  (overlay-put o (car props) (nth 1 props))
-			  (setq props (cddr props)))))
-		  overlays))
+	(when overlays
+	  (save-excursion
+	    (goto-char (point-min))
+	    (re-search-forward "character:[ \t\n]+")
+	    (let* ((end (+ (point) (length char-description))))
+	      (mapc #'(lambda (props)
+			(let ((o (make-overlay (point) end)))
+			  (while props
+			    (overlay-put o (car props) (nth 1 props))
+			    (setq props (cddr props)))))
+		    overlays))))
 
 	(when disp-vector
 	  (insert
@@ -657,7 +667,7 @@ as well as widgets, buttons, overlays, and text properties."
 		  (insert (logand (car (aref disp-vector i)) #x7ffff) ?:
 			  (propertize " " 'display '(space :align-to 5))
 			  (if (cdr (aref disp-vector i))
-			      (format "%s (0x%02X)" (cadr (aref disp-vector i))
+			      (format "%s (#x%02X)" (cadr (aref disp-vector i))
 				      (cddr (aref disp-vector i)))
 			    "-- no font --")
 			  "\n")
@@ -708,7 +718,7 @@ as well as widgets, buttons, overlays, and text properties."
 		  (insert "\n " (car elt) ?:
 			  (propertize " " 'display '(space :align-to 5))
 			  (if (cdr elt)
-			      (format "%s (0x%02X)" (cadr elt) (cddr elt))
+			      (format "%s (#x%02X)" (cadr elt) (cddr elt))
 			    "-- no font --"))))
 	    (insert "these terminal codes:")
 	    (dolist (elt component-chars)
@@ -718,8 +728,11 @@ as well as widgets, buttons, overlays, and text properties."
 	  (insert "\nSee the variable `reference-point-alist' for "
 		  "the meaning of the rule.\n"))
 
-	(describe-text-properties pos (current-buffer))
-	(describe-text-mode)))))
+        (if text-props-desc (insert text-props-desc))
+	(describe-text-mode)
+	(toggle-read-only 1)
+	(help-make-xrefs (current-buffer))
+	(print-help-return-message)))))
 
 (defalias 'describe-char-after 'describe-char)
 (make-obsolete 'describe-char-after 'describe-char "22.1")

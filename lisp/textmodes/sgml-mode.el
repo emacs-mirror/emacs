@@ -41,6 +41,7 @@
 
 (defgroup sgml nil
   "SGML editing mode."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defcustom sgml-basic-offset 2

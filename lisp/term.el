@@ -1406,8 +1406,8 @@ The main purpose is to get rid of the local keymap."
 :UP=\\E[%%dA:DO=\\E[%%dB:LE=\\E[%%dD:RI=\\E[%%dC\
 :kl=\\EOD:kd=\\EOB:kr=\\EOC:ku=\\EOA:kN=\\E[6~:kP=\\E[5~:@7=\\E[4~:kh=\\E[1~\
 :mk=\\E[8m:cb=\\E[1K:op=\\E[39;49m:Co#8:pa#64:AB=\\E[4%%dm:AF=\\E[3%%dm:cr=^M\
-:bl=^G:do=^J:le=^H:ta=^I:se=\E[27m:ue=\E24m\
-:kb=^?:kD=^[[3~:sc=\E7:rc=\E8:r1=\Ec:"
+:bl=^G:do=^J:le=^H:ta=^I:se=\\E[27m:ue=\\E24m\
+:kb=^?:kD=^[[3~:sc=\\E7:rc=\\E8:r1=\\Ec:"
 ;;; : -undefine ic
 ;;; don't define :te=\\E[2J\\E[?47l\\E8:ti=\\E7\\E[?47h\
   "termcap capabilities supported")
@@ -2687,13 +2687,17 @@ See `term-prompt-regexp'."
 	   (buffer-undo-list t)
 	   (selected (selected-window))
 	   last-win
+           handled-ansi-message
 	   (str-length (length str)))
       (save-selected-window
 
 	;; Let's handle the messages. -mm
 
-	(setq str (term-handle-ansi-terminal-messages str))
-	(setq str-length (length str))
+        (let* ((newstr (term-handle-ansi-terminal-messages str)))
+          (if (not (eq str newstr))
+              (setq handled-ansi-message t
+                    str newstr)))
+        (setq str-length (length str))
 
 	(if (marker-buffer term-pending-delete-marker)
 	    (progn
@@ -2849,7 +2853,8 @@ See `term-prompt-regexp'."
 			 ((eq char ?\017))     ; Shift In - ignored
 			 ((eq char ?\^G) ;; (terminfo: bel)
 			  (beep t))
-			 ((eq char ?\032)
+			 ((and (eq char ?\032)
+                               (not handled-ansi-message))
 			  (let ((end (string-match "\r?$" str i)))
 			    (if end
 				(funcall term-command-hook
@@ -3615,21 +3620,32 @@ all pending output has been dealt with."))
 (defun term-down (down &optional check-for-scroll)
   "Move down DOWN screen lines vertically."
   (let ((start-column (term-horizontal-column)))
-    (if (and check-for-scroll (or term-scroll-with-delete term-pager-count))
-	(setq down (term-handle-scroll down)))
-    (term-adjust-current-row-cache down)
-    (if (or (/= (point) (point-max)) (< down 0))
-	(setq down (- down (term-vertical-motion down))))
-    ;; Extend buffer with extra blank lines if needed.
+    (when (and check-for-scroll (or term-scroll-with-delete term-pager-count))
+      (setq down (term-handle-scroll down)))
+    (unless (and (= term-current-row 0) (< down 0))
+      (term-adjust-current-row-cache down)
+      (when (or (/= (point) (point-max)) (< down 0))
+	(setq down (- down (term-vertical-motion down)))))
     (cond ((> down 0)
+	   ;; Extend buffer with extra blank lines if needed.
 	   (term-insert-char ?\n down)
 	   (setq term-current-column 0)
 	   (setq term-start-line-column 0))
 	  (t
-	   (setq term-current-column nil)
+	   (when (= term-current-row 0)
+	     ;; Insert lines if at the beginning.
+	     (save-excursion (term-insert-char ?\n (- down)))
+	     (save-excursion
+	       (let (p)
+		 ;; Delete lines from the end.
+		 (forward-line term-height)
+		 (setq p (point))
+		 (forward-line (- down))
+		 (delete-region p (point)))))
+	   (setq term-current-column 0)
 	   (setq term-start-line-column (current-column))))
-    (if start-column
-	(term-move-columns start-column))))
+    (when start-column
+      (term-move-columns start-column))))
 
 ;; Assuming point is at the beginning of a screen line,
 ;; if the line above point wraps around, add a ?\n to undo the wrapping.
@@ -3695,7 +3711,7 @@ Should only be called when point is at the start of a screen line."
 
 ;;; Insert COUNT spaces after point, but do not change any of
 ;;; following screen lines.  Hence we may have to delete characters
-;;; at teh end of this screen line to make room.
+;;; at the end of this screen line to make room.
 
 (defun term-insert-spaces (count)
   (let ((save-point (point)) (save-eol) (point-at-eol))

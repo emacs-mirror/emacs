@@ -931,8 +931,7 @@ using a REGEXP like \"(\". All you would have to do is to mark the
 region, call `align-regexp' and type in that regular expression."
   (interactive
    (append
-    (list (min (point) (mark))
-	  (max (point) (mark)))
+    (list (region-beginning) (region-end))
     (if current-prefix-arg
 	(list (read-string "Complex align using regexp: "
 			   "\\(\\s-*\\)")
@@ -988,8 +987,7 @@ list of rules (see `align-rules-list'), it can be used to override the
 default alignment rules that would have been used to identify the text
 to be colored."
   (interactive
-   (list (min (mark) (point))
-	 (max (mark) (point))
+   (list (region-beginning) (region-end)
 	 (completing-read
 	  "Title of rule to highlight: "
 	  (mapcar

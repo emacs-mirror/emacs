@@ -225,7 +225,6 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	    (concat "src/" file)
 	  file)))))
 
-;;;###autoload
 (defface help-argument-name '((((supports :slant italic)) :inherit italic))
   "Face to highlight argument names in *Help* buffers."
   :group 'help)
@@ -462,7 +461,9 @@ face (according to `face-differs-from-default-p')."
                         (t "[Missing arglist.  Please make a bug report.]")))
                  (high (help-highlight-arguments use doc)))
 	    (when (car high)
-	      (insert (car high) "\n"))
+	      (let ((fill-begin (point)))
+		(insert (car high) "\n")
+		(fill-region fill-begin (point))))
             (setq doc (cdr high))))
         (let ((obsolete (and
                          ;; function might be a lambda construct.

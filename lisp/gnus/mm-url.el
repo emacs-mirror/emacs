@@ -276,7 +276,10 @@ This is taken from RFC 2396.")
 (defun mm-url-load-url ()
   "Load `url-insert-file-contents'."
   (unless (condition-case ()
-	      (require 'url-handlers)
+	      (progn
+		(require 'url-handlers)
+		(require 'url-parse)
+		(require 'url-vars))
 	    (error nil))
     ;; w3-4.0pre0.46 or earlier version.
     (require 'w3-vars)

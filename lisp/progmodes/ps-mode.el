@@ -43,6 +43,7 @@
 
 (defgroup PostScript-edit nil
   "PostScript editing."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :prefix "ps-mode-"
   :group 'PostScript)
 

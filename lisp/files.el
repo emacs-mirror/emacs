@@ -1869,7 +1869,6 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
      ("/Message[0-9]*\\'" . text-mode)
-     ("/drafts/[0-9]+\\'" . mh-letter-mode)
      ("\\.zone\\'" . zone-mode)
      ;; some news reader is reported to use this
      ("\\`/tmp/fol/" . text-mode)
@@ -2099,7 +2098,8 @@ only set the major mode, if that would change it."
 	      (setq done t)
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
-		  (throw 'nop nil)))))
+		  (throw 'nop nil))))))
+    (unless done
       ;; If we didn't, look for an interpreter specified in the first line.
       ;; As a special case, allow for things like "#!/bin/env perl", which
       ;; finds the interpreter anywhere in $PATH.
@@ -2717,7 +2717,10 @@ Interactively, confirmation is required unless you supply a prefix argument."
   (and buffer-file-name
        (file-writable-p buffer-file-name)
        (setq buffer-read-only nil))
-  (save-buffer))
+  (save-buffer)
+  ;; It's likely that the VC status at the new location is different from
+  ;; the one at the old location.
+  (vc-find-file-hook))
 
 (defun backup-buffer ()
   "Make a backup of the disk file visited by the current buffer, if appropriate.
@@ -3151,7 +3154,7 @@ Uses `backup-directory-alist' in the same way as does
 This function returns a relative file name which is equivalent to FILENAME
 when used with that default directory as the default.
 If FILENAME and DIRECTORY lie on different machines or on different drives
-on a DOS/Windows machine, it returns FILENAME on expanded form."
+on a DOS/Windows machine, it returns FILENAME in expanded form."
   (save-match-data
     (setq directory
 	  (file-name-as-directory (expand-file-name (or directory
@@ -3195,7 +3198,9 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
             ancestor))))))
 
 (defun save-buffer (&optional args)
-  "Save current buffer in visited file if modified.  Variations are described below.
+  "Save current buffer in visited file if modified.
+Variations are described below.
+
 By default, makes the previous version into a backup file
  if previously requested or if this is the first save.
 Prefixed with one \\[universal-argument], marks this version

@@ -1979,6 +1979,10 @@ struct it
   /* 1 means overlay strings at end_charpos have been processed.  */
   unsigned overlay_strings_at_end_processed_p : 1;
 
+  /* 1 means to ignore overlay strings at current pos, as they have
+     already been processed.  */
+  unsigned ignore_overlay_strings_at_pos_p : 1;
+
   /* 1 means the actual glyph is not available in the current
      system.  */
   unsigned glyph_not_available_p : 1;

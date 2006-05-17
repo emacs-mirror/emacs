@@ -44,6 +44,7 @@
 
 (defgroup m4 nil
   "m4 code editing commands for Emacs."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :prefix "m4-"
   :group 'languages)
 

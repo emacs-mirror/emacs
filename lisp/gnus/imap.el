@@ -591,6 +591,13 @@ sure of changing the value of `foo'."
 	    (while (and (memq (process-status process) '(open run))
 			(set-buffer buffer) ;; XXX "blue moon" nntp.el bug
 			(goto-char (point-min))
+			;; Athena IMTEST can output SSL verify errors
+			(or (while (looking-at "^verify error:num=")
+			      (forward-line))
+			    t)
+			(or (while (looking-at "^TLS connection established")
+			      (forward-line))
+			    t)
 			;; cyrus 1.6.x (13? < x <= 22) queries capabilities
 			(or (while (looking-at "^C:")
 			      (forward-line))

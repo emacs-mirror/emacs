@@ -92,6 +92,12 @@ typedef GWorldPtr Pixmap;
 #endif
 
 
+#ifndef USE_CG_TEXT_DRAWING
+#if USE_ATSUI && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#define USE_CG_TEXT_DRAWING 1
+#endif
+#endif
+
 /* Emulate XCharStruct.  */
 typedef struct _XCharStruct
 {
@@ -127,6 +133,10 @@ struct MacFontStruct {
 #endif
 #if USE_ATSUI
   ATSUStyle mac_style;		/* NULL if QuickDraw Text is used */
+#if USE_CG_TEXT_DRAWING
+  CGFontRef cg_font;		/* NULL if ATSUI text drawing is used */
+  CGGlyph *cg_glyphs;		/* Likewise  */
+#endif
 #endif
 
 /* from Xlib.h */

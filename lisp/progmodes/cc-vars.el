@@ -1,6 +1,7 @@
 ;;; cc-vars.el --- user customization variables for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software
+;; Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -24,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
@@ -43,33 +44,11 @@
 (cc-require 'cc-defs)
 
 ;; Silence the compiler.
-(cc-bytecomp-defun get-char-table)	; XEmacs 20+
-(cc-bytecomp-defun char-table-range)	; Emacs 19+
-(cc-bytecomp-defun char-table-p)	; Emacs 19+, XEmacs 20+
+(cc-bytecomp-defun get-char-table)	; XEmacs
 
-;; Pull in custom if it exists and is recent enough (the one in Emacs
-;; 19.34 isn't).
-(eval
- (cc-eval-when-compile
-   (condition-case nil
-       (progn
-	 (require 'custom)
-	 (or (fboundp 'defcustom) (error ""))
-	 (require 'widget)
-	 '(progn			; Compile in the require's.
-	    (require 'custom)
-	    (require 'widget)))
-     (error
-      (message "Warning: Compiling without Customize support \
-since a (good enough) custom library wasn't found")
-      (cc-bytecomp-defmacro define-widget (name class doc &rest args))
-      (cc-bytecomp-defmacro defgroup (symbol members doc &rest args))
-      (cc-bytecomp-defmacro defcustom (symbol value doc &rest args)
-	`(defvar ,symbol ,value ,doc))
-      (cc-bytecomp-defmacro custom-declare-variable (symbol value doc
-						     &rest args)
-	`(defvar ,(eval symbol) ,(eval value) ,doc))
-      nil))))
+(cc-eval-when-compile
+  (require 'custom)
+  (require 'widget))
 
 (cc-eval-when-compile
   ;; Need the function form of `backquote', which isn't standardized
@@ -207,7 +186,6 @@ the value set here overrides the style system (there is a variable
 (defun c-valid-offset (offset)
   "Return non-nil iff OFFSET is a valid offset for a syntactic symbol.
 See `c-offsets-alist'."
-  ;; This function does not do any hidden buffer changes.
   (or (eq offset '+)
       (eq offset '-)
       (eq offset '++)
@@ -216,17 +194,19 @@ See `c-offsets-alist'."
       (eq offset '/)
       (integerp offset)
       (functionp offset)
-      (and (symbolp offset)
-	   (or (boundp offset)
-	       (fboundp offset)))
+      (and (symbolp offset) (boundp offset))
       (and (vectorp offset)
 	   (= (length offset) 1)
 	   (integerp (elt offset 0)))
-      (progn
-	(while (and (consp offset)
-		    (c-valid-offset (car offset)))
-	  (setq offset (cdr offset)))
-	(null offset))))
+      (and (consp offset)
+	   (not (eq (car offset) 'quote)) ; Detect misquoted lists.
+	   (progn
+	     (when (memq (car offset) '(first min max add))
+	       (setq offset (cdr offset)))
+	     (while (and (consp offset)
+			 (c-valid-offset (car offset)))
+	       (setq offset (cdr offset)))
+	     (null offset)))))
 
 
 
@@ -311,6 +291,7 @@ effect in this mode, nor any of the indentation associated variables,
 e.g. `c-special-indent-hook'."
   :type 'boolean
   :group 'c)
+(make-variable-buffer-local 'c-syntactic-indentation)
 
 (defcustom c-syntactic-indentation-in-macros t
   "*Enable syntactic analysis inside macros.
@@ -470,6 +451,7 @@ style comments."
 
 (defcustom-c-stylevar c-comment-prefix-regexp
   '((pike-mode . "//+!?\\|\\**")
+    (awk-mode . "#+")
     (other . "//+\\|\\**"))
   "*Regexp to match the line prefix inside comments.
 This regexp is used to recognize the fill prefix inside comments for
@@ -517,14 +499,17 @@ variable in a mode hook."
 	    (cons :format "%v"
 		  (const :format "IDL   " idl-mode) (regexp :format "%v"))
 	    (cons :format "%v"
-		  (const :format "Pike  " pike-mode) (regexp :format "%v")))
+		  (const :format "Pike  " pike-mode) (regexp :format "%v"))
+            (cons :format "%v"
+		  (const :format "AWK   " awk-mode) (regexp :format "%v")))
 	   (cons :format "    %v"
 		 (const :format "Other " other) (regexp :format "%v"))))
   :group 'c)
 
 (defcustom-c-stylevar c-doc-comment-style
   '((java-mode . javadoc)
-    (pike-mode . autodoc))
+    (pike-mode . autodoc)
+    (c-mode    . gtkdoc))
   "*Specifies documentation comment style(s) to recognize.
 This is primarily used to fontify doc comments and the markup within
 them, e.g. Javadoc comments.
@@ -534,6 +519,7 @@ comment styles:
 
  javadoc -- Javadoc style for \"/** ... */\" comments (default in Java mode).
  autodoc -- Pike autodoc style for \"//! ...\" comments (default in Pike mode).
+ gtkdoc  -- GtkDoc style for \"/** ... **/\" comments (default in C mode).
 
 The value may also be a list of doc comment styles, in which case all
 of them are recognized simultaneously (presumably with markup cues
@@ -586,6 +572,9 @@ afterwards to redo that work."
 		  (const :format "Pike  " pike-mode)
 		  (c-symbol-list :format "%v"))
 	    (cons :format "%v"
+		  (const :format "AWK   " awk-mode)
+		  (c-symbol-list :format "%v"))
+	    (cons :format "%v"
 		  (const :format "Other " other)
 		  (c-symbol-list :format "%v")))))
   :group 'c)
@@ -613,8 +602,8 @@ contexts are:
 (defcustom-c-stylevar c-cleanup-list '(scope-operator)
   "*List of various C/C++/ObjC constructs to \"clean up\".
 The following clean ups only take place when the auto-newline feature
-is turned on, as evidenced by the `/a' or `/ah' appearing next to the
-mode name:
+is turned on, as evidenced by the `/la' appearing next to the mode
+name:
 
  brace-else-brace    -- Clean up \"} else {\" constructs by placing
                         entire construct on a single line.  This clean
@@ -630,21 +619,28 @@ mode name:
                         \"} catch (...) {\" constructs.
  empty-defun-braces  -- Clean up empty defun braces by placing the
                         braces on the same line.  Clean up occurs when
-			the defun closing brace is typed.
+                        the defun closing brace is typed.
+ one-liner-defun     -- If the code inside a function body is a single
+                        line then remove any newlines between that
+                        line and the defun braces so that the whole
+                        body becomes a single line.
+                        `c-max-one-liner-length' gives the maximum
+                        length allowed for the resulting line.  Clean
+                        up occurs when the closing brace is typed.
  defun-close-semi    -- Clean up the terminating semi-colon on defuns
-			by placing the semi-colon on the same line as
-			the closing brace.  Clean up occurs when the
-			semi-colon is typed.
+                        by placing the semi-colon on the same line as
+                        the closing brace.  Clean up occurs when the
+                        semi-colon is typed.
  list-close-comma    -- Clean up commas following braces in array
                         and aggregate initializers.  Clean up occurs
-			when the comma is typed.
+                        when the comma is typed.
  scope-operator      -- Clean up double colons which may designate
-			a C++ scope operator split across multiple
-			lines.  Note that certain C++ constructs can
-			generate ambiguous situations.  This clean up
-			only takes place when there is nothing but
-			whitespace between colons.  Clean up occurs
-			when the second colon is typed.
+                        a C++ scope operator split across multiple
+                        lines.  Note that certain C++ constructs can
+                        generate ambiguous situations.  This clean up
+                        only takes place when there is nothing but
+                        whitespace between colons.  Clean up occurs
+                        when the second colon is typed.
 
 The following clean ups always take place when they are on this list,
 regardless of the auto-newline feature, since they typically don't
@@ -654,31 +650,39 @@ involve auto-newline inserted newlines:
                         parenthesis of a function call.  Clean up
                         occurs when the opening parenthesis is typed.
  compact-empty-funcall -- Clean up any space before the function call
-			opening parenthesis if and only if the
+                        opening parenthesis if and only if the
                         argument list is empty.  This is typically
                         useful together with `space-before-funcall' to
                         get the style \"foo (bar)\" and \"foo()\".
                         Clean up occurs when the closing parenthesis
-                        is typed."
+                        is typed.
+ comment-close-slash -- When a slash is typed after the comment prefix
+                        on a bare line in a c-style comment, the comment
+                        is closed by cleaning up preceding space and
+                        inserting a star if needed."
   :type '(set
-	  (const :tag "Put \"} else {\" on one line"
+	  (const :tag "Put \"} else {\" on one line (brace-else-brace)"
 		 brace-else-brace)
-	  (const :tag "Put \"} else if (...) {\" on one line"
+	  (const :tag "Put \"} else if (...) {\" on one line (brace-elseif-brace)"
 		 brace-elseif-brace)
-	  (const :tag "Put \"} catch (...) {\" on one line"
+	  (const :tag "Put \"} catch (...) {\" on one line (brace-catch-brace)"
 		 brace-catch-brace)
-	  (const :tag "Put empty defun braces on one line"
+	  (const :tag "Put empty defun braces on one line (empty-defun-braces)"
 		 empty-defun-braces)
-	  (const :tag "Put \"};\" ending defuns on one line"
+	  (const :tag "Put short function bodies on one line (one-liner-defun)"
+		 one-liner-defun)
+	  (const :tag "Put \"};\" ending defuns on one line (defun-close-semi)"
 		 defun-close-semi)
-	  (const :tag "Put \"},\" in aggregates on one line"
+	  (const :tag "Put \"},\" in aggregates on one line (list-close-comma)"
 		 list-close-comma)
-	  (const :tag "Put C++ style \"::\" on one line"
+	  (const :tag "Put C++ style \"::\" on one line (scope-operator)"
 		 scope-operator)
-	  (const :tag "Put a space before funcall parens, e.g. \"foo (bar)\""
+	  (const :tag "Put a space before funcall parens, e.g. \"foo (bar)\" (space-before-funcall)"
 		 space-before-funcall)
-	  (const :tag "Remove space before empty funcalls, e.g. \"foo()\""
-		 compact-empty-funcall))
+	  (const :tag "Remove space before empty funcalls, e.g. \"foo()\" (compact-empty-funcall)"
+		 compact-empty-funcall)
+	  (const :tag "Make / on a bare line of a C-style comment close it (comment-close-slash)"
+		 comment-close-slash))
   :group 'c)
 
 (defcustom-c-stylevar c-hanging-braces-alist '((brace-list-open)
@@ -750,6 +754,12 @@ syntactic context for the brace line."
 	      composition-open composition-close
 	      inexpr-class-open inexpr-class-close)))
     :group 'c)
+
+(defcustom c-max-one-liner-length 80
+  "Maximum length of line that clean-up \"one-liner-defun\" will compact to.
+Zero or nil means no limit."
+  :type 'integer
+  :group 'c)
 
 (defcustom-c-stylevar c-hanging-colons-alist nil
   "*Controls the insertion of newlines before and after certain colons.
@@ -832,35 +842,40 @@ space."
   :group 'c)
 
 (defcustom c-require-final-newline
-  ;; C and C++ mandates that all nonempty files should end with a
+  ;; C and C++ mandate that all nonempty files should end with a
   ;; newline.  Objective-C refers to C for all things it doesn't
-  ;; specify, so the same holds there.  The other languages does not
+  ;; specify, so the same holds there.  The other languages do not
   ;; require it (at least not explicitly in a normative text).
   '((c-mode    . t)
     (c++-mode  . t)
     (objc-mode . t))
-  "*Controls `require-final-newline' in C-related major modes.
-The value is an association list specifying, for each specific mode,
-whether to override `require-final-newline'.  If the cdr of the element
-is non-nil, that means to use `mode-require-final-newline' instead."
+  "*Controls whether a final newline is ensured when the file is saved.
+The value is an association list that for each language mode specifies
+the value to give to `require-final-newline' at mode initialization;
+see that variable for details about the value.  If a language isn't
+present on the association list, CC Mode won't touch
+`require-final-newline' in buffers for that language."
   :type `(set (cons :format "%v"
 		    (const :format "C     " c-mode)
-		    (const t))
+		    (symbol :format "%v" :value ,require-final-newline))
 	      (cons :format "%v"
 		    (const :format "C++   " c++-mode)
-		    (const t))
+		    (symbol :format "%v" :value ,require-final-newline))
 	      (cons :format "%v"
 		    (const :format "ObjC  " objc-mode)
-		    (const t))
+		    (symbol :format "%v" :value ,require-final-newline))
 	      (cons :format "%v"
 		    (const :format "Java  " java-mode)
-		    (const t))
+		    (symbol :format "%v" :value ,require-final-newline))
 	      (cons :format "%v"
 		    (const :format "IDL   " idl-mode)
-		    (const t))
+		    (symbol :format "%v" :value ,require-final-newline))
 	      (cons :format "%v"
 		    (const :format "Pike  " pike-mode)
-		    (const t)))
+		    (symbol :format "%v" :value ,require-final-newline))
+	      (cons :format "%v"
+		    (const :format "AWK   " awk-mode)
+		    (symbol :format "%v" :value ,require-final-newline)))
   :group 'c)
 
 (defcustom c-electric-pound-behavior nil
@@ -892,7 +907,8 @@ this variable to nil."
   :type 'integer
   :group 'c)
 
-(defcustom c-default-style '((java-mode . "java") (other . "gnu"))
+(defcustom c-default-style '((java-mode . "java") (awk-mode . "awk")
+			     (other . "gnu"))
   "*Style which gets installed by default when a file is visited.
 
 The value of this variable can be any style defined in
@@ -927,6 +943,8 @@ can always override the use of `c-default-style' by making calls to
 	    (cons :format "%v"
 		  (const :format "Pike  " pike-mode) (string :format "%v"))
 	    (cons :format "%v"
+		  (const :format "AWK   " awk-mode) (string :format "%v"))
+	    (cons :format "%v"
 		  (const :format "Other " other) (string :format "%v"))))
   :group 'c)
 
@@ -939,170 +957,170 @@ can always override the use of `c-default-style' by making calls to
 ;; symbol and continue searching.
 (c-set-stylevar-fallback 'c-offsets-alist
      '((string                . c-lineup-dont-change)
-       ;; Relpos: Beg of previous line.
+       ;; Anchor pos: Beg of previous line.
        (c                     . c-lineup-C-comments)
-       ;; Relpos: Beg of the comment.
+       ;; Anchor pos: Beg of the comment.
        (defun-open            . 0)
-       ;; Relpos: When inside a class: Boi at the func decl start.
+       ;; Anchor pos: When inside a class: Boi at the func decl start.
        ;; When at top level: Bol at the func decl start.  When inside
        ;; a code block (only possible in Pike): At the func decl
        ;; start(*).
        (defun-close           . 0)
-       ;; Relpos: At the defun block open if it's at boi, otherwise
-       ;; boi at the func decl start.
+       ;; Anchor pos: At the defun block open if it's at boi,
+       ;; otherwise boi at the func decl start.
        (defun-block-intro     . +)
-       ;; Relpos: At the block open(*).
+       ;; Anchor pos: At the block open(*).
        (class-open            . 0)
-       ;; Relpos: Boi at the class decl start.
+       ;; Anchor pos: Boi at the class decl start.
        (class-close           . 0)
-       ;; Relpos: Boi at the class decl start.
+       ;; Anchor pos: Boi at the class decl start.
        (inline-open           . +)
-       ;; Relpos: None for functions (inclass got the relpos then),
-       ;; boi at the lambda start for lambdas.
+       ;; Anchor pos: None for functions (inclass got the relpos
+       ;; then), boi at the lambda start for lambdas.
        (inline-close          . 0)
-       ;; Relpos: Inexpr functions: At the lambda block open if it's
-       ;; at boi, else at the statement(*) at boi of the start of the
-       ;; lambda construct.  Otherwise: At the inline block open if
-       ;; it's at boi, otherwise boi at the func decl start.
+       ;; Anchor pos: Inexpr functions: At the lambda block open if
+       ;; it's at boi, else at the statement(*) at boi of the start of
+       ;; the lambda construct.  Otherwise: At the inline block open
+       ;; if it's at boi, otherwise boi at the func decl start.
        (func-decl-cont        . +)
-       ;; Relpos: Boi at the func decl start.
+       ;; Anchor pos: Boi at the func decl start.
        (knr-argdecl-intro     . +)
-       ;; Relpos: Boi at the topmost intro line.
+       ;; Anchor pos: Boi at the topmost intro line.
        (knr-argdecl           . 0)
-       ;; Relpos: At the beginning of the first K&R argdecl.
+       ;; Anchor pos: At the beginning of the first K&R argdecl.
        (topmost-intro         . 0)
-       ;; Relpos: Bol at the last line of previous construct.
+       ;; Anchor pos: Bol at the last line of previous construct.
        (topmost-intro-cont    . c-lineup-topmost-intro-cont)
-       ;; Relpos: Boi at the topmost intro line.
+       ;; Anchor pos: Boi at the topmost intro line.
        (member-init-intro     . +)
-       ;; Relpos: Boi at the func decl arglist open.
+       ;; Anchor pos: Boi at the func decl arglist open.
        (member-init-cont      . c-lineup-multi-inher)
-       ;; Relpos: Beg of the first member init.
+       ;; Anchor pos: Beg of the first member init.
        (inher-intro           . +)
-       ;; Relpos: Boi at the class decl start.
+       ;; Anchor pos: Boi at the class decl start.
        (inher-cont            . c-lineup-multi-inher)
-       ;; Relpos: Java: At the implements/extends keyword start.
+       ;; Anchor pos: Java: At the implements/extends keyword start.
        ;; Otherwise: At the inher start colon, or boi at the class
        ;; decl start if the first inherit clause hangs and it's not a
        ;; func-local inherit clause (when does that occur?).
        (block-open            . 0)
-       ;; Relpos: Inexpr statement: At the statement(*) at boi of the
-       ;; start of the inexpr construct.  Otherwise: None.
+       ;; Anchor pos: Inexpr statement: At the statement(*) at boi of
+       ;; the start of the inexpr construct.  Otherwise: None.
        (block-close           . 0)
-       ;; Relpos: Inexpr statement: At the inexpr block open if it's
-       ;; at boi, else at the statement(*) at boi of the start of the
-       ;; inexpr construct.  Block hanging on a case/default label: At
-       ;; the closest preceding label that starts at boi.  Otherwise:
-       ;; At the block open(*).
+       ;; Anchor pos: Inexpr statement: At the inexpr block open if
+       ;; it's at boi, else at the statement(*) at boi of the start of
+       ;; the inexpr construct.  Block hanging on a case/default
+       ;; label: At the closest preceding label that starts at boi.
+       ;; Otherwise: At the block open(*).
        (brace-list-open       . 0)
-       ;; Relpos: Boi at the brace list decl start, but a starting
+       ;; Anchor pos: Boi at the brace list decl start, but a starting
        ;; "typedef" token is ignored.
        (brace-list-close      . 0)
-       ;; Relpos: At the brace list decl start(*).
+       ;; Anchor pos: At the brace list decl start(*).
        (brace-list-intro      . +)
-       ;; Relpos: At the brace list decl start(*).
+       ;; Anchor pos: At the brace list decl start(*).
        (brace-list-entry      . 0)
-       ;; Relpos: At the first non-ws char after the open paren if the
-       ;; first token is on the same line, otherwise boi at that
+       ;; Anchor pos: At the first non-ws char after the open paren if
+       ;; the first token is on the same line, otherwise boi at that
        ;; token.
        (brace-entry-open      . 0)
-       ;; Relpos: Same as brace-list-entry.
+       ;; Anchor pos: Same as brace-list-entry.
        (statement             . 0)
-       ;; Relpos: After a `;' in the condition clause of a for
+       ;; Anchor pos: After a `;' in the condition clause of a for
        ;; statement: At the first token after the starting paren.
        ;; Otherwise: At the preceding statement(*).
        (statement-cont        . +)
-       ;; Relpos: After the first token in the condition clause of a
-       ;; for statement: At the first token after the starting paren.
-       ;; Otherwise: At the containing statement(*).
+       ;; Anchor pos: After the first token in the condition clause of
+       ;; a for statement: At the first token after the starting
+       ;; paren.  Otherwise: At the containing statement(*).
        (statement-block-intro . +)
-       ;; Relpos: In inexpr statement block: At the inexpr block open
-       ;; if it's at boi, else at the statement(*) at boi of the start
-       ;; of the inexpr construct.  In a block hanging on a
+       ;; Anchor pos: In inexpr statement block: At the inexpr block
+       ;; open if it's at boi, else at the statement(*) at boi of the
+       ;; start of the inexpr construct.  In a block hanging on a
        ;; case/default label: At the closest preceding label that
        ;; starts at boi.  Otherwise: At the start of the containing
        ;; block(*).
        (statement-case-intro  . +)
-       ;; Relpos: At the case/default label(*).
+       ;; Anchor pos: At the case/default label(*).
        (statement-case-open   . 0)
-       ;; Relpos: At the case/default label(*).
+       ;; Anchor pos: At the case/default label(*).
        (substatement          . +)
-       ;; Relpos: At the containing statement(*).
+       ;; Anchor pos: At the containing statement(*).
        (substatement-open     . +)
-       ;; Relpos: At the containing statement(*).
+       ;; Anchor pos: At the containing statement(*).
        (substatement-label    . 2)
-       ;; Relpos: At the containing statement(*).
+       ;; Anchor pos: At the containing statement(*).
        (case-label            . 0)
-       ;; Relpos: At the start of the switch block(*).
+       ;; Anchor pos: At the start of the switch block(*).
        (access-label          . -)
-       ;; Relpos: Same as inclass.
+       ;; Anchor pos: Same as inclass.
        (label                 . 2)
-       ;; Relpos: At the start of the containing block(*).
+       ;; Anchor pos: At the start of the containing block(*).
        (do-while-closure      . 0)
-       ;; Relpos: At the corresponding while statement(*).
+       ;; Anchor pos: At the corresponding while statement(*).
        (else-clause           . 0)
-       ;; Relpos: At the corresponding if statement(*).
+       ;; Anchor pos: At the corresponding if statement(*).
        (catch-clause          . 0)
-       ;; Relpos: At the previous try or catch statement clause(*).
+       ;; Anchor pos: At the previous try or catch statement clause(*).
        (comment-intro         . (c-lineup-knr-region-comment c-lineup-comment))
-       ;; Relpos: None.
+       ;; Anchor pos: None.
        (arglist-intro         . +)
-       ;; Relpos: Boi at the open paren, or at the first non-ws after
-       ;; the open paren of the surrounding sexp, whichever is later.
+       ;; Anchor pos: At the containing statement(*).
+       ;; 2nd pos: At the open paren.
        (arglist-cont          . (c-lineup-gcc-asm-reg 0))
-       ;; Relpos: At the first token after the open paren.
+       ;; Anchor pos: At the first token after the open paren.
        (arglist-cont-nonempty . (c-lineup-gcc-asm-reg c-lineup-arglist))
-       ;; Relpos: At the containing statement(*).
+       ;; Anchor pos: At the containing statement(*).
        ;; 2nd pos: At the open paren.
        (arglist-close         . +)
-       ;; Relpos: At the containing statement(*).
+       ;; Anchor pos: At the containing statement(*).
        ;; 2nd pos: At the open paren.
        (stream-op             . c-lineup-streamop)
-       ;; Relpos: Boi at the first stream op in the statement.
+       ;; Anchor pos: Boi at the first stream op in the statement.
        (inclass               . +)
-       ;; Relpos: At the class open brace if it's at boi, otherwise
-       ;; boi at the class decl start.
+       ;; Anchor pos: At the class open brace if it's at boi,
+       ;; otherwise boi at the class decl start.
        (cpp-macro             . [0])
-       ;; Relpos: None.
+       ;; Anchor pos: None.
        (cpp-macro-cont        . +)
-       ;; Relpos: At the macro start (always at boi).
+       ;; Anchor pos: At the macro start (always at boi).
        (cpp-define-intro      . (c-lineup-cpp-define +))
-       ;; Relpos: None.
+       ;; Anchor pos: None.
        (friend                . 0)
-       ;; Relpos: None.
+       ;; Anchor pos: None.
        (objc-method-intro     . [0])
-       ;; Relpos: Boi.
+       ;; Anchor pos: Boi.
        (objc-method-args-cont . c-lineup-ObjC-method-args)
-       ;; Relpos: At the method start (always at boi).
+       ;; Anchor pos: At the method start (always at boi).
        (objc-method-call-cont . c-lineup-ObjC-method-call)
-       ;; Relpos: At the open bracket.
+       ;; Anchor pos: At the open bracket.
        (extern-lang-open      . 0)
        (namespace-open        . 0)
        (module-open           . 0)
        (composition-open      . 0)
-       ;; Relpos: Boi at the extern/namespace/etc keyword.
+       ;; Anchor pos: Boi at the extern/namespace/etc keyword.
        (extern-lang-close     . 0)
        (namespace-close       . 0)
        (module-close          . 0)
        (composition-close     . 0)
-       ;; Relpos: Boi at the corresponding extern/namespace/etc keyword.
+       ;; Anchor pos: Boi at the corresponding extern/namespace/etc keyword.
        (inextern-lang         . +)
        (innamespace           . +)
        (inmodule              . +)
        (incomposition         . +)
-       ;; Relpos: At the extern/namespace/etc block open brace if it's
-       ;; at boi, otherwise boi at the keyword.
+       ;; Anchor pos: At the extern/namespace/etc block open brace if
+       ;; it's at boi, otherwise boi at the keyword.
        (template-args-cont    . (c-lineup-template-args +))
-       ;; Relpos: Boi at the decl start.  This might be changed; the
-       ;; logical position is clearly the opening '<'.
+       ;; Anchor pos: Boi at the decl start.  This might be changed;
+       ;; the logical position is clearly the opening '<'.
        (inlambda              . c-lineup-inexpr-block)
-       ;; Relpos: None.
+       ;; Anchor pos: None.
        (lambda-intro-cont     . +)
-       ;; Relpos: Boi at the lambda start.
+       ;; Anchor pos: Boi at the lambda start.
        (inexpr-statement      . +)
-       ;; Relpos: None.
+       ;; Anchor pos: None.
        (inexpr-class          . +)
-       ;; Relpos: None.
+       ;; Anchor pos: None.
        ))
 (defcustom c-offsets-alist nil
   "Association list of syntactic element symbols and indentation offsets.
@@ -1112,50 +1130,66 @@ As described below, each cons cell in this list has the form:
 
 When a line is indented, CC Mode first determines the syntactic
 context of it by generating a list of symbols called syntactic
-elements.  This list can contain more than one syntactic element and
-the global variable `c-syntactic-context' contains the context list
-for the line being indented.  Each element in this list is actually a
-cons cell of the syntactic symbol and a buffer position.  This buffer
-position is called the relative indent point for the line.  Some
-syntactic symbols may not have a relative indent point associated with
-them.
+elements.  The global variable `c-syntactic-context' is bound to the
+that list.  Each element in the list is in turn a list where the first
+element is a syntactic symbol which tells what kind of construct the
+indentation point is located within.  More elements in the syntactic
+element lists are optional.  If there is one more and it isn't nil,
+then it's the anchor position for that construct.
 
-After the syntactic context list for a line is generated, CC Mode
-calculates the absolute indentation for the line by looking at each
-syntactic element in the list.  It compares the syntactic element
-against the SYNTACTIC-SYMBOL's in `c-offsets-alist'.  When it finds a
-match, it adds the OFFSET to the column of the relative indent point.
-The sum of this calculation for each element in the syntactic list is
+After generating the syntactic context for the line, CC Mode
+calculates the absolute indentation: First the base indentation is
+found by using the anchor position for the first syntactic element
+that provides one.  If none does, zero is used as base indentation.
+Then CC Mode looks at each syntactic element in the context in turn.
+It compares the car of the syntactic element against the
+SYNTACTIC-SYMBOL's in `c-offsets-alist'.  When it finds a match, it
+adds OFFSET to the base indentation.  The sum of this calculation is
 the absolute offset for line being indented.
 
 If the syntactic element does not match any in the `c-offsets-alist',
 the element is ignored.
 
-If OFFSET is nil, the syntactic element is ignored in the offset
-calculation.
+OFFSET can specify an offset in several different ways:
 
-If OFFSET is an integer, it's added to the relative indent.
+  If OFFSET is nil then it's ignored.
 
-If OFFSET is one of the symbols `+', `-', `++', `--', `*', or `/', a
-positive or negative multiple of `c-basic-offset' is added; 1, -1, 2,
--2, 0.5, and -0.5, respectively.
+  If OFFSET is an integer then it's used as relative offset, i.e. it's
+  added to the base indentation.
 
-If OFFSET is a vector, it's first element, which must be an integer,
-is used as an absolute indentation column.  This overrides all
-relative offsets.  If there are several syntactic elements which
-evaluates to absolute indentation columns, the first one takes
-precedence.  You can see in which order CC Mode combines the syntactic
-elements in a certain context by using \\[c-show-syntactic-information] on the line.
+  If OFFSET is one of the symbols `+', `-', `++', `--', `*', or `/'
+  then a positive or negative multiple of `c-basic-offset' is added to
+  the base indentation; 1, -1, 2, -2, 0.5, and -0.5, respectively.
 
-If OFFSET is a function, it's called with a single argument
-containing the cons of the syntactic element symbol and the relative
-indent point.  The return value from the function is then
-reinterpreted as an OFFSET value.
+  If OFFSET is a symbol with a value binding then that value, which
+  must be an integer, is used as relative offset.
 
-If OFFSET is a list, it's recursively evaluated using the semantics
-described above.  The first element of the list to return a non-nil
-value succeeds.  If none of the elements returns a non-nil value, the
-syntactic element is ignored.
+  If OFFSET is a vector then it's first element, which must be an
+  integer, is used as an absolute indentation column.  This overrides
+  the previous base indentation and the relative offsets applied to
+  it, and it becomes the new base indentation.
+
+  If OFFSET is a function or a lambda expression then it's called with
+  a single argument containing the cons of the syntactic symbol and
+  the anchor position (or nil if there is none).  The return value
+  from the function is then reinterpreted as an offset specification.
+
+  If OFFSET is a list then its elements are evaluated recursively as
+  offset specifications.  If the first element is any of the symbols
+  below then it isn't evaluated but instead specifies how the
+  remaining offsets in the list should be combined.  If it's something
+  else then the list is combined according the method `first'.  The
+  valid combination methods are:
+
+  `first' -- Use the first offset (that doesn't evaluate to nil).
+  `min'   -- Use the minimum of all the offsets.  All must be either
+             relative or absolute - they can't be mixed.
+  `max'   -- Use the maximum of all the offsets.  All must be either
+             relative or absolute - they can't be mixed.
+  `add'   -- Add all the evaluated offsets together.  Exactly one of
+             them may be absolute, in which case the result is
+             absolute.  Any relative offsets that preceded the
+             absolute one in the list will be ignored in that case.
 
 `c-offsets-alist' is a style variable.  This means that the offsets on
 this variable are normally taken from the style system in CC Mode
@@ -1336,6 +1370,11 @@ The list of variables to buffer localize are:
   :type 'hook
   :group 'c)
 
+(defcustom awk-mode-hook nil
+  "*Hook called by `awk-mode'."
+  :type 'hook
+  :group 'c)
+
 (defcustom c-mode-common-hook nil
   "*Hook called by all CC Mode modes for common initializations."
   :type 'hook
@@ -1380,15 +1419,16 @@ working due to this change.")
   :args '((const :tag "none" nil)
 	  (repeat :tag "types" regexp)))
 
-(eval-and-compile
-  ;; XEmacs 19 evaluates this at compile time below, while most other
-  ;; versions delays the evaluation until the package is loaded.
-  (defun c-make-font-lock-extra-types-blurb (mode1 mode2 example)
-    (concat "\
+(defun c-make-font-lock-extra-types-blurb (mode1 mode2 example)
+  (concat "\
 *List of extra types (aside from the type keywords) to recognize in "
 mode1 " mode.
 Each list item should be a regexp matching a single identifier.
 " example "
+
+Note that items on this list that don't include any regexp special
+characters are automatically optimized using `regexp-opt', so you
+should not use `regexp-opt' explicitly to build regexps here.
 
 On decoration level 3 (and higher, where applicable), a method is used
 that finds most types and declarations by syntax alone.  This variable
@@ -1401,43 +1441,58 @@ initialized.  If you change it later you have to reinitialize CC Mode
 by doing \\[" mode2 "].
 
 Despite the name, this variable is not only used for font locking but
-also elsewhere in CC Mode to tell types from other identifiers.")))
+also elsewhere in CC Mode to tell types from other identifiers."))
 
 ;; Note: Most of the variables below are also defined in font-lock.el
-;; in older versions in Emacs, so depending on the load order we might
+;; in older versions of Emacs, so depending on the load order we might
 ;; not install the values below.  There's no kludge to cope with this
 ;; (as opposed to the *-font-lock-keywords-* variables) since the old
 ;; values work fairly well anyway.
 
 (defcustom c-font-lock-extra-types
-  '("FILE" "\\sw+_t"
-    "bool" "complex" "imaginary"	; Defined in C99.
+  '("\\sw+_t"
+    ;; Defined in C99:
+    "bool" "complex" "imaginary"
+    ;; Standard library types (except those matched by the _t pattern):
+    "FILE" "lconv" "tm" "va_list" "jmp_buf"
     ;; I do not appreciate the following very Emacs-specific luggage
     ;; in the default value, but otoh it can hardly get in the way for
     ;; other users, and removing it would cause unnecessary grief for
     ;; the old timers that are used to it. /mast
     "Lisp_Object")
   (c-make-font-lock-extra-types-blurb "C" "c-mode"
-"For example, a value of (\"FILE\" \"\\\\sw+_t\") means the word FILE
-and words ending in _t are treated as type names.")
+"For example, a value of (\"FILE\" \"\\\\sw+_t\") means the word \"FILE\"
+and words ending in \"_t\" are treated as type names.")
   :type 'c-extra-types-widget
   :group 'c)
 
 (defcustom c++-font-lock-extra-types
   '("\\sw+_t"
-    "\\([iof]\\|str\\)+stream\\(buf\\)?" "ios"
+    ;; C library types (except those matched by the _t pattern):
+    "FILE" "lconv" "tm" "va_list" "jmp_buf"
+    ;; Some standard C++ types that came from font-lock.el.
+    ;; Experienced C++ users says there's no clear benefit in
+    ;; extending this to all the types in the standard library, at
+    ;; least not when they'll be recognized without "std::" too.
+    "istream" "istreambuf"
+    "ostream" "ostreambuf"
+    "ifstream" "ofstream" "fstream"
+    "strstream" "strstreambuf" "istrstream" "ostrstream"
+    "ios"
     "string" "rope"
     "list" "slist"
     "deque" "vector" "bit_vector"
     "set" "multiset"
     "map" "multimap"
-    "hash\\(_\\(m\\(ap\\|ulti\\(map\\|set\\)\\)\\|set\\)\\)?"
+    "hash"
+    "hash_set" "hash_multiset"
+    "hash_map" "hash_multimap"
     "stack" "queue" "priority_queue"
     "type_info"
     "iterator" "const_iterator" "reverse_iterator" "const_reverse_iterator"
     "reference" "const_reference")
   (c-make-font-lock-extra-types-blurb "C++" "c++-mode"
-"For example, a value of (\"string\") means the word string is treated
+"For example, a value of (\"string\") means the word \"string\" is treated
 as a type name.")
   :type 'c-extra-types-widget
   :group 'c)
@@ -1499,40 +1554,49 @@ Note that file offset settings are applied after file style settings
 as designated in the variable `c-file-style'.")
 (make-variable-buffer-local 'c-file-offsets)
 
-;; It isn't possible to specify a docstring without specifying an
-;; initial value with `defvar', so the following two variables have
-;; only doc comments even though they are part of the API.  It's
-;; really good not to have an initial value for variables like these
-;; that always should be dynamically bound, so it's worth the
-;; inconvenience.
+;; It isn't possible to specify a doc-string without specifying an
+;; initial value with `defvar', so the following two variables have been
+;; given doc-strings by setting the property `variable-documentation'
+;; directly.  C-h v will read this documentation only for versions of GNU
+;; Emacs from 22.1.  It's really good not to have an initial value for
+;; variables like these that always should be dynamically bound, so it's
+;; worth the inconvenience.
 
 (cc-bytecomp-defvar c-syntactic-context)
 (defvar c-syntactic-context)
-;; Variable containing the syntactic analysis list during indentation.
-;; It is a list with one element for each found syntactic symbol.  See
-;; `c-syntactic-element' for further info.
-;;
-;; This is always bound dynamically.  It should never be set
-;; statically (e.g. with `setq').
+(put 'c-syntactic-context 'variable-documentation
+  "Variable containing the syntactic analysis list for a line of code.
+
+It is a list with one element for each syntactic symbol pertinent to the
+line, for example \"((defun-block-intro 1) (comment-intro))\".
+
+It is dynamically bound when calling \(i) a brace hanging \"action
+function\"; \(ii) a semicolon/comma hanging \"criteria function\"; \(iii) a
+\"line-up function\"; \(iv) a c-special-indent-hook function.  It is also
+used internally by CC Mode.
+
+c-syntactic-context is always bound dynamically.  It must NEVER be set
+statically (e.g. with `setq').")
+
 
 (cc-bytecomp-defvar c-syntactic-element)
 (defvar c-syntactic-element)
-;; Variable containing the info regarding the current syntactic
-;; element during calls to the lineup functions.  The value is one of
-;; the elements in the list in `c-syntactic-context' and is a list
-;; with the symbol name in the first position, followed by zero or
-;; more elements containing any additional info associated with the
-;; syntactic symbol.  There are accessor functions `c-langelem-sym',
-;; `c-langelem-pos', `c-langelem-col', and `c-langelem-2nd-pos' to
-;; access the list.
-;;
-;; Specifically, the element returned by `c-langelem-pos' is the
-;; relpos (a.k.a. anchor position), or nil if there isn't any.  See
-;; the comments in the `c-offsets-alist' variable for more detailed
-;; info about the data each syntactic symbol provides.
-;; 
-;; This is always bound dynamically.  It should never be set
-;; statically (e.g. with `setq').
+(put 'c-syntactic-element 'variable-documentation
+     "Variable containing the current syntactic element during calls to
+the lineup functions.  The value is one of the elements in the list in
+`c-syntactic-context' and is a list with the symbol name in the first
+position, followed by zero or more elements containing any additional
+info associated with the syntactic symbol.  There are accessor functions
+`c-langelem-sym', `c-langelem-pos', `c-langelem-col', and
+`c-langelem-2nd-pos' to access the list.
+
+Specifically, the element returned by `c-langelem-pos' is the anchor
+position, or nil if there isn't any.  See the comments in the
+`c-offsets-alist' variable and the CC Mode manual for more detailed info
+about the data each syntactic symbol provides.
+
+This is always bound dynamically.  It should never be set
+statically (e.g. with `setq').")
 
 (defvar c-indentation-style nil
   "Name of the currently installed style.
@@ -1542,6 +1606,29 @@ Don't change this directly; call `c-set-style' instead.")
   "The current comment prefix regexp.
 Set from `c-comment-prefix-regexp' at mode initialization.")
 (make-variable-buffer-local 'c-current-comment-prefix)
+
+;; N.B. The next three variables are initialized in
+;; c-setup-paragraph-variables.  Their initializations here are "just in
+;; case".  ACM, 2004/2/15.  They are NOT buffer local (yet?).
+(defvar c-string-par-start
+;;   (concat "\\(" (default-value 'paragraph-start) "\\)\\|[ \t]*\\\\$")
+  "\f\\|[ \t]*\\\\?$"
+  "Value of paragraph-start used when scanning strings.
+It treats escaped EOLs as whitespace.")
+
+(defvar c-string-par-separate
+  ;; (concat "\\(" (default-value 'paragraph-separate) "\\)\\|[ \t]*\\\\$")
+  "[ \t\f]*\\\\?$"
+  "Value of paragraph-separate used when scanning strings.
+It treats escaped EOLs as whitespace.")
+
+(defvar c-sentence-end-with-esc-eol
+  (concat "\\(\\(" (c-default-value-sentence-end) "\\)"
+		;; N.B.:  "$" would be illegal when not enclosed like "\\($\\)".
+		"\\|" "[.?!][]\"')}]* ?\\\\\\($\\)[ \t\n]*"
+		"\\)")
+  "Value used like sentence-end used when scanning strings.
+It treats escaped EOLs as whitespace.")
 
 
 (cc-provide 'cc-vars)

@@ -1107,7 +1107,7 @@ present or commented out:
 
 This is caused by a bug in the KDE applet `klipper' which periodically
 requests the X clipboard contents from applications.  Early versions
-of klipper don't implement the ICCM protocol for large selections,
+of klipper don't implement the ICCCM protocol for large selections,
 which leads to Emacs being flooded with selection requests.  After a
 while, Emacs may print a message:
 

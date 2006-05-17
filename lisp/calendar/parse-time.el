@@ -1,6 +1,7 @@
 ;;; parse-time.el --- parsing time strings
 
-;; Copyright (C) 1996, 2000 by Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2000, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: util

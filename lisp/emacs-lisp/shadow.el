@@ -104,7 +104,7 @@ See the documentation for `list-load-path-shadows' for further information."
 	(setq true-names (append true-names (list dir)))
 	(setq dir (directory-file-name (or (car path) ".")))
 	(setq curr-files (if (file-accessible-directory-p dir)
-			     (directory-files dir nil ".\\.elc?$" t)))
+			     (directory-files dir nil ".\\.elc?\\(\\.gz\\)?$" t)))
 	(and curr-files
 	     (not noninteractive)
 	     (message "Checking %d files in %s..." (length curr-files) dir))
@@ -114,6 +114,8 @@ See the documentation for `list-load-path-shadows' for further information."
 	(while curr-files
 
 	  (setq file (car curr-files))
+	  (if (string-match "\\.gz$" file)
+	      (setq file (substring file 0 -3)))
 	  (setq file (substring
 		      file 0 (if (string= (substring file -1) "c") -4 -3)))
 
@@ -209,7 +211,8 @@ buffer called `*Shadows*'.  Shadowings are located by calling the
 	toplevs)
     ;; If we can find simple.el in two places,
     (while tem
-      (if (file-exists-p (expand-file-name "simple.el" (car tem)))
+      (if (or (file-exists-p (expand-file-name "simple.el" (car tem)))
+	      (file-exists-p (expand-file-name "simple.el.gz" (car tem))))
 	  (setq toplevs (cons (car tem) toplevs)))
       (setq tem (cdr tem)))
     (if (> (length toplevs) 1)

@@ -3173,7 +3173,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
     (setq f (concat ediff-temp-file-prefix p)
 	  short-f (concat ediff-temp-file-prefix short-p)
   	  f (cond (given-file)
-		  ((find-file-name-handler f 'find-file-noselect)
+		  ((find-file-name-handler f 'insert-file-contents)
 		   ;; to thwart file handlers in write-region, e.g., if file
 		   ;; name ends with .Z or .gz
 		   ;; This is needed so that patches produced by ediff will

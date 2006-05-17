@@ -46,6 +46,7 @@
 
 (defgroup texinfo nil
   "Texinfo Mode."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'docs)
 
 ;;;###autoload

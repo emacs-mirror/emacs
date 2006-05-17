@@ -231,7 +231,7 @@ stop_other_atimers (t)
       struct atimer *p, *prev;
 
       /* See if T is active.  */
-      for (p = atimers, prev = 0; p && p != t; p = p->next)
+      for (p = atimers, prev = NULL; p && p != t; prev = p, p = p->next)
 	;
 
       if (p == t)

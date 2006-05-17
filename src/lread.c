@@ -1444,7 +1444,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   register int c;
   register Lisp_Object val;
   int count = SPECPDL_INDEX ();
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   struct buffer *b = 0;
   int continue_reading_p;
   Lisp_Object lex_bound;
@@ -1454,7 +1454,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   else if (MARKERP (readcharfun))
     b = XMARKER (readcharfun)->buffer;
 
-  specbind (Qstandard_input, readcharfun);
+  specbind (Qstandard_input, readcharfun); /* GCPROs readcharfun.  */
   specbind (Qcurrent_load_list, Qnil);
   record_unwind_protect (readevalloop_1, load_convert_to_unibyte ? Qt : Qnil);
   load_convert_to_unibyte = !NILP (unibyte);
@@ -1470,7 +1470,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 
   readchar_backlog = -1;
 
-  GCPRO1 (sourcename);
+  GCPRO4 (sourcename, readfun, start, end);
 
   LOADHIST_ATTACH (sourcename);
 
@@ -1879,13 +1879,12 @@ read_escape (readcharfun, stringp, byterep)
       return c | alt_modifier;
 
     case 's':
-      if (stringp)
-	return ' ';
       c = READCHAR;
-      if (c != '-') {
-	UNREAD (c);
-	return ' ';
-      }
+      if (c != '-')
+	{
+	  UNREAD (c);
+	  return ' ';
+	}
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun, 0, byterep);

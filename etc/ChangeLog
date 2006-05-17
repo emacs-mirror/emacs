@@ -1,3 +1,42 @@
+2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* NEWS: Change `prev-buffer' to `previous-buffer'; add note on
+	them using the frame-local buffer list.
+
+2005-12-10  David Koppelman  <koppel@ece.lsu.edu>
+
+	* NEWS: hi-lock-mode is now buffer local, use global-hi-lock-mode
+	instead.
+
+2005-12-02  Jay Belanger  <belanger@truman.edu>
+
+	* NEWS: Add comment about the Calc prefix.
+
+2005-11-28  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* MORE.STUFF: Add entry: "Go in a buffer: Go Text Protocol client".
+
+2005-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/icons/emacs_16.png, images/icons/emacs_24.png
+	* images/icons/emacs_32.png, images/icons/emacs_48.png:
+	New Emacs icons.
+
+2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version 3.20
+
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz> 
+
+	* images/gud/go.xpm, images/gud/go.pbm: Old gud-remove icons.
+	Use for run/continue.
+	* images/gud/stop.xpm, images/gud/stop.pbm: Old gud-break icons.
+	Use for interrupting inferior.
+	* images/gud/pp.xpm, images/gud/pstar.xpm, images/gud/until.xpm:
+	Use a more appropriate variable name.
+	* images/gud/remove.xpm, images/gud/remove.pbm
+	* images/gud/break.xpm, images/gud/break.pbm: Make more intuitive.
+	
 2005-11-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* images/gud/pp.xpm, images/gud/pp.pbm: New icons.

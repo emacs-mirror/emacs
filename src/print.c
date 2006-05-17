@@ -1313,7 +1313,13 @@ print_preprocess (obj)
 
   /* Give up if we go so deep that print_object will get an error.  */
   /* See similar code in print_object.  */
-  if (print_depth >= PRINT_CIRCLE)
+  /* Because print_preprocess "follows" nested lists in a slightly
+     different order from print_object, there is a risk of giving up
+     too soon.  In that case, a deeply nested circular list may cause
+     print_object to loop.  Using 3 * PRINT_CIRCLE should make this
+     possibility negligible, but at some point someone will have to
+     sit down and do a more careful analysis. -- cyd */
+  if (print_depth >= 3 * PRINT_CIRCLE)
     return;
 
   /* Avoid infinite recursion for circular nested structure
