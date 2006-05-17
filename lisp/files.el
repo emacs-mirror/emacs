@@ -1025,7 +1025,7 @@ type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  You can
-suppress wildcard expansion by setting `find-file-wildcards'.
+suppress wildcard expansion by setting `find-file-wildcards' to nil.
 
 To visit a file without any kind of conversion and without
 automatically choosing a major mode, use \\[find-file-literally]."
@@ -1077,7 +1077,7 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-existing (filename &optional wildcards)
   "Edit the existing file FILENAME.
-Like \\[find-file] but only allow files that exists."
+Like \\[find-file] but only allow a file that exists."
   (interactive (find-file-read-args "Find existing file: " t))
   (unless (file-exists-p filename) (error "%s does not exist" filename))
   (find-file filename wildcards)
@@ -2024,18 +2024,19 @@ associated with that interpreter in `interpreter-mode-alist'.")
 (defvar magic-mode-alist
   `(;; The < comes before the groups (but the first) to reduce backtracking.
     ;; TODO: UTF-16 <?xml may be preceded by a BOM 0xff 0xfe or 0xfe 0xff.
+    ;; We use [ \t\n] instead of `\\s ' to make regex overflow less likely.
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
-	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
-	(concat "\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<"
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
+	(concat "\\(?:<\\?xml[ \t\n]+[^>]*>\\)?[ \t\n]*<"
 		comment-re "*"
-		"\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\s *" comment-re "*\\)?"
+		"\\(?:!DOCTYPE[ \t\n]+[^>]*>[ \t\n]*<[ \t\n]*" comment-re "*\\)?"
 		"[Hh][Tt][Mm][Ll]"))
      . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
-	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
-	(concat "\\s *<" comment-re "*!DOCTYPE "))
+	     (comment-re (concat "\\(?:!--" incomment-re "*-->[ \t\n]*<\\)")))
+	(concat "[ \t\n]*<" comment-re "*!DOCTYPE "))
      . sgml-mode)
     ("%![^V]" . ps-mode)
     ("# xmcd " . conf-unix-mode))
@@ -3795,8 +3796,8 @@ sake of backward compatibility.  IGNORE-AUTO is optional, defaulting
 to nil.
 
 Optional second argument NOCONFIRM means don't ask for confirmation at
-all.  (The local variable `revert-without-query', if non-nil, prevents
-confirmation.)
+all.  \(The variable `revert-without-query' offers another way to
+revert buffers without querying for confirmation.)
 
 Optional third argument PRESERVE-MODES non-nil means don't alter
 the files modes.  Normally we reinitialize them using `normal-mode'.
@@ -3831,13 +3832,10 @@ non-nil, it is called instead of rereading visited file contents."
 	       (error "Buffer does not seem to be associated with any file"))
 	      ((or noconfirm
 		   (and (not (buffer-modified-p))
-			(let ((tail revert-without-query)
-			      (found nil))
-			  (while tail
-			    (if (string-match (car tail) file-name)
-				(setq found t))
-			    (setq tail (cdr tail)))
-			  found))
+			(catch 'found
+			  (dolist (regexp revert-without-query)
+			    (when (string-match regexp file-name)
+			      (throw 'found t)))))
 		   (yes-or-no-p (format "Revert buffer from file %s? "
 					file-name)))
 	       (run-hooks 'before-revert-hook)
@@ -3846,50 +3844,51 @@ non-nil, it is called instead of rereading visited file contents."
 	       (and (not auto-save-p)
 		    (not (verify-visited-file-modtime (current-buffer)))
 		    (setq buffer-backed-up nil))
-	       ;; Get rid of all undo records for this buffer.
-	       (or (eq buffer-undo-list t)
-		   (setq buffer-undo-list nil))
 	       ;; Effectively copy the after-revert-hook status,
 	       ;; since after-find-file will clobber it.
 	       (let ((global-hook (default-value 'after-revert-hook))
-		     (local-hook-p (local-variable-p 'after-revert-hook))
-		     (local-hook (and (local-variable-p 'after-revert-hook)
-				      after-revert-hook)))
-		 (let (buffer-read-only
-		       ;; Don't make undo records for the reversion.
-		       (buffer-undo-list t))
-		   (if revert-buffer-insert-file-contents-function
-		       (funcall revert-buffer-insert-file-contents-function
-				file-name auto-save-p)
-		     (if (not (file-exists-p file-name))
-			 (error (if buffer-file-number
-				    "File %s no longer exists!"
-				  "Cannot revert nonexistent file %s")
-				file-name))
-		     ;; Bind buffer-file-name to nil
-		     ;; so that we don't try to lock the file.
-		     (let ((buffer-file-name nil))
-		       (or auto-save-p
-			   (unlock-buffer)))
-		     (widen)
-		     (let ((coding-system-for-read
-			    ;; Auto-saved file shoule be read by Emacs'
-			    ;; internal coding.
-			    (if auto-save-p 'auto-save-coding
-			      (or coding-system-for-read
-				  buffer-file-coding-system-explicit))))
-		       ;; This force after-insert-file-set-coding
-		       ;; (called from insert-file-contents) to set
-		       ;; buffer-file-coding-system to a proper value.
-		       (kill-local-variable 'buffer-file-coding-system)
+		     (local-hook (when (local-variable-p 'after-revert-hook)
+				   after-revert-hook))
+		     (inhibit-read-only t))
+		 (cond
+		  (revert-buffer-insert-file-contents-function
+		   (unless (eq buffer-undo-list t)
+		     ;; Get rid of all undo records for this buffer.
+		     (setq buffer-undo-list nil))
+		   ;; Don't make undo records for the reversion.
+		   (let ((buffer-undo-list t))
+		     (funcall revert-buffer-insert-file-contents-function
+			      file-name auto-save-p)))
+		  ((not (file-exists-p file-name))
+		   (error (if buffer-file-number
+			      "File %s no longer exists!"
+			    "Cannot revert nonexistent file %s")
+			  file-name))
+		  (t
+		   ;; Bind buffer-file-name to nil
+		   ;; so that we don't try to lock the file.
+		   (let ((buffer-file-name nil))
+		     (or auto-save-p
+			 (unlock-buffer)))
+		   (widen)
+		   (let ((coding-system-for-read
+			  ;; Auto-saved file should be read by Emacs'
+			  ;; internal coding.
+			  (if auto-save-p 'auto-save-coding
+			    (or coding-system-for-read
+				buffer-file-coding-system-explicit))))
+		     ;; This force after-insert-file-set-coding
+		     ;; (called from insert-file-contents) to set
+		     ;; buffer-file-coding-system to a proper value.
+		     (kill-local-variable 'buffer-file-coding-system)
 
-		       ;; Note that this preserves point in an intelligent way.
-		       (if preserve-modes
-			   (let ((buffer-file-format buffer-file-format))
-			     (insert-file-contents file-name (not auto-save-p)
-						   nil nil t))
-			 (insert-file-contents file-name (not auto-save-p)
-					       nil nil t)))))
+		     ;; Note that this preserves point in an intelligent way.
+		     (if preserve-modes
+			 (let ((buffer-file-format buffer-file-format))
+			   (insert-file-contents file-name (not auto-save-p)
+						 nil nil t))
+		       (insert-file-contents file-name (not auto-save-p)
+					     nil nil t)))))
 		 ;; Recompute the truename in case changes in symlinks
 		 ;; have changed the truename.
 		 (setq buffer-file-truename
@@ -3897,7 +3896,7 @@ non-nil, it is called instead of rereading visited file contents."
 		 (after-find-file nil nil t t preserve-modes)
 		 ;; Run after-revert-hook as it was before we reverted.
 		 (setq-default revert-buffer-internal-hook global-hook)
-		 (if local-hook-p
+		 (if local-hook
 		     (set (make-local-variable 'revert-buffer-internal-hook)
 			  local-hook)
 		   (kill-local-variable 'revert-buffer-internal-hook))
@@ -3943,7 +3942,7 @@ non-nil, it is called instead of rereading visited file contents."
 		   (insert-directory-safely file-name switches))))
 	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (switch-to-buffer (find-file-noselect file t))
-	   (let ((buffer-read-only nil)
+	   (let ((inhibit-read-only t)
 		 ;; Keep the current buffer-file-coding-system.
 		 (coding-system buffer-file-coding-system)
 		 ;; Auto-saved file shoule be read with special coding.

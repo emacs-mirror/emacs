@@ -57,8 +57,8 @@
 ;;
 ;;  `tumme' stores the thumbnail files in `tumme-dir' using the file
 ;; name format ORIGNAME.thumb.ORIGEXT.  For example
-;; ~/.tumme/myimage01.thumb.jpg.  The "database" is for now just a
-;; plain text file with the following format:
+;; ~/.emacs.d/tumme/myimage01.thumb.jpg.  The "database" is for now
+;; just a plain text file with the following format:
 ;;
 ;; file-name-non-directory;comment:comment-text;tag1;tag2;tag3;...;tagN
 ;;
@@ -135,379 +135,6 @@
 ;; backup of `tumme-db-file' when testing new versions.
 ;;
 ;;
-;;; History:
-;; ========
-;;
-;; Version 0.1, 2005-04-16
-;;
-;; * First release, only browsing support for now.
-;;
-;; Version 0.2, 2005-04-21
-;;
-;; * Changed calls to dired-filename-at-point to dired-get-filename
-;;
-;; Version 0.3, 2005-04-25
-;;
-;;   Quite a lot of changes:
-;;
-;; * Added basic image tagging support.  No commands that make use of
-;;   it yet.
-;;
-;; * Added text properties for the thumbnail images to be able to
-;;   track where they came from originally.  Used in `tumme-mode'.
-;;
-;; * Added `tumme-mode' to be used when navigating the thumbnail
-;;   buffer.  Currently, there are commands to mark, unmark, flag and
-;;   jump to the original file in associated dired buffer.
-;;
-;; * When moving around in the thumbnail buffer (in `tumme-mode'), the
-;;   user can turn on tracking of the movements and let them be
-;;   mirrored in the associated dired buffer.
-;;
-;; * In this version I have been looking at some ideas in thumbs.el,
-;;   for example the image margin and relief and the `thumbs-mode'
-;;   which I copied and made the `tumme-mode' from.
-;;
-;; Version 0.4, 2005-05-02
-;;
-;; * Renamed the functions that are to be used in `tumme-mode' in the
-;;   thumbnail buffer.
-;;
-;; * The mark, unmark and flag commands in `tumme-mode' now also moves
-;;   to next thumbnail, like how dired normally works.
-;;
-;; * Added `tumme-mode-line-up', `tumme-display-thumbs-append' and
-;;   `tumme-mode-delete-char'.
-;;
-;; * Each thumbnail's tags is now displayed when navigating among the
-;;   thumbnails in the thumbnail buffer.
-;;
-;; * Added simple slideshow functionality.
-;;
-;; Version 0.4.1, 2005-05-05
-;;
-;; * Fixed bug in `tumme-flag-thumb-original-file'
-;;
-;; * Added commands to display original image in external viewer
-;;   (`tumme-display-external') and in a Emacs buffer
-;;   (`tumme-display-image').
-;;
-;; * Minor code clean-up
-;;
-;; * Renamed some functions back again...
-;;
-;; * Added rotation of thumbnail images (90 degrees left and right)
-;;
-;; Version 0.4.2, 2005-05-06
-;;
-;; * Removed need for `tumme-display-image-size' in
-;;   `tumme-display-image'.  Now, the maximum image size that fits in
-;;   `tumme-display-buffer' is calculated automatically.  Introduced
-;;   two correction variables, `tumme-display-window-width-correction'
-;;   and `tumme-display-window-height-correction' to be used to
-;;   correct width and height depending on width and height of window
-;;   decorations, fringes etc.  This works really well!
-;;
-;; Version 0.4.3, 2005-05-07
-;;
-;; * Added menus to `dired-mode' and `tumme-mode'
-;;
-;; * Added `tumme-mark-and-display-next'
-;;
-;; * Added `tumme-jump-thumbnail-buffer'
-;;
-;; * Bound TAB in `dired-mode-map' and `tumme-mode-map' to
-;;   `tumme-jump-thumbnail-buffer' and
-;;   `tumme-jump-original-dired-buffer', respectively.
-;;
-;; * Changed `tumme-display-image' to be more general.  Now, it can be
-;;   used from both thumbnail buffer and dired buffer by calling
-;;   `tumme-display-thumbnail-original-image' and
-;;   `tumme-display-dired-image', respectively.
-;;
-;; Version 0.4.4, 2005-05-10
-;;
-;; * Added `tumme-get-exif-file-name' and
-;; `tumme-copy-with-exif-file-name'.  These commands might not be
-;; useful for all people because they are very specific.  See the
-;; documentation for each function for more information.
-;;
-;; * Added `tumme-display-next-thumbnail-original' and
-;; `tumme-display-previous-thumbnail-original' to be used for easy
-;; image browsing in thumbnail buffer.
-;;
-;; * Added support for comments.  New function
-;; `tumme-comment-thumbnail' added, to be used in thumbnail buffer.
-;;
-;; * Added `tumme-mark-tagged-files'.  Use it in dired buffer to mark
-;; tagged files.
-;;
-;; * Added `mouse-face' property `highlight' for mouse highlighting
-;; and had to add a space between each thumbnail to avoid whole rows
-;; to be highlighted.  Doing this meant that I had to update
-;; `tumme-line-up' too...
-;;
-;; * Added `tumme-mouse-display-image'.  Use mouse-2 to display image
-;; thumbnail when is highlighted.
-;;
-;; * As suggested by Ehud Karni on gnu.emacs.help, changed
-;; `tumme-window-DIMENSION-pixels' to use `frame-char-DIMENSION'
-;; instead of `frame-pixel-DIMENSION'.  Feels better
-;;
-;; * Corrected a bug in `tumme-window-height-pixels'.  I did not know
-;; that the mode-line consumed one line.  Also, after experimenting, it
-;; seems that the only correction needed for the image display width
-;; is one single pixel.  I left the corection variables in there, just
-;; in case someone has a system that differs.
-;;
-;; Version 0.4.5, 2005-05-19
-;;
-;; * Added `tumme-line-up-dynamic' that calculates the number of
-;; thumbnails that will fit in the thumbnail buffer's window and
-;; `tumme-line-up-interactive' that asks the user.
-;;
-;; * Changed `tumme-display-thumbs' to call one of the `tumme-line-up'
-;; functions instead of doing the line-up itself.
-;;
-;; * Finally! Added experimental gallery creation.  See customizable
-;; variables `tumme-gallery-dir', `tumme-gallery-image-root-url' and
-;; `tumme-gallery-thumb-image-root-url' and new command
-;; `tumme-gallery-generate'.  Not beatiful, but it works quite
-;; well.  Probably needs some CSS-stuff in it eventually.  Also, I'm not
-;; sure this is the way I want to generate my image galleries in the
-;; future.  After all, static pages cannot do what dynamic pages using
-;; PHP et al can do.  Serves like a proof-of-concept of the tagging
-;; though.
-;;
-;; * Added option to hide images with certain tags.  See
-;; `tumme-gallery-hidden-tags'.
-;;
-;; * Added `tumme-tag-thumbnail' for tagging files from thumbnail
-;; buffer.
-;;
-;; * Added `tumme-tag-remove' and `tumme-tag-thumbnail-remove' so that
-;; you can remove tags.  Sorry if I have kept you waiting for
-;; this... :)
-;;
-;; * Added option `tumme-append-when-browsing' and new command
-;; `tumme-toggle-append-browsing'.
-;;
-;; Version 0.4.6, 2005-05-21
-;;
-;; * Changed `tumme-thumb-name' to always use ".jpg" as file extension
-;; for thumbnail files, instead of using the extension from the
-;; original file's name.  This was a very easy way to open up for
-;; allowing browsing of all image file types that Emacs support,
-;; assuming ImageMagick supports it too.
-;;
-;; * Fixed bug in `tumme-create-thumb' `tumme-rotate-thumbnail' and
-;; `tumme-display-image' by adding quotes around the file names.  The
-;; conversion failed if the file name, or path, contained a
-;; space.  Also expanded the file name, as convert (or is it bash?)
-;; does not work as expected for paths like "~/.tumme...".
-;;
-;; * Fixed another "space bug" :) in `tumme-display-external'.
-;;
-;; * In call to convert, added "jpeg:" in front of the output file
-;; name, so that all generated files becomes JPEG files.  For now, only
-;; useful if `tumme-temp-image-file' does not end in .jpg.
-;;
-;; Version 0.4.7, 2005-05-26
-;;
-;; * Change header line of tumme.el so that it does not wrap and cause
-;; evaluation problems for people getting the source from Usenet.
-;;
-;; * Changed `tumme-write-tag' slightly to get better performance when
-;; tagging many files.
-;;
-;; * Fixed bug in `tumme-create-gallery-lists' that made it puke if
-;; there was empty lines in the database.  Changed the code so that it
-;; does not car about that.  Also, fixed `tumme-remove-tag' so that it
-;; tries not to add empty lines at the end of the database.
-;;
-;; * Changed all commands that execute shell commands to be
-;; configurable using the `tumme-cmd-x' custom variables.  This makes
-;; it easier to switch among different image conversion tools which
-;; might use different syntax and options.
-;;
-;; * Added `tumme-toggle-dired-display-properties'.
-;;
-;; * Added `tumme-thumb-file-name-format' and changed
-;; `tumme-thumb-name' to make it possible to configure the format of
-;; thumbnail files.  Did not make it customizable yet though.  It might
-;; be a bad idea to be able to switch between formats...
-;;
-;; * Changed `tumme-display-window' so that it looks for tumme's
-;; display window in all frames.  Useful if you want to create an own
-;; frame for displaying the temporary image.
-;;
-;; * After changing the call to `get-window-with-predicate' to scan
-;; all frames for tumme's special buffers in visible windows, and also
-;; changing the way tumme tracks thumbnail movement in the dired
-;; buffer (now using `set-buffer' together with `set-window-point'),
-;; tumme now works quite happily with all three buffers in different
-;; frames.  This empowers the user to setup the special buffers the way
-;; that best fits his need at the time.  Jumping between dired and
-;; `tumme-thumbnail-buffer' work independent on in which frames they
-;; are.
-;;
-;; * Renamed `tumme-track-movement-in-dired' to
-;; `tumme-toggle-movement-tracking'.
-;;
-;; * Added `tumme-track-thumbnail' for movement tracking from dired
-;; buffer, analoguous to the tracking done in thumbnail buffer.  Both
-;; uses the same custom variable `tumme-track-movement' which can be
-;; toggled on and off with `tumme-toggle-movement-tracking'.  This is
-;; neat.  :) Changed `tumme-setup-dired-keybindings' to make use of
-;; this in the best way.  Read more about this there.
-;;
-;; Version 0.4.8, 2005-06-05
-;;
-;; * Changed `tumme-display-dired-image' and
-;; `tumme-display-thumbnail-original-image' so that when called with a
-;; prefix argument, the image is not resized in the display
-;; buffer.  This will be useful for later additions of image
-;; manipulation commands.
-;;
-;; * Added `tumme-kill-buffer-and-window' to make it easy to kill the
-;; tumme buffers.
-;;
-;; * Renamed `tumme-mode' to `tumme-thumbnail-mode'.
-;;
-;; * `tumme-tag-thumbnail' and `tumme-tag-thumbnail-remove' now
-;; updates the tags property for the thumbnail.
-;;
-;; * Added `tumme-dired-display-external' to display images in
-;; external viewer from dired buffer.
-;;
-;; * Added support for multiple files in `tumme-remove-tag' to
-;; increase performance.
-;;
-;; * Added `tumme-display-image-mode' so that we can add image
-;; manipulation commands there.
-;;
-;; * Added call to `tumme-display-thumb-properties' in
-;; `tumme-track-thumbnail'.
-;;
-;; * Added command `tumme-display-current-image-in-full-size' to be
-;; used in `tumme-display-image-mode'.
-;;
-;; * Changed `tumme-display-image' to call
-;; `tumme-create-display-image-buffer' so that we are sure that
-;; `tumme-display-image-buffer' is always available.
-;;
-;; * Added optional prefix argument to `tumme-dired-folder' that tells
-;; it to skip the window splitting and just creates the needed
-;; buffers.
-;;
-;; * Fixed bug somewhere that relied on `tumme-dired-folder' having
-;; created the `tumme-display-image-buffer'.  Now `tumme-dired-folder'
-;; *should* not be necessary to call at all, just convenient.
-;;
-;; * Added tracking to `tumme-mouse-display-image'.
-;;
-;; * Added `tumme-mouse-select-thumbnail' and bound mouse-1 to it, so
-;; that selecting a thumbnail will track the original file.
-;;
-;; * Added three new custom variables, `tumme-cmd-ACTION-program' to
-;; make the command options cleaner and easier to read.
-;;
-;; * Added `tumme-display-properties-format' and
-;; `tumme-format-properties-string' to make it possible to configure
-;; the display format of the image file's properties.
-;;
-;; * Added missing (require 'format-spec)
-;;
-;; Version 0.4.9, 2005-09-25
-;;
-;; * Fixed bug in `tumme-display-thumbs'.  If a thumbnail file could
-;; not be created for some reason (bad file for example), even if
-;; several other thumbnails was created sucessfully, the code
-;; generated an error and never continued doing the line-up.
-;;
-;; * Made tumme.el pass the M-x checkdoc test, phew!
-;;
-;; * Added `tumme-rotate-original', `tumme-rotate-original-left' and
-;; `tumme-rotate-original-right' to rotate the original image from
-;; thumbnail view. By default it uses JpegTRAN to rotate the images
-;; non-lossy. Only works on JPEG images. The two new commands were
-;; added to thumbnail mode. Thanks to Colin Marquardt who told me
-;; about the "-copy all" option to jpegtran.
-;;
-;; * Added the functions `tumme-get-exif-data' and
-;; `tumme-set-exif-data' for reading and writing EXIF data to image files.
-;;
-;; * Rewrote `tumme-get-exif-file-name': now uses
-;; `tumme-get-exif-data'. Slight change to replace spaces with
-;; underscores (tt seems not all cameras use the exact same format for
-;; DateTimeOriginal). Added code for handling files that has no
-;; EXIF-data (use file's timestamp instead).
-;;
-;; * Changed from using the exif program to exiftool because exiftool
-;; also handles writing of EXIF data, which is very useful.
-;;
-;; * Added the command `tumme-thumbnail-set-image-description' that
-;; can be used to set the EXIF tag ImageDescription. Thanks to Colin
-;; Marquardt for the suggestion.
-;;
-;; * Added `tumme-toggle-mark-thumb-original-file' and
-;; `tumme-mouse-toggle-mark' and changed
-;; `tumme-modify-mark-on-thumb-original-file' to support toggling of
-;; mark of original image file in dired, from
-;; `tumme-thumbnail-mode'. Bound C-down-mouse-1
-;; `tumme-mouse-toggle-mark' to in `tumme-thumbnail-mode'.
-;;
-;; * Changed `tumme-mouse-select-thumbnail' to also display properties
-;; after the file is selected.
-;;
-;; Version 0.4.10, 2005-11-07
-;;
-;; * Renamed `tumme-dired-folder' to `tumme-dired'.
-;;
-;; * Changed format of the database file slightly, now the full path
-;; and file name is used. Had to change most of the tag functions
-;; (writing, reading, searching) slightly to cope with the change. If
-;; you are an old tumme user, you have to update your database
-;; manually, probably you only need to prefix all rows with a
-;; directory name to get the full path and file name.
-;;
-;; * Removed `tumme-thumb-file-name-format'. Added
-;; `tumme-thumbnail-storage' and changed `tumme-thumb-name' to provide
-;; two different thumbnail storage schemes. It is no longer necessary
-;; to have unique image file names to use tumme fully.
-;;
-;; * As a consequence of the above, gallery generation is currently
-;; not supported if per-directory thumbnail file storage is used.
-;;
-;; * Changed parameters to `tumme-create-thumb'.
-;;
-;; * To be included in Emacs 22.
-;;
-;;
-;; Version 0.4.11, 2006-MM-DD
-;;
-;; * Changed `tumme-display-thumbs' so that it calls `display-buffer'
-;; after generating the thumbnails and changed
-;; `tumme-display-thumbnail-original-image' to display the image
-;; buffer. These small changes should make it easier for a user to
-;; start using tumme.
-;;
-;; * Added `tumme-show-all-from-dir' to mimic thumbs.el's easy-to-use
-;; `thumbs' command. A new customize option,
-;; `tumme-show-all-from-dir-max-files' was added too.
-;;
-;; * Renamed `tumme-dired' to `tumme-dired-with-window-configuration'
-;; and added code to save the window configuration before messing it
-;; up. The saved window configuration can be restored using the new
-;; command `tumme-restore-window-configuration'.
-;;
-;; * Added `tumme-get-thumbnail-image', created by Chong Yidong. His
-;; own comments: ..., that just takes the original filename and
-;; returns a thumbnail image descriptor.  Then third-party libraries
-;; won't have to muck around with tumme.el's internal functions like
-;; `thumme-thumb-name', `tumme-create-thumb', etc. His code to get
-;; speedbar display tumme thumbnails, might be integrated soon.
-;;
 ;; TODO
 ;; ====
 ;;
@@ -548,7 +175,8 @@
 ;; `dired-next-line' and `dired-previous-line' figure out if tumme is
 ;; enabled in the current buffer and, if it is, call
 ;; `tumme-dired-next-line' and `tumme-dired-previous-line',
-;; respectively.
+;; respectively. Update: This is partly done; some bindings have now
+;; been added to dired.
 ;;
 ;; * Enhanced gallery creation with basic CSS-support and pagination
 ;; of tag pages with many pictures.
@@ -570,10 +198,10 @@
 (defgroup tumme nil
   "Use dired to browse your images as thumbnails, and more."
   :prefix "tumme-"
-  :group 'files)
+  :group 'multimedia)
 
-(defcustom tumme-dir "~/.tumme/"
-  "*Directory where thumbnail images for are stored."
+(defcustom tumme-dir "~/.emacs.d/tumme/"
+  "*Directory where thumbnail images are stored."
   :type 'string
   :group 'tumme)
 
@@ -583,23 +211,27 @@ Tumme can store thumbnail files in one of two ways and this is
 controlled by this variable.  \"Use tumme dir\" means that the
 thumbnails are stored in a central directory.  \"Per directory\"
 means that each thumbnail is stored in a subdirectory called
-\".tumme\" in the same directory where the image file is."
+\".tumme\" in the same directory where the image file is.
+\"Thumbnail Managing Standard\" means that the thumbnails are
+stored and generated according to the Thumbnail Managing
+Standard."
   :type '(choice :tag "How to store thumbnail files"
+                 (const :tag "Thumbnail Managing Standard" standard)
                  (const :tag "Use tumme-dir" use-tumme-dir)
                  (const :tag "Per-directory" per-directory))
   :group 'tumme)
 
-(defcustom tumme-db-file "~/.tumme/.tumme_db"
+(defcustom tumme-db-file "~/.emacs.d/tumme/.tumme_db"
   "*Database file where file names and their associated tags are stored."
   :type 'string
   :group 'tumme)
 
-(defcustom tumme-temp-image-file "~/.tumme/.tumme_temp"
+(defcustom tumme-temp-image-file "~/.emacs.d/tumme/.tumme_temp"
   "*Name of temporary image file used by various commands."
   :type 'string
   :group 'tumme)
 
-(defcustom tumme-gallery-dir "~/.tumme/.tumme_gallery"
+(defcustom tumme-gallery-dir "~/.emacs.d/tumme/.tumme_gallery"
   "*Directory to store generated gallery html pages.
 This path needs to be \"shared\" to the public so that it can access
 the index.html page that tumme creates."
@@ -630,13 +262,13 @@ Used together with `tumme-cmd-create-thumbnail-options'."
   :group 'tumme)
 
 (defcustom tumme-cmd-create-thumbnail-options
-  "%p -size %sx%s \"%f\" -resize %sx%s +profile \"*\" jpeg:\"%t\""
+  "%p -size %wx%h \"%f\" -resize %wx%h +profile \"*\" jpeg:\"%t\""
   "*Format of command used to create thumbnail image.
 Available options are %p which is replaced by
-`tumme-cmd-create-thumbnail-program', %s which is replaced by
-`tumme-thumb-size', %f which is replaced by the file name of the
-original image and %t which is replaced by the file name of the
-thumbnail file."
+`tumme-cmd-create-thumbnail-program', %w which is replaced by
+`tumme-thumb-width', %h which is replaced by `tumme-thumb-height',
+%f which is replaced by the file name of the original image and %t
+which is replaced by the file name of the thumbnail file."
   :type 'string
   :group 'tumme)
 
@@ -648,13 +280,61 @@ Used together with `tumme-cmd-create-temp-image-options'."
   :group 'tumme)
 
 (defcustom tumme-cmd-create-temp-image-options
-  "%p -size %xx%y \"%f\" -resize %xx%y +profile \"*\" jpeg:\"%t\""
+  "%p -size %wx%h \"%f\" -resize %wx%h +profile \"*\" jpeg:\"%t\""
   "*Format of command used to create temporary image for display window.
 Available options are %p which is replaced by
-`tumme-cmd-create-temp-image-program', %x and %y which is replaced by
-the calculated max size for x and y in the image display window, %f
-which is replaced by the file name of the original image and %t which
+`tumme-cmd-create-temp-image-program', %w and %h which is replaced by
+the calculated max size for width and height in the image display window,
+%f which is replaced by the file name of the original image and %t which
 is replaced by the file name of the temporary file."
+  :type 'string
+  :group 'tumme)
+
+(defcustom tumme-cmd-pngnq-program (executable-find "pngnq")
+  "*The file name of the `pngnq' program.
+It quantizes colors of PNG images down to 256 colors."
+  :type '(choice (const :tag "Not Set" nil) string)
+  :group 'tumme)
+
+(defcustom tumme-cmd-pngcrush-program (executable-find "pngcrush")
+  "*The file name of the `pngcrush' program.
+It optimizes the compression of PNG images.  Also it adds PNG textual chunks
+with the information required by the Thumbnail Managing Standard."
+  :type '(choice (const :tag "Not Set" nil) string)
+  :group 'tumme)
+
+(defcustom tumme-cmd-create-standard-thumbnail-command
+  (concat
+   tumme-cmd-create-thumbnail-program " "
+   "-size %wx%h \"%f\" "
+   (unless (or tumme-cmd-pngcrush-program tumme-cmd-pngnq-program)
+     (concat
+      "-set \"Thumb::MTime\" \"%m\" "
+      "-set \"Thumb::URI\" \"file://%f\" "
+      "-set \"Description\" \"Thumbnail of file://%f\" "
+      "-set \"Software\" \"" (emacs-version) "\" "))
+   "-thumbnail %wx%h png:\"%t\""
+   (if tumme-cmd-pngnq-program
+       (concat
+        " ; " tumme-cmd-pngnq-program " -f \"%t\""
+        (unless tumme-cmd-pngcrush-program
+          " ; mv %q %t")))
+   (if tumme-cmd-pngcrush-program
+       (concat
+        (unless tumme-cmd-pngcrush-program
+          " ; cp %t %q")
+        " ; " tumme-cmd-pngcrush-program " -q "
+        "-text b \"Description\" \"Thumbnail of file://%f\" "
+        "-text b \"Software\" \"" (emacs-version) "\" "
+        ;; "-text b \"Thumb::Image::Height\" \"%oh\" "
+        ;; "-text b \"Thumb::Image::Mimetype\" \"%mime\" "
+        ;; "-text b \"Thumb::Image::Width\" \"%ow\" "
+        "-text b \"Thumb::MTime\" \"%m\" "
+        ;; "-text b \"Thumb::Size\" \"%b\" "
+        "-text b \"Thumb::URI\" \"file://%f\" "
+        "%q %t"
+        " ; rm %q")))
+  "*Command to create thumbnails according to the Thumbnail Managing Standard."
   :type 'string
   :group 'tumme)
 
@@ -696,7 +376,7 @@ original image file name and %t which is replaced by
   :group 'tumme)
 
 (defcustom tumme-temp-rotate-image-file
-  "~/.tumme/.tumme_rotate_temp"
+  "~/.emacs.d/tumme/.tumme_rotate_temp"
   "*Temporary file for rotate operations."
   :type 'string
   :group 'tumme)
@@ -748,8 +428,19 @@ Used by `tumme-gallery-generate' to leave out \"hidden\" images."
   :type '(repeat string)
   :group 'tumme)
 
-(defcustom tumme-thumb-size 100
-  "Size of thumbnails, in pixels."
+(defcustom tumme-thumb-size (if (eq 'standard tumme-thumbnail-storage) 128 100)
+  "Size of thumbnails, in pixels.
+This is the default size for both `tumme-thumb-width' and `tumme-thumb-height'."
+  :type 'integer
+  :group 'tumme)
+
+(defcustom tumme-thumb-width tumme-thumb-size
+  "Width of thumbnails, in pixels."
+  :type 'integer
+  :group 'tumme)
+
+(defcustom tumme-thumb-height tumme-thumb-size
+  "Height of thumbnails, in pixels."
   :type 'integer
   :group 'tumme)
 
@@ -832,7 +523,11 @@ with the comment."
   :type 'string
   :group 'tumme)
 
-(defcustom tumme-external-viewer "qiv -t"
+(defcustom tumme-external-viewer
+  ;; TODO: use mailcap, dired-guess-shell-alist-default, dired-view-command-alist
+  (cond ((executable-find "display"))
+        ((executable-find "xli"))
+        ((executable-find "qiv") "qiv -t"))
   "*Name of external viewer.
 Including parameters.  Used when displaying original image from
 `tumme-thumbnail-mode'."
@@ -850,6 +545,16 @@ Used by `tumme-copy-with-exif-file-name'."
 before warning the user."
   :type 'integer
   :group 'tumme)
+
+(defun tumme-dir ()
+  "Return the current thumbnails directory (from `tumme-dir').
+Create the thumbnails directory if it does not exist."
+  (let ((tumme-dir (file-name-as-directory
+                    (expand-file-name tumme-dir))))
+    (unless (file-directory-p tumme-dir)
+      (make-directory tumme-dir t)
+      (message "Creating thumbnails directory"))
+    tumme-dir))
 
 (defun tumme-insert-image (file type relief margin)
   "Insert image FILE of image TYPE, using RELIEF and MARGIN, at point."
@@ -869,8 +574,11 @@ before warning the user."
 		 (<= (float-time (nth 5 (file-attributes file)))
 		     (float-time (nth 5 (file-attributes thumb-file)))))
       (tumme-create-thumb file thumb-file))
-    (list 'image :type 'jpeg :file thumb-file
-	  :relief tumme-thumb-relief :margin tumme-thumb-margin)))
+    (create-image thumb-file)
+;;     (list 'image :type 'jpeg
+;;           :file thumb-file
+;; 	  :relief tumme-thumb-relief :margin tumme-thumb-margin)
+    ))
 
 (defun tumme-insert-thumbnail (file original-file-name
                                     associated-dired-buffer)
@@ -879,7 +587,9 @@ Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
   (let (beg end)
     (setq beg (point))
     (tumme-insert-image file
-                        'jpeg
+                        ;; TODO: this should depend on the real file type
+                        (if (eq 'standard tumme-thumbnail-storage)
+                            'png 'jpeg)
                         tumme-thumb-relief
                         tumme-thumb-margin)
     (setq end (point))
@@ -898,38 +608,52 @@ Depending on the value of `tumme-thumbnail-storage', the file
 name will vary.  For central thumbnail file storage, make a
 MD5-hash of the image file's directory name and add that to make
 the thumbnail file name unique.  For per-directory storage, just
-add a subdirectory."
-  (let ((f (expand-file-name file))
-        md5-hash)
-    (format "%s%s%s.thumb.%s"
-            (cond ((eq 'use-tumme-dir tumme-thumbnail-storage)
-                   ;; Is MD5 hashes fast enough? The checksum of a
-                   ;; thumbnail file name need not be that
-                   ;; "cryptographically" good so a faster one could
-                   ;; be used here.
-                   (setq md5-hash (md5 (file-name-as-directory
-                                        (file-name-directory file))))
-                   (file-name-as-directory (expand-file-name tumme-dir)))
-                  ((eq 'per-directory tumme-thumbnail-storage)
-                   (format "%s.tumme/"
-                           (file-name-directory f))))
-            (file-name-sans-extension
-             (file-name-nondirectory f))
-            (if md5-hash
-                (concat "_" md5-hash)
-              "")
-            (file-name-extension f))))
+add a subdirectory.  For standard storage, produce the file name
+according to the Thumbnail Managing Standard."
+  (cond ((eq 'standard tumme-thumbnail-storage)
+         (expand-file-name
+          (concat "~/.thumbnails/normal/"
+                  (md5 (concat "file://" (expand-file-name file))) ".png")))
+        ((eq 'use-tumme-dir tumme-thumbnail-storage)
+         (let* ((f (expand-file-name file))
+                (md5-hash
+                 ;; Is MD5 hashes fast enough? The checksum of a
+                 ;; thumbnail file name need not be that
+                 ;; "cryptographically" good so a faster one could
+                 ;; be used here.
+                 (md5 (file-name-as-directory (file-name-directory f)))))
+           (format "%s%s%s.thumb.%s"
+                   (file-name-as-directory (expand-file-name (tumme-dir)))
+                   (file-name-sans-extension (file-name-nondirectory f))
+                   (if md5-hash (concat "_" md5-hash) "")
+                   (file-name-extension f))))
+        ((eq 'per-directory tumme-thumbnail-storage)
+         (let ((f (expand-file-name file)))
+           (format "%s%s%s.thumb.%s"
+                   (format "%s.tumme/" (file-name-directory f))
+                   (file-name-sans-extension (file-name-nondirectory f))
+                   (file-name-extension f))))))
 
 (defun tumme-create-thumb (original-file thumbnail-file)
   "For ORIGINAL-FILE, create thumbnail image named THUMBNAIL-FILE."
-  (let* ((size (int-to-string tumme-thumb-size))
+  (let* ((width (int-to-string tumme-thumb-width))
+         (height (int-to-string tumme-thumb-height))
+         (modif-time (format "%.0f" (float-time (nth 5 (file-attributes
+                                                        original-file)))))
+         (thumbnail-nq8-file (replace-regexp-in-string ".png\\'" "-nq8.png"
+                                                       thumbnail-file))
          (command
           (format-spec
-           tumme-cmd-create-thumbnail-options
+           (if (eq 'standard tumme-thumbnail-storage)
+               tumme-cmd-create-standard-thumbnail-command
+             tumme-cmd-create-thumbnail-options)
            (list
             (cons ?p tumme-cmd-create-thumbnail-program)
-            (cons ?s size)
+            (cons ?w width)
+            (cons ?h height)
+            (cons ?m modif-time)
             (cons ?f original-file)
+            (cons ?q thumbnail-nq8-file)
             (cons ?t thumbnail-file))))
          thumbnail-dir)
     (when (not (file-exists-p
@@ -937,6 +661,40 @@ add a subdirectory."
       (message "Creating thumbnail directory.")
       (make-directory thumbnail-dir))
     (shell-command command nil)))
+
+;;;###autoload
+(defun tumme-dired-insert-marked-thumbs ()
+  "Insert thumbnails before file names of marked files in the dired buffer."
+  (interactive)
+  (dired-map-over-marks
+   (let* ((image-pos (dired-move-to-filename))
+          (image-file (dired-get-filename))
+          (thumb-file (tumme-get-thumbnail-image image-file))
+          overlay)
+     ;; If image is not already added, then add it.
+     (unless (delq nil (mapcar (lambda (o) (overlay-get o 'put-image))
+                               ;; Can't use (overlays-at (point)), BUG?
+                               (overlays-in (point) (1+ (point)))))
+       (put-image thumb-file image-pos)
+       (setq overlay (car (delq nil (mapcar (lambda (o) (and (overlay-get o 'put-image) o))
+                                            (overlays-in (point) (1+ (point)))))))
+       (overlay-put overlay 'image-file image-file)
+       (overlay-put overlay 'thumb-file thumb-file)))
+   nil)
+  (add-hook 'dired-after-readin-hook 'tumme-dired-after-readin-hook nil t))
+
+(defun tumme-dired-after-readin-hook ()
+  "Relocate existing thumbnail overlays in dired buffer after reverting.
+Move them to their corresponding files if they are still exist.
+Otherwise, delete overlays."
+  (mapc (lambda (overlay)
+          (when (overlay-get overlay 'put-image)
+            (let* ((image-file (overlay-get overlay 'image-file))
+                   (image-pos (dired-goto-file image-file)))
+              (if image-pos
+                  (move-overlay overlay image-pos image-pos)
+                (delete-overlay overlay)))))
+        (overlays-in (point-min) (point-max))))
 
 (defun tumme-next-line-and-display ()
   "Move to next dired line and display thumbnail image."
@@ -1947,7 +1705,7 @@ Calculate how many thumbnails fit."
          (/ width
             (+ (* 2 tumme-thumb-relief)
                (* 2 tumme-thumb-margin)
-               tumme-thumb-size char-width))))
+               tumme-thumb-width char-width))))
     (tumme-line-up)))
 
 (defun tumme-line-up-interactive ()
@@ -2039,19 +1797,19 @@ systems it should feel snappy enough.
 If optional argument ORIGINAL-SIZE is non-nil, display image in its
 original size."
   (let ((new-file (expand-file-name tumme-temp-image-file))
-        size-x size-y command ret)
+        width height command ret)
     (setq file (expand-file-name file))
     (if (not original-size)
         (progn
-          (setq size-x (tumme-display-window-width))
-          (setq size-y (tumme-display-window-height))
+          (setq width (tumme-display-window-width))
+          (setq height (tumme-display-window-height))
           (setq command
                 (format-spec
                  tumme-cmd-create-temp-image-options
                  (list
                   (cons ?p tumme-cmd-create-temp-image-program)
-                  (cons ?x size-x)
-                  (cons ?y size-y)
+                  (cons ?w width)
+                  (cons ?h height)
                   (cons ?f file)
                   (cons ?t new-file))))
           (setq ret (shell-command command nil))
@@ -2289,12 +2047,11 @@ function.  The result is a couple of new files in
 (defun tumme-write-comment (file comment)
   "For FILE, write comment COMMENT in database."
   (save-excursion
-    (let (end buf comment-beg
-              (base-name (file-name-nondirectory file)))
+    (let (end buf comment-beg)
       (setq buf (find-file tumme-db-file))
       (goto-char (point-min))
       (if (search-forward-regexp
-           (format "^%s" base-name) nil t)
+           (format "^%s" file) nil t)
           (progn
             (end-of-line)
             (setq end (point))
@@ -2317,7 +2074,7 @@ function.  The result is a couple of new files in
             (insert (format "comment:%s;" comment)))
         ;; File does not exist in databse - add it.
         (goto-char (point-max))
-        (insert (format "\n%s;comment:%s" base-name comment)))
+        (insert (format "\n%s;comment:%s" file comment)))
       (save-buffer)
       (kill-buffer buf))))
 
@@ -2350,8 +2107,9 @@ function.  The result is a couple of new files in
   (tumme-display-thumb-properties))
 
 (defun tumme-read-comment (&optional file)
-  "Read comment, optionally using old comment from FILE as initial value."
-
+  "Read comment for an image.
+Read comment for an image, optionally using old comment from FILE
+as initial value."
   (let ((comment
          (read-string
           "Comment: "
@@ -2382,7 +2140,12 @@ function.  The result is a couple of new files in
 
 ;;;###autoload
 (defun tumme-mark-tagged-files ()
-  "Use regexp to mark files with matching tag."
+  "Use regexp to mark files with matching tag.
+A `tag' is a keyword, a piece of meta data, associated with an
+image file and stored in tumme's database file.  This command
+lets you input a regexp and this will be matched against all tags
+on all image files in the database file.  The files that have a
+matching tags will be marked in the dired buffer."
   (interactive)
   (let ((tag (read-string "Mark tagged files (regexp): "))
         (hits 0)
@@ -2392,7 +2155,7 @@ function.  The result is a couple of new files in
       (goto-char (point-min))
       ;; Collect matches
       (while (search-forward-regexp
-              (concat "\\(^[^;]+\\);.*" tag ".*$") nil t)
+              (concat "\\(^[^;\n]+\\);.*" tag ".*$") nil t)
         (setq files (append (list (match-string 1)) files)))
       (kill-buffer buf)
       ;; Mark files
@@ -2710,7 +2473,7 @@ when using per-directory thumbnail file storage"))
 ;;               (let ((fattribs (file-attributes f)))
 ;;                 ;; Get last access time and file size
 ;;                 `(,(nth 4 fattribs) ,(nth 7 fattribs) ,f)))
-;;             (directory-files tumme-dir t ".+\.thumb\..+$"))
+;;             (directory-files (tumme-dir) t ".+\.thumb\..+$"))
 ;;            ;; Sort function. Compare time between two files.
 ;;            '(lambda (l1 l2)
 ;;               (time-less-p (car l1) (car l2)))))

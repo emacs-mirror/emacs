@@ -2575,10 +2575,10 @@ Likewise @kbd{M-x table-backward-cell} from the first cell in a table
 moves to the last cell.
 
 @findex table-span-cell
-  The command @code{table-span-cell} spans the current cell into one
-of the four directions---right, left, above or below---and merges the
-current cell with the adjacent cell.  It does not allow directions to
-which spanning does not produce a legitimate cell.
+  The command @code{table-span-cell} merges the current cell with the
+adjacent cell in a specified direction---right, left, above or below.
+You specify the direction with the minibuffer.  It does not allow
+merges which don't result in a legitimate cell layout.
 
 @findex table-split-cell
 @cindex text-based tables, split a cell
@@ -2586,7 +2586,8 @@ which spanning does not produce a legitimate cell.
   The command @code{table-split-cell} splits the current cell
 vertically or horizontally.  This command is a wrapper to the
 direction specific commands @code{table-split-cell-vertically} and
-@code{table-split-cell-horizontally}.
+@code{table-split-cell-horizontally}.  You specify the direction with
+a minibuffer argument.
 
 @findex table-split-cell-vertically
   The command @code{table-split-cell-vertically} splits the current

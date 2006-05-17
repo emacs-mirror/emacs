@@ -132,19 +132,6 @@ place to set up customizations for that major mode.  @xref{Hooks}.
 something like a function, is called a @dfn{defun}.  The name comes
 from Lisp, but in Emacs we use it for all languages.
 
-  In many programming language modes, Emacs assumes that a defun is
-any pair of parentheses (or braces, if the language uses braces this
-way) that starts at the left margin.  For example, in C, the body of a
-function definition is a defun, usually recognized as an open-brace
-that begins at the left margin@footnote{Alternatively, you can set up
-C Mode to recognize a defun at an opening brace at the outermost
-level.  @xref{Movement Commands,,, ccmode, the CC Mode Manual}.}.  A
-variable's initializer can also count as a defun, if the open-brace
-that begins the initializer is at the left margin.
-
-  However, some language modes provide their own code for recognizing
-defuns in a way that suits the language syntax and conventions better.
-
 @menu
 * Left Margin Paren::   An open-paren or similar opening delimiter
                           starts a defun if it is at the left margin.
@@ -1552,30 +1539,30 @@ whitespace either before point or after point in a single operation.
 preprocessor commands.
 
 @table @kbd
-@item C-c C-@key{BS}
-@itemx C-c @key{BS}
+@item C-c C-@key{DEL}
+@itemx C-c @key{DEL}
 @findex c-hungry-backspace
-@kindex C-c C-@key{BS} (C Mode)
-@kindex C-c @key{BS} (C Mode)
+@kindex C-c C-@key{DEL} (C Mode)
+@kindex C-c @key{DEL} (C Mode)
 @code{c-hungry-backspace}---Delete the entire block of whitespace
 preceding point.
 
 @item C-c C-d
-@itemx C-c C-@key{DEL}
-@itemx C-c @key{DEL}
+@itemx C-c C-@key{DELETE}
+@itemx C-c @key{DELETE}
 @findex c-hungry-delete-forward
 @kindex C-c C-d (C Mode)
-@kindex C-c C-@key{DEL} (C Mode)
-@kindex C-c @key{DEL} (C Mode)
+@kindex C-c C-@key{DELETE} (C Mode)
+@kindex C-c @key{DELETE} (C Mode)
 @code{c-hungry-delete-forward}---Delete the entire block of whitespace
 following point.
 @end table
 
   As an alternative to the above commands, you can enable @dfn{hungry
 delete mode}.  When this feature is enabled (indicated by @samp{/h} in
-the mode line after the mode name), a single @key{BS} command deletes
-all preceding whitespace, not just one space, and a single @kbd{C-c
-C-d} (but @emph{not} @key{DELETE}) deletes all following whitespace.
+the mode line after the mode name), a single @key{DEL} deletes all
+preceding whitespace, not just one space, and a single @kbd{C-c C-d}
+(but @emph{not} plain @key{DELETE}) deletes all following whitespace.
 
 @table @kbd
 @item M-x c-toggle-hungry-state

@@ -287,9 +287,9 @@ For a fancy alternative, get `ffap-url.el'."
 
 ;;; Compatibility:
 ;;
-;; This version of ffap supports Emacs 20 only, see the ftp site
-;; for a more general version.  The following functions are necessary
-;; "leftovers" from the more general version.
+;; This version of ffap supports only the Emacs it is distributed in.
+;; See the ftp site for a more general version.  The following
+;; functions are necessary "leftovers" from the more general version.
 
 (defun ffap-mouse-event nil		; current mouse event, or nil
   (and (listp last-nonmenu-event) last-nonmenu-event))
@@ -730,7 +730,7 @@ kpathsea, a library used by some versions of TeX."
 	  path)))
 
 (defun ffap-locate-file (file &optional nosuffix path dir-ok)
-  ;; The Emacs 20 version of locate-library could almost replace this,
+  ;; The current version of locate-library could almost replace this,
   ;; except it does not let us override the suffix list.  The
   ;; compression-suffixes search moved to ffap-file-exists-string.
   "A generic path-searching function, mimics `load' by default.

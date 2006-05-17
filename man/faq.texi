@@ -3670,7 +3670,7 @@ for OS/2 users of Emacs can be found at
 @cindex Atari ST, Emacs for
 @cindex TOS, Emacs for
 
-Roland Schäuble reports that Emacs 18.58 running on plain TOS and MiNT
+Roland Sch@"auble reports that Emacs 18.58 running on plain TOS and MiNT
 is available at
 @uref{ftp://atari.archive.umich.edu/Editors/Emacs-18-58/1858b-d3.zoo}.
 

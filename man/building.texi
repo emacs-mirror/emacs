@@ -10,7 +10,7 @@
 
   The previous chapter discusses the Emacs commands that are useful for
 making changes in programs.  This chapter deals with commands that assist
-in the larger process of developing and maintaining programs.
+in the larger process of compiling and testing programs.
 
 @menu
 * Compilation::         Compiling programs in languages other
@@ -976,11 +976,13 @@ for variables defined in compound statements, the default value is
 If the variable @code{gdb-use-inferior-io-buffer} is non-@code{nil},
 the executable program that is being debugged takes its input and
 displays its output here.  Otherwise it uses the GUD buffer for that.
-To toggle the use of this buffer, do @kbd{M-x
-gdb-use-inferior-io-buffer}.
+To toggle whether GUD mode uses this buffer, do @kbd{M-x
+gdb-use-inferior-io-buffer}.  That takes effect when you next
+restart the program you are debugging.
 
-Some of the commands from shell mode are available here.  @xref{Shell
-Mode}.
+The history and replay commands from Shell mode are available here,
+as are the commands to send signals to the program you are debugging.
+@xref{Shell Mode}.
 
 @item Locals Buffer
 The locals buffer displays the values of local variables of the
@@ -990,8 +992,8 @@ Information on a frame, gdb, The GNU debugger}).
 Arrays and structures display their type only.  With GDB 6.4 or later,
 move point to their name and press @key{RET}, or alternatively click
 @kbd{Mouse-2} there, to examine their values.  With earlier versions
-of GDB, move point to their type description ([struct/union] or
-[array]).  @xref{Watch Expressions}.
+of GDB, use @kbd{Mouse-2} or @key{RET} on the type description
+(@samp{[struct/union]} or @samp{[array]}).  @xref{Watch Expressions}.
 
 @item Registers Buffer
 @findex toggle-gdb-all-registers

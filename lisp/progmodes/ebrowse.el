@@ -4236,7 +4236,7 @@ NUMBER-OF-STATIC-VARIABLES:"
   "*Keymap for Ebrowse commands.")
 
 
-(defvar ebrowse-global-prefix-key "\C-cb"
+(defvar ebrowse-global-prefix-key "\C-cC-m"
   "Prefix key for Ebrowse commands.")
 
 

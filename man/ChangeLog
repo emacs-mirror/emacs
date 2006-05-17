@@ -1,3 +1,36 @@
+2006-02-12  Karl Berry  <karl@gnu.org>
+
+	* faq.texi (Emacs for Atari ST): use Sch@"auble instead of the
+	8-bit accented a.
+
+2006-02-12  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Building): Clarify topic in intro.
+
+	* maintaining.texi (Maintaining): Change title; clarify topic.
+	Delete duplicate index entries.
+
+	* building.texi (Other GDB User Interface Buffers): Clarifications.
+
+	* text.texi (Cell Commands): Clarifications.
+
+	* programs.texi (Defuns): Delete duplicate explanation of
+	left-margin paren convention.
+	(Hungry Delete): Minor cleanup.
+
+2006-02-11  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* dired.texi (Tumme): More tumme documentation.
+
+2006-02-11  Alan Mackenzie  <acm@muc.de>
+
+	* programs.texi ("Hungry Delete"): Correct the appellation of the
+	backspace and delete keys to @kbd{DEL} and @kbd{DELETE}.
+
+2006-02-11  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* dired.texi (Tumme): Fixed small bug.
+
 2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macos.texi (Mac International): Rename "fontset-mac" to

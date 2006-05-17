@@ -556,7 +556,34 @@ or `keymap' property, return the binding of KEY in the string's keymap."
 	    string
 	  (format "%s (translated from %s)" string otherstring))))))
 
-(defun describe-key-briefly (key &optional insert untranslated)
+(defun describe-key-briefly (&optional key insert untranslated)
+  "Print the name of the function KEY invokes.  KEY is a string.
+If INSERT (the prefix arg) is non-nil, insert the message in the buffer.
+If non-nil, UNTRANSLATED is a vector of the untranslated events.
+It can also be a number in which case the untranslated events from
+the last key hit are used.
+
+If KEY is a menu item or a tool-bar button that is disabled, this command
+temporarily enables it to allow getting help on disabled items and buttons."
+  (interactive)
+  (let ((enable-disabled-menus-and-buttons t)
+	(save-yank-menu))
+    (if key
+	;; Non-interactive invocation
+	(describe-key-briefly-internal key insert untranslated)
+      ;; If yank-menu is empty, populate it temporarily, so that
+      ;; "Select and Paste" menu can generate a complete event
+      (if (null (cdr yank-menu))
+	  (unwind-protect
+	      (progn
+		(setq save-yank-menu (copy-sequence yank-menu))
+		(menu-bar-update-yank-menu "(any string)" nil)
+		(call-interactively 'describe-key-briefly-internal))
+	    (progn (setq yank-menu (copy-sequence save-yank-menu))
+		   (fset 'yank-menu (cons 'keymap yank-menu))))
+	(call-interactively 'describe-key-briefly-internal)))))
+
+(defun describe-key-briefly-internal (key &optional insert untranslated)
   "Print the name of the function KEY invokes.  KEY is a string.
 If INSERT (the prefix arg) is non-nil, insert the message in the buffer.
 If non-nil UNTRANSLATED is a vector of the untranslated events.
@@ -601,7 +628,7 @@ the last key hit are used."
 			 key-desc
 			 (if (symbolp defn) defn (prin1-to-string defn)))))))))
 
-(defun describe-key (key &optional untranslated up-event)
+(defun describe-key (&optional key untranslated up-event)
   "Display documentation of the function invoked by KEY.
 KEY can be any kind of a key sequence; it can include keyboard events,
 mouse events, and/or menu events.  When calling from a program,
@@ -609,8 +636,39 @@ pass KEY as a string or a vector.
 
 If non-nil, UNTRANSLATED is a vector of the corresponding untranslated events.
 It can also be a number, in which case the untranslated events from
-the last key sequence entered are used."
-  ;; UP-EVENT is the up-event that was discarded by reading KEY, or nil.
+the last key sequence entered are used.
+UP-EVENT is the up-event that was discarded by reading KEY, or nil.
+
+If KEY is a menu item or a tool-bar button that is disabled, this command
+temporarily enables it to allow getting help on disabled items and buttons."
+  (interactive)
+  (let ((enable-disabled-menus-and-buttons t)
+	(save-yank-menu))
+    (if key
+	;; Non-interactive invocation
+	(describe-key-internal key untranslated up-event)
+      ;; If yank-menu is empty, populate it temporarily, so that
+      ;; "Select and Paste" menu can generate a complete event
+      (if (null (cdr yank-menu))
+	  (unwind-protect
+	      (progn
+		(setq save-yank-menu (copy-sequence yank-menu))
+		(menu-bar-update-yank-menu "(any string)" nil)
+		(call-interactively 'describe-key-internal))
+	    (progn (setq yank-menu (copy-sequence save-yank-menu))
+		   (fset 'yank-menu (cons 'keymap yank-menu))))
+	(call-interactively 'describe-key-internal)))))
+
+(defun describe-key-internal (key &optional untranslated up-event)
+  "Display documentation of the function invoked by KEY.
+KEY can be any kind of a key sequence; it can include keyboard events,
+mouse events, and/or menu events.  When calling from a program,
+pass KEY as a string or a vector.
+
+If non-nil, UNTRANSLATED is a vector of the corresponding untranslated events.
+It can also be a number, in which case the untranslated events from
+the last key sequence entered are used.
+UP-EVENT is the up-event that was discarded by reading KEY, or nil."
   (interactive "kDescribe key (or click or menu item): \np\nU")
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))

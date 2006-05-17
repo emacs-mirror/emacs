@@ -4336,7 +4336,9 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
   :group 'paren-blinking)
 
 (defcustom blink-matching-paren-dont-ignore-comments nil
-  "*Non-nil means `blink-matching-paren' will not ignore comments."
+  "*nil means `blink-matching-paren' ignores comments.
+More precisely, when looking for the matching parenthesis,
+it skips the contents of comments that end before point."
   :type 'boolean
   :group 'paren-blinking)
 

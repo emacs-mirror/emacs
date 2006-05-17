@@ -1,3 +1,137 @@
+2006-02-12  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-format-response-string): Fix small bugs.
+
+2006-02-13  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el: Removed history section.  If someone needs the it, it
+	can always be found in CVS.
+
+2006-02-12  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-thumbnail-storage): Updated docstring. Added
+	info about the Thumbnail Managing Standard option.
+
+2006-02-12  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (substitute-key-definition): Doc fix.
+
+	* simple.el (blink-matching-paren-dont-ignore-comments): Doc fix.
+
+	* files.el (magic-mode-alist): Don't use `\\s ' in regexps.
+
+	* info.el (Info-mode): Doc fix.
+
+	* progmodes/ebrowse.el (ebrowse-global-prefix-key): Change to C-c C-m.
+
+2006-02-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-path): Add "/usr/xpg4/bin" on top,
+	because on Solaris a POSIX compatible "id" is needed.  Reported by
+	Magnus Henoch <mange@freemail.hu>.
+
+2006-02-12  Juri Linkov  <juri@jurta.org>
+
+	* tumme.el: Remove todo item about Thumbnail Managing Standard.
+	(tumme) <defgroup>: Change :group to `multimedia'.
+	(tumme-thumbnail-storage): Add choice `standard' for Thumbnail
+	Managing Standard.
+	(tumme-cmd-create-thumbnail-options): Use %w and %h instead of %s.
+	Fix dostring.
+	(tumme-cmd-create-temp-image-options): Use %w and %h instead of %x
+	and %y.  Fix docstring.
+	(tumme-cmd-pngnq-program, tumme-cmd-pngcrush-program)
+	(tumme-cmd-create-standard-thumbnail-command): New user options.
+	(tumme-thumb-size): Set default to 128 if tumme-thumbnail-storage
+	is `standard'.  Fix docstring.
+	(tumme-thumb-width, tumme-thumb-height): New user options.
+	(tumme-external-viewer): Try to find various viewers.
+	(tumme-get-thumbnail-image): Use `create-image' instead of
+	constructing the `image' structure.
+	(tumme-insert-thumbnail): Use `png' if tumme-thumbnail-storage is
+	`standard'.
+	(tumme-thumb-name): Add file name generation for standard storage.
+	Simplify code for other storages.
+	(tumme-thumb-name): Use width %w and height %h instead of size %s.
+	Add modification time %m and thumbnail-nq8 %q.
+	Use `tumme-cmd-create-standard-thumbnail-command' if
+	tumme-thumbnail-storage is `standard'.
+	(tumme-dired-insert-marked-thumbs): New autoload command.
+	(tumme-dired-after-readin-hook): New function.
+	(tumme-line-up-dynamic): Use `tumme-thumb-width' instead of
+	`tumme-thumb-size'.
+	(tumme-display-image): Replace size-x %x and size-y %y with
+	width %w and height %h.
+
+	* dired.el (dired-mode-map): Bind `\C-t\C-t' to
+	`tumme-dired-insert-marked-thumbs'.
+
+2006-02-12  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-write-tag): Fix small bug (file name did not
+	include path).
+	(tumme-mark-tagged-files): Fix bug in regexp used to find rows
+	matching tag.
+
+2006-02-12  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-nick-abbrevs, rcirc-response-formats):
+	New variables.
+	(rcirc-abbrev-nick): New function.
+	(rcirc-format-response-string): Rewrite to use the formats in
+	`rcirc-response-formats' and expand escape sequences therein.
+	A text-property `rcirc-text' is added over the actual response
+	text to make easy to find inside the returned string.
+	(rcirc-print): When filling, just look for the `rcirc-text'
+	text-property to find the appropriate fill prefix, instead of
+	using hardwired patterns.
+
+2006-02-11  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* tumme.el: Enhance some docstrings.  Add todo item about Thumbnail
+	Managing Standard.
+
+2006-02-11  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-buffer-internal): Set mark for ido-insert-buffer.
+	Don't use insert-buffer; do insert-buffer-substring directly.
+	(ido-file-internal): Set mark for ido-insert-file. Use insert-file-1.
+
+2006-02-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (revert-buffer, recover-file): Replace buffer-read-only
+	with inhibit-read-only.	Suggested by Stefan Monnier.
+	(revert-buffer): Let insert-file-contents discard
+	buffer-undo-list.  Simplify code.
+	(find-file, find-file-existing, revert-buffer): Doc-string fixes.
+
+2006-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-select-yank): Add a doc string.
+
+	* help.el (describe-key-briefly): Now a wrapper for
+	describe-key-briefly-internal.  Bind enable-disabled-menus-and-buttons
+	to t.  Populate yank-menu if empty.
+	(describe-key-briefly-internal): Renamed from describe-key-briefly.
+	(describe-key): Now a wrapper for describe-key-internal.  Bind
+	enable-disabled-menus-and-buttons to t.  Populate yank-menu if empty.
+	(describe-key-internal): Renamed from describe-key.
+
+2006-02-11  Milan Zamazal  <pdm@zamazal.org>
+
+	* progmodes/glasses.el (glasses-separator): Doc fix.
+	(glasses-original-separator): New defcustom.
+	(glasses-make-readable, glasses-convert-to-unreadable): Use it.
+
+2006-02-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* mwheel.el (mouse-wheel-up-event): Doc fix.
+
+2006-02-11  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* tumme.el (tumme-dir): Change default value to "~/.emacs.d/tumme/".
+	(tumme-dir): New function.  Copied from thumbs.el.
+
 2006-02-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-outvar): Fix typo.
@@ -19,12 +153,12 @@
 
 2006-02-10  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el (tumme-copy-with-exif-file-name): Tried to make
-	docstring less `colloquial'...
+	* tumme.el (tumme-copy-with-exif-file-name): Try to make docstring
+	less `colloquial'...
 
 2006-02-09  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el: Added a couple of todo items.
+	* tumme.el: Add a couple of todo items.
 
 2006-02-09  Lars Hansen  <larsh@soem.dk>
 

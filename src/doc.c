@@ -748,7 +748,7 @@ Substrings of the form \\=\\[COMMAND] replaced by either: a keystroke
 sequence that will invoke COMMAND, or "M-x COMMAND" if COMMAND is not
 on any keys.
 Substrings of the form \\=\\{MAPVAR} are replaced by summaries
-\(made by describe-bindings) of the value of MAPVAR, taken as a keymap.
+\(made by `describe-bindings') of the value of MAPVAR, taken as a keymap.
 Substrings of the form \\=\\<MAPVAR> specify to use the value of MAPVAR
 as the keymap for future \\=\\[COMMAND] substrings.
 \\=\\= quotes the following character and is discarded;
