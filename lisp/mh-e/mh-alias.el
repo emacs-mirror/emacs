@@ -125,10 +125,10 @@ COMMA-SEPARATOR is non-nil."
         (setq res (match-string 1 res)))
     ;; Replace "&" with capitalized username
     (if (string-match "&" res)
-        (setq res (replace-regexp-in-string "&" (capitalize username) res)))
+        (setq res (mh-replace-regexp-in-string "&" (capitalize username) res)))
     ;; Remove " character
     (if (string-match "\"" res)
-        (setq res (replace-regexp-in-string "\"" "" res)))
+        (setq res (mh-replace-regexp-in-string "\"" "" res)))
     ;; If empty string, use username instead
     (if (string-equal "" res)
         (setq res username))
@@ -258,8 +258,8 @@ Blind aliases or users from /etc/passwd are not expanded."
    (t
     (mh-alias-ali alias))))
 
-(require 'crm nil t)                   ; completing-read-multiple
-(require 'multi-prompt nil t)
+(mh-require 'crm nil t)                 ; completing-read-multiple
+(mh-require 'multi-prompt nil t)
 
 ;;;###mh-autoload
 (defun mh-read-address (prompt)
@@ -606,12 +606,12 @@ filing messages."
 
 Then search backwards to beginning of line for the start of an
 e-mail address. If no e-mail address found, return nil."
-  (re-search-backward "[^-_A-z0-9.@]" (line-beginning-position) 'lim)
+  (re-search-backward "[^-_A-z0-9.@]" (mh-line-beginning-position) 'lim)
   (if (or (looking-at mh-address-mail-regexp) ; already at start
           (and (re-search-forward mh-address-mail-regexp
-                                  (line-end-position) 'lim)
+                                  (mh-line-end-position) 'lim)
                (goto-char (match-beginning 0))))
-      (match-string-no-properties 0)))
+      (mh-match-string-no-properties 0)))
 
 (defun mh-alias-apropos (regexp)
   "Show all aliases or addresses that match a regular expression REGEXP."

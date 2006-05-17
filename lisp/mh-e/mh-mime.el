@@ -302,14 +302,14 @@ the attachment labeled with that number."
          start end)
     (cond ((and data (not inserted-flag) (not displayed-flag))
            (let ((contents (mm-get-part data)))
-             (add-text-properties (line-beginning-position) (line-end-position)
-                                  '(mh-mime-inserted t))
+             (add-text-properties (mh-line-beginning-position)
+                                  (mh-line-end-position) '(mh-mime-inserted t))
              (setq start (point-marker))
              (forward-line 1)
              (mm-insert-inline data contents)
              (setq end (point-marker))
              (add-text-properties
-              start (progn (goto-char start) (line-end-position))
+              start (progn (goto-char start) (mh-line-end-position))
               `(mh-region (,start . ,end)))))
           ((and data (or inserted-flag displayed-flag))
            (mh-press-button)
@@ -746,7 +746,8 @@ buttons for alternative parts that are usually suppressed."
         (mh-insert-mime-button handle id (mm-handle-displayed-p handle))
         (goto-char point)
         (when region
-          (add-text-properties (line-beginning-position) (line-end-position)
+          (add-text-properties (mh-line-beginning-position)
+                               (mh-line-end-position)
                                `(mh-region ,region)))))))
 
 (defun mh-mime-part-index (handle)
@@ -1500,9 +1501,9 @@ This function will quote all such characters."
     (goto-char (point-min))
     (while (re-search-forward "^#" nil t)
       (beginning-of-line)
-      (unless (mh-mh-directive-present-p (point) (line-end-position))
+      (unless (mh-mh-directive-present-p (point) (mh-line-end-position))
         (insert "#"))
-      (goto-char (line-end-position)))))
+      (goto-char (mh-line-end-position)))))
 
 ;;;###mh-autoload
 (defun mh-mh-to-mime-undo (noconfirm)
@@ -1672,7 +1673,8 @@ buffer, while END defaults to the the end of the buffer."
     (block 'search-for-mh-directive
       (goto-char begin)
       (while (re-search-forward "^#" end t)
-        (let ((s (buffer-substring-no-properties (point) (line-end-position))))
+        (let ((s (buffer-substring-no-properties
+                  (point) (mh-line-end-position))))
           (cond ((equal s ""))
                 ((string-match "^forw[ \t\n]+" s)
                  (return-from 'search-for-mh-directive t))

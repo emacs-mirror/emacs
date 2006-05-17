@@ -1004,7 +1004,7 @@ See also `multi-occur'."
     (let* ((default (car regexp-history))
 	   (input
 	    (read-from-minibuffer
-	     (if allbufs
+	     (if current-prefix-arg
 		 "List lines in buffers whose names match regexp: "
 	       "List lines in buffers whose filenames match regexp: ")
 	     nil
@@ -1016,7 +1016,7 @@ See also `multi-occur'."
 	input))
     (occur-read-primary-args)))
   (when bufregexp
-    (occur-1 regexp nlines
+    (occur-1 regexp nil
 	     (delq nil
 		   (mapcar (lambda (buf)
 			     (when (if allbufs

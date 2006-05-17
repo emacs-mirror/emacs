@@ -1,3 +1,8 @@
+2006-02-03  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* erc.el (erc-version-string): Don't hard-code Emacs version.
+	(erc-version): Use emacs-version.
+
 2006-01-30  Simon Josefsson  <jas@extundo.com>
 
 	* erc.el (erc-open-ssl-stream): Use tls.el.

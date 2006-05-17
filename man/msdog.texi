@@ -344,7 +344,7 @@ the usual carriage-return linefeed.
 
 @cindex DOS-to-Unix conversion of files
   To visit a file and specify whether it uses DOS-style or Unix-style
-end-of-line, specify a coding system (@pxref{Specify Coding}).  For
+end-of-line, specify a coding system (@pxref{Text Coding}).  For
 example, @kbd{C-x @key{RET} c unix @key{RET} C-x C-f foobar.txt}
 visits the file @file{foobar.txt} without converting the EOLs; if some
 line ends with a carriage-return linefeed pair, Emacs will display
@@ -719,7 +719,7 @@ visit a file written on a DOS machine in another country), use the
 the codepage, with completion, then creates the coding system for the
 specified codepage.  You can then use the new coding system to read and
 write files, but you must specify it explicitly for the file command
-when you want to use it (@pxref{Specify Coding}).
+when you want to use it (@pxref{Text Coding}).
 
   These coding systems are also useful for visiting a file encoded using
 a DOS codepage, using Emacs running on some other operating system.

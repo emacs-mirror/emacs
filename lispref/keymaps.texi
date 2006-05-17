@@ -22,10 +22,13 @@ found.  The whole process is called @dfn{key lookup}.
 * Inheritance and Keymaps::	How one keymap can inherit the bindings
 				   of another keymap.
 * Prefix Keys::                 Defining a key with a keymap as its definition.
-* Active Keymaps::	        Each buffer has a local keymap
+* Active Keymaps::              How Emacs searches the active keymaps
+                                   for a key binding.
+* Searching Keymaps::           A pseudo-Lisp summary of searching active maps.
+* Controlling Active Maps::     Each buffer has a local keymap
                                    to override the standard (global) bindings.
 				   A minor mode can also override them.
-* Key Lookup::                  How extracting elements from keymaps works.
+* Key Lookup::                  Finding a key's binding in one keymap.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
 * Remapping Commands::          Bindings that translate one command to another.
@@ -537,17 +540,38 @@ string for the keymap.  The prompt string should be given for menu keymaps
 @cindex local keymap
 
   Emacs normally contains many keymaps; at any given time, just a few
-of them are @dfn{active} in that they participate in the
+of them are @dfn{active}, meaning that they participate in the
 interpretation of user input.  All the active keymaps are used
 together to determine what command to execute when a key is entered.
 Emacs searches these keymaps one by one, in a standard order, until it
-finds a binding in one of the keymaps.  (Searching a single keymap for a
-binding is called @dfn{key lookup}; see @ref{Key Lookup}.)
+finds a binding in one of the keymaps.
 
   Normally the active keymaps are the @code{keymap} property keymap,
 the keymaps of any enabled minor modes, the current buffer's local
 keymap, and the global keymap, in that order.  Therefore, Emacs
-searches for each input key sequence in all these keymaps.
+searches for each input key sequence in all these keymaps.  Here is a
+pseudo-Lisp description of how this process works:
+
+@lisp
+(or (if overriding-terminal-local-map
+        (@var{find-in} overriding-terminal-local-map)
+      (if overriding-local-map
+          (@var{find-in} overriding-local-map)
+        (or (@var{find-in} (get-text-property (point) 'keymap))
+            (@var{find-in-any} emulation-mode-map-alists)
+            (@var{find-in-any} minor-mode-overriding-map-alist)
+            (@var{find-in-any} minor-mode-map-alist)
+            (if (get-text-property (point) 'local-map))
+                (@var{find-in} (get-text-property (point) 'local-map))
+              (@var{find-in} (current-local-map))))))
+    (@var{find-in} (current-global-map)))
+@end lisp
+
+@noindent
+Here, the pseudo-function @var{find-in} means to look up the key
+sequence in a single map, and @var{find-in-any} means to search the
+appropriate keymaps from an alist.  (Searching a single keymap for a
+binding is called @dfn{key lookup}; see @ref{Key Lookup}.)
 
   The @dfn{global keymap} holds the bindings of keys that are defined
 regardless of the current buffer, such as @kbd{C-f}.  The variable
@@ -597,10 +621,92 @@ events within @code{read-key-sequence}.  @xref{Translating Input}.
 
   @xref{Standard Keymaps}, for a list of standard keymaps.
 
+@defun current-active-maps &optional olp
+This returns the list of active keymaps that would be used by the
+command loop in the current circumstances to look up a key sequence.
+Normally it ignores @code{overriding-local-map} and
+@code{overriding-terminal-local-map}, but if @var{olp} is
+non-@code{nil} then it pays attention to them.
+@end defun
+
+@defun key-binding key &optional accept-defaults no-remap
+This function returns the binding for @var{key} according to the
+current active keymaps.  The result is @code{nil} if @var{key} is
+undefined in the keymaps.
+
+@c Emacs 19 feature
+The argument @var{accept-defaults} controls checking for default
+bindings, as in @code{lookup-key} (above).
+
+When commands are remapped (@pxref{Remapping Commands}),
+@code{key-binding} normally processes command remappings so as to
+returns the remapped command that will actually be executed.  However,
+if @var{no-remap} is non-@code{nil}, @code{key-binding} ignores
+remappings and returns the binding directly specified for @var{key}.
+
+An error is signaled if @var{key} is not a string or a vector.
+
+@example
+@group
+(key-binding "\C-x\C-f")
+    @result{} find-file
+@end group
+@end example
+@end defun
+
+@node Searching Keymaps
+@section Searching the Active Keymaps
+
+  After translation of the input events (@pxref{Translating Input})
+Emacs looks for them in the active keymaps.  Here is a pseudo-Lisp
+description of the order in which the active keymaps are searched:
+
+@lisp
+(or (if overriding-terminal-local-map
+        (@var{find-in} overriding-terminal-local-map)
+      (if overriding-local-map
+          (@var{find-in} overriding-local-map)
+        (or (@var{find-in} (get-text-property (point) 'keymap))
+            (@var{find-in-any} emulation-mode-map-alists)
+            (@var{find-in-any} minor-mode-overriding-map-alist)
+            (@var{find-in-any} minor-mode-map-alist)
+            (@var{find-in} (get-text-property (point) 'local-map))
+            (@var{find-in} (current-local-map)))))
+    (@var{find-in} (current-global-map)))
+@end lisp
+
+@noindent
+The @var{find-in} and @var{find-in-any} are pseudo functions that
+searches in one keymap respectively an alist of keymaps.
+
+@enumerate
+@item
+The function finally found may be remapped
+(@pxref{Remapping Commands}).
+
+@item
+Characters that are bound to @code{self-insert-command} are translated
+according to @code{translation-table-for-input} before insertion.
+
+@item
+@code{current-active-maps} returns a list of the
+currently active keymaps at point.
+
+@item
+When a match is found (@pxref{Key Lookup}), if the binding in the
+keymap is a function, the search is over.  However if the keymap entry
+is a symbol with a value or a string, Emacs replaces the input key
+sequences with the variable's value or the string, and restarts the
+search of the active keymaps.
+@end enumerate
+
+@node Controlling Active Maps
+@section Controlling the Active Keymaps
+
 @defvar global-map
 This variable contains the default global keymap that maps Emacs
-keyboard input to commands.  The global keymap is normally this keymap.
-The default global keymap is a full keymap that binds
+keyboard input to commands.  The global keymap is normally this
+keymap.  The default global keymap is a full keymap that binds
 @code{self-insert-command} to all of the printing characters.
 
 It is normal practice to change the bindings in the global keymap, but you
@@ -763,14 +869,14 @@ are used before @code{minor-mode-map-alist} and
 @cindex keymap entry
 
   @dfn{Key lookup} is the process of finding the binding of a key
-sequence from a given keymap.  Actual execution of the binding is not
-part of key lookup.
+sequence from a given keymap.  The execution or use of the binding is
+not part of key lookup.
 
   Key lookup uses just the event type of each event in the key sequence;
 the rest of the event is ignored.  In fact, a key sequence used for key
 lookup may designate a mouse event with just its types (a symbol)
 instead of the entire event (a list).  @xref{Input Events}.  Such
-a ``key-sequence'' is insufficient for @code{command-execute} to run,
+a ``key sequence'' is insufficient for @code{command-execute} to run,
 but it is sufficient for looking up or rebinding a key.
 
   When the key sequence consists of multiple events, key lookup
@@ -965,39 +1071,6 @@ Used in keymaps to undefine keys.  It calls @code{ding}, but does
 not cause an error.
 @end deffn
 
-@defun key-binding key &optional accept-defaults no-remap
-This function returns the binding for @var{key} in the current
-keymaps, trying all the active keymaps.  The result is @code{nil} if
-@var{key} is undefined in the keymaps.
-
-@c Emacs 19 feature
-The argument @var{accept-defaults} controls checking for default
-bindings, as in @code{lookup-key} (above).
-
-When commands are remapped (@pxref{Remapping Commands}),
-@code{key-binding} normally processes command remappings so as to
-returns the remapped command that will actually be executed.  However,
-if @var{no-remap} is non-@code{nil}, @code{key-binding} ignores
-remappings and returns the binding directly specified for @var{key}.
-
-An error is signaled if @var{key} is not a string or a vector.
-
-@example
-@group
-(key-binding "\C-x\C-f")
-    @result{} find-file
-@end group
-@end example
-@end defun
-
-@defun current-active-maps &optional olp
-This returns the list of keymaps that would be used by the command
-loop in the current circumstances to look up a key sequence.  Normally
-it ignores @code{overriding-local-map} and
-@code{overriding-terminal-local-map}, but if @var{olp} is
-non-@code{nil} then it pays attention to them.
-@end defun
-
 @defun local-key-binding key &optional accept-defaults
 This function returns the binding for @var{key} in the current
 local keymap, or @code{nil} if it is undefined there.
@@ -1036,11 +1109,11 @@ bindings, as in @code{lookup-key} (above).
 
 @defvar meta-prefix-char
 @cindex @key{ESC}
-This variable is the meta-prefix character code.  It is used when
+This variable is the meta-prefix character code.  It is used for
 translating a meta character to a two-character sequence so it can be
-looked up in a keymap.  For useful results, the value should be a prefix
-event (@pxref{Prefix Keys}).  The default value is 27, which is the
-@acronym{ASCII} code for @key{ESC}.
+looked up in a keymap.  For useful results, the value should be a
+prefix event (@pxref{Prefix Keys}).  The default value is 27, which is
+the @acronym{ASCII} code for @key{ESC}.
 
 As long as the value of @code{meta-prefix-char} remains 27, key lookup
 translates @kbd{M-b} into @kbd{@key{ESC} b}, which is normally defined

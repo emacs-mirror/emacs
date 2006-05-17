@@ -1,7 +1,7 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
 
 ;; Copyright (C) 1985, 1986, 1994, 1995, 1997, 2001, 2002, 2003,
-;;   2004, 2005 Free Software Foundation, Inc.
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -86,14 +86,14 @@
    ;; variants).  This won't currently do groff's \A'foo' and
    ;; the like properly.  One might expect it to highlight an escape's
    ;; arguments in common cases, like \f.
-   (concat "\\\\"                     ; backslash
-         "\\("                        ; followed by various possibilities
-         (mapconcat 'identity
-                    '("[f*n]*\\[.+]"  ; some groff extensions
-                      "(.."           ; two chars after (
-                      "[^(\"]"        ; single char escape
-                      ) "\\|")
-         "\\)")
+   (concat "\\\\"		      ; backslash
+	 "\\("			      ; followed by various possibilities
+	 (mapconcat 'identity
+		    '("[f*n]*\\[.+?]" ; some groff extensions
+		      "(.."	      ; two chars after (
+		      "[^(\"]"	      ; single char escape
+		      ) "\\|")
+	 "\\)")
    )
   "Font-lock highlighting control in `nroff-mode'."
   :group 'nroff

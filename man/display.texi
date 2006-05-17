@@ -557,13 +557,13 @@ buffer fontification is suppressed.
 @cindex brace in column zero and fontification
   Comment and string fontification (or ``syntactic'' fontification)
 relies on analysis of the syntactic structure of the buffer text.  For
-the sake of speed, some modes, including C mode and Lisp mode,
-rely on a special convention: an open-parenthesis or open-brace in the
-leftmost column always defines the @w{beginning} of a defun, and is
-thus always outside any string or comment.  (@xref{Left Margin
-Paren}.)  If you don't follow this convention, Font Lock mode can
-misfontify the text that follows an open-parenthesis or open-brace in
-the leftmost column that is inside a string or comment.
+the sake of speed, some modes, including Lisp mode, rely on a special
+convention: an open-parenthesis or open-brace in the leftmost column
+always defines the @w{beginning} of a defun, and is thus always
+outside any string or comment.  (@xref{Left Margin Paren}.)  If you
+don't follow this convention, Font Lock mode can misfontify the text
+that follows an open-parenthesis or open-brace in the leftmost column
+that is inside a string or comment.
 
 @cindex slow display during scrolling
   The variable @code{font-lock-beginning-of-syntax-function} (always

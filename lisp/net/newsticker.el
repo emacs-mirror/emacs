@@ -1,6 +1,6 @@
 ;;; newsticker.el --- A Newsticker for Emacs.
 
-;; Copyright (C) 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -397,7 +397,7 @@
 
 (defvar newsticker--retrieval-timer-list nil
   "List of timers for news retrieval.
-This is an alist, each element consisting of (feed-name . timer)")
+This is an alist, each element consisting of (feed-name . timer).")
 
 (defvar newsticker--display-timer nil
   "Timer for newsticker display.")
@@ -485,8 +485,8 @@ This list is fed into defcustom via `newsticker--splicer'.")
 (defun newsticker--set-customvar (symbol value)
   "Set newsticker-variable SYMBOL value to VALUE.
 
-Calls all necessary actions which are necessary in order to make
-the new value effective.  Changing `newsticker-url-list', for example,
+Calls all actions which are necessary in order to make the new
+value effective.  Changing `newsticker-url-list', for example,
 will re-start the retrieval-timers."
   (unless (condition-case nil
               (eq (symbol-value symbol) value)
@@ -586,7 +586,7 @@ specify as `newsticker-wget-name'.
 
 The START-TIME can be either a string, or nil.  If it is a string it
 specifies a fixed time at which this feed shall be retrieved for the
-first time.  (Examples: \"11:00pm\", \"23:00\").  If it is nil (or
+first time.  (Examples: \"11:00pm\", \"23:00\".)  If it is nil (or
 unspecified), this feed will be retrieved immediately after calling
 `newsticker-start'.
 
@@ -940,7 +940,7 @@ or, if you use htmlr
      (:family "helvetica" :bold t))
     (((class color) (background light))
      (:family "helvetica" :bold t)))
-  "Face for old news items."
+  "Face for news items."
   :group 'newsticker-faces)
 
 (defface newsticker-old-item-face
@@ -1041,7 +1041,7 @@ at all.  If you change `newsticker-scroll-smoothly' you should also change
   t
   "Decides whether to show immortal/non-expiring news items in the ticker.
 If t the echo area will not show immortal items.  See also
-`newsticker-hide-old-items-in-echo-area."
+`newsticker-hide-old-items-in-echo-area'."
   :type 'boolean
   :set 'newsticker--set-customvar
   :group 'newsticker-ticker)
@@ -1059,7 +1059,7 @@ been added between the last two retrievals."
   t
   "Decides whether to show obsolete items items in the ticker.
 If t the echo area will not show obsolete items.  See also
-`newsticker-hide-old-items-in-echo-area."
+`newsticker-hide-old-items-in-echo-area'."
   :type 'boolean
   :set 'newsticker--set-customvar
   :group 'newsticker-ticker)
@@ -2376,7 +2376,7 @@ static char * visit_xpm[] = {
         guid
       (car (xml-node-children guid)))))
 (defsubst newsticker--enclosure (item)
-  "Return enclosure element of ITEM in the form \(...FIXME...\)or nil."
+  "Return enclosure element of ITEM in the form \(...FIXME...\) or nil."
   (let ((enclosure (assoc 'enclosure (newsticker--extra item))))
     (if enclosure
         (xml-node-attributes enclosure))))
@@ -2490,7 +2490,7 @@ if newsticker has been running."
 
 (defun newsticker-buffer-update (&optional force)
   "Update the *newsticker* buffer.
-Unless FORCE is t this is donly only if necessary, i.e. when the
+Unless FORCE is t this is done only if necessary, i.e. when the
 *newsticker* buffer is not up-to-date."
   (interactive)
   ;; bring cache data into proper order....
@@ -2584,7 +2584,7 @@ If URL is nil it is searched at point."
   "Show inline images in visible text ranges.
 In-line images in invisible text ranges are hidden.  This function
 calls `w3m-toggle-inline-image'.  It works only if
-`newsticker-html-renderer' is set to `w3m-region'"
+`newsticker-html-renderer' is set to `w3m-region'."
   (interactive)
   (if (eq newsticker-html-renderer 'w3m-region)
       (let ((inhibit-read-only t))
@@ -3290,7 +3290,7 @@ Argument EVENT tells what has happened to the process."
         (newsticker--cache-replace-age newsticker--cache
                                        name-symbol
                                        'feed 'obsolete-old)
-        
+
         ;; check Atom/RSS version and call corresponding parser
         (condition-case error-data
             (if (cond
@@ -3405,7 +3405,7 @@ Argument EVENT tells what has happened to the process."
 (defun newsticker--parse-atom-0.3 (name time topnode)
   "Parse Atom 0.3 data.
 Return value as well as arguments NAME, TIME, and TOPNODE are the
-same as in `newsticker--parse-generic-rss'."
+same as in `newsticker--parse-atom-1.0'."
   (newsticker--debug-msg "Parsing Atom 0.3 feed %s" name)
   (let (new-feed new-item)
     (setq new-feed (newsticker--parse-generic-feed
@@ -3613,8 +3613,8 @@ For the RSS 0.92 specification see http://backend.userland.com/rss092."
 
 (defun newsticker--parse-rss-1.0 (name time topnode)
   "Parse RSS 1.0 data.
-Return value as well as arguments NAME, TIME, and
-TOPNODE are the same as in `newsticker--parse-atom-1.0'.
+Return value as well as arguments NAME, TIME, and TOPNODE are the
+same as in `newsticker--parse-atom-1.0'.
 
 For the RSS 1.0 specification see http://web.resource.org/rss/1.0/spec."
   (newsticker--debug-msg "Parsing RSS 1.0 feed %s" name)
@@ -3724,9 +3724,7 @@ For the RSS 2.0 specification see http://blogs.law.harvard.edu/tech/rss."
                                             extra-elements)
   "Parse generic news feed data.
 Argument NAME gives the name of a news feed.  TIME gives the
-system time at which the data have been retrieved.  CHANNELNODE
-is the node in the feed data which contains the description, link
-etc.  of the feed itself.
+system time at which the data have been retrieved.
 
 The arguments TITLE, DESC, LINK, and EXTRA-ELEMENTS give the feed's title,
 description, link, and extra elements resp."
@@ -3966,7 +3964,7 @@ This function calls `message' with arguments STRING and ARGS, if
 
 (defun newsticker--decode-iso8601-date (iso8601-string)
   "Return ISO8601-STRING in format like `decode-time'.
-Converts from ISO-8601 to Emacs representation.  If ISO8601-STRING
+Converts from ISO-8601 to Emacs representation.
 Examples:
 2004-09-17T05:09:49+00:00
 2004-09-17T05:09+00:00
@@ -4300,10 +4298,9 @@ Keeps order of feeds as given in `newsticker-url-list' and
 
 (defun newsticker--buffer-insert-item (item &optional feed-name-symbol)
   "Insert a news item in the current buffer.
-Insert the string PREFIX and a formatted representation of the
-ITEM.  The optional parameter FEED-NAME-SYMBOL determines how the
-item is formatted and whether the item-retrieval time is added as
-well."
+Insert a formatted representation of the ITEM.  The optional parameter
+FEED-NAME-SYMBOL determines how the item is formatted and whether the
+item-retrieval time is added as well."
   ;; insert headline
   (if (eq (newsticker--age item) 'feed)
       (newsticker--buffer-do-insert-text item 'feed feed-name-symbol)
@@ -4831,11 +4828,11 @@ backwards."
       (goto-char pos))
     pos))
 
-(defun newsticker--buffer-hideshow (mark-age onoff )
+(defun newsticker--buffer-hideshow (mark-age onoff)
   "Hide or show items of type MARK-AGE.
 If ONOFF is nil the item is hidden, otherwise it is shown."
   (if onoff
-      (remove-from-invisibility-spec mark-age )
+      (remove-from-invisibility-spec mark-age)
     (add-to-invisibility-spec mark-age)))
 
 (defun newsticker--buffer-beginning-of-item ()
@@ -5026,7 +5023,7 @@ GUID.  In general all properties must match in order to return a
 certain item, except for the following cases.
 
 If AGE equals 'feed the TITLE, DESCription and LINK do not
-matter. If DESC is nil it is ignored as well.  If
+matter.  If DESC is nil it is ignored as well.  If
 `newsticker-desc-comp-max' is non-nil, only the first
 `newsticker-desc-comp-max' characters of DESC are taken into
 account.
@@ -5252,7 +5249,7 @@ FEED is a symbol!"
 ;; ======================================================================
 (defun newsticker--stat-num-items (feed &optional age)
   "Return number of items in the given FEED which have the given AGE.
-If AGE is nil, the total number items is returned."
+If AGE is nil, the total number of items is returned."
   (let ((items (cdr (newsticker--cache-get-feed feed)))
         (num 0))
     (while items
@@ -5329,7 +5326,8 @@ for an entry that matches FEED and ITEM."
           newsticker-auto-mark-filter-list)))
 
 (defun newsticker--do-run-auto-mark-filter (item list)
-  "Actually compare ITEM AGE LIST against `newsticker-auto-mark-filter-list'."
+  "Actually compare ITEM against the pattern-LIST
+\(from `newsticker-auto-mark-filter-list')."
   (mapc (lambda (pattern)
           (let ((age    (nth 0 pattern))
                 (place  (nth 1 pattern))
@@ -5384,8 +5382,8 @@ in the description=contents of ITEM to the directory
 (defun newsticker-download-enclosures (feed item)
   "In all FEEDs download the enclosed object of the news ITEM.
 The object is saved to the directory \"~/tmp/newsticker/FEED/TITLE\", which
-is created if it does not exist. TITLE is the title of the news
-item. Argument FEED is ignored.
+is created if it does not exist.  TITLE is the title of the news
+item.  Argument FEED is ignored.
 This function is suited for adding it to `newsticker-new-item-functions'."
   (let ((title (newsticker--title item))
         (enclosure (newsticker--enclosure item)))

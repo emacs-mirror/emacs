@@ -24,21 +24,21 @@
 
 ;;; Commentary:
 
-;; This package allows to hand over a buffer to be sent off 
-;; via the system's designated e-mail client. 
+;; This package allows to hand over a buffer to be sent off
+;; via the system's designated e-mail client.
 ;; Note that the e-mail client will display the contents of the buffer
 ;; again for editing.
 ;; The e-mail client is taken to be whoever handles a mailto: URL
-;; via `browse-url'. 
+;; via `browse-url'.
 ;; Mailto: URLs are composed according to RFC2368.
 
 ;; MIME bodies are not supported - we rather expect the mail client
 ;; to encode the body and add, for example, a digital signature.
 ;; The mailto URL RFC calls for "short text messages that are
-;; actually the content of automatic processing." 
+;; actually the content of automatic processing."
 ;; So mailclient.el is ideal for situations where an e-mail is
-;; generated automatically, and the user can edit it in the 
-;; mail client (e.g. bug-reports). 
+;; generated automatically, and the user can edit it in the
+;; mail client (e.g. bug-reports).
 
 ;; To activate:
 ;; (setq send-mail-function 'mailclient-send-it) ; if you use `mail'
@@ -49,11 +49,11 @@
 (require 'sendmail)   ;; for mail-sendmail-undelimit-header
 (require 'mail-utils) ;; for mail-fetch-field
 
-(defcustom mailclient-place-body-on-clipboard-flag  
+(defcustom mailclient-place-body-on-clipboard-flag
   (fboundp 'w32-set-clipboard-data)
   "If non-nil, put the e-mail body on the clipboard in mailclient.
-This is useful on systems where only short mailto:// URLs are 
-supported. Defaults to non-nil on Windows, nil otherwise."
+This is useful on systems where only short mailto:// URLs are
+supported.  Defaults to non-nil on Windows, nil otherwise."
   :type 'boolean
   :group 'mail)
 
@@ -64,7 +64,7 @@ supported. Defaults to non-nil on Windows, nil otherwise."
 	  (lambda (char)
 	    (cond
 	     ((eq char ?\x20) "%20")   ;; space
-	     ((eq char ?\n) "%0D%0A")  ;; newline 
+	     ((eq char ?\n) "%0D%0A")  ;; newline
 	     ((string-match "[-a-zA-Z0-9_:/.@]" (char-to-string char))
 	      (char-to-string char))   ;; printable
 	     (t                        ;; everything else
@@ -75,33 +75,33 @@ supported. Defaults to non-nil on Windows, nil otherwise."
 (defvar mailclient-delim-static "?")
 (defun mailclient-url-delim ()
   (let ((current mailclient-delim-static))
-    (setq mailclient-delim-static "&") 
+    (setq mailclient-delim-static "&")
     current))
 
 (defun mailclient-gather-addresses (str &optional drop-first-name)
   (let ((field (mail-fetch-field str nil t)))
     (if field
 	(save-excursion
-	  (let ((first t) 
+	  (let ((first t)
 		(result ""))
 	    (mapc
 	     (lambda (recp)
-	       (setq result 
-		     (concat 
+	       (setq result
+		     (concat
 		      result
 		      (if (and drop-first-name
 			       first)
 			  ""
 			(concat (mailclient-url-delim) str "="))
-		      (mailclient-encode-string-as-url 
+		      (mailclient-encode-string-as-url
 		       recp)))
 	       (setq first nil))
-	     (split-string 
+	     (split-string
 	      (mail-strip-quoted-names field) "\, *"))
 	    result)))))
 
 ;;;###autoload
-(defun mailclient-send-it () 
+(defun mailclient-send-it ()
   "Pass current buffer on to the system's mail client.
 Suitable value for `send-mail-function'.
 The mail client is taken to be the handler of mailto URLs."
@@ -122,19 +122,19 @@ The mail client is taken to be the handler of mailto URLs."
 	  (while (and (re-search-forward "\n\n\n*" delimline t)
 		      (< (point) delimline))
 	    (replace-match "\n"))
-	  (let ((case-fold-search t))  
+	  (let ((case-fold-search t))
 	    ;; initialize limiter
 	    (setq mailclient-delim-static "?")
 	    ;; construct and call up mailto URL
-	    (browse-url 
-	     (concat 
+	    (browse-url
+	     (concat
 	      (save-excursion
 		(narrow-to-region (point-min) delimline)
-		(concat 
+		(concat
 		 "mailto:"
 		 ;; some of the headers according to RFC822
-		 (mailclient-gather-addresses "To"   
-					      'drop-first-name)	         
+		 (mailclient-gather-addresses "To"
+					      'drop-first-name)
 		 (mailclient-gather-addresses "cc"  )
 		 (mailclient-gather-addresses "bcc"  )
 		 (mailclient-gather-addresses "Resent-To"  )
@@ -151,16 +151,16 @@ The mail client is taken to be the handler of mailto URLs."
 		   (if subj ;; if non-blank
 		       ;; the mail client will deal with
 		       ;; warning the user etc.
-		       (concat (mailclient-url-delim) "subject=" 
+		       (concat (mailclient-url-delim) "subject="
 			       (mailclient-encode-string-as-url subj))
 		     ""))))
 	      ;; body
-	      (concat 
-	       (mailclient-url-delim) "body=" 
+	      (concat
+	       (mailclient-url-delim) "body="
 	       (mailclient-encode-string-as-url
 		(if mailclient-place-body-on-clipboard-flag
 		    (progn
-		      (clipboard-kill-ring-save  
+		      (clipboard-kill-ring-save
 		       (+ 1 delimline) (point-max))
 		      (concat
 		       "*** E-Mail body has been placed on clipboard, "

@@ -78,7 +78,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 
        )
   (if (not (fboundp 'make-glyph))
-      
+
 (defmacro defezimage (variable imagespec docstring)
   "Don't bother loading up an image...
 Argument VARIABLE is the variable to define.
@@ -194,7 +194,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 
 (defezimage ezimage-mail
   ((:type xpm :file "ezimage/mail.xpm" :ascent center))
-  "Image if an envelope.")
+  "Image of an envelope.")
 
 (defezimage ezimage-checkout
   ((:type xpm :file "ezimage/checkmark.xpm" :ascent center))
@@ -206,7 +206,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 
 (defezimage ezimage-object-out-of-date
   ((:type xpm :file "ezimage/bitsbang.xpm" :ascent center))
-  "Image representing bits with a ! in it.  (an out of data object file.)")
+  "Image representing bits with a ! in it.  (An out of data object file.)")
 
 (defezimage ezimage-label
   ((:type xpm :file "ezimage/label.xpm" :ascent center))
@@ -264,7 +264,7 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
   "Insert an image button based on text starting at START for LENGTH chars.
 If buttontext is unknown, just insert that text.
 If we have an image associated with it, use that image.
-Optional argument STRING is a st ring upon which to add text properties."
+Optional argument STRING is a string upon which to add text properties."
   (when ezimage-use-images
     (let* ((bt (buffer-substring start (+ length start)))
 	   (a (assoc bt ezimage-expand-image-button-alist)))
@@ -293,7 +293,7 @@ Return STRING with properties applied."
 
 (defun ezimage-insert-over-text (image start end &optional string)
   "Place IMAGE over the text between START and END.
-Assumes the image is part of a gui and can be clicked on.
+Assumes the image is part of a GUI and can be clicked on.
 Optional argument STRING is a string upon which to add text properties."
   (when ezimage-use-images
     (if (featurep 'xemacs)

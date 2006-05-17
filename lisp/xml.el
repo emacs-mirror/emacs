@@ -188,62 +188,62 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 (defvar xml-att-def-re)
 (let* ((start-chars (concat "[:alpha:]:_"))
        (name-chars  (concat "-[:digit:]." start-chars))
-;;[3]   	S	   ::=   	(#x20 | #x9 | #xD | #xA)+
+       ;;[3]   	S	   ::=   	(#x20 | #x9 | #xD | #xA)+
        (whitespace  "[ \t\n\r]"))
-;;[4] NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] 
-;;                      | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF]
-;;                      | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF]
-;;                      | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
+  ;;[4] NameStartChar ::= ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] 
+  ;;                      | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF]
+  ;;                      | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF]
+  ;;                      | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
   (defvar xml-name-start-char-re (concat "[" start-chars "]"))
-;;[4a] NameChar	::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
+  ;;[4a] NameChar	::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
   (defvar xml-name-char-re       (concat "[" name-chars  "]"))
-;;[5] Name     ::= NameStartChar (NameChar)*
+  ;;[5] Name     ::= NameStartChar (NameChar)*
   (defvar xml-name-re            (concat xml-name-start-char-re xml-name-char-re "*"))
-;;[6] Names    ::= Name (#x20 Name)*
+  ;;[6] Names    ::= Name (#x20 Name)*
   (defvar xml-names-re           (concat xml-name-re "\\(?: " xml-name-re "\\)*"))
-;;[7] Nmtoken ::= (NameChar)+
+  ;;[7] Nmtoken ::= (NameChar)+
   (defvar xml-nmtoken-re         (concat xml-name-char-re "+"))
-;;[8] Nmtokens ::= Nmtoken (#x20 Nmtoken)*
+  ;;[8] Nmtokens ::= Nmtoken (#x20 Nmtoken)*
   (defvar xml-nmtokens-re        (concat xml-nmtoken-re "\\(?: " xml-name-re "\\)*"))
-;;[66] CharRef ::= '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
+  ;;[66] CharRef ::= '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
   (defvar xml-char-ref-re        "\\(?:&#[0-9]+;\\|&#x[0-9a-fA-F]+;\\)")
-;;[68] EntityRef   ::= '&' Name ';'
+  ;;[68] EntityRef   ::= '&' Name ';'
   (defvar xml-entity-ref         (concat "&" xml-name-re ";"))
-;;[69] PEReference ::= '%' Name ';'
+  ;;[69] PEReference ::= '%' Name ';'
   (defvar xml-pe-reference-re    (concat "%" xml-name-re ";"))
-;;[67] Reference   ::= EntityRef | CharRef
+  ;;[67] Reference   ::= EntityRef | CharRef
   (defvar xml-reference-re       (concat "\\(?:" xml-entity-ref "\\|" xml-char-ref-re "\\)"))
-;;[10]   	AttValue	   ::=   	'"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
+  ;;[10]   	AttValue	   ::=   	'"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
   (defvar xml-att-value-re    (concat "\\(?:\"\\(?:[^&\"]\\|" xml-reference-re "\\)*\"\\|"
 				      "'\\(?:[^&']\\|" xml-reference-re "\\)*'\\)"))
-;;[56]   	TokenizedType	   ::=   	'ID'	   [VC: ID] [VC: One ID per Element Type] [VC: ID Attribute Default]
-;;                                            | 'IDREF'    [VC: IDREF]
-;;                             	              | 'IDREFS'   [VC: IDREF]
-;;                                            | 'ENTITY'   [VC: Entity Name]
-;;                                            | 'ENTITIES' [VC: Entity Name]
-;;                                            | 'NMTOKEN'  [VC: Name Token]
-;;                                            | 'NMTOKENS' [VC: Name Token]
+  ;;[56]   	TokenizedType	   ::=   	'ID'	   [VC: ID] [VC: One ID per Element Type] [VC: ID Attribute Default]
+  ;;                                            | 'IDREF'    [VC: IDREF]
+  ;;                             	              | 'IDREFS'   [VC: IDREF]
+  ;;                                            | 'ENTITY'   [VC: Entity Name]
+  ;;                                            | 'ENTITIES' [VC: Entity Name]
+  ;;                                            | 'NMTOKEN'  [VC: Name Token]
+  ;;                                            | 'NMTOKENS' [VC: Name Token]
   (defvar xml-tokenized-type-re "\\(?:ID\\|IDREF\\|IDREFS\\|ENTITY\\|ENTITIES\\|NMTOKEN\\|NMTOKENS\\)")
-;;[58]   	NotationType	   ::=   	'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')'
+  ;;[58]   	NotationType	   ::=   	'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')'
   (defvar xml-notation-type-re (concat "\\(?:NOTATION" whitespace "(" whitespace "*" xml-name-re
 				       "\\(?:" whitespace "*|" whitespace "*" xml-name-re "\\)*" whitespace "*)\\)"))
-;;[59]   	Enumeration	   ::=   	'(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'	[VC: Enumeration] [VC: No Duplicate Tokens]
+  ;;[59]   	Enumeration	   ::=   	'(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'	[VC: Enumeration] [VC: No Duplicate Tokens]
   (defvar xml-enumeration-re (concat "\\(?:(" whitespace "*" xml-nmtoken-re 
 				     "\\(?:" whitespace "*|" whitespace "*" xml-nmtoken-re "\\)*"
 				     whitespace ")\\)"))
-;;[57]   	EnumeratedType	   ::=   	NotationType | Enumeration
+  ;;[57]   	EnumeratedType	   ::=   	NotationType | Enumeration
   (defvar xml-enumerated-type-re (concat "\\(?:" xml-notation-type-re "\\|" xml-enumeration-re "\\)"))
-;;[54]   	AttType	   ::=   	StringType | TokenizedType | EnumeratedType
-;;[55]   	StringType	   ::=   	'CDATA'
+  ;;[54]   	AttType	   ::=   	StringType | TokenizedType | EnumeratedType
+  ;;[55]   	StringType	   ::=   	'CDATA'
   (defvar xml-att-type-re (concat "\\(?:CDATA\\|" xml-tokenized-type-re "\\|" xml-notation-type-re"\\|" xml-enumerated-type-re "\\)"))
-;;[60]   	DefaultDecl	   ::=   	'#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
+  ;;[60]   	DefaultDecl	   ::=   	'#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
   (defvar xml-default-decl-re (concat "\\(?:#REQUIRED\\|#IMPLIED\\|\\(?:#FIXED" whitespace "\\)*" xml-att-value-re "\\)"))
-;;[53]   	AttDef	   ::=   	S Name S AttType S DefaultDecl
+  ;;[53]   	AttDef	   ::=   	S Name S AttType S DefaultDecl
   (defvar xml-att-def-re         (concat "\\(?:" whitespace "*" xml-name-re
 					 whitespace "*" xml-att-type-re
 					 whitespace "*" xml-default-decl-re "\\)"))
-;;[9] EntityValue ::= '"' ([^%&"] | PEReference | Reference)* '"'
-;;		   |  "'" ([^%&'] | PEReference | Reference)* "'"
+  ;;[9] EntityValue ::= '"' ([^%&"] | PEReference | Reference)* '"'
+  ;;		   |  "'" ([^%&'] | PEReference | Reference)* "'"
   (defvar xml-entity-value-re    (concat "\\(?:\"\\(?:[^%&\"]\\|" xml-pe-reference-re
 					 "\\|" xml-reference-re "\\)*\"\\|'\\(?:[^%&']\\|"
 					 xml-pe-reference-re "\\|" xml-reference-re "\\)*'\\)")))
@@ -269,7 +269,7 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
     ;; Get space syntax correct per XML [3].
     (dotimes (c 31)
       (modify-syntax-entry c "." table)) ; all are space in standard table
-    (dolist (c '(?\t ?\n ?\r))		; these should be space
+    (dolist (c '(?\t ?\n ?\r))		 ; these should be space
       (modify-syntax-entry c " " table))
     ;; For skipping attributes.
     (modify-syntax-entry ?\" "\"" table)
@@ -306,16 +306,16 @@ is not well-formed XML.
 If PARSE-DTD is non-nil, the DTD is parsed rather than skipped,
 and returned as the first element of the list.
 If PARSE-NS is non-nil, then QNAMES are expanded."
-  (save-restriction
-    (narrow-to-region beg end)
-    ;; Use fixed syntax table to ensure regexp char classes and syntax
-    ;; specs DTRT.
-    (with-syntax-table (standard-syntax-table)
-      (let ((case-fold-search nil)	; XML is case-sensitive.
-	    xml result dtd)
-	(save-excursion
-	  (if buffer
-	      (set-buffer buffer))
+  ;; Use fixed syntax table to ensure regexp char classes and syntax
+  ;; specs DTRT.
+  (with-syntax-table (standard-syntax-table)
+    (let ((case-fold-search nil)	; XML is case-sensitive.
+ 	  xml result dtd)
+      (save-excursion
+ 	(if buffer
+ 	    (set-buffer buffer))
+ 	(save-restriction
+ 	  (narrow-to-region beg end)
 	  (goto-char (point-min))
 	  (while (not (eobp))
 	    (if (search-forward "<" nil t)
@@ -390,7 +390,7 @@ Returns one of:
 		    parse-ns
 		  (if parse-ns
 		      (list
-                       ;; Default for empty prefix is no namespace
+		       ;; Default for empty prefix is no namespace
 		       (cons ""      "")
 		       ;; "xml" namespace
 		       (cons "xml"   "http://www.w3.org/XML/1998/namespace")
@@ -431,12 +431,12 @@ Returns one of:
 
       ;; Parse this node
       (let* ((node-name (match-string 1))
-             ;; Parse the attribute list.
-             (attrs (xml-parse-attlist xml-ns))
-             children pos)
+	     ;; Parse the attribute list.
+	     (attrs (xml-parse-attlist xml-ns))
+	     children pos)
 
-        ;; add the xmlns:* attrs to our cache
-        (when (consp xml-ns)
+	;; add the xmlns:* attrs to our cache
+	(when (consp xml-ns)
 	  (dolist (attr attrs)
 	    (when (and (consp (car attr))
 		       (equal "http://www.w3.org/2000/xmlns/"
@@ -444,7 +444,7 @@ Returns one of:
 	      (push (cons (cdar attr) (cdr attr))
 		    xml-ns))))
 
-        (setq children (list attrs (xml-maybe-do-ns node-name "" xml-ns)))
+	(setq children (list attrs (xml-maybe-do-ns node-name "" xml-ns)))
 
 	;; is this an empty element ?
 	(if (looking-at "/>")
@@ -494,21 +494,21 @@ Returns one of:
 
 (defun xml-parse-string ()
   "Parse the next whatever.  Could be a string, or an element."
-    (let* ((pos (point))
-	   (string (progn (if (search-forward "<" nil t)
-			      (forward-char -1)
-			    (goto-char (point-max)))
-			  (buffer-substring pos (point)))))
-      ;; Clean up the string.  As per XML specifications, the XML
-      ;; processor should always pass the whole string to the
-      ;; application.  But \r's should be replaced:
-      ;; http://www.w3.org/TR/2000/REC-xml-20001006#sec-line-ends
-      (setq pos 0)
-      (while (string-match "\r\n?" string pos)
-	(setq string (replace-match "\n" t t string))
-	(setq pos (1+ (match-beginning 0))))
+  (let* ((pos (point))
+	 (string (progn (if (search-forward "<" nil t)
+			    (forward-char -1)
+			  (goto-char (point-max)))
+			(buffer-substring pos (point)))))
+    ;; Clean up the string.  As per XML specifications, the XML
+    ;; processor should always pass the whole string to the
+    ;; application.  But \r's should be replaced:
+    ;; http://www.w3.org/TR/2000/REC-xml-20001006#sec-line-ends
+    (setq pos 0)
+    (while (string-match "\r\n?" string pos)
+      (setq string (replace-match "\n" t t string))
+      (setq pos (1+ (match-beginning 0))))
 
-      (xml-substitute-special string)))
+    (xml-substitute-special string)))
 
 (defun xml-parse-attlist (&optional xml-ns)
   "Return the attribute-list after point.
@@ -543,8 +543,8 @@ Leave point at the first non-blank character after the tag."
 	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(let ((expansion (xml-substitute-special string)))
 	  (unless (stringp expansion)
-	    ; We say this is the constraint.  It is acctually that
-	    ; external entities nor "<" can be in an attribute value.
+					; We say this is the constraint.  It is acctually that
+					; external entities nor "<" can be in an attribute value.
 	    (error "XML: (Not Well-Formed) Entities in attributes cannot expand into elements"))
 	  (push (cons name expansion) attlist)))
 

@@ -1,7 +1,120 @@
+2006-02-03  Werner Lemberg  <wl@gnu.org>
+
+	* textmodes/nroff-mode.el (nroff-font-lock-keywords): Don't be
+	greedy to find the closing bracket in \*[...] and similar
+	expressions.  This is a first rough fix -- many additional
+	refinements are necessary to make nroff mode really usable with
+	groff.
+
+2006-02-03  Jens Petersen  <petersen@redhat.com>  (tiny change)
+
+	* international/mule-cmds.el (set-locale-environment): Add
+	"/usr/share/X11/locale/locale.alias" to search list for xorg-x11
+	libX11.
+
+2006-02-03  Joe Wells  <jbw@macs.hw.ac.uk>  (tiny change)
+
+	* arc-mode.el (archive-maybe-copy): Fix the way directories in the
+	archive are created in archive-tmpdir.
+
+2006-02-02  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer-compressed-file-name-regexp): New defcustom.
+	(ibuffer-fontification-alist): Use it.
+	(ibuffer-mode-map): Bind `ibuffer-mark-compressed-file-buffers'
+	to "* z" and the Ibuffer Mark menu.
+
+	* ibuf-ext.el (ibuffer-mark-compressed-file-buffers): New command.
+
+2006-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/table.el (*table--cell-describe-mode)
+	(*table--cell-describe-bindings): Undo last change since
+	print-help-return-message is not obsoleted by anything at all.
+
+2006-02-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emulation/cua-base.el (cua-mode): Doc fix.
+
+2006-02-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dframe.el (dframe-handle-make-frame-visible)
+	(dframe-handle-iconify-frame, dframe-get-focus)
+	(dframe-select-attached-frame, dframe-power-click)
+	(dframe-frame-mode): Fix typos in docstrings.
+
+	* ezimage.el (ezimage-mail, ezimage-object-out-of-date)
+	(ezimage-insert-image-button-maybe, ezimage-insert-over-text):
+	Fix typos in docstrings.
+
+	* hi-lock.el (hi-lock-mode, hi-lock-line-face-buffer)
+	(hi-lock-face-buffer, hi-lock-font-lock-hook)
+	(hi-lock-archaic-interface-message-used)
+	(hi-lock-file-patterns-range): Fix typos in docstrings.
+
+	* savehist.el (savehist-loaded, savehist-load, savehist-install)
+	(savehist-autosave, savehist-trim-history): Fix typos in docstrings.
+
+	* mail/mailclient.el (mailclient-place-body-on-clipboard-flag):
+	Fix typo in docstring.
+
+	* net/newsticker.el (newsticker--decode-iso8601-date)
+	(newsticker--set-customvar, newsticker--buffer-insert-item)
+	(newsticker--do-run-auto-mark-filter)
+	(newsticker--parse-generic-feed): Doc fixes.
+	(newsticker--retrieval-timer-list, newsticker-url-list)
+	(newsticker-hide-immortal-items-in-echo-area)
+	(newsticker-hide-obsolete-items-in-echo-area)
+	(newsticker-new-item-face, newsticker--enclosure)
+	(newsticker-buffer-update, newsticker-w3m-show-inline-images)
+	(newsticker--parse-atom-0.3, newsticker--parse-rss-1.0)
+	(newsticker--parse-generic-feed, newsticker--cache-contains)
+	(newsticker--stat-num-items, newsticker-download-enclosures):
+	Fix typos in docstrings.
+
+	* net/rcirc.el (rcirc-debug): Doc fix.
+	(rcirc-fill-column, rcirc-receive-message-hooks)
+	(rcirc-browse-url-map, rcirc-read-only-flag, rcirc-prompt)
+	(rcirc-mode, rcirc-generate-new-buffer-name)
+	(rcirc-startup-channels, rcirc-ignore-update-automatic)
+	(rcirc-cmd-ignore, rcirc-browse-url, rcirc-url-regexp):
+	Fix typos in docstrings.
+	(rcirc-print): "?\ " -> "?\s".
+	(rcirc-cmd-join): Improve argument/docstring consistency.
+
+2006-02-01  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-parse-region): Move save-excursion and set-buffer up
+	before narrow-to-region.
+
+2006-02-01  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (move-beginning-of-line): Scan properly for invis change.
+
+	* replace.el (multi-occur-in-matching-buffers): Fix prev change.
+
+2006-02-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-convert-file-attributes): Set file's gid
+	change bit only when id-format is 'integer.  Reported by Matt
+	Hodges <M.P.Hodges@rl.ac.uk>.
+
+2006-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (highlight-changes-initial-state)
+	(highlight-changes-global-initial-state): Doc fixes.
+	(highlight-changes-global-modes, global-highlight-changes):
+	Fix typos in docstrings.
+
+2006-02-01  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-mode): Mention that CUA enables
+	transient-mark-mode in doc string.
+
 2006-01-31  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (multi-occur): Doc fix.
-	(multi-occur-in-matching-buffers): Renamed from
+	(multi-occur-in-matching-buffers): Rename from
 	multi-occur-by-filename-regexp.  Prefix arg says match
 	buffer names instead of file names.
 

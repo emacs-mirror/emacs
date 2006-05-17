@@ -79,11 +79,13 @@
 ;;      passed a circular list to `assoc', Emacs would crash.  Historically,
 ;;      problems of this kind have been few and short-lived.
 
+;;; Code:
+
 (provide 'unsafep)
 (require 'byte-opt)  ;Set up the `side-effect-free' properties
 
 (defcustom safe-functions nil
-  "t to disable `unsafep', or a list of assumed-safe functions."
+  "A list of assumed-safe functions, or t to disable `unsafep'."
   :group 'lisp
   :type  '(choice (const :tag "No" nil) (const :tag "Yes" t) hook))
 
@@ -210,7 +212,7 @@ of symbols with local bindings."
 
 
 (defun unsafep-function (fun)
-  "Return nil if FUN is a safe function
+  "Return nil iff FUN is a safe function.
 \(either a safe lambda or a symbol that names a safe function).  Otherwise
 result is a reason code."
   (cond
@@ -233,7 +235,8 @@ for the first unsafe form."
 	(if reason (throw 'unsafep-progn reason))))))
 
 (defun unsafep-let (clause)
-  "CLAUSE is a let-binding, either SYM or (SYM) or (SYM VAL).  Checks VAL
+  "Check the safety of a let binding.
+CLAUSE is a let-binding, either SYM or (SYM) or (SYM VAL).  Checks VAL
 and throws a reason to `unsafep' if unsafe.  Returns SYM."
   (let (reason sym)
     (if (atom clause)
@@ -245,7 +248,7 @@ and throws a reason to `unsafep' if unsafe.  Returns SYM."
     sym))
 
 (defun unsafep-variable (sym global-okay)
-  "Returns nil if SYM is safe as a let-binding sym
+  "Return nil if SYM is safe as a let-binding sym
 \(because it already has a temporary binding or is a non-risky buffer-local
 variable), otherwise a reason why it is unsafe.  Failing to be locally bound
 is okay if GLOBAL-OKAY is non-nil."
@@ -259,5 +262,5 @@ is okay if GLOBAL-OKAY is non-nil."
 	     (local-variable-p sym)))
     `(global-variable ,sym))))
 
-;;; arch-tag: 6216f98b-eb8f-467a-9c33-7a7644f50658
-;; unsafep.el ends here.
+;; arch-tag: 6216f98b-eb8f-467a-9c33-7a7644f50658
+;;; unsafep.el ends here

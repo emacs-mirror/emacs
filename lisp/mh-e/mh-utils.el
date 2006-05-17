@@ -68,7 +68,7 @@ used in lieu of `search' in the CL package."
 (defun mh-colors-available-p ()
   "Check if colors are available in the Emacs being used."
   (or mh-xemacs-flag
-      (let ((color-cells (display-color-cells)))
+      (let ((color-cells (mh-display-color-cells)))
         (and (numberp color-cells) (>= color-cells 8)))))
 
 ;;;###mh-autoload
@@ -81,30 +81,49 @@ used in lieu of `search' in the CL package."
   "Delete the next LINES lines."
   (delete-region (point) (progn (forward-line lines) (point))))
 
-(defvar mh-image-load-path-called-flag nil)
+(defvar mh-image-load-path nil
+  "Directory where images for MH-E are found.
+If nil, then the function `mh-image-load-path' will search for
+the images in \"../../etc/images\" relative to the files in
+\"lisp/mh-e\".")
+
+(defvar mh-image-load-path-called-flag nil
+  "Non-nil means that the function `mh-image-load-path' has been called.
+This variable is used by that function to avoid doing the work repeatedly.")
 
 ;;;###mh-autoload
 (defun mh-image-load-path ()
   "Ensure that the MH-E images are accessible by `find-image'.
-Images for MH-E are found in ../../etc/images relative to the
-files in \"lisp/mh-e\". If `image-load-path' exists (since Emacs
-22), then the images directory is added to it if isn't already
-there. Otherwise, the images directory is added to the
-`load-path' if it isn't already there."
+
+Images for MH-E are found in \"../../etc/images\" relative to the
+files in \"lisp/mh-e\". This function saves the actual location
+found in the variable `mh-image-load-path'. If the images on your
+system are actually located elsewhere, then set the variable
+`mh-image-load-path' before starting MH-E.
+
+If `image-load-path' exists (since Emacs 22), then the contents
+of the variable `mh-image-load-path' is added to it if isn't
+already there. Otherwise, the contents of the variable
+`mh-image-load-path' is added to the `load-path' if it isn't
+already there.
+
+See also variable `mh-image-load-path-called-flag'."
   (unless mh-image-load-path-called-flag
-    (let (mh-library-name mh-image-load-path)
-      ;; First, find mh-e in the load-path.
-      (setq mh-library-name (locate-library "mh-e"))
-      (if (not mh-library-name)
-        (error "Can not find MH-E in load-path"))
-      (setq mh-image-load-path
-            (expand-file-name (concat (file-name-directory mh-library-name)
-                                      "../../etc/images")))
-      (if (not (file-exists-p mh-image-load-path))
-          (error "Can not find image directory %s" mh-image-load-path))
-      (if (boundp 'image-load-path)
-          (add-to-list 'image-load-path mh-image-load-path)
-        (add-to-list 'load-path mh-image-load-path)))
+    (if (or (not mh-image-load-path)
+            (not (file-exists-p mh-image-load-path)))
+        (let (mh-library-name)
+          ;; First, find mh-e in the load-path.
+          (setq mh-library-name (locate-library "mh-e"))
+          (if (not mh-library-name)
+              (error "Can not find MH-E in load-path"))
+          (setq mh-image-load-path
+                (expand-file-name (concat (file-name-directory mh-library-name)
+                                          "../../etc/images")))))
+    (if (not (file-exists-p mh-image-load-path))
+        (error "Can not find image directory %s" mh-image-load-path))
+    (if (boundp 'image-load-path)
+        (add-to-list 'image-load-path mh-image-load-path)
+      (add-to-list 'load-path mh-image-load-path))
     (setq mh-image-load-path-called-flag t)))
 
 ;;;###mh-autoload
@@ -502,8 +521,8 @@ not be returned."
     ;; top-level folders; otherwise mh-sub-folders returns all the
     ;; files in / if given an empty string or +.
     (when folder
-      (setq folder (replace-regexp-in-string "^\+" "" folder))
-      (setq folder (replace-regexp-in-string "/*$" "/" folder))
+      (setq folder (mh-replace-regexp-in-string "^\+" "" folder))
+      (setq folder (mh-replace-regexp-in-string "/*$" "/" folder))
       (if (equal folder "")
         (setq folder nil)))
     (loop for f in (mh-sub-folders folder) do
@@ -553,9 +572,10 @@ directories that aren't usually mail folders are hidden."
       (apply #'call-process arg-list)
       (goto-char (point-min))
       (while (not (and (eolp) (bolp)))
-        (goto-char (line-end-position))
-        (let ((start-pos (line-beginning-position))
-              (has-pos (search-backward " has " (line-beginning-position) t)))
+        (goto-char (mh-line-end-position))
+        (let ((start-pos (mh-line-beginning-position))
+              (has-pos (search-backward " has "
+                                        (mh-line-beginning-position) t)))
           (when (integerp has-pos)
             (while (equal (char-after has-pos) ? )
               (decf has-pos))
@@ -570,7 +590,7 @@ directories that aren't usually mail folders are hidden."
                   (setq name (substring name 0 (1- (length name)))))
                 (push
                  (cons name
-                       (search-forward "(others)" (line-end-position) t))
+                       (search-forward "(others)" (mh-line-end-position) t))
                  results))))
           (forward-line 1))))
     (setq results (nreverse results))
@@ -927,10 +947,12 @@ is hidden, if positive then the field is displayed."
       (unwind-protect
           (cond ((or (and (not arg)
                           (text-property-any begin end 'invisible 'vanish))
-                     (and (numberp arg) (>= arg 0))
-                     (and (eq arg 'long) (> (line-beginning-position 5) end)))
+                     (and (numberp arg)
+                          (>= arg 0))
+                     (and (eq arg 'long)
+                          (> (mh-line-beginning-position 5) end)))
                  (remove-text-properties begin end '(invisible nil))
-                 (search-forward ":" (line-end-position) t)
+                 (search-forward ":" (mh-line-end-position) t)
                  (mh-letter-skip-leading-whitespace-in-header-field))
                 ;; XXX Redesign to make usable by user. Perhaps use a positive
                 ;; numeric prefix to make that many lines visible.

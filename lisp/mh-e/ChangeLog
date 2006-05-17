@@ -1,10 +1,168 @@
+2006-02-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Add +cvs to version.
+
+2006-02-03  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 7.91.
+
+	* mh-e.el (Version, mh-version): Update for release 7.91.
+
+2006-02-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-utils.el (mh-image-load-path, mh-image-load-path-called-flag)
+	(mh-image-load-path): Checkdoc fix. Docstring edits. Reduce scope
+	of local variable mh-library-name.
+
+	* mh-e.el (mh-folder-msg-number, mh-folder-refiled, mh-folder-to)
+	(mh-show-cc, mh-show-date, mh-show-header): Replace (min-colors
+	88) with (min-colors 64) in face specifications so that MH-E still
+	looks good on systems with fewer colors (such as Eric Ding's).
+
+2006-02-03  Peter Galbraith  <psg@debian.org>
+
+	* mh-utils.el (mh-image-load-path): New variable to optionally
+	hold the directory where MH-E images are stored.  If nil, then 
+	the function `mh-image-load-path' will find it.  This variable
+	will be used for Debian packaging.
+	(mh-image-load-path function): Use variable `mh-image-load-path'
+	if non-nil and exists.
+
+2006-02-03  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-tool-bar.el: Add conditional require of 'tool-bar or 'toolbar
+	for gnu-emacs or xemacs to avoid void-variable tool-bar-map lisp
+	errors if describe-bindings is called before tool-bar-mode is used.
+
+2006-02-03  Peter S Galbraith  <psg@debian.org>
+
+	* mh-compat.el (mh-url-unreserved-chars): Fix typo from
+	`mh-url-unresrved-chars'.
+
+2006-02-02  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Add +cvs to version.
+
+2006-02-02  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 7.90.
+
+	* mh-e.el (Version, mh-version): Update for release 7.90.
+
+2006-02-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-search.el (which-func-mode): Shush compiler on Emacs 21 too.
+
+	* mh-alias.el (mh-alias-gecos-name): Use
+	mh-replace-regexp-in-string instead of replace-regexp-in-string.
+	(crm, multi-prompt): Use mh-require instead of require.
+	(mh-goto-address-find-address-at-point): Use
+	mh-line-beginning-position and mh-line-end-position instead of
+	line-beginning-position and line-end-position. Use
+	mh-match-string-no-properties instead of
+	match-string-no-properties.
+
+	* mh-comp.el (mh-modify-header-field): Use
+	mh-line-beginning-position and mh-line-end-position instead of
+	line-beginning-position and line-end-position.
+
+	* mh-compat.el (mailabbrev): Use mh-require instead of require.
+	(mh-assoc-string, mh-display-completion-list, mh-face-foreground)
+	(mh-face-background): Make docstring consistent.
+	(mh-require, mh-cancel-timer, mh-display-color-cells)
+	(mh-line-beginning-position, mh-line-end-position)
+	(mh-match-string-no-properties, mh-replace-regexp-in-string)
+	(mh-view-mode-enter): Move definition here from mh-xemacs.el and 
+	add mh- prefix since compatibility functions should have our
+	package prefix (mh-) by Emacs convention and to avoid messing up
+	checks for the same functions in other packages.
+
+	* mh-e.el (mh-compiling-flag): Move mh-xemacs-compiling-flag here
+	from mh-xemacs.el and rename.
+	(mh-xargs): Use mh-line-beginning-position and
+	mh-line-end-position instead of line-beginning-position and
+	line-end-position.
+	(mh-defface-compat): Use mh-display-color-cells instead of
+	display-color-cells.
+
+	* mh-folder.el (which-func): Use mh-require instead of require.
+
+	* mh-funcs.el (mh-list-folders): Use mh-view-mode-enter instead of
+	view-mode-enter.
+
+	* mh-gnus.el (gnus-util, mm-bodies, mm-decode, mm-view, mml): Use
+	mh-require instead of require.
+
+	* mh-letter.el (mh-letter-header-end, mh-letter-mode)
+	(mh-letter-next-header-field): Use mh-line-beginning-position and
+	mh-line-end-position instead of line-beginning-position and
+	line-end-position.
+
+	* mh-limit.el (mh-subject-to-sequence-unthreaded): Use
+	mh-match-string-no-properties instead of
+	match-string-no-properties.
+	(mh-narrow-to-header-field): Use mh-line-beginning-position and
+	mh-line-end-position instead of line-beginning-position and
+	line-end-position.
+
+	* mh-mime.el (mh-mime-inline-part, mh-mm-display-part)
+	(mh-mh-quote-unescaped-sharp, mh-mh-directive-present-p): Use
+	mh-line-beginning-position and mh-line-end-position instead of
+	line-beginning-position and line-end-position.
+
+	* mh-search.el (which-func): Use mh-require instead of require.
+	(mh-make-pick-template, mh-index-visit-folder)
+	(mh-pick-parse-search-buffer, mh-swish-next-result)
+	(mh-mairix-next-result, mh-namazu-next-result)
+	(mh-pick-next-result, mh-grep-next-result)
+	(mh-index-create-imenu-index, mh-index-match-checksum)
+	(mh-md5sum-parser, mh-openssl-parser, mh-index-update-maps): Use
+	mh-line-beginning-position and mh-line-end-position instead of
+	line-beginning-position and line-end-position.
+
+	* mh-seq.el (mh-list-sequences): Use mh-view-mode-enter instead of
+	view-mode-enter.
+	(mh-folder-size-flist, mh-parse-flist-output-line)
+	(mh-add-sequence-notation): Use mh-line-beginning-position and
+	mh-line-end-position instead of line-beginning-position and
+	line-end-position.
+
+	* mh-show.el (mh-show-addr): Use mh-require instead of require.
+
+	* mh-speed.el (mh-folder-speedbar-menu-items, mh-speed-toggle)
+	(mh-speed-view, mh-folder-speedbar-buttons)
+	(mh-speed-highlight, mh-speed-goto-folder)
+	(mh-speed-add-buttons, mh-speed-parse-flists-output)
+	(mh-speed-invalidate-map, mh-speedbar-change-expand-button-char)
+	(mh-speed-add-folder): Use mh-line-beginning-position and
+	mh-line-end-position instead of line-beginning-position and
+	line-end-position.
+	(mh-speed-flists): Use mh-cancel-timer instead of cancel-timer.
+
+	* mh-thread.el (mh-thread-find-children)
+	(mh-thread-parse-scan-line, mh-thread-generate): Use
+	mh-line-beginning-position and mh-line-end-position instead of
+	line-beginning-position and line-end-position.
+
+	* mh-utils.el (mh-colors-available-p): Use mh-display-color-cells
+	instead of display-color-cells.
+	(mh-folder-list): Use mh-replace-regexp-in-string instead of
+	replace-regexp-in-string.
+	(mh-sub-folders-actual, mh-letter-toggle-header-field-display):
+	Use mh-line-beginning-position and mh-line-end-position instead of
+	line-beginning-position and line-end-position.
+
+	* mh-comp.el (mh-send-sub): Don't find components file in current
+	directory--this seems to have been a side-effect of commenting out
+	the use of an old mh-etc variable. Improve error message.
+
 2006-01-31  Bill Wohler  <wohler@newt.com>
 
 	* mh-acros.el (mh-defun-compat, mh-defmacro-compat): Add name
 	argument since compatibility functions should have our package
 	prefix (mh-) by Emacs convention and to avoid messing up checks
 	for the same functions in other packages. Use explicit argument
-	instead of forming name by adding mh-e prefix so that one can grep
+	instead of forming name by adding mh- prefix so that one can grep
 	and find the definition.
 
 	* mh-alias.el (mh-alias-local-users, mh-alias-reload)

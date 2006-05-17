@@ -2435,7 +2435,8 @@ See also `locale-charset-language-names', `locale-language-names',
   ;; to a system without X.
   (setq locale-translation-file-name
 	(let ((files
-	       '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
+	       '("/usr/share/X11/locale/locale.alias" ; e.g. X11R7
+		 "/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
 		 "/usr/X11R6/lib/X11/locale/locale.alias" ; XFree86, e.g. RedHat 4.2
 		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
 		 ;;

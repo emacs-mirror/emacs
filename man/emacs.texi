@@ -460,7 +460,11 @@ International Character Set Support
 * Coding Systems::          Character set conversion when you read and
                               write files, and so on.
 * Recognize Coding::        How Emacs figures out which conversion to use.
-* Specify Coding::          Various ways to choose which conversion to use.
+* Text Coding::             Choosing conversion to use for file text.
+* Communication Coding::    Coding systems for interprocess communication.
+* File Name Coding::        Coding systems for file @emph{names}.
+* Terminal Coding::         Specifying coding systems for converting
+                              terminal input and output.
 * Fontsets::                Fontsets are collections of fonts
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.

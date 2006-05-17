@@ -65,10 +65,10 @@ because most lines in a program are usually indented
 most of the time Emacs determines which mode to use based on the file
 name or on special text in the file.
 
-  Explicit selection of a new major mode is done with a @kbd{M-x} command.
-From the name of a major mode, add @code{-mode} to get the name of a
-command to select that mode.  Thus, you can enter Lisp mode by executing
-@kbd{M-x lisp-mode}.
+  To explicitly select a new major, you use an @kbd{M-x} command.
+Take the name of a major mode and add @code{-mode} to get the name of
+the command to select that mode.  Thus, you can enter Lisp mode by
+executing @kbd{M-x lisp-mode}.
 
 @vindex auto-mode-alist
   When you visit a file, Emacs usually chooses the right major mode based
