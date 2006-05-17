@@ -58,7 +58,7 @@ Interactively, use the command `abbrev-mode'
 to enable or disable Abbrev mode in the current buffer."
   :type 'boolean
   :group 'abbrev-mode)
-;;;###autoload(put 'abbrev-mode 'safe-local-variable t)
+;;;###autoload(put 'abbrev-mode 'safe-local-variable 'booleanp)
 
 
 (defvar edit-abbrevs-map
@@ -363,5 +363,5 @@ A prefix argument means don't query; expand all abbrevs."
 	    (if (or noquery (y-or-n-p (format "Expand `%s'? " string)))
 		(expand-abbrev)))))))
 
-;;; arch-tag: dbd6f3ae-dfe3-40ba-b00f-f9e3ff960df5
+;; arch-tag: dbd6f3ae-dfe3-40ba-b00f-f9e3ff960df5
 ;;; abbrev.el ends here

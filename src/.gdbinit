@@ -88,15 +88,13 @@ end
 # Print out s-expressions from tool bar
 define pp1
   set $tmp = $arg0
-  echo $arg0
-  printf " = "
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
   set safe_debug_print ($tmp)
   set print_output_debug_flag = $output_debug
 end
 document pp1
-Print the argument as an emacs s-expression
+Print the argument as an emacs s-expression.
 Works only when an inferior emacs is executing.
 For use on tool bar when debugging in Emacs
 where the variable name would not otherwise
@@ -119,8 +117,6 @@ end
 # Print value of lisp variable
 define pv1
   set $tmp = "$arg0"
-  echo $arg0
-  printf " = "
   set $output_debug = print_output_debug_flag
   set print_output_debug_flag = 0
   set safe_debug_print (find_symbol_value (intern ($tmp)))
@@ -129,9 +125,8 @@ end
 document pv1
 Print the value of the lisp variable given as argument.
 Works only when an inferior emacs is executing.
-For use on tool bar when debugging in Emacs
-where the variable name would not otherwise
-be recorded in the GUD buffer.
+For use when debugging in Emacs where the variable
+name would not otherwise be recorded in the GUD buffer.
 end
 
 # Print out current buffer point and boundaries

@@ -1,3 +1,11 @@
+2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-gw.el (url-open-stream): Don't hide errors.
+	(url-gateway-nslookup-host, url-open-telnet): Use with-current-buffer.
+
+	* url-handlers.el (url-insert): New function.
+	(url-insert-file-contents): Use it.
+
 2006-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-handler-directory-file-name): New handler.

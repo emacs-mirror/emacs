@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.25
+@set VERSION 4.26
 @set DATE April 2006
 
 @dircategory Emacs
@@ -130,7 +130,7 @@ Hyperlinks
 * Link format::                 How links in Org-mode are formatted
 * Internal links::              Links to other places in the current file
 * External links::              URL-like links to the world
-* Managing links::              Creating, inserting and following
+* Handling links::              Creating, inserting and following
 * Search Options::              Linking to a specific location
 * Remember::                    Org-trees store quick notes
 
@@ -242,10 +242,10 @@ structured ASCII file, as HTML, or (todo and agenda items only) as an
 iCalendar file.
 
 Org-mode keeps simple things simple.  When first fired up, it should
-feel like a simple but easy to use outliner.  Complexity is not
-imposed, but a large amount of functionality is available when you
-need it.  Org-mode can be used on different levels and in different
-ways, for example:
+feel like a simple, easy to use outliner.  Complexity is not imposed,
+but a large amount of functionality is available when you need it.
+Org-mode can be used on different levels and in different ways, for
+example:
 
 @example
 @r{@bullet{} as an outline extension with visibility cycling and structure editing}
@@ -642,7 +642,7 @@ C-v} creates a sparse TODO tree (@pxref{TODO basics}).
 To print a sparse tree, you can use the Emacs command
 @code{ps-print-buffer-with-faces} which does not print invisible parts
 of the document @footnote{This does not work under XEmacs, because
-XEmacs uses selective display for outlining, not text properties}.
+XEmacs uses selective display for outlining, not text properties.}.
 Or you can use the command @kbd{C-c C-x v} to copy the visible part of
 the document to another file (extension @file{.txt}) which can then be
 printed in any desired way.
@@ -678,6 +678,7 @@ ends before the next line that is indented like the bullet/number, or
 less.  For example:
 
 @example
+@group
 ** Lord of the Rings
 My favorite scenes are (in this order)
 1. Eowyns fight with the witch king
@@ -687,6 +688,8 @@ My favorite scenes are (in this order)
 3. Peter Jackson being shot by Legolas
     - on DVD only
    He makes a really funny face when it happens.
+But in the end, not individual scenes matter but the film as a whole.
+@end group
 @end example
 
 Org-mode supports these lists by tuning filling and wrapping commands
@@ -998,9 +1001,10 @@ The width of columns is automatically determined by the table editor.
 Sometimes a single field or a few fields need to carry more text,
 leading to inconveniently wide columns.  To limit@footnote{This feature
 does not work on XEmacs.} the width of a column, one field anywhere in
-the column must carry the string @samp{<N>} where @samp{N} is an integer
-specifying the width of the column in characters.  The next re-align
-will then set the width of this column to no more than this value.
+the column may contain just the string @samp{<N>} where @samp{N} is an
+integer specifying the width of the column in characters.  The next
+re-align will then set the width of this column to no more than this
+value.
 
 @example
 |---+------------------------------|               |---+--------|
@@ -1372,7 +1376,7 @@ links to other files, Usenet articles, emails and much more.
 * Link format::                 How links in Org-mode are formatted
 * Internal links::              Links to other places in the current file
 * External links::              URL-like links to the world
-* Managing links::              Creating, inserting and following
+* Handling links::              Creating, inserting and following
 * Search Options::              Linking to a specific location
 * Remember::                    Org-trees store quick notes
 @end menu
@@ -1413,29 +1417,28 @@ internal structure of all links, use the menu entry
 @cindex links, internal
 @cindex CamelCase links
 
-If the link text does not look like a URL, links are considered to be
-internal in the current file.  Links such as @samp{[[My Target]]} or
-@samp{[[My Target][Find my target]]} lead to a text search in the
-current file.  The link can be followed with @kbd{C-c C-o} when the
-cursor is on the link, or with a mouse click (@pxref{Managing links}).
-The preferred match for such a link is a dedicated target: The same
-string in double angular brackets.  Targets may be located anywhere,
-often it is convenient to put them into a comment line, for example
+If the link does not look like a URL, it is considered to be internal in
+the current file.  Links such as @samp{[[My Target]]} or @samp{[[My
+Target][Find my target]]} lead to a text search in the current file.
+The link can be followed with @kbd{C-c C-o} when the cursor is on the
+link, or with a mouse click (@pxref{Handling links}).  The preferred
+match for such a link is a dedicated target: The same string in double
+angular brackets.  Targets may be located anywhere, often it is
+convenient to put them into a comment line, for example
 
 @example
 # <<My Target>>
 @end example
 
 @noindent In HTML export (@pxref{HTML export}), such targets will become
-named anchors for direct access through http links.
+named anchors for direct access through @samp{http} links.
 
 If no dedicated target exists, Org-mode will search for the words in the
-link, often removing the need for a dedicated target.  In the above
-example the search would be for @samp{my target}.  Links starting with a
-star like @samp{*My Target} restrict the search to headlines.  When
-searching, Org-mode will first try an exact match, but then move on to
-more and more lenient searches.  For example, the link @samp{[[*My
-Targets]]} will find any of the following:
+link.  In the above example the search would be for @samp{my target}.
+Links starting with a star like @samp{*My Target} restrict the search to
+headlines.  When searching, Org-mode will first try an exact match, but
+then move on to more and more lenient searches.  For example, the link
+@samp{[[*My Targets]]} will find any of the following:
 
 @example
 ** My targets
@@ -1446,7 +1449,7 @@ Targets]]} will find any of the following:
 To insert a link targeting a headline, in-buffer completion can be used.
 Just type a star followed by a few optional letters into the buffer and
 press @kbd{M-@key{TAB}}.  All headlines in the current buffer will be
-offered as completions.  @xref{Managing links}, for more commands
+offered as completions.  @xref{Handling links}, for more commands
 creating links.
 
 Following a link pushes a mark onto Org-mode's own mark ring.  You can
@@ -1484,7 +1487,7 @@ the option @code{org-activate-links}.  A CamelCase word then leads to a
 text search such that @samp{CamelCaseLink} is equivalent to
 @samp{[[camel case link]]}.
 
-@node External links, Managing links, Internal links, Hyperlinks
+@node External links, Handling links, Internal links, Hyperlinks
 @section External links
 @cindex links, external
 @cindex external links
@@ -1540,8 +1543,8 @@ as links.  If spaces must be part of the link (for example in
 @samp{bbdb:Richard Stallman}) or to remove ambiguities about the end of
 the link, enclose them in angular brackets.
 
-@node Managing links, Search Options, External links, Hyperlinks
-@section Managing links
+@node Handling links, Search Options, External links, Hyperlinks
+@section Handling links
 
 Org-mode provides methods to create a link in the correct syntax, to
 insert it into an org-mode file, and to follow the link.
@@ -1552,15 +1555,17 @@ insert it into an org-mode file, and to follow the link.
 @item C-c l
 Store a link to the current location.  This is a @emph{global} command
 which can be used in any buffer to create a link.  The link will be
-stored for later insertion into an Org-mode buffer (see below).  For VM,
-RMAIL, WANDERLUST, MH-E, GNUS and BBDB buffers, the link will point to
-the current article/entry.  For W3 and W3M buffers, the link goes to the
-current URL.  For Org-mode files, the current headline is targeted.  For
-any other files, the link will point to the file, with a search string
-(@pxref{Search Options}) pointing to the contents of the current line.
-If there is an active region, the selected words will form the basis of
-the search string.  The key binding @kbd{C-c l} is only a suggestion -
-see @ref{Installation and activation}.
+stored for later insertion into an Org-mode buffer (see below).  For
+Org-mode files, if there is a @samp{<<target>>} at the cursor, the link
+points to the target.  Otherwise it points to the current headline.  For
+VM, RMAIL, WANDERLUST, MH-E, GNUS and BBDB buffers, the link will
+indicate to the current article/entry.  For W3 and W3M buffers, the link
+goes to the current URL.  For any other files, the link will point to
+the file, with a search string (@pxref{Search Options}) pointing to the
+contents of the current line.  If there is an active region, the
+selected words will form the basis of the search string.  The key
+binding @kbd{C-c l} is only a suggestion - see @ref{Installation and
+activation}.
 
 @kindex C-c C-l
 @cindex link completion
@@ -1571,12 +1576,12 @@ Insert a link.  This prompts for a link to be inserted into the buffer.
 You can just type a link, using text for an internal link, or one of the
 link type prefixes mentioned in the examples above.  Through completion,
 all links stored during the current session can be accessed.  The link
-will be formatted as given in the variable @code{org-link-format} and
-inserted into the buffer, along with a descriptive text.  Note that you
-don't have to use this command to insert a link.  Links in Org-mode are
-plain text, and you can type or paste them straight into the buffer.
-By using this command, the links are automatically enclosed in double
-brackets, and you will be asked for the optional descriptive text.
+will be inserted into the buffer, along with a descriptive text.  Note
+that you don't have to use this command to insert a link.  Links in
+Org-mode are plain text, and you can type or paste them straight into
+the buffer.  By using this command, the links are automatically enclosed
+in double brackets, and you will be asked for the optional descriptive
+text.
 
 @kindex C-u C-c C-l
 @cindex file name completion
@@ -1638,7 +1643,7 @@ previously recorded positions.
 @end table
 
 
-@node Search Options, Remember, Managing links, Hyperlinks
+@node Search Options, Remember, Handling links, Hyperlinks
 @section Search options in file links
 @cindex search option in file links
 @cindex file links, searching
@@ -1843,9 +1848,9 @@ agenda files (@pxref{Agenda views}) into a single buffer.  The buffer is in
 @code{agenda-mode}, so there are commands to examine and manipulate
 the TODO entries directly from that buffer (@pxref{Agenda commands}).
 @xref{Global TODO list}, for more information.
-@item @code{org-agenda-include-all-todo}
-If you would like to have all your TODO items listed as part of your
-agenda, customize the variable @code{org-agenda-include-all-todo}.
+@c @item @code{org-agenda-include-all-todo}
+@c If you would like to have all your TODO items listed as part of your
+@c agenda, customize the variable @code{org-agenda-include-all-todo}.
 @end table
 
 @node Progress logging, TODO extensions, TODO basics, TODO items
@@ -2086,7 +2091,7 @@ for @emph{today}, until the entry is marked DONE.  I.e., the task will
 automatically be forwarded until completed.
 
 @example
-*** TODO Call Trillian to ask her out for a date on New Years Eve.
+*** TODO Call Trillian for a date on New Years Eve.
     SCHEDULED: <2004-12-25 Sat>
 @end example
 
@@ -3352,7 +3357,7 @@ variable is @code{org-startup-align-all-tables}, with a default value
 @code{nil}. 
 @example
 align      @r{align all tables}
-noalign    @r{don't align table on startup}
+noalign    @r{don't align tables on startup}
 @end example
 Here are the options for hiding leading stars in outline headings.  The
 corresponding variables are @code{org-hide-leading-stars} and
@@ -3375,7 +3380,7 @@ end of the file.
 @item #+TBLFM:
 This line contains the formulas for the table directly above the line.
 @item #+TITLE:, #+AUTHOR:, #+EMAIL:, #+LANGUAGE:, #+TEXT:, #+OPTIONS:
-These line provide setting for exporting files.  For more details see
+These lines provide setting for exporting files.  For more details see
 @ref{Export options}.
 @end table
 
@@ -3563,10 +3568,24 @@ rather use @kbd{C-c .}  to re-insert the timestamp.
 @cindex FAQ
 
 @enumerate
+
+@cindex allout.el, conflict with
+@cindex @code{keymapp nil} error
+@item @b{When I try to use Org-mode, I always get
+@code{(wrong-type-argument keymapp nil)}}.@*
+This is a conflict with an outdated version of the @file{allout.el}
+package which pretends to be also the standard outline-mode but is not.
+This happens with older versions of @file{allout.el}, for example the
+one distributed with Emacs 21.  Upgrade to Emacs 22 and this problem
+will disappear.  If for some reason you cannot do this, make sure that
+org.el is loaded @emph{before} @file{allout.el}, for example by putting
+@code{(require 'org)} early enough into your @file{.emacs} file.
+
 @item @b{Org-mode seems to be a useful default mode for the various
 @file{README} files I have scattered through my directories.  How do I
-turn it on for all @file{README} files?}@*
-@c
+turn it on for all @file{README} files?}
+@c @*
+
 @example
 (add-to-list 'auto-mode-alist '("README$" . org-mode))
 @end example
@@ -3584,7 +3603,7 @@ convention that hides the link part and the brackets, only showing the
 description part.  How can I convert my old links to this new format?}@*
 @c
 Execute once in each Org-mode file: @kbd{M-x org-upgrade-old-links}.
-The replaces angular brackets with the link format.
+This replaces angular brackets with the new link format.
 
 @item @b{I don't care if you find the new bracket links great, I am
 attached to the old style using angular brackets and no hiding of the
@@ -3889,6 +3908,9 @@ Matthias Rempe (Oelde) provided ideas, Windows support, and quality
 control.
 @item
 Kevin Rogers contributed code to access VM files on remote hosts.
+@item
+Frank Ruell solved the mystery of the @code{keymapp nil} bug, a conflict
+with @file{allout.el}.
 @item
 Philip Rooke created the Org-mode reference card and provided lots of feedback.
 @item

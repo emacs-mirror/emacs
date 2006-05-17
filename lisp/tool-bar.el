@@ -267,14 +267,20 @@ holds a keymap."
   ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
 
   (tool-bar-add-item-from-menu 'print-buffer "print")
-  (tool-bar-add-item "preferences" 'customize 'customize
-		     :help "Edit preferences (customize)")
 
-  (tool-bar-add-item "help" (lambda ()
-			      (interactive)
-			      (popup-menu menu-bar-help-menu))
-		     'help
-		     :help "Pop up the Help menu")
+  ;; tool-bar-add-item-from-menu itself operates on
+  ;; (default-value 'tool-bar-map), but when we don't use that function,
+  ;; we must explicitly operate on the default value.
+
+  (let ((tool-bar-map (default-value 'tool-bar-map)))
+    (tool-bar-add-item "preferences" 'customize 'customize
+		       :help "Edit preferences (customize)")
+
+    (tool-bar-add-item "help" (lambda ()
+				(interactive)
+				(popup-menu menu-bar-help-menu))
+		       'help
+		       :help "Pop up the Help menu"))
   )
 
 (provide 'tool-bar)

@@ -2123,8 +2123,6 @@ between them, return t; otherwise return nil.  */)
 	      while (1)
 		{
 		  DEC_BOTH (from, from_byte);
-		  if (from == stop)
-		    break;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 		  c = FETCH_CHAR (from_byte);
 		  if (SYNTAX (c) == Scomment_fence
@@ -2133,6 +2131,8 @@ between them, return t; otherwise return nil.  */)
 		      found = 1;
 		      break;
 		    }
+		  else if (from == stop)
+		    break;
 		}
 	      if (found == 0)
 		{
@@ -2140,6 +2140,9 @@ between them, return t; otherwise return nil.  */)
 		  from_byte = ini_byte;
 		  goto leave;
 		}
+ 	      else
+		/* We have skipped one comment.  */
+		break;
 	    }
 	  else if (code == Sendcomment)
 	    {

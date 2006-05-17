@@ -83,6 +83,8 @@ Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), jdb, and b
 (defvar gud-minor-mode nil)
 (put 'gud-minor-mode 'permanent-local t)
 
+(defvar gud-comint-buffer nil)
+
 (defvar gud-keep-buffer nil)
 
 (defun gud-symbol (sym &optional soft minor-mode)
@@ -301,13 +303,15 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
 optional doc string DOC.  Certain %-escapes in the string arguments
 are interpreted specially if present.  These are:
 
-  %f    name (without directory) of current source file.
-  %F    name (without directory or extension) of current source file.
-  %d    directory of current source file.
-  %l    number of current source line
-  %e    text of the C lvalue or function-call expression surrounding point.
-  %a    text of the hexadecimal address surrounding point
-  %p    prefix argument to the command (if any) as a number
+  %f -- Name (without directory) of current source file.
+  %F -- Name (without directory or extension) of current source file.
+  %d -- Directory of current source file.
+  %l -- Number of current source line.
+  %e -- Text of the C lvalue or function-call expression surrounding point.
+  %a -- Text of the hexadecimal address surrounding point.
+  %p -- Prefix argument to the command (if any) as a number.
+  %c -- Fully qualified class name derived from the expression
+        surrounding point (jdb only).
 
   The `current' source file is the file of the current buffer (if
 we're in a C file) or the source file current at the last break or
@@ -444,8 +448,7 @@ required by the caller."
 	(when (or gdb-force-update
 		  (not (save-excursion
 			 (goto-char (point-min))
-			 (let ((case-fold-search t))
-			   (looking-at "Watch Expressions:")))))
+			 (looking-at "Watch Expressions:"))))
 	  (erase-buffer)
 	  (insert "Watch Expressions:\n")
 	  (if gdb-speedbar-auto-raise
@@ -739,8 +742,6 @@ To run GDB in text command mode, set `gud-gdb-command-name' to
 
 ;; The completion list is constructed by the process filter.
 (defvar gud-gdb-fetched-lines)
-
-(defvar gud-comint-buffer nil)
 
 (defun gud-gdb-complete-command (&optional command a b)
   "Perform completion on the GDB command preceding point.
@@ -2804,7 +2805,9 @@ Obeying it means displaying in another window the specified file and line."
   (let ((insource (not (eq (current-buffer) gud-comint-buffer)))
 	(frame (or gud-last-frame gud-last-last-frame))
 	result)
-    (while (and str (string-match "\\([^%]*\\)%\\([adeflpc]\\)" str))
+    (while (and str
+		(let ((case-fold-search nil))
+		  (string-match "\\([^%]*\\)%\\([adefFlpc]\\)" str)))
       (let ((key (string-to-char (match-string 2 str)))
 	    subst)
 	(cond
@@ -2889,8 +2892,11 @@ Obeying it means displaying in another window the specified file and line."
       (set-buffer gud-comint-buffer)
       (save-restriction
 	(widen)
-	(goto-char (process-mark proc))
-	(forward-line 0)
+	(if (marker-position gud-delete-prompt-marker)
+	    ;; We get here when printing an expression.
+	    (goto-char gud-delete-prompt-marker)
+	  (goto-char (process-mark proc))
+	  (forward-line 0))
 	(if (looking-at comint-prompt-regexp)
 	    (set-marker gud-delete-prompt-marker (point)))
 	(if (memq gud-minor-mode '(gdbmi gdba))
@@ -2911,7 +2917,21 @@ Obeying it means displaying in another window the specified file and line."
 (defvar gud-find-expr-function 'gud-find-c-expr)
 
 (defun gud-find-expr (&rest args)
-  (apply gud-find-expr-function args))
+  (let ((expr (if (and transient-mark-mode mark-active)
+		  (buffer-substring (region-beginning) (region-end))
+		(apply gud-find-expr-function args))))
+    (save-match-data
+      (if (string-match "\n" expr)
+	  (error "Expression must not include a newline"))
+      (with-current-buffer gud-comint-buffer
+	(save-excursion
+	  (goto-char (process-mark (get-buffer-process gud-comint-buffer)))
+	  (forward-line 0)
+	  (when (looking-at comint-prompt-regexp)
+	    (set-marker gud-delete-prompt-marker (point))
+	    (set-marker-insertion-type gud-delete-prompt-marker t))
+	  (insert (concat  expr " = ")))))
+    expr))
 
 ;; The next eight functions are hacked from gdbsrc.el by
 ;; Debby Ayers <ayers@asc.slb.com>,

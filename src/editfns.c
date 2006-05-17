@@ -491,7 +491,7 @@ get_pos_property (position, prop, object)
 }
 
 /* Find the field surrounding POS in *BEG and *END.  If POS is nil,
-   the value of point is used instead.  If BEG or END null,
+   the value of point is used instead.  If BEG or END is null,
    means don't store the beginning or end of the field.
 
    BEG_LIMIT and END_LIMIT serve to limit the ranged of the returned

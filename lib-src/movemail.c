@@ -466,6 +466,8 @@ main (argc, argv)
 	while (1)
 	  {
 	    nread = read (indesc, buf, sizeof buf);
+	    if (nread < 0)
+	      pfatal_with_name (inname);
 	    if (nread != write (outdesc, buf, nread))
 	      {
 		int saved_errno = errno;

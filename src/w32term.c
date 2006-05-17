@@ -3131,8 +3131,10 @@ construct_mouse_wheel (result, msg, f)
   result->modifiers = (msg->dwModifiers
                        | ((delta < 0 ) ? down_modifier : up_modifier));
 
-  p.x = LOWORD (msg->msg.lParam);
-  p.y = HIWORD (msg->msg.lParam);
+  /* With multiple monitors, we can legitimately get negative
+     coordinates, so cast to short to interpret them correctly.  */
+  p.x = (short) LOWORD (msg->msg.lParam);
+  p.y = (short) HIWORD (msg->msg.lParam);
   ScreenToClient (msg->msg.hwnd, &p);
   XSETINT (result->x, p.x);
   XSETINT (result->y, p.y);

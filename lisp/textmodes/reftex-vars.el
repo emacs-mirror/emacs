@@ -948,7 +948,7 @@ Instead of nil or t, this may also be a string of type letters indicating
 the label types for which it should be true."
   :group  'reftex-referencing-labels
   :type `(choice :tag "\\vref is default macro" ,@reftex-tmp))
-;;;###autoload(put 'reftex-vref-is-default 'safe-local-variable t)
+;;;###autoload(put 'reftex-vref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
 
 (defcustom reftex-fref-is-default nil
   "*Non-nil means, the fancyref macro \\fref is used as default.
@@ -959,7 +959,7 @@ Instead of nil or t, this may also be a string of type letters indicating
 the label types for which it should be true."
   :group  'reftex-referencing-labels
   :type `(choice :tag "\\fref is default macro" ,@reftex-tmp))
-;;;###autoload(put 'reftex-fref-is-default 'safe-local-variable t)
+;;;###autoload(put 'reftex-fref-is-default 'safe-local-variable (lambda (x) (or (stringp x) (symbolp x))))
 
 (defcustom reftex-level-indent 2
   "*Number of spaces to be used for indentation per section level."
@@ -975,7 +975,7 @@ immediately offer the correct label menu - otherwise it will prompt you for
 a label type.  If you set this variable to nil, RefTeX will always prompt."
   :group 'reftex-referencing-labels
   :type 'boolean)
-;;;###autoload(put 'reftex-guess-label-type 'safe-local-variable t)
+;;;###autoload(put 'reftex-guess-label-type 'safe-local-variable (lambda (x) (memq x '(nil t))))
 
 (defcustom reftex-format-ref-function nil
   "Function which produces the string to insert as a reference.

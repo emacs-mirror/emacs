@@ -5065,7 +5065,7 @@
 
 	* imenu.el: Several doc fixes: don't say variables are buffer-local.
 
-2004-08-16  Davis Herring  <herring@lanl.gov>
+2004-08-16  Stuart Herring  <herring@lanl.gov>
 
 	* isearch.el (isearch-string, isearch-message-string, isearch-point)
 	(isearch-success, isearch-forward-flag, isearch-other-end)
@@ -5082,7 +5082,7 @@
 	* term/x-win.el (x-selection-value): If utf8 was successful but
 	ctext was not, use utf8 string.
 
-2004-08-14  Davis Herring  <herring@lanl.gov>
+2004-08-14  Stuart Herring  <herring@lanl.gov>
 
 	* isearch.el: Remove accidental changes of March 4.  Fix backing
 	up when a regexp isearch is made more general.  Use symbolic
@@ -11471,7 +11471,7 @@
 
 	* files.el (kill-some-buffers): Doc fix.
 
-2003-12-29  David Herring  <sdh6@ra.msstate.edu>  (tiny change)
+2003-12-29  Stuart Herring  <herring@lanl.gov>  (tiny change)
 
 	* comint.el (comint-watch-for-password-prompt): Pass `string' as
 	arg to send-invisible
