@@ -1849,6 +1849,10 @@ for pager-like scrolling.  Keys which normally move point by line or
 paragraph will scroll the buffer by the respective amount of lines
 instead and point will be kept vertically fixed relative to window
 boundaries during scrolling.
+
+** The file t-mouse.el is now part of Emacs and provides access to mouse
+events from the console.  It still requires gpm to work but has been updated
+for Emacs 22. In particular, the mode-line is now position sensitive.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
@@ -2627,14 +2631,15 @@ and other common debugger commands.
 
 +++
 *** The new package gdb-ui.el provides an enhanced graphical interface to
-GDB. You can interact with GDB through the GUD buffer in the usual way, but
+GDB.  You can interact with GDB through the GUD buffer in the usual way, but
 there are also further buffers which control the execution and describe the
 state of your program.  It can separate the input/output of your program from
 that of GDB and watches expressions in the speedbar.  It also uses features of
 Emacs 21/22 such as the toolbar, and bitmaps in the fringe to indicate
 breakpoints.
 
-Use M-x gdb to start GDB-UI.
+To use this package just type M-x gdb.  See the Emacs manual if you want the
+old behaviour.
 
 *** The variable tooltip-gud-tips-p has been removed.  GUD tooltips can now be
 toggled independently of normal tooltips with the minor mode

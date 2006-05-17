@@ -373,14 +373,11 @@ get_scrap_target_type_list (scrap)
   err = GetScrapFlavorCount (scrap, &count);
   if (err == noErr)
     flavor_info = xmalloc (sizeof (ScrapFlavorInfo) * count);
-  if (flavor_info)
+  err = GetScrapFlavorInfoList (scrap, &count, flavor_info);
+  if (err != noErr)
     {
-      err = GetScrapFlavorInfoList (scrap, &count, flavor_info);
-      if (err != noErr)
-	{
-	  xfree (flavor_info);
-	  flavor_info = NULL;
-	}
+      xfree (flavor_info);
+      flavor_info = NULL;
     }
   if (flavor_info == NULL)
     count = 0;
@@ -1021,20 +1018,13 @@ defer_apple_events (apple_event, reply)
 	  deferred_apple_events.count = 0;
 	  deferred_apple_events.buf =
 	    xmalloc (sizeof (AppleEvent) * deferred_apple_events.size);
-	  if (deferred_apple_events.buf == NULL)
-	    err = memFullErr;
 	}
       else if (deferred_apple_events.count == deferred_apple_events.size)
 	{
-	  AppleEvent *newbuf;
-
 	  deferred_apple_events.size *= 2;
-	  newbuf = xrealloc (deferred_apple_events.buf,
-			     sizeof (AppleEvent) * deferred_apple_events.size);
-	  if (newbuf)
-	    deferred_apple_events.buf = newbuf;
-	  else
-	    err = memFullErr;
+	  deferred_apple_events.buf
+	    = xrealloc (deferred_apple_events.buf,
+			sizeof (AppleEvent) * deferred_apple_events.size);
 	}
     }
 
@@ -1192,17 +1182,7 @@ copy_scrap_flavor_data (from_scrap, to_scrap, flavor_type)
 	  buf = NULL;
 	}
       else if (size_allocated < size)
-	{
-	  char *newbuf = xrealloc (buf, size);
-
-	  if (newbuf)
-	    buf = newbuf;
-	  else
-	    {
-	      xfree (buf);
-	      buf = NULL;
-	    }
-	}
+	buf = xrealloc (buf, size);
       else
 	break;
     }
@@ -1302,14 +1282,11 @@ mac_handle_service_event (call_ref, event, data)
 	err = GetScrapFlavorCount (cur_scrap, &count);
 	if (err == noErr)
 	  flavor_info = xmalloc (sizeof (ScrapFlavorInfo) * count);
-	if (flavor_info)
+	err = GetScrapFlavorInfoList (cur_scrap, &count, flavor_info);
+	if (err != noErr)
 	  {
-	    err = GetScrapFlavorInfoList (cur_scrap, &count, flavor_info);
-	    if (err != noErr)
-	      {
-		xfree (flavor_info);
-		flavor_info = NULL;
-	      }
+	    xfree (flavor_info);
+	    flavor_info = NULL;
 	  }
 	if (flavor_info == NULL)
 	  break;

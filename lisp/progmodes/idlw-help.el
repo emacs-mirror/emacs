@@ -864,6 +864,7 @@ This function can be used as `idlwave-extra-help-function'."
 		  (erase-buffer)
 		  (insert-file-contents file nil nil nil 'replace))
 	      (idlwave-help-error name type class keyword)))
+	  (goto-char (point-min))
 	  (if (and idlwave-help-fontify-source-code (not in-buf))
 	      (idlwave-help-fontify)))
       (idlwave-help-error name type class keyword))

@@ -201,7 +201,7 @@ XPutPixel (ximage, x, y, pixel)
     }
   else
 #endif
- if (depth == 1)
+  if (depth == 1)
     {
       char *base_addr = GetPixBaseAddr (pixmap);
       short row_bytes = GetPixRowBytes (pixmap);
@@ -444,8 +444,6 @@ x_create_bitmap_from_data (f, bits, width, height)
   id = x_allocate_bitmap_record (f);
 #ifdef MAC_OS
   dpyinfo->bitmaps[id - 1].bitmap_data = (char *) xmalloc (height * width);
-  if (! dpyinfo->bitmaps[id - 1].bitmap_data)
-    return -1;
   bcopy (bits, dpyinfo->bitmaps[id - 1].bitmap_data, height * width);
 #endif  /* MAC_OS */
 

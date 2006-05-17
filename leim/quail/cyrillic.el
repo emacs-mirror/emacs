@@ -1,6 +1,6 @@
 ;;; cyrillic.el --- Quail package for inputting Cyrillic characters
 
-;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005
+;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006
 ;;   Free Software Foundation, Inc.
 ;; Copyright (C) 1997, 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)

@@ -452,6 +452,8 @@ not safe, Emacs queries you, once, whether to set them all.
 \(When you say yes to certain values, they are remembered as safe.)
 
 :safe means set the safe variables, and ignore the rest.
+:all means set all variables, whether safe or not.
+ (Don't set it permanently to :all.)
 nil means always ignore the file local variables.
 
 Any other value means always query you once whether to set them all.
@@ -464,8 +466,9 @@ a -*- line.
 The command \\[normal-mode], when used interactively,
 always obeys file local variable specifications and the -*- line,
 and ignores this variable."
-  :type '(choice (const :tag "Obey" t)
+  :type '(choice (const :tag "Query Unsafe" t)
 		 (const :tag "Safe Only" :safe)
+		 (const :tag "Do all" :all)
 		 (const :tag "Ignore" nil)
 		 (other :tag "Query" other))
   :group 'find-file)
@@ -2283,6 +2286,7 @@ asking you for confirmation."
 	default-text-properties
 	display-time-string
 	enable-local-eval
+	enable-local-variables
 	eval
 	exec-directory
 	exec-path
@@ -2318,6 +2322,8 @@ asking you for confirmation."
 	parse-time-rules
 	process-environment
 	rmail-output-file-alist
+	safe-local-variable-values
+	safe-local-eval-forms
 	save-some-buffers-action-alist
 	special-display-buffer-names
 	standard-input
@@ -2355,9 +2361,11 @@ asking you for confirmation."
 	    (c-indent-level     .  integerp)
 	    (comment-column     .  integerp)
 	    (compile-command    .  string-or-null-p)
+	    (find-file-visit-truename . t)
 	    (fill-column        .  integerp)
 	    (fill-prefix        .  string-or-null-p)
 	    (indent-tabs-mode   .  t)
+	    (kept-old-versions  .  integerp)
 	    (kept-new-versions  .  integerp)
 	    (left-margin        .  t)
 	    (no-byte-compile    .  t)
@@ -2630,6 +2638,7 @@ is specified, returning t if it is specified."
 	      (if (or (and (eq enable-local-variables t)
 			   (null unsafe-vars)
 			   (null risky-vars))
+		      (eq enable-local-variables :all)
 		      (hack-local-variables-confirm
 		       result unsafe-vars risky-vars))
 		  (dolist (elt result)

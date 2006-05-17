@@ -47,11 +47,15 @@
 ;; would be accompanied by a full redisplay.
 
 (define-minor-mode tooltip-mode
-  "Toggle Tooltip display.
-With ARG, turn tooltip mode on if and only if ARG is positive.
+  "Toggle Tooltip mode.
+With ARG, turn Tooltip mode on if and only if ARG is positive.
 When this minor mode is enabled, Emacs displays help text
-in a pop-up window on mouse-over.  When it is disabled,
-Emacs displays the help text in the echo area instead."
+in a pop-up window for buttons and menu items that you put the mouse on.
+\(However, if `tooltip-use-echo-area' is non-nil, this and
+all pop-up help appears in the echo area.)
+
+When Tooltip mode is disabled, Emacs displays one line of
+the help text in the echo area, and does not make a pop-up window."
   :global t
   :init-value (not (or noninteractive
 		       emacs-basic-display
@@ -142,7 +146,9 @@ position to pop up the tooltip."
   :group 'basic-faces)
 
 (defcustom tooltip-use-echo-area nil
-  "Use the echo area instead of tooltip frames for help and GUD tooltips."
+  "Use the echo area instead of tooltip frames for help and GUD tooltips.
+To display multi-line help text in the echo area, set this to t
+and enable `tooltip-mode'."
   :type 'boolean
   :group 'tooltip)
 

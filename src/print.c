@@ -275,6 +275,7 @@ int print_output_debug_flag = 1;
        else								\
 	 insert_1_both (print_buffer, print_buffer_pos,			\
 			print_buffer_pos_byte, 0, 1, 0);		\
+       signal_after_change (PT - print_buffer_pos, 0, print_buffer_pos);\
      }									\
    if (free_print_buffer)						\
      {									\

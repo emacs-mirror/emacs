@@ -1,6 +1,6 @@
 ;;; ethiopic.el --- Quail package for inputting Ethiopic characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997, 1998, 1999, 2001
+;; Copyright (C) 1997, 1998, 1999, 2001, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 

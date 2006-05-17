@@ -1,3 +1,57 @@
+2006-04-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-replace-in-string): Prefer
+	replace-regexp-in-string over of replace-in-string.
+
+2006-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el: Bind tool-bar-mode instead of tool-bar-map.
+
+	* gnus-sum.el: Ditto.
+
+	* gnus-util.el (gnus-select-frame-set-input-focus): Use
+	select-frame-set-input-focus if it is available in XEmacs; use
+	definition defined in Emacs 22 for old Emacsen.
+
+2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	[ Merge from Gnus trunk. ]
+
+	* mm-util.el (mm-charset-synonym-alist): Improve doc string.
+	(mm-charset-override-alist): New variable.
+	(mm-charset-to-coding-system): Use it.
+	(mm-codepage-setup): New helper function.
+	(mm-charset-eval-alist): New variable.
+	(mm-charset-to-coding-system): Use mm-charset-eval-alist.  Warn
+	about unknown charsets.  Add allow-override.  Use
+	`mm-charset-override-alist' only when decoding.
+	(mm-detect-mime-charset-region): Use :mime-charset.
+
+	* mm-bodies.el (mm-decode-body, mm-decode-string): Call
+	`mm-charset-to-coding-system' with allow-override argument.
+
+	* message.el (message-tool-bar-zap-list, message-tool-bar)
+	(message-tool-bar-gnome, message-tool-bar-retro): New variables.
+	(message-tool-bar-local-item-from-menu): Remove.
+	(message-tool-bar-map): Replace by `message-make-tool-bar'.
+	(message-make-tool-bar): New function.
+	(message-mode): Use `message-make-tool-bar'.
+
+	* gnus-sum.el (gnus-summary-tool-bar)
+	(gnus-summary-tool-bar-gnome, gnus-summary-tool-bar-retro)
+	(gnus-summary-tool-bar-zap-list): New variables.
+	(gnus-summary-make-tool-bar): Complete rewrite using
+	`gmm-tool-bar-from-list'.
+
+	* gnus-group.el (gnus-group-tool-bar, gnus-group-tool-bar-gnome)
+	(gnus-group-tool-bar-retro, gnus-group-tool-bar-zap-list): New
+	variables.
+	(gnus-group-make-tool-bar): Complete rewrite using
+	`gmm-tool-bar-from-list'.
+	(gnus-group-tool-bar-update): New function.
+
+	* gmm-utils.el: New file.
+
 2006-04-12  Ralf Angeli  <angeli@iwi.uni-sb.de>
 
 	* flow-fill.el (fill-flowed): Remove trailing space from blank

@@ -141,8 +141,6 @@ If nil, means use the colon-separated path in the variable $INCPATH instead."
   "A list of the environment variable names and values.")
 
 
-(defvar PC-old-read-file-name-internal nil)
-
 (defun PC-bindings (bind)
   (let ((completion-map minibuffer-local-completion-map)
 	(must-match-map minibuffer-local-must-match-map))
@@ -219,21 +217,32 @@ second TAB brings up the `*Completions*' buffer."
 	((not PC-disable-includes)
 	 (add-hook 'find-file-not-found-functions 'PC-look-for-include-file)))
   ;; ... with some underhand redefining.
-  (cond ((and (not partial-completion-mode)
-	      (functionp PC-old-read-file-name-internal))
-	 (fset 'read-file-name-internal PC-old-read-file-name-internal))
-	((and (not PC-disable-includes) (not PC-old-read-file-name-internal))
-	 (setq PC-old-read-file-name-internal
-	       (symbol-function 'read-file-name-internal))
-	 (fset 'read-file-name-internal
-	       'PC-read-include-file-name-internal)))
-    (when (and partial-completion-mode (null PC-env-vars-alist))
-      (setq PC-env-vars-alist
-	    (mapcar (lambda (string)
-		      (let ((d (string-match "=" string)))
-			(cons (concat "$" (substring string 0 d))
-			      (and d (substring string (1+ d))))))
-		    process-environment))))
+  (cond ((not partial-completion-mode)
+         (ad-disable-advice 'read-file-name-internal 'around 'PC-include-file)
+         (ad-activate 'read-file-name-internal))
+	((not PC-disable-includes)
+         (ad-enable-advice 'read-file-name-internal 'around 'PC-include-file)
+         (ad-activate 'read-file-name-internal)))
+  ;; Adjust the completion selection in *Completion* buffers to the way
+  ;; we work.  The default minibuffer completion code only completes the
+  ;; text before point and leaves the text after point alone (new in
+  ;; Emacs-22).  In contrast we use the whole text and we even sometimes
+  ;; move point to a place before EOB, to indicate the first position where
+  ;; there's a difference, so when the user uses choose-completion, we have
+  ;; to trick choose-completion into replacing the whole minibuffer text
+  ;; rather than only the text before point.  --Stef
+  (funcall
+   (if partial-completion-mode 'add-hook 'remove-hook)
+   'choose-completion-string-functions
+   (lambda (&rest x) (goto-char (point-max)) nil))
+  ;; Build the env-completion and mapping table.
+  (when (and partial-completion-mode (null PC-env-vars-alist))
+    (setq PC-env-vars-alist
+          (mapcar (lambda (string)
+                    (let ((d (string-match "=" string)))
+                      (cons (concat "$" (substring string 0 d))
+                            (and d (substring string (1+ d))))))
+                  process-environment))))
 
 
 (defun PC-complete ()
@@ -930,20 +939,23 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	  (setq sorted (cdr sorted)))
 	compressed))))
 
-(defun PC-read-include-file-name-internal (string dir action)
-  (if (string-match "<\\([^\"<>]*\\)>?$" string)
-      (let* ((name (substring string (match-beginning 1) (match-end 1)))
+(defadvice read-file-name-internal (around PC-include-file disable)
+  (if (string-match "<\\([^\"<>]*\\)>?\\'" (ad-get-arg 0))
+      (let* ((string (ad-get-arg 0))
+             (action (ad-get-arg 2))
+             (name (substring string (match-beginning 1) (match-end 1)))
 	     (str2 (substring string (match-beginning 0)))
 	     (completion-table
-	      (mapcar (function (lambda (x) (list (format "<%s>" x))))
+	      (mapcar (lambda (x) (format "<%s>" x))
 		      (PC-include-file-all-completions
 		       name (PC-include-file-path)))))
-	(cond
-	 ((not completion-table) nil)
-	 ((eq action nil) (try-completion str2 completion-table nil))
-	 ((eq action t) (all-completions str2 completion-table nil))
-	 ((eq action 'lambda) (test-completion str2 completion-table nil))))
-    (funcall PC-old-read-file-name-internal string dir action)))
+        (setq ad-return-value
+              (cond
+               ((not completion-table) nil)
+               ((eq action 'lambda) (test-completion str2 completion-table nil))
+               ((eq action nil) (try-completion str2 completion-table nil))
+               ((eq action t) (all-completions str2 completion-table nil)))))
+    ad-do-it))
 
 
 (provide 'complete)

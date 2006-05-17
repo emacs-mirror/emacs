@@ -61,8 +61,11 @@
 
 (eval-and-compile
   (cond
-   ((fboundp 'replace-in-string)
-    (defalias 'gnus-replace-in-string 'replace-in-string))
+   ;; Prefer `replace-regexp-in-string' (present in Emacs, XEmacs 21.5,
+   ;; SXEmacs 22.1.4) over `replace-in-string'.  The later leads to inf-loops
+   ;; on empty matches:
+   ;;   (replace-in-string "foo" "/*$" "/")
+   ;;   (replace-in-string "xe" "\\(x\\)?" "")
    ((fboundp 'replace-regexp-in-string)
     (defun gnus-replace-in-string (string regexp newtext &optional literal)
       "Replace all matches for REGEXP with NEWTEXT in STRING.
@@ -71,6 +74,8 @@ string containing the replacements.
 
 This is a compatibility function for different Emacsen."
       (replace-regexp-in-string regexp newtext string nil literal)))
+   ((fboundp 'replace-in-string)
+    (defalias 'gnus-replace-in-string 'replace-in-string))
    (t
     (defun gnus-replace-in-string (string regexp newtext &optional literal)
       "Replace all matches for REGEXP with NEWTEXT in STRING.
@@ -1424,20 +1429,19 @@ CHOICE is a list of the choice char and help message at IDX."
 (defun gnus-select-frame-set-input-focus (frame)
   "Select FRAME, raise it, and set input focus, if possible."
   (cond ((featurep 'xemacs)
-	 (raise-frame frame)
-	 (select-frame frame)
-	 (focus-frame frame))
-	;; The function `select-frame-set-input-focus' won't set
-	;; the input focus under Emacs 21.2 and X window system.
-	;;((fboundp 'select-frame-set-input-focus)
-	;; (defalias 'gnus-select-frame-set-input-focus
-	;;   'select-frame-set-input-focus)
-	;; (select-frame-set-input-focus frame))
+	 (if (fboundp 'select-frame-set-input-focus)
+	     (select-frame-set-input-focus frame)
+	   (raise-frame frame)
+	   (select-frame frame)
+	   (focus-frame frame)))
+	;; `select-frame-set-input-focus' defined in Emacs 21 will not
+	;; set the input focus.
+	((>= emacs-major-version 22)
+	 (select-frame-set-input-focus frame))
 	(t
 	 (raise-frame frame)
 	 (select-frame frame)
-	 (cond ((and (eq window-system 'x)
-		     (fboundp 'x-focus-frame))
+	 (cond ((memq window-system '(x mac))
 		(x-focus-frame frame))
 	       ((eq window-system 'w32)
 		(w32-focus-frame frame)))

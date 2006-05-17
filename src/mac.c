@@ -453,15 +453,10 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
       char *buf;
 
       buf = xmalloc (data_size + 1);
-      if (buf)
-	{
-	  memcpy (buf, data_ptr, data_size);
-	  buf[data_size] = '\0';
-	  err = posix_pathname_to_fsspec (buf, &fs);
-	  xfree (buf);
-	}
-      else
-	err = memFullErr;
+      memcpy (buf, data_ptr, data_size);
+      buf[data_size] = '\0';
+      err = posix_pathname_to_fsspec (buf, &fs);
+      xfree (buf);
       if (err == noErr)
 	err = AECoercePtr (typeFSS, &fs, sizeof (FSSpec), to_type, result);
 #endif
@@ -489,14 +484,11 @@ mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 	    {
 	      size = AEGetDescDataSize (&desc);
 	      buf = xmalloc (size);
-	      if (buf)
-		{
-		  err = AEGetDescData (&desc, buf, size);
-		  if (err == noErr)
-		    url = CFURLCreateWithBytes (NULL, buf, size,
-						kCFStringEncodingUTF8, NULL);
-		  xfree (buf);
-		}
+	      err = AEGetDescData (&desc, buf, size);
+	      if (err == noErr)
+		url = CFURLCreateWithBytes (NULL, buf, size,
+					    kCFStringEncodingUTF8, NULL);
+	      xfree (buf);
 	      AEDisposeDesc (&desc);
 	    }
 	}
@@ -581,21 +573,16 @@ mac_coerce_file_name_desc (from_desc, to_type, handler_refcon, result)
       data_size = GetHandleSize (from_desc->dataHandle);
 #endif
       data_ptr = xmalloc (data_size);
-      if (data_ptr)
-	{
 #if TARGET_API_MAC_CARBON
-	  err = AEGetDescData (from_desc, data_ptr, data_size);
+      err = AEGetDescData (from_desc, data_ptr, data_size);
 #else
-	  memcpy (data_ptr, *(from_desc->dataHandle), data_size);
+      memcpy (data_ptr, *(from_desc->dataHandle), data_size);
 #endif
-	  if (err == noErr)
-	    err = mac_coerce_file_name_ptr (from_type, data_ptr,
-					    data_size, to_type,
-					    handler_refcon, result);
-	  xfree (data_ptr);
-	}
-      else
-	err = memFullErr;
+      if (err == noErr)
+	err = mac_coerce_file_name_ptr (from_type, data_ptr,
+					data_size, to_type,
+					handler_refcon, result);
+      xfree (data_ptr);
     }
 
   if (err != noErr)
@@ -691,8 +678,6 @@ create_apple_event_from_event_ref (event, num_params, names, types, result)
 	if (err != noErr)
 	  break;
 	buf = xmalloc (size);
-	if (buf == NULL)
-	  break;
 	err = GetEventParameter (event, names[i], types[i], NULL,
 				 size, NULL, buf);
 	if (err == noErr)
@@ -1596,8 +1581,6 @@ xrm_get_preference_database (application)
 
   count = CFSetGetCount (key_set);
   keys = xmalloc (sizeof (CFStringRef) * count);
-  if (keys == NULL)
-    goto out;
   CFSetGetValues (key_set, (const void **)keys);
   for (index = 0; index < count; index++)
     {
@@ -4547,11 +4530,8 @@ cfstring_create_normalized (str, symbol)
       if (in_text == NULL)
 	{
 	  buffer = xmalloc (sizeof (UniChar) * length);
-	  if (buffer)
-	    {
-	      CFStringGetCharacters (str, CFRangeMake (0, length), buffer);
-	      in_text = buffer;
-	    }
+	  CFStringGetCharacters (str, CFRangeMake (0, length), buffer);
+	  in_text = buffer;
 	}
 
       if (in_text)
@@ -4559,15 +4539,12 @@ cfstring_create_normalized (str, symbol)
       while (err == noErr)
 	{
 	  out_buf = xmalloc (out_size);
-	  if (out_buf == NULL)
-	    err = mFulErr;
-	  else
-	    err = ConvertFromUnicodeToText (uni, length * sizeof (UniChar),
-					    in_text,
-					    kUnicodeDefaultDirectionMask,
-					    0, NULL, NULL, NULL,
-					    out_size, &out_read, &out_len,
-					    out_buf);
+	  err = ConvertFromUnicodeToText (uni, length * sizeof (UniChar),
+					  in_text,
+					  kUnicodeDefaultDirectionMask,
+					  0, NULL, NULL, NULL,
+					  out_size, &out_read, &out_len,
+					  out_buf);
 	  if (err == noErr && out_read < length * sizeof (UniChar))
 	    {
 	      xfree (out_buf);

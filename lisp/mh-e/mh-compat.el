@@ -62,7 +62,7 @@ Simulate NOERROR argument in XEmacs which lacks it."
             (load filename noerror t)
           (load (format "%s" feature) noerror t)))))
 
-(mh-defun-compat mh-assoc-string assoc-string (key list case-fold)
+(defun-mh mh-assoc-string assoc-string (key list case-fold)
   "Like `assoc' but specifically for strings.
 Case is ignored if CASE-FOLD is non-nil.
 This function is used by Emacs versions that lack `assoc-string',
@@ -77,7 +77,7 @@ introduced in Emacs 22."
       'cancel-timer
     'delete-itimer))
 
-(mh-defun-compat mh-display-color-cells display-color-cells (&optional display)
+(defun-mh mh-display-color-cells display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY.
 This function is used by XEmacs to return 2 when
 `device-color-cells' returns nil. This happens when compiling or
@@ -115,12 +115,12 @@ introduced in Emacs 22."
       `(face-background ,face ,frame)
     `(face-background ,face ,frame ,inherit)))
 
-(mh-defun-compat mh-font-lock-add-keywords font-lock-add-keywords
+(defun-mh mh-font-lock-add-keywords font-lock-add-keywords
   (mode keywords &optional how)
   "XEmacs does not have `font-lock-add-keywords'.
 This function returns nil on that system.")
 
-(mh-defun-compat mh-image-load-path-for-library
+(defun-mh mh-image-load-path-for-library
   image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
 
@@ -215,7 +215,7 @@ compatibility with versions of Emacs that lack the variable
     (nconc (list image-directory)
            (delete image-directory (copy-sequence (or path load-path))))))
 
-(mh-defun-compat mh-image-search-load-path
+(defun-mh mh-image-search-load-path
   image-search-load-path (file &optional path)
   "Emacs 21 and XEmacs don't have `image-search-load-path'.
 This function returns nil on those systems."
@@ -234,13 +234,13 @@ This function returns nil on those systems."
     'point-at-eol))
 
 (mh-require 'mailabbrev nil t)
-(mh-defun-compat mh-mail-abbrev-make-syntax-table
+(defun-mh mh-mail-abbrev-make-syntax-table
   mail-abbrev-make-syntax-table ()
   "Emacs 21 and XEmacs don't have `mail-abbrev-make-syntax-table'.
 This function returns nil on those systems."
   nil)
 
-(mh-defun-compat mh-match-string-no-properties
+(defun-mh mh-match-string-no-properties
   match-string-no-properties (num &optional string)
   "Return string of text matched by last search, without text properties.
 This function is used by XEmacs that lacks `match-string-no-properties'.
@@ -249,7 +249,7 @@ The argument STRING is ignored."
   (buffer-substring-no-properties
    (match-beginning num) (match-end num)))
 
-(mh-defun-compat mh-replace-regexp-in-string replace-regexp-in-string
+(defun-mh mh-replace-regexp-in-string replace-regexp-in-string
   (regexp rep string &optional fixedcase literal subexp start)
   "Replace REGEXP with REP everywhere in STRING and return result.
 This function is used by XEmacs that lacks `replace-regexp-in-string'.
@@ -269,7 +269,7 @@ The arguments FIXEDCASE, SUBEXP, and START, used by
       "A list of characters that are _NOT_ reserved in the URL spec.
 This is taken from RFC 2396."))
 
-(mh-defun-compat mh-url-hexify-string url-hexify-string (str)
+(defun-mh mh-url-hexify-string url-hexify-string (str)
   "Escape characters in a string.
 This is a copy of `url-hexify-string' from url-util.el in Emacs
 22; needed by Emacs 21."
@@ -283,7 +283,7 @@ This is a copy of `url-hexify-string' from url-util.el in Emacs
        (char-to-string char)))
    str ""))
 
-(mh-defun-compat mh-view-mode-enter
+(defun-mh mh-view-mode-enter
   view-mode-enter (&optional return-to exit-action)
   "Enter View mode.
 This function is used by XEmacs that lacks `view-mode-enter'.

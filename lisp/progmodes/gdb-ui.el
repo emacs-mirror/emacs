@@ -100,7 +100,9 @@
 (defvar tool-bar-map)
 (defvar speedbar-initial-expansion-list-name)
 
-(defvar gdb-frame-address "main" "Initialization for Assembler buffer.")
+(defvar gdb-pc-address nil "Initialization for Assembler buffer.
+Set to \"main\" at start if gdb-show-main is t.")
+(defvar gdb-frame-address nil "Identity of frame for watch expression.")
 (defvar gdb-previous-frame-address nil)
 (defvar gdb-memory-address "main")
 (defvar gdb-previous-frame nil)
@@ -109,8 +111,9 @@
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil
  "List of variables in watch window.
-Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS) where
-STATUS is nil (unchanged), `changed' or `out-of-scope'.")
+Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS FP)
+where STATUS is nil (unchanged), `changed' or `out-of-scope', FP the frame
+address for root variables.")
 (defvar gdb-force-update t
  "Non-nil means that view of watch expressions will be updated in the speedbar.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
@@ -516,7 +519,7 @@ With arg, use separate IO iff arg is positive."
   (setq comint-input-sender 'gdb-send)
 
   ;; (re-)initialize
-  (setq gdb-frame-address (if gdb-show-main "main" nil))
+  (setq gdb-pc-address (if gdb-show-main "main" nil))
   (setq gdb-previous-frame-address nil
 	gdb-memory-address "main"
 	gdb-previous-frame nil
@@ -720,7 +723,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 		    expr)
 		  (match-string 2)
 		  (match-string 3)
-		  nil nil)))
+		  nil nil gdb-frame-address)))
 	(push var gdb-var-list)
 	(speedbar 1)
 	(unless (string-equal
@@ -1206,7 +1209,7 @@ This filter may simply queue input for a later time."
 	(cons
 	 (match-string 1 args)
 	 (string-to-number (match-string 2 args))))
-  (setq gdb-frame-address (match-string 3 args))
+  (setq gdb-pc-address (match-string 3 args))
   ;; cover for auto-display output which comes *before*
   ;; stopped annotation
   (if (eq gdb-output-sink 'inferior) (setq gdb-output-sink 'user)))
@@ -1357,7 +1360,7 @@ happens to be appropriate."
     (gdb-get-buffer-create 'gdb-breakpoints-buffer)
     (gdb-invalidate-breakpoints)
     ;; Do this through gdb-get-selected-frame -> gdb-frame-handler
-    ;; so gdb-frame-address is updated.
+    ;; so gdb-pc-address is updated.
     ;; (gdb-invalidate-assembler)
 
     (if (string-equal gdb-version "pre-6.4")
@@ -3004,11 +3007,11 @@ BUFFER nil or omitted means use the current buffer."
 	(pos 1) (address) (flag) (bptno))
     (with-current-buffer buffer
       (save-excursion
-	(if (not (equal gdb-frame-address "main"))
+	(if (not (equal gdb-pc-address "main"))
 	    (progn
 	      (goto-char (point-min))
-	      (if (and gdb-frame-address
-		       (search-forward gdb-frame-address nil t))
+	      (if (and gdb-pc-address
+		       (search-forward gdb-pc-address nil t))
 		  (progn
 		    (setq pos (point))
 		    (beginning-of-line)
@@ -3038,7 +3041,7 @@ BUFFER nil or omitted means use the current buffer."
 		  (goto-char (point-min))
 		  (if (search-forward address nil t)
 		      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
-    (if (not (equal gdb-frame-address "main"))
+    (if (not (equal gdb-pc-address "main"))
 	(with-current-buffer buffer
 	  (set-window-point (get-buffer-window buffer 0) pos)))))
 
@@ -3100,7 +3103,7 @@ BUFFER nil or omitted means use the current buffer."
 	(special-display-frame-alist gdb-frame-parameters))
     (display-buffer (gdb-get-buffer-create 'gdb-assembler-buffer))))
 
-;; modified because if gdb-frame-address has changed value a new command
+;; modified because if gdb-pc-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output
 (defun gdb-invalidate-assembler (&optional ignored)
   (if (gdb-get-buffer 'gdb-assembler-buffer)
@@ -3109,7 +3112,7 @@ BUFFER nil or omitted means use the current buffer."
 		     (string-equal gdb-selected-frame gdb-previous-frame))
 	  (if (or (not (member 'gdb-invalidate-assembler
 			       gdb-pending-triggers))
-		  (not (string-equal gdb-frame-address
+		  (not (string-equal gdb-pc-address
 				     gdb-previous-frame-address)))
 	  (progn
 	    ;; take previous disassemble command, if any, off the queue
@@ -3122,11 +3125,11 @@ BUFFER nil or omitted means use the current buffer."
 	    (gdb-enqueue-input
 	     (list
 	      (concat gdb-server-prefix "disassemble "
-		      (if (member gdb-frame-address '(nil "main")) nil "0x")
-			   gdb-frame-address "\n")
+		      (if (member gdb-pc-address '(nil "main")) nil "0x")
+			   gdb-pc-address "\n")
 		   'gdb-assembler-handler))
 	    (push 'gdb-invalidate-assembler gdb-pending-triggers)
-	    (setq gdb-previous-frame-address gdb-frame-address)
+	    (setq gdb-previous-frame-address gdb-pc-address)
 	    (setq gdb-previous-frame gdb-selected-frame)))))))
 
 (defun gdb-get-selected-frame ()
@@ -3141,8 +3144,10 @@ BUFFER nil or omitted means use the current buffer."
   (setq gdb-pending-triggers
 	(delq 'gdb-get-selected-frame gdb-pending-triggers))
   (goto-char (point-min))
-  (if (re-search-forward  "Stack level \\([0-9]+\\)" nil t)
-      (setq gdb-frame-number (match-string 1)))
+  (when (re-search-forward
+       "Stack level \\([0-9]+\\), frame at \\(0x[[:xdigit:]]+\\)" nil t)
+    (setq gdb-frame-number (match-string 1))
+    (setq gdb-frame-address (match-string 2)))
   (goto-char (point-min))
   (when (re-search-forward ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-+?\\)\
 \\(?: (\\(\\S-+?\\):[0-9]+?)\\)*;? "
@@ -3154,7 +3159,7 @@ BUFFER nil or omitted means use the current buffer."
     (if (gdb-get-buffer 'gdb-assembler-buffer)
 	(with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
 	  (setq mode-name (concat "Machine:" gdb-selected-frame))))
-    (setq gdb-frame-address (match-string 1))
+    (setq gdb-pc-address (match-string 1))
     (if (and (match-string 3) gud-overlay-arrow-position)
       (let ((buffer (marker-buffer gud-overlay-arrow-position))
 	    (position (marker-position gud-overlay-arrow-position)))
@@ -3289,6 +3294,7 @@ in_scope=\"\\(.*?\\)\".*?}")
 	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
 	  (let ((buffer-read-only nil))
 	    (erase-buffer)
+	    (put-text-property 0 (length err) 'face font-lock-warning-face err)
 	    (insert err)
 	    (goto-char (point-min)))))
     (let ((register-list (reverse gdb-register-names))
@@ -3385,36 +3391,44 @@ in_scope=\"\\(.*?\\)\".*?}")
 (defun gdb-stack-list-locals-handler ()
   (setq gdb-pending-triggers (delq 'gdb-invalidate-locals-1
 				  gdb-pending-triggers))
-  (let (local locals-list)
-    (goto-char (point-min))
-    (while (re-search-forward gdb-stack-list-locals-regexp nil t)
-      (let ((local (list (match-string 1)
-			 (match-string 2)
-			 nil)))
-	(if (looking-at ",value=\\(\".*\"\\).*?}")
-	    (setcar (nthcdr 2 local) (read (match-string 1))))
-	(push local locals-list)))
-    (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
-      (and buf (with-current-buffer buf
-		 (let* ((window (get-buffer-window buf 0))
-			(start (window-start window))
-			(p (window-point window))
-			(buffer-read-only nil))
-		   (erase-buffer)
-		   (dolist (local locals-list)
-		     (setq name (car local))
-		     (if (or (not (nth 2 local))
-			     (string-match "\\0x" (nth 2 local)))
-		       (add-text-properties 0 (length name)
-			    `(mouse-face highlight
-			      help-echo "mouse-2: create watch expression"
-			      local-map ,gdb-locals-watch-map-1)
-			    name))
+  (goto-char (point-min))
+  (if (re-search-forward gdb-error-regexp nil t)
+      (let ((err (match-string 1)))
+	(with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
+	  (let ((buffer-read-only nil))
+	    (erase-buffer)
+	    (insert err)
+	    (goto-char (point-min)))))
+    (let (local locals-list)
+      (goto-char (point-min))
+      (while (re-search-forward gdb-stack-list-locals-regexp nil t)
+	(let ((local (list (match-string 1)
+			   (match-string 2)
+			   nil)))
+	  (if (looking-at ",value=\\(\".*\"\\).*?}")
+	      (setcar (nthcdr 2 local) (read (match-string 1))))
+	  (push local locals-list)))
+      (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
+	(and buf (with-current-buffer buf
+		   (let* ((window (get-buffer-window buf 0))
+			  (start (window-start window))
+			  (p (window-point window))
+			  (buffer-read-only nil))
+		     (erase-buffer)
+		     (dolist (local locals-list)
+		       (setq name (car local))
+		       (if (or (not (nth 2 local))
+			       (string-match "^\\0x" (nth 2 local)))
+			   (add-text-properties 0 (length name)
+			        `(mouse-face highlight
+			          help-echo "mouse-2: create watch expression"
+			          local-map ,gdb-locals-watch-map-1)
+				name))
 		       (insert
 			(concat name "\t" (nth 1 local)
 				"\t" (nth 2 local) "\n")))
-		   (set-window-start window start)
-		   (set-window-point window p)))))))
+		     (set-window-start window start)
+		     (set-window-point window p))))))))
 
 (defun gdb-get-register-names ()
   "Create a list of register names."

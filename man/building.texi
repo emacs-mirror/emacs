@@ -929,20 +929,26 @@ the new frame.
 @cindex Watching expressions in GDB
 
 @findex gud-watch
+@kindex C-x C-a C-w @r{(GUD)}
   If you want to see how a variable changes each time your program
 stops, move point into the variable name and click on the watch icon
-in the tool bar (@code{gud-watch}).
+in the tool bar (@code{gud-watch}) or type @kbd{C-x C-a C-w}.  If you
+specify a prefix argument, you can enter the variable name in the
+minibuffer.
 
   Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree
 format.  Leaves and simple data types show the name of the expression
 and its value and, when the speedbar frame is selected, display the
 type as a tooltip.  Higher levels show the name, type and address
-value for pointers and just the name and type otherwise.
+value for pointers and just the name and type otherwise.  Root expressions
+also display the frame address as a tooltip to help identify the frame
+in which they were defined.
 
   To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
 
+@kindex D @r{(GDB speedbar)}
 @findex gdb-var-delete
   To delete a complex watch expression, move point to the root
 expression in the speedbar and type @kbd{D} (@code{gdb-var-delete}).
@@ -965,9 +971,8 @@ edit its value.
 @vindex gdb-use-colon-colon-notation
   If the variable @code{gdb-use-colon-colon-notation} is
 non-@code{nil}, Emacs uses the @samp{@var{function}::@var{variable}}
-format to display variables in the speedbar.  Since this does not work
-for variables defined in compound statements, the default value is
-@code{nil}.
+format.  This allows the user to display watch expressions which share
+the same variable name.  The default value is @code{nil}.
 
 @vindex gdb-speedbar-auto-raise
 To automatically raise the speedbar every time the display of watch

@@ -825,7 +825,9 @@ same regexp used last time.
 
   When you find the previous input you want, you can resubmit it by
 typing @key{RET}, or you can edit it first and then resubmit it if you
-wish.
+wish.  Any partial input you were composing before navigating the
+history list is restored when you go to the beginning or end of the
+history ring.
 
   Often it is useful to reexecute several successive shell commands that
 were previously executed in sequence.  To do this, first find and
@@ -967,14 +969,14 @@ current directory.
 @vindex comint-scroll-to-bottom-on-input
   If the variable @code{comint-scroll-to-bottom-on-input} is
 non-@code{nil}, insertion and yank commands scroll the selected window
-to the bottom before inserting.
+to the bottom before inserting.  The default is @code{nil}.
 
 @vindex comint-scroll-show-maximum-output
   If @code{comint-scroll-show-maximum-output} is non-@code{nil}, then
 arrival of output when point is at the end tries to place the last line of
 text at the bottom line of the window, so as to show as much useful
-text as possible.  (This mimics the scrolling behavior of many
-terminals.)  The default is @code{nil}.
+text as possible.  (This mimics the scrolling behavior of most
+terminals.)  The default is @code{t}.
 
 @vindex comint-move-point-for-output
   By setting @code{comint-move-point-for-output}, you can opt for

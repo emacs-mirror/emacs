@@ -531,6 +531,13 @@ describe_abbrev (sym, stream)
   Fterpri (stream);
 }
 
+static void
+record_symbol (sym, list)
+     Lisp_Object sym, list;
+{
+  XSETCDR (list, Fcons (sym, XCDR (list)));
+}
+
 DEFUN ("insert-abbrev-table-description", Finsert_abbrev_table_description,
        Sinsert_abbrev_table_description, 1, 2, 0,
        doc: /* Insert before point a full description of abbrev table named NAME.
@@ -546,6 +553,7 @@ READABLE is non-nil, they are listed.  */)
      Lisp_Object name, readable;
 {
   Lisp_Object table;
+  Lisp_Object symbols;
   Lisp_Object stream;
 
   CHECK_SYMBOL (name);
@@ -554,12 +562,22 @@ READABLE is non-nil, they are listed.  */)
 
   XSETBUFFER (stream, current_buffer);
 
+  symbols = Fcons (Qnil, Qnil);
+  map_obarray (table, record_symbol, symbols);
+  symbols = XCDR (symbols);
+  symbols = Fsort (symbols, Qstring_lessp);
+
   if (!NILP (readable))
     {
       insert_string ("(");
       Fprin1 (name, stream);
       insert_string (")\n\n");
-      map_obarray (table, describe_abbrev, stream);
+      while (! NILP (symbols))
+	{
+	  describe_abbrev (XCAR (symbols), stream);
+	  symbols = XCDR (symbols);
+	}
+
       insert_string ("\n\n");
     }
   else
@@ -567,7 +585,11 @@ READABLE is non-nil, they are listed.  */)
       insert_string ("(define-abbrev-table '");
       Fprin1 (name, stream);
       insert_string (" '(\n");
-      map_obarray (table, write_abbrev, stream);
+      while (! NILP (symbols))
+	{
+	  write_abbrev (XCAR (symbols), stream);
+	  symbols = XCDR (symbols);
+	}
       insert_string ("    ))\n\n");
     }
 

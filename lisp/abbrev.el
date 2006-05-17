@@ -160,8 +160,10 @@ or may be omitted (it is usually omitted)."
 (defun edit-abbrevs-redefine ()
   "Redefine abbrevs according to current buffer contents."
   (interactive)
-  (define-abbrevs t)
-  (set-buffer-modified-p nil))
+  (save-restriction
+    (widen)
+    (define-abbrevs t)
+    (set-buffer-modified-p nil)))
 
 (defun define-abbrevs (&optional arg)
   "Define abbrevs according to current visible buffer contents.
@@ -195,9 +197,12 @@ the ones defined from the buffer now."
 Optional argument FILE is the name of the file to read;
 it defaults to the value of `abbrev-file-name'.
 Optional second argument QUIETLY non-nil means don't display a message."
-  (interactive "fRead abbrev file: ")
-  (load (if (and file (> (length file) 0)) file abbrev-file-name)
-	nil quietly)
+  (interactive
+   (list
+    (read-file-name (format "Read abbrev file (default %s): "
+			    abbrev-file-name)
+		    nil abbrev-file-name t)))
+  (load (or file abbrev-file-name) nil quietly)
   (setq abbrevs-changed nil))
 
 (defun quietly-read-abbrev-file (&optional file)
