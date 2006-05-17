@@ -81,8 +81,8 @@ message number, and optionally the match.")
 ;;; MH-Folder Commands
 
 ;;;###mh-autoload
-(defun* mh-search (folder search-regexp
-                          &optional redo-search-flag window-config)
+(defun mh-search (folder search-regexp
+                         &optional redo-search-flag window-config)
   "Search your MH mail.
 
 This command helps you find messages in your entire corpus of
@@ -230,96 +230,98 @@ folder containing the index search results."
                   mh-search-regexp-builder)
              (current-window-configuration)
            nil)))
-  ;; Redoing a sequence search?
-  (when (and redo-search-flag mh-index-data mh-index-sequence-search-flag
-             (not mh-flists-called-flag))
-    (let ((mh-flists-called-flag t))
-      (apply #'mh-index-sequenced-messages mh-index-previous-search))
-    (return-from mh-search))
-  ;; We have fancy query parsing.
-  (when (symbolp search-regexp)
-    (mh-search-folder folder window-config)
-    (return-from mh-search))
-  ;; Begin search proper.
-  (mh-checksum-choose)
-  (let ((result-count 0)
-        (old-window-config (or window-config mh-previous-window-config))
-        (previous-search mh-index-previous-search)
-        (index-folder (format "%s/%s" mh-index-folder
-                              (mh-index-generate-pretty-name search-regexp))))
-    ;; Create a new folder for the search results or recreate the old one...
-    (if (and redo-search-flag mh-index-previous-search)
-        (let ((buffer-name (buffer-name (current-buffer))))
-          (mh-process-or-undo-commands buffer-name)
-          (save-excursion (mh-exec-cmd-quiet nil "rmf" buffer-name))
-          (mh-exec-cmd-quiet nil "folder" "-create" "-fast" buffer-name)
-          (setq index-folder buffer-name))
-      (setq index-folder (mh-index-new-folder index-folder search-regexp)))
+  (block mh-search
+    ;; Redoing a sequence search?
+    (when (and redo-search-flag mh-index-data mh-index-sequence-search-flag
+               (not mh-flists-called-flag))
+      (let ((mh-flists-called-flag t))
+        (apply #'mh-index-sequenced-messages mh-index-previous-search))
+      (return-from mh-search))
+    ;; We have fancy query parsing.
+    (when (symbolp search-regexp)
+      (mh-search-folder folder window-config)
+      (return-from mh-search))
+    ;; Begin search proper.
+    (mh-checksum-choose)
+    (let ((result-count 0)
+          (old-window-config (or window-config mh-previous-window-config))
+          (previous-search mh-index-previous-search)
+          (index-folder (format "%s/%s" mh-index-folder
+                                (mh-index-generate-pretty-name search-regexp))))
+      ;; Create a new folder for the search results or recreate the old one...
+      (if (and redo-search-flag mh-index-previous-search)
+          (let ((buffer-name (buffer-name (current-buffer))))
+            (mh-process-or-undo-commands buffer-name)
+            (save-excursion (mh-exec-cmd-quiet nil "rmf" buffer-name))
+            (mh-exec-cmd-quiet nil "folder" "-create" "-fast" buffer-name)
+            (setq index-folder buffer-name))
+        (setq index-folder (mh-index-new-folder index-folder search-regexp)))
 
-    (let ((folder-path (format "%s%s" mh-user-path (substring folder 1)))
-          (folder-results-map (make-hash-table :test #'equal))
-          (origin-map (make-hash-table :test #'equal)))
-      ;; Run search program...
-      (message "Executing %s... " mh-searcher)
-      (funcall mh-search-function folder-path search-regexp)
+      (let ((folder-path (format "%s%s" mh-user-path (substring folder 1)))
+            (folder-results-map (make-hash-table :test #'equal))
+            (origin-map (make-hash-table :test #'equal)))
+        ;; Run search program...
+        (message "Executing %s... " mh-searcher)
+        (funcall mh-search-function folder-path search-regexp)
 
-      ;; Parse searcher output.
-      (message "Processing %s output... " mh-searcher)
-      (goto-char (point-min))
-      (loop for next-result = (funcall mh-search-next-result-function)
-            while next-result
-            do (unless (eq next-result 'error)
-                 (unless (gethash (car next-result) folder-results-map)
-                   (setf (gethash (car next-result) folder-results-map)
-                         (make-hash-table :test #'equal)))
-                 (setf (gethash (cadr next-result)
-                                (gethash (car next-result) folder-results-map))
-                       t)))
+        ;; Parse searcher output.
+        (message "Processing %s output... " mh-searcher)
+        (goto-char (point-min))
+        (loop for next-result = (funcall mh-search-next-result-function)
+              while next-result
+              do (unless (eq next-result 'error)
+                   (unless (gethash (car next-result) folder-results-map)
+                     (setf (gethash (car next-result) folder-results-map)
+                           (make-hash-table :test #'equal)))
+                   (setf (gethash (cadr next-result)
+                                  (gethash (car next-result) folder-results-map))
+                         t)))
 
-      ;; Copy the search results over.
-      (maphash #'(lambda (folder msgs)
-                   (let ((cur (car (mh-translate-range folder "cur")))
-                         (msgs (sort (loop for msg being the hash-keys of msgs
-                                           collect msg)
-                                     #'<)))
-                     (mh-exec-cmd "refile" msgs "-src" folder
-                                  "-link" index-folder)
-                     ;; Restore cur to old value, that refile changed
-                     (when cur
-                       (mh-exec-cmd-quiet nil "mark" folder "-add" "-zero"
-                                          "-sequence" "cur" (format "%s" cur)))
-                     (loop for msg in msgs
-                           do (incf result-count)
-                           (setf (gethash result-count origin-map)
-                                 (cons folder msg)))))
-               folder-results-map)
+        ;; Copy the search results over.
+        (maphash #'(lambda (folder msgs)
+                     (let ((cur (car (mh-translate-range folder "cur")))
+                           (msgs (sort (loop for msg being the hash-keys of msgs
+                                             collect msg)
+                                       #'<)))
+                       (mh-exec-cmd "refile" msgs "-src" folder
+                                    "-link" index-folder)
+                       ;; Restore cur to old value, that refile changed
+                       (when cur
+                         (mh-exec-cmd-quiet nil "mark" folder "-add" "-zero"
+                                            "-sequence"
+                                            "cur" (format "%s" cur)))
+                       (loop for msg in msgs
+                             do (incf result-count)
+                             (setf (gethash result-count origin-map)
+                                   (cons folder msg)))))
+                 folder-results-map)
 
-      ;; Vist the results folder.
-      (mh-visit-folder index-folder () (list folder-results-map origin-map))
+        ;; Vist the results folder.
+        (mh-visit-folder index-folder () (list folder-results-map origin-map))
 
-      (goto-char (point-min))
-      (forward-line)
-      (mh-update-sequences)
-      (mh-recenter nil)
+        (goto-char (point-min))
+        (forward-line)
+        (mh-update-sequences)
+        (mh-recenter nil)
 
-      ;; Update the speedbar, if needed.
-      (when (mh-speed-flists-active-p)
-        (mh-speed-flists t mh-current-folder))
+        ;; Update the speedbar, if needed.
+        (when (mh-speed-flists-active-p)
+          (mh-speed-flists t mh-current-folder))
 
-      ;; Maintain history.
-      (when (or (and redo-search-flag previous-search) window-config)
-        (setq mh-previous-window-config old-window-config))
-      (setq mh-index-previous-search (list folder mh-searcher search-regexp))
+        ;; Maintain history.
+        (when (or (and redo-search-flag previous-search) window-config)
+          (setq mh-previous-window-config old-window-config))
+        (setq mh-index-previous-search (list folder mh-searcher search-regexp))
 
-      ;; Write out data to disk.
-      (unless mh-flists-called-flag (mh-index-write-data))
+        ;; Write out data to disk.
+        (unless mh-flists-called-flag (mh-index-write-data))
 
-      (message "%s found %s matches in %s folders"
-               (upcase-initials (symbol-name mh-searcher))
-               (loop for msg-hash being hash-values of mh-index-data
-                     sum (hash-table-count msg-hash))
-               (loop for msg-hash being hash-values of mh-index-data
-                     count (> (hash-table-count msg-hash) 0))))))
+        (message "%s found %s matches in %s folders"
+                 (upcase-initials (symbol-name mh-searcher))
+                 (loop for msg-hash being hash-values of mh-index-data
+                       sum (hash-table-count msg-hash))
+                 (loop for msg-hash being hash-values of mh-index-data
+                       count (> (hash-table-count msg-hash) 0)))))))
 
 ;; Shush compiler.
 (eval-when-compile (mh-do-in-xemacs (defvar pick-folder)))

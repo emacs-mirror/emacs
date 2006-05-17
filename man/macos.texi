@@ -104,12 +104,12 @@ character codes in the range 128-159.  The coding systems
 @code{mac-roman}, @code{mac-centraleurroman}, and @code{mac-cyrillic}
 are used to represent these Mac encodings.
 
-  The fontset @code{fontset-mac} is created automatically when Emacs
-is run on Mac, and used by default.  It displays as many kinds of
-characters as possible using 12-point Monaco as a base font.  If you
-see some character as a hollow box with this fontset, then it's almost
-impossible to display it only by customizing font settings (@pxref{Mac
-Font Specs}).
+  The fontset @code{fontset-standard} is created automatically when
+Emacs is run on Mac, and used by default.  It displays as many kinds
+of characters as possible using 12-point Monaco as a base font.  If
+you see some character as a hollow box with this fontset, then it's
+almost impossible to display it only by customizing font settings
+(@pxref{Mac Font Specs}).
 
   You can use input methods provided either by LEIM (@pxref{Input
 Methods}) or Mac OS to enter international characters.  To use the

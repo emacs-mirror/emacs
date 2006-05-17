@@ -2306,6 +2306,8 @@ of citations entirely, choose \"None\"."
     "X-Authentication-Warning:"         ; sendmail
     "X-Beenthere:"                      ; Mailman mailing list manager
     "X-Bogosity:"                       ; bogofilter
+    "X-BrightmailFiltered:"             ; Brightmail
+    "X-Brightmail-Tracker:"             ; Brightmail
     "X-Bugzilla-*"                      ; Bugzilla
     "X-Complaints-To:"
     "X-ContentStamp:"                   ; NetZero
@@ -2333,6 +2335,7 @@ of citations entirely, choose \"None\"."
     "X-Habeas-SWE-7:"                   ; Spam
     "X-Habeas-SWE-8:"                   ; Spam
     "X-Habeas-SWE-9:"                   ; Spam
+    "X-Hashcash:"                       ; hashcash
     "X-Info:"                           ; NTMail
     "X-Juno-"                           ; Juno
     "X-List-Host:"                      ; Unknown mailing list managers

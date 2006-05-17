@@ -144,7 +144,7 @@ The argument STRING is ignored."
    (match-beginning num) (match-end num)))
 
 (mh-defun-compat mh-replace-regexp-in-string replace-regexp-in-string
-  (rep string &optional fixedcase literal subexp start)
+  (regexp rep string &optional fixedcase literal subexp start)
   "Replace REGEXP with REP everywhere in STRING and return result.
 This function is used by XEmacs that lacks `replace-regexp-in-string'.
 The function `replace-in-string' is used instead.

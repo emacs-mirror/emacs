@@ -1,3 +1,12 @@
+2006-02-10  Kim F. Storm  <storm@cua.dk>
+
+	* eval.texi (Function Indirection): Add NOERROR to indirect-function.
+
+2006-02-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (%-Constructs): Remove obsolete info about
+	`global-mode-string'.
+
 2006-02-07  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Prefix Command Arguments): Minor cleanup.

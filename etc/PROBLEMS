@@ -1774,6 +1774,13 @@ There appears to be a problem with the implementation of pty's on the
 Mac OS X that causes process output to be truncated.  To avoid this,
 leave process-connection-type set to its default value of nil.
 
+*** Mac OS X 10.3.9 (Carbon): QuickTime 7.0.4 updater breaks build.
+
+On the above environment, build fails at the link stage with the
+message like "Undefined symbols: _HICopyAccessibilityActionDescription
+referenced from QuickTime expected to be defined in Carbon".  A
+workaround is to use QuickTime 7.0.1 reinstaller.
+
 ** FreeBSD
 
 *** FreeBSD 2.1.5: useless symbolic links remain in /tmp or other

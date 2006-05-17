@@ -4,7 +4,8 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006 
+;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -2967,6 +2968,35 @@ BUFFER nil or omitted means use the current buffer."
       (setq gdb-current-language (match-string 1)))
   (gdb-invalidate-assembler))
 
+
+;; For debugging Emacs only (assumes that usual stack buffer already exists).
+(defun gdb-xbacktrace ()
+  "Generate a full lisp level backtrace with arguments."
+  (interactive)
+  (setq my-frames nil)
+  (with-current-buffer (get-buffer-create "xbacktrace")
+    (erase-buffer))
+  (let (frame-number gdb-frame-number)
+    (with-current-buffer (gdb-get-buffer 'gdb-stack-buffer)
+      (save-excursion
+	(goto-char (point-min))
+	(while (search-forward "in Ffuncall " nil t)
+	  (goto-char (line-beginning-position))
+	  (looking-at "^#\\([0-9]+\\)")
+	  (push (match-string-no-properties 1) my-frames)
+	  (forward-line 1))))
+    (dolist (frame my-frames)
+      (gdb-enqueue-input (list (concat "server frame " frame "\n")
+			       'ignore))
+;    (gdb-enqueue-input (list "server ppargs\n" 'gdb-get-arguments))
+      (gud-basic-call "server ppargs")
+)
+    (gdb-enqueue-input (list (concat "server frame " frame-number "\n")
+			     'ignore))))
+    
+(defun gdb-get-arguments ()
+  (with-current-buffer "xbacktrace"
+    (insert-buffer-substring (gdb-get-buffer 'gdb-partial-output-buffer))))
 
 ;; Code specific to GDB 6.4
 (defconst gdb-source-file-regexp-1 "fullname=\"\\(.*?\\)\"")

@@ -370,7 +370,11 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
     (vc-svn-command
      buffer
      (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
-     file "log")))
+     file "log"
+     ;; By default Subversion only shows the log upto the working version,
+     ;; whereas we also want the log of the subsequent commits.  At least
+     ;; that's what the vc-cvs.el code does.
+     "-rHEAD:0")))
 
 (defun vc-svn-diff (file &optional oldvers newvers buffer)
   "Get a difference report using SVN between two versions of FILE."

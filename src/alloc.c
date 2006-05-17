@@ -2299,7 +2299,7 @@ INIT must be an integer that represents a character.  */)
 
 
 DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
-       doc: /* Return a new bool-vector of length LENGTH, using INIT for as each element.
+       doc: /* Return a new bool-vector of length LENGTH, using INIT for each element.
 LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
      (length, init)
      Lisp_Object length, init;
@@ -4871,7 +4871,7 @@ make_pure_vector (len)
 
 
 DEFUN ("purecopy", Fpurecopy, Spurecopy, 1, 1, 0,
-       doc: /* Make a copy of OBJECT in pure storage.
+       doc: /* Make a copy of object OBJ in pure storage.
 Recursively copies contents of vectors and cons cells.
 Does not copy symbols.  Copies strings without text properties.  */)
      (obj)

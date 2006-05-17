@@ -826,7 +826,7 @@ deleted.  Point is left where the deleted region was."
       (insert "\n"))
     (forward-char -1)
     (insert (format (concat nnfolder-article-marker "%d   %s\n")
-		    (cdr group-art) (current-time-string)))))
+		    (cdr group-art) (message-make-date)))))
 
 (defun nnfolder-active-number (group)
   ;; Find the next article number in GROUP.

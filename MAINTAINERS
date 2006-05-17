@@ -65,6 +65,12 @@ Miles Bader
 	lisp/minibuf-eldef.el
 	lisp/rfn-eshadow.el
 
+Jay Belanger
+        Calc
+            lisp/calc/*
+            etc/calccard.tex
+            man/calc.texi
+
 ==============================================================================
 2.
 ==============================================================================

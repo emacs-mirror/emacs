@@ -1,3 +1,41 @@
+2006-02-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el: Remove bogus comment.
+
+2006-02-09  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-encrypt-region): Don't convert line-endings
+	in elisp.
+	(pgg-gpg-encrypt-symmetric-region): Ditto.
+	(pgg-gpg-sign-region): Ditto.
+
+	* pgg-def.el (pgg-text-mode): New variable.
+
+	* mml2015.el (mml2015-pgg-sign): Enable pgg-text-mode.
+	(mml2015-pgg-encrypt): Ditto.
+
+	* mml1991.el (mml1991-pgg-sign): Enable pgg-text-mode.
+	(mml1991-pgg-encrypt): Ditto.
+
+2006-02-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnfolder.el (nnfolder-insert-newsgroup-line): Use
+	message-make-date instead of current-time-string.
+
+	* mm-view.el (mm-inline-message): Don't set gnus-newsgroup-charset
+	to gnus-decoded which mm-uu might set.
+
+2006-02-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-parse-string): Sort segmented parameters;
+	don't decode quoted parameters; remove misimported Emacs code.
+	Suggested by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+	(rfc2231-decode-encoded-string): Don't use split-string which
+	behaves differently according to Emacs version; use
+	mm-decode-coding-region to convert charset to coding-system.
+	Suggested by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+	(rfc2231-encode-string): Remove misimported Emacs code.
+
 2006-02-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-decode-charset): Don't use ignore-errors
@@ -50,7 +88,7 @@
 
 	* gnus-util.el (gnus-error): Describe `args'.
 
-2006-02-03  Andreas Seltenreich <uwi7@stud.uni-karlsruhe.de>
+2006-02-03  Andreas Seltenreich  <uwi7@stud.uni-karlsruhe.de>
 
 	* nnweb.el (nnweb-request-group): Avoid growing overview files.
 
@@ -67,7 +105,7 @@
 	* mml.el (mml-generate-mime-1): Correct the order of inline signed
 	parts.
 
-2006-01-31  Andreas Seltenreich <uwi7@stud.uni-karlsruhe.de>
+2006-01-31  Andreas Seltenreich  <uwi7@stud.uni-karlsruhe.de>
 
 	* nnweb.el (nnweb-group-alist): Use defvar instead of defvoo,
 	there's only one active file for all servers.
@@ -108,7 +146,7 @@
 
 	* nnweb.el (nnweb-google-parse-1): Clarify some comments.
 
-2006-01-30  Andreas Seltenreich <uwi7@stud.uni-karlsruhe.de>
+2006-01-30  Andreas Seltenreich  <uwi7@stud.uni-karlsruhe.de>
 
 	* nnweb.el (nnweb-type-definition, nnweb-google-parse-1)
 	(nnweb-google-create-mapping, nnweb-google-search): Adapt to
@@ -465,6 +503,98 @@
 	* gnus-start.el (gnus-dribble-read-file): Set file-precious-flag,
 	as a buffer-local variable.  This avoids creating truncated
 	dribble files as a result of a hang up, eg.
+
+2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp-decrypt-region, pgg-pgp-sign-region): Use new name for
+	pgg-add-passphrase-to-cache function.
+
+	* pgg-pgp5.el (pgg-pgp5-encrypt-region, pgg-pgp5-decrypt-region)
+	(pgg-pgp5-encrypt-symmetric-region, pgg-pgp5-encrypt-symmetric)
+	(pgg-pgp5-encrypt, pgg-pgp5-decrypt-region, pgg-pgp5-decrypt)
+	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
+	function.
+
+2005-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-gpg.el (pgg-gpg-select-matching-key): Fix: look at the right
+	part of the decoded armor to find the key-identifier.
+	(pgg-gpg-lookup-key-owner): New function to return the
+	human-readable identifier of a key owner.
+	(pgg-gpg-lookup-id-from-key-owner): Make it easy to identify the
+	key itself.
+	(pgg-gpg-decrypt-region): Prompt with the key owner (rather than
+	the key value) if we have a key and can match it against a secret
+	key.  Also, added a note pointing out fact that the prompt only
+	indicates the first matching key.
+
+	* pgg.el (pgg-decrypt): Passing along 'passphrase' in call to
+	pgg-decrypt-region.
+	(pgg-pending-timers): A new hash for tracking the passphrase cache
+	timers, so that new ones supercede old ones.
+	(pgg-add-passphrase-to-cache): Rename from
+	`pgg-add-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when new ones are added.
+	(pgg-remove-passphrase-from-cache): Rename from
+	`pgg-remove-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when their keys are
+	removed from the cache.
+	(pgg-cancel-timer): In Emacs, an alias for cancel-timer; in
+	XEmacs, an indirection to delete-itimer.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase):
+	Extract pgg-read-passphrase-from-cache from pgg-read-passphrase so
+	users can only check cache without risk of prompting.  Correct bug in
+	notruncate behavior.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase)
+	(pgg-add-passphrase-cache, pgg-remove-passphrase-cache):
+	Add informative docstrings.
+	(pgg-decrypt): Convey provided passphrase in subordinate call to
+	pgg-decrypt-region.
+
+2005-10-20  Ken Manheimer  <ken.manheimer+emacs@gmail.com>
+
+	* pgg.el (pgg-encrypt-region, pgg-encrypt-symmetric-region)
+	(pgg-encrypt-symmetric, pgg-encrypt, pgg-decrypt-region)
+	(pgg-decrypt, pgg-sign-region, pgg-sign): Add optional
+	'passphrase' argument, so the passphrase can be managed externally
+	and then passed in to the system.
+
+	* pgg.el (pgg-read-passphrase, pgg-add-passphrase-cache)
+	(pgg-remove-passphrase-cache): Add optional 'notruncate' argument,
+	so the passphrase cache can be used reliably with identifiers
+	besides a pgp packet's key id.
+
+	* pgg-gpg.el (pgg-pgp-encrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+
+	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Add optional
+	'notruncate' argument, so the passphrase cache can be used
+	reliably with identifiers besides a pgp packet's key id.
+
+2005-10-29  Sascha Wilde  <swilde@sha-bang.de>
+
+	* pgg-gpg.el (pgg-gpg-encrypt-symmetric-region): New function for
+	symmetric encryption.
+	(pgg-gpg-symmetric-key-p): New function to check for an symmetric
+	encrypted session key.
+	(pgg-gpg-decrypt-region): When decrypting a symmetric encrypted
+	message ask for the passphrase in a proper way.
+
+	* pgg.el (pgg-encrypt-symmetric, pgg-encrypt-symmetric-region):
+	New user commands for symmetric encryption.
 
 2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -1,7 +1,7 @@
 ;;; cc-langs.el --- language specific settings for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation,
-;; Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006
+;; Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -258,9 +258,12 @@ the evaluated constant value at compile time."
 	     (c-fn-region-is-active-p)]))
       "----"
       ("Toggle..."
-       ["Syntactic indentation" c-toggle-syntactic-indentation t]
-       ["Auto newline"          c-toggle-auto-newline t]
-       ["Hungry delete"         c-toggle-hungry-state t])))
+       ["Syntactic indentation" c-toggle-syntactic-indentation
+	:style toggle :selected c-syntactic-indentation]
+       ["Auto newline" c-toggle-auto-newline
+	:style toggle :selected c-auto-newline]
+       ["Hungry delete" c-toggle-hungry-state
+	:style toggle :selected c-hungry-delete-key])))
 
 
 ;;; Syntax tables.

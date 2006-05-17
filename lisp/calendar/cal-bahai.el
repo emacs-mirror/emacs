@@ -1,6 +1,7 @@
 ;;; cal-bahai.el --- calendar functions for the Baha'i calendar.
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+;;   Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: calendar

@@ -2012,8 +2012,7 @@ obsolete, since you can get the same results with the variables
 The value of @code{mode-name}.
 
 @item %M
-The value of @code{global-mode-string}.  Currently, only
-@code{display-time} modifies the value of @code{global-mode-string}.
+The value of @code{global-mode-string}.
 @end table
 
 @node Properties in Mode

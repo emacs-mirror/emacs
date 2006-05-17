@@ -1,6 +1,6 @@
 ;;; autoconf.el --- mode for editing Autoconf configure.in files
 
-;; Copyright (C) 2000, 2001, 2002 2003, 2004, 2005
+;; Copyright (C) 2000, 2001, 2002 2003, 2004, 2005, 2006
 ;; Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
@@ -52,7 +52,7 @@
   "AC_\\(SUBST\\|DEFINE\\(_UNQUOTED\\)?\\)(\\(\\sw+\\)")
 
 (defvar autoconf-font-lock-keywords
-  `(("A[CHMS]_\\sw+" . font-lock-keyword-face)
+  `(("\\_<A[CHMS]_\\sw+" . font-lock-keyword-face)
     (,autoconf-definition-regexp
      3 font-lock-function-name-face)
     ;; Are any other M4 keywords really appropriate for configure.in,

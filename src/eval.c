@@ -648,7 +648,7 @@ interactive_p (exclude_subrs_p)
 
   /* If this isn't a byte-compiled function, there may be a frame at
      the top for Finteractive_p.  If so, skip it.  */
-  fun = Findirect_function (*btp->function);
+  fun = Findirect_function (*btp->function, Qnil);
   if (SUBRP (fun) && (XSUBR (fun) == &Sinteractive_p
 		      || XSUBR (fun) == &Scalled_interactively_p))
     btp = btp->next;
@@ -669,7 +669,7 @@ interactive_p (exclude_subrs_p)
      a special form, ignoring frames for Finteractive_p and/or
      Fbytecode at the top.  If this frame is for a built-in function
      (such as load or eval-region) return nil.  */
-  fun = Findirect_function (*btp->function);
+  fun = Findirect_function (*btp->function, Qnil);
   if (exclude_subrs_p && SUBRP (fun))
     return 0;
 
@@ -2153,7 +2153,7 @@ do_autoload (fundef, funname)
   Vautoload_queue = Qt;
   unbind_to (count, Qnil);
 
-  fun = Findirect_function (fun);
+  fun = Findirect_function (fun, Qnil);
 
   if (!NILP (Fequal (fun, fundef)))
     error ("Autoloading failed to define function %s",
@@ -2237,7 +2237,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   /* At this point, only original_fun and original_args
      have values that will be used below */
  retry:
-  fun = Findirect_function (original_fun);
+  fun = Findirect_function (original_fun, Qnil);
 
   if (SUBRP (fun))
     {
@@ -2979,7 +2979,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 
   fun = args[0];
 
-  fun = Findirect_function (fun);
+  fun = Findirect_function (fun, Qnil);
 
   if (SUBRP (fun))
     {

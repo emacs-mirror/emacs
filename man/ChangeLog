@@ -1,3 +1,25 @@
+2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac International): Rename "fontset-mac" to
+	"fontset-standard".
+
+2006-02-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Gnus Versions): Add history beyond start of Oort.
+
+2006-02-09  Mathias Dahl  <mathias.dah@gmail.com>
+
+	* dired.texi (Tumme): Basic documentation for Tumme added.
+
+2006-02-08  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Top): Remove paragraph about the FAQ being a
+	transitional document, etc.
+	(Searching for/replacing newlines): New node.
+	(Yanking text in isearch): New node.
+	(Inserting text at the beginning of each line): Rename and make
+	more general, mention `M-;' in Message mode.
+
 2006-02-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* mule.texi (International):

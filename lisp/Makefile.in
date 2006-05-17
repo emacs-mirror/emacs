@@ -153,8 +153,10 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 # subdirectories, to make sure require's and load's in the files being
 # compiled find the right files.
 
+# `|| true' below prevents old Bash versions from getting confused
+# by an error.
 compile: $(lisp)/subdirs.el mh-autoloads doit
-	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
+	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
 	wd=$(lisp); $(setwins);	\
 	els=`echo $$wins | tr ' \011' '\012\012' | \
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\

@@ -1448,7 +1448,8 @@ x_set_mouse_color (f, arg, oldval)
 
   BLOCK_INPUT;
 
-  rif->define_frame_cursor (f, cursor);
+  if (FRAME_MAC_WINDOW (f) != 0)
+    rif->define_frame_cursor (f, cursor);
 
   f->output_data.mac->text_cursor = cursor;
   f->output_data.mac->nontext_cursor = nontext_cursor;
@@ -2398,10 +2399,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   struct mac_display_info *dpyinfo = NULL;
   Lisp_Object parent;
   struct kboard *kb;
-  char x_frame_name[10];
   static int x_frame_count = 2;  /* begins at 2 because terminal frame is F1 */
 
   check_mac ();
+
+  parms = Fcopy_alist (parms);
 
   /* Use this general default value to start with
      until we know if this frame has a specified name.  */
@@ -2451,18 +2453,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f = make_frame_without_minibuffer (tem, kb, display);
   else
     f = make_frame (1);
-
-  if (EQ (name, Qunbound) || NILP (name))
-    {
-      sprintf (x_frame_name, "F%d", x_frame_count++);
-      f->name = build_string (x_frame_name);
-      f->explicit_name = 0;
-    }
-  else
-    {
-      f->name = name;
-      f->explicit_name = 1;
-    }
 
   XSETFRAME (frame, f);
 
@@ -2544,7 +2534,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       font = x_new_font (f, "-ETL-fixed-medium-r-*--*-160-*-*-*-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
     if (! STRINGP (font))
-      font = x_new_fontset (f, "fontset-mac");
+      font = x_new_fontset (f, "fontset-standard");
     if (! STRINGP (font))
       font = x_new_font (f, "-*-monaco-*-12-*-mac-roman");
     if (! STRINGP (font))
@@ -2679,17 +2669,28 @@ This function is an internal primitive--use `make-frame' instead.  */)
       if (EQ (visibility, Qunbound))
 	visibility = Qt;
 
-#if 0 /* MAC_TODO: really no iconify on Mac */
       if (EQ (visibility, Qicon))
 	x_iconify_frame (f);
-      else
-#endif
-      if (! NILP (visibility))
+      else if (! NILP (visibility))
 	x_make_frame_visible (f);
       else
 	/* Must have been Qnil.  */
 	;
     }
+
+  /* Initialize `default-minibuffer-frame' in case this is the first
+     frame on this display device.  */
+  if (FRAME_HAS_MINIBUF_P (f)
+      && (!FRAMEP (kb->Vdefault_minibuffer_frame)
+          || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
+    kb->Vdefault_minibuffer_frame = frame;
+
+  /* All remaining specified parameters, which have not been "used"
+     by x_get_arg and friends, now go in the misc. alist of the frame.  */
+  for (tem = parms; !NILP (tem); tem = XCDR (tem))
+    if (CONSP (XCAR (tem)) && !NILP (XCAR (XCAR (tem))))
+      f->param_alist = Fcons (XCAR (tem), f->param_alist);
+
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window
@@ -2699,9 +2700,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   return unbind_to (count, frame);
 }
 
+
 /* FRAME is used only to get a handle on the X display.  We don't pass the
    display info directly because we're called from frame.c, which doesn't
    know about that structure.  */
+
 Lisp_Object
 x_get_focus_frame (frame)
      struct frame *frame;
@@ -2714,6 +2717,39 @@ x_get_focus_frame (frame)
   XSETFRAME (xfocus, dpyinfo->x_focus_frame);
   return xfocus;
 }
+
+
+DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
+       doc: /* Set the input focus to FRAME.
+FRAME nil means use the selected frame.  */)
+     (frame)
+     Lisp_Object frame;
+{
+  struct frame *f = check_x_frame (frame);
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
+
+  if (dpyinfo->x_focus_frame != f)
+    {
+      BLOCK_INPUT;
+#ifdef MAC_OSX
+      ActivateWindow (ActiveNonFloatingWindow (), false);
+      ActivateWindow (FRAME_MAC_WINDOW (f), true);
+#else
+#if !TARGET_API_MAC_CARBON
+      /* SelectWindow (Non-Carbon) does not issue deactivate events if
+	 the possibly inactive window that is to be selected is
+	 already the frontmost one.  */
+      SendBehind (FRAME_MAC_WINDOW (f), NULL);
+#endif
+      /* This brings the window to the front.  */
+      SelectWindow (FRAME_MAC_WINDOW (f));
+#endif
+      UNBLOCK_INPUT;
+    }
+
+  return Qnil;
+}
+
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Internal function called by `color-defined-p', which see.  */)
@@ -3664,7 +3700,7 @@ x_create_tip_frame (dpyinfo, parms, text)
       font = x_new_font (f, "-ETL-fixed-medium-r-*--*-160-*-*-*-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
     if (! STRINGP (font))
-      font = x_new_fontset (f, "fontset-mac");
+      font = x_new_fontset (f, "fontset-standard");
     if (! STRINGP (font))
       font = x_new_font (f, "-*-monaco-*-12-*-mac-roman");
     if (! STRINGP (font))
@@ -4513,6 +4549,7 @@ Chinese, Japanese, and Korean.  */);
   defsubr (&Sx_close_connection);
   defsubr (&Sx_display_list);
   defsubr (&Sx_synchronize);
+  defsubr (&Sx_focus_frame);
 
   /* Setting callback functions for fontset handler.  */
   get_font_info_func = x_get_font_info;

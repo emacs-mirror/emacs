@@ -386,7 +386,7 @@ string is passed through `substitute-command-keys'.  */)
 	  !NILP (tem)))
     return Fdocumentation_property (function, Qfunction_documentation, raw);
 
-  fun = Findirect_function (function);
+  fun = Findirect_function (function, Qnil);
   if (SUBRP (fun))
     {
       if (XSUBR (fun)->doc == 0)

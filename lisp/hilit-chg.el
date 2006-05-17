@@ -521,7 +521,7 @@ the text properties of type `hilit-chg'."
 This allows you to manually remove highlighting from uninteresting changes."
   (interactive "r")
   (let ((after-change-functions nil))
-    (remove-text-properties beg end  '(hilit-chg nil))
+    (remove-text-properties beg end '(hilit-chg nil))
     (hilit-chg-fixup beg end)))
 
 (defun hilit-chg-set-face-on-change (beg end leng-before
@@ -662,7 +662,7 @@ Hook variables:
 	      ;; an argument is given
 	      ((eq arg 'active)
 	       'active)
-	      ((eq arg  'passive)
+	      ((eq arg 'passive)
 	       'passive)
 	      ((> (prefix-numeric-value arg) 0)
 	       'active)
@@ -673,7 +673,6 @@ Hook variables:
 	(if new-highlight-changes-mode
 	    ;; mode is turned on -- but may be passive
 	    (progn
-	      (add-to-list 'desktop-locals-to-save 'highlight-changes-mode)
 	      (hilit-chg-set new-highlight-changes-mode)
 	      (or was-on
 		  ;; run highlight-changes-enable-hook once
@@ -960,9 +959,9 @@ changes are made, so \\[highlight-changes-next-change] and
   ;; which calls this function as a hook
   (defvar x)  ;; placate the byte-compiler
   (defvar y)
-  (setq  e (current-buffer))
+  (setq e (current-buffer))
   (let ((n 0) extent p va vb a b)
-    (setq  x nil  y nil)    ;; x and y are bound by hilit-chg-get-diff-info
+    (setq x nil y nil)    ;; x and y are bound by hilit-chg-get-diff-info
     (while (< n ediff-number-of-differences)
       (ediff-make-fine-diffs n)
       (setq va (ediff-get-fine-diff-vector n 'A))
@@ -1085,7 +1084,7 @@ variable `highlight-changes-global-changes-existing-buffers' is non-nil).
       (progn
 	(if (eq arg 'active)
 	    (setq highlight-changes-global-initial-state 'active)
-	  (if (eq arg  'passive)
+	  (if (eq arg 'passive)
 	      (setq highlight-changes-global-initial-state 'passive)))
 	(setq global-highlight-changes t)
 	(message "Turning ON Global Highlight Changes mode in %s state"
@@ -1131,7 +1130,7 @@ from `global-highlight-changes' when turning on global Highlight Changes mode."
 	       (memq major-mode highlight-changes-global-modes)))
 	    (t
 	     (and
-	      (not (string-match "^[ *]"  (buffer-name)))
+	      (not (string-match "^[ *]" (buffer-name)))
 	      (buffer-file-name))))
 	  (progn
 	    (hilit-chg-set value)
@@ -1146,14 +1145,15 @@ from `global-highlight-changes' when turning on global Highlight Changes mode."
 
 
 (defun hilit-chg-update-all-buffers (value)
-  (mapcar
+  (mapc
    (function (lambda (buffer)
 	       (with-current-buffer buffer
 		 (if value
 		     (hilit-chg-turn-on-maybe value)
 		   (hilit-chg-turn-off-maybe))
 		 )))
-   (buffer-list)))
+   (buffer-list))
+  nil)
 
 ;;;; Desktop support.
 
@@ -1164,6 +1164,8 @@ from `global-highlight-changes' when turning on global Highlight Changes mode."
 
 (add-to-list 'desktop-minor-mode-handlers
              '(highlight-changes-mode . hilit-chg-desktop-restore))
+
+(add-to-list 'desktop-locals-to-save 'highlight-changes-mode)
 
 ;; ===================== debug ==================
 ;; For debug & test use:

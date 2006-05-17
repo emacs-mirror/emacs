@@ -516,13 +516,15 @@ value of `mh-recursive-folders-flag'. If this flag is nil, and
 the sub-folders have not been explicitly viewed, then they will
 not be returned."
   (let ((folder-list))
-    ;; Normalize folder. Strip leading +. Add trailing slash. If no
-    ;; folder is specified, ensure it is nil to ensure we get the
-    ;; top-level folders; otherwise mh-sub-folders returns all the
-    ;; files in / if given an empty string or +.
+    ;; Normalize folder. Strip leading +. Add trailing slash (done in
+    ;; two steps to avoid infinite loops when replacing "/*$" with "/"
+    ;; in XEmacs). If no folder is specified, ensure it is nil to
+    ;; ensure we get the top-level folders; otherwise mh-sub-folders
+    ;; returns all the files in / if given an empty string or +.
     (when folder
       (setq folder (mh-replace-regexp-in-string "^\+" "" folder))
-      (setq folder (mh-replace-regexp-in-string "/*$" "/" folder))
+      (setq folder (mh-replace-regexp-in-string "/+$" "" folder))
+      (setq folder (concat folder "/"))
       (if (equal folder "")
         (setq folder nil)))
     (loop for f in (mh-sub-folders folder) do

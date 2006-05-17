@@ -1,6 +1,6 @@
 ;;; python.el --- silly walks for Python
 
-;; Copyright (C) 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: FSF

@@ -1036,13 +1036,13 @@ should only be used by mouse-drag-region."
 					   (if (> mouse-1-click-follows-link 0)
 					       (<= (- t1 t0) mouse-1-click-follows-link)
 					     (< (- t0 t1) mouse-1-click-follows-link))))))))
-		  ;; Reselect previous selected window,
+		  ;; If we rebind to mouse-2, reselect previous selected window,
 		  ;; so that the mouse-2 event runs in the same
 		  ;; situation as if user had clicked it directly.
 		  ;; Fixes the bug reported by juri@jurta.org on 2005-12-27.
-		  (select-window original-window)
 		  (if (or (vectorp on-link) (stringp on-link))
 		      (setq event (aref on-link 0))
+		    (select-window original-window)
 		    (setcar event 'mouse-2)
 		    ;; If this mouse click has never been done by
 		    ;; the user, it doesn't have the necessary
