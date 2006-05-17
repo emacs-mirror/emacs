@@ -32,6 +32,7 @@
 (require 'mm-util)
 (require 'gnus-ems)
 (require 'gnus-util)
+(require 'gnus)
 
 (defcustom gnus-x-face-directory (expand-file-name "x-faces" gnus-directory)
   "*Directory where X-Face PBM files are stored."

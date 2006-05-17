@@ -527,11 +527,14 @@ starting the compilation process.")
   :group 'compilation
   :version "22.1")
 
-(defvar compilation-message-face 'underline
+(defcustom compilation-message-face 'underline
   "Face name to use for whole messages.
 Faces `compilation-error-face', `compilation-warning-face',
 `compilation-info-face', `compilation-line-face' and
-`compilation-column-face' get prepended to this, when applicable.")
+`compilation-column-face' get prepended to this, when applicable."
+  :type 'face
+  :group 'compilation
+  :version "22.1")
 
 (defvar compilation-error-face 'compilation-error
   "Face name to use for file name in error messages.")

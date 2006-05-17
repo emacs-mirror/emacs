@@ -1389,6 +1389,13 @@ if it is a string, only list groups matching REGEXP."
   "Force updating the group buffer tool bar."
   :group 'gnus-group
   :version "22.1"
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+	 (set-default symbol value)
+	 (when (gnus-alive-p)
+	   (with-current-buffer gnus-group-buffer
+	     ;; FIXME: Is there a better way to redraw the group buffer?
+	     (gnus-group-get-new-news 0))))
   :type 'boolean)
 
 (defun gnus-group-insert-group-line (gnus-tmp-group gnus-tmp-level

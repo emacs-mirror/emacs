@@ -1,3 +1,7 @@
+2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* NEWS: Add string-or-null-p.
+
 2006-03-28  Bill Wohler  <wohler@newt.com>
 
 	* images/README: Update with following information.

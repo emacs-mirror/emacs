@@ -611,6 +611,7 @@ dnl see the `changequote' comment above.
   ;;
   hppa*-hp-hpux1[1-9]* )
     machine=hp800 opsys=hpux11
+    CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
   ;;
 
   hppa*-*-linux-gnu* )
@@ -2179,7 +2180,7 @@ fi
 ### Is -lXaw3d available?
 HAVE_XAW3D=no
 if test "${HAVE_X11}" = "yes"; then
-  if test "${USE_X_TOOLKIT}" != "none"; then
+  if test "${USE_X_TOOLKIT}" != "none" && test "${with_toolkit_scroll_bars}" != "no"; then
     dnl Fixme: determine what Scrollbar.h needs to avoid compilation
     dnl errors from the test without the `-'.
     AC_CHECK_HEADER(X11/Xaw3d/Scrollbar.h,
@@ -2840,7 +2841,7 @@ if test "${REL_ALLOC}" = "yes" ; then
 fi
 
 AH_TOP([/* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004, 2005, 2006
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.

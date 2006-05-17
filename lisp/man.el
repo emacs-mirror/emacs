@@ -416,6 +416,9 @@ Otherwise, the value is whatever the function
   (define-key Man-mode-map "k"    'Man-kill)
   (define-key Man-mode-map "q"    'Man-quit)
   (define-key Man-mode-map "m"    'man)
+  ;; Not all the man references get buttons currently. The text in the
+  ;; manual page can contain references to other man pages
+  (define-key Man-mode-map "\r"   'man-follow)
   (define-key Man-mode-map "?"    'describe-mode))
 
 ;; buttons
@@ -423,10 +426,13 @@ Otherwise, the value is whatever the function
   'follow-link t
   'help-echo "mouse-2, RET: display this man page"
   'func nil
-  'action (lambda (button) (funcall 
-			    (button-get button 'func)
-			    (or (button-get button 'Man-target-string)
-				(button-label button)))))
+  'action (lambda (button) 
+	    (funcall 
+	     (button-get button 'func)
+	     (let ((func (button-get button 'Man-target-string)))
+	       (if func
+		   (if (functionp func) (funcall func) func)
+		 (button-label button))))))
 
 (define-button-type 'Man-xref-man-page 
   :supertype 'Man-abstract-xref-man-page
@@ -929,15 +935,14 @@ default type, `Man-xref-man-page' is used for the buttons."
     (setq Man-arguments ""))
   (if (string-match "-k " Man-arguments)
       (progn
-	(Man-highlight-references0 nil Man-reference-regexp 1 nil
+	(Man-highlight-references0 nil Man-reference-regexp 1
+				   'Man-default-man-entry
 				   (or xref-man-type 'Man-xref-man-page))
 	(Man-highlight-references0 nil Man-apropos-regexp 1
-				   (lambda ()
-				     (format "%s(%s)"
-					     (match-string 1)
-					     (match-string 2)))
+				   'Man-default-man-entry
 				   (or xref-man-type 'Man-xref-man-page)))
-    (Man-highlight-references0 Man-see-also-regexp Man-reference-regexp 1 nil
+    (Man-highlight-references0 Man-see-also-regexp Man-reference-regexp 1 
+			       'Man-default-man-entry
 			       (or xref-man-type 'Man-xref-man-page))
     (Man-highlight-references0 Man-synopsis-regexp Man-header-regexp 0 2
 			       'Man-xref-header-file)
@@ -966,7 +971,7 @@ default type, `Man-xref-man-page' is used for the buttons."
 			     ((numberp target) 
 			      (match-string target))
 			     ((functionp target)
-			      (funcall target))
+			      target)
 			     (t nil)))))))
 
 (defun Man-cleanup-manpage (&optional interactive)

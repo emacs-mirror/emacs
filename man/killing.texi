@@ -543,6 +543,7 @@ clear them out, fill them with blanks or text, or delete them.  Rectangle
 commands are useful with text in multicolumn formats, and for changing
 text into or out of such formats.
 
+@cindex mark rectangle
   When you must specify a rectangle for a command to work on, you do it
 by putting the mark at one corner and point at the opposite corner.  The
 rectangle thus specified is called the @dfn{region-rectangle} because

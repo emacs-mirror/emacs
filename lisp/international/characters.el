@@ -177,6 +177,17 @@
     (modify-category-entry (make-char 'chinese-gb2312 row) ?C)
     (setq row (1+ row))))
 
+(let ((tbl (standard-case-table)))
+  (dotimes (i 26)
+    (set-case-syntax-pair (make-char 'chinese-gb2312 #x23 (+ #x41 i))
+			  (make-char 'chinese-gb2312 #x23 (+ #x61 i)) tbl))
+  (dotimes (i 24)
+    (set-case-syntax-pair (make-char 'chinese-gb2312 #x26 (+ #x21 i))
+			  (make-char 'chinese-gb2312 #x26 (+ #x41 i)) tbl))
+  (dotimes (i 33)
+    (set-case-syntax-pair (make-char 'chinese-gb2312 #x27 (+ #x21 i))
+			  (make-char 'chinese-gb2312 #x27 (+ #x51 i)) tbl)))
+
 ;; Chinese character set (BIG5)
 
 (let ((from (decode-big5-char #xA141))
@@ -216,6 +227,17 @@
 
   (modify-category-entry generic-big5-1-char ?\|)
   (modify-category-entry generic-big5-2-char ?\|))
+
+(let ((tbl (standard-case-table)))
+  (dotimes (i 22)
+    (set-case-syntax-pair (decode-big5-char (+ #xA2CF i))
+			  (decode-big5-char (+ #xA2CF i 26)) tbl))
+  (dotimes (i 4)
+    (set-case-syntax-pair (decode-big5-char (+ #xA2E4 i))
+			  (decode-big5-char (+ #xA340 i)) tbl))
+  (dotimes (i 24)
+    (set-case-syntax-pair (decode-big5-char (+ #xA344 i))
+			  (decode-big5-char (+ #xA344 i 24)) tbl)))
 
 
 ;; Chinese character set (CNS11643)
@@ -629,6 +651,17 @@
     (modify-category-entry (car chars) ?C)
     (setq chars (cdr chars))))
 
+(let ((tbl (standard-case-table)))
+  (dotimes (i 26)
+    (set-case-syntax-pair (make-char 'japanese-jisx0208 #x23 (+ #x41 i))
+			  (make-char 'japanese-jisx0208 #x23 (+ #x61 i)) tbl))
+  (dotimes (i 24)
+    (set-case-syntax-pair (make-char 'japanese-jisx0208 #x26 (+ #x21 i))
+			  (make-char 'japanese-jisx0208 #x26 (+ #x41 i)) tbl))
+  (dotimes (i 33)
+    (set-case-syntax-pair (make-char 'japanese-jisx0208 #x27 (+ #x21 i))
+			  (make-char 'japanese-jisx0208 #x27 (+ #x51 i)) tbl)))
+
 ;; JISX0212
 ;; (modify-syntax-entry (make-char 'japanese-jisx0212) "w")
 (modify-syntax-entry (make-char 'japanese-jisx0212 33) "_")
@@ -673,6 +706,20 @@
 	  close (aref parens (1+ (* i 2))))
     (modify-syntax-entry open (format "(%c" close))
     (modify-syntax-entry close (format ")%c" open))))
+
+(let ((tbl (standard-case-table)))
+  (dotimes (i 26)
+    (set-case-syntax-pair (make-char 'korean-ksc5601 #x23 (+ #x41 i))
+			  (make-char 'korean-ksc5601 #x23 (+ #x61 i)) tbl))
+  (dotimes (i 10)
+    (set-case-syntax-pair (make-char 'korean-ksc5601 #x25 (+ #x21 i))
+			  (make-char 'korean-ksc5601 #x25 (+ #x30 i)) tbl))
+  (dotimes (i 24)
+    (set-case-syntax-pair (make-char 'korean-ksc5601 #x25 (+ #x41 i))
+			  (make-char 'korean-ksc5601 #x25 (+ #x61 i)) tbl))
+  (dotimes (i 33)
+    (set-case-syntax-pair (make-char 'korean-ksc5601 #x2C (+ #x21 i))
+			  (make-char 'korean-ksc5601 #x2C (+ #x51 i)) tbl)))
 
 ;; Latin character set (latin-1,2,3,4,5,8,9)
 

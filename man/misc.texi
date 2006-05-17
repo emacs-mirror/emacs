@@ -9,9 +9,10 @@
 else: reading netnews, running shell commands and shell subprocesses,
 using a single shared Emacs for utilities that expect to run an editor
 as a subprocess, printing hardcopy, sorting text, narrowing display to
-part of the buffer, editing double-column files and binary files, saving
-an Emacs session for later resumption, emulating other editors, and
-various diversions and amusements.
+part of the buffer, editing double-column files and binary files,
+saving an Emacs session for later resumption, following hyperlinks,
+browsing images, emulating other editors, and various diversions and
+amusements.
 
 @end iftex
 
@@ -49,15 +50,15 @@ To start Gnus, type @kbd{M-x gnus @key{RET}}.
 @node Buffers of Gnus
 @subsection Gnus Buffers
 
-As opposed to most normal Emacs packages, Gnus uses a number of
-different buffers to display information and to receive commands.  The
-three buffers users spend most of their time in are the @dfn{group
-buffer}, the @dfn{summary buffer} and the @dfn{article buffer}.
+Unlike most Emacs packages, Gnus uses several buffers to display
+information and to receive commands.  The three Gnus buffers users use
+most are the @dfn{group buffer}, the @dfn{summary buffer} and the
+@dfn{article buffer}.
 
-The @dfn{group buffer} contains a list of groups.  This is the first
-buffer Gnus displays when it starts up.  It normally displays only the
-groups to which you subscribe and that contain unread articles.  Use
-this buffer to select a specific group.
+The @dfn{group buffer} contains a list of newsgroups.  This is the
+first buffer Gnus displays when it starts up.  It normally displays
+only the groups to which you subscribe and that contain unread
+articles.  Use this buffer to select a specific group.
 
 The @dfn{summary buffer} lists one line for each article in a single
 group.  By default, the author, the subject and the line number are
@@ -67,9 +68,10 @@ in the group buffer, and is killed when you exit the group.  Use this
 buffer to select an article.
 
 The @dfn{article buffer} displays the article.  In normal Gnus usage,
-you don't select this buffer---all useful article-oriented commands work
-in the summary buffer.  But you can select the article buffer, and
-execute all Gnus commands from that buffer, if you want to.
+you see this buffer but you don't select it---all useful
+article-oriented commands work in the summary buffer.  But you can
+select the article buffer, and execute all Gnus commands from that
+buffer, if you want to.
 
 @node Gnus Startup
 @subsection When Gnus Starts Up
@@ -111,9 +113,9 @@ displayed in the article buffer in a large window, below the summary
 buffer in its small window.
 @end enumerate
 
-  Each Gnus buffer has its own special commands; however, the meanings
-of any given key in the various Gnus buffers are usually analogous, even
-if not identical.  Here are commands for the group and summary buffers:
+  Each Gnus buffer has its own special commands; the meanings of any
+given key in the various Gnus buffers are usually analogous, even if
+not identical.  Here are commands for the group and summary buffers:
 
 @table @kbd
 @kindex q @r{(Gnus Group mode)}
@@ -315,9 +317,6 @@ processes; it can also run a shell interactively with input and output
 to an Emacs buffer named @samp{*shell*} or run a shell inside a terminal
 emulator window.
 
-There is a shell implemented entirely in Emacs, documented in a separate
-manual.  @xref{Top,Eshell,Eshell, eshell, Eshell: The Emacs Shell}.
-
 @table @kbd
 @item M-! @var{cmd} @key{RET}
 Run the shell command line @var{cmd} and display the output
@@ -333,10 +332,11 @@ You can then give commands interactively.
 Run a subshell with input and output through an Emacs buffer.
 You can then give commands interactively.
 Full terminal emulation is available.
-@item M-x eshell
-@findex eshell
-Start the Emacs shell.
 @end table
+
+  @kbd{M-x eshell} invokes a shell implemented entirely in Emacs.  It
+is documented in a separate manual.  @xref{Top,Eshell,Eshell, eshell,
+Eshell: The Emacs Shell}.
 
 @menu
 * Single Shell::           How to run one shell command and return.
@@ -379,37 +379,38 @@ uncompressed equivalent of @file{foo.gz} into the current buffer.
 For a synchronous shell command, @code{shell-command} returns the
 command's exit status (0 means success), when it is called from a Lisp
 program.  You do not get any status information for an asynchronous
-command, since it hasn't finished yet.
+command, since it hasn't finished yet when @code{shell-command} returns.
 
 @kindex M-|
 @findex shell-command-on-region
   @kbd{M-|} (@code{shell-command-on-region}) is like @kbd{M-!} but
 passes the contents of the region as the standard input to the shell
-command, instead of no input.  If a numeric argument is used, meaning
-insert the output in the current buffer, then the old region is deleted
-first and the output replaces it as the contents of the region.  It
-returns the command's exit status when it is called from a Lisp program.
+command, instead of no input.  With a numeric argument, meaning insert
+the output in the current buffer, it deletes the old region and the
+output replaces it as the contents of the region.  It returns the
+command's exit status, like @kbd{M-!}.
 
   One use for @kbd{M-|} is to run @code{gpg} to see what keys are in
 the buffer.  For instance, if the buffer contains a GPG key, type
-@kbd{C-x h M-| gpg @key{RET}} to feed the entire buffer contents
-to the @code{gpg} program.  That program will ignore everything except
-the encoded keys, and will output a list of the keys it contains.
+@kbd{C-x h M-| gpg @key{RET}} to feed the entire buffer contents to
+the @code{gpg} program.  That program will ignore everything except
+the encoded keys, and will output a list of the keys the buffer
+contains.
 
 @vindex shell-file-name
-  Both @kbd{M-!} and @kbd{M-|} use @code{shell-file-name} to specify the
-shell to use.  This variable is initialized based on your @env{SHELL}
-environment variable when Emacs is started.  If the file name does not
-specify a directory, the directories in the list @code{exec-path} are
-searched; this list is initialized based on the environment variable
-@env{PATH} when Emacs is started.  Your @file{.emacs} file can override
-either or both of these default initializations.@refill
+  Both @kbd{M-!} and @kbd{M-|} use @code{shell-file-name} to specify
+the shell to use.  This variable is initialized based on your
+@env{SHELL} environment variable when Emacs is started.  If the file
+name is relative, Emacs searches the directories in the list
+@code{exec-path}; this list is initialized based on the environment
+variable @env{PATH} when Emacs is started.  Your @file{.emacs} file
+can override either or both of these default initializations.
 
   Both @kbd{M-!} and @kbd{M-|} wait for the shell command to complete,
 unless you end the command with @samp{&} to make it asynchronous.  To
 stop waiting, type @kbd{C-g} to quit; that terminates the shell
 command with the signal @code{SIGINT}---the same signal that @kbd{C-c}
-normally generates in the shell.  Emacs waits until the command
+normally generates in the shell.  Emacs then waits until the command
 actually terminates.  If the shell command doesn't stop (because it
 ignores the @code{SIGINT} signal), type @kbd{C-g} again; this sends
 the command a @code{SIGKILL} signal which is impossible to ignore.
@@ -422,10 +423,11 @@ buffer regardless of whether it is visible in a window.
 @kbd{C-x @key{RET} c} immediately beforehand.  @xref{Communication Coding}.
 
 @vindex shell-command-default-error-buffer
-  Error output from the command is normally intermixed with the regular
-output.  If you set the variable
-@code{shell-command-default-error-buffer} to a string, which is a buffer
-name, error output is inserted before point in the buffer of that name.
+  Error output from these commands is normally intermixed with the
+regular output.  But if the variable
+@code{shell-command-default-error-buffer} has a string as value, and
+it's the name of a buffer, @kbd{M-!} and @kbd{M-|} insert error output
+before point in that buffer.
 
 @node Interactive Shell
 @subsection Interactive Inferior Shell
@@ -456,8 +458,8 @@ previous input lines in the buffer.  @xref{Faces}.
 prefix argument (e.g. @kbd{C-u M-x shell}), which will read a buffer
 name and create (or reuse) a subshell in that buffer.  You can also
 rename the @samp{*shell*} buffer using @kbd{M-x rename-uniquely}, then
-create a new @samp{*shell*} buffer using plain @kbd{M-x shell}.  All the
-subshells in different buffers run independently and in parallel.
+create a new @samp{*shell*} buffer using plain @kbd{M-x shell}.
+Subshells in different buffers run independently and in parallel.
 
 @vindex explicit-shell-file-name
 @cindex environment variables for subshells
@@ -479,9 +481,10 @@ from.  For example, if you use bash, the file sent to it is
 @file{~/.emacs_bash}.
 
   To specify a coding system for the shell, you can use the command
-@kbd{C-x @key{RET} c} immediately before @kbd{M-x shell}.  You can also
-specify a coding system after starting the shell by using @kbd{C-x
-@key{RET} p} in the shell buffer.  @xref{Communication Coding}.
+@kbd{C-x @key{RET} c} immediately before @kbd{M-x shell}.  You can
+also change the coding system for a running subshell by typing
+@kbd{C-x @key{RET} p} in the shell buffer.  @xref{Communication
+Coding}.
 
 @cindex @env{EMACS} environment variable
   Unless the environment variable @env{EMACS} is already defined,
@@ -505,10 +508,10 @@ of the special key bindings of Shell mode:
 @kindex RET @r{(Shell mode)}
 @findex comint-send-input
 At end of buffer send line as input; otherwise, copy current line to
-end of buffer and send it (@code{comint-send-input}).  When a line is
-copied, any prompt at the beginning of the line (text output by
-programs preceding your input) is omitted.  @xref{Shell Prompts}, for
-how Shell mode recognizes prompts.
+end of buffer and send it (@code{comint-send-input}).  Copying a line
+in this way omits any prompt at the beginning of the line (text output
+by programs preceding your input).  @xref{Shell Prompts}, for how
+Shell mode recognizes prompts.
 
 @item @key{TAB}
 @kindex TAB @r{(Shell mode)}
@@ -2185,7 +2188,7 @@ not use it.
 key bindings.
 @end table
 
-@node Hyperlinking, Dissociated Press, Emulation, Top
+@node Hyperlinking, Thumbnails, Emulation, Top
 @section Hyperlinking and Navigation Features
 
 @cindex hyperlinking
@@ -2351,7 +2354,76 @@ Display a menu of files and URLs mentioned in current buffer, then
 find the one you select (@code{ffap-menu}).
 @end table
 
-@node Dissociated Press, Amusements, Hyperlinking, Top
+@node Thumbnails, Dissociated Press, Hyperlinking, Top
+@section Viewing Images as Thumbnails
+@cindex tumme mode
+@cindex thumbnails
+
+  Tumme is a facility for browsing image files.  It provides viewing
+the images either as thumbnails or in full size, either inside Emacs
+or through an external viewer.
+
+  To enter Tumme, type @kbd{M-x tumme}.  It prompts for a directory;
+specify one that has images files.  This creates thumbnails for all
+the images in that directory, and displays them all in the ``thumbnail
+buffer''.  This takes a long time if the directory contains many image
+files, and it asks for confirmation if the number of image files
+exceeds @code{tumme-show-all-from-dir-max-files}.
+
+@kindex C-t d @r{(Tumme)}
+@findex tumme-display-thumbs
+  You can also enter Tumme through Dired.  Mark the image files you
+want to look at, using @kbd{m} as usual, then type @kbd{C-t d}
+(@code{tumme-display-thumbs}).  This too creates and switches to
+a buffer containing thumbnails, corresponding to the marked files.
+
+  With point in the thumbnail buffer, type @kbd{RET}
+(@code{tumme-display-thumbnail-original-image}) to display a sized
+version of it in another window.  This sizes the image to fit the
+window.  Use the arrow keys to move around in the buffer.  For easy
+browing, type @kbd{SPC} (@code{tumme-display-next-thumbnail-original})
+to advance and display the next image.  Typing @kbd{DEL}
+(@code{tumme-display-previous-thumbnail-original}) backs up to the
+previous thumbnail and displays that instead.
+
+@vindex tumme-external-viewer
+  To view and the image in its original size, either provide a prefix
+argument (@kbd{C-u}) before pressing @kbd{RET}, or type @kbd{C-@key{RET}}
+(@code{tumme-thumbnail-display-external}) to display the image in an
+external viewer.  You must first configure
+@code{tumme-external-viewer}.
+
+  You can delete images through Tumme also.  Type @kbd{d}
+(@code{tumme-flag-thumb-original-file}) to flag the image file for
+deletion in the Dired buffer.  You can also delete the thumbnail image
+from the thumbnail buffer with @kbd{C-d} (@code{tumme-delete-char}).
+
+  More advanced features include @dfn{image tags}, which are metadata
+used to categorize image files.  The tags are stored in a plain text
+file configured by @code{tumme-db-file}.
+
+  To tag image files, mark them in the dired buffer (you can also mark
+files in Dired from the thumbnail buffer by typing @kbd{m}) and type
+@kbd{C-t t} (@code{tumme-tag-files}).  You will be prompted for a tag.
+To mark files having a certain tag, type @kbd{C-t f}
+(@code{tumme-mark-tagged-files}).  After marking image files with a
+certain tag, you can use @kbd{C-t d} to view them.
+
+  You can also tag a file directly from the thumbnail buffer by typing
+@kbd{t t} and you can remove a tag by typing @kbd{t r}.  There is also
+a special ``tag'' called ``comment'' for each file (it is not a tag in
+the exact same sense as the other tags, it is handled slightly
+different).  That is used to enter a comment or description about the
+image.  You comment a file from the thumbnail buffer by typing
+@kbd{c}.  You will be prompted for a comment.  Type @kbd{C-t c} to add
+a comment from Dired (@code{tumme-dired-comment-files}).
+
+  Tumme also provides simple image manipulation.  In the thumbnail
+buffer, type @kbd{L} to rotate the original image 90 degrees anti
+clockwise, and @kbd{R} to rotate it 90 degrees clockwise.  This
+rotation is lossless, and uses an external utility called JpegTRAN.
+
+@node Dissociated Press, Amusements, Thumbnails, Top
 @section Dissociated Press
 
 @findex dissociated-press
@@ -2376,12 +2448,13 @@ That is, if it has just output `president' and then decides to jump
 to a different point in the file, it might spot the `ent' in `pentagon'
 and continue from there, producing `presidentagon'.@footnote{This
 dissociword actually appeared during the Vietnam War, when it was very
-appropriate.}  Long sample texts produce the best results.
+appropriate.  Bush has made it appropriate again.}  Long sample texts
+produce the best results.
 
 @cindex againformation
   A positive argument to @kbd{M-x dissociated-press} tells it to operate
 character by character, and specifies the number of overlap characters.  A
-negative argument tells it to operate word by word and specifies the number
+negative argument tells it to operate word by word, and specifies the number
 of overlap words.  In this mode, whole words are treated as the elements to
 be permuted, rather than characters.  No argument is equivalent to an
 argument of two.  For your againformation, the output goes only into the
@@ -2390,13 +2463,13 @@ buffer @samp{*Dissociation*}.  The buffer you start with is not changed.
 @cindex Markov chain
 @cindex ignoriginal
 @cindex techniquitous
-  Dissociated Press produces nearly the same results as a Markov chain
-based on a frequency table constructed from the sample text.  It is,
-however, an independent, ignoriginal invention.  Dissociated Press
+  Dissociated Press produces results fairly like those of a Markov
+chain based on a frequency table constructed from the sample text.  It
+is, however, an independent, ignoriginal invention.  Dissociated Press
 techniquitously copies several consecutive characters from the sample
-between random choices, whereas a Markov chain would choose randomly for
-each word or character.  This makes for more plausible sounding results,
-and runs faster.
+between random choices, whereas a Markov chain would choose randomly
+for each word or character.  This makes for more plausible sounding
+results, and runs faster.
 
 @cindex outragedy
 @cindex buggestion
@@ -2405,7 +2478,7 @@ and runs faster.
 @cindex developediment
 @cindex userenced
   It is a mustatement that too much use of Dissociated Press can be a
-developediment to your real work.  Sometimes to the point of outragedy.
+developediment to your real work, sometimes to the point of outragedy.
 And keep dissociwords out of your documentation, if you want it to be well
 userenced and properbose.  Have fun.  Your buggestions are welcome.
 
@@ -2429,7 +2502,7 @@ which plays the game Go Moku with you.
 @findex mpuz
 @findex 5x5
 @cindex puzzles
-  @kbd{M-x blackbox}, @kbd{M-x mpuz} and @kbd{M-x 5x5} are kinds of puzzles.
+  @kbd{M-x blackbox}, @kbd{M-x mpuz} and @kbd{M-x 5x5} are puzzles.
 @code{blackbox} challenges you to determine the location of objects
 inside a box by tomography.  @code{mpuz} displays a multiplication
 puzzle with letters standing for digits in a code that you must

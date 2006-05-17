@@ -197,7 +197,7 @@
 
 	* erc.el (erc-version-string): Release ERC 5.1.1.
 
-2006-02-03  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2006-02-03  Zhang Wei  <id.brep@gmail.com>
 
 	* erc.el (erc-version-string): Don't hard-code Emacs version.
 	(erc-version): Use emacs-version.

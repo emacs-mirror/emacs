@@ -141,8 +141,7 @@ the function is called."
       ;; else
       (setq pt (point))
       (move-to-column endcol t)
-      (setcdr lines (cons (buffer-substring pt (point)) (cdr lines)))
-      (delete-region pt (point)))
+      (setcdr lines (cons (filter-buffer-substring pt (point) t) (cdr lines))))
     ))
 
 ;; ### NOTE: this is actually the only function that needs to do complicated
@@ -233,12 +232,22 @@ When called from a program the rectangle's corners are START and END.
 You might prefer to use `delete-extract-rectangle' from a program.
 
 With a prefix (or a FILL) argument, also fill lines where nothing has to be
-deleted."
-  (interactive "*r\nP")
-  (when buffer-read-only
-    (setq killed-rectangle (extract-rectangle start end))
-    (barf-if-buffer-read-only))
-  (setq killed-rectangle (delete-extract-rectangle start end fill)))
+deleted.
+
+If the buffer is read-only, Emacs will beep and refrain from deleting
+the rectangle, but put it in the kill ring anyway.  This means that
+you can use this command to copy text from a read-only buffer.
+\(If the variable `kill-read-only-ok' is non-nil, then this won't
+even beep.)"
+  (interactive "r\nP")
+  (condition-case nil
+      (setq killed-rectangle (delete-extract-rectangle start end fill))
+    ((buffer-read-only text-read-only)
+     (setq killed-rectangle (extract-rectangle start end))
+     (if kill-read-only-ok
+	 (progn (message "Read only text copied to kill ring") nil)
+       (barf-if-buffer-read-only)
+       (signal 'text-read-only (list (current-buffer)))))))
 
 ;; this one is untouched --dv
 ;;;###autoload

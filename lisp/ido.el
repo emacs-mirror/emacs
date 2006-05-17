@@ -360,7 +360,10 @@ use either \\[customize] or the function `ido-mode'."
   :initialize 'custom-initialize-set
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
-  :set-after '(ido-save-directory-list-file)
+  :set-after '(ido-save-directory-list-file
+	       ;; This will clear ido-unc-hosts-cache, so set it
+	       ;; before loading history file.
+	       ido-unc-hosts)
   :type '(choice (const :tag "Turn on only buffer" buffer)
                  (const :tag "Turn on only file" file)
                  (const :tag "Turn on both buffer and file" both)
@@ -630,22 +633,44 @@ equivalent function, e.g. `find-file' rather than `ido-find-file'."
   :type '(repeat regexp)
   :group 'ido)
 
+(defvar ido-unc-hosts-cache t
+  "Cached value from `ido-unc-hosts' function.")
+
 (defcustom ido-unc-hosts nil
-  "*List of known UNC host names to complete after initial //."
-  :type '(repeat string)
+  "*List of known UNC host names to complete after initial //.
+If value is a function, that function is called to search network for
+hosts on first use of UNC path."
+  :type '(choice (repeat :tag "List of UNC host names" string)
+		 (function-item :tag "Use `NET VIEW'"
+				:value ido-unc-hosts-net-view)
+		 (function :tag "Your own function"))
+  :set #'(lambda (symbol value)
+	   (set symbol value)
+	   (setq ido-unc-hosts-cache t))
+  :group 'ido)
+
+(defcustom ido-downcase-unc-hosts t
+  "*Non-nil if UNC host names should be downcased."
+  :type 'boolean
+  :group 'ido)
+
+(defcustom ido-ignore-unc-host-regexps nil
+  "*List of regexps matching UNC hosts to ignore.
+Case is ignored if `ido-downcase-unc-hosts' is set."
+  :type '(repeat regexp)
   :group 'ido)
 
 (defcustom ido-cache-unc-host-shares-time 8.0
   "*Maximum time to cache shares of an UNC host (in hours).
 Use C-l in prompt to refresh list.
-If zero, unc host shares are not cached."
+If zero, UNC host shares are not cached."
   :type 'number
   :group 'ido)
 
 (defcustom ido-max-work-file-list 10
   "*Maximum number of names of recently opened files to record.
 This is the list the file names (sans directory) which have most recently
-been opened. See `ido-work-file-list' and `ido-save-directory-list-file'."
+been opened.  See `ido-work-file-list' and `ido-save-directory-list-file'."
   :type 'integer
   :group 'ido)
 
@@ -891,7 +916,7 @@ Must be set before enabling ido mode."
   :group 'ido)
 
 (defcustom ido-read-file-name-as-directory-commands '()
-  "List of commands which uses read-file-name to read a directory name.
+  "List of commands which uses `read-file-name' to read a directory name.
 When `ido-everywhere' is non-nil, the commands in this list will read
 the directory using `ido-read-directory-name'."
   :type '(repeat symbol)
@@ -988,7 +1013,7 @@ Copied from `icomplete-eoinput'.")
   "List of files currently matching `ido-text'.")
 
 (defvar ido-report-no-match t
-  "Report [No Match] when no completions matches ido-text.")
+  "Report [No Match] when no completions matches `ido-text'.")
 
 (defvar ido-exit nil
   "Flag to monitor how `ido-find-file' exits.
@@ -1111,18 +1136,65 @@ it doesn't interfere with other minibuffer usage.")
 	  (pop-to-buffer b t t)
 	  (setq truncate-lines t)))))
 
+(defun ido-unc-hosts (&optional query)
+  "Return list of UNC host names."
+  (let ((hosts
+	 (cond
+	  ((listp ido-unc-hosts)
+	   ido-unc-hosts)		;; static list or nil
+	  ((listp ido-unc-hosts-cache)
+	   ido-unc-hosts-cache)	;; result of net search
+	  ((and query (fboundp ido-unc-hosts))
+	   (message (propertize "Searching for UNC hosts..." 'face 'highlight))
+	   (setq ido-unc-hosts-cache (funcall ido-unc-hosts))
+	   (message nil)
+	   ido-unc-hosts-cache)
+	  (query
+	   (setq ido-unc-hosts-cache nil))
+	  (t (fboundp ido-unc-hosts)))))
+    (when query
+      (let ((case-fold-search ido-downcase-unc-hosts)
+	    res host re-list re)
+	(while hosts
+	  (setq host (car hosts)
+		hosts (cdr hosts)
+		re-list (and ido-process-ignore-lists
+			     ido-ignore-unc-host-regexps))
+	  (while re-list
+	    (setq re (car re-list)
+		  re-list (cdr re-list))
+	    (if (string-match re host)
+		(setq re-list nil
+		      host nil)))
+	  (when host
+	    (when ido-downcase-unc-hosts
+	      (setq host (downcase host)))
+	    (setq res (cons host res))))
+	(setq hosts (sort res #'string<))))
+    hosts))
+
+(defun ido-unc-hosts-net-view ()
+  "Query network for list of UNC host names using `NET VIEW'."
+  (let (hosts)
+    (with-temp-buffer
+      (shell-command "net view" t)
+      (goto-char (point-min))
+      (while (re-search-forward "^\\\\\\\\\\([[:graph:]]+\\)" nil t)
+	(setq hosts (cons (match-string 1) hosts))))
+    hosts))
+
 (defun ido-is-tramp-root (&optional dir)
   (and ido-enable-tramp-completion
        (string-match "\\`/[^/]+[@:]\\'"
 		     (or dir ido-current-directory))))
 
 (defun ido-is-unc-root (&optional dir)
-  (and ido-unc-hosts
+  (and (ido-unc-hosts)
        (string-equal "//"
 		     (or dir ido-current-directory))))
 
 (defun ido-is-unc-host (&optional dir)
-  (and ido-unc-hosts
+  (and (ido-unc-hosts)
        (string-match "\\`//[^/]+/\\'"
 		     (or dir ido-current-directory))))
 
@@ -1221,6 +1293,9 @@ it doesn't interfere with other minibuffer usage.")
 	    (ido-pp 'ido-work-directory-list)
 	    (ido-pp 'ido-work-file-list)
 	    (ido-pp 'ido-dir-file-cache "\n\n ")
+	    (if (listp ido-unc-hosts-cache)
+		(ido-pp 'ido-unc-hosts-cache)
+	      (insert "\n;; ----- ido-unc-hosts-cache -----\nt\n"))
 	    (insert "\n")
 	    (write-file ido-save-directory-list-file nil))
 	(kill-buffer buf)))))
@@ -1242,7 +1317,8 @@ With prefix argument, reload history unconditionally."
 		    (setq ido-last-directory-list (read (current-buffer))
 			  ido-work-directory-list (read (current-buffer))
 			  ido-work-file-list (read (current-buffer))
-			  ido-dir-file-cache (read (current-buffer)))
+			  ido-dir-file-cache (read (current-buffer))
+			  ido-unc-hosts-cache (read (current-buffer)))
 		  (error nil)))
 	    (kill-buffer buf)))))
   (ido-wash-history))
@@ -1699,7 +1775,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
 ;;       the relevant function is called (find-file, write-file, etc).
 
 (defun ido-read-internal (item prompt history &optional default require-match initial)
-  "Perform the ido-read-buffer and ido-read-file-name functions.
+  "Perform the `ido-read-buffer' and `ido-read-file-name' functions.
 Return the name of a buffer or file selected.
 PROMPT is the prompt to give to the user.
 DEFAULT if given is the default directory to start with.
@@ -2523,7 +2599,9 @@ timestamp has not changed (e.g. with ftp or on Windows)."
   (interactive)
   (if (and ido-mode (eq ido-cur-item 'file))
       (progn
-	(ido-remove-cached-dir ido-current-directory)
+	(if (ido-is-unc-root)
+	    (setq ido-unc-hosts-cache t)
+	  (ido-remove-cached-dir ido-current-directory))
 	(setq ido-text-init ido-text)
 	(setq ido-rotate-temp t)
 	(setq ido-exit 'refresh)
@@ -3238,7 +3316,7 @@ for first matching file."
     (mapcar
      (lambda (host)
        (if (string-match "/\\'" host) host (concat host "/")))
-     ido-unc-hosts))
+     (ido-unc-hosts t)))
    ((and (numberp ido-max-dir-file-cache) (> ido-max-dir-file-cache 0)
 	 (stringp dir) (> (length dir) 0)
 	 (ido-may-cache-directory dir))
@@ -3734,7 +3812,7 @@ default is to show it in the same window, unless it is already visible
 in another frame.
 
 As you type in a string, all of the buffers matching the string are
-displayed if substring-matching is used \(default). Look at
+displayed if substring-matching is used \(default).  Look at
 `ido-enable-prefix' and `ido-toggle-prefix'.  When you have found the
 buffer you want, it can then be selected.  As you type, most keys have
 their normal keybindings, except for the following: \\<ido-buffer-completion-map>
@@ -3757,7 +3835,7 @@ in a separate window.
 \\[ido-toggle-prefix] Toggle between substring and prefix matching.
 \\[ido-toggle-case] Toggle case-sensitive searching of buffer names.
 \\[ido-completion-help] Show list of matching buffers in separate window.
-\\[ido-enter-find-file] Drop into ido-find-file.
+\\[ido-enter-find-file] Drop into `ido-find-file'.
 \\[ido-kill-buffer-at-head] Kill buffer at head of buffer list.
 \\[ido-toggle-ignore] Toggle ignoring buffers listed in `ido-ignore-buffers'."
   (interactive)
@@ -4026,7 +4104,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	   ((and (ido-is-tramp-root) (string-equal contents "/"))
 	    (ido-set-current-directory ido-current-directory contents)
 	    (setq refresh t))
-	   ((and ido-unc-hosts (string-equal contents "/")
+	   ((and (ido-unc-hosts) (string-equal contents "/")
 		 (let ((ido-enable-tramp-completion nil))
 		   (ido-is-root-directory)))
 	    (ido-set-current-directory "//")

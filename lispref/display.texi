@@ -3500,9 +3500,13 @@ not affect the amount of raising or lowering, which is based on the
 faces used for the text.
 @end table
 
+@c We put all the `@code{(when ...)}' on one line to encourage
+@c makeinfo's end-of-sentence heuristics to DTRT.  Previously, the dot
+@c was at eol; the info file ended up w/ two spaces rendered after it.
   You can make any display specification conditional.  To do that,
-package it in another list of the form @code{(when @var{condition} .
-@var{spec})}.  Then the specification @var{spec} applies only when
+package it in another list of the form
+@code{(when @var{condition} . @var{spec})}.
+Then the specification @var{spec} applies only when
 @var{condition} evaluates to a non-@code{nil} value.  During the
 evaluation, @code{object} is bound to the string or buffer having the
 conditional @code{display} property.  @code{position} and
