@@ -796,11 +796,17 @@ Use multibyte mode for this."
 (defmacro mm-with-unibyte-current-buffer (&rest forms)
   "Evaluate FORMS with current buffer temporarily made unibyte.
 Also bind `default-enable-multibyte-characters' to nil.
-Equivalent to `progn' in XEmacs"
+Equivalent to `progn' in XEmacs
+
+NOTE: Use this macro with caution in multibyte buffers (it is not
+worth using this macro in unibyte buffers of course).  Use of
+`(set-buffer-multibyte t)', which is run finally, is generally
+harmful since it is likely to modify existing data in the buffer.
+For instance, it converts \"\\300\\255\" into \"\\255\" in Emacs 23."
   (let ((multibyte (make-symbol "multibyte"))
 	(buffer (make-symbol "buffer")))
     `(if mm-emacs-mule
- 	 (let ((,multibyte enable-multibyte-characters)
+	 (let ((,multibyte enable-multibyte-characters)
 	       (,buffer (current-buffer)))
 	   (unwind-protect
 	       (let (default-enable-multibyte-characters)

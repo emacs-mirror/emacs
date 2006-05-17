@@ -1181,25 +1181,19 @@ it doesn't interfere with other minibuffer usage.")
 (defun ido-save-history ()
   "Save ido history and cache information between sessions."
   (interactive)
-  (if (and ido-last-directory-list ido-save-directory-list-file)
-      (save-excursion
-	(save-window-excursion
-	  (if (find-buffer-visiting ido-save-directory-list-file)
-	      (kill-buffer (find-buffer-visiting ido-save-directory-list-file)))
-	  (if (file-exists-p ido-save-directory-list-file)
-	      (delete-file ido-save-directory-list-file))
-	  (set-buffer (let ((enable-local-variables nil))
-			(find-file-noselect ido-save-directory-list-file t)))
-	  (goto-char (point-min))
-	  (delete-region (point-min) (point-max))
-	  (ido-pp 'ido-last-directory-list)
-	  (ido-pp 'ido-work-directory-list)
-	  (ido-pp 'ido-work-file-list)
-	  (ido-pp 'ido-dir-file-cache "\n\n ")
-	  (insert "\n")
-	  (let ((version-control 'never))
+  (when (and ido-last-directory-list ido-save-directory-list-file)
+    (let ((buf (get-buffer-create " *ido session*"))
+	  (version-control 'never))
+      (unwind-protect
+	  (with-current-buffer buf
+	    (erase-buffer)
+	    (ido-pp 'ido-last-directory-list)
+	    (ido-pp 'ido-work-directory-list)
+	    (ido-pp 'ido-work-file-list)
+	    (ido-pp 'ido-dir-file-cache "\n\n ")
+	    (insert "\n")
 	    (write-file ido-save-directory-list-file nil))
-	  (kill-buffer (current-buffer))))))
+	(kill-buffer buf)))))
 
 (defun ido-load-history (&optional arg)
   "Load ido history and cache information from previous session.
@@ -1209,18 +1203,18 @@ With prefix argument, reload history unconditionally."
       (let ((file (expand-file-name ido-save-directory-list-file))
 	    buf)
 	(when (file-readable-p file)
-	  (save-excursion
-	    (save-window-excursion
-	      (setq buf (set-buffer (let ((enable-local-variables nil))
-				      (find-file-noselect file))))
-	      (goto-char (point-min))
-	      (condition-case nil
-		  (setq ido-last-directory-list (read (current-buffer))
-			ido-work-directory-list (read (current-buffer))
-			ido-work-file-list (read (current-buffer))
-			ido-dir-file-cache (read (current-buffer)))
-		(error nil))))
-	  (kill-buffer buf))))
+	  (setq buf (get-buffer-create " *ido session*"))
+	  (unwind-protect
+	      (with-current-buffer buf
+		(erase-buffer)
+		(insert-file-contents file)
+		(condition-case nil
+		    (setq ido-last-directory-list (read (current-buffer))
+			  ido-work-directory-list (read (current-buffer))
+			  ido-work-file-list (read (current-buffer))
+			  ido-dir-file-cache (read (current-buffer)))
+		  (error nil)))
+	    (kill-buffer buf)))))
   (ido-wash-history))
 
 (defun ido-wash-history ()

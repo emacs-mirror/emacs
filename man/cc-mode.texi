@@ -210,7 +210,7 @@ license to the document, as described in section 6 of the license.
 
 This manual was generated from $Revision$ of $RCSfile$, which can be
 downloaded from
-@url{http://cvs.sf.net/viewcvs.py/cc-mode/cc-mode/cc-mode.texi}.
+@url{http://cvs.savannah.gnu.org/viewcvs/emacs/emacs/man/cc-mode.texi}.
 @end titlepage
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -447,7 +447,7 @@ depending on your needs.  It describes the @ccmode{} style system and
 lists the standard styles that @ccmode{} supplies.
 
 @item
-The next few chapters, describe in detail how to customize the various
+The next few chapters describe in detail how to customize the various
 features of @ccmode{}.
 
 @item
@@ -525,7 +525,7 @@ Normally, when you type ``punctuation'' characters such as @samp{;} or
 be disconcerting until you get used to it.  To disable @dfn{electric
 indentation} in the current buffer, type @kbd{C-c C-l}.  Type the same
 thing to enable it again.  To have electric indentation disabled by
-default, put the following into your @file{.emacs} mode@footnote{There
+default, put the following into your @file{.emacs} file@footnote{There
 is no ``easy customization'' facility for making this change.}:
 
 @example
@@ -836,8 +836,9 @@ already.  Then reindent the comment according to @code{comment-column}
 (@pxref{Comments,,, xemacs, XEmacs User's Manual})
 @end ifset
 and the variables below.  Finally, position the point after the
-comment starter.  This is a standard Emacs command, but @ccmode{}
-enhances it a bit with two variables:
+comment starter.  @kbd{C-u M-;} kills any comment on the current line,
+together with any whitespace before it.  This is a standard Emacs
+command, but @ccmode{} enhances it a bit with two variables:
 
 @defopt c-indent-comment-alist
 @vindex indent-comment-alist (c-)
@@ -887,12 +888,14 @@ lines.
 @findex end-of-defun (c-)
 @findex beginning-of-defun
 @findex end-of-defun
-Move to the start or end of the current top-level definition, this
-being the outermost brace pair which encloses point.  These functions
-are analogous to the Emacs built-in commands @code{beginning-of-defun}
-and @code{end-of-defun}, except they eliminate the constraint that the
-top-level opening brace of the defun must be in column zero.  See
-@ref{Defuns,,,@emacsman{}, @emacsmantitle{}}, for more information.
+Move to the start or end of the current top-level definition.  This is
+the outermost brace pair which encloses point, together with the
+function header or similar preamble which precedes the opening brace.
+These functions are analogous to the Emacs built-in commands
+@code{beginning-of-defun} and @code{end-of-defun}, except they
+eliminate the constraint that the top-level opening brace of the defun
+must be in column zero.  See @ref{Defuns,,,@emacsman{},
+@emacsmantitle{}}, for more information.
 
 Depending on the coding style you're using, you might prefer these two
 commands to the standard Emacs ones.  If so, consider binding them to
@@ -1220,15 +1223,16 @@ turn it (or them) off.
 
 Most punctuation keys provide @dfn{electric} behavior - as well as
 inserting themselves they perform some other action, such as
-reindenting the line.  A few keywords, such as @code{else}, also
-trigger electric action.
+reindenting the line.  This reindentation saves you from having to
+reindent a line manually after typing, say, a @samp{@}}.  A few
+keywords, such as @code{else}, also trigger electric action.
 
 You can inhibit the electric behaviour described here by disabling
-electric minor mode (@pxref{Minor Modes}.)
+electric minor mode (@pxref{Minor Modes}).
 
-Common to all of them is that they only behave electrically when used
-in normal code (as contrasted with getting typed in a string literal
-or comment).  Those which cause re-indentation do so only when
+Common to all these keys is that they only behave electrically when
+used in normal code (as contrasted with getting typed in a string
+literal or comment).  Those which cause re-indentation do so only when
 @code{c-syntactic-indentation} has a non-@code{nil} value (which it
 does by default).
 
@@ -1453,8 +1457,6 @@ clean-ups listed by key.
 @cindex hungry-deletion
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@kindex C-d
-
 If you want to delete an entire block of whitespace at point, you can
 use @dfn{hungry deletion}.  This deletes all the contiguous whitespace
 either before point or after point in a single operation.
@@ -1468,6 +1470,10 @@ Hungry deletion is a simple feature that some people find extremely
 useful.  In fact, you might find yourself wanting it in @strong{all}
 your editing modes!
 
+Loosely speaking, in what follows, @dfn{@key{DEL}} means ``the
+backspace key'' and @dfn{@key{DELETE}} means ``the forward delete
+key''.  This is discussed in more detail below.
+
 There are two different ways you can use hungry deletion:
 
 @table @asis
@@ -1476,7 +1482,7 @@ Here you toggle Hungry Delete minor mode with @kbd{M-x
 c-toggle-hungry-state}@footnote{Prior to @ccmode{} 5.31, this command
 was bound to @kbd{C-c C-d}.  @kbd{C-c C-d} is now the default binding
 for @code{c-hungry-delete-forward}.} (@pxref{Minor Modes}.)  This
-makes @kbd{@key{DEL}} and @kbd{C-d} do forward and backwards hungry
+makes @kbd{@key{DEL}} and @kbd{C-d} do backwards and forward hungry
 deletion.
 
 @table @asis
@@ -1524,61 +1530,62 @@ default value is @code{delete-char}.
 
 @item Using Distinct Bindings
 The other (newer and recommended) way to use hungry deletion is to
-perform @code{c-hungry-backspace} and @code{c-hungry-delete-forward}
-directly through their key sequences rather than using the minor mode
-toggling.
+perform @code{c-hungry-delete-backwards} and
+@code{c-hungry-delete-forward} directly through their key sequences
+rather than using the minor mode toggling.
 
 @table @asis
-@item @kbd{C-c C-@key{Backspace}}, @kbd{C-c DEL}, or @kbd{C-c @key{Backspace}} (@code{c-hungry-backspace})
+@item @kbd{C-c C-@key{DEL}}, or @kbd{C-c @key{DEL}} (@code{c-hungry-delete-backwards})@footnote{This command was formerly known as @code{c-hungry-backspace}.}
 @kindex C-c C-<backspace>
-@kindex C-c DEL
 @kindex C-c <backspace>
-@findex c-hungry-backspace
-@findex hungry-backspace (c-)
+@kindex C-c C-DEL
+@kindex C-c DEL
+@findex c-hungry-delete-backwards
+@findex hungry-delete-backwards (c-)
 Delete any amount of whitespace in the backwards direction (regardless
 whether hungry-delete mode is enabled or not).  This command is bound
-to both @kbd{C-c C-@key{Backspace}} and @kbd{C-c @key{Backspace}},
-since the more natural one, @kbd{C-c C-@key{Backspace}}, is sometimes
-difficult to type at a character terminal.
+to both @kbd{C-c C-@key{DEL}} and @kbd{C-c @key{DEL}}, since the more
+natural one, @kbd{C-c C-@key{DEL}}, is sometimes difficult to type at
+a character terminal.
 
-@item @kbd{C-c C-@key{Delete}}, @kbd{C-c C-d}, or @kbd{C-c @key{Delete}} (@code{c-hungry-delete-forward})
-@kindex C-c C-<delete>
+@item @kbd{C-c C-d}, @kbd{C-c C-@key{DELETE}}, or @kbd{C-c @key{DELETE}} (@code{c-hungry-delete-forward})
 @kindex C-c C-d
-@kindex C-c <delete>
+@kindex C-c C-<DELETE>
+@kindex C-c <DELETE>
 @findex c-hungry-delete-forward
 @findex hungry-delete-forward (c-)
 Delete any amount of whitespace in the forward direction (regardless
 whether hungry-delete mode is enabled or not).  This command is bound
-to both @kbd{C-c C-@key{Delete}} and @kbd{C-c @key{Delete}} for the
-same reason as for @key{Backspace} above.
+to both @kbd{C-c C-@key{DELETE}} and @kbd{C-c @key{DELETE}} for the
+same reason as for @key{DEL} above.
 @end table
 @end table
 
 @kindex <delete>
 @kindex <backspace>
 
-When we talk about @kbd{DEL}, @kbd{C-d}, @key{Backspace} and
-@key{Delete} above, we actually do so without connecting them to the
-physical keys commonly known as @key{Backspace} and @key{Delete}.  The
-default bindings to those two keys depends on the flavor of (X)Emacs
-you are using.
+When we talk about @kbd{@key{DEL}}, and @kbd{@key{DELETE}} above, we
+actually do so without connecting them to the physical keys commonly
+known as @key{Backspace} and @key{Delete}.  The default bindings to
+those two keys depends on the flavor of (X)Emacs you are using.
 
 @findex c-electric-delete
 @findex electric-delete (c-)
 @findex c-hungry-delete
 @findex hungry-delete (c-)
 @vindex delete-key-deletes-forward
-
 In XEmacs 20.3 and beyond, the @key{Backspace} key is bound to
 @code{c-electric-backspace} and the @key{Delete} key is bound to
 @code{c-electric-delete}.  You control the direction it deletes in by
 setting the variable @code{delete-key-deletes-forward}, a standard
-XEmacs variable.  When this variable is non-@code{nil},
-@code{c-electric-delete} will do forward deletion with
-@code{c-electric-delete-forward}, otherwise it does backward deletion
-with @code{c-electric-backspace}.  Similarly, @kbd{C-c @key{Delete}}
-and @kbd{C-c C-@key{Delete}} are bound to @code{c-hungry-delete} which
-is controlled in the same way by @code{delete-key-deletes-forward}.
+XEmacs variable.
+@c This variable is encapsulated by XEmacs's (defsubst delete-forward-p ...).
+When this variable is non-@code{nil}, @code{c-electric-delete} will do
+forward deletion with @code{c-electric-delete-forward}, otherwise it
+does backward deletion with @code{c-electric-backspace}.  Similarly,
+@kbd{C-c @key{Delete}} and @kbd{C-c C-@key{Delete}} are bound to
+@code{c-hungry-delete} which is controlled in the same way by
+@code{delete-key-deletes-forward}.
 
 @findex normal-erase-is-backspace-mode
 

@@ -1661,11 +1661,11 @@ instance, when the version control back end is RCS, @code{diff} uses
 the options in @code{vc-rcs-diff-switches}.  The
 @samp{vc@dots{}diff-switches} variables are @code{nil} by default.
 
-  Unlike the @kbd{M-x diff} command, @kbd{C-x v =} does not try to
-locate the changes in the old and new versions.  This is because
-normally one or both versions do not exist as files when you compare
-them; they exist only in the records of the master file.
-@xref{Comparing Files}, for more information about @kbd{M-x diff}.
+  The buffer produced by @kbd{C-x v =} supports the commands of
+Compilation mode (@pxref{Compilation Mode}), such as @kbd{C-x `} and
+@kbd{C-c C-c}, in both the ``old'' and ``new'' text, and they always
+find the corresponding locations in the current work file.  (Older
+versions are not, in general, present as files on your disk.)
 
 @findex vc-annotate
 @kindex C-x v g

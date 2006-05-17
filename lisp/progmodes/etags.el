@@ -746,27 +746,25 @@ Assumes the tags table is the current buffer."
 ;; their tags included in the completion table.
 (defun tags-completion-table ()
   (or tags-completion-table
+      ;; No cached value for this buffer.
       (condition-case ()
-	  (prog2
-	   (message "Making tags completion table for %s..." buffer-file-name)
-	   (let ((included (tags-included-tables))
-		 (table (funcall tags-completion-table-function)))
-	     (save-excursion
-	       ;; Iterate over the list of included tables, and combine each
-	       ;; included table's completion obarray to the parent obarray.
-	       (while included
-		 ;; Visit the buffer.
-		 (let ((tags-file-name (car included)))
-		   (visit-tags-table-buffer 'same))
-		 ;; Recurse in that buffer to compute its completion table.
-		 (if (tags-completion-table)
-		     ;; Combine the tables.
-		     (mapatoms (lambda (sym) (intern (symbol-name sym) table))
-			       tags-completion-table))
-		 (setq included (cdr included))))
-	     (setq tags-completion-table table))
-	   (message "Making tags completion table for %s...done"
-		    buffer-file-name))
+	  (let (current-table combined-table)
+	    (message "Making tags completion table for %s..." buffer-file-name)
+	    (save-excursion
+	      ;; Iterate over the current list of tags tables.
+	      (while (visit-tags-table-buffer (and combined-table t))
+		;; Find possible completions in this table.
+		(setq current-table (funcall tags-completion-table-function))
+		;; Merge this buffer's completions into the combined table.
+		(if combined-table
+		    (mapatoms
+		     (lambda (sym) (intern (symbol-name sym) combined-table))
+		     current-table)
+		  (setq combined-table current-table))))
+	    (message "Making tags completion table for %s...done"
+		     buffer-file-name)
+	    ;; Cache the result a buffer-local variable.
+	    (setq tags-completion-table combined-table))
 	(quit (message "Tags completion table construction aborted.")
 	      (setq tags-completion-table nil)))))
 

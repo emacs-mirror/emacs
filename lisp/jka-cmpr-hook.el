@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;; This file contains the  code to enable and disable Auto-Compression mode.
+;; This file contains the code to enable and disable Auto-Compression mode.
 ;; It is preloaded.  The guts of this mode are in jka-compr.el, which
 ;; is loaded only when you really try to uncompress something.
 
@@ -39,6 +39,143 @@
 (defgroup jka-compr nil
   "jka-compr customization."
   :group 'compression)
+
+;; List of all the elements we actually added to file-coding-system-alist.
+(defvar jka-compr-added-to-file-coding-system-alist nil)
+
+(defvar jka-compr-file-name-handler-entry
+  nil
+  "`file-name-handler-alist' entry used by jka-compr I/O functions.")
+
+;; Compiler defvars.  These three variables will be defined later with
+;; `defcustom' when everything used in the :set functions is defined.
+(defvar jka-compr-compression-info-list)
+(defvar jka-compr-mode-alist-additions)
+(defvar jka-compr-load-suffixes)
+
+(defvar jka-compr-compression-info-list--internal nil
+  "Stored value of `jka-compr-compression-info-list'.
+If Auto Compression mode is enabled, this is the value of
+`jka-compr-compression-info-list' when `jka-compr-install' was last called.
+Otherwise, it is nil.")
+
+(defvar jka-compr-mode-alist-additions--internal nil
+  "Stored value of `jka-compr-mode-alist-additions'.
+If Auto Compression mode is enabled, this is the value of
+`jka-compr-mode-alist-additions' when `jka-compr-install' was last called.
+Otherwise, it is nil.")
+
+(defvar jka-compr-load-suffixes--internal nil
+  "Stored value of `jka-compr-load-suffixes'.
+If Auto Compression mode is enabled, this is the value of
+`jka-compr-load-suffixes' when `jka-compr-install' was last called.
+Otherwise, it is nil.")
+
+
+(defun jka-compr-build-file-regexp ()
+  (mapconcat
+   'jka-compr-info-regexp
+   jka-compr-compression-info-list
+   "\\|"))
+
+;; Functions for accessing the return value of jka-compr-get-compression-info
+(defun jka-compr-info-regexp               (info)  (aref info 0))
+(defun jka-compr-info-compress-message     (info)  (aref info 1))
+(defun jka-compr-info-compress-program     (info)  (aref info 2))
+(defun jka-compr-info-compress-args        (info)  (aref info 3))
+(defun jka-compr-info-uncompress-message   (info)  (aref info 4))
+(defun jka-compr-info-uncompress-program   (info)  (aref info 5))
+(defun jka-compr-info-uncompress-args      (info)  (aref info 6))
+(defun jka-compr-info-can-append           (info)  (aref info 7))
+(defun jka-compr-info-strip-extension      (info)  (aref info 8))
+(defun jka-compr-info-file-magic-bytes     (info)  (aref info 9))
+
+
+(defun jka-compr-get-compression-info (filename)
+  "Return information about the compression scheme of FILENAME.
+The determination as to which compression scheme, if any, to use is
+based on the filename itself and `jka-compr-compression-info-list'."
+  (catch 'compression-info
+    (let ((case-fold-search nil))
+      (mapcar
+       (function (lambda (x)
+		   (and (string-match (jka-compr-info-regexp x) filename)
+			(throw 'compression-info x))))
+       jka-compr-compression-info-list)
+      nil)))
+
+(defun jka-compr-install ()
+  "Install jka-compr.
+This adds entries to `file-name-handler-alist' and `auto-mode-alist'
+and `inhibit-first-line-modes-suffixes'."
+
+  (setq jka-compr-file-name-handler-entry
+	(cons (jka-compr-build-file-regexp) 'jka-compr-handler))
+
+  (push jka-compr-file-name-handler-entry file-name-handler-alist)
+
+  (setq jka-compr-compression-info-list--internal
+	jka-compr-compression-info-list
+	jka-compr-mode-alist-additions--internal
+	jka-compr-mode-alist-additions
+	jka-compr-load-suffixes--internal
+	jka-compr-load-suffixes)
+
+  (dolist (x jka-compr-compression-info-list)
+    ;; Don't do multibyte encoding on the compressed files.
+    (let ((elt (cons (jka-compr-info-regexp x)
+                     '(no-conversion . no-conversion))))
+      (push elt file-coding-system-alist)
+      (push elt jka-compr-added-to-file-coding-system-alist))
+
+    (and (jka-compr-info-strip-extension x)
+         ;; Make entries in auto-mode-alist so that modes
+         ;; are chosen right according to the file names
+         ;; sans `.gz'.
+         (push (list (jka-compr-info-regexp x) nil 'jka-compr) auto-mode-alist)
+         ;; Also add these regexps to
+         ;; inhibit-first-line-modes-suffixes, so that a
+         ;; -*- line in the first file of a compressed tar
+         ;; file doesn't override tar-mode.
+         (push (jka-compr-info-regexp x)
+               inhibit-first-line-modes-suffixes)))
+  (setq auto-mode-alist
+	(append auto-mode-alist jka-compr-mode-alist-additions))
+
+  ;; Make sure that (load "foo") will find /bla/foo.el.gz.
+  (setq load-file-rep-suffixes
+	(append load-file-rep-suffixes jka-compr-load-suffixes nil)))
+
+(defun jka-compr-installed-p ()
+  "Return non-nil if jka-compr is installed.
+The return value is the entry in `file-name-handler-alist' for jka-compr."
+
+  (let ((fnha file-name-handler-alist)
+	(installed nil))
+
+    (while (and fnha (not installed))
+     (and (eq (cdr (car fnha)) 'jka-compr-handler)
+	   (setq installed (car fnha)))
+      (setq fnha (cdr fnha)))
+
+    installed))
+
+(defun jka-compr-update ()
+  "Update Auto Compression mode for changes in option values.
+If you change the options `jka-compr-compression-info-list',
+`jka-compr-mode-alist-additions' or `jka-compr-load-suffixes'
+outside Custom, while Auto Compression mode is already enabled
+\(as it is by default), then you have to call this function
+afterward to properly update other variables.  Setting these
+options through Custom does this automatically."
+  (when (jka-compr-installed-p)
+    (jka-compr-uninstall)
+    (jka-compr-install)))
+
+(defun jka-compr-set (variable value)
+  "Internal Custom :set function."
+  (set-default variable value)
+  (jka-compr-update))
 
 ;; I have this defined so that .Z files are assumed to be in unix
 ;; compress format; and .gz files, in gzip format, and .bz2 files in bzip fmt.
@@ -113,7 +250,12 @@ APPEND-FLAG STRIP-EXTENSION-FLAG FILE-MAGIC-CHARS], where:
 
 Because of the way `call-process' is defined, discarding the stderr output of
 a program adds the overhead of starting a shell each time the program is
-invoked."
+invoked.
+
+If you set this outside Custom while Auto Compression mode is
+already enabled \(as it is by default), you have to call
+`jka-compr-update' after setting it to properly update other
+variables.  Setting this through Custom does that automatically."
   :type '(repeat (vector regexp
 			 (choice :tag "Compress Message"
 				 (string :format "%v")
@@ -132,118 +274,41 @@ invoked."
 			 (boolean :tag "Append")
 			 (boolean :tag "Strip Extension")
 			 (string :tag "Magic Bytes")))
+  :set 'jka-compr-set
   :group 'jka-compr)
 
 (defcustom jka-compr-mode-alist-additions
   (list (cons "\\.tgz\\'" 'tar-mode) (cons "\\.tbz\\'" 'tar-mode))
-  "A list of pairs to add to `auto-mode-alist' when jka-compr is installed."
+  "List of pairs added to `auto-mode-alist' when installing jka-compr.
+Uninstalling jka-compr removes all pairs from `auto-mode-alist' that
+installing added.
+
+If you set this outside Custom while Auto Compression mode is
+already enabled \(as it is by default), you have to call
+`jka-compr-update' after setting it to properly update other
+variables.  Setting this through Custom does that automatically."
   :type '(repeat (cons string symbol))
+  :set 'jka-compr-set
   :group 'jka-compr)
 
 (defcustom jka-compr-load-suffixes '(".gz")
-  "List of suffixes to try when loading files."
+  "List of compression related suffixes to try when loading files.
+Enabling Auto Compression mode appends this list to `load-file-rep-suffixes',
+which see.  Disabling Auto Compression mode removes all suffixes
+from `load-file-rep-suffixes' that enabling added.
+
+If you set this outside Custom while Auto Compression mode is
+already enabled \(as it is by default), you have to call
+`jka-compr-update' after setting it to properly update other
+variables.  Setting this through Custom does that automatically."
   :type '(repeat string)
+  :set 'jka-compr-set
   :group 'jka-compr)
-
-;; List of all the elements we actually added to file-coding-system-alist.
-(defvar jka-compr-added-to-file-coding-system-alist nil)
-
-(defvar jka-compr-file-name-handler-entry
-  nil
-  "The entry in `file-name-handler-alist' used by the jka-compr I/O functions.")
-
-(defun jka-compr-build-file-regexp ()
-  (mapconcat
-   'jka-compr-info-regexp
-   jka-compr-compression-info-list
-   "\\|"))
-
-;; Functions for accessing the return value of jka-compr-get-compression-info
-(defun jka-compr-info-regexp               (info)  (aref info 0))
-(defun jka-compr-info-compress-message     (info)  (aref info 1))
-(defun jka-compr-info-compress-program     (info)  (aref info 2))
-(defun jka-compr-info-compress-args        (info)  (aref info 3))
-(defun jka-compr-info-uncompress-message   (info)  (aref info 4))
-(defun jka-compr-info-uncompress-program   (info)  (aref info 5))
-(defun jka-compr-info-uncompress-args      (info)  (aref info 6))
-(defun jka-compr-info-can-append           (info)  (aref info 7))
-(defun jka-compr-info-strip-extension      (info)  (aref info 8))
-(defun jka-compr-info-file-magic-bytes     (info)  (aref info 9))
-
-
-(defun jka-compr-get-compression-info (filename)
-  "Return information about the compression scheme of FILENAME.
-The determination as to which compression scheme, if any, to use is
-based on the filename itself and `jka-compr-compression-info-list'."
-  (catch 'compression-info
-    (let ((case-fold-search nil))
-      (mapcar
-       (function (lambda (x)
-		   (and (string-match (jka-compr-info-regexp x) filename)
-			(throw 'compression-info x))))
-       jka-compr-compression-info-list)
-      nil)))
-
-(defun jka-compr-install ()
-  "Install jka-compr.
-This adds entries to `file-name-handler-alist' and `auto-mode-alist'
-and `inhibit-first-line-modes-suffixes'."
-
-  (setq jka-compr-file-name-handler-entry
-	(cons (jka-compr-build-file-regexp) 'jka-compr-handler))
-
-  (push jka-compr-file-name-handler-entry file-name-handler-alist)
-
-  (dolist (x jka-compr-compression-info-list)
-    ;; Don't do multibyte encoding on the compressed files.
-    (let ((elt (cons (jka-compr-info-regexp x)
-                     '(no-conversion . no-conversion))))
-      (push elt file-coding-system-alist)
-      (push elt jka-compr-added-to-file-coding-system-alist))
-
-    (and (jka-compr-info-strip-extension x)
-         ;; Make entries in auto-mode-alist so that modes
-         ;; are chosen right according to the file names
-         ;; sans `.gz'.
-         (push (list (jka-compr-info-regexp x) nil 'jka-compr) auto-mode-alist)
-         ;; Also add these regexps to
-         ;; inhibit-first-line-modes-suffixes, so that a
-         ;; -*- line in the first file of a compressed tar
-         ;; file doesn't override tar-mode.
-         (push (jka-compr-info-regexp x)
-               inhibit-first-line-modes-suffixes)))
-  (setq auto-mode-alist
-	(append auto-mode-alist jka-compr-mode-alist-additions))
-
-  ;; Make sure that (load "foo") will find /bla/foo.el.gz.
-  (setq load-suffixes
-	(apply 'append
-	       (append (mapcar (lambda (suffix)
-                               (cons suffix
-                                     (mapcar (lambda (ext) (concat suffix ext))
-                                             jka-compr-load-suffixes)))
-                             load-suffixes)
-                       (list jka-compr-load-suffixes)))))
-
-
-(defun jka-compr-installed-p ()
-  "Return non-nil if jka-compr is installed.
-The return value is the entry in `file-name-handler-alist' for jka-compr."
-
-  (let ((fnha file-name-handler-alist)
-	(installed nil))
-
-    (while (and fnha (not installed))
-     (and (eq (cdr (car fnha)) 'jka-compr-handler)
-	   (setq installed (car fnha)))
-      (setq fnha (cdr fnha)))
-
-    installed))
 
 (define-minor-mode auto-compression-mode
   "Toggle automatic file compression and uncompression.
 With prefix argument ARG, turn auto compression on if positive, else off.
-Returns the new status of auto compression (non-nil means on)."
+Return the new status of auto compression (non-nil means on)."
   :global t :init-value t :group 'jka-compr :version "22.1"
   (let* ((installed (jka-compr-installed-p))
 	 (flag auto-compression-mode))

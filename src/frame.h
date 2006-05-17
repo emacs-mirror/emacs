@@ -222,6 +222,7 @@ struct frame
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
   int tool_bar_lines;
 
+  int n_tool_bar_rows;
   int n_tool_bar_items;
 
   /* A buffer for decode_mode_line. */

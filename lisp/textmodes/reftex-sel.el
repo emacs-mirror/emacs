@@ -685,7 +685,9 @@ Useful for large TOC's."
   ;; The mouse-2 binding
   (if (featurep 'xemacs)
       (define-key map [(button2)] 'reftex-select-mouse-accept)
-    (define-key map [(mouse-2)] 'reftex-select-mouse-accept))
+    (define-key map [(mouse-2)] 'reftex-select-mouse-accept)
+    (define-key map [follow-link] 'mouse-face))
+    
 
   ;; Digit arguments
   (loop for key across "0123456789" do

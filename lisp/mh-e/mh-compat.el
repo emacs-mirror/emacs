@@ -79,11 +79,11 @@ introduced in Emacs 22."
 
 (mh-defun-compat mh-display-color-cells display-color-cells (&optional display)
   "Return the number of color cells supported by DISPLAY.
-This function is used by XEmacs to always return 0 when compiling
-to avoid compiling errors. Otherwise uses `device-color-cells'."
-  (if mh-compiling-flag
-      0
-    (device-color-cells display)))
+This function is used by XEmacs to return 2 when
+`device-color-cells' returns nil. This happens when compiling or
+running on a tty and causes errors since `display-color-cells' is
+expected to return an integer."
+  (or (device-color-cells display) 2))
 
 (defmacro mh-display-completion-list (completions &optional common-substring)
   "Display the list of COMPLETIONS.

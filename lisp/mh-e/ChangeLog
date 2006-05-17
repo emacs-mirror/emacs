@@ -1,11 +1,81 @@
+2006-03-02  Bill Wohler  <wohler@newt.com>
+
+	* mh-folder.el (mh-tool-bar-init): Autoload.
+	(mh-folder-mode): Call mh-tool-bar-init conditionally in XEmacs.
+	Set scoped variables image-load-path and load-path with updated
+	mh-image-load-path before calling mh-tool-bar-folder-buttons-init.
+
+	* mh-letter.el (mh-tool-bar-init): Autoload.
+	(mh-letter-mode): Call mh-tool-bar-init conditionally in XEmacs.
+	Set scoped variables image-load-path and load-path with updated
+	mh-image-load-path before calling mh-tool-bar-letter-buttons-init.
+
+	* mh-show.el (mh-tool-bar-init): Autoload.
+	(mh-show-mode): Perform tool bar stuff conditionally in XEmacs and
+	GNU Emacs.
+
+	* mh-tool-bar.el (mh-tool-bar-define): Don't quote stuff in error
+	messages per conventions.
+	(mh-tool-bar-folder-buttons-init)
+	(mh-tool-bar-letter-buttons-init): Don't call mh-image-load-path.
+	(mh-tool-bar-define call): Format.
+
+	* mh-utils.el (mh-image-directory,
+	mh-image-load-path-called-flag): Delete.
+	(mh-image-load-path): Incorporate changes from Gnus team. Biggest
+	changes are that it no longer uses/sets mh-image-directory or
+	mh-image-load-path-called-flag, and returns the updated path
+	rather than change it.
+	(mh-logo-display): Change usage of mh-image-load-path.
+
+2006-02-28  Bill Wohler  <wohler@newt.com>
+
+	* mh-limit.el (mh-narrow-to-cc, mh-narrow-to-from)
+	(mh-narrow-to-subject, mh-narrow-to-to): Fix inability to narrow
+	to subjects with special characters by quoting regular expression
+	characters in pick expression derived from existing subjects and
+	other fields (closes SF #1432548).
+	(mh-narrow-to-subject): Remove Re: string from subject so that
+	pick can find originating message (closes SF #1438369).
+
+	* mh-utils.el (mh-image-load-path): Rename variable to
+	mh-image-directory.
+	(mh-image-load-path): Access mh-image-directory instead of
+	mh-image-load-path.
+	(mh-folder-list): Fix problem with passing in a folder and getting
+	nothing back. Fix problem with passing in empty string and getting
+	the entire filesystem (or infinite loop). Don't append slash to
+	folder. These fixes fix problems observed with the pick search.
+	Thanks to Thomas Baumann for the help (closes SF #1435381).
+	(mh-pick-regexp-chars, mh-quote-pick-expr): New variable and
+	function for quoting pick regular expression characters (closes SF
+	#1432548).
+
+2006-02-27  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-default-folder-for-message-function): Sync docstring
+	with manual.
+
+	* mh-mime.el (mh-minibuffer-read-type): Delete comment in
+	docstring about obsolete variable mh-mime-content-types.
+
+	* mh-e.el (mh-variant): Sync docstring with manual.
+	(cus-face): Require as it is needed by mh-inherit-face-flag.
+
+	* mh-compat.el (mh-display-color-cells): Return 2 if
+	device-color-cells returns nil (closes SF #1436924).
+
+	* mh-e.el (mh-compiling-flag): Delete. No longer needed by
+	mh-display-color-cells.
+
 2006-02-21  Eric Ding  <ericding@alum.mit.edu>
 
-	* mh-e.el (mh-invisible-header-fields-internal): Added entry
+	* mh-e.el (mh-invisible-header-fields-internal): Add entry
 	"X-Sasl-enc:"
 
 2006-02-20  Eric Ding  <ericding@alum.mit.edu>
 
-	* mh-e.el (mh-invisible-header-fields-internal): Added entries
+	* mh-e.el (mh-invisible-header-fields-internal): Add entries
 	"X-Authenticated-Sender:", "X-Barracuda-", "X-EFL-Spamscore",
 	"X-IronPort-AV:", "X-Mail-from:", "X-Mailman-Approved-At:",
 	"X-Resolved-to:", and "X-SA-Exim".  Fixed "X-Bugzilla-" and
@@ -111,7 +181,7 @@
 
 2006-02-04  Eric Ding  <ericding@alum.mit.edu>
 
-	* mh-mime.el (mh-file-mime-type-substitutions): Added entries to
+	* mh-mime.el (mh-file-mime-type-substitutions): Add entries to
 	handle OpenOffice documents.
 
 2006-02-03  Bill Wohler  <wohler@newt.com>

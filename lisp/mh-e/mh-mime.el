@@ -1689,8 +1689,7 @@ buffer, while END defaults to the the end of the buffer."
   "Return the content type associated with the given FILENAME.
 If the \"file\" command exists and recognizes the given file,
 then its value is returned\; otherwise, the user is prompted for
-a type (see `mailcap-mime-types' and for Emacs 20,
-`mh-mime-content-types').
+a type (see `mailcap-mime-types').
 Optional argument DEFAULT is returned if a type isn't entered."
   (mailcap-parse-mimetypes)
   (let* ((default (or default

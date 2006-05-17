@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.06
+;; Version: 4.07
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,12 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
+;; Version 4.07
+;;    - Bug fixes.
+;;    - Leading stars in headlines can be hidden, so make the outline look
+;;      cleaner.
+;;    - Mouse-1 can be used to follow links.
+;;     
 ;; Version 4.06
 ;;    - HTML exporter treats targeted internal links.
 ;;    - Bug fixes.
@@ -130,7 +136,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.06"
+(defvar org-version "4.07"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -794,6 +800,24 @@ Changing it requires restart of Emacs to become effective."
   :group 'org-structure
   :type 'boolean)
 
+(defcustom org-hide-leading-stars nil
+  "Non-nil means, hide the first N-1 stars in a headline.
+This works by using the face `org-hide' for these stars.  This
+face is white for a light background, and black for a dark
+background.  You may have to customize the face `org-hide' to
+make this work.
+Changing the variable requires restart of Emacs to become effective."
+  :group 'org-structure
+  :type 'boolean)
+
+(defcustom org-odd-levels-only nil
+  "Non-nil means, skip even levels and only use odd levels for the outline.
+This has the effect that two stars are being added/taken away in
+promotion/demotion commands.  It also influences how levels are
+handled by the exporters."
+  :group 'org-structure
+  :type 'boolean)
+
 (defcustom org-adapt-indentation t
   "Non-nil means, adapt indentation when promoting and demoting.
 When this is set and the *entire* text in an entry is indented, the
@@ -1409,6 +1433,7 @@ This should have an association in `org-export-language-setup'."
   .title { text-align: center; }
   .todo, .deadline { color: red; }
   .done { color: green; }
+  .target { background-color: lavender; }
   pre {
 	border: 1pt solid #AEBDCC;
 	background-color: #F3F5F7;
@@ -1633,7 +1658,7 @@ This option can also be set with the +OPTIONS line, e.g. \"TeX:nil\"."
 
 (defcustom org-export-html-with-timestamp nil
   "If non-nil, write `org-export-html-html-helper-timestamp'
-into the exported html text.  Otherwise, the buffer will just be saved
+into the exported HTML text.  Otherwise, the buffer will just be saved
 to a file."
   :group 'org-export
   :type 'boolean)
@@ -1651,7 +1676,7 @@ Otherwise the buffer will just be saved to a file and stay hidden."
   :type 'boolean)
 
 (defcustom org-export-html-show-new-buffer nil
-  "Non-nil means, popup buffer containing the exported HTML text.
+  "Non-nil means, popup buffer containing the exported html text.
 Otherwise, the buffer will just be saved to a file and stay hidden."
   :group 'org-export
   :type 'boolean)
@@ -1676,6 +1701,16 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
   "Faces for highlighting in Org-mode."
   :tag "Org Faces"
   :group 'org)
+
+(defface org-hide
+  '((((type tty) (class color)) (:foreground "blue" :weight bold))
+    (((class color) (background light)) (:foreground "white"))
+    (((class color) (background dark)) (:foreground "black"))
+;    (((class color) (background light)) (:foreground "grey90"))
+;    (((class color) (background dark)) (:foreground "grey10"))
+    (t (:inverse-video nil)))
+  "Face used for level 1 headlines."
+  :group 'org-faces)
 
 (defface org-level-1 ;; font-lock-function-name-face
   '((((type tty) (class color)) (:foreground "blue" :weight bold))
@@ -1844,17 +1879,25 @@ When this is non-nil, the headline after the keyword is set to the
   "Face used for time grids."
   :group 'org-faces)
 
-(defvar org-level-faces
-  '(
-    org-level-1
-    org-level-2
-    org-level-3
-    org-level-4
-    org-level-5
-    org-level-6
-    org-level-7
-    org-level-8
-    ))
+(defvar org-level-faces nil)
+
+(when (not org-level-faces)
+  (setq org-level-faces
+	'(
+	  org-level-1
+	  org-level-2
+	  org-level-3
+	  org-level-4
+	  org-level-5
+	  org-level-6
+	  org-level-7
+	  org-level-8
+	  ))
+  (when org-odd-levels-only
+    (setq org-level-faces (apply 'append (mapcar (lambda (x) (list x x))
+						 org-level-faces)))
+    (setq org-level-faces (append (cdr org-level-faces) (list 'org-level-1)))))
+
 (defvar org-n-levels (length org-level-faces))
 
 (defun org-set-regexps-and-options ()
@@ -1985,7 +2028,6 @@ When this is non-nil, the headline after the keyword is set to the
   (defvar remember-data-file)
   (defvar last-arg))
 
-
 ;;; Define the mode
 
 (defvar org-mode-map (copy-keymap outline-mode-map)
@@ -2000,7 +2042,7 @@ When this is non-nil, the headline after the keyword is set to the
 (defvar org-table-may-need-update t
   "Indicates that a table might need an update.
 This variable is set by `org-before-change-function'.
-`org-table-align'sets it back to nil.")
+`org-table-align' sets it back to nil.")
 (defvar org-mode-hook nil)
 (defvar org-inhibit-startup nil)        ; Dynamically-scoped param.
 (defvar org-agenda-keep-modes nil)      ; Dynamically-scoped param.
@@ -2090,6 +2132,7 @@ The following commands are available:
   (if org-xemacs-p [button2] [mouse-2]) 'org-open-at-mouse)
 (define-key org-mouse-map
   (if org-xemacs-p [button3] [mouse-3]) 'org-find-file-at-mouse)
+(define-key org-mouse-map [follow-link] 'mouse-face)
 (when org-tab-follows-link
   (define-key org-mouse-map [(tab)] 'org-open-at-point)
   (define-key org-mouse-map "\C-i" 'org-open-at-point))
@@ -2200,7 +2243,10 @@ With optional argument RADIO, only find radio targets."
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward re nil t)
-	(add-to-list 'rtn (downcase (match-string-no-properties 1))))
+	(add-to-list 'rtn (downcase
+                           (if (fboundp 'match-string-no-properties)
+                               (match-string-no-properties 1)
+                             (match-string 1)))))
       rtn)))
 
 (defun org-make-target-link-regexp (targets)
@@ -2274,8 +2320,6 @@ between words."
 	  ;; (3 'italic))
 	  ;; '("\\(\\s-\\|^\\)\\(_\\([a-zA-Z]+\\)_\\)\\([^a-zA-Z*]\\|$\\)"
 	  ;; (3 'underline))
-;	  (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string "\\)\\>")
-;		'(1 'org-warning t))
 	  (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string
 			"\\|" org-quote-string "\\)\\>")
 		'(1 'org-special-keyword t))
@@ -2290,24 +2334,25 @@ between words."
 	  '("^[ \t]*\\(:.*\\)" (1 'org-table t))
 	  '("| *\\(:?=[^|\n]*\\)" (1 'org-formula t))
 	  '("^[ \t]*| *\\([#!$*_^]\\) *|" (1 'org-formula t))
-	  )))
+	  ))
+	(exp
+	 ;; The font-lock expression for headlines is complicated.  It depends
+	 ;; on two user options, and it needs to determine the level in
+	 ;; order to compute the level.
+	 (cond
+	  ((and org-level-color-stars-only (not org-hide-leading-stars))
+	   '("^\\(\\*+\\).*" 1 (nth (% (- (match-end 1) (match-beginning 1) 1) org-n-levels) org-level-faces) nil t))
+	  ((and (not org-level-color-stars-only) org-hide-leading-stars)
+	   '("^\\(\\**\\)\\(\\*.*\\)" (1 'org-hide) (2 (nth (% (- (match-end 1) (match-beginning 1)) org-n-levels) org-level-faces) nil t)))
+	  ((and org-level-color-stars-only org-hide-leading-stars)
+	   '("^\\(\\**\\)\\(\\*\\).*" (1 'org-hide) (2 (nth (% (- (match-end 1) (match-beginning 1)) org-n-levels) org-level-faces) nil t)))
+	  (t
+	   '("^\\(\\*+\\).*" 0 (nth (% (- (match-end 1) (match-beginning 1) 1) org-n-levels) org-level-faces) nil t)))))
+    
+    ;; Now set the full font-lock-keywords
     (set (make-local-variable 'org-font-lock-keywords)
 	 (append
-	  (if org-noutline-p     ; FIXME:  I am not sure if eval will work
-				 ; on XEmacs if noutline is ever ported
-	      `((eval . (list "^\\(\\*+\\).*"
-			      ,(if org-level-color-stars-only 1 0)
-			      '(nth
-				  (% (- (match-end 1) (match-beginning 1) 1)
-				     org-n-levels)
-				  org-level-faces)
-			      nil t)))
-	    `(("^\\(\\(\\*+\\)[^\r\n]*\\)[\n\r]"
-	       (,(if org-level-color-stars-only 2 0)
-	        (nth (% (- (match-end 2) (match-beginning 2) 1)
-			org-n-levels)
-		     org-level-faces)
-		nil t))))
+	  (if org-xemacs-p (list exp) (list (cons 'eval (list 'quote exp))))
 	  org-font-lock-extra-keywords))
     (set (make-local-variable 'font-lock-defaults)
 	 '(org-font-lock-keywords t nil nil backward-paragraph))
@@ -2731,19 +2776,32 @@ in the region."
        (equal (char-before) ?*)
        (forward-char 1)))
 
+(defun org-get-legal-level (level change)
+  "Rectify a level change under the influence of `org-odd-levels-only'
+LEVEL is a current level, CHANGE is by how much the level should be
+modified.  Even if CHANGE is nil, LEVEL may be returned modified because
+even level numbers will become the next higher odd number."
+  (if org-odd-levels-only
+      (cond ((not change) (1+ (* 2 (/ level 2))))
+	    ((> change 0) (1+ (* 2 (/ (+ level (* 2 change)) 2))))
+	    ((< change 0) (max 1 (1+ (* 2 (/ (+ level (* 2 change)) 2))))))
+    (max 1 (+ level change))))
+
 (defun org-promote ()
   "Promote the current heading higher up the tree.
 If the region is active in `transient-mark-mode', promote all headings
 in the region."
   (org-back-to-heading t)
   (let* ((level (save-match-data (funcall outline-level)))
-	 (up-head (make-string (1- level) ?*)))
+	 (up-head (make-string (org-get-legal-level level -1) ?*))
+	 (diff (abs (- level (length up-head)))))
     (if (= level 1) (error "Cannot promote to level 0. UNDO to recover"))
     (replace-match up-head nil t)
     ;; Fixup tag positioning
     (and org-auto-align-tags (org-set-tags nil t))
     (if org-adapt-indentation
-	(org-fixup-indentation "^ " "" "^ ?\\S-"))))
+	(org-fixup-indentation (if (> diff 1) "^  " "^ ") ""
+			       (if (> diff 1) "^ ? ?\\S-" "^ ?\\S-")))))
 
 (defun org-demote ()
   "Demote the current heading lower down the tree.
@@ -2751,12 +2809,13 @@ If the region is active in `transient-mark-mode', demote all headings
 in the region."
   (org-back-to-heading t)
   (let* ((level (save-match-data (funcall outline-level)))
-	 (down-head (make-string (1+ level) ?*)))
+	 (down-head (make-string (org-get-legal-level level 1) ?*))
+	 (diff (abs (- level (length down-head)))))
     (replace-match down-head nil t)
     ;; Fixup tag positioning
     (and org-auto-align-tags (org-set-tags nil t))
     (if org-adapt-indentation
-	(org-fixup-indentation "^ " "  " "^\\S-"))))
+	(org-fixup-indentation "^ " (if (> diff 1) "   " "  ") "^\\S-"))))
 
 (defun org-map-tree (fun)
   "Call FUN for every heading underneath the current one."
@@ -2885,6 +2944,7 @@ If CUT is non nil, actually cut the subtree."
 	       (if cut "Cut" "Copied")
 	       (length org-subtree-clip)))))
 
+;; FIXME: this needs to be adapted for the odd-level-only stuff.
 (defun org-paste-subtree (&optional level tree)
   "Paste the clipboard as a subtree, with modification of headline level.
 The entire subtree is promoted or demoted in order to match a new headline
@@ -2945,6 +3005,7 @@ If optional TREE is given, use this text instead of the kill ring."
 	 (shift1 shift)
 	 (delta (if (> shift 0) -1 1))
 	 (func (if (> shift 0) 'org-demote 'org-promote))
+	 (org-odd-levels-only nil)
 	 beg end)
     ;; Remove the forces level indicator
     (if force-level
@@ -3827,6 +3888,7 @@ insert a time.  Note that when WITH-TIME is not set, you can still
 enter a time, and this function will inform the calling routine about
 this change.  The calling routine may then choose to change the format
 used to insert the time stamp into the buffer to include the time."
+  (require 'parse-time)
   (let* ((default-time
 	   ;; Default time is either today, or, when entering a range,
 	   ;; the range start.
@@ -4348,7 +4410,7 @@ The following commands are available:
   (if org-xemacs-p [(button2)] [(mouse-2)]) 'org-agenda-goto-mouse)
 (define-key org-agenda-keymap
   (if org-xemacs-p [(button3)] [(mouse-3)]) 'org-agenda-show-mouse)
-
+(define-key org-agenda-keymap [follow-link] 'mouse-face)
 (easy-menu-define org-agenda-menu org-agenda-mode-map "Agenda menu"
   '("Agenda"
     ("Agenda Files")
@@ -6625,10 +6687,11 @@ With prefix ARG, realign all tags in headings in the current buffer."
 		(completing-read "Tags: " 'org-tags-completion-function
 				 nil nil current 'org-tags-history)))
 	(while (string-match "[-+&]+" tags)
-	  (setq tags (replace-match ":" t t tags)))
-	(unless (setq empty (string-match "\\`[\t ]*\\'" tags))
-	  (unless (string-match ":$" tags) (setq tags (concat tags ":")))
-	  (unless (string-match "^:" tags) (setq tags (concat ":" tags)))))
+	  (setq tags (replace-match ":" t t tags))))
+      ;; FIXME: still optimize this byt not checking when JUST-ALIGN?
+      (unless (setq empty (string-match "\\`[\t ]*\\'" tags))
+	(unless (string-match ":$" tags) (setq tags (concat tags ":")))
+	(unless (string-match "^:" tags) (setq tags (concat ":" tags))))
       (if (equal current "")
 	  (progn
 	    (end-of-line 1)
@@ -7192,8 +7255,8 @@ use sequences."
       (mh-show-buffer-message-number))))
 
 (defun org-mhe-get-header (header)
-  "Return a header of the message in folder mode.  This will create a
-show buffer for the corresponding message.  If you have a more clever
+  "Return a header of the message in folder mode. This will create a
+show buffer for the corresponding message. If you have a more clever
 idea..."
   (let* ((folder (org-mhe-get-message-folder))
          (num (org-mhe-get-message-num))
@@ -10454,10 +10517,11 @@ translations.  There is currently no way for users to extend this.")
       (erase-buffer)
       (insert string)
       (org-mode)
-      ;; Find targets in comments and move them out of comments
+      ;; Find targets in comments and move them out of comments,
+      ;; but mark them as targets that should be invisible
       (goto-char (point-min))
       (while (re-search-forward "^#.*?\\(<<<?[^>\r\n]+>>>?\\).*" nil t)
-	(replace-match "\\1"))
+	(replace-match "\\1(INVISIBLE)"))
       ;; Find matches for radio targets and turn them into links
       (goto-char (point-min))
       (while (re-search-forward re-radio nil t)
@@ -10475,12 +10539,34 @@ translations.  There is currently no way for users to extend this.")
     (kill-buffer " org-mode-tmp")
     rtn))
 
-(defun org-solidify-link-text (s)
+(defun org-solidify-link-text (s &optional alist)
   "Take link text and make a safe target out of it."
   (save-match-data
-    (mapconcat
-     'identity
-     (org-split-string s "[ \t\r\n]+") "--")))
+    (let* ((rtn
+	    (mapconcat
+	     'identity
+	     (org-split-string s "[ \t\r\n]+") "--"))
+	   (a (assoc rtn alist)))
+      (or (cdr a) rtn))))
+
+(defun org-convert-to-odd-levels ()
+  "Convert an org-mode file with all levels allowed to one with odd levels.
+This will leave level 1 alone, convert level 2 to level 3, level 3 to
+level 5 etc."
+  (interactive)
+  (when (yes-or-no-p "Are you sure you want to globally change levels? ")
+    (let ((org-odd-levels-only nil) n)
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward "^\\*\\*+" nil t)
+	  (setq n (1- (length (match-string 0))))
+	  (while (>= (setq n (1- n)) 0)
+	    (org-demote))
+	  (end-of-line 1))))))
+
+(defun org-tr-level (n)
+  "Make N odd if required."
+  (if org-odd-levels-only (1+ (/ n 2)) n))
 
 (defvar org-last-level nil) ; dynamically scoped variable
 
@@ -10561,6 +10647,7 @@ underlined headlines.  The default is 3."
 			 ;; This is a headline
 			 (progn
 			   (setq level (- (match-end 1) (match-beginning 1))
+				 level (org-tr-level level)
 				 txt (match-string 3 line)
 				 todo
 				 (or (and (match-beginning 2)
@@ -10599,7 +10686,7 @@ underlined headlines.  The default is 3."
       (cond
        ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
 	;; a Headline
-	(setq level (- (match-end 1) (match-beginning 1))
+	(setq level (org-tr-level (- (match-end 1) (match-beginning 1)))
 	      txt (match-string 2 line))
 	(org-ascii-level-start level txt umax))
        (t (insert line "\n"))))
@@ -10860,6 +10947,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
          (language    org-export-default-language)
 	 (text        nil)
          (lang-words  nil)
+	 (target-alist nil) tg
 	 (head-count  0) cnt
 	 (start       0)
 	 ;; FIXME: The following returns always nil under XEmacs
@@ -10923,11 +11011,13 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	  (progn
 	    (insert (format "<H2>%s</H2>\n" (nth 3 lang-words)))
 	    (insert "<ul>\n")
+	    (setq lines
 	    (mapcar '(lambda (line)
 		       (if (string-match org-todo-line-regexp line)
 			   ;; This is a headline
 			   (progn
 			     (setq level (- (match-end 1) (match-beginning 1))
+				   level (org-tr-level level)
 				   txt (save-match-data
 					 (org-html-expand
 					  (match-string 3 line)))
@@ -10957,15 +11047,28 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 					 (while (>= (setq cnt (1- cnt)) 0)
 					   (insert "</ul>"))
 					 (insert "\n")))
+				   ;; Check for targets
+				   (while (string-match org-target-regexp line)
+				     (setq tg (match-string 1 line)
+					   line (replace-match
+						 (concat "@<span class=\"target\">" tg "@</span> ")
+						 t t line))
+				     (push (cons (org-solidify-link-text tg)
+						 (format "sec-%d" head-count))
+					   target-alist))
+				   (while (string-match "&lt;\\(&lt;\\)+\\|&gt;\\(&gt;\\)+" txt)
+				     (setq txt (replace-match "" t t txt)))
 				   (insert
 				    (format
 				     (if todo
 					 "<li><a href=\"#sec-%d\"><span class=\"todo\">%s</span></a>\n"
 				       "<li><a href=\"#sec-%d\">%s</a>\n")
 				     head-count txt))
+
 				   (setq org-last-level level))
-			       ))))
-		    lines)
+			       )))
+		       line)
+		    lines))
 	    (while (> org-last-level 0)
 	      (setq org-last-level (1- org-last-level))
 	      (insert "</ul>\n"))
@@ -11001,18 +11104,31 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 
 
 	  ;; make targets to anchors
-	  (while (string-match "<<<?\\([^<>]*\\)>>>?[ \t]*\n?" line)
-	    (setq line (replace-match
-			(concat "@<a name=\""
-				(org-solidify-link-text (match-string 1 line))
-				"\">\\nbsp@</a>")
-			t t line)))
+	  (while (string-match "<<<?\\([^<>]*\\)>>>?\\((INVISIBLE)\\)?[ \t]*\n?" line)
+	    (cond
+	     ((match-end 2)
+	      (setq line (replace-match
+			  (concat "@<a name=\"" 
+				  (org-solidify-link-text (match-string 1 line))
+				  "\">\\nbsp@</a>")
+			  t t line)))
+	     ((and org-export-with-toc (equal (string-to-char line) ?*))
+	      (setq line (replace-match
+			  (concat "@<span class=\"target\">" (match-string 1 line) "@</span> ")
+;			  (concat "@<i>" (match-string 1 line) "@</i> ")
+			  t t line)))
+	     (t
+	      (setq line (replace-match
+			  (concat "@<a name=\"" 
+				  (org-solidify-link-text (match-string 1 line))
+				  "\" class=\"target\">" (match-string 1 line) "@</a> ")
+			  t t line)))))	      
 	  ;; Replace internal links
 	  (while (string-match org-bracket-link-regexp line)
 	    (setq line (replace-match
 			(concat
 			    "@<a href=\"#"
-			    (org-solidify-link-text (match-string 1 line))
+			    (org-solidify-link-text (match-string 1 line) target-alist)
 			    "\">"
 			    (match-string (if (match-end 3) 3 1) line)
 			    "@</a>")
@@ -11087,7 +11203,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	  (cond
 	   ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
 	    ;; This is a headline
-	    (setq level (- (match-end 1) (match-beginning 1))
+	    (setq level (org-tr-level (- (match-end 1) (match-beginning 1)))
 		  txt (match-string 2 line))
 	    (if (<= level umax) (setq head-count (+ head-count 1)))
 	    (when in-local-list
@@ -11822,6 +11938,7 @@ a time), or the day by one (if it does not contain a time)."
 (define-key org-mode-map "\C-c\C-xb"      'org-export-as-html-and-open)
 (define-key org-mode-map "\C-c\C-x\C-b"   'org-export-as-html-and-open)
 
+(define-key org-mode-map "\C-c\C-x\C-k"   'org-cut-special)
 (define-key org-mode-map "\C-c\C-x\C-w"   'org-cut-special)
 (define-key org-mode-map "\C-c\C-x\M-w"   'org-copy-special)
 (define-key org-mode-map "\C-c\C-x\C-y"   'org-paste-special)
@@ -12244,7 +12361,9 @@ See the individual commands for more information."
      ["Demote Heading"  org-metaright (not (org-at-table-p))]
      ["Demote Subtree"  org-shiftmetaright (not (org-at-table-p))]
      "--"
-     ["Archive Subtree" org-archive-subtree t])
+     ["Archive Subtree" org-archive-subtree t]
+     "--"
+     ["Convert file to odd levels" org-convert-to-odd-levels t])
     "--"
     ("TODO Lists"
      ["TODO/DONE/-" org-todo t]

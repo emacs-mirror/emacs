@@ -146,6 +146,8 @@
                                  message-send-hook))
          (message-setup-hook (and (not is-queue)
                                   message-setup-hook))
+	 (message-signature (and (not is-queue)
+				 message-signature))
          (gnus-agent-queue-mail (and (not is-queue)
                                      gnus-agent-queue-mail))
 	 (rfc2047-encode-encoded-words nil)

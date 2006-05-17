@@ -4414,6 +4414,8 @@ actually used.  */)
 
       /* Set `inserted' to the number of inserted characters.  */
       inserted = PT - temp;
+      /* Set point before the inserted characters.  */
+      SET_PT_BOTH (temp, same_at_start);
 
       xfree (conversion_buffer);
       emacs_close (fd);

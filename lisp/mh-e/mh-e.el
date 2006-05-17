@@ -101,12 +101,7 @@
 
 (eval-and-compile
   (defvar mh-xemacs-flag (featurep 'xemacs)
-    "Non-nil means the current Emacs is XEmacs.")
-  (defvar mh-compiling-flag nil
-    "Non-nil means we're compiling."))
-
-(eval-when (compile)
-  (setq mh-compiling-flag t))
+    "Non-nil means the current Emacs is XEmacs."))
 
 (mh-do-in-xemacs
   (require 'mh-xemacs))
@@ -869,14 +864,18 @@ The default setting of this option is \"Auto-detect\" which means
 that MH-E will automatically choose the first of nmh, MH, or GNU
 mailutils that it finds in the directories listed in
 `mh-path' (which you can customize), `mh-sys-path', and
-`exec-path'. If, for example, you have both nmh and mailutils
-installed and `mh-variant-in-use' was initialized to nmh but you
-want to use mailutils, then you can set this option to
-\"mailutils\".
+`exec-path'. If MH-E can't find MH at all, you may have to
+customize `mh-path' and add the directory in which the command
+\"mhparam\" is located. If, on the other hand, you have both nmh
+and mailutils installed (for example) and `mh-variant-in-use' was
+initialized to nmh but you want to use mailutils, then you can
+set this option to \"mailutils\".
 
 When this variable is changed, MH-E resets `mh-progs', `mh-lib',
 `mh-lib-progs', `mh-flists-present-flag', and `mh-variant-in-use'
-accordingly."
+accordingly. Prior to version 8, it was often necessary to set
+some of these variables in \"~/.emacs\"; now it is no longer
+necessary and can actually cause problems."
   :type `(radio
           (const :tag "Auto-detect" autodetect)
           ,@(mapcar (lambda (x) `(const ,(car x))) (mh-variants)))
@@ -1241,11 +1240,11 @@ an alternate view. For example, \"'(\"-nolimit\" \"-textfield\"
 (defcustom mh-default-folder-for-message-function nil
   "Function to select a default folder for refiling or \"Fcc:\".
 
-The current buffer is set to the message being refiled with point
-at the start of the message. This function should return the
-default folder as a string with a leading \"+\" sign. It can also
-return nil so that the last folder name is used as the default,
-or an empty string to suppress the default entirely."
+When this function is called, the current buffer contains the message
+being refiled and point is at the start of the message. This function
+should return the default folder as a string with a leading \"+\"
+sign. It can also return nil so that the last folder name is used as
+the default, or an empty string to suppress the default entirely."
   :type 'function
   :group 'mh-folder-selection)
 
@@ -2993,6 +2992,8 @@ colors."
                                          new-spec)))
                 (setq new-spec (cons entry new-spec)))))
       new-spec)))
+
+(require 'cus-face)
 
 (defvar mh-inherit-face-flag (assq :inherit custom-face-attributes)
   "Non-nil means that the `defface' :inherit keyword is available.

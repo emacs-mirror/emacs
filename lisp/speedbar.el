@@ -57,6 +57,73 @@ this version is not backward compatible to 0.14 or earlier.")
 ;;     http://www.dina.kvl.dk/~abraham/custom/
 ;;     custom is available in all versions of Emacs version 20 or better.
 ;;
+;;; Developing for speedbar
+;;
+;; Adding a speedbar specialized display mode:
+;;
+;; Speedbar can be configured to create a special display for certain
+;; modes that do not display traditional file/tag data.  Rmail, Info,
+;; and the debugger are examples.  These modes can, however, benefit
+;; from a speedbar style display in their own way.
+;;
+;; If your `major-mode' is `foo-mode', the only requirement is to
+;; create a function called `foo-speedbar-buttons' which takes one
+;; argument, BUFFER.  BUFFER will be the buffer speedbar wants filled.
+;; In `foo-speedbar-buttons' there are several functions that make
+;; building a speedbar display easy.  See the documentation for
+;; `speedbar-with-writable' (needed because the buffer is usually
+;; read-only) `speedbar-make-tag-line', `speedbar-insert-button', and
+;; `speedbar-insert-generic-list'.  If you use
+;; `speedbar-insert-generic-list', also read the doc for
+;; `speedbar-tag-hierarchy-method' in case you wish to override it.
+;; The macro `speedbar-with-attached-buffer' brings you back to the
+;; buffer speedbar is displaying for.
+;;
+;; For those functions that make buttons, the "function" should be a
+;; symbol that is the function to call when clicked on.  The "token"
+;; is extra data you can pass along.  The "function" must take three
+;; parameters.  They are (TEXT TOKEN INDENT).  TEXT is the text of the
+;; button clicked on.  TOKEN is the data passed in when you create the
+;; button.  INDENT is an indentation level, or 0.  You can store
+;; indentation levels with `speedbar-make-tag-line' which creates a
+;; line with an expander (eg.  [+]) and a text button.
+;;
+;; Some useful functions when writing expand functions, and click
+;; functions are `speedbar-change-expand-button-char',
+;; `speedbar-delete-subblock', and `speedbar-center-buffer-smartly'.
+;; The variable `speedbar-power-click' is set to t in your functions
+;; when the user shift-clicks.  This is an indication of anything from
+;; refreshing cached data to making a buffer appear in a new frame.
+;;
+;; If you wish to add to the default speedbar menu for the case of
+;; `foo-mode', create a variable `foo-speedbar-menu-items'.  This
+;; should be a list compatible with the `easymenu' package.  It will
+;; be spliced into the main menu.  (Available with click-mouse-3).  If
+;; you wish to have extra key bindings in your special mode, create a
+;; variable `foo-speedbar-key-map'.  Instead of using `make-keymap',
+;; or `make-sparse-keymap', use the function
+;; `speedbar-make-specialized-keymap'.  This lets you inherit all of
+;; speedbar's default bindings with low overhead.
+;;
+;; Adding a speedbar top-level display mode:
+;;
+;; Unlike the specialized modes, there are no name requirements,
+;; however the methods for writing a button display, menu, and keymap
+;; are the same.  Once you create these items, you can call the
+;; function `speedbar-add-expansion-list'.  It takes one parameter
+;; which is a list element of the form (NAME MENU KEYMAP &rest
+;; BUTTON-FUNCTIONS).  NAME is a string that will show up in the
+;; Displays menu item.  MENU is a symbol containing the menu items to
+;; splice in.  KEYMAP is a symbol holding the keymap to use, and
+;; BUTTON-FUNCTIONS are the function names to call, in order, to create
+;; the display.
+;;  Another tweakable variable is `speedbar-stealthy-function-list'
+;; which is of the form (NAME &rest FUNCTION ...).  NAME is the string
+;; name matching `speedbar-add-expansion-list'.  (It does not need to
+;; exist.). This provides additional display info which might be
+;; time-consuming to calculate.
+;;  Lastly, `speedbar-mode-functions-list' allows you to set special
+;; function overrides.
 
 ;;; TODO:
 ;; - Timeout directories we haven't visited in a while.
@@ -2467,20 +2534,19 @@ name will have the function FIND-FUN and not token."
 	(set-buffer speedbar-buffer)
 	(speedbar-with-writable
 	  (let* ((window (get-buffer-window speedbar-buffer 0))
-		 (p (window-point window)))
+		 (p (window-point window))
+		 (start (window-start window)))
 	    (erase-buffer)
 	    (dolist (func funclst)
 	      (setq default-directory cbd)
 	      (funcall func cbd 0))
 	    (speedbar-reconfigure-keymaps)
-	    (set-window-point window p)))
+	    (set-window-point window p)
+	    (set-window-start window start)))
 	))))
 
 (defun speedbar-update-directory-contents ()
   "Update the contents of the speedbar buffer based on the current directory."
-
-  (save-excursion
-
     (let ((cbd (expand-file-name default-directory))
 	  cbd-parent
 	  (funclst (speedbar-initial-expansion-list))
@@ -2541,17 +2607,21 @@ name will have the function FIND-FUN and not token."
 		 (speedbar-directory-line cbd))
 	    ;; Open it.
 	    (speedbar-expand-line)
-	  (erase-buffer)
-	  (cond (use-cache
-		 (setq default-directory
-		       (nth (1- (length speedbar-shown-directories))
-			    speedbar-shown-directories))
-		 (insert (cdr cache)))
-		(t
-	  (dolist (func funclst)
-	    (setq default-directory cbd)
-	    (funcall func cbd 0)))))
-	(goto-char (point-min)))))
+	  (let* ((window (get-buffer-window speedbar-buffer 0))
+		 (p (window-point window))
+		 (start (window-start window)))
+	    (erase-buffer)
+	    (cond (use-cache
+		   (setq default-directory
+			 (nth (1- (length speedbar-shown-directories))
+			      speedbar-shown-directories))
+		   (insert (cdr cache)))
+		  (t
+		   (dolist (func funclst)
+		     (setq default-directory cbd)
+	    (funcall func cbd 0))))
+	    (set-window-point window p)
+	    (set-window-start window start)))))
   (speedbar-reconfigure-keymaps))
 
 (defun speedbar-update-special-contents ()
@@ -2576,8 +2646,7 @@ This should only be used by modes classified as special."
 	  (dolist (func funclst)
 	    ;; We do not erase the buffer because these functions may
 	    ;; decide NOT to update themselves.
-	    (funcall func specialbuff)))
-      (goto-char (point-min))))
+	    (funcall func specialbuff)))))
   (speedbar-reconfigure-keymaps))
 
 (defun speedbar-set-timer (timeout)

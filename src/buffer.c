@@ -3649,6 +3649,10 @@ modify_overlay (buf, start, end)
   /* If multiple windows show this buffer, we must do other windows.  */
   else if (buffer_shared > 1)
     windows_or_buffers_changed = 1;
+  /* If we modify an overlay at the end of the buffer, we cannot
+     be sure that window end is still valid.  */
+  else if (end >= ZV && start <= ZV)
+    windows_or_buffers_changed = 1;
 
   ++BUF_OVERLAY_MODIFF (buf);
 }
@@ -4090,6 +4094,7 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
 	      == OVERLAY_POSITION (OVERLAY_END (overlay))))
 	Fdelete_overlay (overlay);
     }
+
   return value;
 }
 

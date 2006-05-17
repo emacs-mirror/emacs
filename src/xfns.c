@@ -577,11 +577,9 @@ x_real_positions (f, xptr, yptr)
   int had_errors = 0;
   Window win = f->output_data.x->parent_desc;
 
-  int count;
-
   BLOCK_INPUT;
 
-  count = x_catch_errors (FRAME_X_DISPLAY (f));
+  x_catch_errors (FRAME_X_DISPLAY (f));
 
   if (win == FRAME_X_DISPLAY_INFO (f)->root_window)
     win = FRAME_OUTER_WINDOW (f);
@@ -668,7 +666,7 @@ x_real_positions (f, xptr, yptr)
       had_errors = x_had_errors_p (FRAME_X_DISPLAY (f));
     }
 
-  x_uncatch_errors (FRAME_X_DISPLAY (f), count);
+  x_uncatch_errors ();
 
   UNBLOCK_INPUT;
 
@@ -946,7 +944,6 @@ x_set_mouse_color (f, arg, oldval)
   Display *dpy = FRAME_X_DISPLAY (f);
   Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
   Cursor hourglass_cursor, horizontal_drag_cursor;
-  int count;
   unsigned long pixel = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
   unsigned long mask_color = x->background_pixel;
 
@@ -963,7 +960,7 @@ x_set_mouse_color (f, arg, oldval)
   BLOCK_INPUT;
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
-  count = x_catch_errors (dpy);
+  x_catch_errors (dpy);
 
   if (!NILP (Vx_pointer_shape))
     {
@@ -1024,7 +1021,7 @@ x_set_mouse_color (f, arg, oldval)
 
   /* Check and report errors with the above calls.  */
   x_check_errors (dpy, "can't set cursor shape: %s");
-  x_uncatch_errors (dpy, count);
+  x_uncatch_errors ();
 
   {
     XColor fore_color, back_color;
@@ -3441,13 +3438,12 @@ FRAME nil means use the selected frame.  */)
 {
   struct frame *f = check_x_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
-  int count;
 
   BLOCK_INPUT;
-  count = x_catch_errors (dpy);
+  x_catch_errors (dpy);
   XSetInputFocus (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  RevertToParent, CurrentTime);
-  x_uncatch_errors (dpy, count);
+  x_uncatch_errors ();
   UNBLOCK_INPUT;
 
   return Qnil;

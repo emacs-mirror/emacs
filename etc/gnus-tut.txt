@@ -223,7 +223,7 @@ want this is beyond me, but here goes:
 
 Create the group by saying
 
-`M-a my.virtual.newsgroup<RET>nnvirtual<RET>^rec\.aquaria\.*<RET>'
+`G m my.virtual.newsgroup<RET>nnvirtual<RET>^rec\.aquaria\.*<RET>'
 
 This will create the group "nnvirtual:my.virtual.newsgroup", which
 will collect all articles from all the groups in the "rec.aquaria"

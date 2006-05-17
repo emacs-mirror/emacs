@@ -4,8 +4,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.06
-@set DATE February 2006
+@set VERSION 4.07
+@set DATE March 2006
 
 @dircategory Emacs
 @direntry
@@ -188,9 +188,10 @@ Miscellaneous
 
 * Completion::                  M-TAB knows what you need
 * Customization::               Adapting Org-mode to your taste
+* Clean view::                  Getting rid of leading stars in the outline
+* TTY keys::                    Using Org-mode on a tty
 * FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
-* TTY keys::                    Using Org-mode on a tty
 * Bugs::                        Things which do not work perfectly
 * Acknowledgments::             These people provided feedback and more
 
@@ -378,6 +379,9 @@ example
     more text
 * Another top level headline
 @end example
+@noindent Some people find the many stars too noisy and would prefer an
+outline that has whitespace followed by a single star as headline
+starters.  @ref{Clean view} describes a setup to realize this.
 
 @node Visibility cycling, Motion, Headlines, Document Structure
 @section Visibility cycling
@@ -512,7 +516,9 @@ level)
 @item M-S-@key{down}
 Move subtree down (swap with next subtree of same level)
 @kindex C-c C-x C-w
+@kindex C-c C-x C-k
 @item C-c C-x C-w
+@itemx C-c C-x C-k
 Kill subtree, i.e. remove it from buffer but save in kill ring.
 @kindex C-c C-x M-w
 @item C-c C-x M-w
@@ -627,7 +633,7 @@ printed in any desired way.
 If you wish to implement a tag system to cross-correlate information,
 this can be done as well in Org-mode.  Every headline can contain a
 list of tags, at the end of the headline.  Tags are normal words
-containing letters and @samp{_}, but no numbers.  Tags must be
+containing letters, numbers, @samp{_}, and @samp{@@}.  Tags must be
 preceded and followed by a single colon; like @samp{:WORK:}.  Several
 tags can be specified like @samp{:WORK:URGENT:}.
 
@@ -709,16 +715,20 @@ sometimes easier to read with hand-formatted lists.  Org-mode supports
 editing such lists, and the HTML exporter (@pxref{Exporting}) does
 parse and format them.
 
-Org-mode knows ordered and unordered lists.  Unordered list items
-start with @samp{-}, @samp{+}, or @samp{*}@footnote{When using
-@samp{*} as a bullet, lines must be indented or they will be seen as
-top-level headlines.} as bullets.  Ordered list items start with
-@samp{1.} or @samp{1)}.  Items belonging to the same list must have
-the same indentation on the first line.  In particular, if an ordered
-list reaches number @samp{10.}, also the 2--digit numbers must be
-written left-aligned with the other numbers in the list.  Indentation
-also determines the end of a list item.  It ends before the next line
-that is indented like the bullet/number, or less.  For example:
+Org-mode knows ordered and unordered lists.  Unordered list items start
+with @samp{-}, @samp{+}, or @samp{*}@footnote{When using @samp{*} as a
+bullet, lines must be indented or they will be seen as top-level
+headlines.  Also, when you are hiding leading stars to get a clean
+outline view, plain list items starting with a star are visually
+indistinguishable from true headlines.  In short: Even though @samp{*}
+is supported, it may be better to not use it for plain list items} as
+bullets.  Ordered list items start with @samp{1.} or @samp{1)}.  Items
+belonging to the same list must have the same indentation on the first
+line.  In particular, if an ordered list reaches number @samp{10.}, also
+the 2--digit numbers must be written left-aligned with the other numbers
+in the list.  Indentation also determines the end of a list item.  It
+ends before the next line that is indented like the bullet/number, or
+less.  For example:
 
 @example
 ** Lord of the Rings
@@ -1050,10 +1060,12 @@ recalculation can be automated.
 @cindex syntax, of formulas
 
 A formula can be any algebraic expression understood by the Emacs
-@file{calc} package.  Before evaluation by @code{calc-eval}
-(@pxref{Calling Calc from Your Lisp Programs,calc-eval,Calling calc
-from Your Lisp Programs,calc,GNU Emacs Calc Manual}), variable
-substitution takes place:
+@file{calc} package.  Note that @file{calc} has the slightly
+non-standard conversion that @samp{/} has lower precedence than
+@samp{*}, so that @samp{a/b*c} is interpreted as @samp{a/(b*c)}.  Before
+evaluation by @code{calc-eval} (@pxref{Calling Calc from Your Lisp
+Programs,calc-eval,Calling calc from Your Lisp Programs,calc,GNU Emacs
+Calc Manual}), variable substitution takes place:
 
 @example
   $        @r{refers to the current field}
@@ -1521,9 +1533,7 @@ can type or paste them straight into the buffer.
 
 @cindex following links
 @kindex C-c C-o
-@kindex mouse-2
 @item C-c C-o
-@itemx mouse-2
 Open link at point.  This will launch a web browser for URLs (using
 @command{browse-url-at-point}), run vm/gnus/bbdb for the corresponding
 links, and execute the command in a shell link.  When the cursor is on
@@ -1542,8 +1552,11 @@ that date.
 shell link.
 
 @kindex mouse-2
+@kindex mouse-1
 @item mouse-2
-On links, @kbd{mouse-2} will open the link just like @kbd{C-c C-o} would.
+@itemx mouse-1
+On links, @kbd{mouse-2} will open the link just like @kbd{C-c C-o}
+would.  Under Emacs 22, also @kbd{mouse-1} will follow a link.
 
 @kindex mouse-3
 @item mouse-3
@@ -2487,10 +2500,13 @@ Display the original location of the item in another window.
 Display original location and recenter that window.
 
 @kindex mouse-2
+@kindex mouse-1
 @kindex @key{TAB}
 @item mouse-2
+@itemx mouse-1
 @itemx @key{TAB}
-Go to the original location of the item in another window.
+Go to the original location of the item in another window.  Under Emacs
+22, also @kbd{mouse-1} will works for this.
 
 @kindex @key{RET}
 @itemx @key{RET}
@@ -2952,9 +2968,10 @@ to make iCal re-read the calendar files each time a new version of
 @menu
 * Completion::                  M-TAB knows what you need
 * Customization::               Adapting Org-mode to your taste
+* Clean view::                  Getting rid of leading stars in the outline
+* TTY keys::                    Using Org-mode on a tty
 * FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
-* TTY keys::                    Using Org-mode on a tty
 * Bugs::                        Things which do not work perfectly
 * Acknowledgments::             These people provided feedback and more
 @end menu
@@ -3002,7 +3019,8 @@ Elsewhere, complete dictionary words using ispell.
 @end itemize
 @end table
 
-@node Customization, FAQ, Completion, Miscellaneous
+
+@node Customization, Clean view, Completion, Miscellaneous
 @section Customization
 @cindex customization
 @cindex options, for customization
@@ -3014,7 +3032,126 @@ describing the variables here.  A structured overview of customization
 variables is available with @kbd{M-x org-customize}.  Or select
 @code{Browse Org Group} from the @code{Org->Customization} menu.
 
-@node FAQ, Interaction, Customization, Miscellaneous
+@node Clean view, TTY keys, Customization, Miscellaneous
+@section A cleaner outline view
+@cindex hiding leading stars
+@cindex clean outline view
+
+Some people find it noisy and distracting that the Org-mode headlines
+are starting with a potentially large number of stars.  For example in
+the example tree from @ref{Headlines}:
+
+@example
+* Top level headline
+** Second level
+*** 3rd level
+    some text
+*** 3rd level
+    more text
+* Another top level headline
+@end example
+
+@noindent
+Unfortunately this is deeply ingrained into the code of Org-mode and
+cannot be easily changed.  You can, however, modify the display in such
+a way that all leading stars become invisible and the outline more easy
+to read.  To do this, customize the variable
+@code{org-hide-leading-stars} like this:
+
+@lisp
+(setq org-hide-leading-stars t)
+@end lisp
+
+@noindent
+and restart emacs (this is necessary to make this change effective).
+The tree then becomes
+
+@example
+* Top level headline
+ * Second level
+  * 3rd level
+    some text
+  * 3rd level
+    more text
+* Another top level headline
+@end example
+
+@noindent
+Note that the leading stars are not truly replaced by whitespace, they
+are only fontified with the face @code{org-hide} that uses the
+background color as font color.  If are are not using either white or
+black background, you may have to customize this face to get the wanted
+effect.  Another possibility is to set this font such that the extra
+stars are @i{almost} invisible, for example using the color
+@code{grey90} on a white background.
+
+Things become cleaner still if you skip all the even levels and use only
+odd levels 1, 3, 5..., effectively adding two stars to go from one
+outline level to the next:
+
+@example
+* Top level headline
+  * Second level
+    * 3rd level
+      some text
+    * 3rd level
+      more text
+* Another top level headline
+@end example
+
+@noindent
+In order to make the structure editing and export commands handle this
+convention correctly, use (again a restart of emacs will be needed)
+
+@lisp
+(setq org-odd-levels-only t)
+@end lisp
+
+@noindent
+You can convert an Org-mode file from single-star-per-level to
+double-star-per-level convention with @kbd{M-x org-convert-to-odd-levels
+RET} in that file.  It is not possible to use this setting on a
+file-local basis, so you need to decide which format to use.
+
+@node TTY keys, FAQ, Clean view, Miscellaneous
+@section Using org-mode on a tty
+@cindex tty keybindings
+
+Org-mode uses a number of keys that are not accessible on a tty.  This
+applies to most special keys like cursor keys, @key{TAB} and
+@key{RET}, when these are combined with modifier keys like @key{Meta}
+and/or @key{Shift}.  Org-mode uses these bindings because it needs to
+provide keys for a large number of commands, and because these keys
+appeared particularly easy to remember.  In order to still be able to
+access the core functionality of Org-mode on a tty, alternative
+bindings are provided.  Here is a complete list of these bindings,
+which are obviously more cumbersome to use.  Note that sometimes a
+work-around can be better.  For example changing a time stamp is
+really only fun with @kbd{S-@key{cursor}} keys.  On a tty you would
+rather use @kbd{C-c .}  to re-insert the timestamp.
+
+@page
+@multitable @columnfractions 0.15 0.2 0.2
+@item @b{Default} @tab @b{Alternative 1} @tab @b{Alternative 2}
+@item @kbd{S-@key{TAB}}     @tab @kbd{C-u @key{TAB}}       @tab
+@item @kbd{M-@key{left}}    @tab @kbd{C-c C-x l}           @tab @kbd{@key{Esc} @key{left}}
+@item @kbd{M-S-@key{left}}  @tab @kbd{C-c C-x L}           @tab
+@item @kbd{M-@key{right}}   @tab @kbd{C-c C-x r}           @tab @kbd{@key{Esc} @key{right}}
+@item @kbd{M-S-@key{right}} @tab @kbd{C-c C-x R}           @tab
+@item @kbd{M-@key{up}}      @tab @kbd{C-c C-x u}           @tab @kbd{@key{Esc} @key{up}}
+@item @kbd{M-S-@key{up}}    @tab @kbd{C-c C-x U}           @tab
+@item @kbd{M-@key{down}}    @tab @kbd{C-c C-x d}           @tab @kbd{@key{Esc} @key{down}}
+@item @kbd{M-S-@key{down}}  @tab @kbd{C-c C-x D}           @tab
+@item @kbd{S-@key{RET}}     @tab @kbd{C-c C-x c}           @tab
+@item @kbd{M-@key{RET}}     @tab @kbd{C-c C-x m}           @tab @kbd{@key{Esc} @key{RET}}
+@item @kbd{M-S-@key{RET}}   @tab @kbd{C-c C-x M}           @tab
+@item @kbd{S-@key{left}}    @tab @kbd{C-c C-x @key{left}}  @tab
+@item @kbd{S-@key{right}}   @tab @kbd{C-c C-x @key{right}} @tab
+@item @kbd{S-@key{up}}      @tab @kbd{C-c C-x @key{up}}    @tab
+@item @kbd{S-@key{down}}    @tab @kbd{C-c C-x @key{down}}  @tab
+@end multitable
+
+@node FAQ, Interaction, TTY keys, Miscellaneous
 @section Frequently asked questions
 @cindex FAQ
 
@@ -3025,6 +3162,11 @@ turn it on for all @file{README} files?}
 @example
 (add-to-list 'auto-mode-alist '("README$" . org-mode))
 @end example
+
+@item @b{All these stars are driving me mad, I just find the Emacs
+outlines unreadable. Can't you just put white space and a single star as a
+starter for headlines?}@*
+See @ref{Clean view}.
 
 @item @b{I would like to have two windows on the same Org-mode
 file, but with different outline visibility.  Is that possible?}@*
@@ -3138,15 +3280,23 @@ also the documentation of the @command{org-diary} function.
 @end enumerate
 
 
-@node Interaction, TTY keys, FAQ, Miscellaneous
+@node Interaction, Bugs, FAQ, Miscellaneous
 @section Interaction with other packages
 @cindex packages, interaction with other
 Org-mode can cooperate with the following packages:
 
 @table @asis
+@cindex @file{org-mouse.el}
+@item @file{org-mouse.el} by Piotr Zielinski
+This package implements extended mouse functionality for Org-mode.  It
+allows to cycle visibility and to edit the document structure with the
+mouse.  It also provides a context-sensitive menu that changes depending
+on the context of a mouse-click.  Use a search engine to find this
+package on the web.
 @cindex @file{table.el}
 @item @file{table.el} by Takaaki Ota
-Org mode cooperates with table.el, see @ref{table.el}.
+Org mode cooperates with table.el, see @ref{table.el}.  @file{table.el}
+is part of Emacs 22.
 @cindex @file{calc.el}
 @item @file{calc.el} by Dave Gillespie
 Org-mode uses the calc package for implementing spreadsheet
@@ -3189,6 +3339,7 @@ to have other replacement keys, look at the variable
 @code{org-disputed-keys}.
 @item @file{remember.el} by John Wiegley
 Org mode cooperates with remember, see @ref{Remember}.
+@file{remember.el} is not part of Emacs, find it on the web.
 @cindex @file{planner.el}
 @item @file{planner.el} by John Wiegley
 Planner is another tool to plan work and keep track of tasks.  Planner
@@ -3197,48 +3348,11 @@ on Emacs-Wiki.  If Planner is your primary tool, it can be useful to
 display the agenda entries resulting from org files in day-pages of
 the planner.  This can be done through the diary of the calendar:
 Integrate org files into the diary as described above, and then turn
-on the diary support of planner.
+on the diary support of planner.  Planner is not part of Emacs, find it
+on the web.
 @end table
 
-@node TTY keys, Bugs, Interaction, Miscellaneous
-@section Using org-mode on a tty
-@cindex tty keybindings
-
-Org-mode uses a number of keys that are not accessible on a tty.  This
-applies to most special keys like cursor keys, @key{TAB} and
-@key{RET}, when these are combined with modifier keys like @key{Meta}
-and/or @key{Shift}.  Org-mode uses these bindings because it needs to
-provide keys for a large number of commands, and because these keys
-appeared particularly easy to remember.  In order to still be able to
-access the core functionality of Org-mode on a tty, alternative
-bindings are provided.  Here is a complete list of these bindings,
-which are obviously more cumbersome to use.  Note that sometimes a
-work-around can be better.  For example changing a time stamp is
-really only fun with @kbd{S-@key{cursor}} keys.  On a tty you would
-rather use @kbd{C-c .}  to re-insert the timestamp.
-
-@page
-@multitable @columnfractions 0.15 0.2 0.2
-@item @b{Default} @tab @b{Alternative 1} @tab @b{Alternative 2}
-@item @kbd{S-@key{TAB}}     @tab @kbd{C-u @key{TAB}}       @tab
-@item @kbd{M-@key{left}}    @tab @kbd{C-c C-x l}           @tab @kbd{@key{Esc} @key{left}}
-@item @kbd{M-S-@key{left}}  @tab @kbd{C-c C-x L}           @tab
-@item @kbd{M-@key{right}}   @tab @kbd{C-c C-x r}           @tab @kbd{@key{Esc} @key{right}}
-@item @kbd{M-S-@key{right}} @tab @kbd{C-c C-x R}           @tab
-@item @kbd{M-@key{up}}      @tab @kbd{C-c C-x u}           @tab @kbd{@key{Esc} @key{up}}
-@item @kbd{M-S-@key{up}}    @tab @kbd{C-c C-x U}           @tab
-@item @kbd{M-@key{down}}    @tab @kbd{C-c C-x d}           @tab @kbd{@key{Esc} @key{down}}
-@item @kbd{M-S-@key{down}}  @tab @kbd{C-c C-x D}           @tab
-@item @kbd{S-@key{RET}}     @tab @kbd{C-c C-x c}           @tab
-@item @kbd{M-@key{RET}}     @tab @kbd{C-c C-x m}           @tab @kbd{@key{Esc} @key{RET}}
-@item @kbd{M-S-@key{RET}}   @tab @kbd{C-c C-x M}           @tab
-@item @kbd{S-@key{left}}    @tab @kbd{C-c C-x @key{left}}  @tab
-@item @kbd{S-@key{right}}   @tab @kbd{C-c C-x @key{right}} @tab
-@item @kbd{S-@key{up}}      @tab @kbd{C-c C-x @key{up}}    @tab
-@item @kbd{S-@key{down}}    @tab @kbd{C-c C-x @key{down}}  @tab
-@end multitable
-
-@node Bugs, Acknowledgments, TTY keys, Miscellaneous
+@node Bugs, Acknowledgments, Interaction, Miscellaneous
 @section Bugs
 @cindex bugs
 
@@ -3246,13 +3360,6 @@ Here is a list of things which should work differently, but which I
 have found too hard to fix.
 
 @itemize @bullet
-@c @item
-@c If you call @code{fill-paragraph} (bound to @kbd{M-q}) in a table, the
-@c filling is correctly disabled.  However, if some text directly
-@c (without an empty line in between) precedes or follows a table, calling
-@c @code{fill-paragraph} in that text will also fill the table like
-@c normal text.  Also, @code{fill-region} does bypass the
-@c @code{fill-paragraph} code and will fill tables like normal text.
 @item
 Text in an entry protected with the @samp{QUOTE} keyword should not
 autowrap.
@@ -3260,6 +3367,10 @@ autowrap.
 When the application called by @kbd{C-c C-o} to open a file link fails
 (for example because the application does not exits or refuses to open
 the file), it does so silently.  No error message is displayed.
+@item
+Plain list items should be able to hold a TODO item.  Unfortunately this
+has so many technical problems that I will only consider this change for
+the next major release (5.0).
 @item
 The remote-editing commands in the agenda buffer cannot be undone with
 @code{undo} called from within the agenda buffer.  But you can go to
@@ -3276,11 +3387,9 @@ the text properties are lost when the fancy-diary-display is used.
 However, from Org-mode's timeline and agenda buffers (created with
 @kbd{C-c C-r} and @kbd{C-c a}), things do work correctly.
 @item
-Linux should also have a default viewer application, using mailcap.
-Maybe we can use GNUS or VM mime code?  Or dired's guessing commands?
-Any hints (or even patches) are appreciated.
-@item
-When you write @samp{x = a /b/ c}, b will be exported in italics.
+You can only make a single word boldface or italic.  To emphasize
+several words in a row, each much have the emphasize markers, like in
+@samp{*three* *bold* *words*}.
 @item
 The exporters work well, but could be made more efficient.
 @end itemize
@@ -3353,6 +3462,9 @@ to GNUS.
 @item 
 Roland Winkler pointed out that additional keybindings are needed to
 use Org-mode on a tty.
+@item
+Piotr Zielinski wrote @file{org-mouse.el} and pointed out to me that
+Emacs 22 can be made to follow links using mouse-1 clicks.
 @c @item
 @c Nic Ferrier and Christian Egli implemented XML export.
 @end itemize

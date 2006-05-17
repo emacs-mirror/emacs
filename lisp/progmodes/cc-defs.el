@@ -1,7 +1,7 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005, 2006 Free Software
+;; Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -71,10 +71,10 @@
 
 (eval-after-load "font-lock"
   '(if (and (not (featurep 'cc-fix)) ; only load the file once.
+	    (featurep 'xemacs) ; There is now (2005/12) code in GNU Emacs CVS
+			       ; to make the call to f-l-c-k throw an error.
             (let (font-lock-keywords)
-              (condition-case nil
-		  (font-lock-compile-keywords '("\\<\\>"))
-		(error nil))
+              (font-lock-compile-keywords '("\\<\\>"))
 	      font-lock-keywords))     ; did the previous call foul this up?
        (load "cc-fix")))
 
@@ -82,19 +82,18 @@
 ;; to ensure correct byte compilation.
 (eval-when-compile
   (if (and (not (featurep 'cc-fix))
+	   (featurep 'xemacs)
 	   (progn
 	     (require 'font-lock)
 	     (let (font-lock-keywords)
-	       (condition-case nil
-		   (font-lock-compile-keywords '("\\<\\>"))
-		 (error nil))
+	       (font-lock-compile-keywords '("\\<\\>"))
 	       font-lock-keywords)))
       (cc-load "cc-fix")))
 
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.31"
+(defconst c-version "5.31.3"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -2041,5 +2040,5 @@ quoted."
 
 (cc-provide 'cc-defs)
 
-;; arch-tag: 3bb2629d-dd84-4ff0-ad39-584be0fe3cda
+;;; arch-tag: 3bb2629d-dd84-4ff0-ad39-584be0fe3cda
 ;;; cc-defs.el ends here

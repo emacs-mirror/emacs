@@ -142,7 +142,7 @@ See the functions `find-function' and `find-variable'."
 
 (defun find-library-suffixes ()
   (let ((suffixes nil))
-    (dolist (suffix load-suffixes (nreverse suffixes))
+    (dolist (suffix (get-load-suffixes) (nreverse suffixes))
       (unless (string-match "elc" suffix) (push suffix suffixes)))))
 
 (defun find-library-name (library)
@@ -153,7 +153,7 @@ See the functions `find-function' and `find-variable'."
       (setq library (replace-match "" t t library)))
   (or (locate-file library
 		   (or find-function-source-path load-path)
-		   (append (find-library-suffixes) '("")))
+		   (append (find-library-suffixes) load-file-rep-suffixes))
       (error "Can't find library %s" library)))
 
 (defvar find-function-C-source-directory

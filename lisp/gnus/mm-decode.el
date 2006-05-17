@@ -1084,14 +1084,16 @@ external if displayed external."
 
 (defun mm-get-part (handle)
   "Return the contents of HANDLE as a string."
-  (mm-with-unibyte-buffer
-    (insert (with-current-buffer (mm-handle-buffer handle)
-	      (mm-with-unibyte-current-buffer
-		(buffer-string))))
-    (mm-decode-content-transfer-encoding
-     (mm-handle-encoding handle)
-     (mm-handle-media-type handle))
-    (buffer-string)))
+  (let ((default-enable-multibyte-characters
+	  (with-current-buffer (mm-handle-buffer handle)
+	    (mm-multibyte-p))))
+    (with-temp-buffer
+      (insert-buffer-substring (mm-handle-buffer handle))
+      (mm-disable-multibyte)
+      (mm-decode-content-transfer-encoding
+       (mm-handle-encoding handle)
+       (mm-handle-media-type handle))
+      (buffer-string))))
 
 (defun mm-insert-part (handle)
   "Insert the contents of HANDLE in the current buffer."
