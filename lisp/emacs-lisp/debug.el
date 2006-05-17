@@ -353,9 +353,10 @@ That buffer should be current already."
 		  (forward-line -1)
 		  (setq new-start (point)))
 		(if (not (zerop
-			  (compare-buffer-substrings
-			   (current-buffer) old-start old-end
-			   buffer new-start new-end)))
+                          (let ((case-fold-search nil))
+                            (compare-buffer-substrings
+                             (current-buffer) old-start old-end
+                             buffer new-start new-end))))
 		    (setq all-match nil))))
 	    ;; Now new-end is the position of the start of the
 	    ;; unchanged part in the current buffer, and old-end is
@@ -659,6 +660,9 @@ Complete list of commands:
 For the cross-reference format, see `help-make-xrefs'."
   (interactive "d")
   (require 'help-mode)
+  ;; Ideally we'd just do (call-interactively 'help-follow) except that this
+  ;; assumes we're already in a *Help* buffer and reuses it, so it ends up
+  ;; incorrectly "reusing" the *Backtrace* buffer to show the help info.
   (unless pos
     (setq pos (point)))
   (unless (push-button pos)
@@ -671,8 +675,7 @@ For the cross-reference format, see `help-make-xrefs'."
 				(progn (skip-syntax-forward "w_")
 				       (point)))))))
       (when (or (boundp sym) (fboundp sym) (facep sym))
-	(switch-to-buffer-other-window (generate-new-buffer "*Help*"))
-	(help-do-xref pos #'help-xref-interned (list sym))))))
+        (help-xref-interned sym)))))
 
 ;; When you change this, you may also need to change the number of
 ;; frames that the debugger skips.

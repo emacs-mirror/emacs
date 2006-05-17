@@ -942,55 +942,55 @@ It also can't undo some Viper settings."
   ;; the advice.
   (eval-after-load
    "iso-acc"
-   (defadvice iso-accents-mode (around viper-iso-accents-advice activate)
-     "Set viper-automatic-iso-accents to iso-accents-mode."
-     (let ((arg (ad-get-arg 0)))
-       ad-do-it
-       (setq viper-automatic-iso-accents
-	     (if (eq viper-current-state 'vi-state)
-		 (if arg
-		     ;; if iso-accents-mode was called with positive arg, turn
-		     ;; accents on
-		     (> (prefix-numeric-value arg) 0)
-		   ;; else: toggle viper-automatic-iso-accents
-		   (not viper-automatic-iso-accents))
-	       ;; other states: accept what iso-accents-mode has done
-	       iso-accents-mode))
-       ;; turn off ISO accents in vi-state
-       (if (eq viper-current-state 'vi-state)
-	   (viper-set-iso-accents-mode nil))
-       (if (memq viper-current-state '(vi-state insert-state replace-state))
-	   (message "Viper ISO accents mode: %s"
-		    (if viper-automatic-iso-accents "on" "off")))
-       )))
+   '(defadvice iso-accents-mode (around viper-iso-accents-advice activate)
+      "Set viper-automatic-iso-accents to iso-accents-mode."
+      (let ((arg (ad-get-arg 0)))
+	ad-do-it
+	(setq viper-automatic-iso-accents
+	      (if (eq viper-current-state 'vi-state)
+		  (if arg
+		      ;; if iso-accents-mode was called with positive arg, turn
+		      ;; accents on
+		      (> (prefix-numeric-value arg) 0)
+		    ;; else: toggle viper-automatic-iso-accents
+		    (not viper-automatic-iso-accents))
+		;; other states: accept what iso-accents-mode has done
+		iso-accents-mode))
+	;; turn off ISO accents in vi-state
+	(if (eq viper-current-state 'vi-state)
+	    (viper-set-iso-accents-mode nil))
+	(if (memq viper-current-state '(vi-state insert-state replace-state))
+	    (message "Viper ISO accents mode: %s"
+		     (if viper-automatic-iso-accents "on" "off")))
+	)))
 
   ;; International input methods
   (if viper-emacs-p
       (eval-after-load "mule-cmds"
-	(progn
-	  (defadvice inactivate-input-method (after viper-mule-advice activate)
-	    "Set viper-special-input-method to disable intl. input methods."
-	    (viper-inactivate-input-method-action))
-	  (defadvice activate-input-method (after viper-mule-advice activate)
-	    "Set viper-special-input-method to enable intl. input methods."
-	    (viper-activate-input-method-action))
-	  ))
+	'(progn
+	   (defadvice inactivate-input-method (after viper-mule-advice activate)
+	     "Set viper-special-input-method to disable intl. input methods."
+	     (viper-inactivate-input-method-action))
+	   (defadvice activate-input-method (after viper-mule-advice activate)
+	     "Set viper-special-input-method to enable intl. input methods."
+	     (viper-activate-input-method-action))
+	   ))
     ;; XEmacs Although these hooks exist in Emacs, they don't seem to be always
     ;; called on input-method activation/deactivation, so we the above advise
     ;; functions instead.
     (eval-after-load "mule-cmds"
-      (progn
-	(add-hook 'input-method-activate-hook
-		  'viper-activate-input-method-action t)
-	(add-hook 'input-method-inactivate-hook
-		  'viper-inactivate-input-method-action t)))
+      '(progn
+	 (add-hook 'input-method-activate-hook
+		   'viper-activate-input-method-action t)
+	 (add-hook 'input-method-inactivate-hook
+		   'viper-inactivate-input-method-action t)))
     )
   (eval-after-load "mule-cmds"
-    (defadvice toggle-input-method (around viper-mule-advice activate)
-      "Adjust input-method toggling in vi-state."
-      (if (and viper-special-input-method (eq viper-current-state 'vi-state))
-	  (viper-inactivate-input-method)
-	ad-do-it)))
+    '(defadvice toggle-input-method (around viper-mule-advice activate)
+       "Adjust input-method toggling in vi-state."
+       (if (and viper-special-input-method (eq viper-current-state 'vi-state))
+	   (viper-inactivate-input-method)
+	 ad-do-it)))
 
   ) ; viper-set-hooks
 

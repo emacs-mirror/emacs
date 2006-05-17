@@ -802,7 +802,8 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   "A comint send filter for gdb.
 This filter may simply queue input for a later time."
   (with-current-buffer gud-comint-buffer
-    (remove-text-properties (point-min) (point-max) '(face)))
+    (let ((inhibit-read-only t))
+      (remove-text-properties (point-min) (point-max) '(face))))
   (let ((item (concat string "\n")))
     (if gud-running
       (progn

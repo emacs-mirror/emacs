@@ -403,10 +403,7 @@ new value.")
     ;; We want to avoid the face with image buttons.
     (unless (widget-get widget :suppress-face)
       (overlay-put overlay 'face (widget-apply widget :button-face-get))
-      ; Text terminals cannot change mouse pointer shape, so use mouse
-      ; face instead.
-      (or (display-graphic-p)
-	  (overlay-put overlay 'mouse-face widget-mouse-face)))
+      (overlay-put overlay 'mouse-face widget-mouse-face))
     (overlay-put overlay 'pointer 'hand)
     (overlay-put overlay 'follow-link follow-link)
     (overlay-put overlay 'help-echo help-echo)))
@@ -664,11 +661,9 @@ button is pressed or inactive, respectively.  These are currently ignored."
   "Move to where you click, and if it is an active field, invoke it."
   (interactive "e")
   (mouse-set-point event)
-  (if (widget-event-point event)
-      (let* ((pos (widget-event-point event))
-	     (button (get-char-property pos 'button)))
-	(if button
-	    (widget-button-click event)))))
+  (let ((pos (widget-event-point event)))
+    (if (and pos (get-char-property pos 'button))
+	(widget-button-click event))))
 
 ;;; Buttons.
 

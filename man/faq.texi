@@ -3228,7 +3228,7 @@ setting things up so that @samp{ls -l} outputs US date format.  This can
 be done by setting the locale.  See your OS manual for more information.
 
 The second approach involves changing the regular expression used by
-dired, @code{dired-move-to-filename-regexp}.
+dired, @code{directory-listing-before-filename-regexp}.
 
 @c ------------------------------------------------------------
 @node Compiling and installing Emacs, Finding Emacs and related packages, Bugs and problems, Top
@@ -4634,7 +4634,7 @@ keymaps.
 
 However, in the specific case of @kbd{C-h} and @key{DEL}, you should
 toggle @code{normal-erase-is-backspace-mode} instead of calling
-@code{keyboard-translate}.  @inforef{DEL Does Not Delete, DEL Does Not Delete, 
+@code{keyboard-translate}.  @inforef{DEL Does Not Delete, DEL Does Not Delete,
 emacs}.
 
 Keyboard translations are not the same as key bindings in keymaps.

@@ -445,7 +445,7 @@ where DICTNAME is the name of your default dictionary."
 
 (defvar ispell-local-dictionary-overridden nil
   "Non-nil means the user has explicitly set this buffer's Ispell dictionary.")
-(make-variable-buffer-local 'ispell-local-dictionary)
+(make-variable-buffer-local 'ispell-local-dictionary-overridden)
 
 (defcustom ispell-local-dictionary nil
   "If non-nil, the dictionary to be used for Ispell commands in this buffer.
@@ -721,7 +721,7 @@ LANGUAGE.aff file \(e.g., english.aff\).")
 
 (defvar ispell-aspell-supports-utf8 nil
   "Non-nil means to try to automatically find aspell dictionaries.
-This is set to t in ispell-check-version for aspell >= 0.60.
+This is set to t in `ispell-check-version' for aspell >= 0.60.
 
 Earlier aspell versions do not consistently support UTF-8.  Handling
 this would require some extra guessing in `ispell-aspell-find-dictionary'.")
@@ -894,13 +894,22 @@ and added as a submenu of the \"Edit\" menu.")
   "Find Aspell's dictionaries, and record in `ispell-dictionary-alist'."
   (unless ispell-really-aspell
     (error "This function only works with aspell"))
-  (let ((dictionaries
-	 (split-string
-	  (with-temp-buffer
-	    (call-process ispell-program-name nil t nil "dicts")
-	    (buffer-string)))))
-    (setq ispell-dictionary-alist
-	  (mapcar #'ispell-aspell-find-dictionary dictionaries))
+  (let* ((dictionaries
+	  (split-string
+	   (with-temp-buffer
+	     (call-process ispell-program-name nil t nil "dicts")
+	     (buffer-string))))
+	 ;; Search for the named dictionaries.
+	 (found
+	  (delq nil 
+		(mapcar #'ispell-aspell-find-dictionary dictionaries))))
+    ;; Merge into FOUND any elements from the standard ispell-dictionary-alist
+    ;; which have no element in FOUND at all.    
+    (dolist (dict ispell-dictionary-alist)
+      (unless (assoc (car dict) found)
+	(setq found (nconc found (list dict)))))
+    (setq ispell-dictionary-alist found)
+
     (ispell-aspell-add-aliases)
     ;; Add a default entry
     (let* ((english-dict (assoc "en" ispell-dictionary-alist))
@@ -922,6 +931,9 @@ Assumes that value contains no whitespace."
     (car (split-string (buffer-string)))))
 
 (defun ispell-aspell-find-dictionary (dict-name)
+  ;; This returns nil if the data file does not exist.
+  ;; Can someone please explain the return value format when the
+  ;; file does exist -- rms?
   (let* ((lang ;; Strip out region, variant, etc.
 	  (and (string-match "^[[:alpha:]]+" dict-name)
 	       (match-string 0 dict-name)))
@@ -931,35 +943,37 @@ Assumes that value contains no whitespace."
 			    (ispell-get-aspell-config-value "data-dir")))
 		  "/" lang ".dat"))
 	 otherchars)
-    ;; This file really should exist; there is no sensible recovery.
-    (with-temp-buffer
-      (insert-file-contents data-file)
-      ;; There is zero or one line with special characters declarations.
-      (when (search-forward-regexp "^special" nil t)
-	(let ((specials (split-string
-			 (buffer-substring (point)
-					   (progn (end-of-line) (point))))))
-	  ;; The line looks like: special ' -** - -** . -** : -*-
-	  ;; -** means that this character
-	  ;;    - doesn't appear at word start
-	  ;;    * may appear in the middle of a word
-	  ;;    * may appear at word end
-	  ;; `otherchars' is about the middle case.
-	  (while specials
-	    (when (eq (aref (cadr specials) 1) ?*)
-	      (push (car specials) otherchars))
-	    (setq specials (cddr specials))))))
-    (list dict-name
-	  "[[:alpha:]]"
-	  "[^[:alpha:]]"
-	  (regexp-opt otherchars)
-	  t 				; We can't tell, so set this to t
-	  (list "-d" dict-name "--encoding=utf-8")
-	  nil				; aspell doesn't support this
-	  ;; Here we specify the encoding to use while communicating with
-	  ;; aspell.  This doesn't apply to command line arguments, so
-	  ;; just don't pass words to spellcheck as arguments...
-	  'utf-8)))
+    (condition-case ()
+	(with-temp-buffer
+	  (insert-file-contents data-file)
+	  ;; There is zero or one line with special characters declarations.
+	  (when (search-forward-regexp "^special" nil t)
+	    (let ((specials (split-string
+			     (buffer-substring (point)
+					       (progn (end-of-line) (point))))))
+	      ;; The line looks like: special ' -** - -** . -** : -*-
+	      ;; -** means that this character
+	      ;;    - doesn't appear at word start
+	      ;;    * may appear in the middle of a word
+	      ;;    * may appear at word end
+	      ;; `otherchars' is about the middle case.
+	      (while specials
+		(when (eq (aref (cadr specials) 1) ?*)
+		  (push (car specials) otherchars))
+		(setq specials (cddr specials)))))
+	  (list dict-name
+		"[[:alpha:]]"
+		"[^[:alpha:]]"
+		(regexp-opt otherchars)
+		t			     ; We can't tell, so set this to t
+		(list "-d" dict-name "--encoding=utf-8")
+		nil				; aspell doesn't support this
+		;; Here we specify the encoding to use while communicating with
+		;; aspell.  This doesn't apply to command line arguments, so
+		;; just don't pass words to spellcheck as arguments...
+		'utf-8))
+      (file-error
+       nil))))
 
 (defun ispell-aspell-add-aliases ()
   "Find aspell's dictionary aliases and add them to `ispell-dictionary-alist'."

@@ -73,14 +73,6 @@ You can update the alias list manually using \\[mh-alias-reload].")
 
 ;;; Alias Loading
 
-(defmacro mh-assoc-ignore-case (key alist)
-  "Search for string KEY in ALIST.
-This is a wrapper around `assoc-string' or `assoc-ignore-case'. Avoid
-`assoc-ignore-case' which is now an obsolete function."
-  (cond ((fboundp 'assoc-string) `(assoc-string ,key ,alist t))
-        ((fboundp 'assoc-ignore-case) `(assoc-ignore-case ,key ,alist))
-        (t (error "The macro mh-assoc-ignore-case not implemented properly"))))
-
 (defun mh-alias-tstamp (arg)
   "Check whether alias files have been modified.
 Return t if any file listed in the Aliasfile MH profile component has been

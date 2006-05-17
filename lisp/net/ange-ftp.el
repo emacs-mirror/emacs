@@ -2666,36 +2666,6 @@ away in the internal cache."
 ;;;; Directory information caching support.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-date-regexp
-  (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
-	 ;; In some locales, month abbreviations are as short as 2 letters,
-	 ;; and they can be padded on the right with spaces.
-	 ;; weiand: changed: month ends with . or , or .,
-;;old	 (month (concat l l "+ *"))
-	 (month (concat l l "+[.]?,? *"))
-	 ;; Recognize any non-ASCII character.
-	 ;; The purpose is to match a Kanji character.
-	 (k "[^\0-\177]")
-	 (s " ")
-	 (mm "[ 0-1][0-9]")
-	 ;; weiand: changed: day ends with .
-;;old	 (dd "[ 0-3][0-9]")
-	 (dd "[ 0-3][0-9][.]?")
-	 (western (concat "\\(" month s dd "\\|" dd s month "\\)"))
-	 (japanese (concat mm k s dd k)))
-	 ;; Require the previous column to end in a digit.
-	 ;; This avoids recognizing `1 may 1997' as a date in the line:
-	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
-	 ;; albinus:
-         ;; Require also the following column to start in a digit.
-	 ;; This avoids recognizing `kfs 10' as a date in the line:
-	 ;; -rw-------   1 kfs                    10 May 27  2003 .autorun.lck
-;;  (concat "[0-9]" s "\\(" western "\\|" japanese "\\)" s))
-    (concat "[0-9]" s "\\(" western "\\|" japanese "\\)" s "+[0-9]"))
-  "Regular expression to match up to the column before the file name in a
-directory listing.  This regular expression is designed to recognize dates
-regardless of the language.")
-
 (defvar ange-ftp-add-file-entry-alist nil
   "Alist saying how to add file entries on certain OS types.
 Association list of pairs \( TYPE \. FUNC \), where FUNC
@@ -2730,13 +2700,8 @@ The main reason for this alist is to deal with file versions in VMS.")
   ;;Extract the filename from the current line of a dired-like listing.
   `(let ((eol (progn (end-of-line) (point))))
      (beginning-of-line)
-     (if (re-search-forward ange-ftp-date-regexp eol t)
-         (progn
-           (skip-chars-forward " ")
-           (skip-chars-forward "^ " eol)
-           (skip-chars-forward " " eol)
-           ;; We bomb on filenames starting with a space.
-           (buffer-substring (point) eol)))))
+     (if (re-search-forward directory-listing-before-filename-regexp eol t)
+	 (buffer-substring (point) eol))))
 
 ;; This deals with the F switch. Should also do something about
 ;; unquoting names obtained with the SysV b switch and the GNU Q
@@ -2851,7 +2816,7 @@ match subdirectories as well.")
       ;; (3) The twilight zone.
       ;; We'll assume (1) for now.
       nil)
-     ((re-search-forward ange-ftp-date-regexp nil t)
+     ((re-search-forward directory-listing-before-filename-regexp nil t)
       (beginning-of-line)
       (ange-ftp-ls-parser switches))
      ((re-search-forward "^[^ \n\t]+ +\\([0-9]+\\|-\\|=\\) " nil t)
@@ -5532,7 +5497,7 @@ Other orders of $ and _ seem to all work just fine.")
   (let ((tbl (make-hash-table :test 'equal)))
     (goto-char (point-min))
     (save-match-data
-      (while (re-search-forward ange-ftp-date-regexp nil t)
+      (while (re-search-forward directory-listing-before-filename-regexp nil t)
 	(end-of-line)
 	(skip-chars-backward " ")
 	(let ((end (point)))

@@ -1,3 +1,17 @@
+2005-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* pgg-def.el:
+	* pgg-gpg.el:
+	* pgg-parse.el:
+	* pgg-pgp.el:
+	* pgg-pgp5.el:
+	* pgg.el: Move to the parent lisp directory.
+
+2005-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-sum.el (gnus-ignored-from-addresses): Handle case where
+	user-mail-name is an empty string.
+
 2005-10-20  Hiroshi Fujishima  <hiroshi.fujishima@gmail.com>  (tiny change)
 
 	* mail-source.el (mail-source-fetch-pop): Require pop3.

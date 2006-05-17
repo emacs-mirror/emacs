@@ -376,13 +376,13 @@ do not work in subdirectories.
   (set (make-local-variable 'dired-directory) "/")
   (set (make-local-variable 'dired-subdir-switches) locate-ls-subdir-switches)
   (setq dired-switches-alist nil)
-  (make-local-variable 'dired-move-to-filename-regexp)
+  (make-local-variable 'directory-listing-before-filename-regexp)
   ;; This should support both Unix and Windoze style names
-  (setq dired-move-to-filename-regexp
+  (setq directory-listing-before-filename-regexp
 	(concat "^."
 		(make-string (1- locate-filename-indentation) ?\ )
 		"\\(/\\|[A-Za-z]:\\)\\|"
-		(default-value 'dired-move-to-filename-regexp)))
+		(default-value 'directory-listing-before-filename-regexp)))
   (make-local-variable 'dired-actual-switches)
   (setq dired-actual-switches "")
   (make-local-variable 'dired-permission-flags-regexp)

@@ -74,6 +74,7 @@
     find-tag-history
     ;; grep
     grep-history
+    grep-find-history
     ;; Viper stuff
     vip-ex-history vip-search-history
     vip-replace1-history vip-replace2-history

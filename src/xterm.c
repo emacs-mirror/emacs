@@ -3599,15 +3599,16 @@ note_mouse_movement (frame, event)
       return 1;
     }
 
+  note_mouse_highlight (frame, event->x, event->y);
+
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
   if (event->x < last_mouse_glyph.x
-	   || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
-	   || event->y < last_mouse_glyph.y
-	   || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
+      || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
+      || event->y < last_mouse_glyph.y
+      || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
-      note_mouse_highlight (frame, event->x, event->y);
       /* Remember which glyph we're now on.  */
       remember_mouse_glyph (frame, event->x, event->y, &last_mouse_glyph);
       return 1;
@@ -6232,6 +6233,27 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	    {
 	      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
 	      inev.ie.code = keysym;
+	      goto done_keysym;
+	    }
+
+	  /* Keysyms directly mapped to supported Unicode characters.  */
+	  if ((keysym >= 0x01000100 && keysym <= 0x010033ff)
+	      || (keysym >= 0x0100e000 && keysym <= 0x0100ffff))
+	    {
+	      int code, charset_id, c1, c2;
+
+	      if (keysym < 0x01002500)
+		charset_id = charset_mule_unicode_0100_24ff,
+		  code = (keysym & 0xFFFF) - 0x100;
+	      else if (keysym < 0x0100e000)
+		charset_id = charset_mule_unicode_2500_33ff,
+		  code = (keysym & 0xFFFF) - 0x2500;
+	      else
+		charset_id = charset_mule_unicode_e000_ffff,
+		  code = (keysym & 0xFFFF) - 0xe000;
+	      c1 = (code / 96) + 32, c2 = (code % 96) + 32;
+	      inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	      inev.ie.code = MAKE_CHAR (charset_id, c1, c2);
 	      goto done_keysym;
 	    }
 

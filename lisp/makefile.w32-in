@@ -146,14 +146,18 @@ loaddefs.el-CMD:
 	echo ;;; End:>> $@
 	echo ;;; loaddefs.el ends here>> $@
 
+# Use . instead of $(lisp) because $(lisp) is an absolute file name,
+# including a drive letter and any leading directories, so the generated
+# loaddefs.el will mention file names that on other machine reference
+# possibly non-existent directories.
 autoloads: $(lisp)/loaddefs.el doit
-	@echo Directories: $(WINS)
+	@echo Directories: . $(WINS)
 	$(emacs) -l autoload \
 		--eval $(ARGQUOTE)(setq find-file-hook nil \
 			find-file-suppress-same-file-warnings t \
 			generated-autoload-file \
 			  $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) \
-		-f batch-update-autoloads $(lisp) $(WINS)
+		-f batch-update-autoloads . $(WINS)
 
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
