@@ -1,6 +1,14 @@
+2006-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-dirtrack-mode): Make it into a proper minor mode, so
+	we can explicitly enable/disable rather than toggle.
+	(shell-mode): Use it.
+	(shell-cd): Don't try to reproduce what `cd' does.
+
 2006-05-17  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-read-internal): Use only nondirectory part of default item.
+	* ido.el (ido-read-internal): Use only nondirectory part of
+	default item.
 
 2006-05-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
