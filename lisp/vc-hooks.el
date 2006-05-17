@@ -410,14 +410,22 @@ For registered files, the possible values are:
           (vc-file-setprop file 'vc-checkout-model
                            (vc-call checkout-model file)))))
 
-(defun vc-user-login-name (&optional uid)
-  "Return the name under which the user is logged in, as a string.
-\(With optional argument UID, return the name of that user.)
-This function does the same as function `user-login-name', but unlike
-that, it never returns nil.  If a UID cannot be resolved, that
-UID is returned as a string."
-  (or (user-login-name uid)
-      (number-to-string (or uid (user-uid)))))
+(defun vc-user-login-name (file)
+  "Return the name under which the user accesses the given FILE."
+  (or (and (eq (string-match tramp-file-name-regexp file) 0)
+           ;; tramp case: execute "whoami" via tramp
+           (let ((default-directory (file-name-directory file)))
+             (with-temp-buffer
+               (if (not (zerop (process-file "whoami" nil t)))
+                   ;; fall through if "whoami" didn't work
+                   nil
+                 ;; remove trailing newline
+                 (delete-region (1- (point-max)) (point-max))
+                 (buffer-string)))))
+      ;; normal case
+      (user-login-name)
+      ;; if user-login-name is nil, return the UID as a string
+      (number-to-string (user-uid))))
 
 (defun vc-state (file)
   "Return the version control state of FILE.

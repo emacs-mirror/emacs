@@ -1829,7 +1829,7 @@ DEFUN ("other-window", Fother_window, Sother_window, 1, 2, "p",
 All windows on current frame are arranged in a cyclic order.
 This command selects the window ARG steps away in that order.
 A negative ARG moves in the opposite order.  The optional second
-argument ALL_FRAMES has the same meaning as in `next-window', which see.  */)
+argument ALL-FRAMES has the same meaning as in `next-window', which see.  */)
      (arg, all_frames)
      Lisp_Object arg, all_frames;
 {
@@ -6660,7 +6660,7 @@ DEFUN ("window-vscroll", Fwindow_vscroll, Swindow_vscroll, 0, 2, 0,
        doc: /* Return the amount by which WINDOW is scrolled vertically.
 Use the selected window if WINDOW is nil or omitted.
 Normally, value is a multiple of the canonical character height of WINDOW;
-optional second arg PIXELS_P means value is measured in pixels.  */)
+optional second arg PIXELS-P means value is measured in pixels.  */)
   (window, pixels_p)
      Lisp_Object window, pixels_p;
 {
@@ -6690,7 +6690,7 @@ DEFUN ("set-window-vscroll", Fset_window_vscroll, Sset_window_vscroll,
        doc: /* Set amount by which WINDOW should be scrolled vertically to VSCROLL.
 WINDOW nil means use the selected window.  Normally, VSCROLL is a
 non-negative multiple of the canonical character height of WINDOW;
-optional third arg PIXELS_P non-nil means that VSCROLL is in pixels.
+optional third arg PIXELS-P non-nil means that VSCROLL is in pixels.
 If PIXELS-P is nil, VSCROLL may have to be rounded so that it
 corresponds to an integral number of pixels.  The return value is the
 result of this rounding.

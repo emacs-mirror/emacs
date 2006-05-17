@@ -1,3 +1,26 @@
+2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Require GTK 2.4 or newer.
+	* configure: Regenerate
+
+2006-01-29  Michael Olson  <mwolson@gnu.org>
+
+	* Makefile.in (install-arch-indep, uninstall): Add ERC.
+	* info/dir (ERC): New entry.
+
+2006-01-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* info/dir: Fix last change.
+
+2006-01-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in (install-arch-indep, uninstall): Add rcirc.
+
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* info/dir: Untabify the whole file.
+	(Rcirc): New entry.
+
 2006-01-12  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Move AC_AIX and AC_GNU_SOURCE before first compile

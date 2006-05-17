@@ -1,4 +1,4 @@
-;;; mh-junk.el --- Interface to anti-spam measures
+;;; mh-junk.el --- MH-E interface to anti-spam measures
 
 ;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
@@ -32,14 +32,10 @@
 
 ;;; Code:
 
-;;(message "< mh-junk")
-(eval-when-compile (require 'mh-acros))
-(mh-require-cl)
-(require 'mh-buffers)
 (require 'mh-e)
-;;(message "> mh-junk")
+(require 'mh-scan)
+(mh-require-cl)
 
-;; Interactive functions callable from the folder buffer
 ;;;###mh-autoload
 (defun mh-junk-blacklist (range)
   "Blacklist RANGE as spam.
@@ -108,6 +104,7 @@ RANGE is read in interactive use."
 (defvar mh-spamassassin-executable (executable-find "spamassassin"))
 (defvar mh-sa-learn-executable (executable-find "sa-learn"))
 
+;;;###mh-autoload
 (defun mh-spamassassin-blacklist (msg)
   "Blacklist MSG with SpamAssassin.
 
@@ -189,7 +186,7 @@ SpamAssassin, rebuilds the database after adding words, so you
 will need to run \"sa-learn --rebuild\" periodically. This can be
 done by adding the following to your crontab:
 
-    0 * * * *	sa-learn --rebuild > /dev/null 2>&1"
+    0 * * * *   sa-learn --rebuild > /dev/null 2>&1"
   (unless mh-spamassassin-executable
     (error "Unable to find the spamassassin executable"))
   (let ((current-folder mh-current-folder)
@@ -220,6 +217,7 @@ done by adding the following to your crontab:
             (message "Blacklisting message %d...done" msg))
         (message "Blacklisting message %d...not done (from my address)" msg)))))
 
+;;;###mh-autoload
 (defun mh-spamassassin-whitelist (msg)
   "Whitelist MSG with SpamAssassin.
 
@@ -273,6 +271,7 @@ The name of the rule is RULE and its body is BODY."
       (if (not buffer-exists)
           (kill-buffer nil)))))
 
+;;;###mh-autoload
 (defun mh-spamassassin-identify-spammers ()
   "Identify spammers who are repeat offenders.
 
@@ -322,6 +321,7 @@ information can be used so that you can replace multiple
 
 (defvar mh-bogofilter-executable (executable-find "bogofilter"))
 
+;;;###mh-autoload
 (defun mh-bogofilter-blacklist (msg)
   "Blacklist MSG with bogofilter.
 
@@ -375,6 +375,7 @@ The \"Bogofilter tuning HOWTO\" describes how you can fine-tune Bogofilter."
     (call-process mh-bogofilter-executable msg-file mh-junk-background
                   nil "-s")))
 
+;;;###mh-autoload
 (defun mh-bogofilter-whitelist (msg)
   "Whitelist MSG with bogofilter.
 
@@ -391,6 +392,7 @@ See `mh-bogofilter-blacklist' for more information."
 
 (defvar mh-spamprobe-executable (executable-find "spamprobe"))
 
+;;;###mh-autoload
 (defun mh-spamprobe-blacklist (msg)
   "Blacklist MSG with SpamProbe.
 
@@ -421,6 +423,7 @@ update SpamProbe's training."
     (call-process mh-spamprobe-executable msg-file mh-junk-background
                   nil "spam")))
 
+;;;###mh-autoload
 (defun mh-spamprobe-whitelist (msg)
   "Whitelist MSG with SpamProbe.
 

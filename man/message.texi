@@ -9,7 +9,7 @@
 This file documents Message, the Emacs message composition mode.
 
 Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-   2005 Free Software Foundation, Inc.
+   2005, 2006 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1386,8 +1386,23 @@ trailing old subject.  In this case,
 
 @item message-alternative-emails
 @vindex message-alternative-emails
-A regexp to match the alternative email addresses.  The first matched
-address (not primary one) is used in the @code{From} field.
+Regexp matching alternative email addresses.  The first address in the
+To, Cc or From headers of the original article matching this variable is
+used as the From field of outgoing messages, replacing the default From
+value.
+
+For example, if you have two secondary email addresses john@@home.net
+and john.doe@@work.com and want to use them in the From field when
+composing a reply to a message addressed to one of them, you could set
+this variable like this:
+
+@lisp
+(setq message-alternative-emails
+      (regexp-opt '("john@@home.net" "john.doe@@work.com")))
+@end lisp
+
+This variable has precedence over posting styles and anything that runs
+off @code{message-setup-hook}.
 
 @item message-allow-no-recipients
 @vindex message-allow-no-recipients

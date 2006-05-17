@@ -1,4 +1,4 @@
-;;; mh-search  ---  MH-E search
+;;; mh-search  ---  MH-Search mode
 
 ;; Copyright (C) 1993, 1995,
 ;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
@@ -27,6 +27,8 @@
 
 ;;; Commentary:
 
+;; Mode used to compose search criteria.
+
 ;;  (1) The following search engines are supported:
 ;;        swish++
 ;;        swish-e
@@ -34,7 +36,7 @@
 ;;        namazu
 ;;        pick
 ;;        grep
-;;
+
 ;;  (2) To use this package, you first have to build an index. Please
 ;;      read the documentation for `mh-search' to get started. That
 ;;      documentation will direct you to the specific instructions for
@@ -44,14 +46,12 @@
 
 ;;; Code:
 
-;;(message "> mh-search")
-(eval-when-compile (require 'mh-acros))
+(require 'mh-e)
 (mh-require-cl)
 
 (require 'gnus-util)
-(require 'mh-buffers)
-(require 'mh-e)
-;;(message "< mh-search")
+(require 'imenu)
+(require 'which-func nil t)
 
 (defvar mh-searcher nil
   "Cached value of chosen search program.")
@@ -79,7 +79,7 @@ message number, and optionally the match.")
 
 
 
-;;; MH-Search mode
+;;; MH-Folder Commands
 
 ;;;###mh-autoload
 (defun* mh-search (folder search-regexp
@@ -322,6 +322,9 @@ folder containing the index search results."
                (loop for msg-hash being hash-values of mh-index-data
                      count (> (hash-table-count msg-hash) 0))))))
 
+;; Shush compiler.
+(eval-when-compile (mh-do-in-xemacs (defvar pick-folder)))
+
 (defun mh-search-folder (folder window-config)
   "Search FOLDER for messages matching a pattern.
 
@@ -363,30 +366,182 @@ configuration and is used when the search folder is dismissed."
   (add-text-properties (point) (1- (line-end-position)) '(read-only t))
   (goto-char (point-max)))
 
-;;;###mh-autoload
-(defvar mh-search-mode-map (make-sparse-keymap)
-  "Keymap for searching folder.")
+;; Sequence Searches
 
 ;;;###mh-autoload
-;; If this changes, modify mh-search-mode-help-messages accordingly, below.
-(gnus-define-keys  mh-search-mode-map
-  "\C-c?"               mh-help
-  "\C-c\C-c"            mh-index-do-search
-  "\C-c\C-p"            mh-pick-do-search
-  "\C-c\C-f\C-b"        mh-to-field
-  "\C-c\C-f\C-c"        mh-to-field
-  "\C-c\C-f\C-d"        mh-to-field
-  "\C-c\C-f\C-f"        mh-to-field
-  "\C-c\C-f\C-r"        mh-to-field
-  "\C-c\C-f\C-s"        mh-to-field
-  "\C-c\C-f\C-t"        mh-to-field
-  "\C-c\C-fb"           mh-to-field
-  "\C-c\C-fc"           mh-to-field
-  "\C-c\C-fd"           mh-to-field
-  "\C-c\C-ff"           mh-to-field
-  "\C-c\C-fr"           mh-to-field
-  "\C-c\C-fs"           mh-to-field
-  "\C-c\C-ft"           mh-to-field)
+(defun mh-index-new-messages (folders)
+  "Display unseen messages.
+
+If you use a program such as \"procmail\" to use \"rcvstore\" to file
+your incoming mail automatically, you can display new, unseen,
+messages using this command. All messages in the \"unseen\"
+sequence from the folders in `mh-new-messages-folders' are
+listed.
+
+With a prefix argument, enter a space-separated list of FOLDERS,
+or nothing to search all folders."
+  (interactive
+   (list (if current-prefix-arg
+             (split-string (read-string "Search folder(s) (default all): "))
+           mh-new-messages-folders)))
+  (mh-index-sequenced-messages folders mh-unseen-seq))
+
+;;;###mh-autoload
+(defun mh-index-ticked-messages (folders)
+  "Display ticked messages.
+
+All messages in `mh-tick-seq' from the folders in
+`mh-ticked-messages-folders' are listed.
+
+With a prefix argument, enter a space-separated list of FOLDERS,
+or nothing to search all folders."
+  (interactive
+   (list (if current-prefix-arg
+             (split-string (read-string "Search folder(s) (default all): "))
+           mh-ticked-messages-folders)))
+  (mh-index-sequenced-messages folders mh-tick-seq))
+
+;; Shush compiler.
+(eval-when-compile
+  (mh-do-in-xemacs
+    (defvar mh-mairix-folder)
+    (defvar mh-flists-search-folders)))
+
+;;;###mh-autoload
+(defun mh-index-sequenced-messages (folders sequence)
+  "Display messages in any sequence.
+
+All messages from the FOLDERS in `mh-new-messages-folders' in the
+SEQUENCE you provide are listed. With a prefix argument, enter a
+space-separated list of folders at the prompt, or nothing to
+search all folders."
+  (interactive
+   (list (if current-prefix-arg
+             (split-string (read-string "Search folder(s) (default all): "))
+           mh-new-messages-folders)
+         (mh-read-seq-default "Search" nil)))
+  (unless sequence (setq sequence mh-unseen-seq))
+  (let* ((mh-flists-search-folders folders)
+         (mh-flists-sequence sequence)
+         (mh-flists-called-flag t)
+         (mh-searcher 'flists)
+         (mh-search-function 'mh-flists-execute)
+         (mh-search-next-result-function 'mh-mairix-next-result)
+         (mh-mairix-folder mh-user-path)
+         (mh-search-regexp-builder nil)
+         (new-folder (format "%s/%s/%s" mh-index-folder
+                             mh-flists-results-folder sequence))
+         (window-config (if (equal new-folder mh-current-folder)
+                            mh-previous-window-config
+                          (current-window-configuration)))
+         (redo-flag nil)
+         message)
+    (cond ((buffer-live-p (get-buffer new-folder))
+           ;; The destination folder is being visited. Trick `mh-search'
+           ;; into thinking that the folder resulted from a previous search.
+           (set-buffer new-folder)
+           (setq mh-index-previous-search (list folders mh-searcher sequence))
+           (setq redo-flag t))
+          ((mh-folder-exists-p new-folder)
+           ;; Folder exists but we don't have it open. That means they are
+           ;; stale results from a old flists search. Clear it out.
+           (mh-exec-cmd-quiet nil "rmf" new-folder)))
+    (setq message (mh-search "+" mh-flists-results-folder
+                             redo-flag window-config)
+          mh-index-sequence-search-flag t
+          mh-index-previous-search (list folders mh-searcher sequence))
+    (mh-index-write-data)
+    (when (stringp message) (message "%s" message))))
+
+(defvar mh-flists-search-folders)
+
+(defun mh-flists-execute (&rest args)
+  "Execute flists.
+Search for messages belonging to `mh-flists-sequence' in the
+folders specified by `mh-flists-search-folders'. If
+`mh-recursive-folders-flag' is t, then the folders are searched
+recursively. All parameters ARGS are ignored."
+  (set-buffer (get-buffer-create mh-temp-index-buffer))
+  (erase-buffer)
+  (unless (executable-find "sh")
+    (error "Didn't find sh"))
+  (with-temp-buffer
+    (let ((seq (symbol-name mh-flists-sequence)))
+      (insert "for folder in `" (expand-file-name "flists" mh-progs) " "
+              (cond ((eq mh-flists-search-folders t)
+                     (mh-quote-for-shell mh-inbox))
+                    ((eq mh-flists-search-folders nil) "")
+                    ((listp mh-flists-search-folders)
+                     (loop for folder in mh-flists-search-folders
+                           concat
+                           (concat " " (mh-quote-for-shell folder)))))
+              (if mh-recursive-folders-flag " -recurse" "")
+              " -sequence " seq " -noshowzero -fast` ; do\n"
+              (expand-file-name "mhpath" mh-progs) " \"+$folder\" " seq "\n"
+              "done\n"))
+    (call-process-region
+     (point-min) (point-max) "sh" nil (get-buffer mh-temp-index-buffer))))
+
+;; Navigation
+
+;;;###mh-autoload
+(defun mh-index-next-folder (&optional backward-flag)
+  "Jump to the next folder marker.
+
+With non-nil optional argument BACKWARD-FLAG, jump to the previous
+group of results."
+  (interactive "P")
+  (if (null mh-index-data)
+      (message "Only applicable in an MH-E index search buffer")
+    (let ((point (point)))
+      (forward-line (if backward-flag 0 1))
+      (cond ((if backward-flag
+                 (re-search-backward "^+" (point-min) t)
+               (re-search-forward "^+" (point-max) t))
+             (beginning-of-line))
+            ((and (if backward-flag
+                      (goto-char (point-max))
+                    (goto-char (point-min)))
+                  nil))
+            ((if backward-flag
+                 (re-search-backward "^+" (point-min) t)
+               (re-search-forward "^+" (point-max) t))
+             (beginning-of-line))
+            (t (goto-char point))))))
+
+;;;###mh-autoload
+(defun mh-index-previous-folder ()
+  "Jump to the previous folder marker."
+  (interactive)
+  (mh-index-next-folder t))
+
+;;;###mh-autoload
+(defun mh-index-visit-folder ()
+  "Visit original folder from where the message at point was found."
+  (interactive)
+  (unless mh-index-data
+    (error "Not in an index folder"))
+  (let (folder msg)
+    (save-excursion
+      (cond ((and (bolp) (eolp))
+             (ignore-errors (forward-line -1))
+             (setq msg (mh-get-msg-num t)))
+            ((equal (char-after (line-beginning-position)) ?+)
+             (setq folder (buffer-substring-no-properties
+                           (line-beginning-position) (line-end-position))))
+            (t (setq msg (mh-get-msg-num t)))))
+    (when (not folder)
+      (setq folder (car (gethash (gethash msg mh-index-msg-checksum-map)
+                                 mh-index-checksum-origin-map))))
+    (when (or (not (get-buffer folder))
+              (y-or-n-p (format "Reuse buffer displaying %s? " folder)))
+      (mh-visit-folder
+       folder (loop for x being the hash-keys of (gethash folder mh-index-data)
+                    when (mh-msg-exists-p x folder) collect x)))))
+
+
+
+;;; Search Menu
 
 (easy-menu-define
   mh-pick-menu mh-search-mode-map "Menu for MH-E Search"
@@ -394,11 +549,35 @@ configuration and is used when the search folder is dismissed."
     ["Perform Search"       mh-index-do-search t]
     ["Search with pick"     mh-pick-do-search t]))
 
+
+
+;;; MH-Search Keys
+
+;; If this changes, modify mh-search-mode-help-messages accordingly, below.
+(gnus-define-keys  mh-search-mode-map
+  "\C-c?"               mh-help
+  "\C-c\C-c"            mh-index-do-search
+  "\C-c\C-p"            mh-pick-do-search
+  "\C-c\C-f\C-b"        mh-to-field
+  "\C-c\C-f\C-c"        mh-to-field
+  "\C-c\C-f\C-m"        mh-to-field
+  "\C-c\C-f\C-s"        mh-to-field
+  "\C-c\C-f\C-t"        mh-to-field
+  "\C-c\C-fb"           mh-to-field
+  "\C-c\C-fc"           mh-to-field
+  "\C-c\C-fm"           mh-to-field
+  "\C-c\C-fs"           mh-to-field
+  "\C-c\C-ft"           mh-to-field)
+
+
+
+;;; MH-Search Help Messages
+
 ;; Group messages logically, more or less.
 (defvar mh-search-mode-help-messages
   '((nil
-     "Perform search:  \\[mh-index-do-search]\n"
-     "Search with pick:  \\[mh-pick-do-search]\n"
+     "Perform search:   \\[mh-index-do-search]\n"
+     "Search with pick: \\[mh-pick-do-search]\n\n"
      "Move to a field by typing C-c C-f C-<field>\n"
      "where <field> is the first letter of the desired field\n"
      "(except for From: which uses \"m\")."))
@@ -412,6 +591,10 @@ display the non-prefixed commands.
 
 The substitutions described in `substitute-command-keys' are performed
 as well.")
+
+
+
+;;; MH-Search Mode
 
 (put 'mh-search-mode 'mode-class 'special)
 
@@ -435,11 +618,13 @@ The hook `mh-search-mode-hook' is called upon entry to this mode.
 
 \\{mh-search-mode-map}"
 
-  (make-local-variable 'mh-help-messages)
   (easy-menu-add mh-pick-menu)
-  (setq mh-help-messages mh-search-mode-help-messages))
+  (mh-set-help mh-search-mode-help-messages))
 
-;;;###mh-autoload
+
+
+;;; MH-Search Commands
+
 (defun mh-index-do-search (&optional searcher)
   "Find messages using `mh-search-program'.
 If optional argument SEARCHER is present, use it instead of
@@ -452,7 +637,6 @@ If optional argument SEARCHER is present, use it instead of
         (mh-search mh-current-folder pattern nil mh-previous-window-config)
       (error "No search terms"))))
 
-;;;###mh-autoload
 (defun mh-pick-do-search ()
   "Find messages using \"pick\".
 
@@ -490,7 +674,6 @@ The cdr of the element is the pattern to search."
         (forward-line))
       pattern-list)))
 
-;;;###mh-autoload
 (defun mh-index-parse-search-regexp (input-string)
   "Construct parse tree for INPUT-STRING.
 All occurrences of &, |, ! and ~ in INPUT-STRING are replaced by
@@ -594,296 +777,7 @@ parsed."
 
 
 
-;;; Sequence browsing
-
-;;;###mh-autoload
-(defun mh-index-new-messages (folders)
-  "Display unseen messages.
-
-If you use a program such as \"procmail\" to use \"rcvstore\" to file
-your incoming mail automatically, you can display new, unseen,
-messages using this command. All messages in the \"unseen\"
-sequence from the folders in `mh-new-messages-folders' are
-listed.
-
-With a prefix argument, enter a space-separated list of FOLDERS,
-or nothing to search all folders."
-  (interactive
-   (list (if current-prefix-arg
-             (split-string (read-string "Search folder(s) (default all): "))
-           mh-new-messages-folders)))
-  (mh-index-sequenced-messages folders mh-unseen-seq))
-
-;;;###mh-autoload
-(defun mh-index-ticked-messages (folders)
-  "Display ticked messages.
-
-All messages in `mh-tick-seq' from the folders in
-`mh-ticked-messages-folders' are listed.
-
-With a prefix argument, enter a space-separated list of FOLDERS,
-or nothing to search all folders."
-  (interactive
-   (list (if current-prefix-arg
-             (split-string (read-string "Search folder(s) (default all): "))
-           mh-ticked-messages-folders)))
-  (mh-index-sequenced-messages folders mh-tick-seq))
-
-;;;###mh-autoload
-(defun mh-index-sequenced-messages (folders sequence)
-  "Display messages in any sequence.
-
-All messages from the FOLDERS in `mh-new-messages-folders' in the
-SEQUENCE you provide are listed. With a prefix argument, enter a
-space-separated list of folders at the prompt, or nothing to
-search all folders."
-  (interactive
-   (list (if current-prefix-arg
-             (split-string (read-string "Search folder(s) (default all): "))
-           mh-new-messages-folders)
-         (mh-read-seq-default "Search" nil)))
-  (unless sequence (setq sequence mh-unseen-seq))
-  (let* ((mh-flists-search-folders folders)
-         (mh-flists-sequence sequence)
-         (mh-flists-called-flag t)
-         (mh-searcher 'flists)
-         (mh-search-function 'mh-flists-execute)
-         (mh-search-next-result-function 'mh-mairix-next-result)
-         (mh-mairix-folder mh-user-path)
-         (mh-search-regexp-builder nil)
-         (new-folder (format "%s/%s/%s" mh-index-folder
-                             mh-flists-results-folder sequence))
-         (window-config (if (equal new-folder mh-current-folder)
-                            mh-previous-window-config
-                          (current-window-configuration)))
-         (redo-flag nil)
-         message)
-    (cond ((buffer-live-p (get-buffer new-folder))
-           ;; The destination folder is being visited. Trick `mh-search'
-           ;; into thinking that the folder resulted from a previous search.
-           (set-buffer new-folder)
-           (setq mh-index-previous-search (list folders mh-searcher sequence))
-           (setq redo-flag t))
-          ((mh-folder-exists-p new-folder)
-           ;; Folder exists but we don't have it open. That means they are
-           ;; stale results from a old flists search. Clear it out.
-           (mh-exec-cmd-quiet nil "rmf" new-folder)))
-    (setq message (mh-search "+" mh-flists-results-folder
-                             redo-flag window-config)
-          mh-index-sequence-search-flag t
-          mh-index-previous-search (list folders mh-searcher sequence))
-    (mh-index-write-data)
-    (when (stringp message) (message "%s" message))))
-
-(defvar mh-flists-search-folders)
-
-(defun mh-flists-execute (&rest args)
-  "Execute flists.
-Search for messages belonging to `mh-flists-sequence' in the
-folders specified by `mh-flists-search-folders'. If
-`mh-recursive-folders-flag' is t, then the folders are searched
-recursively. All parameters ARGS are ignored."
-  (set-buffer (get-buffer-create mh-temp-index-buffer))
-  (erase-buffer)
-  (unless (executable-find "sh")
-    (error "Didn't find sh"))
-  (with-temp-buffer
-    (let ((seq (symbol-name mh-flists-sequence)))
-      (insert "for folder in `" (expand-file-name "flists" mh-progs) " "
-              (cond ((eq mh-flists-search-folders t)
-                     (mh-quote-for-shell mh-inbox))
-                    ((eq mh-flists-search-folders nil) "")
-                    ((listp mh-flists-search-folders)
-                     (loop for folder in mh-flists-search-folders
-                           concat
-                           (concat " " (mh-quote-for-shell folder)))))
-              (if mh-recursive-folders-flag " -recurse" "")
-              " -sequence " seq " -noshowzero -fast` ; do\n"
-              (expand-file-name "mhpath" mh-progs) " \"+$folder\" " seq "\n"
-              "done\n"))
-    (call-process-region
-     (point-min) (point-max) "sh" nil (get-buffer mh-temp-index-buffer))))
-
-
-
-;;; Folder navigation and utilities
-
-;;;###mh-autoload
-(defun mh-index-group-by-folder ()
-  "Partition the messages based on source folder.
-Returns an alist with the the folder names in the car and the cdr
-being the list of messages originally from that folder."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((result-table (make-hash-table :test #'equal)))
-      (loop for msg being hash-keys of mh-index-msg-checksum-map
-            do (push msg (gethash (car (gethash
-                                        (gethash msg mh-index-msg-checksum-map)
-                                        mh-index-checksum-origin-map))
-                                  result-table)))
-      (loop for x being the hash-keys of result-table
-            collect (cons x (nreverse (gethash x result-table)))))))
-
-;;;###mh-autoload
-(defun mh-index-insert-folder-headers ()
-  "Annotate the search results with original folder names."
-  (let ((cur-msg (mh-get-msg-num nil))
-        (old-buffer-modified-flag (buffer-modified-p))
-        (buffer-read-only nil)
-        current-folder last-folder)
-    (goto-char (point-min))
-    (while (not (eobp))
-      (setq current-folder (car (gethash (gethash (mh-get-msg-num nil)
-                                                  mh-index-msg-checksum-map)
-                                         mh-index-checksum-origin-map)))
-      (when (and current-folder (not (equal current-folder last-folder)))
-        (insert (if last-folder "\n" "") current-folder "\n")
-        (setq last-folder current-folder))
-      (forward-line))
-    (when cur-msg
-      (mh-notate-cur)
-      (mh-goto-msg cur-msg t))
-    (set-buffer-modified-p old-buffer-modified-flag))
-  (mh-index-create-imenu-index))
-
-;;;###mh-autoload
-(defun mh-index-delete-folder-headers ()
-  "Delete the folder headers."
-  (let ((cur-msg (mh-get-msg-num nil))
-        (old-buffer-modified-flag (buffer-modified-p))
-        (buffer-read-only nil))
-    (while (and (not cur-msg) (not (eobp)))
-      (forward-line)
-      (setq cur-msg (mh-get-msg-num nil)))
-    (goto-char (point-min))
-    (while (not (eobp))
-      (if (or (char-equal (char-after) ?+) (char-equal (char-after) 10))
-          (delete-region (point) (progn (forward-line) (point)))
-        (forward-line)))
-    (when cur-msg (mh-goto-msg cur-msg t t))
-    (set-buffer-modified-p old-buffer-modified-flag)))
-
-;;;###mh-autoload
-(defun mh-index-create-imenu-index ()
-  "Create alist of folder names and positions in index folder buffers."
-  (save-excursion
-    (setq which-func-mode t)
-    (let ((alist ()))
-      (goto-char (point-min))
-      (while (re-search-forward "^+" nil t)
-        (save-excursion
-          (beginning-of-line)
-          (push (cons (buffer-substring-no-properties
-                       (point) (line-end-position))
-                      (set-marker (make-marker) (point)))
-                alist)))
-      (setq imenu--index-alist (nreverse alist)))))
-
-;;;###mh-autoload
-(defun mh-index-next-folder (&optional backward-flag)
-  "Jump to the next folder marker.
-
-With non-nil optional argument BACKWARD-FLAG, jump to the previous
-group of results."
-  (interactive "P")
-  (if (null mh-index-data)
-      (message "Only applicable in an MH-E index search buffer")
-    (let ((point (point)))
-      (forward-line (if backward-flag 0 1))
-      (cond ((if backward-flag
-                 (re-search-backward "^+" (point-min) t)
-               (re-search-forward "^+" (point-max) t))
-             (beginning-of-line))
-            ((and (if backward-flag
-                      (goto-char (point-max))
-                    (goto-char (point-min)))
-                  nil))
-            ((if backward-flag
-                 (re-search-backward "^+" (point-min) t)
-               (re-search-forward "^+" (point-max) t))
-             (beginning-of-line))
-            (t (goto-char point))))))
-
-;;;###mh-autoload
-(defun mh-index-previous-folder ()
-  "Jump to the previous folder marker."
-  (interactive)
-  (mh-index-next-folder t))
-
-;;;###mh-autoload
-(defun mh-index-visit-folder ()
-  "Visit original folder from where the message at point was found."
-  (interactive)
-  (unless mh-index-data
-    (error "Not in an index folder"))
-  (let (folder msg)
-    (save-excursion
-      (cond ((and (bolp) (eolp))
-             (ignore-errors (forward-line -1))
-             (setq msg (mh-get-msg-num t)))
-            ((equal (char-after (line-beginning-position)) ?+)
-             (setq folder (buffer-substring-no-properties
-                           (line-beginning-position) (line-end-position))))
-            (t (setq msg (mh-get-msg-num t)))))
-    (when (not folder)
-      (setq folder (car (gethash (gethash msg mh-index-msg-checksum-map)
-                                 mh-index-checksum-origin-map))))
-    (when (or (not (get-buffer folder))
-              (y-or-n-p (format "Reuse buffer displaying %s? " folder)))
-      (mh-visit-folder
-       folder (loop for x being the hash-keys of (gethash folder mh-index-data)
-                    when (mh-msg-exists-p x folder) collect x)))))
-
-;;;###mh-autoload
-(defun mh-search-p ()
-  "Non-nil means that this folder was generated by searching."
-  mh-index-data)
-
-;;;###mh-autoload
-(defun mh-index-execute-commands ()
-  "Delete/refile the actual messages.
-The copies in the searched folder are then deleted/refiled to get
-the desired result. Before deleting the messages we make sure
-that the message being deleted is identical to the one that the
-user has marked in the index buffer."
-  (save-excursion
-    (let ((folders ())
-          (mh-speed-flists-inhibit-flag t))
-      (maphash
-       (lambda (folder msgs)
-         (push folder folders)
-         (if (not (get-buffer folder))
-             ;; If source folder not open, just delete the messages...
-             (apply #'mh-exec-cmd "rmm" folder (mh-coalesce-msg-list msgs))
-           ;; Otherwise delete the messages in the source buffer...
-           (save-excursion
-             (set-buffer folder)
-             (let ((old-refile-list mh-refile-list)
-                   (old-delete-list mh-delete-list))
-               (setq mh-refile-list nil
-                     mh-delete-list msgs)
-               (unwind-protect (mh-execute-commands)
-                 (setq mh-refile-list
-                       (mapcar (lambda (x)
-                                 (cons (car x)
-                                       (loop for y in (cdr x)
-                                             unless (memq y msgs) collect y)))
-                               old-refile-list)
-                       mh-delete-list
-                       (loop for x in old-delete-list
-                             unless (memq x msgs) collect x))
-                 (mh-set-folder-modified-p (mh-outstanding-commands-p))
-                 (when (mh-outstanding-commands-p)
-                   (mh-notate-deleted-and-refiled)))))))
-       (mh-index-matching-source-msgs (append (loop for x in mh-refile-list
-                                                    append (cdr x))
-                                              mh-delete-list)
-                                      t))
-      folders)))
-
-
-
-;;; Indexing functions
+;;; Indexing Functions
 
 ;; Support different search programs
 (defvar mh-search-choices
@@ -930,14 +824,13 @@ optional argument SEARCHER is present, use it instead of
             (return mh-searcher))))
       nil)))
 
-;;; Swish++ interface
+;;; Swish++
 
 (defvar mh-swish++-binary (or (executable-find "search++")
                               (executable-find "search")))
 (defvar mh-swish++-directory ".swish++")
 (defvar mh-swish-folder nil)
 
-;;;###mh-autoload
 (defun mh-swish++-execute-search (folder-path search-regexp)
   "Execute swish++.
 
@@ -1012,12 +905,11 @@ REGEXP-LIST is an alist of fields and values."
                    (symbol-name (car expr))
                    (mh-swish++-print-regexp (caddr expr))))))
 
-;;; Swish interface
+;;; Swish
 
 (defvar mh-swish-binary (executable-find "swish-e"))
 (defvar mh-swish-directory ".swish")
 
-;;;###mh-autoload
 (defun mh-swish-execute-search (folder-path search-regexp)
   "Execute swish-e.
 
@@ -1110,13 +1002,12 @@ is used to search."
                 nil)))
     (forward-line)))
 
-;;; Mairix interface
+;;; Mairix
 
 (defvar mh-mairix-binary (executable-find "mairix"))
 (defvar mh-mairix-directory ".mairix")
 (defvar mh-mairix-folder nil)
 
-;;;###mh-autoload
 (defun mh-mairix-execute-search (folder-path search-regexp-list)
   "Execute mairix.
 
@@ -1244,13 +1135,12 @@ REGEXP-LIST is an alist of fields and values."
                                                 (cdadr expr)))))
         (t (error "Unreachable: %s" expr))))
 
-;;; Namazu interface
+;;; Namazu
 
 (defvar mh-namazu-binary (executable-find "namazu"))
 (defvar mh-namazu-directory ".namazu")
 (defvar mh-namazu-folder nil)
 
-;;;###mh-autoload
 (defun mh-namazu-execute-search (folder-path search-regexp)
   "Execute namazu.
 
@@ -1317,14 +1207,13 @@ is used to search."
                   nil))))
     (forward-line)))
 
-;;; Pick interface
+;;; Pick
 
 (defvar mh-index-pick-folder)
 (defvar mh-pick-binary "pick")
 (defconst mh-pick-single-dash  '(cc date from subject to)
   "Search components that are supported by single-dash option in pick.")
 
-;;;###mh-autoload
 (defun mh-pick-execute-search (folder-path search-regexp)
   "Execute pick.
 
@@ -1408,11 +1297,10 @@ COMPONENT is the component to search."
            "-rbrace"))
         (t (error "Unknown operator %s seen" (car expr)))))
 
-;;; Grep interface
+;;; Grep
 
 (defvar mh-grep-binary (executable-find "grep"))
 
-;;;###mh-autoload
 (defun mh-grep-execute-search (folder-path search-regexp)
   "Execute grep.
 
@@ -1463,7 +1351,132 @@ record is invalid return 'error."
 
 
 
-;;; Folder support
+;;; Folder Utilities
+
+;;;###mh-autoload
+(defun mh-index-group-by-folder ()
+  "Partition the messages based on source folder.
+Returns an alist with the the folder names in the car and the cdr
+being the list of messages originally from that folder."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((result-table (make-hash-table :test #'equal)))
+      (loop for msg being hash-keys of mh-index-msg-checksum-map
+            do (push msg (gethash (car (gethash
+                                        (gethash msg mh-index-msg-checksum-map)
+                                        mh-index-checksum-origin-map))
+                                  result-table)))
+      (loop for x being the hash-keys of result-table
+            collect (cons x (nreverse (gethash x result-table)))))))
+
+;;;###mh-autoload
+(defun mh-index-insert-folder-headers ()
+  "Annotate the search results with original folder names."
+  (let ((cur-msg (mh-get-msg-num nil))
+        (old-buffer-modified-flag (buffer-modified-p))
+        (buffer-read-only nil)
+        current-folder last-folder)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (setq current-folder (car (gethash (gethash (mh-get-msg-num nil)
+                                                  mh-index-msg-checksum-map)
+                                         mh-index-checksum-origin-map)))
+      (when (and current-folder (not (equal current-folder last-folder)))
+        (insert (if last-folder "\n" "") current-folder "\n")
+        (setq last-folder current-folder))
+      (forward-line))
+    (when cur-msg
+      (mh-notate-cur)
+      (mh-goto-msg cur-msg t))
+    (set-buffer-modified-p old-buffer-modified-flag))
+  (mh-index-create-imenu-index))
+
+;;;###mh-autoload
+(defun mh-index-delete-folder-headers ()
+  "Delete the folder headers."
+  (let ((cur-msg (mh-get-msg-num nil))
+        (old-buffer-modified-flag (buffer-modified-p))
+        (buffer-read-only nil))
+    (while (and (not cur-msg) (not (eobp)))
+      (forward-line)
+      (setq cur-msg (mh-get-msg-num nil)))
+    (goto-char (point-min))
+    (while (not (eobp))
+      (if (or (char-equal (char-after) ?+) (char-equal (char-after) 10))
+          (delete-region (point) (progn (forward-line) (point)))
+        (forward-line)))
+    (when cur-msg (mh-goto-msg cur-msg t t))
+    (set-buffer-modified-p old-buffer-modified-flag)))
+
+;; Shush compiler.
+(eval-when-compile (mh-do-in-xemacs (defvar which-func-mode)))
+
+;;;###mh-autoload
+(defun mh-index-create-imenu-index ()
+  "Create alist of folder names and positions in index folder buffers."
+  (save-excursion
+    (if (boundp 'which-func-mode)
+        (setq which-func-mode t))
+    (let ((alist ()))
+      (goto-char (point-min))
+      (while (re-search-forward "^+" nil t)
+        (save-excursion
+          (beginning-of-line)
+          (push (cons (buffer-substring-no-properties
+                       (point) (line-end-position))
+                      (set-marker (make-marker) (point)))
+                alist)))
+      (setq imenu--index-alist (nreverse alist)))))
+
+;;;###mh-autoload
+(defun mh-search-p ()
+  "Non-nil means that this folder was generated by searching."
+  mh-index-data)
+
+;; Shush compiler
+(eval-when-compile (if mh-xemacs-flag (defvar mh-speed-flists-inhibit-flag)))
+
+;;;###mh-autoload
+(defun mh-index-execute-commands ()
+  "Delete/refile the actual messages.
+The copies in the searched folder are then deleted/refiled to get
+the desired result. Before deleting the messages we make sure
+that the message being deleted is identical to the one that the
+user has marked in the index buffer."
+  (save-excursion
+    (let ((folders ())
+          (mh-speed-flists-inhibit-flag t))
+      (maphash
+       (lambda (folder msgs)
+         (push folder folders)
+         (if (not (get-buffer folder))
+             ;; If source folder not open, just delete the messages...
+             (apply #'mh-exec-cmd "rmm" folder (mh-coalesce-msg-list msgs))
+           ;; Otherwise delete the messages in the source buffer...
+           (save-excursion
+             (set-buffer folder)
+             (let ((old-refile-list mh-refile-list)
+                   (old-delete-list mh-delete-list))
+               (setq mh-refile-list nil
+                     mh-delete-list msgs)
+               (unwind-protect (mh-execute-commands)
+                 (setq mh-refile-list
+                       (mapcar (lambda (x)
+                                 (cons (car x)
+                                       (loop for y in (cdr x)
+                                             unless (memq y msgs) collect y)))
+                               old-refile-list)
+                       mh-delete-list
+                       (loop for x in old-delete-list
+                             unless (memq x msgs) collect x))
+                 (mh-set-folder-modified-p (mh-outstanding-commands-p))
+                 (when (mh-outstanding-commands-p)
+                   (mh-notate-deleted-and-refiled)))))))
+       (mh-index-matching-source-msgs (append (loop for x in mh-refile-list
+                                                    append (cdr x))
+                                              mh-delete-list)
+                                      t))
+      folders)))
 
 (defun mh-index-generate-pretty-name (string)
   "Given STRING generate a name which is suitable for use as a folder name.
@@ -1559,7 +1572,7 @@ garbled."
 
 
 
-;;; Sequence support
+;;; Sequence Support
 
 ;;;###mh-autoload
 (defun mh-index-create-sequences ()
@@ -1688,7 +1701,7 @@ folder, is removed from `mh-index-data'."
 
 
 
-;;; Serialization of index data
+;;; Serialization of Index Data
 
 (defun mh-index-write-data ()
   "Write index data to file."
@@ -1756,20 +1769,21 @@ PROC is used to convert the value to actual data."
 
 
 
-;;; Checksum routines
+;;; Checksum Routines
 
-;; A few different checksum programs are supported. The supported programs
-;; are:
-;;
+;; A few different checksum programs are supported. The supported
+;; programs are:
+
 ;;   1. md5sum
 ;;   2. md5
 ;;   3. openssl
-;;
-;; To add support for your favorite checksum program add a clause to the cond
-;; statement in mh-checksum-choose. This should set the variable
-;; mh-checksum-cmd to the command line needed to run the checsum program and
-;; should set mh-checksum-parser to a function which returns a cons cell
-;; containing the message number and checksum string.
+
+;; To add support for your favorite checksum program add a clause to
+;; the cond statement in mh-checksum-choose. This should set the
+;; variable mh-checksum-cmd to the command line needed to run the
+;; checsum program and should set mh-checksum-parser to a function
+;; which returns a cons cell containing the message number and
+;; checksum string.
 
 (defvar mh-checksum-cmd)
 (defvar mh-checksum-parser)

@@ -221,19 +221,23 @@ $(lisp)/progmodes/cc-mode.elc: \
 # the autoloads for the MH-E entry points, which are already in
 # loaddefs.el.
 MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
-	$(lisp)/mh-e/mh-buffers.el $(lisp)/mh-e/mh-comp.el	\
-	$(lisp)/mh-e/mh-customize.el $(lisp)/mh-e/mh-e.el	\
-	$(lisp)/mh-e/mh-funcs.el $(lisp)/mh-e/mh-identity.el	\
-	$(lisp)/mh-e/mh-inc.el $(lisp)/mh-e/mh-init.el		\
-	$(lisp)/mh-e/mh-junk.el $(lisp)/mh-e/mh-mime.el		\
-	$(lisp)/mh-e/mh-print.el $(lisp)/mh-e/mh-search.el	\
-	$(lisp)/mh-e/mh-seq.el $(lisp)/mh-e/mh-speed.el		\
-	$(lisp)/mh-e/mh-utils.el
+	$(lisp)/mh-e/mh-buffers.el $(lisp)/mh-e/mh-compat.el	\
+	$(lisp)/mh-e/mh-comp.el $(lisp)/mh-e/mh-e.el		\
+	$(lisp)/mh-e/mh-folder.el $(lisp)/mh-e/mh-funcs.el	\
+	$(lisp)/mh-e/mh-gnus.el $(lisp)/mh-e/mh-identity.el	\
+	$(lisp)/mh-e/mh-inc.el $(lisp)/mh-e/mh-junk.el		\
+	$(lisp)/mh-e/mh-letter.el $(lisp)/mh-e/mh-limit.el	\
+	$(lisp)/mh-e/mh-mime.el $(lisp)/mh-e/mh-print.el	\
+	$(lisp)/mh-e/mh-scan.el $(lisp)/mh-e/mh-search.el	\
+	$(lisp)/mh-e/mh-seq.el $(lisp)/mh-e/mh-show.el		\
+	$(lisp)/mh-e/mh-speed.el $(lisp)/mh-e/mh-thread.el	\
+	$(lisp)/mh-e/mh-tool-bar.el $(lisp)/mh-e/mh-utils.el	\
+	$(lisp)/mh-e/mh-xface.el
 
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
 $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
-	echo ";;" >> $@
+	echo "" >> $@
 	echo ";; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc." >> $@
 	echo ";; Author: Bill Wohler <wohler@newt.com>" >> $@
 	echo ";; Keywords: mail" >> $@

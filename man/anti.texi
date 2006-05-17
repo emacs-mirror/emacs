@@ -34,9 +34,9 @@ Emacs is tired of X droppings.  If you drop a file or a piece of text
 onto an Emacs window, nothing will happen.
 
 @item
-On an xterm, Emacs provides a more convincing simulation of a text
-terminal by not responding to mouse-clicks on the mode-line,
-header-line, or display margin.
+On an xterm, even if you enable Xterm Mouse mode, Emacs provides a
+more convincing simulation of a text terminal by not responding to
+mouse clicks on the mode line, header line, or display margin.
 
 @item
 For simplicity, windows always have fringes.  We wouldn't want to
@@ -88,8 +88,8 @@ the file name @file{foo$bar} would probably be an error.  Meanwhile,
 the @code{setenv} command does not expand @samp{$} at all.
 
 @item
-Emacs will not query you if a command accumulates too much undo
-information.  If Emacs runs out of memory as a result, it will handle
+If a single command accumulates too much undo information, Emacs never
+discards it.  If Emacs runs out of memory as a result, it will handle
 this by crashing.
 
 @item
@@ -131,9 +131,7 @@ them.  In most cases, typing these commands multiple times is
 equivalent to typing them once.  @kbd{M-h} ignores numeric arguments.
 
 @item
-If you want to repeat a jump to a previous mark, you should supply the
-prefix argument explicitly.  So, instead of typing @kbd{C-u C-SPC
-C-SPC C-SPC}, type @kbd{C-u C-SPC C-u C-SPC C-u C-SPC}.
+The user option @code{set-mark-command-repeat-pop} has been removed.
 
 @item
 @kbd{C-@key{SPC} C-@key{SPC}} has no special meaning--it just sets the
@@ -261,7 +259,8 @@ systems, has been removed.
 The Kmacro package has been replaced with a simple and elegant
 keyboard macro system.  Use @kbd{C-x (} to start a new keyboard macro,
 @kbd{C-x )} to end the macro, and @kbd{C-x e} to execute the last
-macro.
+macro.  Use @kbd{M-x name-last-kbd-macro} to name the most recently
+defined macro.
 
 @item
 The Calc, CUA, GDB-UI, Ibuffer, Ido, Password, Printing, Reveal,

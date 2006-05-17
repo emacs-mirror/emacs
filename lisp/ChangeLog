@@ -1,3 +1,207 @@
+2006-01-31  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (multi-occur): Doc fix.
+	(multi-occur-in-matching-buffers): Renamed from
+	multi-occur-by-filename-regexp.  Prefix arg says match
+	buffer names instead of file names.
+
+2006-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el: Allow non-default values of `bs-header-lines-length'.
+	(bs--running-in-xemacs): Remove (not needed anymore).
+	(bs--set-window-height): Simplify by using `fit-window-to-buffer'
+	instead of `shrink-window', thus avoiding having to compute the
+	height of the window.
+	(bs--up): Wrap around even when there's no header.
+	(bs--down): Use `forward-line' instead of `next-line'.
+
+2006-01-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-display): Use file name if possible,
+	instead of unnecessarily allocating a (possibly huge) lisp string.
+
+2006-01-30  John Paul Wallington  <jpw@pobox.com>
+
+	* subr.el (toplevel): Define `cl-assertion-failed' condition here
+	because the `assert' macro signals it at runtime.
+
+	* emacs-lisp/cl.el (toplevel): Remove definition of
+	`cl-assertion-failed' condition.
+
+2006-01-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-marked-list): Make buffer-local and
+	permanent-local.
+	(thumbs-insert-thumb): Make help-echo non-sticky.
+	(thumbs-file-alist): Use eolp as check for (non)-image.
+
+2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff-mult.el (ediff-meta-buffer-keymap-setup-hook)
+	(ediff-before-session-group-setup-hooks)
+	(ediff-default-filtering-regexp, ediff-meta-mark-equal-files):
+	Fix typos in docstrings.
+
+	* window.el (bw-dir, bw-eqdir, balance-windows)
+	(split-window-keep-point): Fix typos in docstrings.
+
+	* textmodes/org.el (org-allow-space-in-links, org-closed-string)
+	(org-quote-string, org-calendar-to-agenda-key)
+	(org-agenda-sorting-strategy, org-agenda-use-time-grid)
+	(org-show-following-heading, org-tags-column)
+	(org-use-tag-inheritance, org, org-allow-space-in-links)
+	(org-usenet-links-prefer-google, org-file-apps-defaults-gnu)
+	(org-enable-table-editor, org-calc-default-modes)
+	(org-table-allow-automatic-line-recalculation)
+	(org-export-html-style, org-export-with-fixed-width)
+	(org-export-with-sub-superscripts, org-special-keyword)
+	(org-formula, org-time-grid, org-table-may-need-update)
+	(org-mode, org-goto-ret, org-goto-left, org-goto-right)
+	(org-goto-quit, org-get-indentation, org-end-of-item)
+	(org-move-item-down, org-move-item-up)
+	(org-renumber-ordered-list, org-todo, org-log-done, org-occur)
+	(org-remove-occur-highlights, org-read-date, org-goto-calendar)
+	(org-agenda, org-agenda-day-view, org-agenda-previous-date-line)
+	(org-agenda-log-mode, org-agenda-toggle-diary)
+	(org-agenda-toggle-time-grid, org-agenda-cleanup-fancy-diary)
+	(org-agenda-file-to-end, org-agenda-no-heading-message)
+	(org-agenda-get-closed, org-format-agenda-item)
+	(org-cmp-priority, org-cmp-category, org-cmp-time)
+	(org-agenda-change-all-lines, org-agenda-diary-entry)
+	(org-scan-tags, org-after-todo-state-change-hook, org-tags-view)
+	(org-link-search, org-camel-to-words, org-open-file)
+	(org-remember-handler, org-table-convert-region)
+	(org-table-move-row-down, org-table-move-row-up)
+	(org-table-copy-region, org-table-wrap-region)
+	(org-table-toggle-vline-visibility)
+	(org-table-get-vertical-vector, org-table-modify-formulas)
+	(org-table-get-specials, org-recalc-commands)
+	(org-table-rotate-recalc-marks, org-table-eval-formula)
+	(orgtbl-make-binding, org-in-invisibility-spec-p, org-cycle)
+	(org-level-color-stars-only, org-insert-heading):
+	Fix typos in docstrings.
+	(last-arg): Add defvar.
+
+	* makefile.w32-in (WINS): Add erc.
+	(MH_E_SRC): Update (copied from lisp/Makefile.in).
+
+2006-01-29  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (MH_E_SRC): Add mh-compat.el, mh-folder.el,
+	mh-letter.el, mh-limit.el, mh-scan.el, mh-show.el, mh-thread.el,
+	mh-tool-bar.el, mh-xface.el.  Remove mh-customize.el, mh-init.el.
+	(mh-autoloads): Don't use comments on otherwise empty lines.
+
+2006-01-29  Edward O'Connor  <ted@oconnor.cx>
+
+	* emulation/viper.el (viper-major-mode-modifier-list): Add
+	insert-state and vi-state entries for erc-mode.
+	(viper-go-away, viper-set-hooks): Add and remove
+	viper-comint-mode-hook from erc-mode-hook as appropriate.
+
+	* emulation/viper.el (viper-insert-state-mode-list): Add erc-mode.
+
+2006-01-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--format-aux): Implement `middle' alignment as
+	described in the docstring for `bs-attributes-list'.
+	(bs--get-name): Simplify.  Don't pad the buffer name.
+
+2006-01-27  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries): If no
+	English aspell dictionary is installed, use the first entry of
+	ispell-dictionary-alist-1.
+
+2006-01-27  Kevin Rodgers  <ihs_4664@yahoo.com>
+
+	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
+	Doc fix.
+
+2006-01-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-vc.el (vc-user-login-name): Wrap defadvice with a test
+	for `process-file', in order to let it work for older Emacsen too.
+
+2006-01-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/latexenc.el: Add a suitable `coding:' tag.
+	(latexenc-find-file-coding-system): Undo last change.
+
+2006-01-27  Arne J,bx(Brgensen  <arne@arnested.dk>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Make sure latexenc-main-file is a regular file and is readable.
+
+2006-01-27  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-rcs.el (vc-rcs-fetch-master-state, vc-rcs-consult-headers):
+	Pass FILE to vc-user-login-name.
+
+	* vc-sccs.el (vc-sccs-state): Pass FILE to vc-user-login-name.
+
+2006-01-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-do-thumbs-insertion): Suppress message when
+	there are no more images to display.
+	(thumbs-mark, thumbs-unmark): Revert change so that they move to
+	the next image.
+
+2006-01-26  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-mode): Doc: Use advertised-widget-backward.
+
+	* wid-edit.el (advertised-widget-backward): New alias.
+	(widget-keymap): Use advertised-widget-backward for S-TAB.
+
+	* tumme.el: Correct the keywords.
+	(tumme-dir-max-size): Use defvar.
+	(tumme-setup-dired-keybindings, tumme-dired): Add autoload cookie.
+
+	* simple.el (move-beginning-of-line): Take account of fields.
+	(clone-indirect-buffer-other-window): Take args like
+	clone-indirect-buffer, and work like it.
+
+	* help-fns.el (describe-function): Don't pass `nil' as default.
+
+	* files.el (risky-local-variable-p): Follow var aliases.
+
+	* subr.el (lazy-completion-table): Doc fix.
+
+	* mail/rmailsum.el (rmail-make-summary-line-1): Don't set
+	global binding of `line'.
+
+2006-01-25  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-user-login-name): Rewritten to handle access via
+	Tramp.
+
+	* vc.el (vc-default-dired-state-info): Pass FILE to
+	vc-user-login-name.
+	(vc-default-update-changelog): Don't use vc-user-login-name, we
+	don't need it here.
+
+	* tramp-vc.el (vc-user-login-name): Comment out defadvice, it is
+	no longer necessary.
+
+2006-01-25  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (decode-char): Avoid the overhead of
+	calling utf-lookup-subst-table-for-decode if
+	utf-translate-cjk-mode is nil.
+	(encode-char): Avoid the overhead of calling
+	utf-lookup-subst-table-for-encode if utf-translate-cjk-mode is
+	nil.
+
+2006-01-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (make-subsidiary-coding-system): Reset
+	`coding-system-define-form' property of subsidiaries to nil.
+	Avoid duplicated entry in coding-system-alist.
+	(make-coding-system): Avoid duplicated entry in
+	coding-system-alist.
+	(define-coding-system-alias): Likewise.
+
 2006-01-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* completion.el: Minor fixes in introductory comment.
@@ -46,8 +250,8 @@
 
 	* thumbs.el (thumbs-extra-images): New variable.  Make it buffer-local
 	and permanent-local.
-	(thumbs-max-image-number): New variable.  Make it
-	(thumbs-do-thumbs-insertion): Use them
+	(thumbs-max-image-number): New variable.
+	(thumbs-do-thumbs-insertion): Use them.
 	(thumbs-per-line): Change default to 4.
 	(thumbs-marked-list): Rename from thumbs-markedL.
 	(thumbs-cleanup-thumbsdir, thumbs-delete-images)
@@ -1931,7 +2135,7 @@
 	(hi-lock-find-patterns, hi-lock-font-lock-hook):
 	Replace hi-lock-buffer-mode with hi-lock-mode.
 
-2005-12-10  Kevin Rodgers  <ihs_4664@ihs.com>
+2005-12-10  Kevin Rodgers  <ihs_4664@yahoo.com>
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Regenerate the
 	completion list, even after a partial completion has been

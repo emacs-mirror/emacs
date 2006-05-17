@@ -108,7 +108,7 @@ For a description of possible values, see `vc-check-master-templates'."
               (if (vc-workfile-unchanged-p file)
                   'up-to-date
                 'unlocked-changes)
-            (if (string= locking-user (vc-user-login-name))
+            (if (string= locking-user (vc-user-login-name file))
                 'edited
               locking-user)))
       'up-to-date)))

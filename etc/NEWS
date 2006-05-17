@@ -1372,9 +1372,10 @@ the next/previous matching line found by M-x occur.
 +++
 *** The new command `multi-occur' is just like `occur', except it can
 search multiple buffers.  There is also a new command
-`multi-occur-by-filename-regexp' which allows you to specify the
-buffers to search by their filename.  Internally, Occur mode has been
-rewritten, and now uses font-lock, among other changes.
+`multi-occur-in-matching-buffers' which allows you to specify the
+buffers to search by their filenames or buffer names.  Internally,
+Occur mode has been rewritten, and now uses font-lock, among other
+changes.
 
 ** Grep changes:
 
@@ -1461,8 +1462,8 @@ amount of text shown any more (only a crude approximation of it).
 ** Xterm support:
 
 ---
-*** Emacs now responds to mouse-clicks on the mode-line, header-line and
-display margin, when run in an xterm.
+*** If you enable Xterm Mouse mode, Emacs will respond to mouse clicks
+on the mode line, header line and display margin, when run in an xterm.
 
 ---
 *** Improved key bindings support when running in an xterm.
@@ -1504,6 +1505,17 @@ colors as on X.
 
 * New Modes and Packages in Emacs 22.1
 
+** ERC is now part of the Emacs distribution.
+
+ERC is a powerful, modular, and extensible IRC client for Emacs.
+
+To see what modules are available, type
+M-x customize-option erc-modules RET.
+
+To start an IRC session, type M-x erc-select, and follow the prompts
+for server, port, and nick.
+
+---
 ** Rcirc is now part of the Emacs distribution.
 
 Rcirc is an Internet relay chat (IRC) client.  It supports

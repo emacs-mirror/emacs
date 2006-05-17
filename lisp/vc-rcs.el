@@ -818,7 +818,7 @@ file."
             'needs-patch))
 	 ;; locked by the calling user
 	 ((and (stringp locking-user)
-	       (string= locking-user (vc-user-login-name)))
+	       (string= locking-user (vc-user-login-name file)))
 	  (if (or (eq (vc-checkout-model file) 'locking)
 		  workfile-is-latest
 		  (vc-rcs-latest-on-branch-p file workfile-version))
@@ -907,7 +907,8 @@ Returns: nil            if no headers were found
 	  (vc-file-setprop file 'vc-state
 			   (cond
 			    ((eq locking-user 'none) 'up-to-date)
-			    ((string= locking-user (vc-user-login-name)) 'edited)
+			    ((string= locking-user (vc-user-login-name file)) 
+                             'edited)
 			    (t locking-user)))
 	  ;; If the file has headers, we don't want to query the
 	  ;; master file, because that would eliminate all the

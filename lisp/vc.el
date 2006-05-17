@@ -2119,7 +2119,7 @@ There is a special command, `*l', to mark all files currently locked."
   (let ((state (vc-state file)))
     (cond
      ((stringp state) (concat "(" state ")"))
-     ((eq state 'edited) (concat "(" (vc-user-login-name) ")"))
+     ((eq state 'edited) (concat "(" (vc-user-login-name file) ")"))
      ((eq state 'needs-merge) "(merge)")
      ((eq state 'needs-patch) "(patch)")
      ((eq state 'unlocked-changes) "(stale)"))))
@@ -2852,6 +2852,8 @@ Uses `rcs2log' which only works for RCS and CVS."
 		   (expand-file-name "vc"
 				     (or small-temporary-file-directory
 					 temporary-file-directory))))
+        (login-name (or user-login-name
+                        (format "uid%d" (number-to-string (user-uid)))))
 	(full-name (or add-log-full-name
 		       (user-full-name)
 		       (user-login-name)
@@ -2874,7 +2876,7 @@ Uses `rcs2log' which only works for RCS and CVS."
                                                       exec-directory)
                                     nil (list t tempfile) nil
                                     "-c" changelog
-                                    "-u" (concat (vc-user-login-name)
+                                    "-u" (concat login-name
                                                  "\t" full-name
                                                  "\t" mailing-address)
                                     (mapcar

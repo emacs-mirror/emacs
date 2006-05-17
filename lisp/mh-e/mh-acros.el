@@ -1,4 +1,4 @@
-;;; mh-acros.el --- Macros used in MH-E
+;;; mh-acros.el --- macros used in MH-E
 
 ;; Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 
@@ -26,74 +26,88 @@
 
 ;;; Commentary:
 
-;; This file contains most, if not all, macros. It is so named with a
-;; silent "m" so that it is compiled first. Otherwise, "make
-;; recompile" in CVS Emacs may use compiled files with stale macro
-;; definitions.
+;; This file contains all macros that are used in more than one file.
+;; If you run "make recompile" in CVS Emacs and see the message
+;; "Source is newer than compiled," it is a sign that macro probably
+;; needs to be moved here.
 
-;; This file must always be included like this:
-;;
-;;   (eval-when-compile (require 'mh-acros))
+;; Historically, it was so named with a silent "m" so that it would be
+;; compiled first. Otherwise, "make recompile" in CVS Emacs would use
+;; compiled files with stale macro definitions. Later, no-byte-compile
+;; was added to the Local Variables section to avoid this problem and
+;; because it's pointless to compile a file full of macros. But we
+;; kept the name.
 
 ;;; Change Log:
 
 ;;; Code:
 
 (require 'cl)
-(require 'advice)
 
-;; The Emacs coding conventions require that the cl package not be required at
-;; runtime. However, the cl package in versions of Emacs prior to 21.4 left cl
-;; routines in their macro expansions. Use mh-require-cl to provide the cl
-;; routines in the best way possible.
+
+
+;;; Compatibility
+
+;;;###mh-autoload
 (defmacro mh-require-cl ()
   "Macro to load \"cl\" if needed.
-Some versions of \"cl\" produce code for the expansion of
-\(setf (gethash ...) ...) that uses functions in \"cl\" at run
-time. This macro recognizes that and loads \"cl\" where
-appropriate."
+
+Emacs coding conventions require that the \"cl\" package not be
+required at runtime. However, the \"cl\" package in Emacs 21.4
+and earlier left \"cl\" routines in their macro expansions. In
+particular, the expansion of (setf (gethash ...) ...) used
+functions in \"cl\" at run time. This macro recognizes that and
+loads \"cl\" appropriately."
   (if (eq (car (macroexpand '(setf (gethash foo bar) baz))) 'cl-puthash)
       `(require 'cl)
     `(eval-when-compile (require 'cl))))
 
-;; Macros to generate correct code for different emacs variants
-
+;;;###mh-autoload
 (defmacro mh-do-in-gnu-emacs (&rest body)
   "Execute BODY if in GNU Emacs."
   (unless (featurep 'xemacs) `(progn ,@body)))
 (put 'mh-do-in-gnu-emacs 'lisp-indent-hook 'defun)
 
+;;;###mh-autoload
 (defmacro mh-do-in-xemacs (&rest body)
-  "Execute BODY if in GNU Emacs."
+  "Execute BODY if in XEmacs."
   (when (featurep 'xemacs) `(progn ,@body)))
 (put 'mh-do-in-xemacs 'lisp-indent-hook 'defun)
 
+;;;###mh-autoload
 (defmacro mh-funcall-if-exists (function &rest args)
   "Call FUNCTION with ARGS as parameters if it exists."
   (when (fboundp function)
     `(when (fboundp ',function)
        (funcall ',function ,@args))))
 
-(defmacro mh-defun-compat (function arg-list &rest body)
-  "This is a macro to define functions which are not defined.
-It is used for functions which were added to Emacs recently.
-If FUNCTION is not defined then it is defined to have argument
-list, ARG-LIST and body, BODY."
+;;;###mh-autoload
+(defmacro mh-defun-compat (name function arg-list &rest body)
+  "Create function NAME.
+If FUNCTION exists, then NAME becomes an alias for FUNCTION.
+Otherwise, create function NAME with ARG-LIST and BODY."
   (let ((defined-p (fboundp function)))
-    (unless defined-p
-      `(defun ,function ,arg-list ,@body))))
+    (if defined-p
+        `(defalias ',name ',function)
+      `(defun ,name ,arg-list ,@body))))
 (put 'mh-defun-compat 'lisp-indent-function 'defun)
 
-(defmacro mh-defmacro-compat (function arg-list &rest body)
-  "This is a macro to define functions which are not defined.
-It is used for macros which were added to Emacs recently.
-If FUNCTION is not defined then it is defined to have argument
-list, ARG-LIST and body, BODY."
-  (let ((defined-p (fboundp function)))
-    (unless defined-p
-      `(defmacro ,function ,arg-list ,@body))))
+;;;###mh-autoload
+(defmacro mh-defmacro-compat (name macro arg-list &rest body)
+  "Create macro NAME.
+If MACRO exists, then NAME becomes an alias for MACRO.
+Otherwise, create macro NAME with ARG-LIST and BODY."
+  (let ((defined-p (fboundp macro)))
+    (if defined-p
+        `(defalias ',name ',macro)
+      `(defmacro ,name ,arg-list ,@body))))
 (put 'mh-defmacro-compat 'lisp-indent-function 'defun)
 
+
+
+;;; Miscellaneous
+
+;;;###mh-autoload
 (defmacro mh-make-local-hook (hook)
   "Make HOOK local if needed.
 XEmacs and versions of GNU Emacs before 21.1 require
@@ -102,6 +116,7 @@ XEmacs and versions of GNU Emacs before 21.1 require
              (not (get 'make-local-hook 'byte-obsolete-info)))
     `(make-local-hook ,hook)))
 
+;;;###mh-autoload
 (defmacro mh-mark-active-p (check-transient-mark-mode-flag)
   "A macro that expands into appropriate code in XEmacs and nil in GNU Emacs.
 In GNU Emacs if CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then
@@ -114,6 +129,10 @@ check if variable `transient-mark-mode' is active."
          `(and (boundp 'transient-mark-mode) transient-mark-mode
                (boundp 'mark-active) mark-active))))
 
+;; Shush compiler.
+(eval-when-compile (mh-do-in-xemacs (defvar struct) (defvar x) (defvar y)))
+
+;;;###mh-autoload
 (defmacro mh-defstruct (name-spec &rest fields)
   "Replacement for `defstruct' from the \"cl\" package.
 The `defstruct' in the \"cl\" library produces compiler warnings,
@@ -150,15 +169,145 @@ more details."
                           (list 'nth ,x z)))
        (quote ,struct-name))))
 
-(unless (fboundp 'assoc-string)
-  (defsubst assoc-string (key list case-fold)
-    "Like `assoc' but specifically for strings.
-Case is ignored if CASE-FOLD is non-nil.
-This function added by MH-E for Emacs versions that lack
-`assoc-string', introduced in Emacs 22."
-    (if case-fold
-        (assoc-ignore-case key list)
-      (assoc key list))))
+;;;###mh-autoload
+(defmacro with-mh-folder-updating (save-modification-flag &rest body)
+  "Format is (with-mh-folder-updating (SAVE-MODIFICATION-FLAG) &body BODY).
+Execute BODY, which can modify the folder buffer without having to
+worry about file locking or the read-only flag, and return its result.
+If SAVE-MODIFICATION-FLAG is non-nil, the buffer's modification flag
+is unchanged, otherwise it is cleared."
+  (setq save-modification-flag (car save-modification-flag)) ; CL style
+  `(prog1
+       (let ((mh-folder-updating-mod-flag (buffer-modified-p))
+             (buffer-read-only nil)
+             (buffer-file-name nil))    ;don't let the buffer get locked
+         (prog1
+             (progn
+               ,@body)
+           (mh-set-folder-modified-p mh-folder-updating-mod-flag)))
+     ,@(if (not save-modification-flag)
+           '((mh-set-folder-modified-p nil)))))
+(put 'with-mh-folder-updating 'lisp-indent-hook 'defun)
+
+;;;###mh-autoload
+(defmacro mh-in-show-buffer (show-buffer &rest body)
+  "Format is (mh-in-show-buffer (SHOW-BUFFER) &body BODY).
+Display buffer SHOW-BUFFER in other window and execute BODY in it.
+Stronger than `save-excursion', weaker than `save-window-excursion'."
+  (setq show-buffer (car show-buffer))  ; CL style
+  `(let ((mh-in-show-buffer-saved-window (selected-window)))
+     (switch-to-buffer-other-window ,show-buffer)
+     (if mh-bury-show-buffer-flag (bury-buffer (current-buffer)))
+     (unwind-protect
+         (progn
+           ,@body)
+       (select-window mh-in-show-buffer-saved-window))))
+(put 'mh-in-show-buffer 'lisp-indent-hook 'defun)
+
+;;;###mh-autoload
+(defmacro mh-do-at-event-location (event &rest body)
+  "Switch to the location of EVENT and execute BODY.
+After BODY has been executed return to original window. The
+modification flag of the buffer in the event window is
+preserved."
+  (let ((event-window (make-symbol "event-window"))
+        (event-position (make-symbol "event-position"))
+        (original-window (make-symbol "original-window"))
+        (original-position (make-symbol "original-position"))
+        (modified-flag (make-symbol "modified-flag")))
+    `(save-excursion
+       (let* ((,event-window
+               (or (mh-funcall-if-exists posn-window (event-start ,event))
+                   (mh-funcall-if-exists event-window ,event)))
+              (,event-position
+               (or (mh-funcall-if-exists posn-point (event-start ,event))
+                   (mh-funcall-if-exists event-closest-point ,event)))
+              (,original-window (selected-window))
+              (,original-position (progn
+                                   (set-buffer (window-buffer ,event-window))
+                                   (set-marker (make-marker) (point))))
+              (,modified-flag (buffer-modified-p))
+              (buffer-read-only nil))
+         (unwind-protect (progn
+                           (select-window ,event-window)
+                           (goto-char ,event-position)
+                           ,@body)
+           (set-buffer-modified-p ,modified-flag)
+           (goto-char ,original-position)
+           (set-marker ,original-position nil)
+           (select-window ,original-window))))))
+(put 'mh-do-at-event-location 'lisp-indent-hook 'defun)
+
+
+
+;;; Sequences and Ranges
+
+;;;###mh-autoload
+(defmacro mh-seq-msgs (sequence)
+  "Extract messages from the given SEQUENCE."
+  (list 'cdr sequence))
+
+;;;###mh-autoload
+(defmacro mh-iterate-on-messages-in-region (var begin end &rest body)
+  "Iterate over region.
+
+VAR is bound to the message on the current line as we loop
+starting from BEGIN till END. In each step BODY is executed.
+
+If VAR is nil then the loop is executed without any binding."
+  (unless (symbolp var)
+    (error "Can not bind the non-symbol %s" var))
+  (let ((binding-needed-flag var))
+    `(save-excursion
+       (goto-char ,begin)
+       (beginning-of-line)
+       (while (and (<= (point) ,end) (not (eobp)))
+         (when (looking-at mh-scan-valid-regexp)
+           (let ,(if binding-needed-flag `((,var (mh-get-msg-num t))) ())
+             ,@body))
+         (forward-line 1)))))
+(put 'mh-iterate-on-messages-in-region 'lisp-indent-hook 'defun)
+
+;;;###mh-autoload
+(defmacro mh-iterate-on-range (var range &rest body)
+  "Iterate an operation over a region or sequence.
+
+VAR is bound to each message in turn in a loop over RANGE, which
+can be a message number, a list of message numbers, a sequence, a
+region in a cons cell, or a MH range (something like last:20) in
+a string. In each iteration, BODY is executed.
+
+The parameter RANGE is usually created with
+`mh-interactive-range' in order to provide a uniform interface to
+MH-E functions."
+  (unless (symbolp var)
+    (error "Can not bind the non-symbol %s" var))
+  (let ((binding-needed-flag var)
+        (msgs (make-symbol "msgs"))
+        (seq-hash-table (make-symbol "seq-hash-table")))
+    `(cond ((numberp ,range)
+            (when (mh-goto-msg ,range t t)
+              (let ,(if binding-needed-flag `((,var ,range)) ())
+                ,@body)))
+           ((and (consp ,range)
+                 (numberp (car ,range)) (numberp (cdr ,range)))
+            (mh-iterate-on-messages-in-region ,var
+              (car ,range) (cdr ,range)
+              ,@body))
+           (t (let ((,msgs (cond ((and ,range (symbolp ,range))
+                                  (mh-seq-to-msgs ,range))
+                                 ((stringp ,range)
+                                  (mh-translate-range mh-current-folder
+                                                      ,range))
+                                 (t ,range)))
+                    (,seq-hash-table (make-hash-table)))
+                (dolist (msg ,msgs)
+                  (setf (gethash msg ,seq-hash-table) t))
+                (mh-iterate-on-messages-in-region v (point-min) (point-max)
+                  (when (gethash v ,seq-hash-table)
+                    (let ,(if binding-needed-flag `((,var v)) ())
+                      ,@body))))))))
+(put 'mh-iterate-on-range 'lisp-indent-hook 'defun)
 
 (provide 'mh-acros)
 

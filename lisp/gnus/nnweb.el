@@ -1,7 +1,7 @@
 ;;; nnweb.el --- retrieving articles via web search engines
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005 Free Software Foundation, Inc.
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -27,11 +27,8 @@
 
 ;; Note: You need to have `w3' installed for some functions to work.
 
-;; FIXME: Due to changes in the HTML output of Google Groups and Gmane, stuff
-;; related to web groups (gnus-group-make-web-group) doesn't work anymore.
-
-;; Fetching an article by MID (cf. gnus-refer-article-method) over Google
-;; Groups should work.
+;; FIXME: Due to changes in the HTML output of Gmane, stuff related to Gmane
+;; web groups (`gnus-group-make-web-group') doesn't work anymore.
 
 ;;; Code:
 
@@ -61,6 +58,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 (defvar nnweb-type-definition
   '((google
      (id . "http://www.google.com/groups?as_umsgid=%s&hl=en&dmode=source")
+     (result . "http://groups.google.com/group/%s/msg/%s?dmode=source")
      (article . nnweb-google-wash-article)
      (reference . identity)
      (map . nnweb-google-create-mapping)
@@ -69,8 +67,9 @@ Valid types include `google', `dejanews', and `gmane'.")
      (base    . "http://groups.google.com")
      (identifier . nnweb-google-identity))
     (dejanews ;; alias of google
-     (article . ignore)
-     (id . "http://groups.google.com/groups?selm=%s&output=gplain")
+     (id . "http://www.google.com/groups?as_umsgid=%s&hl=en&dmode=source")
+     (result . "http://groups.google.com/group/%s/msg/%s?dmode=source")
+     (article . nnweb-google-wash-article)
      (reference . identity)
      (map . nnweb-google-create-mapping)
      (search . nnweb-google-search)
@@ -100,7 +99,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (defvoo nnweb-articles nil)
 (defvoo nnweb-buffer nil)
-(defvoo nnweb-group-alist nil)
+(defvar nnweb-group-alist nil)
 (defvoo nnweb-group nil)
 (defvoo nnweb-hashtb nil)
 
@@ -123,25 +122,19 @@ Valid types include `google', `dejanews', and `gmane'.")
 (deffoo nnweb-request-scan (&optional group server)
   (nnweb-possibly-change-server group server)
   (if nnweb-ephemeral-p
-      (setq nnweb-hashtb (gnus-make-hashtable 4095)))
+      (setq nnweb-hashtb (gnus-make-hashtable 4095))
+    (unless nnweb-articles
+      (nnweb-read-overview group)))
   (funcall (nnweb-definition 'map))
   (unless nnweb-ephemeral-p
     (nnweb-write-active)
     (nnweb-write-overview group)))
 
 (deffoo nnweb-request-group (group &optional server dont-check)
-  (nnweb-possibly-change-server nil server)
-  (when (and group
-	     (not (equal group nnweb-group))
-	     (not nnweb-ephemeral-p))
-    (setq nnweb-group group
-	  nnweb-articles nil)
-    (let ((info (assoc group nnweb-group-alist)))
-      (when info
-	(setq nnweb-type (nth 2 info))
-	(setq nnweb-search (nth 3 info))
-	(unless dont-check
-	  (nnweb-read-overview group)))))
+  (nnweb-possibly-change-server group server)
+  (unless (or nnweb-ephemeral-p
+	      dont-check)
+    (nnweb-read-overview group))
   (cond
    ((not nnweb-articles)
     (nnheader-report 'nnweb "No matching articles"))
@@ -205,7 +198,7 @@ Valid types include `google', `dejanews', and `gmane'.")
   (nnweb-possibly-change-server nil server)
   (save-excursion
     (set-buffer nntp-server-buffer)
-    (nnmail-generate-active nnweb-group-alist)
+    (nnmail-generate-active (list (assoc server nnweb-group-alist)))
     t))
 
 (deffoo nnweb-request-update-info (group info &optional server)
@@ -217,7 +210,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 (deffoo nnweb-request-create-group (group &optional server args)
   (nnweb-possibly-change-server nil server)
   (nnweb-request-delete-group group)
-  (push `(,group ,(cons 1 0) ,@args) nnweb-group-alist)
+  (push `(,group ,(cons 1 0)) nnweb-group-alist)
   (nnweb-write-active)
   t)
 
@@ -287,18 +280,16 @@ Valid types include `google', `dejanews', and `gmane'.")
     def))
 
 (defun nnweb-possibly-change-server (&optional group server)
-  (nnweb-init server)
   (when server
     (unless (nnweb-server-opened server)
-      (nnweb-open-server server)))
+      (nnweb-open-server server))
+    (nnweb-init server))
   (unless nnweb-group-alist
     (nnweb-read-active))
   (unless nnweb-hashtb
     (setq nnweb-hashtb (gnus-make-hashtable 4095)))
   (when group
-    (when (and (not nnweb-ephemeral-p)
-	       (equal group nnweb-group))
-      (nnweb-request-group group nil t))))
+    (setq nnweb-group group)))
 
 (defun nnweb-init (server)
   "Initialize buffers and such."
@@ -337,22 +328,27 @@ Valid types include `google', `dejanews', and `gmane'.")
       (mm-url-decode-entities))))
 
 (defun nnweb-google-parse-1 (&optional Message-ID)
+  "Parse search result in current buffer."
   (let ((i 0)
 	(case-fold-search t)
 	(active (cadr (assoc nnweb-group nnweb-group-alist)))
 	Subject Score Date Newsgroups From
 	map url mid)
     (unless active
-      (push (list nnweb-group (setq active (cons 1 0))
-		  nnweb-type nnweb-search)
+      (push (list nnweb-group (setq active (cons 1 0)))
 	    nnweb-group-alist))
     ;; Go through all the article hits on this page.
     (goto-char (point-min))
-    (while (re-search-forward
-	    "a href=/groups\\(\\?[^ \">]*selm=\\([^ &\">]+\\)\\)" nil t)
-      (setq mid (match-string 2)
+    (while
+	(re-search-forward
+	 "a +href=\"/group/\\([^>\"]+\\)/browse_thread/[^>]+#\\([0-9a-f]+\\)"
+	 nil t)
+      (setq Newsgroups (match-string-no-properties 1)
+	    ;; Note: Starting with Google Groups 2, `mid' is a Google-internal
+	    ;; ID, not a proper Message-ID.
+	    mid (match-string-no-properties 2)
 	    url (format
-		 (nnweb-definition 'id) mid))
+		 (nnweb-definition 'result) Newsgroups mid))
       (narrow-to-region (search-forward ">" nil t)
 			(search-forward "</a>" nil t))
       (mm-url-remove-markup)
@@ -360,25 +356,22 @@ Valid types include `google', `dejanews', and `gmane'.")
       (setq Subject (buffer-string))
       (goto-char (point-max))
       (widen)
-      (forward-line 2)
-      (when (looking-at "<br><font[^>]+>")
-	(goto-char (match-end 0)))
-      (if (not (looking-at "<a[^>]+>"))
-	  (skip-chars-forward " \t")
-	(narrow-to-region (point)
-			  (search-forward "</a>" nil t))
-	(mm-url-remove-markup)
-	(mm-url-decode-entities)
-	(setq Newsgroups (buffer-string))
-	(goto-char (point-max))
-	(widen)
-	(skip-chars-forward "- \t"))
+      (narrow-to-region (point)
+			(search-forward "</td" nil t))
+
+      (mm-url-remove-markup)
+      (mm-url-decode-entities)
+      (search-backward " - ")
       (when (looking-at
-	     "\\([0-9]+\\)[/ ]\\([A-Za-z]+\\)[/ ]\\([0-9]+\\)[ \t]*by[ \t]*\\([^<]*\\) - <a")
+	     " - \\([a-zA-Z]+\\) \\([0-9]+\\)\\(?: \\([0-9]\\{4\\}\\)\\)?, [^\n]+by \\([^<\n]+\\)\n")
 	(setq From (match-string 4)
 	      Date (format "%s %s 00:00:00 %s"
-			   (match-string 2) (match-string 1)
-			   (match-string 3))))
+			   (match-string 1)
+			   (match-string 2)
+			   (or (match-string 3)
+			       (substring (current-time-string) -4)))))
+
+      (widen)
       (forward-line 1)
       (incf i)
       (unless (nnweb-get-hashtb url)
@@ -419,7 +412,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	    (goto-char (point-min))
 	    (incf i 100)
 	    (if (or (not (re-search-forward
-			  "<td nowrap><a href=\\([^>]+\\).*<span class=b>Next</span>" nil t))
+			  "<td><a href=\"\n\\([^>\"]+\\)\"><img src=\"/img/nav_next" nil t))
 		    (>= i nnweb-max-hits))
 		(setq more nil)
 	      ;; Yup, there are more articles
@@ -443,7 +436,8 @@ Valid types include `google', `dejanews', and `gmane'.")
        ("hl" . "en")
        ("lr" . "")
        ("safe" . "off")
-       ("sites" . "groups")))))
+       ("sites" . "groups")
+       ("filter" . "0")))))
   t)
 
 (defun nnweb-google-identity (url)

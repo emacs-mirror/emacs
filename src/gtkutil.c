@@ -3359,9 +3359,7 @@ xg_tool_bar_help_callback (w, event, client_data)
   Lisp_Object help, frame;
 
   if (! GTK_IS_BUTTON (w))
-    {
-      return FALSE;
-    }
+    return FALSE;
 
   if (! f || ! f->n_tool_bar_items || NILP (f->tool_bar_items))
     return FALSE;
@@ -3596,54 +3594,56 @@ update_frame_tool_bar (f)
       if (! wicon)
         {
           GtkWidget *w = xg_get_image_for_pixmap (f, img, x->widget, NULL);
+          GtkToolItem *ti = gtk_tool_button_new (w, "");
 
           gtk_misc_set_padding (GTK_MISC (w), hmargin, vmargin);
 
+          gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget),
+                              ti,
+                              i);
           /* The EMACS_INT cast avoids a warning. */
-          gtk_toolbar_append_item (GTK_TOOLBAR (x->toolbar_widget),
-                                   0, 0, 0,
-                                   w,
-                                   GTK_SIGNAL_FUNC (xg_tool_bar_callback),
-                                   (gpointer) (EMACS_INT) i);
+          g_signal_connect (GTK_WIDGET (ti), "clicked",
+                            GTK_SIGNAL_FUNC (xg_tool_bar_callback),
+                            (gpointer) (EMACS_INT) i);
+
+          gtk_widget_show (GTK_WIDGET (ti));
+          gtk_widget_show (GTK_WIDGET (w));
 
           /* Save the image so we can see if an update is needed when
              this function is called again.  */
           g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
                              (gpointer)img->pixmap);
 
+          g_object_set_data (G_OBJECT (ti), XG_FRAME_DATA, (gpointer)f);
+
           /* Catch expose events to overcome an annoying redraw bug, see
              comment for xg_tool_bar_item_expose_callback.  */
-          g_signal_connect (G_OBJECT (w),
+          g_signal_connect (G_OBJECT (ti),
                             "expose-event",
                             G_CALLBACK (xg_tool_bar_item_expose_callback),
                             0);
 
-          /* We must set sensitive on the button that is the parent
-             of the GtkImage parent.  Go upwards until we find the button.  */
+          gtk_widget_set_sensitive (GTK_WIDGET (ti), enabled_p);
+          gtk_tool_item_set_homogeneous (GTK_TOOL_ITEM (ti), FALSE);
+          
           while (! GTK_IS_BUTTON (w))
             w = gtk_widget_get_parent (w);
 
-          if (w)
-            {
-              /* Save the frame in the button so the xg_tool_bar_callback
-                 can get at it.  */
-              g_object_set_data (G_OBJECT (w), XG_FRAME_DATA, (gpointer)f);
-              gtk_widget_set_sensitive (w, enabled_p);
+          g_object_set_data (G_OBJECT (w), XG_FRAME_DATA, (gpointer)f);
 
-              /* Use enter/leave notify to show help.  We use the events
-                 rather than the GtkButton specific signals "enter" and
-                 "leave", so we can have only one callback.  The event
-                 will tell us what kind of event it is.  */
-              /* The EMACS_INT cast avoids a warning. */
-              g_signal_connect (G_OBJECT (w),
-                                "enter-notify-event",
-                                G_CALLBACK (xg_tool_bar_help_callback),
-                                (gpointer) (EMACS_INT) i);
-              g_signal_connect (G_OBJECT (w),
-                                "leave-notify-event",
-                                G_CALLBACK (xg_tool_bar_help_callback),
-                                (gpointer) (EMACS_INT) i);
-            }
+          /* Use enter/leave notify to show help.  We use the events
+             rather than the GtkButton specific signals "enter" and
+             "leave", so we can have only one callback.  The event
+             will tell us what kind of event it is.  */
+          /* The EMACS_INT cast avoids a warning. */
+          g_signal_connect (G_OBJECT (w),
+                            "enter-notify-event",
+                            G_CALLBACK (xg_tool_bar_help_callback),
+                            (gpointer) (EMACS_INT) i);
+          g_signal_connect (G_OBJECT (w),
+                            "leave-notify-event",
+                            G_CALLBACK (xg_tool_bar_help_callback),
+                            (gpointer) (EMACS_INT) i);
         }
       else
         {

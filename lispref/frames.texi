@@ -466,10 +466,10 @@ frame, or control their sizes.
 
 @table @code
 @item border-width
-The width in pixels of the window border.
+The width in pixels of the frame's border.
 
 @item internal-border-width
-The distance in pixels between text and border.
+The distance in pixels between text and the frame's border.
 
 @item vertical-scroll-bars
 Whether the frame has scroll bars for vertical scrolling, and which side

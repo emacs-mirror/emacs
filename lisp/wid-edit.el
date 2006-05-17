@@ -850,11 +850,14 @@ button end points."
 ;;; Keymap and Commands.
 
 ;;;###autoload
+(defalias 'advertised-widget-backward 'widget-backward)
+
+;;;###autoload
 (defvar widget-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map "\t" 'widget-forward)
     (define-key map "\e\t" 'widget-backward)
-    (define-key map [(shift tab)] 'widget-backward)
+    (define-key map [(shift tab)] 'advertised-widget-backward)
     (define-key map [backtab] 'widget-backward)
     (define-key map [down-mouse-2] 'widget-button-click)
     (define-key map "\C-m" 'widget-button-press)

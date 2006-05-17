@@ -6,42 +6,45 @@
 @chapter The Organization of the Screen
 @cindex screen
 @cindex parts of the screen
-@c
 
-  On a text-only terminal, the Emacs display occupies the whole screen.
-On the X Window System, Emacs creates its own X windows to use.  We use
-the term @dfn{frame} to mean an entire text-only screen or an entire X
-window used by Emacs.  Emacs uses both kinds of frames in the same way
-to display your editing.  Emacs normally starts out with just one frame,
-but you can create additional frames if you wish.  @xref{Frames}.
+  On a text-only terminal, the Emacs display occupies the whole
+screen.  On a graphical display, such as on GNU/Linux using the X
+Window System, Emacs creates its own windows to use.  We use the term
+@dfn{frame} to mean the entire text-only screen or an entire
+system-level window used by Emacs.  Emacs uses both kinds of frames,
+in the same way, to display your editing.  Emacs normally starts out
+with just one frame, but you can create additional frames if you wish.
+@xref{Frames}.
 
-  When you start Emacs, the entire frame except for the top and bottom
-is devoted to the text you are editing.  This area is called the
-@dfn{window}.  At the top there is normally a @dfn{menu bar} where you
-can access a series of menus; then there may be a @dfn{tool bar}, a
-row of icons that perform editing commands if you click on them.
-Below this, the window begins.  The last line is a special @dfn{echo
-area} or @dfn{minibuffer window}, where prompts appear and where you
-enter information when Emacs asks for it.  See below for more
-information about these special lines.
+  When you start Emacs, the main central area of the frame, all except
+for the top and bottom and sides, displays the text you are editing.
+This area is called @dfn{the window}.  At the top there is normally a
+@dfn{menu bar} where you can access a series of menus; then there may
+be a @dfn{tool bar}, a row of icons that perform editing commands if
+you click on them.  Below this, the window begins, often with a
+@dfn{scroll bar} on one side.  Below the window comes the last line of
+the frame, a special @dfn{echo area} or @dfn{minibuffer window}, where
+prompts appear and where you enter information when Emacs asks for it.
+See following sections for more information about these special lines.
 
-  You can subdivide the large text window horizontally or vertically
-into multiple text windows, each of which can be used for a different
-file (@pxref{Windows}).  In this manual, the word ``window'' always
-refers to the subdivisions of a frame within Emacs.
+  You can subdivide the window horizontally or vertically to make
+multiple text windows, each of which can independently display some
+file or text (@pxref{Windows}).  In this manual, the word ``window''
+refers to the initial large window if not subdivided, or any one of
+the multiple windows you have subdivided it into.
 
   At any time, one window is the @dfn{selected window}.  On graphical
 terminals, the selected window normally shows a more prominent cursor
-(solid and blinking) while other windows show a weaker cursor (such as
-a hollow box).  On text terminals, which have just one cursor, that cursor
-appears in the selected window.
+(usually solid and blinking) while other windows show a weaker cursor
+(such as a hollow box).  On text terminals, which have just one
+cursor, that cursor always appears in the selected window.
 
   Most Emacs commands implicitly apply to the text in the selected
 window (though mouse commands generally operate on whatever window you
-click them in, whether selected or not).  The other windows display
-text for reference only, unless/until you select them.  If you use
-multiple frames under the X Window System, then giving the input focus
-to a particular frame selects a window in that frame.
+click them in, whether selected or not).  The text in other windows is
+mostly visible for reference, unless/until you select them.  If you
+use multiple frames on a graphical display, then giving the input
+focus to a particular frame selects a window in that frame.
 
   Each window's last line is a @dfn{mode line}, which describes what
 is going on in that window.  It appears in different color and/or a
@@ -67,9 +70,9 @@ whether the buffer contains unsaved changes.
 editing commands will take effect.  This location is called @dfn{point}.
 Many Emacs commands move point through the text, so that you can edit at
 different places in it.  You can also place point by clicking mouse
-button 1.
+button 1 (normally the left button).
 
-  While the cursor appears to point @emph{at} a character, you should
+  While the cursor appears to be @emph{on} a character, you should
 think of point as @emph{between} two characters; it points @emph{before}
 the character that appears under the cursor.  For example, if your text
 looks like @samp{frob} with the cursor over the @samp{b}, then point is
@@ -112,7 +115,6 @@ for accessing the value now called ``point.''
 @node Echo Area
 @section The Echo Area
 @cindex echo area
-@c
 
   The line at the bottom of the frame (below the mode line) is the
 @dfn{echo area}.  It is used to display small amounts of text for
@@ -133,10 +135,10 @@ feedback.  You can change this behavior by setting a variable
 (@pxref{Display Custom}).
 
 @cindex error message in the echo area
-  If a command cannot be executed, it may display an @dfn{error message}
-in the echo area.  Error messages are accompanied by beeping or by
-flashing the screen.  The error also discards any input you have typed
-ahead.
+  If a command cannot do its job, it may display an @dfn{error
+message} in the echo area.  Error messages are accompanied by beeping
+or by flashing the screen.  The error also discards any input you have
+typed ahead.
 
   Some commands display informative messages in the echo area.  These
 messages look much like error messages, but they are not announced
@@ -149,7 +151,8 @@ to show you a message giving you specific information---for example,
 character position of point in the text and its current column in the
 window.  Commands that take a long time often display messages ending
 in @samp{...} while they are working, and add @samp{done} at the end
-when they are finished.
+when they are finished.  They may also indicate progress with
+percentages.
 
 @cindex @samp{*Messages*} buffer
 @cindex saved echo area messages
@@ -182,19 +185,19 @@ minibuffer by typing @kbd{C-g}.  @xref{Minibuffer}.
 @c
 
   Each text window's last line is a @dfn{mode line}, which describes
-what is going on in that window.  When there is only one text window,
-the mode line appears right above the echo area; it is the
-next-to-last line in the frame.  The mode line starts and ends with
-dashes.  On a text-mode display, the mode line is in inverse video if
-the terminal supports that; on a graphics display, the mode line has a
-3D box appearance to help it stand out.  The mode line of the
-selected window has a slightly different appearance than those of
-other windows; see @ref{Optional Mode Line}, for more about this.
+what is going on in that window.  The mode line starts and ends with
+dashes.  When there is only one text window, the mode line appears
+right above the echo area; it is the next-to-last line in the frame.
+On a text-mode display, the mode line is in inverse video if the
+terminal supports that; on a graphics display, the mode line has a 3D
+box appearance to help it stand out.  The mode line of the selected
+window has a slightly different appearance than those of other
+windows; see @ref{Optional Mode Line}, for more about this.
 
   Normally, the mode line looks like this:
 
 @example
--@var{cs}:@var{ch}  @var{buf}      @var{pos} @var{line}   (@var{major} @var{minor})------
+-@var{cs}:@var{ch}-@var{fr}  @var{buf}      @var{pos} @var{line}   (@var{major} @var{minor})------
 @end example
 
 @noindent
@@ -208,13 +211,16 @@ been edited (the buffer is ``modified''), or @samp{--} if the buffer has
 not been edited.  For a read-only buffer, it is @samp{%*} if the buffer
 is modified, and @samp{%%} otherwise.
 
+  @var{fr} appears only on text-only terminals, to show the selected
+frame name.  @xref{Frames}.  The initial frame's name is @samp{F1}.
+
   @var{buf} is the name of the window's @dfn{buffer}.  In most cases
 this is the same as the name of a file you are editing.  @xref{Buffers}.
 
   The buffer displayed in the selected window (the window that the
-cursor is in) is also Emacs's current buffer, the one that editing
-takes place in.  When we speak of what some command does to ``the
-buffer,'' we are talking about the current buffer.
+cursor is in) is the @dfn{current buffer}--the one that editing takes
+place in.  When we speak of what some command does to ``the buffer,''
+we mean it does those things to the current buffer.
 
   @var{pos} tells you whether there is additional text above the top of
 the window, or below the bottom.  If your buffer is small and it is all
@@ -243,13 +249,13 @@ name.  For example, Rmail buffers display the current message number and
 the total number of messages.  Compilation buffers and Shell buffers
 display the status of the subprocess.
 
-  @var{minor} is a list of some of the @dfn{minor modes} that are turned
-on at the moment in the window's chosen buffer.  For example,
+  @var{minor} is a list of some of the @dfn{minor modes} that are
+turned on at the moment in the window's chosen buffer.  For example,
 @samp{Fill} means that Auto Fill mode is on.  @samp{Abbrev} means that
 Word Abbrev mode is on.  @samp{Ovwrt} means that Overwrite mode is on.
-@xref{Minor Modes}, for more information.  @samp{Narrow} means that the
-buffer being displayed has editing restricted to only a portion of its
-text.  This is not really a minor mode, but is like one.
+@xref{Minor Modes}, for more information.  @samp{Narrow} means that
+the buffer being displayed has editing restricted to only a portion of
+its text.  (This is not really a minor mode, but is like one.)
 @xref{Narrowing}.  @samp{Def} means that a keyboard macro is being
 defined.  @xref{Keyboard Macros}.
 
@@ -261,26 +267,22 @@ editing levels affect Emacs globally, not just one buffer, the square
 brackets appear in every window's mode line or not in any of them.
 @xref{Recursive Edit}.@refill
 
-  Non-windowing terminals can only show a single Emacs frame at a time
-(@pxref{Frames}).  On such terminals, the mode line displays the name of
-the selected frame, after @var{ch}.  The initial frame's name is
-@samp{F1}.
-
   @var{cs} states the coding system used for the file you are editing.
 A dash indicates the default state of affairs: no code conversion,
 except for end-of-line translation if the file contents call for that.
 @samp{=} means no conversion whatsoever.  Nontrivial code conversions
 are represented by various letters---for example, @samp{1} refers to ISO
-Latin-1.  @xref{Coding Systems}, for more information.  If you are using
-an input method, a string of the form @samp{@var{i}>} is added to the
-beginning of @var{cs}; @var{i} identifies the input method.  (Some input
-methods show @samp{+} or @samp{@@} instead of @samp{>}.)  @xref{Input
-Methods}.
+Latin-1.  @xref{Coding Systems}, for more information.
 
-  When you are using a character-only terminal (not a window system),
-@var{cs} uses three characters to describe, respectively, the coding
-system for keyboard input, the coding system for terminal output, and
-the coding system used for the file you are editing.
+  On a text-only terminal, @var{cs} includes two additional characters
+which describe the coding system for keyboard input and the coding
+system for terminal output.  They come right before the coding system
+used for the file you are editing.
+
+  If you are using an input method, a string of the form
+@samp{@var{i}>} is added to the beginning of @var{cs}; @var{i}
+identifies the input method.  (Some input methods show @samp{+} or
+@samp{@@} instead of @samp{>}.)  @xref{Input Methods}.
 
   When multibyte characters are not enabled, @var{cs} does not appear at
 all.  @xref{Enabling Multibyte}.
@@ -298,22 +300,12 @@ carriage-return, the colon indicator changes to either a forward slash
 @samp{(Unix)} instead of the colon even for files that use newline to
 separate lines.
 
-@vindex eol-mnemonic-unix
-@vindex eol-mnemonic-dos
-@vindex eol-mnemonic-mac
-@vindex eol-mnemonic-undecided
-  You can customize the mode line display for each of the end-of-line
-formats by setting each of the variables @code{eol-mnemonic-unix},
-@code{eol-mnemonic-dos}, @code{eol-mnemonic-mac}, and
-@code{eol-mnemonic-undecided} to any string you find appropriate.
-@xref{Variables}, for an explanation of how to set variables.
-
   @xref{Optional Mode Line}, for features that add other handy
 information to the mode line, such as the size of the buffer, the
-current column number of point, the current time, and whether new mail
-for you has arrived.
+current column number of point, and whether new mail for you has
+arrived.
 
-The mode line is mouse-sensitive; when you move the mouse across
+  The mode line is mouse-sensitive; when you move the mouse across
 various parts of it, Emacs displays help text to say what a click in
 that place will do.  @xref{Mode Line Mouse}.
 
@@ -328,11 +320,11 @@ them here, as you can more easily see for yourself.
 @kindex M-`
 @kindex F10
 @findex tmm-menubar
-  When you are using a window system, you can use the mouse to choose a
-command from the menu bar.  An arrow pointing right, after the menu
-item, indicates that the item leads to a subsidiary menu; @samp{...} at
-the end means that the command will read arguments (further input from you)
-before it actually does anything.
+  On a graphical terminal, you can use the mouse to choose a command
+from the menu bar.  An arrow pointing right, after the menu item,
+indicates that the item leads to a subsidiary menu; @samp{...} at the
+end means that the command will read arguments (further input from
+you) before it actually does anything.
 
   To view the full command name and documentation for a menu item, type
 @kbd{C-h k}, and then select the menu bar with the mouse in the usual

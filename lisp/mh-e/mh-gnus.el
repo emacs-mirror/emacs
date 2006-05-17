@@ -1,4 +1,4 @@
-;;; mh-gnus.el --- Make MH-E compatible with installed version of Gnus.
+;;; mh-gnus.el --- make MH-E compatible with various versions of Gnus
 
 ;; Copyright (C) 2003, 2004, 2006 Free Software Foundation, Inc.
 
@@ -30,72 +30,70 @@
 
 ;;; Code:
 
-;;(message "> mh-gnus")
-(eval-when-compile (require 'mh-acros))
-;;(message "< mh-gnus")
+(require 'mh-e)
 
-;; Load libraries in a non-fatal way in order to see if certain functions are
-;; pre-defined.
-(load "mailabbrev" t t)
-(load "mailcap" t t)
-(load "mm-decode" t t)
-(load "mm-uu" t t)
-(load "mml" t t)
-(load "smiley" t t)
+(require 'gnus-util nil t)
+(require 'mm-bodies nil t)
+(require 'mm-decode nil t)
+(require 'mm-view nil t)
+(require 'mml nil t)
 
 ;; Copy of function from gnus-util.el.
-(mh-defun-compat gnus-local-map-property (map)
+(mh-defun-compat mh-gnus-local-map-property gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
   (cond (mh-xemacs-flag (list 'keymap map))
         ((>= emacs-major-version 21) (list 'keymap map))
         (t (list 'local-map map))))
 
 ;; Copy of function from mm-decode.el.
-(mh-defun-compat mm-merge-handles (handles1 handles2)
+(mh-defun-compat mh-mm-merge-handles mm-merge-handles (handles1 handles2)
   (append (if (listp (car handles1)) handles1 (list handles1))
           (if (listp (car handles2)) handles2 (list handles2))))
 
 ;; Copy of function from mm-decode.el.
-(mh-defun-compat mm-set-handle-multipart-parameter (handle parameter value)
+(mh-defun-compat mh-mm-set-handle-multipart-parameter
+  mm-set-handle-multipart-parameter (handle parameter value)
   ;; HANDLE could be a CTL.
   (if handle
       (put-text-property 0 (length (car handle)) parameter value
                          (car handle))))
 
 ;; Copy of function from mm-view.el.
-(mh-defun-compat mm-inline-text-vcard (handle)
+(mh-defun-compat mh-mm-inline-text-vcard mm-inline-text-vcard (handle)
   (let (buffer-read-only)
     (mm-insert-inline
      handle
      (concat "\n-- \n"
-	     (ignore-errors
-	       (if (fboundp 'vcard-pretty-print)
-		   (vcard-pretty-print (mm-get-part handle))
-		 (vcard-format-string
-		  (vcard-parse-string (mm-get-part handle)
-				      'vcard-standard-filter))))))))
+             (ignore-errors
+               (if (fboundp 'vcard-pretty-print)
+                   (vcard-pretty-print (mm-get-part handle))
+                 (vcard-format-string
+                  (vcard-parse-string (mm-get-part handle)
+                                      'vcard-standard-filter))))))))
 
 ;; Function from mm-decode.el used in PGP messages. Just define it with older
 ;; Gnus to avoid compiler warning.
-(mh-defun-compat mm-possibly-verify-or-decrypt (parts ctl)
+(mh-defun-compat mh-mm-possibly-verify-or-decrypt
+  mm-possibly-verify-or-decrypt (parts ctl)
   nil)
 
 ;; Copy of macro in mm-decode.el.
-(mh-defmacro-compat mm-handle-multipart-ctl-parameter (handle parameter)
+(mh-defmacro-compat mh-mm-handle-multipart-ctl-parameter
+  mm-handle-multipart-ctl-parameter (handle parameter)
   `(get-text-property 0 ,parameter (car ,handle)))
 
 ;; Copy of function in mm-decode.el.
-(mh-defun-compat mm-readable-p (handle)
+(mh-defun-compat mh-mm-readable-p mm-readable-p (handle)
   "Say whether the content of HANDLE is readable."
   (and (< (with-current-buffer (mm-handle-buffer handle)
             (buffer-size)) 10000)
        (mm-with-unibyte-buffer
          (mm-insert-part handle)
          (and (eq (mm-body-7-or-8) '7bit)
-              (not (mm-long-lines-p 76))))))
+              (not (mh-mm-long-lines-p 76))))))
 
 ;; Copy of function in mm-bodies.el.
-(mh-defun-compat mm-long-lines-p (length)
+(mh-defun-compat mh-mm-long-lines-p mm-long-lines-p (length)
   "Say whether any of the lines in the buffer is longer than LENGTH."
   (save-excursion
     (goto-char (point-min))
@@ -107,17 +105,22 @@
     (and (> (current-column) length)
          (current-column))))
 
-(mh-defun-compat mm-keep-viewer-alive-p (handle)
+(mh-defun-compat mh-mm-keep-viewer-alive-p mm-keep-viewer-alive-p (handle)
   ;; Released Gnus doesn't keep handles associated with externally displayed
   ;; MIME parts. So this will always return nil.
   nil)
 
-(mh-defun-compat mm-destroy-parts (list)
+(mh-defun-compat mh-mm-destroy-parts mm-destroy-parts (list)
   "Older versions of Emacs don't have this function."
   nil)
 
+(mh-defun-compat mh-mm-uu-dissect-text-parts mm-uu-dissect-text-parts (handles)
+  "Emacs 21 and XEmacs don't have this function."
+  nil)
+
 ;; Copy of function in mml.el.
-(mh-defun-compat mml-minibuffer-read-disposition (type &optional default)
+(mh-defun-compat mh-mml-minibuffer-read-disposition
+  mml-minibuffer-read-disposition (type &optional default)
   (unless default (setq default
                         (if (and (string-match "\\`text/" type)
                                  (not (string-match "\\`text/rtf\\'" type)))
@@ -128,7 +131,7 @@
                       '(("attachment") ("inline") (""))
                       nil t nil nil default)))
     (if (not (equal disposition ""))
-	disposition
+        disposition
       default)))
 
 ;; This is mm-save-part from Gnus 5.10 since that function in emacs21.2 is
@@ -157,11 +160,6 @@
   "Find the renderer Gnus is using to display text/html MIME parts."
   (or (and (boundp 'mm-inline-text-html-renderer) mm-inline-text-html-renderer)
       (and (boundp 'mm-text-html-renderer) mm-text-html-renderer)))
-
-(defun mh-mail-abbrev-make-syntax-table ()
-  "Call `mail-abbrev-make-syntax-table' if available."
-  (when (fboundp 'mail-abbrev-make-syntax-table)
-    (mail-abbrev-make-syntax-table)))
 
 (provide 'mh-gnus)
 

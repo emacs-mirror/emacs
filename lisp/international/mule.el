@@ -317,14 +317,16 @@ Return nil if such a character is not supported.
 Currently the only supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set), and the result is
 translated through the translation-table named
-`utf-translation-table-for-decode' or the translation-hash-table named
-`utf-subst-table-for-decode'.
+`utf-translation-table-for-decode', or through the
+translation-hash-table named `utf-subst-table-for-decode'
+\(if `utf-translate-cjk-mode' is non-nil).
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a character.  Currently not supported and just ignored."
   (cond
    ((eq ccs 'ucs)
-    (or (utf-lookup-subst-table-for-decode code-point)
+    (or (and utf-translate-cjk-mode
+	     (utf-lookup-subst-table-for-decode code-point))
 	(let ((c (cond
 		  ((< code-point 160)
 		   code-point)
@@ -354,8 +356,9 @@ Return nil if CHAR is not included in CCS.
 Currently the only supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set), and CHAR is first
 translated through the translation-table named
-`utf-translation-table-for-encode' or the translation-hash-table named
-`utf-subst-table-for-encode'.
+`utf-translation-table-for-encode', or through the
+translation-hash-table named `utf-subst-table-for-encode' \(if
+`utf-translate-cjk-mode' is non-nil).
 
 CHAR should be in one of these charsets:
   ascii, latin-iso8859-1, mule-unicode-0100-24ff, mule-unicode-2500-33ff,
@@ -368,7 +371,8 @@ code-point in CCS.  Currently not supported and just ignored."
 	 (charset (car split))
 	 trans)
     (cond ((eq ccs 'ucs)
-	   (or (utf-lookup-subst-table-for-encode char)
+	   (or (and utf-translate-cjk-mode
+		    (utf-lookup-subst-table-for-encode char))
 	       (let ((table (get 'utf-translation-table-for-encode
 				 'translation-table)))
 		 (setq trans (aref table char))

@@ -297,24 +297,24 @@ then the smallest tree containing that window is returned."
 
 ;;; Window or object edges
 
-(defun bw-l(obj)
+(defun bw-l (obj)
   "Left edge of OBJ."
   (if (windowp obj) (nth 0 (window-edges obj)) (cdr (assq 'l obj))))
-(defun bw-t(obj)
+(defun bw-t (obj)
   "Top edge of OBJ."
   (if (windowp obj) (nth 1 (window-edges obj)) (cdr (assq 't obj))))
-(defun bw-r(obj)
+(defun bw-r (obj)
   "Right edge of OBJ."
   (if (windowp obj) (nth 2 (window-edges obj)) (cdr (assq 'r obj))))
-(defun bw-b(obj)
+(defun bw-b (obj)
   "Bottom edge of OBJ."
   (if (windowp obj) (nth 3 (window-edges obj)) (cdr (assq 'b obj))))
 
 ;;; Split directions
 
-(defun bw-dir(obj)
+(defun bw-dir (obj)
   "Return window split tree direction if OBJ.
-If OBJ is a window return 'both. If it is a window split tree
+If OBJ is a window return 'both.  If it is a window split tree
 then return its direction."
   (if (symbolp obj)
       obj
@@ -325,10 +325,10 @@ then return its direction."
           (error "Can't find dir in %s" obj))
         dir))))
 
-(defun bw-eqdir(obj1 obj2)
+(defun bw-eqdir (obj1 obj2)
   "Return t if window split tree directions are equal.
 OBJ1 and OBJ2 should be either windows or window split trees in
-our format. The directions returned by `bw-dir' are compared and
+our format.  The directions returned by `bw-dir' are compared and
 t is returned if they are `eq' or one of them is 'both."
   (let ((dir1 (bw-dir obj1))
         (dir2 (bw-dir obj2)))
@@ -338,7 +338,7 @@ t is returned if they are `eq' or one of them is 'both."
 
 ;;; Building split tree
 
-(defun bw-refresh-edges(obj)
+(defun bw-refresh-edges (obj)
   "Refresh the edge information of OBJ and return OBJ."
   (unless (windowp obj)
     (let ((childs (cdr (assq 'childs obj)))
@@ -364,12 +364,12 @@ t is returned if they are `eq' or one of them is 'both."
 
 ;;; Balance windows
 
-(defun balance-windows(&optional window-or-frame)
+(defun balance-windows (&optional window-or-frame)
   "Make windows the same heights or widths in window split subtrees.
 
 When called non-interactively WINDOW-OR-FRAME may be either a
-window or a frame. It then balances the windows on the implied
-frame. If the parameter is a window only the corresponding window
+window or a frame.  It then balances the windows on the implied
+frame.  If the parameter is a window only the corresponding window
 subtree is balanced."
   (interactive)
   (let (
@@ -383,7 +383,7 @@ subtree is balanced."
     (when wt
       (while (not (member last-sizes tried-sizes))
         (when last-sizes (setq tried-sizes (cons last-sizes tried-sizes)))
-        (setq last-sizes (mapcar (lambda(w)
+        (setq last-sizes (mapcar (lambda (w)
                                    (window-edges w))
                                  windows))
         (when (eq 'hor (bw-dir wt))
@@ -392,7 +392,7 @@ subtree is balanced."
           (setq h (- (bw-b wt) (bw-t wt))))
         (bw-balance-sub wt w h)))))
 
-(defun bw-adjust-window(window delta horizontal)
+(defun bw-adjust-window (window delta horizontal)
   "Wrapper around `adjust-window-trailing-edge' with error checking.
 Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
   (condition-case err
@@ -401,7 +401,7 @@ Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
      ;;(message "adjust: %s" (error-message-string err))
      )))
 
-(defun bw-balance-sub(wt w h)
+(defun bw-balance-sub (wt w h)
   (setq wt (bw-refresh-edges wt))
   (unless w (setq w (- (bw-r wt) (bw-l wt))))
   (unless h (setq h (- (bw-b wt) (bw-t wt))))
@@ -434,7 +434,7 @@ This is convenient on slow terminals, but point can move strangely.
 
 This option applies only to `split-window-vertically' and
 functions that call it.  `split-window' always keeps the original
-point in both children,"
+point in both children."
   :type 'boolean
   :group 'windows)
 

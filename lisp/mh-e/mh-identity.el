@@ -1,4 +1,4 @@
-;;; mh-identity.el --- Multiple identify support for MH-E.
+;;; mh-identity.el --- multiple identify support for MH-E
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
@@ -27,23 +27,19 @@
 ;;; Commentary:
 
 ;; Multiple identity support for MH-E.
-;;
-;; Used to easily set different fields such as From and Organization, as
-;; well as different signature files.
-;;
-;; Customize the variable `mh-identity-list' and an Identity menu will
-;; appear in mh-letter-mode.  The command 'mh-insert-identity can be used
-;; from the command line.
+
+;; Used to easily set different fields such as From and Organization,
+;; as well as different signature files.
+
+;; Customize the variable `mh-identity-list' and see the Identity menu
+;; in MH-Letter mode. The command `mh-insert-identity' can be used
+;; to manually insert an identity.
 
 ;;; Change Log:
 
 ;;; Code:
 
-;;(message "> mh-identity")
-(eval-when-compile (require 'mh-acros))
-
-(require 'mh-comp)
-;;(message "< mh-identity")
+(require 'mh-e)
 
 (autoload 'mml-insert-tag "mml")
 
@@ -53,11 +49,17 @@ This is normally set as part of an Identity in
 `mh-identity-list'.")
 (make-variable-buffer-local 'mh-identity-pgg-default-user-id)
 
+(defvar mh-identity-menu nil
+  "The Identity menu.")
+
+(defalias 'mh-identity-make-menu-no-autoload 'mh-identity-make-menu)
+
 ;;;###mh-autoload
 (defun mh-identity-make-menu ()
   "Build the Identity menu.
 This should be called any time `mh-identity-list' or
-`mh-auto-fields-list' change."
+`mh-auto-fields-list' change.
+See `mh-identity-add-menu'."
   (easy-menu-define mh-identity-menu mh-letter-mode-map
     "MH-E identity menu"
     (append
@@ -88,13 +90,11 @@ This should be called any time `mh-identity-list' or
        ))))
 
 ;;;###mh-autoload
-(defun mh-identity-list-set (symbol value)
-  "Update the `mh-identity-list' variable, and rebuild the menu.
-Sets the default for SYMBOL (for example, `mh-identity-list') to
-VALUE (as set in customization). This is called after 'customize
-is used to alter `mh-identity-list'."
-  (set-default symbol value)
-  (mh-identity-make-menu))
+(defun mh-identity-add-menu ()
+  "Add the current Identity menu.
+See `mh-identity-make-menu'."
+  (if mh-identity-menu
+      (easy-menu-add mh-identity-menu)))
 
 (defvar mh-identity-local nil
   "Buffer-local variable that holds the identity currently in use.")
@@ -127,15 +127,20 @@ The field name is downcased. If the FIELD begins with the
 character \":\", then it must have a special handler defined in
 `mh-identity-handlers', else return an error since it is not a
 valid header field."
-  (or (cdr (assoc-string field mh-identity-handlers t))
+  (or (cdr (mh-assoc-string field mh-identity-handlers t))
       (and (eq (aref field 0) ?:)
            (error "Field %s not found in `mh-identity-handlers'" field))
       (cdr (assoc ":default" mh-identity-handlers))
       'mh-identity-handler-default))
 
 ;;;###mh-autoload
-(defun mh-insert-identity (identity)
+(defun mh-insert-identity (identity &optional maybe-insert)
   "Insert fields specified by given IDENTITY.
+
+In a program, do not insert fields if MAYBE-INSERT is non-nil,
+`mh-identity-default' is non-nil, and fields have already been
+inserted.
+
 See `mh-identity-list'."
   (interactive
    (list (completing-read
@@ -144,29 +149,35 @@ See `mh-identity-list'."
               (cons '("None")
                     (mapcar 'list (mapcar 'car mh-identity-list)))
             (mapcar 'list (mapcar 'car mh-identity-list)))
-          nil t)))
-  (save-excursion
-    ;;First remove old settings, if any.
-    (when mh-identity-local
-      (let ((pers-list (cadr (assoc mh-identity-local mh-identity-list))))
-        (while pers-list
-          (let* ((field (caar pers-list))
-                 (handler (mh-identity-field-handler field)))
-            (funcall handler field 'remove))
-          (setq pers-list (cdr pers-list)))))
-    ;; Then insert the replacement
-    (when (not (equal "None" identity))
-      (let ((pers-list (cadr (assoc identity mh-identity-list))))
-        (while pers-list
-          (let* ((field (caar pers-list))
-                 (value (cdar pers-list))
-                 (handler (mh-identity-field-handler field)))
-            (funcall handler field 'add value))
-          (setq pers-list (cdr pers-list))))))
-  ;; Remember what is in use in this buffer
-  (if (equal "None" identity)
-      (setq mh-identity-local nil)
-    (setq mh-identity-local identity)))
+          nil t)
+         nil))
+
+  (when (or (not maybe-insert)
+            (and (boundp 'mh-identity-default)
+                 mh-identity-default
+                 (not mh-identity-local)))
+    (save-excursion
+      ;;First remove old settings, if any.
+      (when mh-identity-local
+        (let ((pers-list (cadr (assoc mh-identity-local mh-identity-list))))
+          (while pers-list
+            (let* ((field (caar pers-list))
+                   (handler (mh-identity-field-handler field)))
+              (funcall handler field 'remove))
+            (setq pers-list (cdr pers-list)))))
+      ;; Then insert the replacement
+      (when (not (equal "None" identity))
+        (let ((pers-list (cadr (assoc identity mh-identity-list))))
+          (while pers-list
+            (let* ((field (caar pers-list))
+                   (value (cdar pers-list))
+                   (handler (mh-identity-field-handler field)))
+              (funcall handler field 'add value))
+            (setq pers-list (cdr pers-list))))))
+    ;; Remember what is in use in this buffer
+    (if (equal "None" identity)
+        (setq mh-identity-local nil)
+      (setq mh-identity-local identity))))
 
 ;;;###mh-autoload
 (defun mh-identity-handler-gpg-identity (field action &optional value)
@@ -268,7 +279,7 @@ bottom of the header. If action is 'add, the VALUE is added."
        (t
         (goto-char (point-min))
         (if (not top)
-	    (mh-goto-header-end 0))
+            (mh-goto-header-end 0))
         (insert field-colon " " value "\n")))))))
 
 ;;;###mh-autoload

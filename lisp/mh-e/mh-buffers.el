@@ -1,4 +1,4 @@
-;;; mh-buffers.el --- Temporary buffer constants and utilities used by MH-E
+;;; mh-buffers.el --- MH-E buffer constants and utilities
 
 ;; Copyright (C) 1993, 1995, 1997,
 ;;  2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
@@ -26,8 +26,6 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-
-;; Temporary buffer constants and utilities used by MH-E.
 
 ;;; Change Log:
 

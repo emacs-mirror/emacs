@@ -1,7 +1,7 @@
 ;;; mailcap.el --- MIME media types configuration
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: William M. Perry <wmperry@aventail.com>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -640,30 +640,31 @@ to supply to the test."
 	 (viewer (cdr (assoc 'viewer viewer-info)))
 	 (default-directory (expand-file-name "~/"))
 	 status parsed-test cache result)
-    (if (setq cache (assoc test mailcap-viewer-test-cache))
-	(cadr cache)
-      (setq
-       result
-       (cond
-	((not test-info) t)		; No test clause
-	((not test) nil)		; Already failed test
-	((eq test t) t)			; Already passed test
-	((functionp test)		; Lisp function as test
-	 (funcall test type-info))
-	((and (symbolp test)		; Lisp variable as test
-	      (boundp test))
-	 (symbol-value test))
-	((and (listp test)		; List to be eval'd
-	      (symbolp (car test)))
-	 (eval test))
-	(t
-	 (setq test (mailcap-unescape-mime-test test type-info)
-	       test (list shell-file-name nil nil nil
-			  shell-command-switch test)
-	       status (apply 'call-process test))
-	 (eq 0 status))))
-      (push (list otest result) mailcap-viewer-test-cache)
-      result)))
+    (cond ((setq cache (assoc test mailcap-viewer-test-cache))
+	   (cadr cache))
+	  ((not test-info) t)		; No test clause
+	  (t
+	   (setq
+	    result
+	    (cond
+	     ((not test) nil)		; Already failed test
+	     ((eq test t) t)		; Already passed test
+	     ((functionp test)		; Lisp function as test
+	      (funcall test type-info))
+	     ((and (symbolp test)	; Lisp variable as test
+		   (boundp test))
+	      (symbol-value test))
+	     ((and (listp test)		; List to be eval'd
+		   (symbolp (car test)))
+	      (eval test))
+	     (t
+	      (setq test (mailcap-unescape-mime-test test type-info)
+		    test (list shell-file-name nil nil nil
+			       shell-command-switch test)
+		    status (apply 'call-process test))
+	      (eq 0 status))))
+	   (push (list otest result) mailcap-viewer-test-cache)
+	   result))))
 
 (defun mailcap-add-mailcap-entry (major minor info)
   (let ((old-major (assoc major mailcap-mime-data)))

@@ -113,7 +113,8 @@ With ARG, you are asked to choose which language."
      (setq val (completing-read (if fn
 				    (format "Describe function (default %s): " fn)
 				  "Describe function: ")
-				obarray 'fboundp t nil nil (symbol-name fn)))
+				obarray 'fboundp t nil nil
+				(and fn (symbol-name fn))))
      (list (if (equal val "")
 	       fn (intern val)))))
   (if (null function)

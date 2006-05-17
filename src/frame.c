@@ -3519,8 +3519,21 @@ x_get_arg (dpyinfo, alist, param, attribute, class, type)
   register Lisp_Object tem;
 
   tem = Fassq (param, alist);
-  if (EQ (tem, Qnil))
+
+  if (!NILP (tem))
+    {
+      /* If we find this parm in ALIST, clear it out
+	 so that it won't be "left over" at the end.  */
+#ifdef HAVE_X_WINDOWS /* macfns.c and w32fns.c have not yet
+			 been changed to cope with this.  */
+      XSETCAR (tem, Qnil);
+#endif
+    }
+  else
     tem = Fassq (param, Vdefault_frame_alist);
+
+  /* If it wasn't specified in ALIST or the Lisp-level defaults,
+     look in the X resources.  */
   if (EQ (tem, Qnil))
     {
       if (attribute)

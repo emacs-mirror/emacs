@@ -2450,6 +2450,10 @@ is specified, returning t if it is specified."
   "Non-nil if SYM could be dangerous as a file-local variable with value VAL.
 If VAL is nil or omitted, the question is whether any value might be
 dangerous."
+  ;; If this is an alias, check the base name.
+  (condition-case nil
+      (setq sym (indirect-variable sym))
+    (error nil))
   (let ((safep (get sym 'safe-local-variable)))
     (or (get sym 'risky-local-variable)
 	(and (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-commands?$\\|-predicates?$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"

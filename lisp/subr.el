@@ -1837,6 +1837,12 @@ mode.")
 This variable is meaningful on MS-DOG and Windows NT.
 On those systems, it is automatically local in every buffer.
 On other systems, this variable is normally always nil.")
+
+;; The `assert' macro from the cl package signals
+;; `cl-assertion-failed' at runtime so always define it.
+(put 'cl-assertion-failed 'error-conditions '(error))
+(put 'cl-assertion-failed 'error-message "Assertion failed")
+
 
 ;;;; Misc. useful functions.
 
@@ -2280,7 +2286,9 @@ as an argument to `try-completion'), the function FUN is called with no
 arguments.  FUN must return the completion table that will be stored in VAR.
 If completion is requested in the minibuffer, FUN will be called in the buffer
 from which the minibuffer was entered.  The return value of
-`lazy-completion-table' must be used to initialize the value of VAR."
+`lazy-completion-table' must be used to initialize the value of VAR.
+
+You should give VAR a non-nil `risky-local-variable' property."
   (declare (debug (symbol lambda-expr)))
   (let ((str (make-symbol "string")))
     `(dynamic-completion-table

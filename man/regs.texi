@@ -25,6 +25,11 @@ contains, use @kbd{M-x view-register}.
 Display a description of what register @var{r} contains.
 @end table
 
+  @dfn{Bookmarks} record files and positions in them, so you can
+return to those positions when you look at the file again.
+Bookmarks are similar enough in spirit to registers that they
+seem to belong in this chapter.
+
 @menu
 * Position: RegPos.           Saving positions in registers.
 * Text: RegText.              Saving text in registers.

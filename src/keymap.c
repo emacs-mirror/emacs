@@ -743,7 +743,7 @@ map_keymap_call (key, val, fun, dummy)
 }
 
 DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 3, 0,
-       doc: /* Call FUNCTION once for each binding in KEYMAP.
+       doc: /* Call FUNCTION once for each event binding in KEYMAP.
 FUNCTION is called with two arguments: the event that is bound, and
 the definition it is bound to.
 

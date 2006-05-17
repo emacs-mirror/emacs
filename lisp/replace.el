@@ -973,7 +973,8 @@ the matching is case-sensitive."
 (defun multi-occur (bufs regexp &optional nlines)
   "Show all lines in buffers BUFS containing a match for REGEXP.
 This function acts on multiple buffers; otherwise, it is exactly like
-`occur'."
+`occur'.  When you invoke this command interactively, you must specify
+the buffer names that you want, one by one."
   (interactive
    (cons
     (let* ((bufs (list (read-buffer "First buffer to search: "
@@ -993,15 +994,19 @@ This function acts on multiple buffers; otherwise, it is exactly like
     (occur-read-primary-args)))
   (occur-1 regexp nlines bufs))
 
-(defun multi-occur-by-filename-regexp (bufregexp regexp &optional nlines)
-  "Show all lines matching REGEXP in buffers named by BUFREGEXP.
+(defun multi-occur-in-matching-buffers (bufregexp regexp &optional allbufs)
+  "Show all lines matching REGEXP in buffers specified by BUFREGEXP.
+Normally BUFREGEXP matches against each buffer's visited file name,
+but if you specify a prefix argument, it matches against the buffer name.
 See also `multi-occur'."
   (interactive
    (cons
     (let* ((default (car regexp-history))
 	   (input
 	    (read-from-minibuffer
-	     "List lines in buffers whose filename matches regexp: "
+	     (if allbufs
+		 "List lines in buffers whose names match regexp: "
+	       "List lines in buffers whose filenames match regexp: ")
 	     nil
 	     nil
 	     nil
@@ -1014,9 +1019,12 @@ See also `multi-occur'."
     (occur-1 regexp nlines
 	     (delq nil
 		   (mapcar (lambda (buf)
-			     (when (and (buffer-file-name buf)
-					(string-match bufregexp
-						      (buffer-file-name buf)))
+			     (when (if allbufs
+				       (string-match bufregexp
+						     (buffer-name buf))
+				     (and (buffer-file-name buf)
+					  (string-match bufregexp
+							(buffer-file-name buf))))
 			       buf))
 			   (buffer-list))))))
 

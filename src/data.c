@@ -277,7 +277,8 @@ DEFUN ("atom", Fatom, Satom, 1, 1, 0,
 }
 
 DEFUN ("listp", Flistp, Slistp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a list.  This includes nil.  */)
+       doc: /* Return t if OBJECT is a list, that is, a cons cell or nil.
+Otherwise, return nil.  */)
      (object)
      Lisp_Object object;
 {
@@ -532,7 +533,10 @@ DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
 
 DEFUN ("car", Fcar, Scar, 1, 1, 0,
        doc: /* Return the car of LIST.  If arg is nil, return nil.
-Error if arg is not nil and not a cons cell.  See also `car-safe'.  */)
+Error if arg is not nil and not a cons cell.  See also `car-safe'.
+
+See Info node `(elisp)Cons Cells' for a discussion of related basic
+Lisp concepts such as car, cdr, cons cell and list.  */)
      (list)
      register Lisp_Object list;
 {
@@ -560,7 +564,10 @@ DEFUN ("car-safe", Fcar_safe, Scar_safe, 1, 1, 0,
 
 DEFUN ("cdr", Fcdr, Scdr, 1, 1, 0,
        doc: /* Return the cdr of LIST.  If arg is nil, return nil.
-Error if arg is not nil and not a cons cell.  See also `cdr-safe'.  */)
+Error if arg is not nil and not a cons cell.  See also `cdr-safe'.
+
+See Info node `(elisp)Cons Cells' for a discussion of related basic
+Lisp concepts such as cdr, car, cons cell and list.  */)
      (list)
      register Lisp_Object list;
 {

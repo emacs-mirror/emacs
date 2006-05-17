@@ -3,25 +3,28 @@
 @c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node MS-DOS, Manifesto, Mac OS, Top
-@appendix Emacs and MS-DOS
+@appendix Emacs and Microsoft Systems
 @cindex MS-DOG
+@cindex Microsoft Windows
 @cindex MS-DOS peculiarities
 
-  This section briefly describes the peculiarities of using Emacs under
-the MS-DOS ``operating system'' (also known as ``MS-DOG'').  If you
-build Emacs for MS-DOS, the binary will also run on Windows 3.X, Windows
-NT, Windows 9X/ME, Windows 2000, or OS/2 as a DOS application; the
-information in this chapter applies for all of those systems, if you use
-an Emacs that was built for MS-DOS.
+  This section briefly describes the peculiarities of using Emacs on
+the MS-DOS ``operating system'' (also known as ``MS-DOG'') and on
+Microsoft Windows.
 
-  Note that it is possible to build Emacs specifically for Windows NT/2K
-or Windows 9X/ME.  If you do that, most of this chapter does not apply;
-instead, you get behavior much closer to what is documented in the rest
-of the manual, including support for long file names, multiple frames,
-scroll bars, mouse menus, and subprocesses.  However, the section on
-text files and binary files does still apply.  There are also two
-sections at the end of this chapter which apply specifically for the
-Windows version.
+  If you build Emacs for MS-DOS, the binary will also run on Windows
+3.X, Windows NT, Windows 9X/ME, Windows 2000, or OS/2 as a DOS
+application; all the of this chapter applies for all of those systems,
+if you use an Emacs that was built for MS-DOS.
+
+  However, if you want to use Emacs on Windows, you would normally
+build Emacs specifically for Windows.  If you do that, most of this
+chapter does not apply; instead, you get behavior much closer to what
+is documented in the rest of the manual, including support for long
+file names, multiple frames, scroll bars, mouse menus, and
+subprocesses.  However, the section on text files and binary files
+does still apply.  There are also two sections at the end of this
+chapter which apply specifically for the Windows version.
 
 @menu
 * Keyboard: MS-DOS Keyboard.   Keyboard conventions on MS-DOS.

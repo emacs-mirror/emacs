@@ -7,12 +7,12 @@
 @cindex entering Emacs
 @cindex starting Emacs
 
-  The usual way to invoke Emacs is with the shell command @command{emacs}.
-Emacs clears the screen and then displays an initial help message and
-copyright notice.  Some operating systems discard all type-ahead when
-Emacs starts up; they give Emacs no way to prevent this.  Therefore, it
-is advisable to wait until Emacs clears the screen before typing your
-first editing command.
+  The usual way to invoke Emacs is with the shell command
+@command{emacs}.  Emacs clears the screen and then displays an initial
+help message and copyright notice.  Some operating systems discard all
+type-ahead when Emacs starts up; they give Emacs no way to prevent
+this.  If you ever use those systems, learn the habit of waiting for
+Emacs to clear the screen before typing your first editing command.
 
   If you run Emacs from a shell window under the X Window System, run it
 in the background with @command{emacs&}.  This way, Emacs does not tie up
@@ -22,11 +22,12 @@ as soon as you direct your keyboard input to the Emacs frame.
 
 @vindex initial-major-mode
   When Emacs starts up, it creates a buffer named @samp{*scratch*}.
-That's the buffer you start out in.  The @samp{*scratch*} buffer uses Lisp
-Interaction mode; you can use it to type Lisp expressions and evaluate
-them, or you can ignore that capability and simply doodle.  (You can
-specify a different major mode for this buffer by setting the variable
-@code{initial-major-mode} in your init file.  @xref{Init File}.)
+That's the buffer you start out in.  The @samp{*scratch*} buffer uses
+Lisp Interaction mode; you can use it to type Lisp expressions and
+evaluate them, or you can ignore that capability and just write notes
+in it.  (You can specify a different major mode for this buffer by
+setting the variable @code{initial-major-mode} in your init file.
+@xref{Init File}.)
 
   It is possible to specify files to be visited, Lisp files to be
 loaded, and functions to be called, by giving Emacs arguments in the
@@ -45,7 +46,7 @@ does not make sense.  This would fail to take advantage of Emacs's
 ability to visit more than one file in a single editing session, and
 it would lose the other accumulated context, such as the kill ring,
 registers, undo history, and mark ring, that are useful for operating
-on multiple files.
+on multiple files or even one.
 
   The recommended way to use GNU Emacs is to start it only once, just
 after you log in, and do all your editing in the same Emacs session.
@@ -84,7 +85,8 @@ when running on a text terminal.
 
   @dfn{Iconifying} means replacing the Emacs frame with a small box
 somewhere on the screen.  This is the usual way to exit Emacs when you're
-using a graphics terminal.
+using a graphics terminal---if you bother to ``exit'' at all.  (Just switching
+to another application is usually sufficient.)
 
   @dfn{Killing} Emacs means destroying the Emacs job.  You can run Emacs
 again later, but you will get a fresh Emacs; there is no way to resume
@@ -101,14 +103,14 @@ Kill Emacs (@code{save-buffers-kill-emacs}).
 @kindex C-z
 @findex suspend-emacs
   To suspend or iconify Emacs, type @kbd{C-z} (@code{suspend-emacs}).
-On text terminals, this suspends Emacs.  On graphics terminals,
+On text terminals, this suspends Emacs.  On graphical displays,
 it iconifies the Emacs frame.
 
   Suspending Emacs takes you back to the shell from which you invoked
 Emacs.  You can resume Emacs with the shell command @command{%emacs}
 in most common shells.  On systems that don't support suspending
 programs, @kbd{C-z} starts an inferior shell that communicates
-directly with the terminal.  Emacs waits until you exit the subshell.
+directly with the terminal, and Emacs waits until you exit the subshell.
 (The way to do that is probably with @kbd{C-d} or @command{exit}, but
 it depends on which shell you use.)  The only way on these systems to
 get back to the shell from which Emacs was run (to log out, for
@@ -122,7 +124,7 @@ a non-@code{nil} value to force @kbd{C-z} to start an inferior shell.
 failing to support job control properly, but that is a matter of
 taste.)
 
-  On graphics terminals, @kbd{C-z} has a different meaning: it runs
+  On graphical displays, @kbd{C-z} has a different meaning: it runs
 the command @code{iconify-or-deiconify-frame}, which temporarily
 iconifies (or ``minimizes'') the selected Emacs frame
 (@pxref{Frames}).  Then you can use the window manager to get back to
