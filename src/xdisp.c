@@ -9491,7 +9491,7 @@ display_tool_bar_line (it, height)
 
   while (it->current_x < max_x)
     {
-      int x_before, x, n_glyphs_before, i, nglyphs;
+      int x, n_glyphs_before, i, nglyphs;
       struct it it_before;
 
       /* Get the next display element.  */
@@ -9504,14 +9504,14 @@ display_tool_bar_line (it, height)
 	}
 
       /* Produce glyphs.  */
-      x_before = it->current_x;
-      n_glyphs_before = it->glyph_row->used[TEXT_AREA];
+      n_glyphs_before = row->used[TEXT_AREA];
       it_before = *it;
+
       PRODUCE_GLYPHS (it);
 
       nglyphs = row->used[TEXT_AREA] - n_glyphs_before;
       i = 0;
-      x = x_before;
+      x = it_before.current_x;
       while (i < nglyphs)
 	{
 	  struct glyph *glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
