@@ -62,6 +62,8 @@
 ;; In case c-mode.el isn't loaded
 (defvar c-indent-level 2
   "*Indentation of C statements with respect to containing block.")
+;;;###autoload(put 'c-indent-level 'safe-local-variable 'integerp)
+
 (defvar c-brace-imaginary-offset 0
   "*Imagined indentation of a C open brace that actually follows a statement.")
 (defvar c-brace-offset 0

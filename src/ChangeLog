@@ -1,3 +1,93 @@
+2006-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent): Check that f is not NULL before
+	calling x_kill_gs_process.
+
+2006-05-14  Richard Stallman  <rms@gnu.org>
+
+	* textprop.c (Fnext_single_char_property_change)
+	(Fprevious_single_char_property_change): Don't allow returning
+	value beyond LIMIT in any cases.
+	(Fnext_char_property_change, Fprevious_char_property_change): Doc fix.
+
+	* intervals.c (get_local_map): Abort if POSITION outside BEGV, ZV.
+
+2006-05-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Check that f is not NULL before
+	calling _XEditResCheckMessages.
+
+2006-05-14  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent): Fix crash in 2006-03-24 change.
+
+2006-05-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (x_set_border_width): Fix error message to say "frame",
+	not "window".
+
+	* Makefile.in (SOME_MACHINE_LISP): Add fringe.elc.
+
+2006-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* intervals.c (set_point_both): Fix mixup before before and after
+	in variable names.
+
+	* editfns.c (Fline_beginning_position): Inhibit point-motion hooks
+	while setting point temporarily.
+
+2006-05-11  Richard Stallman  <rms@gnu.org>
+
+	* lread.c (readevalloop): Abort if START non-nil for non-buffer input.
+
+2006-05-11  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_tool_bar): Handle large tool-bar-border values.
+
+2006-05-11  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Fix for the case of IO error
+	while handling replace operation.
+
+2006-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* xfaces.c (realize_default_face) [HAVE_X_WINDOWS]: If the font
+	chosen for the default face was different from the frame font,
+	adjust the frame font.
+
+2006-05-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (Qduration) [MAC_OS]: Undo previous change.
+	(syms_of_image) [MAC_OS]: Likewise.
+	[MAC_OS] (gif_load): Emulate Graphic Control Extension block.
+
+	* macfns.c (x_to_mac_color): Fix shift amount change.
+	[USE_MAC_FONT_PANEL] (mac_set_font): Use x_get_focus_frame.
+	[USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility): Doc fix.
+
+	* macselect.c (Vmac_service_selection) [MAC_OSX]: Rename from
+	Vmac_services_selection.  All uses changed.
+	(mac_store_service_event): Rename from mac_store_services_event in
+	extern and calls.
+
+	* macterm.c (Qservice) [MAC_OSX]: Rename from Qservices.  All uses
+	changed.
+	[MAC_OSX] (mac_store_service_event): Rename from
+	mac_store_services_event.  All callers changed.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): Add args
+	FACE_ID and C.  All callers changed.
+	(x_free_frame_resources) [USE_MAC_FONT_PANEL]: Call
+	mac_set_font_info_for_selection when focus frame is destroyed.
+	(XTread_socket): Revert to FrontNonFloatingWindow/FrontWindow.
+
+	* macterm.h (mac_set_font_info_for_selection): Add 2nd and 3rd
+	args in extern.
+
+2006-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (describe_map): Avoid generating duplicate entries if
+	the shadowed binding has the same definition.
+
 2006-05-09  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (push_key_description): Handle invalid character key.
@@ -49,8 +139,8 @@
 	* macselect.c (mac_do_receive_drag): Remove unused variable `index'.
 	(mac_store_services_event): Change return type in extern.
 
-	* macterm.c (XLoadQueryFont) [USE_ATSUI]: Set FMFontFamily value
-	to font->mac_fontnum.
+	* macterm.c (XLoadQueryFont) [USE_ATSUI]: Set font->mac_fontnum to
+	FMFontFamily value.
 	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): New function.
 	(x_new_focus_frame) [USE_MAC_FONT_PANEL]: Use it.
 	(QCfamily, QCweight, QCslant, Qnormal, Qbold, Qitalic): Add extern.
@@ -61,7 +151,7 @@
 	(Qtoolbar_switch_mode) [MAC_OSX]: New variable.
 	(Qpanel_closed, Qselection) [USE_MAC_FONT_PANEL]: Likewise.
 	(syms_of_macterm): Intern and staticpro them.
-	(init_font_name_table) [USE_ATSUI]: Set data to Vmac_atsu_font_table.
+	(init_font_name_table) [USE_ATSUI]: Add data to Vmac_atsu_font_table.
 	[TARGET_API_MAC_CARBON] (mac_store_event_ref_as_apple_event): New
 	function.
 	[USE_CARBON_EVENTS] (mac_handle_command_event): Use it.

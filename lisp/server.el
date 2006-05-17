@@ -415,8 +415,6 @@ communications subprocess."
     ;; It is safe to get the user id now.
     (setq server-socket-dir (or server-socket-dir
 				(format "/tmp/emacs%d" (user-uid))))
-    ;; Make sure there is a safe directory in which to place the socket.
-    (server-ensure-safe-dir server-socket-dir)
     ;; kill it dead!
     (if server-process
 	(condition-case () (delete-process server-process) (error nil)))
@@ -427,10 +425,13 @@ communications subprocess."
     ;; If this Emacs already had a server, clear out associated status.
     (while server-clients
       (server-delete-client (car server-clients)))
+    ;; Now any previous server is properly stopped.
     (if leave-dead
 	(progn
 	  (server-log (message "Server stopped"))
 	  (setq server-process nil))
+      ;; Make sure there is a safe directory in which to place the socket.
+      (server-ensure-safe-dir server-socket-dir)
       (if server-process
 	  (server-log (message "Restarting server"))
 	(server-log (message "Starting server")))
@@ -1028,7 +1029,7 @@ starts server process and that is all.  Invoked by \\[server-edit]."
   (if (or arg
 	  (not server-process)
 	  (memq (process-status server-process) '(signal exit)))
-      (server-start nil)
+      (server-mode 1)
     (apply 'server-switch-buffer (server-done))))
 
 (defun server-switch-buffer (&optional next-buffer killed-one)
@@ -1114,16 +1115,17 @@ only these files will be asked to be saved."
 
 (defun server-unload-hook ()
   "Unload the server library."
-  (server-start t)
+  (server-mode -1)
   (remove-hook 'suspend-tty-functions 'server-handle-suspend-tty)
   (remove-hook 'delete-frame-functions 'server-handle-delete-frame)
   (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
   (remove-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
   (remove-hook 'kill-buffer-hook 'server-kill-buffer))
 
+(add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
 (add-hook 'server-unload-hook 'server-unload-hook)
 
 (provide 'server)
 
-;;; arch-tag: 1f7ecb42-f00a-49f8-906d-61995d84c8d6
+;; arch-tag: 1f7ecb42-f00a-49f8-906d-61995d84c8d6
 ;;; server.el ends here

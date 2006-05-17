@@ -167,6 +167,8 @@ Optional argument ARG is the same as for `forward-word'."
    (t
     (point))))
 
+(put 'c-forward-subword 'CUA 'move)
+
 (defun c-backward-subword (&optional arg)
   "Do the same as `backward-word' but on subwords.
 See the command `c-subword-mode' for a description of subwords.
@@ -192,6 +194,8 @@ Optional argument ARG is the same as for `mark-word'."
 	    (c-forward-subword arg)
 	    (point))
 	  nil t))))
+
+(put 'c-backward-subword 'CUA 'move)
 
 (defun c-kill-subword (arg)
   "Do the same as `kill-word' but on subwords.
@@ -222,7 +226,7 @@ Optional argument ARG is the same as for `capitalize-word'."
   (let ((count (abs arg))
 	(direction (if (< 0 arg) 1 -1)))
     (dotimes (i count)
-      (when (re-search-forward 
+      (when (re-search-forward
 	     (concat "[" c-alpha "]")
 	     nil t)
 	(goto-char (match-beginning 0)))
@@ -253,15 +257,15 @@ Optional argument ARG is the same as for `upcase-word'."
 ;;
 (defun c-forward-subword-internal ()
   (if (and
-       (save-excursion 
+       (save-excursion
 	 (let ((case-fold-search nil))
-	   (re-search-forward 
+	   (re-search-forward
 	    (concat "\\W*\\(\\([" c-upper "]*\\W?\\)[" c-lower c-digit "]*\\)")
 	    nil t)))
        (> (match-end 0) (point))) ; So we don't get stuck at a
 				  ; "word-constituent" which isn't c-upper,
 				  ; c-lower or c-digit
-      (goto-char 
+      (goto-char
        (cond
 	((< 1 (- (match-end 2) (match-beginning 2)))
 	 (1- (match-end 2)))
@@ -271,15 +275,15 @@ Optional argument ARG is the same as for `upcase-word'."
 
 
 (defun c-backward-subword-internal ()
-  (if (save-excursion 
-	(let ((case-fold-search nil)) 
+  (if (save-excursion
+	(let ((case-fold-search nil))
 	  (re-search-backward
 	   (concat
 	    "\\(\\(\\W\\|[" c-lower c-digit "]\\)\\([" c-upper "]+\\W*\\)"
-	    "\\|\\W\\w+\\)") 
+	    "\\|\\W\\w+\\)")
 	   nil t)))
-      (goto-char 
-       (cond 
+      (goto-char
+       (cond
 	((and (match-end 3)
 	      (< 1 (- (match-end 3) (match-beginning 3)))
 	      (not (eq (point) (match-end 3))))

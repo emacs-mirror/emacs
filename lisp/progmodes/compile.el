@@ -453,6 +453,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 			(file-name-sans-extension buffer-file-name))))))"
   :type 'string
   :group 'compilation)
+;;;###autoload(put 'compile-command 'safe-local-variable 'stringp)
 
 ;;;###autoload
 (defcustom compilation-disable-input nil

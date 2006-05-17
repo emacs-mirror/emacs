@@ -1,3 +1,37 @@
+2006-05-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Interface): Add tool bar customization.
+	(MIME): Index and text additions for mml-attach.
+	(MIME): Describe mml-dnd-protocol-alist and
+	mml-dnd-attach-options.
+
+	* gnus.texi (Oort Gnus): Reorder entries in sections.  Fix some
+	entries.
+	(Starting Up): Add references to "Emacs for Heathens" and to
+	"Finding the News".  Add user-full-name and user-mail-address.
+	(Group Buffer Format): Add tool bar customization and update.
+	(Summary Buffer): Add tool bar customization.
+	(Posting Styles): Add message-alternative-emails.
+
+2006-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Displaying the Diary, Format of Diary File):
+	Refer to diary-view-entries, diary-list-entries,
+	diary-show-all-entries rather than obsolete aliases.
+
+2006-05-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* calendar.texi (Calendar/Diary, Holidays, Displaying the Diary)
+	(Displaying the Diary, Special Diary Entries, Importing Diary): 
+	* building.texi (Compilation Shell): 
+	* buffers.texi (Several Buffers) [iftex]: Replace @xref's to
+	emacs-xtra with @inforef's.
+
+	* files.texi (Visiting): Fix wording.
+
+	* mule.texi (Coding Systems, Text Coding): More indexing.  Mention
+	that C-x RET f can set eol conversion.
+
 2006-05-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Filename completion): Improve wording.

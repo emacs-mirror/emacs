@@ -1091,7 +1091,7 @@ x_to_mac_color (colorname)
       char *color;
       unsigned long colorval;
       int i, pos;
-      pos = 0;
+      pos = 16;
 
       colorval = 0;
       color = colorname + 4;
@@ -1127,7 +1127,7 @@ x_to_mac_color (colorname)
 	  if (value == ULONG_MAX)
 	    break;
 	  colorval |= (value << pos);
-	  pos += 0x8;
+	  pos -= 0x8;
 	  if (i == 2)
 	    {
 	      if (*end != '\0')
@@ -1146,7 +1146,7 @@ x_to_mac_color (colorname)
       char *color;
       unsigned long colorval;
       int i, pos;
-      pos = 0;
+      pos = 16;
 
       colorval = 0;
       color = colorname + 5;
@@ -1168,7 +1168,7 @@ x_to_mac_color (colorname)
 	  if (val == 0x100)
 	    val = 0xFF;
 	  colorval |= (val << pos);
-	  pos += 0x8;
+	  pos -= 0x8;
 	  if (i == 2)
 	    {
 	      if (*end != '\0')
@@ -1919,6 +1919,27 @@ mac_set_scroll_bar_width (f, arg, oldval)
   x_set_scroll_bar_width (f, arg, oldval);
 }
 
+static void
+mac_set_font (f, arg, oldval)
+     struct frame *f;
+     Lisp_Object arg, oldval;
+{
+  x_set_font (f, arg, oldval);
+#if USE_MAC_FONT_PANEL
+  {
+    Lisp_Object focus_frame = x_get_focus_frame (f);
+
+    if ((NILP (focus_frame) && f == SELECTED_FRAME ())
+	|| XFRAME (focus_frame) == f)
+      {
+	BLOCK_INPUT;
+	mac_set_font_info_for_selection (f, DEFAULT_FACE_ID, 0);
+	UNBLOCK_INPUT;
+      }
+  }
+#endif
+}
+
 #if TARGET_API_MAC_CARBON
 static void
 mac_update_proxy_icon (f)
@@ -2010,22 +2031,6 @@ mac_update_title_bar (f, save_match_data)
 
   if (windows_or_buffers_changed)
     mac_update_proxy_icon (f);
-#endif
-}
-
-static void
-mac_set_font (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
-{
-  x_set_font (f, arg, oldval);
-#if USE_MAC_FONT_PANEL
-  if (FRAME_MAC_DISPLAY_INFO (f)->x_focus_frame == f)
-    {
-      BLOCK_INPUT;
-      mac_set_font_info_for_selection (f);
-      UNBLOCK_INPUT;
-    }
 #endif
 }
 
@@ -4503,7 +4508,7 @@ DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table,
 #if USE_MAC_FONT_PANEL
 DEFUN ("mac-set-font-panel-visibility", Fmac_set_font_panel_visibility,
        Smac_set_font_panel_visibility, 1, 1, 0,
-  doc: /* Set the font panel visibile if and only if VISIBLE is non-nil.
+  doc: /* Make the font panel visible if and only if VISIBLE is non-nil.
 This is for internal use only.  Use `mac-font-panel-mode' instead.  */)
      (visible)
      Lisp_Object visible;

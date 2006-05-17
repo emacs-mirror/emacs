@@ -323,7 +323,13 @@ method to conditionalize them.
 subprocesses; to work around this lack, @kbd{M-x compile} runs the
 compilation command synchronously on MS-DOS.  As a consequence, you must
 wait until the command finishes before you can do anything else in
-Emacs.  @xref{MS-DOS,,,emacs-xtra,Specialized Emacs Features}.
+Emacs.
+@iftex
+@inforef{MS-DOS,,emacs-xtra}.
+@end iftex
+@ifnottex
+@xref{MS-DOS}.
+@end ifnottex
 
 @node Grep Searching
 @section Searching with Grep under Emacs

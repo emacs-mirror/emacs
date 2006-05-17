@@ -164,7 +164,7 @@
 
   ;; These keys will be available xterm starting probably from
   ;; version 214.
-  (define-key xterm-function-map "\e[27;5;8~"  [(control ?\t)])
+  (define-key xterm-function-map "\e[27;5;9~"  [(control ?\t)])
   (define-key xterm-function-map "\e[27;5;44~" [(control ?\,)])
   (define-key xterm-function-map "\e[27;5;46~" [(control ?\.)])
   (define-key xterm-function-map "\e[27;5;47~" [(control ?\/)])

@@ -3638,7 +3638,8 @@ Outline mode sets this."
 	;; Move to the chosen destination position from above,
 	;; with intangibility processing enabled.
 
-	(goto-char (point-min))
+	;; Avoid calling point-entered and point-left.
+	(goto-char new)
 	(let ((inhibit-point-motion-hooks nil))
 	  (goto-char new)
 
@@ -4050,6 +4051,7 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 string)
   :group 'fill)
 (make-variable-buffer-local 'fill-prefix)
+;;;###autoload(put 'fill-prefix 'safe-local-variable 'string-or-null-p)
 
 (defcustom auto-fill-inhibit-regexp nil
   "*Regexp to match lines which should not be auto-filled."

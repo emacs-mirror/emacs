@@ -101,7 +101,7 @@ static Lisp_Object Qmac_scrap_name, Qmac_ostype;
 
 #ifdef MAC_OSX
 /* Selection name for communication via Services menu.  */
-static Lisp_Object Vmac_services_selection;
+static Lisp_Object Vmac_service_selection;
 #endif
 
 /* Get a reference to the scrap corresponding to the symbol SYM.  The
@@ -1349,7 +1349,7 @@ init_service_handler ()
 				  GetEventTypeCount (specs), specs, NULL, NULL);
 }
 
-extern OSStatus mac_store_services_event P_ ((EventRef));
+extern OSStatus mac_store_service_event P_ ((EventRef));
 
 static OSStatus
 copy_scrap_flavor_data (from_scrap, to_scrap, flavor_type)
@@ -1406,12 +1406,12 @@ mac_handle_service_event (call_ref, event, data)
   Lisp_Object rest;
   ScrapFlavorType flavor_type;
 
-  /* Check if Vmac_services_selection is a valid selection that has a
+  /* Check if Vmac_service_selection is a valid selection that has a
      corresponding scrap.  */
-  if (!SYMBOLP (Vmac_services_selection))
+  if (!SYMBOLP (Vmac_service_selection))
     err = eventNotHandledErr;
   else
-    err = get_scrap_from_symbol (Vmac_services_selection, 0, &cur_scrap);
+    err = get_scrap_from_symbol (Vmac_service_selection, 0, &cur_scrap);
   if (!(err == noErr && cur_scrap))
     return eventNotHandledErr;
 
@@ -1448,7 +1448,7 @@ mac_handle_service_event (call_ref, event, data)
       if (err != noErr)
 	break;
 
-      if (NILP (Fx_selection_owner_p (Vmac_services_selection)))
+      if (NILP (Fx_selection_owner_p (Vmac_service_selection)))
 	break;
       else
 	goto copy_all_flavors;
@@ -1458,7 +1458,7 @@ mac_handle_service_event (call_ref, event, data)
 			       typeScrapRef, NULL,
 			       sizeof (ScrapRef), NULL, &specific_scrap);
       if (err != noErr
-	  || NILP (Fx_selection_owner_p (Vmac_services_selection)))
+	  || NILP (Fx_selection_owner_p (Vmac_service_selection)))
 	{
 	  err = eventNotHandledErr;
 	  break;
@@ -1533,7 +1533,7 @@ mac_handle_service_event (call_ref, event, data)
 	if (!data_exists_p)
 	  err = eventNotHandledErr;
 	else
-	  err = mac_store_services_event (event);
+	  err = mac_store_service_event (event);
       }
       break;
     }
@@ -1611,9 +1611,9 @@ The types are chosen in the order they appear in the list.  */);
 #endif
 
 #ifdef MAC_OSX
-  DEFVAR_LISP ("mac-services-selection", &Vmac_services_selection,
+  DEFVAR_LISP ("mac-service-selection", &Vmac_service_selection,
 	       doc: /* Selection name for communication via Services menu.  */);
-  Vmac_services_selection = intern ("PRIMARY");
+  Vmac_service_selection = intern ("PRIMARY");
 #endif
 
   QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);

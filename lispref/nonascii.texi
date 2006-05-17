@@ -805,6 +805,35 @@ If that is valid, it returns @var{coding-system}.
 Otherwise it signals an error with condition @code{coding-system-error}.
 @end defun
 
+@cindex EOL conversion
+@cindex end-of-line conversion
+@cindex line end conversion
+@defun coding-system-eol-type coding-system
+This function returns the type of end-of-line (a.k.a.@: @dfn{eol})
+conversion used by @var{coding-system}.  If @var{coding-system}
+specifies a certain eol conversion, the return value is an integer 0,
+1, or 2, standing for @code{unix}, @code{dos}, and @code{mac},
+respectively.  If @var{coding-system} doesn't specify eol conversion
+explicitly, the return value is a vector of coding systems, each one
+with one of the possible eol conversion types, like this:
+
+@lisp
+(coding-system-eol-type 'latin-1)
+     @result{} [latin-1-unix latin-1-dos latin-1-mac]
+@end lisp
+
+@noindent
+If this function returns a vector, Emacs will decide, as part of the
+text encoding or decoding process, what eol conversion to use.  For
+decoding, the end-of-line format of the text is auto-detected, and the
+eol conversion is set to match it (e.g., DOS-style CRLF format will
+imply @code{dos} eol conversion).  For encoding, the eol conversion is
+taken from the appropriate default coding system (e.g.,
+@code{default-buffer-file-coding-system} for
+@code{buffer-file-coding-system}), or from the default eol conversion
+appropriate for the underlying platform.
+@end defun
+
 @defun coding-system-change-eol-conversion coding-system eol-type
 This function returns a coding system which is like @var{coding-system}
 except for its eol conversion, which is specified by @code{eol-type}.
@@ -1174,7 +1203,7 @@ encoding by binding @code{coding-system-for-write} to
 @code{no-conversion}.
 
   Here are the functions to perform explicit encoding or decoding.  The
-decoding functions produce sequences of bytes; the encoding functions
+encoding functions produce sequences of bytes; the decoding functions
 are meant to operate on sequences of bytes.  All of these functions
 discard text properties.
 

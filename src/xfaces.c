@@ -7090,6 +7090,16 @@ realize_default_face (f)
   check_lface (lface);
   bcopy (XVECTOR (lface)->contents, attrs, sizeof attrs);
   face = realize_face (c, attrs, 0, NULL, DEFAULT_FACE_ID);
+
+#ifdef HAVE_WINDOW_SYSTEM
+#ifdef HAVE_X_WINDOWS  
+  if (face->font != FRAME_FONT (f))
+    /* As the font specified for the frame was not acceptable as a
+       font for the default face (perhaps because auto-scaled fonts
+       are rejected), we must adjust the frame font.  */
+    x_set_font (f, build_string (face->font_name), Qnil);
+#endif	/* HAVE_X_WINDOWS */
+#endif	/* HAVE_WINDOW_SYSTEM */
   return 1;
 }
 

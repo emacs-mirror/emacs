@@ -1,3 +1,238 @@
+2006-05-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-data): Add docstring.
+	(ewoc-nth): Doc fix.
+
+2006-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule.el (auto-coding-alist): Add .lha to files
+	read with no-conversion.
+
+	* files.el (auto-mode-alist): Add .lha files to archive file
+	extensions.
+
+	* arc-mode.el (archive-arc-summarize, archive-lzh-summarize):
+	Convert csize to integer when computing offsets within the
+	compressed archive file.
+
+2006-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-history): Add KEEP-ALL arg and align functionality
+	with read-from-minibuffer.
+
+2006-05-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings-safe-p): New function.
+	(byte-compile-warnings): Fix safe-local-variable property.
+
+2006-05-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-show-bodies, allout-old-style-prefixes)
+	(allout-stylish-prefixes, allout-numbered-bullet)
+	(allout-file-xref-bullet, allout-use-hanging-indents): Use simple
+	predicates to qualify `safe-local-variable' property, when
+	available, else use equivalent lambda.
+	(allout-current-topic-collapsed-p): Do the right thing regarding
+	trailing blank lines.
+
+2006-05-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-start): Only create a directory if needed.
+	(server-edit, server-unload-hook): server-start => server-mode.
+	(kill-emacs-hook): Cleanup upon exit.
+
+2006-05-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hexl.el (hexlify-buffer): Encode process arguments manually.
+
+2006-05-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-tips): Add missing argument to
+	call to gdb-tooltip-print.
+
+2006-05-15  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el (dired-guess-shell-gnutar): On GNU and GNU/Linux
+	systems, default to "tar" since those systems probably have GNU tar.
+
+2006-05-14  Lars Hansen  <larsh@soem.dk>
+
+	* desktop.el (desktop-missing-file-warning): Fix docstring.
+	(desktop-restore-file-buffer): Correct question asked on missing file.
+
+2006-05-14  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/cc-subword.el (c-forward-subword, c-backward-subword):
+	Add CUA move property.
+
+2006-05-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-push-theme): Load the variable before checking
+	its `standard-value'.
+
+2006-05-13  Lars Hansen  <larsh@soem.dk>
+
+	* desktop.el (desktop-save): Use with-temp-buffer.
+
+2006-05-12  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (calendar-mode-map, calendar-mouse-3-map):
+	* calendar/calendar.el (calendar-mode-map):
+	* calendar/diary-lib.el (include-other-diary-files,diary-mail-entries):
+	* calendar/appt.el (appt-check, appt-make-list): Refer to
+	diary-view-entries, diary-list-entries, diary-show-all-entries
+	rather than obsolete aliases.
+
+2006-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-finish): Avoid calling point motion hooks
+	while processing intangibility.
+
+2006-05-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix typo.
+
+2006-05-12  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: (allout-view-change-hook): Mark as being deprecated,
+	to be replaced by `allout-exposure-change-hook'.
+	(allout-exposure-change-hook): New, replacing
+	`allout-view-change-hook'.
+	(allout-flag-region): Run new hook `allout-exposure-change-hook',
+	in addition to `allout-view-change-hook'.
+	(allout-show-bodies, allout-old-style-prefixes)
+	(allout-stylish-prefixes, allout-use-hanging-indents): Quote the
+	lambda forms to prevent their showing up in variable help
+	presentations as inscrutable byte-compiled code.
+	(allout-numbered-bullet, allout-file-xref-bullet, allout-layout):
+	Use string-or-null-p to qualify safe-local-variable values.
+	(allout-reindent-bodies): Use memq to qualify matches against
+	valid safe-local-variable values.  Also, quote the lambda as above.
+	(allout-use-mode-specific-leader): Add missing candidate-value
+	symbols, use memq, and quote the lambda.
+	(allout-overlay-interior-modification-handler): Remove unused
+	variables `msg' and 'opened'.
+	(allout-hidden-p): Constrain invisibility consideration to allout's
+	invisibility spec, disregarding invisibility for other reasons.
+
+2006-05-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.el (version-control): Correct safe values.
+
+2006-05-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-refresh): Compute PP once before looping.
+
+	(ewoc--node-enter-before, ewoc--create-node): Delete funcs.
+	(ewoc--insert-new-node): New func.
+	Update callers of deleted funcs to use it, instead.
+
+2006-05-11  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-show-all-entries): Do not refer to
+	obsolete alias `show-all-diary-entries'.
+	(make-diary-entry): Not interactive.
+	(cal-tex-cursor-month, cal-tex-cursor-month-landscape)
+	(cal-tex-cursor-day, cal-tex-cursor-week, cal-tex-cursor-week2)
+	(cal-tex-cursor-week-iso, cal-tex-cursor-week-monday)
+	(cal-tex-cursor-filofax-2week, cal-tex-cursor-filofax-week)
+	(cal-tex-cursor-year-landscape, cal-tex-cursor-filofax-year)
+	(cal-tex-cursor-filofax-daily, cal-tex-cursor-year): Interactive.
+
+2006-05-11  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* calendar/calendar.el (calendar-french-date-string)
+	(calendar-mayan-date-string, calendar-chinese-date-string)
+	(calendar-astro-date-string, calendar-iso-date-string)
+	(calendar-islamic-date-string, calendar-bahai-date-string)
+	(calendar-hebrew-date-string, calendar-coptic-date-string)
+	(calendar-ethiopic-date-string, calendar-persian-date-string):
+	These functions are not interactive.
+
+2006-05-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el: Balance parentheses.
+
+2006-05-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.el, newcomment.el, outline.el, simple.el,
+	emacs-lisp/bytecomp.el, progmodes/cc-compat.el,
+	progmodes/cc-vars.el, progmodes/compile.el:
+	Move `safe-local-variable' declarations to the respective files.
+
+	* help-fns.el (describe-variable): Don't print safe-var if it is
+	byte-code.  Improve wording as suggested by Luc Teirlinck
+	<teirllm@auburn.edu>.
+
+2006-05-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-reset): Update speedbar if necessary.
+	(gdb-var-evaluate-expression-handler, gdb-var-update-handler):
+	Use a token for pending-triggers to ensure gdb-var-update
+	gets called once per user input again for pre-GDB 6.4.
+	(gdb-var-delete): Match on more complex expressions.
+	(gdb-var-list-children-handler, gdb-var-create-handler):
+	Use a token for consistency.
+
+2006-05-11  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-read-date, org-goto-calendar)
+	(org-agenda-goto-calendar):
+	Bind `view-calendar-holidays-initially' to nil.
+
+2006-05-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--refresh-node): No longer save-excursion.
+	Update all callers to do it there, instead.
+
+2006-05-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-basic-setup): Set day to 1 in
+	prefix arg case, to avoid view-diary-entries-initially error.
+	Reported by Stephen Berman <Stephen.Berman at gmx.net>.
+	(calendar-date-is-legal-p): Handle dates with no day part.
+
+2006-05-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* comint.el (comint-insert-input): Just make it when
+	comint-use-prompt regexp is nil (default) and with the mouse.
+	(comint-copy-old-input): Reinstate from 2004-06-23.
+	(comint-mode-map): Bind C-c C-m to it.
+
+2006-05-10  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-shell.el (idlwave-shell-move-or-history):
+	Remove spurious move to point-max (new comint behavior fixes).
+
+	* progmodes/idlwave.el (idlwave-push-mark): Removed obsolete
+	compatibility function (Emacs 18/19).
+	(idlwave-is-continuation-line): Always return point at start of
+	previous non-blank continuation line.
+	`keyword-parameters': Fix continued comment font-lock matcher.
+	(idlwave-font-lock-fontify-region): Written, use as
+	font-lock-fontify-region-function, to fix continued keyword
+	fontification issues.
+
+2006-05-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-font-panel-mode): Doc fix.
+	(mac-service-selection, mac-service-open-file)
+	(mac-service-open-selection, mac-service-mail-selection)
+	(mac-service-mail-to, mac-service-insert-text): Rename from
+	mac-services-*.  All uses changed.
+	(mac-apple-event-map): Rename event symbol `services' to `service'.
+
+2006-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--dll-create, ewoc--node-delete)
+	(ewoc--node-enter-first, ewoc--node-enter-last)
+	(ewoc--delete-node-internal): Merge funcs into unique callers.
+
+2006-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/crm.el (completing-read-multiple): Properly handle
+	return value of read-from-minibuffer for empty input.
+
 2006-05-09  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-insert-input): Remove redundant calls to setq

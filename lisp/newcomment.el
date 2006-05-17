@@ -104,6 +104,7 @@ not to go beyond `comment-fill-column'."
   :type 'integer
   :group 'comment)
 (make-variable-buffer-local 'comment-column)
+;;;###autoload(put 'comment-column 'safe-local-variable 'integerp)
 
 ;;;###autoload
 (defvar comment-start nil

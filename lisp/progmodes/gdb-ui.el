@@ -732,9 +732,9 @@ With arg, enter name of variable to be watched in the minibuffer."
 	(gdb-enqueue-input
 	 (list
 	  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
-	      (concat "server interpreter mi \"-var-evaluate-expression "
+	      (concat "server interpreter mi \"0-var-evaluate-expression "
 		      (car var) "\"\n")
-	    (concat "-var-evaluate-expression " (car var) "\n"))
+	    (concat "0-var-evaluate-expression " (car var) "\n"))
 	  `(lambda () (gdb-var-evaluate-expression-handler
 		       ,(car var) nil)))))
     (if (search-forward "Undefined command" nil t)
@@ -755,11 +755,13 @@ With arg, enter name of variable to be watched in the minibuffer."
 
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (goto-char (point-min))
-  (re-search-forward ".*value=\\(\".*\"\\)" nil t)
+  (re-search-forward "\\(.+\\)\\^done,value=\\(\".*\"\\)" nil t)
+  (setq gdb-pending-triggers
+	(delq (string-to-number (match-string 1)) gdb-pending-triggers))
   (let ((var (assoc varnum gdb-var-list)))
     (when var
       (if changed (setcar (nthcdr 5 var) 'changed))
-      (setcar (nthcdr 4 var) (read (match-string 1)))))
+      (setcar (nthcdr 4 var) (read (match-string 2)))))
   (gdb-speedbar-update))
 
 (defun gdb-var-list-children (varnum)
@@ -791,7 +793,7 @@ numchild=\"\\(.*?\\)\",.*?type=\"\\(.*?\\)\".*?}")
 		  (gdb-enqueue-input
 		   (list
 		    (concat
-		     "server interpreter mi \"-var-evaluate-expression "
+		     "server interpreter mi \"0-var-evaluate-expression "
 		     (car varchild) "\"\n")
 		    `(lambda () (gdb-var-evaluate-expression-handler
 				 ,(car varchild) nil)))))))
@@ -813,16 +815,19 @@ type_changed=\".*?\".*?}")
   (dolist (var gdb-var-list)
     (setcar (nthcdr 5 var) nil))
   (goto-char (point-min))
-  (while (re-search-forward gdb-var-update-regexp nil t)
-    (let ((varnum (match-string 1)))
-      (if  (string-equal (match-string 2) "false")
-	  (let ((var (assoc varnum gdb-var-list)))
-	    (if var (setcar (nthcdr 5 var) 'out-of-scope)))
-	(gdb-enqueue-input
-	 (list
-	  (concat "server interpreter mi \"-var-evaluate-expression "
-		  varnum "\"\n")
-	  `(lambda () (gdb-var-evaluate-expression-handler ,varnum t)))))))
+  (let ((n 0))
+    (while (re-search-forward gdb-var-update-regexp nil t)
+      (let ((varnum (match-string 1)))
+	(if  (string-equal (match-string 2) "false")
+	    (let ((var (assoc varnum gdb-var-list)))
+	      (if var (setcar (nthcdr 5 var) 'out-of-scope)))
+	  (setq n (1+ n))
+	  (push n gdb-pending-triggers)
+	  (gdb-enqueue-input
+	   (list
+	    (concat "server interpreter mi \"" (number-to-string n)
+		    "-var-evaluate-expression " varnum "\"\n")
+	  `(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))))))
   (setq gdb-pending-triggers
 	(delq 'gdb-var-update gdb-pending-triggers)))
 
@@ -832,7 +837,9 @@ type_changed=\".*?\".*?}")
   (if (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
 	    '(gdbmi gdba))
       (let ((text (speedbar-line-text)))
-	(string-match "\\(\\S-+\\)" text)
+	;; Can't use \\S-+ for whitespace because
+	;; speedbar has a whacky syntax table.
+	(string-match "\\([^ \t]+\\)" text)
 	(let ((expr (match-string 1 text)) var varnum)
 	  (catch 'expr-found
 	    (dolist (var1 gdb-var-list)
@@ -2803,6 +2810,7 @@ Kills the gdb buffers, and resets variables and the source buffers."
   (setq overlay-arrow-variable-list
 	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
   (setq fringe-indicator-alist '((overlay-arrow . right-triangle)))
+  (if (boundp 'speedbar-frame) (speedbar-timer-fn))
   (setq gud-running nil)
   (setq gdb-active-process nil)
   (setq gdb-var-list nil)

@@ -5816,8 +5816,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	    == dpyinfo->Xatom_editres)
           {
 	    f = x_any_window_to_frame (dpyinfo, event.xclient.window);
-            _XEditResCheckMessages (f->output_data.x->widget, NULL,
-                                    &event, NULL);
+	    if (f)
+              _XEditResCheckMessages (f->output_data.x->widget, NULL,
+                                      &event, NULL);
 	    goto done;
           }
 #endif /* HACK_EDITRES */
@@ -5833,6 +5834,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                images, only, which should have 1 page.  */
             Pixmap pixmap = (Pixmap) event.xclient.data.l[1];
 	    f = x_window_to_frame (dpyinfo, event.xclient.window);
+	    if (!f)
+	      goto OTHER;
             x_kill_gs_process (pixmap, f);
             expose_frame (f, 0, 0, 0, 0);
 	    goto done;
@@ -5851,10 +5854,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
 	f = x_any_window_to_frame (dpyinfo, event.xclient.window);
-
 	if (!f)
 	  goto OTHER;
-
 	if (x_handle_dnd_message (f, &event.xclient, dpyinfo, &inev.ie))
 	  *finish = X_EVENT_DROP;
       }
@@ -6097,7 +6098,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
       if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
-	  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
+	  && (f == 0
+	      || !EQ (f->tool_bar_window, dpyinfo->mouse_face_window)))
         {
           clear_mouse_face (dpyinfo);
           dpyinfo->mouse_face_hidden = 1;
