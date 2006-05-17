@@ -1,3 +1,7 @@
+2006-05-17  Richard Stallman  <rms@gnu.org>
+
+	* files.el (file-name-extension): Doc fix.
+
 2006-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* shell.el (shell-dirtrack-mode): Make it into a proper minor mode, so
