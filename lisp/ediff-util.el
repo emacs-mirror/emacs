@@ -329,7 +329,7 @@ to invocation.")
 	    ediff-word-mode-job (ediff-word-mode-job))
 
       ;; Don't delete variants in case of ediff-buffer-* jobs without asking.
-      ;; This is because u may loose work---dangerous.
+      ;; This is because one may loose work---dangerous.
       (if (string-match "buffer" (symbol-name ediff-job-name))
 	  (setq ediff-keep-variants t))
 
@@ -368,6 +368,7 @@ to invocation.")
 	    (save-excursion
 	      (set-buffer buffer-C)
 	      (insert-buffer-substring buf)
+	      (goto-char (point-min))
 	      (funcall (ediff-with-current-buffer buf major-mode))
 	      (widen) ; merge buffer is always widened
 	      (add-hook 'local-write-file-hooks 'ediff-set-merge-mode nil t)
@@ -1729,7 +1730,7 @@ With a prefix argument, go forward that many differences."
 	(or (>= n ediff-number-of-differences)
 	    (setq regexp-skip (funcall ediff-skip-diff-region-function n))
 	    ;; this won't exec if regexp-skip is t
-	    (setq non-clash-skip (ediff-merge-region-is-non-clash n)
+	    (setq non-clash-skip (ediff-merge-region-is-non-clash-to-skip n)
 		  skip-changed
 		  (ediff-skip-merge-region-if-changed-from-default-p n))
 	    (ediff-install-fine-diff-if-necessary n))
@@ -1744,6 +1745,7 @@ With a prefix argument, go forward that many differences."
 		     skip-changed
 		     ;; skip difference regions that differ in white space
 		     (and ediff-ignore-similar-regions
+			  (ediff-merge-region-is-non-clash n)
 			  (or (eq (ediff-no-fine-diffs-p n) t)
 			      (and (ediff-merge-job)
 				   (eq (ediff-no-fine-diffs-p n) 'C)))
@@ -1754,7 +1756,7 @@ With a prefix argument, go forward that many differences."
 	  (or (>= n ediff-number-of-differences)
 	      (setq regexp-skip (funcall ediff-skip-diff-region-function n))
 	      ;; this won't exec if regexp-skip is t
-	      (setq non-clash-skip (ediff-merge-region-is-non-clash n)
+	      (setq non-clash-skip (ediff-merge-region-is-non-clash-to-skip n)
 		    skip-changed
 		    (ediff-skip-merge-region-if-changed-from-default-p n))
 	      (ediff-install-fine-diff-if-necessary n))
@@ -1778,7 +1780,7 @@ With a prefix argument, go back that many differences."
 	(or (< n 0)
 	    (setq regexp-skip (funcall ediff-skip-diff-region-function n))
 	    ;; this won't exec if regexp-skip is t
-	    (setq non-clash-skip (ediff-merge-region-is-non-clash n)
+	    (setq non-clash-skip (ediff-merge-region-is-non-clash-to-skip n)
 		  skip-changed
 		  (ediff-skip-merge-region-if-changed-from-default-p n))
 	    (ediff-install-fine-diff-if-necessary n))
@@ -1802,7 +1804,7 @@ With a prefix argument, go back that many differences."
 	  (or (< n 0)
 	      (setq regexp-skip (funcall ediff-skip-diff-region-function n))
 	      ;; this won't exec if regexp-skip is t
-	      (setq non-clash-skip (ediff-merge-region-is-non-clash n)
+	      (setq non-clash-skip (ediff-merge-region-is-non-clash-to-skip n)
 		    skip-changed
 		    (ediff-skip-merge-region-if-changed-from-default-p n))
 	      (ediff-install-fine-diff-if-necessary n))

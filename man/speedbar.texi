@@ -591,9 +591,10 @@ will follow the general rules of their major counterparts in terms of
 key bindings and visuals, but will have specialized behaviors.
 
 @menu
-* RMAIL::  Managing folders in speedbar
-* Info::   Browsing topics in speedbar
-* GDB::    Managing the current stack trace in speedbar
+* RMAIL::  Managing folders.
+* Info::   Browsing topics.
+* GDB::    Watching expressions or managing the current
+            stack trace.
 @end menu
 
 @node RMAIL, Info, Minor Modes, Minor Modes
@@ -639,7 +640,15 @@ a @samp{[+]}, indicating that there are no sub-topics.
 @cindex gdb
 @cindex gud
 
-If you are debugging an application with GDB in Emacs, speedbar can show
+You can debug an application with GDB in Emacs using graphical mode or
+text command mode (@pxref{GDB Graphical Interface,,, emacs, The
+extensible self-documenting text editor}).
+
+If you are using graphical mode you can see how selected variables
+change each time your program stops (@pxref{Watch Expressions,,,
+emacs, The extensible self-documenting text editor}).
+
+If you are using text command mode, speedbar can show
 you the current stack when the current buffer is the @file{*gdb*}
 buffer.  Usually, it will just report that there is no stack, but when
 the application is stopped, the current stack will be shown.

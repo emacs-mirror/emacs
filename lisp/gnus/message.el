@@ -2027,14 +2027,6 @@ With prefix-argument just set Follow-Up, don't cross-post."
 
 ;;; End of functions adopted from `message-utils.el'.
 
-(defun message-remove-duplicates (list)
-  (let (new)
-    (while list
-      (or (member (car list) new)
-	  (setq new (cons (car list) new)))
-      (setq list (cdr list)))
-    (nreverse new)))
-
 (defun message-remove-header (header &optional is-regexp first reverse)
   "Remove HEADER in the narrowed buffer.
 If IS-REGEXP, HEADER is a regular expression.
@@ -4963,7 +4955,7 @@ subscribed address (and not the additional To and Cc header contents)."
 	rhs ace  address)
     (when field
       (dolist (rhs
-	       (message-remove-duplicates
+	       (mm-delete-duplicates
 		(mapcar (lambda (rhs) (or (cadr (split-string rhs "@")) ""))
 			(mapcar 'downcase
 				(mapcar

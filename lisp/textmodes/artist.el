@@ -3379,7 +3379,7 @@ The POINT-LIST is expected to cover the first quadrant."
     ;; that look like:    \           /  instead we get:   (           )
     ;;                     \         /                      \         /
     ;;                      ---------                        ---------
-    (let ((last-coord  (last point-list)))
+    (let ((last-coord (car (last point-list))))
       (if (= (artist-coord-get-new-char last-coord) ?/)
 	  (artist-coord-set-new-char last-coord artist-ellipse-right-char)))
 
@@ -3848,8 +3848,8 @@ Optional argument STATE can be used to set state (default is nil)."
 	 (x2    (artist-endpoint-get-x ep2))
 	 (y2    (artist-endpoint-get-y ep2))
 	 (dir1  (artist-find-direction x2 y2 x1 y1))
-	 (epn   (last point-list))
-	 (epn-1 (last point-list 2))
+	 (epn   (car (last point-list)))
+	 (epn-1 (car (last point-list 2)))
 	 (xn    (artist-endpoint-get-x epn))
 	 (yn    (artist-endpoint-get-y epn))
 	 (xn-1  (artist-endpoint-get-x epn-1))

@@ -103,37 +103,37 @@ truncated to make more of the arglist or documentation string visible."
 
 ;;; No user options below here.
 
-;; Commands after which it is appropriate to print in the echo area.
-;; Eldoc does not try to print function arglists, etc. after just any command,
-;; because some commands print their own messages in the echo area and these
-;; functions would instantly overwrite them.  But self-insert-command as well
-;; as most motion commands are good candidates.
-;; This variable contains an obarray of symbols; do not manipulate it
-;; directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.
-(defvar eldoc-message-commands nil)
+(defvar eldoc-message-commands-table-size 31
+  "This is used by eldoc-add-command to initialize eldoc-message-commands
+as an obarray.
+It should probably never be necessary to do so, but if you
+choose to increase the number of buckets, you must do so before loading
+this file since the obarray is initialized at load time.
+Remember to keep it a prime number to improve hash performance.")
 
-;; This is used by eldoc-add-command to initialize eldoc-message-commands
-;; as an obarray.
-;; It should probably never be necessary to do so, but if you
-;; choose to increase the number of buckets, you must do so before loading
-;; this file since the obarray is initialized at load time.
-;; Remember to keep it a prime number to improve hash performance.
-(defvar eldoc-message-commands-table-size 31)
+(defconst eldoc-message-commands
+  (make-vector eldoc-message-commands-table-size 0)
+  "Commands after which it is appropriate to print in the echo area.
+Eldoc does not try to print function arglists, etc. after just any command,
+because some commands print their own messages in the echo area and these
+functions would instantly overwrite them.  But self-insert-command as well
+as most motion commands are good candidates.
+This variable contains an obarray of symbols; do not manipulate it
+directly.  Instead, use `eldoc-add-command' and `eldoc-remove-command'.")
 
-;; Bookkeeping; elements are as follows:
-;;   0 - contains the last symbol read from the buffer.
-;;   1 - contains the string last displayed in the echo area for that
-;;       symbol, so it can be printed again if necessary without reconsing.
-;;   2 - 'function if function args, 'variable if variable documentation.
-(defvar eldoc-last-data (make-vector 3 nil))
+(defconst eldoc-last-data (make-vector 3 nil)
+  "Bookkeeping; elements are as follows:
+  0 - contains the last symbol read from the buffer.
+  1 - contains the string last displayed in the echo area for that
+      symbol, so it can be printed again if necessary without reconsing.
+  2 - 'function if function args, 'variable if variable documentation.")
 (defvar eldoc-last-message nil)
 
-;; eldoc's timer object.
-(defvar eldoc-timer nil)
+(defvar eldoc-timer nil "eldoc's timer object.")
 
-;; idle time delay currently in use by timer.
-;; This is used to determine if eldoc-idle-delay is changed by the user.
-(defvar eldoc-current-idle-delay eldoc-idle-delay)
+(defvar eldoc-current-idle-delay eldoc-idle-delay
+  "idle time delay currently in use by timer.
+This is used to determine if `eldoc-idle-delay' is changed by the user.")
 
 
 ;;;###autoload
@@ -408,53 +408,32 @@ Emacs Lisp mode) that support Eldoc.")
 ;; These functions do display-command table management.
 
 (defun eldoc-add-command (&rest cmds)
-  (or eldoc-message-commands
-      (setq eldoc-message-commands
-            (make-vector eldoc-message-commands-table-size 0)))
-
-  (let (name sym)
-    (while cmds
-      (setq name (car cmds))
-      (setq cmds (cdr cmds))
-
-      (cond ((symbolp name)
-             (setq sym name)
-             (setq name (symbol-name sym)))
-            ((stringp name)
-             (setq sym (intern-soft name))))
-
-      (and (symbolp sym)
-           (fboundp sym)
-           (set (intern name eldoc-message-commands) t)))))
+  (dolist (name cmds)
+    (and (symbolp name)
+         (setq name (symbol-name name)))
+    (set (intern name eldoc-message-commands) t)))
 
 (defun eldoc-add-command-completions (&rest names)
-  (while names
-    (apply 'eldoc-add-command
-	   (all-completions (car names) obarray 'fboundp))
-    (setq names (cdr names))))
+  (dolist (name names)
+    (apply 'eldoc-add-command (all-completions name obarray 'commandp))))
 
 (defun eldoc-remove-command (&rest cmds)
-  (let (name)
-    (while cmds
-      (setq name (car cmds))
-      (setq cmds (cdr cmds))
-
-      (and (symbolp name)
-           (setq name (symbol-name name)))
-
-      (unintern name eldoc-message-commands))))
+  (dolist (name cmds)
+    (and (symbolp name)
+         (setq name (symbol-name name)))
+    (unintern name eldoc-message-commands)))
 
 (defun eldoc-remove-command-completions (&rest names)
-  (while names
+  (dolist (name names)
     (apply 'eldoc-remove-command
-           (all-completions (car names) eldoc-message-commands))
-    (setq names (cdr names))))
+           (all-completions name eldoc-message-commands))))
 
 
 ;; Prime the command list.
 (eldoc-add-command-completions
- "backward-" "beginning-of-" "delete-other-windows" "delete-window"
- "end-of-" "exchange-point-and-mark" "forward-"
+ "backward-" "beginning-of-" "move-beginning-of-" "delete-other-windows"
+ "delete-window"
+ "end-of-" "move-end-of-" "exchange-point-and-mark" "forward-"
  "indent-for-tab-command" "goto-" "mark-page" "mark-paragraph"
  "mouse-set-point" "move-" "pop-global-mark" "next-" "other-window"
  "previous-" "recenter" "scroll-" "self-insert-command"
@@ -462,5 +441,5 @@ Emacs Lisp mode) that support Eldoc.")
 
 (provide 'eldoc)
 
-;;; arch-tag: c9a58f9d-2055-46c1-9b82-7248b71a8375
+;; arch-tag: c9a58f9d-2055-46c1-9b82-7248b71a8375
 ;;; eldoc.el ends here

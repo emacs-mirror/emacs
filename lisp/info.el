@@ -1845,36 +1845,45 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
 (defun Info-next ()
   "Go to the next node of this node."
   (interactive)
-  (Info-goto-node (Info-extract-pointer "next")))
+  ;; In case another window is currently selected
+  (save-window-excursion
+    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+    (Info-goto-node (Info-extract-pointer "next"))))
 
 (defun Info-prev ()
   "Go to the previous node of this node."
   (interactive)
-  (Info-goto-node (Info-extract-pointer "prev[ious]*" "previous")))
+  ;; In case another window is currently selected
+  (save-window-excursion
+    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+    (Info-goto-node (Info-extract-pointer "prev[ious]*" "previous"))))
 
 (defun Info-up (&optional same-file)
   "Go to the superior node of this node.
 If SAME-FILE is non-nil, do not move to a different Info file."
   (interactive)
-  (let ((old-node Info-current-node)
-        (old-file Info-current-file)
-        (node (Info-extract-pointer "up")) p)
-    (and (or same-file (not (stringp Info-current-file)))
-	 (string-match "^(" node)
-	 (error "Up node is in another Info file"))
-    (Info-goto-node node)
-    (setq p (point))
-    (goto-char (point-min))
-    (if (and (search-forward "\n* Menu:" nil t)
-             (re-search-forward
-              (if (string-equal old-node "Top")
-                  (concat "\n\\*[^:]+: +(" (file-name-nondirectory old-file) ")")
-                (concat "\n\\* +\\(" (regexp-quote old-node)
-                        ":\\|[^:]+: +" (regexp-quote old-node) "\\)"))
-              nil t))
-        (progn (beginning-of-line) (if (looking-at "^\\* ") (forward-char 2)))
-      (goto-char p)
-      (Info-restore-point Info-history))))
+  ;; In case another window is currently selected
+  (save-window-excursion
+    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+    (let ((old-node Info-current-node)
+	  (old-file Info-current-file)
+	  (node (Info-extract-pointer "up")) p)
+      (and (or same-file (not (stringp Info-current-file)))
+	   (string-match "^(" node)
+	   (error "Up node is in another Info file"))
+      (Info-goto-node node)
+      (setq p (point))
+      (goto-char (point-min))
+      (if (and (search-forward "\n* Menu:" nil t)
+	       (re-search-forward
+		(if (string-equal old-node "Top")
+		    (concat "\n\\*[^:]+: +(" (file-name-nondirectory old-file) ")")
+		  (concat "\n\\* +\\(" (regexp-quote old-node)
+			  ":\\|[^:]+: +" (regexp-quote old-node) "\\)"))
+		nil t))
+	  (progn (beginning-of-line) (if (looking-at "^\\* ") (forward-char 2)))
+	(goto-char p)
+	(Info-restore-point Info-history)))))
 
 (defun Info-history-back ()
   "Go back in the history to the last node visited."
@@ -4033,7 +4042,7 @@ specific node to expand."
       (save-window-excursion
 	(setq completions
 	      (Info-speedbar-fetch-file-nodes (or node '"(dir)top"))))
-      (select-frame speedbar-frame)
+      (select-frame (speedbar-current-frame))
       (if completions
 	  (speedbar-with-writable
 	   (dolist (completion completions)

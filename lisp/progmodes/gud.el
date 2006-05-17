@@ -137,11 +137,15 @@ Used to grey out relevant togolbar icons.")
                   :enable (and (not gud-running)
 			       (memq gud-minor-mode '(gdbmi gdba gdb perldb))))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
-                  :enable (not gud-running))
+                  :enable (not gud-running)
+		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
+				     (window-fringes))))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
 		  :enable (memq gud-minor-mode '(gdbmi gdba gdb sdb xdb bashdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
-                  :enable (not gud-running))
+                  :enable (not gud-running)
+		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
+				     (window-fringes))))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode

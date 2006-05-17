@@ -109,6 +109,9 @@
 ;;  * The timer managers doesn't handle multiple different timeouts.
 ;;  * You can't specify continuous timouts (as opposed to just lidle timers.)
 
+(defvar x-pointer-hand2)
+(defvar x-pointer-top-left-arrow)
+
 ;;; Code:
 (defvar dframe-xemacsp (string-match "XEmacs" emacs-version)
   "Non-nil if we are running in the XEmacs environment.")
@@ -151,7 +154,7 @@
 (if (fboundp 'frame-parameter)
 
     (defalias 'dframe-frame-parameter 'frame-parameter)
-  
+
   (defun dframe-frame-parameter (frame parameter)
     "Return FRAME's PARAMETER value."
     (cdr (assoc parameter (frame-parameters frame)))))
@@ -257,7 +260,8 @@ Local to those buffers, as a function called that created it.")
 	)
 
     ;; mouse bindings so we can manipulate the items on each line
-    (define-key map [down-mouse-1] 'dframe-double-click)
+    ;; (define-key map [down-mouse-1] 'dframe-double-click)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map [mouse-2] 'dframe-click)
     ;; This is the power click for new frames, or refreshing a cache
     (define-key map [S-mouse-2] 'dframe-power-click)
@@ -715,7 +719,7 @@ Optionally select that frame if necessary."
   (when (or (not (dframe-mouse-event-p last-input-event))
             dframe-activity-change-focus-flag)
     (dframe-select-attached-frame)
-    ;; KB: For what is this - raising the frame?? 
+    ;; KB: For what is this - raising the frame??
     (other-frame 0)))
 
 
@@ -902,7 +906,7 @@ Must be bound to event E."
 		 (windowp (posn-window (event-end event))) ; Sometimes
 					; there is no window to jump into.
 		 ))
-	     
+
     (funcall dframe-track-mouse-function event)))
 
 (defun dframe-track-mouse-xemacs (event)
@@ -921,8 +925,9 @@ BUFFER and POSITION are optional because XEmacs doesn't use them."
 	     dframe-help-echo-function)
     (let ((dframe-suppress-message-flag t))
       (with-current-buffer buffer
-	(if position (goto-char position))
-	(funcall dframe-help-echo-function)))))
+	(save-excursion
+	  (if position (goto-char position))
+	  (funcall dframe-help-echo-function))))))
 
 (defun dframe-mouse-set-point (e)
   "Set POINT based on event E.

@@ -1142,7 +1142,7 @@ FUNC will be called with the group name to determine the article number."
 		       5 "Error in `nnmail-split-methods'; using `bogus' mail group")
 		      (sit-for 1)
 		      '("bogus")))))
-	      (setq split (gnus-remove-duplicates split))
+	      (setq split (mm-delete-duplicates split))
 	      ;; The article may be "cross-posted" to `junk'.  What
 	      ;; to do?  Just remove the `junk' spec.  Don't really
 	      ;; see anything else to do...

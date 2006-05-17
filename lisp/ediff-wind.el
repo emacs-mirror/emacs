@@ -900,7 +900,7 @@ into icons, regardless of the window manager."
 
     (ediff-with-current-buffer ctl-buffer
       (ediff-cond-compile-for-xemacs-or-emacs
-       (set-buffer-menubar nil) ; xemacs
+       (when (featurep 'menubar) (set-buffer-menubar nil)) ; xemacs
        nil ; emacs
        )
       ;;(setq user-grabbed-mouse (ediff-user-grabbed-mouse))
@@ -1054,7 +1054,8 @@ into icons, regardless of the window manager."
     (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
 	(let ((ctl-frame ediff-control-frame))
 	  (ediff-cond-compile-for-xemacs-or-emacs
-	   (set-buffer-menubar default-menubar) ; xemacs
+	   (when (featurep 'menubar)
+	     (set-buffer-menubar default-menubar)) ; xemacs
 	   nil ; emacs
 	   )
 	  (setq ediff-control-frame nil)

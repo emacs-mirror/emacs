@@ -6,7 +6,8 @@
 	etc/images/mail so added "mail/" prefix.
 	(mh-reply): Ditto. Also renamed reply2.* to reply.*.
 	(mh-rescan-folder): Ditto. Renamed image file to refresh.* since
-	it can be used in the general sense. Does not have "mail/" prefix.
+	it can be used in the general sense. Does not have "mail/" 
+	prefix.
 
 2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
 

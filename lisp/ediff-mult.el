@@ -1624,7 +1624,7 @@ Useful commands:
 	   (save-excursion
 	     (set-buffer meta-diff-buff)
 	     (goto-char (point-max))
-	     (insert-buffer custom-diff-buf)
+	     (insert-buffer-substring custom-diff-buf)
 	     (insert "\n")))
 	  ;; if ediff session is not live, run diff directly on the files
 	  ((memq metajob '(ediff-directories
@@ -1643,7 +1643,7 @@ Useful commands:
 	   (save-excursion
 	     (set-buffer meta-diff-buff)
 	     (goto-char (point-max))
-	     (insert-buffer tmp-buf)
+	     (insert-buffer-substring tmp-buf)
 	     (insert "\n")))
 	  (t
 	   (ediff-kill-buffer-carefully meta-diff-buff)
@@ -1691,7 +1691,8 @@ all marked sessions must be active."
 	       (ediff-get-session-objC-name info)))
 	    (set-buffer (get-buffer-create ediff-tmp-buffer))
 	    (erase-buffer)
-	    (insert-buffer patchbuffer)
+	    (insert-buffer-substring patchbuffer)
+	    (goto-char (point-min))
 	    (display-buffer ediff-tmp-buffer 'not-this-window)
 	    ))
       (error "The patch buffer wasn't found"))))

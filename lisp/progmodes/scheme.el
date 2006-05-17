@@ -90,20 +90,26 @@
     (modify-syntax-entry ?\] ")[  " st)
     (modify-syntax-entry ?{ "(}  " st)
     (modify-syntax-entry ?} "){  " st)
-    (modify-syntax-entry ?\| "\" 23b" st)
+    (modify-syntax-entry ?\| "\" 23bn" st)
+    ;; Guile allows #! ... !# comments.
+    ;; But SRFI-22 defines the comment as #!...\n instead.
+    ;; Also Guile says that the !# should be on a line of its own.
+    ;; It's too difficult to get it right, for too little benefit.
+    ;; (modify-syntax-entry ?! "_ 2" st)
 
     ;; Other atom delimiters
     (modify-syntax-entry ?\( "()  " st)
     (modify-syntax-entry ?\) ")(  " st)
-    (modify-syntax-entry ?\; "<   " st)
-    (modify-syntax-entry ?\" "\"    " st)
+    ;; It's used for single-line comments as well as for #;(...) sexp-comments.
+    (modify-syntax-entry ?\; "< 2 " st)
+    (modify-syntax-entry ?\" "\"   " st)
     (modify-syntax-entry ?' "'   " st)
     (modify-syntax-entry ?` "'   " st)
 
     ;; Special characters
     (modify-syntax-entry ?, "'   " st)
     (modify-syntax-entry ?@ "'   " st)
-    (modify-syntax-entry ?# "' 14bn" st)
+    (modify-syntax-entry ?# "' 14b" st)
     (modify-syntax-entry ?\\ "\\   " st)
     st))
 
@@ -163,13 +169,18 @@
   (setq imenu-generic-expression scheme-imenu-generic-expression)
   (set (make-local-variable 'imenu-syntax-alist)
 	'(("+-*/.<>=?!$%_&~^:" . "w")))
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-        '((scheme-font-lock-keywords
-           scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
-          nil t (("+-*/.<>=!?$%_&~^:#" . "w")) beginning-of-defun
-          (font-lock-mark-block-function . mark-defun)
-          (font-lock-syntactic-face-function . lisp-font-lock-syntactic-face-function))))
+  (set (make-local-variable 'font-lock-defaults)
+       '((scheme-font-lock-keywords
+          scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
+         nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
+         beginning-of-defun
+         (font-lock-mark-block-function . mark-defun)
+         (font-lock-syntactic-face-function
+          . scheme-font-lock-syntactic-face-function)
+         (parse-sexp-lookup-properties . t)
+         (font-lock-extra-managed-props syntax-table)))
+  (set (make-local-variable 'lisp-doc-string-elt-property)
+       'scheme-doc-string-elt))
 
 (defvar scheme-mode-line-process "")
 
@@ -344,6 +355,44 @@ See `run-hooks'."
 
 (defvar scheme-font-lock-keywords scheme-font-lock-keywords-1
   "Default expressions to highlight in Scheme modes.")
+
+(defconst scheme-sexp-comment-syntax-table
+  (let ((st (make-syntax-table scheme-mode-syntax-table)))
+    (modify-syntax-entry ?\; "." st)
+    (modify-syntax-entry ?\n " " st)
+    (modify-syntax-entry ?#  "'" st)
+    st))
+
+(put 'lambda 'scheme-doc-string-elt 2)
+;; Docstring's pos in a `define' depends on whether it's a var or fun def.
+(put 'define 'scheme-doc-string-elt
+     (lambda ()
+       ;; The function is called with point right after "define".
+       (forward-comment (point-max))
+       (if (eq (char-after) ?\() 2 0)))
+
+(defun scheme-font-lock-syntactic-face-function (state)
+  (when (and (null (nth 3 state))
+             (eq (char-after (nth 8 state)) ?#)
+             (eq (char-after (1+ (nth 8 state))) ?\;))
+    ;; It's a sexp-comment.  Tell parse-partial-sexp where it ends.
+    (save-excursion
+      (let ((pos (point))
+            (end
+             (condition-case err
+                 (let ((parse-sexp-lookup-properties nil))
+                   (goto-char (+ 2 (nth 8 state)))
+                   ;; FIXME: this doesn't handle the case where the sexp
+                   ;; itself contains a #; comment.
+                   (forward-sexp 1)
+                   (point))
+               (scan-error (nth 2 err)))))
+        (when (< pos (- end 2))
+          (put-text-property pos (- end 2)
+                             'syntax-table scheme-sexp-comment-syntax-table))
+        (put-text-property (- end 1) end 'syntax-table '(12)))))
+  ;; Choose the face to use.
+  (lisp-font-lock-syntactic-face-function state))
 
 ;;;###autoload
 (define-derived-mode dsssl-mode scheme-mode "DSSSL"

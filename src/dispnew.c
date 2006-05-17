@@ -4035,23 +4035,33 @@ redraw_overlapping_rows (w, yb)
 
       if (row->overlapping_p && i > 0 && bottom_y < yb)
 	{
-	  if (row->used[LEFT_MARGIN_AREA])
-	    rif->fix_overlapping_area (w, row, LEFT_MARGIN_AREA);
+	  int overlaps = 0;
 
-	  if (row->used[TEXT_AREA])
-	    rif->fix_overlapping_area (w, row, TEXT_AREA);
+	  if (MATRIX_ROW_OVERLAPS_PRED_P (row)
+	      && !MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p)
+	    overlaps |= OVERLAPS_PRED;
+	  if (MATRIX_ROW_OVERLAPS_SUCC_P (row)
+	      && !MATRIX_ROW (w->current_matrix, i + 1)->overlapped_p)
+	    overlaps |= OVERLAPS_SUCC;
 
-	  if (row->used[RIGHT_MARGIN_AREA])
-	    rif->fix_overlapping_area (w, row, RIGHT_MARGIN_AREA);
+	  if (overlaps)
+	    {
+	      if (row->used[LEFT_MARGIN_AREA])
+		rif->fix_overlapping_area (w, row, LEFT_MARGIN_AREA, overlaps);
 
-	  /* Record in neighbour rows that ROW overwrites part of their
-	     display.  */
-	  if (row->phys_ascent > row->ascent && i > 0)
-	    MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p = 1;
-	  if ((row->phys_height - row->phys_ascent
-	       > row->height - row->ascent)
-	      && bottom_y < yb)
-	    MATRIX_ROW (w->current_matrix, i + 1)->overlapped_p = 1;
+	      if (row->used[TEXT_AREA])
+		rif->fix_overlapping_area (w, row, TEXT_AREA, overlaps);
+
+	      if (row->used[RIGHT_MARGIN_AREA])
+		rif->fix_overlapping_area (w, row, RIGHT_MARGIN_AREA, overlaps);
+
+	      /* Record in neighbour rows that ROW overwrites part of
+		 their display.  */
+	      if (overlaps & OVERLAPS_PRED)
+		MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p = 1;
+	      if (overlaps & OVERLAPS_SUCC)
+		MATRIX_ROW (w->current_matrix, i + 1)->overlapped_p = 1;
+	    }
 	}
 
       if (bottom_y >= yb)

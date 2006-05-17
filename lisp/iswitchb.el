@@ -293,6 +293,7 @@ with a space, for which the regexp is `^ '.  See the source file for
 example functions that filter buffernames."
   :type '(repeat (choice regexp function))
   :group 'iswitchb)
+(put 'iswitchb-buffer-ignore 'risky-local-variable t)
 
 (defcustom iswitchb-max-to-show nil
   "*If non-nil, limit the number of names shown in the minibuffer.
@@ -942,7 +943,7 @@ BUFFER-LIST can be list of buffers or list of strings."
             (progn
               (setq ignorep t)
               (setq re-list nil))))
-       ((fboundp nextstr)
+       ((functionp nextstr)
         (if (funcall nextstr bufname)
             (progn
               (setq ignorep t)

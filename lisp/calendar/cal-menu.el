@@ -352,7 +352,7 @@ Any holidays are shown if `holidays-in-diary-buffer' is t."
          (diary-display-hook 'ignore)
          (diary-entries
           (mapcar (lambda (x) (split-string (car (cdr x)) "\^M\\|\n"))
-                  (diary-list-entries date 1)))
+                  (diary-list-entries date 1 'list-only)))
          (holidays (if holidays-in-diary-buffer
                        (check-calendar-holidays date)))
          (title (concat "Diary entries "

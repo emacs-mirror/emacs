@@ -115,11 +115,6 @@ In all likelihood, you don't need to bother with this setting."
 
 ;;; Macros
 
-;; Fool the compiler to avoid warnings.
-;; Viper calls make-variable-buffer-local from within other functions, which
-;; triggers compiler warnings.
-(defalias 'viper-make-variable-buffer-local 'make-variable-buffer-local)
-
 (defmacro viper-deflocalvar (var default-value &optional documentation)
   `(progn
     (defvar ,var ,default-value
@@ -1019,19 +1014,19 @@ Should be set in `~/.viper' file."
 (defun viper-restore-cursor-type ()
   (condition-case nil
       (if viper-xemacs-p
-	  (setq bar-cursor nil)
+	  (set (make-local-variable 'bar-cursor) nil)
 	(setq cursor-type default-cursor-type))
     (error nil)))
 
 (defun viper-set-insert-cursor-type ()
   (if viper-xemacs-p
-      (setq bar-cursor 2)
+      (set (make-local-variable 'bar-cursor) 2)
     (setq cursor-type '(bar . 2))))
 
 
-;;; Local Variables:
-;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
-;;; End:
+;; Local Variables:
+;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
+;; End:
 
-;;; arch-tag: 4efa2416-1fcb-4690-be10-1a2a0248d250
+;; arch-tag: 4efa2416-1fcb-4690-be10-1a2a0248d250
 ;;; viper-init.el ends here

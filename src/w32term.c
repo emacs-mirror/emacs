@@ -1567,7 +1567,7 @@ x_draw_glyph_string_foreground (s)
   else
     x = s->x;
 
-  if (s->for_overlaps_p || (s->background_filled_p && s->hl != DRAW_CURSOR))
+  if (s->for_overlaps || (s->background_filled_p && s->hl != DRAW_CURSOR))
     SetBkMode (s->hdc, TRANSPARENT);
   else
     SetBkMode (s->hdc, OPAQUE);
@@ -2448,7 +2448,7 @@ x_draw_glyph_string (s)
   /* If S draws into the background of its successor, draw the
      background of the successor first so that S can draw into it.
      This makes S->next use XDrawString instead of XDrawImageString.  */
-  if (s->next && s->right_overhang && !s->for_overlaps_p)
+  if (s->next && s->right_overhang && !s->for_overlaps)
     {
       xassert (s->next->img == NULL);
       x_set_glyph_string_gc (s->next);
@@ -2461,7 +2461,7 @@ x_draw_glyph_string (s)
 
   /* Draw relief (if any) in advance for char/composition so that the
      glyph string can be drawn over it.  */
-  if (!s->for_overlaps_p
+  if (!s->for_overlaps
       && s->face->box != FACE_NO_BOX
       && (s->first_glyph->type == CHAR_GLYPH
 	  || s->first_glyph->type == COMPOSITE_GLYPH))
@@ -2487,7 +2487,7 @@ x_draw_glyph_string (s)
       break;
 
     case CHAR_GLYPH:
-      if (s->for_overlaps_p)
+      if (s->for_overlaps)
 	s->background_filled_p = 1;
       else
         x_draw_glyph_string_background (s, 0);
@@ -2495,7 +2495,7 @@ x_draw_glyph_string (s)
       break;
 
     case COMPOSITE_GLYPH:
-      if (s->for_overlaps_p || s->gidx > 0)
+      if (s->for_overlaps || s->gidx > 0)
 	s->background_filled_p = 1;
       else
 	x_draw_glyph_string_background (s, 1);
@@ -2506,7 +2506,7 @@ x_draw_glyph_string (s)
       abort ();
     }
 
-  if (!s->for_overlaps_p)
+  if (!s->for_overlaps)
     {
       /* Draw underline.  */
       if (s->face->underline_p
