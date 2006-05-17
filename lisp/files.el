@@ -162,6 +162,7 @@ The truename of a file is found by chasing all links
 both at the file level and at the levels of the containing directories."
   :type 'boolean
   :group 'find-file)
+(put 'find-file-visit-truename 'safe-local-variable 'boolean)
 
 (defcustom revert-without-query nil
   "*Specify which files should be reverted without query.
@@ -249,6 +250,8 @@ nil means make them for files that have some already.
 		 (other :tag "Always" t))
   :group 'backup
   :group 'vc)
+(put 'version-control 'safe-local-variable
+     '(lambda (x) (or (booleanp x) (equal x 'never))))
 
 (defcustom dired-kept-versions 2
   "*When cleaning directory, number of versions to keep."
@@ -268,12 +271,14 @@ If nil, ask confirmation.  Any other value prevents any trimming."
   "*Number of oldest versions to keep when a new numbered backup is made."
   :type 'integer
   :group 'backup)
+(put 'kept-old-versions 'safe-local-variable 'integerp)
 
 (defcustom kept-new-versions 2
   "*Number of newest versions to keep when a new numbered backup is made.
 Includes the new backup.  Must be > 0"
   :type 'integer
   :group 'backup)
+(put 'kept-new-versions 'safe-local-variable 'integerp)
 
 (defcustom require-final-newline nil
   "*Whether to add a newline automatically at the end of the file.
@@ -1892,8 +1897,8 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.tar\\'" . tar-mode)
      ;; The list of archive file extensions should be in sync with
      ;; `auto-coding-alist' with `no-conversion' coding system.
-     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\|xpi\\)\\'" . archive-mode)
-     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . archive-mode)
+     ("\\.\\(arc\\|zip\\|lzh\\|lha\\|zoo\\|[jew]ar\\|xpi\\)\\'" . archive-mode)
+     ("\\.\\(ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . archive-mode)
      ("\\.\\(sx[dmicw]\\|odt\\)\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
@@ -2349,31 +2354,14 @@ asking you for confirmation."
 ;; For variables defined in the C source code the declaration should go here:
 
 ;; FIXME: Some variables should be moved according to the rules above.
-(let ((string-or-null (lambda (a) (or (stringp a) (null a)))))
-  (eval
-   `(mapc (lambda (pair)
-	    (put (car pair) 'safe-local-variable (cdr pair)))
-	  '((byte-compile-dynamic . t)
-	    (byte-compile-dynamic-docstrings . t)
-	    (byte-compile-warnings . t)
-	    (c-basic-offset     .  integerp)
-	    (c-file-style       .  stringp)
-	    (c-indent-level     .  integerp)
-	    (comment-column     .  integerp)
-	    (compile-command    .  string-or-null-p)
-	    (find-file-visit-truename . t)
-	    (fill-column        .  integerp)
-	    (fill-prefix        .  string-or-null-p)
-	    (indent-tabs-mode   .  t)
-	    (kept-old-versions  .  integerp)
-	    (kept-new-versions  .  integerp)
-	    (left-margin        .  t)
-	    (no-byte-compile    .  t)
-	    (no-update-autoloads . t)
-	    (outline-regexp     .  string-or-null-p)
-	    (tab-width          .  integerp) ;; C source code
-	    (truncate-lines     .  t) ;; C source code
-	    (version-control    .  t)))))
+(mapc (lambda (pair)
+	(put (car pair) 'safe-local-variable (cdr pair)))
+      '((fill-column                     . integerp) ;; C source code
+	(indent-tabs-mode                . booleanp) ;; C source code
+	(left-margin                     . integerp) ;; C source code
+	(no-update-autoloads             . booleanp)
+	(tab-width                       . integerp) ;; C source code
+	(truncate-lines                  . booleanp))) ;; C source code
 
 (put 'c-set-style 'safe-local-eval-function t)
 
@@ -3931,7 +3919,7 @@ user.  In such situations, one has to be careful with potentially
 time consuming operations.
 
 For more information on how this variable is used by Auto Revert mode,
-see Info node `(emacs-xtra)Supporting additional buffers'.")
+see Info node `(emacs)Supporting additional buffers'.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.
@@ -4116,7 +4104,7 @@ non-nil, it is called instead of rereading visited file contents."
 	   (let ((inhibit-read-only t)
 		 ;; Keep the current buffer-file-coding-system.
 		 (coding-system buffer-file-coding-system)
-		 ;; Auto-saved file shoule be read with special coding.
+		 ;; Auto-saved file should be read with special coding.
 		 (coding-system-for-read 'auto-save-coding))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil)

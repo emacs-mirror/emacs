@@ -717,10 +717,11 @@ DEFUN ("next-char-property-change", Fnext_char_property_change,
 This scans characters forward in the current buffer from POSITION till
 it finds a change in some text property, or the beginning or end of an
 overlay, and returns the position of that.
-If none is found, the function returns (point-max).
+If none is found up to (point-max), the function returns (point-max).
 
 If the optional second argument LIMIT is non-nil, don't search
-past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+past position LIMIT; return LIMIT if nothing is found before LIMIT.
+LIMIT is a no-op if it is greater than (point-max).  */)
      (position, limit)
      Lisp_Object position, limit;
 {
@@ -742,10 +743,11 @@ DEFUN ("previous-char-property-change", Fprevious_char_property_change,
 Scans characters backward in the current buffer from POSITION till it
 finds a change in some text property, or the beginning or end of an
 overlay, and returns the position of that.
-If none is found, the function returns (point-max).
+If none is found since (point-min), the function returns (point-min).
 
 If the optional second argument LIMIT is non-nil, don't search
-past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
+past position LIMIT; return LIMIT if nothing is found before LIMIT.
+LIMIT is a no-op if it is less than (point-min).  */)
      (position, limit)
      Lisp_Object position, limit;
 {
@@ -770,6 +772,9 @@ a change in the PROP property, then returns the position of the change.
 If the optional third argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
+
+In a string, scan runs to the end of the string.
+In a buffer, it runs to (point-max), and the value cannot exceed that.
 
 The property values are compared with `eq'.
 If the property is constant all the way to the end of OBJECT, return the
@@ -812,22 +817,30 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       initial_value = Fget_char_property (position, prop, object);
 
       if (NILP (limit))
-	XSETFASTINT (limit, BUF_ZV (current_buffer));
+	XSETFASTINT (limit, ZV);
       else
 	CHECK_NUMBER_COERCE_MARKER (limit);
 
-      for (;;)
+      if (XFASTINT (position) >= XFASTINT (limit))
 	{
-	  position = Fnext_char_property_change (position, limit);
-	  if (XFASTINT (position) >= XFASTINT (limit)) {
-	    position = limit;
-	    break;
-	  }
-
-	  value = Fget_char_property (position, prop, object);
-	  if (!EQ (value, initial_value))
-	    break;
+	  position = limit;
+	  if (XFASTINT (position) > ZV)
+	    XSETFASTINT (position, ZV);
 	}
+      else
+	while (1)
+	  {
+	    position = Fnext_char_property_change (position, limit);
+	    if (XFASTINT (position) >= XFASTINT (limit))
+	      {
+		position = limit;
+		break;
+	      }
+
+	    value = Fget_char_property (position, prop, object);
+	    if (!EQ (value, initial_value))
+	      break;
+	  }
 
       unbind_to (count, Qnil);
     }
@@ -844,6 +857,9 @@ a change in the PROP property, then returns the position of the change.
 If the optional third argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
+
+In a string, scan runs to the start of the string.
+In a buffer, it runs to (point-min), and the value cannot be less than that.
 
 The property values are compared with `eq'.
 If the property is constant all the way to the start of OBJECT, return the
@@ -883,19 +899,23 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
       CHECK_NUMBER_COERCE_MARKER (position);
 
       if (NILP (limit))
-	XSETFASTINT (limit, BUF_BEGV (current_buffer));
+	XSETFASTINT (limit, BEGV);
       else
 	CHECK_NUMBER_COERCE_MARKER (limit);
 
       if (XFASTINT (position) <= XFASTINT (limit))
-	position = limit;
+	{
+	  position = limit;
+	  if (XFASTINT (position) < BEGV)
+	    XSETFASTINT (position, BEGV);
+	}
       else
 	{
-	  Lisp_Object initial_value =
-	    Fget_char_property (make_number (XFASTINT (position) - 1),
-				prop, object);
+	  Lisp_Object initial_value
+	    = Fget_char_property (make_number (XFASTINT (position) - 1),
+				  prop, object);
 
-	  for (;;)
+	  while (1)
 	    {
 	      position = Fprevious_char_property_change (position, limit);
 
@@ -906,9 +926,9 @@ back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 		}
 	      else
 		{
-		  Lisp_Object value =
-		    Fget_char_property (make_number (XFASTINT (position) - 1),
-					prop, object);
+		  Lisp_Object value
+		    = Fget_char_property (make_number (XFASTINT (position) - 1),
+					  prop, object);
 
 		  if (!EQ (value, initial_value))
 		    break;

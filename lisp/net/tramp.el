@@ -4331,7 +4331,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
   "Add tramp file name handlers to `file-name-handler-alist'."
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
-  (when partial-completion-mode
+  (when (or partial-completion-mode (featurep 'ido))
     (add-to-list 'file-name-handler-alist
 		 (cons tramp-completion-file-name-regexp
 		       'tramp-completion-file-name-handler))

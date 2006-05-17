@@ -401,7 +401,7 @@ The @kbd{C-h p} command lets you search the standard Emacs Lisp
 libraries by topic keywords.  Here is a partial list of keywords you can
 use:
 
-@multitable {emulations} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
+@multitable {convenience} {aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}
 @item abbrev@tab abbreviation handling, typing shortcuts, macros.
 @item bib@tab code related to the @code{bib} bibliography processor.
 @item c@tab support for the C language and related languages.

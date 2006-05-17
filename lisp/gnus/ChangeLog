@@ -1,3 +1,24 @@
+2006-05-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-decode.el (mm-dissect-buffer): Remove spurious double assignment.
+	(mm-copy-to-buffer): Use with-current-buffer.
+	(mm-display-part): Simplify.
+	(mm-inlinable-p): Add optional arg `type'.
+
+	* gnus-art.el (gnus-mime-view-part-as-type): Add optional PRED
+	argument.
+	(gnus-mime-view-part-externally, gnus-mime-view-part-internally):
+	Try harder to show the attachment internally or externally using
+	gnus-mime-view-part-as-type.
+
+2006-05-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-mime-view-part-as-type-internal): Try to fetch
+	`filename' from Content-Disposition if Content-Type doesn't
+	provide `name'.
+	(gnus-mime-view-part-as-type): Set default instead of
+	initial-input.
+
 2006-04-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-uu.el (mm-uu-pgp-encrypted-extract-1): Assume buffer is made

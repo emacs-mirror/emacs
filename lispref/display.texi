@@ -1772,8 +1772,9 @@ apply to.  Here are the possible values of @var{characteristic}:
 @item type
 The kind of window system the frame uses---either @code{graphic} (any
 graphics-capable display), @code{x}, @code{pc} (for the MS-DOS console),
-@code{w32} (for MS Windows 9X/NT), or @code{tty} (a non-graphics-capable
-display).
+@code{w32} (for MS Windows 9X/NT/2K/XP), @code{mac} (for the Macintosh
+display), or @code{tty} (a non-graphics-capable display).
+@xref{Window Systems, window-system}.
 
 @item class
 What kinds of colors the frame supports---either @code{color},

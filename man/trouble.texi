@@ -58,8 +58,14 @@ Search}).
 like @kbd{C-g}.  The reason is that it is not feasible, on MS-DOS, to
 recognize @kbd{C-g} while a command is running, between interactions
 with the user.  By contrast, it @emph{is} feasible to recognize
-@kbd{C-@key{BREAK}} at all times.  @xref{MS-DOS Keyboard,,,emacs-xtra,
-Specialized Emacs Features}.
+@kbd{C-@key{BREAK}} at all times.
+@iftex
+@xref{MS-DOS Keyboard,,,emacs-xtra, Specialized Emacs Features}.
+@end iftex
+@ifnottex
+@xref{MS-DOS Keyboard}.
+@end ifnottex
+
 
 @findex keyboard-quit
   @kbd{C-g} works by setting the variable @code{quit-flag} to @code{t}
@@ -381,9 +387,9 @@ subsequent @kbd{C-g} invokes emergency escape again.
 answer @kbd{n} to both questions, and you will get back to the former
 state.  The quit you requested will happen by and by.
 
-  Emergency escape is active only for text terminals.  On a graphical
-display that supports multiple windows, you can use the window manager
-to kill Emacs, or to switch to some other program.
+  Emergency escape is active only for text terminals.  On graphical
+displays, you can use the mouse to kill Emacs or switch to another
+program.
 
   On MS-DOS, you must type @kbd{C-@key{BREAK}} (twice) to cause
 emergency escape---but there are cases where it won't work, when

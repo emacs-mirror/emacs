@@ -1202,7 +1202,9 @@ value for @code{kill-ring-max} is 60.
   Most buffers have an @dfn{undo list}, which records all changes made
 to the buffer's text so that they can be undone.  (The buffers that
 don't have one are usually special-purpose buffers for which Emacs
-assumes that undoing is not useful.)  All the primitives that modify the
+assumes that undoing is not useful.  In particular, any buffer whose
+name begins with a space has its undo recording off by default,
+see @ref{Buffer Names}.)  All the primitives that modify the
 text in the buffer automatically add elements to the front of the undo
 list, which is in the variable @code{buffer-undo-list}.
 

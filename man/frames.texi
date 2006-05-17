@@ -27,7 +27,13 @@ it terminates all the frames.  To delete just one frame, use @kbd{C-x 5
 
   Emacs compiled for MS-DOS emulates some windowing functionality,
 so that you can use many of the features described in this chapter.
+@iftex
 @xref{MS-DOS Mouse,,,emacs-xtra,Specialized Emacs Features}.
+@end iftex
+@ifnottex
+@xref{MS-DOS Mouse}.
+@end ifnottex
+
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
@@ -512,7 +518,7 @@ Here's a similar example for specifying a foreground color:
 Iconify the selected Emacs frame (@code{iconify-or-deiconify-frame}).
 The normal meaning of @kbd{C-z}, to suspend Emacs, is not useful under
 a graphical display that allows multiple applications to operate
-simultaneously in their own windies, so Emacs gives @kbd{C-z} a
+simultaneously in their own windows, so Emacs gives @kbd{C-z} a
 different binding in that case.
 
 If you type this command on an Emacs frame's icon, it deiconifies the frame.

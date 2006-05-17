@@ -4325,11 +4325,8 @@ actually used.  */)
 	{
 	  xfree (conversion_buffer);
 	  coding_free_composition_data (&coding);
-	  if (how_much == -1)
-	    error ("IO error reading %s: %s",
-		   SDATA (orig_filename), emacs_strerror (errno));
-	  else if (how_much == -2)
-	    error ("maximum buffer size exceeded");
+	  error ("IO error reading %s: %s",
+		 SDATA (orig_filename), emacs_strerror (errno));
 	}
 
       /* Compare the beginning of the converted file
@@ -4938,6 +4935,8 @@ choose_write_coding_system (start, end, filename,
   setup_coding_system (Fcheck_coding_system (val), coding);
 
  done_setup_coding:
+  if (coding->eol_type == CODING_EOL_UNDECIDED)
+    coding->eol_type = system_eol_type;
   if (!STRINGP (start) && !NILP (current_buffer->selective_display))
     coding->mode |= CODING_MODE_SELECTIVE_DISPLAY;
 }

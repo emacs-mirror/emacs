@@ -202,6 +202,7 @@ lisp1= \
 	$(lispsource)international/latin-5.el \
 	$(lispsource)international/latin-8.el \
 	$(lispsource)international/latin-9.el \
+	$(lispsource)fringe.elc \
 	$(lispsource)image.elc \
 	$(lispsource)international/fontset.elc \
 	$(lispsource)dnd.elc \

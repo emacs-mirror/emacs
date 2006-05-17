@@ -386,6 +386,10 @@ should be shown to the user."
   (url-http-parse-response)
   (mail-narrow-to-head)
   ;;(narrow-to-region (point-min) url-http-end-of-headers)
+  (let ((connection (mail-fetch-field "Connection")))
+    (if (and connection
+	     (string= (downcase connection) "close"))
+	(delete-process url-http-process)))
   (let ((class nil)
 	(success nil))
     (setq class (/ url-http-response-status 100))
@@ -1137,7 +1141,8 @@ CBARGS as the arguments."
 	(setq exists nil)
       (setq status (url-http-symbol-value-in-buffer 'url-http-response-status
 						    buffer 500)
-	    exists (and (>= status 200) (< status 300)))
+	    exists (and (integerp status)
+			(>= status 200) (< status 300)))
       (kill-buffer buffer))
     exists))
 

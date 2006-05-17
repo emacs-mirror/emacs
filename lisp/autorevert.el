@@ -215,10 +215,10 @@ changes in subdirectories or in the contents, size, modes, etc.,
 of files.  You may still sometimes want to revert them manually.
 
 Use this option with care since it could lead to excessive auto-reverts.
-For more information, see Info node `(emacs-xtra)Autorevert'."
+For more information, see Info node `(emacs)Autorevert'."
   :group 'auto-revert
   :type 'boolean
-  :link '(info-link "(emacs-xtra)Autorevert"))
+  :link '(info-link "(emacs)Autorevert"))
 
 (defcustom global-auto-revert-ignore-modes ()
   "List of major modes Global Auto-Revert Mode should not check."

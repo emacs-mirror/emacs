@@ -2607,15 +2607,18 @@ By just answering RET you can find out what the current dictionary is."
 	       (mapcar 'list (ispell-valid-dictionary-list)))
 	  nil t)
 	 current-prefix-arg))
-  (unless arg (ispell-buffer-local-dict))
+  (unless arg (ispell-buffer-local-dict 'no-reload))
   (if (equal dict "default") (setq dict nil))
   ;; This relies on completing-read's bug of returning "" for no match
   (cond ((equal dict "")
+	 (ispell-internal-change-dictionary)
 	 (message "Using %s dictionary"
 		  (or ispell-local-dictionary ispell-dictionary "default")))
 	((equal dict (or ispell-local-dictionary
 			 ispell-dictionary "default"))
-	 ;; Specified dictionary is the default already.  No-op
+	 ;; Specified dictionary is the default already. Could reload
+	 ;; the dictionaries if needed.
+	 (ispell-internal-change-dictionary)
 	 (and (interactive-p)
 	      (message "No change, using %s dictionary" dict)))
 	(t				; reset dictionary!
@@ -2634,13 +2637,16 @@ By just answering RET you can find out what the current dictionary is."
 		  dict))))
 
 (defun ispell-internal-change-dictionary ()
-  "Update the dictionary actually used by Ispell.
+  "Update the dictionary and the personal dictionary used by Ispell.
 This may kill the Ispell process; if so,
 a new one will be started when needed."
-  (let ((dict (or ispell-local-dictionary ispell-dictionary)))
-    (unless (equal ispell-current-dictionary dict)
+  (let ((dict (or ispell-local-dictionary ispell-dictionary))
+	(pdict (or ispell-local-pdict ispell-personal-dictionary)))
+    (unless (and (equal ispell-current-dictionary dict)
+		 (equal ispell-current-personal-dictionary pdict))
       (ispell-kill-ispell t)
-      (setq ispell-current-dictionary dict))))
+      (setq ispell-current-dictionary dict
+	    ispell-current-personal-dictionary pdict))))
 
 ;;; Spelling of comments are checked when ispell-check-comments is non-nil.
 
@@ -3667,8 +3673,9 @@ Includes Latex/Nroff modes and extended character mode."
 
 ;;; Can kill the current ispell process
 
-(defun ispell-buffer-local-dict ()
+(defun ispell-buffer-local-dict (&optional no-reload)
   "Initializes local dictionary and local personal dictionary.
+If optional NO-RELOAD is non-nil, do not make any dictionary reloading.
 When a dictionary is defined in the buffer (see variable
 `ispell-dictionary-keyword'), it will override the local setting
 from \\[ispell-change-dictionary].
@@ -3695,12 +3702,9 @@ Both should not be used to define a buffer-local dictionary."
 	    (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		(setq ispell-local-pdict
 		      (match-string-no-properties 1)))))))
-  ;; Reload if new personal dictionary defined.
-  (if (not (equal ispell-current-personal-dictionary
-		  (or ispell-local-pdict ispell-personal-dictionary)))
-      (ispell-kill-ispell t))
-  ;; Reload if new dictionary defined.
-  (ispell-internal-change-dictionary))
+  (unless no-reload
+    ;; Reload if new dictionary (maybe the personal one) defined.
+    (ispell-internal-change-dictionary)))
 
 
 (defun ispell-buffer-local-words ()

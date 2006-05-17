@@ -2,8 +2,8 @@
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
 @c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Emacs and Microsoft Windows, Manifesto, Mac OS, Top
-@appendix Emacs and Microsoft Windows
+@node Microsoft Windows, Manifesto, Mac OS, Top
+@appendix Emacs and Microsoft Windows/MS-DOS
 @cindex Microsoft Windows
 @cindex MS-Windows, Emacs peculiarities
 
@@ -11,7 +11,14 @@
 Windows.  Some of these peculiarities are also relevant to Microsoft's
 older MS-DOS ``operating system'' (also known as ``MS-DOG'').
 However, Emacs features that are relevant @emph{only} to MS-DOS are
-described in a separate manual (@inforef{MS-DOG,, emacs-xtra}).
+described in a separate
+@iftex
+manual (@pxref{MS-DOS,,, emacs-xtra, Specialized Emacs Features}).
+@end iftex
+@ifnottex
+section (@pxref{MS-DOS}).
+@end ifnottex
+
 
   The behavior of Emacs on MS-Windows is reasonably similar to what is
 documented in the rest of the manual, including support for long file
@@ -20,12 +27,15 @@ However, a few special considerations apply, and they are described
 here.
 
 @menu
-* Text and Binary::            Text files use CRLF to terminate lines.
-* Windows Files::              File-name conventions on Windows.
-* Windows HOME::               Where Emacs looks for your @file{.emacs}.
-* Windows Processes::          Running subprocesses on Windows.
-* Windows Printing::           How to specify the printer on MS-Windows.
-* Windows System Menu::        Controlling what the ALT key does.
+* Text and Binary::     Text files use CRLF to terminate lines.
+* Windows Files::       File-name conventions on Windows.
+* Windows HOME::        Where Emacs looks for your @file{.emacs}.
+* Windows Processes::   Running subprocesses on Windows.
+* Windows Printing::    How to specify the printer on MS-Windows.
+* Windows System Menu:: Controlling what the ALT key does.
+@ifnottex
+* MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
+@end ifnottex
 @end menu
 
 @node Text and Binary
@@ -407,6 +417,10 @@ users find this frustrating.
 @vindex w32-pass-alt-to-system
 You can re-enable Windows' default handling of tapping the @key{ALT} key
 by setting @code{w32-pass-alt-to-system} to a non-@code{nil} value.
+
+@ifnottex
+@include msdog-xtra.texi
+@end ifnottex
 
 @ignore
    arch-tag: f39d2590-5dcc-4318-88d9-0eb73ca10fa2

@@ -4348,6 +4348,7 @@ used to insert the time stamp into the buffer to include the time."
 			(parse-time-string (match-string 1))))
 	     ct))
 	 (calendar-move-hook nil)
+	 (view-calendar-holidays-initially nil)
 	 (view-diary-entries-initially nil)
 	 (timestr (format-time-string
 		   (if with-time "%Y-%m-%d %H:%M" "%Y-%m-%d") default-time))
@@ -4724,6 +4725,7 @@ A prefix ARG can be used to force the current date."
   (interactive "P")
   (let ((tsr org-ts-regexp) diff
 	(calendar-move-hook nil)
+	(view-calendar-holidays-initially nil)
 	(view-diary-entries-initially nil))
     (if (or (org-at-timestamp-p)
 	    (save-excursion
@@ -6910,6 +6912,7 @@ argument, latitude and longitude will be prompted for."
 		  (error "Don't know which date to open in calendar")))
 	 (date (calendar-gregorian-from-absolute day))
 	 (calendar-move-hook nil)
+	 (view-calendar-holidays-initially nil)
 	 (view-diary-entries-initially nil))
     (calendar)
     (calendar-goto-date date)))

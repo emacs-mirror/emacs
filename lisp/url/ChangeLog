@@ -1,3 +1,12 @@
+2006-05-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* url-http.el (url-http-file-exists-p): Test if status is integer.
+
+2006-05-05  Andreas Seltenreich  <seltenreich@gmx.de>  (tiny change)
+
+	* url-http.el (url-http-parse-headers): Don't reuse connection if
+	"Connection: close" header was seen.
+
 2006-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-gw.el (url-open-stream): Don't hide errors.

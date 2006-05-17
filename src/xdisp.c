@@ -4447,6 +4447,24 @@ handle_composition_prop (it)
 
       if (id >= 0)
 	{
+	  struct composition *cmp = composition_table[id];
+
+	  if (cmp->glyph_len == 0)
+	    {
+	      /* No glyph.  */
+	      if (STRINGP (it->string))
+		{
+		  IT_STRING_CHARPOS (*it) = end;
+		  IT_STRING_BYTEPOS (*it) = string_char_to_byte (it->string,
+								 end);
+		}
+	      else
+		{
+		  IT_CHARPOS (*it) = end;
+		  IT_BYTEPOS (*it) = CHAR_TO_BYTE (end);
+		}
+	      return HANDLED_RECOMPUTE_PROPS;
+	    }
 	  it->method = GET_FROM_COMPOSITION;
 	  it->cmp_id = id;
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
@@ -9705,7 +9723,7 @@ redisplay_tool_bar (f)
 	border = 0;
 
       rows = f->n_tool_bar_rows;
-      height = (it.last_visible_y - border) / rows;
+      height = max (1, (it.last_visible_y - border) / rows);
       extra = it.last_visible_y - border - height * rows;
 
       while (it.current_y < it.last_visible_y)

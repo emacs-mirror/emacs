@@ -36,6 +36,9 @@ on all of them with on command.
 * Transforming File Names::   Using patterns to rename multiple files.
 * Comparison in Dired::	      Running `diff' by way of Dired.
 * Subdirectories in Dired::   Adding subdirectories to the Dired buffer.
+@ifnottex
+* Subdir Switches::           Subdirectory switches in Dired.
+@end ifnottex
 * Subdirectory Motion::	      Moving across subdirectories, and up and down.
 * Hiding Subdirectories::     Making subdirectories visible or invisible.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
@@ -906,6 +909,10 @@ Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
 subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
 line to delete the subdirectory.  @xref{Dired Updating}.
 
+@ifnottex
+@include dired-xtra.texi
+@end ifnottex
+
 @node Subdirectory Motion
 @section Moving Over Subdirectories
 
@@ -1198,7 +1205,7 @@ not appear in the other directory is ``different''.  You can specify
 more stringent comparisons by entering a Lisp expression, which can
 refer to the variables @code{size1} and @code{size2}, the respective
 file sizes; @code{mtime1} and @code{mtime2}, the last modification
-times in seconds, as floating point numers; and @code{fa1} and
+times in seconds, as floating point numbers; and @code{fa1} and
 @code{fa2}, the respective file attribute lists (as returned by the
 function @code{file-attributes}).  This expression is evaluated for
 each pair of like-named files, and if the expression's value is

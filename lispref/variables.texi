@@ -1784,7 +1784,8 @@ returns non-@code{nil} given that value.  Many commonly encountered
 file variables standardly have @code{safe-local-variable} properties,
 including @code{fill-column}, @code{fill-prefix}, and
 @code{indent-tabs-mode}.  For boolean-valued variables that are safe,
-use @code{booleanp} as the property value.
+use @code{booleanp} as the property value.  Lambda expressions should
+be quoted so that @code{describe-variable} can display the predicate.
 
 @defopt safe-local-variable-values
 This variable provides another way to mark some variable values as
@@ -1843,6 +1844,19 @@ lists in files being visited.  A value of @code{t} means process them
 unconditionally; @code{nil} means ignore them; anything else means ask
 the user what to do for each file.  The default value is @code{maybe}.
 @end defopt
+
+@defopt safe-local-eval-forms
+This variable holds a list of expressions that are safe to
+evaluate when found in the @samp{Eval:} ``variable'' in a file
+local variables list.
+@end defopt
+
+  If the expression is a function call and the function has a
+@code{safe-local-eval-function} property, the property value
+determines whether the expression is safe to evaluate.  The property
+value can be a predicate to call to test the expression, a list of
+such predicates (it's safe if any predicate succeeds), or @code{t}
+(always safe provided the arguments are constant).
 
   Text properties are also potential loopholes, since their values
 could include functions to call.  So Emacs discards all text

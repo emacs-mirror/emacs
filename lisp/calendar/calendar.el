@@ -1374,6 +1374,7 @@ MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
   "Extract the month part of DATE which has the form (month day year)."
   (car date))
 
+;; Note gives wrong answer for result of (calendar-read-date 'noday).
 (defsubst extract-calendar-day (date)
   "Extract the day part of DATE which has the form (month day year)."
   (car (cdr date)))
@@ -1639,6 +1640,9 @@ to be replaced by asterisks to highlight it whenever it is in the window."
                  (calendar-current-date)))
          (month (extract-calendar-month date))
          (year (extract-calendar-year date)))
+    ;; (calendar-read-date t) returns a date with day = nil, which is
+    ;; not a legal date for the visible test in the diary section.
+    (if arg (setcar (cdr date) 1))
     (pop-to-buffer calendar-buffer)
     (increment-calendar-month month year (- calendar-offset))
     (generate-calendar-window month year)
@@ -1682,12 +1686,10 @@ D-FILE specifies the file to use as the diary file."
   t)
 
 (autoload 'calendar-french-date-string "cal-french"
-  "String of French Revolutionary date of Gregorian date."
-  t)
+  "String of French Revolutionary date of Gregorian date.")
 
 (autoload 'calendar-mayan-date-string "cal-mayan"
-  "String of Mayan date of Gregorian date."
-  t)
+  "String of Mayan date of Gregorian date.")
 
 (autoload 'calendar-print-mayan-date "cal-mayan"
   "Show the Mayan long count, Tzolkin, and Haab equivalents of the date under the cursor."
@@ -1730,8 +1732,7 @@ D-FILE specifies the file to use as the diary file."
  t)
 
 (autoload 'calendar-chinese-date-string "cal-china"
-  "String of Chinese date of Gregorian date."
-  t)
+  "String of Chinese date of Gregorian date.")
 
 (autoload 'calendar-absolute-from-astro  "cal-julian"
   "Absolute date of astronomical (Julian) day number D."
@@ -1741,8 +1742,7 @@ D-FILE specifies the file to use as the diary file."
   "Astronomical (Julian) day number of absolute date D.")
 
 (autoload 'calendar-astro-date-string "cal-julian"
-  "String of astronomical (Julian) day number of Gregorian date."
-  t)
+  "String of astronomical (Julian) day number of Gregorian date.")
 
 (autoload 'calendar-goto-astro-day-number "cal-julian"
    "Move cursor to astronomical (Julian) day number."
@@ -1783,8 +1783,7 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-iso-date-string "cal-iso"
-  "String of ISO date of Gregorian date."
-  t)
+  "String of ISO date of Gregorian date.")
 
 (autoload 'calendar-goto-islamic-date "cal-islam"
   "Move cursor to Islamic date."
@@ -1795,16 +1794,14 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-islamic-date-string "cal-islam"
-  "String of Islamic date of Gregorian date."
-  t)
+  "String of Islamic date of Gregorian date.")
 
 (autoload 'calendar-print-bahai-date "cal-bahai"
   "Show the Baha'i date equivalents of date."
   t)
 
 (autoload 'calendar-bahai-date-string "cal-bahai"
-  "String of Baha'i date of Gregorian date."
-  t)
+  "String of Baha'i date of Gregorian date.")
 
 (autoload 'calendar-goto-hebrew-date "cal-hebrew"
   "Move cursor to Hebrew date."
@@ -1815,8 +1812,7 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-hebrew-date-string "cal-hebrew"
-  "String of Hebrew date of Gregorian date."
-  t)
+  "String of Hebrew date of Gregorian date.")
 
 (autoload 'calendar-goto-coptic-date "cal-coptic"
    "Move cursor to Coptic date."
@@ -1827,8 +1823,7 @@ Driven by the variable `calendar-date-display-form'.")
  t)
 
 (autoload 'calendar-coptic-date-string "cal-coptic"
-  "String of Coptic date of Gregorian date."
-  t)
+  "String of Coptic date of Gregorian date.")
 
 (autoload 'calendar-goto-ethiopic-date "cal-coptic"
    "Move cursor to Ethiopic date."
@@ -1839,8 +1834,7 @@ Driven by the variable `calendar-date-display-form'.")
  t)
 
 (autoload 'calendar-ethiopic-date-string "cal-coptic"
-  "String of Ethiopic date of Gregorian date."
-  t)
+  "String of Ethiopic date of Gregorian date.")
 
 (autoload 'calendar-goto-persian-date "cal-persia"
    "Move cursor to Persian date."
@@ -1851,10 +1845,9 @@ Driven by the variable `calendar-date-display-form'.")
  t)
 
 (autoload 'calendar-persian-date-string "cal-persia"
-  "String of Persian date of Gregorian date."
-  t)
+  "String of Persian date of Gregorian date.")
 
-(autoload 'show-all-diary-entries "diary-lib"
+(autoload 'diary-show-all-entries "diary-lib"
   "Show all of the diary entries in the diary file.
 This function gets rid of the selective display of the diary file so that
 all entries, not just some, are visible.  If there is no diary buffer, one
@@ -1867,8 +1860,7 @@ Each entry in diary file visible in the calendar window is marked."
   t)
 
 (autoload 'make-diary-entry "diary-lib"
-  "Insert a diary entry STRING which may be NONMARKING in FILE."
-  t)
+  "Insert a diary entry STRING which may be NONMARKING in FILE.")
 
 (autoload 'insert-diary-entry "diary-lib"
   "Insert a diary entry for the date indicated by point."
@@ -1953,69 +1945,69 @@ holidays are found, nil if not."
 (autoload 'cal-tex-cursor-month "cal-tex"
   "Make a buffer with LaTeX commands for the month cursor is on.
 Optional prefix argument specifies number of months to be produced.
-Calendar is condensed onto one page.")
+Calendar is condensed onto one page." t)
 
 (autoload 'cal-tex-cursor-month-landscape "cal-tex"
   "Make a buffer with LaTeX commands for the month cursor is on.
-Optional prefix argument specifies number of months to be produced.")
+Optional prefix argument specifies number of months to be produced." t)
 
 (autoload 'cal-tex-cursor-day "cal-tex"
-  "Make a buffer with LaTeX commands for the day cursor is on.")
+  "Make a buffer with LaTeX commands for the day cursor is on." t)
 
 (autoload 'cal-tex-cursor-week "cal-tex"
   "Make a buffer with LaTeX commands for a two-page one-week calendar.
 It applies to the week that point is in.
 Optional prefix argument specifies number of weeks.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-week2 "cal-tex"
   "Make a buffer with LaTeX commands for a two-page one-week calendar.
 It applies to the week that point is in.
 Optional prefix argument specifies number of weeks.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-week-iso "cal-tex"
   "Make a buffer with LaTeX commands for a one page ISO-style weekly calendar.
 Optional prefix argument specifies number of weeks.
 Diary entries are included if `cal-tex-diary' is t.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-week-monday "cal-tex"
   "Make a buffer with LaTeX commands for a two-page one-week calendar.
 It applies to the week that point is in, and starts on Monday.
 Optional prefix argument specifies number of weeks.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-filofax-2week "cal-tex"
   "Two-weeks-at-a-glance Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.
 Diary entries are included if cal-tex-diary is t.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-filofax-week "cal-tex"
   "One-week-at-a-glance Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.
 Weeks start on Monday.
 Diary entries are included if cal-tex-diary is t.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-filofax-daily "cal-tex"
   "Day-per-page Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.  Weeks start on Monday.
 Diary entries are included if `cal-tex-diary' is t.
-Holidays are included if `cal-tex-holidays' is t.")
+Holidays are included if `cal-tex-holidays' is t." t)
 
 (autoload 'cal-tex-cursor-year "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar.
-Optional prefix argument specifies number of years.")
+Optional prefix argument specifies number of years." t)
 
 (autoload 'cal-tex-cursor-year-landscape "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar (landscape).
-Optional prefix argument specifies number of years.")
+Optional prefix argument specifies number of years." t)
 
 (autoload 'cal-tex-cursor-filofax-year "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar (Filofax).
-Optional prefix argument specifies number of years.")
+Optional prefix argument specifies number of years." t)
 
 (autoload 'mark-calendar-holidays "holidays"
   "Mark notable days in the calendar window."
@@ -2261,7 +2253,7 @@ movement commands will not work correctly."
     (define-key map "m"   'mark-diary-entries)
     (define-key map "d"   'diary-view-entries)
     (define-key map "D"   'view-other-diary-entries)
-    (define-key map "s"   'show-all-diary-entries)
+    (define-key map "s"   'diary-show-all-entries)
     (define-key map "pd"  'calendar-print-day-of-year)
     (define-key map "pC"  'calendar-print-chinese-date)
     (define-key map "pk"  'calendar-print-coptic-date)
@@ -2897,7 +2889,11 @@ interpreted as BC; -1 being 1 BC, and so on."
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
     (and (<= 1 month) (<= month 12)
-         (<= 1 day) (<= day (calendar-last-day-of-month month year))
+         ;; (calendar-read-date t) returns a date with day = nil.
+         ;; Should not be valid (?), since many funcs prob assume integer.
+         ;; (calendar-read-date 'noday) returns (month year), which
+         ;; currently results in extract-calendar-year returning nil.
+         day year (<= 1 day) (<= day (calendar-last-day-of-month month year))
          ;; BC dates left as non-valid, to suppress errors from
          ;; complex holiday algorithms not suitable for years BC.
          ;; Note there are side effects on calendar navigation.
