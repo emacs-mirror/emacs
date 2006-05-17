@@ -3,6 +3,8 @@
 	* emacs-lisp/ewoc.el (ewoc-data): Add docstring.
 	(ewoc-nth): Doc fix.
 
+	(ewoc-map, ewoc-invalidate): Compute PP before looping.
+
 2006-05-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/mule.el (auto-coding-alist): Add .lha to files
