@@ -1,9 +1,12 @@
 # emacs-buffer.gdb --- gdb macros for recovering buffers from emacs coredumps
 
-# Copyright (C) 2005 Free Software Foundation, Inc.
+# Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 
 # Maintainer: Noah Friedman <friedman@splode.com>
-# Status: tested with Emacs 22
+# Status: Works with Emacs 22.0.51.1 (prerelease) as of 2006-01-12.
+#         Older cvs snapshots, and released versions, will not work due to
+#         changes in lisp data structures.  But there are older versions of
+#         this gdb script which work with those versions.
 # Created: 2005-04-28
 
 # This file is part of GNU Emacs.
@@ -29,8 +32,8 @@
 # an Emacs coredump; they may not always be file-backed or have a recent
 # autosave.
 #
-# The Emacs executable must have debugging symbols for this to work.  But
-# you never strip Emacs, right?  Right!
+# The Emacs executable must have debugging symbols for this to work.
+# But you never strip Emacs, right?
 #
 # The main commands of interest are `ybuffer-list', `yfile-buffers',
 # `ysave-buffer', and `ybuffer-contents'.  The `y' prefix avoids any
@@ -98,11 +101,11 @@ define ybuffer-list
   while $alist != Qnil
     ygetptr $alist
     set $this  = ((struct Lisp_Cons *) $ptr)->car
-    set $alist = ((struct Lisp_Cons *) $ptr)->cdr
+    set $alist = ((struct Lisp_Cons *) $ptr)->u.cdr
 
     # Vbuffer_alist elts are pairs of the form (name . buffer)
     ygetptr $this
-    set $buf  = ((struct Lisp_Cons *) $ptr)->cdr
+    set $buf  = ((struct Lisp_Cons *) $ptr)->u.cdr
     ygetptr $buf
     set $buf = (struct buffer *) $ptr
 
@@ -150,7 +153,7 @@ define yset-buffer
   set $alist = Vbuffer_alist
   while ($alist != Qnil && $i > 0)
     ygetptr $alist
-    set $alist = ((struct Lisp_Cons *) $ptr)->cdr
+    set $alist = ((struct Lisp_Cons *) $ptr)->u.cdr
     set $i--
   end
 
@@ -160,7 +163,7 @@ define yset-buffer
 
   # Get the buffer object
   ygetptr $this
-  set $this = ((struct Lisp_Cons *) $ptr)->cdr
+  set $this = ((struct Lisp_Cons *) $ptr)->u.cdr
 
   ygetptr $this
   set $ycurrent_buffer = (struct buffer *) $ptr

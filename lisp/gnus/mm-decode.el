@@ -1,7 +1,7 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -279,7 +279,9 @@ before the external MIME handler is invoked."
     "application/x-emacs-lisp"
     "application/pgp-signature" "application/x-pkcs7-signature"
     "application/pkcs7-signature" "application/x-pkcs7-mime"
-    "application/pkcs7-mime")
+    "application/pkcs7-mime"
+    ;; Mutt still uses this even though it has already been withdrawn.
+    "application/pgp")
   "List of media types that are to be displayed inline.
 See also `mm-inline-media-tests', which says how to display a media
 type inline."
@@ -302,7 +304,9 @@ when selecting a different article."
     "application/emacs-lisp" "application/x-emacs-lisp"
     "application/x-pkcs7-signature"
     "application/pkcs7-signature" "application/x-pkcs7-mime"
-    "application/pkcs7-mime")
+    "application/pkcs7-mime"
+    ;; Mutt still uses this even though it has already been withdrawn.
+    "application/pgp")
   "A list of MIME types to be displayed automatically."
   :type '(repeat regexp)
   :group 'mime-display)

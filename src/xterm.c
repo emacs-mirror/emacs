@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
    Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+                 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -7458,7 +7458,12 @@ x_text_icon (f, icon_name)
 /* If non-nil, this should be a string.
    It means catch X errors  and store the error message in this string.  */
 
-static Lisp_Object x_error_message_string;
+struct x_error_message_stack {
+  char string[X_ERROR_MESSAGE_SIZE];
+  Display *dpy;
+  struct x_error_message_stack *prev;
+};
+static struct x_error_message_stack *x_error_message;
 
 /* An X error handler which stores the error message in
    x_error_message_string.  This is called from x_error_handler if
@@ -7470,7 +7475,7 @@ x_error_catcher (display, error)
      XErrorEvent *error;
 {
   XGetErrorText (display, error->error_code,
-		 SDATA (x_error_message_string),
+		 x_error_message->string,
 		 X_ERROR_MESSAGE_SIZE);
 }
 
@@ -7495,16 +7500,23 @@ x_catch_errors (dpy)
      Display *dpy;
 {
   int count = SPECPDL_INDEX ();
+  struct x_error_message_stack *data = malloc (sizeof (*data));
+  Lisp_Object dummy;
+#ifdef ENABLE_CHECKING
+  dummy = make_number ((EMACS_INT)dpy + (EMACS_INT)x_error_message);
+#else
+  dummy = Qnil;
+#endif
 
   /* Make sure any errors from previous requests have been dealt with.  */
   XSync (dpy, False);
 
-  record_unwind_protect (x_catch_errors_unwind,
-			 Fcons (make_save_value (dpy, 0),
-				x_error_message_string));
+  data->dpy = dpy;
+  data->string[0] = 0;
+  data->prev = x_error_message;
+  x_error_message = data;
 
-  x_error_message_string = make_uninit_string (X_ERROR_MESSAGE_SIZE);
-  SSET (x_error_message_string, 0, 0);
+  record_unwind_protect (x_catch_errors_unwind, dummy);
 
   return count;
 }
@@ -7512,11 +7524,11 @@ x_catch_errors (dpy)
 /* Unbind the binding that we made to check for X errors.  */
 
 static Lisp_Object
-x_catch_errors_unwind (old_val)
-     Lisp_Object old_val;
+x_catch_errors_unwind (dummy)
+     Lisp_Object dummy;
 {
-  Lisp_Object first = XCAR (old_val);
-  Display *dpy = XSAVE_VALUE (first)->pointer;
+  Display *dpy = x_error_message->dpy;
+  struct x_error_message_stack *tmp;
 
   /* The display may have been closed before this function is called.
      Check if it is still open before calling XSync.  */
@@ -7527,7 +7539,13 @@ x_catch_errors_unwind (old_val)
       UNBLOCK_INPUT;
     }
 
-  x_error_message_string = XCDR (old_val);
+  tmp = x_error_message;
+  x_error_message = x_error_message->prev;
+  free (tmp);
+
+  eassert (EQ (dummy,
+	       make_number ((EMACS_INT)dpy + (EMACS_INT)x_error_message)));
+
   return Qnil;
 }
 
@@ -7543,8 +7561,8 @@ x_check_errors (dpy, format)
   /* Make sure to catch any errors incurred so far.  */
   XSync (dpy, False);
 
-  if (SREF (x_error_message_string, 0))
-    error (format, SDATA (x_error_message_string));
+  if (x_error_message->string[0])
+    error (format, x_error_message->string);
 }
 
 /* Nonzero if we had any X protocol errors
@@ -7557,7 +7575,7 @@ x_had_errors_p (dpy)
   /* Make sure to catch any errors incurred so far.  */
   XSync (dpy, False);
 
-  return SREF (x_error_message_string, 0) != 0;
+  return x_error_message->string[0] != 0;
 }
 
 /* Forget about any errors we have had, since we did x_catch_errors on DPY.  */
@@ -7566,7 +7584,7 @@ void
 x_clear_errors (dpy)
      Display *dpy;
 {
-  SSET (x_error_message_string, 0, 0);
+  x_error_message->string[0] = 0;
 }
 
 /* Stop catching X protocol errors and let them make Emacs die.
@@ -7748,7 +7766,7 @@ x_error_handler (display, error)
      Display *display;
      XErrorEvent *error;
 {
-  if (! NILP (x_error_message_string))
+  if (x_error_message)
     x_error_catcher (display, error);
   else
     x_error_quitter (display, error);
@@ -10818,8 +10836,7 @@ x_initialize ()
 void
 syms_of_xterm ()
 {
-  staticpro (&x_error_message_string);
-  x_error_message_string = Qnil;
+  x_error_message = NULL;
 
   staticpro (&x_display_name_list);
   x_display_name_list = Qnil;

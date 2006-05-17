@@ -82,11 +82,11 @@
 ;;  SAVING/LOADING COMPLETIONS
 ;;   Completions are automatically saved from one session to another
 ;; (unless save-completions-flag or enable-completion is nil).
-;; Activating this minor-mode calling completion-initialize) causes Emacs
-;; to load a completions database for a saved completions file
+;; Activating this minor-mode (calling completion-initialize) loads
+;; a completions database for a saved completions file
 ;; (default: ~/.completions).  When you exit, Emacs saves a copy of the
-;; completions that you
-;; often use.  When you next start, Emacs loads in the saved completion file.
+;; completions that you often use.  When you next start, Emacs loads in
+;; the saved completion file.
 ;;
 ;;   The number of completions saved depends loosely on
 ;; *saved-completions-decay-factor*.  Completions that have never been
@@ -2250,13 +2250,14 @@ Patched to remove the most recent completion."
 TYPE is the type of the wrapper to be added.  Can be :before or :under."
   (put function-name 'completion-function
        (cdr (assq type
-                  '((:separator 'use-completion-before-separator)
-                    (:before 'use-completion-before-point)
-                    (:backward-under 'use-completion-backward-under)
-                    (:backward 'use-completion-backward)
-                    (:under 'use-completion-under-point)
-                    (:under-or-before 'use-completion-under-or-before-point)
-                    (:minibuffer-separator 'use-completion-minibuffer-separator))))))
+                  '((:separator . use-completion-before-separator)
+                    (:before . use-completion-before-point)
+                    (:backward-under . use-completion-backward-under)
+                    (:backward . use-completion-backward)
+                    (:under . use-completion-under-point)
+                    (:under-or-before . use-completion-under-or-before-point)
+                    (:minibuffer-separator
+		     . use-completion-minibuffer-separator))))))
 
 (defun use-completion-minibuffer-separator ()
   (let ((completion-syntax-table completion-standard-syntax-table))
@@ -2354,7 +2355,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
     (if dynamic-completion-mode
         (add-hook (car x) (cdr x))
       (remove-hook (car x) (cdr x))))
-  
+
   ;; "Complete" Key Keybindings.  We don't want to use a minor-mode
   ;; map because these have too high a priority.  We could/should
   ;; probably change the interpretation of minor-mode-map-alist such

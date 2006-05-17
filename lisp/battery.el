@@ -271,6 +271,8 @@ The following %-sequences are provided:
 %h Remaining time in hours
 %t Remaining time in the form `h:min'"
   (let ((design-capacity 0)
+	(last-full-capacity 0)
+	full-capacity
 	(warn 0)
 	(low 0)
 	capacity rate rate-type charging-state minutes hours)
@@ -310,18 +312,25 @@ The following %-sequences are provided:
 	  (when (re-search-forward "design capacity: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
 	    (incf design-capacity (string-to-number (match-string 1))))
+	  (when (re-search-forward "last full capacity: +\\([0-9]+\\) m[AW]h$"
+				   nil t)
+	    (incf last-full-capacity (string-to-number (match-string 1))))
 	  (when (re-search-forward
 		 "design capacity warning: +\\([0-9]+\\) m[AW]h$" nil t)
 	    (incf warn (string-to-number (match-string 1))))
 	  (when (re-search-forward "design capacity low: +\\([0-9]+\\) m[AW]h$"
 				   nil t)
 	    (incf low (string-to-number (match-string 1)))))))
+    (setq full-capacity (if (> last-full-capacity 0)
+			    last-full-capacity design-capacity))
     (and capacity rate
 	 (setq minutes (if (zerop rate) 0
 			 (floor (* (/ (float (if (string= charging-state
 							  "charging")
-						 (- design-capacity capacity)
-					       capacity)) rate) 60)))
+						 (- full-capacity capacity)
+					       capacity))
+				      rate)
+				   60)))
 	       hours (/ minutes 60)))
     (list (cons ?c (or (and capacity (number-to-string capacity)) "N/A"))
 	  (cons ?L (or (when (file-exists-p "/proc/acpi/ac_adapter/AC/state")
@@ -368,10 +377,10 @@ The following %-sequences are provided:
 	  (cons ?t (or (and minutes
 			    (format "%d:%02d" hours (- minutes (* 60 hours))))
 		       "N/A"))
-	  (cons ?p (or (and design-capacity capacity
+	  (cons ?p (or (and full-capacity capacity
 			    (number-to-string
 			     (floor (/ capacity
-				       (/ (float design-capacity) 100)))))
+				       (/ (float full-capacity) 100)))))
 		       "N/A")))))
 
 

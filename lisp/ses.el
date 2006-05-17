@@ -1,6 +1,6 @@
 ;;; ses.el -- Simple Emacs Spreadsheet  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -148,8 +148,7 @@ Each function is called with ARG=1."
 	(newmap (make-sparse-keymap)))
     (set-keymap-parent newmap minibuffer-local-map)
     (while keys
-      (define-key newmap (car keys) (cadr keys))
-      (setq keys (cddr keys)))
+      (define-key newmap (pop keys) (pop keys)))
     newmap)
   "Local keymap for SES minibuffer cell-editing.")
 
@@ -1865,20 +1864,20 @@ cell formula was unsafe and user declined confirmation."
 (defun ses-read-cell (row col newval)
   "Self-insert for initial character of cell function."
   (interactive
-   (let ((initial (this-command-keys))
-	 (rowcol  (progn (ses-check-curcell) (ses-sym-rowcol ses--curcell))))
+   (let* ((initial (this-command-keys))
+          (rowcol  (progn (ses-check-curcell) (ses-sym-rowcol ses--curcell)))
+          (curval (ses-cell-formula (car rowcol) (cdr rowcol))))
      (barf-if-buffer-read-only)
-     (if (string= initial "\"")
-	 (setq initial "\"\"") ;Enter a string
-       (if (string= initial "(")
-	   (setq initial "()"))) ;Enter a formula list
      (list (car rowcol)
 	   (cdr rowcol)
-	   (read-from-minibuffer (format "Cell %s: " ses--curcell)
-				 (cons initial 2)
-				 ses-mode-edit-map
-				 t ;Convert to Lisp object
-				 'ses-read-cell-history))))
+           (read-from-minibuffer
+            (format "Cell %s: " ses--curcell)
+            (cons (if (equal initial "\"") "\"\""
+                    (if (equal initial "(") "()" initial)) 2)
+            ses-mode-edit-map
+            t                         ;Convert to Lisp object
+            'ses-read-cell-history
+            (prin1-to-string curval)))))
   (when (ses-edit-cell row col newval)
     (ses-command-hook) ;Update cell widths before movement
     (dolist (x ses-after-entry-functions)

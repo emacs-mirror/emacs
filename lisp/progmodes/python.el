@@ -1743,7 +1743,7 @@ lines count as headers.
   (set (make-local-variable 'eldoc-documentation-function)
        #'python-eldoc-function)
   (add-hook 'eldoc-mode-hook
-	    '(lambda () (run-python 0 t)) nil t) ; need it running
+	    '(lambda () (run-python nil t)) nil t) ; need it running
   (if (featurep 'hippie-exp)
       (set (make-local-variable 'hippie-expand-try-functions-list)
 	   (cons 'python-try-complete hippie-expand-try-functions-list)))

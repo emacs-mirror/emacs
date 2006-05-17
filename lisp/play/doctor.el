@@ -89,7 +89,7 @@
     (set what ww)
     first))
 
-(defvar doc-mode-map
+(defvar doctor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\n" 'doctor-read-print)
     (define-key map "\r" 'doctor-ret-or-read)

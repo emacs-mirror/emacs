@@ -1,7 +1,8 @@
 ;;; -*- coding: iso-2022-7bit; -*-
 ;;; tramp-util.el --- Misc utility functions to use with Tramp
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: kai.grossjohann@gmx.net
 ;; Keywords: comm, extensions, processes
@@ -31,6 +32,10 @@
 (eval-when-compile (require 'cl))
 (require 'compile)
 (require 'tramp)
+(add-hook 'tramp-util-unload-hook
+	  '(lambda ()
+	     (when (featurep 'tramp)
+	       (unload-feature 'tramp 'force))))
 
 ;; Define a Tramp minor mode. It's intention is to redefine some keys for Tramp
 ;; specific functions, like compilation.
@@ -42,7 +47,7 @@
       (defalias 'define-minor-mode 'identity)
       (defvar tramp-minor-mode))
   (unless (featurep 'xemacs)
-      (defalias 'add-menu-button 'identity)))
+    (defalias 'add-menu-button 'ignore)))
 
 (defvar tramp-minor-mode-map (make-sparse-keymap)
   "Keymap for Tramp minor mode.")
@@ -57,7 +62,14 @@
 	(and tramp-minor-mode (tramp-tramp-file-p default-directory))))
 
 (add-hook 'find-file-hooks 'tramp-minor-mode t)
+(add-hook 'tramp-util-unload-hook
+	  '(lambda ()
+	     (remove-hook 'find-file-hooks 'tramp-minor-mode)))
+
 (add-hook 'dired-mode-hook 'tramp-minor-mode t)
+(add-hook 'tramp-util-unload-hook
+	  '(lambda ()
+	     (remove-hook 'dired-mode-hook 'tramp-minor-mode)))
 
 (defun tramp-remap-command (old-command new-command)
   "Replaces bindings of OLD-COMMAND by NEW-COMMAND.

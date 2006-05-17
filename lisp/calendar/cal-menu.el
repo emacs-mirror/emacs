@@ -1,6 +1,6 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005
+;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -42,7 +42,9 @@
 (defvar displayed-month)
 (defvar displayed-year)
 
-(eval-when-compile (require 'calendar))
+;; Don't require calendar because calendar requires us.
+;; (eval-when-compile (require 'calendar))
+(defvar calendar-mode-map)
 
 (define-key calendar-mode-map [menu-bar edit] 'undefined)
 (define-key calendar-mode-map [menu-bar search] 'undefined)
@@ -211,14 +213,14 @@ not available."
   (condition-case nil
       (if (eq major-mode 'calendar-mode)
           (let ((l))
-            (calendar-for-loop;; Show 11 years--5 before, 5 after year of
-                   ;; middle month
-             i from (- displayed-year 5) to (+ displayed-year 5) do
-             (setq l (cons (vector (format "For Year %s" i)
-                                   (list (list 'lambda 'nil '(interactive)
-                                               (list 'list-holidays i i)))
-                                   t)
-                           l)))
+            ;; Show 11 years--5 before, 5 after year of middle month
+            (dotimes (i 11)
+              (let ((y (+ displayed-year -5 i)))
+                (push (vector (format "For Year %s" y)
+                              (list (list 'lambda 'nil '(interactive)
+                                          (list 'list-holidays y y)))
+                              t)
+                      l)))
             (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
                           (cons ["Unmark Calendar" calendar-unmark t]
                                 (cons "--" l))))
@@ -231,22 +233,18 @@ not available."
                            (calendar-date-string (calendar-current-date) t t))
                   . cal-menu-today-holidays))
             (let ((title
-                   (let ((m1 displayed-month)
-                         (y1 displayed-year)
-                         (m2 displayed-month)
-                         (y2 displayed-year))
-                     (increment-calendar-month m1 y1 -1)
-                     (increment-calendar-month m2 y2 1)
-                     (if (= y1 y2)
+                   (let ((my1 (calendar-increment-month -1))
+                         (my2 (calendar-increment-month 1)))
+                     (if (= (cdr my1) (cdr my2))
                          (format "%s-%s, %d"
-                                 (calendar-month-name m1 'abbrev)
-                                 (calendar-month-name m2 'abbrev)
-                                 y2)
+                                 (calendar-month-name (car my1) 'abbrev)
+                                 (calendar-month-name (car my2) 'abbrev)
+                                 (cdr my2))
                        (format "%s, %d-%s, %d"
-                               (calendar-month-name m1 'abbrev)
-                               y1
-                               (calendar-month-name m2 'abbrev)
-                               y2)))))
+                               (calendar-month-name (car my1) 'abbrev)
+                               (cdr my1)
+                               (calendar-month-name (car my2) 'abbrev)
+                               (cdr my2))))))
               (define-key  calendar-mode-map [menu-bar Holidays 3-month]
                 `(,(format "For Window (%s)" title)
                   . list-calendar-holidays)))

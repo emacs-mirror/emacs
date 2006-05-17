@@ -1,3 +1,62 @@
+2006-01-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Ignore it if a given part
+	is dissected into a single part of which the type is the same as
+	the given one.
+
+2006-01-21  Kevin Ryde  <user42@zip.com.au>
+
+	* mailcap.el (mailcap-parse-mailcap-extras): "test" key must go
+	into alists as symbol not string, since that's what
+	mailcap-viewer-passes-test and mailcap-mailcap-entry-passes-test
+	look for.
+
+2006-01-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Reduce the number of
+	recursive calls.
+
+2006-01-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-w3m-standalone-supports-m17n-p): New variable.
+	(mm-w3m-standalone-supports-m17n-p): New function.
+	(mm-inline-text-html-render-with-w3m-standalone): Use it to alter
+	w3m usage.
+
+	* gnus-art.el (gnus-article-wash-html-with-w3m-standalone): Use
+	mm-w3m-standalone-supports-m17n-p to alter w3m usage.
+
+2006-01-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Decode content transfer
+	encoding.
+
+2006-01-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-attach-file): Describe `description' in doc string.
+	(mml-menu): Add Emacs MIME manual and PGG manual.
+
+2006-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam.el (spam-group-ham-mark-p, spam-group-spam-mark-p)
+	(spam-group-spam-marks, spam-list-articles, spam-group-ham-marks):
+	Revert 2006-01-08 change because the functions will be used in No
+	Gnus.
+
+2006-01-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-bodies.el (mm-decode-body): Don't decode decoded body.
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Dissect dissected parts.
+
+2006-01-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-inlined-types): Add application/pgp.
+	(mm-automatic-display): Ditto.
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Recognize application/pgp
+	part as text.
+
 2006-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnrss.el: Update copyright.

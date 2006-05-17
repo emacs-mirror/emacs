@@ -349,9 +349,11 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 						 (mail-fetch-field "sender")
 						 "unknown"))
 		    " " (current-time-string) "\n"))
-	  (if mime-version
-	      (insert "MIME-Version: " mime-version
-		      "\nContent-type: " content-type "\n"))
+	  (when mime-version
+	    (insert "MIME-Version: " mime-version)
+	    ;; Some malformed MIME messages set content-type to nil.
+	    (when content-type
+	      (insert "\nContent-type: " content-type "\n")))
 	  ;; ``Quote'' "\nFrom " as "\n>From "
 	  ;;  (note that this isn't really quoting, as there is no requirement
 	  ;;   that "\n[>]+From " be quoted in the same transparent way.)

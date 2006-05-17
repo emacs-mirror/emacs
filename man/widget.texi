@@ -140,7 +140,7 @@ extended to use the GUI features.  This means that your code using the
 widget library will also use the new graphic features automatically.
 @end enumerate
 
-In order to minimize the code that is loaded by users who does not
+In order to minimize the code that is loaded by users who do not
 create any widgets, the code has been split in two files:
 
 @cindex widget library, files
@@ -315,7 +315,8 @@ buffer, plus you will have these additional commands:
 @deffn Command widget-forward &optional count
 Move point @var{count} buttons or editing fields forward.
 @end deffn
-@item @key{M-TAB}
+@item @kbd{M-@key{TAB}}
+@itemx @kbd{S-@key{TAB}}
 @deffn Command widget-backward &optional count
 Move point @var{count} buttons or editing fields backward.
 @end deffn

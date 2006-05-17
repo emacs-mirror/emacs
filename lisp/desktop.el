@@ -966,7 +966,7 @@ directory DIRNAME."
 (defun desktop-load-file (function)
   "Load the file where auto loaded FUNCTION is defined."
   (when function
-    (let ((fcell (symbol-function function)))
+    (let ((fcell (and (fboundp function) (symbol-function function))))
       (when (and (listp fcell)
                  (eq 'autoload (car fcell)))
         (load (cadr fcell))))))

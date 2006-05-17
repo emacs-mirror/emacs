@@ -1,7 +1,7 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
 ;; Copyright (C) 1993, 1994, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -1232,7 +1232,7 @@ font dialog to get the matching FONTS. Otherwise use a pop-up menu
         (png "libpng13d.dll" "libpng13.dll" "libpng12d.dll" "libpng12.dll" "libpng.dll")
         (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
         (tiff "libtiff3.dll" "libtiff.dll")
-        (gif "libungif.dll")))
+        (gif "giflib4.dll" "libungif4.dll" "libungif.dll")))
 
 ;; arch-tag: 69fb1701-28c2-4890-b351-3d1fe4b4f166
 ;;; w32-win.el ends here

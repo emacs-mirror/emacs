@@ -3426,13 +3426,13 @@ sys_close (int fd)
 {
   int rc;
 
-  if (fd < 0 || fd >= MAXDESC)
+  if (fd < 0)
     {
       errno = EBADF;
       return -1;
     }
 
-  if (fd_info[fd].cp)
+  if (fd < MAXDESC && fd_info[fd].cp)
     {
       child_process * cp = fd_info[fd].cp;
 
@@ -3474,7 +3474,7 @@ sys_close (int fd)
      because socket handles are fully fledged kernel handles. */
   rc = _close (fd);
 
-  if (rc == 0)
+  if (rc == 0 && fd < MAXDESC)
     fd_info[fd].flags = 0;
 
   return rc;
@@ -3486,7 +3486,7 @@ sys_dup (int fd)
   int new_fd;
 
   new_fd = _dup (fd);
-  if (new_fd >= 0)
+  if (new_fd >= 0 && new_fd < MAXDESC)
     {
       /* duplicate our internal info as well */
       fd_info[new_fd] = fd_info[fd];
@@ -3641,13 +3641,13 @@ sys_read (int fd, char * buffer, unsigned int count)
   DWORD waiting;
   char * orig_buffer = buffer;
 
-  if (fd < 0 || fd >= MAXDESC)
+  if (fd < 0)
     {
       errno = EBADF;
       return -1;
     }
 
-  if (fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET))
+  if (fd < MAXDESC && fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET))
     {
       child_process *cp = fd_info[fd].cp;
 
@@ -3785,13 +3785,13 @@ sys_write (int fd, const void * buffer, unsigned int count)
 {
   int nchars;
 
-  if (fd < 0 || fd >= MAXDESC)
+  if (fd < 0)
     {
       errno = EBADF;
       return -1;
     }
 
-  if (fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET))
+  if (fd < MAXDESC && fd_info[fd].flags & (FILE_PIPE | FILE_SOCKET))
     {
       if ((fd_info[fd].flags & FILE_WRITE) == 0)
 	{
@@ -3833,7 +3833,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
     }
 
 #ifdef HAVE_SOCKETS
-  if (fd_info[fd].flags & FILE_SOCKET)
+  if (fd < MAXDESC && fd_info[fd].flags & FILE_SOCKET)
     {
       unsigned long nblock = 0;
       if (winsock_lib == NULL) abort ();

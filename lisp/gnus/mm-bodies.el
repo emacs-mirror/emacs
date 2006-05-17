@@ -1,7 +1,7 @@
 ;;; mm-bodies.el --- Functions for decoding MIME things
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -249,7 +249,8 @@ decoding.  If it is nil, default to `mail-parse-charset'."
   (save-excursion
     (when encoding
       (mm-decode-content-transfer-encoding encoding type))
-    (when (featurep 'mule)  ; Fixme: Wrong test for unibyte session.
+    (when (and (featurep 'mule) ;; Fixme: Wrong test for unibyte session.
+	       (not (eq charset 'gnus-decoded)))
       (let ((coding-system (mm-charset-to-coding-system charset)))
 	(if (and (not coding-system)
 		 (listp mail-parse-ignored-charsets)
@@ -262,8 +263,7 @@ decoding.  If it is nil, default to `mail-parse-charset'."
 		   ;;in XEmacs
 		   (mm-multibyte-p)
 		   (or (not (eq coding-system 'ascii))
-		       (setq coding-system mail-parse-charset))
-		   (not (eq coding-system 'gnus-decoded)))
+		       (setq coding-system mail-parse-charset)))
 	  (mm-decode-coding-region (point-min) (point-max)
 				   coding-system))
 	(setq buffer-file-coding-system

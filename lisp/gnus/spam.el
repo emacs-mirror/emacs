@@ -467,14 +467,28 @@ spamoracle database."
   "Logical exclusive `or'."
   (and (or a b) (not (and a b))))
 
+(defun spam-group-ham-mark-p (group mark &optional spam)
+  (when (stringp group)
+    (let* ((marks (spam-group-ham-marks group spam))
+	   (marks (if (symbolp mark)
+		      marks
+		    (mapcar 'symbol-value marks))))
+      (memq mark marks))))
+
+(defun spam-group-spam-mark-p (group mark)
+  (spam-group-ham-mark-p group mark t))
+
 (defun spam-group-ham-marks (group &optional spam)
   (when (stringp group)
-    (let ((marks (car (if spam
-			  (gnus-parameter-spam-marks group)
-			(gnus-parameter-ham-marks group)))))
-      (if (listp (car marks))
-	  (car marks)
-	marks))))
+    (let* ((marks (if spam
+		      (gnus-parameter-spam-marks group)
+		    (gnus-parameter-ham-marks group)))
+	   (marks (car marks))
+	   (marks (if (listp (car marks)) (car marks) marks)))
+      marks)))
+
+(defun spam-group-spam-marks (group)
+  (spam-group-ham-marks group t))
 
 (defun spam-group-spam-contents-p (group)
   (if (stringp group)
@@ -1036,12 +1050,23 @@ functions")
       (nth 2 flist))))
 
 (defun spam-list-articles (articles classification)
-  (let ((marks (mapcar 'eval (spam-group-ham-marks gnus-newsgroup-name
-						   (eq classification 'spam))))
-	list)
+  (let ((mark-check (if (eq classification 'spam)
+			'spam-group-spam-mark-p
+		      'spam-group-ham-mark-p))
+	list mark-cache-yes mark-cache-no)
     (dolist (article articles)
-      (if (memq (gnus-summary-article-mark article) marks)
-	  (push article list)))
+      (let ((mark (gnus-summary-article-mark article)))
+	(unless (memq mark mark-cache-no)
+	  (if (memq mark mark-cache-yes)
+	      (push article list)
+	    ;; else, we have to actually check the mark
+	    (if (funcall mark-check
+			 gnus-newsgroup-name
+			 mark)
+		(progn
+		  (push article list)
+		  (push mark mark-cache-yes))
+	      (push mark mark-cache-no))))))
     list))
 
 (defun spam-register-routine (classification

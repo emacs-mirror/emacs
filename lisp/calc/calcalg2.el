@@ -2012,7 +2012,7 @@
 		      n (1+ n)
 		      t1 (cdr t1)))
 	      (setq n (math-build-polynomial-expr poly high))
-	      (if (memq low '(0 1))
+	      (if (= low 1)
 		  n
 		(math-sub n (math-build-polynomial-expr poly
 							(math-sub low 1))))))

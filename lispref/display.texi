@@ -3277,6 +3277,9 @@ in the @code{display} text property.
 @item @var{string}
 Display @var{string} instead of the text that has this property.
 
+Recursive display specifications are not supported---@var{string}'s
+@code{display} properties, if any, are not used.
+
 @item (image . @var{image-props})
 This kind of display specification is an image descriptor (@pxref{Images}).
 When used as a display specification, it means to display the image
@@ -3292,14 +3295,11 @@ in the range 0.0--1.0 stands for that fraction of the width or height
 of the entire image.
 
 @item ((margin nil) @var{string})
-@itemx @var{string}
 A display specification of this form means to display @var{string}
 instead of the text that has the display specification, at the same
-position as that text.  This is a special case of marginal display
-(@pxref{Display Margins}).
-
-Recursive display specifications are not supported---string display
-specifications must not have @code{display} properties themselves.
+position as that text.  It is equivalent to using just @var{string},
+but it is done as a special case of marginal display (@pxref{Display
+Margins}).
 
 @item (space-width @var{factor})
 This display specification affects all the space characters within the

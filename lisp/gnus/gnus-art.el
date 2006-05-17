@@ -2541,15 +2541,18 @@ charset defined in `gnus-summary-show-article-charset-alist' is used."
 
 (defun gnus-article-wash-html-with-w3m-standalone ()
   "Wash the current buffer with w3m."
-  (unless (mm-coding-system-p charset)
-    ;; The default.
-    (setq charset 'iso-8859-1))
-  (let ((coding-system-for-write charset)
-	(coding-system-for-read charset))
-    (call-process-region
-     (point-min) (point-max)
-     "w3m" t t nil "-dump" "-T" "text/html"
-     "-I" (symbol-name charset) "-O" (symbol-name charset))))
+  (if (mm-w3m-standalone-supports-m17n-p)
+      (progn
+	(unless (mm-coding-system-p charset) ;; Bound by `article-wash-html'.
+	  ;; The default.
+	  (setq charset 'iso-8859-1))
+	(let ((coding-system-for-write charset)
+	      (coding-system-for-read charset))
+	  (call-process-region
+	   (point-min) (point-max)
+	   "w3m" t t nil "-dump" "-T" "text/html"
+	   "-I" (symbol-name charset) "-O" (symbol-name charset))))
+    (mm-inline-wash-with-stdin nil "w3m" "-dump" "-T" "text/html")))
 
 (defun article-hide-list-identifiers ()
   "Remove list identifies from the Subject header.

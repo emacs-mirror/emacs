@@ -521,8 +521,8 @@ next command in the keyboard macro.
 @kbd{f} skips the current command in this execution of the keyboard
 macro, but doesn't delete it from the macro.
 @item
-@kbd{TAB} executes the current command, as well as all similar
-commands immediately following the current command; for example, TAB
+@kbd{@key{TAB}} executes the current command, as well as all similar
+commands immediately following the current command; for example, @key{TAB}
 may be used to insert a sequence of characters (corresponding to a
 sequence of @code{self-insert-command} commands).
 @item

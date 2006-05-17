@@ -1,7 +1,7 @@
 /* Display generation from window structure and buffer text.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005 Free Software Foundation, Inc.
+                 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3614,6 +3614,11 @@ handle_invisible_prop (it)
 		 skip starting with next_stop.  */
 	      if (invis_p)
 		IT_CHARPOS (*it) = next_stop;
+
+              /* If there are adjacent invisible texts, don't lose the
+                 second one's ellipsis. */
+              if (invis_p == 2)
+                display_ellipsis_p = 1;
 	    }
 	  while (invis_p);
 
@@ -3634,7 +3639,23 @@ handle_invisible_prop (it)
 	      it->stack[it->sp - 1].display_ellipsis_p = display_ellipsis_p;
 	    }
 	  else if (display_ellipsis_p)
-	    setup_for_ellipsis (it, 0);
+            {
+              /* Make sure that the glyphs of the ellipsis will get
+                 correct `charpos' values.  If we would not update
+                 it->position here, the glyphs would belong to the
+                 last visible character _before_ the invisible
+                 text, which confuses `set_cursor_from_row'.
+
+                 We use the last invisible position instead of the
+                 first because this way the cursor is always drawn on
+                 the first "." of the ellipsis, whenever PT is inside
+                 the invisible text.  Otherwise the cursor would be
+                 placed _after_ the ellipsis when the point is after the
+                 first invisible character.  */
+              it->position.charpos = IT_CHARPOS (*it) - 1;
+              it->position.bytepos = CHAR_TO_BYTE (it->position.charpos);
+              setup_for_ellipsis (it, 0);
+            }
 	}
     }
 
@@ -4148,7 +4169,7 @@ handle_single_display_spec (it, spec, object, position,
 	{
 	  it->method = GET_FROM_STRETCH;
 	  it->object = value;
-	  it->current.pos = it->position = start_pos;
+	  *position = it->position = start_pos;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
       else
@@ -19671,6 +19692,10 @@ produce_stretch_glyph (it)
   else
     ascent = (height * FONT_BASE (font)) / FONT_HEIGHT (font);
 
+  if (width > 0 && !it->truncate_lines_p
+      && it->current_x + width > it->last_visible_x)
+    width = it->last_visible_x - it->current_x - 1;
+
   if (width > 0 && height > 0 && it->glyph_row)
     {
       Lisp_Object object = it->stack[it->sp - 1].string;
@@ -19811,8 +19836,8 @@ calc_line_height_property (it, val, font, boff, override)
 
 /* RIF:
    Produce glyphs/get display metrics for the display element IT is
-   loaded with.  See the description of struct display_iterator in
-   dispextern.h for an overview of struct display_iterator.  */
+   loaded with.  See the description of struct it in dispextern.h
+   for an overview of struct it.  */
 
 void
 x_produce_glyphs (it)
@@ -20772,8 +20797,13 @@ get_window_cursor_type (w, glyph, width, active_cursor)
     {
       if (w == XWINDOW (echo_area_window))
 	{
-	  *width = FRAME_CURSOR_WIDTH (f);
-	  return FRAME_DESIRED_CURSOR (f);
+	  if (EQ (b->cursor_type, Qt) || NILP (b->cursor_type))
+	    {
+	      *width = FRAME_CURSOR_WIDTH (f);
+	      return FRAME_DESIRED_CURSOR (f);
+	    }
+	  else
+	    return get_specified_cursor_type (b->cursor_type, width);
 	}
 
       *active_cursor = 0;

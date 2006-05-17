@@ -1,3 +1,91 @@
+2006-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (IMMEDIATE_QUIT_CHECK): Use it with SYNC_INPUT as well.
+	(re_match_2_internal) <on_failure_jump, on_failure_jump_smart>:
+	Don't check for quit, since any loop will go through fail or jump.
+
+2006-01-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* alloc.c (allocate_string_data): Update next_free immediately, to
+	reduce risk of memory clobberage.
+
+2006-01-24  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* xdisp.c (handle_invisible_prop): Set it->position to fix cursor
+	display when point moves across an ellipsis.  If there are
+	adjacent invisible texts, don't lose the second one's ellipsis.
+	(x_produce_glyphs): Doc fix.
+
+2006-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_catch_errors_unwind): Yet another int/Lisp_Object mixup.
+
+2006-01-23  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_single_display_spec): Fix handling of space
+	property on char from string: set *position rather than
+	it->current.pos.
+	(produce_stretch_glyph): Reduce width of stretch glyphs so they
+	don't get wider than the window (unless truncate-lines is on).
+
+2006-01-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c: Avoid allocating Lisp data from a signal handler.
+	(x_error_message): New var to replace x_error_message_string.
+	(x_error_catcher, x_catch_errors, x_catch_errors_unwind)
+	(x_check_errors, x_had_errors_p, x_clear_errors, x_error_handler)
+	(syms_of_xterm): Use it instead of x_error_message_string.
+
+	* alloc.c (lisp_align_free): Add an assertion.
+	(make_interval, allocate_string, make_float, Fcons, Fmake_symbol)
+	(allocate_misc): If ENABLE_CHECKING is on, check we're not called from
+	a signal handler.
+
+2006-01-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.c (syms_of_dired) <completion-ignored-extensions>: Doc fix.
+
+2006-01-21  Romain Francoise  <romain@orebokech.com>
+
+	* xdisp.c (get_window_cursor_type): Fix last change.
+	Update copyright year.
+
+2006-01-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (Fload): Don't leak the file descriptor returned by
+	openp if we are going to signal an error.
+
+	* w32.c (sys_close): If FD is outside [0..MAXDESC) limits, pass it
+	directly to _close.
+	(sys_dup): Protect against new_fd larger than fd_info[] can handle.
+	(sys_read): If FD is outside [0..MAXDESC) limits, pass it directly
+	to _read.
+	(sys_write): If FD is outside [0..MAXDESC) limits, pass it
+	directly to _write.
+
+	* .gdbinit: Don't dereference Vsystem_type's Lisp_Symbol pointer
+	if it is NULL.
+
+2006-01-20  Kenichi Handa  <handa@m17n.org>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1190000.
+
+2006-01-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (get_window_cursor_type): Use cursor type specified by
+	the selected buffer for the echo area too.
+
+2006-01-19  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (Fmap_keymap): Doc fix.
+
+	* s/irix6-5.h (GC_SETJMP_WORKS, GC_MARK_STACK): New definitions.
+
+	* keyboard.c (echo_char): Don't omit the space between first two
+	echoed chars.
+
+	* minibuf.c (read_minibuf): Fix previous change.
+
 2006-01-19  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (handle_one_xevent): Handle keysyms 0x1000000..0x10000FF.
@@ -571,7 +659,7 @@
 	* w32fns.c (w32_abort) [__GNUC__]: Add instructions for attaching
 	GDB to the abort dialog.
 
-2005-12-09  Kyotaro HORIGUCHI <horiguti@meadowy.org>  (tiny change)
+2005-12-09  Kyotaro HORIGUCHI  <horiguti@meadowy.org>  (tiny change)
 
 	* indent.c (Fvertical_motion): Force move if starting on
 	stretch glyph.
@@ -825,7 +913,7 @@
 
 	* s/darwin.h (LIBS_CARBON) [!HAVE_CARBON]: Remove `-framework Carbon'.
 
-2005-11-11  David Reitter <david.reitter@gmail.com>
+2005-11-11  David Reitter  <david.reitter@gmail.com>
 
 	* macterm.c (syms_of_macterm): Remove macCtrlKey, macShiftKey,
 	macMetaKey, macAltKey. Introduce Qctrl, Qmeta,
@@ -857,7 +945,7 @@
 	ignore_overlay_strings_at_pos_p if dpvec came from an overlay
 	string, so we skip those overlay strings at current pos.
 
-2005-11-10  Lars Hansen <larsh@soem.dk>
+2005-11-10  Lars Hansen  <larsh@soem.dk>
 
 	* fileio.c (file-regular-p): Doc fix.
 
@@ -968,7 +1056,7 @@
 
 	* xdisp.c (display_line): Restore it->current_x and call
 	extend_face_to_end_of_line when last glyph doesn't fit on line.
-	(set_glyph_string_background_width): Remove specific tests  here
+	(set_glyph_string_background_width): Remove specific tests here
 	to see if face background should extend to end of line.  Simplify.
 
 2005-10-30  Richard M. Stallman  <rms@gnu.org>
@@ -1570,7 +1658,7 @@
 
 	* dispextern.h (fatal): Delete prototype.
 
-	* systime.h: (make_time): Prototype moved from ...
+	* systime.h (make_time): Prototype moved from ...
 	* editfns.c (make_time): ... here.
 
 	* editfns.c: Move systime.h include after lisp.h.
@@ -1804,9 +1892,9 @@
 	get_current_dir_name.
 	(get_current_dir_name): Remove prototype.
 
-	* xsmfns.c: (get_current_dir_name): Remove prototype.
+	* xsmfns.c (get_current_dir_name): Remove prototype.
 
-	* lisp.h: (get_current_dir_name) [!HAVE_GET_CURRENT_DIR_NAME]:
+	* lisp.h (get_current_dir_name) [!HAVE_GET_CURRENT_DIR_NAME]:
 	Add prototype.
 
 	* sysdep.c [WINDOWSNT]: Add prototype for getwd.
@@ -2497,7 +2585,7 @@
 
 	* window.c (window_scroll_pixel_based, window_scroll_line_based):
 	Handle `scroll-preserve-screen-position' non-nil, non-t specially.
-	(syms_of_window): <scroll-preserve-screen-position>: Doc fix.
+	(syms_of_window) <scroll-preserve-screen-position>: Doc fix.
 
 2005-07-02  Juri Linkov  <juri@jurta.org>
 
@@ -7125,7 +7213,7 @@
 
 	* config.in: Rebuild.
 
-	* Makefile.in: Run setarch i386 ./temacs if exec-shield  is present.
+	* Makefile.in: Run setarch i386 ./temacs if exec-shield is present.
 
 2004-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -7705,7 +7793,7 @@
 
 	* buffer.c (Fswitch_to_buffer, Fpop_to_buffer): Doc fixes.
 
-	* window.c (Fwindow_buffer, Fother_window,  Fget_lru_window)
+	* window.c (Fwindow_buffer, Fother_window, Fget_lru_window)
 	(Fget_largest_window, Fget_buffer_window, Fdelete_windows_on)
 	(Freplace_buffer_in_windows, Fset_window_buffer)
 	(Fselect-window, Fdisplay-buffer, Fsplit_window): Doc fixes.
@@ -9358,7 +9446,7 @@
 	(parse_image_spec, image_spec_value, Fimage_size, Fimage_mask_p)
 	(make_image, free_image, prepare_image_for_display, image_ascent)
 	(four_corners_best, image_background, image_background_transparent)
-	(x_clear_image_1,  x_clear_image, x_alloc_image_color)
+	(x_clear_image_1, x_clear_image, x_alloc_image_color)
 	(make_image_cache, free_image_cache, clear_image_cache)
 	(Fclear_image_cache, postprocess_image, lookup_image, cache_image)
 	(forall_images_in_image_cache, x_create_x_image_and_pixmap)
@@ -9396,7 +9484,7 @@
 	(parse_image_spec, image_spec_value, Fimage_size, Fimage_mask_p)
 	(make_image, free_image, prepare_image_for_display, image_ascent)
 	(four_corners_best, image_background, image_background_transparent)
-	(x_clear_image_1,  x_clear_image, x_alloc_image_color)
+	(x_clear_image_1, x_clear_image, x_alloc_image_color)
 	(make_image_cache, free_image_cache, clear_image_cache)
 	(Fclear_image_cache, postprocess_image, lookup_image, cache_image)
 	(forall_images_in_image_cache, x_create_x_image_and_pixmap)
@@ -9428,7 +9516,7 @@
 	(parse_image_spec, image_spec_value, Fimage_size, Fimage_mask_p)
 	(make_image, free_image, prepare_image_for_display, image_ascent)
 	(four_corners_best, image_background, image_background_transparent)
-	(x_clear_image_1,  x_clear_image, x_alloc_image_color)
+	(x_clear_image_1, x_clear_image, x_alloc_image_color)
 	(make_image_cache, free_image_cache, clear_image_cache)
 	(Fclear_image_cache, postprocess_image, lookup_image, cache_image)
 	(forall_images_in_image_cache, x_create_x_image_and_pixmap)
@@ -9458,7 +9546,7 @@
 	(parse_image_spec, image_spec_value, Fimage_size, Fimage_mask_p)
 	(make_image, free_image, prepare_image_for_display, image_ascent)
 	(four_corners_best, image_background, image_background_transparent)
-	(x_clear_image_1,  x_clear_image, x_alloc_image_color)
+	(x_clear_image_1, x_clear_image, x_alloc_image_color)
 	(make_image_cache, free_image_cache, clear_image_cache)
 	(Fclear_image_cache, postprocess_image, lookup_image, cache_image)
 	(forall_images_in_image_cache, x_create_x_image_and_pixmap)
@@ -10233,7 +10321,7 @@
 	(Fx_change_window_property): Add declaration of parameters type and
 	format.  Remove unused variable cons.
 
-	* xselect.c: Include stdio,h.
+	* xselect.c: Include stdio.h.
 
 2004-02-05  Kenichi Handa  <handa@m17n.org>
 
@@ -11866,7 +11954,7 @@
 
 2003-07-13  Terje Rosten  <terjeros@phys.ntnu.no>
 
-	* xterm.c (x_bitmap_icon,x_wm_set_icon_pixmap): Modify to add mask,
+	* xterm.c (x_bitmap_icon, x_wm_set_icon_pixmap): Modify to add mask,
 	and use the Gtk+ function gtk_window_icon_from_file if available.
 
 	* xfns.c (x_bitmap_mask, x_create_bitmap_mask): New functions to
@@ -16445,7 +16533,7 @@
 2002-09-08  Kim F. Storm  <storm@cua.dk>
 
 	* macros.c (executing_macro_index): Change type to EMACS_INT.
-	(syms_of_macros): DEFVAR_INT it  (needed by kmacro).
+	(syms_of_macros): DEFVAR_INT it (needed by kmacro).
 
 	* macros.h (executing_macro_index): Change type to EMACS_INT.
 
@@ -18933,10 +19021,10 @@
 	Intern and staticpro QCtype and Qdatagram.
 	(syms_of_process) [!subprocess]: Intern and staticpro QCtype.
 
-	* xfns.c: (QCtype): Remove duplicate declaration and
+	* xfns.c (QCtype): Remove duplicate declaration and
 	initialization (is now declared in process.c).
 
-	* w32fns.c: (QCtype): Remove duplicate declaration and
+	* w32fns.c (QCtype): Remove duplicate declaration and
 	initialization (is now declared in process.c).
 
 2002-03-21  Richard M. Stallman  <rms@gnu.org>
@@ -19051,7 +19139,7 @@
 	Doc fix: Member kill_without_query is inverse of query-on-exit flag.
 
 	* process.c (Qlocal, QCname, QCbuffer, QChost, QCservice, QCfamily)
-	(QClocal, QCremote, QCserver, QCdatagram, QCnowait, QCnoquery,QCstop)
+	(QClocal, QCremote, QCserver, QCdatagram, QCnowait, QCnoquery, QCstop)
 	(QCcoding, QCoptions, QCfilter, QCsentinel, QClog, QCfeature):
 	New variables.
 	(NETCONN1_P): New macro.
@@ -19381,7 +19469,7 @@
 
 2002-02-28  Kim F. Storm  <storm@cua.dk>
 
-	* window.c: (minibuf_selected_window): Renamed from
+	* window.c (minibuf_selected_window): Renamed from
 	Vminibuf_selected_window.  Users changed.
 	(syms_of_window): Staticpro it.
 
@@ -19391,14 +19479,14 @@
 	which is similar to Vminibuf_scroll_window, but which is only set
 	on entry to the minibuffer (from a non-minibuffer window):
 
-	* window.c: (Vminibuf_selected_window): New variable.
+	* window.c (Vminibuf_selected_window): New variable.
 	(struct save_window_data): New member minibuf_selected_window.
 	(Fset_window_configuration): Restore Vminibuf_selected_window.
 	(Fcurrent_window_configuration): Save Vminibuf_selected_window.
 	Set minibuf_scroll_window member to nil if minibuf_level is 0.
 	(compare_window_configurations): Compare minibuf_selected_window.
 
-	* window.h: (Vminibuf_selected_window): Declare extern.
+	* window.h (Vminibuf_selected_window): Declare extern.
 
 	* minibuf.c (read_minibuf): Set Vminibuf_selected_window on first
 	entry to minibuffer or on entry from a non-minibuffer window.
@@ -19524,7 +19612,7 @@
 
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	Support for ICCCM  Extended Segments in X selections:
+	Support for ICCCM Extended Segments in X selections:
 
 	* xselect.c <Qcompound_text_no_extensions>: New variable.
 	(syms_of_xselect): Intern and staticpro it.
@@ -19678,7 +19766,7 @@
 
 2002-02-13  Kim F. Storm  <storm@cua.dk>
 
-	* window.c: (Vmode_line_in_non_selected_windows): Removed.
+	* window.c (Vmode_line_in_non_selected_windows): Removed.
 	(mode_line_in_non_selected_windows): New variable.
 	(syms_of_window): DEFVAR_BOOL it.
 
@@ -19709,7 +19797,7 @@
 
 2002-02-11  Kim F. Storm  <storm@cua.dk>
 
-	* window.c: (Vmode_line_in_non_selected_windows): New variable.
+	* window.c (Vmode_line_in_non_selected_windows): New variable.
 	(syms_of_window): DEFVAR_LISP it.
 
 	* dispextern.h (CURRENT_MODE_LINE_FACE_ID_3): New macro.

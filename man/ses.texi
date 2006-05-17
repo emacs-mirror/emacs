@@ -188,12 +188,12 @@ Self-insert an expression.  The right-parenthesis is inserted for you
 (@code{ses-read-cell}).  To access another cell's value, just use its
 identifier in your expression.  Whenever the other cell is changed,
 this cell's formula will be reevaluated.  While typing in the
-expression, you can use @kbd{M-TAB} to complete symbol names.
+expression, you can use @kbd{M-@key{TAB}} to complete symbol names.
 
 @item ' @r{(apostrophe)}
 Enter a symbol (ses-read-symbol).  SES remembers all symbols that have
 been used as formulas, so you can type just the beginning of a symbol
-and use @kbd{SPC}, @kbd{TAB}, and @kbd{?} to complete it.
+and use @kbd{@key{SPC}}, @kbd{@key{TAB}}, and @kbd{?} to complete it.
 @end table
 
 To enter something else (e.g., a vector), begin with a digit, then
@@ -287,7 +287,7 @@ string is right-aligned within the print cell.  To get left-alignment,
 use parentheses: @samp{("$%.2f")}.  A printer can also be a
 one-argument function (a symbol or a lambda), whose result is a string
 (right-aligned) or list of one string (left-aligned).  While typing in
-a lambda, you can use @kbd{M-TAB} to complete the names of symbols.
+a lambda, you can use @kbd{M-@key{TAB}} to complete the names of symbols.
 
 Each cell has a printer.  If @code{nil}, the column-printer for the cell's
 column is used.  If that is also @code{nil}, the default-printer for the

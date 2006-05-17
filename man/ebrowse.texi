@@ -979,11 +979,11 @@ a mouse.
 @cindex switching buffers
 
 @table @kbd
-@item TAB
+@item @key{TAB}
 Pop up the tree buffer to which the member buffer belongs.
 
 @item t
-Do the same as @kbd{TAB} but also position the cursor on the class
+Do the same as @key{TAB} but also position the cursor on the class
 displayed in the member buffer.
 @end table
 
@@ -1433,7 +1433,7 @@ command @kbd{C-c b f}, for example, to jump to a specific member.
 @cindex completion
 @cindex symbol completion
 
-The command @kbd{C-c b TAB} completes the symbol in front of point.
+The command @kbd{C-c b @key{TAB}} completes the symbol in front of point.
 
 
 

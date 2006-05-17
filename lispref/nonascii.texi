@@ -578,12 +578,14 @@ coding systems that don't specify any other translation table.
 
 @defvar translation-table-for-input
 Self-inserting characters are translated through this translation
-table before they are inserted.  This variable automatically becomes
-buffer-local when set.
+table before they are inserted.  Search commands also translate their
+input through this table, so they can compare more reliably with
+what's in the buffer.
 
 @code{set-buffer-file-coding-system} sets this variable so that your
 keyboard input gets translated into the character sets that the buffer
-is likely to contain.
+is likely to contain.  This variable automatically becomes
+buffer-local when set.
 @end defvar
 
 @node Coding Systems

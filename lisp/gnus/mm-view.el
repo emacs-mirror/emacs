@@ -262,29 +262,57 @@
 	      (delete-region ,(point-min-marker)
 			     ,(point-max-marker)))))))))
 
+(defvar mm-w3m-standalone-supports-m17n-p (if (featurep 'mule) 'undecided)
+  "*T means the w3m command supports the m17n feature.")
+
+(defun mm-w3m-standalone-supports-m17n-p ()
+  "Say whether the w3m command supports the m17n feature."
+  (cond ((eq mm-w3m-standalone-supports-m17n-p t) t)
+	((eq mm-w3m-standalone-supports-m17n-p nil) nil)
+	((not (featurep 'mule)) (setq mm-w3m-standalone-supports-m17n-p nil))
+	((condition-case nil
+	     (let ((coding-system-for-write 'iso-2022-jp)
+		   (coding-system-for-read 'iso-2022-jp)
+		   (str (mm-decode-coding-string "\
+\e$B#D#o#e#s!!#w#3#m!!#s#u#p#p#o#r#t#s!!#m#1#7#n!)\e(B" 'iso-2022-jp)))
+	       (mm-with-multibyte-buffer
+		 (insert str)
+		 (call-process-region
+		  (point-min) (point-max) "w3m" t t nil "-dump"
+		  "-T" "text/html" "-I" "iso-2022-jp" "-O" "iso-2022-jp")
+		 (goto-char (point-min))
+		 (search-forward str nil t)))
+	   (error nil))
+	 (setq mm-w3m-standalone-supports-m17n-p t))
+	(t
+	 ;;(message "You had better upgrade your w3m command")
+	 (setq mm-w3m-standalone-supports-m17n-p nil))))
+
 (defun mm-inline-text-html-render-with-w3m-standalone (handle)
   "Render a text/html part using w3m."
-  (let ((source (mm-get-part handle))
-	(charset (mail-content-type-get (mm-handle-type handle) 'charset))
-	cs)
-    (unless (and charset
-		 (setq cs (mm-charset-to-coding-system charset))
-		 (not (eq cs 'ascii)))
-      ;; The default.
-      (setq charset "iso-8859-1"
-	    cs 'iso-8859-1))
-    (mm-insert-inline
-     handle
-     (mm-with-unibyte-buffer
-       (insert source)
-       (mm-enable-multibyte)
-       (let ((coding-system-for-write 'binary)
-	     (coding-system-for-read cs))
-	 (call-process-region
-	  (point-min) (point-max)
-	  "w3m" t t nil "-dump" "-T" "text/html"
-	  "-I" charset "-O" charset))
-       (buffer-string)))))
+  (if (mm-w3m-standalone-supports-m17n-p)
+      (let ((source (mm-get-part handle))
+	    (charset (mail-content-type-get (mm-handle-type handle) 'charset))
+	    cs)
+	(unless (and charset
+		     (setq cs (mm-charset-to-coding-system charset))
+		     (not (eq cs 'ascii)))
+	  ;; The default.
+	  (setq charset "iso-8859-1"
+		cs 'iso-8859-1))
+	(mm-insert-inline
+	 handle
+	 (mm-with-unibyte-buffer
+	   (insert source)
+	   (mm-enable-multibyte)
+	   (let ((coding-system-for-write 'binary)
+		 (coding-system-for-read cs))
+	     (call-process-region
+	      (point-min) (point-max)
+	      "w3m" t t nil "-dump" "-T" "text/html"
+	      "-I" charset "-O" charset))
+	   (buffer-string))))
+    (mm-inline-render-with-stdin handle nil "w3m" "-dump" "-T" "text/html")))
 
 (defun mm-links-remove-leading-blank ()
   ;; Delete the annoying three spaces preceding each line of links

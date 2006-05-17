@@ -1201,7 +1201,7 @@
 	       (and (math-known-scalarp b)
 		    (math-add (nth 1 a) b))))
       (and (eq (car-safe b) 'calcFunc-idn)
-	   (= (length a) 2)
+	   (= (length b) 2)
 	   (or (and (math-square-matrixp a)
 		    (math-add a (math-mimic-ident (nth 1 b) a)))
 	       (and (math-known-scalarp a)

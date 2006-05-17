@@ -528,7 +528,12 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 		    (skip-chars-forward ";"))
 		(setq done t))))
 	  (setq	value (buffer-substring val-pos (point))))
-	(setq results (cons (cons name value) results))
+	;; `test' as symbol, others like "copiousoutput" and "needsx11" as
+	;; strings
+	(setq results (cons (cons (if (string-equal name "test")
+                                      'test
+                                    name)
+                                  value) results))
 	(skip-chars-forward " \";\n\t"))
       results)))
 

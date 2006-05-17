@@ -1785,6 +1785,9 @@ If you want to disable Tramp you should set
 
   (setq tramp-default-method "ftp")
 
+Removing Tramp, and re-enabling Ange-FTP, can be achieved by M-x
+tramp-unload-tramp.
+
 ---
 ** The URL package (which had been part of W3) is now part of Emacs.
 

@@ -36,14 +36,15 @@ way usually points to a position in the buffer that the function
 operates on, but that is entirely the programmer's responsibility.
 @xref{Positions}, for a complete description of positions.
 
-  A marker has two attributes: the marker position, and the marker
-buffer.  The marker position is an integer that is equivalent (at a
-given time) to the marker as a position in that buffer.  But the
-marker's position value can change often during the life of the marker.
-Insertion and deletion of text in the buffer relocate the marker.  The
-idea is that a marker positioned between two characters remains between
-those two characters despite insertion and deletion elsewhere in the
-buffer.  Relocation changes the integer equivalent of the marker.
+  A marker has three attributes: the marker position, the marker
+buffer, and the insertion type.  The marker position is an integer
+that is equivalent (at a given time) to the marker as a position in
+that buffer.  But the marker's position value can change often during
+the life of the marker.  Insertion and deletion of text in the buffer
+relocate the marker.  The idea is that a marker positioned between two
+characters remains between those two characters despite insertion and
+deletion elsewhere in the buffer.  Relocation changes the integer
+equivalent of the marker.
 
 @cindex marker relocation
   Deleting text around a marker's position leaves the marker between the

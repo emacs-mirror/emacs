@@ -78,9 +78,9 @@ erase just one character or only whitespace.
 
 @table @kbd
 @item C-d
-@itemx @key{Delete}
+@itemx @key{DELETE}
 Delete next character (@code{delete-char}).  If your keyboard has a
-@key{Delete} function key (usually located in the edit keypad), Emacs
+@key{DELETE} function key (usually located in the edit keypad), Emacs
 binds it to @code{delete-char} as well.
 @item @key{DEL}
 @itemx @key{BS}

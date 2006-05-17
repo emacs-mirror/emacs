@@ -918,8 +918,12 @@ Return t if file exists.  */)
       if (!NILP (Fequal (found, XCAR (tem))))
 	count++;
     if (count > 3)
-      Fsignal (Qerror, Fcons (build_string ("Recursive load"),
-			      Fcons (found, Vloads_in_progress)));
+      {
+	if (fd >= 0)
+	  emacs_close (fd);
+	Fsignal (Qerror, Fcons (build_string ("Recursive load"),
+				Fcons (found, Vloads_in_progress)));
+      }
     record_unwind_protect (record_load_unwind, Vloads_in_progress);
     Vloads_in_progress = Fcons (found, Vloads_in_progress);
   }

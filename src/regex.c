@@ -3,7 +3,7 @@
    internationalization features.)
 
    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+                 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1874,8 +1874,9 @@ typedef struct
 /* The next available element.  */
 #define COMPILE_STACK_TOP (compile_stack.stack[compile_stack.avail])
 
-/* Explicit quit checking is only used on NTemacs.  */
-#if defined WINDOWSNT && defined emacs && defined QUIT
+/* Explicit quit checking is only used on NTemacs and whenever we
+   use polling to process input events.  */
+#if defined emacs && (defined WINDOWSNT || defined SYNC_INPUT) && defined QUIT
 extern int immediate_quit;
 # define IMMEDIATE_QUIT_CHECK			\
     do {					\
@@ -5636,7 +5637,6 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	   the repetition text and either the following jump or
 	   pop_failure_jump back to this on_failure_jump.  */
 	case on_failure_jump:
-	  IMMEDIATE_QUIT_CHECK;
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT3 ("EXECUTING on_failure_jump %d (to %p):\n",
 			mcnt, p + mcnt);
@@ -5652,7 +5652,6 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	   then we can use a non-backtracking loop based on
 	   on_failure_keep_string_jump instead of on_failure_jump.  */
 	case on_failure_jump_smart:
-	  IMMEDIATE_QUIT_CHECK;
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT3 ("EXECUTING on_failure_jump_smart %d (to %p).\n",
 			mcnt, p + mcnt);

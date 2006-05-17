@@ -622,16 +622,16 @@ It exists just for backward compatibility, and the value is always nil.")
 	(subsidiaries (vector (intern (format "%s-unix" coding-system))
 			      (intern (format "%s-dos" coding-system))
 			      (intern (format "%s-mac" coding-system))))
-	(i 0)
-	temp)
-    (while (< i 3)
-      (put (aref subsidiaries i) 'coding-system coding-spec)
-      (put (aref subsidiaries i) 'eol-type i)
-      (add-to-coding-system-list (aref subsidiaries i))
-      (setq coding-system-alist
-	    (cons (list (symbol-name (aref subsidiaries i)))
-		  coding-system-alist))
-      (setq i (1+ i)))
+	elt)
+    (dotimes (i 3)
+      (setq elt (aref subsidiaries i))
+      (put elt 'coding-system coding-spec)
+      (put elt 'eol-type i)
+      (put elt 'coding-system-define-form nil)
+      (add-to-coding-system-list elt)
+      (or (assoc (symbol-name elt) coding-system-alist)
+	  (setq coding-system-alist
+		(cons (list (symbol-name elt)) coding-system-alist))))
     subsidiaries))
 
 (defun transform-make-coding-system-args (name type &optional doc-string props)
@@ -1084,8 +1084,9 @@ a value of `safe-charsets' in PLIST."
   ;; At last, register CODING-SYSTEM in `coding-system-list' and
   ;; `coding-system-alist'.
   (add-to-coding-system-list coding-system)
-  (setq coding-system-alist (cons (list (symbol-name coding-system))
-				  coding-system-alist))
+  (or (assoc (symbol-name coding-system) coding-system-alist)
+      (setq coding-system-alist (cons (list (symbol-name coding-system))
+				      coding-system-alist)))
 
   ;; For a coding system of cateogory iso-8-1 and iso-8-2, create
   ;; XXX-with-esc variants.
@@ -1116,8 +1117,9 @@ a value of `safe-charsets' in PLIST."
   (put alias 'coding-system (coding-system-spec coding-system))
   (put alias 'coding-system-define-form nil)
   (add-to-coding-system-list alias)
-  (setq coding-system-alist (cons (list (symbol-name alias))
-				  coding-system-alist))
+  (or (assoc (symbol-name alias) coding-system-alist)
+      (setq coding-system-alist (cons (list (symbol-name alias))
+				      coding-system-alist)))
   (let ((eol-type (coding-system-eol-type coding-system)))
     (if (vectorp eol-type)
 	(progn

@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.03
+@set VERSION 4.04
 @set DATE January 2006
 
 @dircategory Emacs
@@ -2511,7 +2511,7 @@ original org file.
 
 @kindex T
 @item T
-Show all tags associated with the current item.  Because of
+Show all tags assiciated with the current item.  Because of
 inheritance, this may be more than the tags listed in the line itself.
 
 @kindex :

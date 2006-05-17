@@ -122,15 +122,15 @@ For a description of possible values, see `vc-check-master-templates'."
       ;; We have to be careful not to exclude files with execute bits on;
       ;; scripts can be under version control too.  Also, we must ignore the
       ;; group-read and other-read bits, since paranoid users turn them off.
-      (let* ((attributes (file-attributes file))
-             (owner-uid  (nth 2 attributes))
+      (let* ((attributes  (file-attributes file 'string))
+             (owner-name  (nth 2 attributes))
              (permissions (nth 8 attributes)))
 	(if (string-match ".r-..-..-." permissions)
             'up-to-date
           (if (string-match ".rw..-..-." permissions)
               (if (file-ownership-preserved-p file)
                   'edited
-                (vc-user-login-name owner-uid))
+                owner-name)
             ;; Strange permissions.
             ;; Fall through to real state computation.
             (vc-sccs-state file))))

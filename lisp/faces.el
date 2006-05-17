@@ -1917,6 +1917,28 @@ created."
   :group 'basic-faces
   :version "22.1")
 
+(defface link
+  '((((class color) (min-colors 88) (background light))
+     :foreground "blue1" :underline t)
+    (((class color) (background light))
+     :foreground "blue" :underline t)
+    (((class color) (min-colors 88) (background dark))
+     :foreground "cyan1" :underline t)
+    (((class color) (background dark))
+     :foreground "cyan" :underline t)
+    (t :inherit underline))
+  "Basic face for unvisited links."
+  :group 'basic-faces
+  :version "22.1")
+
+(defface link-visited
+  '((default :inherit link)
+    (((class color) (background light)) :foreground "magenta4")
+    (((class color) (background dark)) :foreground "violet"))
+  "Basic face for visited links."
+  :group 'basic-faces
+  :version "22.1")
+
 (defface highlight
   '((((class color) (min-colors 88) (background light))
      :background "darkseagreen2")

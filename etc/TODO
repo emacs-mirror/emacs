@@ -9,6 +9,8 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** buffer-offer-save should be a permanent local.
+
 ** revert-buffer should eliminate overlays and the mark.
 
 ** erase-buffer should perhaps disregard read-only properties of text.
@@ -53,6 +55,8 @@ to the FSF.
    and they should create Custom buffers.
 
 ** The toolbar should show keyboard equivalents in its tooltips.
+
+** Modify allout.el to use overlays, like outline.el.
 
 * Important features:
 

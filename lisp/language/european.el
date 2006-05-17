@@ -77,6 +77,9 @@ Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
 	 ?\,AU(B ?\,AV(B ?\,AW(B ?\,AX(B ?\,AY(B ?\,AZ(B ?\,A[(B ?\,A\(B ?\,A](B ?\,A^(B ?\,A_(B ?\,A`(B ?\,Aa(B ?\,Ab(B ?\,Ac(B ?\,Ad(B ?\,Ae(B
 	 ?\,Af(B ?\,Ag(B ?\,Ah(B ?\,Ai(B ?\,Aj(B ?\,Ak(B ?\,Al(B ?\,Am(B ?\,An(B ?\,Ao(B ?\,Ap(B ?\,Aq(B ?\,Ar(B ?\,As(B ?\,At(B ?\,Au(B ?\,Av(B
 	 ?\,Aw(B ?\,Ax(B ?\,Ay(B ?\,Az(B ?\,A{(B ?\,A|(B ?\,A}(B ?\,A~(B ?\,A(B])))
+
+(define-coding-system-alias 'cp1252 'windows-1252)
+
 
 ;; Latin-2 (ISO-8859-2)
 

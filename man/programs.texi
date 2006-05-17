@@ -1630,7 +1630,7 @@ following point.
 delete mode}.  When this feature is enabled (indicated by @samp{/h} in
 the mode line after the mode name), a single @key{BS} command deletes
 all preceding whitespace, not just one space, and a single @kbd{C-c
-C-d} (but @emph{not} @key{delete}) deletes all following whitespace.
+C-d} (but @emph{not} @key{DELETE}) deletes all following whitespace.
 
 @table @kbd
 @item M-x c-toggle-hungry-state
