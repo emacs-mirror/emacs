@@ -87,12 +87,8 @@ Each can be used any number of times.")
 (url-nfs-create-wrapper file-readable-p (url))
 (url-nfs-create-wrapper file-writable-p (url))
 (url-nfs-create-wrapper file-executable-p (url))
-(if (featurep 'xemacs)
-    (progn
-      (url-nfs-create-wrapper directory-files (url &optional full match nosort files-only))
-      (url-nfs-create-wrapper file-truename (url &optional default)))
-  (url-nfs-create-wrapper directory-files (url &optional full match nosort))
-  (url-nfs-create-wrapper file-truename (url &optional counter prev-dirs)))
+(url-nfs-create-wrapper directory-files (url &optional full match nosort))
+(url-nfs-create-wrapper file-truename (url &optional counter prev-dirs))
 
 (provide 'url-nfs)
 

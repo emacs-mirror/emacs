@@ -198,6 +198,13 @@ following in your `.emacs' file:
   :group 'bookmark)
 
 
+(defface bookmark-menu-heading
+  '((t (:inherit font-lock-type-face)))
+  "Face used to highlight the heading in bookmark menu buffers."
+  :group 'bookmark
+  :version "22.1")
+
+
 ;;; No user-serviceable parts beyond this point.
 
 ;; Is it XEmacs?
@@ -210,12 +217,6 @@ following in your `.emacs' file:
 
 ;; suggested for lucid compatibility by david hughes:
 (or (fboundp 'frame-height)  (defalias 'frame-height 'screen-height))
-
-;; This variable is probably obsolete now...
-(or (boundp 'baud-rate)
-    ;; some random value higher than 9600
-    (setq baud-rate 19200))
-
 
 
 ;;; Keymap stuff:
@@ -1175,12 +1176,14 @@ minibuffer history list `bookmark-history'."
     (prog1
 	(insert (bookmark-location bookmark)) ; *Return this line*
       (if (and (display-color-p) (display-mouse-p))
-	  (add-text-properties start
-			       (save-excursion (re-search-backward
-						"[^ \t]")
+	  (add-text-properties
+	   start
+	   (save-excursion (re-search-backward
+			    "[^ \t]")
 					       (1+ (point)))
-			       '(mouse-face highlight
-				 help-echo "mouse-2: go to this bookmark"))))))
+	   '(mouse-face highlight
+	     follow-link t
+	     help-echo "mouse-2: go to this bookmark in other window"))))))
 
 ;;;###autoload
 (defalias 'bookmark-locate 'bookmark-insert-location)
@@ -1553,6 +1556,8 @@ deletion, or > if it is flagged for displaying."
   (let ((inhibit-read-only t))
     (erase-buffer)
     (insert "% Bookmark\n- --------\n")
+    (add-text-properties (point-min) (point)
+			 '(font-lock-face bookmark-menu-heading))
     (bookmark-maybe-sort-alist)
     (mapcar
      (lambda (full-record)
@@ -1566,12 +1571,14 @@ deletion, or > if it is flagged for displaying."
 	 (let ((start (point)))
 	   (insert (bookmark-name-from-full-record full-record))
 	   (if (and (display-color-p) (display-mouse-p))
-	       (add-text-properties start
-				    (save-excursion (re-search-backward
-						     "[^ \t]")
-						    (1+ (point)))
-				    '(mouse-face highlight
-				      help-echo "mouse-2: go to this bookmark")))
+	       (add-text-properties
+		start
+		(save-excursion (re-search-backward
+				 "[^ \t]")
+				(1+ (point)))
+		'(mouse-face highlight
+		  follow-link t
+		  help-echo "mouse-2: go to this bookmark in other window")))
 	   (insert "\n")
 	   )))
      bookmark-alist))
@@ -1695,13 +1702,15 @@ Optional argument SHOW means show them unconditionally."
 		(let ((start (point)))
 		  (insert (car bookmark-bmenu-hidden-bookmarks))
 		  (if (and (display-color-p) (display-mouse-p))
-		      (add-text-properties start
-					   (save-excursion (re-search-backward
-							    "[^ \t]")
-							   (1+ (point)))
-					   '(mouse-face highlight
-					     help-echo
-					     "mouse-2: go to this bookmark"))))
+		      (add-text-properties
+		       start
+		       (save-excursion (re-search-backward
+					"[^ \t]")
+				       (1+ (point)))
+		       '(mouse-face highlight
+			 follow-link t
+			 help-echo
+			 "mouse-2: go to this bookmark in other window"))))
                 (setq bookmark-bmenu-hidden-bookmarks
                       (cdr bookmark-bmenu-hidden-bookmarks))
                 (forward-line 1))))))))

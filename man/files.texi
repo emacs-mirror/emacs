@@ -1288,7 +1288,7 @@ SCCS only if for some reason you cannot use RCS, or one of the
 higher-level systems such as CVS or GNU Arch.
 
 In the following, we discuss mainly RCS, SCCS and CVS.  Nearly
-everything said about CVS applies to Gnu Arch, Subversion and Meta-CVS
+everything said about CVS applies to GNU Arch, Subversion and Meta-CVS
 as well.
 
 @node VC Concepts

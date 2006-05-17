@@ -2522,7 +2522,8 @@ of a word, all strings are listed.  Return completion."
            (message "Making completion list...")
            (with-output-to-temp-buffer "*Completions*"
              (display-completion-list (all-completions part-of-word
-                                                       completions)))
+                                                       completions)
+				      part-of-word))
            (message "Making completion list...done")
            ;; return value is handled by choose-completion-string-functions
            nil))))
@@ -2661,6 +2662,7 @@ begins at the beginning of a line.  We use this function for font-locking."
         field bounds start end found)
     (bibtex-beginning-of-field)
     (while (and (not found)
+                (<= (point) bound)
 		(prog1 (re-search-forward bibtex-font-lock-url-regexp bound t)
 		  (setq field (match-string-no-properties 1)))
 		(setq bounds (bibtex-parse-field-text))

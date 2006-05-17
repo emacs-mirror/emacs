@@ -344,13 +344,14 @@ and `fill-nobreak-invisible'."
      ;; it at the end of the line.
      (and sentence-end-double-space
 	  (save-excursion
-	    (skip-chars-backward ". ")
-	    (looking-at "\\. \\([^ ]\\|$\\)")))
+	    (skip-chars-backward " ")
+	    (and (eq (preceding-char) ?.)
+		 (looking-at " \\([^ ]\\|$\\)"))))
      ;; Another approach to the same problem.
      (save-excursion
-       (skip-chars-backward ". ")
-       (and (looking-at "\\.")
-     	    (not (looking-at (sentence-end)))))
+       (skip-chars-backward " ")
+       (and (eq (preceding-char) ?.)
+	    (not (progn (forward-char -1) (looking-at (sentence-end))))))
      ;; Don't split a line if the rest would look like a new paragraph.
      (unless use-hard-newlines
        (save-excursion

@@ -401,7 +401,7 @@ it does nothing.  It always returns @var{function}.
   These features permit you to write code to be evaluated during
 compilation of a program.
 
-@defspec eval-and-compile body
+@defspec eval-and-compile body@dots{}
 This form marks @var{body} to be evaluated both when you compile the
 containing code and when you run it (whether compiled or not).
 
@@ -410,7 +410,7 @@ and referring to that file with @code{require}.  That method is
 preferable when @var{body} is large.
 @end defspec
 
-@defspec eval-when-compile body
+@defspec eval-when-compile body@dots{}
 This form marks @var{body} to be evaluated at compile time but not when
 the compiled program is loaded.  The result of evaluation by the
 compiler becomes a constant which appears in the compiled program.  If
@@ -470,7 +470,7 @@ The reference to @var{variable} must be in the @var{then-form} of the
 @c This is implemented with a defun, but conceptually it is
 @c a special form.
 
-@defspec with-no-warnings body...
+@defspec with-no-warnings body@dots{}
 In execution, this is equivalent to @code{(progn @var{body}...)},
 but the compiler does not issue warnings for anything that occurs
 inside @var{body}.

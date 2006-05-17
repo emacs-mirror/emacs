@@ -6,6 +6,51 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.85
+
+Version 7.85 heralds a migration of the CVS repository from
+SourceForge to Savannah only for those files that were already part of
+Emacs. As a result, two incompatibilities were introduced with this
+release: the location of MH-E in the load-path has changed, and
+mh-e-autoloads.el was renamed to mh-autoloads.el. While this migration
+will benefit maintainers, it will also benefit users: CVS Emacs users
+will not have to check out MH-E separately and welcome faster MH-E
+updates, and CVS MH-E users will welcome faster MH-E updates from
+Emacs developers. Read section CVS MH-E INSTALL in the README for
+details.
+
+MH-E now works on a Mac. See section INSTALL in the README for details.
+
+** Bug Fixes in MH-E 7.85
+
+*** Prompts Now Follow Current Conventions 
+
+Instead of "Prompt: [<default>] ", the prompts now look like "Prompt
+(default: <default>): ".
+
+*** Face Variable Names Now Follow Current Conventions
+
+The -face suffix has been dropped from all face names. 
+
+*** mh-compose-forward and Default Message Number
+
+mh-compose-forward will now default to the sent message in the sent
+folder and the `cur' message in other folders. It also takes ranges of
+messages and can include multiple messages at a time (closes SF
+#1205890).
+
+*** mh-customize Uses Group mh, Not mh-e
+
+The `mh' customization group alias has been deleted to avoid some
+problems that were found (closes SF #1213716).
+
+*** font-lock Error in mh-letter-mode
+
+An error in MH-E was introduced as a result of a change in CVS Emacs.
+This has been fixed (closes SF #1241017).
+
+
+
 * Changes in MH-E 7.84
 
 Version 7.84 contains no user-visible changes. This version

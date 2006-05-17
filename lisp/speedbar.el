@@ -1106,7 +1106,8 @@ frame and window to be the currently active frame and window."
 	   (or (not dframe-xemacsp)
 	       (with-no-warnings
 		 (specifier-instance has-modeline-p)))
-	   speedbar-buffer)      (save-excursion
+	   speedbar-buffer)
+      (save-excursion
 	(set-buffer speedbar-buffer)
 	(let* ((w (or (speedbar-frame-width) 20))
 	       (p1 "<<")
@@ -1677,9 +1678,8 @@ specialized speedbar displays."
     (speedbar-make-button start (point) face mouse function token))
   (let ((start (point)))
     (insert "\n")
-    (put-text-property start (point) 'face nil)
-    (put-text-property start (point) 'invisible nil)
-    (put-text-property start (point) 'mouse-face nil)))
+    (add-text-properties
+     start (point) '(face nil invisible nil mouse-face nil))))
 
 (defun speedbar-insert-separator (text)
   "Insert a separation label of TEXT.
@@ -1698,13 +1698,11 @@ Separators are not active, have no labels, depth, or actions."
   "Create a button from START to END, with FACE as the display face.
 MOUSE is the mouse face.  When this button is clicked on FUNCTION
 will be run with the TOKEN parameter (any Lisp object)"
-  (put-text-property start end 'face face)
-  (put-text-property start end 'mouse-face mouse)
+  (add-text-properties
+   start end `(face ,face mouse-face ,mouse invisible nil
+               speedbar-text ,(buffer-substring-no-properties start end)))
   (if speedbar-use-tool-tips-flag
       (put-text-property start end 'help-echo #'dframe-help-echo))
-  (put-text-property start end 'invisible nil)
-  (put-text-property start end 'speedbar-text
-		     (buffer-substring-no-properties start end))
   (if function (put-text-property start end 'speedbar-function function))
   (if token (put-text-property start end 'speedbar-token token))
   ;; So far the only text we have is less that 3 chars.
@@ -2455,10 +2453,9 @@ name will have the function FIND-FUN and not token."
 	(set-buffer speedbar-buffer)
 	(speedbar-with-writable
 	  (erase-buffer)
-	  (while funclst
+	  (dolist (func funclst)
 	    (setq default-directory cbd)
-	    (funcall (car funclst) cbd 0)
-	    (setq funclst (cdr funclst)))
+	    (funcall func cbd 0))
 	(speedbar-reconfigure-keymaps)
 	(goto-char (point-min)))
 	))))
@@ -2535,10 +2532,9 @@ name will have the function FIND-FUN and not token."
 			    speedbar-shown-directories))
 		 (insert (cdr cache)))
 		(t
-		 (while funclst
-		   (setq default-directory cbd)
-		   (funcall (car funclst) cbd 0)
-		   (setq funclst (cdr funclst))))))
+	  (dolist (func funclst)
+	    (setq default-directory cbd)
+	    (funcall func cbd 0)))))
 	(goto-char (point-min)))))
   (speedbar-reconfigure-keymaps))
 
@@ -2561,11 +2557,10 @@ This should only be used by modes classified as special."
 	      speedbar-shown-directories nil))
       ;; Now fill in the buffer with our newly found specialized list.
       (speedbar-with-writable
-	(while funclst
-	  ;; We do not erase the buffer because these functions may
-	  ;; decide NOT to update themselves.
-	  (funcall (car funclst) specialbuff)
-	  (setq funclst (cdr funclst))))
+	  (dolist (func funclst)
+	    ;; We do not erase the buffer because these functions may
+	    ;; decide NOT to update themselves.
+	    (funcall func specialbuff)))
 
       (goto-char (point-min))))
   (speedbar-reconfigure-keymaps))
@@ -3822,6 +3817,7 @@ regular expression EXPR."
     ["Contract File Tags" speedbar-contract-line
      (save-excursion (beginning-of-line)
 		     (looking-at "[0-9]+: *.-. "))]
+    "----"
     ["Kill Buffer" speedbar-buffer-kill-buffer
      (save-excursion (beginning-of-line)
 		     (looking-at "[0-9]+: *.[-+?]. "))]

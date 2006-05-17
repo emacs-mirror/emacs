@@ -1733,7 +1733,7 @@ Buffers menu is regenerated."
 	  :help "Terminate input and exit minibuffer")))
 
 ;;;###autoload
-;; This comment is taken from toolbar/tool-bar.el near
+;; This comment is taken from tool-bar.el near
 ;; (put 'tool-bar-mode ...)
 ;; We want to pretend the menu bar by standard is on, as this will make
 ;; customize consider disabling the menu bar a customization, and save

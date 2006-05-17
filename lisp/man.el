@@ -415,10 +415,18 @@ Otherwise, the value is whatever the function
   (define-key Man-mode-map "?"    'describe-mode))
 
 ;; buttons
-(define-button-type 'Man-xref-man-page
-  'action (lambda (button) (man-follow (button-label button)))
+(define-button-type 'Man-abstract-xref-man-page
   'follow-link t
-  'help-echo "mouse-2, RET: display this man page")
+  'help-echo "mouse-2, RET: display this man page"
+  'func nil
+  'action (lambda (button) (funcall 
+			    (button-get button 'func)
+			    (button-label button))))
+
+(define-button-type 'Man-xref-man-page 
+  :supertype 'Man-abstract-xref-man-page
+  'func 'man-follow)
+
 
 (define-button-type 'Man-xref-header-file
     'action (lambda (button)
@@ -903,14 +911,17 @@ Same for the ANSI bold and normal escape sequences."
 			 'face Man-overstrike-face)))
   (message "%s man page formatted" Man-arguments))
 
-(defun Man-highlight-references ()
+(defun Man-highlight-references (&optional xref-man-type)
   "Highlight the references on mouse-over.
 References include items in the SEE ALSO section,
-header file (#include <foo.h>) and files in FILES."
+header file (#include <foo.h>) and files in FILES.
+If XREF-MAN-TYPE is used as the button type for items
+in SEE ALSO section. If it is nil, default type, 
+`Man-xref-man-page' is used."
   (let ((dummy 0))
     (Man-highlight-references0
      Man-see-also-regexp Man-reference-regexp 1 dummy
-     'Man-xref-man-page)
+     (or xref-man-type 'Man-xref-man-page))
     (Man-highlight-references0
      Man-synopsis-regexp Man-header-regexp 0 2
      'Man-xref-header-file)

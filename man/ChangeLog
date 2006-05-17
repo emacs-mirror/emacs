@@ -1,3 +1,46 @@
+2005-10-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Document Groups): Remove duplicate item.
+
+2005-10-21  Juri Linkov  <juri@jurta.org>
+
+	* custom.texi (Examining): Mention accessing the old variable
+	value via M-n in set-variable.
+
+2005-10-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Summary): Mention iCalendar support.
+	(Exporting): Document iCalendar support.
+
+2005-10-18  Romain Francoise  <romain@orebokech.com>
+
+	* files.texi (Version Systems): Capitalize GNU.
+
+	* viper.texi (Viper Specials): Likewise.
+
+2005-10-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Compilation Mode): Remove redundant paragraph.
+	(Watch Expressions): Remove paragraph to reflect code change.
+
+2005-10-17  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Getting Started, Search Index, Expert Info):
+	Fix wording.
+	(Search Text): Replace `echo area' with `mode line'.
+	(Search Index): Both `i' and `,' find all index entries.
+	Replace example `C-f' with `C-l' (which exists in index of Info
+	manual) and delete spaces in its keyboard input sequence.
+	Delete unnecessary explanations about literal characters.
+
+2005-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Compilation Mode, Compilation): Clarified.
+
+2005-10-15  Richard M. Stallman  <rms@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Mention savehist library.
+
 2005-10-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Document Server Internals): Addition.
@@ -73,7 +116,7 @@
 
 2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Workflow states): Documented that change in keywords
+	* org.texi (Workflow states): Documented that change in keywords
 	becomes active only after restart of Emacs.
 
 2005-10-09  Richard M. Stallman  <rms@gnu.org>
@@ -88,7 +131,7 @@
 
 2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* cmdargs.texi (Icons X): Removed options -i, -itype, --icon-type, 
+	* cmdargs.texi (Icons X): Removed options -i, -itype, --icon-type,
 	added -nb, --no-bitmap-icon.
 
 2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
@@ -909,7 +952,7 @@
 2005-04-25  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi (Tooltips): Tooltip mode is enabled by default.
-	Delete redundant reference to tooltip Custom group.   It is
+	Delete redundant reference to tooltip Custom group.  It is
 	referred too again in the next paragraph.
 
 2005-04-24  Richard M. Stallman  <rms@gnu.org>

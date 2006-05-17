@@ -31,9 +31,7 @@
 (defvar url-dired-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-m" 'url-dired-find-file)
-    (if (featurep 'xemacs)
-	(define-key map [button2] 'url-dired-find-file-mouse)
-      (define-key map [mouse-2] 'url-dired-find-file-mouse))
+    (define-key map [mouse-2] 'url-dired-find-file-mouse)
     map)
   "Keymap used when browsing directories.")
 

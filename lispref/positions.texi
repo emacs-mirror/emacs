@@ -829,13 +829,13 @@ after the completion of the excursion.
 described elsewhere (see @ref{Window Configurations}, and @pxref{Frame
 Configurations}).
 
-@defspec save-excursion forms@dots{}
+@defspec save-excursion body@dots{}
 @cindex mark excursion
 @cindex point excursion
 @cindex current buffer excursion
 The @code{save-excursion} special form saves the identity of the current
 buffer and the values of point and the mark in it, evaluates
-@var{forms}, and finally restores the buffer and its saved values of
+@var{body}, and finally restores the buffer and its saved values of
 point and the mark.  All three saved values are restored even in case of
 an abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 
@@ -855,8 +855,8 @@ One way to restore these correspondences, and the selected window, is to
 use @code{save-window-excursion} inside @code{save-excursion}
 (@pxref{Window Configurations}).
 
-The value returned by @code{save-excursion} is the result of the last of
-@var{forms}, or @code{nil} if no @var{forms} are given.
+The value returned by @code{save-excursion} is the result of the last
+form in @var{body}, or @code{nil} if no body forms were given.
 
 @example
 @group

@@ -230,12 +230,8 @@ to them."
 (url-file-create-wrapper file-readable-p (url))
 (url-file-create-wrapper file-writable-p (url))
 (url-file-create-wrapper file-executable-p (url))
-(if (featurep 'xemacs)
-    (progn
-      (url-file-create-wrapper directory-files (url &optional full match nosort files-only))
-      (url-file-create-wrapper file-truename (url &optional default)))
-  (url-file-create-wrapper directory-files (url &optional full match nosort))
-  (url-file-create-wrapper file-truename (url &optional counter prev-dirs)))
+(url-file-create-wrapper directory-files (url &optional full match nosort))
+(url-file-create-wrapper file-truename (url &optional counter prev-dirs))
 
 (provide 'url-file)
 

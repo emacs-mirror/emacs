@@ -1,3 +1,119 @@
+2005-10-21  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (Fload): Simplify gcpro structure.
+	Gcpro FOUND as well as FILE, but not EFOUND.
+	Unless preloading, record FOUND instead of FILE in Vload_history.
+	Rename repeat local FILE to MSG_FILE.
+	(syms_of_lread) <load-history>: Doc fix.
+
+2005-10-21  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (boyer_moore): Surround the '||' part of expression in
+	`if' condition by parentheses explicitly.
+
+2005-10-20  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (clone_per_buffer_values): Remove unused var tem.
+	(init_buffer): Remove unused vars dotstat, pwdstat.
+
+	* ccl.c (check_ccl_update): Remove unused var vp.
+
+	* fileio.c (auto_save_error): Call SAFE_FREE.
+
+	* fns.c (Fchar_table_range): Remove unused var i.
+
+	* minibuf.c (display_completion_list_1): New wrapper function
+	for Fdisplay_completion_list.
+	(Fminibuffer_completion_help): Use it.
+
+	* term.c (encode_terminal_code): Remove unused var src_start.
+
+	* window.c (Fwindow_tree): Remove unused var alist.
+
+	* xterm.c (x_calc_absolute_position): Remove unused vars win_x, win_y.
+
+2005-10-20  Aubrey Jaffer  <agj@alum.mit.edu>  (tiny change)
+
+	* unexelf.c (unexec): Fix calls to `fatal' with less than 3
+	arguments.
+
+2005-10-20  Olli Savia  <ops@iki.fi>  (tiny change)
+
+	* syssignal.h [__Lynx__]: Undef SIGPOLL along with SIGIO.
+
+2005-10-20  Andreas Schwab  <schwab@suse.de>
+
+	* minibuf.c (Fdisplay_completion_list): Doc fix.
+
+2005-10-19  Kim F. Storm  <storm@cua.dk>
+
+	* image.c (check_image_size): Handle integer Vmax_image_size value
+	directly as max pixel value.  Use default frame size for null frame.
+	(syms_of_image) <max-image-size>: Describe integer value.
+
+2005-10-19  Romain Francoise  <romain@orebokech.com>
+
+	* emacs.c (main): Update copyright year.
+
+2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (Vmax_image_size): New variable.
+	(check_image_size): New function.
+	(xbm_read_bitmap_data, pbm_load, png_load, jpeg_load, tiff_load)
+	(gif_load, gs_load): Use it.
+	(lookup_image): Try loading again if previous load failed.
+	(xbm_read_bitmap_data): Add a new argument, a pointer to the frame
+	to display in, NULL if none.
+	(xbm_load_image, xbm_file_p): Pass xbm_read_bitmap_data the new
+	argument.
+
+2005-10-18  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (Fstring_match): Doc fix.
+
+2005-10-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (note_mouse_movement): Use PtInRect.
+	(XTread_socket): Also ignore mouse motion just before a button
+	release event.  Don't process button release event when mouse is
+	not grabbed.
+
+2005-10-16  Masatake YAMATO  <jet@gyve.org>
+
+	* minibuf.c (Fdisplay_completion_list): Add new optional
+	argument COMMON_SUBSTRING. Bind `completion-common-substring'
+	to the optional argument during running `completion-setup-hook'.
+
+2005-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [TARGET_API_MAC_CARBON] (get_cfstring_encoding_from_lisp):
+	Allow nil as argument.
+	 [TARGET_API_MAC_CARBON] (Fmac_code_convert_string): Regard nil
+	for encoding arguments as UTF-16 in native byte order, no BOM.
+
+	* macfns.c (Fx_create_frame): Add debugging code.
+	(Fx_show_tip): Set frame pixel width and height.
+
+	* macterm.c (MAC_WINDOW_NORMAL_GC): Remove macro.
+	(FRAME_NORMAL_GC): New macro.
+	(mac_draw_line, mac_clear_area, mac_clear_window)
+	(mac_fill_rectangle, mac_draw_string, mac_draw_string_16)
+	(mac_draw_image_string, mac_draw_image_string_16): Rename from
+	XDrawLine, XClearArea, XClearWindow, XFillRectangle, XDrawString,
+	XDrawString16, XDrawImageString, and XDrawImageString16, respectively.
+	All uses changed.
+	(mac_draw_line, mac_erase_rectangle, mac_clear_area)
+	(mac_clear_window, mac_draw_bitmap, mac_draw_rectangle)
+	(mac_invert_rectangle, mac_draw_string_common, mac_draw_string)
+	(mac_draw_string_16, mac_draw_image_string)
+	(mac_draw_image_string_16, mac_copy_area, mac_copy_area_with_mask)
+	(mac_scroll_area): Drawing functions now take frame as destination.
+	All uses changed.
+	(mac_draw_string_common): Get port height with FRAME_PIXEL_HEIGHT.
+	(x_draw_fringe_bitmap): Set clipping area in face->gc.
+
+	* macterm.h (mac_clear_area): Add extern.
+
 2005-10-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (note_mouse_movement, XTread_socket): Apply 2005-10-14
@@ -193,7 +309,7 @@
 	(FRAME_MAC_WINDOW, FRAME_X_WINDOW): Use window_desc.
 
 	* xfaces.c (x_create_gc, x_free_gc) [MAC_OS]: Add BLOCK_INPUT.
-	Add debug code.
+	Add debugging code.
 
 2005-10-08  Kim F. Storm  <storm@cua.dk>
 
@@ -237,6 +353,11 @@
 	* xterm.c, w32term.c, macterm.c: Rename member for_overlaps_p in
 	struct glyph_string to for_overlaps.
 
+2005-10-04  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (refill_memory_reserve): Conditionalize the body,
+	not the function's existence.
+
 2005-10-04  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (window_split_tree): New function.
@@ -278,7 +399,7 @@
 	* keyboard.c (init_keyboard) [MAC_OSX]: Don't install SIGINT handler.
 
 	* macfns.c (start_hourglass): Apply 2005-05-07 change for xfns.c.
-	(x_create_tip_frame) [GLYPH_DEBUG]: Uncomment debug code.
+	(x_create_tip_frame) [GLYPH_DEBUG]: Uncomment debugging code.
 	(Fx_create_frame, x_create_tip_frame) [USE_ATSUI]:
 	Try ATSUI-compatible 12pt Monaco font first.
 

@@ -1084,9 +1084,9 @@ it doesn't interfere with other minibuffer usage.")
 	  (setq truncate-lines t)))))
 
 (defun ido-is-tramp-root (&optional dir)
-  (setq dir (or dir ido-current-directory))
   (and ido-enable-tramp-completion
-       (string-match "\\`/[^/][^/]+:\\([^/:@]+@\\)?\\'" dir)))
+       (string-match "\\`/[^/]+[@:]\\'"
+		     (or dir ido-current-directory))))
 
 (defun ido-is-root-directory (&optional dir)
   (setq dir (or dir ido-current-directory))
@@ -1507,11 +1507,16 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
 
 (defun ido-set-current-directory (dir &optional subdir no-merge)
   ;; Set ido's current directory to DIR or DIR/SUBDIR
-  (setq dir (ido-final-slash dir t))
+  (unless (and ido-enable-tramp-completion
+	       (string-match "\\`/[^/]*@\\'" dir))
+    (setq dir (ido-final-slash dir t)))
   (setq ido-use-merged-list nil
 	ido-try-merged-list (not no-merge))
-  (if subdir
-      (setq dir (ido-final-slash (concat dir subdir) t)))
+  (when subdir
+    (setq dir (concat dir subdir))
+    (unless (and ido-enable-tramp-completion
+		 (string-match "\\`/[^/]*@\\'" dir))
+      (setq dir (ido-final-slash dir t))))
   (if (equal dir ido-current-directory)
       nil
     (ido-trace "cd" dir)
@@ -3102,27 +3107,29 @@ for first matching file."
    ((ido-nonreadable-directory-p dir) '())
    ;; do not check (ido-directory-too-big-p dir) here.
    ;; Caller must have done that if necessary.
+
    ((and ido-enable-tramp-completion
-	 (string-match "\\`/\\([^/:]+:\\([^/:@]+@\\)?\\)\\'" dir))
-
-    ;; Trick tramp's file-name-all-completions handler to DTRT, as it
-    ;; has some pretty obscure requirements.  This seems to work...
-    ;; /ftp:		=> (f-n-a-c "/ftp:" "")
-    ;; /ftp:kfs:	=> (f-n-a-c "" "/ftp:kfs:")
-    ;; /ftp:kfs@      => (f-n-a-c "ftp:kfs@" "/")
-    ;; /ftp:kfs@kfs:  => (f-n-a-c "" "/ftp:kfs@kfs:")
-    ;; Currently no attempt is made to handle multi: stuff.
-
-    (let* ((prefix (match-string 1 dir))
-	   (user-flag (match-beginning 2))
-	   (len (and prefix (length prefix)))
-	   compl)
-      (if user-flag
-	  (setq dir (substring dir 1)))
-      (require 'tramp nil t)
-      (ido-trace "tramp complete" dir)
-      (setq compl (file-name-all-completions dir (if user-flag "/" "")))
-      (if (> len 0)
+	 (or (fboundp 'tramp-completion-mode)
+	     (require 'tramp nil t))
+	 (string-match "\\`/[^/]+[:@]\\'" dir))
+    ;; Strip method:user@host: part of tramp completions.
+    ;; Tramp completions do not include leading slash.
+    (let ((len (1- (length dir)))
+	  (compl
+	   (or (file-name-all-completions "" dir)
+	       ;; work around bug in ange-ftp.
+	       ;; /ftp:user@host: => nil
+	       ;; /ftp:user@host:./ => ok
+	       (and
+		(not (string= "/ftp:" dir))
+		(tramp-tramp-file-p dir)
+		(fboundp 'tramp-ftp-file-name-p)
+		(funcall 'tramp-ftp-file-name-p dir)
+		(string-match ":\\'" dir)
+		(file-name-all-completions "" (concat dir "./"))))))
+      (if (and compl
+	       (> (length (car compl)) len)
+	       (string= (substring (car compl) 0 len) (substring dir 1)))
 	  (mapcar (lambda (c) (substring c len)) compl)
 	compl)))
    (t
@@ -3193,13 +3200,14 @@ for first matching file."
 			      (if ido-file-extensions-order
 				  #'ido-file-extension-lessp
 				#'ido-file-lessp)))
-    (let ((default-directory ido-current-directory))
-      (ido-to-end ;; move ftp hosts and visited files to end
-       (delq nil (mapcar
-		  (lambda (x) (if (or (string-match "..:\\'" x)
-				      (and (not (ido-final-slash x))
-					   (get-file-buffer x))) x))
-		  ido-temp-list))))
+    (unless (ido-is-tramp-root ido-current-directory)
+      (let ((default-directory ido-current-directory))
+	(ido-to-end ;; move ftp hosts and visited files to end
+	 (delq nil (mapcar
+		    (lambda (x) (if (or (string-match "..:\\'" x)
+					(and (not (ido-final-slash x))
+					     (get-file-buffer x))) x))
+		    ido-temp-list)))))
     (ido-to-end  ;; move . files to end
      (delq nil (mapcar
 		(lambda (x) (if (string-equal (substring x 0 1) ".") x))

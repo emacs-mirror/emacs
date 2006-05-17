@@ -5,7 +5,7 @@
 ;; Keywords: unix, tools
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 2000, 2001, 2002, 2003,
-;; 2004, 2005 Free Software Foundation, Inc.
+;;  2004, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -139,13 +139,13 @@ Used to grey out relevant togolbar icons.")
     ([remove]	menu-item "Remove Breakpoint" gud-remove
                   :enable (not gud-running)
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-				     (window-fringes))))
+				     (> (car (window-fringes)) 0))))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
 		  :enable (memq gud-minor-mode '(gdbmi gdba gdb sdb xdb bashdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
                   :enable (not gud-running)
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-				     (window-fringes))))
+				     (> (car (window-fringes)) 0))))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
@@ -197,24 +197,24 @@ Used to grey out relevant togolbar icons.")
 (defvar gud-tool-bar-map
   (if (display-graphic-p)
       (let ((map (make-sparse-keymap)))
-	(dolist (x '((gud-break . "gud-break")
-		     (gud-remove . "gud-remove")
-		     (gud-print . "gud-print")
-		     (gud-pstar . "gud-pstar")
-		     (gud-watch . "gud-watch")
-		     (gud-cont . "gud-cont")
-		     (gud-until . "gud-until")
-		     (gud-finish . "gud-finish")
-		     (gud-run . "gud-run")
+	(dolist (x '((gud-break . "gud/break")
+		     (gud-remove . "gud/remove")
+		     (gud-print . "gud/print")
+		     (gud-pstar . "gud/pstar")
+		     (gud-watch . "gud/watch")
+		     (gud-cont . "gud/cont")
+		     (gud-until . "gud/until")
+		     (gud-finish . "gud/finish")
+		     (gud-run . "gud/run")
 		     ;; gud-s, gud-si etc. instead of gud-step,
 		     ;; gud-stepi, to avoid file-name clashes on DOS
 		     ;; 8+3 filesystems.
-		     (gud-next . "gud-n")
-		     (gud-step . "gud-s")
-		     (gud-nexti . "gud-ni")
-		     (gud-stepi . "gud-si")
-		     (gud-up . "gud-up")
-		     (gud-down . "gud-down")
+		     (gud-next . "gud/next")
+		     (gud-step . "gud/step")
+		     (gud-nexti . "gud/nexti")
+		     (gud-stepi . "gud/stepi")
+		     (gud-up . "gud/up")
+		     (gud-down . "gud/down")
 		     (gud-goto-info . "info"))
 		   map)
 	  (tool-bar-local-item-from-menu
@@ -2575,7 +2575,8 @@ It is saved for when this flag is not set.")
 	 ;; Stop displaying an arrow in a source file.
 	 (setq gud-overlay-arrow-position nil)
 	 (set-process-buffer proc nil)
-	 (if (featurep 'speedbar)
+	 (if (and (boundp 'speedbar-frame)
+		  (string-equal speedbar-initial-expansion-list-name "GUD"))
 	     (speedbar-change-initial-expansion-list
 	      speedbar-previously-used-expansion-list-name))
 	 (if (memq gud-minor-mode-type '(gdbmi gdba))

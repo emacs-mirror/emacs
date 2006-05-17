@@ -587,7 +587,8 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 		(prog2
 		    (message "Making completion list...")
 		    (all-completions alias mail-abbrevs)
-		  (message "Making completion list...done"))))))))
+		  (message "Making completion list...done"))
+		alias))))))
 
 (defun mail-abbrev-next-line (&optional arg)
   "Expand any mail abbrev, then move cursor vertically down ARG lines.

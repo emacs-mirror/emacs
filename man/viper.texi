@@ -206,7 +206,7 @@ Emacs can edit several files at once.  A file in Emacs is placed in a
 @dfn{buffer} that usually has the same name as the file.  Buffers are also used
 for other purposes, such as shell interfaces, directory editing, etc.
 @xref{Dired,,Directory Editor,emacs,The
-Gnu Emacs Manual}, for an example.@refill
+GNU Emacs Manual}, for an example.@refill
 
 A buffer has a distinguished position called the @dfn{point}.
 A @dfn{point} is always between 2 characters, and is @dfn{looking at}
@@ -2582,7 +2582,7 @@ above block should be commented out.
 Even though these commands are sometimes useful, they are no substitute for
 the powerful @emph{tag table} facility of Emacs.  Viper's @kbd{:tag} command
 in a primitive interface to Emacs tags.  @xref{Tags,Tags,Tags,emacs,
-The Gnu Emacs Manual}, for more information on tags.
+The GNU Emacs Manual}, for more information on tags.
 
 The following two commands are normally bound to a mouse click and are part
 of Viper.  They work only if Emacs runs as an application under X

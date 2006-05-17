@@ -54,8 +54,6 @@
 ;; -font		*font
 ;; -foreground		*foreground
 ;; -geometry		.geometry
-;; -i			.iconType
-;; -itype		.iconType
 ;; -iconic		.iconic
 ;; -name		.name
 ;; -reverse		*reverseVideo
@@ -1198,15 +1196,21 @@ in `selection-converter-alist', which see."
     (when (and (stringp data)
 	       (setq data-type (get-text-property 0 'foreign-selection data)))
       (cond ((eq data-type 'public.utf16-plain-text)
-	     (let ((encoded (and (fboundp 'mac-code-convert-string)
-				 (mac-code-convert-string data
-							  'utf-16 coding))))
-	       (if encoded
-		   (let ((coding-save last-coding-system-used))
-		     (setq data (decode-coding-string encoded coding))
-		     (setq last-coding-system-used coding-save))
-		 (setq data
-		       (decode-coding-string data 'utf-16)))))
+	     (if (fboundp 'mac-code-convert-string)
+		 (let ((s (mac-code-convert-string data nil coding)))
+		   (if s
+		       (setq data (decode-coding-string s coding))
+		     (setq data
+			   ;; (decode-coding-string data 'utf-16) is
+			   ;; not correct because
+			   ;; public.utf16-plain-text is defined as
+			   ;; native byte order, no BOM.
+			   (decode-coding-string
+			    (mac-code-convert-string data nil 'utf-8)
+			    'utf-8))))
+	       ;; No `mac-code-convert-string' means non-Carbon, which
+	       ;; implies big endian.
+	       (setq data (decode-coding-string data 'utf-16be))))
 	    ((eq data-type 'com.apple.traditional-mac-plain-text)
 	     (setq data (decode-coding-string data coding)))
 	    ((eq data-type 'public.file-url)
@@ -1323,14 +1327,25 @@ in `selection-converter-alist', which see."
 	  (remove-text-properties 0 (length str) '(composition nil) str)
 	  (cond
 	   ((eq type 'public.utf16-plain-text)
-	    (let (s)
-	      (when (and (fboundp 'mac-code-convert-string)
-			 (memq coding (find-coding-systems-string str)))
-		(setq coding (coding-system-change-eol-conversion coding 'mac))
-		(setq s (mac-code-convert-string
-			 (encode-coding-string str coding)
-			 coding 'utf-16)))
-	      (setq str (or s (encode-coding-string str 'utf-16-mac)))))
+	    (if (fboundp 'mac-code-convert-string)
+		(let (s)
+		  (when (memq coding (find-coding-systems-string str))
+		    (setq coding
+			  (coding-system-change-eol-conversion coding 'mac))
+		    (setq s (mac-code-convert-string
+			     (encode-coding-string str coding)
+			     coding nil)))
+		  (setq str (or s
+				;; (encode-coding-string str
+				;; 'utf-16-mac) is not correct because
+				;; public.utf16-plain-text is defined
+				;; as native byte order, no BOM.
+				(mac-code-convert-string
+				 (encode-coding-string str 'utf-8-mac)
+				 'utf-8 nil))))
+	      ;; No `mac-code-convert-string' means non-Carbon, which
+	      ;; implies big endian.
+	      (setq str (encode-coding-string str 'utf-16be-mac))))
 	   ((eq type 'com.apple.traditional-mac-plain-text)
 	    (let ((encodables (find-coding-systems-string str))
 		  (rest mac-script-code-coding-systems))

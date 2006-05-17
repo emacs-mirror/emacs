@@ -1176,7 +1176,7 @@ The context determines which are considered."
 	(message "Making completion list...")
 	(let ((list (all-completions try table)))
 	  (with-output-to-temp-buffer "*Completions*"
-	    (display-completion-list list)))
+	    (display-completion-list list try)))
 	(message "Making completion list...done"))))))
 
 

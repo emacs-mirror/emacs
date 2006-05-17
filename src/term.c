@@ -816,7 +816,7 @@ encode_terminal_code (src, src_len, coding)
      int src_len;
      struct coding_system *coding;
 {
-  struct glyph *src_start = src, *src_end = src + src_len;
+  struct glyph *src_end = src + src_len;
   register GLYPH g;
   unsigned char *buf;
   int nchars, nbytes, required;
@@ -901,7 +901,7 @@ encode_terminal_code (src, src_len, coding)
   if (SYMBOLP (coding->pre_write_conversion)
       && ! NILP (Ffboundp (coding->pre_write_conversion)))
     {
-      run_pre_write_conversin_on_c_str (&encode_terminal_buf, 
+      run_pre_write_conversin_on_c_str (&encode_terminal_buf,
 					&encode_terminal_bufsize,
 					nchars, nbytes, coding);
       nchars = coding->produced_char;
@@ -1818,7 +1818,7 @@ produce_stretch_glyph (it)
 	   && calc_pixel_width_or_height (&tem, it, prop, 0, 1, &align_to))
     {
       if (it->glyph_row == NULL || !it->glyph_row->mode_line_p)
-	align_to = (align_to < 0 
+	align_to = (align_to < 0
 		    ? 0
 		    : align_to - window_box_left_offset (it->w, TEXT_AREA));
       else if (align_to < 0)

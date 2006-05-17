@@ -485,7 +485,7 @@ static void
 clone_per_buffer_values (from, to)
      struct buffer *from, *to;
 {
-  Lisp_Object to_buffer, tem;
+  Lisp_Object to_buffer;
   int offset;
 
   XSETBUFFER (to_buffer, to);
@@ -5112,7 +5112,6 @@ void
 init_buffer ()
 {
   char *pwd;
-  struct stat dotstat, pwdstat;
   Lisp_Object temp;
   int len;
 

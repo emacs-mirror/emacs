@@ -1157,7 +1157,8 @@ See also `multi-occur'."
 			    (insert "-------\n"))
 			  (add-text-properties
 			   beg end
-			   `(occur-target ,marker help-echo "mouse-2: go to this occurrence")))))
+			   `(occur-target ,marker follow-link t
+					  help-echo "mouse-2: go to this occurrence")))))
 		    (goto-char endpt))
 		  (if endpt
 		      (progn

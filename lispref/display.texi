@@ -403,7 +403,7 @@ never print it, there are many good reasons for this not to happen.
 Secondly, ``done'' is more explicit.
 @end defun
 
-@defmac dotimes-with-progress-reporter (var count [result]) message body...
+@defmac dotimes-with-progress-reporter (var count [result]) message body@dots{}
 This is a convenience macro that works the same way as @code{dotimes}
 does, but also reports loop progress using the functions described
 above.  It allows you to save some typing.
@@ -1721,7 +1721,7 @@ kind of customization item (@pxref{Customization}) which the user can
 customize using the Customization buffer (@pxref{Easy Customization,,,
 emacs, The GNU Emacs Manual}).
 
-@defmac defface face spec doc [keyword value]...
+@defmac defface face spec doc [keyword value]@dots{}
 This declares @var{face} as a customizable face that defaults
 according to @var{spec}.  You should not quote the symbol @var{face},
 and it should not end in @samp{-face} (that would be redundant).  The
@@ -4057,6 +4057,25 @@ font).  @var{frame} is the frame on which the image will be displayed.
 @var{frame} null or omitted means use the selected frame (@pxref{Input
 Focus}).
 @end defun
+
+@defvar max-image-size
+@tindex max-image-size
+This variable is used to define the maximum size of image that Emacs
+will load.  Emacs will refuse to load (and display) any image that is
+larger than this limit.
+
+If the value is an integer, it directly specifies the maximum
+image height and width, measured in pixels.  If it is a floating
+point number, it specifies the maximum image height and width
+as a ratio to the frame height and width.  If the value is
+non-numeric, there is no explicit limit on the size of images.
+
+The purpose of this variable is to prevent unreasonably large images
+from accidentally being loaded into Emacs.  It only takes effect the
+first time an image is loaded.  Once an image is placed in the image
+cache, it can always be displayed, even if the value of
+@var{max-image-size} is subsequently changed (@pxref{Image Cache}).
+@end defvar
 
 @node Image Cache
 @subsection Image Cache

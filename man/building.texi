@@ -63,17 +63,16 @@ command; normally, therefore, the compilation happens in this
 directory.
 
 @vindex compile-command
-  When the shell command line is read, the minibuffer appears
-containing a default command line, which is the command you used the
-last time you did @kbd{M-x compile}.  If you type just @key{RET}, the
-same command line is used again.  For the first @kbd{M-x compile}, the
-default is @samp{make -k}, which is correct most of the time for
-nontrivial programs.  (@xref{Top,, Make, make, GNU Make Manual}.)
-The default compilation command comes from the variable
-@code{compile-command}; if the appropriate compilation command for a
-file is something other than @samp{make -k}, it can be useful for the
-file to specify a local value for @code{compile-command} (@pxref{File
-Variables}).
+  The default for the compilation command is normally @samp{make -k},
+which is correct most of the time for nontrivial programs.
+(@xref{Top,, Make, make, GNU Make Manual}.)  If you have done @kbd{M-x
+compile} before, the default each time is the command you used the
+previous time.  @code{compile} stores this command in the variable
+@code{compile-command}, so setting that variable specifies the default
+for the next use of @kbd{M-x compile}.  If a file specifies a file
+local value for @code{compile-command}, that provides the default when
+you type @kbd{M-x compile} in that file's buffer.  @xref{File
+Variables}.
 
   Starting a compilation displays the buffer @samp{*compilation*} in
 another window but does not select it.  The buffer's mode line tells
@@ -224,13 +223,13 @@ leading context in the window before the current message.  If it is
 scroll.  If there is no left fringe, no arrow is displayed and a value
 of @code{nil} means display the message at the top of the window.
 
-  You don't have to be in the compilation buffer in order to use
-@code{next-error}.  If one window on the selected frame can be the
-target of the @code{next-error} call, it is used.  Else, if a buffer
-previously had @code{next-error} called on it, it is used.  Else,
-if the current buffer can be the target of @code{next-error}, it is
-used.  Else, all the buffers Emacs manages are tried for
-@code{next-error} support.
+  If you're not in the compilation buffer when you run
+@code{next-error}, Emacs will look for a buffer that contains error
+messages.  First, it looks for one displayed in the selected frame,
+then for one that previously had @code{next-error} called on it, and
+then at the current buffer.  Finally, Emacs looks at all the remaining
+buffers.  @code{next-error} signals an error if it can't find any such
+buffer.
 
   @kbd{C-u C-x `} starts scanning from the beginning of the compilation
 buffer.  This is one way to process the same set of errors again.
@@ -900,12 +899,6 @@ Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree
 format.  To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
-
-By default, watch expressions only display in the speedbar when the
-GUD buffer is selected in the attached frame.  If you want your watch
-expressions to remain visible at all times then select the @samp{GUD}
-radio button on the @samp{Speedbar->Displays} sub-menu using
-@kbd{Mouse-3}.
 
 @findex gdb-var-delete
 With the cursor over the root expression of a complex data type, type

@@ -509,7 +509,7 @@ If the list was changed, sort the list and remove duplicates first."
                  (message "Making completion list...")
                  (let ((list (all-completions symbol list nil)))
                    (with-output-to-temp-buffer "*Completions*"
-                     (display-completion-list list)))
+                     (display-completion-list list symbol)))
                  (message "Making completion list... done"))))
       (funcall (nth 1 entry)))))
 

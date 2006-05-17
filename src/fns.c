@@ -2554,7 +2554,7 @@ Note that this function doesn't check the parent of CHAR-TABLE.  */)
      Lisp_Object char_table, range;
 {
   int charset_id, c1 = 0, c2 = 0;
-  int size, i;
+  int size;
   Lisp_Object ch, val, current_default;
 
   CHECK_CHAR_TABLE (char_table);
