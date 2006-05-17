@@ -3,7 +3,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Author: Bill Carpenter <bill@bubblegum.net>, <bill@carpenter.ORG>
+;; Author: Bill Carpenter <bill@carpenter.ORG>
 ;; Version: 8
 ;; Keywords: email, queue, mail, sendmail, message, spray, smtp, draft
 ;; X-URL: <URL:http://www.carpenter.org/feedmail/feedmail.html>

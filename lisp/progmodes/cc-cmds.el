@@ -907,7 +907,8 @@ is nil."
 	     ;; be most disruptive.  We'll blink it ourselves
 	     ;; afterwards.
 	     (old-blink-paren blink-paren-function)
-	     blink-paren-function)
+	     blink-paren-function
+	     (noblink (eq last-input-event ?\()))
 	(self-insert-command (prefix-numeric-value arg))
 	(if c-syntactic-indentation
 	    (indent-according-to-mode))
@@ -982,6 +983,7 @@ is nil."
 		 (delete-region beg end))))
 	(and (not executing-kbd-macro)
 	     old-blink-paren
+	     (not noblink)
 	     (funcall old-blink-paren))))))
 
 (defun c-electric-continued-statement ()

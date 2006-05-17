@@ -1415,7 +1415,8 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 	(goto-char from)
 	(while (and (<= (length char-pos-list) max-unprintable-chars)
 		    (re-search-forward "\\cu" to t))
-	  (push (cons (preceding-char) (1- (point))) char-pos-list))))
+	  (or (aref ps-print-translation-table (preceding-char))
+	      (push (cons (preceding-char) (1- (point))) char-pos-list)))))
     (with-output-to-temp-buffer "*Warning*"
       (with-current-buffer standard-output
 	(when char-pos-list

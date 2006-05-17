@@ -1,3 +1,23 @@
+2005-10-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* display.texi (Fringe Size/Pos): Simplify and add detail.
+
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* minibuf.texi (High-Level Completion): Explain that the prompt
+	given to `read-buffer' should end with a colon and a space.
+	Update usage examples.
+
+2005-09-29  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Displaying Messages): Rename argument name
+	`string' to `format-string' in functions `message', `message-box',
+	`message-or-box'.
+
+2005-09-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* errors.texi (Standard Errors): Corrected xrefs.
+
 2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Defining Images): Updated documentation for

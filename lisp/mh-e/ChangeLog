@@ -1,3 +1,13 @@
+2005-09-30  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-refile-msg, mh-tool-bar-reply-from)
+	(mh-tool-bar-reply-to, mh-tool-bar-reply-all)
+	(mh-alias-grab-from-field, mh-pack-folder): Image files moved to
+	etc/images/mail so added "mail/" prefix.
+	(mh-reply): Ditto. Also renamed reply2.* to reply.*.
+	(mh-rescan-folder): Ditto. Renamed image file to refresh.* since
+	it can be used in the general sense. Does not have "mail/" prefix.
+
 2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
 
 	* mh-mime.el (mh-compose-forward, mh-mhn-compose-forw):

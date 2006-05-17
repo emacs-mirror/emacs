@@ -1044,6 +1044,11 @@ return if the user exits with an empty minibuffer.  If non-@code{nil},
 it should be a string or a buffer.  It is mentioned in the prompt, but
 is not inserted in the minibuffer as initial input.
 
+The argument @var{prompt} should be a string ending with a colon and a
+space.  If @var{default} is non-@code{nil}, the function inserts it in
+@var{prompt} before the colon to follow the convention for reading from
+the minibuffer with a default value (@pxref{Programming Tips}).
+
 If @var{existing} is non-@code{nil}, then the name specified must be
 that of an existing buffer.  The usual commands to exit the minibuffer
 do not exit if the text is not valid, and @key{RET} does completion to
@@ -1058,7 +1063,7 @@ only buffer name starting with the given input is
 @samp{minibuffer.texi}, so that name is the value.
 
 @example
-(read-buffer "Buffer name? " "foo" t)
+(read-buffer "Buffer name: " "foo" t)
 @group
 ;; @r{After evaluation of the preceding expression,}
 ;;   @r{the following prompt appears,}
@@ -1067,7 +1072,7 @@ only buffer name starting with the given input is
 
 @group
 ---------- Buffer: Minibuffer ----------
-Buffer name? (default foo) @point{}
+Buffer name (default foo): @point{}
 ---------- Buffer: Minibuffer ----------
 @end group
 

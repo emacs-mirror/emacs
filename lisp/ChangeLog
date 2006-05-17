@@ -1,8 +1,307 @@
+2005-10-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-ls): Fix typo introduced in last change.
+
+2005-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-styles.el (c-setup-paragraph-variables): Make sure we do
+	not change the global value of those vars.
+
+	* progmodes/cc-mode.el (c-basic-common-init): Remove calls to
+	make-local-variable which we do not need any more.
+
+2005-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* speedbar.el (speedbar-ignored-path-regexp, speedbar-line-path)
+	(speedbar-ignored-path-expressions, speedbar-buffers-line-path)
+	(speedbar-add-ignored-path-regexp, speedbar-buffers-line-path)
+	(speedbar-path-line): Define obsolete aliases.
+	(speedbar-line-directory): Doc fix.
+
+	* progmodes/vhdl-mode.el (vhdl-speedbar-initialize)
+	(vhdl-speedbar-rescan-hierarchy): Call speedbar-line-directory
+	instead of speedbar-line-path.
+
+2005-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-drop-data): Don't set dnd-open-file-other-window
+	to nil if dropping on a window.  Handle dropping on a minibuffer window
+	like dropping on a non-window part of Emacs.
+
+2005-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el: Use with-current-buffer.
+	(ange-ftp-insert-directory): Do not follow symlinks any more.
+
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
+	Remove interactive spec.
+
+2005-10-03  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-mode): Use custom-initialize-set.
+
+2005-10-02  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/ebnf2ps.el (ebnf-eps-production-list):
+	Use insert-buffer-substring.
+
+	* net/tramp.el: Pacify byte compiler warnings in pacification code.
+	(tramp-handle-file-local-copy): Use insert-buffer-substring.
+
+2005-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-insert-directory): Undo unintended part
+	in last change.
+	(ange-ftp-insert-directory): Fix up the search for the case where
+	`file' is absolute.
+
+2005-10-02  Romain Francoise  <romain@orebokech.com>
+
+	* progmodes/compile.el (compile-goto-error): Delete extra paren.
+
+2005-10-02  Andreas Schwab  <schwab@suse.de>
+
+	* ediff-ptch.el (ediff-fixup-patch-map): Handle file names without
+	directory component in the session info.
+
+2005-10-01  Richard M. Stallman  <rms@gnu.org>
+
+	* comint.el (comint-redirect-subvert-readonly): Doc fix.
+
+	* simple.el (next-error-internal): New function.
+
+	* progmodes/compile.el (compilation-buffer-name): New arg MODE-COMMAND.
+	(compilation-start): Pass new arg to compilation-buffer-name.
+	(compile-goto-error): Use next-error-internal.
+
+2005-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* speedbar.el: Remove RCS tag.
+	(speedbar-check-read-only): Handle non-existent files.
+
+	* dframe.el, ezimage.el, sb-image.el: Remove RCS tags.
+
+	* info.el (Info-speedbar-hierarchy-buttons)
+	(Info-speedbar-goto-node): Call speedbar-select-attached-frame.
+
+2005-10-01  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-valid-entry-whitespace-re):
+	Do not match newline.
+	(bibtex-realign): Do not use bibtex-valid-entry-whitespace-re.
+	(bibtex-summary): Remove unnecessary save-excursion.
+	(bibtex-fill-field-bounds): Use fill-region-as-paragraph.
+
+2005-10-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Add charset info for "iso10646-1".
+	Modify default fontset to use ATSUI-compatible fonts for some charsets
+	if available.
+
+2005-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* speedbar.el: Re-apply arch tag.
+	(speedbar-version): Rename to version 1.0.  Suggested by Eric
+	M. Ludlam.
+	Reapply two changes from Emacs CVS' version of speedbar lost
+	during the merge:
+	(speedbar-use-imenu-flag): Avoid unnecessary use of locate-library.
+	(speedbar-frame-parameters): Improve customize type.
+
+2005-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-gwp-start): Use with-current-buffer.
+	(ange-ftp-file-directory-p): Fix the symlink case.
+	(ange-ftp-insert-directory): When listing a single file, get a list of
+	the parent buffer and extract the relevant line.  Inspired from a patch
+	by Katsumi Yamaoka <yamaoka@jpl.org>.
+	(ange-ftp-file-name-sans-versions): Simplify.
+
+2005-09-30  Bill Wohler  <wohler@newt.com>
+
+	Move MH-E image files from toolbar and mail directories into
+	etc/images.
+
+	* mail/reply2.*: Move to etc/images/mail/reply*.
+
+	* toolbar/execute.*, toolbar/highlight.*, toolbar/mh-logo.xpm:
+	* toolbar/page-down.*, toolbar/show.*, toolbar/widen.*: Move to
+	etc/images.
+
+	* toolbar/alias.*, toolbar/refile.*, toolbar/repack.*:
+	* toolbar/reply*: Move to etc/images/mail.
+
+	* toolbar/rescan.*: Move and rename to etc/images/refresh.*.
+
+2005-09-30  Eric M. Ludlam <zappo@gnu.org>
+
+	* speedbar.el: New version 1.0pre3.
+
+	Frame management code (including timer, and mouse click specifics)
+	moved to dframe.el:
+	(speedbar-attached-frame): Removed.  Use dframe-attached-frame.
+	(speedbar-timer): Removed.  Use dframe-timer.
+	(speedbar-close-frame): Removed.  Use dframe-close-frame.
+	(speedbar-activity-change-focus-flag): Removed.  Use
+	dframe-activity-change-focus-flag.
+	(speedbar-update-speed, speedbar-navigating-speed): Obsolete.  Use
+	dframe-update-speed.
+
+	(speedbar-current-frame): New macro.  Use this instead of the
+	variable speedbar-frame.
+
+	(speedbar-use-images, speedbar-expand-image-button-alist)
+	(speedbar-insert-image-button-maybe): Moved to sb-image.el.
+
+	(speedbar-find-image-on-load-path): Removed.  Replaced by
+	defezimage in ezimage.el.
+	(speedbar-expand-image-button-alist): Removed.  Replaced by
+	ezimage-expand-image-button-alist in ezimage.el.
+
+	(speedbar-ignored-directory-regexp)
+	(speedbar-add-ignored-directory-regexp)
+	(speedbar-ignored-directory-expressions)
+	(speedbar-line-directory, speedbar-buffers-line-directory)
+	(speedbar-directory-line, speedbar-buffers-line-directory):
+	Renamed, replacing `path' with `directory'.
+
+	(speedbar-create-directory, speedbar-expand-line-descendants)
+	(speedbar-toggle-line-expansion)
+	(speedbar-contract-line-descendants): New commands.
+
+	(speedbar-query-confirmation-method, speedbar-select-frame-method)
+	(speedbar-use-tool-tips-flag): New options.
+
+	(speedbar-check-read-only, speedbar-require-version)
+	(speedbar-insert-separator, speedbar-buffers-tail-notes)
+	(speedbar-handle-delete-frame, speedbar-try-completion)
+	(speedbar-update-localized-contents): New functions.
+
+	(speedbar-incompatible-version, speedbar-ro-to-do-point)
+	(speedbar-object-read-only-indicator): New variables.
+
+	(speedbar-visiting-tag-hook, speedbar-before-visiting-file-hook):
+	New hooks.
+
+	(speedbar-separator-face): New face.
+
+	(speedbar-supported-extension-expressions): Add `.g' and `.ma?k'.
+	(speedbar-ignored-modes): Add fundamental-mode.
+	(speedbar-directory-unshown-regexp): Add . directories.
+
+	(speedbar-key-map): Remove old SPC and DEL page up/down keys.
+	(speedbar-file-key-map): Add SPC to toggle node expansion, `[' and
+	`]' for full expand/close.
+	(speedbar-buffers-key-map): Add SPC to toggle node expansion.
+
+	(speedbar-check-vc): Support hidden files.
+	(speedbar-vc-check-dir-p): Use vc-state if available for CVS.
+	(speedbar-this-file-in-vc): Use vc-state if available.  If VC
+	state is nil, it is not checked out.
+
+	(speedbar-line-text, speedbar-line-token): Support expand buttons
+	with no text.
+	(speedbar-refresh): Universal argument acts as power-click.
+	(speedbar-fetch-dynamic-tags): If a buffer is in Emacs, switch to
+	that buffer to get variable values.
+
+	And many other bugfixes.
+
+	* dframe.el, ezimage.el, sb-image.el: New files.
+
+	* sb-*.xpm: Remove files.  New image files installed into
+	etc/images/ezimage.
+
+2005-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-show-warning): If a character is in
+	ps-print-translation-table, don't treat it as non-printable.
+
+2005-09-30  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-themes-load-path): New variable.
+	(tree-widget-themes-directory): Doc fix.
+	(tree-widget-image-formats) [Emacs]: Doc fix.
+	(tree-widget--locate-sub-directory): New function.
+	(tree-widget-themes-directory): Use it.
+
+	* recentf.el (recentf-filename-handlers): Rename from
+	`recentf-filename-handler'.  Allow a list of functions.
+	(recentf-menu-items-for-commands): Fix :help strings.
+	(recentf-apply-filename-handlers): New function.
+	(recentf-expand-file-name): Use it.
+	(recentf-cleanup): Remove duplicates too.
+
+2005-09-29  Juri Linkov  <juri@jurta.org>
+
+	* faces.el: Rearrange face definitions to be in the same order as
+	their face descriptions in "(emacs)Standard Faces".
+
+	* isearch.el (isearch, lazy-highlight): Add group `basic-faces'.
+
+	* tooltip.el (tooltip): Add group `basic-faces'.
+
+	* buff-menu.el (Buffer-menu-buffer): Remove group
+	`font-lock-highlighting-faces'.
+
+	* progmodes/compile.el (compilation-error, compilation-warning)
+	(compilation-info, compilation-line-number, compilation-column-number):
+	Change group from `font-lock-highlighting-faces' to `compilation'.
+
+	* progmodes/vhdl-mode.el (vhdl-font-lock-prompt-face)
+	(vhdl-font-lock-attribute-face, vhdl-font-lock-enumvalue-face)
+	(vhdl-font-lock-function-face, vhdl-font-lock-directive-face)
+	(vhdl-font-lock-reserved-words-face)
+	(vhdl-font-lock-translate-off-face, syntax-alist): Remove group
+	`font-lock-highlighting-faces'.
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Default to nil.
+
+2005-09-28  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Set CUA move property on additional commands:
+	up-list, down-list, backward-up-list, end-of-defun beginning-of-defun,
+	forward-sexp, backward-sexp, forward-list, backward-list.
+
+2005-09-28  Romain Francoise  <romain@orebokech.com>
+
+	* comint.el (comint-show-output): Really set point at the
+	beginning of the output when not using `comint-use-prompt-regexp'.
+
+2005-09-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-lang.el (math-oper-table): Raise the precedence of "/"
+	in TeX mode.
+
+2005-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/org.el (org-table-sum): Fix format string.
+
+	* textmodes/tex-mode.el (tex-insert-quote, latex-indent):
+	Quote face names.
+
+2005-09-26  Romain Francoise  <romain@orebokech.com>
+
+	* isearch.el (isearch-forward-regexp): Close doc string.
+
+2005-09-25  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (blink-matching-open): Don't no-op when point is BEGV+1.
+
+	* isearch.el (isearch-forward, isearch-forward-regexp): Doc fixes.
+
+	* progmodes/compile.el (compilation-error-properties):
+	When getting the file from the previous error message,
+	correctly decode the new data format.
+
+	* progmodes/cc-cmds.el (c-electric-paren):
+	Call old-blink-paren only for close-paren.
+
 2005-09-24  Andreas Schwab  <schwab@suse.de>
 
 	* term/rxvt.el (rxvt-register-default-colors): Delete redundant
-	condition. 
-	
+	condition.
+
 2005-09-25  Romain Francoise  <romain@orebokech.com>
 
 	* dired-aux.el (dired-copy-file-recursive):
@@ -21,16 +320,14 @@
 	* play/mpuz.el (mpuz-offer-abort, mpuz-try-letter, mpuz-close-game):
 	* progmodes/ebrowse.el (ebrowse-find-pattern):
 	* progmodes/idlw-shell.el (idlwave-shell-set-bp-check):
-	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer): 
-	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and
-	space.
+	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer):
+	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and space.
 
 	* vc.el (vc-delete-file):
 	* play/gomoku.el (gomoku-terminate-game, gomoku)
 	(gomoku-prompt-for-move, gomoku-human-takes-back):
 	* play/landmark.el (lm-human-takes-back, lm-prompt-for-move)
-	(lm-start-robot, lm-human-plays): Remove extraneous spaces in
-	messages.
+	(lm-start-robot, lm-human-plays): Remove extraneous spaces in messages.
 
 2005-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -699,19 +996,11 @@
 
 	* descr-text.el (describe-property-list): Handle non-symbol prop names.
 
-2005-08-30  Richard M. Stallman  <rms@gnu.org>
+2005-09-08  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (blink-matching-open): Get rid of text props from
 	the string shown in echo area.  Don't permanently set point.
 	Some rearrangements.
-
-	* files.el (risky-local-variable-p):
-	Match `-predicates' and `-commands.
-
-	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
-	(custom-save-all): Visit the file if necessary;
-	kill the buffer if we created it.
-	(custom-save-delete): Don't visit file or kill buffer here.
 
 2005-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 

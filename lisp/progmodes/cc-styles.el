@@ -498,33 +498,34 @@ variables."
   (let ((comment-line-prefix
 	 (concat "[ \t]*\\(" c-current-comment-prefix "\\)[ \t]*")))
 
-    (setq paragraph-start (concat comment-line-prefix
-				  c-paragraph-start
-				  "\\|"
-				  page-delimiter)
-	  paragraph-separate (concat comment-line-prefix
-				     c-paragraph-separate
-				     "\\|"
-				     page-delimiter)
-	  paragraph-ignore-fill-prefix t
-	  adaptive-fill-mode t
-	  adaptive-fill-regexp
-	  (concat comment-line-prefix
-		  (if (default-value 'adaptive-fill-regexp)
-		      (concat "\\("
-			      (default-value 'adaptive-fill-regexp)
-			      "\\)")
-		    "")))
+    (set (make-local-variable 'paragraph-start)
+         (concat comment-line-prefix
+                 c-paragraph-start
+                 "\\|"
+                 page-delimiter))
+    (set (make-local-variable 'paragraph-separate)
+         (concat comment-line-prefix
+                 c-paragraph-separate
+                 "\\|"
+                 page-delimiter))
+    (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
+    (set (make-local-variable 'adaptive-fill-mode) t)
+    (set (make-local-variable 'adaptive-fill-regexp)
+         (concat comment-line-prefix
+                 (if (default-value 'adaptive-fill-regexp)
+                     (concat "\\("
+                             (default-value 'adaptive-fill-regexp)
+                             "\\)")
+                   "")))
 
     (when (boundp 'adaptive-fill-first-line-regexp)
       ;; XEmacs (20.x) adaptive fill mode doesn't have this.
-      (make-local-variable 'adaptive-fill-first-line-regexp)
-      (setq adaptive-fill-first-line-regexp
-	    (concat "\\`" comment-line-prefix
-		    ;; Maybe we should incorporate the old value here,
-		    ;; but then we have to do all sorts of kludges to
-		    ;; deal with the \` and \' it probably contains.
-		    "\\'")))))
+      (set (make-local-variable 'adaptive-fill-first-line-regexp)
+           (concat "\\`" comment-line-prefix
+                   ;; Maybe we should incorporate the old value here,
+                   ;; but then we have to do all sorts of kludges to
+                   ;; deal with the \` and \' it probably contains.
+                   "\\'")))))
 
 
 ;; Helper for setting up Filladapt mode.  It's not used by CC Mode itself.
@@ -626,5 +627,5 @@ any reason to call this function directly."
 
 (cc-provide 'cc-styles)
 
-;;; arch-tag: c764f61a-96ba-484a-a68f-101c0e9d5d2c
+;; arch-tag: c764f61a-96ba-484a-a68f-101c0e9d5d2c
 ;;; cc-styles.el ends here

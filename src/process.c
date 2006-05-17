@@ -118,10 +118,10 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/wait.h>
 #endif
 
+#include "lisp.h"
 #include "systime.h"
 #include "systty.h"
 
-#include "lisp.h"
 #include "window.h"
 #include "buffer.h"
 #include "charset.h"
@@ -187,7 +187,6 @@ extern Lisp_Object QCfilter;
 
 #include "syswait.h"
 
-extern void set_waiting_for_input P_ ((EMACS_TIME *));
 extern char *get_operating_system_release ();
 
 #ifndef USE_CRT_DLL

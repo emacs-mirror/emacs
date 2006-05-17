@@ -2178,7 +2178,7 @@ slurp_file (file, size)
 
   if (stat (file, &st) == 0
       && (fp = fopen (file, "rb")) != NULL
-      && (buf = (char *) xmalloc (st.st_size),
+      && (buf = (unsigned char *) xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
     {
       *size = st.st_size;
@@ -3029,7 +3029,7 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 
   bytes_per_line = (*width + 7) / 8 + padding_p;
   nbytes = bytes_per_line * *height;
-  p = *data = (char *) xmalloc (nbytes);
+  p = *data = (unsigned char *) xmalloc (nbytes);
 
   if (v10)
     {
@@ -7369,8 +7369,17 @@ gif_load (f, img)
       return 0;
     }
 
-  width = img->width = max (gif->SWidth, gif->Image.Left + gif->Image.Width);
-  height = img->height = max (gif->SHeight, gif->Image.Top + gif->Image.Height);
+  image_top = gif->SavedImages[ino].ImageDesc.Top;
+  image_left = gif->SavedImages[ino].ImageDesc.Left;
+  image_width = gif->SavedImages[ino].ImageDesc.Width;
+  image_height = gif->SavedImages[ino].ImageDesc.Height;
+
+  width = img->width = max (gif->SWidth,
+			    max (gif->Image.Left + gif->Image.Width,
+				 image_left + image_width));
+  height = img->height = max (gif->SHeight,
+			      max (gif->Image.Top + gif->Image.Height,
+				   image_top + image_height));
 
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
@@ -7405,11 +7414,6 @@ gif_load (f, img)
      requires more than can be done here (see the gif89 spec,
      disposal methods).  Let's simply assume that the part
      not covered by a sub-image is in the frame's background color.  */
-  image_top = gif->SavedImages[ino].ImageDesc.Top;
-  image_left = gif->SavedImages[ino].ImageDesc.Left;
-  image_width = gif->SavedImages[ino].ImageDesc.Width;
-  image_height = gif->SavedImages[ino].ImageDesc.Height;
-
   for (y = 0; y < image_top; ++y)
     for (x = 0; x < width; ++x)
       XPutPixel (ximg, x, y, FRAME_BACKGROUND_PIXEL (f));

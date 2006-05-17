@@ -47,7 +47,7 @@ to the FSF.
 ** Implement something better than the current Refill mode.  This
   probably needs some primitive support.
 
-** Add a command to make a local variables list in the current buffer
+** Add a command to make a "Local Variables" section in the current buffer
   and/or add a variable to the list.
 
 ** Implement primitive and higher-level functions to allow filling

@@ -12832,40 +12832,35 @@ This does background highlighting of translate-off regions.")
     (((class color) (background dark)) (:foreground "Pink" :bold t))
     (t (:inverse-video t)))
   "Font lock mode face used to highlight prompts."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-attribute-face
   '((((class color) (background light)) (:foreground "Orchid"))
     (((class color) (background dark)) (:foreground "LightSteelBlue"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight standardized attributes."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-enumvalue-face
   '((((class color) (background light)) (:foreground "SaddleBrown"))
     (((class color) (background dark)) (:foreground "BurlyWood"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight standardized enumeration values."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-function-face
   '((((class color) (background light)) (:foreground "Cyan4"))
     (((class color) (background dark)) (:foreground "Orchid1"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight standardized functions and packages."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-directive-face
   '((((class color) (background light)) (:foreground "CadetBlue"))
     (((class color) (background dark)) (:foreground "Aquamarine"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight directives."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-reserved-words-face
   '((((class color) (background light)) (:foreground "Orange" :bold t))
@@ -12874,16 +12869,14 @@ This does background highlighting of translate-off regions.")
     (((class color) (background dark)) (:foreground "Yellow" :bold t))
     (t ()))
   "Font lock mode face used to highlight additional reserved words."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-translate-off-face
   '((((class color) (background light)) (:background "LightGray"))
     (((class color) (background dark)) (:background "DimGray"))
     (t ()))
   "Font lock mode face used to background highlight translate-off regions."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 ;; font lock mode faces used to highlight words with special syntax.
 (let ((syntax-alist vhdl-special-syntax-alist))
@@ -12897,8 +12890,7 @@ This does background highlighting of translate-off regions.")
 	       (t ()))
 	     ,(concat "Font lock mode face used to highlight "
 		      (nth 0 (car syntax-alist)) ".")
-	     :group 'vhdl-highlight-faces
-	     :group 'font-lock-highlighting-faces))
+	     :group 'vhdl-highlight-faces))
     (setq syntax-alist (cdr syntax-alist))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -13996,11 +13988,11 @@ if required."
     (speedbar-add-mode-functions-list
      '("vhdl directory"
        (speedbar-item-info . vhdl-speedbar-item-info)
-       (speedbar-line-path . speedbar-files-line-path)))
+       (speedbar-line-directory . speedbar-files-line-path)))
     (speedbar-add-mode-functions-list
      '("vhdl project"
        (speedbar-item-info . vhdl-speedbar-item-info)
-       (speedbar-line-path . vhdl-speedbar-line-project)))
+       (speedbar-line-directory . vhdl-speedbar-line-project)))
     ;; keymap
     (unless vhdl-speedbar-key-map
       (setq vhdl-speedbar-key-map (speedbar-make-specialized-keymap))
@@ -14265,9 +14257,9 @@ otherwise use cached data."
      ((save-excursion (beginning-of-line) (looking-at "[^0-9]"))
       (re-search-forward "[0-9]+:" nil t)
       (vhdl-scan-directory-contents
-       (abbreviate-file-name (speedbar-line-path))))
+       (abbreviate-file-name (speedbar-line-directory))))
      ;; current directory
-     (t (setq path (speedbar-line-path))
+     (t (setq path (speedbar-line-directory))
 	(string-match "^\\(.+[/\\]\\)" path)
 	(vhdl-scan-directory-contents
 	 (abbreviate-file-name (match-string 1 path)))))
@@ -14985,7 +14977,7 @@ NO-POSITION non-nil means do not re-position cursor."
   (cond ((string-match "+" text)	; we have to expand this dir
 	 (setq speedbar-shown-directories
 	       (cons (expand-file-name
-		      (concat (speedbar-line-path indent) token "/"))
+		      (concat (speedbar-line-directory indent) token "/"))
 		     speedbar-shown-directories))
   	 (speedbar-change-expand-button-char ?-)
 	 (speedbar-reset-scanners)
@@ -14994,12 +14986,12 @@ NO-POSITION non-nil means do not re-position cursor."
 	     (end-of-line) (forward-char 1)
 	     (vhdl-speedbar-insert-dirs
 	      (speedbar-file-lists
-	       (concat (speedbar-line-path indent) token "/"))
+	       (concat (speedbar-line-directory indent) token "/"))
 	      (1+ indent))
 	     (speedbar-reset-scanners)
 	     (vhdl-speedbar-insert-dir-hierarchy
 	      (abbreviate-file-name
-	       (concat (speedbar-line-path indent) token "/"))
+	       (concat (speedbar-line-directory indent) token "/"))
 	      (1+ indent) speedbar-power-click)))
 	 (vhdl-speedbar-update-current-unit t t))
 	((string-match "-" text)	; we have to contract this node
@@ -15007,7 +14999,7 @@ NO-POSITION non-nil means do not re-position cursor."
 	 (let ((oldl speedbar-shown-directories)
 	       (newl nil)
 	       (td (expand-file-name
-		    (concat (speedbar-line-path indent) token))))
+		    (concat (speedbar-line-directory indent) token))))
 	   (while oldl
 	     (if (not (string-match (concat "^" (regexp-quote td)) (car oldl)))
 		 (setq newl (cons (car oldl) newl)))
@@ -15093,7 +15085,7 @@ NO-POSITION non-nil means do not re-position cursor."
   (if vhdl-speedbar-show-projects
       (vhdl-speedbar-line-project)
     (abbreviate-file-name
-     (file-name-as-directory (speedbar-line-path indent)))))
+     (file-name-as-directory (speedbar-line-directory indent)))))
 
 (defun vhdl-speedbar-line-project (&optional indent)
   "Get currently displayed project name."
@@ -15244,7 +15236,7 @@ is already shown in a buffer."
 	  (unit-name (vhdl-speedbar-line-text))
 	  (vhdl-project (vhdl-speedbar-line-project))
 	  (directory (file-name-as-directory
-		      (or (speedbar-line-file) (speedbar-line-path)))))
+		      (or (speedbar-line-file) (speedbar-line-directory)))))
       (if (fboundp 'speedbar-select-attached-frame)
 	  (speedbar-select-attached-frame)
 	(select-frame speedbar-attached-frame))
@@ -15256,7 +15248,7 @@ is already shown in a buffer."
   (interactive)
   (let ((vhdl-project (vhdl-speedbar-line-project))
 	(default-directory (file-name-as-directory
-			    (or (speedbar-line-file) (speedbar-line-path)))))
+			    (or (speedbar-line-file) (speedbar-line-directory)))))
     (vhdl-generate-makefile)))
 
 (defun vhdl-speedbar-check-unit (design-unit)

@@ -857,10 +857,10 @@ case, dropping the file on a Dired buffer moves or copies the file
 (according to the conventions of the application it came from) into the
 directory displayed in that buffer.
 
-@vindex x-dnd-open-file-other-window
+@vindex dnd-open-file-other-window
   Dropping a file normally visits it in the window you drop it on.  If
 you prefer to visit the file in a new window in such cases, customize
-the variable @code{x-dnd-open-file-other-window}.
+the variable @code{dnd-open-file-other-window}.
 
 @ignore
 @c ??? To Lisp manual
@@ -881,10 +881,10 @@ or add a new type, customize @code{x-dnd-types-alist}.  This requires
 detailed knowledge of what types other applications use for drag and
 drop.
 
-@vindex x-dnd-protocol-alist
+@vindex dnd-protocol-alist
   When an URL is dropped on Emacs it may be a file, but it may also be
 another URL type (ftp, http, etc.).  Emacs first checks
-@code{x-dnd-protocol-alist} to determine what to do with the URL.  If
+@code{dnd-protocol-alist} to determine what to do with the URL.  If
 there is no match there and if @code{browse-url-browser-function} is
 an alist, Emacs looks for a match there.  If no match is found the
 text for the URL is inserted.  If you want to alter Emacs behavior,

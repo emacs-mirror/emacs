@@ -4024,8 +4024,6 @@ static Boolean xaw3d_arrow_scroll;
 
 static Boolean xaw3d_pick_top;
 
-extern void set_vertical_scroll_bar P_ ((struct window *));
-
 /* Action hook installed via XtAppAddActionHook when toolkit scroll
    bars are used..  The hook is responsible for detecting when
    the user ends an interaction with the scroll bar, and generates
@@ -6233,7 +6231,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
               if (status_return == XBufferOverflow)
                 {
                   copy_bufsiz = nbytes + 1;
-                  copy_bufptr = (char *) alloca (copy_bufsiz);
+                  copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
                   nbytes = XmbLookupString (FRAME_XIC (f),
                                             &event.xkey, copy_bufptr,
                                             copy_bufsiz, &keysym,
@@ -6251,7 +6249,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                   if (status_return == XBufferOverflow)
                     {
                       copy_bufsiz = nbytes + 1;
-                      copy_bufptr = (char *) alloca (copy_bufsiz);
+                      copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
                       nbytes = Xutf8LookupString (FRAME_XIC (f),
                                                   &event.xkey,
                                                   copy_bufptr,
@@ -6752,13 +6750,13 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 			      && (int)(event.xbutton.time - ignore_next_mouse_click_timeout) > 0)
 			    {
 			      ignore_next_mouse_click_timeout = 0;
-			      construct_mouse_click (&inev.ie, &event, f);
+			      construct_mouse_click (&inev.ie, &event.xbutton, f);
 			    }
 			  if (event.type == ButtonRelease)
 			    ignore_next_mouse_click_timeout = 0;
 			}
 		      else
-			construct_mouse_click (&inev.ie, &event, f);
+			construct_mouse_click (&inev.ie, &event.xbutton, f);
 		    }
                 }
           }

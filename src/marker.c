@@ -256,6 +256,7 @@ buf_charpos_to_bytepos (b, charpos)
 
 int
 verify_bytepos (charpos)
+     int charpos;
 {
   int below = 1;
   int below_byte = 1;

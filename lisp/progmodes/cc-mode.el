@@ -395,11 +395,6 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start-skip)
   (make-local-variable 'comment-multi-line)
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (make-local-variable 'adaptive-fill-mode)
-  (make-local-variable 'adaptive-fill-regexp)
 
   ;; now set their values
   (setq parse-sexp-ignore-comments t
@@ -1180,5 +1175,5 @@ Key bindings:
 
 (cc-provide 'cc-mode)
 
-;;; arch-tag: 7825e5c4-fd09-439f-a04d-4c13208ba3d7
+;; arch-tag: 7825e5c4-fd09-439f-a04d-4c13208ba3d7
 ;;; cc-mode.el ends here

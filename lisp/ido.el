@@ -354,7 +354,7 @@ Setting this variable directly does not take effect;
 use either \\[customize] or the function `ido-mode'."
   :set #'(lambda (symbol value)
 	   (ido-mode value))
-  :initialize 'custom-initialize-default
+  :initialize 'custom-initialize-set
   :require 'ido
   :link '(emacs-commentary-link "ido.el")
   :set-after '(ido-save-directory-list-file)

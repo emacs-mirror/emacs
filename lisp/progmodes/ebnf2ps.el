@@ -4261,7 +4261,7 @@ end
 	      ebnf-eps-max-height prod-height))
        )
       (setq ebnf-eps-prod-width prod-width)
-      (insert-buffer eps-buffer))
+      (insert-buffer-substring eps-buffer))
     (setq prod-list (cdr prod-list))))
 
 

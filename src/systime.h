@@ -154,6 +154,17 @@ extern time_t timezone;
 
 extern int set_file_times __P ((const char *, EMACS_TIME, EMACS_TIME));
 
+/* defined in keyboard.c */
+extern void set_waiting_for_input __P ((EMACS_TIME *));
+
+/* When lisp.h is not included Lisp_Object is not defined (this can
+   happen when this files is used outside the src directory).
+   Use GCPRO1 to determine if lisp.h was included.  */
+#ifdef GCPRO1
+/* defined in dired.c */
+extern Lisp_Object make_time __P ((time_t));
+#endif
+
 /* Compare times T1 and T2.  Value is 0 if T1 and T2 are the same.
    Value is < 0 if T1 is less than T2.  Value is > 0 otherwise.  */
 

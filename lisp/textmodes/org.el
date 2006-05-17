@@ -7064,7 +7064,7 @@ If NLAST is a number, only the NLAST fields will actually be summed."
 		     (format "%d:%02d:%02d" h m s))))
 	(kill-new sres)
 	(if (interactive-p)
-	    (message "s"
+	    (message "%s"
 		     (substitute-command-keys
 		      (format "Sum of %d items: %-20s     (\\[yank] will insert result into buffer)"
 			      (length numbers) sres))))
@@ -9587,7 +9587,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
       (if (fboundp 'command-remapping)
 	  (define-key map (vector 'remap old) new)
 	(substitute-key-definition old new map global-map)))))
-  
+
 (when (eq org-enable-table-editor 'optimized)
   ;; If the user wants maximum table support, we need to hijack
   ;; some standard editing functions

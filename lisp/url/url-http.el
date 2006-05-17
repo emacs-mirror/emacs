@@ -194,79 +194,92 @@ request.
 	(setq extra-headers (concat extra-headers "\r\n")))
 
     ;; This was done with a call to `format'.  Concatting parts has
-    ;; the advantage of keeping the parts of each header togther and
+    ;; the advantage of keeping the parts of each header together and
     ;; allows us to elide null lines directly, at the cost of making
     ;; the layout less clear.
     (setq request
-	  (concat
-	   ;; The request
-	   (or url-request-method "GET") " "
-	   (if proxy-obj (url-recreate-url proxy-obj) real-fname)
-	   " HTTP/" url-http-version "\r\n"
-	   ;; Version of MIME we speak
-	   "MIME-Version: 1.0\r\n"
-	   ;; (maybe) Try to keep the connection open
-	   "Connection: " (if (or proxy-obj
-				  (not url-http-attempt-keepalives))
-			      "close" "keep-alive") "\r\n"
-	   ;; HTTP extensions we support
-	   (if url-extensions-header
-	       (format
-		"Extension: %s\r\n" url-extensions-header))
-	   ;; Who we want to talk to
-	   (if (/= (url-port (or proxy-obj url))
-		   (url-scheme-get-property
-		    (url-type (or proxy-obj url)) 'default-port))
-	       (format
-		"Host: %s:%d\r\n" host (url-port (or proxy-obj url)))
-	     (format "Host: %s\r\n" host))
-	   ;; Who its from
-	   (if url-personal-mail-address
-	       (concat
-		"From: " url-personal-mail-address "\r\n"))
-	   ;; Encodings we understand
-	   (if url-mime-encoding-string
-	       (concat
-		"Accept-encoding: " url-mime-encoding-string "\r\n"))
-	   (if url-mime-charset-string
-	       (concat
-		"Accept-charset: " url-mime-charset-string "\r\n"))
-	   ;; Languages we understand
-	   (if url-mime-language-string
-	       (concat
-		"Accept-language: " url-mime-language-string "\r\n"))
-	   ;; Types we understand
-	   "Accept: " (or url-mime-accept-string "*/*") "\r\n"
-	   ;; User agent
-	   (url-http-user-agent-string)
-	   ;; Proxy Authorization
-	   proxy-auth
-	   ;; Authorization
-	   auth
-	   ;; Cookies
-	   (url-cookie-generate-header-lines host real-fname
-					     (equal "https" (url-type url)))
-	   ;; If-modified-since
-	   (if (and (not no-cache)
-		    (member url-request-method '("GET" nil)))
-	       (let ((tm (url-is-cached (or proxy-obj url))))
-		 (if tm
-		     (concat "If-modified-since: "
-			     (url-get-normalized-date tm) "\r\n"))))
-	   ;; Whence we came
-	   (if ref-url (concat
-			"Referer: " ref-url "\r\n"))
-	   extra-headers
-	   ;; Length of data
-	   (if url-request-data
-	       (concat
-		"Content-length: " (number-to-string
-				    (length url-request-data))
-		"\r\n"))
-	   ;; End request
-	   "\r\n"
-	   ;; Any data
-	   url-request-data))
+          ;; We used to concat directly, but if one of the strings happens
+          ;; to being multibyte (even if it only contains pure ASCII) then
+          ;; every string gets converted with `string-MAKE-multibyte' which
+          ;; turns the 127-255 codes into things like latin-1 accented chars
+          ;; (it would work right if it used `string-TO-multibyte' instead).
+          ;; So to avoid the problem we force every string to be unibyte.
+          (mapconcat
+           ;; FIXME: Instead of `string-AS-unibyte' we'd want
+           ;; `string-to-unibyte', so as to properly signal an error if one
+           ;; of the strings contains a multibyte char.
+           'string-as-unibyte
+           (delq nil
+            (list
+             ;; The request
+             (or url-request-method "GET") " "
+             (if proxy-obj (url-recreate-url proxy-obj) real-fname)
+             " HTTP/" url-http-version "\r\n"
+             ;; Version of MIME we speak
+             "MIME-Version: 1.0\r\n"
+             ;; (maybe) Try to keep the connection open
+             "Connection: " (if (or proxy-obj
+                                    (not url-http-attempt-keepalives))
+                                "close" "keep-alive") "\r\n"
+                                ;; HTTP extensions we support
+             (if url-extensions-header
+                 (format
+                  "Extension: %s\r\n" url-extensions-header))
+             ;; Who we want to talk to
+             (if (/= (url-port (or proxy-obj url))
+                     (url-scheme-get-property
+                      (url-type (or proxy-obj url)) 'default-port))
+                 (format
+                  "Host: %s:%d\r\n" host (url-port (or proxy-obj url)))
+               (format "Host: %s\r\n" host))
+             ;; Who its from
+             (if url-personal-mail-address
+                 (concat
+                  "From: " url-personal-mail-address "\r\n"))
+             ;; Encodings we understand
+             (if url-mime-encoding-string
+                 (concat
+                  "Accept-encoding: " url-mime-encoding-string "\r\n"))
+             (if url-mime-charset-string
+                 (concat
+                  "Accept-charset: " url-mime-charset-string "\r\n"))
+             ;; Languages we understand
+             (if url-mime-language-string
+                 (concat
+                  "Accept-language: " url-mime-language-string "\r\n"))
+             ;; Types we understand
+             "Accept: " (or url-mime-accept-string "*/*") "\r\n"
+             ;; User agent
+             (url-http-user-agent-string)
+             ;; Proxy Authorization
+             proxy-auth
+             ;; Authorization
+             auth
+             ;; Cookies
+             (url-cookie-generate-header-lines host real-fname
+                                               (equal "https" (url-type url)))
+             ;; If-modified-since
+             (if (and (not no-cache)
+                      (member url-request-method '("GET" nil)))
+                 (let ((tm (url-is-cached (or proxy-obj url))))
+                   (if tm
+                       (concat "If-modified-since: "
+                               (url-get-normalized-date tm) "\r\n"))))
+             ;; Whence we came
+             (if ref-url (concat
+                          "Referer: " ref-url "\r\n"))
+             extra-headers
+             ;; Length of data
+             (if url-request-data
+                 (concat
+                  "Content-length: " (number-to-string
+                                      (length url-request-data))
+                  "\r\n"))
+             ;; End request
+             "\r\n"
+             ;; Any data
+             url-request-data))
+           ""))
     (url-http-debug "Request is: \n%s" request)
     request))
 

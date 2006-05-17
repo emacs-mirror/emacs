@@ -670,7 +670,7 @@ If `last', order groups after non-groups."
   :type 'boolean
   :group 'custom-browse)
 
-(defcustom custom-buffer-sort-alphabetically t
+(defcustom custom-buffer-sort-alphabetically nil
   "If non-nil, sort members of each customization group alphabetically."
   :type 'boolean
   :group 'custom-buffer)

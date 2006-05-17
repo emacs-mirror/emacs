@@ -1,3 +1,8 @@
+2005-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el (url-http-create-request): Avoid incorrect implicit
+	unibyte->multibyte conversion.
+
 2005-09-17  Richard M. Stallman  <rms@gnu.org>
 
 	* url-vars.el (url-mail-command): Don't test fboundp of `compose-mail'.

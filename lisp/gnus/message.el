@@ -1454,8 +1454,13 @@ no, only reply back to the author."
 				   (file-error))
 				 (mm-coding-system-p 'utf-8)
 				 (executable-find idna-program)
-				 'ask)
-  "Whether to encode non-ASCII in domain names into ASCII according to IDNA."
+				 (string= (idna-to-ascii "räksmörgås")
+					  "xn--rksmrgs-5wao1o")
+				 t)
+  "Whether to encode non-ASCII in domain names into ASCII according to IDNA.
+GNU Libidn, and in particular the elisp package \"idna.el\" and
+the external program \"idn\", must be installed for this
+functionality to work."
   :version "22.1"
   :group 'message-headers
   :link '(custom-manual "(message)IDNA")
@@ -1807,7 +1812,6 @@ Leading \"Re: \" is not stripped by this function.  Use the function
 
 ;;; Suggested by Jonas Steverud  @  www.dtek.chalmers.se/~d4jonas/
 
-;;;###autoload
 (defun message-change-subject (new-subject)
   "Ask for NEW-SUBJECT header, append (was: <Old Subject>)."
   ;; <URL:http://www.landfield.com/usefor/drafts/draft-ietf-usefor-useage--1.02.unpaged>
@@ -1839,7 +1843,6 @@ Leading \"Re: \" is not stripped by this function.  Use the function
 				    " (was: "
 				    old-subject ")\n")))))))))
 
-;;;###autoload
 (defun message-mark-inserted-region (beg end)
   "Mark some region in the current article with enclosing tags.
 See `message-mark-insert-begin' and `message-mark-insert-end'."
@@ -1851,7 +1854,6 @@ See `message-mark-insert-begin' and `message-mark-insert-end'."
     (goto-char beg)
     (insert message-mark-insert-begin)))
 
-;;;###autoload
 (defun message-mark-insert-file (file)
   "Insert FILE at point, marking it with enclosing tags.
 See `message-mark-insert-begin' and `message-mark-insert-end'."
@@ -1864,7 +1866,6 @@ See `message-mark-insert-begin' and `message-mark-insert-end'."
     (goto-char p)
     (insert message-mark-insert-begin)))
 
-;;;###autoload
 (defun message-add-archive-header ()
   "Insert \"X-No-Archive: Yes\" in the header and a note in the body.
 The note can be customized using `message-archive-note'.  When called with a
@@ -1884,7 +1885,6 @@ body, set  `message-archive-note' to nil."
       (message-add-header message-archive-header)
       (message-sort-headers)))
 
-;;;###autoload
 (defun message-cross-post-followup-to-header (target-group)
   "Mangles FollowUp-To and Newsgroups header to point to TARGET-GROUP.
 With prefix-argument just set Follow-Up, don't cross-post."
@@ -1928,7 +1928,6 @@ With prefix-argument just set Follow-Up, don't cross-post."
       (insert (concat "\nFollowup-To: " target-group)))
   (setq message-cross-post-old-target target-group))
 
-;;;###autoload
 (defun message-cross-post-insert-note (target-group cross-post in-old
 						    old-groups)
   "Insert a in message body note about a set Followup or Crosspost.
@@ -1961,7 +1960,6 @@ been made to before the user asked for a Crosspost."
 	(insert (concat message-followup-to-note target-group "\n"))
       (insert (concat message-cross-post-note target-group "\n")))))
 
-;;;###autoload
 (defun message-cross-post-followup-to (target-group)
   "Crossposts message and set Followup-To to TARGET-GROUP.
 With prefix-argument just set Follow-Up, don't cross-post."
@@ -2003,7 +2001,6 @@ With prefix-argument just set Follow-Up, don't cross-post."
 
 ;;; Reduce To: to Cc: or Bcc: header
 
-;;;###autoload
 (defun message-reduce-to-to-cc ()
  "Replace contents of To: header with contents of Cc: or Bcc: header."
  (interactive)
@@ -2029,6 +2026,14 @@ With prefix-argument just set Follow-Up, don't cross-post."
 				       "cc"))))))))
 
 ;;; End of functions adopted from `message-utils.el'.
+
+(defun message-remove-duplicates (list)
+  (let (new)
+    (while list
+      (or (member (car list) new)
+	  (setq new (cons (car list) new)))
+      (setq list (cdr list)))
+    (nreverse new)))
 
 (defun message-remove-header (header &optional is-regexp first reverse)
   "Remove HEADER in the narrowed buffer.
@@ -4957,13 +4962,17 @@ subscribed address (and not the additional To and Cc header contents)."
   (let ((field (message-fetch-field header))
 	rhs ace  address)
     (when field
-      (dolist (address (mail-header-parse-addresses field))
-	(setq address (car address)
-	      rhs (downcase (or (cadr (split-string address "@")) ""))
-	      ace (downcase (idna-to-ascii rhs)))
+      (dolist (rhs
+	       (message-remove-duplicates
+		(mapcar (lambda (rhs) (or (cadr (split-string rhs "@")) ""))
+			(mapcar 'downcase
+				(mapcar
+				 'car (mail-header-parse-addresses field))))))
+	(setq ace (downcase (idna-to-ascii rhs)))
 	(when (and (not (equal rhs ace))
 		   (or (not (eq message-use-idna 'ask))
-		       (y-or-n-p (format "Replace %s with %s? " rhs ace))))
+		       (y-or-n-p (format "Replace %s with %s in %s:? "
+					 rhs ace header))))
 	  (goto-char (point-min))
 	  (while (re-search-forward (concat "^" header ":") nil t)
 	    (message-narrow-to-field)
@@ -4982,6 +4991,9 @@ See `message-idna-encode'."
 	(message-narrow-to-head)
 	(message-idna-to-ascii-rhs-1 "From")
 	(message-idna-to-ascii-rhs-1 "To")
+	(message-idna-to-ascii-rhs-1 "Reply-To")
+	(message-idna-to-ascii-rhs-1 "Mail-Reply-To")
+	(message-idna-to-ascii-rhs-1 "Mail-Followup-To")
 	(message-idna-to-ascii-rhs-1 "Cc")))))
 
 (defun message-generate-headers (headers)

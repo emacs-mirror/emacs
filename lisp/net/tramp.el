@@ -136,7 +136,7 @@ Nil means to use a separate filename syntax for Tramp.")
 ;; Avoid byte-compiler warnings if the byte-compiler supports this.
 ;; Currently, XEmacs supports this.
 (eval-when-compile
-  (when (fboundp 'byte-compiler-options)
+  (when (featurep 'xemacs)
     (let (unused-vars) ; Pacify Emacs byte-compiler
       (defalias 'warnings 'identity) ; Pacify Emacs byte-compiler
       (byte-compiler-options (warnings (- unused-vars))))))
@@ -3681,7 +3681,7 @@ This will break if COMMAND prints a newline, followed by the value of
 		   (let ((tmpbuf (get-buffer-create " *tramp tmp*")))
 		     (set-buffer tmpbuf)
 		     (erase-buffer)
-		     (insert-buffer tramp-buf)
+		     (insert-buffer-substring tramp-buf)
 		     (tramp-message-for-buffer
 		      multi-method method user host
 		      6 "Decoding remote file %s with function %s..."

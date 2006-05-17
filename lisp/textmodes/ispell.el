@@ -892,7 +892,6 @@ and added as a submenu of the \"Edit\" menu.")
 
 (defun ispell-find-aspell-dictionaries ()
   "Find Aspell's dictionaries, and record in `ispell-dictionary-alist'."
-  (interactive)
   (unless ispell-really-aspell
     (error "This function only works with aspell"))
   (let ((dictionaries

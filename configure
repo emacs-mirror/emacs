@@ -8197,52 +8197,9 @@ else
   fi
 fi
 
-case "${window_system}" in
-  x11 )
-    HAVE_X_WINDOWS=yes
-    HAVE_X11=yes
-    case "${with_x_toolkit}" in
-      athena | lucid ) USE_X_TOOLKIT=LUCID ;;
-      motif ) USE_X_TOOLKIT=MOTIF ;;
-      gtk ) with_gtk=yes
-            USE_X_TOOLKIT=none ;;
-      no ) USE_X_TOOLKIT=none ;;
-      * ) USE_X_TOOLKIT=maybe ;;
-    esac
-  ;;
-  none )
-    HAVE_X_WINDOWS=no
-    HAVE_X11=no
-    USE_X_TOOLKIT=none
-  ;;
-esac
-
-### If we're using X11, we should use the X menu package.
-HAVE_MENUS=no
-case ${HAVE_X11} in
-  yes ) HAVE_MENUS=yes ;;
-esac
-
-if test "${opsys}" = "hpux9"; then
-  case "${x_libraries}" in
-    *X11R4* )
-      opsysfile="s/hpux9-x11r4.h"
-      ;;
-  esac
-fi
-
-if test "${opsys}" = "hpux9shr"; then
-  case "${x_libraries}" in
-    *X11R4* )
-      opsysfile="s/hpux9shxr4.h"
-      ;;
-  esac
-fi
-
 HAVE_CARBON=no
-if test "${HAVE_X11}" != "yes"; then
-  if test "${with_carbon}" != "no"; then
-     if test "${ac_cv_header_Carbon_Carbon_h+set}" = set; then
+if test "${with_carbon}" != no; then
+  if test "${ac_cv_header_Carbon_Carbon_h+set}" = set; then
   echo "$as_me:$LINENO: checking for Carbon/Carbon.h" >&5
 echo $ECHO_N "checking for Carbon/Carbon.h... $ECHO_C" >&6
 if test "${ac_cv_header_Carbon_Carbon_h+set}" = set; then
@@ -8384,7 +8341,57 @@ if test $ac_cv_header_Carbon_Carbon_h = yes; then
 fi
 
 
+fi
+if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
+  if test "${with_carbon+set}" != set \
+     && test "${carbon_appdir_x+set}" != set; then
+    HAVE_CARBON=no
   fi
+fi
+if test "${HAVE_CARBON}" = yes; then
+  window_system=mac
+fi
+
+case "${window_system}" in
+  x11 )
+    HAVE_X_WINDOWS=yes
+    HAVE_X11=yes
+    case "${with_x_toolkit}" in
+      athena | lucid ) USE_X_TOOLKIT=LUCID ;;
+      motif ) USE_X_TOOLKIT=MOTIF ;;
+      gtk ) with_gtk=yes
+            USE_X_TOOLKIT=none ;;
+      no ) USE_X_TOOLKIT=none ;;
+      * ) USE_X_TOOLKIT=maybe ;;
+    esac
+  ;;
+  mac | none )
+    HAVE_X_WINDOWS=no
+    HAVE_X11=no
+    USE_X_TOOLKIT=none
+  ;;
+esac
+
+### If we're using X11, we should use the X menu package.
+HAVE_MENUS=no
+case ${HAVE_X11} in
+  yes ) HAVE_MENUS=yes ;;
+esac
+
+if test "${opsys}" = "hpux9"; then
+  case "${x_libraries}" in
+    *X11R4* )
+      opsysfile="s/hpux9-x11r4.h"
+      ;;
+  esac
+fi
+
+if test "${opsys}" = "hpux9shr"; then
+  case "${x_libraries}" in
+    *X11R4* )
+      opsysfile="s/hpux9shxr4.h"
+      ;;
+  esac
 fi
 
 ### Compute the unexec source name from the object name.
@@ -12716,7 +12723,6 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_CARBON 1
 _ACEOF
 
-  window_system=mac
   ## Specify the install directory
   carbon_appdir=
   if test "${carbon_appdir_x}" != ""; then

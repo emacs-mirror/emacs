@@ -77,10 +77,10 @@ Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 extern Lisp_Object Qinput_method_function;
 
-static int internal_equal ();
+static int internal_equal P_ ((Lisp_Object , Lisp_Object, int, int));
 
 extern long get_random ();
-extern void seed_random ();
+extern void seed_random P_ ((long));
 
 #ifndef HAVE_UNISTD_H
 extern long time ();
@@ -2250,7 +2250,7 @@ internal_equal (o1, o2, depth, props)
 	  if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o2),
 			       depth + 1, props)
 	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
-				  depth + 1))
+				  depth + 1, props))
 	    return 0;
 	  o1 = XOVERLAY (o1)->plist;
 	  o2 = XOVERLAY (o2)->plist;

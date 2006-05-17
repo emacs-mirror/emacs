@@ -839,13 +839,14 @@ typed a non-@acronym{ASCII} domain name.
 The @code{message-use-idna} variable control whether @acronym{IDNA} is
 used.  If the variable is @code{nil} no @acronym{IDNA} encoding will
 ever happen, if it is set to the symbol @code{ask} the user will be
-queried (the default), and if set to @code{t} @acronym{IDNA} encoding
-happens automatically.
+queried, and if set to @code{t} @acronym{IDNA} encoding happens
+automatically (the default).
 
 @findex message-idna-to-ascii-rhs
 If you want to experiment with the @acronym{IDNA} encoding, you can
 invoke @kbd{M-x message-idna-to-ascii-rhs RET} in the message buffer
-to have the non-@acronym{ASCII} domain names encoded while you edit the message.
+to have the non-@acronym{ASCII} domain names encoded while you edit
+the message.
 
 Note that you must have @uref{http://www.gnu.org/software/libidn/, GNU
 Libidn} installed in order to use this functionality.

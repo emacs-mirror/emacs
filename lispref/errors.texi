@@ -41,15 +41,17 @@ handled.
 
 @item args-out-of-range
 @code{"Args out of range"}@*
-@xref{Sequences Arrays Vectors}.
+This happens when trying to access an element beyond the range of a
+sequence or buffer.@*
+@xref{Sequences Arrays Vectors}, @xref{Text}.
 
 @item arith-error
 @code{"Arithmetic error"}@*
-See @code{/} and @code{%} in @ref{Numbers}.
+@xref{Arithmetic Operations}.
 
 @item beginning-of-buffer
 @code{"Beginning of buffer"}@*
-@xref{Motion}.
+@xref{Character Motion}.
 
 @item buffer-read-only
 @code{"Buffer is read-only"}@*
@@ -57,7 +59,7 @@ See @code{/} and @code{%} in @ref{Numbers}.
 
 @item coding-system-error
 @code{"Invalid coding system"}@*
-@xref{Coding Systems}.
+@xref{Lisp and Coding Systems}.
 
 @item cyclic-function-indirection
 @code{"Symbol's chain of function indirections\@* contains a loop"}@*
@@ -69,7 +71,7 @@ See @code{/} and @code{%} in @ref{Numbers}.
 
 @item end-of-buffer
 @code{"End of buffer"}@*
-@xref{Motion}.
+@xref{Character Motion}.
 
 @item end-of-file
 @code{"End of file during parsing"}@*
@@ -111,11 +113,11 @@ in accessing a remote file using ftp.@*
 
 @item invalid-function
 @code{"Invalid function"}@*
-@xref{Classifying Lists}.
+@xref{Function Indirection}.
 
 @item invalid-read-syntax
 @code{"Invalid read syntax"}@*
-@xref{Input Functions}.
+@xref{Printed Representation}.
 
 @item invalid-regexp
 @code{"Invalid regexp"}@*

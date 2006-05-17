@@ -412,7 +412,7 @@ temacs:
 #include <string.h>
 #else
 #include <config.h>
-extern void fatal (char *, ...);
+extern void fatal (const char *msgid, ...);
 #endif
 
 #include <sys/types.h>
