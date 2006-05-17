@@ -6383,6 +6383,12 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 {
   int i;
 
+  /* Any font is better than no font.  */
+  if (! font1)
+    return 0;
+  if (! font2)
+    return 1;
+
   for (i = 0; i < DIM (font_sort_order); ++i)
     {
       int xlfd_idx = font_sort_order[i];
@@ -6627,29 +6633,19 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
   if (needs_overstrike)
     *needs_overstrike = 0;
 
-  /* Start with the first non-scalable font in the list.  */
-  for (i = 0; i < nfonts; ++i)
-    if (!font_scalable_p (fonts + i))
-      break;
+  best = NULL;
 
   /* Find the best match among the non-scalable fonts.  */
-  if (i < nfonts)
-    {
-      best = fonts + i;
+  for (i = 1; i < nfonts; ++i)
+    if (!font_scalable_p (fonts + i)
+	&& better_font_p (specified, fonts + i, best, 1, avgwidth))
+      {
+	best = fonts + i;
 
-      for (i = 1; i < nfonts; ++i)
-	if (!font_scalable_p (fonts + i)
-	    && better_font_p (specified, fonts + i, best, 1, avgwidth))
-	  {
-	    best = fonts + i;
-
-	    exact_p = exact_face_match_p (specified, best, avgwidth);
-	    if (exact_p)
-	      break;
-	  }
-    }
-  else
-    best = NULL;
+	exact_p = exact_face_match_p (specified, best, avgwidth);
+	if (exact_p)
+	  break;
+      }
 
   /* Unless we found an exact match among non-scalable fonts, see if
      we can find a better match among scalable fonts.  */
@@ -6673,8 +6669,7 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
       for (i = 0; i < nfonts; ++i)
 	if (font_scalable_p (fonts + i))
 	  {
-	    if (best == NULL
-		|| better_font_p (specified, fonts + i, best, 0, 0)
+	    if (better_font_p (specified, fonts + i, best, 0, 0)
 		|| (!non_scalable_has_exact_height_p
 		    && !better_font_p (specified, best, fonts + i, 0, 0)))
 	      {
@@ -6701,6 +6696,10 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 	    }
 	}
     }
+
+  /* We should have found SOME font.  */
+  if (best == NULL)
+    abort ();
 
   if (font_scalable_p (best))
     font_name = build_scalable_font_name (f, best, pt);
