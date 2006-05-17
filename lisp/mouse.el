@@ -355,14 +355,21 @@ This command must be bound to a mouse click."
 (defun mouse-drag-window-above (window)
   "Return the (or a) window directly above WINDOW.
 That means one whose bottom edge is at the same height as WINDOW's top edge."
-  (let ((top (nth 1 (window-edges window)))
+  (let ((start-top   (nth 1 (window-edges window)))
+        (start-left  (nth 0 (window-edges window)))
+        (start-right (nth 2 (window-edges window)))
 	(start-window window)
 	above-window)
     (setq window (previous-window window 0))
     (while (and (not above-window) (not (eq window start-window)))
-      (if (= (+ (window-height window) (nth 1 (window-edges window)))
-	     top)
-	  (setq above-window window))
+      (let ((left  (nth 0 (window-edges window)))
+            (right (nth 2 (window-edges window))))
+        (when (and (= (+ (window-height window) (nth 1 (window-edges window)))
+                      start-top)
+                   (or (and (<= left start-left)  (<= start-right right))
+                       (and (<= start-left left)  (<= left start-right))
+                       (and (<= start-left right) (<= right start-right))))
+          (setq above-window window)))
       (setq window (previous-window window)))
     above-window))
 
@@ -758,7 +765,7 @@ If the click is in the echo area, display the `*Messages*' buffer."
 	  (display-buffer (current-buffer)))
       ;; Give temporary modes such as isearch a chance to turn off.
       (run-hooks 'mouse-leave-buffer-hook)
-      (mouse-drag-region-1 start-event))))
+      (mouse-drag-track start-event t))))
 
 
 (defun mouse-on-link-p (pos)
@@ -858,7 +865,12 @@ at the same position."
   (let ((range (mouse-start-end start end mode)))
     (move-overlay ol (car range) (nth 1 range))))
 
-(defun mouse-drag-region-1 (start-event)
+(defun mouse-drag-track (start-event  &optional 
+				      do-mouse-drag-region-post-process)
+    "Track mouse drags by highlighting area between point and cursor.
+The region will be defined with mark and point, and the overlay
+will be deleted after return.  DO-MOUSE-DRAG-REGION-POST-PROCESS
+should only be used by mouse-drag-region."
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
   (let* ((original-window (selected-window))
@@ -942,12 +954,15 @@ at the same position."
 		 (integer-or-marker-p end-point))
         (mouse-move-drag-overlay mouse-drag-overlay start-point end-point click-count))
 
+      ;; Handle the terminating event
       (if (consp event)
 	  (let* ((fun (key-binding (vector (car event))))
 		 (do-multi-click   (and (> (event-click-count event) 0)
 					(functionp fun)
-					(not (memq fun '(mouse-set-point mouse-set-region))))))
-            ;; Run the binding of the terminating up-event, if possible.
+					(not (memq fun 
+						   '(mouse-set-point 
+						     mouse-set-region))))))
+	    ;; Run the binding of the terminating up-event, if possible.
 	    (if (and (not (= (overlay-start mouse-drag-overlay)
 			     (overlay-end mouse-drag-overlay)))
 		     (not do-multi-click))
@@ -958,31 +973,34 @@ at the same position."
 		       ;; The end that comes from where we ended the drag.
 		       ;; Point goes here.
 		       (region-termination
-                        (if (and stop-point (< stop-point start-point))
-                            (overlay-start mouse-drag-overlay)
-                          (overlay-end mouse-drag-overlay)))
-                       ;; The end that comes from where we started the drag.
-                       ;; Mark goes there.
-                       (region-commencement
-                        (- (+ (overlay-end mouse-drag-overlay)
-                              (overlay-start mouse-drag-overlay))
-                           region-termination))
-                       last-command this-command)
-                  (push-mark region-commencement t t)
-                  (goto-char region-termination)
-                  ;; Don't let copy-region-as-kill set deactivate-mark.
-                  (when mouse-drag-copy-region
-                    (let (deactivate-mark)
-                      (copy-region-as-kill (point) (mark t))))
-                  (let ((buffer (current-buffer)))
-                    (mouse-show-mark)
-                    ;; mouse-show-mark can call read-event,
-                    ;; and that means the Emacs server could switch buffers
-                    ;; under us.  If that happened,
-                    ;; avoid trying to use the region.
-                    (and (mark t) mark-active
-                         (eq buffer (current-buffer))
-                         (mouse-set-region-1))))
+			(if (and stop-point (< stop-point start-point))
+			    (overlay-start mouse-drag-overlay)
+			  (overlay-end mouse-drag-overlay)))
+		       ;; The end that comes from where we started the drag.
+		       ;; Mark goes there.
+		       (region-commencement
+			(- (+ (overlay-end mouse-drag-overlay)
+			      (overlay-start mouse-drag-overlay))
+			   region-termination))
+		       last-command this-command)
+		  (push-mark region-commencement t t)
+		  (goto-char region-termination)
+		  (if (not do-mouse-drag-region-post-process)
+		      ;; Skip all post-event handling, return immediately.
+		      (delete-overlay mouse-drag-overlay)
+		    ;; Don't let copy-region-as-kill set deactivate-mark.
+		    (when mouse-drag-copy-region
+		      (let (deactivate-mark)
+			(copy-region-as-kill (point) (mark t))))
+		    (let ((buffer (current-buffer)))
+		      (mouse-show-mark)
+		      ;; mouse-show-mark can call read-event,
+		      ;; and that means the Emacs server could switch buffers
+		      ;; under us.  If that happened,
+		      ;; avoid trying to use the region.
+		      (and (mark t) mark-active
+			   (eq buffer (current-buffer))
+			   (mouse-set-region-1)))))
               ;; Run the binding of the terminating up-event.
 	      ;; If a multiple click is not bound to mouse-set-point,
 	      ;; cancel the effects of mouse-move-drag-overlay to
@@ -990,37 +1008,46 @@ at the same position."
 	      (if do-multi-click (goto-char start-point))
               (delete-overlay mouse-drag-overlay)
               (when (and (functionp fun)
-                         (= start-hscroll (window-hscroll start-window))
-                         ;; Don't run the up-event handler if the
-                         ;; window start changed in a redisplay after
-                         ;; the mouse-set-point for the down-mouse
-                         ;; event at the beginning of this function.
-                         ;; When the window start has changed, the
-                         ;; up-mouse event will contain a different
-                         ;; position due to the new window contents,
-                         ;; and point is set again.
-                         (or end-point
-                             (= (window-start start-window)
-                                start-window-start)))
-                (if (and on-link
-                         (or (not end-point) (= end-point start-point))
-                         (consp event)
-                         (or remap-double-click
-                             (and
-                              (not (eq mouse-1-click-follows-link 'double))
-                              (= click-count 0)
-                              (= (event-click-count event) 1)
-                              (not (input-pending-p))
-                              (or (not (integerp mouse-1-click-follows-link))
-                                  (let ((t0 (posn-timestamp (event-start start-event)))
-                                        (t1 (posn-timestamp (event-end event))))
-                                    (and (integerp t0) (integerp t1)
-                                         (if (> mouse-1-click-follows-link 0)
-                                             (<= (- t1 t0) mouse-1-click-follows-link)
-                                           (< (- t0 t1) mouse-1-click-follows-link))))))))
-		    (if (or (vectorp on-link) (stringp on-link))
-			(setq event (aref on-link 0))
-		      (setcar event 'mouse-2)))
+	      (= start-hscroll (window-hscroll start-window))
+	      ;; Don't run the up-event handler if the
+	      ;; window start changed in a redisplay after
+	      ;; the mouse-set-point for the down-mouse
+	      ;; event at the beginning of this function.
+	      ;; When the window start has changed, the
+	      ;; up-mouse event will contain a different
+	      ;; position due to the new window contents,
+	      ;; and point is set again.
+	      (or end-point
+		  (= (window-start start-window)
+		     start-window-start)))
+                (when (and on-link
+			   (or (not end-point) (= end-point start-point))
+			   (consp event)
+			   (or remap-double-click
+			       (and
+				(not (eq mouse-1-click-follows-link 'double))
+				(= click-count 0)
+				(= (event-click-count event) 1)
+				(not (input-pending-p))
+				(or (not (integerp mouse-1-click-follows-link))
+				    (let ((t0 (posn-timestamp (event-start start-event)))
+					  (t1 (posn-timestamp (event-end event))))
+				      (and (integerp t0) (integerp t1)
+					   (if (> mouse-1-click-follows-link 0)
+					       (<= (- t1 t0) mouse-1-click-follows-link)
+					     (< (- t0 t1) mouse-1-click-follows-link))))))))
+		  ;; Reselect previous selected window,
+		  ;; so that the mouse-2 event runs in the same
+		  ;; situation as if user had clicked it directly.
+		  ;; Fixes the bug reported by juri@jurta.org on 2005-12-27.
+		  (select-window original-window)
+		  (if (or (vectorp on-link) (stringp on-link))
+		      (setq event (aref on-link 0))
+		    (setcar event 'mouse-2)
+		    ;; If this mouse click has never been done by
+		    ;; the user, it doesn't have the necessary
+		    ;; property to be interpreted correctly.
+		    (put 'mouse-2 'event-kind 'mouse-click)))
 		(push event unread-command-events))))
 
         ;; Case where the end-event is not a cons cell (it's just a boring
@@ -2230,7 +2257,7 @@ and selects that window."
 	  (setq beg (previous-single-property-change beg 'mouse-face))
 	  (setq end (or (next-single-property-change end 'mouse-face)
 			(point-max)))
-	  (setq choice (buffer-substring beg end)))))
+	  (setq choice (buffer-substring-no-properties beg end)))))
     (let ((owindow (selected-window)))
       (select-window (posn-window (event-start event)))
       (if (and (one-window-p t 'selected-frame)

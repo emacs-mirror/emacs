@@ -1,6 +1,6 @@
 ;;; mh-junk.el --- Interface to anti-spam measures
 
-;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>,
 ;;         Bill Wohler <wohler@newt.com>
@@ -41,14 +41,15 @@
 (defun mh-junk-blacklist (range)
   "Blacklist RANGE as spam.
 
-This command trains the spam program in use (see the option `mh-junk-program')
-with the content of RANGE and then handles the message(s) as specified by the
-option `mh-junk-disposition'.
+This command trains the spam program in use (see the option
+`mh-junk-program') with the content of RANGE and then handles the
+message(s) as specified by the option `mh-junk-disposition'.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
+Check the documentation of `mh-interactive-range' to see how RANGE is
+read in interactive use.
 
-For more information about using your particular spam fighting program, see:
+For more information about using your particular spam fighting
+program, see:
 
   - `mh-spamassassin-blacklist'
   - `mh-bogofilter-blacklist'
@@ -80,12 +81,12 @@ For more information about using your particular spam fighting program, see:
 (defun mh-junk-whitelist (range)
   "Whitelist RANGE as ham.
 
-This command reclassifies the RANGE as ham if it were incorrectly classified
-as spam (see the option `mh-junk-program'). It then refiles the message into
-the \"+inbox\" folder.
+This command reclassifies the RANGE as ham if it were incorrectly
+classified as spam (see the option `mh-junk-program'). It then
+refiles the message into the \"+inbox\" folder.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use."
+Check the documentation of `mh-interactive-range' to see how
+RANGE is read in interactive use."
   (interactive (list (mh-interactive-range "Whitelist")))
   (let ((whitelist-func (nth 2 (assoc mh-junk-choice mh-junk-function-alist))))
     (unless whitelist-func
@@ -107,10 +108,12 @@ interactive use."
 (defun mh-spamassassin-blacklist (msg)
   "Blacklist MSG with SpamAssassin.
 
-SpamAssassin is one of the more popular spam filtering programs. Get it from
-your local distribution or from http://spamassassin.org/.
+SpamAssassin is one of the more popular spam filtering programs.
+Get it from your local distribution or from
+http://spamassassin.org/.
 
-To use SpamAssassin, add the following recipes to `.procmailrc':
+To use SpamAssassin, add the following recipes to
+\".procmailrc\":
 
     MAILDIR=$HOME/`mhparam Path`
 
@@ -127,53 +130,60 @@ To use SpamAssassin, add the following recipes to `.procmailrc':
     * ^X-Spam-Status: Yes
     spam/.
 
-If you don't use `spamc', use `spamassassin -P -a'.
+If you don't use \"spamc\", use \"spamassassin -P -a\".
 
-Note that one of the recipes above throws away messages with a score greater
-than or equal to 10. Here's how you can determine a value that works best for
-you.
+Note that one of the recipes above throws away messages with a
+score greater than or equal to 10. Here's how you can determine a
+value that works best for you.
 
-First, run `spamassassin -t' on every mail message in your archive and use
-Gnumeric to verify that the average plus the standard deviation of good mail
-is under 5, the SpamAssassin default for \"spam\".
+First, run \"spamassassin -t\" on every mail message in your
+archive and use Gnumeric to verify that the average plus the
+standard deviation of good mail is under 5, the SpamAssassin
+default for \"spam\".
 
-Using Gnumeric, sort the messages by score and view the messages with the
-highest score. Determine the score which encompasses all of your interesting
-messages and add a couple of points to be conservative. Add that many dots to
-the `X-Spam-Level:' header field above to send messages with that score down
-the drain.
+Using Gnumeric, sort the messages by score and view the messages
+with the highest score. Determine the score which encompasses all
+of your interesting messages and add a couple of points to be
+conservative. Add that many dots to the \"X-Spam-Level:\" header
+field above to send messages with that score down the drain.
 
-In the example above, messages with a score of 5-9 are set aside in the
-`+spam' folder for later review. The major weakness of rules-based filters is
-a plethora of false positives so it is worthwhile to check.
+In the example above, messages with a score of 5-9 are set aside
+in the \"+spam\" folder for later review. The major weakness of
+rules-based filters is a plethora of false positives so it is
+worthwhile to check.
 
-If SpamAssassin classifies a message incorrectly, or is unsure, you can use
-the MH-E commands \\[mh-junk-blacklist] and \\[mh-junk-whitelist].
+If SpamAssassin classifies a message incorrectly, or is unsure,
+you can use the MH-E commands \\[mh-junk-blacklist] and
+\\[mh-junk-whitelist].
 
-The \\[mh-junk-blacklist] command adds a `blacklist_from' entry to
-`~/spamassassin/user_prefs', deletes the message, and sends the message to the
-Razor, so that others might not see this spam. If the `sa-learn' command is
-available, the message is also recategorized as spam.
+The command \\[mh-junk-blacklist] adds a \"blacklist_from\" entry
+to \"~/spamassassin/user_prefs\", deletes the message, and sends
+the message to the Razor, so that others might not see this spam.
+If the \"sa-learn\" command is available, the message is also
+recategorized as spam.
 
-The \\[mh-junk-whitelist] command adds a `whitelist_from' rule to the
-`~/.spamassassin/user_prefs' file. If the `sa-learn' command is available, the
-message is also recategorized as ham.
+The command \\[mh-junk-whitelist] adds a \"whitelist_from\" rule
+to the \"~/.spamassassin/user_prefs\" file. If the \"sa-learn\"
+command is available, the message is also recategorized as ham.
 
-Over time, you'll observe that the same host or domain occurs repeatedly in
-the `blacklist_from' entries, so you might think that you could avoid future
-spam by blacklisting all mail from a particular domain. The utility function
-`mh-spamassassin-identify-spammers' helps you do precisely that. This function
-displays a frequency count of the hosts and domains in the `blacklist_from'
-entries from the last blank line in `~/.spamassassin/user_prefs' to the end of
-the file. This information can be used so that you can replace multiple
-`blacklist_from' entries with a single wildcard entry such as:
+Over time, you'll observe that the same host or domain occurs
+repeatedly in the \"blacklist_from\" entries, so you might think
+that you could avoid future spam by blacklisting all mail from a
+particular domain. The utility function
+`mh-spamassassin-identify-spammers' helps you do precisely that.
+This function displays a frequency count of the hosts and domains
+in the \"blacklist_from\" entries from the last blank line in
+\"~/.spamassassin/user_prefs\" to the end of the file. This
+information can be used so that you can replace multiple
+\"blacklist_from\" entries with a single wildcard entry such as:
 
     blacklist_from *@*amazingoffersdirect2u.com
 
-In versions of SpamAssassin (2.50 and on) that support a Bayesian classifier,
-\\[mh-junk-blacklist] uses the `sa-learn' program to recategorize the message
-as spam. Neither MH-E, nor SpamAssassin, rebuilds the database after adding
-words, so you will need to run `sa-learn --rebuild' periodically. This can be
+In versions of SpamAssassin (2.50 and on) that support a Bayesian
+classifier, \\[mh-junk-blacklist] uses the program \"sa-learn\"
+to recategorize the message as spam. Neither MH-E, nor
+SpamAssassin, rebuilds the database after adding words, so you
+will need to run \"sa-learn --rebuild\" periodically. This can be
 done by adding the following to your crontab:
 
     0 * * * *	sa-learn --rebuild > /dev/null 2>&1"
@@ -210,9 +220,9 @@ done by adding the following to your crontab:
 (defun mh-spamassassin-whitelist (msg)
   "Whitelist MSG with SpamAssassin.
 
-The \\[mh-junk-whitelist] command adds a `whitelist_from' rule to the
-`~/.spamassassin/user_prefs' file. If the `sa-learn' command is available, the
-message is also recategorized as ham.
+The \\[mh-junk-whitelist] command adds a \"whitelist_from\" rule to
+the \"~/.spamassassin/user_prefs\" file. If the \"sa-learn\" command
+is available, the message is also recategorized as ham.
 
 See `mh-spamassassin-blacklist' for more information."
   (unless mh-spamassassin-executable
@@ -244,7 +254,7 @@ See `mh-spamassassin-blacklist' for more information."
       (message "Whitelisting message %d...done" msg))))
 
 (defun mh-spamassassin-add-rule (rule body)
-  "Add a new rule to `~/.spamassassin/user_prefs'.
+  "Add a new rule to \"~/.spamassassin/user_prefs\".
 The name of the rule is RULE and its body is BODY."
   (save-window-excursion
     (let* ((line (format "%s\t%s\n" rule body))
@@ -263,11 +273,11 @@ The name of the rule is RULE and its body is BODY."
 (defun mh-spamassassin-identify-spammers ()
   "Identify spammers who are repeat offenders.
 
-This function displays a frequency count of the hosts and domains in the
-`blacklist_from' entries from the last blank line in
-`~/.spamassassin/user_prefs' to the end of the file. This information can be
-used so that you can replace multiple `blacklist_from' entries with a single
-wildcard entry such as:
+This function displays a frequency count of the hosts and domains
+in the \"blacklist_from\" entries from the last blank line in
+\"~/.spamassassin/user_prefs\" to the end of the file. This
+information can be used so that you can replace multiple
+\"blacklist_from\" entries with a single wildcard entry such as:
 
     blacklist_from *@*amazingoffersdirect2u.com"
   (interactive)
@@ -312,8 +322,8 @@ wildcard entry such as:
 (defun mh-bogofilter-blacklist (msg)
   "Blacklist MSG with bogofilter.
 
-Bogofilter is a Bayesian spam filtering program. Get it from your local
-distribution or from http://bogofilter.sourceforge.net/.
+Bogofilter is a Bayesian spam filtering program. Get it from your
+local distribution or from http://bogofilter.sourceforge.net/.
 
 Bogofilter is taught by running:
 
@@ -324,11 +334,11 @@ on every good message, and
     bogofilter -s < spam-message
 
 on every spam message. This is called a full training; three other
-training methods are described in the FAQ that is distributed with bogofilter.
-Note that most Bayesian filters need 1000 to 5000 of each type of message to
-start doing a good job.
+training methods are described in the FAQ that is distributed with
+bogofilter. Note that most Bayesian filters need 1000 to 5000 of each
+type of message to start doing a good job.
 
-To use bogofilter, add the following recipes to `.procmailrc':
+To use bogofilter, add the following recipes to \".procmailrc\":
 
     MAILDIR=$HOME/`mhparam Path`
 
@@ -344,9 +354,9 @@ To use bogofilter, add the following recipes to `.procmailrc':
     * ^X-Bogosity: Unsure, tests=bogofilter
     spam/unsure/.
 
-If bogofilter classifies a message incorrectly, or is unsure, you can use the
-MH-E commands \\[mh-junk-blacklist] and \\[mh-junk-whitelist] to update
-bogofilter's training.
+If bogofilter classifies a message incorrectly, or is unsure, you can
+use the MH-E commands \\[mh-junk-blacklist] and \\[mh-junk-whitelist]
+to update bogofilter's training.
 
 The \"Bogofilter FAQ\" suggests that you run the following
 occasionally to shrink the database:
@@ -384,7 +394,7 @@ See `mh-bogofilter-blacklist' for more information."
 SpamProbe is a Bayesian spam filtering program. Get it from your local
 distribution or from http://spamprobe.sourceforge.net.
 
-To use SpamProbe, add the following recipes to `.procmailrc':
+To use SpamProbe, add the following recipes to \".procmailrc\":
 
     MAILDIR=$HOME/`mhparam Path`
 
@@ -399,9 +409,9 @@ To use SpamProbe, add the following recipes to `.procmailrc':
     *^X-SpamProbe: SPAM
     spam/.
 
-If SpamProbe classifies a message incorrectly, you can use the MH-E commands
-\\[mh-junk-blacklist] and \\[mh-junk-whitelist] to update SpamProbe's
-training."
+If SpamProbe classifies a message incorrectly, you can use the
+MH-E commands \\[mh-junk-blacklist] and \\[mh-junk-whitelist] to
+update SpamProbe's training."
   (unless mh-spamprobe-executable
     (error "Unable to find the spamprobe executable"))
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
@@ -420,10 +430,10 @@ See `mh-spamprobe-blacklist' for more information."
 
 (provide 'mh-junk)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 603335f1-77ff-4306-8828-5d3dad51abe1
+;; arch-tag: 603335f1-77ff-4306-8828-5d3dad51abe1
 ;;; mh-junk.el ends here

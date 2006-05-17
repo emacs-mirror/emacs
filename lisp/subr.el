@@ -42,17 +42,15 @@ Each element of this list holds the arguments to one call to `defcustom'.")
 (defalias 'not 'null)
 
 (defmacro noreturn (form)
-  "Evaluates FORM, with the expectation that the evaluation will signal an error
-instead of returning to its caller.  If FORM does return, an error is
-signaled."
+  "Evaluate FORM, expecting it not to return.
+If FORM does return, signal an error."
   `(prog1 ,form
      (error "Form marked with `noreturn' did return")))
 
 (defmacro 1value (form)
-  "Evaluates FORM, with the expectation that the same value will be returned
-from all evaluations of FORM.  This is the global do-nothing
-version of `1value'.  There is also `testcover-1value' that
-complains if FORM ever does return differing values."
+  "Evaluate FORM, expecting a constant return value.
+This is the global do-nothing version.  There is also `testcover-1value'
+that complains if FORM ever does return differing values."
   form)
 
 (defmacro lambda (&rest cdr)
@@ -1692,7 +1690,7 @@ This finishes the change group by reverting all of its changes."
 	(when (and (consp elt) (not (eq elt (last pending-undo-list))))
 	  (error "Undoing to some unrelated state"))
 	;; Undo it all.
-	(while pending-undo-list (undo-more 1))
+	(while (listp pending-undo-list) (undo-more 1))
 	;; Reset the modified cons cell ELT to its original content.
 	(when (consp elt)
 	  (setcar elt old-car)
@@ -2262,20 +2260,33 @@ that can be used as the ALIST argument to `try-completion' and
           ((not ,mode) (try-completion ,string (,fun ,string) ,predicate))
           (t (test-completion ,string (,fun ,string) ,predicate)))))))
 
-(defmacro lazy-completion-table (var fun &rest args)
+(defmacro lazy-completion-table (var fun)
+  ;; We used to have `&rest args' where `args' were evaluated late (at the
+  ;; time of the call to `fun'), which was counter intuitive.  But to get
+  ;; them to be evaluated early, we have to either use lexical-let (which is
+  ;; not available in subr.el) or use `(lambda (,str) ...) which prevents the use
+  ;; of lexical-let in the callers.
+  ;; So we just removed the argument.  Callers can then simply use either of:
+  ;;   (lazy-completion-table var (lambda () (fun x y)))
+  ;; or
+  ;;   (lazy-completion-table var `(lambda () (fun ',x ',y)))
+  ;; or
+  ;;   (lexical-let ((x x)) ((y y))
+  ;;     (lazy-completion-table var (lambda () (fun x y))))
+  ;; depending on the behavior they want.
   "Initialize variable VAR as a lazy completion table.
 If the completion table VAR is used for the first time (e.g., by passing VAR
-as an argument to `try-completion'), the function FUN is called with arguments
-ARGS.  FUN must return the completion table that will be stored in VAR.
+as an argument to `try-completion'), the function FUN is called with no
+arguments.  FUN must return the completion table that will be stored in VAR.
 If completion is requested in the minibuffer, FUN will be called in the buffer
 from which the minibuffer was entered.  The return value of
 `lazy-completion-table' must be used to initialize the value of VAR."
-  (declare (debug (symbol lambda-expr def-body)))
+  (declare (debug (symbol lambda-expr)))
   (let ((str (make-symbol "string")))
     `(dynamic-completion-table
       (lambda (,str)
-        (unless (listp ,var)
-          (setq ,var (,fun ,@args)))
+        (when (functionp ,var)
+          (setq ,var (,fun)))
         ,var))))
 
 (defmacro complete-in-turn (a b)

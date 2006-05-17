@@ -32,7 +32,7 @@
 ;;
 ;;   (eval-when-compile (require 'mh-acros))
 ;;
-;; It is so named with a silent `m' so that it is compiled first. Otherwise,
+;; It is so named with a silent "m" so that it is compiled first. Otherwise,
 ;; "make recompile" in Emacs 21.4 fails.
 
 ;;; Change Log:
@@ -47,15 +47,16 @@
 ;; routines in their macro expansions. Use mh-require-cl to provide the cl
 ;; routines in the best way possible.
 (defmacro mh-require-cl ()
-  "Macro to load `cl' if needed.
-Some versions of `cl' produce code for the expansion of
-\(setf (gethash ...) ...) that uses functions in `cl' at run time.  This macro
-recognizes that and loads `cl' where appropriate."
+  "Macro to load \"cl\" if needed.
+Some versions of \"cl\" produce code for the expansion of
+\(setf (gethash ...) ...) that uses functions in \"cl\" at run
+time. This macro recognizes that and loads \"cl\" where
+appropriate."
   (if (eq (car (macroexpand '(setf (gethash foo bar) baz))) 'cl-puthash)
       `(require 'cl)
     `(eval-when-compile (require 'cl))))
 
-;;; Macros to generate correct code for different emacs variants
+;; Macros to generate correct code for different emacs variants
 
 (defmacro mh-do-in-gnu-emacs (&rest body)
   "Execute BODY if in GNU Emacs."
@@ -75,16 +76,16 @@ recognizes that and loads `cl' where appropriate."
 
 (defmacro mh-make-local-hook (hook)
   "Make HOOK local if needed.
-XEmacs and versions of GNU Emacs before 21.1 require `make-local-hook' to be
-called."
+XEmacs and versions of GNU Emacs before 21.1 require
+`make-local-hook' to be called."
   (when (and (fboundp 'make-local-hook)
              (not (get 'make-local-hook 'byte-obsolete-info)))
     `(make-local-hook ,hook)))
 
 (defmacro mh-mark-active-p (check-transient-mark-mode-flag)
   "A macro that expands into appropriate code in XEmacs and nil in GNU Emacs.
-In GNU Emacs if CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then check if
-variable `transient-mark-mode' is active."
+In GNU Emacs if CHECK-TRANSIENT-MARK-MODE-FLAG is non-nil then
+check if variable `transient-mark-mode' is active."
   (cond ((featurep 'xemacs)             ;XEmacs
          `(and (boundp 'zmacs-regions) zmacs-regions (region-active-p)))
         ((not check-transient-mark-mode-flag) ;GNU Emacs
@@ -94,13 +95,15 @@ variable `transient-mark-mode' is active."
                (boundp 'mark-active) mark-active))))
 
 (defmacro mh-defstruct (name-spec &rest fields)
-  "Replacement for `defstruct' from the `cl' package.
-The `defstruct' in the `cl' library produces compiler warnings, and generates
-code that uses functions present in `cl' at run-time.  This is a partial
-replacement, that avoids these issues.
+  "Replacement for `defstruct' from the \"cl\" package.
+The `defstruct' in the \"cl\" library produces compiler warnings,
+and generates code that uses functions present in \"cl\" at
+run-time. This is a partial replacement, that avoids these
+issues.
 
-NAME-SPEC declares the name of the structure, while FIELDS describes the
-various structure fields. Lookup `defstruct' for more details."
+NAME-SPEC declares the name of the structure, while FIELDS
+describes the various structure fields. Lookup `defstruct' for
+more details."
   (let* ((struct-name (if (atom name-spec) name-spec (car name-spec)))
          (conc-name (or (and (consp name-spec)
                              (cadr (assoc :conc-name (cdr name-spec))))
@@ -136,19 +139,19 @@ various structure fields. Lookup `defstruct' for more details."
 
 (defmacro mh-assoc-ignore-case (key alist)
   "Check if KEY is present in ALIST while ignoring case to do the comparison.
-Compatibility macro for Emacs versions that lack `assoc-string', introduced in
-Emacs 22."
+Compatibility macro for Emacs versions that lack `assoc-string',
+introduced in Emacs 22."
   (if (fboundp 'assoc-string)
       `(assoc-string ,key ,alist t)
     `(assoc-ignore-case ,key ,alist)))
 
 (provide 'mh-acros)
 
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; no-byte-compile: t
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
 ;; arch-tag: b383b49a-494f-4ed0-a30a-cb6d5d2da4ff
 ;;; mh-acros.el ends here

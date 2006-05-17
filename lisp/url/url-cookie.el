@@ -1,7 +1,7 @@
 ;;; url-cookie.el --- Netscape Cookie support
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -109,12 +109,14 @@ telling Microsoft that."
 (defvar url-cookies-changed-since-last-save nil
   "Whether the cookies list has changed since the last save operation.")
 
-;;;###autoload
 (defun url-cookie-parse-file (&optional fname)
   (setq fname (or fname url-cookie-file))
   (condition-case ()
       (load fname nil t)
-    (error (message "Could not load cookie file %s" fname))))
+    (error
+     ;; It's completely normal for the cookies file not to exist yet.
+     ;; (message "Could not load cookie file %s" fname)
+     )))
 
 (defun url-cookie-clean-up (&optional secure)
   (let* (
@@ -145,9 +147,10 @@ telling Microsoft that."
 	(setq new (cons cur new))))
     (set var new)))
 
-;;;###autoload
 (defun url-cookie-write-file (&optional fname)
   (setq fname (or fname url-cookie-file))
+  (unless (file-directory-p (file-name-directory fname))
+    (ignore-errors (make-directory (file-name-directory fname))))
   (cond
    ((not url-cookies-changed-since-last-save) nil)
    ((not (file-writable-p fname))
@@ -155,8 +158,7 @@ telling Microsoft that."
    (t
     (url-cookie-clean-up)
     (url-cookie-clean-up t)
-    (save-excursion
-      (set-buffer (get-buffer-create " *cookies*"))
+    (with-current-buffer (get-buffer-create " *cookies*")
       (erase-buffer)
       (fundamental-mode)
       (insert ";; Emacs-W3 HTTP cookies file\n"
@@ -249,7 +251,6 @@ telling Microsoft that."
 			  (*   1 (string-to-number (aref exp-time 0))))))
 	(> (- cur-norm exp-norm) 1))))))
 
-;;;###autoload
 (defun url-cookie-retrieve (host localpart &optional secure)
   "Retrieve all the netscape-style cookies for a specified HOST and LOCALPART."
   (let ((storage (if secure
@@ -277,7 +278,6 @@ telling Microsoft that."
 		(setq retval (cons cur retval))))))
     retval))
 
-;;;###autoload
 (defun url-cookie-generate-header-lines (host localpart secure)
   (let* ((cookies (url-cookie-retrieve host localpart secure))
 	 (retval nil)
@@ -343,7 +343,6 @@ telling Microsoft that."
      (t
       nil))))
 
-;;;###autoload
 (defun url-cookie-handle-set-cookie (str)
   (setq url-cookies-changed-since-last-save t)
   (let* ((args (url-parse-args str t))
@@ -456,7 +455,6 @@ to run the `url-cookie-setup-save-timer' function manually."
   :type 'integer
   :group 'url)
 
-;;;###autoload
 (defun url-cookie-setup-save-timer ()
   "Reset the cookie saver timer."
   (interactive)

@@ -32,7 +32,7 @@
 ;; [RFC 2595] "Using TLS with IMAP, POP3 and ACAP"
 ;;	by Chris Newman <chris.newman@innosoft.com> (1999/06)
 
-;; This file now contain a combination of the two previous
+;; This file now contains a combination of the two previous
 ;; implementations both called "starttls.el".  The first one is Daiki
 ;; Ueno's starttls.el which uses his own "starttls" command line tool,
 ;; and the second one is Simon Josefsson's starttls.el which uses
@@ -44,7 +44,7 @@
 ;; both tools installed.  It is recommended to use GNUTLS, though, as
 ;; it performs more verification of the certificates.
 
-;; The GNUTLS support require GNUTLS 0.9.90 (released 2003-10-08) or
+;; The GNUTLS support requires GNUTLS 0.9.90 (released 2003-10-08) or
 ;; later, from <http://www.gnu.org/software/gnutls/>, or "starttls"
 ;; from <ftp://ftp.opaopa.org/pub/elisp/>.
 
@@ -58,7 +58,7 @@
 ;;   (message "STARTTLS output:\n%s" (starttls-negotiate tmp))
 ;;   (process-send-string tmp "EHLO foo\n"))
 
-;; An example run yield the following output:
+;; An example run yields the following output:
 ;;
 ;; 220 yxa.extundo.com ESMTP Sendmail 8.12.11/8.12.11/Debian-3; Wed, 26 May 2004 19:12:29 +0200; (No UCE/UBE) logging access from: c494102a.s-bi.bostream.se(OK)-c494102a.s-bi.bostream.se [217.215.27.65]
 ;; 220 2.0.0 Ready to start TLS
@@ -146,15 +146,14 @@ i.e. when `starttls-use-gnutls' is nil."
 
 (defcustom starttls-extra-args nil
   "Extra arguments to `starttls-program'.
-This program is used when the `starttls' command is used,
-i.e. when `starttls-use-gnutls' is nil."
+These apply when the `starttls' command is used, i.e. when
+`starttls-use-gnutls' is nil."
   :type '(repeat string)
   :group 'starttls)
 
 (defcustom starttls-extra-arguments nil
   "Extra arguments to `starttls-program'.
-This program is used when GNUTLS is used, i.e. when
-`starttls-use-gnutls' is non-nil.
+These apply when GNUTLS is used, i.e. when `starttls-use-gnutls' is non-nil.
 
 For example, non-TLS compliant servers may require
 '(\"--protocols\" \"ssl3\").  Invoke \"gnutls-cli --help\" to
@@ -172,7 +171,7 @@ find out which parameters are available."
 (defcustom starttls-connect "- Simple Client Mode:\n\n"
   "*Regular expression indicating successful connection.
 The default is what GNUTLS's \"gnutls-cli\" outputs."
-  ;; GNUTLS cli.c:main() print this string when it is starting to run
+  ;; GNUTLS cli.c:main() prints this string when it is starting to run
   ;; in the application read/write phase.  If the logic, or the string
   ;; itself, is modified, this must be updated.
   :version "22.1"
@@ -182,7 +181,7 @@ The default is what GNUTLS's \"gnutls-cli\" outputs."
 (defcustom starttls-failure "\\*\\*\\* Handshake has failed"
   "*Regular expression indicating failed TLS handshake.
 The default is what GNUTLS's \"gnutls-cli\" outputs."
-  ;; GNUTLS cli.c:do_handshake() print this string on failure.  If the
+  ;; GNUTLS cli.c:do_handshake() prints this string on failure.  If the
   ;; logic, or the string itself, is modified, this must be updated.
   :version "22.1"
   :type 'regexp
@@ -200,10 +199,10 @@ The default is what GNUTLS's \"gnutls-cli\" outputs."
   :group 'starttls)
 
 (defun starttls-negotiate-gnutls (process)
-  "Negotiate TLS on process opened by `open-starttls-stream'.
-This should typically only be done once.  It typically return a
+  "Negotiate TLS on PROCESS opened by `open-starttls-stream'.
+This should typically only be done once.  It typically returns a
 multi-line informational message with information about the
-handshake, or NIL on failure."
+handshake, or nil on failure."
   (let (buffer info old-max done-ok done-bad)
     (if (null (setq buffer (process-buffer process)))
 	;; XXX How to remove/extract the TLS negotiation junk?
@@ -243,16 +242,16 @@ handshake, or NIL on failure."
     (defalias 'starttls-set-process-query-on-exit-flag
       'process-kill-without-query)))
 
-(defun starttls-open-stream-gnutls (name buffer host service)
+(defun starttls-open-stream-gnutls (name buffer host port)
   (message "Opening STARTTLS connection to `%s'..." host)
   (let* (done
 	 (old-max (with-current-buffer buffer (point-max)))
 	 (process-connection-type starttls-process-connection-type)
 	 (process (apply #'start-process name buffer
 			 starttls-gnutls-program "-s" host
-			 "-p" (if (integerp service)
-				  (int-to-string service)
-				service)
+			 "-p" (if (integerp port)
+				  (int-to-string port)
+				port)
 			 starttls-extra-arguments)))
     (starttls-set-process-query-on-exit-flag process nil)
     (while (and (processp process)
@@ -273,11 +272,11 @@ handshake, or NIL on failure."
 	     host (if done "done" "failed"))
     process))
 
-(defun starttls-open-stream (name buffer host service)
-  "Open a TLS connection for a service to a host.
-Returns a subprocess-object to represent the connection.
+(defun starttls-open-stream (name buffer host port)
+  "Open a TLS connection for a port to a host.
+Returns a subprocess object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
-Args are NAME BUFFER HOST SERVICE.
+Args are NAME BUFFER HOST PORT.
 NAME is name for process.  It is modified if necessary to make it unique.
 BUFFER is the buffer (or `buffer-name') to associate with the process.
  Process output goes at end of that buffer, unless you specify
@@ -285,14 +284,15 @@ BUFFER is the buffer (or `buffer-name') to associate with the process.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
 Third arg is name of the host to connect to, or its IP address.
-Fourth arg SERVICE is name of the service desired, or an integer
-specifying a port number to connect to."
+Fourth arg PORT is an integer specifying a port to connect to.
+If `starttls-use-gnutls' is nil, this may also be a service name, but
+GNUTLS requires a port number."
   (if starttls-use-gnutls
-      (starttls-open-stream-gnutls name buffer host service)
+      (starttls-open-stream-gnutls name buffer host port)
     (let* ((process-connection-type starttls-process-connection-type)
 	   (process (apply #'start-process
 			   name buffer starttls-program
-			   host (format "%s" service)
+			   host (format "%s" port)
 			   starttls-extra-args)))
       (starttls-set-process-query-on-exit-flag process nil)
       process)))

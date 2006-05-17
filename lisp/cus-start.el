@@ -194,6 +194,33 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
 						    (other :tag "on")))
+	     ;; macterm.c
+	     (mac-control-modifier mac (choice (const :tag "No modifier" nil)
+					       (const control) (const meta)
+					       (const alt) (const hyper)
+					       (const super)) "22.1")
+	     (mac-command-modifier mac (choice (const :tag "No modifier" nil)
+					       (const control) (const meta)
+					       (const alt) (const hyper)
+					       (const super)) "22.1")
+	     (mac-option-modifier mac (choice (const :tag "No modifier (work as option)" nil)
+					      (const control) (const meta)
+					      (const alt) (const hyper)
+					      (const super)) "22.1")
+	     (mac-function-modifier mac
+				    (choice (const :tag "No modifier (work as function)" nil)
+					    (const control) (const meta)
+					    (const alt) (const hyper)
+					    (const super)) "22.1")
+	     (mac-emulate-three-button-mouse mac
+					     (choice (const :tag "No emulation" nil)
+						     (const :tag "Option->2, Command->3" t)
+						     (const :tag "Command->2, Option->3" reverse))
+				    "22.1")
+	     (mac-wheel-button-is-mouse-2 mac boolean "22.1")
+	     (mac-pass-command-to-system mac boolean "22.1")
+	     (mac-pass-control-to-system mac boolean "22.1")
+	     (mac-allow-anti-aliasing mac boolean "22.1")
 
 ;; This is not good news because it will use the wrong
 ;; version-specific directories when you upgrade.  We need
@@ -247,6 +274,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (words-include-escapes editing-basics boolean)
 	     (open-paren-in-column-0-is-defun-start editing-basics boolean
 						    "21.1")
+             ;; term.c
+             (visible-cursor cursor boolean "22.1")
 	     ;; undo.c
 	     (undo-limit undo integer)
 	     (undo-strong-limit undo integer)
@@ -329,6 +358,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
 	     (x-use-old-gtk-file-dialog menu boolean "22.1")
+	     (x-gtk-show-hidden-files menu boolean "22.1")
 	     ;; xterm.c
              (mouse-autoselect-window display boolean "21.3")
 	     (x-use-underline-position-properties display boolean "21.3")
@@ -366,10 +396,13 @@ since it could result in memory overflow and make Emacs crash."
 		       (eq system-type 'ms-dos))
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
+		      ((string-match "\\`mac-" (symbol-name symbol))
+		       (eq window-system 'mac))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (or (boundp 'gtk)
 			   (and window-system
 				(not (eq window-system 'pc))
+				(not (eq window-system 'mac))
 				(not (eq system-type 'windows-nt)))))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))

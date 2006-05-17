@@ -1,7 +1,8 @@
 ;;; pypunct-b5.el --- Quail packages for Chinese (pinyin + extra symbols)
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Ken'ichi HANDA <handa@etl.go.jp>
 

@@ -50,8 +50,6 @@ invalid pointer from string_free_list.
 
 * BUGS
 
-** circle-printing bug from Stephen Berman; see my 5 Dec message.
-
 ** Ronan Keryell's Sep 23 bug about "tramp sudo:: and version control on RCS"
 
 ** TCP server processes do not work on Windows.
@@ -66,65 +64,6 @@ Seems to be a problem in sys_select in w32proc.c.
 ** Add a node to the Lisp manual describing key sequences from the
 Lisp point of view.
 
-** Fix some of these doc strings by adding \\<keymap-name> where needed.
-
-ada-mode
-array-mode
-artist-mode
-autoarg-mode
-bibtext-mode
-bookmark-bmenu-other-window-with-mouse
-checkdoc-minor-mode
-constrain-to-field
-copy-file
-decipher-mode
-define-generic-mode
-define-ibuffer-op
-diff-mode
-dired-maybe-insert-subdir
-ediff-merge-buffers-with-ancestor
-ediff-merge-directories-with-ancestor
-ediff-merge-directory-revisions-with-ancestor
-edir-merge-revisions-with-ancestor
-edirs-merge-with-ancestor
-edit-picture
-ethio-fidel-to-sera-mail-or-marker
-ethio-sera-to-fidel-mail-or-marker
-face-attribute-specified-or
-face-equal
-flyspell-mode
-hexl-mode
-hi-lock-mode
-ibuffer
-ido-find-file
-internal-lisp-face-equal-p
-isearch-forward
-kmacro-start-macro
-kmacro-start-macro-or-insert-counter
-make-byte-code
-mh-user-agent-compose
-next-single-char-property-change
-octave-mode
-outline-mode
-pascal-mode
-picture-mode
-previous-single-char-property-change
-python-mode
-read-from-minibuffer
-read-key-sequence
-read-key-sequence-vector
-reftex-index-phrases-mode
-reftex-mode
-rmail-mode
-sh-mode
-shell-script-mode
-solar-equinoxes-solstices
-table-capture
-table-insert
-table-split-cell-horizontally
-view-mode
-w32-shell-dos-semantics
-
 ** Check man/info.texi.
 
 ** Add missing years in copyright notices of all files.
@@ -135,7 +74,7 @@ you're going to handle.
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
-leim			working		Kenichi Handa
+leim			done		Kenichi Handa
 lib-src			done		ttn
 lisp			done		ttn
 lisp/calc		done		ttn
@@ -236,7 +175,7 @@ lispref/calendar.texi    Joakim Verona <joakim@verona.se>  Chong Yidong
 lispref/commands.texi    "Luc Teirlinck"   Chong Yidong
 lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
 lispref/control.texi     "Luc Teirlinck"   Chong Yidong
-lispref/customize.texi   Chong Yidong
+lispref/customize.texi   Chong Yidong      "Luc Teirlinck"
 lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi     Chong Yidong
 lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"

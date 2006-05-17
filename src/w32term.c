@@ -3187,8 +3187,8 @@ construct_drag_n_drop (result, msg, f)
   DragFinish (hdrop);
 
   XSETFRAME (frame, f);
-  result->frame_or_window = Fcons (frame, files);
-  result->arg = Qnil;
+  result->frame_or_window = frame;
+  result->arg = files;
   return Qnil;
 }
 

@@ -189,7 +189,7 @@ or a cons cell (background-color . COLOR)."
    '(("default" . default)
      ("invisible" . invisible))
    "Alist of names and faces available even if you don't use a window system."
-  :type '(repeat (cons string face))
+  :type '(repeat (cons string cpp-face))
   :group 'cpp)
 
 (defvar cpp-face-all-list

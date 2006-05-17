@@ -1,6 +1,7 @@
 /* Declarations having to do with Emacs category tables.
-   Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-     Licensed to the Free Software Foundation.
+   Copyright (C) 1995, 1998, 1999
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
 
 This file is part of GNU Emacs.
 

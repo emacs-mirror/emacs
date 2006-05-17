@@ -1,3 +1,12 @@
+2005-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* e/eterm-color.ti: Temporarily disable the ri entry.
+	* e/eterm-color: Regenerate.
+
+2005-12-21  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* TODO: Add note on the multi-tty branch.
+
 2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* NEWS: Change `prev-buffer' to `previous-buffer'; add note on
@@ -26,7 +35,7 @@
 
 	* orgcard.tex: Version 3.20
 
-2005-11-16  Nick Roberts  <nickrob@snap.net.nz> 
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* images/gud/go.xpm, images/gud/go.pbm: Old gud-remove icons.
 	Use for run/continue.
@@ -36,7 +45,7 @@
 	Use a more appropriate variable name.
 	* images/gud/remove.xpm, images/gud/remove.pbm
 	* images/gud/break.xpm, images/gud/break.pbm: Make more intuitive.
-	
+
 2005-11-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* images/gud/pp.xpm, images/gud/pp.pbm: New icons.
@@ -46,7 +55,7 @@
 	* images/copy.xpm, images/copy.pbm, images/low-color/copy.xpm
 	* images/save.xpm, images/save.pbm, images/low-color/save.xpm:
 	Adjust baseline.
-	
+
 2005-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* images/up-node.xpm, images/prev-node.xpm, images/next-node.xpm
@@ -156,18 +165,18 @@
 	* images/right-arrow.*: Moved here from lisp/toolbar/right_arrow.*.
 	* images/up-arrow.*: Moved here from lisp/toolbar/up_arrow.*.
 	* images/low-color/back-arrow.*: Moved here from
-	lisp/toolbar/lc-back_arrow.*. 
+	lisp/toolbar/lc-back_arrow.*.
 	* images/low-color/fwd-arrow.*: Moved here from
 	lisp/toolbar/lc-fwd_arrow.*.
 	* images/low-color/jump-to.*: Moved here from
 	lisp/toolbar/lc-jump_to.*.
 	* images/low-color/left-arrow.*: Moved here from
-	lisp/toolbar/lc-left_arrow.*. 
+	lisp/toolbar/lc-left_arrow.*.
 	* images/low-color/right-arrow.*: Moved here from
-	lisp/toolbar/lc-right_arrow.*. 
+	lisp/toolbar/lc-right_arrow.*.
 	* images/low-color/up-arrow.*: Moved here from
 	lisp/toolbar/lc-up_arrow.*.
-	* images/mail/compose.*: Moved here from lisp/toolbar/mail_compose.*. 
+	* images/mail/compose.*: Moved here from lisp/toolbar/mail_compose.*.
 	* images/mail/send.*: Moved here from lisp/toolbar/mail_send.*.
 
 	* images/README: Incorporated the content of lisp/toolbar/README
@@ -182,7 +191,7 @@
 	next.*, nexti.*, step.*, and stepi.* , respectively, as the
 	file-name no longer clashes on 8+3 filesystems.
 
-2005-10-14  Bill Wohler	 <wohler@newt.com>
+2005-10-14  Bill Wohler  <wohler@newt.com>
 
 	* images/gud/break.*: Moved here from toolbar/gud-break.*.
 	* images/gud/cont.*: Moved here from toolbar/gud-cont.*.
@@ -200,10 +209,10 @@
 	* images/gud/up.*: Moved here from toolbar/gud-up.*.
 	* images/gud/watch.*: Moved here from toolbar/gud-watch.*.
 
-2005-10-14  Bill Wohler	 <wohler@newt.com>
+2005-10-14  Bill Wohler  <wohler@newt.com>
 
 	Released MH-E version 7.85.
-	  
+
 	* NEWS, MH-E-NEWS: Updated for release 7.85.
 
 2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>

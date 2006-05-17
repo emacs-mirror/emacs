@@ -1013,9 +1013,11 @@ static Lisp_Object
 delete_temp_file (name)
      Lisp_Object name;
 {
-  /* Use Fdelete_file (indirectly) because that runs a file name handler.
-     We did that when writing the file, so we should do so when deleting.  */
+  /* Suppress jka-compr handling, etc.  */
+  int count = SPECPDL_INDEX ();
+  specbind (intern ("file-name-handler-alist"), Qnil);
   internal_delete_file (name);
+  unbind_to (count, Qnil);
   return Qnil;
 }
 
@@ -1126,6 +1128,9 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     int count1 = SPECPDL_INDEX ();
 
     specbind (intern ("coding-system-for-write"), val);
+    /* POSIX lets mk[s]temp use "."; don't invoke jka-compr if we
+       happen to get a ".Z" suffix.  */
+    specbind (intern ("file-name-handler-alist"), Qnil);
     Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil);
 
     unbind_to (count1, Qnil);

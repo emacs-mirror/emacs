@@ -963,7 +963,7 @@ XPM icons if Emacs was built with XPM support.  Otherwise, the tool
 bar uses monochrome icons (PBM or XBM format).
 
   You can turn display of tool bars on or off with @kbd{M-x
-tool-bar-mode}.
+tool-bar-mode} or by customizing the option @code{tool-bar-mode}.
 
 @node Dialog Boxes
 @section Using Dialog Boxes
@@ -993,6 +993,12 @@ boxes with the variable @code{use-dialog-box}.
 by setting the variable @code{x-use-old-gtk-file-dialog} to a non-@code{nil}
 value.  If Emacs is built with a Gtk+ version that has only one file dialog,
 the setting of this variable has no effect.
+
+@vindex x-gtk-show-hidden-files
+  For Gtk+ version 2.4 and newer, Emacs use the Gtk+ file chooser dialog.
+Emacs adds a toggle button that enables and disables showing of hidden files
+(files starting with a dot) in that dialog.  This variable controls if
+hidden files should be shown by default or not.
 
 @node Tooltips
 @section Tooltips

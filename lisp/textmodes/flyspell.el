@@ -1,7 +1,7 @@
 ;;; flyspell.el --- on-the-fly spell checker
 
 ;; Copyright (C) 1998, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: FSF
@@ -324,7 +324,7 @@ property of the major mode name.")
   "This function is used for `flyspell-generic-check-word-p' in LaTeX mode."
   (and
    (not (save-excursion
-	  (re-search-backward "^[ \t]*%%%[ \t]+Local" (point-min) t)))
+	  (re-search-backward "^[ \t]*%%%[ \t]+Local" nil t)))
    (not (save-excursion
 	  (let ((this (point-marker))
 		(e (progn (end-of-line) (point-marker))))
@@ -504,11 +504,11 @@ in your .emacs file.
 (defvar flyspell-last-buffer nil
   "The buffer in which the last flyspell operation took place.")
 
-(defun flyspell-accept-buffer-local-defs ()
+(defun flyspell-accept-buffer-local-defs (&optional force)
   ;; When flyspell-word is used inside a loop (e.g. when processing
   ;; flyspell-changes), the calls to `ispell-accept-buffer-local-defs' end
   ;; up dwarfing everything else, so only do it when the buffer has changed.
-  (unless (eq flyspell-last-buffer (current-buffer))
+  (when (or force (not (eq flyspell-last-buffer (current-buffer))))
     (setq flyspell-last-buffer (current-buffer))
     ;; Strange problem:  If buffer in current window has font-lock turned on,
     ;; but SET-BUFFER was called to point to an invisible buffer, this ispell
@@ -539,7 +539,9 @@ in your .emacs file.
   ;; we have to force ispell to accept the local definition or
   ;; otherwise it could be too late, the local dictionary may
   ;; be forgotten!
-  (flyspell-accept-buffer-local-defs)
+  ;; Pass the `force' argument for the case where flyspell was active already
+  ;; but the buffer's local-defs have been edited.
+  (flyspell-accept-buffer-local-defs 'force)
   ;; we put the `flyspell-delayed' property on some commands
   (flyspell-delay-commands)
   ;; we put the `flyspell-deplacement' property on some commands
@@ -753,7 +755,7 @@ Mostly we check word delimiters."
 	   (backward-char 1)
 	   (and (looking-at (flyspell-get-not-casechars))
 		(or flyspell-consider-dash-as-word-delimiter-flag
-		    (not (looking-at "\\-"))))))
+		    (not (looking-at "-"))))))
     ;; yes because we have reached or typed a word delimiter.
     t)
    ((symbolp this-command)
@@ -1225,10 +1227,10 @@ Word syntax described by `flyspell-dictionary-alist' (which see)."
     ;; find the word
     (if (not (looking-at flyspell-casechars))
 	(if following
-	    (re-search-forward flyspell-casechars (point-max) t)
-	  (re-search-backward flyspell-casechars (point-min) t)))
+	    (re-search-forward flyspell-casechars nil t)
+	  (re-search-backward flyspell-casechars nil t)))
     ;; move to front of word
-    (re-search-backward flyspell-not-casechars (point-min) 'start)
+    (re-search-backward flyspell-not-casechars nil 'start)
     (while (and (or (and (not (string= "" ispell-otherchars))
 			 (looking-at ispell-otherchars))
 		    (and extra-otherchars (looking-at extra-otherchars)))
@@ -1240,15 +1242,15 @@ Word syntax described by `flyspell-dictionary-alist' (which see)."
 	  (progn
 	    (backward-char 1)
 	    (if (looking-at flyspell-casechars)
-		(re-search-backward flyspell-not-casechars (point-min) 'move)))
+		(re-search-backward flyspell-not-casechars nil 'move)))
 	(setq did-it-once t
 	      prevpt (point))
 	(backward-char 1)
 	(if (looking-at flyspell-casechars)
-	    (re-search-backward flyspell-not-casechars (point-min) 'move)
+	    (re-search-backward flyspell-not-casechars nil 'move)
 	  (backward-char -1))))
     ;; Now mark the word and save to string.
-    (if (not (re-search-forward word-regexp (point-max) t))
+    (if (not (re-search-forward word-regexp nil t))
 	nil
       (progn
 	(setq start (match-beginning 0)
@@ -1308,11 +1310,13 @@ The list of incorrect words should be in `flyspell-external-ispell-buffer'.
 \(We finish by killing that buffer and setting the variable to nil.)
 The buffer to mark them in is `flyspell-large-region-buffer'."
   (let (words-not-found
-	(ispell-otherchars (ispell-get-otherchars)))
+	(ispell-otherchars (ispell-get-otherchars))
+	(buffer-scan-pos flyspell-large-region-beg))
     (with-current-buffer flyspell-external-ispell-buffer
       (goto-char (point-min))
-      ;; Loop over incorrect words.
-      (while (re-search-forward "\\([^\n]+\\)\n" (point-max) t)
+      ;; Loop over incorrect words, in the order they were reported,
+      ;; which is also the order they appear in the buffer being checked.
+      (while (re-search-forward "\\([^\n]+\\)\n" nil t)
 	;; Bind WORD to the next one.
 	(let ((word (match-string 1)) (wordpos (point)))
 	  ;; Here there used to be code to see if WORD is the same
@@ -1325,43 +1329,53 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 		       (* 100 (/ (float (point)) (point-max)))
 		       word))
 	  (with-current-buffer flyspell-large-region-buffer
-	    (goto-char flyspell-large-region-beg)
+	    (goto-char buffer-scan-pos)
 	    (let ((keep t))
 	      ;; Iterate on string search until string is found as word,
 	      ;; not as substring
 	      (while keep
 		(if (search-forward word
 				    flyspell-large-region-end t)
-		    (save-excursion
-		      (goto-char (- (point) 1))
-		      (let* ((flyword-prev-l (flyspell-get-word nil))
-			     (flyword-prev (car flyword-prev-l))
-			     (size-match (= (length flyword-prev) (length word))))
-			(when (or
-			       ;; size matches, we are done
-			       size-match
-			       ;; Matches as part of a boundary-char separated word
-			       (member word
-				       (split-string flyword-prev ispell-otherchars))
-			       ;; ispell treats beginning of some TeX
-			       ;; commands as nroff control sequences
-			       ;; and strips them in the list of
-			       ;; misspelled words thus giving a
-			       ;; non-existent word.  Skip if ispell
-			       ;; is used, string is a TeX command
-			       ;; (char before beginning of word is
-			       ;; backslash) and none of the previous
-			       ;; contitions match
-			       (and (not ispell-really-aspell)
-				    (save-excursion
-				      (goto-char (- (nth 1 flyword-prev-l) 1))
-				      (if (looking-at "[\\]" )
-					  t
-					nil))))
-			  (setq keep nil)
-			  (flyspell-word)
-			  ;; Next search will begin from end of last match
-			  )))
+		    (let* ((found-list
+			    (save-excursion
+			      ;; Move back into the match
+			      ;; so flyspell-get-word will find it.
+			      (forward-char -1)
+			      (flyspell-get-word nil)))
+			   (found (car found-list))
+			   (found-length (length found))
+			   (misspell-length (length word)))
+		      (when (or
+			     ;; Size matches, we really found it.
+			     (= found-length misspell-length)
+			     ;; Matches as part of a boundary-char separated word
+			     (member word
+				     (split-string found ispell-otherchars))
+			     ;; Misspelling has higher length than
+			     ;; what flyspell considers the
+			     ;; word.  Caused by boundary-chars
+			     ;; mismatch.  Validating seems safe.
+			     (< found-length misspell-length)
+			     ;; ispell treats beginning of some TeX
+			     ;; commands as nroff control sequences
+			     ;; and strips them in the list of
+			     ;; misspelled words thus giving a
+			     ;; non-existent word.  Skip if ispell
+			     ;; is used, string is a TeX command
+			     ;; (char before beginning of word is
+			     ;; backslash) and none of the previous
+			     ;; contitions match
+			     (and (not ispell-really-aspell)
+				  (save-excursion
+				    (goto-char (- (nth 1 found-list) 1))
+				    (if (looking-at "[\\]" )
+					t
+				      nil))))
+			(setq keep nil)
+			(flyspell-word)
+			;; Search for next misspelled word will begin from
+			;; end of last validated match.
+			(setq buffer-scan-pos (point))))
 		  ;; Record if misspelling is not found and try new one
 		  (add-to-list 'words-not-found
 			       (concat " -> " word " - "

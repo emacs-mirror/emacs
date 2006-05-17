@@ -308,7 +308,7 @@ On 32bit machines, it is now 256M (i.e. 268435455).
 
 +++
 ** You can now switch buffers in a cyclic order with C-x C-left
-(previous-buffer) and C-x C-right (next-buffer).  C-x left and 
+(previous-buffer) and C-x C-right (next-buffer).  C-x left and
 C-x right can be used as well.  The functions keep a different buffer
 cycle for each frame, using the frame-local buffer list.
 
@@ -816,6 +816,10 @@ appears in.
 +++
 *** The variable `cursor-in-non-selected-windows' can now be set to any
 of the recognized cursor types.
+
++++
+*** On text terminals, the variable `visible-cursor' controls whether Emacs
+uses the "very visible" cursor (the default) or the normal cursor.
 
 ** New faces:
 
@@ -4214,13 +4218,13 @@ entered.  `dynamic-completion-table' then computes the completion.
 *** The new macro `lazy-completion-table' initializes a variable
 as a lazy completion table.
 
-  (lazy-completion-table VAR FUN &rest ARGS)
+  (lazy-completion-table VAR FUN)
 
 If the completion table VAR is used for the first time (e.g., by passing VAR
-as an argument to `try-completion'), the function FUN is called with arguments
-ARGS. FUN must return the completion table that will be stored in VAR. If
-completion is requested in the minibuffer, FUN will be called in the buffer
-from which the minibuffer was entered. The return value of
+as an argument to `try-completion'), the function FUN is called with no
+arguments.  FUN must return the completion table that will be stored in VAR.
+If completion is requested in the minibuffer, FUN will be called in the buffer
+from which the minibuffer was entered.  The return value of
 `lazy-completion-table' must be used to initialize the value of VAR.
 
 +++
@@ -4422,6 +4426,8 @@ create a stream or datagram server inside emacs.
 - Datagram connection is selected using :type 'datagram arg.
 - A server can open on a random port using :service t arg.
 - Local sockets are supported using :family 'local arg.
+- IPv6 is supported (when available).  You may explicitly select IPv6
+  using :family 'ipv6 arg.
 - Non-blocking connect is supported using :nowait t arg.
 - The process' property list can be initialized using :plist PLIST arg;
   a copy of the server process' property list is automatically inherited
@@ -4429,6 +4435,7 @@ create a stream or datagram server inside emacs.
 
 To test for the availability of a given feature, use featurep like this:
   (featurep 'make-network-process '(:type datagram))
+  (featurep 'make-network-process '(:family ipv6))
 
 *** The old `open-network-stream' now uses `make-network-process'.
 

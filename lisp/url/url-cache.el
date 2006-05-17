@@ -1,7 +1,7 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -26,6 +26,7 @@
 
 (require 'url-parse)
 (require 'url-util)
+(require 'url)                        ;E.g. for url-configuration-directory.
 
 (defcustom url-cache-directory
   (expand-file-name "cache" url-configuration-directory)
@@ -65,7 +66,7 @@ FILE can be created or overwritten."
   "Store buffer BUFF in the cache."
   (if (not (and buff (get-buffer buff)))
       nil
-    (save-excursion
+    (save-current-buffer
       (and buff (set-buffer buff))
       (let* ((fname (url-cache-create-filename (url-view-url t))))
 	(if (url-cache-prepare fname)
@@ -202,5 +203,5 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
 
 (provide 'url-cache)
 
-;;; arch-tag: 95b050a6-8e81-4f23-8e63-191b9d1d657c
+;; arch-tag: 95b050a6-8e81-4f23-8e63-191b9d1d657c
 ;;; url-cache.el ends here

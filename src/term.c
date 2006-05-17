@@ -87,6 +87,10 @@ extern Lisp_Object Qspace, QCalign_to, QCwidth;
 
 Lisp_Object Vring_bell_function;
 
+/* If true, use "vs", otherwise use "ve" to make the cursor visible.  */
+
+static int visible_cursor;
+
 /* Terminal characteristics that higher levels want to look at.
    These are all extern'd in termchar.h */
 
@@ -460,7 +464,7 @@ set_terminal_modes ()
 	    putchar ('\n');
 	}
 
-      OUTPUT_IF (TS_cursor_visible);
+      OUTPUT_IF (visible_cursor ? TS_cursor_visible : TS_cursor_normal);
       OUTPUT_IF (TS_keypad_mode);
       losecursor ();
     }
@@ -615,7 +619,8 @@ tty_show_cursor ()
     {
       tty_cursor_hidden = 0;
       OUTPUT_IF (TS_cursor_normal);
-      OUTPUT_IF (TS_cursor_visible);
+      if (visible_cursor)
+	OUTPUT_IF (TS_cursor_visible);
     }
 }
 
@@ -2725,6 +2730,13 @@ This variable can be used by terminal emulator packages.  */);
     doc: /* Non-nil means call this function to ring the bell.
 The function should accept no arguments.  */);
   Vring_bell_function = Qnil;
+
+  DEFVAR_BOOL ("visible-cursor", &visible_cursor,
+	       doc: /* Non-nil means to make the cursor very visible.
+This only has an effect when running in a text terminal.
+What means \"very visible\" is up to your terminal.  It may make the cursor
+bigger, or it may make it blink, or it may do nothing at all.  */);
+  visible_cursor = 1;
 
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);

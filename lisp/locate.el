@@ -144,12 +144,12 @@
 
 (defcustom locate-fcodes-file nil
   "*File name for the database of file names."
-  :type '(choice file (const nil))
+  :type '(choice (const :tag "None" nil) file)
   :group 'locate)
 
 (defcustom locate-header-face nil
   "*Face used to highlight the locate header."
-  :type 'face
+  :type '(choice (const :tag "None" nil) face)
   :group 'locate)
 
 ;;;###autoload

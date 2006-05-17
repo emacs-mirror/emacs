@@ -1,7 +1,9 @@
 ;;; cyril-jis.el --- Quail package for inputting JISX0208 Cyrillic letters
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, Cyrillic
 

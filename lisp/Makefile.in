@@ -1,5 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -117,7 +117,10 @@ update-subdirs: doit
 	   $(srcdir)/update-subdirs $$file; \
 	done;
 
-updates: update-subdirs autoloads mh-autoloads finder-data custom-deps
+updates: update-subdirs autoloads finder-data custom-deps
+
+# This is useful after "cvs up".
+cvs-update: recompile autoloads finder-data custom-deps
 
 # Update the AUTHORS file.
 
@@ -166,7 +169,7 @@ compile: $(lisp)/subdirs.el mh-autoloads doit
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 
-compile-always: $(lisp)/subdirs.el doit
+compile-always: $(lisp)/subdirs.el mh-autoloads doit
 	# `|| true' prevents old Bash versions from getting confused
 	# by an error.
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
@@ -280,7 +283,7 @@ bootstrap-clean:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: update-subdirs autoloads mh-autoloads compile
+bootstrap: update-subdirs autoloads compile
 
 # Generate/update files after the bootstrap process.
 # custom-deps needs `preloaded-file-list'.

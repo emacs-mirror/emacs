@@ -1446,8 +1446,19 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   struct buffer *b = 0;
+  int bpos;
   int continue_reading_p;
   Lisp_Object lex_bound;
+  /* Nonzero if reading an entire buffer.  */
+  int whole_buffer = 0;
+  /* 1 on the first time around.  */
+  int first_sexp = 1;
+
+  if (MARKERP (readcharfun))
+    {
+      if (NILP (start))
+	start = readcharfun;	
+    }
 
   if (BUFFERP (readcharfun))
     b = XBUFFER (readcharfun);
@@ -1484,11 +1495,31 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 
       if (!NILP (start))
 	{
+	  /* Switch to the buffer we are reading from.  */
 	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  set_buffer_internal (b);
+
+	  /* Save point in it.  */
+	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  /* Save ZV in it.  */
 	  record_unwind_protect (save_restriction_restore, save_restriction_save ());
+	  /* Those get unbound after we read one expression.  */
+
+	  /* Set point and ZV around stuff to be read.  */
 	  Fgoto_char (start);
-	  Fnarrow_to_region (make_number (BEGV), end);
+	  if (!NILP (end))
+	    Fnarrow_to_region (make_number (BEGV), end);
+
+	  /* Just for cleanliness, convert END to a marker
+	     if it is an integer.  */
+	  if (INTEGERP (end))
+	    end = Fpoint_max_marker ();
 	}
+
+      /* On the first cycle, we can easily test here
+	 whether we are reading the whole buffer.  */
+      if (b && first_sexp)
+	whole_buffer = (PT == BEG && ZV == Z);
 
       instream = stream;
     read_next:
@@ -1539,8 +1570,11 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 
       if (!NILP (start) && continue_reading_p)
 	start = Fpoint_marker ();
+
+      /* Restore saved point and BEGV.  */
       unbind_to (count1, Qnil);
 
+      /* Now eval what we just read.  */
       val = (*evalfun) (val);
 
       if (printflag)
@@ -1551,11 +1585,12 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 	  else
 	    Fprint (val, Qnil);
 	}
+
+      first_sexp = 0;
     }
 
   build_load_history (sourcename, 
-		      stream || (INTEGERP (start) && INTEGERP (end)
-				 && XINT (start) == BEG && XINT (end) == Z));
+		      stream || whole_buffer);
 
   UNGCPRO;
 

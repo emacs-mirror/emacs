@@ -899,8 +899,11 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
       xpos += XINT (x);
       ypos += XINT (y);
+
+      XSETFRAME (Vmenu_updating_frame, f);
     }
-  Vmenu_updating_frame = Qnil;
+  else
+    Vmenu_updating_frame = Qnil;
 #endif /* HAVE_MENUS */
 
   record_unwind_protect (unuse_menu_items, Qnil);
@@ -3339,6 +3342,11 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       *error = "Can't create menu";
       return Qnil;
     }
+
+  /* Don't GC while we prepare and show the menu,
+     because we give the oldxmenu library pointers to the
+     contents of strings.  */
+  inhibit_garbage_collection ();
 
 #ifdef HAVE_X_WINDOWS
   /* Adjust coordinates to relative to the outer (window manager) window.  */

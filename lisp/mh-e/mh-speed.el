@@ -62,7 +62,8 @@
 ;;;###mh-autoload
 (defun mh-folder-speedbar-buttons (buffer)
   "Interface function to create MH-E speedbar buffer.
-BUFFER is the MH-E buffer for which the speedbar buffer is to be created."
+BUFFER is the MH-E buffer for which the speedbar buffer is to be
+created."
   (unless (get-text-property (point-min) 'mh-level)
     (erase-buffer)
     (clrhash mh-speed-folder-map)
@@ -125,11 +126,13 @@ BUFFER is the MH-E buffer for which the speedbar buffer is to be created."
 
 (defun mh-speed-update-current-folder (force)
   "Update speedbar highlighting of the current folder.
-The function tries to be smart so that work done is minimized. The currently
-highlighted folder is cached and no highlighting happens unless it changes.
+The function tries to be smart so that work done is minimized.
+The currently highlighted folder is cached and no highlighting
+happens unless it changes.
 Also highlighting is suspended while the speedbar frame is selected.
-Otherwise you get the disconcerting behavior of folders popping open on their
-own when you are trying to navigate around in the speedbar buffer.
+Otherwise you get the disconcerting behavior of folders popping open
+on their own when you are trying to navigate around in the speedbar
+buffer.
 
 The update is always carried out if FORCE is non-nil."
   (let* ((lastf (selected-frame))
@@ -237,7 +240,8 @@ The function will expand out parent folders of FOLDER if needed."
 
 (defun mh-speed-extract-folder-name (buffer)
   "Given an MH-E BUFFER find the folder that should be highlighted.
-Do the right thing for the different kinds of buffers that MH-E uses."
+Do the right thing for the different kinds of buffers that MH-E
+uses."
   (save-excursion
     (set-buffer buffer)
     (cond ((eq major-mode 'mh-folder-mode)
@@ -353,8 +357,8 @@ The optional ARGS from speedbar are ignored."
 
 (defmacro mh-process-kill-without-query (process)
   "PROCESS can be killed without query on Emacs exit.
-Avoid using `process-kill-without-query' if possible since it is now
-obsolete."
+Avoid using `process-kill-without-query' if possible since it is
+now obsolete."
   (if (fboundp 'set-process-query-on-exit-flag)
       `(set-process-query-on-exit-flag ,process nil)
     `(process-kill-without-query ,process)))
@@ -364,8 +368,8 @@ obsolete."
   "Execute flists -recurse and update message counts.
 If FORCE is non-nil the timer is reset.
 
-Any number of optional FOLDERS can be specified. If specified, flists is run
-only for that one folder."
+Any number of optional FOLDERS can be specified. If specified,
+flists is run only for that one folder."
   (interactive (list t))
   (when force
     (when mh-speed-flists-timer
@@ -412,8 +416,8 @@ only for that one folder."
 ;; Copied from mh-make-folder-list-filter...
 (defun mh-speed-parse-flists-output (process output)
   "Parse the incremental results from flists.
-PROCESS is the flists process and OUTPUT is the results that must be handled
-next."
+PROCESS is the flists process and OUTPUT is the results that must
+be handled next."
   (let ((prevailing-match-data (match-data))
         (position 0)
         line-end line folder unseen total)
@@ -506,8 +510,9 @@ next."
 (defun mh-speed-refresh ()
   "Regenerates the list of folders in the speedbar.
 
-Run this command if you've added or deleted a folder, or want to update the
-unseen message count before the next automatic update."
+Run this command if you've added or deleted a folder, or want to
+update the unseen message count before the next automatic
+update."
   (interactive)
   (mh-speed-flists t)
   (mh-speed-invalidate-map ""))
@@ -558,10 +563,10 @@ The function invalidates the latest ancestor that is present."
 
 (provide 'mh-speed)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: d38ddcd4-3c00-4e37-99bf-8b89dda7b32c
+;; arch-tag: d38ddcd4-3c00-4e37-99bf-8b89dda7b32c
 ;;; mh-speed.el ends here

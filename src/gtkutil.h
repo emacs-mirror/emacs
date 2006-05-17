@@ -132,6 +132,8 @@ extern int use_old_gtk_file_dialog;
 extern widget_value *malloc_widget_value P_ ((void));
 extern void free_widget_value P_ ((widget_value *));
 
+extern int xg_uses_old_file_dialog P_ ((void));
+
 extern char *xg_get_file_name P_ ((FRAME_PTR f,
                                    char *prompt,
                                    char *default_filename,

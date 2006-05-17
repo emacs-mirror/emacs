@@ -853,7 +853,7 @@ The following is a complex example, see http://link.aps.org/linkfaq.html.
   :group 'bibtex
   :type 'boolean)
 
-;; `bibtex-font-lock-keywords' is a user option as well, but since the
+;; `bibtex-font-lock-keywords' is a user option, too.  But since the
 ;; patterns used to define this variable are defined in a later
 ;; section of this file, it is defined later.
 
@@ -1044,13 +1044,15 @@ At most `bibtex-entry-kill-ring-max' items are kept here.")
 
 (defvar bibtex-strings
   (lazy-completion-table bibtex-strings
-                         bibtex-parse-strings (bibtex-string-files-init))
+                         (lambda ()
+                           (bibtex-parse-strings (bibtex-string-files-init))))
   "Completion table for BibTeX string keys.
 Initialized from `bibtex-predefined-strings' and `bibtex-string-files'.")
 (make-variable-buffer-local 'bibtex-strings)
 
 (defvar bibtex-reference-keys
-  (lazy-completion-table bibtex-reference-keys bibtex-parse-keys nil t)
+  (lazy-completion-table bibtex-reference-keys
+                         (lambda () (bibtex-parse-keys nil t)))
   "Completion table for BibTeX reference keys.
 The CDRs of the elements are t for header keys and nil for crossref keys.")
 (make-variable-buffer-local 'bibtex-reference-keys)
@@ -1089,7 +1091,7 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
   "Regexp matching the name of a BibTeX field.")
 
 (defconst bibtex-name-part
-  (concat ",[ \t\n]*\\(" bibtex-field-name "\\)[ \t\n]*=")
+  (concat ",[ \t\n]*\\(" bibtex-field-name "\\)")
   "Regexp matching the name part of a BibTeX field.")
 
 (defconst bibtex-reference-key "[][[:alnum:].:;?!`'/*@+|()<>&_^$-]+"
@@ -1102,16 +1104,6 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
   (concat "@[ \t]*\\(?:"
           (regexp-opt (mapcar 'car bibtex-entry-field-alist)) "\\)")
   "Regexp matching the name of a BibTeX entry.")
-
-(defvar bibtex-entry-type-whitespace
-  (concat "[ \t]*" bibtex-entry-type)
-  "Regexp matching the name of a BibTeX entry preceded by whitespace.")
-
-(defvar bibtex-entry-type-str
-  (concat "@[ \t]*\\(?:"
-          (regexp-opt (append '("String")
-                              (mapcar 'car bibtex-entry-field-alist))) "\\)")
-  "Regexp matching the name of a BibTeX entry (including @String).")
 
 (defvar bibtex-entry-head
   (concat "^[ \t]*\\("
@@ -1130,14 +1122,17 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
           bibtex-reference-key "\\)?")
   "Regexp matching the header line of any BibTeX entry (possibly without key).")
 
+(defvar bibtex-any-valid-entry-type
+  (concat "^[ \t]*@[ \t]*\\(?:"
+          (regexp-opt (append '("String" "Preamble")
+                              (mapcar 'car bibtex-entry-field-alist))) "\\)")
+  "Regexp matching any valid BibTeX entry (including String and Preamble).")
+
 (defconst bibtex-type-in-head 1
   "Regexp subexpression number of the type part in `bibtex-entry-head'.")
 
 (defconst bibtex-key-in-head 2
   "Regexp subexpression number of the key part in `bibtex-entry-head'.")
-
-(defconst bibtex-empty-field-re "\\`\\(\"\"\\|{}\\)\\'"
-  "Regexp matching the text part (as a string) of an empty field.")
 
 (defconst bibtex-string-type "^[ \t]*\\(@[ \t]*String\\)[ \t]*[({][ \t\n]*"
    "Regexp matching the name of a BibTeX String entry.")
@@ -1146,8 +1141,9 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
   (concat bibtex-string-type "\\(" bibtex-reference-key "\\)?")
   "Regexp matching the header line of a BibTeX String entry.")
 
-(defconst bibtex-preamble-prefix "[ \t]*@[ \t]*Preamble[ \t]*"
-  "Regexp matching the prefix part of a preamble.")
+(defconst bibtex-preamble-prefix
+  "[ \t]*\\(@[ \t]*Preamble\\)[ \t]*[({][ \t\n]*"
+  "Regexp matching the prefix part of a BibTeX Preamble entry.")
 
 (defconst bibtex-font-lock-syntactic-keywords
   `((,(concat "^[ \t]*\\(" (substring bibtex-comment-start 0 1) "\\)"
@@ -1227,12 +1223,9 @@ very first character of the match, the actual starting position of the name
 part and end position of the match.  Move point to end of field name.
 If `bibtex-autoadd-commas' is non-nil add missing comma at end of preceding
 BibTeX field as necessary."
-  (cond ((looking-at ",[ \t\n]*")
-         (let ((start (point)))
-           (goto-char (match-end 0))
-           (when (looking-at bibtex-field-name)
-             (goto-char (match-end 0))
-             (list start (match-beginning 0) (match-end 0)))))
+  (cond ((looking-at bibtex-name-part)
+         (goto-char (match-end 0))
+         (list (match-beginning 0) (match-beginning 1) (match-end 0)))
         ;; Maybe add a missing comma.
         ((and bibtex-autoadd-commas
               (looking-at (concat "[ \t\n]*\\(?:" bibtex-field-name
@@ -1332,60 +1325,71 @@ the boundaries of the name and text parts of the field.  Do not move point."
   "Search forward to find a BibTeX field of name NAME.
 If a syntactically correct field is found, return a pair containing
 the boundaries of the name and text parts of the field.  The search
-is limited by optional arg BOUND or if nil by the end of the current
-entry.  Do not move point."
+is limited by optional arg BOUND.  If BOUND is t the search is limited
+by the end of the current entry.  Do not move point."
   (save-match-data
     (save-excursion
-      (if bound
-          ;; If the search is bounded we need not worry we could overshoot.
-          ;; This is indeed the case when `bibtex-search-forward-field' is
-          ;; called many times.  So we optimize this part of this function.
-          (let ((name-part (concat ",[ \t\n]*\\(" name "\\)[ \t\n]*=[ \t\n]*"))
-                (case-fold-search t) left right)
-            (while (and (not right)
-                        (re-search-forward name-part bound t))
-              (setq left (list (match-beginning 0) (match-beginning 1)
-                               (match-end 1))
-                    ;; Don't worry that the field text could be past bound.
-                    right (bibtex-parse-field-text)))
-            (if right (cons left right)))
-        (let ((regexp (concat bibtex-name-part "\\|"
-                              bibtex-any-entry-maybe-empty-head))
-              (case-fold-search t) bounds)
-          (catch 'done
-            (if (looking-at "[ \t]*@") (goto-char (match-end 0)))
-            (while (and (not bounds)
-                        (re-search-forward regexp nil t))
-              (if (match-beginning 2)
-                  ;; We found a new entry
-                  (throw 'done nil)
-                ;; We found a field
-                (goto-char (match-beginning 0))
-                (setq bounds (bibtex-parse-field))))
-            ;; Step through all fields so that we cannot overshoot.
-            (while bounds
-              (goto-char (bibtex-start-of-name-in-field bounds))
-              (if (looking-at name) (throw 'done bounds))
-              (goto-char (bibtex-end-of-field bounds))
-              (setq bounds (bibtex-parse-field)))))))))
+      (if (eq bound t)
+          (let ((regexp (concat bibtex-name-part "[ \t\n]*=\\|"
+                                bibtex-any-entry-maybe-empty-head))
+                (case-fold-search t) bounds)
+            (catch 'done
+              (if (looking-at "[ \t]*@") (goto-char (match-end 0)))
+              (while (and (not bounds)
+                          (re-search-forward regexp nil t))
+                (if (match-beginning 2)
+                    ;; We found a new entry
+                    (throw 'done nil)
+                  ;; We found a field
+                  (goto-char (match-beginning 0))
+                  (setq bounds (bibtex-parse-field))))
+              ;; Step through all fields so that we cannot overshoot.
+              (while bounds
+                (goto-char (bibtex-start-of-name-in-field bounds))
+                (if (looking-at name) (throw 'done bounds))
+                (goto-char (bibtex-end-of-field bounds))
+                (setq bounds (bibtex-parse-field)))))
+        ;; Bounded search or bound is nil (i.e. we cannot overshoot).
+        ;; Indeed, the search is bounded when `bibtex-search-forward-field'
+        ;; is called many times.  So we optimize this part of this function.
+        (let ((name-part (concat ",[ \t\n]*\\(" name "\\)[ \t\n]*=[ \t\n]*"))
+              (case-fold-search t) left right)
+          (while (and (not right)
+                      (re-search-forward name-part bound t))
+            (setq left (list (match-beginning 0) (match-beginning 1)
+                             (match-end 1))
+                  ;; Don't worry that the field text could be past bound.
+                  right (bibtex-parse-field-text)))
+          (if right (cons left right)))))))
 
 (defun bibtex-search-backward-field (name &optional bound)
   "Search backward to find a BibTeX field of name NAME.
 If a syntactically correct field is found, return a pair containing
 the boundaries of the name and text parts of the field.  The search
-is limited by the optional arg BOUND.  If BOUND is nil the search is
+is limited by the optional arg BOUND.  If BOUND is t the search is
 limited by the beginning of the current entry.  Do not move point."
   (save-match-data
-    (save-excursion
-      (let ((name-part (concat ",[ \t\n]*\\(?:" name "\\)[ \t\n]*="))
-            (case-fold-search t)
-            bounds)
-        (unless bound (setq bound (save-excursion (bibtex-beginning-of-entry))))
-        (while (and (not bounds)
-                    (search-backward "," bound t)
-                    (looking-at name-part))
-          (setq bounds (bibtex-parse-field)))
-        bounds))))
+    (if (eq bound t)
+        (setq bound (save-excursion (bibtex-beginning-of-entry))))
+    (let ((name-part (concat ",[ \t\n]*\\(" name "\\)[ \t\n]*=[ \t\n]*"))
+          (case-fold-search t) left right)
+      (save-excursion
+        ;; the parsing functions are not designed for parsing backwards :-(
+        (when (search-backward "," bound t)
+          (or (save-excursion
+                (when (looking-at name-part)
+                  (setq left (list (match-beginning 0) (match-beginning 1)
+                                   (match-end 1)))
+                  (goto-char (match-end 0))
+                  (setq right (bibtex-parse-field-text))))
+              (while (and (not right)
+                          (re-search-backward name-part bound t))
+                (setq left (list (match-beginning 0) (match-beginning 1)
+                                 (match-end 1)))
+                (save-excursion
+                  (goto-char (match-end 0))
+                  (setq right (bibtex-parse-field-text)))))
+          (if right (cons left right)))))))
 
 (defun bibtex-name-in-field (bounds &optional remove-opt-alt)
   "Get content of name in BibTeX field defined via BOUNDS.
@@ -1405,25 +1409,22 @@ by removing field delimiters and concatenating the resulting string.
 If `bibtex-expand-strings' is non-nil, also expand BibTeX strings."
   (if content
       (save-excursion
+        (goto-char (bibtex-start-of-text-in-field bounds))
         (let ((epoint (bibtex-end-of-text-in-field bounds))
-              content opoint temp)
-          (goto-char (bibtex-start-of-text-in-field bounds))
+              content opoint)
           (while (< (setq opoint (point)) epoint)
-            (cond ((looking-at bibtex-field-const)
-                   (let ((mtch (match-string-no-properties 0)))
-                     (goto-char (match-end 0))
-                     (setq temp (if bibtex-expand-strings
-                                    (cdr (assoc-string mtch (bibtex-strings) t)))
-                           content (concat content (or temp mtch)))))
-
-                  ((setq temp (bibtex-parse-field-string))
-                   (setq content (concat content (buffer-substring-no-properties
-                                                  (1+ (car temp))
-                                                  (1- (cdr temp)))))
-                   (goto-char (cdr temp)))
-                  (t (error "Malformed text field")))
+            (if (looking-at bibtex-field-const)
+                (let ((mtch (match-string-no-properties 0)))
+                  (push (or (if bibtex-expand-strings
+                                (cdr (assoc-string mtch (bibtex-strings) t)))
+                            mtch) content)
+                  (goto-char (match-end 0)))
+              (let ((bounds (bibtex-parse-field-string)))
+                (push (buffer-substring-no-properties
+                       (1+ (car bounds)) (1- (cdr bounds))) content)
+                (goto-char (cdr bounds))))
             (re-search-forward "\\=[ \t\n]*#[ \t\n]*" nil t))
-          content))
+          (apply 'concat (nreverse content))))
     (buffer-substring-no-properties (bibtex-start-of-text-in-field bounds)
                                     (bibtex-end-of-text-in-field bounds))))
 
@@ -1432,19 +1433,15 @@ If `bibtex-expand-strings' is non-nil, also expand BibTeX strings."
 Return nil if not found.
 If optional arg FOLLOW-CROSSREF is non-nil, follow crossref."
   (save-excursion
-    (save-restriction
-      ;; We want to jump back and forth while searching FIELD
-      (bibtex-narrow-to-entry)
-      (goto-char (point-min))
-      (let ((bounds (bibtex-search-forward-field field (point-max)))
-            crossref-field)
-        (cond (bounds (bibtex-text-in-field-bounds bounds t))
-              ((and follow-crossref
-                    (progn (goto-char (point-min))
-                           (setq bounds (bibtex-search-forward-field
-                                         "\\(OPT\\)?crossref" (point-max)))))
-               (setq crossref-field (bibtex-text-in-field-bounds bounds t))
-               (widen)
+    (let* ((end (if follow-crossref (bibtex-end-of-entry) t))
+           (beg (bibtex-beginning-of-entry)) ; move point
+           (bounds (bibtex-search-forward-field field end)))
+      (cond (bounds (bibtex-text-in-field-bounds bounds t))
+            ((and follow-crossref
+                  (progn (goto-char beg)
+                         (setq bounds (bibtex-search-forward-field
+                                       "\\(OPT\\)?crossref" end))))
+             (let ((crossref-field (bibtex-text-in-field-bounds bounds t)))
                (if (bibtex-find-crossref crossref-field)
                    ;; Do not pass FOLLOW-CROSSREF because we want
                    ;; to follow crossrefs only one level of recursion.
@@ -1485,42 +1482,28 @@ character of the string entry.  Move point past BibTeX string entry."
               (nth 1 bounds)
               (match-end 0))))))
 
-(defun bibtex-parse-string ()
+(defun bibtex-parse-string (&optional empty-key)
   "Parse a BibTeX string entry beginning at the position of point.
 If a syntactically correct entry is found, return a cons pair containing
 the boundaries of the reference key and text parts of the entry.
-Do not move point."
-  (bibtex-parse-association 'bibtex-parse-string-prefix
-                            'bibtex-parse-string-postfix))
+If EMPTY-KEY is non-nil, key may be empty.  Do not move point."
+  (let ((bibtex-string-empty-key empty-key))
+    (bibtex-parse-association 'bibtex-parse-string-prefix
+                              'bibtex-parse-string-postfix)))
 
-(defun bibtex-search-forward-string ()
+(defun bibtex-search-forward-string (&optional empty-key)
   "Search forward to find a BibTeX string entry.
 If a syntactically correct entry is found, a pair containing the boundaries of
-the reference key and text parts of the string is returned.  Do not move point."
+the reference key and text parts of the string is returned.
+If EMPTY-KEY is non-nil, key may be empty.  Do not move point."
   (save-excursion
     (save-match-data
-      (let ((case-fold-search t)
-            boundaries)
-        (while (and (not boundaries)
+      (let ((case-fold-search t) bounds)
+        (while (and (not bounds)
                     (search-forward-regexp bibtex-string-type nil t))
-          (goto-char (match-beginning 0))
-          (unless (setq boundaries (bibtex-parse-string))
-            (forward-char 1)))
-        boundaries))))
-
-(defun bibtex-search-backward-string ()
-  "Search backward to find a BibTeX string entry.
-If a syntactically correct entry is found, a pair containing the boundaries of
-the reference key and text parts of the field is returned.  Do not move point."
-  (save-excursion
-    (save-match-data
-      (let ((case-fold-search t)
-            boundaries)
-        (while (and (not boundaries)
-                    (search-backward-regexp bibtex-string-type nil t))
-          (goto-char (match-beginning 0))
-          (setq boundaries (bibtex-parse-string)))
-        boundaries))))
+          (save-excursion (goto-char (match-beginning 0))
+                          (setq bounds (bibtex-parse-string empty-key))))
+        bounds))))
 
 (defun bibtex-reference-key-in-string (bounds)
   "Return the key part of a BibTeX string defined via BOUNDS"
@@ -1552,14 +1535,15 @@ If `bibtex-expand-strings' is non-nil, also expand BibTeX strings."
   (or (match-string-no-properties bibtex-key-in-head)
       empty))
 
-(defun bibtex-preamble-prefix (&optional delim)
-  "Parse the prefix part of a BibTeX Preamble.
-Point must be at beginning of prefix part.  If prefix is found move point
-to its end and return position of point.  If optional arg DELIM is non-nil,
-move past the opening delimiter.  If no preamble is found return nil."
+(defun bibtex-parse-preamble ()
+  "Parse BibTeX preamble.
+Point must be at beginning of preamble.  Do not move point."
   (let ((case-fold-search t))
-    (re-search-forward (concat "\\=" bibtex-preamble-prefix
-                               (if delim "[({][ \t\n]*")) nil t)))
+    (when (looking-at bibtex-preamble-prefix)
+      (let ((start (match-beginning 0)) (pref-start (match-beginning 1))
+            (bounds (save-excursion (goto-char (match-end 0))
+                                    (bibtex-parse-string-postfix))))
+        (if bounds (cons (list start pref-start) bounds))))))
 
 ;; Helper Functions
 
@@ -1577,6 +1561,35 @@ move past the opening delimiter.  If no preamble is found return nil."
   (+ (count-lines 1 (point))
      (if (bolp) 1 0)))
 
+(defun bibtex-valid-entry (&optional empty-key)
+  "Parse a valid BibTeX entry (maybe without key if EMPTY-KEY is t).
+A valid entry is a syntactical correct one with type contained in
+`bibtex-entry-field-alist'.  Ignore @String and @Preamble entries.
+Return a cons pair with buffer positions of beginning and end of entry
+if a valid entry is found, nil otherwise.  Do not move point.
+After a call to this function `match-data' corresponds to the header
+of the entry, see regexp `bibtex-entry-head'."
+  (let ((case-fold-search t) end)
+    (if (looking-at (if empty-key bibtex-entry-maybe-empty-head
+                    bibtex-entry-head))
+        (save-excursion
+          (save-match-data
+            (goto-char (match-end 0))
+            (let ((entry-closer
+                   (if (save-excursion
+                         (goto-char (match-end bibtex-type-in-head))
+                         (looking-at "[ \t]*("))
+                       ",?[ \t\n]*)" ;; entry opened with `('
+                     ",?[ \t\n]*}")) ;; entry opened with `{'
+                  bounds)
+              (skip-chars-forward " \t\n")
+              ;; loop over all BibTeX fields
+              (while (setq bounds (bibtex-parse-field))
+                (goto-char (bibtex-end-of-field bounds)))
+              ;; This matches the infix* part.
+              (if (looking-at entry-closer) (setq end (match-end 0)))))
+          (if end (cons (match-beginning 0) end))))))
+
 (defun bibtex-skip-to-valid-entry (&optional backward)
   "Move point to beginning of the next valid BibTeX entry.
 Do not move if we are already at beginning of a valid BibTeX entry.
@@ -1588,32 +1601,27 @@ entry.  Return buffer position of beginning and end of entry if a valid
 entry is found, nil otherwise."
   (interactive "P")
   (let ((case-fold-search t)
-        found)
+        found bounds)
     (beginning-of-line)
     ;; Loop till we look at a valid entry.
     (while (not (or found (if backward (bobp) (eobp))))
-      (let ((pnt (point))
-            bounds)
-        (cond ((or (and (looking-at bibtex-entry-type-whitespace)
-                        (setq found (bibtex-search-entry nil nil t))
-                        (equal (match-beginning 0) pnt))
-                   (and (not bibtex-sort-ignore-string-entries)
-                        (setq bounds (bibtex-parse-string))
-                        (setq found (cons (bibtex-start-of-field bounds)
-                                          (bibtex-end-of-string bounds)))))
-               (goto-char pnt))
-              (backward (re-search-backward "^[ \t]*@" nil 'move))
-              (t (re-search-forward "\\=[ \t]*@" nil t) ;; don't be stuck
-                 (if (re-search-forward "^[ \t]*@" nil 'move)
-                     (goto-char (match-beginning 0)))))))
+      (cond ((setq found (or (bibtex-valid-entry)
+                             (and (not bibtex-sort-ignore-string-entries)
+                                  (setq bounds (bibtex-parse-string))
+                                  (cons (bibtex-start-of-field bounds)
+                                        (bibtex-end-of-string bounds))))))
+            (backward (re-search-backward "^[ \t]*@" nil 'move))
+            (t (if (re-search-forward "\n\\([ \t]*@\\)" nil 'move)
+                   (goto-char (match-beginning 1))))))
     found))
 
 (defun bibtex-map-entries (fun)
   "Call FUN for each BibTeX entry in buffer (possibly narrowed).
 FUN is called with three arguments, the key of the entry and the buffer
-positions (marker) of beginning and end of entry.  Point is inside the entry.
-If `bibtex-sort-ignore-string-entries' is non-nil, FUN is not called for
-@String entries."
+positions of beginning and end of entry.  Also, point is at beginning of
+entry and `match-data' corresponds to the header of the entry,
+see regexp `bibtex-entry-head'.  If `bibtex-sort-ignore-string-entries'
+is non-nil, FUN is not called for @String entries."
   (let ((case-fold-search t)
         found)
     (save-excursion
@@ -1671,75 +1679,19 @@ If FLAG is nil, a message is echoed if point was incremented at least
       "}"
     ")"))
 
-(defun bibtex-search-entry (empty-head &optional bound noerror backward)
-  "Search for a BibTeX entry (maybe without reference key if EMPTY-HEAD is t).
-BOUND and NOERROR are exactly as in `re-search-forward'.  If BACKWARD
-is non-nil, search in reverse direction.  Move point past the closing
-delimiter (at the beginning of entry if BACKWARD is non-nil).
-Return a cons pair with buffer positions of beginning and end of entry.
-After a call to this function `match-data' corresponds to the head part
-of the entry, see regexp `bibtex-entry-head'.
-Ignore @String and @Preamble entries."
-  (let ((pnt (point))
-        (entry-head-re (if empty-head
-                           bibtex-entry-maybe-empty-head
-                         bibtex-entry-head)))
-    (if backward
-        (let (found)
-          (while (and (not found)
-                      (re-search-backward entry-head-re bound noerror))
-            (setq found (bibtex-search-entry empty-head pnt t)))
-          (cond (found
-                 (goto-char (match-beginning 0))
-                 found)
-                ((not noerror)  ;; yell
-                 (error "Backward search of BibTeX entry failed"))
-                (t (if (eq noerror t) (goto-char pnt)) ;; don't move
-                   nil)))
-      (let (found)
-        (unless bound (setq bound (point-max)))
-        (while (and (not found)
-                    (re-search-forward entry-head-re bound noerror))
-          (save-match-data
-            (let ((entry-closer
-                   (if (save-excursion
-                         (goto-char (match-end bibtex-type-in-head))
-                         (looking-at "[ \t]*("))
-                       ",?[ \t\n]*)" ;; entry opened with `('
-                     ",?[ \t\n]*}")) ;; entry opened with `{'
-                  bounds)
-              (skip-chars-forward " \t\n" bound)
-              ;; loop over all BibTeX fields
-              (while (and (setq bounds (bibtex-parse-field))
-                          (<= (bibtex-end-of-field bounds) bound))
-                (goto-char (bibtex-end-of-field bounds)))
-              ;; This matches the infix* part.
-              (when (and (looking-at entry-closer)
-                         (<= (match-end 0) bound))
-                (goto-char (match-end 0))
-                (setq found t)))))
-        (cond (found
-               (cons (match-beginning 0) (point)))
-              ((not noerror) ;; yell
-               (error "Search of BibTeX entry failed"))
-              (t (if (eq noerror t) (goto-char pnt)) ;; don't move
-                 nil))))))
-
-(defun bibtex-flash-head ()
+(defun bibtex-flash-head (prompt)
   "Flash at BibTeX entry head before point, if exists."
   (let ((case-fold-search t)
-        (pnt (point))
-        flash)
+        (pnt (point)))
     (save-excursion
       (bibtex-beginning-of-entry)
       (when (and (looking-at bibtex-any-entry-maybe-empty-head)
                  (< (point) pnt))
         (goto-char (match-beginning bibtex-type-in-head))
-        (setq flash (match-end bibtex-key-in-head))
         (if (pos-visible-in-window-p (point))
             (sit-for 1)
-          (message "From: %s"
-                   (buffer-substring (point) flash)))))))
+          (message "%s%s" prompt (buffer-substring-no-properties
+                                  (point) (match-end bibtex-key-in-head))))))))
 
 (defun bibtex-make-optional-field (field)
   "Make an optional field named FIELD in current BibTeX entry."
@@ -1770,66 +1722,55 @@ are ignored.  Return point"
   (bibtex-skip-to-valid-entry)
   (point))
 
-(defun bibtex-inside-field ()
-  "Try to avoid point being at end of a BibTeX field."
-  (end-of-line)
-  (skip-chars-backward " \t")
-  (if (= (preceding-char) ?,)
-      (forward-char -2))
-  (if (or (= (preceding-char) ?})
-          (= (preceding-char) ?\"))
-      (forward-char -1)))
-
-(defun bibtex-enclosing-field (&optional noerr)
+(defun bibtex-enclosing-field (&optional comma noerr)
   "Search for BibTeX field enclosing point.
+For `bibtex-mode''s internal algorithms, a field begins at the comma
+following the preceding field.  Usually, this is not what the user expects.
+Thus if COMMA is non-nil, the \"current field\" includes the terminating comma.
 Unless NOERR is non-nil, signal an error if no enclosing field is found.
 On success return bounds, nil otherwise.  Do not move point."
-  (let ((bounds (bibtex-search-backward-field bibtex-field-name)))
-    (if (and bounds
-             (<= (bibtex-start-of-field bounds) (point))
-             (>= (bibtex-end-of-field bounds) (point)))
-        bounds
-      (unless noerr
-        (error "Can't find enclosing BibTeX field")))))
+  (save-excursion
+    (when comma
+      (end-of-line)
+      (skip-chars-backward " \t")
+      (if (= (preceding-char) ?,) (forward-char -1)))
 
-(defun bibtex-enclosing-entry-maybe-empty-head ()
-  "Search for BibTeX entry enclosing point.  Move point to end of entry.
-Beginning (but not end) of entry is given by (`match-beginning' 0)."
-  (let ((case-fold-search t)
-        (old-point (point)))
-    (unless (re-search-backward bibtex-entry-maybe-empty-head nil t)
-      (goto-char old-point)
-      (error "Can't find beginning of enclosing BibTeX entry"))
-    (goto-char (match-beginning bibtex-type-in-head))
-    (unless (bibtex-search-entry t nil t)
-      (goto-char old-point)
-      (error "Can't find end of enclosing BibTeX entry"))))
+    (let ((bounds (bibtex-search-backward-field bibtex-field-name t)))
+      (cond ((and bounds
+                  (<= (bibtex-start-of-field bounds) (point))
+                  (>= (bibtex-end-of-field bounds) (point)))
+             bounds)
+            ((not noerr)
+             (error "Can't find enclosing BibTeX field"))))))
 
-(defun bibtex-insert-kill (n)
-  "Reinsert the Nth stretch of killed BibTeX text."
-  (if (not bibtex-last-kill-command)
-      (error "BibTeX kill ring is empty")
-    (let* ((kr (if (eq bibtex-last-kill-command 'field)
-                   'bibtex-field-kill-ring
-                 'bibtex-entry-kill-ring))
-           (kryp (if (eq bibtex-last-kill-command 'field)
-                     'bibtex-field-kill-ring-yank-pointer
-                   'bibtex-entry-kill-ring-yank-pointer))
-           (current (car (set kryp (nthcdr (mod (- n (length (eval kryp)))
-                                                (length (eval kr)))
-                                           (eval kr))))))
-      (if (eq bibtex-last-kill-command 'field)
-          (progn
-            (bibtex-find-text)
-            (if (looking-at "[}\"]")
-                (forward-char))
-            (set-mark (point))
-            (message "Mark set")
-            (bibtex-make-field current t))
-        (unless (eobp) (bibtex-beginning-of-entry))
-        (set-mark (point))
-        (message "Mark set")
-        (insert current)))))
+(defun bibtex-beginning-first-field (&optional beg)
+  "Move point to beginning of first field.
+Optional arg BEG is beginning of entry."
+  (if beg (goto-char beg) (bibtex-beginning-of-entry))
+  (looking-at bibtex-any-entry-maybe-empty-head)
+  (goto-char (match-end 0)))
+
+(defun bibtex-insert-kill (n &optional comma)
+  "Reinsert the Nth stretch of killed BibTeX text (field or entry).
+Optional arg COMMA is as in `bibtex-enclosing-field'."
+  (unless bibtex-last-kill-command (error "BibTeX kill ring is empty"))
+  (let ((fun (lambda (kryp kr) ;; adapted from `current-kill'
+               (car (set kryp (nthcdr (mod (- n (length (eval kryp)))
+                                           (length kr)) kr))))))
+    (if (eq bibtex-last-kill-command 'field)
+        (progn
+          ;; insert past the current field
+          (goto-char (bibtex-end-of-field (bibtex-enclosing-field comma)))
+          (set-mark (point))
+          (message "Mark set")
+          (bibtex-make-field (funcall fun 'bibtex-field-kill-ring-yank-pointer
+                                      bibtex-field-kill-ring) t))
+      ;; insert past the current entry
+      (bibtex-skip-to-valid-entry)
+      (set-mark (point))
+      (message "Mark set")
+      (insert (funcall fun 'bibtex-entry-kill-ring-yank-pointer
+                       bibtex-entry-kill-ring)))))
 
 (defun bibtex-format-entry ()
   "Helper function for `bibtex-clean-entry'.
@@ -1898,9 +1839,8 @@ Formats current entry according to variable `bibtex-entry-format'."
             (error "All alternatives are empty"))
 
         ;; process all fields
-        (goto-char (point-min))
-        (while (setq bounds (bibtex-search-forward-field
-                             bibtex-field-name (point-max)))
+        (bibtex-beginning-first-field (point-min))
+        (while (setq bounds (bibtex-parse-field))
           (let* ((beg-field (copy-marker (bibtex-start-of-field bounds)))
                  (end-field (copy-marker (bibtex-end-of-field bounds) t))
                  (beg-name  (copy-marker (bibtex-start-of-name-in-field bounds)))
@@ -2037,10 +1977,6 @@ Formats current entry according to variable `bibtex-entry-format'."
                       ((> found 1)
                        (error "Alternative fields `%s' are defined %s times"
                               altlist found))))))
-
-        ;; update point
-        (if (looking-at (bibtex-field-right-delimiter))
-            (forward-char))
 
         ;; update comma after last field
         (if (memq 'last-comma format)
@@ -2534,6 +2470,7 @@ already set."
   "Complete word fragment before point to longest prefix of COMPLETIONS.
 COMPLETIONS is an alist of strings.  If point is not after the part
 of a word, all strings are listed.  Return completion."
+  ;; Return value is used by cleanup functions.
   (let* ((case-fold-search t)
          (beg (save-excursion
                 (re-search-backward "[ \t{\"]")
@@ -2556,13 +2493,13 @@ of a word, all strings are listed.  Return completion."
              (display-completion-list (all-completions part-of-word completions)
 				      part-of-word))
            (message "Making completion list...done")
-           ;; return value is handled by choose-completion-string-functions
            nil))))
 
 (defun bibtex-complete-string-cleanup (str compl)
   "Cleanup after inserting string STR.
 Remove enclosing field delimiters for STR.  Display message with
 expansion of STR using expansion list COMPL."
+  ;; point is at position inside field where completion was requested
   (save-excursion
     (let ((abbr (cdr (if (stringp str)
                          (assoc-string str compl t)))))
@@ -2622,50 +2559,52 @@ Used as default value of `bibtex-summary-function'."
 (defun bibtex-pop (arg direction)
   "Fill current field from the ARGth same field's text in DIRECTION.
 Generic function used by `bibtex-pop-previous' and `bibtex-pop-next'."
-  (bibtex-find-text)
-  (save-excursion
-    ;; parse current field
-    (bibtex-inside-field)
-    (let* ((case-fold-search t)
-           (bounds (bibtex-enclosing-field))
-           (start-old-text (bibtex-start-of-text-in-field bounds))
-           (stop-old-text (bibtex-end-of-text-in-field bounds))
-           (field-name (bibtex-name-in-field bounds t)))
+  ;; parse current field
+  (let* ((bounds (bibtex-enclosing-field t))
+         (start-old-field (bibtex-start-of-field bounds))
+         (start-old-text (bibtex-start-of-text-in-field bounds))
+         (end-old-text (bibtex-end-of-text-in-field bounds))
+         (field-name (bibtex-name-in-field bounds t))
+         failure)
+    (save-excursion
       ;; if executed several times in a row, start each search where
       ;; the last one was finished
-      (unless (eq last-command 'bibtex-pop)
-        (bibtex-enclosing-entry-maybe-empty-head)
-        (setq bibtex-pop-previous-search-point (match-beginning 0)
-              bibtex-pop-next-search-point (point)))
-      (if (eq direction 'previous)
-          (goto-char bibtex-pop-previous-search-point)
-        (goto-char bibtex-pop-next-search-point))
-      ;; Now search for arg'th previous/next similar field
-      (let (bounds failure new-text)
-        (while (and (not failure)
-                    (> arg 0))
-          (cond ((eq direction 'previous)
-                 (if (setq bounds (bibtex-search-backward-field field-name))
-                     (goto-char (bibtex-start-of-field bounds))
-                   (setq failure t)))
-                ((eq direction 'next)
-                 (if (setq bounds (bibtex-search-forward-field field-name))
-                     (goto-char (bibtex-end-of-field bounds))
-                   (setq failure t))))
-          (setq arg (- arg 1)))
-        (if failure
-            (error "No %s matching BibTeX field"
-                   (if (eq direction 'previous) "previous" "next"))
-          ;; Found a matching field.  Remember boundaries.
-          (setq bibtex-pop-previous-search-point (bibtex-start-of-field bounds)
-                bibtex-pop-next-search-point (bibtex-end-of-field bounds)
-                new-text (bibtex-text-in-field-bounds bounds))
-          (bibtex-flash-head)
+      (cond ((eq last-command 'bibtex-pop)
+             (goto-char (if (eq direction 'previous)
+                            bibtex-pop-previous-search-point
+                          bibtex-pop-next-search-point)))
+            ((eq direction 'previous)
+             (bibtex-beginning-of-entry))
+            (t (bibtex-end-of-entry)))
+      ;; Search for arg'th previous/next similar field
+      (while (and (not failure)
+                  (>= (setq arg (1- arg)) 0))
+        ;; The search of BibTeX fields is not bounded by entry boundaries
+        (if (eq direction 'previous)
+            (if (setq bounds (bibtex-search-backward-field field-name))
+                (goto-char (bibtex-start-of-field bounds))
+              (setq failure t))
+          (if (setq bounds (bibtex-search-forward-field field-name))
+              (goto-char (bibtex-end-of-field bounds))
+            (setq failure t))))
+      (if failure
+          (error "No %s matching BibTeX field"
+                 (if (eq direction 'previous) "previous" "next"))
+        ;; Found a matching field.  Remember boundaries.
+        (let ((new-text (bibtex-text-in-field-bounds bounds))
+              (nbeg (copy-marker (bibtex-start-of-field bounds)))
+              (nend (copy-marker (bibtex-end-of-field bounds))))
+          (bibtex-flash-head "From: ")
           ;; Go back to where we started, delete old text, and pop new.
-          (goto-char stop-old-text)
-          (delete-region start-old-text stop-old-text)
-          (insert new-text)))))
-  (bibtex-find-text)
+          (goto-char end-old-text)
+          (delete-region start-old-text end-old-text)
+          (if (= nbeg start-old-field)
+              (insert (bibtex-field-left-delimiter)
+                      (bibtex-field-right-delimiter))
+            (insert new-text))
+          (setq bibtex-pop-previous-search-point (marker-position nbeg)
+                bibtex-pop-next-search-point (marker-position nend))))))
+  (bibtex-find-text nil nil nil t)
   (setq this-command 'bibtex-pop))
 
 (defun bibtex-beginning-of-field ()
@@ -2844,6 +2783,7 @@ if that value is non-nil.
         (list (list nil bibtex-entry-head bibtex-key-in-head))
         imenu-case-fold-search t)
   (make-local-variable 'choose-completion-string-functions)
+  (make-local-variable 'completion-ignore-case)
   ;; XEmacs needs easy-menu-add, Emacs does not care
   (easy-menu-add bibtex-edit-menu)
   (easy-menu-add bibtex-entry-menu)
@@ -2859,7 +2799,7 @@ and `bibtex-user-optional-fields'."
   (let ((e (assoc-string entry-type bibtex-entry-field-alist t))
         required optional)
     (unless e
-      (error "BibTeX entry type %s not defined" entry-type))
+      (error "Fields for BibTeX entry type %s not defined" entry-type))
     (if (and (member-ignore-case entry-type bibtex-include-OPTcrossref)
              (nth 2 e))
         (setq required (nth 0 (nth 2 e))
@@ -2916,10 +2856,11 @@ according to `bibtex-field-list', but are not yet present."
   (save-excursion
     (bibtex-beginning-of-entry)
     ;; For inserting new fields, we use the fact that
-    ;; bibtex-parse-entry moves point to the end of the last field.
+    ;; `bibtex-parse-entry' moves point to the end of the last field.
     (let* ((fields-alist (bibtex-parse-entry))
            (field-list (bibtex-field-list
                         (cdr (assoc "=type=" fields-alist)))))
+      (skip-chars-backward " \t\n")
       (dolist (field (car field-list))
         (unless (assoc-string (car field) fields-alist t)
           (bibtex-make-field field)))
@@ -2962,6 +2903,7 @@ entry (for example, the year parts of the keys)."
 	  (key (bibtex-key-in-head))
 	  (key-end (match-end bibtex-key-in-head))
           (case-fold-search t)
+          (bibtex-sort-ignore-string-entries t)
 	  tmp other-key other bounds)
       ;; The fields we want to change start right after the key.
       (goto-char key-end)
@@ -3014,28 +2956,28 @@ entry (for example, the year parts of the keys)."
 	  (while (re-search-backward (regexp-quote other-suffix) key-end 'move)
 	    (replace-match suffix)))))))
 
-(defun bibtex-print-help-message ()
-  "Print helpful information about current field in current BibTeX entry."
-  (interactive)
-  (let* ((case-fold-search t)
-         (type (save-excursion
-                 (bibtex-beginning-of-entry)
-                 (looking-at bibtex-any-entry-maybe-empty-head)
-                 (bibtex-type-in-head)))
-         comment field-list)
-    (cond ((bibtex-string= type "string")
-           (message "String definition"))
-          ((bibtex-string= type "preamble")
-           (message "Preamble definition"))
-          (t
-           (setq field-list (bibtex-field-list type)
-                 comment
-                 (assoc-string (bibtex-name-in-field (bibtex-enclosing-field) t)
-                               (append (car field-list) (cdr field-list))
-                               t))
-           (if comment
-               (message "%s" (nth 1 comment))
-             (message "No comment available"))))))
+(defun bibtex-print-help-message (&optional field comma)
+  "Print helpful information about current FIELD in current BibTeX entry.
+Optional arg COMMA is as in `bibtex-enclosing-field'.  It is t for
+interactive calls."
+  (interactive (list nil t))
+  (unless field (setq field (car (bibtex-find-text-internal nil nil comma))))
+  (if (string-match "@" field)
+      (cond ((bibtex-string= field "@string")
+             (message "String definition"))
+            ((bibtex-string= field "@preamble")
+             (message "Preamble definition"))
+            (t (message "Entry key")))
+    (let* ((case-fold-search t)
+           (type (save-excursion
+                   (bibtex-beginning-of-entry)
+                   (looking-at bibtex-entry-maybe-empty-head)
+                   (bibtex-type-in-head)))
+           (field-list (bibtex-field-list type))
+           (comment (assoc-string field (append (car field-list)
+                                                (cdr field-list)) t)))
+      (if comment (message "%s" (nth 1 comment))
+        (message "No comment available")))))
 
 (defun bibtex-make-field (field &optional move interactive)
   "Make a field named FIELD in current BibTeX entry.
@@ -3050,7 +2992,8 @@ MOVE and INTERACTIVE are t when called interactively."
    (list (let ((completion-ignore-case t)
                (field-list (bibtex-field-list
                             (save-excursion
-                              (bibtex-enclosing-entry-maybe-empty-head)
+                              (bibtex-beginning-of-entry)
+                              (looking-at bibtex-any-entry-maybe-empty-head)
                               (bibtex-type-in-head)))))
            (completing-read "BibTeX field name: "
                             (append (car field-list) (cdr field-list))
@@ -3079,8 +3022,9 @@ MOVE and INTERACTIVE are t when called interactively."
                   (t (concat (bibtex-field-left-delimiter)
                              (bibtex-field-right-delimiter))))))
   (when interactive
-    (forward-char -1)
-    (bibtex-print-help-message)))
+    ;; (bibtex-find-text nil nil bibtex-help-message)
+    (if (memq (preceding-char) '(?} ?\")) (forward-char -1))
+    (if bibtex-help-message (bibtex-print-help-message (car field)))))
 
 (defun bibtex-beginning-of-entry ()
   "Move to beginning of BibTeX entry (beginning of line).
@@ -3101,28 +3045,19 @@ of the previous entry.  Do not move if ahead of first entry.
 Return the new location of point."
   (interactive)
   (let ((case-fold-search t)
-        (org (point))
-        (pnt (bibtex-beginning-of-entry))
-        err bounds)
-    (cond ((looking-at bibtex-entry-type-whitespace)
-           (bibtex-search-entry t nil t)
-           (unless (equal (match-beginning 0) pnt)
-             (setq err t)))
-          ;; @String
-          ((setq bounds (bibtex-parse-string))
+        (pnt (point))
+        (_ (bibtex-beginning-of-entry))
+        (bounds (bibtex-valid-entry t)))
+    (cond (bounds (goto-char (cdr bounds))) ; regular entry
+          ;; @String or @Preamble
+          ((setq bounds (or (bibtex-parse-string t) (bibtex-parse-preamble)))
            (goto-char (bibtex-end-of-string bounds)))
-          ;; @Preamble
-          ((bibtex-preamble-prefix t)
-           (unless (bibtex-parse-string-postfix) ;; @String postfix OK
-             (setq err t)))
-          (t
-           (if (interactive-p)
-               (message "Not on a known BibTeX entry."))
-           (goto-char org)))
-    (when err
-      (goto-char pnt)
-      (error "Syntactically incorrect BibTeX entry starts here")))
-  (point))
+          ((looking-at bibtex-any-valid-entry-type)
+           ;; Parsing of entry failed
+           (error "Syntactically incorrect BibTeX entry starts here."))
+          (t (if (interactive-p) (message "Not on a known BibTeX entry."))
+             (goto-char pnt)))
+    (point)))
 
 (defun bibtex-goto-line (arg)
   "Goto line ARG, counting from beginning of (narrowed) buffer."
@@ -3186,7 +3121,7 @@ If mark is active count entries in region, if not in whole buffer."
   (interactive)
   (let ((bounds (save-excursion
                   (bibtex-beginning-of-entry)
-                  (bibtex-search-forward-field "abstract"))))
+                  (bibtex-search-forward-field "abstract" t))))
     (if bounds
         (ispell-region (bibtex-start-of-text-in-field bounds)
                        (bibtex-end-of-text-in-field bounds))
@@ -3214,7 +3149,7 @@ of the head of the entry found.  Return nil if no entry found."
           ;; Don't search CROSSREF-KEY if we don't need it.
           (if (eq bibtex-maintain-sorted-entries 'crossref)
               (let ((bounds (bibtex-search-forward-field
-                             "\\(OPT\\)?crossref")))
+                             "\\(OPT\\)?crossref" t)))
                 (list key
                       (if bounds (bibtex-text-in-field-bounds bounds t))
                       entry-name))
@@ -3281,7 +3216,7 @@ entry and SPLIT is t."
    (let ((crossref-key
           (save-excursion
             (bibtex-beginning-of-entry)
-            (let ((bounds (bibtex-search-forward-field "crossref")))
+            (let ((bounds (bibtex-search-forward-field "crossref" t)))
               (if bounds
                   (bibtex-text-in-field-bounds bounds t))))))
      (list (bibtex-read-key "Find crossref key: " crossref-key t)
@@ -3427,40 +3362,38 @@ Return t if test was successful, nil otherwise."
          error-list syntax-error)
     (save-excursion
       (save-restriction
-        (if mark-active
-            (narrow-to-region (region-beginning) (region-end)))
+        (if mark-active (narrow-to-region (region-beginning) (region-end)))
 
-        ;; looking if entries fit syntactical structure
+        ;; Check syntactical structure of entries
         (goto-char (point-min))
         (bibtex-progress-message "Checking syntactical structure")
-        (let (bibtex-sort-ignore-string-entries)
-          (while (re-search-forward "^[ \t]*@" nil t)
+        (let (bounds end)
+          (while (setq end (re-search-forward "^[ \t]*@" nil t))
             (bibtex-progress-message)
-            (forward-char -1)
-            (let ((pnt (point)))
-              (if (not (looking-at bibtex-entry-type-str))
-                  (forward-char)
-                (bibtex-skip-to-valid-entry)
-                (if (equal (point) pnt)
-                    (forward-char)
-                  (goto-char pnt)
-                  (push (cons (bibtex-current-line)
-                              "Syntax error (check esp. commas, braces, and quotes)")
-                        error-list)
-                  (forward-char))))))
+            (goto-char (match-beginning 0))
+            (cond ((setq bounds (bibtex-valid-entry))
+                   (goto-char (cdr bounds)))
+                  ((setq bounds (or (bibtex-parse-string)
+                                    (bibtex-parse-preamble)))
+                   (goto-char (bibtex-end-of-string bounds)))
+                  ((looking-at bibtex-any-valid-entry-type)
+                   (push (cons (bibtex-current-line)
+                               "Syntax error (check esp. commas, braces, and quotes)")
+                         error-list)
+                   (goto-char (match-end 0)))
+                  (t (goto-char end)))))
         (bibtex-progress-message 'done)
 
         (if error-list
-            ;; proceed only if there were no syntax errors.
+            ;; Continue only if there were no syntax errors.
             (setq syntax-error t)
 
-          ;; looking for duplicate keys and correct sort order
+          ;; Check for duplicate keys and correct sort order
           (let (previous current key-list)
             (bibtex-progress-message "Checking for duplicate keys")
             (bibtex-map-entries
              (lambda (key beg end)
                (bibtex-progress-message)
-               (goto-char beg)
                (setq current (bibtex-entry-index))
                (cond ((not previous))
                      ((member key key-list)
@@ -3496,18 +3429,13 @@ Return t if test was successful, nil otherwise."
               (bibtex-map-entries
                (lambda (key beg end)
                  (bibtex-progress-message)
-                 (let* ((entry-list (progn
-                                      (goto-char beg)
-                                      (bibtex-search-entry nil end)
-                                      (assoc-string (bibtex-type-in-head)
-						    bibtex-entry-field-alist t)))
+                 (let* ((entry-list (assoc-string (bibtex-type-in-head)
+                                                  bibtex-entry-field-alist t))
                         (req (copy-sequence (elt (elt entry-list 1) 0)))
                         (creq (copy-sequence (elt (elt entry-list 2) 0)))
                         crossref-there bounds alt-there field)
-                   (goto-char beg)
-                   (while (setq bounds (bibtex-search-forward-field
-                                        bibtex-field-name end))
-                     (goto-char (bibtex-start-of-text-in-field bounds))
+                   (bibtex-beginning-first-field beg)
+                   (while (setq bounds (bibtex-parse-field))
                      (let ((field-name (bibtex-name-in-field bounds)))
                        (if (and (bibtex-string= field-name "month")
                                 ;; Check only abbreviated month fields.
@@ -3519,18 +3447,19 @@ Return t if test was successful, nil otherwise."
                            (push (cons (bibtex-current-line)
                                        "Questionable month field")
                                  error-list))
-                       (setq field (assoc-string field-name req t))
-                       (if (nth 3 field)
-                           (if alt-there (push (cons (bibtex-current-line)
-                                                     "More than one non-empty alternative")
-                                               error-list)
-                             (setq alt-there t)))
-                       (setq req (delete field req)
+                       (setq field (assoc-string field-name req t)
+                             req (delete field req)
                              creq (delete (assoc-string field-name creq t) creq))
+                       (if (nth 3 field)
+                           (if alt-there
+                               (push (cons (bibtex-current-line)
+                                           "More than one non-empty alternative")
+                                     error-list)
+                             (setq alt-there t)))
                        (if (bibtex-string= field-name "crossref")
-                           (setq crossref-there t))))
-                   (if crossref-there
-                       (setq req creq))
+                           (setq crossref-there t)))
+                     (goto-char (bibtex-end-of-field bounds)))
+                   (if crossref-there (setq req creq))
                    (let (alt)
                      (dolist (field req)
                        (if (nth 3 field)
@@ -3571,11 +3500,10 @@ Return t if test was successful, nil otherwise."
             (toggle-read-only 1)
             (goto-line 3)) ; first error message
           (display-buffer err-buf)
-          ;; return nil
-          nil)
+          nil) ; return `nil' (i.e., buffer is invalid)
       (message "%s is syntactically correct"
                (if mark-active "Region" "Buffer"))
-      t)))
+      t))) ; return `t' (i.e., buffer is valid)
 
 (defun bibtex-validate-globally (&optional strings)
   "Check for duplicate keys in `bibtex-files'.
@@ -3629,37 +3557,41 @@ Return t if test was successful, nil otherwise."
             (toggle-read-only 1)
             (goto-line 3)) ; first error message
           (display-buffer err-buf)
-          ;; return nil
-          nil)
+          nil) ; return `nil' (i.e., buffer is invalid)
       (message "No duplicate keys.")
-      t)))
+      t))) ; return `t' (i.e., buffer is valid)
 
-(defun bibtex-next-field (begin)
-  "Move point to end of text of next BibTeX field.
-With prefix BEGIN non-nil, move point to its beginning."
-  (interactive "P")
-  (bibtex-inside-field)
-  (let ((start (point)))
-    (condition-case ()
-        (let ((bounds (bibtex-enclosing-field)))
-          (goto-char (bibtex-end-of-field bounds))
-          (forward-char 2))
-      (error
-       (goto-char start)
-       (end-of-line)
-       (forward-char))))
-  (bibtex-find-text begin nil bibtex-help-message))
+(defun bibtex-next-field (begin &optional comma)
+  "Move point to end of text of next BibTeX field or entry head.
+With prefix BEGIN non-nil, move point to its beginning.  Optional arg COMMA
+is as in `bibtex-enclosing-field'.  It is t for interactive calls."
+  (interactive (list current-prefix-arg t))
+  (let ((bounds (bibtex-find-text-internal t nil comma))
+        end-of-entry)
+    (if (not bounds)
+        (setq end-of-entry t)
+      (goto-char (nth 3 bounds))
+      (if (assoc-string (car bounds) '("@String" "@Preamble") t)
+          (setq end-of-entry t)
+        ;; BibTeX key or field
+        (if (looking-at ",[ \t\n]*") (goto-char (match-end 0)))
+        ;; end of entry
+        (if (looking-at "[)}][ \t\n]*") (setq end-of-entry t))))
+    (if (and end-of-entry
+             (re-search-forward bibtex-any-entry-maybe-empty-head nil t))
+      (goto-char (match-beginning 0)))
+    (bibtex-find-text begin nil bibtex-help-message)))
 
-(defun bibtex-find-text (&optional begin noerror help)
-  "Move point to end of text of current BibTeX field.
+(defun bibtex-find-text (&optional begin noerror help comma)
+  "Move point to end of text of current BibTeX field or entry head.
 With optional prefix BEGIN non-nil, move point to its beginning.
 Unless NOERROR is non-nil, an error is signaled if point is not
 on a BibTeX field.  If optional arg HELP is non-nil print help message.
-When called interactively, the value of HELP is `bibtex-help-message'."
-  (interactive (list current-prefix-arg nil bibtex-help-message))
-  (let ((pnt (point))
-        (bounds (bibtex-find-text-internal)))
-    (beginning-of-line)
+When called interactively, the value of HELP is `bibtex-help-message'.
+Optional arg COMMA is as in `bibtex-enclosing-field'.  It is t for
+interactive calls."
+  (interactive (list current-prefix-arg nil bibtex-help-message t))
+  (let ((bounds (bibtex-find-text-internal t nil comma)))
     (cond (bounds
            (if begin
                (progn (goto-char (nth 1 bounds))
@@ -3668,72 +3600,88 @@ When called interactively, the value of HELP is `bibtex-help-message'."
              (goto-char (nth 2 bounds))
              (if (memq (preceding-char) '(?} ?\"))
                  (forward-char -1)))
-           (if help (bibtex-print-help-message)))
-          ((looking-at bibtex-entry-maybe-empty-head)
-           (goto-char (if begin
-                          (match-beginning bibtex-key-in-head)
-                        (match-end 0))))
-          (t
-           (goto-char pnt)
-           (unless noerror (error "Not on BibTeX field"))))))
+           (if help (bibtex-print-help-message (car bounds))))
+          ((not noerror) (error "Not on BibTeX field")))))
 
-(defun bibtex-find-text-internal (&optional noerror subfield)
-  "Find text part of current BibTeX field, @String or @Preamble.
-Return list (NAME START END) with field name, start and end of text
-or nil if not found.
+(defun bibtex-find-text-internal (&optional noerror subfield comma)
+  "Find text part of current BibTeX field or entry head.
+Return list (NAME START-TEXT END-TEXT END) with field or entry name,
+start and end of text and end of field or entry head, or nil if not found.
 If optional arg NOERROR is non-nil, an error message is suppressed if text
-is not found.  If optional arg SUBFIELD is non-nil START and END correspond
-to the current subfield delimited by #."
+is not found.  If optional arg SUBFIELD is non-nil START-TEXT and END-TEXT
+correspond to the current subfield delimited by #.
+Optional arg COMMA is as in `bibtex-enclosing-field'."
   (save-excursion
     (let ((pnt (point))
-          (_ (bibtex-inside-field))
-          (bounds (bibtex-enclosing-field t))
+          (bounds (bibtex-enclosing-field comma t))
           (case-fold-search t)
-          (bibtex-string-empty-key t)
-          name start end)
+          name start-text end-text end failure done no-sub)
       (bibtex-beginning-of-entry)
       (cond (bounds
              (setq name (bibtex-name-in-field bounds t)
-                   start (bibtex-start-of-text-in-field bounds)
-                   end (bibtex-end-of-text-in-field bounds)))
+                   start-text (bibtex-start-of-text-in-field bounds)
+                   end-text (bibtex-end-of-text-in-field bounds)
+                   end (bibtex-end-of-field bounds)))
             ;; @String
-            ((setq bounds (bibtex-parse-string))
-             (setq name "@String" ;; not a field name!
-                   start (bibtex-start-of-text-in-string bounds)
-                   end (bibtex-end-of-text-in-string bounds)))
+            ((setq bounds (bibtex-parse-string t))
+             (if (<= pnt (bibtex-end-of-string bounds))
+                 (setq name "@String" ;; not a field name!
+                       start-text (bibtex-start-of-text-in-string bounds)
+                       end-text (bibtex-end-of-text-in-string bounds)
+                       end (bibtex-end-of-string bounds))
+               (setq failure t)))
             ;; @Preamble
-            ((and (bibtex-preamble-prefix t)
-                  (setq bounds (bibtex-parse-field-text)))
-             (setq name "@Preamble" ;; not a field name!
-                   start (car bounds)
-                   end (nth 1 bounds)))
-            (t (unless noerror (error "Not on BibTeX field"))))
-      (when (and start end subfield)
-        (goto-char start)
-        (let (done)
+            ((setq bounds (bibtex-parse-preamble))
+             (if (<= pnt (bibtex-end-of-string bounds))
+                 (setq name "@Preamble" ;; not a field name!
+                       start-text (bibtex-start-of-text-in-string bounds)
+                       end-text (bibtex-end-of-text-in-string bounds)
+                       end (bibtex-end-of-string bounds))
+               (setq failure t)))
+            ;; BibTeX head
+            ((looking-at bibtex-entry-maybe-empty-head)
+             (goto-char (match-end 0))
+             (if comma (save-match-data
+                         (re-search-forward "\\=[ \t\n]*," nil t)))
+             (if (<= pnt (point))
+                 (setq name (match-string-no-properties bibtex-type-in-head)
+                       start-text (or (match-beginning bibtex-key-in-head)
+                                 (match-end 0))
+                       end-text (or (match-end bibtex-key-in-head)
+                               (match-end 0))
+                       end end-text
+                       no-sub t) ;; subfields do not make sense
+               (setq failure t)))
+            (t (setq failure t)))
+      (when (and subfield (not failure))
+        (setq failure no-sub)
+        (unless failure
+          (goto-char start-text)
           (while (not done)
             (if (or (prog1 (looking-at bibtex-field-const)
-                      (setq end (match-end 0)))
+                      (setq end-text (match-end 0)))
                     (prog1 (setq bounds (bibtex-parse-field-string))
-                      (setq end (cdr bounds))))
+                      (setq end-text (cdr bounds))))
                 (progn
-                  (if (and (<= start pnt) (<= pnt end))
+                  (if (and (<= start-text pnt) (<= pnt end-text))
                       (setq done t)
-                    (goto-char end))
+                    (goto-char end-text))
                   (if (looking-at "[ \t\n]*#[ \t\n]*")
-                      (setq start (goto-char (match-end 0)))))
-              (unless noerror (error "Not on text part of BibTeX field"))
-              (setq done t start nil end nil)))))
-      (if (and start end)
-          (list name start end)))))
+                      (setq start-text (goto-char (match-end 0)))))
+              (setq done t failure t)))))
+      (cond ((not failure)
+             (list name start-text end-text end))
+            ((and no-sub (not noerror))
+             (error "Not on text part of BibTeX field"))
+            ((not noerror) (error "Not on BibTeX field"))))))
 
-(defun bibtex-remove-OPT-or-ALT ()
+(defun bibtex-remove-OPT-or-ALT (&optional comma)
   "Remove the string starting optional/alternative fields.
-Align text and go thereafter to end of text."
-  (interactive)
-  (bibtex-inside-field)
+Align text and go thereafter to end of text.  Optional arg COMMA
+is as in `bibtex-enclosing-field'.  It is t for interactive calls."
+  (interactive (list t))
   (let ((case-fold-search t)
-        (bounds (bibtex-enclosing-field)))
+        (bounds (bibtex-enclosing-field comma)))
     (save-excursion
       (goto-char (bibtex-start-of-name-in-field bounds))
       (when (looking-at "OPT\\|ALT")
@@ -3749,14 +3697,14 @@ Align text and go thereafter to end of text."
         (delete-horizontal-space)
         (if bibtex-align-at-equal-sign
             (insert " ")
-          (indent-to-column bibtex-text-indentation))))
-    (bibtex-inside-field)))
+          (indent-to-column bibtex-text-indentation))))))
 
-(defun bibtex-remove-delimiters ()
-  "Remove \"\" or {} around current BibTeX field text."
-  (interactive)
-  ;; `bibtex-find-text-internal' issues an error message if bounds is nil.
-  (let* ((bounds (bibtex-find-text-internal nil t))
+(defun bibtex-remove-delimiters (&optional comma)
+  "Remove \"\" or {} around current BibTeX field text.
+Optional arg COMMA is as in `bibtex-enclosing-field'.  It is t for
+interactive calls."
+  (interactive (list t))
+  (let* ((bounds (bibtex-find-text-internal nil t comma))
          (start (nth 1 bounds))
          (end (nth 2 bounds)))
     (if (memq (char-before end) '(?\} ?\"))
@@ -3764,15 +3712,15 @@ Align text and go thereafter to end of text."
     (if (memq (char-after start) '(?\{ ?\"))
         (delete-region start (1+ start)))))
 
-(defun bibtex-kill-field (&optional copy-only)
+(defun bibtex-kill-field (&optional copy-only comma)
   "Kill the entire enclosing BibTeX field.
 With prefix arg COPY-ONLY, copy the current field to `bibtex-field-kill-ring',
-but do not actually kill it."
-  (interactive "P")
+but do not actually kill it.  Optional arg COMMA is as in
+`bibtex-enclosing-field'.  It is t for interactive calls."
+  (interactive (list current-prefix-arg t))
   (save-excursion
-    (bibtex-inside-field)
     (let* ((case-fold-search t)
-           (bounds (bibtex-enclosing-field))
+           (bounds (bibtex-enclosing-field comma))
            (end (bibtex-end-of-field bounds))
            (beg (bibtex-start-of-field bounds)))
       (goto-char end)
@@ -3789,10 +3737,12 @@ but do not actually kill it."
         (delete-region beg end))))
   (setq bibtex-last-kill-command 'field))
 
-(defun bibtex-copy-field-as-kill ()
-  "Copy the BibTeX field at point to the kill ring."
-  (interactive)
-  (bibtex-kill-field t))
+(defun bibtex-copy-field-as-kill (&optional comma)
+  "Copy the BibTeX field at point to the kill ring.
+Optional arg COMMA is as in `bibtex-enclosing-field'.  It is t for
+interactive calls."
+  (interactive (list t))
+  (bibtex-kill-field t comma))
 
 (defun bibtex-kill-entry (&optional copy-only)
   "Kill the entire enclosing BibTeX entry.
@@ -3804,7 +3754,7 @@ but do not actually kill it."
            (beg (bibtex-beginning-of-entry))
            (end (progn (bibtex-end-of-entry)
                        (if (re-search-forward
-                            bibtex-entry-maybe-empty-head nil 'move)
+                            bibtex-any-entry-maybe-empty-head nil 'move)
                            (goto-char (match-beginning 0)))
                        (point))))
       (push (buffer-substring-no-properties beg end)
@@ -3829,13 +3779,13 @@ More precisely, reinsert the field or entry killed or yanked most recently.
 With argument N, reinsert the Nth most recently killed BibTeX item.
 See also the command \\[bibtex-yank-pop]."
   (interactive "*p")
-  (bibtex-insert-kill (1- n))
+  (bibtex-insert-kill (1- n) t)
   (setq this-command 'bibtex-yank))
 
 (defun bibtex-yank-pop (n)
   "Replace just-yanked killed BibTeX item with a different item.
 This command is allowed only immediately after a `bibtex-yank' or a
-`bibtex-yank-pop'.  At such a time, the region contains a reinserted
+`bibtex-yank-pop'.  In this case, the region contains a reinserted
 previously killed BibTeX item.  `bibtex-yank-pop' deletes that item
 and inserts in its place a different killed BibTeX item.
 
@@ -3851,13 +3801,14 @@ comes the newest one."
   (setq this-command 'bibtex-yank)
   (let ((inhibit-read-only t))
     (delete-region (point) (mark t))
-    (bibtex-insert-kill n)))
+    (bibtex-insert-kill n t)))
 
-(defun bibtex-empty-field ()
-  "Delete the text part of the current field, replace with empty text."
-  (interactive)
-  (bibtex-inside-field)
-  (let ((bounds (bibtex-enclosing-field)))
+(defun bibtex-empty-field (&optional comma)
+  "Delete the text part of the current field, replace with empty text.
+Optional arg COMMA is as in `bibtex-enclosing-field'.  It is t for
+interactive calls."
+  (interactive (list t))
+  (let ((bounds (bibtex-enclosing-field comma)))
     (goto-char (bibtex-start-of-text-in-field bounds))
     (delete-region (point) (bibtex-end-of-text-in-field bounds))
     (insert (bibtex-field-left-delimiter)
@@ -3958,7 +3909,7 @@ At end of the cleaning process, the functions in
                (if (and (listp bibtex-strings)
                         (not (assoc key bibtex-strings)))
                    (push (cons key (bibtex-text-in-string
-                                    (save-excursion (bibtex-parse-string)) t))
+                                    (bibtex-parse-string) t))
                            bibtex-strings)))
               ;; We have a normal entry.
               ((listp bibtex-reference-keys)
@@ -3986,28 +3937,27 @@ At end of the cleaning process, the functions in
 If JUSTIFY is non-nil justify as well.
 If optional arg MOVE is non-nil move point to end of field."
   (let ((end-field (copy-marker (bibtex-end-of-field bounds))))
-    (goto-char (bibtex-start-of-field bounds))
-    (if justify
-        (progn
-          (forward-char)
-          (bibtex-delete-whitespace)
-          (open-line 1)
-          (forward-char)
-          (indent-to-column (+ bibtex-entry-offset
-                               bibtex-field-indentation))
-          (re-search-forward "[ \t\n]*=" end-field)
-          (replace-match "=")
-          (forward-char -1)
-          (if bibtex-align-at-equal-sign
-              (indent-to-column
-               (+ bibtex-entry-offset (- bibtex-text-indentation 2)))
-            (insert " "))
-          (forward-char)
-          (bibtex-delete-whitespace)
-          (if bibtex-align-at-equal-sign
-              (insert " ")
-            (indent-to-column bibtex-text-indentation)))
-      (re-search-forward "[ \t\n]*=[ \t\n]*" end-field))
+    (if (not justify)
+        (goto-char (bibtex-start-of-text-in-field bounds))
+      (goto-char (bibtex-start-of-field bounds))
+      (forward-char) ;; leading comma
+      (bibtex-delete-whitespace)
+      (open-line 1)
+      (forward-char)
+      (indent-to-column (+ bibtex-entry-offset
+                           bibtex-field-indentation))
+      (re-search-forward "[ \t\n]*=" end-field)
+      (replace-match "=")
+      (forward-char -1)
+      (if bibtex-align-at-equal-sign
+          (indent-to-column
+           (+ bibtex-entry-offset (- bibtex-text-indentation 2)))
+        (insert " "))
+      (forward-char)
+      (bibtex-delete-whitespace)
+      (if bibtex-align-at-equal-sign
+          (insert " ")
+        (indent-to-column bibtex-text-indentation)))
     ;; Paragraphs within fields are not preserved. Bother?
     (fill-region-as-paragraph (line-beginning-position) end-field
                               default-justification nil (point))
@@ -4015,14 +3965,13 @@ If optional arg MOVE is non-nil move point to end of field."
 
 (defun bibtex-fill-field (&optional justify)
   "Like \\[fill-paragraph], but fill current BibTeX field.
-Optional prefix arg JUSTIFY non-nil means justify as well.
+If optional prefix JUSTIFY is non-nil justify as well.
 In BibTeX mode this function is bound to `fill-paragraph-function'."
   (interactive "*P")
   (let ((pnt (copy-marker (point)))
-        (bounds (bibtex-enclosing-field)))
-    (when bounds
-      (bibtex-fill-field-bounds bounds justify)
-      (goto-char pnt))))
+        (bounds (bibtex-enclosing-field t)))
+    (bibtex-fill-field-bounds bounds justify)
+    (goto-char pnt)))
 
 (defun bibtex-fill-entry ()
   "Fill current BibTeX entry.
@@ -4033,14 +3982,16 @@ If `bibtex-align-at-equal-sign' is non-nil, align equal signs, too."
   (interactive "*")
   (let ((pnt (copy-marker (point)))
         (end (copy-marker (bibtex-end-of-entry)))
+        (beg (bibtex-beginning-of-entry)) ; move point
         bounds)
-    (bibtex-beginning-of-entry)
     (bibtex-delete-whitespace)
     (indent-to-column bibtex-entry-offset)
-    (while (setq bounds (bibtex-search-forward-field bibtex-field-name end))
+    (bibtex-beginning-first-field beg)
+    (while (setq bounds (bibtex-parse-field))
       (bibtex-fill-field-bounds bounds t t))
     (if (looking-at ",")
         (forward-char))
+    (skip-chars-backward " \t\n")
     (bibtex-delete-whitespace)
     (open-line 1)
     (forward-char)
@@ -4113,8 +4064,7 @@ If mark is active reformat entries in region, if not in whole buffer."
          bibtex-autokey-edit-before-use)
 
     (save-restriction
-      (narrow-to-region (if mark-active (region-beginning) (point-min))
-                        (if mark-active (region-end) (point-max)))
+      (if mark-active (narrow-to-region (region-beginning) (region-end)))
       (if (memq 'realign bibtex-entry-format)
           (bibtex-realign))
       (bibtex-progress-message "Formatting" 1)
@@ -4141,12 +4091,10 @@ entries from minibuffer."
   (message "Starting to validate buffer...")
   (sit-for 1 nil t)
   (bibtex-realign)
-  (message
-   "If errors occur, correct them and call `bibtex-convert-alien' again")
-  (sit-for 5 nil t)
   (deactivate-mark)  ; So bibtex-validate works on the whole buffer.
-  (when (let (bibtex-maintain-sorted-entries)
-          (bibtex-validate))
+  (if (not (let (bibtex-maintain-sorted-entries)
+             (bibtex-validate)))
+      (message "Correct errors and call `bibtex-convert-alien' again")
     (message "Starting to reformat entries...")
     (sit-for 2 nil t)
     (bibtex-reformat read-options)
@@ -4164,10 +4112,9 @@ An error is signaled if point is outside key or BibTeX field."
   (interactive)
   (let ((pnt (point))
         (case-fold-search t)
-        (bibtex-string-empty-key t)
         bounds name compl)
     (save-excursion
-      (if (and (setq bounds (bibtex-enclosing-field t))
+      (if (and (setq bounds (bibtex-enclosing-field nil t))
                (>= pnt (bibtex-start-of-text-in-field bounds))
                (<= pnt (bibtex-end-of-text-in-field bounds)))
           (setq name (bibtex-name-in-field bounds t)
@@ -4180,7 +4127,7 @@ An error is signaled if point is outside key or BibTeX field."
                             ;; point is in other field
                             (t (bibtex-strings))))
         (bibtex-beginning-of-entry)
-        (cond ((setq bounds (bibtex-parse-string))
+        (cond ((setq bounds (bibtex-parse-string t))
                ;; point is inside a @String key
                (cond ((and (>= pnt (nth 1 (car bounds)))
                            (<= pnt (nth 2 (car bounds))))
@@ -4190,11 +4137,10 @@ An error is signaled if point is outside key or BibTeX field."
                            (<= pnt (bibtex-end-of-text-in-string bounds)))
                       (setq compl (bibtex-strings)))))
               ;; point is inside a @Preamble field
-              ((and (bibtex-preamble-prefix t)
-                    (setq bounds (bibtex-parse-field-text))
-                    (>= pnt (car bounds))
-                    (<= pnt (nth 1 bounds)))
-               (setq compl (bibtex-strings)))
+              ((setq bounds (bibtex-parse-preamble))
+               (if (and (>= pnt (bibtex-start-of-text-in-string bounds))
+                        (<= pnt (bibtex-end-of-text-in-string bounds)))
+                   (setq compl (bibtex-strings))))
               ((and (looking-at bibtex-entry-maybe-empty-head)
                     ;; point is inside a key
                     (or (and (match-beginning bibtex-key-in-head)
@@ -4207,41 +4153,53 @@ An error is signaled if point is outside key or BibTeX field."
 
     (cond ((eq compl 'key)
            ;; key completion: no cleanup needed
-           (let (completion-ignore-case)
-             (bibtex-complete-internal (bibtex-global-key-alist))))
+           (setq choose-completion-string-functions nil
+                 completion-ignore-case nil)
+           (bibtex-complete-internal (bibtex-global-key-alist)))
 
           ((eq compl 'crossref-key)
            ;; crossref key completion
-           (let (completion-ignore-case)
-             (setq choose-completion-string-functions
-                   (lambda (choice buffer mini-p base-size)
-                     (let ((choose-completion-string-functions nil))
-                       (choose-completion-string choice buffer base-size))
-                     (bibtex-complete-crossref-cleanup choice)
-                     ;; return t (needed by choose-completion-string-functions)
-                     t))
-             (bibtex-complete-crossref-cleanup (bibtex-complete-internal
-                                                (bibtex-global-key-alist)))))
+           ;;
+           ;; If we quit the *Completions* buffer without requesting
+           ;; a completion, `choose-completion-string-functions' is still
+           ;; non-nil. Therefore, `choose-completion-string-functions' is
+           ;; always set (either to non-nil or nil) when a new completion
+           ;; is requested.
+           ;; Also, `choose-completion-delete-max-match' requires
+           ;; that we set `completion-ignore-case' (i.e., binding via `let'
+           ;; is not sufficient).
+           (setq completion-ignore-case nil
+                 choose-completion-string-functions
+                 (lambda (choice buffer mini-p base-size)
+                   (setq choose-completion-string-functions nil)
+                   (choose-completion-string choice buffer base-size)
+                   (bibtex-complete-crossref-cleanup choice)
+                   t)) ; needed by choose-completion-string-functions
+
+           (bibtex-complete-crossref-cleanup (bibtex-complete-internal
+                                              (bibtex-global-key-alist))))
 
           ((eq compl 'string)
            ;; string key completion: no cleanup needed
-           (let ((completion-ignore-case t))
-             (bibtex-complete-internal bibtex-strings)))
+           (setq choose-completion-string-functions nil
+                 completion-ignore-case t)
+           (bibtex-complete-internal bibtex-strings))
 
           (compl
            ;; string completion
-           (let ((completion-ignore-case t))
-             (setq choose-completion-string-functions
-                   `(lambda (choice buffer mini-p base-size)
-                      (let ((choose-completion-string-functions nil))
-                        (choose-completion-string choice buffer base-size))
-                      (bibtex-complete-string-cleanup choice ',compl)
-                      ;; return t (needed by choose-completion-string-functions)
-                      t))
-             (bibtex-complete-string-cleanup (bibtex-complete-internal compl)
-                                             compl)))
+           (setq completion-ignore-case t
+                 choose-completion-string-functions
+                 `(lambda (choice buffer mini-p base-size)
+                    (setq choose-completion-string-functions nil)
+                    (choose-completion-string choice buffer base-size)
+                    (bibtex-complete-string-cleanup choice ',compl)
+                    t)) ; needed by choose-completion-string-functions
+           (bibtex-complete-string-cleanup (bibtex-complete-internal compl)
+                                             compl))
 
-          (t (error "Point outside key or BibTeX field")))))
+          (t (setq choose-completion-string-functions nil
+                   completion-ignore-case nil) ; default
+             (error "Point outside key or BibTeX field")))))
 
 (defun bibtex-Article ()
   "Insert a new BibTeX @Article entry; see also `bibtex-entry'."

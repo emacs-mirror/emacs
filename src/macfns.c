@@ -2880,24 +2880,37 @@ If omitted or nil, that stands for the selected frame's display.  */)
      (display)
      Lisp_Object display;
 {
-  int mac_major_version;
-  SInt32 response;
+  UInt32 response, major, minor, bugfix;
   OSErr err;
 
   BLOCK_INPUT;
   err = Gestalt (gestaltSystemVersion, &response);
+  if (err == noErr)
+    if (response >= 0x00001040)
+      {
+	err = Gestalt ('sys1', &major); /* gestaltSystemVersionMajor */
+	if (err == noErr)
+	  err = Gestalt ('sys2', &minor); /* gestaltSystemVersionMinor */
+	if (err == noErr)
+	  err = Gestalt ('sys3', &bugfix); /* gestaltSystemVersionBugFix */
+      }
+    else
+      {
+	bugfix = response & 0xf;
+	response >>= 4;
+	minor = response & 0xf;
+	response >>= 4;
+	/* convert BCD to int */
+	major = response - (response >> 4) * 6;
+      }
   UNBLOCK_INPUT;
 
   if (err != noErr)
     error ("Cannot get Mac OS version");
 
-  mac_major_version = (response >> 8) & 0xff;
-  /* convert BCD to int */
-  mac_major_version -= (mac_major_version >> 4) * 6;
-
-  return Fcons (make_number (mac_major_version),
-		Fcons (make_number ((response >> 4) & 0xf),
-		       Fcons (make_number (response & 0xf),
+  return Fcons (make_number (major),
+		Fcons (make_number (minor),
+		       Fcons (make_number (bugfix),
 			      Qnil)));
 }
 
@@ -4226,21 +4239,13 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     /* Set the default location and continue*/
     if (status == noErr)
       {
+	Lisp_Object encoded_dir = ENCODE_FILE (dir);
 	AEDesc defLocAed;
-#ifdef MAC_OSX
-	FSRef defLoc;
-	status = FSPathMakeRef(SDATA(ENCODE_FILE(dir)), &defLoc, NULL);
-#else
-	FSSpec defLoc;
-	status = posix_pathname_to_fsspec (SDATA (ENCODE_FILE (dir)), &defLoc);
-#endif
+
+	status = AECreateDesc (TYPE_FILE_NAME, SDATA (encoded_dir),
+			       SBYTES (encoded_dir), &defLocAed);
 	if (status == noErr)
 	  {
-#ifdef MAC_OSX
-	    AECreateDesc(typeFSRef, &defLoc, sizeof(FSRef), &defLocAed);
-#else
-	    AECreateDesc(typeFSS, &defLoc, sizeof(FSSpec), &defLocAed);
-#endif
 	    NavCustomControl(dialogRef, kNavCtlSetLocation, (void*) &defLocAed);
 	    AEDisposeDesc(&defLocAed);
 	  }
@@ -4262,41 +4267,36 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	case kNavUserActionSaveAs:
 	  {
 	    NavReplyRecord reply;
-	    AEDesc aed;
-#ifdef MAC_OSX
-	    FSRef fsRef;
-#else
-	    FSSpec fs;
-#endif
-	    status = NavDialogGetReply(dialogRef, &reply);
+	    Size len;
 
-#ifdef MAC_OSX
-	    AECoerceDesc(&reply.selection, typeFSRef, &aed);
-	    AEGetDescData(&aed, (void *) &fsRef, sizeof (FSRef));
-	    FSRefMakePath(&fsRef, (UInt8 *) filename, sizeof (filename));
-#else
-	    AECoerceDesc (&reply.selection, typeFSS, &aed);
-	    AEGetDescData (&aed, (void *) &fs, sizeof (FSSpec));
-	    fsspec_to_posix_pathname (&fs, filename, sizeof (filename) - 1);
-#endif
-	    AEDisposeDesc(&aed);
-	    if (reply.saveFileName)
+	    status = NavDialogGetReply(dialogRef, &reply);
+	    if (status != noErr)
+	      break;
+	    status = AEGetNthPtr (&reply.selection, 1, TYPE_FILE_NAME,
+				  NULL, NULL, filename,
+				  sizeof (filename) - 1, &len);
+	    if (status == noErr)
 	      {
-		/* If it was a saved file, we need to add the file name */
-		int len = strlen(filename);
-		if (len && filename[len-1] != '/')
-		  filename[len++] = '/';
-		CFStringGetCString(reply.saveFileName, filename+len,
-				   sizeof (filename) - len,
+		len = min (len, sizeof (filename) - 1);
+		filename[len] = '\0';
+		if (reply.saveFileName)
+		  {
+		    /* If it was a saved file, we need to add the file name */
+		    if (len && len < sizeof (filename) - 1
+			&& filename[len-1] != '/')
+		      filename[len++] = '/';
+		    CFStringGetCString(reply.saveFileName, filename+len,
+				       sizeof (filename) - len,
 #if MAC_OSX
-				   kCFStringEncodingUTF8
+				       kCFStringEncodingUTF8
 #else
-				   CFStringGetSystemEncoding ()
+				       CFStringGetSystemEncoding ()
 #endif
-				   );
+				       );
+		  }
+		file = DECODE_FILE (make_unibyte_string (filename,
+							 strlen (filename)));
 	      }
-	    file = DECODE_FILE (make_unibyte_string (filename,
-						     strlen (filename)));
 	    NavDisposeReply(&reply);
 	  }
 	  break;

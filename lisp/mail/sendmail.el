@@ -123,6 +123,15 @@ nil means let mailer mail back a message to report errors."
   :type 'regexp
   :group 'sendmail)
 
+;; Prevent problems with `window-system' not having the correct value
+;; when loaddefs.el is loaded. `custom-reevaluate-setting' needs the
+;; standard value.
+;;;###autoload
+(put 'send-mail-function 'standard-value
+     '((if (and window-system (memq system-type '(darwin windows-nt)))
+	   'mailclient-send-it
+	 'sendmail-send-it)))
+
 ;; Useful to set in site-init.el
 ;;;###autoload
 (defcustom send-mail-function

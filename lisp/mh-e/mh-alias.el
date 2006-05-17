@@ -1,7 +1,7 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 ;;
 ;; Copyright (C) 1994, 1995, 1996, 1997,
-;;  2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -38,7 +38,10 @@
 					; completing-read-multiple.
 (eval-when-compile (defvar mail-abbrev-syntax-table))
 
+
+
 ;;; Autoloads
+
 (eval-when (compile load eval)
   (ignore-errors
     (require 'mailabbrev)
@@ -65,18 +68,20 @@
     "/usr/lib/mh/MailAliases" "/usr/share/mailutils/mh/MailAliases"
     "/etc/passwd")
   "*A list of system files which are a source of aliases.
-If these files are modified, they are automatically reread. This list need
-include only system aliases and the passwd file, since personal alias files
-listed in your `Aliasfile:' MH profile component are automatically included.
-You can update the alias list manually using \\[mh-alias-reload].")
+If these files are modified, they are automatically reread. This list
+need include only system aliases and the passwd file, since personal
+alias files listed in your \"Aliasfile:\" MH profile component are
+automatically included. You can update the alias list manually using
+\\[mh-alias-reload].")
 
 
+
 ;;; Alias Loading
 
 (defun mh-alias-tstamp (arg)
   "Check whether alias files have been modified.
-Return t if any file listed in the Aliasfile MH profile component has been
-modified since the timestamp.
+Return t if any file listed in the Aliasfile MH profile component has
+been modified since the timestamp.
 If ARG is non-nil, set timestamp with the current time."
   (if arg
       (let ((time (current-time)))
@@ -94,8 +99,10 @@ If ARG is non-nil, set timestamp with the current time."
 
 (defun mh-alias-filenames (arg)
   "Return list of filenames that contain aliases.
-The filenames come from the Aliasfile profile component and are expanded.
-If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are appended."
+The filenames come from the Aliasfile profile component and are
+expanded.
+If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are
+appended."
   (or mh-progs (mh-find-path))
   (save-excursion
     (let* ((filename (mh-profile-component "Aliasfile"))
@@ -116,8 +123,8 @@ If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are appended."
 
 (defun mh-alias-gecos-name (gecos-name username comma-separator)
   "Return a usable address string from a GECOS-NAME and USERNAME.
-Use only part of the GECOS-NAME up to the first comma if COMMA-SEPARATOR is
-non-nil."
+Use only part of the GECOS-NAME up to the first comma if
+COMMA-SEPARATOR is non-nil."
   (let ((res gecos-name))
     ;; Keep only string until first comma if COMMA-SEPARATOR is t.
     (if (and comma-separator
@@ -139,7 +146,7 @@ non-nil."
 
 (defun mh-alias-local-users ()
   "Return an alist of local users from /etc/passwd.
-Exclude all aliases already in `mh-alias-alist' from `ali'"
+Exclude all aliases already in `mh-alias-alist' from \"ali\""
   (let (passwd-alist)
     (save-excursion
       (set-buffer (get-buffer-create mh-temp-buffer))
@@ -179,14 +186,15 @@ Exclude all aliases already in `mh-alias-alist' from `ali'"
 (defun mh-alias-reload ()
   "Reload MH aliases.
 
-Since aliases are updated frequently, MH-E will reload aliases automatically
-whenever an alias lookup occurs if an alias source (a file listed in your
-`Aliasfile:' profile component and your password file if variable
-`mh-alias-local-users' is non-nil) has changed. However, you can reload your
-aliases manually by calling this command directly.
+Since aliases are updated frequently, MH-E reloads aliases
+automatically whenever an alias lookup occurs if an alias source has
+changed. Sources include files listed in your \"Aliasfile:\" profile
+component and your password file if option `mh-alias-local-users' is
+turned on. However, you can reload your aliases manually by calling
+this command directly.
 
-The value of `mh-alias-reloaded-hook' is a list of functions to be called,
-with no arguments, after the aliases have been loaded."
+This function runs `mh-alias-reloaded-hook' after the aliases have
+been loaded."
   (interactive)
   (save-excursion
     (message "Loading MH aliases...")
@@ -228,13 +236,14 @@ with no arguments, after the aliases have been loaded."
       (mh-alias-reload)))
 
 
+
 ;;; Alias Expansion
 
 (defun mh-alias-ali (alias &optional user)
   "Return ali expansion for ALIAS.
 ALIAS must be a string for a single alias.
-If USER is t, then assume ALIAS is an address and call ali -user.
-ali returns the string unchanged if not defined.  The same is done here."
+If USER is t, then assume ALIAS is an address and call ali -user. ali
+returns the string unchanged if not defined. The same is done here."
   (condition-case err
       (save-excursion
         (let ((user-arg (if user "-user" "-nouser")))
@@ -312,12 +321,13 @@ Blind aliases or users from /etc/passwd are not expanded."
         (delete-region begin end)
         (insert expansion)))))
 
+
 ;;; Adding addresses to alias file.
 
 (defun mh-alias-suggest-alias (string &optional no-comma-swap)
   "Suggest an alias for STRING.
-Don't reverse the order of strings separated by a comma if NO-COMMA-SWAP is
-non-nil."
+Don't reverse the order of strings separated by a comma if
+NO-COMMA-SWAP is non-nil."
   (cond
    ((string-match "^<\\(.*\\)>$" string)
     ;; <somename@foo.bar>  -> recurse, stripping brackets.
@@ -372,8 +382,8 @@ non-nil."
 (defun mh-alias-canonicalize-suggestion (string)
   "Process STRING to replace spaces by periods.
 First all spaces and commas are replaced by periods. Then every run of
-consecutive periods are replaced with a single period. Finally the string
-is converted to lower case."
+consecutive periods are replaced with a single period. Finally the
+string is converted to lower case."
   (with-temp-buffer
     (insert string)
     ;; Replace spaces with periods
@@ -411,10 +421,10 @@ is converted to lower case."
 
 (defun mh-alias-insert-file (&optional alias)
   "Return filename which should be used to add ALIAS.
-The value of the option `mh-alias-insert-file' is used if non-nil\; otherwise
-the value of the `Aliasfile:' profile component is used.
-If the alias already exists, try to return the name of the file that contains
-it."
+The value of the option `mh-alias-insert-file' is used if non-nil\;
+otherwise the value of the \"Aliasfile:\" profile component is used.
+If the alias already exists, try to return the name of the file that
+contains it."
   (cond
    ((and mh-alias-insert-file (listp mh-alias-insert-file))
     (if (not (elt mh-alias-insert-file 1))        ; Only one entry, use it
@@ -439,7 +449,7 @@ it."
       (cond
        ((not autolist)
         (error "No writable alias file.
-Set `mh-alias-insert-file' or the Aliasfile profile component"))
+Set `mh-alias-insert-file' or the \"Aliasfile:\" profile component"))
        ((not (elt autolist 1))        ; Only one entry, use it
         (car autolist))
        ((or (not alias)
@@ -482,12 +492,14 @@ Set `mh-alias-insert-file' or the Aliasfile profile component"))
 
 (defun mh-alias-add-alias-to-file (alias address &optional file)
   "Add ALIAS for ADDRESS in alias FILE without alias check or prompts.
-Prompt for alias file if not provided and there is more than one candidate.
+Prompt for alias file if not provided and there is more than one
+candidate.
 
-If the alias exists already, you will have the choice of inserting the new
-alias before or after the old alias. In the former case, this alias will be
-used when sending mail to this alias. In the latter case, the alias serves as
-an additional folder name hint when filing messages."
+If the alias exists already, you will have the choice of
+inserting the new alias before or after the old alias. In the
+former case, this alias will be used when sending mail to this
+alias. In the latter case, the alias serves as an additional
+folder name hint when filing messages."
   (if (not file)
       (setq file (mh-alias-insert-file alias)))
   (save-excursion
@@ -536,12 +548,14 @@ an additional folder name hint when filing messages."
 
 ;;;###mh-autoload
 (defun mh-alias-add-alias (alias address)
-  "*Add ALIAS for ADDRESS in personal alias file.
-This function prompts you for an alias and address. If the alias exists
-already, you will have the choice of inserting the new alias before or after
-the old alias. In the former case, this alias will be used when sending mail
-to this alias. In the latter case, the alias serves as an additional folder
-name hint when filing messages."
+  "Add ALIAS for ADDRESS in personal alias file.
+
+This function prompts you for an alias and address. If the alias
+exists already, you will have the choice of inserting the new
+alias before or after the old alias. In the former case, this
+alias will be used when sending mail to this alias. In the latter
+case, the alias serves as an additional folder name hint when
+filing messages."
   (interactive "P\nP")
   (mh-alias-reload-maybe)
   (setq alias (completing-read "Alias: " mh-alias-alist nil nil alias))
@@ -557,7 +571,7 @@ name hint when filing messages."
     (cond
      ((and (equal alias address-alias)
            (equal address alias-address))
-      (message "Already defined as: %s" alias-address))
+      (message "Already defined as %s" alias-address))
      (address-alias
       (if (y-or-n-p (format "Address has alias %s; set new one? "
                             address-alias))
@@ -567,7 +581,7 @@ name hint when filing messages."
 
 ;;;###mh-autoload
 (defun mh-alias-grab-from-field ()
-  "*Add alias for the sender of the current message."
+  "Add alias for the sender of the current message."
   (interactive)
   (mh-alias-reload-maybe)
   (save-excursion
@@ -596,7 +610,7 @@ name hint when filing messages."
 
 ;;;###mh-autoload
 (defun mh-alias-apropos (regexp)
-  "Show all aliases or addresses that match REGEXP."
+  "Show all aliases or addresses that match a regular expression REGEXP."
   (interactive "sAlias regexp: ")
   (if mh-alias-local-users
       (mh-alias-reload-maybe))
@@ -653,10 +667,10 @@ name hint when filing messages."
 
 (provide 'mh-alias)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 49879e46-5aa3-4569-bece-e5a58731d690
+;; arch-tag: 49879e46-5aa3-4569-bece-e5a58731d690
 ;;; mh-alias.el ends here

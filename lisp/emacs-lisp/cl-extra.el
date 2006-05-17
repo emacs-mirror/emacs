@@ -743,6 +743,11 @@ This also does some trivial optimizations to make the form prettier."
 	 (let* ((args (cl-macroexpand-body (cdr form) env)) (p args))
 	   (while (and p (symbolp (car p))) (setq p (cddr p)))
 	   (if p (cl-macroexpand-all (cons 'setf args)) (cons 'setq args))))
+        ((consp (car form))
+         (cl-macroexpand-all (list* 'funcall
+                                    (list 'function (car form))
+                                    (cdr form))
+                             env))
 	(t (cons (car form) (cl-macroexpand-body (cdr form) env)))))
 
 (defun cl-macroexpand-body (body &optional env)

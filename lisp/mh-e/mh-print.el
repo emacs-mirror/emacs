@@ -47,8 +47,8 @@ Valid values are:
    black-white - Print colors on black/white printer.
 		 See also `ps-black-white-faces'.
 
-Any other value is treated as t. This variable is initialized from
-`ps-print-color-p'.")
+Any other value is treated as t. This variable is initialized
+from `ps-print-color-p'.")
 
 (defvar mh-ps-print-func 'ps-spool-buffer-with-faces
   "Function to use to spool a buffer.
@@ -108,20 +108,22 @@ Pass along the PREFIX-ARG to it."
 (defun mh-ps-print-msg (range)
   "Print RANGE\\<mh-folder-mode-map>.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
+Check the documentation of `mh-interactive-range' to see how RANGE is
+read in interactive use.
 
-This command will print inline text attachments but will not decrypt messages.
-However, when a message is displayed in an MH-Show buffer, then that buffer is
-used verbatim for printing with the caveat that only text attachments, if
-opened inline, are printed. Therefore, encrypted messages can be printed by
-showing and decrypting them first.
+This command will print inline text attachments but will not decrypt
+messages. However, when a message is displayed in an MH-Show buffer,
+then that buffer is used verbatim for printing with the caveat that
+only text attachments, if opened inline, are printed. Therefore,
+encrypted messages can be printed by showing and decrypting them
+first.
 
-MH-E uses the \"ps-print\" package to do the printing, so you can customize
-the printing further by going to the `ps-print' customization group. This
-command does not use the options `mh-lpr-command-format' or
-`mh-print-background-flag'. See also the commands \\[mh-ps-print-toggle-color]
-and \\[mh-ps-print-toggle-faces]."
+MH-E uses the \"ps-print\" package to do the printing, so you can
+customize the printing further by going to the `ps-print'
+customization group. This command does not use the options
+`mh-lpr-command-format' or `mh-print-background-flag'. See also the
+commands \\[mh-ps-print-toggle-color] and
+\\[mh-ps-print-toggle-faces]."
   (interactive (list (mh-interactive-range "Print")))
   (mh-ps-print-range range nil))
 
@@ -129,20 +131,22 @@ and \\[mh-ps-print-toggle-faces]."
 (defun mh-ps-print-msg-file (range file)
   "Print RANGE to FILE\\<mh-folder-mode-map>.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
+Check the documentation of `mh-interactive-range' to see how RANGE is
+read in interactive use.
 
-This command will print inline text attachments but will not decrypt messages.
-However, when a message is displayed in an MH-Show buffer, then that buffer is
-used verbatim for printing with the caveat that only text attachments, if
-opened inline, are printed. Therefore, encrypted messages can be printed by
-showing and decrypting them first.
+This command will print inline text attachments but will not decrypt
+messages. However, when a message is displayed in an MH-Show buffer,
+then that buffer is used verbatim for printing with the caveat that
+only text attachments, if opened inline, are printed. Therefore,
+encrypted messages can be printed by showing and decrypting them
+first.
 
-MH-E uses the \"ps-print\" package to do the printing, so you can customize
-the printing further by going to the `ps-print' customization group. This
-command does not use the options `mh-lpr-command-format' or
-`mh-print-background-flag'. See also the commands \\[mh-ps-print-toggle-color]
-and \\[mh-ps-print-toggle-faces]."
+MH-E uses the \"ps-print\" package to do the printing, so you can
+customize the printing further by going to the `ps-print'
+customization group. This command does not use the options
+`mh-lpr-command-format' or `mh-print-background-flag'. See also the
+commands \\[mh-ps-print-toggle-color] and
+\\[mh-ps-print-toggle-faces]."
   (interactive (list (mh-interactive-range "Print") (mh-ps-print-preprint 1)))
   (mh-ps-print-range range file))
 
@@ -150,8 +154,8 @@ and \\[mh-ps-print-toggle-faces]."
 (defun mh-ps-print-toggle-faces ()
  "Toggle whether printing is done with faces or not.
 
-When faces are enabled, the printed message will look very similar to the
-message in the MH-Show buffer."
+When faces are enabled, the printed message will look very
+similar to the message in the MH-Show buffer."
  (interactive)
  (if (eq mh-ps-print-func 'ps-spool-buffer-with-faces)
      (progn
@@ -164,13 +168,13 @@ message in the MH-Show buffer."
 (defun mh-ps-print-toggle-color ()
   "Toggle whether color is used in printing messages.
 
-Colors are emulated on black-and-white printers with shades of gray. This
-might produce illegible output, even if your screen colors only use shades of
-gray. If this is the case, try using this command to toggle between color, no
-color, and a black and white representation of the colors and see which works
-best. You change this setting permanently by customizing the option
+Colors are emulated on black-and-white printers with shades of
+gray. This might produce illegible output, even if your screen
+colors only use shades of gray. If this is the case, try using
+this command to toggle between color, no color, and a black and
+white representation of the colors and see which works best. You
+change this setting permanently by customizing the option
 `ps-print-color-p'."
-
  (interactive)
  (if (eq mh-ps-print-color-option nil)
      (progn
@@ -183,16 +187,17 @@ best. You change this setting permanently by customizing the option
      (setq mh-ps-print-color-option nil)
      (message "Colors will not be printed"))))
 
-;;; Old non-PS based printing
+;; Old non-PS based printing
 ;;;###mh-autoload
 (defun mh-print-msg (range)
   "Print RANGE the old fashioned way\\<mh-folder-mode-map>.
 
-The message is formatted with \"mhl\" (see option `mh-mhl-format-file') and
-printed with the \"lpr\" command (see option `mh-lpr-command-format').
+The message is formatted with \"mhl\" (see option
+`mh-mhl-format-file') and printed with the \"lpr\" command (see
+option `mh-lpr-command-format').
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
+Check the documentation of `mh-interactive-range' to see how
+RANGE is read in interactive use.
 
 Consider using \\[mh-ps-print-msg] instead."
   (interactive (list (mh-interactive-range "Print")))
@@ -242,10 +247,10 @@ Consider using \\[mh-ps-print-msg] instead."
 
 (provide 'mh-print)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
 ;; arch-tag: 8d84d50b-2a49-4d0d-b51e-ba9c9b6fc679
 ;;; mh-print.el ends here

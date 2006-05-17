@@ -55,7 +55,7 @@
 		   (:foreground "lightblue"))
 		  (t :underline t))
   "Default face used for buttons."
-  :group 'faces)
+  :group 'basic-faces)
 
 ;;;###autoload
 (defvar button-map

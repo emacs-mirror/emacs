@@ -3174,6 +3174,34 @@ describe_translation (definition, args)
     insert_string ("??\n");
 }
 
+/* describe_map puts all the usable elements of a sparse keymap
+   into an array of `struct describe_map_elt',
+   then sorts them by the events.  */
+
+struct describe_map_elt { Lisp_Object event; Lisp_Object definition; int shadowed; };
+
+/* qsort comparison function for sorting `struct describe_map_elt' by
+   the event field.  */
+
+static int
+describe_map_compare (aa, bb)
+     const void *aa, *bb;
+{
+  const struct describe_map_elt *a = aa, *b = bb;
+  if (INTEGERP (a->event) && INTEGERP (b->event))
+    return ((XINT (a->event) > XINT (b->event))
+	    - (XINT (a->event) < XINT (b->event)));
+  if (!INTEGERP (a->event) && INTEGERP (b->event))
+    return 1;
+  if (INTEGERP (a->event) && !INTEGERP (b->event))
+    return -1;
+  if (SYMBOLP (a->event) && SYMBOLP (b->event))
+    return (!NILP (Fstring_lessp (a->event, b->event)) ? -1
+	    : !NILP (Fstring_lessp (b->event, a->event)) ? 1
+	    : 0);
+  return 0;
+}
+
 /* Describe the contents of map MAP, assuming that this map itself is
    reached by the sequence of prefix keys PREFIX (a string or vector).
    PARTIAL, SHADOW, NOMENU are as in `describe_map_tree' above.  */
@@ -3197,6 +3225,13 @@ describe_map (map, prefix, elt_describer, partial, shadow,
   int first = 1;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
+  /* These accumulate the values from sparse keymap bindings,
+     so we can sort them and handle them in order.  */
+  int length_needed = 0;
+  struct describe_map_elt *vect;
+  int slots_used = 0;
+  int i;
+
   suppress = Qnil;
 
   if (partial)
@@ -3207,6 +3242,12 @@ describe_map (map, prefix, elt_describer, partial, shadow,
      fresh vector every time.  */
   kludge = Fmake_vector (make_number (1), Qnil);
   definition = Qnil;
+
+  for (tail = map; CONSP (tail); tail = XCDR (tail))
+    length_needed++;
+
+  vect = ((struct describe_map_elt *)
+	  alloca (sizeof (struct describe_map_elt) * length_needed));
 
   GCPRO3 (prefix, definition, kludge);
 
@@ -3222,6 +3263,7 @@ describe_map (map, prefix, elt_describer, partial, shadow,
       else if (CONSP (XCAR (tail)))
 	{
 	  int this_shadowed = 0;
+
 	  event = XCAR (XCAR (tail));
 
 	  /* Ignore bindings whose "prefix" are not really valid events.
@@ -3262,27 +3304,10 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	  tem = Flookup_key (map, kludge, Qt);
 	  if (!EQ (tem, definition)) continue;
 
-	  if (first)
-	    {
-	      previous_description_column = 0;
-	      insert ("\n", 1);
-	      first = 0;
-	    }
-
-	  /* THIS gets the string to describe the character EVENT.  */
-	  insert1 (Fkey_description (kludge, prefix));
-
-	  /* Print a description of the definition of this character.
-	     elt_describer will take care of spacing out far enough
-	     for alignment purposes.  */
-	  (*elt_describer) (definition, Qnil);
-
-	  if (this_shadowed)
-	    {
-	      SET_PT (PT - 1);
-	      insert_string ("  (binding currently shadowed)");
-	      SET_PT (PT + 1);
-	    }
+	  vect[slots_used].event = event;
+	  vect[slots_used].definition = definition;
+	  vect[slots_used].shadowed = this_shadowed;
+	  slots_used++;
 	}
       else if (EQ (XCAR (tail), Qkeymap))
 	{
@@ -3293,6 +3318,68 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	  if (CONSP (tem) && !NILP (Fequal (XCAR (tem), prefix)))
 	    break;
 	  *seen = Fcons (Fcons (tail, prefix), *seen);
+	}
+    }
+
+  /* If we found some sparse map events, sort them.  */
+
+  qsort (vect, slots_used, sizeof (struct describe_map_elt),
+	 describe_map_compare);
+
+  /* Now output them in sorted order.  */
+
+  for (i = 0; i < slots_used; i++)
+    {
+      Lisp_Object start, end;
+
+      if (first)
+	{
+	  previous_description_column = 0;
+	  insert ("\n", 1);
+	  first = 0;
+	}
+
+      ASET (kludge, 0, vect[i].event);
+      start = vect[i].event;
+      end = start;
+
+      definition = vect[i].definition;
+
+      /* Find consecutive chars that are identically defined.  */
+      if (INTEGERP (vect[i].event))
+	{
+	  while (i + 1 < slots_used
+		 && XINT (vect[i + 1].event) == XINT (vect[i].event) + 1
+		 && !NILP (Fequal (vect[i + 1].definition, definition))
+		 && vect[i].shadowed == vect[i + 1].shadowed)
+	    i++;
+	  end = vect[i].event;
+	}
+
+      /* Now START .. END is the range to describe next.  */
+
+      /* Insert the string to describe the event START.  */
+      insert1 (Fkey_description (kludge, prefix));
+
+      if (!EQ (start, end))
+	{
+	  insert (" .. ", 4);
+
+	  ASET (kludge, 0, end);
+	  /* Insert the string to describe the character END.  */
+	  insert1 (Fkey_description (kludge, prefix));
+	}
+
+      /* Print a description of the definition of this character.
+	 elt_describer will take care of spacing out far enough
+	 for alignment purposes.  */
+      (*elt_describer) (vect[i].definition, Qnil);
+
+      if (vect[i].shadowed)
+	{
+	  SET_PT (PT - 1);
+	  insert_string ("  (binding currently shadowed)");
+	  SET_PT (PT + 1);
 	}
     }
 
@@ -3850,6 +3937,9 @@ keymaps have no binding for the current key sequence but
 `function-key-map' binds a suffix of the sequence to a vector or string,
 `read-key-sequence' replaces the matching suffix with its binding, and
 continues with the new sequence.
+
+If the binding is a function, it is called with one argument (the prompt)
+and its return value (a key sequence) is used.
 
 The events that come from bindings in `function-key-map' are not
 themselves looked up in `function-key-map'.

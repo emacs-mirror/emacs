@@ -824,7 +824,7 @@ Delete the escape even it is not recognized."
 
 ;;;###autoload
 (defun ethio-sera-to-fidel-mail-or-marker (&optional arg)
-  "Execute ethio-sera-to-fidel-mail or ethio-sera-to-fidel-marker depending on the current major mode.
+  "Execute `ethio-sera-to-fidel-mail' or `ethio-sera-to-fidel-marker' depending on the current major mode.
 If in rmail-mode or in mail-mode, execute the former; otherwise latter."
 
   (interactive "P")
@@ -1214,7 +1214,7 @@ See also the descriptions of the variables
 
 ;;;###autoload
 (defun ethio-fidel-to-sera-mail-or-marker (&optional arg)
-  "Execute ethio-fidel-to-sera-mail or ethio-fidel-to-sera-marker depending on the current major mode.
+  "Execute `ethio-fidel-to-sera-mail' or `ethio-fidel-to-sera-marker' depending on the current major mode.
 If in rmail-mode or in mail-mode, execute the former; otherwise latter."
 
   (interactive "P")

@@ -1,6 +1,6 @@
 ;;; longlines.el --- automatically wrap long lines
 
-;; Copyright (C) 2000, 2001, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
@@ -111,7 +111,7 @@ are indicated with a symbol."
 	(add-hook 'before-revert-hook 'longlines-before-revert-hook nil t)
         (make-local-variable 'buffer-substring-filters)
 	(set (make-local-variable 'isearch-search-fun-function)
-	     'longlinges-search-function)
+	     'longlines-search-function)
         (add-to-list 'buffer-substring-filters 'longlines-encode-string)
         (when longlines-wrap-follows-window-size
           (set (make-local-variable 'fill-column)
@@ -127,8 +127,8 @@ are indicated with a symbol."
           ;; longlines-wrap-lines that we'll never encounter from here
 	  (save-restriction
 	    (widen)
-	    (longlines-decode-buffer))
-          (longlines-wrap-region (point-min) (point-max))
+	    (longlines-decode-buffer)
+	    (longlines-wrap-region (point-min) (point-max)))
           (set-buffer-modified-p mod))
         (when (and longlines-show-hard-newlines
                    (not longlines-showing))
@@ -166,7 +166,6 @@ are indicated with a symbol."
 	(widen)
 	(longlines-encode-region (point-min) (point-max))))
     (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
-    (remove-hook 'before-kill-functions 'longlines-encode-region t)
     (remove-hook 'after-change-functions 'longlines-after-change-function t)
     (remove-hook 'post-command-hook 'longlines-post-command-function t)
     (remove-hook 'before-revert-hook 'longlines-before-revert-hook t)
@@ -327,10 +326,11 @@ If BEG and END are nil, the point and mark are used."
   (if (null beg) (setq beg (point)))
   (if (null end) (setq end (mark t)))
   (save-excursion
-    (goto-char (min beg end))
-    (while (search-forward "\n" (max beg end) t)
-      (set-hard-newline-properties
-       (match-beginning 0) (match-end 0)))))
+    (let ((reg-max (max beg end)))
+      (goto-char (min beg end))
+      (while (search-forward "\n" reg-max t)
+	(set-hard-newline-properties
+	 (match-beginning 0) (match-end 0))))))
 
 (defun longlines-decode-buffer ()
   "Turn all newlines in the buffer into hard newlines."
@@ -341,9 +341,10 @@ If BEG and END are nil, the point and mark are used."
 Hard newlines are left intact.  The optional argument BUFFER exists for
 compatibility with `format-alist', and is ignored."
   (save-excursion
-    (let ((mod (buffer-modified-p)))
+    (let ((reg-max (max beg end))
+	  (mod (buffer-modified-p)))
       (goto-char (min beg end))
-      (while (search-forward "\n" (max (max beg end)) t)
+      (while (search-forward "\n" reg-max t)
         (unless (get-text-property (match-beginning 0) 'hard)
           (replace-match " ")))
       (set-buffer-modified-p mod)
@@ -422,7 +423,7 @@ This is called by `window-size-change-functions'."
 
 ;; Isearch
 
-(defun longlinges-search-function ()
+(defun longlines-search-function ()
   (cond
    (isearch-word
     (if isearch-forward 'word-search-forward 'word-search-backward))

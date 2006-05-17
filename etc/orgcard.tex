@@ -1,4 +1,4 @@
-% Reference Card for Org Mode 4.00
+% Reference Card for Org Mode 4.02
 %
 %**start of header
 \newcount\columnsperpage
@@ -18,7 +18,7 @@
 
 \columnsperpage=3
 
-% Copyright (c) 2004 Philip Rooke, 2005 Free Software Foundation
+% Copyright (c) 2004 Philip Rooke, 2005, 2006 Free Software Foundation
 
 % GNU Emacs is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -58,11 +58,11 @@
 % Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
 % for their many good ideas.
 
-\def\orgversionnumber{4.00}
-\def\year{2005}
+\def\orgversionnumber{4.02}
+\def\year{2006}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
-  \centerline{\small \copyright\ 2004, 2005\ Free Software Foundation, Inc.
+  \centerline{\small \copyright\ 2004, 2005, 2006\ Free Software Foundation, Inc.
   Permissions on back.  v\orgversionnumber}}
 
 \def\copyrightnotice{
@@ -557,8 +557,7 @@ To set categories, add lines like$^3$:
 {\bf Change display}
 
 \key{delete other windows}{o}
-\key{switch to weekly view}{w}
-\key{switch to daily view}{d}
+\key{switch to daily / weekly view}{d / w}
 \key{toggle inclusion of diary entries}{D}
 \key{toggle time grid for daily schedule}{g}
 \key{toggle display of logbook entries}{l}
@@ -571,6 +570,7 @@ To set categories, add lines like$^3$:
 
 \key{digit argument}{0-9}
 \key{change state of current TODO item}{t}
+\key{set tags for current headline}{:}
 \key{set priority of current item}{p}
 \key{raise priority of current item}{S-UP$^4$}
 \key{lower priority of current item}{S-DOWN$^4$}

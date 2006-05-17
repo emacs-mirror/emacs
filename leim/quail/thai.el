@@ -1,8 +1,6 @@
 ;;; thai.el --- Quail package for inputting Thai characters
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2005
+;; Copyright (C) 1995, 1997, 1999, 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 

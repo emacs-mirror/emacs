@@ -1,7 +1,9 @@
 ;;; symbol-ksc.el --- Quail-package for Korean Symbol (KSC5601)
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, Korean, Hangul
 

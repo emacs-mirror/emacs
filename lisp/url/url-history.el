@@ -1,7 +1,7 @@
 ;;; url-history.el --- Global history tracking for URL package
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -75,12 +75,11 @@ to run the `url-history-setup-save-timer' function manually."
 (defvar url-history-changed-since-last-save nil
   "Whether the history list has changed since the last save operation.")
 
-(defvar url-history-hash-table nil
+(defvar url-history-hash-table (make-hash-table :size 31 :test 'equal)
   "Hash table for global history completion.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;###autoload
 (defun url-history-setup-save-timer ()
   "Reset the history list timer."
   (interactive)
@@ -92,28 +91,27 @@ to run the `url-history-setup-save-timer' function manually."
 					   url-history-save-interval
 					   'url-history-save-history))))
 
-;;;###autoload
 (defun url-history-parse-history (&optional fname)
   "Parse a history file stored in FNAME."
   ;; Parse out the mosaic global history file for completions, etc.
   (or fname (setq fname (expand-file-name url-history-file)))
   (cond
    ((not (file-exists-p fname))
-    (message "%s does not exist." fname))
+    ;; It's completely normal for this file not to exist, so don't complain.
+    ;; (message "%s does not exist." fname)
+    )
    ((not (file-readable-p fname))
     (message "%s is unreadable." fname))
    (t
     (condition-case nil
 	(load fname nil t)
-      (error (message "Could not load %s" fname)))))
-  (if (not url-history-hash-table)
-      (setq url-history-hash-table (make-hash-table :size 31 :test 'equal))))
+      (error (message "Could not load %s" fname))))))
 
 (defun url-history-update-url (url time)
   (setq url-history-changed-since-last-save t)
-  (puthash (if (vectorp url) (url-recreate-url url) url) time url-history-hash-table))
+  (puthash (if (vectorp url) (url-recreate-url url) url) time
+           url-history-hash-table))
 
-;;;###autoload
 (defun url-history-save-history (&optional fname)
   "Write the global history file into `url-history-file'.
 The type of data written is determined by what is in the file to begin
@@ -121,6 +119,8 @@ with.  If the type of storage cannot be determined, then prompt the
 user for what type to save as."
   (interactive)
   (or fname (setq fname (expand-file-name url-history-file)))
+  (unless (file-directory-p (file-name-directory fname))
+    (ignore-errors (make-directory (file-name-directory fname))))
   (cond
    ((not url-history-changed-since-last-save) nil)
    ((not (file-writable-p fname))
@@ -129,26 +129,27 @@ user for what type to save as."
     (let ((make-backup-files nil)
 	  (version-control nil)
 	  (require-final-newline t))
-      (save-excursion
-	(set-buffer (get-buffer-create " *url-tmp*"))
+      (with-current-buffer (get-buffer-create " *url-tmp*")
 	(erase-buffer)
 	(let ((count 0))
-	  (maphash (function
-		       (lambda (key value)
-			 (while (string-match "[\r\n]+" key)
-			   (setq key (concat (substring key 0 (match-beginning 0))
-					     (substring key (match-end 0) nil))))
-			 (setq count (1+ count))
-			 (insert "(puthash \"" key "\""
-				 (if (not (stringp value)) " '" "")
-				 (prin1-to-string value)
-				 " url-history-hash-table)\n")))
-		      url-history-hash-table)
-	  (goto-char (point-min))
-	  (insert (format
-		   "(setq url-history-hash-table (make-hash-table :size %d :test 'equal))\n"
-		   (/ count 4)))
-	  (goto-char (point-max))
+	  (maphash (lambda (key value)
+                     (while (string-match "[\r\n]+" key)
+                       (setq key (concat (substring key 0 (match-beginning 0))
+                                         (substring key (match-end 0) nil))))
+                     (setq count (1+ count))
+                     (insert "(puthash \"" key "\""
+                             (if (not (stringp value)) " '" "")
+                             (prin1-to-string value)
+                             " url-history-hash-table)\n"))
+                   url-history-hash-table)
+          ;; We used to add this in the file, but it just makes the code
+          ;; more complex with no benefit.  Worse: it makes it harder to
+          ;; preserve preexisting history when loading the history file.
+	  ;; (goto-char (point-min))
+	  ;; (insert (format
+	  ;;          "(setq url-history-hash-table (make-hash-table :size %d :test 'equal))\n"
+	  ;;          (/ count 4)))
+	  ;; (goto-char (point-max))
 	  (insert "\n")
 	  (write-file fname))
 	(kill-buffer (current-buffer))))))
@@ -156,33 +157,30 @@ user for what type to save as."
 
 (defun url-have-visited-url (url)
   (url-do-setup)
-  (and url-history-hash-table
-       (gethash url url-history-hash-table nil)))
+  (gethash url url-history-hash-table nil))
 
 (defun url-completion-function (string predicate function)
+  ;; Completion function to complete urls from the history.
+  ;; This is obsolete since we can now pass the hash-table directly as a
+  ;; completion table.
   (url-do-setup)
   (cond
    ((eq function nil)
     (let ((list nil))
-      (maphash (function (lambda (key val)
-			      (setq list (cons (cons key val)
-					       list))))
-		  url-history-hash-table)
+      (maphash (lambda (key val) (push key list))
+               url-history-hash-table)
+      ;; Not sure why we bother reversing the list.  --Stef
       (try-completion string (nreverse list) predicate)))
    ((eq function t)
-    (let ((stub (concat "^" (regexp-quote string)))
+    (let ((stub (concat "\\`" (regexp-quote string)))
 	  (retval nil))
       (maphash
-       (function
-	(lambda (url time)
-	  (if (string-match stub url)
-	      (setq retval (cons url retval)))))
+       (lambda (url time)
+         (if (string-match stub url) (push url retval)))
        url-history-hash-table)
       retval))
    ((eq function 'lambda)
-    (and url-history-hash-table
-	 (gethash string url-history-hash-table)
-	 t))
+    (and (gethash string url-history-hash-table) t))
    (t
     (error "url-completion-function very confused"))))
 

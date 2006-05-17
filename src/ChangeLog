@@ -1,3 +1,373 @@
+2006-01-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit: Fix typo.
+
+2006-01-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Fix last change.
+
+2006-01-05  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fmake_network_process): Use AF_INET instead of
+	AF_UNSPEC when AF_INET6	is not defined.
+
+2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (mac_coerce_file_name_ptr, mac_coerce_file_name_desc):
+	Don't check that the other type is known file-related one.
+
+	* macfns.c (Fx_server_version): Use gestaltSystemVersionMajor,
+	gestaltSystemVersionMinor, and gestaltSystemVersionBugFix on Mac
+	OS X 10.4 and later.
+
+2006-01-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): If the image is from a file,
+	let GTK do all image processing.  Importing Emacs own pixmaps to GTK
+	looks bad for inactive tool bar items with some Gnome themes.
+
+2006-01-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Avoid a warning message when x_error_quitter is not
+	compiled in.
+
+	* process.c [WINDOWSNT]: Undef AF_INET6 to disable IPv6 support
+	for w32.
+
+2006-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* process.c: Add IPv6 support.
+	(Qipv4, Qipv6): New vars.
+	(syms_of_process): Intern and staticpro them.
+	(Fformat_network_address): Handle 9 or 8 element vector as IPv6 address
+	with or without port number.  Handle 4 element vector as IPv4 address
+	without port number.
+	(conv_sockaddr_to_lisp, get_lisp_to_sockaddr_size)
+	(conv_lisp_to_sockaddr): Handle IPv6 addresses.
+	(Fmake_network_process): Use :family 'ipv4 and 'ipv6 to explicitly
+	request that address family only.  :family nil or omitted means to
+	determine address family from the specified :host and :service.
+	(ifflag_table): Add missing OpenBSD IFF_ flags.
+	(server_accept_connection): Handle IPv6 addresses.
+	(init_process): Add (:family ipv4) and (:family ipv6) sub-features.
+
+	* .gdbinit: Undo last change.  Instead, look at Vsystem_type to
+	determine which breakpoints to set.
+
+2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (describe_map_compare): Yet another int/Lisp_Object mixup.
+
+	* window.h (Fwindow_minibuffer_p): Declare (for use in minibuf.c).
+
+2006-01-03  Romain Francoise  <romain@orebokech.com>
+
+	* emacs.c (main): Update copyright year.
+
+2006-01-03  Ken Raeburn  <raeburn@gnu.org>
+
+	* callproc.c (delete_temp_file): Bind file-name-handler-alist to
+	nil for the call to internal_delete_file.
+
+2006-01-01  Ken Raeburn  <raeburn@gnu.org>
+
+	* callproc.c (Fcall_process_region): Bind file-name-handler-alist
+	to nil for the call to Fwrite_region.
+
+2005-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.c (read_minibuf): Clear out all other minibuffer windows.
+
+2005-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (gdb_pvec_type): A dummy variable for GDB's sake.
+
+2005-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textprop.c (set_text_properties): Reword description of return value.
+	Return Qnil if caller wants to remove all text properties from a
+	string and the string already has no intervals.
+
+2005-12-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* term.c (visible_cursor): New boolean var.
+	(set_terminal_modes, tty_show_cursor): Use "vs" or "ve" depending on
+	visible_cursor.
+	(syms_of_term): Export the new var as "visible-cursor".
+
+2005-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Tell users not to worry about GDB warnings that some
+	functions do not exist in the binary.
+
+2005-12-30  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (Fnetwork_interface_info): Correctly terminate the
+	loop over ifflag_table.
+
+2005-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (readevalloop): Test for reading a whole buffer
+	before actually reading anything.  Handle all cases, including
+	START = END = nil and an already-narrowed buffer.
+	Convert END to a marker if it is a number.
+
+	* keymap.c (describe_map): Put sparse map elements into an array,
+	sort them, then output a sequence of identical bindings on one line.
+	(struct describe_map_elt): New data type.
+	(describe_map_compare): New function.
+
+2005-12-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Change message shown
+	in file chooser.
+
+2005-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (readevalloop): Set PT and ZV in the proper buffer,
+	not the current one.
+
+	* minibuf.c (Fminibuffer_message): Doc fix.
+	(read_minibuf): Set current_buffer->enable_multibyte_characters sooner.
+
+	* eval.c (do_autoload): Ignore elements of Vautoload_queue
+	where car is not symbol.
+
+2005-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (lisp_string_width): Check multibyteness of STRING.
+
+2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c: x_show_hidden_files, new variable.
+	(syms_of_xfns): Defvar it.
+
+	* gtkutil.c (xg_toggle_visibility_cb): New function.
+	(xg_get_file_with_chooser): Add toggle hidden files and a message
+	to the new file chooser dialog.  Show hidden files if
+	x_show_hidden_files is non-zero.
+
+2005-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.h: Undo previous change.
+
+	* Makefile.in (undo.o): Undo previous change.
+
+	* undo.c: Undo previous change.
+
+2005-12-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.h: extern last_point_position_window.
+
+	* undo.c: include keyboard.h.
+
+	* Makefile.in (undo.o): Depend on keyboard.h.
+
+2005-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.h (last_point_position_window): Declare.
+
+	* undo.c: Depend on window.h.
+	(record_point): Save old point from the correct window.
+
+	* keyboard.c (last_point_position_window): New variable.
+	(command_loop_1): Set last_point_position_window.
+	(syms_of_keyboard): Init it.
+
+	* Makefile.in (undo.o): Depend on window.h.
+
+2005-12-25  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (un_autoload): Expect (0 . OFEATURES) in Vautoload_queue
+	to undo a `provide'.
+
+	* fns.c (Fprovide): Store (0 . OFEATURES) in Vautoload_queue.
+
+2005-12-25  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+
+	* m/amdx86-64.h [__FreeBSD__] (START_FILES, LIB_STANDARD):
+	define for FreeBSD on this platform.
+
+2005-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.h (TYPE_FILE_NAME): New define.
+	(posix_pathname_to_fsspec, fsspec_to_posix_pathname): Remove externs.
+
+	* mac.c (posix_pathname_to_fsspec, fsspec_to_posix_pathname):
+	Add prototypes.  Make static.
+	(mac_aedesc_to_lisp): Initialize err to noErr.
+	(mac_coerce_file_name_ptr, mac_coerce_file_name_desc)
+	(init_coercion_handler): New functions.
+	(Fmac_coerce_ae_data): Use coercion of Apple event data for
+	translation from/to file names.
+
+	* macterm.c: Don't include sys/param.h.
+	(init_coercion_handler): Add extern.
+	[MAC_OS8] (main): Call init_coercion_handler.
+	(mac_initialize) [MAC_OSX]: Likewise.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Use coercion of
+	Apple event data for translation from/to file names.
+
+	* macfns.c [TARGET_API_MAC_CARBON] (Fx_file_dialog): Likewise.
+
+	* image.c [MAC_OS] (find_image_fsspec): Likewise.
+
+2005-12-23  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* insdel.c (insert, insert_and_inherit, insert_before_markers)
+	(insert_before_markers_and_inherit): Make sure FROM is correct
+	when `after-change-functions' are called.
+
+2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_uses_old_gtk_dialog): New function.
+
+	* gtkutil.c (xg_uses_old_file_dialog): New function.
+	(xg_get_file_name): Use xg_uses_old_file_dialog.
+
+	* gtkutil.h: Declare xg_uses_old_file_dialog.
+
+2005-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (xmenu_show): Call inhibit_garbage_collection.
+
+2005-12-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (Fmac_coerce_ae_data) [MAC_OSX]: Fix memory leak.
+
+	* macgui.h (XCharStruct): Remove member `valid_p'.
+	(STORE_XCHARSTRUCT): Don't set member `valid_p'.
+	(XCharStructRow): New typedef.
+	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID):
+	New macros.
+	(struct MacFontStruct): Add member `bounds'.  Remove member
+	`per_char'.  All uses for QuichDraw Text fonts are changed to
+	`bounds.per_char'.  ATSUI font bounds are represented as an array
+	`bounds.rows' of XCharStructRow's, each of which consists of a
+	bitmap of valid entries and an array of char bounds.
+
+	* macterm.c (mac_per_char_metric): Add prototype.
+	(x_per_char_metric) [USE_CG_TEXT_DRAWING]: Remove prototype.
+	(mac_query_char_extents): New function.
+	(x_per_char_metric): Use it.
+	(XLoadQueryFont): Likewise.  Consolidate min/max_bounds calculations.
+	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg):
+	Use mac_per_char_metric instead of x_per_char_metric.
+	(mac_text_extents_16): New function.
+	(mac_compute_glyph_string_overhangs): Use it.
+	(mac_unload_font): Free member `bounds' in struct MacFontStruct.
+
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Fdisplay_completion_list): Use XCAR/XCDR.
+	(Fminibuffer_completion_help): Remove duplicates before display.
+
+2005-12-21  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* print.c (print_preprocess): Don't lose print_depth levels while
+	iterating.
+
+2005-12-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (Qmac_apple_event): Add extern.
+	(set_frame_menubar, mac_menu_show keymp_panes)
+	(single_keymap_panes, list_of_panes, list_of_item)
+	(single_menu_item): Add argument types to prototypes.
+	(mac_dialog_show) [HAVE_DIALOGS]: Likewise.
+	(struct skp): New struct (from xmenu.c).
+	(single_keymap_panes, single_menu_item, list_of_panes)
+	(list_of_item): Sync with xmenu.c.
+	(Fx_popup_menu, Fx_popup_dialog): Likewise.  Don't get window from
+	POSITION if it is mac-apple-event event.
+	(menubar_selection_callback): Don't use menu_command_in_progress.
+	(set_frame_menubar): First parse all submenus, then make
+	widget_value trees from them.  Don't allocate any widget_value
+	objects until we are done with the parsing.
+	(parse_single_submenu, digest_single_submenu): New functions.
+	(single_submenu): Function deleted, replaced by those two.
+	(install_menu_quit_handler) [HAVE_CANCELMENUTRACKING]: Don't
+	create or dispose of EventHandlerUPP.  Install hander to all submenus.
+	(mac_menu_show) [!HAVE_MULTILINGUAL_MENU]: Use ENCODE_MENU_STRING
+	instead of ENCODE_SYSTEM.
+	(free_frame_menubar, fill_submenu, fill_menu): Don't use NULL for
+	integer values.
+	[HAVE_DIALOGS] (mac_dialog_show): Sync with xdialog_show (in xmenu.c).
+	(add_menu_item) [TARGET_API_MAC_CARBON]: Use CFString functions to
+	format menu item string.  Don't use NULL for integer value.
+
+	* macterm.h (struct mac_output): Remove unused member
+	menu_command_in_progress.
+
+2005-12-20  Juri Linkov  <juri@jurta.org>
+
+	* xmenu.c (Fx_popup_menu): Set Vmenu_updating_frame to f if
+	position is non-nil, else set it to nil.
+
+	* macmenu.c (Fx_popup_menu): Add `else' to set
+	Vmenu_updating_frame to nil only if position is nil.
+
+	* w32menu.c (Fx_popup_menu): Add `else' to set
+	Vmenu_updating_frame to nil only if position is nil.
+
+2005-12-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (make_lispy_event): Drag-and-drop items are now
+	stored in member `args' of struct input_event.
+
+	* termhooks.h (struct input_event): Fix comment for DRAG_N_DROP_EVENT.
+
+	* xselect.c (x_handle_dnd_message): Drag-and-drop items are now
+	stored in member `args' of struct input_event.
+
+	* w32term.c (construct_drag_n_drop): Likewise.
+
+	* macterm.c (mac_do_receive_drag): Likewise.
+	(x_use_underline_position_properties): Undo 2005-07-13 change.
+	(syms_of_macterm) <x-use-underline-position-properties>: Likewise.
+	(mac_use_core_graphics, mac_wheel_button_is_mouse_2)
+	(mac_pass_command_to_system, mac_pass_control_to_system):
+	New boolean variables renamed from Lisp_Object ones
+	Vmac_use_core_graphics, Vmac_wheel_button_is_mouse_2,
+	Vmac_pass_command_to_system, and Vmac_pass_control_to_system.
+	All uses changed.
+	(syms_of_macterm): DEFVAR_BOOL them.  Remove previous DEFVAR_LISPs.
+	Make them user options.
+	(mac_handle_command_event, mac_store_services_event):
+	Call create_apple_event_from_event_ref without 5th argument.
+	(backtranslate_modified_keycode): Mask off modifier keys that are
+	mapped to some Emacs modifiers before passing it to KeyTranslate.
+	(syms_of_macterm): Make variables `mac-emulate-three-button-mouse',
+	`mac-wheel-button-is-mouse-2', and `mac-*-modifier' user options.
+	Fix docstrings of `mac-*-modifier'.
+
+	* mac.c (create_apple_event_from_event_ref): Remove arg `types'.
+	(do_applescript): Change argument types to Lisp_Object.
+	All uses changed.
+
+	* macterm.h (create_apple_event_from_event_ref): Remove 5th
+	argument from extern.
+
+2005-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xfns.c (Fx_backspace_delete_keys_p): In case we cannot determine
+	the answer, return `lambda', not nil.
+
+2005-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap-temacs): Warn that parts of commands
+	enclosed in $(ARGQUOTE)s should not be split between two lines, as
+	that will break with GNU Make >3.80, when sh.exe is used and
+	arg quoting is with '..'.
+
+2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* print.c (print_preprocess): Just signal an error if print_depth
+	is exceeded.
+
+2005-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Set a breakpoint on w32_abort.
+
 2005-12-16  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.c (Fminibuffer_completion_contents): New Lisp function
@@ -15,9 +385,9 @@
 
 	* xfns.c (compute_tip_xy): Handle negative dx and dy.
 
-	* w32fns.c (compute_tip_xy): Ditto
+	* w32fns.c (compute_tip_xy): Ditto.
 
-	* macfns.c (compute_tip_xy): Ditto
+	* macfns.c (compute_tip_xy): Ditto.
 
 2005-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -95,8 +465,7 @@
 	* mac.c (Qundecoded_file_name): New variable.
 	(syms_of_mac): Initialize it.
 	(mac_aelist_to_lisp, mac_aedesc_to_lisp): New functions.
-	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): New
-	function.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): New fun.
 	(Fmac_coerce_ae_data): New defun.
 	(syms_of_mac): Defsubr it.
 
@@ -137,11 +506,11 @@
 	[MAC_OS8] (main): Call init_apple_event_handler instead of
 	init_required_apple_events.
 	(mac_initialize) [MAC_OSX]: Likewise.
-	[!USE_CARBON_EVENTS] (mac_wait_next_event): Use
-	mac_ready_for_apple_events instead of Qmac_ready_for_drag_n_drop.
+	[!USE_CARBON_EVENTS] (mac_wait_next_event):
+	Use mac_ready_for_apple_events instead of Qmac_ready_for_drag_n_drop.
 
-	* macterm.h (mac_make_lispy_event_code, mac_aedesc_to_lisp): Add
-	externs.
+	* macterm.h (mac_make_lispy_event_code, mac_aedesc_to_lisp):
+	Add externs.
 	(create_apple_event_from_event_ref) [TARGET_API_MAC_CARBON]: Likewise.
 	(Fmac_get_preference): Add EXFUN.
 
@@ -181,11 +550,9 @@
 
 2005-12-06  Ken Raeburn  <raeburn@gnu.org>
 
-	* buffer.c (Fkill_buffer): Avoid dangerous side effects in NILP
-	argument.
+	* buffer.c (Fkill_buffer): Avoid dangerous side effects in NILP args.
 	* bytecode.c (Fbyte_code): Likewise.
-	* fileio.c (internal_delete_file, Fread_file_name_internal):
-	Likewise.
+	* fileio.c (internal_delete_file, Fread_file_name_internal): Likewise.
 	* minibuf.c (Fminibuffer_complete_and_exit): Likewise.
 	* undo.c (truncate_undo_list): Likewise.
 

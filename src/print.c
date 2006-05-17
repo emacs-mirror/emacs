@@ -1313,14 +1313,8 @@ print_preprocess (obj)
 
   /* Give up if we go so deep that print_object will get an error.  */
   /* See similar code in print_object.  */
-  /* Because print_preprocess "follows" nested lists in a slightly
-     different order from print_object, there is a risk of giving up
-     too soon.  In that case, a deeply nested circular list may cause
-     print_object to loop.  Using 3 * PRINT_CIRCLE should make this
-     possibility negligible, but at some point someone will have to
-     sit down and do a more careful analysis. -- cyd */
-  if (print_depth >= 3 * PRINT_CIRCLE)
-    return;
+  if (print_depth >= PRINT_CIRCLE)
+    error ("Apparently circular structure being printed");
 
   /* Avoid infinite recursion for circular nested structure
      in the case where Vprint_circle is nil.  */
@@ -1351,7 +1345,8 @@ print_preprocess (obj)
 	      {
 		/* OBJ appears more than once.  Let's remember that.  */
 		PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
-		return;
+                print_depth--;
+                return;
 	      }
 
 	  /* OBJ is not yet recorded.  Let's add to the table.  */

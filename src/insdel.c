@@ -749,9 +749,10 @@ insert (string, nbytes)
 {
   if (nbytes > 0)
     {
-      int opoint = PT;
-      insert_1 (string, nbytes, 0, 1, 0);
-      signal_after_change (opoint, 0, PT - opoint);
+      int len = chars_in_text (string, nbytes), opoint;
+      insert_1_both (string, len, nbytes, 0, 1, 0);
+      opoint = PT - len;
+      signal_after_change (opoint, 0, len);
       update_compositions (opoint, PT, CHECK_BORDER);
     }
 }
@@ -765,9 +766,10 @@ insert_and_inherit (string, nbytes)
 {
   if (nbytes > 0)
     {
-      int opoint = PT;
-      insert_1 (string, nbytes, 1, 1, 0);
-      signal_after_change (opoint, 0, PT - opoint);
+      int len = chars_in_text (string, nbytes), opoint;
+      insert_1_both (string, len, nbytes, 1, 1, 0);
+      opoint = PT - len;
+      signal_after_change (opoint, 0, len);
       update_compositions (opoint, PT, CHECK_BORDER);
     }
 }
@@ -813,10 +815,10 @@ insert_before_markers (string, nbytes)
 {
   if (nbytes > 0)
     {
-      int opoint = PT;
-
-      insert_1 (string, nbytes, 0, 1, 1);
-      signal_after_change (opoint, 0, PT - opoint);
+      int len = chars_in_text (string, nbytes), opoint;
+      insert_1_both (string, len, nbytes, 0, 1, 1);
+      opoint = PT - len;
+      signal_after_change (opoint, 0, len);
       update_compositions (opoint, PT, CHECK_BORDER);
     }
 }
@@ -830,10 +832,10 @@ insert_before_markers_and_inherit (string, nbytes)
 {
   if (nbytes > 0)
     {
-      int opoint = PT;
-
-      insert_1 (string, nbytes, 1, 1, 1);
-      signal_after_change (opoint, 0, PT - opoint);
+      int len = chars_in_text (string, nbytes), opoint;
+      insert_1_both (string, len, nbytes, 1, 1, 1);
+      opoint = PT - len;
+      signal_after_change (opoint, 0, len);
       update_compositions (opoint, PT, CHECK_BORDER);
     }
 }

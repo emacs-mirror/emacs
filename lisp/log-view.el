@@ -25,16 +25,42 @@
 
 ;;; Commentary:
 
-;; Todo:
+;; Major mode to browse revision log histories.
+;; Currently supports the format output by:
+;;  RCS, SCCS, CVS, Subversion.
 
-;; - add compatibility with cvs-log.el
+;; Examples of log output:
+
+;;;; RCS/CVS:
+
+;; ----------------------------
+;; revision 1.35	locked by: turlutut
+;; date: 2005-03-22 18:48:38 +0000;  author: monnier;  state: Exp;  lines: +6 -8
+;; (gnus-display-time-event-handler):
+;; Check display-time-timer at runtime rather than only at load time
+;; in case display-time-mode is turned off in the mean time.
+;; ----------------------------
+;; revision 1.34
+;; date: 2005-02-09 15:50:38 +0000;  author: kfstorm;  state: Exp;  lines: +7 -7
+;; branches:  1.34.2;
+;; Change release version from 21.4 to 22.1 throughout.
+;; Change development version from 21.3.50 to 22.0.50.
+
+;;;; SCCS:
+
+;;;; Subversion:
+
+;;; Todo:
+
 ;; - add ability to modify a log-entry (via cvs-mode-admin ;-)
 ;; - remove references to cvs-*
+;; - make it easier to add support for new backends without changing the code.
 
 ;;; Code:
 
 (eval-when-compile (require 'cl))
 (require 'pcvs-util)
+(autoload 'vc-find-version "vc")
 (autoload 'vc-version-diff "vc")
 
 (defvar cvs-minor-wrap-function)
@@ -87,17 +113,20 @@
 (defvar log-view-message-face 'log-view-message)
 
 (defconst log-view-file-re
-  (concat "^\\("
-	  "Working file: \\(.+\\)"
-	  "\\|SCCS/s\\.\\(.+\\):"
-	  "\\)\n"))
-;; In RCS, a locked revision will look like "revision N.M\tlocked by: FOO".
-(defconst log-view-message-re "^\\(revision \\([.0-9]+\\)\\(?:\t.*\\)?\\|r\\([0-9]+\\) | .* | .*\\|D \\([.0-9]+\\) .*\\)$")
+  (concat "^\\(?:Working file: \\(.+\\)"                ;RCS and CVS.
+          "\\|SCCS/s\\.\\(.+\\):"                       ;SCCS.
+	  "\\)\n"))                   ;Include the \n for font-lock reasons.
+
+(defconst log-view-message-re
+  (concat "^\\(?:revision \\([.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
+          "\\|r\\([0-9]+\\) | .* | .*"                ; Subversion.
+          "\\|D \\([.0-9]+\\) .*"                     ; SCCS.
+          "\\)$"))
 
 (defconst log-view-font-lock-keywords
   `((,log-view-file-re
+     (1 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
      (2 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
-     (3 (if (boundp 'cvs-filename-face) cvs-filename-face) nil t)
      (0 log-view-file-face append))
     (,log-view-message-re . log-view-message-face)))
 (defconst log-view-font-lock-defaults
@@ -140,7 +169,7 @@
     (forward-line 1)
     (or (re-search-backward log-view-file-re nil t)
 	(re-search-forward log-view-file-re))
-    (let* ((file (or (match-string 2) (match-string 3)))
+    (let* ((file (or (match-string 1) (match-string 2)))
 	   (cvsdir (and (re-search-backward log-view-dir-re nil t)
 			(match-string 1)))
 	   (pcldir (and (boundp 'cvs-pcl-cvs-dirchange-re)
@@ -158,9 +187,16 @@
     (forward-line 1)
     (let ((pt (point)))
       (when (re-search-backward log-view-message-re nil t)
-	(let ((rev (or (match-string 2) (match-string 3) (match-string 4))))
+        (let (rev)
+          ;; Find the subgroup that matched.
+          (dotimes (i (/ (length (match-data 'integers)) 2))
+            (setq rev (or rev (match-string (1+ i)))))
 	  (unless (re-search-forward log-view-file-re pt t)
 	    rev))))))
+
+(defvar cvs-minor-current-files)
+(defvar cvs-branch-prefix)
+(defvar cvs-secondary-branch-prefix)
 
 (defun log-view-minor-wrap (buf f)
   (let ((data (with-current-buffer buf

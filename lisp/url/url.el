@@ -1,7 +1,7 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes, hypermedia
@@ -47,8 +47,11 @@
 (require 'url-util)
 
 ;; Fixme: customize? convert-standard-filename?
-;;;###autoload
-(defvar url-configuration-directory "~/.url")
+(defvar url-configuration-directory
+  (cond
+   ((file-directory-p "~/.url") "~/.url")
+   ((file-directory-p "~/.emacs.d") "~/.emacs.d/url")
+   (t "~/.url")))
 
 (defun url-do-setup ()
   "Setup the url package.
@@ -111,6 +114,7 @@ Emacs."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Retrieval functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;###autoload
 (defun url-retrieve (url callback &optional cbargs)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
 URL is either a string or a parsed URL.
@@ -152,6 +156,7 @@ already completed."
 	(url-history-update-url url (current-time)))
     buffer))
 
+;;;###autoload
 (defun url-retrieve-synchronously (url)
   "Retrieve URL synchronously.
 Return the buffer containing the data, or nil if there are no data

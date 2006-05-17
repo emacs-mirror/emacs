@@ -1,3 +1,10 @@
+2005-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TIT), leim-list.el): Warn that parts of
+	commands enclosed in $(ARGQUOTE)s should not be split between two
+	lines, as that will break with GNU Make >3.80, when sh.exe is used
+	and arg quoting is with '..'.
+
 2005-11-03  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (GZIP_PROG): Renamed from GZIP.

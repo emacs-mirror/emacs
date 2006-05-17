@@ -136,16 +136,12 @@ The format is (FUNCTION ARGS...).")
 (define-button-type 'help-customize-variable
   :supertype 'help-xref
   'help-function (lambda (v)
-		   (if help-xref-stack
-		       (pop help-xref-stack))
 		   (customize-variable v))
   'help-echo (purecopy "mouse-2, RET: customize variable"))
 
 (define-button-type 'help-customize-face
   :supertype 'help-xref
   'help-function (lambda (v)
-		   (if help-xref-stack
-		       (pop help-xref-stack))
 		   (customize-face v))
   'help-echo (purecopy "mouse-2, RET: customize face"))
 
@@ -652,6 +648,15 @@ For the cross-reference format, see `help-make-xrefs'."
 		(fboundp sym) (facep sym))
 	(help-do-xref pos #'help-xref-interned (list sym))))))
 
+(defun help-insert-string (string)
+  "Insert STRING to the help buffer and install xref info for it.
+This function can be used to restore the old contents of the help buffer
+when going back to the previous topic in the xref stack.  It is needed
+in case when it is impossible to recompute the old contents of the
+help buffer by other means."
+  (setq help-xref-stack-item (list #'help-insert-string string))
+  (with-output-to-temp-buffer (help-buffer)
+    (insert string)))
 
 (provide 'help-mode)
 

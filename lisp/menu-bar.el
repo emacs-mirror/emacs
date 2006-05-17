@@ -178,6 +178,17 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-file-menu [separator-save]
   '(menu-item "--"))
 
+(defun menu-find-file-existing ()
+  "Edit the existing file FILENAME."
+  (interactive)
+  (let* ((mustmatch (not (and (fboundp 'x-uses-old-gtk-dialog)
+			      (x-uses-old-gtk-dialog))))
+	 (filename (car (find-file-read-args "Find file: " mustmatch))))
+    (if mustmatch
+	(find-file-existing filename)
+      (find-file filename))))
+
+
 (define-key menu-bar-file-menu [kill-buffer]
   '(menu-item "Close" kill-this-buffer
 	      :enable (kill-this-buffer-enabled-p)
@@ -191,7 +202,7 @@ A large number or nil slows down menu responsiveness."
 	      :enable (menu-bar-non-minibuffer-window-p)
 	      :help "Read a directory, to operate on its files"))
 (define-key menu-bar-file-menu [open-file]
-  '(menu-item "Open File..." find-file-existing
+  '(menu-item "Open File..." menu-find-file-existing
 	      :enable (menu-bar-non-minibuffer-window-p)
 	      :help "Read an existing file into an Emacs buffer"))
 (define-key menu-bar-file-menu [new-file]
@@ -1418,8 +1429,7 @@ key, a click, or a menu-item"))
 (defun menu-bar-menu-frame-live-and-visible-p ()
   "Return non-nil if the menu frame is alive and visible.
 The menu frame is the frame for which we are updating the menu."
-  (let ((menu-frame (if (display-multi-frame-p) menu-updating-frame
-		      (selected-frame))))
+  (let ((menu-frame (or menu-updating-frame (selected-frame))))
     (and (frame-live-p menu-frame)
 	 (frame-visible-p menu-frame))))
 
@@ -1428,8 +1438,7 @@ The menu frame is the frame for which we are updating the menu."
 
 See the documentation of `menu-bar-menu-frame-live-and-visible-p'
 for the definition of the menu frame."
-  (let ((menu-frame (if (display-multi-frame-p) menu-updating-frame
-		      (selected-frame))))
+  (let ((menu-frame (or menu-updating-frame (selected-frame))))
     (not (window-minibuffer-p (frame-selected-window menu-frame)))))
 
 (defun kill-this-buffer ()	; for the menu bar

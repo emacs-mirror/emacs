@@ -350,17 +350,20 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 	  (custom-push-theme 'theme-face face theme 'set spec))
 	(setq args (cdr (cdr args))))))))
 
+;; XEmacs compability function.  In XEmacs, when you reset a Custom
+;; Theme, you have to specify the theme to reset it to.  We just apply
+;; the next theme.
 ;;;###autoload
 (defun custom-theme-reset-faces (theme &rest args)
   "Reset the specs in THEME of some faces to their specs in other themes.
 Each of the arguments ARGS has this form:
 
-    (FACE FROM-THEME)
+    (FACE IGNORED)
 
-This means reset FACE to its value in FROM-THEME."
+This means reset FACE.  The argument IGNORED is ignored."
   (custom-check-theme theme)
   (dolist (arg args)
-    (custom-push-theme 'theme-face (car arg) theme 'reset (cadr arg))))
+    (custom-push-theme 'theme-face (car arg) theme 'reset)))
 
 ;;;###autoload
 (defun custom-reset-faces (&rest args)

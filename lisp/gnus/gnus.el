@@ -934,7 +934,7 @@ be set in `.emacs' instead."
     (t
      ()))
   "Face for the splash screen."
-  :group 'gnus)
+  :group 'gnus-start)
 ;; backward-compatibility alias
 (put 'gnus-splash-face 'face-alias 'gnus-splash)
 
@@ -3820,6 +3820,7 @@ If you call this function inside a loop, consider using the faster
 (defun gnus-group-get-parameter (group &optional symbol allow-list)
   "Return the group parameters for GROUP.
 If SYMBOL, return the value of that symbol in the group parameters.
+If ALLOW-LIST, also allow list as a result.
 Most functions should use `gnus-group-find-parameter', which
 also examines the topic parameters."
   (let ((params (gnus-info-params (gnus-get-info group))))
@@ -3829,7 +3830,8 @@ also examines the topic parameters."
 
 (defun gnus-group-parameter-value (params symbol &optional
 					  allow-list present-p)
-  "Return the value of SYMBOL in group PARAMS."
+  "Return the value of SYMBOL in group PARAMS.
+If ALLOW-LIST, also allow list as a result."
   ;; We only wish to return group parameters (dotted lists) and
   ;; not local variables, which may have the same names.
   ;; But first we handle single elements...

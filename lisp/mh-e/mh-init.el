@@ -1,6 +1,6 @@
-;;; mh-init.el --- MH-E initialization.
+;;; mh-init.el --- MH-E initialization
 
-;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -43,14 +43,14 @@
 (mh-require-cl)
 (require 'mh-utils)
 
-;;; Avoid compiler warnings.
+;; Avoid compiler warnings.
 (eval-when-compile (defvar image-load-path))
 
-;;; Set for local environment:
-;;; mh-progs and mh-lib used to be set in paths.el, which tried to
-;;; figure out at build time which of several possible directories MH
-;;; was installed into.  But if you installed MH after building Emacs,
-;;; this would almost certainly be wrong, so now we do it at run time.
+;; Set for local environment:
+;; mh-progs and mh-lib used to be set in paths.el, which tried to
+;; figure out at build time which of several possible directories MH
+;; was installed into.  But if you installed MH after building Emacs,
+;; this would almost certainly be wrong, so now we do it at run time.
 
 (defvar mh-progs nil
   "Directory containing MH commands, such as inc, repl, and rmm.")
@@ -64,7 +64,7 @@ This directory contains, among other things, the components file.")
 This directory contains, among other things, the mhl program.")
 
 (defvar mh-flists-present-flag nil
-  "Non-nil means that we have `flists'.")
+  "Non-nil means that we have \"flists\".")
 
 ;;;###autoload
 (put 'mh-progs 'risky-local-variable t)
@@ -81,8 +81,8 @@ Created by the function `mh-variants'")
 (defun mh-variants ()
   "Return a list of installed variants of MH on the system.
 This function looks for MH in `mh-sys-path', `mh-path' and
-`exec-path'. The format of the list of variants that is returned is described
-by the variable `mh-variants'."
+`exec-path'. The format of the list of variants that is returned
+is described by the variable `mh-variants'."
   (if mh-variants
       mh-variants
     (let ((list-unique))
@@ -100,14 +100,16 @@ by the variable `mh-variants'."
 
 (defvar mh-variant-in-use nil
   "The MH variant currently in use; a string with variant and version number.
-This differs from `mh-variant' when the latter is set to `autodetect'.")
+This differs from `mh-variant' when the latter is set to
+\"autodetect\".")
 
 ;;;###mh-autoload
 (defun mh-variant-set (variant)
   "Set the MH variant to VARIANT.
-Sets `mh-progs', `mh-lib', `mh-lib-progs' and `mh-flists-present-flag'.
-If the VARIANT is `autodetect', then first try nmh, then MH and finally
-GNU mailutils."
+Sets `mh-progs', `mh-lib', `mh-lib-progs' and
+`mh-flists-present-flag'.
+If the VARIANT is \"autodetect\", then first try nmh, then MH and
+finally GNU mailutils."
   (interactive
    (list (completing-read
           "MH Variant: "
@@ -125,20 +127,21 @@ GNU mailutils."
        ((mh-variant-set-variant 'mu-mh)
         (message "%s installed as MH variant" mh-variant-in-use))
        (t
-        (message "No MH variant found on the system!"))))
+        (message "No MH variant found on the system"))))
      ((member variant valid-list)
       (when (not (mh-variant-set-variant variant))
-        (message "Warning: %s variant not found.  Autodetecting..." variant)
+        (message "Warning: %s variant not found. Autodetecting..." variant)
         (mh-variant-set 'autodetect)))
      (t
-      (message "Unknown variant.  Use %s"
+      (message "Unknown variant; use %s"
                (mapconcat '(lambda (x) (format "%s" (car x)))
                           mh-variants " or "))))))
 
 (defun mh-variant-set-variant (variant)
   "Setup the system variables for the MH variant named VARIANT.
 If VARIANT is a string, use that key in the variable `mh-variants'.
-If VARIANT is a symbol, select the first entry that matches that variant."
+If VARIANT is a symbol, select the first entry that matches that
+variant."
   (cond
    ((stringp variant)                   ;e.g. "nmh 1.1-RC1"
     (when (assoc variant mh-variants)
@@ -193,13 +196,13 @@ Currently known variants are 'MH, 'nmh, and 'mu-mh."
     "/usr/bin/mu-mh/")                  ; GNU mailutils - packaged
   "List of directories to search for variants of the MH variant.
 The list `exec-path' is searched in addition to this list.
-There's no need for users to modify this list.  Instead add extra
+There's no need for users to modify this list. Instead add extra
 directories to the customizable variable `mh-path'.")
 
 (defun mh-variant-mh-info (dir)
   "Return info for MH variant in DIR assuming a temporary buffer is setup."
   ;; MH does not have the -version option.
-  ;; Its version number is included in the output of `-help' as:
+  ;; Its version number is included in the output of "-help" as:
   ;;
   ;; version: MH 6.8.4 #2[UCI] (burrito) of Fri Jan 15 20:01:39 EST 1999
   ;; options: [ATHENA] [BIND] [DUMB] [LIBLOCKFILE] [LOCALE] [MAILGROUP] [MHE]
@@ -302,10 +305,11 @@ This assumes that a temporary buffer is setup."
 ;;;###mh-autoload
 (defun mh-image-load-path ()
   "Ensure that the MH-E images are accessible by `find-image'.
-Images for MH-E are found in ../../etc/images relative to the files in
-`lisp/mh-e'. If `image-load-path' exists (since Emacs 22), then the images
-directory is added to it if isn't already there. Otherwise, the images
-directory is added to the `load-path' if it isn't already there."
+Images for MH-E are found in ../../etc/images relative to the
+files in \"lisp/mh-e\". If `image-load-path' exists (since Emacs
+22), then the images directory is added to it if isn't already
+there. Otherwise, the images directory is added to the
+`load-path' if it isn't already there."
   (unless mh-image-load-path-called-flag
     (let (mh-library-name mh-image-load-path)
       ;; First, find mh-e in the load-path.
@@ -330,30 +334,37 @@ directory is added to the `load-path' if it isn't already there."
 
 (defun mh-defface-compat (spec)
   "Convert SPEC for defface if necessary to run on older platforms.
-See `defface' for the spec definition.
+Modifies SPEC in place and returns it. See `defface' for the spec definition.
 
-When `mh-min-colors-defined-flag' is nil, this function finds a display with a
-single \"class\" requirement with a \"color\" item, renames the requirement to
-\"tty\" and moves it to the beginning of the list. It then strips any
-\"min-colors\" requirements."
-  (when (not mh-min-colors-defined-flag)
-    ;; Insert ((class tty)) display with ((class color)) attributes.
-    (let ((attributes (cdr (assoc '((class color)) spec))))
-      (cons (cons '((class tty)) attributes) spec))
-    ;; Delete ((class color)) display.
-    (delq (assoc '((class color)) spec) spec)
-    ;; Strip min-colors.
-    (loop for entry in spec do
-          (when (not (eq (car entry) t))
-            (if (assoc 'min-colors (car entry))
-                (delq (assoc 'min-colors (car entry)) (car entry)))))))
+When `mh-min-colors-defined-flag' is nil, this function finds
+display entries with \"min-colors\" requirements and either
+removes the \"min-colors\" requirement or strips the display
+entirely if the display does not support the number of specified
+colors."
+  (if mh-min-colors-defined-flag
+      spec
+    (let ((cells (display-color-cells))
+          new-spec)
+      ;; Remove entries with min-colors, or delete them if we have fewer colors
+      ;; than they specify.
+      (loop for entry in (reverse spec) do
+            (let ((requirement (if (eq (car entry) t)
+                                   nil
+                                 (assoc 'min-colors (car entry)))))
+              (if requirement
+                  (when (>= cells (nth 1 requirement))
+                    (setq new-spec (cons (cons (delq requirement (car entry))
+                                               (cdr entry))
+                                         new-spec)))
+                (setq new-spec (cons entry new-spec)))))
+      new-spec)))
 
 (provide 'mh-init)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
 ;; arch-tag: e8372aeb-d803-42b1-9c95-3c93ad22f63c
 ;;; mh-init.el ends here

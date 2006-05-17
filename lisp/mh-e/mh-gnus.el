@@ -30,8 +30,8 @@
 
 ;;; Code:
 
-;;; Load libraries in a non-fatal way in order to see if certain functions are
-;;; pre-defined.
+;; Load libraries in a non-fatal way in order to see if certain functions are
+;; pre-defined.
 (load "mailabbrev" t t)
 (load "mailcap" t t)
 (load "mm-decode" t t)
@@ -41,9 +41,9 @@
 
 (defmacro mh-defun-compat (function arg-list &rest body)
   "This is a macro to define functions which are not defined.
-It is used for Gnus utility functions which were added recently. If FUNCTION
-is not defined then it is defined to have argument list, ARG-LIST and body,
-BODY."
+It is used for Gnus utility functions which were added recently.
+If FUNCTION is not defined then it is defined to have argument
+list, ARG-LIST and body, BODY."
   (let ((defined-p (fboundp function)))
     (unless defined-p
       `(defun ,function ,arg-list ,@body))))
@@ -51,9 +51,9 @@ BODY."
 
 (defmacro mh-defmacro-compat (function arg-list &rest body)
   "This is a macro to define functions which are not defined.
-It is used for Gnus utility functions which were added recently. If FUNCTION
-is not defined then it is defined to have argument list, ARG-LIST and body,
-BODY."
+It is used for Gnus utility functions which were added recently.
+If FUNCTION is not defined then it is defined to have argument
+list, ARG-LIST and body, BODY."
   (let ((defined-p (fboundp function)))
     (unless defined-p
       `(defmacro ,function ,arg-list ,@body))))
@@ -147,10 +147,10 @@ BODY."
 	disposition
       default)))
 
-;;; This is mm-save-part from Gnus 5.10 since that function in emacs21.2 is
-;;; buggy (the args to read-file-name are incorrect). When all supported
-;;; versions of Emacs come with at least Gnus 5.10, we can delete this
-;;; function and rename calls to mh-mm-save-part to mm-save-part.
+;; This is mm-save-part from Gnus 5.10 since that function in emacs21.2 is
+;; buggy (the args to read-file-name are incorrect). When all supported
+;; versions of Emacs come with at least Gnus 5.10, we can delete this
+;; function and rename calls to mh-mm-save-part to mm-save-part.
 (defun mh-mm-save-part (handle)
   "Write HANDLE to a file."
   (let ((name (mail-content-type-get (mm-handle-type handle) 'name))
@@ -181,12 +181,12 @@ BODY."
 
 (provide 'mh-gnus)
 
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; no-update-autoloads: t
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
 ;; arch-tag: 1e3638af-cad3-4c69-8427-bc8eb6e5e4fa
 ;;; mh-gnus.el ends here

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2004
 ;;   Free Software Foundation, Inc.
-;; Copyright (C) 2004
+;; Copyright (C) 2004, 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 

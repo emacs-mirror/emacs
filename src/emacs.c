@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
-                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -112,6 +112,9 @@ EMACS_INT gdb_data_seg_bits = 0;
 #endif
 EMACS_INT PVEC_FLAG = PSEUDOVECTOR_FLAG;
 EMACS_INT gdb_array_mark_flag = ARRAY_MARK_FLAG;
+/* GDB might say "No enum type named pvec_type" if we don't have at
+   least one symbol with that type, and then xbacktrace could fail.  */
+enum pvec_type gdb_pvec_type = PVEC_TYPE_MASK;
 
 /* Command line args from shell, as list of strings.  */
 Lisp_Object Vcommand_line_args;
@@ -896,7 +899,7 @@ main (argc, argv
       else
 	{
 	  printf ("GNU Emacs %s\n", SDATA (tem));
-	  printf ("Copyright (C) 2005 Free Software Foundation, Inc.\n");
+	  printf ("Copyright (C) 2006 Free Software Foundation, Inc.\n");
 	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("You may redistribute copies of Emacs\n");
 	  printf ("under the terms of the GNU General Public License.\n");

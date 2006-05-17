@@ -291,12 +291,13 @@ act as a paragraph-separator."
 
 (defun fill-single-word-nobreak-p ()
   "Don't break a line after the first or before the last word of a sentence."
-  (or (looking-at "[ \t]*\\sw+[ \t]*[.?!:][ \t]*$")
+  (or (looking-at (concat "[ \t]*\\sw+" "\\(?:" (sentence-end) "\\)"))
       (save-excursion
 	(skip-chars-backward " \t")
 	(and (/= (skip-syntax-backward "w") 0)
 	     (/= (skip-chars-backward " \t") 0)
-	     (/= (skip-chars-backward ".?!:") 0)))))
+	     (/= (skip-chars-backward ".?!:") 0)
+	     (looking-at (sentence-end))))))
 
 (defun fill-french-nobreak-p ()
   "Return nil if French style allows breaking the line at point.

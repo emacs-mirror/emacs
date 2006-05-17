@@ -322,42 +322,42 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
   GdkPixmap *gmask;
   GdkDisplay *gdpy;
 
-  /* If we are on a one bit display, let GTK do all the image handling.
+  /* If we have a file, let GTK do all the image handling.
      This seems to be the only way to make insensitive and activated icons
-     look good.  */
-  if (x_screen_planes (f) == 1)
+     look good in all cases.  */
+  Lisp_Object specified_file = Qnil;
+  Lisp_Object tail;
+  extern Lisp_Object QCfile;
+
+  for (tail = XCDR (img->spec);
+       NILP (specified_file) && CONSP (tail) && CONSP (XCDR (tail));
+       tail = XCDR (XCDR (tail)))
+    if (EQ (XCAR (tail), QCfile))
+      specified_file = XCAR (XCDR (tail));
+
+  if (STRINGP (specified_file))
     {
-      Lisp_Object specified_file = Qnil;
-      Lisp_Object tail;
-      extern Lisp_Object QCfile;
+      Lisp_Object file = Qnil;
+      struct gcpro gcpro1;
+      GCPRO1 (file);
 
-      for (tail = XCDR (img->spec);
-	   NILP (specified_file) && CONSP (tail) && CONSP (XCDR (tail));
-	   tail = XCDR (XCDR (tail)))
-	if (EQ (XCAR (tail), QCfile))
-	  specified_file = XCAR (XCDR (tail));
+      file = x_find_image_file (specified_file);
+      /* We already loaded the image once before calling this
+         function, so this should not fail.  */
+      xassert (STRINGP (file) != 0);
 
-	if (STRINGP (specified_file))
-	  {
+      if (! old_widget)
+        old_widget = GTK_IMAGE (gtk_image_new_from_file (SSDATA (file)));
+      else
+        gtk_image_set_from_file (old_widget, SSDATA (file));
 
-	    Lisp_Object file = Qnil;
-	    struct gcpro gcpro1;
-	    GCPRO1 (file);
-
-	    file = x_find_image_file (specified_file);
-	    /* We already loaded the image once before calling this
-	       function, so this should not fail.  */
-	    xassert (STRINGP (file) != 0);
-
-	    if (! old_widget)
-	      old_widget = GTK_IMAGE (gtk_image_new_from_file (SSDATA (file)));
-	    else
-	      gtk_image_set_from_file (old_widget, SSDATA (file));
-
-	    UNGCPRO;
-	    return GTK_WIDGET (old_widget);
-	  }
+      UNGCPRO;
+      return GTK_WIDGET (old_widget);
     }
+
+  /* No file, do the image handling ourselves.  This will look very bad
+     on a monochrome display, and sometimes bad on all displays with
+     certain themes.  */
 
   gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
   gpix = gdk_pixmap_foreign_new_for_display (gdpy, img->pixmap);
@@ -1155,6 +1155,27 @@ create_dialog (wv, select_cb, deactivate_cb)
 /***********************************************************************
                       File dialog functions
  ***********************************************************************/
+/* Return non-zero if the old file selection dialog is being used.
+   Return zero if not.  */
+
+int
+xg_uses_old_file_dialog ()
+{
+#ifdef HAVE_GTK_FILE_BOTH
+  extern int x_use_old_gtk_file_dialog;
+  return x_use_old_gtk_file_dialog;
+#else /* ! HAVE_GTK_FILE_BOTH */
+
+#ifdef HAVE_GTK_FILE_SELECTION_NEW
+  return 1;
+#else
+  return 0;
+#endif
+
+#endif /* ! HAVE_GTK_FILE_BOTH */
+}
+
+
 /* Function that is called when the file dialog pops down.
    W is the dialog widget, RESPONSE is the response code.
    USER_DATA is what we passed in to g_signal_connect (pointer to int).  */
@@ -1199,6 +1220,19 @@ xg_get_file_name_from_chooser (w)
   return gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (w));
 }
 
+static void
+xg_toggle_visibility_cb (widget, data)
+     GtkWidget *widget;
+     gpointer data;
+{
+  GtkFileChooser *dialog = GTK_FILE_CHOOSER (data);
+  gboolean visible;
+  extern int x_gtk_show_hidden_files;
+  g_object_get (G_OBJECT (dialog), "show-hidden", &visible, NULL);
+  g_object_set (G_OBJECT (dialog), "show-hidden", !visible, NULL);
+  x_gtk_show_hidden_files = !visible;
+}
+
 /* Read a file name from the user using a file chooser dialog.
    F is the current frame.
    PROMPT is a prompt to show to the user.  May not be NULL.
@@ -1218,11 +1252,14 @@ xg_get_file_with_chooser (f, prompt, default_filename,
      int mustmatch_p, only_dir_p;
      xg_get_file_func *func;
 {
-  GtkWidget *filewin;
+  char message[1024];
+
+  GtkWidget *filewin, *wtoggle, *wbox, *wmessage;
   GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
   GtkFileChooserAction action = (mustmatch_p ?
                                  GTK_FILE_CHOOSER_ACTION_OPEN :
                                  GTK_FILE_CHOOSER_ACTION_SAVE);
+  extern int x_gtk_show_hidden_files;
 
   if (only_dir_p)
     action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
@@ -1234,6 +1271,31 @@ xg_get_file_with_chooser (f, prompt, default_filename,
                                          GTK_RESPONSE_OK,
                                          NULL);
   gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (filewin), TRUE);
+
+  wbox = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (wbox);
+  wtoggle = gtk_check_button_new_with_label ("Show hidden files.");
+  
+  if (x_gtk_show_hidden_files) 
+    {
+      g_object_set (G_OBJECT (filewin), "show-hidden", TRUE, NULL);
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (wtoggle), TRUE);
+    }
+  gtk_widget_show (wtoggle);
+  g_signal_connect (G_OBJECT (wtoggle), "clicked",
+                    G_CALLBACK (xg_toggle_visibility_cb), G_OBJECT(filewin));
+
+  message[0] = '\0';
+  if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
+    strcat (message, "\nType C-l to display a file name text entry box.\n");
+  strcat (message, "\nIf you don't like this file selector, customize "
+          "use-file-dialog\nto turn it off, or type C-x C-f to visit files.");
+
+  wmessage = gtk_label_new (message);
+  gtk_widget_show (wmessage);
+  gtk_box_pack_start (GTK_BOX (wbox), wtoggle, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (wbox), wmessage, FALSE, FALSE, 0);
+  gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (filewin), wbox);
 
   if (default_filename)
     {
@@ -1343,7 +1405,6 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
   char *fn = 0;
   int filesel_done = 0;
   xg_get_file_func func;
-  extern int x_use_old_gtk_file_dialog;
 
 #if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
   /* I really don't know why this is needed, but without this the GLIBC add on
@@ -1354,7 +1415,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
 
 #ifdef HAVE_GTK_FILE_BOTH
 
-  if (x_use_old_gtk_file_dialog)
+  if (xg_uses_old_file_dialog ())
     w = xg_get_file_with_selection (f, prompt, default_filename,
                                     mustmatch_p, only_dir_p, &func);
   else

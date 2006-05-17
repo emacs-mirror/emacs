@@ -76,7 +76,7 @@ in the customization buffer with the Info node name.
 Link to a web page; @var{url} is a string which specifies the
 @acronym{URL}.  The link appears in the customization buffer as
 @var{url} and invokes the WWW browser specified by
-@var{browse-url-browser-function}.
+@code{browse-url-browser-function}.
 
 @item (emacs-commentary-link @var{library})
 Link to the commentary section of a library; @var{library} is a string
@@ -155,8 +155,7 @@ keyword.
 @defmac defgroup group members doc [keyword value]@dots{}
 Declare @var{group} as a customization group containing @var{members}.
 Do not quote the symbol @var{group}.  The argument @var{doc} specifies
-the documentation string for the group.  It should not start with a
-@samp{*} as in @code{defcustom}; that convention is for variables only.
+the documentation string for the group.
 
 The argument @var{members} is a list specifying an initial set of
 customization items to be members of the group.  However, most often
@@ -211,12 +210,9 @@ turn this feature back on, if someone would like to do the work.
 @defmac defcustom option default doc [keyword value]@dots{}
 Declare @var{option} as a customizable user option variable.  Do not
 quote @var{option}.  The argument @var{doc} specifies the documentation
-string for the variable.  It should often start with a @samp{*} to mark
-it as a @dfn{user option} (@pxref{Defining Variables}).  Do not start
-the documentation string with @samp{*} for options which cannot or
-normally should not be set with @code{set-variable}; examples of the
-former are global minor mode options such as
-@code{global-font-lock-mode} and examples of the latter are hooks.
+string for the variable.  There is no need to start it with a @samp{*}
+because @code{defcustom} automatically marks @var{option} as a
+@dfn{user option} (@pxref{Defining Variables}).
 
 If @var{option} is void, @code{defcustom} initializes it to
 @var{default}.  @var{default} should be an expression to compute the
@@ -1015,7 +1011,6 @@ the echo area.  In addition, @var{motion-doc} is used as the mouse
 @code{help-echo} string and may actually be a function or form evaluated
 to yield a help string.  If it is a function, it is called with one
 argument, the widget.
-@xref{Text help-echo}.
 
 @item :match @var{function}
 Specify how to decide whether a value matches the type.  The

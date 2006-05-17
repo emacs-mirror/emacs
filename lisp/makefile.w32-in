@@ -97,6 +97,8 @@ doit:
 
 $(lisp)/cus-load.el:
 	touch $@
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
 custom-deps: $(lisp)/cus-load.el doit
 	@echo Directories: $(WINS)
 	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hook nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
@@ -150,14 +152,14 @@ loaddefs.el-CMD:
 # including a drive letter and any leading directories, so the generated
 # loaddefs.el will mention file names that on other machine reference
 # possibly non-existent directories.
+#
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
 autoloads: $(lisp)/loaddefs.el doit
 	@echo Directories: . $(WINS)
 	$(emacs) -l autoload \
-		--eval $(ARGQUOTE)(setq find-file-hook nil \
-			find-file-suppress-same-file-warnings t \
-			generated-autoload-file \
-			  $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) \
-		-f batch-update-autoloads . $(WINS)
+		--eval $(ARGQUOTE)(setq find-file-hook nil find-file-suppress-same-file-warnings t)$(ARGQUOTE) \
+		-f w32-batch-update-autoloads "$(lisp)/loaddefs.el" . $(WINS)
 
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -180,6 +182,9 @@ update-subdirs-SH: doit
 	done;
 
 updates: update-subdirs autoloads mh-autoloads finder-data custom-deps
+
+# This is useful after "cvs up".
+cvs-update: recompile autoloads finder-data custom-deps
 
 # Update the AUTHORS file.
 
@@ -309,10 +314,10 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	$(EMACS) $(EMACSOPT) \
 	   -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
 	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/mh-e
+	   -f w32-batch-update-autoloads \
+	   "$(lisp)/mh-e/mh-loaddefs.el" $(lisp)/mh-e
 
 pre-mh-loaddefs.el-SH:
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@

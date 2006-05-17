@@ -225,7 +225,9 @@ only of boring text.  Boring text is controlled by
 This can also be a list of regexps.  In that case, it will be checked
 from head to tail looking for a separator.  Searches will be done from
 the end of the buffer."
-  :type '(repeat string)
+  :type '(choice :format "%{%t%}: %[Value Menu%]\n%v"
+		 (regexp)
+		 (repeat :tag "List of regexp" regexp))
   :group 'gnus-article-signature)
 
 (defcustom gnus-signature-limit nil
@@ -822,7 +824,9 @@ This variable is only used when `gnus-inhibit-mime-unbuttonizing' is nil."
   "List of MIME types that should be given buttons when rendered inline.
 If set, this variable overrides `gnus-unbuttonized-mime-types'.
 To see e.g. security buttons you could set this to
-`(\"multipart/signed\")'.
+`(\"multipart/signed\")'.  You could also add \"multipart/alternative\" to
+this list to display radio buttons that allow you to choose one of two
+media types those mails include.  See also `mm-discouraged-alternatives'.
 This variable is only used when `gnus-inhibit-mime-unbuttonizing' is nil."
   :version "22.1"
   :group 'gnus-article-mime

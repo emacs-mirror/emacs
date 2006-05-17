@@ -1161,6 +1161,7 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 
 @menu
 * Setting up a customization file::
+* Using Customize::
 * Debugging a customization file::
 * Colors on a TTY::
 * Displaying the current line or column::
@@ -1211,7 +1212,7 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 * Escape sequences in shell output::
 @end menu
 
-@node Setting up a customization file, Colors on a TTY, Common requests, Common requests
+@node Setting up a customization file, Using Customize, Common requests, Common requests
 @section How do I set up a @file{.emacs} file properly?
 @cindex @file{.emacs} file, setting up
 @cindex @file{.emacs} file, locating
@@ -1225,11 +1226,11 @@ it causes confusing non-standard behavior.  Then they send questions to
 @email{help-gnu-emacs@@gnu.org} asking why Emacs isn't behaving as
 documented.
 
-Beginning with version 20.1, Emacs includes the new Customize facility,
-which can be invoked using @kbd{M-x customize @key{RET}}.  This allows
-users who are unfamiliar with Emacs Lisp to modify their @file{.emacs}
-files in a relatively straightforward way, using menus rather than Lisp
-code.  Most packages support Customize as of this writing.
+Beginning with version 20.1, Emacs includes the new Customize facility
+(@pxref{Using Customize}).  This allows users who are unfamiliar with
+Emacs Lisp to modify their @file{.emacs} files in a relatively
+straightforward way, using menus rather than Lisp code.  Most packages
+support Customize as of this writing.
 
 While Customize might indeed make it easier to configure Emacs,
 consider taking a bit of time to learn Emacs Lisp and modifying your
@@ -1241,7 +1242,26 @@ Sometimes users are unsure as to where their @file{.emacs} file should
 be found.  Visiting the file as @file{~/.emacs} from Emacs will find
 the correct file.
 
-@node Colors on a TTY, Debugging a customization file, Setting up a customization file, Common requests
+@node Using Customize, Colors on a TTY, Setting up a customization file, Common requests
+@section How do I start using Customize?
+@cindex Customize groups
+@cindex Customizing variables
+@cindex Customizing faces
+
+The main Customize entry point is @kbd{M-x customize @key{RET}}.  This
+command takes you to a buffer listing all the available Customize
+groups.  From there, you can access all customizable options and faces,
+change their values, and save your changes to your init file.
+@inforef{Easy Customization, Easy Customization, emacs}.
+
+If you know the name of the group in advance (e.g. ``shell''), use
+@kbd{M-x customize-group @key{RET}}.
+
+If you wish to customize a single option, use @kbd{M-x customize-option
+@key{RET}}.  This command prompts you for the name of the option to
+customize, with completion.
+
+@node Colors on a TTY, Debugging a customization file, Using Customize, Common requests
 @section How do I get colors and syntax highlighting on a TTY?
 @cindex Colors on a TTY
 @cindex Syntax highlighting on a TTY
@@ -3844,10 +3864,12 @@ better than the one distributed with Emacs:
 AUC@TeX{} is a set of sophisticated major modes for @TeX{}, LaTeX,
 ConTeXt, and Texinfo offering context-sensitive syntax highlighting,
 indentation, formatting and folding, macro completion, @TeX{} shell
-functionality, and debugging.  Some important supplemental packages are
-described in @ref{Introduction, RefTeX, Introduction, reftex, Ref@TeX{}
-User Manual}, and
-@uref{http://preview-latex.sourceforge.net,preview-latex}.
+functionality, and debugging.  Be also sure to check out
+@ref{Introduction, RefTeX, Introduction, reftex, Ref@TeX{} User Manual}.
+Current versions of AUC@TeX{} include the
+@uref{http://www.gnu.org/software/auctex/preview-latex,preview-latex}
+package for WYSIWYG previews of various LaTeX constructs in the Emacs
+source buffer.
 
 @table @b
 
@@ -3859,7 +3881,7 @@ User Manual}, and
 @email{dak@@gnu.org, David Kastrup}
 
 @item Latest version
-11.54
+11.82
 
 @item Distribution
 @uref{ftp://ftp.gnu.org/pub/gnu/auctex/}
@@ -3868,8 +3890,8 @@ User Manual}, and
 @uref{http://www.gnu.org/software/auctex/}
 
 @item Mailing list:
-Subscription requests to @email{auc-tex-subscribe@@sunsite.dk}@*
-Submissions to @email{auc-tex@@sunsite.dk}
+Subscription requests to @email{auctex-request@@gnu.org}@*
+Submissions to @email{auctex@@gnu.org}
 
 @end table
 

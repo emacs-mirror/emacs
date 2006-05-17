@@ -24,6 +24,7 @@ Boston, MA 02110-1301, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "commands.h"
+#include "window.h"
 
 /* Limits controlling how much undo information to keep.  */
 
@@ -100,12 +101,19 @@ record_point (pt)
   /* If we are just after an undo boundary, and
      point wasn't at start of deleted range, record where it was.  */
   if (at_boundary
-      && last_point_position != pt
-      /* If we're called from batch mode, this could be nil.  */
       && BUFFERP (last_point_position_buffer)
+      /* If we're called from batch mode, this could be nil.  */
       && current_buffer == XBUFFER (last_point_position_buffer))
-    current_buffer->undo_list
-      = Fcons (make_number (last_point_position), current_buffer->undo_list);
+    {
+      /* If we have switched windows, use the point value
+	 from the window we are in.  */
+      if (! EQ (last_point_position_window, selected_window))
+	last_point_position = marker_position (XWINDOW (selected_window)->pointm);
+
+      if (last_point_position != pt)
+	current_buffer->undo_list
+	  = Fcons (make_number (last_point_position), current_buffer->undo_list);
+    }
 }
 
 /* Record an insertion that just happened or is about to happen,

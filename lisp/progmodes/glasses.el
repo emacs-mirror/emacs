@@ -82,7 +82,7 @@ For example, you can set `glasses-separator' to an empty string and
 `glasses-face' to `bold'.  Then unreadable identifiers will have no separators,
 but will have their capitals in bold."
   :group 'glasses
-  :type 'symbol
+  :type '(choice (const :tag "None" nil) face)
   :set 'glasses-custom-set
   :initialize 'custom-initialize-default)
 

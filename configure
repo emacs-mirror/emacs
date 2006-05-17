@@ -1718,6 +1718,7 @@ case "${canonical}" in
     case "${canonical}" in
       alpha*-*-freebsd*)	machine=alpha ;;
       i[3456]86-*-freebsd*)	machine=intel386 ;;
+      amd64-*-freebsd*|x86_64-*-freebsd*) machine=amdx86-64 ;;
     esac
   ;;
 
@@ -3667,6 +3668,65 @@ then
   CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
+### Use -Wno-pointer-sign if the compiler supports it
+echo "$as_me:$LINENO: checking whether gcc understands -Wno-pointer-sign" >&5
+echo $ECHO_N "checking whether gcc understands -Wno-pointer-sign... $ECHO_C" >&6
+SAVE_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wno-pointer-sign"
+
+cat >conftest.$ac_ext <<_ACEOF
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext
+if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
+  (eval $ac_compile) 2>conftest.er1
+  ac_status=$?
+  grep -v '^ *+' conftest.er1 >conftest.err
+  rm -f conftest.er1
+  cat conftest.err >&5
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+	 { ac_try='test -z "$ac_c_werror_flag"			 || test ! -s conftest.err'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; } &&
+	 { ac_try='test -s conftest.$ac_objext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  has_option=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+has_option=no
+fi
+rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
+if test $has_option = yes; then
+   C_WARNINGS_SWITCH="-Wno-pointer-sign $C_WARNINGS_SWITCH"
+fi
+echo "$as_me:$LINENO: result: $has_option" >&5
+echo "${ECHO_T}$has_option" >&6
+CFLAGS="$SAVE_CFLAGS"
+unset has_option
+unset SAVE_CFLAGS
+
 #### Some other nice autoconf tests.
 
 echo "$as_me:$LINENO: checking whether ln -s works" >&5
@@ -4254,7 +4314,6 @@ fi
 
 echo "$as_me:$LINENO: checking for -znocombreloc" >&5
 echo $ECHO_N "checking for -znocombreloc... $ECHO_C" >&6
-
 cat >conftest.$ac_ext <<_ACEOF
 main(){return 0;}
 _ACEOF
@@ -4425,6 +4484,10 @@ configure___ use_mmap_for_buffers=no
 #endif
 #endif
 
+#ifndef C_WARNINGS_SWITCH
+#define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
+#endif
+
 #ifndef LD_SWITCH_MACHINE
 #define LD_SWITCH_MACHINE
 #endif
@@ -4453,7 +4516,7 @@ configure___ CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
 
 /* Get the CFLAGS for real compilation.  */
 #ifdef __GNUC__
-configure___ REAL_CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
+configure___ REAL_CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH '${SPECIFIED_CFLAGS}'
 #else
 configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${SPECIFIED_CFLAGS}'
 #endif
@@ -8009,7 +8072,7 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Xlib.h>
+#include <X11/Intrinsic.h>
 _ACEOF
 if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
   (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
@@ -8036,7 +8099,7 @@ else
 sed 's/^/| /' conftest.$ac_ext >&5
 
   for ac_dir in $ac_x_header_dirs; do
-  if test -r "$ac_dir/X11/Xlib.h"; then
+  if test -r "$ac_dir/X11/Intrinsic.h"; then
     ac_x_includes=$ac_dir
     break
   fi
@@ -8050,18 +8113,18 @@ if test "$ac_x_libraries" = no; then
   # See if we find them without any special options.
   # Don't add to $LIBS permanently.
   ac_save_LIBS=$LIBS
-  LIBS="-lX11 $LIBS"
+  LIBS="-lXt $LIBS"
   cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <X11/Xlib.h>
+#include <X11/Intrinsic.h>
 int
 main ()
 {
-XrmInitialize ()
+XtMalloc (0)
   ;
   return 0;
 }
@@ -8099,7 +8162,7 @@ for ac_dir in `echo "$ac_x_includes $ac_x_header_dirs" | sed s/include/lib/g`
 do
   # Don't even attempt the hair of trying to link an X program!
   for ac_extension in a so sl; do
-    if test -r $ac_dir/libX11.$ac_extension; then
+    if test -r $ac_dir/libXt.$ac_extension; then
       ac_x_libraries=$ac_dir
       break 2
     fi
@@ -21708,24 +21771,18 @@ else
   ac_cv_func_fork_works=cross
 else
   cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
-$ac_includes_default
-int
-main ()
-{
-
-	  /* By Ruediger Kuhlmann. */
-	  if (fork() < 0)
-	    exit (1);
-	  exit (0);
-
-  ;
-  return 0;
-}
+/* By Ruediger Kuhlmann. */
+      #include <sys/types.h>
+      #if HAVE_UNISTD_H
+      # include <unistd.h>
+      #endif
+      /* Some systems only have a dummy stub for fork() */
+      int main ()
+      {
+	if (fork() < 0)
+	  exit (1);
+	exit (0);
+      }
 _ACEOF
 rm -f conftest$ac_exeext
 if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5

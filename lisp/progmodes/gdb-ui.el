@@ -331,10 +331,14 @@ With arg, use separate IO iff arg is positive."
       (setq name (nth 1 (split-string define "[( ]")))
       (push (cons name define) gdb-define-alist))))
 
-(defun gdb-tooltip-print ()
+(defun gdb-tooltip-print (expr)
   (tooltip-show
    (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
-     (let ((string (buffer-string)))
+     (goto-char (point-min))
+     (let ((string
+	    (if (search-forward "=" nil t)
+		(concat expr (buffer-substring (- (point) 2) (point-max)))
+	      (buffer-string))))
        ;; remove newline for gud-tooltip-echo-area
        (substring string 0 (- (length string) 1))))
    (or gud-tooltip-echo-area tooltip-use-echo-area)))
@@ -349,7 +353,7 @@ With arg, use separate IO iff arg is positive."
 	(unless (looking-at "\\S-+.*(.*).*")
 	  (gdb-enqueue-input
 	   (list  (concat gdb-server-prefix "print " expr "\n")
-		  'gdb-tooltip-print))))))
+		  `(lambda () (gdb-tooltip-print ,expr))))))))
 
 (defconst gdb-source-file-regexp "\\(.+?\\), \\|\\([^, \n].*$\\)")
 
@@ -541,7 +545,8 @@ With arg, use separate IO iff arg is positive."
   :version "22.1")
 
 (defun gdb-speedbar-auto-raise (arg)
-  "Toggle automatic raising of the speedbar for watch expressions."
+  "Toggle automatic raising of the speedbar for watch expressions.
+With arg, automatically raise speedbar iff arg is positive."
   (interactive "P")
   (setq gdb-speedbar-auto-raise
 	(if (null arg)
@@ -1194,7 +1199,7 @@ happens to be appropriate."
 
     (if (string-equal gdb-version "pre-6.4")
 	(gdb-invalidate-registers)
-      (gdb-get-changed-registers)
+      (if (gdb-get-buffer 'gdb-registers-buffer) (gdb-get-changed-registers))
       (gdb-invalidate-registers-1))
 
     (gdb-invalidate-memory)

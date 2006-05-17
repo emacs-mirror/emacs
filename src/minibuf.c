@@ -463,6 +463,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   /* String to add to the history.  */
   Lisp_Object histstring;
 
+  Lisp_Object empty_minibuf;
+  Lisp_Object dummy, frame;
+
   extern Lisp_Object Qfront_sticky;
   extern Lisp_Object Qrear_nonsticky;
 
@@ -600,6 +603,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   minibuffer = get_minibuffer (minibuf_level);
   Fset_buffer (minibuffer);
 
+  /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
+  if (inherit_input_method)
+    current_buffer->enable_multibyte_characters = enable_multibyte;
+
   /* The current buffer's default directory is usually the right thing
      for our minibuffer here.  However, if you're typing a command at
      a minibuffer-only frame when minibuf_level is zero, then buf IS
@@ -635,6 +642,22 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Vminibuf_scroll_window = selected_window;
   if (minibuf_level == 1 || !EQ (minibuf_window, selected_window))
     minibuf_selected_window = selected_window;
+
+  /* Empty out the minibuffers of all frames other than the one
+     where we are going to display one now.
+     Set them to point to ` *Minibuf-0*', which is always empty.  */
+  empty_minibuf = Fget_buffer (build_string (" *Minibuf-0*"));
+
+  FOR_EACH_FRAME (dummy, frame)
+    {
+      Lisp_Object root_window = Fframe_root_window (frame);
+      Lisp_Object mini_window = XWINDOW (root_window)->next;
+
+      if (! NILP (mini_window) && !NILP (Fwindow_minibuffer_p (mini_window)))
+	Fset_window_buffer (mini_window, empty_minibuf, Qnil);
+    }
+
+  /* Display this minibuffer in the proper window.  */
   Fset_window_buffer (minibuf_window, Fcurrent_buffer (), Qnil);
   Fselect_window (minibuf_window, Qnil);
   XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);
@@ -670,10 +693,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     }
 
   minibuf_prompt_width = (int) current_column (); /* iftc */
-
-  /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
-  if (inherit_input_method)
-    current_buffer->enable_multibyte_characters = enable_multibyte;
 
   /* Put in the initial input.  */
   if (!NILP (initial))
@@ -1238,11 +1257,11 @@ is used to further constrain the set of candidates.  */)
   int bestmatchsize = 0;
   /* These are in bytes, too.  */
   int compare, matchsize;
-  int type = HASH_TABLE_P (alist) ? 3
-    : VECTORP (alist) ? 2
-    : NILP (alist) || (CONSP (alist)
-		       && (!SYMBOLP (XCAR (alist))
-			   || NILP (XCAR (alist))));
+  int type = (HASH_TABLE_P (alist) ? 3
+	      : VECTORP (alist) ? 2
+	      : NILP (alist) || (CONSP (alist)
+				 && (!SYMBOLP (XCAR (alist))
+				     || NILP (XCAR (alist)))));
   int index = 0, obsize = 0;
   int matchcount = 0;
   int bindcount = -1;
@@ -2404,7 +2423,7 @@ during running `completion-setup-hook'. */)
   else
     {
       write_string ("Possible completions are:", -1);
-      for (tail = completions, i = 0; !NILP (tail); tail = Fcdr (tail), i++)
+      for (tail = completions, i = 0; CONSP (tail); tail = XCDR (tail), i++)
 	{
 	  Lisp_Object tem, string;
 	  int length;
@@ -2412,7 +2431,7 @@ during running `completion-setup-hook'. */)
 
 	  startpos = Qnil;
 
-	  elt = Fcar (tail);
+	  elt = XCAR (tail);
 	  if (SYMBOLP (elt))
 	    elt = SYMBOL_NAME (elt);
 	  /* Compute the length of this element.  */
@@ -2588,9 +2607,21 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
       temp_echo_area_glyphs (build_string (" [No completions]"));
     }
   else
-    internal_with_output_to_temp_buffer ("*Completions*",
-					 display_completion_list_1,
-					 Fsort (completions, Qstring_lessp));
+    {
+      /* Sort and remove duplicates.  */
+      Lisp_Object tmp = completions = Fsort (completions, Qstring_lessp);
+      while (CONSP (tmp))
+	{
+	  if (CONSP (XCDR (tmp))
+	      && !NILP (Fequal (XCAR (tmp), XCAR (XCDR (tmp)))))
+	    XSETCDR (tmp, XCDR (XCDR (tmp)));
+	  else
+	    tmp = XCDR (tmp);
+	}
+      internal_with_output_to_temp_buffer ("*Completions*",
+					   display_completion_list_1,
+					   completions);
+    }
   return Qnil;
 }
 
@@ -2674,7 +2705,7 @@ temp_echo_area_glyphs (string)
 DEFUN ("minibuffer-message", Fminibuffer_message, Sminibuffer_message,
        1, 1, 0,
        doc: /* Temporarily display STRING at the end of the minibuffer.
-The text is displayed for two seconds,
+The text is displayed for a period controlled by `minibuffer-message-timeout',
 or until the next input event arrives, whichever comes first.  */)
      (string)
      Lisp_Object string;

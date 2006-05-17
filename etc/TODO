@@ -52,11 +52,13 @@ to the FSF.
 ** In Emacs Info, examples of using Customize should be clickable
    and they should create Custom buffers.
 
+** The toolbar should show keyboard equivalents in its tooltips.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
-   list fonts, display a font as a sample, etc.  [fx looked at
-  multilingual font selection for Unicode-based Emacs 23.]
+   list fonts, display a font as a sample, etc.  [fx is looking at
+  multilingual font selection for the Unicode branch of Emacs.]
 
 ** Rewrite the face code to be simpler, clearer and faster.
 
@@ -88,10 +90,6 @@ to the FSF.
    Don't break the line between two characters that have the
    same value of this property.
 *** Discretionary hyphens that are not visible when they are at end of line.
-
-** Make movemail work with IMAP.
-  movemail from GNU mailutils does that, so switching to it will solve
-  the issue.
 
 ** Internationalize Emacs's messages.
 
@@ -242,7 +240,8 @@ to the FSF.
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
 
-** Support simultaneous tty and X frames.
+** Support simultaneous tty and X frames.  [See the multi-tty branch of Emacs 
+  at http://lorentey.hu/project/emacs.]
 
 ** Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
   not now feasible, given Gnus maintenance decisions.  fx looked at
@@ -266,16 +265,6 @@ to the FSF.
 ** Add a --pristine startup flag which does -q --no-site-file plus
   ignoring X resources (Doze equivalents?) and most of the
   environment.  What should not be ignored needs consideration.
-
-** Enhance locale handling:  handle language, territory and charset
-  orthogonally and de-emphasize language environments.  Use the locale
-  to set up more things, such as fontsets, the default Ispell
-  dictionary, diary format, calendar holidays and display, quoting
-  characters and phrase boundaries, sentence endings, collation for
-  sorting (at least for unicodes), HTTP Accept-language, patterns for
-  directory listings and compilation messages, yes-or-no replies,
-  common menu items when the toolkit supports it ...  `locale-info'
-  needs extending for LC_COLLATE &c.  [fx started on this.]
 
 ** Improve the GC (generational, incremental).  (We may be able to use
   the Boehm collector.)  [See the Boehm-GC branch in CVS for work on
@@ -395,6 +384,16 @@ when the body only calls primitives.
   are also put in utf-8 lang. env.  In such a case, it is
   better to use Japanese lang. env. but prefer utf-8 coding system.
 
+** Enhance locale handling:  handle language, territory and charset
+  orthogonally and de-emphasize language environments.  Use the locale
+  to set up more things, such as fontsets, the default Ispell
+  dictionary, diary format, calendar holidays and display, quoting
+  characters and phrase boundaries, sentence endings, collation for
+  sorting (at least for unicodes), HTTP Accept-language, patterns for
+  directory listings and compilation messages, yes-or-no replies,
+  common menu items when the toolkit supports it ...  `locale-info'
+  needs extending for LC_COLLATE &c.  [fx started on this.]
+
 ** Eliminate the current restriction on header printing by ps-print.
   Currently, a header can contain only single 1-byte charset in
   addition to ASCII.
@@ -417,6 +416,12 @@ when the body only calls primitives.
 
 ** Provide the toolbar on ttys. This could map a bit like tmm-menubar
    for the menubar and buttons could look a bit like those used by customize.
+
+** Improve Help buffers: Change the face of previously visited links (like
+   Info, but also with regard to namespace), add a forward button to make the
+   Help buffer more browser like and gives the value of lisp expressions
+   e.g auto-mode-alist, the right face. [nickrob@snap.net.nz has a patch
+   for this for inclusion after 22.1].
 
 * Internal changes
 

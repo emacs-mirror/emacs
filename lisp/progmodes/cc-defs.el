@@ -72,7 +72,9 @@
 (eval-after-load "font-lock"
   '(if (and (not (featurep 'cc-fix)) ; only load the file once.
             (let (font-lock-keywords)
-              (font-lock-compile-keywords '("\\<\\>"))
+              (condition-case nil
+		  (font-lock-compile-keywords '("\\<\\>"))
+		(error nil))
 	      font-lock-keywords))     ; did the previous call foul this up?
        (load "cc-fix")))
 
@@ -83,7 +85,9 @@
 	   (progn
 	     (require 'font-lock)
 	     (let (font-lock-keywords)
-	       (font-lock-compile-keywords '("\\<\\>"))
+	       (condition-case nil
+		   (font-lock-compile-keywords '("\\<\\>"))
+		 (error nil))
 	       font-lock-keywords)))
       (cc-load "cc-fix")))
 
@@ -1464,7 +1468,8 @@ non-nil, a caret is prepended to invert the set."
       (kill-buffer buf))
 
     ;; See if `parse-partial-sexp' returns the eighth element.
-    (if (c-safe (>= (length (save-excursion (parse-partial-sexp 1 1))) 10))
+    (if (c-safe (>= (length (save-excursion (parse-partial-sexp (point) (point))))
+		    10))
 	(setq list (cons 'pps-extended-state list))
       (error (concat
 	      "CC Mode is incompatible with this version of Emacs - "

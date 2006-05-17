@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -4097,7 +4097,15 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 	(push (cons (nth 1 (nth 1 form))
 		    (if constant (nth 1 (nth 2 form)) t))
 	      byte-compile-function-environment)))
-  (byte-compile-normal-call form))
+  ;; We used to jus do: (byte-compile-normal-call form)
+  ;; But it turns out that this fails to optimize the code.
+  ;; So instead we now do the same as what other byte-hunk-handlers do,
+  ;; which is to call back byte-compile-file-form and then return nil.
+  ;; Except that we can't just call byte-compile-file-form since it would
+  ;; call us right back.
+  (byte-compile-keep-pending form)
+  ;; Return nil so the form is not output twice.
+  nil)
 
 ;; Turn off warnings about prior calls to the function being defalias'd.
 ;; This could be smarter and compare those calls with

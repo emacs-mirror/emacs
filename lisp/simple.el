@@ -52,15 +52,15 @@ wait this many seconds after Emacs becomes idle before doing an update."
   "Highlight (un)matching of parens and expressions."
   :group 'matching)
 
-(defun get-next-valid-buffer (list &optional buffer visible-ok frame) "\
-Search LIST for a valid buffer to display in FRAME.
+(defun get-next-valid-buffer (list &optional buffer visible-ok frame)
+  "Search LIST for a valid buffer to display in FRAME.
 Return nil when all buffers in LIST are undesirable for display,
 otherwise return the first suitable buffer in LIST.
 
 Buffers not visible in windows are preferred to visible buffers,
 unless VISIBLE-OK is non-nil.
 If the optional argument FRAME is nil, it defaults to the selected frame.
-If BUFFER is non-nil, ignore occurances of that buffer in LIST."
+If BUFFER is non-nil, ignore occurrences of that buffer in LIST."
   ;; This logic is more or less copied from other-buffer.
   (setq frame (or frame (selected-frame)))
   (let ((pred (frame-parameter frame 'buffer-predicate))
@@ -76,8 +76,8 @@ If BUFFER is non-nil, ignore occurances of that buffer in LIST."
 	(setq list (cdr list))))
     (car list)))
 
-(defun last-buffer (&optional buffer visible-ok frame) "\
-Return the last non-hidden displayable buffer in the buffer list.
+(defun last-buffer (&optional buffer visible-ok frame)
+  "Return the last non-hidden displayable buffer in the buffer list.
 If BUFFER is non-nil, last-buffer will ignore that buffer.
 Buffers not visible in windows are preferred to visible buffers,
 unless optional argument VISIBLE-OK is non-nil.
@@ -196,7 +196,7 @@ The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffer
 that normally would not qualify.  If it returns t, the buffer
 in question is treated as usable.
 
-The function EXTRA-TEST-EXCLUSIVE, if non-nil is called in each buffer
+The function EXTRA-TEST-EXCLUSIVE, if non-nil, is called in each buffer
 that would normally be considered usable.  If it returns nil,
 that buffer is rejected."
   (and (buffer-name buffer)		;First make sure it's live.
@@ -215,6 +215,7 @@ that buffer is rejected."
 					 extra-test-inclusive
 					 extra-test-exclusive)
   "Return a `next-error' capable buffer.
+
 If AVOID-CURRENT is non-nil, treat the current buffer
 as an absolute last resort only.
 
@@ -222,7 +223,7 @@ The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffer
 that normally would not qualify.  If it returns t, the buffer
 in question is treated as usable.
 
-The function EXTRA-TEST-EXCLUSIVE, if non-nil is called in each buffer
+The function EXTRA-TEST-EXCLUSIVE, if non-nil, is called in each buffer
 that would normally be considered usable.  If it returns nil,
 that buffer is rejected."
   (or
@@ -1149,7 +1150,7 @@ except when an alternate history list is specified.")
   "Control whether history list elements are expressions or strings.
 If the value of this variable equals current minibuffer depth,
 they are expressions; otherwise they are strings.
-\(That convention is designed to do the right thing fora
+\(That convention is designed to do the right thing for
 recursive uses of the minibuffer.)")
 (setq minibuffer-history-variable 'minibuffer-history)
 (setq minibuffer-history-position nil)
@@ -3068,10 +3069,12 @@ it is possible that the region may have changed")
   "Hook run when the mark becomes inactive.")
 
 (defun mark (&optional force)
-  "Return this buffer's mark value as integer; error if mark inactive.
-If optional argument FORCE is non-nil, access the mark value
-even if the mark is not currently active, and return nil
-if there is no mark at all.
+  "Return this buffer's mark value as integer, or nil if never set.
+
+In Transient Mark mode, this function signals an error if
+the mark is not active.  However, if `mark-even-if-inactive' is non-nil,
+or the argument FORCE is non-nil, it disregards whether the mark
+is active, and returns an integer or nil in the usual way.
 
 If you are using this in an editing command, you are most likely making
 a mistake; see the documentation of `set-mark'."
@@ -3686,15 +3689,13 @@ and `current-column' to be able to ignore invisible text."
 	    (goto-char (previous-char-property-change (point) line-beg))))))))
 
 (defun move-end-of-line (arg)
-  "Move point to end of current line.
+  "Move point to end of current line as displayed.
+\(If there's an image in the line, this disregards newlines
+which are part of the text that the image rests on.)
+
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
-
-This command does not move point across a field boundary unless doing so
-would move beyond there to a different line; if ARG is nil or 1, and
-point starts at a field boundary, point does not move.  To ignore field
-boundaries bind `inhibit-field-text-motion' to t."
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "p")
   (or arg (setq arg 1))
   (let (done)
@@ -3722,15 +3723,13 @@ boundaries bind `inhibit-field-text-motion' to t."
 	    (setq done t)))))))
 
 (defun move-beginning-of-line (arg)
-  "Move point to beginning of current display line.
+  "Move point to beginning of current line as displayed.
+\(If there's an image in the line, this disregards newlines
+which are part of the text that the image rests on.)
+
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
-
-This command does not move point across a field boundary unless doing so
-would move beyond there to a different line; if ARG is nil or 1, and
-point starts at a field boundary, point does not move.  To ignore field
-boundaries bind `inhibit-field-text-motion' to t."
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "p")
   (or arg (setq arg 1))
   (if (/= arg 1)
@@ -4567,10 +4566,6 @@ See also `read-mail-command' concerning reading mail."
 	(forward-line 1)
 	(insert body))
       t)))
-
-(define-mail-user-agent 'mh-e-user-agent
-  'mh-smail-batch 'mh-send-letter 'mh-fully-kill-draft
-  'mh-before-send-letter-hook)
 
 (defun compose-mail (&optional to subject other-headers continue
 			       switch-function yank-action send-actions)

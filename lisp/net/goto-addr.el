@@ -129,7 +129,7 @@ A value of t means there is no limit--fontify regardless of the size."
       'goto-address-at-point)
     (define-key m (kbd "C-c RET") 'goto-address-at-point)
     m)
-  "keymap to hold goto-addr's mouse key defs under highlighted URLs.")
+  "Keymap to hold goto-addr's mouse key defs under highlighted URLs.")
 
 (defcustom goto-address-url-face 'bold
   "Face to use for URLs."
@@ -242,7 +242,8 @@ address.  If no e-mail address found, return nil."
   "Sets up goto-address functionality in the current buffer.
 Allows user to use mouse/keyboard command to click to go to a URL
 or to send e-mail.
-By default, goto-address binds to mouse-2 and C-c RET.
+By default, goto-address binds `goto-address-at-point' to mouse-2 and C-c RET
+only on URLs and e-mail addresses.
 
 Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 `goto-address-highlight-p' for more information)."

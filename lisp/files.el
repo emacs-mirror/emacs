@@ -2565,8 +2565,9 @@ However, the mode will not be changed if
 
 (defun set-visited-file-name (filename &optional no-query along-with-file)
   "Change name of file visited in current buffer to FILENAME.
+This also renames the buffer to correspond to the new file.
 The next time the buffer is saved it will go in the newly specified file.
-FILENAME nil or an empty string means make buffer not be visiting any file.
+FILENAME nil or an empty string means mark buffer as not visiting any file.
 Remember to delete the initial contents of the minibuffer
 if you wish to pass an empty string as the argument.
 

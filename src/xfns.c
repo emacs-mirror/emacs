@@ -154,6 +154,10 @@ int display_hourglass_p;
 
 int x_use_old_gtk_file_dialog;
 
+/* If non-zero, by default show hidden files in the GTK file chooser.  */
+
+int x_gtk_show_hidden_files;
+
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
@@ -5236,8 +5240,27 @@ Value is t if tooltip was open, nil otherwise.  */)
 			File selection dialog
  ***********************************************************************/
 
-#ifdef USE_MOTIF
+DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
+       Sx_uses_old_gtk_dialog,
+       0, 0, 0,
+       doc: /* Return t if the old Gtk+ file selection dialog is used.  */)
+     ()
+{
+#ifdef USE_GTK
+  extern int use_dialog_box;
+  extern int use_file_dialog;
 
+  if (use_dialog_box
+      && use_file_dialog
+      && have_menus_p ()
+      && xg_uses_old_file_dialog ())
+    return Qt;
+#endif
+  return Qnil;
+}
+
+
+#ifdef USE_MOTIF
 /* Callback for "OK" and "Cancel" on file selection dialog.  */
 
 static void
@@ -5522,7 +5545,8 @@ DEFUN ("x-backspace-delete-keys-p", Fx_backspace_delete_keys_p,
        doc: /* Check if both Backspace and Delete keys are on the keyboard of FRAME.
 FRAME nil means use the selected frame.
 Value is t if we know that both keys are present, and are mapped to the
-usual X keysyms.  */)
+usual X keysyms.  Value is `lambda' if we cannot determine if both keys are
+present and mapped to the usual X keysyms.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -5541,7 +5565,7 @@ usual X keysyms.  */)
   if (!XkbLibraryVersion (&major, &minor))
     {
       UNBLOCK_INPUT;
-      return Qnil;
+      return Qlambda;
     }
 
   /* Check that the server supports XKB.  */
@@ -5550,7 +5574,7 @@ usual X keysyms.  */)
   if (!XkbQueryExtension (dpy, &op, &event, &error, &major, &minor))
     {
       UNBLOCK_INPUT;
-      return Qnil;
+      return Qlambda;
     }
 
   /* In this code we check that the keyboard has physical keys with names
@@ -5605,7 +5629,7 @@ usual X keysyms.  */)
   UNBLOCK_INPUT;
   return have_keys;
 #else /* not HAVE_XKBGETKEYBOARD */
-  return Qnil;
+  return Qlambda;
 #endif /* not HAVE_XKBGETKEYBOARD */
 }
 
@@ -5768,6 +5792,12 @@ chooser is used instead.  To turn off all file dialogs set the
 variable `use-file-dialog'.  */);
   x_use_old_gtk_file_dialog = 0;
 
+  DEFVAR_BOOL ("x-gtk-show-hidden-files", &x_gtk_show_hidden_files,
+    doc: /* *If non-nil, the GTK file chooser will by default show hidden files.
+Note that this is just the default, there is a toggle button on the file
+chooser to show or not show hidden files on a case by case basis.  */);
+  x_gtk_show_hidden_files = 0;
+
   Fprovide (intern ("x"), Qnil);
 
 #ifdef USE_X_TOOLKIT
@@ -5856,6 +5886,7 @@ variable `use-file-dialog'.  */);
   last_show_tip_args = Qnil;
   staticpro (&last_show_tip_args);
 
+  defsubr (&Sx_uses_old_gtk_dialog);
 #if defined (USE_MOTIF) || defined (USE_GTK)
   defsubr (&Sx_file_dialog);
 #endif

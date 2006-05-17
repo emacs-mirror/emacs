@@ -72,6 +72,12 @@ otherwise)."
   :group 'paren-showing
   :version "20.3")
 
+(defgroup paren-showing-faces nil
+  "Group for faces of Show Paren mode."
+  :group 'paren-showing
+  :group 'faces
+  :version "22.1")
+
 (defface show-paren-match
   '((((class color) (background light))
      :background "turquoise")		; looks OK on tty (becomes cyan)
@@ -82,8 +88,7 @@ otherwise)."
     (t
      :background "gray"))
   "Show Paren mode face used for a matching paren."
-  :group 'faces
-  :group 'paren-showing)
+  :group 'paren-showing-faces)
 ;; backward-compatibility alias
 (put 'show-paren-match-face 'face-alias 'show-paren-match)
 
@@ -91,8 +96,7 @@ otherwise)."
   '((((class color)) (:foreground "white" :background "purple"))
     (t (:inverse-video t)))
   "Show Paren mode face used for a mismatching paren."
-  :group 'faces
-  :group 'paren-showing)
+  :group 'paren-showing-faces)
 ;; backward-compatibility alias
 (put 'show-paren-mismatch-face 'face-alias 'show-paren-mismatch)
 

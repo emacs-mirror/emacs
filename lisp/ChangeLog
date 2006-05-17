@@ -1,3 +1,839 @@
+2006-01-05  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (compile-always): Add mh-autoloads dependency.
+	(bootstrap): Remove mh-autoloads dependency, as compile dependency
+	provides it.
+	(updates): Remove mh-autoloads dependency, since it probably has
+	already run recently (via recompile).
+
+2006-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-accept-buffer-local-defs): Add an
+	argument `force' to disable the flyspell-last-buffer optimization.
+	(flyspell-mode-on): Use it.
+
+	* progmodes/flymake.el (flymake-get-cleanup-function): Default to
+	flymake-simple-cleanup.
+	(flymake-allowed-file-name-masks): Use this new default.
+	All the functions are now called in the right buffer rather than
+	passing the buffer as argument.
+	(flymake-process-sentinel): Switch to buffer before calling cleanup.
+	(flymake-parse-err-lines): Remove redundant buffer arg.
+	(flymake-get-program-dir): Comment out unused function.
+	(flymake-start-syntax-check, flymake-start-syntax-check-process):
+	Remove redundant buffer argument.
+	(flymake-get-real-file-name, flymake-simple-java-cleanup)
+	(flymake-simple-cleanup, flymake-master-cleanup): Remove buffer arg.
+
+2006-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* info.el (Info-find-node): Don't record previous node if have none.
+	(info): Go to directory only if history is empty.
+
+	* simple.el (mark): Doc fix.
+
+2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-parameter): Don't coerce data if it is
+	already of desired type.
+	(mac-ae-list): Coerce parameter to "list" type.
+	(mac-dispatch-apple-event): Replace cadr part of event with a
+	dummy position so that event-start returns it.
+
+2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-end-of-subtree): New function.
+	(org-cycle, org-subtree-end-visible-p, org-scan-tags):
+	Use `org-end-of-subtree'.
+	(org-agenda, org-agenda-convert-date): Protect calls to
+	`fit-window-to-buffer'.
+	(org-tags-view): Force matching of sublevels when doing a
+	todo-only search.  Define the correct redo command, including the
+	arguments.
+	(org-agenda-redo): Display message.
+	(org-check-for-org-mode): New function.
+	(org-agenda-type): New variable.
+	(org-timeline, org-agenda-list, org-todo-list, org-tags-view):
+	Set `org-agenda-type'.
+	(org-agenda-check-type): New function.
+	(org-agenda-goto-today, org-agenda-later, org-agenda-earlier)
+	(org-agenda-week-view, org-agenda-day-view)
+	(org-agenda-next-date-line, org-agenda-previous-date-line)
+	(org-agenda-log-mode, org-agenda-toggle-diary)
+	(org-agenda-toggle-time-grid, org-agenda-date-later)
+	(org-agenda-date-prompt, org-agenda-diary-entry)
+	(org-agenda-execute-calendar-command, org-agenda-goto-calendar)
+	(org-agenda-convert-date, org-agenda-menu):
+	Use `org-agenda-check-type'.
+	(org-make-overlay, org-delete-overlay)
+	(org-detatch-overlay, org-move-overlay, org-overlay-put):
+	New compatibility functions.
+	(org-calendar-select-mouse): New command.
+
+2006-01-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (Custom-reset-current, Custom-reset-saved)
+	(Custom-reset-standard): Fix y-or-n-p messages.
+	(custom-link): New face for links.
+	(custom-buffer-create-internal, custom-manual): Use it.
+	(custom-face-save): Push to theme-face before setting face spec.
+
+	* wid-edit.el (widget-default-mouse-face-get): New function.
+	(widget-specify-button): Handle mouse-face like button-face.
+
+	* custom.el (load-theme): Clear old theme settings if reloading.
+
+2006-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (custom-buffer-create-internal): Move whole buffer
+	"Erase Customization" button back to same position it occupies in
+	the individual State menus.
+
+2006-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* wid-edit.el (key-sequence): Rework widget to read key binding
+	using `kbd' syntax.  Use C-q to insert literal key, event, or code.
+	(widget-key-sequence-default-value): Default value for empty sequence.
+	(widget-key-sequence-map): New map for reading key binding.  Bind C-q.
+	(widget-key-sequence-read-event): New command for C-q.
+	(widget-key-sequence-validate, widget-key-sequence-value-to-internal)
+	(widget-key-sequence-value-to-external): New functions.
+
+2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-create-temp-with-folder-structure):
+	Use expand-file-name.
+	(flymake-delete-temp-directory): Use expand-file-name,
+	file-name-directory, and directory-file-name.
+	(flymake-strrchr): Delete.
+	(flymake-start-syntax-check): Don't pass the redundant buffer argument
+	to the init-f function.
+	(flymake-save-buffer-in-file, flymake-init-create-temp-buffer-copy)
+	(flymake-init-find-buildfile-dir)
+	(flymake-init-create-temp-source-and-master-buffer-copy)
+	(flymake-simple-make-init-impl, flymake-simple-make-init)
+	(flymake-master-make-init, flymake-master-make-header-init)
+	(flymake-simple-make-java-init, flymake-simple-ant-java-init)
+	(flymake-perl-init, flymake-simple-tex-init, flymake-master-tex-init)
+	(flymake-xml-init): Remove corresponding redundant buffer argument.
+	(flymake-allowed-file-name-masks): Remove last elems that are equal to
+	the default anyway.  Clean up regexps.
+
+	* progmodes/flymake.el (flymake-temp-source-file-name)
+	(flymake-master-file-name, flymake-temp-master-file-name)
+	(flymake-base-dir): New buffer-local vars.
+	(flymake-buffer-data, flymake-get-buffer-value)
+	(flymake-set-buffer-value): Replace those hash-tables by the new
+	buffer-local vars.  Update callers.
+
+	* progmodes/flymake.el (flymake-check-start-time)
+	(flymake-check-was-interrupted, flymake-err-info, flymake-is-running)
+	(flymake-last-change-time, flymake-new-err-info, flymake-timer):
+	Move definition, so we can remove redundant earlier declaration.
+	(flymake-replace-regexp-in-string, flymake-split-string)
+	(flymake-get-temp-dir): Use defalias.
+	(flymake-popup-menu): Remove `pos' argument.  Use posn-at-point.
+	(flymake-xemacs-window-edges): Remove unused function.
+	(flymake-get-point-pixel-pos): Move.
+	(flymake-pid-to-names, flymake-reg-names)
+	(flymake-get-source-buffer-name, flymake-unreg-names): Remove.
+	Replace by a simple list flymake-processes and by process-buffer.
+	Update callers.  Other than simplify the code, it uses buffers rather
+	than buffer-names so it doesn't get confused by uniquify.
+	(flymake-buffer-data): The global value should just be nil.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defalias):
+	Optimize the body of a defalias like any other code.
+
+	* font-lock.el (font-lock-fontify-buffer, font-lock-fontify-region):
+	Make sure we've setup font-lock's vars.  It may influence which
+	function we then call.
+	(font-lock-default-fontify-buffer): Don't bother calling set-defaults
+	here since it's too late anyway.
+
+2006-01-03  Romain Francoise  <romain@orebokech.com>
+
+	* startup.el (fancy-splash-tail, normal-splash-screen):
+	Update copyright year.
+
+2006-01-02  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* mouse.el (mouse-drag-track): Rename, from
+	`mouse-drag-region-1'.  Includes optional argument required to
+	enable post-drag event processing (e.g. delete region keys).
+	Can be used without this argument to track a mouse region and operate
+	on it as soon as the drag completes.
+	(mouse-drag-region): Use `mouse-drag-track'.
+
+2006-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-guess-name-alist, custom-guess-doc-alist):
+	Move to `custom-buffer' group.
+
+	* cus-theme.el: Rewrite the Custom New Theme Mode interface.
+	(custom-new-theme-mode-map, custom-theme-insert-variable-marker)
+	(custom-theme-insert-face-marker, custom-theme-variable-menu)
+	(custom-theme-face-menu): New variables.
+	(custom-theme-add-variable, custom-theme-variable-action)
+	(custom-variable-reset-theme, custom-theme-delete-variable)
+	(custom-face-reset-theme, custom-theme-face-action)
+	(custom-theme-delete-face, custom-theme-merge-theme)
+	(custom-theme-add-face, custom-theme-visit-theme): New functions.
+
+2006-01-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el: Move Custom Themes commentary to start of theme code.
+	(custom-known-themes): Rename `standard' theme to `changed'.
+	(custom-push-theme): Caller no longer specifies what theme to use
+	when doing `reset'---the setting is simply removed from the theme.
+	Delete MODE from `theme-value' and `theme-settings' properties.
+	(custom-declare-theme): Ignore &rest args since we don't use them.
+
+	(custom-loaded-themes): Delete variable.
+	(custom-theme-load-themes, custom-theme-loaded-p)
+	(custom-theme-value): Delete functions.
+
+	(custom-declare-theme): Signal error on invalid theme names.
+	(provide-theme): custom-loaded-themes was deleted.
+	(load-theme): Load the file unconditionally.
+	(enable-theme): Call `load-theme' if theme is undefined.
+	(custom-enabled-themes): Only update value for successful loads.
+	(disable-theme): Complete from enabled themes when interactive.
+	(custom-variable-theme-value): Calculate theme value directly.
+
+	(custom-theme-reset-variables, custom-reset-variables): Mark as
+	XEmacs compatibility functions.  We don't actually use these.
+
+	* cus-edit.el (custom-variable-state-set):
+	Use custom-variable-theme-value instead of custom-theme-value.
+	(custom-face-state-set): Rename `standard' theme to `changed'.
+	(custom-save-variables, custom-save-faces): Delete unneeded
+	references to custom-reset-variables.
+	(custom-save-resets): Delete function.
+	(custom-save-variables, custom-save-faces): MODE argument deleted.
+	(custom-save-variables, custom-save-faces): Ignore theme values.
+
+	* cus-face.el (custom-theme-reset-faces): Mark as XEmacs
+	compatibility function.
+
+2006-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (Custom-set, Custom-save): Ask for confirmation.
+	(Custom-reset-current, Custom-reset-saved): Likewise.
+	(Custom-reset-standard): Show message if aborted.
+	(custom-mode): Doc fix, describing those commands.
+
+	* mouse.el (mouse-drag-region-1): When following link via mouse-2,
+	put on event-kind property.
+
+2005-12-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (provide-theme): Ban `user' theme name.
+	(custom-enabling-themes): New variable.
+	(enable-theme): Don't enable user if custom-enabling-themes is t.
+	(custom-enabled-themes): Make it a defcustom.
+	(custom-theme-recalc-face): No-op if face is undefined.
+
+	* cus-edit.el (custom-button-mouse): New variable.
+	(custom-button-mouse): New face.
+	(custom-raised-buttons, custom-mode): Use it.
+
+	* cus-theme.el (custom-new-theme-mode): Use custom-button-mouse.
+
+2005-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/gud.el (gud-display-line): Support hl-line in the
+	source buffer.
+
+2005-12-31  Lennart Borgman  <lennart.borgman.073@student.lu.se>  (tiny change)
+
+	* mouse.el (mouse-drag-window-above): Verify that the found window
+	overlaps with the given window in the horizontal dimension.
+
+2005-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (cvs-update): New target.
+
+	* makefile.w32-in (cvs-update): Ditto.
+
+2005-12-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (custom-new-theme-mode): Use cus-edit faces.
+	(custom-new-theme-mode-map): New variable.
+
+2005-12-30  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.el (custom-load-themes): Function deleted.
+
+	* cus-edit.el (custom-save-loaded-themes): Function deleted.
+	(custom-save-variables): Don't delete or add custom-load-themes call.
+
+2005-12-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cus-start.el: Add `visible-cursor'.
+
+	* progmodes/flymake.el (flymake-copy-buffer-to-temp-buffer): Simplify.
+	(flymake-parse-output-and-residual): Remove `source-buffer' argument.
+	(flymake-process-filter): Switch to buffer before calling it instead.
+	(flymake-post-syntax-check, flymake-highlight-err-lines)
+	(flymake-delete-own-overlays, flymake-parse-err-lines)
+	(flymake-start-syntax-check, flymake-start-syntax-check-process)
+	(flymake-count-lines, flymake-parse-residual):
+	Remove constant buffer argument.
+	(flymake-start-syntax-check-for-current-buffer): Remove.
+	Update callers to use flymake-start-syntax-check instead.
+	(flymake-display-err-menu-for-current-line):
+	Remove unused var `mouse-pos'.
+	(flymake-restore-formatting): Comment out unused function.
+	(flymake-report-status, flymake-report-fatal-status): Remove buffer
+	argument, use current-buffer instead.  Update callers.
+
+2005-12-30  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-mode): Make completion-ignore-case
+	buffer-local because choose-completion-delete-max-match requires
+	that we set completion-ignore-case (i.e., binding via let is not
+	sufficient).
+	(bibtex-complete): Always set completion-ignore-case and
+	choose-completion-string-functions. The latter is needed because
+	choose-completion-string-functions keeps its value if we quit the
+	*Completions* buffer without requesting a completion.
+
+2005-12-30  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/cc-defs.el: Ignore errors from font-lock-compile-keywords.
+
+2005-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* jit-lock.el (jit-lock-chunk-size): Doc fix.
+
+2005-12-30  Juri Linkov  <juri@jurta.org>
+
+	* locate.el (locate-fcodes-file, locate-header-face)
+	* progmodes/delphi.el (delphi-other-face)
+	* progmodes/glasses.el (glasses-face): Add tag "None" to const nil.
+
+	* paren.el (show-paren-match, show-paren-mismatch): Use existing
+	group `paren-showing-faces'.
+
+	* net/goto-addr.el (goto-address-highlight-keymap): Fix docstring.
+	(goto-address): Fix docstring.
+
+	* net/webjump.el (webjump-sample-sites): Update URLs.
+
+	* textmodes/fill.el (fill-single-word-nobreak-p): Use `sentence-end'.
+
+	* subr.el (cancel-change-group): Add listp around pending-undo-list.
+
+2005-12-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-compile-keywords): Signal an error when
+	font-lock-set-defaults hasn't been called.
+
+2005-12-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (noreturn, 1value): Doc fixes.
+
+2005-12-29  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-text-in-field-bounds): Handle case
+	that assoc-string returns nil.
+
+2005-12-29  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-entry-type-whitespace)
+	(bibtex-entry-type-str, bibtex-empty-field-re)
+	(bibtex-search-backward-string, bibtex-preamble-prefix)
+	(bibtex-search-entry, bibtex-enclosing-entry-maybe-empty-head): Remove.
+	(bibtex-any-valid-entry-type): New variable.
+	(bibtex-parse-field-name): Simplify.
+	(bibtex-parse-string, bibtex-search-forward-string): New arg empty-key.
+	(bibtex-preamble-prefix): Include left delimiter.
+	(bibtex-search-forward-field, bibtex-search-backward-field):
+	Allow unbounded search past entry boundaries (required by bibtex-pop).
+	(bibtex-text-in-field-bounds): Use push.
+	(bibtex-text-in-field): Do not use bibtex-narrow-to-entry.
+	(bibtex-parse-preamble, bibtex-valid-entry)
+	(bibtex-beginning-first-field): New functions.
+	(bibtex-skip-to-valid-entry): Use bibtex-valid-entry.  Fix regexp.
+	(bibtex-map-entries): Fix docstring.
+	(bibtex-flash-head): New arg prompt. Simplify.
+	(bibtex-enclosing-field): Include code of bibtex-inside-field.
+	(bibtex-insert-kill): Simplify.  Always insert text past the
+	current field or entry.
+	(bibtex-format-entry): Use bibtex-parse-field.
+	(bibtex-pop): Use bibtex-beginning-of-entry and
+	bibtex-end-of-entry to initiate the search.  Insert empty field if
+	we found ourselves.
+	(bibtex-print-help-message): New args field and comma.
+	Handle entry keys.
+	(bibtex-make-field): Use bibtex-beginning-of-entry.
+	(bibtex-end-of-entry): Use bibtex-valid-entry.  Recognize any
+	invalid entry.
+	(bibtex-validate): Use bibtex-valid-entry and bibtex-parse-string.
+	Handle preambles.  Simplify code for thorough test.
+	(bibtex-next-field, bibtex-find-text, bibtex-find-text-internal):
+	New arg comma.  Handle entry heads.
+	(bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters)
+	(bibtex-kill-field, bibtex-copy-field-as-kil, bibtex-empty-field):
+	New arg comma.
+	(bibtex-kill-entry): Use bibtex-any-entry-maybe-empty-head.
+	(bibtex-fill-field): Simplify.
+	(bibtex-fill-entry): Use bibtex-beginning-first-field and
+	bibtex-parse-field.
+	(bibtex-convert-alien): Do not wait before calling bibtex-validate.
+	(bibtex-complete): Use bibtex-parse-preamble.
+
+2005-12-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-tooltip-print, gdb-tooltip-print-1):
+	Display name of expression instead of convenience variable.
+	(gdb-post-prompt): Only call gdb-get-changed-registers if needed.
+
+	* progmodes/gud.el (gud-tooltip-dereference): Rename from
+	toggle-gud-tooltip-dereference.
+	(gud-tooltip-print-command): Move concatenation of "*" to expr to...
+	(gud-tooltip-tips): ...here when dereferencing..
+
+2005-12-28  Bill Wohler  <wohler@newt.com>
+
+	* simple.el (mh-e-user-agent): Move to mh-e/mh-comp.el and autoload.
+
+2005-12-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-annotate-display): Replace optional arg `color-map' with
+	compulsory arg `ratio'.  Inline body of vc-annotate-time-span.
+	(vc-annotate-display-autoscale): Adjust call.
+	(vc-annotate-display-default): Adjust call.  Make arg compulsory.
+	Fix interactive spec.
+	(vc-annotate-time-span): Remove.
+	(vc-annotate-oldest-in-map): Rename from vc-annotate-car-last-cons.
+	(vc-annotate-mode-menu, vc-annotate-display-autoscale)
+	(vc-annotate-display-select): Use new name.
+
+	* vc.el (vc-annotate-mode-map): Remove obsolete binding.
+	(vc-annotate-mode-menu): Remove left-over redundant declaration.
+	Correct the construction of span entries.  Simplify.
+	(vc-annotate-display-select): Fix the nil case.
+	(vc-annotate): Remove obsolete (and now broken) code.
+	(vc-annotate-extract-revision-at-line): Remove obsolete code.
+	(vc-annotate-time-span): Remove unused arg `quantize'.  Simplify.
+
+2005-12-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (lazy-completion-table): Correct typo in docstring.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	`send-mail-function'.
+
+	* mail/sendmail.el (send-mail-function): Autoload the standard-value.
+
+2005-12-05  Ralf Angeli  <angeli@iwi.uni-sb.de>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods):
+	Send credentials together with "AUTH PLAIN" command.
+
+2005-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-drag-region-1): When remapping mouse-1 to
+	mouse-2, go back to previously selected window, so it's selected
+	when mouse-2 command runs.
+
+2005-12-27  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-text-sexp): Use square brackets for
+	button [Show] to distinguish it from the property value `show'.
+	(describe-property-list): Use `insert-text-button' with
+	`help-face' type instead of putting face in quotes, because button
+	is not created automatically for a list of faces.
+	(describe-text-properties-1): Put button-type value in quotes to
+	distinguish from plain text "button".
+	(describe-char): Display code point values in hex.  Don't use
+	`symbol-name' for `current-input-method' because it is a string.
+	Use `insert-text-button' with `help-face' type instead of putting
+	hardcoded face in quotes, because button is not created automatically.
+
+2005-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/glasses.el (glasses-face): More specific custom type.
+
+	* files.el (set-visited-file-name): Doc fix.
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Use local var buffer-scan-pos to advance scan for next misspelling.
+	Advance it only after we find the misspelling.
+
+2005-12-27  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	New criteria for finding the misspelling in the buffer.
+
+2005-12-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* help-mode.el (help-insert-string): Set help-xref-stack-item
+	rather than call help-setup-xref.
+
+	* descr-text.el (describe-char): Revert previous changes for
+	optional buffer argument.
+
+2005-12-27  Juri Linkov  <juri@jurta.org>
+
+	* help-mode.el (help-insert-string): New function.  Save buffer
+	contents in cases where it is impossible to recompute the old contents.
+
+	* descr-text.el (describe-char): Set help-xref-stack-item
+	explicitly after buffer has been generated.
+
+2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add x-gtk-show-hidden-files.
+
+2005-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (perform-replace): Calculate match-again
+	before skipping read-only matches.
+
+	* paren.el (paren-showing-faces): New group.
+	(show-paren-match, show-paren-mismatch): Move to that group.
+
+	* button.el (button): Put into group `basic-faces'.
+
+	* progmodes/make-mode.el: Remove faces from group `faces'.
+
+	* apropos.el (apropos, apropos-value): Doc fix.
+	(apropos-documentation): Doc fix.
+
+2005-12-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (lazy-completion-table): Remove argument `args'.
+
+	* textmodes/bibtex.el (bibtex-strings, bibtex-reference-keys):
+	Don't use the `args' argument of lazy-completion-table.
+
+2005-12-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* descr-text.el (describe-char): Add optional argument for buffer.
+	Set buffer appropriately.  Call help-setup-xref.
+	Suggested by Stefan Monnier.
+
+2005-12-26  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el: Require `help-fns' at runtime.  Don't require
+	`button' for byte compilation.
+	(describe-text-widget): Add `help-echo' for first button.
+	Use `help-info' for second.
+	(describe-property-list): Use `help-argument-name' instead of `italic'.
+	(describe-text-category): Add prompt to interactive spec.
+	Call `help-setup-xref'.
+	(describe-char): Use `help-character-set'.  Add `help-echo' for
+	code point.  Use `help-input-method'.  Remove superfluous insert.
+
+2005-12-25  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/cc-defs.el (c-emacs-features): Do parse-partial-sexp
+	at point, in case of narrowing.
+
+	* progmodes/delphi.el (delphi-other-face): Allow nil in type.
+
+	* locate.el (locate-header-face): Allow nil in type.
+
+	* progmodes/cpp.el (cpp-face-none-list): Use cpp-face instead of face.
+
+2005-12-25  Romain Francoise  <romain@orebokech.com>
+
+	* battery.el (battery-linux-proc-acpi): Also try
+	`/proc/acpi/thermal_zone/THM0/temperature'.
+
+2005-12-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-push-theme): Fix docstring.
+
+	* cus-edit.el (custom-variable-set, custom-variable-save)
+	(custom-variable-save): Custom-quote widget values.
+	(customize-save-variable): Fix custom-push-theme call.
+
+2005-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32-fns.el (w32-batch-update-autoloads): New function.
+
+	* makefile.w32-in (autoloads, $(lisp)/mh-e/mh-loaddefs.el):
+	Use w32-batch-update-autoloads, and don't setq generated-autoload-file
+	from the command line.
+
+2005-12-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-push-theme): Clarify docstring.  VALUE nil for
+	reset means to remove setting from theme entirely.  Don't keep
+	expanding theme-settings list; delete old entries if necessary.
+
+	* cus-edit.el (custom-buffer-create-internal): Move "Erase
+	customization" button one line up.
+	(custom-themed): New face.
+	(custom-magic-alist): New value, THEMED, for theme settings.
+	(custom-variable-state-set, custom-face-state-set):
+	Check theme-value instead of saved-value.
+	(custom-variable-reset-standard, custom-face-reset-standard):
+	Remove theme setting entirely.  Recalculate new values.
+	(custom-variable-set, custom-variable-set)
+	(custom-variable-reset-saved, custom-variable-reset-backup)
+	(custom-face-set, custom-face-reset-saved): Update `user' theme.
+	(custom-variable-save): Fix typos.
+
+2005-12-23  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/edebug.el (edebug-all-defs, edebug-all-forms):
+	Add autoload cookies.
+	(edebug-outside-d-c-i-n-s-w): New variable.
+	(edebug-display, edebug-outside-excursion): Use it to save the
+	original value of default-cursor-in-non-selected-windows.
+	Set default-cursor-in-non-selected-windows to t while Edebug
+	is active.
+	(edebug-mode, edebug-eval-mode): Doc fix.
+
+	* mouse.el (mouse-choose-completion): Replace `buffer-substring'
+	with `buffer-substring-no-properties' to remove common substring
+	highlighting.
+
+	* info.el (info-other-window, info): Rename function argument
+	`file' to `file-or-node'.
+	(Info-complete-menu-item): Use local variable `complete-nodes' to
+	keep the global value of `Info-complete-nodes' unchanged for
+	subsequent completions.
+	(info-tool-bar-map): Put `Info-index' icon just before `Info-search'.
+
+	* simple.el (get-next-valid-buffer, last-buffer)
+	(next-error-buffer-p, next-error-find-buffer)
+	(minibuffer-history-sexp-flag): Doc fix.
+
+	* savehist.el (savehist-mode-hook): Add `:group'.
+
+	* log-view.el: Call autoload for vc-find-version.
+	(log-view-current-file): Adjust subgroup numbers.
+	(log-view-current-tag): Add `length'.
+
+2005-12-23  Richard M. Stallman  <rms@gnu.org>
+
+	* vc.el (vc-annotate-car-last-cons): Defn moved up.
+
+2005-12-23  Juri Linkov  <juri@jurta.org>
+
+	* hi-lock.el (hi-lock-archaic-interface-message-used)
+	(hi-lock-archaic-interface-deduce, hi-lock-mode): Doc fix.
+	(hi-lock-mode): Display "Hi" in the mode line only when
+	hi-lock-interactive-patterns or hi-lock-file-patterns is non-nil.
+	(hi-lock-write-interactive-patterns):
+	Use hi-lock-file-patterns-prefix instead of hard-coded "Hi-lock".
+	(hi-lock-set-pattern, hi-lock-set-file-patterns)
+	(hi-lock-font-lock-hook): Set 3rd arg `how' of
+	font-lock-add-keywords to t.
+
+2005-12-23  David Koppelman  <koppel@ece.lsu.edu>
+
+	* hi-lock.el (hi-lock-highlight-range): New variable.
+	(hi-lock-mode, hi-lock-unface-buffer): Call font-lock-fontify-buffer
+	only if font-lock-fontified is non-nil.  Remove overlays.
+	(hi-lock-set-pattern): Call font-lock-fontify-buffer if
+	font-lock-fontified is non-nil, otherwise use overlays (instead of
+	text properties).
+	(hi-lock-string-serialize-hash, hi-lock-string-serialize-serial):
+	New variables.
+	(hi-lock-string-serialize) New function.
+
+2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-find-file-existing): New function.
+	(menu-bar-file-menu): Use menu-find-file-existing for Open.
+
+	* tool-bar.el (tool-bar-setup): open changed to menu-find-file-existing.
+
+2005-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Remove unnecessary leading * in docstrings.
+	(vc-annotate-mode-map): Move initialization into declaration.
+	(vc-static-header-alist): Nitpick on the regexp.
+	(vc-default-init-version): New fun.
+	(vc-register): Use it.
+	(vc-insert-headers): Use dolist.
+	(vc-annotate-get-backend): Remove unused function.
+	(vc-annotate-add-menu): Remove.  Build the menu directly at toplevel.
+	(vc-annotate-mode): Remove corresponding call.
+	(vc-annotate-car-last-cons): Simplify.
+	(vc-annotate-buffers): Remove var.
+	(vc-annotate-backend): Make it buffer-local.
+	(vc-annotate): Move the interaction to the interactive spec.
+	Add a `buf' argument.
+	(vc-annotate-warp-version): Use this new `buf' argument to avoid
+	killing&creating a vc-annotate buffer, which is very disruptive when
+	the buffers are shown in dedicated frames.
+
+2005-12-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* descr-text.el: Add FSF as maintainer.
+	(describe-text-mode, describe-text-mode-map)
+	(describe-text-mode-hook, describe-text-done): Delete.  Use normal
+	help-mode.
+	(describe-text-widget, describe-text-sexp)
+	(describe-property-list, describe-text-category)
+	(describe-text-properties, describe-text-properties-1)
+	(describe-char): Use help buttons instead of widgets.
+	(describe-char-unicodedata-file): Make URL link in doc string.
+
+2005-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-variable-prompt): Say "variable" in prompt.
+	(custom-buffer-create-internal): Reword the top-of-buffer help intro.
+	Don't include buttons that write a file when there's no file.
+	(custom-variable-menu, custom-face-menu, custom-group-menu):
+	Don't include commands that write a file when there's no file.
+	(customize-browse): Reword the top-of-buffer help intro.
+	(custom-buffer-create-internal): Fix previous change.
+	(customize-changed-options-previous-release): Prev release is 21.1.
+	(customize-changed-options): Doc fix.
+	(customize-changed): New alias.
+	(custom-reset-menu, custom-magic-alist, Custom-mode-menu):
+	Say "standard values".
+	(Custom-reset-standard): Doc fix.
+	(custom-face-reset-standard): Doc fix.
+
+2005-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-default-fontify-buffer): Try and set-defaults
+	even if font-lock-mode is non-nil since it may be t without having
+	turned on font-lock-mode-internal.
+	(font-lock-choose-keywords): Minor optimization.
+	(font-lock-add-keywords, font-lock-remove-keywords)
+	(font-lock-set-defaults): Don't call make-local-variable on a variable
+	that we know to already be local.
+
+2005-12-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't print progress
+	messages if in the minibuffer.
+
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-check-word-p): Don't quote - in a RE.
+	(tex-mode-flyspell-verify, flyspell-get-word)
+	(flyspell-external-point-words): Don't use point-min/max uselessly.
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Mostly undo the change
+	by Kevin Rodgers.  Instead, just hide the completions buffer if we
+	don't need to show it.
+
+2005-12-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* wid-edit.el (file, directory): Doc fixes for the `define-widget's.
+
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't call
+	delete-windows-on with an inexistent buffer.
+
+2005-12-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-modes, gud-tooltip-display):
+	Delete defcustom variable :tag names.
+
+2005-12-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-file-re, log-view-message-re): Use shy groups.
+	(log-view-font-lock-keywords): Ajust subgroup numbers.
+	(log-view-current-tag): Don't hard code the number of subgroups.
+
+2005-12-20  Juri Linkov  <juri@jurta.org>
+
+	* tooltip.el (tooltip): Move defgroup before define-minor-mode.
+	(tooltip-x-offset, tooltip-y-offset): Doc fix.
+
+	* menu-bar.el (menu-bar-menu-frame-live-and-visible-p)
+	(menu-bar-non-minibuffer-window-p): Instead of checking
+	display-multi-frame-p, use selected-frame when menu-updating-frame
+	is nil.
+
+2005-12-20  Davis Herring  <herring@lanl.gov>  (tiny change)
+
+	* align.el (align-rules-list): Use [ \t] instead of \s-
+	for column separators in text mode.
+
+2005-12-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* help-mode.el (help-customize-variable, help-customize-face):
+	Don't pop help-xref-stack as help-follow no longer pushes
+	anything on to it.
+
+2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-agenda-custom-commands): New option.
+	(org-agenda): Offer custom commands on splash screen.
+	(org-make-tags-matcher): Parser for Boolean logic added.
+	(org-agenda-set-tags): New command.
+	(org-agenda-menu, org-agenda-mode-map): Add `org-agenda-set-tags'.
+	(org-set-tags): Efficiency improvements.
+	(org-auto-align-tags): New option.
+	(org-todo, org-demote, org-promote): Realign tags.
+	(org-tags-completion-function): Use also "&" and "|" as separators.
+	(org-org-menu): Agenda commands simplified.
+
+2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-apropos, customize-apropos-options):
+	Docstring changes.
+
+	* font-lock.el (font-lock): Add tags to the links in the defgroup.
+
+2005-12-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Wrap while widened.
+	(longlines-decode-region, longlines-encode-region): Compute max
+	just once.
+
+2005-12-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-edit.el (mac): New group.
+
+	* cus-start.el (all): Add user options in macterm.c.  Add test for
+	Mac-related built-ins.  Fix test for GTK-related built-ins.
+
+	* term/mac-win.el (mac-handle-language-change)
+	(mac-ae-open-documents, mac-ae-get-url, mac-services-open-file)
+	(mac-services-open-selection, mac-services-mail-selection)
+	(mac-services-mail-to, mac-services-insert-text)
+	(mac-dispatch-apple-event): Add docstrings.
+	(x-get-selection, mac-select-convert-to-string): Select coding
+	system from `utf-16be' and `utf-16le' using `byteorder'.
+
+2005-12-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (lazy-completion-table): Don't be fooled if the var holds
+	a "list" (lambda ...) rather than a real completion list.
+
+	* emacs-lisp/cl-extra.el (cl-macroexpand-all): Fix code-walk for
+	lexical-let when encountering ((lambda (...) ...) ...).
+
+2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/sh-script.el (sh-mode):
+	* language/ethio-util.el (ethio-fidel-to-sera-mail-or-marker):
+	* textmodes/picture.el (picture-mode): Update docstrings.
+
+2005-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (autoloads, custom-deps): Warn that parts of
+	commands enclosed in $(ARGQUOTE)s should not be split between two
+	lines, as that will break with GNU Make >3.80, when sh.exe is used
+	and arg quoting is with '..'.
+	(autoloads): Don't break the quoted --eval expression between
+	several lines.
+
+2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/edebug.el (edebug-safe-prin1-to-string):
+	Capture error from printing circular structures.
+
+2005-12-17  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* wid-edit.el (widget-checkbox-action): Clear undo info.
+
 2005-12-16  Bill Wohler  <wohler@newt.com>
 
 	* menu-bar.el (kill-this-buffer): Set a good example by using menu
@@ -1081,7 +1917,7 @@
 	5D.1 and 5D.2 removed since they aren't trigged anymore (case 5B.1
 	covers all cases now).
 
-	* progmodes/cc-defs.el (c-point): Added 'bosws and 'eosws.
+	* progmodes/cc-defs.el (c-point): Added `bosws' and `eosws'.
 
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
@@ -1151,7 +1987,7 @@
 	* progmodes/cc-engine.el, cc-fonts.el (c-forward-keyword-clause):
 	Specify which submatch to use.
 
-	* progmodes/cc-langs.el (c-symbol-start): Include '@' in ObjC.
+	* progmodes/cc-langs.el (c-symbol-start): Include `@' in ObjC.
 
 	(c-decl-start-re): No no longer any need for special treatment of
 	ObjC due to the above.
@@ -1350,7 +2186,7 @@
 
 	(c-decl-start-re): New language variable to make
 	`c-font-lock-declarations' stop for the special protection labels
-	in Objective-C that start with '@'.
+	in Objective-C that start with `@'.
 
 	(c-label-key): Removed since it's no longer used.
 
@@ -1540,7 +2376,7 @@
 	has now taken the place of this function.
 
 	* progmodes/cc-vars.el (c-emacs-features): Removed compatibility
-	with older emacsen: We now require 'pps-extended-state.
+	with older emacsen: We now require `pps-extended-state'.
 
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
@@ -1717,21 +2553,21 @@
 	(cua-rectangle-modifier-key): ... this.  New defcustom.  Can now
 	select either meta, hyper, or super modifier for rectangle commands.
 	(cua--rectangle-modifier-key): New defvar.
-	(cua--M/H-key): Use it.  Remove special case for 'space.
+	(cua--M/H-key): Use it.  Remove special case for `space'.
 	(cua--init-keymaps): Initialize it from cua-rectangle-modifier-key
 	on X, to meta otherwise.  Always bind C-return to toggle
-	rectangle.  Pass ?\s instead of 'space to cua--M/H-key.
+	rectangle.  Pass ?\s instead of `space' to cua--M/H-key.
 
 	* emulation/cua-rect.el (cua-help-for-rectangle): Use
 	cua--rectangle-modifier-key.  Handle super modifier too.
 	(cua--init-rectangles): Always bind C-return to toggle rectangle.
-	Pass ?\s instead of 'space to cua--M/H-key and cua--rect-M/H-key.
+	Pass ?\s instead of `space' to cua--M/H-key and cua--rect-M/H-key.
 
 	* ido.el: Move Acknowledgements and History after Commentary.
 	Minor changes to Commentary.
 
 	* emulation/cua-base.el (cua--select-keymaps): Enable repeat
-	keymap if cua--prefix-override-timer equals 'shift.
+	keymap if cua--prefix-override-timer is `shift'.
 	(cua--shift-control-prefix): New function; emulate "type prefix
 	key twice" functionality to handle shifted prefix key override.
 	(cua--shift-control-c-prefix, cua--shift-control-x-prefix): New
@@ -2027,7 +2863,7 @@
 
 2005-12-02  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el:(eval-when-compile): Remove unnecessary load of 'cl.
+	* allout.el:(eval-when-compile): Remove unnecessary load of cl.
 	Add fset of allout-real-isearch-abort during compile to fix
 	byte-compilation warnings.
 	(allout-mode-p): Move definition of this macro above all uses, or
@@ -3164,7 +4000,7 @@
 	* jka-cmpr-hook.el (jka-compr-install): Use push and dolist.
 	Add jka-compr-load-suffixes to load-suffixes.
 
-	* jka-compr.el: Require 'jka-cmpr-hook.
+	* jka-compr.el: Require jka-cmpr-hook.
 	(jka-compr-info-compress-message, jka-compr-info-compress-program)
 	(jka-compr-info-compress-args, jka-compr-info-uncompress-message)
 	(jka-compr-info-uncompress-program, jka-compr-info-uncompress-args)
@@ -3347,7 +4183,7 @@
 	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
 	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
-	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 	(pgg-pgp-decrypt-region, pgg-pgp-sign-region): Use new name for
@@ -3356,7 +4192,7 @@
 	* pgg-pgp5.el (pgg-pgp5-encrypt-region, pgg-pgp5-decrypt-region)
 	(pgg-pgp5-encrypt-symmetric-region, pgg-pgp5-encrypt-symmetric)
 	(pgg-pgp5-encrypt, pgg-pgp5-decrypt-region, pgg-pgp5-decrypt)
-	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
+	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
@@ -3540,7 +4376,7 @@
 	Change defvar to defcustom.
 	(rcirc-update-prompt): Add optional ALL arg, which will update
 	prompts in all rcirc buffers.  Regexp quote replacement text.
-	(rcirc-fill-column): Accept 'frame-width as a value.
+	(rcirc-fill-column): Accept frame-width as a value.
 	(rcirc-set-changed): Add function.
 	(rcirc-next-active-buffer): Write more meaningful messages.
 	(rcirc-faces): Add customization group.
@@ -3551,7 +4387,7 @@
 	(rcirc-debug-buffer): Rename from `rcirc-log-buffer'.
 	(rcirc-debug-flag): Rename from `rcirc-log-p'.
 	(rcirc-debug): Rename from `rcirc-log'.
-	(rcirc-format-response-string): Do not print '-' chars for a
+	(rcirc-format-response-string): Do not print `-' chars for a
 	NOTICE with no sender.  Simplify output of server responses.
 
 2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
@@ -3569,7 +4405,7 @@
 	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
 	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
-	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 	(pgg-pgp-decrypt-region, pgg-pgp-sign-region): Use new name for
@@ -3578,7 +4414,7 @@
 	* pgg-pgp5.el (pgg-pgp5-encrypt-region, pgg-pgp5-decrypt-region)
 	(pgg-pgp5-encrypt-symmetric-region, pgg-pgp5-encrypt-symmetric)
 	(pgg-pgp5-encrypt, pgg-pgp5-decrypt-region, pgg-pgp5-decrypt)
-	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
+	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
@@ -3593,7 +4429,7 @@
 
 	* textmodes/org.el (org-read-date, org-goto-calendar)
 	(org-recenter-calendar, org-agenda-goto-calendar):
-	Temporarily clear 'calendar-move-hook'.
+	Temporarily clear `calendar-move-hook'.
 
 2005-11-04  Michael Kifer  <kifer@cs.stonybrook.edu>
 
@@ -3954,7 +4790,7 @@
 	key.  Also, added a note pointing out fact that the prompt only
 	indicates the first matching key.
 
-	* pgg.el (pgg-decrypt): Passing along 'passphrase' in call to
+	* pgg.el (pgg-decrypt): Passing along PASSPHRASE in call to
 	pgg-decrypt-region.
 	(pgg-pending-timers): A new hash for tracking the passphrase cache
 	timers, so that new ones supercede old ones.
@@ -3984,14 +4820,14 @@
 	and then passed in to the system.
 
 	* pgg.el (pgg-read-passphrase, pgg-add-passphrase-cache)
-	(pgg-remove-passphrase-cache): Add optional 'notruncate' argument,
+	(pgg-remove-passphrase-cache): Add optional NOTRUNCATE argument,
 	so the passphrase cache can be used reliably with identifiers
 	besides a pgp packet's key id.
 
 	* pgg-gpg.el (pgg-pgp-encrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
 	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
-	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 
@@ -4040,7 +4876,7 @@
 	key.  Also, added a note pointing out fact that the prompt only
 	indicates the first matching key.
 
-	* pgg.el (pgg-decrypt): Passing along 'passphrase' in call to
+	* pgg.el (pgg-decrypt): Passing along PASSPHRASE in call to
 	pgg-decrypt-region.
 	(pgg-pending-timers): A new hash for tracking the passphrase cache
 	timers, so that new ones supercede old ones.
@@ -4072,14 +4908,14 @@
 	and then passed in to the system.
 
 	* pgg.el (pgg-read-passphrase, pgg-add-passphrase-cache)
-	(pgg-remove-passphrase-cache): Add optional 'notruncate' argument,
+	(pgg-remove-passphrase-cache): Add optional NOTRUNCATE argument,
 	so the passphrase cache can be used reliably with identifiers
 	besides a pgp packet's key id.
 
 	* pgg-gpg.el (pgg-pgp-encrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
 	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
-	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 
@@ -4717,7 +5553,7 @@
 	* allout.el: Add autoloads of crypt++ and mailcrypt routines, all
 	for encryption functionality.
 	Move allout customization subgroup from `editing' to `outlines' group.
-	Fix commentary 'keywords' to legitimate ones.
+	Fix commentary keywords to legitimate ones.
 	Update author info (using my current email address, obscurified).
 	(allout-encrypt-string, allout-encryption-produce-work-buffer)
 	(allout-encrypted-topic-p, allout-encrypted-text-type)
@@ -4758,9 +5594,9 @@
 	any universal argument provokes now prompt for bullet, defaulting
 	to the bullet of the previous topic.
 	(allout-plain-bullets-string, allout-distinctive-bullets-string):
-	Plain bullet alternates '.' period and ',' comma only.  All other
+	Plain bullet alternates `.' period and `,' comma only.  All other
 	bullets are relegated to special status (but customizable).
-	(allout-end-of-entry): Rename from 'allout-end-of-current-entry
+	(allout-end-of-entry): Rename from allout-end-of-current-entry
 	since it actually operates w.r.t. most immediately containing
 	entry, visible or not.
 	(allout-hide-current-entry, allout-show-current-entry): Use the
@@ -4781,8 +5617,8 @@
 	(allout-isearch-rectification): Refine condition for isearching.
 	(allout-isearch-abort, allout-enwrap-isearch)
 	(allout-flag-region, my-region-active-p): Relocate some macros.
-	(allout-title): Fallback title is '(buffer-name)', not
-	non-existing '(current-buffer-name)'.
+	(allout-title): Fallback title is (buffer-name), not
+	non-existing (current-buffer-name).
 	(subst-char-in-string): Define if absent (for some XEmacs versions).
 
 2005-10-20  Jari Aalto  <jari.aalto@cante.net>
@@ -5297,10 +6133,10 @@
 	(math-super-types): Add sqmatrix type.
 
 	* calc/calc-mode.el (calc-matrix-mode, math-get-modes-vec): Change the
-	mode name `square' to 'sqmatrix'.
+	mode name `square' to `sqmatrix'.
 
 	* calc/calc.el (calc-matrix-mode, calc-set-mode-line): Change the
-	mode name `square' to 'sqmatrix'.
+	mode name `square' to `sqmatrix'.
 
 2005-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -5406,7 +6242,7 @@
 	* progmodes/gud.el (gud-speedbar-menu-items): Use :visible
 	instead of :active.
 
-2005-10-08  Eric Hanchrow  <offby1@blarg.net>
+2005-10-08  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* textmodes/ispell.el (ispell-check-version):
 	Ignore hyphen, and all that follows, in aspell's version text.
@@ -6890,7 +7726,7 @@
 	(vhdl-trailer-re): Add "record" keyword (better indentation).
 	(vhdl-fixup-whitespace-region): "[^ \t\"-]+" instead of
 	"[^ \t-\"]+".
-	(vhdl-font-lock-keywords-2): Not highlight formal parameter after '|'.
+	(vhdl-font-lock-keywords-2): Not highlight formal parameter after `|'.
 	(vhdl-testbench-entity-file-name)
 	(vhdl-testbench-architecture-file-name): Allow separate
 	customization of testbench file names.
@@ -7197,7 +8033,7 @@
 2005-08-26  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (version-list-<, version-list-<=, version-list-=):
-	Renamed from integer-list-*.
+	Rename from integer-list-*.
 	(version-list-not-zero): Likewise.  Fix while loop.
 	(version=): Use version-list-= instead of string-equal.
 
@@ -7500,8 +8336,8 @@
 	* subr.el (insert-for-yank-1): Doc fix.
 
 	* ido.el (ido-enter-matching-directory): Rename from
-	ido-enter-single-matching-directory.  Change 'slash choice to
-	'only. 	Add 'first choice.
+	ido-enter-single-matching-directory.  Change `slash' choice to
+	`only'.  Add `first' choice.
 	(ido-exhibit): Adapt to above changes.
 
 2005-08-16  Luc Teirlinck  <teirllm@auburn.edu>
@@ -11761,7 +12597,7 @@
 	included diary buffer if it was not already being visited.
 	Reported by Stephen Berman <Stephen.Berman@gmx.net>.
 
-	* calendar/icalendar.el (top-level): Do not require 'appt.
+	* calendar/icalendar.el (top-level): Do not require appt.
 
 	* mail/supercite.el (sc-select-attribution): Only use a list
 	element from sc-attrib-selection-list if it returns a string.
@@ -12344,8 +13180,7 @@
 	(multiple-value-bind, multiple-value-setq, shiftf):
 	Improve argument/docstring consistency.
 
-	* subr.el (focus-frame, unfocus-frame):
-	Revert deletion on 2005-05-01.
+	* subr.el (focus-frame, unfocus-frame): Revert deletion on 2005-05-01.
 
 2005-05-22  Andre Spiegel  <spiegel@gnu.org>
 
@@ -12478,8 +13313,7 @@
 	(subst-if-not, nsubst, nsubst-if, nsubst-if-not, sublis)
 	(nsublis, tree-equal): Improve argument/docstring consistency.
 
-	* subr.el (send-string, send-region):
-	Remove obsolescence declaration.
+	* subr.el (send-string, send-region): Remove obsolescence declaration.
 	(window-dot, set-window-dot, read-input, show-buffer)
 	(eval-current-buffer, string-to-int):
 	Add release number to obsolescence declarations.
@@ -12556,8 +13390,8 @@
 	* emacs-lisp/byte-run.el (eval-when-compile): Doc fix.
 
 	* emacs-lisp/bytecomp.el
-	(byte-compile-file-form-custom-declare-variable): Call
-	byte-compile-nogroup-warn if appropriate.
+	(byte-compile-file-form-custom-declare-variable):
+	Call byte-compile-nogroup-warn if appropriate.
 
 	* progmodes/compile.el (compilation-finish-function): Mark obsolete.
 	(compilation-set-window): Don't call left-fringe-p; do it directly.
@@ -15070,7 +15904,7 @@
 
 	* calendar/cal-x.el (calendar-one-frame-setup)
 	(calendar-only-one-frame-setup, calendar-two-frame-setup): Use t
-	rather than 'symbol for set-window-dedicated-p.
+	rather than `symbol' for set-window-dedicated-p.
 
 	* calendar/appt.el (appt-buffer-name): Make it a constant.
 	(appt-add): Doc fix.
@@ -17699,10 +18533,10 @@
 	(reftex-index-region-phrases): Add slave parameter to call of
 	`reftex-index-this-phrase'.
 	(reftex-display-index): New argument redo.
-	(reftex-index-rescan): Add 'redo to arguments of
+	(reftex-index-rescan): Add `redo' to arguments of
 	`reftex-display-index'.
 	(reftex-index-Rescan, reftex-index-revert)
-	(reftex-index-switch-index-tag): Add 'redo to arguments of
+	(reftex-index-switch-index-tag): Add `redo' to arguments of
 	`reftex-display-index'.
 	(reftex-index-make-phrase-regexp): Fix bug with case-sensitive
 	indexing.  Fix bug with matching is there is a quote before or
@@ -17769,8 +18603,8 @@
 
 	* xt-mouse.el (xterm-mouse-translate, xterm-mouse-event):
 	Enable mouse clicks on mode-line, header-line and margin.
-	(event-type): Give mouse event symbols an 'event-kind property
-	with value 'mouse-click.
+	(event-type): Give mouse event symbols an `event-kind' property
+	with value `mouse-click'.
 
 2005-01-12  Juri Linkov  <juri@jurta.org>
 

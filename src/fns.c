@@ -3514,7 +3514,8 @@ particular subfeatures supported in this version of FEATURE.  */)
   CHECK_SYMBOL (feature);
   CHECK_LIST (subfeatures);
   if (!NILP (Vautoload_queue))
-    Vautoload_queue = Fcons (Fcons (Vfeatures, Qnil), Vautoload_queue);
+    Vautoload_queue = Fcons (Fcons (make_number (0), Vfeatures),
+			     Vautoload_queue);
   tem = Fmemq (feature, Vfeatures);
   if (NILP (tem))
     Vfeatures = Fcons (feature, Vfeatures);

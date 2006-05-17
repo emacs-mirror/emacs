@@ -1,8 +1,9 @@
 ;;; latin-post.el --- Quail packages for inputting various European characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001, 2002 Free Software Foundation.
+;; Copyright (C) 1997, 1998, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, input method, latin
 

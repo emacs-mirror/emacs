@@ -570,6 +570,7 @@ already is one.)"
 ;; Compatibility with old versions.
 (defalias 'edebug-all-defuns 'edebug-all-defs)
 
+;;;###autoload
 (defun edebug-all-defs ()
   "Toggle edebugging of all definitions."
   (interactive)
@@ -578,6 +579,7 @@ already is one.)"
 	   (if edebug-all-defs "on" "off")))
 
 
+;;;###autoload
 (defun edebug-all-forms ()
   "Toggle edebugging of all forms."
   (interactive)
@@ -2516,6 +2518,7 @@ MSG is printed after `::::} '."
 (defvar edebug-outside-o-a-p) ; outside overlay-arrow-position
 (defvar edebug-outside-o-a-s) ; outside overlay-arrow-string
 (defvar edebug-outside-c-i-e-a) ; outside cursor-in-echo-area
+(defvar edebug-outside-d-c-i-n-s-w) ; outside default-cursor-in-non-selected-windows
 
 (defvar edebug-eval-list nil) ;; List of expressions to evaluate.
 
@@ -2557,11 +2560,13 @@ MSG is printed after `::::} '."
 
 	(edebug-outside-o-a-p overlay-arrow-position)
 	(edebug-outside-o-a-s overlay-arrow-string)
-	(edebug-outside-c-i-e-a cursor-in-echo-area))
+	(edebug-outside-c-i-e-a cursor-in-echo-area)
+	(edebug-outside-d-c-i-n-s-w default-cursor-in-non-selected-windows))
     (unwind-protect
 	(let ((overlay-arrow-position overlay-arrow-position)
 	      (overlay-arrow-string overlay-arrow-string)
 	      (cursor-in-echo-area nil)
+	      (default-cursor-in-non-selected-windows t)
 	      ;; any others??
 	      )
 	  (if (not (buffer-name edebug-buffer))
@@ -2767,7 +2772,8 @@ MSG is printed after `::::} '."
       (setq
        overlay-arrow-position edebug-outside-o-a-p
        overlay-arrow-string edebug-outside-o-a-s
-       cursor-in-echo-area edebug-outside-c-i-e-a)
+       cursor-in-echo-area edebug-outside-c-i-e-a
+       default-cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
       )))
 
 
@@ -3580,6 +3586,7 @@ Return the result of the last expression."
 	   (overlay-arrow-position edebug-outside-o-a-p)
 	   (overlay-arrow-string edebug-outside-o-a-s)
 	   (cursor-in-echo-area edebug-outside-c-i-e-a)
+	   (default-cursor-in-non-selected-windows edebug-outside-d-c-i-n-s-w)
 	   )
        (unwind-protect
 	   (save-excursion		; of edebug-buffer
@@ -3618,6 +3625,7 @@ Return the result of the last expression."
 	  edebug-outside-o-a-p overlay-arrow-position
 	  edebug-outside-o-a-s overlay-arrow-string
 	  edebug-outside-c-i-e-a cursor-in-echo-area
+	  edebug-outside-d-c-i-n-s-w default-cursor-in-non-selected-windows
 	  )
 
 	 ;; Restore the outside saved values; don't alter
@@ -3711,7 +3719,9 @@ Return the result of the last expression."
 	(print-level (or edebug-print-level print-level))
 	(print-circle (or edebug-print-circle print-circle))
 	(print-readably nil)) ;; lemacs uses this.
-    (edebug-prin1-to-string value)))
+    (condition-case nil
+	(edebug-prin1-to-string value)
+      (error "#Apparently circular structure#"))))
 
 (defun edebug-compute-previous-result (edebug-previous-value)
   (if edebug-unwrap-results
@@ -3895,7 +3905,7 @@ buffer) there are local and global key bindings to several Edebug
 specific commands.  E.g. `edebug-step-mode' is bound to \\[edebug-step-mode]
 in the Edebug buffer and \\<global-map>\\[edebug-step-mode] in any buffer.
 
-Also see bindings for the eval list buffer, *edebug*.
+Also see bindings for the eval list buffer *edebug* in `edebug-eval-mode'.
 
 The edebug buffer commands:
 \\{edebug-mode-map}
@@ -4052,7 +4062,7 @@ buffer and \\<global-map>\\[edebug-step-mode] in any buffer.
 Eval list buffer commands:
 \\{edebug-eval-mode-map}
 
-Global commands prefixed by global-edebug-prefix:
+Global commands prefixed by `global-edebug-prefix':
 \\{global-edebug-map}")
 
 ;;; Interface with standard debugger.

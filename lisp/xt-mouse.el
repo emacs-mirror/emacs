@@ -39,9 +39,6 @@
 
 ;;; Todo:
 
-;; The xterm mouse escape codes are supposedly also supported by the
-;; Linux console, but I have not been able to verify this.
-
 ;; Support multi-click -- somehow.
 
 ;;; Code:

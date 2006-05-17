@@ -661,60 +661,69 @@ Picture mode is invoked by the command \\[picture-mode]."
 ;;;###autoload
 (defun picture-mode ()
   "Switch to Picture mode, in which a quarter-plane screen model is used.
+\\<picture-mode-map>
 Printing characters replace instead of inserting themselves with motion
 afterwards settable by these commands:
-  C-c <	  Move left after insertion.
-  C-c >	  Move right after insertion.
-  C-c ^	  Move up after insertion.
-  C-c .	  Move down after insertion.
-  C-c `	  Move northwest (nw) after insertion.
-  C-c '	  Move northeast (ne) after insertion.
-  C-c /	  Move southwest (sw) after insertion.
-  C-c \\   Move southeast (se) after insertion.
-  C-u C-c `  Move westnorthwest (wnw) after insertion.
-  C-u C-c '  Move eastnortheast (ene) after insertion.
-  C-u C-c /  Move westsouthwest (wsw) after insertion.
-  C-u C-c \\  Move eastsoutheast (ese) after insertion.
+
+ Move left after insertion:            \\[picture-movement-left]
+ Move right after insertion:           \\[picture-movement-right]
+ Move up after insertion:              \\[picture-movement-up]
+ Move down after insertion:            \\[picture-movement-down]
+
+ Move northwest (nw) after insertion:  \\[picture-movement-nw]
+ Move northeast (ne) after insertion:  \\[picture-movement-ne]
+ Move southwest (sw) after insertion:  \\[picture-movement-sw]
+ Move southeast (se) after insertion:  \\[picture-movement-se]
+
+ Move westnorthwest (wnw) after insertion:  C-u \\[picture-movement-nw]
+ Move eastnortheast (ene) after insertion:  C-u \\[picture-movement-ne]
+ Move westsouthwest (wsw) after insertion:  C-u \\[picture-movement-sw]
+ Move eastsoutheast (ese) after insertion:  C-u \\[picture-movement-se]
+
 The current direction is displayed in the mode line.  The initial
 direction is right.  Whitespace is inserted and tabs are changed to
 spaces when required by movement.  You can move around in the buffer
 with these commands:
-  \\[picture-move-down]	  Move vertically to SAME column in previous line.
-  \\[picture-move-up]	  Move vertically to SAME column in next line.
-  \\[picture-end-of-line]	  Move to column following last non-whitespace character.
-  \\[picture-forward-column]	  Move right inserting spaces if required.
-  \\[picture-backward-column]	  Move left changing tabs to spaces if required.
-  C-c C-f Move in direction of current picture motion.
-  C-c C-b Move in opposite direction of current picture motion.
-  Return  Move to beginning of next line.
+
+ Move vertically to SAME column in previous line: \\[picture-move-down]
+ Move vertically to SAME column in next line:     \\[picture-move-up]
+ Move to column following last
+  non-whitespace character:                       \\[picture-end-of-line]
+ Move right, inserting spaces if required:        \\[picture-forward-column]
+ Move left changing tabs to spaces if required:   \\[picture-backward-column]
+ Move in direction of current picture motion:     \\[picture-motion]
+ Move opposite to current picture motion:         \\[picture-motion-reverse]
+ Move to beginning of next line:                  \\[next-line]
+
 You can edit tabular text with these commands:
-  M-Tab	  Move to column beneath (or at) next interesting character.
-	    `Indents' relative to a previous line.
-  Tab	  Move to next stop in tab stop list.
-  C-c Tab Set tab stops according to context of this line.
-	    With ARG resets tab stops to default (global) value.
-	    See also documentation of variable	picture-tab-chars
-	    which defines \"interesting character\".  You can manually
-	    change the tab stop list with command \\[edit-tab-stops].
+
+ Move to column beneath (or at) next interesting
+  character (see variable `picture-tab-chars'):   \\[picture-tab-search]
+ Move to next stop in tab stop list:              \\[picture-tab]
+ Set tab stops according to context of this line: \\[picture-set-tab-stops]
+   (With ARG, resets tab stops to default value.)
+ Change the tab stop list:                        \\[edit-tab-stops]
+
 You can manipulate text with these commands:
-  C-d	  Clear (replace) ARG columns after point without moving.
-  C-c C-d Delete char at point - the command normally assigned to C-d.
-  \\[picture-backward-clear-column]  Clear (replace) ARG columns before point, moving back over them.
-  \\[picture-clear-line]	  Clear ARG lines, advancing over them.	 The cleared
-	    text is saved in the kill ring.
-  \\[picture-open-line]	  Open blank line(s) beneath current line.
+ Clear ARG columns after point without moving:    \\[picture-clear-column]
+ Delete char at point:                            \\[delete-char]
+ Clear ARG columns backward:                      \\[picture-backward-clear-column]
+ Clear ARG lines, advancing over them:            \\[picture-clear-line]
+  (the cleared text is saved in the kill ring)
+ Open blank line(s) beneath current line:         \\[picture-open-line]
+
 You can manipulate rectangles with these commands:
-  C-c C-k Clear (or kill) a rectangle and save it.
-  C-c C-w Like C-c C-k except rectangle is saved in named register.
-  C-c C-y Overlay (or insert) currently saved rectangle at point.
-  C-c C-x Like C-c C-y except rectangle is taken from named register.
-  C-c C-r Draw a rectangular box around mark and point.
-  \\[copy-rectangle-to-register]   Copies a rectangle to a register.
-  \\[advertised-undo]   Can undo effects of rectangle overlay commands
-	    if invoked soon enough.
-You can return to the previous mode with:
-  C-c C-c Which also strips trailing whitespace from every line.
-	    Stripping is suppressed by supplying an argument.
+  Clear a rectangle and save it:                  \\[picture-clear-rectangle]
+  Clear a rectangle, saving in a named register:  \\[picture-clear-rectangle-to-register]
+  Insert currently saved rectangle at point:      \\[picture-yank-rectangle]
+  Insert rectangle from named register:           \\[picture-yank-rectangle-from-register]
+  Draw a rectangular box around mark and point:   \\[picture-draw-rectangle]
+  Copies a rectangle to a register:               \\[copy-rectangle-to-register]
+  Undo effects of rectangle overlay commands:     \\[advertised-undo]
+
+You can return to the previous mode with \\[picture-mode-exit], which
+also strips trailing whitespace from every line.  Stripping is suppressed
+by supplying an argument.
 
 Entry to this mode calls the value of `picture-mode-hook' if non-nil.
 

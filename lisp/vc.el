@@ -469,12 +469,12 @@
   :group 'tools)
 
 (defcustom vc-suppress-confirm nil
-  "*If non-nil, treat user as expert; suppress yes-no prompts on some things."
+  "If non-nil, treat user as expert; suppress yes-no prompts on some things."
   :type 'boolean
   :group 'vc)
 
 (defcustom vc-delete-logbuf-window t
-  "*If non-nil, delete the *VC-log* buffer and window after each logical action.
+  "If non-nil, delete the *VC-log* buffer and window after each logical action.
 If nil, bury that buffer instead.
 This is most useful if you have multiple windows on a frame and would like to
 preserve the setting."
@@ -482,12 +482,12 @@ preserve the setting."
   :group 'vc)
 
 (defcustom vc-initial-comment nil
-  "*If non-nil, prompt for initial comment when a file is registered."
+  "If non-nil, prompt for initial comment when a file is registered."
   :type 'boolean
   :group 'vc)
 
 (defcustom vc-default-init-version "1.1"
-  "*A string used as the default version number when a new file is registered.
+  "A string used as the default version number when a new file is registered.
 This can be overridden by giving a prefix argument to \\[vc-register].  This
 can also be overridden by a particular VC backend."
   :type 'string
@@ -495,12 +495,12 @@ can also be overridden by a particular VC backend."
   :version "20.3")
 
 (defcustom vc-command-messages nil
-  "*If non-nil, display run messages from back-end commands."
+  "If non-nil, display run messages from back-end commands."
   :type 'boolean
   :group 'vc)
 
 (defcustom vc-checkin-switches nil
-  "*A string or list of strings specifying extra switches for checkin.
+  "A string or list of strings specifying extra switches for checkin.
 These are passed to the checkin program by \\[vc-checkin]."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
@@ -510,7 +510,7 @@ These are passed to the checkin program by \\[vc-checkin]."
   :group 'vc)
 
 (defcustom vc-checkout-switches nil
-  "*A string or list of strings specifying extra switches for checkout.
+  "A string or list of strings specifying extra switches for checkout.
 These are passed to the checkout program by \\[vc-checkout]."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
@@ -520,7 +520,7 @@ These are passed to the checkout program by \\[vc-checkout]."
   :group 'vc)
 
 (defcustom vc-register-switches nil
-  "*A string or list of strings; extra switches for registering a file.
+  "A string or list of strings; extra switches for registering a file.
 These are passed to the checkin program by \\[vc-register]."
   :type '(choice (const :tag "None" nil)
 		 (string :tag "Argument String")
@@ -530,30 +530,30 @@ These are passed to the checkin program by \\[vc-register]."
   :group 'vc)
 
 (defcustom vc-dired-listing-switches "-al"
-  "*Switches passed to `ls' for vc-dired.  MUST contain the `l' option."
+  "Switches passed to `ls' for vc-dired.  MUST contain the `l' option."
   :type 'string
   :group 'vc
   :version "21.1")
 
 (defcustom vc-dired-recurse t
-  "*If non-nil, show directory trees recursively in VC Dired."
+  "If non-nil, show directory trees recursively in VC Dired."
   :type 'boolean
   :group 'vc
   :version "20.3")
 
 (defcustom vc-dired-terse-display t
-  "*If non-nil, show only locked files in VC Dired."
+  "If non-nil, show only locked files in VC Dired."
   :type 'boolean
   :group 'vc
   :version "20.3")
 
 (defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn" "{arch}")
-  "*List of directory names to be ignored when walking directory trees."
+  "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
 
 (defcustom vc-diff-switches nil
-  "*A string or list of strings specifying switches for diff under VC.
+  "A string or list of strings specifying switches for diff under VC.
 When running diff under a given BACKEND, VC concatenates the values of
 `diff-switches', `vc-diff-switches', and `vc-BACKEND-diff-switches' to
 get the switches for that command.  Thus, `vc-diff-switches' should
@@ -568,7 +568,7 @@ specific to any particular backend."
   :version "21.1")
 
 (defcustom vc-allow-async-revert nil
-  "*Specifies whether the diff during \\[vc-revert-buffer] may be asynchronous.
+  "Specifies whether the diff during \\[vc-revert-buffer] may be asynchronous.
 Enabling this option means that you can confirm a revert operation even
 if the local changes in the file have not been found and displayed yet."
   :type '(choice (const :tag "No" nil)
@@ -578,7 +578,7 @@ if the local changes in the file have not been found and displayed yet."
 
 ;;;###autoload
 (defcustom vc-checkout-hook nil
-  "*Normal hook (list of functions) run after checking out a file.
+  "Normal hook (list of functions) run after checking out a file.
 See `run-hooks'."
   :type 'hook
   :group 'vc
@@ -595,7 +595,7 @@ See `run-hooks'."
 
 ;;;###autoload
 (defcustom vc-checkin-hook nil
-  "*Normal hook (list of functions) run after a checkin is done.
+  "Normal hook (list of functions) run after a checkin is done.
 See also `log-edit-done-hook'."
   :type 'hook
   :options '(log-edit-comment-to-change-log)
@@ -603,13 +603,13 @@ See also `log-edit-done-hook'."
 
 ;;;###autoload
 (defcustom vc-before-checkin-hook nil
-  "*Normal hook (list of functions) run before a file is checked in.
+  "Normal hook (list of functions) run before a file is checked in.
 See `run-hooks'."
   :type 'hook
   :group 'vc)
 
 (defcustom vc-logentry-check-hook nil
-  "*Normal hook run by `vc-backend-logentry-check'.
+  "Normal hook run by `vc-backend-logentry-check'.
 Use this to impose your own rules on the entry in addition to any the
 version control backend imposes itself."
   :type 'hook
@@ -634,50 +634,45 @@ version control backend imposes itself."
     (300. . "#00CCFF")
     (320. . "#00CC99")
     (340. . "#0099FF"))
-  "*Association list of age versus color, for \\[vc-annotate].
+  "Association list of age versus color, for \\[vc-annotate].
 Ages are given in units of fractional days.  Default is eighteen steps
 using a twenty day increment."
   :type 'alist
   :group 'vc)
 
 (defcustom vc-annotate-very-old-color "#0046FF"
-  "*Color for lines older than the current color range in \\[vc-annotate]]."
+  "Color for lines older than the current color range in \\[vc-annotate]]."
   :type 'string
   :group 'vc)
 
 (defcustom vc-annotate-background "black"
-  "*Background color for \\[vc-annotate].
+  "Background color for \\[vc-annotate].
 Default color is used if nil."
   :type 'string
   :group 'vc)
 
 (defcustom vc-annotate-menu-elements '(2 0.5 0.1 0.01)
-  "*Menu elements for the mode-specific menu of VC-Annotate mode.
+  "Menu elements for the mode-specific menu of VC-Annotate mode.
 List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   :type '(repeat number)
   :group 'vc)
 
 (defvar vc-annotate-mode-map
   (let ((m (make-sparse-keymap)))
-    (define-key m [menu-bar] (make-sparse-keymap "VC-Annotate"))
+    (define-key m "A" 'vc-annotate-revision-previous-to-line)
+    (define-key m "D" 'vc-annotate-show-diff-revision-at-line)
+    (define-key m "J" 'vc-annotate-revision-at-line)
+    (define-key m "L" 'vc-annotate-show-log-revision-at-line)
+    (define-key m "N" 'vc-annotate-next-version)
+    (define-key m "P" 'vc-annotate-prev-version)
+    (define-key m "W" 'vc-annotate-workfile-version)
     m)
   "Local keymap used for VC-Annotate mode.")
-
-(define-key vc-annotate-mode-map "A" 'vc-annotate-revision-previous-to-line)
-(define-key vc-annotate-mode-map "D" 'vc-annotate-show-diff-revision-at-line)
-(define-key vc-annotate-mode-map "J" 'vc-annotate-revision-at-line)
-(define-key vc-annotate-mode-map "L" 'vc-annotate-show-log-revision-at-line)
-(define-key vc-annotate-mode-map "N" 'vc-annotate-next-version)
-(define-key vc-annotate-mode-map "P" 'vc-annotate-prev-version)
-(define-key vc-annotate-mode-map "W" 'vc-annotate-workfile-version)
-
-(defvar vc-annotate-mode-menu nil
-  "Local keymap used for VC-Annotate mode's menu bar menu.")
 
 ;; Header-insertion hair
 
 (defcustom vc-static-header-alist
-  '(("\\.c$" .
+  '(("\\.c\\'" .
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
   "*Associate static header string templates with file types.
 A \%s in the template is replaced with the first string associated with
@@ -713,9 +708,7 @@ and that its contents match what the master file says."
 ;; Variables the user doesn't need to know about.
 (defvar vc-log-operation nil)
 (defvar vc-log-after-operation-hook nil)
-(defvar vc-annotate-buffers nil
-  "Alist of current \"Annotate\" buffers and their corresponding backends.
-The keys are \(BUFFER . BACKEND\).  See also `vc-annotate-get-backend'.")
+
 ;; In a log entry buffer, this is a local variable
 ;; that points to the buffer for which it was made
 ;; (either a file, or a VC dired buffer).
@@ -1367,6 +1360,8 @@ merge in the changes into your working copy."
 
 ;; These functions help the vc-next-action entry point
 
+(defun vc-default-init-version (backend) vc-default-init-version)
+
 ;;;###autoload
 (defun vc-register (&optional set-version comment)
   "Register the current file into a version control system.
@@ -1398,10 +1393,8 @@ first backend that could register the file is used."
                   (if set-version
                       (read-string (format "Initial version level for %s: "
 					   (buffer-name)))
-		    (let ((backend (vc-responsible-backend buffer-file-name)))
-		      (if (vc-find-backend-function backend 'init-version)
-			  (vc-call-backend backend 'init-version)
-			vc-default-init-version)))
+		    (vc-call-backend (vc-responsible-backend buffer-file-name)
+				     'init-version))
                   (or comment (not vc-initial-comment))
 		  nil
                   "Enter initial comment."
@@ -1937,24 +1930,19 @@ the variable `vc-BACKEND-header'."
       (widen)
       (if (or (not (vc-check-headers))
 	      (y-or-n-p "Version headers already exist.  Insert another set? "))
-	  (progn
-	    (let* ((delims (cdr (assq major-mode vc-comment-alist)))
-		   (comment-start-vc (or (car delims) comment-start "#"))
-		   (comment-end-vc (or (car (cdr delims)) comment-end ""))
-		   (hdsym (vc-make-backend-sym (vc-backend buffer-file-name)
-					       'header))
-		   (hdstrings (and (boundp hdsym) (symbol-value hdsym))))
-	      (mapcar (lambda (s)
-			(insert comment-start-vc "\t" s "\t"
-				comment-end-vc "\n"))
-		      hdstrings)
-	      (if vc-static-header-alist
-		  (mapcar (lambda (f)
-			    (if (string-match (car f) buffer-file-name)
-				(insert (format (cdr f) (car hdstrings)))))
-			  vc-static-header-alist))
-	      )
-	    )))))
+          (let* ((delims (cdr (assq major-mode vc-comment-alist)))
+                 (comment-start-vc (or (car delims) comment-start "#"))
+                 (comment-end-vc (or (car (cdr delims)) comment-end ""))
+                 (hdsym (vc-make-backend-sym (vc-backend buffer-file-name)
+                                             'header))
+                 (hdstrings (and (boundp hdsym) (symbol-value hdsym))))
+            (dolist (s hdstrings)
+              (insert comment-start-vc "\t" s "\t"
+                      comment-end-vc "\n"))
+            (if vc-static-header-alist
+                (dolist (f vc-static-header-alist)
+                  (if (string-match (car f) buffer-file-name)
+                      (insert (format (cdr f) (car hdstrings)))))))))))
 
 (defun vc-clear-headers (&optional file)
   "Clear all version headers in the current buffer (or FILE).
@@ -2897,8 +2885,7 @@ Uses `rcs2log' which only works for RCS and CVS."
                                           (concat odefault f))))
                                      files)))
                        "done"
-		     (pop-to-buffer
-		      (set-buffer (get-buffer-create "*vc*")))
+		     (pop-to-buffer (get-buffer-create "*vc*"))
 		     (erase-buffer)
 		     (insert-file-contents tempfile)
 		     "failed"))
@@ -2913,9 +2900,9 @@ Uses `rcs2log' which only works for RCS and CVS."
 ;; annotate-mode, which replaces it with the more sensible "span-to
 ;; days", along with autoscaling support.
 (defvar vc-annotate-ratio nil "Global variable.")
-(defvar vc-annotate-backend nil "Global variable.")
 
 ;; internal buffer-local variables
+(defvar vc-annotate-backend nil)
 (defvar vc-annotate-parent-file nil)
 (defvar vc-annotate-parent-rev nil)
 (defvar vc-annotate-parent-display-mode nil)
@@ -2923,12 +2910,6 @@ Uses `rcs2log' which only works for RCS and CVS."
 (defconst vc-annotate-font-lock-keywords
   ;; The fontification is done by vc-annotate-lines instead of font-lock.
   '((vc-annotate-lines)))
-
-(defun vc-annotate-get-backend (buffer)
-  "Return the backend matching \"Annotate\" buffer BUFFER.
-Return nil if no match made.  Associations are made based on
-`vc-annotate-buffers'."
-  (cdr (assoc buffer vc-annotate-buffers)))
 
 (define-derived-mode vc-annotate-mode fundamental-mode "Annotate"
   "Major mode for output buffers of the `vc-annotate' command.
@@ -2939,18 +2920,21 @@ menu items."
   (set (make-local-variable 'truncate-lines) t)
   (set (make-local-variable 'font-lock-defaults)
        '(vc-annotate-font-lock-keywords t))
-  (view-mode 1)
-  (vc-annotate-add-menu))
+  (view-mode 1))
 
-(defun vc-annotate-display-default (&optional ratio)
+(defun vc-annotate-display-default (ratio)
   "Display the output of \\[vc-annotate] using the default color range.
-The color range is given by `vc-annotate-color-map', scaled by RATIO
-if present.  The current time is used as the offset."
-  (interactive "e")
+The color range is given by `vc-annotate-color-map', scaled by RATIO.
+The current time is used as the offset."
+  (interactive (progn (kill-local-variable 'vc-annotate-color-map) '(1.0)))
   (message "Redisplaying annotation...")
-  (vc-annotate-display
-   (if ratio (vc-annotate-time-span vc-annotate-color-map ratio)))
+  (vc-annotate-display ratio)
   (message "Redisplaying annotation...done"))
+
+(defun vc-annotate-oldest-in-map (color-map)
+  "Return the oldest time in the COLOR-MAP."
+  ;; Since entries should be sorted, we can just use the last one.
+  (caar (last color-map)))
 
 (defun vc-annotate-display-autoscale (&optional full)
   "Highlight the output of \\[vc-annotate] using an autoscaled color map.
@@ -2974,10 +2958,8 @@ cover the range from the oldest annotation to the newest."
 	(if (< date oldest)
 	    (setq oldest date))))
     (vc-annotate-display
-     (vc-annotate-time-span		;return the scaled colormap.
-      vc-annotate-color-map
-      (/ (-  (if full newest current) oldest)
-	 (vc-annotate-car-last-cons vc-annotate-color-map)))
+     (/ (- (if full newest current) oldest)
+        (vc-annotate-oldest-in-map vc-annotate-color-map))
      (if full newest))
     (message "Redisplaying annotation...done \(%s\)"
 	     (if full
@@ -2987,70 +2969,43 @@ cover the range from the oldest annotation to the newest."
 	       (format "Spanned to %.1f days old" (- current oldest))))))
 
 ;; Menu -- Using easymenu.el
-(defun vc-annotate-add-menu ()
-  "Add the menu 'Annotate' to the menu bar in VC-Annotate mode."
-  (let ((menu-elements vc-annotate-menu-elements)
-	(menu-def
-	 '("VC-Annotate"
-	   ["Default" (unless (null vc-annotate-display-mode)
-			(setq vc-annotate-display-mode nil)
-			(vc-annotate-display-select))
-	    :style toggle :selected (null vc-annotate-display-mode)]))
-	(oldest-in-map (vc-annotate-car-last-cons vc-annotate-color-map)))
-    (while menu-elements
-      (let* ((element (car menu-elements))
-	     (days (* element oldest-in-map)))
-	(setq menu-elements (cdr menu-elements))
-	(setq menu-def
-	      (append menu-def
-		      `([,(format "Span %.1f days" days)
-			 (unless (and (numberp vc-annotate-display-mode)
-				      (= vc-annotate-display-mode ,days))
-			   (vc-annotate-display-select nil ,days))
-			 :style toggle :selected
-			 (and (numberp vc-annotate-display-mode)
-			      (= vc-annotate-display-mode ,days)) ])))))
-    (setq menu-def
-	  (append menu-def
-		  (list
-		   ["Span ..."
-		    (let ((days
-			   (float (string-to-number
-				   (read-string "Span how many days? ")))))
-		      (vc-annotate-display-select nil days)) t])
-		  (list "--")
-		  (list
-		   ["Span to Oldest"
-		    (unless (eq vc-annotate-display-mode 'scale)
-		      (vc-annotate-display-select nil 'scale))
-		    :style toggle :selected
-		    (eq vc-annotate-display-mode 'scale)])
-		  (list
-		   ["Span Oldest->Newest"
-		    (unless (eq vc-annotate-display-mode 'fullscale)
-		      (vc-annotate-display-select nil 'fullscale))
-		    :style toggle :selected
-		    (eq vc-annotate-display-mode 'fullscale)])
-		  (list "--")
-		  (list ["Annotate previous revision"
-			 (call-interactively 'vc-annotate-prev-version)])
-		  (list ["Annotate next revision"
-			 (call-interactively 'vc-annotate-next-version)])
-		  (list ["Annotate revision at line"
-			 (vc-annotate-revision-at-line)])
-		  (list ["Annotate revision previous to line"
-			 (vc-annotate-revision-previous-to-line)])
-		  (list ["Annotate latest revision"
-			 (vc-annotate-workfile-version)])
-		  (list ["Show log of revision at line"
-			 (vc-annotate-show-log-revision-at-line)])
-		  (list ["Show diff of revision at line"
-			 (vc-annotate-show-diff-revision-at-line)])))
-
-    ;; Define the menu
-    (if (or (featurep 'easymenu) (load "easymenu" t))
-	(easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
-			  "VC Annotate Display Menu" menu-def))))
+(easy-menu-define vc-annotate-mode-menu vc-annotate-mode-map
+  "VC Annotate Display Menu"
+  `("VC-Annotate"
+    ["Default" (unless (null vc-annotate-display-mode)
+                 (setq vc-annotate-display-mode nil)
+                 (vc-annotate-display-select))
+     :style toggle :selected (null vc-annotate-display-mode)]
+    ,@(let ((oldest-in-map (vc-annotate-oldest-in-map vc-annotate-color-map)))
+        (mapcar (lambda (element)
+                  (let ((days (* element oldest-in-map)))
+                    `[,(format "Span %.1f days" days)
+                      (vc-annotate-display-select nil ,days)
+                      :style toggle :selected
+                      (eql vc-annotate-display-mode ,days) ]))
+                vc-annotate-menu-elements))
+    ["Span ..."
+     (vc-annotate-display-select
+      nil (float (string-to-number (read-string "Span how many days? "))))]
+    "--"
+    ["Span to Oldest"
+     (unless (eq vc-annotate-display-mode 'scale)
+       (vc-annotate-display-select nil 'scale))
+     :style toggle :selected
+     (eq vc-annotate-display-mode 'scale)]
+    ["Span Oldest->Newest"
+     (unless (eq vc-annotate-display-mode 'fullscale)
+       (vc-annotate-display-select nil 'fullscale))
+     :style toggle :selected
+     (eq vc-annotate-display-mode 'fullscale)]
+    "--"
+    ["Annotate previous revision" vc-annotate-prev-version]
+    ["Annotate next revision" vc-annotate-next-version]
+    ["Annotate revision at line" vc-annotate-revision-at-line]
+    ["Annotate revision previous to line" vc-annotate-revision-previous-to-line]
+    ["Annotate latest revision" vc-annotate-workfile-version]
+    ["Show log of revision at line" vc-annotate-show-log-revision-at-line]
+    ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line]))
 
 (defun vc-annotate-display-select (&optional buffer mode)
   "Highlight the output of \\[vc-annotate].
@@ -3065,25 +3020,23 @@ use; you may override this using the second optional arg MODE."
   (if (not vc-annotate-parent-rev)
       (vc-annotate-mode))
   (cond ((null vc-annotate-display-mode)
-	 (vc-annotate-display-default vc-annotate-ratio))
-	;; One of the auto-scaling modes
+         ;; The ratio is global, thus relative to the global color-map.
+         (kill-local-variable 'vc-annotate-color-map)
+	 (vc-annotate-display-default (or vc-annotate-ratio 1.0)))
+        ;; One of the auto-scaling modes
 	((eq vc-annotate-display-mode 'scale)
 	 (vc-annotate-display-autoscale))
 	((eq vc-annotate-display-mode 'fullscale)
 	 (vc-annotate-display-autoscale t))
 	((numberp vc-annotate-display-mode) ; A fixed number of days lookback
 	 (vc-annotate-display-default
-	  (/ vc-annotate-display-mode (vc-annotate-car-last-cons
-				       vc-annotate-color-map))))
+	  (/ vc-annotate-display-mode
+             (vc-annotate-oldest-in-map vc-annotate-color-map))))
 	(t (error "No such display mode: %s"
 		  vc-annotate-display-mode))))
 
-;;;; (defun vc-BACKEND-annotate-command (file buffer) ...)
-;;;;  Execute "annotate" on FILE by using `call-process' and insert
-;;;;  the contents in BUFFER.
-
 ;;;###autoload
-(defun vc-annotate (prefix &optional revision display-mode)
+(defun vc-annotate (file rev &optional display-mode buf)
   "Display the edit history of the current file using colors.
 
 This command creates a buffer that shows, for each line of the current
@@ -3108,48 +3061,41 @@ Customization variables:
 mode-specific menu. `vc-annotate-color-map' and
 `vc-annotate-very-old-color' defines the mapping of time to
 colors. `vc-annotate-background' specifies the background color."
-  (interactive "P")
+  (interactive
+   (save-current-buffer
+     (vc-ensure-vc-buffer)
+     (list buffer-file-name
+	   (let ((def (vc-workfile-version buffer-file-name)))
+	     (if (null current-prefix-arg) def
+	       (read-string
+		(format "Annotate from version (default %s): " def)
+		nil nil def)))
+	   (if (null current-prefix-arg)
+	       vc-annotate-display-mode
+	     (float (string-to-number
+		     (read-string "Annotate span days (default 20): "
+				  nil nil "20")))))))
   (vc-ensure-vc-buffer)
-  (let* ((temp-buffer-name nil)
-         (temp-buffer-show-function 'vc-annotate-display-select)
-	 (rev (or revision (vc-workfile-version buffer-file-name)))
-	 (bfn buffer-file-name)
-         (vc-annotate-version
-	  (if prefix (read-string
-		      (format "Annotate from version (default %s): " rev)
-		      nil nil rev)
-	    rev)))
-    (if display-mode
-	(setq vc-annotate-display-mode display-mode)
-      (if prefix
-	  (setq vc-annotate-display-mode
-		(float (string-to-number
-			(read-string "Annotate span days (default 20): "
-				     nil nil "20"))))))
-    (setq temp-buffer-name (format "*Annotate %s (rev %s)*"
-				   (buffer-name) vc-annotate-version))
-    (setq vc-annotate-backend (vc-backend buffer-file-name))
+  (setq vc-annotate-display-mode display-mode) ;Not sure why.  --Stef
+  (let* ((temp-buffer-name (format "*Annotate %s (rev %s)*" (buffer-name) rev))
+         (temp-buffer-show-function 'vc-annotate-display-select))
     (message "Annotating...")
-    (if (not (vc-find-backend-function vc-annotate-backend 'annotate-command))
-	(error "Sorry, annotating is not implemented for %s"
-	       vc-annotate-backend))
+    ;; If BUF is specified it tells in which buffer we should put the
+    ;; annotations.  This is used when switching annotations to another
+    ;; revision, so we should update the buffer's name.
+    (if buf (with-current-buffer buf
+	      (rename-buffer temp-buffer-name t)
+	      ;; In case it had to be uniquified.
+	      (setq temp-buffer-name (buffer-name))))
     (with-output-to-temp-buffer temp-buffer-name
-      (vc-call-backend vc-annotate-backend 'annotate-command
-		       buffer-file-name
-		       (get-buffer temp-buffer-name)
-                       vc-annotate-version))
-    (save-excursion
-      (set-buffer temp-buffer-name)
-      (set (make-local-variable 'vc-annotate-parent-file) bfn)
-      (set (make-local-variable 'vc-annotate-parent-rev) vc-annotate-version)
+      (vc-call annotate-command file (get-buffer temp-buffer-name) rev))
+    (with-current-buffer temp-buffer-name
+      (set (make-local-variable 'vc-annotate-backend) (vc-backend file))
+      (set (make-local-variable 'vc-annotate-parent-file) file)
+      (set (make-local-variable 'vc-annotate-parent-rev) rev)
       (set (make-local-variable 'vc-annotate-parent-display-mode)
-	   vc-annotate-display-mode))
+	   display-mode))
 
-    ;; Don't use the temp-buffer-name until the buffer is created
-    ;; (only after `with-output-to-temp-buffer'.)
-    (setq vc-annotate-buffers
-	  (append vc-annotate-buffers
-		  (list (cons (get-buffer temp-buffer-name) vc-annotate-backend))))
   (message "Annotating... done")))
 
 (defun vc-annotate-prev-version (prefix)
@@ -3181,9 +3127,6 @@ versions after."
 (defun vc-annotate-extract-revision-at-line ()
   "Extract the revision number of the current line."
   ;; This function must be invoked from a buffer in vc-annotate-mode
-  (save-window-excursion
-    (vc-ensure-vc-buffer)
-    (setq vc-annotate-backend (vc-backend buffer-file-name)))
   (vc-call-backend vc-annotate-backend 'annotate-extract-revision-at-line))
 
 (defun vc-annotate-revision-at-line ()
@@ -3274,32 +3217,12 @@ revision."
        ((stringp revspec) (setq newrev revspec))
        (t (error "Invalid argument to vc-annotate-warp-version")))
       (when newrev
-	(save-window-excursion
-	  (find-file vc-annotate-parent-file)
-	  (vc-annotate nil newrev vc-annotate-parent-display-mode))
-	(kill-buffer (current-buffer)) ;; kill the buffer we started from
-	(switch-to-buffer (car (car (last vc-annotate-buffers))))
+	(vc-annotate vc-annotate-parent-file newrev
+                     vc-annotate-parent-display-mode
+                     (current-buffer))
 	(goto-line (min oldline (progn (goto-char (point-max))
 				       (previous-line)
 				       (line-number-at-pos))))))))
-
-(defun vc-annotate-car-last-cons (a-list)
-  "Return car of last cons in association list A-LIST."
-  (if (not (eq nil (cdr a-list)))
-      (vc-annotate-car-last-cons (cdr a-list))
-    (car (car a-list))))
-
-(defun vc-annotate-time-span (a-list span &optional quantize)
-  "Apply factor SPAN to the time-span of association list A-LIST.
-Return the new alist.
-Optionally quantize to the factor of QUANTIZE."
-  ;; Apply span to each car of every cons
-  (if (not (eq nil a-list))
-      (append (list (cons (* (car (car a-list)) span)
-			  (cdr (car a-list))))
-	      (vc-annotate-time-span (nthcdr (or quantize ; optional
-						 1) ; Default to cdr
-					     a-list) span quantize))))
 
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.
@@ -3335,12 +3258,14 @@ or OFFSET if present."
 
 (defvar vc-annotate-offset nil)
 
-(defun vc-annotate-display (&optional color-map offset)
+(defun vc-annotate-display (ratio &optional offset)
   "Highlight `vc-annotate' output in the current buffer.
-COLOR-MAP, if present, overrides `vc-annotate-color-map'.
+RATIO, is the expansion that should be applied to `vc-annotate-color-map'.
 The annotations are relative to the current time, unless overridden by OFFSET."
-  (if (and color-map (not (eq color-map vc-annotate-color-map)))
-      (set (make-local-variable 'vc-annotate-color-map) color-map))
+  (if (/= ratio 1.0)
+      (set (make-local-variable 'vc-annotate-color-map)
+           (mapcar (lambda (elem) (cons (* (car elem) ratio) (cdr elem)))
+                   vc-annotate-color-map)))
   (set (make-local-variable 'vc-annotate-offset) offset)
   (font-lock-mode 1))
 

@@ -560,16 +560,13 @@ This is relative to `smtpmail-queue-dir'.")
 		(>= (car ret) 400))
 	    (throw 'done nil)))
        ((eq mech 'plain)
-	(smtpmail-send-command process "AUTH PLAIN")
-	(if (or (null (car (setq ret (smtpmail-read-response process))))
-		(not (integerp (car ret)))
-		(not (equal (car ret) 334)))
-	    (throw 'done nil))
-	(smtpmail-send-command process (base64-encode-string
+	(smtpmail-send-command process
+			       (concat "AUTH PLAIN "
+				       (base64-encode-string
 					(concat "\0"
 						(smtpmail-cred-user cred)
 						"\0"
-						passwd)))
+						passwd))))
 	(if (or (null (car (setq ret (smtpmail-read-response process))))
 		(not (integerp (car ret)))
 		(not (equal (car ret) 235)))

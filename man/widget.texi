@@ -1282,9 +1282,7 @@ Allows you to enter a character in an editable field.
 @end deffn
 
 @deffn Widget file
-Allows you to edit a file name in an editable field.  If you invoke
-the tag button, you can edit the file name in the mini-buffer with
-completion.
+Allows you to edit a file name in an editable field.
 
 Keywords:
 @table @code

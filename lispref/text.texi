@@ -470,6 +470,9 @@ it except to install it on a keymap.
 
 In an interactive call, @var{count} is the numeric prefix argument.
 
+Self-insertion translates the input character through
+@code{translation-table-for-input}.  @xref{Translation of Characters}.
+
 This command calls @code{auto-fill-function} whenever that is
 non-@code{nil} and the character inserted is in the table
 @code{auto-fill-chars} (@pxref{Auto Filling}).
@@ -477,10 +480,9 @@ non-@code{nil} and the character inserted is in the table
 @c Cross refs reworded to prevent overfull hbox.  --rjc 15mar92
 This command performs abbrev expansion if Abbrev mode is enabled and
 the inserted character does not have word-constituent
-syntax. (@xref{Abbrevs}, and @ref{Syntax Class Table}.)
-
-This is also responsible for calling @code{blink-paren-function} when
-the inserted character has close parenthesis syntax (@pxref{Blinking}).
+syntax. (@xref{Abbrevs}, and @ref{Syntax Class Table}.)  It is also
+responsible for calling @code{blink-paren-function} when the inserted
+character has close parenthesis syntax (@pxref{Blinking}).
 
 Do not try substituting your own definition of
 @code{self-insert-command} for the standard one.  The editor command
@@ -1241,19 +1243,6 @@ Here's how you might undo the change:
 (put-text-property @var{beg} @var{end} @var{property} @var{value})
 @end example
 
-@item (apply @var{funname} . @var{args})
-This kind of element records a change that can be undone by evaluating
-(@code{apply} @var{funname} @var{args}).
-
-@item (apply @var{delta} @var{beg} @var{end} @var{funname} . @var{args})
-This kind of element records a change that can be undone by evaluating
-(@code{apply} @var{funname} @var{args}).  The integer values @var{beg}
-and @var{end} is buffer positions of the range affected by this change
-and @var{delta} is an integer value which is the number of bytes added
-or deleted in that range by this change.  This kind of element
-enables undo limited to a region to determine whether the element
-pertains to that region.
-
 @item (@var{marker} . @var{adjustment})
 This kind of element records the fact that the marker @var{marker} was
 relocated due to deletion of surrounding text, and that it moved
@@ -1269,6 +1258,9 @@ This is an extensible undo item, which records a change limited to the
 range @var{beg} to @var{end}, which increased the size of the buffer
 by @var{delta}.  It is undone by calling @var{funname} with arguments
 @var{args}.
+
+This kind of element enables undo limited to a region to determine
+whether the element pertains to that region.
 
 @item nil
 This element is a boundary.  The elements between two boundaries are
@@ -1806,7 +1798,7 @@ a buffer.  This is in contrast to the function @code{sort}, which
 rearranges the order of the elements of a list (@pxref{Rearrangement}).
 The values returned by these functions are not meaningful.
 
-@defun sort-subr reverse nextrecfun endrecfun &optional startkeyfun endkeyfun
+@defun sort-subr reverse nextrecfun endrecfun &optional startkeyfun endkeyfun predicate
 This function is the general text-sorting routine that subdivides a
 buffer into records and then sorts them.  Most of the commands in this
 section use this function.
@@ -1859,6 +1851,10 @@ to the end of the sort key.  This argument is optional.  If
 is no need for @var{endkeyfun} if @var{startkeyfun} returns a
 non-@code{nil} value.
 @end enumerate
+
+The argument @var{predicate} is the function to use to compare keys.
+If keys are numbers, it defaults to @code{<}; otherwise it defaults to
+@code{string<}.
 
 As an example of @code{sort-subr}, here is the complete function
 definition for @code{sort-lines}:
@@ -2739,6 +2735,8 @@ from the specified range of text.  Here's an example:
 @example
 (set-text-properties @var{start} @var{end} nil)
 @end example
+
+Do not rely on the return value of this function.
 @end defun
 
   The easiest way to make a string with text properties

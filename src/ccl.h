@@ -1,6 +1,7 @@
 /* Header for CCL (Code Conversion Language) interpreter.
-   Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-   Licensed to the Free Software Foundation.
+   Copyright (C) 1995, 1998, 2000
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
 
 This file is part of GNU Emacs.
 

@@ -1,6 +1,113 @@
+2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac International): Undo last change.
+
+2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Agenda Views): Chapter reorganized.
+
+2006-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Custom Themes): Describe the new
+	customize-create-theme interface.
+
+2005-12-30  Juri Linkov  <juri@jurta.org>
+
+	* basic.texi (Position Info): Update example.
+
+2005-12-29  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Using Customize): New node.
+
+2005-12-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* org.texi: Remove blank line in @direntry.  It is non-standard
+	and recursively produces blank lines all over the dir file (when
+	using Texinfo 4.8).
+
+2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Add x-gtk-show-hidden-files.
+
+2005-12-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Custom Themes): `load-theme' always loads.
+
+2005-12-23  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Highlight Interactively): Use double space to
+	separate sentences.  Replace C-p with M-p, and C-n with M-n.
+
+2005-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Easy Customization and subnodes):
+	Replace "active field" with "button".
+	Use "user option" only for variables.
+	Use "setting" for variable-or-face.
+
+2005-12-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Select Buffer): Change order in table to make
+	"Similar" refer to the correct item.
+	(Indirect Buffers): Minor rewording.
+
+2005-12-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* widget.texi (atoms): Delete obsolete remark about `file' widget.
+
+2005-12-20  Juri Linkov  <juri@jurta.org>
+
+	* files.texi (VC Status): Put P and N near p and n.
+
+2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Tags): Boolean logic documented.
+	(Agenda Views): Document custom commands.
+
+2005-12-20  David Kastrup  <dak@gnu.org>
+
+	* faq.texi (AUCTeX): Update version and mailing list info.
+
+2005-12-19  Richard M. Stallman  <rms@gnu.org>
+
+	* programs.texi (Electric C): Delete the info about newline control.
+	(Other C Commands): Minor cleanup.
+	(Left Margin Paren): Minor cleanup.
+
+2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.texi (Easy Customization): Add "Browsing Custom" to menu.
+	(Customization Groups): Delete text moved to "Browsing Custom".
+	(Browsing Custom): New node.
+	(Specific Customization): Clarify which commands only work for
+	loaded options.
+
+2005-12-18  Bill Wohler  <wohler@newt.com>
+
+	* frames.texi (Tool Bars): Shorten text of previous change.
+
+2005-12-18  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
+
+	* files.texi (VC Status): Document log-view mode.
+
+2005-12-18  Bill Wohler  <wohler@newt.com>
+
+	* frames.texi (Tool Bars): Mention that you can turn off tool bars
+	permanently via the customize interface.
+
+2005-12-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (MIME Commands): Mention addition of
+	multipart/alternative to gnus-buttonized-mime-types and add xref
+	to mm-discouraged-alternatives.
+
+	* emacs-mime.texi (Display Customization): Mention addition of
+	"image/.*" and add xref to gnus-buttonized-mime-types in the
+	mm-discouraged-alternatives section.
+
 2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Tags): New section.
+	* org.texi (Tags): New section.
 	(Agenda Views): Chapter reorganized.
 
 2005-12-16  Ralf Angeli  <angeli@iwi.uni-sb.de>
@@ -33,7 +140,7 @@
 
 2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Progress Logging): New section.
+	* org.texi (Progress Logging): New section.
 
 2005-12-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -345,7 +452,7 @@
 	* help.texi (Help Echo): By default, help echos are only shown on
 	mouse-over, not on point-over.
 
-2005-11-04  J,bi(Br,bt(Bme Marant  <jerome@marant.org>
+2005-11-04  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
 
 	* misc.texi (Shell Mode): Describe how to activate password echoing.
 
@@ -4148,7 +4255,7 @@
 	(../info/ses, ses.dvi): New targets.
 	* ses.texi: New file.
 
-2002-09-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-09-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* texinfo.tex: Update to texinfo 4.2.
 
@@ -4156,7 +4263,7 @@
 
 	* reftex.texi: Update to RefTeX 4.19.
 
-2002-06-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add Tramp.
 	(../info/tramp, tramp.dvi): New targets.

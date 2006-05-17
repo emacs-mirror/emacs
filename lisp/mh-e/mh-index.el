@@ -1,6 +1,6 @@
 ;;; mh-index  --  MH-E interface to indexing programs
 
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -26,18 +26,18 @@
 
 ;;; Commentary:
 
-;;;  (1) The following search engines are supported:
-;;;        swish++
-;;;        swish-e
-;;;        mairix
-;;;        namazu
-;;;        pick
-;;;        grep
-;;;
-;;;  (2) To use this package, you first have to build an index. Please read
-;;;      the documentation for `mh-index-search' to get started. That
-;;;      documentation will direct you to the specific instructions for your
-;;;      particular indexer.
+;;  (1) The following search engines are supported:
+;;        swish++
+;;        swish-e
+;;        mairix
+;;        namazu
+;;        pick
+;;        grep
+;;
+;;  (2) To use this package, you first have to build an index. Please read
+;;      the documentation for `mh-index-search' to get started. That
+;;      documentation will direct you to the specific instructions for your
+;;      particular indexer.
 
 ;;; Change Log:
 
@@ -91,17 +91,17 @@
 
 
 
-;;; A few different checksum programs are supported. The supported programs
-;;; are:
-;;;   1. md5sum
-;;;   2. md5
-;;;   3. openssl
-;;;
-;;; To add support for your favorite checksum program add a clause to the cond
-;;; statement in mh-checksum-choose. This should set the variable
-;;; mh-checksum-cmd to the command line needed to run the checsum program and
-;;; should set mh-checksum-parser to a function which returns a cons cell
-;;; containing the message number and checksum string.
+;; A few different checksum programs are supported. The supported programs
+;; are:
+;;   1. md5sum
+;;   2. md5
+;;   3. openssl
+;;
+;; To add support for your favorite checksum program add a clause to the cond
+;; statement in mh-checksum-choose. This should set the variable
+;; mh-checksum-cmd to the command line needed to run the checsum program and
+;; should set mh-checksum-parser to a function which returns a cons cell
+;; containing the message number and checksum string.
 
 (defvar mh-checksum-cmd)
 (defvar mh-checksum-parser)
@@ -152,16 +152,16 @@
 
 
 
-;;; Make sure that we don't produce too long a command line.
-
+;; Make sure that we don't produce too long a command line.
 (defvar mh-index-max-cmdline-args 500
   "Maximum number of command line args.")
 
 (defun mh-index-execute (cmd &rest args)
   "Partial imitation of xargs.
-The current buffer contains a list of strings, one on each line. The function
-will execute CMD with ARGS and pass the first `mh-index-max-cmdline-args'
-strings to it. This is repeated till all the strings have been used."
+The current buffer contains a list of strings, one on each line.
+The function will execute CMD with ARGS and pass the first
+`mh-index-max-cmdline-args' strings to it. This is repeated till
+all the strings have been used."
   (goto-char (point-min))
   (let ((current-buffer (current-buffer)))
     (with-temp-buffer
@@ -184,12 +184,14 @@ strings to it. This is repeated till all the strings have been used."
 
 (defun mh-index-update-single-msg (msg checksum origin-map)
   "Update various maps for one message.
-MSG is a index folder message, CHECKSUM its MD5 hash and ORIGIN-MAP, if
-non-nil, a hashtable containing which maps each message in the index folder to
-the folder and message that it was copied from. The function updates the hash
-tables `mh-index-msg-checksum-map' and `mh-index-checksum-origin-map'.
+MSG is a index folder message, CHECKSUM its MD5 hash and
+ORIGIN-MAP, if non-nil, a hashtable containing which maps each
+message in the index folder to the folder and message that it was
+copied from. The function updates the hash tables
+`mh-index-msg-checksum-map' and `mh-index-checksum-origin-map'.
 
-This function should only be called in the appropriate index folder buffer."
+This function should only be called in the appropriate index
+folder buffer."
   (cond ((and origin-map (gethash checksum mh-index-checksum-origin-map))
          (let* ((intermediate (gethash msg origin-map))
                 (ofolder (car intermediate))
@@ -209,10 +211,11 @@ This function should only be called in the appropriate index folder buffer."
 ;;;###mh-autoload
 (defun mh-index-update-maps (folder &optional origin-map)
   "Annotate all as yet unannotated messages in FOLDER with their MD5 hash.
-As a side effect msg -> checksum map is updated. Optional argument ORIGIN-MAP
-is a hashtable which maps each message in the index folder to the original
-folder and message from whence it was copied. If present the
-checksum -> (origin-folder, origin-index) map is updated too."
+As a side effect msg -> checksum map is updated. Optional
+argument ORIGIN-MAP is a hashtable which maps each message in the
+index folder to the original folder and message from whence it
+was copied. If present the checksum -> (origin-folder,
+origin-index) map is updated too."
   (clrhash mh-index-msg-checksum-map)
   (save-excursion
     ;; Clear temp buffer
@@ -267,8 +270,9 @@ checksum -> (origin-folder, origin-index) map is updated too."
 
 (defun mh-unpropagated-sequences ()
   "Return a list of sequences that aren't propagated to the source folders.
-It is just the sequences in the variable `mh-unpropagated-sequences' in
-addition to the Previous-Sequence (see mh-profile 5)."
+It is just the sequences in the variable
+`mh-unpropagated-sequences' in addition to the
+Previous-Sequence (see mh-profile 5)."
   (if mh-previous-seq
       (cons mh-previous-seq mh-unpropagated-sequences)
     mh-unpropagated-sequences))
@@ -276,8 +280,8 @@ addition to the Previous-Sequence (see mh-profile 5)."
 ;;;###mh-autoload
 (defun mh-create-sequence-map (seq-list)
   "Return a map from msg number to list of sequences in which it is present.
-SEQ-LIST is an assoc list whose keys are sequence names and whose cdr is the
-list of messages in that sequence."
+SEQ-LIST is an assoc list whose keys are sequence names and whose
+cdr is the list of messages in that sequence."
   (loop with map = (make-hash-table)
         for seq in seq-list
         when (and (not (memq (car seq) (mh-unpropagated-sequences)))
@@ -317,10 +321,11 @@ list of messages in that sequence."
 
 (defun mh-index-generate-pretty-name (string)
   "Given STRING generate a name which is suitable for use as a folder name.
-White space from the beginning and end are removed. All spaces in the name are
-replaced with underscores and all / are replaced with $. If STRING is longer
-than 20 it is truncated too. STRING could be a list of strings in which case
-they are concatenated to construct the base name."
+White space from the beginning and end are removed. All spaces in
+the name are replaced with underscores and all / are replaced
+with $. If STRING is longer than 20 it is truncated too. STRING
+could be a list of strings in which case they are concatenated to
+construct the base name."
   (with-temp-buffer
     (if (stringp string)
         (insert string)
@@ -353,60 +358,72 @@ they are concatenated to construct the base name."
 (defun* mh-index-search (redo-search-flag folder search-regexp
                         &optional window-config)
   "Perform an indexed search in an MH mail folder.
-Use a prefix argument to repeat the search.
 
-Unlike regular searches, the prompt for the folder to search can be `all' to
-search all folders; in addition, the search works recursively on the listed
-folder. The search criteria are entered in an MH-Pick buffer as described in
-`mh-search-folder'.
+Use a prefix argument to repeat the last search.
 
-To perform the search, type \\<mh-pick-mode-map>\\[mh-do-search]. Another
-difference from the regular searches is that because the search operates on
-more than one folder, the messages that are found are put in a temporary
-sub-folder of `+mhe-index' and are displayed in an MH-Folder buffer. This
-buffer is special because it displays messages from multiple folders; each set
-of messages from a given folder has a heading with the folder name.
+Unlike regular searches, the prompt for the folder to search can
+be \"all\" to search all folders; in addition, the search works
+recursively on the listed folder. The search criteria are entered
+in an MH-Pick buffer as described in `mh-search-folder'.\\<mh-pick-mode-map>
 
-In addition, the \\<mh-folder-mode-map>\\[mh-index-visit-folder] command can
-be used to visit the folder of the message at point. Initially, only the
-messages that matched the search criteria are displayed in the folder. While
-the temporary buffer has its own set of message numbers, the actual messages
-numbers are shown in the visited folder. Thus, the \\[mh-index-visit-folder]
-command is useful to find the actual message number of an interesting message,
-or to view surrounding messages with the \\[mh-rescan-folder] command.
+To perform the search, type \\[mh-do-search]. Another difference
+from the regular searches is that because the search operates on
+more than one folder, the messages that are found are put in a
+temporary sub-folder of \"+mhe-index\" and are displayed in an
+MH-Folder buffer. This buffer is special because it displays
+messages from multiple folders; each set of messages from a given
+folder has a heading with the folder name.\\<mh-folder-mode-map>
 
-Because this folder is temporary, you'll probably get in the habit of killing
-it when you're done with \\[mh-kill-folder].
+The appearance of the heading can be modified by customizing the
+face `mh-index-folder'. You can jump back and forth between the
+headings using the commands \\[mh-index-next-folder] and
+\\[mh-index-previous-folder].
 
-If you have run the \\[mh-search-folder] command, but change your mind while
-entering the search criteria and actually want to run an indexed search, then
-you can use the \\<mh-pick-mode-map>\\[mh-index-do-search] command in the
-MH-Pick buffer.
+In addition, the command \\[mh-index-visit-folder] can be used to
+visit the folder of the message at point. Initially, only the
+messages that matched the search criteria are displayed in the
+folder. While the temporary buffer has its own set of message
+numbers, the actual messages numbers are shown in the visited
+folder. Thus, the command \\[mh-index-visit-folder] is useful to
+find the actual message number of an interesting message, or to
+view surrounding messages with the command \\[mh-rescan-folder].
 
-The \\<mh-folder-mode-map>\\[mh-index-search] command runs the command defined
-by the `mh-index-program' option. The default value is \"Auto-detect\" which
-means that MH-E will automatically choose one of \"swish++\", \"swish-e\",
-\"mairix\", \"namazu\", \"pick\" and \"grep\" in that order. If, for example,
-you have both \"swish++\" and \"mairix\" installed and you want to use
+Because this folder is temporary, you'll probably get in the
+habit of killing it when you're done with
+\\[mh-kill-folder].
+
+If you have run the command \\[mh-search-folder], but change your
+mind while entering the search criteria and actually want to run
+an indexed search, then you can use the command
+\\<mh-pick-mode-map>\\[mh-index-do-search] in the MH-Pick
+buffer.\\<mh-folder-mode-map>
+
+The command \\[mh-index-search] runs the command defined by the
+option `mh-index-program'. The default value is \"Auto-detect\"
+which means that MH-E will automatically choose one of
+\"swish++\", \"swish-e\", \"mairix\", \"namazu\", \"pick\" and
+\"grep\" in that order. If, for example, you have both
+\"swish++\" and \"mairix\" installed and you want to use
 \"mairix\", then you can set this option to \"mairix\".
 
                                 *NOTE*
 
-     The \"pick\" and \"grep\" commands do not perform a recursive search on
-     the given folder.
+     The \"pick\" and \"grep\" commands do not perform a
+     recursive search on the given folder.
 
-This command uses an \"X-MHE-Checksum:\" header field to cache the MD5
-checksum of a message. This means that if an incoming message already contains
-an \"X-MHE-Checksum:\" field, that message might not be found by this command.
-The following \"procmail\" recipe avoids this problem by renaming the existing
+This command uses an \"X-MHE-Checksum:\" header field to cache
+the MD5 checksum of a message. This means that if an incoming
+message already contains an \"X-MHE-Checksum:\" field, that
+message might not be found by this command. The following
+\"procmail\" recipe avoids this problem by renaming the existing
 header field:
 
      :0 wf
      | formail -R \"X-MHE-Checksum\" \"X-Old-MHE-Checksum\"
 
-The documentation for the following commands describe how to set up the
-various indexing programs to use with MH-E. The \"pick\" and \"grep\" commands
-do not require additional configuration.
+The documentation for the following commands describe how to set
+up the various indexing programs to use with MH-E. The \"pick\"
+and \"grep\" commands do not require additional configuration.
 
     - `mh-swish++-execute-search'
     - `mh-swish-execute-search'
@@ -415,12 +432,14 @@ do not require additional configuration.
     - `mh-pick-execute-search'
     - `mh-grep-execute-search'
 
-In a program, if REDO-SEARCH-FLAG is non-nil and the current folder buffer was
-generated by a index search, then the search is repeated. Otherwise, FOLDER is
-searched with SEARCH-REGEXP and the results are presented in an MH-E folder.
-If FOLDER is \"+\" then mail in all folders are searched. Optional argument
-WINDOW-CONFIG stores the window configuration that will be restored after the
-user quits the folder containing the index search results."
+In a program, if REDO-SEARCH-FLAG is non-nil and the current
+folder buffer was generated by a index search, then the search is
+repeated. Otherwise, FOLDER is searched with SEARCH-REGEXP and
+the results are presented in an MH-E folder. If FOLDER is \"+\"
+then mail in all folders are searched. Optional argument
+WINDOW-CONFIG stores the window configuration that will be
+restored after the user quits the folder containing the index
+search results."
   (interactive
    (list current-prefix-arg
          (progn
@@ -541,7 +560,7 @@ user quits the folder containing the index search results."
   "Write index data to file."
   (ignore-errors
     (unless (eq major-mode 'mh-folder-mode)
-      (error "Can't be called from folder in `%s'" major-mode))
+      (error "Can't be called from folder in \"%s\"" major-mode))
     (let ((data mh-index-data)
           (msg-checksum-map mh-index-msg-checksum-map)
           (checksum-origin-map mh-index-checksum-origin-map)
@@ -563,7 +582,7 @@ user quits the folder containing the index search results."
   "Read index data from file."
   (ignore-errors
     (unless (eq major-mode 'mh-folder-mode)
-      (error "Can't be called from folder in `%s'" major-mode))
+      (error "Can't be called from folder in \"%s\"" major-mode))
     (let ((infile (concat buffer-file-name mh-index-data-file))
           t1 t2 t3 t4 t5)
       (with-temp-buffer
@@ -586,7 +605,8 @@ user quits the folder containing the index search results."
 
 (defun mh-index-write-hashtable (table proc)
   "Write TABLE to `current-buffer'.
-PROC is used to serialize the values corresponding to the hash table keys."
+PROC is used to serialize the values corresponding to the hash
+table keys."
   (pp (loop for x being the hash-keys of table
             collect (cons x (funcall proc (gethash x table))))
       (current-buffer))
@@ -607,7 +627,7 @@ PROC is used to convert the value to actual data."
 
 ;;;###mh-autoload
 (defun mh-index-do-search ()
-  "Construct appropriate regexp and call `mh-index-search'."
+  "Find messages that match the qualifications in the current pattern buffer."
   (interactive)
   (unless (mh-index-choose) (error "No indexing program found"))
   (let* ((regexp-list (mh-pick-parse-search-buffer))
@@ -620,8 +640,9 @@ PROC is used to convert the value to actual data."
 ;;;###mh-autoload
 (defun mh-index-parse-search-regexp (input-string)
   "Construct parse tree for INPUT-STRING.
-All occurrences of &, |, ! and ~ in INPUT-STRING are replaced by AND, OR and
-NOT as appropriate. Then the resulting string is parsed."
+All occurrences of &, |, ! and ~ in INPUT-STRING are replaced by
+AND, OR and NOT as appropriate. Then the resulting string is
+parsed."
   (let (input)
     (with-temp-buffer
       (insert input-string)
@@ -721,9 +742,9 @@ NOT as appropriate. Then the resulting string is parsed."
 ;;;###mh-autoload
 (defun mh-index-next-folder (&optional backward-flag)
   "Jump to the next folder marker.
-The function is only applicable to folders displaying index search results.
-With non-nil optional argument BACKWARD-FLAG, jump to the previous group of
-results."
+
+With non-nil optional argument BACKWARD-FLAG, jump to the previous
+group of results."
   (interactive "P")
   (if (null mh-index-data)
       (message "Only applicable in an MH-E index search buffer")
@@ -765,12 +786,12 @@ results."
 (defun mh-index-new-folder (name search-regexp)
   "Return a folder name based on NAME for search results of SEARCH-REGEXP.
 
-If folder NAME already exists and was generated for the same SEARCH-REGEXP
-then it is reused.
+If folder NAME already exists and was generated for the same
+SEARCH-REGEXP then it is reused.
 
-Otherwise if the folder NAME was generated from a different search then check
-if NAME<2> can be used. Otherwise try NAME<3>. This is repeated till we find a
-new folder name.
+Otherwise if the folder NAME was generated from a different
+search then check if NAME<2> can be used. Otherwise try NAME<3>.
+This is repeated till we find a new folder name.
 
 If the folder returned doesn't exist then it is created."
   (unless (mh-folder-name-p name)
@@ -795,7 +816,8 @@ If the folder returned doesn't exist then it is created."
 
 (defun mh-index-folder-search-regexp (folder)
   "If FOLDER was created by a index search, return the search regexp.
-Return nil if FOLDER doesn't exist or the .mhe_index file is garbled."
+Return nil if FOLDER doesn't exist or the .mhe_index file is
+garbled."
   (ignore-errors
     (with-temp-buffer
       (insert-file-contents
@@ -845,8 +867,8 @@ Return nil if FOLDER doesn't exist or the .mhe_index file is garbled."
 ;;;###mh-autoload
 (defun mh-index-group-by-folder ()
   "Partition the messages based on source folder.
-Returns an alist with the the folder names in the car and the cdr being the
-list of messages originally from that folder."
+Returns an alist with the the folder names in the car and the cdr
+being the list of messages originally from that folder."
   (save-excursion
     (goto-char (point-min))
     (let ((result-table (make-hash-table :test #'equal)))
@@ -910,9 +932,9 @@ list of messages originally from that folder."
 
 (defun mh-index-matching-source-msgs (msgs &optional delete-from-index-data)
   "Return a table of original messages and folders for messages in MSGS.
-If optional argument DELETE-FROM-INDEX-DATA is non-nil, then each of the
-messages, whose counter-part is found in some source folder, is removed from
-`mh-index-data'."
+If optional argument DELETE-FROM-INDEX-DATA is non-nil, then each
+of the messages, whose counter-part is found in some source
+folder, is removed from `mh-index-data'."
   (let ((table (make-hash-table :test #'equal)))
     (dolist (msg msgs)
       (let* ((checksum (gethash msg mh-index-msg-checksum-map))
@@ -927,9 +949,10 @@ messages, whose counter-part is found in some source folder, is removed from
 ;;;###mh-autoload
 (defun mh-index-execute-commands ()
   "Delete/refile the actual messages.
-The copies in the searched folder are then deleted/refiled to get the desired
-result. Before deleting the messages we make sure that the message being
-deleted is identical to the one that the user has marked in the index buffer."
+The copies in the searched folder are then deleted/refiled to get
+the desired result. Before deleting the messages we make sure
+that the message being deleted is identical to the one that the
+user has marked in the index buffer."
   (save-excursion
     (let ((folders ())
           (mh-speed-flists-inhibit-flag t))
@@ -968,8 +991,8 @@ deleted is identical to the one that the user has marked in the index buffer."
 ;;;###mh-autoload
 (defun mh-index-add-to-sequence (seq msgs)
   "Add to SEQ the messages in the list MSGS.
-This function updates the source folder sequences. Also makes an attempt to
-update the source folder buffer if we have it open."
+This function updates the source folder sequences. Also makes an
+attempt to update the source folder buffer if we have it open."
   ;; Don't need to do anything for cur
   (save-excursion
     (when (and (not (memq seq (mh-unpropagated-sequences)))
@@ -994,8 +1017,8 @@ update the source folder buffer if we have it open."
 ;;;###mh-autoload
 (defun mh-index-delete-from-sequence (seq msgs)
   "Delete from SEQ the messages in MSGS.
-This function updates the source folder sequences. Also makes an attempt to
-update the source folder buffer if present."
+This function updates the source folder sequences. Also makes an
+attempt to update the source folder buffer if present."
   (save-excursion
     (when (and (not (memq seq (mh-unpropagated-sequences)))
                (mh-valid-seq-p seq))
@@ -1026,12 +1049,12 @@ update the source folder buffer if present."
 (defun mh-pick-execute-search (folder-path search-regexp)
   "Execute pick.
 
-Unlike the other index search programs \"pick\" only searches messages present
-in the folder itself and does not descend into any sub-folders that may be
-present.
+Unlike the other index search programs \"pick\" only searches
+messages present in the folder itself and does not descend into
+any sub-folders that may be present.
 
-In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is used
-to search."
+In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
+is used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (setq mh-index-pick-folder
@@ -1062,12 +1085,12 @@ to search."
 (defun mh-grep-execute-search (folder-path search-regexp)
   "Execute grep and read the results.
 
-Unlike the other index search programs \"grep\" only searches messages present
-in the folder itself and does not descend into any sub-folders that may be
-present.
+Unlike the other index search programs \"grep\" only searches
+messages present in the folder itself and does not descend into
+any sub-folders that may be present.
 
-In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is used
-to search."
+In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
+is used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (call-process mh-grep-binary nil '(t nil) nil
@@ -1076,9 +1099,9 @@ to search."
 
 (defun mh-grep-next-result ()
   "Read the next result.
-Parse it and return the message folder, message index and the match. If no
-other matches left then return nil. If the current record is invalid return
-'error."
+Parse it and return the message folder, message index and the
+match. If no other matches left then return nil. If the current
+record is invalid return 'error."
   (prog1
       (block nil
         (when (eobp)
@@ -1119,11 +1142,12 @@ other matches left then return nil. If the current record is invalid return
 (defun mh-mairix-execute-search (folder-path search-regexp-list)
   "Execute mairix and read the results.
 
-In the examples below, replace \"/home/user/Mail\" with the path to your MH
-directory.
+In the examples below, replace \"/home/user/Mail\" with the path
+to your MH directory.
 
-First create the directory \"/home/user/Mail/.mairix\". Then create the file
-\"/home/user/Mail/.mairix/config\" with the following contents:
+First create the directory \"/home/user/Mail/.mairix\". Then
+create the file \"/home/user/Mail/.mairix/config\" with the
+following contents:
 
      base=/home/user/Mail
 
@@ -1134,17 +1158,17 @@ First create the directory \"/home/user/Mail/.mairix\". Then create the file
      vfolder_format=raw
      database=/home/user/Mail/mairix/database
 
-Use the following command line to generate the mairix index. Run this daily
-from cron:
+Use the following command line to generate the mairix index. Run
+this daily from cron:
 
      mairix -f /home/user/Mail/.mairix/config
 
-In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP-LIST is used
-to search."
+In a program, FOLDER-PATH is the directory in which
+SEARCH-REGEXP-LIST is used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-mairix-binary
-    (error "Set mh-mairix-binary appropriately"))
+    (error "Set `mh-mairix-binary' appropriately"))
   (apply #'call-process mh-mairix-binary nil '(t nil) nil
          "-r" "-f" (format "%s%s/config" mh-user-path mh-mairix-directory)
          search-regexp-list)
@@ -1259,9 +1283,10 @@ REGEXP-LIST is an alist of fields and values."
 
 (defun mh-flists-execute (&rest args)
   "Execute flists.
-Search for messages belonging to `mh-flists-sequence' in the folders
-specified by `mh-flists-search-folders'. If `mh-recursive-folders-flag' is t,
-then the folders are searched recursively. All parameters ARGS are ignored."
+Search for messages belonging to `mh-flists-sequence' in the
+folders specified by `mh-flists-search-folders'. If
+`mh-recursive-folders-flag' is t, then the folders are searched
+recursively. All parameters ARGS are ignored."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless (executable-find "sh")
@@ -1285,10 +1310,12 @@ then the folders are searched recursively. All parameters ARGS are ignored."
 
 ;;;###mh-autoload
 (defun mh-index-sequenced-messages (folders sequence)
-  "Display messages from FOLDERS in SEQUENCE.
-All messages in the sequence you provide from the folders in
-`mh-new-messages-folders' are listed. With a prefix argument, enter a
-space-separated list of folders, or nothing to search all folders."
+  "Display messages in any sequence.
+
+All messages from the FOLDERS in `mh-new-messages-folders' in the
+SEQUENCE you provide are listed. With a prefix argument, enter a
+space-separated list of folders at the prompt, or nothing to
+search all folders."
   (interactive
    (list (if current-prefix-arg
              (split-string (read-string "Search folder(s) (default all): "))
@@ -1331,13 +1358,14 @@ space-separated list of folders, or nothing to search all folders."
 (defun mh-index-new-messages (folders)
   "Display unseen messages.
 
-If you use a program such as `procmail' to use `rcvstore' to file your
-incoming mail automatically, you can display new, unseen, messages using this
-command. All messages in the `unseen' sequence from the folders in
-`mh-new-messages-folders' are listed.
+If you use a program such as \"procmail\" to use \"rcvstore\" to file
+your incoming mail automatically, you can display new, unseen,
+messages using this command. All messages in the \"unseen\"
+sequence from the folders in `mh-new-messages-folders' are
+listed.
 
-With a prefix argument, enter a space-separated list of FOLDERS, or nothing to
-search all folders."
+With a prefix argument, enter a space-separated list of FOLDERS,
+or nothing to search all folders."
   (interactive
    (list (if current-prefix-arg
              (split-string (read-string "Search folder(s) (default all): "))
@@ -1348,11 +1376,11 @@ search all folders."
 (defun mh-index-ticked-messages (folders)
   "Display ticked messages.
 
-All messages in `mh-tick-seq' from the folders in `mh-ticked-messages-folders'
-are listed.
+All messages in `mh-tick-seq' from the folders in
+`mh-ticked-messages-folders' are listed.
 
-With a prefix argument, enter a space-separated list of FOLDERS, or nothing to
-search all folders."
+With a prefix argument, enter a space-separated list of FOLDERS,
+or nothing to search all folders."
   (interactive
    (list (if current-prefix-arg
              (split-string (read-string "Search folder(s) (default all): "))
@@ -1371,11 +1399,12 @@ search all folders."
 (defun mh-swish-execute-search (folder-path search-regexp)
   "Execute swish-e and read the results.
 
-In the examples below, replace \"/home/user/Mail\" with the path to your
-MH directory.
+In the examples below, replace \"/home/user/Mail\" with the path
+to your MH directory.
 
-First create the directory \"/home/user/Mail/.swish\". Then create the file
-\"/home/user/Mail/.swish/config\" with the following contents:
+First create the directory \"/home/user/Mail/.swish\". Then
+create the file \"/home/user/Mail/.swish/config\" with the
+following contents:
 
      DefaultContents TXT*
      IndexDir /home/user/Mail
@@ -1398,26 +1427,26 @@ First create the directory \"/home/user/Mail/.swish\". Then create the file
      FileRules pathname contains /home/user/Mail/.swish
      FileRules pathname contains /home/user/Mail/mhe-index
 
-This configuration does not index the folders that hold the results of your
-searches in \"+mhe-index\" since they tend to be ephemeral and the original
-messages are indexed anyway.
+This configuration does not index the folders that hold the
+results of your searches in \"+mhe-index\" since they tend to be
+ephemeral and the original messages are indexed anyway.
 
-If there are any directories you would like to ignore, append lines like the
-following to \"config\":
+If there are any directories you would like to ignore, append
+lines like the following to \"config\":
 
      FileRules pathname contains /home/user/Mail/scripts
 
-Use the following command line to generate the swish index. Run this daily
-from cron:
+Use the following command line to generate the swish index. Run
+this daily from cron:
 
          swish-e -c /home/user/Mail/.swish/config
 
-In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is used to
-search."
+In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
+is used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-swish-binary
-    (error "Set mh-swish-binary appropriately"))
+    (error "Set `mh-swish-binary' appropriately"))
   (call-process mh-swish-binary nil '(t nil) nil
                 "-w" search-regexp
                 "-f" (format "%s%s/index" mh-user-path mh-swish-directory))
@@ -1473,11 +1502,12 @@ search."
 (defun mh-swish++-execute-search (folder-path search-regexp)
   "Execute swish++ and read the results.
 
-In the examples below, replace \"/home/user/Mail\" with the path to your MH
-directory.
+In the examples below, replace \"/home/user/Mail\" with the path to
+your MH directory.
 
-First create the directory \"/home/user/Mail/.swish++\". Then create the file
-\"/home/user/Mail/.swish++/swish++.conf\" with the following contents:
+First create the directory \"/home/user/Mail/.swish++\". Then create
+the file \"/home/user/Mail/.swish++/swish++.conf\" with the following
+contents:
 
      IncludeMeta         Bcc Cc Comments Content-Description From Keywords
      IncludeMeta         Newsgroups Resent-To Subject To
@@ -1485,27 +1515,27 @@ First create the directory \"/home/user/Mail/.swish++\". Then create the file
      IncludeFile         Mail    *
      IndexFile           /home/user/Mail/.swish++/swish++.index
 
-Use the following command line to generate the swish index. Run this daily
-from cron:
+Use the following command line to generate the swish index. Run
+this daily from cron:
 
      find /home/user/Mail -path /home/user/Mail/mhe-index -prune \\
                           -o -path /home/user/Mail/.swish++ -prune \\
                           -o -name \"[0-9]*\" -print \\
          | index -c /home/user/Mail/.swish++/swish++.conf -
 
-This command does not index the folders that hold the results of your searches
-in \"+mhe-index\" since they tend to be ephemeral and the original messages
-are indexed anyway.
+This command does not index the folders that hold the results of your
+searches in \"+mhe-index\" since they tend to be ephemeral and the
+original messages are indexed anyway.
 
-On some systems (Debian GNU/Linux, for example), use \"index++\" instead of
-\"index\".
+On some systems (Debian GNU/Linux, for example), use \"index++\"
+instead of \"index\".
 
-In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is used to
-search."
+In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is
+used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-swish++-binary
-    (error "Set mh-swish++-binary appropriately"))
+    (error "Set `mh-swish++-binary' appropriately"))
   (call-process mh-swish++-binary nil '(t nil) nil
                 "-m" "10000"
                 (format "-i%s%s/swish++.index"
@@ -1555,35 +1585,36 @@ REGEXP-LIST is an alist of fields and values."
 (defun mh-namazu-execute-search (folder-path search-regexp)
   "Execute namazu and read the results.
 
-In the examples below, replace \"/home/user/Mail\" with the path to your MH
-directory.
+In the examples below, replace \"/home/user/Mail\" with the path to
+your MH directory.
 
-First create the directory \"/home/user/Mail/.namazu\". Then create the file
-\"/home/user/Mail/.namazu/mknmzrc\" with the following contents:
+First create the directory \"/home/user/Mail/.namazu\". Then create
+the file \"/home/user/Mail/.namazu/mknmzrc\" with the following
+contents:
 
      package conf;  # Don't remove this line!
      $ADDRESS = 'user@localhost';
      $ALLOW_FILE = \"[0-9]*\";
      $EXCLUDE_PATH = \"^/home/user/Mail/(mhe-index|spam)\";
 
-This configuration does not index the folders that hold the results of your
-searches in \"+mhe-index\" since they tend to be ephemeral and the original
-messages are indexed anyway.
+This configuration does not index the folders that hold the results of
+your searches in \"+mhe-index\" since they tend to be ephemeral and
+the original messages are indexed anyway.
 
-Use the following command line to generate the namazu index. Run this daily
-from cron:
+Use the following command line to generate the namazu index. Run this
+daily from cron:
 
      mknmz -f /home/user/Mail/.namazu/mknmzrc -O /home/user/Mail/.namazu \\
               /home/user/Mail
 
-In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is used to
-search."
+In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
+is used to search."
   (let ((namazu-index-directory
          (format "%s%s" mh-user-path mh-namazu-directory)))
     (unless (file-exists-p namazu-index-directory)
       (error "Namazu directory %s not present" namazu-index-directory))
     (unless (executable-find mh-namazu-binary)
-      (error "Set mh-namazu-binary appropriately"))
+      (error "Set `mh-namazu-binary' appropriately"))
     (set-buffer (get-buffer-create mh-index-temp-buffer))
     (erase-buffer)
     (call-process mh-namazu-binary nil '(t nil) nil
@@ -1624,10 +1655,10 @@ search."
 ;;;###mh-autoload
 (defun mh-index-choose ()
   "Choose an indexing function.
-The side-effects of this function are that the variables `mh-indexer',
-`mh-index-execute-search-function', and `mh-index-next-result-function' are
-set according to the first indexer in `mh-indexer-choices' present on the
-system."
+The side-effects of this function are that the variables
+`mh-indexer', `mh-index-execute-search-function', and
+`mh-index-next-result-function' are set according to the first
+indexer in `mh-indexer-choices' present on the system."
   (block nil
     ;; The following favors the user's preference; otherwise, the last
     ;; automatically chosen indexer is used for efficiency rather than going
@@ -1653,10 +1684,10 @@ system."
 
 (provide 'mh-index)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 607762ad-0dff-4fe1-a27e-6c0dde0dcc47
+;; arch-tag: 607762ad-0dff-4fe1-a27e-6c0dde0dcc47
 ;;; mh-index ends here

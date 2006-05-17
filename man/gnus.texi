@@ -9319,6 +9319,12 @@ To see e.g. security buttons but no other buttons, you could set this
 variable to @code{("multipart/signed")} and leave
 @code{gnus-unbuttonized-mime-types} at the default value.
 
+You could also add @code{"multipart/alternative"} to this list to
+display radio buttons that allow you to choose one of two media types
+those mails include.  See also @code{mm-discouraged-alternatives}
+(@pxref{Display Customization, ,Display Customization, emacs-mime, The
+Emacs MIME Manual}).
+
 @item gnus-inhibit-mime-unbuttonizing
 @vindex gnus-inhibit-mime-unbuttonizing
 If this is non-@code{nil}, then all @acronym{MIME} parts get buttons.  The

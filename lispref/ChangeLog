@@ -1,3 +1,71 @@
+2006-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* markers.texi (The Mark): Fix in `mark'.
+
+2006-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* processes.texi (Misc Network, Make Network): Minor cleanups.
+
+2006-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Make Network): Add IPv6 addresses and handling.
+	(Network Feature Testing): Mention (:family ipv6).
+	(Misc Network): Add IPv6 formats to format-network-address.
+
+2005-12-30  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Changing Properties):
+	Don't use return value of set-text-properties.
+
+2005-12-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Mode Line Format): Correct typo in menu.
+
+2005-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Mode Line Top): New node.
+	(Mode Line Data): Some text moved to new node.
+	Explain the data structure more concretely.
+	(Mode Line Basics): Clarifications.
+	(Mode Line Variables): Clarify intro paragraph.
+	(%-Constructs): Clarify intro paragraph.
+	(Mode Line Format): Update menu.
+
+2005-12-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Basic Completion): Update lazy-completion-table
+	examples for removal of ARGS argument.
+
+2005-12-23  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Undo): Restore some explanation from the version
+	that was deleted.
+
+2005-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Undo): Remove dupliate descriptions of `apply
+	funname' and `apply delta' elements of the undo list.
+
+2005-12-20  Richard M. Stallman  <rms@gnu.org>
+
+	* help.texi (Help Functions): Update documentation of `apropos'.
+
+2005-12-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* customize.texi (Type Keywords): Delete xref to "Text help-echo",
+	because it is confusing.  If the :help-echo keyword is a function,
+	it is not directly used as the :help-echo overlay property, as the
+	xref seems to suggest (it does not take the appropriate args).
+
+2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* customize.texi (Common Keywords): Fix Texinfo usage.
+	(Group Definitions, Variable Definitions): Update for new
+	conventions for using `*' in docstrings.
+
+	* tips.texi (Documentation Tips): Update for new conventions for
+	using `*' in docstrings.
+
 2005-12-16  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Minibuffer Contents): Minor cleanup.

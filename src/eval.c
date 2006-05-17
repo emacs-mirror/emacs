@@ -107,7 +107,7 @@ Lisp_Object Vrun_hooks;
 /* Non-nil means record all fset's and provide's, to be undone
    if the file being autoloaded is not fully loaded.
    They are recorded by being consed onto the front of Vautoload_queue:
-   (FUN . ODEF) for a defun, (OFEATURES . nil) for a provide.  */
+   (FUN . ODEF) for a defun, (0 . OFEATURES) for a provide.  */
 
 Lisp_Object Vautoload_queue;
 
@@ -2096,8 +2096,8 @@ un_autoload (oldqueue)
       first = XCAR (queue);
       second = Fcdr (first);
       first = Fcar (first);
-      if (EQ (second, Qnil))
-	Vfeatures = first;
+      if (EQ (first, make_number (0)))
+	Vfeatures = second;
       else
 	Ffset (first, second);
       queue = XCDR (queue);
@@ -2143,7 +2143,7 @@ do_autoload (fundef, funname)
       second = Fcdr (first);
       first = Fcar (first);
 
-      if (CONSP (second) && EQ (XCAR (second), Qautoload))
+      if (SYMBOLP (first) && CONSP (second) && EQ (XCAR (second), Qautoload))
 	Fput (first, Qautoload, (XCDR (second)));
 
       queue = XCDR (queue);

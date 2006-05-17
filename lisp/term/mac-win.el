@@ -1140,6 +1140,7 @@ correspoinding TextEncodingBase value."
 
 ;;;; Keyboard layout/language change events
 (defun mac-handle-language-change (event)
+  "Set keyboard coding system to what is specified in EVENT."
   (interactive "e")
   (let ((coding-system
 	 (cdr (assq (car (cadr event)) mac-script-code-coding-systems))))
@@ -1201,21 +1202,14 @@ in `selection-converter-alist', which see."
     (when (and (stringp data)
 	       (setq data-type (get-text-property 0 'foreign-selection data)))
       (cond ((eq data-type 'public.utf16-plain-text)
-	     (if (fboundp 'mac-code-convert-string)
-		 (let ((s (mac-code-convert-string data nil coding)))
-		   (if s
-		       (setq data (decode-coding-string s coding))
-		     (setq data
-			   ;; (decode-coding-string data 'utf-16) is
-			   ;; not correct because
-			   ;; public.utf16-plain-text is defined as
-			   ;; native byte order, no BOM.
-			   (decode-coding-string
-			    (mac-code-convert-string data nil 'utf-8)
-			    'utf-8))))
-	       ;; No `mac-code-convert-string' means non-Carbon, which
-	       ;; implies big endian.
-	       (setq data (decode-coding-string data 'utf-16be))))
+	     (let ((encoded (and (fboundp 'mac-code-convert-string)
+				 (mac-code-convert-string data nil coding))))
+	       (if encoded
+		   (setq data (decode-coding-string encoded coding))
+		 (setq data
+		       (decode-coding-string data
+					     (if (eq (byteorder) ?B)
+						 'utf-16be 'utf-16le))))))
 	    ((eq data-type 'com.apple.traditional-mac-plain-text)
 	     (setq data (decode-coding-string data coding)))
 	    ((eq data-type 'public.file-url)
@@ -1332,25 +1326,17 @@ in `selection-converter-alist', which see."
 	  (remove-text-properties 0 (length str) '(composition nil) str)
 	  (cond
 	   ((eq type 'public.utf16-plain-text)
-	    (if (fboundp 'mac-code-convert-string)
-		(let (s)
-		  (when (memq coding (find-coding-systems-string str))
-		    (setq coding
-			  (coding-system-change-eol-conversion coding 'mac))
-		    (setq s (mac-code-convert-string
-			     (encode-coding-string str coding)
-			     coding nil)))
-		  (setq str (or s
-				;; (encode-coding-string str
-				;; 'utf-16-mac) is not correct because
-				;; public.utf16-plain-text is defined
-				;; as native byte order, no BOM.
-				(mac-code-convert-string
-				 (encode-coding-string str 'utf-8-mac)
-				 'utf-8 nil))))
-	      ;; No `mac-code-convert-string' means non-Carbon, which
-	      ;; implies big endian.
-	      (setq str (encode-coding-string str 'utf-16be-mac))))
+	    (let (s)
+	      (when (and (fboundp 'mac-code-convert-string)
+			 (memq coding (find-coding-systems-string str)))
+		(setq coding (coding-system-change-eol-conversion coding 'mac))
+		(setq s (mac-code-convert-string
+			 (encode-coding-string str coding)
+			 coding nil)))
+	      (setq str (or s
+			    (encode-coding-string str
+						  (if (eq (byteorder) ?B)
+						      'utf-16be 'utf-16le))))))
 	   ((eq type 'com.apple.traditional-mac-plain-text)
 	    (let ((encodables (find-coding-systems-string str))
 		  (rest mac-script-code-coding-systems))
@@ -1395,7 +1381,7 @@ in `selection-converter-alist', which see."
 (put 'core-event     'mac-apple-event-class "aevt") ; kCoreEventClass
 (put 'internet-event 'mac-apple-event-class "GURL") ; kAEInternetEventClass
 
-;;; Event IDs 
+;;; Event IDs
 ;; kCoreEventClass
 (put 'open-application   'mac-apple-event-id "oapp") ; kAEOpenApplication
 (put 'reopen-application 'mac-apple-event-id "rapp") ; kAEReopenApplication
@@ -1423,14 +1409,14 @@ in `selection-converter-alist', which see."
       (error "Not an Apple event: %S" ae)
     (let ((type-data (cdr (assoc keyword (cdr ae))))
 	  data)
-      (when (and type type-data)
+      (when (and type type-data (not (equal type (car type-data))))
 	(setq data (mac-coerce-ae-data (car type-data) (cdr type-data) type))
 	(setq type-data (if data (cons type data) nil)))
       type-data)))
 
 (defun mac-ae-list (ae &optional keyword type)
   (or keyword (setq keyword "----")) ;; Direct object.
-  (let ((desc (mac-ae-parameter ae keyword)))
+  (let ((desc (mac-ae-parameter ae keyword "list")))
     (cond ((null desc)
 	   nil)
 	  ((not (equal (car desc) "list"))
@@ -1484,6 +1470,7 @@ in `selection-converter-alist', which see."
 	 (decode-coding-string utf8-text 'utf-8))))
 
 (defun mac-ae-open-documents (event)
+  "Open the documents specified by the Apple event EVENT."
   (interactive "e")
   (let ((ae (mac-event-ae event)))
     (dolist (file-name (mac-ae-list ae nil 'undecoded-file-name))
@@ -1511,6 +1498,8 @@ in `selection-converter-alist', which see."
       (error "No text in Apple event.")))
 
 (defun mac-ae-get-url (event)
+  "Open the URL specified by the Apple event EVENT.
+Currently the `mailto' scheme is supported."
   (interactive "e")
   (let* ((ae (mac-event-ae event))
 	 (parsed-url (url-generic-parse-url (mac-ae-text ae))))
@@ -1541,10 +1530,12 @@ in `selection-converter-alist', which see."
 (define-key mac-apple-event-map [hicommand about] 'display-splash-screen)
 
 (defun mac-services-open-file ()
+  "Open the file specified by the selection value for Services."
   (interactive)
   (find-file-existing (x-selection-value mac-services-selection)))
 
 (defun mac-services-open-selection ()
+  "Create a new buffer containing the selection value for Services."
   (interactive)
   (switch-to-buffer (generate-new-buffer "*untitled*"))
   (insert (x-selection-value mac-services-selection))
@@ -1553,6 +1544,7 @@ in `selection-converter-alist', which see."
   )
 
 (defun mac-services-mail-selection ()
+  "Prepare a mail buffer containing the selection value for Services."
   (interactive)
   (compose-mail)
   (rfc822-goto-eoh)
@@ -1560,10 +1552,12 @@ in `selection-converter-alist', which see."
   (insert (x-selection-value mac-services-selection) "\n"))
 
 (defun mac-services-mail-to ()
+  "Prepare a mail buffer to be sent to the selection value for Services."
   (interactive)
   (compose-mail (x-selection-value mac-services-selection)))
 
 (defun mac-services-insert-text ()
+  "Insert the selection value for Services."
   (interactive)
   (let ((text (x-selection-value mac-services-selection)))
     (if (not buffer-read-only)
@@ -1584,6 +1578,7 @@ in `selection-converter-alist', which see."
   'mac-services-mail-to)
 
 (defun mac-dispatch-apple-event (event)
+  "Dispatch EVENT according to the keymap `mac-apple-event-map'."
   (interactive "e")
   (let* ((binding (lookup-key mac-apple-event-map (mac-event-spec event)))
 	 (service-message
@@ -1593,6 +1588,9 @@ in `selection-converter-alist', which see."
       (setq service-message
 	    (intern (decode-coding-string service-message 'utf-8)))
       (setq binding (lookup-key binding (vector service-message))))
+    ;; Replace (cadr event) with a dummy position so that event-start
+    ;; returns it.
+    (setcar (cdr event) (list (selected-window) (point) '(0 . 0) 0))
     (call-interactively binding)))
 
 (global-set-key [mac-apple-event] 'mac-dispatch-apple-event)

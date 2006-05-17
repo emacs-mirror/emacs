@@ -821,7 +821,7 @@ Returns new end position."
 
 ;;;###autoload
 (defun indian-compose-region (from to)
-  "Compose the region according to `composition-function-table'. "
+  "Compose the region according to `composition-function-table'."
   (interactive "r")
   (save-excursion
     (save-restriction

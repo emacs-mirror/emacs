@@ -764,13 +764,40 @@ show environment DISPLAY
 show environment TERM
 set args -geometry 80x40+0+0
 
-# Don't let abort actually run, as it will make
-# stdio stop working and therefore the `pr' command above as well.
-break abort
+# People get bothered when they see messages about non-existent functions...
+xgetptr Vsystem_type
+set $tem = (struct Lisp_Symbol *) $ptr
+xgetptr $tem->xname
+set $tem = (struct Lisp_String *) $ptr
+set $tem = (char *) $tem->data
 
-# If we are running in synchronous mode, we want a chance to look around
-# before Emacs exits.  Perhaps we should put the break somewhere else
-# instead...
-break x_error_quitter
+# Don't let abort actually run, as it will make stdio stop working and
+# therefore the `pr' command above as well.
+if $tem[0] == 'w' && $tem[1] == 'i' && $tem[2] == 'n' && $tem[3] == 'd'
+  # The windows-nt build replaces abort with its own function.
+  break w32_abort
+else
+  break abort
+end
 
+# x_error_quitter is defined only on X.  But window-system is set up
+# only at run time, during Emacs startup, so we need to defer setting
+# the breakpoint.  init_sys_modes is the first function called on
+# every platform after init_display, where window-system is set.
+tbreak init_sys_modes
+commands
+  silent
+  xgetptr Vwindow_system
+  set $tem = (struct Lisp_Symbol *) $ptr
+  xgetptr $tem->xname
+  set $tem = (struct Lisp_String *) $ptr
+  set $tem = (char *) $tem->data
+  # If we are running in synchronous mode, we want a chance to look
+  # around before Emacs exits.  Perhaps we should put the break
+  # somewhere else instead...
+  if $tem[0] == 'x' && $tem[1] == '\0'
+    break x_error_quitter
+  end
+  continue
+end
 # arch-tag: 12f34321-7bfa-4240-b77a-3cd3a1696dfe

@@ -1,7 +1,8 @@
 /* Basic multilingual character support.
-   Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
-   Licensed to the Free Software Foundation.
    Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H14PRO021
 
 This file is part of GNU Emacs.
 
@@ -1343,6 +1344,10 @@ lisp_string_width (string, precision, nchars, nbytes)
 {
   int len = SCHARS (string);
   int len_byte = SBYTES (string);
+  /* This set multibyte to 0 even if STRING is multibyte when it
+     contains only ascii and eight-bit-graphic, but that's
+     intentional.  */
+  int multibyte = len < len_byte;
   const unsigned char *str = SDATA (string);
   int i = 0, i_byte = 0;
   int width = 0;
@@ -1365,8 +1370,12 @@ lisp_string_width (string, precision, nchars, nbytes)
 	}
       else if (dp)
 	{
-	  int c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
+	  int c;
 
+	  if (multibyte)
+	    c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
+	  else
+	    c = str[i_byte], bytes = 1;
 	  chars = 1;
 	  val = DISP_CHAR_VECTOR (dp, c);
 	  if (VECTORP (val))
@@ -1377,7 +1386,10 @@ lisp_string_width (string, precision, nchars, nbytes)
       else
 	{
 	  chars = 1;
-	  PARSE_MULTIBYTE_SEQ (str + i_byte, len_byte - i_byte, bytes);
+	  if (multibyte)
+	    PARSE_MULTIBYTE_SEQ (str + i_byte, len_byte - i_byte, bytes);
+	  else
+	    bytes = 1;
 	  thiswidth = ONE_BYTE_CHAR_WIDTH (str[i_byte]);
 	}
 

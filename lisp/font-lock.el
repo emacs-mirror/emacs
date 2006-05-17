@@ -1,7 +1,7 @@
 ;;; font-lock.el --- Electric font lock mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004 2005 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
 ;; Maintainer: FSF
@@ -153,8 +153,8 @@
 ;;
 ;;  (add-hook 'foo-mode-hook
 ;;   (lambda ()
-;;     (make-local-variable 'font-lock-defaults)
-;;     (setq font-lock-defaults '(foo-font-lock-keywords t))))
+;;     (set (make-local-variable 'font-lock-defaults)
+;;          '(foo-font-lock-keywords t))))
 
 ;;; Adding Font Lock support for modes:
 
@@ -174,8 +174,8 @@
 ;;
 ;; and within `bar-mode' there could be:
 ;;
-;;  (make-local-variable 'font-lock-defaults)
-;;  (setq font-lock-defaults '(bar-font-lock-keywords nil t))
+;;  (set (make-local-variable 'font-lock-defaults)
+;;       '(bar-font-lock-keywords nil t))
 
 ;; What is fontification for?  You might say, "It's to make my code look nice."
 ;; I think it should be for adding information in the form of cues.  These cues
@@ -212,8 +212,8 @@
 ;; Define core `font-lock' group.
 (defgroup font-lock '((jit-lock custom-group))
   "Font Lock mode text highlighting package."
-  :link '(custom-manual "(emacs)Font Lock")
-  :link '(custom-manual "(elisp)Font Lock Mode")
+  :link '(custom-manual :tag "Emacs Manual" "(emacs)Font Lock")
+  :link '(custom-manual :tag "Elisp Manual" "(elisp)Font Lock Mode")
   :group 'faces)
 
 (defgroup font-lock-faces nil
@@ -723,8 +723,8 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 					  (append keywords old)))))
 	   ;; If the keywords were compiled before, compile them again.
 	   (if was-compiled
-	       (set (make-local-variable 'font-lock-keywords)
-		    (font-lock-compile-keywords font-lock-keywords t)))))))
+	       (setq font-lock-keywords
+                     (font-lock-compile-keywords font-lock-keywords t)))))))
 
 (defun font-lock-update-removed-keyword-alist (mode keywords how)
   "Update `font-lock-removed-keywords-alist' when adding new KEYWORDS to MODE."
@@ -830,8 +830,8 @@ happens, so the major mode can be corrected."
 
 	   ;; If the keywords were compiled before, compile them again.
 	   (if was-compiled
-	       (set (make-local-variable 'font-lock-keywords)
-		    (font-lock-compile-keywords font-lock-keywords t)))))))
+	       (setq font-lock-keywords
+                     (font-lock-compile-keywords font-lock-keywords t)))))))
 
 ;;; Font Lock Support mode.
 
@@ -980,6 +980,7 @@ The value of this variable is used when Font Lock mode is turned on."
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way the function `font-lock-mode' would."
   (interactive)
+  (font-lock-set-defaults)
   (let ((font-lock-verbose (or font-lock-verbose (interactive-p))))
     (funcall font-lock-fontify-buffer-function)))
 
@@ -987,6 +988,7 @@ The value of this variable is used when Font Lock mode is turned on."
   (funcall font-lock-unfontify-buffer-function))
 
 (defun font-lock-fontify-region (beg end &optional loudly)
+  (font-lock-set-defaults)
   (funcall font-lock-fontify-region-function beg end loudly))
 
 (defun font-lock-unfontify-region (beg end)
@@ -1000,9 +1002,6 @@ The value of this variable is used when Font Lock mode is turned on."
     (with-temp-message
 	(when verbose
 	  (format "Fontifying %s..." (buffer-name)))
-      ;; Make sure we have the right `font-lock-keywords' etc.
-      (unless font-lock-mode
-	(font-lock-set-defaults))
       ;; Make sure we fontify etc. in the whole buffer.
       (save-restriction
 	(widen)
@@ -1508,6 +1507,13 @@ Here each COMPILED is of the form (MATCHER HIGHLIGHT ...) as shown in the
 `font-lock-keywords' doc string.
 If REGEXP is non-nil, it means these keywords are used for
 `font-lock-keywords' rather than for `font-lock-syntactic-keywords'."
+  (if (not font-lock-set-defaults)
+      ;; This should never happen.  But some external packages sometimes
+      ;; call font-lock in unexpected and incorrect ways.  It's important to
+      ;; stop processing at this point, otherwise we may end up changing the
+      ;; global value of font-lock-keywords and break highlighting in many
+      ;; other buffers.
+      (error "Font-lock trying to use keywords before setting them up"))
   (if (eq (car-safe keywords) t)
       keywords
     (setq keywords
@@ -1574,9 +1580,9 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
   (cond ((not (and (listp keywords) (symbolp (car keywords))))
 	 keywords)
 	((numberp level)
-	 (or (nth level keywords) (car (reverse keywords))))
+	 (or (nth level keywords) (car (last keywords))))
 	((eq level t)
-	 (car (reverse keywords)))
+	 (car (last keywords)))
 	(t
 	 (car keywords))))
 
@@ -1642,8 +1648,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	(font-lock-remove-keywords nil removed-keywords))
       ;; Now compile the keywords.
       (unless (eq (car font-lock-keywords) t)
-	(set (make-local-variable 'font-lock-keywords)
-	     (font-lock-compile-keywords font-lock-keywords t))))))
+	(setq font-lock-keywords
+              (font-lock-compile-keywords font-lock-keywords t))))))
 
 ;;; Colour etc. support.
 
