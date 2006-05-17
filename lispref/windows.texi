@@ -2196,7 +2196,7 @@ root window, and @var{mini} is the frame's minibuffer window.
 
 If the root window is not split, @var{root} is the root window itself.
 Otherwise, @var{root} is a list @code{(@var{dir} @var{edges} @var{w1}
-@var{w2} ...)} where @var{dir} is @code{nil} for a horisontal split,
+@var{w2} ...)} where @var{dir} is @code{nil} for a horizontal split,
 and @code{t} for a vertical split, @var{edges} gives the combined size and
 position of the subwindows in the split, and the rest of the elements
 are the subwindows in the split.  Each of the subwindows may again be

@@ -189,8 +189,9 @@ static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
 
-static void fill_submenu (MenuHandle, widget_value *);
-static void fill_menubar (widget_value *);
+static int fill_menu P_ ((MenuHandle, widget_value *, int));
+static void fill_menubar P_ ((widget_value *, int));
+static void dispose_menus P_ ((int));
 
 
 /* This holds a Lisp vector that holds the results of decoding
@@ -246,15 +247,6 @@ static int menu_items_n_panes;
 
 /* Current depth within submenus.  */
 static int menu_items_submenu_depth;
-
-/* Flag which when set indicates a dialog or menu has been posted by
-   Xt on behalf of one of the widget sets.  */
-static int popup_activated_flag;
-
-/* Index of the next submenu */
-static int submenu_id;
-
-static int next_menubar_widget_id;
 
 /* This is set nonzero after the user activates the menu bar, and set
    to zero again after the menu bars are redisplayed by prepare_menu_bar.
@@ -1440,7 +1432,7 @@ install_menu_quit_handler (MenuHandle menu_handle)
       menu = GetMenuHandle (++i);
     }
 
-  i = menu_handle ? MIN_POPUP_SUBMENU_ID : MIN_SUBMENU_ID;  
+  i = menu_handle ? MIN_POPUP_SUBMENU_ID : MIN_SUBMENU_ID;
   menu = GetMenuHandle (i);
   while (menu != NULL)
     {
@@ -1679,27 +1671,7 @@ set_frame_menubar (f, first_time, deep_p)
   /* Non-null value to indicate menubar has already been "created".  */
   f->output_data.mac->menubar_widget = 1;
 
-  {
-    int i = MIN_MENU_ID;
-    MenuHandle menu = GetMenuHandle (i);
-    while (menu != NULL)
-      {
-	DeleteMenu (i);
-	DisposeMenu (menu);
-	menu = GetMenuHandle (++i);
-      }
-
-    i = MIN_SUBMENU_ID;
-    menu = GetMenuHandle (i);
-    while (menu != NULL)
-      {
-	DeleteMenu (i);
-	DisposeMenu (menu);
-	menu = GetMenuHandle (++i);
-      }
-  }
-
-  fill_menubar (first_wv->contents);
+  fill_menubar (first_wv->contents, deep_p);
 
   /* Add event handler so we can detect C-g. */
   install_menu_quit_handler (NULL);
@@ -1707,22 +1679,6 @@ set_frame_menubar (f, first_time, deep_p)
 
   UNBLOCK_INPUT;
 }
-
-/* Called from Fx_create_frame to create the initial menubar of a frame
-   before it is mapped, so that the window is mapped with the menubar already
-   there instead of us tacking it on later and thrashing the window after it
-   is visible.  */
-
-void
-initialize_frame_menubar (f)
-     FRAME_PTR f;
-{
-  /* This function is called before the first chance to redisplay
-     the frame.  It has to be, so the frame will have the right size.  */
-  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
-  set_frame_menubar (f, 1, 1);
-}
-
 
 /* Get rid of the menu bar of frame F, and free its storage.
    This is used when deleting a frame, and when turning off the menu bar.  */
@@ -1739,11 +1695,9 @@ static Lisp_Object
 pop_down_menu (arg)
      Lisp_Object arg;
 {
-  struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
-  struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
-
-  FRAME_PTR f = p1->pointer;
-  MenuHandle *menu = p2->pointer;
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  FRAME_PTR f = p->pointer;
+  MenuHandle menu = GetMenuHandle (POPUP_SUBMENU_ID);
 
   BLOCK_INPUT;
 
@@ -1752,19 +1706,9 @@ pop_down_menu (arg)
   FRAME_MAC_DISPLAY_INFO (f)->grabbed = 0;
 
   /* delete all menus */
-  {
-    int i = MIN_POPUP_SUBMENU_ID;
-    MenuHandle submenu = GetMenuHandle (i);
-    while (submenu != NULL)
-      {
-	DeleteMenu (i);
-	DisposeMenu (submenu);
-	submenu = GetMenuHandle (++i);
-      }
-  }
-
+  dispose_menus (MIN_POPUP_SUBMENU_ID);
   DeleteMenu (POPUP_SUBMENU_ID);
-  DisposeMenu (*menu);
+  DisposeMenu (menu);
 
   UNBLOCK_INPUT;
 
@@ -1998,8 +1942,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Actually create the menu.  */
   menu = NewMenu (POPUP_SUBMENU_ID, "\p");
-  submenu_id = MIN_POPUP_SUBMENU_ID;
-  fill_submenu (menu, first_wv->contents);
+  InsertMenu (menu, -1);
+  fill_menu (menu, first_wv->contents, MIN_POPUP_SUBMENU_ID);
 
   /* Free the widget_value objects we used to specify the
      contents.  */
@@ -2016,11 +1960,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   menu_item_choice = 0;
   menu_item_selection = 0;
 
-  InsertMenu (menu, -1);
-
-  record_unwind_protect (pop_down_menu,
-                         Fcons (make_save_value (f, 0),
-                                make_save_value (&menu, 0)));
+  record_unwind_protect (pop_down_menu, make_save_value (f, 0));
 
   /* Add event handler so we can detect C-g. */
   install_menu_quit_handler (menu);
@@ -2421,15 +2361,16 @@ name_is_separator (name)
 }
 
 static void
-add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
-	       int force_disable)
+add_menu_item (menu, pos, wv)
+     MenuHandle menu;
+     int pos;
+     widget_value *wv;
 {
 #if TARGET_API_MAC_CARBON
   CFStringRef item_name;
 #else
   Str255 item_name;
 #endif
-  int pos;
 
   if (name_is_separator (wv->name))
     AppendMenu (menu, "\p-");
@@ -2438,8 +2379,6 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
       AppendMenu (menu, "\pX");
 
 #if TARGET_API_MAC_CARBON
-      pos = CountMenuItems (menu);
-
       item_name = cfstring_create_with_utf8_cstring (wv->name);
 
       if (wv->key != NULL)
@@ -2457,13 +2396,11 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
       SetMenuItemTextWithCFString (menu, pos, item_name);
       CFRelease (item_name);
 
-      if (wv->enabled && !force_disable)
+      if (wv->enabled)
         EnableMenuItem (menu, pos);
       else
         DisableMenuItem (menu, pos);
 #else  /* ! TARGET_API_MAC_CARBON */
-      pos = CountMItems (menu);
-
       item_name[sizeof (item_name) - 1] = '\0';
       strncpy (item_name, wv->name, sizeof (item_name) - 1);
       if (wv->key != NULL)
@@ -2477,88 +2414,140 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
       c2pstr (item_name);
       SetMenuItemText (menu, pos, item_name);
 
-      if (wv->enabled && !force_disable)
+      if (wv->enabled)
         EnableItem (menu, pos);
       else
         DisableItem (menu, pos);
 #endif  /* ! TARGET_API_MAC_CARBON */
 
       /* Draw radio buttons and tickboxes. */
-      {
       if (wv->selected && (wv->button_type == BUTTON_TYPE_TOGGLE ||
                            wv->button_type == BUTTON_TYPE_RADIO))
 	SetItemMark (menu, pos, checkMark);
       else
 	SetItemMark (menu, pos, noMark);
-      }
 
       SetMenuItemRefCon (menu, pos, (UInt32) wv->call_data);
     }
-
-  if (submenu != 0)
-    SetMenuItemHierarchicalID (menu, pos, submenu);
 }
-
-/* Construct native Mac OS menubar based on widget_value tree.  */
-
-static void
-fill_submenu (MenuHandle menu, widget_value *wv)
-{
-  for ( ; wv != NULL; wv = wv->next)
-    if (wv->contents)
-      {
-	int cur_submenu = submenu_id++;
-        MenuHandle submenu = NewMenu (cur_submenu, "\pX");
-        fill_submenu (submenu, wv->contents);
-        InsertMenu (submenu, -1);
-        add_menu_item (menu, wv, cur_submenu, 0);
-      }
-    else
-      add_menu_item (menu, wv, 0, 0);
-}
-
 
 /* Construct native Mac OS menu based on widget_value tree.  */
 
-static void
-fill_menu (MenuHandle menu, widget_value *wv)
+static int
+fill_menu (menu, wv, submenu_id)
+     MenuHandle menu;
+     widget_value *wv;
+     int submenu_id;
 {
-  for ( ; wv != NULL; wv = wv->next)
-    if (wv->contents)
-      {
-	int cur_submenu = submenu_id++;
-        MenuHandle submenu = NewMenu (cur_submenu, "\pX");
-        fill_submenu (submenu, wv->contents);
-        InsertMenu (submenu, -1);
-        add_menu_item (menu, wv, cur_submenu, 0);
-      }
-    else
-      add_menu_item (menu, wv, 0, 0);
+  int pos;
+
+  for (pos = 1; wv != NULL; wv = wv->next, pos++)
+    {
+      add_menu_item (menu, pos, wv);
+      if (wv->contents)
+	{
+	  MenuHandle submenu = NewMenu (submenu_id, "\pX");
+
+	  InsertMenu (submenu, -1);
+	  SetMenuItemHierarchicalID (menu, pos, submenu_id);
+	  submenu_id = fill_menu (submenu, wv->contents, submenu_id + 1);
+	}
+    }
+
+  return submenu_id;
 }
 
 /* Construct native Mac OS menubar based on widget_value tree.  */
 
 static void
-fill_menubar (widget_value *wv)
+fill_menubar (wv, deep_p)
+     widget_value *wv;
+     int deep_p;
 {
-  int id;
+  int id, submenu_id;
+  MenuHandle menu;
+  Str255 title;
+#if !TARGET_API_MAC_CARBON
+  int title_changed_p = 0;
+#endif
 
-  submenu_id  = MIN_SUBMENU_ID;
+  /* Clean up the menu bar when filled by the entire menu trees.  */
+  if (deep_p)
+    {
+      dispose_menus (MIN_MENU_ID);
+      dispose_menus (MIN_SUBMENU_ID);
+#if !TARGET_API_MAC_CARBON
+      title_changed_p = 1;
+#endif
+    }
 
+  /* Fill menu bar titles and submenus.  Reuse the existing menu bar
+     titles as much as possible to minimize redraw (if !deep_p).  */
+  submenu_id = MIN_SUBMENU_ID;
   for (id = MIN_MENU_ID; wv != NULL; wv = wv->next, id++)
     {
-      MenuHandle menu;
-      Str255 title;
-
       strncpy (title, wv->name, 255);
-      title[255] = 0;
+      title[255] = '\0';
       c2pstr (title);
-      menu = NewMenu (id, title);
+
+      menu = GetMenuHandle (id);
+      if (menu)
+	{
+#if TARGET_API_MAC_CARBON
+	  Str255 old_title;
+
+	  GetMenuTitle (menu, old_title);
+	  if (!EqualString (title, old_title, false, false))
+	    SetMenuTitle (menu, title);
+#else  /* !TARGET_API_MAC_CARBON */
+	  if (!EqualString (title, (*menu)->menuData, false, false))
+	    {
+	      DeleteMenu (id);
+	      DisposeMenu (menu);
+	      menu = NewMenu (id, title);
+	      InsertMenu (menu, GetMenuHandle (id + 1) ? id + 1 : 0);
+	      title_changed_p = 1;
+	    }
+#endif  /* !TARGET_API_MAC_CARBON */
+	}
+      else
+	{
+	  menu = NewMenu (id, title);
+	  InsertMenu (menu, 0);
+#if !TARGET_API_MAC_CARBON
+	  title_changed_p = 1;
+#endif
+	}
 
       if (wv->contents)
-        fill_menu (menu, wv->contents);
+        submenu_id = fill_menu (menu, wv->contents, submenu_id);
+    }
 
-      InsertMenu (menu, 0);
+  if (GetMenuHandle (id))
+    {
+      dispose_menus (id);
+#if !TARGET_API_MAC_CARBON
+      title_changed_p = 1;
+#endif
+    }
+
+#if !TARGET_API_MAC_CARBON
+  if (title_changed_p)
+    InvalMenuBar ();
+#endif
+}
+
+static void
+dispose_menus (id)
+     int id;
+{
+  MenuHandle menu;
+
+  while ((menu = GetMenuHandle (id)) != NULL)
+    {
+      DeleteMenu (id);
+      DisposeMenu (menu);
+      id++;
     }
 }
 

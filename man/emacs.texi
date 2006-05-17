@@ -39,7 +39,7 @@ Software Foundation raise funds for GNU development.''
 @c copy of this manual that will be published.  the manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
 
-@c @smallbook
+@smallbook
 
 @setchapternewpage odd
 @defcodeindex op
@@ -609,7 +609,7 @@ Running Debuggers Under Emacs
                           implement a graphical debugging environment through
                           Emacs.
 
-Maintaining Programs
+Maintaining Large Programs
 
 * Change Log::	        Maintaining a change history for your program.
 * Format of ChangeLog:: What the change log file looks like.
@@ -950,15 +950,12 @@ with GNU Emacs.  The Info file and the printed book contain
 substantially the same text and are generated from the same source
 files, which are also distributed along with GNU Emacs.
 
-  GNU Emacs is a member of the Emacs editor family.  There are many Emacs
-editors, all sharing common principles of organization.  For information on
-the underlying philosophy of Emacs and the lessons learned from its
-development, write for a copy of AI memo 519a, @cite{Emacs, the Extensible,
-Customizable Self-Documenting Display Editor}, is available from
+  GNU Emacs is a member of the Emacs editor family.  There are many
+Emacs editors, all sharing common principles of organization.  For
+information on the underlying philosophy of Emacs and the lessons
+learned from its development, see @cite{Emacs, the Extensible,
+Customizable Self-Documenting Display Editor}, available from
 @url{ftp://publications.ai.mit.edu/ai-publications/pdf/AIM-519A.pdf}.
-Another useful publication is LCS TM-165, @cite{A Cookbook for an
-Emacs}, by Craig Finseth, is available from the MIT libraries in some
-fashion.
 
 This edition of the manual is intended for use with GNU Emacs
 installed on GNU and Unix systems.  GNU Emacs can also be used on VMS,

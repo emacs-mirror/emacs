@@ -1,4 +1,4 @@
-;;; fringe.el --- change fringes appearance in various ways
+;;; fringe.el --- fringe setup and control
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
@@ -25,8 +25,9 @@
 
 ;;; Commentary:
 
-;; This file contains helpful functions for customizing the appearance
-;; of the fringe.
+;; This file contains code to initialize the built-in fringe bitmaps
+;; as well as helpful functions for customizing the appearance of the
+;; fringe.
 
 ;; The code is influenced by scroll-bar.el and avoid.el.  The author
 ;; gratefully acknowledge comments and suggestions made by Miles
@@ -40,32 +41,52 @@
   :version "22.1"
   :group 'frames)
 
-;; Standard fringe bitmaps
+;; Define the built-in fringe bitmaps and setup default mappings
 
-(defmacro fringe-bitmap-p (symbol)
-  "Return non-nil if SYMBOL is a fringe bitmap."
-  `(get ,symbol 'fringe))
-
-(defvar fringe-bitmaps)
-
-(unless (or (not (boundp 'fringe-bitmaps))
-	    (get 'left-truncation 'fringe))
-  (let ((bitmaps '(left-truncation right-truncation
-		   up-arrow down-arrow
-		   continued-line continuation-line
-		   overlay-arrow
+(when (boundp 'fringe-bitmaps)
+  (let ((bitmaps '(question-mark
+		   left-arrow right-arrow up-arrow down-arrow
+		   left-curly-arrow right-curly-arrow
+		   left-triangle right-triangle
 		   top-left-angle top-right-angle
 		   bottom-left-angle bottom-right-angle
 		   left-bracket right-bracket
-		   filled-box-cursor hollow-box-cursor hollow-square
-		   bar-cursor hbar-cursor
+		   filled-rectangle hollow-rectangle
+		   filled-square hollow-square
+		   vertical-bar horizontal-bar
 		   empty-line))
-	(bn 2))
+	(bn 1))
     (while bitmaps
       (push (car bitmaps) fringe-bitmaps)
       (put (car bitmaps) 'fringe bn)
       (setq bitmaps (cdr bitmaps)
-	    bn (1+ bn)))))
+	    bn (1+ bn))))
+
+  (setq-default fringe-indicator-alist
+		'((truncation . (left-arrow right-arrow))
+		  (continuation . (left-curly-arrow right-curly-arrow))
+		  (overlay-arrow . right-triangle)
+		  (up . up-arrow)
+		  (down . down-arrow)
+		  (top . (top-left-angle top-right-angle))
+		  (bottom . (bottom-left-angle bottom-right-angle
+			     top-right-angle top-left-angle))
+		  (top-bottom . (left-bracket right-bracket
+				 top-right-angle top-left-angle))
+		  (empty-line . empty-line)
+		  (unknown . question-mark)))
+
+  (setq-default fringe-cursor-alist
+		'((box . filled-rectangle)
+		  (hollow . hollow-rectangle)
+		  (bar . vertical-bar)
+		  (hbar . horizontal-bar)
+		  (hollow-small . hollow-square))))
+
+
+(defmacro fringe-bitmap-p (symbol)
+  "Return non-nil if SYMBOL is a fringe bitmap."
+  `(get ,symbol 'fringe))
 
 
 ;; Control presence of fringes
@@ -137,7 +158,6 @@ See `fringe-mode' for possible values and their effect."
       ;; Otherwise impose the user-specified value of fringe-mode.
       (custom-initialize-reset symbol value))))
 
-;;;###autoload
 (defcustom fringe-mode nil
   "*Specify appearance of fringes on all frames.
 This variable can be nil (the default) meaning the fringes should have
@@ -195,7 +215,6 @@ frame parameter is used."
 	       nil
 	     0)))))
 
-;;;###autoload
 (defun fringe-mode (&optional mode)
   "Set the default appearance of fringes on all frames.
 
@@ -221,7 +240,6 @@ frame only, see the command `set-fringe-style'."
   (interactive (list (fringe-query-style 'all-frames)))
   (set-fringe-mode mode))
 
-;;;###autoload
 (defun set-fringe-style (&optional mode)
   "Set the default appearance of fringes on the selected frame.
 

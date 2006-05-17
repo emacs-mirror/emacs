@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (C) 1999, 2001, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -35,10 +35,8 @@
 (require 'url-cookie)
 (require 'mail-parse)
 (require 'url-auth)
-(autoload 'url-retrieve-synchronously "url")
-(autoload 'url-retrieve "url")
+(require 'url)
 (autoload 'url-cache-create-filename "url-cache")
-(autoload 'url-mark-buffer-as-dead "url")
 
 (defconst url-http-default-port 80 "Default HTTP port.")
 (defconst url-http-asynchronous-p t "HTTP retrievals are asynchronous.")
@@ -57,15 +55,13 @@ Valid values are 1.1 and 1.0.
 This is only useful when debugging the HTTP subsystem.
 
 Setting this to 1.0 will tell servers not to send chunked encoding,
-and other HTTP/1.1 specific features.
-")
+and other HTTP/1.1 specific features.")
 
 (defvar url-http-attempt-keepalives t
   "Whether to use a single TCP connection multiple times in HTTP.
 This is only useful when debugging the HTTP subsystem.  Setting to
-`nil' will explicitly close the connection to the server after every
-request.
-")
+nil will explicitly close the connection to the server after every
+request.")
 
 ;(eval-when-compile
 ;; These are all macros so that they are hidden from external sight
@@ -119,10 +115,14 @@ request.
 	(url-http-debug "Reusing existing connection: %s:%d" host port)
       (url-http-debug "Contacting host: %s:%d" host port))
     (url-lazy-message "Contacting host: %s:%d" host port)
-    (url-http-mark-connection-as-busy host port
-				      (or found
-					  (url-open-stream host nil host
-							   port)))))
+    (url-http-mark-connection-as-busy
+     host port
+     (or found
+         (let ((buf (generate-new-buffer " *url-http-temp*")))
+           ;; `url-open-stream' needs a buffer in which to do things
+           ;; like authentication.  But we use another buffer afterwards.
+           (unwind-protect (url-open-stream host buf host port)
+             (kill-buffer buf)))))))
 
 ;; Building an HTTP request
 (defun url-http-user-agent-string ()
@@ -346,7 +346,7 @@ This allows us to use `mail-fetch-field', etc."
 
 (defun url-http-handle-cookies ()
   "Handle all set-cookie / set-cookie2 headers in an HTTP response.
-The buffer must already be narrowed to the headers, so mail-fetch-field will
+The buffer must already be narrowed to the headers, so `mail-fetch-field' will
 work correctly."
   (let ((cookies (mail-fetch-field "Set-Cookie" nil nil t))
 	(cookies2 (mail-fetch-field "Set-Cookie2" nil nil t))
@@ -509,10 +509,17 @@ should be shown to the user."
            (let ((url-request-method url-http-method)
 		 (url-request-data url-http-data)
 		 (url-request-extra-headers url-http-extra-headers))
-	     (url-retrieve redirect-uri url-callback-function
-			   (cons :redirect
-				 (cons redirect-uri
-				       url-callback-arguments)))
+             ;; Put in the current buffer a forwarding pointer to the new
+             ;; destination buffer.
+             ;; FIXME: This is a hack to fix url-retrieve-synchronously
+             ;; without changing the API.  Instead url-retrieve should
+             ;; either simply not return the "destination" buffer, or it
+             ;; should take an optional `dest-buf' argument.
+             (set (make-local-variable 'url-redirect-buffer)
+                  (url-retrieve redirect-uri url-callback-function
+                                (cons :redirect
+                                      (cons redirect-uri
+                                            url-callback-arguments))))
 	     (url-mark-buffer-as-dead (current-buffer))))))
       (4				; Client error
        ;; 400 Bad Request
@@ -1156,7 +1163,7 @@ CBARGS as the arguments."
 
 ;;;###autoload
 (defun url-http-options (url)
-  "Returns a property list describing options available for URL.
+  "Return a property list describing options available for URL.
 This list is retrieved using the `OPTIONS' HTTP method.
 
 Property list members:
@@ -1179,8 +1186,7 @@ p3p
   The `Platform For Privacy Protection' description for the resource.
   Currently this is just the raw header contents.  This is likely to
   change once P3P is formally supported by the URL package or
-  Emacs/W3.
-"
+  Emacs/W3."
   (let* ((url-request-method "OPTIONS")
 	 (url-request-data nil)
 	 (buffer (url-retrieve-synchronously url))

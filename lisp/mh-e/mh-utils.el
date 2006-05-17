@@ -111,18 +111,8 @@ already there.
 See also variable `mh-image-load-path-called-flag'."
   (unless mh-image-load-path-called-flag
     (cond
-     (mh-image-load-path)            ; user setting exists; we're done
-     ((mh-image-search-load-path "mh-logo.xpm")
-      ;; Images already in image-load-path.
-      (setq mh-image-load-path
-	    (file-name-directory (mh-image-search-load-path "mh-logo.xpm"))))
-     ((locate-library "mh-logo.xpm")
-      ;; Images already in load-path.
-      (setq mh-image-load-path
-	    (file-name-directory (locate-library "mh-logo.xpm"))))
-     (t
-      ;; Guess `mh-image-load-path' if it wasn't provided by the user.
-      (let (mh-library-name)
+     (mh-image-load-path)               ; user setting exists
+     ((let (mh-library-name)            ; try relative setting
         ;; First, find mh-e in the load-path.
         (setq mh-library-name (locate-library "mh-e"))
         (if (not mh-library-name)
@@ -131,7 +121,17 @@ See also variable `mh-image-load-path-called-flag'."
         (setq mh-image-load-path
               (expand-file-name (concat
                                  (file-name-directory mh-library-name)
-                                 "../../etc/images"))))))
+                                 "../../etc/images")))
+        (file-exists-p (expand-file-name "mh-logo.xpm" mh-image-load-path))))
+     ((mh-image-search-load-path "mh-logo.xpm")
+      ;; Images in image-load-path.
+      (setq mh-image-load-path
+	    (file-name-directory (mh-image-search-load-path "mh-logo.xpm"))))
+     ((locate-library "mh-logo.xpm")
+      ;; Images in load-path.
+      (setq mh-image-load-path
+	    (file-name-directory (locate-library "mh-logo.xpm")))))
+
     (if (not (file-exists-p mh-image-load-path))
         (error "Directory %s in mh-image-load-path does not exist"
                mh-image-load-path))

@@ -114,6 +114,13 @@ Emacs."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Retrieval functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar url-redirect-buffer nil
+  "New buffer into which the retrieval will take place.
+Sometimes while retrieving a URL, the URL library needs to use another buffer
+than the one returned initially by `url-retrieve'.  In this case, it sets this
+variable in the original buffer as a forwarding pointer.")
+
 ;;;###autoload
 (defun url-retrieve (url callback &optional cbargs)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
@@ -189,18 +196,22 @@ no further processing).  URL is either a string or a parsed URL."
 	  (url-debug 'retrieval
 		     "Spinning in url-retrieve-synchronously: %S (%S)"
 		     retrieval-done asynch-buffer)
-	  (if (and proc (memq (process-status proc)
-                              '(closed exit signal failed))
-                   ;; Make sure another process hasn't been started, as can
-                   ;; happen with http redirections.
-		   (eq proc (or (get-buffer-process asynch-buffer) proc)))
-	      ;; FIXME: It's not clear whether url-retrieve's callback is
-	      ;; guaranteed to be called or not.  It seems that url-http
-	      ;; decides sometimes consciously not to call it, so it's not
-	      ;; clear that it's a bug, but even then we need to decide how
-	      ;; url-http can then warn us that the download has completed.
-              ;; In the mean time, we use this here workaround.
-              (setq retrieval-done t)
+          (if (buffer-local-value 'url-redirect-buffer asynch-buffer)
+              (setq proc (get-buffer-process
+                          (setq asynch-buffer
+                                (buffer-local-value 'url-redirect-buffer
+                                                    asynch-buffer))))
+            (if (and proc (memq (process-status proc)
+                                '(closed exit signal failed))
+                     ;; Make sure another process hasn't been started.
+                     (eq proc (or (get-buffer-process asynch-buffer) proc)))
+                ;; FIXME: It's not clear whether url-retrieve's callback is
+                ;; guaranteed to be called or not.  It seems that url-http
+                ;; decides sometimes consciously not to call it, so it's not
+                ;; clear that it's a bug, but even then we need to decide how
+                ;; url-http can then warn us that the download has completed.
+                ;; In the mean time, we use this here workaround.
+                (setq retrieval-done t))
             ;; We used to use `sit-for' here, but in some cases it wouldn't
             ;; work because apparently pending keyboard input would always
             ;; interrupt it before it got a chance to handle process input.

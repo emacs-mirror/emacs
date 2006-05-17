@@ -171,6 +171,7 @@
 
 (if (fboundp 'x-create-frame)
     (progn
+      (load "fringe")
       (load "image")
       (load "international/fontset")
       (load "dnd")

@@ -1870,24 +1870,32 @@ behavior in older versions of Emacs).
 
 *** Topic cryptography added, enabling easy gpg topic encryption and
 decryption.  Per-topic basis enables interspersing encrypted-text and
-clear-text within a single file to your hearts content, using symmetric
+clear-text within a single file to your heart's content, using symmetric
 and/or public key modes.  Time-limited key caching, user-provided
 symmetric key hinting and consistency verification, auto-encryption of
 pending topics on save, and more, make it easy to use encryption in
 powerful ways.
 
-*** many substantial fixes and refinements, including:
+*** Default command prefix changed to "\C-c " (control-c space), to avoid
+intruding on user's keybinding space.  Customize the
+`allout-command-prefix' variable to your preference.
+
+*** Allout now uses text overlay's `invisible' property (and others) for
+concealed text, instead of selective-display.  This simplifies the code, in
+particularly avoiding the need for kludges for isearch dynamic-display,
+discretionary handling of edits of concealed text, undo concerns, etc.
+
+*** Many substantial fixes and refinements, including:
 
    - repaired inhibition of inadvertent edits to concealed text
    - repaired retention of topic body hanging indent upon topic depth shifts
-   - prevent "containment discontinuities" where a topic is shifted deeper
-     than the offspring-depth of its container
-   - easy to adopt the distinctive bullet of a topic in a topic created
-     relative to it, or select a new one, or use the common topic bullet
-   - plain bullets, by default, now alternate between only two characters
-     ('.' and ','), yielding less cluttered outlines
-   - many internal fixes
-   - version number incremented to 2.1
+   - refuse to create "containment discontinuities", where a
+     topic is shifted deeper than the offspring-depth of its' container
+   - bulleting variation is simpler and more accommodating, both in the
+     default behavior and in ability to vary when creating new topics
+   - many internal fixes and refinements
+   - many module and function docstring clarifications
+   - version number incremented to 2.2
 
 ** The variable `woman-topic-at-point' was renamed
 to `woman-use-topic-at-point' and behaves differently: if this
@@ -2999,7 +3007,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 7.91. There have been major changes since
+Upgraded to MH-E version 7.92. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:
@@ -4595,6 +4603,13 @@ or bottom edge of a window.  It does not move other window edges.
 
 +++
 ** Customizable fringe bitmaps
+
+*** New buffer-local variables `fringe-indicator-alist' and
+`fringe-cursor-alist' maps between logical (internal) fringe indicator
+and cursor symbols and the actual fringe bitmaps to be displayed.
+This decouples the logical meaning of the fringe indicators from the
+physical appearence, as well as allowing different fringe bitmaps to
+be used in different windows showing different buffers.
 
 *** New function `define-fringe-bitmap' can now be used to create new
 fringe bitmaps, as well as change the built-in fringe bitmaps.

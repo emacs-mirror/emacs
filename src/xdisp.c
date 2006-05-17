@@ -9052,14 +9052,15 @@ update_menu_bar (f, save_match_data)
 	  /* Redisplay the menu bar in case we changed it.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
     || defined (USE_GTK)
-	  if (FRAME_WINDOW_P (f)
-#if defined (MAC_OS)
-              /* All frames on Mac OS share the same menubar.  So only the
-                 selected frame should be allowed to set it.  */
-              && f == SELECTED_FRAME ()
+	  if (FRAME_WINDOW_P (f))
+	    {
+#ifdef MAC_OS
+              /* All frames on Mac OS share the same menubar.  So only
+                 the selected frame should be allowed to set it.  */
+              if (f == SELECTED_FRAME ())
 #endif
-	     )
-	    set_frame_menubar (f, 0, 0);
+		set_frame_menubar (f, 0, 0);
+	    }
 	  else
 	    /* On a terminal screen, the menu bar is an ordinary screen
 	       line, and this makes it get updated.  */
@@ -16477,8 +16478,11 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		    {
 		      int bytepos = last_offset;
 		      int charpos = string_byte_to_char (elt, bytepos);
+
+		      if (precision <= 0)
+			nchars = string_byte_to_char (elt, offset) - charpos;
 		      n += display_string (NULL, elt, Qnil, 0, charpos,
-					   it, 0, prec, 0,
+					   it, 0, nchars, 0,
 					   STRING_MULTIBYTE (elt));
 		    }
 		    break;
@@ -17727,7 +17731,7 @@ display_count_lines (start, start_byte, limit_byte, count, byte_pos_ptr)
    display them, and < 0 means obey the current buffer's value of
    enable_multibyte_characters.
 
-   Value is the number of glyphs produced.  */
+   Value is the number of columns displayed.  */
 
 static int
 display_string (string, lisp_string, face_string, face_string_pos,

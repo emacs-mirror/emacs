@@ -49,31 +49,45 @@ Lisp_Object Voverflow_newline_into_fringe;
 
 Lisp_Object Vfringe_bitmaps;
 
-enum fringe_bitmap_type
-{
-  NO_FRINGE_BITMAP = 0,
-  UNDEF_FRINGE_BITMAP,
-  LEFT_TRUNCATION_BITMAP,
-  RIGHT_TRUNCATION_BITMAP,
-  UP_ARROW_BITMAP,
-  DOWN_ARROW_BITMAP,
-  CONTINUED_LINE_BITMAP,
-  CONTINUATION_LINE_BITMAP,
-  OVERLAY_ARROW_BITMAP,
-  TOP_LEFT_ANGLE_BITMAP,
-  TOP_RIGHT_ANGLE_BITMAP,
-  BOTTOM_LEFT_ANGLE_BITMAP,
-  BOTTOM_RIGHT_ANGLE_BITMAP,
-  LEFT_BRACKET_BITMAP,
-  RIGHT_BRACKET_BITMAP,
-  FILLED_BOX_CURSOR_BITMAP,
-  HOLLOW_BOX_CURSOR_BITMAP,
-  HOLLOW_SQUARE_BITMAP,
-  BAR_CURSOR_BITMAP,
-  HBAR_CURSOR_BITMAP,
-  ZV_LINE_BITMAP,
-  MAX_STANDARD_FRINGE_BITMAPS
-};
+/* Fringe bitmaps are represented in three different ways:
+
+   Logical bitmaps are used internally to denote things like
+   'end-of-buffer', 'left-truncation', 'overlay-arrow', etc.
+
+   Physical bitmaps specify the visual appearence of the bitmap,
+   e.g. 'bottom-left-angle', 'left-arrow', 'left-triangle', etc.
+   User defined bitmaps are physical bitmaps.
+
+   Internally, fringe bitmaps for a specific display row are
+   represented as a simple integer that is used as an index
+   into the table of all defined bitmaps.  This index is stored
+   in the `fringe' property of the physical bitmap symbol.
+
+   Logical bitmaps are mapped to physical bitmaps through the
+   buffer-local `fringe-indicator-alist' variable.
+
+   Each element of this alist is a cons (LOGICAL . PHYSICAL)
+   mapping a logical bitmap to a physical bitmap.
+   PHYSICAL is either a symbol to use in both left and right fringe,
+   or a cons of two symbols (LEFT . RIGHT) denoting different
+   bitmaps to use in left and right fringe.
+
+   LOGICAL is first looked up in the window's buffer's buffer-local
+   value of the fringe-indicator-alist variable, and if not present,
+   in the global value of fringe-indicator-alist.
+
+   If LOGICAL is not present in either alist, or the PHYSICAL value
+   found is nil, no bitmap is shown for the logical bitmap.
+
+   The `left-fringe' and `right-fringe' display properties
+   must specify physical bitmap symbols.
+*/
+
+extern Lisp_Object Qunknown;
+Lisp_Object Qtruncation, Qcontinuation, Qoverlay_arrow;
+Lisp_Object Qempty_line, Qtop_bottom;
+extern Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
+Lisp_Object Qhollow_small;
 
 enum fringe_bitmap_align
 {
@@ -110,7 +124,7 @@ struct fringe_bitmap
   ...xx...
   ...xx...
 */
-static unsigned short unknown_bits[] = {
+static unsigned short question_mark_bits[] = {
   0x3c, 0x7e, 0x7e, 0x0c, 0x18, 0x18, 0x00, 0x18, 0x18};
 
 /* An arrow like this: `<-'.  */
@@ -172,20 +186,6 @@ static unsigned short up_arrow_bits[] = {
 static unsigned short down_arrow_bits[] = {
    0x18, 0x18, 0x18, 0x18, 0xff, 0x7e, 0x3c, 0x18};
 
-/* Marker for continued lines.  */
-/*
-  ..xxxx..
-  ..xxxxx.
-  ......xx
-  ..x..xxx
-  ..xxxxxx
-  ..xxxxx.
-  ..xxxx..
-  ..xxxxx.
-*/
-static unsigned short continued_bits[] = {
-   0x3c, 0x3e, 0x03, 0x27, 0x3f, 0x3e, 0x3c, 0x3e};
-
 /* Marker for continuation lines.  */
 /*
   ..xxxx..
@@ -197,8 +197,36 @@ static unsigned short continued_bits[] = {
   ..xxxx..
   .xxxxx..
 */
-static unsigned short continuation_bits[] = {
+static unsigned short left_curly_arrow_bits[] = {
    0x3c, 0x7c, 0xc0, 0xe4, 0xfc, 0x7c, 0x3c, 0x7c};
+
+/* Marker for continued lines.  */
+/*
+  ..xxxx..
+  ..xxxxx.
+  ......xx
+  ..x..xxx
+  ..xxxxxx
+  ..xxxxx.
+  ..xxxx..
+  ..xxxxx.
+*/
+static unsigned short right_curly_arrow_bits[] = {
+   0x3c, 0x3e, 0x03, 0x27, 0x3f, 0x3e, 0x3c, 0x3e};
+
+/* Reverse Overlay arrow bitmap.  A triangular arrow.  */
+/*
+  ......xx
+  ....xxxx
+  ...xxxxx
+  ..xxxxxx
+  ..xxxxxx
+  ...xxxxx
+  ....xxxx
+  ......xx
+*/
+static unsigned short left_triangle_bits[] = {
+   0x03, 0x0f, 0x1f, 0x3f, 0x3f, 0x1f, 0x0f, 0x03};
 
 /* Overlay arrow bitmap.  A triangular arrow.  */
 /*
@@ -211,24 +239,8 @@ static unsigned short continuation_bits[] = {
   xxxx....
   xx......
 */
-static unsigned short ov_bits[] = {
+static unsigned short right_triangle_bits[] = {
    0xc0, 0xf0, 0xf8, 0xfc, 0xfc, 0xf8, 0xf0, 0xc0};
-
-#if 0
-/* Reverse Overlay arrow bitmap.  A triangular arrow.  */
-/*
-  ......xx
-  ....xxxx
-  ...xxxxx
-  ..xxxxxx
-  ..xxxxxx
-  ...xxxxx
-  ....xxxx
-  ......xx
-*/
-static unsigned short rev_ov_bits[] = {
-   0x03, 0x0f, 0x1f, 0x3f, 0x3f, 0x1f, 0x0f, 0x03};
-#endif
 
 /* First line bitmap.  An top-left angle.  */
 /*
@@ -334,7 +346,7 @@ static unsigned short right_bracket_bits[] = {
   xxxxxxx.
   xxxxxxx.
 */
-static unsigned short filled_box_cursor_bits[] = {
+static unsigned short filled_rectangle_bits[] = {
    0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe};
 
 /* Hollow box cursor bitmap.  A hollow box; max 13 pixels high.  */
@@ -353,8 +365,32 @@ static unsigned short filled_box_cursor_bits[] = {
   x.....x.
   xxxxxxx.
 */
-static unsigned short hollow_box_cursor_bits[] = {
+static unsigned short hollow_rectangle_bits[] = {
    0xfe, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0xfe};
+
+/* Hollow square bitmap.  */
+/*
+  .xxxxxx.
+  .x....x.
+  .x....x.
+  .x....x.
+  .x....x.
+  .xxxxxx.
+*/
+static unsigned short hollow_square_bits[] = {
+   0x7e, 0x42, 0x42, 0x42, 0x42, 0x7e};
+
+/* Filled square bitmap.  */
+/*
+  .xxxxxx.
+  .xxxxxx.
+  .xxxxxx.
+  .xxxxxx.
+  .xxxxxx.
+  .xxxxxx.
+*/
+static unsigned short filled_square_bits[] = {
+   0x7e, 0x7e, 0x7e, 0x7e, 0x7e, 0x7e};
 
 /* Bar cursor bitmap.  A vertical bar; max 13 pixels high.  */
 /*
@@ -372,15 +408,15 @@ static unsigned short hollow_box_cursor_bits[] = {
   xx......
   xx......
 */
-static unsigned short bar_cursor_bits[] = {
+static unsigned short vertical_bar_bits[] = {
    0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0};
 
-/* HBar cursor bitmap.  A horisontal bar; 2 pixels high.  */
+/* HBar cursor bitmap.  A horizontal bar; 2 pixels high.  */
 /*
   xxxxxxx.
   xxxxxxx.
 */
-static unsigned short hbar_cursor_bits[] = {
+static unsigned short horizontal_bar_bits[] = {
   0xfe, 0xfe};
 
 
@@ -394,7 +430,7 @@ static unsigned short hbar_cursor_bits[] = {
   ..xxxx..
   ........
 */
-static unsigned short zv_bits[] = {
+static unsigned short empty_line_bits[] = {
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
@@ -404,47 +440,44 @@ static unsigned short zv_bits[] = {
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00};
 
-/* Hollow square bitmap.  */
-/*
-  .xxxxxx.
-  .x....x.
-  .x....x.
-  .x....x.
-  .x....x.
-  .xxxxxx.
-*/
-static unsigned short hollow_square_bits[] = {
-   0x7e, 0x42, 0x42, 0x42, 0x42, 0x7e};
-
 
 #define BYTES_PER_BITMAP_ROW  (sizeof (unsigned short))
 #define STANDARD_BITMAP_HEIGHT(bits) (sizeof (bits)/BYTES_PER_BITMAP_ROW)
 #define FRBITS(bits)  bits, STANDARD_BITMAP_HEIGHT (bits)
 
-struct fringe_bitmap standard_bitmaps[MAX_STANDARD_FRINGE_BITMAPS] =
+/* NOTE:  The order of these bitmaps must match the sequence
+   used in fringe.el to define the corresponding symbols.  */
+
+struct fringe_bitmap standard_bitmaps[] =
 {
   { NULL, 0, 0, 0, 0, 0 }, /* NO_FRINGE_BITMAP */
-  { FRBITS (unknown_bits),            8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (question_mark_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (left_arrow_bits),         8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (right_arrow_bits),        8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (up_arrow_bits),           8, 0, ALIGN_BITMAP_TOP,    0 },
   { FRBITS (down_arrow_bits),         8, 0, ALIGN_BITMAP_BOTTOM, 0 },
-  { FRBITS (continued_bits),          8, 0, ALIGN_BITMAP_CENTER, 0 },
-  { FRBITS (continuation_bits),       8, 0, ALIGN_BITMAP_CENTER, 0 },
-  { FRBITS (ov_bits),                 8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (left_curly_arrow_bits),   8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (right_curly_arrow_bits),  8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (left_triangle_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (right_triangle_bits),     8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (top_left_angle_bits),     8, 0, ALIGN_BITMAP_TOP,    0 },
   { FRBITS (top_right_angle_bits),    8, 0, ALIGN_BITMAP_TOP,    0 },
   { FRBITS (bottom_left_angle_bits),  8, 0, ALIGN_BITMAP_BOTTOM, 0 },
   { FRBITS (bottom_right_angle_bits), 8, 0, ALIGN_BITMAP_BOTTOM, 0 },
   { FRBITS (left_bracket_bits),       8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (right_bracket_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
-  { FRBITS (filled_box_cursor_bits),  8, 0, ALIGN_BITMAP_CENTER, 0 },
-  { FRBITS (hollow_box_cursor_bits),  8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (filled_rectangle_bits),   8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (hollow_rectangle_bits),   8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (filled_square_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
   { FRBITS (hollow_square_bits),      8, 0, ALIGN_BITMAP_CENTER, 0 },
-  { FRBITS (bar_cursor_bits),         8, 0, ALIGN_BITMAP_CENTER, 0 },
-  { FRBITS (hbar_cursor_bits),        8, 0, ALIGN_BITMAP_BOTTOM, 0 },
-  { FRBITS (zv_bits),                 8, 3, ALIGN_BITMAP_TOP,    0 },
+  { FRBITS (vertical_bar_bits),       8, 0, ALIGN_BITMAP_CENTER, 0 },
+  { FRBITS (horizontal_bar_bits),     8, 0, ALIGN_BITMAP_BOTTOM, 0 },
+  { FRBITS (empty_line_bits),         8, 3, ALIGN_BITMAP_TOP,    0 },
 };
+
+#define NO_FRINGE_BITMAP 0
+#define UNDEF_FRINGE_BITMAP 1
+#define MAX_STANDARD_FRINGE_BITMAPS (sizeof(standard_bitmaps)/sizeof(standard_bitmaps[0]))
 
 static struct fringe_bitmap **fringe_bitmaps;
 static Lisp_Object *fringe_faces;
@@ -516,12 +549,12 @@ get_fringe_bitmap_name (bn)
    LEFT_P is 1 for left fringe, 0 for right fringe.
 */
 
-void
+static void
 draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
      struct window *w;
      struct glyph_row *row;
      int left_p, overlay;
-     enum fringe_bitmap_type which;
+     int which;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct draw_fringe_bitmap_params p;
@@ -656,6 +689,134 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
   rif->draw_fringe_bitmap (w, row, &p);
 }
 
+static int
+get_logical_cursor_bitmap (w, cursor)
+     struct window *w;
+     Lisp_Object cursor;
+{
+  Lisp_Object cmap, bm = Qnil;
+
+  if ((cmap = XBUFFER (w->buffer)->fringe_cursor_alist), !NILP (cmap))
+    {
+      bm = Fassq (cursor, cmap);
+      if (CONSP (bm))
+	{
+	  if ((bm = XCDR (bm)), NILP (bm))
+	    return NO_FRINGE_BITMAP;
+	  return lookup_fringe_bitmap (bm);
+	}
+    }
+  if (EQ (cmap, buffer_defaults.fringe_cursor_alist))
+    return NO_FRINGE_BITMAP;
+  bm = Fassq (cursor, buffer_defaults.fringe_cursor_alist);
+  if (!CONSP (bm) || ((bm = XCDR (bm)), NILP (bm)))
+    return NO_FRINGE_BITMAP;
+  return lookup_fringe_bitmap (bm);
+}
+
+static int
+get_logical_fringe_bitmap (w, bitmap, right_p, partial_p)
+     struct window *w;
+     Lisp_Object bitmap;
+     int right_p, partial_p;
+{
+  Lisp_Object cmap, bm1 = Qnil, bm2 = Qnil, bm;
+  int ln1 = 0, ln2 = 0;
+  int ix1 = right_p;
+  int ix2 = ix1 + (partial_p ? 2 : 0);
+
+  /* Lookup in buffer-local fringe-indicator-alist before global alist.
+
+     Elements are:
+	BITMAP		-- use for all
+	(L R)		-- use for left right (whether partial or not)
+	(L R PL PR)	-- use for left rigth partial-left partial-right
+	If any value in local binding is not present or t, use global value.
+
+     If partial, lookup partial bitmap in default value if not found here.
+     If not partial, or no partial spec is present, use non-partial bitmap.  */
+
+  if ((cmap = XBUFFER (w->buffer)->fringe_indicator_alist), !NILP (cmap))
+    {
+      bm1 = Fassq (bitmap, cmap);
+      if (CONSP (bm1))
+	{
+	  if ((bm1 = XCDR (bm1)), NILP (bm1))
+	    return NO_FRINGE_BITMAP;
+	  if (CONSP (bm1))
+	    {
+	      ln1 = XINT (Flength (bm1));
+	      if (partial_p)
+		{
+		  if (ln1 > ix2)
+		    {
+		      bm = Fnth (make_number (ix2), bm1);
+		      if (!EQ (bm, Qt))
+			goto found;
+		    }
+		}
+	      else
+		{
+		  if (ln1 > ix1)
+		    {
+		      bm = Fnth (make_number (ix1), bm1);
+		      if (!EQ (bm, Qt))
+			goto found;
+		    }
+		}
+	    }
+	  else if ((bm = bm1, !EQ (bm, Qt)))
+	    goto found;
+	}
+    }
+
+  if (!EQ (cmap, buffer_defaults.fringe_indicator_alist)
+      && !NILP (buffer_defaults.fringe_indicator_alist))
+    {
+      bm2 = Fassq (bitmap, buffer_defaults.fringe_indicator_alist);
+      if (CONSP (bm2))
+	{
+	  if ((bm2 = XCDR (bm2)), !NILP (bm2))
+	    {
+	      if (CONSP (bm2))
+		{
+		  ln2 = XINT (Flength (bm2));
+		  if (partial_p)
+		    {
+		      if (ln2 > ix2)
+			{
+			  bm = Fnth (make_number (ix2), bm2);
+			  if (!EQ (bm, Qt))
+			    goto found;
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+  if (ln1 > ix1)
+    {
+      bm = Fnth (make_number (ix1), bm1);
+      if (!EQ (bm, Qt))
+	goto found;
+    }
+
+  if (ln2 > ix1)
+    {
+      bm = Fnth (make_number (ix1), bm2);
+      if (!EQ (bm, Qt))
+	goto found;
+      return NO_FRINGE_BITMAP;
+    }
+  else if ((bm = bm2, NILP (bm)))
+    return NO_FRINGE_BITMAP;
+
+ found:
+  return lookup_fringe_bitmap (bm);
+}
+
+
 void
 draw_fringe_bitmap (w, row, left_p)
      struct window *w;
@@ -666,24 +827,24 @@ draw_fringe_bitmap (w, row, left_p)
 
   if (!left_p && row->cursor_in_fringe_p)
     {
-      int cursor = NO_FRINGE_BITMAP;
+      Lisp_Object cursor = Qnil;
 
       switch (w->phys_cursor_type)
 	{
 	case HOLLOW_BOX_CURSOR:
-	  if (row->visible_height >= STANDARD_BITMAP_HEIGHT (hollow_box_cursor_bits))
-	    cursor = HOLLOW_BOX_CURSOR_BITMAP;
+	  if (row->visible_height >= STANDARD_BITMAP_HEIGHT (hollow_rectangle_bits))
+	    cursor = Qhollow;
 	  else
-	    cursor = HOLLOW_SQUARE_BITMAP;
+	    cursor = Qhollow_small;
 	  break;
 	case FILLED_BOX_CURSOR:
-	  cursor = FILLED_BOX_CURSOR_BITMAP;
+	  cursor = Qbox;
 	  break;
 	case BAR_CURSOR:
-	  cursor = BAR_CURSOR_BITMAP;
+	  cursor = Qbar;
 	  break;
 	case HBAR_CURSOR:
-	  cursor = HBAR_CURSOR_BITMAP;
+	  cursor = Qhbar;
 	  break;
 	case NO_CURSOR:
 	default:
@@ -691,10 +852,14 @@ draw_fringe_bitmap (w, row, left_p)
 	  row->cursor_in_fringe_p = 0;
 	  break;
 	}
-      if (cursor != NO_FRINGE_BITMAP)
+      if (!NILP (cursor))
 	{
-	  draw_fringe_bitmap_1 (w, row, 0, 2, cursor);
-	  overlay = cursor == FILLED_BOX_CURSOR_BITMAP ? 3 : 1;
+	  int bm = get_logical_cursor_bitmap (w, cursor);
+	  if (bm != NO_FRINGE_BITMAP)
+	    {
+	      draw_fringe_bitmap_1 (w, row, 0, 2, bm);
+	      overlay = EQ (cursor, Qbox) ? 3 : 1;
+	    }
 	}
     }
 
@@ -703,7 +868,7 @@ draw_fringe_bitmap (w, row, left_p)
   if (left_p && row->overlay_arrow_bitmap != NO_FRINGE_BITMAP)
     draw_fringe_bitmap_1 (w, row, 1, 1,
 			  (row->overlay_arrow_bitmap < 0
-			   ? OVERLAY_ARROW_BITMAP
+			   ? get_logical_fringe_bitmap (w, Qoverlay_arrow, 0, 0)
 			   : row->overlay_arrow_bitmap));
 }
 
@@ -795,6 +960,8 @@ update_window_fringes (w, keep_current_p)
   Lisp_Object arrow_top = Qnil, arrow_bot = Qnil;
   Lisp_Object empty_pos;
   Lisp_Object ind = Qnil;
+#define MAX_BITMAP_CACHE (8*4)
+  int bitmap_cache[MAX_BITMAP_CACHE];
 
   if (w->pseudo_window_p)
     return 0;
@@ -880,11 +1047,27 @@ update_window_fringes (w, keep_current_p)
   if (!NILP (empty_pos) && !EQ (empty_pos, Qright))
     empty_pos = WINDOW_LEFT_FRINGE_WIDTH (w) == 0 ? Qright : Qleft;
 
+  for (y = 0; y < MAX_BITMAP_CACHE; y++)
+    bitmap_cache[y] = -1;
+
+#define LEFT_FRINGE(cache, which, partial_p)			\
+  (bitmap_cache[cache*4+partial_p] >= 0				\
+   ? bitmap_cache[cache*4+partial_p]				\
+   : (bitmap_cache[cache*4+partial_p] =				\
+      get_logical_fringe_bitmap (w, which, 0, partial_p)))
+
+#define RIGHT_FRINGE(cache, which, partial_p)			\
+  (bitmap_cache[cache*4+2+partial_p] >= 0			\
+   ? bitmap_cache[cache*4+2+partial_p]				\
+   : (bitmap_cache[cache*4+2+partial_p] =			\
+      get_logical_fringe_bitmap (w, which, 1, partial_p)))
+
+
   for (y = 0, rn = 0;
        y < yb && rn < nrows;
        y += row->height, rn++)
     {
-      enum fringe_bitmap_type left, right;
+      int left, right;
       unsigned left_face_id, right_face_id;
 
       row = w->desired_matrix->rows + rn;
@@ -903,23 +1086,21 @@ update_window_fringes (w, keep_current_p)
 	  left_face_id = row->left_user_fringe_face_id;
 	}
       else if (row->truncated_on_left_p)
-	left = LEFT_TRUNCATION_BITMAP;
+	left = LEFT_FRINGE(0, Qtruncation, 0);
       else if (row->indicate_bob_p && EQ (boundary_top, Qleft))
 	left = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
-		? (row->ends_at_zv_p
-		   ? TOP_RIGHT_ANGLE_BITMAP : LEFT_BRACKET_BITMAP)
-		: TOP_LEFT_ANGLE_BITMAP);
+		? LEFT_FRINGE (1, Qtop_bottom, row->ends_at_zv_p)
+		: LEFT_FRINGE (2, Qtop, 0));
       else if (row->indicate_eob_p && EQ (boundary_bot, Qleft))
-	left = (row->ends_at_zv_p
-		? TOP_RIGHT_ANGLE_BITMAP : BOTTOM_LEFT_ANGLE_BITMAP);
+	left = LEFT_FRINGE (3, Qbottom, row->ends_at_zv_p);
       else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
-	left = CONTINUATION_LINE_BITMAP;
+	left = LEFT_FRINGE (4, Qcontinuation, 0);
       else if (row->indicate_empty_line_p && EQ (empty_pos, Qleft))
-	left = ZV_LINE_BITMAP;
+	left = LEFT_FRINGE (5, Qempty_line, 0);
       else if (row->indicate_top_line_p && EQ (arrow_top, Qleft))
-	left = UP_ARROW_BITMAP;
+	left = LEFT_FRINGE (6, Qup, 0);
       else if (row->indicate_bottom_line_p && EQ (arrow_bot, Qleft))
-	left = DOWN_ARROW_BITMAP;
+	left = LEFT_FRINGE (7, Qdown, 0);
       else
 	left = NO_FRINGE_BITMAP;
 
@@ -932,23 +1113,21 @@ update_window_fringes (w, keep_current_p)
 	  right_face_id = row->right_user_fringe_face_id;
 	}
       else if (row->truncated_on_right_p)
-	right = RIGHT_TRUNCATION_BITMAP;
+	right = RIGHT_FRINGE (0, Qtruncation, 0);
       else if (row->indicate_bob_p && EQ (boundary_top, Qright))
 	right = ((row->indicate_eob_p && EQ (boundary_bot, Qright))
-		 ? (row->ends_at_zv_p
-		    ? TOP_LEFT_ANGLE_BITMAP : RIGHT_BRACKET_BITMAP)
-		 : TOP_RIGHT_ANGLE_BITMAP);
+		 ? RIGHT_FRINGE (1, Qtop_bottom, row->ends_at_zv_p)
+		 : RIGHT_FRINGE (2, Qtop, 0));
       else if (row->indicate_eob_p && EQ (boundary_bot, Qright))
-	right = (row->ends_at_zv_p
-		 ? TOP_LEFT_ANGLE_BITMAP : BOTTOM_RIGHT_ANGLE_BITMAP);
+	right = RIGHT_FRINGE (3, Qbottom, row->ends_at_zv_p);
       else if (row->continued_p)
-	right = CONTINUED_LINE_BITMAP;
+	right = RIGHT_FRINGE (4, Qcontinuation, 0);
       else if (row->indicate_top_line_p && EQ (arrow_top, Qright))
-	right = UP_ARROW_BITMAP;
+	right = RIGHT_FRINGE (6, Qup, 0);
       else if (row->indicate_bottom_line_p && EQ (arrow_bot, Qright))
-	right = DOWN_ARROW_BITMAP;
+	right = RIGHT_FRINGE (7, Qdown, 0);
       else if (row->indicate_empty_line_p && EQ (empty_pos, Qright))
-	right = ZV_LINE_BITMAP;
+	right = RIGHT_FRINGE (5, Qempty_line, 0);
       else
 	right = NO_FRINGE_BITMAP;
 
@@ -1150,7 +1329,7 @@ If BITMAP overrides a standard fringe bitmap, the original bitmap is restored.  
 
 void
 init_fringe_bitmap (which, fb, once_p)
-     enum fringe_bitmap_type which;
+     int which;
      struct fringe_bitmap *fb;
      int once_p;
 {
@@ -1436,6 +1615,19 @@ Return nil if POS is not visible in WINDOW.  */)
 void
 syms_of_fringe ()
 {
+  Qtruncation = intern ("truncation");
+  staticpro (&Qtruncation);
+  Qcontinuation = intern ("continuation");
+  staticpro (&Qcontinuation);
+  Qoverlay_arrow = intern ("overlay-arrow");
+  staticpro (&Qoverlay_arrow);
+  Qempty_line = intern ("empty-line");
+  staticpro (&Qempty_line);
+  Qtop_bottom = intern ("top-bottom");
+  staticpro (&Qtop_bottom);
+  Qhollow_small = intern ("hollow-small");
+  staticpro (&Qhollow_small);
+
   defsubr (&Sdestroy_fringe_bitmap);
   defsubr (&Sdefine_fringe_bitmap);
   defsubr (&Sfringe_bitmaps_at_pos);
@@ -1451,8 +1643,7 @@ If nil, also continue lines which are exactly as wide as the window.  */);
   Voverflow_newline_into_fringe = Qt;
 
   DEFVAR_LISP ("fringe-bitmaps", &Vfringe_bitmaps,
-    doc: /* List of fringe bitmap symbols.
-You must (require 'fringe) to use fringe bitmap symbols in your programs." */);
+    doc: /* List of fringe bitmap symbols.  */);
   Vfringe_bitmaps = Qnil;
 }
 
@@ -1473,7 +1664,7 @@ mark_fringe_data ()
 void
 init_fringe_once ()
 {
-  enum fringe_bitmap_type bt;
+  int bt;
 
   for (bt = NO_FRINGE_BITMAP + 1; bt < MAX_STANDARD_FRINGE_BITMAPS; bt++)
     init_fringe_bitmap(bt, &standard_bitmaps[bt], 1);
@@ -1503,7 +1694,7 @@ init_fringe ()
 void
 w32_init_fringe ()
 {
-  enum fringe_bitmap_type bt;
+  int bt;
 
   if (!rif)
     return;

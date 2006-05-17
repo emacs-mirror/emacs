@@ -686,6 +686,16 @@ Even though such regions will be skipped over, you can still jump to any
 one of them by typing the region number and then `j'.  Typing @kbd{##}
 again puts Ediff back in the original state.
 
+@item #c
+@kindex #c
+@vindex ediff-ignore-case-option
+@vindex ediff-ignore-case-option3
+@vindex ediff-ignore-case
+Toggle case sensitivity in the diff program. All diffs are recomputed.
+Case sensitivity is controlled by the variables
+@code{ediff-ignore-case-option}, @code{ediff-ignore-case-option3},
+and @code{ediff-ignore-case}, which are explained elsewhere.
+
 @item #h
 @itemx #f
 @kindex #f
@@ -1584,6 +1594,28 @@ Ediff may take a long time to skip over them because it has to compute fine
 differences of all intermediate regions.  This delay does not indicate any
 problem.
 
+@vindex ediff-ignore-case-option
+@vindex ediff-ignore-case-option3
+@vindex ediff-ignore-case
+Finally, Ediff can be told to ignore the case of the letters. This behavior
+can be toggled with @kbd{#c} and it is controlled with three variables:
+Toggle case sensitivity in the diff program. All diffs are recomputed.
+Case sensitivity is controlled by the variables
+@code{ediff-ignore-case-option}, @code{ediff-ignore-case-option3}, and
+@code{ediff-ignore-case}.
+
+The variable @code{ediff-ignore-case-option} specifies the option to pass
+to the diff program for comparing two files or buffers. For GNU
+@code{diff}, this option is @code{"-i"}. The variable
+@code{ediff-ignore-case-option3} specifies the option to pass to the
+@code{diff3} program in order to make it case-insensitive. GNU @code{diff3}
+does not have such an option, so when merging or comparing three files with
+this program, ignoring the letter case is not supported.
+
+The variable @code{ediff-ignore-case} controls whether Ediff starts out by
+ignoring letter case or not. It can be set in @file{.emacs} using
+@code{setq-default}.
+
 @node Highlighting Difference Regions, Narrowing, Selective Browsing, Customization
 @section Highlighting Difference Regions
 
@@ -2388,6 +2420,7 @@ Here is a hopefully full list of contributors:
 
 @example
 Adrian Aichner (aichner@@ecf.teradyne.com),
+Drew Adams (drew.adams@@oracle.com),
 Steve Baur (steve@@xemacs.org),
 Neal Becker (neal@@ctd.comsat.com),
 E.@: Jay Berkenbilt (ejb@@ql.org),

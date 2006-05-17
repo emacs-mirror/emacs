@@ -1194,7 +1194,8 @@ predicate @code{user-variable-p} instead of @code{commandp}:
 @end defun
 
   See also the functions @code{read-coding-system} and
-@code{read-non-nil-coding-system}, in @ref{User-Chosen Coding Systems}.
+@code{read-non-nil-coding-system}, in @ref{User-Chosen Coding Systems},
+and @code{read-input-method-name}, in @ref{Input Methods}.
 
 @node Reading File Names
 @subsection Reading File Names

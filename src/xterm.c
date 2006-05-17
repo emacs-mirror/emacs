@@ -7513,7 +7513,7 @@ x_catch_errors (dpy)
      Display *dpy;
 {
   int count = SPECPDL_INDEX ();
-  struct x_error_message_stack *data = malloc (sizeof (*data));
+  struct x_error_message_stack *data = xmalloc (sizeof (*data));
   Lisp_Object dummy;
 #ifdef ENABLE_CHECKING
   dummy = make_number ((EMACS_INT)dpy + (EMACS_INT)x_error_message);

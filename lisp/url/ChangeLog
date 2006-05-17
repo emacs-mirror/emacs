@@ -1,3 +1,13 @@
+2006-02-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url.el (url-redirect-buffer): New var.
+	(url-retrieve-synchronously): Use it to follow redirections.
+
+	* url-http.el: Require `url' rather than try to autoload parts of it.
+	(url-http-find-free-connection): `url-open-stream' needs a real buffer.
+	(url-http-parse-headers): Set `url-redirect-buffer' when following
+	a redirection reply.
+
 2006-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-news.el: Move defvars out of eval-when-compile.
@@ -18,7 +28,7 @@
 	(url-history-save-history): Create parent dir if necessary.
 	(url-history-save-history): Don't write the initialization of
 	url-history-hash-table into the history file.
-	(url-have-visited-url): Simplify since url-history-hash-table is non-nil.
+	(url-have-visited-url): Simplify since url-history-hash-table isn't nil.
 	(url-completion-function): Simplify.
 
 	* url-cookie.el (url-cookie-parse-file): Don't complain of missing file.

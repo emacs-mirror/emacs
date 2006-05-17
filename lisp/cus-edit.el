@@ -932,6 +932,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
 				       "Set customized value for %s to: "
 				       current-prefix-arg))
   (custom-load-symbol variable)
+  (custom-push-theme 'theme-value variable 'user 'set (custom-quote value))
   (funcall (or (get variable 'custom-set) 'set-default) variable value)
   (put variable 'customized-value (list (custom-quote value)))
   (cond ((string= comment "")
@@ -4166,7 +4167,9 @@ This function does not save the buffer."
       (mapatoms
        (lambda (symbol)
 	 (if (and (get symbol 'saved-value)
-		  (eq 'user (car (car-safe (get symbol 'theme-value)))))
+		  ;; ignore theme values
+		  (or (null (get symbol 'theme-value))
+		      (eq 'user (caar (get symbol 'theme-value)))))
 	     (nconc saved-list (list symbol)))))
       (setq saved-list (sort (cdr saved-list) 'string<))
       (unless (bolp)

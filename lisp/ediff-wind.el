@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(provide 'ediff-wind)
 
 ;; Compiler pacifier
 (defvar icon-title-format)
@@ -1312,6 +1311,9 @@ It assumes that it is called from within the control buffer."
 			     ediff-split-window-function
 			     (ediff-multiframe-setup-p)
 			     ediff-wide-display-p)))))))
+
+
+(provide 'ediff-wind)
 
 
 ;;; Local Variables:

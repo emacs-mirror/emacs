@@ -175,9 +175,12 @@
 	     (selected-frame)
 	     (list
 	      (cons
-	       (if (eq before-which-mode 'before-replace-mode)
-		   'viper-saved-cursor-color-in-replace-mode
-		 'viper-saved-cursor-color-in-insert-mode)
+	       (cond ((eq before-which-mode 'before-replace-mode)
+		      'viper-saved-cursor-color-in-replace-mode)
+		     ((eq before-which-mode 'before-emacs-mode)
+		      'viper-saved-cursor-color-in-emacs-mode)
+		     (t
+		      'viper-saved-cursor-color-in-insert-mode))
 	       color)))
 	  ))))
 
@@ -188,7 +191,9 @@
     (if viper-emacs-p 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-replace-mode)
-   viper-vi-state-cursor-color))
+   (if (eq viper-current-state 'emacs-mode)
+       viper-emacs-state-cursor-color
+     viper-vi-state-cursor-color)))
 
 (defsubst viper-get-saved-cursor-color-in-insert-mode ()
   (or
@@ -196,15 +201,27 @@
     (if viper-emacs-p 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-insert-mode)
+   (if (eq viper-current-state 'emacs-mode)
+       viper-emacs-state-cursor-color
+     viper-vi-state-cursor-color)))
+
+(defsubst viper-get-saved-cursor-color-in-emacs-mode ()
+  (or
+   (funcall
+    (if viper-emacs-p 'frame-parameter 'frame-property)
+    (selected-frame)
+    'viper-saved-cursor-color-in-emacs-mode)
    viper-vi-state-cursor-color))
 
 ;; restore cursor color from replace overlay
 (defun viper-restore-cursor-color(after-which-mode)
   (if (viper-overlay-p viper-replace-overlay)
       (viper-change-cursor-color
-       (if (eq after-which-mode 'after-replace-mode)
-	   (viper-get-saved-cursor-color-in-replace-mode)
-	 (viper-get-saved-cursor-color-in-insert-mode))
+       (cond ((eq after-which-mode 'after-replace-mode)
+	      (viper-get-saved-cursor-color-in-replace-mode))
+	     ((eq after-which-mode 'after-emacs-mode)
+	      (viper-get-saved-cursor-color-in-emacs-mode))
+	     (t (viper-get-saved-cursor-color-in-insert-mode)))
        )))
 
 

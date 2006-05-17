@@ -116,8 +116,11 @@ When you put a space or spaces in the incremental regexp, it stands for
 this, unless it is inside of a regexp construct such as [...] or *, + or ?.
 You might want to use something like \"[ \\t\\r\\n]+\" instead.
 In the Customization buffer, that is `[' followed by a space,
-a tab, a carriage return (control-M), a newline, and `]+'."
-  :type 'regexp
+a tab, a carriage return (control-M), a newline, and `]+'.
+
+When this is nil, each space you type matches literally, against one space."
+  :type '(choice (const :tag "Find Spaces Literally" nil)
+		 regexp)
   :group 'isearch)
 
 (defcustom search-invisible 'open

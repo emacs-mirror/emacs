@@ -1,3 +1,53 @@
+2006-02-21  Eric Ding  <ericding@alum.mit.edu>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Added entry
+	"X-Sasl-enc:"
+
+2006-02-20  Eric Ding  <ericding@alum.mit.edu>
+
+	* mh-e.el (mh-invisible-header-fields-internal): Added entries
+	"X-Authenticated-Sender:", "X-Barracuda-", "X-EFL-Spamscore",
+	"X-IronPort-AV:", "X-Mail-from:", "X-Mailman-Approved-At:",
+	"X-Resolved-to:", and "X-SA-Exim".  Fixed "X-Bugzilla-" and
+	"X-Roving-" by removing unnecessary "*" at end.
+
+2006-02-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-alias.el (mh-address-mail-regexp)
+	(mh-goto-address-find-address-at-point): Delete copies from
+	goto-addr.el.
+	(mh-alias-suggest-alias): Use goto-address-mail-regexp instead of
+	mh-address-mail-regexp.
+	(mh-alias-add-address-under-point): Use
+	goto-address-find-address-at-point instead of
+	mh-goto-address-find-address-at-point.
+
+	* mh-e.el (mh-show-use-goto-addr-flag): Delete.
+
+	* mh-show.el (mh-show-mode): Mention goto-address-highlight-p in
+	docstring.
+	(mh-show-addr): Call goto-address unconditionally. User should use
+	goto-address-highlight-p instead of mh-show-use-goto-addr-flag.
+
+2006-02-18  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Add +cvs to version.
+
+2006-02-18  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 7.92.
+
+	* mh-e.el (Version, mh-version): Update for release 7.92.
+
+2006-02-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-folder-msg-number): Use purple on low-color, light
+	backgrounds per Mark's suggestion.
+
+	* mh-utils.el (mh-image-load-path): Fix problem that images on
+	load-path or image-load-path would win over relative paths (newer
+	MH-E or Emacs distribution).
+
 2006-02-16  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-inherit-face-flag): New variable. Non-nil means that

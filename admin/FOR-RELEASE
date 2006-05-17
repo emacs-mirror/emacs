@@ -33,15 +33,13 @@ Assigned to Bill Wohler <wohler@newt.com>.
 
 * NEW FEATURES
 
-** Rework how fringe bitmaps are defined and used.
-Currently, bitmap usage and bitmap appearence are "mixed-up" in a
-one-level representation.  It would be cleaner to split the
-representation into a two-level model where first level maps
-bitmap usage to a bitmap name, and second level maps bitmap name to
-a bitmap appearence.
-[Assigned to KFS]
-
 * BUGS
+
+** Reiner Steib's 23 Jan 2006 bug report that tool bar icons don't update.
+
+** Ralf Angeli's 4 Jul 2005 bug report about scroll-preserve-screen-position.
+
+** Martin Rudalics' 30 Jan 2006 bug report about overlays at end of buffer.
 
 ** TCP server processes do not work on Windows.
 
@@ -49,6 +47,15 @@ TCP/IP server processes created with `make-network-process' consume
 excesive CPU on some Windows environments.  Usages of 50% and 100%
 CPU time have been observed on different Window XP configurations.
 Seems to be a problem in sys_select in w32proc.c.
+
+In its current form, it sys_select says the socket is ready, so we
+call server_accept_connection which again calls accept() which returns
+-1 with errno == WSAEWOULDBLOCK (10035) indicating that there is no
+pending connection to accept.
+
+It seems that to fix this, w32 server sockets must use WSAAsyncSelect
++ FD_ACCEPT to request notifications of incoming connections...
+
 
 * DOCUMENTATION
 

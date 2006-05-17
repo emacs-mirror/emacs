@@ -1,8 +1,388 @@
+2006-02-21  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-mode): Set shell type based on file name
+	if there's no other specific basis.
+
+	* emacs-lisp/unsafep.el (unsafep): Don't treat &rest or &optional
+	as variables at all.
+	(unsafep-variable): Rename arg; doc fix.
+
+	* abbrevlist.el (list-one-abbrev-table): Add autoload.
+
+	* calendar/appt.el (diary-selective-display): Add defvar.
+
+	* sort.el (sort-columns): Use Posix arg syntax for `sort'.
+
+	* isearch.el (search-whitespace-regexp): Fix custom type.
+
+	* help.el (describe-key-briefly): Compute interactive args
+	in same was as before previous change.
+
+	* files.el (enable-local-variables): Doc fix.
+
+2006-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el: Cleanup as file is now pre-loaded.
+	(fringe-bitmaps): Initialize unconditionally.
+	(fringe-mode, set-fringe-style): Remove autoload cookies.
+
+2006-02-21  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* fringe.el (fringe-bitmaps): Rename `horisontal-bar' to
+	`horizontal-bar'.
+	(fringe-cursor-alist): Use `horizontal-bar'.
+
+2006-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el (fringe-bitmaps): Update to new bitmap names.
+	(fringe-indicator-alist, fringe-cursor-alist): Initialize.
+
+	* loadup.el: Load "fringe" on window systems.
+
+2006-02-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Use shadow face for all
+	out of scope components.
+
+	* progmodes/gdb-ui.el (gdb-speedbar-auto-raise): Don't enable by
+	default.
+
+2006-02-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (customize-mark-to-save, customize-mark-as-set): Load
+	the symbol first.
+
+2006-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buff-menu.el (list-buffers-noselect): Turn also "\n" into a
+	strech spec so it doesn't display as "^J" on the header line
+	when `Buffer-menu-use-header-line' is t.
+
+2006-02-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.el (speedbar-make-button): Keep text properties
+	of string arguments if desired.
+
+	* progmodes/gud.el (gud-speedbar-buttons): Fontify watch
+	expessions.
+
+	* progmodes/gdb-ui.el (gdb-speedbar-expand-node): Force update
+	of speedbar.
+
+2006-02-19  Ryan Yeske  <rcyeske@gmail.com>
+
+	* ffap.el (ffap-read-file-or-url): Bind `completion-ignore-case'
+	to value of `read-file-name-completion-ignore-case'.
+
+2006-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (customize-mark-as-set): Push to `user' theme.
+
+	* cus-edit.el (custom-save-variables): Allow unthemed values.
+	(customize-set-variable): Push setting to `user' theme.
+
+2006-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el: Don't require font-lock as it's now
+	automatically loaded.
+	(gud-speedbar-buttons): Replace gdb-var-changed with
+	gdb-force-update.
+
+	* progmodes/gdb-ui.el (gdb-force-update): Rename from
+	gdb-var-changed.
+	(gdb-post-prompt): Use it.
+	(gdb-var-create-handler, gdb-var-evaluate-expression-handler)
+	(gdb-var-update-handler, gdb-var-delete)
+	(gdb-speedbar-expand-node, gdb-var-list-children-handler-1)
+	(gdb-var-update-handler-1): Don't set gdb-var-changed, just set
+	gdb-force-update in gdb-post-prompt.
+	(gdb-reset): Clear watch expressions from speedbar when quitting.
+
+2006-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-cmd.el (viper-insert-state-post-command-sentinel)
+	(viper-change-state-to-vi, viper-change-state-to-emacs):
+	Make aware of cursor coloring in the Emacs state.
+	(viper-special-read-and-insert-char): Use read-char-exclusive.
+	(viper-minibuffer-trim-tail): Workaround for fields in minibuffer.
+
+	* viper-init.el (viper-emacs-state-cursor-color): New variable.
+
+	* viper-util.el (viper-save-cursor-color)
+	(viper-get-saved-cursor-color-in-replace-mode)
+	(viper-get-saved-cursor-color-in-insert-mode)
+	(viper-restore-cursor-color): Make aware of the cursor color in Emacs
+	state.
+	(viper-get-saved-cursor-color-in-emacs-mode): New function.
+
+	* ediff-diff.el (ediff-ignore-case, ediff-ignore-case-option)
+	(ediff-ignore-case-option3, ediff-actual-diff-options)
+	(ediff-actual-diff3-options): New variables to control case sensitivity.
+	(ediff-make-diff2-buffer, ediff-setup-fine-diff-regions)
+	(ediff-setup-diff-regions3): Make aware of case-sensitivity.
+	(ediff-toggle-ignore-case): New function.
+	(ediff-extract-diffs, ediff-extract-diffs3): Preserve point in buffers.
+
+	* ediff-help.el (ediff-long-help-message-narrow2)
+	(ediff-long-help-message-compare2, ediff-long-help-message-compare3)
+	(ediff-long-help-message-word-mode): Add ignore-case command.
+	(ediff-help-for-quick-help): Add ignore-case command.
+
+	* ediff-merg.el: Move provide to the end.
+
+	* ediff-ptch.el: Move provide to the end.
+
+	* ediff-wind.el: Move provide to the end.
+
+	* ediff-mult.el: Move provide to the end.
+	(ediff-set-meta-overlay): Enable follow-link.
+
+	* ediff.el: Move provide to the end.
+	Break recursive load cycle in eval-when-compile.
+	(ediff-patch-buffer): Better heuristics.
+
+	* ediff-util.el: Move provide to the end.
+	Break recursive load cycle in eval-when-compile.
+	(ediff-setup-keymap): Add binding for #c.  Replace some defsubsts with
+	defuns.
+	(ediff-submit-report): Pass the values of ediff-diff3-program,
+	ediff-diff3-options.
+
+2006-02-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (help-do-arg-highlight): Recognize also ARG- followed by
+	the opening bracket of the following bracketing pairs: {}, [], (), <>,
+	`' (for example, in the docstring of `windmove-default-keybindings').
+
+2006-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Update properly for
+	shadow face.  Don't provide binding to edit variable when it is
+	out of scope.
+
+	* progmodes/gdb-ui.el (gdb-var-evaluate-expression-handler)
+	(gdb-var-update-handler): Detect out of scope variables with pre
+	GDB 6.4 too.
+	(gdb-post-prompt): Revert changet 2006-02-17 (force update).
+	Reset status of variable objects to nil in update handlers.
+	(gdb-var-update-handler-1): Detect when a variable object comes
+	in scope.  setcar on var changes gdb-var-list directly.
+
+2006-02-17  Juri Linkov  <juri@jurta.org>
+
+	* ffap.el (ffap) <defface>: Add explicit face declaration.
+	(ffap-highlight): Use face `ffap' directly instead of checking
+	for its existence.
+
+	* icomplete.el (icomplete-get-keys): Use `t' for the second arg
+	`visible-ok' of `other-buffer' to find the right original buffer.
+
+	* info.el (Info-search): Skip `Local Variables' node.
+
+2006-02-17  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-find-file): Check for symbols `apropos', `history',
+	`toc' in the input filename, and return these symbols as is.
+	(Info-find-node-2): Set Info-current-file to symbols `apropos',
+	`history', `toc' instead of strings.
+	(Info-set-mode-line): For non-string Info-current-file use the
+	symbol's name inside **.
+	(Info-isearch-push-state): Add quote before Info-current-file and
+	Info-current-node.
+	(Info-isearch-pop-state): Use `equal' instead of `string='.
+	(Info-extract-pointer, Info-following-node-name): Use
+	`match-string-no-properties' instead of `match-string'.
+	(Info-up): Check `old-file' for `stringp'.
+	(Info-history): Use `equal' instead of `string-equal'.
+	Check `file' for `stringp'.
+	(Info-history): Use symbol `history' instead of string as first arg
+	of `Info-find-node'.
+	(Info-toc): Check `Info-current-file' for `stringp'.  Use symbol
+	`toc' instead of string.
+	(Info-extract-menu-node-name): Use `buffer-substring-no-properties'
+	instead of `buffer-substring', and `match-string-no-properties'
+	instead of `match-string'.
+	(Info-index-nodes): Check for symbols `apropos', `history', `toc'
+	instead of strings.
+	(info-apropos): Use `Info-find-node' instead of `Info-goto-node'.
+	Use symbol `apropos' instead of string.
+	(Info-copy-current-node-name): Check `Info-current-file' for
+	`stringp' and construct a command with `Info-find-node' from it.
+	(Info-fontify-node): Use `match-string-no-properties' instead of
+	`match-string' and check file names for `stringp'.
+	(Info-desktop-buffer-misc-data): Check for symbols `apropos',
+	`history', `toc' instead of strings.
+
+2006-02-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el: Rearrange functions and variables in the file local
+	variables section.
+
+2006-02-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.el: Add truncate-lines, ispell-check-comments and
+	ispell-local-dictionary as safe local variables.
+
+2006-02-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons): Use shadow face for
+	out of scope variables.
+	(gud-speedbar-buttons): Use unless.
+
+	* progmodes/gdb-ui.el (gdb-var-list): Update doc string.
+	(gdb-init-1, gdb-var-changed): Set gdb-var-changed to t initially.
+	(gdb-show-changed-values): Also use for out of scope variables.
+	(gdb-var-update-handler-1): Note if variable goes out of scope.
+
+2006-02-17  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-connect): Make all arguments optional, and
+	default to global variable values for unsupplied args.
+	(rcirc-get-buffer-create): Fix bug with setting the target.
+	(rcirc-any-buffer): Rename from rcirc-get-any-buffer, and include
+	test for rcirc-always-use-server-buffer-flag here.
+	(rcirc-response-formats): Add %N, which is a facified nick.  %n
+	uses the default face.  Change the ACTION format string.  If the
+	"nick" is the server, don't print anything for that field.
+	Comment fixes.
+	(rcirc-target-buffer): Don't test
+	rcirc-always-use-server-buffer-flag here.
+	(rcirc-print): Squeeze extra spaces out of the text before message.
+	(rcirc-put-nick-channel): Strip potential "@" char from nick
+	before adding them to nick table.
+	(rcirc-url-regexp): Improve to match address like "foo.com".
+
+2006-02-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* allout.el (allout-hidden-p): Move this defsubst before
+	allout-overlay-interior-modification-handler, where it is first
+	used.
+
+2006-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Use allout invisible-text overlays instead of
+	selective display for concealed text.  Also, lots of general
+	cleanup, and improved compatibility code.
+
+	(allout-version) Incremented, corrected, revised, and refined
+	module commentary.
+
+	(provide 'allout): Moved to the bottom, added a require of overlay.
+
+	(allout-encrypt-unencrypted-on-saves): Defaults to t instead of
+	`except-current'.
+	(allout-write-file-hook-handler): Minimize delay.
+	(count-trailing-whitespace-region): New function so
+	auto-encryption of current topic can resituate cursor exactly.
+	PGP/GPG encryption trims trailing whitespace from lines, which
+	must be accounted for across encryption then decryption.
+
+	(allout-command-prefix): Now defaults to "\C-c<space>" rather than
+	just plain "\C-c", to avoid intruding on user's keybinding space.
+
+	(allout-toggle-current-subtree-encryption): Pass along fetch-pass
+	parameter, so user request to provide a new password is done.
+
+	(allout-outside-normal-auto-fill-function, allout-auto-fill):
+	Refined mechanism for auto-filling behavior while in allout mode.
+
+	(allout-mode): Explicitly specify the mode map in the docstring.
+	Clarify provision for various write-file hook var names.
+	Adjusted for invisible-text overlays instead of	selective-display.
+
+	(allout-depth): Really return 0 if not within any topic.  This
+	rectifies `allout-beginning-of-level' and sequence numbering
+	errors that occur when cutting and pasting numbered topics.
+	Changed from a in-line subst to a regular function, as well.
+
+	(allout-pre-next-prefix): Renamed from allout-pre-next-preface.
+
+	(allout-end-of-subtree, allout-end-of-subtree)
+	(allout-end-of-entry, allout-end-of-current-heading)
+	(allout-next-visible-heading, allout-open-topic, allout-show-entry)
+	(allout-show-children, allout-show-to-offshoot)
+	(allout-hide-current-entry, allout-show-current-entry): Rectified
+	handling of trailing blank lines between items.
+
+	(allout-line-boundary-regexp, set-allout-regexp, allout-depth)
+	(allout-current-depth, allout-unprotected, allout-hidden-p)
+	(allout-on-current-heading-p, allout-listify-exposed)
+	(allout-chart-subtree, allout-goto-prefix)
+	(allout-back-to-current-heading, allout-get-body-text)
+	(allout-snug-back, allout-flag-current-subtree, allout-show-all)
+	(allout-hide-region-body, allout-toggle-subtree-encryption)
+	(allout-encrypt-string, allout-encrypted-key-info)
+	(allout-next-topic-pending-encryption, allout-encrypt-decrypted)
+	(allout-file-vars-section-data): Adjusted for use with
+	invisible-text overlays instead of selective-display.
+
+	(allout-kill-line, allout-kill-topic, allout-yank-processing):
+	Reworked for use with invisible text overlays.
+
+	(allout-current-topic-collapsed-p): New function.
+
+	(allout-hide-current-subtree): Use allout-current-topic-collapsed-p
+	to know when to close the containing topic.
+
+	(allout-pre-command-business, allout-post-command-business):
+	Simplify undo-batching and dynamic isearch exposure.
+
+	(allout-set-overlay-category): New for invisible-text overlays.
+	Sets properties of allout-overlay-category, used by
+	allout-flag-region to set invisible-text overlay properties.
+	(allout-get-invisibility-overlay): Get the first qualifying
+	invisibility overlay, so we can find the extent of it.
+	(allout-back-to-visible-text): Get to just before the beginnining
+	of the current invisibility overlay, if any.
+
+	(allout-overlay-insert-in-front-handler)
+	(allout-overlay-interior-modification-handler)
+	(allout-before-change-handler, allout-isearch-end-handler): New
+	functions to handle extraordinary actions affecting concealed
+	text.
+
+	(allout-flag-region): Use overlays instead of selective-display
+	for invisible text - by inheritence from the properties of
+	allout-overlay-category in mainline Emacs, and applied
+	property-by-property in XEmacs, some recent versions of which
+	don't inherit the properties from the category.  Provisions to
+	respond to concealed-text edits simplified drastically.
+
+	(allout-isearch-rectification, allout-isearch-was-font-lock)
+	(allout-isearch-expose, allout-enwrap-isearch)
+	(allout-isearch-abort, allout-pre-was-isearching)
+	(allout-isearch-prior-pos, allout-isearch-did-quit)
+	(allout-isearch-dynamic-expose)
+	(allout-hide-current-entry-completely): Functions deleted.
+
+	(allout-undo-aggregation): Explicit undo aggregation no longer
+	necessary due to transition away from selective-display.
+
+	(set-allout-regexp, allout-up-current-level)
+	(allout-next-visible-heading, allout-forward-current-level)
+	(allout-open-topic, allout-reindent-body, allout-rebullet-topic)
+	(allout-kill-line, allout-yank-processing, allout-show-children)
+	(allout-expose-topic, allout-old-expose-topic)
+	(allout-listify-exposed, allout-insert-latex-header)
+	(allout-toggle-subtree-encryption, allout-encrypt-string)
+	(remove-from-invisibility-spec, allout-hide-current-subtree):
+	Ditched unused variables.
+
+2006-02-17  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-change-dictionary): Call
+	ispell-buffer-local-dict instead of
+	ispell-accept-buffer-local-defs.
+	(ispell-local-dictionary-alist): Accept as valid any coding-system
+	supported by Emacs.
+	(ispell-dictionary-alist-3): Esperanto dictionary's coding system
+	changed to iso-8859-3.
+
 2006-02-17  Nick Roberts  <nickrob@snap.net.nz>
 
 	* speedbar.el (speedbar-frame-width): Make an inline function
 	instead of a macro.  Use frame-width.
-	(speedbar-try-completion, speedbar-update-contents) 
+	(speedbar-try-completion, speedbar-update-contents)
 	(speedbar-timer-fn): Use consp.
 	(speedbar-update-localized-contents): Try to preserve point.
 

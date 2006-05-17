@@ -26,7 +26,6 @@
 
 ;;; Code:
 
-(provide 'ediff-help)
 
 ;; Compiler pacifier start
 (defvar ediff-multiframe)
@@ -61,8 +60,8 @@ For help on a specific command:  Click Button 2 over it; or
 p,DEL -previous diff |     | -vert/horiz split   | xy -copy buf X's region to Y
 n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
     j -jump to diff  |     @ -auto-refinement    |  * -refine current region
-   gx -goto X's point|                           |  ! -update diff regions
-  C-l -recenter      |    ## -ignore whitespace  |
+   gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions
+  C-l -recenter      |    #c -ignore case        |
   v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
   </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
     ~ -rotate buffers|     m -wide display       |
@@ -75,8 +74,8 @@ Normally, not a user option.  See `ediff-help-message' for details.")
 p,DEL -previous diff |     | -vert/horiz split   |a/b -copy A/B's region to B/A
 n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
     j -jump to diff  |     @ -auto-refinement    |  * -refine current region
-   gx -goto X's point|                           |  ! -update diff regions
-  C-l -recenter      |    ## -ignore whitespace  |
+   gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions
+  C-l -recenter      |    #c -ignore case        |
   v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
   </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
     ~ -swap variants |     m -wide display       |
@@ -89,8 +88,8 @@ Normally, not a user option.  See `ediff-help-message' for details.")
 p,DEL -previous diff |     | -vert/horiz split   |a/b -copy A/B's region to B/A
 n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
     j -jump to diff  |     @ -auto-refinement    |  * -refine current region
-   gx -goto X's point|     % -narrow/widen buffs |  ! -update diff regions
-  C-l -recenter      |    ## -ignore whitespace  |
+   gx -goto X's point|    ## -ignore whitespace  |  ! -update diff regions
+  C-l -recenter      |    #c -ignore case        |  % -narrow/widen buffs 
   v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
   </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
     ~ -swap variants |     m -wide display       |
@@ -103,8 +102,8 @@ Normally, not a user option.  See `ediff-help-message' for details.")
 p,DEL -previous diff |     | -vert/horiz split   | xy -copy buf X's region to Y
 n,SPC -next diff     |     h -hilighting         | rx -restore buf X's old diff
     j -jump to diff  |                           |
-   gx -goto X's point|     % -narrow/widen buffs |  ! -recompute diffs
-  C-l -recenter      |                           |
+   gx -goto X's point|    % -narrow/widen buffs  |  ! -recompute diffs
+  C-l -recenter      |    #c -ignore case        |
   v/V -scroll up/dn  | #f/#h -focus/hide regions | wx -save buf X
   </> -scroll lt/rt  |     X -read-only in buf X | wd -save diff output
     ~ -swap variants |     m -wide display       |
@@ -228,6 +227,7 @@ the value of this variable and the variables `ediff-help-message-*' in
 	    ((string= cmd "r") (re-search-forward "^`r'"))
 	    ((string= cmd "rx") (re-search-forward "^`ra'"))
 	    ((string= cmd "##") (re-search-forward "^`##'"))
+	    ((string= cmd "#c") (re-search-forward "^`#c'"))
 	    ((string= cmd "#f/#h") (re-search-forward "^`#f'"))
 	    ((string= cmd "X") (re-search-forward "^`A'"))
 	    ((string= cmd "v/V") (re-search-forward "^`v'"))
@@ -323,6 +323,9 @@ the value of this variable and the variables `ediff-help-message-*' in
 (defun ediff-customize ()
   (interactive)
   (customize-group "ediff"))
+
+
+(provide 'ediff-help)
 
 
 ;;; arch-tag: 05659813-7fcf-4274-964f-d2f577431a9d

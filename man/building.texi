@@ -936,9 +936,9 @@ in the tool bar (@code{gud-watch}).
   Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree
 format.  Leaves and simple data types show the name of the expression
-and its value, and display the type as a tooltip.  Higher levels show
-the name, type and address value for pointers and just the name and
-type otherwise.
+and its value and, when the speedbar frame is selected, display the
+type as a tooltip.  Higher levels show the name, type and address
+value for pointers and just the name and type otherwise.
 
   To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
@@ -958,7 +958,9 @@ edit it.  Either way, this reads the new value using the minibuffer.
   If you set the variable @code{gdb-show-changed-values} to
 non-@code{nil} (the default value), Emacs uses
 @code{font-lock-warning-face} to highlight values that have recently
-changed.
+changed and @code{shadow} face to make variables which have gone out of
+scope less noticeable.  When a variable goes out of scope you can't
+edit its value.
 
 @vindex gdb-use-colon-colon-notation
   If the variable @code{gdb-use-colon-colon-notation} is
@@ -966,6 +968,12 @@ non-@code{nil}, Emacs uses the @samp{@var{function}::@var{variable}}
 format to display variables in the speedbar.  Since this does not work
 for variables defined in compound statements, the default value is
 @code{nil}.
+
+@vindex gdb-speedbar-auto-raise
+To automatically raise the speedbar every time the display of watch
+expressions updates, set @code{gdb-speedbar-auto-raise} to
+non-@code{nil}.  This can be useful if you are debugging with a full
+screen Emacs frame.
 
 @node Other GDB User Interface Buffers
 @subsubsection Other Buffers
@@ -1277,7 +1285,8 @@ buffer in Lisp Interaction mode.
 is to use Inferior Emacs-Lisp mode, which provides an interface rather
 like Shell mode (@pxref{Shell Mode}) for evaluating Emacs Lisp
 expressions.  Type @kbd{M-x ielm} to create an @samp{*ielm*} buffer
-which uses this mode.
+which uses this mode.  For more information see that command's
+documentation.
 
 @node External Lisp
 @section Running an External Lisp

@@ -508,11 +508,7 @@ re-start emacs."
 			       (const "~nroff") (const "~list")
 			       (const "~latin1") (const "~latin3")
  			       (const :tag "default" nil))
-		       (choice :tag "Coding system"
-			       (const iso-8859-1)
-			       (const iso-8859-2)
-			       (const koi8-r)
-			       (const windows-1251))))
+		       (coding-system :tag "Coding System")))
   :group 'ispell)
 
 
@@ -570,10 +566,10 @@ re-start emacs."
  '(("esperanto"
     "[A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]"
     "[^A-Za-z\246\254\266\274\306\330\335\336\346\370\375\376]"
-    "[-']" t ("-C") "~latin3" iso-8859-1)
+    "[-']" t ("-C") "~latin3" iso-8859-3)
    ("esperanto-tex"
     "[A-Za-z^\\]" "[^A-Za-z^\\]"
-    "[-'`\"]" t ("-C" "-d" "esperanto") "~tex" iso-8859-1)
+    "[-'`\"]" t ("-C" "-d" "esperanto") "~tex" iso-8859-3)
    ("francais7"
     "[A-Za-z]" "[^A-Za-z]" "[`'^---]" t nil nil iso-8859-1)
    ("francais"				; Francais.aff
@@ -2604,7 +2600,7 @@ By just answering RET you can find out what the current dictionary is."
 	       (mapcar 'list (ispell-valid-dictionary-list)))
 	  nil t)
 	 current-prefix-arg))
-  (unless arg (ispell-accept-buffer-local-defs))
+  (unless arg (ispell-buffer-local-dict))
   (if (equal dict "default") (setq dict nil))
   ;; This relies on completing-read's bug of returning "" for no match
   (cond ((equal dict "")

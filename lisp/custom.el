@@ -653,6 +653,7 @@ default value.  Otherwise, set it to nil.
 To actually save the value, call `custom-save-all'.
 
 Return non-nil iff the `saved-value' property actually changed."
+  (custom-load-symbol symbol)
   (let* ((get (or (get symbol 'custom-get) 'default-value))
 	 (value (funcall get symbol))
 	 (saved (get symbol 'saved-value))
@@ -681,6 +682,7 @@ or else if it is different from the standard value, set the
 default value.  Otherwise, set it to nil.
 
 Return non-nil iff the `customized-value' property actually changed."
+  (custom-load-symbol symbol)
   (let* ((get (or (get symbol 'custom-get) 'default-value))
 	 (value (funcall get symbol))
 	 (customized (get symbol 'customized-value))
@@ -690,7 +692,9 @@ Return non-nil iff the `customized-value' property actually changed."
 	    (not (equal value (condition-case nil
 				  (eval (car old))
 				(error nil)))))
-	(put symbol 'customized-value (list (custom-quote value)))
+	(progn (put symbol 'customized-value (list (custom-quote value)))
+	       (custom-push-theme 'theme-value symbol 'user 'set
+				  (custom-quote value)))
       (put symbol 'customized-value nil))
     ;; Changed?
     (not (equal customized (get symbol 'customized-value)))))

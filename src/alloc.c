@@ -3268,7 +3268,7 @@ Its value and function definition are void, and its property list is nil.  */)
 
   CHECK_STRING (name);
 
-  eassert (!handling_signal);
+  /* eassert (!handling_signal); */
 
 #ifndef SYNC_INPUT
   BLOCK_INPUT;

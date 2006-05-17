@@ -2568,7 +2568,10 @@ window_min_size_1 (w, width_p)
   else
     {
       if (width_p)
-	size = window_min_width;
+	size = max (window_min_width,
+		    (MIN_SAFE_WINDOW_WIDTH
+		     + WINDOW_FRINGE_COLS (w)
+		     + WINDOW_SCROLL_BAR_COLS (w)));
       else
 	{
 	  if (MINI_WINDOW_P (w)
@@ -4286,7 +4289,7 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 	    {
               /* This may happen for the minibuffer.  In that case
                  the window_deletion_count check below does not work.  */
-              if (XINT (CURSIZE (p->next)) - delta <= 0) 
+              if (XINT (CURSIZE (p->next)) - delta <= 0)
                 {
                   Fset_window_configuration (old_config);
                   error ("Cannot adjust window size as specified");
@@ -6600,7 +6603,8 @@ this is automatically adjusted to a multiple of the frame column width.
 Third parameter VERTICAL-TYPE specifies the type of the vertical scroll
 bar: left, right, or nil.
 If WIDTH is nil, use the frame's scroll-bar width.
-If TYPE is t, use the frame's scroll-bar type.  */)
+If VERTICAL-TYPE is t, use the frame's scroll-bar type.
+Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
      (window, width, vertical_type, horizontal_type)
      Lisp_Object window, width, vertical_type, horizontal_type;
 {

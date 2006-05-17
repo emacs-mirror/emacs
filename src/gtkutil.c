@@ -199,7 +199,7 @@ malloc_widget_value ()
     }
   else
     {
-      wv = (widget_value *) malloc (sizeof (widget_value));
+      wv = (widget_value *) xmalloc (sizeof (widget_value));
       malloc_cpt++;
     }
   memset (wv, 0, sizeof (widget_value));

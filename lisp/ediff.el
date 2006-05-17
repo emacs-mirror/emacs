@@ -7,8 +7,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
-(defconst ediff-version "2.80.1" "The current version of Ediff")
-(defconst ediff-date "November 25, 2005" "Date of last update")
+(defconst ediff-version "2.81" "The current version of Ediff")
+(defconst ediff-date "February 18, 2006" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -107,7 +107,6 @@
 
 ;;; Code:
 
-(provide 'ediff)
 
 ;; Compiler pacifier
 (defvar cvs-cookie-handle)
@@ -121,6 +120,7 @@
 	 (load "pcl-cvs" 'noerror)))
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
+    (provide 'ediff) ; to break recursive load cycle
     (or (featurep 'ediff-init)
 	(load "ediff-init.el" nil nil 'nosuffix))
     (or (featurep 'ediff-mult)
@@ -1374,7 +1374,7 @@ patch. If not given, the user is prompted according to the prefix argument."
    patch-buf
    (read-buffer
     "Which buffer to patch? "
-    (current-buffer))))
+    (ediff-other-buffer patch-buf))))
 
 
 ;;;###autoload
@@ -1532,6 +1532,9 @@ With optional NODE, goes to that node."
 (require 'ediff-util)
 
 (run-hooks 'ediff-load-hook)
+
+(provide 'ediff)
+
 
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)

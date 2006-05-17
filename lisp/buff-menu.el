@@ -706,9 +706,9 @@ For more information, see the function `buffer-menu'."
 	 list desired-point)
     (when Buffer-menu-use-header-line
       (let ((pos 0))
-	;; Turn spaces in the header into stretch specs so they work
-	;; regardless of the header-line face.
-	(while (string-match "[ \t]+" header pos)
+	;; Turn whitespace chars in the header into stretch specs so
+	;; they work regardless of the header-line face.
+	(while (string-match "[ \t\n]+" header pos)
 	  (setq pos (match-end 0))
 	  (put-text-property (match-beginning 0) pos 'display
 			     ;; Assume fixed-size chars in the buffer.
@@ -726,6 +726,7 @@ For more information, see the function `buffer-menu'."
       (erase-buffer)
       (setq standard-output (current-buffer))
       (unless Buffer-menu-use-header-line
+        ;; Use U+2014 (EM DASH) to underline if possible, else U+002D (HYPHEN-MINUS)
 	(let ((underline (if (char-displayable-p ?—) ?— ?-)))
 	  (insert header
 		  (apply 'string

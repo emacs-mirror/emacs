@@ -1,6 +1,8 @@
 ERC NEWS                                                       -*- outline -*-
 
-* Changes in ERC 5.1.2 (unreleased)
+* Changes in ERC 5.2 (unreleased)
+
+* Changes in ERC 5.1.2
 
 ** Fix compiler errors in erc-autojoin.el and erc-dcc.el.
 

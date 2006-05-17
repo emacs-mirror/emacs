@@ -254,6 +254,7 @@ face (according to `face-differs-from-default-p')."
                          "\\)"
                          "\\(?:es\\|s\\|th\\)?"  ; for ARGth, ARGs
                          "\\(?:-[a-z0-9-]+\\)?"  ; for ARG-xxx, ARG-n
+                         "\\(?:-[{([<`\"].*?\\)?"; for ARG-{x}, (x), <x>, [x], `x'
                          "\\>")                  ; end of word
                  (help-default-arg-highlight arg)
                  doc t t 1)))))

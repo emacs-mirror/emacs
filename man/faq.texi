@@ -1,4 +1,4 @@
-\input texinfo   @c -*- coding: latin-1; mode: texinfo; -*-
+\input texinfo   @c -*- mode: texinfo; -*-
 @c %**start of header
 @setfilename ../info/efaq
 @settitle GNU Emacs FAQ

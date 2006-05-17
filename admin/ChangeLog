@@ -1,3 +1,13 @@
+2006-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* FOR-RELEASE (NEW FEATURES): Completed work on this item:
+	Rework how fringe bitmaps are defined and used.
+	Currently, bitmap usage and bitmap appearence are "mixed-up" in a
+	one-level representation.  It would be cleaner to split the
+	representation into a two-level model where first level maps
+	bitmap usage to a bitmap name, and second level maps bitmap name to
+	a bitmap appearence.
+
 2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* FOR-RELEASE: string allocation bugs fixed.

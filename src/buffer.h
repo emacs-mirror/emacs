@@ -739,6 +739,12 @@ struct buffer
   /* Non-nil means indicate buffer boundaries and scrolling.  */
   Lisp_Object indicate_buffer_boundaries;
 
+  /* Logical to physical fringe bitmap mappings.  */
+  Lisp_Object fringe_indicator_alist;
+
+  /* Logical to physical cursor bitmap mappings.  */
+  Lisp_Object fringe_cursor_alist;
+
   /* Time stamp updated each time this buffer is displayed in a window.  */
   Lisp_Object display_time;
 

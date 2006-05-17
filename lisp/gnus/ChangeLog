@@ -1,3 +1,9 @@
+2006-02-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-charset-to-coding-system): Don't check the
+	coding system which mm-charset-to-coding-system returns for a
+	given charset is valid.
+
 2006-02-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* html2text.el (html2text-remove-tag-list):
