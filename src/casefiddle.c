@@ -92,7 +92,8 @@ casify_object (flag, obj)
 	      else if (!UPPERCASEP (c)
 		       && (!inword || flag != CASE_CAPITALIZE_UP))
 		c = UPCASE1 (c);
-	      if (ASCII_BYTE_P (c) || (! multibyte && SINGLE_BYTE_CHAR_P (c)))
+	      if ((ASCII_BYTE_P (c) && from_len == 1)
+		  || (! multibyte && SINGLE_BYTE_CHAR_P (c)))
 		SSET (obj, i, c);
 	      else
 		{
@@ -100,7 +101,10 @@ casify_object (flag, obj)
 		  if (from_len == to_len)
 		    CHAR_STRING (c, SDATA (obj) + i);
 		  else
-		    Faset (obj, make_number (n), make_number (c));
+		    {
+		      Faset (obj, make_number (n), make_number (c));
+		      len += to_len - from_len;
+		    }
 		}
 	      if ((int) flag >= (int) CASE_CAPITALIZE)
 		inword = SYNTAX (c) == Sword;

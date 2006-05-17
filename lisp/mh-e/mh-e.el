@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.84
+;; Version: 7.84+cvs
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -98,7 +98,7 @@
 (defvar font-lock-auto-fontify)
 (defvar font-lock-defaults)
 
-(defconst mh-version "7.84" "Version number of MH-E.")
+(defconst mh-version "7.84+cvs" "Version number of MH-E.")
 
 (defvar mh-partial-folder-mode-line-annotation "select"
   "Annotation when displaying part of a folder.
@@ -778,7 +778,7 @@ bottom of the current message."
         (if (mh-in-show-buffer (mh-show-buffer)
               (pos-visible-in-window-p (point-max)))
             (progn
-              (message 
+              (message
                "End of message (Type %s to read %s undeleted message)"
                (single-key-description last-input-event)
                (if (equal mh-next-direction 'backward)
@@ -1667,8 +1667,10 @@ DESKTOP-BUFFER-MISC holds a list of miscellaneous info used by the
   (mh-visit-folder desktop-buffer-name)
   (current-buffer))
 
-(add-to-list 'desktop-buffer-mode-handlers
-             '(mh-folder-mode . mh-restore-desktop-buffer))
+;;; desktop-buffer-mode-handlers appeared in Emacs 22.
+(if (fboundp 'desktop-buffer-mode-handlers)
+    (add-to-list 'desktop-buffer-mode-handlers
+                 '(mh-folder-mode . mh-restore-desktop-buffer)))
 
 (defun mh-scan-folder (folder range &optional dont-exec-pending)
   "Scan the FOLDER over the RANGE.

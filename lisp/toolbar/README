@@ -7,4 +7,6 @@ The following icons are from GTK+ 2.x:
 
     back_arrow.xpm and fwd_arrow.xpm are slightly modified undo and redo.
 
+    diropen.xpm is file-manager.png from Gnome hicolor theme.
+
 They are not part of Emacs, but distributed and used by Emacs.

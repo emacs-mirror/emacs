@@ -25,8 +25,6 @@
 
 ;;; Code:
 
-(require 'custom)
-
 (defgroup pgg ()
   "Glue for the various PGP implementations."
   :group 'mime

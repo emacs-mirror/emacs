@@ -4,7 +4,7 @@
 ;;               2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
-;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: fortran, languages
 
 ;; This file is part of GNU Emacs.

@@ -206,6 +206,13 @@ elements (see `recentf-make-menu-element' for menu element form)."
                 function)
   :set 'recentf-menu-customization-changed)
 
+(defcustom recentf-menu-open-all-flag nil
+  "*Non-nil means to show an \"All...\" item in the menu.
+This item will replace the \"More...\" item."
+  :group 'recentf
+  :type 'boolean
+  :set 'recentf-menu-customization-changed)
+
 (defcustom recentf-menu-append-commands-flag t
   "*Non-nil means to append command items to the menu."
   :group 'recentf
@@ -278,7 +285,6 @@ If non-nil, `recentf-open-files' will show labels for keys that can be
 used as shortcuts to open the Nth file."
   :group 'recentf
   :type 'boolean)
-
 
 ;;; Utilities
 ;;
@@ -448,6 +454,25 @@ Return non-nil if F1 is less than F2."
 
 ;;; Menu building
 ;;
+(defsubst recentf-digit-shortcut-command-name (n)
+  "Return a command name to open the Nth most recent file.
+See also the command `recentf-open-most-recent-file'."
+  (intern (format "recentf-open-most-recent-file-%d" n)))
+
+(defvar recentf--shortcuts-keymap
+  (let ((km (make-sparse-keymap)))
+    (dolist (k '(0 9 8 7 6 5 4 3 2 1))
+      (let ((cmd (recentf-digit-shortcut-command-name k)))
+        ;; Define a shortcut command.
+        (defalias cmd
+          `(lambda ()
+             (interactive)
+             (recentf-open-most-recent-file ,k)))
+        ;; Bind it to a digit key.
+        (define-key km (vector (+ k ?0)) cmd)))
+    km)
+  "Digit shortcuts keymap.")
+
 (defvar recentf-menu-items-for-commands
   (list
    ["Cleanup list"
@@ -548,21 +573,29 @@ menu-elements (no sub-menu)."
         (nconc l others))
     l))
 
+;; Count the number of assigned menu shortcuts.
+(defvar recentf-menu-shortcuts)
+
 (defun recentf-make-menu-items ()
   "Make menu items from the recent list."
   (setq recentf-menu-filter-commands nil)
-  (let ((file-items
-         (mapcar 'recentf-make-menu-item
-                 (recentf-apply-menu-filter
-                  recentf-menu-filter
-                  (recentf-menu-elements recentf-max-menu-items)))))
+  (let* ((recentf-menu-shortcuts 0)
+         (file-items
+          (mapcar 'recentf-make-menu-item
+                  (recentf-apply-menu-filter
+                   recentf-menu-filter
+                   (recentf-menu-elements recentf-max-menu-items)))))
     (append (or file-items (list ["No files" t
                                   :help "No recent file to open"
                                   :active nil]))
-            (and (< recentf-max-menu-items (length recentf-list))
-                 (list ["More..." recentf-open-more-files
-                        :help "Open files that are not in the menu"
-                        :active t]))
+            (if recentf-menu-open-all-flag
+                (list ["All..." recentf-open-files
+                       :help "Open recent files through a dialog"
+                       :active t])
+              (and (< recentf-max-menu-items (length recentf-list))
+                   (list ["More..." recentf-open-more-files
+                          :help "Open files not in the menu through a dialog"
+                          :active t])))
             (and recentf-menu-filter-commands
                  (cons "---"
                        recentf-menu-filter-commands))
@@ -570,15 +603,37 @@ menu-elements (no sub-menu)."
                  (cons "---"
                        recentf-menu-items-for-commands)))))
 
-(defsubst recentf-make-menu-item (elt)
+(defun recentf-menu-value-shortcut (name)
+  "Return a shorcut digit for file NAME.
+Return nil if file NAME is not one of the ten more recent."
+  (let ((i 0) k)
+    (while (and (not k) (< i 10))
+      (if (string-equal name (nth i recentf-list))
+          (progn
+            (setq recentf-menu-shortcuts (1+ recentf-menu-shortcuts))
+            (setq k (% (1+ i) 10)))
+        (setq i (1+ i))))
+    k))
+
+(defun recentf-make-menu-item (elt)
   "Make a menu item from menu element ELT."
   (let ((item  (recentf-menu-element-item  elt))
         (value (recentf-menu-element-value elt)))
     (if (recentf-sub-menu-element-p elt)
         (cons item (mapcar 'recentf-make-menu-item value))
-      (vector item (list recentf-menu-action value)
-              :help (concat "Open " value)
-              :active t))))
+      (let ((k (and (< recentf-menu-shortcuts 10)
+                    (recentf-menu-value-shortcut value))))
+        (vector item
+                ;; If the file name is one of the ten more recent, use
+                ;; a digit shortcut command to open it, else use an
+                ;; anonymous command.
+                (if k
+                    (recentf-digit-shortcut-command-name k)
+                  `(lambda ()
+                     (interactive)
+                     (,recentf-menu-action ,value)))
+                :help (concat "Open " value)
+                :active t)))))
 
 (defsubst recentf-menu-bar ()
   "Return the keymap of the global menu bar."
@@ -930,62 +985,6 @@ unchanged."
                             t)))))
     l))
 
-;;; Common dialog stuff
-;;
-(defun recentf-cancel-dialog (&rest ignore)
-  "Cancel the current dialog.
-IGNORE arguments."
-  (interactive)
-  (kill-buffer (current-buffer))
-  (message "Dialog canceled"))
-
-(defun recentf-dialog-goto-first (widget-type)
-  "Move the cursor to the first WIDGET-TYPE in current dialog.
-Go to the beginning of buffer if not found."
-  (goto-char (point-min))
-  (condition-case nil
-      (let (done)
-        (widget-move 1)
-        (while (not done)
-          (if (eq widget-type (widget-type (widget-at (point))))
-              (setq done t)
-            (widget-move 1))))
-    (goto-char (point-min))))
-
-(defvar recentf-dialog-mode-map
-  (let ((km (make-sparse-keymap)))
-    (set-keymap-parent km widget-keymap)
-    (define-key km "q" 'recentf-cancel-dialog)
-    (define-key km [down-mouse-1] 'widget-button-click)
-    ;; Keys in reverse order of appearence in help.
-    (dolist (k '("0" "9" "8" "7" "6" "5" "4" "3" "2" "1"))
-      (define-key km k 'recentf-open-file-with-key))
-    km)
-  "Keymap used in recentf dialogs.")
-
-(define-derived-mode recentf-dialog-mode nil "recentf-dialog"
-  "Major mode of recentf dialogs.
-
-\\{recentf-dialog-mode-map}"
-  :syntax-table nil
-  :abbrev-table nil
-  (setq truncate-lines t))
-
-(defmacro recentf-dialog (name &rest forms)
-  "Show a dialog buffer with NAME, setup with FORMS."
-  (declare (indent 1) (debug t))
-  `(with-current-buffer (get-buffer-create ,name)
-    ;; Cleanup buffer
-    (let ((inhibit-read-only t)
-          (ol (overlay-lists)))
-      (mapc 'delete-overlay (car ol))
-      (mapc 'delete-overlay (cdr ol))
-      (erase-buffer))
-    (recentf-dialog-mode)
-    ,@forms
-    (widget-setup)
-    (switch-to-buffer (current-buffer))))
-
 ;;; Hooks
 ;;
 (defun recentf-track-opened-file ()
@@ -1034,6 +1033,59 @@ That is, remove a non kept file from the recent list."
 ;;; Commands
 ;;
 
+;;; Common dialog stuff
+;;
+(defun recentf-cancel-dialog (&rest ignore)
+  "Cancel the current dialog.
+IGNORE arguments."
+  (interactive)
+  (kill-buffer (current-buffer))
+  (message "Dialog canceled"))
+
+(defun recentf-dialog-goto-first (widget-type)
+  "Move the cursor to the first WIDGET-TYPE in current dialog.
+Go to the beginning of buffer if not found."
+  (goto-char (point-min))
+  (condition-case nil
+      (let (done)
+        (widget-move 1)
+        (while (not done)
+          (if (eq widget-type (widget-type (widget-at (point))))
+              (setq done t)
+            (widget-move 1))))
+    (goto-char (point-min))))
+
+(defvar recentf-dialog-mode-map
+  (let ((km (copy-keymap recentf--shortcuts-keymap)))
+    (set-keymap-parent km widget-keymap)
+    (define-key km "q" 'recentf-cancel-dialog)
+    (define-key km [follow-link] "\C-m")
+    km)
+  "Keymap used in recentf dialogs.")
+
+(define-derived-mode recentf-dialog-mode nil "recentf-dialog"
+  "Major mode of recentf dialogs.
+
+\\{recentf-dialog-mode-map}"
+  :syntax-table nil
+  :abbrev-table nil
+  (setq truncate-lines t))
+
+(defmacro recentf-dialog (name &rest forms)
+  "Show a dialog buffer with NAME, setup with FORMS."
+  (declare (indent 1) (debug t))
+  `(with-current-buffer (get-buffer-create ,name)
+    ;; Cleanup buffer
+    (let ((inhibit-read-only t)
+          (ol (overlay-lists)))
+      (mapc 'delete-overlay (car ol))
+      (mapc 'delete-overlay (cdr ol))
+      (erase-buffer))
+    (recentf-dialog-mode)
+    ,@forms
+    (widget-setup)
+    (switch-to-buffer (current-buffer))))
+
 ;;; Edit list dialog
 ;;
 (defvar recentf-edit-list nil)
@@ -1081,14 +1133,14 @@ Click on Cancel or type `q' to cancel.\n")
      'push-button
      :notify 'recentf-edit-list-validate
      :help-echo "Delete selected files from the recent list"
-      "Ok")
+     "Ok")
     (widget-insert " ")
     (widget-create
      'push-button
      :notify 'recentf-cancel-dialog
      "Cancel")
     (recentf-dialog-goto-first 'checkbox)))
-
+
 ;;; Open file dialog
 ;;
 (defun recentf-open-files-action (widget &rest ignore)
@@ -1178,30 +1230,29 @@ use for the dialog.  It defaults to \"*`recentf-menu-title'*\"."
      "Cancel")
     (recentf-dialog-goto-first 'link)))
 
-(defun recentf-open-file-with-key (n)
-  "Open the recent file with the shortcut numeric key N.
-N must be a valid digit.
-`1' opens the first file, `2' the second file, ... `9' the ninth file.
-`0' opens the tenth file."
-  (interactive
-   (list
-    (let ((n (string-to-number (this-command-keys))))
-      (cond
-       ((zerop n) 10)
-       ((and (> n 0) (< n 10)) n)
-       ((error "Invalid digit key %d" n))))))
-  (when recentf--files-with-key
-    (let ((file (nth (1- n) recentf--files-with-key)))
-      (unless file (error "Not that many recent files"))
-      (kill-buffer (current-buffer))
-      (funcall recentf-menu-action file))))
-
 (defun recentf-open-more-files ()
   "Show a dialog to open a recent file that is not in the menu."
   (interactive)
   (recentf-open-files (nthcdr recentf-max-menu-items recentf-list)
                       (format "*%s - More*" recentf-menu-title)))
 
+(defun recentf-open-most-recent-file (&optional n)
+  "Open the Nth most recent file.
+Optional argument N must be a valid digit number.  It defaults to 1.
+1 opens the most recent file, 2 the second most recent one, etc..
+0 opens the tenth most recent file."
+  (interactive "p")
+  (cond
+   ((zerop n) (setq n 10))
+   ((and (> n 0) (< n 10)))
+   ((error "Recent file number out of range [0-9], %d" n)))
+  (let ((file (nth (1- n) (or recentf--files-with-key recentf-list))))
+    (unless file (error "Not that many recent files"))
+    ;; Close the open files dialog.
+    (when recentf--files-with-key
+      (kill-buffer (current-buffer)))
+    (funcall recentf-menu-action file)))
+
 ;;; Save/load/cleanup the recent list
 ;;
 (defconst recentf-save-file-header
@@ -1265,6 +1316,11 @@ That is, remove duplicates, non-kept, and excluded files."
         (message "File %s removed from the recentf list" f)))
     (message "Cleaning up the recentf list...done (%d removed)" n)
     (setq recentf-list (nreverse newlist))))
+
+;;; The minor mode
+;;
+(defvar recentf-mode-map (make-sparse-keymap)
+  "Keymap to use in recentf mode.")
 
 ;;;###autoload
 (define-minor-mode recentf-mode
@@ -1273,9 +1329,12 @@ With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled.
 
 When recentf mode is enabled, it maintains a menu for visiting files
-that were operated on recently."
+that were operated on recently.
+
+\\{recentf-mode-map}"
   :global t
   :group 'recentf
+  :keymap recentf-mode-map
   (unless (and recentf-mode (recentf-enabled-p))
     (if recentf-mode
         (recentf-load-list)

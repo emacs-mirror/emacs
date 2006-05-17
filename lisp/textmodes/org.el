@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.16
+;; Version: 3.17
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -80,6 +80,9 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.17
+;;    - HTML export specifies character set depending on coding-system.
+;;
 ;; Version 3.16
 ;;    - In tables, directly after the field motion commands like TAB and RET,
 ;;      typing a character will blank the field.  Can be turned off with
@@ -210,7 +213,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.16"
+(defvar org-version "3.17"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -481,89 +484,6 @@ or contain a special line
 
 If the file does not specify a category, then file's base name
 is used instead.")
-
-(defun org-set-regexps-and-options ()
-  "Precompute regular expressions for current buffer."
-  (when (eq major-mode 'org-mode)
-    (let ((re (org-make-options-regexp
-	       '("CATEGORY" "SEQ_TODO" "PRI_TODO" "TYP_TODO"
-		 "STARTUP" "ARCHIVE")))
-	  (splitre "[ \t]+")
-	  kwds int key value cat arch)
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  (goto-char (point-min))
-	  (while (re-search-forward re nil t)
-	    (setq key (match-string 1) value (match-string 2))
-	    (cond
-	     ((equal key "CATEGORY")
-	      (if (string-match "[ \t]+$" value)
-		  (setq value (replace-match "" t t value)))
-	      (setq cat (intern value)))
-	     ((equal key "SEQ_TODO")
-	      (setq int 'sequence
-		    kwds (append kwds (org-split-string value splitre))))
-	     ((equal key "PRI_TODO")
-	      (setq int 'priority
-		    kwds (append kwds (org-split-string value splitre))))
-	     ((equal key "TYP_TODO")
-	      (setq int 'type
-		    kwds (append kwds (org-split-string value splitre))))
-	     ((equal key "STARTUP")
-	      (let ((opts (org-split-string value splitre))
-		    (set '(("fold" org-startup-folded t)
-			   ("nofold" org-startup-folded nil)
-			   ("content" org-startup-folded content)
-			   ("dlcheck" org-startup-with-deadline-check t)
-			   ("nodlcheck" org-startup-with-deadline-check nil)))
-		    l var val)
-		(while (setq l (assoc (pop opts) set))
-		  (setq var (nth 1 l) val (nth 2 l))
-		  (set (make-local-variable var) val))))
-	     ((equal key "ARCHIVE")
-	      (string-match " *$" value)
-	      (setq arch (replace-match "" t t value))
-	      (remove-text-properties 0 (length arch)
-				      '(face t fontified t) arch)))
-	    )))
-      (and cat (set (make-local-variable 'org-category) cat))
-      (and kwds (set (make-local-variable 'org-todo-keywords) kwds))
-      (and arch (set (make-local-variable 'org-archive-location) arch))
-      (and int (set (make-local-variable 'org-todo-interpretation) int)))
-    ;; Compute the regular expressions and other local variables
-    (setq org-todo-kwd-priority-p (equal org-todo-interpretation 'priority)
-	  org-todo-kwd-max-priority (1- (length org-todo-keywords))
-	  org-ds-keyword-length (+ 2 (max (length org-deadline-string)
-					  (length org-scheduled-string)))
-	  org-done-string
-	  (nth (1- (length org-todo-keywords)) org-todo-keywords)
-	  org-todo-regexp
-	  (concat "\\<\\(" (mapconcat 'regexp-quote org-todo-keywords
-				      "\\|") "\\)\\>")
-	  org-not-done-regexp
-	  (concat "\\<\\("
-		  (mapconcat 'regexp-quote
-			     (nreverse (cdr (reverse org-todo-keywords)))
-			     "\\|")
-		  "\\)\\>")
-	  org-todo-line-regexp
-	  (concat "^\\(\\*+\\)[ \t]*\\("
-		  (mapconcat 'regexp-quote org-todo-keywords "\\|")
-		  "\\)? *\\(.*\\)")
-	  org-nl-done-regexp
-	  (concat "[\r\n]\\*+[ \t]+" org-done-string "\\>")
-	  org-looking-at-done-regexp (concat "^" org-done-string "\\>")
-	  org-deadline-regexp (concat "\\<" org-deadline-string)
-	  org-deadline-time-regexp
-	  (concat "\\<" org-deadline-string " *<\\([^>]+\\)>")
-	  org-deadline-line-regexp
-	  (concat "\\<\\(" org-deadline-string "\\).*")
-	  org-scheduled-regexp
-	  (concat "\\<" org-scheduled-string)
-	  org-scheduled-time-regexp
-	  (concat "\\<" org-scheduled-string " *<\\([^>]+\\)>"))
-    (org-set-font-lock-defaults)))
 
 (defgroup org-time nil
   "Options concerning time stamps and deadlines in Org-mode."
@@ -1754,6 +1674,89 @@ When this is non-nil, the headline after the keyword is set to the
     org-level-8
     ))
 (defvar org-n-levels (length org-level-faces))
+
+(defun org-set-regexps-and-options ()
+  "Precompute regular expressions for current buffer."
+  (when (eq major-mode 'org-mode)
+    (let ((re (org-make-options-regexp
+	       '("CATEGORY" "SEQ_TODO" "PRI_TODO" "TYP_TODO"
+		 "STARTUP" "ARCHIVE")))
+	  (splitre "[ \t]+")
+	  kwds int key value cat arch)
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (while (re-search-forward re nil t)
+	    (setq key (match-string 1) value (match-string 2))
+	    (cond
+	     ((equal key "CATEGORY")
+	      (if (string-match "[ \t]+$" value)
+		  (setq value (replace-match "" t t value)))
+	      (setq cat (intern value)))
+	     ((equal key "SEQ_TODO")
+	      (setq int 'sequence
+		    kwds (append kwds (org-split-string value splitre))))
+	     ((equal key "PRI_TODO")
+	      (setq int 'priority
+		    kwds (append kwds (org-split-string value splitre))))
+	     ((equal key "TYP_TODO")
+	      (setq int 'type
+		    kwds (append kwds (org-split-string value splitre))))
+	     ((equal key "STARTUP")
+	      (let ((opts (org-split-string value splitre))
+		    (set '(("fold" org-startup-folded t)
+			   ("nofold" org-startup-folded nil)
+			   ("content" org-startup-folded content)
+			   ("dlcheck" org-startup-with-deadline-check t)
+			   ("nodlcheck" org-startup-with-deadline-check nil)))
+		    l var val)
+		(while (setq l (assoc (pop opts) set))
+		  (setq var (nth 1 l) val (nth 2 l))
+		  (set (make-local-variable var) val))))
+	     ((equal key "ARCHIVE")
+	      (string-match " *$" value)
+	      (setq arch (replace-match "" t t value))
+	      (remove-text-properties 0 (length arch)
+				      '(face t fontified t) arch)))
+	    )))
+      (and cat (set (make-local-variable 'org-category) cat))
+      (and kwds (set (make-local-variable 'org-todo-keywords) kwds))
+      (and arch (set (make-local-variable 'org-archive-location) arch))
+      (and int (set (make-local-variable 'org-todo-interpretation) int)))
+    ;; Compute the regular expressions and other local variables
+    (setq org-todo-kwd-priority-p (equal org-todo-interpretation 'priority)
+	  org-todo-kwd-max-priority (1- (length org-todo-keywords))
+	  org-ds-keyword-length (+ 2 (max (length org-deadline-string)
+					  (length org-scheduled-string)))
+	  org-done-string
+	  (nth (1- (length org-todo-keywords)) org-todo-keywords)
+	  org-todo-regexp
+	  (concat "\\<\\(" (mapconcat 'regexp-quote org-todo-keywords
+				      "\\|") "\\)\\>")
+	  org-not-done-regexp
+	  (concat "\\<\\("
+		  (mapconcat 'regexp-quote
+			     (nreverse (cdr (reverse org-todo-keywords)))
+			     "\\|")
+		  "\\)\\>")
+	  org-todo-line-regexp
+	  (concat "^\\(\\*+\\)[ \t]*\\("
+		  (mapconcat 'regexp-quote org-todo-keywords "\\|")
+		  "\\)? *\\(.*\\)")
+	  org-nl-done-regexp
+	  (concat "[\r\n]\\*+[ \t]+" org-done-string "\\>")
+	  org-looking-at-done-regexp (concat "^" org-done-string "\\>")
+	  org-deadline-regexp (concat "\\<" org-deadline-string)
+	  org-deadline-time-regexp
+	  (concat "\\<" org-deadline-string " *<\\([^>]+\\)>")
+	  org-deadline-line-regexp
+	  (concat "\\<\\(" org-deadline-string "\\).*")
+	  org-scheduled-regexp
+	  (concat "\\<" org-scheduled-string)
+	  org-scheduled-time-regexp
+	  (concat "\\<" org-scheduled-string " *<\\([^>]+\\)>"))
+    (org-set-font-lock-defaults)))
 
 ;; Tell the compiler about dynamically scoped variables,
 ;; and variables from other packages
@@ -7869,7 +7872,7 @@ this variable requires a restart of Emacs to become effective."
 table editor in arbitrary modes.")
 (make-variable-buffer-local 'orgtbl-mode)
 
-(defvar orgtbl-mode-map (make-sparse-keymap)
+(defvar orgtbl-mode-map (make-keymap)
   "Keymap for `orgtbl-mode'.")
 
 ;;;###autoload
@@ -8827,6 +8830,12 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
          (lang-words  nil)
 	 (head-count  0) cnt
 	 (start       0)
+	 ;; FIXME: The following returns always nil under XEmacs
+	 (coding-system (and (fboundp 'coding-system-get)
+			     (boundp 'buffer-file-coding-system)
+			     buffer-file-coding-system))
+	 (charset (and coding-system
+		       (coding-system-get coding-system 'mime-charset)))
 	 table-open type
 	 table-buffer table-orig-buffer
 	 )
@@ -8855,13 +8864,14 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
       (insert (format
                "<html lang=\"%s\"><head>
 <title>%s</title>
-<meta http-equiv=\"Content-Type\" content=\"text/html\">
+<meta http-equiv=\"Content-Type\" content=\"text/html;charset=%s\">
 <meta name=generator content=\"Org-mode\">
 <meta name=generated content=\"%s %s\">
 <meta name=author content=\"%s\">
 </head><body>
 "
-	       language (org-html-expand title) date time author))
+	       language (org-html-expand title) (or charset "iso-8859-1")
+	       date time author))
       (if title     (insert (concat "<H1 align=\"center\">"
 				    (org-html-expand title) "</H1>\n")))
       (if author    (insert (concat (nth 1 lang-words) ": " author "\n")))
@@ -9408,6 +9418,9 @@ When LEVEL is non-nil, increase section numbers on that level."
 ;;                     i k                 @                                expendable from outline-mode
 ;;   0123456789                          !    %^&     ()_{}    "      `'    free
 
+;; Make `C-c C-x' a prefix key
+(define-key org-mode-map "\C-c\C-x" (make-sparse-keymap))
+
 ;; TAB key with modifiers
 (define-key org-mode-map "\C-i"       'org-cycle)
 (define-key org-mode-map [(meta tab)] 'org-complete)
@@ -9587,7 +9600,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
       (if (fboundp 'command-remapping)
 	  (define-key map (vector 'remap old) new)
 	(substitute-key-definition old new map global-map)))))
-
+  
 (when (eq org-enable-table-editor 'optimized)
   ;; If the user wants maximum table support, we need to hijack
   ;; some standard editing functions

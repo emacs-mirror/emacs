@@ -682,7 +682,10 @@ coordinates_in_window (w, x, y)
 
   /* Outside any interesting column?  */
   if (*x < left_x || *x > right_x)
-    return ON_SCROLL_BAR;
+    {
+      *y -= top_y;
+      return ON_SCROLL_BAR;
+    }
 
   lmargin_width = window_box_width (w, LEFT_MARGIN_AREA);
   rmargin_width = window_box_width (w, RIGHT_MARGIN_AREA);
@@ -739,9 +742,9 @@ coordinates_in_window (w, x, y)
 	      ? (*x < right_x - WINDOW_RIGHT_FRINGE_WIDTH (w))
 	      : (*x >= right_x - rmargin_width)))
 	{
-	  *x -= right_x;
-	  if (!WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
-	    *x -= WINDOW_RIGHT_FRINGE_WIDTH (w);
+	  *x -= right_x - rmargin_width;
+	  if (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
+	    *x += WINDOW_RIGHT_FRINGE_WIDTH (w);
 	  *y -= top_y;
 	  return ON_RIGHT_MARGIN;
 	}
@@ -753,7 +756,7 @@ coordinates_in_window (w, x, y)
     }
 
   /* Everything special ruled out - must be on text area */
-  *x -= left_x + WINDOW_LEFT_FRINGE_WIDTH (w);
+  *x -= text_left;
   *y -= top_y;
   return ON_TEXT;
 }
@@ -1029,7 +1032,8 @@ if it isn't already recorded.  */)
 
   if (! NILP (update)
       && ! (! NILP (w->window_end_valid)
-	    && XFASTINT (w->last_modified) >= MODIFF))
+	    && XFASTINT (w->last_modified) >= MODIFF)
+      && !noninteractive)
     {
       struct text_pos startp;
       struct it it;
@@ -6232,7 +6236,7 @@ usage: (save-window-excursion BODY ...)  */)
  ***********************************************************************/
 
 static Lisp_Object
-window_split_tree (w)
+window_tree (w)
      struct window *w;
 {
   Lisp_Object tail = Qnil;
@@ -6245,10 +6249,10 @@ window_split_tree (w)
       XSETWINDOW (wn, w);
       if (!NILP (w->hchild))
 	wn = Fcons (Qnil, Fcons (Fwindow_edges (wn),
-				 window_split_tree (XWINDOW (w->hchild))));
+				 window_tree (XWINDOW (w->hchild))));
       else if (!NILP (w->vchild))
 	wn = Fcons (Qt, Fcons (Fwindow_edges (wn),
-			       window_split_tree (XWINDOW (w->vchild))));
+			       window_tree (XWINDOW (w->vchild))));
 
       if (NILP (result))
 	{
@@ -6268,17 +6272,17 @@ window_split_tree (w)
 
 
 
-DEFUN ("window-split-tree", Fwindow_split_tree, Swindow_split_tree,
+DEFUN ("window-tree", Fwindow_tree, Swindow_tree,
        0, 1, 0,
-       doc: /* Return the window split tree for frame FRAME.
+       doc: /* Return the window tree for frame FRAME.
 
 The return value is a list of the form (ROOT MINI), where ROOT
-represents the window split tree of the frame's root window, and MINI
+represents the window tree of the frame's root window, and MINI
 is the frame's minibuffer window.
 
 If the root window is not split, ROOT is the root window itself.
 Otherwise, ROOT is a list (DIR EDGES W1 W2 ...) where DIR is nil for a
-horisontal split, and t for a vertical split, EDGES gives the combined
+horizontal split, and t for a vertical split, EDGES gives the combined
 size and position of the subwindows in the split, and the rest of the
 elements are the subwindows in the split.  Each of the subwindows may
 again be a window or a list representing a window split, and so on.
@@ -6301,7 +6305,7 @@ selected frame.  */)
   if (!FRAME_LIVE_P (f))
     return Qnil;
 
-  return window_split_tree (XWINDOW (FRAME_ROOT_WINDOW (f)));
+  return window_tree (XWINDOW (FRAME_ROOT_WINDOW (f)));
 }
 
 
@@ -7110,7 +7114,7 @@ The selected frame is the one whose configuration has changed.  */);
   defsubr (&Sset_window_configuration);
   defsubr (&Scurrent_window_configuration);
   defsubr (&Ssave_window_excursion);
-  defsubr (&Swindow_split_tree);
+  defsubr (&Swindow_tree);
   defsubr (&Sset_window_margins);
   defsubr (&Swindow_margins);
   defsubr (&Sset_window_fringes);

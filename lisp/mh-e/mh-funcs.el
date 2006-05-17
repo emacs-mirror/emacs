@@ -1,7 +1,7 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
 ;; Copyright (C) 1993, 1995,
-;; 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

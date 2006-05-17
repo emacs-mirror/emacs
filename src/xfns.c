@@ -3277,7 +3277,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* We need to do this after creating the X window, so that the
      icon-creation functions can say whose icon they're describing.  */
-  x_default_parameter (f, parms, Qicon_type, Qnil,
+  x_default_parameter (f, parms, Qicon_type, Qt,
 		       "bitmapIcon", "BitmapIcon", RES_TYPE_SYMBOL);
 
   x_default_parameter (f, parms, Qauto_raise, Qnil,

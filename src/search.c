@@ -1175,9 +1175,9 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       unsigned char *patbuf;
       int multibyte = !NILP (current_buffer->enable_multibyte_characters);
       unsigned char *base_pat = SDATA (string);
-      /* Set to nozero if we find a non-ASCII char that need
-	 translation.  */
-      int charset_base = 0;
+      /* Set to positive if we find a non-ASCII char that need
+	 translation.  Otherwise set to zero later.  */
+      int charset_base = -1;
       int boyer_moore_ok = 1;
 
       /* MULTIBYTE says whether the text to be searched is multibyte.
@@ -1275,24 +1275,30 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 			 always handle their translation.  */
 		      while (1)
 			{
-			  if (! ASCII_BYTE_P (inverse))
+			  if (ASCII_BYTE_P (inverse))
 			    {
-			      if (SINGLE_BYTE_CHAR_P (inverse))
-				{
-				  /* Boyer-moore search can't handle a
-				     translation of an eight-bit
-				     character.  */
-				  boyer_moore_ok = 0;
-				  break;
-				}
-			      else if (charset_base == 0)
-				charset_base = inverse & ~CHAR_FIELD3_MASK;
-			      else if ((inverse & ~CHAR_FIELD3_MASK)
-				       != charset_base)
+			      if (charset_base > 0)
 				{
 				  boyer_moore_ok = 0;
 				  break;
 				}
+			      charset_base = 0;
+			    }
+			  else if (SINGLE_BYTE_CHAR_P (inverse))
+			    {
+			      /* Boyer-moore search can't handle a
+				 translation of an eight-bit
+				 character.  */
+			      boyer_moore_ok = 0;
+			      break;
+			    }
+			  else if (charset_base < 0)
+			    charset_base = inverse & ~CHAR_FIELD3_MASK;
+			  else if ((inverse & ~CHAR_FIELD3_MASK)
+				   != charset_base)
+			    {
+			      boyer_moore_ok = 0;
+			      break;
 			    }
 			  if (c == inverse)
 			    break;
@@ -1300,6 +1306,8 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 			}
 		    }
 		}
+	      if (charset_base < 0)
+		charset_base = 0;
 
 	      /* Store this character into the translated pattern.  */
 	      bcopy (str, pat, charlen);

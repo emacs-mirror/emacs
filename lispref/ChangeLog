@@ -1,3 +1,8 @@
+2005-10-08  Kim F. Storm  <storm@cua.dk>
+
+	* windows.texi (Window Tree): Rename window-split-tree to window-tree.
+	Rename manual section accordingly.
+
 2005-10-04  Kim F. Storm  <storm@cua.dk>
 
 	* windows.texi (Window Split Tree): New section describing

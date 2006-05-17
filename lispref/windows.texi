@@ -30,7 +30,7 @@ displayed in windows.
 * Size of Window::          Accessing the size of a window.
 * Resizing Windows::        Changing the size of a window.
 * Coordinates and Windows:: Converting coordinates to windows.
-* Window Split Tree::       The layout and sizes of all windows in a frame.
+* Window Tree::             The layout and sizes of all windows in a frame.
 * Window Configurations::   Saving and restoring the state of the screen.
 * Window Hooks::            Hooks for scrolling, window size changes,
                               redisplay going past a certain point,
@@ -2168,19 +2168,19 @@ The function @code{coordinates-in-window-p} does not require a frame as
 argument because it always uses the frame that @var{window} is on.
 @end defun
 
-@node Window Split Tree
-@section The Window Split Tree
-@cindex window split tree
+@node Window Tree
+@section The Window Tree
+@cindex window tree
 
-  A @dfn{window split tree} specifies the layout, size, and relationship
+  A @dfn{window tree} specifies the layout, size, and relationship
 between all windows in one frame.
 
-@defun split-window-tree &optional frame
-This function returns the window split tree for frame @var{frame}.
+@defun window-tree &optional frame
+This function returns the window tree for frame @var{frame}.
 If @var{frame} is omitted, the selected frame is used.
 
 The return value is a list of the form @code{(@var{root} @var{mini})},
-where @var{root} represents the window split tree of the frame's
+where @var{root} represents the window tree of the frame's
 root window, and @var{mini} is the frame's minibuffer window.
 
 If the root window is not split, @var{root} is the root window itself.

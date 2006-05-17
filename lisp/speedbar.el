@@ -762,7 +762,7 @@ This basically creates a sparse keymap, and makes it's parent be
   (define-key speedbar-file-key-map "-" 'speedbar-contract-line)
 
   (define-key speedbar-file-key-map "[" 'speedbar-expand-line-descendants)
-  (define-key speedbar-file-key-map "]" 'speedbar-close-line-descendants)
+  (define-key speedbar-file-key-map "]" 'speedbar-contract-line-descendants)
 
   (define-key speedbar-file-key-map " " 'speedbar-toggle-line-expansion)
 

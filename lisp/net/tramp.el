@@ -844,7 +844,7 @@ which should work well in many cases."
   :type 'regexp)
 
 (defcustom tramp-password-prompt-regexp
-  "^.*\\([pP]assword\\|passphrase.*\\):\^@? *"
+  "^.*\\([pP]assword\\|passphrase\\).*:\^@? *"
   "*Regexp matching password-like prompts.
 The regexp should match at end of buffer.
 
@@ -1364,26 +1364,53 @@ implementation.  The necessity, whether this variable must be set, can be
 checked via the following code:
 
   (with-temp-buffer
-    (let ((bytes 1000)
-      (proc (start-process (buffer-name) (current-buffer) \"wc\" \"-c\")))
-      (process-send-string proc (make-string bytes ?x))
-      (process-send-eof proc)
-      (process-send-eof proc)
-      (accept-process-output proc 1)
-      (goto-char (point-min))
-      (re-search-forward \"\\\\w+\")
-      (message \"Bytes sent: %s\\tBytes received: %s\" bytes (match-string 0))))
+    (let* ((user \"xxx\") (host \"yyy\")
+           (init 0) (step 50)
+           (sent init) (received init))
+      (while (= sent received)
+        (setq sent (+ sent step))
+        (erase-buffer)
+        (let ((proc (start-process (buffer-name) (current-buffer)
+                                   \"ssh\" \"-l\" user host \"wc\" \"-c\")))
+          (when (memq (process-status proc) '(run open))
+            (process-send-string proc (make-string sent ?\\ ))
+            (process-send-eof proc)
+            (process-send-eof proc))
+          (while (not (progn (goto-char (point-min))
+                             (re-search-forward \"\\\\w+\" (point-max) t)))
+            (accept-process-output proc 1))
+          (when (memq (process-status proc) '(run open))
+            (setq received (string-to-number (match-string 0)))
+            (delete-process proc)
+            (message \"Bytes sent: %s\\tBytes received: %s\" sent received)
+            (sit-for 0))))
+      (if (> sent (+ init step))
+          (message \"You should set `tramp-chunksize' to a maximum of %s\"
+                   (- sent step))
+        (message \"Test does not work\")
+        (display-buffer (current-buffer))
+        (sit-for 30))))
 
-In the Emacs normally running Tramp, evaluate the above code.
-You can do this, for example, by pasting it into the `*scratch*'
-buffer and then hitting C-j with the cursor after the last
-closing parenthesis.
+In the Emacs normally running Tramp, evaluate the above code
+(replace \"xxx\" and \"yyy\" by the remote user and host name,
+respectively).  You can do this, for example, by pasting it into
+the `*scratch*' buffer and then hitting C-j with the cursor after the
+last closing parenthesis.  Note that it works only if you have configured
+\"ssh\" to run without password query, see ssh-agent(1).
 
-If your Emacs is buggy, the sent and received numbers will be
-different.  In that case, you'll want to set this variable to
-some number.  For those people who have needed it, the value 500
-seems to have worked well.  There is no way to predict what value
-you need; maybe you could just experiment a bit.
+You will see the number of bytes sent successfully to the remote host.
+If that number exceeds 1000, you can stop the execution by hitting
+C-g, because your Emacs is likely clean.
+
+If your Emacs is buggy, the code stops and gives you an indication
+about the value `tramp-chunksize' should be set.  Maybe you could just
+experiment a bit, e.g. changing the values of `init' and `step'
+in the third line of the code.
+
+When it is necessary to set `tramp-chunksize', you might consider to
+use an out-of-the-band method (like \"scp\") instead of an internal one
+(like \"ssh\"), because setting `tramp-chunksize' to non-nil decreases
+performance.
 
 Please raise a bug report via \"M-x tramp-bug\" if your system needs
 this variable to be set as well."
@@ -1590,8 +1617,8 @@ printf(
 on the remote file system.")
 
 (defconst tramp-perl-directory-files-and-attributes "\
-chdir($ARGV[0]);
-opendir(DIR,\".\");
+chdir($ARGV[0]) or printf(\"\\\"Cannot change to $ARGV[0]: $''!''\\\"\\n\"), exit();
+opendir(DIR,\".\") or printf(\"\\\"Cannot open directory $ARGV[0]: $''!''\\\"\\n\"), exit();
 @list = readdir(DIR);
 closedir(DIR);
 $n = scalar(@list);
@@ -2371,11 +2398,14 @@ target of the symlink differ."
 	   (buffer-name)))
   (if time-list
       (tramp-run-real-handler 'set-visited-file-modtime (list time-list))
-    (let ((f (buffer-file-name)))
+    (let ((f (buffer-file-name))
+	  coding-system-used)
       (with-parsed-tramp-file-name f nil
 	(let* ((attr (file-attributes f))
 	       ;; '(-1 65535) means file doesn't exists yet.
 	       (modtime (or (nth 5 attr) '(-1 65535))))
+	  (when (boundp 'last-coding-system-used)
+	    (setq coding-system-used (symbol-value 'last-coding-system-used)))
 	  ;; We use '(0 0) as a don't-know value.  See also
 	  ;; `tramp-handle-file-attributes-with-ls'.
 	  (if (not (equal modtime '(0 0)))
@@ -2390,6 +2420,8 @@ target of the symlink differ."
 	      (setq attr (buffer-substring (point)
 					   (progn (end-of-line) (point)))))
 	    (setq tramp-buffer-file-attributes attr))
+	  (when (boundp 'last-coding-system-used)
+	    (set 'last-coding-system-used coding-system-used))
 	  nil)))))
 
 ;; CCC continue here
@@ -2699,7 +2731,10 @@ of."
                                     (tramp-shell-quote-argument localname)
                                     (or id-format 'integer)))
         (tramp-wait-for-output)
-        (let* ((root (cons nil (read (current-buffer))))
+        (let* ((root (cons nil (let ((object (read (current-buffer))))
+                                 (when (stringp object)
+                                   (error object))
+                                 object)))
                (cell root))
           (while (cdr cell)
             (if (and match (not (string-match match (caadr cell))))
@@ -3750,7 +3785,7 @@ This will break if COMMAND prints a newline, followed by the value of
 			      'insert-file-contents)
 		      'file-local-copy)))
 	       (file-local-copy filename)))
-	    (result nil))
+	    coding-system-used result)
 	(when visit
 	  (setq buffer-file-name filename)
 	  (set-visited-file-modtime)
@@ -3759,10 +3794,15 @@ This will break if COMMAND prints a newline, followed by the value of
 	 multi-method method user host
 	 9 "Inserting local temp file `%s'..." local-copy)
 	(setq result (insert-file-contents local-copy nil beg end replace))
+	;; Now `last-coding-system-used' has right value.  Remember it.
+	(when (boundp 'last-coding-system-used)
+	  (setq coding-system-used (symbol-value 'last-coding-system-used)))
 	(tramp-message-for-buffer
 	 multi-method method user host
 	 9 "Inserting local temp file `%s'...done" local-copy)
 	(delete-file local-copy)
+	(when (boundp 'last-coding-system-used)
+	  (set 'last-coding-system-used coding-system-used))
 	(list (expand-file-name filename)
 	      (second result))))))
 
@@ -3876,6 +3916,13 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	  (loc-dec (tramp-get-local-decoding multi-method method user host))
 	  (trampbuf (get-buffer-create "*tramp output*"))
 	  (modes (file-modes filename))
+	  ;; We use this to save the value of `last-coding-system-used'
+	  ;; after writing the tmp file.  At the end of the function,
+	  ;; we set `last-coding-system-used' to this saved value.
+	  ;; This way, any intermediary coding systems used while
+	  ;; talking to the remote shell or suchlike won't hose this
+	  ;; variable.  This approach was snarfed from ange-ftp.el.
+	  coding-system-used
 	  tmpfil)
       ;; Write region into a tmp file.  This isn't really needed if we
       ;; use an encoding function, but currently we use it always
@@ -3892,6 +3939,9 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
        (if confirm ; don't pass this arg unless defined for backward compat.
 	   (list start end tmpfil append 'no-message lockname confirm)
 	 (list start end tmpfil append 'no-message lockname)))
+      ;; Now, `last-coding-system-used' has the right value.  Remember it.
+      (when (boundp 'last-coding-system-used)
+	(setq coding-system-used (symbol-value 'last-coding-system-used)))
       ;; The permissions of the temporary file should be set.  If
       ;; filename does not exist (eq modes nil) it has been renamed to
       ;; the backup file.  This case `save-buffer' handles
@@ -3998,6 +4048,9 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	 ;; We must pass modtime explicitely, because filename can be different
 	 ;; from (buffer-file-name), f.e. if `file-precious-flag' is set.
 	 (nth 5 (file-attributes filename))))
+      ;; Make `last-coding-system-used' have the right value.
+      (when (boundp 'last-coding-system-used)
+	(set 'last-coding-system-used coding-system-used))
       (when (or (eq visit t)
 		(eq visit nil)
 		(stringp visit))
@@ -6990,7 +7043,7 @@ as default."
       ;; auto-saved file belonging to another original file.  This could
       ;; be a security threat.
       (set-file-modes buffer-auto-save-file-name
-		      (or (file-modes bfn) #o600)))))
+		      (or (file-modes bfn) (tramp-octal-to-decimal "0600"))))))
 
 (unless (or (> emacs-major-version 21)
 	    (and (featurep 'xemacs)

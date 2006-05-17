@@ -1,3 +1,15 @@
+2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* NEWS: -nb => -nbi
+
+2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version 3.17, no changes except version number.
+
+2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* NEWS: -nb, --no-bitmap-icon
+
 2005-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* TODO: Clarify the local variables entry.

@@ -99,6 +99,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (scroll-down-aggressively windows
 				       (choice (const :tag "off" nil) number)
 				       "21.1")
+	     (line-spacing display (choice (const :tag "none" nil) integer))
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c

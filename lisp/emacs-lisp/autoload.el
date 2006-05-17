@@ -175,7 +175,8 @@ markers before we call `read'."
 	(goto-char (point-min))
 	(read (current-buffer))))))
 
-(defvar autoload-print-form-outbuf)
+(defvar autoload-print-form-outbuf nil
+  "Buffer which gets the output of `autoload-print-form'.")
 
 (defun autoload-print-form (form)
   "Print FORM such that `make-docfile' will find the docstrings.
@@ -492,7 +493,7 @@ Autoload section for %s is up to date."
 (defun update-directory-autoloads (&rest dirs)
   "\
 Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
-This uses `update-file-autoloads' (which see) do its work.
+This uses `update-file-autoloads' (which see) to do its work.
 In an interactive call, you must give one argument, the name
 of a single directory.  In a call from Lisp, you can supply multiple
 directories as separate arguments, but this usage is discouraged.

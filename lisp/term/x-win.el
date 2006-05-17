@@ -54,8 +54,6 @@
 ;; -font		*font
 ;; -foreground		*foreground
 ;; -geometry		.geometry
-;; -i			.iconType
-;; -itype		.iconType
 ;; -iconic		.iconic
 ;; -name		.name
 ;; -reverse		*reverseVideo

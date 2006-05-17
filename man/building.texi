@@ -801,18 +801,21 @@ If @code{gdb-many-windows} is non-@code{nil}, regardless of the value of
 @code{gdb-use-inferior-io-buffer} is @code{nil}.  In this case the
 source buffer occupies the full width of the frame.
 
-@multitable @columnfractions .5 .5
-@item GUD buffer (I/O of GDB)
-@tab Locals buffer
-@item
-@tab
-@item Source buffer
-@tab Input/Output (of inferior) buffer
-@item
-@tab
-@item Stack buffer
-@tab Breakpoints buffer
-@end multitable
+@example
++--------------------------------+--------------------------------+
+|                                |                                |
+|  GUD buffer (I/O of GDB)       |     Locals buffer              |
+|                                |                                |
+|--------------------------------+--------------------------------+
+|                                |                                |
+|  Source buffer                 |     I/O buffer (of inferior)   |
+|                                |                                |
+|--------------------------------+--------------------------------+
+|                                |                                |
+|  Stack buffer                  |     Breakpoints buffer         |
+|                                |                                |
++--------------------------------+--------------------------------+
+@end example
 
 To toggle this layout, do @kbd{M-x gdb-many-windows}.
 
@@ -822,12 +825,12 @@ re-compiling your program, then you can restore it with the command
 @code{gdb-restore-windows}.
 
 You may also choose which additional buffers you want to display,
-either in the same frame or a different one.  Select GDB-windows or
-GDB-Frames from the menu-bar under the heading GUD.  If the menu-bar
-is unavailable, type @code{M-x
+either in the same frame or a different one.  Select them from
+@samp{GUD->GDB-windows} or @samp{GUD->GDB-Frames} sub-menu
+respectively.  If the menu-bar is unavailable, type @code{M-x
 gdb-display-@var{buffertype}-buffer} or @code{M-x
-gdb-frame-@var{buffertype}-buffer} respectively, where @var{buffertype}
-is the relevant buffer type e.g breakpoints.
+gdb-frame-@var{buffertype}-buffer} respectively, where
+@var{buffertype} is the relevant buffer type e.g breakpoints.
 
 When you finish debugging then kill the GUD buffer with @kbd{C-x k},
 which will also kill all the buffers associated with the session.
@@ -874,7 +877,7 @@ the current line (@code{gdb-goto-breakpoint}).  Alternatively, click
 
 The stack buffer displays a @dfn{call stack}, with one line for each
 of the nested subroutine calls (@dfn{stack frames}) now active in the
-program.  @xref{Backtrace,,info stack, gdb, The GNU debugger}.
+program.  @xref{Backtrace,, Backtraces, gdb, The GNU debugger}.
 
 @findex gdb-frames-select
 The selected frame number is displayed in reverse contrast.  Move
@@ -897,6 +900,12 @@ Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree
 format.  To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
+
+By default, watch expressions only display in the speedbar when the
+GUD buffer is selected in the attached frame.  If you want your watch
+expressions to remain visible at all times then select the @samp{GUD}
+radio button on the @samp{Speedbar->Displays} sub-menu using
+@kbd{Mouse-3}.
 
 @findex gdb-var-delete
 With the cursor over the root expression of a complex data type, type
@@ -936,8 +945,8 @@ available here.  @xref{Shell Mode}.
 
 @item Locals Buffer
 The locals buffer displays the values of local variables of the
-current frame for simple data types (@pxref{Frame Info,,, gdb, The GNU
-debugger}).
+current frame for simple data types (@pxref{Frame Info, Frame Info,
+Information on a frame, gdb, The GNU debugger}).
 
 Arrays and structures display their type only.  You must display them
 separately to examine their values.  @xref{Watch Expressions}.
@@ -958,20 +967,21 @@ appear in the fringe or margin.
 @item Threads Buffer
 @findex gdb-threads-select
 The threads buffer displays a summary of all threads currently in your
-program (@pxref{Threads,,, gdb, The GNU debugger}).  Move point to any
-thread in the list and press @key{RET} to select it
-(@code{gdb-threads-select}) and display the associated source in the
-source buffer.  Alternatively, click @kbd{Mouse-2} on a thread to
-select it.  If the locals buffer is displayed then its contents update
-to display the variables that are local to the new thread.
+program (@pxref{Threads, Threads, Debugging programs with multiple
+threads, gdb, The GNU debugger}).  Move point to any thread in the
+list and press @key{RET} to select it (@code{gdb-threads-select}) and
+display the associated source in the source buffer.  Alternatively,
+click @kbd{Mouse-2} on a thread to select it.  If the locals buffer is
+displayed then its contents update to display the variables that are
+local to the new thread.
 
 @item Memory Buffer
 The memory buffer allows the user to examine sections of program
-memory (@pxref{Memory,,, gdb, The GNU debugger}).  Click @kbd{Mouse-1}
-on the appropriate part of the header line to change the starting
-address or number of data items that the buffer displays.
-Click @kbd{Mouse-3} on the header line to select the display format
-or unit size for these data items.
+memory (@pxref{Memory, Memory, Examining memory, gdb, The GNU
+debugger}).  Click @kbd{Mouse-1} on the appropriate part of the header
+line to change the starting address or number of data items that the
+buffer displays.  Click @kbd{Mouse-3} on the header line to select the
+display format or unit size for these data items.
 
 @end table
 

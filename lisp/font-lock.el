@@ -354,7 +354,7 @@ contained expressions.  You can also alter it by calling
 Each element in a user-level keywords list should have one of these forms:
 
  MATCHER
- (MATCHER . MATCH)
+ (MATCHER . SUBEXP)
  (MATCHER . FACENAME)
  (MATCHER . HIGHLIGHT)
  (MATCHER HIGHLIGHT ...)
@@ -380,12 +380,13 @@ word \"bar\" following the word \"anchor\" then MATCH-ANCHORED may be required.
 
 MATCH-HIGHLIGHT should be of the form:
 
- (MATCH FACENAME [OVERRIDE [LAXMATCH]])
+ (SUBEXP FACENAME [OVERRIDE [LAXMATCH]])
 
-MATCH is the subexpression of MATCHER to be highlighted.  FACENAME is an
-expression whose value is the face name to use.  Face default attributes
-can be modified via \\[customize].  Instead of a face, FACENAME can
-evaluate to a property list of the form (face FACE PROP1 VAL1 PROP2 VAL2 ...)
+SUBEXP is the number of the subexpression of MATCHER to be highlighted.
+
+FACENAME is an expression whose value is the face name to use.
+Instead of a face, FACENAME can evaluate to a property list
+of the form (face FACE PROP1 VAL1 PROP2 VAL2 ...)
 in which case all the listed text-properties will be set rather than
 just FACE.  In such a case, you will most likely want to put those
 properties in `font-lock-extra-managed-props' or to override
@@ -395,7 +396,8 @@ OVERRIDE and LAXMATCH are flags.  If OVERRIDE is t, existing fontification can
 be overwritten.  If `keep', only parts not already fontified are highlighted.
 If `prepend' or `append', existing fontification is merged with the new, in
 which the new or existing fontification, respectively, takes precedence.
-If LAXMATCH is non-nil, no error is signaled if there is no MATCH in MATCHER.
+If LAXMATCH is non-nil, that means don't signal an error if there is
+no match for SUBEXP in MATCHER.
 
 For example, an element of the form highlights (if not already highlighted):
 
@@ -508,36 +510,35 @@ The function is called with a single parameter (the state as returned by
 should return a face.  This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-syntactic-keywords nil
-  "A list of the syntactic keywords to highlight.
-Can be the list or the name of a function or variable whose value is the list.
-See `font-lock-keywords' for a description of the form of this list;
-the differences are listed below.  MATCH-HIGHLIGHT should be of the form:
+  "A list of the syntactic keywords to put syntax properties on.
+The value can be the list itself, or the name of a function or variable
+whose value is the list.
 
- (MATCH SYNTAX OVERRIDE LAXMATCH)
+See `font-lock-keywords' for a description of the form of this list;
+only the differences are stated here.  MATCH-HIGHLIGHT should be of the form:
+
+ (SUBEXP SYNTAX OVERRIDE LAXMATCH)
 
 where SYNTAX can be a string (as taken by `modify-syntax-entry'), a syntax
 table, a cons cell (as returned by `string-to-syntax') or an expression whose
 value is such a form.  OVERRIDE cannot be `prepend' or `append'.
 
-For example, an element of the form highlights syntactically:
+Here are two examples of elements of `font-lock-syntactic-keywords'
+and what they do:
 
  (\"\\\\$\\\\(#\\\\)\" 1 \".\")
 
- a hash character when following a dollar character, with a SYNTAX of
- \".\" (meaning punctuation syntax).  Assuming that the buffer syntax table does
- specify hash characters to have comment start syntax, the element will only
- highlight hash characters that do not follow dollar characters as comments
- syntactically.
+ gives a hash character punctuation syntax (\".\") when following a
+ dollar-sign character.  Hash characters in other contexts will still
+ follow whatever the syntax table says about the hash character.
 
  (\"\\\\('\\\\).\\\\('\\\\)\"
   (1 \"\\\"\")
   (2 \"\\\"\"))
 
- both single quotes which surround a single character, with a SYNTAX of
- \"\\\"\" (meaning string quote syntax).  Assuming that the buffer syntax table
- does not specify single quotes to have quote syntax, the element will only
- highlight single quotes of the form 'c' as strings syntactically.
- Other forms, such as foo'bar or 'fubar', will not be highlighted as strings.
+ gives a pair single-quotes, which surround a single character, a SYNTAX of
+ \"\\\"\" (meaning string quote syntax).  Single-quote characters in other
+ contexts will not be affected.
 
 This is normally set via `font-lock-defaults'.")
 

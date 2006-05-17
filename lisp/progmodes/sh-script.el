@@ -3392,7 +3392,7 @@ t means to return a list of all possible completions of STRING.
   "Insert code to setup temporary file handling.  See `sh-feature'."
   (bash sh-append ksh88)
   (csh (file-name-nondirectory (buffer-file-name))
-       "set tmp = /tmp/" str ".$$" \n
+       "set tmp = `mktemp -t " str ".XXXXXX`" \n
        "onintr exit" \n _
        (and (goto-char (point-max))
 	    (not (bolp))
@@ -3400,8 +3400,8 @@ t means to return a list of all possible completions of STRING.
        "exit:\n"
        "rm $tmp* >&/dev/null" > \n)
   (es (file-name-nondirectory (buffer-file-name))
-      > "local( signals = $signals sighup sigint; tmp = /tmp/" str
-      ".$pid ) {" \n
+      > "local( signals = $signals sighup sigint;" \n
+      > "tmp = `{ mktemp -t " str ".XXXXXX } ) {" \n
       > "catch @ e {" \n
       > "rm $tmp^* >[2]/dev/null" \n
       "throw $e" \n
@@ -3412,10 +3412,10 @@ t means to return a list of all possible completions of STRING.
   (ksh88 sh-modify sh
 	 7 "EXIT")
   (rc (file-name-nondirectory (buffer-file-name))
-      > "tmp = /tmp/" str ".$pid" \n
+      > "tmp = `{ mktemp -t " str ".XXXXXX }" \n
       "fn sigexit { rm $tmp^* >[2]/dev/null }" \n)
   (sh (file-name-nondirectory (buffer-file-name))
-      > "TMP=${TMPDIR:-/tmp}/" str ".$$" \n
+      > "TMP=`mktemp -t " str ".XXXXXX`" \n
       "trap \"rm $TMP* 2>/dev/null\" " ?0 \n))
 
 

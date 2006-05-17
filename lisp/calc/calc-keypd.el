@@ -296,7 +296,7 @@
 	      (set-window-buffer old-win (calc-trail-buffer))
 	      (set-window-buffer win calc-keypad-buffer)
 	      (set-window-start win 1)
-	      (setq win (split-window win (+ width 3) t))
+	      (setq win (split-window win (+ width 7) t))
 	      (set-window-buffer win calcbuf))
 	  (if (or t  ; left-side keypad not yet fully implemented
 		  (< (save-excursion
@@ -384,7 +384,7 @@
 	  (delete-region (point-min) (point))
 	  (if calc-keypad-input
 	      (insert "Calc: " calc-keypad-input "\n")
-	    (insert "----+-----Calc " calc-version "-----+----"
+	    (insert "----+-----Calc " calc-version " -----+----"
 		    (int-to-string (1+ calc-keypad-menu))
 		    "\n")))))
   (setq calc-keypad-prev-input calc-keypad-input))

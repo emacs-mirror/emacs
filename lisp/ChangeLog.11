@@ -1,4 +1,3 @@
-
 2004-12-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-store.el (calcVar-digit, calcVar-oper): Remove the need
@@ -673,7 +672,7 @@
 2004-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-repository-hostname): Adjust to new format.
-	Reported by Ville Skyttä <scop@xemacs.org>.
+	Reported by Ville Skytt,Ad(B <scop@xemacs.org>.
 	(vc-svn-annotate-current-time, vc-svn-annotate-time-of-rev)
 	(vc-svn-annotate-time, vc-svn-annotate-extract-revision-at-line)
 	(vc-svn-annotate-command, vc-svn-annotate-re): Support for svn
@@ -1238,7 +1237,7 @@
 	(sc-recite-region): Handle the case where sc-recite-frame-alist is
 	a symbol.
 
-2004-11-27  Arne Jørgensen  <arne@arnested.dk>  (tiny change)
+2004-11-27  Arne J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
 
 	* wid-edit.el (widget-narrow-to-field): New function.
 	(widget-complete): Use it.
@@ -1714,7 +1713,7 @@
 	Replace	variables comp-highlight, comp-buf, comp-base,
 	comp-height, comp-tag, comp-hpos and comp-vpos by declared variables.
 
-2004-11-23  Jan Djärv  <jan.h.d@swipnet.se>
+2004-11-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add x-use-old-gtk-file-dialog.
 
@@ -2613,7 +2612,7 @@
 	(display-call-tree, byte-compile-arglist-warn):
 	Handle t returned by byte-compile-fdefinition.
 
-2004-11-09  Jan Djärv  <jan.h.d@swipnet.se>
+2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (maintainer-clean): Depend on distclean.
 
@@ -2807,7 +2806,7 @@
 
 	* files.el (set-auto-mode): Don't get error after setting -*-mode-*-.
 
-2004-11-04  Jan Djärv  <jan.h.d@swipnet.se>
+2004-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dired.el (dired-read-dir-and-switches): Call read-directory-name
 	if a dialog will be used, read-file-name otherwise.
@@ -2903,7 +2902,7 @@
 	* emacs-lisp/advice.el (ad-make-advised-definition):
 	Use called-interactively-p.
 
-2004-11-02  Jan Djärv  <jan.h.d@swipnet.se>
+2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* files.el (find-file-existing): New function.
 
@@ -2978,7 +2977,7 @@
 	* calc/calc-frac.el (calc-over-notation): Replace `completing-read'
 	with `interactive "s"'.
 
-2004-11-01  Jan Djärv  <jan.h.d@swipnet.se>
+2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* mouse.el (mouse-yank-at-click, mouse-yank-secondary):
 	Revert change from 2004-10-16.  '*' checks the current buffer, but the
@@ -3096,7 +3095,7 @@
 	(bibtex-complete): Do not use bibtex-choose-completion-string.
 	(bibtex-url): Simplify.
 
-2004-10-31  Jan Djärv  <jan.h.d@swipnet.se>
+2004-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-test-function, x-dnd-protocol-alist)
 	(x-dnd-types-alist, x-dnd-open-file-other-window)
@@ -3192,7 +3191,7 @@
 	(grep-mode-font-lock-keywords): Delete grep markers instead
 	of making them invisible.
 
-2004-10-28  Jan Djärv  <jan.h.d@swipnet.se>
+2004-10-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* mail/emacsbug.el (report-emacs-bug): Insert x-server-vendor
 	and x-server-version in bug report.
@@ -4109,7 +4108,7 @@
 	(enriched-mode): Make sure that enabling and disabling the mode is
 	a no-op.  Doc fix.
 
-2004-09-23  Håkon Malmedal  <hmalmedal@yahoo.no>  (tiny change)
+2004-09-23  H,Ae(Bkon Malmedal  <hmalmedal@yahoo.no>  (tiny change)
 
 	* calendar/holidays.el (holiday-advent): Report on a specified day
 	offset from advent, not just advent.
@@ -4819,7 +4818,7 @@
 	lines that begin in the region, rather than on all complete lines
 	in the region.
 
-2004-08-31  Jan Djärv  <jan.h.d@swipnet.se>
+2004-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-protocol-alist): Document update.
 	(x-dnd-known-types): Defcustom it.
@@ -6049,7 +6048,7 @@
 	* progmodes/python.el (python-open-block-statement-p):
 	Fix indentation after a block opening that contains a comment.
 
-2004-06-12  Jérôme Marant  <jerome@marant.org>  (tiny change)
+2004-06-12  J,Ai(Br,At(Bme Marant  <jerome@marant.org>  (tiny change)
 
 	* bindings.el (completion-ignored-extensions): Add file extensions
 	of Python byte-compiled files.
@@ -6177,7 +6176,7 @@
 	* replace.el (perform-replace): Use `limit' to terminate the
 	while-loop explicitly.
 
-2004-06-09  Jan Djärv  <jan.h.d@swipnet.se>
+2004-06-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/tool-bar.el (tool-bar-add-item, tool-bar-local-item):
 	Use lc-*.xpm as prefix instead of *-locol.xpm.
@@ -6231,7 +6230,7 @@
 	(compilation-error-regexp-alist-alist): Recognize {standard input}
 	GNU messages (for gcc --pipe) and more kinds of Oracle messages.
 
-2004-06-08  Jan Djärv  <jan.h.d@swipnet.se>
+2004-06-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/copy-locol.xpm, toolbar/cut-locol.xpm
 	* toolbar/help-locol.xpm, toolbar/home-locol.xpm
@@ -6292,7 +6291,7 @@
 	* help-fns.el (help-argument-name): Inherit from italic face only
 	if the frame supports it.
 
-2004-06-06  Jan Djärv  <jan.h.d@swipnet.se>
+2004-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/alias.pbm, toolbar/close.pbm, toolbar/copy.pbm
 	* toolbar/cut.pbm, toolbar/help.pbm, toolbar/home.pbm
@@ -7048,7 +7047,7 @@
 	* progmodes/compile.el (compilation-warning-face)
 	(compilation-info-face): Use min-colors.
 
-2004-05-15  Jan Djärv  <jan.h.d@swipnet.se>
+2004-05-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/close.pbm, toolbar/close.xpm, toolbar/copy.pbm
 	* toolbar/copy.xpm, toolbar/cut.pbm, toolbar/cut.xpm
@@ -7138,7 +7137,7 @@
 	* progmodes/compile.el (compilation-set-window-height):
 	Use save-excursion to protect against misplaced marker.
 
-2004-05-12  Jan Djärv  <jan.h.d@swipnet.se>
+2004-05-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* custom.el (defface): Document that type can have value gtk.
 
@@ -7600,12 +7599,12 @@
 
 	* select.el (xselect-convert-to-string): Move comment to intended line.
 
-2004-05-03  Jan Djärv  <jan.h.d@swipnet.se>
+2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/tool-bar.el (tool-bar-setup): Use lookup-key for
 	cut/copy/paste in case menu-bar-enable-clipboard is in effect.
 
-2004-05-03  Jan Djärv  <jan.h.d@swipnet.se>
+2004-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-clipboard-yank): Don't exit on error from
 	x-get-selection.
@@ -8174,7 +8173,7 @@
 	* info-look.el: Add support for cfengine-mode.
 	(info-lookup-setup-mode): Use dolist.
 
-2004-04-23  Juan León Lahoz García  <juan-leon.lahoz@tecsidel.es>
+2004-04-23  Juan Le,As(Bn Lahoz Garc,Am(Ba  <juan-leon.lahoz@tecsidel.es>
 
 	* wdired.el: New file.
 
@@ -8452,7 +8451,7 @@
 	(rmail-decode-region): Use -dos variety of `coding', to remove any
 	^M characters left after qp or base64 decoding.
 
-2004-04-19  Jan Djärv  <jan.h.d@swipnet.se>
+2004-04-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-open-local-file, x-dnd-open-file): Improve error
 	messages.
@@ -9090,7 +9089,7 @@
 
 	* dired.el (dired-font-lock-keywords): Fix permission regexps.
 
-2004-04-02  Jan Djärv  <jan.h.d@swipnet.se>
+2004-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-handle-moz-url, x-dnd-insert-utf16-text):
 	Use utf-16le on little endian machines and utf-16be otherwise.
@@ -9151,7 +9150,7 @@
 	* dired-x.el (dired-mark-sexp): Replace hard-coded month names by
 	`dired-move-to-filename-regexp'.
 
-2004-03-31  Håkan Granath  <hakan.granath@kau.se>  (tiny change)
+2004-03-31  H,Ae(Bkan Granath  <hakan.granath@kau.se>  (tiny change)
 
 	* dired.el (dired-move-to-filename-regexp): Add `.' to HH:MM.
 
@@ -9226,7 +9225,7 @@
 2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-file-not-found-hook): Fix typo.
-	From lorentey@elte.hu (Lőrentey Károly).
+	From lorentey@elte.hu (L$,1 q(Brentey K,Aa(Broly).
 
 2004-03-27  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -10569,7 +10568,7 @@
 
 	* progmodes/grep.el (grep-compute-defaults): Fix typos.
 
-2004-02-15  Jan Djärv  <jan.h.d@swipnet.se>
+2004-02-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el: Mention support for Motif in commentary.
 	(x-dnd-handle-drag-n-drop-event): Ditto.
@@ -10628,7 +10627,7 @@
 	Use listp instead of consp to avoid putting a nil arg.
 	(diff): Add a revert-buffer function.
 
-2004-02-10  Jan Djärv  <jan.h.d@swipnet.se>
+2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-types-alist): Add COMPOUND_TEXT, FILE_NAME
 	handled by x-dnd-handle-file-name.
@@ -10793,7 +10792,7 @@
 	* view.el (view-mode-enable): Add view-mode-map to
 	minor-mode-overriding-map-alist.
 
-2004-02-05  Jan Djärv  <jan.h.d@swipnet.se>
+2004-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-get-local-file-name): Fix byte compiler warning
 
@@ -10817,7 +10816,7 @@
 
 	* files.el (auto-mode-alist): Fix .scm, .stk, .ss, .sch entry.
 
-2004-02-03  Jan Djärv  <jan.h.d@swipnet.se>
+2004-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el: New file for drag and drop.
 
@@ -11049,7 +11048,7 @@
 	* vc.el (vc-annotate-mode): Inherit from fundamental-mode and
 	activate view-mode explicitly.
 
-2004-01-21  Jan Djärv  <jan.h.d@swipnet.se>
+2004-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-clipboard-yank, menu-bar-edit-menu): Call
 	menu-bar-enable-clipboard and make Paste use clipboard first.
@@ -11798,7 +11797,7 @@
 	(gdb-var-update-handler, gdb-var-delete): Add server prefix to the
 	gdb commands that use mi to keep them out of the command history.
 
-2003-11-29  Jan Djärv  <jan.h.d@swipnet.se>
+2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add use-file-dialog.
 
@@ -12217,10 +12216,10 @@
 	(octave-blink-matching-block-open, octave-auto-fill):
 	Use line-(beginning|end)-position instead.
 
-2003-10-23  Francesco Potortì  <pot@gnu.org>
+2003-10-23  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* emacs-lisp/authors.el (authors-aliases): Add correct realname
-	for Francesco Potortì.
+	for Francesco Potort,Al(B.
 
 2003-10-23  Dave Love  <fx@gnu.org>
 
@@ -13236,7 +13235,7 @@
 	* international/utf-16.el: Add mime-text-unsuitable coding system
 	properties.
 
-	* international/latin1-disp.el (latin1-display): Add ?•.
+	* international/latin1-disp.el (latin1-display): Add ?$,1s"(B.
 
 	* cus-edit.el: Add some :links.
 	(bib): Remove.
@@ -13811,7 +13810,7 @@
 	* progmodes/sh-script.el (sh-mode-syntax-table): Change syntax of
 	?, to "_".
 
-2003-07-20  Kai Großjohann  <kai.grossjohann@gmx.net>
+2003-07-20  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 	Version 2.0.36 of Tramp released.
 
 	* net/tramp.el (tramp-default-password-end-of-line): Rename from

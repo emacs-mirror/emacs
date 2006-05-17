@@ -88,15 +88,16 @@
 If optional argument DELETE-OTHER-WINDOWS-FLAG is non-nil, other windows in
 the frame are removed."
   (interactive "P")
-  (customize-group 'mh)
+  (customize-group 'mh-e)
   (when delete-other-windows-flag
     (delete-other-windows)))
 
 
 
 ;;; For compiler warnings...
-(defvar mh-show-buffer)
-(defvar mh-show-folder-buffer)
+(eval-when-compile
+  (defvar mh-show-buffer)
+  (defvar mh-show-folder-buffer))
 
 ;;; MH-E Customization Groups
 
@@ -301,8 +302,8 @@ aliases or addresses. The default setting flashes the address associated with
 an address in the minibuffer briefly, but does not display a warning if the
 alias is not found."
   :type '(choice (const :tag "Flash but Don't Warn If No Alias" t)
-		 (const :tag "Flash and Warn If No Alias" 1)
-		 (const :tag "Don't Flash Nor Warn If No Alias" nil))
+                 (const :tag "Flash and Warn If No Alias" 1)
+                 (const :tag "Don't Flash Nor Warn If No Alias" nil))
   :group 'mh-alias)
 
 (defcustom mh-alias-insert-file nil
@@ -1214,6 +1215,7 @@ The gnus method uses a different color for each indentation."
     "Prev-Resent"                       ; MH
     "Priority:"
     "Received:"                         ; RFC 822
+    "Received-SPF:"                     ; Gmail
     "References:"
     "Remailed-"                         ; MH
     "Replied:"                          ; MH
@@ -1246,10 +1248,11 @@ The gnus method uses a different color for each indentation."
     "X-Envelope-From:"
     "X-Envelope-Sender:"
     "X-Envelope-To:"
-    "X-Evolution:"			; Evolution mail client
+    "X-Evolution:"                      ; Evolution mail client
     "X-Face:"
     "X-Folder:"                         ; Spam
     "X-From-Line"
+    "X-Gmail-"                          ; Gmail
     "X-Gnus-Mail-Source:"               ; gnus
     "X-Greylist:"                       ; milter-greylist-1.2.1
     "X-Habeas-SWE-1:"                   ; Spam
@@ -1274,7 +1277,7 @@ The gnus method uses a different color for each indentation."
     "X-MIME-Autoconverted:"             ; sendmail
     "X-MIMETrack:"
     "X-Mms-"                            ; T-Mobile pictures
-    "X-MS-"			        ; MS Outlook
+    "X-MS-"                             ; MS Outlook
     "X-MailScanner"                     ; ListProc(tm) by CREN
     "X-Mailing-List:"                   ; Unknown mailing list managers
     "X-Mailman-Version:"                ; Mailman mailing list manager
@@ -1894,6 +1897,7 @@ where,
                             for y in letter-docs
                             collect `(const :tag ,y ,x)))))))
 
+(mh-image-load-path)
 (mh-tool-bar-define
     ((:folder mh-inc-folder mh-mime-save-parts mh-previous-undeleted-msg
               mh-page-msg  mh-next-undeleted-msg mh-delete-msg mh-refile-msg
