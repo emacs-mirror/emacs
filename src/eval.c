@@ -2904,7 +2904,7 @@ DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
 {
   if (SYMBOLP (object) && !NILP (Ffboundp (object)))
     {
-      object = Findirect_function (object);
+      object = Findirect_function (object, Qnil);
 
       if (CONSP (object) && EQ (XCAR (object), Qautoload))
 	{
