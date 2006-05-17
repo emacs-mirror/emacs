@@ -1,6 +1,6 @@
 ;;; mh-inc.el --- MH-E "inc" and separate mail spool handling
 ;;
-;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2006 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -34,8 +34,10 @@
 
 ;;; Code:
 
+;;(message "> mh-inc")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
+;;(message "< mh-inc")
 
 (defvar mh-inc-spool-map (make-sparse-keymap)
   "Keymap for MH-E's mh-inc-spool commands.")
@@ -73,8 +75,8 @@
                                         (char-to-string key)
                                         "] inc " folder " folder\n"))))
 
-;; Avoid compiler warning
-(defvar mh-inc-spool-list)
+;; Shush compiler.
+(eval-when-compile (defvar mh-inc-spool-list))
 
 (defun mh-inc-spool-make ()
   "Make all commands and defines keys for contents of `mh-inc-spool-list'."

@@ -1,3 +1,84 @@
+2006-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-wash-html-in-text-plain-parts): New variable.
+	(nnrss-request-article): Render text/plain parts as HTML.
+
+	* gnus-art.el (gnus-article-wash-html-with-w3m): No need to narrow
+	the buffer.
+
+2006-01-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-cus.el (gnus-group-parameters): Sync posting-style with
+	custom definition of `gnus-posting-styles'.
+
+	* gnus-start.el (gnus-gnus-to-quick-newsrc-format): Bind
+	print-circle.  Suggested by Kalle Olavi Niemitalo <kon@iki.fi>.
+
+2006-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-group.el (gnus-useful-groups): Use Gmane for ding.  Use
+	nntp for bug archive.
+
+2006-01-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-request-article): Fix the way to fill text/plain
+	parts.
+	(nnrss-normalize-date): New function converts ISO 8601 date into
+	RFC822 style.  Suggested by Mark Plaksin <happy@mcplaksin.org>.
+	(nnrss-check-group): Use it.
+
+2006-01-03  Rodrigo Ventura <yoda@isr.ist.utl.pt>  (tiny change)
+
+	* gnus-xmas.el (gnus-xmas-group-startup-message): Typo
+	gnus-splash-face -> gnus-splash.  Fixes starting from a TTY in
+	XEmacs.
+
+2006-01-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-work-articles): Remove useless `min'.
+
+	* nnrss.el (nnrss-fetch): Make it fail gracefully when it can't
+	fetch a feed.  Suggested by Mark Plaksin <happy@mcplaksin.org>.
+	(nnrss-insert-w3): Ditto.
+
+2005-12-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-request-article): Fix last change; fill
+	text/plain parts.
+
+2005-12-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-request-article): Replace <br />s with newlines
+	in text/plain part.
+	(nnrss-check-group): Don't add excessive newline to dc:subject.
+
+2005-12-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-delete-text-of-type): Enable it to
+	remove MIME buttons associated with multipart/alternative parts.
+	(gnus-mime-display-alternative): Tag buttons using `article-type'
+	text property.
+
+	* gnus-msg.el (gnus-copy-article-buffer): Remove MIME buttons
+	associated with multipart/alternative parts.
+
+2005-12-19  Mark Plaksin <happy@mcplaksin.org>  (tiny change)
+
+	* nnrss.el (nnrss-check-group): Put the RSS dc:subject in the
+	article.
+
+2005-12-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dns.el (query-dns): Make sure we check the buffer size before
+	removing tcp headers.
+
+2006-01-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* spam.el (spam-group-ham-mark-p, spam-group-spam-mark-p)
+	(spam-group-spam-marks): Delete functions.
+	(spam-list-articles): Just call spam-group-ham-marks directly.
+	(spam-group-ham-marks): Simplify.
+
 2005-12-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-signature-separator): Fix custom type.

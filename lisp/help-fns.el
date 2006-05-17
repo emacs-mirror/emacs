@@ -1,7 +1,7 @@
 ;;; help-fns.el --- Complex help functions
 
 ;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -580,10 +580,10 @@ it is displayed along with the global value."
 			(help-xref-button 1 'help-variable-def
 					  variable file-name)))
 		    (if valvoid
-			(princ "It is void as a variable.\n")
+			(princ "It is void as a variable.")
 		      (princ "Its ")))
 		(if valvoid
-		    (princ " is void as a variable.\n")
+		    (princ " is void as a variable.")
 		  (princ "'s "))))
 	    (if valvoid
 		nil

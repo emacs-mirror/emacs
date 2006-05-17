@@ -304,7 +304,7 @@ This regexp should not start with a `^' character.")
 (defvar Man-include-regexp "#[ \t]*include[ \t]*"
   "Regular expression describing the #include (directive of cpp).")
 
-(defvar Man-file-name-regexp "[^<>\" \t\n]+"
+(defvar Man-file-name-regexp "[^<>\", \t\n]+"
   "Regular expression describing <> in #include line (directive of cpp).")
 
 (defvar Man-normal-file-prefix-regexp "[/~$]"

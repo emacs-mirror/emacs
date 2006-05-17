@@ -193,7 +193,8 @@ program `dired-chmod-program', which must exist."
     (define-key map [menu-bar wdired dashes]
       '("--"))
     (define-key map [menu-bar wdired wdired-abort-changes]
-      '("Abort Changes" . wdired-abort-changes))
+      '(menu-item "Abort Changes" wdired-abort-changes
+		  :help "Abort changes and return to dired mode"))
     (define-key map [menu-bar wdired wdired-finish-edit]
       '("Commit Changes" . wdired-finish-edit))
     ;; FIXME: Use the new remap trick.

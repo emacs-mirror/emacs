@@ -39,9 +39,11 @@
 
 ;;; Code:
 
+;;(message "> mh-identity")
 (eval-when-compile (require 'mh-acros))
-(mh-require-cl)
+
 (require 'mh-comp)
+;;(message "< mh-identity")
 
 (autoload 'mml-insert-tag "mml")
 

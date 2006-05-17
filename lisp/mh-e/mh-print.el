@@ -1,6 +1,6 @@
 ;;; mh-print.el --- MH-E printing support
 
-;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Jeffrey C Honig <jch@honig.net>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -30,12 +30,15 @@
 
 ;;; Code:
 
+;;(message "> mh-print")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'ps-print)
+(require 'mh-buffers)
 (require 'mh-utils)
 (require 'mh-funcs)
 (eval-when-compile (require 'mh-seq))
+;;(message "< mh-print")
 
 (defvar mh-ps-print-color-option ps-print-color-p
   "Specify how buffer's text color is printed.

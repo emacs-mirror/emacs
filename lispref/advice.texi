@@ -74,7 +74,8 @@ actually changing or even seeing that definition.  Here is how to do
 this:
 
 @example
-(defadvice previous-line (before next-line-at-end (arg))
+(defadvice previous-line (before next-line-at-end
+                                 (&optional arg try-vscroll))
   "Insert an empty line when moving up from the top line."
   (if (and next-line-add-newlines (= arg 1)
            (save-excursion (beginning-of-line) (bobp)))
@@ -87,8 +88,8 @@ this:
 @code{previous-line}.  This piece of advice is named
 @code{next-line-at-end}, and the symbol @code{before} says that it is
 @dfn{before-advice} which should run before the regular definition of
-@code{previous-line}.  @code{(arg)} specifies how the advice code can
-refer to the function's arguments.
+@code{previous-line}.  @code{(&optional arg try-vscroll)} specifies
+how the advice code can refer to the function's arguments.
 
   When this piece of advice runs, it creates an additional line, in the
 situation where that is appropriate, but does not move point to that

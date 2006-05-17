@@ -1,7 +1,7 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005 Free Software Foundation, Inc.
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -2504,7 +2504,8 @@ Keeps argument list for future ispell invocations for no async support."
       (setq ispell-filter nil ispell-filter-continue nil)
     ;; may need to restart to select new personal dictionary.
     (ispell-kill-ispell t)
-    (message "Starting new Ispell process...")
+    (message "Starting new Ispell process [%s] ..."
+	     (or ispell-local-dictionary ispell-dictionary "default"))
     (sit-for 0)
     (setq ispell-library-directory (ispell-check-version)
 	  ispell-process-directory default-directory
@@ -2556,6 +2557,9 @@ Keeps argument list for future ispell invocations for no async support."
   "Kill current Ispell process (so that you may start a fresh one).
 With NO-ERROR, just return non-nil if there was no Ispell running."
   (interactive)
+  ;; This hook is typically used by flyspell to flush some variables used
+  ;; to optimize the common cases.
+  (run-hooks 'ispell-kill-ispell-hook)
   (if (not (and ispell-process
 		(eq (ispell-process-status) 'run)))
       (or no-error
@@ -2619,6 +2623,7 @@ By just answering RET you can find out what the current dictionary is."
 	       (setq ispell-local-dictionary dict)
 	       (setq ispell-local-dictionary-overridden t))
 	   (error "Undefined dictionary: %s" dict))
+	 (ispell-internal-change-dictionary)
 	 (message "%s Ispell dictionary set to %s"
 		  (if arg "Global" "Local")
 		  dict))))
@@ -2631,7 +2636,6 @@ a new one will be started when needed."
     (unless (equal ispell-current-dictionary dict)
       (ispell-kill-ispell t)
       (setq ispell-current-dictionary dict))))
-
 
 ;;; Spelling of comments are checked when ispell-check-comments is non-nil.
 
@@ -2964,9 +2968,8 @@ Point is placed at end of skipped region."
 				      coding)))))
 
 ;;; Avoid error messages when compiling for these dynamic variables.
-(eval-when-compile
-  (defvar start)
-  (defvar end))
+(defvar start)
+(defvar end)
 
 (defun ispell-process-line (string shift)
   "Sends a LINE of text to ispell and processes the result.

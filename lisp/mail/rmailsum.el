@@ -132,7 +132,15 @@ Normally checks the Subject field of headers;
 but if WHOLE-MESSAGE is non-nil (prefix arg given),
  look in the whole message.
 SUBJECT is a string of regexps separated by commas."
-  (interactive "sTopics to summarize by: \nP")
+  (interactive
+   (let* ((subject (with-current-buffer rmail-buffer
+		     (rmail-current-subject)))
+	  (subject-re (with-current-buffer rmail-buffer
+			(rmail-current-subject-regexp)))
+	  (prompt (concat "Topics to summarize by (regexp"
+			  (if subject ", default current subject" "")
+			  "): ")))
+     (list (read-string prompt nil nil subject) current-prefix-arg)))
   (rmail-new-summary
    (concat "about " subject)
    (list 'rmail-summary-by-topic subject whole-message)
@@ -568,17 +576,11 @@ With prefix argument N moves backward N messages with these labels."
 With prefix argument N, do this N times.
 If N is negative, go backwards."
   (interactive "p")
-  (let (subject search-regexp  i found
-	(forward (> n 0)))
-    (save-excursion
-      (set-buffer rmail-buffer)
-      (setq subject (mail-fetch-field "Subject"))
-      (setq i rmail-current-message))
-    (if (string-match "Re:[ \t]*" subject)
-	(setq subject (substring subject (match-end 0))))
-    (setq search-regexp (concat "^Subject: *\\(Re: *\\)?"
-				(regexp-quote subject)
-				"\n"))
+  (let ((forward (> n 0))
+	search-regexp i found)
+    (with-current-buffer rmail-buffer
+      (setq search-regexp (rmail-current-subject-regexp)
+	    i rmail-current-message))
     (save-excursion
       (while (and (/= n 0)
 		  (if forward

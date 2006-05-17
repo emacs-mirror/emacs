@@ -413,7 +413,7 @@ See `find-variable' for more details."
 (defun find-definition-noselect (symbol type &optional file)
   "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
 TYPE says what type of definition: nil for a function,
-`defvar' or `defface' for a variable or face.  This functoin
+`defvar' or `defface' for a variable or face.  This function
 does not switch to the buffer or display it.
 
 The library where SYMBOL is defined is searched for in FILE or

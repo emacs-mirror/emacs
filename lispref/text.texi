@@ -2714,7 +2714,7 @@ list.
 
 @defun remove-list-of-text-properties start end list-of-properties &optional object
 Like @code{remove-text-properties} except that
-@var{list-of-properties} is a list property names only, not an
+@var{list-of-properties} is a list of property names only, not an
 alternating list of property names and values.
 @end defun
 

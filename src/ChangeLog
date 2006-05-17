@@ -1,3 +1,39 @@
+2006-01-15  Andreas Schwab  <schwab@suse.de>
+
+	* search.c (Freplace_match): Use UPPERCASEP instead of !NOCASEP.
+
+2006-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in: Define new macro WINDOW_SUPPORT.
+	(lisp): Use it.
+	(SOME_MACHINE_LISP): Add conditionally loaded files.
+
+2006-01-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_ATSUI] (atsu_get_text_layout_with_text_ptr)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1020]: Specify kATSLineUseQDRendering.
+	(XLoadQueryFont) [USE_ATSUI]: Display diacritical marks in
+	decomposed form.
+
+	* process.c [HAVE_INTTYPES_H]: Include inttypes.h.
+	(ifflag_table): Fix typo (IFF_OACTIV -> IFF_OACTIVE).
+	(Fnetwork_interface_info): Use HAVE_STRUCT_IFREQ_IFR_NETMASK
+	macro.  Also try member ifr_addr when getting netmask.
+
+2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fexpand_file_name): Remove redundant tests.
+	Fix elimination of // so that it doesn't prevent elimination of an
+	immediately following /. or /..
+
+2006-01-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_toggle_notify_cb): New function.
+	(xg_toggle_visibility_cb): Move setting of x_gtk_show_hidden_files to
+	xg_toggle_notify_cb.
+	(xg_get_file_with_chooser): Add callback to xg_toggle_notify_cb when
+	parameter value changes so the toggle button gets updated.
+
 2006-01-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* .gdbinit: Fix typo.
@@ -9,7 +45,7 @@
 2006-01-05  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (Fmake_network_process): Use AF_INET instead of
-	AF_UNSPEC when AF_INET6	is not defined.
+	AF_UNSPEC when AF_INET6 is not defined.
 
 2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

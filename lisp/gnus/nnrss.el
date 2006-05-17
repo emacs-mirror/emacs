@@ -87,8 +87,13 @@ ARTICLE is the article number of the current headline.")
 (defvar nnrss-compatible-encoding-alist '((iso-8859-1 . windows-1252))
   "Alist of encodings and those supersets.
 The cdr of each element is used to decode data if it is available when
-the car is what the data specify as the encoding. Or, the car is used
+the car is what the data specify as the encoding.  Or, the car is used
 for decoding when the cdr that the data specify is not available.")
+
+(defvar nnrss-wash-html-in-text-plain-parts nil
+  "*Non-nil means render text in text/plain parts as HTML.
+The function specified by the `mm-text-html-renderer' variable will be
+used to render text.  If it is nil, text will simply be folded.")
 
 (nnoo-define-basics nnrss)
 
@@ -169,6 +174,10 @@ for decoding when the cdr that the data specify is not available.")
 (deffoo nnrss-close-group (group &optional server)
   t)
 
+(eval-when-compile
+  (defvar mm-text-html-renderer)
+  (defvar mm-text-html-washer-alist))
+
 (deffoo nnrss-request-article (article &optional group server buffer)
   (setq group (nnrss-decode-group-name group))
   (when (stringp article)
@@ -191,10 +200,7 @@ for decoding when the cdr that the data specify is not available.")
 	(if (nth 5 e)
 	    (insert "Date: " (nnrss-format-string (nth 5 e)) "\n"))
 	(let ((header (buffer-string))
-	      (text (if (nth 6 e)
-			(mapconcat 'identity
-				   (delete "" (split-string (nth 6 e) "\n+"))
-				   " ")))
+	      (text (nth 6 e))
 	      (link (nth 2 e))
 	      (enclosure (nth 7 e))
 	      (comments (nth 8 e))
@@ -205,14 +211,55 @@ for decoding when the cdr that the data specify is not available.")
 		   (cons '("Newsgroups" . utf-8)
 			 rfc2047-header-encoding-alist)
 		 rfc2047-header-encoding-alist))
-	      rfc2047-encode-encoded-words body)
+	      rfc2047-encode-encoded-words body fn)
 	  (when (or text link enclosure comments)
 	    (insert "\n")
 	    (insert "<#multipart type=alternative>\n"
 		    "<#part type=\"text/plain\">\n")
 	    (setq body (point))
 	    (when text
-	      (insert text "\n")
+	      (insert text)
+	      (goto-char body)
+	      (if (and nnrss-wash-html-in-text-plain-parts
+		       (progn
+			 (require 'mm-view)
+			 (setq fn (or (cdr (assq mm-text-html-renderer
+						 mm-text-html-washer-alist))
+				      mm-text-html-renderer))))
+		  (progn
+		    (narrow-to-region body (point-max))
+		    (if (functionp fn)
+			(funcall fn)
+		      (apply (car fn) (cdr fn)))
+		    (widen)
+		    (goto-char body)
+		    (re-search-forward "[^\t\n ]" nil t)
+		    (beginning-of-line)
+		    (delete-region body (point))
+		    (goto-char (point-max))
+		    (skip-chars-backward "\t\n ")
+		    (end-of-line)
+		    (delete-region (point) (point-max))
+		    (insert "\n"))
+		(while (re-search-forward "\n+" nil t)
+		  (replace-match " "))
+		(goto-char body)
+		;; See `nnrss-check-group', which inserts "<br /><br />".
+		(when (search-forward "<br /><br />" nil t)
+		  (if (eobp)
+		      (replace-match "\n")
+		    (replace-match "\n\n")))
+		(unless (eobp)
+		  (let ((fill-column default-fill-column)
+			(window (get-buffer-window nntp-server-buffer)))
+		    (when window
+		      (setq fill-column
+			    (max 1 (/ (* (window-width window) 7) 8))))
+		    (fill-region (point) (point-max))
+		    (goto-char (point-max))
+		    ;; XEmacs version of `fill-region' inserts newline.
+		    (unless (bolp)
+		      (insert "\n")))))
 	      (when (or link enclosure)
 		(insert "\n")))
 	    (when link
@@ -362,7 +409,11 @@ otherwise return nil."
 	;; FIXME: shouldn't binding `coding-system-for-read' be moved
 	;; to `mm-url-insert'?
 	(let ((coding-system-for-read 'binary))
-	  (mm-url-insert url)))
+	  (condition-case err
+	      (mm-url-insert url)
+	    (error (if (or debug-on-quit debug-on-error)
+		       (signal (car err) (cdr err))
+		     (message "nnrss: Failed to fetch %s" url))))))
       (nnheader-remove-cr-followed-by-lf)
       ;; Decode text according to the encoding attribute.
       (when (setq cs (nnrss-get-encoding))
@@ -413,6 +464,74 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
     (dolist (elem nnrss-server-data)
       (unless (assoc (car elem) nnrss-group-alist)
 	(insert (prin1-to-string (car elem)) " 0 1 y\n")))))
+
+(eval-and-compile (autoload 'timezone-parse-date "timezone"))
+
+(defun nnrss-normalize-date (date)
+  "Return a date string of DATE in the RFC822 style.
+This function handles the ISO 8601 date format described in
+<URL:http://www.w3.org/TR/NOTE-datetime>, and also the RFC822 style
+which RSS 2.0 allows."
+  (let (case-fold-search vector year month day time zone cts)
+    (cond ((null date))
+	  ;; RFC822
+	  ((string-match " [0-9]+ " date)
+	   (setq vector (timezone-parse-date date)
+		 year (string-to-number (aref vector 0)))
+	   (when (>= year 1969)
+	     (setq month (string-to-number (aref vector 1))
+		   day (string-to-number (aref vector 2)))
+	     (unless (>= (length (setq time (aref vector 3))) 3)
+	       (setq time "00:00:00"))
+	     (when (and (setq zone (aref vector 4))
+			(not (string-match "\\`[A-Z+-]" zone)))
+	       (setq zone nil))))
+	  ;; ISO 8601
+	  ((string-match
+	    (eval-when-compile
+	      (concat
+	       ;; 1. year
+	       "\\(199[0-9]\\|20[0-9][0-9]\\)"
+	       "\\(-"
+	       ;; 3. month
+	       "\\([01][0-9]\\)"
+	       "\\(-"
+	       ;; 5. day
+	       "\\([0-3][0-9]\\)"
+	       "\\)?\\)?\\(T"
+	       ;; 7. hh:mm
+	       "\\([012][0-9]:[0-5][0-9]\\)"
+	       "\\("
+	       ;; 9. :ss
+	       "\\(:[0-5][0-9]\\)"
+	       "\\(\\.[0-9]+\\)?\\)?\\)?"
+	       ;; 13+14,15,16. zone
+	       "\\(\\(\\([+-][012][0-9]\\):\\([0-5][0-9]\\)\\)"
+	       "\\|\\([+-][012][0-9][0-5][0-9]\\)"
+	       "\\|\\(Z\\)\\)?"))
+	    date)
+	   (setq year (string-to-number (match-string 1 date))
+		 month (string-to-number (or (match-string 3 date) "1"))
+		 day (string-to-number (or (match-string 5 date) "1"))
+		 time (if (match-beginning 9)
+			  (substring date (match-beginning 7) (match-end 9))
+			(concat (or (match-string 7 date) "00:00") ":00"))
+		 zone (cond ((match-beginning 13)
+			     (concat (match-string 13 date)
+				     (match-string 14 date)))
+			    ((match-beginning 16) ;; Z
+			     "+0000")
+			    (t ;; nil if zone is not provided.
+			     (match-string 15 date))))))
+    (if month
+	(progn
+	  (setq cts (current-time-string (encode-time 0 0 0 day month year)))
+	  (format "%s, %02d %s %04d %s%s"
+		  (substring cts 0 3) day (substring cts 4 7) year time
+		  (if zone
+		      (concat " " zone)
+		    "")))
+      (message-make-date))))
 
 ;;; data functions
 
@@ -497,7 +616,11 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
 
 (defun nnrss-insert-w3 (url)
   (mm-with-unibyte-current-buffer
-    (mm-url-insert url)))
+    (condition-case err
+	(mm-url-insert url)
+      (error (if (or debug-on-quit debug-on-error)
+		 (signal (car err) (cdr err))
+	       (message "nnrss: Failed to fetch %s" url))))))
 
 (defun nnrss-decode-entities-string (string)
   (if string
@@ -532,7 +655,7 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
 ;;; Snarf functions
 
 (defun nnrss-check-group (group server)
-  (let (file xml subject url extra changed author date
+  (let (file xml subject url extra changed author date feed-subject
 	     enclosure comments rss-ns rdf-ns content-ns dc-ns)
     (if (and nnrss-use-local
 	     (file-exists-p (setq file (expand-file-name
@@ -575,12 +698,14 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
 	(setq extra (or extra
 			(nnrss-node-text content-ns 'encoded item)
 			(nnrss-node-text rss-ns 'description item)))
+	(if (setq feed-subject (nnrss-node-text dc-ns 'subject item))
+	    (setq extra (concat feed-subject "<br /><br />" extra)))
 	(setq author (or (nnrss-node-text rss-ns 'author item)
 			 (nnrss-node-text dc-ns 'creator item)
 			 (nnrss-node-text dc-ns 'contributor item)))
-	(setq date (or (nnrss-node-text dc-ns 'date item)
-		       (nnrss-node-text rss-ns 'pubDate item)
-		       (message-make-date)))
+	(setq date (nnrss-normalize-date
+		    (or (nnrss-node-text dc-ns 'date item)
+			(nnrss-node-text rss-ns 'pubDate item))))
 	(setq comments (nnrss-node-text rss-ns 'comments item))
 	(when (setq enclosure (cadr (assq (intern (concat rss-ns "enclosure")) item)))
 	  (let ((url (cdr (assq 'url enclosure)))

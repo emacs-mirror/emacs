@@ -190,11 +190,14 @@ no further processing).  URL is either a string or a parsed URL."
 		     "Spinning in url-retrieve-synchronously: %S (%S)"
 		     retrieval-done asynch-buffer)
 	  (if (and proc (memq (process-status proc)
-                              '(closed exit signal failed)))
+                              '(closed exit signal failed))
+                   ;; Make sure another process hasn't been started, as can
+                   ;; happen with http redirections.
+		   (eq proc (or (get-buffer-process asynch-buffer) proc)))
 	      ;; FIXME: It's not clear whether url-retrieve's callback is
 	      ;; guaranteed to be called or not.  It seems that url-http
 	      ;; decides sometimes consciously not to call it, so it's not
-	      ;; clear that it's a bug, but even if we need to decide how
+	      ;; clear that it's a bug, but even then we need to decide how
 	      ;; url-http can then warn us that the download has completed.
               ;; In the mean time, we use this here workaround.
               (setq retrieval-done t)

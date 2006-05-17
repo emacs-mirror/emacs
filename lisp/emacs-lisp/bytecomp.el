@@ -4464,7 +4464,11 @@ already up-to-date."
 (defun batch-byte-recompile-directory (&optional arg)
   "Run `byte-recompile-directory' on the dirs remaining on the command line.
 Must be used only with `-batch', and kills Emacs on completion.
-For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
+For example, invoke `emacs -batch -f batch-byte-recompile-directory .'.
+
+Optional argument ARG is passed as second argument ARG to
+`batch-recompile-directory'; see there for its possible values
+and corresponding effects."
   ;; command-line-args-left is what is left of the command line (startup.el)
   (defvar command-line-args-left)	;Avoid 'free variable' warning
   (if (not noninteractive)

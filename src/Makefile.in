@@ -676,6 +676,20 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 #define MSDOS_SUPPORT
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+#ifdef HAVE_X_WINDOWS
+#define WINDOW_SUPPORT ${lispsource}image.elc \
+ ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
+ ${lispsource}tool-bar.elc ${lispsource}mwheel.elc ${lispsource}x-dnd.elc
+#else
+#define WINDOW_SUPPORT ${lispsource}image.elc \
+ ${lispsource}international/fontset.elc ${lispsource}dnd.elc \
+ ${lispsource}tool-bar.elc ${lispsource}mwheel.elc
+#endif
+#else
+#define WINDOW_SUPPORT
+#endif
+
 #ifdef WINDOWSNT
 #define WINNT_SUPPORT ${lispsource}ls-lisp.elc ${lispsource}disp-table.elc \
   ${lispsource}dos-w32.elc ${lispsource}w32-vars.elc \
@@ -792,6 +806,7 @@ lisp= \
 	VMS_SUPPORT \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
+	WINDOW_SUPPORT \
 	${lispsource}widget.elc \
 	${lispsource}window.elc \
 	${lispsource}version.el
@@ -900,9 +915,13 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
   ${dotdot}/lisp/w32-fns.elc ${dotdot}/lisp/dos-w32.elc \
   ${dotdot}/lisp/disp-table.elc ${dotdot}/lisp/dos-vars.elc \
-  ${dotdot}/lisp/tooltip.elc \
+  ${dotdot}/lisp/tooltip.elc ${dotdot}/lisp/image.elc \
+  ${dotdot}/lisp/dnd.elc ${dotdot}/lisp/mwheel.elc \
+  ${dotdot}/lisp/tool-bar.elc \
+  ${dotdot}/lisp/x-dnd.elc \
   ${dotdot}/lisp/international/ccl.elc \
-  ${dotdot}/lisp/international/codepage.elc
+  ${dotdot}/lisp/international/codepage.elc \
+  ${dotdot}/lisp/international/fontset.elc
 
 /* Construct full set of libraries to be linked.
    Note that SunOS needs -lm to come before -lc; otherwise, you get

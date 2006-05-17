@@ -184,7 +184,7 @@ disables the splash screen; see also the variable
 `inhibit-splash-screen').
 
 +++
-** The default is now to use an bitmap as the icon, so the command-line options
+** The default is now to use a bitmap as the icon, so the command-line options
 --icon-type, -i has been replaced with options --no-bitmap-icon, -nbi to turn
 the bitmap icon off.
 
@@ -572,7 +572,7 @@ is only rarely needed.
 
 +++
 *** In processing a local variables list, Emacs strips the prefix and
-suffix are from every line before processing all the lines.
+suffix from every line before processing all the lines.
 
 +++
 *** find-file-read-only visits multiple files in read-only mode,
@@ -731,7 +731,7 @@ The variable `automatic-hscrolling' was renamed to
 `auto-hscroll-mode'.  The old name is still available as an alias.
 
 ---
-*** Moving or scrolling through images (and other lines) taller that
+*** Moving or scrolling through images (and other lines) taller than
 the window now works sensibly, by automatically adjusting the window's
 vscroll property.
 
@@ -1197,7 +1197,7 @@ under the "[State]" button.
 
 +++
 *** New command `Buffer-menu-toggle-files-only' toggles display of file
-buffers only in the Buffer Menu.  It is bound to `T' in Buffer Menu
+buffers only in the Buffer Menu.  It is bound to T in Buffer Menu
 mode.
 
 +++
@@ -1290,7 +1290,7 @@ to the kill-ring, but does not delete it.
 
 +++
 *** The new command `comint-insert-previous-argument' in comint-derived
-modes (shell-mode etc) inserts arguments from previous command lines,
+modes (shell-mode, etc.) inserts arguments from previous command lines,
 like bash's `ESC .' binding.  It is bound by default to `C-c .', but
 otherwise behaves quite similarly to the bash version.
 
@@ -2388,6 +2388,7 @@ the syntax of backslashes in F90 buffers.
 
 ---
 ** Reftex mode changes
+
 +++
 *** Changes to RefTeX's table of contents
 
@@ -2505,7 +2506,8 @@ and super/sub-scripts are made into super/sub-scripts.
 point (bound to C-c C-l and mouse-2, RET on clickable fields).
 
 *** The new command `bibtex-entry-update' (bound to C-c C-u) updates
-an existing BibTeX entry.
+an existing BibTeX entry by inserting fields that may occur but are not
+present.
 
 *** New `bibtex-entry-format' option `required-fields', enabled by default.
 
@@ -2586,45 +2588,45 @@ not executing.
 ---
 ** GUD mode improvements for jdb:
 
-*** Search for source files using jdb classpath and class
-    information. Fast startup since there is no need to scan all
-    source files up front. There is also no need to create and maintain
-    lists of source directories to scan. Look at `gud-jdb-use-classpath'
-    and `gud-jdb-classpath' customization variables documentation.
+*** Search for source files using jdb classpath and class information.
+Fast startup since there is no need to scan all source files up front.
+There is also no need to create and maintain lists of source
+directories to scan.  Look at `gud-jdb-use-classpath' and
+`gud-jdb-classpath' customization variables documentation.
 
 *** Supports the standard breakpoint (gud-break, gud-clear)
-    set/clear operations from java source files under the classpath, stack
-    traversal (gud-up, gud-down), and run until current stack finish
-    (gud-finish).
+set/clear operations from Java source files under the classpath, stack
+traversal (gud-up, gud-down), and run until current stack finish
+(gud-finish).
 
 *** Supports new jdb (Java 1.2 and later) in addition to oldjdb
-    (Java 1.1 jdb).
+(Java 1.1 jdb).
 
 *** The previous method of searching for source files has been
-    preserved in case someone still wants/needs to use it.
-    Set `gud-jdb-use-classpath' to nil.
+preserved in case someone still wants/needs to use it.
+Set `gud-jdb-use-classpath' to nil.
 
-  Added Customization Variables
+*** Added Customization Variables
 
-*** `gud-jdb-command-name'.  What command line to use to invoke jdb.
+**** `gud-jdb-command-name'.   What command line to use to invoke jdb.
 
-*** `gud-jdb-use-classpath'. Allows selection of java source file searching
-    method: set to t for new method, nil to scan `gud-jdb-directories' for
-    java sources (previous method).
+**** `gud-jdb-use-classpath'.  Allows selection of java source file searching
+method: set to t for new method, nil to scan `gud-jdb-directories' for
+java sources (previous method).
 
-*** `gud-jdb-directories'. List of directories to scan and search for java
-    classes using the original gud-jdb method (if `gud-jdb-use-classpath'
-    is nil).
+**** `gud-jdb-directories'.  List of directories to scan and search for Java
+classes using the original gud-jdb method (if `gud-jdb-use-classpath'
+is nil).
 
-  Minor Improvements
+*** Minor Improvements
 
-*** The STARTTLS wrapper (starttls.el) can now use GNUTLS
+**** The STARTTLS wrapper (starttls.el) can now use GNUTLS
 instead of the OpenSSL based `starttls' tool.  For backwards
 compatibility, it prefers `starttls', but you can toggle
 `starttls-use-gnutls' to switch to GNUTLS (or simply remove the
 `starttls' tool).
 
-*** Do not allow debugger output history variable to grow without bounds.
+**** Do not allow debugger output history variable to grow without bounds.
 
 ** Auto-Revert changes:
 
@@ -2665,7 +2667,7 @@ only gets updated whenever the buffer gets reverted.
 ---
 ** recentf changes.
 
-The recent file list is now automatically cleanup when recentf mode is
+The recent file list is now automatically cleaned up when recentf mode is
 enabled.  The new option `recentf-auto-cleanup' controls when to do
 automatic cleanup.
 
@@ -2791,7 +2793,7 @@ and rapid prototyping for tagging new languages.
 
 The escaped character sequence \a, \b, \d, \e, \f, \n, \r, \t, \v,
 respectively, stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL,
-CR, TAB, VT,
+CR, TAB, VT.
 
 **** Regular expressions can be bound to a given language.
 
@@ -3540,7 +3542,7 @@ This combines `defalias' and `make-obsolete'.
 
 It returns nil if the given Lisp form can't possibly do anything
 dangerous; otherwise it returns a reason why the form might be unsafe
-(calls unknown function, alters global variable, etc).
+(calls unknown function, alters global variable, etc.).
 
 +++
 *** New macro `eval-at-startup' specifies expressions to
@@ -3696,7 +3698,7 @@ It defaults to 1.
 It defaults to 1.
 
 +++
-*** New function `mouse-on-link-p' test if a position is in a clickable link.
+*** New function `mouse-on-link-p' tests if a position is in a clickable link.
 
 This is the function used by the new `mouse-1-click-follows-link'
 functionality.
@@ -3854,7 +3856,7 @@ value of VARIABLE instead.
 *** The function `frame-or-buffer-changed-p' now lets you maintain
 various status records in parallel.
 
-It take a variable (a symbol) as argument.  If the variable is non-nil,
+It takes a variable (a symbol) as argument.  If the variable is non-nil,
 then its value should be a vector installed previously by
 `frame-or-buffer-changed-p'.  If the frame names, buffer names, buffer
 order, or their read-only or modified flags have changed, since the
@@ -3945,7 +3947,7 @@ accepts such a list for restoring the match state.
 +++
 *** Functions `match-data' and `set-match-data' now have an optional
 argument `reseat'.  When non-nil, all markers in the match data list
-passed to these function will be reseated to point to nowhere.
+passed to these functions will be reseated to point to nowhere.
 
 +++
 *** The default value of `sentence-end' is now defined using the new
@@ -4081,7 +4083,7 @@ many iterations the file name obtained is still a symbolic link,
 +++
 *** The new hook `before-save-hook' is invoked by `basic-save-buffer'
 before saving buffers.  This allows packages to perform various final
-tasks, for example; it can be used by the copyright package to make
+tasks.  For example, it can be used by the copyright package to make
 sure saved files have the current year in any copyright headers.
 
 +++
@@ -4100,7 +4102,7 @@ further filter candidate files.
 
 One advantage of using this function is that the list of suffixes in
 `exec-suffixes' is OS-dependant, so this function will find
-executables without polluting Lisp code with OS dependancies.
+executables without polluting Lisp code with OS dependencies.
 
 ---
 *** The precedence of file name handlers has been changed.
@@ -4182,7 +4184,7 @@ whether completion ignores case when reading a file name with the
 `read-file-name' function.
 
 +++
-*** The new function `read-directory-name' for reading a directory name.
+*** The new function `read-directory-name' is for reading a directory name.
 
 It is like `read-file-name' except that the defaulting works better
 for directories, and completion inside it shows only directories.
@@ -4385,7 +4387,7 @@ output data is read in very small blocks, potentially resulting in
 very poor performance.  This behavior can be remedied to some extent
 by setting the new variable `process-adaptive-read-buffering' to a
 non-nil value (the default), as it will automatically delay reading
-from such processes, to allowing them to produce more output before
+from such processes, allowing them to produce more output before
 emacs tries to read it.
 
 *** The new function `call-process-shell-command'.
@@ -4559,7 +4561,7 @@ or bottom edge of a window.  It does not move other window edges.
 fringe bitmaps, as well as change the built-in fringe bitmaps.
 
 To change a built-in bitmap, do (require 'fringe) and use the symbol
-identifing the bitmap such as `left-truncation or `continued-line'.
+identifing the bitmap such as `left-truncation' or `continued-line'.
 
 *** New function `destroy-fringe-bitmap' deletes a fringe bitmap
 or restores a built-in one to its default value.
@@ -4595,7 +4597,7 @@ Setting the width to 0 effectively removes the corresponding fringe.
 The actual default fringe widths for the frame may deviate from the
 specified widths, since the combined fringe widths must match an
 integral number of columns.  The extra width is distributed evenly
-between the left and right fringe.  For force a specific fringe width,
+between the left and right fringe.  To force a specific fringe width,
 specify the width as a negative integer (if both widths are negative,
 only the left fringe gets the specified width).
 
@@ -4719,7 +4721,7 @@ which is used as a height relative to the default frame line height.
 *** Enhancements to stretch display properties
 
 The display property stretch specification form `(space PROPS)', where
-PROPS is a property list now allows pixel based width and height
+PROPS is a property list, now allows pixel based width and height
 specifications, as well as enhanced horizontal text alignment.
 
 The value of these properties can now be a (primitive) expression
@@ -5044,7 +5046,7 @@ refontification of `bar' whenever the `e' is added/removed.
 *** `set-auto-mode' now gives the interpreter magic line (if present)
 precedence over the file name.  Likewise an `<?xml' or `<!DOCTYPE'
 declaration will give the buffer XML or SGML mode, based on the new
-var `magic-mode-alist'.
+variable `magic-mode-alist'.
 
 +++
 *** Use the new function `run-mode-hooks' to run the major mode's mode hook.
@@ -5365,7 +5367,7 @@ Lisp Reference Manual for more information.
 In each case the old name remains as an alias for the moment.
 
 +++
-*** local-write-file-hooks is marked obsolete
+*** Variable `local-write-file-hooks' is marked obsolete.
 
 Use the LOCAL arg of `add-hook'.
 
@@ -11641,7 +11643,7 @@ guidelines are found in the Emacs Lisp programming manual.
 
 *** The net-utils package makes some common networking features
 available in Emacs.  Some of these functions are wrappers around
-system utilities (ping, nslookup, etc); others are implementations of
+system utilities (ping, nslookup, etc.); others are implementations of
 simple protocols (finger, whois) in Emacs Lisp.  There are also
 functions to make simple connections to TCP/IP ports for debugging and
 the like.
@@ -11660,7 +11662,7 @@ the user option `midnight-mode' to t.
   samba-generic-mode: Samba configuration files
   fvwm-generic-mode: For fvwm initialization files
   x-resource-generic-mode: For X resource files
-  hosts-generic-mode: For hosts files (.rhosts, /etc/hosts, etc)
+  hosts-generic-mode: For hosts files (.rhosts, /etc/hosts, etc.)
   mailagent-rules-generic-mode: For mailagent .rules files
   javascript-generic-mode: For JavaScript files
   vrml-generic-mode: For VRML files

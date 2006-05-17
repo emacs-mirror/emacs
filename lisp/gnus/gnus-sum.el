@@ -6114,7 +6114,7 @@ current article will be taken into consideration."
       (let ((max (max (point) (mark)))
 	    articles article)
 	(save-excursion
-	  (goto-char (min (min (point) (mark))))
+	  (goto-char (min (point) (mark)))
 	  (while
 	      (and
 	       (push (setq article (gnus-summary-article-number)) articles)

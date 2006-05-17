@@ -1,7 +1,7 @@
 /* File IO for GNU Emacs.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005 Free Software Foundation, Inc.
+                 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1644,8 +1644,7 @@ See also the function `substitute-in-file-name'.  */)
 	{
 	  *o++ = *p++;
 	}
-      else if (IS_DIRECTORY_SEP (p[0])
-	       && p[1] == '.'
+      else if (p[1] == '.'
 	       && (IS_DIRECTORY_SEP (p[2])
 		   || p[2] == 0))
 	{
@@ -1655,7 +1654,7 @@ See also the function `substitute-in-file-name'.  */)
 	    *o++ = *p;
 	  p += 2;
 	}
-      else if (IS_DIRECTORY_SEP (p[0]) && p[1] == '.' && p[2] == '.'
+      else if (p[1] == '.' && p[2] == '.'
 	       /* `/../' is the "superroot" on certain file systems.
 		  Turned off on DOS_NT systems because they have no
 		  "superroot" and because this causes us to produce
@@ -1675,14 +1674,9 @@ See also the function `substitute-in-file-name'.  */)
 	    ++o;
 	  p += 3;
 	}
-      else if (p > target
-	       && IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1]))
-	{
-	  /* Collapse multiple `/' in a row.  */
-	  *o++ = *p++;
-	  while (IS_DIRECTORY_SEP (*p))
-	    ++p;
-	}
+      else if (p > target && IS_DIRECTORY_SEP (p[1]))
+	/* Collapse multiple `/' in a row.  */
+	p++;
       else
 	{
 	  *o++ = *p++;

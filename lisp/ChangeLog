@@ -1,3 +1,304 @@
+2006-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-raw-map): Add mapping for insert.
+	(term-send-insert): New.
+	(term-mode): Make variables local here instead of doing it in
+	`term-emulate-terminal'.
+	(term-emulate-terminal): Delete incorrect optimization for cr+lf.
+	Scroll reverse needs to take into account the scroll
+	region.  Saving and restoring the cursor should save the color
+	attributes too.
+	(term-reset-terminal): Reset the scroll region.
+	(term-handle-ansi-escape): Cursor up and down should take into
+	account the scroll region.
+	(term-set-scroll-region): Renamed from `term-scroll-region'.  Move
+	to 0,0 after setting the region.
+	(term-handle-scroll): Handle scroll up.
+	(term-down): Fix off by one error.
+	(term-delete-lines): Do not delete outside the scroll region.
+	(term-insert-lines): Take into account the scroll region.
+
+2006-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el (ispell-internal-change-dictionary)
+	(ispell-change-dictionary): Undo most of last change of 2006-01-13.
+	(start, end): Move declaration outside of eval-when-compile.
+
+	* textmodes/flyspell.el (flyspell-kill-ispell-hook): New fun.
+	(flyspell-mode-on): Use it.
+
+	* textmodes/ispell.el (ispell-kill-ispell): Run new hook
+	ispell-kill-ispell-hook.
+
+2006-01-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (Custom-set, Custom-save, Custom-reset-current)
+	(Custom-reset-saved): Do not ask for confirmation in single option
+	buffers.
+
+2006-01-13  Romain Francoise  <romain@orebokech.com>
+
+	* add-log.el (add-change-log-entry, change-log-merge):
+	Conditionally use `hard-newline'.
+
+2006-01-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* wid-edit.el (widget-field-end): If the overlay is no longer
+	associated with a buffer, behave as if the overlay didn't exist.
+
+	* cus-edit.el (custom-add-see-also, custom-add-parent-links):
+	Make sure the links use the `custom-link' face.
+
+2006-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ld-script.el (auto-mode-alist): Use \' rather than $.
+	(ld-script-mode): Don't set indent-line-function since we don't
+	have one.
+
+2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-open-file): Use mailcap for selecting an
+	application.
+	(org-file-apps-defaults-gnu): Use mailcap as the default for
+	selecting an application on a UNIX system.
+	(org-agenda-show-tags): New command.
+	(org-table-insert-hline): Keep cursor in current table line.
+	(org-table-convert): Offset effect of modifying
+	`org-table-insert-hline'.
+	(org-format-agenda-item): New optional argument TAG.
+	(org-compile-prefix-format): Handle %T format for the tag.
+	(org-expand-wide-chars): New function.
+	(org-table-insert-row, org-table-insert-hline):
+	Use `org-expand-wide-chars'.
+	(org-open-file): Fix bug in program launch.
+	(org-get-time-of-day): Fix bug with times before 1am.
+	(org-agenda-menu): Addes tags commands.
+
+2006-01-13  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-init-process): Include the used
+	dictionary in ispell process start message.
+	(ispell-internal-change-dictionary): When flyspell-mode is active
+	and dictionary is changed, make sure ispell process is restarted
+	and flyspell word cache cleared out for the current buffer.
+	(ispell-change-dictionary): Make sure flyspell word cache is
+	cleared out in all buffers with active flyspell mode when
+	dictionary is globally changed.
+	Call ispell-internal-change-dictionary after dictionary change.
+
+2006-01-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/bytecomp.el (batch-byte-recompile-directory): Doc fix.
+
+	* makefile.w32-in (MH_E_SRC): Synchronize with Makefile.in.
+	(pre-mh-loaddefs.el-SH, pre-mh-loaddefs.el-CMD): Update Copyright
+	years.  Fix small differences wrt Makefile.in.
+	(recompile): Use --eval '(batch-byte-recompile-directory 0)', like
+	Makefile.in does.
+
+2006-01-12  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (MH_E_SRC): Replace mh-index.el and mh-pick.el with
+	mh-search.el.
+
+2006-01-12  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/ld-script.el: Update copyright year.
+
+2006-01-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (custom-theme-add-variable, custom-theme-add-face):
+	Don't add widget if setting undefined.
+
+2006-01-12  John Paul Wallington  <jpw@pobox.com>
+
+	* help-fns.el (describe-variable): Remove newlines from void
+	variable output.
+
+2006-01-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* wdired.el (wdired-mode-map): Add help echo for
+	wdired-abort-changes.
+
+	* man.el (Man-file-name-regexp): Adjust for a list of files.
+
+2006-01-12  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/ld-script.el (auto-mode-alist): Support
+	suffix conventions used in netbsd and eCos.
+
+2006-01-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (custom-reset-menu, custom-buffer-create-internal)
+	(custom-variable-menu, custom-face-menu, custom-group-menu)
+	(Custom-mode-menu): Change names of menu items.  (As discussed on
+	emacs-devel.)
+	(custom-face-menu): Add "Undo Edits" item.
+
+	* startup.el (init-file-user): defcustom -> defvar.
+
+	* tooltip.el (tooltip-mode): Doc fix.
+
+2006-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-post-command): window-buffer signals an error on
+	dead windows rather than returning nil.
+	(reveal-open-new-overlays): An overlay might die while we open others.
+
+2006-01-11  Bill Wohler  <wohler@newt.com>
+
+	* cus-dep.el (generated-custom-dependencies-file): Fix typo and
+	phrasing in docstring.
+
+	* Makefile.in (MH_E_SRC): Rename from MH-E-SRC since the dashes
+	can give some systems gas.  Add new file mh-buffers.el.
+
+2006-01-06  Masatake YAMATO  <jet@gyve.org>
+
+	* font-lock.el (cpp-font-lock-keywords): Font lock keywords for
+	C preprocessor forward ported from GNU Emacs 21.2.
+
+	* progmodes/asm-mode.el (asm-font-lock-keywords):
+	Use `cpp-font-lock-keywords'.
+
+	* progmodes/ld-script.el (ld-script-font-lock-keywords): Ditto.
+
+	* progmodes/ld-script.el (auto-mode-alist): Use \\> instead
+	of $ for "\\.ld[s]?".
+
+2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/tcl.el (tcl-indent-command): Use indent-for-tab-command.
+	(tcl-indent-line): Return `noindent' if inside a string.
+
+	* progmodes/flymake.el (flymake-split-string): Remove more than one
+	empty string at beg/end of the result.
+	(flymake-find-buildfile, flymake-find-possible-master-files):
+	Use expand-file-name.
+	(flymake-fix-file-name): Don't replace \ with / and don't remove ./
+	since expand-file-name does it for us.  Use directory-file-name.
+	(flymake-ler-get-full-file, flymake-ler-get-file, flymake-ler-get-line)
+	(flymake-ler-get-type, flymake-ler-get-text)
+	(flymake-ler-make-ler): Remove.  Replace by defstruct.  Update callers.
+	(flymake-current-line-no): Remove spurious interactive spec.
+	(flymake-delete-temp-directory): Remove unused var `slash-pos'.
+	(flymake-check-include): Remove arg inc-path merged into inc-name.
+	(flymake-check-patch-master-file-buffer): Fit in 80 columns.
+	Arg regexp-list replaced by a simple regexp.
+	(flymake-master-make-header-init, flymake-master-tex-init):
+	Correspondingly replace regexp-list with a regexp.  Fix regexp.
+
+2006-01-10  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Add comment
+	describing AUTH PLAIN fix.
+
+2006-01-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-text-prompt): Delete var.
+	(report-emacs-bug): Don't record initial prompt text.
+	Instead, add text properties to prompting text.
+	(report-emacs-bug-hook): Delete prompting text.
+
+2006-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-find-buildfile): Remove invariant arg
+	`dirs'.  Adjust callers.
+
+2006-01-09  John Paul Wallington  <jpw@gnu.org>
+
+	* cus-edit.el (custom-comment) <defface>: Add TTY definitions.
+
+2006-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-open-new-overlays): New extracted fun.
+	(reveal-close-old-overlays): Idem.  Check overlays's liveness before
+	using them.  Simplify the code.
+	(reveal-post-command): Use them.  Fix up obsolete windows in
+	reveal-open-spots.
+
+	* progmodes/flymake.el: Use `require' rather than autoload for
+	XEmacs's overlays.
+	(flymake-get-common-file-prefix, flymake-build-relative-filename):
+	Delete.  Use file-relative-name instead.
+	(flymake-get-syntax-check-program-args, flymake-perl-init):
+	Simplify the resulting code.
+
+	* log-view.el (log-view-file-re, log-view-message-re): Add support
+	for DaRCS output.
+
+2006-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* mail/rmail.el (rmail-reply-regexp): Also ignore mailing list
+	identifiers sometimes added in square brackets at the beginning of
+	subject lines.
+
+2006-01-07  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (Custom-set, Custom-save): Doc fix.
+	(Custom-reset-current, Custom-reset-saved): Change question text.
+	(Custom-reset-standard): Likewise.
+	(custom-variable-reset-saved): Doc fix.
+
+2006-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (init-file-user): Doc fix.
+
+2006-01-07  Alex Schroeder  <alex@gnu.org>
+
+	* mail/rmail.el (rmail-current-subject): New function.
+	(rmail-current-subject-regexp): New function.
+	(rmail-next-same-subject): Use it.
+
+	* mail/rmailsum.el (rmail-summary-by-topic):
+	Use rmail-current-subject and rmail-current-subject-regexp.
+	(rmail-summary-next-same-subject): Ditto.
+
+	* net/rcirc.el (rcirc-send-input): No longer check whether the
+	process is open, since not all commands need an open process.
+	(rcirc-send-string): Check whether the process is open before
+	sending anything.
+	(rcirc-ignore-list): New option.
+	(rcirc-ignore-list-automatic): New variable.
+	(rcirc-print): Take rcirc-ignore-list into account.
+	(rcirc-cmd-ignore): New command.
+	(rcirc-ignore-update-automatic): New function.
+	(rcirc-handler-PART, rcirc-handler-QUIT): Use it to maintain the
+	list if ignored nicks.
+	(rcirc-handler-NICK): Ditto, and also ignore the new nick.
+
+2006-01-06  David Reitter  <david.reitter@gmail.com>
+
+	* mail/emacsbug.el (report-emacs-bug): Let explanations correctly
+	reflect the address to which the report will be sent.
+
+2006-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/ld-script.el (auto-mode-alist): Recognize linker
+	scripts whose file-name extensions are "\.x[bdsru]?[cn]?$".
+
+2006-01-01  Michael Ernst  <mernst@alum.mit.edu>  (tiny changes)
+
+	* textmodes/tildify.el: Fix typos (misspellings) in the commentary.
+
+	* emacs-lisp/find-func.el (find-definition-noselect): Fix typo in
+	the doc string: "functoin" => "function".
+	ldefs-boot.el: Likewise.
+
+	* textmodes/bibtex.el (bibtex-validate-globally): Fix typo in a
+	message text: "Duplicat" => "Duplicate".
+
+2006-01-06  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* files.el (basic-save-buffer-2): If backing-up failed, reset
+	buffer-backed-up to nil.
+
+2006-01-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb-script-skip-to-head)
+	(gdb-script-calculate-indentation): Indent for breakpoint command
+	lists also.
+
 2006-01-05  Bill Wohler  <wohler@newt.com>
 
 	* Makefile.in (compile-always): Add mh-autoloads dependency.

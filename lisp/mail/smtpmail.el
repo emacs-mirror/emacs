@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
@@ -560,6 +560,11 @@ This is relative to `smtpmail-queue-dir'.")
 		(>= (car ret) 400))
 	    (throw 'done nil)))
        ((eq mech 'plain)
+	;; We used to send an empty initial request, and wait for an
+	;; empty response, and then send the password, but this
+	;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
+	;; is not sent if the server did not advertise AUTH PLAIN in
+	;; the EHLO response.  See RFC 2554 for more info.
 	(smtpmail-send-command process
 			       (concat "AUTH PLAIN "
 				       (base64-encode-string

@@ -35,9 +35,12 @@
 
 ;;; Code:
 
+;;(message "> mh-funcs")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
+(require 'mh-buffers)
 (require 'mh-e)
+;;(message "< mh-funcs")
 
 
 
@@ -149,8 +152,8 @@ Display the results only if something went wrong."
           (re-search-forward "^rmf: " (point-max) t))
     (display-buffer mh-temp-buffer)))
 
-;; Avoid compiler warning...
-(defvar view-exit-action)
+;; Shush compiler.
+(eval-when-compile (defvar view-exit-action))
 
 ;;;###mh-autoload
 (defun mh-list-folders ()

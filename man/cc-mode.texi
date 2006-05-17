@@ -208,7 +208,7 @@ license to the document, as described in section 6 of the license.
 @vskip 0pt plus 1filll
 @insertcopying
 
-This manual was generated from $Revision: 1.32 $ of $RCSfile: cc-mode.texi,v $, which can be
+This manual was generated from $Revision$ of $RCSfile$, which can be
 downloaded from
 @url{http://cvs.sf.net/viewcvs.py/cc-mode/cc-mode/cc-mode.texi}.
 @end titlepage

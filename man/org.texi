@@ -4,13 +4,12 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.02
+@set VERSION 4.03
 @set DATE January 2006
 
 @dircategory Emacs
 @direntry
 * Org Mode: (org).	outline-based notes management and organizer
-
 @end direntry
 
 @c Version and Contact Info
@@ -2509,6 +2508,11 @@ Digit argument.
 @item t
 Change the TODO state of the item, both in the agenda and in the
 original org file.
+
+@kindex T
+@item T
+Show all tags associated with the current item.  Because of
+inheritance, this may be more than the tags listed in the line itself.
 
 @kindex :
 @item :

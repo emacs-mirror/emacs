@@ -1,6 +1,6 @@
 ;;; ld-script.el --- GNU linker script editing mode for Emacs
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO<jet@gyve.org>
 ;; Keywords: languages, faces
@@ -36,7 +36,7 @@
 
 (defvar ld-script-location-counter-face 'ld-script-location-counter)
 (defface ld-script-location-counter
-  '((t (:weight bold :inherit font-lock-builtin-face)))
+  '((t :weight bold :inherit font-lock-builtin-face))
   "Face for location counter in GNU ld script."
   :group 'ld-script)
 
@@ -114,28 +114,37 @@
   "Builtin functions of GNU ld script.")
 
 (defvar ld-script-font-lock-keywords
-  `((,(regexp-opt ld-script-keywords 'words)
-     1 font-lock-keyword-face)
-    (,(regexp-opt ld-script-builtins 'words)
-     1 font-lock-builtin-face)
-    ("/DISCARD/" . font-lock-warning-face)
-    ("##\\|#[^#\n]+$"  . font-lock-preprocessor-face)
-    ("\\W\\(\\.\\)\\W" 1 ld-script-location-counter-face)
-    )
+  (append
+   `((,(regexp-opt ld-script-keywords 'words)
+      1 font-lock-keyword-face)
+     (,(regexp-opt ld-script-builtins 'words)
+      1 font-lock-builtin-face)
+     ("/DISCARD/" . font-lock-warning-face)
+     ("\\W\\(\\.\\)\\W" 1 ld-script-location-counter-face)
+     )
+   cpp-font-lock-keywords)
   "Default font-lock-keywords for `ld-script-mode'.")
 
+;; Linux-2.6.9 uses some different suffix for linker scripts:
+;; "ld", "lds", "lds.S", "lds.in", "ld.script", and "ld.script.balo".
+;; eCos uses "ld" and "ldi".
+;; Netbsd uses "ldscript.*".
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ld[s]?\\(\\.in\\)?$" . ld-script-mode))
+(add-to-list 'auto-mode-alist '("\\.ld[si]?\\>" . ld-script-mode))
+(add-to-list 'auto-mode-alist '("ld\\.?script\\>" . ld-script-mode))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.x[bdsru]?[cn]?\\'" . ld-script-mode))
 
 ;;;###autoload
 (define-derived-mode ld-script-mode nil "LD-Script"
    "A major mode to edit GNU ld script files"
   (set (make-local-variable 'comment-start) "/* ")
   (set (make-local-variable 'comment-end)   " */")
-  (set (make-local-variable 'indent-line-function) #'indent-relative)
-  (set (make-local-variable 'font-lock-defaults) '(ld-script-font-lock-keywords nil)))
+  (set (make-local-variable 'font-lock-defaults)
+       '(ld-script-font-lock-keywords nil)))
 
 (provide 'ld-script)
 
-;;; arch-tag: 83280b6b-e6fc-4d00-a630-922d7aec5593
+;; arch-tag: 83280b6b-e6fc-4d00-a630-922d7aec5593
 ;;; ld-script.el ends here

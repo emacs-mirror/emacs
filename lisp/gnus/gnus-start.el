@@ -2818,6 +2818,7 @@ If FORCE is non-nil, the .newsrc file is read."
            (print-escape-nonascii t)
            (print-length nil)
            (print-level nil)
+	   (print-circle nil)
            (print-escape-newlines t)
 	   (gnus-killed-list
 	    (if (and gnus-save-killed-list

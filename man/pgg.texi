@@ -225,8 +225,9 @@ arrange the interaction, set the variable @code{pgg-read-passphrase}.
 
 @defvar pgg-cache-passphrase
 If non-@code{nil}, store passphrases.  The default value of this
-variable is @code{t}.  If you were worry about security issue, however,
-you could stop caching with setting it @code{nil}.
+variable is @code{t}.  If you are worried about security issues,
+however, you could stop the caching of passphrases by setting this
+variable to @code{nil}.
 @end defvar
 
 @defvar pgg-passphrase-cache-expiry

@@ -1,4 +1,4 @@
-# Copyright (C) 1992, 93, 94, 95, 96, 97, 1998, 2000, 01, 2004, 2005
+# Copyright (C) 1992, 93, 94, 95, 96, 97, 1998, 2000, 01, 2004, 2005, 2006
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.

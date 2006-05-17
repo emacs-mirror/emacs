@@ -3469,7 +3469,9 @@ Before and after saving the buffer, this function runs
 	    ;; If we get an error writing the new file, and we made
 	    ;; the backup by renaming, undo the backing-up.
 	    (and setmodes (not success)
-		 (rename-file (cdr setmodes) buffer-file-name))))))
+		 (progn
+		   (rename-file (cdr setmodes) buffer-file-name t)
+		   (setq buffer-backed-up nil)))))))
     setmodes))
 
 (defun diff-buffer-with-file (&optional buffer)

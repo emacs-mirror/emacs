@@ -54,34 +54,32 @@
 ;;
 ;; 4. Faces
 ;;
-;;    Create a new face group if necessary; in this case, add the group
-;;    associated with the manual node in which the faces are described to the
-;;    faces' group definition. Since the face groups appear last, the face
-;;    groups will appear at the end of these other groups.
+;;    All faces must be placed in the mh-faces group; in addition, add the
+;;    group associated with the manual node in which the face is described.
+;;    Since the mh-faces group appears near the end of this file, the faces
+;;    will appear at the end of these other groups.
 ;;
 ;;; Change Log:
 
 ;;; Code:
 
+;;(message "> mh-customize")
 (provide 'mh-customize)
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-loaddefs)
 
 (eval-and-compile
   (defvar mh-xemacs-flag (featurep 'xemacs)
-    "Non-nil means the current Emacs is XEmacs."))
+    "Non-nil means the current Emacs is XEmacs.")
+  (when mh-xemacs-flag
+    (require 'mh-xemacs)))
 
-(when mh-xemacs-flag
-  (require 'mh-xemacs))
-
-;; XXX: Functions autoloaded from the following files are used to initialize
-;;  customizable variables. They are require'd here, since otherwise the
-;;  corresponding .elc would be loaded at compile time.
-(eval-when-compile
+(eval-and-compile
+  (require 'mh-identity)
   (require 'mh-init)
-  (require 'mh-identity))
+  (require 'mh-loaddefs))
+;;(message "< mh-customize")
 
 ;; For compiler warnings...
 (eval-when-compile
@@ -138,12 +136,6 @@ and GNU mailutils."
   :link '(custom-manual "(mh-e)Incorporating Mail")
   :group 'mh-e)
 
-(defgroup mh-index nil
-  "Searching."
-  :link '(custom-manual "(mh-e)Searching")
-  :prefix "mh-index-"
-  :group 'mh-e)
-
 (defgroup mh-junk nil
   "Dealing with junk mail."
   :link '(custom-manual "(mh-e)Junk")
@@ -166,6 +158,12 @@ and GNU mailutils."
   "Scan line formats."
   :link '(custom-manual "(mh-e)Scan Line Formats")
   :prefix "mh-"
+  :group 'mh-e)
+
+(defgroup mh-search nil
+  "Searching."
+  :link '(custom-manual "(mh-e)Searching")
+  :prefix "mh-search-"
   :group 'mh-e)
 
 (defgroup mh-sending-mail nil
@@ -717,30 +715,6 @@ using the \"gnudoit\" command in the \"gnuserv\" package as follows:
 
 
 
-;;; Searching (:group 'mh-index)
-
-(defcustom mh-index-program nil
-  "Indexing program that MH-E shall use.
-
-The default setting of this option is \"Auto-detect\" which means
-that MH-E will automatically choose one of swish++, swish-e,
-mairix, namazu, pick and grep in that order. If, for example, you
-have both swish++ and mairix installed and you want to use
-mairix, then you can set this option to \"mairix\".
-
-More information about setting up an indexing program to use with
-MH-E can be found in the documentation of `mh-index-search'."
-  :type '(choice (const :tag "Auto-detect" nil)
-                 (const :tag "swish++" swish++)
-                 (const :tag "swish-e" swish)
-                 (const :tag "mairix" mairix)
-                 (const :tag "namazu" namazu)
-                 (const :tag "pick" pick)
-                 (const :tag "grep" grep))
-  :group 'mh-index)
-
-
-
 ;;; Dealing with Junk Mail (:group 'mh-junk)
 
 ;; Spam fighting program chosen
@@ -1031,7 +1005,7 @@ message 200, then use the range \"200:200\"."
 
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
-;; Forward definition to avoid compiler and runtime error.
+;; Forward definition.
 (defvar mh-scan-format-file t)
 
 (defun mh-adaptive-cmd-note-flag-check (symbol value)
@@ -1044,6 +1018,9 @@ Otherwise, set SYMBOL to VALUE."
       (error "%s %s" "Can't turn on unless `mh-scan-format-file'"
              "is set to \"Use MH-E scan Format\"")
     (set-default symbol value)))
+
+;; Forward definition.
+(defvar mh-adaptive-cmd-note-flag)
 
 (defun mh-scan-format-file-check (symbol value)
   "Check if desired setting is legal.
@@ -1073,6 +1050,7 @@ you would use \"(mh-set-cmd-note 4)\"."
   :group 'mh-scan-line-formats
   :set 'mh-adaptive-cmd-note-flag-check)
 
+;; Update forward definition above if default changes.
 (defcustom mh-scan-format-file t
   "Specifies the format file to pass to the scan program.
 
@@ -1111,6 +1089,30 @@ directory. You may link another program to `scan' (see
   :type 'string
   :group 'mh-scan-line-formats)
 (make-variable-buffer-local 'mh-scan-prog)
+
+
+
+;;; Searching (:group 'mh-search)
+
+(defcustom mh-search-program nil
+  "Search program that MH-E shall use.
+
+The default setting of this option is \"Auto-detect\" which means
+that MH-E will automatically choose one of swish++, swish-e,
+mairix, namazu, pick and grep in that order. If, for example, you
+have both swish++ and mairix installed and you want to use
+mairix, then you can set this option to \"mairix\".
+
+More information about setting up an indexing program to use with
+MH-E can be found in the documentation of `mh-search'."
+  :type '(choice (const :tag "Auto-detect" nil)
+                 (const :tag "swish++" swish++)
+                 (const :tag "swish-e" swish)
+                 (const :tag "mairix" mairix)
+                 (const :tag "namazu" namazu)
+                 (const :tag "pick" pick)
+                 (const :tag "grep" grep))
+  :group 'mh-search)
 
 
 
@@ -1513,11 +1515,11 @@ of citations entirely, choose \"None\"."
     "X-Listprocessor-"                  ; ListProc(tm) by CREN
     "X-Listserver:"                     ; Unknown mailing list managers
     "X-Loop:"                           ; Unknown mailing list managers
+    "X-Lumos-SenderID:"                 ; Roving ConstantContact
     "X-MAIL-INFO:"                      ; NetZero
     "X-MHE-Checksum"                    ; Checksum added during index search
     "X-MIME-Autoconverted:"             ; sendmail
     "X-MIMETrack:"
-    "X-Mms-"                            ; T-Mobile pictures
     "X-MS-"                             ; MS Outlook
     "X-MailScanner"                     ; ListProc(tm) by CREN
     "X-Mailing-List:"                   ; Unknown mailing list managers
@@ -1526,6 +1528,7 @@ of citations entirely, choose \"None\"."
     "X-Message-Id"
     "X-MessageWall-Score:"              ; Unknown mailing list manager, AUC TeX
     "X-MimeOLE:"                        ; MS Outlook
+    "X-Mms-"                            ; T-Mobile pictures
     "X-Mozilla-Status:"                 ; Netscape/Mozilla
     "X-Msmail-"                         ; MS Outlook
     "X-NAI-Spam-"                       ; Network Associates Inc. SpamKiller
@@ -1548,6 +1551,8 @@ of citations entirely, choose \"None\"."
     "X-Received-Date:"
     "X-Received:"
     "X-Request-"
+    "X-Return-Path-Hint:"               ; Roving ConstantContact
+    "X-Roving-*"                        ; Roving ConstantContact
     "X-SBClass:"                        ; Spam
     "X-SBNote:"                         ; Spam
     "X-SBPass:"                         ; Spam
@@ -1570,8 +1575,8 @@ of citations entirely, choose \"None\"."
     "X-UNTD-"                           ; NetZero
     "X-USANET-"                         ; usa.net
     "X-UserInfo1:"
-    "X-Virus-Scanned"                   ; amavisd-new
     "X-VSMLoop:"                        ; NTMail
+    "X-Virus-Scanned"                   ; amavisd-new
     "X-Vms-To:"
     "X-WebTV-Signature:"
     "X-Wss-Id:"                         ; Worldtalk gateways
@@ -1594,6 +1599,10 @@ Do not alter this variable directly. Instead, customize
 `mh-invisible-header-fields-default' checking for fields normally
 hidden that you wish to display, and add extra entries to hide in
 `mh-invisible-header-fields'.")
+
+;; Forward definition.
+(defvar mh-invisible-header-fields)
+(defvar mh-invisible-header-fields-default nil)
 
 (defun mh-invisible-headers ()
   "Make or remake the variable `mh-invisible-header-fields-compiled'.
@@ -1620,23 +1629,6 @@ removed and entries from `mh-invisible-header-fields' are added."
                  (regexp-opt fields t))))
       (setq mh-invisible-header-fields-compiled nil))))
 
-(defcustom mh-invisible-header-fields-default nil
-  "*List of hidden header fields.
-
-The header fields listed in this option are hidden, although you
-can check off any field that you would like to see.
-
-Header fields that you would like to hide that aren't listed can
-be added to the option `mh-invisible-header-fields'.
-
-See also `mh-clean-message-header-flag'."
-  :type `(set ,@(mapcar (lambda (x) `(const ,x))
-                        mh-invisible-header-fields-internal))
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (mh-invisible-headers))
-  :group 'mh-show)
-
 (defcustom mh-invisible-header-fields nil
   "*Additional header fields to hide.
 
@@ -1652,6 +1644,24 @@ generally ignored, report a bug (see URL
 See also `mh-clean-message-header-flag'."
 
   :type '(repeat (string :tag "Header field"))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (mh-invisible-headers))
+  :group 'mh-show)
+
+;; Update forward definition above if default changes.
+(defcustom mh-invisible-header-fields-default nil
+  "*List of hidden header fields.
+
+The header fields listed in this option are hidden, although you
+can check off any field that you would like to see.
+
+Header fields that you would like to hide that aren't listed can
+be added to the option `mh-invisible-header-fields'.
+
+See also `mh-clean-message-header-flag'."
+  :type `(set ,@(mapcar (lambda (x) `(const ,x))
+                        mh-invisible-header-fields-internal))
   :set (lambda (symbol value)
          (set-default symbol value)
          (mh-invisible-headers))
@@ -1871,14 +1881,13 @@ threaded is less than `mh-large-folder'."
 
 ;;; The Tool Bar (:group 'mh-tool-bar)
 
-(defcustom mh-tool-bar-search-function 'mh-search-folder
+(defcustom mh-tool-bar-search-function 'mh-search
   "*Function called by the tool bar search button.
 
-Available functions include `mh-search-folder', the default, and
-`mh-index-search'. You can also choose \"Other Function\" from
-the \"Value Menu\" and enter a function of your own choosing."
-  :type '(choice (const mh-search-folder)
-                 (const mh-index-search)
+By default, this is set to `mh-search'. You can also choose
+\"Other Function\" from the \"Value Menu\" and enter a function
+of your own choosing."
+  :type '(choice (const mh-search)
                  (function :tag "Other Function"))
   :group 'mh-tool-bar)
 
@@ -2393,15 +2402,15 @@ function used to insert the signature with
   :group 'mh-hooks
   :group 'mh-letter)
 
-(defcustom mh-kill-folder-suppress-prompt-hooks '(mh-index-p)
+(defcustom mh-kill-folder-suppress-prompt-hooks '(mh-search-p)
   "Abnormal hook run at the beginning of \\<mh-folder-mode-map>\\[mh-kill-folder].
 
 The hook functions are called with no arguments and should return
 a non-nil value to suppress the normal prompt when you remove a
 folder. This is useful for folders that are easily regenerated.
 
-The default value of `mh-index-p' suppresses the prompt on
-folders generated by an index search.
+The default value of `mh-search-p' suppresses the prompt on
+folders generated by searching.
 
 WARNING: Use this hook with care. If there is a bug in your hook
 which returns t on \"+inbox\" and you hit \\[mh-kill-folder] by
@@ -2428,16 +2437,16 @@ go."
   :group 'mh-hooks
   :group 'mh-letter)
 
-(defcustom mh-pick-mode-hook nil
-  "Hook run upon entry to `mh-pick-mode'\\<mh-folder-mode-map>.
+(defcustom mh-search-mode-hook nil
+  "Hook run upon entry to `mh-search-mode'\\<mh-folder-mode-map>.
 
 If you find that you do the same thing over and over when editing
 the search template, you may wish to bind some shortcuts to keys.
 This can be done with this hook which is called when
-\\[mh-search-folder] is run on a new pattern."
+\\[mh-search] is run on a new pattern."
   :type 'hook
   :group 'mh-hooks
-  :group 'mh-index)
+  :group 'mh-search)
 
 (defcustom mh-quit-hook nil
   "Hook run by \\<mh-folder-mode-map>\\[mh-quit] after quitting MH-E.
@@ -2543,7 +2552,7 @@ sequence."
       (:foreground "snow3"))
      (((class color))
       (:foreground "cyan"))))
-    
+
   "Message number face."
   :group 'mh-faces
   :group 'mh-folder)
@@ -2622,7 +2631,7 @@ format `mh-scan-format-nmh' and the regular expression
   :group 'mh-faces
   :group 'mh-folder)
 
-(defface mh-index-folder
+(defface mh-search-folder
   '((((class color) (background light))
      (:foreground "dark green" :bold t))
     (((class color) (background dark))
@@ -2631,7 +2640,7 @@ format `mh-scan-format-nmh' and the regular expression
      (:bold t)))
   "Folder heading face in MH-Folder buffers created by searches."
   :group 'mh-faces
-  :group 'mh-index)
+  :group 'mh-search)
 
 (defface mh-letter-header-field
   '((((class color) (background light))
@@ -2883,7 +2892,6 @@ The background and foreground are used in the image."
        (:foreground "snow3"))
       (((class color))
        (:foreground "cyan")))))
-
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil

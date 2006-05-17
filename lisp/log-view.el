@@ -27,7 +27,7 @@
 
 ;; Major mode to browse revision log histories.
 ;; Currently supports the format output by:
-;;  RCS, SCCS, CVS, Subversion.
+;;  RCS, SCCS, CVS, Subversion, and DaRCS.
 
 ;; Examples of log output:
 
@@ -49,6 +49,22 @@
 ;;;; SCCS:
 
 ;;;; Subversion:
+
+;;;; Darcs:
+
+;; Changes to darcsum.el:
+;; 
+;; Mon Nov 28 15:19:38 GMT 2005  Dave Love <fx@gnu.org>
+;;   * Abstract process startup into darcsum-start-process.  Use TERM=dumb.
+;;   TERM=dumb avoids escape characters, at least, for any old darcs that 
+;;   doesn't understand DARCS_DONT_COLOR & al.
+;; 
+;; Thu Nov 24 15:20:45 GMT 2005  Dave Love <fx@gnu.org>
+;;   * darcsum-mode-related changes.
+;;   Don't call font-lock-mode (unnecessary) or use-local-map (redundant).
+;;   Use mode-class 'special.  Add :group.
+;;   Add trailing-whitespace option to mode hook and fix
+;;   darcsum-display-changeset not to use trailing whitespace.
 
 ;;; Todo:
 
@@ -114,13 +130,22 @@
 
 (defconst log-view-file-re
   (concat "^\\(?:Working file: \\(.+\\)"                ;RCS and CVS.
-          "\\|SCCS/s\\.\\(.+\\):"                       ;SCCS.
+          "\\|\\(?:SCCS/s\\.\\|Changes to \\)\\(.+\\):" ;SCCS and Darcs.
 	  "\\)\n"))                   ;Include the \n for font-lock reasons.
 
 (defconst log-view-message-re
   (concat "^\\(?:revision \\([.0-9]+\\)\\(?:\t.*\\)?" ; RCS and CVS.
           "\\|r\\([0-9]+\\) | .* | .*"                ; Subversion.
           "\\|D \\([.0-9]+\\) .*"                     ; SCCS.
+          ;; Darcs doesn't have revision names.  VC-darcs uses patch names
+          ;; instead.  Darcs patch names are hashcodes, which do not appear
+          ;; in the log output :-(, but darcs accepts any prefix of the log
+          ;; message as a patch name, so we match the first line of the log
+          ;; message.
+          ;; First loosely match the date format.
+          (concat "\\|[^ \n].*[^0-9\n][0-9][0-9]:[0-9][0-9][^0-9\n].*[^ \n]"
+                  ;;Email of user and finally Msg, used as revision name.
+                  "  .*@.*\n\\(?:  \\* \\(.*\\)\\)?")
           "\\)$"))
 
 (defconst log-view-font-lock-keywords

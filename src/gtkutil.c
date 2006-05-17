@@ -1220,6 +1220,9 @@ xg_get_file_name_from_chooser (w)
   return gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (w));
 }
 
+/* Callback called when the "Show hidden files" toggle is pressed.
+   WIDGET is the toggle widget, DATA is the file chooser dialog.  */
+
 static void
 xg_toggle_visibility_cb (widget, data)
      GtkWidget *widget;
@@ -1227,10 +1230,47 @@ xg_toggle_visibility_cb (widget, data)
 {
   GtkFileChooser *dialog = GTK_FILE_CHOOSER (data);
   gboolean visible;
-  extern int x_gtk_show_hidden_files;
   g_object_get (G_OBJECT (dialog), "show-hidden", &visible, NULL);
   g_object_set (G_OBJECT (dialog), "show-hidden", !visible, NULL);
-  x_gtk_show_hidden_files = !visible;
+}
+
+
+/* Callback called when a property changes in a file chooser.
+   GOBJECT is the file chooser dialog, ARG1 describes the property.
+   USER_DATA is the toggle widget in the file chooser dialog.
+   We use this to update the "Show hidden files" toggle when the user
+   changes that property by right clicking in the file list.  */
+
+static void
+xg_toggle_notify_cb (gobject, arg1, user_data)
+     GObject *gobject;
+     GParamSpec *arg1;
+     gpointer user_data;
+{
+  extern int x_gtk_show_hidden_files;
+
+  if (strcmp (arg1->name, "show-hidden") == 0)
+    {
+      GtkFileChooser *dialog = GTK_FILE_CHOOSER (gobject);
+      GtkWidget *wtoggle = GTK_WIDGET (user_data);
+      gboolean visible, toggle_on;
+
+      g_object_get (G_OBJECT (gobject), "show-hidden", &visible, NULL);
+      toggle_on = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (wtoggle));
+
+      if (!!visible != !!toggle_on)
+        {
+          g_signal_handlers_block_by_func (G_OBJECT (wtoggle),
+                                           G_CALLBACK (xg_toggle_visibility_cb),
+                                           gobject);
+          gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (wtoggle), visible);
+          g_signal_handlers_unblock_by_func
+            (G_OBJECT (wtoggle),
+             G_CALLBACK (xg_toggle_visibility_cb),
+             gobject);
+        }
+      x_gtk_show_hidden_files = visible;
+    }
 }
 
 /* Read a file name from the user using a file chooser dialog.
@@ -1283,7 +1323,9 @@ xg_get_file_with_chooser (f, prompt, default_filename,
     }
   gtk_widget_show (wtoggle);
   g_signal_connect (G_OBJECT (wtoggle), "clicked",
-                    G_CALLBACK (xg_toggle_visibility_cb), G_OBJECT(filewin));
+                    G_CALLBACK (xg_toggle_visibility_cb), filewin);
+  g_signal_connect (G_OBJECT (filewin), "notify",
+                    G_CALLBACK (xg_toggle_notify_cb), wtoggle);
 
   message[0] = '\0';
   if (action != GTK_FILE_CHOOSER_ACTION_SAVE)

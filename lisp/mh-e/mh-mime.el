@@ -36,11 +36,15 @@
 
 ;;; Code:
 
+;;(message "> mh-mime")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-comp)
+
 (require 'gnus-util)
+(require 'mh-buffers)
+(require 'mh-comp)
 (require 'mh-gnus)
+;;(message "< mh-mime")
 
 (autoload 'article-emphasize "gnus-art")
 (autoload 'gnus-article-goto-header "gnus-art")
@@ -72,44 +76,39 @@ attachment."
     (call-interactively 'mh-mh-attach-file)))
 
 ;;;###mh-autoload
-(defun mh-compose-forward (&optional description folder messages)
+(defun mh-compose-forward (&optional description folder range)
   "Add tag to forward a message.
 
 You are prompted for a content DESCRIPTION, the name of the
-FOLDER in which the messages to forward are located, and the
-MESSAGES' numbers.
+FOLDER in which the messages to forward are located, and a RANGE
+of messages, which defaults to the current message in that
+folder. Check the documentation of `mh-interactive-range' to see
+how RANGE is read in interactive use.
 
 The option `mh-compose-insertion' controls what type of tags are inserted."
-  (interactive (let*
-                   ((description (mml-minibuffer-read-description))
-                    (folder (mh-prompt-for-folder "Message from"
-                                                  mh-sent-from-folder nil))
-                    (messages (let ((default-message
-                                      (if (and (equal
-                                                folder mh-sent-from-folder)
-                                               (numberp mh-sent-from-msg))
-                                          mh-sent-from-msg
-                                        (nth 0 (mh-translate-range
-                                                folder "cur")))))
-                                (if default-message
-                                    (read-string
-                                     (format "Messages (default %d): "
-                                             default-message)
-                                     nil nil
-                                     (number-to-string default-message))
-                                  (read-string (format "Messages: "))))))
-                 (list description folder messages)))
-  (let
-      ((range))
-    (if (null messages)
-	(setq messages ""))
-    (setq range (mh-translate-range folder messages))
-    (if (null range)
-	(error "No messages in specified range"))
-    (dolist (message range)
+  (interactive
+   (let* ((description
+           (mml-minibuffer-read-description))
+          (folder
+           (mh-prompt-for-folder "Message from"
+                                 mh-sent-from-folder nil))
+          (default
+            (if (and (equal folder mh-sent-from-folder)
+                     (numberp mh-sent-from-msg))
+                mh-sent-from-msg
+              (nth 0 (mh-translate-range folder "cur"))))
+          (range
+           (mh-read-range "Forward" folder
+                          (or (and default
+                                   (number-to-string default))
+                              t)
+                          t t)))
+     (list description folder range)))
+  (let ((messages (mapconcat 'identity (mh-list-to-string range) " ")))
+    (dolist (message (mh-translate-range folder messages))
       (if (equal mh-compose-insertion 'mml)
-	  (mh-mml-forward-message description folder (format "%s" message))
-	(mh-mh-forward-message description folder (format "%s" message))))))
+          (mh-mml-forward-message description folder (format "%s" message))
+        (mh-mh-forward-message description folder (format "%s" message))))))
 
 ;; To do:
 ;; paragraph code should not fill # lines if MIME enabled.
@@ -132,16 +131,16 @@ given a prefix argument. Normally default arguments to
           "/[-.+a-zA-Z0-9]+")
   "Regexp matching valid media types used in MIME attachment compositions.")
 
-;; Just defvar the variable to avoid compiler warning... This doesn't bind
-;; the variable, so things should work exactly as before.
-(defvar mh-have-file-command)
+(defvar mh-have-file-command 'undefined
+  "Cached value of function `mh-have-file-command'.
+Do not reference this variable directly as it might not have been
+initialized. Always use the command `mh-have-file-command'.")
 
 ;;;###mh-autoload
 (defun mh-have-file-command ()
   "Return t if 'file' command is on the system.
 'file -i' is used to get MIME type of composition insertion."
-  (when (not (boundp 'mh-have-file-command))
-    (load "executable" t t)        ; executable-find not autoloaded in emacs20
+  (when (eq mh-have-file-command 'undefined)
     (setq mh-have-file-command
           (and (fboundp 'executable-find)
                (executable-find "file") ; file command exists
@@ -183,9 +182,10 @@ variable."
 Returns nil if file command not on system."
   (cond
    ((not (mh-have-file-command))
-    nil)                                ;No file command, exit now.
-   ((not (and (file-exists-p filename)(file-readable-p filename)))
-    nil)
+    nil)                                ;no file command, exit now
+   ((not (and (file-exists-p filename)
+              (file-readable-p filename)))
+    nil)                               ;no file or not readable, ditto
    (t
     (save-excursion
       (let ((tmp-buffer (get-buffer-create mh-temp-buffer)))
@@ -200,36 +200,6 @@ Returns nil if file command not on system."
                 (mh-file-mime-type-substitute (match-string 0) filename)))
           (kill-buffer tmp-buffer)))))))
 
-(defvar mh-mime-content-types
-  '(("application/mac-binhex40") ("application/msword")
-    ("application/octet-stream") ("application/pdf") ("application/pgp-keys")
-    ("application/pgp-signature") ("application/pkcs7-signature")
-    ("application/postscript") ("application/rtf")
-    ("application/vnd.ms-excel") ("application/vnd.ms-powerpoint")
-    ("application/vnd.ms-project") ("application/vnd.ms-tnef")
-    ("application/wordperfect5.1") ("application/wordperfect6.0")
-    ("application/zip")
-
-    ("audio/basic") ("audio/mpeg")
-
-    ("image/gif") ("image/jpeg") ("image/png")
-
-    ("message/delivery-status")
-    ("message/external-body") ("message/partial") ("message/rfc822")
-
-    ("text/enriched") ("text/html") ("text/plain") ("text/rfc822-headers")
-    ("text/richtext") ("text/x-vcard") ("text/xml")
-
-    ("video/mpeg") ("video/quicktime"))
-  "Valid MIME content types for Emacs 20.
-Obsolete; use `mailcap-mime-types'.
-
-See also \\[mh-mh-to-mime].")
-
-;; Delete mh-minibuffer-read-type and mh-mime-content-types and use
-;; mml-minibuffer-read-type when Emacs20 is no longer supported unless we
-;; think (mh-file-mime-type) is better than (mm-default-file-encoding).
-
 (defun mh-minibuffer-read-type (filename &optional default)
   "Return the content type associated with the given FILENAME.
 If the \"file\" command exists and recognizes the given file,
@@ -239,14 +209,14 @@ a type (see `mailcap-mime-types' and for Emacs 20,
 Optional argument DEFAULT is returned if a type isn't entered."
   (mailcap-parse-mimetypes)
   (let* ((default (or default
-		      (mm-default-file-encoding filename)
-		      "application/octet-stream"))
-	 (type (or (mh-file-mime-type filename)
+                      (mm-default-file-encoding filename)
+                      "application/octet-stream"))
+         (probed-type (mh-file-mime-type filename))
+         (type (or (and (not (equal probed-type "application/octet-stream"))
+                        probed-type)
                    (completing-read
                     (format "Content type (default %s): " default)
-                    (if (fboundp 'mailcap-mime-types)
-                        (mapcar 'list (mailcap-mime-types))
-                      mh-mime-content-types)))))
+                    (mapcar 'list (mailcap-mime-types))))))
     (if (not (equal type ""))
         type
       default)))
@@ -619,7 +589,8 @@ automatically."
     (mml-insert-empty-tag 'part 'type type 'filename file
                           'disposition dispos 'description description)))
 
-(defvar mh-identity-pgg-default-user-id)
+;; Shush compiler.
+(eval-when-compile (defvar mh-identity-pgg-default-user-id))
 
 (defun mh-secure-message (method mode &optional identity)
   "Add tag to encrypt or sign message.
@@ -693,7 +664,9 @@ the possible security methods (see `mh-mml-method-default')."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward
-     "\\(<#part\\(.\\|\n\\)*>[ \n\t]*<#/part>\\|^<#secure.+>$\\)"
+     (concat
+      "\\(<#\\(mml\\|part\\)\\(.\\|\n\\)*>[ \n\t]*<#/\\(mml\\|part\\)>\\|"
+      "^<#secure.+>$\\)")
      nil t)))
 
 
@@ -967,8 +940,7 @@ parsed and then displayed."
                    (mh-mime-display-part handles))
                   (t (mh-signature-highlight))))
         (error
-         (message "Please report this error:\n %s"
-                  (error-message-string err))
+         (message "Could not display body: %s" (error-message-string err))
          (delete-region (point-min) (point-max))
          (insert raw-message-data))))))
 
@@ -1440,10 +1412,10 @@ Parameter EL is unused."
       (mh-mime-display-security handle)
       (goto-char point))))
 
-;; These variables should already be initialized in mm-decode.el if we have a
-;; recent enough Gnus. The defvars are here to avoid compiler warnings.
-(defvar mm-verify-function-alist nil)
-(defvar mm-decrypt-function-alist nil)
+;; Shush compiler.
+(eval-when-compile
+  (defvar mm-verify-function-alist nil)
+  (defvar mm-decrypt-function-alist nil))
 
 (defvar pressed-details)
 

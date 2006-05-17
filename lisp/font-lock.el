@@ -1963,6 +1963,78 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	      (goto-char (or (scan-sexps (point) 1) (point-max))))
 	    (goto-char (match-end 2)))
 	(error t)))))
+
+;; C preprocessor(cpp) is used outside of C, C++ and Objective-C source file.
+;; e.g. assembler code and GNU linker script in Linux kernel.
+;; `cpp-font-lock-keywords' is handy for modes for the files.
+;;
+;; Here we cannot use `regexp-opt' because because regex-opt is not preloaded
+;; while font-lock.el is preloaded to emacs. So values pre-calculated with 
+;; regexp-opt are used here.
+
+;; `cpp-font-lock-keywords-source-directives' is calculated from:
+;;
+;;	    (regexp-opt
+;;	     '("define"  "elif" "else" "endif" "error" "file" "if" "ifdef"
+;;	       "ifndef" "include" "line" "pragma" "undef"))
+;;
+(defconst cpp-font-lock-keywords-source-directives
+  "define\\|e\\(?:l\\(?:if\\|se\\)\\|ndif\\|rror\\)\\|file\\|i\\(?:f\\(?:n?def\\)?\\|nclude\\)\\|line\\|pragma\\|undef"
+  "Regular expressoin used in `cpp-font-lock-keywords'.")
+
+;; `cpp-font-lock-keywords-source-depth' is calculated from:
+;;
+;;          (regexp-opt-depth (regexp-opt
+;;		       '("define"  "elif" "else" "endif" "error" "file" "if" "ifdef"
+;;			 "ifndef" "include" "line" "pragma" "undef")))
+;;
+(defconst cpp-font-lock-keywords-source-depth 0
+  "An integer representing regular expression depth of `cpp-font-lock-keywords-source-directives'.
+Used in `cpp-font-lock-keywords'.")
+
+(defconst cpp-font-lock-keywords
+  (let* ((directives cpp-font-lock-keywords-source-directives)
+	 (directives-depth cpp-font-lock-keywords-source-depth))
+    (list
+     ;;
+     ;; Fontify error directives.
+     '("^#[ \t]*error[ \t]+\\(.+\\)" 1 font-lock-warning-face prepend)
+     ;;
+     ;; Fontify filenames in #include <...> preprocessor directives as strings.
+     '("^#[ \t]*\\(?:import\\|include\\)[ \t]*\\(<[^>\"\n]*>?\\)"
+       1 font-lock-string-face prepend)
+     ;;
+     ;; Fontify function macro names.
+     '("^#[ \t]*define[ \t]+\\([[:alpha:]_][[:alnum:]_$]*\\)(" 
+       (1 font-lock-function-name-face prepend)
+       ;;
+       ;; Macro arguments.
+       ((lambda (limit)
+	  (re-search-forward
+	   "\\(?:\\([[:alpha:]_][[:alnum:]_]*\\)[,]?\\)" 
+	   (or (save-excursion (re-search-forward ")" limit t)) 
+	       limit)
+	   t)) 
+	nil nil (1 font-lock-variable-name-face prepend)))
+     ;;
+     ;; Fontify symbol names in #elif or #if ... defined preprocessor directives.
+     '("^#[ \t]*\\(?:elif\\|if\\)\\>"
+       ("\\<\\(defined\\)\\>[ \t]*(?\\([[:alpha:]_][[:alnum:]_]*\\)?" nil nil
+	(1 font-lock-builtin-face prepend) (2 font-lock-variable-name-face prepend t)))
+     ;;
+     ;; Fontify otherwise as symbol names, and the preprocessor directive names.
+     (list
+      (concat "^\\(#[ \t]*\\(?:" directives
+	      "\\)\\)\\>[ \t!]*\\([[:alpha:]_][[:alnum:]_]*\\)?")
+      '(1 font-lock-preprocessor-face prepend)
+      (list (+ 2 directives-depth)
+	    'font-lock-variable-name-face nil t))))
+    "Font lock keyords for C preprocessor directives.
+`c-mode', `c++-mode' and `objc-mode' have their own 
+font lock keyords for C preprocessor directives. This definition is for the
+other modes in which C preprocessor directives are used. e.g. `asm-mode' and
+`ld-script-mode'.")
+
 
 ;; Lisp.
 

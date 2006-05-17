@@ -1,3 +1,11 @@
+2006-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* e/eterm-color.ti: Re-enable the ri entry. Add kich1.
+
+2006-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.1: +N applies only to next file.
+
 2005-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm-color.ti: Temporarily disable the ri entry.

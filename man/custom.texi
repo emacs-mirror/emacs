@@ -230,7 +230,7 @@ under it.  It looks like this, in part:
 
 @smallexample
 /- Emacs group: ---------------------------------------------------\
-      [State]: visible group members are all at standard settings.
+      [State]: visible group members are all at standard values.
    Customization of the One True Editor.
    See also [Manual].
 
@@ -446,7 +446,7 @@ Customizations}).
 There are actually four reset operations:
 
 @table @samp
-@item Reset to Current
+@item Undo Edits
 If you have made some modifications and not yet set the variable,
 this restores the text in the customization buffer to match
 the actual value.
@@ -460,7 +460,7 @@ This sets the variable to its standard value, and updates the text
 accordingly.  This also eliminates any saved value for the variable,
 so that you will get the standard value in future Emacs sessions.
 
-@item Use Backup Value
+@item Set to Backup Value
 This sets the variable to a previous value that was set in the
 customization buffer in this session.  If you customize a variable
 and then reset it, which discards the customized value,
@@ -481,7 +481,7 @@ edited, set or saved.
 
 @smallexample
  [Set for Current Session] [Save for Future Sessions]
- [Reset to Current] [Reset to Saved] [Erase Customization]   [Finish]
+ [Undo Edits] [Reset to Saved] [Erase Customization]   [Finish]
 @end smallexample
 
 @vindex custom-buffer-done-function
@@ -591,8 +591,8 @@ variables (@pxref{Changing a Variable}).
   A face can specify different appearances for different types of
 display.  For example, a face can make text red on a color display, but
 use a bold font on a monochrome display.  To specify multiple
-appearances for a face, select @samp{Show all display specs} in the menu you
-get from invoking @samp{[State]}.
+appearances for a face, select @samp{For All Kinds of Displays} in the
+menu you get from invoking @samp{[State]}.
 
 @findex modify-face
   Another more basic way to set the attributes of a specific face is

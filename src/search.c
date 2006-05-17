@@ -2376,7 +2376,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	      else
 		some_multiletter_word = 1;
 	    }
-	  else if (!NOCASEP (c))
+	  else if (UPPERCASEP (c))
 	    {
 	      some_uppercase = 1;
 	      if (SYNTAX (prevc) != Sword)

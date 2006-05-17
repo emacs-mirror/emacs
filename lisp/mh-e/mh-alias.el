@@ -31,9 +31,12 @@
 
 ;;; Code:
 
+;;(message "> mh-alias")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
+(require 'mh-buffers)
 (require 'mh-e)
+;;(message "< mh-alias")
 (load "cmr" t t)                        ; Non-fatal dependency for
 					; completing-read-multiple.
 (eval-when-compile (defvar mail-abbrev-syntax-table))
@@ -132,10 +135,10 @@ COMMA-SEPARATOR is non-nil."
         (setq res (match-string 1 res)))
     ;; Replace "&" with capitalized username
     (if (string-match "&" res)
-        (setq res (mh-replace-in-string "&" (capitalize username) res)))
+        (setq res (replace-regexp-in-string "&" (capitalize username) res)))
     ;; Remove " character
     (if (string-match "\"" res)
-        (setq res (mh-replace-in-string "\"" "" res)))
+        (setq res (replace-regexp-in-string "\"" "" res)))
     ;; If empty string, use username instead
     (if (string-equal "" res)
         (setq res username))

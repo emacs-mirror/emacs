@@ -33,26 +33,22 @@
 
 ;;; Code:
 
+;;(message "> mh-comp")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-e)
-(require 'gnus-util)
+
 (require 'easymenu)
+(require 'gnus-util)
+(require 'mh-buffers)
+(require 'mh-e)
 (require 'mh-gnus)
+
 (eval-when (compile load eval)
   (ignore-errors (require 'mailabbrev)))
-
-;; Shush the byte-compiler
-(defvar adaptive-fill-first-line-regexp)
-(defvar font-lock-defaults)
-(defvar mark-active)
-(defvar sendmail-coding-system)
-(defvar mh-identity-list)
-(defvar mh-identity-default)
-(defvar mh-mml-mode-default)
-(defvar mh-identity-menu)
+;;(message "< mh-comp")
 
 
+
 ;;; Autoloads
 
 (autoload 'mail-mode-fill-paragraph "sendmail")
@@ -165,9 +161,16 @@ user's MH directory, then in the system MH lib directory.")
   "Regexp of header lines to remove before offering a message as a new draft\\<mh-folder-mode-map>.
 Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
 
-(defvar mh-to-field-choices '(("t" . "To:") ("s" . "Subject:") ("c" . "Cc:")
-                              ("b" . "Bcc:") ("f" . "Fcc:") ("r" . "From:")
-                              ("d" . "Dcc:"))
+(defvar mh-to-field-choices '(("a" . "Mail-Reply-To:")
+                              ("b" . "Bcc:")
+                              ("c" . "Cc:")
+                              ("d" . "Dcc:")
+                              ("f" . "Fcc:")
+                              ("l" . "Mail-Followup-To:")
+                              ("m" . "From:")
+                              ("r" . "Reply-To:")
+                              ("s" . "Subject:")
+                              ("t" . "To:"))
   "Alist of (final-character . field-name) choices for `mh-to-field'.")
 
 (defvar mh-letter-mode-map (copy-keymap text-mode-map)
@@ -378,7 +381,7 @@ See also `mh-compose-forward-as-mime-flag',
          ;; forw always leaves file in "draft" since it doesn't have -draft
          (draft-name (expand-file-name "draft" mh-user-path))
          (draft (cond ((or (not (file-exists-p draft-name))
-                           (y-or-n-p "The file 'draft' exists.  Discard it? "))
+                           (y-or-n-p "The file draft exists; discard it? "))
                        (mh-exec-cmd "forw" "-build"
                                     (if (and (mh-variant-p 'nmh)
                                              mh-compose-forward-as-mime-flag)
@@ -861,6 +864,9 @@ Returns t if found, nil if not."
 
 ;;; Mode for composing and sending a draft message.
 
+(defvar mh-pgp-support-flag (not (not (locate-library "mml2015")))
+  "Non-nil means PGP support is available.")
+
 (put 'mh-letter-mode 'mode-class 'special)
 
 ;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
@@ -946,27 +952,15 @@ special key nil is used to display the non-prefixed commands.
 The substitutions described in `substitute-command-keys' are
 performed as well.")
 
-;;;###mh-autoload
-(defun mh-fill-paragraph-function (arg)
-  "Fill paragraph at or after point.
-Prefix ARG means justify as well. This function enables
-`fill-paragraph' to work better in MH-Letter mode (see
-`mh-letter-mode')."
-  (interactive "P")
-  (let ((fill-paragraph-function) (fill-prefix))
-    (if (mh-in-header-p)
-        (mail-mode-fill-paragraph arg)
-      (fill-paragraph arg))))
-
-;; Avoid compiler warnings in XEmacs and Emacs 20
+;; Shush compiler.
 (eval-when-compile
-  (defvar tool-bar-mode)
+  (defvar adaptive-fill-first-line-regexp)
   (defvar tool-bar-map))
 
 (defvar mh-letter-buttons-init-flag nil)
 
 ;;;###autoload
-(define-derived-mode mh-letter-mode text-mode "MH-Letter"
+(define-derived-mode mh-letter-mode mail-mode "MH-Letter"
   "Mode for composing letters in MH-E\\<mh-letter-mode-map>.
 
 When you have finished composing, type \\[mh-send-letter] to send
@@ -981,8 +975,9 @@ MH-style directives or \\[mh-mml-to-mime] for MML tags.
 Options that control this mode can be changed with
 \\[customize-group]; specify the \"mh-compose\" group.
 
-When a message is composed, the hooks `text-mode-hook' and
-`mh-letter-mode-hook' are run.
+When a message is composed, the hooks `text-mode-hook',
+`mail-mode-hook', and `mh-letter-mode-hook' are run (in that
+order).
 
 \\{mh-letter-mode-map}"
   (mh-find-path)
@@ -1008,32 +1003,6 @@ When a message is composed, the hooks `text-mode-hook' and
   (setq mh-help-messages mh-letter-mode-help-messages)
   (setq buffer-invisibility-spec '((vanish . t) t))
   (set (make-local-variable 'line-move-ignore-invisible) t)
-
-  ;; From sendmail.el for proper paragraph fill
-  ;; sendmail.el also sets a normal-auto-fill-function (not done here)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'mh-fill-paragraph-function)
-  (make-local-variable 'adaptive-fill-regexp)
-  (setq adaptive-fill-regexp
-        (concat adaptive-fill-regexp
-                "\\|[ \t]*[-[:alnum:]]*>+[ \t]*"))
-  (make-local-variable 'adaptive-fill-first-line-regexp)
-  (setq adaptive-fill-first-line-regexp
-        (concat adaptive-fill-first-line-regexp
-                "\\|[ \t]*[-[:alnum:]]*>+[ \t]*"))
-  ;; `-- ' precedes the signature.  `-----' appears at the start of the
-  ;; lines that delimit forwarded messages.
-  ;; Lines containing just >= 3 dashes, perhaps after whitespace,
-  ;; are also sometimes used and should be separators.
-  (setq paragraph-start (concat (regexp-quote mail-header-separator)
-                                "\\|\t*\\([-|#;>* ]\\|(?[0-9]+[.)]\\)+$"
-                                "\\|[ \t]*[[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
-                                "-- $\\|---+$\\|"
-                                page-delimiter))
-  (setq paragraph-separate paragraph-start)
-  ;; --- End of code from sendmail.el ---
 
   ;; Enable undo since a show-mode buffer might have been reused.
   (buffer-enable-undo)
@@ -1151,17 +1120,15 @@ Set the mark to point before moving."
 
 This command will prompt you for the FOLDER name in which to file
 a copy of the draft."
-  (interactive)
-  (or folder
-      (setq folder (mh-prompt-for-folder
-                    "Fcc"
-                    (or (and mh-default-folder-for-message-function
-                             (save-excursion
-                               (goto-char (point-min))
-                               (funcall
-                                mh-default-folder-for-message-function)))
-                        "")
-                    t)))
+  (interactive (list (mh-prompt-for-folder
+                      "Fcc"
+                      (or (and mh-default-folder-for-message-function
+                               (save-excursion
+                                 (goto-char (point-min))
+                                 (funcall
+                                  mh-default-folder-for-message-function)))
+                          "")
+                      t)))
   (let ((last-input-char ?\C-f))
     (expand-abbrev)
     (save-excursion
@@ -1177,8 +1144,7 @@ a copy of the draft."
          (file-exists-p file)
          (or (and (not (mh-have-file-command))
                   (not (null (string-match "\.vcf$" file))))
-             (and (mh-have-file-command)
-                  (string-equal "text/x-vcard" (mh-file-mime-type file)))))))
+             (string-equal "text/x-vcard" (mh-file-mime-type file))))))
 
 ;;;###mh-autoload
 (defun mh-insert-signature (&optional file)
@@ -1469,6 +1435,9 @@ doesn't exist there."
         unless (eq charset 'ascii) return nil
         finally return t))
 
+;; Shush compiler.
+(eval-when-compile (defvar sendmail-coding-system))
+
 ;;;###mh-autoload
 (defun mh-send-letter (&optional arg)
   "Save draft and send message.
@@ -1512,12 +1481,16 @@ use `mh-send-prog' to tell MH-E the name."
                (and (boundp 'default-buffer-file-coding-system )
                     default-buffer-file-coding-system)
                'iso-latin-1))))
+    ;; Adding a Message-ID field looks good, makes it easier to search for
+    ;; message in your +outbox, and best of all doesn't break threading for
+    ;; the recipient if you reply to a message in your +outbox.
+    (setq mh-send-args (concat "-msgid " mh-send-args))
     ;; The default BCC encapsulation will make a MIME message unreadable.
     ;; With nmh use the -mime arg to prevent this.
     (if (and (mh-variant-p 'nmh)
              (mh-goto-header-field "Bcc:")
              (mh-goto-header-field "Content-Type:"))
-        (setq mh-send-args (format "-mime %s" mh-send-args)))
+        (setq mh-send-args (concat "-mime " mh-send-args)))
     (cond (arg
            (pop-to-buffer mh-mail-delivery-buffer)
            (erase-buffer)
@@ -1551,23 +1524,33 @@ use `mh-send-prog' to tell MH-E the name."
 (defun mh-insert-letter (folder message verbatim)
   "Insert a message.
 
-This command prompts you for the FOLDER and MESSAGE number and inserts
+This command prompts you for the FOLDER and MESSAGE number, which
+defaults to the current message in that folder. It then inserts
 the message, indented by `mh-ins-buf-prefix' (\"> \") unless
-`mh-yank-behavior' is set to one of the supercite flavors in which
-case supercite is used to format the message. Certain undesirable
-header fields (see `mh-invisible-header-fields-compiled') are removed
-before insertion.
+`mh-yank-behavior' is set to one of the supercite flavors in
+which case supercite is used to format the message. Certain
+undesirable header fields (see
+`mh-invisible-header-fields-compiled') are removed before
+insertion.
 
 If given a prefix argument VERBATIM, the header is left intact, the
 message is not indented, and \"> \" is not inserted before each line.
 This command leaves the mark before the letter and point after it."
   (interactive
-   (list (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
-         (read-string (concat "Message number"
-                              (if (numberp mh-sent-from-msg)
-                                  (format " (default %d): " mh-sent-from-msg)
-                                ": ")))
-         current-prefix-arg))
+   (let* ((folder
+           (mh-prompt-for-folder "Message from"
+                                 mh-sent-from-folder nil))
+          (default
+            (if (and (equal folder mh-sent-from-folder)
+                     (numberp mh-sent-from-msg))
+                mh-sent-from-msg
+              (nth 0 (mh-translate-range folder "cur"))))
+          (message
+           (read-string (concat "Message number"
+                                (or (and default
+                                         (format " (default %d): " default))
+                                    ": ")))))
+     (list folder message current-prefix-arg)))
   (save-restriction
     (narrow-to-region (point) (point))
     (let ((start (point-min)))
@@ -1857,12 +1840,13 @@ Any match found replaces the text from BEGIN to END."
     (mh-complete-word folder choices beg end)))
 
 (defvar mh-letter-complete-function-alist
-  '((cc . mh-alias-letter-expand-alias)
-    (bcc . mh-alias-letter-expand-alias)
+  '((bcc . mh-alias-letter-expand-alias)
+    (cc . mh-alias-letter-expand-alias)
     (dcc . mh-alias-letter-expand-alias)
     (fcc . mh-folder-expand-at-point)
     (from . mh-alias-letter-expand-alias)
     (mail-followup-to . mh-alias-letter-expand-alias)
+    (mail-reply-to . mh-alias-letter-expand-alias)
     (reply-to . mh-alias-letter-expand-alias)
     (to . mh-alias-letter-expand-alias))
   "Alist of header fields and completion functions to use.")
@@ -2128,17 +2112,23 @@ Otherwise return the empty string."
   "\C-c\C-c"            mh-send-letter
   "\C-c\C-d"            mh-insert-identity
   "\C-c\C-e"            mh-mh-to-mime
+  "\C-c\C-f\C-a"        mh-to-field
   "\C-c\C-f\C-b"        mh-to-field
   "\C-c\C-f\C-c"        mh-to-field
   "\C-c\C-f\C-d"        mh-to-field
   "\C-c\C-f\C-f"        mh-to-fcc
+  "\C-c\C-f\C-l"        mh-to-field
+  "\C-c\C-f\C-m"        mh-to-field
   "\C-c\C-f\C-r"        mh-to-field
   "\C-c\C-f\C-s"        mh-to-field
   "\C-c\C-f\C-t"        mh-to-field
+  "\C-c\C-fa"           mh-to-field
   "\C-c\C-fb"           mh-to-field
   "\C-c\C-fc"           mh-to-field
   "\C-c\C-fd"           mh-to-field
   "\C-c\C-ff"           mh-to-fcc
+  "\C-c\C-fl"           mh-to-field
+  "\C-c\C-fm"           mh-to-field
   "\C-c\C-fr"           mh-to-field
   "\C-c\C-fs"           mh-to-field
   "\C-c\C-ft"           mh-to-field

@@ -284,14 +284,15 @@ variable."
   :type 'hook)
 
 (defcustom gnus-useful-groups
-  '(("(ding) mailing list mirrored at sunsite.auc.dk"
-     "emacs.ding"
-     (nntp "sunsite.auc.dk"
-	   (nntp-address "sunsite.auc.dk")))
-    ("gnus-bug archive"
-     "gnus-bug"
-     (nndir "/ftp@ftp.ifi.uio.no:/pub/emacs/gnus/gnus-bug/"))
-    ("Gnus help group"
+  '(("(ding) mailing list mirrored at gmane.org"
+     "gmane.emacs.gnus.general"
+     (nntp "Gmane"
+	   (nntp-address "news.gmane.org")))
+    ("Gnus bug archive"
+     "gnus.gnus-bug"
+     (nntp "news.gnus.org"
+	   (nntp-address "news.gnus.org")))
+    ("Local Gnus help group"
      "gnus-help"
      (nndoc "gnus-help"
 	    (nndoc-article-type mbox)

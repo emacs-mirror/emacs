@@ -323,10 +323,28 @@ you could say something like:
 @end lisp
 
 Adding @code{"image/.*"} might also be useful.  Spammers use it as the
-prefered part of @samp{multipart/alternative} messages.  See also
+prefered part of @samp{multipart/alternative} messages, and you might
+not notice there are other parts.  See also
 @code{gnus-buttonized-mime-types} (@pxref{MIME Commands, ,MIME Commands,
 gnus, Gnus Manual}), to which adding @code{"multipart/alternative"}
 enables you to choose manually one of two types those mails include.
+For example, you can set those variables like:
+
+@lisp
+(setq gnus-buttonized-mime-types
+      '("multipart/alternative" "multipart/signed")
+      mm-discouraged-alternatives
+      '("text/html" "image/.*"))
+@end lisp
+
+In this case, Gnus will display radio buttons for such a kind of spam
+message as follows:
+
+@example
+1.  (*) multipart/alternative  ( ) image/gif
+
+2.  (*) text/plain          ( ) text/html
+@end example
 
 @item mm-inline-large-images
 @vindex mm-inline-large-images

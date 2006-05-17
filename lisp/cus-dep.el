@@ -1,6 +1,7 @@
 ;;; cus-dep.el --- find customization dependencies
 ;;
-;; Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -31,7 +32,7 @@
 (require 'cus-face)
 
 (defvar generated-custom-dependencies-file "cus-load.el"
-  "File \\[cusom-make-dependencies] puts custom dependencies into.")
+  "Output file for \\[custom-make-dependencies].")
 
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.

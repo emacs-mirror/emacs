@@ -1,6 +1,6 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
 ;;           Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -682,16 +682,9 @@ from the following list to take place:
   5. Create an empty comment.
   6. Move backward to start of comment, indenting if necessary."
   (interactive "p")
-  (cond
-   ((not tcl-tab-always-indent)
-    ;; Indent if in indentation area, otherwise insert TAB.
-    (if (<= (current-column) (current-indentation))
-	(tcl-indent-line)
-      (insert-tab arg)))
-   ((eq tcl-tab-always-indent t)
-    ;; Always indent.
-    (tcl-indent-line))
-   (t
+  (if (memq tcl-tab-always-indent '(nil t))
+      (let ((tab-always-indent tcl-tab-always-indent))
+        (call-interactively 'indent-for-tab-command))
     ;; "Perl-mode" style TAB command.
     (let* ((ipoint (point))
 	   (eolpoint (progn
@@ -730,7 +723,7 @@ from the following list to take place:
 	;; Go to start of comment.  We don't leave point where it is
 	;; because we want to skip comment-start-skip.
 	(tcl-indent-line)
-	(indent-for-comment)))))))
+	(indent-for-comment))))))
 
 (defun tcl-indent-line ()
   "Indent current line as Tcl code.
@@ -739,29 +732,28 @@ Return the amount the indentation changed by."
 	beg shift-amt
 	(case-fold-search nil)
 	(pos (- (point-max) (point))))
-    (beginning-of-line)
-    (setq beg (point))
-    (cond ((eq indent nil)
-	   (setq indent (current-indentation)))
-	  (t
-	   (skip-chars-forward " \t")
-	   (if (listp indent) (setq indent (car indent)))
-	   (cond ((= (following-char) ?})
-		  (setq indent (- indent tcl-indent-level)))
-		 ((= (following-char) ?\])
-		  (setq indent (- indent 1))))))
-    (skip-chars-forward " \t")
-    (setq shift-amt (- indent (current-column)))
-    (if (zerop shift-amt)
-	(if (> (- (point-max) pos) (point))
-	    (goto-char (- (point-max) pos)))
-      (delete-region beg (point))
-      (indent-to indent)
-      ;; If initial point was within line's indentation,
-      ;; position after the indentation.  Else stay at same point in text.
-      (if (> (- (point-max) pos) (point))
-	  (goto-char (- (point-max) pos))))
-    shift-amt))
+    (if (null indent)
+        'noindent
+      (beginning-of-line)
+      (setq beg (point))
+      (skip-chars-forward " \t")
+      (if (listp indent) (setq indent (car indent)))
+      (cond ((= (following-char) ?})
+             (setq indent (- indent tcl-indent-level)))
+            ((= (following-char) ?\])
+             (setq indent (- indent 1))))
+      (skip-chars-forward " \t")
+      (setq shift-amt (- indent (current-column)))
+      (if (zerop shift-amt)
+          (if (> (- (point-max) pos) (point))
+              (goto-char (- (point-max) pos)))
+        (delete-region beg (point))
+        (indent-to indent)
+        ;; If initial point was within line's indentation,
+        ;; position after the indentation.  Else stay at same point in text.
+        (if (> (- (point-max) pos) (point))
+            (goto-char (- (point-max) pos))))
+      shift-amt)))
 
 (defun tcl-figure-type ()
   "Determine type of sexp at point.

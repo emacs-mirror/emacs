@@ -71,12 +71,13 @@
 
 ;;; Code:
 
+;;(message "> mh-seq")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-e)
 
-;; Shush the byte-compiler
-(defvar tool-bar-mode)
+(require 'mh-buffers)
+(require 'mh-e)
+;;(message "< mh-seq")
 
 
 
@@ -171,8 +172,8 @@ you want to delete the messages, use \"\\[universal-argument]
     (when (and (eq sequence mh-unseen-seq) (mh-speed-flists-active-p))
       (apply #'mh-speed-flists t folders-changed))))
 
-;; Avoid compiler warnings
-(defvar view-exit-action)
+;; Shush compiler.
+(eval-when-compile (defvar view-exit-action))
 
 ;;;###mh-autoload
 (defun mh-list-sequences ()
@@ -239,8 +240,10 @@ MESSAGE appears."
                         (mh-list-to-string (mh-seq-containing-msg message t))
                         " "))))
 
-;; Avoid compiler warning
-(defvar tool-bar-map)
+;; Shush compiler
+(eval-when-compile
+  (defvar tool-bar-map)
+  (defvar tool-bar-mode))
 
 (make-variable-buffer-local 'mh-non-seq-mode-line-annotation)
 
@@ -289,11 +292,6 @@ When you want to widen the view to all your messages again, use
 ;;;###mh-autoload
 (defun mh-put-msg-in-seq (range sequence)
   "Add RANGE to SEQUENCE\\<mh-folder-mode-map>.
-
-To place a message in a sequence, use this command to do it
-manually, or use the MH command \"pick\" or the MH-E version of
-\"pick\", \\[mh-search-folder], which create a sequence
-automatically.
 
 Give this command a RANGE and you can add all the messages in a
 sequence to another sequence (for example,
