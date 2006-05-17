@@ -1,8 +1,37 @@
-2006-02-19  Michael Olson  <mwolson@gnu.org>
+2006-03-26  Michael Olson  <mwolson@gnu.org>
 
-	* erc-capab.el (erc-capab-send-identify-messages): Make sure some
-	parameters are strings before using them.  Thanks to Alejandro
-	Benitez for the report.
+	* erc.el (erc-header-line): New face that will be used to colorize
+	the text of the header-line, provided that
+	`erc-header-line-face-method' is non-nil.
+	(erc-prompt-face): Fix formatting.
+	(erc-header-line-face-method): New option that determines the
+	method used for colorizing header-line text.  This may be a
+	function, nil, or non-nil.
+	(erc-update-mode-line-buffer): Use the aforementioned option and
+	face to colorize the header-line text, if that is what the user
+	wants.
+	(erc-send-input): If flood control is not activated, don't split
+	the input line.
+
+2006-03-25  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-cmd-QUOTE): Install patch from Aravind Gottipati
+	that fixes the case where there is no leading whitespace.  Only
+	remove the first space character, though.
+
+	* erc-identd.el (erc-identd-start): Fix a bug by making sure that
+	erc-identd-process is set properly.
+	(erc-identd-start, erc-identd-stop): Add autoload cookies.
+	(erc-identd-start): Pass :host parameter so this works with Emacs
+	22.
+
+2006-03-09  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-button.el (erc-button-keymap): Use <backtab> rather than
+	<C-tab> for `erc-button-previous' as it is a more standard key
+	binding for this type of function.
+
+2006-02-19  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-version-string): Release ERC 5.1.2.
 

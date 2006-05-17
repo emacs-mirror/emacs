@@ -1,3 +1,110 @@
+2006-03-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit (pr, pp, pp1, pv, pv1): Force print_output_debug_flag
+	to zero before calling debug_print or safe_debug_print.
+
+	* print.c (print_output_debug_flag): New global variable.
+	(Fexternal_debugging_output) [WINDOWSNT]: Don't call
+	OutputDebugString if print_output_debug_flag is zero.
+
+2006-03-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (TM_YEAR_BASE): Move up, so the changes below can use it.
+	(Fdecode_time, Fencode_time): Use TM_YEAR_BASE instead of 1900.
+	(Fdecode_time): Cast tm_year to EMACS_INT.
+	(Fcurrent_time_string): Report an invalid time specification if
+	the argument is invalid.  Also, check for out-of-range time
+	stamps.
+
+2006-03-24  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent):
+	* w32term.c (w32_read_socket):
+	* macterm.c (XTread_socket): Don't let key-press clear mouse face
+	on in toolbar window if mouse-highlight is an integer.
+
+	* fns.c (sxhash_list): Include last non-nil CDR in hash.
+
+2006-03-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (enum mac_menu_kind): New enum.
+	(min_menu_id): New variable.
+	(POPUP_SUBMENU_ID, MIN_POPUP_SUBMENU_ID, MIN_MENU_ID)
+	(MIN_SUBMENU_ID): Remove defines.  All uses are replaced with
+	min_menu_id and enumerators in enum mac_menu_kind.
+	(fill_menu, dispose_menus, install_menu_quit_handler): New arg KIND.
+	All uses changed.  Add range check for menu ID.
+	(fill_menubar): Add range check for menu ID.
+	[HAVE_CANCELMENUTRACKING] (menu_quit_handler): Check error code of
+	GetEventParameter.
+	(set_frame_menubar, mac_menu_show): Call install_menu_quit_handler
+	for each menu kind.
+
+2006-03-22  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c: Undo 2006-03-21 change.
+
+	* term.c: Define aliases for append_glyph and produce_stretch_glyph
+	when `static' is defined to avoid name clash with those in xdisp.c.
+
+	* process.c (Faccept_process_output): Fix to comply with lisp reference.
+	Change arg "timeout" to "seconds" and allow both integer and float value.
+	Change arg "timeout-msec" to "millisec" and interpret" as milliseconds
+	rather than microseconds.  Fix doc string accordingly.
+
+2006-03-21  Ken Raeburn  <raeburn@raeburn.org>
+
+	* xdisp.c (store_next_glyph): Renamed from append_glyph.
+	(generate_stretch_glyph): Renamed from produce_stretch_glyph.
+	All callers changed accordingly.
+
+2006-03-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c: x_session_initialized new variable.
+	(x_term_init): Use x_session_initialized to check if
+	x_session_initialize should be called.
+	(x_initialize): Initialize x_session_initialized.
+
+2006-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (draw_fringe_bitmap): Don't calculate default overlay arrow
+	bitmap here, but ...
+	(update_window_fringes): ... here, so we can test if it has changed.
+
+2006-03-20  Andreas Schwab  <schwab@suse.de>
+
+	* dispnew.c (init_display): Check DISPLAY here.
+
+	* emacs.c (main): Don't check here.
+
+	* xterm.c (x_display_ok): Don't use DISPLAY env var.
+
+2006-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (window_scroll_pixel_based): Yet another int/Lisp_Object
+	mixup (YAILOM).
+
+2006-03-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main): Fix last change.
+
+2006-03-20  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Fwrite_region): Set visit_file to Qnil before GCPRO it.
+
+	* keymap.c (map_keymap): Set tail to Qnil before GCPRO it.
+
+	* xfns.c (xg_set_icon): Remove unnecessary GCPRO.
+
+	* xterm.c (x_term_init): Remove unnecessary GCPRO.
+
+2006-03-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor property on overlay	string,
+	so it doesn't associate overlay string with following glyph by default.
+	Allow integer property value to specify explicit number of buffer
+	positions associate with overlay string.
+
 2006-03-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_display_ok): Fix minor bug and compilation warnings.
@@ -41,15 +148,15 @@
 	* image.c [MAC_OS] (XPutPixel, XGetPixel)
 	[!WORDS_BIG_ENDIAN && USE_CG_DRAWING]: Don't use specialized
 	version when depth is 32.
-	(mac_create_cg_image_from_image) [MAC_OS && USE_CG_DRAWING]: New
-	function.
+	(mac_create_cg_image_from_image) [MAC_OS && USE_CG_DRAWING]:
+	New function.
 	(prepare_image_for_display) [MAC_OS && USE_CG_DRAWING]: Use it.
 	(x_clear_image_1) [MAC_OS && USE_CG_DRAWING]: Release CGImage.
 
 	* macterm.c (XCreatePixmap) [!WORDS_BIG_ENDIAN && USE_CG_DRAWING]:
 	Create GWorld in ARGB pixel format.
-	(mac_copy_area, mac_copy_area_with_mask) [USE_CG_DRAWING]: Remove
-	functions.
+	(mac_copy_area, mac_copy_area_with_mask) [USE_CG_DRAWING]:
+	Remove functions.
 	(x_draw_image_foreground) [USE_CG_DRAWING]: Use mac_draw_cg_image
 	instead of mac_copy_area/mac_copy_area_with_mask.
 
@@ -153,8 +260,7 @@
 
 2006-03-11  David Ponce  <david@dponce.com>
 
-	* xfns.c (x_create_tip_frame): Preserve received parms by copying
-	them.
+	* xfns.c (x_create_tip_frame): Preserve received parms by copying them.
 
 2006-03-11  Eli Zaretskii  <eliz@gnu.org>
 
@@ -175,14 +281,14 @@
 	* keymap.c (describe_map): Shorten string to indicate shadowed binding.
 
 	* vm-limit.c (get_lim_data, lim_data, data_space_start):
-	Moved from mem-limits.h.
+	Move from mem-limits.h.
 	(enum warnlevel): New data type.
 	(check_memory_limits): Rewrite the logic about warnings.
 	Use standard `struct rlimit'.  Check return values for nonsense.
 	(memory_warnings): Always clear lim_data.
 
 	* mem-limits.h (get_lim_data, lim_data, data_space_start):
-	Moved to vm-limit.c.
+	Move to vm-limit.c.
 
 	* xterm.c (x_fully_uncatch_errors, x_catching_errors): New functions.
 

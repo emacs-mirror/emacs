@@ -580,14 +580,16 @@ You have several choices here.
 
      Response     Reply Goes To
 
-     from         The person who sent the message.  This is the
+     from         The person who sent the message. This is the
                   default, so <RET> is sufficient.
 
      to           Replies to the sender, plus all recipients in the
                   \"To:\" header field.
 
-     all
-     cc           Forms a reply to the sender, plus all recipients.
+     all cc       Forms a reply to the addresses in the
+                  \"Mail-Followup-To:\" header field if one
+                  exists; otherwise forms a reply to the sender,
+                  plus all recipients.
 
 Depending on your answer, \"repl\" is given a different argument
 to form your reply. Specifically, a choice of \"from\" or none at
@@ -597,7 +599,11 @@ all runs \"repl -nocc all\", and a choice of \"to\" runs \"repl
 
 Two windows are then created. One window contains the message to
 which you are replying in an MH-Show buffer. Your draft, in
-MH-Letter mode (see `mh-letter-mode'), is in the other window.
+MH-Letter mode (*note `mh-letter-mode'), is in the other window.
+If the reply draft was not one that you expected, check the
+things that affect the behavior of \"repl\" which include the
+\"repl:\" profile component and the \"replcomps\" and
+\"replgroupcomps\" files.
 
 If you supply a prefix argument INCLUDEP, the message you are
 replying to is inserted in your reply after having first been run

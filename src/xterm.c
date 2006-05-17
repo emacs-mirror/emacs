@@ -6083,7 +6083,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
       f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
-      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight)
+	  && !EQ (f->tool_bar_window, dpyinfo->mouse_face_window))
         {
           clear_mouse_face (dpyinfo);
           dpyinfo->mouse_face_hidden = 1;
@@ -10039,6 +10040,10 @@ static XrmOptionDescRec emacs_options[] = {
 
 static int x_initialized;
 
+#ifdef HAVE_X_SM
+static int x_session_initialized;
+#endif
+
 #ifdef MULTI_KBOARD
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
@@ -10123,12 +10128,8 @@ x_display_ok (display)
     int dpy_ok = 1;
     Display *dpy;
 
-    if (!display)
-      display = getenv("DISPLAY");
-    if (!display)
-      return 0;
-
-    if ((dpy = XOpenDisplay (display)))
+    dpy = XOpenDisplay (display);
+    if (dpy)
       XCloseDisplay (dpy);
     else
       dpy_ok = 0;
@@ -10204,11 +10205,9 @@ x_term_init (display_name, xrm_option, resource_name)
 
         /* Load our own gtkrc if it exists.  */
         {
-          struct gcpro gcpro1, gcpro2;
           char *file = "~/.emacs.d/gtkrc";
           Lisp_Object s, abs_file;
 
-          GCPRO2 (s, abs_file);
           s = make_string (file, strlen (file));
           abs_file = Fexpand_file_name (s, Qnil);
 
@@ -10613,7 +10612,7 @@ x_term_init (display_name, xrm_option, resource_name)
 
 #ifdef HAVE_X_SM
   /* Only do this for the first display.  */
-  if (x_initialized == 1)
+  if (!x_session_initialized++)
     x_session_initialize (dpyinfo);
 #endif
 
@@ -10798,6 +10797,9 @@ x_initialize ()
   last_tool_bar_item = -1;
   any_help_event_p = 0;
   ignore_next_mouse_click_timeout = 0;
+#ifdef HAVE_X_SM
+  x_session_initialized = 0;
+#endif
 
 #ifdef USE_GTK
   current_count = -1;

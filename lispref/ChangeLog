@@ -1,3 +1,28 @@
+2006-03-28  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Accepting Output): Remove obsolete (and incorrect)
+	remarks about systems that don't support fractional seconds.
+
+2006-03-25  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi: use @copyright{} instead of (C), and do not indent
+	the year list.
+
+2006-03-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* display.texi (Fringe Indicators): Fix typos.
+
+2006-03-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): One can now also write `program'
+	in front of a quoted symbol in a docstring to prevent making a
+	hyperlink.
+
+2006-03-19  Alan Mackenzie  <acm@muc.de>
+
+	* text.texi (Special Properties): Clarify the definition of
+	'fontified.
+
 2006-03-16  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Defining Images): Minor cleanup.

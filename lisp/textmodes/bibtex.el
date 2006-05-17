@@ -88,6 +88,7 @@ If this is a function, call it to generate the initial field text."
                  (string :tag "Initial text")
                  (function :tag "Initialize Function" :value fun)
                  (other :tag "Default" t)))
+(put 'bibtex-include-OPTkey 'risky-local-variable t)
 
 (defcustom bibtex-user-optional-fields
   '(("annote" "Personal annotation (ignored)"))
@@ -437,6 +438,7 @@ field or a function, which is called to determine the initial content
 of the field, and ALTERNATIVE-FLAG (either nil or t) marks if the
 field is an alternative.  ALTERNATIVE-FLAG may be t only in the
 REQUIRED or CROSSREF-REQUIRED lists.")
+(put 'bibtex-entry-field-alist 'risky-local-variable t)
 
 (defcustom bibtex-comment-start "@Comment"
   "String starting a BibTeX comment."
@@ -595,7 +597,7 @@ See `bibtex-generate-autokey' for details."
   :type '(repeat (cons (regexp :tag "Old")
                        (string :tag "New"))))
 
-(defcustom bibtex-autokey-name-case-convert 'downcase
+(defcustom bibtex-autokey-name-case-convert-function 'downcase
   "Function called for each name to perform case conversion.
 See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
@@ -604,6 +606,8 @@ See `bibtex-generate-autokey' for details."
                  (const :tag "Capitalize" capitalize)
                  (const :tag "Upcase" upcase)
                  (function :tag "Conversion function")))
+(defvaralias 'bibtex-autokey-name-case-convert
+  'bibtex-autokey-name-case-convert-function)
 
 (defcustom bibtex-autokey-name-length 'infty
   "Number of characters from name to incorporate into key.
@@ -666,7 +670,7 @@ See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
   :type '(repeat regexp))
 
-(defcustom bibtex-autokey-titleword-case-convert 'downcase
+(defcustom bibtex-autokey-titleword-case-convert-function 'downcase
   "Function called for each titleword to perform case conversion.
 See `bibtex-generate-autokey' for details."
   :group 'bibtex-autokey
@@ -675,6 +679,8 @@ See `bibtex-generate-autokey' for details."
                  (const :tag "Capitalize" capitalize)
                  (const :tag "Upcase" upcase)
                  (function :tag "Conversion function")))
+(defvaralias 'bibtex-autokey-titleword-case-convert
+  'bibtex-autokey-titleword-case-convert-function)
 
 (defcustom bibtex-autokey-titleword-abbrevs nil
   "Determines exceptions to the usual abbreviation mechanism.
@@ -847,6 +853,7 @@ The following is a complex example, see http://link.aps.org/linkfaq.html.
                                (choice (string :tag "Replacement")
 				       (integer :tag "Sub-match")
 				       (function :tag "Filter"))))))))
+(put 'bibtex-generate-url-list 'risky-local-variable t)
 
 (defcustom bibtex-expand-strings nil
   "If non-nil, expand strings when extracting the content of a BibTeX field."
@@ -1164,7 +1171,7 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
     (,(concat "^[ \t]*\\(" bibtex-field-name "\\)[ \t]*=")
      1 font-lock-variable-name-face)
     ;; url
-    bibtex-font-lock-url bibtex-font-lock-crossref)
+    (bibtex-font-lock-url) (bibtex-font-lock-crossref))
   "*Default expressions to highlight in BibTeX mode.")
 
 (defvar bibtex-font-lock-url-regexp
@@ -2085,7 +2092,7 @@ and `bibtex-autokey-names-stretch'."
                       ;; --> take the last token
                       (match-string 1 fullname))
                      (t (error "Name `%s' is incorrectly formed" fullname)))))
-    (funcall bibtex-autokey-name-case-convert
+    (funcall bibtex-autokey-name-case-convert-function
              (bibtex-autokey-abbrev name bibtex-autokey-name-length))))
 
 (defun bibtex-autokey-get-year ()
@@ -2147,7 +2154,7 @@ and `bibtex-autokey-titleword-length'."
       (setq alist (cdr alist)))
     (if alist
         (cdar alist)
-      (funcall bibtex-autokey-titleword-case-convert
+      (funcall bibtex-autokey-titleword-case-convert-function
                (bibtex-autokey-abbrev titleword bibtex-autokey-titleword-length)))))
 
 (defun bibtex-generate-autokey ()
@@ -2167,7 +2174,7 @@ The name part:
     take at least `bibtex-autokey-name-length' characters (truncate only
     after a consonant or at a word end).
  5. Convert all last names using the function
-    `bibtex-autokey-name-case-convert'.
+    `bibtex-autokey-name-case-convert-function'.
  6. Build the name part of the key by concatenating all abbreviated last
     names with the string `bibtex-autokey-name-separator' between any two.
     If there are more names in the name field than names used in the name
@@ -2199,7 +2206,7 @@ The title part
     `bibtex-autokey-titleword-length' characters (truncate only after
     a consonant or at a word end).
  5. Convert all title words using the function
-    `bibtex-autokey-titleword-case-convert'.
+    `bibtex-autokey-titleword-case-convert-function'.
  6. Build the title part by concatenating all abbreviated title words with
     the string `bibtex-autokey-titleword-separator' between any two.
 
@@ -2531,7 +2538,7 @@ Use `bibtex-summary-function' to generate summary."
 Used as default value of `bibtex-summary-function'."
   ;; It would be neat to customize this function.  How?
   (if (looking-at bibtex-entry-maybe-empty-head)
-      (let* ((bibtex-autokey-name-case-convert 'identity)
+      (let* ((bibtex-autokey-name-case-convert-function 'identity)
              (bibtex-autokey-name-length 'infty)
              (bibtex-autokey-names 1)
              (bibtex-autokey-names-stretch 0)
@@ -2542,7 +2549,7 @@ Used as default value of `bibtex-summary-function'."
              (year (bibtex-autokey-get-year))
              (bibtex-autokey-titlewords 5)
              (bibtex-autokey-titlewords-stretch 2)
-             (bibtex-autokey-titleword-case-convert 'identity)
+             (bibtex-autokey-titleword-case-convert-function 'identity)
              (bibtex-autokey-titleword-length 5)
              (bibtex-autokey-titleword-separator " ")
              (title (bibtex-autokey-get-title))
@@ -2785,7 +2792,6 @@ if that value is non-nil.
         (list (list nil bibtex-entry-head bibtex-key-in-head))
         imenu-case-fold-search t)
   (make-local-variable 'choose-completion-string-functions)
-  (make-local-variable 'completion-ignore-case)
   ;; XEmacs needs easy-menu-add, Emacs does not care
   (easy-menu-add bibtex-edit-menu)
   (easy-menu-add bibtex-entry-menu)
@@ -4155,9 +4161,9 @@ An error is signaled if point is outside key or BibTeX field."
 
     (cond ((eq compl 'key)
            ;; key completion: no cleanup needed
-           (setq choose-completion-string-functions nil
-                 completion-ignore-case nil)
-           (bibtex-complete-internal (bibtex-global-key-alist)))
+           (setq choose-completion-string-functions nil)
+           (let (completion-ignore-case)
+             (bibtex-complete-internal (bibtex-global-key-alist))))
 
           ((eq compl 'crossref-key)
            ;; crossref key completion
@@ -4167,40 +4173,35 @@ An error is signaled if point is outside key or BibTeX field."
            ;; non-nil. Therefore, `choose-completion-string-functions' is
            ;; always set (either to non-nil or nil) when a new completion
            ;; is requested.
-           ;; Also, `choose-completion-delete-max-match' requires
-           ;; that we set `completion-ignore-case' (i.e., binding via `let'
-           ;; is not sufficient).
-           (setq completion-ignore-case nil
-                 choose-completion-string-functions
-                 (lambda (choice buffer mini-p base-size)
-                   (setq choose-completion-string-functions nil)
-                   (choose-completion-string choice buffer base-size)
-                   (bibtex-complete-crossref-cleanup choice)
-                   t)) ; needed by choose-completion-string-functions
-
-           (bibtex-complete-crossref-cleanup (bibtex-complete-internal
-                                              (bibtex-global-key-alist))))
+           (let (completion-ignore-case)
+             (setq choose-completion-string-functions
+                   (lambda (choice buffer mini-p base-size)
+                     (setq choose-completion-string-functions nil)
+                     (choose-completion-string choice buffer base-size)
+                     (bibtex-complete-crossref-cleanup choice)
+                     t)) ; needed by choose-completion-string-functions
+             (bibtex-complete-crossref-cleanup
+              (bibtex-complete-internal (bibtex-global-key-alist)))))
 
           ((eq compl 'string)
            ;; string key completion: no cleanup needed
-           (setq choose-completion-string-functions nil
-                 completion-ignore-case t)
-           (bibtex-complete-internal bibtex-strings))
+           (setq choose-completion-string-functions nil)
+           (let ((completion-ignore-case t))
+             (bibtex-complete-internal bibtex-strings)))
 
           (compl
            ;; string completion
-           (setq completion-ignore-case t
-                 choose-completion-string-functions
-                 `(lambda (choice buffer mini-p base-size)
-                    (setq choose-completion-string-functions nil)
-                    (choose-completion-string choice buffer base-size)
-                    (bibtex-complete-string-cleanup choice ',compl)
-                    t)) ; needed by choose-completion-string-functions
-           (bibtex-complete-string-cleanup (bibtex-complete-internal compl)
-                                             compl))
+           (let ((completion-ignore-case t))
+             (setq choose-completion-string-functions
+                   `(lambda (choice buffer mini-p base-size)
+                      (setq choose-completion-string-functions nil)
+                      (choose-completion-string choice buffer base-size)
+                      (bibtex-complete-string-cleanup choice ',compl)
+                      t)) ; needed by choose-completion-string-functions
+             (bibtex-complete-string-cleanup (bibtex-complete-internal compl)
+                                             compl)))
 
-          (t (setq choose-completion-string-functions nil
-                   completion-ignore-case nil) ; default
+          (t (setq choose-completion-string-functions nil)
              (error "Point outside key or BibTeX field")))))
 
 (defun bibtex-Article ()
@@ -4334,16 +4335,16 @@ The URL is generated using the schemes defined in `bibtex-generate-url-list'
                       (dolist (step scheme)
                         (setq field (cdr (assoc-string (car step) fields-alist t)))
                         (if (string-match (nth 1 step) field)
-                            (setq field (cond ((functionp (nth 2 step))
-                                               (funcall (nth 2 step) field))
-                                              ((numberp (nth 2 step))
-                                               (match-string (nth 2 step) field))
-                                              (t
-                                               (replace-match (nth 2 step) t nil field))))
+                            (push (cond ((functionp (nth 2 step))
+                                         (funcall (nth 2 step) field))
+                                        ((numberp (nth 2 step))
+                                         (match-string (nth 2 step) field))
+                                        (t
+                                         (replace-match (nth 2 step) t nil field)))
+                                  obj)
                           ;; If the scheme is set up correctly,
                           ;; we should never reach this point
-                          (error "Match failed: %s" field))
-                        (push field obj))
+                          (error "Match failed: %s" field)))
                       (if fmt (apply 'format fmt (nreverse obj))
                         (apply 'concat (nreverse obj)))))
           (browse-url (message "%s" url))))

@@ -1116,12 +1116,19 @@ which the local user typed."
   "ERC face used for messages you receive in the main erc buffer."
   :group 'erc-faces)
 
+(defface erc-header-line
+  '((t (:foreground "grey20" :background "grey90")))
+  "ERC face used for the header line.
+
+This will only be used if `erc-header-line-face-method' is non-nil."
+  :group 'erc-faces)
+
 (defface erc-input-face '((t (:foreground "brown")))
   "ERC face used for your input."
   :group 'erc-faces)
 
 (defface erc-prompt-face
-  '((t (:bold t :foreground "Black" :background"lightBlue2")))
+  '((t (:bold t :foreground "Black" :background "lightBlue2")))
   "ERC face for the prompt."
   :group 'erc-faces)
 
@@ -2996,7 +3003,7 @@ Otherwise leave the channel indicated by LINE."
 All the text given as argument is sent to the sever as unmodified,
 just as you provided it.  Use this command with care!"
   (cond
-   ((string-match "^\\s-\\(.+\\)$" line)
+   ((string-match "^ ?\\(.+\\)$" line)
     (erc-server-send (match-string 1 line)))
    (t nil)))
 (put 'erc-cmd-QUOTE 'do-not-parse-args t)
@@ -4850,7 +4857,8 @@ This returns non-nil only iff we actually send anything."
 		  (erc-display-msg line)
 		  (erc-process-input-line (concat line "\n")
 					  (null erc-flood-protect) t))
-		(erc-split-line line)))
+		(or (and erc-flood-protect (erc-split-line line))
+		    (list line))))
 	     (split-string str "\n"))
 	  ;; Insert the prompt along with the command.
 	  (erc-display-command str)
@@ -5616,6 +5624,17 @@ when you move point into the header line."
   :group 'erc-mode-line-and-header
   :type 'boolean)
 
+(defcustom erc-header-line-face-method nil
+  "Determine what method to use when colorizing the header line text.
+
+If nil, don't colorize the header text.
+If given a function, call it and use the resulting face name.
+Otherwise, use the `erc-header-line' face."
+  :group 'erc-mode-line-and-header
+  :type '(choice (const :tag "Don't colorize" nil)
+		 (const :tag "Use the erc-header-line face" t)
+		 (function :tag "Call a function")))
+
 (defcustom erc-show-channel-key-p t
   "Show the the channel key in the header line."
   :group 'erc-paranoia
@@ -5722,7 +5741,13 @@ if `erc-away' is non-nil."
 				((erc-server-process-alive)
 				 "")
 				(t
-				 ": CLOSED"))))
+				 ": CLOSED")))
+	  (face (cond ((eq erc-header-line-face-method nil)
+		       nil)
+		      ((functionp erc-header-line-face-method)
+		       (funcall erc-header-line-face-method))
+		      (t
+		       erc-header-line))))
       (cond ((featurep 'xemacs)
 	     (setq modeline-buffer-identification
 		   (list (format-spec erc-mode-line-format spec)))
@@ -5746,7 +5771,10 @@ if `erc-away' is non-nil."
 			 (erc-replace-regexp-in-string
 			  "%"
 			  "%%"
-			  (erc-propertize header 'help-echo help-echo)))))
+			  (if face
+			      (erc-propertize header 'help-echo help-echo
+					      'face face)
+			    (erc-propertize header 'help-echo help-echo))))))
 		(t (setq header-line-format header))))))
     (if (featurep 'xemacs)
 	(redraw-modeline)

@@ -83,8 +83,8 @@
 @copying
 This file documents Calc, the GNU Emacs calculator.
 
-Copyright (C) 1990, 1991, 2001, 2002, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+Copyright @copyright{} 1990, 1991, 2001, 2002, 2003, 2004,
+2005, 2006 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -102,7 +102,7 @@ Software Foundation raise funds for GNU development.''
 
 @dircategory Emacs
 @direntry
-* Calc: (calc). 	Advanced desk calculator and mathematical tool.
+* Calc: (calc).         Advanced desk calculator and mathematical tool.
 @end direntry
 
 @titlepage

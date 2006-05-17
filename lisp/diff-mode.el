@@ -274,7 +274,7 @@ when editing big diffs)."
 (defvar diff-indicator-changed-face 'diff-indicator-changed)
 
 (defface diff-function
-  '((t :inherit diff-context))
+  '((t :inherit diff-header))
   "`diff-mode' face used to highlight function names produced by \"diff -p\"."
   :group 'diff-mode)
 ;; backward-compatibility alias

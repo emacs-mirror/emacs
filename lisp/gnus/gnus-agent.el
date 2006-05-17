@@ -204,7 +204,7 @@ queue.  Otherwise, queue if and only if unplugged."
   :group 'gnus-agent
   :type '(radio (const :format "Always" always)
 		(const :format "Never" nil)
-		(const :format "When plugged" t)))
+		(const :format "When unplugged" t)))
 
 (defcustom gnus-agent-prompt-send-queue nil
   "If non-nil, `gnus-group-send-queue' will prompt if called when

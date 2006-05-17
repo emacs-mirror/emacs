@@ -290,6 +290,8 @@ If ARG is non-nil, prompt for a server to connect to."
 (defvar rcirc-topic nil)
 (defvar rcirc-keepalive-timer nil)
 (defvar rcirc-last-server-message-time nil)
+
+;;;###autoload
 (defun rcirc-connect (&optional server port nick user-name full-name startup-channels)
   (add-hook 'window-configuration-change-hook
 	    'rcirc-window-configuration-change)

@@ -2942,10 +2942,9 @@ Typing SPC flushes the help buffer."
 	  (progn
 	    (mouse-choose-completion first)
 	    (set-window-configuration comint-dynamic-list-completions-config))
-	(unless (eq first ?\s)
-	  (setq unread-command-events (listify-key-sequence key)))
-	(unless (eq first ?\t)
-	  (set-window-configuration comint-dynamic-list-completions-config))))))
+	(if (eq first ?\s)
+	    (set-window-configuration comint-dynamic-list-completions-config)
+	  (setq unread-command-events (listify-key-sequence key)))))))
 
 
 (defun comint-get-next-from-history ()

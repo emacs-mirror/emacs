@@ -2383,7 +2383,7 @@ between words."
   "Get the right face for match N in font-lock matching of healdines."
   (setq org-l (- (match-end 2) (match-beginning 1)))
   (if org-odd-levels-only (setq org-l (1+ (/ org-l 2))))
-  (setq org-f (nth (1- (% org-l org-n-levels)) org-level-faces))
+  (setq org-f (nth (% (1- org-l) org-n-levels) org-level-faces))
   (cond
    ((eq n 1) (if org-hide-leading-stars 'org-hide org-f))
    ((eq n 2) org-f)
@@ -6833,8 +6833,8 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	    (while (string-match " *\n *" link)
 	      (setq link (replace-match " " t t link)))
 	    (if (string-match org-link-regexp link)
-		(setq type (match-string 1)
-		      path (match-string 2))
+		(setq type (match-string 1 link)
+		      path (match-string 2 link))
 	      (setq type "thisfile"
 		    path link))
 	    (throw 'match t)))
@@ -6892,6 +6892,10 @@ optional argument IN-EMACS is non-nil, Emacs will visit the file."
 	  (setq path (replace-match "" t t path)))
 
       (cond
+
+       ((member type '("http" "https" "ftp" "mailto" "news"))
+	;; give these to some browser
+	(browse-url (concat type ":" path)))
 
        ((string= type "tags")
 	(org-tags-view in-emacs path))

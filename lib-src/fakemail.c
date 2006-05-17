@@ -53,6 +53,7 @@ main ()
 #include "ntlib.h"
 #endif
 
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -69,6 +70,17 @@ main ()
 #define boolean int
 #define true 1
 #define false 0
+
+/* True if TM_YEAR is a struct tm's tm_year value that is acceptable
+   to asctime.  Glibc asctime returns a useful string unless TM_YEAR
+   is nearly INT_MAX, but the C Standard lets C libraries overrun a
+   buffer if TM_YEAR needs more than 4 bytes.  */
+#ifdef __GLIBC__
+# define TM_YEAR_IN_ASCTIME_RANGE(tm_year) ((tm_year) <= INT_MAX - 1900)
+#else
+# define TM_YEAR_IN_ASCTIME_RANGE(tm_year) \
+    (-999 - 1900 <= (tm_year) && (tm_year) <= 9999 - 1900)
+#endif
 
 /* Various lists */
 
@@ -354,6 +366,7 @@ make_file_preface ()
 {
   char *the_string, *temp;
   long idiotic_interface;
+  struct tm *tm;
   long prefix_length;
   long user_length;
   long date_length;
@@ -361,7 +374,13 @@ make_file_preface ()
 
   prefix_length = strlen (FROM_PREFIX);
   time (&idiotic_interface);
-  the_date = ctime (&idiotic_interface);
+  /* Convert to a string, checking for out-of-range time stamps.
+     Don't use 'ctime', as that might dump core if the hardware clock
+     is set to a bizarre value.  */
+  tm = localtime (&idiotic_interface);
+  if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year)))
+    fatal ("current time is out of range", 0);
+  the_date = asctime (tm);
   /* the_date has an unwanted newline at the end */
   date_length = strlen (the_date) - 1;
   the_date[date_length] = '\0';

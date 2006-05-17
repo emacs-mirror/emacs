@@ -143,7 +143,7 @@ specifies what to do when the user exits the help buffer."
 		    ((not (one-window-p t))
 		     (setq help-return-method
 			   (cons (selected-window) 'quit-window))
-		     "Type \\[switch-to-buffer-other-window] RET to restore the other window.")
+		     "Type \\[display-buffer] RET to restore the other window.")
 		    (pop-up-windows
 		     (setq help-return-method (cons (selected-window) t))
 		     "Type \\[delete-other-windows] to remove help window.")

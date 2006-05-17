@@ -1290,7 +1290,7 @@ terms of capabilities, it is the weakest of the six that VC supports.
 VC compensates for certain features missing in SCCS (snapshots, for
 example) by implementing them itself, but some other VC features, such
 as multiple branches, are not available with SCCS.  Since SCCS is
-non-free, not respecting its users freedom,d, you should not use it;
+non-free, not respecting its users freedom, you should not use it;
 use its free replacement CSSC instead.  But you should use CSSC only
 if for some reason you cannot use RCS, or one of the higher-level
 systems such as CVS or GNU Arch.
@@ -1611,8 +1611,8 @@ Examine version @var{version} of the visited file, in a buffer of its
 own.
 
 @item C-x v =
-Compare the current buffer contents with the latest checked-in version
-of the file.
+Compare the current buffer contents with the master version from which
+you started editing.
 
 @item C-u C-x v = @var{file} @key{RET} @var{oldvers} @key{RET} @var{newvers} @key{RET}
 Compare the specified two versions of @var{file}.
@@ -1635,10 +1635,11 @@ and create a branch from it.  @xref{Branches}.)
   It is usually more convenient to compare two versions of the file,
 with the command @kbd{C-x v =} (@code{vc-diff}).  Plain @kbd{C-x v =}
 compares the current buffer contents (saving them in the file if
-necessary) with the last checked-in version of the file.  @kbd{C-u C-x
-v =}, with a numeric argument, reads a file name and two version
-numbers, then compares those versions of the specified file.  Both
-forms display the output in a special buffer in another window.
+necessary) with the master version from which you started editing the
+file (this is not necessarily the latest version of the file).
+@kbd{C-u C-x v =}, with a numeric argument, reads a file name and two
+version numbers, then compares those versions of the specified file.
+Both forms display the output in a special buffer in another window.
 
   You can specify a checked-in version by its number; an empty input
 specifies the current contents of the work file (which may be different
@@ -1669,7 +1670,7 @@ versions are not, in general, present as files on your disk.)
 
 @findex vc-annotate
 @kindex C-x v g
-  For some backends, you can display the file @dfn{annotated} with
+  For some back ends, you can display the file @dfn{annotated} with
 per-line version information and using colors to enhance the visual
 appearance, with the command @kbd{M-x vc-annotate}.
 It creates a new buffer (the ``annotate buffer'') displaying the
@@ -1720,7 +1721,7 @@ line.
 @item W
 Annotate the workfile version--the one you are editing.  If you used
 @kbd{P} and @kbd{N} to browse to other revisions, use this key to
-return to the latest version.
+return to your current version.
 @end table
 
 @node Secondary VC Commands
@@ -1840,7 +1841,8 @@ current line was committed.
 
 @table @kbd
 @item C-x v u
-Revert the buffer and the file to the last checked-in version.
+Revert the buffer and the file to the version from which you started
+editing the file.
 
 @item C-x v c
 Remove the last-entered change from the master for the visited file.
@@ -1850,11 +1852,11 @@ This undoes your last check-in.
 @kindex C-x v u
 @findex vc-revert-buffer
   If you want to discard your current set of changes and revert to the
-last version checked in, use @kbd{C-x v u} (@code{vc-revert-buffer}).
-This leaves the file unlocked; if locking is in use, you must first lock
-the file again before you change it again.  @kbd{C-x v u} requires
-confirmation, unless it sees that you haven't made any changes since the
-last checked-in version.
+version from which you started editing the file, use @kbd{C-x v u}
+(@code{vc-revert-buffer}).  This leaves the file unlocked; if locking
+is in use, you must first lock the file again before you change it
+again.  @kbd{C-x v u} requires confirmation, unless it sees that you
+haven't made any changes with respect to the master version.
 
   @kbd{C-x v u} is also the command to unlock a file if you lock it and
 then decide not to change it.
@@ -1863,9 +1865,11 @@ then decide not to change it.
 @findex vc-cancel-version
   To cancel a change that you already checked in, use @kbd{C-x v c}
 (@code{vc-cancel-version}).  This command discards all record of the
-most recent checked-in version.  @kbd{C-x v c} also offers to revert
-your work file and buffer to the previous version (the one that precedes
-the version that is deleted).
+most recent checked-in version, but only if your work file corresponds
+to that version---you cannot use @kbd{C-x v c} to cancel a version
+that is not the latest on its branch.  @kbd{C-x v c} also offers to
+revert your work file and buffer to the previous version (the one that
+precedes the version that is deleted).
 
   If you answer @kbd{no}, VC keeps your changes in the buffer, and locks
 the file.  The no-revert option is useful when you have checked in a
@@ -1962,6 +1966,24 @@ The files @samp{file1} and @samp{file2} are under version control,
 @samp{file2.c} is not.  @samp{file3.c} is modified, but other changes
 have also been checked in to the repository---you need to merge them
 with the work file before you can check it in.
+
+@vindex vc-stay-local
+@vindex vc-cvs-stay-local
+  In the above, if the repository were on a remote machine, VC would
+only contact it when the variable @code{vc-stay-local} (or
+@code{vc-cvs-stay-local}) is nil (@pxref{CVS Options}).  This is
+because access to the repository may be slow, or you may be working
+offline and not have access to the repository at all.  As a
+consequence, VC would not be able to tell you that @samp{file3.c} is
+in the ``merge'' state; you would learn that only when you try to
+check-in your modified copy of the file, or use a command such as
+@kbd{C-x v m}.
+
+  In practice, this is not a problem because CVS handles this case
+consistently whenever it arises.  In VC, you'll simply get prompted to
+merge the remote changes into your work file first.  The benefits of
+less network communication usually outweigh the disadvantage of not
+seeing remote changes immediately.
 
 @vindex vc-directory-exclusion-list
   When VC Dired displays subdirectories (in the ``full'' display mode),
@@ -2420,12 +2442,16 @@ or a snapshot against a named version.
 support.  They use RCS's native facilities for this, so
 snapshots made using RCS through VC are visible even when you bypass VC.
 
+  With CVS, Meta-CVS, and Subversion, VC also uses the native
+mechanism provided by that back end to make snapshots and retrieve them
+(@dfn{tags} for CVS and Meta-CVS, @dfn{copies} for Subversion).
+
 @c worded verbosely to avoid overfull hbox.
   For SCCS, VC implements snapshots itself.  The files it uses contain
 name/file/version-number triples.  These snapshots are visible only
 through VC.
 
-@c ??? What about CVS?
+  There is no support for VC snapshots using GNU Arch yet.
 
   A snapshot is a set of checked-in versions.  So make sure that all the
 files are checked in and not locked when you make a snapshot.
@@ -2479,9 +2505,8 @@ in that directory, create new entries for versions checked in since the
 most recent entry in the change log file.
 (@code{vc-update-change-log}).
 
-This command works with RCS or CVS only, not with SCCS.
-
-@c ??? What about other back ends?
+This command works with RCS or CVS only, not with any of the other
+back ends.
 
 @item C-u C-x v a
 As above, but only find entries for the current buffer's file.
@@ -2620,7 +2645,7 @@ mention the file, so that they use the new name; despite this, the
 snapshot thus modified may not completely work (@pxref{Snapshot
 Caveats}).
 
-  Some backends do not provide an explicit rename operation to their
+  Some back ends do not provide an explicit rename operation to their
 repositories.  After issuing @code{vc-rename-file}, use @kbd{C-x v v}
 on the original and renamed buffers and provide the necessary edit
 log.
@@ -2634,21 +2659,25 @@ someone else.
    Sometimes it is convenient to put version identification strings
 directly into working files.  Certain special strings called
 @dfn{version headers} are replaced in each successive version by the
-number of that version.
+number of that version, the name of the user who created it, and other
+relevant information.  All of the back ends that VC supports have such
+a mechanism, except GNU Arch.
 
-@c ??? How does this relate to CVS?
+  VC does not normally use the information contained in these headers.
+The exception is RCS---with RCS, version headers are sometimes more
+reliable than the master file to determine which version of the file
+you are editing.  Note that in a multi-branch environment, version
+headers are necessary to make VC behave correctly (@pxref{Multi-User
+Branching}).
 
-  If you are using RCS, and version headers are present in your working
-files, Emacs can use them to determine the current version and the
-locking state of the files.  This is more reliable than referring to the
-master files, which is done when there are no version headers.  Note
-that in a multi-branch environment, version headers are necessary to
-make VC behave correctly (@pxref{Multi-User Branching}).
-
-  Searching for version headers is controlled by the variable
+  Searching for RCS version headers is controlled by the variable
 @code{vc-consult-headers}.  If it is non-@code{nil} (the default),
 Emacs searches for headers to determine the version number you are
 editing.  Setting it to @code{nil} disables this feature.
+
+  Note that although CVS uses the same kind of version headers as RCS
+does, VC never searches for these headers if you are using CVS,
+regardless of the above setting.
 
 @kindex C-x v h
 @findex vc-insert-headers
@@ -2872,23 +2901,25 @@ and CVS takes care to notify other developers of the fact that you
 intend to change the file.  See the CVS documentation for details on
 using the watch feature.
 
+@vindex vc-stay-local
 @vindex vc-cvs-stay-local
 @cindex remote repositories (CVS)
   When a file's repository is on a remote machine, VC tries to keep
 network interactions to a minimum.  This is controlled by the variable
-@code{vc-cvs-stay-local}.  If it is @code{t} (the default), then VC uses
-only the entry in the local CVS subdirectory to determine the file's
-state (and possibly information returned by previous CVS commands).  One
-consequence of this is that when you have modified a file, and somebody
-else has already checked in other changes to the file, you are not
-notified of it until you actually try to commit.  (But you can try to
-pick up any recent changes from the repository first, using @kbd{C-x v m
-@key{RET}}, @pxref{Merging}).
+@code{vc-cvs-stay-local}.  There is another variable,
+@code{vc-stay-local}, which enables the feature also for other back
+ends that support it, including CVS.  In the following, we will talk
+only about @code{vc-cvs-stay-local}, but everything applies to
+@code{vc-stay-local} as well.
 
-@vindex vc-cvs-global-switches
-  The variable @code{vc-cvs-global-switches}, if non-@code{nil},
-should be a string specifying switches to pass to CVS for all CVS
-operations.
+If @code{vc-cvs-stay-local} is @code{t} (the default), then VC uses
+only the entry in the local CVS subdirectory to determine the file's
+state (and possibly information returned by previous CVS commands).
+One consequence of this is that when you have modified a file, and
+somebody else has already checked in other changes to the file, you
+are not notified of it until you actually try to commit.  (But you can
+try to pick up any recent changes from the repository first, using
+@kbd{C-x v m @key{RET}}, @pxref{Merging}).
 
   When @code{vc-cvs-stay-local} is @code{t}, VC also makes local
 version backups, so that simple diff and revert operations are
@@ -2902,6 +2933,12 @@ repositories.  It also does not make any version backups.
   You can also set @code{vc-cvs-stay-local} to a regular expression
 that is matched against the repository host name; VC then stays local
 only for repositories from hosts that match the pattern.
+
+@vindex vc-cvs-global-switches
+  You can specify additional command line options to pass to all CVS
+operations in the variable @code{vc-cvs-global-switches}.  These
+switches are inserted immediately after the @code{cvs} command, before
+the name of the operation to invoke.
 
 @node Directories
 @section File Directories
@@ -3380,9 +3417,9 @@ file by name, without having to remember exactly where it is located.
 When typing a file name in the minibuffer, @kbd{C-@key{tab}}
 (@code{file-cache-minibuffer-complete}) completes it using the file
 name cache.  If you repeat @kbd{C-@key{tab}}, that cycles through the
-possible completions of what you had originally typed.  Note that the
-@kbd{C-@key{tab}} character cannot be typed on most text-only
-terminals.
+possible completions of what you had originally typed.  (However, note
+that the @kbd{C-@key{tab}} character cannot be typed on most text-only
+terminals.)
 
   The file name cache does not fill up automatically.  Instead, you
 load file names into the cache using these commands:
@@ -3406,6 +3443,10 @@ of directory names.
 @item M-x file-cache-clear-cache @key{RET}
 Clear the cache; that is, remove all file names from it.
 @end table
+
+  The file name cache is not persistent: it is kept and maintained
+only for the duration of the Emacs session.  You can view the contents
+of the cache with the @code{file-cache-display} command.
 
 @node File Conveniences
 @section Convenience Features for Finding Files

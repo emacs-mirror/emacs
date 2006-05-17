@@ -741,8 +741,8 @@ then the hyperlink will refer only to the variable documentation of
 
 If a symbol has a function definition and/or a variable definition, but
 those are irrelevant to the use of the symbol that you are documenting,
-you can write the word @samp{symbol} before the symbol name to prevent
-making any hyperlink.  For example,
+you can write the words @samp{symbol} or @samp{program} before the
+symbol name to prevent making any hyperlink.  For example,
 
 @example
 If the argument KIND-OF-RESULT is the symbol `list',

@@ -799,8 +799,8 @@ If command is repeated at same position, delete the rectangle."
 				(if cua--virtual-edges-debug ?, ?\s))
 			       'face rface))
 		     (if (cua--rectangle-right-side)
-			 (put-text-property (1- (length ms)) (length ms) 'cursor t ms)
-		       (put-text-property 0 1 'cursor t ms))
+			 (put-text-property (1- (length ms)) (length ms) 'cursor 2 ms)
+		       (put-text-property 0 1 'cursor 2 ms))
 		     (setq bs (concat bs ms))
 		     (setq rface nil))
  		    (t
@@ -810,8 +810,8 @@ If command is repeated at same position, delete the rectangle."
 				(if cua--virtual-edges-debug ?~ ?\s))
 			       'face rface))
 		     (if (cua--rectangle-right-side)
-			 (put-text-property (1- (length as)) (length as) 'cursor t as)
-		       (put-text-property 0 1 'cursor t as))
+			 (put-text-property (1- (length as)) (length as) 'cursor 2 as)
+		       (put-text-property 0 1 'cursor 2 as))
 		     (if (/= pr le)
 			 (setq e (1- e))))))))
 	     ;; Trim old leading overlays.
@@ -1413,8 +1413,8 @@ With prefix arg, indent to that column."
   (cua--M/H-key cua--rectangle-keymap key cmd))
 
 (defun cua--init-rectangles ()
-  (define-key cua--rectangle-keymap [(control return)] 'cua-clear-rectangle-mark)
-  (define-key cua--region-keymap    [(control return)] 'cua-toggle-rectangle-mark)
+  (define-key cua--rectangle-keymap cua-rectangle-mark-key 'cua-clear-rectangle-mark)
+  (define-key cua--region-keymap    cua-rectangle-mark-key 'cua-toggle-rectangle-mark)
   (unless (eq cua--rectangle-modifier-key 'meta)
     (cua--rect-M/H-key ?\s			       'cua-clear-rectangle-mark)
     (cua--M/H-key cua--region-keymap ?\s	       'cua-toggle-rectangle-mark))
