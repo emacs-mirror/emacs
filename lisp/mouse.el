@@ -961,7 +961,7 @@ at the same position."
 	  (let* ((fun (key-binding (vector (car event))))
 		 (do-multi-click   (and (> (event-click-count event) 0)
 					(functionp fun)
-					(not (eq fun 'mouse-set-point)))))
+					(not (memq fun '(mouse-set-point mouse-set-region))))))
             ;; Run the binding of the terminating up-event, if possible.
 	    (if (and (not (= (overlay-start mouse-drag-overlay)
 			     (overlay-end mouse-drag-overlay)))
@@ -1075,7 +1075,7 @@ If DIR is positive skip forward; if negative, skip backward."
 	     (forward-char 1))))))
 
 (defun mouse-start-end (start end mode)
-"Return a list of region bounds based on START and END according to MODE.
+  "Return a list of region bounds based on START and END according to MODE.
 If MODE is 0 then set point to (min START END), mark to (max START END).
 If MODE is 1 then set point to start of word at (min START END),
 mark to end of word at (max START END).
@@ -1181,8 +1181,10 @@ If MODE is 2 then do the same for lines."
 
 ;; Momentarily show where the mark is, if highlighting doesn't show it.
 
-(defvar mouse-region-delete-keys '([delete] [deletechar])
-  "List of keys which shall cause the mouse region to be deleted.")
+(defcustom mouse-region-delete-keys '([delete] [deletechar] [backspace])
+  "List of keys that should cause the mouse region to be deleted."
+  :group 'mouse
+  :type '(repeat key-sequence))
 
 (defun mouse-show-mark ()
   (let ((inhibit-quit t)

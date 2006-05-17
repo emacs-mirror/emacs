@@ -2,7 +2,7 @@
 static char * goto_xpm[] = {
 "24 24 6 1",
 " 	c None",
-".	c #ff0000",
+".	c #cc0033",
 "X	c #616161",
 "o	c #2a1f55",
 "O	c #adadad",

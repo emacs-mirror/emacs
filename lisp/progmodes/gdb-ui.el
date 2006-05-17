@@ -50,6 +50,9 @@
 ;; still under development and is part of a process to migrate Emacs from
 ;; annotations to GDB/MI.
 ;;
+;; This mode SHOULD WORK WITH GDB 5.0 ONWARDS but you will NEED GDB 6.0
+;; ONWARDS TO USE WATCH EXPRESSIONS.
+;;
 ;; Windows Platforms:
 ;;
 ;; If you are using Emacs and GDB on Windows you will need to flush the buffer
@@ -74,6 +77,8 @@
 ;; 4) Mark breakpoint locations on scroll-bar of source buffer?
 ;; 5) After release of 22.1 use '-var-list-children --all-values'
 ;;    and '-stack-list-locals 2' which need GDB 6.1 onwards.
+;; 6) With gud-print and gud-pstar, print the variable name in the GUD
+;;    buffer instead of the value's history number.
 
 ;;; Code:
 
@@ -91,7 +96,6 @@
 (defvar gdb-var-list nil "List of variables in watch window.")
 (defvar gdb-var-changed nil "Non-nil means that `gdb-var-list' has changed.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
-(defvar gdb-buffer-type nil)
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
 (defvar gdb-flush-pending-output nil)
@@ -107,6 +111,7 @@ and #define directives otherwise.")
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
+(make-variable-buffer-local 'gdb-buffer-type)
 
 (defvar gdb-input-queue ()
   "A list of gdb command objects.")
@@ -211,12 +216,6 @@ detailed description of this mode.
   :group 'gud
   :version "22.1")
 
-(defcustom gdb-use-inferior-io-buffer nil
-  "Non-nil means display output from the inferior in a separate buffer."
-  :type 'boolean
-  :group 'gud
-  :version "22.1")
-
 (defcustom gdb-cpp-define-alist-program "gcc -E -dM -"
   "Shell command for generating a list of defined macros in a source file.
 This list is used to display the #define directive associated
@@ -241,6 +240,29 @@ Also display the main routine in the disassembly buffer if present."
   :type 'boolean
   :group 'gud
   :version "22.1")
+
+
+(defcustom gdb-use-inferior-io-buffer nil
+  "Non-nil means display output from the inferior in a separate buffer."
+  :type 'boolean
+  :group 'gud
+  :version "22.1")
+
+(defun gdb-use-inferior-io-buffer (arg)
+  "Toggle separate IO for inferior.
+With arg, use separate IO iff arg is positive."
+  (interactive "P")
+  (setq gdb-use-inferior-io-buffer
+	(if (null arg)
+	    (not gdb-use-inferior-io-buffer)
+	  (> (prefix-numeric-value arg) 0)))
+  (if (and gud-comint-buffer
+	   (buffer-name gud-comint-buffer))
+      (condition-case nil
+	  (if gdb-use-inferior-io-buffer
+	      (gdb-restore-windows)
+	    (kill-buffer (gdb-inferior-io-name)))
+	(error nil))))
 
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
 
@@ -277,7 +299,7 @@ Also display the main routine in the disassembly buffer if present."
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (if (search-forward "expands to: " nil t)
-	(unless (looking-at "\\S+.*(.*).*")
+	(unless (looking-at "\\S-+.*(.*).*")
 	  (gdb-enqueue-input
 	   (list  (concat gdb-server-prefix "print " expr "\n")
 		  'gdb-tooltip-print))))))
@@ -349,11 +371,14 @@ Also display the main routine in the disassembly buffer if present."
     'gdb-mouse-set-clear-breakpoint)
   (define-key gud-minor-mode-map [left-fringe mouse-1]
     'gdb-mouse-set-clear-breakpoint)
+  (define-key gud-minor-mode-map [left-fringe mouse-2]
+    'gdb-mouse-until)
+  (define-key gud-minor-mode-map [left-fringe drag-mouse-1]
+    'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-margin mouse-3]
-    'gdb-mouse-toggle-breakpoint)
-;  Currently only works in margin.
-;  (define-key gud-minor-mode-map [left-fringe mouse-3]
-;    'gdb-mouse-toggle-breakpoint)
+    'gdb-mouse-toggle-breakpoint-margin)
+  (define-key gud-minor-mode-map [left-fringe mouse-3]
+    'gdb-mouse-toggle-breakpoint-fringe)
 
   (setq comint-input-sender 'gdb-send)
   ;;
@@ -397,6 +422,33 @@ Also display the main routine in the disassembly buffer if present."
   (gdb-set-gud-minor-mode-existing-buffers)
   (run-hooks 'gdba-mode-hook))
 
+(defun gdb-mouse-until (event)
+  "Execute source lines by dragging the overlay arrow (fringe) with the mouse."
+  (interactive "e")
+  (if gud-overlay-arrow-position
+      (let ((start (event-start event))
+	    (end  (event-end event))
+	    (buffer (marker-buffer gud-overlay-arrow-position)) (line))
+	(if (not (string-match "Machine" mode-name))
+	    (if (equal buffer (window-buffer (posn-window end)))
+		(with-current-buffer buffer
+		  (when (or (equal start end)
+			    (equal (posn-point start)
+				   (marker-position
+				    gud-overlay-arrow-position)))
+		    (setq line (line-number-at-pos (posn-point end)))
+		    (gud-call (concat "until " (number-to-string line))))))
+	  (if (equal (marker-buffer gdb-overlay-arrow-position)
+		     (window-buffer (posn-window end)))
+	      (when (or (equal start end)
+			(equal (posn-point start)
+			       (marker-position
+				gdb-overlay-arrow-position)))
+		(save-excursion
+		  (goto-line (line-number-at-pos (posn-point end)))
+		  (forward-char 2)
+		  (gud-call (concat "until *%a")))))))))
+
 (defcustom gdb-use-colon-colon-notation nil
   "If non-nil use FUN::VAR format to display variables in the speedbar."
   :type 'boolean
@@ -407,21 +459,21 @@ Also display the main routine in the disassembly buffer if present."
   "Watch expression at point."
   (interactive)
   (require 'tooltip)
-  (let ((expr (tooltip-identifier-from-point (point))))
-    (if (and (string-equal gdb-current-language "c")
-	     gdb-use-colon-colon-notation gdb-selected-frame)
-	(setq expr (concat gdb-selected-frame "::" expr)))
-    (catch 'already-watched
-      (dolist (var gdb-var-list)
-	(if (string-equal expr (car var)) (throw 'already-watched nil)))
-      (set-text-properties 0 (length expr) nil expr)
-      (gdb-enqueue-input
-       (list
-	(if (eq gud-minor-mode 'gdba)
-	    (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
-	  (concat"-var-create - * "  expr "\n"))
-	     `(lambda () (gdb-var-create-handler ,expr))))))
-  (select-window (get-buffer-window gud-comint-buffer 0)))
+  (save-selected-window
+    (let ((expr (tooltip-identifier-from-point (point))))
+      (if (and (string-equal gdb-current-language "c")
+	       gdb-use-colon-colon-notation gdb-selected-frame)
+	  (setq expr (concat gdb-selected-frame "::" expr)))
+      (catch 'already-watched
+	(dolist (var gdb-var-list)
+	  (if (string-equal expr (car var)) (throw 'already-watched nil)))
+	(set-text-properties 0 (length expr) nil expr)
+	(gdb-enqueue-input
+	 (list
+	  (if (eq gud-minor-mode 'gdba)
+	      (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
+	    (concat"-var-create - * "  expr "\n"))
+	  `(lambda () (gdb-var-create-handler ,expr))))))))
 
 (defconst gdb-var-create-regexp
   "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
@@ -643,7 +695,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 	  (let ((trigger))
 	    (if (cdr (cdr rules))
 		(setq trigger (funcall (car (cdr (cdr rules))))))
-	    (set (make-local-variable 'gdb-buffer-type) key)
+	    (setq gdb-buffer-type key)
 	    (set (make-local-variable 'gud-minor-mode)
 		 (with-current-buffer gud-comint-buffer gud-minor-mode))
 	    (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
@@ -994,6 +1046,8 @@ being debugged and that the program is no longer running.  This
 function is used to change the focus of GUD tooltips to #define
 directives."
   (setq gdb-active-process nil)
+  (setq gud-overlay-arrow-position nil)
+  (setq gdb-overlay-arrow-position nil)
   (gdb-stopping ignored))
 
 (defun gdb-frame-begin (ignored)
@@ -1182,7 +1236,7 @@ happens to be appropriate."
 (defmacro def-gdb-auto-update-trigger (name demand-predicate gdb-command
 					    output-handler)
   `(defun ,name (&optional ignored)
-     (if (and (,demand-predicate)
+     (if (and ,demand-predicate
 	      (not (member ',name
 			   gdb-pending-triggers)))
 	 (progn
@@ -1214,7 +1268,7 @@ happens to be appropriate."
   `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ;; The demand predicate:
-       (lambda () (gdb-get-buffer ',buffer-key))
+       (gdb-get-buffer ',buffer-key)
        ,gdb-command
        ,output-handler-name)
      (def-gdb-auto-update-handler ,output-handler-name
@@ -1400,8 +1454,8 @@ static char *magick[] = {
 		(gud-remove nil)
 	      (gud-break nil)))))))
 
-(defun gdb-mouse-toggle-breakpoint (event)
-  "Enable/disable breakpoint in left fringe/margin with mouse click."
+(defun gdb-mouse-toggle-breakpoint-margin (event)
+  "Enable/disable breakpoint in left margin with mouse click."
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
@@ -1419,7 +1473,33 @@ static char *magick[] = {
 				 0 'gdb-enabled (car (posn-string posn)))
 				"disable "
 			      "enable ")
-			    bptno "\n")) 'ignore))))))))
+			    bptno "\n"))
+		  'ignore))))))))
+
+(defun gdb-mouse-toggle-breakpoint-fringe (event)
+  "Enable/disable breakpoint in left fringe with mouse click."
+  (interactive "e")
+  (mouse-minibuffer-check event)
+  (let* ((posn (event-end event))
+	 (pos (posn-point posn))
+	 obj)
+    (when (numberp pos)
+      (with-selected-window (posn-window posn)
+	(save-excursion
+	  (set-buffer (window-buffer (selected-window)))
+	  (goto-char pos)
+	  (dolist (overlay (overlays-in pos pos))
+	    (when (overlay-get overlay 'put-break)
+	      (setq obj (overlay-get overlay 'before-string))))
+	  (when (stringp obj)
+	    (gdb-enqueue-input
+	     (list
+	      (concat
+	       (if (get-text-property 0 'gdb-enabled obj)
+		   "disable "
+		 "enable ")
+	       (get-text-property 0 'gdb-bptno obj) "\n")
+	      'ignore))))))))
 
 (defun gdb-breakpoints-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -1504,6 +1584,9 @@ static char *magick[] = {
   "Display the breakpoint location specified at current line."
   (interactive (list last-input-event))
   (if event (mouse-set-point event))
+  ;; Hack to stop gdb-goto-breakpoint displaying in GUD buffer.
+  (let ((window (get-buffer-window gud-comint-buffer)))
+    (if window (save-selected-window  (select-window window))))
   (save-excursion
     (beginning-of-line 1)
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
@@ -1549,9 +1632,10 @@ static char *magick[] = {
 	(while (< (point) (point-max))
 	  (setq bl (line-beginning-position)
 		el (line-end-position))
-	  (add-text-properties bl el
-			     '(mouse-face highlight
-			       help-echo "mouse-2, RET: Select frame"))
+	  (unless (looking-at "No ")
+	    (add-text-properties bl el
+				 '(mouse-face highlight
+			           help-echo "mouse-2, RET: Select frame")))
 	  (goto-char bl)
 	  (when (looking-at "^#\\([0-9]+\\)")
 	    (when (string-equal (match-string 1) gdb-frame-number)
@@ -1648,9 +1732,10 @@ static char *magick[] = {
     (let ((buffer-read-only nil))
       (goto-char (point-min))
       (while (< (point) (point-max))
-	(add-text-properties (line-beginning-position) (line-end-position)
-			     '(mouse-face highlight
-			       help-echo "mouse-2, RET: select thread"))
+	(unless (looking-at "No ")
+	  (add-text-properties (line-beginning-position) (line-end-position)
+			       '(mouse-face highlight
+			         help-echo "mouse-2, RET: select thread")))
 	(forward-line 1)))))
 
 (defun gdb-threads-buffer-name ()
@@ -1733,7 +1818,19 @@ static char *magick[] = {
   gdb-info-registers-handler
   gdb-info-registers-custom)
 
-(defun gdb-info-registers-custom ())
+(defun gdb-info-registers-custom ()
+  (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+    (save-excursion
+      (let ((buffer-read-only nil)
+	    bl)
+	(goto-char (point-min))
+	(while (< (point) (point-max))
+	  (setq bl (line-beginning-position))
+	  (when (looking-at "^[^ ]+")
+	    (unless (string-equal (match-string 0) "The")
+	      (put-text-property bl (match-end 0)
+				 'face font-lock-variable-name-face)))
+	  (forward-line 1))))))
 
 (defvar gdb-registers-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1741,12 +1838,6 @@ static char *magick[] = {
     (define-key map " " 'toggle-gdb-all-registers)
     (define-key map "q" 'kill-this-buffer)
      map))
-
-(defvar gdb-registers-font-lock-keywords
-  '(
-    ("^[^ ]+" . font-lock-variable-name-face)
-    )
-  "Font lock keywords used in `gdb-registers-mode'.")
 
 (defun gdb-registers-mode ()
   "Major mode for gdb registers.
@@ -1757,8 +1848,6 @@ static char *magick[] = {
   (setq mode-name "Registers:")
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
-  (set (make-local-variable 'font-lock-defaults)
-       '(gdb-registers-font-lock-keywords))
   (run-mode-hooks 'gdb-registers-mode-hook)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
       'gdb-invalidate-registers
@@ -2109,15 +2198,14 @@ corresponding to the mode line clicked."
 		      'gdb-locals-buffer-name
 		      'gdb-locals-mode)
 
-(def-gdb-auto-updated-buffer gdb-locals-buffer
-  gdb-invalidate-locals
+(def-gdb-auto-update-trigger gdb-invalidate-locals
+  (gdb-get-buffer 'gdb-locals-buffer)
   "server info locals\n"
-  gdb-info-locals-handler
-  gdb-info-locals-custom)
+  gdb-info-locals-handler)
 
 ;; Abbreviate for arrays and structures.
 ;; These can be expanded using gud-display.
-(defun gdb-info-locals-handler nil
+(defun gdb-info-locals-handler ()
   (setq gdb-pending-triggers (delq 'gdb-invalidate-locals
 				  gdb-pending-triggers))
   (let ((buf (gdb-get-buffer 'gdb-partial-output-buffer)))
@@ -2143,16 +2231,13 @@ corresponding to the mode line clicked."
 		(set-window-point window p)))))
   (run-hooks 'gdb-info-locals-hook))
 
-(defun gdb-info-locals-custom ()
-  nil)
-
 (defvar gdb-locals-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (define-key map "q" 'kill-this-buffer)
      map))
 
-(defvar gdb-local-font-lock-keywords
+(defvar gdb-locals-font-lock-keywords
   '(
     ;; var = (struct struct_tag) value
     ( "\\(^\\(\\sw\\|[_.]\\)+\\) += +(\\(struct\\) \\(\\(\\sw\\|[_.]\\)+\\)"
@@ -2179,7 +2264,7 @@ corresponding to the mode line clicked."
   (setq buffer-read-only t)
   (use-local-map gdb-locals-mode-map)
   (set (make-local-variable 'font-lock-defaults)
-       '(gdb-local-font-lock-keywords))
+       '(gdb-locals-font-lock-keywords))
   (run-mode-hooks 'gdb-locals-mode-hook)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
       'gdb-invalidate-locals
@@ -2269,11 +2354,9 @@ corresponding to the mode line clicked."
   (define-key gud-menu-map [ui]
     `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb-use-inferior-io]
-    ;; See defadvice below.
-    (menu-bar-make-toggle toggle-gdb-use-inferior-io-buffer
-			  gdb-use-inferior-io-buffer
-     "Separate inferior IO" "Use separate IO %s"
-     "Toggle separate IO for inferior."))
+  '(menu-item "Separate inferior IO" gdb-use-inferior-io-buffer
+	      :help "Toggle separate IO for inferior."
+	      :button (:toggle . gdb-use-inferior-io-buffer)))
   (define-key menu [gdb-many-windows]
   '(menu-item "Display Other Windows" gdb-many-windows
 	      :help "Toggle display of locals, stack and breakpoint information"
@@ -2282,23 +2365,19 @@ corresponding to the mode line clicked."
   '(menu-item "Restore Window Layout" gdb-restore-windows
 	      :help "Restore standard layout for debug session.")))
 
-;; This function is defined above through a macro.
-(defadvice toggle-gdb-use-inferior-io-buffer (after gdb-kill-io-buffer activate)
-  (unless gdb-use-inferior-io-buffer
-    (kill-buffer (gdb-inferior-io-name))))
-
 (defun gdb-frame-gdb-buffer ()
   "Display GUD buffer in a new frame."
   (interactive)
-  (select-frame (make-frame gdb-frame-parameters))
-  (switch-to-buffer (gdb-get-create-buffer 'gdba))
-  (set-window-dedicated-p (selected-window) t))
+  (let ((special-display-regexps (append special-display-regexps '(".*")))
+	(special-display-frame-alist gdb-frame-parameters)
+	(same-window-regexps nil))
+    (display-buffer gud-comint-buffer)))
 
 (defun gdb-display-gdb-buffer ()
   "Display GUD buffer."
   (interactive)
-  (gdb-display-buffer
-   (gdb-get-create-buffer 'gdba)))
+  (let ((same-window-regexps nil))
+    (pop-to-buffer gud-comint-buffer)))
 
 (defun gdb-set-window-buffer (name)
   (set-window-buffer (selected-window) (get-buffer name))
@@ -2346,15 +2425,18 @@ of the inferior.  Non-nil means display the layout shown for
   :version "22.1")
 
 (defun gdb-many-windows (arg)
-  "Toggle the number of windows in the basic arrangement."
+  "Toggle the number of windows in the basic arrangement.
+With arg, display additional buffers iff arg is positive."
   (interactive "P")
   (setq gdb-many-windows
 	(if (null arg)
 	    (not gdb-many-windows)
 	  (> (prefix-numeric-value arg) 0)))
-  (condition-case nil
-      (gdb-restore-windows)
-    (error nil)))
+  (if (and gud-comint-buffer
+	   (buffer-name gud-comint-buffer))
+      (condition-case nil
+	  (gdb-restore-windows)
+	(error nil))))
 
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdba.
@@ -2364,13 +2446,14 @@ This arrangement depends on the value of `gdb-many-windows'."
     (delete-other-windows)
   (if gdb-many-windows
       (gdb-setup-windows)
-    (split-window)
-    (other-window 1)
-    (switch-to-buffer
-	 (if gud-last-last-frame
-	     (gud-find-file (car gud-last-last-frame))
-	   (gud-find-file gdb-main-file)))
-    (other-window 1)))
+    (when (or gud-last-last-frame gdb-show-main)
+      (split-window)
+      (other-window 1)
+      (switch-to-buffer
+       (if gud-last-last-frame
+	   (gud-find-file (car gud-last-last-frame))
+	 (gud-find-file gdb-main-file)))
+      (other-window 1))))
 
 (defun gdb-reset ()
   "Exit a debugging session cleanly.
@@ -2456,7 +2539,7 @@ of the current session."
 	(error (setq gdb-find-file-unhook t)))))
 
 ;;from put-image
-(defun gdb-put-string (putstring pos &optional dprop)
+(defun gdb-put-string (putstring pos &optional dprop &rest sprops)
   "Put string PUTSTRING in front of POS in the current buffer.
 PUTSTRING is displayed by putting an overlay into the current buffer with a
 `before-string' string that has a `display' property whose value is
@@ -2467,7 +2550,9 @@ PUTSTRING."
     (let ((overlay (make-overlay pos pos buffer))
 	  (prop (or dprop
 		    (list (list 'margin 'left-margin) putstring))))
-      (put-text-property 0 (length string) 'display prop string)
+      (put-text-property 0 1 'display prop string)
+      (if sprops
+	  (add-text-properties 0 1 sprops string))
       (overlay-put overlay 'put-break t)
       (overlay-put overlay 'before-string string))))
 
@@ -2488,23 +2573,26 @@ BUFFER nil or omitted means use the current buffer."
 	(putstring (if enabled "B" "b"))
 	(source-window (get-buffer-window (current-buffer) 0)))
     (add-text-properties
-     0 1 '(help-echo "mouse-1: set/clear bkpt, mouse-3: enable/disable bkpt")
+     0 1 '(help-echo "mouse-1: clear bkpt, mouse-3: enable/disable bkpt")
      putstring)
-    (if enabled (add-text-properties
-		 0 1 `(gdb-bptno ,bptno gdb-enabled t) putstring)
+    (if enabled
+	(add-text-properties
+	 0 1 `(gdb-bptno ,bptno gdb-enabled t) putstring)
       (add-text-properties
        0 1 `(gdb-bptno ,bptno gdb-enabled nil) putstring))
     (gdb-remove-breakpoint-icons start end)
     (if (display-images-p)
 	(if (>= (or left-fringe-width
-		   (if source-window (car (window-fringes source-window)))
-		   gdb-buffer-fringe-width) 8)
+		    (if source-window (car (window-fringes source-window)))
+		    gdb-buffer-fringe-width) 8)
 	    (gdb-put-string
 	     nil (1+ start)
 	     `(left-fringe breakpoint
 			   ,(if enabled
 				'breakpoint-enabled
-			      'breakpoint-disabled)))
+			      'breakpoint-disabled))
+	     'gdb-bptno bptno
+	     'gdb-enabled enabled)
 	  (when (< left-margin-width 2)
 	    (save-current-buffer
 	      (setq left-margin-width 2)
@@ -2527,10 +2615,10 @@ BUFFER nil or omitted means use the current buffer."
 		       (find-image `((:type xpm :data
 					    ,breakpoint-xpm-data
 					    :conversion disabled
-					    :ascent 100)
+					    :ascent 100 :pointer hand)
 				     (:type pbm :data
 					    ,breakpoint-disabled-pbm-data
-					    :ascent 100))))))
+					    :ascent 100 :pointer hand))))))
 	   (+ start 1)
 	   putstring
 	   'left-margin))
@@ -2565,12 +2653,9 @@ BUFFER nil or omitted means use the current buffer."
 		      'gdb-assembler-buffer-name
 		      'gdb-assembler-mode)
 
-(def-gdb-auto-updated-buffer gdb-assembler-buffer
+(def-gdb-auto-update-handler gdb-assembler-handler
   gdb-invalidate-assembler
-  (concat gdb-server-prefix "disassemble "
-	  (if (member gdb-frame-address '(nil "main")) nil "0x")
-	  gdb-frame-address "\n")
-  gdb-assembler-handler
+  gdb-assembler-buffer
   gdb-assembler-custom)
 
 (defun gdb-assembler-custom ()
@@ -2652,7 +2737,7 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-assembler-buffer-name ()
   (with-current-buffer gud-comint-buffer
-    (concat "*Disassembly of " (gdb-get-target-string) "*")))
+    (concat "*disassembly of " (gdb-get-target-string) "*")))
 
 (defun gdb-display-assembler-buffer ()
   "Display disassembly view."

@@ -1550,7 +1550,11 @@ Similarly for Soar, Scheme, etc."
 		  ;; problems when `comint-prompt-read-only' is non-nil.
 		  (let ((inhibit-read-only t))
 		    (delete-region comint-last-input-end
-				   (+ comint-last-input-end echo-len))))))
+				   (+ comint-last-input-end echo-len))
+		    (when comint-prompt-read-only
+		      (save-excursion
+			(goto-char comint-last-input-end)
+			(comint-update-fence)))))))
 
 	  ;; This used to call comint-output-filter-functions,
 	  ;; but that scrolled the buffer in undesirable ways.

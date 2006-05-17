@@ -1983,13 +1983,15 @@ Reference Manual}.
 @cindex startup (init file)
 
   When Emacs is started, it normally loads a Lisp program from the
-file @file{.emacs} or @file{.emacs.el} in your home directory.  (You
-can also put it in a subdirectory @file{~/.emacs.d} and Emacs will
-still find it.)  We call this file your @dfn{init file} because it
-specifies how to initialize Emacs for you.  You can use the command
-line switch @samp{-q} to prevent loading your init file, and @samp{-u}
-(or @samp{--user}) to specify a different user's init file
-(@pxref{Initial Options}).
+file @file{.emacs} or @file{.emacs.el} in your home directory.  We
+call this file your @dfn{init file} because it specifies how to
+initialize Emacs for you.  You can use the command line switch
+@samp{-q} to prevent loading your init file, and @samp{-u} (or
+@samp{--user}) to specify a different user's init file (@pxref{Initial
+Options}).
+
+  You can also use @file{~/.emacs.d/init.el} as the init file.  Emacs
+tries this if it cannot find @file{~/.emacs} or @file{~/.emacs.el}.
 
 @cindex @file{default.el}, the default init file
   There can also be a @dfn{default init file}, which is the library

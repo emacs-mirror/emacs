@@ -997,7 +997,7 @@ as follows.
 ;; language-independent and universal.  It should be able to generate all
 ;; Cyrillic symbols.
 (quail-define-package
- "cyrillic-translit" "Cyrillic" ",L6(Bt" nil
+ "cyrillic-translit" "Cyrillic" ",L6(Bt" t
  "Intuitively transliterated keyboard layout.
 Most convenient for entering Russian, but all Cyrillic characters
 are included.  Should handle most cases.  However:

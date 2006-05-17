@@ -4,7 +4,7 @@
 ;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
-;; Keywords: revision-control merge diff3 cvs conflict
+;; Keywords: tools revision-control merge diff3 cvs conflict
 
 ;; This file is part of GNU Emacs.
 

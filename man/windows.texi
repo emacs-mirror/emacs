@@ -226,7 +226,7 @@ window.  This runs @code{find-file-read-only-other-window}.
 
   Certain Emacs commands switch to a specific buffer with special
 contents.  For example, @kbd{M-x shell} switches to a buffer named
-@samp{*Shell*}.  By convention, all these commands are written to pop up
+@samp{*shell*}.  By convention, all these commands are written to pop up
 the buffer in a separate window.  But you can specify that certain of
 these buffers should appear in the selected window.
 

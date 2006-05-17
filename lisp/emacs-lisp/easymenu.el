@@ -454,8 +454,8 @@ If the menu located by PATH has no submenu named NAME, add one.
 If the optional argument BEFORE is present, add it just before
 the submenu named BEFORE, otherwise add it at the end of the menu.
 
-Either call this from `menu-bar-update-hook' or use a menu filter,
-to implement dynamic menus."
+To implement dynamic menus, either call this from
+`menu-bar-update-hook' or use a menu filter."
   (easy-menu-add-item nil path (easy-menu-create-menu name items) before))
 
 ;; XEmacs needs the following two functions to add and remove menus.

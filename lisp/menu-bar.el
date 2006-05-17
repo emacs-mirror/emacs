@@ -1003,7 +1003,16 @@ mail status in mode line"))
 (define-key menu-bar-options-menu [cua-mode]
   (menu-bar-make-mm-toggle cua-mode
 			   "C-x/C-c/C-v Cut and Paste (CUA)"
-			   "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"))
+			   "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
+			   (:visible (or (not (boundp 'cua-enable-cua-keys))
+					 cua-enable-cua-keys))))
+
+(define-key menu-bar-options-menu [cua-emulation-mode]
+  (menu-bar-make-mm-toggle cua-mode
+			   "Shift movement mark region (CUA)"
+			   "Use shifted movement keys to set and extend the region."
+			   (:visible (and (boundp 'cua-enable-cua-keys)
+					  (not cua-enable-cua-keys)))))
 
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
@@ -1342,7 +1351,7 @@ key, a click, or a menu-item"))
 	      :help "Display manual section that describes a key"))
 
 (define-key menu-bar-help-menu [eliza]
-  '(menu-item "Emacs Psychiatrist" doctor
+  '(menu-item "Emacs Psychotherapist" doctor
 	      :help "Our doctor will help you feel better"))
 (define-key menu-bar-help-menu [sep4]
   '("--"))

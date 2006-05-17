@@ -406,6 +406,11 @@ You can use this to get a general idea of how your actions affect the
 memory usage.
 @end defun
 
+@defvar memory-full
+This variable is @code{t} if Emacs is close to out of memory for Lisp
+objects, and @code{nil} otherwise.
+@end defvar
+
 @defun memory-use-counts
 This returns a list of numbers that count the number of objects
 created in this Emacs session.  Each of these counters increments for

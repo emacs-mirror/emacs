@@ -1,7 +1,7 @@
 # Makefile for leim subdirectory in GNU Emacs.
 # Copyright (C) 1997,98,1999,2000,2001 Electrotechnical Laboratory, JAPAN.
 #   Licensed to the Free Software Foundation.
-# Copyright (C) 1997,98,1999,2000,01,02,03,2004
+# Copyright (C) 1997,98,1999,2000,01,02,03,2004,2005
 #   Free Software Foundation, Inc.
 # Copyright (C) 2001,02,03,2004
 #   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -36,6 +36,8 @@ srcdir=@srcdir@
 
 # Where to install LEIM files.
 INSTALLDIR=${datadir}/emacs/${version}/leim
+
+GZIP_PROG = @GZIP_PROG@
 
 # On Xenix and the IBM RS6000, double-dot gets screwed up.
 dot = .
@@ -237,6 +239,14 @@ install: all
 	  rm -f  ${INSTALLDIR}/.\#*       ${INSTALLDIR}/*/.\#* ; \
 	  rm -f  ${INSTALLDIR}/*~         ${INSTALLDIR}/*/*~ ; \
 	  rm -f  ${INSTALLDIR}/*.orig     ${INSTALLDIR}/*/*.orig ; \
+	else true; fi
+	-unset CDPATH; \
+	if [ -n "${GZIP_PROG}" ]; \
+	then \
+	   echo "Compressing *.el ..." ; \
+	   (cd ${INSTALLDIR}; for f in `find . -name "*.elc" -print`; do \
+		${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	    done) \
 	else true; fi
 	-chmod -R a+r ${INSTALLDIR}
 

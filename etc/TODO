@@ -37,8 +37,8 @@ to the FSF.
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
-  display a font as a sample, etc.  [fx is looking at multilingual
-  font selection for Emacs 22.]
+   list fonts, display a font as a sample, etc.  [fx is looking at
+  multilingual font selection for Emacs 22.]
 
 ** Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?  Maybe see info at
@@ -146,6 +146,10 @@ to the FSF.
   Bison input files, for instance, or other kinds of text
   where one language is embedded in another language.
 
+** Arrange a way for an input method to return the first character
+  immediately, then replace it later.  So that C-s a with
+  input method latin-1-postfix would immediately search for an a.
+
 ** Give start-process the ability to direct standard-error
   output to a different filter.
 
@@ -227,7 +231,7 @@ to the FSF.
 
 ** Investigate using the language environment (or locale?) to set up
   more things, such as the default Ispell dictionary, calendar
-  holidays, quoting characters?,...
+  holidays, quoting characters, space after periods and colons, ...
 
 ** Improve the GC (generational, incremental).  (We may be able to use
   the Boehm collector.)  [See the Boehm-GC branch in CVS for work on
@@ -239,8 +243,6 @@ to the FSF.
 
 ** Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
-
-** Make the Custom themes support do useful things.
 
 ** Add support for SVG (Scalable Vector Graphics) rendering to
   Emacs.

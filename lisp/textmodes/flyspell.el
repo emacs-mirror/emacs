@@ -895,7 +895,9 @@ Mostly we check word delimiters."
 (defun flyspell-post-command-hook ()
   "The `post-command-hook' used by flyspell to check a word in-the-fly."
   (interactive)
-  (let ((command this-command))
+  (let ((command this-command)
+	;; Prevent anything we do from affecting the mark.
+	deactivate-mark)
     (if (flyspell-check-pre-word-p)
 	(save-excursion
 	  '(flyspell-debug-signal-pre-word-checked)
@@ -1333,7 +1335,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
     ;; Loop over incorrect words.
     (while (re-search-forward "\\([^\n]+\\)\n" (point-max) t)
       ;; Bind WORD to the next one.
-      (let ((word (match-string 1)))
+      (let ((word (match-string 1)) (wordpos (point)))
 	;; Here there used to be code to see if WORD is the same
 	;; as the previous iteration, and count the number of consecutive
 	;; identical words, and the loop below would search for that many.
@@ -1350,11 +1352,22 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	(with-current-buffer flyspell-large-region-buffer
 	  (goto-char flyspell-large-region-beg)
 	  (let ((keep t))
-	    (while (and keep
-			(search-forward word flyspell-large-region-end t))
-	      (goto-char (- (point) 1))
-	      (setq keep (flyspell-word)))
-	    (setq flyspell-large-region-beg (point))))))
+	    (while keep
+	      (if (search-forward word
+				     flyspell-large-region-end t)
+		  (progn
+		    (setq flyspell-large-region-beg (point))
+		    (goto-char (- (point) 1))
+		    (setq keep
+			  ;; Detect when WORD can't be checked properly
+			  ;; because flyspell-get-word finds
+			  ;; just part of it, and treat that as ok.
+			  (if (< (length (flyspell-get-word nil))
+				 (length word))
+			      nil
+			    (flyspell-word))))
+		(error "Bug: misspelled word `%s' (output pos %d) not found in buffer"
+		       word wordpos)))))))
     ;; we are done
     (if flyspell-issue-message-flag (message "Spell Checking completed.")))
   ;; Kill and forget the buffer with the list of incorrect words.
@@ -1389,6 +1402,8 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 		      (if ispell-local-dictionary
 			  (setq ispell-dictionary ispell-local-dictionary))
 		      (setq args (ispell-get-ispell-args))
+		      (if (eq ispell-parser 'tex)
+			  (setq args (cons "-t" args)))
 		      (if ispell-dictionary ; use specified dictionary
 			  (setq args
 				(append (list "-d" ispell-dictionary) args)))

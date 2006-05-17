@@ -30,11 +30,14 @@
 
 ;;; Code:
 
-(load "mm-decode" t t)                  ; Non-fatal dependency
-(load "mm-uu" t t)                      ; Non-fatal dependency
-(load "mailcap" t t)                    ; Non-fatal dependency
-(load "smiley" t t)                     ; Non-fatal dependency
+;;; Load libraries in a non-fatal way in order to see if certain functions are
+;;; pre-defined.
 (load "mailabbrev" t t)
+(load "mailcap" t t)
+(load "mm-decode" t t)
+(load "mm-uu" t t)
+(load "mml" t t)
+(load "smiley" t t)
 
 (defmacro mh-defun-compat (function arg-list &rest body)
   "This is a macro to define functions which are not defined.

@@ -601,7 +601,7 @@ struct coding_system
 
 /* Decode the string STR using the specified coding system
    for system functions, if any.  */
-#define DECODE_SYSTEM(name)						   \
+#define DECODE_SYSTEM(str)						   \
   (! NILP (Vlocale_coding_system)					   \
    && !EQ (Vlocale_coding_system, make_number (0))			   \
    ? code_convert_string_norecord (str, Vlocale_coding_system, 0)	   \

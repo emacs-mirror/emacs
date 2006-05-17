@@ -659,7 +659,7 @@
  ("calc-alg" calc-has-rules math-defsimplify
 calc-modify-simplify-mode calcFunc-collect calcFunc-esimplify
 calcFunc-islin calcFunc-islinnt calcFunc-lin calcFunc-linnt
-calcFunc-simplify calcFunc-subst math-beforep
+calcFunc-simplify calcFunc-subst calcFunc-writeoutpower math-beforep
 math-build-polynomial-expr math-expand-formula math-expr-contains
 math-expr-contains-count math-expr-depends math-expr-height
 math-expr-subst math-expr-weight math-integer-plus math-is-linear
@@ -923,7 +923,7 @@ calc-force-refresh calc-locate-cursor-element calc-show-edit-buffer)
  ("calc-alg" calc-alg-evaluate calc-apart calc-collect calc-expand
 calc-expand-formula calc-factor calc-normalize-rat calc-poly-div
 calc-poly-div-rem calc-poly-gcd calc-poly-rem calc-simplify
-calc-simplify-extended calc-substitute)
+calc-simplify-extended calc-substitute calc-writeoutpower)
 
  ("calcalg2" calc-alt-summation calc-derivative
 calc-dump-integral-cache calc-integral calc-num-integral
@@ -2106,6 +2106,35 @@ calc-kill calc-kill-region calc-yank))))
   (let ((dims (math-mat-dimens a)))
     (and (cdr dims)
 	 (= (car dims) (nth 1 dims)))))
+
+;;; True if MAT is an identity matrix.
+(defun math-identity-matrix-p (mat &optional mul)
+  (if (math-square-matrixp mat)
+      (let ((a (if mul
+                   (nth 1 (nth 1 mat))
+                 1))
+            (n (1- (length mat)))
+            (i 1))
+        (while (and (<= i n)
+                    (math-ident-row-p (nth i mat) i a))
+          (setq i (1+ i)))
+        (if (> i n)
+            a
+          nil))))
+
+(defun math-ident-row-p (row n &optional a)
+  (unless a
+    (setq a 1))
+  (and
+   (not (memq nil (mapcar 
+                   (lambda (x) (eq x 0))
+                   (nthcdr (1+ n) row))))
+   (not (memq nil (mapcar 
+                   (lambda (x) (eq x 0))
+                   (butlast 
+                    (cdr row)
+                    (- (length row) n)))))
+   (eq (elt row n) a)))
 
 ;;; True if A is any scalar data object.  [P x]
 (defun math-objectp (a)    ;  [Public]

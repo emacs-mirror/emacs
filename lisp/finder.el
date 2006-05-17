@@ -100,6 +100,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map " "	'finder-select)
     (define-key map "f"	'finder-select)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map [mouse-2]	'finder-mouse-select)
     (define-key map "\C-m"	'finder-select)
     (define-key map "?"	'finder-summary)

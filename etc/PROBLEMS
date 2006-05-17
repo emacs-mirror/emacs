@@ -2007,7 +2007,13 @@ A certain X server for Windows had a bug which caused this.
 Supposedly the newer 32-bit version of this server doesn't have the
 problem.
 
-** Known problems with the MS-Windows port of Emacs 21.2.
+** Known problems with the MS-Windows port of Emacs 22.1
+
+Using create-fontset-from-ascii-font or the --font startup parameter
+with a Chinese, Japanese or Korean font leads to display problems.
+Use a Latin-only font as your default font. If you want control over
+which font is used to display Chinese, Japanese or Korean character,
+use create-fontset-from-fontset-spec to define a fontset.
 
 Frames are not refreshed while the File or Font dialog or a pop-up menu
 is displayed. This also means help text for pop-up menus is not
@@ -2027,13 +2033,10 @@ after moving back into it.
 Some minor flickering still persists during mouse-tracking, although
 not as severely as in 21.1.
 
-Emacs can sometimes abort when non-ASCII text, possibly with null
-characters, is copied and pasted into a buffer.
-
 An inactive cursor remains in an active window after the Windows
 Manager driven switch of the focus, until a key is pressed.
 
-Windows input methods are not recognized by Emacs (as of v21.2).  Some
+Windows input methods are not recognized by Emacs.  Some
 of these input methods cause the keyboard to send characters encoded
 in the appropriate coding system (e.g., ISO 8859-1 for Latin-1
 characters, ISO 8859-8 for Hebrew characters, etc.).  To make this

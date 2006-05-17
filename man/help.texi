@@ -32,8 +32,8 @@ support @key{F1}.)
 
   Most help buffers use a special major mode, Help mode, which lets you
 scroll conveniently with @key{SPC} and @key{DEL}.  It also offers
-hyperlinks to further help regarding cross-referenced names, Info nodes,
-customization buffers and the like.  @xref{Help Mode}.
+hyperlinks to URLs and further help regarding cross-referenced names, Info
+nodes, customization buffers and the like.  @xref{Help Mode}.
 
 @cindex searching documentation efficiently
 @cindex looking for a subject in documentation
@@ -442,6 +442,16 @@ normally appears inside paired single-quotes.  You can click on the
 name with @kbd{Mouse-1} or @kbd{Mouse-2}, or move point there and type
 @key{RET}, to view the documentation of that command or variable.  Use
 @kbd{C-c C-b} to retrace your steps.
+
+@cindex URL, viewing in help
+@cindex help, viewing web pages
+@cindex viewing web pages in help
+@cindex web pages, viewing in help
+@findex browse-url
+  You can follow cross references to URLs (web pages) as well.  When
+you follow a cross reference that is a URL, the @code{browse-url}
+command is used to view the web page in a browser of your choosing.
+@xref{Browse-URL}.
 
 @kindex @key{TAB} @r{(Help mode)}
 @findex help-next-ref

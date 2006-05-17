@@ -182,8 +182,7 @@ the list is tried until a successful connection is made."
   :type '(repeat string))
 
 (defcustom imap-gssapi-program (list
-				(concat "gsasl --client --connect %s:%p "
-					"--imap --application-data "
+				(concat "gsasl %s %p "
 					"--mechanism GSSAPI "
 					"--authentication-id %l")
 				"imtest -m gssapi -u %l -p %p %s")
@@ -599,6 +598,10 @@ sure of changing the value of `foo'."
 			;; cyrus 1.6 imtest print "S: " before server greeting
 			(or (not (looking-at "S: "))
 			    (forward-char 3)
+			    t)
+			;; GNU SASL may print 'Trying ...' first.
+			(or (not (looking-at "Trying "))
+			    (forward-line)
 			    t)
 			(not (and (imap-parse-greeting)
 				  ;; success in imtest 1.6:
@@ -1035,8 +1038,11 @@ necessary.  If nil, the buffer name is generated."
 			   stream))
 		      ;; We're done, kill the first connection
 		      (imap-close buffer)
-		      (kill-buffer buffer)
-		      (rename-buffer buffer)
+		      (let ((name (if (stringp buffer)
+				      buffer
+				    (buffer-name buffer))))
+			(kill-buffer buffer)
+			(rename-buffer name))
 		      (message "imap: Reconnecting with stream `%s'...done"
 			       stream)
 		      (setq imap-stream stream)

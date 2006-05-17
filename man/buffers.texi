@@ -252,9 +252,9 @@ no renaming is done.
   @kbd{M-x rename-uniquely} renames the current buffer to a similar
 name with a numeric suffix added to make it both different and unique.
 This command does not need an argument.  It is useful for creating
-multiple shell buffers: if you rename the @samp{*Shell*} buffer, then
+multiple shell buffers: if you rename the @samp{*shell*} buffer, then
 do @kbd{M-x shell} again, it makes a new shell buffer named
-@samp{*Shell*}; meanwhile, the old shell buffer continues to exist
+@samp{*shell*}; meanwhile, the old shell buffer continues to exist
 under its new name.  This method is also good for mail buffers,
 compilation buffers, and most Emacs features that create special
 buffers with particular names.  (With some of these features, such as

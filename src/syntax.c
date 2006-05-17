@@ -3020,7 +3020,7 @@ Parsing stops at TO or when certain criteria are met;
  point is set to where parsing stops.
 If fifth arg OLDSTATE is omitted or nil,
  parsing assumes that FROM is the beginning of a function.
-Value is a list of ten elements describing final state of parsing:
+Value is a list of elements describing final state of parsing:
  0. depth in parens.
  1. character address of start of innermost containing list; nil if none.
  2. character address of start of last complete sexp terminated.
@@ -3039,7 +3039,7 @@ If third arg TARGETDEPTH is non-nil, parsing stops if the depth
 in parentheses becomes equal to TARGETDEPTH.
 Fourth arg STOPBEFORE non-nil means stop when come to
  any character that starts a sexp.
-Fifth arg OLDSTATE is a nine-element list like what this function returns.
+Fifth arg OLDSTATE is a list like what this function returns.
  It is used to initialize the state of the parse.  Elements number 1, 2, 6
  and 8 are ignored; you can leave off element 8 (the last) entirely.
 Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.

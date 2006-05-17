@@ -2,7 +2,7 @@
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
-;; Maintainer: nobody (want to volunteer?)
+;; Maintainer: Romain Francoise <rfrancoise@gnu.org>
 ;; Version: 2.37+
 ;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
@@ -260,6 +260,72 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 
 (if dired-bind-info
     (define-key dired-mode-map "I" 'dired-info))
+
+;;; MENU BINDINGS
+
+(let ((menu-bar (lookup-key dired-mode-map [menu-bar])))
+  (let ((menu (lookup-key menu-bar [operate])))
+    (define-key-after
+      menu
+      [find-files]
+      '(menu-item
+        "Find files"
+        dired-do-find-marked-files
+        :help "Find current or marked files")
+      'delete)
+    (define-key-after
+      menu
+      [relsymlink]
+      '(menu-item
+        "Relative symlink to..."
+        dired-do-relsymlink
+        :visible (fboundp 'make-symbolic-link)
+        :help "Make relative symbolic links for current or marked files")
+      'symlink))
+  (let ((menu (lookup-key menu-bar [mark])))
+    (define-key-after
+      menu
+      [flag-extension]
+      '(menu-item
+        "Flag extension..."
+        dired-flag-extension
+        :help "Flag files with a certain extension for deletion")
+      'garbage-files)
+    (define-key-after
+      menu
+      [mark-extension]
+      '(menu-item
+        "Mark extension..."
+        dired-mark-extension
+        :help "Mark files with a certain extension")
+      'symlinks)
+    (define-key-after
+      menu
+      [mark-omitted]
+      '(menu-item
+        "Mark omitted"
+        dired-mark-omitted
+        :help "Mark files matching `dired-omit-files' and `dired-omit-extensions'")
+      'mark-extension))
+  (let ((menu (lookup-key menu-bar [regexp])))
+    (define-key-after
+      menu
+      [relsymlink-regexp]
+      '(menu-item
+        "Relative symlink..."
+        dired-do-relsymlink-regexp
+        :visible (fboundp 'make-symbolic-link)
+        :help "Make relative symbolic links for files matching regexp")
+      'symlink))
+  (let ((menu (lookup-key menu-bar [immediate])))
+    (define-key-after
+      menu
+      [omit-mode]
+      '(menu-item
+        "Omit mode" dired-omit-mode
+        :button (:toggle . dired-omit-mode)
+        :help "Enable or disable omitting \"uninteresting\" files")
+      'dashes)))
 
 ;;; GLOBAL BINDING.
 (if dired-bind-jump
@@ -678,7 +744,9 @@ you can relist single subdirs using \\[dired-do-redisplay]."
   ;; decent subdir headerline:
   (goto-char (point-min))
   (or (looking-at dired-subdir-regexp)
-      (dired-insert-headerline default-directory))
+      (insert "  " 
+	      (directory-file-name (file-name-directory default-directory))
+	      ":\n"))
   (dired-mode dirname (or switches dired-listing-switches))
   (setq mode-name "Virtual Dired"
         revert-buffer-function 'dired-virtual-revert)
@@ -1716,5 +1784,5 @@ variables `dired-x-variable-list' in the message."
 ;; As Barry Warsaw would say: "This might be useful..."
 (provide 'dired-x)
 
-;;; arch-tag: 71a43ba2-7a00-4793-a028-0613dd7765ae
+;; arch-tag: 71a43ba2-7a00-4793-a028-0613dd7765ae
 ;;; dired-x.el ends here

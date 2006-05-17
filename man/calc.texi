@@ -27991,9 +27991,17 @@ for Angstroms.
 @end ifinfo
 
 The unit @code{pt} stands for pints; the name @code{point} stands for
-a typographical point, defined by @samp{72 point = 1 in}.  There is
-also @code{tpt}, which stands for a printer's point as defined by the
-@TeX{} typesetting system:  @samp{72.27 tpt = 1 in}.
+a typographical point, defined by @samp{72 point = 1 in}.  This is
+slightly different than the point defined by the American Typefounder's
+Association in 1886, but the point used by Calc has become standard
+largely due to its use by the PostScript page description language.
+There is also @code{texpt}, which stands for a printer's point as
+defined by the @TeX{} typesetting system:  @samp{72.27 texpt = 1 in}.
+Other units used by @TeX{} are available; they are @code{texpc} (a pica),
+@code{texbp} (a ``big point'', equal to a standard point which is larger
+than the point used by @TeX{}), @code{texdd} (a Didot point),
+@code{texcc} (a Cicero) and @code{texsp} (a scaled @TeX{} point, 
+all dimensions representable in @TeX{} are multiples of this value).
 
 The unit @code{e} stands for the elementary (electron) unit of charge;
 because algebra command could mistake this for the special constant

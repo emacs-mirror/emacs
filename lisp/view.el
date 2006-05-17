@@ -874,7 +874,7 @@ If LINES is more than a window-full, only the last window-full is shown."
   (interactive "P")
   (let ((view-scroll-auto-exit nil)
 	(view-try-extend-at-buffer-end t))
-    (view-scroll-lines lines nil view-page-size nil)))
+    (view-scroll-lines lines nil (view-page-size-default view-page-size) nil)))
 
 (defun View-search-regexp-forward (n regexp)
   "Search forward for first (or prefix Nth) occurrence of REGEXP in View mode.

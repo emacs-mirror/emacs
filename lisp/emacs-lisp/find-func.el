@@ -142,9 +142,9 @@ See the functions `find-function' and `find-variable'."
 
 (defun find-library-name (library)
   "Return the absolute file name of the Lisp source of LIBRARY."
-  ;; If the library is byte-compiled, try to find a source library by
-  ;; the same name.
-  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
+  ;; Strip off the extension to take advantage of library suffixes in
+  ;; the call to `locate-file'.
+  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)?\\'" library)
       (setq library (replace-match "" t t library)))
   (or (locate-file library
 		   (or find-function-source-path load-path)

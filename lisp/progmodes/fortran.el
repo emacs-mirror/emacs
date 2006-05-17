@@ -1251,7 +1251,7 @@ Use function FIND-BEGIN to match it."
       (if message
           (message "%s" message)
         (goto-char matching)
-        (sit-for 1)
+        (sit-for blink-matching-delay)
         (goto-char end-point)))))
 
 (defun fortran-blink-matching-if ()

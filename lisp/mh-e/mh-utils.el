@@ -86,32 +86,36 @@ of `search' in the CL package."
 ;;; Scan Line Formats
 
 (defvar mh-scan-msg-number-regexp "^ *\\([0-9]+\\)"
-  "This regexp is used to extract the message number from a scan line.
-Note that the message number must be placed in a parenthesized expression as
-in the default of \"^ *\\\\([0-9]+\\\\)\".")
+  "This regular expression extracts the message number.
+It must match from the beginning of the line. Note that the message number
+must be placed in a parenthesized expression as in the default of
+\"^ *\\\\([0-9]+\\\\)\".")
 
 (defvar mh-scan-msg-overflow-regexp "^[?0-9][0-9]"
-  "This regexp matches scan lines in which the message number overflowed.")
+  "This regular expression matches overflowed message numbers.")
 
 (defvar mh-scan-msg-format-regexp "%\\([0-9]*\\)(msg)"
-  "This regexp is used to find the message number width in a scan format.
+  "This regular expression finds the message number width in a scan format.
 Note that the message number must be placed in a parenthesized expression as
-in the default of \"%\\\\([0-9]*\\\\)(msg)\".")
+in the default of \"%\\\\([0-9]*\\\\)(msg)\". This variable is only consulted
+if `mh-scan-format-file' is set to \"Use MH-E scan Format\".")
 
 (defvar mh-scan-msg-format-string "%d"
   "This is a format string for width of the message number in a scan format.
-Use `0%d' for zero-filled message numbers.")
+Use `0%d' for zero-filled message numbers. This variable is only consulted if
+`mh-scan-format-file' is set to \"Use MH-E scan Format\".")
 
 (defvar mh-scan-msg-search-regexp "^[^0-9]*%d[^0-9]"
-  "This format string regexp matches the scan line for a particular message.
-Use `%d' to represent the location of the message number within the
-expression as in the default of \"^[^0-9]*%d[^0-9]\".")
+  "This regular expression matches a particular message.
+It is a format string; use `%d' to represent the location of the message
+number within the expression as in the default of \"^[^0-9]*%d[^0-9]\".")
 
 (defvar mh-cmd-note 4
-  "This is the number of characters to skip over before inserting notation.
+  "Column for notations.
 This variable should be set with the function `mh-set-cmd-note'. This variable
-may be updated dynamically if `mh-adaptive-cmd-note-flag' is non-nil and
-`mh-scan-format-file' is t.")
+may be updated dynamically if `mh-adaptive-cmd-note-flag' is on.
+
+Note that columns in Emacs start with 0.")
 (make-variable-buffer-local 'mh-cmd-note)
 
 (defvar mh-note-seq ?%
@@ -133,12 +137,12 @@ This variable should not be used directly in programs. Programs should use
 `mh-mail-header-separator' in `mh-letter-mode'; in other contexts, you may
 have to perform this initialization yourself.
 
-Do not make this a regexp as it may be the argument to `insert' and it is
-passed through `regexp-quote' before being used by functions like
+Do not make this a regular expression as it may be the argument to `insert'
+and it is passed through `regexp-quote' before being used by functions like
 `re-search-forward'.")
 
 (defvar mh-signature-separator-regexp "^-- $"
-  "Regexp used to find signature separator.
+  "This regular expression matches the signature separator.
 See `mh-signature-separator'.")
 
 (defvar mh-signature-separator "-- \n"
@@ -1822,8 +1826,10 @@ If NOTATION is nil then no change in the buffer occurs."
         (with-mh-folder-updating (t)
           (beginning-of-line)
           (forward-char offset)
-          (let* ((change-stack-flag (and (equal offset (1+ mh-cmd-note))
-                                         (not (eq notation mh-note-seq))))
+          (let* ((change-stack-flag
+                  (and (equal offset
+                              (+ mh-cmd-note mh-scan-field-destination-offset))
+                       (not (eq notation mh-note-seq))))
                  (msg (and change-stack-flag (or msg (mh-get-msg-num nil))))
                  (stack (and msg (gethash msg mh-sequence-notation-history)))
                  (notation (or notation (char-after))))
@@ -1853,7 +1859,7 @@ Non-nil third argument DONT-SHOW means not to show the message."
   (let ((point (point))
         (return-value t))
     (goto-char (point-min))
-    (unless (re-search-forward (format "^[ ]*%s[^0-9]+" number) nil t)
+    (unless (re-search-forward (format mh-scan-msg-search-regexp number) nil t)
       (goto-char point)
       (unless no-error-if-no-message
         (error "No message %d" number))
@@ -1987,8 +1993,8 @@ The message number width portion of the format is discovered using
                  (substring fmt end))))
       fmt))
 
-(defun mh-message-number-width (folder)
-  "Return the widest message number in this FOLDER."
+(defun mh-msg-num-width (folder)
+  "Return the width of the largest message number in this FOLDER."
   (or mh-progs (mh-find-path))
   (let ((tmp-buffer (get-buffer-create mh-temp-buffer))
         (width 0))

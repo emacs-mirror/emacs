@@ -161,38 +161,43 @@ RFC 2646 suggests 66 characters for readability."
   (defvar show-trailing-whitespace))
 
 (defvar fill-flowed-encode-tests
-  '(
+  `(
     ;; The syntax of each list element is:
     ;; (INPUT . EXPECTED-OUTPUT)
-    ("> Thou villainous ill-breeding spongy dizzy-eyed
-> reeky elf-skinned pigeon-egg!
->> Thou artless swag-bellied milk-livered
->> dismal-dreaming idle-headed scut!
->>> Thou errant folly-fallen spleeny reeling-ripe
->>> unmuzzled ratsbane!
->>>> Henceforth, the coding style is to be strictly
->>>> enforced, including the use of only upper case.
->>>>> I've noticed a lack of adherence to the coding
->>>>> styles, of late.
->>>>>> Any complaints?
-" . "> Thou villainous ill-breeding spongy dizzy-eyed reeky elf-skinned
-> pigeon-egg!
->> Thou artless swag-bellied milk-livered dismal-dreaming idle-headed
->> scut!
->>> Thou errant folly-fallen spleeny reeling-ripe unmuzzled ratsbane!
->>>> Henceforth, the coding style is to be strictly enforced,
->>>> including the use of only upper case.
->>>>> I've noticed a lack of adherence to the coding styles, of late.
->>>>>> Any complaints?
-")
-;    ("
-;> foo
-;>
-;>
-;> bar
-;" . "
-;> foo bar
-;")
+    (,(concat
+       "> Thou villainous ill-breeding spongy dizzy-eyed \n"
+       "> reeky elf-skinned pigeon-egg! \n"
+       ">> Thou artless swag-bellied milk-livered \n"
+       ">> dismal-dreaming idle-headed scut!\n"
+       ">>> Thou errant folly-fallen spleeny reeling-ripe \n"
+       ">>> unmuzzled ratsbane!\n"
+       ">>>> Henceforth, the coding style is to be strictly \n"
+       ">>>> enforced, including the use of only upper case.\n"
+       ">>>>> I've noticed a lack of adherence to the coding \n"
+       ">>>>> styles, of late.\n"
+       ">>>>>> Any complaints?")
+     .
+     ,(concat
+       "> Thou villainous ill-breeding spongy dizzy-eyed reeky elf-skinned\n"
+       "> pigeon-egg! \n"
+       ">> Thou artless swag-bellied milk-livered dismal-dreaming idle-headed\n"
+       ">> scut!\n"
+       ">>> Thou errant folly-fallen spleeny reeling-ripe unmuzzled ratsbane!\n"
+       ">>>> Henceforth, the coding style is to be strictly enforced,\n"
+       ">>>> including the use of only upper case.\n"
+       ">>>>> I've noticed a lack of adherence to the coding styles, of late.\n"
+       ">>>>>> Any complaints?\n"
+       ))
+    ;; (,(concat
+    ;;    "\n"
+    ;;    "> foo\n"
+    ;;    "> \n"
+    ;;    "> \n"
+    ;;    "> bar\n")
+    ;;  .
+    ;;  ,(concat
+    ;;    "\n"
+    ;;    "> foo bar\n"))
     ))
 
 (defun fill-flowed-test ()

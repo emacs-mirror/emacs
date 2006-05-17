@@ -3662,7 +3662,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		    ++nchars;
 		  }
 
-	      start = nchars;
+	      info[n].start = start = nchars;
 	      nchars += nchars_string;
 	      end = nchars;
 
@@ -3676,6 +3676,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	      p += copy_text (SDATA (args[n]), p,
 			      nbytes,
 			      STRING_MULTIBYTE (args[n]), multibyte);
+
+	      info[n].end = nchars;
 
 	      if (negative)
 		while (padding-- > 0)
@@ -3713,9 +3715,9 @@ usage: (format STRING &rest OBJECTS)  */)
 	      else
 		p += this_nchars;
 	      nchars += this_nchars;
+	      info[n].end = nchars;
 	    }
 
-	  info[n].end = nchars;
 	}
       else if (STRING_MULTIBYTE (args[0]))
 	{

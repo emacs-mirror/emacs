@@ -755,7 +755,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
       (save-excursion
 	(goto-char (posn-point (event-end event)))
 	(setq pos (occur-mode-find-occurrence))))
-    (pop-to-buffer (marker-buffer pos))
+    (switch-to-buffer-other-window (marker-buffer pos))
     (goto-char pos)))
 
 (defun occur-mode-find-occurrence ()
@@ -770,7 +770,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   "Go to the occurrence the current line describes."
   (interactive)
   (let ((pos (occur-mode-find-occurrence)))
-    (pop-to-buffer (marker-buffer pos))
+    (switch-to-buffer (marker-buffer pos))
     (goto-char pos)))
 
 (defun occur-mode-goto-occurrence-other-window ()
@@ -1125,18 +1125,17 @@ See also `multi-occur'."
 		    (let* ((out-line
 			    (concat
 			     ;; Using 7 digits aligns tabs properly.
-			     (apply #'propertize (format "%7d" lines)
+			     (apply #'propertize (format "%7d:" lines)
 				    (append
 				     (when prefix-face
 				       `(font-lock-face prefix-face))
-				     `(occur-prefix t mouse-face highlight
+				     `(occur-prefix t mouse-face (highlight)
 				       occur-target ,marker follow-link t
 				       help-echo "mouse-2: go to this occurrence")))
-			     ":"
 			     ;; We don't put `mouse-face' on the newline,
 			     ;; because that loses.  And don't put it
 			     ;; on context lines to reduce flicker.
-			     (propertize curstring 'mouse-face 'highlight
+			     (propertize curstring 'mouse-face (list 'highlight)
 					 'occur-target marker
 					 'follow-link t
 					 'help-echo

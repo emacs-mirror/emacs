@@ -27,10 +27,6 @@ face name prefixes should be in it for good results.
 
 * NEW FEATURES
 
-** Rework how the fringe "angle" bitmap at at bottom of buffer is
-shown to include an indication of whether the last line has a NL or not.
-[Assigned to KFS]
-
 ** Rework how fringe bitmaps are defined and used.
 Currently, bitmap usage and bitmap appearence are "mixed-up" in a
 one-level representation.  It would be cleaner to split the
@@ -48,6 +44,12 @@ invalid pointer from string_free_list.
 
 * BUGS
 
+** Make where-is-internal detect when a key is shadowed by a shorter
+prefix key that prevents you from entering it.
+
+** Clean up the confusion about what `unspecified' means
+in the face defaults for new frames.
+
 ** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
@@ -55,16 +57,9 @@ excesive CPU on some Windows environments.  Usages of 50% and 100%
 CPU time have been observed on different Window XP configurations.
 Seems to be a problem in sys_select in w32proc.c.
 
-** Chinese characters display quadruple width on Windows.
-
-This was caused by the change to w32fns.c on 2005-01-03, but that is
-required to fix another bug. See "[Bug] Unusual wide Chinese fonts on
-w32 (again)" and "Problem with chinese gbk fonts on w32" in
-emacs-devel list.
-
 * DOCUMENTATION
 
-** Update man/info.texi.
+** Check man/info.texi.
 
 ** Add missing years in copyright notices of all files.
 

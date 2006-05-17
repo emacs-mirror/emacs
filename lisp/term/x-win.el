@@ -2116,12 +2116,12 @@ as returned by `x-server-vendor'."
 
 ;;;; Selections and cut buffers
 
-;;; We keep track of the last text selected here, so we can check the
-;;; current selection against it, and avoid passing back our own text
-;;; from x-cut-buffer-or-selection-value.  We track all three
-;;; seperately in case another X application only sets one of them
-;;; (say the cut buffer) we aren't fooled by the PRIMARY or
-;;; CLIPBOARD selection staying the same.
+;; We keep track of the last text selected here, so we can check the
+;; current selection against it, and avoid passing back our own text
+;; from x-cut-buffer-or-selection-value.  We track all three
+;; seperately in case another X application only sets one of them
+;; (say the cut buffer) we aren't fooled by the PRIMARY or
+;; CLIPBOARD selection staying the same.
 (defvar x-last-selected-text-clipboard nil
   "The value of the CLIPBOARD X selection last time we selected or
 pasted text.")
@@ -2135,10 +2135,9 @@ The actual text stored in the X cut buffer is what encoded from this value.")
   "The value of the X cut buffer last time we selected or pasted text.
 This is the actual text stored in the X cut buffer.")
 
-;;; It is said that overlarge strings are slow to put into the cut buffer.
-;;; Note this value is overridden below.
-(defvar x-cut-buffer-max 20000
-  "Max number of characters to put in the cut buffer.")
+(defvar x-cut-buffer-max 20000 ; Note this value is overridden below.
+  "Max number of characters to put in the cut buffer.
+It is said that overlarge strings are slow to put into the cut buffer.")
 
 (defcustom x-select-enable-clipboard nil
   "Non-nil means cutting and pasting uses the clipboard.
@@ -2146,12 +2145,12 @@ This is in addition to, but in preference to, the primary selection."
   :type 'boolean
   :group 'killing)
 
-;;; Make TEXT, a string, the primary X selection.
-;;; Also, set the value of X cut buffer 0, for backward compatibility
-;;; with older X applications.
-;;; gildea@stop.mail-abuse.org says it's not desirable to put kills
-;;; in the clipboard.
 (defun x-select-text (text &optional push)
+  "Make TEXT, a string, the primary X selection.
+Also, set the value of X cut buffer 0, for backward compatibility
+with older X applications.
+gildea@stop.mail-abuse.org says it's not desirable to put kills
+in the clipboard."
   ;; Don't send the cut buffer too much text.
   ;; It becomes slow, and if really big it causes errors.
   (cond ((>= (length text) x-cut-buffer-max)
@@ -2276,12 +2275,12 @@ order until succeed.")
 	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
     text))
 
-;;; Return the value of the current X selection.
-;;; Consult the selection, and the cut buffer.  Treat empty strings
-;;; as if they were unset.
-;;; If this function is called twice and finds the same text,
-;;; it returns nil the second time.  This is so that a single
-;;; selection won't be added to the kill ring over and over.
+;; Return the value of the current X selection.
+;; Consult the selection, and the cut buffer.  Treat empty strings
+;; as if they were unset.
+;; If this function is called twice and finds the same text,
+;; it returns nil the second time.  This is so that a single
+;; selection won't be added to the kill ring over and over.
 (defun x-cut-buffer-or-selection-value ()
   (let (clip-text primary-text cut-text)
     (when x-select-enable-clipboard
@@ -2373,12 +2372,12 @@ order until succeed.")
     ))
 
 
-;;; Do the actual X Windows setup here; the above code just defines
-;;; functions and variables that we use now.
+;; Do the actual X Windows setup here; the above code just defines
+;; functions and variables that we use now.
 
 (setq command-line-args (x-handle-args command-line-args))
 
-;;; Make sure we have a valid resource name.
+;; Make sure we have a valid resource name.
 (or (stringp x-resource-name)
     (let (i)
       (setq x-resource-name (invocation-name))
@@ -2474,12 +2473,12 @@ order until succeed.")
   (error "Suspending an Emacs running under X makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
 
-;;; Arrange for the kill and yank functions to set and check the clipboard.
+;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
 
-;;; Turn off window-splitting optimization; X is usually fast enough
-;;; that this is only annoying.
+;; Turn off window-splitting optimization; X is usually fast enough
+;; that this is only annoying.
 (setq split-window-keep-point t)
 
 ;; Don't show the frame name; that's redundant with X.
@@ -2517,5 +2516,5 @@ order until succeed.")
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)
 (global-set-key [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
-;;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
+;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here

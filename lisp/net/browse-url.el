@@ -713,7 +713,8 @@ narrowed."
 		(setq browse-url-temp-file-name
 		      (convert-standard-filename
 		       (make-temp-file
-			(expand-file-name "burl" browse-url-temp-dir)))))
+			(expand-file-name "burl" browse-url-temp-dir)
+			nil ".html"))))
 	    (setq file-name browse-url-temp-file-name)
 	    (write-region (point-min) (point-max) file-name nil 'no-message)))
       (browse-url-of-file file-name))))

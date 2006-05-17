@@ -87,7 +87,7 @@
   (nnslashdot-possibly-change-server group server)
   (condition-case why
       (unless gnus-nov-is-evil
-	(nnslashdot-retrieve-headers-1 articles group))
+ 	(nnslashdot-retrieve-headers-1 articles group))
     (search-failed (nnslashdot-lose why))))
 
 (deffoo nnslashdot-retrieve-headers-1 (articles group)
@@ -142,41 +142,30 @@
 	  (setq article (if (and article (< start article)) article start))
 	  (goto-char point)
 	  (while (re-search-forward
-		  "<a name=\"\\([0-9]+\\)\"><\\(b\\|H4\\)>\\([^<]+\\)</\\(b\\|H4\\)>.*score:\\([^)]+\\))"
+		  "<a name=\"\\([0-9]+\\)\">\\([^<]+\\)</a>.*\n.*score:\\([^)]+\\))"
 		  nil t)
 	    (setq cid (match-string 1)
-		  subject (match-string 3)
-		  score (match-string 5))
+		  subject (match-string 2)
+		  score (match-string 3))
 	    (unless (assq article (nth 4 entry))
 	      (setcar (nthcdr 4 entry) (cons (cons article cid) (nth 4 entry)))
 	      (setq changed t))
 	    (when (string-match "^Re: *" subject)
 	      (setq subject (concat "Re: " (substring subject (match-end 0)))))
-	    (setq subject (mm-url-decode-entities-string subject))
-	    (search-forward "<BR>")
-	    (cond 
-	     ((looking-at
-	       "by[ \t\n]+<a[^>]+>\\([^<]+\\)</a>[ \t\n]*(\\(<[^>]+>\\)*\\([^<>)]+\\))")
-	      (goto-char (- (match-end 0) 5))
-	      (setq from (concat
-			  (mm-url-decode-entities-string (match-string 1))
-			  " <" (match-string 3) ">")))
-	     ((looking-at "by[ \t\n]+<a[^>]+>\\([^<(]+\\) (\\([0-9]+\\))</a>")
-	      (goto-char (- (match-end 0) 5))
-	      (setq from (concat 
-			  (mm-url-decode-entities-string (match-string 1))
-			  " <" (match-string 2) ">")))
-	     ((looking-at "by \\([^<>]*\\)[\t\n\r ]+on ")
-	      (goto-char (- (match-end 0) 5))
-	      (setq from (mm-url-decode-entities-string (match-string 1))))
-	     (t
-	      (setq from "")))
+	    (setq subject (mm-url-decode-entities-string subject)
+		  from "")
+	    (when (re-search-forward "by[ \t\n]+<[^>]+>\\([^<(]+\\)" nil t)
+	      (setq from
+		    (concat
+		     (mm-url-decode-entities-string (match-string 1))
+		     " <nobody@slashdot.org>")))
 	    (search-forward "on ")
 	    (setq date
 		  (nnslashdot-date-to-date
-		   (buffer-substring (point) (progn (skip-chars-forward "^()<>\n\r") (point)))))
-	    (setq lines (/ (abs (- (search-forward "<td")
-				   (search-forward "</td>")))
+		   (buffer-substring
+		    (point) (progn (skip-chars-forward "^()<>\n\r") (point)))))
+	    (setq lines (/ (abs (- (search-forward "<div")
+				   (search-forward "</div>")))
 			   70))
 	    (if (not
 		 (re-search-forward ".*cid=\\([0-9]+\\)\">Parent</A>" nil t))
@@ -255,23 +244,21 @@
 	    (when (numberp article)
 	      (if (= article 1)
 		  (progn
-		    (re-search-forward
-		     "Posted by")
-		    (search-forward "<BR>")
+		    (search-forward "Posted by")
+		    (search-forward "<div class=\"intro\">")
 		    (setq contents
 			  (buffer-substring
 			   (point)
 			   (progn
-			     (re-search-forward
-			      "<IFRAME\\|<SCRIPT LANGUAGE=\"JAVASCRIPT\">\\|<!-- no ad 6 -->\\|&lt;&nbsp;[ \t\r\n]*<A HREF=\"\\(\\(http:\\)?//slashdot\\.org\\)?/article")
+			     (search-forward "commentwrap")
 			     (match-beginning 0)))))
 		(setq cid (cdr (assq article
 				     (nth 4 (assoc group nnslashdot-groups)))))
 		(search-forward (format "<a name=\"%s\">" cid))
 		(setq contents
 		      (buffer-substring
-		       (re-search-forward "<td[^>]*>")
-		       (search-forward "</td>")))))))
+		       (search-forward "<div class=\"commentBody\">")
+		       (search-forward "</div>")))))))
       (search-failed (nnslashdot-lose why)))
 
     (when contents

@@ -380,7 +380,7 @@ The translation is done according to
 BEG and END delimit the text which is to be replaced."
   (let ((replacement))
    (setq replacement
-	 (completing-read "Multiple matches found; choose one:"
+	 (completing-read "Multiple matches found; choose one: "
 			  (mapcar 'list choices)))
    (delete-region beg end)
    (insert replacement)))
@@ -923,6 +923,7 @@ see `eudc-inline-expansion-servers'"
 	     ((eq eudc-multiple-match-handling-method 'select)
 	      (eudc-select response-strings beg end))
 	     ((eq eudc-multiple-match-handling-method 'all)
+	      (delete-region beg end)
 	      (insert (mapconcat 'identity response-strings ", ")))
 	     ((eq eudc-multiple-match-handling-method 'abort)
 	      (error "There is more than one match for the query"))))

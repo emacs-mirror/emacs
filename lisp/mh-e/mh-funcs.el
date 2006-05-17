@@ -51,7 +51,7 @@ For example, '(\"-nolimit\" \"-textfield\" \"subject\") is a useful setting.")
 ;;; Scan Line Formats
 
 (defvar mh-note-copied "C"
-  "Copied messages are marked by this character.")
+  "Messages that have been copied are marked by this character.")
 
 (defvar mh-note-printed "P"
   "Messages that have been printed are marked by this character.")

@@ -3109,8 +3109,8 @@ in any of these classes."
 		     ;; in order to do proper prompting:
 		     `(if (called-interactively-p)
 			  (call-interactively ',origname)
-			,(ad-make-mapped-call orig-arglist
-					      advised-arglist
+			,(ad-make-mapped-call advised-arglist
+					      orig-arglist
 					      origname)))
 		    ;; And now for normal functions and non-interactive subrs
 	            ;; (or subrs whose interactive behavior was advised):
@@ -3812,6 +3812,7 @@ documentation of the advised function can be dumped onto the `DOC' file
 during preloading.
 
 See Info node `(elisp)Advising Functions' for comprehensive documentation."
+  (declare (doc-string 3))
   (if (not (ad-name-p function))
       (error "defadvice: Invalid function name: %s" function))
   (let* ((class (car args))
@@ -3986,5 +3987,5 @@ Use only in REAL emergencies."
 
 (provide 'advice)
 
-;;; arch-tag: 29f8c9a1-8c88-471f-95d7-e28541c6b7c0
+;; arch-tag: 29f8c9a1-8c88-471f-95d7-e28541c6b7c0
 ;;; advice.el ends here

@@ -547,7 +547,7 @@ These are passed to the checkin program by \\[vc-register]."
   :group 'vc
   :version "20.3")
 
-(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn")
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn" "{arch}")
   "*List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
@@ -2064,6 +2064,9 @@ There is a special command, `*l', to mark all files currently locked."
   ;; The following is slightly modified from files.el,
   ;; because file lines look a bit different in vc-dired-mode
   ;; (the column before the date does not end in a digit).
+  ;; albinus: It should be done in the original declaration.  Problem
+  ;; is the optional empty state-info; otherwise ")" would be good
+  ;; enough as delimeter.
   (set (make-local-variable 'directory-listing-before-filename-regexp)
   (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
          ;; In some locales, month abbreviations are as short as 2 letters,
@@ -2593,9 +2596,12 @@ By default, this command cycles through the registered backends.
 To get a prompt, use a prefix argument."
   (interactive
    (list
-    buffer-file-name
+    (or buffer-file-name
+        (error "There is no version-controlled file in this buffer"))
     (let ((backend (vc-backend buffer-file-name))
 	  (backends nil))
+      (unless backend
+        (error "File %s is not under version control" buffer-file-name))
       ;; Find the registered backends.
       (dolist (backend vc-handled-backends)
 	(when (vc-call-backend backend 'registered buffer-file-name)

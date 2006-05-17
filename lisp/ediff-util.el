@@ -1794,6 +1794,7 @@ With a prefix argument, go back that many differences."
 		     skip-changed
 		     ;; skip difference regions that differ in white space
 		     (and ediff-ignore-similar-regions
+			  (ediff-merge-region-is-non-clash n)
 			  (or (eq (ediff-no-fine-diffs-p n) t)
 			      (and (ediff-merge-job)
 				   (eq (ediff-no-fine-diffs-p n) 'C)))

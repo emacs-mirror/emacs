@@ -223,6 +223,9 @@ INSTALL_INFO = @INSTALL_INFO@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
 
+# We use gzip to compress installed .el files.
+GZIP_PROG = @GZIP_PROG@
+
 # ============================= Targets ==============================
 
 # Program name transformation.
@@ -473,6 +476,14 @@ install-arch-indep: mkdir info
 	   (cd lisp; tar -chf - *.el *.elc) \
 	     |(cd ${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
 	   (cd ${lispdir}; find . -exec chown $${LOGNAME:-$$USERNAME} {} ';') ; \
+	else true; fi
+	-unset CDPATH; \
+	if [ -n "${GZIP_PROG}" ]; \
+	then \
+	   echo "Compressing *.el ..." ; \
+	   (cd ${lispdir}; for f in `find . -name "*.elc" -print`; do \
+		${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	    done) \
 	else true; fi
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
@@ -750,9 +761,11 @@ maybe_bootstrap:
 	  exit 1;\
 	fi
 
-bootstrap: bootstrap-clean-before info bootstrap-build FRC
+bootstrap: bootstrap-clean-before FRC
+	$(MAKE) $(MFLAGS) info bootstrap-build
 
-bootfast: bootstrap-clean-before-fast info bootstrap-build FRC
+bootfast: bootstrap-clean-before-fast FRC
+	$(MAKE) $(MFLAGS) info bootstrap-build
 
 bootstrap-build: FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-prepare)

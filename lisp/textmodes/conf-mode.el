@@ -201,11 +201,11 @@ This variable is best set in the file local variables, or through
   "Keywords to hilight in Conf Colon mode.")
 
 (defvar conf-assignment-sign ?=
-  "What sign is used for assignments.")
+  "Sign used for assignments (char or string).")
 
 (defvar conf-assignment-regexp ".+?\\([ \t]*=[ \t]*\\)"
   "Regexp to recognize assignments.
-It is anchored after the first sexp on a line.  There must a
+It is anchored after the first sexp on a line.  There must be a
 grouping for the assignment sign, including leading and trailing
 whitespace.")
 
@@ -279,7 +279,7 @@ unbalanced, but hey...)"
 
 
 ;;;###autoload
-(defun conf-mode (&optional comment syntax-table name)
+(defun conf-mode ()
   "Mode for Unix and Windows Conf files and Java properties.
 Most conf files know only three kinds of constructs: parameter
 assignments optionally grouped into sections and comments.  Yet
@@ -311,7 +311,13 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 \\{conf-mode-map}"
 
   (interactive)
-  (if (not comment)
+  ;; `conf-mode' plays two roles: it's the parent of several sub-modes
+  ;; but it's also the function that chooses between those submodes.
+  ;; To tell the difference between those two cases where the function
+  ;; might be called, we check `delay-mode-hooks'.
+  ;; (adopted from tex-mode.el)
+  (if (not delay-mode-hooks)
+      ;; try to guess sub-mode of conf-mode based on buffer content
       (let ((unix 0) (win 0) (equal 0) (colon 0) (space 0) (jp 0))
 	(save-excursion
 	  (goto-char (point-min))
@@ -338,17 +344,14 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
          ((or (> win unix) (and (= win unix) (eq system-type 'windows-nt)))
           (conf-windows-mode))
          (t (conf-unix-mode))))
+
     (kill-all-local-variables)
     (use-local-map conf-mode-map)
-
     (setq major-mode 'conf-mode
-	  mode-name name)
+	  mode-name "Conf[?]")
     (set (make-local-variable 'font-lock-defaults)
          '(conf-font-lock-keywords nil t nil nil))
-    (set (make-local-variable 'comment-start) comment)
-    (set (make-local-variable 'comment-start-skip)
-	 (concat (regexp-quote comment-start) "+\\s *"))
-    ;; Let newcomment.el decide this for himself.
+    ;; Let newcomment.el decide this for itself.
     ;; (set (make-local-variable 'comment-use-syntax) t)
     (set (make-local-variable 'parse-sexp-ignore-comments) t)
     (set (make-local-variable 'outline-regexp)
@@ -357,18 +360,28 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 	 "[\n}]")
     (set (make-local-variable 'outline-level)
 	 'conf-outline-level)
-    (set-syntax-table syntax-table)
+    (set-syntax-table conf-mode-syntax-table)
     (setq imenu-generic-expression
 	  '(("Parameters" "^[ \t]*\\(.+?\\)[ \t]*=" 1)
 	    ;; [section]
 	    (nil "^[ \t]*\\[[ \t]*\\(.+\\)[ \t]*\\]" 1)
 	    ;; section { ... }
 	    (nil "^[ \t]*\\([^=:{} \t\n][^=:{}\n]+\\)[ \t\n]*{" 1)))
-
     (run-mode-hooks 'conf-mode-hook)))
 
+(defun conf-mode-initialize (comment &optional font-lock)
+  "Intitializations for sub-modes of conf-mode.
+COMMENT initializes `comment-start' and `comment-start-skip'.
+The optional arg FONT-LOCK is the value for FONT-LOCK-KEYWORDS."
+  (set (make-local-variable 'comment-start) comment)
+  (set (make-local-variable 'comment-start-skip)
+       (concat (regexp-quote comment-start) "+\\s *"))
+  (if font-lock
+      (set (make-local-variable 'font-lock-defaults)
+           `(,font-lock nil t nil nil))))
+
 ;;;###autoload
-(defun conf-unix-mode ()
+(define-derived-mode conf-unix-mode conf-mode "Conf[Unix]"
   "Conf Mode starter for Unix style Conf files.
 Comments start with `#'.
 For details see `conf-mode'.  Example:
@@ -380,11 +393,10 @@ For details see `conf-mode'.  Example:
 	 Name=The GIMP
 	 Name[ca]=El GIMP
 	 Name[cs]=GIMP"
-  (interactive)
-  (conf-mode "#" conf-unix-mode-syntax-table "Conf[Unix]"))
+  (conf-mode-initialize "#"))
 
 ;;;###autoload
-(defun conf-windows-mode ()
+(define-derived-mode conf-windows-mode conf-mode "Conf[WinIni]"
   "Conf Mode starter for Windows style Conf files.
 Comments start with `;'.
 For details see `conf-mode'.  Example:
@@ -397,8 +409,7 @@ Default={5984FFE0-28D4-11CF-AE66-08002B2E1262}
 
 \[{5984FFE0-28D4-11CF-AE66-08002B2E1262}]
 PersistMoniker=file://Folder.htt"
-  (interactive)
-  (conf-mode ";" conf-mode-syntax-table "Conf[WinIni]"))
+  (conf-mode-initialize ";"))
 
 ;; Here are a few more or less widespread styles.  There are others, so
 ;; obscure, they are not covered.  E.g. RFC 2614 allows both Unix and Windows
@@ -406,7 +417,7 @@ PersistMoniker=file://Folder.htt"
 ;; if you need it.
 
 ;;;###autoload
-(defun conf-javaprop-mode ()
+(define-derived-mode conf-javaprop-mode conf-mode "Conf[JavaProp]"
   "Conf Mode starter for Java properties files.
 Comments start with `#' but are also recognized with `//' or
 between `/*' and `*/'.
@@ -422,27 +433,23 @@ name value
 x.1 =
 x.2.y.1.z.1 =
 x.2.y.1.z.2.zz ="
-  (interactive)
-  (conf-mode "#" conf-javaprop-mode-syntax-table "Conf[JavaProp]")
+  (conf-mode-initialize "#" 'conf-javaprop-font-lock-keywords)
   (set (make-local-variable 'conf-assignment-column)
        conf-javaprop-assignment-column)
   (set (make-local-variable 'conf-assignment-regexp)
        ".+?\\([ \t]*[=: \t][ \t]*\\|$\\)")
-  (set (make-local-variable 'conf-font-lock-keywords)
-       conf-javaprop-font-lock-keywords)
   (setq comment-start-skip "\\(?:#+\\|/[/*]+\\)\\s *")
   (setq imenu-generic-expression
 	'(("Parameters" "^[ \t]*\\(.+?\\)[=: \t]" 1))))
 
 ;;;###autoload
-(defun conf-space-mode (&optional keywords)
+(define-derived-mode conf-space-mode conf-unix-mode "Conf[Space]"
   "Conf Mode starter for space separated conf files.
 \"Assignments\" are with ` '.  Keywords before the parameters are
 recognized according to `conf-space-keywords'.  Interactively
 with a prefix ARG of `0' no keywords will be recognized.  With
 any other prefix arg you will be prompted for a regexp to match
-the keywords.  Programmatically you can pass such a regexp as
-KEYWORDS, or any non-nil non-string for no keywords.
+the keywords.
 
 For details see `conf-mode'.  Example:
 
@@ -457,30 +464,23 @@ class desktop
 # Standard multimedia devices
 add /dev/audio		desktop
 add /dev/mixer		desktop"
-  (interactive
-   (list (if current-prefix-arg
-	     (if (> (prefix-numeric-value current-prefix-arg) 0)
-		 (read-string "Regexp to match keywords: ")
-	       t))))
-  (conf-unix-mode)
-  (setq mode-name "Conf[Space]")
+  (conf-mode-initialize "#" 'conf-space-font-lock-keywords)
   (set (make-local-variable 'conf-assignment-sign)
        nil)
-  (set (make-local-variable 'conf-font-lock-keywords)
-       conf-space-font-lock-keywords)
   ;; This doesn't seem right, but the next two depend on conf-space-keywords
   ;; being set, while after-change-major-mode-hook might set up imenu, needing
   ;; the following result:
   (hack-local-variables-prop-line)
   (hack-local-variables)
-  (if keywords
-      (set (make-local-variable 'conf-space-keywords)
-	   (if (stringp keywords) keywords))
-    (or conf-space-keywords
-	(not buffer-file-name)
-	(set (make-local-variable 'conf-space-keywords)
-	     (assoc-default buffer-file-name conf-space-keywords-alist
-			    'string-match))))
+  (cond (current-prefix-arg
+         (set (make-local-variable 'conf-space-keywords)
+              (if (> (prefix-numeric-value current-prefix-arg) 0)
+                  (read-string "Regexp to match keywords: "))))
+        (conf-space-keywords)
+        (buffer-file-name
+         (set (make-local-variable 'conf-space-keywords)
+              (assoc-default buffer-file-name conf-space-keywords-alist
+                             'string-match))))
   (set (make-local-variable 'conf-assignment-regexp)
        (if conf-space-keywords
 	   (concat "\\(?:" conf-space-keywords "\\)[ \t]+.+?\\([ \t]+\\|$\\)")
@@ -495,7 +495,7 @@ add /dev/mixer		desktop"
 	   1))))
 
 ;;;###autoload
-(defun conf-colon-mode (&optional comment syntax-table name)
+(define-derived-mode conf-colon-mode conf-unix-mode "Conf[Colon]"
   "Conf Mode starter for Colon files.
 \"Assignments\" are with `:'.
 For details see `conf-mode'.  Example:
@@ -504,11 +504,7 @@ For details see `conf-mode'.  Example:
 
 <Multi_key> <exclam> <exclam>		: \"\\241\"	exclamdown
 <Multi_key> <c> <slash>			: \"\\242\"	cent"
-  (interactive)
-  (if comment
-      (conf-mode comment syntax-table name)
-    (conf-unix-mode)
-    (setq mode-name "Conf[Colon]"))
+  (conf-mode-initialize "#" 'conf-colon-font-lock-keywords)
   (set (make-local-variable 'conf-assignment-space)
        conf-colon-assignment-space)
   (set (make-local-variable 'conf-assignment-column)
@@ -517,14 +513,12 @@ For details see `conf-mode'.  Example:
        ?:)
   (set (make-local-variable 'conf-assignment-regexp)
        ".+?\\([ \t]*:[ \t]*\\)")
-  (set (make-local-variable 'conf-font-lock-keywords)
-       conf-colon-font-lock-keywords)
   (setq imenu-generic-expression
 	`(("Parameters" "^[ \t]*\\(.+?\\)[ \t]*:" 1)
 	  ,@(cdr imenu-generic-expression))))
 
 ;;;###autoload
-(defun conf-ppd-mode ()
+(define-derived-mode conf-ppd-mode conf-colon-mode "Conf[PPD]"
   "Conf Mode starter for Adobe/CUPS PPD files.
 Comments start with `*%' and \"assignments\" are with `:'.
 For details see `conf-mode'.  Example:
@@ -533,13 +527,12 @@ For details see `conf-mode'.  Example:
 
 *DefaultTransfer: Null
 *Transfer Null.Inverse: \"{ 1 exch sub }\""
-  (interactive)
-  (conf-colon-mode "*%" conf-ppd-mode-syntax-table "Conf[PPD]")
+  (conf-mode-initialize "*%")
   ;; no sections, they match within PostScript code
   (setq imenu-generic-expression (list (car imenu-generic-expression))))
 
 ;;;###autoload
-(defun conf-xdefaults-mode ()
+(define-derived-mode conf-xdefaults-mode conf-colon-mode "Conf[Xdefaults]"
   "Conf Mode starter for Xdefaults files.
 Comments start with `!' and \"assignments\" are with `:'.
 For details see `conf-mode'.  Example:
@@ -548,8 +541,7 @@ For details see `conf-mode'.  Example:
 
 *background:			gray99
 *foreground:			black"
-  (interactive)
-  (conf-colon-mode "!" conf-xdefaults-mode-syntax-table "Conf[Xdefaults]"))
+  (conf-mode-initialize "!"))
 
 (provide 'conf-mode)
 

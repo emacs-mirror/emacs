@@ -98,6 +98,8 @@ list autoload setting for desired functions as follows.
 @lisp
 (autoload 'pgg-encrypt-region "pgg"
   "Encrypt the current region." t)
+(autoload 'pgg-encrypt-symmetric-region "pgg"
+  "Encrypt the current region with symmetric algorithm." t)
 (autoload 'pgg-decrypt-region "pgg"
   "Decrypt the current region." t)
 (autoload 'pgg-sign-region "pgg"
@@ -138,6 +140,13 @@ the accessible portion) with the resulting data.
 If optional argument @var{sign} is non-@code{nil}, the function is
 request to do a combined sign and encrypt.  This currently only work
 with GnuPG.
+@end deffn
+
+@deffn Command pgg-encrypt-symmetric-region start end
+Encrypt the current region between @var{start} and @var{end} using a
+symmetric cipher.  After invocation you are asked for a passphrase.
+
+This is currently only implemented for GnuPG.
 @end deffn
 
 @deffn Command pgg-decrypt-region start end
@@ -305,6 +314,13 @@ Encrypt the current region between @var{start} and @var{end} for
 @var{recipients}.  If @var{sign} is non-@code{nil}, do a combined sign
 and encrypt.  If encryption is successful, it returns @code{t},
 otherwise @code{nil}.
+@end deffn
+
+@deffn Method pgg-scheme-encrypt-symmetric-region scheme start end
+Encrypt the current region between @var{start} and @var{end} using a
+symmetric cipher and a passphrases.  If encryption is successful, it
+returns @code{t}, otherwise @code{nil}.  This function is currently only
+implemented for GnuPG.
 @end deffn
 
 @deffn Method pgg-scheme-decrypt-region scheme start end

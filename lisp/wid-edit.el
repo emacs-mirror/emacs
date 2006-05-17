@@ -3116,7 +3116,7 @@ It will read a directory name from the minibuffer when invoked."
 		       (interactive)
 		       (lisp-complete-symbol 'boundp))
   :tag "Variable")
-
+
 (defvar widget-coding-system-prompt-value-history nil
   "History of input to `widget-coding-system-prompt-value'.")
 
@@ -3158,6 +3158,29 @@ It will read a directory name from the minibuffer when invoked."
     (widget-value-set widget answer)
     (widget-apply widget :notify widget event)
     (widget-setup)))
+
+(defvar widget-key-sequence-prompt-value-history nil
+  "History of input to `widget-key-sequence-prompt-value'.")
+
+;; This mostly works, but I am pretty sure it needs more change
+;; to be 100% correct.  I don't know what the change should be -- rms.
+
+(define-widget 'key-sequence 'restricted-sexp
+  "A Lisp function."
+  :prompt-value 'widget-field-prompt-value
+  :prompt-internal 'widget-symbol-prompt-internal
+  :prompt-match 'fboundp
+  :prompt-history 'widget-key-sequence-prompt-value-history
+  :action 'widget-field-action
+  :match-alternatives '(stringp vectorp)
+  :validate (lambda (widget)
+	      (unless (or (stringp (widget-value widget))
+			  (vectorp (widget-value widget)))
+		(widget-put widget :error (format "Invalid key sequence: %S"
+						  (widget-value widget)))
+		widget))
+  :value 'ignore
+  :tag "Key sequence")
 
 (define-widget 'sexp 'editable-field
   "An arbitrary Lisp expression."

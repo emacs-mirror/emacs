@@ -1221,6 +1221,7 @@ without any interpretation."
 ;; Which would be better:  "\e[A" or "\eOA"? readline accepts either.
 ;; For my configuration it's definitely better \eOA but YMMV. -mm
 ;; For example: vi works with \eOA while elm wants \e[A ...
+;;; (terminfo: kcuu1, kcud1, kcuf1, kcub1, khome, kend, kpp, knp, kdch1, kbs)
 (defun term-send-up    () (interactive) (term-send-raw-string "\eOA"))
 (defun term-send-down  () (interactive) (term-send-raw-string "\eOB"))
 (defun term-send-right () (interactive) (term-send-raw-string "\eOC"))
@@ -2819,7 +2820,7 @@ See `term-prompt-regexp'."
 			       (1- (- term-width (term-current-column)))))
 			    (when (= term-width (term-current-column))
 			      (term-move-columns -1))))
-			 ((eq char ?\r)
+			 ((eq char ?\r)  ;; (terminfo: cr)
 			  ;; Optimize CRLF at end of buffer:
 			  (cond ((and (< (setq temp (1+ i)) str-length)
 				      (eq (aref str temp) ?\n)
@@ -2835,7 +2836,7 @@ See `term-prompt-regexp'."
 				(t ;; Not followed by LF or can't optimize:
 				 (term-vertical-motion 0)
 				 (setq term-current-column term-start-line-column))))
-			 ((eq char ?\n)
+			 ((eq char ?\n)  ;; (terminfo: cud1, ind)
 			  (if (not (and term-kill-echo-list
 					(term-check-kill-echo-list)))
 			      (term-down 1 t)))
@@ -2846,16 +2847,15 @@ See `term-prompt-regexp'."
 			 ((eq char 0))	       ; NUL: Do nothing
 			 ((eq char ?\016))     ; Shift Out - ignored
 			 ((eq char ?\017))     ; Shift In - ignored
-			 ((eq char ?\^G)
-			  (beep t))	; Bell
+			 ((eq char ?\^G) ;; (terminfo: bel)
+			  (beep t))
 			 ((eq char ?\032)
 			  (let ((end (string-match "\r?$" str i)))
 			    (if end
 				(funcall term-command-hook
 					 (prog1 (substring str (1+ i) end)
 					   (setq i (match-end 0))))
-			      (setq term-terminal-parameter
-				    (substring str i))
+			      (setq term-terminal-parameter (substring str i))
 			      (setq term-terminal-state 4)
 			      (setq i str-length))))
 			 (t   ; insert char FIXME: Should never happen
@@ -3072,7 +3072,7 @@ See `term-prompt-regexp'."
    ((eq parameter 5)
     (setq term-ansi-current-bold t))
 
-;;; Reverse
+;;; Reverse (terminfo: smso)
    ((eq parameter 7)
     (setq term-ansi-current-reverse t))
 
@@ -3080,11 +3080,11 @@ See `term-prompt-regexp'."
    ((eq parameter 8)
     (setq term-ansi-current-invisible t))
 
-;;; Reset underline (i.e. terminfo rmul)
+;;; Reset underline (terminfo: rmul)
    ((eq parameter 24)
     (setq term-ansi-current-underline nil))
 
-;;; Reset reverse (i.e. terminfo rmso)
+;;; Reset reverse (terminfo: rmso)
    ((eq parameter 27)
     (setq term-ansi-current-reverse nil))
 
@@ -3189,7 +3189,7 @@ See `term-prompt-regexp'."
 
 (defun term-handle-ansi-escape (proc char)
   (cond
-   ((or (eq char ?H)  ; cursor motion (terminfo: cup)
+   ((or (eq char ?H)  ; cursor motion (terminfo: cup,home)
 	;; (eq char ?f) ; xterm seems to handle this sequence too, not
 	;; needed for now
 	)
@@ -3211,7 +3211,7 @@ See `term-prompt-regexp'."
    ;; \E[B - cursor down (terminfo: cud)
    ((eq char ?B)
     (term-down (max 1 term-terminal-parameter) t))
-   ;; \E[C - cursor right (terminfo: cuf)
+   ;; \E[C - cursor right (terminfo: cuf, cuf1)
    ((eq char ?C)
     (term-move-columns
      (max 1
@@ -3230,14 +3230,14 @@ See `term-prompt-regexp'."
    ;; \E[L - insert lines (terminfo: il, il1)
    ((eq char ?L)
     (term-insert-lines (max 1 term-terminal-parameter)))
-   ;; \E[M - delete lines
+   ;; \E[M - delete lines (terminfo: dl, dl1)
    ((eq char ?M)
     (term-delete-lines (max 1 term-terminal-parameter)))
-   ;; \E[P - delete chars
+   ;; \E[P - delete chars (terminfo: dch, dch1)
    ((eq char ?P)
     (term-delete-chars (max 1 term-terminal-parameter)))
-   ;; \E[@ - insert spaces
-   ((eq char ?@) ;; (terminfo: ich)
+   ;; \E[@ - insert spaces (terminfo: ich)
+   ((eq char ?@)
     (term-insert-spaces (max 1 term-terminal-parameter)))
    ;; \E[?h - DEC Private Mode Set
    ((eq char ?h)

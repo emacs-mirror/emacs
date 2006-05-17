@@ -142,12 +142,13 @@
 (put 'easy-mmode-define-minor-mode 'doc-string-elt 2)
 (put 'define-minor-mode 'doc-string-elt 2)
 (put 'define-generic-mode 'doc-string-elt 7)
-;; define-global-mode has no explicit docstring.
-(put 'easy-mmode-define-global-mode 'doc-string-elt 0)
 (put 'define-ibuffer-filter 'doc-string-elt 2)
 (put 'define-ibuffer-op 'doc-string-elt 3)
 (put 'define-ibuffer-sorter 'doc-string-elt 2)
 (put 'lambda 'doc-string-elt 2)
+(put 'defalias 'doc-string-elt 3)
+(put 'defvaralias 'doc-string-elt 3)
+(put 'define-category 'doc-string-elt 2)
 
 (defvar lisp-doc-string-elt-property 'doc-string-elt
   "The symbol property that holds the docstring position info.")
