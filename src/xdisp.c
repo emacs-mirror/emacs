@@ -9492,6 +9492,7 @@ display_tool_bar_line (it, height)
   while (it->current_x < max_x)
     {
       int x_before, x, n_glyphs_before, i, nglyphs;
+      struct it it_before;
 
       /* Get the next display element.  */
       if (!get_next_display_element (it))
@@ -9505,9 +9506,10 @@ display_tool_bar_line (it, height)
       /* Produce glyphs.  */
       x_before = it->current_x;
       n_glyphs_before = it->glyph_row->used[TEXT_AREA];
+      it_before = *it;
       PRODUCE_GLYPHS (it);
 
-      nglyphs = it->glyph_row->used[TEXT_AREA] - n_glyphs_before;
+      nglyphs = row->used[TEXT_AREA] - n_glyphs_before;
       i = 0;
       x = x_before;
       while (i < nglyphs)
@@ -9516,9 +9518,9 @@ display_tool_bar_line (it, height)
 
 	  if (x + glyph->pixel_width > max_x)
 	    {
-	      /* Glyph doesn't fit on line.  */
-	      it->glyph_row->used[TEXT_AREA] = n_glyphs_before + i;
-	      it->current_x = x;
+	      /* Glyph doesn't fit on line.  Backtrack.  */
+	      row->used[TEXT_AREA] = n_glyphs_before;
+	      *it = it_before;
 	      goto out;
 	    }
 
@@ -9549,6 +9551,8 @@ display_tool_bar_line (it, height)
   /* Make line the desired height and center it vertically.  */
   if ((height -= it->max_ascent + it->max_descent) > 0)
     {
+      /* Don't add more than one line height.  */
+      height %= FRAME_LINE_HEIGHT (it->f);
       it->max_ascent += height / 2;
       it->max_descent += (height + 1) / 2;
     }
