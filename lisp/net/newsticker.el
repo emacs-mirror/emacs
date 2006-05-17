@@ -10,7 +10,6 @@
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS
 ;; Time-stamp:  "26. August 2005, 16:33:46 (ulf)"
-;; CVS-Version: $Id: newsticker.el,v 1.4 2005/09/18 12:36:08 deego Exp $
 
 (defconst newsticker-version "1.8" "Version number of newsticker.el.")
 

@@ -647,14 +647,15 @@ This hook should be local in the buffer setup to display widgets.")
           (when (and (not args) xpandr)
             (setq args (mapcar 'widget-convert (funcall xpandr tree)))
             (widget-put tree :args args))
+          ;; Defer the node widget creation after icon creation.
+          (widget-put tree :node (widget-convert node))
           ;; Create the icon widget for the expanded tree.
           (push (widget-create-child-and-convert
-                 tree (widget-get tree (if args :open-icon :empty-icon))
-                 ;; At this point the node widget isn't yet created.
-                 :node (setq node (widget-convert node)))
+                 tree (widget-get tree (if args :open-icon :empty-icon)))
                 buttons)
           ;; Create the tree node widget.
-          (push (widget-create-child tree node) children)
+          (push (widget-create-child tree (widget-get tree :node))
+                children)
           ;; Update the icon :node with the created node widget.
           (widget-put (car buttons) :node (car children))
           ;; Create the tree children.
@@ -696,14 +697,15 @@ This hook should be local in the buffer setup to display widgets.")
               ;; Update the icon :node with the created node widget.
               (widget-put (car buttons) :node (car children)))))
 ;;;; Collapsed node.
+      ;; Defer the node widget creation after icon creation.
+      (widget-put tree :node (widget-convert node))
       ;; Create the icon widget for the collapsed tree.
       (push (widget-create-child-and-convert
-             tree (widget-get tree :close-icon)
-             ;; At this point the node widget isn't yet created.
-             :node (setq node (widget-convert node)))
+             tree (widget-get tree :close-icon))
             buttons)
       ;; Create the tree node widget.
-      (push (widget-create-child tree node) children)
+      (push (widget-create-child tree (widget-get tree :node))
+            children)
       ;; Update the icon :node with the created node widget.
       (widget-put (car buttons) :node (car children)))
     ;; Save widget children and buttons.  The tree-widget :node child

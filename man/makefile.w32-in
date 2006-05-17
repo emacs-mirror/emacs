@@ -329,7 +329,7 @@ url.dvi: url.texi
 $(infodir)/newsticker: newsticker.texi
 	$(MAKEINFO) newsticker.texi
 newsticker.dvi: newsticker.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/newsticker.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/newsticker.texi
 
 mostlyclean:
 	- $(DEL) *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*

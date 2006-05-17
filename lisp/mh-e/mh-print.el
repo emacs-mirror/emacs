@@ -153,7 +153,7 @@ interactive use."
   "Print current show buffer to FILE."
   (interactive (list (mh-ps-print-preprint current-prefix-arg)))
   (message "mh-ps-print-msg-show file %s keys %s mh-show-buffer %s"
-		   file (this-command-keys mh-show-buffer))
+		   file (this-command-keys) mh-show-buffer)
   (let ((msg (mh-get-msg-num t))
         (folder mh-current-folder)
         (show-buffer mh-show-buffer)

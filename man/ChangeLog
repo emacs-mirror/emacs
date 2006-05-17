@@ -1,3 +1,7 @@
+2005-09-19  Miles Bader  <miles@gnu.org>
+
+	* newsticker.texi: Get rid of CVS keywords.
+
 2005-09-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Finding the Parent): Fix description of how Gnus
@@ -7,6 +11,11 @@
 
 	* gnus.texi (Advanced Scoring Examples): New exmples to teach how
 	to drop off non-answered articles.
+
+2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (newsticker.dvi): Fix erroneous use of curly
+	brackets on macro `srcdir'.
 
 2005-09-17  Eli Zaretskii  <eliz@gnu.org>
 

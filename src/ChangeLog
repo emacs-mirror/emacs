@@ -1,3 +1,8 @@
+2005-09-19  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Fformat): Don't scan past end of format string that
+	ends in %.  Reported by: Johan Bockg,Ae(Brd.
+
 2005-09-18  Andreas Schwab  <schwab@suse.de>
 
 	* window.h (struct window): Remove height_fixed_p, no longer set.
