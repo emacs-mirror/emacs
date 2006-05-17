@@ -1778,7 +1778,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
   "Perform the `ido-read-buffer' and `ido-read-file-name' functions.
 Return the name of a buffer or file selected.
 PROMPT is the prompt to give to the user.
-DEFAULT if given is the default directory to start with.
+DEFAULT if given is the default item to start with.
 If REQUIRE-MATCH is non-nil, an existing file must be selected.
 If INITIAL is non-nil, it specifies the initial input string."
   (let
@@ -1822,7 +1822,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (cond
 	       ((eq item 'buffer)
 		(if (bufferp default) (buffer-name default) default))
-	       ((stringp default) default)
+	       ((stringp default)
+		(if (memq item '(file dir))
+		    (file-name-nondirectory default)
+		  default))
 	       ((eq item 'file)
 		(and ido-enable-last-directory-history
 		     (let ((d (assoc ido-current-directory ido-last-directory-list)))
