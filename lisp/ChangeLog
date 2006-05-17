@@ -1,3 +1,7 @@
+2006-05-17  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): Use only nondirectory part of default item.
+
 2006-05-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc-data): Add docstring.
