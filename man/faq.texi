@@ -423,14 +423,17 @@ years, although there may be some unintentional gaps in coverage.  The
 archive is not particularly well organized or easy to retrieve
 individual postings from, but pretty much everything is there.
 
-The archive is at @uref{ftp://ftp-mailing-list-archives.gnu.org}.
+The archive is at @uref{ftp://lists.gnu.org/}.
 
 The archive can be browsed over the web at
-@uref{http://mail.gnu.org/archive/html/, the GNU mail archive}.
+@uref{http://lists.gnu.org/archive/html/, the GNU mail archive}.
 
 Web-based Usenet search services, such as
-@uref{http://groups.google.com, Google}, also archive the
-@code{gnu.*} groups.
+@uref{http://groups.google.com/groups/dir?sel=33592484, Google}, also
+archive the @code{gnu.*} groups.
+
+You can read the archives of the @code{gnu.*} groups and post new
+messages at @uref{http://gmane.org/, Gmane}.
 
 @node Reporting bugs, Unsubscribing from Emacs lists, Newsgroup archives, General questions
 @section Where should I report bugs and other problems with Emacs?
@@ -439,16 +442,19 @@ Web-based Usenet search services, such as
 @cindex How to submit a bug report
 @cindex Reporting bugs
 
-The correct way to report Emacs bugs is by e-mail to
-@email{bug-gnu-emacs@@gnu.org}.  Anything sent here also appears in the
+The correct way to report Emacs bugs is to use the command
+@kbd{M-x report-emacs-bug}.  It sets up a mail buffer with the
+essential information and the correct e-mail address which is
+@email{bug-gnu-emacs@@gnu.org} for the released versions of Emacs.
+Anything sent to @email{bug-gnu-emacs@@gnu.org} also appears in the
 newsgroup @uref{news:gnu.emacs.bug}, but please use e-mail instead of
 news to submit the bug report.  This ensures a reliable return address
 so you can be contacted for further details.
 
 Be sure to read the ``Bugs'' section of the Emacs manual before reporting
-a bug to bug-gnu-emacs!  The manual describes in detail how to submit a
-useful bug report.  (@xref{On-line manual}, if you don't know how to read the
-manual.)
+a bug!  The manual describes in detail how to submit a useful bug
+report (@pxref{Bugs, , Reporting Bugs, emacs, The GNU Emacs Manual}).
+(@xref{On-line manual}, if you don't know how to read the manual.)
 
 RMS says:
 
@@ -674,6 +680,10 @@ An HTML version of the manual is at
 
 @uref{http://www.gnu.org/software/emacs/manual/emacs.html}
 
+The manual is available in other formats at
+
+@uref{http://www.gnu.org/software/emacs/manual/}
+
 @xref{Learning how to do something}, for how to view the manual on-line.
 
 @node Emacs Lisp documentation, Installing Texinfo documentation, Getting a printed manual, Getting help
@@ -763,12 +773,19 @@ privileges, you have several options:
 
 @itemize @bullet
 @item
-Info files don't actually need to be installed before being used.  You
-can feed a file name to the @code{Info-goto-node} command (invoked by
-pressing @key{g} in Info mode) by typing the name of the file in
-parentheses.  This goes to the node named ``Top'' in that file.  For
-example, to view a Info file named @file{@var{info-file}} in your home
-directory, you can type this:
+Info files don't actually need to be installed before being used.
+You can use a prefix argument for the @code{info} command and specify
+the name of the Info file in the minibuffer.  This goes to the node
+named @samp{Top} in that file.  For example, to view a Info file named
+@file{@var{info-file}} in your home directory, you can type this:
+
+@example
+@kbd{C-u C-h i ~/@var{info-file} @key{RET}}
+@end example
+
+Alternatively, you can feed a file name to the @code{Info-goto-node}
+command (invoked by pressing @key{g} in Info mode) by typing the name
+of the file in parentheses, like this:
 
 @example
 @kbd{C-h i g (~/@var{info-file}) @key{RET}}
@@ -1074,7 +1091,7 @@ conventions}).
 
 Emacs @value{VER} is the current version as of this writing.
 
-@node New in Emacs 20,  New in Emacs 21, Latest version of Emacs, Status of Emacs
+@node New in Emacs 20, New in Emacs 21, Latest version of Emacs, Status of Emacs
 @section What is different about Emacs 20?
 @cindex Differences between Emacs 19 and Emacs 20
 @cindex Emacs 20, new features in
@@ -1122,7 +1139,7 @@ In addition, Emacs 21 supports faces on text-only terminals.  This means
 that you can now have colors when you run Emacs on a GNU/Linux console
 and on @code{xterm} with @kbd{emacs -nw}.
 
-@node New in Emacs 22, , New in Emacs 21, Status of Emacs
+@node New in Emacs 22,  , New in Emacs 21, Status of Emacs
 @section What is different about Emacs 22?
 @cindex Differences between Emacs 21 and Emacs 22
 @cindex Emacs 22, new features in
@@ -1163,19 +1180,20 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 @menu
 * Setting up a customization file::
 * Using Customize::
-* Debugging a customization file::
 * Colors on a TTY::
+* Debugging a customization file::
 * Displaying the current line or column::
 * Displaying the current file name in the titlebar::
 * Turning on abbrevs by default::
-* Turning on auto-fill by default::
 * Associating modes with files::
-* Working with unprintable characters::
 * Highlighting a region::
+* Replacing highlighted text::
 * Controlling case sensitivity::
-* Wrapping words automatically::
+* Working with unprintable characters::
 * Searching for/replacing newlines::
 * Yanking text in isearch::
+* Wrapping words automatically::
+* Turning on auto-fill by default::
 * Spell-checkers::
 * Checking TeX and *roff documents::
 * Changing load-path::
@@ -1196,7 +1214,6 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 * Changing the length of a Tab::
 * Inserting text at the beginning of each line::
 * Underlining paragraphs::
-* Repeating a command as many times as possible::
 * Forcing the cursor to remain in the same column::
 * Forcing Emacs to iconify itself::
 * Using regular expressions::
@@ -1209,7 +1226,6 @@ In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 * Deleting menus and menu options::
 * Turning on syntax highlighting::
 * Scrolling only one line::
-* Replacing highlighted text::
 * Editing MS-DOS files::
 * Filling paragraphs with a single space::
 * Escape sequences in shell output::
@@ -1387,7 +1403,7 @@ in your @file{.emacs}:
 (setq frame-title-format "%b")
 @end lisp
 
-@node Turning on abbrevs by default, Turning on auto-fill by default, Displaying the current file name in the titlebar, Common requests
+@node Turning on abbrevs by default, Associating modes with files, Displaying the current file name in the titlebar, Common requests
 @section How do I turn on abbrevs by default just in mode @var{mymode}?
 @cindex Abbrevs, turning on by default
 
@@ -1406,30 +1422,7 @@ Put this in your @file{.emacs} file:
 Starting with Emacs 22, the standard abbrevs file is read automatically
 at startup, so the first of these two forms becomes unnecessary.
 
-@node Turning on auto-fill by default, Associating modes with files, Turning on abbrevs by default, Common requests
-@section How do I turn on @code{auto-fill-mode} by default?
-@cindex @code{auto-fill-mode}, activating automatically
-@cindex Filling automatically
-@cindex Automatic entry to @code{auto-fill-mode}
-
-To turn on @code{auto-fill-mode} just once for one buffer, use @kbd{M-x
-auto-fill-mode}.
-
-To turn it on for every buffer in a certain mode, you must use the hook
-for that mode.  For example, to turn on @code{auto-fill} mode for all
-text buffers, including the following in your @file{.emacs} file:
-
-@lisp
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
-@end lisp
-
-If you want @code{auto-fill} mode on in all major modes, do this:
-
-@lisp
-(setq-default auto-fill-function 'do-auto-fill)
-@end lisp
-
-@node Associating modes with files, Working with unprintable characters, Turning on auto-fill by default, Common requests
+@node Associating modes with files, Highlighting a region, Turning on abbrevs by default, Common requests
 @section How do I make Emacs use a certain major mode for certain files?
 @cindex Associating modes with files
 @cindex File extensions and modes
@@ -1459,7 +1452,81 @@ the script.)  This feature only applies when the file name doesn't
 indicate which mode to use.  Use @kbd{C-h v} (or @kbd{M-x
 describe-variable}) on @code{interpreter-mode-alist} to learn more.
 
-@node Working with unprintable characters, Highlighting a region, Associating modes with files, Common requests
+@node Highlighting a region, Replacing highlighted text, Associating modes with files, Common requests
+@section How can I highlight a region of text in Emacs?
+@cindex Highlighting text
+@cindex Text, highlighting
+@cindex @code{transient-mark-mode}
+@cindex Region, highlighting a
+
+You can cause the region to be highlighted when the mark is active by
+including
+
+@lisp
+(transient-mark-mode t)
+@end lisp
+
+@noindent
+in your @file{.emacs} file.
+
+@node Replacing highlighted text, Controlling case sensitivity, Highlighting a region, Common requests
+@section How can I replace highlighted text with what I type?
+@cindex @code{delete-selection-mode}
+@cindex Replacing highlighted text
+@cindex Highlighting and replacing text
+
+Use @code{delete-selection-mode}, which you can start automatically by
+placing the following Lisp form in your @file{.emacs} file:
+
+@lisp
+(delete-selection-mode 1)
+@end lisp
+
+According to the documentation string for @code{delete-selection-mode}
+(which you can read using @kbd{M-x describe-function @key{RET}
+delete-selection-mode @key{RET}}):
+
+@quotation
+When ON, typed text replaces the selection if the selection is active.
+When OFF, typed text is just inserted at point.
+@end quotation
+
+This mode also allows you to delete (not kill) the highlighted region by
+pressing @key{DEL}.
+
+@node Controlling case sensitivity, Working with unprintable characters, Replacing highlighted text, Common requests
+@section How do I control Emacs's case-sensitivity when searching/replacing?
+@cindex @code{case-fold-search}
+@cindex Case sensitivity of searches
+@cindex Searching without case sensitivity
+@cindex Ignoring case in searches
+
+For searching, the value of the variable @code{case-fold-search}
+determines whether they are case sensitive:
+
+@lisp
+(setq case-fold-search nil) ; make searches case sensitive
+(setq case-fold-search t)   ; make searches case insensitive
+@end lisp
+
+@cindex Case sensitivity in replacements
+@cindex Replacing, and case sensitivity
+@cindex @code{case-replace}
+Similarly, for replacing, the variable @code{case-replace} determines
+whether replacements preserve case.
+
+You can also toggle case sensitivity at will in isearch with @kbd{M-c}.
+
+To change the case sensitivity just for one major mode, use the major
+mode's hook.  For example:
+
+@lisp
+(add-hook '@var{foo}-mode-hook
+          (lambda ()
+           (setq case-fold-search nil)))
+@end lisp
+
+@node Working with unprintable characters, Searching for/replacing newlines, Controlling case sensitivity, Common requests
 @section How do I search for, delete, or replace unprintable (eight-bit or control) characters?
 @cindex Unprintable characters, working with
 @cindex Working with unprintable characters
@@ -1507,65 +1574,7 @@ characters with a colon, use:
 
 M-x replace-regexp @key{RET} [^ @key{TAB} C-q @key{LFD} C-q @key{RET} C-q C-l @key{SPC} -~] @key{RET} : @key{RET}
 
-@itemize @bullet
-
-@item
-You don't need to quote @key{TAB} with either isearch or typing
-something in the minibuffer.
-
-@end itemize
-
-@node Highlighting a region, Controlling case sensitivity, Working with unprintable characters, Common requests
-@section How can I highlight a region of text in Emacs?
-@cindex Highlighting text
-@cindex Text, highlighting
-@cindex @code{transient-mark-mode}
-@cindex Region, highlighting a
-
-You can cause the region to be highlighted when the mark is active by
-including
-
-@lisp
-(transient-mark-mode t)
-@end lisp
-
-@noindent
-in your @file{.emacs} file.  (Also see @ref{Turning on syntax
-highlighting}.)
-
-@node Controlling case sensitivity, Searching for/replacing newlines, Highlighting a region, Common requests
-@section How do I control Emacs's case-sensitivity when searching/replacing?
-@cindex @code{case-fold-search}
-@cindex Case sensitivity of searches
-@cindex Searching without case sensitivity
-@cindex Ignoring case in searches
-
-For searching, the value of the variable @code{case-fold-search}
-determines whether they are case sensitive:
-
-@lisp
-(setq case-fold-search nil) ; make searches case sensitive
-(setq case-fold-search t)   ; make searches case insensitive
-@end lisp
-
-@cindex Case sensitivity in replacements
-@cindex Replacing, and case sensitivity
-@cindex @code{case-replace}
-Similarly, for replacing, the variable @code{case-replace} determines
-whether replacements preserve case.
-
-You can also toggle case sensitivity at will in isearch with @kbd{M-c}.
-
-To change the case sensitivity just for one major mode, use the major
-mode's hook.  For example:
-
-@lisp
-(add-hook '@var{foo}-mode-hook
-          (lambda ()
-           (setq case-fold-search nil)))
-@end lisp
-
-@node Searching for/replacing newlines, Yanking text in isearch, Controlling case sensitivity, Common requests
+@node Searching for/replacing newlines, Yanking text in isearch, Working with unprintable characters, Common requests
 @section How do I input a newline character in isearch or query-replace?
 @cindex Searching for newlines
 @cindex Replacing newlines
@@ -1581,7 +1590,7 @@ Special Input for Incremental Search, emacs}.
 
 Use @kbd{M-y}.  @inforef{Isearch Yank, Isearch Yanking, emacs}.
 
-@node Wrapping words automatically, Spell-checkers, Yanking text in isearch, Common requests
+@node Wrapping words automatically, Turning on auto-fill by default, Yanking text in isearch, Common requests
 @section How do I make Emacs wrap words for me?
 @cindex Wrapping word automatically
 @cindex Wrapping lines
@@ -1595,7 +1604,30 @@ The default maximum line width is 70, determined by the variable
 @code{fill-column}.  To learn how to turn this on automatically, see
 @ref{Turning on auto-fill by default}.
 
-@node Spell-checkers, Checking TeX and *roff documents, Wrapping words automatically, Common requests
+@node Turning on auto-fill by default, Spell-checkers, Wrapping words automatically, Common requests
+@section How do I turn on @code{auto-fill-mode} by default?
+@cindex @code{auto-fill-mode}, activating automatically
+@cindex Filling automatically
+@cindex Automatic entry to @code{auto-fill-mode}
+
+To turn on @code{auto-fill-mode} just once for one buffer, use @kbd{M-x
+auto-fill-mode}.
+
+To turn it on for every buffer in a certain mode, you must use the hook
+for that mode.  For example, to turn on @code{auto-fill} mode for all
+text buffers, including the following in your @file{.emacs} file:
+
+@lisp
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
+@end lisp
+
+If you want @code{auto-fill} mode on in all major modes, do this:
+
+@lisp
+(setq-default auto-fill-function 'do-auto-fill)
+@end lisp
+
+@node Spell-checkers, Checking TeX and *roff documents, Turning on auto-fill by default, Common requests
 @section Where can I get a better spelling checker for Emacs?
 @cindex Checking spelling
 @cindex Spelling, checking text documents
@@ -1845,6 +1877,10 @@ In Emacs 21 and later, this is on by default: if the variable
 automatically scrolls the display horizontally when point moves off the
 left or right edge of the window.
 
+Note that this is overridden by the variable
+@code{truncate-partial-width-windows} if that variable is non-nil
+and the current buffer is not full-frame width.
+
 In Emacs 20, use the @code{hscroll-mode}.  Here is some information from
 the documentation, available by typing @kbd{C-h f hscroll-mode @key{RET}}:
 
@@ -2035,13 +2071,10 @@ parenthesis, it simply inserts a % like normal.
 to investigate @file{cpp.el}, which is distributed with Emacs.
 
 @node Repeating commands, Valid X resources, Hiding #ifdef lines, Common requests
-@section Is there an equivalent to the @code{.} (dot) command of vi?
-@cindex Repeating commands as with @code{vi}
-@cindex Command, repeat last
+@section How do I repeat a command as many times as possible?
+@cindex Repeating commands many times
+@cindex Commands, repeating many times
 @cindex @code{.}, equivalent to @code{vi} command
-
-(@code{.} is the redo command in @code{vi}.  It redoes the last
-insertion/deletion.)
 
 As of Emacs 20.3, there is indeed a @code{repeat} command (@kbd{C-x z})
 that repeats the last command.  If you preface it with a prefix
@@ -2054,12 +2087,14 @@ type @kbd{M-p} and @kbd{M-n} (and also up-arrow and down-arrow, if your
 keyboard has these keys) to scan through all the different complex
 commands you've typed.
 
-To repeat a set of commands, use keyboard macros.  (@inforef{Keyboard
-Macros, Keyboard Macros, emacs}.)
+To repeat a set of commands, use keyboard macros.  Use @kbd{C-x (} and
+@kbd{C-x )} to make a keyboard macro that invokes the command and then
+type @kbd{C-x e}.  (@inforef{Keyboard Macros, Keyboard Macros, emacs}.)
 
-If you're really desperate for the @code{.} command, use VIPER, a
-@code{vi} emulation mode which comes with Emacs, and which appears to
-support it.  (@xref{VIPER}.)
+If you're really desperate for the @code{.} command in @code{vi} that
+redoes the last insertion/deletion, use VIPER, a @code{vi} emulation
+mode which comes with Emacs, and which appears to support it.
+(@xref{VIPER}.)
 
 @node Valid X resources, Evaluating Emacs Lisp code, Repeating commands, Common requests
 @section What are the valid X resource settings (i.e., stuff in .Xdefaults)?
@@ -2158,35 +2193,26 @@ If you are trying to prefix a yanked mail message with @samp{>}, you
 might want to set the variable @code{mail-yank-prefix}.  In Message
 buffers, you can even use @kbd{M-;} to cite yanked messages (@kbd{M-;}
 runs the function @code{comment-region}, it is a general-purpose
-mechanism to comment regions).
+mechanism to comment regions) (@pxref{Changing the included text prefix}).
 
-@node Underlining paragraphs, Repeating a command as many times as possible, Inserting text at the beginning of each line, Common requests
+@node Underlining paragraphs, Forcing the cursor to remain in the same column, Inserting text at the beginning of each line, Common requests
 @section How do I insert @samp{_^H} before each character in a region to get an underlined paragraph?
 @cindex Underlining a region of text
 @cindex @code{underline-region}
 
 Mark the region and then type @kbd{M-x underline-region @key{RET}}.
 
-@node Repeating a command as many times as possible, Forcing the cursor to remain in the same column, Underlining paragraphs, Common requests
-@section How do I repeat a command as many times as possible?
-@cindex Repeating commands many times
-@cindex Commands, repeating many times
-
-Use @kbd{C-x (} and @kbd{C-x )} to make a keyboard macro that invokes
-the command and then type @kbd{M-0 C-x e}.
-
-Any messages your command prints in the echo area will be suppressed.
-
-If you need to repeat a command a small number of times, you can use
-@kbd{C-x z} (@pxref{Repeating commands}) or @kbd{C-x e}.
-
-@node Forcing the cursor to remain in the same column, Forcing Emacs to iconify itself, Repeating a command as many times as possible, Common requests
+@node Forcing the cursor to remain in the same column, Forcing Emacs to iconify itself, Underlining paragraphs, Common requests
 @section How do I make Emacs behave like this: when I go up or down, the cursor should stay in the same column even if the line is too short?
 @cindex @code{picture-mode}
 @cindex Remaining in the same column, regardless of contents
 @cindex Vertical movement in empty documents
 
-@kbd{M-x picture-mode}.
+Use @kbd{M-x picture-mode}.
+
+See also the variable @code{track-eol} and the command
+@code{set-goal-column} bound to @kbd{C-x C-n}
+(@pxref{Moving Point, , , emacs, The GNU Emacs Manual}).
 
 @node Forcing Emacs to iconify itself, Using regular expressions, Forcing the cursor to remain in the same column, Common requests
 @section How do I tell Emacs to iconify itself?
@@ -2240,8 +2266,8 @@ The ``tags'' feature of Emacs includes the command
 files mentioned in the @file{TAGS} file.  @inforef{Tags Search, Tags Search,
 emacs}.
 
-As of Emacs 19.29, Dired mode (@kbd{M-x dired @key{RET}}, or @kbd{C-x
-d}) supports the command @code{dired-do-query-replace}, which allows
+As of Emacs 19.29, Dired mode (@kbd{M-x dired @key{RET}}, or @kbd{C-x d})
+supports the command @code{dired-do-query-replace} (@kbd{Q}), which allows
 users to replace regular expressions in multiple files.
 
 @node Documentation for etags, Disabling backups, Replacing text across multiple files, Common requests
@@ -2537,7 +2563,7 @@ PostScript printer, or a PostScript interpreter such as Ghostscript;
 consult the documentation of the variables @code{ps-printer-name},
 @code{ps-lpr-command}, and @code{ps-lpr-switches} for more details.
 
-@node Scrolling only one line, Replacing highlighted text, Turning on syntax highlighting, Common requests
+@node Scrolling only one line, Editing MS-DOS files, Turning on syntax highlighting, Common requests
 @section How can I force Emacs to scroll only one line when I move past the bottom of the screen?
 @cindex Scrolling only one line
 @cindex Reducing the increment when scrolling
@@ -2553,32 +2579,7 @@ Alternatively, use the following Lisp form in your @file{.emacs}:
 (setq scroll-conservatively most-positive-fixnum)
 @end lisp
 
-@node Replacing highlighted text, Editing MS-DOS files, Scrolling only one line, Common requests
-@section How can I replace highlighted text with what I type?
-@cindex @code{delete-selection-mode}
-@cindex Replacing highlighted text
-@cindex Highlighting and replacing text
-
-Use @code{delete-selection-mode}, which you can start automatically by
-placing the following Lisp form in your @file{.emacs} file:
-
-@lisp
-(delete-selection-mode 1)
-@end lisp
-
-According to the documentation string for @code{delete-selection-mode}
-(which you can read using @kbd{M-x describe-function @key{RET}
-delete-selection-mode @key{RET}}):
-
-@quotation
-When ON, typed text replaces the selection if the selection is active.
-When OFF, typed text is just inserted at point.
-@end quotation
-
-This mode also allows you to delete (not kill) the highlighted region by
-pressing @key{DEL}.
-
-@node Editing MS-DOS files, Filling paragraphs with a single space, Replacing highlighted text, Common requests
+@node Editing MS-DOS files, Filling paragraphs with a single space, Scrolling only one line, Common requests
 @section How can I edit MS-DOS files using Emacs?
 @cindex Editing MS-DOS files
 @cindex MS-DOS files, editing
@@ -2601,7 +2602,7 @@ If you are running a version of Emacs before 20.1, get @code{crypt++}
 and saved, allowing you to ignore the different conventions that Unix
 and MS-DOS have for delineating the end of a line.
 
-@node Filling paragraphs with a single space,  Escape sequences in shell output, Editing MS-DOS files, Common requests
+@node Filling paragraphs with a single space, Escape sequences in shell output, Editing MS-DOS files, Common requests
 @section How can I tell Emacs to fill paragraphs with a single space after each period?
 @cindex One space following periods
 @cindex Single space following periods
@@ -2613,7 +2614,7 @@ Add the following line to your @file{.emacs} file:
 (setq sentence-end-double-space nil)
 @end lisp
 
-@node Escape sequences in shell output, , Filling paragraphs with a single space, Common requests
+@node Escape sequences in shell output,  , Filling paragraphs with a single space, Common requests
 @section Why these strange escape sequences from @code{ls} from the Shell mode?
 @cindex Escape sequences in @code{ls} output
 @cindex @code{ls} in Shell mode
@@ -3478,7 +3479,8 @@ the @file{ell} package}.
 
 Many authors post their packages to the @uref{news:gnu.emacs.sources,
 Emacs sources newsgroup}.  You can search the archives of this
-group with @uref{http://groups.google.com, Google}, for example.
+group with @uref{http://groups.google.com/group/gnu.emacs.sources, Google},
+or @uref{http://dir.gmane.org/gmane.emacs.sources, Gmane}, for example.
 
 Several packages are stored in
 @uref{http://emacswiki.org/elisp/, the Lisp area of the Emacs Wiki}.
@@ -3488,6 +3490,9 @@ for Emacs packages.  Sadly, it has not been active for some time,
 although you can still access the old files at
 
 @uref{ftp://ftp.cis.ohio-state.edu/pub/emacs-lisp/WWW/index.html}
+
+Read the file @file{etc/MORE.STUFF} for more information about
+external packages.
 
 @node Current GNU distributions, Difference between Emacs and XEmacs, Packages that do not come with Emacs, Finding Emacs and related packages
 @section Where can I get other up-to-date GNU stuff?
@@ -3715,7 +3720,7 @@ Beginning with version 22.1, Emacs supports Mac OS X natively.
 Up-to-date information about GNU software (including Emacs) for VMS is
 available at @uref{http://vms.gnu.org/}.
 
-@node Modes for various languages, , Emacs for VMS and DECwindows, Finding Emacs and related packages
+@node Modes for various languages,  , Emacs for VMS and DECwindows, Finding Emacs and related packages
 @section Where can I get modes for Lex, Yacc/Bison, Bourne shell, csh, C@t{++}, Objective-C, Pascal, Java, and Awk?
 @cindex Awk, mode for
 @cindex @code{awk-mode}
@@ -4782,7 +4787,7 @@ xmodmap -e 'remove mod1 = Mode_switch'
 This will disable the use of the extra keysyms systemwide, which may be
 undesirable if you actually intend to use them.
 
-@node SPC no longer completes file names, , ExtendChar key does not work as Meta, Key bindings
+@node SPC no longer completes file names,  , ExtendChar key does not work as Meta, Key bindings
 @section Why doesn't SPC complete file names anymore?
 @cindex @kbd{SPC} file name completion
 

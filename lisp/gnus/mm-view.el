@@ -72,6 +72,12 @@
     (html2text  html2text))
   "The attributes of washer types for text/html.")
 
+(defcustom mm-fill-flowed t
+  "If non-nil an format=flowed article will be displayed flowed."
+  :type 'boolean
+  :version "22.1"
+  :group 'mime-display)
+
 ;;; Internal variables.
 
 ;;;
@@ -407,7 +413,8 @@
 	  (mm-insert-part handle)
 	  (goto-char (point-max)))
       (insert (mm-decode-string (mm-get-part handle) charset)))
-    (when (and (equal type "plain")
+    (when (and mm-fill-flowed
+	       (equal type "plain")
 	       (equal (cdr (assoc 'format (mm-handle-type handle)))
 		      "flowed"))
       (save-restriction

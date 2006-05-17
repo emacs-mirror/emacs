@@ -267,14 +267,13 @@ extern void menubar_selection_callback (FRAME_PTR, int);
 #define GC_FORE_COLOR(gc)	(&(gc)->fore_color)
 #define GC_BACK_COLOR(gc)	(&(gc)->back_color)
 #define GC_FONT(gc)		((gc)->xgcv.font)
-#define GC_CLIP_REGION(gc)	((gc)->clip_region)
 #define FRAME_NORMAL_GC(f)	((f)->output_data.mac->normal_gc)
 
 static RgnHandle saved_port_clip_region = NULL;
 
 static void
-mac_begin_clip (region)
-     RgnHandle region;
+mac_begin_clip (gc)
+     GC gc;
 {
   static RgnHandle new_region = NULL;
 
@@ -283,19 +282,19 @@ mac_begin_clip (region)
   if (new_region == NULL)
     new_region = NewRgn ();
 
-  if (region && !EmptyRgn (region))
+  if (gc->n_clip_rects)
     {
       GetClip (saved_port_clip_region);
-      SectRgn (saved_port_clip_region, region, new_region);
+      SectRgn (saved_port_clip_region, gc->clip_region, new_region);
       SetClip (new_region);
     }
 }
 
 static void
-mac_end_clip (region)
-     RgnHandle region;
+mac_end_clip (gc)
+     GC gc;
 {
-  if (region && !EmptyRgn (region))
+  if (gc->n_clip_rects)
     SetClip (saved_port_clip_region);
 }
 
@@ -323,10 +322,10 @@ mac_draw_line (f, gc, x1, y1, x2, y2)
 
   RGBForeColor (GC_FORE_COLOR (gc));
 
-  mac_begin_clip (GC_CLIP_REGION (gc));
+  mac_begin_clip (gc);
   MoveTo (x1, y1);
   LineTo (x2, y2);
-  mac_end_clip (GC_CLIP_REGION (gc));
+  mac_end_clip (gc);
 }
 
 void
@@ -367,9 +366,9 @@ mac_erase_rectangle (f, gc, x, y, width, height)
   RGBBackColor (GC_BACK_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
-  mac_begin_clip (GC_CLIP_REGION (gc));
+  mac_begin_clip (gc);
   EraseRect (&r);
-  mac_end_clip (GC_CLIP_REGION (gc));
+  mac_end_clip (gc);
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
@@ -432,7 +431,7 @@ mac_draw_bitmap (f, gc, x, y, width, height, bits, overlay_p)
   RGBBackColor (GC_BACK_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
-  mac_begin_clip (GC_CLIP_REGION (gc));
+  mac_begin_clip (gc);
 #if TARGET_API_MAC_CARBON
   {
     CGrafPtr port;
@@ -447,7 +446,7 @@ mac_draw_bitmap (f, gc, x, y, width, height, bits, overlay_p)
   CopyBits (&bitmap, &(FRAME_MAC_WINDOW (f)->portBits), &(bitmap.bounds), &r,
 	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
-  mac_end_clip (GC_CLIP_REGION (gc));
+  mac_end_clip (gc);
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
@@ -579,9 +578,9 @@ mac_fill_rectangle (f, gc, x, y, width, height)
   RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
-  mac_begin_clip (GC_CLIP_REGION (gc));
+  mac_begin_clip (gc);
   PaintRect (&r); /* using foreground color of gc */
-  mac_end_clip (GC_CLIP_REGION (gc));
+  mac_end_clip (gc);
 }
 
 
@@ -601,9 +600,9 @@ mac_draw_rectangle (f, gc, x, y, width, height)
   RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width + 1, y + height + 1);
 
-  mac_begin_clip (GC_CLIP_REGION (gc));
+  mac_begin_clip (gc);
   FrameRect (&r); /* using foreground color of gc */
-  mac_end_clip (GC_CLIP_REGION (gc));
+  mac_end_clip (gc);
 }
 
 
@@ -718,7 +717,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
       if (!mac_use_core_graphics)
 	{
 #endif
-	  mac_begin_clip (GC_CLIP_REGION (gc));
+	  mac_begin_clip (gc);
 	  RGBForeColor (GC_FORE_COLOR (gc));
 	  if (bg_width)
 	    {
@@ -734,7 +733,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 	  ATSUDrawText (text_layout,
 			kATSUFromTextBeginning, kATSUToTextEnd,
 			kATSUUseGrafPortPenLoc, kATSUUseGrafPortPenLoc);
-	  mac_end_clip (GC_CLIP_REGION (gc));
+	  mac_end_clip (gc);
 #ifdef MAC_OSX
 	}
       else
@@ -807,7 +806,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
       if (mac_use_core_graphics)
 	savedFlags = SwapQDTextFlags (kQDUseCGTextRendering);
 #endif
-      mac_begin_clip (GC_CLIP_REGION (gc));
+      mac_begin_clip (gc);
       RGBForeColor (GC_FORE_COLOR (gc));
 #ifdef MAC_OS8
       if (bg_width)
@@ -843,7 +842,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
       DrawText (buf, 0, nchars * bytes_per_char);
       if (bg_width)
 	RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
-      mac_end_clip (GC_CLIP_REGION (gc));
+      mac_end_clip (gc);
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
       if (mac_use_core_graphics)
@@ -1185,7 +1184,7 @@ mac_copy_area (src, f, gc, src_x, src_y, width, height, dest_x, dest_y)
   ForeColor (blackColor);
   BackColor (whiteColor);
 
-  mac_begin_clip (GC_CLIP_REGION (gc));
+  mac_begin_clip (gc);
   LockPixels (GetGWorldPixMap (src));
 #if TARGET_API_MAC_CARBON
   {
@@ -1203,7 +1202,7 @@ mac_copy_area (src, f, gc, src_x, src_y, width, height, dest_x, dest_y)
 	    &src_r, &dest_r, srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (src));
-  mac_end_clip (GC_CLIP_REGION (gc));
+  mac_end_clip (gc);
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
@@ -1229,7 +1228,7 @@ mac_copy_area_with_mask (src, mask, f, gc, src_x, src_y,
   ForeColor (blackColor);
   BackColor (whiteColor);
 
-  mac_begin_clip (GC_CLIP_REGION (gc));
+  mac_begin_clip (gc);
   LockPixels (GetGWorldPixMap (src));
   LockPixels (GetGWorldPixMap (mask));
 #if TARGET_API_MAC_CARBON
@@ -1249,7 +1248,7 @@ mac_copy_area_with_mask (src, mask, f, gc, src_x, src_y,
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (mask));
   UnlockPixels (GetGWorldPixMap (src));
-  mac_end_clip (GC_CLIP_REGION (gc));
+  mac_end_clip (gc);
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
@@ -1287,9 +1286,9 @@ mac_scroll_area (f, gc, src_x, src_y, width, height, dest_x, dest_y)
      color mapping in CopyBits.  Otherwise, it will be slow.  */
   ForeColor (blackColor);
   BackColor (whiteColor);
-  mac_begin_clip (GC_CLIP_REGION (gc));
+  mac_begin_clip (gc);
   CopyBits (&(w->portBits), &(w->portBits), &src_r, &dest_r, srcCopy, 0);
-  mac_end_clip (GC_CLIP_REGION (gc));
+  mac_end_clip (gc);
 
   RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 #endif /* not TARGET_API_MAC_CARBON */
@@ -1425,14 +1424,10 @@ mac_set_clip_rectangles (display, gc, rectangles, n)
 {
   int i;
 
-  if (n < 0 || n > MAX_CLIP_RECTS)
-    abort ();
-  if (n == 0)
-    {
-      if (gc->clip_region)
-	SetEmptyRgn (gc->clip_region);
-    }
-  else
+  xassert (n >= 0 && n <= MAX_CLIP_RECTS);
+
+  gc->n_clip_rects = n;
+  if (n > 0)
     {
       if (gc->clip_region == NULL)
 	gc->clip_region = NewRgn ();
@@ -1450,8 +1445,6 @@ mac_set_clip_rectangles (display, gc, rectangles, n)
 	}
     }
 #if defined (MAC_OSX) && USE_ATSUI
-  gc->n_clip_rects = n;
-
   for (i = 0; i < n; i++)
     {
       Rect *rect = rectangles + i;
@@ -1471,7 +1464,7 @@ mac_reset_clip_rectangles (display, gc)
      Display *display;
      GC gc;
 {
-  mac_set_clip_rectangles (display, gc, NULL, 0);
+  gc->n_clip_rects = 0;
 }
 
 
@@ -4536,7 +4529,6 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
      int portion, position, whole;
 {
   ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
-
   int value, viewsize, maximum;
 
   if (whole == 0 || XINT (bar->track_height) == 0)
@@ -4550,10 +4542,20 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
 
   BLOCK_INPUT;
 
-  SetControl32BitMinimum (ch, 0);
-  SetControl32BitMaximum (ch, maximum);
-  SetControl32BitValue (ch, value);
-  SetControlViewSize (ch, viewsize);
+  if (IsControlVisible (ch)
+      && (GetControlViewSize (ch) != viewsize
+	  || GetControl32BitValue (ch) != value
+	  || GetControl32BitMaximum (ch) != maximum))
+    {
+      /* Temporarily hide the scroll bar to avoid multiple redraws.  */
+      SetControlVisibility (ch, false, false);
+
+      SetControl32BitMaximum (ch, maximum);
+      SetControl32BitValue (ch, value);
+      SetControlViewSize (ch, viewsize);
+
+      SetControlVisibility (ch, true, true);
+    }
 
   UNBLOCK_INPUT;
 }

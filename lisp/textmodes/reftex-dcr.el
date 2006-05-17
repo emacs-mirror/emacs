@@ -3,7 +3,7 @@
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: VERSIONTAG
+;; Version: 4.31
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -33,7 +33,7 @@
 (require 'reftex)
 ;;;
 
-(defun reftex-view-crossref (&optional arg auto-how)
+(defun reftex-view-crossref (&optional arg auto-how fail-quietly)
   "View cross reference of macro at point.  Point must be on the KEY
 argument.  When at at `\\ref' macro, show corresponding `\\label'
 definition, also in external documents (`xr').  When on a label, show
@@ -56,52 +56,53 @@ to the functions `reftex-view-cr-cite' and `reftex-view-cr-ref'."
          dw)
 
     (if (or (null macro) (reftex-in-comment))
-        (error "Not on a crossref macro argument"))
+	(or fail-quietly
+	    (error "Not on a crossref macro argument"))
 
-    (setq reftex-call-back-to-this-buffer (current-buffer))
-
-    (cond
-     ((string-match "\\`\\\\cite\\|cite\\*?\\'\\|bibentry" macro)
-      ;; A citation macro: search for bibitems or BibTeX entries
-      (setq dw (reftex-view-cr-cite arg key auto-how)))
-     ((string-match "\\`\\\\ref\\|ref\\(range\\)?\\*?\\'" macro)
-      ;; A reference macro: search for labels
-      (setq dw (reftex-view-cr-ref arg key auto-how)))
-     (auto-how nil)  ;; No further action for automatic display (speed)
-     ((or (equal macro "\\label")
-          (member macro reftex-macros-with-labels))
-      ;; A label macro: search for reference macros
-      (reftex-access-scan-info arg)
-      (setq dw (reftex-view-regexp-match
-                (format reftex-find-reference-format (regexp-quote key))
-                4 nil nil)))
-     ((equal macro "\\bibitem")
-      ;; A bibitem macro: search for citations
-      (reftex-access-scan-info arg)
-      (setq dw (reftex-view-regexp-match
-                (format reftex-find-citation-regexp-format (regexp-quote key))
-                4 nil nil)))
-     ((member macro reftex-macros-with-index)
-      (reftex-access-scan-info arg)
-      (setq dw (reftex-view-regexp-match
-                (format reftex-find-index-entry-regexp-format
-                        (regexp-quote key))
-                3 nil nil)))
-     (t 
-      (reftex-access-scan-info arg)
-      (catch 'exit
-        (let ((list reftex-view-crossref-extra)
-              entry mre action group)
-          (while (setq entry (pop list))
-            (setq mre (car entry)
-                  action (nth 1 entry)
-                  group (nth 2 entry))
-            (when (string-match mre macro)
-              (setq dw (reftex-view-regexp-match 
-                        (format action key) group nil nil))
-              (throw 'exit t))))
-        (error "Not on a crossref macro argument"))))
-    (if (and (eq arg 2) (windowp dw)) (select-window dw))))
+      (setq reftex-call-back-to-this-buffer (current-buffer))
+      
+      (cond
+       ((string-match "\\`\\\\cite\\|cite\\*?\\'\\|bibentry" macro)
+	;; A citation macro: search for bibitems or BibTeX entries
+	(setq dw (reftex-view-cr-cite arg key auto-how)))
+       ((string-match "\\`\\\\ref\\|ref\\(range\\)?\\*?\\'" macro)
+	;; A reference macro: search for labels
+	(setq dw (reftex-view-cr-ref arg key auto-how)))
+       (auto-how nil)  ;; No further action for automatic display (speed)
+       ((or (equal macro "\\label")
+	    (member macro reftex-macros-with-labels))
+	;; A label macro: search for reference macros
+	(reftex-access-scan-info arg)
+	(setq dw (reftex-view-regexp-match
+		  (format reftex-find-reference-format (regexp-quote key))
+		  4 nil nil)))
+       ((equal macro "\\bibitem")
+	;; A bibitem macro: search for citations
+	(reftex-access-scan-info arg)
+	(setq dw (reftex-view-regexp-match
+		  (format reftex-find-citation-regexp-format (regexp-quote key))
+		  4 nil nil)))
+       ((member macro reftex-macros-with-index)
+	(reftex-access-scan-info arg)
+	(setq dw (reftex-view-regexp-match
+		  (format reftex-find-index-entry-regexp-format
+			  (regexp-quote key))
+		  3 nil nil)))
+       (t 
+	(reftex-access-scan-info arg)
+	(catch 'exit
+	  (let ((list reftex-view-crossref-extra)
+		entry mre action group)
+	    (while (setq entry (pop list))
+	      (setq mre (car entry)
+		    action (nth 1 entry)
+		    group (nth 2 entry))
+	      (when (string-match mre macro)
+		(setq dw (reftex-view-regexp-match 
+			  (format action key) group nil nil))
+		(throw 'exit t))))
+	  (error "Not on a crossref macro argument"))))
+      (if (and (eq arg 2) (windowp dw)) (select-window dw)))))
      
 (defun reftex-view-cr-cite (arg key how)
   ;; View crossreference of a ref cite.  HOW can have the values 
@@ -243,7 +244,7 @@ With argument, actually select the window showing the cross reference."
        (not (memq last-command '(reftex-view-crossref
                                  reftex-mouse-view-crossref)))
        ;; Quick precheck if this might be a relevant spot
-       ;; FIXME: Can fail with backslash in comment
+       ;; `reftex-view-crossref' will do a more thorough check.
        (save-excursion  
          (search-backward "\\" nil t)
          (looking-at "\\\\[a-zA-Z]*\\(cite\\|ref\\|bibentry\\)"))
@@ -252,9 +253,9 @@ With argument, actually select the window showing the cross reference."
            (let ((current-prefix-arg nil))
              (cond
               ((eq reftex-auto-view-crossref t)
-               (reftex-view-crossref -1 'echo))
+               (reftex-view-crossref -1 'echo 'quiet))
               ((eq reftex-auto-view-crossref 'window)
-               (reftex-view-crossref -1 'tmp-window))
+               (reftex-view-crossref -1 'tmp-window 'quiet))
               (t nil)))
          (error nil))))
 
@@ -267,7 +268,8 @@ With argument, actually select the window showing the cross reference."
   ;; Display crossref info in echo area.
   (cond
    ((null docstruct)
-    (message "%s" (substitute-command-keys (format reftex-no-info-message "ref"))))
+    (message "%s" 
+	     (substitute-command-keys (format reftex-no-info-message "ref"))))
    ((null entry)
     (message "ref: unknown label: %s" label))
    (t
@@ -301,7 +303,7 @@ With argument, actually select the window showing the cross reference."
                (if (and files (= (length all-files) (length files)))
                    (message "cite: no such database entry: %s" key)
                  (message "%s" (substitute-command-keys 
-                           (format reftex-no-info-message "cite"))))
+				(format reftex-no-info-message "cite"))))
                nil)))
       (when entry
         (if item

@@ -1,3 +1,38 @@
+2006-02-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* flow-fill.el (fill-flowed): Bind adaptive-fill-mode to nil.
+	Remove space stuffing, and only do quotes that actually start with
+	">" at the beginning of the lines.
+	Merge of 2005-11-17 and 2004-07-25 from the trunk.
+
+2006-02-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* utf7.el (utf7-utf-16-coding-system): Fix comment.  utf-16-be is
+	also available in Emacs 21.3.
+
+	* message.el (message-fix-before-sending): Change "Emacs 22" to
+	"Emacs 23 (unicode)" in comment.
+
+	* qp.el (quoted-printable-encode-region): Change "Emacs 22" to
+	"Emacs 23 (unicode)" in comment.
+
+	* mm-util.el: Change "Emacs 22" to "Emacs 23 (unicode)" in
+	comment.
+	(mm-coding-system-p): Add comment about no-MULE XEmacs.
+
+	* mm-view.el (mm-fill-flowed): Add :version.
+
+2006-02-23  Ralf Angeli  <angeli@iwi.uni-sb.de>
+
+	* mm-view.el (mm-fill-flowed): New variable.
+	(mm-inline-text): Use it.
+
+2006-02-21  Wolfram Fenske  <wolfram.fenske@student.uni-magdeburg.de>
+	(tiny change)
+
+	* nnimap.el (nnimap-request-move-article): Change folder back to
+	source group before deleting.
+
 2006-02-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-charset-to-coding-system): Don't check the
@@ -1266,7 +1301,7 @@
 
 	* gnus-topic.el (gnus-topic-mode): Ditto.
 
-2005-07-08  Ralf Angeli  <angeli@iwi.uni-sb.de>  (tiny change)
+2005-07-08  Ralf Angeli  <angeli@iwi.uni-sb.de>
 
 	* gnus-art.el (gnus-article-next-page, gnus-article-next-page-1)
 	(gnus-article-prev-page): Take scroll-margin into consideration.

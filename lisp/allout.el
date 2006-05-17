@@ -1,7 +1,7 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
 ;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
@@ -5811,14 +5811,14 @@ the point does not move.  To ignore field boundaries bind
 (provide 'allout)
 
 ;;;_* Local emacs vars.
-;;; The following `allout-layout' local variable setting:
-;;;  - closes all topics from the first topic to just before the third-to-last,
-;;;  - shows the children of the third to last (config vars)
-;;;  - and the second to last (code section),
-;;;  - and closes the last topic (this local-variables section).
-;;;Local variables:
-;;;allout-layout: (0 : -1 -1 0)
-;;;End:
+;; The following `allout-layout' local variable setting:
+;;  - closes all topics from the first topic to just before the third-to-last,
+;;  - shows the children of the third to last (config vars)
+;;  - and the second to last (code section),
+;;  - and closes the last topic (this local-variables section).
+;;Local variables:
+;;allout-layout: (0 : -1 -1 0)
+;;End:
 
-;;; arch-tag: cf38fbc3-c044-450f-8bff-afed8ba5681c
+;; arch-tag: cf38fbc3-c044-450f-8bff-afed8ba5681c
 ;;; allout.el ends here

@@ -251,7 +251,8 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
 (defun ediff-setup-diff-regions (file-A file-B file-C)
   ;; looking for '-c', '-i', or a 'c', 'i' among clustered non-long options
-  (if (string-match "^-[ci]\\| -[ci]\\|-[^- ]+[ci]" ediff-diff-options)
+  (if (string-match "^-[ci]\\| -[ci]\\|\\(^\\| \\)-[^- ]+[ci]"
+		    ediff-diff-options)
       (error "Options `-c' and `-i' are not allowed in `ediff-diff-options'"))
 
   ;; create, if it doesn't exist
@@ -1215,7 +1216,7 @@ delimiter regions"))
 ;; or it is the ancestor file.
 (defun ediff-setup-diff-regions3 (file-A file-B file-C)
   ;; looking for '-i' or a 'i' among clustered non-long options
-  (if (string-match "^-i\\| -i\\|-[^- ]+i" ediff-diff-options)
+  (if (string-match "^-i\\| -i\\|\\(^\\| \\)-[^- ]+i" ediff-diff-options)
       (error "Option `-i' is not allowed in `ediff-diff3-options'"))
 
   (or (ediff-buffer-live-p ediff-diff-buffer)

@@ -3,7 +3,7 @@
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: VERSIONTAG
+;; Version: 4.31
 ;; Keywords: tex
 
 ;; This file is part of GNU Emacs.
@@ -301,7 +301,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version VERSIONTAG"
+(defconst reftex-version "RefTeX version 4.31"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -1437,14 +1437,17 @@ When DIE is non-nil, throw an error if file not found."
                          "\\)\\'"))
          (files (if (string-match ext-re file)
                     (cons file nil)
-                  (cons (concat file def-ext) file)))
-         path old-path file1)
+		  (if reftex-try-all-extensions
+		      (append (mapcar (lambda (x) (concat file x))
+				      extensions)
+			      (list file))
+		    (list (concat file def-ext) file))))
+         path old-path file1 f fs)
     (cond
      ((file-name-absolute-p file)
-      (setq file1 
-            (or 
-             (and (car files) (file-regular-p (car files)) (car files))
-             (and (cdr files) (file-regular-p (cdr files)) (cdr files)))))
+      (while (setq f (pop files))
+	(if (file-regular-p f)
+	    (setq file1 f files nil))))
      ((and reftex-use-external-file-finders
            (assoc type reftex-external-file-finders))
       (setq file1 (reftex-find-file-externally file type master-dir)))
@@ -1452,16 +1455,13 @@ When DIE is non-nil, throw an error if file not found."
       (while (and (null file1) rec-values)
         (setq path (reftex-access-search-path
                     type (pop rec-values) master-dir file))
-        (if (or (null old-path)
-                (not (eq old-path path)))
-            (setq old-path path
-                  path (cons master-dir path)
-                  file1 (or (and (car files)
-                                 (reftex-find-file-on-path 
-                                  (car files) path master-dir))
-                            (and (cdr files)
-                                 (reftex-find-file-on-path 
-                                  (cdr files) path master-dir))))))))
+	(setq fs files)
+	(while (and (null file1) (setq f (pop fs)))
+	  (when (or (null old-path)
+		    (not (eq old-path path)))
+	    (setq old-path path
+		  path (cons master-dir path))
+	    (setq file1 (reftex-find-file-on-path f path master-dir)))))))
     (cond (file1 file1)
           (die (error "No such file: %s" file) nil)
           (t (message "No such file: %s (ignored)" file) nil))))

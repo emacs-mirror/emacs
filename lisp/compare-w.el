@@ -117,8 +117,14 @@ and the value `((4) (4))' for horizontally split windows."
   :version "22.1")
 
 (defcustom compare-windows-highlight t
-  "*Non-nil means compare-windows highlights the differences."
-  :type 'boolean
+  "*Non-nil means compare-windows highlights the differences.
+The value t removes highlighting immediately after invoking a command
+other than `compare-windows'.
+The value `persistent' leaves all highlighted differences.  You can clear
+out all highlighting later with the command `compare-windows-dehighlight'."
+  :type '(choice (const :tag "No highlighting" nil)
+		 (const :tag "Persistent highlighting" persistent)
+		 (other :tag "Highlight until next command" t))
   :group 'compare-w
   :version "22.1")
 
@@ -130,6 +136,8 @@ and the value `((4) (4))' for horizontally split windows."
 
 (defvar compare-windows-overlay1 nil)
 (defvar compare-windows-overlay2 nil)
+(defvar compare-windows-overlays1 nil)
+(defvar compare-windows-overlays2 nil)
 (defvar compare-windows-sync-point nil)
 
 ;;;###autoload
@@ -351,13 +359,22 @@ on third call it again advances points to the next difference and so on."
       (overlay-put compare-windows-overlay2 'face 'compare-windows)
       (overlay-put compare-windows-overlay2 'priority 1000))
     (overlay-put compare-windows-overlay2 'window w2)
-    ;; Remove highlighting before next command is executed
-    (add-hook 'pre-command-hook 'compare-windows-dehighlight)))
+    (if (not (eq compare-windows-highlight 'persistent))
+	;; Remove highlighting before next command is executed
+	(add-hook 'pre-command-hook 'compare-windows-dehighlight)
+      (when compare-windows-overlay1
+	(push (copy-overlay compare-windows-overlay1) compare-windows-overlays1)
+	(delete-overlay compare-windows-overlay1))
+      (when compare-windows-overlay2
+	(push (copy-overlay compare-windows-overlay2) compare-windows-overlays2)
+	(delete-overlay compare-windows-overlay2)))))
 
 (defun compare-windows-dehighlight ()
   "Remove highlighting created by `compare-windows-highlight'."
   (interactive)
   (remove-hook 'pre-command-hook 'compare-windows-dehighlight)
+  (mapc 'delete-overlay compare-windows-overlays1)
+  (mapc 'delete-overlay compare-windows-overlays2)
   (and compare-windows-overlay1 (delete-overlay compare-windows-overlay1))
   (and compare-windows-overlay2 (delete-overlay compare-windows-overlay2)))
 

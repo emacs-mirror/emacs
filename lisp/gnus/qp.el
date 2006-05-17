@@ -118,7 +118,7 @@ encode lines starting with \"From\"."
 		  (not (eobp)))
 	(insert
 	 (prog1
-	     ;; To unibyte in case of Emacs 22 eight-bit.
+	     ;; To unibyte in case of Emacs 23 (unicode) eight-bit.
 	     (format "=%02X" (mm-multibyte-char-to-unibyte (char-after)))
 	   (delete-char 1))))
       ;; Encode white space at the end of lines.

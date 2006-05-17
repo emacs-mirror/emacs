@@ -217,13 +217,13 @@ typedef struct _XGC
   RGBColor back_color;
 
 #define MAX_CLIP_RECTS 2
-  /* QuickDraw clipping region.  */
+  /* Number of clipping rectangles.  */
+  int n_clip_rects;
+
+  /* QuickDraw clipping region.  Ignored if n_clip_rects == 0.  */
   RgnHandle clip_region;
 
 #if defined (MAC_OSX) && USE_ATSUI
-  /* Number of clipping rectangles used in Quartz 2D drawing.  */
-  int n_clip_rects;
-
   /* Clipping rectangles used in Quartz 2D drawing.  The y-coordinate
      is in QuickDraw's.  */
   CGRect clip_rects[MAX_CLIP_RECTS];

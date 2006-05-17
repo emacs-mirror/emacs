@@ -1,3 +1,37 @@
+2006-02-23  Juri Linkov  <juri@jurta.org>
+
+	* faq.texi (Common requests): Move `Turning on auto-fill by
+	default' after `Wrapping words automatically'.  Move `Working with
+	unprintable characters' before `Searching for/replacing newlines'.
+	Move `Replacing highlighted text' after `Highlighting a region'.
+	Merge `Repeating commands' and `Repeating a command as many times
+	as possible' into the former.
+	(Packages that do not come with Emacs): Add refs to Gmane and
+	etc/MORE.STUFF.
+
+2006-02-23  Juri Linkov  <juri@jurta.org>
+
+	* faq.texi (Newsgroup archives): Update URLs of GNU mail archives.
+	(Reporting bugs): Suggest using `M-x report-emacs-bug'.
+	Add xref to `(emacs)Reporting Bugs'.
+	(Getting a printed manual): Add URL to other formats of the manual.
+	(Common requests): Fix menu.
+	(Highlighting a region): Remove ref to `Turning on syntax highlighting'.
+	(Horizontal scrolling): Mention `truncate-partial-width-windows'.
+	(Inserting text at the beginning of each line): Add pxref to
+	`Changing the included text prefix'.
+	(Forcing the cursor to remain in the same column): Mention `track-eol'
+	and `set-goal-column'.  Add pxref to `(emacs)Moving Point'.
+	(Replacing text across multiple files): Add keybinding `Q' for
+	`dired-do-query-replace'.
+
+2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* reftex.texi: Version number and date change only.
+
+	* org.texi: (Internal Links): Rewritten to cover the modified
+	linking system.
+
 2006-02-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Update and describe

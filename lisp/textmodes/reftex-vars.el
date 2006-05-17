@@ -3,7 +3,7 @@
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: VERSIONTAG
+;; Version: 4.31
 
 ;; This file is part of GNU Emacs.
 
@@ -1554,6 +1554,18 @@ TeX-file-extensions."
   :group 'reftex-finding-files
   :type '(repeat (cons (string :tag "File type")
                        (repeat (string :tag "Extension")))))
+
+(defcustom reftex-try-all-extensions nil
+  "Non-nil means, try all extensions listed in `reftex-file-extensions'.
+When searching for a file, LaTeX uses only the default extension.  However,
+if you are working with a noweb system that produces the .tex files from
+some other file, and you want RefTeX to scan the web file instead of the
+tex file, you need to set this option.  You also need to make the noweb
+extension the default extension, i.e. the first in the list in
+`reftex-file-extensions'.
+Note that if you are using external file finders, this option has no effect."
+  :group 'reftex-finding-files
+  :type 'boolean)
 
 (defcustom reftex-search-unrecursed-path-first t
   "*Non-nil means, search all specified directories before trying recursion.

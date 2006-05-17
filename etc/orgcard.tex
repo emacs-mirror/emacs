@@ -1,11 +1,11 @@
-% Reference Card for Org Mode 4.04
+% Reference Card for Org Mode 4.06
 %
 %**start of header
 \newcount\columnsperpage
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
 % At the moment this card works quite nicely in 3 column format and
-% currently takes 2 full pages.  It is thus suited to producing one
+% currently takes 2 full pages.  It is thus suited to producing one 
 % double-side page when printed.
 
 % There are a couple of tweaks in the format of this card which make it work
@@ -18,8 +18,7 @@
 
 \columnsperpage=3
 
-% Copyright (C) 2005, 2006 Free Software Foundation, Inc.
-% Copyright (c) 2004 Philip Rooke
+% Copyright (c) 2004 Philip Rooke, 2005, 2006 Free Software Foundation
 
 % GNU Emacs is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -59,7 +58,7 @@
 % Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
 % for their many good ideas.
 
-\def\orgversionnumber{4.04}
+\def\orgversionnumber{4.06}
 \def\year{2006}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
@@ -89,7 +88,7 @@ are preserved on all copies.
 
 \def\ncolumns{\the\columnsperpage}
 
-\message{[\ncolumns\space
+\message{[\ncolumns\space 
   column\if 1\ncolumns\else s\fi\space per page]}
 
 \def\scaledmag#1{ scaled \magstep #1}
@@ -174,7 +173,7 @@ are preserved on all copies.
   \def\bye{\par\vfill\supereject
     \if a\abc \else\null\vfill\eject\fi
     \if a\abc \else\null\vfill\eject\fi
-    \end}
+    \end}  
 \fi
 
 % we won't be using math mode much, so redefine some of the characters
@@ -356,18 +355,8 @@ To set archive location for current file, add a line like$^3$:
 \key{raise priority of current item}{S-UP$^4$}
 \key{lower priority of current item}{S-DOWN$^4$}
 
-\vskip 1mm
-per-file TODO workflow states: add line(s) like$^3$:
-\vskip -1mm
-\beginexample%
-\#+SEQ_TODO: TODO PROCRASTINATE BLUFF DONE
-\endexample
-\vskip -1mm
-per-file TODO keywords: add line(s) like$^3$:
-\vskip -1mm
-\beginexample%
-\#+TYP_TODO: Phil home work DONE
-\endexample
+\key{\kbd{\#+SEQ_TODO: TODO TRY BLUFF DONE}}{\rm todo workflow}
+\key{\kbd{\#+TYP_TODO: Phil home work DONE}}{\rm todo types}
 
 \section{Timestamps}
 
@@ -398,21 +387,26 @@ per-file TODO keywords: add line(s) like$^3$:
 \key{insert a link (TAB completes stored links)}{C-c C-l}
 \key{insert file link with file name completion}{C-u C-c C-l}
 
-\key{open link at point}{C-c C-o}
-\key{open file links in emacs}{C-u C-c C-o}
-\key{open link at point}{mouse-2}
-\key{open file links in emacs}{mouse-3}
+\key{open file links in emacs (\kbd{C-u} : in emacs)}{C-c C-o}
+\key{open link at point (3: in emacs)}{mouse-2/3}
+%\key{open file links in emacs}{mouse-3}
+\key{record a position in mark ring}{C-c \%}
+\key{jump back to last followed link(s)}{C-c \&}
 
-{\bf Link types}
+{\bf Internal Links}
 
-\key{\kbd{*CamelCaseWord}}{\rm search headline}
-\key{\kbd{CamelCaseWord}}{\rm search in buffer}
+\key{\kbd{<<My Target>>}}{\rm target}
+\key{\kbd{<<<My Target>>>}}{\rm radio target$^3$}
+\key{\kbd{[[*this text]]}}{\rm find headline}
+\metax{\kbd{[[this text]]}}{\rm find target or text in buffer}
+
+{\bf External Links}
+
 \key{\kbd{<file:/home/dominik/img/mars.jpg>}}{\rm file, absolute}
 \key{\kbd{<file:papers/last.pdf>}}{\rm file, relative}
-\key{\kbd{<file:~/code/main.c:255>}}{\rm file with line nr.}
-\key{\kbd{<file:projects.org::*CamelCaseWord>}}{\rm search headline}
-\key{\kbd{<file:projects.org::find me>}}{\rm search string}
-\key{\kbd{<file:projects.org::/regexp/>}}{\rm search regexp}
+\key{\kbd{<file:projects.org::*that text>}}{\rm find headline}
+\key{\kbd{<file:projects.org::find me>}}{\rm find tgt/string}
+\key{\kbd{<file:projects.org::/regexp/>}}{\rm regexp search}
 \key{\kbd{<http://www.astro.uva.nl/~dominik>}}{\rm on the web}
 \key{\kbd{<mailto:adent@galaxy.net>}}{\rm EMail address}
 \key{\kbd{<news:comp.emacs>}}{\rm Usenet group}
@@ -420,15 +414,9 @@ per-file TODO keywords: add line(s) like$^3$:
 \key{\kbd{<shell:ls *.org>}}{\rm shell command}
 \key{\kbd{<gnus:group>}}{\rm GNUS group}
 \key{\kbd{<gnus:group\#id>}}{\rm GNUS message}
-\key{\kbd{<vm:folder>}}{\rm VM folder}
-\key{\kbd{<vm:folder\#id>}}{\rm VM message}
-% FIXME: would like to get this back in.
+\key{\kbd{<vm|wl|mhe|rmail:folder>}}{\rm Mail folder}
+\key{\kbd{<vm|wl|mhe|rmail:folder\#id>}}{\rm Mail message}
 %\key{\kbd{<vm://myself@some.where.org/folder\#id>}}{\rm VM remote}
-Wanderlust \kbd{<wl:...>} and RMAIL \kbd{<rmail:...>} like VM
-%\key{\kbd{<wl:folder>}}{\rm Wanderlust f.}
-%\key{\kbd{<wl:folder\#id>}}{\rm Wanderlust m.}
-%\key{\kbd{<rmail:folder>}}{\rm RMAIL folder}
-%\key{\kbd{<rmail:folder\#id>}}{\rm RMAIL msg}
 
 \section{Tables}
 
@@ -711,7 +699,7 @@ an org file. In the file, find a location with:
 \key{next heading}{DOWN}
 \key{previous heading}{UP}
 
-Insert the note with one of the following:
+Insert the note with one of the following: 
 
 \key{as sublevel of heading at cursor}{RET}
 \key{right here (cursor not on heading)}{RET}
@@ -741,8 +729,8 @@ Emacs, or an XEmacs package.
 $^2$ This is only a suggestion for a binding of this command.  Choose
 you own key as shown under INSTALLATION.
 
-$^3$ After changing a \kbd{\#+KEYWORD} line, press \kbd{C-c C-c} with
-the cursor still in a line to make Org-mode notice the change.
+$^3$ After changing a \kbd{\#+KEYWORD} or \kbd{<<<target>>>} line,
+press \kbd{C-c C-c} with the cursor still in the line to update.
 
 $^4$ Keybinding affected by {\tt org-CUA-compatibility}.
 
@@ -753,7 +741,7 @@ $^4$ Keybinding affected by {\tt org-CUA-compatibility}.
 
 % arch-tag: 139f6750-5cfc-49ca-92b5-237fe5795290
 
-%%% Local Variables:
+%%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: t
-%%% End:
+%%% End: 
