@@ -1,3 +1,16 @@
+2006-03-12  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (add_registry): Don't change the registry unless keys
+	already exist from a previous version.
+
+	* makefile.w32-in (install): Use -q when invoking addpm.
+
+	* addpm.c (main): Accept -q as alternative for /q.
+
+2006-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* runemacs.c (WinMain): Set screen buffer to 80x25.
+
 2005-12-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* gmake.defs (TEMACS_EXTRA_LINK): Remove redundant -g.

@@ -159,6 +159,10 @@ in the other directories in `load-path'.  (-L is short for --directory.)
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.
 
+---
+** If the environment variable DISPLAY specifies an unreachable X display,
+Emacs will now startup as if invoked with the --no-window-system option.
+
 +++
 ** The -f option, used from the command line to call a function,
 now reads arguments for the function interactively if it is
@@ -871,11 +875,6 @@ modes that do their own fontification in a special way.
 The variable `Info-fontify' is no longer applicable; to disable
 fontification in Info, remove `turn-on-font-lock' from
 `Info-mode-hook'.
-
-+++
-*** font-lock-lines-before specifies a number of lines before the
-current line that should be refontified when you change the buffer.
-The default value is 1.
 
 +++
 *** font-lock: in modes like C and Lisp where the fontification assumes that
@@ -3491,7 +3490,7 @@ associates a numeric ordering of each element added to the list.
 +++
 *** New function `copy-tree' makes a copy of a tree.
 
-It recursively copyies through both CARs and CDRs.
+It recursively copies through both CARs and CDRs.
 
 +++
 *** New function `delete-dups' deletes `equal' duplicate elements from a list.
@@ -4883,6 +4882,15 @@ you put an image file in a subdirectory, you have to specify it
 explicitly; for example, if an image is put in etc/images/foo/bar.xpm:
 
   (defimage foo-image '((:type xpm :file "foo/bar.xpm")))
+
+Note that all images formerly located in the lisp directory have been
+moved to etc/images.
+
++++
+*** New function `image-load-path-for-library' returns a suitable
+search path for images relative to library. This function is useful in
+external packages to save users from having to update
+`image-load-path'.
 
 +++
 *** The new variable `max-image-size' defines the maximum size of

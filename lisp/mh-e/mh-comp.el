@@ -287,7 +287,7 @@ use `mh-send-prog' to tell MH-E the name."
            (set-buffer draft-buffer))   ; for annotation below
           (t
            (mh-exec-cmd-daemon mh-send-prog nil "-nodraftfolder" "-noverbose"
-                               mh-send-args file-name)))
+                               (split-string mh-send-args) file-name)))
     (if mh-annotate-char
         (mh-annotate-msg mh-sent-from-msg
                          mh-sent-from-folder
@@ -895,15 +895,7 @@ letter."
   (mh-logo-display)
   (mh-make-local-hook 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'mh-tidy-draft-buffer nil t)
-  (if (and (boundp 'mh-compose-letter-function)
-           mh-compose-letter-function)
-      ;; run-hooks will not pass arguments.
-      (let ((value mh-compose-letter-function))
-        (if (and (listp value) (not (eq (car value) 'lambda)))
-            (while value
-              (funcall (car value) to subject cc)
-              (setq value (cdr value)))
-          (funcall mh-compose-letter-function to subject cc)))))
+  (run-hook-with-args 'mh-compose-letter-function to subject cc))
 
 (defun mh-insert-x-mailer ()
   "Append an X-Mailer field to the header.

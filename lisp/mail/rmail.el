@@ -268,7 +268,7 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
 	  "\\|^content-length:\\|^nntp-posting-date:\\|^user-agent"
 	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
-	  "\\|^mbox-line:\\|^cancel-lock:"
+	  "\\|^mbox-line:\\|^cancel-lock:\\|^DomainKey-Signature:"
 	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization:\\|^resent-openpgp:"
 
 	  "\\|^x-.*:")
@@ -319,8 +319,14 @@ See also `rmail-highlight-face'."
   :type 'regexp
   :group 'rmail-headers)
 
+(defface rmail-highlight
+  '((t :default highlight))
+  "Face to use for highlighting the most important header fields."
+  :group 'rmail-headers
+  :version "22.1")
+
 ;;;###autoload
-(defcustom rmail-highlight-face nil "\
+(defcustom rmail-highlight-face 'rmail-highlight "\
 *Face used by Rmail for highlighting headers."
   :type '(choice (const :tag "Default" nil)
 		 face)
@@ -447,10 +453,10 @@ examples:
   "String to prepend to Subject line when replying to a message.")
 
 ;; Some mailers use "Re(2):" or "Re^2:" or "Re: Re:" or "Re[2]:".
-;; This pattern should catch all the common variants.  The pattern
-;; also ignores mailing list identifiers sometimes added in square
-;; brackets at the beginning of subject lines.
-(defvar rmail-reply-regexp "\\`\\(\\[.+?\\] \\)?\\(Re\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?: *\\)*"
+;; This pattern should catch all the common variants.
+;; rms: I deleted the change to delete tags in square brackets
+;; because they mess up RT tags.
+(defvar rmail-reply-regexp "\\`\\(Re\\(([0-9]+)\\|\\[[0-9]+\\]\\|\\^[0-9]+\\)?: *\\)*"
   "Regexp to delete from Subject line before inserting `rmail-reply-prefix'.")
 
 (defcustom rmail-display-summary nil

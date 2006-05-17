@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.08
+;; Version: 4.10
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,8 +81,17 @@
 ;;
 ;; Changes since version 4.00:
 ;; ---------------------------
-;; Version 4.08
+;; Version 4.10
+;;    - Bug fixes.
 ;;
+;; Version 4.09
+;;    - Bug fixes.
+;;    - Small improvements to font-lock support.
+;;    - MHE support finalized.
+;;
+;; Version 4.08
+;;    - Bug fixes.
+;;    - Improved MHE support
 ;;
 ;; Version 4.07
 ;;    - Bug fixes.
@@ -139,7 +148,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.08"
+(defvar org-version "4.10"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -439,7 +448,7 @@ In the calendar, the date can be selected with mouse-1.  However, the
 minibuffer will also be active, and you can simply enter the date as well.
 When nil, only the minibuffer will be available."
   :group 'org-time
-  :type 'number)
+  :type 'boolean)
 
 (defcustom org-calendar-follow-timestamp-change t
   "Non-nil means, make the calendar window follow timestamp changes.
@@ -796,31 +805,15 @@ as possible."
   :group 'org-structure
   :type 'hook)
 
-(defcustom org-level-color-stars-only nil
-  "Non-nil means fontify only the stars in each headline.
-When nil, the entire headline is fontified.
-Changing it requires restart of `font-lock-mode' to become effective."
-  :group 'org-structure
-  :type 'boolean)
-
-(defcustom org-hide-leading-stars nil
-  "Non-nil means, hide the first N-1 stars in a headline.
-This works by using the face `org-hide' for these stars.  This
-face is white for a light background, and black for a dark
-background.  You may have to customize the face `org-hide' to
-make this work.
-Changing it requires restart of `font-lock-mode' to become effective."
-  :group 'org-structure
-  :type 'boolean)
-
 (defcustom org-odd-levels-only nil
   "Non-nil means, skip even levels and only use odd levels for the outline.
 This has the effect that two stars are being added/taken away in
 promotion/demotion commands.  It also influences how levels are
 handled by the exporters.
 Changing it requires restart of `font-lock-mode' to become effective
-for fontification." 
+for fontification also in regions already fontified." 
   :group 'org-structure
+  :group 'org-font-lock
   :type 'boolean)
 
 (defcustom org-adapt-indentation t
@@ -1710,20 +1703,54 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
   :group 'org-export
   :type 'string)
 
-(defgroup org-faces nil
-  "Faces for highlighting in Org-mode."
-  :tag "Org Faces"
+(defgroup org-font-lock nil
+  "Faces and settings for highlighting in Org-mode."
+  :tag "Org Font Lock"
   :group 'org)
 
+(defcustom org-level-color-stars-only nil
+  "Non-nil means fontify only the stars in each headline.
+When nil, the entire headline is fontified.
+Changing it requires restart of `font-lock-mode' to become effective
+also in regions already fontified."
+  :group 'org-font-lock
+  :type 'boolean)
+
+(defcustom org-hide-leading-stars nil
+  "Non-nil means, hide the first N-1 stars in a headline.
+This works by using the face `org-hide' for these stars.  This
+face is white for a light background, and black for a dark
+background.  You may have to customize the face `org-hide' to
+make this work.
+Changing it requires restart of `font-lock-mode' to become effective
+also in regions already fontified."
+  :group 'org-font-lock
+  :type 'boolean)
+
+(defcustom org-fontify-done-headline nil
+  "Non-nil means, change the face of a headline if it is marked DONE.
+Normally, only the TODO/DONE keyword indicates the state of a headline.
+When this is non-nil, the headline after the keyword is set to the
+`org-headline-done' as an additional indication."
+  :group 'org-font-lock
+  :type 'boolean)
+
+(defcustom org-fontify-emphasized-text t
+  "Non-nil means fontify *bold*, /italic/ and _underlined_ text.
+Changing this variable requires a restart of Emacs to take effect."
+  :group 'org-font-lock
+  :type 'boolean)
+
 (defface org-hide
-  '((((type tty) (class color)) (:foreground "blue" :weight bold))
+  '(
+    (((type tty) (class color)) (:foreground "white"))
     (((class color) (background light)) (:foreground "white"))
     (((class color) (background dark)) (:foreground "black"))
 ;    (((class color) (background light)) (:foreground "grey90"))
 ;    (((class color) (background dark)) (:foreground "grey10"))
     (t (:inverse-video nil)))
   "Face used for level 1 headlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-level-1 ;; font-lock-function-name-face
   '((((type tty) (class color)) (:foreground "blue" :weight bold))
@@ -1731,7 +1758,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
     (t (:inverse-video t :bold t)))
   "Face used for level 1 headlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-level-2 ;; font-lock-variable-name-face
   '((((type tty) (class color)) (:foreground "yellow" :weight light))
@@ -1739,7 +1766,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background dark)) (:foreground "LightGoldenrod"))
     (t (:bold t :italic t)))
   "Face used for level 2 headlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-level-3 ;; font-lock-keyword-face
   '((((type tty) (class color)) (:foreground "cyan" :weight bold))
@@ -1747,7 +1774,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background dark)) (:foreground "Cyan"))
     (t (:bold t)))
   "Face used for level 3 headlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-level-4   ;; font-lock-comment-face
   '((((type tty pc) (class color) (background light)) (:foreground "red"))
@@ -1756,7 +1783,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background dark)) (:foreground "chocolate1"))
     (t (:bold t :italic t)))
   "Face used for level 4 headlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-level-5 ;; font-lock-type-face
   '((((type tty) (class color)) (:foreground "green"))
@@ -1764,7 +1791,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background dark)) (:foreground "PaleGreen"))
     (t (:bold t :underline t)))
   "Face used for level 5 headlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-level-6 ;; font-lock-constant-face
   '((((type tty) (class color)) (:foreground "magenta"))
@@ -1772,7 +1799,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background dark)) (:foreground "Aquamarine"))
     (t (:bold t :underline t)))
   "Face used for level 6 headlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-level-7 ;; font-lock-builtin-face
   '((((type tty) (class color)) (:foreground "blue" :weight light))
@@ -1780,7 +1807,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background dark)) (:foreground "LightSteelBlue"))
     (t (:bold t)))
   "Face used for level 7 headlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-level-8 ;; font-lock-string-face
   '((((type tty) (class color)) (:foreground "green"))
@@ -1788,7 +1815,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background dark)) (:foreground "LightSalmon"))
     (t (:italic t)))
   "Face used for level 8 headlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-special-keyword ;; font-lock-string-face
   '((((type tty) (class color)) (:foreground "green"))
@@ -1796,7 +1823,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
     (((class color) (background dark)) (:foreground "LightSalmon"))
     (t (:italic t)))
   "Face used for special keywords."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-warning ;; font-lock-warning-face
   '((((type tty) (class color)) (:foreground "red"))
@@ -1805,15 +1832,7 @@ This file is created with the command \\[org-export-icalendar-all-agenda-files].
 ;    (((class color) (background dark)) (:foreground "Pink" :bold t))
     (t (:inverse-video t :bold t)))
   "Face for deadlines and TODO keywords."
-  :group 'org-faces)
-
-(defcustom org-fontify-done-headline nil
-  "Non-nil means, change the face of a headline if it is marked DONE.
-Normally, only the TODO/DONE keyword indicates the state of a headline.
-When this is non-nil, the headline after the keyword is set to the
-`org-headline-done' as an additional indication."
-  :group 'org-faces
-  :type 'boolean)
+  :group 'org-font-lock)
 
 (defface org-headline-done ;; font-lock-string-face
   '((((type tty) (class color)) (:foreground "green"))
@@ -1822,7 +1841,7 @@ When this is non-nil, the headline after the keyword is set to the
     (t (:italic t)))
   "Face used to indicate that a headline is DONE.  See also the variable
 `org-fontify-done-headline'."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 ;; Inheritance does not yet work for xemacs. So we just copy...
 
@@ -1832,7 +1851,7 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
     (t (:inverse-video t :bold t)))
   "Face for upcoming deadlines."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-scheduled-today
   '((((type tty) (class color)) (:foreground "green"))
@@ -1840,7 +1859,7 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background dark)) (:foreground "PaleGreen"))
     (t (:bold t :underline t)))
   "Face for items scheduled for a certain day."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-scheduled-previously
   '((((type tty pc) (class color) (background light)) (:foreground "red"))
@@ -1849,7 +1868,7 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background dark)) (:foreground "chocolate1"))
     (t (:bold t :italic t)))
   "Face for items scheduled previously, and not yet done."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-formula
   '((((type tty pc) (class color) (background light)) (:foreground "red"))
@@ -1858,7 +1877,7 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background dark)) (:foreground "chocolate1"))
     (t (:bold t :italic t)))
   "Face for formulas."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-link
   '((((type tty) (class color)) (:foreground "cyan" :weight bold))
@@ -1866,15 +1885,15 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background dark)) (:foreground "Cyan"))
     (t (:bold t)))
   "Face for links."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-tag
   '((((type tty) (class color)) (:foreground "cyan" :weight bold))
     (((class color) (background light)) (:foreground "Purple" :weight bold))
     (((class color) (background dark)) (:foreground "Cyan" :weight bold))
     (t (:bold t)))
-  "Face for links."
-  :group 'org-faces)
+  "Face for tags."
+  :group 'org-font-lock)
 
 (defface org-done ;; font-lock-type-face
   '((((type tty) (class color)) (:foreground "green"))
@@ -1882,7 +1901,7 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background dark)) (:foreground "PaleGreen" :bold t))
     (t (:bold t :underline t)))
   "Face used for DONE."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-table ;; font-lock-function-name-face
   '((((type tty) (class color)) (:foreground "blue" :weight bold))
@@ -1890,7 +1909,7 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
     (t (:inverse-video t :bold t)))
   "Face used for tables."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defface org-time-grid ;; font-lock-variable-name-face
   '((((type tty) (class color)) (:foreground "yellow" :weight light))
@@ -1898,7 +1917,7 @@ When this is non-nil, the headline after the keyword is set to the
     (((class color) (background dark)) (:foreground "LightGoldenrod"))
     (t (:bold t :italic t)))
   "Face used for time grids."
-  :group 'org-faces)
+  :group 'org-font-lock)
 
 (defvar org-level-faces
   '(org-level-1 org-level-2 org-level-3 org-level-4
@@ -1939,6 +1958,10 @@ When this is non-nil, the headline after the keyword is set to the
 		    (set '(("fold" org-startup-folded t)
 			   ("nofold" org-startup-folded nil)
 			   ("content" org-startup-folded content)
+			   ("hidestars" org-hide-leading-stars t)
+			   ("showstars" org-hide-leading-stars nil)
+			   ("odd" org-odd-levels-only t)
+			   ("oddeven" org-odd-levels-only nil)
 			   ("dlcheck" org-startup-with-deadline-check t)
 			   ("nodlcheck" org-startup-with-deadline-check nil)))
 		    l var val)
@@ -2307,44 +2330,45 @@ between words."
 (defvar org-font-lock-keywords nil)
 
 (defun org-set-font-lock-defaults ()
-  (let ((org-font-lock-extra-keywords
-	 (list
-	  '("^\\(\\**\\)\\(\\*\\)\\(.*\\)" (1 (org-get-level-face 1))
-	    (2 (org-get-level-face 2)) (3 (org-get-level-face 3)))
-	  '(org-activate-links (0 'org-link t))
-	  '(org-activate-links2 (0 'org-link t))
-	  '(org-activate-target-links (0 'org-link t))
-	  '(org-activate-dates (0 'org-link t))
-	  '(org-activate-camels (0 'org-link t))
-	  '(org-activate-tags (1 'org-tag t))
-	  (list (concat "^\\*+[ \t]*" org-not-done-regexp)
-		'(1 'org-warning t))
-	  (list (concat "\\[#[A-Z]\\]") '(0 'org-special-keyword t))
-	  (list (concat "\\<" org-deadline-string) '(0 'org-special-keyword t))
-	  (list (concat "\\<" org-scheduled-string) '(0 'org-special-keyword t))
-	  (list (concat "\\<" org-closed-string) '(0 'org-special-keyword t))
-	  ;; '("\\(\\s-\\|^\\)\\(\\*\\([a-zA-Z]+\\)\\*\\)\\([^a-zA-Z*]\\|$\\)"
-	  ;; (3 'bold))
-	  ;; '("\\(\\s-\\|^\\)\\(/\\([a-zA-Z]+\\)/\\)\\([^a-zA-Z*]\\|$\\)"
-	  ;; (3 'italic))
-	  ;; '("\\(\\s-\\|^\\)\\(_\\([a-zA-Z]+\\)_\\)\\([^a-zA-Z*]\\|$\\)"
-	  ;; (3 'underline))
-	  (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string
-			"\\|" org-quote-string "\\)\\>")
-		'(1 'org-special-keyword t))
-	  '("^#.*" (0 'font-lock-comment-face t))
-	  (if org-fontify-done-headline
-	      (list (concat "^[*]+ +\\<\\(" org-done-string "\\)\\(.*\\)\\>")
-		    '(1 'org-done t) '(2 'org-headline-done t))
-	    (list (concat "^[*]+ +\\<\\(" org-done-string "\\)\\>")
-		  '(1 'org-done t)))
-	  '("^[ \t]*\\(\\(|\\|\\+-[-+]\\).*\\S-\\)"
-	    (1 'org-table t))
-	  '("^[ \t]*\\(:.*\\)" (1 'org-table t))
-	  '("| *\\(:?=[^|\n]*\\)" (1 'org-formula t))
-	  '("^[ \t]*| *\\([#!$*_^]\\) *|" (1 'org-formula t))
-	  )))
-
+  (let* ((em org-fontify-emphasized-text)
+	 (org-font-lock-extra-keywords
+	  (list
+	   '("^\\(\\**\\)\\(\\*\\)\\(.*\\)" (1 (org-get-level-face 1))
+	     (2 (org-get-level-face 2)) (3 (org-get-level-face 3)))
+	   '(org-activate-links (0 'org-link t))
+	   '(org-activate-links2 (0 'org-link t))
+	   '(org-activate-target-links (0 'org-link t))
+	   '(org-activate-dates (0 'org-link t))
+	   '(org-activate-camels (0 'org-link t))
+	   '(org-activate-tags (1 'org-tag t))
+	   (list (concat "^\\*+[ \t]*" org-not-done-regexp)
+		 '(1 'org-warning t))
+	   (list (concat "\\[#[A-Z]\\]") '(0 'org-special-keyword t))
+	   (list (concat "\\<" org-deadline-string) '(0 'org-special-keyword t))
+	   (list (concat "\\<" org-scheduled-string) '(0 'org-special-keyword t))
+	   (list (concat "\\<" org-closed-string) '(0 'org-special-keyword t))
+;	   (if em '("\\(\\s-\\|^\\)\\(\\*\\([a-zA-Z]+\\)\\*\\)\\([^a-zA-Z*]\\|$\\)" (3 'bold)))
+;	   (if em '("\\(\\s-\\|^\\)\\(/\\([a-zA-Z]+\\)/\\)\\([^a-zA-Z*]\\|$\\)" (3 'italic)))
+;	   (if em '("\\(\\s-\\|^\\)\\(_\\([a-zA-Z]+\\)_\\)\\([^a-zA-Z*]\\|$\\)" (3 'underline)))
+	   (if em '("\\*[a-zA-Z]+\\*" 0 'bold))
+	   (if em '("/*[a-zA-Z]+/" 0 'italic))
+	   (if em '("_[a-zA-Z]+_" 0 'underline))
+	   (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string
+			 "\\|" org-quote-string "\\)\\>")
+		 '(1 'org-special-keyword t))
+	   '("^#.*" (0 'font-lock-comment-face t))
+	   (if org-fontify-done-headline
+	       (list (concat "^[*]+ +\\<\\(" org-done-string "\\)\\(.*\\)\\>")
+		     '(1 'org-done t) '(2 'org-headline-done t))
+	     (list (concat "^[*]+ +\\<\\(" org-done-string "\\)\\>")
+		   '(1 'org-done t)))
+	   '("^[ \t]*\\(\\(|\\|\\+-[-+]\\).*\\S-\\)"
+	     (1 'org-table t))
+	   '("^[ \t]*\\(:.*\\)" (1 'org-table t))
+	   '("| *\\(:?=[^|\n]*\\)" (1 'org-formula t))
+	   '("^[ \t]*| *\\([#!$*_^]\\) *|" (1 'org-formula t))
+	   )))
+    (setq org-font-lock-extra-keywords (delq nil org-font-lock-extra-keywords))
     ;; Now set the full font-lock-keywords
     (set (make-local-variable 'org-font-lock-keywords)
 	 org-font-lock-extra-keywords)
@@ -2569,6 +2593,7 @@ Optional argument N means, put the headline into the Nth line of the window."
 (define-key org-goto-map [(?q)]     'org-goto-quit)
 (define-key org-goto-map [(control ?g)] 'org-goto-quit)
 (define-key org-goto-map "\C-i" 'org-cycle)
+(define-key org-goto-map [(tab)] 'org-cycle)
 (define-key org-goto-map [(down)] 'outline-next-visible-heading)
 (define-key org-goto-map [(up)] 'outline-previous-visible-heading)
 (define-key org-goto-map "n" 'outline-next-visible-heading)
@@ -3981,8 +4006,8 @@ used to insert the time stamp into the buffer to include the time."
 		month (string-to-number (match-string 3 ans))
 		day (string-to-number (match-string 4 ans)))
 	  (if (< year 100) (setq year (+ 2000 year)))
-	  (setq ans (replace-match (format "%04d-%02d-%02d" year month day)
-				   t t ans))))
+	  (setq ans (replace-match (format "%04d-%02d-%02d\\5" year month day)
+				   t nil ans))))
     (setq tl (parse-time-string ans)
 	  year (or (nth 5 tl) (string-to-number (format-time-string "%Y")))
 	  month (or (nth 4 tl) (string-to-number (format-time-string "%m")))
@@ -4357,6 +4382,7 @@ The following commands are available:
    (list 'org-agenda-mode-hook)))
 
 (define-key org-agenda-mode-map "\C-i"     'org-agenda-goto)
+(define-key org-agenda-mode-map [(tab)]    'org-agenda-goto)
 (define-key org-agenda-mode-map "\C-m"     'org-agenda-switch-to)
 (define-key org-agenda-mode-map " "        'org-agenda-show)
 (define-key org-agenda-mode-map "\C-c\C-t" 'org-agenda-todo)
@@ -6960,7 +6986,7 @@ in all files."
 	(s0 (mapconcat 'identity (org-split-string s "[ \t\r\n]+") " "))
 	(pos (point))
 	(pre "") (post "")
-	words re0 re1 re2 re3 re4 re5 reall camel)
+	words re0 re1 re2 re3 re4 re5 re2a reall camel)
     (cond ((save-excursion
 	     (goto-char (point-min))
 	     (and
@@ -6995,11 +7021,13 @@ in all files."
 		   (org-split-string s "[ \n\r\t]+"))
 		 re0 (concat "<<" (regexp-quote s0) ">>")
 		 re2 (concat "\\<" (mapconcat 'downcase words "[ \t]+") "\\>")
+		 re2a (concat "\\<" (mapconcat 'downcase words "[ \t\r\n]+") "\\>")
 		 re4 (concat "\\<" (mapconcat 'downcase words "[^a-zA-Z_\r\n]+") "\\>")
 		 re1 (concat pre re2 post)
 		 re3 (concat pre re4 post)
 		 re5 (concat pre ".*" re4)
 		 re2 (concat pre re2)
+		 re2a (concat pre re2a)
 		 re4 (concat pre re4)
 		 reall (concat "\\(" re0 "\\)\\|\\(" re1 "\\)\\|\\(" re2
 			       "\\)\\|\\(" re3 "\\)\\|\\(" re4 "\\)\\|\\("
@@ -7009,12 +7037,14 @@ in all files."
 	    ((eq type 'org-occur) (org-occur reall))
 	    ((eq type 'occur) (org-do-occur (downcase reall) 'cleanup))
 	    (t (goto-char (point-min))
-	       (if (or (re-search-forward re0 nil t)
-		       (re-search-forward re1 nil t)
-		       (re-search-forward re2 nil t)
-		       (re-search-forward re3 nil t)
-		       (re-search-forward re4 nil t)
-		       (re-search-forward re5 nil t))
+	       (if (or (org-search-not-link re0 nil t)
+		       (org-search-not-link re1 nil t)
+		       (org-search-not-link re2 nil t)
+		       (org-search-not-link re2a nil t) ;; FIXME: Right place???
+		       (org-search-not-link re3 nil t)
+		       (org-search-not-link re4 nil t)
+		       (org-search-not-link re5 nil t)
+		       )
 		   (goto-char (match-beginning 0))
 		 (goto-char pos)
 		 (error "No match")))))
@@ -7025,6 +7055,21 @@ in all files."
 	       (goto-char (match-beginning 0))
 	     (error "No match"))))
     (and (eq major-mode 'org-mode) (org-show-hierarchy-above))))
+
+(defun org-search-not-link (&rest args)
+  "Execute `re-search-forward', but only accept matches that are not a link."
+  (catch 'exit
+    (let ((pos (point)) p1)
+      (while (apply 're-search-forward args)
+	(setq p1 (point))
+	(if (not (save-match-data
+		   (and (re-search-backward "\\[\\[" nil t)
+			(looking-at org-bracket-link-regexp)
+			(<= (match-beginning 0) p1)
+			(>= (match-end 0) p1))))
+	    (progn (goto-char (match-end 0))
+		   (throw 'exit (point)))
+	  (goto-char (match-end 0)))))))
 
 (defun org-do-occur (regexp &optional cleanup)
   "Call the Emacs command `occur'.
@@ -7284,24 +7329,32 @@ idea..."
     header-field)))
 
 (defun org-follow-mhe-link (folder article)
-  "Follow an MHE link to FOLDER and ARTICLE."
-  (setq article (org-add-angle-brackets article))
+  "Follow an MHE link to FOLDER and ARTICLE.
+If ARTICLE is nil FOLDER is shown.  If the configuration variable
+`org-mhe-search-all-folders' is t and `mh-searcher' is pick,
+ARTICLE is searched in all folders.  Indexed searches (swish++,
+namazu, and others supported by MH-E) will always search in all
+folders."
   (require 'mh-e)
   (require 'mh-search)
+  (require 'mh-utils)
   (mh-find-path)
-  (mh-search-choose)
-  (if (equal mh-searcher 'pick)
-      (progn
-        (mh-search folder (list "--message-id" article))
-        (when (and org-mhe-search-all-folders
-                 (not (org-mhe-get-message-real-folder)))
-          (kill-this-buffer)
-          (mh-search "+" (list "--message-id" article))))
-    (mh-search "+" article))
-  (if (org-mhe-get-message-real-folder)
-      (mh-show-msg 1)
-    (kill-this-buffer)
-    (error "Message not found")))
+  (if (not article)
+      (mh-visit-folder (mh-normalize-folder-name folder))
+    (setq article (org-add-angle-brackets article))
+    (mh-search-choose)
+    (if (equal mh-searcher 'pick)
+        (progn
+          (mh-search folder (list "--message-id" article))
+          (when (and org-mhe-search-all-folders
+                     (not (org-mhe-get-message-real-folder)))
+            (kill-this-buffer)
+            (mh-search "+" (list "--message-id" article))))
+      (mh-search "+" article))
+    (if (org-mhe-get-message-real-folder)
+        (mh-show-msg 1)
+      (kill-this-buffer)
+      (error "Message not found"))))
 
 (defun org-open-file (path &optional in-emacs line search)
   "Open the file at PATH.
@@ -10563,7 +10616,7 @@ translations.  There is currently no way for users to extend this.")
 This will leave level 1 alone, convert level 2 to level 3, level 3 to
 level 5 etc."
   (interactive)
-  (when (yes-or-no-p "Are you sure you want to globally change levels? ")
+  (when (yes-or-no-p "Are you sure you want to globally change levels to odd? ")
     (let ((org-odd-levels-only nil) n)
       (save-excursion
 	(goto-char (point-min))
@@ -10571,6 +10624,28 @@ level 5 etc."
 	  (setq n (1- (length (match-string 0))))
 	  (while (>= (setq n (1- n)) 0)
 	    (org-demote))
+	  (end-of-line 1))))))
+
+
+(defun org-convert-to-oddeven-levels ()
+  "Convert an org-mode file with only odd levels to one with odd and even levels.
+This promotes level 3 to level 2, level 5 to level 3 etc.  If the file contains a
+section with an even level, conversion would destroy the structure of the file.  An error
+is signaled in this case."
+  (interactive)
+  (goto-char (point-min))
+  ;; First check if there are no even levels
+  (when (re-search-forward "^\\(\\*\\*\\)+[^*]" nil t)
+    (org-show-hierarchy-above)
+    (error "Not all levels are odd in this file.  Conversion not possible."))
+  (when (yes-or-no-p "Are you sure you want to globally change levels to odd-even? ")
+    (let ((org-odd-levels-only nil) n)
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward "^\\*\\*+" nil t)
+	  (setq n (/ (length (match-string 0)) 2))
+	  (while (>= (setq n (1- n)) 0)
+	    (org-promote))
 	  (end-of-line 1))))))
 
 (defun org-tr-level (n)
@@ -10732,11 +10807,11 @@ underlined headlines.  The default is 3."
 
 (defun org-insert-centered (s &optional underline)
   "Insert the string S centered and underline it with character UNDERLINE."
-  (let ((ind (max (/ (- 80 (length s)) 2) 0)))
+  (let ((ind (max (/ (- 80 (string-width s)) 2) 0)))
     (insert (make-string ind ?\ ) s "\n")
     (if underline
 	(insert (make-string ind ?\ )
-		(make-string (length s) underline)
+		(make-string (string-width s) underline)
 		"\n"))))
 
 (defun org-ascii-level-start (level title umax)
@@ -10817,7 +10892,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 #+CATEGORY:  %s
 #+SEQ_TODO:  %s
 #+TYP_TODO:  %s
-#+STARTUP:   %s %s
+#+STARTUP:   %s %s %s %s
 #+ARCHIVE:   %s
 "
    (buffer-name) (user-full-name) user-mail-address org-export-default-language
@@ -10841,6 +10916,8 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    (cdr (assoc org-startup-folded
 	       '((nil . "nofold")(t . "fold")(content . "content"))))
    (if org-startup-with-deadline-check "dlcheck" "nodlcheck")
+   (if org-odd-levels-only "odd" "oddeven")
+   (if org-hide-leading-stars "hidestars" "showstars")
    org-archive-location
    ))
 
@@ -10924,6 +11001,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
   (setq-default org-deadline-line-regexp org-deadline-line-regexp)
   (setq-default org-done-string org-done-string)
   (let* ((style org-export-html-style)
+	 (odd org-odd-levels-only)
 	 (region-p (org-region-active-p))
          (region
           (buffer-substring
@@ -10987,7 +11065,8 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
       (switch-to-buffer-other-window buffer))
     (erase-buffer)
     (fundamental-mode)
-    (let ((case-fold-search nil))
+    (let ((case-fold-search nil)
+	  (org-odd-levels-only odd))
       (if options (org-parse-export-options options))
       (setq umax (if arg (prefix-numeric-value arg)
                    org-export-headline-levels))
@@ -11842,6 +11921,7 @@ a time), or the day by one (if it does not contain a time)."
 
 ;; TAB key with modifiers
 (define-key org-mode-map "\C-i"       'org-cycle)
+(define-key org-mode-map [(tab)]      'org-cycle)
 (define-key org-mode-map [(meta tab)] 'org-complete)
 (define-key org-mode-map "\M-\C-i"    'org-complete)            ; for tty emacs
 ;; The following line is necessary under Suse GNU/Linux
@@ -12372,7 +12452,8 @@ See the individual commands for more information."
      "--"
      ["Archive Subtree" org-archive-subtree t]
      "--"
-     ["Convert file to odd levels" org-convert-to-odd-levels t])
+     ["Convert to odd levels" org-convert-to-odd-levels t]
+     ["Convert to odd/even levels" org-convert-to-oddeven-levels t])
     "--"
     ("TODO Lists"
      ["TODO/DONE/-" org-todo t]

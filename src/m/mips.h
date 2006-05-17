@@ -112,10 +112,10 @@ NOTE-END  */
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */
 
-#ifndef __linux__
+#if !defined(__linux__) && !defined(__NetBSD__)
 #undef UNEXEC
 #define UNEXEC unexmips.o
-#endif /* not __linux__ */
+#endif /* not __linux__ && not __NetBSD__ */
 
 /* Describe layout of the address space in an executing process.  */
 
@@ -142,14 +142,6 @@ NOTE-END  */
 #if defined (__NetBSD__) || defined (__OpenBSD__)
 #else  /* bsd with elf */
 #define LINKER /bsd43/bin/ld
-#endif /* bsd with elf */
-#else /* not BSD_SYSTEM */
-
-#if defined(__GNUC__) && defined(_ABIN32)
-#define LIBS_MACHINE
-#else
-#define LIBS_MACHINE -lmld
-#endif
 
 #define LD_SWITCH_MACHINE -D 800000 -g3
 #define START_FILES pre-crt0.o /usr/lib/crt1.o
@@ -158,6 +150,15 @@ NOTE-END  */
 
 #define C_SWITCH_MACHINE -I/usr/include/bsd
 #define C_DEBUG_SWITCH -O -g3
+
+#endif /* bsd with elf */
+#else /* not BSD_SYSTEM */
+
+#if defined(__GNUC__) && defined(_ABIN32)
+#define LIBS_MACHINE
+#else
+#define LIBS_MACHINE -lmld
+#endif
 
 #endif /* not BSD_SYSTEM */
 #endif /* not NEWSOS5 && not __linux__ */

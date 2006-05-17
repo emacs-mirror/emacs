@@ -323,24 +323,6 @@ the tasks accomplished by such tools."
       (= (file-modes eshell-directory-name)
 	 eshell-private-directory-modes)))
 
-(defcustom eshell-prefer-to-shell nil
-  "*If non-nil, \\[shell-command] will use Eshell instead of shell-mode."
-  :set (lambda (symbol value)
-	 ;; modifying the global keymap directly is odious, but how
-	 ;; else to achieve the takeover?
-	 (if value
-	     (progn
-	       (define-key global-map [(meta ?!)] 'eshell-command)
-;;;            (define-key global-map [(meta ?|)] 'eshell-command-on-region)
-	       )
-	   (define-key global-map [(meta ?!)] 'shell-command)
-;;;        (define-key global-map [(meta ?|)] 'shell-command-on-region)
-	   )
-	 (set symbol value))
-  :type 'boolean
-  :require 'eshell
-  :group 'eshell)
-
 ;;;_* Running Eshell
 ;;
 ;; There are only three commands used to invoke Eshell.  The first two

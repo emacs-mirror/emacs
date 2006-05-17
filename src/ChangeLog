@@ -1,3 +1,218 @@
+2006-03-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_display_ok): Fix minor bug and compilation warnings.
+
+2006-03-18  Nozomu Ando  <nand@mac.com>
+
+	* m/pmax.h (BROKEN_NOCOMBRELOC) [__NetBSD__]: Define.
+	(LIB_STANDARD, START_FILES) [__NetBSD__]: Don't define.
+	(START_FILES, RUN_TIME_REMAP, UNEXEC) [__NetBSD__, __OpenBSD__]:
+	Don't redefine.
+
+	* m/mips.h: Don't use unexmips on NetBSD.
+	(LIBS_MACHINE): Move definition lower, so it doesn't use
+	LD_SWITCH_MACHINE, START_FILES, LIB_STANDARD, LIBS_TERMCAP,
+	C_SWITCH_MACHINE, and C_DEBUG_SWITCH.
+
+	* unexelf.c [BROKEN_NOCOMBRELOC]: Include assert.h.
+	(unexec) [BROKEN_NOCOMBRELOC]: Handle platforms whose nocombreloc
+	option is broken (e.g., MIPS/NetBSD).
+
+2006-03-18  Craig McDaniel  <craigmcd@gmail.com>  (tiny change)
+
+	* sheap.c (STATIC_HEAP_SIZE): Enlarge STATIC_HEAP_SIZE to 12MB.
+	Remove the HAVE_X_WINDOWS conditional.
+
+2006-03-18  Vivek Dasmohapatra  <vivek@etla.org>  (tiny change)
+
+	* emacs.c (main): If user asks for a display that is unavailable,
+	simulate -nw.
+
+	* xterm.c (x_display_ok): New function.
+
+	* xterm.h: Add prototype for x_display_ok.
+
+2006-03-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (Fw32_select_font): Doc fix.
+
+2006-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OS] (XPutPixel, XGetPixel)
+	[!WORDS_BIG_ENDIAN && USE_CG_DRAWING]: Don't use specialized
+	version when depth is 32.
+	(mac_create_cg_image_from_image) [MAC_OS && USE_CG_DRAWING]: New
+	function.
+	(prepare_image_for_display) [MAC_OS && USE_CG_DRAWING]: Use it.
+	(x_clear_image_1) [MAC_OS && USE_CG_DRAWING]: Release CGImage.
+
+	* macterm.c (XCreatePixmap) [!WORDS_BIG_ENDIAN && USE_CG_DRAWING]:
+	Create GWorld in ARGB pixel format.
+	(mac_copy_area, mac_copy_area_with_mask) [USE_CG_DRAWING]: Remove
+	functions.
+	(x_draw_image_foreground) [USE_CG_DRAWING]: Use mac_draw_cg_image
+	instead of mac_copy_area/mac_copy_area_with_mask.
+
+2006-03-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (extend_face_to_end_of_line): Always add space glyph to
+	empty row.  Fixes memory corruption revealed by 2006-03-02 change.
+	(display_tool_bar_line): Skip empty tool-bar line if HEIGHT < 0.
+	(tool_bar_lines_needed): Fix tool-bar display in case the tool-bar
+	width is exactly the same as the window width.  Don't count a final
+	empty tool-bar line (pass HEIGHT = -1 to display_tool_bar_line).
+
+2006-03-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fringe.c (w32_init_fringe, w32_reset_fringes): Revert to being
+	conditional on HAVE_NTGUI, not WINDOWS_NT.
+
+2006-03-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (mac_init_fringe) [MAC_OS]: Add prototype.
+
+	* fringe.c (mac_init_fringe) [MAC_OS]: New function.
+
+	* macterm.c (mac_initialize) [USE_CG_DRAWING]: Call mac_init_fringe.
+	(max_fringe_bmp, fringe_bmp) [USE_CG_DRAWING]: New variables.
+	(mac_define_fringe_bitmap, mac_destroy_fringe_bitmap)
+	(mac_draw_cg_image) [USE_CG_DRAWING]: New functions.
+	(mac_draw_bitmap) [USE_CG_DRAWING]: Remove function.
+	(x_draw_fringe_bitmap) [USE_CG_DRAWING]: Use mac_draw_cg_image
+	instead of mac_draw_bitmap.
+	(x_redisplay_interface) [USE_CG_DRAWING]: Set handlers for
+	define_fringe_bitmap and destroy_fringe_bitmap.
+
+2006-03-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_uncatch_errors): Block input for entire function.
+
+2006-03-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_create_frame): Remove call to
+	Qface_set_after_frame_default (from xfns.c 2003-05-26).
+
+	* w32menu.c (Fx_popup_menu): Call w32_free_menu_strings when
+	finished with the menu.
+
+	* w32term.c: Sync 2005-10-24 xterm.c changes.
+	(last_mouse_glyph_frame): New var.
+	(note_mouse_movement): Say mouse moved if current frame differs
+	from last_mouse_glyph_frame, and update last_mouse_glyph_frame.
+	(w32_mouse_position): Set last_mouse_glyph_frame.
+	Remove OLD_REDISPLAY_CODE block.
+
+2006-03-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h [USE_ATSUI && MAC_OSX]: Define USE_CG_TEXT_DRAWING to 1.
+
+	* macterm.h (struct mac_output) [USE_CG_DRAWING]: New member cg_context.
+	(mac_prepare_for_quickdraw) [USE_CG_DRAWING]: Add prototype.
+
+	* mac.c (sys_select) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+
+	* macfns.c (x_create_tip_frame): Apply 2006-03-11 change for xfns.c.
+
+	* macterm.c (mac_draw_rectangle, x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground)
+	(x_draw_image_foreground): Undo previous changes.
+	(x_draw_hollow_cursor): Likewise.  Subtract 1 from the last
+	argument of mac_draw_rectangle.
+	(CG_SET_FILL_COLOR, CG_SET_STROKE_COLOR): New macros.
+	(mac_draw_string_common, mac_draw_image_string_cg): Use them.
+	(FRAME_CG_CONTEXT) [USE_CG_DRAWING]: New macro.
+	(mac_begin_cg_clip, mac_end_cg_clip, mac_prepare_for_quickdraw)
+	[USE_CG_DRAWING]: New functions.
+	(mac_draw_line, mac_erase_rectangle, mac_clear_window)
+	(mac_fill_rectangle, mac_draw_rectangle, mac_draw_string_common)
+	(mac_draw_image_string_cg) [USE_CG_DRAWING]: Add Quartz 2D drawing part.
+	(mac_draw_bitmap, mac_invert_rectangle, mac_draw_string_common)
+	(mac_copy_area, mac_scroll_area, x_scroll_bar_create)
+	(x_scroll_bar_remove, XTset_vertical_scroll_bar, x_set_window_size)
+	(XTread_socket) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+
+2006-03-12  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* xfns.c (x_icon): Disable redundant call to `x_wm_set_window_state'.
+
+2006-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (signal_user_input): New function.
+	(post_character_message): Use it for keyboard input.
+	(w32_msg_pump): Use it for mouse input.
+
+2006-03-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c: Rename preserve_y to window_scroll_pixel_based_preserve_y.
+	(window_scroll_pixel_based, syms_of_window): Adapt to above change.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Ignore middle and extra button events
+	if a menu is already active (the menubar_active flag is on).
+
+2006-03-11  David Ponce  <david@dponce.com>
+
+	* xfns.c (x_create_tip_frame): Preserve received parms by copying
+	them.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c: Add x_fully_uncatch_errors and x_catching_errors to
+	the list of unused display error handling functions.
+
+	* eval.c (unwind_to_catch): Call x_fully_uncatch_errors only if
+	HAVE_X_WINDOWS.
+	(internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2): Call x_catching_errors only if
+	HAVE_X_WINDOWS.
+
+	* vm-limit.c [HAVE_GETRLIMIT]: Don't define unconditionally.
+	Don't include sys/resource.h unless defined.
+
+2006-03-11  Richard Stallman  <rms@gnu.org>
+
+	* keymap.c (describe_map): Shorten string to indicate shadowed binding.
+
+	* vm-limit.c (get_lim_data, lim_data, data_space_start):
+	Moved from mem-limits.h.
+	(enum warnlevel): New data type.
+	(check_memory_limits): Rewrite the logic about warnings.
+	Use standard `struct rlimit'.  Check return values for nonsense.
+	(memory_warnings): Always clear lim_data.
+
+	* mem-limits.h (get_lim_data, lim_data, data_space_start):
+	Moved to vm-limit.c.
+
+	* xterm.c (x_fully_uncatch_errors, x_catching_errors): New functions.
+
+	* eval.c (unwind_to_catch): Call x_fully_uncatch_errors.
+	(internal_condition_case_1, internal_condition_case_2):
+	Abort if within unclosed x_catch_errors.
+
+2006-03-11  Romain Francoise  <romain@orebokech.com>
+
+	* process.c (Vprocess_adaptive_read_buffering): Doc fix.
+
+2006-03-11  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* lisp.h: Remove duplicate prototypes.  Make the prototype of
+	getloadavg be conditioned on HAVE_GETLOADAVG being undefined.
+
+2006-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_hollow_cursor): Subtract 1 from the last
+	argument of XDrawRectangle.
+
+	* xdisp.c (get_phys_cursor_geometry): Don't decrease height by 1.
+
+	* macterm.c (mac_draw_rectangle): Don't add 1 to width and height.
+	(x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground)
+	(x_draw_image_foreground): Don't subtract 1 from width and height
+	arguments to mac_draw_rectangle.
+	(x_draw_hollow_cursor): Add 1 to w->phys_cursor_width.
+
 2006-03-10  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (USE_POSIX_MEMALIGN): Fix last change.
@@ -23,7 +238,7 @@
 
 	* image.c [MAC_OS] (XPutPixel): Set alpha channel bits if pixmap
 	depth is 32.
-	 [MAC_OS] (XGetPixel): Strip off alpha channel bits if pixmap
+	[MAC_OS] (XGetPixel): Strip off alpha channel bits if pixmap
 	depth is 32.
 
 2006-03-06  Chong Yidong  <cyd@stupidchicken.com>
@@ -63,7 +278,7 @@
 
 	* xdisp.c: Minimize the unpleasent visual impact of the requirement
 	that non-toolkit tool-bars must occupy an integral number of screen
-	lines, by distributing the rows evenly over the tool-bar screen	area.
+	lines, by distributing the rows evenly over the tool-bar screen area.
 	(Vtool_bar_border): New variable.
 	(syms_of_xdisp): DEFVAR_LISP it.
 	(display_tool_bar_line): Add HEIGHT arg for desired row height.
@@ -97,9 +312,9 @@
 
 	* xterm.h, xterm.c (x_uncatch_errors): Delete unneccessary argument.
 
-	* xterm.c: (x_load_font, x_term_init, XTmouse_position)
-	(handle_one_xevent, x_connection_closed, x_list_fonts): No arg for
-	x_uncatch_errors.
+	* xterm.c (x_load_font, x_term_init, XTmouse_position)
+	(handle_one_xevent, x_connection_closed, x_list_fonts):
+	No arg for x_uncatch_errors.
 
 	* xselect.c (x_own_selection, x_decline_selection_request)
 	(x_reply_selection_request, x_get_foreign_selection)
@@ -227,7 +442,7 @@
 
 	* fringe.c (syms_of_fringe) <fringe-bitmaps>: Doc fix.
 
-2006-02-21  Zhang Wei <brep@newsmth.org>
+2006-02-21  Zhang Wei  <brep@newsmth.org>
 
 	* xfns.c (Fx_file_dialog, Motif and GTK): DECODE_FILE before
 	returning it.
@@ -296,7 +511,7 @@
 	(draw_fringe_bitmap_1): Make static.
 	(get_logical_cursor_bitmap, get_logical_fringe_bitmap): New functions
 	to map from logical cursors and indicators to physical bitmaps.
-	(draw_fringe_bitmap): Resolve fringe cursor and	overlay-arrow
+	(draw_fringe_bitmap): Resolve fringe cursor and overlay-arrow
 	bitmaps using symbol names instead of bitmap numbers.
 	(update_window_fringes): Use logical indicator symbol names
 	instead of bitmap numbers for logical.  Add bitmap cache.

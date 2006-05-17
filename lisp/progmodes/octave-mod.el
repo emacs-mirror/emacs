@@ -732,7 +732,10 @@ If there is no comment already on this line, create a code-level comment
 comment (started by one comment character) otherwise.
 Point is left after the start of the comment which is properly aligned."
   (interactive)
-  (indent-for-comment)
+  (beginning-of-line)
+  (if (looking-at "^\\s-*$")
+      (insert octave-block-comment-start)
+    (indent-for-comment))
   (indent-according-to-mode))
 
 (defun octave-indent-line (&optional arg)

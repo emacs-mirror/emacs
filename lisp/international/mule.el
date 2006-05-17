@@ -1571,7 +1571,7 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 (defcustom auto-coding-alist
   '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\|xpi\\)\\'" . no-conversion)
     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\|XPI\\)\\'" . no-conversion)
-    ("\\.\\(sx[dmicw]\\|tar\\|tgz\\)\\'" . no-conversion)
+    ("\\.\\(sx[dmicw]\\|odt\\|tar\\|tgz\\)\\'" . no-conversion)
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
     ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
     ("/#[^/]+#\\'" . emacs-mule))
@@ -1588,7 +1588,10 @@ and the contents of `file-coding-system-alist'."
 		       (symbol :tag "Coding system"))))
 
 (defcustom auto-coding-regexp-alist
-  '(("^BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion))
+  '(("^BABYL OPTIONS:[ \t]*-\\*-[ \t]*rmail[ \t]*-\\*-" . no-conversion)
+    ("\\`\xFE\xFF" . utf-16be-with-signature)
+    ("\\`\xFF\xFE" . utf-16le-with-signature)
+    ("\\`\xEF\xBB\xBF" . utf-8))
   "Alist of patterns vs corresponding coding systems.
 Each element looks like (REGEXP . CODING-SYSTEM).
 A file whose first bytes match REGEXP is decoded by CODING-SYSTEM on reading.

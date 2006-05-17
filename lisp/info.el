@@ -1196,7 +1196,9 @@ a case-insensitive match is tried."
 		  (point)
 		  (if (re-search-forward "^[^* \n\t]" nil t)
 		      (match-beginning 0)
-		    (or limit (point-max)))) entries))))
+		    (or limit (point-max))))
+		 entries)
+		(forward-line 0))))
 	  ;; Insert the entries just found.
 	  (while (= (line-beginning-position 0) (1- (point)))
 	    (backward-char))
@@ -1207,10 +1209,11 @@ a case-insensitive match is tried."
 
 	  ;; Now remove duplicate entries under the same heading.
 	  (let ((seen nil)
-		(limit (point)))
+		(limit (point-marker)))
 	    (goto-char start)
-	    (while (re-search-forward "^* \\([^:\n]+:\\(:\\|[^.\n]+\\).\\)"
-				      limit 'move)
+	    (while (and (> limit (point))
+			(re-search-forward "^* \\([^:\n]+:\\(:\\|[^.\n]+\\).\\)"
+					   limit 'move))
 	      ;; Fold case straight away; `member-ignore-case' here wasteful.
 	      (let ((x (downcase (match-string 1))))
 	  	(if (member x seen)

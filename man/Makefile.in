@@ -89,7 +89,6 @@ EMACSSOURCES= \
 	${srcdir}/building.texi \
 	${srcdir}/maintaining.texi \
 	${srcdir}/abbrevs.texi \
-	${srcdir}/picture.texi \
 	${srcdir}/sending.texi \
 	${srcdir}/rmail.texi \
 	${srcdir}/dired.texi \

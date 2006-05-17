@@ -538,19 +538,20 @@ resized by dragging their header-line."
 	 (echo-keystrokes 0)
 	 (start-event-frame (window-frame (car (car (cdr start-event)))))
 	 (start-event-window (car (car (cdr start-event))))
-	 (start-nwindows (count-windows t))
 	 event mouse x left right edges wconfig growth
 	 (which-side
 	  (or (cdr (assq 'vertical-scroll-bars (frame-parameters start-event-frame)))
 	      'right)))
-    (if (one-window-p t)
-	(error "Attempt to resize sole ordinary window"))
-    (if (eq which-side 'right)
-	(if (= (nth 2 (window-edges start-event-window))
-	       (frame-width start-event-frame))
-	    (error "Attempt to drag rightmost scrollbar"))
-      (if (= (nth 0 (window-edges start-event-window)) 0)
-	  (error "Attempt to drag leftmost scrollbar")))
+    (cond
+     ((one-window-p t)
+      (error "Attempt to resize sole ordinary window"))
+     ((and (eq which-side 'right)
+	   (>= (nth 2 (window-inside-edges start-event-window))
+	       (frame-width start-event-frame)))
+      (error "Attempt to drag rightmost scrollbar"))
+     ((and (eq which-side 'left)
+	   (= (nth 0 (window-inside-edges start-event-window)) 0))
+      (error "Attempt to drag leftmost scrollbar")))
     (track-mouse
       (progn
 	;; enlarge-window only works on the selected window, so

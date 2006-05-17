@@ -293,7 +293,7 @@ null strings are always omitted from the result.  Thus:
      @result{} ("two" "words")
 @end example
 
-The result is not @samp{("" "two" "words" "")}, which would rarely be
+The result is not @code{("" "two" "words" "")}, which would rarely be
 useful.  If you need such a result, use an explicit value for
 @var{separators}:
 
@@ -355,7 +355,7 @@ practice:
 
 @defvar split-string-default-separators
 The default value of @var{separators} for @code{split-string}.  Its
-usual value is @w{@samp{"[ \f\t\n\r\v]+"}}.
+usual value is @w{@code{"[ \f\t\n\r\v]+"}}.
 @end defvar
 
 @node Modifying Strings

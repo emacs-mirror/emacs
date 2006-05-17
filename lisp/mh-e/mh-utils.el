@@ -127,13 +127,17 @@ Ignores case when searching for OLD."
 
 (defvar mh-logo-cache nil)
 
+;; Shush compiler.
+(defvar image-load-path)
+
 ;;;###mh-autoload
 (defun mh-logo-display ()
   "Modify mode line to display MH-E logo."
   (mh-do-in-gnu-emacs
-    (let ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
-          (image-load-path (mh-image-load-path-for-library
-                            "mh-e" "mh-logo.xpm" 'image-load-path)))
+    (let* ((load-path (mh-image-load-path-for-library "mh-e" "mh-logo.xpm"))
+           (image-load-path (cons (car load-path)
+                                  (when (boundp 'image-load-path)
+                                    image-load-path))))
       (add-text-properties
        0 2
        `(display ,(or mh-logo-cache
@@ -504,7 +508,7 @@ example, if your Mail directory only contains the folders +inbox,
   (mh-folder-list nil)
        => (\"inbox\" \"lists\" \"lists/mh-e\" \"outbox\")
   (mh-folder-list \"+lists\")
-       => (\"lists/mh-e\")
+       => (\"lists\" \"lists/mh-e\")
 
 Respects the value of `mh-recursive-folders-flag'. If this flag
 is nil, and the sub-folders have not been explicitly viewed, then

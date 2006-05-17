@@ -79,6 +79,18 @@ typedef unsigned long Time;
 #include <Gestalt.h>
 #endif /* not HAVE_CARBON */
 
+#ifndef USE_CG_TEXT_DRAWING
+#if USE_ATSUI && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+#define USE_CG_TEXT_DRAWING 1
+#endif
+#endif
+
+#ifndef USE_CG_DRAWING
+#if USE_ATSUI && defined (MAC_OSX)
+#define USE_CG_DRAWING 1
+#endif
+#endif
+
 typedef WindowPtr Window;
 typedef GWorldPtr Pixmap;
 
@@ -91,12 +103,6 @@ typedef GWorldPtr Pixmap;
 #define GetPixDepth(pmh) ((*(pmh))->pixelSize)
 #endif
 
-
-#ifndef USE_CG_TEXT_DRAWING
-#if USE_ATSUI && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
-#define USE_CG_TEXT_DRAWING 1
-#endif
-#endif
 
 /* Emulate XCharStruct.  */
 typedef struct _XCharStruct

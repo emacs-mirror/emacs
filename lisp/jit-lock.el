@@ -557,36 +557,44 @@ This function ensures that lines following the change will be refontified
 in case the syntax of those lines has changed.  Refontification
 will take place when text is fontified stealthily."
   (when (and jit-lock-mode (not memory-full))
-    (save-excursion
-      (with-buffer-prepared-for-jit-lock
-       ;; It's important that the `fontified' property be set from the
-       ;; beginning of the line, else font-lock will properly change the
-       ;; text's face, but the display will have been done already and will
-       ;; be inconsistent with the buffer's content.
-       (goto-char start)
-       (setq start (line-beginning-position))
+    (let ((region (font-lock-extend-region start end old-len)))
+      (save-excursion
+	(with-buffer-prepared-for-jit-lock
+	 ;; It's important that the `fontified' property be set from the
+	 ;; beginning of the line, else font-lock will properly change the
+	 ;; text's face, but the display will have been done already and will
+	 ;; be inconsistent with the buffer's content.
+	 ;; 
+	 ;; FIXME!!! (Alan Mackenzie, 2006-03-14): If start isn't at a BOL,
+	 ;; expanding the region to BOL might mis-fontify, should the BOL not
+	 ;; be at a "safe" position.
+	 (setq start (if region
+			 (car region)
+		       (goto-char start)
+		       (line-beginning-position)))
 
-       ;; If we're in text that matches a multi-line font-lock pattern,
-       ;; make sure the whole text will be redisplayed.
-       ;; I'm not sure this is ever necessary and/or sufficient.  -stef
-       (when (get-text-property start 'font-lock-multiline)
-	 (setq start (or (previous-single-property-change
-			  start 'font-lock-multiline)
-			 (point-min))))
+	 ;; If we're in text that matches a multi-line font-lock pattern,
+	 ;; make sure the whole text will be redisplayed.
+	 ;; I'm not sure this is ever necessary and/or sufficient.  -stef
+	 (when (get-text-property start 'font-lock-multiline)
+	   (setq start (or (previous-single-property-change
+			    start 'font-lock-multiline)
+			   (point-min))))
 
-       ;; Make sure we change at least one char (in case of deletions).
-       (setq end (min (max end (1+ start)) (point-max)))
-       ;; Request refontification.
-       (put-text-property start end 'fontified nil))
-      ;; Mark the change for deferred contextual refontification.
-      (when jit-lock-context-unfontify-pos
-	(setq jit-lock-context-unfontify-pos
-              ;; Here we use `start' because nothing guarantees that the
-              ;; text between start and end will be otherwise refontified:
-              ;; usually it will be refontified by virtue of being
-              ;; displayed, but if it's outside of any displayed area in the
-              ;; buffer, only jit-lock-context-* will re-fontify it.
-	      (min jit-lock-context-unfontify-pos start))))))
+	 (if region (setq end (cdr region)))
+	 ;; Make sure we change at least one char (in case of deletions).
+	 (setq end (min (max end (1+ start)) (point-max)))
+	 ;; Request refontification.
+	 (put-text-property start end 'fontified nil))
+	;; Mark the change for deferred contextual refontification.
+	(when jit-lock-context-unfontify-pos
+	  (setq jit-lock-context-unfontify-pos
+		;; Here we use `start' because nothing guarantees that the
+		;; text between start and end will be otherwise refontified:
+		;; usually it will be refontified by virtue of being
+		;; displayed, but if it's outside of any displayed area in the
+		;; buffer, only jit-lock-context-* will re-fontify it.
+		(min jit-lock-context-unfontify-pos start)))))))
 
 (provide 'jit-lock)
 
