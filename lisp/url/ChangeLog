@@ -1,3 +1,8 @@
+2006-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-handler-directory-file-name): New handler.
+	(url-file-local-copy): Plug race condition security hole.
+
 2006-03-27  Romain Francoise  <romain@orebokech.com>
 
 	* url-irc.el (url-irc-rcirc, url-irc-erc): New functions.

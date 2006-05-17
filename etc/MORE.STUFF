@@ -36,7 +36,7 @@ You might find bug-fixes or enhancements in these places.
 
  * Ada-mode: <URL:http://libre.act-europe.fr/adamode>
 
- * Battery and Info Look: <URL:ftp://ftp.ul.bawue.de/pub/purple/emacs>
+ * Battery and Info Look: <URL:http://www-cdf.fnal.gov/~sthrlnd/emacs/>
 
  * BibTeX:
    <URL:http://www.ida.ing.tu-bs.de/people/dirk/bibtex/index.html>
@@ -69,7 +69,7 @@ You might find bug-fixes or enhancements in these places.
 
  * Hideshow: <URL:http://www.glug.org/people/ttn/software/hideshow/>
 
- * Ispell: <URL:http://www.kdstevens.com/%7Estevens/ispell-page.html>
+ * Ispell: <URL:http://www.eng.utah.edu/~kstevens/ispell-page.html>
 
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 
@@ -99,7 +99,7 @@ You might find bug-fixes or enhancements in these places.
    * Scheme: <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm/r5rs.info.tar.gz>
    * LaTeX: <URL:ftp://ctan.tug.org/tex-archive/info/latex2e-help-texinfo/
        latex2e.texi> (or CTAN mirrors)
-   * Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/perl5/>
+   * Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/>
        (or CPAN mirrors)
 
 * Packages and add-ons not bundled with Emacs
@@ -170,7 +170,7 @@ Several are for Debian GNU/Linux in particular.
    <URL:http://www.emacswiki.org/cgi-bin/wiki?EmacsIRCClient>
 
  * Gnuserv:
-   <URL:http://meltin.net/hacks/emacs/>
+   <URL:http://www.hpl.hp.com/personal/ange/gnuserv/home.html>
    Enhanced emacsclient/emacsserver.  Also available from this Web
    page: eiffel-mode.el.
 
@@ -180,11 +180,11 @@ Several are for Debian GNU/Linux in particular.
    <URL:http://www.gnu.org/software/gnugo/gnugo.html>
 
  * hm--html-menus:
-   <URL:ftp://ftp.tnt.uni-hannover.de/pub/editors/xemacs/contrib>
+   <URL:ftp://sunsite.unc.edu/pub/Linux/apps/editors/emacs/>
    HTML-specific editing.  Can work with PSGML.
 
  * Hyperbole:
-   <URL:http://ftp.gnu.org/pub/gnu/hyperbole/hyperbole-4.01.tar.gz>
+   <URL:http://ftp.gnu.org/pub/gnu/hyperbole/>
    Hyperbole is an open, efficient, programmable information
    management and hypertext system.
 
@@ -249,20 +249,19 @@ Several are for Debian GNU/Linux in particular.
  * VM (View Mail): <URL:http://www.wonderworks.com/vm/> Alternative
    mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
 
- * W3: <URL:http://www.cs.indiana.edu/elisp/w3/docs.html>
+ * W3: <URL:http://savannah.gnu.org/projects/w3/>
    Web browser.  There's a W3 mail list/newsgroup
-   <URL:news://sunsite.auc.dk/emacs.w3> and a W3 development mail
-   list/newsgroup <URL:news://sunsite.auc.dk/emacs.w3.dev>.
+   <URL:http://savannah.gnu.org/mail/?group=w3>.
 
  * Wanderlust: <URL:http://www.gohome.org/wl/>
    Yet Another Message Interface on Emacsen. Wanderlust is a mail/news
    reader supporting IMAP4rev1 for emacsen.
 
- * WhizzyTex: <URL:http://pauillac.inria.fr/whizzytex/>
+ * WhizzyTex: <URL:http://cristal.inria.fr/whizzytex/>
    WhizzyTeX provides a minor mode for Emacs or XEmacs, a (bash)
    shell-script daemon and some LaTeX macros.
 
- * X-Symbol: <URL:http://x-symbol.sf.net/>
+ * X-Symbol: <URL:http://x-symbol.sourceforge.net/>
    Quasi-WYSIWYG editing of TeX & al.  (It will be improved to take
    better advantage of Emacs 21 features.)
 

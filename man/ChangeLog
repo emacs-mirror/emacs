@@ -1,3 +1,10 @@
+2006-03-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Top): Add comment about version line.
+
+	* message.texi (Top): Ditto.  Change to take named versions into
+	account.
+
 2006-03-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Posting Styles): Add x-face-file to example.
