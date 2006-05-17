@@ -691,7 +691,7 @@ in ws-last-errormessage for recovery with C-q w."
 This will only work for errors raised by WordStar mode functions."
   (interactive)
   (if ws-last-errormessage
-      (message ws-last-errormessage)
+      (message "%s" ws-last-errormessage)
     (message "No WordStar error yet.")))
 
 (defun ws-kill-eol ()

@@ -408,7 +408,8 @@
 			   ((= n 4) 'global)
 			   ((= n 5) 'save)
 			   (t 'local)))
-   (message (cond ((and (eq calc-mode-save-mode 'local) calc-embedded-info)
+   (message "%s" 
+	    (cond ((and (eq calc-mode-save-mode 'local) calc-embedded-info)
 		   "Recording mode changes with [calc-mode: ...]")
 		  ((eq calc-mode-save-mode 'edit)
 		   "Recording mode changes with [calc-edit-mode: ...]")

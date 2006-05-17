@@ -2333,10 +2333,10 @@ allowed and simply skipped)."
 		 (format "Updating %s... " (abbreviate-file-name dir))
 	       (format "Retrieving snapshot into %s... "
 		       (abbreviate-file-name dir)))))
-    (message msg)
+    (message "%s" msg)
     (vc-call-backend (vc-responsible-backend dir)
 		     'retrieve-snapshot dir name update)
-    (message (concat msg "done"))))
+    (message "%s" (concat msg "done"))))
 
 (defun vc-default-retrieve-snapshot (backend dir name update)
   (if (string= name "")

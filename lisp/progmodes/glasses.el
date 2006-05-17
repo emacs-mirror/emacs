@@ -195,6 +195,16 @@ CATEGORY is the overlay category.  If it is nil, use the `glasses' category."
 			   (looking-at glasses-uncapitalize-regexp))))
 	      (overlay-put o 'invisible t)
 	      (overlay-put o 'after-string (downcase (match-string n))))))
+        ;; Separator change
+        (unless (string= glasses-separator "_")
+          (goto-char beg)
+          (while (re-search-forward "[a-zA-Z0-9]\\(_+\\)[a-zA-Z0-9]" end t)
+            (goto-char (match-beginning 1))
+            (while (eql (char-after) ?\_)
+              (let ((o (glasses-make-overlay (point) (1+ (point)))))
+                ;; `concat' ensures the character properties won't merge
+                (overlay-put o 'display (concat glasses-separator)))
+              (forward-char))))
 	;; Parentheses
 	(when glasses-separate-parentheses-p
 	  (goto-char beg)
@@ -227,6 +237,13 @@ recognized according to the current value of the variable `glasses-separator'."
 	  (let ((n (if (match-string 1) 1 2)))
 	    (replace-match "" t nil nil n)
 	    (goto-char (match-end n))))
+        (unless (string= glasses-separator "_")
+          (goto-char (point-min))
+          (while (re-search-forward (format "[a-zA-Z0-9]\\(%s+\\)[a-zA-Z0-9]"
+                                            separator)
+                                    nil t)
+            (replace-match "_" nil nil nil 1)
+            (goto-char (match-beginning 1))))
 	(when glasses-separate-parentheses-p
 	  (goto-char (point-min))
 	  (while (re-search-forward "[a-zA-Z]_*\\( \\)\(" nil t)

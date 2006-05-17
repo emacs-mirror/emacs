@@ -1926,7 +1926,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
     ;; Output the result:
     (and (apropos-print t nil)
 	 message
-	 (message message))))
+	 (message "%s" message))))
 
 
 (defun WoMan-getpage-in-background (topic)

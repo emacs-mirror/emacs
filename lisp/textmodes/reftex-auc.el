@@ -1,10 +1,9 @@
 ;;; reftex-auc.el --- RefTeX's interface to AUCTeX
-
-;; Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.28
+;; Version: VERSIONTAG
 
 ;; This file is part of GNU Emacs.
 
@@ -20,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -76,7 +75,7 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
 
 
 (defun reftex-arg-index-tag (optional &optional prompt &rest args)
-  "Prompt for an index tag with completion.
+  "Prompt for an index tag with completion. 
 This is the name of an index, not the entry."
   (let (tag taglist)
     (setq prompt (concat (if optional "(Optional) " "")
@@ -86,8 +85,8 @@ This is the name of an index, not the entry."
         ;; Use RefTeX completion
         (progn
           (reftex-access-scan-info nil)
-          (setq taglist
-                (cdr (assoc 'index-tags
+          (setq taglist 
+                (cdr (assoc 'index-tags 
                             (symbol-value reftex-docstruct-symbol)))
                 tag (completing-read prompt (mapcar 'list taglist))))
       ;; Just ask like AUCTeX does.
@@ -132,7 +131,7 @@ argument identify one of multiple indices."
   ;; Replace AUCTeX functions with RefTeX functions.
   ;; Which functions are replaced is controlled by the variable
   ;; `reftex-plug-into-AUCTeX'.
-
+  
   (if (reftex-plug-flag 0)
       (setq LaTeX-label-function 'reftex-label)
     (setq LaTeX-label-function nil))
@@ -144,11 +143,11 @@ argument identify one of multiple indices."
   (and (reftex-plug-flag 3)
        (fboundp 'TeX-arg-cite)
        (fset 'TeX-arg-cite 'reftex-arg-cite))
-
-  (and (reftex-plug-flag 4)
+  
+  (and (reftex-plug-flag 4) 
        (fboundp 'TeX-arg-index-tag)
        (fset 'TeX-arg-index-tag 'reftex-arg-index-tag))
-  (and (reftex-plug-flag 4)
+  (and (reftex-plug-flag 4) 
        (fboundp 'TeX-arg-index)
        (fset 'TeX-arg-index 'reftex-arg-index)))
 

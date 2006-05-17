@@ -1865,7 +1865,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 
 	   ;; Anything else means the input is invalid.
 	   (t
-	    (message (format "Error parsing file %s." file))
+	    (message "Error parsing file %s." file)
 	    (throw 'abort nil))))))
     l))
 

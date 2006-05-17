@@ -1738,7 +1738,11 @@ in that case, this function acts as if `enable-local-variables' were t."
       (hack-local-variables)))
   ;; Turn font lock off and on, to make sure it takes account of
   ;; whatever file local variables are relevant to it.
-  (when (and font-lock-mode (eq (car font-lock-keywords) t))
+  (when (and font-lock-mode
+             ;; Font-lock-mode (now in font-core.el) can be ON when
+             ;; font-lock.el still hasn't been loaded.
+             (boundp 'font-lock-keywords)
+             (eq (car font-lock-keywords) t))
     (setq font-lock-keywords (cadr font-lock-keywords))
     (font-lock-mode 1))
 
@@ -3576,7 +3580,7 @@ If visiting file read-only and `view-read-only' is non-nil, enter view mode."
      (t (setq buffer-read-only (not buffer-read-only))
         (force-mode-line-update)))
     (if (vc-backend buffer-file-name)
-        (message (substitute-command-keys
+        (message "%s" (substitute-command-keys
                   (concat "File is under version-control; "
                           "use \\[vc-next-action] to check in/out"))))))
 

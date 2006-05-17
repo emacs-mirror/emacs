@@ -251,7 +251,7 @@ ali returns the string unchanged if not defined.  The same is done here."
         (if (looking-at "^$") (delete-backward-char 1))
         (buffer-substring (point-min)(point-max)))
     (error (progn
-             (message (error-message-string err))
+             (message "%s" (error-message-string err))
              alias))))
 
 (defun mh-alias-expand (alias)

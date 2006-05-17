@@ -225,6 +225,11 @@ int vms_stmlf_recfm;
    expanding file names.  This can be bound to / or \. */
 Lisp_Object Vdirectory_sep_char;
 
+#ifdef HAVE_FSYNC
+/* Nonzero means skip the call to fsync in Fwrite-region.  */
+int write_region_inhibit_fsync;
+#endif
+
 extern Lisp_Object Vuser_login_name;
 
 #ifdef WINDOWSNT
@@ -1056,6 +1061,7 @@ See also the function `substitute-in-file-name'.  */)
 #endif /* DOS_NT */
   int length;
   Lisp_Object handler, result;
+  int multibyte;
 
   CHECK_STRING (name);
 
@@ -1133,6 +1139,7 @@ See also the function `substitute-in-file-name'.  */)
 
   name = FILE_SYSTEM_CASE (name);
   nm = SDATA (name);
+  multibyte = STRING_MULTIBYTE (name);
 
 #ifdef DOS_NT
   /* We will force directory separators to be either all \ or /, so make
@@ -1298,8 +1305,7 @@ See also the function `substitute-in-file-name'.  */)
 	  if (index (nm, '/'))
 	    {
 	      nm = sys_translate_unix (nm);
-	      return make_specified_string (nm, -1, strlen (nm),
-					    STRING_MULTIBYTE (name));
+	      return make_specified_string (nm, -1, strlen (nm), multibyte);
 	    }
 #endif /* VMS */
 #ifdef DOS_NT
@@ -1311,8 +1317,7 @@ See also the function `substitute-in-file-name'.  */)
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
 	      if (strcmp (nm, SDATA (name)) != 0)
-		name = make_specified_string (nm, -1, strlen (nm),
-					      STRING_MULTIBYTE (name));
+		name = make_specified_string (nm, -1, strlen (nm), multibyte);
 	    }
 	  else
 #endif
@@ -1321,8 +1326,7 @@ See also the function `substitute-in-file-name'.  */)
 	    {
 	      char temp[] = " :";
 
-	      name = make_specified_string (nm, -1, p - nm,
-					    STRING_MULTIBYTE (name));
+	      name = make_specified_string (nm, -1, p - nm, multibyte);
 	      temp[0] = DRIVE_LETTER (drive);
 	      name = concat2 (build_string (temp), name);
 	    }
@@ -1330,8 +1334,7 @@ See also the function `substitute-in-file-name'.  */)
 #else /* not DOS_NT */
 	  if (nm == SDATA (name))
 	    return name;
-	  return make_specified_string (nm, -1, strlen (nm),
-					STRING_MULTIBYTE (name));
+	  return make_specified_string (nm, -1, strlen (nm), multibyte);
 #endif /* not DOS_NT */
 	}
     }
@@ -1443,6 +1446,7 @@ See also the function `substitute-in-file-name'.  */)
       && !newdir)
     {
       newdir = SDATA (default_directory);
+      multibyte |= STRING_MULTIBYTE (default_directory);
 #ifdef DOS_NT
       /* Note if special escape prefix is present, but remove for now.  */
       if (newdir[0] == '/' && newdir[1] == ':')
@@ -1708,8 +1712,7 @@ See also the function `substitute-in-file-name'.  */)
   CORRECT_DIR_SEPS (target);
 #endif /* DOS_NT */
 
-  result = make_specified_string (target, -1, o - target,
-                                  STRING_MULTIBYTE (name));
+  result = make_specified_string (target, -1, o - target, multibyte);
 
   /* Again look to see if the file name has special constructs in it
      and perhaps call the corresponding file handler.  This is needed
@@ -5298,7 +5301,7 @@ This does code conversion according to the value of
      Disk full in NFS may be reported here.  */
   /* mib says that closing the file will try to write as fast as NFS can do
      it, and that means the fsync here is not crucial for autosave files.  */
-  if (!auto_saving && fsync (desc) < 0)
+  if (!auto_saving && !write_region_inhibit_fsync && fsync (desc) < 0)
     {
       /* If fsync fails with EINTR, don't treat that as serious.  */
       if (errno != EINTR)
@@ -5769,6 +5772,8 @@ auto_save_error (error)
   Lisp_Object args[3], msg;
   int i, nbytes;
   struct gcpro gcpro1;
+  char *msgbuf;
+  USE_SAFE_ALLOCA;
 
   ring_bell ();
 
@@ -5778,13 +5783,15 @@ auto_save_error (error)
   msg = Fformat (3, args);
   GCPRO1 (msg);
   nbytes = SBYTES (msg);
+  SAFE_ALLOCA (msgbuf, char *, nbytes);
+  bcopy (SDATA (msg), msgbuf, nbytes);
 
   for (i = 0; i < 3; ++i)
     {
       if (i == 0)
-	message2 (SDATA (msg), nbytes, STRING_MULTIBYTE (msg));
+	message2 (msgbuf, nbytes, STRING_MULTIBYTE (msg));
       else
-	message2_nolog (SDATA (msg), nbytes, STRING_MULTIBYTE (msg));
+	message2_nolog (msgbuf, nbytes, STRING_MULTIBYTE (msg));
       Fsleep_for (make_number (1), Qnil);
     }
 
@@ -6739,6 +6746,14 @@ This variable is initialized automatically from `auto-save-list-file-prefix'
 shortly after Emacs reads your `.emacs' file, if you have not yet given it
 a non-nil value.  */);
   Vauto_save_list_file_name = Qnil;
+
+#ifdef HAVE_FSYNC
+  DEFVAR_BOOL ("write-region-inhibit-fsync", &write_region_inhibit_fsync,
+	       doc: /* *Non-nil means don't call fsync in `write-region'.
+This variable affects calls to `write-region' as well as save commands.
+A non-nil value may result in data loss!  */);
+  write_region_inhibit_fsync = 0;
+#endif
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);

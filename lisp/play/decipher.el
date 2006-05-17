@@ -600,7 +600,7 @@ you have determined the keyword."
 (defun decipher-show-alphabet ()
   "Display the current cipher alphabet in the message line."
   (interactive)
-  (message
+  (message "%s"
    (mapconcat (lambda (a)
                 (concat
                  (char-to-string (car a))

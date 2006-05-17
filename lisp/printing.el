@@ -4,7 +4,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2005/06/11 19:51:32 vinicius>
+;; Time-stamp: <2005-09-18 05:57:14 deego>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -6424,7 +6424,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
     ;; handlers
     ((quit error)
      (ding)
-     (message (error-message-string data)))))
+     (message "%s" (error-message-string data)))))
 
 
 (defun pr-interface-printify (&rest ignore)
@@ -6449,7 +6449,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
     ;; handlers
     ((quit error)
      (ding)
-     (message (error-message-string data)))))
+     (message "%s" (error-message-string data)))))
 
 
 (defun pr-interface-ps-print (&rest ignore)
@@ -6515,7 +6515,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
     ;; handlers
     ((quit error)
      (ding)
-     (message (error-message-string data)))))
+     (message "%s" (error-message-string data)))))
 
 
 (defun pr-i-ps-send ()

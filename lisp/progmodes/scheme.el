@@ -157,7 +157,7 @@
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'lisp-indent-function)
-  (set lisp-indent-function 'scheme-indent-function)
+  (setq lisp-indent-function 'scheme-indent-function)
   (setq mode-line-process '("" scheme-mode-line-process))
   (set (make-local-variable 'imenu-case-fold-search) t)
   (setq imenu-generic-expression scheme-imenu-generic-expression)

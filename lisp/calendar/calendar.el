@@ -164,35 +164,6 @@ be overridden by the value of `calendar-setup'."
   :group 'diary)
 
 ;;;###autoload
-(defcustom number-of-diary-entries 1
-  "*Specifies how many days of diary entries are to be displayed initially.
-This variable affects the diary display when the command \\[diary] is used,
-or if the value of the variable `view-diary-entries-initially' is t.  For
-example, if the default value 1 is used, then only the current day's diary
-entries will be displayed.  If the value 2 is used, then both the current
-day's and the next day's entries will be displayed.
-
-The value can also be a vector such as [0 2 2 2 2 4 1]; this value
-says to display no diary entries on Sunday, the display the entries
-for the current date and the day after on Monday through Thursday,
-display Friday through Monday's entries on Friday, and display only
-Saturday's entries on Saturday.
-
-This variable does not affect the diary display with the `d' command
-from the calendar; in that case, the prefix argument controls the
-number of days of diary entries displayed."
-  :type '(choice (integer :tag "Entries")
-		 (vector :value [0 0 0 0 0 0 0]
-			 (integer :tag "Sunday")
-			 (integer :tag "Monday")
-			 (integer :tag "Tuesday")
-			 (integer :tag "Wednesday")
-			 (integer :tag "Thursday")
-			 (integer :tag "Friday")
-			 (integer :tag "Saturday")))
-  :group 'diary)
-
-;;;###autoload
 (defcustom mark-diary-entries-in-calendar nil
   "*Non-nil means mark dates with diary entries, in the calendar window.
 The marking symbol is specified by the variable `diary-entry-marker'."
@@ -393,7 +364,7 @@ functions that move by days and weeks."
 
 For example,
 
-  (add-hook 'calendar-move-hook (lambda () (view-diary-entries 1)))
+  (add-hook 'calendar-move-hook (lambda () (diary-view-entries 1)))
 
 redisplays the diary for whatever date the cursor is moved to."
   :type 'hook
@@ -1335,6 +1306,7 @@ A negative YR is interpreted as BC; -1 being 1 BC, and so on."
 
 (defmacro calendar-for-loop (var from init to final do &rest body)
   "Execute a for loop."
+  (declare (debug (symbolp "from" form "to" form "do" body)))
   `(let ((,var (1- ,init)))
     (while (>= ,final (setq ,var (1+ ,var)))
       ,@body)))
@@ -1651,10 +1623,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
     (increment-calendar-month month year (- calendar-offset))
     (generate-calendar-window month year)
     (if (and view-diary-entries-initially (calendar-date-is-visible-p date))
-        (view-diary-entries
-         (if (vectorp number-of-diary-entries)
-             (aref number-of-diary-entries (calendar-day-of-week date))
-           number-of-diary-entries))))
+        (diary-view-entries)))
   (let* ((diary-buffer (get-file-buffer diary-file))
          (diary-window (if diary-buffer (get-buffer-window diary-buffer)))
          (split-height-threshold (if diary-window 2 1000)))
@@ -1662,7 +1631,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
         (list-calendar-holidays)))
   (run-hooks 'initial-calendar-window-hook))
 
-(autoload 'view-diary-entries "diary-lib"
+(autoload 'diary-view-entries "diary-lib"
   "Prepare and display a buffer with diary entries.
 Searches your diary file for entries that match ARG days starting with
 the date indicated by the cursor position in the displayed three-month
@@ -2272,7 +2241,7 @@ movement commands will not work correctly."
   (define-key calendar-mode-map "x"   'mark-calendar-holidays)
   (define-key calendar-mode-map "u"   'calendar-unmark)
   (define-key calendar-mode-map "m"   'mark-diary-entries)
-  (define-key calendar-mode-map "d"   'view-diary-entries)
+  (define-key calendar-mode-map "d"   'diary-view-entries)
   (define-key calendar-mode-map "D"   'view-other-diary-entries)
   (define-key calendar-mode-map "s"   'show-all-diary-entries)
   (define-key calendar-mode-map "pd"  'calendar-print-day-of-year)
@@ -2493,8 +2462,7 @@ the STRINGS are just concatenated and the result truncated."
 (defun update-calendar-mode-line ()
   "Update the calendar mode line with the current date and date style."
   (if (bufferp (get-buffer calendar-buffer))
-      (save-excursion
-        (set-buffer calendar-buffer)
+      (with-current-buffer calendar-buffer
         (setq mode-line-format
               (calendar-string-spread
                (let ((date (condition-case nil
@@ -2589,13 +2557,14 @@ ERROR is t, otherwise just returns nil."
           (list month
                 (string-to-number (buffer-substring (1+ (point)) (+ 4 (point))))
                 year))
-      (if (looking-at "\\*")
-          (save-excursion
-            (re-search-backward "[^*]")
-            (if (looking-at ".\\*\\*")
-                (list month calendar-starred-day year)
-              (if error (error "Not on a date!"))))
+      (if (and (looking-at "\\*")
+               (save-excursion
+                 (re-search-backward "[^*]")
+                 (looking-at ".\\*\\*")))
+          (list month calendar-starred-day year)
         (if error (error "Not on a date!"))))))
+
+(add-to-list 'debug-ignored-errors "Not on a date!")
 
 ;; The following version of calendar-gregorian-from-absolute is preferred for
 ;; reasons of clarity, BUT it's much slower than the version that follows it.
@@ -3071,8 +3040,7 @@ Defaults to today's date if DATE is not given."
   "Show dates on other calendars for date under the cursor."
   (interactive)
   (let* ((date (calendar-cursor-to-date t)))
-    (save-excursion
-      (set-buffer (get-buffer-create other-calendars-buffer))
+    (with-current-buffer (get-buffer-create other-calendars-buffer)
       (setq buffer-read-only nil)
       (calendar-set-mode-line
        (concat (calendar-date-string date) " (Gregorian)"))
@@ -3138,9 +3106,9 @@ Defaults to today's date if DATE is not given."
 
 (provide 'calendar)
 
-;;; Local variables:
-;;; byte-compile-dynamic: t
-;;; End:
+;; Local variables:
+;; byte-compile-dynamic: t
+;; End:
 
-;;; arch-tag: 19c61596-c8fb-4c69-bcf1-7dd739919cd8
+;; arch-tag: 19c61596-c8fb-4c69-bcf1-7dd739919cd8
 ;;; calendar.el ends here

@@ -1110,8 +1110,8 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
   "Coding system derived from the system script code.")
 
 (defun mac-add-charset-info (xlfd-charset mac-text-encoding)
-  "Function to add character sets to display with Mac fonts.
-Creates entries in `mac-charset-info-alist'.
+  "Add a character set to display with Mac fonts.
+Create an entry in `mac-charset-info-alist'.
 XLFD-CHARSET is a string which will appear in the XLFD font name
 to identify the character set.  MAC-TEXT-ENCODING is the
 correspoinding TextEncodingBase value."

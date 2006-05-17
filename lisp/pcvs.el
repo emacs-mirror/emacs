@@ -1171,7 +1171,7 @@ Full documentation is in the Texinfo file."
   (interactive)
   (if (eq last-command 'cvs-help)
       (describe-function 'cvs-mode)   ; would need minor-mode for log-edit-mode
-    (message
+    (message "%s"
      (substitute-command-keys
       "`\\[cvs-help]':help `\\[cvs-mode-add]':add `\\[cvs-mode-commit]':commit \
 `\\[cvs-mode-diff-map]':diff* `\\[cvs-mode-log]':log \

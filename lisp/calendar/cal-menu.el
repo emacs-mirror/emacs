@@ -44,7 +44,6 @@
 (defvar event)
 
 (eval-when-compile (require 'calendar))
-(require 'easymenu)
 
 (define-key calendar-mode-map [menu-bar edit] 'undefined)
 (define-key calendar-mode-map [menu-bar search] 'undefined)
@@ -323,12 +322,14 @@ ERROR is t, otherwise just returns nil."
     (calendar-cursor-to-date (calendar-current-date))
     (calendar-cursor-holidays)))
 
+(autoload 'check-calendar-holidays "holidays")
+(autoload 'diary-list-entries "diary-lib")
+
 (defun calendar-mouse-holidays ()
   "Pop up menu of holidays for mouse selected date."
   (interactive)
   (let* ((date (calendar-event-to-date))
-         (l (mapcar '(lambda (x) (list x))
-                    (check-calendar-holidays date)))
+         (l (mapcar 'list (check-calendar-holidays date)))
          (selection
           (cal-menu-x-popup-menu
            event
@@ -350,11 +351,10 @@ Any holidays are shown if `holidays-in-diary-buffer' is t."
          (diary-list-include-blanks nil)
          (diary-display-hook 'ignore)
          (diary-entries
-          (mapcar '(lambda (x) (split-string (car (cdr x)) "\^M\\|\n"))
-                  (list-diary-entries date 1)))
+          (mapcar (lambda (x) (split-string (car (cdr x)) "\^M\\|\n"))
+                  (diary-list-entries date 1)))
          (holidays (if holidays-in-diary-buffer
-                       (mapcar '(lambda (x) (list x))
-                               (check-calendar-holidays date))))
+                       (check-calendar-holidays date)))
          (title (concat "Diary entries "
                         (if diary (format "from %s " diary) "")
                         "for "
@@ -365,9 +365,7 @@ Any holidays are shown if `holidays-in-diary-buffer' is t."
            (list title
                  (append
                   (list title)
-                  (if holidays
-                      (mapcar '(lambda (x) (list (concat "     " (car x))))
-                              holidays))
+                  (mapcar (lambda (x) (list (concat "     " x))) holidays)
                   (if holidays
                       (list "--shadow-etched-in" "--shadow-etched-in"))
                   (if diary-entries

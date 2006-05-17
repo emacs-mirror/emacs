@@ -49,10 +49,7 @@ extern void srandom P_ ((unsigned int));
 #include "blockinput.h"
 
 #ifdef MAC_OS8
-/* It is essential to include stdlib.h so that this file picks up
-   the correct definitions of rand, srand, and RAND_MAX.
-   Otherwise random numbers will not work correctly.  */
-#include <stdlib.h>
+#include <sys/param.h>
 
 #ifndef subprocesses
 /* Nonzero means delete a process right away if it exits (process.c).  */

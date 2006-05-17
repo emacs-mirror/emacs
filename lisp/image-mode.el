@@ -66,7 +66,7 @@ to toggle between display as an image and display as text."
     ;; variables were cleared by kill-all-local-variables
     (setq cursor-type nil truncate-lines t))
   (run-mode-hooks 'image-mode-hook)
-  (message (concat (substitute-command-keys
+  (message "%s" (concat (substitute-command-keys
 		    "Type \\[image-toggle-display] to view the image as ")
 		   (if (get-text-property (point-min) 'display)
 		       "text" "an image") ".")))
@@ -84,7 +84,7 @@ See the command `image-mode' for more information on this mode."
     (if (get-text-property (point-min) 'display)
 	(setq cursor-type nil truncate-lines t))
     (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
-    (message (concat (substitute-command-keys
+    (message "%s" (concat (substitute-command-keys
 		      "Type \\[image-toggle-display] to view the image as ")
 		     (if (get-text-property (point-min) 'display)
 			 "text" "an image") "."))))

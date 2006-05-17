@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/11/19 22:30:34 vinicius>
+;; Time-stamp: <2005-09-18 07:27:20 deego>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -4674,7 +4674,7 @@ killed after process termination."
       (goto-char the-point)
       (if ebnf-stop-on-error
 	  (error error-msg)
-	(message error-msg)))
+	(message "%s" error-msg)))
      ;; generated output OK
      (gen-func
       nil)

@@ -1,3 +1,24 @@
+2005-09-18  D Goel  <deego@gnufans.org>
+
+
+	* mh-alias.el (mh-alias-ali): Fix `message' call: first arg
+	should be a format spec.
+	
+	* mh-print.el (mh-ps-spool-buffer, mh-ps-spool-a-msg)	
+	(mh-ps-print-msg, mh-ps-print-msg-show): Ditto.	
+
+	* mh-mime.el (mh-toggle-mh-decode-mime-flag): Ditto.
+	
+	* mh-index.el (mh-index-sequenced-messages): Ditto.
+
+
+	* mh-e.el (mh-refile-or-write-again, mh-page-msg): Ditto.
+
+	* mh-junk.el (mh-junk-blacklist, mh-junk-whitelist)
+	(mh-spamassassin-blacklist, mh-spamassassin-whitelist): Ditto.
+
+
+	
 2005-08-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* mh-customize.el: Do not use face-alias compatibility for

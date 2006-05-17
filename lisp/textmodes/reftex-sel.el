@@ -1,10 +1,9 @@
 ;;; reftex-sel.el --- the selection modes for RefTeX
-
-;; Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2440, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.28
+;; Version: VERSIONTAG
 
 ;; This file is part of GNU Emacs.
 
@@ -20,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -61,7 +60,7 @@ During a selection process, these are the local bindings.
   (when (syntax-table-p reftex-latex-syntax-table)
     (set-syntax-table reftex-latex-syntax-table))
   ;; We do not set a local map - reftex-select-item does this.
-  (run-mode-hooks 'reftex-select-label-mode-hook))
+  (run-hooks 'reftex-select-label-mode-hook))
 
 (defvar reftex-select-bib-map nil
   "Keymap used for *RefTeX Select* buffer, when selecting a BibTeX entry.
@@ -89,7 +88,7 @@ During a selection process, these are the local bindings.
         mode-name "BSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
   ;; We do not set a local map - reftex-select-item does this.
-  (run-mode-hooks 'reftex-select-bib-mode-hook))
+  (run-hooks 'reftex-select-bib-mode-hook))
 
 ;;; (defun reftex-get-offset (buf here-am-I &optional typekey toc index file)
 ;;;   ;; Find the correct offset data, like insert-docstruct would, but faster.

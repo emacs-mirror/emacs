@@ -1612,7 +1612,7 @@ narrows the buffer now."
     (error
      (unless executing-kbd-macro
        (ding))
-     (message (error-message-string err))))
+     (message "%s" (error-message-string err))))
   nil) ;Make coverage-tester happy
 
 (defun ses-create-header-string ()
@@ -1739,7 +1739,7 @@ to are recalculated first."
 	(error (setq sig hold))))
     (cond
      (sig
-      (message (error-message-string sig)))
+      (message "%s" (error-message-string sig)))
      ((consp ses--curcell)
       (message " "))
      (t

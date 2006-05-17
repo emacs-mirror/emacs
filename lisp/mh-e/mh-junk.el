@@ -63,9 +63,9 @@ For more information about using your particular spam fighting program, see:
                                (substring mh-junk-disposition 1)))
                       (t (concat "+" mh-junk-disposition)))))
       (mh-iterate-on-range msg range
-        (message (format "Blacklisting message %d..." msg))
+        (message "Blacklisting message %d..." msg)
         (funcall (symbol-function blacklist-func) msg)
-        (message (format "Blacklisting message %d...done" msg))
+        (message "Blacklisting message %d...done" msg)
         (if (not (memq msg mh-seen-list))
             (setq mh-seen-list (cons msg mh-seen-list)))
         (if dest
@@ -87,9 +87,9 @@ The `mh-junk-program' option specifies the spam program in use."
     (unless whitelist-func
       (error "Customize `mh-junk-program' appropriately"))
     (mh-iterate-on-range msg range
-      (message (format "Whitelisting message %d..." msg))
+      (message "Whitelisting message %d..." msg)
       (funcall (symbol-function whitelist-func) msg)
-      (message (format "Whitelisting message %d...done" msg))
+      (message "Whitelisting message %d...done" msg)
       (mh-refile-a-msg nil (intern mh-inbox)))
     (mh-next-msg)))
 
@@ -179,7 +179,7 @@ done by adding the following to your crontab:
         (msg-file (mh-msg-filename msg mh-current-folder))
         (sender))
     (save-excursion
-      (message (format "Reporting message %d..." msg))
+      (message "Reporting message %d..." msg)
       (mh-truncate-log-buffer)
       (call-process mh-spamassassin-executable msg-file mh-log-buffer nil
                     ;;"--report" "--remove-from-whitelist"
@@ -188,7 +188,7 @@ done by adding the following to your crontab:
           (message "Recategorizing this message as spam...")
           (call-process mh-sa-learn-executable msg-file mh-log-buffer nil
                         "--single" "--spam" "--local" "--no-rebuild"))
-      (message (format "Blacklisting message %d..." msg))
+      (message "Blacklisting message %d..." msg)
       (set-buffer (get-buffer-create mh-temp-buffer))
       (erase-buffer)
       (call-process (expand-file-name mh-scan-prog mh-progs)
@@ -200,8 +200,8 @@ done by adding the following to your crontab:
           (progn
             (setq sender (match-string 0))
             (mh-spamassassin-add-rule "blacklist_from" sender)
-            (message (format "Blacklisting message %d...done" msg)))
-        (message (format "Blacklisting message %d...not done (from my address)" msg))))))
+            (message "Blacklisting message %d...done" msg))
+        (message "Blacklisting message %d...not done (from my address)" msg)))))
 
 (defun mh-spamassassin-whitelist (msg)
   "Whitelist MSG with SpamAssassin.
@@ -230,14 +230,14 @@ See `mh-spamassassin-blacklist' for more information."
         (message "Recategorizing this message as ham...")
         (call-process mh-sa-learn-executable msg-file mh-temp-buffer nil
                       "--single" "--ham" "--local --no-rebuild"))
-      (message (format "Whitelisting message %d..." msg))
+      (message "Whitelisting message %d..." msg)
       (setq from
             (car (mh-funcall-if-exists
                   ietf-drums-parse-address (mh-get-header-field "From:"))))
       (kill-buffer nil)
       (unless (or (null from) (equal from ""))
         (mh-spamassassin-add-rule "whitelist_from" from))
-      (message (format "Whitelisting message %d...done" msg)))))
+      (message "Whitelisting message %d...done" msg))))
 
 (defun mh-spamassassin-add-rule (rule body)
   "Add a new rule to `~/.spamassassin/user_prefs'.

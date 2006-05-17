@@ -46,25 +46,10 @@ and has already been posted on the developers' list, but it is on the
 back burner waiting for a legal comment or an alternate implementation
 (around 30 lines of code).
 
+** goeran@uddeborg.se's Sep 13 crash report
+about trying to display the invalid gif file poison.gif.
+
 * BUGS
-
-** Fix recognition of shell's `dirs' command.
-
-Is his change right?
-
-Date: Wed, 29 Jun 2005 18:21:28 -0500 (CDT)
-From: kevin.gal@verizon.net
-
-When I use tcsh (which echoes command input) in a shell buffer,
-entering "M-x dirs" fails because it mistakens the echoed "dirs"
-string as the directory string to use as input when changing the
-buffers default directory.  The attached gziped patch file contains a
-fix.  The patch also binds the "dirs" command to "\e\C-m" in
-shell-mode-map (previously unbound) to make it easy to invoke.
-Finally, a test has been added to see if "shell-dirstack-query" is
-non-nil.  If so, it is not overwritten.
-
-To enable the fix, the user must set comint-process-echoes to t.
 
 ** TCP server processes do not work on Windows.
 

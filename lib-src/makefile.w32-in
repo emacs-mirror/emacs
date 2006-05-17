@@ -300,9 +300,9 @@ cleanall:	clean
 # Headers we would preprocess if we could.
 #
 ../src/config.h:	../nt/$(CONFIG_H)
-			$(CP) $(ALL_DEPS) $@
-../src/paths.h:		../nt/paths.h
-			$(CP) $(ALL_DEPS) $@
+			echo config.h has changed. Re-run configure.bat.
+			exit -1
+
 getopt.h:		getopt_.h
 			$(CP) $(ALL_DEPS) $@
 

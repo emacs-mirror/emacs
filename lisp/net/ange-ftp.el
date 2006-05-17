@@ -1641,81 +1641,75 @@ good, skip, fatal, or unknown."
 ;; on to ange-ftp-process-handle-line to deal with.
 
 (defun ange-ftp-process-filter (proc str)
-  (let ((buffer (process-buffer proc))
-	(old-buffer (current-buffer)))
+  ;; Eliminate nulls.
+  (while (string-match "\000+" str)
+    (setq str (replace-match "" nil nil str)))
 
-    ;; Eliminate nulls.
-    (while (string-match "\000+" str)
-      (setq str (replace-match "" nil nil str)))
+  ;; see if the buffer is still around... it could have been deleted.
+  (when (buffer-live-p (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
 
-    ;; see if the buffer is still around... it could have been deleted.
-    (if (buffer-name buffer)
-	(unwind-protect
-	    (progn
-	      (set-buffer (process-buffer proc))
+      ;; handle hash mark printing
+      (and ange-ftp-process-busy
+           (string-match "^#+$" str)
+           (setq str (ange-ftp-process-handle-hash str)))
+      (comint-output-filter proc str)
+      ;; Replace STR by the result of the comint processing.
+      (setq str (buffer-substring comint-last-output-start
+                                  (process-mark proc)))
+      (if ange-ftp-process-busy
+          (progn
+            (setq ange-ftp-process-string (concat ange-ftp-process-string
+                                                  str))
 
-	      ;; handle hash mark printing
-	      (and ange-ftp-process-busy
-		   (string-match "\\`#+\\'" str)
-		   (setq str (ange-ftp-process-handle-hash str)))
-	      (comint-output-filter proc str)
-	      ;; Replace STR by the result of the comint processing.
-	      (setq str (buffer-substring comint-last-output-start
-					  (process-mark proc)))
-	      (if ange-ftp-process-busy
-		  (progn
-		    (setq ange-ftp-process-string (concat ange-ftp-process-string
-							  str))
+            ;; if we gave an empty password to the USER command earlier
+            ;; then we should send a null password now.
+            (if (string-match "Password: *$" ange-ftp-process-string)
+                (process-send-string proc "\n"))))
+      (while (and ange-ftp-process-busy
+                  (string-match "\n" ange-ftp-process-string))
+        (let ((line (substring ange-ftp-process-string
+                               0
+                               (match-beginning 0)))
+              (seen-prompt nil))
+          (setq ange-ftp-process-string (substring ange-ftp-process-string
+                                                   (match-end 0)))
+          (while (string-match "\\`ftp> *" line)
+            (setq seen-prompt t)
+            (setq line (substring line (match-end 0))))
+          (if (not (and seen-prompt ange-ftp-pending-error-line))
+              (ange-ftp-process-handle-line line proc)
+            ;; If we've seen a potential error message and it
+            ;; hasn't been cancelled by a good message before
+            ;; seeing a propt, then the error was real.
+            (delete-process proc)
+            (setq ange-ftp-process-busy nil
+                  ange-ftp-process-result-line ange-ftp-pending-error-line))))
 
-		    ;; if we gave an empty password to the USER command earlier
-		    ;; then we should send a null password now.
-		    (if (string-match "Password: *$" ange-ftp-process-string)
-			(process-send-string proc "\n"))))
-	      (while (and ange-ftp-process-busy
-			  (string-match "\n" ange-ftp-process-string))
-		(let ((line (substring ange-ftp-process-string
-				       0
-				       (match-beginning 0)))
-                      (seen-prompt nil))
-		  (setq ange-ftp-process-string (substring ange-ftp-process-string
-							   (match-end 0)))
-		  (while (string-match "\\`ftp> *" line)
-                    (setq seen-prompt t)
-		    (setq line (substring line (match-end 0))))
-                  (if (not (and seen-prompt ange-ftp-pending-error-line))
-                      (ange-ftp-process-handle-line line proc)
-                    ;; If we've seen a potential error message and it
-                    ;; hasn't been cancelled by a good message before
-                    ;; seeing a propt, then the error was real.
-                    (delete-process proc)
-                    (setq ange-ftp-process-busy nil
-                          ange-ftp-process-result-line ange-ftp-pending-error-line))))
+      ;; has the ftp client finished?  if so then do some clean-up
+      ;; actions.
+      (if (not ange-ftp-process-busy)
+          (progn
+            ;; reset the xfer size
+            (setq ange-ftp-xfer-size 0)
 
-	      ;; has the ftp client finished?  if so then do some clean-up
-	      ;; actions.
-	      (if (not ange-ftp-process-busy)
-		  (progn
-		    ;; reset the xfer size
-		    (setq ange-ftp-xfer-size 0)
+            ;; issue the "done" message since we've finished.
+            (if (and ange-ftp-process-msg
+                     ange-ftp-process-verbose
+                     ange-ftp-process-result)
+                (progn
+                  (ange-ftp-message "%s...done" ange-ftp-process-msg)
+                  (ange-ftp-repaint-minibuffer)
+                  (setq ange-ftp-process-msg nil)))
 
-		    ;; issue the "done" message since we've finished.
-		    (if (and ange-ftp-process-msg
-			     ange-ftp-process-verbose
-			     ange-ftp-process-result)
-			(progn
-			  (ange-ftp-message "%s...done" ange-ftp-process-msg)
-			  (ange-ftp-repaint-minibuffer)
-			  (setq ange-ftp-process-msg nil)))
-
-		    ;; is there a continuation we should be calling?  if so,
-		    ;; we'd better call it, making sure we only call it once.
-		    (if ange-ftp-process-continue
-			(let ((cont ange-ftp-process-continue))
-			  (setq ange-ftp-process-continue nil)
-			  (ange-ftp-call-cont cont
-					      ange-ftp-process-result
-					      ange-ftp-process-result-line))))))
-	  (set-buffer old-buffer)))))
+            ;; is there a continuation we should be calling?  if so,
+            ;; we'd better call it, making sure we only call it once.
+            (if ange-ftp-process-continue
+                (let ((cont ange-ftp-process-continue))
+                  (setq ange-ftp-process-continue nil)
+                  (ange-ftp-call-cont cont
+                                      ange-ftp-process-result
+                                      ange-ftp-process-result-line))))))))
 
 (defun ange-ftp-process-sentinel (proc str)
   "When ftp process changes state, nuke all file-entries in cache."
@@ -1795,8 +1789,7 @@ good, skip, fatal, or unknown."
 
 (defun ange-ftp-gwp-start (host user name args)
   "Login to the gateway machine and fire up an ftp process."
-  (let* ((gw-user (ange-ftp-get-user ange-ftp-gateway-host))
-	 ;; It would be nice to make process-connection-type nil,
+  (let* (;; It would be nice to make process-connection-type nil,
 	 ;; but that doesn't work: ftp never responds.
 	 ;; Can anyone find a fix for that?
 	 (proc (let ((process-connection-type t))
@@ -2137,7 +2130,6 @@ suffix of the form #PORT to specify a non-default port"
       (save-excursion
 	(set-buffer (process-buffer proc))
 	(let* ((status (ange-ftp-raw-send-cmd proc "hash"))
-	       (result (car status))
 	       (line (cdr status)))
 	  (save-match-data
 	    (if (string-match ange-ftp-hash-mark-msgs line)
@@ -4484,8 +4476,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; `ange-ftp-ls' handles this.
 
 (defun ange-ftp-insert-directory (file switches &optional wildcard full)
-  (let ((short (ange-ftp-abbreviate-filename file))
-	(parsed (ange-ftp-ftp-name (expand-file-name file)))
+  (let ((parsed (ange-ftp-ftp-name (expand-file-name file)))
 	tem)
     (if parsed
 	(if (and (not wildcard)
@@ -4511,10 +4502,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (defun ange-ftp-file-name-sans-versions (file keep-backup-version)
   (let* ((short (ange-ftp-abbreviate-filename file))
 	 (parsed (ange-ftp-ftp-name short))
-	 host-type func)
+	 func)
     (if parsed
-	(setq host-type (ange-ftp-host-type (car parsed))
-	      func (cdr (assq (ange-ftp-host-type (car parsed))
+	(setq func (cdr (assq (ange-ftp-host-type (car parsed))
 			      ange-ftp-sans-version-alist))))
     (if func (funcall func file keep-backup-version)
       (ange-ftp-real-file-name-sans-versions file keep-backup-version))))

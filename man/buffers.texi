@@ -179,7 +179,7 @@ buffers that were current most recently come first.
 
   @samp{*} in the first field of a line indicates the buffer is ``modified.''
 If several buffers are modified, it may be time to save some with @kbd{C-x s}
-(@pxref{Saving}).  @samp{%} indicates a read-only buffer.  @samp{.} marks the
+(@pxref{Save Commands}).  @samp{%} indicates a read-only buffer.  @samp{.} marks the
 current buffer.  Here is an example of a buffer list:@refill
 
 @smallexample

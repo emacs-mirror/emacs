@@ -186,7 +186,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	       variant (if (> (length key-seq) 0)
 			   (prin1-to-string (viper-display-macro key-seq))
 			 "")))
-	(message message)
+	(message "%s" message)
 	(setq event (viper-read-key))
 	;;(setq event (viper-read-event))
 	(setq key
@@ -263,7 +263,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 			   (prin1-to-string
 			    (viper-display-macro key-seq))
 			 "")))
-	(message message)
+	(message "%s" message)
 	(setq event (viper-read-key))
 	;;(setq event (viper-read-event))
 	(setq key
@@ -442,7 +442,11 @@ If SCOPE is nil, the user is asked to specify the scope."
 		       scope)
 	       viper-custom-file-name))
 
-	  (message msg)
+	  ;; 2005-09-18 T06:41:22-0400 (Sunday)    D. Goel
+	  ;; From careful parsing of the above code, it looks like msg
+	  ;; couldn't be nil when we reach here. Since it is a string,
+	  ;; and a complicated one too, we might as well provide it a "%s"
+	  (message "%s" msg)
 	  ))
 
     (setq new-elt

@@ -1,3 +1,386 @@
+2005-09-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-login-prompt-regexp): Expand regexp in order
+	to cover prompts like "login as:".  Reported by Slawomir Nowaczyk
+	<slawomir.nowaczyk.847@student.lu.se>.
+
+2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-load-path): Use symbol `data-directory' instead
+	of its value, for backward compatibility with packages that bind
+	it during `find-image'.  Suggested by Katsumi Yamaoka.
+	(image-search-load-path): Handle symbols whose values are strings.
+
+2005-09-18  Romain Francoise  <romain@orebokech.com>
+
+	* calendar/diary-lib.el (mark-diary-entries): Rearrange to wrap
+	with-current-buffer form in save-excursion.
+
+2005-09-18  D Goel  <deego@gnufans.org>
+
+	* apropos.el (apropos-command): Fix `message' call: first arg
+	should be a format spec. In this and all other cases that appear
+	below and elsewhere in the source code, I made a change only when
+	two conditions were satisfied: [1] I can think of a possibility
+	that the arguments would cause an error, for example, the code is
+	question relies on extarnal variables such as filenames. [2] I was
+	sure that the arg to `message' could not have been nil in the
+	code.
+
+	* textmodes/tildify.el (tildify-region): Ditto.
+
+	* textmodes/reftex-index.el (reftex-index-change-entry)
+	(reftex-index-phrase-selection-or-word)
+	(reftex-query-index-phrase): Ditto.
+
+	* textmodes/reftex-dcr.el (reftex-echo-ref, reftex-echo-cite): Ditto.
+
+	* textmodes/org.el (org-complete, org-deadline, org-schedule)
+	(org-priority, org-table-sum): Ditto.
+
+	* textmodes/ispell.el (ispell-check-version)
+	(ispell-parse-output): Ditto.
+
+	* textmodes/flyspell.el (flyspell-mode-on)
+	(flyspell-notify-misspell, flyspell-word)
+	(flyspell-display-next-corrections): Ditto.
+
+	* textmodes/bibtex.el (bibtex-print-help-message): Ditto.
+
+	* textmodes/artist.el (artist-key-set-point-poly): Ditto.
+
+	* term/mac-win.el (mac-services-insert-text): Ditto.
+
+	* progmodes/vhdl-mode.el (vhdl-warning, vhdl-print-warnings)
+	(vhdl-hooked-abbrev, vhdl-template-insert-fun)
+	(vhdl-port-paste-testbench, vhdl-compose-new-component)
+	(vhdl-compose-configuration): Ditto.
+
+	* progmodes/sh-script.el (sh-blink, sh-show-indent)
+	(sh-set-indent, sh-learn-line-indent): Ditto.
+
+	* progmodes/ps-mode.el (ps-mode-target-column): Ditto.
+
+	* progmodes/idlwave.el (idlwave-make-tags)
+	(idlwave-scan-library-catalogs): Ditto.
+
+	* progmodes/idlw-shell.el (idlwave-shell-parse-stack-and-display): Ditto.
+
+	* progmodes/gud.el (gud-jdb-analyze-source): Ditto.
+
+	* progmodes/flymake.el (flymake-log): Ditto.
+
+	* progmodes/ebnf2ps.el (ebnf-generate-region): Ditto.
+
+	* progmodes/cmacexp.el (c-macro-expansion): Ditto.
+
+	* progmodes/ada-xref.el (ada-treat-cmd-string): Ditto.
+
+	* progmodes/ada-mode.el (ada-create-case-exception-substring)
+	(ada-justified-indent-current, ada-batch-reformat): Ditto.
+
+	* play/zone.el (zone): Ditto.
+
+	* play/landmark.el (lm-move): Ditto.
+
+	* play/decipher.el (decipher-show-alphabet): Ditto.
+
+	* net/newsticker.el (newsticker--display-jump)
+	(newsticker--display-scroll): Ditto.
+
+	* mail/rmail-spam-filter.el (rsf-add-subject-to-spam-list)
+	(rsf-add-sender-to-spam-list, rsf-add-region-to-spam-list): Ditto.
+
+	* mail/feedmail.el (feedmail-dump-message-to-queue): Ditto.
+
+	* eshell/esh-proc.el (eshell-remove-process-entry): Ditto.
+
+	* emulation/ws-mode.el (ws-last-error): Ditto.
+
+	* emulation/viper-macs.el (ex-map-read-args, ex-unmap-read-args)
+	(viper-record-kbd-macro): Ditto.
+
+	* emulation/viper-ex.el (ex-pwd, viper-info-on-file): Ditto.
+
+	* emacs-lisp/lisp-mnt.el (lm-report-bug): Ditto.
+
+	* emacs-lisp/find-func.el (find-function-noselect): Ditto.
+
+	* calendar/timeclock.el (timeclock-status-string)
+	(timeclock-workday-remaining-string)
+	(timeclock-workday-elapsed-string)
+	(timeclock-when-to-leave-string): Ditto.
+
+	* calendar/icalendar.el (icalendar--convert-ical-to-diary): Ditto.
+
+	* calc/calc-units.el (calc-enter-units-table): Ditto.
+
+	* calc/calc-mode.el (calc-mode-record-mode): Ditto.
+
+	* woman.el (woman-mini-help): Ditto.
+
+	* wdired.el (wdired-change-to-wdired-mode): Ditto.
+
+	* vc.el (vc-retrieve-snapshot): Ditto.
+
+	* strokes.el (strokes-read-stroke, strokes-read-complex-stroke): Ditto.
+
+	* startup.el (display-startup-echo-area-message): Ditto.
+
+	* simple.el (set-goal-column): Ditto.
+
+	* ses.el (ses-command-hook, ses-recalculate-cell): Ditto.
+
+	* server.el (server-process-filter): Ditto.
+
+	* printing.el (pr-interface-txt-print, pr-interface-printify)
+	(pr-interface-ps): Ditto.
+
+	* pcvs.el (cvs-help): Ditto.
+
+	* log-edit.el (log-edit, log-edit-mode-help): Ditto.
+
+	* iswitchb.el (iswitchb-possible-new-buffer): Ditto.
+
+	* isearch.el (isearch-edit-string): Ditto.
+
+	* image-mode.el (image-mode, image-minor-mode): Ditto.
+
+	* ibuf-macs.el (define-ibuffer-filter): Ditto.
+
+	* hi-lock.el (hi-lock-find-patterns): Ditto.
+
+	* files.el (toggle-read-only): Ditto.
+
+	* ediff-util.el (ediff-copy-diff)
+	(ediff-write-merge-buffer-and-maybe-kill): Ditto.
+
+	* echistory.el (Electric-history-undefined): Ditto.
+
+	* dnd.el (dnd-insert-text): Ditto.
+
+	* dired-aux.el (dired-query): Ditto.
+
+	* desktop.el (desktop-restore-file-buffer)
+	(desktop-lazy-create-buffer): Ditto.
+
+	* bookmark.el (bookmark-bmenu-locate): Ditto.
+
+	* obsolete/fast-lock.el (@top-level): Ditto in the macro
+	definition of `with-temp-message'.
+
+	* pcomplete.el (pcomplete--help): Fix `message' format spec. Not
+	having a %s would be weird, though not technically wrong.
+
+2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-add-charset-info): Doc fix.
+
+2005-09-17  Romain Francoise  <romain@orebokech.com>
+
+	* shell.el (shell-resync-dirs): Handle echoing processes more
+	reliably.  Don't insert resync command if `comint-process-echoes'
+	is non-nil.
+
+2005-09-17  Magnus Henoch  <mange@freemail.hu>
+
+	* textmodes/ispell.el (ispell-aspell-supports-utf8): New variable.
+	(ispell-check-version): Set ispell-aspell-supports-utf8 to t for
+	aspell versions >= 0.60.
+	(ispell-valid-dictionary-list): Call ispell-find-aspell-dictionaries
+	only if ispell-aspell-supports-utf8 is non-nil.
+
+2005-09-17  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* progmodes/scheme.el (scheme-mode-variables): Use setq to assign
+	buffer-local value to lisp-indent-function.
+
+2005-09-17  Milan Zamazal  <pdm@zamazal.org>
+
+	* progmodes/glasses.el (glasses-make-readable): If
+	glasses-separator differs from underscore, put appropriate
+	overlays over underscore characters.
+	(glasses-convert-to-unreadable): If glasses-separator differs from
+	underscore, try to convert glasses-separator characters to
+	underscores.
+
+2005-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/diary-lib.el (mark-diary-entries): Don't move point.
+	Use with-syntax-table and dolist.
+
+2005-09-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex-auc.el:
+	* textmodes/reftex-cite.el:
+	* textmodes/reftex-dcr.el:
+	* textmodes/reftex-global.el:
+	* textmodes/reftex-parse.el:
+	* textmodes/reftex-ref.el:
+	* textmodes/reftex-sel.el:
+	* textmodes/reftex-toc.el:
+	* textmodes/reftex-vars.el:
+	* textmodes/reftex.el: Small changes to remove compiler warnings.
+
+	* textmodes/reftex-index.el: Likewise.
+	(reftex-query-index-phrase): More efficient use of markers.
+
+2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-load-path): New variable.
+	(image-search-load-path): New function.
+	(find-image): Search for images in `image-load-path'.
+
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* follow.el: Change Maintainer field.
+
+2005-09-15  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-save-file-modes): New option.
+	(recentf-save-list): Use it.
+
+2005-09-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-eol-desc, mode-line-coding-system-map)
+	(mode-line-mule-info, mode-line-modified): Move bindings from
+	mouse-3 to mouse-1.
+
+2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (sendmail-user-agent-compose): Revert last change.
+
+2005-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
+	Use with-current-buffer.
+	(ange-ftp-gwp-start): Remove unused var `gw-user'.
+	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
+	(ange-ftp-insert-directory): Remove unused var `short'.
+	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
+
+	* pcvs-defs.el (cvs-version): Recognize CVSNT version string.
+	(cvs-execute-single-dir): Change default: cvs-1.9 is ancient.
+
+	* calendar/cal-menu.el: Don't require easymenu, since we don't use it.
+	(check-calendar-holidays, diary-list-entries): Autoload.
+	Otherwise `emacs -q' followed by "mouse-2 -> diary entries" burps.
+	(calendar-mouse-holidays, calendar-mouse-view-diary-entries): Simplify.
+
+	* calendar/diary-lib.el (diary-show-all-entries): Fix last change,
+	which mistakenly removed a call to display-buffer.
+
+2005-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* obsolete/iso-insert.el: Move to obsolete/ from international/.
+
+2005-09-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el
+	(hs-hide-comments-when-hiding-all): Remove autoload cookie.
+	(hs-allow-nesting): New user var.
+	(hs-discard-overlays): Skip "internal" overlays if nesting allowed.
+	(hs-hide-block-at-point): When nesting allowed,
+	if there is already an overlay in place, delete it.
+	(hs-safety-is-job-n): Delete func; remove call sites.
+	(hs-hide-level-recursive): Don't pre-clean if nesting allowed.
+	(hs-overlay-at): New func.
+	(hs-already-hidden-p, hs-show-block): Use it.
+	(hs-hide-all): Don't pre-clean if nesting allowed.
+	(hs-show-all): Temporarily disallow
+	nesting around call to `hs-discard-overlays'.
+
+2005-09-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-major-mode-menu): Make `prefix' optional.
+	Delete unused local var.
+
+2005-09-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (describe-categories): "?\ " -> "?\s".
+	(help-do-arg-highlight): Recognize also ARG-n, as in
+	`move-to-left-margin' (ARG+n is already recognized).  Simplify.
+
+	* international/codepage.el (dos-unsupported-char-glyph):
+	* net/newsticker.el (tool-bar-map, w3-mode-map)
+	(w3m-minor-mode-map):
+	* progmodes/vhdl-mode.el (conf-alist, conf-entry, conf-key)
+	(ent-alist):
+	* textmodes/reftex-vars.el (reftex-tables-dirty): Add defvars.
+
+2005-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-push-theme): Handle the case where a symbol is
+	bound but face properties have not yet been assigned.
+
+	* mail/sendmail.el (mail): Use new buffer if `noerase' is `new'.
+	Fix behavior if noerase is `t' and there is no mail buffer.
+
+	* simple.el (sendmail-user-agent-compose): Use a new mail buffer
+	if `continue' is nil, rather than signal an error.
+
+2005-09-12  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-keywords): Add autoload.
+
+	* help-fns.el (describe-variable): Rearrange to put source link
+	in a predictable place.
+
+	* net/newsticker.el: New file.
+
+2005-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (calendar-for-loop): Add edebug info.
+	(calendar-basic-setup): Use the new nil arg.
+	(number-of-diary-entries): Move to diary-lib.el.
+
+	* calendar/diary-lib.el: Use with-current-buffer, match-string.
+	(diary-list-entries): Use with-syntax-table and dolist.
+	Rename from list-diary-entries.
+	Use number-of-diary-entries if `number' is nil.
+	(diary, diary-view-entries): Use this new name and new nil arg value.
+	(number-of-diary-entries): Move from calendar.el.
+	(diary-unhide-everything): New function.
+	(include-other-diary-files, fancy-diary-display)
+	(diary-show-all-entries, make-diary-entry): Use it.
+	(diary-mail-entries): Use buffer-string.
+	(mark-diary-entries): Fix long standing paren typo.
+	(diary-sexp-entry): Use count-lines.
+	(make-diary-entry): Avoid `previous-line'.
+	(diary-mode-map): New var.
+	(diary-mode): Redraw cal after saving.  Setup header-line.
+	(fancy-diary-display-mode): Use local-set-key.
+
+	* startup.el (command-line): Try calling various terminal-init-foo-bar
+	functions by stripping hyphenated suffixes from $TERM.
+
+	* files.el (normal-mode): Check boundness of font-lock-keywords.
+
+2005-09-12  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el: Don't decide a file's directory
+	until the user actually tries to go there.
+	(compilation-next-error-function):
+	Pass compilation-find-file the directory from the file-struct.
+	(compilation-internal-error-properties): Separate local FILE-STRUCT
+	from FILE.  Doc the args better.  Rename arg FMT to FMTS.
+	(compilation-find-file): Arg DIR renamed to DIRECTORY.
+	Expand it, and if nil, use default-directory.
+	(compilation-get-file-structure): Don't mix specified directory
+	with default directory.  Put specified directory into
+	file-struct.  Don't make the file name absolute.
+
+	* progmodes/compile.el (compilation-error-regexp-alist): Doc fix.
+	(compile-command): Add autoload.
+	(compilation-disable-input): Add autoload.
+
+2005-09-11  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* time-stamp.el: Mention variable `time-stamp-pattern' in doc
+	strings of the variables it can override.
+	(time-stamp): New (as yet undocumented) time-stamp-format escapes
+	%Q and %q, for fully-qualified domain name and unqualified host name.
+
 2005-09-11  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/authors.el (authors-aliases): Update list.
@@ -15,14 +398,14 @@
 
 2005-09-10  Pascal Dupuis  <Pascal.Dupuis@esat.kuleuven.be>  (tiny change)
 
-	* progmodes/octave-inf.el (inferior-octave-startup): Resync
-	current dir at the end.
+	* progmodes/octave-inf.el (inferior-octave-startup):
+	Resync current dir at the end.
 
 2005-09-10  Emilio C. Lopes  <eclig@gmx.net>
 
-	* woman.el (woman-topic-at-point-default): Renamed to
-	woman-use-topic-at-point-default.
-	(woman-topic-at-point): Renamed to woman-use-topic-at-point.
+	* woman.el (woman-topic-at-point-default):
+	Rename to woman-use-topic-at-point-default.
+	(woman-topic-at-point): Rename to woman-use-topic-at-point.
 	(woman-file-name): Reflect renames above.  Automatically use the
 	word at point as topic if woman-use-topic-at-point is non-nil.
 	Otherwise offer it as default but don't insert it in the
@@ -40,28 +423,26 @@
 	(menu-bar-non-minibuffer-window-p): New functions.
 	("Split Window", "Save As..."): Use them.
 	("Postscript Print Buffer (B+W)", "Postscript Print Buffer")
-	("Print Buffer", "Truncate Long Lines in this Buffer"):  Use
-	menu-bar-menu-frame-live-and-visible-p.
+	("Print Buffer", "Truncate Long Lines in this Buffer"):
+	Use menu-bar-menu-frame-live-and-visible-p.
 	("Save Buffer", "Insert File", "Open Directory...")
-	("Open File...", "Visit New File..."): Use
-	menu-bar-non-minibuffer-window-p.
-	(kill-this-buffer-enabled-p, dired <menu-enable>): Use
-	menu-bar-non-minibuffer-window-p.
+	("Open File...", "Visit New File..."):
+	Use menu-bar-non-minibuffer-window-p.
+	(kill-this-buffer-enabled-p, dired <menu-enable>):
+	Use menu-bar-non-minibuffer-window-p.
 
 2005-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el (all): Don't complain about fringe-related
 	built-ins if fringes are not supported.  Ditto about
-	selection-related built-ins.  Fix the test for GTK-related
-	built-ins.
+	selection-related built-ins.  Fix the test for GTK-related built-ins.
 
 	* menu-bar.el ("Split Window", "Postscript Print Buffer (B+W)")
 	("Postscript Print Buffer", "Print Region", "Save As...")
 	("Save", "Insert File...", "Open Directory...")
 	("Open File...", "Visit New File..."")
 	("Truncate Long Lines in this Buffer"): Don't look at
-	menu-updating-frame if this display does not support multiple
-	frames.
+	menu-updating-frame if this display does not support multiple frames.
 
 2005-09-09  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
 
@@ -93,15 +474,6 @@
 	* font-lock.el (font-lock-support-mode): Doc fix.
 
 	* descr-text.el (describe-property-list): Handle non-symbol prop names.
-
-2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
-	Use with-current-buffer.
-	(ange-ftp-gwp-start): Remove unused var `gw-user'.
-	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
-	(ange-ftp-insert-directory): Remove unused var `short'.
-	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
 
 2005-08-30  Richard M. Stallman  <rms@gnu.org>
 
@@ -138,6 +510,13 @@
 	(recentf-open-files): Use it.
 	(recentf-open-file-with-key): New command.
 
+2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buff-menu.el (Buffer-menu-sort-by-column): New function.
+	Suggested by Kim F. Storm.
+	(Buffer-menu-sort-button-map): Global keymap for sort buttons.
+	(Buffer-menu-make-sort-button): Use global keymap.
+
 2005-09-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* woman.el (top): Remap `man' command by `woman' in `woman-mode-map'.
@@ -162,13 +541,6 @@
 
 	* calc/calc-poly.el (math-expand-term): Multiply out any powers
 	when in matrix mode.
-
-2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
-
-	* buff-menu.el (Buffer-menu-sort-by-column): New function.
-	Suggested by Kim F. Storm.
-	(Buffer-menu-sort-button-map): Global keymap for sort buttons.
-	(Buffer-menu-make-sort-button): Use global keymap.
 
 2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 

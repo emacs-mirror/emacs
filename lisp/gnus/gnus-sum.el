@@ -9561,7 +9561,8 @@ groups."
 	    (save-excursion
 	      (save-restriction
 		(message-narrow-to-head)
-		(let ((head (buffer-string))
+		(let ((head (buffer-substring-no-properties
+			     (point-min) (point-max)))
 		      header)
 		  (with-temp-buffer
 		    (insert (format "211 %d Article retrieved.\n"

@@ -1006,6 +1006,11 @@ be set in `.emacs' instead."
      (fboundp 'find-image)
      (display-graphic-p)
      (let* ((data-directory (nnheader-find-etc-directory "images/gnus"))
+	    (image-load-path (cond (data-directory
+				    (list data-directory))
+				   ((boundp 'image-load-path)
+				    (symbol-value 'image-load-path))
+				   (t load-path)))
 	    (image (find-image
 		    `((:type xpm :file "gnus.xpm"
 			     :color-symbols

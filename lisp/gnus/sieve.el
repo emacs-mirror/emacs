@@ -245,7 +245,7 @@ Used to bracket operations which move point in the sieve-buffer."
   (if (eq last-command 'sieve-help)
       ;; would need minor-mode for log-edit-mode
       (describe-function 'sieve-mode)
-    (message (substitute-command-keys
+    (message "%s" (substitute-command-keys
 	      "`\\[sieve-edit-script]':edit `\\[sieve-activate]':activate `\\[sieve-deactivate]':deactivate `\\[sieve-remove]':remove"))))
 
 (defun sieve-bury-buffer (buf &optional mainbuf)

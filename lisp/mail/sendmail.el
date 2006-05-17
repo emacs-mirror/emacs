@@ -1591,8 +1591,13 @@ is inserted.
 The normal hook `mail-setup-hook' is run after the message is
 initialized.  It can add more default fields to the message.
 
-When calling from a program, the first argument if non-nil says
-not to erase the existing contents of the `*mail*' buffer.
+The first argument, NOERASE, determines what to do when there is
+an existing modified `*mail*' buffer.  If NOERASE is nil, the
+existing mail buffer is used, and the user is prompted whether to
+keep the old contents or to erase them.  If NOERASE has the value
+`new', a new mail buffer will be created instead of using the old
+one.  Any other non-nil value means to always select the old
+buffer without erasing the contents.
 
 The second through fifth arguments,
  TO, SUBJECT, IN-REPLY-TO and CC, specify if non-nil
@@ -1649,7 +1654,14 @@ The seventh argument ACTIONS is a list of actions to take
 ;;;		   (file-exists-p buffer-auto-save-file-name))
 ;;;	      (message "Auto save file for draft message exists; consider M-x mail-recover"))
 ;;;          t))
-  (pop-to-buffer "*mail*")
+
+  (if (eq noerase 'new)
+      (pop-to-buffer (generate-new-buffer "*mail*"))
+    (and noerase
+	 (not (get-buffer "*mail*"))
+	 (setq noerase nil))
+    (pop-to-buffer "*mail*"))
+
   ;; Avoid danger that the auto-save file can't be written.
   (let ((dir (expand-file-name
 	      (file-name-as-directory mail-default-directory))))
@@ -1664,7 +1676,8 @@ The seventh argument ACTIONS is a list of actions to take
   ;; (in case the user has actually visited a file *mail*).
 ;  (set-visited-file-name nil)
   (let (initialized)
-    (and (not noerase)
+    (and (not (and noerase
+		   (not (eq noerase 'new))))
 	 (if buffer-file-name
 	     (if (buffer-modified-p)
 		 (when (y-or-n-p "Buffer has unsaved changes; reinitialize it and discard them? ")

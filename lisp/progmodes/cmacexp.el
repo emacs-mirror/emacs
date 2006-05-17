@@ -346,13 +346,13 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 		    (format "\n#line %d \"%s\"\n" startlinenum filename)))
 
 	  ;; Call the preprocessor.
-	  (if display (message mymsg))
+	  (if display (message "%s" mymsg))
 	  (setq exit-status
 		(call-process-region 1 (point-max)
 				     shell-file-name
 				     t (list t tempname) nil "-c"
 				     cppcommand))
-	  (if display (message (concat mymsg "done")))
+	  (if display (message "%s" (concat mymsg "done")))
 	  (if (= (buffer-size) 0)
 	      ;; Empty output is normal after a fatal error.
 	      (insert "\nPreprocessor produced no output\n")

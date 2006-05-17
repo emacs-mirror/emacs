@@ -38,11 +38,14 @@
   "*Name or full path of the cvs executable.")
 
 (defvar cvs-version
+  ;; With the divergence of the CVSNT codebase and version numbers, this is
+  ;; not really good any more.
   (ignore-errors
     (with-temp-buffer
       (call-process cvs-program nil t nil "-v")
       (goto-char (point-min))
-      (when (re-search-forward "(CVS) \\([0-9]+\\)\\.\\([0-9]+\\)" nil t)
+      (when (re-search-forward "(CVS\\(NT\\)?) \\([0-9]+\\)\\.\\([0-9]+\\)"
+                               nil t)
 	(cons (string-to-number (match-string 1))
 	      (string-to-number (match-string 2))))))
   "*Version of `cvs' installed on your system.
@@ -490,8 +493,11 @@ It is expected to call the function.")
 ;; cvs-1.10 and above can take file arguments in other directories
 ;; while others need to be executed once per directory
 (defvar cvs-execute-single-dir
-  (if (and (consp cvs-version)
-	    (or (>= (cdr cvs-version) 10) (> (car cvs-version) 1)))
+  (if (or (null cvs-version)
+          (or (>= (cdr cvs-version) 10) (> (car cvs-version) 1)))
+      ;; Supposedly some recent versions of CVS output some directory info
+      ;; as they recurse downthe tree, but it's not good enough in the case
+      ;; where we run "cvs status foo bar/foo".
       '("status")
     t)
   "Whether cvs commands should be executed a directory at a time.
@@ -506,7 +512,7 @@ Sadly, even with a new cvs executable, if you connect to an older cvs server
 a case the sanity check made by pcl-cvs fails and you will have to manually
 set this variable to t (until the cvs server is upgraded).
 When the above problem occurs, pcl-cvs should (hopefully) catch cvs' error
-message and replace it with a message tell you to change this variable.")
+message and replace it with a message telling you to change this variable.")
 
 ;;
 (provide 'pcvs-defs)

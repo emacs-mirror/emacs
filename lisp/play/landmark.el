@@ -1473,7 +1473,7 @@ After this limit is reached, lm-random-move is called to push him out of it."
   (lm-plot-square (lm-point-square) 1)
   (incf lm-number-of-moves)
   (if lm-output-moves
-      (message (format "Moves made: %d" lm-number-of-moves))))
+      (message "Moves made: %d" lm-number-of-moves)))
 
 
 (defun lm-random-move ()

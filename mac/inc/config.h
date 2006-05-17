@@ -46,11 +46,10 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if using `getloadavg.c'. */
 /* #undef C_GETLOADAVG */
 
-/* Define C_SWITCH_X_SITE to contain any special flags your compiler
-   may need to deal with X Windows.  For instance, if you've defined
-   HAVE_X_WINDOWS above and your X include files aren't in a place
-   that your compiler can find on its own, you might want to add
-   "-I/..." or something similar.  */
+/* Define C_SWITCH_X_SITE to contain any special flags your compiler may need
+   to deal with X Windows. For instance, if you've defined HAVE_X_WINDOWS
+   above and your X include files aren't in a place that your compiler can
+   find on its own, you might want to add "-I/..." or something similar. */
 /* #undef C_SWITCH_X_SITE */
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
@@ -68,6 +67,10 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to the options passed to configure. */
 #define EMACS_CONFIG_OPTIONS ""
+
+/* Define to 1 if the `getloadavg' function needs to be run setuid or setgid.
+   */
+/* #undef GETLOADAVG_PRIVILEGED */
 
 /* Define to 1 if the `getpgrp' function requires zero arguments. */
 /* #undef GETPGRP_VOID */
@@ -103,6 +106,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the `bzero' function. */
 /* #define HAVE_BZERO */
+
+/* Define to 1 if CancelMenuTracking is available (Mac OSX). */
+/* #undef HAVE_CANCELMENUTRACKING */
 
 /* Define to 1 if you are using the Carbon API on Mac OS X. */
 /* #undef HAVE_CARBON */
@@ -196,6 +202,12 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `getloadavg' function. */
 /* #undef HAVE_GETLOADAVG */
 
+/* Define to 1 if you have the <getopt.h> header file. */
+/* #undef HAVE_GETOPT_H */
+
+/* Define to 1 if you have the `getopt_long_only' function. */
+/* #undef HAVE_GETOPT_LONG_ONLY */
+
 /* Define to 1 if you have the `getpagesize' function. */
 /* #undef HAVE_GETPAGESIZE */
 
@@ -219,6 +231,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the `getwd' function. */
 #define HAVE_GETWD 1
+
+/* Define to 1 if you have the `get_current_dir_name' function. */
+/* #undef HAVE_GET_CURRENT_DIR_NAME */
 
 /* Define to 1 if you have the ungif library (-lungif). */
 /* #undef HAVE_GIF */
@@ -509,7 +524,7 @@ Boston, MA 02110-1301, USA.  */
 /* #undef HAVE_SETSID */
 
 /* Define to 1 if you have the `setsockopt' function. */
-/* #undefine HAVE_SETSOCKOPT */
+/* #undef HAVE_SETSOCKOPT */
 
 /* Define to 1 if you have the `shutdown' function. */
 /* #undef HAVE_SHUTDOWN */
@@ -586,7 +601,7 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_SYS_PARAM_H 1
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
-/* #undefine HAVE_SYS_RESOURCE_H */
+/* #undef HAVE_SYS_RESOURCE_H */
 
 /* Define to 1 if you have the <sys/select.h> header file. */
 /* #undef HAVE_SYS_SELECT_H */
@@ -862,6 +877,10 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define for large files, on AIX-style hosts. */
 /* #undef _LARGE_FILES */
+
+/* Define to rpl_ if the getopt replacement functions and variables should be
+   used. */
+/* #undef __GETOPT_PREFIX */
 
 /* Define like PROTOTYPES; this can be used by system headers. */
 /* #undef __PROTOTYPES */

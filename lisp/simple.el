@@ -3668,9 +3668,18 @@ The goal column is stored in the variable `goal-column'."
         (setq goal-column nil)
         (message "No goal column"))
     (setq goal-column (current-column))
-    (message (substitute-command-keys
-	      "Goal column %d (use \\[set-goal-column] with an arg to unset it)")
-	     goal-column))
+    ;; The older method below can be erroneous if `set-goal-column' is bound
+    ;; to a sequence containing %
+    ;;(message (substitute-command-keys
+    ;;"Goal column %d (use \\[set-goal-column] with an arg to unset it)")
+    ;;goal-column)
+    (message "%s"
+	     (concat 
+	      (format "Goal column %d " goal-column)
+	      (substitute-command-keys
+	       "(use \\[set-goal-column] with an arg to unset it)")))
+    
+    )
   nil)
 
 

@@ -1,3 +1,34 @@
+2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Defining Images): Updated documentation for
+	`image-load-path'.
+
+2005-09-17  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Images): Clean up previous change.
+
+2005-09-16  Romain Francoise  <romain@orebokech.com>
+
+	* elisp.texi: Specify GFDL version 1.2.
+
+	* doclicense.texi (GNU Free Documentation License): Update to
+	version 1.2.
+
+2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Defining Images): Document `image-load-path'.
+
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* objects.texi (Printed Representation): Minor cleanup.
+	(Box Diagrams): Minor fix.
+	(Cons Cell Type): Move (...) index item here.
+	(Box Diagrams): From here.
+	(Array Type): Minor fix.
+	(Type Predicates): Delete index "predicates".
+	(Hash Table Type): Clarify xref.
+	(Dotted Pair Notation): Minor fix.
+
 2005-09-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Saving Buffers): Fix typo.

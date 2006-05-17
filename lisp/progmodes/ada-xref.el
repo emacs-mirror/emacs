@@ -325,7 +325,7 @@ replaced by the name including the extension."
       ;; Check if there is an environment variable with the same name
       (if (null value)
 	  (if (not (setq value (getenv name)))
-	      (message (concat "No environment variable " name " found"))))
+	      (message "%s" (concat "No environment variable " name " found"))))
 
       (cond
        ((null value)

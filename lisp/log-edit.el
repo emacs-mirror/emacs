@@ -331,7 +331,7 @@ If BUFFER is non-nil `log-edit' will jump to that buffer, use it to edit the
     (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
     (when setup (run-hooks 'log-edit-hook))
     (goto-char (point-min)) (push-mark (point-max))
-    (message (substitute-command-keys
+    (message "%s" (substitute-command-keys
 	      "Press \\[log-edit-done] when you are done editing."))))
 
 (define-derived-mode log-edit-mode text-mode "Log-Edit"
@@ -426,7 +426,7 @@ To select default log text, we:
   (interactive)
   (if (eq last-command 'log-edit-mode-help)
       (describe-function major-mode)
-    (message
+    (message "%s"
      (substitute-command-keys
       "Type `\\[log-edit-done]' to finish commit.  Try `\\[describe-function] log-edit-done' for more help."))))
 

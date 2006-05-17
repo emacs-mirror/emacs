@@ -566,7 +566,7 @@ in your .emacs file.
 	   (interactive-p))
       (let ((binding (where-is-internal 'flyspell-auto-correct-word
 					nil 'non-ascii)))
-	(message
+	(message "%s"
 	 (if binding
 	     (format "Welcome to flyspell. Use %s or Mouse-2 to correct words."
 		     (key-description binding))
@@ -942,7 +942,7 @@ Mostly we check word delimiters."
 			    (sort (car (cdr (cdr poss))) 'string<)
 			  (car (cdr (cdr poss)))))))
     (if flyspell-issue-message-flag
-	(message (format "mispelling `%s'  %S" word replacements)))))
+	(message "mispelling `%s'  %S" word replacements))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-word-search-backward ...                                */
@@ -1090,7 +1090,7 @@ Mostly we check word delimiters."
 			      (if flyspell-highlight-flag
 				  (flyspell-highlight-duplicate-region
 				   start end poss)
-				(message (format "duplicate `%s'" word)))
+				(message "duplicate `%s'" word))
 			      nil)
 			     (t
 			      (setq flyspell-word-cache-result nil)
@@ -1679,7 +1679,7 @@ misspelled words backwards."
       (setq pos (cdr pos)))
     (if (fboundp 'display-message)
 	(display-message 'no-log string)
-      (message string))))
+      (message "%s" string))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-abbrev-table ...                                        */

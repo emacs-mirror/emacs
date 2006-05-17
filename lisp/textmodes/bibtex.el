@@ -3007,7 +3007,7 @@ entry (for example, the year parts of the keys)."
 					  (cdr field-list))
 				  t)))
       (if comment
-          (message (nth 1 comment))
+          (message "%s" (nth 1 comment))
         (message "No comment available")))))
 
 (defun bibtex-make-field (field &optional move interactive)

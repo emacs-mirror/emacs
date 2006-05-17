@@ -4162,7 +4162,7 @@ If optional argument THIS-IS-LAST-POINT is non-nil, this point is the last."
 	  (setq artist-key-is-drawing t)
 
 	  ;; Feedback
-	  (message (substitute-command-keys
+	  (message "%s" (substitute-command-keys
 		    (concat "First point set. "
 			    "Set next with \\[artist-key-set-point], "
 			    "set last with C-u \\[artist-key-set-point]"))))

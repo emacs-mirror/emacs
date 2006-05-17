@@ -340,6 +340,7 @@ This can be an \"!\" or the \"n\" in \"ifndef\".")
 
 ;; Fontification variables:
 
+;;;###autoload
 (defvar font-lock-keywords nil
   "A list of the keywords to highlight.
 There are two kinds of values: user-level, and compiled.

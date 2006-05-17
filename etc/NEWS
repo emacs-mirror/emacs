@@ -618,6 +618,12 @@ controls whether or not the function `make-auto-save-file-name' will
 attempt to construct a unique auto-save name (e.g. for remote files).
 
 +++
+*** The new option `write-region-inhibit-fsync' disables calls to fsync
+in `write-region'.  This can be useful on laptops to avoid spinning up
+the hard drive upon each file save.  Enabling this variable may result
+in data loss, use with care.
+
++++
 *** If the user visits a file larger than `large-file-warning-threshold',
 Emacs asks for confirmation.
 
@@ -1477,6 +1483,14 @@ colors as on X.
 *** There's a new support for colors on `rxvt' terminal emulator.
 
 * New Modes and Packages in Emacs 22.1
+
+---
+** Newsticker is now part of the Emacs distribution.
+
+Newsticker asynchronously retrieves headlines (RSS) from a list of news
+sites, prepares these headlines for reading, and allows for loading the
+corresponding articles in a web browser.  Its documentation is in a
+separate manual.
 
 +++
 ** Filesets are collections of files.  You can define a fileset in
@@ -2991,10 +3005,16 @@ updated `skeleton-insert' docstring explains these new features along
 with other details of skeleton construction.
 
 ---
-** New variable `hs-set-up-overlay' allows customization of the overlay
+** Hideshow mode changes
+
+*** New variable `hs-set-up-overlay' allows customization of the overlay
 used to effect hiding for hideshow minor mode.  Integration with isearch
 handles the overlay property `display' specially, preserving it during
 temporary overlay showing in the course of an isearch operation.
+
+*** New variable `hs-allow-nesting' non-nil means that hiding a block does
+not discard the hidden state of any "internal" blocks; when the parent
+block is later shown, the internal blocks remain hidden.  Default is nil.
 
 +++
 ** `hide-ifdef-mode' now uses overlays rather than selective-display
@@ -4585,6 +4605,17 @@ for possible pointer shapes.
 When you click the mouse when the mouse pointer is over a hot-spot,
 an event is composed by combining the ID of the hot-spot with the
 mouse event, e.g. [area4 mouse-1] if the hot-spot's ID is `area4'.
+
++++
+*** The function `find-image' now searches in etc/images/ and etc/.
+The new variable `image-load-path' is a list of locations in which to
+search for image files.  The default is to search in etc/images, then
+in etc/, and finally in the directories specified by `load-path'.
+Subdirectories of etc/ and etc/images are not recursively searched; if
+you put an image file in a subdirectory, you have to specify it
+explicitly; for example, if an image is put in etc/images/foo/bar.xpm:
+
+  (defimage foo-image '((:type xpm :file "foo/bar.xpm")))
 
 ** Mouse pointer features:
 

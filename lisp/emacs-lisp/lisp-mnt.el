@@ -610,7 +610,7 @@ Prompts for bug subject TOPIC.  Leaves you in a mail buffer."
     (if version
 	(insert " version " version))
     (newline 2)
-    (message
+    (message "%s"
      (substitute-command-keys "Type \\[mail-send] to send bug report."))))
 
 (provide 'lisp-mnt)

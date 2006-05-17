@@ -1138,7 +1138,7 @@ If specific documentation can't be given, be generic."
 		    (fboundp 'Info-goto-node))
 	       (listp pcomplete-help)))
       (if (listp pcomplete-help)
-	  (message (eval pcomplete-help))
+	  (message "%s" (eval pcomplete-help))
 	(save-window-excursion (info))
 	(switch-to-buffer-other-window "*info*")
 	(funcall (symbol-function 'Info-goto-node) pcomplete-help))

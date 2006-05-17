@@ -94,6 +94,11 @@ Lisp_Object Qcancel_timer;
 
 extern Lisp_Object Vwindow_system_version;
 
+#if GLYPH_DEBUG
+int image_cache_refcount, dpyinfo_refcount;
+#endif
+
+
 #if 0 /* Use xstricmp instead.  */
 /* compare two strings ignoring case */
 
@@ -4145,6 +4150,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     options.optionFlags = kNavDefaultNavDlogOptions;
     options.optionFlags |= kNavAllFilesInPopup;  /* All files allowed */
     options.optionFlags |= kNavSelectAllReadableItem;
+    options.optionFlags &= ~kNavAllowMultipleFiles;
     if (!NILP(prompt))
       {
 	message = cfstring_create_with_string (prompt);

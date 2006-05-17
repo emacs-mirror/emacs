@@ -1539,7 +1539,7 @@ word itself has a special casing."
 
     (ada-save-exceptions-to-file file-name)
 
-    (message (concat "Defining " word " as a casing exception"))))
+    (message "%s" (concat "Defining " word " as a casing exception"))))
 
 (defun ada-case-read-exceptions-from-file (file-name)
   "Read the content of the casing exception file FILE-NAME."
@@ -2191,17 +2191,17 @@ This function is intended to be bound to the C-m and C-j keys."
 
       (if (equal (cdr cur-indent) '(0))
 	  (message (concat "same indentation as line " (number-to-string line)))
-	(message (mapconcat (lambda(x)
-			      (cond
-			       ((symbolp x)
-				(symbol-name x))
-			       ((numberp x)
-				(number-to-string x))
-			       ((listp x)
-				(concat "- " (symbol-name (cadr x))))
-			       ))
-			    (cdr cur-indent)
-			    " + "))))
+	(message "%s" (mapconcat (lambda(x)
+				   (cond
+				    ((symbolp x)
+				     (symbol-name x))
+				    ((numberp x)
+				     (number-to-string x))
+				    ((listp x)
+				     (concat "- " (symbol-name (cadr x))))
+				    ))
+				 (cdr cur-indent)
+				 " + "))))
     (save-excursion
       (goto-char (car cur-indent))
       (sit-for 1))))
@@ -2214,7 +2214,7 @@ command like:
 
   (while command-line-args-left
     (let ((source (car command-line-args-left)))
-      (message (concat "formating " source))
+      (message "Formating %s" source)
       (find-file source)
       (ada-indent-region (point-min) (point-max))
       (ada-adjust-case-buffer)

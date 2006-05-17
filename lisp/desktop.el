@@ -944,7 +944,7 @@ directory DIRNAME."
                                  desktop-buffer-file-name)))
                  (if desktop-missing-file-warning
 		     (y-or-n-p (concat msg " Re-create? "))
-                   (message msg)
+                   (message "%s" msg)
                    nil)))
 	  (let* ((auto-insert nil) ; Disable auto insertion
 		 (coding-system-for-read
@@ -1101,7 +1101,7 @@ ARGS must be an argument list for `desktop-create-buffer'."
            (msg (format "Desktop lazily opening %s (%s remaining)..."
                             buffer-name remaining)))
       (when desktop-lazy-verbose
-        (message msg))
+        (message "%s" msg))
       (let ((desktop-first-buffer nil)
             (desktop-buffer-ok-count 0)
             (desktop-buffer-fail-count 0))

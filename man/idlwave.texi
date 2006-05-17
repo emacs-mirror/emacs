@@ -33,7 +33,7 @@ Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004,
    2005 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
@@ -65,7 +65,7 @@ Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004,
 @sp 2
 @cindex Copyright, of IDLWAVE
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
@@ -2677,21 +2677,17 @@ buffers.
 The many debugging, compiling, and examination commands provided in
 IDLWAVE are available simultaneously through two different interfaces:
 the original, multi-key command interface, and the new Electric Debug
-Mode.  The functionality they offer is similar, but the way you
-interact with them is quite different.  The main difference is that,
-in Electric Debug Mode, the source buffers are made read-only, and
-single key-strokes are used to step through, examine expressions, set
-and remove breakpoints, etc.  The same variables, prefix arguments,
-and settings apply to both versions, and both can be used
-interchangeably.  By default, when breakpoints are hit, Electric Debug
-Mode is enabled.  The traditional interface is described first.
-@xref{Electric Debug Mode}, for more on that mode.
-
-
-@sp 1
-@noindent @strong{Note that electric debug mode can be prevented from
-activating automatically by customizing the variable
-@code{idlwave-shell-automatic-electric-debug}.}
+Mode.  The functionality they offer is similar, but the way you interact
+with them is quite different.  The main difference is that, in Electric
+Debug Mode, the source buffers are made read-only, and single
+key-strokes are used to step through, examine expressions, set and
+remove breakpoints, etc.  The same variables, prefix arguments, and
+settings apply to both versions, and both can be used interchangeably.
+By default, when breakpoints are hit, Electric Debug Mode is enabled.
+The traditional interface is described first.  @xref{Electric Debug
+Mode}, for more on that mode.  Note that electric debug mode can be
+prevented from activating automatically by customizing the variable
+@code{idlwave-shell-automatic-electric-debug}.
 
 @node Debug Key Bindings, Breakpoints and Stepping, A Tale of Two Modes, Debugging IDL Programs
 @subsection Debug Key Bindings
