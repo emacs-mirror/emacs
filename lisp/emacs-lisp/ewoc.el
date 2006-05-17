@@ -352,11 +352,12 @@ If more than two arguments are given, the remaining
 arguments will be passed to MAP-FUNCTION."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((footer (ewoc--footer ewoc))
+       (pp (ewoc--pretty-printer ewoc))
        (node (ewoc--node-nth dll 1)))
     (save-excursion
       (while (not (eq node footer))
         (if (apply map-function (ewoc--node-data node) args)
-            (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))
+            (ewoc--refresh-node pp node))
         (setq node (ewoc--node-next dll node))))))
 
 (defun ewoc-filter (ewoc predicate &rest args)
@@ -465,10 +466,11 @@ If the EWOC is empty, nil is returned."
 (defun ewoc-invalidate (ewoc &rest nodes)
   "Call EWOC's pretty-printer for each element in NODES.
 Delete current text first, thus effecting a \"refresh\"."
-  (ewoc--set-buffer-bind-dll ewoc
+  (ewoc--set-buffer-bind-dll-let* ewoc
+      ((pp (ewoc--pretty-printer ewoc)))
     (save-excursion
       (dolist (node nodes)
-        (ewoc--refresh-node (ewoc--pretty-printer ewoc) node)))))
+        (ewoc--refresh-node pp node)))))
 
 (defun ewoc-goto-prev (ewoc arg)
   "Move point to the ARGth previous element in EWOC.
