@@ -65,23 +65,23 @@ you're going to handle.
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
-leim			done		Kenichi Handa
+leim			working		Kenichi Handa
 lib-src			done		ttn
 lisp			done		ttn
-lisp/calc		done		ttn
-lisp/calendar		done		Glenn Morris
+lisp/calc		done		Jay Belanger
+lisp/calendar		working		Glenn Morris
 lisp/emacs-lisp		done		ttn
 lisp/emulation		done		ttn
 lisp/eshell		done		ttn
-lisp/gnus		done		ttn
-lisp/international	done		Kenichi Handa
-lisp/language		done		Kenichi Handa
+lisp/gnus		done		Romain Francoise
+lisp/international	working		Kenichi Handa
+lisp/language		working		Kenichi Handa
 lisp/mail		done		ttn
 lisp/mh-e		done		Bill Wohler
 lisp/net		done		ttn
 lisp/obsolete		done		ttn
-lisp/play		done		ttn
-lisp/progmodes		done		Nick Roberts
+lisp/play		done		Romain Francoise
+lisp/progmodes		working		Nick Roberts
 lisp/term		done		ttn
 lisp/textmodes		done		ttn
 lisp/url		done		ttn

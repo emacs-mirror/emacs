@@ -1733,7 +1733,19 @@ Returns nil if file command not on system."
 (defvar mh-file-mime-type-substitutions
   '(("application/msword" "\.xls" "application/ms-excel")
     ("application/msword" "\.ppt" "application/ms-powerpoint")
-    ("text/plain" "\.vcf" "text/x-vcard"))
+    ("text/plain" "\.vcf" "text/x-vcard")
+    ("text/rtf" "\.rtf" "application/rtf")
+    ("application/x-zip" "\.sxc" "application/vnd.sun.xml.calc")
+    ("application/x-zip" "\.sxd" "application/vnd.sun.xml.draw")
+    ("application/x-zip" "\.sxi" "application/vnd.sun.xml.impress")
+    ("application/x-zip" "\.sxw" "application/vnd.sun.xml.writer")
+    ("application/x-zip" "\.odg" "application/vnd.oasis.opendocument.graphics")
+    ("application/x-zip" "\.odi" "application/vnd.oasis.opendocument.image")
+    ("application/x-zip" "\.odp" 
+     "application/vnd.oasis.opendocument.presentation")
+    ("application/x-zip" "\.ods" 
+     "application/vnd.oasis.opendocument.spreadsheet")
+    ("application/x-zip" "\.odt" "application/vnd.oasis.opendocument.text"))
   "Substitutions to make for Content-Type returned from file command.
 The first element is the Content-Type returned by the file command.
 The second element is a regexp matching the file name, usually the

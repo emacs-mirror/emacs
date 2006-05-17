@@ -64,28 +64,51 @@ name here."
   "Enable flyspell mode in an ERC buffer."
   (let ((name (downcase (buffer-name)))
         (dicts erc-spelling-dictionaries))
-    (while (and dicts
-                (not (string= name (downcase (caar dicts)))))
-      (setq dicts (cdr dicts)))
-    (setq ispell-local-dictionary
-          (if dicts
-              (cadr (car dicts))
-            (let ((server (erc-server-buffer)))
-              (if server
-                  (with-current-buffer server
-                    ispell-local-dictionary)
-                nil)))))
+    (when dicts
+      (while (and dicts
+                  (not (string= name (downcase (caar dicts)))))
+        (setq dicts (cdr dicts)))
+      (setq ispell-local-dictionary
+            (if dicts
+                (cadr (car dicts))
+              (let ((server (erc-server-buffer)))
+                (if server
+                    (with-current-buffer server
+                      ispell-local-dictionary)
+                  nil))))))
   (setq flyspell-generic-check-word-p 'erc-spelling-flyspell-verify)
   (flyspell-mode 1))
+
+(defun erc-spelling-unhighlight-word (word)
+  "Unhighlight the given WORD.
+The cadr is the beginning and the caddr is the end."
+  (let ((beg (nth 1 word))
+        (end (nth 2 word)))
+    (flyspell-unhighlight-at beg)
+    (when (> end beg)
+      (flyspell-unhighlight-at (1- end)))))
+
+(defun erc-spelling-flyspell-verify ()
+  "Flyspell only the input line, nothing else."
+  (let ((word-data (and (boundp 'flyspell-word)
+                        flyspell-word)))
+    (when word-data
+      (cond ((< (point) erc-input-marker)
+             nil)
+            ;; don't spell-check names of users
+            ((and erc-channel-users
+                  (erc-get-channel-user (car word-data)))
+             (erc-spelling-unhighlight-word word-data)
+             nil)
+            ;; if '/' occurs before the word, don't spell-check it
+            ((eq (char-before (nth 1 word-data)) ?/)
+             (erc-spelling-unhighlight-word word-data)
+             nil)
+            (t t)))))
 
 (put 'erc-mode
      'flyspell-mode-predicate
      'erc-spelling-flyspell-verify)
-
-(defun erc-spelling-flyspell-verify ()
-  "Flyspell only the input line, nothing else."
-  (> (point)
-     erc-input-marker))
 
 (provide 'erc-spelling)
 

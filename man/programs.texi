@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs, Building, Text, Top
 @chapter Editing Programs
@@ -259,8 +259,8 @@ defun.  This is the easiest way to get ready to kill the defun in
 order to move it to a different place in the file.  If you use the
 command while point is between defuns, it uses the following defun.
 Successive uses of @kbd{C-M-h}, or using it in Transient Mark mode
-when the mark is active, includes an additional defun in the region
-each time.
+when the mark is active, extends the end of the region to include one
+more defun each time.
 
   In C mode, @kbd{C-M-h} runs the function @code{c-mark-function},
 which is almost the same as @code{mark-defun}; the difference is that
@@ -296,9 +296,9 @@ name.  You can also add the buffer's index to the menu bar by calling
 @code{imenu-add-menubar-index}.  If you want to have this menu bar
 item available for all buffers in a certain major mode, you can do
 this by adding @code{imenu-add-menubar-index} to its mode hook.  But
-if you have done that, you will have to wait each time you visit a
-file in that mode, while Emacs finds all the definitions in that
-buffer.
+if you have done that, you will have to wait a little while each time
+you visit a file in that mode, while Emacs finds all the definitions
+in that buffer.
 
 @vindex imenu-auto-rescan
   When you change the contents of a buffer, if you add or delete
@@ -374,8 +374,6 @@ usual conventions of the language you are editing.
 Adjust indentation of current line.
 @item C-j
 Equivalent to @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
-@item @key{LINEFEED}
-This key, if the keyboard has it, is another way to enter @kbd{C-j}.
 @end table
 
 @kindex TAB @r{(programming modes)}
@@ -400,8 +398,8 @@ the characters around it.
 @kindex C-j
 @findex newline-and-indent
   When entering lines of new code, use @kbd{C-j}
-(@code{newline-and-indent}), which is equivalent to a @key{RET}
-followed by a @key{TAB}.  @kbd{C-j} at the end of a line creates a
+(@code{newline-and-indent}), which is equivalent to @key{RET}
+followed by @key{TAB}.  @kbd{C-j} at the end of a line creates a
 blank line and then gives it the appropriate indentation.
 
   @key{TAB} indents a line that starts within a parenthetical grouping
@@ -412,7 +410,7 @@ behavior is convenient in cases where you have overridden the standard
 result of @key{TAB} because you find it unaesthetic for a particular
 line.
 
-  By default, an open-parenthesis, open-brace or other opening
+  In some modes, an open-parenthesis, open-brace or other opening
 delimiter at the left margin is assumed by Emacs (including the
 indentation routines) to be the start of a function.  This speeds up
 indentation commands.  If you will be editing text which contains
@@ -422,7 +420,7 @@ functions, even inside strings or comments, you must set
 Paren}, for more information on this.
 
   Normally, lines are indented with tabs and spaces.  If you want Emacs
-to use spaces only, see @ref{Just Spaces}.
+to use spaces only, set @code{indent-tabs-mode} (@pxref{Just Spaces}).
 
 @node Multi-line Indent
 @subsection Indenting Several Lines
@@ -587,8 +585,8 @@ typing @key{C-M-q} at the start of a function definition.
 
 @kindex C-c . @r{(C mode)}
 @findex c-set-style
-  To choose a style for the current buffer, use the command @kbd{C-c
-.}.  Specify a style name as an argument (case is not significant).
+  To choose a style for the current buffer, use the command @w{@kbd{C-c
+.}}.  Specify a style name as an argument (case is not significant).
 This command affects the current buffer only, and it affects only
 future invocations of the indentation commands; it does not reindent
 the code already in the buffer.  To reindent the whole buffer in the
@@ -740,7 +738,7 @@ that @kbd{C-M-f} would move to.  @kbd{C-M-@@} takes arguments like
 the mark at the beginning of the previous balanced expression.  The
 alias @kbd{C-M-@key{SPC}} is equivalent to @kbd{C-M-@@}.  When you
 repeat this command, or use it in Transient Mark mode when the mark is
-active, it extends the region by one sexp each time.
+active, it extends the end of the region by one sexp each time.
 
   In languages that use infix operators, such as C, it is not possible
 to recognize all balanced expressions as such because there can be
@@ -791,9 +789,7 @@ parenthetical groupings, skipping blithely over any amount of text
 that doesn't include meaningful parentheses (symbols, strings, etc.).
 
 @kindex C-M-u
-@kindex C-M-d
 @findex backward-up-list
-@findex down-list
   @kbd{C-M-n} and @kbd{C-M-p} try to stay at the same level in the
 parenthesis structure.  To move @emph{up} one (or @var{n}) levels, use
 @kbd{C-M-u} (@code{backward-up-list}).  @kbd{C-M-u} moves backward up
@@ -801,6 +797,8 @@ past one unmatched opening delimiter.  A positive argument serves as a
 repeat count; a negative argument reverses the direction of motion, so
 that the command moves forward and up one or more levels.
 
+@kindex C-M-d
+@findex down-list
   To move @emph{down} in the parenthesis structure, use @kbd{C-M-d}
 (@code{down-list}).  In Lisp mode, where @samp{(} is the only opening
 delimiter, this is nearly the same as searching for a @samp{(}.  An
@@ -852,11 +850,9 @@ highlighted.  (There is no need to highlight the opening delimiter in
 that case, because the cursor appears on top of that character.)  Use
 the command @kbd{M-x show-paren-mode} to enable or disable this mode.
 
-  By default, @code{show-paren-mode} uses colors to highlight the
-parentheses.  However, if your display doesn't support colors, you can
-customize the faces @code{show-paren-match-face} and
-@code{show-paren-mismatch-face} to use other attributes, such as bold or
-underline.  @xref{Face Customization}.
+  Show Paren mode uses the faces @code{show-paren-match} and
+@code{show-paren-mismatch} to highlight parentheses; you can customize
+them to control how highlighting looks.  @xref{Face Customization}.
 
 @node Comments
 @section Manipulating Comments
@@ -911,11 +907,11 @@ The new comment begins with the string Emacs thinks comments should
 start with (the value of @code{comment-start}; see below).  Point is
 after that string, so you can insert the text of the comment right
 away.  If the major mode has specified a string to terminate comments,
-@kbd{M-;} inserts that too, to keep the syntax valid.
+@kbd{M-;} inserts that after point, to keep the syntax valid.
 
-  If the text of the line extends past the comment column, then the
-comment start string is indented to a suitable boundary (usually, at
-least one space is inserted).
+  If the text of the line extends past the comment column, this
+command indents the comment start string to a suitable boundary
+(usually, at least one space is inserted).
 
   You can also use @kbd{M-;} to align an existing comment.  If a line
 already contains the comment-start string, @kbd{M-;} reindents it to
@@ -943,7 +939,8 @@ removes comment delimiters on each line of the region.  (If every line
 is a comment, it removes comment delimiters from each; otherwise, it
 adds comment delimiters to each.)  If you are not using Transient Mark
 mode, then you should use the commands @code{comment-region} and
-@code{uncomment-region} to do these jobs (@pxref{Multi-Line Comments}).
+@code{uncomment-region} to do these jobs (@pxref{Multi-Line Comments}),
+or else enable Transient Mark mode momentarily (@pxref{Momentary Mark}).
 A prefix argument used in these circumstances specifies how many
 comment delimiters to add or how many to delete.
 
@@ -964,8 +961,8 @@ and by not changing the indentation of a triple-semicolon comment at all.
   (1+ x))           ; This line adds one.
 @end example
 
-  For C-like buffers, you can configure the exact effect of @kbd{M-;}
-more flexibly than for most buffers by setting the user options
+  For C-like modes, you can configure the exact effect of @kbd{M-;}
+more flexibly than for most buffers by setting the variables
 @code{c-indent-comment-alist} and
 @code{c-indent-comments-syntactically-p}.  For example, on a line
 ending in a closing brace, @kbd{M-;} puts the comment one space after
@@ -992,7 +989,7 @@ in just this fashion.
 @kindex C-c C-c (C mode)
 @findex comment-region
   To turn existing lines into comment lines, use the @kbd{M-x
-comment-region} command (or type @kbd{C-c C-c} in C-like buffers).  It
+comment-region} command (or type @kbd{C-c C-c} in C-like modes).  It
 adds comment delimiters to the lines that start in the region, thus
 commenting them out.  With a negative argument, it does the
 opposite---it deletes comment delimiters from the lines in the region.
@@ -1103,29 +1100,31 @@ use in your program.
 @findex info-lookup-symbol
 @findex info-lookup-file
 @kindex C-h S
-  For C, Lisp, and other languages that have documentation in Info,
-you can use @kbd{C-h S} (@code{info-lookup-symbol}) to view the Info
-documentation for a symbol used in the program.  You specify the
-symbol with the minibuffer; the default is the symbol appearing in the
-buffer at point.  For example, in C mode this looks for the symbol in
-the C Library Manual.
+  For many major modes, that apply to languages that have
+documentation in Info, you can use @kbd{C-h S}
+(@code{info-lookup-symbol}) to view the Info documentation for a
+symbol used in the program.  You specify the symbol with the
+minibuffer; the default is the symbol appearing in the buffer at
+point.  For example, in C mode this looks for the symbol in the C
+Library Manual.  The command only works if the appropriate manual's
+Info files are installed.
 
   The major mode determines where to look for documentation for the
 symbol---which Info files to look in, and which indices to search.
 You can also use @kbd{M-x info-lookup-file} to look for documentation
 for a file name.
 
-  This feature currently supports the modes AWK, Autoconf, Bison, C,
-Emacs Lisp, LaTeX, M4, Makefile, Octave, Perl, Scheme, and Texinfo,
-provided you have installed the relevant Info files, which are
-typically available with the appropriate GNU package.
+  If you use @kbd{C-h S} in a major mode that does not support it,
+it asks you to specify the ``symbol help mode''.  You should enter
+a command such as @code{c-mode} that would select a major
+mode which @kbd{C-h S} does support.
 
 @node Man Page
 @subsection Man Page Lookup
 
 @cindex manual page
   On Unix, the main form of on-line documentation was the @dfn{manual
-page} or @dfn{man page}.  In the GNU operating system, we hope to
+page} or @dfn{man page}.  In the GNU operating system, we aim to
 replace man pages with better-organized manuals that you can browse
 with Info (@pxref{Misc Help}).  This process is not finished, so it is
 still useful to read manual pages.
@@ -1151,8 +1150,8 @@ a man page from a specific section, type
 when @kbd{M-x manual-entry} prompts for the topic.  For example, to
 read the man page for the C library function @code{chmod} (as opposed
 to a command of the same name), type @kbd{M-x manual-entry @key{RET}
-chmod(2) @key{RET}} (@code{chmod} is a system call, so it is in
-section @samp{2}).
+chmod(2) @key{RET}}.  (@code{chmod} is a system call, so it is in
+section @samp{2}.)
 
 @vindex Man-switches
   If you do not specify a section, the results depend on how the
@@ -1202,42 +1201,6 @@ manual pages.
 several manual pages by the same name exist in different sections, it
 pops up a window with possible candidates asking you to choose one of
 them.
-
-@vindex woman-manpath
-  By default, @kbd{M-x woman} looks for manual pages in the
-directories specified in the @code{MANPATH} environment variable.  (If
-@code{MANPATH} is not set, @code{woman} uses a suitable default value,
-which can be customized.)  More precisely, @code{woman} looks for
-subdirectories that match the shell wildcard pattern @file{man*} in each one
-of these directories, and tries to find the manual pages in those
-subdirectories.  When first invoked, @kbd{M-x woman} converts the
-value of @code{MANPATH} to a list of directory names and stores that
-list in the @code{woman-manpath} variable.  Changing the value of this
-variable is another way to control the list of directories used.
-
-@vindex woman-path
-  You can also augment the list of directories searched by
-@code{woman} by setting the value of the @code{woman-path} variable.
-This variable should hold a list of specific directories which
-@code{woman} should search, in addition to those in
-@code{woman-manpath}.  Unlike @code{woman-manpath}, the directories in
-@code{woman-path} are searched for the manual pages, not for
-@file{man*} subdirectories.
-
-@findex woman-find-file
-  Occasionally, you might need to display manual pages that are not in
-any of the directories listed by @code{woman-manpath} and
-@code{woman-path}.  The @kbd{M-x woman-find-file} command prompts for a
-name of a manual page file, with completion, and then formats and
-displays that file like @kbd{M-x woman} does.
-
-@vindex woman-dired-keys
-  The first time you invoke @kbd{M-x woman}, it defines the Dired
-@kbd{W} key to run the @code{woman-find-file} command on the current
-line's file.  You can disable this by setting the variable
-@code{woman-dired-keys} to @code{nil}.  @xref{Dired}.  In addition,
-the Tar-mode @kbd{w} key is define to invoke @code{woman-find-file} on
-the current line's archive member.
 
   For more information about setting up and using @kbd{M-x woman}, see
 @ref{Top, WoMan, Browse UN*X Manual Pages WithOut Man, woman, The WoMan
@@ -1325,8 +1288,8 @@ Hide all blocks @var{n} levels below this block
 Non-@code{nil} says that @kbd{hs-hide-all} should hide comments too.
 
 @item hs-isearch-open
-Specifies what kind of hidden blocks to open in Isearch mode.
-The value should be one of these four symbols:
+Specifies what kind of hidden blocks incremental search should make
+visible.  The value should be one of these four symbols:
 
 @table @code
 @item code
@@ -1533,24 +1496,6 @@ moves by sentences instead of statements.
 Move point to the end of the innermost C statement or sentence; like
 @kbd{M-a} except that it moves in the other direction
 (@code{c-end-of-statement}).
-
-@item M-x c-backward-into-nomenclature
-@findex c-backward-into-nomenclature
-Move point backward to beginning of a C++ nomenclature section or
-word.  With prefix argument @var{n}, move @var{n} times.  If @var{n}
-is negative, move forward.  C++ nomenclature means a symbol name in
-the style of NamingSymbolsWithMixedCaseAndNoUnderlines; each capital
-letter begins a section or word.  Rather than this command, you might
-well prefer the newer ``Subword Mode'', which does the same thing
-better.  @xref{Other C Commands}.
-
-In the GNU project, we recommend using underscores to separate words
-within an identifier in C or C++, rather than using case distinctions.
-
-@item M-x c-forward-into-nomenclature
-@findex c-forward-into-nomenclature
-Move point forward to end of a C++ nomenclature section or word.
-With prefix argument @var{n}, move @var{n} times.
 @end table
 
 @node Electric C
@@ -1660,6 +1605,9 @@ commands then recognize upper case letters in
 the flag @samp{/w} on the mode line after the mode name
 (e.g. @samp{C/law}).  You can even use @kbd{M-x c-subword-mode} in
 non-CC Mode buffers.
+
+In the GNU project, we recommend using underscores to separate words
+within an identifier in C or C++, rather than using case distinctions.
 
 @item M-x c-context-line-break
 @findex c-context-line-break

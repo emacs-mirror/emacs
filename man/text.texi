@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text, Programs, Indentation, Top
 @chapter Commands for Human Languages
@@ -12,7 +12,8 @@ computer field.  One is data that is a sequence of characters.  Any file
 that you edit with Emacs is text, in this sense of the word.  The other
 meaning is more restrictive: a sequence of characters in a human language
 for humans to read (possibly after processing by a text formatter), as
-opposed to a program or commands for a program.
+opposed to a program or binary data.  This chapter is concerned with
+editing text in the narrower sense.
 
   Human languages have syntactic/stylistic conventions that can be
 supported or used to advantage by editor commands: conventions involving
@@ -41,7 +42,7 @@ mode (@pxref{TeX Mode}).
 @ifinfo
 mode.
 @end ifinfo
-For input to nroff, use Nroff mode.
+For input to groff or nroff, use Nroff mode.
 
   Instead of using a text formatter, you can edit formatted text in
 WYSIWYG style (``what you see is what you get''), with Enriched mode.
@@ -113,7 +114,7 @@ in the text.  The analogy extends to numeric arguments, which serve as
 repeat counts.  @kbd{M-f} with a negative argument moves backward, and
 @kbd{M-b} with a negative argument moves forward.  Forward motion
 stops right after the last letter of the word, while backward motion
-stops right before the first letter.@refill
+stops right before the first letter.
 
 @kindex M-d
 @findex kill-word
@@ -130,10 +131,10 @@ the end, and kill the word backwards with @kbd{M-@key{DEL}}.)
 @kindex M-DEL
   @kbd{M-@key{DEL}} (@code{backward-kill-word}) kills the word before
 point.  It kills everything from point back to where @kbd{M-b} would
-move to.  If point is after the space in @w{@samp{FOO, BAR}}, then
-@w{@samp{FOO, }} is killed.  (If you wish to kill just @samp{FOO}, and
-not the comma and the space, use @kbd{M-b M-d} instead of
-@kbd{M-@key{DEL}}.)
+move to.  For instance, if point is after the space in @w{@samp{FOO,
+BAR}}, it kills @w{@samp{FOO, }}.  If you wish to kill just
+@samp{FOO}, and not the comma and the space, use @kbd{M-b M-d} instead
+of @kbd{M-@key{DEL}}.
 
 @c Don't index M-t and transpose-words here, they are indexed in
 @c fixit.texi, in the node "Transpose".
@@ -155,9 +156,9 @@ to.  @kbd{M-@@} accepts a numeric argument that says how many words to
 scan for the place to put the mark.  In Transient Mark mode, this command
 activates the mark.
 
-  The word commands' understanding of syntax is completely controlled by
-the syntax table.  Any character can, for example, be declared to be a word
-delimiter.  @xref{Syntax}.
+  The word commands' understanding of word boundaries is controlled
+by the syntax table.  Any character can, for example, be declared to
+be a word delimiter.  @xref{Syntax}.
 
 @node Sentences
 @section Sentences
@@ -206,7 +207,7 @@ beginning of the sentence.  Larger arguments serve as a repeat count.
 There is also a command, @kbd{C-x @key{DEL}}
 (@code{backward-kill-sentence}), for killing back to the beginning of a
 sentence.  This command is useful when you change your mind in the
-middle of composing text.@refill
+middle of composing text.
 
   The sentence commands assume that you follow the American typist's
 convention of putting two spaces at the end of a sentence; they consider
@@ -214,34 +215,36 @@ a sentence to end wherever there is a @samp{.}, @samp{?} or @samp{!}
 followed by the end of a line or two spaces, with any number of
 @samp{)}, @samp{]}, @samp{'}, or @samp{"} characters allowed in between.
 A sentence also begins or ends wherever a paragraph begins or ends.
+It is useful to follow this convention, because it makes a distinction
+between periods that end a sentence and periods that indicate
+abbreviations; that enables the Emacs sentence commands to distinguish,
+too.  These commands to not stop for periods that indicate abbreviations.
+
+@vindex sentence-end-double-space
+  If you want to use just one space between sentences, you can set the
+variable @code{sentence-end-double-space} to @code{nil} to make the
+sentence commands stop for single spaces.  However, this mode has a
+drawback: there is no way to distinguish between periods that end
+sentences and those that indicate abbreviations.  For convenient and
+reliable editing, we therefore recommend you follow the two-space
+convention.  The variable @code{sentence-end-double-space} also
+affects filling (@pxref{Fill Commands}) in related ways.
 
 @vindex sentence-end
-  The variable @code{sentence-end} controls recognition of the end of
-a sentence.  If non-@code{nil}, it is a regexp that matches the last
-few characters of a sentence, together with the whitespace following
-the sentence.  If the value is @code{nil}, the default, then Emacs
-computes the regexp according to various criteria.  The result is
-normally similar to the following regexp:
+  The variable @code{sentence-end} controls how to recognize the end
+of a sentence.  If non-@code{nil}, it is a regexp that matches the
+last few characters of a sentence, together with the whitespace
+following the sentence.  If the value is @code{nil}, the default, then
+Emacs computes the regexp according to various criteria such as the
+value of @code{sentence-end-double-space}.  @xref{Regexp Example}, for
+a detailed explanation of one of the regular expressions Emacs uses
+for this purpose.
 
-@example
-"[.?!][]\"')]*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
-@end example
-
-@noindent
-This example is explained in the section on regexps.  @xref{Regexp Example}.
-
-  If you want to use just one space between sentences, you should
-set @code{sentence-end} to this value:
-
-@example
-"[.?!][]\"')]*\\($\\|\t\\| \\)[ \t\n]*"
-@end example
-
-@noindent
-This is what setting the variable @code{sentence-end-double-space} to
-@code{nil} automatically does.  But note that this makes it impossible
-to distinguish between periods that end sentences and those that
-indicate abbreviations.
+@vindex sentence-end-without-period
+  Some languages do not use period to indicate end of sentence.  For
+example, a sentence in Thai text ends with double space but without a
+period.  Set the variable @code{sentence-end-without-period} to
+@code{t} to tell the sentence commands that a period is not necessary.
 
 @node Paragraphs
 @section Paragraphs
@@ -266,18 +269,20 @@ Put point and mark around this or next paragraph (@code{mark-paragraph}).
   @kbd{M-@{} moves to the beginning of the current or previous
 paragraph, while @kbd{M-@}} moves to the end of the current or next
 paragraph.  Blank lines and text-formatter command lines separate
-paragraphs and are not considered part of any paragraph.  In
-Paragraph-Indent Text mode, but not in Text mode, an indented line
-also starts a new paragraph.  If there is a blank line before the
-paragraph, @kbd{M-@{} moves to the blank line, because that is
-convenient in practice.
+paragraphs and are not considered part of any paragraph.  If there is
+a blank line before the paragraph, @kbd{M-@{} moves to the blank line,
+because that is convenient in practice.
+
+  In Text mode, an indented line is not a paragraph break.  If you
+want indented lines to have this effect, use Paragraph-Indent Text
+mode instead.  @xref{Text Mode}.
 
   In major modes for programs, paragraphs begin and end only at blank
-lines.  This makes the paragraph commands continue to be useful even
-though there are no paragraphs per se.
+lines.  This makes the paragraph commands useful, even though there
+are no paragraphs as such in a program.
 
-  When there is a fill prefix, then paragraphs are delimited by all lines
-which don't start with the fill prefix.  @xref{Filling}.
+  When you have set a fill prefix, then paragraphs are delimited by
+all lines which don't start with the fill prefix.  @xref{Filling}.
 
 @kindex M-h
 @findex mark-paragraph
@@ -399,11 +404,11 @@ Text}).
 
 @menu
 * Auto Fill::	        Auto Fill mode breaks long lines automatically.
-* Refill::              Keeping paragraphs filled.
 * Fill Commands::       Commands to refill paragraphs and center lines.
 * Fill Prefix::	        Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
+* Refill::              Keeping paragraphs filled.
 * Longlines::           Editing text with very long lines.
 @end menu
 
@@ -464,31 +469,6 @@ paragraph properly filled again is usually with the explicit fill commands.
 The section on init files says how to arrange this permanently for yourself.
 @xref{Init File}.
 
-@node Refill
-@subsection Refill Mode
-@cindex refilling text, word processor style
-@cindex modes, Refill
-@cindex Refill minor mode
-
-  Refill minor mode provides support for keeping paragraphs filled as
-you type or modify them in other ways.  It provides an effect similar
-to typical word processor behavior.  This works by running a
-paragraph-filling command at suitable times.
-
-  To toggle the use of Refill mode in the current buffer, type
-@kbd{M-x refill-mode}.  When you are typing text, only characters
-which normally trigger auto filling, like the space character, will
-trigger refilling.  This is to avoid making it too slow.  Apart from
-self-inserting characters, other commands which modify the text cause
-refilling.
-
-  The current implementation is preliminary and not robust.  You can
-get better ``line wrapping'' behavior using Longlines mode.
-@xref{Longlines}.  However, Longlines mode has an important
-side-effect: the newlines that it inserts for you are not saved to
-disk, so the files that you make with Longlines mode will appear to be
-completely unfilled if you edit them without Longlines mode.
-
 @node Fill Commands
 @subsection Explicit Fill Commands
 
@@ -515,24 +495,24 @@ where necessary.
 
 @findex fill-region
   To refill many paragraphs, use @kbd{M-x fill-region}, which
-divides the region into paragraphs and fills each of them.
+finds the paragraphs in the region and fills each of them.
 
 @findex fill-region-as-paragraph
   @kbd{M-q} and @code{fill-region} use the same criteria as @kbd{M-h}
 for finding paragraph boundaries (@pxref{Paragraphs}).  For more
 control, you can use @kbd{M-x fill-region-as-paragraph}, which refills
-everything between point and mark.  This command deletes any blank lines
-within the region, so separate blocks of text end up combined into one
-block.@refill
+everything between point and mark as a single paragraph.  This command
+deletes any blank lines within the region, so separate blocks of text
+end up combined into one block.
 
 @cindex justification
-  A numeric argument to @kbd{M-q} causes it to @dfn{justify} the text as
-well as filling it.  This means that extra spaces are inserted to make
-the right margin line up exactly at the fill column.  To remove the
-extra spaces, use @kbd{M-q} with no argument.  (Likewise for
+  A numeric argument to @kbd{M-q} tells it to @dfn{justify} the text
+as well as filling it.  This means that extra spaces are inserted to
+make the right margin line up exactly at the fill column.  To remove
+the extra spaces, use @kbd{M-q} with no argument.  (Likewise for
 @code{fill-region}.)  Another way to control justification, and choose
-other styles of filling, is with the @code{justification} text property;
-see @ref{Format Justification}.
+other styles of filling, is with the @code{justification} text
+property; see @ref{Format Justification}.
 
 @kindex M-s @r{(Text mode)}
 @cindex centering
@@ -561,7 +541,6 @@ indicates an abbreviation and not the end of a sentence.  To preserve
 the distinction between these two ways of using a period, the fill
 commands do not break a line after a period followed by just one space.
 
-@vindex sentence-end-double-space
   If the variable @code{sentence-end-double-space} is @code{nil}, the
 fill commands expect and leave just one space at the end of a sentence.
 Ordinarily this variable is @code{t}, so the fill commands insist on
@@ -571,18 +550,13 @@ two spaces for the end of a sentence, as explained above.  @xref{Sentences}.
   If the variable @code{colon-double-space} is non-@code{nil}, the
 fill commands put two spaces after a colon.
 
-@vindex sentence-end-without-period
-  Some languages do not use period to indicate end of sentence.  For
-example, a sentence in Thai text ends with double space but without a
-period.  Set the variable @code{sentence-end-without-period} to
-@code{t} to tell the sentence commands that a period is not necessary.
-
 @vindex fill-nobreak-predicate
   The variable @code{fill-nobreak-predicate} specifies additional
 conditions for where line-breaking is allowed.  Its value is either
 @code{nil} or a Lisp function; the function is called with no
-arguments, and if it returns a non-@code{nil} value, then point is not
-a good place to break the line.  Two standard functions you can use are
+arguments, with point at a place where Emacs is considering breaking
+the line.  If the function returns a non-@code{nil} value, then that's
+a bad place to break the line.  Two standard functions you can use are
 @code{fill-single-word-nobreak-p} (don't break after the first word of
 a sentence or before the last) and @code{fill-french-nobreak-p} (don't
 break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
@@ -615,20 +589,20 @@ a new paragraph.
 @findex set-fill-prefix
   To specify a fill prefix for the current buffer, move to a line that
 starts with the desired prefix, put point at the end of the prefix,
-and give the command @w{@kbd{C-x .}}@: (@code{set-fill-prefix}).
-That's a period after the @kbd{C-x}.  To turn off the fill prefix,
-specify an empty prefix: type @w{@kbd{C-x .}}@: with point at the
-beginning of a line.@refill
+and type @w{@kbd{C-x .}}@: (@code{set-fill-prefix}).  (That's a period
+after the @kbd{C-x}.)  To turn off the fill prefix, specify an empty
+prefix: type @w{@kbd{C-x .}}@: with point at the beginning of a line.
 
   When a fill prefix is in effect, the fill commands remove the fill
-prefix from each line before filling and insert it on each line after
-filling.  (The beginning of the first line is left unchanged, since
-often that is intentionally different.)  Auto Fill mode also inserts
-the fill prefix automatically when it makes a new line.  The @kbd{C-o}
-command inserts the fill prefix on new lines it creates, when you use
-it at the beginning of a line (@pxref{Blank Lines}).  Conversely, the
-command @kbd{M-^} deletes the prefix (if it occurs) after the newline
-that it deletes (@pxref{Indentation}).
+prefix from each line of the paragraph before filling and insert it on
+each line after filling.  (The beginning of the first line of the
+paragraph is left unchanged, since often that is intentionally
+different.)  Auto Fill mode also inserts the fill prefix automatically
+when it makes a new line.  The @kbd{C-o} command inserts the fill
+prefix on new lines it creates, when you use it at the beginning of a
+line (@pxref{Blank Lines}).  Conversely, the command @kbd{M-^} deletes
+the prefix (if it occurs) after the newline that it deletes
+(@pxref{Indentation}).
 
   For example, if @code{fill-column} is 40 and you set the fill prefix
 to @samp{;; }, then @kbd{M-q} in the following text
@@ -749,6 +723,31 @@ line, and it should return the appropriate fill prefix based on that
 line.  If it returns @code{nil}, @code{adaptive-fill-regexp} gets
 a chance to find a prefix.
 
+@node Refill
+@subsection Refill Mode
+@cindex refilling text, word processor style
+@cindex modes, Refill
+@cindex Refill minor mode
+
+  Refill minor mode provides support for keeping paragraphs filled as
+you type or modify them in other ways.  It provides an effect similar
+to typical word processor behavior.  This works by running a
+paragraph-filling command at suitable times.
+
+  To toggle the use of Refill mode in the current buffer, type
+@kbd{M-x refill-mode}.  When you are typing text, only characters
+which normally trigger auto filling, like the space character, will
+trigger refilling.  This is to avoid making it too slow.  Apart from
+self-inserting characters, other commands which modify the text cause
+refilling.
+
+  The current implementation is preliminary and not robust.  You can
+get better ``line wrapping'' behavior using Longlines mode.
+@xref{Longlines}.  However, Longlines mode has an important
+side-effect: the newlines that it inserts for you are not saved to
+disk, so the files that you make with Longlines mode will appear to be
+completely unfilled if you edit them without Longlines mode.
+
 @node Longlines
 @subsection Long Lines Mode
 @cindex refilling text, word processor style
@@ -786,11 +785,11 @@ line wrapping, with @kbd{C-u M-x longlines-auto-wrap}.  To turn
 automatic line wrapping back on, type @kbd{M-x longlines-auto-wrap}.
 
 @findex longlines-show-hard-newlines
-  Whenever you type @kbd{RET}, you are inserting a hard newline.  If
-you want to see where all the hard newlines are, type @kbd{M-x
-longlines-show-hard-newlines}.  This will mark each hard newline with
-a special symbol.  The same command with a prefix argument turns this
-display off.
+  Type @kbd{RET} to insert a hard newline, one which automatic
+refilling will not remove.  If you want to see where all the hard
+newlines are, type @kbd{M-x longlines-show-hard-newlines}.  This will
+mark each hard newline with a special symbol.  The same command with a
+prefix argument turns this display off.
 
   Long Lines mode does not change normal text files that are already
 filled, since the existing newlines are considered hard newlines.
@@ -845,10 +844,11 @@ to the appropriate number of words before point, but do not move point.
 This is convenient when you have just typed a word in the wrong case: you
 can give the case conversion command and continue typing.
 
-  If a word case conversion command is given in the middle of a word, it
-applies only to the part of the word which follows point.  This is just
-like what @kbd{M-d} (@code{kill-word}) does.  With a negative argument,
-case conversion applies only to the part of the word before point.
+  If a word case conversion command is given in the middle of a word,
+it applies only to the part of the word which follows point.  (This is
+comparable to what @kbd{M-d} (@code{kill-word}) does.)  With a
+negative argument, case conversion applies only to the part of the
+word before point.
 
 @kindex C-x C-l
 @kindex C-x C-u
@@ -888,22 +888,23 @@ the previous line.
   Text mode turns off the features concerned with comments except when
 you explicitly invoke them.  It changes the syntax table so that
 single-quotes are considered part of words.  However, if a word starts
-with single-quotes, then these are treated as a prefix for purposes
-such as capitalization.  That is, @kbd{M-c} will convert
-@samp{'hello'} into @samp{'Hello'}, as expected.
+with single-quotes, these are treated as a prefix for purposes such as
+capitalization.  That is, @kbd{M-c} will convert @samp{'hello'} into
+@samp{'Hello'}, as expected.
 
 @cindex Paragraph-Indent Text mode
 @cindex mode, Paragraph-Indent Text
 @findex paragraph-indent-text-mode
 @findex paragraph-indent-minor-mode
   If you indent the first lines of paragraphs, then you should use
-Paragraph-Indent Text mode rather than Text mode.  In this mode, you do
-not need to have blank lines between paragraphs, because the first-line
-indentation is sufficient to start a paragraph; however paragraphs in
-which every line is indented are not supported.  Use @kbd{M-x
-paragraph-indent-text-mode} to enter this mode.  Use @kbd{M-x
-paragraph-indent-minor-mode} to enter an equivalent minor mode, for
-instance during mail composition.
+Paragraph-Indent Text mode rather than Text mode.  In this mode, you
+do not need to have blank lines between paragraphs, because the
+first-line indentation is sufficient to start a paragraph; however
+paragraphs in which every line is indented are not supported.  Use
+@kbd{M-x paragraph-indent-text-mode} to enter this mode.  Use @kbd{M-x
+paragraph-indent-minor-mode} to enable an equivalent minor mode in
+situations where you can't change the major mode---in mail
+composition, for instance.
 
 @kindex M-TAB @r{(Text mode)}
   Text mode, and all the modes based on it, define @kbd{M-@key{TAB}}
@@ -1083,7 +1084,7 @@ heading line.  @kbd{C-c C-p} (@code{outline-previous-visible-heading}) moves
 similarly backward.  Both accept numeric arguments as repeat counts.  The
 names emphasize that invisible headings are skipped, but this is not really
 a special feature.  All editing commands that look for lines ignore the
-invisible lines automatically.@refill
+invisible lines automatically.
 
 @findex outline-up-heading
 @findex outline-forward-same-level
@@ -1164,7 +1165,7 @@ and @kbd{C-c C-s} (@code{show-subtree}).  Both apply to the current
 heading line's @dfn{subtree}: its body, all its subheadings, both
 direct and indirect, and all of their bodies.  In other words, the
 subtree contains everything following the current heading line, up to
-and not including the next heading of the same or higher rank.@refill
+and not including the next heading of the same or higher rank.
 
 @findex hide-leaves
 @findex show-branches
@@ -1181,7 +1182,7 @@ bodies or make the subheadings visible.  They are @kbd{C-c C-l}
   A little weaker than @code{show-branches} is @kbd{C-c C-i}
 (@code{show-children}).  It makes just the direct subheadings
 visible---those one level down.  Deeper subheadings remain invisible, if
-they were invisible.@refill
+they were invisible.
 
 @findex hide-body
 @findex show-all
@@ -1356,13 +1357,14 @@ automatically by putting this in your @file{.emacs} file:
 @findex slitex-mode
 @findex doctex-mode
 
-  @TeX{} is a powerful text formatter written by Donald Knuth; it is also
-free, like GNU Emacs.  La@TeX{} is a simplified input format for @TeX{},
-implemented by @TeX{} macros; it comes with @TeX{}.  Sli@TeX{} is a special
-form of La@TeX{}.@footnote{Sli@TeX{} is obsoleted by the @samp{slides}
-document class in recent La@TeX{} versions.}  Doc@TeX{} (@file{.dtx})
-is a special file format in which the La@TeX{} sources are written,
-combining sources with documentation.
+  @TeX{} is a powerful text formatter written by Donald Knuth; it is
+also free software, like GNU Emacs.  La@TeX{} is a simplified input
+format for @TeX{}, implemented by @TeX{} macros; it comes with @TeX{}.
+Sli@TeX{} is a special form of La@TeX{}.@footnote{Sli@TeX{} is
+obsoleted by the @samp{slides} document class in recent La@TeX{}
+versions.}  Doc@TeX{} (@file{.dtx}) is a special file format in which
+the La@TeX{} sources are written, combining sources with
+documentation.
 
   Emacs has a special @TeX{} mode for editing @TeX{} input files.
 It provides facilities for checking the balance of delimiters and for
@@ -1611,7 +1613,7 @@ C-l}.
 
   Type @kbd{C-c C-k} (@code{tex-kill-job}) to kill the @TeX{} process if
 you see that its output is no longer useful.  Using @kbd{C-c C-b} or
-@kbd{C-c C-r} also kills any @TeX{} process still running.@refill
+@kbd{C-c C-r} also kills any @TeX{} process still running.
 
 @findex tex-region
 @kindex C-c C-r @r{(@TeX{} mode)}
@@ -1838,7 +1840,7 @@ used as a cheap preview.
 @vindex sgml-xml-mode
   SGML mode and HTML mode support XML also.  In XML, every opening tag
 must have an explicit closing tag.  When @code{sgml-xml-mode} is
-non-@code{nil}, SGML mode (and HTML mode) always insert explicit
+non-@code{nil}, SGML mode and HTML mode always insert explicit
 closing tags.  When you visit a file, these modes determine from the
 file contents whether it is XML or not, and set @code{sgml-xml-mode}
 accordingly, so that they do the right thing for the file in either
@@ -2380,7 +2382,7 @@ appropriate, use @code{format-find-file} with suitable arguments.
 @cindex table mode
 @cindex text-based tables
 
-  Table Mode provides an easy and intuitive way to create and edit WYSIWYG
+  Table mode provides an easy and intuitive way to create and edit WYSIWYG
 text-based tables.  Here is an example of such a table:
 
 @smallexample
@@ -2402,7 +2404,7 @@ text-based tables.  Here is an example of such a table:
 +-----------------+--------------------------------+-----------------+
 @end smallexample
 
-  Table Mode allows the contents of the table such as this one to be
+  Table mode allows the contents of the table such as this one to be
 easily manipulated by inserting or deleting characters inside a cell.
 A cell is effectively a localized rectangular edit region and edits to
 a cell do not affect the contents of the surrounding cells.  If the
@@ -2428,8 +2430,8 @@ growth of the cell.
 @node Table Definition
 @subsection What is a Text-based Table?
 
-  Look at the following examples of valid tables as a reference while
-you read this section:
+  Keep the following examples of valid tables in mind as a reference
+while you read this section:
 
 @example
               +--+----+---+     +-+     +--+-----+
@@ -2441,15 +2443,13 @@ you read this section:
                                         +-----+--+
 @end example
 
-  A table consists of a rectangular frame and the contents inside the
-frame.  A table's cells must be at least one character wide and one
-character high with two adjacent cells sharing a boarder line.  A cell
-can be subdivided into multiple rectangular cells but cannot nest or
-overlap.
+  A table consists of a rectangular frame whose inside is divided into
+cells.  Each cell must be at least one character wide and one
+character high, not counting its border lines.  A cell can be
+subdivided into multiple rectangular cells, but cells cannot overlap.
 
-  Both the table frame and cell border lines must consist of one of
-three special characters.  The variables that hold these characters
-are described below:
+  The table frame and cell border lines are made of three special
+characters.  These variables specify those characters:
 
 @table @code
 @vindex table-cell-vertical-char
@@ -2487,9 +2487,9 @@ From left to right:
 
 @enumerate a
 @item
-Nested cells are not allowed.
-@item
 Overlapped cells or non-rectangular cells are not allowed.
+@item
+Same as a.
 @item
 The border must be rectangular.
 @item
@@ -2506,16 +2506,15 @@ Same as d.
 @findex table-insert
   The command to create a table is @code{table-insert}.  When called
 interactively, it asks for the number of columns, number of rows, cell
-width and cell height.  The number of columns is a number of cells
-within the table's width.  The number of rows is the number of cells
-within the table's height.  The cell width is a number of characters
-that fit within a cell width.  The cell height is a number of lines
-within cell height.  While the number of columns and number of rows
-must be an integer number, the cell width and the cell height can be
-either an integer number (when the value is constant across the table)
-or a series of integer numbers, separated by spaces or commas, where
-each number corresponds to each cell width within a row from left to
-right or each cell height within a column from top to bottom.
+width and cell height.  The number of columns is the number of cells
+horizontally side by side.  The number of rows is the number of cells
+vertically within the table's height.  The cell width is a number of
+characters that each cell holds, left to right.  The cell height is a
+number of lines each cell holds.  The cell width and the cell height
+can be either an integer (when the value is constant across the table)
+or a series of integer, separated by spaces or commas, where each
+number corresponds to the next cell within a row from left to right,
+or the next cell within a column from top to bottom.
 
 @node Table Recognition
 @subsection Table Recognition
@@ -2523,7 +2522,7 @@ right or each cell height within a column from top to bottom.
 
 @findex table-recognize
 @findex table-unrecognize
-  Table Mode maintains special text properties in the buffer to allow
+  Table mode maintains special text properties in the buffer to allow
 editing in a convenient fashion.  When a buffer with tables is saved
 to its file, these text properties are lost, so when you visit this
 file again later, Emacs does not see a table, but just formatted text.
@@ -2531,15 +2530,10 @@ To resurrect the table text properties, issue the @kbd{M-x
 table-recognize} command.  It scans the current buffer, recognizes
 valid table cells, and attaches appropriate text properties to allow
 for table editing.  The converse command, @code{table-unrecognize}, is
-used to remove the special text properties and revert the buffer back
+used to remove the special text properties and convert the buffer back
 to plain text.
 
-  An optional numeric prefix argument can precede the
-@code{table-recognize} command.  If the argument is negative, tables
-in the buffer become inactive.  This is equivalent to invoking
-@code{table-unrecognize}.
-
-  Similar functions exist to enable or disable tables within a region,
+  Special commands exist to enable or disable tables within a region,
 enable or disable individual tables, and enable/disable individual
 cells.  These commands are:
 
@@ -2575,10 +2569,10 @@ Conversion}.
   The commands @code{table-forward-cell} and
 @code{table-backward-cell} move point from the current cell to an
 adjacent cell forward and backward respectively.  The order of the
-cell is wrapped.  When point is positioned in the last cell of a
-table, typing @kbd{M-x table-forward-cell} moves point to the first
-cell in the table.  Likewise @kbd{M-x table-backward-cell} from the
-first cell in a table moves point to the last cell in the table.
+cells is cyclic: when point is in the last cell of a table, typing
+@kbd{M-x table-forward-cell} moves to the first cell in the table.
+Likewise @kbd{M-x table-backward-cell} from the first cell in a table
+moves to the last cell.
 
 @findex table-span-cell
   The command @code{table-span-cell} spans the current cell into one
@@ -2602,18 +2596,17 @@ point is located.  The content in the original cell is split as well.
 @findex table-split-cell-horizontally
   The command @code{table-split-cell-horizontally} splits the current
 cell horizontally and creates a pair of cells right and left of where
-point is located.  If the subject cell to split is not empty the user
-is asked how to handle the cell contents.  The three options are:
-@code{split}, @code{left}, or @code{right}.  @code{split} splits the
-contents at point literally while the @code{left} and @code{right}
-options move the entire contents into the left or right cell
-respectively.
+point is located.  If the cell being split is not empty, this asks you
+how to handle the cell contents.  The three options are: @code{split},
+@code{left}, or @code{right}.  @code{split} splits the contents at
+point literally, while the @code{left} and @code{right} options move
+the entire contents into the left or right cell respectively.
 
 @cindex enlarge a table cell
 @cindex shrink a table cell
-  The next four commands enlarge or shrink a cell.  These commands
-accept numeric arguments (@pxref{Arguments}) to specify how many
-columns or rows to enlarge or shrink a particular table.
+  The next four commands enlarge or shrink a cell.  They use numeric
+arguments (@pxref{Arguments}) to specify how many columns or rows to
+enlarge or shrink a particular table.
 
 @table @kbd
 @findex table-heighten-cell
@@ -2639,21 +2632,20 @@ is remembered independently for each cell and the subsequent editing
 of cell contents is subject to the specified justification.
 
 @findex table-justify
-  The command @code{table-justify} requests the user to specify what
-to justify: a cell,a column, or a row.  If you select cell
-justification, this command sets the justification only to the current
-cell.  Selecting column or row justification set the justification to
-all the cells within a column or row respectively.  The command then
-requests the user to enter which justification to apply: @code{left},
-@code{center}, @code{right}, @code{top}, @code{middle}, @code{bottom},
-or @code{none}.  The options @code{left}, @code{center}, and
+  The command @code{table-justify} ask you to specify what to justify:
+a cell, a column, or a row.  If you select cell justification, this
+command sets the justification only for the current cell.  Selecting
+column or row justification sets the justification for all the cells
+within a column or row respectively.  The command then ask you which
+kind of justification to apply: @code{left}, @code{center},
+@code{right}, @code{top}, @code{middle}, @code{bottom}, or
+@code{none}.  Horizontal justification and vertical justification are
+specified independently.  The options @code{left}, @code{center}, and
 @code{right} specify horizontal justification while the options
 @code{top}, @code{middle}, @code{bottom}, and @code{none} specify
 vertical justification.  The vertical justification @code{none}
-effectively removes vertical justification while horizontal
-justification must be one of @code{left}, @code{center}, or
-@code{right}.  Horizontal justification and vertical justification are
-specified independently.
+effectively removes vertical justification.  Horizontal justification
+must be one of @code{left}, @code{center}, or @code{right}.
 
 @vindex table-detect-cell-alignment
   Justification information is stored in the buffer as a part of text
@@ -2667,8 +2659,8 @@ the contents of a cell are examined to determine which justification
 was originally applied to the cell and then applies this justification
 to the cell.  This is a speculative algorithm and is therefore not
 perfect, however, the justification is deduced correctly most of the
-time.  If you desire to disable this feature, customize the variable
-@code{table-detect-cell-alignment} to set it to @code{nil}.
+time.  To disable this feature, customize the variable
+@code{table-detect-cell-alignment} and set it to @code{nil}.
 
 @node Row Commands
 @subsection Commands for Table Rows
@@ -2681,7 +2673,7 @@ the current row in a table.  The current row where point is located is
 pushed down after the newly inserted row.  A numeric prefix argument
 specifies the number of rows to insert.  Note that in order to insert
 rows @emph{after} the last row at the bottom of a table, you must
-place point below the table, i.e.@: outside the table, prior to
+place point below the table---that is, outside the table---prior to
 invoking this command.
 
 @cindex delete row in table
@@ -2696,12 +2688,11 @@ A numeric prefix argument specifies the number of rows to delete.
 @cindex insert column in table
 @findex table-insert-column
   The command @code{table-insert-column} inserts a column of cells to
-the left of the current row in a table.  The current column where
-point is located at is pushed right of the newly inserted column.  To
-insert a column to the right side of the right most column, place
-point to the right of the rightmost column, which is outside of the
-table, prior to invoking this command.  A numeric prefix argument
-specifies the number of columns to insert.
+the left of the current row in a table.  This pushes the current
+column to the right.  To insert a column to the right side of the
+rightmost column, place point to the right of the rightmost column,
+which is outside of the table, prior to invoking this command.  A
+numeric prefix argument specifies the number of columns to insert.
 
 @cindex delete column in table
   A command @code{table-delete-column} deletes a column of cells at
@@ -2714,11 +2705,10 @@ delete.
 
 @findex table-fixed-width-mode
   The command @code{table-fixed-width-mode} toggles fixed width mode
-on and off.  When the fixed width mode is turned on, editing inside a
+on and off.  When fixed width mode is turned on, editing inside a
 cell never changes the cell width; when it is off, the cell width
 expands automatically in order to prevent a word from being folded
-into multiple lines.  By default, the fixed width mode is turned off.
-
+into multiple lines.  By default, fixed width mode is disabled.
 
 @node Table Conversion
 @subsection Conversion Between Plain Text and Tables
@@ -2731,9 +2721,11 @@ turns it into a table.  Unlike @code{table-recognize} (@pxref{Table
 Recognition}), the original text does not have a table appearance but
 may hold a logical table structure.  For example, some elements
 separated by known patterns form a two dimensional structure which can
-be turned into a table.  Look at the numbers below.  The numbers are
-horizontally separated by a comma and vertically separated by a
-newline character.
+be turned into a table.
+
+  Here's an example of data that @code{table-capture} can operate on.
+The numbers are horizontally separated by a comma and vertically
+separated by a newline character.
 
 @example
 1, 2, 3, 4
@@ -2742,8 +2734,7 @@ newline character.
 @end example
 
 @noindent
-When you invoke @kbd{M-x table-capture} on the above three-line
-region, the region can be turned into the next table:
+Invoking @kbd{M-x table-capture} on that text produces this table:
 
 @example
 +-----+-----+-----+-----+
@@ -2756,9 +2747,9 @@ region, the region can be turned into the next table:
 @end example
 
 @noindent
-where @samp{,} is used for a column delimiter regexp, a newline is
-used for a row delimiter regexp, cells are left justified, and minimum
-cell width is 5.
+The conversion uses @samp{,} for the column delimiter and newline for
+a row delimiter, cells are left justified, and minimum cell width is
+5.
 
 @findex table-release
   The command @code{table-release} does the opposite of
@@ -2771,7 +2762,7 @@ lines):
 
 @example
 @samp{table-capture} is a powerful command however mastering its power
-requires some practice.  Here is a list of items what it can do.
+requires some practice.  Here are some things it can do:
 
 Parse Cell Items      By using column delimiter regular
                       expression and raw delimiter regular
@@ -2797,9 +2788,8 @@ following one.
 @c produced output!!
 @example
 +-----------------------------------------------------------------+
-|@samp{table-capture} is a powerful command however mastering its      |
-|power requires some practice.  Here is a list of items what it   |
-|can do.                                                          |
+|@samp{table-capture} is a powerful command, but mastering its         |
+|power requires some practice.  Here are some things it can do:   |
 |                                                                 |
 |Parse Cell Items      By using column delimiter regular          |
 |                      expression and raw delimiter regular       |
@@ -2822,9 +2812,8 @@ independently without affecting the layout of other cells.
 
 @example
 +-----------------------------------------------------------------+
-|@samp{table-capture} is a powerful command however mastering its      |
-|power requires some practice.  Here is a list of items what it   |
-|can do.                                                          |
+|@samp{table-capture} is a powerful command, but mastering its         |
+|power requires some practice.  Here are some things it can do:   |
 +---------------------+-------------------------------------------+
 |Parse Cell Items     |By using column delimiter regular          |
 |                     |expression and raw delimiter regular       |
@@ -2877,7 +2866,7 @@ increasing integer numbers.
 @cindex table in language format
 @cindex table for HTML and LaTeX
 @findex table-generate-source
-The command @code{table-generate-source} generates a table formatted
+  The command @code{table-generate-source} generates a table formatted
 for a specific markup language.  It asks for a language (which must be
 one of @code{html}, @code{latex}, or @code{cals}), a destination
 buffer where to put the result, and the table caption (a string), and

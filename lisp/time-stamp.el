@@ -1,11 +1,11 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 
 ;; Copyright (C) 1989, 1993, 1994, 1995, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005 Free Software Foundation, Inc.
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer's Time-stamp: <2004-09-25 20:55:35 gildea>
+;; Maintainer's Time-stamp: <2006-02-06 15:11:58 ttn>
 ;; Maintainer: Stephen Gildea <gildea@stop.mail-abuse.org>
 ;; Keywords: tools
 

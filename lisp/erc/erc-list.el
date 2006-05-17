@@ -32,7 +32,7 @@
 ;;; Code:
 
 (require 'erc)
-(require 'erc-nets)
+(require 'erc-networks)
 (require 'sort)
 (unless (fboundp 'make-overlay)
   (require 'overlay))

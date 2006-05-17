@@ -1,7 +1,8 @@
 #include "copyright.h"
 
 /* Copyright    Massachusetts Institute of Technology    1985	*/
-/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
+/* Copyright (C) 2002, 2003, 2004, 2005,
+                 2006 Free Software Foundation, Inc.  */
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package

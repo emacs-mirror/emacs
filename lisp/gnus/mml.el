@@ -664,10 +664,10 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	 "Can't encode a part with several charsets"))
       (insert "Content-Type: " type)
       (when charset
-	(insert "; " (mail-header-encode-parameter
-		      "charset" (symbol-name charset))))
+	(mml-insert-parameter
+	 (mail-header-encode-parameter "charset" (symbol-name charset))))
       (when flowed
-	(insert "; format=flowed"))
+	(mml-insert-parameter "format=flowed"))
       (when parameters
 	(mml-insert-parameter-string
 	 cont mml-content-type-parameters))
@@ -687,8 +687,11 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
     (unless (eq encoding '7bit)
       (insert (format "Content-Transfer-Encoding: %s\n" encoding)))
     (when (setq description (cdr (assq 'description cont)))
-      (insert "Content-Description: "
-	      (mail-encode-encoded-word-string description) "\n"))))
+      (insert "Content-Description: ")
+      (setq description (prog1
+			    (point)
+			  (insert description "\n")))
+      (mail-encode-encoded-word-region description (point)))))
 
 (defun mml-parameter-string (cont types)
   (let ((string "")
@@ -841,14 +844,20 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
 
 (defun mml-insert-parameter (&rest parameters)
   "Insert PARAMETERS in a nice way."
-  (dolist (param parameters)
-    (insert ";")
-    (let ((point (point)))
+  (let (start end)
+    (dolist (param parameters)
+      (insert ";")
+      (setq start (point))
       (insert " " param)
-      (when (> (current-column) 71)
-	(goto-char point)
-	(insert "\n ")
-	(end-of-line)))))
+      (setq end (point))
+      (goto-char start)
+      (end-of-line)
+      (if (> (current-column) 76)
+	  (progn
+	    (goto-char start)
+	    (insert "\n")
+	    (goto-char (1+ end)))
+	(goto-char end)))))
 
 ;;;
 ;;; Mode for inserting and editing MML forms

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1987, 1993, 1994, 1995, 1997, 2001, 2002, 2003,
-@c   2004, 2005 Free Software Foundation, Inc.
+@c   2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node X Resources, Antinews, Emacs Invocation, Top
 @appendix X Options and Resources
@@ -877,14 +877,14 @@ also for the trough of a scroll bar, i.e.  @code{bg[ACTIVE] = "red"}
 sets the scroll bar trough to red.  Buttons that have been pressed but
 not released yet (``armed'') are in this state.
 @item PRELIGHT
-This is the state when widgets that can be manipulated have the mouse
-pointer over them.  For example when the mouse is over the thumb in the
-scroll bar or over a menu item.  When the mouse is over a button that
-is not pressed, the button is in this state.
+This is the state for a widget that can be manipulated, when the mouse
+pointer is over it---for example when the mouse is over the thumb in
+the scroll bar or over a menu item.  When the mouse is over a button
+that is not pressed, the button is in this state.
 @item SELECTED
-This is the state when some data has been selected by the user.  It can
-be selected text or items selected in a list.
-There is no place in Emacs where this setting has any effect.
+This is the state for data that has been selected by the user.  It can
+be selected text or items selected in a list.  This state is not used
+in Emacs.
 @item INSENSITIVE
 This is the state for widgets that are visible, but they can not be
 manipulated in the usual way---for example, buttons that can't be

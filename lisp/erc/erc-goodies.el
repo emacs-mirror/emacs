@@ -110,7 +110,7 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
   (put-text-property (point-min) (point-max) 'front-sticky t)
   (put-text-property (point-min) (point-max) 'rear-nonsticky t))
 
-;; Distingush non-commands
+;; Distinguish non-commands
 (defvar erc-noncommands-list '(erc-cmd-ME
                                erc-cmd-COUNTRY
                                erc-cmd-SV

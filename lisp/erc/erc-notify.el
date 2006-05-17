@@ -30,7 +30,7 @@
 ;;; Code:
 
 (require 'erc)
-(require 'erc-nets)
+(require 'erc-networks)
 (eval-when-compile
  (require 'cl)
  (require 'pcomplete))

@@ -1,6 +1,39 @@
 ERC NEWS                                                       -*- outline -*-
 
-* Changes since ERC 5.0.4
+* Changes in ERC 5.1.1
+
+** Fix a requirement on cl.el.
+
+** Use tls.el for SSL connections, rather than ssl.el.
+
+** Changes and additions to modules
+
+*** ibuffer integration (erc-ibuffer.el)
+
+**** Update this to work with the version of ibuffer.el that comes with
+recent Emacs variants.
+
+*** Old completion (erc-complete.el)
+
+**** Fix a few errors.
+
+*** Speedbar (erc-speedbar.el)
+
+**** Make this work with the version of speedbar.el that comes with
+recent Emacs variants.
+
+*** Timestamps (erc-stamp.el)
+
+**** By default, use a more failsafe method of displaying right timestamps.
+To get right timestamps to align perfectly in Emacs22 using X, set the
+new `erc-timestamp-right-align-by-pixel' option to non-nil.
+
+*** Viper compatibility (erc-viper.el)
+
+**** Since most of these changes are now merged into Emacs22, detect
+whether we need these changes and install them only if necessary.
+
+* Changes in ERC 5.1
 
 ** Improve XEmacs compatibility.
 
@@ -206,11 +239,11 @@ the right margin.
 
 **** Helps ERC work correctly in viper-mode.
 
-* Fixes since ERC 5.0.3
+* Changes in ERC 5.0.4
 
 ** Fix a problem with undo in channels.
 
-* Fixes since ERC 5.0.2
+* Changes in ERC 5.0.3
 
 ** Fix typo in the `ctcp-request-to' entry of the English catalog.
 
@@ -251,7 +284,7 @@ indicator.  Previously, there was an additional unnecessary space.
 **** Fix an error that occurred when unchecked buffers existed when
 invoking /QUIT.
 
-* Fixes since ERC 5.0.1
+* Changes in ERC 5.0.2
 
 ** If a channel key is required for a certain channel, ERC will prompt
 for one if `erc-prompt-for-channel-key' is non-nil.
@@ -284,7 +317,7 @@ choice anymore.
 
 **** You can now save logs and truncate buffers from the menu-bar.
 
-* Fixes since ERC 5.0
+* Changes in ERC 5.0.1
 
 ** Narrowing in ERC buffers no longer causes formatting errors.
 
@@ -298,7 +331,7 @@ choice anymore.
 This means that `erc-track-priority-faces-only', `erc-track-exclude',
 and `erc-track-exclude-types' now work with server buffers.
 
-* Changes since ERC 4.0
+* Changes in ERC 5.0
 
 ** Channel members are now stored as a hash-table.
 `erc-server-users' and `erc-channel-users' are now hash-tables, rather
@@ -542,7 +575,7 @@ in XEmacs.
     mode-line where modified channels are shown (only works in GNU
     Emacs versions above 21.3).
 
-* Changes since ERC 3.0.cvs.20030119
+* Changes in ERC 4.0
 
 ** The module system has again changed a lot.  You can now customize
   the variable `erc-modules' and define once and for all which
@@ -565,7 +598,7 @@ in XEmacs.
   openprojects to freenode.  You may need to update your configuration
   for a successful automatic nickserv identification.
 
-* Changes since ERC 2.93.cvs.20020819
+* Changes in ERC 3.0.cvs.20030119
 
 ** New module erc-dcc:
 

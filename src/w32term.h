@@ -1,6 +1,6 @@
 /* Definitions and headers for communication on the Microsoft W32 API.
    Copyright (C) 1995, 2001, 2002, 2003, 2004,
-                 2005 Free Software Foundation, Inc.
+                 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -247,9 +247,6 @@ extern Lisp_Object w32_display_name_list;
 
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 extern Lisp_Object Vx_pixel_size_width_font_regexp;
-
-/* A flag to control how to display unibyte 8-bit character.  */
-extern int unibyte_display_via_language_environment;
 
 struct w32_display_info *x_display_info_for_name ();
 

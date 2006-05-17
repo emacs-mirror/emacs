@@ -12,7 +12,7 @@
 @syncodeindex fn cp
 
 @copying
-This manual is for ERC version 5.1.
+This manual is for ERC version 5.1.1.
 
 Copyright @copyright{} 2005, 2006 Free Software Foundation, Inc.
 
@@ -607,7 +607,7 @@ decided to include ERC in Emacs.
 
 @item 2006
 
-ERC 5.1 is released.
+ERC 5.1 is released.  It is subsequently included in Emacs 22.
 
 @end itemize
 

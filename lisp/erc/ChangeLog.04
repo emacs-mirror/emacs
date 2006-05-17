@@ -2067,7 +2067,7 @@
 
 	* erc-list.el: Added variable erc-chanlist-mode-hook.
 
-See ChangeLog.2003 for earlier changes.
+See ChangeLog.03 for earlier changes.
 
     Copyright (C) 2004 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,

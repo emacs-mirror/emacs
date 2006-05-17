@@ -1215,7 +1215,7 @@
 	bug where emacs would get stuck in a loop when \C-g was in a
 	message and `erc-beep-p' was set to nil (default setting).
 
-See ChangeLog.2004 for earlier changes.
+See ChangeLog.04 for earlier changes.
 
     Copyright (C) 2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,

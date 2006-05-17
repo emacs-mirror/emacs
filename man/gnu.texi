@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1995, 2002, 2003, 2004,
-@c   2005 Free Software Foundation, Inc.
+@c   2005, 2006 Free Software Foundation, Inc.
 @ifclear justgnu
 @node Manifesto,, MS-DOS, Top
 @unnumbered The GNU Manifesto

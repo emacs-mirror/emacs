@@ -1,6 +1,7 @@
 ;;; keyswap.el --- swap BS and DEL keys -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1992, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Keywords: terminals

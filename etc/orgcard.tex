@@ -5,7 +5,7 @@
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
 % At the moment this card works quite nicely in 3 column format and
-% currently takes 2 full pages.  It is thus suited to producing one 
+% currently takes 2 full pages.  It is thus suited to producing one
 % double-side page when printed.
 
 % There are a couple of tweaks in the format of this card which make it work
@@ -18,7 +18,8 @@
 
 \columnsperpage=3
 
-% Copyright (c) 2004 Philip Rooke, 2005, 2006 Free Software Foundation
+% Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+% Copyright (c) 2004 Philip Rooke
 
 % GNU Emacs is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
@@ -88,7 +89,7 @@ are preserved on all copies.
 
 \def\ncolumns{\the\columnsperpage}
 
-\message{[\ncolumns\space 
+\message{[\ncolumns\space
   column\if 1\ncolumns\else s\fi\space per page]}
 
 \def\scaledmag#1{ scaled \magstep #1}
@@ -173,7 +174,7 @@ are preserved on all copies.
   \def\bye{\par\vfill\supereject
     \if a\abc \else\null\vfill\eject\fi
     \if a\abc \else\null\vfill\eject\fi
-    \end}  
+    \end}
 \fi
 
 % we won't be using math mode much, so redefine some of the characters
@@ -710,7 +711,7 @@ an org file. In the file, find a location with:
 \key{next heading}{DOWN}
 \key{previous heading}{UP}
 
-Insert the note with one of the following: 
+Insert the note with one of the following:
 
 \key{as sublevel of heading at cursor}{RET}
 \key{right here (cursor not on heading)}{RET}
@@ -752,7 +753,7 @@ $^4$ Keybinding affected by {\tt org-CUA-compatibility}.
 
 % arch-tag: 139f6750-5cfc-49ca-92b5-237fe5795290
 
-%%% Local Variables: 
+%%% Local Variables:
 %%% mode: latex
 %%% TeX-master: t
-%%% End: 
+%%% End:

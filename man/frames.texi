@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Frames, International, Windows, Top
 @chapter Frames and Graphical Displays
@@ -510,8 +510,10 @@ Here's a similar example for specifying a foreground color:
 @kindex C-z @r{(X windows)}
 @findex iconify-or-deiconify-frame
 Iconify the selected Emacs frame (@code{iconify-or-deiconify-frame}).
-The normal meaning of @kbd{C-z}, to suspend Emacs, is not useful under a
-window system, so it has a different binding in that case.
+The normal meaning of @kbd{C-z}, to suspend Emacs, is not useful under
+a graphical display that allows multiple applications to operate
+simultaneously in their own windies, so Emacs gives @kbd{C-z} a
+different binding in that case.
 
 If you type this command on an Emacs frame's icon, it deiconifies the frame.
 
@@ -967,8 +969,8 @@ customizing the windows that display tooltips.
 @cindex mouse avoidance
 
 @vindex mouse-avoidance-mode
-Mouse Avoidance mode keeps the window system mouse pointer away from
-point, to avoid obscuring text.  Whenever it moves the mouse, it also
+Mouse Avoidance mode keeps the mouse pointer away from point, to avoid
+obscuring text you want to edit.  Whenever it moves the mouse, it also
 raises the frame.  To use Mouse Avoidance mode, customize the variable
 @code{mouse-avoidance-mode}.  You can set this to various values to
 move the mouse in several ways:

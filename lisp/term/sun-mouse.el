@@ -1,6 +1,7 @@
 ;;; sun-mouse.el --- mouse handling for Sun windows
 
-;; Copyright (C) 1987, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck
 ;; Maintainer: FSF

@@ -534,13 +534,13 @@ Postpone undisplaying of viewers for types in
 		  loose-mime
 		  (mail-fetch-field "mime-version"))
 	  (setq ct (mail-fetch-field "content-type")
-		ctl (ignore-errors (mail-header-parse-content-type ct))
+		ctl (and ct (mail-header-parse-content-type ct))
 		cte (mail-fetch-field "content-transfer-encoding")
 		cd (mail-fetch-field "content-disposition")
 		description (mail-fetch-field "content-description")
 		id (mail-fetch-field "content-id"))
 	  (unless from
-		(setq from (mail-fetch-field "from")))
+	    (setq from (mail-fetch-field "from")))
 	  ;; FIXME: In some circumstances, this code is running within
 	  ;; an unibyte macro.  mail-extract-address-components
 	  ;; creates unibyte buffers. This `if', though not a perfect
@@ -557,7 +557,7 @@ Postpone undisplaying of viewers for types in
 				       (mail-header-remove-comments
 					cte)))))
 	   no-strict-mime
-	   (and cd (ignore-errors (mail-header-parse-content-disposition cd)))
+	   (and cd (mail-header-parse-content-disposition cd))
 	   description)
 	(setq type (split-string (car ctl) "/"))
 	(setq subtype (cadr type)
@@ -592,8 +592,7 @@ Postpone undisplaying of viewers for types in
 					 (mail-header-remove-comments
 					  cte)))))
 	     no-strict-mime
-	     (and cd (ignore-errors
-		       (mail-header-parse-content-disposition cd)))
+	     (and cd (mail-header-parse-content-disposition cd))
 	     description id)
 	    ctl))))
 	(when id
@@ -1401,9 +1400,8 @@ If RECURSIVE, search recursively."
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region start (1- (point)))
-	    (when (let ((ctl (ignore-errors
-			       (mail-header-parse-content-type
-				(mail-fetch-field "content-type")))))
+	    (when (let* ((ct (mail-fetch-field "content-type"))
+			 (ctl (and ct (mail-header-parse-content-type ct))))
 		    (if notp
 			(not (equal (car ctl) type))
 		      (equal (car ctl) type)))
@@ -1414,9 +1412,8 @@ If RECURSIVE, search recursively."
       (save-excursion
 	(save-restriction
 	  (narrow-to-region start end)
-	  (when (let ((ctl (ignore-errors
-			     (mail-header-parse-content-type
-			      (mail-fetch-field "content-type")))))
+	  (when (let* ((ct (mail-fetch-field "content-type"))
+		       (ctl (and ct (mail-header-parse-content-type ct))))
 		  (if notp
 		      (not (equal (car ctl) type))
 		    (equal (car ctl) type)))

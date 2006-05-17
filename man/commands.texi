@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2002, 2003,
-@c   2004, 2005 Free Software Foundation, Inc.
+@c   2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Characters, Keys and Commands
@@ -268,7 +268,7 @@ with codes 128 through 255 can also appear in multibyte buffers.
 
   If you disable multibyte characters, then you can use only one
 alphabet of non-@acronym{ASCII} characters, but they all fit in one byte.  They
-use codes 0200 through 0377.  @xref{Single-Byte Character Support}.
+use codes 0200 through 0377.  @xref{Unibyte Mode}.
 
 @ifnottex
 @lowersections

@@ -1,7 +1,7 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
 ;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -414,7 +414,7 @@ See `find-variable' for more details."
 (defun find-definition-noselect (symbol type &optional file)
   "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
 TYPE says what type of definition: nil for a function, `defvar' for a
-variabke, `defface' for a face.  This function does not switch to the
+variable, `defface' for a face.  This function does not switch to the
 buffer nor display it.
 
 The library where SYMBOL is defined is searched for in FILE or

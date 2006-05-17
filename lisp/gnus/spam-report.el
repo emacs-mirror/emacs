@@ -1,6 +1,6 @@
 ;;; spam-report.el --- Reporting spam
 
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: network
@@ -50,7 +50,11 @@ instead."
   :group 'spam-report)
 
 (defcustom spam-report-gmane-use-article-number t
-  "Whether the article number (faster!) or the header should be used."
+  "Whether the article number (faster!) or the header should be used.
+
+You must set this to nil if you don't read Gmane groups directly
+from news.gmane.org, e.g. when using local newsserver such as
+leafnode."
   :type 'boolean
   :group 'spam-report)
 

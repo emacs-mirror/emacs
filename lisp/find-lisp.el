@@ -3,10 +3,10 @@
 ;; Author: Peter Breton
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
-;; Time-stamp: <2005-11-11 20:37:50 teirllm>
+;; Time-stamp: <2006-02-06 13:40:10 ttn>
 
 ;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

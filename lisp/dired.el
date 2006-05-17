@@ -1,7 +1,7 @@
 ;;; dired.el --- directory-browsing commands
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 2000,
-;;   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
@@ -1247,6 +1247,17 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)
     (define-key map [remap advertised-undo] 'dired-undo)
+    ;; thumbnail manipulation (tumme)
+    (define-key map "\C-td" 'tumme-display-thumbs)
+    (define-key map "\C-tt" 'tumme-tag-files)
+    (define-key map "\C-tr" 'tumme-tag-remove)
+    (define-key map "\C-tj" 'tumme-jump-thumbnail-buffer)
+    (define-key map "\C-ti" 'tumme-display-dired-image)
+    (define-key map "\C-tx" 'tumme-dired-display-external)
+    (define-key map "\C-ta" 'tumme-display-thumbs-append)
+    (define-key map "\C-t." 'tumme-display-thumb)
+    (define-key map "\C-tc" 'tumme-dired-comment-files)
+    (define-key map "\C-tf" 'tumme-mark-tagged-files)
 
     ;; Make menu bar items.
 

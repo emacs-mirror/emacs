@@ -1,7 +1,7 @@
 ;;; edt-lk201.el --- enhanced EDT keypad mode emulation for LK-201 keyboards
 
 ;; Copyright (C) 1986, 1992, 1993, 1995, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kevingal@onramp.net>
 ;; Maintainer: Kevin Gallagher <kevingal@onramp.net>

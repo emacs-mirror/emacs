@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2005 Free Software Foundation, Inc.
+@c Copyright (C) 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
 @node Antinews, Mac OS, X Resources, Top
@@ -107,7 +107,7 @@ source code, grep for it.
 
 @item
 The apropos commands will not accept a list of words to match, in
-order to encourage users to be more specific.  Also, the user option
+order to encourage you to be more specific.  Also, the user option
 @code{apropos-sort-by-scores} has been removed.
 
 @item

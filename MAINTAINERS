@@ -39,7 +39,6 @@ Eli Zaretskii
 	lisp/term/tty-colors.el
 	lisp/international/codepage.el
 
-	man/faq.texi
 	man/msdog.texi
 
 Kenichi Handa

@@ -1,11 +1,11 @@
 ;;; winner.el --- Restore old window configurations
 
 ;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation. Inc.
+;;   2005, 2006 Free Software Foundation. Inc.
 
 ;; Author: Ivar Rummelhoff <ivarru@math.uio.no>
 ;; Created: 27 Feb 1997
-;; Time-stamp: <2002-02-20 22:06:58 ivarru>
+;; Time-stamp: <2006-02-06 15:13:57 ttn>
 ;; Keywords: convenience frames
 
 ;; This file is part of GNU Emacs.

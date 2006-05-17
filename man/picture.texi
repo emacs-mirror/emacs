@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2002, 2003,
-@c   2004, 2005 Free Software Foundation, Inc.
+@c   2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Picture, Sending Mail, Abbrevs, Top
 @chapter Editing Pictures
@@ -29,7 +29,7 @@ to do essentially the same thing but in a quarter-plane way.  In addition,
 Picture mode defines various keys starting with the @kbd{C-c} prefix to
 run special picture editing commands.
 
-  One of these keys, @kbd{C-c C-c}, is pretty important.  Often a
+  One of these keys, @kbd{C-c C-c}, is particularly important.  Often a
 picture is part of a larger file that is usually edited in some other
 major mode.  @kbd{M-x edit-picture} records the name of the previous
 major mode so you can use the @kbd{C-c C-c} command

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Rmail, Dired, Sending Mail, Top
 @chapter Reading Mail with Rmail
@@ -10,15 +10,11 @@
 @findex rmail-mode
 @vindex rmail-mode-hook
 
-  Rmail is an Emacs subsystem for reading and disposing of mail that you
-receive.  Rmail stores mail messages in files called Rmail files.
-Reading the message in an Rmail file is done in a special major mode,
-Rmail mode, which redefines most letters to run commands for managing
-mail.  The command @code{rmail-mode} is used to switch into Rmail mode,
-and it runs the hook @code{rmail-mode-hook} as usual, but don't run this
-command by hand; it can't do a reasonable job unless the buffer is
-visiting a proper Rmail file.
-
+  Rmail is an Emacs subsystem for reading and disposing of mail that
+you receive.  Rmail stores mail messages in files called Rmail files
+which use a special format.  Reading the message in an Rmail file is
+done in a special major mode, Rmail mode, which redefines most letters
+to run commands for managing mail.
 @menu
 * Basic: Rmail Basics.       Basic concepts of Rmail, and simple use.
 * Scroll: Rmail Scrolling.   Scrolling through a message.
@@ -66,16 +62,16 @@ messages between them.
 @cindex message number
   Within the Rmail file, messages are normally arranged sequentially in
 order of receipt; you can specify other ways to sort them.  Messages are
-assigned consecutive integers as their @dfn{message numbers}.  The
-number of the current message is displayed in Rmail's mode line,
-followed by the total number of messages in the file.  You can move to a
-message by specifying its message number with the @kbd{j} key
+identified by consecutive integers which are their @dfn{message numbers}.
+The number of the current message is displayed in Rmail's mode line,
+followed by the total number of messages in the file.  You can move to
+a message by specifying its message number with the @kbd{j} key
 (@pxref{Rmail Motion}).
 
 @kindex s @r{(Rmail)}
 @findex rmail-expunge-and-save
   Following the usual conventions of Emacs, changes in an Rmail file
-become permanent only when the file is saved.  You can save it with
+become permanent only when you save the file.  You can save it with
 @kbd{s} (@code{rmail-expunge-and-save}), which also expunges deleted
 messages from the file first (@pxref{Rmail Deletion}).  To save the
 file without expunging, use @kbd{C-x C-s}.  Rmail also saves the Rmail
@@ -89,12 +85,12 @@ file after merging new mail from an inbox file (@pxref{Rmail Inbox}).
 and saves the Rmail file, then buries the Rmail buffer as well as its
 summary buffer, if present (@pxref{Rmail Summary}).  But there is no
 need to ``exit'' formally.  If you switch from Rmail to editing in
-other buffers, and never happen to switch back, you have exited.  Just
-make sure to save the Rmail file eventually (like any other file you
-have changed).  @kbd{C-x s} is a good enough way to do this
-(@pxref{Save Commands}).  The Rmail command @kbd{b}, @code{rmail-bury},
-buries the Rmail buffer and its summary buffer without expunging and
-saving the Rmail file.
+other buffers, and never switch back, you have exited.  Just make sure
+to save the Rmail file eventually (like any other file you have
+changed).  @kbd{C-x s} is a suitable way to do this (@pxref{Save
+Commands}).  The Rmail command @kbd{b}, @code{rmail-bury}, buries the
+Rmail buffer and its summary buffer without expunging and saving the
+Rmail file.
 
 @node Rmail Scrolling
 @section Scrolling Within a Message
@@ -102,7 +98,7 @@ saving the Rmail file.
   When Rmail displays a message that does not fit on the screen, you
 must scroll through it to read the rest.  You could do this with
 @kbd{C-v}, @kbd{M-v} and @kbd{M-<}, but in Rmail scrolling is so
-frequent that it deserves to be easier to type.
+frequent that it deserves to be easier.
 
 @table @kbd
 @item @key{SPC}
@@ -184,7 +180,7 @@ deleted messages---for example, if you want to move to a message to
 undelete it---use the variants @kbd{M-n} and @kbd{M-p}
 (@code{rmail-next-message} and @code{rmail-previous-message}).  A
 numeric argument to any of these commands serves as a repeat
-count.@refill
+count.
 
   In Rmail, you can specify a numeric argument by typing just the
 digits.  You don't need to type @kbd{C-u} first.
@@ -315,14 +311,13 @@ any time in Rmail by typing @kbd{g}.
 files which are inboxes for your primary Rmail file.  If you don't set
 this variable explicitly, it is initialized from the @env{MAIL}
 environment variable, or, as a last resort, set to @code{nil}, which
-means to use the default inbox.  The default inbox is
-@file{/var/mail/@var{username}}, @file{/usr/spool/mail/@var{username}},
-or @file{/usr/mail/@var{username}}, depending on your operating system.
+means to use the default inbox.  The default inbox file depends on
+your operating system; often it is @file{/var/mail/@var{username}},
+@file{/usr/spool/mail/@var{username}}, or
+@file{/usr/mail/@var{username}}.
 
-  To see what the default is on your system, use @kbd{C-h v
-rmail-primary-inbox-list @key{RET}}.  You can specify the inbox file(s) for
-any Rmail file with the command @code{set-rmail-inbox-list}; see
-@ref{Rmail Files}.
+  You can specify the inbox file(s) for any Rmail file with the
+command @code{set-rmail-inbox-list}; see @ref{Rmail Files}.
 
   There are two reasons for having separate Rmail files and inboxes.
 
@@ -346,18 +341,18 @@ the rest of Rmail, since only Rmail operates on the Rmail file.
 then, we have recognized that the usual inbox format on Unix and GNU
 systems is adequate for the job, and we plan to change Rmail to use that
 as its internal format.  However, the Rmail file will still be separate
-from the inbox file, even on systems where their format is the same.
+from the inbox file, even when their format is the same.
 
 @vindex rmail-preserve-inbox
-  When getting new mail, Rmail first copies the new mail from the inbox
-file to the Rmail file; then it saves the Rmail file; then it truncates
-the inbox file.  This way, a system crash may cause duplication of mail
-between the inbox and the Rmail file, but cannot lose mail.  If
-@code{rmail-preserve-inbox} is non-@code{nil}, then Rmail will copy new
-mail from the inbox file to the Rmail file without truncating the inbox
-file.  You may wish to set this, for example, on a portable computer you
-use to check your mail via POP while traveling, so that your mail will
-remain on the server and you can save it later on your workstation.
+  When getting new mail, Rmail first copies the new mail from the
+inbox file to the Rmail file; then it saves the Rmail file; then it
+clears out the inbox file.  This way, a system crash may cause
+duplication of mail between the inbox and the Rmail file, but cannot
+lose mail.  If @code{rmail-preserve-inbox} is non-@code{nil}, then
+Rmail does not clear out the inbox file when it gets new mail.  You
+may wish to set this, for example, on a portable computer you use to
+check your mail via POP while traveling, so that your mail will remain
+on the server and you can save it later on your workstation.
 
   In some cases, Rmail copies the new mail from the inbox file
 indirectly.  First it runs the @code{movemail} program to move the mail
@@ -403,10 +398,11 @@ Merge new mail from inbox file @var{file}.
 
 @kindex i @r{(Rmail)}
 @findex rmail-input
-  To run Rmail on a file other than your primary Rmail file, you may use
+  To run Rmail on a file other than your primary Rmail file, you can use
 the @kbd{i} (@code{rmail-input}) command in Rmail.  This visits the file
 in Rmail mode.  You can use @kbd{M-x rmail-input} even when not in
-Rmail.
+Rmail, but it is easier to type @kbd{C-u M-x rmail}, which does the
+same thing.
 
   The file you read with @kbd{i} should normally be a valid Rmail file.
 If it is not, Rmail tries to decompose it into a stream of messages in
@@ -416,23 +412,22 @@ initializes a new buffer for creating a new Rmail file.
 
 @vindex rmail-secondary-file-directory
 @vindex rmail-secondary-file-regexp
-  You can also select an Rmail file from a menu.  Choose first the menu
-bar Classify item, then from the Classify menu choose the Input Rmail
-File item; then choose the Rmail file you want.  The variables
-@code{rmail-secondary-file-directory} and
+  You can also select an Rmail file from a menu.  In the Classify menu,
+choose the Input Rmail File item; then choose the Rmail file you want.
+The variables @code{rmail-secondary-file-directory} and
 @code{rmail-secondary-file-regexp} specify which files to offer in the
 menu: the first variable says which directory to find them in; the
-second says which files in that directory to offer (all those that match
-the regular expression).  These variables also apply to choosing a file
-for output (@pxref{Rmail Output}).
+second says which files in that directory to offer (all those that
+match the regular expression).  These variables also apply to choosing
+a file for output (@pxref{Rmail Output}).
 
 @findex set-rmail-inbox-list
   Each Rmail file can contain a list of inbox file names; you can specify
 this list with @kbd{M-x set-rmail-inbox-list @key{RET} @var{files}
 @key{RET}}.  The argument can contain any number of file names, separated
 by commas.  It can also be empty, which specifies that this file should
-have no inboxes.  Once a list of inboxes is specified, the Rmail file
-remembers it permanently until you specify a different list.
+have no inboxes.  Once you specify a list of inboxes in an Rmail file,
+the  Rmail file remembers it permanently until you specify a different list.
 
   As a special exception, if your primary Rmail file does not specify any
 inbox files, it uses your standard system inbox.
@@ -440,9 +435,9 @@ inbox files, it uses your standard system inbox.
 @kindex g @r{(Rmail)}
 @findex rmail-get-new-mail
   The @kbd{g} command (@code{rmail-get-new-mail}) merges mail into the
-current Rmail file from its specified inboxes.  If the Rmail file
-has no inboxes, @kbd{g} does nothing.  The command @kbd{M-x rmail}
-also merges new mail into your primary Rmail file.
+current Rmail file from its inboxes.  If the Rmail file has no
+inboxes, @kbd{g} does nothing.  The command @kbd{M-x rmail} also
+merges new mail into your primary Rmail file.
 
   To merge mail from a file that is not the usual inbox, give the
 @kbd{g} key a numeric argument, as in @kbd{C-u g}.  Then it reads a file
@@ -501,14 +496,14 @@ default for the output file name.  However, the file name is read using
 the minibuffer, so you can specify a different name if you wish.
 
   You can also output a message to an Rmail file chosen with a menu.
-Choose first the menu bar Classify item, then from the Classify menu
-choose the Output Rmail File menu item; then choose the Rmail file you want.
-This outputs the current message to that file, like the @kbd{o} command.
-The variables @code{rmail-secondary-file-directory} and
+In the Classify menu, choose the Output Rmail File menu item; then
+choose the Rmail file you want.  This outputs the current message to
+that file, like the @kbd{o} command.  The variables
+@code{rmail-secondary-file-directory} and
 @code{rmail-secondary-file-regexp} specify which files to offer in the
 menu: the first variable says which directory to find them in; the
-second says which files in that directory to offer (all those that match
-the regular expression).
+second says which files in that directory to offer (all those that
+match the regular expression).
 
 @vindex rmail-delete-after-output
   Copying a message with @kbd{o} or @kbd{C-o} gives the original copy
@@ -606,7 +601,7 @@ repeat count.
 (@code{rmail-summary-by-labels}) displays a summary containing only the
 messages that have at least one of a specified set of labels.  The
 argument @var{labels} is one or more label names, separated by commas.
-@xref{Rmail Summary}, for information on summaries.@refill
+@xref{Rmail Summary}, for information on summaries.
 
   If the @var{labels} argument to @kbd{C-M-n}, @kbd{C-M-p} or
 @kbd{C-M-l} is empty, it means to use the last set of labels specified
@@ -616,9 +611,9 @@ for any of these commands.
 @section Rmail Attributes
 
   Some labels such as @samp{deleted} and @samp{filed} have built-in
-meanings and are assigned to or removed from messages automatically at
-appropriate times; these labels are called @dfn{attributes}.  Here is a
-list of Rmail attributes:
+meanings, and Rmail assigns them to messages automatically at
+appropriate times; these labels are called @dfn{attributes}.  Here is
+a list of Rmail attributes:
 
 @table @samp
 @item unseen
@@ -648,7 +643,7 @@ Means you have resent the message.  Assigned by the command @kbd{M-x
 rmail-resend}.  @xref{Rmail Reply}.
 @end table
 
-  All other labels are assigned or removed only by the user, and have no
+  All other labels are assigned or removed only by users, and have no
 standard meaning.
 
 @node Rmail Reply
@@ -659,7 +654,7 @@ standard meaning.
 certain features meant to work with Rmail.  What this section documents
 are the special commands of Rmail for entering Mail mode.  Note that the
 usual keys for sending mail---@kbd{C-x m}, @kbd{C-x 4 m}, and @kbd{C-x 5
-m}---are available in Rmail mode and work just as they usually do.
+m}---also work normally in Rmail mode.
 
 @table @kbd
 @item m
@@ -679,15 +674,15 @@ Try sending a bounced message a second time (@code{rmail-retry-failure}).
 @kindex r @r{(Rmail)}
 @findex rmail-reply
 @cindex reply to a message
-  The most common reason to send a message while in Rmail is to reply to
-the message you are reading.  To do this, type @kbd{r}
-(@code{rmail-reply}).  This displays the @samp{*mail*} buffer in another
-window, much like @kbd{C-x 4 m}, but preinitializes the @samp{Subject},
-@samp{To}, @samp{CC} and @samp{In-reply-to} header fields based on the
-message you are replying to.  The @samp{To} field starts out as the
-address of the person who sent the message you received, and the
-@samp{CC} field starts out with all the other recipients of that
-message.
+  The most common reason to send a message while in Rmail is to reply
+to the message you are reading.  To do this, type @kbd{r}
+(@code{rmail-reply}).  This displays the @samp{*mail*} buffer in
+another window, much like @kbd{C-x 4 m}, but preinitializes the
+@samp{Subject}, @samp{To}, @samp{CC}, @samp{In-reply-to} and
+@samp{References} header fields based on the message you are replying
+to.  The @samp{To} field starts out as the address of the person who
+sent the message you received, and the @samp{CC} field starts out with
+all the other recipients of that message.
 
 @vindex rmail-dont-reply-to-names
   You can exclude certain recipients from being placed automatically in
@@ -700,13 +695,14 @@ of using them for large mailing lists to broadcast announcements.)
 
   To omit the @samp{CC} field completely for a particular reply, enter
 the reply command with a numeric argument: @kbd{C-u r} or @kbd{1 r}.
+This means to reply only to the sender of the original message.
 
   Once the @samp{*mail*} buffer has been initialized, editing and
 sending the mail goes as usual (@pxref{Sending Mail}).  You can edit the
-presupplied header fields if they are not right for you.  You can also
+presupplied header fields if they are not what you want.  You can also
 use the commands of Mail mode (@pxref{Mail Mode}), including @kbd{C-c
 C-y} which yanks in the message that you are replying to.  You can
-switch to the Rmail buffer, select a different message there, switch
+also switch to the Rmail buffer, select a different message there, switch
 back, and yank the new current message.
 
 @kindex M-m @r{(Rmail)}
@@ -764,13 +760,13 @@ outgoing message that is not a reply.  It leaves the header fields empty.
 Its only difference from @kbd{C-x 4 m} is that it makes the Rmail buffer
 accessible for @kbd{C-c C-y}, just as @kbd{r} does.  Thus, @kbd{m} can be
 used to reply to or forward a message; it can do anything @kbd{r} or @kbd{f}
-can do.@refill
+can do.
 
 @kindex c @r{(Rmail)}
 @findex rmail-continue
   The @kbd{c} (@code{rmail-continue}) command resumes editing the
 @samp{*mail*} buffer, to finish editing an outgoing message you were
-already composing, or to alter a message you have sent.@refill
+already composing, or to alter a message you have sent.
 
 @vindex rmail-mail-new-frame
   If you set the variable @code{rmail-mail-new-frame} to a
@@ -845,14 +841,14 @@ It then displays and selects the summary buffer in another window.
   @kbd{C-M-l @var{labels} @key{RET}} (@code{rmail-summary-by-labels}) makes
 a partial summary mentioning only the messages that have one or more of the
 labels @var{labels}.  @var{labels} should contain label names separated by
-commas.@refill
+commas.
 
 @kindex C-M-r @r{(Rmail)}
 @findex rmail-summary-by-recipients
   @kbd{C-M-r @var{rcpts} @key{RET}} (@code{rmail-summary-by-recipients})
 makes a partial summary mentioning only the messages that have one or more
 of the recipients @var{rcpts}.  @var{rcpts} should contain mailing
-addresses separated by commas.@refill
+addresses separated by commas.
 
 @kindex C-M-t @r{(Rmail)}
 @findex rmail-summary-by-topic
@@ -867,8 +863,8 @@ makes a partial summary which mentions only the messages whose headers
 (including the date and the subject lines) match the regular
 expression @var{regexp}.
 
-  Note that there is only one summary buffer for any Rmail file; making one
-kind of summary discards any previously made summary.
+  Note that there is only one summary buffer for any Rmail file;
+making any kind of summary discards any previous summary.
 
 @vindex rmail-summary-window-size
 @vindex rmail-summary-line-count-flag
@@ -1007,19 +1003,25 @@ Toggle display of complete header (@code{rmail-toggle-header}).
 @end table
 
 @vindex rmail-ignored-headers
+@vindex rmail-nonignored-headers
   Reformatting the header involves deleting most header fields, on the
 grounds that they are not interesting.  The variable
 @code{rmail-ignored-headers} holds a regular expression that specifies
-which header fields to hide in this way---if it matches the beginning of
-a header field, that whole field is hidden.
+which header fields to hide in this way---if it matches the beginning
+of a header field, that whole field is hidden.  However, the variable
+@code{rmail-nonignored-headers} provides a further override: a header
+matching that regular expression is shown even if it matches
+@code{rmail-ignored-headers} too.
 
 @kindex t @r{(Rmail)}
 @findex rmail-toggle-header
   Rmail saves the complete original header before reformatting; to see
 it, use the @kbd{t} command (@code{rmail-toggle-header}).  This
-discards the reformatted headers of the current message and displays it
-with the original header.  Repeating @kbd{t} reformats the message
-again.  Selecting the message again also reformats.
+discards the reformatted headers of the current message and displays
+it with the original header.  Repeating @kbd{t} reformats the message
+again, which shows only the interesting headers according to the
+current values of those variable.  Selecting the message again also
+reformats it if necessary.
 
   One consequence of this is that if you edit the reformatted header
 (using @kbd{e}; @pxref{Rmail Editing}), subsequent use of @kbd{t} will
@@ -1041,10 +1043,10 @@ of a header field, that whole field is highlighted.
 
   If you specify unusual colors for your text foreground and
 background, the colors used for highlighting may not go well with
-them.  If so, specify different colors for the face
-@code{rmail-highlight-face}.  @xref{Faces}, for how to do this.  To
-turn off highlighting entirely in Rmail, set
-@code{rmail-highlighted-headers} to @code{nil}.
+them.  If so, specify different colors by setting the variable
+@code{rmail-highlight-face} to a suitable face.  To turn off
+highlighting entirely in Rmail, set @code{rmail-highlighted-headers}
+to @code{nil}.
 
   You can highlight and activate URLs in incoming messages by adding
 the function @code{goto-address} to the hook

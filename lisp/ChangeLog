@@ -1,15 +1,125 @@
+2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* dired.el (dired-mode-map): Add more bindings for tumme.
+
+2006-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* wdired.el (wdired-mode-map): Use remap.
+	(wdired-get-filename): Massage.
+	(wdired-perm-mode-map): Don't copy bindings from wdired-mode-map.
+	(wdired-preprocess-perms, wdired-set-bit, wdired-toggle-bit): Use the
+	`keymap' property rather than `local-map'.
+
+2006-02-07  Mathias Dahl  <brakjoller@hotmail.com>
+
+	* tumme.el (tumme-get-thumbnail-image): New utility function.
+	Suggested by from Chong Yidong.
+	(tumme-dired-with-window-configuration): Rename from
+	`tumme-dired'.  Add code to save window configuration.
+	(tumme-restore-window-configuration): New command to restore the
+	window configuration that `tumme-dired-with-window-configuration'
+	saves before it changes the window configuration.
+	(tumme-show-all-from-dir): New command to display thumbnails for
+	all files in a directory entered by the user, like M-x thumbs.
+	(tumme-display-thumbs): Call `pop-to-buffer' after all thumbnails
+	have been created.
+	(tumme-display-thumbnail-original-image): Call `display-buffer'.
+	(obsolete-tumme-display-thumbnail-original-image-and-buffer):
+	Remove obsolete test function.
+
+2006-02-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc.el (small-temporary-file-directory): Remove defvar; there's
+	a defcustom for it in files.el.
+
+	* tumme.el (tumme-get-thumbnail-image): Add missing arg to `error'.
+	Fix typo in message.
+	(tumme-gallery-generate): Fix typo in `error' message.
+	(tumme-display-window-height-correction)
+	(tumme-display-window-width-correction, tumme-line-up-dynamic)
+	(tumme-line-up-interactive): Dox fixes.
+	(tumme-cmd-rotate-original-options, tumme-display-properties-format)
+	(tumme-restore-window-configuration, tumme-format-properties-string)
+	(tumme-create-thumbs, tumme-display-previous-thumbnail-original):
+	Fix typos in docstrings.
+
+2006-02-07  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* wdired.el (wdired-get-filename): Fix bug: Don't re-normalize OLD.
+
+2006-02-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-mode): Remove autoload cookie.
+	User should use hook if desired.
+
+	* progmodes/gdb-ui.el (gdb-post-prompt): Regenerate breakpoints
+	buffer if necessary.
+	(gdb-delete-frame-or-window): New function.
+	(gdb-breakpoints-mode-map): Bind "q" to it.
+
+2006-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/nroff-mode.el: Clean up name space.
+	(nroff-mode-syntax-table): Remove spurious `1' in the syntax of \n.
+	(nroff-mode): Obey the global setting of nroff-electric-mode.
+	(nroff-electric-mode): Use define-minor-mode and derived-mode-p.
+
+	* calendar/calendar.el (calendar-increment-month): Typo in last change.
+
+2006-02-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc-svn.el (vc-svn-previous-version, vc-svn-next-version): New funcs.
+
+2006-02-06  Lars Hansen  <larsh@soem.dk>
+
+	* generic-x.el (etc-fstab-generic-mode): Add file system types
+	cifs and usbdevfs.  Allow special chars in file names.
+
+2006-02-05  Jay Belanger  <belanger@truman.edu>
+
+	Update copyright notices of the files in lisp/calc.
+
+2006-02-05  Romain Francoise  <romain@orebokech.com>
+
+	Update copyright notices of all files in the lisp/play directory.
+
+2006-02-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ldefs-boot.el: Regenerate.
+
+	* emacs-lisp/find-func.el (find-definition-noselect): Minor doc fix.
+
+2006-02-05  Kim F. Storm  <storm@cua.dk>
+
+	* files.el (magic-mode-regexp-match-limit): New defvar.
+	(set-auto-mode): Use it to limit magic-mode-alist matching.
+
+2006-02-04  Kevin Rodgers  <ihs_4664@yahoo.com>
+
+	* simple.el (display-message-or-buffer): Compare the number of
+	characters to the frame width when determining whether a 1-line
+	message string will fit in the echo area.  Count screen lines
+	instead of buffer lines when determining whether a multi-line
+	message will fit in the echo area/minibuffer window.
+
+2006-02-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* info.el (Info-index, Info-mode): Improve the description of the
+	`i' command.
+
+	* ldefs-boot.el: Regenerate.
+
 2006-02-03  Werner Lemberg  <wl@gnu.org>
 
 	* textmodes/nroff-mode.el (nroff-font-lock-keywords): Don't be
 	greedy to find the closing bracket in \*[...] and similar
 	expressions.  This is a first rough fix -- many additional
-	refinements are necessary to make nroff mode really usable with
-	groff.
+	refinements are necessary to make nroff mode really usable with groff.
 
 2006-02-03  Jens Petersen  <petersen@redhat.com>  (tiny change)
 
-	* international/mule-cmds.el (set-locale-environment): Add
-	"/usr/share/X11/locale/locale.alias" to search list for xorg-x11
+	* international/mule-cmds.el (set-locale-environment):
+	Add "/usr/share/X11/locale/locale.alias" to search list for xorg-x11
 	libX11.
 
 2006-02-03  Joe Wells  <jbw@macs.hw.ac.uk>  (tiny change)
@@ -20045,7 +20155,7 @@ See ChangeLog.11 for earlier changes.
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2005 Free Software Foundation, Inc.
+    Copyright (C) 2005, 2006 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

@@ -1,7 +1,7 @@
 ;;; webmail.el --- interface of web mail
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: hotmail netaddress my-deja netscape
@@ -637,7 +637,7 @@
 	  (goto-char (point-min))
 	  (delete-blank-lines)
 	  (setq ct (mail-fetch-field "content-type")
-		ctl (ignore-errors (mail-header-parse-content-type ct))
+		ctl (and ct (mail-header-parse-content-type ct))
 		;;cte (mail-fetch-field "content-transfer-encoding")
 		cd (mail-fetch-field "content-disposition")
 		description (mail-fetch-field "content-description")

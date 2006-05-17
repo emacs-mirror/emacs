@@ -1,6 +1,7 @@
 ;;; timer.el --- run a function with args at some time in future
 
-;; Copyright (C) 1996, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2002, 2003, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 

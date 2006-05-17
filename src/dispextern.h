@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
    Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005 Free Software Foundation, Inc.
+                 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2655,6 +2655,8 @@ extern int help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern int mouse_autoselect_window;
+extern int unibyte_display_via_language_environment;
+
 extern void reseat_at_previous_visible_line_start P_ ((struct it *));
 
 extern int calc_pixel_width_or_height P_ ((double *, struct it *, Lisp_Object,

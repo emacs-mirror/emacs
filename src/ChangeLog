@@ -1,3 +1,38 @@
+2006-02-08  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (Fconstrain_to_field): Use Fget_char_property instead
+	of Fget_text_property (other field functions word with overlays as
+	well as text-properties).
+
+2006-02-07  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (unibyte_display_via_language_environment): Extern it.
+
+	* xterm.h (unibyte_display_via_language_environment):
+	* w32term.h (unibyte_display_via_language_environment):
+	* macterm.h (unibyte_display_via_language_environment): Delete extern.
+
+2006-02-07  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (append_glyph): Refer to it->char_to_display instead of it->c.
+	(produce_glyphs): Set the character to print in
+	it->char_to_display.  Handle unibyte-display-via-language-environment.
+	(produce_stretch_glyph): Set character to print in it->char_to_display.
+
+2006-02-06  Kenichi Handa  <handa@m17n.org>
+
+	* lread.c (openp): Initialize encoded_fn before GCPRO it.
+
+2006-02-05  Ken Raeburn  <raeburn@raeburn.org>
+
+	* editfns.c (Fconstrain_to_field): Fix int/Lisp_Object mixup.
+
+	* lisp.h (XPNTR) [!NO_UNION_TYPE && !HAVE_SHM && !DATA_SEG_BITS]:
+	Cast bitfield value to EMACS_INT, to suppress gcc warning.
+
+	* xrdb.c (malloc, realloc, free) [emacs]: Undefine macros before
+	defining.
+
 2006-02-03  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c: Cache last merged escape glyph face.
@@ -22399,7 +22434,8 @@ See ChangeLog.9 for earlier changes.
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+    Copyright (C) 2001, 2002, 2003, 2004, 2005,
+	2006 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

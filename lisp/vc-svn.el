@@ -1,6 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -114,7 +114,7 @@ This is only meaningful if you don't use the implicit checkout model
 					   (file-name-directory file)))
     (with-temp-buffer
       (cd (file-name-directory file))
-      (let ((status 
+      (let ((status
              (condition-case nil
                  ;; Ignore all errors.
                  (vc-svn-command t t file "status" "-v")
@@ -175,6 +175,23 @@ This is only meaningful if you don't use the implicit checkout model
 	       "(added)" "(modified)"))
 	  ((eq svn-state 'needs-patch) "(patch)")
 	  ((eq svn-state 'needs-merge) "(merge)"))))
+
+(defun vc-svn-previous-version (file rev)
+  (let ((newrev (1- (string-to-number rev))))
+    (when (< 0 newrev)
+      (number-to-string newrev))))
+
+(defun vc-svn-next-version (file rev)
+  (let ((newrev (1+ (string-to-number rev))))
+    ;; The "workfile version" is an uneasy conceptual fit under Subversion;
+    ;; we use it as the upper bound until a better idea comes along.  If the
+    ;; workfile version W coincides with the tree's latest revision R, then
+    ;; this check prevents a "no such revision: R+1" error.  Otherwise, it
+    ;; inhibits showing of W+1 through R, which could be considered anywhere
+    ;; from gracious to impolite.
+    (unless (< (string-to-number (vc-file-getprop file 'vc-workfile-version))
+               newrev)
+      (number-to-string newrev))))
 
 
 ;;;

@@ -1,6 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02

@@ -2267,38 +2267,37 @@ If PROMPT (the prefix), prompt for a coding system to use."
 			   (error))
 			 gnus-newsgroup-ignored-charsets))
 	ct cte ctl charset format)
-  (save-excursion
-    (save-restriction
-      (article-narrow-to-head)
-      (setq ct (message-fetch-field "Content-Type" t)
-	    cte (message-fetch-field "Content-Transfer-Encoding" t)
-	    ctl (and ct (ignore-errors
-			  (mail-header-parse-content-type ct)))
-	    charset (cond
-		     (prompt
-		      (mm-read-coding-system "Charset to decode: "))
-		     (ctl
-		      (mail-content-type-get ctl 'charset)))
-	    format (and ctl (mail-content-type-get ctl 'format)))
-      (when cte
-	(setq cte (mail-header-strip cte)))
-      (if (and ctl (not (string-match "/" (car ctl))))
-	  (setq ctl nil))
-      (goto-char (point-max)))
-    (forward-line 1)
-    (save-restriction
-      (narrow-to-region (point) (point-max))
-      (when (and (eq mail-parse-charset 'gnus-decoded)
-		 (eq (mm-body-7-or-8) '8bit))
-	;; The text code could have been decoded.
-	(setq charset mail-parse-charset))
-      (when (and (or (not ctl)
-		     (equal (car ctl) "text/plain"))
-		 (not format)) ;; article with format will decode later.
-	(mm-decode-body
-	 charset (and cte (intern (downcase
-				   (gnus-strip-whitespace cte))))
-	 (car ctl)))))))
+    (save-excursion
+      (save-restriction
+	(article-narrow-to-head)
+	(setq ct (message-fetch-field "Content-Type" t)
+	      cte (message-fetch-field "Content-Transfer-Encoding" t)
+	      ctl (and ct (mail-header-parse-content-type ct))
+	      charset (cond
+		       (prompt
+			(mm-read-coding-system "Charset to decode: "))
+		       (ctl
+			(mail-content-type-get ctl 'charset)))
+	      format (and ctl (mail-content-type-get ctl 'format)))
+	(when cte
+	  (setq cte (mail-header-strip cte)))
+	(if (and ctl (not (string-match "/" (car ctl))))
+	    (setq ctl nil))
+	(goto-char (point-max)))
+      (forward-line 1)
+      (save-restriction
+	(narrow-to-region (point) (point-max))
+	(when (and (eq mail-parse-charset 'gnus-decoded)
+		   (eq (mm-body-7-or-8) '8bit))
+	  ;; The text code could have been decoded.
+	  (setq charset mail-parse-charset))
+	(when (and (or (not ctl)
+		       (equal (car ctl) "text/plain"))
+		   (not format)) ;; article with format will decode later.
+	  (mm-decode-body
+	   charset (and cte (intern (downcase
+				     (gnus-strip-whitespace cte))))
+	   (car ctl)))))))
 
 (defun article-decode-encoded-words ()
   "Remove encoded-word encoding from headers."
@@ -2390,9 +2389,7 @@ If READ-CHARSET, ask for a coding system."
 	    (setq type
 		  (gnus-fetch-field "content-transfer-encoding"))
 	    (let* ((ct (gnus-fetch-field "content-type"))
-		   (ctl (and ct
-			     (ignore-errors
-			       (mail-header-parse-content-type ct)))))
+		   (ctl (and ct (mail-header-parse-content-type ct))))
 	      (setq charset (and ctl
 				 (mail-content-type-get ctl 'charset)))
 	      (if (stringp charset)
@@ -2420,9 +2417,7 @@ If READ-CHARSET, ask for a coding system."
 	    (setq type
 		  (gnus-fetch-field "content-transfer-encoding"))
 	    (let* ((ct (gnus-fetch-field "content-type"))
-		   (ctl (and ct
-			     (ignore-errors
-			       (mail-header-parse-content-type ct)))))
+		   (ctl (and ct (mail-header-parse-content-type ct))))
 	      (setq charset (and ctl
 				 (mail-content-type-get ctl 'charset)))
 	      (if (stringp charset)
@@ -2488,9 +2483,7 @@ charset defined in `gnus-summary-show-article-charset-alist' is used."
 	(when (gnus-buffer-live-p gnus-original-article-buffer)
 	  (with-current-buffer gnus-original-article-buffer
 	    (let* ((ct (gnus-fetch-field "content-type"))
-		   (ctl (and ct
-			     (ignore-errors
-			       (mail-header-parse-content-type ct)))))
+		   (ctl (and ct (mail-header-parse-content-type ct))))
 	      (setq charset (and ctl
 				 (mail-content-type-get ctl 'charset)))
 	      (when (stringp charset)

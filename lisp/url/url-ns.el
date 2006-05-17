@@ -1,6 +1,7 @@
 ;;; url-ns.el --- Various netscape-ish functions for proxy definitions
 
-;; Copyright (C) 1997, 1998, 1999, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2004, 2005,
+;;   2006 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 

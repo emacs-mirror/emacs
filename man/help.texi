@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Help, Mark, M-x, Top
 @chapter Help
@@ -644,7 +644,7 @@ Emacs (@code{describe-no-warranty}).
 @cindex balloon help
   When a region of text is ``active,'' so that you can select it with
 the mouse or a key like @kbd{RET}, it often has associated help text.
-Areas of the mode line are examples.  On most window systems, the help
+Areas of the mode line are examples.  On graphical displays, the help
 text is displayed as a ``tooltip'' (sometimes known as ``balloon
 help''), when you move the mouse over the active text.  @xref{Tooltips}.
 On some systems, it is shown in the echo area.  On text-only

@@ -1,7 +1,7 @@
 /* Lisp functions pertaining to editing.
    Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996,
                  1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005 Free Software Foundation, Inc.
+                 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -719,7 +719,8 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
 {
   /* If non-zero, then the original point, before re-positioning.  */
   int orig_point = 0;
-  int fwd, prev_old, prev_new;
+  int fwd;
+  Lisp_Object prev_old, prev_new;
   
   if (NILP (new_pos))
     /* Use the current point, and afterwards, set it.  */
@@ -738,24 +739,24 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
   
   if (NILP (Vinhibit_field_text_motion)
       && !EQ (new_pos, old_pos)
-      && (!NILP (Fget_text_property (new_pos, Qfield, Qnil))
-          || !NILP (Fget_text_property (old_pos, Qfield, Qnil))
+      && (!NILP (Fget_char_property (new_pos, Qfield, Qnil))
+          || !NILP (Fget_char_property (old_pos, Qfield, Qnil))
           /* To recognize field boundaries, we must also look at the
              previous positions; we could use `get_pos_property'
              instead, but in itself that would fail inside non-sticky
              fields (like comint prompts).  */
           || (XFASTINT (new_pos) > BEGV
-              && !NILP (Fget_text_property (prev_new, Qfield, Qnil)))
+              && !NILP (Fget_char_property (prev_new, Qfield, Qnil)))
           || (XFASTINT (old_pos) > BEGV
-              && !NILP (Fget_text_property (prev_old, Qfield, Qnil))))
+              && !NILP (Fget_char_property (prev_old, Qfield, Qnil))))
       && (NILP (inhibit_capture_property)
           /* Field boundaries are again a problem; but now we must
              decide the case exactly, so we need to call
              `get_pos_property' as well.  */
           || (NILP (get_pos_property (old_pos, inhibit_capture_property, Qnil))
               && (XFASTINT (old_pos) <= BEGV
-                  || NILP (Fget_text_property (old_pos, inhibit_capture_property, Qnil))
-                  || NILP (Fget_text_property (prev_old, inhibit_capture_property, Qnil))))))
+                  || NILP (Fget_char_property (old_pos, inhibit_capture_property, Qnil))
+                  || NILP (Fget_char_property (prev_old, inhibit_capture_property, Qnil))))))
     /* It is possible that NEW_POS is not within the same field as
        OLD_POS; try to move NEW_POS so that it is.  */
     {

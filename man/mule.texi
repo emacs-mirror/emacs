@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-@c   2005 Free Software Foundation, Inc.
+@c   2005, 2006 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International, Major Modes, Frames, Top
 @chapter International Character Set Support
@@ -72,8 +72,7 @@ your language environment.  If
 your keyboard can produce non-@acronym{ASCII} characters, you can select an
 appropriate keyboard coding system (@pxref{Terminal Coding}), and Emacs
 will accept those characters.  Latin-1 characters can also be input by
-using the @kbd{C-x 8} prefix, see @ref{Single-Byte Character Support,
-C-x 8}.
+using the @kbd{C-x 8} prefix, see @ref{Unibyte Mode}.
 
 On X Window systems, your locale should be set to an appropriate value
 to make sure Emacs interprets keyboard input correctly; see
@@ -101,7 +100,7 @@ to make sure Emacs interprets keyboard input correctly; see
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
 * Undisplayable Characters:: When characters don't display.
-* Single-Byte Character Support:: You can pick one European character set
+* Unibyte Mode::            You can pick one European character set
                               to use without multibyte characters.
 * Charsets::                How Emacs groups its internal character codes.
 @end menu
@@ -1000,11 +999,11 @@ in communication with other processes.
 @table @kbd
 @item C-x @key{RET} x @var{coding} @key{RET}
 Use coding system @var{coding} for transferring selections to and from
-other programs through the window system.
+other window-based applications.
 
 @item C-x @key{RET} X @var{coding} @key{RET}
 Use coding system @var{coding} for transferring @emph{one}
-selection---the next one---to or from the window system.
+selection---the next one---to or from another window-based application.
 
 @item C-x @key{RET} p @var{input-coding} @key{RET} @var{output-coding} @key{RET}
 Use coding systems @var{input-coding} and @var{output-coding} for
@@ -1166,33 +1165,38 @@ non-graphic characters.
 @section Fontsets
 @cindex fontsets
 
-  A font for X Windows typically defines shapes for a single alphabet
-or script.  Therefore, displaying the entire range of scripts that
-Emacs supports requires a collection of many fonts.  In Emacs, such a
-collection is called a @dfn{fontset}.  A fontset is defined by a list
-of fonts, each assigned to handle a range of character codes.
+  A font typically defines shapes for a single alphabet or script.
+Therefore, displaying the entire range of scripts that Emacs supports
+requires a collection of many fonts.  In Emacs, such a collection is
+called a @dfn{fontset}.  A fontset is defined by a list of fonts, each
+assigned to handle a range of character codes.
 
-  Each fontset has a name, like a font.  The available X fonts are
-defined by the X server; fontsets, however, are defined within Emacs
-itself.  Once you have defined a fontset, you can use it within Emacs by
-specifying its name, anywhere that you could use a single font.  Of
-course, Emacs fontsets can use only the fonts that the X server
-supports; if certain characters appear on the screen as hollow boxes,
-this means that the fontset in use for them has no font for those
-characters.@footnote{The Emacs installation instructions have information on
-additional font support.}
+  Each fontset has a name, like a font.  However, while fonts are
+stored in the system and the available font names are defined by the
+system, fontsets are defined within Emacs itself.  Once you have
+defined a fontset, you can use it within Emacs by specifying its name,
+anywhere that you could use a single font.  Of course, Emacs fontsets
+can use only the fonts that the system supports; if certain characters
+appear on the screen as hollow boxes, this means that the fontset in
+use for them has no font for those characters.@footnote{The Emacs
+installation instructions have information on additional font
+support.}
 
   Emacs creates two fontsets automatically: the @dfn{standard fontset}
 and the @dfn{startup fontset}.  The standard fontset is most likely to
 have fonts for a wide variety of non-@acronym{ASCII} characters;
 however, this is not the default for Emacs to use.  (By default, Emacs
 tries to find a font that has bold and italic variants.)  You can
-specify use of the standard fontset with the @samp{-fn} option, or
-with the @samp{Font} X resource (@pxref{Font X}).  For example,
+specify use of the standard fontset with the @samp{-fn} option.  For
+example,
 
 @example
 emacs -fn fontset-standard
 @end example
+
+@noindent
+You can also specify a fontset with the @samp{Font} resource (@pxref{X
+Resources}).
 
   A fontset does not necessarily specify a font for every character
 code.  If a fontset specifies no font for a certain character, or if it
@@ -1353,8 +1357,8 @@ Latin-1 characters and @acronym{ASCII} mnemonics.  Customize the variable
 @code{latin1-display} to enable this.  The mnemonic @acronym{ASCII}
 sequences mostly correspond to those of the prefix input methods.
 
-@node Single-Byte Character Support
-@section Single-byte Character Set Support
+@node Unibyte Mode
+@section Unibyte Editing Mode
 
 @cindex European character sets
 @cindex accented characters
@@ -1376,8 +1380,8 @@ non-@acronym{ASCII} characters.
 
 @vindex unibyte-display-via-language-environment
   Emacs can also display those characters, provided the terminal or font
-in use supports them.  This works automatically.  Alternatively, if you
-are using a window system, Emacs can also display single-byte characters
+in use supports them.  This works automatically.  Alternatively, on a
+graphical display, Emacs can also display single-byte characters
 through fontsets, in effect by displaying the equivalent multibyte
 characters according to the current language environment.  To request
 this, set the variable @code{unibyte-display-via-language-environment}

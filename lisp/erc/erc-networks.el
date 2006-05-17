@@ -1,4 +1,4 @@
-;;; erc-nets.el --- IRC networks
+;;; erc-networks.el --- IRC networks
 
 ;; Copyright (C) 2002, 2004, 2005 Free Software Foundation, Inc.
 
@@ -30,7 +30,7 @@
 ;;
 ;; Put into your .emacs:
 ;;
-;; (require 'erc-nets)
+;; (require 'erc-networks)
 ;;
 ;; M-x erc-server-select provides an alternative way to connect to servers by
 ;; choosing networks.
@@ -742,7 +742,7 @@ network as a symbol."
     (intern (downcase (symbol-name erc-network)))))
 
 (erc-make-obsolete 'erc-current-network 'erc-network
-		   "Obsolete since erc-nets 1.5")
+		   "Obsolete since erc-networks 1.5")
 
 (defun erc-network-name ()
   "Returns the name of the current network as a string."
@@ -848,10 +848,9 @@ VALUE is the options value.")
 
 (erc-get 'pals 'freenode)
 
+(provide 'erc-networks)
 
-(provide 'erc-nets)
-
-;;; erc-nets.el ends here
+;;; erc-networks.el ends here
 ;;
 ;; Local Variables:
 ;; indent-tabs-mode: t
