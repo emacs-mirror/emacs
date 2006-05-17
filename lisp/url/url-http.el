@@ -1141,7 +1141,8 @@ CBARGS as the arguments."
 	(setq exists nil)
       (setq status (url-http-symbol-value-in-buffer 'url-http-response-status
 						    buffer 500)
-	    exists (and (>= status 200) (< status 300)))
+	    exists (and (integerp status)
+			(>= status 200) (< status 300)))
       (kill-buffer buffer))
     exists))
 

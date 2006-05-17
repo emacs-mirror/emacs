@@ -7,8 +7,6 @@ has to be set to nil: when t, it can leak memory and cause other problems.
 
 ** Update release dates of manuals.
 
-** Spell check the manuals.
-
 ** Get rid of overfull and underfull boxes in manuals.
 
 ** Check for widow and orphan lines in manuals;
@@ -27,6 +25,9 @@ face name prefixes should be in it for good results.
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
+
+** We need a way a Lisp file encoded in iso-2022 can assure
+reliable decoding regardless of user options.
 
 ** JD Smith's 17 Apr 2006 bug report that CVS operations
 get mysterious unreproducible failures.

@@ -192,6 +192,7 @@ lisp1= \
 	$(lispsource)international/mule-conf.el \
 	$(lispsource)international/mule-cmds.elc \
 	$(lispsource)international/characters.elc \
+	$(lispsource)fringe.elc \
 	$(lispsource)image.elc \
 	$(lispsource)international/fontset.elc \
 	$(lispsource)dnd.elc \

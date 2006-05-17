@@ -85,7 +85,7 @@
 (define-key calendar-mode-map [menu-bar diary ent]
   '("Insert Diary Entry" . insert-diary-entry))
 (define-key calendar-mode-map [menu-bar diary all]
-  '("Show All" . show-all-diary-entries))
+  '("Show All" . diary-show-all-entries))
 (define-key calendar-mode-map [menu-bar diary mark]
  '("Mark All" . mark-diary-entries))
 (define-key calendar-mode-map [menu-bar diary view]
@@ -616,7 +616,7 @@ The output is in landscape format, one month to a page."
 (define-key calendar-mouse-3-map [exit-calendar]
   '("Exit calendar" . exit-calendar))
 (define-key calendar-mouse-3-map [show-diary]
-  '("Show diary" . show-all-diary-entries))
+  '("Show diary" . diary-show-all-entries))
 (define-key calendar-mouse-3-map [lunar-phases]
   '("Lunar phases" . calendar-phases-of-moon))
 (define-key calendar-mouse-3-map [unmark]

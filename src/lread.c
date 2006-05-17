@@ -1534,7 +1534,9 @@ end_of_file_error ()
 /* UNIBYTE specifies how to set load_convert_to_unibyte
    for this invocation.
    READFUN, if non-nil, is used instead of `read'.
-   START, END is region in current buffer (from eval-region).  */
+
+   START, END specify region to read in current buffer (from eval-region).
+   If the input is not from a buffer, they must be nil.  */
 
 static void
 readevalloop (readcharfun, stream, sourcename, evalfun,
@@ -1569,6 +1571,10 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
     b = XBUFFER (readcharfun);
   else if (MARKERP (readcharfun))
     b = XMARKER (readcharfun)->buffer;
+
+  /* We assume START is nil when input is not from a buffer.  */
+  if (! NILP (start) && !b)
+    abort ();
 
   specbind (Qstandard_input, readcharfun); /* GCPROs readcharfun.  */
   specbind (Qcurrent_load_list, Qnil);

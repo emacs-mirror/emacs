@@ -821,6 +821,8 @@ This function does not move point.  */)
      Lisp_Object n;
 {
   int orig, orig_byte, end;
+  int count = SPECPDL_INDEX ();
+  specbind (Qinhibit_point_motion_hooks, Qt);
 
   if (NILP (n))
     XSETFASTINT (n, 1);
@@ -833,6 +835,8 @@ This function does not move point.  */)
   end = PT;
 
   SET_PT_BOTH (orig, orig_byte);
+
+  unbind_to (count, Qnil);
 
   /* Return END constrained to the current input field.  */
   return Fconstrain_to_field (make_number (end), make_number (orig),

@@ -1,3 +1,53 @@
+2006-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.texi (Minibuffer History): Update add-to-history.
+
+2006-05-15  Oliver Scholz  <epameinondas@gmx.de>  (tiny change)
+
+	* nonascii.texi (Explicit Encoding): Fix
+	typo (encoding<->decoding).
+
+2006-05-14  Richard Stallman  <rms@gnu.org>
+
+	* buffers.texi (Creating Buffers): Cleanup.
+
+	* files.texi (Visiting Functions): Rewrite in find-file-noselect.
+
+2006-05-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffers.texi (Current Buffer): Document that with-temp-buffer
+	disables undo.
+
+	* os.texi (Terminal-Specific): More accurate description of how
+	Emacs searches for the terminal-specific libraries.
+
+2006-05-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* hooks.texi (Standard Hooks) [iftex]: Convert @xref's to
+	emacs-xtra to @inforef's.
+
+	* text.texi (Undo): Document that undo is turned off in buffers
+	whose names begin with a space.
+
+	* buffers.texi (Buffer Names): Add index entries for buffers whose
+	names begin with a space.
+	(Creating Buffers): Document that undo is turned off in buffers
+	whose names begin with a space.
+
+	* files.texi (Visiting Functions, Reading from Files)
+	(Saving Buffers): Mention code and EOL conversions by file I/O
+	primitives and subroutines.
+
+	* nonascii.texi (Lisp and Coding Systems): Document
+	coding-system-eol-type.  Add index entries for eol conversion.
+
+	* display.texi (Defining Faces): Mention `mac', and add an xref to
+	where window-system is described.
+
+2006-05-10  Richard Stallman  <rms@gnu.org>
+
+	* internals.texi (Writing Emacs Primitives): Clarify GCPRO rules.
+
 2006-05-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* variables.texi (File Local Variables): Recommend to quote lambda

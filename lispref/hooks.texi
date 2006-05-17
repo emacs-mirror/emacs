@@ -88,7 +88,7 @@ or their values are used). The variables whose names end in
 
 @item calendar-load-hook
 @iftex
-@xref{Calendar Customizing,,, emacs-xtra}.
+@inforef{Calendar Customizing,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Calendar Customizing,,, emacs}.
@@ -131,7 +131,7 @@ Emacs Sessions,, Saving Emacs Sessions, emacs, the GNU Emacs Manual}.
 
 @item diary-display-hook
 @iftex
-@xref{Fancy Diary Display,,, emacs-xtra}.
+@inforef{Fancy Diary Display,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Fancy Diary Display,,, emacs}.
@@ -182,7 +182,7 @@ for appointment notification.
 
 @item initial-calendar-window-hook
 @iftex
-@xref{Calendar Customizing,,, emacs-xtra}.
+@inforef{Calendar Customizing,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Calendar Customizing,,, emacs}.
@@ -207,7 +207,7 @@ for appointment notification.
 
 @item list-diary-entries-hook
 @iftex
-@xref{Fancy Diary Display,,, emacs-xtra}.
+@inforef{Fancy Diary Display,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Fancy Diary Display,,, emacs}.
@@ -219,7 +219,7 @@ Manual}.
 
 @item mark-diary-entries-hook
 @iftex
-@xref{Fancy Diary Display,,, emacs-xtra}.
+@inforef{Fancy Diary Display,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Fancy Diary Display,,, emacs}.
@@ -239,7 +239,7 @@ Manual}.
 
 @item nongregorian-diary-listing-hook
 @iftex
-@xref{Hebrew/Islamic Entries,,, emacs-xtra}.
+@inforef{Hebrew/Islamic Entries,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Hebrew/Islamic Entries,,, emacs}.
@@ -247,7 +247,7 @@ Manual}.
 
 @item nongregorian-diary-marking-hook
 @iftex
-@xref{Hebrew/Islamic Entries,,, emacs-xtra}.
+@inforef{Hebrew/Islamic Entries,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Hebrew/Islamic Entries,,, emacs}.
@@ -266,7 +266,7 @@ Manual}.
 
 @item print-diary-entries-hook
 @iftex
-@xref{Diary Customizing,,, emacs-xtra}.
+@inforef{Diary Customizing,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Diary Customizing,,, emacs}.
@@ -297,7 +297,7 @@ Manual}.
 
 @item today-visible-calendar-hook
 @iftex
-@xref{Calendar Customizing,,, emacs-xtra}.
+@inforef{Calendar Customizing,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Calendar Customizing,,, emacs}.
@@ -305,7 +305,7 @@ Manual}.
 
 @item today-invisible-calendar-hook
 @iftex
-@xref{Calendar Customizing,,, emacs-xtra}.
+@infref{Calendar Customizing,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Calendar Customizing,,, emacs}.

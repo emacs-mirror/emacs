@@ -4293,13 +4293,8 @@ actually used.  */)
 	 if we couldn't read the file.  */
 
       if (how_much < 0)
-	{
-	  if (how_much == -1)
-	    error ("IO error reading %s: %s",
-		   SDATA (orig_filename), emacs_strerror (errno));
-	  else if (how_much == -2)
-	    error ("maximum buffer size exceeded");
-	}
+	error ("IO error reading %s: %s",
+	       SDATA (orig_filename), emacs_strerror (errno));
 
       if (unprocessed > 0)
 	{

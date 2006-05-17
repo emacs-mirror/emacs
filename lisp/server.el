@@ -252,8 +252,6 @@ Emacs distribution as your standard \"editor\".
 
 Prefix arg means just kill any existing server communications subprocess."
   (interactive "P")
-  ;; Make sure there is a safe directory in which to place the socket.
-  (server-ensure-safe-dir server-socket-dir)
   ;; kill it dead!
   (if server-process
       (condition-case () (delete-process server-process) (error nil)))
@@ -265,7 +263,10 @@ Prefix arg means just kill any existing server communications subprocess."
   (while server-clients
     (let ((buffer (nth 1 (car server-clients))))
       (server-buffer-done buffer)))
+  ;; Now any previous server is properly stopped.
   (unless leave-dead
+    ;; Make sure there is a safe directory in which to place the socket.
+    (server-ensure-safe-dir server-socket-dir)
     (if server-process
 	(server-log (message "Restarting server")))
     (letf (((default-file-modes) ?\700))
@@ -578,7 +579,7 @@ starts server process and that is all.  Invoked by \\[server-edit]."
   (if (or arg
 	  (not server-process)
 	  (memq (process-status server-process) '(signal exit)))
-      (server-start nil)
+      (server-mode 1)
     (apply 'server-switch-buffer (server-done))))
 
 (defun server-switch-buffer (&optional next-buffer killed-one)
@@ -637,14 +638,15 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 (define-key ctl-x-map "#" 'server-edit)
 
 (defun server-unload-hook ()
-  (server-start t)
+  (server-mode -1)
   (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
   (remove-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
   (remove-hook 'kill-buffer-hook 'server-kill-buffer))
 
+(add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
 (add-hook 'server-unload-hook 'server-unload-hook)
 
 (provide 'server)
 
-;;; arch-tag: 1f7ecb42-f00a-49f8-906d-61995d84c8d6
+;; arch-tag: 1f7ecb42-f00a-49f8-906d-61995d84c8d6
 ;;; server.el ends here

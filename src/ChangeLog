@@ -1,3 +1,54 @@
+2006-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent): Check that f is not NULL before
+	calling x_kill_gs_process.
+
+2006-05-14  Richard Stallman  <rms@gnu.org>
+
+	* textprop.c (Fnext_single_char_property_change)
+	(Fprevious_single_char_property_change): Don't allow returning
+	value beyond LIMIT in any cases.
+	(Fnext_char_property_change, Fprevious_char_property_change): Doc fix.
+
+	* intervals.c (get_local_map): Abort if POSITION outside BEGV, ZV.
+
+2006-05-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): Check that f is not NULL before
+	calling _XEditResCheckMessages.
+
+2006-05-14  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent): Fix crash in 2006-03-24 change.
+
+2006-05-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (x_set_border_width): Fix error message to say "frame",
+	not "window".
+
+	* Makefile.in (SOME_MACHINE_LISP): Add fringe.elc.
+
+2006-05-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* intervals.c (set_point_both): Fix mixup before before and after
+	in variable names.
+
+	* editfns.c (Fline_beginning_position): Inhibit point-motion hooks
+	while setting point temporarily.
+
+2006-05-11  Richard Stallman  <rms@gnu.org>
+
+	* lread.c (readevalloop): Abort if START non-nil for non-buffer input.
+
+2006-05-11  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_tool_bar): Handle large tool-bar-border values.
+
+2006-05-11  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): Fix for the case of IO error
+	while handling replace operation.
+
 2006-05-10  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (realize_default_face) [HAVE_X_WINDOWS]: If the font

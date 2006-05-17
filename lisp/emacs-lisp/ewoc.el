@@ -144,14 +144,6 @@
 
 \(fn NODE CHILD)")
 
-(defun ewoc--node-enter-before (node elemnode)
-  "Insert ELEMNODE before NODE in a DLL."
-  (assert (and (null (ewoc--node-left elemnode)) (null (ewoc--node-right elemnode))))
-  (setf (ewoc--node-left elemnode) (ewoc--node-left node))
-  (setf (ewoc--node-right elemnode) node)
-  (setf (ewoc--node-right (ewoc--node-left node)) elemnode)
-  (setf (ewoc--node-left node) elemnode))
-
 (defun ewoc--node-next (dll node)
   "Return the node after NODE, or nil if NODE is the last node."
   (unless (eq (ewoc--node-right node) dll) (ewoc--node-right node)))
@@ -213,36 +205,39 @@ BUT if it is the header or the footer in EWOC return nil instead."
 	      (eq node (ewoc--footer ewoc)))
     node))
 
-
-(defun ewoc--create-node (data pretty-printer pos)
-  "Call PRETTY-PRINTER with point set at POS in current buffer.
-Remember the start position.  Create a wrapper containing that
-start position and the element DATA."
+(defun ewoc--insert-new-node (node data pretty-printer)
+  "Insert before NODE a new node for DATA, displayed by PRETTY-PRINTER.
+Call PRETTY-PRINTER with point at NODE's start, thus pushing back
+NODE and leaving the new node's start there.  Return the new node."
   (save-excursion
-    ;; Remember the position as a number so that it doesn't move
-    ;; when we insert the string.
-    (when (markerp pos) (setq pos (marker-position pos)))
-    (goto-char pos)
-    (let ((inhibit-read-only t))
+    (let* ((inhibit-read-only t)
+           (m (copy-marker (ewoc--node-start-marker node)))
+           (pos (marker-position m))
+           (elemnode (ewoc--node-create m data)))
+      (goto-char pos)
       ;; Insert the trailing newline using insert-before-markers
       ;; so that the start position for the next element is updated.
       (insert-before-markers ?\n)
       ;; Move back, and call the pretty-printer.
       (backward-char 1)
       (funcall pretty-printer data)
-      (ewoc--node-create (copy-marker pos) data))))
+      (setf (marker-position m) pos
+            (ewoc--node-left  elemnode) (ewoc--node-left node)
+            (ewoc--node-right elemnode)                  node
+            (ewoc--node-right (ewoc--node-left node)) elemnode
+            (ewoc--node-left                   node)  elemnode)
+      elemnode)))
 
 (defun ewoc--refresh-node (pp node)
   "Redisplay the element represented by NODE using the pretty-printer PP."
   (let ((inhibit-read-only t))
-    (save-excursion
-      ;; First, remove the string from the buffer:
-      (delete-region (ewoc--node-start-marker node)
-		     (1- (marker-position
-			  (ewoc--node-start-marker (ewoc--node-right node)))))
-      ;; Calculate and insert the string.
-      (goto-char (ewoc--node-start-marker node))
-      (funcall pp (ewoc--node-data node)))))
+    ;; First, remove the string from the buffer:
+    (delete-region (ewoc--node-start-marker node)
+                   (1- (marker-position
+                        (ewoc--node-start-marker (ewoc--node-right node)))))
+    ;; Calculate and insert the string.
+    (goto-char (ewoc--node-start-marker node))
+    (funcall pp (ewoc--node-data node))))
 
 ;;; ===========================================================================
 ;;;                  Public members of the Ewoc package
@@ -271,22 +266,24 @@ be inserted at the bottom of the ewoc."
          (new-ewoc
           (ewoc--create (current-buffer)
                         pretty-printer nil nil dll))
-         (pos (point)))
+         (pos (point))
+         head foot)
     (ewoc--set-buffer-bind-dll new-ewoc
       ;; Set default values
       (unless header (setq header ""))
       (unless footer (setq footer ""))
-      (setf (ewoc--node-start-marker dll) (copy-marker pos))
-      (let ((foot (ewoc--create-node footer 'insert pos))
-	    (head (ewoc--create-node header 'insert pos)))
-	(ewoc--node-enter-before (ewoc--node-right dll) head)
-	(ewoc--node-enter-before                   dll  foot)
-	(setf (ewoc--header new-ewoc) head)
-	(setf (ewoc--footer new-ewoc) foot)))
+      (setf (ewoc--node-start-marker dll) (copy-marker pos)
+            foot (ewoc--insert-new-node  dll footer 'insert)
+            head (ewoc--insert-new-node foot header 'insert)
+            (ewoc--footer new-ewoc) foot
+            (ewoc--header new-ewoc) head))
     ;; Return the ewoc
     new-ewoc))
 
-(defalias 'ewoc-data 'ewoc--node-data)
+(defalias 'ewoc-data 'ewoc--node-data
+  "Extract the data encapsulated by NODE and return it.
+
+\(fn NODE)")
 
 (defun ewoc-enter-first (ewoc data)
   "Enter DATA first in EWOC.
@@ -311,12 +308,7 @@ Return the new node."
   "Enter a new element DATA before NODE in EWOC.
 Return the new node."
   (ewoc--set-buffer-bind-dll ewoc
-    (ewoc--node-enter-before
-     node
-     (ewoc--create-node
-      data
-      (ewoc--pretty-printer ewoc)
-      (ewoc--node-start-marker node)))))
+    (ewoc--insert-new-node node data (ewoc--pretty-printer ewoc))))
 
 (defun ewoc-next (ewoc node)
   "Return the node in EWOC that follows NODE.
@@ -340,7 +332,7 @@ N counts from zero.  Return nil if there is less than N elements.
 If N is negative, return the -(N+1)th last element.
 Thus, (ewoc-nth dll 0) returns the first node,
 and (ewoc-nth dll -1) returns the last node.
-Use `ewoc--node-data' to extract the data from the node."
+Use `ewoc-data' to extract the data from the node."
   ;; Skip the header (or footer, if n is negative).
   (setq n (if (< n 0) (1- n) (1+ n)))
   (ewoc--filter-hf-nodes ewoc
@@ -361,10 +353,11 @@ arguments will be passed to MAP-FUNCTION."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((footer (ewoc--footer ewoc))
        (node (ewoc--node-nth dll 1)))
-    (while (not (eq node footer))
-      (if (apply map-function (ewoc--node-data node) args)
-	  (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))
-      (setq node (ewoc--node-next dll node)))))
+    (save-excursion
+      (while (not (eq node footer))
+        (if (apply map-function (ewoc--node-data node) args)
+            (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))
+        (setq node (ewoc--node-next dll node))))))
 
 (defun ewoc-filter (ewoc predicate &rest args)
   "Remove all elements in EWOC for which PREDICATE returns nil.
@@ -473,8 +466,9 @@ If the EWOC is empty, nil is returned."
   "Call EWOC's pretty-printer for each element in NODES.
 Delete current text first, thus effecting a \"refresh\"."
   (ewoc--set-buffer-bind-dll ewoc
-    (dolist (node nodes)
-      (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))))
+    (save-excursion
+      (dolist (node nodes)
+        (ewoc--refresh-node (ewoc--pretty-printer ewoc) node)))))
 
 (defun ewoc-goto-prev (ewoc arg)
   "Move point to the ARGth previous element in EWOC.
@@ -526,11 +520,11 @@ number of elements needs to be refreshed."
       (delete-region (ewoc--node-start-marker (ewoc--node-nth dll 1))
 		     (ewoc--node-start-marker footer))
       (goto-char (ewoc--node-start-marker footer))
-      (let ((node (ewoc--node-nth dll 1)))
+      (let ((pp (ewoc--pretty-printer ewoc))
+            (node (ewoc--node-nth dll 1)))
 	(while (not (eq node footer))
 	  (set-marker (ewoc--node-start-marker node) (point))
-	  (funcall (ewoc--pretty-printer ewoc)
-		   (ewoc--node-data node))
+	  (funcall pp (ewoc--node-data node))
 	  (insert "\n")
 	  (setq node (ewoc--node-next dll node)))))
     (set-marker (ewoc--node-start-marker footer) (point))))
@@ -572,8 +566,9 @@ Return nil if the buffer has been deleted."
   "Set the HEADER and FOOTER of EWOC."
   (setf (ewoc--node-data (ewoc--header ewoc)) header)
   (setf (ewoc--node-data (ewoc--footer ewoc)) footer)
-  (ewoc--refresh-node 'insert (ewoc--header ewoc))
-  (ewoc--refresh-node 'insert (ewoc--footer ewoc)))
+  (save-excursion
+    (ewoc--refresh-node 'insert (ewoc--header ewoc))
+    (ewoc--refresh-node 'insert (ewoc--footer ewoc))))
 
 
 (provide 'ewoc)

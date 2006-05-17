@@ -517,7 +517,7 @@ changing the variable `diary-include-string'."
               (unwind-protect
                   (setq diary-entries-list
                         (append diary-entries-list
-                                (list-diary-entries original-date number)))
+                                (diary-list-entries original-date number)))
                 (with-current-buffer (find-buffer-visiting diary-file)
                   (diary-unhide-everything)))
             (beep)
@@ -820,7 +820,7 @@ to run it every morning at 1am."
   (if (string-equal diary-mail-addr "")
       (error "You must set `diary-mail-addr' to use this command")
     (let ((diary-display-hook 'fancy-diary-display))
-      (list-diary-entries (calendar-current-date) (or ndays diary-mail-days)))
+      (diary-list-entries (calendar-current-date) (or ndays diary-mail-days)))
     (compose-mail diary-mail-addr
                   (concat "Diary entries generated "
                           (calendar-date-string (calendar-current-date))))

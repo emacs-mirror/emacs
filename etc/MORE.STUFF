@@ -54,6 +54,9 @@ You might find bug-fixes or enhancements in these places.
  * Eldoc and Rlogin:
    <URL:http://www.splode.com/~friedman/software/emacs-lisp/>
 
+ * ERC: IRC client:
+   <URL:http://www.emacswiki.org/cgi-bin/wiki?EmacsIRCClient>
+
  * EShell: <URL:http://www.newartisans.com/johnw/emacs.html>
 
  * Etags: <URL:ftp://pot.potorti.it/pub/software/unix/etags.tar.gz>
@@ -155,6 +158,9 @@ Several are for Debian GNU/Linux in particular.
  * EMacro: <URL:http://emacro.sourceforge.net/>
    EMacro is a portable configuration file that configures itself.
 
+ * Emacs Muse: <URL:http://www.mwolson.org/projects/EmacsMuse.html>
+   An authoring and publishing environment for Emacs.
+
  * Emacs speaks statistics (ESS): statistical programming within Emacs
    <URL:http://ess.r-project.org>
 
@@ -165,11 +171,8 @@ Several are for Debian GNU/Linux in particular.
    A simple Emacs interface to w3m, which is a text-mode
    WWW browser
 
- * Emacs Wiki Mode: <URL:http://mwolson.org/projects/EmacsWiki.html>
+ * Emacs Wiki Mode: <URL:http://www.mwolson.org/projects/EmacsWiki.html>
    A wiki-like publishing tool and personal information manager
-
- * ERC: IRC client:
-   <URL:http://www.emacswiki.org/cgi-bin/wiki?EmacsIRCClient>
 
  * Gnuserv:
    <URL:http://www.hpl.hp.com/personal/ange/gnuserv/home.html>
@@ -210,8 +213,8 @@ Several are for Debian GNU/Linux in particular.
    nXML mode is an addon for GNU Emacs, which makes GNU Emacs into a
    powerful XML editor.
 
- * Planner Mode:
-   <URL:http://sacha.free.net.ph/notebook/wiki/PlannerMode.php>
+ * Planner Mode: <URL:http://www.plannerlove.com/>
+   Planner is an organizer and day planner for Emacs.
 
  * Preview LaTeX: embed preview LaTeX images in source buffer.
    <URL:http://preview-latex.sourceforge.net/>

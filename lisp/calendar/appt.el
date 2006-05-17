@@ -353,7 +353,7 @@ displayed in a window:
                       ;; restore its display state. Otherwise, kill it.
                       (if d-buff
                           ;; Displays the diary buffer.
-                          (or selective (show-all-diary-entries))
+                          (or selective (diary-show-all-entries))
                         (and
                          (setq d-buff (find-buffer-visiting
                                        (substitute-in-file-name diary-file)))
@@ -536,7 +536,7 @@ The time should be in either 24 hour format or am/pm format."
 The time must be at the beginning of a line for it to be
 put in the appointments list (see examples in documentation of
 the function `appt-check').  We assume that the variables DATE and
-NUMBER hold the arguments that `list-diary-entries' received.
+NUMBER hold the arguments that `diary-list-entries' received.
 They specify the range of dates that the diary is being processed for.
 
 Any appointments made with `appt-add' are not affected by this
