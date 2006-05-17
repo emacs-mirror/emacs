@@ -280,7 +280,10 @@ be inserted at the bottom of the ewoc."
     ;; Return the ewoc
     new-ewoc))
 
-(defalias 'ewoc-data 'ewoc--node-data)
+(defalias 'ewoc-data 'ewoc--node-data
+  "Extract the data encapsulated by NODE and return it.
+
+\(fn NODE)")
 
 (defun ewoc-enter-first (ewoc data)
   "Enter DATA first in EWOC.
@@ -329,7 +332,7 @@ N counts from zero.  Return nil if there is less than N elements.
 If N is negative, return the -(N+1)th last element.
 Thus, (ewoc-nth dll 0) returns the first node,
 and (ewoc-nth dll -1) returns the last node.
-Use `ewoc--node-data' to extract the data from the node."
+Use `ewoc-data' to extract the data from the node."
   ;; Skip the header (or footer, if n is negative).
   (setq n (if (< n 0) (1- n) (1+ n)))
   (ewoc--filter-hf-nodes ewoc
