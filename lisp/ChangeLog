@@ -1,3 +1,19 @@
+2006-05-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--adjust): New func.
+	(ewoc--insert-new-node): Don't insert trailing newline.
+	Instead, adjust succesor nodes' start markers.
+	(ewoc--refresh-node): Delete all text from current node's start
+	marker to the next one's; adjust successor nodes' start markers.
+	(ewoc--create): Doc fixes.
+	(ewoc--refresh): Don't insert newline.
+	(ewoc--set-hf): Use `ewoc--set-buffer-bind-dll-let*'.
+	* pcvs.el (cvs-make-cvs-buffer): Specify
+	extra newline for ewoc's header and footer.
+	(cvs-update-header): Update initial header recognition.
+	Append newline to final header and footer values.
+	* pcvs-info.el (cvs-fileinfo-pp): Insert trailing newline.
+
 2006-05-17  Richard Stallman  <rms@gnu.org>
 
 	* files.el (file-name-extension): Doc fix.
