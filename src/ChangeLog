@@ -1,3 +1,15 @@
+2006-05-18  Kenichi Handa  <handa@m17n.org>
+
+	* callproc.c (Fcall_process): Reject encoding arguments by
+	ascii-incompatible coding systems (e.g. utf-16).
+
+	* coding.c (Qascii_incompatible): New variable.
+	(syms_of_coding): Setup Qascii_incompatible.
+	(setup_coding_system): Be sure to initialize coding->common_flags.
+	Check `ascii-incompatible' property of the coding system.
+
+	* coding.h (CODING_ASCII_INCOMPATIBLE_MASK): New macro.
+
 2006-05-18  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (display_tool_bar_line): Restore entire tool-bar geometry when
