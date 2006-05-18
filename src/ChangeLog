@@ -1,3 +1,19 @@
+2006-05-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* config.in: Regenerated (HAVE_ALSA).
+
+	* sound.c (alsa_sound_perror, alsa_open, alsa_period_size)
+	(alsa_configure, alsa_close, alsa_choose_format, alsa_write)
+	(snd_error_quiet, alsa_init): New functions.
+	(vox_init): Return 0 if unable to open device.
+	(Fplay_sound_internal): Test for alsa first and use vox (oss) as
+	a fallback.
+	(struct sound_device): Add period_size.
+	(wav_play, au_play): Use period_size if set.
+
+	* Makefile.in (CFLAGS_SOUND): New flags for ALSA
+	(ALL_CFLAGS): Add CFLAGS_SOUND
+
 2006-05-18  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): Reject encoding arguments by
