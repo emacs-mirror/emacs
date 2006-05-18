@@ -1,5 +1,8 @@
 2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* gnus-sum.el (gnus-summary-save-article-mail): Clarify doc string.
+	(gnus-summary-expire-articles-now): Shorten prompt.
+
 	* gmm-utils.el (wid-edit): Require.
 	(defun-gmm): Renamed from `gmm-defun-compat'.
 	(gmm-image-search-load-path): Use it.
