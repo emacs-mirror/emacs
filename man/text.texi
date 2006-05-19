@@ -39,9 +39,9 @@ input to @TeX{}, you would use @TeX{}
 @iftex
 mode (@pxref{TeX Mode}).
 @end iftex
-@ifinfo
+@ifnottex
 mode.
-@end ifinfo
+@end ifnottex
 For input to groff or nroff, use Nroff mode.
 
   Instead of using a text formatter, you can edit formatted text in
@@ -473,9 +473,9 @@ automatically from the second or first line of a paragraph.
 cannot merge lines.  So editing in the middle of a paragraph can result in
 a paragraph that is not correctly filled.  The easiest way to make the
 paragraph properly filled again is usually with the explicit fill commands.
-@ifinfo
+@ifnottex
 @xref{Fill Commands}.
-@end ifinfo
+@end ifnottex
 
   Many users like Auto Fill mode and want to use it in all text files.
 The section on init files says how to arrange this permanently for yourself.
@@ -934,7 +934,7 @@ mode, Outline mode, and Mail mode.  Hook functions on
 @code{text-mode-hook} can look at the value of @code{major-mode} to see
 which of these modes is actually being entered.  @xref{Hooks}.
 
-@ifinfo
+@ifnottex
   Emacs provides two other modes for editing text that is to be passed
 through a text formatter to produce fancy formatted printed output.
 @xref{Nroff Mode}, for editing input to the formatter nroff.
@@ -945,7 +945,7 @@ text at various levels of detail.  You can view either the outline
 headings alone or both headings and text; you can also hide some of the
 headings at lower levels from view to make the high level structure more
 visible.  @xref{Outline Mode}.
-@end ifinfo
+@end ifnottex
 
 @node Outline Mode
 @section Outline Mode
