@@ -1,3 +1,7 @@
+2006-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/cc-styles.el (c-style-alist): Doc fix.
+
 2006-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-bytes-to-digits): Remove function.

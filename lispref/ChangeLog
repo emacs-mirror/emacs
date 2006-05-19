@@ -1,3 +1,8 @@
+2006-05-19  Michael Ernst  <mernst@alum.mit.edu>  (tiny change)
+
+	* searching.texi (Simple Match Data): Warn about match data being
+	set anew by every search.
+
 2006-05-17  Richard Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Minibuffer History): Clarify.

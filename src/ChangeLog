@@ -2,7 +2,8 @@
 
 	* w32.c (init_environment): Perform the processing of environment
 	variables on a copy of default variables and their values, not on
-	the original.
+	the original.  Simplify code that calls ExpandEnvironmentStrings
+	and make buf1[] and buf2[] more visible for easier debugging.
 
 2006-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
