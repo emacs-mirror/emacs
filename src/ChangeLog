@@ -1,3 +1,16 @@
+2006-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.c (x_set_border_width): Remove #ifndef MAC_OS.
+
+	* image.c [MAC_OS] (gif_load): Allocate Lisp string first.
+
+	* macfns.c (Fx_focus_frame): Don't check dpyinfo->x_focus_frame.
+
+	* macterm.c (XTread_socket) [TARGET_API_MAC_CARBON && MAC_OSX]:
+	Forward keyUp events to toolbox_dispatcher.
+
+	* window.c (foreach_window): Check WINDOWP (FRAME_ROOT_WINDOW (f)).
+
 2006-05-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* config.in: Regenerated (HAVE_ALSA).
