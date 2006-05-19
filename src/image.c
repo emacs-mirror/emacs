@@ -8067,18 +8067,18 @@ gif_load (f, img)
   /* Save GIF image extension data for `image-extension-data'.
      Format is (count IMAGES 0xf9 GRAPHIC_CONTROL_EXTENSION_BLOCK).  */
   {
-    unsigned char gce[4];
+    Lisp_Object gce = make_uninit_string (4);
     int centisec = ((float)duration / time_scale) * 100.0f + 0.5f;
 
     /* Fill the delay time field.  */
-    gce[1] = centisec & 0xff;
-    gce[2] = (centisec >> 8) & 0xff;
+    SSET (gce, 1, centisec & 0xff);
+    SSET (gce, 2, (centisec >> 8) & 0xff);
     /* We don't know about other fields.  */
-    gce[0] = gce[3] = 0;
+    SSET (gce, 0, 0);
+    SSET (gce, 3, 0);
 
     img->data.lisp_val = list4 (Qcount, make_number (nsamples),
-				make_number (0xf9),
-				make_unibyte_string (gce, 4));
+				make_number (0xf9), gce);
   }
 
   /* Maybe fill in the background field while we have ximg handy. */
