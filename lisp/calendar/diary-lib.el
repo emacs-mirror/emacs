@@ -332,9 +332,9 @@ The function takes a string argument and must return a string.")
 Do nothing if DATE or STRING is nil.  DATE is the (MONTH DAY
 YEAR) for which the entry applies; STRING is the text of the
 entry as it will appear in the diary (i.e. with any format
-strings such as \%d\" expanded); SPECIFIER is the date part of
+strings such as \"%d\" expanded); SPECIFIER is the date part of
 the entry as it appears in the diary-file; LITERAL is the entry
-as it appears in the diary-file (i.e. before expansion). If
+as it appears in the diary-file (i.e. before expansion).  If
 LITERAL is nil, it is taken to be the same as STRING.
 
 The entry is added to the list as (DATE STRING SPECIFIER LOCATOR
