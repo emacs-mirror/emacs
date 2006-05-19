@@ -1,16 +1,16 @@
 2006-05-19  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* trouble.texi (Checklist): 
-	* text.texi (Text, Auto Fill, Text Mode): 
-	* search.texi (Nonincremental Search): 
-	* rmail.texi (Rmail Labels): 
-	* mule.texi (Input Methods, Multibyte Conversion): 
-	* misc.texi (Gnus, Where to Look, PostScript): 
-	* maintaining.texi (Create Tags Table): 
-	* indent.texi (Indentation Commands): 
-	* fixit.texi (Spelling): 
-	* emacs.texi (Copying): 
-	* custom.texi (Init File): ifinfo -> ifnottex. 
+	* trouble.texi (Checklist):
+	* text.texi (Text, Auto Fill, Text Mode):
+	* search.texi (Nonincremental Search):
+	* rmail.texi (Rmail Labels):
+	* mule.texi (Input Methods, Multibyte Conversion):
+	* misc.texi (Gnus, Where to Look, PostScript):
+	* maintaining.texi (Create Tags Table):
+	* indent.texi (Indentation Commands):
+	* fixit.texi (Spelling):
+	* emacs.texi (Copying):
+	* custom.texi (Init File): ifinfo -> ifnottex.
 
 2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -48,8 +48,8 @@
 2006-05-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* calendar.texi (Calendar/Diary, Holidays, Displaying the Diary)
-	(Displaying the Diary, Special Diary Entries, Importing Diary): 
-	* building.texi (Compilation Shell): 
+	(Displaying the Diary, Special Diary Entries, Importing Diary):
+	* building.texi (Compilation Shell):
 	* buffers.texi (Several Buffers) [iftex]: Replace @xref's to
 	emacs-xtra with @inforef's.
 
