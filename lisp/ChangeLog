@@ -1,3 +1,28 @@
+2006-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-bahai-date)
+	(list-bahai-diary-entries, mark-bahai-diary-entries)
+	(mark-bahai-calendar-date-pattern): Not interactive.
+	(add-to-diary-list): New optional arg LITERAL.  Doc fix.
+	(diary-entries-list): Change format of 4th element in each entry.
+	(diary-list-entries): Use add-to-diary-list.
+	(diary-goto-entry): Handle the case where the buffer visiting the
+	diary has been killed.
+	(fancy-diary-display): Add 'locator to button rather than 'marker.
+	Only generate temp-face when there are marks to apply.
+	(list-sexp-diary-entries): Pass literal to add-to-diary-list.
+	(diary-fancy-date-pattern): New variable.
+	(diary-time-regexp): Doc fix.
+	(diary-anniversary, diary-time): New faces.
+	(fancy-diary-font-lock-keywords): Use diary-fancy-date-pattern and
+	diary-time-regexp.  Add font-lock-multiline property where needed.
+	Use new faces diary-anniversary and diary-time.
+	(diary-fancy-font-lock-fontify-region-function): New function, to
+	handle multiline font-lock pattern in fancy diary.
+	(fancy-diary-display-mode): Set font-lock-fontify-region-function.
+	(diary-font-lock-keywords): Tweak time regexp.  Use new face
+	diary-time.
+
 2006-05-19  Alexander Shopov  <ash@contact.bg>  (tiny change)
 
 	* international/code-pages.el (mik): Table corrected.
