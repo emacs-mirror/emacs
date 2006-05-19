@@ -1095,20 +1095,17 @@ init_environment (char ** argv)
 
 	    if (lpval)
 	      {
+		char buf1[SET_ENV_BUF_SIZE], buf2[SET_ENV_BUF_SIZE];
+
 		if (dwType == REG_EXPAND_SZ)
-		  {
-		    char buf1[SET_ENV_BUF_SIZE], buf2[SET_ENV_BUF_SIZE];
-
-		    ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof(buf1));
-		    _snprintf (buf2, sizeof(buf2)-1, "%s=%s", env_vars[i].name, buf1);
-		    _putenv (strdup (buf2));
-		  }
+		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof(buf1));
 		else if (dwType == REG_SZ)
+		  strcpy (buf1, lpval);
+		if (dwType == REG_EXPAND_SZ || dwType == REG_SZ)
 		  {
-		    char buf[SET_ENV_BUF_SIZE];
-
-		    _snprintf (buf, sizeof(buf)-1, "%s=%s", env_vars[i].name, lpval);
-		    _putenv (strdup (buf));
+		    _snprintf (buf2, sizeof(buf2)-1, "%s=%s", env_vars[i].name,
+			       buf1);
+		    _putenv (strdup (buf2));
 		  }
 
 		if (!dont_free)
