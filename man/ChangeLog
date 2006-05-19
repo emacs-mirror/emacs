@@ -1,3 +1,17 @@
+2006-05-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* trouble.texi (Checklist): 
+	* text.texi (Text, Auto Fill, Text Mode): 
+	* search.texi (Nonincremental Search): 
+	* rmail.texi (Rmail Labels): 
+	* mule.texi (Input Methods, Multibyte Conversion): 
+	* misc.texi (Gnus, Where to Look, PostScript): 
+	* maintaining.texi (Create Tags Table): 
+	* indent.texi (Indentation Commands): 
+	* fixit.texi (Spelling): 
+	* emacs.texi (Copying): 
+	* custom.texi (Init File): ifinfo -> ifnottex. 
+
 2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
