@@ -30,9 +30,9 @@ Usenet news.  It can also be used to read and respond to messages from a
 number of other sources---mail, remote directories, digests, and so on.
 
 Here we introduce Gnus and describe several basic features.
-@ifinfo
+@ifnottex
 For full details, see @ref{Top, Gnus,, gnus, The Gnus Manual}.
-@end ifinfo
+@end ifnottex
 @iftex
 For full details on Gnus, type @kbd{M-x info} and then select the Gnus
 manual.
@@ -238,10 +238,10 @@ for @var{regexp}.
 
 @c Too many references to the name of the manual if done with xref in TeX!
 Gnus is powerful and customizable.  Here are references to a few
-@ifinfo
+@ifnottex
 additional topics:
 
-@end ifinfo
+@end ifnottex
 @iftex
 additional topics in @cite{The Gnus Manual}:
 
@@ -274,7 +274,7 @@ Send an article to a newsgroup.@*
 See section ``Composing Messages.''
 @end itemize
 @end iftex
-@ifinfo
+@ifnottex
 @itemize @bullet
 @item
 Follow discussions on specific topics.@*
@@ -304,7 +304,7 @@ name, subject, or string in the body of the articles.@*
 Send an article to a newsgroup.@*
 @xref{Composing Messages, , , gnus, The Gnus Manual}.
 @end itemize
-@end ifinfo
+@end ifnottex
 @end ignore
 
 @node Shell, Emacs Server, Gnus, Top
@@ -1503,9 +1503,9 @@ rendition of the current buffer as a cursive handwritten document.  It
 can be customized in group @code{handwrite}.  This function only
 supports ISO 8859-1 characters.
 
-@ifinfo
+@ifnottex
   The following section describes variables for customizing these commands.
-@end ifinfo
+@end ifnottex
 
 @node PostScript Variables, Printing Package, PostScript, Printing
 @section Variables for PostScript Hardcopy
