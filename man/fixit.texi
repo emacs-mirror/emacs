@@ -267,9 +267,9 @@ case-convert it and go on typing.  @xref{Case}.@refill
   This section describes the commands to check the spelling of a single
 word or of a portion of a buffer.  These commands work with the spelling
 checker programs Aspell and Ispell, which are not part of Emacs.
-@ifinfo
+@ifnottex
 @xref{Top, Aspell,, aspell, The Aspell Manual}.
-@end ifinfo
+@end ifnottex
 
 @table @kbd
 @item M-x flyspell-mode
