@@ -355,9 +355,9 @@ the syntax of several languages, as described in
 @iftex
 the previous section.
 @end iftex
-@ifinfo
+@ifnottex
 @ref{Tag Syntax}.
-@end ifinfo
+@end ifnottex
 Here is how to run @code{etags}:
 
 @example
