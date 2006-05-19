@@ -10333,6 +10333,7 @@ XTread_socket (sd, expected, hold_quit)
 	  break;
 
 	case keyDown:
+	case keyUp:
 	case autoKey:
 	  {
 	    int keycode = (er.message & keyCodeMask) >> 8;
@@ -10354,6 +10355,8 @@ XTread_socket (sd, expected, hold_quit)
 		  != eventNotHandledErr)
 		break;
 #endif
+	    if (er.what == keyUp)
+	      break;
 
 #if 0
 	    if (dpyinfo->x_focus_frame == NULL)
