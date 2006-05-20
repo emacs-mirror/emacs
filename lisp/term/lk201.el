@@ -69,7 +69,7 @@
 (define-key lk201-function-map "\eOv" [kp-6])
 (define-key lk201-function-map "\eOw" [kp-7])
 (define-key lk201-function-map "\eOx" [kp-8])
-(define-key lk201-function-map "\eOy" [kp-9]))
+(define-key lk201-function-map "\eOy" [kp-9])
 
 (defun terminal-init-lk201 ()
   ;; Use inheritance to let the main keymap override these defaults.

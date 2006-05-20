@@ -93,8 +93,8 @@
 (define-key iris-function-map "\e[048q" [M-f12])
 
 
-(define-key iris-function-map "\e[057q" [C-`])
-(define-key iris-function-map "\e[115q" [M-`])
+(define-key iris-function-map "\e[057q" [?\C-`])
+(define-key iris-function-map "\e[115q" [?\M-`])
 
 (define-key iris-function-map "\e[049q" [?\C-1])
 (define-key iris-function-map "\e[058q" [?\M-1])
