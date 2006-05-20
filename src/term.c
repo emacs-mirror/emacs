@@ -2029,9 +2029,8 @@ get_tty_terminal (Lisp_Object terminal, int throw)
   return t;
 }
 
-/* Return the active termcap device that uses the tty device with the
-   given name.  If NAME is NULL, return the device corresponding to
-   our controlling terminal.
+/* Return an active termcap device that uses the tty device with the
+   given name.
 
    This function ignores suspended devices.
 
@@ -2043,14 +2042,16 @@ get_named_tty (name)
 {
   struct terminal *t;
 
-  for (t = terminal_list; t; t = t->next_terminal) {
-    if (t->type == output_termcap
-        && ((t->display_info.tty->name == 0 && name == 0)
-            || (name && t->display_info.tty->name
-                && !strcmp (t->display_info.tty->name, name)))
-        && TERMINAL_ACTIVE_P (t))
-      return t;
-  };
+  if (!name)
+    abort ();
+
+  for (t = terminal_list; t; t = t->next_terminal)
+    {
+      if (t->type == output_termcap
+          && !strcmp (t->display_info.tty->name, name)
+          && TERMINAL_ACTIVE_P (t))
+        return t;
+    }
 
   return 0;
 }
@@ -2058,6 +2059,7 @@ get_named_tty (name)
 
 DEFUN ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
        doc: /* Return the type of the tty device that TERMINAL uses.
+Returns nil if TERMINAL is not on a tty device.
 
 TERMINAL can be a terminal id, a frame or nil (meaning the selected
 frame's terminal).  */)
@@ -2067,8 +2069,8 @@ frame's terminal).  */)
   struct terminal *t = get_terminal (terminal, 1);
 
   if (t->type != output_termcap)
-    error ("Terminal %d is not a termcap terminal", t->id);
-           
+    return Qnil;
+
   if (t->display_info.tty->type)
     return build_string (t->display_info.tty->type);
   else
@@ -2388,7 +2390,7 @@ static void maybe_fatal();
 /* Create a termcap display on the tty device with the given name and
    type.
 
-   If NAME is NULL, then use the controlling tty, i.e., stdin/stdout.
+   If NAME is NULL, then use the controlling tty, i.e., "/dev/tty".
    Otherwise NAME should be a path to the tty device file,
    e.g. "/dev/pts/7".
 
@@ -2414,6 +2416,11 @@ init_tty (char *name, char *terminal_type, int must_succeed)
                  "Unknown terminal type",
                  "Unknown terminal type");
 
+  if (name == NULL)
+    name = "/dev/tty";
+  if (!strcmp (name, "/dev/tty"))
+    ctty = 1;
+
   /* If we already have a terminal on the given device, use that.  If
      all such terminals are suspended, create a new one instead.  */
   /* XXX Perhaps this should be made explicit by having init_tty
@@ -2438,11 +2445,6 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
   set_tty_hooks (terminal);
   
-  if (name == NULL)
-    name = "/dev/tty";
-  if (!strcmp (name, "/dev/tty"))
-    ctty = 1;
-
   {
     int fd;
     FILE *file;
@@ -2977,11 +2979,10 @@ delete_tty (struct terminal *terminal)
 {
   struct tty_display_info *tty;
   Lisp_Object tail, frame;
-  char *tty_name;
   int last_terminal;
   
-  /* Protect against recursive calls.  Fdelete_frame calls us back
-     when we delete our last frame.  */
+  /* Protect against recursive calls.  Fdelete_frame in
+     delete_terminal calls us back when it deletes our last frame.  */
   if (terminal->deleted)
     return;
 
@@ -3019,25 +3020,15 @@ delete_tty (struct terminal *terminal)
       tty->next = 0;
     }
 
-  /* We must not throw any errors below this line.  */
-  terminal->deleted = 1;
-
-  FOR_EACH_FRAME (tail, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_TERMCAP_P (f) && FRAME_LIVE_P (f) && FRAME_TTY (f) == tty)
-        {
-          Fdelete_frame (frame, Qt);
-        }
-    }
-
   /* reset_sys_modes needs a valid device, so this call needs to be
      before delete_terminal. */
   reset_sys_modes (tty);
 
   delete_terminal (terminal);
 
-  tty_name = tty->name;
+  if (tty->name)
+    xfree (tty->name);
+
   if (tty->type)
     xfree (tty->type);
 
@@ -3060,7 +3051,6 @@ delete_tty (struct terminal *terminal)
 
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);
-  deleting_tty = 0;
 }
 
 
@@ -3096,14 +3086,14 @@ This variable can be used by terminal emulator packages.  */);
 
   DEFVAR_LISP ("suspend-tty-functions", &Vsuspend_tty_functions,
     doc: /* Functions to be run after suspending a tty.
-The functions are run with one argument, the name of the tty to be suspended.
+The functions are run with one argument, the terminal id to be suspended.
 See `suspend-tty'.  */);
   Vsuspend_tty_functions = Qnil;
 
 
   DEFVAR_LISP ("resume-tty-functions", &Vresume_tty_functions,
     doc: /* Functions to be run after resuming a tty.
-The functions are run with one argument, the name of the tty that was revived.
+The functions are run with one argument, the terminal id that was revived.
 See `resume-tty'.  */);
   Vresume_tty_functions = Qnil;
 

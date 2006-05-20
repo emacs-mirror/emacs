@@ -307,7 +307,9 @@ struct terminal
   /* The type of the terminal device. */
   enum output_method type;
 
-  /* The name of the terminal device.  Do not use this to identify the device. */
+  /* The name of the terminal device.  Do not use this to uniquely
+     identify a terminal; the same device may be opened multiple
+     times. */
   char *name;
 
 #ifdef MULTI_KBOARD

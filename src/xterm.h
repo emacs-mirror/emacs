@@ -149,6 +149,9 @@ struct x_display_info
   /* Chain of all x_display_info structures.  */
   struct x_display_info *next;
 
+  /* The generic display parameters corresponding to this X display. */
+  struct terminal *terminal;
+
   /* Connection number (normally a file descriptor number).  */
   int connection;
 
@@ -386,9 +389,6 @@ struct x_display_info
       X_WMTYPE_A,
       X_WMTYPE_B
     } wm_type;
-
-  /* The generic display parameters corresponding to this X display. */
-  struct terminal *terminal;
 };
 
 #ifdef HAVE_X_I18N

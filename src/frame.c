@@ -561,7 +561,10 @@ make_terminal_frame (struct terminal *terminal)
   register struct frame *f;
   Lisp_Object frame;
   char name[20];
-  
+
+  if (terminal->deleted)
+    error ("Terminal is being deleted, can't create new frames on it");
+
   f = make_frame (1);
 
   XSETFRAME (frame, f);

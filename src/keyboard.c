@@ -6899,6 +6899,9 @@ tty_read_avail_input (struct terminal *terminal,
   struct tty_display_info *tty = terminal->display_info.tty;
   int nread = 0;
 
+  if (terminal->deleted)        /* Don't read from a deleted terminal. */
+    return;
+
   if (terminal->type != output_termcap)
     abort ();
 

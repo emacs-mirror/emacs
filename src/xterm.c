@@ -6981,6 +6981,31 @@ XTread_socket (terminal, expected, hold_quit)
 
   ++handling_signal;
 
+#ifdef HAVE_X_SM
+  /* Only check session manager input for the primary display. */
+  if (terminal->id == 1 && x_session_have_connection ())
+    {
+      struct input_event inev;
+      BLOCK_INPUT;
+      /* We don't need to EVENT_INIT (inev) here, as
+         x_session_check_input copies an entire input_event.  */
+      if (x_session_check_input (&inev))
+        {
+          kbd_buffer_store_event_hold (&inev, hold_quit);
+          count++;
+        }
+      UNBLOCK_INPUT;
+    }
+#endif
+
+  /* For debugging, this gives a way to fake an I/O error.  */
+  if (terminal->display_info.x == XTread_socket_fake_io_error)
+    {
+      XTread_socket_fake_io_error = 0;
+      x_io_error_quitter (dpyinfo->display);
+    }
+  
+#if 0 /* This loop is a noop now.  */
   /* Find the display we are supposed to read input for.
      It's the one communicating on descriptor SD.  */
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
@@ -7011,54 +7036,31 @@ XTread_socket (terminal, expected, hold_quit)
 #endif /* HAVE_SELECT */
 #endif /* SIGIO */
 #endif
-
-      /* For debugging, this gives a way to fake an I/O error.  */
-      if (dpyinfo == XTread_socket_fake_io_error)
-	{
-	  XTread_socket_fake_io_error = 0;
-	  x_io_error_quitter (dpyinfo->display);
-	}
-
-#ifdef HAVE_X_SM
-      /* Only check session manager input for the primary display. */
-      if (terminal->id == 1 && x_session_have_connection ())
-        {
-          struct input_event inev;
-          BLOCK_INPUT;
-          /* We don't need to EVENT_INIT (inev) here, as
-             x_session_check_input copies an entire input_event.  */
-          if (x_session_check_input (&inev))
-            {
-              kbd_buffer_store_event_hold (&inev, hold_quit);
-              count++;
-            }
-          UNBLOCK_INPUT;
-        }
+    }
 #endif
 
 #ifndef USE_GTK
-      while (XPending (dpyinfo->display))
-	{
-          int finish;
+  while (XPending (terminal->display_info.x->display))
+    {
+      int finish;
 
-	  XNextEvent (dpyinfo->display, &event);
+      XNextEvent (terminal->display_info.x->display, &event);
 
 #ifdef HAVE_X_I18N
-          /* Filter events for the current X input method.  */
-          if (x_filter_event (dpyinfo, &event))
-            break;
+      /* Filter events for the current X input method.  */
+      if (x_filter_event (terminal->display_info.x, &event))
+        break;
 #endif
-	  event_found = 1;
+      event_found = 1;
 
-          count += handle_one_xevent (dpyinfo, &event, &finish, hold_quit);
+      count += handle_one_xevent (terminal->display_info.x,
+                                  &event, &finish, hold_quit);
 
-          if (finish == X_EVENT_GOTO_OUT)
-            goto out;
-        }
-#endif /* not USE_GTK */
+      if (finish == X_EVENT_GOTO_OUT)
+        goto out;
     }
 
-#ifdef USE_GTK
+#else /* USE_GTK */
 
   /* For GTK we must use the GTK event loop.  But XEvents gets passed
      to our filter function above, and then to the big event switch.
@@ -10680,7 +10682,7 @@ x_term_init (display_name, xrm_option, resource_name)
   return dpyinfo;
 }
 
-/* Get rid of display DPYINFO, assuming all frames are already gone,
+/* Get rid of display DPYINFO, deleting all frames on it,
    and without sending any more commands to the X server.  */
 
 void
@@ -10690,11 +10692,12 @@ x_delete_display (dpyinfo)
   int i;
   struct terminal *t;
 
-  /* Delete the generic struct terminal for this X display. */
+  /* Close all frames and delete the generic struct terminal for this
+     X display.  */
   for (t = terminal_list; t; t = t->next_terminal)
     if (t->type == output_x_window && t->display_info.x == dpyinfo)
       {
-        /* Close X session management when we close its display. */
+        /* Close X session management when we close its display.  */
         if (t->id == 1 && x_session_have_connection ())
           x_session_close();
 
@@ -10837,24 +10840,11 @@ x_delete_terminal (struct terminal *terminal)
 {
   struct x_display_info *dpyinfo = terminal->display_info.x;
   int i;
-  Lisp_Object tail, frame;
 
-  /* Protect against recursive calls.  Fdelete_frame calls us back
-     when we delete our last frame.  */
+  /* Protect against recursive calls.  Fdelete_frame in
+     delete_terminal calls us back when it deletes our last frame.  */
   if (terminal->deleted)
     return;
-  terminal->deleted = 1;
-
-  /* Check for and close live frames that are still on this
-     terminal. */
-  FOR_EACH_FRAME (tail, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && f->terminal == terminal)
-        {
-          Fdelete_frame (frame, Qt);
-        }
-    }
 
   BLOCK_INPUT;
   /* Free the fonts in the font table.  */

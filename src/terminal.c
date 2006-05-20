@@ -270,7 +270,8 @@ mark_terminals (void)
 }
 
 
-/* Remove a terminal from the terminal list and free its memory. */
+/* Low-level function to close all frames on a terminal, remove it
+   from the terminal list and free its memory.  */
 
 void
 delete_terminal (struct terminal *terminal)
@@ -278,14 +279,13 @@ delete_terminal (struct terminal *terminal)
   struct terminal **tp;
   Lisp_Object tail, frame;
 
-  /* Protect against recursive calls.  Fdelete_frame calls us back
-     when we delete our last frame.  */
+  /* Protect against recursive calls.  Fdelete_frame calls the
+     delete_terminal_hook when we delete our last frame.  */
   if (terminal->deleted)
     return;
   terminal->deleted = 1;
 
-  /* Check for and close live frames that are still on this
-     terminal. */
+  /* Check for live frames that are still on this terminal. */
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
