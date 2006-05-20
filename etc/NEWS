@@ -72,6 +72,12 @@ Type `C-u C-h t' to choose one of them in case your language setup
 doesn't automatically select the right one.
 
 ---
+** A Portugese translation of Emacs' reference card has been added.
+Its name is `pt-br-refcard.tex'.  The corresponding PostScript file is
+also included.
+
+
+---
 ** A French translation of the `Emacs Survival Guide' is available.
 
 ---
