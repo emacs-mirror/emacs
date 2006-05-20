@@ -812,6 +812,7 @@ macro exceeds this column then the next tab stop from that line is
 used as alignment column instead."
   :type 'integer
   :group 'c)
+;;;###autoload(put 'c-backslash-column 'safe-local-variable 'integerp)
 
 (defcustom-c-stylevar c-backslash-max-column 72
   "*Maximum alignment column for line continuation backslashes.
