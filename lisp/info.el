@@ -2918,7 +2918,9 @@ Build a menu of the possible matches."
 	(goto-char (point-min))
 	(re-search-forward "\\* Menu: *\n" nil t)
 	(while (re-search-forward "\\*.*: *(\\([^)]+\\))" nil t)
-	  (setq manuals (cons (match-string 1) manuals)))
+	  ;; add-to-list makes sure we don't have duplicates in `manuals',
+	  ;; so that the following dolist loop runs faster.
+	  (add-to-list 'manuals (match-string 1)))
 	(dolist (manual (nreverse manuals))
 	  (message "Searching %s" manual)
 	  (condition-case err
