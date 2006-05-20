@@ -31,10 +31,8 @@
 
 (defun terminal-init-AT386 ()
   "Terminal initialization function for AT386."
-  (if (boundp 'AT386-keypad-map)
-      nil
+  (let ((AT386-keypad-map (lookup-key local-function-key-map "\e[")))
     ;; The terminal initialization should already have set up some keys
-    (setq AT386-keypad-map (lookup-key local-function-key-map "\e["))
     (if (not (keymapp AT386-keypad-map))
 	(error "What?  Your AT386 termcap/terminfo has no keycaps in it"))
 

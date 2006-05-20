@@ -404,6 +404,8 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** See if `tty-defined-color-alist' needs to be terminal-local.
+
 ** emacsclient -t on the console does not work after su.  You have to
    use non-root accounts or start as root to see this.
 

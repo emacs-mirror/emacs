@@ -40,7 +40,7 @@
 
 (defun terminal-init-vt100 ()
   "Terminal initialization function for vt100."
-  (terminal-init-lk201))
+  (tty-run-terminal-initialization (selected-frame) "lk201"))
 
 ;;; Controlling the screen width.
 (defvar vt100-wide-mode (= (frame-width) 132)

@@ -1598,11 +1598,13 @@ according to the `background-mode' and `display-type' frame parameters."
 	  (and (window-system frame)
 	       (x-get-resource "backgroundMode" "BackgroundMode")))
 	 (bg-color (frame-parameter frame 'background-color))
-	 (tty-type (frame-parameter frame 'tty-type))
+	 (terminal-bg-mode (terminal-parameter frame 'background-mode))
+	 (tty-type (tty-type frame))
 	 (bg-mode
 	  (cond (frame-background-mode)
 		(bg-resource
 		 (intern (downcase bg-resource)))
+		(terminal-bg-mode)
 		((and (null (window-system frame))
 		      ;; Unspecified frame background color can only
 		      ;; happen on tty's.
@@ -1826,8 +1828,6 @@ created."
     (unwind-protect
 	(with-selected-frame frame
 	  (tty-handle-reverse-video frame (frame-parameters frame))
-	  (frame-set-background-mode frame)
-	  (face-set-after-frame-default frame)
 
 	  ;; Make sure the kill and yank functions do not touch the X clipboard.
 	  (modify-frame-parameters frame '((interprogram-cut-function . nil)))
@@ -1835,6 +1835,8 @@ created."
 
 	  (set-locale-environment nil frame)
 	  (tty-run-terminal-initialization frame)
+	  (frame-set-background-mode frame)
+	  (face-set-after-frame-default frame)
 	  (setq success t))
       (unless success
 	(delete-frame frame)))
@@ -1857,8 +1859,11 @@ the above example."
 	      nil))))
   type)
 
-(defun tty-run-terminal-initialization (frame)
-  "Run the special initialization code for the terminal type of FRAME."
+(defun tty-run-terminal-initialization (frame &optional type)
+  "Run the special initialization code for the terminal type of FRAME.
+The optional TYPE parameter may be used to override the autodetected
+terminal type to a different value."
+  (setq type (or type (tty-type frame)))
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (with-selected-frame frame
@@ -1874,12 +1879,12 @@ the above example."
 			     (and file
 				  (or (assoc file load-history)
 				      (load file t t)))))
-		       (tty-type frame))
+		       type)
 	;; Next, try to find a matching initialization function, and call it.
 	(tty-find-type #'(lambda (type)
 			   (fboundp (setq term-init-func
 					  (intern (concat "terminal-init-" type)))))
-		       (tty-type frame))
+		       type)
 	(when (fboundp term-init-func)
 	  (funcall term-init-func))
 	(set-terminal-parameter frame 'terminal-initted term-init-func)))))
