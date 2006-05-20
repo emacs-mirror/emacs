@@ -6636,7 +6636,7 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
   best = NULL;
 
   /* Find the best match among the non-scalable fonts.  */
-  for (i = 1; i < nfonts; ++i)
+  for (i = 0; i < nfonts; ++i)
     if (!font_scalable_p (fonts + i)
 	&& better_font_p (specified, fonts + i, best, 1, avgwidth))
       {
@@ -7073,7 +7073,7 @@ realize_default_face (f)
   face = realize_face (c, attrs, 0, NULL, DEFAULT_FACE_ID);
 
 #ifdef HAVE_WINDOW_SYSTEM
-#ifdef HAVE_X_WINDOWS  
+#ifdef HAVE_X_WINDOWS
   if (face->font != FRAME_FONT (f))
     /* As the font specified for the frame was not acceptable as a
        font for the default face (perhaps because auto-scaled fonts
