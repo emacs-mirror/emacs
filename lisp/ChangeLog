@@ -1,3 +1,8 @@
+2006-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gud.el (gdb-script-font-lock-keywords): Use a stricter
+	regexp for keywords.
+
 2006-05-20  Masayuki FUJII  <boochang@m4.kcn.ne.jp>  (tiny change)
 
 	* dnd.el (dnd-get-local-file-name): Specify LITERAL in
@@ -8,8 +13,8 @@
 
 2006-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* dnd.el (dnd-handle-one-url): Change 3rd arg ARG to URL.  Don't
-	unescape URL.
+	* dnd.el (dnd-handle-one-url): Change 3rd arg ARG to URL.
+	Don't unescape URL.
 	(dnd-get-local-file-name): Unescape URL on conversion to file name.
 
 	* x-dnd.el (x-dnd-handle-file-name): Encode and escape file names
@@ -68,14 +73,14 @@
 
 	* emacs-lisp/ewoc.el (ewoc--adjust): New func.
 	(ewoc--insert-new-node): Don't insert trailing newline.
-	Instead, adjust succesor nodes' start markers.
+	Instead, adjust successor nodes's start markers.
 	(ewoc--refresh-node): Delete all text from current node's start
-	marker to the next one's; adjust successor nodes' start markers.
+	marker to the next one's; adjust successor nodes's start markers.
 	(ewoc--create): Doc fixes.
 	(ewoc--refresh): Don't insert newline.
 	(ewoc--set-hf): Use `ewoc--set-buffer-bind-dll-let*'.
-	* pcvs.el (cvs-make-cvs-buffer): Specify
-	extra newline for ewoc's header and footer.
+	* pcvs.el (cvs-make-cvs-buffer):
+	Specify extra newline for ewoc's header and footer.
 	(cvs-update-header): Update initial header recognition.
 	Append newline to final header and footer values.
 	* pcvs-info.el (cvs-fileinfo-pp): Insert trailing newline.
