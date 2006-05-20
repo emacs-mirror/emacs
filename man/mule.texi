@@ -679,6 +679,13 @@ predictable.  For example, the coding system @code{iso-latin-1} has
 variants @code{iso-latin-1-unix}, @code{iso-latin-1-dos} and
 @code{iso-latin-1-mac}.
 
+@cindex @code{undecided}, coding system
+  The coding systems @code{unix}, @code{dos}, and @code{mac} are
+aliases for @code{undecided-unix}, @code{undecided-dos}, and
+@code{undecided-mac}, respectively.  These coding systems specify only
+the end-of-line conversion, and leave the character code conversion to
+be deduced from the text itself.
+
   The coding system @code{raw-text} is good for a file which is mainly
 @acronym{ASCII} text, but may contain byte values above 127 which are
 not meant to encode non-@acronym{ASCII} characters.  With
