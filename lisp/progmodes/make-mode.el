@@ -724,11 +724,10 @@ The function must satisfy this calling convention:
 
 If you are editing a file for a different make, try one of the
 variants `makefile-automake-mode', `makefile-gmake-mode',
-`makefile-makepp-mode', `makefile-bsdmake-mode' or, 
-`makefile-imake-mode'All but the
-last should be correctly chosen based on the file name, except if
-it is *.mk.  This function ends by invoking the function(s)
-`makefile-mode-hook'.
+`makefile-makepp-mode', `makefile-bsdmake-mode' or,
+`makefile-imake-mode'.  All but the last should be correctly
+chosen based on the file name, except if it is *.mk.  This
+function ends by invoking the function(s) `makefile-mode-hook'.
 
 It is strongly recommended to use `font-lock-mode', because that
 provides additional parsing information.  This is used for
