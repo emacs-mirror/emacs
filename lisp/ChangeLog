@@ -1,5 +1,8 @@
 2006-05-21  Kim F. Storm  <storm@cua.dk>
 
+	* emulation/cua-base.el: Mention customizing cua-mode as alternative
+	way to enable built-in cua-mode if user loads older CUA-mode package.
+
 	* ido.el (ido-read-file-name): Bind ido-show-dot-for-dired to nil
 	if default-filename is specified.
 

@@ -1,3 +1,7 @@
+2006-05-20  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (best_matching_font): Fix crash in 2006-05-17 change.
+
 2006-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (convert_fn_keycode): Fix last change.
@@ -59,6 +63,11 @@
 
 	* xdisp.c (display_tool_bar_line): Don't adjust tool-bar height by more than
 	height of one frame default line.
+
+2006-05-17  Richard Stallman  <rms@gnu.org>
+
+	* xfaces.c (better_font_p): Any font beats no font.
+	(best_matching_font): Simplify based on above change.
 
 2006-05-16  Kim F. Storm  <storm@cua.dk>
 
