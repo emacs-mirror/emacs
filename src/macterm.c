@@ -9692,7 +9692,7 @@ convert_fn_keycode (EventRef eventRef, int keyCode, int *newCode)
     {
       err = GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32,
 			       NULL, sizeof (UInt32), NULL, &mods);
-      if (err != noErr && mods & kEventKeyModifierFnMask)
+      if (err == noErr && mods & kEventKeyModifierFnMask)
 	{  *newCode = fn_keycode_to_xkeysym_table [keyCode & 0x7f];
 
 	  return (*newCode != 0);
