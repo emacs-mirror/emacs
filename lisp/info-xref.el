@@ -301,7 +301,10 @@ quite a while."
        (lambda (symbol)
          (dolist (link (get symbol 'custom-links))
            (when (memq (car link) '(custom-manual info-link))
-             (if (info-xref-goto-node-p (cadr link))
+	     ;; skip :tag part of (custom-manual :tag "Foo" "(foo)Node")
+	     (if (eq :tag (cadr link))
+		 (setq link (cddr link)))
+	     (if (info-xref-goto-node-p (cadr link))
                  (setq good (1+ good))
                (setq bad (1+ bad))
                ;; symbol-file gives nil for preloaded variables, would need
