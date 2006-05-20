@@ -1840,34 +1840,49 @@ created."
 	(delete-frame frame)))
     frame))
 
+(defun tty-find-type (pred type)
+  "Return the longest prefix of TYPE to which PRED returns non-nil.
+TYPE should be a tty type name such as \"xterm-16color\".
+
+The function tries only those prefixes that are followed by a
+dash or underscore in the original type name, like \"xterm\" in
+the above example."
+  (let (hyphend)
+    (while (and type
+		(not (funcall pred type)))
+      ;; Strip off last hyphen and what follows, then try again
+      (setq type
+	    (if (setq hyphend (string-match "[-_][^-_]+$" type))
+		(substring type 0 hyphend)
+	      nil))))
+  type)
+
 (defun tty-run-terminal-initialization (frame)
   "Run the special initialization code for the terminal type of FRAME."
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (with-selected-frame frame
-    (unless (null term-file-prefix)
-      (let* ((term (frame-parameter frame 'tty-type))
-	     (term2 term)
-	     hyphend term-init-func)
-	(while (and term
-		    (not (load (concat term-file-prefix term) t t)))
-	  ;; Strip off last hyphen and what follows, then try again
-	  (setq term
-		(if (setq hyphend (string-match "[-_][^-_]+$" term))
-		    (substring term 0 hyphend)
-		  nil)))
-	;; The terminal file has been loaded, now find and call the
-	;; terminal specific initialization function.
-	(while (and term2
-		    (not (fboundp
-			  (setq term-init-func (intern (concat "terminal-init-" term2))))))
-	  ;; Strip off last hyphen and what follows, then try again
-	  (setq term2
-		(if (setq hyphend (string-match "[-_][^-_]+$" term2))
-		    (substring term2 0 hyphend)
-		  nil)))
+    (unless (or (null term-file-prefix)
+		;; Don't reinitialize the terminal each time a new
+		;; frame is opened on it.
+		(terminal-parameter frame 'terminal-initted))
+      (let* (term-init-func)
+	;; First, load the terminal initialization file, if it is
+	;; available and it hasn't been loaded already.
+	(tty-find-type #'(lambda (type)
+			   (let ((file (locate-library (concat term-file-prefix type))))
+			     (and file
+				  (or (assoc file load-history)
+				      (load file t t)))))
+		       (tty-type frame))
+	;; Next, try to find a matching initialization function, and call it.
+	(tty-find-type #'(lambda (type)
+			   (fboundp (setq term-init-func
+					  (intern (concat "terminal-init-" type)))))
+		       (tty-type frame))
 	(when (fboundp term-init-func)
-	  (funcall term-init-func))))))
+	  (funcall term-init-func))
+	(set-terminal-parameter frame 'terminal-initted term-init-func)))))
 
 ;; Called from C function init_display to initialize faces of the
 ;; dumped terminal frame on startup.
