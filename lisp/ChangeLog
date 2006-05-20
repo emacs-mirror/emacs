@@ -1,10 +1,15 @@
+2006-05-21  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-file-name): Bind ido-show-dot-for-dired to nil
+	if default-filename is specified.
+
 2006-05-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (menu-bar-manuals-menu) <info-apropos>: New menu item.
 
 	* info.el (info-apropos): Make sure current-file and current-node
 	have non-nil values.  Speed up by using add-to-list instead of
-	manual consing. 
+	manual consing.
 
 2006-05-20  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
 
