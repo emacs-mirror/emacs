@@ -4475,6 +4475,8 @@ See `read-file-name' for additional parameters."
 	     (ido-directory-too-big (and (not ido-directory-nonreadable)
 					 (ido-directory-too-big-p ido-current-directory)))
 	     (ido-work-directory-index -1)
+	     (ido-show-dot-for-dired (and ido-show-dot-for-dired
+					  (not default-filename)))
 	     (ido-work-file-index -1)
 	     (ido-find-literal nil))
 	(setq ido-exit nil)
