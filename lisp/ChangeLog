@@ -1,3 +1,8 @@
+2006-05-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/hideif.el (show-ifdef-block): Fix bug where parts of
+	a hidden block remained hidden if `hide-ifdef-lines' is non-nil.
+
 2006-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/gud.el (gdb-script-font-lock-keywords): Use a stricter
