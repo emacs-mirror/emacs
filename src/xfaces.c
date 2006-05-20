@@ -7092,7 +7092,7 @@ realize_default_face (f)
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS  
-  if (face->font != FRAME_FONT (f))
+  if (FRAME_X_P (f) && face->font != FRAME_FONT (f))
     /* As the font specified for the frame was not acceptable as a
        font for the default face (perhaps because auto-scaled fonts
        are rejected), we must adjust the frame font.  */
