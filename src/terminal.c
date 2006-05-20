@@ -277,7 +277,13 @@ delete_terminal (struct terminal *terminal)
 {
   struct terminal **tp;
   Lisp_Object tail, frame;
-  
+
+  /* Protect against recursive calls.  Fdelete_frame calls us back
+     when we delete our last frame.  */
+  if (terminal->deleted)
+    return;
+  terminal->deleted = 1;
+
   /* Check for and close live frames that are still on this
      terminal. */
   FOR_EACH_FRAME (tail, frame)

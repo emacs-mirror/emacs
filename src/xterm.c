@@ -10837,6 +10837,24 @@ x_delete_terminal (struct terminal *terminal)
 {
   struct x_display_info *dpyinfo = terminal->display_info.x;
   int i;
+  Lisp_Object tail, frame;
+
+  /* Protect against recursive calls.  Fdelete_frame calls us back
+     when we delete our last frame.  */
+  if (terminal->deleted)
+    return;
+  terminal->deleted = 1;
+
+  /* Check for and close live frames that are still on this
+     terminal. */
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
+      if (FRAME_LIVE_P (f) && f->terminal == terminal)
+        {
+          Fdelete_frame (frame, Qt);
+        }
+    }
 
   BLOCK_INPUT;
   /* Free the fonts in the font table.  */

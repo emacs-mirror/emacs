@@ -2970,9 +2970,6 @@ fatal (str, arg1, arg2)
 
 
 
-static int deleting_tty = 0;
-
-
 /* Delete the given tty terminal, closing all frames on it. */
 
 static void
@@ -2983,9 +2980,9 @@ delete_tty (struct terminal *terminal)
   char *tty_name;
   int last_terminal;
   
-  if (deleting_tty)
-    /* We get a recursive call when we delete the last frame on this
-       terminal. */
+  /* Protect against recursive calls.  Fdelete_frame calls us back
+     when we delete our last frame.  */
+  if (terminal->deleted)
     return;
 
   if (terminal->type != output_termcap)
@@ -3022,7 +3019,8 @@ delete_tty (struct terminal *terminal)
       tty->next = 0;
     }
 
-  deleting_tty = 1;
+  /* We must not throw any errors below this line.  */
+  terminal->deleted = 1;
 
   FOR_EACH_FRAME (tail, frame)
     {

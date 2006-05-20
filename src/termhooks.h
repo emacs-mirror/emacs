@@ -299,7 +299,11 @@ struct terminal
 
   /* The number of frames that are on this terminal. */
   int reference_count;
-  
+
+  /* Nonzero while deleting this terminal.  Used to protect against
+     recursive calls to delete_terminal_hook.  */
+  int deleted;
+
   /* The type of the terminal device. */
   enum output_method type;
 
