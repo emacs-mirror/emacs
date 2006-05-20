@@ -1616,7 +1616,10 @@ in `selection-converter-alist', which see."
   (let ((ae (mac-event-ae event)))
     (dolist (file-name (mac-ae-list ae nil 'undecoded-file-name))
       (if file-name
-	  (dnd-open-local-file (concat "file:" file-name) nil)))
+	  (dnd-open-local-file
+	   (concat "file://"
+		   (mapconcat 'url-hexify-string
+			      (split-string file-name "/") "/")) nil)))
     (let ((selection-range (mac-ae-selection-range ae))
 	  (search-text (mac-ae-text-for-search ae)))
       (cond (selection-range
