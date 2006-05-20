@@ -1,5 +1,7 @@
 2006-05-19  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* hooks.texi (Standard Hooks): Correct typo.
+
 	* gpl.texi (GPL): ifinfo -> ifnottex.
 
 2006-05-19  Michael Ernst  <mernst@alum.mit.edu>  (tiny change)
