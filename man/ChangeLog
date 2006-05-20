@@ -1,3 +1,11 @@
+2006-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Coding Systems): Mention the undecided-* coding systems
+	and their aliases.
+
+	* msdog.texi (Windows Printing): Mention non-support of plain text
+	printing with some el-cheapo printers, and suggest a workaround.
+
 2006-05-20  Kevin Ryde  <user42@zip.com.au>
 
 	* text.texi (TeX Print): tex-dvi-view-command has a default value,

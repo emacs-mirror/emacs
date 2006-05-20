@@ -1,7 +1,8 @@
 2006-05-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* info.el (info-apropos): Make sure current-file and current-node
-	have non-nil values.
+	have non-nil values.  Speed up by using add-to-list instead of
+	manual consing. 
 
 2006-05-20  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
 
