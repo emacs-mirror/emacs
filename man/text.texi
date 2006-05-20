@@ -1596,9 +1596,7 @@ directory, such as @code{"/tmp"}.
 you can do so by setting the values of the variables @code{tex-run-command},
 @code{latex-run-command}, @code{slitex-run-command},
 @code{tex-dvi-print-command}, @code{tex-dvi-view-command}, and
-@code{tex-show-queue-command}.  You @emph{must} set the value of
-@code{tex-dvi-view-command} for your particular terminal; this variable
-has no default value.  The other variables have default values that may
+@code{tex-show-queue-command}.  The default values may
 (or may not) be appropriate for your system.
 
   Normally, the file name given to these commands comes at the end of
