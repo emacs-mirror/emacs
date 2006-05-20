@@ -1,3 +1,26 @@
+2006-05-20  Masayuki FUJII  <boochang@m4.kcn.ne.jp>  (tiny change)
+
+	* dnd.el (dnd-get-local-file-name): Specify LITERAL in
+	replace-regexp-in-string.
+
+	* term/w32-win.el (w32-drag-n-drop): Substitute '/' for '\',
+	encode, and escape file name on conversion to URL.
+
+2006-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dnd.el (dnd-handle-one-url): Change 3rd arg ARG to URL.  Don't
+	unescape URL.
+	(dnd-get-local-file-name): Unescape URL on conversion to file name.
+
+	* x-dnd.el (x-dnd-handle-file-name): Encode and escape file names
+	on conversion to URLs.
+
+	* net/browse-url.el (browse-url-file-url): Encode file name on
+	conversion to URL.
+
+	* term/mac-win.el (mac-ae-open-documents): Escape file name on
+	conversion to URL.
+
 2006-05-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/cc-styles.el (c-style-alist): Doc fix.
