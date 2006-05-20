@@ -305,7 +305,7 @@ Manual}.
 
 @item today-invisible-calendar-hook
 @iftex
-@infref{Calendar Customizing,, emacs-xtra}.
+@inforef{Calendar Customizing,, emacs-xtra}.
 @end iftex
 @ifnottex
 @xref{Calendar Customizing,,, emacs}.
