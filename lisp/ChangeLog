@@ -1,3 +1,7 @@
+2006-05-20  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* progmodes/make-mode.el (makefile-mode): Doc fix.
+
 2006-05-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired-aux.el (dired-do-shell-command): Doc fix.
@@ -559,7 +563,7 @@
 	reference to the Lisp manual to the warning about pure space
 	overflow.
 
-2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
 
 	* textmodes/ispell.el (ispell-buffer-local-dict): Add a `no-reload'
 	argument to avoid the call to `ispell-internal-change-dictionary'
