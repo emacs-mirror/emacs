@@ -1,3 +1,9 @@
+2006-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-mime-charset-pattern): Add "?:" before
+	"format".
+	(rmail-convert-to-babyl-format): Undo the change from 2006-04-19.
+
 2006-05-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/hideif.el (show-ifdef-block): Fix bug where parts of
