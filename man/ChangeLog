@@ -1,3 +1,7 @@
+2006-05-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-x.texi: ifinfo -> ifnottex.
+
 2006-05-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Coding Systems): Mention the undecided-* coding systems
