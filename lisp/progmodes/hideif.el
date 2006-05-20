@@ -928,15 +928,17 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
     (setq hide-ifdef-hiding t))
   (setq buffer-read-only (or hide-ifdef-read-only hif-outside-read-only)))
 
-
 (defun show-ifdef-block ()
   "Show the ifdef block (true or false part) enclosing or before the cursor."
   (interactive)
-  (if hide-ifdef-lines
-      (save-excursion
-	(beginning-of-line)
-	(hif-show-ifdef-region (1- (point)) (progn (end-of-line) (point))))
-    (let ((top-bottom (hif-find-ifdef-block)))
+  (let ((top-bottom (hif-find-ifdef-block)))
+    (if hide-ifdef-lines
+ 	(hif-show-ifdef-region
+ 	 (save-excursion
+ 	   (goto-char (car top-bottom)) (line-beginning-position))
+ 	 (save-excursion
+ 	   (goto-char (1+ (cdr top-bottom)))
+	   (hif-end-of-line) (point)))
       (hif-show-ifdef-region (1- (car top-bottom)) (cdr top-bottom)))))
 
 
