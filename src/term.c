@@ -85,6 +85,8 @@ static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((struct tty_display_info *));
 static void tty_hide_cursor P_ ((struct tty_display_info *));
 static void tty_background_highlight P_ ((struct tty_display_info *tty));
+static void clear_tty_hooks P_ ((struct terminal *terminal));
+static void set_tty_hooks P_ ((struct terminal *terminal));
 static void dissociate_if_controlling_tty P_ ((int fd));
 static void delete_tty P_ ((struct terminal *));
 
@@ -2167,6 +2169,9 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
         }
     }
 
+  /* Clear display hooks to prevent further output.  */
+  clear_tty_hooks (t);
+
   return Qnil;
 }
 
@@ -2229,6 +2234,8 @@ the currently selected frame. */)
         }
     }
 
+  set_tty_hooks (t);
+
   return Qnil;
 }
 
@@ -2268,6 +2275,83 @@ delete_tty_output (struct frame *f)
 }
 
 
+
+static void
+clear_tty_hooks (struct terminal *terminal)
+{
+  terminal->rif = 0;
+  terminal->cursor_to_hook = 0;
+  terminal->raw_cursor_to_hook = 0;
+  terminal->clear_to_end_hook = 0;
+  terminal->clear_frame_hook = 0;
+  terminal->clear_end_of_line_hook = 0;
+  terminal->ins_del_lines_hook = 0;
+  terminal->insert_glyphs_hook = 0;
+  terminal->write_glyphs_hook = 0;
+  terminal->delete_glyphs_hook = 0;
+  terminal->ring_bell_hook = 0;
+  terminal->reset_terminal_modes_hook = 0;
+  terminal->set_terminal_modes_hook = 0;
+  terminal->update_begin_hook = 0;
+  terminal->update_end_hook = 0;
+  terminal->set_terminal_window_hook = 0;
+  terminal->mouse_position_hook = 0;
+  terminal->frame_rehighlight_hook = 0;
+  terminal->frame_raise_lower_hook = 0;
+  terminal->set_vertical_scroll_bar_hook = 0;
+  terminal->condemn_scroll_bars_hook = 0;
+  terminal->redeem_scroll_bar_hook = 0;
+  terminal->judge_scroll_bars_hook = 0;
+  terminal->read_socket_hook = 0;
+  terminal->frame_up_to_date_hook = 0;
+
+  /* Leave these two set, or suspended frames are not deleted
+     correctly.  */
+  terminal->delete_frame_hook = &delete_tty_output;
+  terminal->delete_terminal_hook = &delete_tty;
+}
+
+static void
+set_tty_hooks (struct terminal *terminal)
+{
+  terminal->rif = 0; /* ttys don't support window-based redisplay. */
+
+  terminal->cursor_to_hook = &tty_cursor_to;
+  terminal->raw_cursor_to_hook = &tty_raw_cursor_to;
+
+  terminal->clear_to_end_hook = &tty_clear_to_end;
+  terminal->clear_frame_hook = &tty_clear_frame;
+  terminal->clear_end_of_line_hook = &tty_clear_end_of_line;
+
+  terminal->ins_del_lines_hook = &tty_ins_del_lines;
+
+  terminal->insert_glyphs_hook = &tty_insert_glyphs;
+  terminal->write_glyphs_hook = &tty_write_glyphs;
+  terminal->delete_glyphs_hook = &tty_delete_glyphs;
+
+  terminal->ring_bell_hook = &tty_ring_bell;
+  
+  terminal->reset_terminal_modes_hook = &tty_reset_terminal_modes;
+  terminal->set_terminal_modes_hook = &tty_set_terminal_modes;
+  terminal->update_begin_hook = 0; /* Not needed. */
+  terminal->update_end_hook = &tty_update_end;
+  terminal->set_terminal_window_hook = &tty_set_terminal_window;
+
+  terminal->mouse_position_hook = 0; /* Not needed. */
+  terminal->frame_rehighlight_hook = 0; /* Not needed. */
+  terminal->frame_raise_lower_hook = 0; /* Not needed. */
+
+  terminal->set_vertical_scroll_bar_hook = 0; /* Not needed. */
+  terminal->condemn_scroll_bars_hook = 0; /* Not needed. */
+  terminal->redeem_scroll_bar_hook = 0; /* Not needed. */
+  terminal->judge_scroll_bars_hook = 0; /* Not needed. */
+
+  terminal->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
+  terminal->frame_up_to_date_hook = 0; /* Not needed. */
+  
+  terminal->delete_frame_hook = &delete_tty_output;
+  terminal->delete_terminal_hook = &delete_tty;
+}
 
 /* Drop the controlling terminal if fd is the same device. */
 static void
@@ -2352,43 +2436,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
   Wcm_clear (tty);
 
-  terminal->rif = 0; /* ttys don't support window-based redisplay. */
-
-  terminal->cursor_to_hook = &tty_cursor_to;
-  terminal->raw_cursor_to_hook = &tty_raw_cursor_to;
-
-  terminal->clear_to_end_hook = &tty_clear_to_end;
-  terminal->clear_frame_hook = &tty_clear_frame;
-  terminal->clear_end_of_line_hook = &tty_clear_end_of_line;
-
-  terminal->ins_del_lines_hook = &tty_ins_del_lines;
-
-  terminal->insert_glyphs_hook = &tty_insert_glyphs;
-  terminal->write_glyphs_hook = &tty_write_glyphs;
-  terminal->delete_glyphs_hook = &tty_delete_glyphs;
-
-  terminal->ring_bell_hook = &tty_ring_bell;
-  
-  terminal->reset_terminal_modes_hook = &tty_reset_terminal_modes;
-  terminal->set_terminal_modes_hook = &tty_set_terminal_modes;
-  terminal->update_begin_hook = 0; /* Not needed. */
-  terminal->update_end_hook = &tty_update_end;
-  terminal->set_terminal_window_hook = &tty_set_terminal_window;
-
-  terminal->mouse_position_hook = 0; /* Not needed. */
-  terminal->frame_rehighlight_hook = 0; /* Not needed. */
-  terminal->frame_raise_lower_hook = 0; /* Not needed. */
-
-  terminal->set_vertical_scroll_bar_hook = 0; /* Not needed. */
-  terminal->condemn_scroll_bars_hook = 0; /* Not needed. */
-  terminal->redeem_scroll_bar_hook = 0; /* Not needed. */
-  terminal->judge_scroll_bars_hook = 0; /* Not needed. */
-
-  terminal->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
-  terminal->frame_up_to_date_hook = 0; /* Not needed. */
-  
-  terminal->delete_frame_hook = &delete_tty_output;
-  terminal->delete_terminal_hook = &delete_tty;
+  set_tty_hooks (terminal);
   
   if (name == NULL)
     name = "/dev/tty";
