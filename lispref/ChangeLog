@@ -1,3 +1,9 @@
+2006-05-17  Richard Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Minibuffer History): Clarify.
+
+	* searching.texi (Regexp Special): Clarify nested regexp warning.
+
 2006-05-16  Kim F. Storm  <storm@cua.dk>
 
 	* minibuf.texi (Minibuffer History): Update add-to-history.

@@ -2495,10 +2495,10 @@ swap_out_buffer_local_variables (b)
    Return the number found, and store them in a vector in *VEC_PTR.
    Store in *LEN_PTR the size allocated for the vector.
    Store in *NEXT_PTR the next position after POS where an overlay starts,
-     or ZV if there are no more overlays.
+     or ZV if there are no more overlays between POS and ZV.
    Store in *PREV_PTR the previous position before POS where an overlay ends,
      or where an overlay starts which ends at or after POS;
-     or BEGV if there are no such overlays.
+     or BEGV if there are no such overlays from BEGV to POS.
    NEXT_PTR and/or PREV_PTR may be 0, meaning don't store that info.
 
    *VEC_PTR and *LEN_PTR should contain a valid vector and size
@@ -3969,7 +3969,8 @@ or between BEG and END.  */)
 DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
        1, 1, 0,
        doc: /* Return the next position after POS where an overlay starts or ends.
-If there are no more overlay boundaries after POS, return (point-max).  */)
+If there are no overlay boundaries from POS to (point-max),
+the value is (point-max).  */)
      (pos)
      Lisp_Object pos;
 {
@@ -4010,7 +4011,8 @@ If there are no more overlay boundaries after POS, return (point-max).  */)
 DEFUN ("previous-overlay-change", Fprevious_overlay_change,
        Sprevious_overlay_change, 1, 1, 0,
        doc: /* Return the previous position before POS where an overlay starts or ends.
-If there are no more overlay boundaries before POS, return (point-min).  */)
+If there are no overlay boundaries from (point-min) to POS,
+the value is (point-min).  */)
      (pos)
      Lisp_Object pos;
 {

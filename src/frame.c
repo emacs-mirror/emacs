@@ -3443,10 +3443,8 @@ x_set_border_width (f, arg, oldval)
   if (XINT (arg) == f->border_width)
     return;
 
-#ifndef MAC_OS
   if (FRAME_X_WINDOW (f) != 0)
     error ("Cannot change the border width of a frame");
-#endif /* MAC_TODO */
 
   f->border_width = XINT (arg);
 }

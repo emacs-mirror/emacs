@@ -1585,17 +1585,6 @@ in `selection-converter-alist', which see."
 	(ash (lsh result extended-sign-len) (- extended-sign-len))
       result)))
 
-(defun mac-bytes-to-digits (bytes &optional from to)
-  (or from (setq from 0))
-  (or to (setq to (length bytes)))
-  (let ((len (- to from))
-	(val 0.0))
-    (dotimes (i len)
-      (setq val (+ (* val 256.0)
-		   (aref bytes (+ from (if (eq (byteorder) ?B) i
-					 (- len i 1)))))))
-    (format "%.0f" val)))
-
 (defun mac-ae-selection-range (ae)
 ;; #pragma options align=mac68k
 ;; typedef struct SelectionRange {
@@ -1693,7 +1682,8 @@ modifiers, it changes global tool-bar visibility setting."
     (if (and modifiers (not (string= modifiers "\000\000\000\000")))
 	;; Globally toggle tool-bar-mode if some modifier key is pressed.
 	(tool-bar-mode)
-      (let ((window-id (mac-bytes-to-digits (cdr (mac-ae-parameter ae))))
+      (let ((window-id
+	     (mac-coerce-ae-data "long" (cdr (mac-ae-parameter ae)) "TEXT"))
 	    (rest (frame-list))
 	    frame)
 	(while (and (null frame) rest)

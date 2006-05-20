@@ -1,3 +1,15 @@
+2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
+
+2006-05-17  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Diff Mode): Mention C-x `.
+
+2006-05-08  Richard Stallman  <rms@gnu.org>
+
+	* custom.texi (Disabling): Textual cleanups.
+
 2006-05-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.texi (Interface): Add tool bar customization.
@@ -6222,6 +6234,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; fill-column: 79
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,

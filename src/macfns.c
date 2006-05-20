@@ -2829,26 +2829,22 @@ FRAME nil means use the selected frame.  */)
      Lisp_Object frame;
 {
   struct frame *f = check_x_frame (frame);
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
 
-  if (dpyinfo->x_focus_frame != f)
-    {
-      BLOCK_INPUT;
+  BLOCK_INPUT;
 #ifdef MAC_OSX
-      ActivateWindow (ActiveNonFloatingWindow (), false);
-      ActivateWindow (FRAME_MAC_WINDOW (f), true);
+  ActivateWindow (ActiveNonFloatingWindow (), false);
+  ActivateWindow (FRAME_MAC_WINDOW (f), true);
 #else
 #if !TARGET_API_MAC_CARBON
-      /* SelectWindow (Non-Carbon) does not issue deactivate events if
-	 the possibly inactive window that is to be selected is
-	 already the frontmost one.  */
-      SendBehind (FRAME_MAC_WINDOW (f), NULL);
+  /* SelectWindow (Non-Carbon) does not issue deactivate events if the
+     possibly inactive window that is to be selected is already the
+     frontmost one.  */
+  SendBehind (FRAME_MAC_WINDOW (f), NULL);
 #endif
-      /* This brings the window to the front.  */
-      SelectWindow (FRAME_MAC_WINDOW (f));
+  /* This brings the window to the front.  */
+  SelectWindow (FRAME_MAC_WINDOW (f));
 #endif
-      UNBLOCK_INPUT;
-    }
+  UNBLOCK_INPUT;
 
   return Qnil;
 }

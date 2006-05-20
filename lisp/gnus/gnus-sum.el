@@ -9507,7 +9507,7 @@ deleted forever, right now."
   (interactive)
   (or gnus-expert-user
       (gnus-yes-or-no-p
-       "Are you really, really, really sure you want to delete all these messages? ")
+       "Are you really, really sure you want to delete all expirable messages? ")
       (error "Phew!"))
   (gnus-summary-expire-articles t))
 
@@ -11043,7 +11043,7 @@ If HEADERS (the symbolic prefix), include the headers, too."
       (gnus-configure-windows 'pipe))))
 
 (defun gnus-summary-save-article-mail (&optional arg)
-  "Append the current article to an mail file.
+  "Append the current article to a Unix mail box file.
 If N is a positive number, save the N next articles.
 If N is a negative number, save the N previous articles.
 If N is nil and any articles have been marked with the process mark,

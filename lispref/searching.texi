@@ -306,9 +306,10 @@ matching @samp{ca*ar} against the string @samp{caaar}, the @samp{a*}
 first tries to match all three @samp{a}s; but the rest of the pattern is
 @samp{ar} and there is only @samp{r} left to match, so this try fails.
 The next alternative is for @samp{a*} to match only two @samp{a}s.  With
-this choice, the rest of the regexp matches successfully.@refill
+this choice, the rest of the regexp matches successfully.
 
-Nested repetition operators take a long time, or even forever, if they
+@strong{Warning:} Nested repetition operators take a long time,
+or even forever, if they
 lead to ambiguous matching.  For example, trying to match the regular
 expression @samp{\(x+y*\)*a} against the string
 @samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz} could take hours before it
@@ -316,7 +317,8 @@ ultimately fails.  Emacs must try each way of grouping the 35
 @samp{x}s before concluding that none of them can work.  Even worse,
 @samp{\(x*\)*} can match the null string in infinitely many ways, so
 it causes an infinite loop.  To avoid these problems, check nested
-repetitions carefully.
+repetitions carefully, to make sure that they do not cause combinatorial
+explosions in backtracking.
 
 @item @samp{+}
 @cindex @samp{+} in regexp

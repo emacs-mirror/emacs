@@ -7377,7 +7377,7 @@ Save the current article using the default article saver
 @item O m
 @kindex O m (Summary)
 @findex gnus-summary-save-article-mail
-Save the current article in mail format
+Save the current article in a Unix mail box (mbox) file
 (@code{gnus-summary-save-article-mail}).
 
 @item O r

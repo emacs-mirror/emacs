@@ -443,10 +443,12 @@ struct coding_system
   Lisp_Object translation_table_for_encode;
 };
 
-#define CODING_REQUIRE_FLUSHING_MASK	1
-#define CODING_REQUIRE_DECODING_MASK	2
-#define CODING_REQUIRE_ENCODING_MASK	4
-#define CODING_REQUIRE_DETECTION_MASK	8
+/* Mask bits for (struct coding_system *)->common_flags.  */
+#define CODING_REQUIRE_FLUSHING_MASK	0x01
+#define CODING_REQUIRE_DECODING_MASK	0x02
+#define CODING_REQUIRE_ENCODING_MASK	0x04
+#define CODING_REQUIRE_DETECTION_MASK	0x08
+#define CODING_ASCII_INCOMPATIBLE_MASK	0x10
 
 /* Return 1 if the coding system CODING requires specific code to be
    attached at the tail of converted text.  */

@@ -1,7 +1,80 @@
+2006-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-bytes-to-digits): Remove function.
+	(mac-handle-toolbar-switch-mode): Use coercion instead of it.
+
+2006-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-bahai-date)
+	(list-bahai-diary-entries, mark-bahai-diary-entries)
+	(mark-bahai-calendar-date-pattern): Not interactive.
+	(add-to-diary-list): New optional arg LITERAL.  Doc fix.
+	(diary-entries-list): Change format of 4th element in each entry.
+	(diary-list-entries): Use add-to-diary-list.
+	(diary-goto-entry): Handle the case where the buffer visiting the
+	diary has been killed.
+	(fancy-diary-display): Add 'locator to button rather than 'marker.
+	Only generate temp-face when there are marks to apply.
+	(list-sexp-diary-entries): Pass literal to add-to-diary-list.
+	(diary-fancy-date-pattern): New variable.
+	(diary-time-regexp): Doc fix.
+	(diary-anniversary, diary-time): New faces.
+	(fancy-diary-font-lock-keywords): Use diary-fancy-date-pattern and
+	diary-time-regexp.  Add font-lock-multiline property where needed.
+	Use new faces diary-anniversary and diary-time.
+	(diary-fancy-font-lock-fontify-region-function): New function, to
+	handle multiline font-lock pattern in fancy diary.
+	(fancy-diary-display-mode): Set font-lock-fontify-region-function.
+	(diary-font-lock-keywords): Tweak time regexp.  Use new face
+	diary-time.
+
+2006-05-19  Alexander Shopov  <ash@contact.bg>  (tiny change)
+
+	* international/code-pages.el (mik): Table corrected.
+
+2006-05-18  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (grep-find): Don't check grep-find-command
+	before running command (breaks non-interactive usage).
+
+2006-05-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--adjust): New func.
+	(ewoc--insert-new-node): Don't insert trailing newline.
+	Instead, adjust succesor nodes' start markers.
+	(ewoc--refresh-node): Delete all text from current node's start
+	marker to the next one's; adjust successor nodes' start markers.
+	(ewoc--create): Doc fixes.
+	(ewoc--refresh): Don't insert newline.
+	(ewoc--set-hf): Use `ewoc--set-buffer-bind-dll-let*'.
+	* pcvs.el (cvs-make-cvs-buffer): Specify
+	extra newline for ewoc's header and footer.
+	(cvs-update-header): Update initial header recognition.
+	Append newline to final header and footer values.
+	* pcvs-info.el (cvs-fileinfo-pp): Insert trailing newline.
+
+2006-05-17  Richard Stallman  <rms@gnu.org>
+
+	* files.el (file-name-extension): Doc fix.
+
+2006-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-dirtrack-mode): Make it into a proper minor mode, so
+	we can explicitly enable/disable rather than toggle.
+	(shell-mode): Use it.
+	(shell-cd): Don't try to reproduce what `cd' does.
+
+2006-05-17  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): Use only nondirectory part of
+	default item.
+
 2006-05-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc-data): Add docstring.
 	(ewoc-nth): Doc fix.
+
+	(ewoc-map, ewoc-invalidate): Compute PP before looping.
 
 2006-05-16  Eli Zaretskii  <eliz@gnu.org>
 

@@ -379,7 +379,8 @@ For use by the cookie package."
 		      ;; or nothing
 		      "")))
 	   (format "%-11s %s %-11s %-11s %s"
-		   side status type base file)))))))
+		   side status type base file))))
+     "\n")))
 
 
 (defun cvs-fileinfo-update (fi fi-new)

@@ -18278,7 +18278,7 @@ But a human expects to attempt this sort of thing, if only to find out
 whether the kill ring is full or empty.  This is an act of
 exploration.
 
-(From the human point of view, the act of exploration and discovery is
+From the human point of view, the act of exploration and discovery is
 not necessarily an error, and therefore should not be labelled as one,
 even in the bowels of a computer.  As it is, the code in Emacs implies
 that a human who is acting virtuously, by exploring his or her

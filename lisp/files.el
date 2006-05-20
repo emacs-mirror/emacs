@@ -3063,6 +3063,7 @@ except that a leading `.', if any, doesn't count."
 (defun file-name-extension (filename &optional period)
   "Return FILENAME's final \"extension\".
 The extension, in a file name, is the part that follows the last `.',
+excluding version numbers and backup suffixes,
 except that a leading `.', if any, doesn't count.
 Return nil for extensionless file names such as `foo'.
 Return the empty string for file names such as `foo.'.
