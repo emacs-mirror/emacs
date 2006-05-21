@@ -255,7 +255,7 @@ NODE and leaving the new node's start there.  Return the new node."
 ;;; ===========================================================================
 ;;;                  Public members of the Ewoc package
 
-
+;;;###autoload
 (defun ewoc-create (pretty-printer &optional header footer)
   "Create an empty ewoc.
 
