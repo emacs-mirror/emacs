@@ -246,6 +246,7 @@ You will be offered to complete on one of those in the minibuffer whenever
 you enter a \".\" at the beginning of a line in `makefile-mode'."
   :type '(repeat (list string))
   :group 'makefile)
+(put 'makefile-special-targets-list 'risky-local-variable t)
 
 (defcustom makefile-runtime-macros-list
   '(("@") ("&") (">") ("<") ("*") ("^") ("+") ("?") ("%") ("$"))
@@ -670,9 +671,11 @@ The function must satisfy this calling convention:
 
 (defvar makefile-target-table nil
   "Table of all target names known for this buffer.")
+(put 'makefile-target-table 'risky-local-variable t)
 
 (defvar makefile-macro-table nil
   "Table of all macro names known for this buffer.")
+(put 'makefile-macro-table 'risky-local-variable t)
 
 (defvar makefile-browser-client
   "A buffer in Makefile mode that is currently using the browser.")
