@@ -1,3 +1,7 @@
+2006-05-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-create): Add autoload cookie.
+
 2006-05-21  Romain Francoise  <romain@orebokech.com>
 
 	* dired-x.el (dired-mode-map): Don't bind M-g.
