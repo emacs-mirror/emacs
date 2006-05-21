@@ -1394,7 +1394,7 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-prompt-regexp)
   (make-local-variable 'font-lock-defaults)
-  (make-local-variable 'skeleton-filter)
+  (make-local-variable 'skeleton-filter-function)
   (make-local-variable 'skeleton-newline-indent-rigidly)
   (make-local-variable 'sh-shell-variables)
   (make-local-variable 'sh-shell-variables-initialized)
@@ -1425,7 +1425,7 @@ with your script for an edit-interpret-debug cycle."
 	skeleton-pair-filter 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
 						(current-column)))))
-	skeleton-filter 'sh-feature
+	skeleton-filter-function 'sh-feature
 	skeleton-newline-indent-rigidly t
 	sh-indent-supported-here nil)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
