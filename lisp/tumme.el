@@ -976,7 +976,7 @@ displayed."
 (defun tumme-tag-files (arg)
   "Tag marked file(s) in dired.  With prefix ARG, tag file at point."
   (interactive "P")
-  (let ((tag (read-string "Tag to add: "))
+  (let ((tag (read-string "Tags to add (separate tags with a semicolon): "))
         curr-file files)
     (if arg
         (setq files (dired-get-filename))
@@ -986,7 +986,7 @@ displayed."
 (defun tumme-tag-thumbnail ()
   "Tag current thumbnail."
   (interactive)
-  (let ((tag (read-string "Tag to add: ")))
+  (let ((tag (read-string "Tags to add (separate tags with a semicolon): ")))
     (tumme-write-tag (tumme-original-file-name) tag))
   (tumme-update-property
    'tags (tumme-list-tags (tumme-original-file-name))))
