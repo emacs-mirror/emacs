@@ -1,3 +1,7 @@
+2006-05-21  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el (dired-mode-map): Don't bind M-g.
+
 2006-05-20  Richard Stallman  <rms@gnu.org>
 
 	* dired.el (dired-mode-map): Put dired-goto-file on j, not M-g.
