@@ -1390,7 +1390,7 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'sh-shell-file)
   (make-local-variable 'sh-shell)
   (make-local-variable 'skeleton-pair-alist)
-  (make-local-variable 'skeleton-pair-filter)
+  (make-local-variable 'skeleton-pair-filter-function)
   (make-local-variable 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-prompt-regexp)
   (make-local-variable 'font-lock-defaults)
@@ -1422,7 +1422,7 @@ with your script for an edit-interpret-debug cycle."
 	  (font-lock-syntactic-face-function
 	   . sh-font-lock-syntactic-face-function))
 	skeleton-pair-alist '((?` _ ?`))
-	skeleton-pair-filter 'sh-quoted-p
+	skeleton-pair-filter-function 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
 						(current-column)))))
 	skeleton-filter-function 'sh-feature
