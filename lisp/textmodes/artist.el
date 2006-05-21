@@ -365,10 +365,11 @@ Example:
   "*If in X Windows, use this pointer shape while drawing with the mouse.")
 
 
-(defcustom artist-text-renderer 'artist-figlet
+(defcustom artist-text-renderer-function 'artist-figlet
   "Function for doing text rendering."
   :group 'artist-text
   :type 'symbol)
+(defvaralias 'artist-text-renderer 'artist-text-renderer-function)
 
 
 (defcustom artist-figlet-program "figlet"
@@ -2910,23 +2911,25 @@ Let blanks in TEXT overwrite any text already in the buffer."
 
 (defun artist-text-see-thru (x y)
   "Prompt for text to render, render it at X,Y.
-This is done by calling the function specified by `artist-text-renderer',
-which must return a list of strings, to be inserted in the buffer.
+This is done by calling the function specified by
+`artist-text-renderer-function', which must return a list of strings,
+to be inserted in the buffer.
 
 Text already in the buffer ``shines thru'' blanks in the rendered text."
   (let* ((input-text (read-string "Type text to render: "))
-	 (rendered-text (artist-funcall artist-text-renderer input-text)))
+	 (rendered-text (artist-funcall artist-text-renderer-function input-text)))
     (artist-text-insert-see-thru x y rendered-text)))
 
 
 (defun artist-text-overwrite (x y)
   "Prompt for text to render, render it at X,Y.
-This is done by calling the function specified by `artist-text-renderer',
-which must return a list of strings, to be inserted in the buffer.
+This is done by calling the function specified by
+`artist-text-renderer-function', which must return a list of strings,
+to be inserted in the buffer.
 
 Blanks in the rendered text overwrites any text in the buffer."
   (let* ((input-text (read-string "Type text to render: "))
-	 (rendered-text (artist-funcall artist-text-renderer input-text)))
+	 (rendered-text (artist-funcall artist-text-renderer-function input-text)))
     (artist-text-insert-overwrite x y rendered-text)))
 
 ;;
