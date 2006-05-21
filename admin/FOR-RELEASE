@@ -34,9 +34,6 @@ reliable decoding regardless of user options.
 ** JD Smith's 17 Apr 2006 bug report that CVS operations
 get mysterious unreproducible failures.
 
-** David Hansen's bug report on 16 Apr 2006 about point-entered and
-point-left text properties.
-
 ** Is there a basic problem with cl-byte-compile-compiler-macro?
 
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
