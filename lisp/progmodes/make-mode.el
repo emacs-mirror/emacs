@@ -545,7 +545,8 @@ This should identify a `make' command that can handle the `-q' option."
   :type 'string
   :group 'makefile)
 
-(defcustom makefile-query-one-target-method 'makefile-query-by-make-minus-q
+(defcustom makefile-query-one-target-method-function
+  'makefile-query-by-make-minus-q
   "*Function to call to determine whether a make target is up to date.
 The function must satisfy this calling convention:
 
@@ -561,6 +562,8 @@ The function must satisfy this calling convention:
   makefile, any nonzero integer value otherwise."
   :type 'function
   :group 'makefile)
+(defvaralias 'makefile-query-one-target-method
+  'makefile-query-one-target-method-function)
 
 (defcustom makefile-up-to-date-buffer-name "*Makefile Up-to-date overview*"
   "*Name of the Up-to-date overview buffer."
@@ -1618,7 +1621,8 @@ with the generated name!"
 
 (defun makefile-query-targets (filename target-table prereq-list)
   "Fill the up-to-date overview buffer.
-Checks each target in TARGET-TABLE using `makefile-query-one-target-method'
+Checks each target in TARGET-TABLE using
+`makefile-query-one-target-method-function'
 and generates the overview, one line per target name."
   (insert
    (mapconcat
@@ -1627,7 +1631,7 @@ and generates the overview, one line per target name."
 		       (no-prereqs (not (member target-name prereq-list)))
 		       (needs-rebuild (or no-prereqs
 					  (funcall
-					   makefile-query-one-target-method
+					   makefile-query-one-target-method-function
 					   target-name
 					   filename))))
 		  (format "\t%s%s"
