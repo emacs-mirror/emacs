@@ -1,3 +1,42 @@
+2006-05-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-maintain-sorted-entries): Mark as
+	safe.
+	
+	* progmodes/make-mode.el (makefile-special-targets-list)
+	(makefile-macro-table, makefile-target-table): Mark as risky.
+	(makefile-query-one-target-method): Make this the alias for the
+	following variable.
+	(makefile-query-one-target-method-function): Make this the real
+	name.
+	
+	* textmodes/artist.el (artist-text-renderer): Make this the alias
+	for the following variable.
+	(artist-text-renderer-function): Make this the real name.
+
+	* textmodes/flyspell.el (flyspell-generic-check-word-p): Make this
+	the alias for the following variable.
+	(flyspell-generic-check-word-predicate): Make this the real name.
+
+	* textmodes/ispell.el (ispell-format-word): Make this the alias
+	for the following variable.
+	(ispell-format-word-function): Make this the real name.
+	(ispell-message-text-end): Mark as risky.
+
+	* skeleton.el (skeleton-transformation, skeleton-filter)
+	(skeleton-pair-filter): Make these the aliases for the following
+	variables.
+	(skeleton-transformation-function, skeleton-filter-function)
+	(skeleton-pair-filter-function): Make these the real names.
+
+	* progmodes/sh-script.el (sh-mode): Use skeleton-filter-function
+	and skeleton-pair-filter-function.
+
+	* textmodes/sgml-mode.el (sgml-transformation): Make this the
+	alias for the following variable.
+	(sgml-transformation-function): Make this the real name.
+	(sgml-tag-alist): Mark as risky.
+
 2006-05-21  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (kill-region): Interactively, pass point, then mark.
