@@ -3565,6 +3565,25 @@ deleting the part of subprocess output that matches the input.
 +++
 ** The variable `memory-full' now remains t until
 there is no longer a shortage of memory.
+
+** The ewoc package no longer inserts a newline after each pretty-printed
+entry and after the header and footer, to allow for multiple-entry ewocs to
+display on a single line.
+
+To make pre-existing client code behave the same way as before, you must
+arrange to insert a newline in three places: the pretty-printer function,
+the header and the footer.  It is anyway a good idea to specify a non-empty
+footer so that markers after the ewoc's buffer text are properly updated.
+For example:
+
+;; before
+(defun PP (data) (insert (format "%S" data)))
+(ewoc-create 'PP "start\n")
+
+;; now
+(defun PP (data) (insert (format "%S\n" data)))
+(ewoc-create 'PP "start\n\n" "\n")
+
 
 * Lisp Changes in Emacs 22.1
 
