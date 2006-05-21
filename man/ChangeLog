@@ -1,3 +1,7 @@
+2006-05-20  Richard Stallman  <rms@gnu.org>
+
+	* dired.texi (Dired Navigation): dired-goto-file is now j.
+
 2006-05-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired-x.texi: ifinfo -> ifnottex.

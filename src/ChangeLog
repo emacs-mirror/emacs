@@ -68,6 +68,8 @@
 
 	* xfaces.c (better_font_p): Any font beats no font.
 	(best_matching_font): Simplify based on above change.
+	
+	* buffer.c (Fprevious_overlay_change, Fnext_overlay_change): Doc fixes.
 
 2006-05-16  Kim F. Storm  <storm@cua.dk>
 

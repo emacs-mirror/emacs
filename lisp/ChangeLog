@@ -1,3 +1,8 @@
+2006-05-20  Richard Stallman  <rms@gnu.org>
+
+	* dired.el (dired-mode-map): Put dired-goto-file on j, not M-g.
+	(dired-goto-file): Doc fix.
+
 2006-05-21  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el: Mention customizing cua-mode as alternative
