@@ -1212,9 +1212,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "f" 'dired-find-file)
     (define-key map "\C-m" 'dired-advertised-find-file)
     (define-key map "g" 'revert-buffer)
-    (define-key map "\M-g" 'dired-goto-file)
     (define-key map "h" 'describe-mode)
     (define-key map "i" 'dired-maybe-insert-subdir)
+    (define-key map "j" 'dired-goto-file)
     (define-key map "k" 'dired-do-kill-lines)
     (define-key map "l" 'dired-do-redisplay)
     (define-key map "m" 'dired-mark)
@@ -2218,7 +2218,7 @@ instead of `dired-actual-switches'."
       (forward-line 1))))
 
 (defun dired-goto-file (file)
-  "Go to file line of FILE in this dired buffer."
+  "Go to line describing file FILE in this dired buffer."
   ;; Return value of point on success, else nil.
   ;; FILE must be an absolute file name.
   ;; Loses if FILE contains control chars like "\007" for which ls
