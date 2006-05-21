@@ -1,3 +1,8 @@
+2006-05-21  Richard Stallman  <rms@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Update info on which STATE
+	elements are ignored.
+
 2006-05-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* hooks.texi (Standard Hooks): Correct typo.
