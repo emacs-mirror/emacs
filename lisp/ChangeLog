@@ -1,3 +1,7 @@
+2006-05-21  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (kill-region): Interactively, pass point, then mark.
+
 2006-05-22  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc-create): Add autoload cookie.
