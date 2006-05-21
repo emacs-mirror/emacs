@@ -2549,7 +2549,9 @@ to make one entry in the kill ring.
 In Lisp code, optional third arg YANK-HANDLER, if non-nil,
 specifies the yank-handler text property to be set on the killed
 text.  See `insert-for-yank'."
-  (interactive "r")
+  ;; Pass point first, then mark, because the order matters
+  ;; when calling kill-append.
+  (interactive (list (point) (mark)))
   (condition-case nil
       (let ((string (filter-buffer-substring beg end t)))
 	(when string			;STRING is nil if BEG = END
