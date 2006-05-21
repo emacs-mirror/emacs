@@ -271,21 +271,23 @@ If `flyspell-large-region' is nil, all regions are treated as small."
 ;;*    using flyspell with mail-mode add the following expression       */
 ;;*    in your .emacs file:                                             */
 ;;*       (add-hook 'mail-mode                                          */
-;;*    	     '(lambda () (setq flyspell-generic-check-word-p           */
-;;*    			       'mail-mode-flyspell-verify)))           */
+;;*    	     '(lambda () (setq flyspell-generic-check-word-predicate    */
+;;*    			       'mail-mode-flyspell-verify)))            */
 ;;*---------------------------------------------------------------------*/
-(defvar flyspell-generic-check-word-p nil
+(defvar flyspell-generic-check-word-predicate nil
   "Function providing per-mode customization over which words are flyspelled.
 Returns t to continue checking, nil otherwise.
 Flyspell mode sets this variable to whatever is the `flyspell-mode-predicate'
 property of the major mode name.")
-(make-variable-buffer-local 'flyspell-generic-check-word-p)
+(make-variable-buffer-local 'flyspell-generic-check-word-predicate)
+(defvaralias 'flyspell-generic-check-word-p
+  'flyspell-generic-check-word-predicate)
 
 ;;*--- mail mode -------------------------------------------------------*/
 (put 'mail-mode 'flyspell-mode-predicate 'mail-mode-flyspell-verify)
 (put 'message-mode 'flyspell-mode-predicate 'mail-mode-flyspell-verify)
 (defun mail-mode-flyspell-verify ()
-  "This function is used for `flyspell-generic-check-word-p' in Mail mode."
+  "Function used for `flyspell-generic-check-word-predicate' in Mail mode."
   (let ((header-end (save-excursion
 		      (goto-char (point-min))
 		      (re-search-forward
@@ -313,7 +315,7 @@ property of the major mode name.")
 ;;*--- texinfo mode ----------------------------------------------------*/
 (put 'texinfo-mode 'flyspell-mode-predicate 'texinfo-mode-flyspell-verify)
 (defun texinfo-mode-flyspell-verify ()
-  "This function is used for `flyspell-generic-check-word-p' in Texinfo mode."
+  "Function used for `flyspell-generic-check-word-predicate' in Texinfo mode."
   (save-excursion
     (forward-word -1)
     (not (looking-at "@"))))
@@ -321,7 +323,7 @@ property of the major mode name.")
 ;;*--- tex mode --------------------------------------------------------*/
 (put 'tex-mode 'flyspell-mode-predicate 'tex-mode-flyspell-verify)
 (defun tex-mode-flyspell-verify ()
-  "This function is used for `flyspell-generic-check-word-p' in LaTeX mode."
+  "Function used for `flyspell-generic-check-word-predicate' in LaTeX mode."
   (and
    (not (save-excursion
 	  (re-search-backward "^[ \t]*%%%[ \t]+Local" nil t)))
@@ -338,7 +340,7 @@ property of the major mode name.")
 (put 'html-mode 'flyspell-mode-predicate 'sgml-mode-flyspell-verify)
 
 (defun sgml-mode-flyspell-verify ()
-  "This function is used for `flyspell-generic-check-word-p' in SGML mode."
+  "Function used for `flyspell-generic-check-word-predicate' in SGML mode."
   (not (save-excursion
 	 (let ((this (point-marker))
 	       (s (progn (beginning-of-line) (point-marker)))
@@ -368,7 +370,7 @@ property of the major mode name.")
   "Faces corresponding to text in programming-mode buffers.")
 
 (defun flyspell-generic-progmode-verify ()
-  "Used for `flyspell-generic-check-word-p' in programming modes."
+  "Used for `flyspell-generic-check-word-predicate' in programming modes."
   (let ((f (get-text-property (point) 'face)))
     (memq f flyspell-prog-text-faces)))
 
@@ -376,7 +378,8 @@ property of the major mode name.")
 (defun flyspell-prog-mode ()
   "Turn on `flyspell-mode' for comments and strings."
   (interactive)
-  (setq flyspell-generic-check-word-p 'flyspell-generic-progmode-verify)
+  (setq flyspell-generic-check-word-predicate
+        'flyspell-generic-progmode-verify)
   (flyspell-mode 1)
   (run-hooks 'flyspell-prog-mode-hook))
 
@@ -563,10 +566,10 @@ in your .emacs file.
   (add-hook 'pre-command-hook (function flyspell-pre-command-hook) t t)
   ;; we bound flyspell action to after-change hook
   (add-hook 'after-change-functions 'flyspell-after-change-function nil t)
-  ;; set flyspell-generic-check-word-p based on the major mode
+  ;; set flyspell-generic-check-word-predicate based on the major mode
   (let ((mode-predicate (get major-mode 'flyspell-mode-predicate)))
     (if mode-predicate
-	(setq flyspell-generic-check-word-p mode-predicate)))
+	(setq flyspell-generic-check-word-predicate mode-predicate)))
   ;; the welcome message
   (if (and flyspell-issue-message-flag
 	   flyspell-issue-welcome-flag
@@ -979,8 +982,8 @@ Mostly we check word delimiters."
            (flyspell-word (flyspell-get-word following))
            start end poss word)
       (if (or (eq flyspell-word nil)
- 	      (and (fboundp flyspell-generic-check-word-p)
- 		   (not (funcall flyspell-generic-check-word-p))))
+ 	      (and (fboundp flyspell-generic-check-word-predicate)
+ 		   (not (funcall flyspell-generic-check-word-predicate))))
 	  t
 	(progn
 	  ;; destructure return flyspell-word info list.
