@@ -1,3 +1,8 @@
+2006-05-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/bibtex.el (bibtex-maintain-sorted-entries): Quote
+	safe-local-variable predicate.
+
 2006-05-22  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc-set-data): New function.

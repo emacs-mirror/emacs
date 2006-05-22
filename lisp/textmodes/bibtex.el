@@ -168,7 +168,7 @@ See also `bibtex-sort-ignore-string-entries'."
                  (const entry-class)
                  (const t)))
 (put 'bibtex-maintain-sorted-entries 'safe-local-variable
-     (lambda (a) (memq a '(nil t plain crossref entry-class))))
+     '(lambda (a) (memq a '(nil t plain crossref entry-class))))
 
 (defcustom bibtex-sort-entry-class
   '(("String")
