@@ -1,15 +1,19 @@
+2006-05-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-set-data): New function.
+
 2006-05-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-maintain-sorted-entries): Mark as
 	safe.
-	
+
 	* progmodes/make-mode.el (makefile-special-targets-list)
 	(makefile-macro-table, makefile-target-table): Mark as risky.
 	(makefile-query-one-target-method): Make this the alias for the
 	following variable.
 	(makefile-query-one-target-method-function): Make this the real
 	name.
-	
+
 	* textmodes/artist.el (artist-text-renderer): Make this the alias
 	for the following variable.
 	(artist-text-renderer-function): Make this the real name.
