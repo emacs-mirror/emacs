@@ -1,7 +1,14 @@
+2006-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-do-completion): Undo the addition of implicit
+	wildcards if they did not lead to finding any match.
+	(read-file-name-internal): Don't add the final > if the completion is
+	not finished.
+
 2006-05-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* textmodes/bibtex.el (bibtex-maintain-sorted-entries): Quote
-	safe-local-variable predicate.
+	* textmodes/bibtex.el (bibtex-maintain-sorted-entries):
+	Quote safe-local-variable predicate.
 
 2006-05-22  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -9,15 +16,13 @@
 
 2006-05-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* textmodes/bibtex.el (bibtex-maintain-sorted-entries): Mark as
-	safe.
+	* textmodes/bibtex.el (bibtex-maintain-sorted-entries): Mark as safe.
 
 	* progmodes/make-mode.el (makefile-special-targets-list)
 	(makefile-macro-table, makefile-target-table): Mark as risky.
 	(makefile-query-one-target-method): Make this the alias for the
 	following variable.
-	(makefile-query-one-target-method-function): Make this the real
-	name.
+	(makefile-query-one-target-method-function): Make this the real name.
 
 	* textmodes/artist.el (artist-text-renderer): Make this the alias
 	for the following variable.
