@@ -865,6 +865,8 @@ protocol, are currently supported.
 @section Menu Bars
 @cindex Menu Bar mode
 @cindex mode, Menu Bar
+@findex menu-bar-mode
+@vindex menu-bar-mode
 
   You can turn display of menu bars on or off with @kbd{M-x
 menu-bar-mode} or by customizing the variable @code{menu-bar-mode}.
@@ -904,6 +906,8 @@ global tool bar.
 XPM icons if Emacs was built with XPM support.  Otherwise, the tool
 bar uses monochrome icons (PBM or XBM format).
 
+@findex tool-bar-mode
+@vindex tool-bar-mode
   You can turn display of tool bars on or off with @kbd{M-x
 tool-bar-mode} or by customizing the option @code{tool-bar-mode}.
 

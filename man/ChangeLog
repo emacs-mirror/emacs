@@ -1,3 +1,7 @@
+2006-05-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* frames.texi (Menu Bars, Tool Bars): Add index entries.
+
 2006-05-20  Richard Stallman  <rms@gnu.org>
 
 	* dired.texi (Dired Navigation): dired-goto-file is now j.
