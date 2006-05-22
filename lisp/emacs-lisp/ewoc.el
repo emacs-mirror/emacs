@@ -96,6 +96,7 @@
 ;;
 ;; (defun ewoc-create (pretty-printer &optional header footer)
 ;; (defalias 'ewoc-data 'ewoc--node-data)
+;; (defun ewoc-set-data (node data)
 ;; (defun ewoc-location (node)
 ;; (defun ewoc-enter-first (ewoc data)
 ;; (defun ewoc-enter-last (ewoc data)
@@ -295,6 +296,10 @@ respectively, of the ewoc."
   "Extract the data encapsulated by NODE and return it.
 
 \(fn NODE)")
+
+(defun ewoc-set-data (node data)
+  "Set NODE to encapsulate DATA."
+  (setf (ewoc--node-data node) data))
 
 (defun ewoc-enter-first (ewoc data)
   "Enter DATA first in EWOC.
