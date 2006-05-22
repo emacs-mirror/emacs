@@ -1,5 +1,8 @@
 2006-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/bibtex.el (bibtex-format-entry, bibtex-clean-entry):
+	Signal more user-friendly error messages.
+
 	* complete.el (PC-do-completion): Undo the addition of implicit
 	wildcards if they did not lead to finding any match.
 	(read-file-name-internal): Don't add the final > if the completion is

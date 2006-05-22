@@ -1803,7 +1803,8 @@ Formats current entry according to variable `bibtex-entry-format'."
 
         ;; identify entry type
         (goto-char (point-min))
-        (re-search-forward bibtex-entry-type)
+        (or (re-search-forward bibtex-entry-type nil t)
+            (error "Not inside a BibTeX entry"))
         (let ((beg-type (1+ (match-beginning 0)))
               (end-type (match-end 0)))
           (setq entry-list (assoc-string (buffer-substring-no-properties
@@ -3879,7 +3880,8 @@ At end of the cleaning process, the functions in
   (interactive "P")
   (let ((case-fold-search t)
         (start (bibtex-beginning-of-entry))
-        (_ (looking-at bibtex-any-entry-maybe-empty-head))
+        (_ (or (looking-at bibtex-any-entry-maybe-empty-head)
+	       (error "Not inside a BibTeX entry")))
         (entry-type (bibtex-type-in-head))
         (key (bibtex-key-in-head)))
     ;; formatting
