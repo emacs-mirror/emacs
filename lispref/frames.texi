@@ -1601,7 +1601,7 @@ Emacs frame, for the @code{text} pointer style.
 @defvar x-sensitive-text-pointer-shape
 This variable specifies the pointer shape to use when the mouse
 is over mouse-sensitive text.
-@end table
+@end defvar
 
   These variables affect newly created frames.  They do not normally
 affect existing frames; however, if you set the mouse color of a
