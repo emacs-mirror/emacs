@@ -171,8 +171,8 @@
 ;;          |  INTEGER_CONSTANT
 ;;          |  DEREF
 
-;; DEREF   ::= ( [NAME | INTEGER]... )	-- Field NAME or Array index relative to
-;;                                         current structure spec.
+;; DEREF   ::= ( [NAME | INTEGER]... )	-- Field NAME or Array index relative
+;;                                         to current structure spec.
 ;;                                      -- see bindat-get-field
 
 ;; A `union' specification
@@ -415,7 +415,9 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	 ((eq type 'repeat)
 	  (let ((index 0))
 	    (while (< index len)
-	      (bindat--length-group (nth index (bindat-get-field struct field)) (nthcdr tail item))
+	      (bindat--length-group
+               (nth index (bindat-get-field struct field))
+               (nthcdr tail item))
 	      (setq index (1+ index)))))
 	 ((eq type 'union)
 	  (let ((tag len) (cases (nthcdr tail item)) case cc)
@@ -436,7 +438,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	  (setq pos (+ pos len))))))))
 
 (defun bindat-length (spec struct)
-  "Calculate raw-data length for STRUCT according to bindat specification SPEC."
+  "Calculate raw-data length for STRUCT according to bindat SPEC."
   (let ((pos 0))
     (bindat--length-group struct spec)
     pos))
@@ -557,7 +559,9 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	 ((eq type 'repeat)
 	  (let ((index 0))
 	    (while (< index len)
-	      (bindat--pack-group (nth index (bindat-get-field struct field)) (nthcdr tail item))
+	      (bindat--pack-group
+               (nth index (bindat-get-field struct field))
+               (nthcdr tail item))
 	      (setq index (1+ index)))))
 	 ((eq type 'union)
 	  (let ((tag len) (cases (nthcdr tail item)) case cc)
@@ -583,7 +587,8 @@ Note: The result is a multibyte string; use `string-make-unibyte' on it
 to make it unibyte if necessary."
   (let ((no-return raw-data))
     (unless pos (setq pos 0))
-    (unless raw-data (setq raw-data (make-vector (+ pos (bindat-length spec struct)) 0)))
+    (unless raw-data
+      (setq raw-data (make-vector (+ pos (bindat-length spec struct)) 0)))
     (bindat--pack-group struct spec)
     (if no-return nil (concat raw-data))))
 
