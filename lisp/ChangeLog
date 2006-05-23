@@ -3,6 +3,8 @@
 	* emacs-lisp/ewoc.el (ewoc-delete): New function.
 	(ewoc-filter): Use `ewoc-delete'.
 
+	* emacs-lisp/bindat.el (bindat-pack): Doc fix.
+
 2006-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/bibtex.el (bibtex-format-entry, bibtex-clean-entry):
