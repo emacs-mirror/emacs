@@ -1,3 +1,13 @@
+2006-05-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (fn_keycode_to_xkeysym_table, convert_fn_keycode): Remove.
+	(fn_keycode_to_keycode_table) [MAC_OSX]: New variable.
+	(mac_set_unicode_keystroke_event) [TARGET_API_MAC_CARBON]: New function.
+	(XTread_socket) [TARGET_API_MAC_CARBON]: Use it.
+	(XTread_socket) [MAC_OSX]: Try 'uchr' Unicode keyboard-layout
+	resource to backtranslate key with modifiers.
+	(XTread_socket): Don't set read_socket_inev around AEProcessAppleEvent.
+
 2006-05-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c: Remove declarations already in xterm.h
@@ -147,7 +157,7 @@
 	[MAC_OS] (gif_load): Emulate Graphic Control Extension block.
 
 	* macfns.c (x_to_mac_color): Fix shift amount change.
-	[USE_MAC_FONT_PANEL] (mac_set_font): Use x_get_focus_frame.
+	(mac_set_font) [USE_MAC_FONT_PANEL]: Use x_get_focus_frame.
 	[USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility): Doc fix.
 
 	* macselect.c (Vmac_service_selection) [MAC_OSX]: Rename from
