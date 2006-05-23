@@ -3645,10 +3645,14 @@ Outline mode sets this."
 	(setq new (point))
 
 	;; Process intangibility within a line.
-	;; Move to the chosen destination position from above,
-	;; with intangibility processing enabled.
+	;; With inhibit-point-motion-hooks bound to nil, a call to
+	;; goto-char moves point past intangible text.
 
-	;; Avoid calling point-entered and point-left.
+	;; However, inhibit-point-motion-hooks controls both the
+	;; intangibility and the point-entered/point-left hooks.  The
+	;; following hack avoids calling the point-* hooks
+	;; unnecessarily.  Note that we move *forward* past intangible
+	;; text when the initial and final points are the same.
 	(goto-char new)
 	(let ((inhibit-point-motion-hooks nil))
 	  (goto-char new)
