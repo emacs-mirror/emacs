@@ -2,7 +2,6 @@
 %**start of header
 \newcount\columnsperpage
 \newcount\letterpaper
-% \input psfig
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
 % Specify how many you want here.
@@ -63,6 +62,11 @@
 % for their many good ideas.
 
 % If there were room, it would be nice to see a section on Dired.
+
+% Translated from English to Portuguese by Rodrigo Real, send comments
+% and suggestions to rreal@ucpel.tche.br. Thanks to Mario Goulart for
+% the opinions.
+
 
 \def\versionnumber{2.3}
 \def\year{2006}
@@ -496,7 +500,7 @@ utilizado.  Tecle \kbd{F10} para ativar o menu.
 \key{transp{\~o}e {\bf linhas}}{C-x C-t}
 \key{transp{\~o}e {\bf sexps}}{C-M-t}
 
-\section{Corre{\c{c}}{\~a}o Ortogr{\'a}fica}
+\section{Verifica{\c{c}}{\~a}o Ortogr{\'a}fica}
 
 \key{verifica a palavra corrente}{M-\$}
 \metax{verifica todas palavras de uma regi{\~a}o}{M-x ispell-region}
@@ -536,12 +540,12 @@ utilizado.  Tecle \kbd{F10} para ativar o menu.
 \key{adiciona localmente expans{\~a}o de abrev.}{C-x a i l}
 \key{explicitamente expande uma abrev}{C-x a e}
 
-\key{completa palavras com base em palavras anteriores}{M-/}
+\key{completa com base em palavras anteriores}{M-/}
 
 
 \section{Express{\~o}es Regulares}
 
-\key{qualquer caracter menos nova linha}{. {\rm(dot)}}
+\key{qualquer caracter exceto nova linha}{. {\rm(dot)}}
 \key{zero ou mais repeti{\c{c}}{\~o}es}{*}
 \key{uma ou mais repeti{\c{c}}{\~o}es}{+}
 \key{zero ou uma repeti{\c{c}}{\~a}o}{?}
@@ -592,7 +596,7 @@ Movimenta{\c{c}}{\~a}o entre nodos:
 \key{mover cima {\bf cima}}{u}
 \key{seleciona item do menu pelo nome}{m}
 \key{seleciona {\it n\/}-{\'e}simo item do menu}{{\it n}}
-\key{segue refer{\^e}ncia cruzada  (return with \kbd{l})}{f}
+\key{segue refer{\^e}ncia cruzada  (retorna com \kbd{l})}{f}
 \key{retorna {\'u}ltimo nodo visitado}{l}
 \key{retorna ao diret{\'o}rio de nodos}{d}
 \key{ir para o topo do arquivo Info}{t}
@@ -601,10 +605,9 @@ Movimenta{\c{c}}{\~a}o entre nodos:
 Outros:
 
 \key{executar {\bf tutorial} do Info}{h}
-% \key{look up a subject in the indices}{i} % FIXME
+\key{busca pelo assunto no {\'\i}ndice}{i}
 \key{busca por express{\~a}o regular}{s}
 \key{{\bf sair} Info}{q}
-
 
 \endindentedkeys
 
@@ -667,15 +670,16 @@ With ARG, put point on line ARG."
               (prefix-numeric-value line))))
 \endexample
 
-A especificação \kbd{interactive} explica como interativamente ler argumentos.
-Tecle \kbd{C-h f interactive} para mais detalhes.
+A especifica{\c{c}}{\~a}o \kbd{interactive} explica como ler
+interativamente argumentos.  Tecle \kbd{C-h f interactive} para mais
+detalhes.
 
 \copyrightnotice
 
 \bye
 
 % Local variables:
-% compile-command: "tex refcard"
+% compile-command: "tex pt-br-refcard"
 % coding: iso-latin-1
 % End:
 
