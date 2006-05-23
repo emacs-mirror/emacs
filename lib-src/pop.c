@@ -135,7 +135,7 @@ static char *find_crlf __P((char *, int));
 #define KPOP_PORT 1109
 #define POP_SERVICE "pop3"	/* we don't want the POP2 port! */
 #ifdef KERBEROS
-#define KPOP_SERVICE "kpop"
+#define KPOP_SERVICE "kpop"	/* never used: look for 20060515 to see why */
 #endif
 
 char pop_error[ERROR_MAX];
@@ -264,10 +264,11 @@ pop_open (host, username, password, flags)
 	  return (0);
 	}
     }
-  if (password)
+  if (password)			/* always true, detected 20060515 */
     flags |= POP_NO_KERBEROS;
   else
-    password = username;
+    password = username;	/* dead code, detected 20060515 */
+  /** "kpop" service is  never used: look for 20060515 to see why **/
 
   sock = socket_connection (host, flags);
   if (sock == -1)
@@ -1047,6 +1048,7 @@ socket_connection (host, flags)
   bzero ((char *) &addr, sizeof (addr));
   addr.sin_family = AF_INET;
 
+  /** "kpop" service is  never used: look for 20060515 to see why **/
 #ifdef KERBEROS
   service = (flags & POP_NO_KERBEROS) ? POP_SERVICE : KPOP_SERVICE;
 #else
@@ -1073,6 +1075,7 @@ socket_connection (host, flags)
 	}
       else
 	{
+  /** "kpop" service is  never used: look for 20060515 to see why **/
 #ifdef KERBEROS
 	  addr.sin_port = htons ((flags & POP_NO_KERBEROS) ?
 				POP_PORT : KPOP_PORT);
