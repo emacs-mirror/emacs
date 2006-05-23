@@ -581,7 +581,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 
 (defun bindat-pack (spec struct &optional raw-data pos)
   "Return binary data packed according to SPEC for structured data STRUCT.
-Optional third arg RAW-DATA is a pre-allocated string or vector to unpack into.
+Optional third arg RAW-DATA is a pre-allocated string or vector to pack into.
 Optional fourth arg POS is the starting offset into RAW-DATA.
 Note: The result is a multibyte string; use `string-make-unibyte' on it
 to make it unibyte if necessary."
