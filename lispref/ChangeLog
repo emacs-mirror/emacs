@@ -1,3 +1,13 @@
+2006-05-22  Richard Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode menus.
+
+	* frames.texi (Pointer Shape): Node renamed from Pointer Shapes.
+	Contents rewritten; material from old Pointer Shape node moved here.
+
+	* display.texi (Pointer Shape): Node deleted.
+	(Image Descriptors): Minor cleanup.
+
 2006-05-21  Richard Stallman  <rms@gnu.org>
 
 	* syntax.texi (Parsing Expressions): Update info on which STATE
