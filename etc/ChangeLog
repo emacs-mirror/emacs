@@ -1,5 +1,12 @@
 2006-05-23  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* pl-refcard.tex (Local variables): Add compile-command.
+
+	* ru-refcard.tex (Local variables): Add compile-command and
+	coding.
+
+	* pt-br-refcard.tex: Don't \input psfig.
+
 	* refcard.tex (section{Info}): Add `i'.  Use `s' instead of `M-s'.
 
 	* de-refcard.tex (section{Info}): Ditto.
