@@ -1,3 +1,24 @@
+2006-05-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* refcard.tex (section{Info}): Add `i'.  Use `s' instead of `M-s'.
+
+	* de-refcard.tex (section{Info}): Ditto.
+
+	* fr-refcard.tex (section{Info}): Ditto.  Translation suggested by
+	Stefan Monnier <monnier@iro.umontreal.ca>.
+
+	* pl-refcard.tex (section{Info}): Ditto.  Translation suggested by
+	Slawomir Nowaczyk <slawomir.nowaczyk.847@student.lu.se>.
+
+	* cs-refcard.tex (section{Info}): Use `s' instead of `M-s'. Entry
+	for `i' is not translated yet.
+
+	* pt-br-refcard.tex (section{Info}): Ditto.
+
+	* ru-refcard.tex (section{Info}): Ditto.
+
+	* sk-refcard.tex (section{Info}): Ditto.
+
 2006-05-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* MORE.STUFF: Update AUCTeX entry.
