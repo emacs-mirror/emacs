@@ -26,7 +26,6 @@ that Emacs presents to the user.
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
 * Scroll Bars::         Controlling vertical scroll bars.
-* Pointer Shape::       Controlling the mouse pointer shape.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
@@ -3193,26 +3192,6 @@ buffer's scroll bars, measured in pixels.  A value of @code{nil} means
 to use the value specified by the frame.
 @end defvar
 
-@node Pointer Shape
-@section Pointer Shape
-
-  Normally, the mouse pointer has the @code{text} shape over text and
-the @code{arrow} shape over window areas which do not correspond to
-any buffer text.  You can specify the mouse pointer shape over text or
-images via the @code{pointer} text property, and for images with the
-@code{:pointer} and @code{:map} image properties.
-
-  The available pointer shapes are: @code{text} (or @code{nil}),
-@code{arrow}, @code{hand}, @code{vdrag}, @code{hdrag},
-@code{modeline}, and @code{hourglass}.
-
-@defvar void-text-area-pointer
-@tindex void-text-area-pointer
-This variable specifies the mouse pointer shape in void text areas,
-i.e. the areas after the end of a line or below the last line in the
-buffer.  The default is to use the @code{arrow} (non-text) pointer.
-@end defvar
-
 @node Display Property
 @section The @code{display} Property
 @cindex display specification
@@ -3841,11 +3820,11 @@ A polygon is a cons
 @code{(poly . [@var{x0} @var{y0} @var{x1} @var{y1} ...])}
 where each pair in the vector describes one corner in the polygon.
 
-When the mouse pointer is above a hot-spot area of an image, the
+When the mouse pointer lies on a hot-spot area of an image, the
 @var{plist} of that hot-spot is consulted; if it contains a @code{help-echo}
-property it defines a tool-tip for the hot-spot, and if it contains
-a @code{pointer} property, it defines the shape of the mouse cursor when
-it is over the hot-spot.
+property, that defines a tool-tip for the hot-spot, and if it contains
+a @code{pointer} property, that defines the shape of the mouse cursor when
+it is on the hot-spot.
 @xref{Pointer Shape}, for available pointer shapes.
 
 When you click the mouse when the mouse pointer is over a hot-spot, an
