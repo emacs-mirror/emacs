@@ -1,3 +1,11 @@
+2006-05-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c: Remove declarations already in xterm.h
+
+	* xterm.h: Add extern declarations for x_clear_errors,
+	x_fully_uncatch_errors, x_catching_errors and 
+	x_alloc_lighter_color_for_widget.  Remove duplicated declarations.
+
 2006-05-21  Richard Stallman  <rms@gnu.org>
 
 	* buffer.c (syms_of_buffer, Fmake_overlay): Doc fixes.
