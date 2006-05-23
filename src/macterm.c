@@ -9629,7 +9629,12 @@ keycode_to_xkeysym (int keyCode, int *xKeySym)
   return *xKeySym != 0;
 }
 
-static unsigned char fn_keycode_to_xkeysym_table[] = {
+#ifdef MAC_OSX
+/* Table for translating Mac keycode with the laptop `fn' key to that
+   without it.  Destination symbols in comments are keys on US
+   keyboard, and they may not be the same on other types of
+   keyboards.  */
+static unsigned char fn_keycode_to_keycode_table[] = {
   /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x20*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -9639,113 +9644,27 @@ static unsigned char fn_keycode_to_xkeysym_table[] = {
   /*0x38*/ 0, 0, 0, 0,
   /*0x3C*/ 0, 0, 0, 0,
 
-  /*0x40*/ 0, 0x2e /*kp-. = .*/, 0, 0x50 /*kp-* = 'p'*/,
-  /*0x44*/ 0, '/' /*kp-+*/, 0, 0,
-  /*0x48*/ 0, 0, 0, 0x30 /*kp-/ = '0'*/,
-  /*0x4C*/ 0, 0, 0x3b /*kp-- = ';'*/, 0,
+  /*0x40*/ 0, 0x2f /*kp-. -> '.'*/, 0, 0x23 /*kp-* -> 'p'*/,
+  /*0x44*/ 0, 0x2c /*kp-+ -> '/'*/, 0, 0x16 /*clear -> '6'*/,
+  /*0x48*/ 0, 0, 0, 0x1d /*kp-/ -> '0'*/,
+  /*0x4C*/ 0x24 /*kp-enter -> return*/, 0, 0x29 /*kp-- -> ';'*/, 0,
 
-  /*0x50*/ 0, 0x2d /*kp-= = '-'*/, 0x6d /*kp-0 = 'm'*/, 0x6a /*kp-1 = 'j'*/,
-  /*0x54*/ 0x6b /*kp-2 = 'k'*/, 0x6c /*kp-3 = 'l'*/, 'u' /*kp-4*/, 'i' /*kp-5*/,
-  /*0x58*/ 'o' /*kp-6*/, '7' /*kp-7*/, 0, '8' /*kp-8*/,
-  /*0x5C*/ '9' /*kp-9*/, 0, 0, 0,
+  /*0x50*/ 0, 0x1b /*kp-= -> '-'*/, 0x2e /*kp-0 -> 'm'*/, 0x26 /*kp-1 -> 'j'*/,
+  /*0x54*/ 0x28 /*kp-2 -> 'k'*/, 0x25 /*kp-3 -> 'l'*/, 0x20 /*kp-4 -> 'u'*/, 0x22 /*kp-5 ->'i'*/,
+  /*0x58*/ 0x1f /*kp-6 -> 'o'*/, 0x1a /*kp-7 -> '7'*/, 0, 0x1c /*kp-8 -> '8'*/,
+  /*0x5C*/ 0x19 /*kp-9 -> '9'*/, 0, 0, 0,
 
   /*0x60*/ 0, 0, 0, 0,
   /*0x64*/ 0, 0, 0, 0,
   /*0x68*/ 0, 0, 0, 0,
   /*0x6C*/ 0, 0, 0, 0,
 
-  /*0x70*/ 0, 0, 0, 0,
-  /*0x74*/ 0, 0, 0, 0,
-  /*0x78*/ 0, 0, 0, 0,
+  /*0x70*/ 0, 0, 0, 0x7b /*home -> left*/,
+  /*0x74*/ 0x7e /*pgup -> up*/, 0x33 /*delete -> backspace*/, 0, 0x7c /*end -> right*/,
+  /*0x78*/ 0, 0x7d /*pgdown -> down*/, 0, 0,
   /*0x7C*/ 0, 0, 0, 0
 };
-static int
-convert_fn_keycode (EventRef eventRef, int keyCode, int *newCode)
-{
-#ifdef MAC_OSX
-  /* Use the special map to translate keys when function modifier is
-     to be caught. KeyTranslate can't be used in that case.
-     We can't detect the function key using the input_event.modifiers,
-     because this uses the high word of an UInt32. Therefore,
-     we'll just read it out of the original eventRef.
-  */
-
-
-  /* TODO / known issues
-
-  - Fn-Shift-j is regonized as Fn-j and not Fn-J.
-  The above table always translates to lower characters. We need to use
-  the KCHR keyboard resource (KeyTranslate() ) to map k->K and 8->*.
-
-  - The table is meant for English language keyboards, and it will work
-  for many others with the exception of key combinations like Fn-ö on
-  a German keyboard, which is currently mapped to Fn-;.
-  How to solve this without keeping separate tables for all keyboards
-  around? KeyTranslate isn't of much help here, as it only takes a 16-bit
-  value for keycode with the modifiers in he high byte, i.e. no room for the
-  Fn modifier. That's why we need the table.
-
-  */
-  OSStatus err;
-  UInt32 mods = 0;
-  if (!NILP(Vmac_function_modifier))
-    {
-      err = GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32,
-			       NULL, sizeof (UInt32), NULL, &mods);
-      if (err == noErr && mods & kEventKeyModifierFnMask)
-	{  *newCode = fn_keycode_to_xkeysym_table [keyCode & 0x7f];
-
-	  return (*newCode != 0);
-	}
-    }
-#endif
-  return false;
-}
-
-static int
-backtranslate_modified_keycode(int mods, int keycode, int def)
-{
-  EventModifiers mapped_modifiers =
-    (NILP (Vmac_control_modifier) ? 0 : controlKey)
-    | (NILP (Vmac_option_modifier) ? 0 : optionKey)
-    | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
-
-  if (mods & mapped_modifiers)
-    {
-      /* This code comes from Keyboard Resource,
-	 Appendix C of IM - Text.  This is necessary
-	 since shift is ignored in KCHR table
-	 translation when option or command is pressed.
-	 It also does not translate correctly
-	 control-shift chars like C-% so mask off shift
-	 here also.
-
-	 Not done for combinations with the option key (alt)
-	 unless it is to be caught by Emacs:  this is
-	 to preserve key combinations translated by the OS
-	 such as Alt-3.
-      */
-      /* Mask off modifier keys that are mapped to some Emacs
-	 modifiers.  */
-      int new_modifiers = mods & ~mapped_modifiers;
-      /* set high byte of keycode to modifier high byte*/
-      int new_keycode = keycode | new_modifiers;
-      Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-      unsigned long some_state = 0;
-      return (int) KeyTranslate (kchr_ptr, new_keycode,
-				 &some_state) & 0xff;
-      /* TO DO: Recognize two separate resulting characters, "for
-	 example, when the user presses Option-E followed by N, you
-	 can map this through the KeyTranslate function using the
-	 U.S. 'KCHR' resource to produce ´n, which KeyTranslate
-	 returns as two characters in the bytes labeled Character code
-	 1 and Character code 2." (from Carbon API doc) */
-
-    }
-  else
-    return def;
-}
-
+#endif	/* MAC_OSX */
 
 #if !USE_CARBON_EVENTS
 static RgnHandle mouse_region = NULL;
@@ -9818,6 +9737,44 @@ mac_post_mouse_moved_event ()
     ReleaseEvent (event);
 
   return err;
+}
+
+static void
+mac_set_unicode_keystroke_event (code, buf)
+     UniChar code;
+     struct input_event *buf;
+{
+  int charset_id, c1, c2;
+
+  if (code < 0x80)
+    {
+      buf->kind = ASCII_KEYSTROKE_EVENT;
+      buf->code = code;
+    }
+  else if (code < 0x100)
+    {
+      if (code < 0xA0)
+	charset_id = CHARSET_8_BIT_CONTROL;
+      else
+	charset_id = charset_latin_iso8859_1;
+      buf->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+      buf->code = MAKE_CHAR (charset_id, code, 0);
+    }
+  else
+    {
+      if (code < 0x2500)
+	charset_id = charset_mule_unicode_0100_24ff,
+	  code -= 0x100;
+      else if (code < 0x33FF)
+	charset_id = charset_mule_unicode_2500_33ff,
+	  code -= 0x2500;
+      else if (code >= 0xE000)
+	charset_id = charset_mule_unicode_e000_ffff,
+	  code -= 0xE000;
+      c1 = (code / 96) + 32, c2 = (code % 96) + 32;
+      buf->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+      buf->code = MAKE_CHAR (charset_id, c1, c2);
+    }
 }
 #endif
 
@@ -10338,54 +10295,38 @@ XTread_socket (sd, expected, hold_quit)
 	  {
 	    int keycode = (er.message & keyCodeMask) >> 8;
 	    int xkeysym;
+	    static SInt16 last_key_script = -1;
+	    SInt16 current_key_script;
+	    UInt32 modifiers = er.modifiers, mapped_modifiers;
+
+	    mapped_modifiers =
+	      (NILP (Vmac_control_modifier) ? 0 : controlKey)
+	      | (NILP (Vmac_option_modifier) ? 0 : optionKey)
+	      | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
 
 #if USE_CARBON_EVENTS && defined (MAC_OSX)
+	    mapped_modifiers |=
+	      (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
+
+	    GetEventParameter (eventRef, kEventParamKeyModifiers,
+			       typeUInt32, NULL,
+			       sizeof (UInt32), NULL, &modifiers);
+
 	    /* When using Carbon Events, we need to pass raw keyboard
 	       events to the TSM ourselves.  If TSM handles it, it
 	       will pass back noErr, otherwise it will pass back
 	       "eventNotHandledErr" and we can process it
 	       normally.  */
-	    if ((mac_pass_command_to_system
-		 || !(er.modifiers & cmdKey))
-		&& (mac_pass_control_to_system
-		    || !(er.modifiers & controlKey))
-		&& (NILP (Vmac_option_modifier)
-		    || !(er.modifiers & optionKey)))
+	    if (!(modifiers
+		  & mapped_modifiers
+		  & ~(mac_pass_command_to_system ? cmdKey : 0)
+		  & ~(mac_pass_control_to_system ? controlKey : 0)))
 	      if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 		  != eventNotHandledErr)
-		break;
+		  break;
 #endif
 	    if (er.what == keyUp)
 	      break;
-
-#if 0
-	    if (dpyinfo->x_focus_frame == NULL)
-	      {
-		/* Beep if keyboard input occurs when all the frames
-		   are invisible.  */
-		SysBeep (1);
-		break;
-	      }
-#endif
-
-	    {
-	      static SInt16 last_key_script = -1;
-	      SInt16 current_key_script = GetScriptManagerVariable (smKeyScript);
-
-	      if (last_key_script != current_key_script)
-		{
-		  struct input_event event;
-
-		  EVENT_INIT (event);
-		  event.kind = LANGUAGE_CHANGE_EVENT;
-		  event.arg = Qnil;
-		  event.code = current_key_script;
-		  event.timestamp = timestamp;
-		  kbd_buffer_store_event (&event);
-		  count++;
-		}
-	      last_key_script = current_key_script;
-	    }
 
 	    ObscureCursor ();
 
@@ -10398,51 +10339,156 @@ XTread_socket (sd, expected, hold_quit)
 		dpyinfo->mouse_face_hidden = 1;
 	      }
 
-	    /* translate the keycode back to determine the original key */
-	    /* Convert key code if function key is pressed.
-	       Otherwise, if non-ASCII-event, take care of that
-	       without re-translating the key code. */
-#if USE_CARBON_EVENTS
-	    if (convert_fn_keycode (eventRef, keycode, &xkeysym))
+	    current_key_script = GetScriptManagerVariable (smKeyScript);
+	    if (last_key_script != current_key_script)
 	      {
-		inev.code = xkeysym;
-		/* this doesn't work - tried to add shift modifiers */
-		  inev.code =
-		    backtranslate_modified_keycode(er.modifiers & (~0x2200),
-						   xkeysym | 0x80,  xkeysym);
-		inev.kind = ASCII_KEYSTROKE_EVENT;
+		struct input_event event;
+
+		EVENT_INIT (event);
+		event.kind = LANGUAGE_CHANGE_EVENT;
+		event.arg = Qnil;
+		event.code = current_key_script;
+		event.timestamp = timestamp;
+		kbd_buffer_store_event (&event);
+		count++;
+		last_key_script = current_key_script;
 	      }
-	    else
+
+#ifdef MAC_OSX
+	    if (modifiers & kEventKeyModifierFnMask
+		&& keycode <= 0x7f
+		&& fn_keycode_to_keycode_table[keycode])
+	      keycode = fn_keycode_to_keycode_table[keycode];
 #endif
-	      if (keycode_to_xkeysym (keycode, &xkeysym))
-		{
-		  inev.code = 0xff00 | xkeysym;
-		  inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-		}
-	      else
-		{
-		  inev.code =
-		    backtranslate_modified_keycode(er.modifiers, keycode,
-						   er.message & charCodeMask);
-		  inev.kind = ASCII_KEYSTROKE_EVENT;
-		}
-	  }
+	    if (keycode_to_xkeysym (keycode, &xkeysym))
+	      {
+		inev.kind = NON_ASCII_KEYSTROKE_EVENT;
+		inev.code = 0xff00 | xkeysym;
+	      }
+	    else if (modifiers & mapped_modifiers)
+	      {
+		/* translate the keycode back to determine the
+		   original key */
+#ifdef MAC_OSX
+		static SInt16 last_key_layout_id = 0;
+		static Handle uchr_handle = (Handle)-1;
+		SInt16 current_key_layout_id =
+		  GetScriptVariable (current_key_script, smScriptKeys);
+
+		if (uchr_handle == (Handle)-1
+		    || last_key_layout_id != current_key_layout_id)
+		  {
+		    uchr_handle = GetResource ('uchr', current_key_layout_id);
+		    last_key_layout_id = current_key_layout_id;
+		  }
+
+		if (uchr_handle)
+		  {
+		    OSStatus status;
+		    UInt16 key_action = er.what - keyDown;
+		    UInt32 modifier_key_state =
+		      (modifiers & ~mapped_modifiers) >> 8;
+		    UInt32 keyboard_type = LMGetKbdType ();
+		    SInt32 dead_key_state = 0;
+		    UniChar code;
+		    UniCharCount actual_length;
+
+		    status = UCKeyTranslate ((UCKeyboardLayout *)*uchr_handle,
+					     keycode, key_action,
+					     modifier_key_state,
+					     keyboard_type,
+					     kUCKeyTranslateNoDeadKeysMask,
+					     &dead_key_state,
+					     1, &actual_length, &code);
+		    if (status == noErr && actual_length == 1)
+		      mac_set_unicode_keystroke_event (code, &inev);
+		  }
+#endif	/* MAC_OSX */
+
+		if (inev.kind == NO_EVENT)
+		  {
+		    /* This code comes from Keyboard Resource,
+		       Appendix C of IM - Text.  This is necessary
+		       since shift is ignored in KCHR table
+		       translation when option or command is pressed.
+		       It also does not translate correctly
+		       control-shift chars like C-% so mask off shift
+		       here also.  */
+		    /* Mask off modifier keys that are mapped to some
+		       Emacs modifiers.  */
+		    int new_modifiers = er.modifiers & ~mapped_modifiers;
+		    /* set high byte of keycode to modifier high byte*/
+		    int new_keycode = keycode | new_modifiers;
+		    Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+		    unsigned long some_state = 0;
+		    UInt32 new_char_code;
+
+		    new_char_code = KeyTranslate (kchr_ptr, new_keycode,
+						  &some_state);
+		    if (new_char_code == 0)
+		      /* Seems like a dead key.  Append up-stroke.  */
+		      new_char_code = KeyTranslate (kchr_ptr,
+						    new_keycode | 0x80,
+						    &some_state);
+		    if (new_char_code)
+		      {
+			inev.kind = ASCII_KEYSTROKE_EVENT;
+			inev.code = new_char_code & 0xff;
+		      }
+		  }
+	      }
+
+	    if (inev.kind == NO_EVENT)
+	      {
+		inev.kind = ASCII_KEYSTROKE_EVENT;
+		inev.code = er.message & charCodeMask;
+	      }
 
 #if USE_CARBON_EVENTS
-	  inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
+	    inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
-	  inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
+	    inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
-	  inev.modifiers |= (extra_keyboard_modifiers
-			     & (meta_modifier | alt_modifier
-				| hyper_modifier | super_modifier));
-	  XSETFRAME (inev.frame_or_window, f);
+	    inev.modifiers |= (extra_keyboard_modifiers
+			       & (meta_modifier | alt_modifier
+				  | hyper_modifier | super_modifier));
+	    XSETFRAME (inev.frame_or_window, f);
+
+#if TARGET_API_MAC_CARBON
+	    if (inev.kind == ASCII_KEYSTROKE_EVENT
+		&& inev.code >= 0x80 && inev.modifiers)
+	      {
+		OSStatus err;
+		TextEncoding encoding = kTextEncodingMacRoman;
+		TextToUnicodeInfo ttu_info;
+
+		UpgradeScriptInfoToTextEncoding (current_key_script,
+						 kTextLanguageDontCare,
+						 kTextRegionDontCare,
+						 NULL, &encoding);
+		err = CreateTextToUnicodeInfoByEncoding (encoding, &ttu_info);
+		if (err == noErr)
+		  {
+		    UniChar code;
+		    Str255 pstr;
+		    ByteCount unicode_len;
+
+		    pstr[0] = 1;
+		    pstr[1] = inev.code;
+		    err = ConvertFromPStringToUnicode (ttu_info, pstr,
+						       sizeof (UniChar),
+						       &unicode_len, &code);
+		    if (err == noErr && unicode_len == sizeof (UniChar))
+		      mac_set_unicode_keystroke_event (code, &inev);
+		    DisposeTextToUnicodeInfo (&ttu_info);
+		  }
+	      }
+#endif
+	  }
 	  break;
 
 	case kHighLevelEvent:
-	  read_socket_inev = &inev;
 	  AEProcessAppleEvent (&er);
-	  read_socket_inev = NULL;
 	  break;
 
 	default:
