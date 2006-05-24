@@ -539,6 +539,48 @@ struct scroll_bar {
 #define HOURGLASS_WIDTH 16
 #define HOURGLASS_HEIGHT 16
 
+/* Some constants that are used locally.  */
+/* Apple event descriptor types */
+enum {
+  TYPE_FILE_NAME		= 'fNam'
+};
+
+/* Keywords for Apple event attributes */
+enum {
+  KEY_EMACS_SUSPENSION_ID_ATTR	= 'esId' /* typeUInt32 */
+};
+
+/* Some constants that are not defined in older versions.  */
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1030
+/* Keywords for Apple event attributes */
+enum {
+  keyReplyRequestedAttr		= 'repq'
+};
+#endif
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1040
+/* Gestalt selectors */
+enum {
+  gestaltSystemVersionMajor	= 'sys1',
+  gestaltSystemVersionMinor	= 'sys2',
+  gestaltSystemVersionBugFix	= 'sys3'
+};
+#endif
+
+#ifdef MAC_OSX
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1020
+/* Apple event descriptor types */
+enum {
+  typeUTF8Text			= 'utf8'
+};
+
+/* Carbon event parameter names */
+enum {
+  kEventParamWindowMouseLocation = 'wmou'
+};
+#endif
+#endif
+
 struct frame;
 struct face;
 struct image;
@@ -596,8 +638,6 @@ extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
-#define TYPE_FILE_NAME 'fNam'
-
 /* Defined in macselect.c */
 
 extern void x_clear_frame_selections P_ ((struct frame *));
@@ -615,6 +655,7 @@ extern int x_char_height P_ ((struct frame *));
 extern void x_sync P_ ((struct frame *));
 extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void mac_update_title_bar P_ ((struct frame *, int));
+extern Lisp_Object x_get_focus_frame P_ ((struct frame *));
 
 /* Defined in macmenu.c */
 
@@ -625,6 +666,7 @@ extern void free_frame_menubar P_ ((struct frame *));
 
 extern void mac_clear_font_name_table P_ ((void));
 extern Lisp_Object mac_aedesc_to_lisp P_ ((const AEDesc *));
+extern OSErr mac_ae_put_lisp P_ ((AEDescList *, UInt32, Lisp_Object));
 #if TARGET_API_MAC_CARBON
 extern OSErr create_apple_event_from_event_ref P_ ((EventRef, UInt32,
 						    EventParamName *,
