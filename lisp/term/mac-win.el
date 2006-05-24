@@ -1649,7 +1649,7 @@ Currently the `mailto' scheme is supported."
 	 (parsed-url (url-generic-parse-url (mac-ae-text ae))))
     (if (string= (url-type parsed-url) "mailto")
 	(url-mailto parsed-url)
-      (error "Unsupported URL scheme: %s" (url-type parsed-url)))))
+      (mac-resume-apple-event ae t))))
 
 (setq mac-apple-event-map (make-sparse-keymap))
 
@@ -1800,9 +1800,9 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   "Dispatch EVENT according to the keymap `mac-apple-event-map'."
   (interactive "e")
   (let* ((binding (lookup-key mac-apple-event-map (mac-event-spec event)))
-	 (service-message
-	  (and (keymapp binding)
-	       (cdr (mac-ae-parameter (mac-event-ae event) "svmg")))))
+	 (ae (mac-event-ae event))
+	 (service-message (and (keymapp binding)
+			       (cdr (mac-ae-parameter ae "svmg")))))
     (when service-message
       (setq service-message
 	    (intern (decode-coding-string service-message 'utf-8)))
@@ -1810,7 +1810,16 @@ With numeric ARG, display the font panel if and only if ARG is positive."
     ;; Replace (cadr event) with a dummy position so that event-start
     ;; returns it.
     (setcar (cdr event) (list (selected-window) (point) '(0 . 0) 0))
-    (call-interactively binding)))
+    (if (null (mac-ae-parameter ae 'emacs-suspension-id))
+	(call-interactively binding)
+      (condition-case err
+	  (progn
+	    (call-interactively binding)
+	    (mac-resume-apple-event ae))
+	(error
+	 (mac-ae-set-reply-parameter ae "errs"
+				     (cons "TEXT" (error-message-string err)))
+	 (mac-resume-apple-event ae -10000)))))) ; errAEEventFailed
 
 (global-set-key [mac-apple-event] 'mac-dispatch-apple-event)
 
@@ -1819,6 +1828,8 @@ With numeric ARG, display the font panel if and only if ARG is positive."
 ;; processed when the initial frame has been created: this is where
 ;; the files should be opened.
 (add-hook 'after-init-hook 'mac-process-deferred-apple-events)
+
+(run-with-idle-timer 5 t 'mac-cleanup-expired-apple-events)
 
 
 ;;;; Drag and drop
