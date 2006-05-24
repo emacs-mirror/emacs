@@ -1,3 +1,7 @@
+2006-05-24  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (read-passwd): Copy PROMPT before changing its properties.
+
 2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-display-dired-image): Renamed to
