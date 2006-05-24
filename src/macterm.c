@@ -9632,8 +9632,9 @@ keycode_to_xkeysym (int keyCode, int *xKeySym)
 #ifdef MAC_OSX
 /* Table for translating Mac keycode with the laptop `fn' key to that
    without it.  Destination symbols in comments are keys on US
-   keyboard, and they may not be the same on other types of
-   keyboards.  */
+   keyboard, and they may not be the same on other types of keyboards.
+   If the destination is identical to the source (f1 ... f12), it
+   doesn't map `fn' key to a modifier.  */
 static unsigned char fn_keycode_to_keycode_table[] = {
   /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -9654,14 +9655,14 @@ static unsigned char fn_keycode_to_keycode_table[] = {
   /*0x58*/ 0x1f /*kp-6 -> 'o'*/, 0x1a /*kp-7 -> '7'*/, 0, 0x1c /*kp-8 -> '8'*/,
   /*0x5C*/ 0x19 /*kp-9 -> '9'*/, 0, 0, 0,
 
-  /*0x60*/ 0, 0, 0, 0,
-  /*0x64*/ 0, 0, 0, 0,
+  /*0x60*/ 0x60 /*f5 = f5*/, 0x61 /*f6 = f6*/, 0x62 /*f7 = f7*/, 0x63 /*f3 = f3*/,
+  /*0x64*/ 0x64 /*f8 = f8*/, 0x65 /*f9 = f9*/, 0, 0x67 /*f11 = f11*/,
   /*0x68*/ 0, 0, 0, 0,
-  /*0x6C*/ 0, 0, 0, 0,
+  /*0x6C*/ 0, 0x6d /*f10 = f10*/, 0, 0x6f /*f12 = f12*/,
 
   /*0x70*/ 0, 0, 0, 0x7b /*home -> left*/,
-  /*0x74*/ 0x7e /*pgup -> up*/, 0x33 /*delete -> backspace*/, 0, 0x7c /*end -> right*/,
-  /*0x78*/ 0, 0x7d /*pgdown -> down*/, 0, 0,
+  /*0x74*/ 0x7e /*pgup -> up*/, 0x33 /*delete -> backspace*/, 0x76 /*f4 = f4*/, 0x7c /*end -> right*/,
+  /*0x78*/ 0x78 /*f2 = f2*/, 0x7d /*pgdown -> down*/, 0x7a /*f1 = f1*/, 0,
   /*0x7C*/ 0, 0, 0, 0
 };
 #endif	/* MAC_OSX */
@@ -10311,14 +10312,16 @@ XTread_socket (sd, expected, hold_quit)
 	    GetEventParameter (eventRef, kEventParamKeyModifiers,
 			       typeUInt32, NULL,
 			       sizeof (UInt32), NULL, &modifiers);
+#endif
+	    mapped_modifiers &= modifiers;
 
+#if USE_CARBON_EVENTS && defined (MAC_OSX)
 	    /* When using Carbon Events, we need to pass raw keyboard
 	       events to the TSM ourselves.  If TSM handles it, it
 	       will pass back noErr, otherwise it will pass back
 	       "eventNotHandledErr" and we can process it
 	       normally.  */
-	    if (!(modifiers
-		  & mapped_modifiers
+	    if (!(mapped_modifiers
 		  & ~(mac_pass_command_to_system ? cmdKey : 0)
 		  & ~(mac_pass_control_to_system ? controlKey : 0)))
 	      if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
@@ -10355,7 +10358,7 @@ XTread_socket (sd, expected, hold_quit)
 	      }
 
 #ifdef MAC_OSX
-	    if (modifiers & kEventKeyModifierFnMask
+	    if (mapped_modifiers & kEventKeyModifierFnMask
 		&& keycode <= 0x7f
 		&& fn_keycode_to_keycode_table[keycode])
 	      keycode = fn_keycode_to_keycode_table[keycode];
@@ -10364,8 +10367,14 @@ XTread_socket (sd, expected, hold_quit)
 	      {
 		inev.kind = NON_ASCII_KEYSTROKE_EVENT;
 		inev.code = 0xff00 | xkeysym;
+#ifdef MAC_OSX
+		if (modifiers & kEventKeyModifierFnMask
+		    && keycode <= 0x7f
+		    && fn_keycode_to_keycode_table[keycode] == keycode)
+		  modifiers &= ~kEventKeyModifierFnMask;
+#endif
 	      }
-	    else if (modifiers & mapped_modifiers)
+	    else if (mapped_modifiers)
 	      {
 		/* translate the keycode back to determine the
 		   original key */
@@ -10444,11 +10453,7 @@ XTread_socket (sd, expected, hold_quit)
 		inev.code = er.message & charCodeMask;
 	      }
 
-#if USE_CARBON_EVENTS
-	    inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
-#else
-	    inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
-#endif
+	    inev.modifiers = mac_to_emacs_modifiers (modifiers);
 	    inev.modifiers |= (extra_keyboard_modifiers
 			       & (meta_modifier | alt_modifier
 				  | hyper_modifier | super_modifier));
