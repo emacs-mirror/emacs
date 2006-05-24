@@ -1,3 +1,7 @@
+2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* dired.el (dired-mode-map): Fix breakage.
+
 2006-05-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* loadup.el ("jka-cmpr-hook"): Load it before it is needed.
