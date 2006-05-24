@@ -18,6 +18,9 @@
 
 2006-05-21  Richard Stallman  <rms@gnu.org>
 
+	* xfaces.c (best_matching_font): Abort for best == NULL
+	before we start to use it.
+
 	* buffer.c (syms_of_buffer, Fmake_overlay): Doc fixes.
 
 2006-05-20  Kim F. Storm  <storm@cua.dk>
