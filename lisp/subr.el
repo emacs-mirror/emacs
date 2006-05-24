@@ -1637,6 +1637,9 @@ by doing (clear-string STRING)."
 		(sit-for 1))))
 	  success)
       (let ((pass nil)
+	    ;; Copy it so that add-text-properties won't modify
+	    ;; the object that was passed in by the caller.
+	    (prompt (copy-sequence prompt))
 	    (c 0)
 	    (echo-keystrokes 0)
 	    (cursor-in-echo-area t)
