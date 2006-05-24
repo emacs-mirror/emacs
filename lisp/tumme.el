@@ -455,7 +455,7 @@ completely fit)."
   :type 'integer
   :group 'tumme)
 
-(defcustom tumme-track-movement nil
+(defcustom tumme-track-movement t
   "The current state of the tracking and mirroring.
 For more information, see the documentation for
 `tumme-toggle-movement-tracking'."
