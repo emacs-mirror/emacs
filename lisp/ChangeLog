@@ -947,12 +947,10 @@
 	than alias `list-diary-entries'.
 
 2006-04-29  Dan Nicolaescu  <dann@ics.uci.edu>
->>>>>>> 1.9511
 
-<<<<<<< ChangeLog
 	* jit-lock.el (jit-lock-function): Check jit-lock-defer-timer is
 	active before setting 'fontified to 'defer.
-=======
+
 	* help-fns.el (describe-variable): Add info about safe local variables.
 
 2006-04-29  Richard Stallman  <rms@gnu.org>
@@ -2211,7 +2209,6 @@
 
 	* term/w32-win.el (mouse-set-font):
 	Mention w32-list-proportional-fonts in the doc string.
->>>>>>> 1.9511
 
 2006-03-18  Kim F. Storm  <storm@cua.dk>
 
