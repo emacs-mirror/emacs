@@ -1,3 +1,10 @@
+2006-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Set idle timer to clean up expired Apple events.
+	(mac-ae-get-url): Redispatch Apple event on unknown scheme.
+	(mac-dispatch-apple-event): Resume Apple event if it is suspended.
+	Optionally set error message in reply.
+
 2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-open-at-point): Use renamed variable

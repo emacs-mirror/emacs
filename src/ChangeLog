@@ -1,3 +1,43 @@
+2006-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (ae_attr_table): New variable.
+	(syms_of_mac): Intern and staticpro its elements.
+	(mac_aelist_to_lisp): Also convert Apple event attributes.
+	(mac_ae_put_lisp): New function.
+	(create_apple_event_from_event_ref) [MAC_OSX]: Use typeUTF8Text.
+
+	* macfns.c (Fx_server_version): Use gestaltSystemVersionMajor etc.
+
+	* macselect.c (Qemacs_suspension_id): New variable.
+	(syms_of_macselect): Intern and staticpro it.
+	(struct suspended_ae_info): New struct.
+	(deferred_apple_events, defer_apple_events)
+	(Fmac_process_deferred_apple_events): Use it.
+	(suspended_apple_events): New variable.
+	(mac_handle_apple_event_1): New function.
+	(mac_handle_apple_event): Use it.  Don't process previously
+	suspended events.
+	(cleanup_suspended_apple_events, get_suspension_id)n
+	(cleanup_all_suspended_apple_events): New functions.
+	(init_apple_event_handler): Call cleanup_all_suspended_apple_events
+	at exit.
+	(Fmac_cleanup_expired_apple_events, Fmac_ae_set_reply_parameter)
+	(Fmac_resume_apple_event): New defuns.
+	(syms_of_macselect): Defsubr them.
+
+	* macterm.c (fn_keycode_to_keycode_table, XTread_socket) [MAC_OSX]:
+	Fix last change.  Don't map `fn' modifier if pressed with F1 ... F12.
+
+	* macterm.h (TYPE_FILE_NAME): Change from macro to enumerator.
+	(KEY_EMACS_SUSPENSION_ID_ATTR): New enumerator.
+	(keyReplyRequestedAttr) [MAC_OS_X_VERSION_MAX_ALLOWED < 1030]: Likewise.
+	(gestaltSystemVersionMajor, gestaltSystemVersionMinor)
+	(gestaltSystemVersionBugFix) [MAC_OS_X_VERSION_MAX_ALLOWED < 1040]:
+	Likewise.
+	(typeUTF8Text, kEventParamWindowMouseLocation)
+	[MAC_OSX && MAC_OS_X_VERSION_MAX_ALLOWED < 1020]: Likewise.
+	(x_get_focus_frame, mac_ae_put_lisp): Add externs.
+
 2006-05-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (fn_keycode_to_xkeysym_table, convert_fn_keycode): Remove.
