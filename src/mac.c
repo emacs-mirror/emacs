@@ -270,6 +270,26 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
 
 static Lisp_Object Qundecoded_file_name;
 
+static struct {
+  AEKeyword keyword;
+  char *name;
+  Lisp_Object symbol;
+} ae_attr_table [] =
+  {{keyTransactionIDAttr,	"transaction-id"},
+   {keyReturnIDAttr,		"return-id"},
+   {keyEventClassAttr,		"event-class"},
+   {keyEventIDAttr,		"event-id"},
+   {keyAddressAttr,		"address"},
+   {keyOptionalKeywordAttr,	"optional-keyword"},
+   {keyTimeoutAttr,		"timeout"},
+   {keyInteractLevelAttr,	"interact-level"},
+   {keyEventSourceAttr,		"event-source"},
+   /* {keyMissedKeywordAttr,	"missed-keyword"}, */
+   {keyOriginalAddressAttr,	"original-address"},
+   {keyReplyRequestedAttr,	"reply-requested"},
+   {KEY_EMACS_SUSPENSION_ID_ATTR, "emacs-suspension-id"}
+  };
+
 static Lisp_Object
 mac_aelist_to_lisp (desc_list)
      const AEDescList *desc_list;
@@ -281,22 +301,36 @@ mac_aelist_to_lisp (desc_list)
   Size size;
   AEKeyword keyword;
   AEDesc desc;
+  int attribute_p = 0;
 
   err = AECountItems (desc_list, &count);
   if (err != noErr)
     return Qnil;
   result = Qnil;
+
+ again:
   while (count > 0)
     {
-      err = AESizeOfNthItem (desc_list, count, &desc_type, &size);
+      if (attribute_p)
+	{
+	  keyword = ae_attr_table[count - 1].keyword;
+	  err = AESizeOfAttribute (desc_list, keyword, &desc_type, &size);
+	}
+      else
+	err = AESizeOfNthItem (desc_list, count, &desc_type, &size);
+
       if (err == noErr)
 	switch (desc_type)
 	  {
 	  case typeAEList:
 	  case typeAERecord:
 	  case typeAppleEvent:
-	    err = AEGetNthDesc (desc_list, count, typeWildCard,
-				&keyword, &desc);
+	    if (attribute_p)
+	      err = AEGetAttributeDesc (desc_list, keyword, typeWildCard,
+					&desc);
+	    else
+	      err = AEGetNthDesc (desc_list, count, typeWildCard,
+				  &keyword, &desc);
 	    if (err != noErr)
 	      break;
 	    elem = mac_aelist_to_lisp (&desc);
@@ -309,8 +343,13 @@ mac_aelist_to_lisp (desc_list)
 	    else
 	      {
 		elem = make_uninit_string (size);
-		err = AEGetNthPtr (desc_list, count, typeWildCard, &keyword,
-				   &desc_type, SDATA (elem), size, &size);
+		if (attribute_p)
+		  err = AEGetAttributePtr (desc_list, keyword, typeWildCard,
+					   &desc_type, SDATA (elem),
+					   size, &size);
+		else
+		  err = AEGetNthPtr (desc_list, count, typeWildCard, &keyword,
+				     &desc_type, SDATA (elem), size, &size);
 	      }
 	    if (err != noErr)
 	      break;
@@ -319,16 +358,33 @@ mac_aelist_to_lisp (desc_list)
 	    break;
 	}
 
-      if (err != noErr)
-	elem = Qnil;
-      else if (desc_list->descriptorType != typeAEList)
+      if (err == noErr || desc_list->descriptorType == typeAEList)
 	{
-	  keyword = EndianU32_NtoB (keyword);
-	  elem = Fcons (make_unibyte_string ((char *) &keyword, 4), elem);
+	  if (err != noErr)
+	    elem = Qnil;	/* Don't skip elements in AEList.  */
+	  else if (desc_list->descriptorType != typeAEList)
+	    {
+	      if (attribute_p)
+		elem = Fcons (ae_attr_table[count-1].symbol, elem);
+	      else
+		{
+		  keyword = EndianU32_NtoB (keyword);
+		  elem = Fcons (make_unibyte_string ((char *) &keyword, 4),
+				elem);
+		}
+	    }
+
+	  result = Fcons (elem, result);
 	}
 
-      result = Fcons (elem, result);
       count--;
+    }
+
+  if (desc_list->descriptorType == typeAppleEvent && !attribute_p)
+    {
+      attribute_p = 1;
+      count = sizeof (ae_attr_table) / sizeof (ae_attr_table[0]);
+      goto again;
     }
 
   desc_type = EndianU32_NtoB (desc_list->descriptorType);
@@ -403,6 +459,92 @@ mac_aedesc_to_lisp (desc)
   return Fcons (make_unibyte_string ((char *) &desc_type, 4), result);
 }
 
+OSErr
+mac_ae_put_lisp (desc, keyword_or_index, obj)
+     AEDescList *desc;
+     UInt32 keyword_or_index;
+     Lisp_Object obj;
+{
+  OSErr err;
+
+  if (!(desc->descriptorType == typeAppleEvent
+	|| desc->descriptorType == typeAERecord
+	|| desc->descriptorType == typeAEList))
+    return errAEWrongDataType;
+
+  if (CONSP (obj) && STRINGP (XCAR (obj)) && SBYTES (XCAR (obj)) == 4)
+    {
+      DescType desc_type1 = EndianU32_BtoN (*((UInt32 *) SDATA (XCAR (obj))));
+      Lisp_Object data = XCDR (obj), rest;
+      AEDesc desc1;
+
+      switch (desc_type1)
+	{
+	case typeNull:
+	case typeAppleEvent:
+	  break;
+
+	case typeAEList:
+	case typeAERecord:
+	  err = AECreateList (NULL, 0, desc_type1 == typeAERecord, &desc1);
+	  if (err == noErr)
+	    {
+	      for (rest = data; CONSP (rest); rest = XCDR (rest))
+		{
+		  UInt32 keyword_or_index1 = 0;
+		  Lisp_Object elem = XCAR (rest);
+
+		  if (desc_type1 == typeAERecord)
+		    {
+		      if (CONSP (elem) && STRINGP (XCAR (elem))
+			  && SBYTES (XCAR (elem)) == 4)
+			{
+			  keyword_or_index1 =
+			    EndianU32_BtoN (*((UInt32 *)
+					      SDATA (XCAR (elem))));
+			  elem = XCDR (elem);
+			}
+		      else
+			continue;
+		    }
+
+		  err = mac_ae_put_lisp (&desc1, keyword_or_index1, elem);
+		  if (err != noErr)
+		    break;
+		}
+
+	      if (err == noErr)
+		{
+		  if (desc->descriptorType == typeAEList)
+		    err = AEPutDesc (desc, keyword_or_index, &desc1);
+		  else
+		    err = AEPutParamDesc (desc, keyword_or_index, &desc1);
+		}
+
+	      AEDisposeDesc (&desc1);
+	    }
+	  return err;
+
+	default:
+	  if (!STRINGP (data))
+	    break;
+	  if (desc->descriptorType == typeAEList)
+	    err = AEPutPtr (desc, keyword_or_index, desc_type1,
+			    SDATA (data), SBYTES (data));
+	  else
+	    err = AEPutParamPtr (desc, keyword_or_index, desc_type1,
+				 SDATA (data), SBYTES (data));
+	  return err;
+	}
+    }
+
+  if (desc->descriptorType == typeAEList)
+    err = AEPutPtr (desc, keyword_or_index, typeNull, NULL, 0);
+  else
+    err = AEPutParamPtr (desc, keyword_or_index, typeNull, NULL, 0);
+
+  return err;
+}
 static pascal OSErr
 mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 			  to_type, handler_refcon, result)
@@ -722,8 +864,7 @@ create_apple_event_from_event_ref (event, num_params, names, types, result)
 						     '?');
 	if (data == NULL)
 	  break;
-	/* typeUTF8Text is not available on Mac OS X 10.1.  */
-	AEPutParamPtr (result, names[i], 'utf8',
+	AEPutParamPtr (result, names[i], typeUTF8Text,
 		       CFDataGetBytePtr (data), CFDataGetLength (data));
 	CFRelease (data);
 	break;
@@ -4661,7 +4802,7 @@ cfstring_create_normalized (str, symbol)
 	}
 
       if (in_text)
-	err = CreateUnicodeToTextInfo(&map, &uni);
+	err = CreateUnicodeToTextInfo (&map, &uni);
       while (err == noErr)
 	{
 	  out_buf = xmalloc (out_size);
@@ -5233,6 +5374,16 @@ syms_of_mac ()
   QHFS_plus_D = intern ("HFS+D");	staticpro (&QHFS_plus_D);
   QHFS_plus_C = intern ("HFS+C");	staticpro (&QHFS_plus_C);
 #endif
+
+  {
+    int i;
+
+    for (i = 0; i < sizeof (ae_attr_table) / sizeof (ae_attr_table[0]); i++)
+      {
+	ae_attr_table[i].symbol = intern (ae_attr_table[i].name);
+	staticpro (&ae_attr_table[i].symbol);
+      }
+  }
 
   defsubr (&Smac_coerce_ae_data);
 #if TARGET_API_MAC_CARBON
