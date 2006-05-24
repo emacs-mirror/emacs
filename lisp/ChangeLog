@@ -1,3 +1,8 @@
+2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-sentinel): Condition on GUD buffer if it
+	has not been killed.
+
 2006-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Set idle timer to clean up expired Apple events.
