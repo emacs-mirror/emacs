@@ -257,14 +257,20 @@ STRING is the uri-list as a string.  The URIs are separated by \r\n."
     retval))
 
 (defun x-dnd-handle-file-name (window action string)
-  "Prepend file:// to file names and call `dnd-handle-one-url'.
+  "Convert file names to URLs and call `dnd-handle-one-url'.
 WINDOW is the window where the drop happened.
 STRING is the file names as a string, separated by nulls."
   (let ((uri-list (split-string string "[\0\r\n]" t))
+	(coding (and default-enable-multibyte-characters
+		     (or file-name-coding-system
+			 default-file-name-coding-system)))
 	retval)
     (dolist (bf uri-list)
       ;; If one URL is handeled, treat as if the whole drop succeeded.
-      (let* ((file-uri (concat "file://" bf))
+      (if coding (setq bf (encode-coding-string bf coding)))
+      (let* ((file-uri (concat "file://"
+			       (mapconcat 'url-hexify-string
+					  (split-string bf "/") "/")))
 	     (did-action (dnd-handle-one-url window action file-uri)))
 	(when did-action (setq retval did-action))))
     retval))

@@ -1,3 +1,40 @@
+2006-05-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (fn_keycode_to_xkeysym_table, convert_fn_keycode): Remove.
+	(fn_keycode_to_keycode_table) [MAC_OSX]: New variable.
+	(mac_set_unicode_keystroke_event) [TARGET_API_MAC_CARBON]: New function.
+	(XTread_socket) [TARGET_API_MAC_CARBON]: Use it.
+	(XTread_socket) [MAC_OSX]: Try 'uchr' Unicode keyboard-layout
+	resource to backtranslate key with modifiers.
+	(XTread_socket): Don't set read_socket_inev around AEProcessAppleEvent.
+
+2006-05-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c: Remove declarations already in xterm.h
+
+	* xterm.h: Add extern declarations for x_clear_errors,
+	x_fully_uncatch_errors, x_catching_errors and 
+	x_alloc_lighter_color_for_widget.  Remove duplicated declarations.
+
+2006-05-21  Richard Stallman  <rms@gnu.org>
+
+	* buffer.c (syms_of_buffer, Fmake_overlay): Doc fixes.
+
+2006-05-20  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (best_matching_font): Fix crash in 2006-05-17 change.
+
+2006-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (convert_fn_keycode): Fix last change.
+
+2006-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (init_environment): Perform the processing of environment
+	variables on a copy of default variables and their values, not on
+	the original.  Simplify code that calls ExpandEnvironmentStrings
+	and make buf1[] and buf2[] more visible for easier debugging.
+
 2006-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.c (x_set_border_width): Remove #ifndef MAC_OS.
@@ -48,6 +85,13 @@
 
 	* xdisp.c (display_tool_bar_line): Don't adjust tool-bar height by more than
 	height of one frame default line.
+
+2006-05-17  Richard Stallman  <rms@gnu.org>
+
+	* xfaces.c (better_font_p): Any font beats no font.
+	(best_matching_font): Simplify based on above change.
+	
+	* buffer.c (Fprevious_overlay_change, Fnext_overlay_change): Doc fixes.
 
 2006-05-16  Kim F. Storm  <storm@cua.dk>
 
@@ -113,7 +157,7 @@
 	[MAC_OS] (gif_load): Emulate Graphic Control Extension block.
 
 	* macfns.c (x_to_mac_color): Fix shift amount change.
-	[USE_MAC_FONT_PANEL] (mac_set_font): Use x_get_focus_frame.
+	(mac_set_font) [USE_MAC_FONT_PANEL]: Use x_get_focus_frame.
 	[USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility): Doc fix.
 
 	* macselect.c (Vmac_service_selection) [MAC_OSX]: Rename from

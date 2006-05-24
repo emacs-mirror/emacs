@@ -1,3 +1,33 @@
+2006-05-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Pointer Shape): @end table -> @end defvar.
+
+2006-05-22  Richard Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode menus.
+
+	* frames.texi (Pointer Shape): Node renamed from Pointer Shapes.
+	Contents rewritten; material from old Pointer Shape node moved here.
+
+	* display.texi (Pointer Shape): Node deleted.
+	(Image Descriptors): Minor cleanup.
+
+2006-05-21  Richard Stallman  <rms@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Update info on which STATE
+	elements are ignored.
+
+2006-05-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* hooks.texi (Standard Hooks): Correct typo.
+
+	* gpl.texi (GPL): ifinfo -> ifnottex.
+
+2006-05-19  Michael Ernst  <mernst@alum.mit.edu>  (tiny change)
+
+	* searching.texi (Simple Match Data): Warn about match data being
+	set anew by every search.
+
 2006-05-17  Richard Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Minibuffer History): Clarify.

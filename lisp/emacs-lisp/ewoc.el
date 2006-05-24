@@ -96,6 +96,7 @@
 ;;
 ;; (defun ewoc-create (pretty-printer &optional header footer)
 ;; (defalias 'ewoc-data 'ewoc--node-data)
+;; (defun ewoc-set-data (node data)
 ;; (defun ewoc-location (node)
 ;; (defun ewoc-enter-first (ewoc data)
 ;; (defun ewoc-enter-last (ewoc data)
@@ -106,6 +107,7 @@
 ;; (defun ewoc-nth (ewoc n)
 ;; (defun ewoc-map (map-function ewoc &rest args)
 ;; (defun ewoc-filter (ewoc predicate &rest args)
+;; (defun ewoc-delete (ewoc &rest nodes)
 ;; (defun ewoc-locate (ewoc &optional pos guess)
 ;; (defun ewoc-invalidate (ewoc &rest nodes)
 ;; (defun ewoc-goto-prev (ewoc arg)
@@ -255,7 +257,7 @@ NODE and leaving the new node's start there.  Return the new node."
 ;;; ===========================================================================
 ;;;                  Public members of the Ewoc package
 
-
+;;;###autoload
 (defun ewoc-create (pretty-printer &optional header footer)
   "Create an empty ewoc.
 
@@ -295,6 +297,10 @@ respectively, of the ewoc."
   "Extract the data encapsulated by NODE and return it.
 
 \(fn NODE)")
+
+(defun ewoc-set-data (node data)
+  "Set NODE to encapsulate DATA."
+  (setf (ewoc--node-data node) data))
 
 (defun ewoc-enter-first (ewoc data)
   "Enter DATA first in EWOC.
@@ -371,6 +377,27 @@ arguments will be passed to MAP-FUNCTION."
             (ewoc--refresh-node pp node))
         (setq node (ewoc--node-next dll node))))))
 
+(defun ewoc-delete (ewoc &rest nodes)
+  "Delete NODES from EWOC."
+  (ewoc--set-buffer-bind-dll-let* ewoc
+      ((L nil) (R nil))
+    (dolist (node nodes)
+      ;; If we are about to delete the node pointed at by last-node,
+      ;; set last-node to nil.
+      (if (eq (ewoc--last-node ewoc) node)
+          (setf (ewoc--last-node ewoc) nil))
+      (delete-region (ewoc--node-start-marker node)
+                     (ewoc--node-start-marker (ewoc--node-next dll node)))
+      (set-marker (ewoc--node-start-marker node) nil)
+      (setf L (ewoc--node-left  node)
+            R (ewoc--node-right node)
+            ;; Link neighbors to each other.
+            (ewoc--node-right L) R
+            (ewoc--node-left  R) L
+            ;; Forget neighbors.
+            (ewoc--node-left  node) nil
+            (ewoc--node-right node) nil))))
+
 (defun ewoc-filter (ewoc predicate &rest args)
   "Remove all elements in EWOC for which PREDICATE returns nil.
 Note that the buffer for EWOC will be current-buffer when PREDICATE
@@ -381,28 +408,13 @@ ARGS are given they will be passed to the PREDICATE."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((node (ewoc--node-nth dll 1))
        (footer (ewoc--footer ewoc))
-       (next nil)
-       (L nil) (R nil)
+       (goodbye nil)
        (inhibit-read-only t))
     (while (not (eq node footer))
-      (setq next (ewoc--node-next dll node))
       (unless (apply predicate (ewoc--node-data node) args)
-        ;; If we are about to delete the node pointed at by last-node,
-        ;; set last-node to nil.
-        (if (eq (ewoc--last-node ewoc) node)
-            (setf (ewoc--last-node ewoc) nil))
-        (delete-region (ewoc--node-start-marker node)
-                       (ewoc--node-start-marker (ewoc--node-next dll node)))
-        (set-marker (ewoc--node-start-marker node) nil)
-        (setf L (ewoc--node-left  node)
-              R (ewoc--node-right node)
-              ;; Link neighbors to each other.
-              (ewoc--node-right L) R
-              (ewoc--node-left  R) L
-              ;; Forget neighbors.
-              (ewoc--node-left  node) nil
-              (ewoc--node-right node) nil))
-      (setq node next))))
+        (push node goodbye))
+      (setq node (ewoc--node-next dll node)))
+    (apply 'ewoc-delete ewoc goodbye)))
 
 (defun ewoc-locate (ewoc &optional pos guess)
   "Return the node that POS (a buffer position) is within.

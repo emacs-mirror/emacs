@@ -3584,10 +3584,10 @@ If omitted, BUFFER defaults to the current buffer.
 BEG and END may be integers or markers.
 The fourth arg FRONT-ADVANCE, if non-nil, makes the marker
 for the front of the overlay advance when text is inserted there
-(which means the text *is not* included in the overlay).
+\(which means the text *is not* included in the overlay).
 The fifth arg REAR-ADVANCE, if non-nil, makes the marker
 for the rear of the overlay advance when text is inserted there
-(which means the text *is* included in the overlay).  */)
+\(which means the text *is* included in the overlay).  */)
      (beg, end, buffer, front_advance, rear_advance)
      Lisp_Object beg, end, buffer;
      Lisp_Object front_advance, rear_advance;
@@ -5769,7 +5769,7 @@ the actual bitmap shown in the left or right fringe for the logical
 indicator.  LEFT and RIGHT are the bitmaps shown in the left and/or
 right fringe for the specific indicator.  The LEFT1 or RIGHT1 bitmaps
 are used only for the `bottom' and `one-line' indicators when the last
-(only) line in has no final newline.  BITMAPS may also be a single
+\(only) line in has no final newline.  BITMAPS may also be a single
 symbol which is used in both left and right fringes.  */);
 
   DEFVAR_PER_BUFFER ("fringe-cursor-alist",
@@ -6016,7 +6016,7 @@ this variable has no effect; the cursor appears as a hollow box.  */);
 		     doc: /* Additional space to put between lines when displaying a buffer.
 The space is measured in pixels, and put below lines on window systems.
 If value is a floating point number, it specifies the spacing relative
-to the default frame line height.  */);
+to the default frame line height.  nil means add no extra space.  */);
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
 		     &current_buffer->cursor_in_non_selected_windows, Qnil,

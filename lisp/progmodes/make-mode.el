@@ -246,6 +246,7 @@ You will be offered to complete on one of those in the minibuffer whenever
 you enter a \".\" at the beginning of a line in `makefile-mode'."
   :type '(repeat (list string))
   :group 'makefile)
+(put 'makefile-special-targets-list 'risky-local-variable t)
 
 (defcustom makefile-runtime-macros-list
   '(("@") ("&") (">") ("<") ("*") ("^") ("+") ("?") ("%") ("$"))
@@ -544,7 +545,8 @@ This should identify a `make' command that can handle the `-q' option."
   :type 'string
   :group 'makefile)
 
-(defcustom makefile-query-one-target-method 'makefile-query-by-make-minus-q
+(defcustom makefile-query-one-target-method-function
+  'makefile-query-by-make-minus-q
   "*Function to call to determine whether a make target is up to date.
 The function must satisfy this calling convention:
 
@@ -560,6 +562,8 @@ The function must satisfy this calling convention:
   makefile, any nonzero integer value otherwise."
   :type 'function
   :group 'makefile)
+(defvaralias 'makefile-query-one-target-method
+  'makefile-query-one-target-method-function)
 
 (defcustom makefile-up-to-date-buffer-name "*Makefile Up-to-date overview*"
   "*Name of the Up-to-date overview buffer."
@@ -670,9 +674,11 @@ The function must satisfy this calling convention:
 
 (defvar makefile-target-table nil
   "Table of all target names known for this buffer.")
+(put 'makefile-target-table 'risky-local-variable t)
 
 (defvar makefile-macro-table nil
   "Table of all macro names known for this buffer.")
+(put 'makefile-macro-table 'risky-local-variable t)
 
 (defvar makefile-browser-client
   "A buffer in Makefile mode that is currently using the browser.")
@@ -724,11 +730,10 @@ The function must satisfy this calling convention:
 
 If you are editing a file for a different make, try one of the
 variants `makefile-automake-mode', `makefile-gmake-mode',
-`makefile-makepp-mode', `makefile-bsdmake-mode' or, 
-`makefile-imake-mode'All but the
-last should be correctly chosen based on the file name, except if
-it is *.mk.  This function ends by invoking the function(s)
-`makefile-mode-hook'.
+`makefile-makepp-mode', `makefile-bsdmake-mode' or,
+`makefile-imake-mode'.  All but the last should be correctly
+chosen based on the file name, except if it is *.mk.  This
+function ends by invoking the function(s) `makefile-mode-hook'.
 
 It is strongly recommended to use `font-lock-mode', because that
 provides additional parsing information.  This is used for
@@ -1616,7 +1621,8 @@ with the generated name!"
 
 (defun makefile-query-targets (filename target-table prereq-list)
   "Fill the up-to-date overview buffer.
-Checks each target in TARGET-TABLE using `makefile-query-one-target-method'
+Checks each target in TARGET-TABLE using
+`makefile-query-one-target-method-function'
 and generates the overview, one line per target name."
   (insert
    (mapconcat
@@ -1625,7 +1631,7 @@ and generates the overview, one line per target name."
 		       (no-prereqs (not (member target-name prereq-list)))
 		       (needs-rebuild (or no-prereqs
 					  (funcall
-					   makefile-query-one-target-method
+					   makefile-query-one-target-method-function
 					   target-name
 					   filename))))
 		  (format "\t%s%s"

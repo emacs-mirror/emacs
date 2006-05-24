@@ -87,7 +87,7 @@ If this is a function, call it to generate the initial field text."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Initial text")
                  (function :tag "Initialize Function" :value fun)
-                 (other :tag "Default" t)))
+                 (const :tag "Default" t)))
 (put 'bibtex-include-OPTkey 'risky-local-variable t)
 
 (defcustom bibtex-user-optional-fields
@@ -153,7 +153,7 @@ narrowed to just the entry."
 (defcustom bibtex-maintain-sorted-entries nil
   "If non-nil, BibTeX mode maintains all entries in sorted order.
 Allowed non-nil values are:
-plain        All entries are sorted alphabetically.
+plain or t   All entries are sorted alphabetically.
 crossref     All entries are sorted alphabetically unless an entry has a
              crossref field.  These crossrefed entries are placed in
              alphabetical order immediately preceding the main entry.
@@ -165,7 +165,10 @@ See also `bibtex-sort-ignore-string-entries'."
   :type '(choice (const nil)
                  (const plain)
                  (const crossref)
-                 (const entry-class)))
+                 (const entry-class)
+                 (const t)))
+(put 'bibtex-maintain-sorted-entries 'safe-local-variable
+     '(lambda (a) (memq a '(nil t plain crossref entry-class))))
 
 (defcustom bibtex-sort-entry-class
   '(("String")
@@ -1800,7 +1803,8 @@ Formats current entry according to variable `bibtex-entry-format'."
 
         ;; identify entry type
         (goto-char (point-min))
-        (re-search-forward bibtex-entry-type)
+        (or (re-search-forward bibtex-entry-type nil t)
+            (error "Not inside a BibTeX entry"))
         (let ((beg-type (1+ (match-beginning 0)))
               (end-type (match-end 0)))
           (setq entry-list (assoc-string (buffer-substring-no-properties
@@ -3876,7 +3880,8 @@ At end of the cleaning process, the functions in
   (interactive "P")
   (let ((case-fold-search t)
         (start (bibtex-beginning-of-entry))
-        (_ (looking-at bibtex-any-entry-maybe-empty-head))
+        (_ (or (looking-at bibtex-any-entry-maybe-empty-head)
+	       (error "Not inside a BibTeX entry")))
         (entry-type (bibtex-type-in-head))
         (key (bibtex-key-in-head)))
     ;; formatting

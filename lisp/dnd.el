@@ -69,39 +69,34 @@ if some action was made, or nil if the URL is ignored."
 
 ;; Functions
 
-(defun dnd-handle-one-url (window action arg)
+(defun dnd-handle-one-url (window action url)
   "Handle one dropped url by calling the appropriate handler.
 The handler is first located by looking at `dnd-protocol-alist'.
 If no match is found here, and the value of `browse-url-browser-function'
 is a pair of (REGEXP . FUNCTION), those regexps are tried for a match.
 If no match is found, just call `dnd-insert-text'.
 WINDOW is where the drop happend, ACTION is the action for the drop,
-ARG is the URL that has been dropped.
+URL is what has been dropped.
 Returns ACTION."
   (require 'browse-url)
-  (let* ((uri (replace-regexp-in-string
-	       "%[A-Z0-9][A-Z0-9]"
-	       (lambda (arg)
-		 (format "%c" (string-to-number (substring arg 1) 16)))
-	       arg))
-	 ret)
+  (let (ret)
     (or
      (catch 'done
        (dolist (bf dnd-protocol-alist)
-	 (when (string-match (car bf) uri)
-	   (setq ret (funcall (cdr bf) uri action))
+	 (when (string-match (car bf) url)
+	   (setq ret (funcall (cdr bf) url action))
 	   (throw 'done t)))
        nil)
      (when (not (functionp browse-url-browser-function))
        (catch 'done
 	 (dolist (bf browse-url-browser-function)
-	   (when (string-match (car bf) uri)
+	   (when (string-match (car bf) url)
 	     (setq ret 'private)
-	     (funcall (cdr bf) uri action)
+	     (funcall (cdr bf) url action)
 	     (throw 'done t)))
 	 nil))
      (progn
-       (dnd-insert-text window action uri)
+       (dnd-insert-text window action url)
        (setq ret 'private)))
     ret))
 
@@ -134,6 +129,11 @@ Return nil if URI is not a local file."
 		 ((string-match "^file:" uri)		; Old KDE, Motif, Sun
 		  (substring uri (match-end 0))))))
     (when (and f must-exist)
+      (setq f (replace-regexp-in-string
+	       "%[A-Z0-9][A-Z0-9]"
+	       (lambda (arg)
+		 (format "%c" (string-to-number (substring arg 1) 16)))
+	       f nil t))
       (let* ((decoded-f (decode-coding-string
 			 f
 			 (or file-name-coding-system

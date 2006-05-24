@@ -29,11 +29,10 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 ** We need a way a Lisp file encoded in iso-2022 can assure
 reliable decoding regardless of user options.
 
+** Clean up MUSTBENEW in Fcopy_file.
+
 ** JD Smith's 17 Apr 2006 bug report that CVS operations
 get mysterious unreproducible failures.
-
-** David Hansen's bug report on 16 Apr 2006 about point-entered and
-point-left text properties.
 
 ** Is there a basic problem with cl-byte-compile-compiler-macro?
 

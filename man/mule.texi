@@ -429,9 +429,9 @@ immediately delete it.  For example, you could type @kbd{e e @key{DEL}
   Another method, more general but not quite as easy to type, is to use
 @kbd{C-\ C-\} between two characters to stop them from combining.  This
 is the command @kbd{C-\} (@code{toggle-input-method}) used twice.
-@ifinfo
+@ifnottex
 @xref{Select Input Method}.
-@end ifinfo
+@end ifnottex
 
 @cindex incremental search, input method interference
   @kbd{C-\ C-\} is especially useful inside an incremental search,
@@ -563,9 +563,9 @@ through your choice of language environment
 @iftex
 (see above).
 @end iftex
-@ifinfo
+@ifnottex
 (@pxref{Language Environments}).
-@end ifinfo
+@end ifnottex
 If you do not specify a choice, the default is Latin-1.
 
   If you insert a character in the range 0200 through 0237, which
@@ -678,6 +678,13 @@ Macintosh system.)
 predictable.  For example, the coding system @code{iso-latin-1} has
 variants @code{iso-latin-1-unix}, @code{iso-latin-1-dos} and
 @code{iso-latin-1-mac}.
+
+@cindex @code{undecided}, coding system
+  The coding systems @code{unix}, @code{dos}, and @code{mac} are
+aliases for @code{undecided-unix}, @code{undecided-dos}, and
+@code{undecided-mac}, respectively.  These coding systems specify only
+the end-of-line conversion, and leave the character code conversion to
+be deduced from the text itself.
 
   The coding system @code{raw-text} is good for a file which is mainly
 @acronym{ASCII} text, but may contain byte values above 127 which are

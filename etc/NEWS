@@ -1,4 +1,4 @@
-GNU Emacs NEWS -- history of user-visible changes.  2003-05-21
+GNU Emacs NEWS -- history of user-visible changes.  2006-05-21
 Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
           Free Software Foundation, Inc.
 See the end for copying conditions.
@@ -70,6 +70,12 @@ following languages: Brasilian Portuguese, Bulgarian, Chinese (both
 with simplified and traditional characters), French, and Italian.
 Type `C-u C-h t' to choose one of them in case your language setup
 doesn't automatically select the right one.
+
+---
+** A Portuguese translation of Emacs' reference card has been added.
+Its name is `pt-br-refcard.tex'.  The corresponding PostScript file is
+also included.
+
 
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
@@ -1293,6 +1299,10 @@ with different file attributes in two dired buffers.
 of marked files with the value entered in the minibuffer.
 
 +++
+*** The Dired command `dired-goto-file' is now bound to j, not M-g.
+This is to avoid hiding the global key binding of M-g.
+
++++
 *** In Dired's ! command (dired-do-shell-command), `*' and `?' now
 control substitution of the file names only when they are surrounded
 by whitespace.  This means you can now use them as shell wildcards
@@ -1301,8 +1311,8 @@ double quotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
 +++
-*** In Dired, the w command now copies the current line's file name
-into the kill ring.  With a zero prefix arg, copies absolute file names.
+*** In Dired, the w command now stores the current line's file name
+into the kill ring.  With a zero prefix arg, it stores the absolute file name.
 
 +++
 *** In Dired-x, Omitting files is now a minor mode, dired-omit-mode.
@@ -1982,11 +1992,17 @@ subprocess are controlled by the user options `scheme-trace-command',
 `scheme-untrace-command' and `scheme-expand-current-form'.
 
 ---
-** Makefile mode has submodes for automake, gmake, makepp, BSD make and imake.
+** Changes in Makefile mode
+
+*** Makefile mode has submodes for automake, gmake, makepp, BSD make and imake.
 
 The former two couldn't be differentiated before, and the latter three
 are new.  Font-locking is robust now and offers new customizable
 faces.
+
+*** The variable `makefile-query-one-target-method' has been renamed
+to `makefile-query-one-target-method-function'.  The old name is still
+available as alias.
 
 +++
 ** In Outline mode, `hide-body' no longer hides lines at the top
@@ -2603,6 +2619,10 @@ i.e., there is always a closing tag.
 By default, its setting is inferred on a buffer-by-buffer basis
 from the file name or buffer contents.
 
+*** The variable `sgml-transformation' has been renamed to
+`sgml-transformation-function'.  The old name is still available as
+alias.
+
 +++
 *** `xml-mode' is now an alias for `sgml-mode', which has XML support.
 
@@ -2679,6 +2699,10 @@ extracting the content of a BibTeX field.
 `bibtex-autokey-name-case-convert-function' and
 `bibtex-autokey-titleword-case-convert-function'. The old names are
 still available as aliases.
+
+** In Artist mode the variable `artist-text-renderer' has been
+renamed to `artist-text-renderer-function'.  The old name is still
+available as alias.
 
 +++
 ** In Enriched mode, `set-left-margin' and `set-right-margin' are now
@@ -3291,13 +3315,21 @@ C-x C-f passes the file name to `find-file' with non-nil WILDCARDS
 argument, which visits multiple files, and C-x d passes it to `dired'.
 
 ---
-** In skeleton.el, `-' marks the `skeleton-point' without interregion interaction.
+** Changes in Skeleton
+
+*** In skeleton.el, `-' marks the `skeleton-point' without interregion interaction.
 
 `@' has reverted to only setting `skeleton-positions' and no longer
 sets `skeleton-point'.  Skeletons which used @ to mark
 `skeleton-point' independent of `_' should now use `-' instead.  The
 updated `skeleton-insert' docstring explains these new features along
 with other details of skeleton construction.
+
+*** The variables `skeleton-transformation', `skeleton-filter', and
+`skeleton-pair-filter' have been renamed to
+`skeleton-transformation-function', `skeleton-filter-function', and
+`skeleton-pair-filter-function'.  The old names are still available
+as aliases.
 
 ---
 ** Hideshow mode changes
@@ -3555,6 +3587,25 @@ deleting the part of subprocess output that matches the input.
 +++
 ** The variable `memory-full' now remains t until
 there is no longer a shortage of memory.
+
+** The ewoc package no longer inserts a newline after each pretty-printed
+entry and after the header and footer, to allow for multiple-entry ewocs to
+display on a single line.
+
+To make pre-existing client code behave the same way as before, you must
+arrange to insert a newline in three places: the pretty-printer function,
+the header and the footer.  It is anyway a good idea to specify a non-empty
+footer so that markers after the ewoc's buffer text are properly updated.
+For example:
+
+;; before
+(defun PP (data) (insert (format "%S" data)))
+(ewoc-create 'PP "start\n")
+
+;; now
+(defun PP (data) (insert (format "%S\n" data)))
+(ewoc-create 'PP "start\n\n" "\n")
+
 
 * Lisp Changes in Emacs 22.1
 
@@ -7109,6 +7160,10 @@ end of the buffer.
 
 *** Spell checking now works in the MS-DOS version of Emacs.
 
+*** The variable `ispell-format-word' has been renamed to
+`ispell-format-word-function'.  The old name is still available as
+alias.
+
 ** Makefile mode changes
 
 *** The mode now uses the abbrev table `makefile-mode-abbrev-table'.
@@ -7661,8 +7716,14 @@ mode `iswitchb-mode'.
 If you have `(require 'msb)' in your .emacs, please replace it with
 `(msb-mode 1)'.
 
-** Flyspell mode has various new options.  See the `flyspell' Custom
+** Changes in Flyspell mode
+
+*** Flyspell mode has various new options.  See the `flyspell' Custom
 group.
+
+*** The variable `flyspell-generic-check-word-p' has been renamed
+to `flyspell-generic-check-word-predicate'.  The old name is still
+available as alias.
 
 ** The user option `backward-delete-char-untabify-method' controls the
 behavior of `backward-delete-char-untabify'.  The following values

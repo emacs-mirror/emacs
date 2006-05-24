@@ -1,3 +1,7 @@
+2006-05-21  Chong Yidong  <cyd@mit.edu>
+
+	* FOR-RELEASE: point-entered /point-left bug fixed.
+
 2006-05-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* FOR-RELEASE: Spell-checking the manuals is now done; remove the

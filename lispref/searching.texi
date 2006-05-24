@@ -1264,6 +1264,12 @@ subexpression is numbered 1, the second 2, and so on.  Only regular
 expressions can have subexpressions---after a simple string search, the
 only information available is about the entire match.
 
+  Every successful search sets the match data.  Therefore, you should
+query the match data immediately after searching, before calling any
+other function that might perform another search.  Alternatively, you
+may save and restore the match data (@pxref{Saving Match Data}) around
+the call to functions that could perform another search.
+
   A search which fails may or may not alter the match data.  In the
 past, a failing search did not do this, but we may change it in the
 future.  So don't try to rely on the value of the match data after

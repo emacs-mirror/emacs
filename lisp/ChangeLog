@@ -1,3 +1,160 @@
+2006-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-delete): New function.
+	(ewoc-filter): Use `ewoc-delete'.
+
+	* emacs-lisp/bindat.el (bindat-pack): Doc fix.
+
+2006-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el (bibtex-format-entry, bibtex-clean-entry):
+	Signal more user-friendly error messages.
+
+	* complete.el (PC-do-completion): Undo the addition of implicit
+	wildcards if they did not lead to finding any match.
+	(read-file-name-internal): Don't add the final > if the completion is
+	not finished.
+
+2006-05-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/bibtex.el (bibtex-maintain-sorted-entries):
+	Quote safe-local-variable predicate.
+
+2006-05-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-set-data): New function.
+
+2006-05-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-maintain-sorted-entries): Mark as safe.
+
+	* progmodes/make-mode.el (makefile-special-targets-list)
+	(makefile-macro-table, makefile-target-table): Mark as risky.
+	(makefile-query-one-target-method): Make this the alias for the
+	following variable.
+	(makefile-query-one-target-method-function): Make this the real name.
+
+	* textmodes/artist.el (artist-text-renderer): Make this the alias
+	for the following variable.
+	(artist-text-renderer-function): Make this the real name.
+
+	* textmodes/flyspell.el (flyspell-generic-check-word-p): Make this
+	the alias for the following variable.
+	(flyspell-generic-check-word-predicate): Make this the real name.
+
+	* textmodes/ispell.el (ispell-format-word): Make this the alias
+	for the following variable.
+	(ispell-format-word-function): Make this the real name.
+	(ispell-message-text-end): Mark as risky.
+
+	* skeleton.el (skeleton-transformation, skeleton-filter)
+	(skeleton-pair-filter): Make these the aliases for the following
+	variables.
+	(skeleton-transformation-function, skeleton-filter-function)
+	(skeleton-pair-filter-function): Make these the real names.
+
+	* progmodes/sh-script.el (sh-mode): Use skeleton-filter-function
+	and skeleton-pair-filter-function.
+
+	* textmodes/sgml-mode.el (sgml-transformation): Make this the
+	alias for the following variable.
+	(sgml-transformation-function): Make this the real name.
+	(sgml-tag-alist): Mark as risky.
+
+2006-05-21  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (kill-region): Interactively, pass point, then mark.
+
+2006-05-22  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc-create): Add autoload cookie.
+
+2006-05-21  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el (dired-mode-map): Don't bind M-g.
+
+2006-05-20  Richard Stallman  <rms@gnu.org>
+
+	* dired.el (dired-mode-map): Put dired-goto-file on j, not M-g.
+	(dired-goto-file): Doc fix.
+
+2006-05-21  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Mention customizing cua-mode as alternative
+	way to enable built-in cua-mode if user loads older CUA-mode package.
+
+	* ido.el (ido-read-file-name): Bind ido-show-dot-for-dired to nil
+	if default-filename is specified.
+
+2006-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-manuals-menu) <info-apropos>: New menu item.
+
+	* info.el (info-apropos): Make sure current-file and current-node
+	have non-nil values.  Speed up by using add-to-list instead of
+	manual consing.
+
+2006-05-20  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* progmodes/make-mode.el (makefile-mode): Doc fix.
+
+2006-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired-aux.el (dired-do-shell-command): Doc fix.
+
+2006-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* info-xref.el (info-xref-check-all-custom): Skip :tag part of
+	``(custom-manual :tag "Foo" "(foo)Node")''.
+
+2006-05-20  Karl Chen  <quarl@cs.berkeley.edu>
+
+	* progmodes/cc-vars.el (c-backslash-column): Mark as safe if its
+	value is an integer.
+
+2006-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-mime-charset-pattern): Add "?:" before
+	"format".
+	(rmail-convert-to-babyl-format): Undo the change from 2006-04-19.
+
+2006-05-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/hideif.el (show-ifdef-block): Fix bug where parts of
+	a hidden block remained hidden if `hide-ifdef-lines' is non-nil.
+
+2006-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gud.el (gdb-script-font-lock-keywords): Use a stricter
+	regexp for keywords.
+
+2006-05-20  Masayuki FUJII  <boochang@m4.kcn.ne.jp>  (tiny change)
+
+	* dnd.el (dnd-get-local-file-name): Specify LITERAL in
+	replace-regexp-in-string.
+
+	* term/w32-win.el (w32-drag-n-drop): Substitute '/' for '\',
+	encode, and escape file name on conversion to URL.
+
+2006-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dnd.el (dnd-handle-one-url): Change 3rd arg ARG to URL.
+	Don't unescape URL.
+	(dnd-get-local-file-name): Unescape URL on conversion to file name.
+
+	* x-dnd.el (x-dnd-handle-file-name): Encode and escape file names
+	on conversion to URLs.
+
+	* net/browse-url.el (browse-url-file-url): Encode file name on
+	conversion to URL.
+
+	* term/mac-win.el (mac-ae-open-documents): Escape file name on
+	conversion to URL.
+
+2006-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/cc-styles.el (c-style-alist): Doc fix.
+
 2006-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-bytes-to-digits): Remove function.
@@ -41,14 +198,14 @@
 
 	* emacs-lisp/ewoc.el (ewoc--adjust): New func.
 	(ewoc--insert-new-node): Don't insert trailing newline.
-	Instead, adjust succesor nodes' start markers.
+	Instead, adjust successor nodes's start markers.
 	(ewoc--refresh-node): Delete all text from current node's start
-	marker to the next one's; adjust successor nodes' start markers.
+	marker to the next one's; adjust successor nodes's start markers.
 	(ewoc--create): Doc fixes.
 	(ewoc--refresh): Don't insert newline.
 	(ewoc--set-hf): Use `ewoc--set-buffer-bind-dll-let*'.
-	* pcvs.el (cvs-make-cvs-buffer): Specify
-	extra newline for ewoc's header and footer.
+	* pcvs.el (cvs-make-cvs-buffer):
+	Specify extra newline for ewoc's header and footer.
 	(cvs-update-header): Update initial header recognition.
 	Append newline to final header and footer values.
 	* pcvs-info.el (cvs-fileinfo-pp): Insert trailing newline.
@@ -502,7 +659,7 @@
 	reference to the Lisp manual to the warning about pure space
 	overflow.
 
-2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
 
 	* textmodes/ispell.el (ispell-buffer-local-dict): Add a `no-reload'
 	argument to avoid the call to `ispell-internal-change-dictionary'

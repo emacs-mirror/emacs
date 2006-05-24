@@ -784,7 +784,7 @@ Frames
 * Mouse Position::	    Asking where the mouse is, or moving it.
 * Pop-Up Menus::	    Displaying a menu for the user to select from.
 * Dialog Boxes::            Displaying a box to ask yes or no.
-* Pointer Shapes::          Specifying the shape of the mouse pointer.
+* Pointer Shape::           Specifying the shape of the mouse pointer.
 * Window System Selections::Transferring text to and from other windows.
 * Color Names::	            Getting the definitions of color names.
 * Text Terminal Colors::    Defining colors for text-only terminals.
@@ -1003,7 +1003,6 @@ Emacs Display
                               for text characters: font, colors, etc.
 * Fringes::                 Controlling window fringes.
 * Scroll Bars::             Controlling vertical scroll bars.
-* Pointer Shape::           Controlling the mouse pointer shape.
 * Display Property::        Enabling special display features.
 * Images::                  Displaying images in Emacs buffers.
 * Buttons::                 Adding clickable buttons to Emacs buffers.

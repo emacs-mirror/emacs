@@ -3166,7 +3166,7 @@ class of the file (using s to separate nested class ids)."
 (defvar gdb-script-font-lock-keywords
   '(("^define\\s-+\\(\\(\\w\\|\\s_\\)+\\)" (1 font-lock-function-name-face))
     ("\\$\\(\\w+\\)" (1 font-lock-variable-name-face))
-    ("^\\s-*\\(\\(\\w\\|\\s_\\)+\\)" (1 font-lock-keyword-face))))
+    ("^\\s-*\\(\\w\\(\\w\\|\\s_\\)*\\)" (1 font-lock-keyword-face))))
 
 ;; FIXME: The keyword "end" associated with "document"
 ;; should have font-lock-keyword-face (currently font-lock-doc-face).

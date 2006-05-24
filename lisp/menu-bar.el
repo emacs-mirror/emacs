@@ -1338,6 +1338,9 @@ key, a click, or a menu-item"))
 (define-key menu-bar-manuals-menu [order-emacs-manuals]
   '(menu-item "Ordering Manuals" view-order-manuals
 	      :help "How to order manuals from the Free Software Foundation"))
+(define-key menu-bar-manuals-menu [info-apropos]
+  '(menu-item "Lookup Subject in all manuals..." info-apropos
+	      :help "Find description of a subject in all installed manuals"))
 (define-key menu-bar-manuals-menu [info]
   '(menu-item "All Other Manuals (Info)" Info-directory
 	      :help "Read any of the installed manuals"))

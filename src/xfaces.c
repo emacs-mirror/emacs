@@ -6653,7 +6653,7 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
   best = NULL;
 
   /* Find the best match among the non-scalable fonts.  */
-  for (i = 1; i < nfonts; ++i)
+  for (i = 0; i < nfonts; ++i)
     if (!font_scalable_p (fonts + i)
 	&& better_font_p (specified, fonts + i, best, 1, avgwidth))
       {
@@ -6694,29 +6694,29 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 		best = fonts + i;
 	      }
 	  }
-
-      if (needs_overstrike)
-	{
-	  enum xlfd_weight want_weight = specified[XLFD_WEIGHT];
-	  enum xlfd_weight got_weight = best->numeric[XLFD_WEIGHT];
-
-	  if (want_weight > XLFD_WEIGHT_MEDIUM && want_weight > got_weight)
-	    {
-	      /* We want a bold font, but didn't get one; try to use
-		 overstriking instead to simulate bold-face.  However,
-		 don't overstrike an already-bold fontn unless the
-		 desired weight grossly exceeds the available weight.  */
-	      if (got_weight > XLFD_WEIGHT_MEDIUM)
-		*needs_overstrike = (got_weight - want_weight) > 2;
-	      else
-		*needs_overstrike = 1;
-	    }
-	}
     }
 
   /* We should have found SOME font.  */
   if (best == NULL)
     abort ();
+
+  if (! exact_p && needs_overstrike)
+    {
+      enum xlfd_weight want_weight = specified[XLFD_WEIGHT];
+      enum xlfd_weight got_weight = best->numeric[XLFD_WEIGHT];
+
+      if (want_weight > XLFD_WEIGHT_MEDIUM && want_weight > got_weight)
+	{
+	  /* We want a bold font, but didn't get one; try to use
+	     overstriking instead to simulate bold-face.  However,
+	     don't overstrike an already-bold fontn unless the
+	     desired weight grossly exceeds the available weight.  */
+	  if (got_weight > XLFD_WEIGHT_MEDIUM)
+	    *needs_overstrike = (got_weight - want_weight) > 2;
+	  else
+	    *needs_overstrike = 1;
+	}
+    }
 
   if (font_scalable_p (best))
     font_name = build_scalable_font_name (f, best, pt);
@@ -7091,7 +7091,7 @@ realize_default_face (f)
   face = realize_face (c, attrs, 0, NULL, DEFAULT_FACE_ID);
 
 #ifdef HAVE_WINDOW_SYSTEM
-#ifdef HAVE_X_WINDOWS  
+#ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f) && face->font != FRAME_FONT (f))
     /* As the font specified for the frame was not acceptable as a
        font for the default face (perhaps because auto-scaled fonts

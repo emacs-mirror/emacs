@@ -1,3 +1,13 @@
+2006-05-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c: Include xterm.h if emacs instead of declaring functions
+	used.
+	(string_width): Declare as static.
+	(Start, pop_up_menu): Set is_hint to 0 before calling 
+	handle_motion_event.
+	(pop_up_menu): Return value and parameters for x_catch_errors and
+	x_uncatch_errors changed.
+
 2005-09-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xlwmenu.c (find_next_selectable): 

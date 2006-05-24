@@ -117,9 +117,9 @@ the future.
 You might like to check whether they are packaged for your system.
 Several are for Debian GNU/Linux in particular.
 
- * AUCTeX: fancy (La)TeX support: <URL:http://www.gnu.org/software/auctex/>
-   There's an AUCTeX mail list/newsgroup:
-   <URL:news://sunsite.dk/emacs.auctex>.
+ * AUCTeX: <URL:http://www.gnu.org/software/auctex/>
+   An extensible package that supports writing and formatting TeX
+   files (including AMS-TeX, LaTeX, Texinfo, ConTeXt, and docTeX).
 
  * BBDB: personal Info Rolodex integrated with mail/news:
    <URL:http://bbdb.sourceforge.net/>
