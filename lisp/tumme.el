@@ -1493,7 +1493,7 @@ Note that n, p and <down> and <up> will be hijacked and bound to
   (define-key dired-mode-map "\C-tt" 'tumme-tag-files)
   (define-key dired-mode-map "\C-tr" 'tumme-tag-remove)
   (define-key dired-mode-map [tab] 'tumme-jump-thumbnail-buffer)
-  (define-key dired-mode-map "\C-ti" 'tumme-display-dired-image)
+  (define-key dired-mode-map "\C-ti" 'tumme-dired-display-image)
   (define-key dired-mode-map "\C-tx" 'tumme-dired-display-external)
   (define-key dired-mode-map "\C-ta" 'tumme-display-thumbs-append)
   (define-key dired-mode-map "\C-t." 'tumme-display-thumb)
@@ -1537,8 +1537,8 @@ Note that n, p and <down> and <up> will be hijacked and bound to
     [menu-bar tumme tumme-dired-display-external]
     '("Display in external viewer" . tumme-dired-display-external))
   (define-key dired-mode-map
-    [menu-bar tumme tumme-display-dired-image]
-    '("Display image" . tumme-display-dired-image))
+    [menu-bar tumme tumme-dired-display-image]
+    '("Display image" . tumme-dired-display-image))
   (define-key dired-mode-map
     [menu-bar tumme tumme-display-thumb]
     '("Display this thumbnail" . tumme-display-thumb))
@@ -1817,7 +1817,7 @@ With prefix argument ARG, display image in its original size."
           (display-buffer tumme-display-image-buffer))))))
 
 ;;;###autoload
-(defun tumme-display-dired-image (&optional arg)
+(defun tumme-dired-display-image (&optional arg)
   "Display current image file.
 See documentation for `tumme-display-image' for more information.
 With prefix argument ARG, display image in its original size."
