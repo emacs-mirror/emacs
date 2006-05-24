@@ -1,3 +1,10 @@
+2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: (section{Motion}): Added the item navigation
+	commands.
+	(section{Publishing}): New section.
+	(section{Links}): Documented elisp and shell links.
+
 2006-05-20  Rodrigo Real  <rreal@ucpel.tche.br>
 
 	* pt-br-refcard.tex: Update.

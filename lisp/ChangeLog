@@ -1,3 +1,84 @@
+2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-open-at-point): Use renamed variable
+	`org-confirm-shell-link-function'.
+	(org-confirm-shell-link-function): Renamed from
+	`org-confirm-shell-links'.
+	(org-export-directory): New function.
+	(org-export-as-ascii, org-export-as-html, org-export-as-xoxo)
+	(org-export-icalendar): Use `org-export-directory'.
+	(org-indent-item): Keep cursor position.
+	(org-link-file-path-type): New option.
+	(org-export-as-html): Fixed bug with plain lists starting in
+	column 0.
+	(org-export-as-html): Removed deadline formatting, this happens
+	now already in `org-html-handle-time-stamps'.
+	(org-export-html-style): Deadline class removed.
+	(org-insert-labeled-timestamps-at-point): New option.
+	(org-cycle, org-occur, org-scan-tags): Use `org-overview' instead
+	of `hide-sublevels 1', in case the first headline is not level 1.
+	(org-overview, org-content): New fuction.
+	(org-cycle-global-status, org-cycle-subtree-status): Make these
+	variables buffer-local.
+	(org-global-cycle): New command.
+	(org-shifttab): Use `org-global-cycle'.
+	(org-insert-heading, org-insert-item): Go to end of new
+	headline/item after creating it.
+	(org-export-visible): Renames from `org-export-copy-visible'.  Now
+	creates a temporary org-file and applies an exporting command to
+	it.
+	(org-table-eval-formula): Support for lisp forms.
+	(org-agenda-todo-ignore-scheduled): New option.
+	(org-agenda-get-todos): Use new option
+	`org-agenda-todo-ignore-scheduled'.
+	(org-export-html-inline-images): New value `maybe'.
+	(org-export-as-html): Inlining of images dependent on link
+	description.
+	(org-archive-subtree): Check for end-of-buffer before trying
+	`kill-line'.
+	(org-agenda-follow-mode): New option.
+	(org-export-with-tags, org-export-with-timestamps): New options.
+	(org-html-handle-time-stamps): New function.
+	(org-keyword-time-regexp): New variable.
+	(org-agenda-get-todos): Use `org-agenda-todo-list-sublevels'.
+	(org-agenda-todo-list-sublevels): New option.
+	(org-html-level-start): When TITLE is nil, just close all levels.
+	(org-parse-key-lines, org-parse-export-options): Functions
+	removed, replaced by `org-infile-export-plist'.
+	(org-combine-plists, org-infile-export-plist)
+	(org-default-export-plist): New functions.
+	(org-export-html-preamble, org-export-html-postamble)
+	(org-export-html-auto-preamble, org-export-html-auto-postamble):
+	New variables.
+	(org-export-publishing-directory): New option.
+	(org-export-as-html, org-export-as-ascii): Use the new property
+	lists for settings.
+	(org-export-copy-visible, org-export-as-xoxo): Respect
+	`org-export-publishing-directory'.
+	(org-link-search, org-store-link, org-file-apps): Support for
+	links to BibTeX database entries..
+	(org-get-current-options, org-set-regexps-and-options): Implement
+	logging as a startup option.
+	(org-store-link): Make sure context string is never empty
+	(org-insert-link): Use relative path when possible.
+	(org-at-item-checklet-p): New function.
+	(org-shifttab, org-shiftmetaleft, org-shiftmetaright)
+	(org-shiftmetaup, org-shiftmetadown, org-metaleft)
+	(org-metaright, org-metaup, org-metadown, org-shiftup)
+	(org-shiftdown, org-shiftright, org-shiftleft)
+	(org-ctrl-c-ctrl-c, org-cycle, org-return, org-meta-return):
+	Dispatch using `call-interactively'.
+	(org-call-with-arg): New defsubst.
+	(org-tag-alist, org-use-fast-tag-selection): New options.
+	(org-complete): Use `org-tag-alist'.
+	(org-fast-tag-insert, org-fast-tag-selection): New functions.
+	(org-next-item, org-previous-item): New commands.
+	(org-beginning-of-item, org-end-of-item): Added (interactive) to
+	make command.
+	(org-shiftup, org-shiftdown): Accommodate the item-navigation
+	commands.
+
+
 2006-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc-delete): New function.

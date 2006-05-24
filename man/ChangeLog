@@ -1,3 +1,12 @@
+2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Plain lists): Added new item navigation commands.
+	(External links): Documented elisp and info links.
+	(Custom searches): New section.
+	(Publishing): New chapter.
+	(HTML export): Include a list of supported CSS classes.
+	(Setting tags): Describe the fast-tag-setting interface.
+
 2006-05-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* frames.texi (Menu Bars, Tool Bars): Add index entries.
