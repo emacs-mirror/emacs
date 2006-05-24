@@ -1312,6 +1312,38 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate dashes]
       '("--"))
 
+    (define-key map [menu-bar immediate tumme]
+      (cons "Thumbnails" (make-sparse-keymap "tumme")))
+
+    (define-key map
+      [menu-bar immediate tumme tumme-display-thumbs]
+      '(menu-item "Display thumbails for marked files"
+                  tumme-display-thumbs))
+    (define-key map
+      [menu-bar immediate tumme tumme-tag-files]
+     '(menu-item "Add tag to marked files"
+                 tumme-tag-files))
+    (define-key map
+      [menu-bar immediate tumme tumme-tag-remove]
+     '(menu-item "Remove tag from marked files"
+                 tumme-tag-remove))
+    (define-key map
+      [menu-bar immediate tumme tumme-dired-display-image]
+     '(menu-item "Display sized image"
+                 tumme-dired-display-image))
+    (define-key map
+      [menu-bar immediate tumme tumme-dired-display-external]
+     '(menu-item "Display image in external viewer"
+                 tumme-dired-display-external))
+    (define-key map
+      [menu-bar immediate tumme tumme-dired-comment-files]
+     '(menu-item "Add comment to marked files"
+                 tumme-dired-comment-files))
+    (define-key map
+      [menu-bar immediate tumme tumme-mark-tagged-files]
+     '(menu-item "Find and mark files with a certain tag"
+                 tumme-mark-tagged-files))    
+
     (define-key map [menu-bar immediate compare-directories]
       '(menu-item "Compare directories..." dired-compare-directories
 		  :help "Mark files with different attributes in two dired buffers"))
@@ -1337,44 +1369,6 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '(menu-item "Create Directory..." dired-create-directory))
     (define-key map [menu-bar immediate wdired-mode]
       '(menu-item "Edit File Names" wdired-change-to-wdired-mode))
-
-    (define-key dired-mode-map [menu-bar immediate tumme]
-      (cons "Thumbnails" (make-sparse-keymap "tumme")))
-    
-    (define-key dired-mode-map
-      [menu-bar immediate tumme tumme-display-thumbs]
-      '(menu-item "Display thumbails for marked files"
-                  tumme-display-thumbs))
-    
-    (define-key dired-mode-map
-      [menu-bar immediate tumme tumme-tag-files]
-     '(menu-item "Add tag to marked files"
-                 tumme-tag-files))
-    
-    (define-key dired-mode-map
-      [menu-bar immediate tumme tumme-tag-remove]
-     '(menu-item "Remove tag from marked files"
-                 tumme-tag-remove))
-    
-    (define-key dired-mode-map
-      [menu-bar immediate tumme tumme-dired-display-image]
-     '(menu-item "Display sized image"
-                 tumme-dired-display-image))
-    
-    (define-key dired-mode-map
-      [menu-bar immediate tumme tumme-dired-display-external]
-     '(menu-item "Display image in external viewer"
-                 tumme-dired-display-external))
-    
-    (define-key dired-mode-map
-      [menu-bar immediate tumme tumme-dired-comment-files]
-     '(menu-item "Add comment to marked files"
-                 tumme-dired-comment-files))
-    
-    (define-key dired-mode-map
-      [menu-bar immediate tumme tumme-mark-tagged-files]
-     '(menu-item "Find and mark files with a certain tag"
-                 tumme-mark-tagged-files))    
 
     (define-key map [menu-bar regexp]
       (cons "Regexp" (make-sparse-keymap "Regexp")))
