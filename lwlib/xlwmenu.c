@@ -1824,11 +1824,11 @@ XlwMenuRealize (w, valueMask, attributes)
      frame on a display.  I can not find their reason, but they are
      annoying so for now let's ignore any errors here.  -- lorentey  */
 #ifdef emacs
-  count = x_catch_errors (XtDisplay (w));
+  x_catch_errors (XtDisplay (w));
 #endif
   XChangeWindowAttributes (XtDisplay (w), XtWindow (w), mask, &xswa);
 #ifdef emacs
-  x_uncatch_errors (XtDisplay (w), count);
+  x_uncatch_errors ();
 #endif
 
   mw->menu.windows [0].window = XtWindow (w);
