@@ -547,7 +547,7 @@ before warning the user."
   :group 'tumme)
 
 (defun tumme-dir ()
-  "Return the current thumbnails directory (from `tumme-dir').
+  "Return the current thumbnails directory (from variable `tumme-dir').
 Create the thumbnails directory if it does not exist."
   (let ((tumme-dir (file-name-as-directory
                     (expand-file-name tumme-dir))))
@@ -701,7 +701,7 @@ Otherwise, delete overlays."
   (interactive)
   (dired-next-line 1)
   (tumme-display-thumbs
-   t (or tumme-append-when-browsing nil))
+   t (or tumme-append-when-browsing nil) t)
   (if tumme-dired-disp-props
       (tumme-dired-display-properties)))
 
@@ -710,7 +710,7 @@ Otherwise, delete overlays."
   (interactive)
   (dired-previous-line 1)
   (tumme-display-thumbs
-   t (or tumme-append-when-browsing nil))
+   t (or tumme-append-when-browsing nil) t)
   (if tumme-dired-disp-props
       (tumme-dired-display-properties)))
 
@@ -729,7 +729,7 @@ Otherwise, delete overlays."
   (interactive)
   (dired-mark 1)
   (tumme-display-thumbs
-   t (or tumme-append-when-browsing nil))
+   t (or tumme-append-when-browsing nil) t)
   (if tumme-dired-disp-props
       (tumme-dired-display-properties)))
 
@@ -818,7 +818,7 @@ Restore any changes to the window configuration made by calling
     (message "No saved window configuration")))
 
 ;;;###autoload
-(defun tumme-display-thumbs (&optional arg append)
+(defun tumme-display-thumbs (&optional arg append do-not-pop)
   "Display thumbnails of all marked files, in `tumme-thumbnail-buffer'.
 If a thumbnail image does not exist for a file, it is created on the
 fly.  With prefix argument ARG, display only thumbnail for file at
@@ -830,7 +830,14 @@ you have the dired buffer in the left window and the
 `tumme-thumbnail-buffer' buffer in the right window.
 
 With optional argument APPEND, append thumbnail to thumbnail buffer
-instead of erasing it first."
+instead of erasing it first.
+
+Option argument DO-NOT-POP controls if `pop-to-buffer' should be
+used or not.  If non-nil, use `display-buffer' instead of
+`pop-to-buffer'.  This is used from functions like
+`tumme-next-line-and-display' and
+`tumme-previous-line-and-display' where we do not want the
+thumbnail buffer to be selected."
   (interactive "P")
   (let ((buf (tumme-create-thumbnail-buffer))
         curr-file thumb-name files count dired-buf beg)
@@ -862,7 +869,9 @@ instead of erasing it first."
              nil)
             (t
              (tumme-line-up-dynamic))))
-    (pop-to-buffer tumme-thumbnail-buffer)))
+    (if do-not-pop
+        (display-buffer tumme-thumbnail-buffer)
+      (pop-to-buffer tumme-thumbnail-buffer))))
 
 (defun tumme-show-all-from-dir (dir)
   "Make a preview buffer for all images in DIR and display it.
@@ -1658,13 +1667,13 @@ Ask user for number of images to show and the delay in between."
 (defun tumme-display-thumbs-append ()
   "Append thumbnails to `tumme-thumbnail-buffer'."
   (interactive)
-  (tumme-display-thumbs nil t))
+  (tumme-display-thumbs nil t t))
 
 ;;;###autoload
 (defun tumme-display-thumb ()
   "Shorthard for `tumme-display-thumbs' with prefix argument."
   (interactive)
-  (tumme-display-thumbs t))
+  (tumme-display-thumbs t nil t))
 
 (defun tumme-line-up ()
   "Line up thumbnails according to `tumme-thumbs-per-row'.
