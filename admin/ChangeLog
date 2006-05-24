@@ -1,3 +1,7 @@
+2006-05-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* FOR-RELEASE: Update refcard translations.  Add coding cookie.
+
 2006-05-21  Chong Yidong  <cyd@mit.edu>
 
 	* FOR-RELEASE: point-entered /point-left bug fixed.
@@ -15,7 +19,7 @@
 2006-04-17 Ramprasad B <ramprasad_i82@yahoo.com>
 
 	* ./* (Copyright): Updated Copyright year(s)
-	
+
 2006-02-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* FOR-RELEASE (BUGS): Add URLs/MIDs.
