@@ -1,3 +1,7 @@
+2006-05-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loadup.el ("jka-cmpr-hook"): Load it before it is needed.
+
 2006-05-24  Chong Yidong  <cyd@mit.edu>
 
 	* menu-bar.el, international/mule-cmds.el: Remove tooltips for

@@ -1,3 +1,7 @@
+2006-05-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1210000.
+
 2006-05-24  Alan Mackenzie  <acm@muc.de>
 
 	* lread.c (Vload_history): Enhance doc-string to say that the file
