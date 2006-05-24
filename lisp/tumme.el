@@ -84,46 +84,13 @@
 ;; USAGE
 ;; =====
 ;;
-;; If you plan to use tumme much, setting up key bindings for it in
-;; dired is a good idea:
+;; This information has been moved to the manual. Type `C-h r' to open
+;; the Emacs manual and go to the node Thumbnails by typing `g
+;; Thumbnails RET'.
 ;;
-;;   (tumme-setup-dired-keybindings)
+;; Quickstart: M-x tumme RET DIRNAME RET
 ;;
-;; Next, do M-x tumme-dired RET.  This will ask you for a directory
-;; where image files are stored, setup a useful window configuration
-;; and enable the two special modes that tumme provides.  NOTE: If you
-;; do not want tumme to split your windows, call it with a prefix
-;; argument.
-;;
-;; Start viewing thumbnails by doing C-S-n and C-S-p to go up and down
-;; in the dired buffer while at the same time displaying a thumbnail
-;; image.  The thumbnail images will be created on the fly, and
-;; cached.  This means that the first time you browse your images, it
-;; will be a bit slow because the thumbnails are created.  If you want
-;; to avoid this, you can pre-create the thumbnail images by marking
-;; all images in dired (% m \.jpg$ RET) and then do M-x
-;; tumme-create-thumbs.
-;;
-;; Next, try `tumme-display-thumbs' (C-t d).  If no file is marked, a
-;; thumbnail for the file at point will show up in
-;; `tumme-thumbnail-buffer'.  If one or more files are marked,
-;; thumbnails for those files will be displayed.
-;;
-;; Pressing TAB will switch to the window containing the
-;; `tumme-thumbnail-buffer' buffer.  In there you can move between
-;; thumbnail images and display a semi-sized version in an Emacs
-;; buffer (RET), or the original image in an external viewer
-;; (C-RET).  By pressing SPC or DEL you will navigate back and fort
-;; while at the same time displaying each image in Emacs.  You can also
-;; navigate using arrow keys.  Comment a file by pressing "c".  Press
-;; TAB to get back to dired.
-;;
-;; While in dired mode, you can tag and comment files, you can tell
-;; `tumme' to mark files with a certain tag (using a regexp) etc.
-;;
-;; The easiest way to see the available commands is to use the Tumme
-;; menus added in tumme-thumbnail-mode and dired-mode.
-;;
+;; where DIRNAME is a directory containing image files.
 ;;
 ;; LIMITATIONS
 ;; ===========
