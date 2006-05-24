@@ -2693,10 +2693,10 @@ It is saved for when this flag is not set.")
 	((memq (process-status proc) '(signal exit))
 	 ;; Stop displaying an arrow in a source file.
 	 (setq gud-overlay-arrow-position nil)
-	 (with-current-buffer gud-comint-buffer
-	   (if (memq gud-minor-mode-type '(gdbmi gdba))
-	       (gdb-reset)
-	     (gud-reset)))
+	 (if (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		   '(gdba gdbmi))
+	     (gdb-reset)
+	   (gud-reset))
 	 (let* ((obuf (current-buffer)))
 	   ;; save-excursion isn't the right thing if
 	   ;;  process-buffer is current-buffer
