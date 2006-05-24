@@ -1,3 +1,14 @@
+2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-display-dired-image): Renamed to
+	`tumme-dired-display-image'.
+	(tumme-track-movement): Changed default value to t.
+	(tumme-display-thumbs): Added new optional parameter DO-NOT-POP,
+	used from `tumme-next-line-and-display' and similar commands.
+	
+	* dired.el (dired-mode-map): Added Thumbnail sub menu under the
+	Immediate menu. Added some tumme commands there.
+	
 2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* dired.el (dired-mode-map): Fix breakage.
