@@ -1,3 +1,21 @@
+2006-05-24  Alan Mackenzie  <acm@muc.de>
+
+	* lread.c (Vload_history): Enhance doc-string to say that the file
+	is the absolute truename of the loaded file.
+
+	* lread.c (Vafter_load_alist): doc-string: state that an element
+	now has a regexp to match file names, not a file name as such.
+
+	* lread.c (readevalloop): Call file-truename on the name for
+	load-history, except at preloading time.
+
+	* lread.c (Fload): At preloading time, preserve the extension of
+	the filename which goes into load-history.  New variable
+	hist_file_name.
+
+	* lread.c (Fload): Do eval-after-load stuff by calling the lisp
+	function do-after-load-evaluation.
+
 2006-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (ae_attr_table): New variable.
