@@ -1321,7 +1321,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
                   tumme-display-thumbs))
     (define-key map
       [menu-bar immediate tumme tumme-tag-files]
-     '(menu-item "Add Image Tag.."
+     '(menu-item "Add Image Tag..."
                  tumme-tag-files))
     (define-key map
       [menu-bar immediate tumme tumme-tag-remove]
