@@ -1341,7 +1341,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
                  tumme-dired-comment-files))
     (define-key map
       [menu-bar immediate tumme tumme-mark-tagged-files]
-     '(menu-item "Mark From Image Tags..."
+     '(menu-item "Mark From Image Tag..."
                  tumme-mark-tagged-files))    
 
     (define-key map [menu-bar immediate compare-directories]
