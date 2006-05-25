@@ -1,5 +1,8 @@
 2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
+	* dired.el (dired-mode-map): Add help-echo strings to tumme
+	commands.
+
 	* tumme.el (tumme-display-image): Change documentation string
 	slightly.
 	(tumme-dired-display-image): Add call to `display-buffer'.
