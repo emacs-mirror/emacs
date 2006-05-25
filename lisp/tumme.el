@@ -1762,13 +1762,11 @@ Ask user how many thumbnails should be displayed per row."
 
 (defun tumme-display-image (file &optional original-size)
   "Display image FILE in image buffer.
-Use this when you want to display the image, semi sized, in a window
-next to the thumbnail window - typically a three-window configuration
-with dired to the left, thumbnail window to the upper right and image
-window to the lower right.  The image is sized to fit the display
-window (using a temporary file, don't worry).  Because of this, it
-will not be as quick as opening it directly, but on most modern
-systems it should feel snappy enough.
+Use this when you want to display the image, semi sized, in a new
+window.  The image is sized to fit the display window (using a
+temporary file, don't worry).  Because of this, it will not be as
+quick as opening it directly, but on most modern systems it
+should feel snappy enough.
 
 If optional argument ORIGINAL-SIZE is non-nil, display image in its
 original size."
@@ -1822,7 +1820,8 @@ With prefix argument ARG, display image in its original size."
 See documentation for `tumme-display-image' for more information.
 With prefix argument ARG, display image in its original size."
   (interactive "P")
-  (tumme-display-image (dired-get-filename) arg))
+  (tumme-display-image (dired-get-filename) arg)
+  (display-buffer tumme-display-image-buffer))
 
 (defun tumme-image-at-point-p ()
   "Return true if there is a tumme thumbnail at point."
