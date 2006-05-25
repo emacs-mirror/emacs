@@ -1,3 +1,9 @@
+2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* dired.el (dired-mode-map): `tumme-display-dired-image' was
+	renamed in tumme.el, but there was still a key binding to it
+	here. Changed the binding to the new name.
+
 2006-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/bindat.el (bindat-unpack, bindat-pack):
@@ -15,18 +21,35 @@
 
 2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
+	* dired.el (dired-mode-map): Changed menu items for tumme as per
+	suggestions in emacs-devel.
+
+2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* dired.el (dired-mode-map): Fix breakage.
+
+2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
 	* tumme.el (tumme-display-dired-image): Renamed to
 	`tumme-dired-display-image'.
 	(tumme-track-movement): Changed default value to t.
 	(tumme-display-thumbs): Added new optional parameter DO-NOT-POP,
 	used from `tumme-next-line-and-display' and similar commands.
+<<<<<<< ChangeLog
+	(tumme-dired-display-properties): 
 
+=======
+
+>>>>>>> 1.9600
 	* dired.el (dired-mode-map): Added Thumbnail sub menu under the
 	Immediate menu. Added some tumme commands there.
+<<<<<<< ChangeLog
+=======
 
 2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* dired.el (dired-mode-map): Fix breakage.
+>>>>>>> 1.9600
 
 2006-05-24  Luc Teirlinck  <teirllm@auburn.edu>
 
