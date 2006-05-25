@@ -1,3 +1,9 @@
+2006-05-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Fyes_or_no_p):
+	* callint.c (Fcall_interactively): Fread_from_minibuffer now takes
+	only seven args.
+
 2006-05-25  Juri Linkov  <juri@jurta.org>
 
 	* lisp.h (Fread_from_minibuffer): Decrement number of args.
