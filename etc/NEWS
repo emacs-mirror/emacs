@@ -759,7 +759,7 @@ it remains unchanged.
 +++
 *** New user option `history-delete-duplicates'.
 If set to t when adding a new history element, all previous identical
-elements are deleted.
+elements are deleted from the history list.
 
 ** Redisplay changes:
 
@@ -4348,10 +4348,6 @@ defaults to the current buffer.
 +++
 *** New function `minibuffer-selected-window' returns the window which
 was selected when entering the minibuffer.
-
-+++
-*** `read-from-minibuffer' now accepts an additional argument KEEP-ALL
-saying to put all inputs in the history list, even empty ones.
 
 +++
 *** The `read-file-name' function now takes an additional argument which
