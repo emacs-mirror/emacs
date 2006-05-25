@@ -362,7 +362,7 @@ An irrelevant argument.  This code always supplies @code{nil} as
 the argument's value.  No I/O.
 
 @item k
-A key sequence (@pxref{Keymap Terminology}).  This keeps reading events
+A key sequence (@pxref{Key Sequences}).  This keeps reading events
 until a command (or undefined command) is found in the current key
 maps.  The key sequence argument is represented as a string or vector.
 The cursor does not move into the echo area.  Prompt.

@@ -16,7 +16,7 @@ to look up the next input event; this continues until a command is
 found.  The whole process is called @dfn{key lookup}.
 
 @menu
-* Keymap Terminology::        	Definitions of terms pertaining to keymaps.
+* Key Sequences::               What a key sequence looks like as a Lisp object.
 * Format of Keymaps::		What a keymap looks like as a Lisp object.
 * Creating Keymaps:: 		Functions to create and copy keymaps.
 * Inheritance and Keymaps::	How one keymap can inherit the bindings
@@ -37,32 +37,26 @@ found.  The whole process is called @dfn{key lookup}.
 * Menu Keymaps::		Defining a menu as a keymap.
 @end menu
 
-@node Keymap Terminology
-@section Keymap Terminology
+@node Key Sequences
+@section Key Sequences
 @cindex key
 @cindex keystroke
 @cindex key binding
 @cindex binding of a key
 @cindex complete key
 @cindex undefined key
+@cindex key sequence
 
-  A @dfn{keymap} is a table mapping event types to definitions (which
-can be any Lisp objects, though only certain types are meaningful for
-execution by the command loop).  Given an event (or an event type) and a
-keymap, Emacs can get the event's definition.  Events include
-characters, function keys, and mouse actions (@pxref{Input Events}).
+  A keymap determines a binding or definition for a set of @dfn{key
+sequences}, or @dfn{keys} for short.  A key sequence is a sequence of
+one or more input events that form a unit.
 
-  A sequence of input events that form a unit is called a
-@dfn{key sequence}, or @dfn{key} for short.  A sequence of one event
-is always a key sequence, and so are some multi-event sequences.
-
-  A keymap determines a binding or definition for any key sequence.  If
-the key sequence is a single event, its binding is the definition of the
-event in the keymap.  The binding of a key sequence of more than one
-event is found by an iterative process: the binding of the first event
-is found, and must be a keymap; then the second event's binding is found
-in that keymap, and so on until all the events in the key sequence are
-used up.
+  If a keymap binds a key sequence consisting of a single event, its
+binding is the definition of that event.  The binding of a key
+sequence of more than one event is found by an iterative process: the
+binding of the first event is found, and must be a keymap; then the
+second event's binding is found in that keymap, and so on until all
+the events in the key sequence are used up.
 
   If the binding of a key sequence is a keymap, we call the key sequence
 a @dfn{prefix key}.  Otherwise, we call it a @dfn{complete key} (because
@@ -99,8 +93,28 @@ keymaps shadow both local and global keymaps.  @xref{Active Keymaps},
 for details.
 
   The Emacs Lisp representation for a key sequence is a string or vector.
-You can enter key sequence constants using the ordinary string or vector
-representation; it is also convenient to use @code{kbd}:
+
+  In the string representation, alphanumeric characters ordinarily
+stand for themselves; for example, @code{"a"} represents @key{a} and
+and @code{"1"} represents @key{1}.  Control character events are
+prefixed by the substring @code{"\C-"}, and meta characters by
+@code{"\M-"}; for example, @code{"\C-x"} represents the key @kbd{C-x}.
+In addition, the @kbd{<TAB>}, @kbd{<RET>}, @kbd{<ESC>}, and
+@kbd{<DEL>} events are represented by @code{"\t"}, @code{"\r"},
+@code{"\e"}, and @code{"\d"} respectively.  The string representation
+of a complete key sequence is then obtained by concatenating the
+string representations of each constituent event; thus, @code{"\C-x"}
+represents the key sequence @kbd{C-x}.
+
+  Key sequences containing function keys, mouse button events, or
+non-ASCII characters such as @kbd{C-=} or @kbd{H-a} cannot be
+represented as strings; they have to be represented as vectors.
+
+  In the vector representation, each element of the vector represents
+a consecutive input element, in its Lisp form.  @xref{Input Events}.
+For example, ordinary keyboard events are represented by Lisp
+characters (@pxref{Keyboard Events}), so the character @code{?a}
+represents @key{a}.
 
 @defmac kbd keyseq-text
 This macro converts the text @var{keyseq-text} (a string constant)
@@ -129,7 +143,13 @@ Macro,,, emacs, The GNU Emacs Manual}).
 @cindex full keymap
 @cindex sparse keymap
 
-  A keymap is a list whose @sc{car} is the symbol @code{keymap}.  The
+  A @dfn{keymap} is a table mapping event types to definitions (which
+can be any Lisp objects, though only certain types are meaningful for
+execution by the command loop).  Given an event (or an event type) and a
+keymap, Emacs can get the event's definition.  Events include
+characters, function keys, and mouse actions (@pxref{Input Events}).
+
+  Each keymap is a list whose @sc{car} is the symbol @code{keymap}.  The
 remaining elements of the list define the key bindings of the keymap.
 A symbol whose function definition is a keymap is also a keymap.  Use
 the function @code{keymapp} (see below) to test whether an object is a
@@ -1197,8 +1217,8 @@ numeric codes for the modifier bits don't appear in compiled files.
   For the functions below, an error is signaled if @var{keymap} is not
 a keymap or if @var{key} is not a string or vector representing a key
 sequence.  You can use event types (symbols) as shorthand for events
-that are lists.  The @code{kbd} macro (@pxref{Keymap Terminology}) is
-a convenient way to specify the key sequence.
+that are lists.  The @code{kbd} macro (@pxref{Key Sequences}) is a
+convenient way to specify the key sequence.
 
 @defun define-key keymap key binding
 This function sets the binding for @var{key} in @var{keymap}.  (If
