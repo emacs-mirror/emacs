@@ -1,5 +1,8 @@
 2006-05-24  Richard Stallman  <rms@gnu.org>
 
+	* subr.el (with-local-quit): When handling `quit' signal,
+	make a chance for quit-flag to cause a quit.
+
 	* emacs-lisp/advice.el (ad-enable-advice, ad-activate)
 	(ad-disable-advice): Add autoloads.
 
