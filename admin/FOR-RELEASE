@@ -78,9 +78,6 @@ It seems that to fix this, w32 server sockets must use WSAAsyncSelect
 
 * DOCUMENTATION
 
-** Add a node to the Lisp manual describing key sequences from the
-Lisp point of view.
-
 ** Check man/info.texi.
 
 ** Check the Emacs Lisp manual.

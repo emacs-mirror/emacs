@@ -1,3 +1,7 @@
+2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* FOR-RELEASE: Key sequence elisp node done.
+
 2006-05-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* FOR-RELEASE: Update refcard translations.  Add coding cookie.
