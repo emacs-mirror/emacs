@@ -1,5 +1,9 @@
 2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
+	* tumme.el (tumme-display-image): Changed documentation string
+	slightly.
+	(tumme-dired-display-image): Added call to `display-buffer'.
+
 	* dired.el (dired-mode-map): `tumme-display-dired-image' was
 	renamed in tumme.el, but there was still a key binding to it
 	here. Changed the binding to the new name.
