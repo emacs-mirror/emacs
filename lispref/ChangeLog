@@ -1,5 +1,7 @@
 2006-05-25  Juri Linkov  <juri@jurta.org>
 
+	* minibuf.texi (Text from Minibuffer): Undocument keep-all.
+
 	* modes.texi (%-Constructs): Add %e, %z, %Z.
 
 2006-05-25  Richard Stallman  <rms@gnu.org>
