@@ -1,12 +1,11 @@
 2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el (tumme-display-image): Changed documentation string
+	* tumme.el (tumme-display-image): Change documentation string
 	slightly.
-	(tumme-dired-display-image): Added call to `display-buffer'.
+	(tumme-dired-display-image): Add call to `display-buffer'.
 
-	* dired.el (dired-mode-map): `tumme-display-dired-image' was
-	renamed in tumme.el, but there was still a key binding to it
-	here. Changed the binding to the new name.
+	* dired.el (dired-mode-map): Bind `tumme-dired-display-image'
+	to C-t i.
 
 2006-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -25,7 +24,7 @@
 
 2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* dired.el (dired-mode-map): Changed menu items for tumme as per
+	* dired.el (dired-mode-map): Change menu items for tumme as per
 	suggestions in emacs-devel.
 
 2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
@@ -34,26 +33,15 @@
 
 2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el (tumme-display-dired-image): Renamed to
-	`tumme-dired-display-image'.
-	(tumme-track-movement): Changed default value to t.
-	(tumme-display-thumbs): Added new optional parameter DO-NOT-POP,
+	* tumme.el (tumme-display-dired-image): Rename to...
+	(tumme-dired-display-image): ...this.
+	(tumme-track-movement): Change default value to t.
+	(tumme-display-thumbs): Add new optional parameter DO-NOT-POP,
 	used from `tumme-next-line-and-display' and similar commands.
-<<<<<<< ChangeLog
 	(tumme-dired-display-properties): 
 
-=======
-
->>>>>>> 1.9600
-	* dired.el (dired-mode-map): Added Thumbnail sub menu under the
-	Immediate menu. Added some tumme commands there.
-<<<<<<< ChangeLog
-=======
-
-2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
-
-	* dired.el (dired-mode-map): Fix breakage.
->>>>>>> 1.9600
+	* dired.el (dired-mode-map): Add Thumbnail submenu under the
+	Immediate menu.  Add some tumme commands there.
 
 2006-05-24  Luc Teirlinck  <teirllm@auburn.edu>
 
