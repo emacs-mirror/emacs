@@ -1,3 +1,9 @@
+2006-05-25  Rajesh Vaidheeswarran <rv@gnu.org>
+	* whitespace.el (whitespace-cleanup): change to cleanup
+	region if one is active
+	* whitespace.el (whitespace-cleanup-internal): new internal
+	method
+
 2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* dired.el (dired-mode-map): Add help-echo strings to tumme
