@@ -2315,8 +2315,8 @@ See also `with-temp-file' and `with-output-to-string'."
 (defmacro with-local-quit (&rest body)
   "Execute BODY, allowing quits to terminate BODY but not escape further.
 When a quit terminates BODY, `with-local-quit' returns nil but
-requests another quit.  That quit will be processed, the next time quitting
-is allowed once again."
+requests another quit.  That quit will be processed as soon as quitting
+is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
   (declare (debug t) (indent 0))
   `(condition-case nil
        (let ((inhibit-quit nil))
