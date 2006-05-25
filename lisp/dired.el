@@ -1313,35 +1313,35 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '("--"))
 
     (define-key map [menu-bar immediate tumme]
-      (cons "Thumbnails" (make-sparse-keymap "tumme")))
+      (cons "Thumbnail Images" (make-sparse-keymap "tumme")))
 
     (define-key map
       [menu-bar immediate tumme tumme-display-thumbs]
-      '(menu-item "Display thumbails for marked files"
+      '(menu-item "Display Thumbnails"
                   tumme-display-thumbs))
     (define-key map
       [menu-bar immediate tumme tumme-tag-files]
-     '(menu-item "Add tag to marked files"
+     '(menu-item "Add Image Tag.."
                  tumme-tag-files))
     (define-key map
       [menu-bar immediate tumme tumme-tag-remove]
-     '(menu-item "Remove tag from marked files"
+     '(menu-item "Remove Image Tag..."
                  tumme-tag-remove))
     (define-key map
       [menu-bar immediate tumme tumme-dired-display-image]
-     '(menu-item "Display sized image"
+     '(menu-item "Display Image"
                  tumme-dired-display-image))
     (define-key map
       [menu-bar immediate tumme tumme-dired-display-external]
-     '(menu-item "Display image in external viewer"
+     '(menu-item "Display Image Externally"
                  tumme-dired-display-external))
     (define-key map
       [menu-bar immediate tumme tumme-dired-comment-files]
-     '(menu-item "Add comment to marked files"
+     '(menu-item "Add Comment"
                  tumme-dired-comment-files))
     (define-key map
       [menu-bar immediate tumme tumme-mark-tagged-files]
-     '(menu-item "Find and mark files with a certain tag"
+     '(menu-item "Mark From Image Tags..."
                  tumme-mark-tagged-files))    
 
     (define-key map [menu-bar immediate compare-directories]
