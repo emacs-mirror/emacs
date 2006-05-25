@@ -1253,7 +1253,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "\C-tt" 'tumme-tag-files)
     (define-key map "\C-tr" 'tumme-tag-remove)
     (define-key map "\C-tj" 'tumme-jump-thumbnail-buffer)
-    (define-key map "\C-ti" 'tumme-display-dired-image)
+    (define-key map "\C-ti" 'tumme-dired-display-image)
     (define-key map "\C-tx" 'tumme-dired-display-external)
     (define-key map "\C-ta" 'tumme-display-thumbs-append)
     (define-key map "\C-t." 'tumme-display-thumb)
@@ -1316,33 +1316,34 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       (cons "Thumbnail Images" (make-sparse-keymap "tumme")))
 
     (define-key map
+      [menu-bar immediate tumme tumme-mark-tagged-files]
+      '(menu-item "Mark From Image Tag..."
+                  tumme-mark-tagged-files))    
+    (define-key map
+      [menu-bar immediate tumme tumme-tag-remove]
+      '(menu-item "Remove Image Tag..."
+                  tumme-tag-remove))
+    (define-key map
+      [menu-bar immediate tumme tumme-tag-files]
+      '(menu-item "Add Image Tag..."
+                  tumme-tag-files))
+    (define-key map
+      [menu-bar immediate tumme tumme-dired-comment-files]
+      '(menu-item "Add Comment"
+                  tumme-dired-comment-files))
+    (define-key map
+      [menu-bar immediate tumme tumme-dired-display-external]
+      '(menu-item "Display Image Externally"
+                  tumme-dired-display-external))
+    (define-key map
+      [menu-bar immediate tumme tumme-dired-display-image]
+      '(menu-item "Display Image"
+                  tumme-dired-display-image))    
+    (define-key map
       [menu-bar immediate tumme tumme-display-thumbs]
       '(menu-item "Display Thumbnails"
                   tumme-display-thumbs))
-    (define-key map
-      [menu-bar immediate tumme tumme-tag-files]
-     '(menu-item "Add Image Tag..."
-                 tumme-tag-files))
-    (define-key map
-      [menu-bar immediate tumme tumme-tag-remove]
-     '(menu-item "Remove Image Tag..."
-                 tumme-tag-remove))
-    (define-key map
-      [menu-bar immediate tumme tumme-dired-display-image]
-     '(menu-item "Display Image"
-                 tumme-dired-display-image))
-    (define-key map
-      [menu-bar immediate tumme tumme-dired-display-external]
-     '(menu-item "Display Image Externally"
-                 tumme-dired-display-external))
-    (define-key map
-      [menu-bar immediate tumme tumme-dired-comment-files]
-     '(menu-item "Add Comment"
-                 tumme-dired-comment-files))
-    (define-key map
-      [menu-bar immediate tumme tumme-mark-tagged-files]
-     '(menu-item "Mark From Image Tag..."
-                 tumme-mark-tagged-files))    
+
 
     (define-key map [menu-bar immediate compare-directories]
       '(menu-item "Compare directories..." dired-compare-directories
