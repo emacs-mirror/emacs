@@ -1,3 +1,8 @@
+2006-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/bindat.el (bindat-unpack, bindat-pack):
+	Signal error if RAW-DATA is a multibyte string.
+
 2006-05-24  Richard Stallman  <rms@gnu.org>
 
 	* subr.el (with-local-quit): When handling `quit' signal,
@@ -15,10 +20,10 @@
 	(tumme-track-movement): Changed default value to t.
 	(tumme-display-thumbs): Added new optional parameter DO-NOT-POP,
 	used from `tumme-next-line-and-display' and similar commands.
-	
+
 	* dired.el (dired-mode-map): Added Thumbnail sub menu under the
 	Immediate menu. Added some tumme commands there.
-	
+
 2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* dired.el (dired-mode-map): Fix breakage.

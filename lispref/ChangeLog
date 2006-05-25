@@ -1,10 +1,16 @@
+2006-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Bindat Functions): Say "unibyte string"
+	explicitly for bindat-unpack and bindat-pack descriptions.
+	(Bindat Examples): Don't call `string-make-unibyte' in example.
+
 2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymaps.texi (Key Sequences): Renamed from Keymap Terminology.
 	Explain string and vector representations of key sequences
 
-	* keymaps.texi (Changing Key Bindings): 
-	* commands.texi (Interactive Codes, Interactive Codes): 
+	* keymaps.texi (Changing Key Bindings):
+	* commands.texi (Interactive Codes, Interactive Codes):
 	* help.texi (Describing Characters): Refer to it.
 
 2006-05-23  Luc Teirlinck  <teirllm@auburn.edu>
