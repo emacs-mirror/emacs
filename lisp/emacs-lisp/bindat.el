@@ -345,8 +345,10 @@
 
 (defun bindat-unpack (spec raw-data &optional pos)
   "Return structured data according to SPEC for binary data in RAW-DATA.
-RAW-DATA is a string or vector.  Optional third arg POS specifies the
-starting offset in RAW-DATA."
+RAW-DATA is a unibyte string or vector.  Optional third arg POS specifies
+the starting offset in RAW-DATA."
+  (when (multibyte-string-p raw-data)
+    (error "String is multibyte"))
   (unless pos (setq pos 0))
   (bindat--unpack-group spec))
 
@@ -581,10 +583,10 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 
 (defun bindat-pack (spec struct &optional raw-data pos)
   "Return binary data packed according to SPEC for structured data STRUCT.
-Optional third arg RAW-DATA is a pre-allocated string or vector to pack into.
-Optional fourth arg POS is the starting offset into RAW-DATA.
-Note: The result is a multibyte string; use `string-make-unibyte' on it
-to make it unibyte if necessary."
+Optional third arg RAW-DATA is a pre-allocated unibyte string or vector to
+pack into.  Optional fourth arg POS is the starting offset into RAW-DATA."
+  (when (multibyte-string-p raw-data)
+    (error "Pre-allocated string is multibyte"))
   (let ((no-return raw-data))
     (unless pos (setq pos 0))
     (unless raw-data
