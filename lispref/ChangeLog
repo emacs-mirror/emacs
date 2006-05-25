@@ -1,3 +1,10 @@
+2006-05-25  Richard Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode menu.
+
+	* keymaps.texi (Keymap Basics): New node, split out of Key Sequences.
+	(Keymaps): Update menu.
+
 2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymaps.texi (Key Sequences): Some clarifications.

@@ -1,3 +1,7 @@
+2006-05-25  Richard Stallman  <rms@gnu.org>
+
+	* emacs.c (main, Fdump_emacs): Don't test __linux or __linux__.
+
 2006-05-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1210000.
