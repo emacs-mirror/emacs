@@ -1753,7 +1753,7 @@ main (argc, argv
      GNU/Linux.  It might work on some other systems too.  Give it a
      try and tell us if it works on your system.  To compile for
      profiling use something like `make CFLAGS="-pg -g -O -DPROFILING=1'.  */
-#if defined (__FreeBSD__) || defined (__linux)
+#if defined (__FreeBSD__) || defined (GNU_LINUX)
 #ifdef PROFILING
   if (initialized)
     {
@@ -2232,7 +2232,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   if (! noninteractive)
     error ("Dumping Emacs works only in batch mode");
 
-#ifdef __linux__
+#ifdef GNU_LINUX
   if (heap_bss_diff > MAX_HEAP_BSS_DIFF)
     {
       fprintf (stderr, "**************************************************\n");
@@ -2244,7 +2244,7 @@ You must run Emacs in batch mode in order to dump it.  */)
       fprintf (stderr, "exec-shield in etc/PROBLEMS for more information.\n");
       fprintf (stderr, "**************************************************\n");
     }
-#endif /* __linux__ */
+#endif /* GNU_LINUX */
 
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
