@@ -1317,32 +1317,32 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 
     (define-key map
       [menu-bar immediate tumme tumme-mark-tagged-files]
-      '(menu-item "Mark From Image Tag..."
-                  tumme-mark-tagged-files))    
+      '(menu-item "Mark From Image Tag..." tumme-mark-tagged-files
+                  :help "Mark files whose image tags matches regexp"))
     (define-key map
       [menu-bar immediate tumme tumme-tag-remove]
-      '(menu-item "Remove Image Tag..."
-                  tumme-tag-remove))
+      '(menu-item "Remove Image Tag..." tumme-tag-remove
+                  :help "Remove image tag from current or marked files"))
     (define-key map
       [menu-bar immediate tumme tumme-tag-files]
-      '(menu-item "Add Image Tag..."
-                  tumme-tag-files))
+      '(menu-item "Add Image Tag..." tumme-tag-files
+                  :help "Add image tag to current or marked files"))
     (define-key map
       [menu-bar immediate tumme tumme-dired-comment-files]
-      '(menu-item "Add Comment"
-                  tumme-dired-comment-files))
+      '(menu-item "Add Comment..." tumme-dired-comment-files
+                  :help "Add comment to current or marked files"))
     (define-key map
       [menu-bar immediate tumme tumme-dired-display-external]
-      '(menu-item "Display Image Externally"
-                  tumme-dired-display-external))
+      '(menu-item "Display Image Externally" tumme-dired-display-external
+                  :help "Display image in external viewer"))
     (define-key map
       [menu-bar immediate tumme tumme-dired-display-image]
-      '(menu-item "Display Image"
-                  tumme-dired-display-image))    
+      '(menu-item "Display Image" tumme-dired-display-image
+                  :help "Display sized image in a separate window"))
     (define-key map
       [menu-bar immediate tumme tumme-display-thumbs]
-      '(menu-item "Display Thumbnails"
-                  tumme-display-thumbs))
+      '(menu-item "Display Thumbnails" tumme-display-thumbs
+                  :help "Display thumbnails for current or marked image files"))
 
 
     (define-key map [menu-bar immediate compare-directories]
