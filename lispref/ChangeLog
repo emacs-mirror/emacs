@@ -1,3 +1,7 @@
+2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Key Sequences): Some clarifications.
+
 2006-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* processes.texi (Bindat Functions): Say "unibyte string"
