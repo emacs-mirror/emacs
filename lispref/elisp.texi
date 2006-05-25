@@ -590,7 +590,8 @@ Defining Commands
 
 Keymaps
 
-* Key Sequences::        	What a key sequence looks like as a Lisp object.
+* Key Sequences::        	Key sequences as Lisp objects.
+* Keymap Basics::               Basic concepts of keymaps.
 * Format of Keymaps::		What a keymap looks like as a Lisp object.
 * Creating Keymaps:: 		Functions to create and copy keymaps.
 * Inheritance and Keymaps::	How one keymap can inherit the bindings
