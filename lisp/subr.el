@@ -1617,7 +1617,7 @@ Optional DEFAULT is a default password to use instead of empty input.
 This function echoes `.' for each character that the user types.
 The user ends with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
 C-g quits; if `inhibit-quit' was non-nil around this function,
-then it returns nil if the user types C-g.
+then it returns nil if the user types C-g, but quit-flag remains set.
 
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
@@ -2321,7 +2321,13 @@ is allowed once again."
   `(condition-case nil
        (let ((inhibit-quit nil))
 	 ,@body)
-     (quit (setq quit-flag t) nil)))
+     (quit (setq quit-flag t)
+	   ;; This call is to give a chance to handle quit-flag
+	   ;; in case inhibit-quit is nil.
+	   ;; Without this, it will not be handled until the next function
+	   ;; call, and that might allow it to exit thru a condition-case
+	   ;; that intends to handle the quit signal next time.
+	   (eval '(ignore nil)))))
 
 (defmacro while-no-input (&rest body)
   "Execute BODY only as long as there's no pending input.
