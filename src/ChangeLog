@@ -1,3 +1,12 @@
+2006-05-25  Juri Linkov  <juri@jurta.org>
+
+	* lisp.h (Fread_from_minibuffer): Decrement number of args.
+
+	* minibuf.c (read_minibuf): Remove arg KEEP_ALL.  Callers changed.
+	(Fread_from_minibuffer): Remove arg KEEP_ALL.  Callers changed.
+
+	* buffer.c (mode-line-format): Fix docstring.
+
 2006-05-25  Richard Stallman  <rms@gnu.org>
 
 	* emacs.c (main, Fdump_emacs): Don't test __linux or __linux__.

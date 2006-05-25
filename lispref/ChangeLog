@@ -1,3 +1,7 @@
+2006-05-25  Juri Linkov  <juri@jurta.org>
+
+	* modes.texi (%-Constructs): Add %e, %z, %Z.
+
 2006-05-25  Richard Stallman  <rms@gnu.org>
 
 	* elisp.texi (Top): Update subnode menu.
@@ -535,7 +539,7 @@
 
 2005-12-23  Eli Zaretskii  <eliz@gnu.org>
 
-	* text.texi (Undo): Remove dupliate descriptions of `apply
+	* text.texi (Undo): Remove duplicate descriptions of `apply
 	funname' and `apply delta' elements of the undo list.
 
 2005-12-20  Richard M. Stallman  <rms@gnu.org>
