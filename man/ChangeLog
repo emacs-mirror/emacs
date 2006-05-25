@@ -1,3 +1,7 @@
+2006-05-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* anti.texi (Antinews): Create a node for gdb-ui.
+
 2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Plain lists): Added new item navigation commands.
