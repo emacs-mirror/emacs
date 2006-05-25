@@ -38,7 +38,6 @@
 	(tumme-track-movement): Change default value to t.
 	(tumme-display-thumbs): Add new optional parameter DO-NOT-POP,
 	used from `tumme-next-line-and-display' and similar commands.
-	(tumme-dired-display-properties): 
 
 	* dired.el (dired-mode-map): Add Thumbnail submenu under the
 	Immediate menu.  Add some tumme commands there.
