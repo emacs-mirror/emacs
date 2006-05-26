@@ -3557,6 +3557,9 @@ w32-use-full-screen-buffer to t.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
+** The function find-operation-coding-system accepts a cons (FILENAME
+. BUFFER) in an argument correponding to the target.
+
 ---
 ** The variables post-command-idle-hook and post-command-idle-delay have
     been removed.  Use run-with-idle-timer instead.
