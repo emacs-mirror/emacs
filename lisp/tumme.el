@@ -968,7 +968,7 @@ displayed."
    'tags (tumme-list-tags (tumme-original-file-name))))
 
 ;;;###autoload
-(defun tumme-tag-remove (arg)
+(defun tumme-delete-tag (arg)
   "Remove tag for selected file(s).
 With prefix argument ARG, remove tag from file at point."
   (interactive "P")
@@ -1491,7 +1491,7 @@ Note that n, p and <down> and <up> will be hijacked and bound to
 
   (define-key dired-mode-map "\C-td" 'tumme-display-thumbs)
   (define-key dired-mode-map "\C-tt" 'tumme-tag-files)
-  (define-key dired-mode-map "\C-tr" 'tumme-tag-remove)
+  (define-key dired-mode-map "\C-tr" 'tumme-delete-tag)
   (define-key dired-mode-map [tab] 'tumme-jump-thumbnail-buffer)
   (define-key dired-mode-map "\C-ti" 'tumme-dired-display-image)
   (define-key dired-mode-map "\C-tx" 'tumme-dired-display-external)
@@ -1513,8 +1513,8 @@ Note that n, p and <down> and <up> will be hijacked and bound to
   (define-key dired-mode-map [menu-bar tumme tumme-mark-tagged-files]
     '("Mark tagged files" . tumme-mark-tagged-files))
 
-  (define-key dired-mode-map [menu-bar tumme tumme-tag-remove]
-    '("Remove tag from files" . tumme-tag-remove))
+  (define-key dired-mode-map [menu-bar tumme tumme-delete-tag]
+    '("Remove tag from files" . tumme-delete-tag))
 
   (define-key dired-mode-map [menu-bar tumme tumme-tag-files]
     '("Tag files" . tumme-tag-files))
