@@ -1,3 +1,7 @@
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* org.texi: Remove bogus @setfilename.
+
 2006-05-26  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (ASCII export): Omit command name.

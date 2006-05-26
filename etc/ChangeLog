@@ -1,3 +1,7 @@
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* ledit.l: Remove file.
+
 2006-05-26  Kenichi Handa  <handa@m17n.org>
 
 	* NEWS (find-operation-coding-system): Mention the new argument

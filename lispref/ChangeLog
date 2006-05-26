@@ -1,3 +1,8 @@
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* tips.texi (Coding Conventions): Advise against using
+	eval-after-load in packages.  Add an index entry.
+
 2006-05-25  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.texi (Text from Minibuffer): Undocument keep-all.
