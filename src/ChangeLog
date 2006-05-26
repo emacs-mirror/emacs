@@ -1,3 +1,7 @@
+2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (png_load): Don't call fclose on NULL.
+
 2006-05-25  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fns.c (Fyes_or_no_p):
