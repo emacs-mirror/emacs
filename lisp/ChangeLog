@@ -2,7 +2,7 @@
 
 	* dired.el (dired-mode-map): Change `tumme-tag-remove' to
 	`tumme-delete-tag'. Rename `Remove Image Tag' to `Delete Image
-	Tag'.
+	Tag'.  Change "Compare directories..." to "Change Directories...".
 
 	* tumme.el (tumme-delete-tag): Rename from `tumme-tag-remove'.
 	(tumme-setup-dired-keybindings): Change `tumme-add-remove' to
