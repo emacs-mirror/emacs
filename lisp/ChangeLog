@@ -1,5 +1,13 @@
 2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
 
+	* dired.el (dired-mode-map): Change `tumme-tag-remove' to
+	`tumme-delete-tag'. Rename `Remove Image Tag' to `Delete Image
+	Tag'.
+
+	* tumme.el (tumme-delete-tag): Rename from `tumme-tag-remove'.
+	(tumme-setup-dired-keybindings): Change `tumme-add-remove' to
+	`tumme-delete-tag'.
+
 	* dired.el (dired-mode-map): Move tumme commands to Operate,
 	Regexp and Immediate menus. Change "Add Comment" to "Add Image
 	Comment". Change "Add Image Tag" to "Add Image Tags".
