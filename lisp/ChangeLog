@@ -346,7 +346,7 @@
 	have non-nil values.  Speed up by using add-to-list instead of
 	manual consing.
 
-2006-05-20  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-05-20  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* progmodes/make-mode.el (makefile-mode): Doc fix.
 
@@ -911,7 +911,7 @@
 	reference to the Lisp manual to the warning about pure space
 	overflow.
 
-2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/ispell.el (ispell-buffer-local-dict): Add a `no-reload'
 	argument to avoid the call to `ispell-internal-change-dictionary'
@@ -1771,7 +1771,7 @@
 	* files.el (hack-local-variables-confirm) <offer-save>:
 	Clarify message text.  Suggested by Ralf Angeli.
 
-2006-04-08  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-04-08  Michael Cadilhac  <michael.cadilhac@lrde.org>
 
 	* rect.el (kill-rectangle): Don't barf if `kill-read-only-ok' is set.
 	(delete-extract-rectangle-line): Use `filter-buffer-substring'
@@ -8599,7 +8599,7 @@
 	since the last ping.
 	(rcirc-mode): Give rcirc-topic a local binding here.
 
-2005-11-19  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2005-11-19  Michael Cadilhac  <michael.cadilhac@lrde.org>
 
 	* subr.el (read-passwd): Fontify the prompt as we do with other
 	prompts.
@@ -10210,7 +10210,7 @@
 
 	* dired-x.el (dired-virtual): Don't use `dired-insert-headerline'.
 
-2005-10-25  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>  (tiny change)
+2005-10-25  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
 
 	* play/blackbox.el (blackbox-redefine-key): New function.
 	(blackbox-mode-map): Use it to remap existing bindings for cursor
@@ -11474,7 +11474,7 @@
 	* progmodes/gdb-ui.el (gdb-fringe-width -> gdb-buffer-fringe-width):
 	Typo.
 
-2005-10-06  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>  (tiny change)
+2005-10-06  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
 
 	* play/zone.el (zone): Wrap body with save-window-excursion.
 

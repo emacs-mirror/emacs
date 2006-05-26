@@ -697,7 +697,7 @@
 
 	* puresize.h (BASE_PURESIZE): Increment to 1210000.
 
-2006-04-13  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-04-13  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* print.c (Fprin1_to_string): Mention in the `doc' that the
 	behavior is modified by `print-level' and `print-length'.
@@ -818,7 +818,7 @@
 	* xfaces.c (Finternal_merge_in_global_face, try_font_list):
 	Add explicit braces to avoid ambiguous `else'.
 
-2006-04-11  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-04-11  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* dispnew.c (init_display): Don't init X display if the user asked
 	for a non-X display.
