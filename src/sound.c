@@ -1019,6 +1019,9 @@ alsa_configure (sd)
   if ((err = snd_pcm_hw_params_set_channels (p->handle, p->hwparams, val)) < 0)
     alsa_sound_perror ("Could not set channel count", err);
 
+  if ((err = snd_pcm_hw_params (p->handle, p->hwparams)) < 0)
+    alsa_sound_perror ("Could not set parameters", err);
+
 
   err = snd_pcm_hw_params_get_period_size (p->hwparams, &p->period_size, &dir);
   if (err < 0)
@@ -1027,9 +1030,6 @@ alsa_configure (sd)
   err = snd_pcm_hw_params_get_buffer_size (p->hwparams, &buffer_size);
   if (err < 0)
     alsa_sound_perror("Unable to get buffer size for playback", err);
-
-  if ((err = snd_pcm_hw_params (p->handle, p->hwparams)) < 0)
-    alsa_sound_perror ("Could not set parameters", err);
 
   err = snd_pcm_sw_params_current (p->handle, p->swparams);
   if (err < 0)

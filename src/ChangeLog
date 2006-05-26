@@ -1,3 +1,8 @@
+2006-05-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sound.c (alsa_configure): Move get period/buffer_size after
+	setting hwparams.
+
 2006-05-26  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Ffind_operation_coding_system): Allow (FILENAME
