@@ -2994,7 +2994,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		       (condition-case nil
 			   (delete-file to-name)
 			 (file-error nil))
-		       (copy-file from-name to-name t t 'excl)
+		       (copy-file from-name to-name nil t)
 		       nil)
 		   (file-already-exists t))
 	    ;; The file was somehow created by someone else between
