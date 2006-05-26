@@ -1251,7 +1251,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ;; thumbnail manipulation (tumme)
     (define-key map "\C-td" 'tumme-display-thumbs)
     (define-key map "\C-tt" 'tumme-tag-files)
-    (define-key map "\C-tr" 'tumme-tag-remove)
+    (define-key map "\C-tr" 'tumme-delete-tag)
     (define-key map "\C-tj" 'tumme-jump-thumbnail-buffer)
     (define-key map "\C-ti" 'tumme-dired-display-image)
     (define-key map "\C-tx" 'tumme-dired-display-external)
@@ -1452,9 +1452,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '("--"))
 
     (define-key map
-      [menu-bar operate tumme-tag-remove]
-      '(menu-item "Remove Image Tag..." tumme-tag-remove
-                  :help "Remove image tag from current or marked files"))
+      [menu-bar operate tumme-delete-tag]
+      '(menu-item "Delete Image Tag..." tumme-delete-tag
+                  :help "Delete image tag from current or marked files"))
     (define-key map
       [menu-bar operate tumme-tag-files]
       '(menu-item "Add Image Tags..." tumme-tag-files
