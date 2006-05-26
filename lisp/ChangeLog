@@ -1,3 +1,18 @@
+2006-05-26  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/po.el (po-find-charset): Pay attention to the case
+	FILENAME is a cons (NAME . BUFFER).
+	(po-find-file-coding-system-guts): Likewise.
+
+	* arc-mode.el (archive-set-buffer-as-visiting-file): Call
+	find-operation-coding-system with (FILENAME . BUFFER).
+
+	* tar-mode.el (tar-extract): Call find-operation-coding-system
+	with (FILENAME . BUFFER).
+
+	* international/mule.el (decode-coding-inserted-region): Call
+	find-operation-coding-system with (FILENAME . BUFFER).
+
 2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-toggle-display): Use buffer contents to

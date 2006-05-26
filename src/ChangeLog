@@ -1,3 +1,8 @@
+2006-05-26  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Ffind_operation_coding_system): Allow (FILENAME
+	. BUFFER) in TARGET.
+
 2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (png_load): Don't call fclose on NULL.
