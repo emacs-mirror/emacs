@@ -4247,7 +4247,7 @@ The variable `selective-display' has a separate value for each buffer."
 (defvaralias 'indicate-unused-lines 'indicate-empty-lines)
 (defvaralias 'default-indicate-unused-lines 'default-indicate-empty-lines)
 
-(defun toggle-truncate-lines (arg)
+(defun toggle-truncate-lines (&optional arg)
   "Toggle whether to fold or truncate long lines on the screen.
 With arg, truncate long lines iff arg is positive.
 Note that in side-by-side windows, truncation is always enabled."

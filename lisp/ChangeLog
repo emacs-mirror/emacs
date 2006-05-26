@@ -1,3 +1,8 @@
+2006-05-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* simple.el (toggle-truncate-lines): Make arg optional for
+	backward compatibility.
+
 2006-05-26  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc--current-dll): New var.
