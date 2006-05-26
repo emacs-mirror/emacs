@@ -1,11 +1,11 @@
 \input texinfo
 
 @c %**start of header
-@c @setfilename org
+@setfilename org
 @setfilename ../info/org
-@settitle Org Mode Manual
+@c @settitle Org Mode Manual
 
-@set VERSION 4.33
+@set VERSION 4.34
 @set DATE May 2006
 
 @dircategory Emacs
@@ -15,6 +15,7 @@
 
 @c Version and Contact Info
 @set MAINTAINERSITE @uref{http://www.astro.uva.nl/~dominik/Tools/org/,maintainers webpage}
+@set AUTHOR Carsten Dominik
 @set MAINTAINER Carsten Dominik
 @set MAINTAINEREMAIL @email{dominik@@science.uva.nl}
 @set MAINTAINERCONTACT @uref{mailto:dominik@@science.uva.nl,contact the maintainer}
@@ -358,7 +359,7 @@ the file's name is.  See also the variable
 @cindex author
 
 If you find problems with Org-mode, or if you have questions, remarks,
-or ideas about it, please contact the maintainer Carsten Dominik at
+or ideas about it, please contact the maintainer @value{MAINTAINER} at
 @value{MAINTAINEREMAIL}.
 
 For bug reports, please provide as much information as possible,
@@ -2814,7 +2815,6 @@ Show the global TODO list.  This collects the TODO items from all
 agenda files (@pxref{Agenda views}) into a single buffer.  The buffer is in
 @code{agenda-mode}, so there are commands to examine and manipulate
 the TODO entries directly from that buffer (@pxref{Agenda commands}).
-@xref{Global TODO list}, for more information.
 @kindex C-c a T
 @item C-c a T
 Like the above, but allows selection of a specific TODO keyword.  You can
@@ -3166,7 +3166,7 @@ will be exported as itemized lists.  If you want that transition to occur
 at a different level, specify it with a prefix argument.  For example,
 
 @example
-@kbd{C-1 C-c C-x a org-export-as-ascii}
+@kbd{C-1 C-c C-x a}
 @end example
 
 @noindent
@@ -3250,10 +3250,10 @@ end of the outline tree.  For example:
 
 # Local Variables:
 # org-export-html-style: "   <style type=\"text/css\">
-       p @{font-weight: normal; color: gray; @}
-       h1 @{color: black; @}
-   </style>"
-# End: ***
+#       p @{font-weight: normal; color: gray; @}
+#       h1 @{color: black; @}
+#   </style>"
+# End:
 @end example
 
 Remember to execute @kbd{M-x normal-mode} after changing this to make
@@ -3868,7 +3868,7 @@ lines into the buffer (@pxref{Summary of in-buffer settings}).
 Org-mode uses special lines in the buffer to define settings on a
 per-file basis.  These lines start with a @samp{#+} followed by a
 keyword, a colon, and then individual words defining a setting.  Several
-settings words con be in the same line, but you can also have multiple
+setting words can be in the same line, but you can also have multiple
 lines for the keyword.  While these settings are described throughout
 the manual, here is a summary.  After changing any of those lines in the
 buffer, press @kbd{C-c C-c} with the cursor still in the line to
@@ -3912,7 +3912,7 @@ odd        @r{allow only odd outline levels (1,3,...)}
 oddeven    @r{allow all outline levels}
 @end example
 @item #+SEQ_TODO:   #+TYP_TODO:
-These lines that the TODO keywords and their interpretation in the
+These lines set the TODO keywords and their interpretation in the
 current file.  The corresponding variables are @code{org-todo-keywords}
 and @code{org-todo-interpretation}.
 @item #+TAGS:  TAG1(c1) TAG2(c2)
@@ -4489,7 +4489,7 @@ The exporters work well, but could be made more efficient.
 @cindex acknowledgments
 @cindex thanks
 
-Org-mode was written by Carsten Dominik, who still maintains it at the
+Org-mode was created by @value{AUTHOR}, who still maintains it at the
 Org-mode homepage @uref{http://www.astro.uva.nl/~dominik/Tools/org/}.
 The following people (in alphabetic order) have helped the development
 along with ideas, suggestions and patches.  Many thanks to all of you,
@@ -4497,88 +4497,93 @@ Org-mode would not be what it is without your input.
 
 @itemize @bullet
 @item
-Thomas Baumann contributed the code for links to the MH-E email system.
-@item
-Alex Bochannek provided a patch for rounding time stamps.
-@item
-Charles Caves' suggestion sparked the implementation of templates for
-Remember.
-@item
-Pavel Chalmoviansky influenced the agenda treatment of items with
-specified time.
-@item
-Gregory Chenov patched support for lisp forms into table calculations
-and improved XEmacs compatibility.
-@item
-Sacha Chua suggested to copy some linking code from Planner.
-@item
-Kees Dullemond inspired the use of narrowed tabled columns.
-@item
-Christian Egli converted the documentation into TeXInfo format, patched
-CSS formatting into the HTML exporter, and inspired the agenda.
-@item
-Nic Ferrier contributed mailcap and XOXO support.
-@item
-Kai Grossjohann pointed out key-binding conflicts caused by Org-mode.
-@item
-Stefan Monnier provided a patch to keep the Emacs-Lisp compiler happy.
-@item
-Todd Neal provided patches for links to Info files and elisp forms.
-@item
-Tim O'Callaghan suggested in-file links, search options for
-general file links, and TAGS.
-@item
-Oliver Oppitz suggested multi-state TODO items.
-@item
-Scott Otterson sparked the introduction of descriptive text for links,
-among other things.
-@item
-Pete Phillips helped the development of the TAGS feature.
-@item
-T.V. Raman reported bugs and suggested improvements.
-@item
-Matthias Rempe (Oelde) provided ideas, Windows support, and quality
-control.
-@item
-Kevin Rogers contributed code to access VM files on remote hosts.
-@item
-Frank Ruell solved the mystery of the @code{keymapp nil} bug, a conflict
-with @file{allout.el}.
-@item
-Philip Rooke created the Org-mode reference card and provided lots of feedback.
-@item
-Christian Schlauer proposed angular brackets around links, among other
-things.
-@item
-Linking to VM/BBDB/GNUS was inspired by Tom Shannon's
-@file{organizer-mode.el}.
-@item
-David O'Toole wrote @file{org-publish.el} and came up with lots is ideas
-for small changes.
-@item
-J@"urgen Vollmer contributed code generating the table of contents
-in HTML output.
-@item
-Chris Wallace provided a patch implementing the @samp{QUOTE} keyword.
-@item
-David Wainberg suggested archiving, and improvements to the linking
+@i{Thomas Baumann} contributed the code for links to the MH-E email
 system.
 @item
-John Wiegley wrote @file{emacs-wiki.el} and @file{planner.el}.  The
+@i{Alex Bochannek} provided a patch for rounding time stamps.
+@item
+@i{Charles Cave}'s suggestion sparked the implementation of templates
+for Remember.
+@item
+@i{Pavel Chalmoviansky} influenced the agenda treatment of items with
+specified time.
+@item
+@i{Gregory Chenov} patched support for lisp forms into table
+calculations and improved XEmacs compatibility.
+@item
+@i{Sacha Chua} suggested to copy some linking code from Planner.
+@item
+@i{Kees Dullemond} inspired the use of narrowed tabled columns.
+@item
+@i{Christian Egli} converted the documentation into TeXInfo format,
+patched CSS formatting into the HTML exporter, and inspired the agenda.
+@item
+@i{Nic Ferrier} contributed mailcap and XOXO support.
+@item
+@i{Kai Grossjohann} pointed out key-binding conflicts caused by
+Org-mode.
+@item
+@i{Stefan Monnier} provided a patch to keep the Emacs-Lisp compiler
+happy.
+@item
+@i{Todd Neal} provided patches for links to Info files and elisp forms.
+@item
+@i{Tim O'Callaghan} suggested in-file links, search options for general
+file links, and TAGS.
+@item
+@i{Oliver Oppitz} suggested multi-state TODO items.
+@item
+@i{Scott Otterson} sparked the introduction of descriptive text for
+links, among other things.
+@item
+@i{Pete Phillips} helped the development of the TAGS feature.
+@item
+@i{T.V. Raman} reported bugs and suggested improvements.
+@item
+@i{Matthias Rempe} (Oelde) provided ideas, Windows support, and quality
+control.
+@item
+@i{Kevin Rogers} contributed code to access VM files on remote hosts.
+@item
+@i{Frank Ruell} solved the mystery of the @code{keymapp nil} bug, a
+conflict with @file{allout.el}.
+@item
+@i{Philip Rooke} created the Org-mode reference card and provided lots
+of feedback.
+@item
+@i{Christian Schlauer} proposed angular brackets around links, among
+other things.
+@item
+Linking to VM/BBDB/GNUS was inspired by @i{Tom Shannon}'s
+@file{organizer-mode.el}.
+@item
+@i{David O'Toole} wrote @file{org-publish.el} and came up with lots is
+ideas for small changes.
+@item
+@i{J@"urgen Vollmer} contributed code generating the table of contents
+in HTML output.
+@item
+@i{Chris Wallace} provided a patch implementing the @samp{QUOTE}
+keyword.
+@item
+@i{David Wainberg} suggested archiving, and improvements to the linking
+system.
+@item
+@i{John Wiegley} wrote @file{emacs-wiki.el} and @file{planner.el}.  The
 development of Org-mode was fully independent, and both systems are
 really different beasts in their basic ideas and implementation details.
 I later looked at John's code, however, and learned from his
 implementation of (i) links where the link itself is hidden and only a
 description is shown, and (ii) popping up a calendar to select a date.
 @item
-Carsten Wimmer suggested some changes and helped fix a bug in linking
-to GNUS.
+@i{Carsten Wimmer} suggested some changes and helped fix a bug in
+linking to GNUS.
 @item
-Roland Winkler requested additional keybindings to make Org-mode
+@i{Roland Winkler} requested additional keybindings to make Org-mode
 work on a tty.
 @item
-Piotr Zielinski wrote @file{org-mouse.el} and showed how to follow links
-with mouse-1.
+@i{Piotr Zielinski} wrote @file{org-mouse.el} and showed how to follow
+links with mouse-1.
 @end itemize
  
 @node Index, Key Index, Miscellaneous, Top
