@@ -41,15 +41,21 @@
 Contains canonical charset names that don't correspond to coding systems.")
 
 (defun po-find-charset (filename)
-  "Return PO charset value for FILENAME."
+  "Return PO charset value for FILENAME.
+If FILENAME is a cons, the cdr part is a buffer that already contains
+the PO file (but not yet decoded)."
   (let ((charset-regexp
 	 "^\"Content-Type:[ \t]*text/plain;[ \t]*charset=\\(.*\\)\\\\n\"")
+	(buf (and (consp filename) (cdr filename)))
 	(short-read nil))
+    (when buf
+      (set-buffer buf)
+      (goto-char (point-min)))
     ;; Try the first 4096 bytes.  In case we cannot find the charset value
     ;; within the first 4096 bytes (the PO file might start with a long
     ;; comment) try the next 4096 bytes repeatedly until we'll know for sure
     ;; we've checked the empty header entry entirely.
-    (while (not (or short-read (re-search-forward "^msgid" nil t)))
+    (while (not (or short-read (re-search-forward "^msgid" nil t) buf))
       (save-excursion
         (goto-char (point-max))
 	(let ((pair (insert-file-contents-literally filename nil
@@ -57,7 +63,7 @@ Contains canonical charset names that don't correspond to coding systems.")
 						    (1- (+ (point) 4096)))))
 	  (setq short-read (< (nth 1 pair) 4096)))))
     (cond ((re-search-forward charset-regexp nil t) (match-string 1))
-	  (short-read nil)
+	  ((or short-read buf) nil)
 	  ;; We've found the first msgid; maybe, only a part of the msgstr
 	  ;; value was loaded.  Load the next 1024 bytes; if charset still
 	  ;; isn't available, give up.
@@ -71,10 +77,13 @@ Contains canonical charset names that don't correspond to coding systems.")
 
 (defun po-find-file-coding-system-guts (operation filename)
   "Return a (DECODING . ENCODING) pair for OPERATION on PO file FILENAME.
-Do so according to FILENAME's declared charset."
+Do so according to FILENAME's declared charset.
+FILENAME may be a cons (NAME . BUFFER).  In that case, detect charset
+in BUFFER."
   (and
    (eq operation 'insert-file-contents)
-   (file-exists-p filename)
+   (or (if (consp filename) (buffer-live-p (cdr filename)))
+       (file-exists-p filename))
    (with-temp-buffer
      (let* ((coding-system-for-read 'no-conversion)
 	    (charset (or (po-find-charset filename) "ascii"))
