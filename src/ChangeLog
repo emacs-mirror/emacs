@@ -1,3 +1,10 @@
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main) [PROFILING]: Enable also for __MINGW32__.
+	[__MINGW32__]: MinGW-specific declaration of `etext'.
+
+	* w32heap.c (etext, edata): Remove unused definitions.
+
 2006-05-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c (Fcopy_file): Delete argument MUSTBENEW.  Incorporate
