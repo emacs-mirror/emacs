@@ -1,3 +1,18 @@
+2006-05-26  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (defadvice undo-more): Delete this defadvice.  The undo
+	overrides will now be done a different way.
+	(ses-set-parameter): Reapply this function for undo.
+	(ses-set-header-row): Reconstruct header row during undo.
+	(ses-widen): New function.
+	(ses-goto-data, ses-reconstruct-all): Use new function.
+	(ses-command-hook): Widen buffer during undo, before unupdating
+	the cells.
+	(ses-insert-row, ses-delete-row): Widen buffer during undo.
+	(ses-load, ses-header-row): Permit empty (zero-row) spreadsheets.
+	(ses-read-cell): Avoid stupid warning for RET RET on a cell whose
+	formula hasn't been executed yet.
+
 2006-05-26  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* comint.el (comint-kill-whole-line): Rename arg to count.  Fix
