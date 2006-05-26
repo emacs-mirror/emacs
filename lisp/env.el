@@ -55,8 +55,7 @@ If it is also not t, RET does not exit if it does non-null completion."
 				     (substring enventry 0
 						(string-match "=" enventry)))))
 			   (append process-environment
-				   (frame-parameter (frame-with-environment) 'environment)
-				   global-environment))
+				   (frame-parameter (frame-with-environment) 'environment)))
 		   nil mustmatch nil 'read-envvar-name-history))
 
 ;; History list for VALUE argument to setenv.
@@ -92,6 +91,40 @@ Use `$$' to insert a single dollar sign."
 		   start (+ (match-beginning 0) 1)))))
     string))
 
+
+(defun setenv-internal (env variable value keep-empty)
+  "Set VARIABLE to VALUE in ENV, adding empty entries if KEEP-EMPTY.
+Changes ENV by side-effect, and returns its new value."
+  (let ((pattern (concat "\\`" (regexp-quote variable) "\\(=\\|\\'\\)"))
+	(case-fold-search nil)
+	(scan env)
+	prev found)
+    ;; Handle deletions from the beginning of the list specially.
+    (if (and (null value)
+	     (not keep-empty)
+	     env
+	     (stringp (car env))
+	     (string-match pattern (car env)))
+	(cdr env)
+      ;; Try to find existing entry for VARIABLE in ENV.
+      (while (and scan (stringp (car scan)))
+	(when (string-match pattern (car scan))
+	  (if value
+	      (setcar scan (concat variable "=" value))
+	    (if keep-empty
+		(setcar scan variable)
+	      (setcdr prev (cdr scan))))
+	  (setq found t
+		scan nil))
+	(setq prev scan
+	      scan (cdr scan)))
+      (if (and (not found) (or value keep-empty))
+	  (cons (if value
+		    (concat variable "=" value)
+		  variable)
+		env)
+	env))))
+
 ;; Fixme: Should the environment be recoded if LC_CTYPE &c is set?
 
 (defun setenv (variable &optional value substitute-env-vars frame)
@@ -105,25 +138,22 @@ the front of the history list when you type in the new value.
 This function always replaces environment variables in the new
 value when called interactively.
 
-If VARIABLE is set in `process-environment', then this function
-modifies its value there.  Otherwise, this function works by
-modifying either `global-environment' or the environment
-belonging to the selected frame, depending on the value of
-`local-environment-variables'.
-
 SUBSTITUTE-ENV-VARS, if non-nil, means to substitute environment
 variables in VALUE with `substitute-env-vars', which see.
 This is normally used only for interactive calls.
 
+If optional parameter FRAME is non-nil, this function modifies
+only the frame-local value of VARIABLE on FRAME, ignoring
+`process-environment'.  Note that frames on the same terminal
+device usually share their environment, so calling `setenv' on
+one of them affects the others as well.
+
+If FRAME is nil, `setenv' changes the global value of VARIABLE by
+modifying `process-environment'.  Note that the global value
+overrides any frame-local values.
+
 The return value is the new value of VARIABLE, or nil if
 it was removed from the environment.
-
-If optional parameter FRAME is non-nil, then it should be a a
-frame.  If the specified frame has its own set of environment
-variables, this function will modify VARIABLE in it.  Note that
-frames on the same terminal device usually share their
-environment, so calling `setenv' on one of them affects the
-others as well.
 
 As a special case, setting variable `TZ' calls `set-time-zone-rule' as
 a side-effect."
@@ -155,57 +185,16 @@ a side-effect."
       (setq value (encode-coding-string value locale-coding-system)))
   (if (string-match "=" variable)
       (error "Environment variable name `%s' contains `='" variable))
-  (let ((pattern (concat "\\`" (regexp-quote variable) "\\(=\\|\\'\\)"))
-	(case-fold-search nil)
-	(frame-env (frame-parameter (frame-with-environment frame) 'environment))
-	(frame-forced (not frame))
-	(scan process-environment)
-	found)
+  (if (string-equal "TZ" variable)
+      (set-time-zone-rule value))
+  (if (null frame)
+      (setq process-environment (setenv-internal process-environment
+						 variable value t))
     (setq frame (frame-with-environment frame))
-    (if (string-equal "TZ" variable)
-	(set-time-zone-rule value))
-    (block nil
-      ;; Look for an existing entry for VARIABLE; try `process-environment' first.
-      (while (and scan (stringp (car scan)))
-	(when (string-match pattern (car scan))
-	  (if value
-	      (setcar scan (concat variable "=" value))
-	    ;; Leave unset variables in `process-environment',
-	    ;; otherwise the overridden value in `global-environment'
-	    ;; or frame-env would become unmasked.
-	    (setcar scan variable))
-	  (return value))
-	(setq scan (cdr scan)))
-
-      ;; Look in the local or global environment, whichever is relevant.
-      (let ((local-var-p (and frame-env
-			      (or frame-forced
-				  (eq t local-environment-variables)
-				  (member variable local-environment-variables)))))
-	(setq scan (if local-var-p
-		       frame-env
-		     global-environment))
-	(while scan
-	  (when (string-match pattern (car scan))
-	    (if value
-		(setcar scan (concat variable "=" value))
-	      (if local-var-p
-		  (set-frame-parameter frame 'environment
-				       (delq (car scan) frame-env))
-		(setq global-environment (delq (car scan) global-environment))))
-	    (return value))
-	  (setq scan (cdr scan)))
-
-	;; VARIABLE is not in any environment list.
-	(if value
-	    (if local-var-p
-		(set-frame-parameter frame 'environment
-				     (cons (concat variable "=" value)
-					   frame-env))
-	      (setq global-environment
-		    (cons (concat variable "=" value)
-			  global-environment))))
-	(return value)))))
+    (set-frame-parameter frame 'environment
+			 (setenv-internal (frame-parameter frame 'environment)
+					  variable value nil)))
+  value)
 
 (defun getenv (variable &optional frame)
   "Get the value of environment variable VARIABLE.
@@ -213,14 +202,12 @@ VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.
 
 If optional parameter FRAME is non-nil, then it should be a
-frame.  If that frame has its own set of environment variables,
-this function will look up VARIABLE in there.
+frame.  This function will look up VARIABLE in its 'environment
+parameter.
 
 Otherwise, this function searches `process-environment' for
-VARIABLE.  If it is not found there, then it continues the
-search in either `global-environment' or the environment list of
-the selected frame, depending on the value of
-`local-environment-variables'."
+VARIABLE.  If it is not found there, then it continues the search
+in the environment list of the selected frame."
   (interactive (list (read-envvar-name "Get environment variable: " t)))
   (let ((value (getenv-internal (if (multibyte-string-p variable)
 				    (encode-coding-string
@@ -239,47 +226,43 @@ Each entry in the list is a string of the form NAME=VALUE.
 The returned list can not be used to change environment
 variables, only read them.  See `setenv' to do that.
 
-The list is constructed from elements of `process-environment',
-`global-environment' and the local environment list of the
-selected frame, as specified by `local-environment-variables'.
+The list is constructed by concatenating the elements of
+`process-environment' and the 'environment parameter of the
+selected frame, and removing duplicated and empty values.
 
 Non-ASCII characters are encoded according to the initial value of
 `locale-coding-system', i.e. the elements must normally be decoded for use.
 See `setenv' and `getenv'."
-  (let ((env (let ((local-env (frame-parameter (frame-with-environment)
-					       'environment)))
-	       (cond ((or (not local-environment-variables)
-			  (not local-env))
-		      (append process-environment global-environment nil))
-		     ((consp local-environment-variables)
-		      (let ((e (reverse process-environment)))
-			(dolist (entry local-environment-variables)
-			  (setq e (cons (getenv entry) e)))
-			(append (nreverse e) global-environment nil)))
-		     (t
-		      (append process-environment local-env nil)))))
-	scan seen)
-    ;; Find the first valid entry in env.
-    (while (and env (stringp (car env))
-		(or (not (string-match "=" (car env)))
-		    (member (substring (car env) 0 (string-match "=" (car env))) seen)))
-      (setq seen (cons (car env) seen)
-	    env (cdr env)))
-    (setq scan env)
-    (while (and (cdr scan) (stringp (cadr scan)))
-      (let* ((match (string-match "=" (cadr scan)))
-	     (name (substring (cadr scan) 0 match)))
-	(cond ((not match)
+  (let* ((env (append process-environment
+		      (frame-parameter (frame-with-environment)
+				       'environment)
+		      nil))
+	 (scan env)
+	 prev seen)
+    ;; Remove unset variables from the beginning of the list.
+    (while (and env
+		(or (not (stringp (car env)))
+		    (not (string-match "=" (car env)))))
+      (or (member (car env) seen)
+	  (setq seen (cons (car env) seen)))
+      (setq env (cdr env)
+	    scan env))
+    (let (name)
+      (while scan
+	(cond ((or (not (stringp (car scan)))
+		   (not (string-match "=" (car scan))))
 	       ;; Unset variable.
-	       (setq seen (cons name seen))
-	       (setcdr scan (cddr scan)))
-	      ((member name seen)
-	       ;; Duplicate variable.
-	       (setcdr scan (cddr scan)))
+	       (or (member (car scan) seen)
+		   (setq seen (cons (car scan) seen)))
+	       (setcdr prev (cdr scan)))
+	      ((member (setq name (substring (car scan) 0 (string-match "=" (car scan)))) seen)
+	       ;; Duplicated variable.
+	       (setcdr prev (cdr scan)))
 	      (t
 	       ;; New variable.
-	       (setq seen (cons name seen)
-		     scan (cdr scan))))))
+	       (setq seen (cons name seen))))
+	(setq prev scan
+	      scan (cdr scan))))
     env))
 
 (defmacro let-environment (varlist &rest body)

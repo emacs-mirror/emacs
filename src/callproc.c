@@ -113,7 +113,6 @@ Lisp_Object Vtemp_file_name_pattern;
 
 Lisp_Object Vshell_file_name;
 
-Lisp_Object Vglobal_environment;
 Lisp_Object Vprocess_environment;
 
 #ifdef DOS_NT
@@ -133,9 +132,6 @@ int synch_process_termsig;
 /* If synch_process_death is zero,
    this is exit code of synchronous subprocess.  */
 int synch_process_retcode;
-
-/* List of environment variables to look up in emacsclient.  */
-Lisp_Object Vlocal_environment_variables;
 
 
 /* Clean up when exiting Fcall_process.
@@ -1321,8 +1317,8 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     register char **new_env;
     char **p, **q;
     register int new_length;
-    Lisp_Object environment = Vglobal_environment;
-    Lisp_Object local;
+    Lisp_Object local = get_frame_param (XFRAME (Fframe_with_environment (selected_frame)),
+                                         Qenvironment);
 
     new_length = 0;
 
@@ -1331,20 +1327,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
          tem = XCDR (tem))
       new_length++;
 
-    if (!NILP (Vlocal_environment_variables))
-      {
-        local = get_frame_param (XFRAME (Fframe_with_environment (selected_frame)),
-                                 Qenvironment);
-        if (EQ (Vlocal_environment_variables, Qt)
-            && !NILP (local))
-          environment = local;
-        else if (CONSP (local))
-          {
-            new_length += Fsafe_length (Vlocal_environment_variables);
-          }
-      }
-
-    for (tem = environment;
+    for (tem = local;
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
       new_length++;
@@ -1354,7 +1337,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
     /* If we have a PWD envvar, pass one down,
        but with corrected value.  */
-    if (getenv ("PWD"))
+    if (egetenv ("PWD"))
       *new_env++ = pwd_var;
  
     /* Overrides.  */
@@ -1363,17 +1346,10 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 	 tem = XCDR (tem))
       new_env = add_env (env, new_env, SDATA (XCAR (tem)));
 
-    /* Local part of environment, if Vlocal_environment_variables is a list.  */
-    for (tem = Vlocal_environment_variables;
+    /* Local part of environment.  */
+    for (tem = local;
          CONSP (tem) && STRINGP (XCAR (tem));
          tem = XCDR (tem))
-      new_env = add_env (env, new_env, egetenv (SDATA (XCAR (tem))));
-
-    /* The rest of the environment (either Vglobal_environment or the
-       'environment frame parameter).  */
-    for (tem = environment;
-	 CONSP (tem) && STRINGP (XCAR (tem));
-	 tem = XCDR (tem))
       new_env = add_env (env, new_env, SDATA (XCAR (tem)));
 
     *new_env = 0;
@@ -1510,79 +1486,47 @@ getenv_internal (var, varlen, value, valuelen, frame)
      Lisp_Object frame;
 {
   Lisp_Object scan;
-  Lisp_Object environment = Vglobal_environment;
 
-  /* Try to find VAR in Vprocess_environment first.  */
-  for (scan = Vprocess_environment; CONSP (scan); scan = XCDR (scan))
+  if (NILP (frame))
     {
-      Lisp_Object entry = XCAR (scan);
-      if (STRINGP (entry)
-          && SBYTES (entry) >= varlen
-#ifdef WINDOWSNT
-          /* NT environment variables are case insensitive.  */
-          && ! strnicmp (SDATA (entry), var, varlen)
-#else  /* not WINDOWSNT */
-          && ! bcmp (SDATA (entry), var, varlen)
-#endif /* not WINDOWSNT */
-          )
+      /* Try to find VAR in Vprocess_environment first.  */
+      for (scan = Vprocess_environment; CONSP (scan); scan = XCDR (scan))
         {
-          if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
+          Lisp_Object entry = XCAR (scan);
+          if (STRINGP (entry)
+              && SBYTES (entry) >= varlen
+#ifdef WINDOWSNT
+              /* NT environment variables are case insensitive.  */
+              && ! strnicmp (SDATA (entry), var, varlen)
+#else  /* not WINDOWSNT */
+              && ! bcmp (SDATA (entry), var, varlen)
+#endif /* not WINDOWSNT */
+              )
             {
-              *value = (char *) SDATA (entry) + (varlen + 1);
-              *valuelen = SBYTES (entry) - (varlen + 1);
-              return 1;
-            }
-          else if (SBYTES (entry) == varlen)
-            {
-              /* Lone variable names in Vprocess_environment mean that
-                 variable should be removed from the environment. */
-              return 0;
+              if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
+                {
+                  *value = (char *) SDATA (entry) + (varlen + 1);
+                  *valuelen = SBYTES (entry) - (varlen + 1);
+                  return 1;
+                }
+              else if (SBYTES (entry) == varlen)
+                {
+                  /* Lone variable names in Vprocess_environment mean that
+                     variable should be removed from the environment. */
+                  return 0;
+                }
             }
         }
+      frame = selected_frame;
     }
 
   /* Find the environment in which to search the variable. */
-  if (!NILP (frame))
-    {
-      Lisp_Object local;
+  CHECK_FRAME (frame);
+  frame = Fframe_with_environment (frame);
 
-      CHECK_FRAME (frame);
-      frame = Fframe_with_environment (frame);
-      local = get_frame_param (XFRAME (frame), Qenvironment);
-      /* Use Vglobal_environment if there is no local environment.  */
-      if (!NILP (local))
-        environment = local;
-    }
-  else if (!NILP (Vlocal_environment_variables)) 
-    {
-      Lisp_Object local = get_frame_param (XFRAME (Fframe_with_environment (selected_frame)),
-                                           Qenvironment);
-      if (EQ (Vlocal_environment_variables, Qt)
-          && !NILP (local))
-        environment = local;
-      else if (CONSP (local))
-        {
-          for (scan = Vlocal_environment_variables; CONSP (scan); scan = XCDR (scan))
-            {
-              Lisp_Object entry = XCAR (scan);
-              if (STRINGP (entry)
-                  && SBYTES (entry) == varlen
-#ifdef WINDOWSNT
-                  /* NT environment variables are case insensitive.  */
-                  && ! strnicmp (SDATA (entry), var, varlen)
-#else  /* not WINDOWSNT */
-                  && ! bcmp (SDATA (entry), var, varlen)
-#endif /* not WINDOWSNT */
-                  )
-                {
-                  environment = local;
-                  break;
-                } 
-            }
-        }
-    }
-
-  for (scan = environment; CONSP (scan); scan = XCDR (scan))
+  for (scan = get_frame_param (XFRAME (frame), Qenvironment);
+       CONSP (scan);
+       scan = XCDR (scan))
     {
       Lisp_Object entry;
 
@@ -1612,14 +1556,13 @@ DEFUN ("getenv-internal", Fgetenv_internal, Sgetenv_internal, 1, 2, 0,
 VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.
 
-If optional parameter FRAME is non-nil, then it should be a frame.  If
-that frame has its own set of environment variables, this function
-will look up VARIABLE in there.
+This function searches `process-environment' for VARIABLE.  If it is
+not found there, then it continues the search in the environment list
+of the selected frame.
 
-Otherwise, this function searches `process-environment' for VARIABLE.
-If it is not found there, then it continues the search in either
-`global-environment' or the environment list of the selected frame,
-depending on the value of `local-environment-variables'.  */)
+If optional parameter FRAME is non-nil, then this function will ignore
+`process-environment' and will simply look up the variable in that
+frame's environment.  */)
      (variable, frame)
      Lisp_Object variable, frame;
 {
@@ -1766,8 +1709,8 @@ init_callproc ()
     {
       char *dir = getenv ("TMPDIR");
       Vtemp_file_name_pattern
-	= Fexpand_file_name (build_string ("emacsXXXXXX"),
-			     build_string (dir));
+       = Fexpand_file_name (build_string ("emacsXXXXXX"),
+                            build_string (dir));
     }
   else
     Vtemp_file_name_pattern = build_string ("/tmp/emacsXXXXXX");
@@ -1783,17 +1726,18 @@ init_callproc ()
 }
 
 void
-set_global_environment ()
+set_initial_environment ()
 {
   register char **envp;
-
-  Vglobal_environment = Qnil;
+  Lisp_Object env = Qnil;
 #ifndef CANNOT_DUMP
   if (initialized)
 #endif
-    for (envp = environ; *envp; envp++)
-      Vglobal_environment = Fcons (build_string (*envp),
-				    Vglobal_environment);
+    {
+      for (envp = environ; *envp; envp++)
+        env = Fcons (build_string (*envp), env);
+      store_frame_param (SELECTED_FRAME(), Qenvironment, env);
+    }
 }
 
 void
@@ -1851,37 +1795,16 @@ If this variable is nil, then Emacs is unable to use a shared directory.  */);
 This is used by `call-process-region'.  */);
   /* This variable is initialized in init_callproc.  */
 
-  DEFVAR_LISP ("global-environment", &Vglobal_environment,
-	       doc: /* Global list of environment variables for subprocesses to inherit.
-Each element should be a string of the form ENVVARNAME=VALUE.
-
-The environment which Emacs inherits is placed in this variable when
-Emacs starts.
-
-Some frames may have their own local list of environment variables in
-their 'environment parameter, which may override this global list; see
-`local-environment-variables' and `frame-with-environment'.  See
-`process-environment' for a way to modify an environment variable on
-all frames.
-
-If multiple entries define the same variable, the first one always
-takes precedence.
-
-Non-ASCII characters are encoded according to the initial value of
-`locale-coding-system', i.e. the elements must normally be decoded for use.
-See `setenv' and `getenv'.  */);
-
   DEFVAR_LISP ("process-environment", &Vprocess_environment,
 	       doc: /* List of overridden environment variables for subprocesses to inherit.
 Each element should be a string of the form ENVVARNAME=VALUE.
 
-Entries in this list take precedence to those in `global-environment'
-or the frame-local environments.  (See `local-environment-variables'
-and `frame-with-environment'.)  Therefore, let-binding
-`process-environment' is an easy way to temporarily change the value
-of an environment variable, irrespective of where it comes from.  To
-use `process-environment' to remove an environment variable, include
-only its name in the list, without "=VALUE".
+Entries in this list take precedence to those in the frame-local
+environments.  Therefore, let-binding `process-environment' is an easy
+way to temporarily change the value of an environment variable,
+irrespective of where it comes from.  To use `process-environment' to
+remove an environment variable, include only its name in the list,
+without "=VALUE".
 
 This variable is set to nil when Emacs starts.
 
@@ -1900,23 +1823,6 @@ See `setenv' and `getenv'.  */);
   defsubr (&Sgetenv_internal);
 #endif
   defsubr (&Scall_process_region);
-
-  DEFVAR_LISP ("local-environment-variables", &Vlocal_environment_variables,
-               doc: /* 	Enable or disable frame-local environment variables.
-If set to t, `getenv', `setenv' and subprocess creation functions use
-the local environment of the selected frame, ignoring
-`global-environment'.
-
-If set to nil, Emacs uses `global-environment' and ignores the
-frame-local environment.
-
-Otherwise, `local-environment-variables' should be a list of variable
-names (represented by Lisp strings) to look up in the frame's
-environment.  The rest will come from `global-environment'.
-
-The frame-local environment is stored in the 'environment frame
-parameter.  See `frame-with-environment'.  */);
-  Vlocal_environment_variables = Qt;
 }
 
 /* arch-tag: 769b8045-1df7-4d2b-8968-e3fb49017f95

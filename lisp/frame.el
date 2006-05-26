@@ -238,6 +238,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 	      ;; because that would override explicit user resizing.
 	      (setq initial-frame-alist
 		    (frame-remove-geometry-params initial-frame-alist))))
+	;; Copy the environment of the Emacs process into the new frame.
+	(set-frame-parameter frame-initial-frame 'environment
+			     (frame-parameter terminal-frame 'environment))
 	;; At this point, we know that we have a frame open, so we
 	;; can delete the terminal frame.
 	(delete-frame terminal-frame)
