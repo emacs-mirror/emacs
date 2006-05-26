@@ -1302,6 +1302,12 @@ key, a click, or a menu-item"))
 	      :help "Find commands whose names match a regexp"))
 (define-key menu-bar-apropos-menu [sep1]
   '("--"))
+(define-key menu-bar-apropos-menu [emacs-command-node]
+  '(menu-item "Look Up Command in User Manual..." Info-goto-emacs-command-node
+	      :help "Display manual section that describes a command"))
+(define-key menu-bar-apropos-menu [emacs-key-command-node]
+  '(menu-item "Look Up Key in User Manual..." Info-goto-emacs-key-command-node
+	      :help "Display manual section that describes a key"))
 (define-key menu-bar-apropos-menu [elisp-index-search]
   '(menu-item "Look Up Subject in ELisp Manual..." elisp-index-search
 	      :help "Find description of a subject in Emacs Lisp manual"))
@@ -1334,14 +1340,6 @@ key, a click, or a menu-item"))
 (define-key menu-bar-manuals-menu [info-elintro]
   '(menu-item "Introduction to Emacs Lisp" menu-bar-read-lispintro
 	      :help "Read the Introduction to Emacs Lisp Programming"))
-(define-key menu-bar-manuals-menu [sep3]
-  '("--"))
-(define-key menu-bar-manuals-menu [command]
-  '(menu-item "Find Command in Manual..." Info-goto-emacs-command-node
-	      :help "Display manual section that describes a command"))
-(define-key menu-bar-manuals-menu [key]
-  '(menu-item "Find Key in Manual..." Info-goto-emacs-key-command-node
-	      :help "Display manual section that describes a key"))
 
 (define-key menu-bar-help-menu [eliza]
   '(menu-item "Emacs Psychotherapist" doctor
