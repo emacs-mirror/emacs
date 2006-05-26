@@ -1,3 +1,14 @@
+2006-05-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-next-item, org-previous-item): Emit more
+	compact error message.
+	(org-tags-view): Refresh category table in each file.
+	(org-table-justify-field-maybe): Removed superfluous arguments to
+	`format'.
+	(org-export-as-html): Insert "<p>" before postamble.
+	(org-paste-subtree, org-kill-is-subtree-p): Check for empty kill
+	ring.
+
 2006-05-26  Kenichi Handa  <handa@m17n.org>
 
 	* textmodes/po.el (po-find-charset): Pay attention to the case

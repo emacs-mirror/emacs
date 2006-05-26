@@ -1,3 +1,9 @@
+2006-05-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (ASCII export): Omit command name.
+	(HTML export): Add prefix to all lines in Local Variable example.
+	(Acknowledgments): Typeset names in italics.
+
 2006-05-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* anti.texi (Antinews): Create a node for gdb-ui.
