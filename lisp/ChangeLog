@@ -1,3 +1,9 @@
+2006-05-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* shell.el (shell-mode): Call shell-dirtrack-mode after
+	list-buffers-directory is made a local variable, to avoid setting
+	the default value.
+
 2006-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (menu-bar-apropos-menu): Move "Find Key in Manual"
