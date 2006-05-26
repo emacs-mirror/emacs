@@ -2357,19 +2357,19 @@ preceding newline is removed."
 	   (when (eq (get-text-property (1- pt) 'read-only) 'fence)
 	     (remove-list-of-text-properties (1- pt) pt '(read-only)))))))
 
-(defun comint-kill-whole-line (&optional arg)
+(defun comint-kill-whole-line (&optional count)
   "Kill current line, ignoring read-only and field properties.
-With prefix arg, kill that many lines starting from the current line.
-If arg is negative, kill backward.  Also kill the preceding newline,
+With prefix arg COUNT, kill that many lines starting from the current line.
+If COUNT is negative, kill backward.  Also kill the preceding newline,
 instead of the trailing one.  \(This is meant to make \\[repeat] work well
 with negative arguments.)
-If arg is zero, kill current line but exclude the trailing newline.
+If COUNT is zero, kill current line but exclude the trailing newline.
 The read-only status of newlines is updated with `comint-update-fence',
 if necessary."
   (interactive "p")
   (let ((inhibit-read-only t) (inhibit-field-text-motion t))
-    (kill-whole-line arg)
-    (when (>= arg 0) (comint-update-fence))))
+    (kill-whole-line count)
+    (when (>= count 0) (comint-update-fence))))
 
 (defun comint-kill-region (beg end &optional yank-handler)
   "Like `kill-region', but ignores read-only properties, if safe.
