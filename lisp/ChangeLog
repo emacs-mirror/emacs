@@ -1,3 +1,9 @@
+2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* dired.el (dired-mode-map): Move tumme commands to Operate,
+	Regexp and Immediate menus. Change "Add Comment" to "Add Image
+	Comment". Change "Add Image Tag" to "Add Image Tags".
+
 2006-05-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* shell.el (shell-mode): Call shell-dirtrack-mode after
