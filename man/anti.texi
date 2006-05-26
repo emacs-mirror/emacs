@@ -265,7 +265,7 @@ defined macro.
 @item
 Emacs no longer displays your breakpoints in the source buffer, so you
 have to remember where you left them.  It can be difficult to inspect
-the state of your debugged program from the commamnd line, so Emacs
+the state of your debugged program from the command line, so Emacs
 tries to demonstrate this in the GUD buffer.
 
 @item
