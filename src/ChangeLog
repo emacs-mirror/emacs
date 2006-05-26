@@ -1,3 +1,10 @@
+2006-05-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (Fcopy_file): Delete argument MUSTBENEW.  Incorporate
+	the exclusive file-opening functionality into the behavior when
+	OK-IF-ALREADY-EXISTS is nil.
+	(Frename_file): Call Fcopy_file without MUSTBENEW argument.
+
 2006-05-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* sound.c (alsa_configure): Move get period/buffer_size after
