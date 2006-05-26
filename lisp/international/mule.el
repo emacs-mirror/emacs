@@ -1986,7 +1986,8 @@ Part of the job of this function is setting `buffer-undo-list' appropriately."
 	(or coding
 	    (setq coding (car (find-operation-coding-system
 			       'insert-file-contents
-			       filename visit beg end replace))))
+			       (cons filename (current-buffer))
+			       visit beg end replace))))
 	(if (coding-system-p coding)
 	    (or enable-multibyte-characters
 		(setq coding
