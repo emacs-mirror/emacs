@@ -1,3 +1,12 @@
+2006-05-26  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--current-dll): New var.
+	(ewoc--node-next, ewoc--node-prev, ewoc--node-nth): Don't take
+	DLL arg.  Instead, use ewoc--current-dll.  Update all callers.
+	(ewoc--set-buffer-bind-dll-let*): Bind ewoc--current-dll, not `dll'.
+	(ewoc--adjust): Use ewoc--current-dll.
+	(ewoc-next, ewoc-prev, ewoc-nth): Bind ewoc--current-dll.
+
 2006-05-26  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-next-item, org-previous-item): Emit more
