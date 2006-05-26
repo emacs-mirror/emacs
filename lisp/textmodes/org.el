@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.33
+;; Version: 4.34
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -30,16 +30,21 @@
 ;; Org-mode is a mode for keeping notes, maintaining ToDo lists, and doing
 ;; project planning with a fast and effective plain-text system.
 ;;
-;; Org-mode develops organizational tasks around a NOTES file that contains
-;; information about projects as plain text.  Org-mode is implemented on top
-;; of outline-mode - ideal to keep the content of large files well structured.
-;; It supports ToDo items, deadlines and time stamps, which can be extracted
-;; to create a daily/weekly agenda that also integrates the diary of the Emacs
-;; calendar.  Tables are easily created with a built-in table editor.  Plain
-;; text URL-like links connect to websites, emails (VM, RMAIL, WANDERLUST),
-;; Usenet messages (Gnus), BBDB entries, and any files related to the
-;; projects.  For printing and sharing of notes, an Org-mode file (or a part
-;; of it) can be exported as a structured ASCII file, or as HTML.
+;; Org-mode develops organizational tasks around NOTES files that contain
+;; information about projects as plain text.  Org-mode is implemented on
+;; top of outline-mode, which makes it possible to keep the content of
+;; large files well structured.  Visibility cycling and structure editing
+;; help to work with the tree.  Tables are easily created with a built-in
+;; table editor.  Org-mode supports ToDo items, deadlines, time stamps,
+;; and scheduling.  It dynamically compiles entries into an agenda that
+;; utilizes and smoothly integrates much of the Emacs calendar and diary.
+;; Plain text URL-like links connect to websites, emails, Usenet
+;; messages, BBDB entries, and any files related to the projects.  For
+;; printing and sharing of notes, an Org-mode file can be exported as a
+;; structured ASCII file, as HTML, or (todo and agenda items only) as an
+;; iCalendar file.  It can also serve as a publishing tool for a set of
+;; linked webpages.
+;;
 ;;
 ;; Installation
 ;; ------------
@@ -64,8 +69,11 @@
 ;;
 ;;    (require 'org-install)
 ;;
-;; This setup will put all files with extension ".org" into Org-mode.  As
-;; an alternative, make the first line of a file look like this:
+;;
+;; Activation
+;; ----------
+;; The setup above will put all files with extension ".org" into Org-mode.
+;; As an alternative, make the first line of a file look like this:
 ;;
 ;;     MY PROJECTS    -*- mode: org; -*-
 ;;
@@ -80,8 +88,11 @@
 ;; excellent reference card made by Philip Rooke.  This card can be found
 ;; in the etc/ directory of Emacs 22.
 ;;
-;; Changes since version 4.10:
-;; ---------------------------
+;; Recent changes
+;; --------------
+;; Version 4.34
+;;    - Bug fixes.
+;;
 ;; Version 4.33
 ;;    - New commands to move through plain lists: S-up and S-down.
 ;;    - Bug fixes and documentation update.
@@ -133,46 +144,6 @@
 ;;    - New option `org-agenda-todo-list-sublevels' to turn off listing TODO
 ;;      entries that are sublevels of another TODO entry.
 ;;
-;; Version 4.26
-;;    - Bug fixes.
-;;
-;; Version 4.25
-;;    - Revision of the font-lock faces section, with better tty support.
-;;    - TODO keywords in Agenda buffer are fontified.
-;;    - Export converts links between .org files to links between .html files.
-;;    - Better support for bold/italic/underline emphasis.
-;;
-;; Version 4.24
-;;    - Bug fixes.
-;;
-;; Version 4.23
-;;    - Bug fixes.
-;;
-;; Version 4.22
-;;    - Bug fixes.
-;;    - In agenda buffer, mouse-1 no longer follows link.
-;;      See `org-agenda-mouse-1-follows-link' and `org-mouse-1-follows-link'.
-;;
-;; Version 4.20
-;;    - Links use now the [[link][description]] format by default.
-;;      When inserting links, the user is prompted for a description.
-;;    - If a link has a description, only the description is displayed
-;;      the link part is hidden.  Use C-c C-l to edit the link part.
-;;    - TAGS are now bold, but in the same color as the headline.
-;;    - The width of a table column can be limited by using a field "<N>".
-;;    - New structure for the customization tree.
-;;    - Bug fixes.
-;;
-;; Version 4.13
-;;    - The list of agenda files can be maintainted in an external file.
-;;    - Bug fixes.
-;;
-;; Version 4.12
-;;    - Templates for remember buffer.  Note that the remember setup changes.
-;;      To set up templates, see `org-remember-templates'.
-;;    - The time in new time stamps can be rounded, see new option
-;;      `org-time-stamp-rounding-minutes'.
-;;    - Bug fixes (there are *always* more bugs).
 ;;
 ;;; Code:
 
@@ -183,13 +154,9 @@
 (require 'time-date)
 (require 'easymenu)
 
-(defvar calc-embedded-close-formula)  ; defined by the calc package
-(defvar calc-embedded-open-formula)   ; defined by the calc package
-(defvar font-lock-unfontify-region-function) ; defined by font-lock.el
-
 ;;; Customization variables
 
-(defvar org-version "4.33"
+(defvar org-version "4.34"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -2548,17 +2515,20 @@ This face is only used if `org-fontify-done-headline' is set."
 	  (concat "\\<\\(" org-scheduled-string
 		  "\\|" org-deadline-string
 		  "\\|" org-closed-string "\\)"
-		  " *[[<]\\([^]>]+\\)[]>]")   ;; FIXME: is this correct?
+		  " *[[<]\\([^]>]+\\)[]>]")
 	  org-maybe-keyword-time-regexp
 	  (concat "\\(\\<\\(" org-scheduled-string
 		  "\\|" org-deadline-string
 		  "\\|" org-closed-string "\\)\\)?"
-		  " *\\([[<][0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\r\n>]*?[]>]\\)"))   ;; FIXME: is this correct?
+		  " *\\([[<][0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^]\r\n>]*?[]>]\\)"))
 
     (org-set-font-lock-defaults)))
 
 ;; Tell the compiler about dynamically scoped variables,
 ;; and variables from other packages
+(defvar calc-embedded-close-formula)  ; defined by the calc package
+(defvar calc-embedded-open-formula)   ; defined by the calc package
+(defvar font-lock-unfontify-region-function) ; defined by font-lock.el
 (defvar zmacs-regions) ; XEmacs regions
 (defvar original-date) ; dynamically scoped in calendar
 (defvar org-old-auto-fill-inhibit-regexp) ; local variable used by `orgtbl-mode'
@@ -3734,7 +3704,7 @@ If optional TREE is given, use this text instead of the kill ring."
     (error
      (substitute-command-keys
       "The kill is not a (set of) tree(s) - please use \\[yank] to yank anyway")))
-  (let* ((txt (or tree (current-kill 0)))
+  (let* ((txt (or tree (and kill-ring (current-kill 0))))
 	 (^re (concat "^\\(" outline-regexp "\\)"))
 	 (re  (concat "\\(" outline-regexp "\\)"))
 	 (^re_ (concat "\\(" outline-regexp "\\)[  \t]*"))
@@ -3797,7 +3767,8 @@ If optional TREE is given, use this text instead of the kill ring."
 	(goto-char (point-min))
 	(message "Pasted at level %d, with shift by %d levels"
 		 new-level shift1)))
-    (if (and (eq org-subtree-clip (current-kill 0))
+    (if (and kill-ring
+	     (eq org-subtree-clip (current-kill 0))
 	     org-subtree-clip-folded)
 	;; The tree was folded before it was killed/copied
 	(hide-subtree))))
@@ -3809,8 +3780,9 @@ headline level is not the largest headline level in the tree.
 So this will actually accept several entries of equal levels as well,
 which is OK for `org-paste-subtree'.
 If optional TXT is given, check this string instead of the current kill."
-  (let* ((kill (or txt (current-kill 0) ""))
-	 (start-level (and (string-match (concat "\\`" outline-regexp) kill)
+  (let* ((kill (or txt (and kill-ring (current-kill 0)) ""))
+	 (start-level (and kill
+			   (string-match (concat "\\`" outline-regexp) kill)
 			   (- (match-end 0) (match-beginning 0))))
 	 (re (concat "^" outline-regexp))
 	 (start 1))
@@ -3920,7 +3892,7 @@ Error if not at a plain list, or if this is the last item in the list."
     (setq ind1 (org-get-indentation))
     (unless (and (org-at-item-p) (= ind ind1))
       (goto-char pos)
-      (error "This is already the last item in the list"))))  
+      (error "On last item"))))  
 
 (defun org-previous-item ()
   "Move to the beginning of the previous item in the current plain list.
@@ -3941,7 +3913,7 @@ Error if not at a plain list, or if this is the last item in the list."
     (condition-case nil
 	(org-beginning-of-item)
       (error (goto-char pos)
-	     (error "This is already the first item in the list")))))
+	     (error "On first item")))))
 
 (defun org-move-item-down ()
   "Move the plain list item at point down, i.e. swap with following item.
@@ -6434,7 +6406,7 @@ the documentation of `org-diary'."
 	'org-marker marker 'org-hd-marker marker
 	'priority priority 'category category)
       (push txt ee)
-      (if org-agenda-todo-list-sublevels  ; FIXME???? Change needed?
+      (if org-agenda-todo-list-sublevels
 	  (goto-char (match-end 1))
 	(org-end-of-subtree 'invisible))))
     (nreverse ee)))
@@ -6793,13 +6765,6 @@ only the correctly processes TXT should be returned - this is used by
 	(if s1 (setq s1 (org-get-time-of-day s1 'string)))
 	(if s2 (setq s2 (org-get-time-of-day s2 'string))))
 
-;      (when (and (or (eq org-agenda-remove-tags-when-in-prefix t)
-;		     (and org-agenda-remove-tags-when-in-prefix
-;			  org-prefix-has-tag))
-;		 (string-match ":[a-zA-Z_@0-9:]+:[ \t]*$" txt))
-;	(setq txt (replace-match "" t t txt)))
-
-      ;; FIXME!!!
       (when (string-match "\\([ \t]+\\)\\(:[a-zA-Z_@0-9:]+:\\)[ \t]*$" txt)
 	;; Tags are in the string
 	(if (or (eq org-agenda-remove-tags-when-in-prefix t)
@@ -7596,6 +7561,7 @@ The prefix arg TODO-ONLY limits the search to TODO entries."
 	  (with-current-buffer buffer
 	    (unless (eq major-mode 'org-mode)
 	      (error "Agenda file %s is not in `org-mode'" file))
+	    (setq org-category-table (org-get-category-table))
 	    (save-excursion
 	      (save-restriction
 		(if org-respect-restriction
@@ -8116,7 +8082,7 @@ in all files."
 		  (org-search-not-link re4 nil t)
 		  (org-search-not-link re5 nil t)
 		  )
-	      (goto-char (match-beginning 1))  ;; Fixme: does every re have group 1?
+	      (goto-char (match-beginning 1))
 	    (goto-char pos)
 	    (error "No match")))))
      (t
@@ -9662,7 +9628,7 @@ Optional argument NEW may specify text to replace the current field content."
 		    n (format f s))
 	      (if new
 		  (if (<= (length new) l)      ;; FIXME: length -> str-width?
-		      (setq n (format f new t t))  ;; FIXME: t t?
+		      (setq n (format f new))
 		    (setq n (concat new "|") org-table-may-need-update t)))
 	      (or (equal n o)
 		  (let (org-table-may-need-update)
@@ -11021,9 +10987,6 @@ not overwrite the stored one."
 		       (org-table-get-vertical-vector (match-string 0 form)
 						      nil n0))
 		     t t form)))
-;;      (setq ev (calc-eval (cons form modes)
-;; FIXME  (if org-table-formula-numbers-only 'num)))
-
       (if lispp
 	  (setq ev (eval (eval (read form)))
 		ev (if (numberp ev) (number-to-string ev) ev))
@@ -12761,7 +12724,8 @@ org-mode's default settings, but still inferior to file-local settings."
 
 	  ;; replace "&" by "&amp;", "<" and ">" by "&lt;" and "&gt;"
 	  ;; handle @<..> HTML tags (replace "@&gt;..&lt;" by "<..>")
-	  ;; Also handle sub_superscripts and checkboxes FIXME
+	  ;; Also handle sub_superscripts and checkboxes
+	  ;; FIXME: is there no better place for checkboxes
 	  (setq line (org-html-expand line))
 
 	  ;; Format the links
@@ -12940,6 +12904,7 @@ org-mode's default settings, but still inferior to file-local settings."
 			    head-count)
 
       (when (plist-get opt-plist :auto-postamble)
+	(insert "<p>")
 	(if author    (insert (concat (nth 1 lang-words) ": " author "\n")))
 	(if email	  (insert (concat "<a href=\"mailto:" email "\">&lt;"
 					  email "&gt;</a>\n")))
@@ -13208,7 +13173,6 @@ stacked delimiters is N.  Escaping delimiters is not possible."
    "\\(" (org-create-multibrace-regexp "(" ")" org-match-sexp-depth) "\\)"
    "\\|"
    "\\(\\(?:\\*\\|[-+]?[^-+*!@#$%^_ \t\r\n,:\"?<>~;./{}=()]+\\)\\)\\)")
-;;;;;;;;;;;;;;;;;;;;;;;;;^ FIXME
   "The regular expression matching a sub- or superscript.")
 
 (defun org-export-html-convert-sub-super (string)
@@ -13258,7 +13222,6 @@ When TITLE is nil, just close all open levels."
 	(if org-export-with-section-numbers
 	    (setq title (concat (org-section-number level) " " title)))
 	(setq level (+ level 1))
-	;; FIXME: here we need to handle the tags, somehow.
 	(when (string-match "\\(:[a-zA-Z0-9_@:]+:\\)[ \t]*$" title)
 	  (setq title (replace-match 
 		       (if org-export-with-tags
@@ -14683,7 +14646,6 @@ Show the heading too, if it is currently invisible."
 (provide 'org)
 
 (run-hooks 'org-load-hook)
-
 
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
