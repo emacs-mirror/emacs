@@ -433,11 +433,11 @@ buffer."
   (setq shell-dirstack nil)
   (make-local-variable 'shell-last-dir)
   (setq shell-last-dir nil)
-  (shell-dirtrack-mode 1)
   (setq comint-input-autoexpand shell-input-autoexpand)
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.
   (make-local-variable 'list-buffers-directory)
+  (shell-dirtrack-mode 1)
   (setq list-buffers-directory (expand-file-name default-directory))
   ;; shell-dependent assignments.
   (when (ring-empty-p comint-input-ring)
