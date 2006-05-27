@@ -45,10 +45,11 @@ found.  The whole process is called @dfn{key lookup}.
 @cindex key sequence
 
   A @dfn{key sequence}, or @dfn{key} for short, is a sequence of one
-or more input events that form a unit.  The Emacs Lisp representation
-for a key sequence is a string or vector.  Unless otherwise stated,
-any Emacs Lisp function that accepts a key sequence as an argument can
-handle both representations.
+or more input events that form a unit.  Input events include
+characters, function keys, and mouse actions (@pxref{Input Events}).
+The Emacs Lisp representation for a key sequence is a string or
+vector.  Unless otherwise stated, any Emacs Lisp function that accepts
+a key sequence as an argument can handle both representations.
 
   In the string representation, alphanumeric characters ordinarily
 stand for themselves; for example, @code{"a"} represents @kbd{a} and
@@ -152,22 +153,6 @@ for details.
 @cindex keymap format
 @cindex full keymap
 @cindex sparse keymap
-
-  A @dfn{keymap} is a table mapping event types to definitions (which
-can be any Lisp objects, though only certain types are meaningful for
-execution by the command loop).  Given an event (or an event type) and a
-keymap, Emacs can get the event's definition.  Events include
-characters, function keys, and mouse actions (@pxref{Input Events}).
-
-  At any time, several primary keymaps are @dfn{active}---that is, in
-use for finding key bindings.  These are the @dfn{global map}, which is
-shared by all buffers; the @dfn{local keymap}, which is usually
-associated with a specific major mode; and zero or more @dfn{minor mode
-keymaps}, which belong to currently enabled minor modes.  (Not all minor
-modes have keymaps.)  The local keymap bindings shadow (i.e., take
-precedence over) the corresponding global bindings.  The minor mode
-keymaps shadow both local and global keymaps.  @xref{Active Keymaps},
-for details.
 
   Each keymap is a list whose @sc{car} is the symbol @code{keymap}.  The
 remaining elements of the list define the key bindings of the keymap.

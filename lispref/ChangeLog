@@ -1,5 +1,8 @@
 2006-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* keymaps.texi (Key Sequences): Link to input events definition.
+	(Format of Keymaps): Delete material duplicated in Keymap Basics.
+
 	* files.texi (Changing Files): Document updated argument list for
 	copy-file.
 
