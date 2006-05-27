@@ -719,12 +719,12 @@ You can mark and unmark files with these commands:
 @table @kbd
 @item m
 This marks the file that the cursor is positioned on.  If the cursor is
-positioned on a directory all files in that directory are marked.
+positioned on a directory all files in that directory are marked
 (@code{cvs-mode-mark}).@refill
 
 @item u
 Unmark the file that the cursor is positioned on. If the cursor is on a
-directory, all files in that directory are unmarked.
+directory, all files in that directory are unmarked
 (@code{cvs-mode-unmark}).@refill
 
 @item M
@@ -743,7 +743,7 @@ Mark all files matching a regular expression
 
 @item S
 Mark all files in a particular state, such as ``Modified'' or
-``Removed''.  (@code{cvs-mode-mark-on-state}).
+``Removed'' (@code{cvs-mode-mark-on-state}).
 
 @item T
 Toggle use of marks for the next command (@code{cvs-mode-toggle-marks}).
@@ -804,7 +804,7 @@ If you are editing the files in your Emacs, an automatic
 @samp{revert-buffer} will be performed.  (If the file contains
 @samp{$@asis{Id}$} keywords, @samp{cvs commit} will write a new file with
 the new values substituted.  The auto-revert makes sure that you get
-them into your buffer).  The revert will not occur if you have modified
+them into your buffer.)  The revert will not occur if you have modified
 your buffer, or if @samp{cvs-auto-revert} is set to
 @samp{nil}.
 
@@ -842,7 +842,7 @@ Like @kbd{f}, but use another window
 Invoke @samp{add-change-log-entry-other-window} to edit a
 @file{ChangeLog} file.  The @file{ChangeLog} file will be found in the
 directory of the file the cursor points to, or in a parent of that
-directory.  (@code{cvs-mode-add-change-log-entry-other-window}).@refill
+directory (@code{cvs-mode-add-change-log-entry-other-window}).@refill
 @end table
 
 
@@ -1003,7 +1003,7 @@ This runs @code{cvs-mode-ignore}.
 @item =
 @itemx d =
 Display a @samp{cvs diff} between the selected files and the version
-that they are based on. (@code{cvs-mode-diff}).@refill
+that they are based on (@code{cvs-mode-diff}).@refill
 
 @item d b
 If CVS finds a conflict while merging two versions of a file (during a
@@ -1017,8 +1017,8 @@ With the @kbd{d b} command you can run a @samp{diff} on the files
 
 @item d h
 Display a @samp{cvs diff} between the selected files and the head
-revision in the repository (the most recent version on the current
-branch) (@code{cvs-mode-diff-head}).@refill
+revision (the most recent version on the current
+branch) in the repository (@code{cvs-mode-diff-head}).@refill
 
 @item d r
 Display a @samp{cvs diff} between the base revision of the selected
