@@ -94,7 +94,7 @@
 ;; In the mean time `grep '^(.*ewoc-[^-]' emacs-lisp/ewoc.el' can help
 ;; you find all the exported functions:
 ;;
-;; (defun ewoc-create (pretty-printer &optional header footer)
+;; (defun ewoc-create (pretty-printer &optional header footer nosep)
 ;; (defalias 'ewoc-data 'ewoc--node-data)
 ;; (defun ewoc-set-data (node data)
 ;; (defun ewoc-location (node)
@@ -182,7 +182,7 @@ and (ewoc--node-nth -1) returns the last node."
 	    (:constructor nil)
 	    (:constructor ewoc--create (buffer pretty-printer dll))
 	    (:conc-name ewoc--))
-  buffer pretty-printer header footer dll last-node)
+  buffer pretty-printer header footer dll last-node hf-pp)
 
 (defmacro ewoc--set-buffer-bind-dll-let* (ewoc varlist &rest forms)
   "Execute FORMS with ewoc--buffer selected as current buffer,
@@ -253,12 +253,19 @@ NODE and leaving the new node's start there.  Return the new node."
     (goto-char m)
     (funcall pp (ewoc--node-data node))
     (ewoc--adjust m (point) R)))
+
+(defun ewoc--wrap (func)
+  (lexical-let ((ewoc--user-pp func))
+    (lambda (data)
+      (funcall ewoc--user-pp data)
+      (insert "\n"))))
+
 
 ;;; ===========================================================================
 ;;;                  Public members of the Ewoc package
 
 ;;;###autoload
-(defun ewoc-create (pretty-printer &optional header footer)
+(defun ewoc-create (pretty-printer &optional header footer nosep)
   "Create an empty ewoc.
 
 The ewoc will be inserted in the current buffer at the current position.
@@ -271,14 +278,20 @@ several lines.  The PRETTY-PRINTER should use `insert', and not
 
 Optional second and third arguments HEADER and FOOTER are strings,
 possibly empty, that will always be present at the top and bottom,
-respectively, of the ewoc."
+respectively, of the ewoc.
+
+Normally, a newline is automatically inserted after the header,
+the footer and every node's printed representation.  Optional
+fourth arg NOSEP non-nil inhibits this."
   (let* ((dummy-node (ewoc--node-create 'DL-LIST 'DL-LIST))
          (dll (progn (setf (ewoc--node-right dummy-node) dummy-node)
                      (setf (ewoc--node-left dummy-node) dummy-node)
                      dummy-node))
+         (wrap (if nosep 'identity 'ewoc--wrap))
          (new-ewoc (ewoc--create (current-buffer)
-                                 pretty-printer
+                                 (funcall wrap pretty-printer)
                                  dll))
+         (hf-pp (funcall wrap 'insert))
          (pos (point))
          head foot)
     (ewoc--set-buffer-bind-dll new-ewoc
@@ -286,8 +299,9 @@ respectively, of the ewoc."
       (unless header (setq header ""))
       (unless footer (setq footer ""))
       (setf (ewoc--node-start-marker dll) (copy-marker pos)
-            foot (ewoc--insert-new-node  dll footer 'insert)
-            head (ewoc--insert-new-node foot header 'insert)
+            foot (ewoc--insert-new-node  dll footer hf-pp)
+            head (ewoc--insert-new-node foot header hf-pp)
+            (ewoc--hf-pp new-ewoc) hf-pp
             (ewoc--footer new-ewoc) foot
             (ewoc--header new-ewoc) head))
     ;; Return the ewoc
@@ -592,12 +606,13 @@ Return nil if the buffer has been deleted."
   "Set the HEADER and FOOTER of EWOC."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((head (ewoc--header ewoc))
-       (foot (ewoc--footer ewoc)))
+       (foot (ewoc--footer ewoc))
+       (hf-pp (ewoc--hf-pp ewoc)))
     (setf (ewoc--node-data head) header
           (ewoc--node-data foot) footer)
     (save-excursion
-      (ewoc--refresh-node 'insert head)
-      (ewoc--refresh-node 'insert foot))))
+      (ewoc--refresh-node hf-pp head)
+      (ewoc--refresh-node hf-pp foot))))
 
 
 (provide 'ewoc)
