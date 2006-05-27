@@ -2268,10 +2268,17 @@ field @code{c} in the third element of subfield @code{b} of field
 @code{a}.  (This corresponds to @code{struct.a.b[2].c} in C.)
 @end defun
 
+  Although packing and unpacking operations change the organization of
+data (in memory), they preserve the data's @dfn{total length}, which is
+the sum of all the fields' lengths, in bytes.  This value is not
+generally inherent in either the specification or alist alone; instead,
+both pieces of information contribute to its calculation.  Likewise, the
+length of a string or array being unpacked may be longer than the data's
+total length as described by the specification.
+
 @defun bindat-length spec struct
-@c ??? I don't understand this at all -- rms
-This function returns the length in bytes of @var{struct}, according
-to @var{spec}.
+This function returns the total length of the data in @var{struct},
+according to @var{spec}.
 @end defun
 
 @defun bindat-pack spec struct &optional raw-data pos
@@ -2281,6 +2288,9 @@ new byte array starting at the beginning.  However, if @var{raw-data}
 is non-@code{nil}, it specifies a pre-allocated unibyte string or vector to
 pack into.  If @var{pos} is non-@code{nil}, it specifies the starting
 offset for packing into @code{raw-data}.
+
+When pre-allocating, you should make sure @code{(length @var{raw-data})}
+meets or exceeds the total length to avoid an out-of-range error.
 @end defun
 
 @defun bindat-ip-to-string ip
