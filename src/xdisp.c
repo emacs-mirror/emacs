@@ -1986,15 +1986,15 @@ get_glyph_string_clip_rect (s, nr)
    Set w->phys_cursor_width to width of phys cursor.
 */
 
-int
-get_phys_cursor_geometry (w, row, glyph, heightp)
+void
+get_phys_cursor_geometry (w, row, glyph, xp, yp, heightp)
      struct window *w;
      struct glyph_row *row;
      struct glyph *glyph;
-     int *heightp;
+     int *xp, *yp, *heightp;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  int y, wd, h, h0, y0;
+  int x, y, wd, h, h0, y0;
 
   /* Compute the width of the rectangle to draw.  If on a stretch
      glyph, and `x-stretch-block-cursor' is nil, don't draw a
@@ -2004,6 +2004,14 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
 #ifdef HAVE_NTGUI
   wd++; /* Why? */
 #endif
+
+  x = w->phys_cursor.x;
+  if (x < 0)
+    {
+      wd += x;
+      x = 0;
+    }
+
   if (glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
     wd = min (FRAME_COLUMN_WIDTH (f), wd);
@@ -2033,8 +2041,9 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
 	}
     }
 
+  *xp = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, x);
+  *yp = WINDOW_TO_FRAME_PIXEL_Y (w, y);
   *heightp = h;
-  return WINDOW_TO_FRAME_PIXEL_Y (w, y);
 }
 
 /*
@@ -21319,7 +21328,7 @@ erase_phys_cursor (w)
   /* Maybe clear the display under the cursor.  */
   if (w->phys_cursor_type == HOLLOW_BOX_CURSOR)
     {
-      int x, y;
+      int x, y, left_x;
       int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
       int width;
 
@@ -21327,11 +21336,16 @@ erase_phys_cursor (w)
       if (cursor_glyph == NULL)
 	goto mark_cursor_off;
 
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+      width = cursor_glyph->pixel_width;
+      left_x = window_box_left_offset (w, TEXT_AREA);
+      x = w->phys_cursor.x;
+      if (x < left_x)
+	width -= left_x - x;
+      width = min (width, window_box_width (w, TEXT_AREA) - x);
       y = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, cursor_row->y));
-      width = min (cursor_glyph->pixel_width,
-		   window_box_width (w, TEXT_AREA) - w->phys_cursor.x);
+      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, max (x, left_x));
 
+      if (width > 0)
       rif->clear_frame_area (f, x, y, width, cursor_row->visible_height);
     }
 
