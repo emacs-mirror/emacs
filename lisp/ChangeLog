@@ -7,6 +7,9 @@
 
 	(ewoc--node-branch): Merge into unique caller.
 
+	(ewoc--node): Don't define constructor
+	make-ewoc--node for this structure.
+
 2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* dired.el (dired-mode-map): Change `tumme-tag-remove' to
