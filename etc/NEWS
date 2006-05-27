@@ -3440,6 +3440,27 @@ variable `calculator-radix-grouping-mode'.
 
 ---
 ** cplus-md.el has been deleted.
+
+** Ewoc changes
+
+*** The new function `ewoc-delete' deletes specified nodes.
+
+*** `ewoc-create' now takes optional arg NOSEP, which inhibits insertion of
+a newline after each pretty-printed entry and after the header and footer.
+This allows you to create multiple-entry ewocs on a single line and to
+effect "invisible" nodes by arranging for the pretty-printer to not print
+anything for those nodes.
+
+For example, these two sequences of expressions behave identically:
+
+;; NOSEP nil
+(defun PP (data) (insert (format "%S" data)))
+(ewoc-create 'PP "start\n")
+
+;; NOSEP t
+(defun PP (data) (insert (format "%S\n" data)))
+(ewoc-create 'PP "start\n\n" "\n" t)
+
 
 * Changes in Emacs 22.1 on non-free operating systems
 
@@ -3590,24 +3611,6 @@ deleting the part of subprocess output that matches the input.
 +++
 ** The variable `memory-full' now remains t until
 there is no longer a shortage of memory.
-
-** The ewoc package no longer inserts a newline after each pretty-printed
-entry and after the header and footer, to allow for multiple-entry ewocs to
-display on a single line.
-
-To make pre-existing client code behave the same way as before, you must
-arrange to insert a newline in three places: the pretty-printer function,
-the header and the footer.  It is anyway a good idea to specify a non-empty
-footer so that markers after the ewoc's buffer text are properly updated.
-For example:
-
-;; before
-(defun PP (data) (insert (format "%S" data)))
-(ewoc-create 'PP "start\n")
-
-;; now
-(defun PP (data) (insert (format "%S\n" data)))
-(ewoc-create 'PP "start\n\n" "\n")
 
 
 * Lisp Changes in Emacs 22.1
