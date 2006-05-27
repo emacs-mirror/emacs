@@ -2389,20 +2389,29 @@ x_draw_stretch_glyph_string (s)
     {
       /* If `x-stretch-block-cursor' is nil, don't draw a block cursor
 	 as wide as the stretch glyph.  */
-      int width = min (FRAME_COLUMN_WIDTH (s->f), s->background_width);
+      int width, background_width = s->background_width;
+      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+      if (x < left_x)
+	{
+	  background_width -= left_x - x;
+	  x = left_x;
+	}
+      width = min (FRAME_COLUMN_WIDTH (s->f), background_width);
 
       /* Draw cursor.  */
-      x_draw_glyph_string_bg_rect (s, s->x, s->y, width, s->height);
+      x_draw_glyph_string_bg_rect (s, x, s->y, width, s->height);
 
       /* Clear rest using the GC of the original non-cursor face.  */
-      if (width < s->background_width)
+      if (width < background_width)
 	{
 	  XGCValues *gc = s->face->gc;
-	  int x = s->x + width, y = s->y;
-	  int w = s->background_width - width, h = s->height;
+	  int y = s->y;
+	  int w = background_width - width, h = s->height;
 	  RECT r;
           HDC hdc = s->hdc;
 
+	  x += width;
 	  if (s->row->mouse_face_p
 	      && cursor_in_mouse_face_p (s->w))
 	    {
@@ -2431,8 +2440,17 @@ x_draw_stretch_glyph_string (s)
         }
     }
   else if (!s->background_filled_p)
-    x_draw_glyph_string_bg_rect (s, s->x, s->y, s->background_width,
-				 s->height);
+    {
+      int background_width = s->background_width;
+      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+      if (x < left_x)
+	{
+	  background_width -= left_x - x;
+	  x = left_x;
+	}
+      if (background_width > 0)
+	x_draw_glyph_string_bg_rect (s, x, s->y, background_width, s->height);
 
   s->background_filled_p = 1;
 }
@@ -4942,8 +4960,7 @@ x_draw_hollow_cursor (w, row)
     return;
 
   /* Compute frame-relative coordinates for phys cursor.  */
-  rect.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  rect.top = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
+  get_phys_cursor_geometry (w, row, cursor_glyph, &rect.left, &rect.top, &h);
   rect.bottom = rect.top + h;
   rect.right = rect.left + w->phys_cursor_width;
 
