@@ -4255,11 +4255,6 @@ ignore the leading dots in file names, so that file names such as
 `.emacs' are treated as extensionless.
 
 +++
-*** `copy-file' now takes an additional option arg MUSTBENEW.
-
-This argument works like the MUSTBENEW argument of write-file.
-
-+++
 *** `visited-file-modtime' and `calendar-time-from-absolute' now return
 a list of two integers, instead of a cons.
 
