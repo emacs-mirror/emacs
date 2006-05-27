@@ -1,3 +1,8 @@
+2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--create): No longer
+	take HEADER and FOOTER args.  Update unique caller.
+
 2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* dired.el (dired-mode-map): Change `tumme-tag-remove' to
