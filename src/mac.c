@@ -545,6 +545,7 @@ mac_ae_put_lisp (desc, keyword_or_index, obj)
 
   return err;
 }
+
 static pascal OSErr
 mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
 			  to_type, handler_refcon, result)
