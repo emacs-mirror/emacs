@@ -1,3 +1,21 @@
+2006-05-28  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_phys_cursor_geometry): Return computed x and y through
+	parameters.  Adjust x and width in case cursor in on a partially
+	visible stretch glyph on the left edge.
+	(erase_phys_cursor): Don't erase into left fringe/margin in case
+	previous cursor glyph is a partially visible stretch glyph on left.
+
+	* dispextern.h (get_phys_cursor_geometry): Update prototype.
+
+	* xterm.c (x_draw_stretch_glyph_string): Fix problems with invisible
+	cursor and erasing cursor on partially visible stretch glyph on left.
+	(x_draw_hollow_cursor): Compute x via get_phys_cursor_geometry.
+
+	* macterm.c: Likewise.
+
+	* w32term.c: Likewise.
+
 2006-05-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macselect.c (mac_handle_apple_event): Return
@@ -127,7 +145,7 @@
 	* xterm.c: Remove declarations already in xterm.h
 
 	* xterm.h: Add extern declarations for x_clear_errors,
-	x_fully_uncatch_errors, x_catching_errors and 
+	x_fully_uncatch_errors, x_catching_errors and
 	x_alloc_lighter_color_for_widget.  Remove duplicated declarations.
 
 2006-05-21  Richard Stallman  <rms@gnu.org>
@@ -207,7 +225,7 @@
 
 	* xfaces.c (better_font_p): Any font beats no font.
 	(best_matching_font): Simplify based on above change.
-	
+
 	* buffer.c (Fprevious_overlay_change, Fnext_overlay_change): Doc fixes.
 
 2006-05-16  Kim F. Storm  <storm@cua.dk>
