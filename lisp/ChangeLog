@@ -34,6 +34,11 @@
 	list-buffers-directory is made a local variable, to avoid setting
 	the default value.
 
+2006-05-26  Kevin Ryde  <user42@zip.com.au>
+
+	* info.el (Info-index-next): Use where-is-internal to report
+	actual binding of Info-index-next, rather than hard-coded `,'.
+
 2006-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (menu-bar-apropos-menu): Move "Find Key in Manual"
