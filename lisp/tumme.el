@@ -919,10 +919,10 @@ displayed."
                ;; If on empty line at end of buffer
                (when (and (eobp)
                           (looking-at "^$"))
-                 (delete-backward-char 1)))))))
-      files)
-    (save-buffer)
-    (kill-buffer buf)))
+                 (delete-backward-char 1))))))
+       files)
+      (save-buffer)
+      (kill-buffer buf))))
 
 (defun tumme-list-tags (file)
   "Read all tags for image FILE from the image database."
