@@ -1159,6 +1159,8 @@ mac_handle_apple_event (apple_event, reply, refcon)
 	  err = mac_handle_apple_event_1 (class_key, id_key,
 					  apple_event, reply);
 	}
+      else
+	err = errAEEventNotHandled;
     }
   if (err == noErr)
     return noErr;
