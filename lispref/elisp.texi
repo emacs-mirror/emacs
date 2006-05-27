@@ -1007,6 +1007,7 @@ Emacs Display
 * Display Property::        Enabling special display features.
 * Images::                  Displaying images in Emacs buffers.
 * Buttons::                 Adding clickable buttons to Emacs buffers.
+* Abstract Display::        Emacs' Widget for Object Collections.
 * Blinking::                How Emacs shows the matching open parenthesis.
 * Usual Display::	    The usual conventions for displaying nonprinting chars.
 * Display Tables::	    How to specify other conventions.
