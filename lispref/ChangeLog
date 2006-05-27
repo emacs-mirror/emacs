@@ -1,5 +1,7 @@
 2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* processes.texi (Bindat Spec): Expand on `repeat' handler.
+
 	* display.texi (Display): Add "Abstract Display" to menu.
 	(Abstract Display, Abstract Display Functions)
 	(Abstract Display Example): New nodes.
