@@ -385,12 +385,12 @@ arguments will be passed to MAP-FUNCTION."
 (defun ewoc-delete (ewoc &rest nodes)
   "Delete NODES from EWOC."
   (ewoc--set-buffer-bind-dll-let* ewoc
-      ((L nil) (R nil))
+      ((L nil) (R nil) (last (ewoc--last-node ewoc)))
     (dolist (node nodes)
       ;; If we are about to delete the node pointed at by last-node,
       ;; set last-node to nil.
-      (if (eq (ewoc--last-node ewoc) node)
-          (setf (ewoc--last-node ewoc) nil))
+      (when (eq last node)
+        (setf last nil (ewoc--last-node ewoc) nil))
       (delete-region (ewoc--node-start-marker node)
                      (ewoc--node-start-marker (ewoc--node-next node)))
       (set-marker (ewoc--node-start-marker node) nil)
