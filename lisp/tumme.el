@@ -508,7 +508,7 @@ Used by `tumme-copy-with-exif-file-name'."
   :group 'tumme)
 
 (defcustom tumme-show-all-from-dir-max-files 50
-  "*Maximum number of files to show using`tumme-show-all-from-dir'.
+  "*Maximum number of files to show using `tumme-show-all-from-dir'.
 before warning the user."
   :type 'integer
   :group 'tumme)
@@ -840,6 +840,7 @@ thumbnail buffer to be selected."
         (display-buffer tumme-thumbnail-buffer)
       (pop-to-buffer tumme-thumbnail-buffer))))
 
+;;;###autoload
 (defun tumme-show-all-from-dir (dir)
   "Make a preview buffer for all images in DIR and display it.
 If the number of files in DIR matching `image-file-name-regexp'
