@@ -140,6 +140,7 @@
 
 (defstruct (ewoc--node
 	    (:type vector)		;ewoc--node-nth needs this
+            (:constructor nil)
 	    (:constructor ewoc--node-create (start-marker data)))
   left right data start-marker)
 
