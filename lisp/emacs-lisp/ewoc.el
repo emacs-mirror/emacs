@@ -183,8 +183,7 @@ and (ewoc--node-nth -1) returns the last node."
 
 (defstruct (ewoc
 	    (:constructor nil)
-	    (:constructor ewoc--create
-			  (buffer pretty-printer header footer dll))
+	    (:constructor ewoc--create (buffer pretty-printer dll))
 	    (:conc-name ewoc--))
   buffer pretty-printer header footer dll last-node)
 
@@ -280,9 +279,9 @@ respectively, of the ewoc."
          (dll (progn (setf (ewoc--node-right dummy-node) dummy-node)
                      (setf (ewoc--node-left dummy-node) dummy-node)
                      dummy-node))
-         (new-ewoc
-          (ewoc--create (current-buffer)
-                        pretty-printer nil nil dll))
+         (new-ewoc (ewoc--create (current-buffer)
+                                 pretty-printer
+                                 dll))
          (pos (point))
          head foot)
     (ewoc--set-buffer-bind-dll new-ewoc
