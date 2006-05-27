@@ -88,36 +88,7 @@
 ;; limit!  It is even possible to have another ewoc as an
 ;; element.  In that way some kind of tree hierarchy can be created.
 ;;
-;; Full documentation will, God willing, soon be available in a
-;; Texinfo manual.
-
-;; In the mean time `grep '^(.*ewoc-[^-]' emacs-lisp/ewoc.el' can help
-;; you find all the exported functions:
-;;
-;; (defun ewoc-create (pretty-printer &optional header footer nosep)
-;; (defalias 'ewoc-data 'ewoc--node-data)
-;; (defun ewoc-set-data (node data)
-;; (defun ewoc-location (node)
-;; (defun ewoc-enter-first (ewoc data)
-;; (defun ewoc-enter-last (ewoc data)
-;; (defun ewoc-enter-after (ewoc node data)
-;; (defun ewoc-enter-before (ewoc node data)
-;; (defun ewoc-next (ewoc node)
-;; (defun ewoc-prev (ewoc node)
-;; (defun ewoc-nth (ewoc n)
-;; (defun ewoc-map (map-function ewoc &rest args)
-;; (defun ewoc-filter (ewoc predicate &rest args)
-;; (defun ewoc-delete (ewoc &rest nodes)
-;; (defun ewoc-locate (ewoc &optional pos guess)
-;; (defun ewoc-invalidate (ewoc &rest nodes)
-;; (defun ewoc-goto-prev (ewoc arg)
-;; (defun ewoc-goto-next (ewoc arg)
-;; (defun ewoc-goto-node (ewoc node)
-;; (defun ewoc-refresh (ewoc)
-;; (defun ewoc-collect (ewoc predicate &rest args)
-;; (defun ewoc-buffer (ewoc)
-;; (defun ewoc-get-hf (ewoc)
-;; (defun ewoc-set-hf (ewoc header footer)
+;; The Emacs Lisp Reference Manual documents ewoc.el's "public interface".
 
 ;;     Coding conventions
 ;;     ==================
@@ -125,8 +96,6 @@
 ;; All functions of course start with `ewoc'.  Functions and macros
 ;; starting with the prefix `ewoc--' are meant for internal use,
 ;; while those starting with `ewoc-' are exported for public use.
-;; There are currently no global or buffer-local variables used.
-
 
 ;;; Code:
 
@@ -328,7 +297,6 @@ Return the new node."
   (ewoc--set-buffer-bind-dll ewoc
     (ewoc-enter-before ewoc (ewoc--node-nth -1) data)))
 
-
 (defun ewoc-enter-after (ewoc node data)
   "Enter a new element DATA after NODE in EWOC.
 Return the new node."
@@ -356,7 +324,6 @@ Return nil if NODE is nil or the first element."
     (ewoc--filter-hf-nodes
      ewoc (let ((ewoc--current-dll (ewoc--dll ewoc)))
             (ewoc--node-prev node)))))
-
 
 (defun ewoc-nth (ewoc n)
   "Return the Nth node.
