@@ -1,3 +1,8 @@
+2006-05-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macselect.c (mac_handle_apple_event): Return
+	errAEEventNotHandled if key binding is not found.
+
 2006-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (main) [PROFILING]: Enable also for __MINGW32__.
@@ -86,7 +91,7 @@
 	(mac_handle_apple_event_1): New function.
 	(mac_handle_apple_event): Use it.  Don't process previously
 	suspended events.
-	(cleanup_suspended_apple_events, get_suspension_id)n
+	(cleanup_suspended_apple_events, get_suspension_id)
 	(cleanup_all_suspended_apple_events): New functions.
 	(init_apple_event_handler): Call cleanup_all_suspended_apple_events
 	at exit.
