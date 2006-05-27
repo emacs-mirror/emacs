@@ -5,6 +5,8 @@
 
 	(ewoc-delete): Compute last node once before looping.
 
+	(ewoc--node-branch): Merge into unique caller.
+
 2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* dired.el (dired-mode-map): Change `tumme-tag-remove' to
