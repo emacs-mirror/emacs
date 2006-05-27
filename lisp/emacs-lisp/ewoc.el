@@ -139,14 +139,9 @@
 (defvar ewoc--current-dll)
 
 (defstruct (ewoc--node
-	    (:type vector)		;required for ewoc--node-branch hack
+	    (:type vector)		;ewoc--node-nth needs this
 	    (:constructor ewoc--node-create (start-marker data)))
   left right data start-marker)
-
-(defalias 'ewoc--node-branch 'aref
-  "Get the left (CHILD=0) or right (CHILD=1) child of the NODE.
-
-\(fn NODE CHILD)")
 
 (defun ewoc--node-next (node)
   "Return the node after NODE, or nil if NODE is the last node."
@@ -164,13 +159,14 @@ N counts from zero.  If N is negative, return the -(N+1)th last element.
 If N is out of range, return nil.
 Thus, (ewoc--node-nth 0) returns the first node,
 and (ewoc--node-nth -1) returns the last node."
+  ;; Presuming a node is ":type vector", starting with `left' and `right':
   ;; Branch 0 ("follow left pointer") is used when n is negative.
   ;; Branch 1 ("follow right pointer") is used otherwise.
   (let* ((branch (if (< n 0) 0 1))
-	 (node   (ewoc--node-branch ewoc--current-dll branch)))
+	 (node   (aref ewoc--current-dll branch)))
     (if (< n 0) (setq n (- -1 n)))
     (while (and (not (eq ewoc--current-dll node)) (> n 0))
-      (setq node (ewoc--node-branch node branch))
+      (setq node (aref node branch))
       (setq n (1- n)))
     (unless (eq ewoc--current-dll node) node)))
 
