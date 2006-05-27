@@ -881,10 +881,9 @@ displayed."
                (end-of-line)
                (setq end (point))
                (beginning-of-line)
-               (if (not (search-forward (format ";%s" tag) end t))
-                   (progn
-                     (end-of-line)
-                     (insert (format ";%s" tag)))))
+               (when (not (search-forward (format ";%s" tag) end t))
+                 (end-of-line)
+                 (insert (format ";%s" tag))))
            (goto-char (point-max))
            (insert (format "\n%s;%s" file tag))))
        files)
@@ -903,30 +902,27 @@ displayed."
       (mapcar
        (lambda (file)
          (goto-char (point-min))
-         (if (search-forward-regexp
-              (format "^%s" file) nil t)
-             (progn
-               (end-of-line)
-               (setq end (point))
-               (beginning-of-line)
-               (if (search-forward-regexp (format "\\(;%s\\)" tag) end t)
-                   (progn
-                     (delete-region (match-beginning 1) (match-end 1))
-                     ;; Check if file should still be in the database. If
-                     ;; it has no tags or comments, it will be removed.
-                     (end-of-line)
-                     (setq end (point))
-                     (beginning-of-line)
-                     (if (not (search-forward ";" end t))
-                         (progn
-                           (kill-line 1)
-                           ;; If on empty line at end of buffer
-                           (if (and (eobp)
-                                    (looking-at "^$"))
-                               (delete-backward-char 1)))))))))
-       files)
-      (save-buffer)
-      (kill-buffer buf))))
+         (when (search-forward-regexp
+                (format "^%s" file) nil t)
+           (end-of-line)
+           (setq end (point))
+           (beginning-of-line)
+           (when (search-forward-regexp (format "\\(;%s\\)" tag) end t)
+             (delete-region (match-beginning 1) (match-end 1))
+             ;; Check if file should still be in the database. If
+             ;; it has no tags or comments, it will be removed.
+             (end-of-line)
+             (setq end (point))
+             (beginning-of-line)
+             (when (not (search-forward ";" end t))
+               (kill-line 1)
+               ;; If on empty line at end of buffer
+               (when (and (eobp)
+                          (looking-at "^$"))
+                 (delete-backward-char 1)))))))
+      files)
+    (save-buffer)
+    (kill-buffer buf)))
 
 (defun tumme-list-tags (file)
   "Read all tags for image FILE from the image database."
@@ -934,17 +930,16 @@ displayed."
     (let (end buf (tags ""))
       (setq buf (find-file tumme-db-file))
       (goto-char (point-min))
-      (if (search-forward-regexp
-           (format "^%s" file) nil t)
-          (progn
-            (end-of-line)
-            (setq end (point))
-            (beginning-of-line)
-            (if (search-forward ";" end t)
-                (if (search-forward "comment:" end t)
-                    (if (search-forward ";" end t)
-                        (setq tags (buffer-substring (point) end)))
-                  (setq tags (buffer-substring (point) end))))))
+      (when (search-forward-regexp
+             (format "^%s" file) nil t)
+        (end-of-line)
+        (setq end (point))
+        (beginning-of-line)
+        (if (search-forward ";" end t)
+            (if (search-forward "comment:" end t)
+                (if (search-forward ";" end t)
+                    (setq tags (buffer-substring (point) end)))
+              (setq tags (buffer-substring (point) end)))))
       (kill-buffer buf)
       (split-string tags ";"))))
 
@@ -1010,17 +1005,16 @@ use only useful if `tumme-track-movement' is nil."
   (let ((old-buf (current-buffer))
         (dired-buf (tumme-associated-dired-buffer))
         (file-name (tumme-original-file-name)))
-    (if (and dired-buf file-name)
-        (progn
-          (setq file-name (file-name-nondirectory file-name))
-          (set-buffer dired-buf)
-          (goto-char (point-min))
-          (if (not (search-forward file-name nil t))
-              (message "Could not track file")
-            (dired-move-to-filename)
-            (set-window-point
-             (tumme-get-buffer-window dired-buf) (point)))
-          (set-buffer old-buf)))))
+    (when (and dired-buf file-name)
+      (setq file-name (file-name-nondirectory file-name))
+      (set-buffer dired-buf)
+      (goto-char (point-min))
+      (if (not (search-forward file-name nil t))
+          (message "Could not track file")
+        (dired-move-to-filename)
+        (set-window-point
+         (tumme-get-buffer-window dired-buf) (point)))
+      (set-buffer old-buf))))
 
 (defun tumme-toggle-movement-tracking ()
   "Turn on and off `tumme-track-movement'.
@@ -1039,24 +1033,22 @@ the other way around."
   (let ((file (dired-get-filename))
         (old-buf (current-buffer))
         prop-val found)
-    (if (get-buffer tumme-thumbnail-buffer)
-        (progn
-          (set-buffer tumme-thumbnail-buffer)
-          (goto-char (point-min))
-          (while (and (not (eobp))
-                      (not found))
-            (if (and (setq prop-val
-                           (get-text-property (point) 'original-file-name))
-                     (string= prop-val file))
-                (setq found t))
-            (if (not found)
-                (forward-char 1)))
-          (if found
-              (progn
-                (set-window-point
-                 (tumme-thumbnail-window) (point))
-                (tumme-display-thumb-properties)))
-          (set-buffer old-buf)))))
+    (when (get-buffer tumme-thumbnail-buffer)
+      (set-buffer tumme-thumbnail-buffer)
+      (goto-char (point-min))
+      (while (and (not (eobp))
+                  (not found))
+        (if (and (setq prop-val
+                       (get-text-property (point) 'original-file-name))
+                 (string= prop-val file))
+            (setq found t))
+        (if (not found)
+            (forward-char 1)))
+      (when found
+        (set-window-point
+         (tumme-thumbnail-window) (point))
+        (tumme-display-thumb-properties))
+      (set-buffer old-buf))))
 
 (defun tumme-dired-next-line (&optional arg)
   "Call `dired-next-line', then track thumbnail.
@@ -1081,29 +1073,27 @@ move ARG lines."
   (interactive)
   ;; Before we move, make sure that there is an image two positions
   ;; forward.
-  (if (save-excursion
+  (when (save-excursion
         (forward-char 2)
         (tumme-image-at-point-p))
-      (progn
-        (forward-char)
-        (while (and (not (eobp))
-                    (not (tumme-image-at-point-p)))
-          (forward-char))
-        (if tumme-track-movement
-            (tumme-track-original-file))))
+    (forward-char)
+    (while (and (not (eobp))
+                (not (tumme-image-at-point-p)))
+      (forward-char))
+    (if tumme-track-movement
+        (tumme-track-original-file)))
   (tumme-display-thumb-properties))
 
 (defun tumme-backward-char ()
   "Move to previous image and display properties."
   (interactive)
-  (if (not (bobp))
-      (progn
-        (backward-char)
-        (while (and (not (bobp))
-                    (not (tumme-image-at-point-p)))
-          (backward-char))
-        (if tumme-track-movement
-            (tumme-track-original-file))))
+  (when (not (bobp))
+    (backward-char)
+    (while (and (not (bobp))
+                (not (tumme-image-at-point-p)))
+      (backward-char))
+    (if tumme-track-movement
+        (tumme-track-original-file)))
   (tumme-display-thumb-properties))
 
 (defun tumme-next-line ()
@@ -1664,11 +1654,10 @@ See also `tumme-line-up-dynamic'."
             (insert "\n")
           (insert " ")
           (setq count (1+ count))
-          (if (= count (- tumme-thumbs-per-row 1))
-              (progn
-                (forward-char)
-                (insert "\n")
-                (setq count 0))))))
+          (when (= count (- tumme-thumbs-per-row 1))
+            (forward-char)
+            (insert "\n")
+            (setq count 0)))))
     (goto-char (point-min))))
 
 (defun tumme-line-up-dynamic ()
@@ -2097,19 +2086,18 @@ as initial value."
     (let (end buf comment-beg comment (base-name (file-name-nondirectory file)))
       (setq buf (find-file tumme-db-file))
       (goto-char (point-min))
-      (if (search-forward-regexp
-           (format "^%s" base-name) nil t)
-          (progn
-            (end-of-line)
-            (setq end (point))
-            (beginning-of-line)
-            (cond ((search-forward ";comment:" end t)
-                   (setq comment-beg (point))
-                   (if (search-forward ";" end t)
-                       (setq comment-end (- (point) 1))
-                     (setq comment-end end))
-                   (setq comment (buffer-substring
-                                  comment-beg comment-end))))))
+      (when (search-forward-regexp
+             (format "^%s" base-name) nil t)
+        (end-of-line)
+        (setq end (point))
+        (beginning-of-line)
+        (cond ((search-forward ";comment:" end t)
+               (setq comment-beg (point))
+               (if (search-forward ";" end t)
+                   (setq comment-end (- (point) 1))
+                 (setq comment-end end))
+               (setq comment (buffer-substring
+                              comment-beg comment-end)))))
       (kill-buffer buf)
       comment)))
 
