@@ -15,6 +15,13 @@
 	(ewoc--node): Don't define constructor
 	make-ewoc--node for this structure.
 
+	* emacs-lisp/ewoc.el (ewoc): Add member `hf-pp' to this structure.
+	(ewoc--wrap): New func.
+	(ewoc-create): Take additional arg NOSEP.  If nil, wrap node and
+	header/footer pretty-printers.  Save header/footer pretty-printer.
+	(ewoc-set-hf): Use ewoc's header/footer pretty-printer.
+	* pcvs.el (cvs-make-cvs-buffer): Specify NOSEP to `ewoc-create'.
+
 2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* dired.el (dired-mode-map): Change `tumme-tag-remove' to
