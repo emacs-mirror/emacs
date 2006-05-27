@@ -1,6 +1,7 @@
 2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el: Change a lot of `(if .. (progn ..)' to `(when ..)'.
+	(tumme-remove-tag): Fix bug.
 
 2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
 
