@@ -3,6 +3,8 @@
 	* emacs-lisp/ewoc.el (ewoc--create): No longer
 	take HEADER and FOOTER args.  Update unique caller.
 
+	(ewoc-delete): Compute last node once before looping.
+
 2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* dired.el (dired-mode-map): Change `tumme-tag-remove' to
