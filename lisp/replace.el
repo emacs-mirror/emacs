@@ -36,6 +36,11 @@
 
 (defvar query-replace-history nil)
 
+(defvar query-replace-defaults nil
+  "Default values of FROM-STRING and TO-STRING for `query-replace'.
+This is a cons cell (FROM-STRING . TO-STRING), or nil if there is
+no default value.")
+
 (defvar query-replace-interactive nil
   "Non-nil means `query-replace' uses the last search string.
 That becomes the \"string to replace\".")
@@ -94,32 +99,27 @@ The return value can also be a pair (FROM . TO) indicating that the user
 wants to replace FROM with TO."
   (if query-replace-interactive
       (car (if regexp-flag regexp-search-ring search-ring))
-    (let* ((lastfrom (car (symbol-value query-replace-from-history-variable)))
-	   (lastto (car (symbol-value query-replace-to-history-variable)))
-	   (from
+    (let  ((from
 	    ;; The save-excursion here is in case the user marks and copies
 	    ;; a region in order to specify the minibuffer input.
 	    ;; That should not clobber the region for the query-replace itself.
 	    (save-excursion
-	      (when (equal lastfrom lastto)
-		;; Typically, this is because the two histlists are shared.
-		(setq lastfrom (cadr (symbol-value
-				      query-replace-from-history-variable))))
 	      (read-from-minibuffer
-	       (if (and lastto lastfrom)
+	       (if query-replace-defaults
 		   (format "%s (default %s -> %s): " prompt
-			   (query-replace-descr lastfrom)
-			   (query-replace-descr lastto))
+			   (query-replace-descr (car query-replace-defaults))
+			   (query-replace-descr (cdr query-replace-defaults)))
 		 (format "%s: " prompt))
 	       nil nil nil
 	       query-replace-from-history-variable
 	       nil t))))
-      (if (and (zerop (length from)) lastto lastfrom)
+      (if (and (zerop (length from)) query-replace-defaults)
 	  (progn
 	    (set query-replace-from-history-variable
 		 (cdr (symbol-value query-replace-from-history-variable)))
-	    (cons lastfrom
-		  (query-replace-compile-replacement lastto regexp-flag)))
+	    (cons (car query-replace-defaults)
+		  (query-replace-compile-replacement
+		   (cdr query-replace-defaults) regexp-flag)))
 	;; Warn if user types \n or \t, but don't reject the input.
 	(and regexp-flag
 	     (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
@@ -177,10 +177,12 @@ the original string if not."
   "Query and return the `to' argument of a query-replace operation."
   (query-replace-compile-replacement
    (save-excursion
-     (read-from-minibuffer
-      (format "%s %s with: " prompt (query-replace-descr from))
-      nil nil nil
-      query-replace-to-history-variable from t))
+     (let ((to (read-from-minibuffer
+		(format "%s %s with: " prompt (query-replace-descr from))
+		nil nil nil
+		query-replace-to-history-variable from t)))
+       (setq query-replace-defaults (cons from to))
+       to))
    regexp-flag))
 
 (defun query-replace-read-args (prompt regexp-flag &optional noerror)

@@ -1,3 +1,10 @@
+2006-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (query-replace-defaults): New variable.
+	(query-replace-read-from): Use `query-replace-defaults' for
+	default value, instead of history list.
+	(query-replace-read-to): Update `query-replace-defaults'.
+
 2006-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* msb.el (mouse-select-buffer): Minor fix to make popup menu work
