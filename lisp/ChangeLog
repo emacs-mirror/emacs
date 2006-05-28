@@ -1,3 +1,9 @@
+2006-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-browser-map)
+	(makefile-mode-syntax-table): Move initialization inside declaration.
+	(makefile-fill-paragraph): Use the default comment-filling code.
+
 2006-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* replace.el (query-replace-defaults): New variable.
@@ -44,7 +50,7 @@
 	Move tumme commands to Operate, Regexp and Immediate menus.
 	Change "Add Comment" to "Add Image Comment".  Change "Add Image
 	Tag" to "Add Image Tags".
-	
+
 	* tumme.el (tumme-delete-tag): Rename from `tumme-tag-remove'.
 	(tumme-setup-dired-keybindings): Change `tumme-add-remove' to
 	`tumme-delete-tag'.
