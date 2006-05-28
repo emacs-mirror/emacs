@@ -11620,9 +11620,11 @@ redisplay_window_1 (window)
 
 /* Set cursor position of W.  PT is assumed to be displayed in ROW.
    DELTA is the number of bytes by which positions recorded in ROW
-   differ from current buffer positions.  */
+   differ from current buffer positions.
 
-void
+   Return 0 if cursor is not on this row.  1 otherwise.  */
+
+int
 set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
      struct window *w;
      struct glyph_row *row;
@@ -11772,6 +11774,11 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	      SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
 	    }
 	}
+
+      /* If we reached the end of the line, and end was from a string,
+	 cursor is not on this line.  */
+      if (glyph == end)
+	return 0;
     }
 
   w->cursor.hpos = glyph - row->glyphs[TEXT_AREA];
@@ -11805,6 +11812,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       else
 	CHARPOS (this_line_start_pos) = 0;
     }
+
+  return 1;
 }
 
 
@@ -12488,8 +12497,18 @@ try_cursor_movement (window, startp, scroll_step)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	  else
 	    {
-	      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-	      rc = CURSOR_MOVEMENT_SUCCESS;
+	      do
+		{
+		  if (set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0))
+		    {
+		      rc = CURSOR_MOVEMENT_SUCCESS;
+		      break;
+		    }
+		  ++row;
+		}
+	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
+		     && MATRIX_ROW_START_CHARPOS (row) == PT
+		     && cursor_row_p (w, row));
 	    }
 	}
     }
