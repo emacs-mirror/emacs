@@ -114,12 +114,9 @@ wants to replace FROM with TO."
 	       query-replace-from-history-variable
 	       nil t))))
       (if (and (zerop (length from)) query-replace-defaults)
-	  (progn
-	    (set query-replace-from-history-variable
-		 (cdr (symbol-value query-replace-from-history-variable)))
-	    (cons (car query-replace-defaults)
-		  (query-replace-compile-replacement
-		   (cdr query-replace-defaults) regexp-flag)))
+	  (cons (car query-replace-defaults)
+		(query-replace-compile-replacement
+		 (cdr query-replace-defaults) regexp-flag))
 	;; Warn if user types \n or \t, but don't reject the input.
 	(and regexp-flag
 	     (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
