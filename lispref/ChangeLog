@@ -1,3 +1,8 @@
+2006-05-29  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Bindat Functions): Rename `pos' and `raw-data' to
+	`bindat-idx' and `bindat-raw' for clarity.
+
 2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* processes.texi (Bindat Spec): Expand on `repeat' handler.

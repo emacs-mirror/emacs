@@ -1,3 +1,8 @@
+2006-05-29  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/bindat.el (bindat-idx, bindat-raw): Rename dynamic variables
+	`pos' and `raw-data' for clarity, as eval forms may access these.
+
 2006-05-28  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/bindat.el (bindat--unpack-u8): Use aref also for strings.
