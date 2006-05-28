@@ -1,5 +1,14 @@
 2006-05-28  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (set_cursor_from_row): If cursor cannot be set in row,
+	don't update w->cursor and return 0.  Return 1 on success.
+	(try_cursor_movement): Repeat set_cursor_from_row on successive rows
+	until it succeeds.
+
+	* dispextern.h (set_cursor_from_row): Update prototype.
+
+2006-05-28  Kim F. Storm  <storm@cua.dk>
+
 	* xdisp.c (get_phys_cursor_geometry): Return computed x and y through
 	parameters.  Adjust x and width in case cursor in on a partially
 	visible stretch glyph on the left edge.
