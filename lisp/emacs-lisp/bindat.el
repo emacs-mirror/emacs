@@ -201,9 +201,7 @@
 
 (defun bindat--unpack-u8 ()
   (prog1
-      (if (stringp raw-data)
-	  (string-to-char (substring raw-data pos (1+ pos)))
-	(aref raw-data pos))
+    (aref raw-data pos)
     (setq pos (1+ pos))))
 
 (defun bindat--unpack-u16 ()
