@@ -273,6 +273,20 @@ which lists the file name and which functions are in it, etc."
 	(or (eolp)
 	    (insert "\n" generate-autoload-section-continuation))))))
 
+(defun autoload-find-file (file)
+  "Fetch file and put it in a temp buffer.  Return the buffer."
+  ;; It is faster to avoid visiting the file.
+  (with-current-buffer (get-buffer-create " *autoload-file*")
+    (kill-all-local-variables)
+    (erase-buffer)
+    (setq buffer-undo-list t
+          buffer-read-only nil)
+    (emacs-lisp-mode)
+    (insert-file-contents file nil)
+    (let ((enable-local-variables :safe))
+      (hack-local-variables))
+    (current-buffer)))
+
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
 autoloads are generated for defuns and defmacros in FILE
@@ -313,16 +327,9 @@ are used."
     (save-excursion
       (unwind-protect
 	  (progn
-	    (if visited
-		(set-buffer visited)
-	      ;; It is faster to avoid visiting the file.
-	      (set-buffer (get-buffer-create " *generate-autoload-file*"))
-	      (kill-all-local-variables)
-	      (erase-buffer)
-	      (setq buffer-undo-list t
-		    buffer-read-only nil)
-	      (emacs-lisp-mode)
-	      (insert-file-contents file nil))
+	    (set-buffer (or visited
+                            ;; It is faster to avoid visiting the file.
+                            (autoload-find-file file)))
 	    (save-excursion
 	      (save-restriction
 		(widen)
@@ -340,8 +347,7 @@ are used."
 					       (or (bolp) (forward-line 1))))
 			       (autoload (make-autoload form load-name)))
 			  (if autoload
-			      (setq autoloads-done (cons (nth 1 form)
-							 autoloads-done))
+			      (push (nth 1 form) autoloads-done)
 			    (setq autoload form))
 			  (let ((autoload-print-form-outbuf outbuf))
 			    (autoload-print-form autoload)))
@@ -460,31 +466,22 @@ Autoload section for %s is up to date."
 	      (and (eq found 'new)
 		   ;; Check that FILE has any cookies before generating a
 		   ;; new section for it.
-		   (save-excursion
-		     (if existing-buffer
-			 (set-buffer existing-buffer)
-		       ;; It is faster to avoid visiting the file.
-		       (set-buffer (get-buffer-create " *autoload-file*"))
-		       (kill-all-local-variables)
-		       (erase-buffer)
-		       (setq buffer-undo-list t
-			     buffer-read-only nil)
-		       (emacs-lisp-mode)
-		       (insert-file-contents file nil))
-		     (save-excursion
+		   (with-current-buffer
+                       (or existing-buffer
+                           ;; It is faster to avoid visiting the file.
+                           (autoload-find-file file))
+                     (save-excursion
 		       (save-restriction
 			 (widen)
 			 (goto-char (point-min))
 			 (prog1
-			     (if (re-search-forward
-				  (concat "^" (regexp-quote
-					       generate-autoload-cookie))
-				  nil t)
-				 nil
-			       (if (interactive-p)
-				   (message "%s has no autoloads" file))
-			       (setq no-autoloads t)
-			       t)
+			     (setq no-autoloads
+                                   (not (re-search-forward
+                                         (concat "^" (regexp-quote
+                                                      generate-autoload-cookie))
+                                         nil t)))
+                           (if (and no-autoloads (interactive-p))
+                               (message "%s has no autoloads" file))
 			   (or existing-buffer
 			       (kill-buffer (current-buffer))))))))
 	      (generate-file-autoloads file))))

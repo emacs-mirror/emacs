@@ -1,5 +1,9 @@
 2006-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (autoload-find-file): New fun.
+	This one calls hack-local-variables.
+	(generate-file-autoloads, update-file-autoloads): Use it.
+
 	* textmodes/bibtex.el (bibtex-autokey-name-case-convert-function)
 	(bibtex-sort-entry-class): Add safe-local-variable predicate.
 	(bibtex-sort-entry-class-alist): Don't set the global value.
