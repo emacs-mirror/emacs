@@ -1,3 +1,10 @@
+2006-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/ewoc.el (ewoc--current-dll): Remove.
+	Basically undo the change of 2006-05-26: use extra arguments instead of
+	dynamic scoping.
+	(ewoc-locate): Remove unused var `footer'.
+
 2006-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/ewoc.el (ewoc--insert-new-node): Use ewoc--refresh-node.
