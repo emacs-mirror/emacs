@@ -99,7 +99,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))	;because of CL compiler macros
+(eval-when-compile (require 'cl))
 
 ;; The doubly linked list is implemented as a circular list
 ;; with a dummy node first and last. The dummy node is used as
@@ -197,18 +197,13 @@ BUT if it is the header or the footer in EWOC return nil instead."
 Call PRETTY-PRINTER with point at NODE's start, thus pushing back
 NODE and leaving the new node's start there.  Return the new node."
   (save-excursion
-    (let* ((inhibit-read-only t)
-           (m (copy-marker (ewoc--node-start-marker node)))
-           (pos (marker-position m))
-           (elemnode (ewoc--node-create m data)))
-      (goto-char pos)
-      (funcall pretty-printer data)
-      (setf (marker-position m) pos
-            (ewoc--node-left  elemnode) (ewoc--node-left node)
+    (let ((elemnode (ewoc--node-create
+                     (copy-marker (ewoc--node-start-marker node)) data)))
+      (setf (ewoc--node-left  elemnode) (ewoc--node-left node)
             (ewoc--node-right elemnode)                  node
             (ewoc--node-right (ewoc--node-left node)) elemnode
             (ewoc--node-left                   node)  elemnode)
-      (ewoc--adjust pos (point) node)
+      (ewoc--refresh-node pretty-printer elemnode)
       elemnode)))
 
 (defun ewoc--refresh-node (pp node)
@@ -584,10 +579,10 @@ Return nil if the buffer has been deleted."
 
 (provide 'ewoc)
 
-;;; Local Variables:
-;;; eval: (put 'ewoc--set-buffer-bind-dll 'lisp-indent-hook 1)
-;;; eval: (put 'ewoc--set-buffer-bind-dll-let* 'lisp-indent-hook 2)
-;;; End:
+;; Local Variables:
+;; eval: (put 'ewoc--set-buffer-bind-dll 'lisp-indent-hook 1)
+;; eval: (put 'ewoc--set-buffer-bind-dll-let* 'lisp-indent-hook 2)
+;; End:
 
-;;; arch-tag: d78915b9-9a07-44bf-aac6-04a1fc1bd6d4
+;; arch-tag: d78915b9-9a07-44bf-aac6-04a1fc1bd6d4
 ;;; ewoc.el ends here

@@ -1,5 +1,7 @@
 2006-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/ewoc.el (ewoc--insert-new-node): Use ewoc--refresh-node.
+
 	* emacs-lisp/autoload.el (no-update-autoloads): Declare.
 	(generate-file-autoloads): Obey it.  Return whether autoloads were
 	added at point or not.
