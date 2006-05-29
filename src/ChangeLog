@@ -1,3 +1,7 @@
+2006-05-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* charset.h (invalid_character): Mark as NO_RETURN.
+
 2006-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Ffind_operation_coding_system): Call a function by
