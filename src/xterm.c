@@ -357,6 +357,7 @@ static void x_check_fullscreen P_ ((struct frame *));
 static void x_check_expected_move P_ ((struct frame *));
 static int handle_one_xevent P_ ((struct x_display_info *, XEvent *,
 				  int *, struct input_event *));
+static SIGTYPE x_connection_closed P_ ((Display *, char *));
 
 
 /* Flush display of frame F, or of all frames if F is null.  */

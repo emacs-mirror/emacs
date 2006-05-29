@@ -1,3 +1,15 @@
+2006-05-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* search.c (matcher_overflow): Mark as NO_RETURN.
+
+	* xterm.c (x_connection_closed): Likewise.
+
+	* sysdep.c (croak): Likewise.
+
+	* sound.c (sound_perror, alsa_sound_perror): Likewise.
+
+	* lisp.h (die, nsberror): Likewise.
+
 2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* sound.c (alsa_open, alsa_configure, alsa_write): Move
