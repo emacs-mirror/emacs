@@ -626,6 +626,8 @@ extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
 extern void mac_clear_area P_ ((struct frame *, int, int,
 				unsigned int, unsigned int));
 extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
+extern int mac_font_panel_visible_p P_ ((void));
+extern OSStatus mac_show_hide_font_panel P_ ((void));
 extern OSStatus mac_set_font_info_for_selection P_ ((struct frame *, int, int));
 extern OSErr install_window_handler P_ ((WindowPtr));
 extern void remove_window_handler P_ ((WindowPtr));
