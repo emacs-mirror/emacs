@@ -1,3 +1,7 @@
+2006-05-28  Ted Zlatanov  <tzz@lifelogs.com>
+
+	* basic.texi: Many simplifications and improvements in wording.
+
 2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* pcl-cvs.texi: Fix typos.
