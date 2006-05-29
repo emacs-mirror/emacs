@@ -1,3 +1,18 @@
+2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_new_font, xft_xlfd_unparse): Fix compiler warnings.
+
+2006-05-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_set_glyph_string_clipping): get_glyph_string_clip_rects
+	takes 3 parameters, use XftDrawSetClipRectangles for HAVE_XFT.
+	(xft_xlfd_unparse): Force xlfd to use 0-iso10646-1.
+	(x_draw_glyph_string_foreground): Redo how colors for drawing
+	are selected for cursors.
+
+	* xfaces.c (prepare_face_for_display): Set bg.color.alpha to 0xffff.
+	(realize_non_ascii_face): Set xft_draw to NULL.
+
 2006-05-15  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (system_eol_type): Fix synching with HEAD.
