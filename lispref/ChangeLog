@@ -1,3 +1,10 @@
+2006-05-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* internals.texi (Pure Storage): Mention that an overflow in pure
+	space causes a memory leak.
+	(Garbage Collection): If there was an overflow in pure space,
+	`garbage-collect' returns nil.
+
 2006-05-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Default Coding Systems): Fix it some more.
