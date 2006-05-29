@@ -1,3 +1,8 @@
+2006-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (find-operation-coding-system): Describe the new
+	argument format (FILENAME . BUFFER).
+
 2006-05-28  Richard Stallman  <rms@gnu.org>
 
 	* tips.texi (Coding Conventions): Better explain reasons not to
