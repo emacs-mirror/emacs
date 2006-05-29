@@ -1,3 +1,13 @@
+2006-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el (bibtex-autokey-name-case-convert-function)
+	(bibtex-sort-entry-class): Add safe-local-variable predicate.
+	(bibtex-sort-entry-class-alist): Don't set the global value.
+	(bibtex-init-sort-entry-class-alist): New fun.
+	(bibtex-sort-buffer, bibtex-prepare-new-entry): Call it to compute
+	bibtex-init-sort-entry-class-alist from the buffer-local value (if any)
+	of bibtex-init-sort-entry-class.
+
 2006-05-28  Richard Stallman  <rms@gnu.org>
 
 	* subr.el (load-history-regexp): If FILE is relative, insist
@@ -6,7 +16,7 @@
 
 2006-05-29  Kim F. Storm  <storm@cua.dk>
 
-	* emacs-lisp/bindat.el (bindat-idx, bindat-raw): Rename dynamic variables
+	* emacs-lisp/bindat.el (bindat-idx, bindat-raw): Rename dynamic vars
 	`pos' and `raw-data' for clarity, as eval forms may access these.
 
 2006-05-28  Kim F. Storm  <storm@cua.dk>
