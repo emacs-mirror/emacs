@@ -1,3 +1,7 @@
+2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention F10 for Gtk+/Leddtif/Lucid menus.
+
 2006-05-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* ledit.l: Remove file.
