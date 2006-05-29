@@ -1103,11 +1103,11 @@ The argument @var{operation} should be a symbol, any one of
 @code{insert-file-contents}, @code{write-region},
 @code{start-process}, @code{call-process}, @code{call-process-region},
 or @code{open-network-stream}.  These are the names of the Emacs I/O
-primitives that can do coding system conversion.
+primitives that can do character code and eol conversion.
 
 The remaining arguments should be the same arguments that might be given
-to that I/O primitive.  Depending on the primitive, one of those
-arguments is selected as the @dfn{target}.  For example, if
+to the corresponding I/O primitive.  Depending on the primitive, one
+of those arguments is selected as the @dfn{target}.  For example, if
 @var{operation} does file I/O, whichever argument specifies the file
 name is the target.  For subprocess primitives, the process name is the
 target.  For @code{open-network-stream}, the target is the service name
@@ -1115,15 +1115,20 @@ or port number.
 
 Depending on @var{operation}, this function looks up the target in
 @code{file-coding-system-alist}, @code{process-coding-system-alist},
-or @code{network-coding-system-alist}.
+or @code{network-coding-system-alist}.  If the target is found in the
+alist, @code{find-operation-coding-system} returns its association in
+the alist; otherwise it returns @code{nil}.
 
 If @var{operation} is @code{insert-file-contents}, the argument
 corresponding to the target may be a cons cell of the form
 @code{(@var{filename} . @var{buffer})}).  In that case, @var{filename}
-is a file name to look up, and @var{buffer} is a buffer that already
-contains the file's contents (not yet decoded).  Functions specified
-in @code{file-coding-system-alist} must pay attention to this format
-of the target.
+is a file name to look up in @code{file-coding-system-alist}, and
+@var{buffer} is a buffer will contain the file's contents (not yet
+decoded).  If the file's association in
+@code{file-coding-system-alist} specifies a function to call, and that
+function needs to examine the file's contents (as it usually does), it
+should examine the contents of @var{buffer} instead of reading the
+file.
 @end defun
 
 @node Specifying Coding Systems
