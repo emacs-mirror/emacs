@@ -1,3 +1,8 @@
+2006-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Ffind_operation_coding_system): Call a function by
+	safe_call1 instead of call1.
+
 2006-05-28  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (set_cursor_from_row): If cursor cannot be set in row,
