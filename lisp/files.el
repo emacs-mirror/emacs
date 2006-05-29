@@ -2689,7 +2689,10 @@ It is dangerous if either of these conditions are met:
 		    (or (numberp val) (equal val ''defun)))
 		   ((eq prop 'edebug-form-spec)
 		    ;; Only allow indirect form specs.
-		    (edebug-basic-spec val)))))
+		    ;; During bootstrapping, edebug-basic-spec might not be
+		    ;; defined yet.
+                    (and (fboundp 'edebug-basic-spec)
+                         (edebug-basic-spec val))))))
       ;; Allow expressions that the user requested.
       (member exp safe-local-eval-forms)
       ;; Certain functions can be allowed with safe arguments

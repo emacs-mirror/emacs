@@ -1,5 +1,8 @@
 2006-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (hack-one-local-variable-eval-safep): Don't burp if used
+	during bootstrapping.
+
 	* emacs-lisp/ewoc.el (ewoc--current-dll): Remove.
 	Basically undo the change of 2006-05-26: use extra arguments instead of
 	dynamic scoping.
@@ -135,8 +138,8 @@
 
 2006-05-26  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* comint.el (comint-kill-whole-line): Rename arg to count.  Fix
-	doc string.
+	* comint.el (comint-kill-whole-line): Rename arg to count.
+	Fix doc string.
 
 2006-05-26  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -162,11 +165,10 @@
 	* textmodes/org.el: (org-next-item, org-previous-item): Emit more
 	compact error message.
 	(org-tags-view): Refresh category table in each file.
-	(org-table-justify-field-maybe): Removed superfluous arguments to
+	(org-table-justify-field-maybe): Remove superfluous arguments to
 	`format'.
 	(org-export-as-html): Insert "<p>" before postamble.
-	(org-paste-subtree, org-kill-is-subtree-p): Check for empty kill
-	ring.
+	(org-paste-subtree, org-kill-is-subtree-p): Check for empty kill ring.
 
 2006-05-26  Kenichi Handa  <handa@m17n.org>
 
@@ -174,14 +176,14 @@
 	FILENAME is a cons (NAME . BUFFER).
 	(po-find-file-coding-system-guts): Likewise.
 
-	* arc-mode.el (archive-set-buffer-as-visiting-file): Call
-	find-operation-coding-system with (FILENAME . BUFFER).
+	* arc-mode.el (archive-set-buffer-as-visiting-file):
+	Call find-operation-coding-system with (FILENAME . BUFFER).
 
 	* tar-mode.el (tar-extract): Call find-operation-coding-system
 	with (FILENAME . BUFFER).
 
-	* international/mule.el (decode-coding-inserted-region): Call
-	find-operation-coding-system with (FILENAME . BUFFER).
+	* international/mule.el (decode-coding-inserted-region):
+	Call find-operation-coding-system with (FILENAME . BUFFER).
 
 2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -194,18 +196,17 @@
 	Remove 8th arg KEEP-ALL in read-from-minibuffer.
 
 2006-05-25  Rajesh Vaidheeswarran <rv@gnu.org>
-	* whitespace.el (whitespace-cleanup): change to cleanup
-	region if one is active
-	* whitespace.el (whitespace-cleanup-internal): new internal
-	method
+
+	* whitespace.el (whitespace-cleanup): Change to cleanup
+	region if one is active.
+	* whitespace.el (whitespace-cleanup-internal): New internal method.
 
 2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* dired.el (dired-mode-map): Add help-echo strings to tumme
 	commands.  Bind `tumme-dired-display-image' to C-t i.
 
-	* tumme.el (tumme-display-image): Change documentation string
-	slightly.
+	* tumme.el (tumme-display-image): Change documentation string slightly.
 	(tumme-dired-display-image): Add call to `display-buffer'.
 
 2006-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
@@ -285,16 +286,16 @@
 
 	* textmodes/org.el: (org-open-at-point): Use renamed variable
 	`org-confirm-shell-link-function'.
-	(org-confirm-shell-link-function): Renamed from
+	(org-confirm-shell-link-function): Rename from
 	`org-confirm-shell-links'.
 	(org-export-directory): New function.
 	(org-export-as-ascii, org-export-as-html, org-export-as-xoxo)
 	(org-export-icalendar): Use `org-export-directory'.
 	(org-indent-item): Keep cursor position.
 	(org-link-file-path-type): New option.
-	(org-export-as-html): Fixed bug with plain lists starting in
+	(org-export-as-html): Fix bug with plain lists starting in
 	column 0.
-	(org-export-as-html): Removed deadline formatting, this happens
+	(org-export-as-html): Remove deadline formatting, this happens
 	now already in `org-html-handle-time-stamps'.
 	(org-export-html-style): Deadline class removed.
 	(org-insert-labeled-timestamps-at-point): New option.
@@ -307,16 +308,15 @@
 	(org-shifttab): Use `org-global-cycle'.
 	(org-insert-heading, org-insert-item): Go to end of new
 	headline/item after creating it.
-	(org-export-visible): Renames from `org-export-copy-visible'.  Now
-	creates a temporary org-file and applies an exporting command to
-	it.
+	(org-export-visible): Rename from `org-export-copy-visible'.
+	Now creates a temporary org-file and applies an exporting command
+	to it.
 	(org-table-eval-formula): Support for lisp forms.
 	(org-agenda-todo-ignore-scheduled): New option.
 	(org-agenda-get-todos): Use new option
 	`org-agenda-todo-ignore-scheduled'.
 	(org-export-html-inline-images): New value `maybe'.
-	(org-export-as-html): Inlining of images dependent on link
-	description.
+	(org-export-as-html): Inlining of images dependent on link description.
 	(org-archive-subtree): Check for end-of-buffer before trying
 	`kill-line'.
 	(org-agenda-follow-mode): New option.
@@ -326,8 +326,8 @@
 	(org-agenda-get-todos): Use `org-agenda-todo-list-sublevels'.
 	(org-agenda-todo-list-sublevels): New option.
 	(org-html-level-start): When TITLE is nil, just close all levels.
-	(org-parse-key-lines, org-parse-export-options): Functions
-	removed, replaced by `org-infile-export-plist'.
+	(org-parse-key-lines, org-parse-export-options): Remove functions,
+	replaced by `org-infile-export-plist'.
 	(org-combine-plists, org-infile-export-plist)
 	(org-default-export-plist): New functions.
 	(org-export-html-preamble, org-export-html-postamble)
@@ -336,12 +336,12 @@
 	(org-export-publishing-directory): New option.
 	(org-export-as-html, org-export-as-ascii): Use the new property
 	lists for settings.
-	(org-export-copy-visible, org-export-as-xoxo): Respect
-	`org-export-publishing-directory'.
+	(org-export-copy-visible, org-export-as-xoxo):
+	Respect `org-export-publishing-directory'.
 	(org-link-search, org-store-link, org-file-apps): Support for
 	links to BibTeX database entries..
-	(org-get-current-options, org-set-regexps-and-options): Implement
-	logging as a startup option.
+	(org-get-current-options, org-set-regexps-and-options):
+	Implement logging as a startup option.
 	(org-store-link): Make sure context string is never empty
 	(org-insert-link): Use relative path when possible.
 	(org-at-item-checklet-p): New function.
@@ -356,10 +356,9 @@
 	(org-complete): Use `org-tag-alist'.
 	(org-fast-tag-insert, org-fast-tag-selection): New functions.
 	(org-next-item, org-previous-item): New commands.
-	(org-beginning-of-item, org-end-of-item): Added (interactive) to
+	(org-beginning-of-item, org-end-of-item): Add (interactive) to
 	make command.
-	(org-shiftup, org-shiftdown): Accommodate the item-navigation
-	commands.
+	(org-shiftup, org-shiftdown): Accommodate the item-navigation commands.
 
 
 2006-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
