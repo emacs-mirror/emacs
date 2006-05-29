@@ -1,3 +1,26 @@
+2006-05-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-if-xemacs, term-ifnot-xemacs): Delete, replace
+	uses with a simple test.
+	(term-set-escape-char, term-mode, term-check-kill-echo-list)
+	(term-send-raw-string, term-send-raw, term-mouse-paste)
+	(term-char-mode, term-line-mode, term-exec, term-sentinel)
+	(term-handle-exit, term-read-input-ring)
+	(term-previous-matching-input-string)
+	(term-previous-matching-input-string-position)
+	(term-previous-matching-input-from-input)
+	(term-replace-by-expanded-history, term-send-input)
+	(term-skip-prompt, term-bol, term-send-invisible)
+	(term-kill-input, term-delchar-or-maybe-eof)
+	(term-backward-matching-input, term-check-source)
+	(term-proc-query, term-emulate-terminal)
+	(term-handle-colors-array, term-process-pager, term-pager-line)
+	(term-pager-bob, term-unwrap-line, term-word)
+	(term-dynamic-complete-filename)
+	(term-dynamic-complete-as-filename)
+	(term-dynamic-simple-complete): Replace one arm ifs with whens or
+	unlesses.
+
 2006-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (hack-one-local-variable-eval-safep): Don't burp if used
