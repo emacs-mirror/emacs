@@ -1356,7 +1356,7 @@ xft_xlfd_weight_name (int weight)
     if (weight < (FC_WEIGHT_DEMIBOLD + FC_WEIGHT_BOLD) / 2)
 	return "demibold";
     if (weight < (FC_WEIGHT_BOLD + FC_WEIGHT_BLACK) / 2)
-	return "demibold";
+	return "bold";
     return "black";
 }
 
