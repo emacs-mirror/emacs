@@ -1,3 +1,7 @@
+2006-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Default Coding Systems): Fix it some more.
+
 2006-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Default Coding Systems): Fix last change.

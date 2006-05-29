@@ -1,3 +1,7 @@
+2006-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (x_draw_hollow_cursor): Fix last change.
+
 2006-05-29  Kim F. Storm  <storm@cua.dk>
 
 	* w32term.c (x_draw_stretch_glyph_string): Fix last change.
