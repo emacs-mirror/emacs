@@ -1,3 +1,7 @@
+2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* screen.texi (Menu Bar): F10 for Gtk+/Lesstif/Lucid menus.
+
 2006-05-28  Ted Zlatanov  <tzz@lifelogs.com>
 
 	* basic.texi: Many simplifications and improvements in wording.
