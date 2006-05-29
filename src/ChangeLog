@@ -1,3 +1,11 @@
+2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (menu_nav_ended): New function.
+	(create_menus): Connect menu_nav_ended to "selection-done" to fix
+	grabs.
+
+	* xmenu.c (Fmenu_bar_start): New function for USE_GTK and USE_X_TOOLKIT.
+
 2006-05-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* charset.h (invalid_character): Mark as NO_RETURN.
