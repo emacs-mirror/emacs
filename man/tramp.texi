@@ -2028,6 +2028,11 @@ contains unknown characters like escape sequences for coloring.  This
 should be avoided on the remote side.  @xref{Remote shell setup}. for
 setting the regular expression detecting the prompt.
 
+A special problem is the zsh, which uses left-hand side and right-hand
+side prompts in parallel.  Therefore, it is necessary to disable the
+zsh line editor on the remote host.  You shall add to @file{~/.zshrc}
+the following command: @command{[ $TERM = "dumb" ] && unsetopt zle}.
+
 @item
 @value{tramp} doesn't transfer strings with more than 500 characters
 correctly

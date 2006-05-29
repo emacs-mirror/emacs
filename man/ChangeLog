@@ -1,3 +1,7 @@
+2006-05-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Disable zsh zle.
+
 2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* screen.texi (Menu Bar): F10 for Gtk+/Lesstif/Lucid menus.
