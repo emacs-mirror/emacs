@@ -4950,7 +4950,7 @@ x_draw_hollow_cursor (w, row)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   HDC hdc;
   RECT rect;
-  int h;
+  int left, top, h;
   struct glyph *cursor_glyph;
   HBRUSH hb = CreateSolidBrush (f->output_data.w32->cursor_pixel);
 
@@ -4961,7 +4961,9 @@ x_draw_hollow_cursor (w, row)
     return;
 
   /* Compute frame-relative coordinates for phys cursor.  */
-  get_phys_cursor_geometry (w, row, cursor_glyph, &rect.left, &rect.top, &h);
+  get_phys_cursor_geometry (w, row, cursor_glyph, &left, &top, &h);
+  rect.left = left;
+  rect.top = top;
   rect.bottom = rect.top + h;
   rect.right = rect.left + w->phys_cursor_width;
 
