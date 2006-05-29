@@ -1,3 +1,7 @@
+2006-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Default Coding Systems): Fix last change.
+
 2006-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* nonascii.texi (find-operation-coding-system): Describe the new
