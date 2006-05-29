@@ -1,3 +1,7 @@
+2006-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (Ffind_operation_coding_system): Doc fix.
+
 2006-05-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c [USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility):
