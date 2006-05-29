@@ -1,4 +1,8 @@
-2006-05-30  Eli Zaretskii  <eliz@gnu.org>
+2006-05-29  Kim F. Storm  <storm@cua.dk>
+
+	* w32term.c (x_draw_stretch_glyph_string): Fix last change.
+
+2006-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (Ffind_operation_coding_system): Doc fix.
 
