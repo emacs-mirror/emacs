@@ -1116,6 +1116,14 @@ or port number.
 Depending on @var{operation}, this function looks up the target in
 @code{file-coding-system-alist}, @code{process-coding-system-alist},
 or @code{network-coding-system-alist}.
+
+If @var{operation} is @code{insert-file-contents}, the argument
+corresponding to the target may be a cons cell of the form
+@code{(@var{filename} . @code{buffer})}).  In that case,
+@code{filename} is a file name to look up, and @code{buffer} is a
+buffer that already contains the file (but not yet decoded).  A
+function specified in @code{file-coding-system-alist} must pay
+attention to this format of the target.
 @end defun
 
 @node Specifying Coding Systems
