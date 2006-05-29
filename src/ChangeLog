@@ -1,3 +1,17 @@
+2006-05-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c [USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility):
+	Call mac_set_font_info_for_selection if font panel is made visible.
+
+	* macterm.c (font_panel_shown_p) [USE_MAC_FONT_PANEL]: New variable.
+	(mac_font_panel_visible_p, mac_show_hide_font_panel)
+	[USE_MAC_FONT_PANEL]: New functions.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): Return
+	immediately if font panel is not visible.
+
+	* macterm.h (mac_font_panel_visible_p, mac_show_hide_font_panel):
+	Add externs.
+
 2006-05-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* search.c (matcher_overflow): Mark as NO_RETURN.
