@@ -1,3 +1,7 @@
+2006-05-29  Dan Nicolaescu <dann@ics.uci.edu> (tiny change)
+
+	* xterm.c (xft_xlfd_weight_name): one demibold => bold
+
 2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_new_font, xft_xlfd_unparse): Fix compiler warnings.
