@@ -8338,6 +8338,25 @@ x_find_ccl_program (fontp)
 }
 
 #if USE_MAC_FONT_PANEL
+/* The first call to font panel functions (FPIsFontPanelVisible,
+   SetFontInfoForSelection) is slow.  This variable is used for
+   deferring such a call as much as possible.  */
+static int font_panel_shown_p = 0;
+
+int
+mac_font_panel_visible_p ()
+{
+  return font_panel_shown_p && FPIsFontPanelVisible ();
+}
+
+OSStatus
+mac_show_hide_font_panel ()
+{
+  font_panel_shown_p = 1;
+
+  return FPShowHideFontPanel ();
+}
+
 OSStatus
 mac_set_font_info_for_selection (f, face_id, c)
      struct frame *f;
@@ -8346,6 +8365,9 @@ mac_set_font_info_for_selection (f, face_id, c)
   OSStatus err;
   EventTargetRef target = NULL;
   XFontStruct *font = NULL;
+
+  if (!mac_font_panel_visible_p ())
+    return noErr;
 
   if (f)
     {
