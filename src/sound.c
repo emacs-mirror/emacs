@@ -971,7 +971,8 @@ alsa_open (sd)
   sd->data = p;
 
 
-  if ((err = snd_pcm_open (&p->handle, file, SND_PCM_STREAM_PLAYBACK, 0)) < 0)
+  err = snd_pcm_open (&p->handle, file, SND_PCM_STREAM_PLAYBACK, 0);
+  if (err < 0)
     alsa_sound_perror (file, err);
 }
 
@@ -993,33 +994,40 @@ alsa_configure (sd)
 
   xassert (p->handle != 0);
 
-  if ((err = snd_pcm_hw_params_malloc (&p->hwparams)) < 0)
+  err = snd_pcm_hw_params_malloc (&p->hwparams);
+  if (err < 0)
     alsa_sound_perror ("Could not allocate hardware parameter structure", err);
 
-  if ((err = snd_pcm_sw_params_malloc (&p->swparams)) < 0)
+  err = snd_pcm_sw_params_malloc (&p->swparams);
+  if (err < 0)
     alsa_sound_perror ("Could not allocate software parameter structure", err);
 
-  if ((err = snd_pcm_hw_params_any (p->handle, p->hwparams)) < 0)
+  err = snd_pcm_hw_params_any (p->handle, p->hwparams);
+  if (err < 0)
     alsa_sound_perror ("Could not initialize hardware parameter structure", err);
 
-  if ((err = snd_pcm_hw_params_set_access (p->handle, p->hwparams,
-                                           SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
+  err = snd_pcm_hw_params_set_access (p->handle, p->hwparams,
+                                      SND_PCM_ACCESS_RW_INTERLEAVED);
+  if (err < 0)
     alsa_sound_perror ("Could not set access type", err);
 
   val = sd->format;
-  if ((err = snd_pcm_hw_params_set_format (p->handle, p->hwparams, val)) < 0) 
+  err = snd_pcm_hw_params_set_format (p->handle, p->hwparams, val);
+  if (err < 0) 
     alsa_sound_perror ("Could not set sound format", err);
 
   val = sd->sample_rate;
-  if ((err = snd_pcm_hw_params_set_rate_near (p->handle, p->hwparams, &val, 0))
-      < 0)
+  err = snd_pcm_hw_params_set_rate_near (p->handle, p->hwparams, &val, 0);
+  if (err < 0)
     alsa_sound_perror ("Could not set sample rate", err);
   
   val = sd->channels;
-  if ((err = snd_pcm_hw_params_set_channels (p->handle, p->hwparams, val)) < 0)
+  err = snd_pcm_hw_params_set_channels (p->handle, p->hwparams, val);
+  if (err < 0)
     alsa_sound_perror ("Could not set channel count", err);
 
-  if ((err = snd_pcm_hw_params (p->handle, p->hwparams)) < 0)
+  err = snd_pcm_hw_params (p->handle, p->hwparams);
+  if (err < 0)
     alsa_sound_perror ("Could not set parameters", err);
 
 
@@ -1063,7 +1071,8 @@ alsa_configure (sd)
   snd_pcm_sw_params_free (p->swparams);
   p->swparams = NULL;
   
-  if ((err = snd_pcm_prepare (p->handle)) < 0)
+  err = snd_pcm_prepare (p->handle);
+  if (err < 0)
     alsa_sound_perror ("Could not prepare audio interface for use", err);
   
   if (sd->volume > 0)
@@ -1194,11 +1203,11 @@ alsa_write (sd, buffer, nbytes)
 
   while (nwritten < nbytes)
     {
-      if ((err = snd_pcm_writei (p->handle,
-                                 buffer + nwritten,
-                                 (nbytes - nwritten)/fact)) < 0)
+      err = snd_pcm_writei (p->handle,
+                            buffer + nwritten,
+                            (nbytes - nwritten)/fact);
+      if (err < 0)
         {
-          fprintf(stderr, "Err %d/%s\n", err, snd_strerror(err));
           if (err == -EPIPE)
             {	/* under-run */
               err = snd_pcm_prepare (p->handle);

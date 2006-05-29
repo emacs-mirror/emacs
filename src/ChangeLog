@@ -1,5 +1,8 @@
 2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* sound.c (alsa_open, alsa_configure, alsa_write): Move
+	assignment to err out of if-statement.
+
 	* gtkutil.c (menu_nav_ended): New function.
 	(create_menus): Connect menu_nav_ended to "selection-done" to fix
 	grabs.
