@@ -1301,9 +1301,117 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers)
     }
 }
 
+DEFUN ("menu-bar-start", Fmenu_bar_start, Smenu_bar_start, 0, 1, "i",
+       doc: /* Start key navigation of the menu bar in FRAME.
+This initially opens the first menu bar item and you can then navigate with the
+arrow keys, select a menu entry with the return key or cancel with the
+escape key.  If FRAME has no menu bar this function does nothing.
+
+If FRAME is nil or not given, use the selected frame.  */)
+     (frame)
+     Lisp_Object frame;
+{
+  XEvent ev;
+  FRAME_PTR f = check_x_frame (frame);
+  Widget menubar;
+  BLOCK_INPUT;
+
+  if (FRAME_EXTERNAL_MENU_BAR (f))
+    set_frame_menubar (f, 0, 1);
+
+  menubar = FRAME_X_OUTPUT (f)->menubar_widget;
+  if (menubar)
+    {
+      Window child;
+      int error_p = 0;
+
+      x_catch_errors (FRAME_X_DISPLAY (f));
+      memset (&ev, 0, sizeof ev);
+      ev.xbutton.display = FRAME_X_DISPLAY (f);
+      ev.xbutton.window = XtWindow (menubar);
+      ev.xbutton.root = FRAME_X_DISPLAY_INFO (f)->root_window;
+      ev.xbutton.time = XtLastTimestampProcessed (FRAME_X_DISPLAY (f));
+      ev.xbutton.button = Button1;
+      ev.xbutton.x = ev.xbutton.y = FRAME_MENUBAR_HEIGHT (f) / 2;
+      ev.xbutton.same_screen = True;
+
+#ifdef USE_MOTIF
+      {
+        Arg al[2];
+        WidgetList list;
+        Cardinal nr;
+        XtSetArg (al[0], XtNchildren, &list);
+        XtSetArg (al[1], XtNnumChildren, &nr);
+        XtGetValues (menubar, al, 2);
+        ev.xbutton.window = XtWindow (list[0]);
+      }
+#endif
+
+      XTranslateCoordinates (FRAME_X_DISPLAY (f),
+                             /* From-window, to-window.  */
+                             ev.xbutton.window, ev.xbutton.root,
+
+                             /* From-position, to-position.  */
+                             ev.xbutton.x, ev.xbutton.y,
+                             &ev.xbutton.x_root, &ev.xbutton.y_root,
+
+                             /* Child of win.  */
+                             &child);
+      error_p = x_had_errors_p (FRAME_X_DISPLAY (f));
+      x_uncatch_errors ();
+
+      if (! error_p)
+        {
+          ev.type = ButtonPress;
+          ev.xbutton.state = 0;
+
+          XtDispatchEvent (&ev);
+          ev.xbutton.type = ButtonRelease;
+          ev.xbutton.state = Button1Mask;
+          XtDispatchEvent (&ev);
+        }
+    }
+
+  UNBLOCK_INPUT;
+}
 #endif /* USE_X_TOOLKIT */
 
+
 #ifdef USE_GTK
+DEFUN ("menu-bar-start", Fmenu_bar_start, Smenu_bar_start, 0, 1, "i",
+       doc: /* Start key navigation of the menu bar in FRAME.
+This initially opens the first menu bar item and you can then navigate with the
+arrow keys, select a menu entry with the return key or cancel with the
+escape key.  If FRAME has no menu bar this function does nothing.
+
+If FRAME is nil or not given, use the selected frame.  */)
+     (frame)
+     Lisp_Object frame;
+{
+  GtkWidget *menubar;
+  BLOCK_INPUT;
+  FRAME_PTR f = check_x_frame (frame);
+
+  if (FRAME_EXTERNAL_MENU_BAR (f))
+    set_frame_menubar (f, 0, 1);
+
+  menubar = FRAME_X_OUTPUT (f)->menubar_widget;
+  if (menubar)
+    {
+      /* Activate the first menu.  */
+      GList *children = gtk_container_get_children (GTK_CONTAINER (menubar));
+
+      gtk_menu_shell_select_item (GTK_MENU_SHELL (menubar),
+                                  GTK_WIDGET (children->data));
+      
+      popup_activated_flag = 1;
+      g_list_free (children);
+    }
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
 /* Loop util popup_activated_flag is set to zero in a callback.
    Used for popup menus and dialogs. */
 
@@ -3659,6 +3767,11 @@ The enable predicate for a menu command should check this variable.  */);
 #endif
 
   defsubr (&Sx_popup_menu);
+
+#if defined (USE_GTK) || defined (USE_X_TOOLKIT)
+  defsubr (&Smenu_bar_start);
+#endif
+
 #ifdef HAVE_MENUS
   defsubr (&Sx_popup_dialog);
 #endif
