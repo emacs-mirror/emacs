@@ -1,3 +1,8 @@
+2006-05-28  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Better explain reasons not to
+	advise other packages or use `eval-after-load'.
+
 2006-05-29  Kim F. Storm  <storm@cua.dk>
 
 	* processes.texi (Bindat Functions): Rename `pos' and `raw-data' to

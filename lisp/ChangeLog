@@ -1,3 +1,9 @@
+2006-05-28  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (load-history-regexp): If FILE is relative, insist
+	entire last name component must match it.
+	(load-history-filename-element, load-history-regexp): Doc fixes.
+
 2006-05-29  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/bindat.el (bindat-idx, bindat-raw): Rename dynamic variables
