@@ -1,3 +1,7 @@
+2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el: bind F10 to menu-bar-start if available.
+
 2006-05-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-if-xemacs, term-ifnot-xemacs): Delete, replace
