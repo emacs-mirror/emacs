@@ -1,5 +1,11 @@
 2006-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (no-update-autoloads): Declare.
+	(generate-file-autoloads): Obey it.  Return whether autoloads were
+	added at point or not.
+	(update-file-autoloads): Use this new return value.
+	Remove redundant test for the presence of an autoload cookie.
+
 	* emacs-lisp/autoload.el (autoload-find-file): New fun.
 	This one calls hack-local-variables.
 	(generate-file-autoloads, update-file-autoloads): Use it.

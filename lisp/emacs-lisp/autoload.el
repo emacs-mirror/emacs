@@ -287,12 +287,16 @@ which lists the file name and which functions are in it, etc."
       (hack-local-variables))
     (current-buffer)))
 
+(defvar no-update-autoloads nil
+  "File local variable to prevent scanning this file for autoload cookies.")
+
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
-autoloads are generated for defuns and defmacros in FILE
+Autoloads are generated for defuns and defmacros in FILE
 marked by `generate-autoload-cookie' (which see).
 If FILE is being visited in a buffer, the contents of the buffer
-are used."
+are used.
+Return non-nil in the case where no autoloads were added at point."
   (interactive "fGenerate autoloads for file: ")
   (let ((outbuf (current-buffer))
 	(autoloads-done '())
@@ -305,7 +309,7 @@ are used."
 	(float-output-format nil)
 	(done-any nil)
 	(visited (get-file-buffer file))
-	output-end)
+        output-start)
 
     ;; If the autoload section we create here uses an absolute
     ;; file name for FILE in its header, and then Emacs is installed
@@ -323,68 +327,70 @@ are used."
 	       (string= dir-truename (substring source-truename 0 len)))
 	  (setq file (substring source-truename len))))
 
-    (message "Generating autoloads for %s..." file)
-    (save-excursion
-      (unwind-protect
-	  (progn
-	    (set-buffer (or visited
-                            ;; It is faster to avoid visiting the file.
-                            (autoload-find-file file)))
-	    (save-excursion
-	      (save-restriction
-		(widen)
-		(goto-char (point-min))
-		(while (not (eobp))
-		  (skip-chars-forward " \t\n\f")
-		  (cond
-		   ((looking-at (regexp-quote generate-autoload-cookie))
-		    (search-forward generate-autoload-cookie)
-		    (skip-chars-forward " \t")
-		    (setq done-any t)
-		    (if (eolp)
-			;; Read the next form and make an autoload.
-			(let* ((form (prog1 (read (current-buffer))
-					       (or (bolp) (forward-line 1))))
-			       (autoload (make-autoload form load-name)))
-			  (if autoload
-			      (push (nth 1 form) autoloads-done)
-			    (setq autoload form))
-			  (let ((autoload-print-form-outbuf outbuf))
-			    (autoload-print-form autoload)))
+    (with-current-buffer (or visited
+                             ;; It is faster to avoid visiting the file.
+                             (autoload-find-file file))
+      ;; Obey the no-update-autoloads file local variable.
+      (unless no-update-autoloads
+        (message "Generating autoloads for %s..." file)
+        (setq output-start (with-current-buffer outbuf (point)))
+        (save-excursion
+          (save-restriction
+            (widen)
+            (goto-char (point-min))
+            (while (not (eobp))
+              (skip-chars-forward " \t\n\f")
+              (cond
+               ((looking-at (regexp-quote generate-autoload-cookie))
+                (search-forward generate-autoload-cookie)
+                (skip-chars-forward " \t")
+                (setq done-any t)
+                (if (eolp)
+                    ;; Read the next form and make an autoload.
+                    (let* ((form (prog1 (read (current-buffer))
+                                   (or (bolp) (forward-line 1))))
+                           (autoload (make-autoload form load-name)))
+                      (if autoload
+                          (push (nth 1 form) autoloads-done)
+                        (setq autoload form))
+                      (let ((autoload-print-form-outbuf outbuf))
+                        (autoload-print-form autoload)))
 
-		      ;; Copy the rest of the line to the output.
-		      (princ (buffer-substring
-			      (progn
-				;; Back up over whitespace, to preserve it.
-				(skip-chars-backward " \f\t")
-				(if (= (char-after (1+ (point))) ? )
-				    ;; Eat one space.
-				    (forward-char 1))
-				(point))
-			      (progn (forward-line 1) (point)))
-			     outbuf)))
-		   ((looking-at ";")
-		    ;; Don't read the comment.
-		    (forward-line 1))
-		   (t
-		    (forward-sexp 1)
-		    (forward-line 1)))))))
-	(or visited
-	    ;; We created this buffer, so we should kill it.
-	    (kill-buffer (current-buffer)))
-	(set-buffer outbuf)
-	(setq output-end (point-marker))))
-    (if done-any
-	(progn
-	  ;; Insert the section-header line
-	  ;; which lists the file name and which functions are in it, etc.
-	  (autoload-insert-section-header outbuf autoloads-done load-name file
-					  (nth 5 (file-attributes file)))
-	  (insert ";;; Generated autoloads from "
-		  (autoload-trim-file-name file) "\n")
-	  (goto-char output-end)
-	  (insert generate-autoload-section-trailer)))
-    (message "Generating autoloads for %s...done" file)))
+                  ;; Copy the rest of the line to the output.
+                  (princ (buffer-substring
+                          (progn
+                            ;; Back up over whitespace, to preserve it.
+                            (skip-chars-backward " \f\t")
+                            (if (= (char-after (1+ (point))) ? )
+                                ;; Eat one space.
+                                (forward-char 1))
+                            (point))
+                          (progn (forward-line 1) (point)))
+                         outbuf)))
+               ((looking-at ";")
+                ;; Don't read the comment.
+                (forward-line 1))
+               (t
+                (forward-sexp 1)
+                (forward-line 1))))))
+
+        (when done-any
+          (with-current-buffer outbuf
+            (save-excursion
+              ;; Insert the section-header line which lists the file name
+              ;; and which functions are in it, etc.
+              (goto-char output-start)
+              (autoload-insert-section-header
+               outbuf autoloads-done load-name file
+               (nth 5 (file-attributes file)))
+              (insert ";;; Generated autoloads from "
+                      (autoload-trim-file-name file) "\n"))
+            (insert generate-autoload-section-trailer)))
+        (message "Generating autoloads for %s...done" file))
+      (or visited
+          ;; We created this buffer, so we should kill it.
+          (kill-buffer (current-buffer))))
+    (not done-any)))
 
 ;;;###autoload
 (defun update-file-autoloads (file &optional save-after)
@@ -463,28 +469,7 @@ Autoload section for %s is up to date."
 		(goto-char (point-max))
 		(search-backward "\f" nil t)))
 	  (or (eq found 'up-to-date)
-	      (and (eq found 'new)
-		   ;; Check that FILE has any cookies before generating a
-		   ;; new section for it.
-		   (with-current-buffer
-                       (or existing-buffer
-                           ;; It is faster to avoid visiting the file.
-                           (autoload-find-file file))
-                     (save-excursion
-		       (save-restriction
-			 (widen)
-			 (goto-char (point-min))
-			 (prog1
-			     (setq no-autoloads
-                                   (not (re-search-forward
-                                         (concat "^" (regexp-quote
-                                                      generate-autoload-cookie))
-                                         nil t)))
-                           (if (and no-autoloads (interactive-p))
-                               (message "%s has no autoloads" file))
-			   (or existing-buffer
-			       (kill-buffer (current-buffer))))))))
-	      (generate-file-autoloads file))))
+	      (setq no-autoloads (generate-file-autoloads file)))))
       (and save-after
 	   (buffer-modified-p)
 	   (save-buffer))
