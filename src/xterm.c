@@ -1203,9 +1203,14 @@ static INLINE void
 x_set_glyph_string_clipping (s)
      struct glyph_string *s;
 {
-  XRectangle r;
-  get_glyph_string_clip_rect (s, &r);
-  XSetClipRectangles (s->display, s->gc, 0, 0, &r, 1, Unsorted);
+#define MAX_CLIP_RECTS 2
+  XRectangle r[MAX_CLIP_RECTS];
+  int n;
+  n = get_glyph_string_clip_rects (s, r, MAX_CLIP_RECTS);
+  XSetClipRectangles (s->display, s->gc, 0, 0, r, n, Unsorted);
+#ifdef HAVE_XFT
+  XftDrawSetClipRectangles (s->face->xft_draw, 0, 0, r, n);
+#endif
 }
 
 
@@ -1221,7 +1226,7 @@ x_set_glyph_string_clipping_exactly (src, dst)
   struct glyph_string *clip_head = src->clip_head;
   struct glyph_string *clip_tail = src->clip_tail;
 
-  /* This foces clipping just this glyph string.  */
+  /* This forces clipping just this glyph string.  */
   src->clip_head = src->clip_tail = src;
   get_glyph_string_clip_rect (src, &r);
   src->clip_head = clip_head, src->clip_tail = clip_tail;
@@ -1378,10 +1383,10 @@ xft_xlfd_unparse (FcPattern *pattern)
     int	    len;
     char    *xlfd;
 
-    if (FcPatternGetString (pattern, FC_FOUNDRY, 0, (FcChar8 *) &foundry)
+    if (FcPatternGetString (pattern, FC_FOUNDRY, 0, (FcChar8 **) &foundry)
         != FcResultMatch)
 	foundry = "*";
-    if (FcPatternGetString (pattern, FC_FAMILY, 0, (FcChar8 *) &family)
+    if (FcPatternGetString (pattern, FC_FAMILY, 0, (FcChar8 **) &family)
         != FcResultMatch)
 	family = "*";
     if (FcPatternGetInteger (pattern, FC_WEIGHT, 0, &weight) != FcResultMatch)
@@ -1403,13 +1408,13 @@ xft_xlfd_unparse (FcPattern *pattern)
 	   strlen (weight_name) +
 	   strlen (slant_name) + 
 	   5 +			    /* pixel */
-	   9 +			    /* stars */
+           6 + 1 + 8 + 1 +          /* stars, "0", "iso10646", "1" */
 	   14 +			    /* dashes */
 	   1);			    /* null */
     xlfd = malloc (len);
-    sprintf(xlfd, "-%s-%s-%s-%s-*-*-%d-*-*-*-*-0-*-*",
-	    foundry, family, weight_name, slant_name,
-	    (int) (pixel + 0.5));
+    sprintf(xlfd, "-%s-%s-%s-%s-*-*-%d-*-*-*-*-0-iso10646-1",
+            foundry, family, weight_name, slant_name,
+            (int) (pixel + 0.5));
     return xlfd;
 }
 
@@ -1576,39 +1581,73 @@ x_draw_glyph_string_foreground (s)
 	 use XDrawImageString when drawing the cursor so that there is
 	 no chance that characters under a box cursor are invisible.  */
 #ifdef HAVE_XFT
-      /* KOKO: Always clear background for now, there are some redraw problems
-         otherwise.  */
-      if (1 || ! (s->for_overlaps
-                  || (s->background_filled_p && s->hl != DRAW_CURSOR)))
-        XftDrawRect (s->face->xft_draw,
-                     s->hl == DRAW_CURSOR ? &s->face->xft_fg : &s->face->xft_bg,
-                     s->x,
-                     s->y,
-                     s->width + s->right_overhang,
-                     s->height);
+      {
+        XftColor *fg, *bg, xft_fg, xft_bg;
+  
+        if (s->hl != DRAW_CURSOR)
+          {
+            /* Usually s->gc == s->face->gc.  At least, colors
+               coincide.  */
+            fg = &s->face->xft_fg;
+            bg = &s->face->xft_bg;
+          }
+        else
+          {
+            /* A little bit inefficient, but only occurs when drawing
+               a cursor.  */
+            XGCValues xgcv;
+            XColor colors[2];
 
-      if (s->two_byte_p)
-        {
-          XftChar16 ch[s->nchars];
-          int i;
-          for (i = 0; i < s->nchars; ++i)
-            ch[i] = s->char2b[i].byte2 | (s->char2b[i].byte1 << 8);
-          XftDrawString16 (s->face->xft_draw,
-                           &s->face->xft_fg,
-                           s->face->font,
-                           x,
-                           s->ybase - boff,
-                           ch,
-                           s->nchars);
-        }
-      else
-        XftDrawString8 (s->face->xft_draw,
-                        &s->face->xft_fg,
-                        s->face->font,
-                        x,
-                        s->ybase - boff,
-                        char1b,
-                        s->nchars);
+            XGetGCValues (s->display, s->gc, GCForeground | GCBackground,
+                          &xgcv);
+            colors[0].pixel = xft_fg.pixel = xgcv.foreground;
+            colors[1].pixel = xft_bg.pixel = xgcv.background;
+            XQueryColors (FRAME_X_DISPLAY (s->f),
+                          FRAME_X_DISPLAY_INFO (s->f)->cmap,
+                          colors, 2);
+            xft_fg.color.alpha = xft_bg.color.alpha = 0xffff;
+            xft_fg.color.red = colors[0].red;
+            xft_fg.color.green = colors[0].green;
+            xft_fg.color.blue = colors[0].blue;
+            xft_bg.color.red = colors[1].red;
+            xft_bg.color.green = colors[1].green;
+            xft_bg.color.blue = colors[1].blue;
+            fg = &xft_fg;
+            bg = &xft_bg;
+          }
+
+        if (! (s->for_overlaps
+               || (s->background_filled_p && s->hl != DRAW_CURSOR)))
+          XftDrawRect (s->face->xft_draw,
+                       bg,
+                       s->x,
+                       s->y,
+                       s->background_width,
+                       s->height);
+
+        if (s->two_byte_p)
+          {
+            XftChar16 ch[s->nchars];
+            int i;
+            for (i = 0; i < s->nchars; ++i)
+              ch[i] = s->char2b[i].byte2 | (s->char2b[i].byte1 << 8);
+            XftDrawString16 (s->face->xft_draw,
+                             fg,
+                             s->face->font,
+                             x,
+                             s->ybase - boff,
+                             ch,
+                             s->nchars);
+          }
+        else
+          XftDrawString8 (s->face->xft_draw,
+                          fg,
+                          s->face->font,
+                          x,
+                          s->ybase - boff,
+                          char1b,
+                          s->nchars);
+      }
 #else
       if (s->for_overlaps
 	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
@@ -8210,7 +8249,7 @@ x_new_font (f, fontname)
   if (!fontp)
     return Qnil;
 
-  if (FRAME_FONT (f) == (XFontStruct *) (fontp->font))
+  if (FRAME_FONT (f) == (x_font_type *) (fontp->font))
     /* This font is already set in frame F.  There's nothing more to
        do.  */
     return build_string (fontp->full_name);
