@@ -160,7 +160,8 @@ the preloaded libraries, @file{temacs} allocates dynamic memory for
 the part that didn't fit.  If that happens, you should increase the
 compilation parameter @code{PURESIZE} in the file
 @file{src/puresize.h} and rebuild Emacs, even though the resulting
-image will work.  Such an overflow normally won't happen unless you
+image will work: garbage collection is disabled in this situation,
+causing a memory leak.  Such an overflow normally won't happen unless you
 try to preload additional libraries or add features to the standard
 ones.  Emacs will display a warning about the overflow when it
 starts.
@@ -348,6 +349,10 @@ operating system, but which are currently not in use.  (A string
 object consists of a header and the storage for the string text
 itself; the latter is only allocated when the string is created.)
 @end table
+
+If there was overflow in pure space (see the previous section),
+@code{garbage-collect} returns @code{nil}, because a real garbage
+collection can not be done in this situation.
 @end deffn
 
 @defopt garbage-collection-messages
