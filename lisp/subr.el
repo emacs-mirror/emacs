@@ -1394,11 +1394,11 @@ That function's doc string says which file created it."
      nil))
 
 (defun load-history-regexp (file)
-  "Form a regexp to find FILE in load-history.
-FILE, a string, is described in eval-after-load's doc-string."
+  "Form a regexp to find FILE in `load-history'.
+FILE, a string, is described in the function `eval-after-load'."
   (if (file-name-absolute-p file)
       (setq file (file-truename file)))
-  (concat (if (file-name-absolute-p file) "\\`" "\\<")
+  (concat (if (file-name-absolute-p file) "\\`" "\\(\\`\\|/\\)")
 	  (regexp-quote file)
 	  (if (file-name-extension file)
 	      ""
@@ -1409,7 +1409,7 @@ FILE, a string, is described in eval-after-load's doc-string."
 	  "\\)?\\'"))
 
 (defun load-history-filename-element (file-regexp)
-  "Get the first elt of load-history whose car matches FILE-REGEXP.
+  "Get the first elt of `load-history' whose car matches FILE-REGEXP.
 Return nil if there isn't one."
   (let* ((loads load-history)
 	 (load-elt (and loads (car loads))))
@@ -1432,8 +1432,8 @@ name, and may have an extension \(e.g. \".el\") or may lack one, and
 additionally may or may not have an extension denoting a compressed
 format \(e.g. \".gz\").
 
-When FILE is absolute, it is first converted to a true name by chasing
-out symbolic links.  Only a file of this name \(see next paragraph for
+When FILE is absolute, this first converts it to a true name by chasing
+symbolic links.  Only a file of this name \(see next paragraph regarding
 extensions) will trigger the evaluation of FORM.  When FILE is relative,
 a file whose absolute true name ends in FILE will trigger evaluation.
 
