@@ -5396,7 +5396,7 @@ prepare_face_for_display (f, face)
       
       XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->cmap,
                     colors, 2);
-      face->xft_fg.color.alpha = face->xft_fg.color.alpha = 0xffff;
+      face->xft_fg.color.alpha = face->xft_bg.color.alpha = 0xffff;
       face->xft_fg.color.red = colors[0].red;
       face->xft_fg.color.green = colors[0].green;
       face->xft_fg.color.blue = colors[0].blue;
@@ -7415,6 +7415,9 @@ realize_non_ascii_face (f, font_id, base_face)
   face = (struct face *) xmalloc (sizeof *face);
   *face = *base_face;
   face->gc = 0;
+#ifdef HAVE_XFT
+  face->xft_draw = NULL;
+#endif
 
   /* Don't try to free the colors copied bitwise from BASE_FACE.  */
   face->colors_copied_bitwise_p = 1;
