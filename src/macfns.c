@@ -4514,8 +4514,18 @@ This is for internal use only.  Use `mac-font-panel-mode' instead.  */)
   check_mac ();
 
   BLOCK_INPUT;
-  if (NILP (visible) == (FPIsFontPanelVisible () == true))
-    err = FPShowHideFontPanel ();
+  if (NILP (visible) != !mac_font_panel_visible_p ())
+    {
+      err = mac_show_hide_font_panel ();
+      if (err == noErr && !NILP (visible))
+	{
+	  Lisp_Object focus_frame = x_get_focus_frame (SELECTED_FRAME ());
+	  struct frame *f = (NILP (focus_frame) ? SELECTED_FRAME ()
+			     : XFRAME (focus_frame));
+
+	  mac_set_font_info_for_selection (f, DEFAULT_FACE_ID, 0);
+	}
+    }
   UNBLOCK_INPUT;
 
   if (err != noErr)
