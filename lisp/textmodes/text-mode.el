@@ -33,7 +33,7 @@
 (defcustom text-mode-hook nil
   "Normal hook run when entering Text mode and many related modes."
   :type 'hook
-  :options '(turn-on-auto-fill flyspell-mode)
+  :options '(turn-on-auto-fill turn-on-flyspell)
   :group 'data)
 
 (defvar text-mode-variant nil

@@ -1,3 +1,10 @@
+2006-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/flyspell.el (turn-on-flyspell, turn-off-flyspell): New
+	functions.
+
+	* textmodes/text-mode.el (text-mode-hook): Use turn-on-flyspell.
+
 2006-05-30  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-agenda-highlight-todo): Make sure regexp
