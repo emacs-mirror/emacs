@@ -1,3 +1,11 @@
+2006-05-30  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (auto-mode-alist): Add makepp suffix and optional mk on
+	Makeppfile.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): Add
+	makepp diagnostic.
+
 2006-05-29  Richard Stallman  <rms@gnu.org>
 
 	* help.el (temp-buffer-max-height): Doc fix.
