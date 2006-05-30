@@ -1,3 +1,7 @@
+2006-05-30  Andreas Schwab  <schwab@suse.de>
+
+	* xmenu.c (Fmenu_bar_start): Return a value.
+
 2006-05-30  Richard Stallman  <rms@gnu.org>
 
 	* coding.c (Ffind_operation_coding_system): Doc fix.
