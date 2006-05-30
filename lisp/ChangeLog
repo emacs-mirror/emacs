@@ -1,3 +1,8 @@
+2006-05-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-query-cmdline, gud-common-init): Revert
+	inadvertant changes made with last commit.
+
 2006-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* textmodes/flyspell.el (turn-on-flyspell, turn-off-flyspell): New
