@@ -1,3 +1,16 @@
+2006-05-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Move gdb-mouse-toggle-breakpoint-* to
+	C-mouse-1.  Move gdb-mouse-until to mouse-3, gdb-mouse-jump
+	to C-mouse-3 (for 2 button mice).
+	(gdb-send): Do the right thing for C-d.
+
+	* speedbar.el (speedbar-detach): Delete.
+	(speedbar-easymenu-definition-trailer): Remove speedbar-detach as
+	it breaks things.
+	(speedbar-reconfigure-keymaps): Always add extra items to pop up
+	menu.
+
 2006-05-30  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* files.el (auto-mode-alist): Add makepp suffix and optional mk on
