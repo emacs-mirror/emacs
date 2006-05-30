@@ -2203,6 +2203,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
 
 (defmacro with-current-buffer (buffer &rest body)
   "Execute the forms in BODY with BUFFER as the current buffer.
+BUFFER can be a buffer or a buffer name.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
