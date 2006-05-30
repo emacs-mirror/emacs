@@ -1,3 +1,7 @@
+2006-05-30  Richard Stallman  <rms@gnu.org>
+
+	* nonascii.texi (Default Coding Systems): Further clarification.
+
 2006-05-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* internals.texi (Pure Storage): Mention that an overflow in pure
