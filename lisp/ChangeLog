@@ -1,5 +1,7 @@
 2006-05-30  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/gud.el (gud-stop-subjob): Make it work in all buffers.
+
 	* progmodes/gdb-ui.el: Move gdb-mouse-toggle-breakpoint-* to
 	C-mouse-1.  Move gdb-mouse-until to mouse-3, gdb-mouse-jump
 	to C-mouse-3 (for 2 button mice).

@@ -921,8 +921,6 @@ This basically creates a sparse keymap, and makes it's parent be
    (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
        (list ["Customize..." speedbar-customize t]))
    (list
-    ["Detach" speedbar-detach (and speedbar-frame
-				    (eq (selected-frame) speedbar-frame)) ]
     ["Close" dframe-close-frame t]
     ["Quit" delete-frame t] ))
   "Menu items appearing at the end of the speedbar menu.")
@@ -1046,21 +1044,6 @@ supported at a time.
 	 (dframe-reposition-frame speedbar-frame
 				  (dframe-attached-frame speedbar-frame)
 				  speedbar-default-position))))
-
-(defun speedbar-detach ()
-  "Detach the current Speedbar from auto-updating.
-Doing this allows the creation of a second speedbar."
-  (interactive)
-  (let ((buffer speedbar-buffer))
-    (dframe-detach 'speedbar-frame 'speedbar-cached-frame 'speedbar-buffer)
-    (save-excursion
-      (set-buffer buffer)
-      ;; Permanently disable auto-updating in this speedbar buffer.
-      (set (make-local-variable 'speedbar-update-flag) nil)
-      (set (make-local-variable 'speedbar-update-flag-disable) t)
-      ;; Make local copies of all the different variables to prevent
-      ;; funny stuff later...
-      )))
 
 (defsubst speedbar-current-frame ()
   "Return the frame to use for speedbar based on current context."
@@ -1224,11 +1207,8 @@ and the existence of packages."
 		 (speedbar-initial-menu)
 	       (save-excursion
 		 (dframe-select-attached-frame speedbar-frame)
-		 (if (local-variable-p
-		      'speedbar-easymenu-definition-special
-		      (current-buffer))
-		     ;; If bound locally, we can use it
-		     speedbar-easymenu-definition-special)))
+		  (eval (nth 1 (assoc speedbar-initial-expansion-list-name
+				speedbar-initial-expansion-mode-alist)))))
 	     ;; Dynamic menu stuff
 	     '("-")
 	    (list (cons "Displays"
