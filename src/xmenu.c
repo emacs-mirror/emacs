@@ -1373,6 +1373,8 @@ If FRAME is nil or not given, use the selected frame.  */)
     }
 
   UNBLOCK_INPUT;
+
+  return Qnil;
 }
 #endif /* USE_X_TOOLKIT */
 
