@@ -2,9 +2,9 @@
 
 @c %**start of header
 @setfilename ../info/org
-@c @settitle Org Mode Manual
+@settitle Org Mode Manual
 
-@set VERSION 4.34
+@set VERSION 4.35
 @set DATE May 2006
 
 @dircategory Emacs
@@ -1484,7 +1484,7 @@ of @samp{[[link][description]]} and @samp{link} is displayed instead of
 @samp{[[link]]}.  Links will be highlighted in the face @code{org-link},
 which by default is an underlined face.  You can directly edit the
 visible part of a link.  Note that this can be either the @samp{link}
-part (if there is not description) or the @samp{description} part.  To
+part (if there is no description) or the @samp{description} part.  To
 edit also the invisible @samp{link} part, use @kbd{C-c C-l} with the
 cursor on the link.
 
@@ -2188,7 +2188,7 @@ dates in the agenda (@pxref{Weekly/Daily agenda}).  We distinguish:
 @cindex timestamp
 A simple time stamp just assigns a date/time to an item.  This is just
 like writing down an appointment in a paper agenda, or like writing down
-an event in a diary, when you want to take not of when something
+an event in a diary, when you want to take note of when something
 happened.  In the timeline and agenda displays, the headline of an entry
 associated with a plain time stamp will be shown exactly on that date.
 
@@ -2478,7 +2478,7 @@ tags, the tags of the current headline, and a list of all legal tags
 with corresponding keys.  Pressing keys for the tags will add or remove
 them from the list of tags in the current line.  @key{SPC} clears all
 tags for this line, @kbd{RET} accepts the modified set, and @kbd{C-g}
-aborts without installing changes.  This method lets you assing tags to
+aborts without installing changes.  This method lets you assign tags to
 a headline with very few keys.  With the above setup, you could clear
 the current tags and set @samp{@@HOME}, @samp{Laptop} and @samp{PC} tags
 with just the following keys: @kbd{C-c C-c @key{SPC} h l p @key{RET}}.
@@ -3140,7 +3140,7 @@ produced.  @xref{Text interpretation}, for more details.
 @section ASCII export
 @cindex ASCII export
 
-ASCII export produces an simple and very readable version of an Org-mode
+ASCII export produces a simple and very readable version of an Org-mode
 file.
 
 @cindex region, active
@@ -3175,9 +3175,9 @@ creates only top level headlines and does the rest as items.
 @section HTML export
 @cindex HTML export
 
-Org-mode contains an HTML exporter with extensive HTML formatting, in
-ways similar to John Grubers @emph{markdown} language, but with
-additional support for tables.
+Org-mode contains an HTML (XHTML 1.0 strict) exporter with extensive
+HTML formatting, in ways similar to John Grubers @emph{markdown}
+language, but with additional support for tables.
 
 @cindex region, active
 @cindex active region
@@ -3530,18 +3530,18 @@ the two following forms:
 
 @r{or} 
  
-("project-name"  
-    ("component1" :property value :property value ...)
-    ("component2" :property value :property value ...)
-    ...)
+("project-name"  :components ("project-name" "project-name" ...))
+
 @end lisp
 
 In both cases, projects are configured by specifying property values.
 A project defines the set of files that will be published, as well as
-the publishing configuration to use when publishing those files. 
-When a project takes the second form listed above, the individual
-property lists are taken to be "components" of the project, which
-group together files requiring different publishing options. 
+the publishing configuration to use when publishing those files.  When
+a project takes the second form listed above, the individual members
+of the ``components'' property are taken to be components of the
+project, which group together files requiring different publishing
+options. When you publish such a ``meta-project'' all the components
+will also publish.
 
 @node File sources and destinations, Selecting files, Project alist, Configuration
 @subsection Sources and destinations for files
@@ -3736,8 +3736,7 @@ right place on the webserver, and publishing images to it.
 
 @lisp
 (setq org-publish-project-alist
-      '(("website"
-         ("orgfiles"
+      '(("orgfiles"
           :base-directory "~/org/"
           :base-extension "org"
           :publishing-directory "/ssh:user@@host:~/html/notebook/"
@@ -3761,7 +3760,8 @@ right place on the webserver, and publishing images to it.
           :base-directory "~/other/"
           :base-extension "css\\|el"
           :publishing-directory "/ssh:user@@host:~/html/other/"
-          :publishing-function org-publish-attachment))))
+          :publishing-function org-publish-attachment)
+         ("website" :components ("orgfiles" "images" "other"))))
 @end lisp
 
 @node Triggering publication,  , Sample configuration, Publishing
@@ -3916,7 +3916,7 @@ current file.  The corresponding variables are @code{org-todo-keywords}
 and @code{org-todo-interpretation}.
 @item #+TAGS:  TAG1(c1) TAG2(c2)
 These lines (several such lines are allowed) specify the legal tags in
-this file, and (potionally) the corresponding @emph{fast tag selection}
+this file, and (potentially) the corresponding @emph{fast tag selection}
 keys.  The corresponding variable is @code{org-tag-alist}.
 @item #+CATEGORY:
 This line sets the category for the agenda file.  The category applies
@@ -3925,7 +3925,7 @@ end of the file.
 @item #+TBLFM:
 This line contains the formulas for the table directly above the line.
 @item #+TITLE:, #+AUTHOR:, #+EMAIL:, #+LANGUAGE:, #+TEXT:, #+OPTIONS:
-These lines provide setting for exporting files.  For more details see
+These lines provide settings for exporting files.  For more details see
 @ref{Export options}.
 @end table
 
@@ -4132,7 +4132,7 @@ turn it on for all @file{README} files?}
 @end lisp
 
 @item @b{I would like to use editing features of org-mode in other
-modes, is his possible?}@*
+modes, is this possible?}@*
 @c
 Not really.  For tables there is @code{orgtbl-mode} which implements the
 table editor as a minor mode.  For other features you need to switch to
@@ -4556,7 +4556,7 @@ other things.
 Linking to VM/BBDB/GNUS was inspired by @i{Tom Shannon}'s
 @file{organizer-mode.el}.
 @item
-@i{David O'Toole} wrote @file{org-publish.el} and came up with lots is
+@i{David O'Toole} wrote @file{org-publish.el} and came up with lots of
 ideas for small changes.
 @item
 @i{J@"urgen Vollmer} contributed code generating the table of contents
