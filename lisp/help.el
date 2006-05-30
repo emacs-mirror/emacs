@@ -942,11 +942,11 @@ is currently activated with completion."
 
 (defcustom temp-buffer-max-height (lambda (buffer) (/ (- (frame-height) 2) 2))
   "Maximum height of a window displaying a temporary buffer.
-This is the maximum height (in text lines) which `resize-temp-buffer-window'
+This is effective only when Temp Buffer Resize mode is enabled.
+The value is the maximum height (in lines) which `resize-temp-buffer-window'
 will give to a window displaying a temporary buffer.
-It can also be a function which will be called with the object corresponding
-to the buffer to be displayed as argument and should return an integer
-positive number."
+It can also be a function to be called to choose the height for such a buffer.
+It gets one argumemt, the buffer, and should return a positive integer."
   :type '(choice integer function)
   :group 'help
   :version "20.4")
