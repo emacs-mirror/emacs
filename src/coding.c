@@ -7471,8 +7471,8 @@ which is a list of all the arguments given to this function.
 
 If OPERATION is `insert-file-contents', the argument corresponding to
 TARGET may be a cons (FILENAME . BUFFER).  In that case, FILENAME is a
-file name to look up, and BUFFER is a buffer that will contain the
-file (not yet decoded).  If `file-coding-system-alist' specifies a
+file name to look up, and BUFFER is a buffer that contains the file's
+contents (not yet decoded).  If `file-coding-system-alist' specifies a
 function to call for FILENAME, that function should examine the
 contents of BUFFER instead of reading the file.
 
