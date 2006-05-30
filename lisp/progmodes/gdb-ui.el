@@ -71,11 +71,11 @@
 ;;; Known Bugs:
 
 ;; 1) Strings that are watched don't update in the speedbar when their
-;; contents change unless the first character changes.
+;;    contents change unless the first character changes.
 ;; 2) Cannot handle multiple debug sessions.
-;; 3) Initially, the assembler buffer does not display the cursor at the
-;; current line if the line is not visible in the window (but when testing
-;; gdb-assembler-custom with a lisp debugger it does!).
+;; 3) M-x gdb doesn't work with "run" command in .gdbinit, use M-x gdba instead.
+;; 4) M-x gdb doesn't work if the corefile is specified in the command in the
+;;    minibuffer, use M-x gdba instead (or specify the core in the GUD buffer).
 
 ;;; Problems with watch expressions, GDB/MI:
 ;; 1) They go out of scope when the inferior is re-run.
@@ -83,15 +83,10 @@
 ;; 3) VARNUM increments even when variable object is not created
 ;;    (maybe trivial).
 
-;; Known Bugs:
-;; 1) M-x gdb doesn't work with "run" command in .gdbinit, use M-x gdba instead.
-
 ;;; TODO:
 ;; 1) Use MI command -data-read-memory for memory window.
 ;; 2) Use tree-widget.el instead of the speedbar for watch-expressions?
 ;; 3) Mark breakpoint locations on scroll-bar of source buffer?
-;; 4) With gud-print and gud-pstar, print the variable name in the GUD
-;;    buffer instead of the value's history number.
 
 ;;; Code:
 
@@ -493,26 +488,28 @@ With arg, use separate IO iff arg is positive."
     'gdb-mouse-set-clear-breakpoint)
   (define-key gud-minor-mode-map [left-fringe mouse-1]
     'gdb-mouse-set-clear-breakpoint)
-  (define-key gud-minor-mode-map [left-fringe mouse-2]
-    'gdb-mouse-until)
+   (define-key gud-minor-mode-map [left-margin C-mouse-1]
+    'gdb-mouse-toggle-breakpoint-margin)
+  (define-key gud-minor-mode-map [left-fringe C-mouse-1]
+    'gdb-mouse-toggle-breakpoint-fringe)
+
   (define-key gud-minor-mode-map [left-margin drag-mouse-1]
     'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-fringe drag-mouse-1]
     'gdb-mouse-until)
-  (define-key gud-minor-mode-map [left-margin mouse-2]
+  (define-key gud-minor-mode-map [left-margin mouse-3]
     'gdb-mouse-until)
+  (define-key gud-minor-mode-map [left-fringe mouse-3]
+    'gdb-mouse-until)
+
   (define-key gud-minor-mode-map [left-margin C-drag-mouse-1]
     'gdb-mouse-jump)
   (define-key gud-minor-mode-map [left-fringe C-drag-mouse-1]
     'gdb-mouse-jump)
-  (define-key gud-minor-mode-map [left-fringe C-mouse-2]
+  (define-key gud-minor-mode-map [left-fringe C-mouse-3]
     'gdb-mouse-jump)
-  (define-key gud-minor-mode-map [left-margin C-mouse-2]
+  (define-key gud-minor-mode-map [left-margin C-mouse-3]
     'gdb-mouse-jump)
-   (define-key gud-minor-mode-map [left-margin mouse-3]
-    'gdb-mouse-toggle-breakpoint-margin)
-  (define-key gud-minor-mode-map [left-fringe mouse-3]
-    'gdb-mouse-toggle-breakpoint-fringe)
 
   (setq comint-input-sender 'gdb-send)
 
@@ -738,7 +735,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 	  `(lambda () (gdb-var-evaluate-expression-handler
 		       ,(car var) nil)))))
     (if (search-forward "Undefined command" nil t)
-	(message-box "Watching expressions requires gdb 6.0 onwards")
+	(message-box "Watching expressions requires GDB 6.0 onwards")
       (message-box "No symbol \"%s\" in current context." expr))))
 
 (defun gdb-speedbar-update ()
@@ -1106,7 +1103,8 @@ This filter may simply queue input for a later time."
 	  (let ((item (concat string "\n")))
 	    (if gdb-enable-debug (push (cons 'send item) gdb-debug-ring))
 	    (process-send-string proc item)))
-      (if (string-match "\\\\$" string)
+      (if (and (string-match "\\\\$" string)
+	       (not comint-input-sender-no-newline)) ;;Try to catch C-d.
 	  (setq gdb-continuation (concat gdb-continuation string "\n"))
 	(let ((item (concat gdb-continuation string "\n")))
 	  (gdb-enqueue-input item)
