@@ -130,10 +130,10 @@ Used to grey out relevant togolbar icons.")
 
 (defun gud-stop-subjob ()
   (interactive)
-  (if (string-equal
-       (buffer-local-value 'gud-target-name gud-comint-buffer) "emacs")
-      (comint-stop-subjob)
-    (comint-interrupt-subjob)))
+  (with-current-buffer gud-comint-buffer
+    (if (string-equal gud-target-name "emacs")
+	(comint-stop-subjob)
+      (comint-interrupt-subjob))))
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
@@ -645,7 +645,8 @@ required by the caller."
   :inherit minibuffer-local-map)
 
 (defun gud-query-cmdline (minor-mode &optional init)
-  (let* ((hist-sym (gud-symbol 'history nil minor-mode))
+  (let* ((comint-file-name-quote-list '(32))
+	 (hist-sym (gud-symbol 'history nil minor-mode))
 	 (cmd-name (gud-val 'command-name minor-mode)))
     (unless (boundp hist-sym) (set hist-sym nil))
     (read-from-minibuffer
@@ -2537,7 +2538,16 @@ comint mode, which see."
 ;; for local variables in the debugger buffer.
 (defun gud-common-init (command-line massage-args marker-filter
 				     &optional find-file)
-  (let* ((words (split-string command-line))
+  (let* (string
+	 (words
+	  ;; Do this to allow spaces in filenames.
+	  (let (temp-words)
+	    (dolist (word (split-string command-line "[ \f\t\n\r\v]")
+			  (nreverse temp-words))
+	      (if (string-match "\\(.*?\\)\\\\$" word)
+		  (setq string (concat string (match-string 1 word) " "))
+	      (push (concat string word) temp-words)
+	      (setq string nil)))))
 	 (program (car words))
 	 (dir default-directory)
 	 ;; Extract the file name from WORDS
