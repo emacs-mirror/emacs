@@ -1,5 +1,7 @@
 2006-05-29  Richard Stallman  <rms@gnu.org>
 
+	* help.el (temp-buffer-max-height): Doc fix.
+
 	* subr.el (with-current-buffer): Doc fix.
 
 2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
