@@ -4377,6 +4377,12 @@ whether completion ignores case when reading a file name with the
 It is like `read-file-name' except that the defaulting works better
 for directories, and completion inside it shows only directories.
 
++++
+*** The new variable `history-add-new-input' specifies whether to add new
+elements in history.  If set to nil, minibuffer reading functions don't
+add new elements to the history list, so it is possible to do this
+afterwards by calling `add-to-history' explicitly.
+
 ** Completion changes:
 
 +++
