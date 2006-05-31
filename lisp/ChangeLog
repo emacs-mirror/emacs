@@ -14,39 +14,40 @@
 
 2006-05-31  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist::gcov-called-line):
-	Don't put face on `-' lines in gcov file.
-	Suggested by Dan Nicolaescu.
+	* progmodes/compile.el:
+	(compilation-error-regexp-alist-alist::gcov-called-line):
+	Don't put face on `-' lines in gcov file.  Suggested by Dan Nicolaescu.
 
 2006-05-31  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gud-query-cmdline, gud-common-init): Revert
-	inadvertant changes made with last commit.
+	* progmodes/gud.el (gud-query-cmdline, gud-common-init):
+	Revert inadvertant changes made with last commit.
 
 2006-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* textmodes/flyspell.el (turn-on-flyspell, turn-off-flyspell): New
-	functions.
+	* textmodes/flyspell.el (turn-on-flyspell, turn-off-flyspell):
+	New functions.
 
 	* textmodes/text-mode.el (text-mode-hook): Use turn-on-flyspell.
 
 2006-05-30  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-agenda-highlight-todo): Make sure regexp
-	does only match in the right place.
+	only matches in the right place.
 	(org-upcoming-deadline): New face.
 	(org-agenda-get-deadlines): Use new face `org-upcoming-deadline'.
-	(org-export-ascii-underline): Renamed and made an option
-	(was constant `org-ascii-underline').
+	(org-export-ascii-underline): Rename constant `org-ascii-underline'
+	and make it an option.
 	(org-export-ascii-bullets): New option.
 	(org-export-as-html): Many changes to emit valid XHTML.
 	(org-par-open): New variable.
-	(org-open-par, org-close-par-maybe, org-close-li-maybe): New
-	functions.
-	(org-html-do-expand, org-section-number): Fixedcase in
-	`replace-match'.  org-timeline): Pass
-	`org-timeline-show-empty-dates' to `org-get-all-dates'.  Interpret
-	empty dates returned by `org-get-all-dates'.
+	(org-open-par, org-close-par-maybe, org-close-li-maybe):
+	New functions.
+	(org-html-do-expand, org-section-number): Fixed case in
+	`replace-match'.
+	(org-timeline): Pass `org-timeline-show-empty-dates' to
+	`org-get-all-dates'.
+	Interpret empty dates returned by `org-get-all-dates'.
 	(org-get-all-dates): New argument EMPTY.  Add dates without
 	entries to the list, mark large ranges of empty dates.
 	(org-point-in-group, org-context): New functions.
@@ -63,16 +64,15 @@
 	* speedbar.el (speedbar-detach): Delete.
 	(speedbar-easymenu-definition-trailer): Remove speedbar-detach as
 	it breaks things.
-	(speedbar-reconfigure-keymaps): Always add extra items to pop up
-	menu.
+	(speedbar-reconfigure-keymaps): Always add extra items to pop up menu.
 
 2006-05-30  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* files.el (auto-mode-alist): Add makepp suffix and optional mk on
 	Makeppfile.
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist): Add
-	makepp diagnostic.
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add makepp diagnostic.
 
 2006-05-29  Richard Stallman  <rms@gnu.org>
 
@@ -863,8 +863,7 @@
 	Move `safe-local-variable' declarations to the respective files.
 
 	* help-fns.el (describe-variable): Don't print safe-var if it is
-	byte-code.  Improve wording as suggested by Luc Teirlinck
-	<teirllm@auburn.edu>.
+	byte-code.  Improve wording as suggested by Luc Teirlinck.
 
 2006-05-11  Nick Roberts  <nickrob@snap.net.nz>
 
