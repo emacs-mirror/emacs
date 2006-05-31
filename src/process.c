@@ -4135,6 +4135,25 @@ wait_reading_process_output_1 ()
 {
 }
 
+/* Use a wrapper around select to work around a bug in gdb 5.3.
+   Normally, the wrapper is optimzed away by inlining.
+
+   If emacs is stopped inside select, the gdb backtrace doesn't
+   show the function which called select, so it is practically
+   impossible to step through wait_reading_process_output.  */
+
+#ifndef select
+static INLINE int
+select_wrapper (n, rfd, wfd, xfd, tmo)
+  int n;
+  SELECT_TYPE *rfd, *wfd, *xfd;
+  EMACS_TIME *tmo;
+{
+  return select (n, rfd, wfd, xfd, tmo);
+}
+#define select select_wrapper
+#endif
+
 /* Read and dispose of subprocess output while waiting for timeout to
    elapse and/or keyboard input to be available.
 
