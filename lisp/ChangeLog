@@ -1,3 +1,9 @@
+2006-05-31  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist::gcov-called-line): 
+	Don't put face on `-' lines in gcov file.
+	Suggested by Dan Nicolaescu.
+
 2006-05-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-query-cmdline, gud-common-init): Revert

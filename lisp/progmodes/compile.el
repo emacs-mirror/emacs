@@ -300,7 +300,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      "^ +\\(#####\\): +\\([0-9]+\\):.+$" nil 2 nil 2 nil
      (1 compilation-error-face))
     (gcov-called-line
-     "^ +[-0-9]+: +\\([1-9]\\|[0-9]\\{2,\\}\\):.*$" nil 1 nil 0)
+     "^ *[0-9]+: +\\([1-9]\\|[0-9]\\{2,\\}\\):.*$" nil 1 nil 0)
 )
   "Alist of values for `compilation-error-regexp-alist'.")
 
