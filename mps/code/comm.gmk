@@ -269,7 +269,7 @@ all: mpmss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
      finalcv finaltest arenacv bttest teletest \
      abqtest cbstest btcv mv2test messtest steptest \
      eventcnv walkt0 libcbt \
-     mps.a
+     mps.a mpsplan.a
 
 swall: mmsw.a replaysw
 
