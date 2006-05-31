@@ -1,3 +1,10 @@
+2006-05-31  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.c (Vhistory_add_new_input): New variable.
+	(read_minibuf): Use it.
+	(syms_of_minibuf) <history-add-new-input>: New Lisp variable.
+	(syms_of_minibuf) <history-delete-duplicates>: Doc fix.
+
 2006-05-31  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (select_wrapper): Add wrapper around select to work around

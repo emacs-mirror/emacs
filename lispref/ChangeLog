@@ -1,3 +1,7 @@
+2006-05-31  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Minibuffer History): Add history-add-new-input.
+
 2006-05-30  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Line Height): Fix errors in description of
