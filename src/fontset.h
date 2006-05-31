@@ -135,6 +135,9 @@ struct font_info
 
   /* CCL program to calculate code points of the font.  */
   struct ccl_program *font_encoder;
+#ifdef HAVE_XFT
+  Display *dpy;
+#endif
 };
 
 /* A value which may appear in the member `encoding' of struch
