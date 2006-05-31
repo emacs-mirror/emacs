@@ -1,5 +1,8 @@
 2006-05-30  Richard Stallman  <rms@gnu.org>
 
+	* display.texi (Line Height): Fix errors in description of
+	default line height and line-height properyty.
+
 	* nonascii.texi (Default Coding Systems): Further clarification.
 
 2006-05-29  Luc Teirlinck  <teirllm@auburn.edu>
