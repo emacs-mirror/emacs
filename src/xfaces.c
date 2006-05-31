@@ -204,10 +204,6 @@ Boston, MA 02110-1301, USA.  */
 #include "keyboard.h"
 #include "frame.h"
 
-#ifdef HAVE_WINDOW_SYSTEM
-#include "fontset.h"
-#endif /* HAVE_WINDOW_SYSTEM */
-
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #ifdef USE_MOTIF
@@ -215,6 +211,10 @@ Boston, MA 02110-1301, USA.  */
 #include <Xm/XmStrDefs.h>
 #endif /* USE_MOTIF */
 #endif /* HAVE_X_WINDOWS */
+
+#ifdef HAVE_WINDOW_SYSTEM
+#include "fontset.h"
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef MSDOS
 #include "dosfns.h"
