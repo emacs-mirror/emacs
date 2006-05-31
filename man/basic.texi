@@ -254,10 +254,10 @@ minibuffer empty, that number is used for @var{n}.
 @findex set-goal-column
 @kindex C-x C-n
 Use the current column of point as the @dfn{semipermanent goal column}
-for @kbd{C-n} and @kbd{C-p} (@code{set-goal-column}).  Henceforth,
-those commands always try move to this column, or as close as possible
-to it, after moving vertically.  The goal column remains in effect
-until canceled.
+for @kbd{C-n} and @kbd{C-p} (@code{set-goal-column}).  When a
+semipermanent goal column is in effect, those commands always try to
+move to this column, or as close as possible to it, after moving
+vertically.  The goal column remains in effect until canceled.
 @item C-u C-x C-n
 Cancel the goal column.  Henceforth, @kbd{C-n} and @kbd{C-p} try to
 preserve the horizontal position, as usual.
