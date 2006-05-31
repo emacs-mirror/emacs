@@ -493,6 +493,12 @@ load_font_get_repertory (f, face, font_def, fontset)
   struct font_info *font_info;
   int charset;
 
+#ifdef HAVE_XFT
+#warning "This is not correct, but works most of the time"
+  if (face->font_name)
+    font_name = face->font_name;
+  else
+#endif
   font_name = choose_face_font (f, face->lface, AREF (font_def, 0), NULL);
   charset = XINT (AREF (font_def, 1));
   if (! (font_info = fs_load_font (f, font_name, charset)))
