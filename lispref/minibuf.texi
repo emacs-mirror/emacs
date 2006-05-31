@@ -460,6 +460,12 @@ However, if @var{keep-all} is non-@code{nil}, that says not to remove
 duplicates, and to add @var{newelt} to the list even if it is empty.
 @end defun
 
+@defvar history-add-new-input
+The value of this variable @code{nil} means that standard functions
+that read from the minibuffer don't add new elements to the history
+list, so it is possible to do this explicitly by using @code{add-to-history}.
+@end defvar
+
 @defvar history-length
 The value of this variable specifies the maximum length for all
 history lists that don't specify their own maximum lengths.  If the
