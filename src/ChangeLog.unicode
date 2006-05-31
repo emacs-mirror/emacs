@@ -1,4 +1,19 @@
-2006-05-29  Dan Nicolaescu <dann@ics.uci.edu> (tiny change)
+2006-05-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fontset.h (struct font_info): Add Display *dpy member for Xft.
+
+	* xfaces.c: include fontset.h after xterm.h.
+
+	* fontset.c (load_font_get_repertory): Temporary fix for
+	loading the wrong font, use font_name for Xft case.
+
+	* xterm.c (x_encode_char): Always use unicode for Xft.
+	(x_compute_glyph_string_overhangs): Call XftTextExtents16 with
+	all characters, not just first.
+	(x_load_font): Initialise fontp->dpy.
+	(x_get_font_repertory): Add code for Xft case.
+
+2006-05-29  Dan Nicolaescu <dann@ics.uci.edu>
 
 	* xterm.c (xft_xlfd_weight_name): one demibold => bold
 
