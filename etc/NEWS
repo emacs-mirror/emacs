@@ -990,7 +990,7 @@ disabled by customizing the variable `use-file-dialog'.
 be navigated with the arrow keys (like Gtk+, Mac and W32).
 
 +++
-*** The menu bar fpr Motif/Lesstif/Lucid/Gtk+ can be navigated with keys.
+*** The menu bar for Motif/Lesstif/Lucid/Gtk+ can be navigated with keys.
 Pressing F10 shows the first menu in the menu bar.  Navigation is done with
 the arrow keys, select with the return key and cancel with the escape keys.
 
