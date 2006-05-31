@@ -41,13 +41,10 @@
 	(org-export-ascii-bullets): New option.
 	(org-export-as-html): Many changes to emit valid XHTML.
 	(org-par-open): New variable.
-	(org-open-par, org-close-par-maybe, org-close-li-maybe):
-	New functions.
-	(org-html-do-expand, org-section-number): Fixed case in
-	`replace-match'.
+	(org-open-par, org-close-par-maybe, org-close-li-maybe): New functions.
+	(org-html-do-expand, org-section-number): Fixedcase in `replace-match'.
 	(org-timeline): Pass `org-timeline-show-empty-dates' to
-	`org-get-all-dates'.
-	Interpret empty dates returned by `org-get-all-dates'.
+	`org-get-all-dates'. Interpret empty dates returned by `org-get-all-dates'.
 	(org-get-all-dates): New argument EMPTY.  Add dates without
 	entries to the list, mark large ranges of empty dates.
 	(org-point-in-group, org-context): New functions.
