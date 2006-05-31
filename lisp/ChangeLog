@@ -7,6 +7,11 @@
 	(gdb-info-threads-custom): Keep point at start of buffer.
 	(gdb-find-file-hook): Make it work for pre-GDB 6.4.
 
+2006-05-31  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-from, query-replace-read-to):
+	Bind `history-add-new-input' to nil.  Call `add-to-history'.
+
 2006-05-31  Takaaki Ota  <Takaaki.Ota@am.sony.com>
 
 	* textmodes/table.el: Convert all HTML tags to lower case for
