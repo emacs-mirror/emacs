@@ -99,7 +99,8 @@ The return value can also be a pair (FROM . TO) indicating that the user
 wants to replace FROM with TO."
   (if query-replace-interactive
       (car (if regexp-flag regexp-search-ring search-ring))
-    (let  ((from
+    (let* ((history-add-new-input nil)
+	   (from
 	    ;; The save-excursion here is in case the user marks and copies
 	    ;; a region in order to specify the minibuffer input.
 	    ;; That should not clobber the region for the query-replace itself.
@@ -117,6 +118,7 @@ wants to replace FROM with TO."
 	  (cons (car query-replace-defaults)
 		(query-replace-compile-replacement
 		 (cdr query-replace-defaults) regexp-flag))
+	(add-to-history query-replace-from-history-variable from nil t)
 	;; Warn if user types \n or \t, but don't reject the input.
 	(and regexp-flag
 	     (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
@@ -174,10 +176,12 @@ the original string if not."
   "Query and return the `to' argument of a query-replace operation."
   (query-replace-compile-replacement
    (save-excursion
-     (let ((to (read-from-minibuffer
-		(format "%s %s with: " prompt (query-replace-descr from))
-		nil nil nil
-		query-replace-to-history-variable from t)))
+     (let* ((history-add-new-input nil)
+	    (to (read-from-minibuffer
+		 (format "%s %s with: " prompt (query-replace-descr from))
+		 nil nil nil
+		 query-replace-to-history-variable from t)))
+       (add-to-history query-replace-to-history-variable to nil t)
        (setq query-replace-defaults (cons from to))
        to))
    regexp-flag))
