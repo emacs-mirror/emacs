@@ -1582,41 +1582,41 @@ equal to or less than the display width of @var{ellipsis}.  If
 @cindex line height
 
   The total height of each display line consists of the height of the
-contents of the line, and additional vertical line spacing below the
-display row.
+contents of the line, plus optional additional vertical line spacing
+above or below the display line.
 
-  The height of the line contents is normally determined from the
-maximum height of any character or image on that display line,
-including the final newline if there is one.  (A line that is
-continued doesn't include a final newline.)  In the most common case,
-the line height equals the height of the default frame font.
+  The height of the line contents is the maximum height of any
+character or image on that display line, including the final newline
+if there is one.  (A display line that is continued doesn't include a
+final newline.)  That is the default line height, if you do nothing to
+specify a greater height.  (In the most common case, this equals the
+height of the default frame font.)
 
-  There are several ways to explicitly control or change the line
-height, either by specifying an absolute height for the display line,
-or by adding additional vertical space below one or all lines.
+  There are several ways to explicitly specify a larger line height,
+either by specifying an absolute height for the display line, or by
+specifying vertical space.  However, no matter what you specify, the
+actual line height can never be less than the default.
 
 @kindex line-height @r{(text property)}
   A newline can have a @code{line-height} text or overlay property
 that controls the total height of the display line ending in that
 newline.
 
-  If the property value is a list @code{(@var{height} @var{total})},
-then @var{height} is used as the actual property value for the
-@code{line-height}, and @var{total} specifies the total displayed
-height of the line, so the line spacing added below the line equals
-the @var{total} height minus the actual line height.  In this case,
-the other ways to specify the line spacing are ignored.
+  If the property value is @code{t}, the newline character has no
+effect on the displayed height of the line---the visible contents
+alone determine the height.  This is useful for tiling small images
+(or image slices) without adding blank areas between the images.
 
-  If the property value is @code{t}, the displayed height of the
-line is exactly what its contents demand; no line-spacing is added.
-This case is useful for tiling small images or image slices without
-adding blank areas between the images.
+  If the property value is a list of the form @code{(@var{height}
+@var{total})}, that adds extra space @emph{below} the display line.
+First Emacs uses @var{height} as a height spec to control extra space
+@emph{above} the line; then it adds enough space @emph{below} the line
+to bring the total line height up to @var{total}.  In this case, the
+other ways to specify the line spacing are ignored.
 
-  If the property value is not @code{t}, it is a height spec.  A height
-spec stands for a numeric height value; this height spec specifies the
-actual line height, @var{line-height}.  There are several ways to
-write a height spec; here's how each of them translates into a numeric
-height:
+  Any other kind of property value is a height spec, which translates
+into a number---the specified line height.  There are several ways to
+write a height spec; here's how each of them translates into a number:
 
 @table @code
 @item @var{integer}
@@ -1634,11 +1634,10 @@ If the height spec is a cons of the format shown, the numeric height
 is @var{ratio} times the height of the contents of the line.
 @end table
 
-  Thus, any valid non-@code{t} property value specifies a height in pixels,
-@var{line-height}, one way or another.  If the line contents' height
-is less than @var{line-height}, Emacs adds extra vertical space above
-the line to achieve the total height @var{line-height}.  Otherwise,
-@var{line-height} has no effect.
+  Thus, any valid height spec determines the height in pixels, one way
+or another.  If the line contents' height is less than that, Emacs
+adds extra vertical space above the line to achieve the specified
+total height.
 
   If you don't specify the @code{line-height} property, the line's
 height consists of the contents' height plus the line spacing.
@@ -1663,9 +1662,9 @@ height.  This overrides line spacings specified for the frame.
 
 @kindex line-spacing @r{(text property)}
   Finally, a newline can have a @code{line-spacing} text or overlay
-property that controls the height of the display line ending with that
-newline.  The property value overrides the default frame line spacing
-and the buffer local @code{line-spacing} variable.
+property that overrides the default frame line spacing and the buffer
+local @code{line-spacing} variable, for the display line ending in
+that newline.
 
   One way or another, these mechanisms specify a Lisp value for the
 spacing of each line.  The value is a height spec, and it translates
