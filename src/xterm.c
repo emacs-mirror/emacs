@@ -974,10 +974,11 @@ x_encode_char (c, char2b, font_info, charset, two_byte_p)
 
   if (two_byte_p)
 #ifdef HAVE_XFT
-    *two_byte_p = FcCharSetCount
-      (((x_font_type *) font_info->font)->charset) > 256;
+    *two_byte_p = FcCharSetCount (font->charset) > 256;
+    /* Always use unicode for Xft */
+    STORE_XCHAR2B (char2b, c >> 8, c & 0xff);
 #else
-    *two_byte_p = ((x_font_type *) (font_info->font))->max_byte1 > 0;
+    *two_byte_p = font->max_byte1 > 0;
 #endif
   return FONT_TYPE_UNKNOWN;
 }
@@ -1450,17 +1451,19 @@ x_compute_glyph_string_overhangs (s)
       int direction, font_ascent, font_descent;
 #ifdef HAVE_XFT
       XGlyphInfo xgl;
-      XftChar16 ch = s->char2b->byte2 | (s->char2b->byte1 << 8);
-      Display *dpy = s->display;
+      XftChar16 ch[s->nchars];
+      int i;
+      for (i = 0; i < s->nchars; ++i)
+        ch[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
+
       BLOCK_INPUT;
-      XftTextExtents16 (dpy, s->font, &ch, 1, &xgl);
+      XftTextExtents16 (s->display, s->font, ch, s->nchars, &xgl);
       UNBLOCK_INPUT;
       cs.lbearing = -xgl.x;
       cs.rbearing = xgl.width - xgl.x;
       cs.width = xgl.xOff;
       cs.ascent = xgl.y;
       cs.descent = xgl.height - xgl.y;
-      
 #else
       XTextExtents16 (s->font, s->char2b, s->nchars, &direction,
 		      &font_ascent, &font_descent, &cs);
@@ -1630,7 +1633,8 @@ x_draw_glyph_string_foreground (s)
             XftChar16 ch[s->nchars];
             int i;
             for (i = 0; i < s->nchars; ++i)
-              ch[i] = s->char2b[i].byte2 | (s->char2b[i].byte1 << 8);
+	      ch[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
+
             XftDrawString16 (s->face->xft_draw,
                              fg,
                              s->face->font,
@@ -10273,7 +10277,9 @@ x_load_font (f, fontname, size)
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
-#ifndef HAVE_XFT
+#ifdef HAVE_XFT
+    fontp->dpy = dpy;
+#else
     if (font->min_bounds.width == font->max_bounds.width)
       {
 	/* Fixed width font.  */
@@ -10506,14 +10512,27 @@ x_get_font_repertory (f, font_info)
      FRAME_PTR f;
      struct font_info *font_info;
 {
-  XFontStruct *font = (XFontStruct *) font_info->font;
-  Lisp_Object table;
+  Lisp_Object table = Fmake_char_table (Qnil, Qnil);
   int min_byte1, max_byte1, min_byte2, max_byte2;
   int c;
   struct charset *charset = CHARSET_FROM_ID (font_info->charset);
   int offset = CHARSET_OFFSET (charset);
+  x_font_type *font = (x_font_type *) font_info->font;
 
-  table = Fmake_char_table (Qnil, Qnil);
+#ifdef HAVE_XFT
+  int i, j;
+  min_byte1 = min_byte2 = 0;
+  max_byte1 = max_byte2 = 255;
+  for (i = min_byte1; i <= max_byte1; i++)	    
+    for (j = min_byte2; j <= max_byte2; j++)
+      {
+	unsigned code = (i << 8) | j;
+	c = DECODE_CHAR (charset, code);
+	if (XftCharExists (font_info->dpy, font, code))
+	  CHAR_TABLE_SET (table, c, Qt);
+      }
+#else
+
 
   min_byte1 = font->min_byte1;
   max_byte1 = font->max_byte1;
@@ -10649,6 +10668,7 @@ x_get_font_repertory (f, font_info)
 	}
     }
 
+#endif /* ! HAVE_XFT */
   return table;
 }
 
