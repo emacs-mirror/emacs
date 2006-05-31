@@ -1,3 +1,7 @@
+2006-05-31  Richard Stallman  <rms@gnu.org>
+
+	* basic.texi (Moving Point): Fix previous change.
+
 2006-05-30  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Small typo fixes.
