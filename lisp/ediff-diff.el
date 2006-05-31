@@ -128,10 +128,10 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
 
 (defcustom ediff-diff-options ""
   "*Options to pass to `ediff-diff-program'.
-If Unix diff is used as `ediff-diff-program', then a useful option is
-`-w', to ignore space, and `-i', to ignore case of letters.
-Options `-c' and `-i' are not allowed. Case sensitivity can be toggled
-interactively using [ediff-toggle-ignore-case]"
+If Unix diff is used as `ediff-diff-program',
+ then a useful option is `-w', to ignore space.
+Options `-c' and `-i' are not allowed. Case sensitivity can be
+ toggled interactively using \\[ediff-toggle-ignore-case]."
   :set 'ediff-reset-diff-options
   :type 'string
   :group 'ediff-diff)
@@ -399,7 +399,7 @@ one optional arguments, diff-number to refine.")
 	(c-prev-pt nil)
 	diff-list shift-A shift-B
 	)
-    
+
     ;; diff list contains word numbers, unless changed later
     (setq diff-list (cons (if word-mode 'words 'points)
 			  diff-list))
@@ -411,7 +411,7 @@ one optional arguments, diff-number to refine.")
 	      shift-B
 	      (ediff-overlay-start
 	       (ediff-get-value-according-to-buffer-type 'B bounds))))
-    
+
     ;; reset point in buffers A/B/C
     (ediff-with-current-buffer A-buffer
       (goto-char (if shift-A shift-A (point-min))))
@@ -1525,7 +1525,7 @@ affects only files whose names match the expression."
   (ediff-barf-if-not-control-buffer)
   (setq ediff-ignore-case (not ediff-ignore-case))
   (cond (ediff-ignore-case
-	 (setq ediff-actual-diff-options 
+	 (setq ediff-actual-diff-options
 	       (concat ediff-diff-options " " ediff-ignore-case-option)
 	       ediff-actual-diff3-options
 	       (concat ediff-diff3-options " " ediff-ignore-case-option3))
