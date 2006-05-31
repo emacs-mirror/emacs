@@ -1,6 +1,11 @@
+2006-05-31  Takaaki Ota  <Takaaki.Ota@am.sony.com>
+
+	* textmodes/table.el: Convert all HTML tags to lower case for
+	XHTML compatibility.
+
 2006-05-31  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist::gcov-called-line): 
+	* progmodes/compile.el (compilation-error-regexp-alist-alist::gcov-called-line):
 	Don't put face on `-' lines in gcov file.
 	Suggested by Dan Nicolaescu.
 
