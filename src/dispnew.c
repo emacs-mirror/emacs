@@ -355,8 +355,7 @@ static unsigned history_tick;
 
 static void add_frame_display_history P_ ((struct frame *, int));
 static void add_window_display_history P_ ((struct window *, char *, int));
-
-
+
 /* Add to the redisplay history how window W has been displayed.
    MSG is a trace containing the information how W's glyph matrix
    has been constructed.  PAUSED_P non-zero means that the update
@@ -6408,7 +6407,6 @@ sit_for (sec, usec, reading, display, initial_display)
   if ((detect_input_pending_run_timers (display)
        && !redisplay_dont_pause)
       || !NILP (Vexecuting_kbd_macro))
-
     return Qnil;
 
   if (initial_display)
