@@ -306,7 +306,7 @@
 	* replace.el (query-replace-read-from, query-replace-read-to):
 	Remove 8th arg KEEP-ALL in read-from-minibuffer.
 
-2006-05-25  Rajesh Vaidheeswarran <rv@gnu.org>
+2006-05-25  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-cleanup): Change to cleanup
 	region if one is active.
