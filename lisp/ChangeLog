@@ -1,3 +1,7 @@
+2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el: Change x-menu-bar-start to menu-bar-open.
+
 2006-06-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-look-up-stack): New variable.
