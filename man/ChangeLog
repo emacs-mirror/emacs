@@ -1,3 +1,7 @@
+2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* screen.texi (Menu Bar): Change menu-bar-start to menu-bar-open.
+
 2006-05-31  Michael Ernst  <mernst@alum.mit.edu>
 
 	* ediff.texi: Fix typos.

@@ -320,7 +320,7 @@ here, as you can more easily see them yourself.
 @kindex M-`
 @kindex F10
 @findex tmm-menubar
-@findex menu-bar-start
+@findex menu-bar-open
   On a graphical display, you can use the mouse to choose a command
 from the menu bar.  A right-arrow at the end of the menu item means it
 leads to a subsidiary menu; @samp{...} at the end means that the
@@ -328,7 +328,7 @@ command invoked will read arguments (further input from you) before it
 actually does anything.
 
   You can also invoke the first menu bar item by pressing @key{F10} (to run
-the command @code{menu-bar-start}).  You can then navigate the menus with
+the command @code{menu-bar-open}).  You can then navigate the menus with
 the arrow keys.  You select an item by pressing @key{RET} and cancel menu
 navigation with @key{ESC}.
 
