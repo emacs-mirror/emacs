@@ -1,3 +1,16 @@
+2006-06-01  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* process.c (deleted_pid_list): New variable to store the pids
+	of deleted processes.  Declare it only if SIGCHLD is defined.
+	(init_process): Initialize it.
+	(syms_of_process): Staticpro it.
+	(Fdelete_process): Add pid of the deleted process to it.  Check after
+	the addition and before the kill if the process is already stopped,
+	in which case it is deleted from the list and not killed.
+	(sigchld_handler): Define it only if SIGCHLD is.  Search the process
+	that signaled Emacs in `deleted_pid_list' before `Vprocess_alist'.
+	Original idea by Stefan Monnier.
+
 2006-06-01  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (sit_for): Perform redisplay even if input is pending
