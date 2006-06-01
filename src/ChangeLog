@@ -1,5 +1,10 @@
 2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xmenu.c (syms_of_xmenu): Make accelerate-menu an alias for
+	menu-bar-open.
+
+2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
 	* xmenu.c (Fmenu_bar_open, syms_of_xmenu): Change menu-bar-start to
 	menu-bar-open.
 

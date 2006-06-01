@@ -3772,6 +3772,8 @@ The enable predicate for a menu command should check this variable.  */);
 
 #if defined (USE_GTK) || defined (USE_X_TOOLKIT)
   defsubr (&Smenu_bar_open);
+  Fdefalias (intern ("accelerate-menu"), intern (Smenu_bar_open.symbol_name),
+             Qnil);
 #endif
 
 #ifdef HAVE_MENUS
