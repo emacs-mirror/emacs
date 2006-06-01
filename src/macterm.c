@@ -6134,6 +6134,7 @@ mac_handle_visibility_change (f)
 	  EVENT_INIT (buf);
 	  buf.kind = DEICONIFY_EVENT;
 	  XSETFRAME (buf.frame_or_window, f);
+	  buf.arg = Qnil;
 	  kbd_buffer_store_event (&buf);
 	}
       else if (! NILP (Vframe_list) && ! NILP (XCDR (Vframe_list)))
@@ -6147,6 +6148,7 @@ mac_handle_visibility_change (f)
 	EVENT_INIT (buf);
 	buf.kind = ICONIFY_EVENT;
 	XSETFRAME (buf.frame_or_window, f);
+	buf.arg = Qnil;
 	kbd_buffer_store_event (&buf);
       }
 
@@ -8338,9 +8340,10 @@ x_find_ccl_program (fontp)
 }
 
 #if USE_MAC_FONT_PANEL
-/* The first call to font panel functions (FPIsFontPanelVisible,
-   SetFontInfoForSelection) is slow.  This variable is used for
-   deferring such a call as much as possible.  */
+/* Whether Font Panel has been shown before.  The first call to font
+   panel functions (FPIsFontPanelVisible, SetFontInfoForSelection) is
+   slow.  This variable is used for deferring such a call as much as
+   possible.  */
 static int font_panel_shown_p = 0;
 
 int
@@ -9866,10 +9869,6 @@ XTread_socket (sd, expected, hold_quit)
       struct frame *f;
       unsigned long timestamp;
 
-      /* It is necessary to set this (additional) argument slot of an
-	 event to nil because keyboard.c protects incompletely
-	 processed event from being garbage collected by placing them
-	 in the kbd_buffer_gcpro vector.  */
       EVENT_INIT (inev);
       inev.kind = NO_EVENT;
       inev.arg = Qnil;
