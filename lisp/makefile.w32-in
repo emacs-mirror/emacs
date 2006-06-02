@@ -33,7 +33,7 @@ srcdir = $(CURDIR)/..
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
 
-EMACS = "$(THISDIR)/../bin/emacs.exe"
+EMACS = $(THISDIR)/../bin/emacs.exe
 
 # Command line flags for Emacs.  This must include --multibyte,
 # otherwise some files will not compile.
@@ -61,8 +61,11 @@ COMPILE_FIRST = \
 	$(lisp)/progmodes/cc-vars.el
 
 # The actual Emacs command run in the targets below.
+# The quotes around $(EMACS) are here because the user could type
+# it with forward slashes and without quotes, which will fail if
+# the shell is cmd.exe.
 
-emacs = $(EMACS) $(EMACSOPT)
+emacs = "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 
