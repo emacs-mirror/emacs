@@ -2582,7 +2582,7 @@ is specified, returning t if it is specified."
 		    (if mode-only
 			(if (eq var 'mode)
 			    (setq result t))
-		      (unless (eq var 'coding)
+		      (unless (or (eq var 'coding) (eq var 'char-trans))
 			(condition-case nil
 			    (push (cons (if (eq var 'eval)
 					    'eval
