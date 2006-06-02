@@ -1,3 +1,7 @@
+2006-06-01  Richard Stallman  <rms@gnu.org>
+
+	* window.c (Fsplit_window): Doc fix.
+
 2006-06-01  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* process.c (deleted_pid_list): New variable to store the pids

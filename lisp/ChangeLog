@@ -82,6 +82,8 @@
 
 2006-05-29  Richard Stallman  <rms@gnu.org>
 
+	* window.el (fit-window-to-buffer): Doc fix.
+
 	* help.el (temp-buffer-max-height): Doc fix.
 
 	* subr.el (with-current-buffer): Doc fix.
