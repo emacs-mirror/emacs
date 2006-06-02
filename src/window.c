@@ -3778,7 +3778,9 @@ SIZE includes that window's scroll bar, or the divider column to its right.
 Interactively, all arguments are nil.
 
 Returns the newly created window (which is the lower or rightmost one).
-The upper or leftmost window is the original one and remains selected.
+The upper or leftmost window is the original one, and remains selected
+if it was selected before.
+
 See Info node `(elisp)Splitting Windows' for more details and examples.*/)
      (window, size, horflag)
      Lisp_Object window, size, horflag;
