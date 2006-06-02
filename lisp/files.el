@@ -2487,10 +2487,12 @@ and VAL is the specified value."
 		 ;; case when checking for `mode' in set-auto-mode,
 		 ;; so we must do that here as well.
 		 ;; That is inconsistent, but we're stuck with it.
-		 ;; The same can be said for `coding' in set-auto-coding.
+		 ;; The same can be said for `coding' and `char-trans'
+		 ;; in set-auto-coding.
 		 (or (and (equal (downcase (symbol-name key)) "mode")
 			  (setq mode-specified t))
 		     (equal (downcase (symbol-name key)) "coding")
+		     (equal (downcase (symbol-name key)) "char-trans")
 		     (condition-case nil
 			 (push (cons (if (eq key 'eval)
 					 'eval
