@@ -4,6 +4,12 @@
 	file name.
 	(emacs): Enclose the value of $(EMACS) in quotes.
 
+2006-06-02  Juri Linkov  <juri@jurta.org>
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Remove the condition `(search-forward "<html" size t)'.
+	Replace `\"' with `[\"']?' in `re-search-forward'.
+
 2006-06-02  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (hack-local-variables-prop-line): Ignore `char-trans'
