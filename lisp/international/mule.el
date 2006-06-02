@@ -2284,21 +2284,19 @@ This function is intended to be added to `auto-coding-functions'."
   "If the buffer has an HTML meta tag, use it to determine encoding.
 This function is intended to be added to `auto-coding-functions'."
   (setq size (min (+ (point) size)
-		  ;; Only search forward 10 lines
 		  (save-excursion
 		    ;; Limit the search by the end of the HTML header.
 		    (or (search-forward "</head>" size t)
 			;; In case of no header, search only 10 lines.
 			(forward-line 10))
 		    (point))))
-  (when (and (search-forward "<html" size t)
-	     (re-search-forward "<meta\\s-+http-equiv=\"content-type\"\\s-+content=\"text/\\sw+;\\s-*charset=\\(.+?\\)\"" size t))
-      (let* ((match (match-string 1))
-	     (sym (intern (downcase match))))
-	(if (coding-system-p sym)
-	    sym
-	  (message "Warning: unknown coding system \"%s\"" match)
-	  nil))))
+  (when (re-search-forward "<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']text/\\sw+;\\s-*charset=\\(.+?\\)[\"']" size t)
+    (let* ((match (match-string 1))
+	   (sym (intern (downcase match))))
+      (if (coding-system-p sym)
+	  sym
+	(message "Warning: unknown coding system \"%s\"" match)
+	nil))))
 
 ;;;
 (provide 'mule)
