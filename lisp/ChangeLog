@@ -25,8 +25,8 @@
 
 2006-06-02  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist::gcov-*): 
-	Almost rewrite. Underlines over all lines of gcov output are too 
+	* progmodes/compile.el (compilation-error-regexp-alist-alist::gcov-*):
+	Almost rewrite. Underlines over all lines of gcov output are too
 	uncomfortable to read.  Suggested by Dan Nicolaescu.
 
 2006-06-01  Luc Teirlinck  <teirllm@auburn.edu>
