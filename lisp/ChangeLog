@@ -1,7 +1,10 @@
+2006-06-01  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (with-current-buffer): Doc fix.
+
 2006-06-02  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist::gcov-*): 
-
 	Almost rewrite. Underlines over all lines of gcov output are too 
 	uncomfortable to read.  Suggested by Dan Nicolaescu.
 
