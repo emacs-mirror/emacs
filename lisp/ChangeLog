@@ -1,3 +1,12 @@
+2006-06-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/inf-lisp.el (inferior-lisp-mode): Doc fixes.
+
+	* shell.el (shell-mode): Use shell-mode-map in docstring.
+
+	* comint.el (comint-send-input): Do not add help-echo and
+	mouse-face to input if `comint-use-prompt-regexp' is non-nil.
+
 2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el: Change x-menu-bar-start to menu-bar-open.

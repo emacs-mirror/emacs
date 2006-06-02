@@ -1,3 +1,8 @@
+2006-06-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* misc.texi (Shell History Copying): Update descriptions of `C-c RET'
+	and Mouse-2.
+
 2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* screen.texi (Menu Bar): Change menu-bar-start to menu-bar-open.
