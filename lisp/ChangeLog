@@ -1,3 +1,8 @@
+2006-06-02  Juri Linkov  <juri@jurta.org>
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Limit the search by the end of the HTML header (if any).
+
 2006-06-01  Richard Stallman  <rms@gnu.org>
 
 	* subr.el (with-current-buffer): Doc fix.
