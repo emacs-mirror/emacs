@@ -1655,6 +1655,9 @@ This is used for loading and byte-compiling Emacs Lisp files.")
 	(setq alist (cdr alist))))
     coding-system))
 
+(put 'enable-character-translation 'permanent-local t)
+(put 'enable-character-translation 'safe-local-variable	'booleanp)
+
 (defun find-auto-coding (filename size)
   "Find a coding system for a file FILENAME of which SIZE bytes follow point.
 These bytes should include at least the first 1k of the file
@@ -1692,17 +1695,20 @@ If nothing is specified, the return value is nil."
 	     (head-end (+ head-start (min size 1024)))
 	     (tail-start (+ head-start (max (- size 3072) 0)))
 	     (tail-end (+ head-start size))
-	     coding-system head-found tail-found pos)
+	     coding-system head-found tail-found pos char-trans)
 	;; Try a short cut by searching for the string "coding:"
 	;; and for "unibyte:" at the head and tail of SIZE bytes.
 	(setq head-found (or (search-forward "coding:" head-end t)
-			     (search-forward "unibyte:" head-end t)))
+			     (search-forward "unibyte:" head-end t)
+			     (search-forward "char-trans:" head-end t)))
 	(if (and head-found (> head-found tail-start))
 	    ;; Head and tail are overlapped.
 	    (setq tail-found head-found)
 	  (goto-char tail-start)
 	  (setq tail-found (or (search-forward "coding:" tail-end t)
-			       (search-forward "unibyte:" tail-end t))))
+			       (search-forward "unibyte:" tail-end t)
+			       (search-forward "enable-character-translation:"
+					       tail-end t))))
 
 	;; At first check the head.
 	(when head-found
@@ -1720,12 +1726,16 @@ If nothing is specified, the return value is nil."
 		       (re-search-forward
 			"\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)"
 			head-end t))
-	      (setq coding-system (intern (match-string 2))))))
+	      (setq coding-system (intern (match-string 2))))
+	    (when (re-search-forward
+		   "\\(.*;\\)?[ \t]*char-trans:[ \t]*\\([^ ;]+\\)"
+		   head-end t)
+	      (setq char-trans (match-string 2)))))
 
 	;; If no coding: tag in the head, check the tail.
 	;; Here we must pay attention to the case that the end-of-line
 	;; is just "\r" and we can't use "^" nor "$" in regexp.
-	(when (and tail-found (not coding-system))
+	(when (and tail-found (or (not coding-system) (not char-trans)))
 	  (goto-char tail-start)
 	  (re-search-forward "[\r\n]\^L" nil t)
 	  (if (re-search-forward
@@ -1748,6 +1758,11 @@ If nothing is specified, the return value is nil."
 		       "[\r\n]" prefix
 		       "[ \t]*unibyte[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
 		       suffix "[\r\n]"))
+		     (re-char-trans
+		      (concat
+		       "[\r\n]" prefix
+		       "[ \t]*enable-character-translation[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
+		       suffix "[\r\n]"))
 		     (re-end
 		      (concat "[\r\n]" prefix "[ \t]*End *:[ \t]*" suffix
 			      "[\r\n]?"))
@@ -1761,7 +1776,21 @@ If nothing is specified, the return value is nil."
 		  (setq coding-system 'raw-text))
 		(when (and (not coding-system)
 			   (re-search-forward re-coding tail-end t))
-		  (setq coding-system (intern (match-string 1)))))))
+		  (setq coding-system (intern (match-string 1))))
+		(when (and (not char-trans)
+			   (re-search-forward re-char-trans tail-end t))
+		  (setq char-trans (match-string 1))))))
+	(if coding-system
+	    ;; If the coding-system name ends with "!", remove it and
+	    ;; set char-trans to "nil".
+	    (let ((name (symbol-name coding-system)))
+	      (if (= (aref name (1- (length name))) ?!)
+		  (setq coding-system (intern (substring name 0 -1))
+			char-trans "nil"))))
+	(when (and char-trans
+		   (not (setq char-trans (intern char-trans))))
+	  (make-local-variable 'enable-character-translation)
+	  (setq enable-character-translation nil))
 	(if coding-system
 	    (cons coding-system :coding)))
       ;; Finally, try all the `auto-coding-functions'.
