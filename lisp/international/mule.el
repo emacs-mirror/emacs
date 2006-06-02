@@ -1707,6 +1707,7 @@ If nothing is specified, the return value is nil."
 	  (goto-char tail-start)
 	  (setq tail-found (or (search-forward "coding:" tail-end t)
 			       (search-forward "unibyte:" tail-end t)
+			       (search-forward "char-trans:" tail-end t)
 			       (search-forward "enable-character-translation:"
 					       tail-end t))))
 
@@ -1761,7 +1762,7 @@ If nothing is specified, the return value is nil."
 		     (re-char-trans
 		      (concat
 		       "[\r\n]" prefix
-		       "[ \t]*enable-character-translation[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
+		       "[ \t]*\\(enable-character-translation\\|char-trans\\)[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
 		       suffix "[\r\n]"))
 		     (re-end
 		      (concat "[\r\n]" prefix "[ \t]*End *:[ \t]*" suffix
@@ -1779,7 +1780,7 @@ If nothing is specified, the return value is nil."
 		  (setq coding-system (intern (match-string 1))))
 		(when (and (not char-trans)
 			   (re-search-forward re-char-trans tail-end t))
-		  (setq char-trans (match-string 1))))))
+		  (setq char-trans (match-string 2))))))
 	(if coding-system
 	    ;; If the coding-system name ends with "!", remove it and
 	    ;; set char-trans to "nil".
