@@ -2202,7 +2202,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
 ;;;; Lisp macros to do various things temporarily.
 
 (defmacro with-current-buffer (buffer &rest body)
-  "Execute the forms in BODY with BUFFER as the current buffer.
+  "Execute the forms in BODY with BUFFER temporarily current.
 BUFFER can be a buffer or a buffer name.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
