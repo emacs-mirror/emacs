@@ -42,14 +42,107 @@
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<pre>
-Notes on getting started with GC -- Garbage Collection.
-</pre>
+<p>Notes on getting started with GC -- Garbage Collection.</p>
+
+<h2>Introduction</h2>
+
+<p>The essential MPS concepts for GC are:</p>
+<ul>
+  <li> Format -- lets the MPS ask the client a question about an object;</li>
+  <li> Root -- tell the MPS which things (eg. stack, globals) are always alive.</li>
+</ul>
+
+<h2><a id="Formats">Formats</a></h2>
+
+<p>The client can choose how to format its objects, but the MPS will
+sometimes need to ask the client some questions about an object, such
+as:</p>
+<ul>
+  <li> how big is it? (so that if it is dead the MPS collects only that
+       object)</li>
+  <li> what pointers does it contain? (so the MPS can mark referred-to
+       objects as still alive)</li>
+</ul>
+
+<p>For each type of question, the client must provide a function that gives
+the answer.  These functions collected together are called a "format"
+(mps_fmt_t).  Usually the client developer writes these functions,
+collects them into a format, and passes this format to the MPS as an
+argument to mps_pool_create().</p>
+
+<p>A client's format code is 'special'.  It is called at special times (eg.
+when handling an interrupt), and is quite restricted in what it is
+allowed to do.  Format code is often on the critial path for memory
+management operations.  The full requirement for a format is
+complicated; see pool class documentation in the Reference Manual.  But
+here's a simplified overview:</p>
+
+<p>No format is required for an object in a non-scanned, non-collectable
+pool -- the MPS never needs to know the internal details of objects in
+these pools.</p>
+
+<p>For collectable and/or scannable pools, the client's format code
+generally needs to support three types of object:</p>
+<ol>
+  <li> the client's own initialized objects;</li>
+  <li> on behalf of the MPS, a "forwarding object";</li>
+  <li> on behalf of the MPS, a "padding object".</li>
+</ol>
+
+<p>A forwarding object is a placeholder that the MPS uses when it has moved
+the object that used to be there.  ('Normal' client code never sees
+these forwarding objects; only client format code does).</p>
+
+<p>A padding object is a 'dummy' object that the MPS uses when there is not
+enough room (eg. at the end of a memory page) to put a real client
+object.</p>
+
+<p>The client must be able to distinguish between these three types 
+of object.  To guarantee this, client code MUST initialize
+memory returned by the MPS (by mps_alloc() or mps_reserve()) BEFORE it
+makes any other call into the MPS from that thread (including the call to
+mps_commit).  Here, "initialize" means at least enough initialization
+that the client's format code handles the object correctly, including
+whether it is a client object, a forwarding object, or a padding object.
+[See also protocol.mps.format.rel.ap.  RHSK 2006-06-02]</p>
+
+<h3><a id="format-methods">The most important format methods are:</a></h3>
+
+<p>To support collectable client objects:</p>
+<ul>
+  <li> Skip (see <a href="../reference/index.html#mps_fmt_skip_t">mps_fmt_skip_t</a>):
+         tell the MPS how big this object is.</li>
+</ul>
+
+<p>To support movable client objects:</p>
+<ul>
+  <li> Scan (see <a href="../reference/index.html#mps_fmt_scan_t">mps_fmt_scan_t</a>): 
+         tell the MPS what other objects this object
+         refers to;</li>
+  <li> Copy (see <a href="../reference/index.html#mps_fmt_copy_t">mps_fmt_copy_t</a>):
+         copy an object to a new location.</li>
+</ul>
+
+<p>To support forwarding objects (once a movable client object has been moved):</p>
+<ul>
+  <li> Fwd (see <a href="../reference/index.html#mps_fmt_fwd_t">mps_fmt_fwd_t</a>):
+         create a forwarding object here, please;</li>
+  <li> IsFwd (see <a href="../reference/index.html#mps_fmt_isfwd_t">mps_fmt_isfwd_t</a>):
+         is this a forwarding object, and where 
+         did it move to?</li>
+</ul>
+
+<p>To support padding objects:</p>
+<ul>
+  <li> Pad (see <a href="../reference/index.html#mps_fmt_pad_t">mps_fmt_pad_t</a>):
+         create a padding object here, please.</li>
+</ul>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
   2006-06-02  RHSK  Created.
+  2006-06-02  RHSK  Introduction to MPS Formats
 </pre>
 
 
