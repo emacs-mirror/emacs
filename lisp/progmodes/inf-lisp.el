@@ -233,30 +233,37 @@ documentation for variable `inferior-lisp-buffer'.
 
 \\{inferior-lisp-mode-map}
 
-Customisation: Entry to this mode runs the hooks on `comint-mode-hook' and
+Customization: Entry to this mode runs the hooks on `comint-mode-hook' and
 `inferior-lisp-mode-hook' (in that order).
 
 You can send text to the inferior Lisp process from other buffers containing
 Lisp source.
-    switch-to-lisp switches the current buffer to the Lisp process buffer.
-    lisp-eval-defun sends the current defun to the Lisp process.
-    lisp-compile-defun compiles the current defun.
-    lisp-eval-region sends the current region to the Lisp process.
-    lisp-compile-region compiles the current region.
+    `switch-to-lisp' switches the current buffer to the Lisp process buffer.
+    `lisp-eval-defun' sends the current defun to the Lisp process.
+    `lisp-compile-defun' compiles the current defun.
+    `lisp-eval-region' sends the current region to the Lisp process.
+    `lisp-compile-region' compiles the current region.
 
     Prefixing the lisp-eval/compile-defun/region commands with
     a \\[universal-argument] causes a switch to the Lisp process buffer after sending
     the text.
 
-Commands:
-Return after the end of the process' output sends the text from the
+Commands:\\<inferior-lisp-mode-map>
+\\[comint-send-input] after the end of the process' output sends the text from the
     end of process to point.
-Return before the end of the process' output copies the sexp ending at point
+\\[comint-send-input] before the end of the process' output copies the sexp ending at point
     to the end of the process' output, and sends it.
-Delete converts tabs to spaces as it moves back.
-Tab indents for Lisp; with argument, shifts rest
+\\[comint-copy-old-input] copies the sexp ending at point to the end of the process' output,
+    allowing you to edit it before sending it.
+If `comint-use-prompt-regexp' is nil (the default), \\[comint-insert-input] on old input
+   copies the entire old input to the end of the process' output, allowing
+   you to edit it before sending it.  When not used on old input, or if
+   `comint-use-prompt-regexp' is non-nil, \\[comint-insert-input] behaves according to
+   its global binding.
+\\[backward-delete-char-untabify] converts tabs to spaces as it moves back.
+\\[lisp-indent-line] indents for Lisp; with argument, shifts rest
     of expression rigidly with the current line.
-C-M-q does Tab on each line starting within following expression.
+\\[indent-sexp] does \\[lisp-indent-line] on each line starting within following expression.
 Paragraphs are separated only by blank lines.  Semicolons start comments.
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
