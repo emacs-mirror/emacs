@@ -1,3 +1,13 @@
+2006-06-02  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (hack-local-variables-prop-line): Ignore `char-trans'
+	as well as `coding'.
+	(hack-local-variables): Likewise.
+
+	* international/mule.el (enable-character-translation): Put
+	permanent-local and safe-local-variable properties.
+	(find-auto-coding): Handle char-trans: tag.
+
 2006-06-02  Juri Linkov  <juri@jurta.org>
 
 	* international/mule.el (sgml-html-meta-auto-coding-function):
