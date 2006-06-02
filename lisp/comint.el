@@ -1047,12 +1047,12 @@ Moves relative to `comint-input-ring-index'."
 (defun comint-previous-input (arg)
   "Cycle backwards through input history, saving input."
   (interactive "*p")
-  (if (and comint-input-ring-index 
+  (if (and comint-input-ring-index
 	   (or		       ;; leaving the "end" of the ring
 	    (and (< arg 0)		; going down
 		 (eq comint-input-ring-index 0))
 	    (and (> arg 0)		; going up
-		 (eq comint-input-ring-index 
+		 (eq comint-input-ring-index
 		     (1- (ring-length comint-input-ring)))))
 	   comint-stored-incomplete-input)
       (comint-restore-input)
@@ -1510,23 +1510,23 @@ Similarly for Soar, Scheme, etc."
 				(concat input "\n")))
 
 	  (let ((beg (marker-position pmark))
-	      (end (if no-newline (point) (1- (point))))
-	      (inhibit-modification-hooks t))
+		(end (if no-newline (point) (1- (point))))
+		(inhibit-modification-hooks t))
 	    (when (> end beg)
-	      ;; Set text-properties for the input field
-	      (add-text-properties
-	       beg end
-	       '(front-sticky t
-		 font-lock-face comint-highlight-input
-		 mouse-face highlight
-		 help-echo "mouse-2: insert after prompt as new input"))
+	      (add-text-properties beg end
+				   '(front-sticky t
+				     font-lock-face comint-highlight-input))
 	      (unless comint-use-prompt-regexp
 		;; Give old user input a field property of `input', to
 		;; distinguish it from both process output and unsent
 		;; input.  The terminating newline is put into a special
 		;; `boundary' field to make cursor movement between input
 		;; and output fields smoother.
-		(put-text-property beg end 'field 'input)))
+		(add-text-properties
+		 beg end
+		 '(mouse-face highlight
+		   help-echo "mouse-2: insert after prompt as new input"
+		   field input))))
 	    (unless (or no-newline comint-use-prompt-regexp)
 	      ;; Cover the terminating newline
 	      (add-text-properties end (1+ end)
