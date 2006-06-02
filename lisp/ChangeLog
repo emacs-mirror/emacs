@@ -1,3 +1,9 @@
+2006-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (EMACS): Remove quotes from the Emacs executable
+	file name.
+	(emacs): Enclose the value of $(EMACS) in quotes.
+
 2006-06-02  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (hack-local-variables-prop-line): Ignore `char-trans'
