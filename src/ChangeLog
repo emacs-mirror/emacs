@@ -1,3 +1,7 @@
+2006-06-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (menu_nav_ended): Check that menubar_widget is not NULL.
+
 2006-06-01  Richard Stallman  <rms@gnu.org>
 
 	* window.c (Fsplit_window): Doc fix.

@@ -1981,16 +1981,20 @@ menu_nav_ended (wmenu, data)
      gpointer data;
 {
   FRAME_PTR f = (FRAME_PTR) data;
-  Display *dpy = FRAME_X_DISPLAY (f);
 
-  BLOCK_INPUT;
+  if (FRAME_X_OUTPUT (f)->menubar_widget)
+    {
       GtkMenuShell *w = GTK_MENU_SHELL (FRAME_X_OUTPUT (f)->menubar_widget);
+      Display *dpy = FRAME_X_DISPLAY (f);
+
+      BLOCK_INPUT;
       gtk_menu_shell_deactivate (w);
       gtk_menu_shell_deselect (w);
 
-  XUngrabKeyboard (dpy, CurrentTime);
-  XUngrabPointer (dpy, CurrentTime);
-  UNBLOCK_INPUT;
+      XUngrabKeyboard (dpy, CurrentTime);
+      XUngrabPointer (dpy, CurrentTime);
+      UNBLOCK_INPUT;
+    }
 }
 
 
