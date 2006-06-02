@@ -293,15 +293,34 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 \\(?:: \\(warning:\\)?\\|$\\| ),\\)" 1 2 nil (3))
 
     (gcov-file
-     "^ +-:    \\(0\\):Source:\\(.+\\)$" 2 1 nil 0)
-    (gcov-bb-file
-     "^ +-:    \\(0\\):Object:\\(?:.+\\)$" nil 1 nil 0)
-    (gcov-never-called-line
-     "^ +\\(#####\\): +\\([0-9]+\\):.+$" nil 2 nil 2 nil
-     (1 compilation-error-face))
+     "^ *-: *\\(0\\):Source:\\(.+\\)$" 
+     2 1 nil 0 nil
+     (1 compilation-line-face prepend) (2 compilation-info-face prepend))
+    (gcov-header
+     "^ *-: *\\(0\\):\\(?:Object\\|Graph\\|Data\\|Runs\\|Programs\\):.+$"
+     nil 1 nil 0 nil
+     (1 compilation-line-face prepend))
+    ;; Underlines over all lines of gcov output are too uncomfortable to read.
+    ;; However, hyperlinks embedded in the lines are useful.
+    ;; So I put default face on the lines; and then put
+    ;; compilation-*-face by manually to eliminate the underlines.
+    ;; The hyperlinks are still effective.
+    (gcov-nomark
+     "^ *-: *\\([1-9]\\|[0-9]\\{2,\\}\\):.*$"
+     nil 1 nil 0 nil
+     (0 'default t)
+     (1 compilation-line-face prepend))
     (gcov-called-line
-     "^ *[0-9]+: +\\([1-9]\\|[0-9]\\{2,\\}\\):.*$" nil 1 nil 0)
-)
+     "^ *\\([0-9]+\\): *\\([0-9]+\\):.*$"
+     nil 2 nil 0 nil 
+     (0 'default t)
+     (1 compilation-info-face prepend) (2 compilation-line-face prepend))
+    (gcov-never-called
+     "^ *\\(#####\\): *\\([0-9]+\\):.*$" 
+     nil 2 nil 2 nil
+     (0 'default t)
+     (1 compilation-error-face prepend) (2 compilation-line-face prepend))
+    )
   "Alist of values for `compilation-error-regexp-alist'.")
 
 (defcustom compilation-error-regexp-alist
