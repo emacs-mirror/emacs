@@ -1,3 +1,9 @@
+2006-06-02  John Paul Wallington  <jpw@gnu.org>
+
+	* xfns.c (x_set_name_internal): Set icon to `text', derived from
+	name, when frame's icon_name isn't a string rather than only when
+	it is nil.
+
 2006-06-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (x_set_icon_name): Don't use arg if it's not a string
