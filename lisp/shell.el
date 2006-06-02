@@ -367,7 +367,7 @@ Thus, this does not include the shell's current directory.")
 (put 'shell-mode 'mode-class 'special)
 
 (define-derived-mode shell-mode comint-mode "Shell"
-  "Major mode for interacting with an inferior shell.
+  "Major mode for interacting with an inferior shell.\\<shell-mode-map>
 \\[comint-send-input] after the end of the process' output sends the text from
     the end of process to the end of the current line.
 \\[comint-send-input] before end of process output copies the current line minus the prompt to
