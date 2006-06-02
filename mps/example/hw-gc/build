@@ -1,4 +1,5 @@
 CODE=../../code
 LIBS=$CODE/xcppgc/ci
-gcc  hwgc01.c -o hwgc01  -I$CODE $LIBS/mps.a $LIBS/mpsplan.a
-# ./a.out
+FLAGS="-std=iso9899:1990 -pedantic -Wimplicit -Wmissing-prototypes"
+gcc  hwgc01.c -o hwgc01  -I$CODE $LIBS/mps.a $LIBS/mpsplan.a $FLAGS
+./hwgc01
