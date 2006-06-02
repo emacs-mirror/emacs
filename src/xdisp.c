@@ -6238,6 +6238,8 @@ next_element_from_composition (it)
   it->position = (STRINGP (it->string)
 		  ? it->current.string_pos
 		  : it->current.pos);
+  if (STRINGP (it->string))
+    it->object = it->string;
   return 1;
 }
 
@@ -11777,7 +11779,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 
       /* If we reached the end of the line, and end was from a string,
 	 cursor is not on this line.  */
-      if (glyph == end)
+      if (glyph == end && row->continued_p)
 	return 0;
     }
 
@@ -14956,6 +14958,25 @@ dump_glyph (row, glyph, area)
 		   : '-')),
 	       glyph->pixel_width,
 	       glyph->u.img_id,
+	       '.',
+	       glyph->face_id,
+	       glyph->left_box_line_p,
+	       glyph->right_box_line_p);
+    }
+  else if (glyph->type == COMPOSITE_GLYPH)
+    {
+      fprintf (stderr,
+	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       glyph - row->glyphs[TEXT_AREA],
+	       '+',
+	       glyph->charpos,
+	       (BUFFERP (glyph->object)
+		? 'B'
+		: (STRINGP (glyph->object)
+		   ? 'S'
+		   : '-')),
+	       glyph->pixel_width,
+	       glyph->u.cmp_id,
 	       '.',
 	       glyph->face_id,
 	       glyph->left_box_line_p,
