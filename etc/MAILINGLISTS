@@ -1,7 +1,9 @@
       GNU Project Electronic Mailing Lists and gnUSENET Newsgroups
-			Last Updated 2004-10-19
+			Last Updated 2006-06-03
 
 	   Please report improvements to: gnu@gnu.org
+
+  See the end of this file for copyright notice and copying conditions
 
 * Mailing list archives
 
@@ -315,5 +317,19 @@ Local variables:
 mode: outline
 fill-column: 72
 End:
+
+Copyright (c) 1999, 2003, 2004, 2006
+Free software Foundation, Inc.
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this file, to deal in the file without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the file, and to
+    permit persons to whom the file is furnished to do so, subject to
+    the following condition:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the file.
+
 
 arch-tag: 6e42bba8-7532-4a23-8486-99dbc5770a8e

@@ -1,3 +1,6 @@
+;;; Copyright (c) 1999, 2003, 2006
+;;; Free Software Foundation, Inc.
+
 ;;; This file is designed for 7-bit connections.
 ;;; Use the file ms-kermit if you have an 8-bit connection.
 
@@ -310,5 +313,21 @@ set key \2455 \khomscn
 set key \2463 \kendscn
 set key \2457 \kupscn
 set key \2465 \kdnscn
+
+;;; COPYING PERMISSIONS:
+;;; 
+;;;   This document is free software; you can redistribute it and/or modify
+;;;   it under the terms of the GNU General Public License as published by
+;;;   the Free Software Foundation; either version 2 of the License, or
+;;;   (at your option) any later version.
+;;;
+;;;   This program is distributed in the hope that it will be useful,
+;;;   but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;   GNU General Public License for more details.
+;;;
+;;;   You should have received a copy of the GNU General Public License
+;;;   along with this program; if not, write to the Free Software
+;;;   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 ;;; arch-tag: b066a884-e956-4f46-9d9c-13502f6cf7a6
