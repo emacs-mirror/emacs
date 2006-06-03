@@ -146,6 +146,8 @@ main ()
     setmode (fileno (stdin), O_BINARY);
 #endif
 
+  bp = buf;
+
   while (1)			/* process one char at a time */
     {
       /* this char from the DOCSTR file */
