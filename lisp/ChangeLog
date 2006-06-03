@@ -1,3 +1,26 @@
+2006-06-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ts-active-input-overlay): Add defvar.
+	(mac-ae-number, mac-ae-frame, mac-ae-script-language)
+	(mac-bytes-to-text-range, mac-ae-text-range-array)
+	(mac-ts-update-active-input-buf, mac-split-string-by-property-change)
+	(mac-replace-untranslated-utf-8-chars, mac-ts-update-active-input-area)
+	(mac-ts-unicode-for-key-event):	New functions.
+	(mac-handle-toolbar-switch-mode): Use mac-ae-frame.
+	(mac-handle-font-selection): Use mac-ae-number.
+	(mac-ts-active-input-buf, mac-ts-update-active-input-area-seqno):
+	New variables.
+	(mac-ts-caret-position, mac-ts-raw-text, mac-ts-selected-raw-text)
+	(mac-ts-converted-text, mac-ts-selected-converted-text)
+	(mac-ts-block-fill-text, mac-ts-outline-text)
+	(mac-ts-selected-text, mac-ts-no-hilite): New faces.
+	(mac-ts-hilite-style-faces): New constant.
+	(mac-apple-event-map): Bind text input events.
+	(mac-dispatch-apple-event): Use command-execute instead of
+	call-interactively.
+	(global-map): Don't bind mac-apple-event.
+	(special-event-map): Bind mac-apple-event.
+
 2006-06-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (EMACS): Remove quotes from the Emacs executable

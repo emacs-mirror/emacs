@@ -1,3 +1,31 @@
+2006-06-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_set_icon_name): Apply 2006-06-02 change for xfns.c.
+
+	* macgui.h (USE_MAC_TSM): Set default to 1 on Mac OS X.
+
+	* macterm.c (tsm_document_id) [USE_MAC_TSM]: New variable.
+	(Qtext_input, Qupdate_active_input_area, Qunicode_for_key_event)
+	[USE_MAC_TSM]: Likewise.
+	(syms_of_macterm) [USE_MAC_TSM]: Intern and staticpro them.
+	(Qbefore_string) [USE_MAC_TSM]: Add extern.
+	(do_app_resume, do_app_suspend) [USE_MAC_TSM]: Call
+	ActivateTSMDocument/DeactivateTSMDocument.
+	(mac_store_event_ref_as_apple_event): Call mac_post_mouse_moved_event.
+	(mac_handle_window_event) [USE_MAC_TSM]: Handle
+	kEventWindowFocusAcquired/kEventWindowFocusRelinquish.
+	(mac_handle_text_input_event) [USE_MAC_TSM]: New function.
+	(install_window_handler) [USE_MAC_TSM]: Install it.  Register
+	kEventWindowFocusAcquired/kEventWindowFocusRelinquish.
+	(keycode_to_xkeysym_table): Add entry for f16.
+	(XTread_socket) [USE_MAC_TSM]: Set/reset read_socket_inev
+	before/after passing keystroke event to toolbox dispatcher.
+	(init_tsm) [USE_MAC_TSM]: New function.
+	(mac_initialize) [USE_MAC_TSM]: Call it.
+	(Vmac_ts_active_input_overlay) [USE_MAC_TSM]: New defvar.
+
+	* macterm.h (EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER): New enumerator.
+
 2006-06-02  John Paul Wallington  <jpw@gnu.org>
 
 	* xfns.c (x_set_name_internal): Set icon to `text', derived from
