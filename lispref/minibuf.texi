@@ -461,9 +461,11 @@ duplicates, and to add @var{newelt} to the list even if it is empty.
 @end defun
 
 @defvar history-add-new-input
-The value of this variable @code{nil} means that standard functions
-that read from the minibuffer don't add new elements to the history
-list, so it is possible to do this explicitly by using @code{add-to-history}.
+If the value of this variable is @code{nil}, standard functions that
+read from the minibuffer don't add new elements to the history list.
+This lets Lisp programs explicitly manage input history by using
+@code{add-to-history}.  By default, @code{history-add-new-input} is
+set to a non-@code{nil} value.
 @end defvar
 
 @defvar history-length
