@@ -1,3 +1,18 @@
+2006-05-20  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* progmodes/sh-script.el (sh-quoted-exec): New face for quoted
+	exec constructs like `foo bar`.
+	(sh-quoted-subshell): New helper function to search for a possibly
+	nested subshell (like `` or $()) within a "" quoted string.
+	(sh-font-lock-keywords-var): Add sh-quoted-exec for Bash.
+	(sh-apply-quoted-subshell): Flag quote characters inside a
+	subshell, which is itself already in a quoted region, as
+	punctuation, since this is the closest to what they actually are.
+	(sh-font-lock-syntactic-keywords): Add sh-quoted-subshell and
+	sh-apply-quoted-subshell.
+	(sh-font-lock-syntactic-face-function): Apply the new face for
+	text inside `` instead of the old font-lock-string-face.
+
 2006-06-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ts-active-input-overlay): Add defvar.
