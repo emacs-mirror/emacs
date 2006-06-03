@@ -550,6 +550,11 @@ enum {
   KEY_EMACS_SUSPENSION_ID_ATTR	= 'esId' /* typeUInt32 */
 };
 
+/* Carbon event parameter names.  */
+enum {
+  EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER = 'tsSn' /* typeUInt32 */
+};
+
 /* Some constants that are not defined in older versions.  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1030
 /* Keywords for Apple event attributes */
