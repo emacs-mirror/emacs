@@ -34,7 +34,6 @@ LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
 #		$(BLD)/env.exe		\
 #		$(BLD)/server.exe	\
 #		$(BLD)/emacstool.exe	\
-#		$(BLD)/leditcfns.exe	\
 #		$(BLD)/emacsclient.exe	\
 #		$(BLD)/cvtmail.exe	\
 #		$(BLD)/digest-doc.exe	\
@@ -117,7 +116,6 @@ $(BLD)/ctags.$(O): ctags.c
 # $(BLD)/sorted-doc.exe: 	$(BLD)/sorted-doc.$(O)
 # $(BLD)/yow.exe: 		$(BLD)/yow.$(O)
 # $(BLD)/emacstool.exe: 	$(BLD)/emacstool.$(O)
-# $(BLD)/leditcfns.exe: 	$(BLD)/leditcfns.$(O)
 # $(BLD)/server.exe: 		$(BLD)/server.$(O)
 # $(BLD)/cvtmail.exe: 		$(BLD)/cvtmail.$(O)
 # $(BLD)/digest-doc.exe: 	$(BLD)/digest-doc.$(O)
