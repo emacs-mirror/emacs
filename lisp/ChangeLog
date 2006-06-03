@@ -1,4 +1,4 @@
-2006-05-20  Vivek Dasmohapatra  <vivek@etla.org>
+2006-06-03  Vivek Dasmohapatra  <vivek@etla.org>
 
 	* progmodes/sh-script.el (sh-quoted-exec): New face for quoted
 	exec constructs like `foo bar`.
