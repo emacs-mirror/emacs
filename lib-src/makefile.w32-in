@@ -20,7 +20,7 @@
 #  Boston, MA 02110-1301, USA.
 #
 
-ALL	      = make-docfile hexl ctags etags movemail ebrowse
+ALL = make-docfile hexl ctags etags movemail ebrowse sorted-doc digest-doc
 
 .PHONY: $(ALL)
 
@@ -30,14 +30,10 @@ LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
 
 # don't know what (if) to do with these yet...
 #
-#		$(BLD)/sorted-doc.exe	\
-#		$(BLD)/env.exe		\
 #		$(BLD)/server.exe	\
 #		$(BLD)/emacstool.exe	\
 #		$(BLD)/emacsclient.exe	\
 #		$(BLD)/cvtmail.exe	\
-#		$(BLD)/digest-doc.exe	\
-#		$(BLD)/test-distrib.exe	\
 
 LIBS	      = $(BASE_LIBS) $(ADVAPI32)
 
@@ -47,6 +43,12 @@ $(BLD)/hexl.exe:		$(BLD)/hexl.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/hexl.$(O) $(LIBS)
 $(BLD)/fakemail.exe: 		$(BLD)/fakemail.$(O) $(BLD)/ntlib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/fakemail.$(O) $(BLD)/ntlib.$(O) $(LIBS)
+$(BLD)/sorted-doc.exe: 	$(BLD)/sorted-doc.$(O)
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/sorted-doc.$(O) $(LIBS)
+$(BLD)/digest-doc.exe: 	$(BLD)/digest-doc.$(O)
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/digest-doc.$(O) $(LIBS)
+$(BLD)/test-distrib.exe: $(BLD)/test-distrib.$(O)
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/test-distrib.$(O) $(LIBS)
 
 make-docfile:	$(BLD) $(BLD)/make-docfile.exe
 ctags:		$(BLD) $(BLD)/ctags.exe
@@ -55,6 +57,11 @@ ebrowse:        $(BLD) $(BLD)/ebrowse.exe
 hexl:		$(BLD) $(BLD)/hexl.exe
 movemail:	$(BLD) $(BLD)/movemail.exe
 fakemail:	$(BLD) $(BLD)/fakemail.exe
+sorted-doc:	$(BLD) $(BLD)/sorted-doc.exe
+digest-doc:	$(BLD) $(BLD)/digest-doc.exe
+
+test-distrib:	$(BLD) $(BLD)/test-distrib.exe
+	"$(BLD)/test-distrib.exe" "$(SRC)/testfile"
 
 GETOPTOBJS = $(BLD)/getopt.$(O) $(BLD)/getopt1.$(O)
 GETOPTDEPS = $(GETOPTOBJS) getopt.h
@@ -113,14 +120,11 @@ $(BLD)/ctags.$(O): ctags.c
 #
 # don't know what to do with these yet...
 #
-# $(BLD)/sorted-doc.exe: 	$(BLD)/sorted-doc.$(O)
 # $(BLD)/yow.exe: 		$(BLD)/yow.$(O)
 # $(BLD)/emacstool.exe: 	$(BLD)/emacstool.$(O)
 # $(BLD)/server.exe: 		$(BLD)/server.$(O)
 # $(BLD)/cvtmail.exe: 		$(BLD)/cvtmail.$(O)
-# $(BLD)/digest-doc.exe: 	$(BLD)/digest-doc.$(O)
 # $(BLD)/emacsclient.exe: 	$(BLD)/emacsclient.$(O)
-# $(BLD)/test-distrib.exe: 	$(BLD)/test-distrib.$(O)
 
 #
 # From ..\src\Makefile.in
@@ -291,6 +295,8 @@ install:	$(INSTALL_FILES)
 		$(CP) $(BLD)/ctags.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/hexl.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/movemail.exe $(INSTALL_DIR)/bin
+		$(CP) $(BLD)/sorted-doc.exe $(INSTALL_DIR)/bin
+		$(CP) $(BLD)/digest-doc.exe $(INSTALL_DIR)/bin
 		- mkdir "$(INSTALL_DIR)/etc"
 		$(CP) $(DOC) $(INSTALL_DIR)/etc
 
@@ -446,7 +452,10 @@ $(BLD)/qsort.$(O) : \
 	$(SRC)/qsort.c
 
 $(BLD)/sorted-doc.$(O) : \
-	$(SRC)/sorted-doc.c
+	$(SRC)/sorted-doc.c \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h \
 
 $(BLD)/tcp.$(O) : \
 	$(SRC)/tcp.c
