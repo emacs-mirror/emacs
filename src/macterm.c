@@ -8506,6 +8506,13 @@ static Lisp_Object Qtoolbar_switch_mode;
 extern Lisp_Object Qfont;
 static Lisp_Object Qpanel_closed, Qselection;
 #endif
+#if USE_MAC_TSM
+static TSMDocumentID tsm_document_id;
+static Lisp_Object Qtext_input;
+static Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
+static Lisp_Object Vmac_ts_active_input_overlay;
+extern Lisp_Object Qbefore_string;
+#endif
 #endif
 extern int mac_ready_for_apple_events;
 extern Lisp_Object Qundefined;
@@ -8857,13 +8864,17 @@ is_emacs_window (WindowPtr win)
 static void
 do_app_resume ()
 {
-  /* Window-activate events will do the job. */
+#if USE_MAC_TSM
+  ActivateTSMDocument (tsm_document_id);
+#endif
 }
 
 static void
 do_app_suspend ()
 {
-  /* Window-deactivate events will do the job. */
+#if USE_MAC_TSM
+  DeactivateTSMDocument (tsm_document_id);
+#endif
 }
 
 
@@ -9123,6 +9134,9 @@ mac_store_event_ref_as_apple_event (class, id, class_key, id_key,
 	    {
 	      mac_store_apple_event (class_key, id_key, &apple_event);
 	      AEDisposeDesc (&apple_event);
+	      /* Post a harmless event so as to wake up from
+		 ReceiveNextEvent.  */
+	      mac_post_mouse_moved_event ();
 	    }
 	}
     }
@@ -9312,6 +9326,18 @@ mac_handle_window_event (next_handler, event, data)
       }
       return err == noErr ? noErr : result;
 #endif
+
+#if USE_MAC_TSM
+    case kEventWindowFocusAcquired:
+      result = CallNextEventHandler (next_handler, event);
+      err = ActivateTSMDocument (tsm_document_id);
+      return err == noErr ? noErr : result;
+
+    case kEventWindowFocusRelinquish:
+      result = CallNextEventHandler (next_handler, event);
+      err = DeactivateTSMDocument (tsm_document_id);
+      return err == noErr ? noErr : result;
+#endif
     }
 
   return eventNotHandledErr;
@@ -9438,6 +9464,183 @@ mac_handle_font_event (next_handler, event, data)
 }
 #endif
 
+#if USE_MAC_TSM
+static pascal OSStatus
+mac_handle_text_input_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus result, err = noErr;
+  Lisp_Object id_key = Qnil;
+  int num_params;
+  EventParamName *names;
+  EventParamType *types;
+  static UInt32 seqno_uaia = 0;
+  static EventParamName names_uaia[] =
+    {kEventParamTextInputSendComponentInstance,
+     kEventParamTextInputSendRefCon,
+     kEventParamTextInputSendSLRec,
+     kEventParamTextInputSendFixLen,
+     kEventParamTextInputSendText,
+     kEventParamTextInputSendUpdateRng,
+     kEventParamTextInputSendHiliteRng,
+     kEventParamTextInputSendClauseRng,
+     kEventParamTextInputSendPinRng,
+     kEventParamTextInputSendTextServiceEncoding,
+     kEventParamTextInputSendTextServiceMacEncoding,
+     EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER};
+  static EventParamType types_uaia[] =
+    {typeComponentInstance,
+     typeLongInteger,
+     typeIntlWritingCode,
+     typeLongInteger,
+     typeUnicodeText,
+     typeTextRangeArray,
+     typeTextRangeArray,
+     typeOffsetArray,
+     typeTextRange,
+     typeUInt32,
+     typeUInt32,
+     typeUInt32};
+  static EventParamName names_ufke[] =
+    {kEventParamTextInputSendComponentInstance,
+     kEventParamTextInputSendRefCon,
+     kEventParamTextInputSendSLRec,
+     kEventParamTextInputSendText};
+  static EventParamType types_ufke[] =
+    {typeComponentInstance,
+     typeLongInteger,
+     typeIntlWritingCode,
+     typeUnicodeText};
+
+  result = CallNextEventHandler (next_handler, event);
+
+  switch (GetEventKind (event))
+    {
+    case kEventTextInputUpdateActiveInputArea:
+      id_key = Qupdate_active_input_area;
+      num_params = sizeof (names_uaia) / sizeof (names_uaia[0]);
+      names = names_uaia;
+      types = types_uaia;
+      SetEventParameter (event, EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER,
+			 typeUInt32, sizeof (UInt32), &seqno_uaia);
+      seqno_uaia++;
+      break;
+
+    case kEventTextInputUnicodeForKeyEvent:
+      {
+	EventRef kbd_event;
+	UInt32 actual_size, modifiers, mapped_modifiers;
+	UniChar code;
+
+	err = GetEventParameter (event, kEventParamTextInputSendKeyboardEvent,
+				 typeEventRef, NULL, sizeof (EventRef), NULL,
+				 &kbd_event);
+	if (err == noErr)
+	  err = GetEventParameter (kbd_event, kEventParamKeyModifiers,
+				   typeUInt32, NULL,
+				   sizeof (UInt32), NULL, &modifiers);
+	if (err == noErr)
+	  {
+	    mapped_modifiers =
+	      (NILP (Vmac_control_modifier) ? 0 : controlKey)
+	      | (NILP (Vmac_option_modifier) ? 0 : optionKey)
+	      | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
+#ifdef MAC_OSX
+	    mapped_modifiers |=
+	      (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
+#endif
+	    if (modifiers & mapped_modifiers)
+	      /* There're mapped modifier keys.  Process it in
+		 XTread_socket.  */
+	      return eventNotHandledErr;
+	  }
+	if (err == noErr)
+	  err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
+				   typeUnicodeText, NULL, 0, &actual_size,
+				   NULL);
+	if (err == noErr)
+	  {
+	    if (actual_size == sizeof (UniChar))
+	      err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
+				       typeUnicodeText, NULL,
+				       sizeof (UniChar), NULL, &code);
+	    if (err == noErr && code < 0x80)
+	      {
+		/* ASCII character.  Process it in XTread_socket.  */
+		if (read_socket_inev && code >= 0x20)
+		  {
+		    struct frame *f = mac_focus_frame (&one_mac_display_info);
+
+		    read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
+		    read_socket_inev->code = code;
+		    read_socket_inev->modifiers =
+		      (extra_keyboard_modifiers
+		       & (meta_modifier | alt_modifier
+			  | hyper_modifier | super_modifier));
+		    XSETFRAME (read_socket_inev->frame_or_window, f);
+		  }
+		return eventNotHandledErr;
+	      }
+	  }
+      }
+      /* Non-ASCII keystrokes without mapped modifiers are processed
+	 at the Lisp level.  */
+      id_key = Qunicode_for_key_event;
+      num_params = sizeof (names_ufke) / sizeof (names_ufke[0]);
+      names = names_ufke;
+      types = types_ufke;
+      break;
+
+    case kEventTextInputOffsetToPos:
+      {
+	struct frame *f;
+	struct window *w;
+	Point p;
+
+	if (!OVERLAYP (Vmac_ts_active_input_overlay))
+	  return eventNotHandledErr;
+
+	/* Strictly speaking, this is not always correct because
+	   previous events may change some states about display.  */
+	if (NILP (Foverlay_get (Vmac_ts_active_input_overlay, Qbefore_string)))
+	  {
+	    /* Active input area is displayed in the echo area.  */
+	    w = XWINDOW (echo_area_window);
+	    f = WINDOW_XFRAME (w);
+	  }
+	else
+	  {
+	    /* Active input area is displayed around the current point.  */
+	    f = SELECTED_FRAME ();
+	    w = XWINDOW (f->selected_window);
+	  }
+
+	p.h = (WINDOW_TO_FRAME_PIXEL_X (w, w->cursor.x)
+	       + WINDOW_LEFT_FRINGE_WIDTH (w));
+	p.v = (WINDOW_TO_FRAME_PIXEL_Y (w, w->cursor.y)
+	       + FONT_BASE (FRAME_FONT (f)));
+	SetPortWindowPort (FRAME_MAC_WINDOW (f));
+	LocalToGlobal (&p);
+	err = SetEventParameter (event, kEventParamTextInputReplyPoint,
+				 typeQDPoint, sizeof (typeQDPoint), &p);
+      }
+      break;
+
+    default:
+      abort ();
+    }
+
+  if (!NILP (id_key))
+    err = mac_store_event_ref_as_apple_event (0, 0, Qtext_input, id_key,
+					      event, num_params,
+					      names, types);
+
+  return err == noErr ? noErr : result;
+}
+#endif
+
 #ifdef MAC_OSX
 OSStatus
 mac_store_service_event (event)
@@ -9499,6 +9702,10 @@ install_window_handler (window)
 #ifdef MAC_OSX
      {kEventClassWindow, kEventWindowToolbarSwitchMode},
 #endif
+#if USE_MAC_TSM
+     {kEventClassWindow, kEventWindowFocusAcquired},
+     {kEventClassWindow, kEventWindowFocusRelinquish},
+#endif
   };
   EventTypeSpec specs_mouse[] = {{kEventClassMouse, kEventMouseWheelMoved}};
   static EventHandlerUPP handle_window_eventUPP = NULL;
@@ -9508,6 +9715,13 @@ install_window_handler (window)
 				{kEventClassFont, kEventFontSelection}};
   static EventHandlerUPP handle_font_eventUPP = NULL;
 #endif
+#if USE_MAC_TSM
+  EventTypeSpec specs_text_input[] =
+    {{kEventClassTextInput, kEventTextInputUpdateActiveInputArea},
+     {kEventClassTextInput, kEventTextInputUnicodeForKeyEvent},
+     {kEventClassTextInput, kEventTextInputOffsetToPos}};
+  static EventHandlerUPP handle_text_input_eventUPP = NULL;
+#endif
 
   if (handle_window_eventUPP == NULL)
     handle_window_eventUPP = NewEventHandlerUPP (mac_handle_window_event);
@@ -9516,6 +9730,11 @@ install_window_handler (window)
 #if USE_MAC_FONT_PANEL
   if (handle_font_eventUPP == NULL)
     handle_font_eventUPP = NewEventHandlerUPP (mac_handle_font_event);
+#endif
+#if USE_MAC_TSM
+  if (handle_text_input_eventUPP == NULL)
+    handle_text_input_eventUPP =
+      NewEventHandlerUPP (mac_handle_text_input_event);
 #endif
   err = InstallWindowEventHandler (window, handle_window_eventUPP,
 				   GetEventTypeCount (specs_window),
@@ -9529,6 +9748,12 @@ install_window_handler (window)
     err = InstallWindowEventHandler (window, handle_font_eventUPP,
 				     GetEventTypeCount (specs_font),
 				     specs_font, NULL, NULL);
+#endif
+#if USE_MAC_TSM
+  if (err == noErr)
+    err = InstallWindowEventHandler (window, handle_text_input_eventUPP,
+				     GetEventTypeCount (specs_text_input),
+				     specs_text_input, window, NULL);
 #endif
 #endif
   if (err == noErr)
@@ -9655,7 +9880,7 @@ static unsigned char keycode_to_xkeysym_table[] = {
 
   /*0x60*/ 0xc2 /*f5*/, 0xc3 /*f6*/, 0xc4 /*f7*/, 0xc0 /*f3*/,
   /*0x64*/ 0xc5 /*f8*/, 0xc6 /*f9*/, 0, 0xc8 /*f11*/,
-  /*0x68*/ 0, 0xca /*f13*/, 0, 0xcb /*f14*/,
+  /*0x68*/ 0, 0xca /*f13*/, 0xcd /*f16*/, 0xcb /*f14*/,
   /*0x6C*/ 0, 0xc7 /*f10*/, 0x0a /*fn+enter on laptops*/, 0xc9 /*f12*/,
 
   /*0x70*/ 0, 0xcc /*f15*/, 0x6a /*help*/, 0x50 /*home*/,
@@ -10363,9 +10588,15 @@ XTread_socket (sd, expected, hold_quit)
 	    if (!(mapped_modifiers
 		  & ~(mac_pass_command_to_system ? cmdKey : 0)
 		  & ~(mac_pass_control_to_system ? controlKey : 0)))
-	      if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
-		  != eventNotHandledErr)
+	      {
+		OSStatus err;
+
+		read_socket_inev = &inev;
+		err = SendEventToEventTarget (eventRef, toolbox_dispatcher);
+		read_socket_inev = NULL;
+		if (err != eventNotHandledErr)
 		  break;
+	      }
 #endif
 	    if (er.what == keyUp)
 	      break;
@@ -10395,6 +10626,11 @@ XTread_socket (sd, expected, hold_quit)
 		count++;
 		last_key_script = current_key_script;
 	      }
+
+#if USE_MAC_TSM
+	    if (inev.kind != NO_EVENT)
+	      break;
+#endif
 
 #ifdef MAC_OSX
 	    if (mapped_modifiers & kEventKeyModifierFnMask
@@ -11004,6 +11240,16 @@ init_menu_bar ()
 #endif
 }
 
+#if USE_MAC_TSM
+static void
+init_tsm ()
+{
+  static InterfaceTypeList types = {kUnicodeDocument};
+
+  NewTSMDocument (sizeof (types) / sizeof (types[0]), types,
+		  &tsm_document_id, 0);
+}
+#endif
 
 /* Set up use of X before we make the first connection.  */
 
@@ -11098,6 +11344,10 @@ mac_initialize ()
   init_command_handler ();
 
   init_menu_bar ();
+
+#if USE_MAC_TSM
+  init_tsm ();
+#endif
 #endif	/* USE_CARBON_EVENTS */
 
 #ifdef MAC_OSX
@@ -11153,6 +11403,13 @@ syms_of_macterm ()
   Qservice     = intern ("service");	  staticpro (&Qservice);
   Qpaste       = intern ("paste");	  staticpro (&Qpaste);
   Qperform     = intern ("perform");	  staticpro (&Qperform);
+#endif
+#if USE_MAC_TSM
+  Qtext_input = intern ("text-input");	staticpro (&Qtext_input);
+  Qupdate_active_input_area = intern ("update-active-input-area");
+  staticpro (&Qupdate_active_input_area);
+  Qunicode_for_key_event = intern ("unicode-for-key-event");
+  staticpro (&Qunicode_for_key_event);
 #endif
 #endif
 
@@ -11295,6 +11552,11 @@ order.  */);
 		     make_float (DEFAULT_REHASH_SIZE),
 		     make_float (DEFAULT_REHASH_THRESHOLD),
 		     Qnil, Qnil, Qnil);
+#endif
+#if USE_MAC_TSM
+  DEFVAR_LISP ("mac-ts-active-input-overlay", &Vmac_ts_active_input_overlay,
+    doc: /* Overlay used to display Mac TSM active input area.  */);
+  Vmac_ts_active_input_overlay = Qnil;
 #endif
 }
 
