@@ -1592,7 +1592,7 @@ x_set_icon_name (f, arg, oldval)
       if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
-  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
+  else if (!NILP (arg) || NILP (oldval))
     return;
 
   f->icon_name = arg;
