@@ -1,5 +1,28 @@
 2006-06-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* LPF: Deleted.
+
+	* FTP: 
+	* ORDERS: 
+	* MOTIVATION: 
+	* enriched.doc: 
+	* README: 
+	* TERMS: 
+	* ulimit.hack: 
+	* ses-example.ses: 
+	* ms-7bkermit: 
+	* emacs.csh: 
+	* Xkeymap.txt: 
+	* SERVICE: 
+	* HELLO: 
+	* ETAGS.EBNF: 
+	* MAILINGLISTS: 
+	* compilation.txt: 
+	* grep.txt: 
+	* MACHINES: 
+	* TODO: 
+	* MORE.STUFF: Add copyright notice and copying permissions.
+
 	* LEDIT: Remove file.
 
 2006-05-31  David Ponce  <david@dponce.com>

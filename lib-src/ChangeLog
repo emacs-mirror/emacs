@@ -1,5 +1,10 @@
 2006-06-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* sorted-doc.c [DOS_NT] <top level>: Include fcntl.h and io.h.
+	[WINDOWSNT] <top level>: Don't redeclare malloc.
+	(main) [DOS_NT]: Switch stdin to binary mode, if it is not a
+	terminal device.
+
 	* makefile.w32-in: Delete traces of leditcfns.c.
 
 	* leditcfns.c: Remove file.
