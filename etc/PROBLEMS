@@ -1690,7 +1690,7 @@ keys can serve as Meta.
 The `xkeycaps' also shows a visual representation of the current
 keyboard settings.  It also allows to modify them.
 
-*** GNU/Linux: low startup on Linux-based GNU systems.
+*** GNU/Linux: slow startup on Linux-based GNU systems.
 
 People using systems based on the Linux kernel sometimes report that
 startup takes 10 to 15 seconds longer than `usual'.
