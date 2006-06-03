@@ -1,3 +1,7 @@
+2006-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* LEDIT: Remove file.
+
 2006-05-31  David Ponce  <david@dponce.com>
 
 	* tree-widget/default/close.*, tree-widget/default/empty.*:

@@ -1,3 +1,8 @@
+2006-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.texi (Minibuffer History) <history-add-new-input>:
+	Reword variable's description.
+
 2006-06-01  Richard Stallman  <rms@gnu.org>
 
 	* windows.texi (Splitting Windows): Clarify splitting nonselected
