@@ -4631,7 +4631,7 @@ buffer.  If @var{count-current} is non-@code{nil}, count any button at
 
   The Ewoc package constructs buffer text that represents a structure
 of Lisp objects, and updates the text to follow changes in that
-structure.  This is like the ``view'' component in the the
+structure.  This is like the ``view'' component in the
 ``model/view/controller'' design paradigm.
 
   An @dfn{ewoc} is a structure that organizes information required to
