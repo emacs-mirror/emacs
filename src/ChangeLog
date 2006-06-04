@@ -1,3 +1,8 @@
+2006-06-04  David Kastrup  <dak@gnu.org>
+
+	* dispnew.c: Mention `redisplay-dont-pause' in doc string of
+	`sit-for'.
+
 2006-06-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (x_set_icon_name): Apply 2006-06-02 change for xfns.c.
@@ -8900,7 +8905,7 @@
 
 	* xfns.c (xic_create_xfontset): Initialize missing_list to NULL.
 
-2004-10-21  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* xterm.h (x_output): New member `xic_base_fontname'.
 	(FRAME_XIC_BASE_FONTNAME): New macro.
@@ -9844,7 +9849,7 @@
 	* fileio.c (Fvisited_file_modtime): Return a list of two integers,
 	instead of a cons.
 
-2004-07-14  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2004-07-14  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* keyboard.c (echo_dash): Do nothing if there already is a dash
 	at the end of the echo string.
@@ -10181,7 +10186,7 @@
 	* keyboard.c (cmd_error): Don't call any_kboard_state
 	if inside a recursive edit level.
 
-2004-06-13  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2004-06-13  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* keyboard.c (command_loop): Call any_kboard_state before
 	command_loop_2 when at top level.
@@ -10494,7 +10499,7 @@
 	before actually accepting connection in case it has already been
 	accepted due to recursion.
 
-2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2004-05-23  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* coding.c (Fset_safe_terminal_coding_system_internal):
 	Set suppress_error in safe_terminal_coding, not terminal_coding.

@@ -6436,6 +6436,9 @@ Redisplay is preempted as always if input arrives, and does not happen
 if input is available before it starts.
 Value is t if waited the full time with no input arriving.
 
+Redisplay will occur even when input is available if you bind
+`redisplay-dont-pause' to a non-nil value.
+
 An obsolete but still supported form is
 \(sit-for SECONDS &optional MILLISECONDS NODISP)
 Where the optional arg MILLISECONDS specifies an additional wait period,
