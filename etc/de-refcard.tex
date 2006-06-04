@@ -1,12 +1,28 @@
-% Reference Card for GNU Emacs version 19 on Unix systems
+% Reference Card for GNU Emacs version 22 on Unix systems
+%
+% Translation into German by Sven Joachim <svenjoac@gmx.de>
+%
 %**start of header
 \newcount\columnsperpage
+\newcount\letterpaper
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
-% Specify how many you want here.  Nothing else needs to be changed.
+% Specify how many you want here.
 
-\columnsperpage=2
+\columnsperpage=3
 
+% Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
+% only when columnsperpage is 2 or 3.
+
+\letterpaper=0
+
+% If you don't have german.sty, you can either get it from CTAN or
+% change the \glqq and \grqq commands below.
+
+\input german.sty
+\mdqoff               % deactivates the "-char
+
+% Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996, 2000, 2002, 2003, 2004,
 %   2005, 2006 Free Software Foundation, Inc.
 
@@ -43,6 +59,10 @@
 %    For this you need a dvi device driver that can print sideways.
 % Which mode to use is controlled by setting \columnsperpage above.
 %
+% To compile and print this document:
+% tex de-refcard.tex
+% dvips -t landscape de-refcard.dvi
+%
 % Author:
 %  Stephen Gildea
 %  Internet: gildea@stop.mail-abuse.org
@@ -52,23 +72,26 @@
 
 % If there were room, it would be nice to see a section on Dired.
 
-\def\versionnumber{2.1}
+\def\versionnumber{2.3}
 \def\year{2006}
-\def\version{March \year\ v\versionnumber}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
   \centerline{\small \copyright\ \year\ Free Software Foundation, Inc.
-  Permissions on back.  v\versionnumber}}
+  Bedingungen auf der R\"uckseite.  v\versionnumber}}
 
 \def\copyrightnotice{\vskip 1ex plus 2 fill\begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
-\centerline{designed by Stephen Gildea, \version}
-\centerline{for GNU Emacs version 19 on Unix systems}
+\centerline{v\versionnumber{} f\"ur GNU Emacs Version 22, \year}
+\centerline{entworfen von Stephen Gildea}
+% \centerline{deutsche \"Ubersetzung von Sven Joachim}
 
-Permission is granted to make and distribute copies of
-this card provided the copyright notice and this permission notice
-are preserved on all copies.
+Es ist gestattet, diese Referenzkarte zu vervielf\"altigen und zu
+verbreiten, vorausgesetzt dass sich der Copyright-Hinweis und der
+Hinweis auf diese Erlaubnis auf allen Kopien befinden.
 
+F\"ur Kopien des Handbuchs zu GNU Emacs schreiben Sie an die Free
+Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301 USA.
 
 \endgroup}
 
@@ -104,9 +127,9 @@ are preserved on all copies.
   \hsize 3.2in
   \vsize 7.95in
 %  \hoffset -.75in
-  \hoffset -.82in
+  \hoffset -.49in
 %  \voffset -.745in
-  \voffset -.6in
+  \voffset -.84in
   \font\titlefont=cmbx10 \scaledmag2
   \font\headingfont=cmbx10 \scaledmag1
   \font\smallfont=cmr6
@@ -174,7 +197,7 @@ are preserved on all copies.
 \chardef\{=`\{
 \chardef\}=`\}
 
-\hyphenation{mini-buf-fer}
+\hyphenation{Mini-puf-fer}
 
 \parindent 0pt
 \parskip 1ex plus .5ex minus .5ex
@@ -190,8 +213,8 @@ are preserved on all copies.
 
 % section - new major section.  Argument is section name.
 \outer\def\section#1{\par\filbreak
-  \vskip 3ex plus 2ex minus 2ex {\headingfont #1}\mark{#1}%
-  \vskip 2ex plus 1ex minus 1.5ex}
+  \vskip 2ex plus 1.5ex minus 2.5ex {\headingfont #1}\mark{#1}%
+  \vskip 1.5ex plus 1ex minus 1.5ex}
 
 \newdimen\keyindent
 
@@ -250,142 +273,146 @@ are preserved on all copies.
 %**end of header
 
 
-\title{GNU Emacs Referenzkarte}
+\title{Referenzkarte zu GNU Emacs}
 
-%\centerline{(fuer version 19)}
+\centerline{(f\"ur Version 22)}
 
-\section{Emacs Starten}
+\section{Emacs starten}
 
-Um GNU Emacs 19 zu starten, tippen Sie ein: \kbd{emacs}
+Um GNU Emacs 22 zu starten, geben Sie \kbd{emacs} ein.
 
-Um eine Datei fuers Editieren zu laden, lesen Sie unten weiter.
+% Um eine Datei f\"urs Editieren zu laden, lesen Sie unten weiter.
 
-\section{Emacs Verlassen}
+\section{Emacs verlassen}
 
-\key{Emacs pausieren lassen}{C-z}
+\key{Emacs unterbrechen (unter X: minimieren)}{C-z}
 \key{Emacs beenden}{C-x C-c}
 
 \section{Dateien}
 
-\key{Datei {\bf oeffnen} }{C-x C-f}
-\key{Datei {\bf sichern} }{C-x C-s}
-\key{{\bf alle} Dateien sichern}{C-x s}
-\key{den Inhalt einer anderen Datei {\bf einfuegen}}{C-x i}
+\key{Datei {\bf \"offnen} }{C-x C-f}
+\key{Datei {\bf speichern} }{C-x C-s}
+\key{{\bf alle} Dateien speichern}{C-x s}
+\key{den Inhalt einer anderen Datei {\bf einf\"ugen}}{C-x i}
 \key{diese Datei durch eine andere ersetzen}{C-x C-v}
-\key{Datei neu anlegen und speichern}{C-x C-w}
-\key{version control ein/auschecken}{C-x C-q}
+\key{Puffer in neuer Datei speichern}{C-x C-w}
+\key{Nur-Lesen-Modus des Puffers wechseln}{C-x C-q}
 
 \section{Hilfe}
 
-Das Hilfesystem ist einfach zu bedienen.  Tippen Sie \kbd{C-h} (oder \kbd{F1}). Neulinge tippen \kbd{C-h t} um ein {\bf tutorial} zu starten.
+Das Hilfesystem ist einfach zu bedienen.  Dr\"ucken Sie \kbd{C-h} (oder
+\kbd{F1}).  Neulinge dr\"ucken \kbd{C-h t}, um eine {\bf Einf\"uhrung} zu
+starten.
 
-\key{Hilfe Fenster entfernen}{C-x 1}
-\key{Hilfe Fenster scrollen}{C-M-v}
+\key{Hilfefenster entfernen}{C-x 1}
+\key{Hilfefenster scrollen}{C-M-v}
 
-\key{apropos: zeigt alle Befehle mit dem Muster}{C-h a}
-\key{zeigt die Funktion mit dieser Tastenkomb.}{C-h c}
-\key{beschreibt die Funktion}{C-h f}
-\key{modusspezifische Information}{C-h m}
+\key{Befehle zeigen, die Zeichenkette enthalten}{C-h a}
+\key{Tastenkombination beschreiben}{C-h k}
+\key{eine Funktion beschreiben}{C-h f}
+\key{modusspezifische Informationen}{C-h m}
 
-\section{Was tun wenn nichts mehr geht}
+\section{Fehlerbehandlung}
 
 \key{{\bf Abbrechen} eines Vorgangs}{C-g}
-\metax{{\bf Wiederherstellung} von Dateien}{M-x recover-file}
-\key{{\bf rueckgaengig} machen}{C-x u}
+\metax{{\bf Wiederherstellung} von Dateien}{M-x recover-session}
+\metax{{\"Anderungen \bf r\"uckg\"angig} machen}{C-x u,  C-_ {\rm oder} C-/}
 \metax{Puffer in Ursprungszustand bringen}{M-x revert-buffer}
 \key{Bildschirmanzeige in Ordnung bringen}{C-l}
 
 \section{Inkrementelle Suche}
 
-\key{Suche vorwaerts}{C-s}
-\key{Suche rueckwaerts}{C-r}
-\key{Suche mit regulaeren Ausdruecken}{C-M-s}
-\key{Rueckwaertssuche mit reg. Ausdruecken}{C-M-r}
-\key{letzten Suchausdruck auswaehlen}{M-p}
-\key{spaeteren Suchausdruck auswaehlen}{M-n}
+\key{Suche vorw\"arts}{C-s}
+\key{Suche r\"uckw\"arts}{C-r}
+\key{Suche mit regul\"aren Ausdr\"ucken}{C-M-s}
+\key{R\"uckw\"artssuche mit regul\"aren Ausdr\"ucken}{C-M-r}
+
+\key{fr\"uheren Suchausdruck ausw\"ahlen}{M-p}
+\key{sp\"ateren Suchausdruck ausw\"ahlen}{M-n}
 \key{inkrementelle Suche beenden}{RET}
-\key{ein Suchzeichen zurueckgehen}{DEL}
+\key{ein Suchzeichen zur\"uckgehen}{DEL}
 \key{Suche abbrechen}{C-g}
 
-Wiederholtes Druecken von \kbd{C-s} oder \kbd{C-r} sucht weitere Treffer.
+Wiederholtes Dr\"ucken von \kbd{C-s} oder \kbd{C-r} sucht weitere Treffer.
 Wenn Emacs sucht, unterbricht \kbd{C-g} nur die jeweils letzte Suche.
 
 \shortcopyrightnotice
 
-\section{Cursor Bewegung}
+\section{Cursor-Bewegung}
 
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
-\threecol{{\bf Textteile ueberspringen}}{{\bf rueckw.}}{{\bf vorw.}}
+\threecol{{\bf Textteile \"uberspringen}}{{\bf r\"uckw.}}{{\bf vorw.}}
 \threecol{Zeichen}{C-b}{C-f}
 \threecol{Wort}{M-b}{M-f}
 \threecol{Zeile}{C-p}{C-n}
-\threecol{zum Zeilenende springen}{C-a}{C-e}
+\threecol{zum Zeilenanfang (oder -ende) springen}{C-a}{C-e}
 \threecol{Satz}{M-a}{M-e}
 \threecol{Paragraph}{M-\{}{M-\}}
 \threecol{Seite}{C-x [}{C-x ]}
 \threecol{Lisp-s-expression}{C-M-b}{C-M-f}
 \threecol{Funktion}{C-M-a}{C-M-e}
-\threecol{zum Pufferanfang (oder Ende)springen}{M-<}{M->}
+\threecol{zum Pufferanfang (oder -ende) springen}{M-<}{M->}
 }
 
-\key{eine Bildschirmseite runter scrollen}{C-v}
+\key{eine Bildschirmseite herunter scrollen}{C-v}
 \key{eine Bildschirmseite hoch scrollen}{M-v}
 \key{nach links scrollen}{C-x <}
 \key{nach rechts scrollen}{C-x >}
-\key{Cursorzeile in die Bildschirmmitte scrollen}{C-u C-l}
+\key{Cursor-Zeile in die Bildschirmmitte scrollen}{C-u C-l}
 
-\section{Loeschen}
+\section{L\"oschen und Ausschneiden}
 
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
-\threecol{{\bf Textteile }}{{\bf rueckwaerts}}{{\bf vorwaerts}}
-\threecol{Zeichen (loeschen)}{DEL}{C-d}
+\threecol{{\bf Textteile ausschneiden}}{{\bf r\"uckw.}}{{\bf vorw.}}
+\threecol{Zeichen (l\"oschen, nicht ausschneiden)}{DEL}{C-d}
 \threecol{Wort}{M-DEL}{M-d}
 \threecol{Zeile (bis zum Ende)}{M-0 C-k}{C-k}
 \threecol{Satz}{C-x DEL}{M-k}
 \threecol{Lisp-s-expression}{M-- C-M-k}{C-M-k}
 }
-\key{{\bf Bereiche} loeschen}{C-w}
+\key{{\bf Bereich} ausschneiden}{C-w}
 \key{Bereich in die Ablage kopieren}{M-w}
-\key{Bis zum {\it Zeichen} loeschen }{M-z {\it Zeichen}}
-\key{letztes geloeschtes Zeichen einsetzen}{C-y}
-\key{eins davor einsetzen}{M-y}
+\key{bis zum {\it Zeichen} ausschneiden }{M-z {\it Zeichen}}
+\key{zuletzt ausgeschnittenen Text einf\"ugen}{C-y}
+\key{vorher ausgeschnittenen Text einf\"ugen}{M-y}
 
 \section{Markieren}
 
-\key{Marke setzen}{C-@ {\rm or} C-SPC}
-\key{zwischen Cursor und Marke wechseln}{C-x C-x}
+\key{Marke setzen}{C-@ {\rm oder}\thinspace\thinspace{}C-SPC} % H\"asslich, aber
+% Leerzeichen statt \thinspace erzeugt overfull \hbox. @#$?*&!
+\key{Cursor und Marke austauschen}{C-x C-x}
 \key{Marke {\it Argument\/} {\bf Worte} entfernt setzen}{M-@}
 \key{{\bf Paragraph} markieren}{M-h}
 \key{{\bf Seite} markieren}{C-x C-p}
 \key{{\bf Lisp-s-expression} markieren}{C-M-@}
-\key{{\bf Funktion} markiern}{C-M-h}
+\key{{\bf Funktion} markieren}{C-M-h}
 \key{den ganzen {\bf Puffer} markieren}{C-x h}
 
 \section{Interaktives Ersetzen}
 
 \key{Zeichenkette interaktiv ersetzen}{M-\%}
-\metax{mit regulaeren Ausdruecken}{M-x query-replace-regexp}
+\metax{mit regul\"aren Ausdr\"ucken}{M-x query-replace-regexp}
 
-Moegliche Antworten in diesem Modus:
+M\"ogliche Antworten in diesem Modus:
 
-\key{dies {\bf ersetzten} und zum naechsten gehen}{SPC}
-\key{dies ersetzen}{,}
-\key{dies {\bf ueberspringen}, zum naechsten gehen}{DEL}
+\key{dies {\bf ersetzen} und zum n\"achsten gehen}{SPC}
+\key{dies ersetzen und nicht weitergehen}{,}
+\key{dies {\bf \"uberspringen}, zum n\"achsten gehen}{DEL}
 \key{alle verbleibenden Treffer ersetzen}{!}
-\key{eine Ersetzung{\bf rueckgaengig} machen }{^}
-\key{interaktiven Modus{\bf verlassen}}{RET}
-\key{rekursiven Modus starten (\kbd{C-M-c} verlassen)}{C-r}
+\key{zum vorherigen Treffer {\bf zur\"uckgehen} }{^}
+\key{interaktives Ersetzen {\bf beenden}}{RET}
+\key{rekursives Editieren starten (\kbd{C-M-c} beendet)}{C-r}
 
 \section{Mehrere Fenster}
 
-Die zweite Tastenk. bezieht sich immer auf das andere Fenster:
-
-\key{alle anderen Fenster in den Hintergrund}{C-x 1}
+Wenn zwei Befehle angezeigt werden, ist der zweite ein \"ahn\-li\-cher f\"ur
+einen Rahmen statt eines Fensters.
 
 {\setbox0=\hbox{\kbd{0}}\advance\hsize by 0\wd0
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
+\threecol{alle anderen Fenster schlie\ss{}en}{C-x 1\ \ \ \ }{C-x 5 1}
 \threecol{Fenster vertikal teilen}{C-x 2\ \ \ \ }{C-x 5 2}
-\threecol{dieses Fenster loeschen}{C-x 0\ \ \ \ }{C-x 5 0}
+\threecol{dieses Fenster schlie\ss{}en}{C-x 0\ \ \ \ }{C-x 5 0}
 }}
 \key{Fenster horizontal teilen}{C-x 3}
 
@@ -393,252 +420,273 @@ Die zweite Tastenk. bezieht sich immer auf das andere Fenster:
 
 {\setbox0=\hbox{\kbd{0}}\advance\hsize by 2\wd0
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
-\threecol{ins andere Fenster wechseln}{C-x o}{C-x 5 o}
+\threecol{in anderes Fenster wechseln}{C-x o}{C-x 5 o}
 
-\threecol{Puffer in ein anderes Fenster bringen}{C-x 4 b}{C-x 5 b}
-\threecol{Puffer in einem anderen Fenster darstellen}{C-x 4 C-o}{C-x 5 C-o}
-\threecol{Datei in ein anderes Fenster oeffnen}{C-x 4 f}{C-x 5 f}
-\threecol{Datei im Ansichtmodus in anderem Fenster oeffnen}{C-x 4 r}{C-x 5 r}
-\threecol{Dired in einem anderen Fenster oeffnen}{C-x 4 d}{C-x 5 d}
-\threecol{Tag in einem anderen Fenster finden}{C-x 4 .}{C-x 5 .}
+\threecol{Puffer in and. Fenster ausw\"ahlen}{C-x 4 b}{C-x 5 b}
+\threecol{Puffer in anderem Fenster anzeigen}{C-x 4 C-o}{C-x 5 C-o}
+\threecol{Datei in anderem Fenster \"offnen}{C-x 4 f}{C-x 5 f}
+\threecol{Datei in anderem Fenster anzeigen}{C-x 4 r}{C-x 5 r}
+\threecol{Dired in anderem Fenster starten}{C-x 4 d}{C-x 5 d}
+\threecol{Tag in anderem Fenster finden}{C-x 4 .}{C-x 5 .}
 }}
 
-\key{Fenster vergroessern}{C-x ^}
-\key{Fenster schmaler machen}{C-x \{}
-\key{Fenster breiter machen}{C-x \}}
+\key{Fenster vergr\"o\ss{}ern}{C-x ^}
+\key{Fenster verengen}{C-x \{}
+\key{Fenster verbreitern}{C-x \}}
 
-\section{Formattierung}
+\section{Formatierung}
 
-\key{{\bf Zeile} (modusabhaengig) einruecken}{TAB}
-\key{{\bf Bereich} (modusabh.) einruecken}{C-M-\\}
-\key{{\bf Lisp-s-expression} (modusabh.) einruecken}{C-M-q}
-\key{Bereich {\it Argument\/} Spalten einruecken}{C-x TAB}
-\key{Zeilenumbruch nach Cursor einfuegen}{C-o}
+\key{{\bf Zeile} (modusabh\"angig) einr\"ucken}{TAB}
+\key{{\bf Bereich} (modusabh\"angig) einr\"ucken}{C-M-\\}
+\key{{\bf Lisp-s-expression} (modusabh.) einr\"ucken}{C-M-q}
+\key{Bereich {\it Argument\/} Spalten einr\"ucken}{C-x TAB}
+
+\key{Zeilenumbruch nach Cursor einf\"ugen}{C-o}
 \key{Zeilenrest vertikal nach unten verschieben}{C-M-o}
-\key{Leerzeilen um Cursorposition loeschen}{C-x C-o}
-\key{Zeile mit letzter verbinden (Arg. naechster)}{M-^}
-\key{Leerzeichen an Cursorposition loeschen}{M-\\}
-\key{ein Leerzeichen an Cursorposition setzen}{M-SPC}
-\key{Paragraph auffuellen}{M-q}
-\key{Fuell Spalte setzen}{C-x f}
-\key{Praefix setzen fuer jede Zeile}{C-x .}
-\key{Zeichendarstellung setzen}{M-g}
+\key{Leerzeilen um Cursor-Position l\"oschen}{C-x C-o}
+\key{Zeile mit voriger verbinden (Arg. n\"achste)}{M-^}
+\key{alle Leerzeichen um Cursor-Position l\"oschen}{M-\\}
+\key{genau ein Leerzeichen an Cursor-Position}{M-SPC}
 
-\section{Gross-Kleinbuchstaben}
+\key{Paragraph auff\"ullen}{M-q}
+\key{Spalte f\"ur Umbruch setzen}{C-x f}
+\key{Pr\"afix f\"ur jede Zeile setzen}{C-x .}
 
-\key{Wort in Grossbuchstaben}{M-u}
+\key{Face setzen}{M-o}
+
+\section{Gro\ss{}- und Kleinschreibung}
+
+\key{Wort in Gro\ss{}buchstaben}{M-u}
 \key{Wort in Kleinbuchstaben}{M-l}
-\key{Word mit grossen Anfangsbuchstaben}{M-c}
+\key{Wort mit gro\ss{}em Anfangsbuchstaben}{M-c}
 
-\key{Bereich in Grossbuchstaben}{C-x C-u}
+\key{Bereich in Gro\ss{}buchstaben}{C-x C-u}
 \key{Bereich in Kleinbuchstaben}{C-x C-l}
 
 \section{Der Minipuffer}
 
-Die folgenden Tastenkombination gelten im Minipuffer:
+Die folgenden Tastenkombinationen gelten im Minipuffer:
 
-\key{so viel wie moeglich ergaenzen}{TAB}
-\key{ein Wort ergaenzen}{SPC}
-\key{ergaenzen und ausfuehren}{RET}
-\key{moegliche Ergaenzungen zeigen}{?}
-\key{letzte Eingabe wiederanzeigen}{M-p}
-\key{spaetere Eingabe wiederanzeigen}{M-n}
-\key{reg. Ausd. rueckwaerts in History suchen}{M-r}
-\key{reg. Ausd. vorwaerts in History suchen}{M-s}
-\key{Vorgang unterbrechen}{C-g}
+\key{so weit wie m\"oglich erg\"anzen}{TAB}
+\key{ein Wort erg\"anzen}{SPC}
+\key{erg\"anzen und ausf\"uhren}{RET}
+\key{m\"ogliche Erg\"anzungen zeigen}{?}
+\key{letzte Eingabe zur\"uckholen}{M-p}
+\key{sp\"atere Eingabe zur\"uckholen}{M-n}
+\key{reg. Ausd. r\"uckw\"arts in History suchen}{M-r}
+\key{reg. Ausd. vorw\"arts in History suchen}{M-s}
+\key{Befehl abbrechen}{C-g}
 
-Tippen Sie  \kbd{C-x ESC ESC} um den letzten Befehl zu editieren und zu wiederholen der im Minipuffer ausgefuehrt wurde.
+Dr\"ucken Sie \kbd{C-x ESC ESC}, um den letzten Befehl zu bearbeiten
+und zu wiederholen, der im Minipuffer aus\-gef\"uhrt wurde. Dr\"u\-cken Sie
+\kbd{F10}, um die Men\"u\-zei\-le im Minipuffer zu aktivieren.
 
 \newcolumn
-\title{GNU Emacs Referenzkarte}
+\title{Referenzkarte zu GNU Emacs}
 
 \section{Puffer}
 
-\key{anderen Puffer auswaehlen}{C-x b}
-\key{alle Puffer anzeigen}{C-x C-b}
-\key{Puffer loeschen}{C-x k}
+\key{anderen Puffer ausw\"ahlen}{C-x b}
+\key{Liste aller Puffer anzeigen}{C-x C-b}
+\key{einen Puffer schlie\ss{}en}{C-x k}
 
 \section{Vertauschen}
 
-\key{ {\bf Zeichen} vertauschen}{C-t}
-\key{ {\bf Worte} vertauschen}{M-t}
-\key{ {\bf Zeilen} vertauschen}{C-x C-t}
-\key{ {\bf Lisp-s-expressions} vertauschen}{C-M-t}
+\key{{\bf Zeichen} vertauschen}{C-t}
+\key{{\bf Worte} vertauschen}{M-t}
+\key{{\bf Zeilen} vertauschen}{C-x C-t}
+\key{{\bf Lisp-s-expressions} vertauschen}{C-M-t}
 
-\section{Rechtschreibkorrrektur}
+\section{Rechtschreibpr\"ufung}
 
-\key{Ueberpruefe aktuelles Wort}{M-\$}
-\metax{Ueberpruefe alle Woerter in Bereich}{M-x ispell-region}
-\metax{Ueberpruefe den gesamten Bereich}{M-x ispell-buffer}
+\key{aktuelles Wort \"uberpr\"ufen}{M-\$}
+\metax{alle W\"orter im Bereich \"uberpr\"ufen}{M-x ispell-region}
+\metax{gesamten Puffer \"uberpr\"ufen}{M-x ispell-buffer}
 
 \section{Tags}
 
 \key{Tag finden (Definition)}{M-.}
-\key{Naechstes Vorkommen von Tag finden}{C-u M-.}
-\metax{Neue Tags Datei angeben}{M-x visit-tags-table}
-\metax{Regulaere Ausdruck Suche in Dateien}{M-x tags-search}
-\metax{Interakt. Ersetzen in allen Dateien}{M-x tags-query-replace}
-\key{Letzte Tag Suche oder Ersetzen nochmal}{M-,}
+\key{n\"achstes Vorkommen von Tag finden}{C-u M-.}
+\metax{neue Tagsdatei angeben}{M-x visit-tags-table}
+
+\metax{regul\"aren Ausdruck in Dateien suchen}{M-x tags-search}
+\metax{interakt. Ersetzen in allen Dateien}{M-x tags-query-replace}
+\key{letztes Suchen oder Ersetzen fortsetzen}{M-,}
 
 \section{Shells}
 
-\key{Shell Kommando ausfuehren}{M-!}
-\key{Shell Kommando fuer bereich ausfuehren}{M-|}
-\key{Bereich durch Shell Kommando filtern}{C-u M-|}
-\metax{Shell im Fenster \kbd{*shell*} starten}{M-x shell}
+\key{Shellbefehl ausf\"uhren}{M-!}
+\key{Shellbefehl f\"ur Bereich ausf\"uhren}{M-|}
+\key{Bereich durch Shellbefehl filtern}{C-u M-|}
+\metax{eine Shell im Fenster \kbd{*shell*} starten}{M-x shell}
 
 \section{Rechtecke}
 
-\key{Kopiere Rechteck in Register}{C-x r r}
-\key{Loesche Rechteck}{C-x r k}
-\key{Rechteck einsetzen}{C-x r y}
-\key{Rechteck aufmachen, Text nach rechts}{C-x r o}
-\key{Rechteck mit Leerzeichen ueberschreiben}{C-x r c}
-\key{Praefix vor jede Zeile setzen}{C-x r t}
+\key{Rechteck in Register kopieren}{C-x r r}
+\key{Rechteck ausschneiden}{C-x r k}
+\key{Rechteck einf\"ugen}{C-x r y}
+\key{Rechteck \"offnen, Text nach rechts}{C-x r o}
+\key{Rechteck mit Leerzeichen \"uberschreiben}{C-x r c}
+\key{Pr\"afix vor jede Zeile setzen}{C-x r t}
 
-\section{Abkuerzungen}
+\section{Abk\"urzungen}
 
-\key{globale Abkuerzung hinzufuegen}{C-x a g}
-\key{modusabhaengige Abkuerzung hinzufuegen}{C-x a l}
-\key{globale Expansion fuer Abk. definieren}{C-x a i g}
-\key{modusabhaengige Abkuerzung definieren}{C-x a i l}
-\key{explizites Expandieren}{C-x a e}
-\key{letztes Wort dynamisch expandieren}{M-/}
+\key{globale Abk\"urzung hinzuf\"ugen}{C-x a g}
+\key{modusabh\"angige Abk\"urzung hinzuf\"ugen}{C-x a l}
+\key{globalen Ersetzungstext f\"ur Abk. definieren}{C-x a i g}
+\key{modusabh. Ersetzungstext f\"ur Abk. def.}{C-x a i l}
+\key{Abk\"urzung explizit ausschreiben}{C-x a e}
 
-\section{Regulaere Ausdruecke}
+\key{letztes Wort dynamisch ausschreiben}{M-/}
 
-\key{jedes Zeichen ausser Zeilenumbruch}{. {\rm(Punkt)}}
-\key{Null oder mehr Wiederholungen}{*}
-\key{Eine oder mehr Wiederholungen}{+}
-\key{Null oder eine Wiederholung}{?}
-\key{jedes Zeichen in der Menge}{[ {\rm$\ldots$} ]}
-\key{jedes Zeichen nicht in der Menge}{[^ {\rm$\ldots$} ]}
-\key{Zeilenanfang}{^}
-\key{Zeilenende}{\$}
-\key{spezielles Zeichen maskieren {\it c\/}}{\\{\it c}}
-\key{Alternative (``oder'')}{\\|}
+\section{Regul\"are Ausdr\"ucke}
+
+\key{jedes einzelne Zeichen au\ss{}er Zeilenumbruch}{. {\rm(Punkt)}}
+\key{null oder mehr Wiederholungen}{*}
+\key{eine oder mehr Wiederholungen}{+}
+\key{null oder eine Wiederholung}{?}
+\key{Spezialzeichen {\it c\/} maskieren}{\\{\it c}}
+\key{Alternative (\glqq oder\grqq )}{\\|}
 \key{Gruppe}{\\( {\rm$\ldots$} \\)}
-\key{{\it n\/}te Gruppe}{\\{\it n}}
-\key{Pufferanfang}{\\`}
-\key{Pufferende}{\\'}
-\key{Wortzwischenraum}{\\b}
-\key{Weder Anfang noch Ende eines Wortes}{\\B}
-\key{Wortanfang}{\\<}
-\key{Wortende}{\\>}
-\key{jedes Wort-Syntax Zeichen}{\\w}
-\key{jedes Nicht-Wort-Syntax Zeichen}{\\W}
-\key{Zeichen mit Syntax {\it c}}{\\s{\it c}}
-\key{Zeichen nicht mit Syntax {\it c}}{\\S{\it c}}
+\key{gleicher Text wie {\it n\/}te Gruppe}{\\{\it n}}
+\key{Anfang oder Ende eines Wortes}{\\b}
+\key{weder Anfang noch Ende eines Wortes}{\\B}
 
-\section{Register}
+% \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
+% \threecol{{\bf Einheit}}{{\bf passt am Anfang}\hskip-1.5ex}{{\bf passt am Ende}}
+% \threecol{Zeile}{^}{\$}
+% \threecol{Wort}{\\<}{\\>}
+% \threecol{Puffer}{\\`}{\\'}
 
-\key{Region in Register speichern}{C-x r s}
-\key{Register Inhalt in Puffer einfuegen}{C-x r i}
-\key{Cursorposition in Register speichern}{C-x r SPC}
-\key{Springe zur abgespeicherten Position}{C-x r j}
+% \threecol{{\bf Zeichenklasse}}{{\bf passt auf diese}}{{\bf passt auf andere}}
+% \threecol{Explizite Menge}{[ {\rm$\ldots$} ]}{[^ {\rm$\ldots$} ]}
+% \threecol{Wortsyntax-Zeichen\hskip-10ex}{\\w}{\\W}
+% \threecol{Zeichen mit Syntax {\it c}\hskip-2.5ex}{\\s{\it c}}{\\S{\it c}}
+% }
+
+\paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
+\threecol{{\bf Einheit}}{{\bf passt am Anf.}}{{\bf passt am Ende}}
+\threecol{Zeile}{^}{\$}
+\threecol{Wort}{\\<}{\\>}
+\threecol{Puffer}{\\`}{\\'}
+
+\threecol{{\bf Zeichenklasse}}{{\bf passt auf diese}}{{\bf passt auf and.}}
+\threecol{Explizite Menge}{[ {\rm$\ldots$} ]}{[^ {\rm$\ldots$} ]}
+\threecol{Wortsyntax-Zeichen}{\\w}{\\W}
+\threecol{Zeichen mit Syntax {\it c}}{\\s{\it c}}{\\S{\it c}}
+}
+
+\section{Internationale Zeichens\"atze}
+
+\key{Hauptsprache einstellen}{C-x RET l}
+\metax{Alle Eingabemethoden anzeigen}{M-x list-input-methods}
+\key{Eingabemethode in oder au\ss{}er Kraft setzen}{C-\\}
+\key{Kodierung f\"ur n\"achsten Befehl setzen}{C-x RET c}
+\metax{Alle Kodierungen anzeigen}{M-x list-coding-systems}
+\metax{bevorzugte Kodierung ausw\"ahlen}{M-x prefer-coding-system}
 
 \section{Info}
 
-\key{Info starten}{C-h i}
+\key{Info-Betrachter starten}{C-h i}
+\key{Funktion oder Variable in Info finden}{C-h S}
 \beginindentedkeys
 
 Bewegung innerhalb eines Knotens:
 
-\key{vorwaerts scrollen}{SPC}
-\key{rueckwaerts scrollen}{DEL}
-\key{zum Anfang eines Knotens}{. {\rm (dot)}}
+\key{vorw\"arts scrollen}{SPC}
+\key{r\"uckw\"arts scrollen}{DEL}
+\key{zum Anfang eines Knotens}{. {\rm (Punkt)}}
 
 Bewegung zwischen Knoten:
 
-\key{{\bf naechster} Knoten}{n}
+\key{{\bf n\"achster} Knoten}{n}
 \key{{\bf vorheriger} Knoten}{p}
 \key{nach {\bf oben}}{u}
-\key{Menue Element ueber Namen auswaehlen}{m}
-\key{{\it n\/}ten Menueeintrag auswaehlen (1--9)}{{\it n}}
-\key{Kreuzverweis folgen  (zurueck mit \kbd{l})}{f}
-\key{zurueck zum letzten gesehenen Knoten}{l}
-\key{zurueck zum Verzeichnisknoten}{d}
-\key{Knoten ueber Namen auswaehlen}{g}
+\key{Men\"ueintrag \"uber Namen ausw\"ahlen}{m}
+\key{{\it n\/}ten Men\"ueintrag ausw\"ahlen (1--9)}{{\it n}}
+\key{Querverweis folgen (zur\"uck mit \kbd{l})}{f}
+\key{zur\"uck zum letzten gesehenen Knoten}{l}
+\key{zur\"uck zum Verzeichnisknoten}{d}
+\key{zum Anfangsknoten der aktuellen Datei}{t}
+\key{beliebigen Knoten \"uber Namen ausw\"ahlen}{g}
 
-Sonstige:
+Sonstiges:
 
-\key{Info {\bf Tutorial} starten}{h}
-\key{Begriff in den Indices suchen}{i}
-\key{Knoten nach reg. Ausd. durchsuchen}{s}
+\key{{\bf Einf\"uhrung} in Info starten}{h}
+\key{Begriff in den Indizes suchen}{i}
+\key{nach regul\"aren Ausdr\"ucken suchen}{s}
 \key{Info {\bf verlassen} }{q}
 
 \endindentedkeys
 
-\section{Tastatur Makros}
+\section{Register}
 
-\key{Tastatur Makro Definition {\bf starten} }{C-x (}
-\key{Tastatur Makro Definition {\bf beenden} }{C-x )}
-\key{zuletzt definiertes Tast. Makro {\bf ausfuehren}}{C-x e}
-\key{an letztes Tastatur Makro anhaengen}{C-u C-x (}
-\metax{letztes Tastatur Makro benennen}{M-x name-last-kbd-macro}
-\metax{Lisp Definition in Puffer einfuegen}{M-x insert-kbd-macro}
+\key{Region in Register speichern}{C-x r s}
+\key{Registerinhalt in Puffer einf\"ugen}{C-x r i}
+\key{Cursor-Position in Register speichern}{C-x r SPC}
+\key{zu abgespeicherter Position springen}{C-x r j}
 
-\section{Kommandos fuer Emacs Lisp}
+\section{Tastaturmakros}
 
-\key{{\bf Lisp-s-expression} vor Cursor laden}{C-x C-e}
+\key{Makrodefinition {\bf starten} }{C-x (}
+\key{Makrodefinition {\bf beenden} }{C-x )}
+\key{zuletzt definiertes Makro {\bf ausf\"uhren}}{C-x e}
+\key{an letztes Makro anh\"angen}{C-u C-x (}
+\metax{letztes Makro benennen}{M-x name-last-kbd-macro}
+\metax{Lispcode f\"ur Makro in Puffer einf\"ugen}{M-x insert-kbd-macro}
+
+\section{Befehle f\"ur Emacs-Lisp}
+
+\key{{\bf Lisp-s-expression} vor Cursor auswerten}{C-x C-e}
 \key{aktuelle {\bf Definition} auswerten}{C-M-x}
 \metax{{\bf Bereich} auswerten}{M-x eval-region}
-\metax{gesamten {\bf Puffer} auswerten}{M-x eval-current-buffer}
-\key{Lispausdruck im Minipuffer auswerten}{M-:}
-\key{letztes Minipufferkommando auswerten}{C-x ESC ESC}
-\metax{Emacs Lisp Datei lesen und auswerten}{M-x load-file}
-\metax{aus Standard Systemverzeichnis laden}{M-x load-library}
+\key{Lisp-Ausdruck im Minipuffer auswerten}{M-:}
+\metax{Datei aus Standardverzeichnis laden}{M-x load-library}
 
-\section{Einfaches Konfigurieren}
+\section{Einfache Anpassungen}
 
-% Das ist nur was fuer Leute die Lisp beherrschen
+\metax{Variablen und Faces anpassen}{M-x customize}
 
-Ein Beispiel dafuer, wie man Tastenkombinationen definiert:
+% Das ist nur was f\"ur Leute die Lisp beherrschen
+
+Tastenkombinationen definieren (Beispiele):
 
 \beginexample%
 (global-set-key "\\C-cg" 'goto-line)
-(global-set-key "\\C-x\\C-k" 'kill-region)
 (global-set-key "\\M-\#" 'query-replace-regexp)
 \endexample
 
-So weist man in Emacs Lisp einer Variablen Werte zu:
+\section{Eigene Befehle schreiben}
 
 \beginexample%
-(setq backup-by-copying-when-linked t)
-\endexample
-
-\section{Selbst Kommandos schreiben}
-
-\beginexample%
-(defun \<Commando-Name> (\<args>)
-  "\<Documentation>"
-  (interactive "\<template>")
-  \<body>)
+(defun \<Befehlsname> (\<Argumente>)
+  "\<Dokumentation>"
+  (interactive "\<Vorlage>")
+  \<Rumpf>)
 \endexample
 
 Ein Beispiel:
 
 \beginexample%
 (defun diese-Zeile-zum-Fensteranfang (Zeile)
-  "Zeile an Cursorposition zum Fensteranfang bewegen"
-Mit numerischem Argument n, zur Zeile n
-Mit negativem Argument zum Fensterende
+  "Zeile an Cursor-Position zum Fensteranfang bewegen.
+Mit ARGUMENT, Cursor in Zeile ARGUMENT bewegen."
   (interactive "P")
   (recenter (if (null Zeile)
                 0
               (prefix-numeric-value Zeile))))
 \endexample
 
-Das Argument fuer \kbd{interactive} ist eine Zeichenkette, die spe\-zi\-fi\-ziert, wie die
-Ar\-gu\-men\-te be\-reit\-ge\-stellt wer\-den, wenn die Funktion inter\-aktiv auf\-ge\-ru\-fen wird.
-\kbd{C-h f interactive} fuer mehr Informationen.
+Die Spezifikation zu \kbd{interactive} gibt an, wie die Argumente
+gelesen werden, wenn die Funktion inter\-aktiv auf\-ge\-ru\-fen
+wird. F\"ur n\"ahere Details geben Sie \kbd{C-h f interactive} ein.
 
 \copyrightnotice
 
 \bye
 
 % Local variables:
-% compile-command: "tex refcard"
+% compile-command: "tex de-refcard"
 % End:
 
 % arch-tag: af0a2666-f289-49f1-a9cc-cedab9783314
