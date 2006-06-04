@@ -1,10 +1,14 @@
 GNU Emacs NEWS -- history of user-visible changes.  1992.
-Copyright (C) 1995, 2001 Free Software Foundation, Inc.
+Copyright (C) 1993, 1994, 1995, 2001, 2006 Free Software Foundation, Inc.
 See the end for copying conditions.
 
-For older news, see the file ONEWS.4.
+This file is about changes in emacs versions 19.
+
+
 
 * Emacs 19.34 is a bug-fix release with no user-visible changes.
+
+
 
 * Changes in Emacs 19.33.
 
@@ -14,6 +18,8 @@ mode should do that--it is the user's choice.)
 ** The variable normal-auto-fill-function specifies the function to
 use for auto-fill-function, if and when Auto Fill is turned on.
 Major modes can set this locally to alter how Auto Fill works.
+
+
 
 * Editing Changes in Emacs 19.32
 
@@ -255,6 +261,7 @@ cited text to hide is now customizable.
 
 The Gnus manual has been expanded.  It explains all these new features
 in greater detail.
+
 
 * Lisp Changes in Emacs 19.32
 
@@ -279,6 +286,8 @@ name.  In such a case, you should give that alias symbol a non-nil
 menu-alias property.  That property tells the menu system to look for
 equivalent keys for the real name instead of equivalent keys for the
 alias.
+
+
 
 * Editing Changes in Emacs 19.31
 
@@ -583,6 +592,7 @@ implementation of Emacs timers, see below).
 **** `M-x list-colors-display' displays all the available colors.
 
 **** The `TPU-EDT' package works.
+
 
 * Lisp changes in Emacs 19.31.
 
@@ -1029,7 +1039,7 @@ your working file with the latest version from the master.
 *** RCS customization.
 
 There is a new variable vc-consult-headers.  If it is t (the default),
-VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.8 2003/02/04 14:30:40 lektu Exp $') and
+VC searches for RCS headers in working files (like `$Id$') and
 determines the state of the file from them, not from the master file.
 This is fast and more reliable when you use branches.  (The variable
 was already present in Emacs 19.29, but didn't get mentioned in the
@@ -1290,6 +1300,7 @@ new file should include all the special entries from the old one.
 This new file is under active development as part of the ncurses
 project.  If you have any questions about this file, or problems with
 an entry in it, email terminfo@ccil.org.
+
 
 * Lisp changes in Emacs 19.30.
 
@@ -1453,6 +1464,8 @@ sequence containing the events that were used to invoke the command.
 
 ** The environment variable NAME, if set, now specifies the value of
 (user-full-name), when Emacs starts up.
+
+
 
 * User Editing Changes in Emacs 19.29
 
@@ -2155,6 +2168,7 @@ bibtex-sort-ignore-string-entries is now t.
 used reference types are now on control-modified keys, mediocre used
 types are on unmodified keys, seldom used types are on shift-modified
 keys and almost never used types on meta-modified keys.
+
 
 * Configuration Changes in Emacs 19.29
 
@@ -2171,6 +2185,7 @@ automatically enable X support if X is installed on your machine.)
 mail-host-address to a string in the dumped Emacs, that string becomes
 the default host address for initializing user-mail-address.
 It is used instead of the value of (system-name).
+
 
 * Lisp-Level Changes in Emacs 19.29
 
@@ -2906,6 +2921,8 @@ three integers.)
 **** The new function encode-time converts specific items of time
 information--the second, minute, hour, day, month, year, and time
 zone--into a time value.
+
+
 
 * Changes in Emacs 19.27
 
@@ -2921,6 +2938,8 @@ reach the end of a subnode, SPC moves into the next subnode, and so
 on.
 
 DEL more or less scrolls through the same text in reverse order.
+
+
 
 * User Editing Changes in Emacs 19.26
 
@@ -2998,6 +3017,7 @@ for asking for a list of the subcommands of C-c C-v.
 setting just one variable, user-mail-address.  This currently applies
 to posting news with GNUS and to making change log entries.  It may
 apply to additional Emacs features in the future.
+
 
 * Lisp-Level Changes in Emacs 19.26:
 
@@ -3044,6 +3064,7 @@ delete-old-versions.
 other window for C-M-v to scroll.
 
 ** Note that the function fceiling was mistakenly documented as fceil before.
+
 
 * Changes in cc-mode.el in Emacs 19.26:
 
@@ -3081,11 +3102,15 @@ other window for C-M-v to scroll.
 
 ** new buffer-local variable c-comment-start-regexp for (potential)
   flexibility in adding new modes based on cc-mode.el
+
+
 
 * Changes in Emacs 19.25
 
 The variable x-cross-pointer-shape (which didn't really exist) has
 been renamed to x-sensitive-text-pointer-shape, and now does exist.
+
+
 
 * Changes in Emacs 19.24
 
@@ -3110,6 +3135,8 @@ s-region.el		Set region by holding shift.
 skeleton.el		Templates for statement insertion.
 soundex.el		Classifying words by how they sound.
 tempo.el		Template insertion with hotspots.
+
+
 
 * User Editing Changes in 19.23.
 
@@ -3407,6 +3434,7 @@ debugged.
 
 *** A new command, top-level-nonstop, does not even stop for unwind-protect,
 as top-level would.
+
 
 * Changes in CC mode in Emacs 19.23.
 
@@ -3577,6 +3605,7 @@ convention of VariableNamesWithoutUnderscoresButEachWordCapitalized.
   c-label-offset
   c-continued-statement-offset
   c-continued-brace-offset
+
 
 * Lisp programming changes in Emacs 19.23.
 
@@ -3977,6 +4006,8 @@ Now the file version.el contains only the first two version numbers.
 The third component is now determined on the basis of the names of the
 existing executable files.  This means that version.el is not altered
 by building Emacs.
+
+
 
 * Changes in 19.22.
 
@@ -4039,12 +4070,16 @@ greater than what it used to be.  It is the position between the two
 characters whose properties differ, which is one greater than the
 position of the first character found (while scanning back) with
 different properties.
+
+
 
 * User editing changes in version 19.21.
 
 ** ISO Accents mode supports four additional characters:
 A-with-ring (entered as /A), AE ligature (entered as /E),
 and their lower-case equivalents.
+
+
 
 * User editing changes in version 19.20.
 (See following page for Lisp programming changes.)
@@ -4265,6 +4300,7 @@ whether `pushd' behaves like `cd' if no argument is given
 (`shell-pushd-dextract'), and only add directories to the directory
 stack if they are not already on it (`shell-pushd-dunique').  The
 configuration you choose should match the underlying shell, of course.
+
 
 * Emacs Lisp programming changes in Emacs 19.20.
 
@@ -4442,6 +4478,8 @@ delete-region in comint-previous-matching-input.
 
 The input history retrieval commands still wrap-around the input ring, unlike
 Emacs command history.
+
+
 
 * Changes in version 19.19.
 
@@ -4474,6 +4512,8 @@ taken.
 
 ** `%' no longer allows floating point arguments, since the results were often
 inconsistent with integer `%'.
+
+
 
 * Changes in version 19.18.
 
@@ -4614,6 +4654,8 @@ of the directory containing the Emacs executable that was run.
 
 ** The new function minibuffer-window-active-p takes one argument, a
 minibuffer window, and returns t if the window is currently active.
+
+
 
 * Changes in version 19.17.
 
@@ -4801,6 +4843,7 @@ argument FRAME, which specifies which frames it should affect.
   + If FRAME is a frame, then `delete-windows-on' only deletes windows on
     the given frame; other frames are unaffected.
 
+
 
 * Changes in version 19.16.
 
@@ -4927,6 +4970,7 @@ in a singleton list when it first inserts the prefix, but doesn't
 insert the prefix when processing events whose PLACE-SYMBOLs are
 already thus enclosed.
 
+
 
 * Changes in version 19.15.
 
@@ -4973,6 +5017,8 @@ it works the same in Emacs 18 and Emacs 19.
 
 (This change actually took place earlier, but we didn't know about it
 and thus didn't document it.)
+
+
 
 * Changes in version 19.14.
 
@@ -5017,6 +5063,8 @@ and END that specify which part of the file to insert.  BEG defaults to
 0 (the beginning of the file), and END defaults to the end of the file.
 
 If you specify BEG or END, then the argument VISIT must be nil.
+
+
 
 * Changes in version 19.13.
 
@@ -5035,11 +5083,15 @@ the search a case-sensitive one.
 C-c LETTER, since those keys are reserved for users.
 Those commands have been moved to C-c M-LETTER.
 We may move them again for greater consistency with other modes.
+
+
 
 * Changes in version 19.12.
 
 ** You can now make many of the sort commands ignore case by setting
 `sort-fold-case' to a non-nil value.
+
+
 
 * Changes in version 19.11.
 
@@ -5057,6 +5109,8 @@ that you write.  This is what `basic-save-buffer' does when
 it writes a file in the usual way.
 
 (This is not actually new, but wasn't documented before.)
+
+
 
 * Changes in version 19.10.
 
@@ -5069,6 +5123,8 @@ The reason for this change is to make function keys work after C-x.
 the region is highlighted in windows other than the selected window
 (in Transient Mark mode only, of course, and currently only when
 using X).
+
+
 
 * Changes in version 19.8.
 
@@ -6458,14 +6514,13 @@ distribution, using the contents of the source tree.  Object files,
 old file versions, executables, DOC files, and other
 architecture-specific or easy-to-recreate files are not included in
 the tar file.
-
-* For older news, see the file ONEWS.4.  For Lisp changes in (the first
-* release of) Emacs 19, see the file LNEWS.
 
+
+
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+Copyright (C) 1993, 1994, 1995, 2001, 2006 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
