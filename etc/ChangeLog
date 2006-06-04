@@ -40,16 +40,42 @@
 
 2006-05-31  David Ponce  <david@dponce.com>
 
-	* tree-widget/default/close.*, tree-widget/default/empty.*:
-	* tree-widget/default/end-guide.*, tree-widget/default/guide.*:
-	* tree-widget/default/handle.*, tree-widget/default/leaf.*:
-	* tree-widget/default/no-guide.*, tree-widget/default/no-handle.*:
-	* tree-widget/default/open.*, tree-widget/folder/close.*:
-	* tree-widget/folder/empty.*, tree-widget/folder/end-guide.*:
-	* tree-widget/folder/guide.*, tree-widget/folder/handle.*:
-	* tree-widget/folder/leaf.*, tree-widget/folder/no-guide.*:
-	* tree-widget/folder/no-handle.*, tree-widget/folder/open.*:
-	Reduce the size of images.
+	* tree-widget/default/close.png:
+	* tree-widget/default/close.xpm:
+	* tree-widget/default/empty.png:
+	* tree-widget/default/empty.xpm:
+	* tree-widget/default/end-guide.png:
+	* tree-widget/default/end-guide.xpm:
+	* tree-widget/default/guide.png:
+	* tree-widget/default/guide.xpm:
+	* tree-widget/default/handle.png:
+	* tree-widget/default/handle.xpm:
+	* tree-widget/default/leaf.png:
+	* tree-widget/default/leaf.xpm:
+	* tree-widget/default/no-guide.png:
+	* tree-widget/default/no-guide.xpm:
+	* tree-widget/default/no-handle.png:
+	* tree-widget/default/no-handle.xpm:
+	* tree-widget/default/open.png:
+	* tree-widget/default/open.xpm:
+	* tree-widget/folder/close.png:
+	* tree-widget/folder/close.xpm:
+	* tree-widget/folder/empty.png:
+	* tree-widget/folder/empty.xpm:
+	* tree-widget/folder/end-guide.png:
+	* tree-widget/folder/end-guide.xpm:
+	* tree-widget/folder/guide.png:
+	* tree-widget/folder/guide.xpm:
+	* tree-widget/folder/handle.png:
+	* tree-widget/folder/handle.xpm:
+	* tree-widget/folder/leaf.png:
+	* tree-widget/folder/leaf.xpm:
+	* tree-widget/folder/no-guide.png:
+	* tree-widget/folder/no-guide.xpm:
+	* tree-widget/folder/no-handle.png:
+	* tree-widget/folder/no-handle.xpm:
+	* tree-widget/folder/open.png:
+	* tree-widget/folder/open.xpm: Reduce the size of images.
 
 2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
