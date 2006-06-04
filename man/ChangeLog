@@ -1,3 +1,7 @@
+2006-06-03  Ted Zlatanov  <tzz@lifelogs.com>
+
+	* mini.texi: Lots of cleanups.
+
 2006-06-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* misc.texi (Shell History Copying): Update descriptions of `C-c RET'
