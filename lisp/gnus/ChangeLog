@@ -2875,7 +2875,7 @@
 	article buffer with a draft file.  This is a temporary measure
 	against the 2004-08-22 change to gnus-article-edit-mode.
 
-2004-11-02  From Ilya N. Golubev  <gin@mo.msk.ru>.
+2004-11-02  Ilya N. Golubev  <gin@mo.msk.ru>.
 
 	* mm-util.el (mm-mime-mule-charset-alist): Add the windows-1251
 	entry.
@@ -3735,7 +3735,7 @@
 	* flow-fill.el (fill-flowed-display-column)
 	(fill-flowed-encode-column): Ditto.
 
-2004-09-06  Stefan  <monnier@iro.umontreal.ca>
+2004-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-tokenize-header, message-send-mail-with-qmail):
 	Use point-min rather than 1.

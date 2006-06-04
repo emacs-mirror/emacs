@@ -1,5 +1,9 @@
 2006-06-04  Kim F. Storm  <storm@cua.dk>
 
+	* emacs-lisp/authors.el (authors-aliases): Add mode aliases.
+	(authors-fixed-entries): Fix spelling.
+	(authors-canonical-file-name): Don't report error for wildcards.
+
 	* help.el (view-emacs-news): Rewrite to support new NEWS,
 	NEWS.major, and NEWS.1-17 file naming.  Add more intelligense,
 	e.g. version 10 matches 1.10, and don't be confused by version 1.1
@@ -12587,7 +12591,7 @@
 	* calendar/diary-lib.el (mark-diary-entries): Rearrange to wrap
 	with-current-buffer form in save-excursion.
 
-2005-09-18  D Goel  <deego@gnufans.org>
+2005-09-18  Deepak Goel  <deego@gnufans.org>
 
 	* apropos.el (apropos-command): Fix `message' call: first arg
 	should be a format spec.  In this and all other cases that appear
@@ -22029,7 +22033,7 @@
 
 	* simple.el (goto-line): Doc fix.
 
-2005-03-19  Aaron Hawley  <Aaron.Hawley@uvm.edu>  (tiny change)
+2005-03-19  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
 
 	* files.el (save-buffer): Doc fix.
 

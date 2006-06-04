@@ -1905,7 +1905,7 @@
 
 	* mini.texi (Minibuffer File): Clarify previous change.  Add @findex.
 
-2005-11-08  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>  (tiny change)
+2005-11-08  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
 
 	* files.texi (Renaming and VC): Some back-ends don't
 	handle renaming.
