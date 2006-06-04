@@ -1,3 +1,10 @@
+2006-06-04  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (view-emacs-news): Rewrite to support new NEWS,
+	NEWS.major, and NEWS.1-17 file naming.  Add more intelligense,
+	e.g. version 10 matches 1.10, and don't be confused by version 1.1
+	begin a prefix of 1.12 (etc).  A numeric prefix arg also works.
+
 2006-06-03  Vivek Dasmohapatra  <vivek@etla.org>
 
 	* progmodes/sh-script.el (sh-quoted-exec): New face for quoted
