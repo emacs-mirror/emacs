@@ -1,3 +1,8 @@
+2006-06-04  Sven Joachim  <svenjoac@gmx.de>
+
+	* de-refcard.tex: Update for Emacs 22: Use German quotes
+	and umlauts; fix overfull /hboxes; many rewordings.
+
 2006-06-04  Kim F. Storm  <storm@cua.dk>
 
 	* NEWS: Move news for pre-22 versions into...
