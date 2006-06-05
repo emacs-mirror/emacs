@@ -1,3 +1,9 @@
+2006-06-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Use a conditional help echo
+	for gud-go.
+	(gud-common-init): Other debuggers may trigger error.
+
 2006-06-05  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (find-auto-coding): Handle

@@ -1,3 +1,9 @@
+2006-06-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Update bindings.
+	(Commands of GUD): Add gud-print.  Remove gud-run.  Restate
+	availability more generally.
+
 2006-06-03  Ted Zlatanov  <tzz@lifelogs.com>
 
 	* mini.texi: Lots of cleanups.
