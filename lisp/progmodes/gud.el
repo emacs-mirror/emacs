@@ -147,7 +147,7 @@ Used to grey out relevant togolbar icons.")
                   :enable (and (not gud-running)
 			       (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
 		  :visible (not (eq gud-minor-mode 'gdba)))
-    ([go]	menu-item "Run/Continue" gud-go
+    ([go]	menu-item (if gdb-active-process "Continue" "Run") gud-go
 		  :visible (and (not gud-running)
 				(eq gud-minor-mode 'gdba)))
     ([stop]	menu-item "Stop" gud-stop-subjob
@@ -2565,7 +2565,7 @@ comint mode, which see."
 	 (existing-buffer (get-buffer (concat "*gud" filepart "*"))))
     (pop-to-buffer (concat "*gud" filepart "*"))
     (when (and existing-buffer (get-buffer-process existing-buffer))
-      (error "This program is already running under gdb"))
+      (error "This program is already being debugged"))
     ;; Set the dir, in case the buffer already existed with a different dir.
     (setq default-directory dir)
     ;; Set default-directory to the file's directory.
