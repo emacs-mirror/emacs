@@ -1,3 +1,8 @@
+2006-06-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap, $(lisp)/mh-e/mh-loaddefs.el): Quote
+	$(EMACS).
+
 2006-06-05  Richard Stallman  <rms@gnu.org>
 
 	* faces.el (defined-colors): Doc fix.
