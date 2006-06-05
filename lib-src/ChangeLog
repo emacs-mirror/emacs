@@ -1,6 +1,6 @@
 2006-06-04  Masatake YAMATO  <jet@gyve.org>
 
-	* ebrowse.c (main): Exit with EXIT_FAILURE if BROWSE file 
+	* ebrowse.c (main): Exit with EXIT_FAILURE if BROWSE file
 	doesn't exist, is not seekable, not is failed in ftall.
 
 2006-06-03  Eli Zaretskii  <eliz@gnu.org>

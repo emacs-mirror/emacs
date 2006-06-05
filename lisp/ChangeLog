@@ -42,7 +42,7 @@
 	(mac-bytes-to-text-range, mac-ae-text-range-array)
 	(mac-ts-update-active-input-buf, mac-split-string-by-property-change)
 	(mac-replace-untranslated-utf-8-chars, mac-ts-update-active-input-area)
-	(mac-ts-unicode-for-key-event):	New functions.
+	(mac-ts-unicode-for-key-event): New functions.
 	(mac-handle-toolbar-switch-mode): Use mac-ae-frame.
 	(mac-handle-font-selection): Use mac-ae-number.
 	(mac-ts-active-input-buf, mac-ts-update-active-input-area-seqno):
