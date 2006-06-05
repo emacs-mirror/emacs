@@ -1,3 +1,10 @@
+2006-06-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc.el (vc-setup-buffer): Inhibit undo
+	info collection around call to insert.
+	(vc-setup-buffer): Likewise for call to erase-buffer.
+	(vc-do-command): Likewise for call to process-file.
+
 2006-06-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Use a conditional help echo
