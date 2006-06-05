@@ -599,8 +599,9 @@ Set a breakpoint on the source line that point is on.
 @kindex C-x C-a @r{(GUD)}
   Here are the other special commands provided by GUD@.  The keys
 starting with @kbd{C-c} are available only in the GUD interaction
-buffer.  The key bindings that start with @kbd{C-x C-a} are available in
-the GUD interaction buffer and also in source files.
+buffer.  The key bindings that start with @kbd{C-x C-a} are available
+in the GUD interaction buffer and also in source files.  Some of these
+commands are not available to all the supported debuggers.
 
 @table @kbd
 @item C-c C-l
@@ -631,6 +632,14 @@ at full speed (@code{gud-next}).
 @findex gud-stepi
 Execute a single machine instruction (@code{gud-stepi}).
 
+@item C-c C-p
+@kindex C-c C-p @r{(GUD)}
+@itemx C-x C-a C-p
+@findex gud-print
+Evaluate the expression at point (@code{gud-print}).  If Emacs
+does not print the exact expression that you want, mark it as a region
+first.
+
 @need 3000
 @item C-c C-r
 @kindex C-c C-r @r{(GUD)}
@@ -656,12 +665,7 @@ buffer, it applies to the line where the program last stopped.
 Set a temporary breakpoint on the current source line, if any
 (@code{gud-tbreak}).  If you use this command in the GUD interaction
 buffer, it applies to the line where the program last stopped.
-@end table
 
-  The above commands are common to all supported debuggers.  If you are
-using GDB or (some versions of) DBX, these additional commands are available:
-
-@table @kbd
 @item C-c <
 @kindex C-c < @r{(GUD)}
 @itemx C-x C-a <
@@ -675,16 +679,6 @@ equivalent to the GDB command @samp{up}.
 @findex gud-down
 Select the next inner stack frame (@code{gud-down}).  This is
 equivalent to the GDB command @samp{down}.
-@end table
-
-  If you are using GDB, these additional key bindings are available:
-
-@table @kbd
-@item C-c C-r
-@kindex C-c C-r @r{(GUD)}
-@itemx C-x C-a C-r
-@findex gud-run
-Start execution of the program (@code{gud-run}).
 
 @item C-c C-u
 @kindex C-c C-u @r{(GUD)}
@@ -695,19 +689,17 @@ program will run until it hits a breakpoint, terminates, gets a signal
 that the debugger is checking for, or reaches the line on which the
 cursor currently sits.
 
-@item @key{TAB}
-@kindex TAB @r{(GUD)}
-@findex gud-gdb-complete-command
-With GDB, complete a symbol name (@code{gud-gdb-complete-command}).
-This key is available only in the GUD interaction buffer.
-
 @item C-c C-f
 @kindex C-c C-f @r{(GUD)}
 @itemx C-x C-a C-f
 @findex gud-finish
 Run the program until the selected stack frame returns or
 stops for some other reason (@code{gud-finish}).
+@end table
 
+  If you are using GDB, these additional key bindings are available:
+
+@table @kbd
 @item C-x C-a C-j
 @kindex C-x C-a C-j @r{(GUD)}
 @findex gud-jump
@@ -718,6 +710,12 @@ command.  If the new execution line is in a different function from
 the previously one, GDB prompts for confirmation since the results may
 be bizarre.  See the GDB manual entry regarding @code{jump} for
 details.
+
+@item @key{TAB}
+@kindex TAB @r{(GUD)}
+@findex gud-gdb-complete-command
+With GDB, complete a symbol name (@code{gud-gdb-complete-command}).
+This key is available only in the GUD interaction buffer.
 @end table
 
   These commands interpret a numeric argument as a repeat count, when
@@ -817,11 +815,11 @@ you can control the debugging session with the mouse.
 margin of a source buffer to set a breakpoint there and, on a
 graphical display, a red bullet will appear on that line.  If a
 breakpoint already exists on that line, the same click will remove it.
-You can also enable or disable a breakpoint by clicking @kbd{Mouse-3}
+You can also enable or disable a breakpoint by clicking @kbd{C-Mouse-1}
 on the bullet.  If you drag the debugger arrow in the fringe with
 @kbd{Mouse-1} (@code{gdb-mouse-until}), execution will continue to the
 line where you release the button, provided it is still in the same
-frame.  Alternatively, you can click @kbd{Mouse-2} at some point in
+frame.  Alternatively, you can click @kbd{Mouse-3} at some point in
 the fringe of this buffer and execution will advance to there.
 
   This mode requires telling GDB that its ``screen size'' is
