@@ -1,3 +1,13 @@
+2006-06-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_set_scroll_bar_thumb, x_scroll_bar_create)
+	(w32_set_vertical_scroll_bar, w32_scroll_bar_handle_click)
+	(x_scroll_bar_report_motion): Remove workarounds for
+	versions of Windows NT < 3.51.
+	[!SIF_ALL]: Remove.
+	(pfnSetScrollInfo, pfnGetScrollInfo): Remove.
+	(w32_initialize): Don't dynamically load Get/SetScrollInfo.
+
 2006-06-04  David Kastrup  <dak@gnu.org>
 
 	* dispnew.c: Mention `redisplay-dont-pause' in doc string of
