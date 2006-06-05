@@ -1700,6 +1700,8 @@ If nothing is specified, the return value is nil."
 	;; and for "unibyte:" at the head and tail of SIZE bytes.
 	(setq head-found (or (search-forward "coding:" head-end t)
 			     (search-forward "unibyte:" head-end t)
+			     (search-forward "enable-character-translation:" 
+					     head-end t)
 			     (search-forward "char-trans:" head-end t)))
 	(if (and head-found (> head-found tail-start))
 	    ;; Head and tail are overlapped.
@@ -1729,9 +1731,9 @@ If nothing is specified, the return value is nil."
 			head-end t))
 	      (setq coding-system (intern (match-string 2))))
 	    (when (re-search-forward
-		   "\\(.*;\\)?[ \t]*char-trans:[ \t]*\\([^ ;]+\\)"
+		   "\\(.*;\\)?[ \t]*\\(enable-character-translation\\|char-trans\\):[ \t]*\\([^ ;]+\\)"
 		   head-end t)
-	      (setq char-trans (match-string 2)))))
+	      (setq char-trans (match-string 3)))))
 
 	;; If no coding: tag in the head, check the tail.
 	;; Here we must pay attention to the case that the end-of-line
