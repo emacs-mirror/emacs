@@ -1,5 +1,8 @@
 2006-06-05  Romain Francoise  <romain@orebokech.com>
 
+	* url.texi (irc): Mention new funs `url-irc-rcirc' and `url-irc-erc'.
+	Fix typo.
+
 	* gnus-faq.texi (Question 8.6): Update reference to the Gnus
 	channel (#gnus@irc.freenode.net).
 	Fix typos.  Update copyright notice.
