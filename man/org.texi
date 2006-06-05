@@ -2336,7 +2336,7 @@ into the following column).
 When Org-mode prompts for a date/time, the function reading your input
 will replace anything you choose not to specify with the current date
 and time.  For details, see the documentation string of
-@command{org-read-date}.  Also, a calender will pop up to allow
+@command{org-read-date}.  Also, a calendar will pop up to allow
 selecting a date.  The calendar can be fully controlled from the
 minibuffer, and a date can be selected with the following commands:
 

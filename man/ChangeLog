@@ -1,3 +1,31 @@
+2006-06-05  Romain Francoise  <romain@orebokech.com>
+
+	* cc-mode.texi (Getting Started, Indentation Commands, Config Basics)
+	(Custom Filling and Breaking, Custom Braces, Syntactic Symbols)
+	(Line-Up Functions, Custom Macros):
+	* ediff.texi (Window and Frame Configuration)
+	(Highlighting Difference Regions, Highlighting Difference Regions):
+	* emacs-mime.texi (Display Customization):
+	* erc.texi (History):
+	* eshell.texi (Known problems):
+	* eudc.texi (Overview, BBDB):
+	* gnus.texi (NNTP, IMAP, Advanced Scoring Examples)
+	(The problem of spam, SpamOracle, Extending the Spam package)
+	(Conformity, Terminology):
+	* idlwave.texi (Routine Info, Routine Info)
+	(Class and Keyword Inheritance, Padding Operators)
+	(Breakpoints and Stepping, Electric Debug Mode)
+	(Examining Variables, Troubleshooting):
+	* org.texi (Creating timestamps):
+	* reftex.texi (Commands, Options, Changes):
+	* tramp.texi (Inline methods, Password caching)
+	(Auto-save and Backup, Issues):
+	* vip.texi (Files, Commands in Insert Mode):
+	* viper.texi (Emacs Preliminaries, States in Viper)
+	(Packages that Change Keymaps, Viper Specials, Groundwork):
+	* xresmini.texi (GTK resources):
+	Fix various typos.
+
 2006-06-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Update bindings.
@@ -688,7 +716,7 @@
 	* custom.texi: Many cleanups.
 	(Minor Modes): Don't mention ISO Accents Mode.
 	(Examining): Update C-h v output example.
-	(Hooks): Add index and  xref for add-hook.
+	(Hooks): Add index and xref for add-hook.
 	(Locals): Delete list of vars that are always per-buffer.  Rearrange.
 	(Local Keymaps): Don't mention lisp-mode-map, c-mode-map.
 

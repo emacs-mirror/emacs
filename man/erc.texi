@@ -561,7 +561,7 @@ questions.
 ERC was originally written by Alexander L. Belikoff
 @email{abel@@bfr.co.il} and Sergey Berezin
 @email{sergey.berezin@@cs.cmu.edu}.  They stopped development around
-december 1999. Their last released version was ERC 2.0.
+December 1999. Their last released version was ERC 2.0.
 
 P.S.: If one of the original developers of ERC reads this, we'd like to
 receive additional information for this file and hear comments in
@@ -580,12 +580,12 @@ there. The thing is, I do not have free time and enough incentive
 anymore to work on ERC, so I would be happy if you guys take over the
 project entirely."
 
-So we happily hacked away on ERC, and soon after (september 2001)
+So we happily hacked away on ERC, and soon after (September 2001)
 released the next "stable" version, 2.1.
 
-Most of the development of the new ERC happend on #emacs on
+Most of the development of the new ERC happened on #emacs on
 irc.openprojects.net. Over time, many people contributed code, ideas,
-bugfixes. And not to forget alot of alpha/beta/gamma testing.
+bugfixes. And not to forget a lot of alpha/beta/gamma testing.
 
 See the @file{CREDITS} file for a list of contributors.
 

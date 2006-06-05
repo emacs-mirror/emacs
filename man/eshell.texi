@@ -848,7 +848,7 @@ a file in the Windows Explorer).
 
 It would move point to the end of the buffer, and then turns on
 auto-revert mode in that buffer at frequent intervals---and a
-@command{head} alias which assums an upper limit of
+@command{head} alias which assumes an upper limit of
 @code{eshell-maximum-line-length} characters per line.
 
 @item Make @command{dgrep} load @code{dired}, mark everything, then invoke @code{dired-do-search}

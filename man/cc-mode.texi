@@ -208,7 +208,7 @@ license to the document, as described in section 6 of the license.
 @vskip 0pt plus 1filll
 @insertcopying
 
-This manual was generated from $Revision: 1.36 $ of $RCSfile: cc-mode.texi,v $, which can be
+This manual was generated from $Revision$ of $RCSfile$, which can be
 downloaded from
 @url{http://cvs.savannah.gnu.org/viewcvs/emacs/emacs/man/cc-mode.texi}.
 @end titlepage
@@ -507,7 +507,7 @@ indents nested code.  To set this value to 6, customize
 @item The (indentation) style
 The basic ``shape'' of indentation created by @ccmode{}---by default,
 this is @code{gnu} style (except for Java and AWK buffers).  A list of
-the availables styles and their descriptions can be found in
+the available styles and their descriptions can be found in
 @ref{Built-in Styles}.  A complete specification of the @ccmode{}
 style system, including how to create your own style, can be found in
 the chapter @ref{Styles}.  To set your style to @code{linux}, either
@@ -672,7 +672,7 @@ This command indents the current line.  That is all you need to know
 about it for normal use.
 
 @code{c-indent-command} does different things, depending on the
-settting of @code{c-syntactic-indentation} (@pxref{Indentation Engine
+setting of @code{c-syntactic-indentation} (@pxref{Indentation Engine
 Basics}):
 
 @itemize @bullet
@@ -2128,7 +2128,7 @@ escaped newline.  The @samp{\} is highlighted.
 @chapter Configuration Basics
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@cindex Emacs Initiliazation File
+@cindex Emacs Initialization File
 @cindex Configuration
 You configure @ccmode{} by setting Lisp variables and calling (and
 perhaps writing) Lisp functions@footnote{DON'T PANIC!!!  This isn't
@@ -2914,7 +2914,7 @@ variable@footnote{In versions before 5.26, this variable was called
 @ccmode{} still uses the value on that variable if it's set.} is used
 then as the comment prefix.  It defaults to @samp{*
 }@footnote{Actually, this default setting of
-@code{c-block-comment-prefix} typically gets overriden by the default
+@code{c-block-comment-prefix} typically gets overridden by the default
 style @code{gnu}, which sets it to blank.  You can see the line
 splitting effect described here by setting a different style,
 e.g. @code{k&r} @xref{Choosing a Style}.}, which makes a comment
@@ -3209,7 +3209,7 @@ Syntactic symbols aren't the only place where you can customize
 that @var{action}s are usually a list containing some combination of
 the symbols @code{before} and @code{after} (@pxref{Hanging Braces}).
 For more flexibility, you can instead specify brace ``hanginess'' by
-giving a synctactic symbol an @dfn{action function} in
+giving a syntactic symbol an @dfn{action function} in
 @code{c-hanging-braces-alist}; this function determines the
 ``hanginess'' of a brace, usually by looking at the code near it.
 
@@ -4024,7 +4024,7 @@ The line is nested inside a class definition.  @ref{Class Symbols}.
 @item cpp-macro
 The start of a preprocessor macro definition.  @ref{Literal Symbols}.
 @item cpp-define-intro
-The first line inside a multiline preproprocessor macro if
+The first line inside a multiline preprocessor macro if
 @code{c-syntactic-indentation-in-macros} is set.  @ref{Multiline Macro
 Symbols}.
 @item cpp-macro-cont
@@ -5311,7 +5311,7 @@ meaning ``this function is inappropriate in this case - try a
 different one''.  @xref{c-offsets-alist}.
 
 The subsections below describe all the standard line-up functions,
-categorized by the sort of token the lining-up centres around.  For
+categorized by the sort of token the lining-up centers around.  For
 each of these functions there is a ``works with'' list that indicates
 which syntactic symbols the function is intended to be used with.
 
@@ -6433,7 +6433,7 @@ functions to this hook, not remove them.  @xref{Style Variables}.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Normally, the lines in a multi-line macro are indented relative to
-eachother as though they were code.  You can suppress this behaviour
+each other as though they were code.  You can suppress this behaviour
 by setting the following user option:
 
 @defopt c-syntactic-indentation-in-macros

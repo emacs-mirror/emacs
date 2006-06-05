@@ -698,7 +698,7 @@ remote host.
 
 Additionally, the method @option{plink1} is provided, which calls
 @samp{plink -1 -ssh} in order to use SSH protocol version 1
-explicitely.
+explicitly.
 
 CCC: Do we have to connect to the remote host once from the command
 line to accept the SSH key?  Maybe this can be made automatic?
@@ -1261,12 +1261,12 @@ Example:
 
 Sometimes it is necessary to connect to the same remote host several
 times.  Reentering passwords again and again would be annoying, when
-the choosen method does not support access without password prompt
-throught own configuration.
+the chosen method does not support access without password prompt
+through own configuration.
 
 By default, @value{tramp} caches the passwords entered by you.  They will
 be reused next time if a connection needs them for the same user name
-and host name, independant of the connection method.
+and host name, independently of the connection method.
 
 @vindex password-cache-expiry
 Passwords are not saved permanently, that means the password caching
@@ -1524,7 +1524,7 @@ When
 @end ifset
 is @code{nil} (the default), such problems do not occur.
 
-Therefore, it is usefull to set special values for @value{tramp}
+Therefore, it is useful to set special values for @value{tramp}
 files.  For example, the following statement effectively `turns off'
 the effect of
 @ifset emacs
@@ -2365,7 +2365,7 @@ installed from the start.  If the filenames were unified, @value{tramp}
 would have to be installed from the start, too.
 
 @ifset xemacs
-@strong{Note:} If you'ld like to use a similar syntax like
+@strong{Note:} If you'd like to use a similar syntax like
 @value{ftppackagename}, you need the following settings in your init
 file:
 

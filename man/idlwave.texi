@@ -1133,7 +1133,7 @@ When you ask for routine information about an object method, and the
 method exists in several classes, IDLWAVE queries for the class of the
 object, unless the class is already known through a text property on the
 @samp{->} operator (@pxref{Object Method Completion and Class
-Ambiguity}), or by having been explicity included in the call
+Ambiguity}), or by having been explicitly included in the call
 (e.g. @code{a->myclass::Foo}).
 
 @cindex Calling sequences
@@ -1185,7 +1185,7 @@ will automatically split into the next two.
 @item @i{Other}
 @tab Any other routine with a file not known to be on the search path.
 @item @i{Unresolved}
-@tab An otherwise unkown routine the shell lists as unresolved 
+@tab An otherwise unknown routine the shell lists as unresolved 
 (referenced, but not compiled).
 @end multitable
 
@@ -1779,12 +1779,12 @@ entire class inheritance chain.  This is often referred to as
 @emph{chaining}, and is characterized by chained method calls like
 @w{@code{self->MySuperClass::SetProperty,_EXTRA=e}}.
 
-IDLWAVE can accomodate this special synergy between class and keyword
+IDLWAVE can accommodate this special synergy between class and keyword
 inheritance: if @code{_EXTRA} or @code{_REF_EXTRA} is detected among a
 method's keyword parameters, all keywords of superclass versions of
 the method being considered can be included in completion.  There is
 of course no guarantee that this type of keyword chaining actually
-occurrs, but for some methods it's a very convenient assumption.  The
+occurs, but for some methods it's a very convenient assumption.  The
 variable @code{idlwave-keyword-class-inheritance} can be used to
 configure which methods have keyword inheritance treated in this
 simple, class-driven way.  By default, only @code{Init} and
@@ -2207,7 +2207,7 @@ operators (outside of strings and comments, of course), try this in
 
 Note that the modified assignment operators which begin with a word
 (@samp{AND=}, @samp{OR=}, @samp{NOT=}, etc.) require a leading space to
-be recognized (e.g @code{vAND=4} would be intepreted as a variable
+be recognized (e.g @code{vAND=4} would be interpreted as a variable
 @code{vAND}).  Also note that, since e.g., @code{>} and @code{>=} are
 both valid operators, it is impossible to surround both by blanks while
 they are being typed.  Similarly with @code{&} and @code{&&}.  For
@@ -2811,7 +2811,7 @@ prefix arg of 1 (i.e. @kbd{C-1 C-c C-d C-b}), the breakpoint gets a
 With a numeric prefix greater than one (e.g. @kbd{C-4 C-c C-d C-b}),
 the breakpoint will only be active the @code{nth} time it is hit.
 With a single non-numeric prefix (i.e. @kbd{C-u C-c C-d C-b}), prompt
-for a condition --- an IDL expression to be evaulated and trigger the
+for a condition --- an IDL expression to be evaluated and trigger the
 breakpoint only if true.  To clear the breakpoint in the current line,
 use @kbd{C-c C-d C-d} (@code{idlwave-clear-current-bp}).  When
 executed from the shell window, the breakpoint where IDL is currently
@@ -3068,7 +3068,7 @@ as it did with @kbd{C-u C-c C-d C-b}.
 You can toggle the electric debug mode at any time in a buffer using
 @kbd{C-c C-d C-v} (@kbd{v} to turn it off while in the mode), or from
 the Debug menu.  Normally the mode will be enabled and disabled at the
-appropriate times, but occassionally you might want to edit a file
+appropriate times, but occasionally you might want to edit a file
 while still debugging it, or switch to the mode for conveniently
 setting lots of breakpoints.
 
@@ -3136,7 +3136,7 @@ execution is stopped in a buffer due to a triggered breakpoint or error,
 or while composing a long command in the IDLWAVE shell.  In the latter
 case, the command is sent to the shell and its output is visible, but
 point remains unmoved in the command being composed --- you can inspect
-the contituents of a command you're building without interrupting the
+the constituents of a command you're building without interrupting the
 process of building it!  You can even print arbitrary expressions from
 older input or output further up in the shell window --- any expression,
 variable, number, or function you see can be examined.
@@ -4266,7 +4266,7 @@ some browsers: @xref{HTML Help Browser Tips}.
 @item @strong{In the shell, my long commands are truncated at 256 characters!}
 
 This actually happens when running IDL in an XTerm as well.  There are
-a couple of work arounds: @code{define_key,/control,'^d'} (e.g. in
+a couple of workarounds: @code{define_key,/control,'^d'} (e.g. in
 your @file{$IDL_STARTUP} file) will disable the @samp{EOF} character
 and give you a 512 character limit.  You won't be able to use
 @key{C-d} to quit the shell, however.  Another possibility is
@@ -4281,7 +4281,7 @@ is loaded is one page off, e.g. for @code{CONVERT_COORD}, I get
 You have a mismatch between your help index and the HTML help package
 you downloaded.  You need to ensure you download a ``downgrade kit'' if
 you are using anything older than the latest HTML help package.  A new
-help package apppears with each IDL release (assuming the documentation
+help package appears with each IDL release (assuming the documentation
 is updated).  
 Starting with IDL 6.2, the HTML help and its catalog are
 distributed with IDL, and so should never be inconsistent.
