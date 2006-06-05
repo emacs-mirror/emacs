@@ -101,8 +101,8 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
     (if (boundp sym) (symbol-value sym))))
 
 (defvar gud-running nil
-  "Non-nil if debuggee is running.
-Used to grey out relevant togolbar icons.")
+  "Non-nil if debugged program is running.
+Used to grey out relevant toolbar icons.")
 
 ;; Use existing Info buffer, if possible.
 (defun gud-goto-info ()
@@ -141,12 +141,14 @@ Used to grey out relevant togolbar icons.")
                   :enable (and (not emacs-basic-display)
 			       (display-graphic-p)
 			       (fboundp 'x-show-tip))
+		  :visible (memq gud-minor-mode
+				'(gdbmi gdba dbx sdb xdb pdb))
 	          :button (:toggle . gud-tooltip-mode))
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
-                  :enable (and (not gud-running)
-			       (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
-		  :visible (not (eq gud-minor-mode 'gdba)))
+                  :enable (not gud-running)
+		  :visible (and (memq gud-minor-mode '(gdbmi gdb dbx jdb))
+				(not (eq gud-minor-mode 'gdba))))
     ([go]	menu-item (if gdb-active-process "Continue" "Run") gud-go
 		  :visible (and (not gud-running)
 				(eq gud-minor-mode 'gdba)))
@@ -155,26 +157,27 @@ Used to grey out relevant togolbar icons.")
 			       (and gud-running
 				    (eq gud-minor-mode 'gdba))))
     ([until]	menu-item "Continue to selection" gud-until
-                  :enable (and (not gud-running)
-			       (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
-		  :visible (gud-tool-bar-item-visible-no-fringe))
+                  :enable (not gud-running)
+		  :visible (and (memq gud-minor-mode '(gdbmi gdba gdb perldb))
+				(gud-tool-bar-item-visible-no-fringe)))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
                   :enable (not gud-running)
 		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
-		  :enable (memq gud-minor-mode
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode
 				'(gdbmi gdba gdb sdb xdb bashdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
                   :enable (not gud-running)
 		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([up]	menu-item "Up Stack" gud-up
-		  :enable (and (not gud-running)
-			       (memq gud-minor-mode
-				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
+		  :enable (not gud-running)
+		  :visible (memq gud-minor-mode
+				 '(gdbmi gdba gdb dbx xdb jdb pdb bashdb)))
     ([down]	menu-item "Down Stack" gud-down
-		  :enable (and (not gud-running)
-			       (memq gud-minor-mode
-				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
+		  :enable (not gud-running)
+		  :visible (memq gud-minor-mode
+				 '(gdbmi gdba gdb dbx xdb jdb pdb bashdb)))
     ([pp]	menu-item "Print S-expression" gud-pp
                   :enable (and (not gud-running)
 				  gdb-active-process)
@@ -183,23 +186,23 @@ Used to grey out relevant togolbar icons.")
 				  'gud-target-name gud-comint-buffer) "emacs")
 				(eq gud-minor-mode 'gdba)))
     ([print*]	menu-item "Print Dereference" gud-pstar
-                  :enable (and (not gud-running)
-			       (memq gud-minor-mode '(gdbmi gdba gdb))))
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode '(gdbmi gdba gdb)))
     ([print]	menu-item "Print Expression" gud-print
                   :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
-		  :enable (and (not gud-running)
-			       (memq gud-minor-mode '(gdbmi gdba))))
+		  :enable (not gud-running)
+	  	  :visible (memq gud-minor-mode '(gdbmi gdba)))
     ([finish]	menu-item "Finish Function" gud-finish
-                  :enable (and (not gud-running)
-			       (memq gud-minor-mode
-				     '(gdbmi gdba gdb xdb jdb pdb bashdb))))
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode
+				 '(gdbmi gdba gdb xdb jdb pdb bashdb)))
     ([stepi]	menu-item "Step Instruction" gud-stepi
-                  :enable (and (not gud-running)
-			       (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode '(gdbmi gdba gdb dbx)))
     ([nexti]	menu-item "Next Instruction" gud-nexti
-                  :enable (and (not gud-running)
-			       (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
+                  :enable (not gud-running)
+		  :visible (memq gud-minor-mode '(gdbmi gdba gdb dbx)))
     ([step]	menu-item "Step Line" gud-step
                   :enable (not gud-running))
     ([next]	menu-item "Next Line" gud-next
@@ -3313,7 +3316,8 @@ Treats actions as defuns."
 	(kill-local-variable 'gdb-define-alist)
 	(remove-hook 'after-save-hook 'gdb-create-define-alist t))))
 
-(defcustom gud-tooltip-modes '(gud-mode c-mode c++-mode fortran-mode)
+(defcustom gud-tooltip-modes '(gud-mode c-mode c++-mode fortran-mode
+					python-mode)
   "List of modes for which to enable GUD tooltips."
   :type 'sexp
   :group 'gud
@@ -3427,9 +3431,8 @@ With arg, dereference expr iff arg is positive."
   (case gud-minor-mode
 	(gdba (concat "server print " expr))
 	((dbx gdbmi) (concat "print " expr))
-	(xdb (concat "p " expr))
-	(sdb (concat expr "/"))
-	(perldb expr)))
+	((xdb pdb) (concat "p " expr))
+	(sdb (concat expr "/"))))
 
 (defun gud-tooltip-tips (event)
   "Show tip for identifier or selection under the mouse.
