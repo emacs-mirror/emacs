@@ -1,5 +1,9 @@
 2006-06-05  Romain Francoise  <romain@orebokech.com>
 
+	* gnus-faq.texi (Question 8.6): Update reference to the Gnus
+	channel (#gnus@irc.freenode.net).
+	Fix typos.  Update copyright notice.
+
 	* cc-mode.texi (Getting Started, Indentation Commands, Config Basics)
 	(Custom Filling and Breaking, Custom Braces, Syntactic Symbols)
 	(Line-Up Functions, Custom Macros):
