@@ -1,3 +1,8 @@
+2006-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event): Exclude
+	0x7f from ASCII range.
+
 2006-06-05  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_set_scroll_bar_thumb, x_scroll_bar_create)
