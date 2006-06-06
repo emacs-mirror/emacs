@@ -281,7 +281,7 @@ TOOLKIT_DEFINES =
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
@@ -401,6 +401,11 @@ LIBXT=$(LIBW) -lSM -lICE
 LIBXT=$(LIBW)
 #endif
 #endif /* not USE_X_TOOLKIT */
+
+#if HAVE_XFT
+#undef LIB_X11_LIB
+#define LIB_X11_LIB @XFT_LIBS@
+#endif /* HAVE_XFT */
 
 #if HAVE_XPM
 #ifndef LIBXPM
@@ -574,6 +579,23 @@ emacsapp = $(PWD)/$(mac)Emacs.app/
 emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+#ifdef USE_FONT_BACKEND
+FONTSRC = font.h
+#ifdef HAVE_X_WINDOWS
+#if defined (HAVE_XFT)
+FONTOBJ = font.o xfont.o ftfont.o xftfont.o ftxfont.o
+#elif defined (HAVE_FREETYPE)
+FONTOBJ = font.o xfont.o ftfont.o ftxfont.o
+#else /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
+FONTOBJ = font.o xfont.o
+#endif /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
+#else /* ! HAVE_X_WINDOWS */
+FONTOBJ = font.o
+#endif /* ! HAVE_X_WINDOWS */
+#endif /* USE_FONT_BACKEND */
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
@@ -589,7 +611,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MAC_OBJ) $(CYGWIN_OBJ)
+	$(MSDOS_OBJ) $(MAC_OBJ) $(CYGWIN_OBJ) $(FONTOBJ)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -598,7 +620,7 @@ SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
   w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
-  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONTOBJ)
 
 
 #ifdef TERMINFO
@@ -914,7 +936,7 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) \
    LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
    LIBS_DEBUG $(GETLOADAVG_LIBS) $(GNULIB_VAR) LIB_MATH LIB_STANDARD \
-   $(GNULIB_VAR)
+   $(GNULIB_VAR) @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@
 
 /* Enable recompilation of certain other files depending on system type.  */
 
@@ -1130,8 +1152,11 @@ frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h character.h fontset.h \
    msdos.h dosfns.h dispextern.h w32term.h macterm.h $(config_h)
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h $(config_h)
+font.o: font.c dispextern.h frame.h ccl.h character.h charset.h font.h \
+   $(config_h)
+ftfont.o: dispextern.h frame.h character.h charset.h font.h $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
-   charset.h frame.h keyboard.h $(config_h)
+   charset.h frame.h keyboard.h $(FONTSRC) $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
    systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h $(config_h)
@@ -1202,21 +1227,28 @@ xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h \
    coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h     \
    charset.h keyboard.h $(INTERVAL_SRC) region-cache.h xterm.h w32term.h      \
    macterm.h $(config_h) msdos.h composite.h fontset.h blockinput.h atimer.h  \
-   systime.h keymap.h
+   systime.h keymap.h $(FONTSRC)
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h	\
    window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h	\
-   systime.h keyboard.h fontset.h w32term.h macterm.h $(INTERVAL_SRC)	\
-   $(config_h)
+   systime.h keyboard.h fontset.h w32term.h macterm.h $(INTERVAL_SRC) \
+   $(FONTSRC) $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
-   character.h charset.h coding.h gtkutil.h $(config_h) termhooks.h
+   character.h charset.h coding.h gtkutil.h $(config_h) termhooks.h \
+   fontset.h $(FONTSRC)
+xfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
+   font.h $(config_h)
+xftfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
+   font.h $(config_h)
+ftxfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
+   font.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    charset.h keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h \
    systime.h gtkutil.h msdos.h coding.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
    dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
    keyboard.h gnu.h character.h charset.h ccl.h fontset.h composite.h \
-   coding.h process.h gtkutil.h $(config_h)
+   coding.h process.h gtkutil.h $(FONTSRC) $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
   buffer.h atimer.h systime.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
