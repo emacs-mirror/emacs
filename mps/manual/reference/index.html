@@ -5985,7 +5985,7 @@ mps_addr_t my_class_method(mps_addr_t object) {
 
 <h4>Summary</h4>
 
-<p><code><a href="#mps_fmt_copy_t">mps_fmt_copy_t</a></code> is a function pointer type for the copy method of a format.</p>
+<p><code><a href="#mps_fmt_copy_t">mps_fmt_copy_t</a></code> is a function pointer type for the copy method of a format.  [Obsolete.  RHSK 2006-06-06]</p>
 
 
 <h4>Associated Protocols</h4>
@@ -6011,6 +6011,8 @@ mps_addr_t my_class_method(mps_addr_t object) {
 
 
 <h4>Description</h4>
+
+<p>[Note: <code><a href="#mps_fmt_copy_t">mps_fmt_copy_t</a></code> is obsolete: the MPS does not call this format method.  The MPS simply copies all the bytes to the new location (using the length reported by the skip format method).  RHSK 2006-06-06]</p>
 
 <p><code><a href="#mps_fmt_copy_t">mps_fmt_copy_t</a></code> is a function pointer type for the copy method of a format. A copy methodcopies an object to a new location. It may be called by the MPS as part of copying garbagecollection, for example.</p>
 
@@ -10516,12 +10518,18 @@ MPS_PF_XCPPGC
 
 </tr>
 
+<tr valign="top">
+  <td>2006-06-06</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Marked copy format method as obsolete.</td>
+</tr>
+
 </table>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p>This document is copyright &copy; 1997-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options.</p>
+<p>This document is copyright &copy; 1997-2002, 2006 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options.</p>
 
 <p>Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:</p>
 
