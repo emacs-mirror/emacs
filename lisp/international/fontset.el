@@ -4,7 +4,7 @@
 ;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
-;; Copyright (C) 2003
+;; Copyright (C) 2003, 2006
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -74,6 +74,7 @@
 	("viscii" . viscii)
 	("tis620" . tis620-2533)
 	("microsoft-cp1251" . windows-1251)
+	("koi8-r" . koi8-r)
 	("mulearabic-0" . arabic-digit)
 	("mulearabic-1" . arabic-1-column)
 	("mulearabic-2" . arabic-2-column)
@@ -112,6 +113,46 @@
 	("iso10646-1$" . (unicode-bmp . nil))
 	("iso10646.indian-1" . (unicode-bmp . nil))))
 
+(setq script-representative-chars
+      '((greek #x3A9)
+	(coptic #x3E2)
+	(cyrillic #x42F)
+	(armenian #x531)
+	(hebrew #x5D0)
+	(arabic #x628)
+	(syriac #x710)
+	(thaana #x78C)
+	(devanagari #x915)
+	(bengali #x995)
+	(gurmukhi #xA15)
+	(gujarati #xA95)
+	(oriya #xB15)
+	(tamil #xB95)
+	(telugu #xC15)
+	(kannada #xC95)
+	(malayalam #xD15)
+	(sinhala #xD95)
+	(thai #xE17)
+	(lao #xEA5)
+	(tibetan #xF40)
+	(myanmar #x1000)
+	(georgian #x10D3)
+	(ethiopic #x1208)
+	(cherokee #x13B6)
+	(canadian-aboriginal #x14C0)
+	(ogham #x168F)
+	(runic #x16A0)
+	(khmer #x1780)
+	(mongolian #x1826)
+	(braille #x2800)
+	(ideographic-description #x2FF0)
+	(cjk-misc #x300E)
+	(kana #x304B)
+	(bopomofo #x3105)
+	(kanbun #x319D)
+	(han #x5B57)
+	(yi #xA288)
+	(hangul #xAC00)))
 
 ;; Set standard fontname specification of characters in the default
 ;; fontset to find an appropriate font for each script/charset.  The
@@ -747,7 +788,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	fontset-spec)
     (while (setq fontset-spec (x-get-resource (format "fontset-%d" idx)
 					      (format "Fontset-%d" idx)))
-      (message "%s" fontset-spec)
       (create-fontset-from-fontset-spec fontset-spec t 'noerror)
       (setq idx (1+ idx)))))
 
