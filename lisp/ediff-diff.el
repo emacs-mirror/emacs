@@ -65,8 +65,10 @@ Must produce output compatible with Unix's diff3 program."
 ;; The following functions needed for setting diff/diff3 options
 ;; test if diff supports the --binary option
 (defsubst ediff-test-utility (diff-util option &optional files)
-  (eq 0 (apply 'call-process
-	       (append (list diff-util nil nil nil option) files))))
+  (condition-case ()
+      (eq 0 (apply 'call-process
+		   (append (list diff-util nil nil nil option) files)))
+    (file-error nil)))
 
 (defun ediff-diff-mandatory-option (diff-util)
   (let ((file (if (boundp 'null-device) null-device "/dev/null")))

@@ -1,3 +1,8 @@
+2006-06-06  Jesper Harder  <harder@phys.au.dk>
+
+	* ediff-diff.el (ediff-diff-mandatory-option): Protect against
+	file-error.
+
 2006-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* diff-mode.el (diff-mode): Set buffer-read-only to t when
