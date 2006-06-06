@@ -4,7 +4,7 @@
    Copyright (C) 1995, 1997, 2000
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
-   Copyright (C) 2003
+   Copyright (C) 2003, 2006
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -243,9 +243,25 @@ extern Lisp_Object Vvertical_centering_font_regexp;
       ? (FRAME_X_DISPLAY_INFO ((F))->font_table + (ID))			\
       : 0)
 
+#ifdef USE_FONT_BACKEND
+#define FONT_INFO_FROM_FACE(F, FACE)		\
+  (enable_font_backend ? (FACE)->font_info	\
+   : FONT_INFO_FROM_ID ((F), (FACE)->font_info_id))
+#else  /* not USE_FONT_BACKEND */
+#define FONT_INFO_FROM_FACE(F, FACE)	\
+  FONT_INFO_FROM_ID ((F), (FACE)->font_info_id)
+#endif	/* not USE_FONT_BACKEND */
+
 extern Lisp_Object fontset_name P_ ((int));
 extern Lisp_Object fontset_ascii P_ ((int));
 extern int fontset_height P_ ((int));
+
+#ifdef USE_FONT_BACKEND
+struct font;
+extern int face_for_font P_ ((struct frame *, struct font *, struct face *));
+extern int new_fontset_from_font P_ ((FRAME_PTR, Lisp_Object));
+extern struct font *fontset_ascii_font P_ ((FRAME_PTR, int));
+#endif	/* USE_FONT_BACKEND */
 
 #endif /* EMACS_FONTSET_H */
 
