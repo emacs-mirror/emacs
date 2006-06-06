@@ -123,9 +123,9 @@ whether it is a client object, a forwarding object, or a padding object.
          the MPS to 'fix' each pointer it finds;</li>
 </ul>
 
-<p>Move this client object:</p>
+<p>Move this client object (obsolete, see below):</p>
 <ul>
-  <li> Copy (see <a href="../reference/index.html#mps_fmt_copy_t">mps_fmt_copy_t</a>):
+  <li> Copy (obsolete) (see <a href="../reference/index.html#mps_fmt_copy_t">mps_fmt_copy_t</a>):
          client must copy the object to a new location.</li>
 </ul>
 
@@ -147,6 +147,28 @@ whether it is a client object, a forwarding object, or a padding object.
          create a padding object here, please.</li>
 </ul>
 
+<h3><a id="format-methods-copy-is-obsolete">Format Methods: the Copy method is obsolete</a></h3>
+
+<p>The Copy method is obsolete, and is never called.  The MPS just uses 
+<code>mps_lib_memcpy()</code> to copy the bytes to the new location.  
+It knows how many bytes to copy by using the Skip method.</p>
+
+<p>Historical notes: The original justification for Copy was:</p>
+<ul>
+  <li> client (knowing the object's data fields) might intelligently 
+         copy less than all the bytes;</li>
+  <li> client might alter the data, eg. fixing-up internal pointers.</li>
+</ul>
+<p>... but this didn't happen with actual clients, and the interface 
+to the copy method didn't pass the skip-size (which the MPS has 
+already determined by calling Skip) and so didn't allow an efficient 
+copy method to be written. So it was dropped, in 1998 or earlier.  
+The only place this memcpy currently occurs is in poolamc.c,  in 
+AMCFix() (and now AMCHeaderFix() too).</p>
+
+<p>There are notes on this change at 
+<a href="../../design/trace/#fix.nocopy">design/trace/#fix.nocopy</a>.</p>
+
 <h3><a id="format-variants">Format Variants</a></h3>
 
 <p>There are several different ways to package-up the format methods -- these different ways are called 'variants'.  MPS currently supports four format variants.  The creation functions for these are:</p>
@@ -164,7 +186,7 @@ whether it is a client object, a forwarding object, or a padding object.
 <pre>
   2006-06-02  RHSK  Created.
   2006-06-02  RHSK  Introduction to MPS Formats
-  2006-06-06  RHSK  Formats: clarify explanation of methods, and list variants.
+  2006-06-06  RHSK  Formats: clarify explanation of methods, copy method is obsolete, mention format variants.
 </pre>
 
 
