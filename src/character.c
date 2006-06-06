@@ -81,6 +81,9 @@ unsigned char *_fetch_multibyte_char_p;
 /* Char table of scripts.  */
 Lisp_Object Vchar_script_table;
 
+/* Alist of scripts vs representative characters.  */
+Lisp_Object Vscript_representative_chars;
+
 static Lisp_Object Qchar_script_table;
 
 /* Mapping table from unibyte chars to multibyte chars.  */
@@ -983,6 +986,10 @@ It has one extra slot whose value is a list of script symbols.  */);
   DEFSYM (Qchar_script_table, "char-script-table");
   Fput (Qchar_script_table, Qchar_table_extra_slots, make_number (1));
   Vchar_script_table = Fmake_char_table (Qchar_script_table, Qnil);
+
+  DEFVAR_LISP ("script-representative-chars", &Vscript_representative_chars,
+	       doc: /* Alist of scripts vs the representative characters.  */);
+  Vscript_representative_chars = Qnil;
 }
 
 #endif /* emacs */
