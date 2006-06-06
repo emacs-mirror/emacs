@@ -1,3 +1,8 @@
+2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (ASCII export): Document indentation adaptation.
+	(Setting tags): Document mutually-exclusive tags.
+
 2006-06-05  Romain Francoise  <romain@orebokech.com>
 
 	* url.texi (irc): Mention new funs `url-irc-rcirc' and `url-irc-erc'.

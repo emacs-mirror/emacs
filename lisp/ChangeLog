@@ -1,3 +1,24 @@
+2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-archive-subtree): Use end-of-subtree as
+	insertion point and control the number of empty lines.
+	(org-paste-subtree): Limit the number of empty lines at the end of
+	the inserted tree.
+	(org-agenda): Use buffer name of current file for narrowing.
+	(org-export-as-xml): Command removed.
+	(org-export-xml-type): Option removed.
+	(org-mode-map): Call `org-export-as-xoxo' directly.
+	(org-get-indentation): New optional argument LINE.
+	(org-fix-indentation, org-remove-tabs): New functions.
+	(org-export-as-ascii, org-ascii-level-start): Determine and apply
+	correct indentation for headlines that are converted it items.
+	(org-skip-comments): Remove table lines that contain narrowing
+	cookies but no other non-empty fields.
+	(org-set-tags): Allow groups of mutually exclusive tags.
+	(org-cmp-time): Sort 24:21 before items without time.
+	(org-get-time-of-day): Fixed the interpretation of 12pm and 12am.
+	(org-open-at-point): Require double colon also for numbers.
+
 2006-06-06  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-default-file-method, ido-default-buffer-method):
