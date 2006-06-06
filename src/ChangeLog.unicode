@@ -1,3 +1,109 @@
+2006-06-06  Kenichi Handa  <handa@m17n.org>
+
+	These changes are for the new font handling codes.
+
+	* Makefile.in (ALL_CFLAGS): Add @FREETYPE_CFLAGS@,
+	@FONTCONFIG_CFLAGS@, and @LIBOTF_CFLAGS@.
+	(LIB_X11_LIB): If HAVE_XFT is defined, set to @XFT_LIBS@.
+	(FONTSRC, FONTOBJ): New variables.
+	(obj): Add $(FONTOBJ).
+	(SOME_MACHINE_OBJECTS): Lib_X11_Lib.
+	(LIBES): Add @FREETYPE_LIBS@, @FONTCONFIG_LIBS@, and
+	@LIBOTF_LIBS@.
+	(font.o, ftfont.o, xfont.o, xftfont.o, ftxfont.o): New targets.
+	(fontset.o, xdisp.o, xfaces.o, xfns.o, xterm.o): Depends on
+	$(FONTSRC).
+
+	* font.h, font.c, xfont.c, ftfont.c, xftfont.c, ftxfont.c: New
+	files.
+
+	* character.h (Vscript_representative_chars): Extern it.
+
+	* character.c (Vscript_representative_chars): New variable.
+	(syms_of_character): Declare it as a Lisp variable.
+
+	* composite.c (get_composition_id) [USE_FONT_BACKEND]: If
+	enable_font_backend is nonzero, accept the composition method
+	COMPOSITION_WITH_GLYPH_STRING.
+
+	* composite.h (enum composition_method) [USE_FONT_BACKEND]: New
+	enumeration COMPOSITION_WITH_GLYPH_STRING.
+
+	* config.in: Re-generated.
+
+	* dispextern.h (struct glyph_string) [USE_FONT_BACKEND]: New
+	members clip_x, clip_y, clip_width, and clip_height.
+	(struct face) [USE_FONT_BACKEND]: New members font_info and extra.
+
+	* emacs.c (main) [USE_FONT_BACKEND]: Handle arg
+	--enable-font-backend.  Call syms_of_font.
+
+	* fns.c (assoc_no_quit): New function.
+
+	* fontset.h (FONT_INFO_FROM_FACE): New macro.
+	(face_for_font, new_fontset_from_font)
+	(fontset_ascii_font) [USE_FONT_BACKEND]: Extern them.
+
+	* fontset.c [USE_FONT_BACKEND]: Include "font.h".
+	(fontset_font, fontset_ascii, face_for_char)
+	(make_fontset_for_ascii_face, Ffont_info)
+	(Finternal_char_font) [USE_FONT_BACKEND]: If enable_font_backend
+	is nonzero, use font-backend mechanism.
+	(find_font_encoding): Make it non-static.
+	(new_fontset_from_font, fontset_ascii_font) [USE_FONT_BACKEND]:
+	New functions.
+
+	* frame.h (struct frame): New members resx and resy.
+	(struct frame) [USE_FONT_BACKEND]: New member font_driver_list.
+	(x_new_fontset2) [USE_FONT_BACKEND]: Extern it.
+
+	* frame.c [USE_FONT_BACKEND]: Include "font.h".
+	(make_frame, x_set_font) [USE_FONT_BACKEND]: Use font-backend
+	mechanism.
+
+	* xdisp.c: If USE_FONT_BACKEND is defined, include "font.h".
+	Through out the file, use FONT_INFO_FROM_FACE instead of
+	FONT_INFO_FROM_ID, use get_per_char_metric instead of
+	rif->per_char_metric.
+	(handle_composition_prop) [USE_FONT_BACKEND]: If the composition
+	method is COMPOSITION_WITH_GLYPH_STRING, just set it->c to ' '.
+	(get_glyph_face_and_encoding, fill_composite_glyph_string)
+	(get_char_face_and_encoding, BUILD_COMPOSITE_GLYPH_STRING)
+	(x_produce_glyphs) [USE_FONT_BACKEND]: If enable_font_backend is
+	nonzero, use font-backend mechanism.
+	(get_per_char_metric): New function.
+
+	* xfaces.c [USE_FONT_BACKEND]: Include "font.h".
+	(set_lface_from_font_name)
+	(set_font_frame_param, free_realized_face)
+	(prepare_face_for_display, clear_face_gcs)
+	(Finternal_set_font_selection_order, realize_x_face)
+	[USE_FONT_BACKEND]: If enable_font_backend is nonzero, use
+	font-backend mechanism.
+	(clear_face_cache) [USE_FONT_BACKEND]: Don't call
+	clear_font_table.
+	(load_face_font) [USE_FONT_BACKEND]: Abort.
+	(face_symbolic_value, face_symbolic_weight, face_symbolic_slant)
+	(face_symbolic_swidth, face_for_font) [USE_FONT_BACKEND]: New
+	functions.
+
+	* xfns.c [USE_FONT_BACKEND]: Include "font.h".
+	(x_default_font_parameter) [USE_FONT_BACKEND]: New function.
+	(Fx_create_frame) [USE_FONT_BACKEND]: If enable_font_backend is
+	nonzero, register all available font drivers.  Call
+	x_default_font_parameter for deciding a font.
+	(x_create_tip_frame) [USE_FONT_BACKEND]: Likewise.
+
+	* xterm.c [USE_FONT_BACKEND]: Include "font.h".
+	(x_set_mouse_face_gc, x_set_glyph_string_clipping)
+	(x_set_glyph_string_clipping_exactly)
+	(x_compute_glyph_string_overhangs)
+	(x_draw_glyph_string_foreground)
+	(x_draw_composite_glyph_string_foreground, x_draw_glyph_string)
+	(x_free_frame_resources) [USE_FONT_BACKEND]: If
+	enable_font_backend is nonzero, use font-backend mechanism.
+	(x_new_fontset2) [USE_FONT_BACKEND]: New function.
+
 2006-05-15  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (system_eol_type): Fix synching with HEAD.
