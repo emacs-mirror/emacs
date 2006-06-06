@@ -42,18 +42,18 @@ Turkish (T,A|(Brk,Ag(Be)	Merhaba
 Ukrainian (,LcZ`Pw]alZP(B)	,L2vbPn(B
 Vietnamese (ti,1*(Bng Vi,1.(Bt)	Ch,A`(Bo b,1U(Bn
 
-Japanese ($AHU1>$(Gk#(B)	$A$3$s$K$A$O(B, (I:]FAJ(B
+Japanese ($BF|K\8l(B)	$B$3$s$K$A$O(B, (I:]FAJ(B
 Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B
-Cantonese ($(Gemk#(B,$(Gl]N)fc(B)	$ATg3?(B, $ADc:C(B
+Cantonese ($(0GnM$(B,$(Gl]$(00*Hd(B)	$(0*/=((B, $(0+$)p(B
 Korean ($(CGQ1[(B)	$(C>H3gGO<<?d(B, $(C>H3gGO=J4O1n(B
 
 Difference among chinese characters in GB, JIS, KSC, BIG5:
 GB	$AT*Fx(B  $A?*7"(B
-JIS	$AT*$B5$(B  $(Gbd$BH/(B
-KSC	$AT*$(GV4(B  $(Gbd`u(B
-BIG5	$AT*$(GV4(B  $(Gbd`u(B
+JIS	$B855$(B  $B3+H/(B
+KSC	$(Cj*Q((B  $(CKR[!(B
+BIG5	$(0&x86(B  $(0DeBv(B
 
-Just for a test of JISX0212: $(HdYnG(B (the second character is of JISX0212)
+Just for a test of JISX0212: $BqV$(DiQ(B (the second character is of JISX0212)
 
 A short test for Unicode characters:
 Czech (,Bh(Besky)	Dobr,A}(B den
