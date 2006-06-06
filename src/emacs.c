@@ -821,6 +821,9 @@ bug_reporting_address ()
   return count >= 3 ? REPORT_EMACS_BUG_PRETEST_ADDRESS : REPORT_EMACS_BUG_ADDRESS;
 }
 
+#ifdef USE_FONT_BACKEND
+extern int enable_font_backend;
+#endif	/* USE_FONT_BACKEND */
 
 /* ARGSUSED */
 int
@@ -1177,6 +1180,13 @@ main (argc, argv
       printf (USAGE4, bug_reporting_address ());
       exit (0);
     }
+
+#ifdef USE_FONT_BACKEND
+  enable_font_backend = 0;
+  if (argmatch (argv, argc, "-enable-font-backend", "--enable-font-backend",
+		4, NULL, &skip_args))
+    enable_font_backend = 1;
+#endif	/* USE_FONT_BACKEND */
 
   if (! noninteractive)
     {
@@ -1624,6 +1634,9 @@ main (argc, argv
       syms_of_window ();
       syms_of_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
+#ifdef USE_FONT_BACKEND
+      syms_of_font ();
+#endif	/* USE_FONT_BACKEND */
       syms_of_fringe ();
       syms_of_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
