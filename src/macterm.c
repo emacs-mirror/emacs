@@ -9569,7 +9569,7 @@ mac_handle_text_input_event (next_handler, event, data)
 	    if (err == noErr && code < 0x80)
 	      {
 		/* ASCII character.  Process it in XTread_socket.  */
-		if (read_socket_inev && code >= 0x20)
+		if (read_socket_inev && code >= 0x20 && code <= 0x7e)
 		  {
 		    struct frame *f = mac_focus_frame (&one_mac_display_info);
 
