@@ -53,6 +53,10 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
 
+#ifdef USE_FONT_BACKEND
+#include "font.h"
+#endif	/* USE_FONT_BACKEND */
+
 /* The name we're using in resource queries.  Most often "emacs".  */
 
 Lisp_Object Vx_resource_name;
@@ -299,6 +303,9 @@ make_frame (mini_p)
 #endif
   f->size_hint_flags = 0;
   f->win_gravity = 0;
+#ifdef USE_FONT_BACKEND
+  f->font_driver_list = NULL;
+#endif	/* USE_FONT_BACKEND */
 
   root_window = make_window ();
   if (mini_p)
@@ -3068,6 +3075,12 @@ x_set_font (f, arg, oldval)
   Lisp_Object frame;
   int old_fontset = FRAME_FONTSET(f);
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    fontset_name = result = x_new_fontset2 (f, arg);
+  else
+    {
+#endif	/* USE_FONT_BACKEND */
   CHECK_STRING (arg);
 
   fontset_name = Fquery_fontset (arg, Qnil);
@@ -3077,6 +3090,9 @@ x_set_font (f, arg, oldval)
             ? x_new_fontset (f, fontset_name)
             : x_new_fontset (f, arg));
   UNBLOCK_INPUT;
+#ifdef USE_FONT_BACKEND
+    }
+#endif
 
   if (EQ (result, Qnil))
     error ("Font `%s' is not defined", SDATA (arg));
