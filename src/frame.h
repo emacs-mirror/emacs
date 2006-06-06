@@ -93,6 +93,10 @@ extern struct x_output tty_display;
 
 #endif /* ! MSDOS && ! WINDOWSNT && ! MAC_OS */
 
+#ifdef USE_FONT_BACKEND
+struct font_driver_list;
+#endif	/* USE_FONT_BACKEND */
+
 struct frame
 {
   EMACS_INT size;
@@ -256,6 +260,9 @@ struct frame
   /* Size of the frame window in pixels.  */
   int pixel_height, pixel_width;
 
+  /* Dots per inch of the screen the frame is on.  */
+  double resx, resy;
+
   /* These many pixels are the difference between the outer window (i.e. the
      left and top of the window manager decoration) and FRAME_X_WINDOW. */
   int x_pixels_diff, y_pixels_diff;
@@ -300,6 +307,11 @@ struct frame
     EMACS_INT nothing;
   }
   output_data;
+
+#ifdef USE_FONT_BACKEND
+  /* List of font-drivers available on the frame. */
+  struct font_driver_list *font_driver_list;
+#endif	/* USE_FONT_BACKEND */
 
   /* Total width of fringes reserved for drawing truncation bitmaps,
      continuation bitmaps and alike.  The width is in canonical char
@@ -1051,7 +1063,9 @@ extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 
 extern Lisp_Object x_new_font P_ ((struct frame *, char *));
 extern Lisp_Object x_new_fontset P_ ((struct frame *, Lisp_Object));
-
+#ifdef USE_FONT_BACKEND
+extern Lisp_Object x_new_fontset2 P_ ((struct frame *, Lisp_Object));
+#endif	/* USE_FONT_BACKEND */
 
 /* These are in frame.c  */
 
