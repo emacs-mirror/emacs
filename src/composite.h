@@ -4,7 +4,7 @@
    Copyright (C) 1997
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
-   Copyright (C) 2003
+   Copyright (C) 2003, 2006
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -28,7 +28,7 @@ Boston, MA 02110-1301, USA.  */
 #ifndef EMACS_COMPOSITE_H
 #define EMACS_COMPOSITE_H
 
-/* Methods to display a sequence of components a composition.  */
+/* Methods to display a sequence of components of a composition.  */
 enum composition_method {
   /* Compose relatively without alternate characters.  */
   COMPOSITION_RELATIVE,
@@ -40,6 +40,10 @@ enum composition_method {
   COMPOSITION_WITH_ALTCHARS,
   /* Compose by specified composition rules with alternate characters.  */
   COMPOSITION_WITH_RULE_ALTCHARS,
+#ifdef USE_FONT_BACKEND
+  /* Compose by specified lispy glyph-string.  */
+  COMPOSITION_WITH_GLYPH_STRING,
+#endif  /* USE_FONT_BACKEND */
   /* This is not a method.  */
   COMPOSITION_NO
 };
