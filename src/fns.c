@@ -1524,6 +1524,22 @@ The value is actually the first element of LIST whose car equals KEY.  */)
   return result;
 }
 
+/* Like Fassoc but never report an error and do not allow quits.
+   Use only on lists known never to be circular.  */
+
+Lisp_Object
+assoc_no_quit (key, list)
+     Lisp_Object key, list;
+{
+  while (CONSP (list)
+	 && (!CONSP (XCAR (list))
+	     || (!EQ (XCAR (XCAR (list)), key)
+		 && NILP (Fequal (XCAR (XCAR (list)), key)))))
+    list = XCDR (list);
+
+  return CONSP (list) ? XCAR (list) : Qnil;
+}
+
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
        doc: /* Return non-nil if KEY is `eq' to the cdr of an element of LIST.
 The value is actually the first element of LIST whose cdr is KEY.  */)
