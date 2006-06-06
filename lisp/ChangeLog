@@ -2,6 +2,8 @@
 
 	* diff-mode.el (diff-mode): Set buffer-read-only to t when
 	diff-default-read-only is non-nill.
+	(diff-hunk-kill, diff-file-kill, diff-split-hunk)
+	(diff-refine-hunk): Set inhibit-read-only to t.
 
 	* diff.el (diff-sentinel, diff): Set inhibit-read-only to t when
 	modifying the *Diff* buffer.
