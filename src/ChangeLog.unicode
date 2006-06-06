@@ -61,6 +61,8 @@
 	(make_frame, x_set_font) [USE_FONT_BACKEND]: Use font-backend
 	mechanism.
 
+	* lisp.h (assoc_no_quit): Extern it.
+
 	* xdisp.c: If USE_FONT_BACKEND is defined, include "font.h".
 	Through out the file, use FONT_INFO_FROM_FACE instead of
 	FONT_INFO_FROM_ID, use get_per_char_metric instead of

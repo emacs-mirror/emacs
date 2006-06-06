@@ -1,8 +1,8 @@
 /* Basic character support.
    Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
      Licensed to the Free Software Foundation.
-   Copyright (C) 2001, 2005 Free Software Foundation, Inc.
-   Copyright (C) 2003
+   Copyright (C) 2001, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2006
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 

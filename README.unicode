@@ -129,3 +129,41 @@ existing support and the extra stuff at
 
  * Old auto-save files, and similar files, such as Gnus drafts,
    containing non-ASCII characters probably won't be re-read correctly.
+
+
+
+New font handling mechanism with font backend method
+----------------------------------------------------
+
+This branch now contains new codes for handling fonts by multiple font
+backends.  The old font handling codes still exist completely parallel
+to the new codes, and the new codes are used only when you configure
+Emacs with the argument "--enable-font-backend" and run Emacs with the
+same argument.
+
+The configure script, if invoked with "--enable-font-backend", checks
+existing of libraries freetype and fontconfig.  If they are both
+available, macro "USE_FONT_BACKEND" is defined in src/config.h.
+In that case, the exiting of Xft library is checked too.
+
+The new files are:
+	font.c -- main font handling code.
+	xfont.c -- font-driver on X for X core fonts.
+	ftfont.c -- generic font-driver for FreeType fonts.
+	xftfont.c -- font-driver on X using Xft for FreeType fonts.
+	ftxfont.c -- font-driver on X not using Xft for FreeType fonts.
+
+So we already have codes for X.  For the other systems (win32 and mac),
+it seems that we need these files:
+	bdffont.c -- generic font-driver for BDF fonts.
+	w32font.c -- font driver on win32 using Windows native fonts.
+	w32bdffont.c -- font-driver on win32 using BDF fonts.
+	atmfont.c -- font-driver on mac using ATM fonts.
+
+It may be interesting if Emacs supports frame buffer directly and have
+these font driver.
+	ftfbfont.c -- font-driver on FB for FreeType fonts.
+	bdffbfont.c -- font-driver on FB for BDF fonts.
+
+Several other files have "#ifdef USE_FONT_BACKEND ... #endif" at the
+place where changed for this new font codes.

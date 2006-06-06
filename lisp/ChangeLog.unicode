@@ -1,3 +1,14 @@
+2006-06-06  Kenichi Handa  <handa@m17n.org>
+
+	These changes are for the new font handling codes.
+
+	* faces.el (font-weight-table, font-slant-table)
+	(font-swidth-table): New customizable variables.
+
+	* international/fontset.el (font-encoding-alist): Add koi8-4.
+	(script-representative-chars): Set the default value.
+	(create-fontset-from-x-resource): Delete `message'.
+
 2006-05-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-utxt-to-string, mac-string-to-utxt)
