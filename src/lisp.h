@@ -2404,6 +2404,7 @@ extern Lisp_Object concat2 P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object concat3 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object nconc2 P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object assq_no_quit P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object assoc_no_quit P_ ((Lisp_Object, Lisp_Object));
 extern void clear_string_char_byte_cache P_ ((void));
 extern int string_char_to_byte P_ ((Lisp_Object, int));
 extern int string_byte_to_char P_ ((Lisp_Object, int));
