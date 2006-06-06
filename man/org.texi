@@ -4,8 +4,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.35
-@set DATE May 2006
+@set VERSION 4.36
+@set DATE June 2006
 
 @dircategory Emacs
 @direntry
@@ -1242,7 +1242,7 @@ Instead of typing an equation into the field, you may also use the
 command @kbd{C-c =}.  It prompts for a formula (with default taken
 from the @samp{#+TBLFM:} line) and applies it to the current field.  A
 numerical prefix (e.g. @kbd{C-5 C-c =}) will apply it to that many
-subsequent fields in the current column.
+consecutive fields in the current column.
 
 @cindex recomputing table fields
 To recompute all the fields in a line, use the command @kbd{C-c *}.
@@ -2336,7 +2336,7 @@ into the following column).
 When Org-mode prompts for a date/time, the function reading your input
 will replace anything you choose not to specify with the current date
 and time.  For details, see the documentation string of
-@command{org-read-date}.  Also, a calendar will pop up to allow
+@command{org-read-date}.  Also, a calender will pop up to allow
 selecting a date.  The calendar can be fully controlled from the
 minibuffer, and a date can be selected with the following commands:
 
@@ -2452,11 +2452,11 @@ the allowed tags for a given file with lines like
 #+TAGS: Laptop Car PC Sailboat
 @end example
 
-The default method Org-mode uses to support setting tags is completion.
-However, it also implements a much better method: @emph{fast tag
-selection}.  This method allows to select and deselect tags with a
-single key per tag.  To function efficiently, you need to assign unique
-keys to all tags.  This can be done globally with
+The default support method is minibuffer completion.  However, Org-mode
+also implements a much better method: @emph{fast tag selection}.  This
+method allows to select and deselect tags with a single key per tag.  To
+function efficiently, you should assign unique keys to all tags.  This
+can be done globally with
 
 @lisp
 (setq org-tag-alist '(("@@WORK" . ?w) ("@@HOME" . ?h) ("Laptop" . ?l)))
@@ -2465,27 +2465,44 @@ keys to all tags.  This can be done globally with
 @noindent or on a per-file basis with
 
 @example
-#+TAGS: @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t)
-#+TAGS: Laptop(l)  Car(c)  PC(p) Sailboat(s)
+#+TAGS: @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t)  Laptop(l)  PC(p)
 @end example
+
+@noindent
+You can also group together tags that are mutually exclusive.  With
+curly braces@footnote{In @code{org-mode-alist} use
+@code{'(:startgroup)} and @code{'(:endgroup)}, respectively.  Several
+groups are allowed.}
+
+@example
+#+TAGS: @{ @@WORK(w)  @@HOME(h)  @@TENNISCLUB(t) @}  Laptop(l)  PC(p)
+@end example
+
+@noindent you indicate that at most one of @samp{@@WORK}, @samp{@@HOME},
+and @samp{@@SAILBOAT} should be selected.
 
 @noindent Don't forget to press @kbd{C-c C-c} with the cursor in one of
 these lines to activate any changes.
 
-If selection keys have been configured, pressing @kbd{C-c C-c} will
+If at least one tag has a selection key, pressing @kbd{C-c C-c} will
 automatically present you with a special interface, listing inherited
 tags, the tags of the current headline, and a list of all legal tags
-with corresponding keys.  Pressing keys for the tags will add or remove
-them from the list of tags in the current line.  @key{SPC} clears all
-tags for this line, @kbd{RET} accepts the modified set, and @kbd{C-g}
-aborts without installing changes.  This method lets you assign tags to
-a headline with very few keys.  With the above setup, you could clear
-the current tags and set @samp{@@HOME}, @samp{Laptop} and @samp{PC} tags
-with just the following keys: @kbd{C-c C-c @key{SPC} h l p @key{RET}}.
+with corresponding keys@footnote{Keys will automatically assigned to
+tags which have no configured keys.}.  Pressing keys for the tags will
+add or remove them from the list of tags in the current line.  Selecting
+a tag in a group of mutually exclusive tags will turn off any other tags
+from that group.  @key{SPC} clears all tags for this line, @kbd{RET}
+accepts the modified set, and @kbd{C-g} aborts without installing
+changes.  This method lets you assign tags to a headline with very few
+keys.  With the above setup, you could clear the current tags and set
+@samp{@@HOME}, @samp{Laptop} and @samp{PC} tags with just the following
+keys: @kbd{C-c C-c @key{SPC} h l p @key{RET}}.  Switching from
+@samp{@@HOME} to @samp{@@WORK} would be done with @kbd{C-c C-c w
+@key{RET}}.
 
 What if you have globally defined your preferred set of tags using the
 variable @code{org-tag-alist}, but would like to use a dynamic tag list
-in a specific file?  Just add and empty TAGS option line to that file:
+in a specific file?  Just add an empty TAGS option line to that file:
 
 @example
 #+TAGS:
@@ -3169,7 +3186,13 @@ at a different level, specify it with a prefix argument.  For example,
 @end example
 
 @noindent
-creates only top level headlines and does the rest as items.
+creates only top level headlines and does the rest as items.  When
+headlines are converted to items, the indentation of the text following
+the headline is changed to fit nicely under the item.  This is done with
+the assumption that the first bodyline indicates the base indenation of
+the body text.  Any indenation larger than this is adjusted to preserve
+the layout relative to the first line.  Should there be lines with less
+indentation than the first, these are left alone.
 
 @node HTML export, XOXO export, ASCII export, Exporting
 @section HTML export
@@ -3357,8 +3380,6 @@ the first headline will not be exported either.
 Toggle the COMMENT keyword at the beginning of an entry.
 @end table
 
-
-
 @node Enhancing text, Export options, Comment lines, Text interpretation
 @subsection Enhancing text for export
 @cindex enhancing text
@@ -3417,6 +3438,11 @@ fixed-width font.
 @item C-c :
 Toggle fixed-width for entry (QUOTE) or region, see below.
 @end table
+
+@cindex linebreak, forced
+@item 
+A double backslash @emph{at the end of a line} enforces a line break at
+this position.
 @end itemize
 
 If these conversions conflict with your habits of typing ASCII text,
@@ -3597,7 +3623,7 @@ specify the publishing function.
 
 The function must accept two arguments: a property list containing at
 least a @code{:publishing-directory} property, and the name of the file
-to be published.  I should take the specified file, make the necessary
+to be published.  It should take the specified file, make the necessary
 transformation (if any) and place the result into the destination folder.
 You can write your own publishing function, but @code{org-publish}
 provides one for attachments (files that only need to be copied):
@@ -4336,12 +4362,6 @@ with other code out there.
 The following extensions for Org-mode have been written by other people:
 
 @table @asis
-@cindex @file{org-checklet.el}
-@item @file{org-checklet.el} by Frank Ruell
-Provides checklist of items which can be either checked or unchecked.
-This is similar to the TODO functionality in Org-mode, but never shows
-up in the agenda.  @file{org-checklet} is freely available at
-@url{http://www.emacswiki.org/cgi-bin/emacs/org-checklet.el}.
 @cindex @file{org-mouse.el}
 @item @file{org-mouse.el} by Piotr Zielinski
 This package implements extended mouse functionality for Org-mode.  It
@@ -4556,8 +4576,8 @@ other things.
 Linking to VM/BBDB/GNUS was inspired by @i{Tom Shannon}'s
 @file{organizer-mode.el}.
 @item
-@i{David O'Toole} wrote @file{org-publish.el} and came up with lots of
-ideas for small changes.
+@i{David O'Toole} wrote @file{org-publish.el} and drafted the manual
+chapter about publishing.
 @item
 @i{J@"urgen Vollmer} contributed code generating the table of contents
 in HTML output.
