@@ -109,6 +109,10 @@ AC_ARG_WITH(gif,
 [  --with-gif              use -lungif for displaying GIF images])
 AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
+AC_ARG_WITH(freetype,
+[  --with-freetype         use -lfreetype for local fonts support])
+AC_ARG_WITH(xft,
+[  --with-xft              use -lXft for anti aliased fonts])
 AC_ARG_WITH(gtk,
 [  --with-gtk              use GTK (same as --with-x-toolkit=gtk)])
 AC_ARG_WITH(pkg-config-prog,
@@ -124,6 +128,11 @@ AC_ARG_ENABLE(carbon-app,
 [[  --enable-carbon-app[=DIR]  [DIR=/Application]
                           specify install directory for Emacs.app on Mac OS X]],
 [ carbon_appdir_x=${enableval}])
+
+AC_ARG_ENABLE(font-backend,
+[  --enable-font-backend   compile code of font-backend support],
+      USE_FONT_BACKEND=$enableval,
+      USE_FONT_BACKEND=no)
 
 AC_ARG_ENABLE(asserts,
 [  --enable-asserts        compile code with asserts enabled],
@@ -2267,6 +2276,90 @@ either XPointer or XPointer*.])dnl
     AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer])
   fi
   CFLAGS=$late_CFLAGS
+fi
+
+### For font-backend
+if test "${USE_FONT_BACKEND}" = "yes"; then
+
+AC_DEFINE(USE_FONT_BACKEND, 1,
+          [Define to 1 if we should use font-backend.])
+
+### Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
+HAVE_XFT=maybe
+if test "${HAVE_X11}" = "yes"; then
+  if test "x${with_freetype}" = "xno"; then
+    with_xft="no";
+  fi
+  if test "x${with_xft}" != "xno"; then
+
+    dnl Check if --with-pkg-config-prog has been given.
+    if test "X${with_pkg_config_prog}" != X; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+    fi
+
+    PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
+    if test "$HAVE_XFT" != no; then
+      OLD_CPPFLAGS="$CPPFLAGS"
+      OLD_CFLAGS="$CFLAGS"
+      OLD_LIBS="$LIBS"
+      CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
+      CFLAGS="$CFLAGS $XFT_CFLAGS"
+      LIBS="$XFT_LIBS $LIBS"
+      AC_CHECK_HEADER(X11/Xft/Xft.h,
+        AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS))
+
+      if test "${HAVE_XFT}" = "yes"; then
+        AC_DEFINE(HAVE_XFT, 1, [Define to 1 if you have the Xft library.])
+ 	AC_SUBST(XFT_LIBS)
+        C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
+      else
+        CFLAGS="$OLD_CPPFLAGS"
+        CFLAGS="$OLD_CFLAGS"
+        LIBS="$OLD_LIBS"
+      fi
+    fi
+  fi
+fi
+
+HAVE_FREETYPE=no
+### Use -lfreetype if available, unless `--with-freetype=no'.
+if test "${HAVE_XFT}" = "yes"; then
+  dnl As we use Xft, we anyway use freetype.
+  dnl In this case, there's no need of additional CFLAGS and LIBS.
+  HAVE_FREETYPE=yes
+elif test "x${with_freetype}" != "xno"; then
+  dnl Check if --with-pkg-config-prog has been given.
+  if test "X${with_pkg_config_prog}" != X; then
+    PKG_CONFIG="${with_pkg_config_prog}"
+  fi
+
+  PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
+  if test "${HAVE_FREETYPE}" = "yes"; then
+    PKG_CHECK_MODULES(FONTCONFIG, fontconfig, HAVE_FC=yes, HAVE_FC=no)
+    if test "${HAVE_FC}" = "no"; then
+      dnl Witout fontconfig, we can't use freetype at the moment.
+      HAVE_FREETYPE=no
+    fi
+  fi
+fi
+if test "${HAVE_FREETYPE}" = "yes"; then
+  AC_DEFINE(HAVE_FREETYPE, 1,
+           [Define to 1 if you have freetype and fontconfig libraries.])
+  AC_CHECK_PROG(HAVE_LIBOTF, libotf-config, yes, no)
+  if test "${HAVE_LIBOTF}" = "yes"; then
+    AC_DEFINE(HAVE_LIBOTF, 1,
+             [Define to 1 if you have libotf library.])
+    LIBOTF_CFLAGS=`libotf-config --cflags`
+    LIBOTF_LIBS=`libotf-config --libs`
+  fi
+fi
+AC_SUBST(FREETYPE_CFLAGS)
+AC_SUBST(FREETYPE_LIBS)
+AC_SUBST(FONTCONFIG_CFLAGS)
+AC_SUBST(FONTCONFIG_LIBS)
+AC_SUBST(LIBOTF_CFLAGS)
+AC_SUBST(LIBOTF_LIBS)
+
 fi
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
