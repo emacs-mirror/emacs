@@ -103,6 +103,64 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 	   (internal-set-alternative-font-registry-alist value)))
 
 
+(defcustom font-weight-table
+  '((thin . 0)
+    (ultralight . 40) (ultra-light . 40) (extra-light . 40)
+    (light . 50)
+    (semilight . 65) (semi-light . 65)
+    (book . 75)
+    (normal . 80) (regular . 80)
+    (medium . 100)
+    (semibold . 180) (semi-bold . 180) (demibold . 180) (demi . 180)
+    (bold . 200)
+    (extrabold . 205) (extra-bold . 205)
+    (ultrabold . 205) (ultra-bold . 205)
+    (black . 210) (heavy . 210))
+  "*Alist of font weight symbols vs the corresponding numeric values."
+  :tag "Font weight table"
+  :version "23.1"
+  :group 'font-selection
+  :type '(repeat (cons symbol integer))
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (if (fboundp 'internal-set-font-style-table)
+	       (internal-set-font-style-table :weight value))))
+
+(defcustom font-slant-table
+  '((ro . 0)
+    (ri . 10)
+    (r . 100) (normal . 100)
+    (i . 200) (italic . 200) (ot . 200)
+    (o . 210) (oblique . 210))
+  "*Alist of font slant symbols vs the corresponding numeric values."
+  :tag "Font slant table"
+  :version "23.1"
+  :group 'font-selection
+  :type '(repeat (cons symbol integer))
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (if (fboundp 'internal-set-font-style-table)
+	       (internal-set-font-style-table :slant value))))
+
+(defcustom font-swidth-table
+  '((ultracondensed . 50) (ultra-condensed . 50)
+    (extracondensed . 63) (extra-condensed . 63)
+    (condensed . 75) (compressed . 75) (narrow . 75)
+    (semicondensed . 87) (semi-condensed . 87)
+    (normal . 100) (medium . 100) (regular . 100)
+    (semiexpanded . 113) (semi-expanded . 113) (demiexpanded . 113)
+    (expanded . 125)
+    (extraexpanded . 150) (extra-expanded . 150)
+    (ultraexpanded . 200) (ultra-expanded . 200) (wide . 200))
+  "*Alist of font swidth symbols vs the corresponding numeric values."
+  :tag "Font swidth table"
+  :version "23.1"
+  :group 'font-selection
+  :type '(repeat (cons symbol integer))
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (if (fboundp 'internal-set-font-style-table)
+	       (internal-set-font-style-table :width value))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Creation, copying.
