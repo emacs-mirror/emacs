@@ -1,3 +1,9 @@
+2006-06-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Move node to end.
+	(GDB Graphical Interface): Move description of clicks in fringe...
+        (GDB commands in the Fringe): ...to here.  New node.
+
 2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (ASCII export): Document indentation adaptation.
