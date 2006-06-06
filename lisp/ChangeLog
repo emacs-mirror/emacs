@@ -1,3 +1,13 @@
+2006-06-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* diff-mode.el (diff-mode): Set buffer-read-only to t when
+	diff-default-read-only is non-nill.
+
+	* diff.el (diff-sentinel, diff): Set inhibit-read-only to t when
+	modifying the *Diff* buffer.
+	(diff-process-filter): New filter function for diff process that
+	sets inhibit-read-only to t when modifying the *Diff* buffer.
+
 2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-archive-subtree): Use end-of-subtree as

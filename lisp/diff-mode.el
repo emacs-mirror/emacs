@@ -993,8 +993,7 @@ a diff with \\[diff-reverse-direction]."
   ;; compile support
   (set (make-local-variable 'next-error-function) 'diff-next-error)
 
-  (when (and (> (point-max) (point-min)) diff-default-read-only)
-    (toggle-read-only t))
+  (setq buffer-read-only diff-default-read-only)
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-functions 'diff-write-contents-hooks nil t)
