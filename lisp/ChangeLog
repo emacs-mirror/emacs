@@ -1,3 +1,11 @@
+2006-06-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (find-auto-coding): Don't handle the short
+	name `char-trans'.
+
+	* files.el (hack-local-variables-prop-line)
+	(hack-local-variables): Cancel the previous change.
+
 2006-06-06  Jesper Harder  <harder@phys.au.dk>
 
 	* ediff-diff.el (ediff-test-utility): Protect against
