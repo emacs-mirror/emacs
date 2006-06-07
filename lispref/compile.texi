@@ -435,15 +435,16 @@ compiler becomes a constant which appears in the compiled program.  If
 you load the source file, rather than compiling it, @var{body} is
 evaluated normally.
 
+@cindex compile-time constant
 If you have a constant that needs some calculation to produce,
-@code{eval-when-compile} can do that done at compile-time.  For
-example,
+@code{eval-when-compile} can do that at compile-time.  For example,
 
 @lisp
 (defvar my-regexp
   (eval-when-compile (regexp-opt '("aaa" "aba" "abb"))))
 @end lisp
 
+@cindex macros, at compile time
 If you're using another package, but only need macros from it (the
 byte compiler will expand those), then @code{eval-when-compile} can be
 used to load it for compiling, but not executing.  For example,
