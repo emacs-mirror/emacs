@@ -2898,6 +2898,7 @@ If repeated, insert text from buffer instead."
     (when name
       (setq ido-text-init
 	    (if (or all
+		    (eq last-command this-command)
 		    (not (equal (file-name-directory bfname) ido-current-directory))
 		    (not (string-match "\\.[^.]*\\'" name)))
 		name
