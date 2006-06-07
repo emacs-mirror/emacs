@@ -1,3 +1,10 @@
+2006-06-07  Kevin Ryde  <user42@zip.com.au>
+
+	* mule.texi (Coding Systems): Footnote xref "MS-DOS and MULE" in main
+	manual for @ifnottex, but in emacs-extra for @iftex.
+
+	* cmdargs.texi (General Variables): Fix smtpmail xref.
+
 2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
