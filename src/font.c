@@ -2569,3 +2569,6 @@ syms_of_font ()
   syms_of_atmfont ();
 #endif	/* MAC_OS */
 }
+
+/* arch-tag: 74c9475d-5976-4c93-a327-942ae3072846
+   (do not change this comment) */

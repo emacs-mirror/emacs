@@ -477,3 +477,6 @@ extern struct font_driver atmfont_driver;
 #endif	/* MAC_OS */
 
 #endif	/* not EMACS_FONT_H */
+
+/* arch-tag: 3b7260c3-5bec-4d6b-a0db-95c1b431b1a2
+   (do not change this comment) */

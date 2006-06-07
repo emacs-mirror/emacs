@@ -501,3 +501,6 @@ syms_of_xftfont ()
 
   register_font_driver (&xftfont_driver, NULL);
 }
+
+/* arch-tag: 64ec61bf-7c8e-4fe6-b953-c6a85d5e1605
+   (do not change this comment) */
