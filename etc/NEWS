@@ -1097,7 +1097,10 @@ various global and per-coding-system translation tables.  You can also
 specify it in a local variable list at the end of the file.  For
 shortcut, instead of using this long variable name, you can append the
 character "!" at the end of coding-system name specified in -*-
-construct or in a local variable list.
+construct or in a local variable list.  For example, if a file has the
+following header, it is decoded by the coding system `iso-latin-1'
+without any character translation:
+;; -*- coding: iso-latin-1!; -*-
 
 ---
 *** Language environment and various default coding systems are setup
