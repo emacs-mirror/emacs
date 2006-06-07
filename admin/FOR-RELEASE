@@ -25,15 +25,12 @@ Requests to have been sent out on 2006-05-23 (Reiner Steib).
 
 LANG	Translator            Status
 cs	Pavel Janík
-de	? (*)
+de	Sven Joachim          Done
 fr	Eric Jacoboni
 pl	Włodek Bzyl
 pt-br	Rodrigo Real          Done
 ru	Alex Ott              Working
 sk	Miroslav Vaško
-
-(*) If the assignment of Sven Joachim arrives in time, we can install his
-update for de-refcard.tex.
 
 If there's no update for a translation on 2006-06-07, notify RMS.
 
