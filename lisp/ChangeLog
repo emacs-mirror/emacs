@@ -2,6 +2,7 @@
 
 	* ido.el (ido-take-first-match, ido-push-dir-first): New commands.
 	(ido-init-completion-maps): Bind them to M-SPC and M-v.
+	(ido-copy-current-file-name): Repeating C-w inserts whole file name.
 
 2006-06-07  Kenichi Handa  <handa@m17n.org>
 
