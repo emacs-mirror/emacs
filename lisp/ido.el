@@ -2339,7 +2339,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(setq default-directory ido-current-directory)
 	(ido-record-command 'write-file (concat ido-current-directory filename))
 	(ido-record-work-directory)
-	(write-file filename))
+	(write-file (concat ido-current-directory filename)))
 
        ((eq method 'read-only)
 	(ido-record-work-file filename)
