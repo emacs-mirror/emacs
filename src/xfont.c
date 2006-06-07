@@ -774,8 +774,8 @@ xfont_encode_char (font, c)
       return (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset)
 	      ? code : 0xFFFFFFFF);
     }
-  char2b.byte1 = code >> 16;
-  char2b.byte2 = code & 0xFFFF;
+  char2b.byte1 = code >> 8;
+  char2b.byte2 = code & 0xFF;
   return (xfont_get_pcm (font->font.font, &char2b) ? code : 0xFFFFFFFF);
 }
 
