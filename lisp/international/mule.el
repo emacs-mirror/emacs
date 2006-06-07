@@ -1701,15 +1701,13 @@ If nothing is specified, the return value is nil."
 	(setq head-found (or (search-forward "coding:" head-end t)
 			     (search-forward "unibyte:" head-end t)
 			     (search-forward "enable-character-translation:" 
-					     head-end t)
-			     (search-forward "char-trans:" head-end t)))
+					     head-end t)))
 	(if (and head-found (> head-found tail-start))
 	    ;; Head and tail are overlapped.
 	    (setq tail-found head-found)
 	  (goto-char tail-start)
 	  (setq tail-found (or (search-forward "coding:" tail-end t)
 			       (search-forward "unibyte:" tail-end t)
-			       (search-forward "char-trans:" tail-end t)
 			       (search-forward "enable-character-translation:"
 					       tail-end t))))
 
@@ -1731,9 +1729,9 @@ If nothing is specified, the return value is nil."
 			head-end t))
 	      (setq coding-system (intern (match-string 2))))
 	    (when (re-search-forward
-		   "\\(.*;\\)?[ \t]*\\(enable-character-translation\\|char-trans\\):[ \t]*\\([^ ;]+\\)"
+		   "\\(.*;\\)?[ \t]*enable-character-translation:[ \t]*\\([^ ;]+\\)"
 		   head-end t)
-	      (setq char-trans (match-string 3)))))
+	      (setq char-trans (match-string 2)))))
 
 	;; If no coding: tag in the head, check the tail.
 	;; Here we must pay attention to the case that the end-of-line
@@ -1764,7 +1762,7 @@ If nothing is specified, the return value is nil."
 		     (re-char-trans
 		      (concat
 		       "[\r\n]" prefix
-		       "[ \t]*\\(enable-character-translation\\|char-trans\\)[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
+		       "[ \t]*enable-character-translation[ \t]*:[ \t]*\\([^ \t\r\n]+\\)[ \t]*"
 		       suffix "[\r\n]"))
 		     (re-end
 		      (concat "[\r\n]" prefix "[ \t]*End *:[ \t]*" suffix
@@ -1782,7 +1780,7 @@ If nothing is specified, the return value is nil."
 		  (setq coding-system (intern (match-string 1))))
 		(when (and (not char-trans)
 			   (re-search-forward re-char-trans tail-end t))
-		  (setq char-trans (match-string 2))))))
+		  (setq char-trans (match-string 1))))))
 	(if coding-system
 	    ;; If the coding-system name ends with "!", remove it and
 	    ;; set char-trans to "nil".
