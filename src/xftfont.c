@@ -147,6 +147,7 @@ xftfont_default_fid (f)
 	  if (! fid)
 	    abort ();
 	}
+      fid_known = 1;
     }
   return fid;
 }
@@ -336,53 +337,6 @@ xftfont_close (f, font)
   FRAME_X_DISPLAY_INFO (f)->n_fonts--;
 }
 
-struct xftdraw_list
-{
-  XftDraw *xftdraw;
-  struct xftdraw_list *next;
-};
-
-static struct xftdraw_list *xftdraw_list;
-
-static void
-register_xftdraw (xftdraw)
-     XftDraw *xftdraw;
-{
-  struct xftdraw_list *list = malloc (sizeof (struct xftdraw_list));
-
-  list->xftdraw = xftdraw;
-  list->next = xftdraw_list;
-  xftdraw_list = list;
-}
-
-static void
-check_xftdraw (xftdraw)
-     XftDraw *xftdraw;
-{
-  struct xftdraw_list *list, *prev;
-
-  for (list = xftdraw_list, prev = NULL; list; prev = list, list = list->next)
-    {
-      if (list->xftdraw == xftdraw)
-	{
-	  if (! prev)
-	    {
-	      list = xftdraw_list->next;
-	      free (xftdraw_list);
-	      xftdraw_list = list;
-	    }
-	  else
-	    {
-	      prev->next = list->next;
-	      free (list);
-	      list = prev;
-	    }
-	  return;
-	}
-    }
-  abort ();
-}
-
 static int
 xftfont_prepare_face (f, face)
      FRAME_PTR f;
@@ -398,8 +352,6 @@ xftfont_prepare_face (f, face)
 					  FRAME_X_WINDOW (f),
 					  FRAME_X_VISUAL (f),
 					  FRAME_X_COLORMAP (f));
-  register_xftdraw (xftface_info->xft_draw);
-
   xftfont_get_colors (f, face, face->gc, NULL,
 		      &xftface_info->xft_fg, &xftface_info->xft_bg);
   UNBLOCK_INPUT;
@@ -418,7 +370,6 @@ xftfont_done_face (f, face)
   if (xftface_info)
     {
       BLOCK_INPUT;
-      check_xftdraw (xftface_info->xft_draw);
       XftDrawDestroy (xftface_info->xft_draw);
       UNBLOCK_INPUT;
       free (xftface_info);
@@ -479,7 +430,7 @@ xftfont_draw (s, from, to, x, y, with_background)
   int i;
 
   xftfont_get_colors (f, face, s->gc, xftface_info,
-		      &fg, s->width ? &bg : NULL);
+		      &fg, with_background ? &bg : NULL);
   BLOCK_INPUT;
   if (s->clip_width)
     {
