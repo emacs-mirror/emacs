@@ -1538,6 +1538,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map "\C-t" 'ido-toggle-regexp)
     (define-key map "\C-z" 'ido-undo-merge-work-directory)
     (define-key map [(control ?\s)] 'ido-restrict-to-matches)
+    (define-key map [(meta ?\s)] 'ido-take-first-match)
     (define-key map [(control ?@)] 'ido-restrict-to-matches)
     (define-key map [right] 'ido-next-match)
     (define-key map [left] 'ido-prev-match)
@@ -1565,6 +1566,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map "\C-l" 'ido-reread-directory)
     (define-key map [(meta ?d)] 'ido-wide-find-dir-or-delete-dir)
     (define-key map [(meta ?b)] 'ido-push-dir)
+    (define-key map [(meta ?v)] 'ido-push-dir-first)
     (define-key map [(meta ?f)] 'ido-wide-find-file-or-pop-dir)
     (define-key map [(meta ?k)] 'ido-forget-work-directory)
     (define-key map [(meta ?m)] 'ido-make-directory)
@@ -2805,9 +2807,25 @@ If input stack is non-empty, delete current directory component."
       (ido-delete-backward-word-updir 1)
     (ido-wide-find-dir)))
 
+(defun ido-take-first-match ()
+  "Use first matching item as input text."
+  (interactive)
+  (when ido-matches
+    (setq ido-text-init (car ido-matches))
+    (setq ido-exit 'refresh)
+    (exit-minibuffer)))
+
 (defun ido-push-dir ()
   "Move to previous directory in file name, push current input on stack."
   (interactive)
+  (setq ido-exit 'push)
+  (exit-minibuffer))
+
+(defun ido-push-dir-first ()
+  "Move to previous directory in file name, push first match on stack."
+  (interactive)
+  (if ido-matches
+      (setq ido-text (car ido-matches)))
   (setq ido-exit 'push)
   (exit-minibuffer))
 
