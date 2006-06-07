@@ -89,6 +89,7 @@ Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 Lisp_Object Qinhibit_file_name_operation;
 Lisp_Object Qeval_buffer_list, Veval_buffer_list;
+Lisp_Object Qfile_truename, Qdo_after_load_evaluation; /* ACM 2006/5/16 */
 
 /* Used instead of Qget_file_char while loading *.elc files compiled
    by Emacs 21 or older.  */
@@ -897,8 +898,8 @@ Return t if the file exists and loads successfully.  */)
   register int fd = -1;
   int count = SPECPDL_INDEX ();
   Lisp_Object temp;
-  struct gcpro gcpro1, gcpro2;
-  Lisp_Object found, efound;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+  Lisp_Object found, efound, hist_file_name;
   /* 1 means we printed the ".el is newer" message.  */
   int newer = 0;
   /* 1 means we are loading a compiled file.  */
@@ -906,6 +907,7 @@ Return t if the file exists and loads successfully.  */)
   Lisp_Object handler;
   int safe_p = 1;
   char *fmode = "r";
+  Lisp_Object tmp[2];
   int version;
 
 #ifdef DOS_NT
@@ -924,7 +926,7 @@ Return t if the file exists and loads successfully.  */)
      the need to gcpro noerror, nomessage and nosuffix.
      (Below here, we care only whether they are nil or not.)
      The presence of this call is the result of a historical accident:
-     it used to be in every file-operations and when it got removed
+     it used to be in every file-operation and when it got removed
      everywhere, it accidentally stayed here.  Since then, enough people
      supposedly have things like (load "$PROJECT/foo.el") in their .emacs
      that it seemed risky to remove.  */
@@ -944,7 +946,6 @@ Return t if the file exists and loads successfully.  */)
   if (SCHARS (file) > 0)
     {
       int size = SBYTES (file);
-      Lisp_Object tmp[2];
 
       found = Qnil;
       GCPRO2 (file, found);
@@ -1028,6 +1029,13 @@ Return t if the file exists and loads successfully.  */)
     Vloads_in_progress = Fcons (found, Vloads_in_progress);
   }
 
+  /* Get the name for load-history. */
+  hist_file_name = (! NILP (Vpurify_flag)
+                    ? Fconcat (2, (tmp[0] = Ffile_name_directory (file),
+                                   tmp[1] = Ffile_name_nondirectory (found),
+                                   tmp))
+                    : found) ;
+
   version = -1;
   if (!bcmp (SDATA (found) + SBYTES (found) - 4,
 	     ".elc", 4)
@@ -1040,7 +1048,7 @@ Return t if the file exists and loads successfully.  */)
 	  struct stat s1, s2;
 	  int result;
 
-	  GCPRO2 (file, found);
+	  GCPRO3 (file, found, hist_file_name);
 
 	  if (version < 0
 	      && ! (version = safe_to_load_p (fd)))
@@ -1095,14 +1103,14 @@ Return t if the file exists and loads successfully.  */)
 
 	  if (fd >= 0)
 	    emacs_close (fd);
-	  val = call4 (Vload_source_file_function, found, file,
+	  val = call4 (Vload_source_file_function, found, hist_file_name,
 		       NILP (noerror) ? Qnil : Qt,
 		       NILP (nomessage) ? Qnil : Qt);
 	  return unbind_to (count, val);
 	}
     }
 
-  GCPRO2 (file, found);
+  GCPRO3 (file, found, hist_file_name);
 
 #ifdef WINDOWSNT
   emacs_close (fd);
@@ -1142,23 +1150,23 @@ Return t if the file exists and loads successfully.  */)
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
   load_in_progress++;
   if (! version || version >= 22)
-    readevalloop (Qget_file_char, stream,
-		  (! NILP (Vpurify_flag) ? file : found),
+    readevalloop (Qget_file_char, stream, hist_file_name,
 		  Feval, 0, Qnil, Qnil, Qnil, Qnil);
   else
     {
       /* We can't handle a file which was compiled with
 	 byte-compile-dynamic by older version of Emacs.  */
       specbind (Qload_force_doc_strings, Qt);
-      readevalloop (Qget_emacs_mule_file_char, stream, file, Feval,
+      readevalloop (Qget_emacs_mule_file_char, stream, hist_file_name, Feval,
 		    0, Qnil, Qnil, Qnil, Qnil);
     }
   unbind_to (count, Qnil);
 
-  /* Run any load-hooks for this file.  */
-  temp = Fassoc (file, Vafter_load_alist);
-  if (!NILP (temp))
-    Fprogn (Fcdr (temp));
+  /* Run any eval-after-load forms for this file */
+  if (NILP (Vpurify_flag)
+      && (!NILP (Ffboundp (Qdo_after_load_evaluation))))
+    call1 (Qdo_after_load_evaluation, hist_file_name) ;
+
   UNGCPRO;
 
   if (saved_doc_string)
@@ -1582,6 +1590,12 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   load_convert_to_unibyte = !NILP (unibyte);
 
   GCPRO4 (sourcename, readfun, start, end);
+
+  /* Try to ensure sourcename is a truename, except whilst preloading. */
+  if (NILP (Vpurify_flag)
+      && !NILP (sourcename) && Ffile_name_absolute_p (sourcename)
+      && (!NILP (Ffboundp (Qfile_truename))))
+    sourcename = call1 (Qfile_truename, sourcename) ;
 
   LOADHIST_ATTACH (sourcename);
 
@@ -4110,16 +4124,17 @@ customize `jka-compr-load-suffixes' rather than the present variable.  */);
 
   DEFVAR_LISP ("after-load-alist", &Vafter_load_alist,
 	       doc: /* An alist of expressions to be evalled when particular files are loaded.
-Each element looks like (FILENAME FORMS...).
-When `load' is run and the file-name argument is FILENAME,
-the FORMS in the corresponding element are executed at the end of loading.
+Each element looks like (REGEXP-OR-FEATURE FORMS...).
 
-FILENAME must match exactly!  Normally FILENAME is the name of a library,
-with no directory specified, since that is how `load' is normally called.
-An error in FORMS does not undo the load,
-but does prevent execution of the rest of the FORMS.
-FILENAME can also be a symbol (a feature) and FORMS are then executed
-when the corresponding call to `provide' is made.  */);
+REGEXP-OR-FEATURE is either a regular expression to match file names, or
+a symbol \(a feature name).
+
+When `load' is run and the file-name argument matches an element's
+REGEXP-OR-FEATURE, or when `provide' is run and provides the symbol
+REGEXP-OR-FEATURE, the FORMS in the element are executed.
+
+An error in FORMS does not undo the load, but does prevent execution of
+the rest of the FORMS.  */);
   Vafter_load_alist = Qnil;
 
   DEFVAR_LISP ("load-history", &Vload_history,
@@ -4127,6 +4142,10 @@ when the corresponding call to `provide' is made.  */);
 Each alist element is a list that starts with a file name,
 except for one element (optional) that starts with nil and describes
 definitions evaluated from buffers not visiting files.
+
+The file name is absolute and is the true file name (i.e. it doesn't
+contain symbolic links) of the loaded file.
+
 The remaining elements of each list are symbols defined as variables
 and cons cells of the form `(provide . FEATURE)', `(require . FEATURE)',
 `(defun . FUNCTION)', `(autoload . SYMBOL)', and `(t . SYMBOL)'.
@@ -4262,6 +4281,12 @@ to load.  See also `load-dangerous-libraries'.  */);
 
   Qeval_buffer_list = intern ("eval-buffer-list");
   staticpro (&Qeval_buffer_list);
+
+  Qfile_truename = intern ("file-truename");
+  staticpro (&Qfile_truename) ;
+
+  Qdo_after_load_evaluation = intern ("do-after-load-evaluation");
+  staticpro (&Qdo_after_load_evaluation) ;
 
   staticpro (&dump_path);
 

@@ -2549,7 +2549,9 @@ to make one entry in the kill ring.
 In Lisp code, optional third arg YANK-HANDLER, if non-nil,
 specifies the yank-handler text property to be set on the killed
 text.  See `insert-for-yank'."
-  (interactive "r")
+  ;; Pass point first, then mark, because the order matters
+  ;; when calling kill-append.
+  (interactive (list (point) (mark)))
   (condition-case nil
       (let ((string (filter-buffer-substring beg end t)))
 	(when string			;STRING is nil if BEG = END
@@ -3643,10 +3645,14 @@ Outline mode sets this."
 	(setq new (point))
 
 	;; Process intangibility within a line.
-	;; Move to the chosen destination position from above,
-	;; with intangibility processing enabled.
+	;; With inhibit-point-motion-hooks bound to nil, a call to
+	;; goto-char moves point past intangible text.
 
-	;; Avoid calling point-entered and point-left.
+	;; However, inhibit-point-motion-hooks controls both the
+	;; intangibility and the point-entered/point-left hooks.  The
+	;; following hack avoids calling the point-* hooks
+	;; unnecessarily.  Note that we move *forward* past intangible
+	;; text when the initial and final points are the same.
 	(goto-char new)
 	(let ((inhibit-point-motion-hooks nil))
 	  (goto-char new)
@@ -4241,7 +4247,7 @@ The variable `selective-display' has a separate value for each buffer."
 (defvaralias 'indicate-unused-lines 'indicate-empty-lines)
 (defvaralias 'default-indicate-unused-lines 'default-indicate-empty-lines)
 
-(defun toggle-truncate-lines (arg)
+(defun toggle-truncate-lines (&optional arg)
   "Toggle whether to fold or truncate long lines on the screen.
 With arg, truncate long lines iff arg is positive.
 Note that in side-by-side windows, truncation is always enabled."

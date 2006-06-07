@@ -96,8 +96,8 @@ so common in Dired that it deserves to be easy to type.)  @key{DEL}
 (move up and unflag) is often useful simply for moving up.
 
 @findex dired-goto-file
-@kindex M-g @r{(Dired)}
-  @kbd{M-g} (@code{dired-goto-file}) moves point to the line that
+@kindex j @r{(Dired)}
+  @kbd{j} (@code{dired-goto-file}) moves point to the line that
 describes a specified file or directory.
 
   Some additional navigation commands are available when the Dired

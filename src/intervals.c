@@ -2016,6 +2016,10 @@ set_point_both (buffer, charpos, bytepos)
   register INTERVAL to, from, toprev, fromprev;
   int buffer_point;
   int old_position = BUF_PT (buffer);
+  /* This ensures that we move forward past intangible text when the
+     initial position is the same as the destination, in the rare
+     instances where this is important, e.g. in line-move-finish
+     (simple.el).  */
   int backwards = (charpos < old_position ? 1 : 0);
   int have_overlays;
   int original_position;

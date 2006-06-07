@@ -139,6 +139,7 @@ and showing the image as an image."
     ;; was inserted
     (let* ((image
 	    (if (and (buffer-file-name)
+		     (not (file-remote-p (buffer-file-name)))
 		     (not (buffer-modified-p))
 		     (not (and (boundp 'archive-superior-buffer)
 			       archive-superior-buffer))

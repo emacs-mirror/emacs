@@ -236,7 +236,7 @@ etc.
 
 Furthermore, Viper lets Ex-style commands to work on the current region.
 This is done by typing a digit argument before @kbd{:}.  For instance,
-typing @kbd{1:} will propmt you with something like @emph{:123,135},
+typing @kbd{1:} will prompt you with something like @emph{:123,135},
 assuming that the current region starts at line 123 and ends at line
 135.  There is no need to type the line numbers, since Viper inserts them
 automatically in front of the Ex command.
@@ -417,7 +417,7 @@ should start them with a @kbd{:}, e.g., @kbd{:WW}.
 
 In Viper, Ex commands can be made to work on the current Emacs region.
 This is done by typing a digit argument before @kbd{:}.
-For instance, typing @kbd{1:} will propmt you with something like
+For instance, typing @kbd{1:} will prompt you with something like
 @emph{:123,135}, assuming that the current region starts at line 123 and
 ends at line 135.  There is no need to type the line numbers, since Viper
 inserts them automatically in front of the Ex command.
@@ -2292,7 +2292,7 @@ the Shell mode by changing the bindings for @kbd{C-m} and @kbd{C-d} using
 (@pxref{Customization}).
 
 In some cases, some @emph{minor} modes might override certain essential
-bindings in Vi command state.  This is not a big priblem because this
+bindings in Vi command state.  This is not a big problem because this
 can happen only in the beginning, when the minor mode kicks in.  Typing
 @code{M-x viper-mode} will correct the situation.  Viper knows about
 several such minor modes and takes care of them, so the above trick
@@ -2670,7 +2670,7 @@ placing this command in @code{~/.viper}:
 (setq viper-mouse-insert-key '(meta 2))
 @end lisp
 If you want to bind mouse-insert to an action even if this action is
-already taked for other purposes in Emacs, then you should add this command
+already taken for other purposes in Emacs, then you should add this command
 to @code{~/.viper}, after setting @code{viper-mouse-insert-key}:
 @lisp
 (viper-bind-mouse-insert-key 'force)
@@ -3236,7 +3236,7 @@ Control character.
 
 Finally, we note that Viper's Ex-style commands can be made to work on the
 current Emacs region.  This is done by typing a digit argument before
-@kbd{:}.  For instance, typing @kbd{1:} will propmt you with something like
+@kbd{:}.  For instance, typing @kbd{1:} will prompt you with something like
 @emph{:123,135}, assuming that the current region starts at line 123 and
 ends at line 135.  There is no need to type the line numbers, since Viper
 inserts them automatically in front of the Ex command.

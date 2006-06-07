@@ -173,32 +173,6 @@ HANDLE hWindowsThread = NULL;
 DWORD dwMainThreadId = 0;
 HANDLE hMainThread = NULL;
 
-#ifndef SIF_ALL
-/* These definitions are new with Windows 95. */
-#define SIF_RANGE           0x0001
-#define SIF_PAGE            0x0002
-#define SIF_POS             0x0004
-#define SIF_DISABLENOSCROLL 0x0008
-#define SIF_TRACKPOS        0x0010
-#define SIF_ALL             (SIF_RANGE | SIF_PAGE | SIF_POS | SIF_TRACKPOS)
-
-typedef struct tagSCROLLINFO
-{
-    UINT    cbSize;
-    UINT    fMask;
-    int     nMin;
-    int     nMax;
-    UINT    nPage;
-    int     nPos;
-    int     nTrackPos;
-}   SCROLLINFO, FAR *LPSCROLLINFO;
-typedef SCROLLINFO CONST FAR *LPCSCROLLINFO;
-#endif /* SIF_ALL */
-
-/* Dynamic linking to new proportional scroll bar functions. */
-int (PASCAL *pfnSetScrollInfo) (HWND hwnd, int fnBar, LPSCROLLINFO lpsi, BOOL fRedraw);
-BOOL (PASCAL *pfnGetScrollInfo) (HWND hwnd, int fnBar, LPSCROLLINFO lpsi);
-
 int vertical_scroll_bar_min_handle;
 int vertical_scroll_bar_top_border;
 int vertical_scroll_bar_bottom_border;
@@ -2540,20 +2514,29 @@ x_draw_stretch_glyph_string (s)
     {
       /* If `x-stretch-block-cursor' is nil, don't draw a block cursor
 	 as wide as the stretch glyph.  */
-      int width = min (FRAME_COLUMN_WIDTH (s->f), s->background_width);
+      int width, background_width = s->background_width;
+      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+      if (x < left_x)
+	{
+	  background_width -= left_x - x;
+	  x = left_x;
+	}
+      width = min (FRAME_COLUMN_WIDTH (s->f), background_width);
 
       /* Draw cursor.  */
-      x_draw_glyph_string_bg_rect (s, s->x, s->y, width, s->height);
+      x_draw_glyph_string_bg_rect (s, x, s->y, width, s->height);
 
       /* Clear rest using the GC of the original non-cursor face.  */
-      if (width < s->background_width)
+      if (width < background_width)
 	{
 	  XGCValues *gc = s->face->gc;
-	  int x = s->x + width, y = s->y;
-	  int w = s->background_width - width, h = s->height;
+	  int y = s->y;
+	  int w = background_width - width, h = s->height;
 	  RECT r;
           HDC hdc = s->hdc;
 
+	  x += width;
 	  if (s->row->mouse_face_p
 	      && cursor_in_mouse_face_p (s->w))
 	    {
@@ -2582,8 +2565,18 @@ x_draw_stretch_glyph_string (s)
         }
     }
   else if (!s->background_filled_p)
-    x_draw_glyph_string_bg_rect (s, s->x, s->y, s->background_width,
-				 s->height);
+    {
+      int background_width = s->background_width;
+      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+      if (x < left_x)
+	{
+	  background_width -= left_x - x;
+	  x = left_x;
+	}
+      if (background_width > 0)
+	x_draw_glyph_string_bg_rect (s, x, s->y, background_width, s->height);
+    }
 
   s->background_filled_p = 1;
 }
@@ -3619,6 +3612,7 @@ w32_set_scroll_bar_thumb (bar, portion, position, whole)
   double range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
   int sb_page, sb_pos;
   BOOL draggingp = !NILP (bar->dragging) ? TRUE : FALSE;
+  SCROLLINFO si;
 
   if (whole)
     {
@@ -3643,24 +3637,17 @@ w32_set_scroll_bar_thumb (bar, portion, position, whole)
 
   BLOCK_INPUT;
 
-  if (pfnSetScrollInfo)
-    {
-      SCROLLINFO si;
-
-      si.cbSize = sizeof (si);
-      /* Only update page size if currently dragging, to reduce
-         flicker effects.  */
-      if (draggingp)
-        si.fMask = SIF_PAGE;
-      else
-        si.fMask = SIF_PAGE | SIF_POS;
-      si.nPage = sb_page;
-      si.nPos = sb_pos;
-
-      pfnSetScrollInfo (w, SB_CTL, &si, !draggingp);
-    }
+  si.cbSize = sizeof (si);
+  /* Only update page size if currently dragging, to reduce
+     flicker effects.  */
+  if (draggingp)
+    si.fMask = SIF_PAGE;
   else
-    SetScrollPos (w, SB_CTL, sb_pos, !draggingp);
+    si.fMask = SIF_PAGE | SIF_POS;
+  si.nPage = sb_page;
+  si.nPos = sb_pos;
+
+  SetScrollInfo (w, SB_CTL, &si, !draggingp);
 
   UNBLOCK_INPUT;
 }
@@ -3749,6 +3736,7 @@ x_scroll_bar_create (w, top, left, width, height)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   HWND hwnd;
+  SCROLLINFO si;
   struct scroll_bar *bar
     = XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
 
@@ -3767,26 +3755,15 @@ x_scroll_bar_create (w, top, left, width, height)
 
   hwnd = my_create_scrollbar (f, bar);
 
-  if (pfnSetScrollInfo)
-    {
-      SCROLLINFO si;
+  si.cbSize = sizeof (si);
+  si.fMask = SIF_ALL;
+  si.nMin = 0;
+  si.nMax = VERTICAL_SCROLL_BAR_TOP_RANGE (f, height)
+    + VERTICAL_SCROLL_BAR_MIN_HANDLE;
+  si.nPage = si.nMax;
+  si.nPos = 0;
 
-      si.cbSize = sizeof (si);
-      si.fMask = SIF_ALL;
-      si.nMin = 0;
-      si.nMax = VERTICAL_SCROLL_BAR_TOP_RANGE (f, height)
-      	+ VERTICAL_SCROLL_BAR_MIN_HANDLE;
-      si.nPage = si.nMax;
-      si.nPos = 0;
-
-      pfnSetScrollInfo (hwnd, SB_CTL, &si, FALSE);
-    }
-  else
-    {
-      SetScrollRange (hwnd, SB_CTL, 0,
-                      VERTICAL_SCROLL_BAR_TOP_RANGE (f, height), FALSE);
-      SetScrollPos (hwnd, SB_CTL, 0, FALSE);
-    }
+  SetScrollInfo (hwnd, SB_CTL, &si, FALSE);
 
   SET_SCROLL_BAR_W32_WINDOW (bar, hwnd);
 
@@ -3895,6 +3872,8 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
       else
         {
           HDC hdc;
+	  SCROLLINFO si;
+
           BLOCK_INPUT;
 	  if (width && height)
 	    {
@@ -3914,21 +3893,15 @@ w32_set_vertical_scroll_bar (w, portion, whole, position)
           MoveWindow (hwnd, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
 		      top, sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
 		      max (height, 1), TRUE);
-          if (pfnSetScrollInfo)
-            {
-              SCROLLINFO si;
 
-              si.cbSize = sizeof (si);
-              si.fMask = SIF_RANGE;
-              si.nMin = 0;
-              si.nMax = VERTICAL_SCROLL_BAR_TOP_RANGE (f, height)
-                + VERTICAL_SCROLL_BAR_MIN_HANDLE;
+	  si.cbSize = sizeof (si);
+	  si.fMask = SIF_RANGE;
+	  si.nMin = 0;
+	  si.nMax = VERTICAL_SCROLL_BAR_TOP_RANGE (f, height)
+	    + VERTICAL_SCROLL_BAR_MIN_HANDLE;
 
-              pfnSetScrollInfo (hwnd, SB_CTL, &si, FALSE);
-            }
-          else
-            SetScrollRange (hwnd, SB_CTL, 0,
-                            VERTICAL_SCROLL_BAR_TOP_RANGE (f, height), FALSE);
+	  SetScrollInfo (hwnd, SB_CTL, &si, FALSE);
+
           my_show_window (f, hwnd, SW_NORMAL);
           /* InvalidateRect (w, NULL, FALSE);  */
 
@@ -4080,19 +4053,13 @@ w32_scroll_bar_handle_click (bar, msg, emacs_event)
     int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
     int y;
     int dragging = !NILP (bar->dragging);
+    SCROLLINFO si;
 
-    if (pfnGetScrollInfo)
-      {
-	SCROLLINFO si;
+    si.cbSize = sizeof (si);
+    si.fMask = SIF_POS;
 
-	si.cbSize = sizeof (si);
-	si.fMask = SIF_POS;
-
-	pfnGetScrollInfo ((HWND) msg->msg.lParam, SB_CTL, &si);
-	y = si.nPos;
-      }
-    else
-      y = GetScrollPos ((HWND) msg->msg.lParam, SB_CTL);
+    GetScrollInfo ((HWND) msg->msg.lParam, SB_CTL, &si);
+    y = si.nPos;
 
     bar->dragging = Qnil;
 
@@ -4129,21 +4096,18 @@ w32_scroll_bar_handle_click (bar, msg, emacs_event)
 	emacs_event->part = scroll_bar_handle;
 
 	/* "Silently" update current position.  */
-	if (pfnSetScrollInfo)
-	  {
-	    SCROLLINFO si;
+	{
+	  SCROLLINFO si;
 
-	    si.cbSize = sizeof (si);
-	    si.fMask = SIF_POS;
-	    si.nPos = y;
-	    /* Remember apparent position (we actually lag behind the real
-	       position, so don't set that directly.  */
-	    last_scroll_bar_drag_pos = y;
+	  si.cbSize = sizeof (si);
+	  si.fMask = SIF_POS;
+	  si.nPos = y;
+	  /* Remember apparent position (we actually lag behind the real
+	     position, so don't set that directly.  */
+	  last_scroll_bar_drag_pos = y;
 
-	    pfnSetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, FALSE);
-	  }
-	else
-	  SetScrollPos (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, y, FALSE);
+	  SetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, FALSE);
+	}
 	break;
       case SB_ENDSCROLL:
 	/* If this is the end of a drag sequence, then reset the scroll
@@ -4151,20 +4115,15 @@ w32_scroll_bar_handle_click (bar, msg, emacs_event)
 	   nothing.  */
 	if (dragging)
 	  {
-	    if (pfnSetScrollInfo)
-	      {
-		SCROLLINFO si;
-		int start = XINT (bar->start);
-		int end = XINT (bar->end);
+	    SCROLLINFO si;
+	    int start = XINT (bar->start);
+	    int end = XINT (bar->end);
 
-		si.cbSize = sizeof (si);
-		si.fMask = SIF_PAGE | SIF_POS;
-                si.nPage = end - start + VERTICAL_SCROLL_BAR_MIN_HANDLE;
-		si.nPos = last_scroll_bar_drag_pos;
-		pfnSetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, TRUE);
-	      }
-	    else
-	      SetScrollPos (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, y, TRUE);
+	    si.cbSize = sizeof (si);
+	    si.fMask = SIF_PAGE | SIF_POS;
+	    si.nPage = end - start + VERTICAL_SCROLL_BAR_MIN_HANDLE;
+	    si.nPos = last_scroll_bar_drag_pos;
+	    SetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, TRUE);
 	  }
 	/* fall through */
       default:
@@ -4195,25 +4154,19 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int pos;
   int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+  SCROLLINFO si;
 
   BLOCK_INPUT;
 
   *fp = f;
   *bar_window = bar->window;
 
-  if (pfnGetScrollInfo)
-    {
-      SCROLLINFO si;
+  si.cbSize = sizeof (si);
+  si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
 
-      si.cbSize = sizeof (si);
-      si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
-
-      pfnGetScrollInfo (w, SB_CTL, &si);
-      pos = si.nPos;
-      top_range = si.nMax - si.nPage + 1;
-    }
-  else
-    pos = GetScrollPos (w, SB_CTL);
+  GetScrollInfo (w, SB_CTL, &si);
+  pos = si.nPos;
+  top_range = si.nMax - si.nPage + 1;
 
   switch (LOWORD (last_mouse_scroll_bar_pos))
   {
@@ -5082,7 +5035,7 @@ x_draw_hollow_cursor (w, row)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   HDC hdc;
   RECT rect;
-  int h;
+  int left, top, h;
   struct glyph *cursor_glyph;
   HBRUSH hb = CreateSolidBrush (f->output_data.w32->cursor_pixel);
 
@@ -5093,8 +5046,9 @@ x_draw_hollow_cursor (w, row)
     return;
 
   /* Compute frame-relative coordinates for phys cursor.  */
-  rect.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  rect.top = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
+  get_phys_cursor_geometry (w, row, cursor_glyph, &left, &top, &h);
+  rect.left = left;
+  rect.top = top;
   rect.bottom = rect.top + h;
   rect.right = rect.left + w->phys_cursor_width;
 

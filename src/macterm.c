@@ -3531,19 +3531,28 @@ x_draw_stretch_glyph_string (s)
     {
       /* If `x-stretch-block-cursor' is nil, don't draw a block cursor
 	 as wide as the stretch glyph.  */
-      int width = min (FRAME_COLUMN_WIDTH (s->f), s->background_width);
+      int width, background_width = s->background_width;
+      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+      if (x < left_x)
+	{
+	  background_width -= left_x - x;
+	  x = left_x;
+	}
+      width = min (FRAME_COLUMN_WIDTH (s->f), background_width);
 
       /* Draw cursor.  */
-      x_draw_glyph_string_bg_rect (s, s->x, s->y, width, s->height);
+      x_draw_glyph_string_bg_rect (s, x, s->y, width, s->height);
 
       /* Clear rest using the GC of the original non-cursor face.  */
-      if (width < s->background_width)
+      if (width < background_width)
 	{
-	  int x = s->x + width, y = s->y;
-	  int w = s->background_width - width, h = s->height;
+	  int y = s->y;
+	  int w = background_width - width, h = s->height;
 	  Rect r;
 	  GC gc;
 
+	  x += width;
 	  if (s->row->mouse_face_p
 	      && cursor_in_mouse_face_p (s->w))
 	    {
@@ -3570,8 +3579,18 @@ x_draw_stretch_glyph_string (s)
 	}
     }
   else if (!s->background_filled_p)
-    x_draw_glyph_string_bg_rect (s, s->x, s->y, s->background_width,
-				 s->height);
+    {
+      int background_width = s->background_width;
+      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+      if (x < left_x)
+	{
+	  background_width -= left_x - x;
+	  x = left_x;
+	}
+      if (background_width > 0)
+	x_draw_glyph_string_bg_rect (s, x, s->y, background_width, s->height);
+    }
 
   s->background_filled_p = 1;
 }
@@ -5398,8 +5417,7 @@ x_draw_hollow_cursor (w, row)
     return;
 
   /* Compute frame-relative coordinates for phys cursor.  */
-  x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
-  y = get_phys_cursor_geometry (w, row, cursor_glyph, &h);
+  get_phys_cursor_geometry (w, row, cursor_glyph, &x, &y, &h);
   wd = w->phys_cursor_width;
 
   /* The foreground of cursor_gc is typically the same as the normal
@@ -6135,6 +6153,7 @@ mac_handle_visibility_change (f)
 	  EVENT_INIT (buf);
 	  buf.kind = DEICONIFY_EVENT;
 	  XSETFRAME (buf.frame_or_window, f);
+	  buf.arg = Qnil;
 	  kbd_buffer_store_event (&buf);
 	}
       else if (! NILP (Vframe_list) && ! NILP (XCDR (Vframe_list)))
@@ -6148,6 +6167,7 @@ mac_handle_visibility_change (f)
 	EVENT_INIT (buf);
 	buf.kind = ICONIFY_EVENT;
 	XSETFRAME (buf.frame_or_window, f);
+	buf.arg = Qnil;
 	kbd_buffer_store_event (&buf);
       }
 
@@ -8341,6 +8361,26 @@ x_find_ccl_program (fontp)
 }
 
 #if USE_MAC_FONT_PANEL
+/* Whether Font Panel has been shown before.  The first call to font
+   panel functions (FPIsFontPanelVisible, SetFontInfoForSelection) is
+   slow.  This variable is used for deferring such a call as much as
+   possible.  */
+static int font_panel_shown_p = 0;
+
+int
+mac_font_panel_visible_p ()
+{
+  return font_panel_shown_p && FPIsFontPanelVisible ();
+}
+
+OSStatus
+mac_show_hide_font_panel ()
+{
+  font_panel_shown_p = 1;
+
+  return FPShowHideFontPanel ();
+}
+
 OSStatus
 mac_set_font_info_for_selection (f, face_id, c)
      struct frame *f;
@@ -8349,6 +8389,9 @@ mac_set_font_info_for_selection (f, face_id, c)
   OSStatus err;
   EventTargetRef target = NULL;
   XFontStruct *font = NULL;
+
+  if (!mac_font_panel_visible_p ())
+    return noErr;
 
   if (f)
     {
@@ -8483,6 +8526,13 @@ static Lisp_Object Qtoolbar_switch_mode;
 #if USE_MAC_FONT_PANEL
 extern Lisp_Object Qfont;
 static Lisp_Object Qpanel_closed, Qselection;
+#endif
+#if USE_MAC_TSM
+static TSMDocumentID tsm_document_id;
+static Lisp_Object Qtext_input;
+static Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
+static Lisp_Object Vmac_ts_active_input_overlay;
+extern Lisp_Object Qbefore_string;
 #endif
 #endif
 extern int mac_ready_for_apple_events;
@@ -8835,13 +8885,17 @@ is_emacs_window (WindowPtr win)
 static void
 do_app_resume ()
 {
-  /* Window-activate events will do the job. */
+#if USE_MAC_TSM
+  ActivateTSMDocument (tsm_document_id);
+#endif
 }
 
 static void
 do_app_suspend ()
 {
-  /* Window-deactivate events will do the job. */
+#if USE_MAC_TSM
+  DeactivateTSMDocument (tsm_document_id);
+#endif
 }
 
 
@@ -9101,6 +9155,9 @@ mac_store_event_ref_as_apple_event (class, id, class_key, id_key,
 	    {
 	      mac_store_apple_event (class_key, id_key, &apple_event);
 	      AEDisposeDesc (&apple_event);
+	      /* Post a harmless event so as to wake up from
+		 ReceiveNextEvent.  */
+	      mac_post_mouse_moved_event ();
 	    }
 	}
     }
@@ -9290,6 +9347,18 @@ mac_handle_window_event (next_handler, event, data)
       }
       return err == noErr ? noErr : result;
 #endif
+
+#if USE_MAC_TSM
+    case kEventWindowFocusAcquired:
+      result = CallNextEventHandler (next_handler, event);
+      err = ActivateTSMDocument (tsm_document_id);
+      return err == noErr ? noErr : result;
+
+    case kEventWindowFocusRelinquish:
+      result = CallNextEventHandler (next_handler, event);
+      err = DeactivateTSMDocument (tsm_document_id);
+      return err == noErr ? noErr : result;
+#endif
     }
 
   return eventNotHandledErr;
@@ -9416,6 +9485,183 @@ mac_handle_font_event (next_handler, event, data)
 }
 #endif
 
+#if USE_MAC_TSM
+static pascal OSStatus
+mac_handle_text_input_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus result, err = noErr;
+  Lisp_Object id_key = Qnil;
+  int num_params;
+  EventParamName *names;
+  EventParamType *types;
+  static UInt32 seqno_uaia = 0;
+  static EventParamName names_uaia[] =
+    {kEventParamTextInputSendComponentInstance,
+     kEventParamTextInputSendRefCon,
+     kEventParamTextInputSendSLRec,
+     kEventParamTextInputSendFixLen,
+     kEventParamTextInputSendText,
+     kEventParamTextInputSendUpdateRng,
+     kEventParamTextInputSendHiliteRng,
+     kEventParamTextInputSendClauseRng,
+     kEventParamTextInputSendPinRng,
+     kEventParamTextInputSendTextServiceEncoding,
+     kEventParamTextInputSendTextServiceMacEncoding,
+     EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER};
+  static EventParamType types_uaia[] =
+    {typeComponentInstance,
+     typeLongInteger,
+     typeIntlWritingCode,
+     typeLongInteger,
+     typeUnicodeText,
+     typeTextRangeArray,
+     typeTextRangeArray,
+     typeOffsetArray,
+     typeTextRange,
+     typeUInt32,
+     typeUInt32,
+     typeUInt32};
+  static EventParamName names_ufke[] =
+    {kEventParamTextInputSendComponentInstance,
+     kEventParamTextInputSendRefCon,
+     kEventParamTextInputSendSLRec,
+     kEventParamTextInputSendText};
+  static EventParamType types_ufke[] =
+    {typeComponentInstance,
+     typeLongInteger,
+     typeIntlWritingCode,
+     typeUnicodeText};
+
+  result = CallNextEventHandler (next_handler, event);
+
+  switch (GetEventKind (event))
+    {
+    case kEventTextInputUpdateActiveInputArea:
+      id_key = Qupdate_active_input_area;
+      num_params = sizeof (names_uaia) / sizeof (names_uaia[0]);
+      names = names_uaia;
+      types = types_uaia;
+      SetEventParameter (event, EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER,
+			 typeUInt32, sizeof (UInt32), &seqno_uaia);
+      seqno_uaia++;
+      break;
+
+    case kEventTextInputUnicodeForKeyEvent:
+      {
+	EventRef kbd_event;
+	UInt32 actual_size, modifiers, mapped_modifiers;
+	UniChar code;
+
+	err = GetEventParameter (event, kEventParamTextInputSendKeyboardEvent,
+				 typeEventRef, NULL, sizeof (EventRef), NULL,
+				 &kbd_event);
+	if (err == noErr)
+	  err = GetEventParameter (kbd_event, kEventParamKeyModifiers,
+				   typeUInt32, NULL,
+				   sizeof (UInt32), NULL, &modifiers);
+	if (err == noErr)
+	  {
+	    mapped_modifiers =
+	      (NILP (Vmac_control_modifier) ? 0 : controlKey)
+	      | (NILP (Vmac_option_modifier) ? 0 : optionKey)
+	      | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
+#ifdef MAC_OSX
+	    mapped_modifiers |=
+	      (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
+#endif
+	    if (modifiers & mapped_modifiers)
+	      /* There're mapped modifier keys.  Process it in
+		 XTread_socket.  */
+	      return eventNotHandledErr;
+	  }
+	if (err == noErr)
+	  err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
+				   typeUnicodeText, NULL, 0, &actual_size,
+				   NULL);
+	if (err == noErr)
+	  {
+	    if (actual_size == sizeof (UniChar))
+	      err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
+				       typeUnicodeText, NULL,
+				       sizeof (UniChar), NULL, &code);
+	    if (err == noErr && code < 0x80)
+	      {
+		/* ASCII character.  Process it in XTread_socket.  */
+		if (read_socket_inev && code >= 0x20 && code <= 0x7e)
+		  {
+		    struct frame *f = mac_focus_frame (&one_mac_display_info);
+
+		    read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
+		    read_socket_inev->code = code;
+		    read_socket_inev->modifiers =
+		      (extra_keyboard_modifiers
+		       & (meta_modifier | alt_modifier
+			  | hyper_modifier | super_modifier));
+		    XSETFRAME (read_socket_inev->frame_or_window, f);
+		  }
+		return eventNotHandledErr;
+	      }
+	  }
+      }
+      /* Non-ASCII keystrokes without mapped modifiers are processed
+	 at the Lisp level.  */
+      id_key = Qunicode_for_key_event;
+      num_params = sizeof (names_ufke) / sizeof (names_ufke[0]);
+      names = names_ufke;
+      types = types_ufke;
+      break;
+
+    case kEventTextInputOffsetToPos:
+      {
+	struct frame *f;
+	struct window *w;
+	Point p;
+
+	if (!OVERLAYP (Vmac_ts_active_input_overlay))
+	  return eventNotHandledErr;
+
+	/* Strictly speaking, this is not always correct because
+	   previous events may change some states about display.  */
+	if (NILP (Foverlay_get (Vmac_ts_active_input_overlay, Qbefore_string)))
+	  {
+	    /* Active input area is displayed in the echo area.  */
+	    w = XWINDOW (echo_area_window);
+	    f = WINDOW_XFRAME (w);
+	  }
+	else
+	  {
+	    /* Active input area is displayed around the current point.  */
+	    f = SELECTED_FRAME ();
+	    w = XWINDOW (f->selected_window);
+	  }
+
+	p.h = (WINDOW_TO_FRAME_PIXEL_X (w, w->cursor.x)
+	       + WINDOW_LEFT_FRINGE_WIDTH (w));
+	p.v = (WINDOW_TO_FRAME_PIXEL_Y (w, w->cursor.y)
+	       + FONT_BASE (FRAME_FONT (f)));
+	SetPortWindowPort (FRAME_MAC_WINDOW (f));
+	LocalToGlobal (&p);
+	err = SetEventParameter (event, kEventParamTextInputReplyPoint,
+				 typeQDPoint, sizeof (typeQDPoint), &p);
+      }
+      break;
+
+    default:
+      abort ();
+    }
+
+  if (!NILP (id_key))
+    err = mac_store_event_ref_as_apple_event (0, 0, Qtext_input, id_key,
+					      event, num_params,
+					      names, types);
+
+  return err == noErr ? noErr : result;
+}
+#endif
+
 #ifdef MAC_OSX
 OSStatus
 mac_store_service_event (event)
@@ -9477,6 +9723,10 @@ install_window_handler (window)
 #ifdef MAC_OSX
      {kEventClassWindow, kEventWindowToolbarSwitchMode},
 #endif
+#if USE_MAC_TSM
+     {kEventClassWindow, kEventWindowFocusAcquired},
+     {kEventClassWindow, kEventWindowFocusRelinquish},
+#endif
   };
   EventTypeSpec specs_mouse[] = {{kEventClassMouse, kEventMouseWheelMoved}};
   static EventHandlerUPP handle_window_eventUPP = NULL;
@@ -9486,6 +9736,13 @@ install_window_handler (window)
 				{kEventClassFont, kEventFontSelection}};
   static EventHandlerUPP handle_font_eventUPP = NULL;
 #endif
+#if USE_MAC_TSM
+  EventTypeSpec specs_text_input[] =
+    {{kEventClassTextInput, kEventTextInputUpdateActiveInputArea},
+     {kEventClassTextInput, kEventTextInputUnicodeForKeyEvent},
+     {kEventClassTextInput, kEventTextInputOffsetToPos}};
+  static EventHandlerUPP handle_text_input_eventUPP = NULL;
+#endif
 
   if (handle_window_eventUPP == NULL)
     handle_window_eventUPP = NewEventHandlerUPP (mac_handle_window_event);
@@ -9494,6 +9751,11 @@ install_window_handler (window)
 #if USE_MAC_FONT_PANEL
   if (handle_font_eventUPP == NULL)
     handle_font_eventUPP = NewEventHandlerUPP (mac_handle_font_event);
+#endif
+#if USE_MAC_TSM
+  if (handle_text_input_eventUPP == NULL)
+    handle_text_input_eventUPP =
+      NewEventHandlerUPP (mac_handle_text_input_event);
 #endif
   err = InstallWindowEventHandler (window, handle_window_eventUPP,
 				   GetEventTypeCount (specs_window),
@@ -9507,6 +9769,12 @@ install_window_handler (window)
     err = InstallWindowEventHandler (window, handle_font_eventUPP,
 				     GetEventTypeCount (specs_font),
 				     specs_font, NULL, NULL);
+#endif
+#if USE_MAC_TSM
+  if (err == noErr)
+    err = InstallWindowEventHandler (window, handle_text_input_eventUPP,
+				     GetEventTypeCount (specs_text_input),
+				     specs_text_input, window, NULL);
 #endif
 #endif
   if (err == noErr)
@@ -9633,7 +9901,7 @@ static unsigned char keycode_to_xkeysym_table[] = {
 
   /*0x60*/ 0xc2 /*f5*/, 0xc3 /*f6*/, 0xc4 /*f7*/, 0xc0 /*f3*/,
   /*0x64*/ 0xc5 /*f8*/, 0xc6 /*f9*/, 0, 0xc8 /*f11*/,
-  /*0x68*/ 0, 0xca /*f13*/, 0, 0xcb /*f14*/,
+  /*0x68*/ 0, 0xca /*f13*/, 0xcd /*f16*/, 0xcb /*f14*/,
   /*0x6C*/ 0, 0xc7 /*f10*/, 0x0a /*fn+enter on laptops*/, 0xc9 /*f12*/,
 
   /*0x70*/ 0, 0xcc /*f15*/, 0x6a /*help*/, 0x50 /*home*/,
@@ -9650,7 +9918,13 @@ keycode_to_xkeysym (int keyCode, int *xKeySym)
   return *xKeySym != 0;
 }
 
-static unsigned char fn_keycode_to_xkeysym_table[] = {
+#ifdef MAC_OSX
+/* Table for translating Mac keycode with the laptop `fn' key to that
+   without it.  Destination symbols in comments are keys on US
+   keyboard, and they may not be the same on other types of keyboards.
+   If the destination is identical to the source (f1 ... f12), it
+   doesn't map `fn' key to a modifier.  */
+static unsigned char fn_keycode_to_keycode_table[] = {
   /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x20*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -9660,113 +9934,27 @@ static unsigned char fn_keycode_to_xkeysym_table[] = {
   /*0x38*/ 0, 0, 0, 0,
   /*0x3C*/ 0, 0, 0, 0,
 
-  /*0x40*/ 0, 0x2e /*kp-. = .*/, 0, 0x50 /*kp-* = 'p'*/,
-  /*0x44*/ 0, '/' /*kp-+*/, 0, 0,
-  /*0x48*/ 0, 0, 0, 0x30 /*kp-/ = '0'*/,
-  /*0x4C*/ 0, 0, 0x3b /*kp-- = ';'*/, 0,
+  /*0x40*/ 0, 0x2f /*kp-. -> '.'*/, 0, 0x23 /*kp-* -> 'p'*/,
+  /*0x44*/ 0, 0x2c /*kp-+ -> '/'*/, 0, 0x16 /*clear -> '6'*/,
+  /*0x48*/ 0, 0, 0, 0x1d /*kp-/ -> '0'*/,
+  /*0x4C*/ 0x24 /*kp-enter -> return*/, 0, 0x29 /*kp-- -> ';'*/, 0,
 
-  /*0x50*/ 0, 0x2d /*kp-= = '-'*/, 0x6d /*kp-0 = 'm'*/, 0x6a /*kp-1 = 'j'*/,
-  /*0x54*/ 0x6b /*kp-2 = 'k'*/, 0x6c /*kp-3 = 'l'*/, 'u' /*kp-4*/, 'i' /*kp-5*/,
-  /*0x58*/ 'o' /*kp-6*/, '7' /*kp-7*/, 0, '8' /*kp-8*/,
-  /*0x5C*/ '9' /*kp-9*/, 0, 0, 0,
+  /*0x50*/ 0, 0x1b /*kp-= -> '-'*/, 0x2e /*kp-0 -> 'm'*/, 0x26 /*kp-1 -> 'j'*/,
+  /*0x54*/ 0x28 /*kp-2 -> 'k'*/, 0x25 /*kp-3 -> 'l'*/, 0x20 /*kp-4 -> 'u'*/, 0x22 /*kp-5 ->'i'*/,
+  /*0x58*/ 0x1f /*kp-6 -> 'o'*/, 0x1a /*kp-7 -> '7'*/, 0, 0x1c /*kp-8 -> '8'*/,
+  /*0x5C*/ 0x19 /*kp-9 -> '9'*/, 0, 0, 0,
 
-  /*0x60*/ 0, 0, 0, 0,
-  /*0x64*/ 0, 0, 0, 0,
+  /*0x60*/ 0x60 /*f5 = f5*/, 0x61 /*f6 = f6*/, 0x62 /*f7 = f7*/, 0x63 /*f3 = f3*/,
+  /*0x64*/ 0x64 /*f8 = f8*/, 0x65 /*f9 = f9*/, 0, 0x67 /*f11 = f11*/,
   /*0x68*/ 0, 0, 0, 0,
-  /*0x6C*/ 0, 0, 0, 0,
+  /*0x6C*/ 0, 0x6d /*f10 = f10*/, 0, 0x6f /*f12 = f12*/,
 
-  /*0x70*/ 0, 0, 0, 0,
-  /*0x74*/ 0, 0, 0, 0,
-  /*0x78*/ 0, 0, 0, 0,
+  /*0x70*/ 0, 0, 0, 0x7b /*home -> left*/,
+  /*0x74*/ 0x7e /*pgup -> up*/, 0x33 /*delete -> backspace*/, 0x76 /*f4 = f4*/, 0x7c /*end -> right*/,
+  /*0x78*/ 0x78 /*f2 = f2*/, 0x7d /*pgdown -> down*/, 0x7a /*f1 = f1*/, 0,
   /*0x7C*/ 0, 0, 0, 0
 };
-static int
-convert_fn_keycode (EventRef eventRef, int keyCode, int *newCode)
-{
-#ifdef MAC_OSX
-  /* Use the special map to translate keys when function modifier is
-     to be caught. KeyTranslate can't be used in that case.
-     We can't detect the function key using the input_event.modifiers,
-     because this uses the high word of an UInt32. Therefore,
-     we'll just read it out of the original eventRef.
-  */
-
-
-  /* TODO / known issues
-
-  - Fn-Shift-j is regonized as Fn-j and not Fn-J.
-  The above table always translates to lower characters. We need to use
-  the KCHR keyboard resource (KeyTranslate() ) to map k->K and 8->*.
-
-  - The table is meant for English language keyboards, and it will work
-  for many others with the exception of key combinations like Fn-ö on
-  a German keyboard, which is currently mapped to Fn-;.
-  How to solve this without keeping separate tables for all keyboards
-  around? KeyTranslate isn't of much help here, as it only takes a 16-bit
-  value for keycode with the modifiers in he high byte, i.e. no room for the
-  Fn modifier. That's why we need the table.
-
-  */
-  OSStatus err;
-  UInt32 mods = 0;
-  if (!NILP(Vmac_function_modifier))
-    {
-      err = GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32,
-			       NULL, sizeof (UInt32), NULL, &mods);
-      if (err != noErr && mods & kEventKeyModifierFnMask)
-	{  *newCode = fn_keycode_to_xkeysym_table [keyCode & 0x7f];
-
-	  return (*newCode != 0);
-	}
-    }
-#endif
-  return false;
-}
-
-static int
-backtranslate_modified_keycode(int mods, int keycode, int def)
-{
-  EventModifiers mapped_modifiers =
-    (NILP (Vmac_control_modifier) ? 0 : controlKey)
-    | (NILP (Vmac_option_modifier) ? 0 : optionKey)
-    | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
-
-  if (mods & mapped_modifiers)
-    {
-      /* This code comes from Keyboard Resource,
-	 Appendix C of IM - Text.  This is necessary
-	 since shift is ignored in KCHR table
-	 translation when option or command is pressed.
-	 It also does not translate correctly
-	 control-shift chars like C-% so mask off shift
-	 here also.
-
-	 Not done for combinations with the option key (alt)
-	 unless it is to be caught by Emacs:  this is
-	 to preserve key combinations translated by the OS
-	 such as Alt-3.
-      */
-      /* Mask off modifier keys that are mapped to some Emacs
-	 modifiers.  */
-      int new_modifiers = mods & ~mapped_modifiers;
-      /* set high byte of keycode to modifier high byte*/
-      int new_keycode = keycode | new_modifiers;
-      Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-      unsigned long some_state = 0;
-      return (int) KeyTranslate (kchr_ptr, new_keycode,
-				 &some_state) & 0xff;
-      /* TO DO: Recognize two separate resulting characters, "for
-	 example, when the user presses Option-E followed by N, you
-	 can map this through the KeyTranslate function using the
-	 U.S. 'KCHR' resource to produce ´n, which KeyTranslate
-	 returns as two characters in the bytes labeled Character code
-	 1 and Character code 2." (from Carbon API doc) */
-
-    }
-  else
-    return def;
-}
-
+#endif	/* MAC_OSX */
 
 #if !USE_CARBON_EVENTS
 static RgnHandle mouse_region = NULL;
@@ -9840,6 +10028,44 @@ mac_post_mouse_moved_event ()
 
   return err;
 }
+
+static void
+mac_set_unicode_keystroke_event (code, buf)
+     UniChar code;
+     struct input_event *buf;
+{
+  int charset_id, c1, c2;
+
+  if (code < 0x80)
+    {
+      buf->kind = ASCII_KEYSTROKE_EVENT;
+      buf->code = code;
+    }
+  else if (code < 0x100)
+    {
+      if (code < 0xA0)
+	charset_id = CHARSET_8_BIT_CONTROL;
+      else
+	charset_id = charset_latin_iso8859_1;
+      buf->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+      buf->code = MAKE_CHAR (charset_id, code, 0);
+    }
+  else
+    {
+      if (code < 0x2500)
+	charset_id = charset_mule_unicode_0100_24ff,
+	  code -= 0x100;
+      else if (code < 0x33FF)
+	charset_id = charset_mule_unicode_2500_33ff,
+	  code -= 0x2500;
+      else if (code >= 0xE000)
+	charset_id = charset_mule_unicode_e000_ffff,
+	  code -= 0xE000;
+      c1 = (code / 96) + 32, c2 = (code % 96) + 32;
+      buf->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+      buf->code = MAKE_CHAR (charset_id, c1, c2);
+    }
+}
 #endif
 
 /* Emacs calls this whenever it wants to read an input event from the
@@ -9889,10 +10115,6 @@ XTread_socket (sd, expected, hold_quit)
       struct frame *f;
       unsigned long timestamp;
 
-      /* It is necessary to set this (additional) argument slot of an
-	 event to nil because keyboard.c protects incompletely
-	 processed event from being garbage collected by placing them
-	 in the kbd_buffer_gcpro vector.  */
       EVENT_INIT (inev);
       inev.kind = NO_EVENT;
       inev.arg = Qnil;
@@ -10354,10 +10576,29 @@ XTread_socket (sd, expected, hold_quit)
 	  break;
 
 	case keyDown:
+	case keyUp:
 	case autoKey:
 	  {
 	    int keycode = (er.message & keyCodeMask) >> 8;
 	    int xkeysym;
+	    static SInt16 last_key_script = -1;
+	    SInt16 current_key_script;
+	    UInt32 modifiers = er.modifiers, mapped_modifiers;
+
+	    mapped_modifiers =
+	      (NILP (Vmac_control_modifier) ? 0 : controlKey)
+	      | (NILP (Vmac_option_modifier) ? 0 : optionKey)
+	      | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
+
+#if USE_CARBON_EVENTS && defined (MAC_OSX)
+	    mapped_modifiers |=
+	      (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
+
+	    GetEventParameter (eventRef, kEventParamKeyModifiers,
+			       typeUInt32, NULL,
+			       sizeof (UInt32), NULL, &modifiers);
+#endif
+	    mapped_modifiers &= modifiers;
 
 #if USE_CARBON_EVENTS && defined (MAC_OSX)
 	    /* When using Carbon Events, we need to pass raw keyboard
@@ -10365,45 +10606,21 @@ XTread_socket (sd, expected, hold_quit)
 	       will pass back noErr, otherwise it will pass back
 	       "eventNotHandledErr" and we can process it
 	       normally.  */
-	    if ((mac_pass_command_to_system
-		 || !(er.modifiers & cmdKey))
-		&& (mac_pass_control_to_system
-		    || !(er.modifiers & controlKey))
-		&& (NILP (Vmac_option_modifier)
-		    || !(er.modifiers & optionKey)))
-	      if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
-		  != eventNotHandledErr)
-		break;
-#endif
-
-#if 0
-	    if (dpyinfo->x_focus_frame == NULL)
+	    if (!(mapped_modifiers
+		  & ~(mac_pass_command_to_system ? cmdKey : 0)
+		  & ~(mac_pass_control_to_system ? controlKey : 0)))
 	      {
-		/* Beep if keyboard input occurs when all the frames
-		   are invisible.  */
-		SysBeep (1);
-		break;
+		OSStatus err;
+
+		read_socket_inev = &inev;
+		err = SendEventToEventTarget (eventRef, toolbox_dispatcher);
+		read_socket_inev = NULL;
+		if (err != eventNotHandledErr)
+		  break;
 	      }
 #endif
-
-	    {
-	      static SInt16 last_key_script = -1;
-	      SInt16 current_key_script = GetScriptManagerVariable (smKeyScript);
-
-	      if (last_key_script != current_key_script)
-		{
-		  struct input_event event;
-
-		  EVENT_INIT (event);
-		  event.kind = LANGUAGE_CHANGE_EVENT;
-		  event.arg = Qnil;
-		  event.code = current_key_script;
-		  event.timestamp = timestamp;
-		  kbd_buffer_store_event (&event);
-		  count++;
-		}
-	      last_key_script = current_key_script;
-	    }
+	    if (er.what == keyUp)
+	      break;
 
 	    ObscureCursor ();
 
@@ -10416,51 +10633,163 @@ XTread_socket (sd, expected, hold_quit)
 		dpyinfo->mouse_face_hidden = 1;
 	      }
 
-	    /* translate the keycode back to determine the original key */
-	    /* Convert key code if function key is pressed.
-	       Otherwise, if non-ASCII-event, take care of that
-	       without re-translating the key code. */
-#if USE_CARBON_EVENTS
-	    if (convert_fn_keycode (eventRef, keycode, &xkeysym))
+	    current_key_script = GetScriptManagerVariable (smKeyScript);
+	    if (last_key_script != current_key_script)
 	      {
-		inev.code = xkeysym;
-		/* this doesn't work - tried to add shift modifiers */
-		  inev.code =
-		    backtranslate_modified_keycode(er.modifiers & (~0x2200),
-						   xkeysym | 0x80,  xkeysym);
-		inev.kind = ASCII_KEYSTROKE_EVENT;
-	      }
-	    else
-#endif
-	      if (keycode_to_xkeysym (keycode, &xkeysym))
-		{
-		  inev.code = 0xff00 | xkeysym;
-		  inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-		}
-	      else
-		{
-		  inev.code =
-		    backtranslate_modified_keycode(er.modifiers, keycode,
-						   er.message & charCodeMask);
-		  inev.kind = ASCII_KEYSTROKE_EVENT;
-		}
-	  }
+		struct input_event event;
 
-#if USE_CARBON_EVENTS
-	  inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
-#else
-	  inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
+		EVENT_INIT (event);
+		event.kind = LANGUAGE_CHANGE_EVENT;
+		event.arg = Qnil;
+		event.code = current_key_script;
+		event.timestamp = timestamp;
+		kbd_buffer_store_event (&event);
+		count++;
+		last_key_script = current_key_script;
+	      }
+
+#if USE_MAC_TSM
+	    if (inev.kind != NO_EVENT)
+	      break;
 #endif
-	  inev.modifiers |= (extra_keyboard_modifiers
-			     & (meta_modifier | alt_modifier
-				| hyper_modifier | super_modifier));
-	  XSETFRAME (inev.frame_or_window, f);
+
+#ifdef MAC_OSX
+	    if (mapped_modifiers & kEventKeyModifierFnMask
+		&& keycode <= 0x7f
+		&& fn_keycode_to_keycode_table[keycode])
+	      keycode = fn_keycode_to_keycode_table[keycode];
+#endif
+	    if (keycode_to_xkeysym (keycode, &xkeysym))
+	      {
+		inev.kind = NON_ASCII_KEYSTROKE_EVENT;
+		inev.code = 0xff00 | xkeysym;
+#ifdef MAC_OSX
+		if (modifiers & kEventKeyModifierFnMask
+		    && keycode <= 0x7f
+		    && fn_keycode_to_keycode_table[keycode] == keycode)
+		  modifiers &= ~kEventKeyModifierFnMask;
+#endif
+	      }
+	    else if (mapped_modifiers)
+	      {
+		/* translate the keycode back to determine the
+		   original key */
+#ifdef MAC_OSX
+		static SInt16 last_key_layout_id = 0;
+		static Handle uchr_handle = (Handle)-1;
+		SInt16 current_key_layout_id =
+		  GetScriptVariable (current_key_script, smScriptKeys);
+
+		if (uchr_handle == (Handle)-1
+		    || last_key_layout_id != current_key_layout_id)
+		  {
+		    uchr_handle = GetResource ('uchr', current_key_layout_id);
+		    last_key_layout_id = current_key_layout_id;
+		  }
+
+		if (uchr_handle)
+		  {
+		    OSStatus status;
+		    UInt16 key_action = er.what - keyDown;
+		    UInt32 modifier_key_state =
+		      (modifiers & ~mapped_modifiers) >> 8;
+		    UInt32 keyboard_type = LMGetKbdType ();
+		    SInt32 dead_key_state = 0;
+		    UniChar code;
+		    UniCharCount actual_length;
+
+		    status = UCKeyTranslate ((UCKeyboardLayout *)*uchr_handle,
+					     keycode, key_action,
+					     modifier_key_state,
+					     keyboard_type,
+					     kUCKeyTranslateNoDeadKeysMask,
+					     &dead_key_state,
+					     1, &actual_length, &code);
+		    if (status == noErr && actual_length == 1)
+		      mac_set_unicode_keystroke_event (code, &inev);
+		  }
+#endif	/* MAC_OSX */
+
+		if (inev.kind == NO_EVENT)
+		  {
+		    /* This code comes from Keyboard Resource,
+		       Appendix C of IM - Text.  This is necessary
+		       since shift is ignored in KCHR table
+		       translation when option or command is pressed.
+		       It also does not translate correctly
+		       control-shift chars like C-% so mask off shift
+		       here also.  */
+		    /* Mask off modifier keys that are mapped to some
+		       Emacs modifiers.  */
+		    int new_modifiers = er.modifiers & ~mapped_modifiers;
+		    /* set high byte of keycode to modifier high byte*/
+		    int new_keycode = keycode | new_modifiers;
+		    Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+		    unsigned long some_state = 0;
+		    UInt32 new_char_code;
+
+		    new_char_code = KeyTranslate (kchr_ptr, new_keycode,
+						  &some_state);
+		    if (new_char_code == 0)
+		      /* Seems like a dead key.  Append up-stroke.  */
+		      new_char_code = KeyTranslate (kchr_ptr,
+						    new_keycode | 0x80,
+						    &some_state);
+		    if (new_char_code)
+		      {
+			inev.kind = ASCII_KEYSTROKE_EVENT;
+			inev.code = new_char_code & 0xff;
+		      }
+		  }
+	      }
+
+	    if (inev.kind == NO_EVENT)
+	      {
+		inev.kind = ASCII_KEYSTROKE_EVENT;
+		inev.code = er.message & charCodeMask;
+	      }
+
+	    inev.modifiers = mac_to_emacs_modifiers (modifiers);
+	    inev.modifiers |= (extra_keyboard_modifiers
+			       & (meta_modifier | alt_modifier
+				  | hyper_modifier | super_modifier));
+	    XSETFRAME (inev.frame_or_window, f);
+
+#if TARGET_API_MAC_CARBON
+	    if (inev.kind == ASCII_KEYSTROKE_EVENT
+		&& inev.code >= 0x80 && inev.modifiers)
+	      {
+		OSStatus err;
+		TextEncoding encoding = kTextEncodingMacRoman;
+		TextToUnicodeInfo ttu_info;
+
+		UpgradeScriptInfoToTextEncoding (current_key_script,
+						 kTextLanguageDontCare,
+						 kTextRegionDontCare,
+						 NULL, &encoding);
+		err = CreateTextToUnicodeInfoByEncoding (encoding, &ttu_info);
+		if (err == noErr)
+		  {
+		    UniChar code;
+		    Str255 pstr;
+		    ByteCount unicode_len;
+
+		    pstr[0] = 1;
+		    pstr[1] = inev.code;
+		    err = ConvertFromPStringToUnicode (ttu_info, pstr,
+						       sizeof (UniChar),
+						       &unicode_len, &code);
+		    if (err == noErr && unicode_len == sizeof (UniChar))
+		      mac_set_unicode_keystroke_event (code, &inev);
+		    DisposeTextToUnicodeInfo (&ttu_info);
+		  }
+	      }
+#endif
+	  }
 	  break;
 
 	case kHighLevelEvent:
-	  read_socket_inev = &inev;
 	  AEProcessAppleEvent (&er);
-	  read_socket_inev = NULL;
 	  break;
 
 	default:
@@ -10932,6 +11261,16 @@ init_menu_bar ()
 #endif
 }
 
+#if USE_MAC_TSM
+static void
+init_tsm ()
+{
+  static InterfaceTypeList types = {kUnicodeDocument};
+
+  NewTSMDocument (sizeof (types) / sizeof (types[0]), types,
+		  &tsm_document_id, 0);
+}
+#endif
 
 /* Set up use of X before we make the first connection.  */
 
@@ -11026,6 +11365,10 @@ mac_initialize ()
   init_command_handler ();
 
   init_menu_bar ();
+
+#if USE_MAC_TSM
+  init_tsm ();
+#endif
 #endif	/* USE_CARBON_EVENTS */
 
 #ifdef MAC_OSX
@@ -11081,6 +11424,13 @@ syms_of_macterm ()
   Qservice     = intern ("service");	  staticpro (&Qservice);
   Qpaste       = intern ("paste");	  staticpro (&Qpaste);
   Qperform     = intern ("perform");	  staticpro (&Qperform);
+#endif
+#if USE_MAC_TSM
+  Qtext_input = intern ("text-input");	staticpro (&Qtext_input);
+  Qupdate_active_input_area = intern ("update-active-input-area");
+  staticpro (&Qupdate_active_input_area);
+  Qunicode_for_key_event = intern ("unicode-for-key-event");
+  staticpro (&Qunicode_for_key_event);
 #endif
 #endif
 
@@ -11223,6 +11573,11 @@ order.  */);
 		     make_float (DEFAULT_REHASH_SIZE),
 		     make_float (DEFAULT_REHASH_THRESHOLD),
 		     Qnil, Qnil, Qnil);
+#endif
+#if USE_MAC_TSM
+  DEFVAR_LISP ("mac-ts-active-input-overlay", &Vmac_ts_active_input_overlay,
+    doc: /* Overlay used to display Mac TSM active input area.  */);
+  Vmac_ts_active_input_overlay = Qnil;
 #endif
 }
 

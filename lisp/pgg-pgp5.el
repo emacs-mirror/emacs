@@ -147,23 +147,23 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
   "Encrypt the current region between START and END."
   (let* ((pgg-pgp5-user-id (or pgg-pgp5-user-id pgg-default-user-id))
 	 (passphrase (or passphrase
-                         (when sign
-                           (pgg-read-passphrase
-                            (format "PGP passphrase for %s: "
-                                    pgg-pgp5-user-id)
-                            pgg-pgp5-user-id))))
+			 (when sign
+			   (pgg-read-passphrase
+			    (format "PGP passphrase for %s: "
+				    pgg-pgp5-user-id)
+			    pgg-pgp5-user-id))))
 	 (args
-          (append
-           `("+NoBatchInvalidKeys=off" "-fat" "+batchmode=1"
-             ,@(if recipients
-                   (apply #'append
-                          (mapcar (lambda (rcpt)
-                                    (list "-r"
-                                          (concat "\"" rcpt "\"")))
-                                  (append recipients
-                                          (if pgg-encrypt-for-me
-                                              (list pgg-pgp5-user-id)))))))
-           (if sign '("-s" "-u" pgg-pgp5-user-id)))))
+	  (append
+	   `("+NoBatchInvalidKeys=off" "-fat" "+batchmode=1"
+	     ,@(if recipients
+		   (apply #'append
+			  (mapcar (lambda (rcpt)
+				    (list "-r"
+					  (concat "\"" rcpt "\"")))
+				  (append recipients
+					  (if pgg-encrypt-for-me
+					      (list pgg-pgp5-user-id)))))))
+	   (if sign '("-s" "-u" pgg-pgp5-user-id)))))
     (pgg-pgp5-process-region start end nil pgg-pgp5-pgpe-program args)
     (pgg-process-when-success nil)))
 
@@ -171,10 +171,10 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
   "Decrypt the current region between START and END."
   (let* ((pgg-pgp5-user-id (or pgg-pgp5-user-id pgg-default-user-id))
 	 (passphrase
-          (or passphrase
-              (pgg-read-passphrase
-               (format "PGP passphrase for %s: " pgg-pgp5-user-id)
-               (pgg-pgp5-lookup-key pgg-pgp5-user-id 'encrypt))))
+	  (or passphrase
+	      (pgg-read-passphrase
+	       (format "PGP passphrase for %s: " pgg-pgp5-user-id)
+	       (pgg-pgp5-lookup-key pgg-pgp5-user-id 'encrypt))))
 	 (args
 	  '("+verbose=1" "+batchmode=1" "+language=us" "-f")))
     (pgg-pgp5-process-region start end passphrase pgg-pgp5-pgpv-program args)
@@ -184,10 +184,10 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
   "Make detached signature from text between START and END."
   (let* ((pgg-pgp5-user-id (or pgg-pgp5-user-id pgg-default-user-id))
 	 (passphrase
-          (or passphrase
-              (pgg-read-passphrase
-               (format "PGP passphrase for %s: " pgg-pgp5-user-id)
-               (pgg-pgp5-lookup-key pgg-pgp5-user-id 'sign))))
+	  (or passphrase
+	      (pgg-read-passphrase
+	       (format "PGP passphrase for %s: " pgg-pgp5-user-id)
+	       (pgg-pgp5-lookup-key pgg-pgp5-user-id 'sign))))
 	 (args
 	  (list (if clearsign "-fat" "-fbat")
 		"+verbose=1" "+language=us" "+batchmode=1"

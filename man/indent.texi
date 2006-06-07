@@ -154,9 +154,9 @@ point, until it is underneath the next indentation point in the previous line.
 An indentation point is the end of a sequence of whitespace or the end of
 the line.  If point is farther right than any indentation point in the
 previous line, @code{indent-relative} runs @code{tab-to-tab-stop}
-@ifinfo
+@ifnottex
 (@pxref{Tab Stops}),
-@end ifinfo
+@end ifnottex
 @iftex
 (see next section),
 @end iftex

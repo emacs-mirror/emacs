@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.26}
+\def\orgversionnumber{4.36}
 \def\year{2006}
 %
 %**start of header
@@ -269,19 +269,11 @@ are preserved on all copies.
 
 \section{Getting Started}
 %
-%Put the following in your \kbd{~/.emacs}$^1$
 \vskip -1mm
 \beginexample%
-%(autoload 'org-mode "org" "Org mode" t)
-%(autoload 'org-diary "org" "Org mode diary entries")
-%(autoload 'org-agenda "org" "Agenda from Org files" t)
-%(autoload 'org-todo-list "org" "Global TODO list" t)
-%(autoload 'org-store-link "org" "Store org link" t)
-%(autoload 'orgtbl-mode "org" "Orgtbl minor mode" t)
-%(autoload 'turn-on-orgtbl "org" "Orgtbl minor mode")
 (add-to-list 'auto-mode-alist '("\\\\.org\$" . org-mode))
-(define-key global-map "\\C-cl" 'org-store-link)$^2$
-(define-key global-map "\\C-ca" 'org-agenda)$^2$
+(define-key global-map "\\C-cl" 'org-store-link)$^1$
+(define-key global-map "\\C-ca" 'org-agenda)$^1$
 \endexample
 %
 \metax{For the many customization options try}{M-x org-customize}
@@ -302,6 +294,7 @@ are preserved on all copies.
 \key{previous heading, same level}{C-c C-b}
 \key{backward to higher level heading}{C-c C-u}
 \key{jump to another place in document}{C-c C-j}
+\key{previous/next plain list item}{S-UP/DOWN$^3$}
 
 \section{Structure Editing}
 
@@ -320,7 +313,7 @@ are preserved on all copies.
 \key{yank subtree}{C-c C-x C-y}
 
 \key{archive subtree}{C-c \$}
-To set archive location for current file, add a line like$^3$:
+To set archive location for current file, add a line like$^2$:
 \vskip -1mm
 \beginexample%
 \#+ARCHIVE: archfile::* Archived Tasks
@@ -330,10 +323,10 @@ To set archive location for current file, add a line like$^3$:
 
 \key{show sparse tree for all matches of a regexp}{C-c /}
 \key{view TODO's in sparse tree}{C-c C-v}
-\key{global TODO list in agenda mode}{C-c t$^2$}
+\key{global TODO list in agenda mode}{C-c t$^1$}
 \key{create sparse tree with all deadlines due}{C-c C-w}
 \key{time sorted view of current org file}{C-c C-r}
-%\key{agenda for the week}{C-c a$^2$}
+%\key{agenda for the week}{C-c a$^1$}
 %\key{agenda for date at cursor}{C-c C-o}
 
 \section{Tags}
@@ -351,8 +344,8 @@ To set archive location for current file, add a line like$^3$:
 
 \key{set the priority of the current item}{C-c , [ABC]}
 \key{remove priority cookie from current item}{C-c , SPC}
-\key{raise priority of current item}{S-UP$^4$}
-\key{lower priority of current item}{S-DOWN$^4$}
+\key{raise priority of current item}{S-UP$^3$}
+\key{lower priority of current item}{S-DOWN$^3$}
 
 \key{\kbd{\#+SEQ_TODO: TODO TRY BLUFF DONE}}{\rm todo workflow}
 \key{\kbd{\#+TYP_TODO: Phil home work DONE}}{\rm todo types}
@@ -366,8 +359,8 @@ To set archive location for current file, add a line like$^3$:
 \key{insert SCHEDULED timestamp}{C-c C-s}
 \key{create sparse tree with all deadlines due}{C-c C-w}
 \key{the time between 2 dates in a time range}{C-c C-y}
-\key{change timestamp at cursor by $\pm 1$ day}{S-RIGHT/LEFT$^4$}
-\key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN$^4$}
+\key{change timestamp at cursor by $\pm 1$ day}{S-RIGHT/LEFT$^3$}
+\key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN$^3$}
 \key{access the calendar for the current date}{C-c >}
 \key{insert timestamp matching date in calendar}{C-c <}
 \key{access agenda for current date}{C-c C-o}
@@ -380,7 +373,7 @@ To set archive location for current file, add a line like$^3$:
 
 \section{Links}
 
-\key{globally store link to the current location}{C-c l$^2$}
+\key{globally store link to the current location}{C-c l$^1$}
 \key{insert a link (TAB completes stored links)}{C-c C-l}
 \key{insert file link with file name completion}{C-u C-c C-l}
 \key{edit (also hidden part of) link at point}{C-c C-l}
@@ -388,13 +381,13 @@ To set archive location for current file, add a line like$^3$:
 \key{open file links in emacs (\kbd{C-u} : in emacs)}{C-c C-o}
 \key{open link at point (3: in emacs)}{mouse-2/3}
 %\key{open file links in emacs}{mouse-3}
-\key{record a position in mark ring}{C-c \%}
+%\key{record a position in mark ring}{C-c \%}
 \key{jump back to last followed link(s)}{C-c \&}
 
 {\bf Internal Links}
 
 \key{\kbd{<<My Target>>}}{\rm target}
-\key{\kbd{<<<My Target>>>}}{\rm radio target$^3$}
+\key{\kbd{<<<My Target>>>}}{\rm radio target$^2$}
 \key{\kbd{[[*this text]]}}{\rm find headline}
 \metax{\kbd{[[this text]]}}{\rm find target or text in buffer}
 \metax{\kbd{[[this text][description]]}}{\rm optional link text}
@@ -405,16 +398,18 @@ To set archive location for current file, add a line like$^3$:
 \key{\kbd{file:papers/last.pdf}}{\rm file, relative}
 \key{\kbd{file:projects.org::*that text}}{\rm find headline}
 \key{\kbd{file:projects.org::find me}}{\rm find tgt/string}
-\key{\kbd{file:projects.org::/regexp/}}{\rm regexp search}
+%\key{\kbd{file:projects.org::/regexp/}}{\rm regexp search}
 \key{\kbd{http://www.astro.uva.nl/~dominik}}{\rm on the web}
 \key{\kbd{mailto:adent@galaxy.net}}{\rm EMail address}
 \key{\kbd{news:comp.emacs}}{\rm Usenet group}
 \key{\kbd{bbdb:Richard Stallman}}{\rm BBDB person}
-\key{\kbd{shell:ls *.org}}{\rm shell command}
 \key{\kbd{gnus:group}}{\rm GNUS group}
 \key{\kbd{gnus:group\#id}}{\rm GNUS message}
 \key{\kbd{vm|wl|mhe|rmail:folder}}{\rm Mail folder}
 \key{\kbd{vm|wl|mhe|rmail:folder\#id}}{\rm Mail message}
+\key{\kbd{info:emacs:Regexps}}{\rm Info file:node}
+\key{\kbd{shell:ls *.org}}{\rm shell command}
+\key{\kbd{elisp:(calendar)}}{\rm elisp form}
 \metax{\kbd{[[external link][description]]}}{\rm optional link text}
 %\key{\kbd{vm://myself@some.where.org/folder\#id}}{\rm VM remote}
 
@@ -479,7 +474,7 @@ Outside of tables, the same keys may have other functionality.
 
 \key{display column number cursor is in}{C-c ?}
 \key{sum numbers in current column/rectangle}{C-c +}
-\key{copy down with increment}{S-RET$^4$}
+\key{copy down with increment}{S-RET$^3$}
 
 Formulas typed in field are executed by \kbd{TAB},
 \kbd{RET} and \kbd{C-c C-c}.  \kbd{=} introduces a column
@@ -516,15 +511,15 @@ formula, \kbd{:=} a named-field formula.
 \key{remove current file from your agenda}{C-c ]}
 \key{cycle through agenda file list}{C-,}
 
-\key{compile agenda for the current week}{C-c a a$^2$}
-\key{compile global TODO list}{C-c a t$^2$}
-\key{compile TODO list for specific keyword}{C-c a T$^2$}
-\key{match tags in agenda files}{C-c a m$^2$}
+\key{compile agenda for the current week}{C-c a a$^1$}
+\key{compile global TODO list}{C-c a t$^1$}
+\key{compile TODO list for specific keyword}{C-c a T$^1$}
+\key{match tags in agenda files}{C-c a m$^1$}
 \key{agenda for date at cursor}{C-c C-o}
 \key{show timeline of current org file}{C-c C-r}
 
 \vskip 1mm
-To set categories, add lines like$^3$:
+To set categories, add lines like$^2$:
 \vskip -1mm
 \beginexample%
 \#+CATEGORY: MyCateg
@@ -561,12 +556,10 @@ To set categories, add lines like$^3$:
 \key{show tags of current headline}{T}
 \key{set tags for current headline}{:}
 \key{set priority of current item}{p}
-\key{raise/lower priority of current item}{S-UP/DOWN$^4$}
-%\key{lower priority of current item}{S-DOWN$^4$}
+\key{raise/lower priority of current item}{S-UP/DOWN$^3$}
 \key{display weighted priority of current item}{P}
-\key{change timestamp to one day earlier/later}{S-LEFT/RIGHT$^4$}
-%\key{change timestamp to one day earlier}{S-LEFT$^4$}
-%\key{change timestamp to one day later}{S-RIGHT$^4$}
+\key{schedule/set deadline for this item}{C-c C-s/d}
+\key{change timestamp to one day earlier/later}{S-LEFT/RIGHT$^3$}
 \key{change timestamp to today}{>}
 \key{insert new entry into diary}{i}
 
@@ -629,8 +622,6 @@ keywords. {\tt M-TAB} again just after keyword is complete inserts examples.
 \key{... which can carry over multiple lines}{\#+TEXT:}
 \key{settings for the export process - see below}{\#+OPTIONS:}
 
-{\bf Settings for the OPTIONS line}
-
 \key{set number of headline levels for export}{H:2}
 \key{turn on/off section numbers}{num:t}
 \key{turn on/off table of contents}{toc:t}
@@ -651,6 +642,13 @@ Subtrees whose header starts with COMMENT are never exported.
 
 \key{toggle COMMENT keyword on entry}{C-c ;}
 
+
+\section{Publishing (requires org-publish.el)}
+\key{publishcurrent file}{C-c C-e C-f}
+\key{publish current project}{C-c C-e C-p}
+\key{publish project (prompted for)}{C-c C-e C-c}
+\key{publish all projects}{C-c C-e C-a}
+
 \section{Completion}
 
 In-buffer completion completes TODO keywords at headline start, TeX
@@ -659,33 +657,11 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{Complete word at point}{M-TAB}
 
-\newcolumn
-
 \section{Calendar and Diary Integration}
 
 To include entries from the Emacs diary in your Org-mode agenda:
 \beginexample%
 (setq org-agenda-include-diary t)
-\endexample
-
-To include the Org-mode agenda in the normal diary, make sure you're
-using the fancy diary display
-%
-%\beginexample%
-%(add-hook 'diary-display-hook 'fancy-diary-display)
-%\endexample
-%
-and in the \kbd{~/diary} file add
-
-\beginexample%
-\&\%\%(org-diary)
-\endexample
-
-to include all the files listed in \kbd{org-agenda-files}.  For more
-selective file inclusion use a line for each file:
-
-\beginexample%
-\&\%\%(org-diary) ~/path/to/some/org-file.org
 \endexample
 
 \section{Remember-mode Integration}
@@ -712,7 +688,7 @@ Insert the note with one of the following:
 Configure the variable {\tt org-CUA-compatibility} to make Org-mode
 avoid the \kbd{S-<cursor>} bindings used by these modes.  When set,
 Org-mode will change the following keybindings (also in the agenda
-buffer, but not during date selection). See note mark four$^4$
+buffer, but not during date selection). See note mark four$^3$
 throughout the reference card.
 %\vskip-mm
 \beginexample
@@ -722,16 +698,13 @@ S-RET   $\to$ C-S-RET
 \endexample
 
 \section{Notes}
-$^1$ The six autoload forms are only needed if Org-mode is not part of
-Emacs, or an XEmacs package.
-
-$^2$ This is only a suggestion for a binding of this command.  Choose
+$^1$ This is only a suggestion for a binding of this command.  Choose
 you own key as shown under INSTALLATION.
 
-$^3$ After changing a \kbd{\#+KEYWORD} or \kbd{<<<target>>>} line,
+$^2$ After changing a \kbd{\#+KEYWORD} or \kbd{<<<target>>>} line,
 press \kbd{C-c C-c} with the cursor still in the line to update.
 
-$^4$ Keybinding affected by {\tt org-CUA-compatibility}.
+$^3$ Keybinding affected by {\tt org-CUA-compatibility}.
 
 \copyrightnotice
 

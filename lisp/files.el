@@ -1847,13 +1847,14 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
      ("Imakefile\\'" . makefile-imake-mode)
+     ("Makeppfile\\(?:\\.mk\\)?\\'" . makefile-makepp-mode) ; Put this before .mk
+     ("\\.makepp\\'" . makefile-makepp-mode)
      ,@(if (memq system-type '(berkeley-unix next-mach darwin))
 	   '(("\\.mk\\'" . makefile-bsdmake-mode)
 	     ("GNUmakefile\\'" . makefile-gmake-mode)
 	     ("[Mm]akefile\\'" . makefile-bsdmake-mode))
 	 '(("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
 	   ("[Mm]akefile\\'" . makefile-gmake-mode)))
-     ("Makeppfile\\'" . makefile-makepp-mode)
      ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here
      ;; so more common ones above are found faster.
@@ -2689,7 +2690,10 @@ It is dangerous if either of these conditions are met:
 		    (or (numberp val) (equal val ''defun)))
 		   ((eq prop 'edebug-form-spec)
 		    ;; Only allow indirect form specs.
-		    (edebug-basic-spec val)))))
+		    ;; During bootstrapping, edebug-basic-spec might not be
+		    ;; defined yet.
+                    (and (fboundp 'edebug-basic-spec)
+                         (edebug-basic-spec val))))))
       ;; Allow expressions that the user requested.
       (member exp safe-local-eval-forms)
       ;; Certain functions can be allowed with safe arguments
@@ -2994,7 +2998,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		       (condition-case nil
 			   (delete-file to-name)
 			 (file-error nil))
-		       (copy-file from-name to-name t t 'excl)
+		       (copy-file from-name to-name nil t)
 		       nil)
 		   (file-already-exists t))
 	    ;; The file was somehow created by someone else between
@@ -3062,6 +3066,7 @@ except that a leading `.', if any, doesn't count."
 (defun file-name-extension (filename &optional period)
   "Return FILENAME's final \"extension\".
 The extension, in a file name, is the part that follows the last `.',
+excluding version numbers and backup suffixes,
 except that a leading `.', if any, doesn't count.
 Return nil for extensionless file names such as `foo'.
 Return the empty string for file names such as `foo.'.

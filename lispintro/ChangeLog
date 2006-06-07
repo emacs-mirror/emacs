@@ -1,3 +1,12 @@
+2006-05-25  David Kastrup  <dak@gnu.org>
+
+	* emacs-lisp-intro.texi (setcar): replace an antelope rather than
+	a giraffe with a hippopotamus.
+
+2006-05-19  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp-intro.texi (Digression concerning error): Fix typo.
+
 2005-09-16  Romain Francoise  <romain@orebokech.com>
 
 	* emacs-lisp-intro.texi (GNU Free Documentation License):

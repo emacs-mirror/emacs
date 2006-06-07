@@ -116,6 +116,8 @@ This variable determines whether reverting the buffer lists only
 file buffers.  It affects both manual reverting and reverting by
 Auto Revert Mode.")
 
+(defvar Info-current-file) ;; from info.el
+
 (make-variable-buffer-local 'Buffer-menu-files-only)
 
 (if Buffer-menu-mode-map
@@ -767,10 +769,24 @@ For more information, see the function `buffer-menu'."
 			   ?\s)))
 		(unless file
 		  ;; No visited file.  Check local value of
-		  ;; list-buffers-directory.
-		  (when (and (boundp 'list-buffers-directory)
-			     list-buffers-directory)
-		    (setq file list-buffers-directory)))
+		  ;; list-buffers-directory and, for Info buffers,
+		  ;; Info-current-file.
+		  (cond ((and (boundp 'list-buffers-directory)
+			      list-buffers-directory)
+			 (setq file list-buffers-directory))
+			((eq major-mode 'Info-mode)
+			 (setq file Info-current-file)
+			 (cond
+			  ((eq file t)
+			   (setq file "*Info Directory*"))
+			  ((eq file 'apropos)
+			   (setq file "*Info Apropos*"))
+			  ((eq file 'history)
+			   (setq file "*Info History*"))
+			  ((eq file 'toc)
+			   (setq file "*Info TOC*"))
+			  ((not (stringp file))  ;; avoid errors
+			   (setq file nil))))))
 		(push (list buffer bits name (buffer-size) mode file)
 		      list))))))
       ;; Preserve the original buffer-list ordering, just in case.

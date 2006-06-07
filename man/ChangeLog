@@ -1,3 +1,175 @@
+2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
+
+2006-06-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Move node to end.
+	(GDB Graphical Interface): Move description of clicks in fringe...
+        (GDB commands in the Fringe): ...to here.  New node.
+
+2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (ASCII export): Document indentation adaptation.
+	(Setting tags): Document mutually-exclusive tags.
+
+2006-06-05  Romain Francoise  <romain@orebokech.com>
+
+	* url.texi (irc): Mention new funs `url-irc-rcirc' and `url-irc-erc'.
+	Fix typo.
+
+	* gnus-faq.texi (Question 8.6): Update reference to the Gnus
+	channel (#gnus@irc.freenode.net).
+	Fix typos.  Update copyright notice.
+
+	* cc-mode.texi (Getting Started, Indentation Commands, Config Basics)
+	(Custom Filling and Breaking, Custom Braces, Syntactic Symbols)
+	(Line-Up Functions, Custom Macros):
+	* ediff.texi (Window and Frame Configuration)
+	(Highlighting Difference Regions, Highlighting Difference Regions):
+	* emacs-mime.texi (Display Customization):
+	* erc.texi (History):
+	* eshell.texi (Known problems):
+	* eudc.texi (Overview, BBDB):
+	* gnus.texi (NNTP, IMAP, Advanced Scoring Examples)
+	(The problem of spam, SpamOracle, Extending the Spam package)
+	(Conformity, Terminology):
+	* idlwave.texi (Routine Info, Routine Info)
+	(Class and Keyword Inheritance, Padding Operators)
+	(Breakpoints and Stepping, Electric Debug Mode)
+	(Examining Variables, Troubleshooting):
+	* org.texi (Creating timestamps):
+	* reftex.texi (Commands, Options, Changes):
+	* tramp.texi (Inline methods, Password caching)
+	(Auto-save and Backup, Issues):
+	* vip.texi (Files, Commands in Insert Mode):
+	* viper.texi (Emacs Preliminaries, States in Viper)
+	(Packages that Change Keymaps, Viper Specials, Groundwork):
+	* xresmini.texi (GTK resources):
+	Fix various typos.
+
+2006-06-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Update bindings.
+	(Commands of GUD): Add gud-print.  Remove gud-run.  Restate
+	availability more generally.
+
+2006-06-03  Ted Zlatanov  <tzz@lifelogs.com>
+
+	* mini.texi: Lots of cleanups.
+
+2006-06-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* misc.texi (Shell History Copying): Update descriptions of `C-c RET'
+	and Mouse-2.
+
+2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* screen.texi (Menu Bar): Change menu-bar-start to menu-bar-open.
+
+2006-05-31  Michael Ernst  <mernst@alum.mit.edu>
+
+	* ediff.texi: Fix typos.
+
+2006-05-31  Richard Stallman  <rms@gnu.org>
+
+	* basic.texi (Moving Point): Fix previous change.
+
+2006-05-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Small typo fixes.
+
+2006-05-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Disable zsh zle.
+
+2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* screen.texi (Menu Bar): F10 for Gtk+/Lesstif/Lucid menus.
+
+2006-05-28  Ted Zlatanov  <tzz@lifelogs.com>
+
+	* basic.texi: Many simplifications and improvements in wording.
+
+2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* pcl-cvs.texi: Fix typos.
+	(Customization): Say "us".
+
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* org.texi: Remove bogus @setfilename.
+
+2006-05-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (ASCII export): Omit command name.
+	(HTML export): Add prefix to all lines in Local Variable example.
+	(Acknowledgments): Typeset names in italics.
+
+2006-05-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* anti.texi (Antinews): Create a node for gdb-ui.
+
+2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Plain lists): Added new item navigation commands.
+	(External links): Documented elisp and info links.
+	(Custom searches): New section.
+	(Publishing): New chapter.
+	(HTML export): Include a list of supported CSS classes.
+	(Setting tags): Describe the fast-tag-setting interface.
+
+2006-05-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* frames.texi (Menu Bars, Tool Bars): Add index entries.
+
+2006-05-20  Richard Stallman  <rms@gnu.org>
+
+	* dired.texi (Dired Navigation): dired-goto-file is now j.
+
+2006-05-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-x.texi: ifinfo -> ifnottex.
+
+2006-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Coding Systems): Mention the undecided-* coding systems
+	and their aliases.
+
+	* msdog.texi (Windows Printing): Mention non-support of plain text
+	printing with some el-cheapo printers, and suggest a workaround.
+
+2006-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* text.texi (TeX Print): tex-dvi-view-command has a default value,
+	remove the bit saying you must set it.
+
+2006-05-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* trouble.texi (Checklist):
+	* text.texi (Text, Auto Fill, Text Mode):
+	* search.texi (Nonincremental Search):
+	* rmail.texi (Rmail Labels):
+	* mule.texi (Input Methods, Multibyte Conversion):
+	* misc.texi (Gnus, Where to Look, PostScript):
+	* maintaining.texi (Create Tags Table):
+	* indent.texi (Indentation Commands):
+	* fixit.texi (Spelling):
+	* emacs.texi (Copying):
+	* custom.texi (Init File): ifinfo -> ifnottex.
+
+2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
+
+2006-05-17  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Diff Mode): Mention C-x `.
+
+2006-05-08  Richard Stallman  <rms@gnu.org>
+
+	* custom.texi (Disabling): Textual cleanups.
+
 2006-05-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.texi (Interface): Add tool bar customization.
@@ -22,8 +194,8 @@
 2006-05-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* calendar.texi (Calendar/Diary, Holidays, Displaying the Diary)
-	(Displaying the Diary, Special Diary Entries, Importing Diary): 
-	* building.texi (Compilation Shell): 
+	(Displaying the Diary, Special Diary Entries, Importing Diary):
+	* building.texi (Compilation Shell):
 	* buffers.texi (Several Buffers) [iftex]: Replace @xref's to
 	emacs-xtra with @inforef's.
 
@@ -566,7 +738,7 @@
 	* custom.texi: Many cleanups.
 	(Minor Modes): Don't mention ISO Accents Mode.
 	(Examining): Update C-h v output example.
-	(Hooks): Add index and  xref for add-hook.
+	(Hooks): Add index and xref for add-hook.
 	(Locals): Delete list of vars that are always per-buffer.  Rearrange.
 	(Local Keymaps): Don't mention lisp-mode-map, c-mode-map.
 
@@ -1789,7 +1961,7 @@
 
 	* mini.texi (Minibuffer File): Clarify previous change.  Add @findex.
 
-2005-11-08  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>  (tiny change)
+2005-11-08  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
 
 	* files.texi (Renaming and VC): Some back-ends don't
 	handle renaming.
@@ -6222,6 +6394,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; fill-column: 79
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,

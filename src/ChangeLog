@@ -1,3 +1,441 @@
+2006-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event): Exclude
+	0x7f from ASCII range.
+
+2006-06-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_set_scroll_bar_thumb, x_scroll_bar_create)
+	(w32_set_vertical_scroll_bar, w32_scroll_bar_handle_click)
+	(x_scroll_bar_report_motion): Remove workarounds for
+	versions of Windows NT < 3.51.
+	[!SIF_ALL]: Remove.
+	(pfnSetScrollInfo, pfnGetScrollInfo): Remove.
+	(w32_initialize): Don't dynamically load Get/SetScrollInfo.
+
+2006-06-04  David Kastrup  <dak@gnu.org>
+
+	* dispnew.c: Mention `redisplay-dont-pause' in doc string of
+	`sit-for'.
+
+2006-06-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_set_icon_name): Apply 2006-06-02 change for xfns.c.
+
+	* macgui.h (USE_MAC_TSM): Set default to 1 on Mac OS X.
+
+	* macterm.c (tsm_document_id) [USE_MAC_TSM]: New variable.
+	(Qtext_input, Qupdate_active_input_area, Qunicode_for_key_event)
+	[USE_MAC_TSM]: Likewise.
+	(syms_of_macterm) [USE_MAC_TSM]: Intern and staticpro them.
+	(Qbefore_string) [USE_MAC_TSM]: Add extern.
+	(do_app_resume, do_app_suspend) [USE_MAC_TSM]: Call
+	ActivateTSMDocument/DeactivateTSMDocument.
+	(mac_store_event_ref_as_apple_event): Call mac_post_mouse_moved_event.
+	(mac_handle_window_event) [USE_MAC_TSM]: Handle
+	kEventWindowFocusAcquired/kEventWindowFocusRelinquish.
+	(mac_handle_text_input_event) [USE_MAC_TSM]: New function.
+	(install_window_handler) [USE_MAC_TSM]: Install it.  Register
+	kEventWindowFocusAcquired/kEventWindowFocusRelinquish.
+	(keycode_to_xkeysym_table): Add entry for f16.
+	(XTread_socket) [USE_MAC_TSM]: Set/reset read_socket_inev
+	before/after passing keystroke event to toolbox dispatcher.
+	(init_tsm) [USE_MAC_TSM]: New function.
+	(mac_initialize) [USE_MAC_TSM]: Call it.
+	(Vmac_ts_active_input_overlay) [USE_MAC_TSM]: New defvar.
+
+	* macterm.h (EVENT_PARAM_TEXT_INPUT_SEQUENCE_NUMBER): New enumerator.
+
+2006-06-02  John Paul Wallington  <jpw@gnu.org>
+
+	* xfns.c (x_set_name_internal): Set icon to `text', derived from
+	name, when frame's icon_name isn't a string rather than only when
+	it is nil.
+
+2006-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (x_set_icon_name): Don't use arg if it's not a string
+	and not nil.
+
+2006-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (x_set_icon_name): No-op if arg is non-nil and not a
+	string.
+
+2006-06-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (next_element_from_composition): Set it->object to
+	it->string if composition is coming from string.
+	(set_cursor_from_row): Don't return 0 unless row displays a
+	continued line.
+	(dump_glyph): Dump composite glyph.
+
+2006-06-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (menu_nav_ended): Check that menubar_widget is not NULL.
+
+2006-06-01  Richard Stallman  <rms@gnu.org>
+
+	* window.c (Fsplit_window): Doc fix.
+
+2006-06-01  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* process.c (deleted_pid_list): New variable to store the pids
+	of deleted processes.  Declare it only if SIGCHLD is defined.
+	(init_process): Initialize it.
+	(syms_of_process): Staticpro it.
+	(Fdelete_process): Add pid of the deleted process to it.  Check after
+	the addition and before the kill if the process is already stopped,
+	in which case it is deleted from the list and not killed.
+	(sigchld_handler): Define it only if SIGCHLD is.  Search the process
+	that signaled Emacs in `deleted_pid_list' before `Vprocess_alist'.
+	Original idea by Stefan Monnier.
+
+2006-06-01  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (sit_for): Perform redisplay even if input is pending
+	when redisplay-dont-pause is non-nil.
+
+2006-06-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_handle_visibility_change): Set buf.arg to Qnil.
+	(XTread_socket): Remove obsolete comment.
+
+2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (syms_of_xmenu): Make accelerate-menu an alias for
+	menu-bar-open.
+
+2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (Fmenu_bar_open, syms_of_xmenu): Change menu-bar-start to
+	menu-bar-open.
+
+	* gtkutil.c (menu_nav_ended): Change x-menu-bar-start to menu-bar-open.
+
+2006-05-31  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.c (Vhistory_add_new_input): New variable.
+	(read_minibuf): Use it.
+	(syms_of_minibuf) <history-add-new-input>: New Lisp variable.
+	(syms_of_minibuf) <history-delete-duplicates>: Doc fix.
+
+2006-05-31  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (select_wrapper): Add wrapper around select to work around
+	"incomplete backtrace" bug in gdb 5.3, when emacs is stopped inside
+	select called from wait_reading_process_output.
+
+2006-05-30  Andreas Schwab  <schwab@suse.de>
+
+	* xmenu.c (Fmenu_bar_start): Return a value.
+
+2006-05-30  Richard Stallman  <rms@gnu.org>
+
+	* coding.c (Ffind_operation_coding_system): Doc fix.
+
+2006-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (x_draw_hollow_cursor): Fix last change.
+
+2006-05-29  Kim F. Storm  <storm@cua.dk>
+
+	* w32term.c (x_draw_stretch_glyph_string): Fix last change.
+
+2006-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (Ffind_operation_coding_system): Doc fix.
+
+2006-05-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c [USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility):
+	Call mac_set_font_info_for_selection if font panel is made visible.
+
+	* macterm.c (font_panel_shown_p) [USE_MAC_FONT_PANEL]: New variable.
+	(mac_font_panel_visible_p, mac_show_hide_font_panel)
+	[USE_MAC_FONT_PANEL]: New functions.
+	[USE_MAC_FONT_PANEL] (mac_set_font_info_for_selection): Return
+	immediately if font panel is not visible.
+
+	* macterm.h (mac_font_panel_visible_p, mac_show_hide_font_panel):
+	Add externs.
+
+2006-05-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* search.c (matcher_overflow): Mark as NO_RETURN.
+
+	* xterm.c (x_connection_closed): Likewise.
+
+	* sysdep.c (croak): Likewise.
+
+	* sound.c (sound_perror, alsa_sound_perror): Likewise.
+
+	* lisp.h (die, nsberror): Likewise.
+
+2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sound.c (alsa_open, alsa_configure, alsa_write): Move
+	assignment to err out of if-statement.
+
+	* gtkutil.c (menu_nav_ended): New function.
+	(create_menus): Connect menu_nav_ended to "selection-done" to fix
+	grabs.
+
+	* xmenu.c (Fmenu_bar_start): New function for USE_GTK and USE_X_TOOLKIT.
+
+2006-05-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* charset.h (invalid_character): Mark as NO_RETURN.
+
+2006-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Ffind_operation_coding_system): Call a function by
+	safe_call1 instead of call1.
+
+2006-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (struct saved_window): Add `dedicated'.
+	(Fset_window_configuration, save_window_save): Save/restore the
+	`dedicated' flag.
+
+2006-05-28  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_cursor_from_row): If cursor cannot be set in row,
+	don't update w->cursor and return 0.  Return 1 on success.
+	(try_cursor_movement): Repeat set_cursor_from_row on successive rows
+	until it succeeds.
+
+	* dispextern.h (set_cursor_from_row): Update prototype.
+
+2006-05-28  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_phys_cursor_geometry): Return computed x and y through
+	parameters.  Adjust x and width in case cursor in on a partially
+	visible stretch glyph on the left edge.
+	(erase_phys_cursor): Don't erase into left fringe/margin in case
+	previous cursor glyph is a partially visible stretch glyph on left.
+
+	* dispextern.h (get_phys_cursor_geometry): Update prototype.
+
+	* xterm.c (x_draw_stretch_glyph_string): Fix problems with invisible
+	cursor and erasing cursor on partially visible stretch glyph on left.
+	(x_draw_hollow_cursor): Compute x via get_phys_cursor_geometry.
+
+	* macterm.c: Likewise.
+
+	* w32term.c: Likewise.
+
+2006-05-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macselect.c (mac_handle_apple_event):
+	Return errAEEventNotHandled if key binding is not found.
+
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main) [PROFILING]: Enable also for __MINGW32__.
+	[__MINGW32__]: MinGW-specific declaration of `etext'.
+
+	* w32heap.c (etext, edata): Remove unused definitions.
+
+2006-05-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (Fcopy_file): Delete argument MUSTBENEW.
+	Incorporate the exclusive file-opening functionality into the behavior
+	when OK-IF-ALREADY-EXISTS is nil.
+	(Frename_file): Call Fcopy_file without MUSTBENEW argument.
+
+2006-05-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sound.c (alsa_configure): Move get period/buffer_size after
+	setting hwparams.
+
+2006-05-26  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Ffind_operation_coding_system): Allow (FILENAME
+	. BUFFER) in TARGET.
+
+2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (png_load): Don't call fclose on NULL.
+
+2006-05-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Fyes_or_no_p):
+	* callint.c (Fcall_interactively): Fread_from_minibuffer now takes
+	only seven args.
+
+2006-05-25  Juri Linkov  <juri@jurta.org>
+
+	* lisp.h (Fread_from_minibuffer): Decrement number of args.
+
+	* minibuf.c (read_minibuf): Remove arg KEEP_ALL.  Callers changed.
+	(Fread_from_minibuffer): Remove arg KEEP_ALL.  Callers changed.
+
+	* buffer.c (mode-line-format): Fix docstring.
+
+2006-05-25  Richard Stallman  <rms@gnu.org>
+
+	* emacs.c (main, Fdump_emacs): Don't test __linux or __linux__.
+
+2006-05-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1210000.
+
+2006-05-24  Alan Mackenzie  <acm@muc.de>
+
+	* lread.c (Vload_history): Enhance doc-string to say that the file
+	is the absolute truename of the loaded file.
+
+	* lread.c (Vafter_load_alist): doc-string: state that an element
+	now has a regexp to match file names, not a file name as such.
+
+	* lread.c (readevalloop): Call file-truename on the name for
+	load-history, except at preloading time.
+
+	* lread.c (Fload): At preloading time, preserve the extension of
+	the filename which goes into load-history.  New var hist_file_name.
+
+	* lread.c (Fload): Do eval-after-load stuff by calling the lisp
+	function do-after-load-evaluation.
+
+2006-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (ae_attr_table): New variable.
+	(syms_of_mac): Intern and staticpro its elements.
+	(mac_aelist_to_lisp): Also convert Apple event attributes.
+	(mac_ae_put_lisp): New function.
+	(create_apple_event_from_event_ref) [MAC_OSX]: Use typeUTF8Text.
+
+	* macfns.c (Fx_server_version): Use gestaltSystemVersionMajor etc.
+
+	* macselect.c (Qemacs_suspension_id): New variable.
+	(syms_of_macselect): Intern and staticpro it.
+	(struct suspended_ae_info): New struct.
+	(deferred_apple_events, defer_apple_events)
+	(Fmac_process_deferred_apple_events): Use it.
+	(suspended_apple_events): New variable.
+	(mac_handle_apple_event_1): New function.
+	(mac_handle_apple_event): Use it.  Don't process previously
+	suspended events.
+	(cleanup_suspended_apple_events, get_suspension_id)
+	(cleanup_all_suspended_apple_events): New functions.
+	(init_apple_event_handler): Call cleanup_all_suspended_apple_events
+	at exit.
+	(Fmac_cleanup_expired_apple_events, Fmac_ae_set_reply_parameter)
+	(Fmac_resume_apple_event): New defuns.
+	(syms_of_macselect): Defsubr them.
+
+	* macterm.c (fn_keycode_to_keycode_table, XTread_socket) [MAC_OSX]:
+	Fix last change.  Don't map `fn' modifier if pressed with F1 ... F12.
+
+	* macterm.h (TYPE_FILE_NAME): Change from macro to enumerator.
+	(KEY_EMACS_SUSPENSION_ID_ATTR): New enumerator.
+	(keyReplyRequestedAttr) [MAC_OS_X_VERSION_MAX_ALLOWED < 1030]: Likewise.
+	(gestaltSystemVersionMajor, gestaltSystemVersionMinor)
+	(gestaltSystemVersionBugFix) [MAC_OS_X_VERSION_MAX_ALLOWED < 1040]:
+	Likewise.
+	(typeUTF8Text, kEventParamWindowMouseLocation)
+	[MAC_OSX && MAC_OS_X_VERSION_MAX_ALLOWED < 1020]: Likewise.
+	(x_get_focus_frame, mac_ae_put_lisp): Add externs.
+
+2006-05-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (fn_keycode_to_xkeysym_table, convert_fn_keycode): Remove.
+	(fn_keycode_to_keycode_table) [MAC_OSX]: New variable.
+	(mac_set_unicode_keystroke_event) [TARGET_API_MAC_CARBON]: New function.
+	(XTread_socket) [TARGET_API_MAC_CARBON]: Use it.
+	(XTread_socket) [MAC_OSX]: Try 'uchr' Unicode keyboard-layout
+	resource to backtranslate key with modifiers.
+	(XTread_socket): Don't set read_socket_inev around AEProcessAppleEvent.
+
+2006-05-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c: Remove declarations already in xterm.h
+
+	* xterm.h: Add extern declarations for x_clear_errors,
+	x_fully_uncatch_errors, x_catching_errors and
+	x_alloc_lighter_color_for_widget.  Remove duplicated declarations.
+
+2006-05-21  Richard Stallman  <rms@gnu.org>
+
+	* xfaces.c (best_matching_font): Abort for best == NULL
+	before we start to use it.
+
+	* buffer.c (syms_of_buffer, Fmake_overlay): Doc fixes.
+
+2006-05-20  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (best_matching_font): Fix crash in 2006-05-17 change.
+
+2006-05-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (convert_fn_keycode): Fix last change.
+
+2006-05-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (init_environment): Perform the processing of environment
+	variables on a copy of default variables and their values, not on
+	the original.  Simplify code that calls ExpandEnvironmentStrings
+	and make buf1[] and buf2[] more visible for easier debugging.
+
+2006-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.c (x_set_border_width): Remove #ifndef MAC_OS.
+
+	* image.c [MAC_OS] (gif_load): Allocate Lisp string first.
+
+	* macfns.c (Fx_focus_frame): Don't check dpyinfo->x_focus_frame.
+
+	* macterm.c (XTread_socket) [TARGET_API_MAC_CARBON && MAC_OSX]:
+	Forward keyUp events to toolbox_dispatcher.
+
+	* window.c (foreach_window): Check WINDOWP (FRAME_ROOT_WINDOW (f)).
+
+2006-05-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* config.in: Regenerated (HAVE_ALSA).
+
+	* sound.c (alsa_sound_perror, alsa_open, alsa_period_size)
+	(alsa_configure, alsa_close, alsa_choose_format, alsa_write)
+	(snd_error_quiet, alsa_init): New functions.
+	(vox_init): Return 0 if unable to open device.
+	(Fplay_sound_internal): Test for alsa first and use vox (oss) as
+	a fallback.
+	(struct sound_device): Add period_size.
+	(wav_play, au_play): Use period_size if set.
+
+	* Makefile.in (CFLAGS_SOUND): New flags for ALSA
+	(ALL_CFLAGS): Add CFLAGS_SOUND
+
+2006-05-18  Kenichi Handa  <handa@m17n.org>
+
+	* callproc.c (Fcall_process): Reject encoding arguments by
+	ascii-incompatible coding systems (e.g. utf-16).
+
+	* coding.c (Qascii_incompatible): New variable.
+	(syms_of_coding): Setup Qascii_incompatible.
+	(setup_coding_system): Be sure to initialize coding->common_flags.
+	Check `ascii-incompatible' property of the coding system.
+
+	* coding.h (CODING_ASCII_INCOMPATIBLE_MASK): New macro.
+
+2006-05-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_tool_bar_line): Restore entire tool-bar geometry when
+	backtracking in case last image doesn't fit on line.
+
+2006-05-18  MIYOSHI Masanori <miyoshi@meadowy.org>  (tiny change)
+
+	* xdisp.c (display_tool_bar_line): Don't adjust tool-bar height by more than
+	height of one frame default line.
+
+2006-05-17  Richard Stallman  <rms@gnu.org>
+
+	* xfaces.c (better_font_p): Any font beats no font.
+	(best_matching_font): Simplify based on above change.
+
+	* buffer.c (Fprevious_overlay_change, Fnext_overlay_change): Doc fixes.
+
 2006-05-16  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (handle_one_xevent): Check that f is not NULL before
@@ -62,7 +500,7 @@
 	[MAC_OS] (gif_load): Emulate Graphic Control Extension block.
 
 	* macfns.c (x_to_mac_color): Fix shift amount change.
-	[USE_MAC_FONT_PANEL] (mac_set_font): Use x_get_focus_frame.
+	(mac_set_font) [USE_MAC_FONT_PANEL]: Use x_get_focus_frame.
 	[USE_MAC_FONT_PANEL] (Fmac_set_font_panel_visibility): Doc fix.
 
 	* macselect.c (Vmac_service_selection) [MAC_OSX]: Rename from
@@ -490,7 +928,7 @@
 
 	* puresize.h (BASE_PURESIZE): Increment to 1210000.
 
-2006-04-13  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-04-13  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* print.c (Fprin1_to_string): Mention in the `doc' that the
 	behavior is modified by `print-level' and `print-length'.
@@ -611,7 +1049,7 @@
 	* xfaces.c (Finternal_merge_in_global_face, try_font_list):
 	Add explicit braces to avoid ambiguous `else'.
 
-2006-04-11  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-04-11  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* dispnew.c (init_display): Don't init X display if the user asked
 	for a non-X display.
@@ -8477,7 +8915,7 @@
 
 	* xfns.c (xic_create_xfontset): Initialize missing_list to NULL.
 
-2004-10-21  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* xterm.h (x_output): New member `xic_base_fontname'.
 	(FRAME_XIC_BASE_FONTNAME): New macro.
@@ -9421,7 +9859,7 @@
 	* fileio.c (Fvisited_file_modtime): Return a list of two integers,
 	instead of a cons.
 
-2004-07-14  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2004-07-14  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* keyboard.c (echo_dash): Do nothing if there already is a dash
 	at the end of the echo string.
@@ -9758,7 +10196,7 @@
 	* keyboard.c (cmd_error): Don't call any_kboard_state
 	if inside a recursive edit level.
 
-2004-06-13  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2004-06-13  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* keyboard.c (command_loop): Call any_kboard_state before
 	command_loop_2 when at top level.
@@ -10071,7 +10509,7 @@
 	before actually accepting connection in case it has already been
 	accepted due to recursion.
 
-2004-05-23  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2004-05-23  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* coding.c (Fset_safe_terminal_coding_system_internal):
 	Set suppress_error in safe_terminal_coding, not terminal_coding.
@@ -17007,8 +17445,7 @@
 	(Fapropos_internal): Initialize them and clear them out.
 	Don't GCPRO them.
 
-	* buffer.c (syms_of_buffer) <scroll-up-aggressively, scroll-down-aggressively>:
-	Doc fixes.
+	* buffer.c (syms_of_buffer) <scroll-up|down-aggressively>: Doc fixes.
 
 	* lisp.h: New misc type Lisp_Save_Value.
 	(enum Lisp_Misc_Type): Add Lisp_Misc_Save_Value.

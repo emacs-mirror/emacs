@@ -66,6 +66,10 @@ Lisp_Object Qhistory_length, Vhistory_length;
 
 int history_delete_duplicates;
 
+/* Non-nil means add new input to history.  */
+
+Lisp_Object Vhistory_add_new_input;
+
 /* Fread_minibuffer leaves the input here as a string. */
 
 Lisp_Object last_minibuf_string;
@@ -219,7 +223,7 @@ static Lisp_Object read_minibuf P_ ((Lisp_Object, Lisp_Object,
 				     Lisp_Object, Lisp_Object,
 				     int, Lisp_Object,
 				     Lisp_Object, Lisp_Object,
-				     int, int, int));
+				     int, int));
 static Lisp_Object read_minibuf_noninteractive P_ ((Lisp_Object, Lisp_Object,
 						    Lisp_Object, Lisp_Object,
 						    int, Lisp_Object,
@@ -440,8 +444,7 @@ The current buffer must be a minibuffer.  */)
 
 static Lisp_Object
 read_minibuf (map, initial, prompt, backup_n, expflag,
-	      histvar, histpos, defalt, allow_props, inherit_input_method,
-	      keep_all)
+	      histvar, histpos, defalt, allow_props, inherit_input_method)
      Lisp_Object map;
      Lisp_Object initial;
      Lisp_Object prompt;
@@ -452,7 +455,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
      Lisp_Object defalt;
      int allow_props;
      int inherit_input_method;
-     int keep_all;
 {
   Lisp_Object val;
   int count = SPECPDL_INDEX ();
@@ -747,7 +749,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   last_minibuf_string = val;
 
   /* Choose the string to add to the history.  */
-  if (SCHARS (val) != 0 || keep_all)
+  if (SCHARS (val) != 0)
     histstring = val;
   else if (STRINGP (defalt))
     histstring = defalt;
@@ -755,7 +757,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     histstring = Qnil;
 
   /* Add the value to the appropriate history list, if any.  */
-  if (SYMBOLP (Vminibuffer_history_variable)
+  if (!NILP (Vhistory_add_new_input)
+      && SYMBOLP (Vminibuffer_history_variable)
       && !NILP (histstring))
     {
       /* If the caller wanted to save the value read on a history list,
@@ -774,8 +777,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       if (NILP (histval)
 	  || (CONSP (histval)
 	      /* Don't duplicate the most recent entry in the history.  */
-	      && (keep_all
-		  || NILP (Fequal (histstring, Fcar (histval))))))
+	      && (NILP (Fequal (histstring, Fcar (histval))))))
 	{
 	  Lisp_Object length;
 
@@ -937,7 +939,7 @@ read_minibuf_unwind (data)
 }
 
 
-DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 8, 0,
+DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 7, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
 The optional second arg INITIAL-CONTENTS is an obsolete alternative to
   DEFAULT-VALUE.  It normally should be nil in new code, except when
@@ -961,8 +963,6 @@ Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is available
   the empty string.
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.
-Eight arg KEEP-ALL, if non-nil, says to put all inputs in the history list,
- even empty or duplicate inputs.
 If the variable `minibuffer-allow-text-properties' is non-nil,
  then the string which is returned includes whatever text properties
  were present in the minibuffer.  Otherwise the value has no text properties.
@@ -978,9 +978,9 @@ POSITION in the minibuffer.  Any integer value less than or equal to
 one puts point at the beginning of the string.  *Note* that this
 behavior differs from the way such arguments are used in `completing-read'
 and some related functions, which use zero-indexing for POSITION.  */)
-  (prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method, keep_all)
+(prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
      Lisp_Object prompt, initial_contents, keymap, read, hist, default_value;
-     Lisp_Object inherit_input_method, keep_all;
+     Lisp_Object inherit_input_method;
 {
   Lisp_Object histvar, histpos, val;
   struct gcpro gcpro1;
@@ -1011,8 +1011,7 @@ and some related functions, which use zero-indexing for POSITION.  */)
 		      Qnil, !NILP (read),
 		      histvar, histpos, default_value,
 		      minibuffer_allow_text_properties,
-		      !NILP (inherit_input_method),
-		      !NILP (keep_all));
+		      !NILP (inherit_input_method));
   UNGCPRO;
   return val;
 }
@@ -1029,7 +1028,7 @@ arguments are used as in `read-from-minibuffer')  */)
   CHECK_STRING (prompt);
   return read_minibuf (Vminibuffer_local_map, initial_contents,
 		       prompt, Qnil, 1, Qminibuffer_history,
-		       make_number (0), Qnil, 0, 0, 0);
+		       make_number (0), Qnil, 0, 0);
 }
 
 DEFUN ("eval-minibuffer", Feval_minibuffer, Seval_minibuffer, 1, 2, 0,
@@ -1067,7 +1066,7 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
   Lisp_Object val;
   val = Fread_from_minibuffer (prompt, initial_input, Qnil,
 			       Qnil, history, default_value,
-			       inherit_input_method, Qnil);
+			       inherit_input_method);
   if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (default_value))
     val = default_value;
   return val;
@@ -1089,7 +1088,7 @@ the current input method and the setting of`enable-multibyte-characters'.  */)
   CHECK_STRING (prompt);
   return read_minibuf (Vminibuffer_local_ns_map, initial, prompt, Qnil,
 		       0, Qminibuffer_history, make_number (0), Qnil, 0,
-		       !NILP (inherit_input_method), 0);
+		       !NILP (inherit_input_method));
 }
 
 DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
@@ -1778,7 +1777,7 @@ Completion ignores case if the ambient value of
 			 : Vminibuffer_local_must_match_filename_map),
 		      init, prompt, make_number (pos), 0,
 		      histvar, histpos, def, 0,
-		      !NILP (inherit_input_method), 0);
+		      !NILP (inherit_input_method));
 
   if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (def))
     val = def;
@@ -2797,8 +2796,15 @@ property of a history variable overrides this default.  */);
   DEFVAR_BOOL ("history-delete-duplicates", &history_delete_duplicates,
 	       doc: /* *Non-nil means to delete duplicates in history.
 If set to t when adding a new history element, all previous identical
-elements are deleted.  */);
+elements are deleted from the history list.  */);
   history_delete_duplicates = 0;
+
+  DEFVAR_LISP ("history-add-new-input", &Vhistory_add_new_input,
+	       doc: /* *Non-nil means to add new elements in history.
+If set to nil, minibuffer reading functions don't add new elements to the
+history list, so it is possible to do this afterwards by calling
+`add-to-history' explicitly.  */);
+  Vhistory_add_new_input = Qt;
 
   DEFVAR_LISP ("completion-auto-help", &Vcompletion_auto_help,
 	       doc: /* *Non-nil means automatically provide help for invalid completion input.

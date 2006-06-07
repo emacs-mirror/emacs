@@ -1256,7 +1256,7 @@ x_set_icon_name (f, arg, oldval)
       if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
-  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
+  else if (!NILP (arg) || NILP (oldval))
     return;
 
   f->icon_name = arg;
@@ -1612,7 +1612,7 @@ x_set_name_internal (f, name)
 	text.format = 8;
 	text.nitems = bytes;
 
-	if (NILP (f->icon_name))
+	if (!STRINGP (f->icon_name))
 	  {
 	    icon = text;
 	  }

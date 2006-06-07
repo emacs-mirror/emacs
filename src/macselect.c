@@ -909,14 +909,13 @@ and t is the same as `SECONDARY'.  */)
 }
 
 
+/***********************************************************************
+			 Apple event support
+***********************************************************************/
 int mac_ready_for_apple_events = 0;
 static Lisp_Object Vmac_apple_event_map;
 static Lisp_Object Qmac_apple_event_class, Qmac_apple_event_id;
-static struct
-{
-  AppleEvent *buf;
-  int size, count;
-} deferred_apple_events;
+static Lisp_Object Qemacs_suspension_id;
 extern Lisp_Object Qundefined;
 extern void mac_store_apple_event P_ ((Lisp_Object, Lisp_Object,
 				       const AEDesc *));
@@ -926,6 +925,19 @@ struct apple_event_binding
   UInt32 code;			/* Apple event class or ID.  */
   Lisp_Object key, binding;
 };
+
+struct suspended_ae_info
+{
+  UInt32 expiration_tick, suspension_id;
+  AppleEvent apple_event, reply;
+  struct suspended_ae_info *next;
+};
+
+/* List of deferred apple events at the startup time.  */
+static struct suspended_ae_info *deferred_apple_events = NULL;
+
+/* List of suspended apple events, in order of expiration_tick.  */
+static struct suspended_ae_info *suspended_apple_events = NULL;
 
 static void
 find_event_binding_fun (key, binding, args, data)
@@ -1003,6 +1015,12 @@ defer_apple_events (apple_event, reply)
      const AppleEvent *apple_event, *reply;
 {
   OSErr err;
+  struct suspended_ae_info *new;
+
+  new = xmalloc (sizeof (struct suspended_ae_info));
+  bzero (new, sizeof (struct suspended_ae_info));
+  new->apple_event.descriptorType = typeNull;
+  new->reply.descriptorType = typeNull;
 
   err = AESuspendTheCurrentEvent (apple_event);
 
@@ -1011,30 +1029,88 @@ defer_apple_events (apple_event, reply)
      manual says it doesn't.  Anyway we create copies of them and save
      them in `deferred_apple_events'.  */
   if (err == noErr)
-    {
-      if (deferred_apple_events.buf == NULL)
-	{
-	  deferred_apple_events.size = 16;
-	  deferred_apple_events.count = 0;
-	  deferred_apple_events.buf =
-	    xmalloc (sizeof (AppleEvent) * deferred_apple_events.size);
-	}
-      else if (deferred_apple_events.count == deferred_apple_events.size)
-	{
-	  deferred_apple_events.size *= 2;
-	  deferred_apple_events.buf
-	    = xrealloc (deferred_apple_events.buf,
-			sizeof (AppleEvent) * deferred_apple_events.size);
-	}
-    }
-
+    err = AEDuplicateDesc (apple_event, &new->apple_event);
+  if (err == noErr)
+    err = AEDuplicateDesc (reply, &new->reply);
   if (err == noErr)
     {
-      int count = deferred_apple_events.count;
+      new->next = deferred_apple_events;
+      deferred_apple_events = new;
+    }
+  else
+    {
+      AEDisposeDesc (&new->apple_event);
+      AEDisposeDesc (&new->reply);
+      xfree (new);
+    }
 
-      AEDuplicateDesc (apple_event, deferred_apple_events.buf + count);
-      AEDuplicateDesc (reply, deferred_apple_events.buf + count + 1);
-      deferred_apple_events.count += 2;
+  return err;
+}
+
+static OSErr
+mac_handle_apple_event_1 (class, id, apple_event, reply)
+     Lisp_Object class, id;
+     const AppleEvent *apple_event;
+     AppleEvent *reply;
+{
+  OSErr err;
+  static UInt32 suspension_id = 0;
+  struct suspended_ae_info *new;
+
+  new = xmalloc (sizeof (struct suspended_ae_info));
+  bzero (new, sizeof (struct suspended_ae_info));
+  new->apple_event.descriptorType = typeNull;
+  new->reply.descriptorType = typeNull;
+
+  err = AESuspendTheCurrentEvent (apple_event);
+  if (err == noErr)
+    err = AEDuplicateDesc (apple_event, &new->apple_event);
+  if (err == noErr)
+    err = AEDuplicateDesc (reply, &new->reply);
+  if (err == noErr)
+    err = AEPutAttributePtr (&new->apple_event, KEY_EMACS_SUSPENSION_ID_ATTR,
+			     typeUInt32, &suspension_id, sizeof (UInt32));
+  if (err == noErr)
+    {
+      OSErr err1;
+      SInt32 reply_requested;
+
+      err1 = AEGetAttributePtr (&new->apple_event, keyReplyRequestedAttr,
+				typeSInt32, NULL, &reply_requested,
+				sizeof (SInt32), NULL);
+      if (err1 != noErr)
+	{
+	  /* Emulate keyReplyRequestedAttr in older versions.  */
+	  reply_requested = reply->descriptorType != typeNull;
+	  err = AEPutAttributePtr (&new->apple_event, keyReplyRequestedAttr,
+				   typeSInt32, &reply_requested,
+				   sizeof (SInt32));
+	}
+    }
+  if (err == noErr)
+    {
+      SInt32 timeout = 0;
+      struct suspended_ae_info **p;
+
+      new->suspension_id = suspension_id;
+      suspension_id++;
+      err = AEGetAttributePtr (apple_event, keyTimeoutAttr, typeSInt32,
+			       NULL, &timeout, sizeof (SInt32), NULL);
+      new->expiration_tick = TickCount () + timeout;
+
+      for (p = &suspended_apple_events; *p; p = &(*p)->next)
+	if ((*p)->expiration_tick >= new->expiration_tick)
+	  break;
+      new->next = *p;
+      *p = new;
+
+      mac_store_apple_event (class, id, &new->apple_event);
+    }
+  else
+    {
+      AEDisposeDesc (&new->reply);
+      AEDisposeDesc (&new->apple_event);
+      xfree (new);
     }
 
   return err;
@@ -1047,16 +1123,10 @@ mac_handle_apple_event (apple_event, reply, refcon)
      SInt32 refcon;
 {
   OSErr err;
+  UInt32 suspension_id;
   AEEventClass event_class;
   AEEventID event_id;
   Lisp_Object class_key, id_key, binding;
-
-  /* We can't handle an Apple event that requests a reply, but this
-     seems to be too restrictive.  */
-#if 0
-  if (reply->descriptorType != typeNull)
-    return errAEEventNotHandled;
-#endif
 
   if (!mac_ready_for_apple_events)
     {
@@ -1065,6 +1135,13 @@ mac_handle_apple_event (apple_event, reply, refcon)
 	return errAEEventNotHandled;
       return noErr;
     }
+
+  err = AEGetAttributePtr (apple_event, KEY_EMACS_SUSPENSION_ID_ATTR,
+			   typeUInt32, NULL,
+			   &suspension_id, sizeof (UInt32), NULL);
+  if (err == noErr)
+    /* Previously suspended event.  Pass it to the next handler.  */
+    return errAEEventNotHandled;
 
   err = AEGetAttributePtr (apple_event, keyEventClassAttr, typeType, NULL,
 			   &event_class, sizeof (AEEventClass), NULL);
@@ -1079,11 +1156,49 @@ mac_handle_apple_event (apple_event, reply, refcon)
 	{
 	  if (INTEGERP (binding))
 	    return XINT (binding);
-	  mac_store_apple_event (class_key, id_key, apple_event);
-	  return noErr;
+	  err = mac_handle_apple_event_1 (class_key, id_key,
+					  apple_event, reply);
 	}
+      else
+	err = errAEEventNotHandled;
     }
-  return errAEEventNotHandled;
+  if (err == noErr)
+    return noErr;
+  else
+    return errAEEventNotHandled;
+}
+
+static int
+cleanup_suspended_apple_events (head, all_p)
+     struct suspended_ae_info **head;
+     int all_p;
+{
+  UInt32 current_tick = TickCount (), nresumed = 0;
+  struct suspended_ae_info *p, *next;
+
+  for (p = *head; p; p = next)
+    {
+      if (!all_p && p->expiration_tick > current_tick)
+	break;
+      AESetTheCurrentEvent (&p->apple_event);
+      AEResumeTheCurrentEvent (&p->apple_event, &p->reply,
+			       (AEEventHandlerUPP) kAENoDispatch, 0);
+      AEDisposeDesc (&p->reply);
+      AEDisposeDesc (&p->apple_event);
+      nresumed++;
+      next = p->next;
+      xfree (p);
+    }
+  *head = p;
+
+  return nresumed;
+}
+
+static void
+cleanup_all_suspended_apple_events ()
+{
+  cleanup_suspended_apple_events (&deferred_apple_events, 1);
+  cleanup_suspended_apple_events (&suspended_apple_events, 1);
 }
 
 void
@@ -1109,34 +1224,190 @@ init_apple_event_handler ()
 			       0L, false);
   if (err != noErr)
     abort ();
+
+  atexit (cleanup_all_suspended_apple_events);
 }
+
+static UInt32
+get_suspension_id (apple_event)
+     Lisp_Object apple_event;
+{
+  Lisp_Object tem;
+
+  CHECK_CONS (apple_event);
+  CHECK_STRING_CAR (apple_event);
+  if (SBYTES (XCAR (apple_event)) != 4
+      || strcmp (SDATA (XCAR (apple_event)), "aevt") != 0)
+    error ("Not an apple event");
+
+  tem = assq_no_quit (Qemacs_suspension_id, XCDR (apple_event));
+  if (NILP (tem))
+    error ("Suspension ID not available");
+
+  tem = XCDR (tem);
+  if (!(CONSP (tem)
+	&& STRINGP (XCAR (tem)) && SBYTES (XCAR (tem)) == 4
+	&& strcmp (SDATA (XCAR (tem)), "magn") == 0
+	&& STRINGP (XCDR (tem)) && SBYTES (XCDR (tem)) == 4))
+    error ("Bad suspension ID format");
+
+  return *((UInt32 *) SDATA (XCDR (tem)));
+}
+
 
 DEFUN ("mac-process-deferred-apple-events", Fmac_process_deferred_apple_events, Smac_process_deferred_apple_events, 0, 0, 0,
        doc: /* Process Apple events that are deferred at the startup time.  */)
   ()
 {
-  Lisp_Object result = Qnil;
-  long i;
-
   if (mac_ready_for_apple_events)
     return Qnil;
 
   BLOCK_INPUT;
   mac_ready_for_apple_events = 1;
-  if (deferred_apple_events.buf)
+  if (deferred_apple_events)
     {
-      for (i = 0; i < deferred_apple_events.count; i += 2)
+      struct suspended_ae_info *prev, *tail, *next;
+
+      /* `nreverse' deferred_apple_events.  */
+      prev = NULL;
+      for (tail = deferred_apple_events; tail; tail = next)
 	{
-	  AEResumeTheCurrentEvent (deferred_apple_events.buf + i,
-				   deferred_apple_events.buf + i + 1,
+	  next = tail->next;
+	  tail->next = prev;
+	  prev = tail;
+	}
+
+      /* Now `prev' points to the first cell.  */
+      for (tail = prev; tail; tail = next)
+	{
+	  next = tail->next;
+	  AEResumeTheCurrentEvent (&tail->apple_event, &tail->reply,
 				   ((AEEventHandlerUPP)
 				    kAEUseStandardDispatch), 0);
-	  AEDisposeDesc (deferred_apple_events.buf + i);
-	  AEDisposeDesc (deferred_apple_events.buf + i + 1);
+	  AEDisposeDesc (&tail->reply);
+	  AEDisposeDesc (&tail->apple_event);
+	  xfree (tail);
 	}
-      xfree (deferred_apple_events.buf);
-      bzero (&deferred_apple_events, sizeof (deferred_apple_events));
 
+      deferred_apple_events = NULL;
+    }
+  UNBLOCK_INPUT;
+
+  return Qt;
+}
+
+DEFUN ("mac-cleanup-expired-apple-events", Fmac_cleanup_expired_apple_events, Smac_cleanup_expired_apple_events, 0, 0, 0,
+       doc: /* Clean up expired Apple events.
+Return the number of expired events.   */)
+     ()
+{
+  int nexpired;
+
+  BLOCK_INPUT;
+  nexpired = cleanup_suspended_apple_events (&suspended_apple_events, 0);
+  UNBLOCK_INPUT;
+
+  return make_number (nexpired);
+}
+
+DEFUN ("mac-ae-set-reply-parameter", Fmac_ae_set_reply_parameter, Smac_ae_set_reply_parameter, 3, 3, 0,
+       doc: /* Set parameter KEYWORD to DESCRIPTOR on reply of APPLE-EVENT.
+KEYWORD is a 4-byte string.  DESCRIPTOR is a Lisp representation of an
+Apple event descriptor.  It has the form of (TYPE . DATA), where TYPE
+is a 4-byte string.  Valid format of DATA is as follows:
+
+  * If TYPE is "null", then DATA is nil.
+  * If TYPE is "list", then DATA is a list (DESCRIPTOR1 ... DESCRIPTORn).
+  * If TYPE is "reco", then DATA is a list ((KEYWORD1 . DESCRIPTOR1)
+    ... (KEYWORDn . DESCRIPTORn)).
+  * If TYPE is "aevt", then DATA is ignored and the descriptor is
+    treated as null.
+  * Otherwise, DATA is a string.
+
+If a (sub-)descriptor is in an invalid format, it is silently treated
+as null.
+
+Return t if the parameter is successfully set.  Otherwise return nil.  */)
+     (apple_event, keyword, descriptor)
+     Lisp_Object apple_event, keyword, descriptor;
+{
+  Lisp_Object result = Qnil;
+  UInt32 suspension_id;
+  struct suspended_ae_info *p;
+
+  suspension_id = get_suspension_id (apple_event);
+
+  CHECK_STRING (keyword);
+  if (SBYTES (keyword) != 4)
+    error ("Apple event keyword must be a 4-byte string: %s",
+	   SDATA (keyword));
+
+  BLOCK_INPUT;
+  for (p = suspended_apple_events; p; p = p->next)
+    if (p->suspension_id == suspension_id)
+      break;
+  if (p && p->reply.descriptorType != typeNull)
+    {
+      OSErr err;
+
+      err = mac_ae_put_lisp (&p->reply,
+			     EndianU32_BtoN (*((UInt32 *) SDATA (keyword))),
+			     descriptor);
+      if (err == noErr)
+	result = Qt;
+    }
+  UNBLOCK_INPUT;
+
+  return result;
+}
+
+DEFUN ("mac-resume-apple-event", Fmac_resume_apple_event, Smac_resume_apple_event, 1, 2, 0,
+       doc: /* Resume handling of APPLE-EVENT.
+Every Apple event handled by the Lisp interpreter is suspended first.
+This function resumes such a suspended event either to complete Apple
+event handling to give a reply, or to redispatch it to other handlers.
+
+If optional ERROR-CODE is an integer, it specifies the error number
+that is set in the reply.  If ERROR-CODE is t, the resumed event is
+handled with the standard dispatching mechanism, but it is not handled
+by Emacs again, thus it is redispatched to other handlers.
+
+Return t if APPLE-EVENT is successfully resumed.  Otherwise return
+nil, which means the event is already resumed or expired.  */)
+     (apple_event, error_code)
+     Lisp_Object apple_event, error_code;
+{
+  Lisp_Object result = Qnil;
+  UInt32 suspension_id;
+  struct suspended_ae_info **p, *ae;
+
+  suspension_id = get_suspension_id (apple_event);
+
+  BLOCK_INPUT;
+  for (p = &suspended_apple_events; *p; p = &(*p)->next)
+    if ((*p)->suspension_id == suspension_id)
+      break;
+  if (*p)
+    {
+      ae = *p;
+      *p = (*p)->next;
+      if (INTEGERP (error_code)
+	  && ae->apple_event.descriptorType != typeNull)
+	{
+	  SInt32 errn = XINT (error_code);
+
+	  AEPutParamPtr (&ae->reply, keyErrorNumber, typeSInt32,
+			 &errn, sizeof (SInt32));
+	}
+      AESetTheCurrentEvent (&ae->apple_event);
+      AEResumeTheCurrentEvent (&ae->apple_event, &ae->reply,
+			       ((AEEventHandlerUPP)
+				(EQ (error_code, Qt) ?
+				 kAEUseStandardDispatch : kAENoDispatch)),
+			       0);
+      AEDisposeDesc (&ae->reply);
+      AEDisposeDesc (&ae->apple_event);
+      xfree (ae);
       result = Qt;
     }
   UNBLOCK_INPUT;
@@ -1145,6 +1416,9 @@ DEFUN ("mac-process-deferred-apple-events", Fmac_process_deferred_apple_events, 
 }
 
 
+/***********************************************************************
+                      Drag and drop support
+***********************************************************************/
 #if TARGET_API_MAC_CARBON
 static Lisp_Object Vmac_dnd_known_types;
 static pascal OSErr mac_do_track_drag P_ ((DragTrackingMessage, WindowRef,
@@ -1337,6 +1611,9 @@ remove_drag_handler (window)
 }
 
 
+/***********************************************************************
+			Services menu support
+***********************************************************************/
 #ifdef MAC_OSX
 void
 init_service_handler ()
@@ -1554,6 +1831,9 @@ syms_of_macselect ()
   defsubr (&Sx_selection_owner_p);
   defsubr (&Sx_selection_exists_p);
   defsubr (&Smac_process_deferred_apple_events);
+  defsubr (&Smac_cleanup_expired_apple_events);
+  defsubr (&Smac_resume_apple_event);
+  defsubr (&Smac_ae_set_reply_parameter);
 
   Vselection_alist = Qnil;
   staticpro (&Vselection_alist);
@@ -1635,6 +1915,9 @@ The types are chosen in the order they appear in the list.  */);
 
   Qmac_apple_event_id = intern ("mac-apple-event-id");
   staticpro (&Qmac_apple_event_id);
+
+  Qemacs_suspension_id = intern ("emacs-suspension-id");
+  staticpro (&Qemacs_suspension_id);
 }
 
 /* arch-tag: f3c91ad8-99e0-4bd6-9eef-251b2f848732

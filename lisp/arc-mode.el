@@ -898,8 +898,9 @@ using `make-temp-file', and the generated name is returned."
 	       ;; extracted file existed.
 	       (let ((file-name-handler-alist
 		      '(("" . archive-file-name-handler))))
-		 (car (find-operation-coding-system 'insert-file-contents
-						    filename t))))))
+		 (car (find-operation-coding-system
+		       'insert-file-contents
+		       (cons filename (current-buffer)) t))))))
       (if (and (not coding-system-for-read)
 	       (not enable-multibyte-characters))
 	  (setq coding

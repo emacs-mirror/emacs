@@ -39,14 +39,15 @@
 ;; page 3:	mirror-mode, an example for setting up paired insertion
 
 
-(defvar skeleton-transformation 'identity
+(defvar skeleton-transformation-function 'identity
   "*If non-nil, function applied to literal strings before they are inserted.
 It should take strings and characters and return them transformed, or nil
 which means no transformation.
 Typical examples might be `upcase' or `capitalize'.")
+(defvaralias 'skeleton-transformation 'skeleton-transformation-function)
 
 ; this should be a fourth argument to defvar
-(put 'skeleton-transformation 'variable-interactive
+(put 'skeleton-transformation-function 'variable-interactive
      "aTransformation function: ")
 
 
@@ -75,8 +76,9 @@ The variables `v1' and `v2' are still set when calling this.")
 
 
 ;;;###autoload
-(defvar skeleton-filter 'identity
+(defvar skeleton-filter-function 'identity
   "Function for transforming a skeleton proxy's aliases' variable value.")
+(defvaralias 'skeleton-filter 'skeleton-filter-function)
 
 (defvar skeleton-untabify t
   "When non-nil untabifies when deleting backwards with element -ARG.")
@@ -157,7 +159,7 @@ This command can also be an abbrev expansion (3rd and 4th columns in
 
 Optional second argument STR may also be a string which will be the value
 of `str' whereas the skeleton's interactor is then ignored."
-  (skeleton-insert (funcall skeleton-filter skeleton)
+  (skeleton-insert (funcall skeleton-filter-function skeleton)
 		   ;; Pretend  C-x a e  passed its prefix arg to us
 		   (if (or arg current-prefix-arg)
 		       (prefix-numeric-value (or arg
@@ -199,7 +201,7 @@ SKELETON is made up as (INTERACTOR ELEMENT ...).  INTERACTOR may be nil if
 not needed, a prompt-string or an expression for complex read functions.
 
 If ELEMENT is a string or a character it gets inserted (see also
-`skeleton-transformation').  Other possibilities are:
+`skeleton-transformation-function').  Other possibilities are:
 
 	\\n	go to next line and indent according to mode
 	_	interesting point, interregion here
@@ -360,7 +362,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	    (backward-delete-char-untabify (- element))
 	  (delete-backward-char (- element)))
       (insert (if (not literal)
-		  (funcall skeleton-transformation element)
+		  (funcall skeleton-transformation-function element)
 		element))))
    ((or (eq element '\n)			; actually (eq '\n 'n)
 	;; The sequence `> \n' is handled specially so as to indent the first
@@ -464,7 +466,7 @@ will attempt to insert pairs of matching characters.")
   "*If this is nil, paired insertion is inhibited before or inside a word.")
 
 
-(defvar skeleton-pair-filter (lambda () nil)
+(defvar skeleton-pair-filter-function (lambda () nil)
   "Attempt paired insertion if this function returns nil, before inserting.
 This allows for context-sensitive checking whether pairing is appropriate.")
 
@@ -490,7 +492,7 @@ Elements might be (?` ?` _ \"''\"), (?\\( ?  _ \" )\") or (?{ \\n > _ \\n ?} >).
 With no ARG, if `skeleton-pair' is non-nil, pairing can occur.  If the region
 is visible the pair is wrapped around it depending on `skeleton-autowrap'.
 Else, if `skeleton-pair-on-word' is non-nil or we are not before or inside a
-word, and if `skeleton-pair-filter' returns nil, pairing is performed.
+word, and if `skeleton-pair-filter-function' returns nil, pairing is performed.
 Pairing is also prohibited if we are right after a quoting character
 such as backslash.
 
@@ -512,7 +514,7 @@ symmetrical ones, and the same character twice for the others."
 	      (and (not mark)
 		   (or overwrite-mode
 		       (if (not skeleton-pair-on-word) (looking-at "\\w"))
-		       (funcall skeleton-pair-filter))))
+		       (funcall skeleton-pair-filter-function))))
 	  (self-insert-command (prefix-numeric-value arg))
 	(skeleton-insert (cons nil skeleton) (if mark -1))))))
 
@@ -526,13 +528,13 @@ symmetrical ones, and the same character twice for the others."
 ;;  (kill-all-local-variables)
 ;;  (make-local-variable 'skeleton-pair)
 ;;  (make-local-variable 'skeleton-pair-on-word)
-;;  (make-local-variable 'skeleton-pair-filter)
+;;  (make-local-variable 'skeleton-pair-filter-function)
 ;;  (make-local-variable 'skeleton-pair-alist)
 ;;  (setq major-mode 'mirror-mode
 ;;	mode-name "Mirror"
 ;;	skeleton-pair-on-word t
 ;;	;; in the middle column insert one or none if odd window-width
-;;	skeleton-pair-filter (lambda ()
+;;	skeleton-pair-filter-function (lambda ()
 ;;			       (if (>= (current-column)
 ;;				       (/ (window-width) 2))
 ;;				   ;; insert both on next line

@@ -497,7 +497,7 @@ can also be used as a rough inverse for @code{key-description}.  You
 call it with a string containing key descriptions, separated by spaces;
 it returns a string or vector containing the corresponding events.
 (This may or may not be a single valid key sequence, depending on what
-events you use; @pxref{Keymap Terminology}.)  If @var{need-vector} is
+events you use; @pxref{Key Sequences}.)  If @var{need-vector} is
 non-@code{nil}, the return value is always a vector.
 @end defun
 

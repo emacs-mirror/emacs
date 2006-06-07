@@ -73,8 +73,7 @@
   (make-sparse-keymap "Set Coding System"))
 
 (define-key-after mule-menu-keymap [set-language-environment]
-  (list 'menu-item  "Set Language Environment" setup-language-environment-map
-	:help "Multilingual environment suitable for a specific language"))
+  (list 'menu-item  "Set Language Environment" setup-language-environment-map))
 (define-key-after mule-menu-keymap [separator-mule]
   '("--")
   t)

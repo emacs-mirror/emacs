@@ -1,3 +1,153 @@
+2006-06-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* display.texi (Abstract Display): Fix typo.
+
+2006-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.texi (Minibuffer History) <history-add-new-input>:
+	Reword variable's description.
+
+2006-06-01  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Splitting Windows): Clarify splitting nonselected
+	window.
+
+2006-05-31  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Minibuffer History): Add history-add-new-input.
+
+2006-05-30  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Line Height): Fix errors in description of
+	default line height and line-height properyty.
+
+	* nonascii.texi (Default Coding Systems): Further clarification.
+
+2006-05-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* internals.texi (Pure Storage): Mention that an overflow in pure
+	space causes a memory leak.
+	(Garbage Collection): If there was an overflow in pure space,
+	`garbage-collect' returns nil.
+
+2006-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Default Coding Systems): Fix it some more.
+
+2006-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Default Coding Systems): Fix last change.
+
+2006-05-29  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (find-operation-coding-system): Describe the new
+	argument format (FILENAME . BUFFER).
+
+2006-05-28  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Better explain reasons not to
+	advise other packages or use `eval-after-load'.
+
+2006-05-29  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Bindat Functions): Rename `pos' and `raw-data' to
+	`bindat-idx' and `bindat-raw' for clarity.
+
+2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Bindat Spec): Expand on `repeat' handler.
+
+	* display.texi (Display): Add "Abstract Display" to menu.
+	(Abstract Display, Abstract Display Functions)
+	(Abstract Display Example): New nodes.
+	* elisp.texi (Top): Add "Abstract Display" to menu.
+
+2006-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Key Sequences): Link to input events definition.
+	(Format of Keymaps): Delete material duplicated in Keymap Basics.
+
+	* files.texi (Changing Files): Document updated argument list for
+	copy-file.
+
+2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Bindat Functions): Explain term "total length".
+	Use it in bindat-length and bindat-pack descriptions.
+
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* tips.texi (Coding Conventions): Advise against using
+	eval-after-load in packages.  Add an index entry.
+
+2006-05-25  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Text from Minibuffer): Undocument keep-all.
+
+	* modes.texi (%-Constructs): Add %e, %z, %Z.
+
+2006-05-25  Richard Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode menu.
+
+	* keymaps.texi (Keymap Basics): New node, split out of Key Sequences.
+	(Keymaps): Update menu.
+
+2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Key Sequences): Some clarifications.
+
+2006-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Bindat Functions): Say "unibyte string"
+	explicitly for bindat-unpack and bindat-pack descriptions.
+	(Bindat Examples): Don't call `string-make-unibyte' in example.
+
+2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Key Sequences): Renamed from Keymap Terminology.
+	Explain string and vector representations of key sequences
+
+	* keymaps.texi (Changing Key Bindings):
+	* commands.texi (Interactive Codes, Interactive Codes):
+	* help.texi (Describing Characters): Refer to it.
+
+2006-05-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Pointer Shape): @end table -> @end defvar.
+
+2006-05-22  Richard Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode menus.
+
+	* frames.texi (Pointer Shape): Node renamed from Pointer Shapes.
+	Contents rewritten; material from old Pointer Shape node moved here.
+
+	* display.texi (Pointer Shape): Node deleted.
+	(Image Descriptors): Minor cleanup.
+
+2006-05-21  Richard Stallman  <rms@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Update info on which STATE
+	elements are ignored.
+
+2006-05-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* hooks.texi (Standard Hooks): Correct typo.
+
+	* gpl.texi (GPL): ifinfo -> ifnottex.
+
+2006-05-19  Michael Ernst  <mernst@alum.mit.edu>  (tiny change)
+
+	* searching.texi (Simple Match Data): Warn about match data being
+	set anew by every search.
+
+2006-05-17  Richard Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Minibuffer History): Clarify.
+
+	* searching.texi (Regexp Special): Clarify nested regexp warning.
+
 2006-05-16  Kim F. Storm  <storm@cua.dk>
 
 	* minibuf.texi (Minibuffer History): Update add-to-history.
@@ -473,7 +623,7 @@
 
 2005-12-23  Eli Zaretskii  <eliz@gnu.org>
 
-	* text.texi (Undo): Remove dupliate descriptions of `apply
+	* text.texi (Undo): Remove duplicate descriptions of `apply
 	funname' and `apply delta' elements of the undo list.
 
 2005-12-20  Richard M. Stallman  <rms@gnu.org>

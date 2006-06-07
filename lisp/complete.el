@@ -369,7 +369,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	 (str (buffer-substring beg end))
 	 (incname (and filename (string-match "<\\([^\"<>]*\\)>?$" str)))
 	 (ambig nil)
-	 basestr
+	 basestr origstr
 	 env-on
 	 regex
 	 p offset
@@ -415,7 +415,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
                                    (file-name-nondirectory dir))
                                   "*/" file))
                (setq dir (file-name-directory dir)))
-             (setq str (concat dir file))))
+             (setq origstr str str (concat dir file))))
 
       ;; Look for wildcard expansions in directory name
       (and filename
@@ -443,7 +443,14 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 		     (setq str (concat dir (file-name-nondirectory str)))
 		     (insert str)
 		     (setq end (+ beg (length str)))))
-	       (setq filename nil table nil pred nil))))
+	       (if origstr
+                   ;; If the wildcards were introduced by us, it's possible
+                   ;; that read-file-name-internal (especially our
+                   ;; PC-include-file advice) can still find matches for the
+                   ;; original string even if we couldn't, so remove the
+                   ;; added wildcards.
+                   (setq str origstr)
+		 (setq filename nil table nil pred nil)))))
 
       ;; Strip directory name if appropriate
       (if filename
@@ -943,10 +950,11 @@ absolute rather than relative to some directory on the SEARCH-PATH."
   (if (string-match "<\\([^\"<>]*\\)>?\\'" (ad-get-arg 0))
       (let* ((string (ad-get-arg 0))
              (action (ad-get-arg 2))
-             (name (substring string (match-beginning 1) (match-end 1)))
+             (name (match-string 1 string))
 	     (str2 (substring string (match-beginning 0)))
 	     (completion-table
-	      (mapcar (lambda (x) (format "<%s>" x))
+	      (mapcar (lambda (x)
+			(format (if (string-match "/\\'" x) "<%s" "<%s>") x))
 		      (PC-include-file-all-completions
 		       name (PC-include-file-path)))))
         (setq ad-return-value

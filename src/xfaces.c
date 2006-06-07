@@ -6762,6 +6762,12 @@ better_font_p (values, font1, font2, compare_pt_p, avgwidth)
 {
   int i;
 
+  /* Any font is better than no font.  */
+  if (! font1)
+    return 0;
+  if (! font2)
+    return 1;
+
   for (i = 0; i < DIM (font_sort_order); ++i)
     {
       int xlfd_idx = font_sort_order[i];
@@ -7012,29 +7018,19 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
   if (needs_overstrike)
     *needs_overstrike = 0;
 
-  /* Start with the first non-scalable font in the list.  */
-  for (i = 0; i < nfonts; ++i)
-    if (!font_scalable_p (fonts + i))
-      break;
+  best = NULL;
 
   /* Find the best match among the non-scalable fonts.  */
-  if (i < nfonts)
-    {
-      best = fonts + i;
+  for (i = 0; i < nfonts; ++i)
+    if (!font_scalable_p (fonts + i)
+	&& better_font_p (specified, fonts + i, best, 1, avgwidth))
+      {
+	best = fonts + i;
 
-      for (i = 1; i < nfonts; ++i)
-	if (!font_scalable_p (fonts + i)
-	    && better_font_p (specified, fonts + i, best, 1, avgwidth))
-	  {
-	    best = fonts + i;
-
-	    exact_p = exact_face_match_p (specified, best, avgwidth);
-	    if (exact_p)
-	      break;
-	  }
-    }
-  else
-    best = NULL;
+	exact_p = exact_face_match_p (specified, best, avgwidth);
+	if (exact_p)
+	  break;
+      }
 
   /* Unless we found an exact match among non-scalable fonts, see if
      we can find a better match among scalable fonts.  */
@@ -7058,8 +7054,7 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
       for (i = 0; i < nfonts; ++i)
 	if (font_scalable_p (fonts + i))
 	  {
-	    if (best == NULL
-		|| better_font_p (specified, fonts + i, best, 0, 0)
+	    if (better_font_p (specified, fonts + i, best, 0, 0)
 		|| (!non_scalable_has_exact_height_p
 		    && !better_font_p (specified, best, fonts + i, 0, 0)))
 	      {
@@ -7067,23 +7062,27 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 		best = fonts + i;
 	      }
 	  }
+    }
 
-      if (needs_overstrike)
+  /* We should have found SOME font.  */
+  if (best == NULL)
+    abort ();
+
+  if (! exact_p && needs_overstrike)
+    {
+      enum xlfd_weight want_weight = specified[XLFD_WEIGHT];
+      enum xlfd_weight got_weight = best->numeric[XLFD_WEIGHT];
+
+      if (want_weight > XLFD_WEIGHT_MEDIUM && want_weight > got_weight)
 	{
-	  enum xlfd_weight want_weight = specified[XLFD_WEIGHT];
-	  enum xlfd_weight got_weight = best->numeric[XLFD_WEIGHT];
-
-	  if (want_weight > XLFD_WEIGHT_MEDIUM && want_weight > got_weight)
-	    {
-	      /* We want a bold font, but didn't get one; try to use
-		 overstriking instead to simulate bold-face.  However,
-		 don't overstrike an already-bold fontn unless the
-		 desired weight grossly exceeds the available weight.  */
-	      if (got_weight > XLFD_WEIGHT_MEDIUM)
-		*needs_overstrike = (got_weight - want_weight) > 2;
-	      else
-		*needs_overstrike = 1;
-	    }
+	  /* We want a bold font, but didn't get one; try to use
+	     overstriking instead to simulate bold-face.  However,
+	     don't overstrike an already-bold fontn unless the
+	     desired weight grossly exceeds the available weight.  */
+	  if (got_weight > XLFD_WEIGHT_MEDIUM)
+	    *needs_overstrike = (got_weight - want_weight) > 2;
+	  else
+	    *needs_overstrike = 1;
 	}
     }
 
@@ -7488,7 +7487,7 @@ realize_default_face (f)
   face = realize_face (c, attrs, DEFAULT_FACE_ID);
 
 #ifdef HAVE_WINDOW_SYSTEM
-#ifdef HAVE_X_WINDOWS  
+#ifdef HAVE_X_WINDOWS
   if (face->font != FRAME_FONT (f))
     /* As the font specified for the frame was not acceptable as a
        font for the default face (perhaps because auto-scaled fonts

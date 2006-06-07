@@ -2111,10 +2111,10 @@ for more information about compiling Emacs Lisp programs.
 
   If you are going to write actual Emacs Lisp programs that go beyond
 minor customization, you should read the @cite{Emacs Lisp Reference Manual}.
-@ifinfo
+@ifnottex
 @xref{Top, Emacs Lisp, Emacs Lisp, elisp, the Emacs Lisp Reference
 Manual}.
-@end ifinfo
+@end ifnottex
 
 @menu
 * Init Syntax::	        Syntax of constants in Emacs Lisp.

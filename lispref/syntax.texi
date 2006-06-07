@@ -662,10 +662,9 @@ string, or the end of a comment or a string, whichever comes first.
 
 @cindex parse state
 The fifth argument @var{state} is a ten-element list of the same form
-as the value of this function, described below.  (It is OK to omit the
-last two elements of this list.)  The return value of one call may be
-used to initialize the state of the parse on another call to
-@code{parse-partial-sexp}.
+as the value of this function, described below.  The return value of
+one call may be used to initialize the state of the parse on another
+call to @code{parse-partial-sexp}.
 
 The result is a list of ten elements describing the final state of
 the parse:
@@ -721,11 +720,13 @@ this element is @code{nil}.
 Internal data for continuing the parsing.  The meaning of this
 data is subject to change; it is used if you pass this list
 as the @var{state} argument to another call.
-
 @end enumerate
 
-Elements 0, 3, 4, 5, 7 and 9 are significant in the argument
-@var{state}.
+Elements 1, 2, and 6 are ignored in the argument @var{state}.  Element
+8 is used only to set the corresponding element of the return value,
+in certain simple cases.  Element 9 is used only to set element 1 of
+the return value, in trivial cases where parsing starts and stops
+within the same pair of parentheses.
 
 @cindex indenting with parentheses
 This function is most often used to compute indentation for languages

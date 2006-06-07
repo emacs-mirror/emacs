@@ -1995,15 +1995,15 @@ get_glyph_string_clip_rect (s, nr)
    Set w->phys_cursor_width to width of phys cursor.
 */
 
-int
-get_phys_cursor_geometry (w, row, glyph, heightp)
+void
+get_phys_cursor_geometry (w, row, glyph, xp, yp, heightp)
      struct window *w;
      struct glyph_row *row;
      struct glyph *glyph;
-     int *heightp;
+     int *xp, *yp, *heightp;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  int y, wd, h, h0, y0;
+  int x, y, wd, h, h0, y0;
 
   /* Compute the width of the rectangle to draw.  If on a stretch
      glyph, and `x-stretch-block-cursor' is nil, don't draw a
@@ -2013,6 +2013,14 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
 #ifdef HAVE_NTGUI
   wd++; /* Why? */
 #endif
+
+  x = w->phys_cursor.x;
+  if (x < 0)
+    {
+      wd += x;
+      x = 0;
+    }
+
   if (glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
     wd = min (FRAME_COLUMN_WIDTH (f), wd);
@@ -2042,8 +2050,9 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
 	}
     }
 
+  *xp = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, x);
+  *yp = WINDOW_TO_FRAME_PIXEL_Y (w, y);
   *heightp = h;
-  return WINDOW_TO_FRAME_PIXEL_Y (w, y);
 }
 
 /*
@@ -6334,6 +6343,8 @@ next_element_from_composition (it)
   it->position = (STRINGP (it->string)
 		  ? it->current.string_pos
 		  : it->current.pos);
+  if (STRINGP (it->string))
+    it->object = it->string;
   return 1;
 }
 
@@ -9608,7 +9619,8 @@ display_tool_bar_line (it, height)
 
   while (it->current_x < max_x)
     {
-      int x_before, x, n_glyphs_before, i, nglyphs;
+      int x, n_glyphs_before, i, nglyphs;
+      struct it it_before;
 
       /* Get the next display element.  */
       if (!get_next_display_element (it))
@@ -9620,22 +9632,23 @@ display_tool_bar_line (it, height)
 	}
 
       /* Produce glyphs.  */
-      x_before = it->current_x;
-      n_glyphs_before = it->glyph_row->used[TEXT_AREA];
+      n_glyphs_before = row->used[TEXT_AREA];
+      it_before = *it;
+
       PRODUCE_GLYPHS (it);
 
-      nglyphs = it->glyph_row->used[TEXT_AREA] - n_glyphs_before;
+      nglyphs = row->used[TEXT_AREA] - n_glyphs_before;
       i = 0;
-      x = x_before;
+      x = it_before.current_x;
       while (i < nglyphs)
 	{
 	  struct glyph *glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
 
 	  if (x + glyph->pixel_width > max_x)
 	    {
-	      /* Glyph doesn't fit on line.  */
-	      it->glyph_row->used[TEXT_AREA] = n_glyphs_before + i;
-	      it->current_x = x;
+	      /* Glyph doesn't fit on line.  Backtrack.  */
+	      row->used[TEXT_AREA] = n_glyphs_before;
+	      *it = it_before;
 	      goto out;
 	    }
 
@@ -9666,6 +9679,8 @@ display_tool_bar_line (it, height)
   /* Make line the desired height and center it vertically.  */
   if ((height -= it->max_ascent + it->max_descent) > 0)
     {
+      /* Don't add more than one line height.  */
+      height %= FRAME_LINE_HEIGHT (it->f);
       it->max_ascent += height / 2;
       it->max_descent += (height + 1) / 2;
     }
@@ -11713,9 +11728,11 @@ redisplay_window_1 (window)
 
 /* Set cursor position of W.  PT is assumed to be displayed in ROW.
    DELTA is the number of bytes by which positions recorded in ROW
-   differ from current buffer positions.  */
+   differ from current buffer positions.
 
-void
+   Return 0 if cursor is not on this row.  1 otherwise.  */
+
+int
 set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
      struct window *w;
      struct glyph_row *row;
@@ -11865,6 +11882,11 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	      SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
 	    }
 	}
+
+      /* If we reached the end of the line, and end was from a string,
+	 cursor is not on this line.  */
+      if (glyph == end && row->continued_p)
+	return 0;
     }
 
   w->cursor.hpos = glyph - row->glyphs[TEXT_AREA];
@@ -11898,6 +11920,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       else
 	CHARPOS (this_line_start_pos) = 0;
     }
+
+  return 1;
 }
 
 
@@ -12581,8 +12605,18 @@ try_cursor_movement (window, startp, scroll_step)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	  else
 	    {
-	      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-	      rc = CURSOR_MOVEMENT_SUCCESS;
+	      do
+		{
+		  if (set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0))
+		    {
+		      rc = CURSOR_MOVEMENT_SUCCESS;
+		      break;
+		    }
+		  ++row;
+		}
+	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
+		     && MATRIX_ROW_START_CHARPOS (row) == PT
+		     && cursor_row_p (w, row));
 	    }
 	}
     }
@@ -15030,6 +15064,25 @@ dump_glyph (row, glyph, area)
 		   : '-')),
 	       glyph->pixel_width,
 	       glyph->u.img_id,
+	       '.',
+	       glyph->face_id,
+	       glyph->left_box_line_p,
+	       glyph->right_box_line_p);
+    }
+  else if (glyph->type == COMPOSITE_GLYPH)
+    {
+      fprintf (stderr,
+	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       glyph - row->glyphs[TEXT_AREA],
+	       '+',
+	       glyph->charpos,
+	       (BUFFERP (glyph->object)
+		? 'B'
+		: (STRINGP (glyph->object)
+		   ? 'S'
+		   : '-')),
+	       glyph->pixel_width,
+	       glyph->u.cmp_id,
 	       '.',
 	       glyph->face_id,
 	       glyph->left_box_line_p,
@@ -21603,7 +21656,7 @@ erase_phys_cursor (w)
   /* Maybe clear the display under the cursor.  */
   if (w->phys_cursor_type == HOLLOW_BOX_CURSOR)
     {
-      int x, y;
+      int x, y, left_x;
       int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
       int width;
 
@@ -21611,11 +21664,16 @@ erase_phys_cursor (w)
       if (cursor_glyph == NULL)
 	goto mark_cursor_off;
 
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+      width = cursor_glyph->pixel_width;
+      left_x = window_box_left_offset (w, TEXT_AREA);
+      x = w->phys_cursor.x;
+      if (x < left_x)
+	width -= left_x - x;
+      width = min (width, window_box_width (w, TEXT_AREA) - x);
       y = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, cursor_row->y));
-      width = min (cursor_glyph->pixel_width,
-		   window_box_width (w, TEXT_AREA) - w->phys_cursor.x);
+      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, max (x, left_x));
 
+      if (width > 0)
       rif->clear_frame_area (f, x, y, width, cursor_row->visible_height);
     }
 

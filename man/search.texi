@@ -372,9 +372,9 @@ specify is empty.  (Such an empty argument would otherwise be
 useless.)  But it does not call @code{search-forward} right away.  First
 it checks the next input character to see if is @kbd{C-w},
 which specifies a word search.
-@ifinfo
+@ifnottex
 @xref{Word Search}.
-@end ifinfo
+@end ifnottex
 @kbd{C-r @key{RET}} does likewise, for a reverse incremental search.
 
 @findex search-forward

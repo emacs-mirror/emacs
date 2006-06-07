@@ -1,4 +1,7 @@
 More Neat Stuff for your Emacs
+Copyright (c) 1993, 1999, 2003, 2004, 2005, 2006 
+Free software Foundation, Inc.
+See the end of the file for copying permissions.
 
 This file describes GNU Emacs programs and resources that are
 maintained by other people.  Some of these may become part of the
@@ -117,9 +120,9 @@ the future.
 You might like to check whether they are packaged for your system.
 Several are for Debian GNU/Linux in particular.
 
- * AUCTeX: fancy (La)TeX support: <URL:http://www.gnu.org/software/auctex/>
-   There's an AUCTeX mail list/newsgroup:
-   <URL:news://sunsite.dk/emacs.auctex>.
+ * AUCTeX: <URL:http://www.gnu.org/software/auctex/>
+   An extensible package that supports writing and formatting TeX
+   files (including AMS-TeX, LaTeX, Texinfo, ConTeXt, and docTeX).
 
  * BBDB: personal Info Rolodex integrated with mail/news:
    <URL:http://bbdb.sourceforge.net/>
@@ -268,5 +271,13 @@ mode: text
 mode: view
 eval: (goto-address)
 End:
+
+COPYING PERMISSIONS
+    Permission to use, copy, modify, and distribute this
+    software and its documentation for any purpose and without
+    fee is hereby granted, provided that the above copyright
+    notice appear in all copies and that both that copyright
+    notice and this permission notice appear in supporting
+    documentation.
 
 arch-tag: c1d4e7c8-db85-44e6-909e-659e2b20fefa

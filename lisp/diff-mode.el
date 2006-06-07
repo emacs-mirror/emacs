@@ -438,7 +438,8 @@ If the prefix ARG is given, restrict the view to the current file instead."
 	 (firsthunk (ignore-errors
 		      (goto-char start)
 		      (diff-beginning-of-file) (diff-hunk-next) (point)))
-	 (nextfile (ignore-errors (diff-file-next) (point))))
+	 (nextfile (ignore-errors (diff-file-next) (point)))
+	 (inhibit-read-only t))
     (goto-char start)
     (if (and firsthunk (= firsthunk start)
 	     (or (null nexthunk)
@@ -457,7 +458,8 @@ If the prefix ARG is given, restrict the view to the current file instead."
 		     (ignore-errors
 		       (diff-hunk-prev) (point))))
 	 (index (save-excursion
-		  (re-search-backward "^Index: " prevhunk t))))
+		  (re-search-backward "^Index: " prevhunk t)))
+	 (inhibit-read-only t))
     (when index (setq start index))
     (diff-end-of-file)
     (if (looking-at "^\n") (forward-char 1)) ;`tla' generates such diffs.
@@ -497,7 +499,8 @@ If the prefix ARG is given, restrict the view to the current file instead."
     (let* ((start1 (string-to-number (match-string 1)))
 	   (start2 (string-to-number (match-string 2)))
 	   (newstart1 (+ start1 (diff-count-matches "^[- \t]" (point) pos)))
-	   (newstart2 (+ start2 (diff-count-matches "^[+ \t]" (point) pos))))
+	   (newstart2 (+ start2 (diff-count-matches "^[+ \t]" (point) pos)))
+	   (inhibit-read-only t))
       (goto-char pos)
       ;; Hopefully the after-change-function will not screw us over.
       (insert "@@ -" (number-to-string newstart1) ",1 +"
@@ -993,8 +996,7 @@ a diff with \\[diff-reverse-direction]."
   ;; compile support
   (set (make-local-variable 'next-error-function) 'diff-next-error)
 
-  (when (and (> (point-max) (point-min)) diff-default-read-only)
-    (toggle-read-only t))
+  (setq buffer-read-only diff-default-read-only)
   ;; setup change hooks
   (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-functions 'diff-write-contents-hooks nil t)
@@ -1355,6 +1357,7 @@ For use in `add-log-current-defun-function'."
 	 (file1 (make-temp-file "diff1"))
 	 (file2 (make-temp-file "diff2"))
 	 (coding-system-for-read buffer-file-coding-system)
+	 (inhibit-read-only t)
 	 old new)
     (unwind-protect
 	(save-excursion

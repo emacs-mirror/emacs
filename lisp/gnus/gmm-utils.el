@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-;; (require 'wid-edit)
+(require 'wid-edit)
 
 (defgroup gmm nil
   "Utility functions for Gnus, Message and MML"
@@ -279,11 +279,7 @@ DEFAULT-MAP specifies the default key map for ICON-LIST."
 	    icon-list))
     tool-bar-map))
 
-;; WARNING: The following is subject to change.  Don't rely on it yet.
-
-;; From MH-E without modifications:
-
-(defmacro gmm-defun-compat (name function arg-list &rest body)
+(defmacro defun-gmm (name function arg-list &rest body)
   "Create function NAME.
 If FUNCTION exists, then NAME becomes an alias for FUNCTION.
 Otherwise, create function NAME with ARG-LIST and BODY."
@@ -292,21 +288,19 @@ Otherwise, create function NAME with ARG-LIST and BODY."
         `(defalias ',name ',function)
       `(defun ,name ,arg-list ,@body))))
 
-(gmm-defun-compat gmm-image-search-load-path
+(defun-gmm gmm-image-search-load-path
   image-search-load-path (file &optional path)
   "Emacs 21 and XEmacs don't have `image-search-load-path'.
 This function returns nil on those systems."
   nil)
 
-;; From MH-E with modifications:
+;; Cf. `mh-image-load-path-for-library' in `mh-compat.el'.
 
-;; Don't use `gmm-defun-compat' until API changes in
-;; `image-load-path-for-library' in Emacs CVS are completed.
+(defun-gmm gmm-image-load-path-for-library
+  image-load-path-for-library (library image &optional path no-error)
+  "Return a suitable search path for images used by LIBRARY.
 
-(defun gmm-image-load-path-for-library (library image &optional path no-error)
-  "Return a suitable search path for images relative to LIBRARY.
-
-First it searches for IMAGE in `image-load-path' (excluding
+It searches for IMAGE in `image-load-path' (excluding
 \"`data-directory'/images\") and `load-path', followed by a path
 suitable for LIBRARY, which includes \"../../etc/images\" and
 \"../etc/images\" relative to the library file itself, and then

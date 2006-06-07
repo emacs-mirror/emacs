@@ -100,7 +100,11 @@ used is specified by `uudecode-decoder-program'."
 			      (make-temp-name "uu")
 			      uudecode-temporary-file-directory))))
 	(let ((cdir default-directory)
-	      default-process-coding-system)
+	      (default-process-coding-system
+		(if (featurep 'xemacs)
+		    ;; In XEmacs, `nil' is not a valid coding system.
+		    '(binary . binary)
+		  nil)))
 	  (unwind-protect
 	      (with-temp-buffer
 		(insert "begin 600 " (file-name-nondirectory tempfile) "\n")

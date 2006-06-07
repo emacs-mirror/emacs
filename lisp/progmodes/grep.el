@@ -553,7 +553,7 @@ easily repeat a find command."
        (read-string
         "compile.el: No `grep-find-command' command available. Press RET.")
        (list nil))))
-  (when (and grep-find-command command-args)
+  (when command-args
     (let ((null-device nil))		; see grep
       (grep command-args))))
 

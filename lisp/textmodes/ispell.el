@@ -416,11 +416,12 @@ The following values are supported:
   :type 'boolean
   :group 'ispell)
 
-(defcustom ispell-format-word (function upcase)
+(defcustom ispell-format-word-function (function upcase)
   "*Formatting function for displaying word being spell checked.
 The function must take one string argument and return a string."
   :type 'function
   :group 'ispell)
+(defvaralias 'ispell-format-word 'ispell-format-word-function)
 
 (defcustom ispell-use-framepop-p nil
   "When non-nil ispell uses framepop to display choices in a dedicated frame.
@@ -1565,7 +1566,7 @@ quit          spell session exited."
       ;; But that is silly; if the user asks for it, we should do it. - rms.
       (or quietly
 	  (message "Checking spelling of %s..."
-		   (funcall ispell-format-word word)))
+		   (funcall ispell-format-word-function word)))
       (ispell-send-string "%\n")	; put in verbose mode
       (ispell-send-string (concat "^" word "\n"))
       ;; wait until ispell has processed word
@@ -1581,7 +1582,7 @@ quit          spell session exited."
       (cond ((eq poss t)
 	     (or quietly
 		 (message "%s is correct"
-			  (funcall ispell-format-word word)))
+			  (funcall ispell-format-word-function word)))
 	     (and (fboundp 'extent-at)
 		  (extent-at start)
 		  (and (fboundp 'delete-extent)
@@ -1589,8 +1590,8 @@ quit          spell session exited."
 	    ((stringp poss)
 	     (or quietly
 		 (message "%s is correct because of root %s"
-			  (funcall ispell-format-word word)
-			  (funcall ispell-format-word poss)))
+			  (funcall ispell-format-word-function word)
+			  (funcall ispell-format-word-function poss)))
 	     (and (fboundp 'extent-at)
 		  (extent-at start)
 		  (and (fboundp 'delete-extent)
@@ -1603,7 +1604,8 @@ quit          spell session exited."
 		       (set-extent-property ext 'face ispell-highlight-face)
 		       (set-extent-property ext 'priority 2000)))
 	       (beep)
-	       (message "%s is incorrect"(funcall ispell-format-word word))))
+	       (message "%s is incorrect"
+                        (funcall ispell-format-word-function word))))
 	    (t				; prompt for correct word.
 	     (save-window-excursion
 	       (setq replace (ispell-command-loop
@@ -3329,6 +3331,7 @@ Don't read buffer-local settings or word lists."
   "*End of text which will be checked in `ispell-message'.
 If it is a string, limit at first occurrence of that regular expression.
 Otherwise, it must be a function which is called to get the limit.")
+(put 'ispell-message-text-end 'risky-local-variable t)
 
 
 (defun ispell-mime-multipartp (&optional limit)

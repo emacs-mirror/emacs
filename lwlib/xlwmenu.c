@@ -53,21 +53,8 @@ extern int gray_bitmap_width;
 extern int gray_bitmap_height;
 extern char *gray_bitmap_bits;
 
-/* Defined in xterm.c.  */
-extern int x_alloc_nearest_color_for_widget __P ((Widget, Colormap, XColor*));
-extern int x_alloc_lighter_color_for_widget __P ((Widget, Display*, Colormap,
-						  unsigned long *,
-						  double, int));
-extern int x_catch_errors __P ((Display*));
-extern void x_uncatch_errors P_ ((Display *, int));
-extern int x_had_errors_p __P ((Display*));
-extern void x_clear_errors __P ((Display*));
-extern unsigned long x_copy_dpy_color __P ((Display *, Colormap,
-					    unsigned long));
+#include "xterm.h"
 
-/* Defined in xfaces.c.  */
-extern void x_free_dpy_colors __P ((Display *, Screen *, Colormap,
-				    unsigned long *pixels, int npixels));
 #else /* not emacs */
 
 #include <X11/bitmaps/gray>
@@ -352,7 +339,7 @@ make_old_stack_space (mw, n)
 }
 
 /* Size code */
-int
+static int
 string_width (mw, s)
      XlwMenuWidget mw;
      char *s;
@@ -2088,6 +2075,7 @@ Start (w, ev, params, num_params)
       mw->menu.windows [0].y = ev->xmotion.y_root - ev->xmotion.y;
 
       /* handles the down like a move, slots are compatible */
+      ev->xmotion.is_hint = 0;
       handle_motion_event (mw, &ev->xmotion);
     }
 }
@@ -2425,7 +2413,6 @@ pop_up_menu (mw, event)
   int		borderwidth = mw->menu.shadow_thickness;
   Screen*	screen = XtScreen (mw);
   Display       *display = XtDisplay (mw);
-  int count;
 
   next_release_must_exit = 0;
 
@@ -2472,7 +2459,7 @@ pop_up_menu (mw, event)
     }
 
 #ifdef emacs
-  count = x_catch_errors (display);
+  x_catch_errors (display);
 #endif
   if (XtGrabPointer ((Widget)mw, False,
                      (PointerMotionMask
@@ -2500,9 +2487,10 @@ pop_up_menu (mw, event)
       pointer_grabbed = 0;
       XtUngrabPointer ((Widget)mw, event->time);
     }
-  x_uncatch_errors (display, count);
+  x_uncatch_errors ();
 #endif
 
+  ((XMotionEvent*)event)->is_hint = 0;
   handle_motion_event (mw, (XMotionEvent*)event);
 }
 

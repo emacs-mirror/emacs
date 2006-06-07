@@ -94,7 +94,7 @@ LDAP, Lightweight Directory Access Protocol
 @item
 CCSO PH/QI
 @item
-BBDB, Big Brother's Insiduous Database
+BBDB, Big Brother's Insidious Database
 @end itemize
 
 The main features of the EUDC interface are:
@@ -179,7 +179,7 @@ EUDC.
 @comment  node-name,  next,  previous,  up
 @section BBDB
 
-BBDB is the @dfn{Big Brother's Insiduous Database}, a package for Emacs
+BBDB is the @dfn{Big Brother's Insidious Database}, a package for Emacs
 originally written by Jamie Zawinski which provides rolodex-like
 database functionality featuring tight integration with the Emacs mail
 and news readers.

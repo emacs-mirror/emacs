@@ -87,7 +87,7 @@ If this is a function, call it to generate the initial field text."
   :type '(choice (const :tag "None" nil)
                  (string :tag "Initial text")
                  (function :tag "Initialize Function" :value fun)
-                 (other :tag "Default" t)))
+                 (const :tag "Default" t)))
 (put 'bibtex-include-OPTkey 'risky-local-variable t)
 
 (defcustom bibtex-user-optional-fields
@@ -153,7 +153,7 @@ narrowed to just the entry."
 (defcustom bibtex-maintain-sorted-entries nil
   "If non-nil, BibTeX mode maintains all entries in sorted order.
 Allowed non-nil values are:
-plain        All entries are sorted alphabetically.
+plain or t   All entries are sorted alphabetically.
 crossref     All entries are sorted alphabetically unless an entry has a
              crossref field.  These crossrefed entries are placed in
              alphabetical order immediately preceding the main entry.
@@ -165,7 +165,10 @@ See also `bibtex-sort-ignore-string-entries'."
   :type '(choice (const nil)
                  (const plain)
                  (const crossref)
-                 (const entry-class)))
+                 (const entry-class)
+                 (const t)))
+(put 'bibtex-maintain-sorted-entries 'safe-local-variable
+     '(lambda (a) (memq a '(nil t plain crossref entry-class))))
 
 (defcustom bibtex-sort-entry-class
   '(("String")
@@ -180,6 +183,17 @@ to all entries not explicitly mentioned."
   :type '(repeat (choice :tag "Class"
                          (const :tag "catch-all" (catch-all))
                          (repeat :tag "Entry name" string))))
+(put 'bibtex-sort-entry-class 'safe-local-variable
+     (lambda (x) (let ((OK t))
+              (while (consp x)
+                (let ((y (pop x)))
+                  (while (consp y)
+                    (let ((z (pop y)))
+                      (unless (or (stringp z) (eq z 'catch-all))
+                        (setq OK nil))))
+                  (unless (null y) (setq OK nil))))
+              (unless (null x) (setq OK nil))
+              OK)))
 
 (defcustom bibtex-sort-ignore-string-entries t
   "If non-nil, BibTeX @String entries are not sort-significant.
@@ -607,6 +621,8 @@ See `bibtex-generate-autokey' for details."
                  (const :tag "Capitalize" capitalize)
                  (const :tag "Upcase" upcase)
                  (function :tag "Conversion function")))
+(put 'bibtex-autokey-name-case-convert-function 'safe-local-variable
+     (lambda (x) (memq x '(upcase downcase capitalize identity))))
 (defvaralias 'bibtex-autokey-name-case-convert
   'bibtex-autokey-name-case-convert-function)
 
@@ -1185,13 +1201,7 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
 (defvar bibtex-string-empty-key nil
   "If non-nil, `bibtex-parse-string' accepts empty key.")
 
-(defvar bibtex-sort-entry-class-alist
-  (let ((i -1) alist)
-    (dolist (class bibtex-sort-entry-class alist)
-      (setq i (1+ i))
-      (dolist (entry class)
-        ;; all entry names should be downcase (for ease of comparison)
-        (push (cons (if (stringp entry) (downcase entry) entry) i) alist))))
+(defvar bibtex-sort-entry-class-alist nil
   "Alist mapping entry types to their sorting index.
 Auto-generated from `bibtex-sort-entry-class'.
 Used when `bibtex-maintain-sorted-entries' is `entry-class'.")
@@ -1800,7 +1810,8 @@ Formats current entry according to variable `bibtex-entry-format'."
 
         ;; identify entry type
         (goto-char (point-min))
-        (re-search-forward bibtex-entry-type)
+        (or (re-search-forward bibtex-entry-type nil t)
+            (error "Not inside a BibTeX entry"))
         (let ((beg-type (1+ (match-beginning 0)))
               (end-type (match-end 0)))
           (setq entry-list (assoc-string (buffer-substring-no-properties
@@ -3184,6 +3195,17 @@ of the head of the entry found.  Return nil if no entry found."
                       entry-name))
             (list key nil entry-name))))))
 
+(defun bibtex-init-sort-entry-class-alist ()
+  (unless (local-variable-p 'bibtex-sort-entry-class-alist)
+    (set (make-local-variable 'bibtex-sort-entry-class-alist)
+         (let ((i -1) alist)
+           (dolist (class bibtex-sort-entry-class alist)
+             (setq i (1+ i))
+             (dolist (entry class)
+               ;; All entry names should be downcase (for ease of comparison).
+               (push (cons (if (stringp entry) (downcase entry) entry) i)
+                     alist)))))))
+
 (defun bibtex-lessp (index1 index2)
   "Predicate for sorting BibTeX entries with indices INDEX1 and INDEX2.
 Each index is a list (KEY CROSSREF-KEY ENTRY-NAME).
@@ -3221,13 +3243,14 @@ If its value is nil use plain sorting.  Text outside of BibTeX entries is not
 affected.  If `bibtex-sort-ignore-string-entries' is non-nil, @String entries
 are ignored."
   (interactive)
-    (bibtex-beginning-of-first-entry) ;; needed by `sort-subr'
-    (sort-subr nil
-               'bibtex-skip-to-valid-entry ; NEXTREC function
-               'bibtex-end-of-entry        ; ENDREC function
-               'bibtex-entry-index         ; STARTKEY function
-               nil                         ; ENDKEY function
-               'bibtex-lessp))             ; PREDICATE
+  (bibtex-beginning-of-first-entry)     ; Needed by `sort-subr'
+  (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
+  (sort-subr nil
+             'bibtex-skip-to-valid-entry   ; NEXTREC function
+             'bibtex-end-of-entry          ; ENDREC function
+             'bibtex-entry-index           ; STARTKEY function
+             nil                           ; ENDKEY function
+             'bibtex-lessp))               ; PREDICATE
 
 (defun bibtex-find-crossref (crossref-key &optional pnt split)
   "Move point to the beginning of BibTeX entry CROSSREF-KEY.
@@ -3328,6 +3351,7 @@ If `bibtex-maintain-sorted-entries' is non-nil, perform a binary
 search to look for place for KEY.  This requires that buffer is sorted,
 see `bibtex-validate'.
 Return t if preparation was successful or nil if entry KEY already exists."
+  (bibtex-init-sort-entry-class-alist)  ; Needed by `bibtex-lessp'.
   (let ((key (nth 0 index))
         key-exist)
     (cond ((or (null key)
@@ -3876,7 +3900,8 @@ At end of the cleaning process, the functions in
   (interactive "P")
   (let ((case-fold-search t)
         (start (bibtex-beginning-of-entry))
-        (_ (looking-at bibtex-any-entry-maybe-empty-head))
+        (_ (or (looking-at bibtex-any-entry-maybe-empty-head)
+	       (error "Not inside a BibTeX entry")))
         (entry-type (bibtex-type-in-head))
         (key (bibtex-key-in-head)))
     ;; formatting

@@ -7061,7 +7061,7 @@ The first element on the list, @code{antelope} is replaced by
 @code{hippopotamus}.
 
 So we can see that @code{setcar} did not add a new element to the list
-as @code{cons} would have; it replaced @code{giraffe} with
+as @code{cons} would have; it replaced @code{antelope} with
 @code{hippopotamus}; it @emph{changed} the list.
 
 @node setcdr, cons Exercise, setcar, car cdr & cons
@@ -18278,7 +18278,7 @@ But a human expects to attempt this sort of thing, if only to find out
 whether the kill ring is full or empty.  This is an act of
 exploration.
 
-(From the human point of view, the act of exploration and discovery is
+From the human point of view, the act of exploration and discovery is
 not necessarily an error, and therefore should not be labelled as one,
 even in the bowels of a computer.  As it is, the code in Emacs implies
 that a human who is acting virtuously, by exploring his or her

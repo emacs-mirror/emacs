@@ -33,7 +33,7 @@ srcdir = $(CURDIR)/..
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
 
-EMACS = "$(THISDIR)/../bin/emacs.exe"
+EMACS = $(THISDIR)/../bin/emacs.exe
 
 # Command line flags for Emacs.  This must include --multibyte,
 # otherwise some files will not compile.
@@ -64,8 +64,11 @@ COMPILE_FIRST = \
 	$(lisp)/progmodes/cc-vars.el
 
 # The actual Emacs command run in the targets below.
+# The quotes around $(EMACS) are here because the user could type
+# it with forward slashes and without quotes, which will fail if
+# the shell is cmd.exe.
 
-emacs = $(EMACS) $(EMACSOPT)
+emacs = "$(EMACS)" $(EMACSOPT)
 
 # Common command to find subdirectories
 
@@ -320,7 +323,7 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	$(MAKE) $(MFLAGS) pre-mh-loaddefs.el-$(SHELLTYPE)
 	cp pre-mh-loaddefs.el-$(SHELLTYPE) $@
 	rm pre-mh-loaddefs.el-$(SHELLTYPE)
-	$(EMACS) $(EMACSOPT) \
+	"$(EMACS)" $(EMACSOPT) \
 	   -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
@@ -381,12 +384,12 @@ pre-mh-loaddefs.el-CMD:
 bootstrap-clean: bootstrap-clean-$(SHELLTYPE) $(lisp)/loaddefs.el
 
 bootstrap-clean-CMD:
-#	if exist $(EMACS) $(MAKE) $(MFLAGS) autoloads
+#	if exist "$(EMACS)" $(MAKE) $(MFLAGS) autoloads
 	cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el
 	-for %%f in (. $(WINS)) do for %%g in (%%f\*.elc) do @$(DEL) %%g
 
 bootstrap-clean-SH:
-#	if test -f $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
+#	if test -f "$(EMACS)"; then $(MAKE) $(MFLAGS) autoloads; fi
 #	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
 	cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el
 	-for dir in . $(WINS); do rm -f $$dir/*.elc; done
@@ -396,7 +399,7 @@ bootstrap-clean-SH:
 # it will not be mistaken for an installed binary.
 
 bootstrap: update-subdirs autoloads mh-autoloads compile finder-data custom-deps
-	- $(DEL) $(EMACS)
+	- $(DEL) "$(EMACS)"
 
 #
 # Assuming INSTALL_DIR is defined, copy the elisp files to it

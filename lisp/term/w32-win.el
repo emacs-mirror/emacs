@@ -112,6 +112,14 @@ Switch to a buffer editing the last file dropped."
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
       (mapcar (lambda (file-name)
+		(let ((f (subst-char-in-string ?\\ ?/ file-name))
+		      (coding (or file-name-coding-system
+				  default-file-name-coding-system)))
+		  (setq file-name
+			(mapconcat 'url-hexify-string
+				   (split-string (encode-coding-string f coding)
+						 "/")
+				   "/")))
 		(dnd-handle-one-url window 'private
 				    (concat "file:" file-name)))
 		(car (cdr (cdr event)))))
