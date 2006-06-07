@@ -2381,13 +2381,6 @@ expression in the list.  For example,
 allows the use of scalable fonts with registry @code{muleindian-2}.
 @end defvar
 
-@defun clear-face-cache &optional unload-p
-@tindex clear-face-cache
-This function clears the face cache for all frames.
-If @var{unload-p} is non-@code{nil}, that means to unload
-all unused fonts as well.
-@end defun
-
 @defvar face-font-rescale-alist
 This variable specifies scaling for certain faces.  Its value should
 be a list of elements of the form
