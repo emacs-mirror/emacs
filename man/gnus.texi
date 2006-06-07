@@ -7456,7 +7456,7 @@ files.
 
 @vindex gnus-default-article-saver
 You can customize the @code{gnus-default-article-saver} variable to make
-Gnus do what you want it to.  You can use any of the six ready-made
+Gnus do what you want it to.  You can use any of the eight ready-made
 functions below, or you can create your own.
 
 @table @code
@@ -7497,6 +7497,13 @@ Append the article body to an ordinary file.  Uses the function in the
 @code{gnus-file-save-name} variable to get a file name to save the
 article in.  The default is @code{gnus-numeric-save-name}.
 
+@item gnus-summary-write-body-to-file
+@findex gnus-summary-write-body-to-file
+Write the article body straight to an ordinary file.  The file is
+overwritten if it exists.  Uses the function in the
+@code{gnus-file-save-name} variable to get a file name to save the
+article in.  The default is @code{gnus-numeric-save-name}.
+
 @item gnus-summary-save-in-folder
 @findex gnus-summary-save-in-folder
 @findex gnus-folder-save-name
@@ -7514,6 +7521,31 @@ to get a file name to save the article in.  The default is
 @findex gnus-summary-save-in-vm
 Save the article in a VM folder.  You have to have the VM mail
 reader to use this setting.
+@end table
+
+The symbol of each function may have the following properties:
+
+@table @code
+@item :decode
+The value non-@code{nil} means save decoded articles.  This is
+meaningful only with @code{gnus-summary-save-in-file},
+@code{gnus-summary-save-body-in-file},
+@code{gnus-summary-write-to-file}, and
+@code{gnus-summary-write-body-to-file}.
+
+@item :function
+The value specifies an alternative function which appends, not
+overwrites, articles to a file.  This implies that when saving many
+articles at a time, @code{gnus-prompt-before-saving} is bound to
+@code{t} and all articles are saved in a single file.  This is
+meaningful only with @code{gnus-summary-write-to-file} and
+@code{gnus-summary-write-body-to-file}.
+
+@item :headers
+The value specifies the symbol of a variable of which the value
+specifies headers to be saved.  If it is omitted,
+@code{gnus-save-all-headers} and @code{gnus-saved-headers} control what
+headers should be saved.
 @end table
 
 @vindex gnus-article-save-directory

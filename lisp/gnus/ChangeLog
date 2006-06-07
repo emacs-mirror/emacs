@@ -1,3 +1,86 @@
+2006-06-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-mime-mule-charset-alist): Use unicode-precedence-list
+	to fill the utf-8 entry.
+
+2006-06-05  Dan Christensen  <jdc@uwo.ca>
+
+	* gnus-sum.el (gnus-summary-read-group-1): When summary is unthreaded,
+	respect display group parameter and gnus-summary-expunge-below.
+	(gnus-articles-to-read): Remove unused reference to display group
+	parameter.
+	[ Merge 2004-07-06 change from the trunk. ]
+
+2006-05-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-ml.el (gnus-mailing-list-subscribe)
+	(gnus-mailing-list-unsubscribe, gnus-mailing-list-owner)
+	(gnus-mailing-list-message): Fix doc strings.
+
+2006-05-29  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus-ml.el (gnus-mailing-list-message): Use gnus-url-mailto instead
+	of doing it manually.
+
+2006-05-29  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-agent.el (gnus-agent-possibly-synchronize-flags): A server
+	must be explicitly online rather than "not explicitly offline" for
+	its flags to be synchronized.
+	(gnus-agent-read-local): All symbols allocated in my-obarray
+	(gnus-agent-set-local): Skip invalid entries (min and/or max is nil).
+	(gnus-agent-regenerate-group): Check numeric names to see if they are
+	messages or groups.
+
+2006-05-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-save-all-headers): Mention it might be overridden.
+	(gnus-saved-headers): Ditto.
+	(gnus-default-article-saver): Doc fix; add
+	gnus-summary-write-body-to-file; mention functions may have properties.
+	(gnus-article-save-coding-system): New variable.
+	(gnus-article-save): Override gnus-save-all-headers and
+	gnus-saved-headers by :headers property which saver function may have.
+	(gnus-read-save-file-name): Add optional `dir-var' argument which
+	specifies directory in which files are saved; work even if optional
+	`variable' argument is not specified.
+	(gnus-summary-save-in-file): Add properties :decode and :headers.
+	(gnus-summary-write-to-file): Add properties :decode, :function, and
+	:headers; read file name.
+	(gnus-summary-save-body-in-file): Add :decode property; add optional
+	`overwrite' argument.
+	(gnus-summary-write-body-to-file): New function; add properties
+	:decode and :function.
+	(gnus-output-to-file): Add coding cookie and encode text according
+	to gnus-article-save-coding-system; don't use mm-append-to-file.
+
+	* gnus-sum.el (gnus-newsgroup-last-directory): New variable.
+	(gnus-summary-local-variables): Add it.
+	(gnus-summary-save-map): Add gnus-summary-write-article-body-file.
+	(gnus-summary-save-article): Require gnus-art; save decoded articles
+	if function that gnus-default-article-saver specifies has `:decode'
+	property; bind gnus-prompt-before-saving to t when saving many
+	articles in a file; move point to article which will be saved.
+	(gnus-summary-write-article-body-file): New function.
+
+2006-05-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* uudecode.el (uudecode-decode-region-external): Fix previous commit.
+
+2006-05-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-enrich-utf-8-by-mule-ucs): Don't edit
+	after-load-alist.
+
+2006-05-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* uudecode.el (uudecode-decode-region-external): nil isn't a valid
+	coding system in XEmacs, use binary.
+
+	* mail-source.el (mail-sources): Fix custom type.
+
+	* imap.el (Commentary): Fix typo.
+
 2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-sum.el (gnus-summary-save-article-mail): Clarify doc string.

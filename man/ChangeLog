@@ -1,3 +1,7 @@
+2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
+
 2006-06-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Move node to end.

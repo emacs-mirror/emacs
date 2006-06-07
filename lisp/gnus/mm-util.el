@@ -364,14 +364,17 @@ could use `autoload-coding-system' here."
     (iso-2022-jp-3 latin-jisx0201 japanese-jisx0208-1978 japanese-jisx0208
 		   japanese-jisx0213-1 japanese-jisx0213-2)
     (shift_jis latin-jisx0201 katakana-jisx0201 japanese-jisx0208)
-    ,(if (or (not (fboundp 'charsetp)) ;; non-Mule case
-	     (charsetp 'unicode-a)
-	     (not (mm-coding-system-p 'mule-utf-8)))
-	 '(utf-8 unicode-a unicode-b unicode-c unicode-d unicode-e)
-       ;; If we have utf-8 we're in Mule 5+.
-       (append '(utf-8)
-	       (delete 'ascii
-		       (coding-system-get 'mule-utf-8 'safe-charsets)))))
+    ,(cond ((fboundp 'unicode-precedence-list)
+	    (cons 'utf-8 (delq 'ascii (mapcar 'charset-name
+					      (unicode-precedence-list)))))
+	   ((or (not (fboundp 'charsetp)) ;; non-Mule case
+		(charsetp 'unicode-a)
+		(not (mm-coding-system-p 'mule-utf-8)))
+	    '(utf-8 unicode-a unicode-b unicode-c unicode-d unicode-e))
+	   (t ;; If we have utf-8 we're in Mule 5+.
+	    (append '(utf-8)
+		    (delete 'ascii
+			    (coding-system-get 'mule-utf-8 'safe-charsets))))))
   "Alist of MIME-charset/MULE-charsets.")
 
 (defun mm-enrich-utf-8-by-mule-ucs ()
@@ -379,10 +382,6 @@ could use `autoload-coding-system' here."
 This function will run when the `un-define' module is loaded under
 XEmacs, and fill the `utf-8' entry in `mm-mime-mule-charset-alist'
 with Mule charsets.  It is completely useless for Emacs."
-  (unless (cdr (delete '(mm-enrich-utf-8-by-mule-ucs)
-		       (assoc "un-define" after-load-alist)))
-    (setq after-load-alist
-	  (delete '("un-define") after-load-alist)))
   (when (boundp 'unicode-basic-translation-charset-order-list)
     (condition-case nil
 	(let ((val (delq
