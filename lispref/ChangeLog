@@ -1,3 +1,11 @@
+2006-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Font Selection): Remove description of
+	clear-face-cache.
+
+	* compile.texi (Eval During Compile): Fix a typo.  Add index
+	entries for possible uses of eval-when-compile.
+
 2006-06-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* display.texi (Abstract Display): Fix typo.
