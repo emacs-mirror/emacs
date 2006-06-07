@@ -1090,6 +1090,15 @@ mouse-wheel-inhibit-click-time variables.
 
 ** Multilingual Environment (Mule) changes:
 
+*** You can disable character translation for a file using the -*-
+construct.  Include `enable-character-translation: nil' inside the
+-*-...-*- to disable any character translation that may happen by
+various global and per-coding-system translation tables.  You can also
+specify it in a local variable list at the end of the file.  For
+shortcut, instead of using this long variable name, you can append the
+character "!" at the end of coding-system name specified in -*-
+construct or in a local variable list.
+
 ---
 *** Language environment and various default coding systems are setup
 more correctly according to the current locale name.  If the locale
