@@ -2094,8 +2094,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 			(cons (cons ido-current-directory ido-selected) ido-last-directory-list)))))
 	  (ido-set-current-directory ido-current-directory ido-selected)
 	  (if ido-input-stack
-	      (while ido-input-stack
-		(let ((elt (car ido-input-stack)))
+	      ; automatically pop stack elements which match existing files or directories
+	      (let (elt)
+		(while (and (setq elt (car ido-input-stack))
+			    (file-exists-p (concat ido-current-directory (cdr elt))))
 		  (if (setq ido-input-stack (cdr ido-input-stack))
 		      (ido-set-current-directory ido-current-directory (cdr elt))
 		    (setq ido-text-init (cdr elt)))
