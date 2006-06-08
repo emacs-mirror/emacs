@@ -26,13 +26,13 @@ Requests to have been sent out on 2006-05-23 (Reiner Steib).
 LANG	Translator            Status
 cs	Pavel Janík           No response
 de	Sven Joachim          Done
-fr	Eric Jacoboni         No response
+fr	Eric Jacoboni         Done        (layout might be improved)
 pl	Włodek Bzyl           No response
 pt-br	Rodrigo Real          Done
 ru	Alex Ott              Working
 sk	Miroslav Vaško        No response
 
-If there's no update for a translation on 2006-06-07, notify RMS.
+Reminders sent out on 2006-06-08.
 
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
