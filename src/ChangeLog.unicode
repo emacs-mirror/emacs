@@ -1,3 +1,8 @@
+2006-06-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_initialize): Manually sync 2006-06-05 change from
+	HEAD.
+
 2006-06-08  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Ffind_operation_coding_system): Sync with HEAD.
