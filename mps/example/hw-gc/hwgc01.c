@@ -1,4 +1,4 @@
-/* Simple C client of the MPS, with MV pool and VM arena */
+/* Simple C client of the MPS, with ap in MV pool and VM arena */
 /* $Id$ */
 
 #include <stdlib.h>  /* for malloc */
@@ -54,6 +54,7 @@ int main(void)
   size_t cbArena = 1 * 1024 * 1024 * 1024;  /* 1GB, ie. one quarter of 32-bit address space */
   mps_arena_t ArenaDemo = NULL;
   mps_pool_t PoolDemo = NULL;
+  mps_ap_t ApDemo = NULL;
 
   mps_res_t res;
 
@@ -84,20 +85,38 @@ int main(void)
     
     report("Created pool", ArenaDemo, PoolDemo);
   }
+  
+  {
+    /* Create ap */
+    
+    res = mps_ap_create(&ApDemo, PoolDemo);
+    if (res != MPS_RES_OK) {
+      printf("mps_ap_create: failed with res %d.\n", res);
+      exit(2);
+    }
+    
+    report("Created ap", ArenaDemo, PoolDemo);
+  }
 
   {
     /* Allocate memory */
     
-    size_t cbBuffer = 100;
+    size_t cbBuffer = 256;
     void *p = NULL;
 
-    res = mps_alloc(&p, PoolDemo, cbBuffer);
-    if (res != MPS_RES_OK) {
-      printf("mps_alloc: failed with res %d.\n", res);
-      exit(2);
-    }
+    do {
+      res = mps_reserve(&p, ApDemo, cbBuffer);
+      if (res != MPS_RES_OK) {
+        printf("mps_reserve: failed with res %d.\n", res);
+        exit(2);
+      }
+      /* Initialise my object here -- ie. make it valid. */
+      /* (In this example, memory is manually managed, so even
+          uninitialized memory is already a 'valid object'.  So 
+          we can call commit immediately.) */
+    } while (! mps_commit(ApDemo, p, cbBuffer));
     
-    report("Allocated 100 bytes", ArenaDemo, PoolDemo);
+    report("Allocated 256 bytes", ArenaDemo, PoolDemo);
 
     {
       /* Show that it really is memory */
@@ -113,7 +132,8 @@ int main(void)
 
   printf(
     "Success: The hello-world example code successfully allocated\n"
-    "some memory using mps_alloc(), in an MV pool, in a VM arena.\n"
+    "some memory using an allocation point with\n"
+    "mps_reserve()..mps_commit(), in an MV pool, in a VM arena.\n"
   );
   return 0;
 }
