@@ -8353,8 +8353,12 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
 	   SDATA (SYMBOL_NAME (operation)));
   target = args[XINT (target_idx) + 1];
   if (!(STRINGP (target)
+	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
+	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
     error ("Invalid %dth argument", XINT (target_idx) + 1);
+  if (CONSP (target))
+    target = XCAR (target);
 
   chain = ((EQ (operation, Qinsert_file_contents)
 	    || EQ (operation, Qwrite_region))
