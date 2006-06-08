@@ -1,3 +1,7 @@
+2006-06-08  ,AI(Bric Jacoboni <jaco@jacoboni.fr>
+
+	* fr-refcard.tex: Update for Emacs 22.
+
 2006-06-07  Kenichi Handa  <handa@m17n.org>
 
 	* NEWS: Mention how to disable character translation for a file.

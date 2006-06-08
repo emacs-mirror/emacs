@@ -1,15 +1,23 @@
 
-% Reference Card for GNU Emacs version 21 on Unix systems
+% Reference Card for GNU Emacs version 22 on Unix systems
 %**start of header
 \newcount\columnsperpage
+\newcount\letterpaper
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
-% Specify how many you want here.  Nothing else needs to be changed.
+% Specify how many you want here. 
 
-\columnsperpage=1
+\columnsperpage=3
 
+% Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
+% only when columnsperpage is 2 or 3.
+
+\letterpaper=1
+
+% Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996, 1997, 2002, 2003, 2004,
 %   2005, 2006 Free Software Foundation, Inc.
+
 
 % This file is part of GNU Emacs.
 
@@ -44,6 +52,11 @@
 %    For this you need a dvi device driver that can print sideways.
 % Which mode to use is controlled by setting \columnsperpage above.
 %
+% To compile and print this document:
+% tex refcard.tex
+% dvips -t landscape refcard.dvi
+%
+
 % Author:
 %  Stephen Gildea
 %  Internet: gildea@stop.mail-abuse.org
@@ -53,7 +66,7 @@
 
 % If there were room, it would be nice to see a section on Dired.
 
-\def\versionnumber{2.2}
+\def\versionnumber{2.3}
 \def\year{2006}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
@@ -63,7 +76,7 @@
 \def\copyrightnotice{
 \vskip 1ex plus 2 fill\begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
-\centerline{v\versionnumber{} pour GNU Emacs version 21, Juin \year}
+\centerline{v\versionnumber{} pour GNU Emacs version 22, \year}
 \centerline{conception de Stephen Gildea}
 \centerline{traduction fran\c{c}aise d'\'Eric Jacoboni}
 
@@ -72,7 +85,7 @@ la note de copyright et cette note de permission soient conserv\'ees sur
 toutes les copies.
 
 Pour les copies du manuel GNU Emacs, \'ecrivez \`a la Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA.
 
 \endgroup}
 
@@ -107,6 +120,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 \else                           %2 or 3 columns uses prereduced size
   \hsize 3.2in
   \vsize 7.95in
+  \if 1\the\letterpaper
+     \vsize 7.95in
+  \else
+     \vsize 7.65in
+  \fi
   \hoffset -.75in
   \voffset -.745in
   \font\titlefont=cmbx10 \scaledmag2
@@ -127,6 +145,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
   \def\it{\eightit}
   \def\tt{\eighttt}
   \normalbaselineskip=.8\normalbaselineskip
+  \if 1\the\letterpaper
+     \normalbaselineskip=.8\normalbaselineskip
+  \else
+     \normalbaselineskip=.7\normalbaselineskip
+  \fi
   \normallineskip=.8\normallineskip
   \normallineskiplimit=.8\normallineskiplimit
   \normalbaselines\rm           %make definitions take effect
@@ -257,11 +280,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 \title{Carte de r\'ef\'erence de GNU Emacs}
 
-\centerline{(pour la version 21)}
+\centerline{(pour la version 22)}
 
 \section{Lancement d'Emacs}
 
-Pour lancer GNU Emacs 21, il suffit de taper son nom : \kbd{emacs}
+Pour lancer GNU Emacs 22, il suffit de taper son nom : \kbd{emacs}
 
 Pour charger un fichier \`a \'editer, voir Fichiers, ci-dessous.
 
@@ -278,7 +301,7 @@ Pour charger un fichier \`a \'editer, voir Fichiers, ci-dessous.
 \key{{\bf ins\'erer} le contenu d'un autre fichier dans ce tampon}{C-x i}
 \key{remplacer ce fichier par le fichier voulu}{C-x C-v}
 \key{\'ecrire le tampon dans un fichier donn\'e}{C-x C-w}
-\key{contr\^ole de version}{C-x C-q}
+\key{bascule du mode lecture-seule du tampon}{C-x C-q}
 
 \section{Obtenir de l'aide}
 
@@ -290,15 +313,15 @@ les instructions. Si vous d\'ebutez, faites \kbd{C-h t} pour suivre un
 \key{faire d\'efiler la fen\^etre d'aide}{C-M-v}
 
 \key{apropos : montrer les commandes contenant une certaine cha\^\i{}ne}{C-h a}
-\key{montrer la fonction lanc\'ee par une touche}{C-h c}
+\key{d\'ecrire la fonction lanc\'ee par une touche}{C-h k}
 \key{d\'ecrire une fonction}{C-h f}
 \key{obtenir des informations sp\'ecifiques au mode}{C-h m}
 
 \section{R\'ecup\'eration des erreurs}
 
 \key{{\bf avorter} une commande partiellement tap\'ee ou ex\'ecut\'ee}{C-g}
-\metax{{\bf r\'ecup\'erer} un fichier perdu par un crash du syst\`eme}{M-x recover-file}
-\key{{\bf annuler} une modification non souhait\'ee}{C-x u {\rm ou} C-_}
+\metax{{\bf r\'ecup\'erer} les fichier perdus par un crash du syst\`eme}{M-x recover-session}
+\metax{{\bf annuler} une modification non souhait\'ee}{C-x u, C-_ {\rm ou} C-/}
 \metax{restaurer un tampon avec son contenu initial}{M-x revert-buffer}
 \key{r\'eafficher un \'ecran perturb\'e}{C-l}
 
@@ -377,6 +400,8 @@ qui n'a pas \'et\'e fait.
 \section{Remplacement interactif}
 
 \key{remplacer interactivement une cha\^\i{}ne de texte}{M-\%}
+% query-replace-regexp est liee a C-M-% mais on ne peut pas le
+% taper dans une console.
 \metax{en utilisant les expressions rationnelles}{M-x query-replace-regexp}
 
 Les r\'eponses admises dans le mode de remplacement interactif sont :
@@ -391,12 +416,12 @@ Les r\'eponses admises dans le mode de remplacement interactif sont :
 
 \section{Fen\^etres multiples}
 
-Lorsqu'il y a deux commandes, la seconde est pour l'"autre cadre".
-
-\key{supprimer toutes les autres fen\^etres}{C-x 1}
+Lorsqu'il y a deux commandes, la seconde est une commande identique \`a
+la premi\`ere pour un cadre au lieu d'une fen\^etre.
 
 {\setbox0=\hbox{\kbd{0}}\advance\hsize by 0\wd0
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
+\threecol{supprimer toutes les autres fen\^etres}{C-x 1\ \ \ \ }{C-x 5 1}}
 \threecol{diviser la fen\^etre horizontalement}{C-x 2\ \ \ \ }{C-x 5 2}
 \threecol{supprimer cette fen\^etre}{C-x 0\ \ \ \ }{C-x 5 0}
 }}
@@ -438,7 +463,7 @@ Lorsqu'il y a deux commandes, la seconde est pour l'"autre cadre".
 \key{placer la marge droite}{C-x f}
 \key{d\'efinir le pr\'efixe par lequel commencera chaque ligne}{C-x .}
 
-\key{d\'efinir la fonte}{M-g}
+\key{d\'efinir la fonte}{M-o}
 
 \section{Modifier la casse}
 
@@ -554,7 +579,7 @@ menu utilisant le minitampon.
 
 \section{Jeux de caract\`eres internationaux}
 
-\metax{indiquer la langue principale}{M-x set-language-environment}
+\key{indiquer la langue principale}{C-x RET l}
 \metax{montrer toutes les m\'ethodes de saisie}{M-x list-input-methods}
 \key{activer ou d\'esactiver la m\'ethode de saisie}{C-\\}
 \key{choisir le syst\`eme de codage pour la commande suivante}{C-x RET c}
@@ -564,7 +589,7 @@ menu utilisant le minitampon.
 \section{Info}
 
 \key{entrer dans le visualisateur de la documentation Info}{C-h i}
-\key{chercher une fonction ou une variable pr\'ecise dans Info}{C-h C-i}
+\key{chercher une fonction ou une variable pr\'ecise dans Info}{C-h S}
 \beginindentedkeys
 
 Se d\'eplacer dans un n\oe{}ud :
@@ -583,12 +608,13 @@ Passer de n\oe{}ud en n\oe{}ud :
 \key{suivre une r\'ef\'erence crois\'ee  (on revient avec \kbd{l})}{f}
 \key{revenir au dernier n\oe{}ud visit\'e}{l}
 \key{revenir au n\oe{}ud du r\'epertoire}{d}
+\key{aller au n\oe{}ud de plus haut niveau du fichier Info}{t}
 \key{aller sur n'importe quel n\oe{}ud par son nom}{g}
 
 Autres :
 
-\key{lancer le {\bf didacticiel} Info}{h}
-\key{chercher dans l'index}{i}
+\key{lancer le {\bf didacticiel} Info}{h} 
+\key{chercher un sujet dans l'index}{i}
 \key{rechercher les n\oe{}uds avec une expression rationnelle}{s}
 \key{{\bf quitter} Info}{q}
 
