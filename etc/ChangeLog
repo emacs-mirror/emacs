@@ -1,5 +1,7 @@
 2006-06-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* pl-refcard.tex: Update for Emacs 22.
+
 	* fr-refcard.tex: Fix errors in previous commit.
 
 2006-06-08  ,AI(Bric Jacoboni <jaco@jacoboni.fr>
