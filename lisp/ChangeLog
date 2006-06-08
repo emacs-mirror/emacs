@@ -4,6 +4,8 @@
 	(ido-init-completion-maps): Bind them to M-SPC and M-v.
 	(ido-copy-current-file-name): Repeating C-w inserts whole file name.
 	(ido-file-internal): Pass full file name to write-file.
+	(ido-read-internal): Only pop stack elements automatically if they
+	actually match an existing directory or file name.
 
 2006-06-07  Kenichi Handa  <handa@m17n.org>
 
