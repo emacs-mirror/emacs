@@ -6511,29 +6511,20 @@ w32_initialize ()
   AttachThreadInput (dwMainThreadId, dwWindowsThreadId, TRUE);
 #endif
 
-  /* Dynamically link to optional system components. */
+  /* Dynamically link to optional system components.  */
   {
-    HANDLE user_lib = LoadLibrary ("user32.dll");
     HANDLE gdi_lib = LoadLibrary ("gdi32.dll");
-    UINT smoothing_type;
-    BOOL smoothing_enabled;
 
 #define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
 
-    /* New proportional scroll bar functions. */
-    LOAD_PROC (user_lib, SetScrollInfo);
-    LOAD_PROC (user_lib, GetScrollInfo);
     LOAD_PROC (gdi_lib, GetFontUnicodeRanges);
     
 #undef LOAD_PROC
 
-    FreeLibrary (user_lib);
     FreeLibrary (gdi_lib);
 
-    /* If using proportional scroll bars, ensure handle is at least 5 pixels;
-       otherwise use the fixed height.  */
-    vertical_scroll_bar_min_handle = (pfnSetScrollInfo != NULL) ? 5 :
-      GetSystemMetrics (SM_CYVTHUMB);
+    /* Ensure scrollbar handle is at least 5 pixels.  */
+    vertical_scroll_bar_min_handle = 5;
 
     /* For either kind of scroll bar, take account of the arrows; these
        effectively form the border of the main scroll bar range.  */
