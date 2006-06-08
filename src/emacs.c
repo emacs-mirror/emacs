@@ -1181,13 +1181,6 @@ main (argc, argv
       exit (0);
     }
 
-#ifdef USE_FONT_BACKEND
-  enable_font_backend = 0;
-  if (argmatch (argv, argc, "-enable-font-backend", "--enable-font-backend",
-		4, NULL, &skip_args))
-    enable_font_backend = 1;
-#endif	/* USE_FONT_BACKEND */
-
   if (! noninteractive)
     {
 #ifdef BSD_PGRPS
@@ -1447,6 +1440,12 @@ main (argc, argv
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
+#ifdef USE_FONT_BACKEND
+  enable_font_backend = 0;
+  if (argmatch (argv, argc, "-enable-font-backend", "--enable-font-backend",
+		4, NULL, &skip_args))
+    enable_font_backend = 1;
+#endif	/* USE_FONT_BACKEND */
 
 #ifdef HAVE_X_WINDOWS
   /* Stupid kludge to catch command-line display spec.  We can't
@@ -1850,6 +1849,7 @@ struct standard_args standard_args[] =
   { "-unibyte", "--unibyte", 81, 0 },
   { "-no-multibyte", "--no-multibyte", 80, 0 },
   { "-nl", "--no-loadup", 70, 0 },
+  { "-enable-font-backend", "--enable-font-backend", 65, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
