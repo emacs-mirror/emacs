@@ -1,3 +1,23 @@
+2006-06-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Ffind_operation_coding_system): Sync with HEAD.
+
+	* callproc.c (Fcall_process): Sync with HEAD.
+
+	* coding.h (CODING_REQUIRE_ENCODING): Comment sync with HEAD.
+
+2006-06-07  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_default_fid): Set fid_known to 1.
+	(struct xftdraw_list, xftdraw_list): Delete them.
+	(register_xftdraw, check_xftdraw): Delete them.
+	(xftfont_prepare_face): Don't call register_xftdraw.
+	(xftfont_done_face): Don't call check_xftdraw.
+	(xftfont_draw): Get backroudn color only when with_background is
+	nonzero.
+
+	* xfont.c (xfont_encode_char): Fix calculation of char2b.
+
 2006-06-06  Kenichi Handa  <handa@m17n.org>
 
 	These changes are for the new font handling codes.
