@@ -426,7 +426,8 @@ With arg, use separate IO iff arg is positive."
 	  (when gud-tooltip-mode
 	    (make-local-variable 'gdb-define-alist)
 	    (gdb-create-define-alist)
-	    (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))))
+	    (add-hook 'after-save-hook 'gdb-create-define-alist nil t))))))
+  (gdb-force-mode-line-update "ready"))
 
 (defun gdb-find-watch-expression ()
   (let* ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list))
@@ -1238,6 +1239,7 @@ happens to be in effect."
   "An annotation handler for `prompt'.
 This sends the next command (if any) to gdb."
   (when gdb-first-prompt
+    (gdb-force-mode-line-update "initializing...")
     (gdb-init-1)
     (setq gdb-first-prompt nil))
   (let ((sink gdb-output-sink))
@@ -3239,7 +3241,8 @@ is set in them."
 	(when gud-tooltip-mode
 	  (make-local-variable 'gdb-define-alist)
 	  (gdb-create-define-alist)
-	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t))))))
+	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))
+  (gdb-force-mode-line-update "ready"))
 
 ; Uses "-var-list-children --all-values".  Needs GDB 6.1 onwards.
 (defun gdb-var-list-children-1 (varnum)
