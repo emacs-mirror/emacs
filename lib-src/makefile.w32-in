@@ -120,7 +120,6 @@ $(BLD)/ctags.$(O): ctags.c
 #
 # don't know what to do with these yet...
 #
-# $(BLD)/yow.exe: 		$(BLD)/yow.$(O)
 # $(BLD)/emacstool.exe: 	$(BLD)/emacstool.$(O)
 # $(BLD)/server.exe: 		$(BLD)/server.$(O)
 # $(BLD)/cvtmail.exe: 		$(BLD)/cvtmail.$(O)
@@ -468,7 +467,3 @@ $(BLD)/timer.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h
-
-$(BLD)/yow.$(O) : \
-	$(SRC)/yow.c \
-	$(EMACS_ROOT)/lib-src/../src/paths.h
