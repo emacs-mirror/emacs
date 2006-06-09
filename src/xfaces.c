@@ -3628,8 +3628,11 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
 	  LFACE_SWIDTH (lface) = NILP (symbol) ? width : symbol;
 	}
 
-      ASET (lface, LFACE_FONT_INDEX, Ffont_xlfd_name (font->entity));
-      ASET (lface, LFACE_FONTSET_INDEX, fontset_name (fontset));
+      if (font->font.full_name)
+	LFACE_FONT (lface) = build_string (font->font.full_name);
+      else
+	LFACE_FONT (lface) = Qnil;
+      LFACE_FONTSET (lface) = fontset_name (fontset);
       return 1;
     }
 #endif	/* USE_FONT_BACKEND */
