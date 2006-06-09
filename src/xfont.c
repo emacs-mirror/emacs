@@ -320,6 +320,9 @@ xfont_list (frame, spec)
       val = Fassq (QCotf, extra);
       if (! NILP (val))
 	return null_vector;
+      val = Fassq (QCscript, extra);
+      if (! NILP (val))
+	return null_vector;
       val = Fassq (QCname, extra);
       if (CONSP (val))
 	font_name = XCDR (val);
@@ -464,6 +467,7 @@ memq_no_quit (elt, list)
 
 static Lisp_Object
 xfont_list_family (frame)
+     Lisp_Object frame;
 {
   FRAME_PTR f = XFRAME (frame);
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
