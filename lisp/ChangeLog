@@ -1,3 +1,10 @@
+2006-06-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* textmodes/ispell.el (ispell-kill-ispell): If ispell has been
+	launched asynchronously, delete its process instead of being cool.
+	(ispell-async-processp): Check for `delete-process' existence
+	instead of `kill-process' one for consistency.
+
 2006-06-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers-1)
