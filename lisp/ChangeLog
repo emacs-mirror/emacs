@@ -1,5 +1,8 @@
 2006-06-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
+	* play/pong.el (pong-init-buffer):
+	Fill buffer with spaces instead of ^A.
+
 	* textmodes/ispell.el (ispell-kill-ispell): If ispell has been
 	launched asynchronously, delete its process instead of being cool.
 	(ispell-async-processp): Check for `delete-process' existence
