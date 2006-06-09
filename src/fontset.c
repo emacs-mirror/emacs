@@ -1083,12 +1083,12 @@ make_fontset_for_ascii_face (f, base_fontset_id, face)
 	ASET (rfont_def, 3, font->entity);
 	ASET (rfont_def, 4, font_find_object (font));
       }
-#else  /* not USE_FONT_BACKEND */
+    else
+#endif  /* USE_FONT_BACKEND */
     {
       rfont_def = Fmake_vector (make_number (4), Qnil);
       ASET (rfont_def, 3, build_string (face->font_name));
     }
-#endif	/* not USE_FONT_BACKEND */
     ASET (rfont_def, 0, make_number (face->id));
     ASET (rfont_def, 1, make_number (face->font_info_id));
     ASET (rfont_def, 2, AREF (elt, 0));
