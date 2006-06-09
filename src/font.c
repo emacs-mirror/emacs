@@ -49,6 +49,9 @@ int enable_font_backend;
 
 Lisp_Object Qfontp;
 
+/* Important character set symbols.  */
+Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp;
+
 /* Like CHECK_FONT_SPEC but also validate properties of the font-spec,
    and set X to the validated result.  */
 
@@ -582,6 +585,7 @@ font_parse_xlfd (name, font, merge)
 int
 font_unparse_xlfd (font, pixel_size, name, nbytes)
      Lisp_Object font;
+     int pixel_size;
      char *name;
      int nbytes;
 {
@@ -601,12 +605,35 @@ font_unparse_xlfd (font, pixel_size, name, nbytes)
 	j = XLFD_REGISTRY_INDEX;
       val = AREF (font, i);
       if (NILP (val))
-	f[j] = "*", len += 2;
+	{
+	  if (j == XLFD_REGISTRY_INDEX)
+	    f[j] = "*-*", len += 4;
+	  else
+	    f[j] = "*", len += 2;
+	}
       else
 	{
 	  if (SYMBOLP (val))
 	    val = SYMBOL_NAME (val);
-	  f[j] = (char *) SDATA (val), len += SBYTES (val) + 1;
+	  if (j == XLFD_REGISTRY_INDEX
+	      && ! strchr ((char *) SDATA (val), '-'))
+	    {
+	      /* Change "jisx0208*" and "jisx0208" to "jisx0208*-*".  */
+	      if (SDATA (val)[SBYTES (val) - 1] == '*')
+		{
+		  f[j] = alloca (SBYTES (val) + 3);
+		  sprintf (f[j], "%s-*", SDATA (val));
+		  len += SBYTES (val) + 3;
+		}
+	      else
+		{
+		  f[j] = alloca (SBYTES (val) + 4);
+		  sprintf (f[j], "%s*-*", SDATA (val));
+		  len += SBYTES (val) + 4;
+		}
+	    }
+	  else
+	    f[j] = (char *) SDATA (val), len += SBYTES (val) + 1;
 	}
     }
 
@@ -1677,12 +1704,12 @@ font_find_for_lface (f, lface, spec)
      Lisp_Object *lface;
      Lisp_Object spec;
 {
-  Lisp_Object attrs[LFACE_SLANT_INDEX + 1];
+  Lisp_Object attrs[LFACE_FONT_INDEX + 1];
   Lisp_Object frame, val, entities;
   int i;
   unsigned char try_unspecified[FONT_SPEC_MAX];
 
-  for (i = 0; i <= LFACE_SLANT_INDEX; i++)
+  for (i = 0; i <= LFACE_FONT_INDEX; i++)
     {
       val = lface[i];
       if (EQ (val, Qunspecified) || EQ (val, Qignore_defface))
@@ -1855,22 +1882,32 @@ font_open_by_name (f, name)
      char *name;
 {
   Lisp_Object spec = Ffont_spec (0, NULL);
-  Lisp_Object entities = Qnil;
   Lisp_Object frame;
-  int pixel_size;
+  struct font_driver_list *dlist;
 
   XSETFRAME (frame, f);
-
   ASET (spec, FONT_EXTRA_INDEX,
 	Fcons (Fcons (QCname, make_unibyte_string (name, strlen (name))), 
 	       Qnil));
-  entities = font_list_entities (frame, spec);
-  if (ASIZE (entities) == 0)
-    return Qnil;
-  pixel_size = XINT (AREF (AREF (entities, 0), FONT_SIZE_INDEX));
-  if (pixel_size == 0)
-    pixel_size = 12;
-  return font_open_entity (f, AREF (entities, 0), pixel_size);
+
+  for (dlist = f->font_driver_list; dlist; dlist = dlist->next)
+    if (dlist->driver->parse_name
+	&& dlist->driver->parse_name (f, name, spec) >= 0)
+      {
+	Lisp_Object entities  = font_list_entities (frame, spec);
+	Lisp_Object font_object;
+	int pixel_size;
+
+	if (ASIZE (entities) == 0)
+	  continue;
+	pixel_size = XINT (AREF (AREF (entities, 0), FONT_SIZE_INDEX));
+	if (pixel_size == 0 && INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
+	  pixel_size = XINT (AREF (spec, FONT_SIZE_INDEX));
+	font_object = font_open_entity (f, AREF (entities, 0), pixel_size);
+	if (! NILP (font_object))
+	  return font_object;
+      }
+  return Qnil;
 }
 
 
@@ -2502,6 +2539,10 @@ syms_of_font ()
   font_family_alist = Qnil;
 
   DEFSYM (Qfontp, "fontp");
+
+  DEFSYM (Qiso8859_1, "iso8859-1");
+  DEFSYM (Qiso10646_1, "iso10646-1");
+  DEFSYM (Qunicode_bmp, "unicode-bmp");
 
   DEFSYM (QCotf, ":otf");
   DEFSYM (QClanguage, ":language");
