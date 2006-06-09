@@ -1,3 +1,10 @@
+2006-06-03  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* lread.c (read_escape): Provide a Unicode character escape
+	syntax; \u followed by exactly four or \U followed by exactly
+	eight hex digits in a comment or string is read as a Unicode
+	character with that code point.
+
 2006-06-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.c (window_scroll_pixel_based): Signal "Beginning of

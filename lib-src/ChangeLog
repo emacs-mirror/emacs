@@ -1,3 +1,12 @@
+2006-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* yow.c: Remove file.
+
+	* makefile.w32-in ($(BLD)/yow.$(O)): Remove target.
+
+	* Makefile.in (UTILITIES): Remove yow${EXEEXT}.
+	yow${EXEEXT}: Remove target.
+
 2006-06-04  Masatake YAMATO  <jet@gyve.org>
 
 	* ebrowse.c (main): Exit with EXIT_FAILURE if BROWSE file
