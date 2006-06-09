@@ -726,7 +726,10 @@ appear on disk when you save the tar-file's buffer."
 	      (setq coding (or coding-system-for-read
 			       (and set-auto-coding-function
 				    (funcall set-auto-coding-function
-					     name (- end start)))))
+					     name (- end start)))
+			       (car (find-operation-coding-system
+				     'insert-file-contents
+				     (cons name (current-buffer)) t))))
 	      (if (or (not coding)
 		      (eq (coding-system-type coding) 'undecided))
 		  (setq coding (detect-coding-region start end t)))
