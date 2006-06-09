@@ -197,13 +197,14 @@ xftfont_open (f, entity, pixel_size)
   Display *display = FRAME_X_DISPLAY (f);
   Lisp_Object val;
   FcPattern *pattern, *pat;
-  FcChar8 *file;
+  FcChar8 *file, *name;
   XFontStruct *xfont;
   struct xftfont_info *xftfont_info;
   struct font *font;
   double size = 0;
   XftFont *xftfont;
   int spacing;
+  int len;
 
   val = AREF (entity, FONT_EXTRA_INDEX);
   if (XTYPE (val) != Lisp_Misc
@@ -216,20 +217,36 @@ xftfont_open (f, entity, pixel_size)
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
+  if (FcPatternGetString (pattern, FC_FILE, 1, &name) != FcResultMatch)
+    {
+      int isize = size;
+
+      name = malloc (strlen ((char *) file) + 30);
+      if (! name)
+	return NULL;
+      sprintf (name, ":file=%s:pixelsize=%d", (char *) file, isize);
+    }
+
   pat = FcPatternCreate ();
   FcPatternAddString (pat, FC_FILE, file);
   FcPatternAddDouble (pat, FC_PIXEL_SIZE, pixel_size);
   FcPatternAddBool (pat, FC_ANTIALIAS, FcTrue);
+
+  BLOCK_INPUT;
   xftfont = XftFontOpenPattern (display, pat);
   /* We should not destroy PAT here because it is kept in XFTFONT and
      destroyed automatically when XFTFONT is closed.  */
   if (! xftfont)
-    return NULL;
+    {
+      UNBLOCK_INPUT;
+      return NULL;
+    }
 
   xftfont_info = malloc (sizeof (struct xftfont_info));
   if (! xftfont_info)
     {
       XftFontClose (display, xftfont);
+      UNBLOCK_INPUT;
       return NULL;
     }
   xfont = malloc (sizeof (XFontStruct));
@@ -237,6 +254,7 @@ xftfont_open (f, entity, pixel_size)
     {
       XftFontClose (display, xftfont);
       free (xftfont_info);
+      UNBLOCK_INPUT;
       return NULL;
     }
   xftfont_info->display = display;
@@ -248,7 +266,7 @@ xftfont_open (f, entity, pixel_size)
   font->entity = entity;
   font->pixel_size = size;
   font->driver = &xftfont_driver;
-  font->font.name = font->font.full_name = NULL;
+  font->font.full_name = font->font.name = (char *) name;
   font->file_name = (char *) file;
   font->font.size = xftfont->max_advance_width;
   font->ascent = xftfont->ascent;
@@ -279,6 +297,7 @@ xftfont_open (f, entity, pixel_size)
       XftTextExtents8 (display, xftfont, ascii_printable + 1, 94, &extents);
       font->font.average_width = (font->font.space_width + extents.xOff) / 95;
     }
+  UNBLOCK_INPUT;
 
   /* Unfortunately Xft doesn't provide a way to get minimum char
      width.  So, we use space_width instead.  */
@@ -333,6 +352,8 @@ xftfont_close (f, font)
 
   XftUnlockFace (xftfont_info->xftfont);
   XftFontClose (xftfont_info->display, xftfont_info->xftfont);
+  if (font->font.name)
+    free (font->font.name);
   free (font);
   FRAME_X_DISPLAY_INFO (f)->n_fonts--;
 }
