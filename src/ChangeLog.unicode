@@ -1,9 +1,59 @@
+2006-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Extern them.
+
+	* font.c (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Moved from
+	ftfont.c.
+	(font_unparse_xlfd): Fix argument type declaration.  Append "*" if
+	registry doesn't specify encoding part.
+	(font_find_for_lface): Pay attention to LFACE_FONT_INDEX.
+	(font_open_by_name): At first try parsing the name.
+	(syms_of_font): Declare Qiso8859_1, Qiso10646_1, and Qunicode_bmp
+	as Lisp symbols.
+
+	* fontset.c (reorder_font_vector): Pay attention to the case that
+	the 3rd element of font_def is nil.
+	(fontset_font): For the default fontset, append one more fontset
+	elements for a script-based font specification.  Don't add script
+	attribute on finding a font.
+	(new_fontset_from_font): Unconditionally set FONTSET_ASCII to the
+	font name.
+	(fontset_ascii_font): If a font can't be opened, return nil.
+
+	* ftfont.c (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Moved to
+	font.c.
+	(ftfont_pattern_entity): New function.
+	(ftfont_get_cache): Assume that freetype_font_cache is already
+	initialized.
+	(ftfont_list): Handle the case that a file is specified in font
+	name.  Use ftfont_pattern_entity to generate entities.
+	(ftfont_has_char): Check if the pattern contains FC_CHARSET.
+	(syms_of_ftfont): Initialize freetype_font_cache.
+
+	* xftfont.c (xftfont_open): Make the font name fontconfig's
+	style.  Add BLOCK_INPUT and UNBLOCK_INPUT.
+	(xftfont_close): Free font->font.name if not NULL.
+
+	* xfont.c (xfont_list): If script is specified for a font, return
+	null_vector.
+	(xfont_list_family): Declare argument type.
+
+	* xfaces.c (set_lface_from_font_name): If a font doesn't have a
+	name, set LFACE_FONT (lface) to nil.
+
+	* xterm.c (x_new_fontset2): If an ASCII font couldn't be loaded,
+	return Qnil.
+
 2006-06-08  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_initialize): Manually sync 2006-06-05 change from
 	HEAD.
 
 2006-06-08  Kenichi Handa  <handa@m17n.org>
+
+	* emacs.c (main): Check -enable-font-backend arg after the check
+	of -nl.
+	(standard_args): Add "-enable-font-backend".
 
 	* coding.c (Ffind_operation_coding_system): Sync with HEAD.
 
