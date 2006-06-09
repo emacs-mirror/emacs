@@ -1764,6 +1764,9 @@ read_escape (readcharfun, stringp, byterep)
      int *byterep;
 {
   register int c = READCHAR;
+  /* \u allows up to four hex digits, \U up to eight. Default to the
+     behaviour for \u, and change this value in the case that \U is seen. */
+  int unicode_hex_count = 4;
 
   *byterep = 0;
 
@@ -1926,6 +1929,52 @@ read_escape (readcharfun, stringp, byterep)
 
 	*byterep = 2;
 	return i;
+      }
+
+    case 'U':
+      /* Post-Unicode-2.0: Up to eight hex chars.  */
+      unicode_hex_count = 8;
+    case 'u':
+
+      /* A Unicode escape. We only permit them in strings and characters,
+	 not arbitrarily in the source code, as in some other languages.  */
+      {
+	int i = 0;
+	int count = 0;
+	Lisp_Object lisp_char;
+	struct gcpro gcpro1;
+
+	while (++count <= unicode_hex_count)
+	  {
+	    c = READCHAR;
+	    /* isdigit(), isalpha() may be locale-specific, which we don't
+	       want. */
+	    if      (c >= '0' && c <= '9')  i = (i << 4) + (c - '0');
+	    else if (c >= 'a' && c <= 'f')  i = (i << 4) + (c - 'a') + 10;
+            else if (c >= 'A' && c <= 'F')  i = (i << 4) + (c - 'A') + 10;
+	    else
+	      {
+		error ("Non-hex digit used for Unicode escape");
+		break;
+	      }
+	  }
+
+	GCPRO1 (readcharfun);
+	lisp_char = call2(intern("decode-char"), intern("ucs"),
+			  make_number(i));
+	UNGCPRO;
+
+	if (EQ(Qnil, lisp_char))
+	  {
+	    /* This is ugly and horrible and trashes the user's data.  */
+	    XSETFASTINT (i, MAKE_CHAR (charset_katakana_jisx0201,
+				       34 + 128, 46 + 128));
+            return i;
+	  }
+	else
+	  {
+	    return XFASTINT (lisp_char);
+	  }
       }
 
     default:
