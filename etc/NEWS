@@ -3897,6 +3897,13 @@ text properties.
 been declared obsolete.
 
 +++
+*** New syntax: \uXXXX and \UXXXXXXXX specify Unicode code points in hex.
+Use "\u0428" to specify a string consisting of CYRILLIC CAPITAL LETTER SHA,
+or "\U0001D6E2" to specify one consisting of MATHEMATICAL ITALIC CAPITAL
+ALPHA (the latter is greater than #xFFFF and thus needs the longer
+syntax).  Also available for characters.
+
++++
 ** Displaying warnings to the user.
 
 See the functions `warn' and `display-warning', or the Lisp Manual.
