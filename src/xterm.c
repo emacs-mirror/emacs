@@ -8200,6 +8200,8 @@ x_new_fontset2 (f, fontsetname)
     return Qnil;
 
   font = fontset_ascii_font (f, fontset);
+  if (! font)
+    return Qnil;
   xfont = font->font.font;
 
   if (FRAME_FONT (f) == xfont)
