@@ -1728,7 +1728,7 @@ font_find_for_lface (f, lface, spec)
   for (i = FONT_FOUNDRY_INDEX; i <= FONT_SIZE_INDEX; i++)
     try_unspecified[i] = NILP (AREF (scratch_font_spec, i));
 
-  if (STRINGP (attrs[LFACE_FONT_INDEX]))
+  if (NILP (spec) && STRINGP (attrs[LFACE_FONT_INDEX]))
     font_merge_old_spec (attrs[LFACE_FONT_INDEX], Qnil, Qnil,
 			      scratch_font_spec);
   if (NILP (AREF (scratch_font_spec, FONT_FAMILY_INDEX))
