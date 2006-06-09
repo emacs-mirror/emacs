@@ -1,3 +1,8 @@
+2006-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Signal "Beginning of
+	buffer" when scroll-down at the beginning of an empty buffer.
+
 2006-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event): Exclude
