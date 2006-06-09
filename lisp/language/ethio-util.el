@@ -1786,7 +1786,7 @@ Each command is always surrounded by braces."
 (defun ethio-fidel-to-java-buffer nil
   "Convert Ethiopic characters into the Java escape sequences.
 
-Each escape sequence is of the form \uXXXX, where XXXX is the
+Each escape sequence is of the form \\uXXXX, where XXXX is the
 character's codepoint (in hex) in Unicode.
 
 If `ethio-java-save-lowercase' is non-nil, use [0-9a-f].
