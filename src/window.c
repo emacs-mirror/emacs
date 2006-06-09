@@ -4895,6 +4895,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	    }
 	  else if (noerror)
 	    return;
+	  else if (n < 0)	/* could happen with empty buffers */
+	    Fsignal (Qbeginning_of_buffer, Qnil);
 	  else
 	    Fsignal (Qend_of_buffer, Qnil);
 	}
