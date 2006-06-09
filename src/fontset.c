@@ -461,7 +461,10 @@ reorder_font_vector (fontset_element)
   for (i = 0; i < size; i++)
     {
       font_def = AREF (fontset_element, i + 3);
-      charset_id_table[i] = XINT (AREF (AREF (font_def, 2), 1));
+      if (! NILP (AREF (font_def, 2)))
+	charset_id_table[i] = XINT (AREF (AREF (font_def, 2), 1));
+      else
+	charset_id_table[i] = -1;
     }
 
   /* Then, store FONT-DEFs in NEW_VEC in the correct order.  */
@@ -472,6 +475,9 @@ reorder_font_vector (fontset_element)
 	if (charset_id_table[i] == XINT (XCAR (list)))
 	  new_vec[idx++] = AREF (fontset_element, i + 3);
     }
+  for (i = 0; i < size; i++)
+    if (charset_id_table[i] < 0)
+      new_vec[idx++] = AREF (fontset_element, i + 3);
 
   /* At last, update FONT-DEFs.  */
   for (i = 0; i < size; i++)
@@ -562,6 +568,12 @@ fontset_font (fontset, c, face, id)
       /* Build a vector [ -1 -1 nil NEW-ELT0 NEW-ELT1 NEW-ELT2 ... ],
 	 where the first -1 is to force reordering of NEW-ELTn,
 	 NEW-ETLn is [nil nil AREF (elt, n) nil].  */
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend
+	  && EQ (base_fontset, Vdefault_fontset))
+	vec = Fmake_vector (make_number (ASIZE (elt) + 4), make_number (-1));
+      else
+#endif	/* not USE_FONT_BACKEND */
       vec = Fmake_vector (make_number (ASIZE (elt) + 3), make_number (-1));
       ASET (vec, 2, Qnil);
       for (i = 0; i < ASIZE (elt); i++)
@@ -577,6 +589,25 @@ fontset_font (fontset, c, face, id)
 	  ASET (tmp, 2, AREF (elt, i));
 	  ASET (vec, 3 + i, tmp);
 	}
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend
+	  && EQ (base_fontset, Vdefault_fontset))
+	{
+	  Lisp_Object script, font_spec, tmp;
+
+	  script = CHAR_TABLE_REF (Vchar_script_table, c);
+	  if (NILP (script))
+	    script = intern ("latin");
+	  font_spec = Ffont_spec (0, NULL);
+	  ASET (font_spec, FONT_REGISTRY_INDEX, Qiso10646_1);
+	  ASET (font_spec, FONT_EXTRA_INDEX,
+		Fcons (Fcons (QCscript, script), Qnil));
+	  tmp = Fmake_vector (make_number (5), Qnil);
+	  ASET (tmp, 3, font_spec);
+	  ASET (vec, 3 + i, tmp);
+	}
+#endif	/* USE_FONT_BACKEND */
+
       /* Then store it in the fontset.  */
       FONTSET_SET (fontset, range, vec);
     }
@@ -637,7 +668,7 @@ fontset_font (fontset, c, face, id)
 	  Lisp_Object font_object = AREF (elt, 4);
 	  int has_char;
 
-	  if (NILP (font_entity))
+	  if (NILP (font_entity) && ! NILP (AREF (font_def, 0)))
 	    {
 	      Lisp_Object tmp = AREF (font_def, 0);
 	      Lisp_Object spec = Ffont_spec (0, NULL);
@@ -652,11 +683,12 @@ fontset_font (fontset, c, face, id)
 
 		  font_merge_old_spec (Qnil, family, registry, spec);
 		}
-	      script = CHAR_TABLE_REF (Vchar_script_table, c);
-	      if (! NILP (script))
-		ASET (spec, FONT_EXTRA_INDEX,
-		      Fcons (Fcons (QCscript, script), Qnil));
 	      font_entity = font_find_for_lface (f, face->lface, spec);
+	      ASET (elt, 3, font_entity);
+	    }
+	  else if (FONT_SPEC_P (font_entity))
+	    {
+	      font_entity = font_find_for_lface (f, face->lface, font_entity);
 	      ASET (elt, 3, font_entity);
 	    }
 	  if (NILP (font_entity))
@@ -1810,22 +1842,8 @@ new_fontset_from_font (f, font_object)
   int id = new_fontset_from_font_name (xlfd);
   Lisp_Object fontset = FONTSET_FROM_ID (id);
 
-  if (STRINGP (FONTSET_ASCII (fontset)))
-    FONTSET_ASCII (fontset) = Fcons (FONTSET_ASCII (fontset),
-				     Fcons (font_object, Qnil));
-  else
-    {
-      Lisp_Object val = XCDR (FONTSET_ASCII (fontset));
+  FONTSET_ASCII (fontset) = build_string (font_get_name (font_object));
 
-      for (; ! NILP (val); val = XCDR (val))
-	if (EQ (XCAR (val), font_object))
-	  break;
-      if (NILP (val))
-	{
-	  val = FONTSET_ASCII (fontset);
-	  XSETCDR (val, Fcons (font_object, XCDR (val)));
-	}	
-    }
   return id;
 }
 
@@ -1869,6 +1887,8 @@ fontset_ascii_font (f, id)
       font_object = font_open_by_name (f, SDATA (ascii_slot));
       FONTSET_ASCII (fontset) = Fcons (ascii_slot, Fcons (font_object, Qnil));
     }
+  if (NILP (font_object))
+    return NULL;
   return XSAVE_VALUE (font_object)->pointer;
 }
 
