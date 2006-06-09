@@ -48,11 +48,19 @@
 
 <p>The essential MPS concepts for GC are:</p>
 <ul>
-  <li> Format -- lets the MPS ask the client a question about an object;</li>
+  <li> <a href="#Format">Format</a> -- lets the MPS ask the client a question about an object;</li>
   <li> Root -- tell the MPS which things (eg. stack, globals) are always alive.</li>
 </ul>
 
-<h2><a id="Formats">Formats</a></h2>
+<p>The advanced MPS concepts for GC are:</p>
+<ul>
+  <li> <a href="#Allocation-Point">Allocation Point</a> 
+    -- reserve memory, construct and connect a new object, and commit it to MPS management.
+  </li>
+</ul>
+
+
+<h2><a id="Format">Format</a></h2>
 
 <p>The client can choose how to format its objects, but the MPS will
 sometimes need to ask the client some questions about an object, such
@@ -181,12 +189,183 @@ AMCFix() (and now AMCHeaderFix() too).</p>
 
 <p>It's a bit messy -- sorry.</p>
 
+
+<h2><a id="Allocation-Point">Allocation Point</a></h2>
+
+<h3>Overview of two-phase allocation</h3>
+
+<p>The client should:</p>
+<ol>
+  <li> <code>mps_reserve</code> some memory,</li>
+  <li> construct a new object in it,</li>
+  <li> write a reference to the new object into some older object, 
+    thereby connecting the new object into the client's graph of 
+    objects </li>
+  <li> <code>mps_commit</code> the new object to MPS management.</li>
+</ol>
+
+<h3>The graph of managed references to mobile objects</h3>
+
+<p>The MPS is a moving garbage collector: it supports 
+  preserve-by-copying pools, whose objects are 'mobile'.  
+  Whenever the MPS moves an object, it will ensure that 
+  all managed references are updated to point to the 
+  new location -- and this happens instantaneously as far 
+  as the client sees it.</p>
+  
+<p>The client should assume that, between <em>any pair of 
+  instructions</em>, the MPS may 'shake' this graph, moving 
+  all the mobile objects, and updating all the managed 
+  references.</p>
+  
+<p>The client usually takes care to ensure that the 
+  references it 
+  holds are managed.  To be managed, the reference must be 
+  in a formatted object that is reachable from a root, or 
+  actually in a root (such as a scanned stack). </p>
+  
+<p>It is okay for a careful client to hold unmanaged references, 
+  but:</p>
+<ul>
+  <li> they'd better not be to a mobile object!  Remember, mobile 
+    objects could move at any time, and unmanaged references 
+    will be left 'dangling'.</li>
+  <li> they'd better not be the only reference to an object, 
+    or that object might get collected, again leaving a dangling 
+    reference!</li>
+</ul>
+
+<h3>mps_reserve</h3>
+
+<p><code>mps_reserve</code> returns a reference to a piece 
+  of new memory for the client to build a new object in.  
+  During this build, the MPS pins the piece of memory, and 
+  treats it as raw data.</p>
+
+<p>"Pinned" means: it will not move, be collected, be unmapped, 
+  or anything like that.</p>
+
+<p>"Raw data" means two things:</p> 
+  
+<p>Firstly, "raw data" means that any references stored IN the 
+  new object are <em>unmanaged</em>.  This means:</p>
+<ul>
+  <li> references in the new object will not get updated if 
+    the graph of managed references to mobile objects is 'shaken';</li>
+  <li> references in the new object do not 
+    preserve any old objects they point to.</li>
+</ul>
+
+<p>Secondly, "raw data" means that any references TO the new 
+  object are treated like other references to unmanaged memory.
+      [.belief.refs-to-uninit-safe:
+       We're 'sure', but I need to check this.  What does Fix 
+       actually do with a pointer into the init-alloc zone?  We
+       hope it ignores it.  RHSK 2006-06-09]
+  Because of this, you are permitted to connect the new object 
+  into your graph of managed objects immediately.  The MPS gives 
+  you these guarantees:</p>
+<ul>
+  <li> the new object is pinned (won't move), so references to it 
+    that you write in old objects won't become stale at this time 
+    (but see <code>mps_commit</code> below!)</li>
+  <li> although the new object is reachable, the MPS knows it 
+    is not yet managed, and will leave it in peace;</li>
+  <li> the MPS will not call the client's format code to answer 
+    questions about the new object.</li>
+</ul>
+
+<h3>Building the object</h3>
+
+<p>The client will typically do all these things:</p>
+<ul>
+  <li> write data to make the new object 'valid' for the client's format;</li>
+  <li> write other data into the new object;</li>
+  <li> write references (to existing objects) into the new object;</li>
+  <li> write a reference TO the new object into an existing object
+     -- this connects the new object into the client's graph of 
+     managed objects;</li>
+</ul>
+
+<p>However, during the build, the client <strong>MUST NOT</strong> read 
+  (from the new object) a reference to an existing mobile object -- 
+  because the reference is unmanaged and may be stale.</p>
+
+<p>(Actually, the restriction is: the moment a reference to an 
+  existing mobile object is written into the new object, that 
+  reference (in the new object) may become stale.  And you'd better 
+  not use (dereference) a stale reference.  And you'd better not 
+  write it into any existing object.  Writing it back into another 
+  part of the new object is okay.  Just don't trust it to be a valid 
+  reference.)</p>
+
+<h3>mps_commit</h3>
+
+<p>When you call <code>mps_commit</code>, it will either fail or succeed.</p>
+
+<p>Almost always, <code>mps_commit</code> succeeds.  
+  If it succeeds, that means: </p>
+<ul>
+  <li> the new object is now just a normal object like any other;</li>
+  <li> all the references written IN the new object are valid (in 
+    other words, a successful commit is the MPS's way of telling 
+    you that they did not become stale while they were sitting 
+    unmanaged in the new object);</li>
+  <li> all the references TO the new object are valid.</li>
+</ul>
+
+<p>Occasionally but rarely, <code>mps_commit</code> fails.  
+  This means that the new object no longer exists.  
+  The memory may even be unmapped by the time 
+  <code>mps_commit</code> returns.</p>
+
+<p>When this happens the client should take care to clear up any 
+  managed references to the (now vanished) new object.</p>
+  
+<p>[But there's a hole here, before the client does this.  
+    Are managed (aka scanned) references TO 
+    it still safe?  They were safe during building 
+    (by .belief.refs-to-uninit-safe).  But now the AP pointers have 
+    gone away.  Are they still safe?  
+    Clearly, if they are only RankAMBIG, they are safe.  
+    What if they are RankEXACT?
+    RHSK 2006-06-09]</p>
+    
+<p>[Discussion with RB 2006-06-09: yes, that's a problem for exact 
+    references.  Must not make any exact refs to a new object.  And 
+    unmanaged refs are not sufficient, because they won't preserve the 
+    new object during commit.  So must make at least one ambiguous 
+    ref to new object before calling commit.  That's the truth 
+    currently.  There are various ways to solve this to allow 
+    purely-exact mutators.  For instance, 
+    keep the old init..alloc address-space flagged as a zombie zone, 
+    until some communication with mutator (perhaps another reserve 
+    from same AP?) indicates that mutator has removed all those 
+    pesky exact refs to the now-dead ex-new object.  RHSK 2006-06-09]</p>
+
+<p>The client will also have to re-create the object.  For this 
+  reason the standard allocation point idiom is:</p>
+
+<pre><code>
+  do {
+    if (mps_reserve != MPS_RES_OK) {
+      goto fail_nomemory;
+    }
+    /* initialize my new object */
+    /* make an ambiguous reference to new object */
+  } while (! mps_commit);
+  /* link new object into my object graph */
+</code></pre>
+
+
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
   2006-06-02  RHSK  Created.
   2006-06-02  RHSK  Introduction to MPS Formats
   2006-06-06  RHSK  Formats: clarify explanation of methods, copy method is obsolete, mention format variants.
+  2006-06-09  RHSK  Allocation points: how it's supposed to be, from RB 2006-06-09.
+  2006-06-09  RHSK  Allocation points: must make at least one ambiguous ref and no exact refs to new object before calling commit.
 </pre>
 
 
