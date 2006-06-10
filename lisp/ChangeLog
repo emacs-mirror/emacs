@@ -1,3 +1,7 @@
+2006-06-10  Richard Stallman  <rms@gnu.org>
+
+	* help.el (help-for-help-internal): Clean up help text.
+
 2006-06-10  Andreas Schwab  <schwab@suse.de>
 
 	* language/ethio-util.el (ethio-fidel-to-java-buffer): Fix quoting

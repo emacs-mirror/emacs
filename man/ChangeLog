@@ -1,3 +1,7 @@
+2006-06-10  Richard Stallman  <rms@gnu.org>
+
+	* mule.texi (Recognize Coding): Clarify previous change.
+
 2006-06-07  Kevin Ryde  <user42@zip.com.au>
 
 	* mule.texi (Coding Systems): Footnote xref "MS-DOS and MULE" in main
