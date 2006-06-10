@@ -182,31 +182,28 @@ specifies what to do when the user exits the help buffer."
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
-a  command-apropos.  Give a list of words or a regexp, to get a list of
+a  command-apropos.  Type a list of words or a regexp; it shows a list of
         commands whose names match.  See also the  apropos  command.
-b  describe-bindings.  Display table of all key bindings.
-c  describe-key-briefly.  Type a command key sequence;
-	it prints the function name that sequence runs.
-C  describe-coding-system.  This describes either a specific coding system
-        (if you type its name) or the coding systems currently in use
-	(if you type just RET).
-d  apropos-documentation.  Give a pattern (a list or words or a regexp), and
-	see a list of functions, variables, and other items whose built-in
-	doucmentation string matches that pattern.  See also the apropos command.
-e  view-echo-area-messages.  Show the buffer where the echo-area messages
-	are stored.
-f  describe-function.  Type a function name and get its documentation.
-F  Info-goto-emacs-command-node.  Type a function name;
-	it takes you to the on-line manual's section that describes
-	the command.
+b  describe-bindings.  Display a table of all key bindings.
+c  describe-key-briefly.  Type a key sequence;
+	it displays the command name run by that key sequence.
+C  describe-coding-system.  Type the name of the coding system to describe,
+        or just RET to describe the ones currently in use.
+d  apropos-documentation.  Type a pattern (a list of words or a regexp), and
+	it shows a list of functions, variables, and other items whose
+	documentation matches that pattern.  See also the apropos command.
+e  view-echo-area-messages.  Go to the buffer that logs echo-area messages.
+f  describe-function.  Type a function name and you see its documentation.
+F  Info-goto-emacs-command-node.  Type a command name;
+	it goes to the on-line manual's section that describes the command.
 h  Display the HELLO file which illustrates various scripts.
-i  info. The Info documentation reader: read on-line manuals.
+i  info.  The Info documentation reader: read on-line manuals.
 I  describe-input-method.  Describe a specific input method (if you type
 	its name) or the current input method (if you type just RET).
-k  describe-key.  Type a command key sequence;
+k  describe-key.  Type a key sequence;
 	it displays the full documentation for that key sequence.
-K Info-goto-emacs-key-command-node.  Type a command key sequence;
-	it takes you to the on-line manual's section that describes
+K  Info-goto-emacs-key-command-node.  Type a key sequence;
+	it goes to the on-line manual's section that describes
 	the command bound to that key.
 l  view-lossage.  Show last 100 characters you typed.
 L  describe-language-environment.  This describes either a
@@ -218,12 +215,12 @@ n  view-emacs-news.  Display news of recent Emacs changes.
 p  finder-by-keyword. Find packages matching a given topic keyword.
 r  info-emacs-manual.  Display the Emacs manual in Info mode.
 s  describe-syntax.  Display contents of syntax table, plus explanations.
-S  info-lookup-symbol.  Display the definition of a specific symbol
-        as found in the manual for the language this buffer is written in.
+S  info-lookup-symbol.  Type a symbol; it goes to that symbol in the
+        on-line manual for the programming language used in this buffer.
 t  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
 v  describe-variable.  Type name of a variable;
 	it displays the variable's documentation and value.
-w  where-is.  Type command name; it prints which keystrokes
+w  where-is.  Type a command name; it displays which keystrokes
 	invoke that command.
 .  display-local-help.  Display any available local help at point
         in the echo area.
