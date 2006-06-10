@@ -247,6 +247,7 @@ character translation.)
 @example
 ;; XXX.el -*- coding: iso-latin-2!; -*-
 @end example
+@end itemize
 
 @item
 Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the
