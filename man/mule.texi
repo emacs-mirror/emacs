@@ -824,10 +824,13 @@ Latin-1 coding system, as well as C mode.  When you specify the coding
 explicitly in the file, that overrides
 @code{file-coding-system-alist}.
 
-  In that construct, you can add the character ``!'' at the end of the
-coding system name.  With that, as Emacs disables any character
-translation while decoding the file, for instance, you can effectively
-cancel the effect of @code{unify-8859-on-decoding-mode}.
+  If you add the character @samp{!} at the end of the coding system
+name, it disables any character translation while decoding the file.
+For instance, it effectively cancels the effect of
+@code{unify-8859-on-decoding-mode}.  This is useful when you need to
+make sure that the character codes in the Emacs buffer will not
+according to user settings; for instance, for the sake of strings in
+Emacs Lisp source files.
 
 @vindex auto-coding-alist
 @vindex auto-coding-regexp-alist
