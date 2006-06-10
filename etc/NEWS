@@ -40,6 +40,10 @@ provides a way to display multilingual text in menus (with some caveats).
 ** The `emacsserver' program has been removed, replaced with Lisp code.
 
 ---
+** The `yow' program has been removed.
+Use the corresponding Emacs feature instead.
+
+---
 ** By default, Emacs now uses a setgid helper program to update game
 scores.  The directory ${localstatedir}/games/emacs is the normal
 place for game scores to be stored.  You can control this with the
@@ -93,7 +97,7 @@ the supported image types and their associated dynamic libraries by
 setting the variable `image-library-alist'.
 
 ---
-** Support for Cygwin was added.
+** Support for a Cygwin build of Emacs was added.
 
 ---
 ** Support for FreeBSD/Alpha has been added.
