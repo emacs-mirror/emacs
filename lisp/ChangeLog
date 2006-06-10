@@ -3,6 +3,8 @@
 	* language/ethio-util.el (ethio-fidel-to-java-buffer): Fix quoting
 	in doc string.
 
+	* progmodes/cperl-mode.el (cperl-short-docs): Likewise.
+
 2006-06-09  Karl Chen  <quarl@cs.berkeley.edu>
 
 	* progmodes/make-mode.el (makefile-fill-paragraph): Don't remove
