@@ -224,6 +224,31 @@ only for special-purpose buffers.)  The users will find Emacs more
 coherent if all libraries use the same conventions.
 
 @item
+If your program contains non-ASCII characters in string or character
+constants, you should make sure Emacs always decodes these characters
+the same way, regardless of the user's settings.  There are two ways
+to do that:
+
+@itemize -
+@item
+Use coding system @code{emacs-mule}, and specify that for
+@code{coding} in the @samp{-*-} line or the local variables list.
+
+@example
+;; XXX.el  -*- coding: emacs-mule; -*-
+@end example
+
+@item
+Use one of the coding systems based on ISO 2022 (such as
+iso-8859-@var{n} and iso-2022-7bit), and specify it with @samp{!} at
+the end for @code{coding}.  (The @samp{!} turns off any possible
+character translation.)
+
+@example
+;; XXX.el -*- coding: iso-latin-2!; -*-
+@end example
+
+@item
 Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the
 default indentation parameters.
 
