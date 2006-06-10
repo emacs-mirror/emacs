@@ -1,3 +1,27 @@
+2006-06-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-agenda-mode-map): Add bindings for
+	clocking
+	functions.
+	(org-agenda-clock-in, org-check-running-clock)
+	(org-clock-out-if-current, org-remove-clock-overlays)
+	(org-put-clock-overlay): New functions.
+	(org-clock-marker, org-clock-file-total-minutes)
+	(org-clock-overlays): New variables
+	(org-clock-display, org-clock-sum, org-clock-cancel)
+	(org-clock-out, org-clock-in): New commands.
+	(org-export): New function.
+	(org-emph-re): New constant.
+	(org-set-emph-re, org-do-emphasis-faces): New functions.
+	(org-emphasis-regexp-components, org-emphasis-alist): New options.
+	(org-set-font-lock-defaults): Call `org-do-emphasis-faces'.
+	(org-export-html-convert-emphasize): Use the configurable
+	emphasis.
+	(org-cleaned-string-for-export): Make multiline emphasis visible
+	to the exporter.  New optional argument PARAMETERS.
+	(org-export-as-html): Specify :emph-multiline parameter to
+	`org-cleaned-string-for-export'.
+
 2006-06-10  Richard Stallman  <rms@gnu.org>
 
 	* help.el (help-for-help-internal): Clean up help text.
