@@ -1,7 +1,14 @@
+2006-06-11  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/page-ext.el (pages-directory-for-addresses): 
+	Including `pages-directory-address-mode' in the function results
+	in the message "Buffer in which pages were found is deleted".
+
 2006-06-10  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-agenda-mode-map): Add bindings for
 	clocking functions.
+
 	(org-agenda-clock-in, org-check-running-clock)
 	(org-clock-out-if-current, org-remove-clock-overlays)
 	(org-put-clock-overlay): New functions.
