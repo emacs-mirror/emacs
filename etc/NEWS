@@ -618,6 +618,7 @@ However, risky variables will not be added to
 *** The variable `enable-local-variables' controls how local variable
 lists are handled.  t, the default, specifies the standard querying
 behavior.  :safe means use only safe values, and ignore the rest.
+:all means set all variables, whether or not they are safe.
 nil means ignore them all.  Anything else means always query.
 
 +++
