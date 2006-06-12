@@ -1026,11 +1026,13 @@ which filenames are considered temporary.
 If invoked with a prefix argument, or if there is no server process running,
 starts server process and that is all.  Invoked by \\[server-edit]."
   (interactive "P")
-  (if (or arg
-	  (not server-process)
-	  (memq (process-status server-process) '(signal exit)))
-      (server-mode 1)
-    (apply 'server-switch-buffer (server-done))))
+  (cond
+   ((or arg
+	(not server-process)
+	(memq (process-status server-process) '(signal exit)))
+    (server-mode 1))
+   (server-clients (apply 'server-switch-buffer (server-done)))
+   (t (message "No server editing buffers exist"))))
 
 (defun server-switch-buffer (&optional next-buffer killed-one)
   "Switch to another buffer, preferably one that has a client.

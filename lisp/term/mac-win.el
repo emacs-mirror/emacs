@@ -84,6 +84,7 @@
 (defvar mac-apple-event-map)
 (defvar mac-atsu-font-table)
 (defvar mac-font-panel-mode)
+(defvar mac-ts-active-input-overlay)
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
@@ -1570,6 +1571,15 @@ in `selection-converter-alist', which see."
 		(mac-coerce-ae-data (car type-data) (cdr type-data) type))
 	      (cdr desc)))))))
 
+(defun mac-ae-number (ae keyword)
+  (let ((type-data (mac-ae-parameter ae keyword))
+	str)
+    (if (and type-data
+	     (setq str (mac-coerce-ae-data (car type-data)
+					   (cdr type-data) "TEXT")))
+	(string-to-number str)
+      nil)))
+
 (defun mac-bytes-to-integer (bytes &optional from to)
   (or from (setq from 0))
   (or to (setq to (length bytes)))
@@ -1610,6 +1620,65 @@ in `selection-converter-alist', which see."
     (and utf8-text
 	 (decode-coding-string utf8-text 'utf-8))))
 
+(defun mac-ae-text (ae)
+  (or (cdr (mac-ae-parameter ae nil "TEXT"))
+      (error "No text in Apple event.")))
+
+(defun mac-ae-frame (ae &optional keyword type)
+  (let ((bytes (cdr (mac-ae-parameter ae keyword type))))
+    (if (or (null bytes) (/= (length bytes) 4))
+	(error "No window reference in Apple event.")
+      (let ((window-id (mac-coerce-ae-data "long" bytes "TEXT"))
+	    (rest (frame-list))
+	    frame)
+	(while (and (null frame) rest)
+	  (if (string= (frame-parameter (car rest) 'window-id) window-id)
+	      (setq frame (car rest)))
+	  (setq rest (cdr rest)))
+	frame))))
+
+(defun mac-ae-script-language (ae keyword)
+;; struct WritingCode {
+;;   ScriptCode          theScriptCode;
+;;   LangCode            theLangCode;
+;; };
+  (let ((bytes (cdr (mac-ae-parameter ae keyword "intl"))))
+    (and bytes
+	 (cons (mac-bytes-to-integer bytes 0 2)
+	       (mac-bytes-to-integer bytes 2 4)))))
+
+(defun mac-bytes-to-text-range (bytes &optional from to)
+;; struct TextRange {
+;;   long                fStart;
+;;   long                fEnd;
+;;   short               fHiliteStyle;
+;; };
+  (or from (setq from 0))
+  (or to (setq to (length bytes)))
+  (and (= (- to from) (+ 4 4 2))
+       (list (mac-bytes-to-integer bytes from (+ from 4))
+	     (mac-bytes-to-integer bytes (+ from 4) (+ from 8))
+	     (mac-bytes-to-integer bytes (+ from 8) to))))
+
+(defun mac-ae-text-range-array (ae keyword)
+;; struct TextRangeArray {
+;;   short               fNumOfRanges;
+;;   TextRange           fRange[1];
+;; };
+  (let* ((bytes (cdr (mac-ae-parameter ae keyword "tray")))
+	 (len (length bytes))
+	 nranges result)
+    (when (and bytes (>= len 2)
+	       (progn
+		 (setq nranges (mac-bytes-to-integer bytes 0 2))
+		 (= len (+ 2 (* nranges 10)))))
+      (setq result (make-vector nranges nil))
+      (dotimes (i nranges)
+	(aset result i
+	      (mac-bytes-to-text-range bytes (+ (* i 10) 2)
+				       (+ (* i 10) 12)))))
+    result))
+
 (defun mac-ae-open-documents (event)
   "Open the documents specified by the Apple event EVENT."
   (interactive "e")
@@ -1637,10 +1706,6 @@ in `selection-converter-alist', which see."
 	      nil t)))))
   (select-frame-set-input-focus (selected-frame)))
 
-(defun mac-ae-text (ae)
-  (or (cdr (mac-ae-parameter ae nil "TEXT"))
-      (error "No text in Apple event.")))
-
 (defun mac-ae-get-url (event)
   "Open the URL specified by the Apple event EVENT.
 Currently the `mailto' scheme is supported."
@@ -1649,7 +1714,7 @@ Currently the `mailto' scheme is supported."
 	 (parsed-url (url-generic-parse-url (mac-ae-text ae))))
     (if (string= (url-type parsed-url) "mailto")
 	(url-mailto parsed-url)
-      (error "Unsupported URL scheme: %s" (url-type parsed-url)))))
+      (mac-resume-apple-event ae t))))
 
 (setq mac-apple-event-map (make-sparse-keymap))
 
@@ -1685,14 +1750,7 @@ modifiers, it changes global tool-bar visibility setting."
     (if (and modifiers (not (string= modifiers "\000\000\000\000")))
 	;; Globally toggle tool-bar-mode if some modifier key is pressed.
 	(tool-bar-mode)
-      (let ((window-id
-	     (mac-coerce-ae-data "long" (cdr (mac-ae-parameter ae)) "TEXT"))
-	    (rest (frame-list))
-	    frame)
-	(while (and (null frame) rest)
-	  (if (string= (frame-parameter (car rest) 'window-id) window-id)
-	      (setq frame (car rest)))
-	  (setq rest (cdr rest)))
+      (let ((frame (mac-ae-frame ae)))
 	(set-frame-parameter frame 'tool-bar-lines
 			     (if (= (frame-parameter frame 'tool-bar-lines) 0)
 				 1 0))))))
@@ -1722,13 +1780,12 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   "Change default face attributes according to font selection EVENT."
   (interactive "e")
   (let* ((ae (mac-event-ae event))
-	 (fm-font-size (cdr (mac-ae-parameter ae "fmsz")))
+	 (fm-font-size (mac-ae-number ae "fmsz"))
 	 (atsu-font-id (cdr (mac-ae-parameter ae "auid")))
 	 (attribute-values (gethash atsu-font-id mac-atsu-font-table)))
     (if fm-font-size
 	(setq attribute-values
-	      `(:height ,(* 10 (mac-bytes-to-integer fm-font-size))
-			,@attribute-values)))
+	      `(:height ,(* 10 fm-font-size) ,@attribute-values)))
     (apply 'set-face-attribute 'default (selected-frame) attribute-values)))
 
 ;; kEventClassFont/kEventFontPanelClosed
@@ -1744,6 +1801,258 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   'showhide-speedbar)
 
 ) ;; (fboundp 'mac-set-font-panel-visibility)
+
+;;; Text Services
+(defvar mac-ts-active-input-buf ""
+  "Byte sequence of the current Mac TSM active input area.")
+(defvar mac-ts-update-active-input-area-seqno 0
+  "Number of processed update-active-input-area events.")
+(setq mac-ts-active-input-overlay (make-overlay 0 0))
+
+(defface mac-ts-caret-position
+  '((t :inverse-video t))
+  "Face for caret position in Mac TSM active input area.
+This is used only when the active input area is displayed in the
+echo area."
+  :group 'mac)
+
+(defface mac-ts-raw-text
+  '((t :underline t))
+  "Face for raw text in Mac TSM active input area."
+  :group 'mac)
+
+(defface mac-ts-selected-raw-text
+  '((t :underline t))
+  "Face for selected raw text in Mac TSM active input area."
+  :group 'mac)
+
+(defface mac-ts-converted-text
+  '((((background dark)) :underline "gray20")
+    (t :underline "gray80"))
+  "Face for converted text in Mac TSM active input area."
+  :group 'mac)
+
+(defface mac-ts-selected-converted-text
+  '((t :underline t))
+  "Face for selected converted text in Mac TSM active input area."
+  :group 'mac)
+
+(defface mac-ts-block-fill-text
+  '((t :underline t))
+  "Face for block fill text in Mac TSM active input area."
+  :group 'mac)
+
+(defface mac-ts-outline-text
+  '((t :underline t))
+  "Face for outline text in Mac TSM active input area."
+  :group 'mac)
+
+(defface mac-ts-selected-text
+  '((t :underline t))
+  "Face for selected text in Mac TSM active input area."
+  :group 'mac)
+
+(defface mac-ts-no-hilite
+  '((t :inherit default))
+  "Face for no hilite in Mac TSM active input area."
+  :group 'mac)
+
+(defconst mac-ts-hilite-style-faces
+  '((2 . mac-ts-raw-text)		 ; kTSMHiliteRawText
+    (3 . mac-ts-selected-raw-text)	 ; kTSMHiliteSelectedRawText
+    (4 . mac-ts-converted-text)		 ; kTSMHiliteConvertedText
+    (5 . mac-ts-selected-converted-text) ; kTSMHiliteSelectedConvertedText
+    (6 . mac-ts-block-fill-text)	 ; kTSMHiliteBlockFillText
+    (7 . mac-ts-outline-text)		 ; kTSMHiliteOutlineText
+    (8 . mac-ts-selected-text)		 ; kTSMHiliteSelectedText
+    (9 . mac-ts-no-hilite))		 ; kTSMHiliteNoHilite
+  "Alist of Mac TSM hilite style vs Emacs face.")
+
+(defun mac-ts-update-active-input-buf (text fix-len hilite-rng update-rng)
+  (let ((buf-len (length mac-ts-active-input-buf))
+	confirmed)
+    (if (or (null update-rng)
+	    (/= (% (length update-rng) 2) 0))
+	;; The parameter is missing (or in a bad format).  The
+	;; existing inline input session is completely replaced with
+	;; the new text.
+	(setq mac-ts-active-input-buf text)
+      ;; Otherwise, the current subtext specified by the (2*j)-th
+      ;; range is replaced with the new subtext specified by the
+      ;; (2*j+1)-th range.
+      (let ((tail buf-len)
+	    (i (length update-rng))
+	    segments rng)
+	(while (> i 0)
+	  (setq i (- i 2))
+	  (setq rng (aref update-rng i))
+	  (if (and (<= 0 (cadr rng)) (< (cadr rng) tail)
+		   (<= tail buf-len))
+	      (setq segments
+		    (cons (substring mac-ts-active-input-buf (cadr rng) tail)
+			  segments)))
+	  (setq tail (car rng))
+	  (setq rng (aref update-rng (1+ i)))
+	  (if (and (<= 0 (car rng)) (< (car rng) (cadr rng))
+		   (<= (cadr rng) (length text)))
+	      (setq segments
+		    (cons (substring text (car rng) (cadr rng))
+			  segments))))
+	(if (and (< 0 tail) (<= tail buf-len))
+	    (setq segments
+		  (cons (substring mac-ts-active-input-buf 0 tail)
+			segments)))
+	(setq mac-ts-active-input-buf (apply 'concat segments))))
+    (setq buf-len (length mac-ts-active-input-buf))
+    ;; Confirm (a part of) inline input session.
+    (cond ((< fix-len 0)
+	   ;; Entire inline session is being confirmed.
+	   (setq confirmed mac-ts-active-input-buf)
+	   (setq mac-ts-active-input-buf ""))
+	  ((= fix-len 0)
+	   ;; None of the text is being confirmed (yet).
+	   (setq confirmed ""))
+	  (t
+	   (if (> fix-len buf-len)
+	       (setq fix-len buf-len))
+	   (setq confirmed (substring mac-ts-active-input-buf 0 fix-len))
+	   (setq mac-ts-active-input-buf
+		 (substring mac-ts-active-input-buf fix-len))))
+    (setq buf-len (length mac-ts-active-input-buf))
+    ;; Update highlighting and the caret position in the new inline
+    ;; input session.
+    (remove-text-properties 0 buf-len '(cursor nil) mac-ts-active-input-buf)
+    (mapc (lambda (rng)
+	    (cond ((and (= (nth 2 rng) 1) ; kTSMHiliteCaretPosition
+			(<= 0 (car rng)) (< (car rng) buf-len))
+		   (put-text-property (car rng) buf-len
+				      'cursor t mac-ts-active-input-buf))
+		  ((and (<= 0 (car rng)) (< (car rng) (cadr rng))
+			(<= (cadr rng) buf-len))
+		   (put-text-property (car rng) (cadr rng) 'face
+				      (cdr (assq (nth 2 rng)
+						 mac-ts-hilite-style-faces))
+				      mac-ts-active-input-buf))))
+	  hilite-rng)
+    confirmed))
+
+(defun mac-split-string-by-property-change (string)
+  (let ((tail (length string))
+	head result)
+    (unless (= tail 0)
+      (while (setq head (previous-property-change tail string)
+		   result (cons (substring string (or head 0) tail) result)
+		   tail head)))
+    result))
+
+(defun mac-replace-untranslated-utf-8-chars (string &optional to-string)
+  (or to-string (setq to-string "$,3u=(B"))
+  (mapconcat
+   (lambda (str)
+     (if (get-text-property 0 'untranslated-utf-8 str) to-string str))
+   (mac-split-string-by-property-change string)
+   ""))
+
+(defun mac-ts-update-active-input-area (event)
+  "Update Mac TSM active input area according to EVENT.
+The confirmed text is converted to Emacs input events and pushed
+into `unread-command-events'.  The unconfirmed text is displayed
+either in the current buffer or in the echo area."
+  (interactive "e")
+  (let* ((ae (mac-event-ae event))
+	 (text (or (cdr (mac-ae-parameter ae "tstx" "utxt")) ""))
+	 (script-language (mac-ae-script-language ae "tssl"))
+	 (coding (or (cdr (assq (car script-language)
+				mac-script-code-coding-systems))
+		     'mac-roman))
+	 (fix-len (mac-bytes-to-integer
+		   (cdr (mac-ae-parameter ae "tsfx" "long"))))
+	 ;; Optional parameters
+	 (hilite-rng (mac-ae-text-range-array ae "tshi"))
+	 (update-rng (mac-ae-text-range-array ae "tsup"))
+	 ;;(pin-rng (mac-bytes-to-text-range (cdr (mac-ae-parameter ae "tspn" "txrn"))))
+	 ;;(clause-offsets (cdr (mac-ae-parameter ae "tscl" "ofay")))
+	 (seqno (mac-ae-number ae "tsSn"))
+	 confirmed)
+    (unless (= seqno mac-ts-update-active-input-area-seqno)
+      ;; Reset internal states if sequence number is out of sync.
+      (setq mac-ts-active-input-buf ""))
+    (setq confirmed
+	  (mac-ts-update-active-input-buf text fix-len hilite-rng update-rng))
+    (let ((use-echo-area
+	   (or isearch-mode
+	       (and cursor-in-echo-area (current-message))
+	       ;; Overlay strings are not shown in some cases.
+	       (get-char-property (point) 'display)
+	       (get-char-property (point) 'invisible)
+	       (get-char-property (point) 'composition)))
+	  active-input-string caret-seen)
+      ;; Decode the active input area text with inheriting faces and
+      ;; the caret position.
+      (setq active-input-string
+	    (mapconcat
+	     (lambda (str)
+	       (let ((decoded (mac-utxt-to-string str coding)))
+		 (put-text-property 0 (length decoded) 'face
+				    (get-text-property 0 'face str) decoded)
+		 (when (and (not caret-seen)
+			    (get-text-property 0 'cursor str))
+		   (setq caret-seen t)
+		   (if use-echo-area
+		       (put-text-property 0 1 'face 'mac-ts-caret-position
+					  decoded)
+		     (put-text-property 0 1 'cursor t decoded)))
+		 decoded))
+	     (mac-split-string-by-property-change mac-ts-active-input-buf)
+	     ""))
+      (put-text-property 0 (length active-input-string)
+			 'mac-ts-active-input-string t active-input-string)
+      (if use-echo-area
+	  (let (msg message-log-max)
+	    (if (and (current-message)
+		     ;; Don't get confused by previously displayed
+		     ;; `active-input-string'.
+		     (null (get-text-property 0 'mac-ts-active-input-string
+					      (current-message))))
+		(setq msg (propertize (current-message) 'display
+				      (concat (current-message)
+					      active-input-string)))
+	      (setq msg active-input-string))
+	    (message "%s" msg)
+	    (overlay-put mac-ts-active-input-overlay 'before-string nil))
+	(move-overlay mac-ts-active-input-overlay
+		      (point) (point) (current-buffer))
+	(overlay-put mac-ts-active-input-overlay 'before-string
+		     active-input-string))
+      ;; Unread confirmed characters and insert them in a keyboard
+      ;; macro being defined.
+      (apply 'isearch-unread
+	     (append (mac-replace-untranslated-utf-8-chars
+		      (mac-utxt-to-string confirmed coding)) '())))
+    ;; The event is successfully processed.  Sync the sequence number.
+    (setq mac-ts-update-active-input-area-seqno (1+ seqno))))
+
+(defun mac-ts-unicode-for-key-event (event)
+  "Convert Unicode key EVENT to Emacs key events and unread them."
+  (interactive "e")
+  (let* ((ae (mac-event-ae event))
+	 (text (cdr (mac-ae-parameter ae "tstx" "utxt")))
+	 (script-language (mac-ae-script-language ae "tssl"))
+	 (coding (or (cdr (assq (car script-language)
+				mac-script-code-coding-systems))
+		     'mac-roman)))
+    ;; Unread characters and insert them in a keyboard macro being
+    ;; defined.
+    (apply 'isearch-unread
+	   (append (mac-replace-untranslated-utf-8-chars
+		    (mac-utxt-to-string text coding)) '()))))
+
+;; kEventClassTextInput/kEventTextInputUpdateActiveInputArea
+(define-key mac-apple-event-map [text-input update-active-input-area]
+  'mac-ts-update-active-input-area)
+;; kEventClassTextInput/kEventTextInputUnicodeForKeyEvent
+(define-key mac-apple-event-map [text-input unicode-for-key-event]
+  'mac-ts-unicode-for-key-event)
 
 ;;; Services
 (defun mac-service-open-file ()
@@ -1800,9 +2109,9 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   "Dispatch EVENT according to the keymap `mac-apple-event-map'."
   (interactive "e")
   (let* ((binding (lookup-key mac-apple-event-map (mac-event-spec event)))
-	 (service-message
-	  (and (keymapp binding)
-	       (cdr (mac-ae-parameter (mac-event-ae event) "svmg")))))
+	 (ae (mac-event-ae event))
+	 (service-message (and (keymapp binding)
+			       (cdr (mac-ae-parameter ae "svmg")))))
     (when service-message
       (setq service-message
 	    (intern (decode-coding-string service-message 'utf-8)))
@@ -1810,15 +2119,26 @@ With numeric ARG, display the font panel if and only if ARG is positive."
     ;; Replace (cadr event) with a dummy position so that event-start
     ;; returns it.
     (setcar (cdr event) (list (selected-window) (point) '(0 . 0) 0))
-    (call-interactively binding)))
+    (if (null (mac-ae-parameter ae 'emacs-suspension-id))
+	(command-execute binding nil (vector event) t)
+      (condition-case err
+	  (progn
+	    (command-execute binding nil (vector event) t)
+	    (mac-resume-apple-event ae))
+	(error
+	 (mac-ae-set-reply-parameter ae "errs"
+				     (cons "TEXT" (error-message-string err)))
+	 (mac-resume-apple-event ae -10000)))))) ; errAEEventFailed
 
-(global-set-key [mac-apple-event] 'mac-dispatch-apple-event)
+(define-key special-event-map [mac-apple-event] 'mac-dispatch-apple-event)
 
 ;; Processing of Apple events are deferred at the startup time.  For
 ;; example, files dropped onto the Emacs application icon can only be
 ;; processed when the initial frame has been created: this is where
 ;; the files should be opened.
 (add-hook 'after-init-hook 'mac-process-deferred-apple-events)
+
+(run-with-idle-timer 5 t 'mac-cleanup-expired-apple-events)
 
 
 ;;;; Drag and drop

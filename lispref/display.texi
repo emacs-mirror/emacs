@@ -29,6 +29,7 @@ that Emacs presents to the user.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
+* Abstract Display::    Emacs' Widget for Object Collections.
 * Blinking::            How Emacs shows the matching open parenthesis.
 * Usual Display::       The usual conventions for displaying nonprinting chars.
 * Display Tables::      How to specify other conventions.
@@ -1581,41 +1582,41 @@ equal to or less than the display width of @var{ellipsis}.  If
 @cindex line height
 
   The total height of each display line consists of the height of the
-contents of the line, and additional vertical line spacing below the
-display row.
+contents of the line, plus optional additional vertical line spacing
+above or below the display line.
 
-  The height of the line contents is normally determined from the
-maximum height of any character or image on that display line,
-including the final newline if there is one.  (A line that is
-continued doesn't include a final newline.)  In the most common case,
-the line height equals the height of the default frame font.
+  The height of the line contents is the maximum height of any
+character or image on that display line, including the final newline
+if there is one.  (A display line that is continued doesn't include a
+final newline.)  That is the default line height, if you do nothing to
+specify a greater height.  (In the most common case, this equals the
+height of the default frame font.)
 
-  There are several ways to explicitly control or change the line
-height, either by specifying an absolute height for the display line,
-or by adding additional vertical space below one or all lines.
+  There are several ways to explicitly specify a larger line height,
+either by specifying an absolute height for the display line, or by
+specifying vertical space.  However, no matter what you specify, the
+actual line height can never be less than the default.
 
 @kindex line-height @r{(text property)}
   A newline can have a @code{line-height} text or overlay property
 that controls the total height of the display line ending in that
 newline.
 
-  If the property value is a list @code{(@var{height} @var{total})},
-then @var{height} is used as the actual property value for the
-@code{line-height}, and @var{total} specifies the total displayed
-height of the line, so the line spacing added below the line equals
-the @var{total} height minus the actual line height.  In this case,
-the other ways to specify the line spacing are ignored.
+  If the property value is @code{t}, the newline character has no
+effect on the displayed height of the line---the visible contents
+alone determine the height.  This is useful for tiling small images
+(or image slices) without adding blank areas between the images.
 
-  If the property value is @code{t}, the displayed height of the
-line is exactly what its contents demand; no line-spacing is added.
-This case is useful for tiling small images or image slices without
-adding blank areas between the images.
+  If the property value is a list of the form @code{(@var{height}
+@var{total})}, that adds extra space @emph{below} the display line.
+First Emacs uses @var{height} as a height spec to control extra space
+@emph{above} the line; then it adds enough space @emph{below} the line
+to bring the total line height up to @var{total}.  In this case, the
+other ways to specify the line spacing are ignored.
 
-  If the property value is not @code{t}, it is a height spec.  A height
-spec stands for a numeric height value; this height spec specifies the
-actual line height, @var{line-height}.  There are several ways to
-write a height spec; here's how each of them translates into a numeric
-height:
+  Any other kind of property value is a height spec, which translates
+into a number---the specified line height.  There are several ways to
+write a height spec; here's how each of them translates into a number:
 
 @table @code
 @item @var{integer}
@@ -1633,11 +1634,10 @@ If the height spec is a cons of the format shown, the numeric height
 is @var{ratio} times the height of the contents of the line.
 @end table
 
-  Thus, any valid non-@code{t} property value specifies a height in pixels,
-@var{line-height}, one way or another.  If the line contents' height
-is less than @var{line-height}, Emacs adds extra vertical space above
-the line to achieve the total height @var{line-height}.  Otherwise,
-@var{line-height} has no effect.
+  Thus, any valid height spec determines the height in pixels, one way
+or another.  If the line contents' height is less than that, Emacs
+adds extra vertical space above the line to achieve the specified
+total height.
 
   If you don't specify the @code{line-height} property, the line's
 height consists of the contents' height plus the line spacing.
@@ -1662,9 +1662,9 @@ height.  This overrides line spacings specified for the frame.
 
 @kindex line-spacing @r{(text property)}
   Finally, a newline can have a @code{line-spacing} text or overlay
-property that controls the height of the display line ending with that
-newline.  The property value overrides the default frame line spacing
-and the buffer local @code{line-spacing} variable.
+property that overrides the default frame line spacing and the buffer
+local @code{line-spacing} variable, for the display line ending in
+that newline.
 
   One way or another, these mechanisms specify a Lisp value for the
 spacing of each line.  The value is a height spec, and it translates
@@ -2380,13 +2380,6 @@ expression in the list.  For example,
 @noindent
 allows the use of scalable fonts with registry @code{muleindian-2}.
 @end defvar
-
-@defun clear-face-cache &optional unload-p
-@tindex clear-face-cache
-This function clears the face cache for all frames.
-If @var{unload-p} is non-@code{nil}, that means to unload
-all unused fonts as well.
-@end defun
 
 @defvar face-font-rescale-alist
 This variable specifies scaling for certain faces.  Its value should
@@ -4620,6 +4613,339 @@ Return the @var{n}th button before position @var{pos} in the current
 buffer.  If @var{count-current} is non-@code{nil}, count any button at
 @var{pos} in the search, instead of starting at the next button.
 @end defun
+
+@node Abstract Display
+@section Abstract Display
+@cindex ewoc
+@cindex display, abstract
+@cindex display, arbitrary objects
+@cindex model/view/controller
+@cindex view part, model/view/controller
+
+  The Ewoc package constructs buffer text that represents a structure
+of Lisp objects, and updates the text to follow changes in that
+structure.  This is like the ``view'' component in the
+``model/view/controller'' design paradigm.
+
+  An @dfn{ewoc} is a structure that organizes information required to
+construct buffer text that represents certain Lisp data.  The buffer
+text of the ewoc has three parts, in order: first, fixed @dfn{header}
+text; next, textual descriptions of a series of data elements (Lisp
+objects that you specify); and last, fixed @dfn{footer} text.
+Specifically, an ewoc contains information on:
+
+@itemize @bullet
+@item
+The buffer which its text is generated in.
+
+@item
+The text's start position in the buffer.
+
+@item
+The header and footer strings.
+
+@item
+A doubly-linked chain of @dfn{nodes}, each of which contains:
+
+@itemize
+@item
+A @dfn{data element}, a single Lisp object.
+
+@item
+Links to the preceding and following nodes in the chain.
+@end itemize
+
+@item
+A @dfn{pretty-printer} function which is responsible for
+inserting the textual representation of a data
+element value into the current buffer.
+@end itemize
+
+  Typically, you define an ewoc with @code{ewoc-create}, and then pass
+the resulting ewoc structure to other functions in the Ewoc package to
+build nodes within it, and display it in the buffer.  Once it is
+displayed in the buffer, other functions determine the correspondance
+between buffer positions and nodes, move point from one node's textual
+representation to another, and so forth.  @xref{Abstract Display
+Functions}.
+
+  A node @dfn{encapsulates} a data element much the way a variable
+holds a value.  Normally, encapsulation occurs as a part of adding a
+node to the ewoc.  You can retrieve the data element value and place a
+new value in its place, like so:
+
+@lisp
+(ewoc-data @var{node})
+@result{} value
+
+(ewoc-set-data @var{node} @var{new-value})
+@result{} @var{new-value}
+@end lisp
+
+@noindent
+You can also use, as the data element value, a Lisp object (list or
+vector) that is a container for the ``real'' value, or an index into
+some other structure.  The example (@pxref{Abstract Display Example})
+uses the latter approach.
+
+  When the data changes, you will want to update the text in the
+buffer.  You can update all nodes by calling @code{ewoc-refresh}, or
+just specific nodes using @code{ewoc-invalidate}, or all nodes
+satisfying a predicate using @code{ewoc-map}.  Alternatively, you can
+delete invalid nodes using @code{ewoc-delete} or @code{ewoc-filter},
+and add new nodes in their place.  Deleting a node from an ewoc deletes
+its associated textual description from buffer, as well.
+
+@menu
+* Abstract Display Functions::
+* Abstract Display Example::
+@end menu
+
+@node Abstract Display Functions
+@subsection Abstract Display Functions
+
+  In this subsection, @var{ewoc} and @var{node} stand for the
+structures described above (@pxref{Abstract Display}), while
+@var{data} stands for an arbitrary Lisp object used as a data element.
+
+@defun ewoc-create pretty-printer &optional header footer nosep
+This constructs and returns a new ewoc, with no nodes (and thus no data
+elements).  @var{pretty-printer} should be a function that takes one
+argument, a data element of the sort you plan to use in this ewoc, and
+inserts its textual description at point using @code{insert} (and never
+@code{insert-before-markers}, because that would interfere with the
+Ewoc package's internal mechanisms).
+
+Normally, a newline is automatically inserted after the header,
+the footer and every node's textual description.  If @var{nosep}
+is non-@code{nil}, no newline is inserted.  This may be useful for
+displaying an entire ewoc on a single line, for example, or for
+making nodes ``invisible'' by arranging for @var{pretty-printer}
+to do nothing for those nodes.
+
+An ewoc maintains its text in the buffer that is current when
+you create it, so switch to the intended buffer before calling
+@code{ewoc-create}.
+@end defun
+
+@defun ewoc-buffer ewoc
+This returns the buffer where @var{ewoc} maintains its text.
+@end defun
+
+@defun ewoc-get-hf ewoc
+This returns a cons cell @code{(@var{header} . @var{footer})}
+made from @var{ewoc}'s header and footer.
+@end defun
+
+@defun ewoc-set-hf ewoc header footer
+This sets the header and footer of @var{ewoc} to the strings
+@var{header} and @var{footer}, respectively.
+@end defun
+
+@defun ewoc-enter-first ewoc data
+@defunx ewoc-enter-last ewoc data
+These add a new node encapsulating @var{data}, putting it, respectively,
+at the beginning or end of @var{ewoc}'s chain of nodes.
+@end defun
+
+@defun ewoc-enter-before ewoc node data
+@defunx ewoc-enter-after ewoc node data
+These add a new node encapsulating @var{data}, adding it to
+@var{ewoc} before or after @var{node}, respectively.
+@end defun
+
+@defun ewoc-prev ewoc node
+@defunx ewoc-next ewoc node
+These return, respectively, the previous node and the next node of @var{node}
+in @var{ewoc}.
+@end defun
+
+@defun ewoc-nth ewoc n
+This returns the node in @var{ewoc} found at zero-based index @var{n}.
+A negative @var{n} means count from the end.  @code{ewoc-nth} returns
+@code{nil} if @var{n} is out of range.
+@end defun
+
+@defun ewoc-data node
+This extracts the data encapsulated by @var{node} and returns it.
+@end defun
+
+@defun ewoc-set-data node data
+This sets the data encapsulated by @var{node} to @var{data}.
+@end defun
+
+@defun ewoc-locate ewoc &optional pos guess
+This determines the node in @var{ewoc} which contains point (or
+@var{pos} if specified), and returns that node.  If @var{ewoc} has no
+nodes, it returns @code{nil}.  If @var{pos} is before the first node,
+it returns the first node; if @var{pos} is after the last node, it returns
+the last node.  The optional third arg @var{guess}
+should be a node that is likely to be near @var{pos}; this doesn't
+alter the result, but makes the function run faster.
+@end defun
+
+@defun ewoc-location node
+This returns the start position of @var{node}.
+@end defun
+
+@defun ewoc-goto-prev ewoc arg
+@defunx ewoc-goto-next ewoc arg
+These move point to the previous or next, respectively, @var{arg}th node
+in @var{ewoc}.  @code{ewoc-goto-prev} does not move if it is already at
+the first node or if @var{ewoc} is empty, whereas @code{ewoc-goto-next}
+moves past the last node, returning @code{nil}.  Excepting this special
+case, these functions return the node moved to.
+@end defun
+
+@defun ewoc-goto-node ewoc node
+This moves point to the start of @var{node} in @var{ewoc}.
+@end defun
+
+@defun ewoc-refresh ewoc
+This function regenerates the text of @var{ewoc}.  It works by
+deleting the text between the header and the footer, i.e., all the
+data elements' representations, and then calling the pretty-printer
+function for each node, one by one, in order.
+@end defun
+
+@defun ewoc-invalidate ewoc &rest nodes
+This is similar to @code{ewoc-refresh}, except that only @var{nodes} in
+@var{ewoc} are updated instead of the entire set.
+@end defun
+
+@defun ewoc-delete ewoc &rest nodes
+This deletes each node in @var{nodes} from @var{ewoc}.
+@end defun
+
+@defun ewoc-filter ewoc predicate &rest args
+This calls @var{predicate} for each data element in @var{ewoc} and
+deletes those nodes for which @var{predicate} returns @code{nil}.
+Any @var{args} are passed to @var{predicate}.
+@end defun
+
+@defun ewoc-collect ewoc predicate &rest args
+This calls @var{predicate} for each data element in @var{ewoc}
+and returns a list of those elements for which @var{predicate}
+returns non-@code{nil}.  The elements in the list are ordered
+as in the buffer.  Any @var{args} are passed to @var{predicate}.
+@end defun
+
+@defun ewoc-map map-function ewoc &rest args
+This calls @var{map-function} for each data element in @var{ewoc} and
+updates those nodes for which @var{map-function} returns non-@code{nil}.
+Any @var{args} are passed to @var{map-function}.
+@end defun
+
+@node Abstract Display Example
+@subsection Abstract Display Example
+
+  Here is a simple example using functions of the ewoc package to
+implement a ``color components display'', an area in a buffer that
+represents a vector of three integers (itself representing a 24-bit RGB
+value) in various ways.
+
+@example
+(setq colorcomp-ewoc nil
+      colorcomp-data nil
+      colorcomp-mode-map nil
+      colorcomp-labels ["Red" "Green" "Blue"])
+
+(defun colorcomp-pp (data)
+  (if data
+      (let ((comp (aref colorcomp-data data)))
+        (insert (aref colorcomp-labels data) "\t: #x"
+                (format "%02X" comp) " "
+                (make-string (ash comp -2) ?#) "\n"))
+    (let ((cstr (format "#%02X%02X%02X"
+                        (aref colorcomp-data 0)
+                        (aref colorcomp-data 1)
+                        (aref colorcomp-data 2)))
+          (samp " (sample text) "))
+      (insert "Color\t: "
+              (propertize samp 'face `(foreground-color . ,cstr))
+              (propertize samp 'face `(background-color . ,cstr))
+              "\n"))))
+
+(defun colorcomp (color)
+  "Allow fiddling with COLOR in a new buffer.
+The buffer is in Color Components mode."
+  (interactive "sColor (name or #RGB or #RRGGBB): ")
+  (when (string= "" color)
+    (setq color "green"))
+  (unless (color-values color)
+    (error "No such color: %S" color))
+  (switch-to-buffer
+   (generate-new-buffer (format "originally: %s" color)))
+  (kill-all-local-variables)
+  (setq major-mode 'colorcomp-mode
+        mode-name "Color Components")
+  (use-local-map colorcomp-mode-map)
+  (erase-buffer)
+  (buffer-disable-undo)
+  (let ((data (apply 'vector (mapcar (lambda (n) (ash n -8))
+                                     (color-values color))))
+        (ewoc (ewoc-create 'colorcomp-pp
+                           "\nColor Components\n\n"
+                           (substitute-command-keys
+                            "\n\\@{colorcomp-mode-map@}"))))
+    (set (make-local-variable 'colorcomp-data) data)
+    (set (make-local-variable 'colorcomp-ewoc) ewoc)
+    (ewoc-enter-last ewoc 0)
+    (ewoc-enter-last ewoc 1)
+    (ewoc-enter-last ewoc 2)
+    (ewoc-enter-last ewoc nil)))
+@end example
+
+@cindex controller part, model/view/controller
+  This example can be extended to be a ``color selection widget'' (in
+other words, the controller part of the ``model/view/controller''
+design paradigm) by defining commands to modify @code{colorcomp-data}
+and to ``finish'' the selection process, and a keymap to tie it all
+together conveniently.
+
+@example
+(defun colorcomp-mod (index limit delta)
+  (let ((cur (aref colorcomp-data index)))
+    (unless (= limit cur)
+      (aset colorcomp-data index (+ cur delta)))
+    (ewoc-invalidate
+     colorcomp-ewoc
+     (ewoc-nth colorcomp-ewoc index)
+     (ewoc-nth colorcomp-ewoc -1))))
+
+(defun colorcomp-R-more () (interactive) (colorcomp-mod 0 255 1))
+(defun colorcomp-G-more () (interactive) (colorcomp-mod 1 255 1))
+(defun colorcomp-B-more () (interactive) (colorcomp-mod 2 255 1))
+(defun colorcomp-R-less () (interactive) (colorcomp-mod 0 0 -1))
+(defun colorcomp-G-less () (interactive) (colorcomp-mod 1 0 -1))
+(defun colorcomp-B-less () (interactive) (colorcomp-mod 2 0 -1))
+
+(defun colorcomp-copy-as-kill-and-exit ()
+  "Copy the color components into the kill ring and kill the buffer.
+The string is formatted #RRGGBB (hash followed by six hex digits)."
+  (interactive)
+  (kill-new (format "#%02X%02X%02X"
+                    (aref colorcomp-data 0)
+                    (aref colorcomp-data 1)
+                    (aref colorcomp-data 2)))
+  (kill-buffer nil))
+
+(setq colorcomp-mode-map
+      (let ((m (make-sparse-keymap)))
+        (suppress-keymap m)
+        (define-key m "i" 'colorcomp-R-less)
+        (define-key m "o" 'colorcomp-R-more)
+        (define-key m "k" 'colorcomp-G-less)
+        (define-key m "l" 'colorcomp-G-more)
+        (define-key m "," 'colorcomp-B-less)
+        (define-key m "." 'colorcomp-B-more)
+        (define-key m " " 'colorcomp-copy-as-kill-and-exit)
+        m))
+@end example
+
+Note that we never modify the data in each node, which is fixed when the
+ewoc is created to be either @code{nil} or an index into the vector
+@code{colorcomp-data}, the actual color components.
 
 @node Blinking
 @section Blinking Parentheses

@@ -1517,7 +1517,8 @@ If there is neither a user setting nor a default for FACE, return nil."
   "Return a list of colors supported for a particular frame.
 The argument FRAME specifies which frame to try.
 The value may be different for frames on different display types.
-If FRAME doesn't support colors, the value is nil."
+If FRAME doesn't support colors, the value is nil.
+If FRAME is nil, that stands for the selected frame."
   (if (memq (framep (or frame (selected-frame))) '(x w32 mac))
       (xw-defined-colors frame)
     (mapcar 'car (tty-color-alist frame))))

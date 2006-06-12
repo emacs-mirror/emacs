@@ -914,7 +914,7 @@ Use @kbd{V} instead of @kbd{v}, if you wish to visit a file in another
 window.
 
 You can verify which file you are editing by typing @kbd{g}.  (You can also
-type @kbd{X B} to get nformation on other buffers too.)  If you type
+type @kbd{X B} to get information on other buffers too.)  If you type
 @kbd{g} you will get an information like below in the echo area:@refill
 @example
 "/usr/masahiko/man/vip.texinfo" line 921 of 1949
@@ -1665,7 +1665,7 @@ Delete previous word (@code{vip-delete-backward-word}).
 @item C-z
 @kindex 032 @kbd{C-z} (@code{vip-ESC}) (insert mode)
 This key simulates @key{ESC} key in emacs mode.  For instance, typing
-@kbd{C-z x} in insert mode iw the same as typing @kbd{ESC x} in emacs mode
+@kbd{C-z x} in insert mode is the same as typing @kbd{ESC x} in emacs mode
 (@code{vip-ESC}).
 @end table
 @noindent

@@ -605,7 +605,13 @@ system; for example, to visit a file encoded in codepage 850, type
 @key{RET}}@footnote{
 In the MS-DOS port of Emacs, you need to create a @code{cp@var{nnn}}
 coding system with @kbd{M-x codepage-setup}, before you can use it.
-@xref{MS-DOS and MULE,,,emacs-extra,Specialized Emacs Features}.}.
+@iftex
+@xref{MS-DOS and MULE,,,emacs-extra,Specialized Emacs Features}.
+@end iftex
+@ifnottex
+@xref{MS-DOS and MULE}.
+@end ifnottex
+}.
 
   In addition to converting various representations of non-@acronym{ASCII}
 characters, a coding system can perform end-of-line conversion.  Emacs
@@ -817,6 +823,14 @@ example, @samp{-*-mode: C; coding: latin-1;-*-} specifies use of the
 Latin-1 coding system, as well as C mode.  When you specify the coding
 explicitly in the file, that overrides
 @code{file-coding-system-alist}.
+
+  If you add the character @samp{!} at the end of the coding system
+name, it disables any character translation while decoding the file.
+For instance, it effectively cancels the effect of
+@code{unify-8859-on-decoding-mode}.  This is useful when you need to
+make sure that the character codes in the Emacs buffer will not
+according to user settings; for instance, for the sake of strings in
+Emacs Lisp source files.
 
 @vindex auto-coding-alist
 @vindex auto-coding-regexp-alist

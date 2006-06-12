@@ -7465,7 +7465,7 @@ is selected as the TARGET.  For example, if OPERATION does file I/O,
 whichever argument specifies the file name is TARGET.
 
 TARGET has a meaning which depends on OPERATION:
-  For file I/O, TARGET is a file name.
+  For file I/O, TARGET is a file name (except for the special case below).
   For process I/O, TARGET is a process name.
   For network I/O, TARGET is a service name or a port number
 
@@ -7476,6 +7476,13 @@ They may specify a coding system, a cons of coding systems,
 or a function symbol to call.
 In the last case, we call the function with one argument,
 which is a list of all the arguments given to this function.
+
+If OPERATION is `insert-file-contents', the argument corresponding to
+TARGET may be a cons (FILENAME . BUFFER).  In that case, FILENAME is a
+file name to look up, and BUFFER is a buffer that contains the file's
+contents (not yet decoded).  If `file-coding-system-alist' specifies a
+function to call for FILENAME, that function should examine the
+contents of BUFFER instead of reading the file.
 
 usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
      (nargs, args)
@@ -7503,8 +7510,12 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
     target_idx = make_number (4);
   target = args[XINT (target_idx) + 1];
   if (!(STRINGP (target)
+	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
+	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
     error ("Invalid argument %d", XINT (target_idx) + 1);
+  if (CONSP (target))
+    target = XCAR (target);
 
   chain = ((EQ (operation, Qinsert_file_contents)
 	    || EQ (operation, Qwrite_region))
@@ -7537,7 +7548,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
 	    return Fcons (val, val);
 	  if (! NILP (Ffboundp (val)))
 	    {
-	      val = call1 (val, Flist (nargs, args));
+	      val = safe_call1 (val, Flist (nargs, args));
 	      if (CONSP (val))
 		return val;
 	      if (SYMBOLP (val) && ! NILP (Fcoding_system_p (val)))

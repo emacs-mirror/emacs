@@ -110,7 +110,7 @@ middle of a Lisp function.  Instead, do all minibuffer input as part of
 reading the arguments for a command, in the @code{interactive}
 specification.  @xref{Defining Commands}.
 
-@defun read-from-minibuffer prompt-string &optional initial-contents keymap read hist default inherit-input-method keep-all
+@defun read-from-minibuffer prompt-string &optional initial-contents keymap read hist default inherit-input-method
 This function is the most general way to get input through the
 minibuffer.  By default, it accepts arbitrary text and returns it as a
 string; however, if @var{read} is non-@code{nil}, then it uses
@@ -161,9 +161,6 @@ minibuffer inherits the current input method (@pxref{Input Methods}) and
 the setting of @code{enable-multibyte-characters} (@pxref{Text
 Representations}) from whichever buffer was current before entering the
 minibuffer.
-
-If @var{keep-all} is non-@code{nil}, even empty and duplicate inputs
-are added to the history list.
 
 Use of @var{initial-contents} is mostly deprecated; we recommend using
 a non-@code{nil} value only in conjunction with specifying a cons cell
@@ -462,6 +459,14 @@ history list if @code{history-delete-duplicates} is non-@code{nil}.
 However, if @var{keep-all} is non-@code{nil}, that says not to remove
 duplicates, and to add @var{newelt} to the list even if it is empty.
 @end defun
+
+@defvar history-add-new-input
+If the value of this variable is @code{nil}, standard functions that
+read from the minibuffer don't add new elements to the history list.
+This lets Lisp programs explicitly manage input history by using
+@code{add-to-history}.  By default, @code{history-add-new-input} is
+set to a non-@code{nil} value.
+@end defvar
 
 @defvar history-length
 The value of this variable specifies the maximum length for all

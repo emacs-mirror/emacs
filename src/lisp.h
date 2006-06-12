@@ -80,7 +80,7 @@ Boston, MA 02110-1301, USA.  */
 
 /* Extra internal type checking?  */
 extern int suppress_checking;
-extern void die P_((const char *, const char *, int));
+extern void die P_((const char *, const char *, int)) NO_RETURN;
 
 #ifdef ENABLE_CHECKING
 
@@ -2780,7 +2780,7 @@ extern void set_time_zone_rule P_ ((char *));
 
 /* defined in buffer.c */
 extern int mouse_face_overlay_overlaps P_ ((Lisp_Object));
-extern void nsberror P_ ((Lisp_Object));
+extern void nsberror P_ ((Lisp_Object)) NO_RETURN;
 extern char *no_switch_window P_ ((Lisp_Object window));
 EXFUN (Fset_buffer_multibyte, 1);
 EXFUN (Foverlay_start, 1);
@@ -2899,7 +2899,7 @@ extern void syms_of_search P_ ((void));
 extern Lisp_Object last_minibuf_string;
 extern void choose_minibuf_frame P_ ((void));
 EXFUN (Fcompleting_read, 8);
-EXFUN (Fread_from_minibuffer, 8);
+EXFUN (Fread_from_minibuffer, 7);
 EXFUN (Fread_variable, 2);
 EXFUN (Fread_buffer, 3);
 EXFUN (Fread_minibuffer, 2);

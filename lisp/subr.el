@@ -1393,32 +1393,94 @@ That function's doc string says which file created it."
 		 t))
      nil))
 
+(defun load-history-regexp (file)
+  "Form a regexp to find FILE in `load-history'.
+FILE, a string, is described in the function `eval-after-load'."
+  (if (file-name-absolute-p file)
+      (setq file (file-truename file)))
+  (concat (if (file-name-absolute-p file) "\\`" "\\(\\`\\|/\\)")
+	  (regexp-quote file)
+	  (if (file-name-extension file)
+	      ""
+	    ;; Note: regexp-opt can't be used here, since we need to call
+	    ;; this before Emacs has been fully started.  2006-05-21
+	    (concat "\\(" (mapconcat 'regexp-quote load-suffixes "\\|") "\\)?"))
+	  "\\(" (mapconcat 'regexp-quote jka-compr-load-suffixes "\\|")
+	  "\\)?\\'"))
+
+(defun load-history-filename-element (file-regexp)
+  "Get the first elt of `load-history' whose car matches FILE-REGEXP.
+Return nil if there isn't one."
+  (let* ((loads load-history)
+	 (load-elt (and loads (car loads))))
+    (save-match-data
+      (while (and loads
+		  (or (null (car load-elt))
+		      (not (string-match file-regexp (car load-elt)))))
+	(setq loads (cdr loads)
+	      load-elt (and loads (car loads)))))
+    load-elt))
+
 (defun eval-after-load (file form)
   "Arrange that, if FILE is ever loaded, FORM will be run at that time.
-This makes or adds to an entry on `after-load-alist'.
 If FILE is already loaded, evaluate FORM right now.
-It does nothing if FORM is already on the list for FILE.
-FILE must match exactly.  Normally FILE is the name of a library,
-with no directory or extension specified, since that is how `load'
-is normally called.
-FILE can also be a feature (i.e. a symbol), in which case FORM is
-evaluated whenever that feature is `provide'd."
-  (let ((elt (assoc file after-load-alist)))
-    ;; Make sure there is an element for FILE.
-    (unless elt (setq elt (list file)) (push elt after-load-alist))
-    ;; Add FORM to the element if it isn't there.
+
+If a matching file is loaded again, FORM will be evaluated again.
+
+If FILE is a string, it may be either an absolute or a relative file
+name, and may have an extension \(e.g. \".el\") or may lack one, and
+additionally may or may not have an extension denoting a compressed
+format \(e.g. \".gz\").
+
+When FILE is absolute, this first converts it to a true name by chasing
+symbolic links.  Only a file of this name \(see next paragraph regarding
+extensions) will trigger the evaluation of FORM.  When FILE is relative,
+a file whose absolute true name ends in FILE will trigger evaluation.
+
+When FILE lacks an extension, a file name with any extension will trigger
+evaluation.  Otherwise, its extension must match FILE's.  A further
+extension for a compressed format \(e.g. \".gz\") on FILE will not affect
+this name matching.
+
+Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
+is evaluated whenever that feature is `provide'd.
+
+Usually FILE is just a library name like \"font-lock\" or a feature name
+like 'font-lock.
+
+This function makes or adds to an entry on `after-load-alist'."
+  ;; Add this FORM into after-load-alist (regardless of whether we'll be
+  ;; evaluating it now).
+  (let* ((regexp-or-feature
+	  (if (stringp file) (load-history-regexp file) file))
+	 (elt (assoc regexp-or-feature after-load-alist)))
+    (unless elt
+      (setq elt (list regexp-or-feature))
+      (push elt after-load-alist))
+    ;; Add FORM to the element unless it's already there.
     (unless (member form (cdr elt))
-      (nconc elt (list form))
-      ;; If the file has been loaded already, run FORM right away.
-      (if (if (symbolp file)
-	      (featurep file)
-	    ;; Make sure `load-history' contains the files dumped with
-	    ;; Emacs for the case that FILE is one of them.
-	    ;; (load-symbol-file-load-history)
-	    (when (locate-library file)
-	      (assoc (locate-library file) load-history)))
-	  (eval form))))
-  form)
+      (nconc elt (list form)))
+
+    ;; Is there an already loaded file whose name (or `provide' name)
+    ;; matches FILE?
+    (if (if (stringp file)
+	    (load-history-filename-element regexp-or-feature)
+	  (featurep file))
+	(eval form))))
+
+(defun do-after-load-evaluation (abs-file)
+  "Evaluate all `eval-after-load' forms, if any, for ABS-FILE.
+ABS-FILE, a string, should be the absolute true name of a file just loaded."
+  (let ((after-load-elts after-load-alist)
+	a-l-element file-elements file-element form)
+    (while after-load-elts
+      (setq a-l-element (car after-load-elts)
+	    after-load-elts (cdr after-load-elts))
+      (when (and (stringp (car a-l-element))
+		 (string-match (car a-l-element) abs-file))
+	(while (setq a-l-element (cdr a-l-element)) ; discard the file name
+	  (setq form (car a-l-element))
+	  (eval form))))))
 
 (defun eval-next-after-load (file)
   "Read the following input sexp, and run it whenever FILE is loaded.
@@ -1555,7 +1617,7 @@ Optional DEFAULT is a default password to use instead of empty input.
 This function echoes `.' for each character that the user types.
 The user ends with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
 C-g quits; if `inhibit-quit' was non-nil around this function,
-then it returns nil if the user types C-g.
+then it returns nil if the user types C-g, but quit-flag remains set.
 
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
@@ -1575,6 +1637,9 @@ by doing (clear-string STRING)."
 		(sit-for 1))))
 	  success)
       (let ((pass nil)
+	    ;; Copy it so that add-text-properties won't modify
+	    ;; the object that was passed in by the caller.
+	    (prompt (copy-sequence prompt))
 	    (c 0)
 	    (echo-keystrokes 0)
 	    (cursor-in-echo-area t)
@@ -2137,7 +2202,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
 ;;;; Lisp macros to do various things temporarily.
 
 (defmacro with-current-buffer (buffer &rest body)
-  "Execute the forms in BODY with BUFFER as the current buffer.
+  "Execute the forms in BODY with BUFFER temporarily current.
+BUFFER can be a buffer or a buffer name.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
@@ -2267,13 +2333,19 @@ See also `with-temp-file' and `with-output-to-string'."
 (defmacro with-local-quit (&rest body)
   "Execute BODY, allowing quits to terminate BODY but not escape further.
 When a quit terminates BODY, `with-local-quit' returns nil but
-requests another quit.  That quit will be processed, the next time quitting
-is allowed once again."
+requests another quit.  That quit will be processed as soon as quitting
+is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
   (declare (debug t) (indent 0))
   `(condition-case nil
        (let ((inhibit-quit nil))
 	 ,@body)
-     (quit (setq quit-flag t) nil)))
+     (quit (setq quit-flag t)
+	   ;; This call is to give a chance to handle quit-flag
+	   ;; in case inhibit-quit is nil.
+	   ;; Without this, it will not be handled until the next function
+	   ;; call, and that might allow it to exit thru a condition-case
+	   ;; that intends to handle the quit signal next time.
+	   (eval '(ignore nil)))))
 
 (defmacro while-no-input (&rest body)
   "Execute BODY only as long as there's no pending input.

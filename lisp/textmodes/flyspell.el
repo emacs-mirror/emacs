@@ -486,6 +486,18 @@ in your .emacs file.
       (flyspell-mode-on)
     (flyspell-mode-off)))
 
+;;;###autoload
+(defun turn-on-flyspell ()
+  "Unconditionally turn on Flyspell mode."
+  (flyspell-mode 1))
+
+;;;###autoload
+(defun turn-off-flyspell ()
+  "Unconditionally turn off Flyspell mode."
+  (flyspell-mode -1))
+
+(custom-add-option 'text-mode-hook 'turn-on-flyspell)
+
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-buffers ...                                             */
 ;;*    -------------------------------------------------------------    */

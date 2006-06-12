@@ -430,7 +430,7 @@ and:
 	      (if buffer-read-only
 		  (if (not quiet)
 		      (message "Can't cleanup: %s is read-only" (buffer-name)))
-		(whitespace-cleanup))
+		(whitespace-cleanup-internal))
 	    (let ((whitespace-leading (if whitespace-check-buffer-leading
 					  (whitespace-buffer-leading)
 					nil))
@@ -520,6 +520,11 @@ and:
   "Cleanup the five different kinds of whitespace problems.
 See `whitespace-buffer' docstring for a summary of the problems."
   (interactive)
+  (if (and transient-mark-mode mark-active)
+      (whitespace-cleanup-region (region-beginning) (region-end))
+    (whitespace-cleanup-internal)))
+
+(defun whitespace-cleanup-internal ()
   ;; If this buffer really contains a file, then run, else quit.
   (whitespace-check-whitespace-mode current-prefix-arg)
   (if (and buffer-file-name whitespace-mode)
@@ -563,7 +568,7 @@ See `whitespace-buffer' docstring for a summary of the problems."
 
 	;; Call this recursively till everything is taken care of
 	(if whitespace-any
-	    (whitespace-cleanup)
+	    (whitespace-cleanup-internal)
 	  (progn
 	    (if (not whitespace-silent)
 		(message "%s clean" buffer-file-name))
@@ -577,7 +582,7 @@ See `whitespace-buffer' docstring for a summary of the problems."
   (save-excursion
     (save-restriction
       (narrow-to-region s e)
-      (whitespace-cleanup))
+      (whitespace-cleanup-internal))
     (whitespace-buffer t)))
 
 (defun whitespace-buffer-leading ()
@@ -760,7 +765,7 @@ If timer is not set, then set it to scan the files in
 		    (if whitespace-auto-cleanup
 			(progn
 			  ;;(message "cleaning up whitespace in %s" bufname)
-			  (whitespace-cleanup))
+			  (whitespace-cleanup-internal))
 		      (progn
 			;;(message "whitespace-buffer %s." (buffer-name))
 			(whitespace-buffer t))))
@@ -806,7 +811,7 @@ This is meant to be added buffer-locally to `write-file-functions'."
   (interactive)
   (let ((werr nil))
     (if whitespace-auto-cleanup
-	(whitespace-cleanup)
+	(whitespace-cleanup-internal)
       (setq werr (whitespace-buffer)))
     (if (and whitespace-abort-on-error werr)
 	(error (concat "Abort write due to whitespaces in "

@@ -431,6 +431,19 @@ Numerically, the
 bit values are 2**22 for alt, 2**23 for super and 2**24 for hyper.
 @end ifnottex
 
+@cindex unicode character escape
+  Emacs provides a syntax for specifying characters by their Unicode
+code points.  @code{?\u@var{nnnn}} represents a character that maps to
+the Unicode code point @samp{U+@var{nnnn}}.  There is a slightly
+different syntax for specifying characters with code points above
+@code{#xFFFF}; @code{\U00@var{nnnnnn}} represents the character whose
+Unicode code point is @samp{U+@var{nnnnnn}}, if such a character
+is supported by Emacs.
+
+  Unlike in some other programming languages, in Emacs Lisp this
+syntax is available for character literals, and (see later) in
+strings, but not elsewhere.
+
 @cindex @samp{\} in character constant
 @cindex backslash in character constant
 @cindex octal character code

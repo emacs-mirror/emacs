@@ -291,6 +291,9 @@ not be enclosed in { } or ( )."
 ;; that if you change this regexp you might have to fix the imenu index in
 ;; makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
+  ;; We used to match not just the varname but also the whole value
+  ;; (spanning potentially several lines).
+  ;; "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)\\)"
   "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=\\|[*:+]?[:?]?=\\)"
   "Regex used to find macro assignment lines in a makefile.")
 
@@ -623,39 +626,38 @@ The function must satisfy this calling convention:
     map)
   "The keymap that is used in Makefile mode.")
 
-(defvar makefile-browser-map nil
+
+(defvar makefile-browser-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "n"    'makefile-browser-next-line)
+    (define-key map "\C-n" 'makefile-browser-next-line)
+    (define-key map "p"    'makefile-browser-previous-line)
+    (define-key map "\C-p" 'makefile-browser-previous-line)
+    (define-key map " "    'makefile-browser-toggle)
+    (define-key map "i"    'makefile-browser-insert-selection)
+    (define-key map "I"    'makefile-browser-insert-selection-and-quit)
+    (define-key map "\C-c\C-m" 'makefile-browser-insert-continuation)
+    (define-key map "q"    'makefile-browser-quit)
+    ;; disable horizontal movement
+    (define-key map "\C-b" 'undefined)
+    (define-key map "\C-f" 'undefined)
+    map)
   "The keymap that is used in the macro- and target browser.")
-(if makefile-browser-map
-    ()
-  (setq makefile-browser-map (make-sparse-keymap))
-  (define-key makefile-browser-map "n"    'makefile-browser-next-line)
-  (define-key makefile-browser-map "\C-n" 'makefile-browser-next-line)
-  (define-key makefile-browser-map "p"    'makefile-browser-previous-line)
-  (define-key makefile-browser-map "\C-p" 'makefile-browser-previous-line)
-  (define-key makefile-browser-map " "    'makefile-browser-toggle)
-  (define-key makefile-browser-map "i"    'makefile-browser-insert-selection)
-  (define-key makefile-browser-map "I"    'makefile-browser-insert-selection-and-quit)
-  (define-key makefile-browser-map "\C-c\C-m" 'makefile-browser-insert-continuation)
-  (define-key makefile-browser-map "q"    'makefile-browser-quit)
-  ;; disable horizontal movement
-  (define-key makefile-browser-map "\C-b" 'undefined)
-  (define-key makefile-browser-map "\C-f" 'undefined))
 
 
-(defvar makefile-mode-syntax-table nil)
-(if makefile-mode-syntax-table
-    ()
-  (setq makefile-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\( "()    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\) ")(    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\[ "(]    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\] ")[    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\{ "(}    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\} "){    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\' "\"     " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\` "\"     " makefile-mode-syntax-table)
-  (modify-syntax-entry ?#  "<     " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\n ">     " makefile-mode-syntax-table))
+(defvar makefile-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\( "()    " st)
+    (modify-syntax-entry ?\) ")(    " st)
+    (modify-syntax-entry ?\[ "(]    " st)
+    (modify-syntax-entry ?\] ")[    " st)
+    (modify-syntax-entry ?\{ "(}    " st)
+    (modify-syntax-entry ?\} "){    " st)
+    (modify-syntax-entry ?\' "\"    " st)
+    (modify-syntax-entry ?\` "\"    " st)
+    (modify-syntax-entry ?#  "<     " st)
+    (modify-syntax-entry ?\n ">     " st)
+    st))
 
 (defvar makefile-imake-mode-syntax-table (copy-syntax-table
 					  makefile-mode-syntax-table))
@@ -1302,30 +1304,9 @@ definition and conveniently use this command."
   (save-excursion
     (beginning-of-line)
     (cond
-     ((looking-at "^#+")
-      ;; Found a comment.  Set the fill prefix, and find the paragraph
-      ;; boundaries by searching for lines that look like comment-only
-      ;; lines.
-      (let ((fill-prefix (match-string-no-properties 0))
-	    (fill-paragraph-function nil))
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region
-	     ;; Search backwards.
-	     (save-excursion
-	       (while (and (zerop (forward-line -1))
-			   (looking-at "^#")))
-	       ;; We may have gone too far.  Go forward again.
-	       (or (looking-at "^#")
-		   (forward-line 1))
-	       (point))
-	     ;; Search forwards.
-	     (save-excursion
-	       (while (looking-at "^#")
-		 (forward-line))
-	       (point)))
-	    (fill-paragraph nil)
-	    t))))
+     ((looking-at "^#+\\s-*")
+      ;; Found a comment.  Return nil to let normal filling take place.
+      nil)
 
      ;; Must look for backslashed-region before looking for variable
      ;; assignment.
@@ -1354,7 +1335,9 @@ definition and conveniently use this command."
 	  (makefile-backslash-region (point-min) (point-max) nil)
 	  (goto-char (point-max))
 	  (if (< (skip-chars-backward "\n") 0)
-	      (delete-region (point) (point-max))))))
+	      (delete-region (point) (point-max)))))
+      ;; Return non-nil to indicate it's been filled.
+      t)
 
      ((looking-at makefile-macroassign-regex)
       ;; Have a macro assign.  Fill just this line, and then backslash
@@ -1363,10 +1346,13 @@ definition and conveniently use this command."
 	(narrow-to-region (point) (line-beginning-position 2))
 	(let ((fill-paragraph-function nil))
 	  (fill-paragraph nil))
-	(makefile-backslash-region (point-min) (point-max) nil)))))
+	(makefile-backslash-region (point-min) (point-max) nil))
+      ;; Return non-nil to indicate it's been filled.
+      t)
 
-  ;; Always return non-nil so we don't fill anything else.
-  t)
+     (t
+      ;; Return non-nil so we don't fill anything else.
+      t))))
 
 
 
@@ -1882,5 +1868,5 @@ If it isn't in one, return nil."
 
 (provide 'make-mode)
 
-;;; arch-tag: bd23545a-de91-44fb-b1b2-feafbb2635a0
+;; arch-tag: bd23545a-de91-44fb-b1b2-feafbb2635a0
 ;;; make-mode.el ends here

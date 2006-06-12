@@ -2185,11 +2185,11 @@ field name is specified, the value is bound to that field name.
 @var{form} can access and update these dynamically bound variables:
 
 @table @code
-@item raw-data
+@item bindat-raw
 The data as a byte array.
 
-@item pos
-Current position of the unpacking or packing operation.
+@item bindat-idx
+Current index into bindat-raw of the unpacking or packing operation.
 
 @item struct
 Alist.
@@ -2231,23 +2231,26 @@ of @var{form}.  A non-@code{nil} result indicates a match.
 @end itemize
 
 @item repeat @var{count} @var{field-spec}@dots{}
+Process the set of @var{field-spec}s recursively, in order, and loop
+starting from the first one, for @var{count} times overall (looping
+@code{@var{count} @minus{} 1} times).
 @var{count} may be an integer, or a list of one element naming a
 previous field.  For correct operation, each @var{field-spec} must
 include a name.
-@c ??? What does it MEAN?
 @end table
 
 @node Bindat Functions
 @subsection Functions to Unpack and Pack Bytes
 
   In the following documentation, @var{spec} refers to a data layout
-specification, @code{raw-data} to a byte array, and @var{struct} to an
+specification, @code{bindat-raw} to a byte array, and @var{struct} to an
 alist representing unpacked field data.
 
-@defun bindat-unpack spec raw-data &optional pos
-This function unpacks data from the byte array @code{raw-data}
+@defun bindat-unpack spec bindat-raw &optional bindat-idx
+This function unpacks data from the unibyte string or byte
+array @code{bindat-raw}
 according to @var{spec}.  Normally this starts unpacking at the
-beginning of the byte array, but if @var{pos} is non-@code{nil}, it
+beginning of the byte array, but if @var{bindat-idx} is non-@code{nil}, it
 specifies a zero-based starting position to use instead.
 
 The value is an alist or nested alist in which each element describes
@@ -2267,23 +2270,29 @@ field @code{c} in the third element of subfield @code{b} of field
 @code{a}.  (This corresponds to @code{struct.a.b[2].c} in C.)
 @end defun
 
+  Although packing and unpacking operations change the organization of
+data (in memory), they preserve the data's @dfn{total length}, which is
+the sum of all the fields' lengths, in bytes.  This value is not
+generally inherent in either the specification or alist alone; instead,
+both pieces of information contribute to its calculation.  Likewise, the
+length of a string or array being unpacked may be longer than the data's
+total length as described by the specification.
+
 @defun bindat-length spec struct
-@c ??? I don't understand this at all -- rms
-This function returns the length in bytes of @var{struct}, according
-to @var{spec}.
+This function returns the total length of the data in @var{struct},
+according to @var{spec}.
 @end defun
 
-@defun bindat-pack spec struct &optional raw-data pos
+@defun bindat-pack spec struct &optional bindat-raw bindat-idx
 This function returns a byte array packed according to @var{spec} from
 the data in the alist @var{struct}.  Normally it creates and fills a
-new byte array starting at the beginning.  However, if @var{raw-data}
-is non-@code{nil}, it specifies a pre-allocated string or vector to
-pack into.  If @var{pos} is non-@code{nil}, it specifies the starting
-offset for packing into @code{raw-data}.
+new byte array starting at the beginning.  However, if @var{bindat-raw}
+is non-@code{nil}, it specifies a pre-allocated unibyte string or vector to
+pack into.  If @var{bindat-idx} is non-@code{nil}, it specifies the starting
+offset for packing into @code{bindat-raw}.
 
-@c ??? Isn't this a bug?  Shouldn't it always be unibyte?
-Note: The result is a multibyte string; use @code{string-make-unibyte}
-on it to make it unibyte if necessary.
+When pre-allocating, you should make sure @code{(length @var{bindat-raw})}
+meets or exceeds the total length to avoid an out-of-range error.
 @end defun
 
 @defun bindat-ip-to-string ip
@@ -2367,18 +2376,17 @@ COOKIES, indicates the border between entries."
     (with-temp-buffer
       (set-buffer-multibyte nil)
       (insert
-       (string-make-unibyte
-        (bindat-pack
-         fcookie-index-spec
-         `((:version . 2)
-           (:count . ,count)
-           (:longest . ,max)
-           (:shortest . ,min)
-           (:flags . 0)
-           (:delim . ,delim)
-           (:offset . ,(mapcar (lambda (o)
-                                 (list (cons :foo o)))
-                               (nreverse offsets)))))))
+       (bindat-pack
+        fcookie-index-spec
+        `((:version . 2)
+          (:count . ,count)
+          (:longest . ,max)
+          (:shortest . ,min)
+          (:flags . 0)
+          (:delim . ,delim)
+          (:offset . ,(mapcar (lambda (o)
+                                (list (cons :foo o)))
+                              (nreverse offsets))))))
       (let ((coding-system-for-write 'raw-text-unix))
         (write-file (or index (concat cookies ".dat")))))))
 @end lisp

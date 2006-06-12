@@ -1007,7 +1007,7 @@ variable `msb-menu-cond'."
       (mouse-select-buffer event))
      ((and (numberp (car choice))
 	   (null (cdr choice)))
-      (let ((msb--last-buffer-menu (nthcdr 3 (assq (car choice)
+      (let ((msb--last-buffer-menu (nthcdr 2 (assq (car choice)
 						   msb--last-buffer-menu))))
 	(mouse-select-buffer event)))
      ((while (numberp (car choice))

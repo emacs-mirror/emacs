@@ -367,7 +367,7 @@ Thus, this does not include the shell's current directory.")
 (put 'shell-mode 'mode-class 'special)
 
 (define-derived-mode shell-mode comint-mode "Shell"
-  "Major mode for interacting with an inferior shell.
+  "Major mode for interacting with an inferior shell.\\<shell-mode-map>
 \\[comint-send-input] after the end of the process' output sends the text from
     the end of process to the end of the current line.
 \\[comint-send-input] before end of process output copies the current line minus the prompt to
@@ -433,11 +433,11 @@ buffer."
   (setq shell-dirstack nil)
   (make-local-variable 'shell-last-dir)
   (setq shell-last-dir nil)
-  (shell-dirtrack-mode 1)
   (setq comint-input-autoexpand shell-input-autoexpand)
   ;; This is not really correct, since the shell buffer does not really
   ;; edit this directory.  But it is useful in the buffer list and menus.
   (make-local-variable 'list-buffers-directory)
+  (shell-dirtrack-mode 1)
   (setq list-buffers-directory (expand-file-name default-directory))
   ;; shell-dependent assignments.
   (when (ring-empty-p comint-input-ring)

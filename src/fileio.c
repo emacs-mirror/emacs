@@ -2406,32 +2406,31 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
   return;
 }
 
-DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 6,
+DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 5,
        "fCopy file: \nGCopy %s to file: \np\nP",
        doc: /* Copy FILE to NEWNAME.  Both args must be strings.
 If NEWNAME names a directory, copy FILE there.
-Signals a `file-already-exists' error if file NEWNAME already exists,
-unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
-A number as third arg means request confirmation if NEWNAME already exists.
-This is what happens in interactive use with M-x.
-Always sets the file modes of the output file to match the input file.
+
+This function always sets the file modes of the output file to match
+the input file.
+
+The optional third argument OK-IF-ALREADY-EXISTS specifies what to do
+if file NEWNAME already exists.  If OK-IF-ALREADY-EXISTS is nil, we
+signal a `file-already-exists' error without overwriting.  If
+OK-IF-ALREADY-EXISTS is a number, we request confirmation from the user
+about overwriting; this is what happens in interactive use with M-x.
+Any other value for OK-IF-ALREADY-EXISTS means to overwrite the
+existing file.
 
 Fourth arg KEEP-TIME non-nil means give the output file the same
 last-modified time as the old one.  (This works on only some systems.)
 
 A prefix arg makes KEEP-TIME non-nil.
 
-The optional fifth arg MUSTBENEW, if non-nil, insists on a check
-for an existing file with the same name.  If MUSTBENEW is `excl',
-that means to get an error if the file already exists; never overwrite.
-If MUSTBENEW is neither nil nor `excl', that means ask for
-confirmation before overwriting, but do go ahead and overwrite the file
-if the user confirms.
-
 If PRESERVE-UID-GID is non-nil, we try to transfer the
 uid and gid of FILE to NEWNAME.  */)
-  (file, newname, ok_if_already_exists, keep_time, mustbenew, preserve_uid_gid)
-     Lisp_Object file, newname, ok_if_already_exists, keep_time, mustbenew;
+  (file, newname, ok_if_already_exists, keep_time, preserve_uid_gid)
+     Lisp_Object file, newname, ok_if_already_exists, keep_time;
      Lisp_Object preserve_uid_gid;
 {
   int ifd, ofd, n;
@@ -2447,9 +2446,6 @@ uid and gid of FILE to NEWNAME.  */)
   GCPRO4 (file, newname, encoded_file, encoded_newname);
   CHECK_STRING (file);
   CHECK_STRING (newname);
-
-  if (!NILP (mustbenew) && !EQ (mustbenew, Qexcl))
-    barf_or_query_if_file_exists (newname, "overwrite", 1, 0, 1);
 
   if (!NILP (Ffile_directory_p (newname)))
     newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
@@ -2553,12 +2549,12 @@ uid and gid of FILE to NEWNAME.  */)
   /* System's default file type was set to binary by _fmode in emacs.c.  */
   ofd = emacs_open (SDATA (encoded_newname),
 		    O_WRONLY | O_TRUNC | O_CREAT
-		    | (EQ (mustbenew, Qexcl) ? O_EXCL : 0),
+		    | (NILP (ok_if_already_exists) ? O_EXCL : 0),
 		    S_IREAD | S_IWRITE);
 #else  /* not MSDOS */
   ofd = emacs_open (SDATA (encoded_newname),
 		    O_WRONLY | O_TRUNC | O_CREAT
-		    | (EQ (mustbenew, Qexcl) ? O_EXCL : 0),
+		    | (NILP (ok_if_already_exists) ? O_EXCL : 0),
 		    0666);
 #endif /* not MSDOS */
 #endif /* VMS */
@@ -2803,7 +2799,7 @@ This is what happens in interactive use with M-x.  */)
 			/* We have already prompted if it was an integer,
 			   so don't have copy-file prompt again.  */
 			NILP (ok_if_already_exists) ? Qnil : Qt,
-			Qt, Qnil, Qt);
+			Qt, Qt);
 
 	  Fdelete_file (file);
 	}

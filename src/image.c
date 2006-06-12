@@ -6106,7 +6106,6 @@ png_load (f, img)
 	{
 	  image_error ("Cannot open image file `%s'", file, Qnil);
 	  UNGCPRO;
-	  fclose (fp);
 	  return 0;
 	}
 

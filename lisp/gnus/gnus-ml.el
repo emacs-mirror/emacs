@@ -4,7 +4,7 @@
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Julien Gilles  <jgilles@free.fr>
-;; Keywords: news
+;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
 
@@ -51,8 +51,7 @@
     "\C-c\C-nu" gnus-mailing-list-unsubscribe
     "\C-c\C-np" gnus-mailing-list-post
     "\C-c\C-no" gnus-mailing-list-owner
-    "\C-c\C-na" gnus-mailing-list-archive
-    ))
+    "\C-c\C-na" gnus-mailing-list-archive))
 
 (defun gnus-mailing-list-make-menu-bar ()
   (unless (boundp 'gnus-mailing-list-menu)
@@ -103,7 +102,8 @@ If FORCE is non-nil, replace the old ones."
       ;; Set up the menu.
       (when (gnus-visual-p 'mailing-list-menu 'menu)
 	(gnus-mailing-list-make-menu-bar))
-      (gnus-add-minor-mode 'gnus-mailing-list-mode " Mailing-List" gnus-mailing-list-mode-map)
+      (gnus-add-minor-mode 'gnus-mailing-list-mode " Mailing-List"
+			   gnus-mailing-list-mode-map)
       (gnus-run-hooks 'gnus-mailing-list-mode-hook))))
 
 ;;; Commands
@@ -118,7 +118,7 @@ If FORCE is non-nil, replace the old ones."
 	  (t (gnus-message 1 "no list-help in this group")))))
 
 (defun gnus-mailing-list-subscribe ()
-  "Subscribe"
+  "Subscribe to mailing list."
   (interactive)
   (let ((list-subscribe
 	 (with-current-buffer gnus-original-article-buffer
@@ -127,7 +127,7 @@ If FORCE is non-nil, replace the old ones."
 	  (t (gnus-message 1 "no list-subscribe in this group")))))
 
 (defun gnus-mailing-list-unsubscribe ()
-  "Unsubscribe"
+  "Unsubscribe from mailing list."
   (interactive)
   (let ((list-unsubscribe
 	 (with-current-buffer gnus-original-article-buffer
@@ -145,7 +145,7 @@ If FORCE is non-nil, replace the old ones."
 	  (t (gnus-message 1 "no list-post in this group")))))
 
 (defun gnus-mailing-list-owner ()
-  "Mail to the owner"
+  "Mail to the mailing list owner."
   (interactive)
   (let ((list-owner
 	 (with-current-buffer gnus-original-article-buffer
@@ -154,7 +154,7 @@ If FORCE is non-nil, replace the old ones."
 	  (t (gnus-message 1 "no list-owner in this group")))))
 
 (defun gnus-mailing-list-archive ()
-  "Browse archive"
+  "Browse archive."
   (interactive)
   (require 'browse-url)
   (let ((list-archive
@@ -169,33 +169,14 @@ If FORCE is non-nil, replace the old ones."
 ;;; Utility functions
 
 (defun gnus-mailing-list-message (address)
-  ""
-  (let ((mailto  "")
-	(to ())
-	(subject "None")
-	(body "")
-	)
-    (cond
-     ((string-match "<mailto:\\([^>]*\\)>" address)
-      (let ((args (match-string 1 address)))
-	(cond				; with param
-	 ((string-match "\\(.*\\)\\?\\(.*\\)" args)
-	  (setq mailto (match-string 1 args))
-	  (let ((param (match-string 2 args)))
-	    (if (string-match "subject=\\([^&]*\\)" param)
-		(setq subject (match-string 1 param)))
-	    (if (string-match "body=\\([^&]*\\)" param)
-		(setq body (match-string 1 param)))
-	    (if (string-match "to=\\([^&]*\\)" param)
-		(push (match-string 1 param) to))
-	    ))
-	 (t (setq mailto args)))))	; without param
-
-     ; other case <http://... to be done.
-     (t nil))
-    (gnus-setup-message 'message (message-mail mailto subject))
-    (insert body)
-    ))
+  "Send message to ADDRESS.
+ADDRESS is specified by a \"mailto:\" URL."
+  (cond
+   ((string-match "<\\(mailto:[^>]*\\)>" address)
+    (require 'gnus-art)
+    (gnus-url-mailto (match-string 1 address)))
+   ;; other case <http://...> to be done.
+   (t nil)))
 
 (provide 'gnus-ml)
 

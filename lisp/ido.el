@@ -448,35 +448,41 @@ in merged file and directory lists."
 ;;; Examples for setting the value of ido-ignore-files
 ;(setq ido-ignore-files '("^ " "\\.c$" "\\.h$"))
 
-(defcustom ido-default-file-method  'always-frame
-    "*How to switch to new file when using `ido-find-file'.
+(defcustom ido-default-file-method  'raise-frame
+    "*How to visit a new file when using `ido-find-file'.
 Possible values:
-`samewindow'	Show new file in same window
-`otherwindow'	Show new file in another window (same frame)
-`display'	Display file in another window without switching to it
-`otherframe'	Show new file in another frame
-`maybe-frame'	If a file is visible in another frame, prompt to ask if you
-		you want to see the file in the same window of the current
-  		frame or in the other frame
-`always-frame'  If a file is visible in another frame, raise that
-		frame; otherwise, visit the file in the same window"
-    :type '(choice (const samewindow)
-		   (const otherwindow)
-		   (const display)
-		   (const otherframe)
-		   (const maybe-frame)
-		   (const always-frame))
+`selected-window' Show new file in selected window
+`other-window'	  Show new file in another window (same frame)
+`display'	  Display file in another window without selecting to it
+`other-frame'	  Show new file in another frame
+`maybe-frame'	  If a file is visible in another frame, prompt to ask if you
+		  you want to see the file in the same window of the current
+  		  frame or in the other frame
+`raise-frame'     If a file is visible in another frame, raise that
+		  frame; otherwise, visit the file in the same window"
+    :type '(choice (const :tag "Visit in selected window" selected-window)
+		   (const :tag "Visit in other window" other-window)
+		   (const :tag "Display (no select) in other window" display)
+		   (const :tag "Visit in other frame" other-frame)
+		   (const :tag "Ask to visit in other frame" maybe-frame)
+		   (const :tag "Raise frame if already visited" raise-frame))
     :group 'ido)
 
-(defcustom ido-default-buffer-method  'always-frame
+(defcustom ido-default-buffer-method  'raise-frame
     "*How to switch to new buffer when using `ido-switch-buffer'.
 See `ido-default-file-method' for details."
-    :type '(choice (const samewindow)
-		   (const otherwindow)
+    :type '(choice (const :tag "Show in selected window" selected-window)
+		   (const :tag "Show in other window" other-window)
+		   (const :tag "Display (no select) in other window" display)
+		   (const :tag "Show in other frame" other-frame)
+		   (const :tag "Ask to show in other frame" maybe-frame)
+		   (const :tag "Raise frame if already shown" raise-frame))
+    :type '(choice (const selected-window)
+		   (const other-window)
 		   (const display)
-		   (const otherframe)
+		   (const other-frame)
 		   (const maybe-frame)
-		   (const always-frame))
+		   (const raise-frame))
     :group 'ido)
 
 (defcustom ido-enable-flex-matching nil
@@ -1532,6 +1538,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map "\C-t" 'ido-toggle-regexp)
     (define-key map "\C-z" 'ido-undo-merge-work-directory)
     (define-key map [(control ?\s)] 'ido-restrict-to-matches)
+    (define-key map [(meta ?\s)] 'ido-take-first-match)
     (define-key map [(control ?@)] 'ido-restrict-to-matches)
     (define-key map [right] 'ido-next-match)
     (define-key map [left] 'ido-prev-match)
@@ -1559,6 +1566,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map "\C-l" 'ido-reread-directory)
     (define-key map [(meta ?d)] 'ido-wide-find-dir-or-delete-dir)
     (define-key map [(meta ?b)] 'ido-push-dir)
+    (define-key map [(meta ?v)] 'ido-push-dir-first)
     (define-key map [(meta ?f)] 'ido-wide-find-file-or-pop-dir)
     (define-key map [(meta ?k)] 'ido-forget-work-directory)
     (define-key map [(meta ?m)] 'ido-make-directory)
@@ -2086,8 +2094,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 			(cons (cons ido-current-directory ido-selected) ido-last-directory-list)))))
 	  (ido-set-current-directory ido-current-directory ido-selected)
 	  (if ido-input-stack
-	      (while ido-input-stack
-		(let ((elt (car ido-input-stack)))
+	      ; automatically pop stack elements which match existing files or directories
+	      (let (elt)
+		(while (and (setq elt (car ido-input-stack))
+			    (file-exists-p (concat ido-current-directory (cdr elt))))
 		  (if (setq ido-input-stack (cdr ido-input-stack))
 		      (ido-set-current-directory ido-current-directory (cdr elt))
 		    (setq ido-text-init (cdr elt)))
@@ -2331,7 +2341,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(setq default-directory ido-current-directory)
 	(ido-record-command 'write-file (concat ido-current-directory filename))
 	(ido-record-work-directory)
-	(write-file filename))
+	(write-file (concat ido-current-directory filename)))
 
        ((eq method 'read-only)
 	(ido-record-work-file filename)
@@ -2799,9 +2809,25 @@ If input stack is non-empty, delete current directory component."
       (ido-delete-backward-word-updir 1)
     (ido-wide-find-dir)))
 
+(defun ido-take-first-match ()
+  "Use first matching item as input text."
+  (interactive)
+  (when ido-matches
+    (setq ido-text-init (car ido-matches))
+    (setq ido-exit 'refresh)
+    (exit-minibuffer)))
+
 (defun ido-push-dir ()
   "Move to previous directory in file name, push current input on stack."
   (interactive)
+  (setq ido-exit 'push)
+  (exit-minibuffer))
+
+(defun ido-push-dir-first ()
+  "Move to previous directory in file name, push first match on stack."
+  (interactive)
+  (if ido-matches
+      (setq ido-text (car ido-matches)))
   (setq ido-exit 'push)
   (exit-minibuffer))
 
@@ -2874,6 +2900,7 @@ If repeated, insert text from buffer instead."
     (when name
       (setq ido-text-init
 	    (if (or all
+		    (eq last-command this-command)
 		    (not (equal (file-name-directory bfname) ido-current-directory))
 		    (not (string-match "\\.[^.]*\\'" name)))
 		name
@@ -3742,7 +3769,7 @@ for first matching file."
 
 ;;; VISIT CHOSEN BUFFER
 (defun ido-visit-buffer (buffer method &optional record)
-  "Visit file named FILE according to METHOD.
+  "Switch to BUFFER according to METHOD.
 Record command in `command-history' if optional RECORD is non-nil."
 
   (let (win newframe)
@@ -3752,33 +3779,7 @@ Record command in `command-history' if optional RECORD is non-nil."
 	  (ido-record-command 'kill-buffer buffer))
       (kill-buffer buffer))
 
-     ((eq method 'samewindow)
-      (if record
-	  (ido-record-command 'switch-to-buffer buffer))
-      (switch-to-buffer buffer))
-
-     ((memq method '(always-frame maybe-frame))
-      (cond
-       ((and window-system
-	     (setq win (ido-window-buffer-p buffer))
-	     (or (eq method 'always-frame)
-		 (y-or-n-p "Jump to frame? ")))
-	(setq newframe (window-frame win))
-	(if (fboundp 'select-frame-set-input-focus)
-	    (select-frame-set-input-focus newframe)
-	  (raise-frame newframe)
-	  (select-frame newframe)
-	  (unless (featurep 'xemacs)
-	    (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
-	(select-window win))
-       (t
-	;;  No buffer in other frames...
-	(if record
-	    (ido-record-command 'switch-to-buffer buffer))
-	(switch-to-buffer buffer)
-	)))
-
-     ((eq method 'otherwindow)
+     ((eq method 'other-window)
       (if record
 	  (ido-record-command 'switch-to-buffer buffer))
       (switch-to-buffer-other-window buffer))
@@ -3786,14 +3787,29 @@ Record command in `command-history' if optional RECORD is non-nil."
      ((eq method 'display)
       (display-buffer buffer))
 
-     ((eq method 'otherframe)
+     ((eq method 'other-frame)
       (switch-to-buffer-other-frame buffer)
-      (unless (featurep 'xemacs)
-	(select-frame-set-input-focus (selected-frame)))
+      (select-frame-set-input-focus (selected-frame)))
+
+     ((and (memq method '(raise-frame maybe-frame))
+	   window-system
+	   (setq win (ido-buffer-window-other-frame buffer))
+	   (or (eq method 'raise-frame)
+	       (y-or-n-p "Jump to frame? ")))
+      (setq newframe (window-frame win))
+      (select-frame-set-input-focus newframe)
+      (select-window win))
+
+     ;; (eq method 'selected-window)
+     (t
+      ;;  No buffer in other frames...
+      (if record
+	  (ido-record-command 'switch-to-buffer buffer))
+      (switch-to-buffer buffer)
       ))))
 
 
-(defun ido-window-buffer-p  (buffer)
+(defun ido-buffer-window-other-frame  (buffer)
   ;; Return window pointer if BUFFER is visible in another frame.
   ;; If BUFFER is visible in the current frame, return nil.
   (let ((blist (ido-get-buffers-in-frames 'current)))
@@ -3850,7 +3866,7 @@ in a separate window.
 The buffer name is selected interactively by typing a substring.
 For details of keybindings, do `\\[describe-function] ido'."
   (interactive)
-  (ido-buffer-internal 'otherwindow 'switch-to-buffer-other-window))
+  (ido-buffer-internal 'other-window 'switch-to-buffer-other-window))
 
 ;;;###autoload
 (defun ido-display-buffer ()
@@ -3883,7 +3899,7 @@ The buffer name is selected interactively by typing a substring.
 For details of keybindings, do `\\[describe-function] ido'."
   (interactive)
   (if ido-mode
-      (ido-buffer-internal 'otherframe)
+      (ido-buffer-internal 'other-frame)
     (call-interactively 'switch-to-buffer-other-frame)))
 
 ;;;###autoload
@@ -3945,7 +3961,7 @@ in a separate window.
 The file name is selected interactively by typing a substring.
 For details of keybindings, do `\\[describe-function] ido-find-file'."
   (interactive)
-  (ido-file-internal 'otherwindow 'find-file-other-window))
+  (ido-file-internal 'other-window 'find-file-other-window))
 
 ;;;###autoload
 (defun ido-find-alternate-file ()
@@ -3993,7 +4009,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 The file name is selected interactively by typing a substring.
 For details of keybindings, do `\\[describe-function] ido-find-file'."
   (interactive)
-  (ido-file-internal 'otherframe 'find-file-other-frame))
+  (ido-file-internal 'other-frame 'find-file-other-frame))
 
 ;;;###autoload
 (defun ido-write-file ()

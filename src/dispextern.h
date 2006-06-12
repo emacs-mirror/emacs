@@ -2623,8 +2623,8 @@ void remember_mouse_glyph P_ ((struct frame *, int, int, NativeRectangle *));
 
 void mark_window_display_accurate P_ ((Lisp_Object, int));
 void redisplay_preserve_echo_area P_ ((int));
-void set_cursor_from_row P_ ((struct window *, struct glyph_row *,
-			      struct glyph_matrix *, int, int, int, int));
+int set_cursor_from_row P_ ((struct window *, struct glyph_row *,
+			     struct glyph_matrix *, int, int, int, int));
 void init_iterator P_ ((struct it *, struct window *, int,
 			int, struct glyph_row *, enum face_id));
 void init_iterator_to_row_start P_ ((struct it *, struct window *,
@@ -2682,8 +2682,8 @@ extern void x_fix_overlapping_area P_ ((struct window *, struct glyph_row *,
 extern void draw_phys_cursor_glyph P_ ((struct window *,
 					  struct glyph_row *,
 					  enum draw_glyphs_face));
-extern int get_phys_cursor_geometry P_ ((struct window *, struct glyph_row *,
-					 struct glyph *, int *));
+extern void get_phys_cursor_geometry P_ ((struct window *, struct glyph_row *,
+					  struct glyph *, int *, int *, int *));
 extern void erase_phys_cursor P_ ((struct window *));
 extern void display_and_set_cursor P_ ((struct window *,
 					  int, int, int, int, int));

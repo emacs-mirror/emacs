@@ -135,7 +135,7 @@ The architecture and the interface are, of course, drastically different.
 @chapter Major Entry Points
 
 When Ediff starts up, it displays a small control window, which accepts the
-Ediff commands and two or three windows displaying the files to be compared
+Ediff commands, and two or three windows displaying the files to be compared
 or merged. The control window can be in its own small frame or it can be
 part of a bigger frame that displays other buffers. In any case, it is
 important that the control window be active (i.e., be the one receiving the
@@ -829,7 +829,7 @@ identical to its default setting, as originally decided by Ediff.  For
 instance, if Ediff is merging according to the `combined' policy, then the
 merge region is skipped over if it is different from the combination of the
 regions in buffers A and B.  (Warning: swapping buffers A and B will confuse
-things in this respect).  If the merge region is marked as `prefer-A' then
+things in this respect.)  If the merge region is marked as `prefer-A' then
 this region will be skipped if it differs from the current difference
 region in buffer A, etc.
 
@@ -1455,7 +1455,7 @@ the control frame.
 To start Ediff with an iconified Control Panel, you should set this
 variable to @code{t} and @code{ediff-prefer-long-help-message} to
 @code{nil} (@pxref{Quick Help Customization}).  This behavior is useful
-only if icons are allowed to accept keybord input (which depend on the
+only if icons are allowed to accept keyboard input (which depends on the
 window manager and other factors).
 @end table
 
@@ -1599,8 +1599,6 @@ problem.
 @vindex ediff-ignore-case
 Finally, Ediff can be told to ignore the case of the letters. This behavior
 can be toggled with @kbd{#c} and it is controlled with three variables:
-Toggle case sensitivity in the diff program. All diffs are recomputed.
-Case sensitivity is controlled by the variables
 @code{ediff-ignore-case-option}, @code{ediff-ignore-case-option3}, and
 @code{ediff-ignore-case}.
 
@@ -1682,7 +1680,7 @@ Ediff uses faces to highlight differences.
 
 @item ediff-highlight-all-diffs
 @vindex ediff-highlight-all-diffs
-Indicates whether---on a windowind display---Ediff should highlight
+Indicates whether---on a windowing display---Ediff should highlight
 differences using inserted strings (as on text-only terminals) or using
 colors and highlighting.  Normally, Ediff highlights all differences, but
 the selected difference is highlighted more visibly.  One can cycle through
@@ -1721,7 +1719,7 @@ some Lisp code in @file{~/.emacs}.  For instance,
 @end example
 
 @noindent
-would use the pre-defined fase @code{bold-italic} to highlight the current
+would use the pre-defined face @code{bold-italic} to highlight the current
 difference region in buffer A (this face is not a good choice, by the way).
 
 If you are unhappy with just @emph{some} of the aspects of the default

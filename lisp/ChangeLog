@@ -1,3 +1,738 @@
+2006-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-edit): No-op if no server buffers exist.
+
+2006-06-11  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/page-ext.el (pages-directory-for-addresses): 
+	Including `pages-directory-address-mode' in the function results
+	in the message "Buffer in which pages were found is deleted".
+
+2006-06-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-agenda-mode-map): Add bindings for
+	clocking functions.
+
+	(org-agenda-clock-in, org-check-running-clock)
+	(org-clock-out-if-current, org-remove-clock-overlays)
+	(org-put-clock-overlay): New functions.
+	(org-clock-marker, org-clock-file-total-minutes)
+	(org-clock-overlays): New variables.
+	(org-clock-display, org-clock-sum, org-clock-cancel)
+	(org-clock-out, org-clock-in): New commands.
+	(org-export): New function.
+	(org-emph-re): New constant.
+	(org-set-emph-re, org-do-emphasis-faces): New functions.
+	(org-emphasis-regexp-components, org-emphasis-alist): New options.
+	(org-set-font-lock-defaults): Call `org-do-emphasis-faces'.
+	(org-export-html-convert-emphasize): Use the configurable emphasis.
+	(org-cleaned-string-for-export): Make multiline emphasis visible
+	to the exporter.  New optional argument PARAMETERS.
+	(org-export-as-html): Specify :emph-multiline parameter to
+	`org-cleaned-string-for-export'.
+
+2006-06-10  Richard Stallman  <rms@gnu.org>
+
+	* help.el (help-for-help-internal): Clean up help text.
+
+2006-06-10  Andreas Schwab  <schwab@suse.de>
+
+	* language/ethio-util.el (ethio-fidel-to-java-buffer): Fix quoting
+	in doc string.
+
+	* progmodes/cperl-mode.el (cperl-short-docs): Likewise.
+
+2006-06-09  Karl Chen  <quarl@cs.berkeley.edu>
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Don't remove
+	spaces after the comment start.
+
+2006-06-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* play/pong.el (pong-init-buffer):
+	Fill buffer with spaces instead of ^A.
+
+	* textmodes/ispell.el (ispell-kill-ispell): If ispell has been
+	launched asynchronously, delete its process instead of being cool.
+	(ispell-async-processp): Check for `delete-process' existence
+	instead of `kill-process' one for consistency.
+
+2006-06-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers-1)
+	(gdb-prompt, gdb-set-gud-minor-mode-existing-buffers): Show status
+	in mode line at startup.
+
+2006-06-08  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-take-first-match, ido-push-dir-first): New commands.
+	(ido-init-completion-maps): Bind them to M-SPC and M-v.
+	(ido-copy-current-file-name): Repeating C-w inserts whole file name.
+	(ido-file-internal): Pass full file name to write-file.
+	(ido-read-internal): Only pop stack elements automatically if they
+	actually match an existing directory or file name.
+
+2006-06-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (find-auto-coding): Don't handle the short
+	name `char-trans'.
+
+	* files.el (hack-local-variables-prop-line)
+	(hack-local-variables): Cancel the previous change.
+
+2006-06-06  Jesper Harder  <harder@phys.au.dk>
+
+	* ediff-diff.el (ediff-test-utility): Protect against
+	file-error.
+
+2006-06-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* diff-mode.el (diff-mode): Set buffer-read-only to t when
+	diff-default-read-only is non-nill.
+	(diff-hunk-kill, diff-file-kill, diff-split-hunk)
+	(diff-refine-hunk): Set inhibit-read-only to t.
+
+	* diff.el (diff-sentinel, diff): Set inhibit-read-only to t when
+	modifying the *Diff* buffer.
+	(diff-process-filter): New filter function for diff process that
+	sets inhibit-read-only to t when modifying the *Diff* buffer.
+
+2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-archive-subtree): Use end-of-subtree as
+	insertion point and control the number of empty lines.
+	(org-paste-subtree): Limit the number of empty lines at the end of
+	the inserted tree.
+	(org-agenda): Use buffer name of current file for narrowing.
+	(org-export-as-xml): Command removed.
+	(org-export-xml-type): Option removed.
+	(org-mode-map): Call `org-export-as-xoxo' directly.
+	(org-get-indentation): New optional argument LINE.
+	(org-fix-indentation, org-remove-tabs): New functions.
+	(org-export-as-ascii, org-ascii-level-start): Determine and apply
+	correct indentation for headlines that are converted it items.
+	(org-skip-comments): Remove table lines that contain narrowing
+	cookies but no other non-empty fields.
+	(org-set-tags): Allow groups of mutually exclusive tags.
+	(org-cmp-time): Sort 24:21 before items without time.
+	(org-get-time-of-day): Fixed the interpretation of 12pm and 12am.
+	(org-open-at-point): Require double colon also for numbers.
+
+2006-06-06  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-default-file-method, ido-default-buffer-method):
+	Make choice values consistent with corresponding command names.
+	(ido-visit-buffer): Update accordingly.  Default to selected-window.
+
+2006-06-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-running): Fix doc string.
+	(gud-menu-map): Use :visible instead fo :enable for debugger test.
+	(gud-tooltip-modes): Add python-mode.
+	(gud-tooltip-print-command): Add pdb.  Remove perldb.
+
+2006-06-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap, $(lisp)/mh-e/mh-loaddefs.el):
+	Quote $(EMACS).
+
+2006-06-05  Richard Stallman  <rms@gnu.org>
+
+	* faces.el (defined-colors): Doc fix.
+
+2006-06-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vc.el (vc-process-filter): Inhibit undo info collection around
+	call to insert.
+	(vc-setup-buffer): Likewise for call to erase-buffer.
+	(vc-do-command): Likewise for call to process-file.
+
+2006-06-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Use a conditional help echo
+	for gud-go.
+	(gud-common-init): Other debuggers may trigger error.
+
+2006-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (find-auto-coding): Handle
+	enable-character-translation in file header.
+
+2006-06-04  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/authors.el (authors-aliases): Add mode aliases.
+	(authors-fixed-entries): Fix spelling.
+	(authors-canonical-file-name): Don't report error for wildcards.
+
+	* help.el (view-emacs-news): Rewrite to support new NEWS,
+	NEWS.major, and NEWS.1-17 file naming.  Add more intelligense,
+	e.g. version 10 matches 1.10, and don't be confused by version 1.1
+	begin a prefix of 1.12 (etc).  A numeric prefix arg also works.
+
+2006-06-03  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* progmodes/sh-script.el (sh-quoted-exec): New face for quoted
+	exec constructs like `foo bar`.
+	(sh-quoted-subshell): New helper function to search for a possibly
+	nested subshell (like `` or $()) within a "" quoted string.
+	(sh-font-lock-keywords-var): Add sh-quoted-exec for Bash.
+	(sh-apply-quoted-subshell): Flag quote characters inside a
+	subshell, which is itself already in a quoted region, as
+	punctuation, since this is the closest to what they actually are.
+	(sh-font-lock-syntactic-keywords): Add sh-quoted-subshell and
+	sh-apply-quoted-subshell.
+	(sh-font-lock-syntactic-face-function): Apply the new face for
+	text inside `` instead of the old font-lock-string-face.
+
+2006-06-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ts-active-input-overlay): Add defvar.
+	(mac-ae-number, mac-ae-frame, mac-ae-script-language)
+	(mac-bytes-to-text-range, mac-ae-text-range-array)
+	(mac-ts-update-active-input-buf, mac-split-string-by-property-change)
+	(mac-replace-untranslated-utf-8-chars, mac-ts-update-active-input-area)
+	(mac-ts-unicode-for-key-event): New functions.
+	(mac-handle-toolbar-switch-mode): Use mac-ae-frame.
+	(mac-handle-font-selection): Use mac-ae-number.
+	(mac-ts-active-input-buf, mac-ts-update-active-input-area-seqno):
+	New variables.
+	(mac-ts-caret-position, mac-ts-raw-text, mac-ts-selected-raw-text)
+	(mac-ts-converted-text, mac-ts-selected-converted-text)
+	(mac-ts-block-fill-text, mac-ts-outline-text)
+	(mac-ts-selected-text, mac-ts-no-hilite): New faces.
+	(mac-ts-hilite-style-faces): New constant.
+	(mac-apple-event-map): Bind text input events.
+	(mac-dispatch-apple-event): Use command-execute instead of
+	call-interactively.
+	(global-map): Don't bind mac-apple-event.
+	(special-event-map): Bind mac-apple-event.
+
+2006-06-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (EMACS): Remove quotes from the Emacs executable
+	file name.
+	(emacs): Enclose the value of $(EMACS) in quotes.
+
+2006-06-02  Juri Linkov  <juri@jurta.org>
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Remove the condition `(search-forward "<html" size t)'.
+	Replace `\"' with `[\"']?' in `re-search-forward'.
+
+2006-06-02  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (hack-local-variables-prop-line): Ignore `char-trans'
+	as well as `coding'.
+	(hack-local-variables): Likewise.
+
+	* international/mule.el (enable-character-translation): Put
+	permanent-local and safe-local-variable properties.
+	(find-auto-coding): Handle char-trans: tag.
+
+2006-06-02  Juri Linkov  <juri@jurta.org>
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Limit the search by the end of the HTML header (if any).
+
+2006-06-01  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (with-current-buffer): Doc fix.
+
+2006-06-02  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist::gcov-*):
+	Almost rewrite. Underlines over all lines of gcov output are too
+	uncomfortable to read.  Suggested by Dan Nicolaescu.
+
+2006-06-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/inf-lisp.el (inferior-lisp-mode): Doc fixes.
+
+	* shell.el (shell-mode): Use shell-mode-map in docstring.
+
+	* comint.el (comint-send-input): Do not add help-echo and
+	mouse-face to input if `comint-use-prompt-regexp' is non-nil.
+
+2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el: Change x-menu-bar-start to menu-bar-open.
+
+2006-06-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-look-up-stack): New variable.
+	(gdb-stopped, gdb-info-stack-custom): If there is no source info
+	look up the stack and pop up GUD buffer if necessary.
+	(gdb-frames-select): Remove redundant call to gud-display-frame.
+	(gdb-info-threads-custom): Keep point at start of buffer.
+	(gdb-find-file-hook): Make it work for pre-GDB 6.4.
+
+2006-05-31  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-from, query-replace-read-to):
+	Bind `history-add-new-input' to nil.  Call `add-to-history'.
+
+2006-05-31  Takaaki Ota  <Takaaki.Ota@am.sony.com>
+
+	* textmodes/table.el: Convert all HTML tags to lower case for
+	XHTML compatibility.
+
+2006-05-31  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/compile.el:
+	(compilation-error-regexp-alist-alist::gcov-called-line):
+	Don't put face on `-' lines in gcov file.  Suggested by Dan Nicolaescu.
+
+2006-05-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-query-cmdline, gud-common-init):
+	Revert inadvertant changes made with last commit.
+
+2006-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/flyspell.el (turn-on-flyspell, turn-off-flyspell):
+	New functions.
+
+	* textmodes/text-mode.el (text-mode-hook): Use turn-on-flyspell.
+
+2006-05-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-agenda-highlight-todo): Make sure regexp
+	only matches in the right place.
+	(org-upcoming-deadline): New face.
+	(org-agenda-get-deadlines): Use new face `org-upcoming-deadline'.
+	(org-export-ascii-underline): Rename constant `org-ascii-underline'
+	and make it an option.
+	(org-export-ascii-bullets): New option.
+	(org-export-as-html): Many changes to emit valid XHTML.
+	(org-par-open): New variable.
+	(org-open-par, org-close-par-maybe, org-close-li-maybe): New functions.
+	(org-html-do-expand, org-section-number): Fixedcase in `replace-match'.
+	(org-timeline): Pass `org-timeline-show-empty-dates' to
+	`org-get-all-dates'. Interpret empty dates returned by `org-get-all-dates'.
+	(org-get-all-dates): New argument EMPTY.  Add dates without
+	entries to the list, mark large ranges of empty dates.
+	(org-point-in-group, org-context): New functions.
+
+2006-05-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-stop-subjob): Make it work in all buffers.
+
+	* progmodes/gdb-ui.el: Move gdb-mouse-toggle-breakpoint-* to
+	C-mouse-1.  Move gdb-mouse-until to mouse-3, gdb-mouse-jump
+	to C-mouse-3 (for 2 button mice).
+	(gdb-send): Do the right thing for C-d.
+
+	* speedbar.el (speedbar-detach): Delete.
+	(speedbar-easymenu-definition-trailer): Remove speedbar-detach as
+	it breaks things.
+	(speedbar-reconfigure-keymaps): Always add extra items to pop up menu.
+
+2006-05-30  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (auto-mode-alist): Add makepp suffix and optional mk on
+	Makeppfile.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add makepp diagnostic.
+
+2006-05-29  Richard Stallman  <rms@gnu.org>
+
+	* window.el (fit-window-to-buffer): Doc fix.
+
+	* help.el (temp-buffer-max-height): Doc fix.
+
+	* subr.el (with-current-buffer): Doc fix.
+
+2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el: Bind F10 to menu-bar-start if available.
+
+2006-05-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-if-xemacs, term-ifnot-xemacs): Delete, replace
+	uses with a simple test.
+	(term-set-escape-char, term-mode, term-check-kill-echo-list)
+	(term-send-raw-string, term-send-raw, term-mouse-paste)
+	(term-char-mode, term-line-mode, term-exec, term-sentinel)
+	(term-handle-exit, term-read-input-ring)
+	(term-previous-matching-input-string)
+	(term-previous-matching-input-string-position)
+	(term-previous-matching-input-from-input)
+	(term-replace-by-expanded-history, term-send-input)
+	(term-skip-prompt, term-bol, term-send-invisible)
+	(term-kill-input, term-delchar-or-maybe-eof)
+	(term-backward-matching-input, term-check-source)
+	(term-proc-query, term-emulate-terminal)
+	(term-handle-colors-array, term-process-pager, term-pager-line)
+	(term-pager-bob, term-unwrap-line, term-word)
+	(term-dynamic-complete-filename)
+	(term-dynamic-complete-as-filename)
+	(term-dynamic-simple-complete): Replace one arm ifs with whens or
+	unlesses.
+
+2006-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (hack-one-local-variable-eval-safep): Don't burp if used
+	during bootstrapping.
+
+	* emacs-lisp/ewoc.el (ewoc--current-dll): Remove.
+	Basically undo the change of 2006-05-26: use extra arguments instead of
+	dynamic scoping.
+	(ewoc-locate): Remove unused var `footer'.
+
+2006-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/ewoc.el (ewoc--insert-new-node): Use ewoc--refresh-node.
+
+	* emacs-lisp/autoload.el (no-update-autoloads): Declare.
+	(generate-file-autoloads): Obey it.  Return whether autoloads were
+	added at point or not.
+	(update-file-autoloads): Use this new return value.
+	Remove redundant test for the presence of an autoload cookie.
+
+	* emacs-lisp/autoload.el (autoload-find-file): New fun.
+	This one calls hack-local-variables.
+	(generate-file-autoloads, update-file-autoloads): Use it.
+
+	* textmodes/bibtex.el (bibtex-autokey-name-case-convert-function)
+	(bibtex-sort-entry-class): Add safe-local-variable predicate.
+	(bibtex-sort-entry-class-alist): Don't set the global value.
+	(bibtex-init-sort-entry-class-alist): New fun.
+	(bibtex-sort-buffer, bibtex-prepare-new-entry): Call it to compute
+	bibtex-init-sort-entry-class-alist from the buffer-local value (if any)
+	of bibtex-init-sort-entry-class.
+
+2006-05-28  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (load-history-regexp): If FILE is relative, insist
+	entire last name component must match it.
+	(load-history-filename-element, load-history-regexp): Doc fixes.
+
+2006-05-29  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/bindat.el (bindat-idx, bindat-raw): Rename dynamic vars
+	`pos' and `raw-data' for clarity, as eval forms may access these.
+
+2006-05-28  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/bindat.el (bindat--unpack-u8): Use aref also for strings.
+
+2006-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-browser-map)
+	(makefile-mode-syntax-table): Move initialization inside declaration.
+	(makefile-fill-paragraph): Use the default comment-filling code.
+
+2006-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (query-replace-defaults): New variable.
+	(query-replace-read-from): Use `query-replace-defaults' for
+	default value, instead of history list.
+	(query-replace-read-to): Update `query-replace-defaults'.
+
+2006-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* msb.el (mouse-select-buffer): Minor fix to make popup menu work
+	with no X toolkit.
+
+2006-05-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tumme.el (tumme-show-all-from-dir-max-files): Fix typo.
+	(tumme-show-all-from-dir): Add autoload.
+
+2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el: Change a lot of `(if .. (progn ..)' to `(when ..)'.
+	(tumme-remove-tag): Fix bug.
+
+2006-05-27  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--create): No longer take HEADER and
+	FOOTER args.  Update unique caller.
+	(ewoc-delete): Compute last node once before looping.
+	(ewoc--node-branch): Merge into unique caller.
+	(ewoc--node): Don't define constructor make-ewoc--node for this
+	structure.
+	(ewoc): Add member `hf-pp' to this structure.
+	(ewoc--wrap): New func.
+	(ewoc-create): Take additional arg NOSEP.  If nil, wrap node and
+	header/footer pretty-printers.  Save header/footer pretty-printer.
+	(ewoc-set-hf): Use ewoc's header/footer pretty-printer.  *
+
+	* pcvs.el (cvs-make-cvs-buffer): Specify NOSEP to `ewoc-create'.
+
+2006-05-27  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* dired.el (dired-mode-map): Change `tumme-tag-remove' to
+	`tumme-delete-tag'.  Rename `Remove Image Tag' to `Delete Image
+	Tag'.  Change "Compare directories..." to "Change Directories...".
+	Move tumme commands to Operate, Regexp and Immediate menus.
+	Change "Add Comment" to "Add Image Comment".  Change "Add Image
+	Tag" to "Add Image Tags".
+
+	* tumme.el (tumme-delete-tag): Rename from `tumme-tag-remove'.
+	(tumme-setup-dired-keybindings): Change `tumme-add-remove' to
+	`tumme-delete-tag'.
+
+2006-05-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* shell.el (shell-mode): Call shell-dirtrack-mode after
+	list-buffers-directory is made a local variable, to avoid setting
+	the default value.
+
+2006-05-26  Kevin Ryde  <user42@zip.com.au>
+
+	* info.el (Info-index-next): Use where-is-internal to report
+	actual binding of Info-index-next, rather than hard-coded `,'.
+
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-apropos-menu): Move "Find Key in Manual"
+	and "Find Command in Manual" to here.
+
+	* buff-menu.el (list-buffers-noselect): For Info buffers, use
+	Info-current-file as the file name.
+
+2006-05-26  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (defadvice undo-more): Delete this defadvice.  The undo
+	overrides will now be done a different way.
+	(ses-set-parameter): Reapply this function for undo.
+	(ses-set-header-row): Reconstruct header row during undo.
+	(ses-widen): New function.
+	(ses-goto-data, ses-reconstruct-all): Use new function.
+	(ses-command-hook): Widen buffer during undo, before unupdating
+	the cells.
+	(ses-insert-row, ses-delete-row): Widen buffer during undo.
+	(ses-load, ses-header-row): Permit empty (zero-row) spreadsheets.
+	(ses-read-cell): Avoid stupid warning for RET RET on a cell whose
+	formula hasn't been executed yet.
+
+2006-05-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* comint.el (comint-kill-whole-line): Rename arg to count.
+	Fix doc string.
+
+2006-05-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (backup-buffer-copy): Remove deleted MUSTBENEW argument
+	to copy-file.
+
+2006-05-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* simple.el (toggle-truncate-lines): Make arg optional for
+	backward compatibility.
+
+2006-05-26  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el (ewoc--current-dll): New var.
+	(ewoc--node-next, ewoc--node-prev, ewoc--node-nth): Don't take
+	DLL arg.  Instead, use ewoc--current-dll.  Update all callers.
+	(ewoc--set-buffer-bind-dll-let*): Bind ewoc--current-dll, not `dll'.
+	(ewoc--adjust): Use ewoc--current-dll.
+	(ewoc-next, ewoc-prev, ewoc-nth): Bind ewoc--current-dll.
+
+2006-05-26  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-next-item, org-previous-item): Emit more
+	compact error message.
+	(org-tags-view): Refresh category table in each file.
+	(org-table-justify-field-maybe): Remove superfluous arguments to
+	`format'.
+	(org-export-as-html): Insert "<p>" before postamble.
+	(org-paste-subtree, org-kill-is-subtree-p): Check for empty kill ring.
+
+2006-05-26  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/po.el (po-find-charset): Pay attention to the case
+	FILENAME is a cons (NAME . BUFFER).
+	(po-find-file-coding-system-guts): Likewise.
+
+	* arc-mode.el (archive-set-buffer-as-visiting-file):
+	Call find-operation-coding-system with (FILENAME . BUFFER).
+
+	* tar-mode.el (tar-extract): Call find-operation-coding-system
+	with (FILENAME . BUFFER).
+
+	* international/mule.el (decode-coding-inserted-region):
+	Call find-operation-coding-system with (FILENAME . BUFFER).
+
+2006-05-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-display): Use buffer contents to
+	generate image for a remote file.
+
+2006-05-25  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (query-replace-read-from, query-replace-read-to):
+	Remove 8th arg KEEP-ALL in read-from-minibuffer.
+
+2006-05-25  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (whitespace-cleanup): Change to cleanup
+	region if one is active.
+	* whitespace.el (whitespace-cleanup-internal): New internal method.
+
+2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* dired.el (dired-mode-map): Add help-echo strings to tumme
+	commands.  Bind `tumme-dired-display-image' to C-t i.
+
+	* tumme.el (tumme-display-image): Change documentation string slightly.
+	(tumme-dired-display-image): Add call to `display-buffer'.
+
+2006-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/bindat.el (bindat-unpack, bindat-pack):
+	Signal error if RAW-DATA is a multibyte string.
+
+2006-05-24  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (with-local-quit): When handling `quit' signal,
+	make a chance for quit-flag to cause a quit.
+
+	* emacs-lisp/advice.el (ad-enable-advice, ad-activate)
+	(ad-disable-advice): Add autoloads.
+
+	* subr.el (read-passwd): Copy PROMPT before changing its properties.
+
+2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* dired.el (dired-mode-map): Change menu items for tumme as per
+	suggestions in emacs-devel.
+
+2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* dired.el (dired-mode-map): Fix breakage.
+
+2006-05-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-display-dired-image): Rename to...
+	(tumme-dired-display-image): ...this.
+	(tumme-track-movement): Change default value to t.
+	(tumme-display-thumbs): Add new optional parameter DO-NOT-POP,
+	used from `tumme-next-line-and-display' and similar commands.
+
+	* dired.el (dired-mode-map): Add Thumbnail submenu under the
+	Immediate menu.  Add some tumme commands there.
+
+2006-05-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loadup.el ("jka-cmpr-hook"): Load it before it is needed.
+
+2006-05-24  Chong Yidong  <cyd@mit.edu>
+
+	* menu-bar.el, international/mule-cmds.el: Remove tooltips for
+	menu entries that open submenus.
+
+2006-05-24  Alan Mackenzie  <acm@muc.de>
+
+	* startup.el (command-line): For names of preloaded files, don't
+	append ".elc" (now done in Fload), and call file-truename on the
+	lisp directory.
+
+	* subr.el (eval-after-load): Fix the doc-string.  Allow FILE to
+	match ANY loaded file with the right name, not just those in
+	load-path.  Put a regexp matching the file name into
+	after-load-alist, rather than the name itself.
+
+	* subr.el: New functions load-history-regexp,
+	load-history-filename-element, do-after-load-evaluation.
+
+	* international/mule.el (load-with-code-conversion): Do the
+	eval-after-load stuff by calling do-after-load-evaluation.
+
+2006-05-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-sentinel): Condition on GUD buffer if it
+	has not been killed.
+
+2006-05-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Set idle timer to clean up expired Apple events.
+	(mac-ae-get-url): Redispatch Apple event on unknown scheme.
+	(mac-dispatch-apple-event): Resume Apple event if it is suspended.
+	Optionally set error message in reply.
+
+2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-open-at-point): Use renamed variable
+	`org-confirm-shell-link-function'.
+	(org-confirm-shell-link-function): Rename from
+	`org-confirm-shell-links'.
+	(org-export-directory): New function.
+	(org-export-as-ascii, org-export-as-html, org-export-as-xoxo)
+	(org-export-icalendar): Use `org-export-directory'.
+	(org-indent-item): Keep cursor position.
+	(org-link-file-path-type): New option.
+	(org-export-as-html): Fix bug with plain lists starting in
+	column 0.
+	(org-export-as-html): Remove deadline formatting, this happens
+	now already in `org-html-handle-time-stamps'.
+	(org-export-html-style): Deadline class removed.
+	(org-insert-labeled-timestamps-at-point): New option.
+	(org-cycle, org-occur, org-scan-tags): Use `org-overview' instead
+	of `hide-sublevels 1', in case the first headline is not level 1.
+	(org-overview, org-content): New fuction.
+	(org-cycle-global-status, org-cycle-subtree-status): Make these
+	variables buffer-local.
+	(org-global-cycle): New command.
+	(org-shifttab): Use `org-global-cycle'.
+	(org-insert-heading, org-insert-item): Go to end of new
+	headline/item after creating it.
+	(org-export-visible): Rename from `org-export-copy-visible'.
+	Now creates a temporary org-file and applies an exporting command
+	to it.
+	(org-table-eval-formula): Support for lisp forms.
+	(org-agenda-todo-ignore-scheduled): New option.
+	(org-agenda-get-todos): Use new option
+	`org-agenda-todo-ignore-scheduled'.
+	(org-export-html-inline-images): New value `maybe'.
+	(org-export-as-html): Inlining of images dependent on link description.
+	(org-archive-subtree): Check for end-of-buffer before trying
+	`kill-line'.
+	(org-agenda-follow-mode): New option.
+	(org-export-with-tags, org-export-with-timestamps): New options.
+	(org-html-handle-time-stamps): New function.
+	(org-keyword-time-regexp): New variable.
+	(org-agenda-get-todos): Use `org-agenda-todo-list-sublevels'.
+	(org-agenda-todo-list-sublevels): New option.
+	(org-html-level-start): When TITLE is nil, just close all levels.
+	(org-parse-key-lines, org-parse-export-options): Remove functions,
+	replaced by `org-infile-export-plist'.
+	(org-combine-plists, org-infile-export-plist)
+	(org-default-export-plist): New functions.
+	(org-export-html-preamble, org-export-html-postamble)
+	(org-export-html-auto-preamble, org-export-html-auto-postamble):
+	New variables.
+	(org-export-publishing-directory): New option.
+	(org-export-as-html, org-export-as-ascii): Use the new property
+	lists for settings.
+	(org-export-copy-visible, org-export-as-xoxo):
+	Respect `org-export-publishing-directory'.
+	(org-link-search, org-store-link, org-file-apps): Support for
+	links to BibTeX database entries..
+	(org-get-current-options, org-set-regexps-and-options):
+	Implement logging as a startup option.
+	(org-store-link): Make sure context string is never empty
+	(org-insert-link): Use relative path when possible.
+	(org-at-item-checklet-p): New function.
+	(org-shifttab, org-shiftmetaleft, org-shiftmetaright)
+	(org-shiftmetaup, org-shiftmetadown, org-metaleft)
+	(org-metaright, org-metaup, org-metadown, org-shiftup)
+	(org-shiftdown, org-shiftright, org-shiftleft)
+	(org-ctrl-c-ctrl-c, org-cycle, org-return, org-meta-return):
+	Dispatch using `call-interactively'.
+	(org-call-with-arg): New defsubst.
+	(org-tag-alist, org-use-fast-tag-selection): New options.
+	(org-complete): Use `org-tag-alist'.
+	(org-fast-tag-insert, org-fast-tag-selection): New functions.
+	(org-next-item, org-previous-item): New commands.
+	(org-beginning-of-item, org-end-of-item): Add (interactive) to
+	make command.
+	(org-shiftup, org-shiftdown): Accommodate the item-navigation commands.
+
+
 2006-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el (ewoc-delete): New function.
@@ -94,7 +829,7 @@
 	have non-nil values.  Speed up by using add-to-list instead of
 	manual consing.
 
-2006-05-20  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-05-20  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* progmodes/make-mode.el (makefile-mode): Doc fix.
 
@@ -391,8 +1126,7 @@
 	Move `safe-local-variable' declarations to the respective files.
 
 	* help-fns.el (describe-variable): Don't print safe-var if it is
-	byte-code.  Improve wording as suggested by Luc Teirlinck
-	<teirllm@auburn.edu>.
+	byte-code.  Improve wording as suggested by Luc Teirlinck.
 
 2006-05-11  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -659,7 +1393,7 @@
 	reference to the Lisp manual to the warning about pure space
 	overflow.
 
-2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/ispell.el (ispell-buffer-local-dict): Add a `no-reload'
 	argument to avoid the call to `ispell-internal-change-dictionary'
@@ -1519,7 +2253,7 @@
 	* files.el (hack-local-variables-confirm) <offer-save>:
 	Clarify message text.  Suggested by Ralf Angeli.
 
-2006-04-08  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2006-04-08  Michael Cadilhac  <michael.cadilhac@lrde.org>
 
 	* rect.el (kill-rectangle): Don't barf if `kill-read-only-ok' is set.
 	(delete-extract-rectangle-line): Use `filter-buffer-substring'
@@ -8347,7 +9081,7 @@
 	since the last ping.
 	(rcirc-mode): Give rcirc-topic a local binding here.
 
-2005-11-19  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+2005-11-19  Michael Cadilhac  <michael.cadilhac@lrde.org>
 
 	* subr.el (read-passwd): Fontify the prompt as we do with other
 	prompts.
@@ -9958,7 +10692,7 @@
 
 	* dired-x.el (dired-virtual): Don't use `dired-insert-headerline'.
 
-2005-10-25  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>  (tiny change)
+2005-10-25  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
 
 	* play/blackbox.el (blackbox-redefine-key): New function.
 	(blackbox-mode-map): Use it to remap existing bindings for cursor
@@ -11222,7 +11956,7 @@
 	* progmodes/gdb-ui.el (gdb-fringe-width -> gdb-buffer-fringe-width):
 	Typo.
 
-2005-10-06  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>  (tiny change)
+2005-10-06  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
 
 	* play/zone.el (zone): Wrap body with save-window-excursion.
 
@@ -12017,7 +12751,7 @@
 	* calendar/diary-lib.el (mark-diary-entries): Rearrange to wrap
 	with-current-buffer form in save-excursion.
 
-2005-09-18  D Goel  <deego@gnufans.org>
+2005-09-18  Deepak Goel  <deego@gnufans.org>
 
 	* apropos.el (apropos-command): Fix `message' call: first arg
 	should be a format spec.  In this and all other cases that appear
@@ -21459,7 +22193,7 @@
 
 	* simple.el (goto-line): Doc fix.
 
-2005-03-19  Aaron Hawley  <Aaron.Hawley@uvm.edu>  (tiny change)
+2005-03-19  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
 
 	* files.el (save-buffer): Doc fix.
 

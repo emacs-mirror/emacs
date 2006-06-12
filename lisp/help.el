@@ -182,31 +182,28 @@ specifies what to do when the user exits the help buffer."
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
-a  command-apropos.  Give a list of words or a regexp, to get a list of
+a  command-apropos.  Type a list of words or a regexp; it shows a list of
         commands whose names match.  See also the  apropos  command.
-b  describe-bindings.  Display table of all key bindings.
-c  describe-key-briefly.  Type a command key sequence;
-	it prints the function name that sequence runs.
-C  describe-coding-system.  This describes either a specific coding system
-        (if you type its name) or the coding systems currently in use
-	(if you type just RET).
-d  apropos-documentation.  Give a pattern (a list or words or a regexp), and
-	see a list of functions, variables, and other items whose built-in
-	doucmentation string matches that pattern.  See also the apropos command.
-e  view-echo-area-messages.  Show the buffer where the echo-area messages
-	are stored.
-f  describe-function.  Type a function name and get its documentation.
-F  Info-goto-emacs-command-node.  Type a function name;
-	it takes you to the on-line manual's section that describes
-	the command.
+b  describe-bindings.  Display a table of all key bindings.
+c  describe-key-briefly.  Type a key sequence;
+	it displays the command name run by that key sequence.
+C  describe-coding-system.  Type the name of the coding system to describe,
+        or just RET to describe the ones currently in use.
+d  apropos-documentation.  Type a pattern (a list of words or a regexp), and
+	it shows a list of functions, variables, and other items whose
+	documentation matches that pattern.  See also the apropos command.
+e  view-echo-area-messages.  Go to the buffer that logs echo-area messages.
+f  describe-function.  Type a function name and you see its documentation.
+F  Info-goto-emacs-command-node.  Type a command name;
+	it goes to the on-line manual's section that describes the command.
 h  Display the HELLO file which illustrates various scripts.
-i  info. The Info documentation reader: read on-line manuals.
+i  info.  The Info documentation reader: read on-line manuals.
 I  describe-input-method.  Describe a specific input method (if you type
 	its name) or the current input method (if you type just RET).
-k  describe-key.  Type a command key sequence;
+k  describe-key.  Type a key sequence;
 	it displays the full documentation for that key sequence.
-K Info-goto-emacs-key-command-node.  Type a command key sequence;
-	it takes you to the on-line manual's section that describes
+K  Info-goto-emacs-key-command-node.  Type a key sequence;
+	it goes to the on-line manual's section that describes
 	the command bound to that key.
 l  view-lossage.  Show last 100 characters you typed.
 L  describe-language-environment.  This describes either a
@@ -218,12 +215,12 @@ n  view-emacs-news.  Display news of recent Emacs changes.
 p  finder-by-keyword. Find packages matching a given topic keyword.
 r  info-emacs-manual.  Display the Emacs manual in Info mode.
 s  describe-syntax.  Display contents of syntax table, plus explanations.
-S  info-lookup-symbol.  Display the definition of a specific symbol
-        as found in the manual for the language this buffer is written in.
+S  info-lookup-symbol.  Type a symbol; it goes to that symbol in the
+        on-line manual for the programming language used in this buffer.
 t  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
 v  describe-variable.  Type name of a variable;
 	it displays the variable's documentation and value.
-w  where-is.  Type command name; it prints which keystrokes
+w  where-is.  Type a command name; it displays which keystrokes
 	invoke that command.
 .  display-local-help.  Display any available local help at point
         in the echo area.
@@ -326,63 +323,76 @@ of the key sequence that ran this command."
 ;; run describe-prefix-bindings.
 (setq prefix-help-command 'describe-prefix-bindings)
 
-(defun view-emacs-news (&optional arg)
+(defun view-emacs-news (&optional version)
   "Display info on recent changes to Emacs.
 With argument, display info only for the selected version."
   (interactive "P")
-  (if (not arg)
-      (view-file (expand-file-name "NEWS" data-directory))
-    (let* ((map (sort
-                 (delete-dups
-                  (apply
-                   'nconc
-                   (mapcar
-                    (lambda (file)
-                      (with-temp-buffer
-                        (insert-file-contents
-                         (expand-file-name file data-directory))
-                        (let (res)
-                          (while (re-search-forward
-                                  (if (string-match "^ONEWS\\.[0-9]+$" file)
-                                      "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
-                                    "^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t)
-                            (setq res (cons (list (match-string-no-properties 1)
-                                                  file) res)))
-                          res)))
-                    (append '("NEWS" "ONEWS")
-                            (directory-files data-directory nil
-                                             "^ONEWS\\.[0-9]+$" nil)))))
-                 (lambda (a b)
-                   (string< (car b) (car a)))))
-           (current (caar map))
-           (version (completing-read
-                     (format "Read NEWS for the version (default %s): " current)
-                     (mapcar 'car map) nil nil nil nil current))
-           (file (cadr (assoc version map)))
-           res)
-      (if (not file)
-          (error "No news is good news")
-        (view-file (expand-file-name file data-directory))
-        (widen)
-        (goto-char (point-min))
-        (when (re-search-forward
-               (concat (if (string-match "^ONEWS\\.[0-9]+$" file)
-                           "Changes in \\(?:Emacs\\|version\\)?[ \t]*"
-                         "^\* [^0-9\n]*") version)
-               nil t)
-          (beginning-of-line)
-          (narrow-to-region
-           (point)
-           (save-excursion
-             (while (and (setq res
-                               (re-search-forward
-                                (if (string-match "^ONEWS\\.[0-9]+$" file)
-                                    "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
-                                  "^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t))
-                         (equal (match-string-no-properties 1) version)))
-             (or res (goto-char (point-max)))
-             (beginning-of-line)
-             (point))))))))
+  (unless version
+    (setq version emacs-major-version))
+  (when (consp version)
+    (let* ((all-versions
+	    (let (res)
+	      (mapcar
+	       (lambda (file)
+		 (with-temp-buffer
+		   (insert-file-contents
+		    (expand-file-name file data-directory))
+		   (while (re-search-forward
+			   (if (member file '("NEWS.18" "NEWS.1-17"))
+			       "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
+			     "^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t)
+		     (setq res (cons (match-string-no-properties 1) res)))))
+	       (cons "NEWS"
+		     (directory-files data-directory nil
+				      "^NEWS\\.[0-9][-0-9]*$" nil)))
+	      (sort (delete-dups res) (lambda (a b) (string< b a)))))
+	   (current (car all-versions))
+	   res)
+      (setq version (completing-read
+		     (format "Read NEWS for the version (default %s): " current)
+		     all-versions nil nil nil nil current))
+      (if (integerp (string-to-number version))
+	  (setq version (string-to-number version))
+	(unless (or (member version all-versions)
+		    (<= (string-to-number version) (string-to-number current)))
+	  (error "No news about version %s" version)))))
+  (when (integerp version)
+    (cond ((<= version 12)
+	   (setq version (format "1.%d" version)))
+	  ((<= version 18)
+	   (setq version (format "%d" version)))
+	  ((> version emacs-major-version)
+	   (error "No news about emacs %d (yet)" version))))
+  (let* ((vn (if (stringp version)
+		 (string-to-number version)
+	       version))
+	 (file (cond
+		((>= vn emacs-major-version) "NEWS")
+		((< vn 18) "NEWS.1-17")
+		(t (format "NEWS.%d" vn)))))
+    (view-file (expand-file-name file data-directory))
+    (widen)
+    (goto-char (point-min))
+    (when (stringp version)
+      (when (re-search-forward
+	     (concat (if (< vn 19)
+			 "Changes in Emacs[ \t]*"
+		       "^\* [^0-9\n]*") version "$")
+	     nil t)
+	(beginning-of-line)
+	(narrow-to-region
+	 (point)
+	 (save-excursion
+	   (while (and (setq res
+			     (re-search-forward
+			      (if (< vn 19)
+				  "Changes in \\(?:Emacs\\|version\\)?[ \t]*\\([0-9]+\\(?:\\.[0-9]+\\)?\\)"
+				"^\* [^0-9\n]*\\([0-9]+\\.[0-9]+\\)") nil t))
+		       (equal (match-string-no-properties 1) version)))
+	   (or res (goto-char (point-max)))
+	   (beginning-of-line)
+	   (point)))))))
+
 
 (defun view-todo (&optional arg)
   "Display the Emacs TODO list."
@@ -942,11 +952,11 @@ is currently activated with completion."
 
 (defcustom temp-buffer-max-height (lambda (buffer) (/ (- (frame-height) 2) 2))
   "Maximum height of a window displaying a temporary buffer.
-This is the maximum height (in text lines) which `resize-temp-buffer-window'
+This is effective only when Temp Buffer Resize mode is enabled.
+The value is the maximum height (in lines) which `resize-temp-buffer-window'
 will give to a window displaying a temporary buffer.
-It can also be a function which will be called with the object corresponding
-to the buffer to be displayed as argument and should return an integer
-positive number."
+It can also be a function to be called to choose the height for such a buffer.
+It gets one argumemt, the buffer, and should return a positive integer."
   :type '(choice integer function)
   :group 'help
   :version "20.4")

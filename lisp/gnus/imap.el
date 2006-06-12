@@ -79,7 +79,7 @@
 ;; (NAMESPACE), RFC2359 (UIDPLUS), the IMAP-part of RFC2595 (STARTTLS,
 ;; LOGINDISABLED) (with use of external library starttls.el and
 ;; program starttls) and the GSSAPI / kerberos V4 sections of RFC1731
-;; (with use of external program `imtest').  It also take advantage
+;; (with use of external program `imtest').  It also takes advantage of
 ;; the UNSELECT extension in Cyrus IMAPD.
 ;;
 ;; Without the work of John McClary Prevost and Jim Radford this library

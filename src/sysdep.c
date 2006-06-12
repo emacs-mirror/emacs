@@ -242,7 +242,7 @@ static int baud_convert[] =
 
 int emacs_ospeed;
 
-void croak P_ ((char *));
+void croak P_ ((char *)) NO_RETURN;
 
 #ifdef AIXHFT
 void hft_init P_ ((struct tty_display_info *));

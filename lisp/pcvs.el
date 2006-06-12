@@ -467,7 +467,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	 (cvs-mode)
 	 (set (make-local-variable 'list-buffers-directory) buffer-name)
 	 ;;(set (make-local-variable 'cvs-temp-buffer) (cvs-temp-buffer))
-	 (let ((cookies (ewoc-create 'cvs-fileinfo-pp "\n\n" "\n")))
+	 (let ((cookies (ewoc-create 'cvs-fileinfo-pp "\n\n" "\n" t)))
 	   (set (make-local-variable 'cvs-cookies) cookies)
 	   (add-hook 'kill-buffer-hook
 		     (lambda ()

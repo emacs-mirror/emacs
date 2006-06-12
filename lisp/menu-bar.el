@@ -300,8 +300,7 @@ A large number or nil slows down menu responsiveness."
 
 
 (define-key menu-bar-search-menu [i-search]
-  (list 'menu-item "Incremental Search" menu-bar-i-search-menu
-	      :help "Incremental Search finds partial matches while you type the search string.\nIt is most convenient from the keyboard.  Try it!"))
+  (list 'menu-item "Incremental Search" menu-bar-i-search-menu))
 (define-key menu-bar-search-menu [separator-tag-isearch]
   '(menu-item "--"))
 
@@ -369,8 +368,7 @@ A large number or nil slows down menu responsiveness."
 
 ;;; Assemble the top-level Edit menu items.
 (define-key menu-bar-edit-menu [props]
-  '(menu-item "Text Properties" facemenu-menu
-	      :help "Change properties of text in region"))
+  '(menu-item "Text Properties" facemenu-menu))
 
 (define-key menu-bar-edit-menu [fill]
   '(menu-item "Fill" fill-region
@@ -382,8 +380,7 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "--"))
 
 (define-key menu-bar-edit-menu [bookmark]
-  '(menu-item "Bookmarks" menu-bar-bookmark-map
-	      :help "Record positions and jump between them"))
+  '(menu-item "Bookmarks" menu-bar-bookmark-map))
 
 (defvar menu-bar-goto-menu (make-sparse-keymap "Go To"))
 
@@ -467,8 +464,7 @@ A large number or nil slows down menu responsiveness."
 (fset 'yank-menu (cons 'keymap yank-menu))
 (define-key menu-bar-edit-menu [select-paste]
   '(menu-item "Select and Paste" yank-menu
-	      :enable (and (cdr yank-menu) (not buffer-read-only))
-	      :help "Paste (yank) text cut or copied earlier"))
+	      :enable (and (cdr yank-menu) (not buffer-read-only))))
 (define-key menu-bar-edit-menu [paste]
   '(menu-item "Paste" yank
 	      :enable (and
@@ -641,8 +637,7 @@ by \"Save Options\" in Custom buffers.")
 
 ;;; Assemble all the top-level items of the "Options" menu
 (define-key menu-bar-options-menu [customize]
-  (list 'menu-item "Customize Emacs" menu-bar-custom-menu
-	:help "Full customization of every Emacs feature"))
+  (list 'menu-item "Customize Emacs" menu-bar-custom-menu))
 
 (defun menu-bar-options-save ()
   "Save current values of Options menu items using Custom."
@@ -880,8 +875,7 @@ mail status in mode line"))
 
 (define-key menu-bar-showhide-menu [showhide-fringe]
   (list 'menu-item "Fringe" menu-bar-showhide-fringe-menu
-	:visible `(display-graphic-p)
-	:help "Select fringe mode"))
+	:visible `(display-graphic-p)))
 
 (defvar menu-bar-showhide-scroll-bar-menu (make-sparse-keymap "Scroll-bar"))
 
@@ -925,8 +919,7 @@ mail status in mode line"))
 
 (define-key menu-bar-showhide-menu [showhide-scroll-bar]
   (list 'menu-item "Scroll-bar" menu-bar-showhide-scroll-bar-menu
-	:visible `(display-graphic-p)
-	:help "Select scroll-bar mode"))
+	:visible `(display-graphic-p)))
 
 (define-key menu-bar-showhide-menu [showhide-tooltip-mode]
   (list 'menu-item "Tooltips" 'tooltip-mode
@@ -946,8 +939,7 @@ mail status in mode line"))
 	:button `(:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
 
 (define-key menu-bar-options-menu [showhide]
-  (list 'menu-item "Show/Hide" menu-bar-showhide-menu
-	:help "Toggle on/off various display features"))
+  (list 'menu-item "Show/Hide" menu-bar-showhide-menu))
 
 (define-key menu-bar-options-menu [showhide-separator]
   '("--"))
@@ -960,7 +952,7 @@ mail status in mode line"))
 ;; Most of the MULE menu actually does make sense in unibyte mode,
 ;; e.g. language selection.
 ;;;	':visible 'default-enable-multibyte-characters
-	':help "Default language, encodings, input method"))
+	))
 ;(setq menu-bar-final-items (cons 'mule menu-bar-final-items))
 ;(define-key menu-bar-options-menu [preferences]
 ;  (list 'menu-item "Preferences" menu-bar-preferences-menu
@@ -1137,14 +1129,13 @@ mail status in mode line"))
   '(menu-item "Programmable Calculator" calc
 	      :help "Invoke the Emacs built-in full scientific calculator"))
 (define-key menu-bar-tools-menu [calendar]
-  '(menu-item "Display Calendar" calendar))
+  '(menu-item "Calendar" calendar))
 
 (define-key menu-bar-tools-menu [separator-net]
   '("--"))
 
 (define-key menu-bar-tools-menu [directory-search]
-  '(menu-item "Directory Search" eudc-tools-menu
-	      :help "Query directory servers via LDAP, CCSO PH/QI or BBDB"))
+  '(menu-item "Directory Search" eudc-tools-menu))
 (define-key menu-bar-tools-menu [compose-mail]
   (list
    'menu-item `(format "Send Mail (with %s)" (send-mail-item-name))
@@ -1172,27 +1163,21 @@ mail status in mode line"))
 
 (defvar vc-menu-map (make-sparse-keymap "Version Control"))
 (define-key menu-bar-tools-menu [pcl-cvs]
-  '(menu-item "PCL-CVS" cvs-global-menu
-    :help "Module-level interface to CVS"))
+  '(menu-item "PCL-CVS" cvs-global-menu))
 (define-key menu-bar-tools-menu [vc]
-  (list 'menu-item "Version Control" vc-menu-map
-	:help "Interface to RCS, CVS, SCCS"))
+  (list 'menu-item "Version Control" vc-menu-map))
 
 (define-key menu-bar-tools-menu [separator-compare]
   '("--"))
 
 (define-key menu-bar-tools-menu [ediff-misc]
-  '(menu-item "Ediff Miscellanea" menu-bar-ediff-misc-menu
-	      :help "Ediff manual, customization, sessions, etc."))
+  '(menu-item "Ediff Miscellanea" menu-bar-ediff-misc-menu))
 (define-key menu-bar-tools-menu [epatch]
   '(menu-item "Apply Patch" menu-bar-epatch-menu))
 (define-key menu-bar-tools-menu [ediff-merge]
-  '(menu-item "Merge" menu-bar-ediff-merge-menu
-	      :help "Merge different revisions of files/directories"))
+  '(menu-item "Merge" menu-bar-ediff-merge-menu))
 (define-key menu-bar-tools-menu [compare]
-  '(menu-item "Compare (Ediff)" menu-bar-ediff-menu
-	      :help "Display differences between files/directories"))
-
+  '(menu-item "Compare (Ediff)" menu-bar-ediff-menu))
 
 (define-key menu-bar-tools-menu [separator-spell]
   '("--"))
@@ -1242,8 +1227,7 @@ mail status in mode line"))
 	      :help "Keyboard layout for specific input method"))
 (define-key menu-bar-describe-menu [describe-language-environment]
   (list 'menu-item "Describe Language Environment"
-	describe-language-environment-map
-	:help "Show multilingual settings for a specific language"))
+	describe-language-environment-map))
 
 (define-key menu-bar-describe-menu [separator-desc-mule]
   '("--"))
@@ -1318,6 +1302,12 @@ key, a click, or a menu-item"))
 	      :help "Find commands whose names match a regexp"))
 (define-key menu-bar-apropos-menu [sep1]
   '("--"))
+(define-key menu-bar-apropos-menu [emacs-command-node]
+  '(menu-item "Look Up Command in User Manual..." Info-goto-emacs-command-node
+	      :help "Display manual section that describes a command"))
+(define-key menu-bar-apropos-menu [emacs-key-command-node]
+  '(menu-item "Look Up Key in User Manual..." Info-goto-emacs-key-command-node
+	      :help "Display manual section that describes a key"))
 (define-key menu-bar-apropos-menu [elisp-index-search]
   '(menu-item "Look Up Subject in ELisp Manual..." elisp-index-search
 	      :help "Find description of a subject in Emacs Lisp manual"))
@@ -1350,14 +1340,6 @@ key, a click, or a menu-item"))
 (define-key menu-bar-manuals-menu [info-elintro]
   '(menu-item "Introduction to Emacs Lisp" menu-bar-read-lispintro
 	      :help "Read the Introduction to Emacs Lisp Programming"))
-(define-key menu-bar-manuals-menu [sep3]
-  '("--"))
-(define-key menu-bar-manuals-menu [command]
-  '(menu-item "Find Command in Manual..." Info-goto-emacs-command-node
-	      :help "Display manual section that describes a command"))
-(define-key menu-bar-manuals-menu [key]
-  '(menu-item "Find Key in Manual..." Info-goto-emacs-key-command-node
-	      :help "Display manual section that describes a key"))
 
 (define-key menu-bar-help-menu [eliza]
   '(menu-item "Emacs Psychotherapist" doctor
@@ -1392,17 +1374,14 @@ key, a click, or a menu-item"))
   '(menu-item "Find Emacs Packages" finder-by-keyword
 	      :help "Find packages and features by keyword"))
 (define-key menu-bar-help-menu [manuals]
-  (list 'menu-item "More Manuals" menu-bar-manuals-menu
-	:help "Search and browse on-line manuals"))
+  (list 'menu-item "More Manuals" menu-bar-manuals-menu))
 (define-key menu-bar-help-menu [emacs-manual]
   '(menu-item "Read the Emacs Manual" info-emacs-manual
 	      :help "Full documentation of Emacs features"))
 (define-key menu-bar-help-menu [describe]
-  (list 'menu-item "Describe" menu-bar-describe-menu
-	:help "Describe commands, variables, keys"))
+  (list 'menu-item "Describe" menu-bar-describe-menu))
 (define-key menu-bar-help-menu [apropos]
-  (list 'menu-item "Search Documentation" menu-bar-apropos-menu
-	:help "Look up terms, find commands, options, etc. (Apropos)"))
+  (list 'menu-item "Search Documentation" menu-bar-apropos-menu))
 (define-key menu-bar-help-menu [sep1]
   '("--"))
 (define-key menu-bar-help-menu [report-emacs-bug]

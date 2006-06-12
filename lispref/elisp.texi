@@ -590,7 +590,8 @@ Defining Commands
 
 Keymaps
 
-* Keymap Terminology::        	Definitions of terms pertaining to keymaps.
+* Key Sequences::        	Key sequences as Lisp objects.
+* Keymap Basics::               Basic concepts of keymaps.
 * Format of Keymaps::		What a keymap looks like as a Lisp object.
 * Creating Keymaps:: 		Functions to create and copy keymaps.
 * Inheritance and Keymaps::	How one keymap can inherit the bindings
@@ -1006,6 +1007,7 @@ Emacs Display
 * Display Property::        Enabling special display features.
 * Images::                  Displaying images in Emacs buffers.
 * Buttons::                 Adding clickable buttons to Emacs buffers.
+* Abstract Display::        Emacs' Widget for Object Collections.
 * Blinking::                How Emacs shows the matching open parenthesis.
 * Usual Display::	    The usual conventions for displaying nonprinting chars.
 * Display Tables::	    How to specify other conventions.

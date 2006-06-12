@@ -2350,6 +2350,7 @@ FUNCTION was not advised)."
 		       (ad-advice-set-enabled advice flag))))))
 	matched-advices)))
 
+;;;###autoload
 (defun ad-enable-advice (function class name)
   "Enables the advice of FUNCTION with CLASS and NAME."
   (interactive (ad-read-advice-specification "Enable advice of"))
@@ -2359,6 +2360,7 @@ FUNCTION was not advised)."
 		 function class name))
     (error "ad-enable-advice: `%s' is not advised" function)))
 
+;;;###autoload
 (defun ad-disable-advice (function class name)
   "Disable the advice of FUNCTION with CLASS and NAME."
   (interactive (ad-read-advice-specification "Disable advice of"))
@@ -3585,6 +3587,7 @@ the value of `ad-redefinition-action' and de/activate again."
 ;; @@ The top-level advice interface:
 ;; ==================================
 
+;;;###autoload
 (defun ad-activate (function &optional compile)
   "Activate all the advice information of an advised FUNCTION.
 If FUNCTION has a proper original definition then an advised

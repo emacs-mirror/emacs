@@ -5470,10 +5470,11 @@ A string is printed verbatim in the mode line except for %-constructs:
   %p -- print percent of buffer above top of window, or Top, Bot or All.
   %P -- print percent of buffer above bottom of window, perhaps plus Top,
         or print Bottom or All.
-  %m -- print the mode name.
   %n -- print Narrow if appropriate.
+  %t -- visited file is text or binary (if OS supports this distinction).
   %z -- print mnemonics of buffer, terminal, and keyboard coding systems.
   %Z -- like %z, but including the end-of-line format.
+  %e -- print error message about full memory.
   %[ -- print one [ for each recursive editing level.  %] similar.
   %% -- print %.   %- -- print infinitely many dashes.
 Decimal digits after the % specify field width to which to pad.  */);

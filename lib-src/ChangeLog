@@ -1,3 +1,40 @@
+2006-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* yow.c: Remove file.
+
+	* makefile.w32-in ($(BLD)/yow.$(O)): Remove target.
+
+	* Makefile.in (UTILITIES): Remove yow${EXEEXT}.
+	yow${EXEEXT}: Remove target.
+
+2006-06-04  Masatake YAMATO  <jet@gyve.org>
+
+	* ebrowse.c (main): Exit with EXIT_FAILURE if BROWSE file
+	doesn't exist, is not seekable, not is failed in ftall.
+
+2006-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (ALL): Add sorted-doc and digest-doc.
+	($(BLD)/sorted-doc.exe, $(BLD)/digest-doc.exe)
+	($(BLD)/test-distrib.exe): New targets.
+	(sorted-doc, digest-doc, test-distrib): New targets.
+	(install): Install sorted-doc.exe and digest-doc.exe.
+	($(BLD)/sorted-doc.$(O)): Update dependencies.
+
+	* digest-doc.c [DOS_NT] <top level>: Include fcntl.h and io.h.
+	(main) [DOS_NT]: Switch stdin to binary mode, if it is not a
+	terminal device.
+
+	* sorted-doc.c [DOS_NT] <top level>: Include fcntl.h and io.h.
+	[WINDOWSNT] <top level>: Don't redeclare malloc.
+	(main) [DOS_NT]: Switch stdin to binary mode, if it is not a
+	terminal device.
+	(main): Initialize bp, to avoid compiler warnings
+
+	* makefile.w32-in: Delete traces of leditcfns.c.
+
+	* leditcfns.c: Remove file.
+
 2006-05-23  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* pop.c (pop_open, socket_connection, KPOP_SERVICE): Added

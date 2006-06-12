@@ -778,6 +778,16 @@ get_process (name)
   return proc;
 }
 
+
+#ifdef SIGCHLD
+/* Fdelete_process promises to immediately forget about the process, but in
+   reality, Emacs needs to remember those processes until they have been
+   treated by sigchld_handler; otherwise this handler would consider the
+   process as being synchronous and say that the synchronous process is
+   dead.  */
+static Lisp_Object deleted_pid_list;
+#endif
+
 DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
        doc: /* Delete PROCESS: kill it and forget about it immediately.
 PROCESS may be a process, a buffer, the name of a process or buffer, or
@@ -799,12 +809,31 @@ nil, indicating the current buffer's process.  */)
     }
   else if (XINT (p->infd) >= 0)
     {
-      Fkill_process (process, Qnil);
-      /* Do this now, since remove_process will make sigchld_handler do nothing.  */
-      p->status
-	= Fcons (Qsignal, Fcons (make_number (SIGKILL), Qnil));
-      XSETINT (p->tick, ++process_tick);
-      status_notify (p);
+#ifdef SIGCHLD
+      Lisp_Object symbol;
+
+      /* No problem storing the pid here, as it is still in Vprocess_alist.  */
+      deleted_pid_list = Fcons (make_fixnum_or_float (p->pid),
+				/* GC treated elements set to nil.  */
+				Fdelq (Qnil, deleted_pid_list));
+      /* If the process has already signaled, remove it from the list.  */
+      if (p->raw_status_new)
+	update_status (p);
+      symbol = p->status;
+      if (CONSP (p->status))
+	symbol = XCAR (p->status);
+      if (EQ (symbol, Qsignal) || EQ (symbol, Qexit))
+	Fdelete (make_fixnum_or_float (p->pid), deleted_pid_list);
+      else
+#endif
+	{
+	  Fkill_process (process, Qnil);
+	  /* Do this now, since remove_process will make sigchld_handler do nothing.  */
+	  p->status
+	    = Fcons (Qsignal, Fcons (make_number (SIGKILL), Qnil));
+	  XSETINT (p->tick, ++process_tick);
+	  status_notify (p);
+	}
     }
   remove_process (process);
   return Qnil;
@@ -4140,6 +4169,25 @@ wait_reading_process_output_1 ()
 {
 }
 
+/* Use a wrapper around select to work around a bug in gdb 5.3.
+   Normally, the wrapper is optimzed away by inlining.
+
+   If emacs is stopped inside select, the gdb backtrace doesn't
+   show the function which called select, so it is practically
+   impossible to step through wait_reading_process_output.  */
+
+#ifndef select
+static INLINE int
+select_wrapper (n, rfd, wfd, xfd, tmo)
+  int n;
+  SELECT_TYPE *rfd, *wfd, *xfd;
+  EMACS_TIME *tmo;
+{
+  return select (n, rfd, wfd, xfd, tmo);
+}
+#define select select_wrapper
+#endif
+
 /* Read and dispose of subprocess output while waiting for timeout to
    elapse and/or keyboard input to be available.
 
@@ -6321,6 +6369,7 @@ kill_buffer_processes (buffer)
    ** Malloc WARNING: This should never call malloc either directly or
    indirectly; if it does, that is a bug  */
 
+#ifdef SIGCHLD
 SIGTYPE
 sigchld_handler (signo)
      int signo;
@@ -6378,6 +6427,15 @@ sigchld_handler (signo)
 
       /* Find the process that signaled us, and record its status.  */
 
+      /* The process can have been deleted by Fdelete_process.  */
+      tail = Fmember (make_fixnum_or_float (pid), deleted_pid_list);
+      if (!NILP (tail))
+	{
+	  Fsetcar (tail, Qnil);
+	  goto sigchld_end_of_loop;
+	}
+
+      /* Otherwise, if it is asynchronous, it is in Vprocess_alist.  */
       p = 0;
       for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
 	{
@@ -6429,8 +6487,8 @@ sigchld_handler (signo)
 	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 	}
 
-	/* There was no asynchronous process found for that id.  Check
-	   if we have a synchronous process.  */
+      /* There was no asynchronous process found for that pid: we have
+	 a synchronous process.  */
       else
 	{
 	  synch_process_alive = 0;
@@ -6446,6 +6504,9 @@ sigchld_handler (signo)
 	  if (input_available_clear_time)
 	    EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 	}
+
+    sigchld_end_of_loop:
+      ;
 
       /* On some systems, we must return right away.
 	 If any more processes want to signal us, we will
@@ -6463,6 +6524,7 @@ sigchld_handler (signo)
 #endif /* USG, but not HPUX with WNOHANG */
     }
 }
+#endif /* SIGCHLD */
 
 
 static Lisp_Object
@@ -6845,6 +6907,9 @@ init_process ()
 #endif
 
   Vprocess_alist = Qnil;
+#ifdef SIGCHLD
+  deleted_pid_list = Qnil;
+#endif
   for (i = 0; i < MAXDESC; i++)
     {
       chan_process[i] = Qnil;
@@ -6983,6 +7048,9 @@ syms_of_process ()
   staticpro (&Qlast_nonmenu_event);
 
   staticpro (&Vprocess_alist);
+#ifdef SIGCHLD
+  staticpro (&deleted_pid_list);
+#endif
 
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
 	       doc: /* *Non-nil means delete processes immediately when they exit.

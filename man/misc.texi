@@ -873,17 +873,21 @@ Move point to the previous prompt (@code{comint-previous-prompt}).
 Move point to the following prompt (@code{comint-next-prompt}).
 
 @kindex C-c RET @r{(Shell mode)}
-@findex comint-insert-input
+@findex comint-copy-old-input
 @item C-c @key{RET}
 Copy the input command which point is in, inserting the copy at the end
-of the buffer (@code{comint-insert-input}).  This is useful if you
+of the buffer (@code{comint-copy-old-input}).  This is useful if you
 move point back to a previous command.  After you copy the command, you
 can submit the copy as input with @key{RET}.  If you wish, you can
-edit the copy before resubmitting it.
+edit the copy before resubmitting it.  If you use this command on an
+output line, it copies that line to the end of the buffer.
 
 @item Mouse-2
-Copy the input command that you click on, inserting the copy at the end
-of the buffer.
+If @code{comint-use-prompt-regexp} is @code{nil} (the default), copy
+the old input command that you click on, inserting the copy at the end
+of the buffer (@code{comint-insert-input}).  If
+@code{comint-use-prompt-regexp} is non-@code{nil}, or if the click is
+not over old input, just yank as usual.
 @end table
 
   Moving to a previous input and then copying it with @kbd{C-c

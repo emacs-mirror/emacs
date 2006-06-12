@@ -84,46 +84,13 @@
 ;; USAGE
 ;; =====
 ;;
-;; If you plan to use tumme much, setting up key bindings for it in
-;; dired is a good idea:
+;; This information has been moved to the manual. Type `C-h r' to open
+;; the Emacs manual and go to the node Thumbnails by typing `g
+;; Thumbnails RET'.
 ;;
-;;   (tumme-setup-dired-keybindings)
+;; Quickstart: M-x tumme RET DIRNAME RET
 ;;
-;; Next, do M-x tumme-dired RET.  This will ask you for a directory
-;; where image files are stored, setup a useful window configuration
-;; and enable the two special modes that tumme provides.  NOTE: If you
-;; do not want tumme to split your windows, call it with a prefix
-;; argument.
-;;
-;; Start viewing thumbnails by doing C-S-n and C-S-p to go up and down
-;; in the dired buffer while at the same time displaying a thumbnail
-;; image.  The thumbnail images will be created on the fly, and
-;; cached.  This means that the first time you browse your images, it
-;; will be a bit slow because the thumbnails are created.  If you want
-;; to avoid this, you can pre-create the thumbnail images by marking
-;; all images in dired (% m \.jpg$ RET) and then do M-x
-;; tumme-create-thumbs.
-;;
-;; Next, try `tumme-display-thumbs' (C-t d).  If no file is marked, a
-;; thumbnail for the file at point will show up in
-;; `tumme-thumbnail-buffer'.  If one or more files are marked,
-;; thumbnails for those files will be displayed.
-;;
-;; Pressing TAB will switch to the window containing the
-;; `tumme-thumbnail-buffer' buffer.  In there you can move between
-;; thumbnail images and display a semi-sized version in an Emacs
-;; buffer (RET), or the original image in an external viewer
-;; (C-RET).  By pressing SPC or DEL you will navigate back and fort
-;; while at the same time displaying each image in Emacs.  You can also
-;; navigate using arrow keys.  Comment a file by pressing "c".  Press
-;; TAB to get back to dired.
-;;
-;; While in dired mode, you can tag and comment files, you can tell
-;; `tumme' to mark files with a certain tag (using a regexp) etc.
-;;
-;; The easiest way to see the available commands is to use the Tumme
-;; menus added in tumme-thumbnail-mode and dired-mode.
-;;
+;; where DIRNAME is a directory containing image files.
 ;;
 ;; LIMITATIONS
 ;; ===========
@@ -488,7 +455,7 @@ completely fit)."
   :type 'integer
   :group 'tumme)
 
-(defcustom tumme-track-movement nil
+(defcustom tumme-track-movement t
   "The current state of the tracking and mirroring.
 For more information, see the documentation for
 `tumme-toggle-movement-tracking'."
@@ -541,13 +508,13 @@ Used by `tumme-copy-with-exif-file-name'."
   :group 'tumme)
 
 (defcustom tumme-show-all-from-dir-max-files 50
-  "*Maximum number of files to show using`tumme-show-all-from-dir'.
+  "*Maximum number of files to show using `tumme-show-all-from-dir'.
 before warning the user."
   :type 'integer
   :group 'tumme)
 
 (defun tumme-dir ()
-  "Return the current thumbnails directory (from `tumme-dir').
+  "Return the current thumbnails directory (from variable `tumme-dir').
 Create the thumbnails directory if it does not exist."
   (let ((tumme-dir (file-name-as-directory
                     (expand-file-name tumme-dir))))
@@ -701,7 +668,7 @@ Otherwise, delete overlays."
   (interactive)
   (dired-next-line 1)
   (tumme-display-thumbs
-   t (or tumme-append-when-browsing nil))
+   t (or tumme-append-when-browsing nil) t)
   (if tumme-dired-disp-props
       (tumme-dired-display-properties)))
 
@@ -710,7 +677,7 @@ Otherwise, delete overlays."
   (interactive)
   (dired-previous-line 1)
   (tumme-display-thumbs
-   t (or tumme-append-when-browsing nil))
+   t (or tumme-append-when-browsing nil) t)
   (if tumme-dired-disp-props
       (tumme-dired-display-properties)))
 
@@ -729,7 +696,7 @@ Otherwise, delete overlays."
   (interactive)
   (dired-mark 1)
   (tumme-display-thumbs
-   t (or tumme-append-when-browsing nil))
+   t (or tumme-append-when-browsing nil) t)
   (if tumme-dired-disp-props
       (tumme-dired-display-properties)))
 
@@ -818,7 +785,7 @@ Restore any changes to the window configuration made by calling
     (message "No saved window configuration")))
 
 ;;;###autoload
-(defun tumme-display-thumbs (&optional arg append)
+(defun tumme-display-thumbs (&optional arg append do-not-pop)
   "Display thumbnails of all marked files, in `tumme-thumbnail-buffer'.
 If a thumbnail image does not exist for a file, it is created on the
 fly.  With prefix argument ARG, display only thumbnail for file at
@@ -830,7 +797,14 @@ you have the dired buffer in the left window and the
 `tumme-thumbnail-buffer' buffer in the right window.
 
 With optional argument APPEND, append thumbnail to thumbnail buffer
-instead of erasing it first."
+instead of erasing it first.
+
+Option argument DO-NOT-POP controls if `pop-to-buffer' should be
+used or not.  If non-nil, use `display-buffer' instead of
+`pop-to-buffer'.  This is used from functions like
+`tumme-next-line-and-display' and
+`tumme-previous-line-and-display' where we do not want the
+thumbnail buffer to be selected."
   (interactive "P")
   (let ((buf (tumme-create-thumbnail-buffer))
         curr-file thumb-name files count dired-buf beg)
@@ -862,8 +836,11 @@ instead of erasing it first."
              nil)
             (t
              (tumme-line-up-dynamic))))
-    (pop-to-buffer tumme-thumbnail-buffer)))
+    (if do-not-pop
+        (display-buffer tumme-thumbnail-buffer)
+      (pop-to-buffer tumme-thumbnail-buffer))))
 
+;;;###autoload
 (defun tumme-show-all-from-dir (dir)
   "Make a preview buffer for all images in DIR and display it.
 If the number of files in DIR matching `image-file-name-regexp'
@@ -905,10 +882,9 @@ displayed."
                (end-of-line)
                (setq end (point))
                (beginning-of-line)
-               (if (not (search-forward (format ";%s" tag) end t))
-                   (progn
-                     (end-of-line)
-                     (insert (format ";%s" tag)))))
+               (when (not (search-forward (format ";%s" tag) end t))
+                 (end-of-line)
+                 (insert (format ";%s" tag))))
            (goto-char (point-max))
            (insert (format "\n%s;%s" file tag))))
        files)
@@ -927,27 +903,24 @@ displayed."
       (mapcar
        (lambda (file)
          (goto-char (point-min))
-         (if (search-forward-regexp
-              (format "^%s" file) nil t)
-             (progn
-               (end-of-line)
-               (setq end (point))
-               (beginning-of-line)
-               (if (search-forward-regexp (format "\\(;%s\\)" tag) end t)
-                   (progn
-                     (delete-region (match-beginning 1) (match-end 1))
-                     ;; Check if file should still be in the database. If
-                     ;; it has no tags or comments, it will be removed.
-                     (end-of-line)
-                     (setq end (point))
-                     (beginning-of-line)
-                     (if (not (search-forward ";" end t))
-                         (progn
-                           (kill-line 1)
-                           ;; If on empty line at end of buffer
-                           (if (and (eobp)
-                                    (looking-at "^$"))
-                               (delete-backward-char 1)))))))))
+         (when (search-forward-regexp
+                (format "^%s" file) nil t)
+           (end-of-line)
+           (setq end (point))
+           (beginning-of-line)
+           (when (search-forward-regexp (format "\\(;%s\\)" tag) end t)
+             (delete-region (match-beginning 1) (match-end 1))
+             ;; Check if file should still be in the database. If
+             ;; it has no tags or comments, it will be removed.
+             (end-of-line)
+             (setq end (point))
+             (beginning-of-line)
+             (when (not (search-forward ";" end t))
+               (kill-line 1)
+               ;; If on empty line at end of buffer
+               (when (and (eobp)
+                          (looking-at "^$"))
+                 (delete-backward-char 1))))))
        files)
       (save-buffer)
       (kill-buffer buf))))
@@ -958,17 +931,16 @@ displayed."
     (let (end buf (tags ""))
       (setq buf (find-file tumme-db-file))
       (goto-char (point-min))
-      (if (search-forward-regexp
-           (format "^%s" file) nil t)
-          (progn
-            (end-of-line)
-            (setq end (point))
-            (beginning-of-line)
-            (if (search-forward ";" end t)
-                (if (search-forward "comment:" end t)
-                    (if (search-forward ";" end t)
-                        (setq tags (buffer-substring (point) end)))
-                  (setq tags (buffer-substring (point) end))))))
+      (when (search-forward-regexp
+             (format "^%s" file) nil t)
+        (end-of-line)
+        (setq end (point))
+        (beginning-of-line)
+        (if (search-forward ";" end t)
+            (if (search-forward "comment:" end t)
+                (if (search-forward ";" end t)
+                    (setq tags (buffer-substring (point) end)))
+              (setq tags (buffer-substring (point) end)))))
       (kill-buffer buf)
       (split-string tags ";"))))
 
@@ -992,7 +964,7 @@ displayed."
    'tags (tumme-list-tags (tumme-original-file-name))))
 
 ;;;###autoload
-(defun tumme-tag-remove (arg)
+(defun tumme-delete-tag (arg)
   "Remove tag for selected file(s).
 With prefix argument ARG, remove tag from file at point."
   (interactive "P")
@@ -1034,17 +1006,16 @@ use only useful if `tumme-track-movement' is nil."
   (let ((old-buf (current-buffer))
         (dired-buf (tumme-associated-dired-buffer))
         (file-name (tumme-original-file-name)))
-    (if (and dired-buf file-name)
-        (progn
-          (setq file-name (file-name-nondirectory file-name))
-          (set-buffer dired-buf)
-          (goto-char (point-min))
-          (if (not (search-forward file-name nil t))
-              (message "Could not track file")
-            (dired-move-to-filename)
-            (set-window-point
-             (tumme-get-buffer-window dired-buf) (point)))
-          (set-buffer old-buf)))))
+    (when (and dired-buf file-name)
+      (setq file-name (file-name-nondirectory file-name))
+      (set-buffer dired-buf)
+      (goto-char (point-min))
+      (if (not (search-forward file-name nil t))
+          (message "Could not track file")
+        (dired-move-to-filename)
+        (set-window-point
+         (tumme-get-buffer-window dired-buf) (point)))
+      (set-buffer old-buf))))
 
 (defun tumme-toggle-movement-tracking ()
   "Turn on and off `tumme-track-movement'.
@@ -1063,24 +1034,22 @@ the other way around."
   (let ((file (dired-get-filename))
         (old-buf (current-buffer))
         prop-val found)
-    (if (get-buffer tumme-thumbnail-buffer)
-        (progn
-          (set-buffer tumme-thumbnail-buffer)
-          (goto-char (point-min))
-          (while (and (not (eobp))
-                      (not found))
-            (if (and (setq prop-val
-                           (get-text-property (point) 'original-file-name))
-                     (string= prop-val file))
-                (setq found t))
-            (if (not found)
-                (forward-char 1)))
-          (if found
-              (progn
-                (set-window-point
-                 (tumme-thumbnail-window) (point))
-                (tumme-display-thumb-properties)))
-          (set-buffer old-buf)))))
+    (when (get-buffer tumme-thumbnail-buffer)
+      (set-buffer tumme-thumbnail-buffer)
+      (goto-char (point-min))
+      (while (and (not (eobp))
+                  (not found))
+        (if (and (setq prop-val
+                       (get-text-property (point) 'original-file-name))
+                 (string= prop-val file))
+            (setq found t))
+        (if (not found)
+            (forward-char 1)))
+      (when found
+        (set-window-point
+         (tumme-thumbnail-window) (point))
+        (tumme-display-thumb-properties))
+      (set-buffer old-buf))))
 
 (defun tumme-dired-next-line (&optional arg)
   "Call `dired-next-line', then track thumbnail.
@@ -1105,29 +1074,27 @@ move ARG lines."
   (interactive)
   ;; Before we move, make sure that there is an image two positions
   ;; forward.
-  (if (save-excursion
+  (when (save-excursion
         (forward-char 2)
         (tumme-image-at-point-p))
-      (progn
-        (forward-char)
-        (while (and (not (eobp))
-                    (not (tumme-image-at-point-p)))
-          (forward-char))
-        (if tumme-track-movement
-            (tumme-track-original-file))))
+    (forward-char)
+    (while (and (not (eobp))
+                (not (tumme-image-at-point-p)))
+      (forward-char))
+    (if tumme-track-movement
+        (tumme-track-original-file)))
   (tumme-display-thumb-properties))
 
 (defun tumme-backward-char ()
   "Move to previous image and display properties."
   (interactive)
-  (if (not (bobp))
-      (progn
-        (backward-char)
-        (while (and (not (bobp))
-                    (not (tumme-image-at-point-p)))
-          (backward-char))
-        (if tumme-track-movement
-            (tumme-track-original-file))))
+  (when (not (bobp))
+    (backward-char)
+    (while (and (not (bobp))
+                (not (tumme-image-at-point-p)))
+      (backward-char))
+    (if tumme-track-movement
+        (tumme-track-original-file)))
   (tumme-display-thumb-properties))
 
 (defun tumme-next-line ()
@@ -1515,9 +1482,9 @@ Note that n, p and <down> and <up> will be hijacked and bound to
 
   (define-key dired-mode-map "\C-td" 'tumme-display-thumbs)
   (define-key dired-mode-map "\C-tt" 'tumme-tag-files)
-  (define-key dired-mode-map "\C-tr" 'tumme-tag-remove)
+  (define-key dired-mode-map "\C-tr" 'tumme-delete-tag)
   (define-key dired-mode-map [tab] 'tumme-jump-thumbnail-buffer)
-  (define-key dired-mode-map "\C-ti" 'tumme-display-dired-image)
+  (define-key dired-mode-map "\C-ti" 'tumme-dired-display-image)
   (define-key dired-mode-map "\C-tx" 'tumme-dired-display-external)
   (define-key dired-mode-map "\C-ta" 'tumme-display-thumbs-append)
   (define-key dired-mode-map "\C-t." 'tumme-display-thumb)
@@ -1537,8 +1504,8 @@ Note that n, p and <down> and <up> will be hijacked and bound to
   (define-key dired-mode-map [menu-bar tumme tumme-mark-tagged-files]
     '("Mark tagged files" . tumme-mark-tagged-files))
 
-  (define-key dired-mode-map [menu-bar tumme tumme-tag-remove]
-    '("Remove tag from files" . tumme-tag-remove))
+  (define-key dired-mode-map [menu-bar tumme tumme-delete-tag]
+    '("Remove tag from files" . tumme-delete-tag))
 
   (define-key dired-mode-map [menu-bar tumme tumme-tag-files]
     '("Tag files" . tumme-tag-files))
@@ -1561,8 +1528,8 @@ Note that n, p and <down> and <up> will be hijacked and bound to
     [menu-bar tumme tumme-dired-display-external]
     '("Display in external viewer" . tumme-dired-display-external))
   (define-key dired-mode-map
-    [menu-bar tumme tumme-display-dired-image]
-    '("Display image" . tumme-display-dired-image))
+    [menu-bar tumme tumme-dired-display-image]
+    '("Display image" . tumme-dired-display-image))
   (define-key dired-mode-map
     [menu-bar tumme tumme-display-thumb]
     '("Display this thumbnail" . tumme-display-thumb))
@@ -1658,13 +1625,13 @@ Ask user for number of images to show and the delay in between."
 (defun tumme-display-thumbs-append ()
   "Append thumbnails to `tumme-thumbnail-buffer'."
   (interactive)
-  (tumme-display-thumbs nil t))
+  (tumme-display-thumbs nil t t))
 
 ;;;###autoload
 (defun tumme-display-thumb ()
   "Shorthard for `tumme-display-thumbs' with prefix argument."
   (interactive)
-  (tumme-display-thumbs t))
+  (tumme-display-thumbs t nil t))
 
 (defun tumme-line-up ()
   "Line up thumbnails according to `tumme-thumbs-per-row'.
@@ -1688,11 +1655,10 @@ See also `tumme-line-up-dynamic'."
             (insert "\n")
           (insert " ")
           (setq count (1+ count))
-          (if (= count (- tumme-thumbs-per-row 1))
-              (progn
-                (forward-char)
-                (insert "\n")
-                (setq count 0))))))
+          (when (= count (- tumme-thumbs-per-row 1))
+            (forward-char)
+            (insert "\n")
+            (setq count 0)))))
     (goto-char (point-min))))
 
 (defun tumme-line-up-dynamic ()
@@ -1786,13 +1752,11 @@ Ask user how many thumbnails should be displayed per row."
 
 (defun tumme-display-image (file &optional original-size)
   "Display image FILE in image buffer.
-Use this when you want to display the image, semi sized, in a window
-next to the thumbnail window - typically a three-window configuration
-with dired to the left, thumbnail window to the upper right and image
-window to the lower right.  The image is sized to fit the display
-window (using a temporary file, don't worry).  Because of this, it
-will not be as quick as opening it directly, but on most modern
-systems it should feel snappy enough.
+Use this when you want to display the image, semi sized, in a new
+window.  The image is sized to fit the display window (using a
+temporary file, don't worry).  Because of this, it will not be as
+quick as opening it directly, but on most modern systems it
+should feel snappy enough.
 
 If optional argument ORIGINAL-SIZE is non-nil, display image in its
 original size."
@@ -1841,12 +1805,13 @@ With prefix argument ARG, display image in its original size."
           (display-buffer tumme-display-image-buffer))))))
 
 ;;;###autoload
-(defun tumme-display-dired-image (&optional arg)
+(defun tumme-dired-display-image (&optional arg)
   "Display current image file.
 See documentation for `tumme-display-image' for more information.
 With prefix argument ARG, display image in its original size."
   (interactive "P")
-  (tumme-display-image (dired-get-filename) arg))
+  (tumme-display-image (dired-get-filename) arg)
+  (display-buffer tumme-display-image-buffer))
 
 (defun tumme-image-at-point-p ()
   "Return true if there is a tumme thumbnail at point."
@@ -2122,19 +2087,18 @@ as initial value."
     (let (end buf comment-beg comment (base-name (file-name-nondirectory file)))
       (setq buf (find-file tumme-db-file))
       (goto-char (point-min))
-      (if (search-forward-regexp
-           (format "^%s" base-name) nil t)
-          (progn
-            (end-of-line)
-            (setq end (point))
-            (beginning-of-line)
-            (cond ((search-forward ";comment:" end t)
-                   (setq comment-beg (point))
-                   (if (search-forward ";" end t)
-                       (setq comment-end (- (point) 1))
-                     (setq comment-end end))
-                   (setq comment (buffer-substring
-                                  comment-beg comment-end))))))
+      (when (search-forward-regexp
+             (format "^%s" base-name) nil t)
+        (end-of-line)
+        (setq end (point))
+        (beginning-of-line)
+        (cond ((search-forward ";comment:" end t)
+               (setq comment-beg (point))
+               (if (search-forward ";" end t)
+                   (setq comment-end (- (point) 1))
+                 (setq comment-end end))
+               (setq comment (buffer-substring
+                              comment-beg comment-end)))))
       (kill-buffer buf)
       comment)))
 

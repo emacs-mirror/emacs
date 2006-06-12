@@ -29,8 +29,14 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#ifdef DOS_NT
+#include <fcntl.h>		/* for O_BINARY */
+#include <io.h>			/* for setmode */
+#endif
 #ifndef HAVE_STDLIB_H		/* config.h includes stdlib.  */
+#ifndef WINDOWSNT		/* src/s/ms-w32.h includes stdlib.h */
 extern char *malloc ();
+#endif
 #endif
 
 #define NUL	'\0'
@@ -133,6 +139,14 @@ main ()
 
   DOCSTR *docs = NULL;          /* chain of allocated DOCSTRS */
   char buf[512];		/* line buffer */
+
+#ifdef DOS_NT
+  /* DOC is a binary file.  */
+  if (!isatty (fileno (stdin)))
+    setmode (fileno (stdin), O_BINARY);
+#endif
+
+  bp = buf;
 
   while (1)			/* process one char at a time */
     {

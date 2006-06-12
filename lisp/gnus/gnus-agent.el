@@ -825,7 +825,7 @@ be a select method."
   (save-excursion
     (dolist (gnus-command-method (gnus-agent-covered-methods))
       (when (and (file-exists-p (gnus-agent-lib-file "flags"))
-		 (not (eq (gnus-server-status gnus-command-method) 'offline)))
+		 (eq (gnus-server-status gnus-command-method) 'ok))
 	(gnus-agent-possibly-synchronize-flags-server gnus-command-method)))))
 
 (defun gnus-agent-synchronize-flags-server (method)
@@ -2133,7 +2133,8 @@ modified) original contents, they are first saved to their own file."
             (let (group
                   min
                   max
-                  (cur (current-buffer)))
+                  (cur (current-buffer))
+		  (obarray my-obarray))
               (setq group (read cur)
                     min (read cur)
                     max (read cur))
@@ -2214,7 +2215,9 @@ modified) original contents, they are first saved to their own file."
 
     (if (cond ((and minmax
                     (or (not (eq min (car minmax)))
-                        (not (eq max (cdr minmax)))))
+                        (not (eq max (cdr minmax))))
+		    min
+		    max)
                (setcar minmax min)
                (setcdr minmax max)
                t)
@@ -3743,8 +3746,10 @@ If REREAD is not nil, downloaded articles are marked as unread."
              (dir (file-name-directory file))
              point
              (downloaded (if (file-exists-p dir)
-                             (sort (mapcar (lambda (name) (string-to-number name))
-                                           (directory-files dir nil "^[0-9]+$" t))
+			   (sort (delq nil (mapcar (lambda (name) 
+						     (and (not (file-directory-p (nnheader-concat dir name)))
+							  (string-to-number name)))
+						   (directory-files dir nil "^[0-9]+$" t)))
                                    '>)
                            (progn (gnus-make-directory dir) nil)))
              dl nov-arts

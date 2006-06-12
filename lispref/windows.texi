@@ -161,10 +161,8 @@ The two ``halves'' of the split window initially display the same buffer
 previously visible in the window that was split.
 
 @deffn Command split-window &optional window size horizontal
-This function splits @var{window} into two windows.  The original
-window @var{window} remains the selected window, but occupies only
-part of its former screen area.  The rest is occupied by a newly created
-window which is returned as the value of this function.
+This function splits a new window out of @var{window}'s screen area.
+It returns the new window.
 
 If @var{horizontal} is non-@code{nil}, then @var{window} splits into
 two side by side windows.  The original window @var{window} keeps the
@@ -175,11 +173,13 @@ lines to the new window.  The original window is therefore the
 left-hand or upper of the two, and the new window is the right-hand or
 lower.
 
-If @var{window} is omitted or @code{nil}, then the selected window is
-split.  If @var{size} is omitted or @code{nil}, then @var{window} is
-divided evenly into two parts.  (If there is an odd line, it is
-allocated to the new window.)  When @code{split-window} is called
-interactively, all its arguments are @code{nil}.
+If @var{window} is omitted or @code{nil}, that stands for the selected
+window.  When you split the selected window, it remains selected.
+
+If @var{size} is omitted or @code{nil}, then @var{window} is divided
+evenly into two parts.  (If there is an odd line, it is allocated to
+the new window.)  When @code{split-window} is called interactively,
+all its arguments are @code{nil}.
 
 If splitting would result in making a window that is smaller than
 @code{window-min-height} or @code{window-min-width}, the function

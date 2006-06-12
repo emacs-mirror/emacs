@@ -26,11 +26,22 @@
 
 #include <stdio.h>
 
+#ifdef DOS_NT
+#include <fcntl.h>		/* for O_BINARY */
+#include <io.h>			/* for setmode */
+#endif
+
 int
 main ()
 {
   register int ch;
   register int notfirst = 0;
+
+#ifdef DOS_NT
+  /* DOC is a binary file.  */
+  if (!isatty (fileno (stdin)))
+    setmode (fileno (stdin), O_BINARY);
+#endif
 
   printf (".TL\n");
   printf ("Command Summary for GNU Emacs\n");

@@ -559,6 +559,8 @@ Well-known ports are used if the URL does not specify a port.
 @cindex IRC
 @cindex Internet Relay Chat
 @cindex ZEN IRC
+@cindex ERC
+@cindex rcirc
 @c Fixme: reference (was http://www.w3.org/Addressing/draft-mirashi-url-irc-01.txt)
 @dfn{Internet Relay Chat} (IRC) is handled by handing off the @sc{irc}
 session to a function named in @code{url-irc-function}.
@@ -569,8 +571,14 @@ This function
 must take five arguments, @var{host}, @var{port}, @var{channel},
 @var{user} and @var{password}.  The @var{channel} argument specifies the
 channel to join immediately, this can be @code{nil}.  By default this is
-@code{url-irc-zenirc}.
+@code{url-irc-rcirc}.
 @end defopt
+@defun url-irc-rcirc host port channel user password
+Processes the arguments and lets @code{rcirc} handle the session.
+@end defun
+@defun url-irc-erc host port channel user password
+Processes the arguments and lets @code{ERC} handle the session.
+@end defun
 @defun url-irc-zenirc host port channel user password
 Processes the arguments and lets @code{zenirc} handle the session.
 @end defun
@@ -934,7 +942,7 @@ This is a regular expression that matches the shell prompt.
 Host to @samp{rlogin} to before telnetting out.
 @end defopt
 @defopt url-gateway-rlogin-parameters
-Parametres to pass to @samp{rsh}.
+Parameters to pass to @samp{rsh}.
 @end defopt
 @defopt url-gateway-rlogin-user-name
 User name to use when logging in to the gateway.

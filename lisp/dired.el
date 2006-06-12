@@ -1251,9 +1251,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ;; thumbnail manipulation (tumme)
     (define-key map "\C-td" 'tumme-display-thumbs)
     (define-key map "\C-tt" 'tumme-tag-files)
-    (define-key map "\C-tr" 'tumme-tag-remove)
+    (define-key map "\C-tr" 'tumme-delete-tag)
     (define-key map "\C-tj" 'tumme-jump-thumbnail-buffer)
-    (define-key map "\C-ti" 'tumme-display-dired-image)
+    (define-key map "\C-ti" 'tumme-dired-display-image)
     (define-key map "\C-tx" 'tumme-dired-display-external)
     (define-key map "\C-ta" 'tumme-display-thumbs-append)
     (define-key map "\C-t." 'tumme-display-thumb)
@@ -1305,6 +1305,18 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar immediate]
       (cons "Immediate" (make-sparse-keymap "Immediate")))
 
+    (define-key map
+      [menu-bar immediate tumme-dired-display-external]
+      '(menu-item "Display Image Externally" tumme-dired-display-external
+                  :help "Display image in external viewer"))
+    (define-key map
+      [menu-bar immediate tumme-dired-display-image]
+      '(menu-item "Display Image" tumme-dired-display-image
+                  :help "Display sized image in a separate window"))
+
+    (define-key map [menu-bar immediate dashes-4]
+      '("--"))
+
     (define-key map [menu-bar immediate revert-buffer]
       '(menu-item "Refresh" revert-buffer
 		  :help "Update contents of shown directories"))
@@ -1313,7 +1325,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       '("--"))
 
     (define-key map [menu-bar immediate compare-directories]
-      '(menu-item "Compare directories..." dired-compare-directories
+      '(menu-item "Compare Directories..." dired-compare-directories
 		  :help "Mark files with different attributes in two dired buffers"))
     (define-key map [menu-bar immediate backup-diff]
       '(menu-item "Compare with Backup" dired-backup-diff
@@ -1340,6 +1352,14 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 
     (define-key map [menu-bar regexp]
       (cons "Regexp" (make-sparse-keymap "Regexp")))
+
+    (define-key map
+      [menu-bar regexp tumme-mark-tagged-files]
+      '(menu-item "Mark From Image Tag..." tumme-mark-tagged-files
+                  :help "Mark files whose image tags matches regexp"))    
+    
+    (define-key map [menu-bar regexp dashes-1]
+      '("--"))    
 
     (define-key map [menu-bar regexp downcase]
       '(menu-item "Downcase" dired-downcase
@@ -1427,6 +1447,29 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 
     (define-key map [menu-bar operate]
       (cons "Operate" (make-sparse-keymap "Operate")))
+
+    (define-key map [menu-bar operate dashes-2]
+      '("--"))
+
+    (define-key map
+      [menu-bar operate tumme-delete-tag]
+      '(menu-item "Delete Image Tag..." tumme-delete-tag
+                  :help "Delete image tag from current or marked files"))
+    (define-key map
+      [menu-bar operate tumme-tag-files]
+      '(menu-item "Add Image Tags..." tumme-tag-files
+                  :help "Add image tags to current or marked files"))
+    (define-key map
+      [menu-bar operate tumme-dired-comment-files]
+      '(menu-item "Add Image Comment..." tumme-dired-comment-files
+                  :help "Add image comment to current or marked files"))
+    (define-key map
+      [menu-bar operate tumme-display-thumbs]
+      '(menu-item "Display Thumbnails" tumme-display-thumbs
+                  :help "Display thumbnails for current or marked image files"))
+    
+    (define-key map [menu-bar operate dashes-3]
+      '("--"))    
 
     (define-key map [menu-bar operate query-replace]
       '(menu-item "Query Replace in Files..." dired-do-query-replace-regexp

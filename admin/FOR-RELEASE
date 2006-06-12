@@ -21,6 +21,19 @@ face name prefixes should be in it for good results.
 
 ** Ask maintainers of refcard translations to update them.
 
+Requests to have been sent out on 2006-05-23 (Reiner Steib).
+
+LANG	Translator            Status
+cs	Pavel Janík           No response
+de	Sven Joachim          Done
+fr	Eric Jacoboni         Done        (layout might be improved)
+pl	Włodek Bzyl           Done
+pt-br	Rodrigo Real          Done
+ru	Alex Ott              Working
+sk	Miroslav Vaško        No response
+
+Reminders sent out on 2006-06-08.
+
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
@@ -28,8 +41,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 ** We need a way a Lisp file encoded in iso-2022 can assure
 reliable decoding regardless of user options.
-
-** Clean up MUSTBENEW in Fcopy_file.
 
 ** JD Smith's 17 Apr 2006 bug report that CVS operations
 get mysterious unreproducible failures.
@@ -61,9 +72,6 @@ It seems that to fix this, w32 server sockets must use WSAAsyncSelect
 
 
 * DOCUMENTATION
-
-** Add a node to the Lisp manual describing key sequences from the
-Lisp point of view.
 
 ** Check man/info.texi.
 
@@ -141,7 +149,7 @@ SECTION                  READERS
 etc/TUTORIAL             rms
 etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
 etc/TUTORIAL.cn
-etc/TUTORIAL.cs          Pavel Jan�k <Pavel@Janik.cz>
+etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.es          Marcelo Toledo
 etc/TUTORIAL.fr          ttn
@@ -153,7 +161,7 @@ etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
-etc/TUTORIAL.sk          Pavel Jan�k <Pavel@Janik.cz>
+etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
 etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>
@@ -162,4 +170,5 @@ etc/TUTORIAL.zh
 
 Local variables:
 mode: outline
+coding: utf-8
 end:

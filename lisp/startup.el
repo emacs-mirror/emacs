@@ -650,18 +650,17 @@ opening the first frame (e.g. open a connection to an X server).")
 
   ;; Convert preloaded file names to absolute.
   (let ((lisp-dir
-	 (file-name-directory
-	  (locate-file "simple" load-path
-		       (get-load-suffixes)))))
+	 (file-truename
+	  (file-name-directory
+	   (locate-file "simple" load-path
+			(get-load-suffixes))))))
 
     (setq load-history
 	  (mapcar (lambda (elt)
 		    (if (and (stringp (car elt))
 			     (not (file-name-absolute-p (car elt))))
 			(cons (concat lisp-dir
-				      (car elt)
-				      (if (string-match "[.]el$" (car elt))
-					  "" ".elc"))
+				      (car elt))
 			      (cdr elt))
 		      elt))
 		  load-history)))

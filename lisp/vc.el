@@ -894,10 +894,12 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
 
 (defun vc-process-filter (p s)
   "An alternative output filter for async process P.
-The only difference with the default filter is to insert S after markers."
+One difference with the default filter is that this inserts S after markers.
+Another is that undo information is not kept."
   (with-current-buffer (process-buffer p)
     (save-excursion
-      (let ((inhibit-read-only t))
+      (let ((buffer-undo-list t)
+            (inhibit-read-only t))
 	(goto-char (process-mark p))
 	(insert s)
 	(set-marker (process-mark p) (point))))))
@@ -914,7 +916,8 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name camefrom)))
     (setq default-directory olddir)
-    (let ((inhibit-read-only t))
+    (let ((buffer-undo-list t)
+          (inhibit-read-only t))
       (erase-buffer))))
 
 (defun vc-exec-after (code)
@@ -1003,7 +1006,8 @@ that is inserted into the command line before the filename."
 	      (vc-exec-after
 	       `(unless (active-minibuffer-window)
                   (message "Running %s in the background... done" ',command))))
-	  (setq status (apply 'process-file command nil t nil squeezed))
+	  (let ((buffer-undo-list t))
+            (setq status (apply 'process-file command nil t nil squeezed)))
 	  (when (and (not (eq t okstatus))
                      (or (not (integerp status))
                          (and okstatus (< okstatus status))))

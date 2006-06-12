@@ -2,6 +2,8 @@
 GNU Service Directory
 ---------------------
 
+See the end of file for copyright information.
+
 This is a list of people who have asked to be listed as offering
 support services for GNU software, including GNU Emacs, for a fee
 or in some cases at no charge.
@@ -1364,5 +1366,13 @@ For a current copy of this directory, or to have yourself listed, ask:
 A current version should be available on our web site at http://www.gnu.org.
 
 ** Please keep the entries in this file alphabetical **
+
+
+Copyright (c) 2000, 2004, 2005, 2006 
+Free Software Foundation
+
+    Verbatim copying and distribution of this document are permitted
+    worldwide, without royalty, in any medium, provided this notice is
+    preserved.
 
 arch-tag: 1253ce32-1cbd-428a-ac36-70ed9e3999fc

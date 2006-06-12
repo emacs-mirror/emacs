@@ -1,3 +1,88 @@
+2006-06-09  W$,1 b(Bodek Bzyl  <matwb@univ.gda.pl>
+
+	* pl-refcard.ps: Regenerate.
+
+2006-06-08  W$,1 b(Bodek Bzyl  <matwb@univ.gda.pl>
+
+	* pl-refcard.tex: Update for Emacs 22.
+
+2006-06-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* fr-refcard.tex: Fix errors in previous commit.
+
+2006-06-08  ,AI(Bric Jacoboni  <jaco@jacoboni.fr>
+
+	* fr-refcard.tex: Update for Emacs 22.
+
+2006-06-07  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Mention how to disable character translation for a file.
+
+2006-06-04  Sven Joachim  <svenjoac@gmx.de>
+
+	* de-refcard.tex: Update for Emacs 22: Use German quotes
+	and umlauts; fix overfull /hboxes; many rewordings.
+
+2006-06-04  Kim F. Storm  <storm@cua.dk>
+
+	* NEWS: Move news for pre-22 versions into...
+	* NEWS.21, NEWS.20: ... new files for Emacs 21 and Emacs 20 news.
+	* ONEWS, ONEWS.1, ONEWS.2, ONEWS.3, ONEWS.4: Remove (rename) files ...
+	* NEWS.19, NEWS.18, NEWS.1-17: ... and organize news about older Emacs
+	versions in separte files.  Update copyright notices.
+
+2006-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* LPF, LEDIT: Remove files.
+
+	* FTP, README, HELLO, MACHINES, MAILINGLISTS, MORE.STUFF, ETAGS.EBNF:
+	* MOTIVATION, ORDERS, SERVICE, TERMS, TODO:
+	* enriched.doc, ulimit.hack, ses-example.ses, ms-7bkermit, emacs.csh:
+	* Xkeymap.txt, compilation.txt, grep.txt:
+	Add copyright notice and copying permissions.
+
+2006-05-31  David Ponce  <david@dponce.com>
+
+	* tree-widget/default/close.png, tree-widget/default/close.xpm:
+	* tree-widget/default/empty.png, tree-widget/default/empty.xpm:
+	* tree-widget/default/end-guide.png, tree-widget/default/end-guide.xpm:
+	* tree-widget/default/guide.png, tree-widget/default/guide.xpm:
+	* tree-widget/default/handle.png, tree-widget/default/handle.xpm:
+	* tree-widget/default/leaf.png, tree-widget/default/leaf.xpm:
+	* tree-widget/default/no-guide.png, tree-widget/default/no-guide.xpm:
+	* tree-widget/default/no-handle.png, tree-widget/default/no-handle.xpm:
+	* tree-widget/default/open.png, tree-widget/default/open.xpm:
+	* tree-widget/folder/close.png, tree-widget/folder/close.xpm:
+	* tree-widget/folder/empty.png, tree-widget/folder/empty.xpm:
+	* tree-widget/folder/end-guide.png, tree-widget/folder/end-guide.xpm:
+	* tree-widget/folder/guide.png, tree-widget/folder/guide.xpm:
+	* tree-widget/folder/handle.png, tree-widget/folder/handle.xpm:
+	* tree-widget/folder/leaf.png, tree-widget/folder/leaf.xpm:
+	* tree-widget/folder/no-guide.png, tree-widget/folder/no-guide.xpm:
+	* tree-widget/folder/no-handle.png, tree-widget/folder/no-handle.xpm:
+	* tree-widget/folder/open.png, tree-widget/folder/open.xpm:
+	Reduce the size of images.
+
+2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention F10 for Gtk+/Leddtif/Lucid menus.
+
+2006-05-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* ledit.l: Remove file.
+
+2006-05-26  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS (find-operation-coding-system): Mention the new argument
+	format.
+
+2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: (section{Motion}): Added the item navigation
+	commands.
+	(section{Publishing}): New section.
+	(section{Links}): Documented elisp and shell links.
+
 2006-05-20  Rodrigo Real  <rreal@ucpel.tche.br>
 
 	* pt-br-refcard.tex: Update.
@@ -85,8 +170,8 @@
 
 2006-04-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-refcard.tex: Bump version to 5.11.  Remove duplicate
-	\def's.  Update date.
+	* gnus-refcard.tex: Bump version to 5.11.  Remove duplicate \def's.
+	Update date.
 
 2006-04-18  Bill Wohler  <wohler@newt.com>
 
@@ -123,8 +208,7 @@
 	* images/README: Update with following information.
 
 	* images/data-save.xpm, images/mail/flag-for-followup.xpm:
-	* images/zoom-in.xpm, images/zoom-out.xpm: New images from GNOME
-	2.12.
+	* images/zoom-in.xpm, images/zoom-out.xpm: New images from GNOME 2.12.
 
 	* images/contact.pbm, images/data-save.pbm, images/delete.pbm:
 	* images/mail/flag-for-followup.pbm, images/mail/inbox.pbm:
@@ -156,8 +240,7 @@
 	* images/mail/alias.xpm, images/mail/refile.pbm:
 	* images/mail/refile.xpm, images/page-down.pbm:
 	* images/page-down.xpm, images/widen.pbm, images/widen.xpm: Remove
-	custom MH-E icons since MH-E is now using the equivalent GTK/GNOME
-	icons.
+	custom MH-E icons -- MH-E is now using the equivalent GTK/GNOME icons.
 
 2006-03-23  Romain Francoise  <romain@orebokech.com>
 
@@ -188,8 +271,7 @@
 	* images/mail/save.xpm, images/mail/send.xpm:
 	* images/mail/spam.xpm, images/next-page.xpm:
 	* images/refresh.xpm, images/separator.xpm:
-	* images/sort-ascending.xpm:
-	* images/sort-column-ascending.xpm:
+	* images/sort-ascending.xpm, images/sort-column-ascending.xpm:
 	* images/sort-criteria.xpm, images/sort-descending.xpm:
 	* images/sort-row-ascending.xpm:
 	New icons, copied from Gnus trunk (originally from Gnome 2.6).
@@ -678,21 +760,10 @@
 
 	Update FSF's address in GPL notices.
 
-	* INTERVIEW:
-	* calccard.tex:
-	* cs-dired-ref.tex:
-	* cs-refcard.tex:
-	* dired-ref.tex:
-	* fr-drdref.tex:
-	* fr-refcard.tex:
-	* gfdl.1:
-	* pl-refcard.tex:
-	* refcard.tex:
-	* ru-refcard.tex:
-	* sk-dired-ref.tex:
-	* sk-refcard.tex:
-	* vipcard.tex:
-	* viperCard.tex: Update FSF's address.
+	* INTERVIEW, calccard.tex, cs-dired-ref.tex, cs-refcard.tex:
+	* dired-ref.tex, fr-drdref.tex, fr-refcard.tex, gfdl.1:
+	* pl-refcard.tex, refcard.tex, ru-refcard.tex, sk-dired-ref.tex:
+	* sk-refcard.tex, vipcard.tex, viperCard.tex: Update FSF's address.
 
 2005-07-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

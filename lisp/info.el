@@ -2866,8 +2866,11 @@ Give an empty topic name to go to the Index node itself."
 	   (car (car Info-index-alternatives))
 	   (nth 2 (car Info-index-alternatives))
 	   (if (cdr Info-index-alternatives)
-	       (format "(%s total; use `,' for next)"
-		       (length Info-index-alternatives))
+	       (format "(%s total; use `%s' for next)"
+		       (length Info-index-alternatives)
+		       (key-description (where-is-internal
+					 'Info-index-next overriding-local-map
+					 t)))
 	     "(Only match)")))
 
 (defun Info-find-index-name (name)
