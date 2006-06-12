@@ -1,3 +1,8 @@
+2006-06-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* files.el (hack-local-variables-confirm):
+	Display string value using its printed representation.
+
 2006-06-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-edit): No-op if no server buffers exist.
