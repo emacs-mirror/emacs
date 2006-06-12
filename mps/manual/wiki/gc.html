@@ -192,6 +192,10 @@ AMCFix() (and now AMCHeaderFix() too).</p>
 
 <h2><a id="Allocation-Point">Allocation Point</a></h2>
 
+<p>These notes on Allocation Points were written by RHSK between 
+  2006-06-07 and 2006-06-12, following research and discussion with 
+  RB and NB.</p>
+
 <h3>Overview of two-phase allocation</h3>
 
 <p>The client should:</p>
@@ -232,7 +236,7 @@ AMCFix() (and now AMCHeaderFix() too).</p>
     will be left 'dangling'.</li>
   <li> they'd better not be the only reference to an object, 
     or that object might get collected, again leaving a dangling 
-    reference!</li>
+    reference.</li>
 </ul>
 
 <h3>mps_reserve</h3>
@@ -243,7 +247,8 @@ AMCFix() (and now AMCHeaderFix() too).</p>
   treats it as raw data.</p>
 
 <p>"Pinned" means: it will not move, be collected, be unmapped, 
-  or anything like that.</p>
+  or anything like that.  You may keep an unmanaged reference to 
+  it at this time.</p>
 
 <p>"Raw data" means two things:</p> 
   
@@ -306,11 +311,13 @@ AMCFix() (and now AMCHeaderFix() too).</p>
 <p>Almost always, <code>mps_commit</code> succeeds.  
   If it succeeds, that means: </p>
 <ul>
-  <li> the new object is now just a normal object like any other;</li>
+  <li> the new object is now just a normal object like any other, 
+    which means it may get collected if there are no references 
+    to it;</li>
   <li> all the references written IN the new object are valid (in 
     other words, a successful commit is the MPS's way of telling 
-    you that they did not become stale while they were sitting 
-    unmanaged in the new object);</li>
+    you that these references did not become stale while they were 
+    sitting unmanaged in the new object);</li>
   <li> all the references TO the new object are valid.</li>
 </ul>
 
@@ -363,9 +370,12 @@ AMCFix() (and now AMCHeaderFix() too).</p>
 <pre>
   2006-06-02  RHSK  Created.
   2006-06-02  RHSK  Introduction to MPS Formats
-  2006-06-06  RHSK  Formats: clarify explanation of methods, copy method is obsolete, mention format variants.
+  2006-06-06  RHSK  Formats: clarify explanation of methods, copy method is 
+                    obsolete, mention format variants.
   2006-06-09  RHSK  Allocation points: how it's supposed to be, from RB 2006-06-09.
-  2006-06-09  RHSK  Allocation points: must make at least one ambiguous ref and no exact refs to new object before calling commit.
+  2006-06-09  RHSK  Allocation points: must make at least one ambiguous ref 
+                    and no exact refs to new object before calling commit.
+  2006-06-12  RHSK  Allocation points: minor edits for clarity.
 </pre>
 
 
