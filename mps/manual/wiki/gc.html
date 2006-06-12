@@ -364,6 +364,268 @@ AMCFix() (and now AMCHeaderFix() too).</p>
   /* link new object into my object graph */
 </code></pre>
 
+<h2><a id="Allocation-Point-Detail">Allocation Points in Detail</a></h2>
+
+<p>The synchronization issues are a little tricky.  This following 
+  notes on these issues were written by RHSK between 
+  2006-06-12 and 2006-06-12.</p>
+
+<h3>scenario</h3>
+
+<p>The MPS allocation point protocol is a binary protocol.  You don't 
+  have to use the mps_reserve and mps_commit macros, but they are 
+  conventional and useful pre-packaged implementations.  
+  I'm using them as an example of correct protocol, referring to
+  <a href="http://www.ravenbrook.com/project/mps/master/code/mps.h">mps.h#17</a>.
+  It looks like this:</p>
+
+<pre><code>#define mps_reserve(_p_o, _mps_ap, _size) \
+  ((char *)(_mps_ap)-&gt;alloc + (_size) &gt; (char *)(_mps_ap)-&gt;alloc &amp;&amp; \
+   (char *)(_mps_ap)-&gt;alloc + (_size) &lt;= (char *)(_mps_ap)-&gt;limit ? \
+     ((_mps_ap)-&gt;alloc = \
+       (mps_addr_t)((char *)(_mps_ap)-&gt;alloc + (_size)), \
+      *(_p_o) = (_mps_ap)-&gt;init, \
+      MPS_RES_OK) : \
+     mps_ap_fill(_p_o, _mps_ap, _size))
+
+#define mps_commit(_mps_ap, _p, _size) \
+  ((_mps_ap)-&gt;init = (_mps_ap)-&gt;alloc, \
+   (_mps_ap)-&gt;limit != 0 || mps_ap_trip(_mps_ap, _p, _size))
+</code></pre>
+
+<p>Abstractly, the mutator code has a cycle of four operations on the 
+  allocation point:</p>
+<dl>
+  <dt> Lr </dt>
+  <dd> read Limit at reserve </dd>
+  
+  <dt> A </dt>
+  <dd> write Alloc at reserve </dd>
+  
+  <dt> I </dt>
+  <dd> write Init at commit </dd>
+  
+  <dt> Lc </dt>
+  <dd> read Limit at commit </dd>
+</dl>
+
+<p>The normal cycle is Lr A I Lc.</p>
+
+<p>After Lr, the mutator checks that A + size &lt;= Lr.  If this fails, 
+  then the mutator does mps_ap_fill instead of A.  So Lr mps_ap_fill I Lc 
+  is also a valid cycle.</p>
+
+<p>After Lc, the mutator checks that Lc != 0.  If this fails, the 
+  mutator will call mps_ap_trip before beginning a new cycle.  So 
+  Lr A I Lc mps_ap_trip is also a valid cycle.</p>
+
+<p>The mutator cannot interrupt the 
+  collector.</p>
+
+<p>The collector can interrupt the mutator (between any 
+  two mutator instructions).  The collector can only see the A, I, 
+  and mps_ap_trip (if present) operations; Lr and Lc are invisible 
+  to it.</p>
+
+<p>If the ap is not going to trip, the collector sees two 
+  equivalence classes:</p>
+<ul>
+  <li> (A)</li>
+  <li> (I Lc Lr)</li>
+</ul>
+
+<p>If the ap is going to trip, the collector sees four
+  equivalence classes:</p>
+<ul>
+  <li> (A)</li>
+  <li> (I Lc)</li>
+  <li> (the call to mps_ap_trip)</li>
+  <li> (mps_ap_trip Lr)</li>
+</ul>
+
+<p>The collector has two responsibilities:</p>
+<dl>
+  <dt> FIX </dt> 
+  <dd> to fix (or not fix) references TO the object;</dd>
+  <dt> SCAN </dt>
+  <dd> to scan (or not scan) references IN the object.</dd>
+</dl>
+
+<h3>A mutator with ambiguous references only (to the new object)</h3>
+
+<p>Let's see what's required for a mutator that promises to make no 
+  exact references to the new object until Lc succeeds, 
+  and promises to have at least one ambiguous reference to the 
+  new object when it sets I.</p>
+  
+<p>Consider a flip -- f1 -- in state A.</p>
+
+<p>The collector at f1 sees (A), and recognises that the I..A region 
+  is unmanaged memory.  
+  The object is never going to be valid, 
+  because it may contain stale references from before the flip, and the 
+  collector can't fix them.</p>
+
+<p>The f1 collector writes L = 0, tripping the allocation 
+  point, and the rest of this collection is easy.  
+  The FIX responsibility is easy: 
+  all references to the new object are ambiguous, so the 
+  collector can fix them or not -- it 
+  doesn't matter.  
+  For SCAN, the collector must not scan the new object 
+  (because it is not yet formatted), so 
+  it must not scan the buffered pool beyond I.</p>
+
+<p>Further collections at this point are idempotent.</p>
+
+<p>Now, suppose the mutator then restarts, but only gets as far 
+  as (I Lc) before we have a second collection and a 
+  second flip -- f2.</p>
+
+<p>For FIX, f2 can fix or not -- it still doesn't matter.</p>
+
+<p>But for SCAN, f2 <strong>MUST NOT</strong> scan the new object.
+  Why not?</p>
+
+<p>The mutator's format code will be okay: the fact 
+  that I is set tells f2 that the object 
+  is fully formatted.</p>
+
+<p>But there is a problem: the object may contain stale exact 
+  references -- unfixed references from before f1.  
+  These stale exact references will be bogus.  
+  Opinions differ on the implications of bogus exact references.  
+  See the next section for a discussion.</p>
+
+<p>Additionally, the collector is not <em>obliged</em> to scan the 
+  object: this object is dead!  
+  The mutator will later notice that Lr == 0 and realise the object 
+  is invalid.  The mutator is not relying 
+  on this object to keep anything else alive.</p>
+
+<p>It is easy to avoid scanning the invalid object: 
+  the first flip in state (A), f1, must record the value of I.  
+  Call the recorded pointer If1.  
+  Collections must not scan beyond If1.  
+  If1 remains set until the mutator calls mps_ap_trip, 
+  which resets If1 to 0.
+  [Note: I have not checked whether the MPS 
+  records and uses If1 -- RHSK 2006-06-12]</p>
+
+<h3>How bad is a bogus exact reference?</h3>
+
+<p>Tucker said:</p>
+<blockquote><p>I believe the collector must be prepared to deal 
+  with exact dangling pointers anyways, so this complex 
+  mechanism is unnecessary.  
+  [<a href="/project/mps/mail/1997/05/12/12-46/1.txt">//info.ravenbrook.com/project/mps/mail/1997/05/12/12-46/1.txt:X-MMInfo-Tag: mail.ptw.1997-05-12.12-46(1)</a>]
+</p></blockquote>
+
+<p>I'm not convinced.</p>
+
+<p>Fixing a bogus exact reference is bad news.  
+  The worst case is spoofing:
+  Imagine the bogus exact reference points at part of a 
+  JPEG that <em>just happens</em> to look like a validly formatted 
+  object.  
+  If this JPEG is in the middle of an object in a moving MPS 
+  pool, fixing the bogus exact reference will overwrite a portion 
+  of the JPEG with a forwarding object.  
+  It gets worse: the spoof object is preserved and will later be 
+  scanned, producing more bogus exact references!
+  For "JPEG", you can substitute "encrypted string".</p>
+
+<p>The only safe way to cope with such a bogus reference is for 
+   Fix to verify that the reference points to the start of a real 
+   object, which it could do by iteratating the format skip method 
+   from some known point in the pool.</p>
+
+<p>The consequences of fixing a bogus exact 
+  reference may be:</p>
+<ul>
+  <li> Referent is not in MPS memory:
+    <ul>
+      <li> MPS must detect and ignore these; there should be a 
+           debug option to report it;</li>
+    </ul>
+  </li>
+  <li> Referent is not validly formatted:
+    <ul>
+      <li> mutator format code crashes; or</li>
+      <li> mutator format code does something stupid or 
+           illegal, and causes corruption or makes MPS crash; or</li>
+      <li> (if we're lucky) mutator format code detects this 
+           and avoids any harmful action.</li>
+    </ul>
+  </li>
+  <li> Referent appears validly formatted, but is a spoof 
+       (that is, it is actually data inside some other 
+       object):
+    <ul>
+      <li> in a moving pool: the object is silently corrupted 
+           with a forwarding pointer, and the spoof object is 
+           preserved and will later be scanned, producing more 
+           bogus exact references!</li>
+      <li> in a non-moving pool: object is safe from corruption, 
+           but MPS greying/blackening code needs to be robust to 
+           this case.</li>
+    </ul>
+  </li>
+  <li> Referent is a validly formatted but dead object:
+    <ul>
+      <li>it gets needlessly preserved;</li>
+      <li>if it had been dead for some time, this dead object may 
+          itself contain bogus exact references, and these will get 
+          'fixed' too.</li>
+    </ul>
+  </li>
+</ul>  
+
+<p>Also, more arcanely, I wonder whether there's a problem if the 
+  referent violates the tri-colour invariant (when scanning at 
+  black)?  Does the MPS care about this, or does it 'safely' just 
+  cause more conservatism?  Does MPS detect and flag this in 
+  debug versions?  Could it?</p>
+
+<p>If MPS or format code detects a bogus exact reference, it could 
+  assert, and/or to fix them to a canonical special value.</p>
+
+<p>Some possible contracts between mutator and collector:</p>
+<ol>
+  <li>Mutator and collector promise never to have bogus exact 
+    references.  The collector is permitted to crash if it 
+    encounters one.</li>
+  <li>Mutator agrees that bogus exact references are wrong.  
+    But mutator would like a helpful error message, please.  
+    (Collector is not permitted to crash).</li>
+  <li>Mutator wants permission to keep bogus exact references 
+    in certain circumstances, such as on the stack.  Collector 
+    must cope safely.  Need to specify how this is guaranteed, 
+    based on intimate knowledge of the mutator's behaviour.  
+    Dodgy.</li>
+  <li>Mutator wants permission to keep bogus exact references 
+    in general.  Collector must cope safely, with all the cases 
+    of bogus exact references listed above.  I believe the MPS 
+    does not currently do this.  It would require a very fast 
+    check at fix time that the reference is to the start of a 
+    valid object in an MPS client pool.</li>
+</ol>
+
+<h3>with exact refs</h3>
+
+<p>We could define the protocol such that 
+  the mutator can clear exact references to the new object 
+  after Lc and before calling mps_ap_trip.  During this time, 
+  the collector must keep the new object as pinned unmanaged 
+  memory.  By calling mps_ap_trip, the mutator promises that 
+  it has nulled-out any exact references to the new object, 
+  and the collector in mps_ap_trip may unmap the memory or 
+  safely re-use it without fear of spoofing.</p>
+
+<h3>flipping at other times</h3>
+
+<p>Perhaps the collector wants to flip even when the ap is not 
+  at (A).  Need to analyse synchronization issues here.</p>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
@@ -376,6 +638,10 @@ AMCFix() (and now AMCHeaderFix() too).</p>
   2006-06-09  RHSK  Allocation points: must make at least one ambiguous ref 
                     and no exact refs to new object before calling commit.
   2006-06-12  RHSK  Allocation points: minor edits for clarity.
+  2006-06-12  RHSK  Allocation point detail: Scenario; A mutator with 
+                    ambiguous references only (to the new object); How 
+                    bad is a bogus exact reference?; quick notes on: with 
+                    exact refs; flipping at other times.
 </pre>
 
 
