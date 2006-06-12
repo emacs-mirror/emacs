@@ -94,6 +94,19 @@ at all if input is available before it starts.  Most of the time, this
 is exactly what you want.  However, you can prevent preemption by
 binding @code{redisplay-dont-pause} to a non-@code{nil} value.
 
+@tindex redisplay-preemption-period
+@defvar redisplay-preemption-period
+This variable controls how often Emacs checks for new input during
+redisplay.  The default setting is to check for input every 0.1
+seconds after redislpay has started.  If input arrives, redisplay
+stops, and all available input is processed before redisplay starts over.
+  If this variable is set to @code{nil}, redisplay--once started--is never
+preempted by input.
+
+@emph{Note} that this variable is only available if Emacs is built
+with support for sub-second timers.
+@end defvar
+
 @tindex redisplay-dont-pause
 @defvar redisplay-dont-pause
 If this variable is non-@code{nil}, pending input does not
