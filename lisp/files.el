@@ -2406,7 +2406,11 @@ n  -- to ignore the local variables list.")
 		   (insert "    ")))
 	    (princ (car elt) buf)
 	    (insert " : ")
-	    (princ (cdr elt) buf)
+            (if (stringp (cdr elt))
+                ;; Make strings with embedded whitespace easier to read.
+                (let ((print-escape-newlines t))
+                  (prin1 (cdr elt) buf))
+              (princ (cdr elt) buf))
 	    (insert "\n"))
 	  (setq prompt
 		(format "Please type %s%s: "
