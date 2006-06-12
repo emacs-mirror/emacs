@@ -1,3 +1,16 @@
+2006-06-13  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c: Modify preemptive redisplay to be based on periodic
+	checks for input.
+	(PERIODIC_PREEMPTION_CHECKING): Define to 1 iff EMACS_HAS_USECS.
+	(Vredisplay_preemption_period): New variable.
+	(syms_of_display): DEFVAR_LISP and initialize it.
+	(preemption_period, preemption_next_check): New variables.
+	(update_frame, update_single_window): Initialize them based on
+	Vredisplay_preemption_period if !force_p.
+	(update_window, update_frame_1): Use them to determine when to
+	check for input.
+
 2006-06-03  Aidan Kehoe  <kehoea@parhasard.net>
 
 	* lread.c (read_escape): Provide a Unicode character escape
