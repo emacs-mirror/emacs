@@ -4883,6 +4883,10 @@ of the display margins.
 *** `sit-for' can now be called with args (SECONDS &optional NODISP).
 
 +++
+*** `sit-for' called with a negative SECONDS value now forces an
+immediate redisplay even if input is pending.
+
++++
 *** New function `force-window-update' can initiate a full redisplay of
 one or all windows.  Normally, this is not needed as changes in window
 contents are detected automatically.  However, certain implicit

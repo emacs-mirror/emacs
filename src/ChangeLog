@@ -1,5 +1,31 @@
 2006-06-14  Kim F. Storm  <storm@cua.dk>
 
+	* dispextern.h (IT_STACK_SIZE): New macro specifying size of
+	iterator stack (instead of hardcoded number).  Increase from 2 to
+	4 to make room for propertized overlay strings before and after a
+	display string, image or composition.
+	(struct it): Add image_id and method members to iterator stack.
+
+	* xdisp.c (init_from_display_pos): Don't set it->method and
+	overlay_string_index after pop_it.  Add asserts.
+	(handle_stop): Look for overlay strings around a display string,
+	image, or composition.  Handle properties on those strings.
+	(next_overlay_string): Don't set string, pos or method after pop_it.
+	(get_overlay_strings_1): Split from get_overlay_strings; don't
+	modify it if no overlay strings are found.
+	(get_overlay_strings): Use get_overlay_strings_1.  Always set
+	it->string and it->method.
+	(push_it): Push it->image_id and it->method.  Push it->object
+	instead of it->string if method is GET_FROM_IMAGE.
+	(pop_it): Pop it->image_id and it->method.  Ppo it->object
+	instead of it->string if method is GET_FROM_IMAGE.
+	Reset it->current.string_pos if popped it->string is nil.
+	(reseat_1): Remove comment dated 19 May 2003.  It expressed doubt
+	whether a given change was correct; but the change is correct.
+	Clear it->string_from_display_prop_p.
+	(set_iterator_to_next): Rely on it->method and it->image_id from
+	iterator stack, instead of setting them explicitly after pop_it.
+
 	* dispnew.c (sit_for): Undo 2006-06-01 change.  Instead, a
 	negative time forces redisplay even when input is available.
 	(Fsit_for): Doc fix.
