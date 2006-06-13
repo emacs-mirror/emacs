@@ -115,14 +115,10 @@ prevent or halt redisplay; redisplay occurs, and finishes,
 regardless of whether input is available.
 @end defvar
 
+@tindex sit-for
   You can request a display update, but only if no input is pending,
 with @code{(sit-for 0)}.  To force a display update even when input is
-pending, do this:
-
-@example
-(let ((redisplay-dont-pause t))
-  (sit-for 0))
-@end example
+pending, use @code{(sit-for -1)}.
 
 @node Truncation
 @section Truncation
