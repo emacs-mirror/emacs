@@ -1,3 +1,13 @@
+2006-06-14  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (Fdefconst): Mark variable as risky.
+
+	* callproc.c (Fcall_process): Doc fix.
+
+	* window.c (adjust_window_trailing_edge): Don't break out of the loop
+	because there's no next window, if there are parallel windows.
+	Do break out when WINDOW is nil.
+	
 2006-06-14  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (IT_STACK_SIZE): New macro specifying size of
