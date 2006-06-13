@@ -1,3 +1,8 @@
+2006-06-13  Martin J. Reed  <mjreed@essex.ac.uk>  (tiny change)
+
+	* net/ldap.el (ldap-ldapsearch-args): Default to SASL search.
+	(ldap-search-internal): Keep error messages, and a regexp fix.
+
 2006-06-12  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* files.el (hack-local-variables-confirm):
