@@ -47,17 +47,23 @@
 <h2>Introduction</h2>
 
 <p>The essential MPS concepts for GC are:</p>
-<ul>
-  <li> <a href="#Format">Format</a> -- lets the MPS ask the client a question about an object;</li>
-  <li> Root -- tell the MPS which things (eg. stack, globals) are always alive.</li>
-</ul>
+<dl>
+  <dt> <a href="#Format">Format&darr;</a></dt>
+  <dd> lets the MPS ask the client a question about an object;</dd>
+
+  <dt> Root</dt>
+  <dd> tell the MPS which things (eg. stack, globals) are always alive.</dd>
+</dl>
 
 <p>The advanced MPS concepts for GC are:</p>
-<ul>
-  <li> <a href="#Allocation-Point">Allocation Point</a> 
-    -- reserve memory, construct and connect a new object, and commit it to MPS management.
-  </li>
-</ul>
+<dl>
+  <dt> Allocation Point
+       <a href="#Allocation-Point-User">(user's guide&darr;)</a></dt>
+  <dd> reserve memory, build a new object, and commit 
+       it to MPS management.  (For the internals see 
+       <a href="#Allocation-Point-Internals">AP internals&darr;</a>).
+  </dd>
+</dl>
 
 
 <h2><a id="Format">Format</a></h2>
@@ -190,23 +196,90 @@ AMCFix() (and now AMCHeaderFix() too).</p>
 <p>It's a bit messy -- sorry.</p>
 
 
-<h2><a id="Allocation-Point">Allocation Point</a></h2>
+<h2><a id="Allocation-Point-User">Allocation Points -- User's Guide</a></h2>
 
 <p>These notes on Allocation Points were written by RHSK between 
   2006-06-07 and 2006-06-12, following research and discussion with 
   RB and NB.</p>
+  
+<p><strong>Note:</strong> the text in this "Allocation Point" 
+  section <em>supersedes</em> the MPS Reference Manual version....</p>
+  
+  
+<p><strong>Warning:</strong> the text in this "Allocation Point" 
+  section is preliminary, but believed to be 'conservatively correct'.
+  In other words, I think if you follow these guidelines, your code 
+  will be correct, and will not violate the current or future 
+  definitions of the MPS ap protocol.  But this is not (yet) an 
+  accurate statement of the MPS ap protocol.  RHSK 2006-06-13.</p>
 
 <h3>Overview of two-phase allocation</h3>
 
-<p>The client should:</p>
+<p>When the client is building (creating and formatting) a new 
+  object, it is in a race with the MPS.  
+  The object is 'under 
+  construction', and the MPS cannot manage it in the normal way.  
+  So the client should build the object quickly, and then 
+  commit it to MPS management.  Rarely, the MPS has to move other
+  objects around right in the middle of this build phase: that's 
+  a (small) price you pay for having an asynchronous collector.  
+  If this happens, the MPS tells the client that it has 'lost the 
+  race'.  Objects have moved around, and the new object is invalid.
+  The client must start building it again from scratch.</p>
+
+<p>The client starts the race with <code>mps_reserve</code>, and 
+  says "Finished!" by calling <code>mps_commit</code>.  
+  Almost always, <code>mps_commit</code> succeeds.  But if the 
+  client lost the race, then <code>mps_commit</code> fails 
+  (it returns 0).</p>
+
+<p>This is how the client should build a new object:</p>
 <ol>
   <li> <code>mps_reserve</code> some memory,</li>
-  <li> construct a new object in it,</li>
-  <li> write a reference to the new object into some older object, 
-    thereby connecting the new object into the client's graph of 
-    objects </li>
-  <li> <code>mps_commit</code> the new object to MPS management.</li>
+  <li> build a new object in it,</li>
+  <li> store a reference to the new object in an 
+    ambiguously-scanned place
+    (but <strong>NOT</strong> in any exactly-scanned place),</li>
+  <li> <code>mps_commit</code> the new object to MPS management;</li>
+  <li> if commit succeeds, the client may write a reference to the 
+    new object into some older object (thereby connecting the 
+    new object into the client's graph of objects);</li>
+  <li> if commit fails, the new object no longer exists: 
+    the data has gone and any references that used to refer to it 
+    are now dangling pointers.</li>
 </ol>
+
+<p>If commit fails, the client should simply try to build the 
+  object again (it is very rare for commit to fail even once, let 
+  alone twice).  So the standard allocation point idiom is:</p>
+
+<blockquote><pre><code>int make_object(object *parent)
+{
+  object *new;
+
+  do {
+    if (mps_reserve((void**)&amp;new, ap, SIZE_OBJECT) != MPS_RES_OK) {
+      goto fail_make_object;
+    }
+    /* Initialize the new object */
+    new-&gt;type = TYPE_OBJECT;
+    new-&gt;size = SIZE_OBJECT;
+    new-&gt;child = NULL;
+    /* Store an ambiguous reference to the new object */
+    global-&gt;ambigroot = new;
+  } while (! mps_commit(ap, (void*)new, SIZE_OBJECT);
+
+  /* Link the new object into my object graph */
+  parent-&gt;child = new;
+  return TRUE;
+
+fail_make_object:
+  return FALSE;  /* out of memory, etc */
+}
+</code></pre></blockquote>
+
+<p>The rest of this section goes through these steps in more 
+  detail.</p>
 
 <h3>The graph of managed references to mobile objects</h3>
 
@@ -364,7 +437,7 @@ AMCFix() (and now AMCHeaderFix() too).</p>
   /* link new object into my object graph */
 </code></pre>
 
-<h2><a id="Allocation-Point-Detail">Allocation Points in Detail</a></h2>
+<h2><a id="Allocation-Point-Internals">Allocation Point Internals</a></h2>
 
 <p>The synchronization issues are a little tricky.  This following 
   notes on these issues were written by RHSK between 
@@ -638,10 +711,12 @@ AMCFix() (and now AMCHeaderFix() too).</p>
   2006-06-09  RHSK  Allocation points: must make at least one ambiguous ref 
                     and no exact refs to new object before calling commit.
   2006-06-12  RHSK  Allocation points: minor edits for clarity.
-  2006-06-12  RHSK  Allocation point detail: Scenario; A mutator with 
+  2006-06-12  RHSK  Allocation point internals: Scenario; A mutator with 
                     ambiguous references only (to the new object); How 
                     bad is a bogus exact reference?; quick notes on: with 
                     exact refs; flipping at other times.
+  2006-06-13  RHSK  Allocation point user's guide: Tidy; clarify-- not yet complete.
+                    Distinguish it from section on AP internals.
 </pre>
 
 
