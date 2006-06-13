@@ -2532,8 +2532,11 @@ point number, @code{sit-for} waits for a fractional number of seconds.
 Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
 
+If @var{seconds} is negative, force a redisplay even if there is
+pending input.  So use @code{(sit-for -1)} to force a redisplay.
+
 The expression @code{(sit-for 0)} is a convenient way to request a
-redisplay, without any delay.  @xref{Forcing Redisplay}.
+redisplay, without any delay, if there is no pending input.  @xref{Forcing Redisplay}.
 
 If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not
 redisplay, but it still returns as soon as input is available (or when
