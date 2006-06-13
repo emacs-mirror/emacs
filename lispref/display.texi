@@ -98,7 +98,7 @@ binding @code{redisplay-dont-pause} to a non-@code{nil} value.
 @defvar redisplay-preemption-period
 This variable controls how often Emacs checks for new input during
 redisplay.  The default setting is to check for input every 0.1
-seconds after redislpay has started.  If input arrives, redisplay
+seconds after redisplay has started.  If input arrives, redisplay
 stops, and all available input is processed before redisplay starts over.
   If this variable is set to @code{nil}, redisplay--once started--is never
 preempted by input.
