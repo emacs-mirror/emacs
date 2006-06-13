@@ -660,13 +660,6 @@ Buffer local variable.")
 (put 'term-scroll-show-maximum-output 'permanent-local t)
 (put 'term-ptyp 'permanent-local t)
 
-;; Do FORM if running under XEmacs (previously Lucid Emacs).
-(defmacro term-if-xemacs (&rest forms)
-  (if (featurep 'xemacs) (cons 'progn forms)))
-;; Do FORM if NOT running under XEmacs (previously Lucid Emacs).
-(defmacro term-ifnot-xemacs (&rest forms)
-  (if (not (featurep 'xemacs)) (cons 'progn forms)))
-
 (defmacro term-in-char-mode () '(eq (current-local-map) term-raw-map))
 (defmacro term-in-line-mode () '(not (term-in-char-mode)))
 ;; True if currently doing PAGER handling.
@@ -725,13 +718,13 @@ Notice that a setting of 0 means 'don't truncate anything'.  This variable
 is buffer-local.")
 ;;;
 
-(term-if-xemacs
- (defvar term-terminal-menu
-   '("Terminal"
-     [ "Character mode" term-char-mode (term-in-line-mode)]
-     [ "Line mode" term-line-mode (term-in-char-mode)]
-     [ "Enable paging" term-pager-toggle (not term-pager-count)]
-     [ "Disable paging" term-pager-toggle term-pager-count])))
+(when (featurep 'xemacs)
+  (defvar term-terminal-menu
+    '("Terminal"
+      [ "Character mode" term-char-mode (term-in-line-mode)]
+      [ "Line mode" term-line-mode (term-in-char-mode)]
+      [ "Enable paging" term-pager-toggle (not term-pager-count)]
+      [ "Disable paging" term-pager-toggle term-pager-count])))
 
 (unless term-mode-map
   (setq term-mode-map (make-sparse-keymap))
@@ -739,10 +732,10 @@ is buffer-local.")
   (define-key term-mode-map "\en" 'term-next-input)
   (define-key term-mode-map "\er" 'term-previous-matching-input)
   (define-key term-mode-map "\es" 'term-next-matching-input)
-  (term-ifnot-xemacs
-   (define-key term-mode-map [?\A-\M-r]
-	 'term-previous-matching-input-from-input)
-   (define-key term-mode-map [?\A-\M-s] 'term-next-matching-input-from-input))
+  (unless (featurep 'xemacs)
+    (define-key term-mode-map [?\A-\M-r]
+      'term-previous-matching-input-from-input)
+    (define-key term-mode-map [?\A-\M-s] 'term-next-matching-input-from-input))
   (define-key term-mode-map "\e\C-l" 'term-show-output)
   (define-key term-mode-map "\C-m" 'term-send-input)
   (define-key term-mode-map "\C-d" 'term-delchar-or-maybe-eof)
@@ -781,9 +774,7 @@ is buffer-local.")
   )
 
 ;; Menu bars:
-(term-ifnot-xemacs
- (progn
-
+(unless (featurep 'xemacs)
   ;; terminal:
   (let (newmap)
     (setq newmap (make-sparse-keymap "Terminal"))
@@ -860,14 +851,14 @@ is buffer-local.")
     (define-key newmap [] '("BREAK" . term-interrupt-subjob))
     (define-key term-mode-map [menu-bar signals]
       (setq term-signals-menu (cons "Signals" newmap)))
-    )))
+    ))
 
 ;; Set up term-raw-map, etc.
 
 (defun term-set-escape-char (c)
   "Change term-escape-char and keymaps that depend on it."
-  (if term-escape-char
-      (define-key term-raw-map term-escape-char 'term-send-raw))
+  (when term-escape-char
+    (define-key term-raw-map term-escape-char 'term-send-raw))
   (setq c (make-string 1 c))
   (define-key term-raw-map c term-raw-escape-map)
   ;; Define standard bindings in term-raw-escape-map
@@ -899,28 +890,26 @@ is buffer-local.")
 
 ;;; Added nearly all the 'grey keys' -mm
 
-  (progn
-    (term-if-xemacs
-     (define-key term-raw-map [button2] 'term-mouse-paste))
-    (term-ifnot-xemacs
-     (define-key term-raw-map [mouse-2] 'term-mouse-paste)
-     (define-key term-raw-map [menu-bar terminal] term-terminal-menu)
-     (define-key term-raw-map [menu-bar signals] term-signals-menu))
-    (define-key term-raw-map [up] 'term-send-up)
-    (define-key term-raw-map [down] 'term-send-down)
-    (define-key term-raw-map [right] 'term-send-right)
-    (define-key term-raw-map [left] 'term-send-left)
-    (define-key term-raw-map [delete] 'term-send-del)
-    (define-key term-raw-map [deletechar] 'term-send-del)
-    (define-key term-raw-map [backspace] 'term-send-backspace)
-    (define-key term-raw-map [home] 'term-send-home)
-    (define-key term-raw-map [end] 'term-send-end)
-    (define-key term-raw-map [insert] 'term-send-insert)
-    (define-key term-raw-map [S-prior] 'scroll-down)
-    (define-key term-raw-map [S-next] 'scroll-up)
-    (define-key term-raw-map [S-insert] 'term-paste)
-    (define-key term-raw-map [prior] 'term-send-prior)
-    (define-key term-raw-map [next] 'term-send-next)))
+  (if (featurep 'xemacs)
+      (define-key term-raw-map [button2] 'term-mouse-paste)
+    (define-key term-raw-map [mouse-2] 'term-mouse-paste)
+    (define-key term-raw-map [menu-bar terminal] term-terminal-menu)
+    (define-key term-raw-map [menu-bar signals] term-signals-menu))
+  (define-key term-raw-map [up] 'term-send-up)
+  (define-key term-raw-map [down] 'term-send-down)
+  (define-key term-raw-map [right] 'term-send-right)
+  (define-key term-raw-map [left] 'term-send-left)
+  (define-key term-raw-map [delete] 'term-send-del)
+  (define-key term-raw-map [deletechar] 'term-send-del)
+  (define-key term-raw-map [backspace] 'term-send-backspace)
+  (define-key term-raw-map [home] 'term-send-home)
+  (define-key term-raw-map [end] 'term-send-end)
+  (define-key term-raw-map [insert] 'term-send-insert)
+  (define-key term-raw-map [S-prior] 'scroll-down)
+  (define-key term-raw-map [S-next] 'scroll-up)
+  (define-key term-raw-map [S-insert] 'term-paste)
+  (define-key term-raw-map [prior] 'term-send-prior)
+  (define-key term-raw-map [next] 'term-send-next))
 
 (term-set-escape-char ?\C-c)
 
@@ -1112,9 +1101,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   ;; Cua-mode's keybindings interfere with the term keybindings, disable it. 
   (set (make-local-variable 'cua-mode) nil)
   (run-mode-hooks 'term-mode-hook)
-  (term-if-xemacs
-   (set-buffer-menubar
-    (append current-menubar (list term-terminal-menu))))
+  (when (featurep 'xemacs)
+    (set-buffer-menubar
+     (append current-menubar (list term-terminal-menu))))
   (or term-input-ring
       (setq term-input-ring (make-ring term-input-ring-size)))
   (term-update-mode-line))
@@ -1151,16 +1140,15 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 			 (setq term-start-line-column nil)
 			 (setq cur nil found t))
 		(setq cur (cdr cur))))))
-      (if (not found)
-	  (goto-char save-point)))
+      (when (not found)
+	(goto-char save-point)))
     found))
 
 (defun term-check-size (process)
-  (if (or (/= term-height (1- (window-height)))
-	  (/= term-width (term-window-width)))
-      (progn
-	(term-reset-size (1- (window-height)) (term-window-width))
-	(set-process-window-size process term-height term-width))))
+  (when (or (/= term-height (1- (window-height)))
+	    (/= term-width (term-window-width)))
+    (term-reset-size (1- (window-height)) (term-window-width))
+    (set-process-window-size process term-height term-width)))
 
 (defun term-send-raw-string (chars)
   (let ((proc (get-buffer-process (current-buffer))))
@@ -1169,8 +1157,8 @@ Entry to this mode runs the hooks on `term-mode-hook'."
       ;; Note that (term-current-row) must be called *after*
       ;; (point) has been updated to (process-mark proc).
       (goto-char (process-mark proc))
-      (if (term-pager-enabled)
-	  (setq term-pager-count (term-current-row)))
+      (when (term-pager-enabled)
+	(setq term-pager-count (term-current-row)))
       (process-send-string proc chars))))
 
 (defun term-send-raw ()
@@ -1178,9 +1166,9 @@ Entry to this mode runs the hooks on `term-mode-hook'."
 without any interpretation."
   (interactive)
  ;; Convert `return' to C-m, etc.
-  (if (and (symbolp last-input-char)
-	   (get last-input-char 'ascii-character))
-      (setq last-input-char (get last-input-char 'ascii-character)))
+  (when (and (symbolp last-input-char)
+	     (get last-input-char 'ascii-character))
+    (setq last-input-char (get last-input-char 'ascii-character)))
   (term-send-raw-string (make-string 1 last-input-char)))
 
 (defun term-send-raw-meta ()
@@ -1205,19 +1193,19 @@ without any interpretation."
 (defun term-mouse-paste (click arg)
   "Insert the last stretch of killed text at the position clicked on."
   (interactive "e\nP")
-  (term-if-xemacs
-   (term-send-raw-string (or (condition-case () (x-get-selection) (error ()))
-			     (x-get-cutbuffer)
-			     (error "No selection or cut buffer available"))))
-  (term-ifnot-xemacs
-   ;; Give temporary modes such as isearch a chance to turn off.
-   (run-hooks 'mouse-leave-buffer-hook)
-   (setq this-command 'yank)
-   (mouse-set-point click)
-   (term-send-raw-string (current-kill (cond
-					((listp arg) 0)
-					((eq arg '-) -1)
-					(t (1- arg)))))))
+  (if (featurep 'xemacs)
+      (term-send-raw-string 
+       (or (condition-case () (x-get-selection) (error ()))
+	   (x-get-cutbuffer)
+	   (error "No selection or cut buffer available")))
+    ;; Give temporary modes such as isearch a chance to turn off.
+    (run-hooks 'mouse-leave-buffer-hook)
+    (setq this-command 'yank)
+    (mouse-set-point click)
+    (term-send-raw-string (current-kill (cond
+					 ((listp arg) 0)
+					 ((eq arg '-) -1)
+					 (t (1- arg)))))))
 
 (defun term-paste ()
   "Insert the last stretch of killed text at point."
@@ -1246,33 +1234,31 @@ Each character you type is sent directly to the inferior without
 intervention from Emacs, except for the escape character (usually C-c)."
   (interactive)
   ;; FIXME: Emit message? Cfr ilisp-raw-message
-  (if (term-in-line-mode)
-      (progn
-	(setq term-old-mode-map (current-local-map))
-	(use-local-map term-raw-map)
+  (when (term-in-line-mode)
+    (setq term-old-mode-map (current-local-map))
+    (use-local-map term-raw-map)
 
-	;; Send existing partial line to inferior (without newline).
-	(let ((pmark (process-mark (get-buffer-process (current-buffer))))
-	      (save-input-sender term-input-sender))
-	  (if (> (point) pmark)
-	      (unwind-protect
-		  (progn
-		    (setq term-input-sender
-			  (symbol-function 'term-send-string))
-		    (end-of-line)
-		    (term-send-input))
-		(setq term-input-sender save-input-sender))))
-	(term-update-mode-line))))
+    ;; Send existing partial line to inferior (without newline).
+    (let ((pmark (process-mark (get-buffer-process (current-buffer))))
+	  (save-input-sender term-input-sender))
+      (when (> (point) pmark)
+	(unwind-protect
+	    (progn
+	      (setq term-input-sender
+		    (symbol-function 'term-send-string))
+	      (end-of-line)
+	      (term-send-input))
+	  (setq term-input-sender save-input-sender))))
+    (term-update-mode-line)))
 
 (defun term-line-mode  ()
   "Switch to line (\"cooked\") sub-mode of term mode.
 This means that Emacs editing commands work as normally, until
 you type \\[term-send-input] which sends the current line to the inferior."
   (interactive)
-  (if (term-in-char-mode)
-      (progn
-	(use-local-map term-old-mode-map)
-	(term-update-mode-line))))
+  (when (term-in-char-mode)
+    (use-local-map term-old-mode-map)
+    (term-update-mode-line)))
 
 (defun term-update-mode-line ()
   (setq mode-line-process
@@ -1330,7 +1316,7 @@ buffer.  The hook term-exec-hook is run after each exec."
   (save-excursion
     (set-buffer buffer)
     (let ((proc (get-buffer-process buffer)))	; Blast any old process.
-      (if proc (delete-process proc)))
+      (when proc (delete-process proc)))
     ;; Crank up a new process
     (let ((proc (term-exec-1 name buffer command switches)))
       (make-local-variable 'term-ptyp)
@@ -1360,29 +1346,28 @@ buffer.  The hook term-exec-hook is run after each exec."
   "Sentinel for term buffers.
 The main purpose is to get rid of the local keymap."
   (let ((buffer (process-buffer proc)))
-    (if (memq (process-status proc) '(signal exit))
-	(progn
-	  (if (null (buffer-name buffer))
-	      ;; buffer killed
-	      (set-process-buffer proc nil)
-	    (let ((obuf (current-buffer)))
-	      ;; save-excursion isn't the right thing if
-	      ;; process-buffer is current-buffer
-	      (unwind-protect
-		  (progn
-		    ;; Write something in the compilation buffer
-		    ;; and hack its mode line.
-		    (set-buffer buffer)
-		    ;; Get rid of local keymap.
-		    (use-local-map nil)
-		    (term-handle-exit (process-name proc)
-				      msg)
-		    ;; Since the buffer and mode line will show that the
-		    ;; process is dead, we can delete it now.  Otherwise it
-		    ;; will stay around until M-x list-processes.
-		    (delete-process proc))
-		(set-buffer obuf))))
-	  ))))
+    (when (memq (process-status proc) '(signal exit))
+      (if (null (buffer-name buffer))
+	  ;; buffer killed
+	  (set-process-buffer proc nil)
+	(let ((obuf (current-buffer)))
+	  ;; save-excursion isn't the right thing if
+	  ;; process-buffer is current-buffer
+	  (unwind-protect
+	      (progn
+		;; Write something in the compilation buffer
+		;; and hack its mode line.
+		(set-buffer buffer)
+		;; Get rid of local keymap.
+		(use-local-map nil)
+		(term-handle-exit (process-name proc)
+				  msg)
+		;; Since the buffer and mode line will show that the
+		;; process is dead, we can delete it now.  Otherwise it
+		;; will stay around until M-x list-processes.
+		(delete-process proc))
+	    (set-buffer obuf)))
+	))))
 
 (defun term-handle-exit (process-name msg)
   "Write process exit (or other change) message MSG in the current buffer."
@@ -1395,8 +1380,8 @@ The main purpose is to get rid of the local keymap."
     (insert ?\n "Process " process-name " " msg)
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
-    (if (and opoint (< opoint omax))
-	(goto-char opoint))))
+    (when (and opoint (< opoint omax))
+      (goto-char opoint))))
 
 
 ;;; Name to use for TERM.
@@ -1519,9 +1504,9 @@ See also `term-input-ignoredups' and `term-write-input-ring'."
 						 nil t))
 		   (let ((history (buffer-substring (match-beginning 1)
 						    (match-end 1))))
-		     (if (or (null term-input-ignoredups)
-			     (ring-empty-p ring)
-			     (not (string-equal (ring-ref ring 0) history)))
+		     (when (or (null term-input-ignoredups)
+			       (ring-empty-p ring)
+			       (not (string-equal (ring-ref ring 0) history)))
 			 (ring-insert-at-beginning ring history)))
 		   (setq count (1+ count))))
 	     (kill-buffer history-buf))
@@ -1649,15 +1634,15 @@ Moves relative to `term-input-ring-index'."
   "Return the string matching REGEXP ARG places along the input ring.
 Moves relative to `term-input-ring-index'."
   (let* ((pos (term-previous-matching-input-string-position regexp arg)))
-    (if pos (ring-ref term-input-ring pos))))
+    (when pos (ring-ref term-input-ring pos))))
 
 (defun term-previous-matching-input-string-position
   (regexp arg &optional start)
   "Return the index matching REGEXP ARG places along the input ring.
 Moves relative to START, or `term-input-ring-index'."
-  (if (or (not (ring-p term-input-ring))
-	  (ring-empty-p term-input-ring))
-      (error "No history"))
+  (when (or (not (ring-p term-input-ring))
+	    (ring-empty-p term-input-ring))
+    (error "No history"))
   (let* ((len (ring-length term-input-ring))
 	 (motion (if (> arg 0) 1 -1))
 	 (n (mod (- (or start (term-search-start arg)) motion) len))
@@ -1676,8 +1661,8 @@ Moves relative to START, or `term-input-ring-index'."
 	      tried-each-ring-item (= n prev)))
       (setq arg (if (> arg 0) (1- arg) (1+ arg))))
     ;; Now that we know which ring element to use, if we found it, return that.
-    (if (string-match regexp (ring-ref term-input-ring n))
-	n)))
+    (when (string-match regexp (ring-ref term-input-ring n))
+      n)))
 
 (defun term-previous-matching-input (regexp arg)
   "Search backwards through input history for match for REGEXP.
@@ -1711,14 +1696,14 @@ If N is negative, find the previous or Nth previous match."
 With prefix argument N, search for Nth previous match.
 If N is negative, search forwards for the -Nth following match."
   (interactive "p")
-  (if (not (memq last-command '(term-previous-matching-input-from-input
+  (when (not (memq last-command '(term-previous-matching-input-from-input
 				term-next-matching-input-from-input)))
-      ;; Starting a new search
-      (setq term-matching-input-from-input-string
-	    (buffer-substring
-	     (process-mark (get-buffer-process (current-buffer)))
-	     (point))
-	    term-input-ring-index nil))
+    ;; Starting a new search
+    (setq term-matching-input-from-input-string
+	  (buffer-substring
+	   (process-mark (get-buffer-process (current-buffer)))
+	   (point))
+	  term-input-ring-index nil))
   (term-previous-matching-input
    (concat "^" (regexp-quote term-matching-input-from-input-string))
    arg))
@@ -1750,15 +1735,15 @@ See `term-magic-space' and `term-replace-by-expanded-history-before-point'.
 
 Returns t if successful."
   (interactive)
-  (if (and term-input-autoexpand
-	   (string-match "[!^]" (funcall term-get-old-input))
-	   (save-excursion (beginning-of-line)
-			   (looking-at term-prompt-regexp)))
-      ;; Looks like there might be history references in the command.
-      (let ((previous-modified-tick (buffer-modified-tick)))
-	(message "Expanding history references...")
-	(term-replace-by-expanded-history-before-point silent)
-	(/= previous-modified-tick (buffer-modified-tick)))))
+  (when (and term-input-autoexpand
+	     (string-match "[!^]" (funcall term-get-old-input))
+	     (save-excursion (beginning-of-line)
+			     (looking-at term-prompt-regexp)))
+    ;; Looks like there might be history references in the command.
+    (let ((previous-modified-tick (buffer-modified-tick)))
+      (message "Expanding history references...")
+      (term-replace-by-expanded-history-before-point silent)
+      (/= previous-modified-tick (buffer-modified-tick)))))
 
 
 (defun term-replace-by-expanded-history-before-point (silent)
@@ -2024,17 +2009,17 @@ Similarly for Soar, Scheme, etc."
 			  (delete-region pmark (point))
 			  (insert input)
 			  copy))))
-	(if (term-pager-enabled)
-	    (save-excursion
-	      (goto-char (process-mark proc))
-	      (setq term-pager-count (term-current-row))))
-	(if (and (funcall term-input-filter history)
-		 (or (null term-input-ignoredups)
-		     (not (ring-p term-input-ring))
-		     (ring-empty-p term-input-ring)
-		     (not (string-equal (ring-ref term-input-ring 0)
-					history))))
-	    (ring-insert term-input-ring history))
+	(when (term-pager-enabled)
+	  (save-excursion
+	    (goto-char (process-mark proc))
+	    (setq term-pager-count (term-current-row))))
+	(when (and (funcall term-input-filter history)
+		   (or (null term-input-ignoredups)
+		       (not (ring-p term-input-ring))
+		       (ring-empty-p term-input-ring)
+		       (not (string-equal (ring-ref term-input-ring 0)
+					  history))))
+	  (ring-insert term-input-ring history))
 	(let ((functions term-input-filter-functions))
 	  (while functions
 	    (funcall (car functions) (concat input "\n"))
@@ -2045,13 +2030,12 @@ Similarly for Soar, Scheme, etc."
 	;; in case we get output amidst sending the input.
 	(set-marker term-last-input-start pmark)
 	(set-marker term-last-input-end (point))
-	(if input-is-new
-	    (progn
-	      ;; Set up to delete, because inferior should echo.
-	      (if (marker-buffer term-pending-delete-marker)
-		  (delete-region term-pending-delete-marker pmark))
-	      (set-marker term-pending-delete-marker pmark-val)
-	      (set-marker (process-mark proc) (point))))
+	(when input-is-new
+	  ;; Set up to delete, because inferior should echo.
+	  (when (marker-buffer term-pending-delete-marker)
+	    (delete-region term-pending-delete-marker pmark))
+	  (set-marker term-pending-delete-marker pmark-val)
+	  (set-marker (process-mark proc) (point)))
 	(goto-char pmark)
 	(funcall term-input-sender proc input)))))
 
@@ -2081,9 +2065,9 @@ Calls `term-get-old-input' to get old input."
   "Skip past the text matching regexp term-prompt-regexp.
 If this takes us past the end of the current line, don't skip at all."
   (let ((eol (save-excursion (end-of-line) (point))))
-    (if (and (looking-at term-prompt-regexp)
-	     (<= (match-end 0) eol))
-	(goto-char (match-end 0)))))
+    (when (and (looking-at term-prompt-regexp)
+	       (<= (match-end 0) eol))
+      (goto-char (match-end 0)))))
 
 
 (defun term-after-pmark-p ()
@@ -2112,7 +2096,7 @@ The prompt skip is done by skipping text matching the regular expression
 term-prompt-regexp, a buffer local variable."
   (interactive "P")
   (beginning-of-line)
-  (if (null arg) (term-skip-prompt)))
+  (when (null arg) (term-skip-prompt)))
 
 ;;; These two functions are for entering text you don't want echoed or
 ;;; saved -- typically passwords to ftp, telnet, or somesuch.
@@ -2173,10 +2157,10 @@ is additionally sent.  String is not saved on term input history list.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]."
   (interactive "P") ; Defeat snooping via C-x esc
-  (if (not (stringp str))
-      (setq str (term-read-noecho "Non-echoed text: " t)))
-  (if (not proc)
-      (setq proc (get-buffer-process (current-buffer))))
+  (when (not (stringp str))
+    (setq str (term-read-noecho "Non-echoed text: " t)))
+  (when (not proc)
+    (setq proc (get-buffer-process (current-buffer))))
   (if (not proc) (error "Current buffer has no process")
     (setq term-kill-echo-list (nconc term-kill-echo-list
 				     (cons str nil)))
@@ -2268,8 +2252,8 @@ Useful if you accidentally suspend the top-level process."
   (interactive)
   (let* ((pmark (process-mark (get-buffer-process (current-buffer))))
 	 (p-pos (marker-position pmark)))
-    (if (> (point) p-pos)
-	(kill-region pmark (point)))))
+    (when (> (point) p-pos)
+      (kill-region pmark (point)))))
 
 (defun term-delchar-or-maybe-eof (arg)
   "Delete ARG characters forward, or send an EOF to process if at end of
@@ -2277,7 +2261,7 @@ buffer."
   (interactive "p")
   (if (eobp)
       (process-send-eof)
-      (delete-char arg)))
+    (delete-char arg)))
 
 (defun term-send-eof ()
   "Send an EOF to the current buffer's process."
@@ -2292,8 +2276,8 @@ If N is negative, find the next or Nth next match."
   (interactive (term-regexp-arg "Backward input matching (regexp): "))
   (let* ((re (concat term-prompt-regexp ".*" regexp))
 	 (pos (save-excursion (end-of-line (if (> arg 0) 0 1))
-			      (if (re-search-backward re nil t arg)
-				  (point)))))
+			      (when (re-search-backward re nil t arg)
+				(point)))))
     (if (null pos)
 	(progn (message "Not found")
 	       (ding))
@@ -2405,15 +2389,15 @@ See `term-prompt-regexp'."
 
 (defun term-check-source (fname)
   (let ((buff (get-file-buffer fname)))
-    (if (and buff
-	     (buffer-modified-p buff)
-	     (y-or-n-p (format "Save buffer %s first? "
-			       (buffer-name buff))))
-	;; save BUFF.
-	(let ((old-buffer (current-buffer)))
-	  (set-buffer buff)
-	  (save-buffer)
-	  (set-buffer old-buffer)))))
+    (when (and buff
+	       (buffer-modified-p buff)
+	       (y-or-n-p (format "Save buffer %s first? "
+				 (buffer-name buff))))
+      ;; save BUFF.
+      (let ((old-buffer (current-buffer)))
+	(set-buffer buff)
+	(save-buffer)
+	(set-buffer old-buffer)))))
 
 
 ;;; (TERM-GET-SOURCE prompt prev-dir/file source-modes mustmatch-p)
@@ -2508,12 +2492,12 @@ See `term-prompt-regexp'."
       ;; Try to position the proc window so you can see the answer.
       ;; This is bogus code.  If you delete the (sit-for 0), it breaks.
       ;; I don't know why.  Wizards invited to improve it.
-      (if (not (pos-visible-in-window-p proc-pt proc-win))
-	  (let ((opoint (window-point proc-win)))
-	    (set-window-point proc-win proc-mark) (sit-for 0)
-	    (if (not (pos-visible-in-window-p opoint proc-win))
-		(push-mark opoint)
-		(set-window-point proc-win opoint)))))))
+      (when (not (pos-visible-in-window-p proc-pt proc-win))
+	(let ((opoint (window-point proc-win)))
+	  (set-window-point proc-win proc-mark) (sit-for 0)
+	  (if (not (pos-visible-in-window-p opoint proc-win))
+	      (push-mark opoint)
+	    (set-window-point proc-win opoint)))))))
 
 ;;; Returns the current column in the current screen line.
 ;;; Note: (current-column) yields column in buffer line.
@@ -2701,16 +2685,15 @@ See `term-prompt-regexp'."
 	;; Let's handle the messages. -mm
 
         (let* ((newstr (term-handle-ansi-terminal-messages str)))
-          (if (not (eq str newstr))
-              (setq handled-ansi-message t
-                    str newstr)))
+          (when (not (eq str newstr))
+	    (setq handled-ansi-message t
+		  str newstr)))
         (setq str-length (length str))
 
-	(if (marker-buffer term-pending-delete-marker)
-	    (progn
-	      ;; Delete text following term-pending-delete-marker.
-	      (delete-region term-pending-delete-marker (process-mark proc))
-	      (set-marker term-pending-delete-marker nil)))
+	(when (marker-buffer term-pending-delete-marker)
+	  ;; Delete text following term-pending-delete-marker.
+	  (delete-region term-pending-delete-marker (process-mark proc))
+	  (set-marker term-pending-delete-marker nil))
 
 	(if (eq (window-buffer) (current-buffer))
 	    (progn
@@ -2721,20 +2704,20 @@ See `term-prompt-regexp'."
 
 	(setq save-marker (copy-marker (process-mark proc)))
 
-	(if (/= (point) (process-mark proc))
-	    (progn (setq save-point (point-marker))
-		   (goto-char (process-mark proc))))
+	(when (/= (point) (process-mark proc))
+	  (setq save-point (point-marker))
+	  (goto-char (process-mark proc)))
 
 	(save-restriction
 	  ;; If the buffer is in line mode, and there is a partial
 	  ;; input line, save the line (by narrowing to leave it
 	  ;; outside the restriction ) until we're done with output.
-	  (if (and (> (point-max) (process-mark proc))
-		   (term-in-line-mode))
-	      (narrow-to-region (point-min) (process-mark proc)))
+	  (when (and (> (point-max) (process-mark proc))
+		     (term-in-line-mode))
+	    (narrow-to-region (point-min) (process-mark proc)))
 
-	  (if term-log-buffer
-	      (princ str term-log-buffer))
+	  (when term-log-buffer
+	    (princ str term-log-buffer))
 	  (cond ((eq term-terminal-state 4) ;; Have saved pending output.
 		 (setq str (concat term-terminal-parameter str))
 		 (setq term-terminal-parameter nil)
@@ -2748,7 +2731,7 @@ See `term-prompt-regexp'."
 		   (setq funny
 			 (string-match "[\r\n\000\007\033\t\b\032\016\017]"
 				       str i))
-		   (if (not funny) (setq funny str-length))
+		   (when (not funny) (setq funny str-length))
 		   (cond ((> funny i)
 			  (cond ((eq term-terminal-state 1)
 				 ;; We are in state 1, we need to wrap
@@ -2822,10 +2805,10 @@ See `term-prompt-regexp'."
 			  (setq count (min term-width
 					   (+ count 8 (- (mod count 8)))))
 			  (if (> term-width count)
-			    (progn
-			      (term-move-columns
-			       (- count (term-current-column)))
-			      (setq term-current-column count))
+			      (progn
+				(term-move-columns
+				 (- count (term-current-column)))
+				(setq term-current-column count))
 			    (when (> term-width (term-current-column))
 			      (term-move-columns
 			       (1- (- term-width (term-current-column)))))
@@ -2967,44 +2950,43 @@ See `term-prompt-regexp'."
 			  (setq term-terminal-previous-parameter-2 -1)
 			  (setq term-terminal-previous-parameter -1)
 			  (setq term-terminal-state 0)))))
-	    (if (term-handling-pager)
-		;; Finish stuff to get ready to handle PAGER.
-		(progn
-		  (if (> (% (current-column) term-width) 0)
-		      (setq term-terminal-parameter
-			    (substring str i))
-		    ;; We're at column 0.  Goto end of buffer; to compensate,
-		    ;; prepend a ?\r for later.  This looks more consistent.
-		    (if (zerop i)
-			(setq term-terminal-parameter
-			      (concat "\r" (substring str i)))
-		      (setq term-terminal-parameter (substring str (1- i)))
-		      (aset term-terminal-parameter 0 ?\r))
-		    (goto-char (point-max)))
-		  (setq term-terminal-state 4)
-		  (make-local-variable 'term-pager-old-filter)
-		  (setq term-pager-old-filter (process-filter proc))
-		  (set-process-filter proc term-pager-filter)
-		  (setq i str-length)))
+	    (when (term-handling-pager)
+	      ;; Finish stuff to get ready to handle PAGER.
+	      (if (> (% (current-column) term-width) 0)
+		  (setq term-terminal-parameter
+			(substring str i))
+		;; We're at column 0.  Goto end of buffer; to compensate,
+		;; prepend a ?\r for later.  This looks more consistent.
+		(if (zerop i)
+		    (setq term-terminal-parameter
+			  (concat "\r" (substring str i)))
+		  (setq term-terminal-parameter (substring str (1- i)))
+		  (aset term-terminal-parameter 0 ?\r))
+		(goto-char (point-max)))
+	      (setq term-terminal-state 4)
+	      (make-local-variable 'term-pager-old-filter)
+	      (setq term-pager-old-filter (process-filter proc))
+	      (set-process-filter proc term-pager-filter)
+	      (setq i str-length))
 	    (setq i (1+ i))))
 
-	(if (>= (term-current-row) term-height)
-	    (term-handle-deferred-scroll))
+	(when (>= (term-current-row) term-height)
+	  (term-handle-deferred-scroll))
 
 	(set-marker (process-mark proc) (point))
-	(if save-point
-	    (progn (goto-char save-point)
-		   (set-marker save-point nil)))
+	(when save-point
+	  (goto-char save-point)
+	  (set-marker save-point nil))
 
 	;; Check for a pending filename-and-line number to display.
 	;; We do this before scrolling, because we might create a new window.
-	(if (and term-pending-frame
-		 (eq (window-buffer selected) (current-buffer)))
-	    (progn (term-display-line (car term-pending-frame)
-				      (cdr term-pending-frame))
-		   (setq term-pending-frame nil)
-		   ;; We have created a new window, so check the window size.
-		   (term-check-size proc)))
+	(when (and term-pending-frame
+		   (eq (window-buffer selected) (current-buffer)))
+	  (term-display-line (car term-pending-frame)
+			     (cdr term-pending-frame))
+	  (setq term-pending-frame nil)
+	  ;; We have created a new window, so check the window size.
+	  (term-check-size proc))
 
 	;; Scroll each window displaying the buffer but (by default)
 	;; only if the point matches the process-mark we started with.
@@ -3016,50 +2998,47 @@ See `term-prompt-regexp'."
 	(setq last-win win)
 	(while (progn
 		 (setq win (next-window win nil t))
-		 (if (eq (window-buffer win) (process-buffer proc))
-		     (let ((scroll term-scroll-to-bottom-on-output))
-		       (select-window win)
-		       (if (or (= (point) save-marker)
+		 (when (eq (window-buffer win) (process-buffer proc))
+		   (let ((scroll term-scroll-to-bottom-on-output))
+		     (select-window win)
+		     (when (or (= (point) save-marker)
 			       (eq scroll t) (eq scroll 'all)
 			       ;; Maybe user wants point to jump to the end.
 			       (and (eq selected win)
 				    (or (eq scroll 'this) (not save-point)))
 			       (and (eq scroll 'others)
 				    (not (eq selected win))))
-			   (progn
-			     (goto-char term-home-marker)
-			     (recenter 0)
-			     (goto-char (process-mark proc))
-			     (if (not (pos-visible-in-window-p (point) win))
-				 (recenter -1))))
-		       ;; Optionally scroll so that the text
-		       ;; ends at the bottom of the window.
-		       (if (and term-scroll-show-maximum-output
+		       (goto-char term-home-marker)
+		       (recenter 0)
+		       (goto-char (process-mark proc))
+		       (if (not (pos-visible-in-window-p (point) win))
+			   (recenter -1)))
+		     ;; Optionally scroll so that the text
+		     ;; ends at the bottom of the window.
+		     (when (and term-scroll-show-maximum-output
 				(>= (point) (process-mark proc)))
-			   (save-excursion
-			     (goto-char (point-max))
-			     (recenter -1)))))
+		       (save-excursion
+			 (goto-char (point-max))
+			 (recenter -1)))))
 		 (not (eq win last-win))))
 
 ;;; Stolen from comint.el and adapted -mm
-	(if (> term-buffer-maximum-size 0)
-	    (save-excursion
-	      (goto-char (process-mark (get-buffer-process (current-buffer))))
-	      (forward-line (- term-buffer-maximum-size))
-	      (beginning-of-line)
-	      (delete-region (point-min) (point))))
-;;;
-
+	(when (> term-buffer-maximum-size 0)
+	  (save-excursion
+	    (goto-char (process-mark (get-buffer-process (current-buffer))))
+	    (forward-line (- term-buffer-maximum-size))
+	    (beginning-of-line)
+	    (delete-region (point-min) (point))))
 	(set-marker save-marker nil)))))
 
 (defun term-handle-deferred-scroll ()
   (let ((count (- (term-current-row) term-height)))
-    (if (>= count 0)
-	(save-excursion
-	  (goto-char term-home-marker)
-	  (term-vertical-motion (1+ count))
-	  (set-marker term-home-marker (point))
-	  (setq term-current-row (1- term-height))))))
+    (when (>= count 0)
+      (save-excursion
+	(goto-char term-home-marker)
+	(term-vertical-motion (1+ count))
+	(set-marker term-home-marker (point))
+	(setq term-current-row (1- term-height))))))
 
 ;;; Reset the terminal, delete all the content and set the face to the
 ;;; default one.
@@ -3170,17 +3149,17 @@ See `term-prompt-regexp'."
 		  (list :background
 			(if (= term-ansi-current-color 0)
 			    (face-foreground 'default)
-			    (elt ansi-term-color-vector term-ansi-current-color))
+			  (elt ansi-term-color-vector term-ansi-current-color))
 			:foreground
 			(if (= term-ansi-current-bg-color 0)
 			    (face-background 'default)
-			(elt ansi-term-color-vector term-ansi-current-bg-color))))
+			  (elt ansi-term-color-vector term-ansi-current-bg-color))))
 	    (when term-ansi-current-bold
-		(setq term-current-face
-		      (append '(:weight bold) term-current-face)))
+	      (setq term-current-face
+		    (append '(:weight bold) term-current-face)))
 	    (when term-ansi-current-underline
-		(setq term-current-face
-		      (append '(:underline t) term-current-face))))
+	      (setq term-current-face
+		    (append '(:underline t) term-current-face))))
 	(if term-ansi-current-invisible
 	    (setq term-current-face
 		  (if (= term-ansi-current-bg-color 0)
@@ -3200,12 +3179,12 @@ See `term-prompt-regexp'."
 		      :background
 		      (elt ansi-term-color-vector term-ansi-current-bg-color)))
 	  (when term-ansi-current-bold
-	      (setq term-current-face
-		    (append '(:weight bold) term-current-face)))
+	    (setq term-current-face
+		  (append '(:weight bold) term-current-face)))
 	  (when term-ansi-current-underline
-	      (setq term-current-face
-		    (append '(:underline t) term-current-face))))))
-
+	    (setq term-current-face
+		  (append '(:underline t) term-current-face))))))
+  
 ;;;	(message "Debug %S" term-current-face)
   (setq term-ansi-face-already-done nil))
 
@@ -3219,14 +3198,14 @@ See `term-prompt-regexp'."
 	;; (eq char ?f) ;; xterm seems to handle this sequence too, not
 	;; needed for now
 	)
-    (if (<= term-terminal-parameter 0)
-	(setq term-terminal-parameter 1))
-    (if (<= term-terminal-previous-parameter 0)
-	(setq term-terminal-previous-parameter 1))
-    (if (> term-terminal-previous-parameter term-height)
-	(setq term-terminal-previous-parameter term-height))
-    (if (> term-terminal-parameter term-width)
-	(setq term-terminal-parameter term-width))
+    (when (<= term-terminal-parameter 0)
+      (setq term-terminal-parameter 1))
+    (when (<= term-terminal-previous-parameter 0)
+      (setq term-terminal-previous-parameter 1))
+    (when (> term-terminal-previous-parameter term-height)
+      (setq term-terminal-previous-parameter term-height))
+    (when (> term-terminal-parameter term-width)
+      (setq term-terminal-parameter term-width))
     (term-goto
      (1- term-terminal-previous-parameter)
      (1- term-terminal-parameter)))
@@ -3443,50 +3422,49 @@ The top-most line is line 0."
 ; The page is full, so enter "pager" mode, and wait for input.
 
 (defun term-process-pager ()
-  (if (not term-pager-break-map)
-      (let* ((map (make-keymap))
-	     (i 0) tmp)
+  (when (not term-pager-break-map)
+    (let* ((map (make-keymap))
+	   (i 0) tmp)
 ;	(while (< i 128)
 ;	  (define-key map (make-string 1 i) 'term-send-raw)
 ;	  (setq i (1+ i)))
-	(define-key map "\e"
-	  (lookup-key (current-global-map) "\e"))
-	(define-key map "\C-x"
-	  (lookup-key (current-global-map) "\C-x"))
-	(define-key map "\C-u"
-	  (lookup-key (current-global-map) "\C-u"))
-	(define-key map " " 'term-pager-page)
-	(define-key map "\r" 'term-pager-line)
-	(define-key map "?" 'term-pager-help)
-	(define-key map "h" 'term-pager-help)
-	(define-key map "b" 'term-pager-back-page)
-	(define-key map "\177" 'term-pager-back-line)
-	(define-key map "q" 'term-pager-discard)
-	(define-key map "D" 'term-pager-disable)
-	(define-key map "<" 'term-pager-bob)
-	(define-key map ">" 'term-pager-eob)
+      (define-key map "\e"
+	(lookup-key (current-global-map) "\e"))
+      (define-key map "\C-x"
+	(lookup-key (current-global-map) "\C-x"))
+      (define-key map "\C-u"
+	(lookup-key (current-global-map) "\C-u"))
+      (define-key map " " 'term-pager-page)
+      (define-key map "\r" 'term-pager-line)
+      (define-key map "?" 'term-pager-help)
+      (define-key map "h" 'term-pager-help)
+      (define-key map "b" 'term-pager-back-page)
+      (define-key map "\177" 'term-pager-back-line)
+      (define-key map "q" 'term-pager-discard)
+      (define-key map "D" 'term-pager-disable)
+      (define-key map "<" 'term-pager-bob)
+      (define-key map ">" 'term-pager-eob)
 
-	;; Add menu bar.
-	(progn
-	 (term-ifnot-xemacs
-	  (define-key map [menu-bar terminal] term-terminal-menu)
-	  (define-key map [menu-bar signals] term-signals-menu)
-	  (setq tmp (make-sparse-keymap "More pages?"))
-	  (define-key tmp [help] '("Help" . term-pager-help))
-	  (define-key tmp [disable]
-	    '("Disable paging" . term-fake-pager-disable))
-	  (define-key tmp [discard]
-	    '("Discard remaining output" . term-pager-discard))
-	  (define-key tmp [eob] '("Goto to end" . term-pager-eob))
-	  (define-key tmp [bob] '("Goto to beginning" . term-pager-bob))
-	  (define-key tmp [line] '("1 line forwards" . term-pager-line))
-	  (define-key tmp [bline] '("1 line backwards" . term-pager-back-line))
-	  (define-key tmp [back] '("1 page backwards" . term-pager-back-page))
-	  (define-key tmp [page] '("1 page forwards" . term-pager-page))
-	  (define-key map [menu-bar page] (cons "More pages?" tmp))
-	  ))
+      ;; Add menu bar.
+      (unless (featurep 'xemacs)
+	(define-key map [menu-bar terminal] term-terminal-menu)
+	(define-key map [menu-bar signals] term-signals-menu)
+	(setq tmp (make-sparse-keymap "More pages?"))
+	(define-key tmp [help] '("Help" . term-pager-help))
+	(define-key tmp [disable]
+	  '("Disable paging" . term-fake-pager-disable))
+	(define-key tmp [discard]
+	  '("Discard remaining output" . term-pager-discard))
+	(define-key tmp [eob] '("Goto to end" . term-pager-eob))
+	(define-key tmp [bob] '("Goto to beginning" . term-pager-bob))
+	(define-key tmp [line] '("1 line forwards" . term-pager-line))
+	(define-key tmp [bline] '("1 line backwards" . term-pager-back-line))
+	(define-key tmp [back] '("1 page backwards" . term-pager-back-page))
+	(define-key tmp [page] '("1 page forwards" . term-pager-page))
+	(define-key map [menu-bar page] (cons "More pages?" tmp))
+	)
 
-	(setq term-pager-break-map map)))
+      (setq term-pager-break-map map)))
 ;  (let ((process (get-buffer-process (current-buffer))))
 ;    (stop-process process))
   (setq term-pager-old-local-map (current-local-map))
@@ -3504,8 +3482,8 @@ The top-most line is line 0."
   (interactive "p")
   (let* ((moved (vertical-motion (1+ lines)))
 	 (deficit (- lines moved)))
-    (if (> moved lines)
-	(backward-char))
+    (when (> moved lines)
+      (backward-char))
     (cond ((<= deficit 0) ;; OK, had enough in the buffer for request.
 	   (recenter (1- term-height)))
 	  ((term-pager-continue deficit)))))
@@ -3519,8 +3497,8 @@ The top-most line is line 0."
 (defun term-pager-bob ()
   (interactive)
   (goto-char (point-min))
-  (if (= (vertical-motion term-height) term-height)
-      (backward-char))
+  (when (= (vertical-motion term-height) term-height)
+    (backward-char))
   (recenter (1- term-height)))
 
 ; pager mode command to go to end of buffer
@@ -3571,7 +3549,7 @@ The top-most line is line 0."
   (interactive)
   (if (term-pager-enabled) (term-pager-disable) (term-pager-enable)))
 
-(term-ifnot-xemacs
+(unless (featurep 'xemacs)
  (defalias 'term-fake-pager-enable 'term-pager-toggle)
  (defalias 'term-fake-pager-disable 'term-pager-toggle)
  (put 'term-char-mode 'menu-enable '(term-in-line-mode))
@@ -3624,45 +3602,45 @@ all pending output has been dealt with."))
   (let ((scroll-needed
 	 (- (+ (term-current-row) down) 
 	    (if (< down 0) term-scroll-start term-scroll-end))))
-    (if (or (and (< down 0) (< scroll-needed 0)) 
-	    (and (> down 0) (> scroll-needed 0)))
-	(let ((save-point (copy-marker (point))) (save-top))
-	  (goto-char term-home-marker)
-	  (cond (term-scroll-with-delete
-		 (if (< down 0)
-		     (progn
-		       ;; Delete scroll-needed lines at term-scroll-end,
-		       ;; then insert scroll-needed lines.
-		       (term-vertical-motion (1- term-scroll-end))
-		       (end-of-line)
-		       (setq save-top (point))
-		       (term-vertical-motion scroll-needed)
-		       (end-of-line)
-		       (delete-region save-top (point))
-		       (goto-char save-point)
-		       (setq down (- scroll-needed down))
-		       (term-vertical-motion down))
-		   ;; Delete scroll-needed lines at term-scroll-start.
-		   (term-vertical-motion term-scroll-start)
-		   (setq save-top (point))
-		   (term-vertical-motion scroll-needed)
-		   (delete-region save-top (point))
-		   (goto-char save-point)
-		   (term-vertical-motion down)
-		   (term-adjust-current-row-cache (- scroll-needed)))
-		 (setq term-current-column nil)
-		 (term-insert-char ?\n (abs scroll-needed)))
-		((and (numberp term-pager-count)
-		      (< (setq term-pager-count (- term-pager-count down))
-			 0))
-		 (setq down 0)
-		 (term-process-pager))
-		(t
-		 (term-adjust-current-row-cache (- scroll-needed))
+    (when (or (and (< down 0) (< scroll-needed 0)) 
+	      (and (> down 0) (> scroll-needed 0)))
+      (let ((save-point (copy-marker (point))) (save-top))
+	(goto-char term-home-marker)
+	(cond (term-scroll-with-delete
+	       (if (< down 0)
+		   (progn
+		     ;; Delete scroll-needed lines at term-scroll-end,
+		     ;; then insert scroll-needed lines.
+		     (term-vertical-motion (1- term-scroll-end))
+		     (end-of-line)
+		     (setq save-top (point))
+		     (term-vertical-motion scroll-needed)
+		     (end-of-line)
+		     (delete-region save-top (point))
+		     (goto-char save-point)
+		     (setq down (- scroll-needed down))
+		     (term-vertical-motion down))
+		 ;; Delete scroll-needed lines at term-scroll-start.
+		 (term-vertical-motion term-scroll-start)
+		 (setq save-top (point))
 		 (term-vertical-motion scroll-needed)
-		 (set-marker term-home-marker (point))))
-	  (goto-char save-point)
-	  (set-marker save-point nil))))
+		 (delete-region save-top (point))
+		 (goto-char save-point)
+		 (term-vertical-motion down)
+		 (term-adjust-current-row-cache (- scroll-needed)))
+	       (setq term-current-column nil)
+	       (term-insert-char ?\n (abs scroll-needed)))
+	      ((and (numberp term-pager-count)
+		    (< (setq term-pager-count (- term-pager-count down))
+		       0))
+	       (setq down 0)
+	       (term-process-pager))
+	      (t
+	       (term-adjust-current-row-cache (- scroll-needed))
+	       (term-vertical-motion scroll-needed)
+	       (set-marker term-home-marker (point))))
+	(goto-char save-point)
+	(set-marker save-point nil))))
   down)
 
 (defun term-down (down &optional check-for-scroll)
@@ -3699,34 +3677,34 @@ all pending output has been dealt with."))
 ;; if the line above point wraps around, add a ?\n to undo the wrapping.
 ;; FIXME:  Probably should be called more than it is.
 (defun term-unwrap-line ()
-  (if (not (bolp)) (insert-before-markers ?\n)))
+  (when (not (bolp)) (insert-before-markers ?\n)))
 
 (defun term-erase-in-line (kind)
-  (if (= kind 1) ;; erase left of point
-      (let ((cols (term-horizontal-column)) (saved-point (point)))
-	(term-vertical-motion 0)
-	(delete-region (point) saved-point)
-	(term-insert-char ?  cols)))
-  (if (not (eq kind 1)) ;; erase right of point
-      (let ((saved-point (point))
-	    (wrapped (and (zerop (term-horizontal-column))
-			  (not (zerop (term-current-column))))))
-	(term-vertical-motion 1)
-	(delete-region saved-point (point))
-	;; wrapped is true if we're at the beginning of screen line,
-	;; but not a buffer line.  If we delete the current screen line
-	;; that will make the previous line no longer wrap, and (because
-	;; of the way Emacs display works) point will be at the end of
-	;; the previous screen line rather then the beginning of the
-	;; current one.  To avoid that, we make sure that current line
-	;; contain a space, to force the previous line to continue to wrap.
-	;; We could do this always, but it seems preferable to not add the
-	;; extra space when wrapped is false.
-	(if wrapped
-	    (insert ? ))
-	(insert ?\n)
-	(put-text-property saved-point (point) 'face 'default)
-	(goto-char saved-point))))
+  (when (= kind 1) ;; erase left of point
+    (let ((cols (term-horizontal-column)) (saved-point (point)))
+      (term-vertical-motion 0)
+      (delete-region (point) saved-point)
+      (term-insert-char ?  cols)))
+  (when (not (eq kind 1)) ;; erase right of point
+    (let ((saved-point (point))
+	  (wrapped (and (zerop (term-horizontal-column))
+			(not (zerop (term-current-column))))))
+      (term-vertical-motion 1)
+      (delete-region saved-point (point))
+      ;; wrapped is true if we're at the beginning of screen line,
+      ;; but not a buffer line.  If we delete the current screen line
+      ;; that will make the previous line no longer wrap, and (because
+      ;; of the way Emacs display works) point will be at the end of
+      ;; the previous screen line rather then the beginning of the
+      ;; current one.  To avoid that, we make sure that current line
+      ;; contain a space, to force the previous line to continue to wrap.
+      ;; We could do this always, but it seems preferable to not add the
+      ;; extra space when wrapped is false.
+      (when wrapped 
+	(insert ? ))
+      (insert ?\n)
+      (put-text-property saved-point (point) 'face 'default)
+      (goto-char saved-point))))
 
 (defun term-erase-in-display (kind)
   "Erases (that is blanks out) part of the window.
@@ -3932,8 +3910,8 @@ inside of a \"[...]\" (see `skip-chars-forward')."
     (let ((limit (point))
 	  (word (concat "[" word-chars "]"))
 	  (non-word (concat "[^" word-chars "]")))
-      (if (re-search-backward non-word nil 'move)
-	  (forward-char 1))
+      (when (re-search-backward non-word nil 'move)
+	(forward-char 1))
       ;; Anchor the search forwards.
       (if (or (eolp) (looking-at non-word))
 	  nil
@@ -3974,10 +3952,10 @@ completions listing is dependent on the value of `term-completion-autolist'.
 
 Returns t if successful."
   (interactive)
-  (if (term-match-partial-filename)
-      (prog2 (or (eq (selected-window) (minibuffer-window))
-		 (message "Completing file name..."))
-	  (term-dynamic-complete-as-filename))))
+  (when (term-match-partial-filename)
+    (prog2 (or (eq (selected-window) (minibuffer-window))
+	       (message "Completing file name..."))
+	(term-dynamic-complete-as-filename))))
 
 (defun term-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
@@ -4001,7 +3979,7 @@ See `term-dynamic-complete-filename'.  Returns t if successful."
            (message "No completions of %s" filename)
 	   (setq success nil))
           ((eq completion t)            ; Means already completed "file".
-           (if term-completion-addsuffix (insert " "))
+           (when term-completion-addsuffix (insert " "))
            (or mini-flag (message "Sole completion")))
           ((string-equal completion "") ; Means completion on "directory/".
            (term-dynamic-list-filename-completions))
@@ -4066,7 +4044,7 @@ See also `term-dynamic-complete-filename'."
  		 (message "Sole completion")
  	       (insert (substring completion (length stub)))
  	       (message "Completed"))
-	     (if term-completion-addsuffix (insert " "))
+	     (when term-completion-addsuffix (insert " "))
 	     'sole))
  	  (t				; There's no unique completion.
  	   (let ((completion (try-completion stub candidates)))

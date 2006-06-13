@@ -2481,10 +2481,10 @@ swap_out_buffer_local_variables (b)
    Return the number found, and store them in a vector in *VEC_PTR.
    Store in *LEN_PTR the size allocated for the vector.
    Store in *NEXT_PTR the next position after POS where an overlay starts,
-     or ZV if there are no more overlays.
+     or ZV if there are no more overlays between POS and ZV.
    Store in *PREV_PTR the previous position before POS where an overlay ends,
      or where an overlay starts which ends at or after POS;
-     or BEGV if there are no such overlays.
+     or BEGV if there are no such overlays from BEGV to POS.
    NEXT_PTR and/or PREV_PTR may be 0, meaning don't store that info.
 
    *VEC_PTR and *LEN_PTR should contain a valid vector and size
@@ -3570,10 +3570,10 @@ If omitted, BUFFER defaults to the current buffer.
 BEG and END may be integers or markers.
 The fourth arg FRONT-ADVANCE, if non-nil, makes the marker
 for the front of the overlay advance when text is inserted there
-(which means the text *is not* included in the overlay).
+\(which means the text *is not* included in the overlay).
 The fifth arg REAR-ADVANCE, if non-nil, makes the marker
 for the rear of the overlay advance when text is inserted there
-(which means the text *is* included in the overlay).  */)
+\(which means the text *is* included in the overlay).  */)
      (beg, end, buffer, front_advance, rear_advance)
      Lisp_Object beg, end, buffer;
      Lisp_Object front_advance, rear_advance;
@@ -3955,7 +3955,8 @@ or between BEG and END.  */)
 DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
        1, 1, 0,
        doc: /* Return the next position after POS where an overlay starts or ends.
-If there are no more overlay boundaries after POS, return (point-max).  */)
+If there are no overlay boundaries from POS to (point-max),
+the value is (point-max).  */)
      (pos)
      Lisp_Object pos;
 {
@@ -3996,7 +3997,8 @@ If there are no more overlay boundaries after POS, return (point-max).  */)
 DEFUN ("previous-overlay-change", Fprevious_overlay_change,
        Sprevious_overlay_change, 1, 1, 0,
        doc: /* Return the previous position before POS where an overlay starts or ends.
-If there are no more overlay boundaries before POS, return (point-min).  */)
+If there are no overlay boundaries from (point-min) to POS,
+the value is (point-min).  */)
      (pos)
      Lisp_Object pos;
 {
@@ -5454,10 +5456,11 @@ A string is printed verbatim in the mode line except for %-constructs:
   %p -- print percent of buffer above top of window, or Top, Bot or All.
   %P -- print percent of buffer above bottom of window, perhaps plus Top,
         or print Bottom or All.
-  %m -- print the mode name.
   %n -- print Narrow if appropriate.
+  %t -- visited file is text or binary (if OS supports this distinction).
   %z -- print mnemonics of buffer, terminal, and keyboard coding systems.
   %Z -- like %z, but including the end-of-line format.
+  %e -- print error message about full memory.
   %[ -- print one [ for each recursive editing level.  %] similar.
   %% -- print %.   %- -- print infinitely many dashes.
 Decimal digits after the % specify field width to which to pad.  */);
@@ -5753,7 +5756,7 @@ the actual bitmap shown in the left or right fringe for the logical
 indicator.  LEFT and RIGHT are the bitmaps shown in the left and/or
 right fringe for the specific indicator.  The LEFT1 or RIGHT1 bitmaps
 are used only for the `bottom' and `one-line' indicators when the last
-(only) line in has no final newline.  BITMAPS may also be a single
+\(only) line in has no final newline.  BITMAPS may also be a single
 symbol which is used in both left and right fringes.  */);
 
   DEFVAR_PER_BUFFER ("fringe-cursor-alist",
@@ -6000,7 +6003,7 @@ this variable has no effect; the cursor appears as a hollow box.  */);
 		     doc: /* Additional space to put between lines when displaying a buffer.
 The space is measured in pixels, and put below lines on window systems.
 If value is a floating point number, it specifies the spacing relative
-to the default frame line height.  */);
+to the default frame line height.  nil means add no extra space.  */);
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
 		     &current_buffer->cursor_in_non_selected_windows, Qnil,

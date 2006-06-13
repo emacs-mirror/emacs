@@ -215,7 +215,9 @@ a directory.  See also `dired-local-variables-file'."
   :type 'boolean
   :group 'dired-x)
 
-(defcustom dired-guess-shell-gnutar nil
+(defcustom dired-guess-shell-gnutar (when (or (eq system-type 'gnu)
+					      (eq system-type 'gnu/linux))
+				      "tar")
   "*If non-nil, name of GNU tar executable.
 \(E.g., \"tar\" or \"gtar\").  The `z' switch will be used with it for
 compressed or gzip'ed tar files.  If you don't have GNU tar, set this
@@ -249,7 +251,6 @@ to nil: a pipe using `zcat' or `gunzip -c' will be used."
 (define-key dired-mode-map "*." 'dired-mark-extension)
 (define-key dired-mode-map "\M-!" 'dired-smart-shell-command)
 (define-key dired-mode-map "w" 'dired-copy-filename-as-kill)
-(define-key dired-mode-map "\M-g" 'dired-goto-file)
 (define-key dired-mode-map "\M-G" 'dired-goto-subdir)
 (define-key dired-mode-map "F" 'dired-do-find-marked-files)
 (define-key dired-mode-map "Y"  'dired-do-relsymlink)

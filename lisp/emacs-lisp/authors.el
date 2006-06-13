@@ -42,6 +42,7 @@ files.")
 
 (defconst authors-aliases
   '(
+    ("Andrew Csillag" "Drew Csillag")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
     ("Bj,Av(Brn Torkelsson" "Bjorn Torkelsson")
@@ -118,6 +119,7 @@ files.")
     ("Roland B. Roberts" "Roland B Roberts" "Roland Roberts")
     ("Rui-Tao Dong" "Rui-Tao Dong ~{6-Hpln~}")
     ("Sam Steingold" "Sam Shteingold")
+    ("Satyaki Das" "Indexed search by Satyaki Das")
     ("Stefan Monnier" "Stefan")
     ("Stephen A. Wood" "(saw@cebaf.gov)")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
@@ -128,6 +130,7 @@ files.")
     ("Torbj,Av(Brn Einarsson" "Torbj.*rn Einarsson")
     ("Toru Tomabechi" "Toru Tomabechi,")
     ("Vincent Del Vecchio" "Vince Del Vecchio")
+    ("William M. Perry" "Bill Perry")
     ("Wlodzimierz Bzyl" "W.*dek Bzyl")
     ("Yutaka NIIBE" "NIIBE Yutaka")
     )
@@ -269,7 +272,7 @@ Changes to files in this list are not listed.")
     ("Morten Welinder" :wrote "dosfns.c" "[many MSDOS files]" "msdos.h")
     ("Pace Willisson" :wrote "ispell.el")
     ("Garrett Wollman" :changed "sendmail.el")
-    ("Dale Worley" :changed "mail-extr.el")
+    ("Dale R. Worley" :changed "mail-extr.el")
     ("Jamie Zawinski" :changed "bytecode.c" :wrote "disass.el" "tar-mode.el"))
   "Actions taken from the original, manually (un)maintained AUTHORS file.")
 
@@ -355,7 +358,9 @@ the file name."
 	      (setq rules (cdr rules))))))
       (setq authors-checked-files-alist
 	    (cons (cons file valid) authors-checked-files-alist))
-      (unless valid
+      (unless (or valid
+		  (string-match "[*]" file)
+		  (string-match "^[0-9.]+$" file))
 	(setq authors-invalid-file-names
 	      (cons (format "%s:%d: unrecognized `%s' for %s"
 			    log-file

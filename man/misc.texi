@@ -30,9 +30,9 @@ Usenet news.  It can also be used to read and respond to messages from a
 number of other sources---mail, remote directories, digests, and so on.
 
 Here we introduce Gnus and describe several basic features.
-@ifinfo
+@ifnottex
 For full details, see @ref{Top, Gnus,, gnus, The Gnus Manual}.
-@end ifinfo
+@end ifnottex
 @iftex
 For full details on Gnus, type @kbd{M-x info} and then select the Gnus
 manual.
@@ -238,10 +238,10 @@ for @var{regexp}.
 
 @c Too many references to the name of the manual if done with xref in TeX!
 Gnus is powerful and customizable.  Here are references to a few
-@ifinfo
+@ifnottex
 additional topics:
 
-@end ifinfo
+@end ifnottex
 @iftex
 additional topics in @cite{The Gnus Manual}:
 
@@ -274,7 +274,7 @@ Send an article to a newsgroup.@*
 See section ``Composing Messages.''
 @end itemize
 @end iftex
-@ifinfo
+@ifnottex
 @itemize @bullet
 @item
 Follow discussions on specific topics.@*
@@ -304,7 +304,7 @@ name, subject, or string in the body of the articles.@*
 Send an article to a newsgroup.@*
 @xref{Composing Messages, , , gnus, The Gnus Manual}.
 @end itemize
-@end ifinfo
+@end ifnottex
 @end ignore
 
 @node Shell, Emacs Server, Gnus, Top
@@ -873,17 +873,21 @@ Move point to the previous prompt (@code{comint-previous-prompt}).
 Move point to the following prompt (@code{comint-next-prompt}).
 
 @kindex C-c RET @r{(Shell mode)}
-@findex comint-insert-input
+@findex comint-copy-old-input
 @item C-c @key{RET}
 Copy the input command which point is in, inserting the copy at the end
-of the buffer (@code{comint-insert-input}).  This is useful if you
+of the buffer (@code{comint-copy-old-input}).  This is useful if you
 move point back to a previous command.  After you copy the command, you
 can submit the copy as input with @key{RET}.  If you wish, you can
-edit the copy before resubmitting it.
+edit the copy before resubmitting it.  If you use this command on an
+output line, it copies that line to the end of the buffer.
 
 @item Mouse-2
-Copy the input command that you click on, inserting the copy at the end
-of the buffer.
+If @code{comint-use-prompt-regexp} is @code{nil} (the default), copy
+the old input command that you click on, inserting the copy at the end
+of the buffer (@code{comint-insert-input}).  If
+@code{comint-use-prompt-regexp} is non-@code{nil}, or if the click is
+not over old input, just yank as usual.
 @end table
 
   Moving to a previous input and then copying it with @kbd{C-c
@@ -1503,9 +1507,9 @@ rendition of the current buffer as a cursive handwritten document.  It
 can be customized in group @code{handwrite}.  This function only
 supports ISO 8859-1 characters.
 
-@ifinfo
+@ifnottex
   The following section describes variables for customizing these commands.
-@end ifinfo
+@end ifnottex
 
 @node PostScript Variables, Printing Package, PostScript, Printing
 @section Variables for PostScript Hardcopy

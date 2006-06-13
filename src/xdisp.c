@@ -202,6 +202,12 @@ Boston, MA 02110-1301, USA.  */
 #include "macterm.h"
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+#ifdef USE_FONT_BACKEND
+#include "font.h"
+#endif	/* USE_FONT_BACKEND */
+#endif	/* HAVE_WINDOW_SYSTEM */
+
 #ifndef FRAME_X_OUTPUT
 #define FRAME_X_OUTPUT(f) ((f)->output_data.x)
 #endif
@@ -1989,15 +1995,15 @@ get_glyph_string_clip_rect (s, nr)
    Set w->phys_cursor_width to width of phys cursor.
 */
 
-int
-get_phys_cursor_geometry (w, row, glyph, heightp)
+void
+get_phys_cursor_geometry (w, row, glyph, xp, yp, heightp)
      struct window *w;
      struct glyph_row *row;
      struct glyph *glyph;
-     int *heightp;
+     int *xp, *yp, *heightp;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  int y, wd, h, h0, y0;
+  int x, y, wd, h, h0, y0;
 
   /* Compute the width of the rectangle to draw.  If on a stretch
      glyph, and `x-stretch-block-cursor' is nil, don't draw a
@@ -2007,6 +2013,14 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
 #ifdef HAVE_NTGUI
   wd++; /* Why? */
 #endif
+
+  x = w->phys_cursor.x;
+  if (x < 0)
+    {
+      wd += x;
+      x = 0;
+    }
+
   if (glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
     wd = min (FRAME_COLUMN_WIDTH (f), wd);
@@ -2036,8 +2050,9 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
 	}
     }
 
+  *xp = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, x);
+  *yp = WINDOW_TO_FRAME_PIXEL_Y (w, y);
   *heightp = h;
-  return WINDOW_TO_FRAME_PIXEL_Y (w, y);
 }
 
 /*
@@ -4564,6 +4579,11 @@ handle_composition_prop (it)
 	  it->method = GET_FROM_COMPOSITION;
 	  it->cmp_id = id;
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
+#ifdef USE_FONT_BACKEND
+	  if (composition_table[id]->method == COMPOSITION_WITH_GLYPH_STRING)
+	    it->c = ' ';
+	  else
+#endif /* USE_FONT_BACKEND */
 	  /* For a terminal, draw only the first character of the
              components.  */
 	  it->c = COMPOSITION_GLYPH (composition_table[id], 0);
@@ -6323,6 +6343,8 @@ next_element_from_composition (it)
   it->position = (STRINGP (it->string)
 		  ? it->current.string_pos
 		  : it->current.pos);
+  if (STRINGP (it->string))
+    it->object = it->string;
   return 1;
 }
 
@@ -9597,7 +9619,8 @@ display_tool_bar_line (it, height)
 
   while (it->current_x < max_x)
     {
-      int x_before, x, n_glyphs_before, i, nglyphs;
+      int x, n_glyphs_before, i, nglyphs;
+      struct it it_before;
 
       /* Get the next display element.  */
       if (!get_next_display_element (it))
@@ -9609,22 +9632,23 @@ display_tool_bar_line (it, height)
 	}
 
       /* Produce glyphs.  */
-      x_before = it->current_x;
-      n_glyphs_before = it->glyph_row->used[TEXT_AREA];
+      n_glyphs_before = row->used[TEXT_AREA];
+      it_before = *it;
+
       PRODUCE_GLYPHS (it);
 
-      nglyphs = it->glyph_row->used[TEXT_AREA] - n_glyphs_before;
+      nglyphs = row->used[TEXT_AREA] - n_glyphs_before;
       i = 0;
-      x = x_before;
+      x = it_before.current_x;
       while (i < nglyphs)
 	{
 	  struct glyph *glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
 
 	  if (x + glyph->pixel_width > max_x)
 	    {
-	      /* Glyph doesn't fit on line.  */
-	      it->glyph_row->used[TEXT_AREA] = n_glyphs_before + i;
-	      it->current_x = x;
+	      /* Glyph doesn't fit on line.  Backtrack.  */
+	      row->used[TEXT_AREA] = n_glyphs_before;
+	      *it = it_before;
 	      goto out;
 	    }
 
@@ -9655,6 +9679,8 @@ display_tool_bar_line (it, height)
   /* Make line the desired height and center it vertically.  */
   if ((height -= it->max_ascent + it->max_descent) > 0)
     {
+      /* Don't add more than one line height.  */
+      height %= FRAME_LINE_HEIGHT (it->f);
       it->max_ascent += height / 2;
       it->max_descent += (height + 1) / 2;
     }
@@ -9829,7 +9855,7 @@ redisplay_tool_bar (f)
 	border = 0;
 
       rows = f->n_tool_bar_rows;
-      height = (it.last_visible_y - border) / rows;
+      height = max (1, (it.last_visible_y - border) / rows);
       extra = it.last_visible_y - border - height * rows;
 
       while (it.current_y < it.last_visible_y)
@@ -11702,9 +11728,11 @@ redisplay_window_1 (window)
 
 /* Set cursor position of W.  PT is assumed to be displayed in ROW.
    DELTA is the number of bytes by which positions recorded in ROW
-   differ from current buffer positions.  */
+   differ from current buffer positions.
 
-void
+   Return 0 if cursor is not on this row.  1 otherwise.  */
+
+int
 set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
      struct window *w;
      struct glyph_row *row;
@@ -11854,6 +11882,11 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	      SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
 	    }
 	}
+
+      /* If we reached the end of the line, and end was from a string,
+	 cursor is not on this line.  */
+      if (glyph == end && row->continued_p)
+	return 0;
     }
 
   w->cursor.hpos = glyph - row->glyphs[TEXT_AREA];
@@ -11887,6 +11920,8 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       else
 	CHARPOS (this_line_start_pos) = 0;
     }
+
+  return 1;
 }
 
 
@@ -12570,8 +12605,18 @@ try_cursor_movement (window, startp, scroll_step)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	  else
 	    {
-	      set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
-	      rc = CURSOR_MOVEMENT_SUCCESS;
+	      do
+		{
+		  if (set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0))
+		    {
+		      rc = CURSOR_MOVEMENT_SUCCESS;
+		      break;
+		    }
+		  ++row;
+		}
+	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
+		     && MATRIX_ROW_START_CHARPOS (row) == PT
+		     && cursor_row_p (w, row));
 	    }
 	}
     }
@@ -15019,6 +15064,25 @@ dump_glyph (row, glyph, area)
 		   : '-')),
 	       glyph->pixel_width,
 	       glyph->u.img_id,
+	       '.',
+	       glyph->face_id,
+	       glyph->left_box_line_p,
+	       glyph->right_box_line_p);
+    }
+  else if (glyph->type == COMPOSITE_GLYPH)
+    {
+      fprintf (stderr,
+	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       glyph - row->glyphs[TEXT_AREA],
+	       '+',
+	       glyph->charpos,
+	       (BUFFERP (glyph->object)
+		? 'B'
+		: (STRINGP (glyph->object)
+		   ? 'S'
+		   : '-')),
+	       glyph->pixel_width,
+	       glyph->u.cmp_id,
 	       '.',
 	       glyph->face_id,
 	       glyph->left_box_line_p,
@@ -18636,6 +18700,23 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
   if (two_byte_p)
     *two_byte_p = 0;
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      struct font *font = (struct font *) face->font_info;
+
+      if (font)
+	{
+	  unsigned code = font->driver->encode_char (font, glyph->u.ch);
+
+	  if (code != FONT_INVALID_CODE)
+	    STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+	  else
+	    STORE_XCHAR2B (char2b, 0, code);
+	}
+    }
+  else
+#endif	/* USE_FONT_BACKEND */
   if (!glyph->multibyte_p)
     {
       /* Unibyte case.  We don't have to encode, but we have to make
@@ -18709,9 +18790,29 @@ fill_composite_glyph_string (s, faces, overlaps)
   else
     {
       s->font = s->face->font;
-      s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+      s->font_info = FONT_INFO_FROM_FACE (s->f, s->face);
     }
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend && s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+    {
+      Lisp_Object gstring
+	= AREF (XHASH_TABLE (composition_hash_table)->key_and_value,
+		s->cmp->hash_index * 2);
+
+      for (i = 0; i < s->cmp->glyph_len; i++)
+	{
+	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+	  unsigned code = XUINT (LGLYPH_CODE (g));
+
+	  STORE_XCHAR2B (s->char2b + i, code >> 8, code & 0xFF);
+	}
+      s->nchars = s->cmp->glyph_len;
+      s->width = s->cmp->pixel_width;
+    }
+  else
+    {
+#endif	/* USE_FONT_BACKEND */
   /* For all glyphs of this composition, starting at the offset
      S->gidx, until we reach the end of the definition or encounter a
      glyph that requires the different face, add it to S.  */
@@ -18725,6 +18826,9 @@ fill_composite_glyph_string (s, faces, overlaps)
      i.e. the width set for the first component of the composition.  */
 
   s->width = s->first_glyph->pixel_width;
+#ifdef USE_FONT_BACKEND
+    }
+#endif	/* USE_FONT_BACKEND */
 
   /* If the specified font could not be loaded, use the frame's
      default font, but record the fact that we couldn't load it in
@@ -18796,7 +18900,7 @@ fill_glyph_string (s, face_id, start, end, overlaps)
     }
 
   s->font = s->face->font;
-  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+  s->font_info = FONT_INFO_FROM_FACE (s->f, s->face);
 
   /* If the specified font could not be loaded, use the frame's font,
      but record the fact that we couldn't load it in
@@ -18860,7 +18964,7 @@ fill_stretch_glyph_string (s, row, area, start, end)
   face_id = glyph->face_id;
   s->face = FACE_FROM_ID (s->f, face_id);
   s->font = s->face->font;
-  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
+  s->font_info = FONT_INFO_FROM_FACE (s->f, s->face);
   s->width = glyph->pixel_width;
   s->nchars = 1;
   voffset = glyph->voffset;
@@ -18882,6 +18986,35 @@ fill_stretch_glyph_string (s, row, area, start, end)
   return glyph - s->row->glyphs[s->area];
 }
 
+static XCharStruct *
+get_per_char_metric (font, font_info, char2b, font_type)
+     XFontStruct *font;
+     struct font_info *font_info;
+     XChar2b *char2b;
+     int font_type;
+{
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      static XCharStruct pcm_value;
+      unsigned code = (XCHAR2B_BYTE1 (char2b) << 8) | XCHAR2B_BYTE2 (char2b);
+      struct font *fontp;
+      struct font_metrics metrics;
+
+      if (! font_info || code == FONT_INVALID_CODE)
+	return NULL;
+      fontp = (struct font *) font_info;
+      fontp->driver->text_extents (fontp, &code, 1, &metrics);
+      pcm_value.lbearing = metrics.lbearing;
+      pcm_value.rbearing = metrics.rbearing;
+      pcm_value.ascent = metrics.ascent;
+      pcm_value.descent = metrics.descent;
+      pcm_value.width = metrics.width;
+      return &pcm_value;
+    }
+#endif	/* USE_FONT_BACKEND */
+  return rif->per_char_metric (font, char2b, font_type);
+}
 
 /* EXPORT for RIF:
    Set *LEFT and *RIGHT to the left and right overhang of GLYPH on
@@ -19052,6 +19185,23 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
 {
   struct face *face = FACE_FROM_ID (f, face_id);
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      struct font *font = (struct font *) face->font_info;
+
+      if (font)
+	{
+	  unsigned code = font->driver->encode_char (font, c);
+
+	  if (code != FONT_INVALID_CODE)
+	    STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+	  else
+	    STORE_XCHAR2B (char2b, 0, 0);
+	}
+    }
+  else
+#endif	/* USE_FONT_BACKEND */
   if (!multibyte_p)
     {
       /* Unibyte case.  We don't have to encode, but we have to make
@@ -19268,6 +19418,14 @@ compute_overhangs_and_x (s, x, backward_p)
     struct glyph_string *first_s = NULL;				  \
     int n;								  \
     									  \
+    if (cmp->method > COMPOSITION_WITH_RULE_ALTCHARS)			  \
+      {									  \
+	/* This happens only when USE_FONT_BACKEND is defined.  */	  \
+	char2b = (XChar2b *) alloca ((sizeof *char2b) * glyph_len);	  \
+	faces = &base_face;						  \
+      }									  \
+    else								  \
+      {									  \
     base_face = base_face->ascii_face;					  \
     char2b = (XChar2b *) alloca ((sizeof *char2b) * glyph_len);		  \
     faces = (struct face **) alloca ((sizeof *faces) * glyph_len);	  \
@@ -19286,6 +19444,7 @@ compute_overhangs_and_x (s, x, backward_p)
 				    char2b + n, 1, 1);			  \
 	  }								  \
       }									  \
+    }									  \
     									  \
     /* Make glyph_strings for each glyph sequence that is drawable by	  \
        the same face, and append them to HEAD/TAIL.  */			  \
@@ -20100,7 +20259,7 @@ calc_line_height_property (it, val, font, boff, override)
       if (font == NULL)
 	return make_number (-1);
 
-      font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+      font_info = FONT_INFO_FROM_FACE (it->f, face);
       boff = font_info->baseline_offset;
       if (font_info->vertical_centering)
 	boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
@@ -20194,7 +20353,7 @@ x_produce_glyphs (it)
 	}
       else
 	{
-	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+	  font_info = FONT_INFO_FROM_FACE (it->f, face);
 	  boff = font_info->baseline_offset;
 	  if (font_info->vertical_centering)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
@@ -20535,7 +20694,7 @@ x_produce_glyphs (it)
 	}
       else
 	{
-	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+	  font_info = FONT_INFO_FROM_FACE (it->f, face);
 	  boff = font_info->baseline_offset;
 	  if (font_info->vertical_centering)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
@@ -20559,6 +20718,13 @@ x_produce_glyphs (it)
 	  cmp->lbearing = cmp->rbearing = 0;
 	  cmp->pixel_width = cmp->ascent = cmp->descent = 0;
 	}
+#ifdef USE_FONT_BACKEND
+      else if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+	{
+	  if (! cmp->font)
+	    font_prepare_composition (cmp);
+	}
+#endif	/* USE_FONT_BACKEND */
       else if (cmp->font != (void *) font)
 	{
 	  /* Ascent and descent of the font of the first character of
@@ -21492,7 +21658,7 @@ erase_phys_cursor (w)
   /* Maybe clear the display under the cursor.  */
   if (w->phys_cursor_type == HOLLOW_BOX_CURSOR)
     {
-      int x, y;
+      int x, y, left_x;
       int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
       int width;
 
@@ -21500,11 +21666,16 @@ erase_phys_cursor (w)
       if (cursor_glyph == NULL)
 	goto mark_cursor_off;
 
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+      width = cursor_glyph->pixel_width;
+      left_x = window_box_left_offset (w, TEXT_AREA);
+      x = w->phys_cursor.x;
+      if (x < left_x)
+	width -= left_x - x;
+      width = min (width, window_box_width (w, TEXT_AREA) - x);
       y = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, cursor_row->y));
-      width = min (cursor_glyph->pixel_width,
-		   window_box_width (w, TEXT_AREA) - w->phys_cursor.x);
+      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, max (x, left_x));
 
+      if (width > 0)
       rif->clear_frame_area (f, x, y, width, cursor_row->visible_height);
     }
 

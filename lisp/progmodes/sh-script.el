@@ -814,6 +814,18 @@ See `sh-feature'.")
      (:weight bold)))
   "Face to show a here-document"
   :group 'sh-indentation)
+
+;; These colours are probably icky.  It's just a placeholder though.
+(defface sh-quoted-exec
+  '((((class color) (background dark))
+     (:foreground "salmon"))
+    (((class color) (background light))
+     (:foreground "magenta"))
+    (t
+     (:weight bold)))
+  "Face to show quoted execs like ``"
+  :group 'sh-indentation)
+
 ;; backward-compatibility alias
 (put 'sh-heredoc-face 'face-alias 'sh-heredoc)
 (defvar sh-heredoc-face 'sh-heredoc)
@@ -833,7 +845,7 @@ See `sh-feature'.")
          font-lock-variable-name-face))
 
     (rc sh-append es)
-
+    (bash sh-append shell ("\\$(\\(\\sw+\\)" (1 'sh-quoted-exec t) ))
     (sh sh-append shell
 	;; Variable names.
 	("\\$\\({#?\\)?\\([A-Za-z_][A-Za-z0-9_]*\\|[-#?@!]\\)" 2
@@ -967,6 +979,49 @@ Point is at the beginning of the next line."
   ;; This looks silly, but it's because `sh-here-doc-re' keeps changing.
   (re-search-forward sh-here-doc-re limit t))
 
+(defun sh-quoted-subshell (limit)
+  "Search for a subshell embedded in a string. Find all the unescaped
+\" characters within said subshell, remembering that subshells can nest."
+  (if (re-search-forward "\"\\(?:.\\|\n\\)*?\\(\\$(\\|`\\)" limit t)
+      ;; bingo we have a $( or a ` inside a ""
+      (let ((char (char-after (point)))
+            (continue t)
+            (pos (point))
+            (data nil)    ;; value to put into match-data (and return)
+            (last nil)    ;; last char seen
+            (bq  (equal (match-string 1) "`")) ;; ` state flip-flop
+            (seen nil)    ;; list of important positions
+            (nest 1))     ;; subshell nesting level
+        (while (and continue char (<= pos limit))
+          ;; unescaped " inside a $( ... ) construct.
+          ;; state machine time...
+          ;; \ => ignore next char;
+          ;; ` => increase or decrease nesting level based on bq flag
+          ;; ) [where nesting > 0] => decrease nesting
+          ;; ( [where nesting > 0] => increase nesting
+          ;; ( [preceeded by $ ]   => increase nesting
+          ;; " [nesting <= 0 ]     => terminate, we're done.
+          ;; " [nesting >  0 ]     => remember this, it's not a proper "
+          (if (eq ?\\ last) nil
+            (if (eq ?\` char) (setq nest (+ nest (if bq -1 1)) bq (not bq))
+              (if (and (> nest 0) (eq ?\) char))  (setq nest (1- nest))
+                (if (and (eq ?$ last) (eq ?\( char)) (setq nest (1+ nest))
+                  (if (and (> nest 0) (eq ?\( char)) (setq nest (1+ nest))
+                    (if (eq char ?\")
+                        (if (>= 0 nest) (setq continue nil)
+                          (setq seen (cons pos seen)) ) ))))))
+          ;;(message "POS: %d [%d]" pos nest)
+          (setq last char
+                pos  (1+ pos)
+                char (char-after pos)) )
+        (when seen
+          ;;(message "SEEN: %S" seen)
+          (setq data (list (current-buffer)))
+          (mapc (lambda (P)
+                  (setq data (cons P (cons (1+ P) data)) ) ) seen)
+          (store-match-data data))
+        data) ))
+
 (defun sh-is-quoted-p (pos)
   (and (eq (char-before pos) ?\\)
        (not (sh-is-quoted-p (1- pos)))))
@@ -997,6 +1052,17 @@ Point is at the beginning of the next line."
     (when (save-excursion (backward-char 2) (looking-at ";;\\|in"))
       sh-st-punc)))
 
+(defun sh-apply-quoted-subshell ()
+  "Apply the `sh-st-punc' syntax to all the matches in `match-data'.
+This is used to flag quote characters in subshell constructs inside strings
+\(which should therefore not be treated as normal quote characters\)"
+  (let ((m (match-data)) a b)
+    (while m
+      (setq a (car  m)
+            b (cadr m)
+            m (cddr m))
+      (put-text-property a b 'syntax-table sh-st-punc))) sh-st-punc)
+
 (defconst sh-font-lock-syntactic-keywords
   ;; A `#' begins a comment when it is unquoted and at the beginning of a
   ;; word.  In the shell, words are separated by metacharacters.
@@ -1007,6 +1073,9 @@ Point is at the beginning of the next line."
     ("\\(\\\\\\)'" 1 ,sh-st-punc)
     ;; Make sure $@ and @? are correctly recognized as sexps.
     ("\\$\\([?@]\\)" 1 ,sh-st-symbol)
+    ;; highlight (possibly nested) subshells inside "" quoted regions correctly.
+    (sh-quoted-subshell
+     (1 (sh-apply-quoted-subshell) t t))
     ;; Find HEREDOC starters and add a corresponding rule for the ender.
     (sh-font-lock-here-doc
      (2 (sh-font-lock-open-heredoc
@@ -1019,11 +1088,12 @@ Point is at the beginning of the next line."
     (")" 0 (sh-font-lock-paren (match-beginning 0)))))
 
 (defun sh-font-lock-syntactic-face-function (state)
-  (if (nth 3 state)
-      (if (characterp (nth 3 state))
-	  font-lock-string-face
-	sh-heredoc-face)
-    font-lock-comment-face))
+  (let ((q (nth 3 state)))
+    (if q
+        (if (characterp q)
+            (if (eq q ?\`) 'sh-quoted-exec font-lock-string-face)
+          sh-heredoc-face)
+      font-lock-comment-face)))
 
 (defgroup sh-indentation nil
   "Variables controlling indentation in shell scripts.
@@ -1390,11 +1460,11 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'sh-shell-file)
   (make-local-variable 'sh-shell)
   (make-local-variable 'skeleton-pair-alist)
-  (make-local-variable 'skeleton-pair-filter)
+  (make-local-variable 'skeleton-pair-filter-function)
   (make-local-variable 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-prompt-regexp)
   (make-local-variable 'font-lock-defaults)
-  (make-local-variable 'skeleton-filter)
+  (make-local-variable 'skeleton-filter-function)
   (make-local-variable 'skeleton-newline-indent-rigidly)
   (make-local-variable 'sh-shell-variables)
   (make-local-variable 'sh-shell-variables-initialized)
@@ -1422,10 +1492,10 @@ with your script for an edit-interpret-debug cycle."
 	  (font-lock-syntactic-face-function
 	   . sh-font-lock-syntactic-face-function))
 	skeleton-pair-alist '((?` _ ?`))
-	skeleton-pair-filter 'sh-quoted-p
+	skeleton-pair-filter-function 'sh-quoted-p
 	skeleton-further-elements '((< '(- (min sh-indentation
 						(current-column)))))
-	skeleton-filter 'sh-feature
+	skeleton-filter-function 'sh-feature
 	skeleton-newline-indent-rigidly t
 	sh-indent-supported-here nil)
   (set (make-local-variable 'parse-sexp-ignore-comments) t)

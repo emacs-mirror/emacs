@@ -63,175 +63,177 @@ This variable is a list of mail source specifiers.
 See Info node `(gnus)Mail Source Specifiers'."
   :group 'mail-source
   :link '(custom-manual "(gnus)Mail Source Specifiers")
-  :type `(repeat
-	  (choice :format "%[Value Menu%] %v"
-		  :value (file)
-		  (cons :tag "Spool file"
-			(const :format "" file)
-			(checklist :tag "Options" :greedy t
-				   (group :inline t
-					  (const :format "" :value :path)
-					  file)))
-		  (cons :tag "Several files in a directory"
-			(const :format "" directory)
-			(checklist :tag "Options" :greedy t
-				   (group :inline t
-					  (const :format "" :value :path)
-					  (directory :tag "Path"))
-				   (group :inline t
-					  (const :format "" :value :suffix)
-					  (string :tag "Suffix"))
-				   (group :inline t
-					  (const :format "" :value :predicate)
-					  (function :tag "Predicate"))
-				   (group :inline t
-					  (const :format "" :value :prescript)
-					  (choice :tag "Prescript"
-						  :value nil
-						  (string :format "%v")
-						  (function :format "%v")))
-				   (group :inline t
-					  (const :format "" :value :postscript)
-					  (choice :tag "Postscript"
-						  :value nil
-						  (string :format "%v")
-						  (function :format "%v")))
-				   (group :inline t
-					  (const :format "" :value :plugged)
-					  (boolean :tag "Plugged"))))
-		  (cons :tag "POP3 server"
-			(const :format "" pop)
-			(checklist :tag "Options" :greedy t
-				   (group :inline t
-					  (const :format "" :value :server)
-					  (string :tag "Server"))
-				   (group :inline t
-					  (const :format "" :value :port)
-					  (choice :tag "Port"
-						  :value "pop3"
-						  (number :format "%v")
-						  (string :format "%v")))
-				   (group :inline t
-					  (const :format "" :value :user)
-					  (string :tag "User"))
-				   (group :inline t
-					  (const :format "" :value :password)
-					  (string :tag "Password"))
-				   (group :inline t
-					  (const :format "" :value :program)
-					  (string :tag "Program"))
-				   (group :inline t
-					  (const :format "" :value :prescript)
-					  (choice :tag "Prescript"
-						  :value nil
-						  (string :format "%v")
-						  (function :format "%v")))
-				   (group :inline t
-					  (const :format "" :value :postscript)
-					  (choice :tag "Postscript"
-						  :value nil
-						  (string :format "%v")
-						  (function :format "%v")))
-				   (group :inline t
-					  (const :format "" :value :function)
-					  (function :tag "Function"))
-				   (group :inline t
-					  (const :format ""
-						 :value :authentication)
-					  (choice :tag "Authentication"
-						  :value apop
-						  (const password)
-						  (const apop)))
-				   (group :inline t
-					  (const :format "" :value :plugged)
-					  (boolean :tag "Plugged"))))
-		  (cons :tag "Maildir (qmail, postfix...)"
-			(const :format "" maildir)
-			(checklist :tag "Options" :greedy t
-				   (group :inline t
-					  (const :format "" :value :path)
-					  (directory :tag "Path"))
-				   (group :inline t
-					  (const :format "" :value :plugged)
-					  (boolean :tag "Plugged"))))
-		  (cons :tag "IMAP server"
-			(const :format "" imap)
-			(checklist :tag "Options" :greedy t
-				   (group :inline t
-					  (const :format "" :value :server)
-					  (string :tag "Server"))
-				   (group :inline t
-					  (const :format "" :value :port)
-					  (choice :tag "Port"
-						  :value 143
-						  number string))
-				   (group :inline t
-					  (const :format "" :value :user)
-					  (string :tag "User"))
-				   (group :inline t
-					  (const :format "" :value :password)
-					  (string :tag "Password"))
-				   (group :inline t
-					  (const :format "" :value :stream)
-					  (choice :tag "Stream"
-						  :value network
-						  ,@mail-source-imap-streams))
-				   (group :inline t
-					  (const :format "" :value :program)
-					  (string :tag "Program"))
-				   (group :inline t
-					  (const :format ""
-						 :value :authenticator)
-					  (choice :tag "Authenticator"
-						  :value login
-						  ,@mail-source-imap-authenticators))
-				   (group :inline t
-					  (const :format "" :value :mailbox)
-					  (string :tag "Mailbox"
-						  :value "INBOX"))
-				   (group :inline t
-					  (const :format "" :value :predicate)
-					  (string :tag "Predicate"
-						  :value "UNSEEN UNDELETED"))
-				   (group :inline t
-					  (const :format "" :value :fetchflag)
-					  (string :tag "Fetchflag"
-						  :value  "\\Deleted"))
-				   (group :inline t
-					  (const :format ""
-						 :value :dontexpunge)
-					  (boolean :tag "Dontexpunge"))
-				   (group :inline t
-					  (const :format "" :value :plugged)
-					  (boolean :tag "Plugged"))))
-		  (cons :tag "Webmail server"
-			(const :format "" webmail)
-			(checklist :tag "Options" :greedy t
-				   (group :inline t
-					 (const :format "" :value :subtype)
-					 ;; Should be generated from
-					 ;; `webmail-type-definition', but we
-					 ;; can't require webmail without W3.
-					 (choice :tag "Subtype"
-						 :value hotmail
-						 (const hotmail)
-						 (const yahoo)
-						 (const netaddress)
-						 (const netscape)
-						 (const my-deja)))
-				   (group :inline t
-					  (const :format "" :value :user)
-					  (string :tag "User"))
-				   (group :inline t
-					  (const :format "" :value :password)
-					  (string :tag "Password"))
-				   (group :inline t
-					  (const :format ""
-						 :value :dontexpunge)
-					  (boolean :tag "Dontexpunge"))
-				   (group :inline t
-					  (const :format "" :value :plugged)
-					  (boolean :tag "Plugged")))))))
+  :type `(choice
+	  (const nil)
+	  (repeat
+	   (choice :format "%[Value Menu%] %v"
+		   :value (file)
+		   (cons :tag "Spool file"
+			 (const :format "" file)
+			 (checklist :tag "Options" :greedy t
+				    (group :inline t
+					   (const :format "" :value :path)
+					   file)))
+		   (cons :tag "Several files in a directory"
+			 (const :format "" directory)
+			 (checklist :tag "Options" :greedy t
+				    (group :inline t
+					   (const :format "" :value :path)
+					   (directory :tag "Path"))
+				    (group :inline t
+					   (const :format "" :value :suffix)
+					   (string :tag "Suffix"))
+				    (group :inline t
+					   (const :format "" :value :predicate)
+					   (function :tag "Predicate"))
+				    (group :inline t
+					   (const :format "" :value :prescript)
+					   (choice :tag "Prescript"
+						   :value nil
+						   (string :format "%v")
+						   (function :format "%v")))
+				    (group :inline t
+					   (const :format "" :value :postscript)
+					   (choice :tag "Postscript"
+						   :value nil
+						   (string :format "%v")
+						   (function :format "%v")))
+				    (group :inline t
+					   (const :format "" :value :plugged)
+					   (boolean :tag "Plugged"))))
+		   (cons :tag "POP3 server"
+			 (const :format "" pop)
+			 (checklist :tag "Options" :greedy t
+				    (group :inline t
+					   (const :format "" :value :server)
+					   (string :tag "Server"))
+				    (group :inline t
+					   (const :format "" :value :port)
+					   (choice :tag "Port"
+						   :value "pop3"
+						   (number :format "%v")
+						   (string :format "%v")))
+				    (group :inline t
+					   (const :format "" :value :user)
+					   (string :tag "User"))
+				    (group :inline t
+					   (const :format "" :value :password)
+					   (string :tag "Password"))
+				    (group :inline t
+					   (const :format "" :value :program)
+					   (string :tag "Program"))
+				    (group :inline t
+					   (const :format "" :value :prescript)
+					   (choice :tag "Prescript"
+						   :value nil
+						   (string :format "%v")
+						   (function :format "%v")))
+				    (group :inline t
+					   (const :format "" :value :postscript)
+					   (choice :tag "Postscript"
+						   :value nil
+						   (string :format "%v")
+						   (function :format "%v")))
+				    (group :inline t
+					   (const :format "" :value :function)
+					   (function :tag "Function"))
+				    (group :inline t
+					   (const :format ""
+						  :value :authentication)
+					   (choice :tag "Authentication"
+						   :value apop
+						   (const password)
+						   (const apop)))
+				    (group :inline t
+					   (const :format "" :value :plugged)
+					   (boolean :tag "Plugged"))))
+		   (cons :tag "Maildir (qmail, postfix...)"
+			 (const :format "" maildir)
+			 (checklist :tag "Options" :greedy t
+				    (group :inline t
+					   (const :format "" :value :path)
+					   (directory :tag "Path"))
+				    (group :inline t
+					   (const :format "" :value :plugged)
+					   (boolean :tag "Plugged"))))
+		   (cons :tag "IMAP server"
+			 (const :format "" imap)
+			 (checklist :tag "Options" :greedy t
+				    (group :inline t
+					   (const :format "" :value :server)
+					   (string :tag "Server"))
+				    (group :inline t
+					   (const :format "" :value :port)
+					   (choice :tag "Port"
+						   :value 143
+						   number string))
+				    (group :inline t
+					   (const :format "" :value :user)
+					   (string :tag "User"))
+				    (group :inline t
+					   (const :format "" :value :password)
+					   (string :tag "Password"))
+				    (group :inline t
+					   (const :format "" :value :stream)
+					   (choice :tag "Stream"
+						   :value network
+						   ,@mail-source-imap-streams))
+				    (group :inline t
+					   (const :format "" :value :program)
+					   (string :tag "Program"))
+				    (group :inline t
+					   (const :format ""
+						  :value :authenticator)
+					   (choice :tag "Authenticator"
+						   :value login
+						   ,@mail-source-imap-authenticators))
+				    (group :inline t
+					   (const :format "" :value :mailbox)
+					   (string :tag "Mailbox"
+						   :value "INBOX"))
+				    (group :inline t
+					   (const :format "" :value :predicate)
+					   (string :tag "Predicate"
+						   :value "UNSEEN UNDELETED"))
+				    (group :inline t
+					   (const :format "" :value :fetchflag)
+					   (string :tag "Fetchflag"
+						   :value  "\\Deleted"))
+				    (group :inline t
+					   (const :format ""
+						  :value :dontexpunge)
+					   (boolean :tag "Dontexpunge"))
+				    (group :inline t
+					   (const :format "" :value :plugged)
+					   (boolean :tag "Plugged"))))
+		   (cons :tag "Webmail server"
+			 (const :format "" webmail)
+			 (checklist :tag "Options" :greedy t
+				    (group :inline t
+					   (const :format "" :value :subtype)
+					   ;; Should be generated from
+					   ;; `webmail-type-definition', but we
+					   ;; can't require webmail without W3.
+					   (choice :tag "Subtype"
+						   :value hotmail
+						   (const hotmail)
+						   (const yahoo)
+						   (const netaddress)
+						   (const netscape)
+						   (const my-deja)))
+				    (group :inline t
+					   (const :format "" :value :user)
+					   (string :tag "User"))
+				    (group :inline t
+					   (const :format "" :value :password)
+					   (string :tag "Password"))
+				    (group :inline t
+					   (const :format ""
+						  :value :dontexpunge)
+					   (boolean :tag "Dontexpunge"))
+				    (group :inline t
+					   (const :format "" :value :plugged)
+					   (boolean :tag "Plugged"))))))))
 
 (defcustom mail-source-ignore-errors nil
   "*Ignore errors when querying mail sources.

@@ -246,6 +246,7 @@ You will be offered to complete on one of those in the minibuffer whenever
 you enter a \".\" at the beginning of a line in `makefile-mode'."
   :type '(repeat (list string))
   :group 'makefile)
+(put 'makefile-special-targets-list 'risky-local-variable t)
 
 (defcustom makefile-runtime-macros-list
   '(("@") ("&") (">") ("<") ("*") ("^") ("+") ("?") ("%") ("$"))
@@ -290,6 +291,9 @@ not be enclosed in { } or ( )."
 ;; that if you change this regexp you might have to fix the imenu index in
 ;; makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
+  ;; We used to match not just the varname but also the whole value
+  ;; (spanning potentially several lines).
+  ;; "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)\\)"
   "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=\\|[*:+]?[:?]?=\\)"
   "Regex used to find macro assignment lines in a makefile.")
 
@@ -544,7 +548,8 @@ This should identify a `make' command that can handle the `-q' option."
   :type 'string
   :group 'makefile)
 
-(defcustom makefile-query-one-target-method 'makefile-query-by-make-minus-q
+(defcustom makefile-query-one-target-method-function
+  'makefile-query-by-make-minus-q
   "*Function to call to determine whether a make target is up to date.
 The function must satisfy this calling convention:
 
@@ -560,6 +565,8 @@ The function must satisfy this calling convention:
   makefile, any nonzero integer value otherwise."
   :type 'function
   :group 'makefile)
+(defvaralias 'makefile-query-one-target-method
+  'makefile-query-one-target-method-function)
 
 (defcustom makefile-up-to-date-buffer-name "*Makefile Up-to-date overview*"
   "*Name of the Up-to-date overview buffer."
@@ -619,39 +626,38 @@ The function must satisfy this calling convention:
     map)
   "The keymap that is used in Makefile mode.")
 
-(defvar makefile-browser-map nil
+
+(defvar makefile-browser-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "n"    'makefile-browser-next-line)
+    (define-key map "\C-n" 'makefile-browser-next-line)
+    (define-key map "p"    'makefile-browser-previous-line)
+    (define-key map "\C-p" 'makefile-browser-previous-line)
+    (define-key map " "    'makefile-browser-toggle)
+    (define-key map "i"    'makefile-browser-insert-selection)
+    (define-key map "I"    'makefile-browser-insert-selection-and-quit)
+    (define-key map "\C-c\C-m" 'makefile-browser-insert-continuation)
+    (define-key map "q"    'makefile-browser-quit)
+    ;; disable horizontal movement
+    (define-key map "\C-b" 'undefined)
+    (define-key map "\C-f" 'undefined)
+    map)
   "The keymap that is used in the macro- and target browser.")
-(if makefile-browser-map
-    ()
-  (setq makefile-browser-map (make-sparse-keymap))
-  (define-key makefile-browser-map "n"    'makefile-browser-next-line)
-  (define-key makefile-browser-map "\C-n" 'makefile-browser-next-line)
-  (define-key makefile-browser-map "p"    'makefile-browser-previous-line)
-  (define-key makefile-browser-map "\C-p" 'makefile-browser-previous-line)
-  (define-key makefile-browser-map " "    'makefile-browser-toggle)
-  (define-key makefile-browser-map "i"    'makefile-browser-insert-selection)
-  (define-key makefile-browser-map "I"    'makefile-browser-insert-selection-and-quit)
-  (define-key makefile-browser-map "\C-c\C-m" 'makefile-browser-insert-continuation)
-  (define-key makefile-browser-map "q"    'makefile-browser-quit)
-  ;; disable horizontal movement
-  (define-key makefile-browser-map "\C-b" 'undefined)
-  (define-key makefile-browser-map "\C-f" 'undefined))
 
 
-(defvar makefile-mode-syntax-table nil)
-(if makefile-mode-syntax-table
-    ()
-  (setq makefile-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?\( "()    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\) ")(    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\[ "(]    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\] ")[    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\{ "(}    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\} "){    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\' "\"     " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\` "\"     " makefile-mode-syntax-table)
-  (modify-syntax-entry ?#  "<     " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\n ">     " makefile-mode-syntax-table))
+(defvar makefile-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\( "()    " st)
+    (modify-syntax-entry ?\) ")(    " st)
+    (modify-syntax-entry ?\[ "(]    " st)
+    (modify-syntax-entry ?\] ")[    " st)
+    (modify-syntax-entry ?\{ "(}    " st)
+    (modify-syntax-entry ?\} "){    " st)
+    (modify-syntax-entry ?\' "\"    " st)
+    (modify-syntax-entry ?\` "\"    " st)
+    (modify-syntax-entry ?#  "<     " st)
+    (modify-syntax-entry ?\n ">     " st)
+    st))
 
 (defvar makefile-imake-mode-syntax-table (copy-syntax-table
 					  makefile-mode-syntax-table))
@@ -670,9 +676,11 @@ The function must satisfy this calling convention:
 
 (defvar makefile-target-table nil
   "Table of all target names known for this buffer.")
+(put 'makefile-target-table 'risky-local-variable t)
 
 (defvar makefile-macro-table nil
   "Table of all macro names known for this buffer.")
+(put 'makefile-macro-table 'risky-local-variable t)
 
 (defvar makefile-browser-client
   "A buffer in Makefile mode that is currently using the browser.")
@@ -724,11 +732,10 @@ The function must satisfy this calling convention:
 
 If you are editing a file for a different make, try one of the
 variants `makefile-automake-mode', `makefile-gmake-mode',
-`makefile-makepp-mode', `makefile-bsdmake-mode' or, 
-`makefile-imake-mode'All but the
-last should be correctly chosen based on the file name, except if
-it is *.mk.  This function ends by invoking the function(s)
-`makefile-mode-hook'.
+`makefile-makepp-mode', `makefile-bsdmake-mode' or,
+`makefile-imake-mode'.  All but the last should be correctly
+chosen based on the file name, except if it is *.mk.  This
+function ends by invoking the function(s) `makefile-mode-hook'.
 
 It is strongly recommended to use `font-lock-mode', because that
 provides additional parsing information.  This is used for
@@ -1298,29 +1305,8 @@ definition and conveniently use this command."
     (beginning-of-line)
     (cond
      ((looking-at "^#+")
-      ;; Found a comment.  Set the fill prefix, and find the paragraph
-      ;; boundaries by searching for lines that look like comment-only
-      ;; lines.
-      (let ((fill-prefix (match-string-no-properties 0))
-	    (fill-paragraph-function nil))
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region
-	     ;; Search backwards.
-	     (save-excursion
-	       (while (and (zerop (forward-line -1))
-			   (looking-at "^#")))
-	       ;; We may have gone too far.  Go forward again.
-	       (or (looking-at "^#")
-		   (forward-line 1))
-	       (point))
-	     ;; Search forwards.
-	     (save-excursion
-	       (while (looking-at "^#")
-		 (forward-line))
-	       (point)))
-	    (fill-paragraph nil)
-	    t))))
+      ;; Found a comment.  Return nil to let normal filling take place.
+      nil)
 
      ;; Must look for backslashed-region before looking for variable
      ;; assignment.
@@ -1349,7 +1335,9 @@ definition and conveniently use this command."
 	  (makefile-backslash-region (point-min) (point-max) nil)
 	  (goto-char (point-max))
 	  (if (< (skip-chars-backward "\n") 0)
-	      (delete-region (point) (point-max))))))
+	      (delete-region (point) (point-max)))))
+      ;; Return non-nil to indicate it's been filled.
+      t)
 
      ((looking-at makefile-macroassign-regex)
       ;; Have a macro assign.  Fill just this line, and then backslash
@@ -1358,10 +1346,13 @@ definition and conveniently use this command."
 	(narrow-to-region (point) (line-beginning-position 2))
 	(let ((fill-paragraph-function nil))
 	  (fill-paragraph nil))
-	(makefile-backslash-region (point-min) (point-max) nil)))))
+	(makefile-backslash-region (point-min) (point-max) nil))
+      ;; Return non-nil to indicate it's been filled.
+      t)
 
-  ;; Always return non-nil so we don't fill anything else.
-  t)
+     (t
+      ;; Return non-nil so we don't fill anything else.
+      t))))
 
 
 
@@ -1616,7 +1607,8 @@ with the generated name!"
 
 (defun makefile-query-targets (filename target-table prereq-list)
   "Fill the up-to-date overview buffer.
-Checks each target in TARGET-TABLE using `makefile-query-one-target-method'
+Checks each target in TARGET-TABLE using
+`makefile-query-one-target-method-function'
 and generates the overview, one line per target name."
   (insert
    (mapconcat
@@ -1625,7 +1617,7 @@ and generates the overview, one line per target name."
 		       (no-prereqs (not (member target-name prereq-list)))
 		       (needs-rebuild (or no-prereqs
 					  (funcall
-					   makefile-query-one-target-method
+					   makefile-query-one-target-method-function
 					   target-name
 					   filename))))
 		  (format "\t%s%s"
@@ -1876,5 +1868,5 @@ If it isn't in one, return nil."
 
 (provide 'make-mode)
 
-;;; arch-tag: bd23545a-de91-44fb-b1b2-feafbb2635a0
+;; arch-tag: bd23545a-de91-44fb-b1b2-feafbb2635a0
 ;;; make-mode.el ends here

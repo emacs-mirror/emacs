@@ -597,7 +597,7 @@ in some window."
         (1+ (vertical-motion (buffer-size) window))))))
 
 (defun fit-window-to-buffer (&optional window max-height min-height)
-  "Make WINDOW the right size to display its contents exactly.
+  "Make WINDOW the right height to display its contents exactly.
 If WINDOW is omitted or nil, it defaults to the selected window.
 If the optional argument MAX-HEIGHT is supplied, it is the maximum height
   the window is allowed to be, defaulting to the frame height.

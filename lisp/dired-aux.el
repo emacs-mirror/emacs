@@ -493,7 +493,8 @@ the Dired buffer, so output files usually are created there instead of
 in a subdir.
 
 In a noninteractive call (from Lisp code), you must specify
-the list of file names explicitly with the FILE-LIST argument."
+the list of file names explicitly with the FILE-LIST argument, which
+can be produced by `dired-get-marked-files', for example."
 ;;Functions dired-run-shell-command and dired-shell-stuff-it do the
 ;;actual work and can be redefined for customization.
   (interactive

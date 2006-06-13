@@ -323,7 +323,7 @@ you could say something like:
 @end lisp
 
 Adding @code{"image/.*"} might also be useful.  Spammers use images as
-the prefered part of @samp{multipart/alternative} messages, so you might
+the preferred part of @samp{multipart/alternative} messages, so you might
 not notice there are other parts.  See also
 @code{gnus-buttonized-mime-types}, @ref{MIME Commands, ,MIME Commands,
 gnus, Gnus Manual}.  After adding @code{"multipart/alternative"} to

@@ -458,7 +458,7 @@ executed once when the buffer is created."
     (define-key map "\C-c\C-c" 	  'comint-interrupt-subjob)
     (define-key map "\C-c\C-z" 	  'comint-stop-subjob)
     (define-key map "\C-c\C-\\"   'comint-quit-subjob)
-    (define-key map "\C-c\C-m" 	  'comint-insert-input)
+    (define-key map "\C-c\C-m" 	  'comint-copy-old-input)
     (define-key map "\C-c\C-o" 	  'comint-delete-output)
     (define-key map "\C-c\C-r" 	  'comint-show-output)
     (define-key map "\C-c\C-e" 	  'comint-show-maximum-output)
@@ -502,7 +502,7 @@ executed once when the buffer is created."
     (define-key map [menu-bar inout kill-input]
       '("Kill Current Input" . comint-kill-input))
     (define-key map [menu-bar inout copy-input]
-      '("Copy Old Input" . comint-insert-input))
+      '("Copy Old Input" . comint-copy-old-input))
     (define-key map [menu-bar inout forward-matching-history]
       '("Forward Matching Input..." . comint-forward-matching-input))
     (define-key map [menu-bar inout backward-matching-history]
@@ -797,36 +797,28 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	(set-process-coding-system proc decoding encoding))
     proc))
 
-(defun comint-insert-input (&optional event)
+(defun comint-insert-input (event)
   "In a Comint buffer, set the current input to the previous input at point."
   ;; This doesn't use "e" because it is supposed to work
   ;; for events without parameters.
-  (interactive (list last-input-event))
-  (when event
-    (posn-set-point (event-end event)))
-  (if comint-use-prompt-regexp
-      (let ((input (funcall comint-get-old-input))
-	    (process (get-buffer-process (current-buffer))))
-	(if (not process)
-	    (error "Current buffer has no process")
-	  (goto-char (process-mark process))
-	  (insert input)))
-    (let ((pos (point)))
-      (if (not (eq (field-at-pos pos) 'input))
-	  ;; No input at POS, fall back to the global definition.
-	  (let* ((keys (this-command-keys))
-		 (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
-		 (fun (and last-key (lookup-key global-map (vector last-key)))))
-	    (and fun (call-interactively fun)))
-	;; There's previous input at POS, insert it at the end of the buffer.
-	(goto-char (point-max))
-	;; First delete any old unsent input at the end
-	(delete-region
-	 (or (marker-position comint-accum-marker)
-	     (process-mark (get-buffer-process (current-buffer))))
-	 (point))
-	;; Insert the input at point
-	(insert (field-string-no-properties pos))))))
+  (interactive "e")
+  (mouse-set-point event)
+  (let ((pos (point)))
+    (if (not (eq (field-at-pos pos) 'input))
+	;; No input at POS, fall back to the global definition.
+	(let* ((keys (this-command-keys))
+	       (last-key (and (vectorp keys) (aref keys (1- (length keys)))))
+	       (fun (and last-key (lookup-key global-map (vector last-key)))))
+	  (and fun (call-interactively fun)))
+      ;; There's previous input at POS, insert it at the end of the buffer.
+      (goto-char (point-max))
+      ;; First delete any old unsent input at the end
+      (delete-region
+       (or (marker-position comint-accum-marker)
+	   (process-mark (get-buffer-process (current-buffer))))
+       (point))
+      ;; Insert the input at point
+      (insert (field-string-no-properties pos)))))
 
 
 ;; Input history processing in a buffer
@@ -1055,12 +1047,12 @@ Moves relative to `comint-input-ring-index'."
 (defun comint-previous-input (arg)
   "Cycle backwards through input history, saving input."
   (interactive "*p")
-  (if (and comint-input-ring-index 
+  (if (and comint-input-ring-index
 	   (or		       ;; leaving the "end" of the ring
 	    (and (< arg 0)		; going down
 		 (eq comint-input-ring-index 0))
 	    (and (> arg 0)		; going up
-		 (eq comint-input-ring-index 
+		 (eq comint-input-ring-index
 		     (1- (ring-length comint-input-ring)))))
 	   comint-stored-incomplete-input)
       (comint-restore-input)
@@ -1518,23 +1510,23 @@ Similarly for Soar, Scheme, etc."
 				(concat input "\n")))
 
 	  (let ((beg (marker-position pmark))
-	      (end (if no-newline (point) (1- (point))))
-	      (inhibit-modification-hooks t))
+		(end (if no-newline (point) (1- (point))))
+		(inhibit-modification-hooks t))
 	    (when (> end beg)
-	      ;; Set text-properties for the input field
-	      (add-text-properties
-	       beg end
-	       '(front-sticky t
-		 font-lock-face comint-highlight-input
-		 mouse-face highlight
-		 help-echo "mouse-2: insert after prompt as new input"))
+	      (add-text-properties beg end
+				   '(front-sticky t
+				     font-lock-face comint-highlight-input))
 	      (unless comint-use-prompt-regexp
 		;; Give old user input a field property of `input', to
 		;; distinguish it from both process output and unsent
 		;; input.  The terminating newline is put into a special
 		;; `boundary' field to make cursor movement between input
 		;; and output fields smoother.
-		(put-text-property beg end 'field 'input)))
+		(add-text-properties
+		 beg end
+		 '(mouse-face highlight
+		   help-echo "mouse-2: insert after prompt as new input"
+		   field input))))
 	    (unless (or no-newline comint-use-prompt-regexp)
 	      ;; Cover the terminating newline
 	      (add-text-properties end (1+ end)
@@ -1904,6 +1896,17 @@ the current line with any initial string matching the regexp
 	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point) (line-end-position)))))
+
+(defun comint-copy-old-input ()
+  "Insert after prompt old input at point as new input to be edited.
+Calls `comint-get-old-input' to get old input."
+  (interactive)
+  (let ((input (funcall comint-get-old-input))
+	(process (get-buffer-process (current-buffer))))
+    (if (not process)
+	(error "Current buffer has no process")
+      (goto-char (process-mark process))
+      (insert input))))
 
 (defun comint-skip-prompt ()
   "Skip past the text matching regexp `comint-prompt-regexp'.
@@ -2354,19 +2357,19 @@ preceding newline is removed."
 	   (when (eq (get-text-property (1- pt) 'read-only) 'fence)
 	     (remove-list-of-text-properties (1- pt) pt '(read-only)))))))
 
-(defun comint-kill-whole-line (&optional arg)
+(defun comint-kill-whole-line (&optional count)
   "Kill current line, ignoring read-only and field properties.
-With prefix arg, kill that many lines starting from the current line.
-If arg is negative, kill backward.  Also kill the preceding newline,
+With prefix arg COUNT, kill that many lines starting from the current line.
+If COUNT is negative, kill backward.  Also kill the preceding newline,
 instead of the trailing one.  \(This is meant to make \\[repeat] work well
 with negative arguments.)
-If arg is zero, kill current line but exclude the trailing newline.
+If COUNT is zero, kill current line but exclude the trailing newline.
 The read-only status of newlines is updated with `comint-update-fence',
 if necessary."
   (interactive "p")
   (let ((inhibit-read-only t) (inhibit-field-text-motion t))
-    (kill-whole-line arg)
-    (when (>= arg 0) (comint-update-fence))))
+    (kill-whole-line count)
+    (when (>= count 0) (comint-update-fence))))
 
 (defun comint-kill-region (beg end &optional yank-handler)
   "Like `kill-region', but ignores read-only properties, if safe.

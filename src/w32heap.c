@@ -42,10 +42,6 @@ OSVERSIONINFO osinfo_cache;
 
 unsigned long syspage_mask = 0;
 
-/* These are defined to get Emacs to compile, but are not used.  */
-int edata;
-int etext;
-
 /* The major and minor versions of NT.  */
 int w32_major_version;
 int w32_minor_version;

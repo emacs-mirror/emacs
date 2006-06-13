@@ -264,7 +264,7 @@ element of the list is added with `add-hook'.
 Do not change this variable directly.  Use the function `c-add-style'
 to add new styles or modify existing styles (it is not a good idea to
 modify existing styles -- you should create a new style that inherits
-the existing style.")
+the existing style).")
 
 
 ;; Functions that manipulate styles

@@ -1498,8 +1498,8 @@ shifted movement key, set `cua-highlight-region-shift-only'."
 
 ;;;###autoload (eval-after-load 'CUA-mode
 ;;;###autoload  '(error (concat "\n\n"
-;;;###autoload  "CUA-mode is now part of the standard GNU Emacs distribution,\n"
-;;;###autoload  "so you may now enable and customize CUA via the Options menu.\n\n"
+;;;###autoload  "CUA-mode is now part of the standard GNU Emacs distribution, so you may\n"
+;;;###autoload  "now enable CUA via the Options menu or by customizing option `cua-mode'.\n\n"
 ;;;###autoload  "You have loaded an older version of CUA-mode which does\n"
 ;;;###autoload  "not work correctly with this version of GNU Emacs.\n\n"
 ;;;###autoload  (if user-init-file (concat

@@ -73,6 +73,10 @@ Boston, MA 02110-1301, USA.  */
 #ifdef HAVE_SOUNDCARD_H
 #include <soundcard.h>
 #endif
+#ifdef HAVE_ALSA
+#include <asoundlib.h>
+#endif
+
 /* END: Non Windows Includes */
 
 #else /* WINDOWSNT */
@@ -109,7 +113,8 @@ enum sound_attr
   SOUND_ATTR_SENTINEL
 };
 
-static void sound_perror P_ ((char *));
+static void alsa_sound_perror P_ ((char *, int)) NO_RETURN;
+static void sound_perror P_ ((char *)) NO_RETURN;
 static void sound_warning P_ ((char *));
 static int parse_sound P_ ((Lisp_Object, Lisp_Object *));
 
@@ -120,6 +125,9 @@ static int parse_sound P_ ((Lisp_Object, Lisp_Object *));
 
 #ifndef DEFAULT_SOUND_DEVICE
 #define DEFAULT_SOUND_DEVICE "/dev/dsp"
+#endif
+#ifndef DEFAULT_ALSA_SOUND_DEVICE
+#define DEFAULT_ALSA_SOUND_DEVICE "default"
 #endif
 
 
@@ -227,6 +235,10 @@ struct sound_device
   void (* choose_format) P_ ((struct sound_device *sd,
 			      struct sound *s));
 
+  /* Return a preferred data size in bytes to be sent to write (below)
+     each time.  2048 is used if this is NULL.  */
+  int (* period_size) P_ ((struct sound_device *sd));
+
   /* Write NYBTES bytes from BUFFER to device SD.  */
   void (* write) P_ ((struct sound_device *sd, const char *buffer,
 		      int nbytes));
@@ -280,7 +292,7 @@ static void vox_open P_ ((struct sound_device *));
 static void vox_configure P_ ((struct sound_device *));
 static void vox_close P_ ((struct sound_device *sd));
 static void vox_choose_format P_ ((struct sound_device *, struct sound *));
-static void vox_init P_ ((struct sound_device *));
+static int vox_init P_ ((struct sound_device *));
 static void vox_write P_ ((struct sound_device *, const char *, int));
 static void find_sound_type P_ ((struct sound *));
 static u_int32_t le2hl P_ ((u_int32_t));
@@ -604,7 +616,7 @@ wav_play (s, sd)
     {
       char *buffer;
       int nbytes;
-      int blksize = 2048;
+      int blksize = sd->period_size ? sd->period_size (sd) : 2048;
 
       buffer = (char *) alloca (blksize);
       lseek (s->fd, sizeof *header, SEEK_SET);
@@ -633,7 +645,8 @@ enum au_encoding
   AU_ENCODING_32,
   AU_ENCODING_IEEE32,
   AU_ENCODING_IEEE64,
-  AU_COMPRESSED = 23
+  AU_COMPRESSED = 23,
+  AU_ENCODING_ALAW_8 = 27
 };
 
 
@@ -689,7 +702,7 @@ au_play (s, sd)
 	       SBYTES (s->data) - header->data_offset);
   else
     {
-      int blksize = 2048;
+      int blksize = sd->period_size ? sd->period_size (sd) : 2048;
       char *buffer;
       int nbytes;
 
@@ -868,16 +881,33 @@ vox_choose_format (sd, s)
 /* Initialize device SD.  Set up the interface functions in the device
    structure.  */
 
-static void
+static int
 vox_init (sd)
      struct sound_device *sd;
 {
+  char *file;
+  int fd;
+
+  /* Open the sound device.  Default is /dev/dsp.  */
+  if (sd->file)
+    file = sd->file;
+  else
+    file = DEFAULT_SOUND_DEVICE;
+  fd = emacs_open (file, O_WRONLY, 0);
+  if (fd >= 0)
+    emacs_close (fd);
+  else
+    return 0;
+
   sd->fd = -1;
   sd->open = vox_open;
   sd->close = vox_close;
   sd->configure = vox_configure;
   sd->choose_format = vox_choose_format;
   sd->write = vox_write;
+  sd->period_size = NULL;
+
+  return 1;
 }
 
 /* Write NBYTES bytes from BUFFER to device SD.  */
@@ -892,6 +922,368 @@ vox_write (sd, buffer, nbytes)
   if (nwritten < 0)
     sound_perror ("Error writing to sound device");
 }
+
+#ifdef HAVE_ALSA
+/***********************************************************************
+		       ALSA Driver Interface
+ ***********************************************************************/
+
+/* This driver is available on GNU/Linux. */
+
+static void
+alsa_sound_perror (msg, err)
+     char *msg;
+     int err;
+{
+  error ("%s: %s", msg, snd_strerror (err));
+}
+
+struct alsa_params
+{
+  snd_pcm_t *handle;
+  snd_pcm_hw_params_t *hwparams;
+  snd_pcm_sw_params_t *swparams;
+  snd_pcm_uframes_t period_size;
+};
+
+/* Open device SD.  If SD->file is non-null, open that device,
+   otherwise use a default device name.  */
+
+static void
+alsa_open (sd)
+     struct sound_device *sd;
+{
+  char *file;
+  struct alsa_params *p;
+  int err;
+
+  /* Open the sound device.  Default is "default".  */
+  if (sd->file)
+    file = sd->file;
+  else
+    file = DEFAULT_ALSA_SOUND_DEVICE;
+
+  p = xmalloc (sizeof (*p));
+  p->handle = NULL;
+  p->hwparams = NULL;
+  p->swparams = NULL;
+
+  sd->fd = -1;
+  sd->data = p;
+
+
+  err = snd_pcm_open (&p->handle, file, SND_PCM_STREAM_PLAYBACK, 0);
+  if (err < 0)
+    alsa_sound_perror (file, err);
+}
+
+static int
+alsa_period_size (sd)
+       struct sound_device *sd;
+{
+  struct alsa_params *p = (struct alsa_params *) sd->data;
+  return p->period_size;
+}
+
+static void
+alsa_configure (sd)
+     struct sound_device *sd;
+{
+  int val, err, dir;
+  struct alsa_params *p = (struct alsa_params *) sd->data;
+  snd_pcm_uframes_t buffer_size;
+
+  xassert (p->handle != 0);
+
+  err = snd_pcm_hw_params_malloc (&p->hwparams);
+  if (err < 0)
+    alsa_sound_perror ("Could not allocate hardware parameter structure", err);
+
+  err = snd_pcm_sw_params_malloc (&p->swparams);
+  if (err < 0)
+    alsa_sound_perror ("Could not allocate software parameter structure", err);
+
+  err = snd_pcm_hw_params_any (p->handle, p->hwparams);
+  if (err < 0)
+    alsa_sound_perror ("Could not initialize hardware parameter structure", err);
+
+  err = snd_pcm_hw_params_set_access (p->handle, p->hwparams,
+                                      SND_PCM_ACCESS_RW_INTERLEAVED);
+  if (err < 0)
+    alsa_sound_perror ("Could not set access type", err);
+
+  val = sd->format;
+  err = snd_pcm_hw_params_set_format (p->handle, p->hwparams, val);
+  if (err < 0) 
+    alsa_sound_perror ("Could not set sound format", err);
+
+  val = sd->sample_rate;
+  err = snd_pcm_hw_params_set_rate_near (p->handle, p->hwparams, &val, 0);
+  if (err < 0)
+    alsa_sound_perror ("Could not set sample rate", err);
+  
+  val = sd->channels;
+  err = snd_pcm_hw_params_set_channels (p->handle, p->hwparams, val);
+  if (err < 0)
+    alsa_sound_perror ("Could not set channel count", err);
+
+  err = snd_pcm_hw_params (p->handle, p->hwparams);
+  if (err < 0)
+    alsa_sound_perror ("Could not set parameters", err);
+
+
+  err = snd_pcm_hw_params_get_period_size (p->hwparams, &p->period_size, &dir);
+  if (err < 0)
+    alsa_sound_perror ("Unable to get period size for playback", err);
+
+  err = snd_pcm_hw_params_get_buffer_size (p->hwparams, &buffer_size);
+  if (err < 0)
+    alsa_sound_perror("Unable to get buffer size for playback", err);
+
+  err = snd_pcm_sw_params_current (p->handle, p->swparams);
+  if (err < 0)
+    alsa_sound_perror ("Unable to determine current swparams for playback",
+                       err);
+
+  /* Start the transfer when the buffer is almost full */
+  err = snd_pcm_sw_params_set_start_threshold (p->handle, p->swparams,
+                                               (buffer_size / p->period_size)
+                                               * p->period_size);
+  if (err < 0)
+    alsa_sound_perror ("Unable to set start threshold mode for playback", err);
+
+  /* Allow the transfer when at least period_size samples can be processed */
+  err = snd_pcm_sw_params_set_avail_min (p->handle, p->swparams, p->period_size);
+  if (err < 0)
+    alsa_sound_perror ("Unable to set avail min for playback", err);
+
+  /* Align all transfers to 1 period */
+  err = snd_pcm_sw_params_set_xfer_align (p->handle, p->swparams,
+                                          p->period_size);
+  if (err < 0)
+    alsa_sound_perror ("Unable to set transfer align for playback", err);
+
+  err = snd_pcm_sw_params (p->handle, p->swparams);
+  if (err < 0)
+    alsa_sound_perror ("Unable to set sw params for playback\n", err);
+
+  snd_pcm_hw_params_free (p->hwparams);
+  p->hwparams = NULL;
+  snd_pcm_sw_params_free (p->swparams);
+  p->swparams = NULL;
+  
+  err = snd_pcm_prepare (p->handle);
+  if (err < 0)
+    alsa_sound_perror ("Could not prepare audio interface for use", err);
+  
+  if (sd->volume > 0)
+    {
+      int chn;
+      snd_mixer_t *handle;
+      snd_mixer_elem_t *e;
+      char *file = sd->file ? sd->file : DEFAULT_ALSA_SOUND_DEVICE;
+
+      if (snd_mixer_open (&handle, 0) >= 0)
+        {
+          if (snd_mixer_attach (handle, file) >= 0
+              && snd_mixer_load (handle) >= 0
+              && snd_mixer_selem_register (handle, NULL, NULL) >= 0)
+            for (e = snd_mixer_first_elem (handle);
+                 e;
+                 e = snd_mixer_elem_next (e))
+              {
+                if (snd_mixer_selem_has_playback_volume (e))
+                  {
+                    long pmin, pmax;
+                    snd_mixer_selem_get_playback_volume_range (e, &pmin, &pmax);
+                    long vol = pmin + (sd->volume * (pmax - pmin)) / 100;
+                    
+                    for (chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++)
+                      snd_mixer_selem_set_playback_volume (e, chn, vol);
+                  }
+              }
+          snd_mixer_close(handle);
+        }
+    }
+}
+
+
+/* Close device SD if it is open.  */
+
+static void
+alsa_close (sd)
+     struct sound_device *sd;
+{
+  struct alsa_params *p = (struct alsa_params *) sd->data;
+  if (p)
+    {
+      if (p->hwparams)
+        snd_pcm_hw_params_free (p->hwparams);
+      if (p->swparams)
+        snd_pcm_sw_params_free (p->swparams);
+      if (p->handle)
+        {
+          snd_pcm_drain(p->handle);
+          snd_pcm_close (p->handle);
+        }
+      free (p);
+    }
+}
+
+/* Choose device-dependent format for device SD from sound file S.  */
+
+static void
+alsa_choose_format (sd, s)
+     struct sound_device *sd;
+     struct sound *s;
+{
+  struct alsa_params *p = (struct alsa_params *) sd->data;
+  if (s->type == RIFF)
+    {
+      struct wav_header *h = (struct wav_header *) s->header;
+      if (h->precision == 8)
+	sd->format = SND_PCM_FORMAT_U8;
+      else if (h->precision == 16)
+          sd->format = SND_PCM_FORMAT_S16_LE;
+      else
+	error ("Unsupported WAV file format");
+    }
+  else if (s->type == SUN_AUDIO)
+    {
+      struct au_header *header = (struct au_header *) s->header;
+      switch (header->encoding)
+	{
+	case AU_ENCODING_ULAW_8:
+	  sd->format = SND_PCM_FORMAT_MU_LAW;
+          break;
+	case AU_ENCODING_ALAW_8:
+	  sd->format = SND_PCM_FORMAT_A_LAW;
+          break;
+	case AU_ENCODING_IEEE32:
+          sd->format = SND_PCM_FORMAT_FLOAT_BE;
+          break;
+	case AU_ENCODING_IEEE64:
+	  sd->format = SND_PCM_FORMAT_FLOAT64_BE;
+	  break;
+	case AU_ENCODING_8:
+	  sd->format = SND_PCM_FORMAT_S8;
+	  break;
+	case AU_ENCODING_16:
+	  sd->format = SND_PCM_FORMAT_S16_BE;
+	  break;
+	case AU_ENCODING_24:
+	  sd->format = SND_PCM_FORMAT_S24_BE;
+	  break;
+	case AU_ENCODING_32:
+	  sd->format = SND_PCM_FORMAT_S32_BE;
+	  break;
+
+	default:
+	  error ("Unsupported AU file format");
+	}
+    }
+  else
+    abort ();
+}
+
+
+/* Write NBYTES bytes from BUFFER to device SD.  */
+
+static void
+alsa_write (sd, buffer, nbytes)
+     struct sound_device *sd;
+     const char *buffer;
+     int nbytes;
+{
+  struct alsa_params *p = (struct alsa_params *) sd->data;
+
+  /* The the third parameter to snd_pcm_writei is frames, not bytes. */
+  int fact = snd_pcm_format_size (sd->format, 1) * sd->channels;
+  int nwritten = 0;
+  int err;
+
+  while (nwritten < nbytes)
+    {
+      err = snd_pcm_writei (p->handle,
+                            buffer + nwritten,
+                            (nbytes - nwritten)/fact);
+      if (err < 0)
+        {
+          if (err == -EPIPE)
+            {	/* under-run */
+              err = snd_pcm_prepare (p->handle);
+              if (err < 0)
+                alsa_sound_perror ("Can't recover from underrun, prepare failed",
+                                   err);
+            }
+          else if (err == -ESTRPIPE)
+            {
+              while ((err = snd_pcm_resume (p->handle)) == -EAGAIN)
+                sleep(1);	/* wait until the suspend flag is released */
+              if (err < 0)
+                {
+                  err = snd_pcm_prepare (p->handle);
+                  if (err < 0)
+                    alsa_sound_perror ("Can't recover from suspend, "
+                                       "prepare failed",
+                                       err);
+                }
+            }
+          else 
+            alsa_sound_perror ("Error writing to sound device", err);
+          
+        }
+      else
+        nwritten += err * fact;
+    }
+}
+
+static void
+snd_error_quiet (file, line, function, err, fmt)
+     const char *file;
+     int line;
+     const char *function;
+     int err;
+     const char *fmt;
+{
+}
+
+/* Initialize device SD.  Set up the interface functions in the device
+   structure.  */
+
+static int
+alsa_init (sd)
+     struct sound_device *sd;
+{
+  char *file;
+  snd_pcm_t *handle;
+  int err;
+
+  /* Open the sound device.  Default is "default".  */
+  if (sd->file)
+    file = sd->file;
+  else
+    file = DEFAULT_ALSA_SOUND_DEVICE;
+
+  snd_lib_error_set_handler ((snd_lib_error_handler_t) snd_error_quiet);
+  err = snd_pcm_open (&handle, file, SND_PCM_STREAM_PLAYBACK, 0);
+  snd_lib_error_set_handler (NULL);
+  if (err < 0)
+    return 0;
+
+  sd->fd = -1;
+  sd->open = alsa_open;
+  sd->close = alsa_close;
+  sd->configure = alsa_configure;
+  sd->choose_format = alsa_choose_format;
+  sd->write = alsa_write;
+  sd->period_size = alsa_period_size;
+
+  return 1;
+}
+
+#endif /* HAVE_ALSA */
+
 
 /* END: Non Windows functions */
 #else /* WINDOWSNT */
@@ -1056,10 +1448,11 @@ Internal use only, use `play-sound' instead.\n  */)
   args[1] = sound;
   Frun_hook_with_args (2, args);
 
-  /* There is only one type of device we currently support, the VOX
-     sound driver.  Set up the device interface functions for that
-     device.  */
-  vox_init (current_sound_device);
+#ifdef HAVE_ALSA
+  if (!alsa_init (current_sound_device))
+#endif
+    if (!vox_init (current_sound_device))
+      error ("No usable sound device driver found");
 
   /* Open the device.  */
   current_sound_device->open (current_sound_device);

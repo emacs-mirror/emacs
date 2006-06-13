@@ -248,6 +248,7 @@ Also used as the indentation step when `c-syntactic-indentation' is
 nil."
   :type 'integer
   :group 'c)
+;;;###autoload(put 'c-basic-offset 'safe-local-variable 'integerp)
 
 (defcustom c-tab-always-indent t
   "*Controls the operation of the TAB key.
@@ -811,6 +812,7 @@ macro exceeds this column then the next tab stop from that line is
 used as alignment column instead."
   :type 'integer
   :group 'c)
+;;;###autoload(put 'c-backslash-column 'safe-local-variable 'integerp)
 
 (defcustom-c-stylevar c-backslash-max-column 72
   "*Maximum alignment column for line continuation backslashes.
@@ -1542,6 +1544,7 @@ will set the style of the file to this value automatically.
 Note that file style settings are applied before file offset settings
 as designated in the variable `c-file-offsets'.")
 (make-variable-buffer-local 'c-file-style)
+;;;###autoload(put 'c-file-style 'safe-local-variable 'string-or-null-p)
 
 (defvar c-file-offsets nil
   "Variable interface for setting offsets via File Local Variables.

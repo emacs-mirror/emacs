@@ -49,6 +49,10 @@ Boston, MA 02110-1301, USA.  */
 #include "termhooks.h"
 #include "atimer.h"
 
+#ifdef USE_FONT_BACKEND
+#include "font.h"
+#endif	/* USE_FONT_BACKEND */
+
 #ifdef HAVE_X_WINDOWS
 
 #include <ctype.h>
@@ -536,6 +540,8 @@ x_top_window_to_frame (dpyinfo, wdesc)
 #endif /* USE_X_TOOLKIT || USE_GTK */
 
 
+
+static void x_default_font_parameter P_ ((struct frame *, Lisp_Object));
 
 static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
 static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
@@ -1250,7 +1256,7 @@ x_set_icon_name (f, arg, oldval)
       if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
-  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
+  else if (!NILP (arg) || NILP (oldval))
     return;
 
   f->icon_name = arg;
@@ -1606,7 +1612,7 @@ x_set_name_internal (f, name)
 	text.format = 8;
 	text.nitems = bytes;
 
-	if (NILP (f->icon_name))
+	if (!STRINGP (f->icon_name))
 	  {
 	    icon = text;
 	  }
@@ -2966,6 +2972,43 @@ unwind_create_frame (frame)
   return Qnil;
 }
 
+#ifdef USE_FONT_BACKEND
+static void
+x_default_font_parameter (f, parms)
+     struct frame *f;
+     Lisp_Object parms;
+{
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Lisp_Object font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font",
+				RES_TYPE_STRING);
+
+  if (! STRINGP (font))
+    {
+      char *names[]
+	= { "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
+	    "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
+	    "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
+	    /* This was formerly the first thing tried, but it finds
+	       too many fonts and takes too long.  */
+	    "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1",
+	    /* If those didn't work, look for something which will
+	       at least work.  */
+	    "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1",
+	    NULL };
+      int i;
+
+      for (i = 0; names[i]; i++)
+	{
+	  font = font_open_by_name (f, names[i]);
+	  if (! NILP (font))
+	    break;
+	}
+      if (NILP (font))
+	font = build_string ("fixed");
+    }
+  x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
+}
+#endif	/* USE_FONT_BACKEND */
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
@@ -3141,8 +3184,32 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
+  f->resx = dpyinfo->resx;
+  f->resy = dpyinfo->resy;
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      /* Perhaps, we must allow frame parameter, say `font-backend',
+	 to specify which font backends to use.  */
+#ifdef HAVE_FREETYPE
+#ifdef HAVE_XFT
+      register_font_driver (&xftfont_driver, f);
+#else	/* not HAVE_XFT */
+      register_font_driver (&ftxfont_driver, f);
+#endif	/* not HAVE_XFT */
+#endif	/* HAVE_FREETYPE */
+      register_font_driver (&xfont_driver, f);
+    }
+#endif	/* USE_FONT_BACKEND */
+
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    x_default_font_parameter (f, parms);
+else
+#endif	/* USE_FONT_BACKEND */
   {
     Lisp_Object font;
 
@@ -4730,8 +4797,32 @@ x_create_tip_frame (dpyinfo, parms, text)
       specbind (Qx_resource_name, name);
     }
 
+  f->resx = dpyinfo->resx;
+  f->resy = dpyinfo->resy;
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      /* Perhaps, we must allow frame parameter, say `font-backend',
+	 to specify which font backends to use.  */
+#ifdef HAVE_FREETYPE
+#ifdef HAVE_XFT
+      register_font_driver (&xftfont_driver, f);
+#else	/* not HAVE_XFT */
+      register_font_driver (&ftxfont_driver, f);
+#endif	/* not HAVE_XFT */
+#endif	/* HAVE_FREETYPE */
+      register_font_driver (&xfont_driver, f);
+    }
+#endif	/* USE_FONT_BACKEND */
+
   /* Extract the window parameters from the supplied values that are
      needed to determine window geometry.  */
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    x_default_font_parameter (f, parms);
+else
+#endif	/* USE_FONT_BACKEND */
   {
     Lisp_Object font;
 

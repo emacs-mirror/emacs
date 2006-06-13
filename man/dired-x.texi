@@ -94,7 +94,7 @@ notice identical to this one except for the removal of this paragraph
 
 @page
 
-@ifinfo
+@ifnottex
 
 @node Top
 @comment  node-name,  next,  previous,  up
@@ -145,7 +145,7 @@ For @file{dired-x.el} revision 2
 
 @end menu
 
-@end ifinfo
+@end ifnottex
 
 @node Introduction, Installation, Top, Top
 @comment  node-name,  next,  previous,  up
@@ -162,12 +162,12 @@ the code using @code{gmhist} history functions was replaced with code using
 the mini-buffer history now built into GNU Emacs.  Finally, a few other
 features have been added and a few more functions have been bound to keys.
 
-@ifinfo
+@ifnottex
 @menu
 * Features::
 * Technical Details::
 @end menu
-@end ifinfo
+@end ifnottex
 
 @node Features, Technical Details, , Introduction
 @comment  node-name,  next,  previous,  up
@@ -279,12 +279,12 @@ initialization file @file{default.el} in the @file{site-lisp} directory, put
 This will load @file{dired-x.el} when Dired is first invoked (for example,
 when you first type @kbd{C-x d}).
 
-@ifinfo
+@ifnottex
 @menu
 * Optional Installation Dired Jump::
 * Optional Installation File At Point::
 @end menu
-@end ifinfo
+@end ifnottex
 
 @node Optional Installation Dired Jump, Optional Installation File At Point, , Installation
 @comment  node-name,  next,  previous,  up
@@ -409,13 +409,13 @@ In order to make Dired Omit work you first need to load @file{dired-x.el}
 inside @code{dired-load-hook} (@pxref{Installation}) and then evaluate
 @code{(dired-omit-mode 1)} in some way (@pxref{Omitting Variables}).
 
-@ifinfo
+@ifnottex
 @menu
 * Omitting Variables::
 * Omitting Examples::
 * Omitting Technical::
 @end menu
-@end ifinfo
+@end ifnottex
 
 @node Omitting Variables, Omitting Examples, , Omitting Files in Dired
 @comment  node-name,  next,  previous,  up
@@ -839,13 +839,13 @@ Flag all files with a certain extension for deletion.  A @samp{.} is
 @emph{not} automatically prepended to the string entered.
 @end table
 
-@ifinfo
+@ifnottex
 @menu
 * Advanced Cleaning Functions::
 * Advanced Cleaning Variables::
 * Special Marking Function::
 @end menu
-@end ifinfo
+@end ifnottex
 
 @node Advanced Cleaning Functions, Advanced Cleaning Variables, , Advanced Mark Commands
 @comment  node-name,  next,  previous,  up

@@ -269,6 +269,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     if (nargs >= 5)
       {
 	int must_encode = 0;
+	Lisp_Object coding_attrs;
 
 	for (i = 4; i < nargs; i++)
 	  CHECK_STRING (args[i]);
@@ -296,6 +297,13 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  }
 	val = coding_inherit_eol_type (val, Qnil);
 	setup_coding_system (Fcheck_coding_system (val), &argument_coding);
+	coding_attrs = CODING_ID_ATTRS (argument_coding.id);
+	if (NILP (CODING_ATTR_ASCII_COMPAT (coding_attrs)))
+	  {
+	    /* We should not use an ASCII incompatible coding system.  */
+	    val = raw_text_coding_system (val);
+	    setup_coding_system (val, &argument_coding);
+	  }
       }
   }
 

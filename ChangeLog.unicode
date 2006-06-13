@@ -1,3 +1,13 @@
+2006-06-06  Kenichi Handa  <handa@m17n.org>
+
+	* configure.in: New args --enable-font-backend, --with-xft,
+	--with-freetyp.  New AC_DEFINEs USE_FONT_BACKEND, HAVE_XFT,
+	HAVE_FREETYPE, HAVE_LIBOTF.  New AC_SUBSTs XFT_LIBS,
+	FREETYPE_CFLAGS, FREETYPE_LIBS, FONTCONFIG_CFLAGS,
+	FONTCONFIG_LIBS, LIBOTF_CFLAGS, LIBOTF_LIBS.
+
+	* configure: Re-generated.
+
 2006-01-18  Kenichi Handa  <handa@m17n.org>
 
 	* make-dist: Include etc/charsets in tarball.

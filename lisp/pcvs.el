@@ -467,7 +467,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	 (cvs-mode)
 	 (set (make-local-variable 'list-buffers-directory) buffer-name)
 	 ;;(set (make-local-variable 'cvs-temp-buffer) (cvs-temp-buffer))
-	 (let ((cookies (ewoc-create 'cvs-fileinfo-pp "\n" "")))
+	 (let ((cookies (ewoc-create 'cvs-fileinfo-pp "\n\n" "\n" t)))
 	   (set (make-local-variable 'cvs-cookies) cookies)
 	   (add-hook 'kill-buffer-hook
 		     (lambda ()
@@ -618,7 +618,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	 (str (car hf))
 	 (done "")
 	 (tin (ewoc-nth cvs-cookies 0)))
-    (if (eq (length str) 1) (setq str ""))
+    (if (eq (length str) 2) (setq str ""))
     ;; look for the first *real* fileinfo (to determine emptyness)
     (while
 	(and tin
@@ -633,6 +633,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 	(setq str (replace-match "" t t str))
 	(if (zerop (length str)) (setq str "\n"))
 	(setq done (concat "-- last cmd: " cmd " --"))))
+    (setq str (concat str "\n") done (concat done "\n"))
     ;; set the new header and footer
     (ewoc-set-hf cvs-cookies
 		 str (concat "\n--------------------- "

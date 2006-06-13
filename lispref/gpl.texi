@@ -67,9 +67,9 @@ modification follow.
 @iftex
 @unnumberedsec Terms and Conditions for Copying, Distribution and Modification
 @end iftex
-@ifinfo
+@ifnottex
 @center TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-@end ifinfo
+@end ifnottex
 
 @enumerate 0
 @item
@@ -292,9 +292,9 @@ of promoting the sharing and reuse of software generally.
 @iftex
 @heading NO WARRANTY
 @end iftex
-@ifinfo
+@ifnottex
 @center NO WARRANTY
-@end ifinfo
+@end ifnottex
 
 @item
 BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY
@@ -322,9 +322,9 @@ POSSIBILITY OF SUCH DAMAGES.
 @iftex
 @heading END OF TERMS AND CONDITIONS
 @end iftex
-@ifinfo
+@ifnottex
 @center END OF TERMS AND CONDITIONS
-@end ifinfo
+@end ifnottex
 
 @page
 @unnumberedsec How to Apply These Terms to Your New Programs

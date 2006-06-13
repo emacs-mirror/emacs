@@ -201,7 +201,7 @@ The base name of the file is specified in `desktop-base-file-name'."
   :version "22.1")
 
 (defcustom desktop-missing-file-warning nil
-  "*If non-nil then `desktop-read' asks if a non-existent file should be recreated.
+  "If non-nil, offer to recreate the buffer of a deleted file.
 Also pause for a moment to display message about errors signaled in
 `desktop-buffer-mode-handlers'.
 
@@ -763,45 +763,42 @@ See also `desktop-base-file-name'."
                         (setq locals (cdr locals)))
                       ll)))
               (buffer-list)))
-          (eager desktop-restore-eager)
-          (buf (get-buffer-create "*desktop*")))
-      (set-buffer buf)
-      (erase-buffer)
+          (eager desktop-restore-eager))
+      (with-temp-buffer
+	(insert
+	  ";; -*- mode: emacs-lisp; coding: utf-8-emacs; -*-\n"
+	  desktop-header
+	  ";; Created " (current-time-string) "\n"
+	  ";; Desktop file format version " desktop-file-version "\n"
+	  ";; Emacs version " emacs-version "\n\n"
+	  ";; Global section:\n")
+	(mapc (function desktop-outvar) desktop-globals-to-save)
+	(if (memq 'kill-ring desktop-globals-to-save)
+	  (insert
+	    "(setq kill-ring-yank-pointer (nthcdr "
+	    (int-to-string (- (length kill-ring) (length kill-ring-yank-pointer)))
+	    " kill-ring))\n"))
 
-      (insert
-        ";; -*- mode: emacs-lisp; coding: utf-8-emacs; -*-\n"
-        desktop-header
-        ";; Created " (current-time-string) "\n"
-        ";; Desktop file format version " desktop-file-version "\n"
-        ";; Emacs version " emacs-version "\n\n"
-        ";; Global section:\n")
-      (mapc (function desktop-outvar) desktop-globals-to-save)
-      (if (memq 'kill-ring desktop-globals-to-save)
-        (insert
-          "(setq kill-ring-yank-pointer (nthcdr "
-          (int-to-string (- (length kill-ring) (length kill-ring-yank-pointer)))
-          " kill-ring))\n"))
-
-      (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
-      (mapc #'(lambda (l)
-                (when (apply 'desktop-save-buffer-p l)
-                  (insert "("
-                          (if (or (not (integerp eager))
-                                  (unless (zerop eager)
-                                    (setq eager (1- eager))
-                                    t))
-                              "desktop-create-buffer"
-                            "desktop-append-buffer-args")
-                          " "
-                          desktop-file-version)
-                  (mapc #'(lambda (e)
-                            (insert "\n  " (desktop-value-to-string e)))
-                        l)
-                  (insert ")\n\n")))
-            info)
-      (setq default-directory dirname)
-      (let ((coding-system-for-write 'utf-8-emacs))
-        (write-region (point-min) (point-max) filename nil 'nomessage))))
+	(insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
+	(mapc #'(lambda (l)
+		  (when (apply 'desktop-save-buffer-p l)
+		    (insert "("
+			    (if (or (not (integerp eager))
+				    (unless (zerop eager)
+				      (setq eager (1- eager))
+				      t))
+				"desktop-create-buffer"
+			      "desktop-append-buffer-args")
+			    " "
+			    desktop-file-version)
+		    (mapc #'(lambda (e)
+			      (insert "\n  " (desktop-value-to-string e)))
+			  l)
+		    (insert ")\n\n")))
+	      info)
+	(setq default-directory dirname)
+	(let ((coding-system-for-write 'utf-8-emacs))
+	  (write-region (point-min) (point-max) filename nil 'nomessage)))))
   (setq desktop-dirname dirname))
 
 ;; ----------------------------------------------------------------------------
@@ -946,7 +943,7 @@ directory DIRNAME."
               (let ((msg (format "Desktop: File \"%s\" no longer exists."
                                  desktop-buffer-file-name)))
                  (if desktop-missing-file-warning
-		     (y-or-n-p (concat msg " Re-create? "))
+		     (y-or-n-p (concat msg " Re-create buffer? "))
                    (message "%s" msg)
                    nil)))
 	  (let* ((auto-insert nil) ; Disable auto insertion

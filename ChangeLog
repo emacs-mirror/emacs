@@ -1,3 +1,12 @@
+2006-06-05  Kim F. Storm  <storm@cua.dk>
+
+	* AUTHORS: Regenerate.
+
+2006-05-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add check for ALSA.
+	* configure: Regenerate.
+
 2006-05-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (INFO_FILES): Remove emacs-xtra.
@@ -6,8 +15,8 @@
 
 2006-04-20 Ramprasad B <ramprasad_i82@yahoo.com>
 
-	* Copyright (sources/emacs): updated copyright year(s)
-	
+	* Copyright (sources/emacs): Update copyright year(s).
+
 2006-04-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure: Regenerated.
@@ -19,9 +28,8 @@
 
 2006-04-01  Christoph Bauer  <Christoph.Bauer@lms-gmbh.de>  (tiny change)
 
-	* configure.in (hppa*-hp-hpux1[1-9]*): Add
-	-D_INCLUDE__STDC_A1_SOURCE to CFLAGS.  Update Copyright years
-	written to src/config.in.
+	* configure.in (hppa*-hp-hpux1[1-9]*): Add -D_INCLUDE__STDC_A1_SOURCE
+	to CFLAGS.  Update Copyright years written to src/config.in.
 
 2006-03-18  Claudio Fontana  <claudio@gnu.org>
 

@@ -1592,7 +1592,7 @@ x_set_icon_name (f, arg, oldval)
       if (STRINGP (oldval) && EQ (Fstring_equal (oldval, arg), Qt))
 	return;
     }
-  else if (!STRINGP (oldval) && EQ (oldval, Qnil) == EQ (arg, Qnil))
+  else if (!NILP (arg) || NILP (oldval))
     return;
 
   f->icon_name = arg;
@@ -2829,26 +2829,22 @@ FRAME nil means use the selected frame.  */)
      Lisp_Object frame;
 {
   struct frame *f = check_x_frame (frame);
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
 
-  if (dpyinfo->x_focus_frame != f)
-    {
-      BLOCK_INPUT;
+  BLOCK_INPUT;
 #ifdef MAC_OSX
-      ActivateWindow (ActiveNonFloatingWindow (), false);
-      ActivateWindow (FRAME_MAC_WINDOW (f), true);
+  ActivateWindow (ActiveNonFloatingWindow (), false);
+  ActivateWindow (FRAME_MAC_WINDOW (f), true);
 #else
 #if !TARGET_API_MAC_CARBON
-      /* SelectWindow (Non-Carbon) does not issue deactivate events if
-	 the possibly inactive window that is to be selected is
-	 already the frontmost one.  */
-      SendBehind (FRAME_MAC_WINDOW (f), NULL);
+  /* SelectWindow (Non-Carbon) does not issue deactivate events if the
+     possibly inactive window that is to be selected is already the
+     frontmost one.  */
+  SendBehind (FRAME_MAC_WINDOW (f), NULL);
 #endif
-      /* This brings the window to the front.  */
-      SelectWindow (FRAME_MAC_WINDOW (f));
+  /* This brings the window to the front.  */
+  SelectWindow (FRAME_MAC_WINDOW (f));
 #endif
-      UNBLOCK_INPUT;
-    }
+  UNBLOCK_INPUT;
 
   return Qnil;
 }
@@ -3028,11 +3024,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
     {
       if (response >= 0x00001040)
 	{
-	  err = Gestalt ('sys1', &major); /* gestaltSystemVersionMajor */
+	  err = Gestalt (gestaltSystemVersionMajor, &major);
 	  if (err == noErr)
-	    err = Gestalt ('sys2', &minor); /* gestaltSystemVersionMinor */
+	    err = Gestalt (gestaltSystemVersionMinor, &minor);
 	  if (err == noErr)
-	    err = Gestalt ('sys3', &bugfix); /* gestaltSystemVersionBugFix */
+	    err = Gestalt (gestaltSystemVersionBugFix, &bugfix);
 	}
       else
 	{
@@ -4518,8 +4514,18 @@ This is for internal use only.  Use `mac-font-panel-mode' instead.  */)
   check_mac ();
 
   BLOCK_INPUT;
-  if (NILP (visible) == (FPIsFontPanelVisible () == true))
-    err = FPShowHideFontPanel ();
+  if (NILP (visible) != !mac_font_panel_visible_p ())
+    {
+      err = mac_show_hide_font_panel ();
+      if (err == noErr && !NILP (visible))
+	{
+	  Lisp_Object focus_frame = x_get_focus_frame (SELECTED_FRAME ());
+	  struct frame *f = (NILP (focus_frame) ? SELECTED_FRAME ()
+			     : XFRAME (focus_frame));
+
+	  mac_set_font_info_for_selection (f, DEFAULT_FACE_ID, 0);
+	}
+    }
   UNBLOCK_INPUT;
 
   if (err != noErr)

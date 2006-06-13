@@ -87,6 +87,9 @@ Boston, MA 02110-1301, USA.  */
    */
 #undef HAVE_ALLOCA_H
 
+/* Define to 1 if ALSA is available. */
+#undef HAVE_ALSA
+
 /* Define to 1 if you have the `bcmp' function. */
 #undef HAVE_BCMP
 
@@ -151,6 +154,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the `fpathconf' function. */
 #undef HAVE_FPATHCONF
+
+/* Define to 1 if you have freetype and fontconfig libraries. */
+#undef HAVE_FREETYPE
 
 /* Define to 1 if you have the `frexp' function. */
 #undef HAVE_FREXP
@@ -334,6 +340,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the `ncurses' library (-lncurses). */
 #undef HAVE_LIBNCURSES
+
+/* Define to 1 if you have libotf library. */
+#undef HAVE_LIBOTF
 
 /* Define to 1 if you have the <libpng/png.h> header file. */
 #undef HAVE_LIBPNG_PNG_H
@@ -703,6 +712,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the Xft library. */
 #undef HAVE_XFT
 
+/* Define to 1 if you have the Xft library. */
+#undef HAVE_XFT
+
 /* Define to 1 if XIM is available */
 #undef HAVE_XIM
 
@@ -824,6 +836,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to the unexec source file name. */
 #undef UNEXEC_SRC
 
+/* Define to 1 if we should use font-backend. */
+#undef USE_FONT_BACKEND
+
 /* Define to 1 if we should use toolkit scroll bars. */
 #undef USE_TOOLKIT_SCROLL_BARS
 
@@ -944,6 +959,9 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_SOUND 1
 #endif
 #ifdef HAVE_SOUNDCARD_H
+#define HAVE_SOUND 1
+#endif
+#ifdef HAVE_ALSA
 #define HAVE_SOUND 1
 #endif
 #endif /* __FreeBSD__ || __NetBSD__ || __linux__  */

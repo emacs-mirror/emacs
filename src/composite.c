@@ -4,7 +4,7 @@
    Copyright (C) 1999
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
-   Copyright (C) 2003
+   Copyright (C) 2003, 2006
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -158,6 +158,8 @@ EXFUN (Fremove_list_of_text_properties, 4);
 
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;
+
+extern int enable_font_backend;
 
 /* Return COMPOSITION-ID of a composition at buffer position
    CHARPOS/BYTEPOS and length NCHARS.  The `composition' property of
@@ -273,6 +275,22 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
   /* Check if the contents of COMPONENTS are valid if COMPONENTS is a
      vector or a list.  It should be a sequence of:
 	char1 rule1 char2 rule2 char3 ...    ruleN charN+1  */
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend
+      && VECTORP (components)
+      && ASIZE (components) >= 2
+      && VECTORP (AREF (components, 0)))
+    {
+      /* COMPONENTS is a glyph-string.  */
+      int len = ASIZE (key);
+
+      for (i = 1; i < len; i++)
+	if (! VECTORP (AREF (key, i)))
+	  goto invalid_composition;
+    }
+  else
+#endif  /* USE_FONT_BACKEND */
   if (VECTORP (components) || CONSP (components))
     {
       int len = XVECTOR (key)->size;
@@ -306,6 +324,12 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 		 : ((INTEGERP (components) || STRINGP (components))
 		    ? COMPOSITION_WITH_ALTCHARS
 		    : COMPOSITION_WITH_RULE_ALTCHARS));
+#ifdef USE_FONT_BACKEND
+  if (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
+      && VECTORP (components)
+      && ! INTEGERP (AREF (components, 0)))
+    cmp->method = COMPOSITION_WITH_GLYPH_STRING;
+#endif  /* USE_FONT_BACKEND */
   cmp->hash_index = hash_index;
   glyph_len = (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
 	       ? (XVECTOR (key)->size + 1) / 2
@@ -314,6 +338,14 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
   cmp->offsets = (short *) xmalloc (sizeof (short) * glyph_len * 2);
   cmp->font = NULL;
 
+#ifdef USE_FONT_BACKEND
+  if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+    {
+      cmp->width = 1;		/* Should be fixed later.  */
+      cmp->glyph_len--;
+    }
+  else
+#endif	/* USE_FONT_BACKEND */
   /* Calculate the width of overall glyphs of the composition.  */
   if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
     {

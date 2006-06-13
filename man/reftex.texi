@@ -25,7 +25,7 @@ citations and indices for LaTeX documents with Emacs.
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}
 
-Copyright @copyright{} 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2005
+Copyright @copyright{} 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2005, 2006
 Free Software Foundation, Inc.
 
 @quotation
@@ -3572,7 +3572,7 @@ expression, scans the buffers with BibTeX entries (taken from the
 and offers the matching entries for selection.  The selected entry is
 formatted according to @code{reftex-cite-format} and inserted into the
 buffer. @*
-When called with a @kbd{C-u} prefixe, prompt for optional arguments in
+When called with a @kbd{C-u} prefix, prompt for optional arguments in
 cite macros.  When called with a numeric prefix, make that many citations.
 When called with point inside the braces of a @code{\cite} command, it
 will add another key, ignoring the value of
@@ -3780,7 +3780,7 @@ Commands and levels used for defining sections in the document.  The
 @code{cdr} is a number indicating its level.  A negative level means the
 same as the positive value, but the section will never get a number.
 The @code{cdr} may also be a function which then has to return the
-level.  This list is also used for promotion and demption of sectioning
+level.  This list is also used for promotion and demotion of sectioning
 commands.  If you are using a document class which has several sets of
 sectioning commands, promotion only works correctly if this list is
 sorted first by set, then within each set by level.  The promotion
@@ -5193,7 +5193,7 @@ Fixed bug in @code{reftex-create-bibtex-file} when @code{reftex-comment-citation
 is non-nil.
 @item
 Fixed bugs in indexing: Case-sensitive search, quotes before and/or
-after words.  Disabbled indexing in comment lines.
+after words.  Disabled indexing in comment lines.
 @end itemize
 
 @noindent @b{Version 4.22}

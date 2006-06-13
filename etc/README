@@ -11,3 +11,19 @@ without installing the modified TeX versions.
 
 `termcap.src' is included mainly for VMS.  It is a copy of the
 `/etc/termcap' file used on Unix.
+
+Copyright (c) 1992, 1995, 2001, 2006
+Free Software Foundation, Inc.
+
+
+COPYING PERMISSIONS:
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this file, to deal in the file without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the file, and to
+    permit persons to whom the file is furnished to do so, subject to
+    the following condition:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the file.

@@ -112,6 +112,13 @@ typedef unsigned long Time;
 #endif
 #endif
 
+/* Whether to use Text Services Manager.  */
+#ifndef USE_MAC_TSM
+#ifdef MAC_OSX
+#define USE_MAC_TSM 1
+#endif
+#endif
+
 typedef WindowPtr Window;
 typedef GWorldPtr Pixmap;
 

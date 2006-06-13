@@ -127,6 +127,7 @@
     cygwin compiled make 3.79.1:         fails[3, 5]   fails[2?, 5]
     mingw32 compiled make 3.79.1:        okay          okay
     mingw32 compiled make 3.80:          okay          unknown[6]
+    mingw32 compiled make 3.81:          okay          okay[7]
 
   Notes:
 

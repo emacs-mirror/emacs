@@ -355,8 +355,7 @@ static unsigned history_tick;
 
 static void add_frame_display_history P_ ((struct frame *, int));
 static void add_window_display_history P_ ((struct window *, char *, int));
-
-
+
 /* Add to the redisplay history how window W has been displayed.
    MSG is a trace containing the information how W's glyph matrix
    has been constructed.  PAUSED_P non-zero means that the update
@@ -6391,7 +6390,9 @@ sit_for (sec, usec, reading, display, initial_display)
 {
   swallow_events (display);
 
-  if (detect_input_pending_run_timers (display) || !NILP (Vexecuting_kbd_macro))
+  if ((detect_input_pending_run_timers (display)
+       && !redisplay_dont_pause)
+      || !NILP (Vexecuting_kbd_macro))
     return Qnil;
 
   if (initial_display)
@@ -6420,6 +6421,9 @@ Optional arg NODISP non-nil means don't redisplay, just wait for input.
 Redisplay is preempted as always if input arrives, and does not happen
 if input is available before it starts.
 Value is t if waited the full time with no input arriving.
+
+Redisplay will occur even when input is available if you bind
+`redisplay-dont-pause' to a non-nil value.
 
 An obsolete but still supported form is
 \(sit-for SECONDS &optional MILLISECONDS NODISP)

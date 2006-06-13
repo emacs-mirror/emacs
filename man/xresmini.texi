@@ -347,7 +347,7 @@ widget "Emacs.pane.menubar" style "my_style"
 widget "Emacs.pane.emacs.verticalScrollBar" style "my_style"
 @end smallexample
  
-But to aoid having to type it all, wildcards are often used.  @samp{*}
+But to avoid having to type it all, wildcards are often used.  @samp{*}
 matches zero or more characters and @samp{?} matches one character.  So "*"
 matches all widgets.
 

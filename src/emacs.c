@@ -821,6 +821,9 @@ bug_reporting_address ()
   return count >= 3 ? REPORT_EMACS_BUG_PRETEST_ADDRESS : REPORT_EMACS_BUG_ADDRESS;
 }
 
+#ifdef USE_FONT_BACKEND
+extern int enable_font_backend;
+#endif	/* USE_FONT_BACKEND */
 
 /* ARGSUSED */
 int
@@ -1437,6 +1440,12 @@ main (argc, argv
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
+#ifdef USE_FONT_BACKEND
+  enable_font_backend = 0;
+  if (argmatch (argv, argc, "-enable-font-backend", "--enable-font-backend",
+		4, NULL, &skip_args))
+    enable_font_backend = 1;
+#endif	/* USE_FONT_BACKEND */
 
 #ifdef HAVE_X_WINDOWS
   /* Stupid kludge to catch command-line display spec.  We can't
@@ -1624,6 +1633,9 @@ main (argc, argv
       syms_of_window ();
       syms_of_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
+#ifdef USE_FONT_BACKEND
+      syms_of_font ();
+#endif	/* USE_FONT_BACKEND */
       syms_of_fringe ();
       syms_of_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -1757,16 +1769,21 @@ main (argc, argv
 #endif
     }
 
-  /* Set up for profiling.  This is known to work on FreeBSD and
-     GNU/Linux.  It might work on some other systems too.  Give it a
-     try and tell us if it works on your system.  To compile for
-     profiling use something like `make CFLAGS="-pg -g -O -DPROFILING=1'.  */
-#if defined (__FreeBSD__) || defined (__linux)
+  /* Set up for profiling.  This is known to work on FreeBSD,
+     GNU/Linux and MinGW.  It might work on some other systems too.
+     Give it a try and tell us if it works on your system.  To compile
+     for profiling use something like:
+       `make CFLAGS="-pg -g -O -DPROFILING=1'.  */
+#if defined (__FreeBSD__) || defined (GNU_LINUX) || defined(__MINGW32__)
 #ifdef PROFILING
   if (initialized)
     {
       extern void _mcleanup ();
+#ifdef __MINGW32__
+      extern unsigned char etext asm ("etext");
+#else
       extern char etext;
+#endif
       extern void safe_bcopy ();
       extern void dump_opcode_frequencies ();
 
@@ -1832,6 +1849,7 @@ struct standard_args standard_args[] =
   { "-unibyte", "--unibyte", 81, 0 },
   { "-no-multibyte", "--no-multibyte", 80, 0 },
   { "-nl", "--no-loadup", 70, 0 },
+  { "-enable-font-backend", "--enable-font-backend", 65, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
@@ -2240,7 +2258,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   if (! noninteractive)
     error ("Dumping Emacs works only in batch mode");
 
-#ifdef __linux__
+#ifdef GNU_LINUX
   if (heap_bss_diff > MAX_HEAP_BSS_DIFF)
     {
       fprintf (stderr, "**************************************************\n");
@@ -2252,7 +2270,7 @@ You must run Emacs in batch mode in order to dump it.  */)
       fprintf (stderr, "exec-shield in etc/PROBLEMS for more information.\n");
       fprintf (stderr, "**************************************************\n");
     }
-#endif /* __linux__ */
+#endif /* GNU_LINUX */
 
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line

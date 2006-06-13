@@ -3778,7 +3778,9 @@ SIZE includes that window's scroll bar, or the divider column to its right.
 Interactively, all arguments are nil.
 
 Returns the newly created window (which is the lower or rightmost one).
-The upper or leftmost window is the original one and remains selected.
+The upper or leftmost window is the original one, and remains selected
+if it was selected before.
+
 See Info node `(elisp)Splitting Windows' for more details and examples.*/)
      (window, size, horflag)
      Lisp_Object window, size, horflag;
@@ -5794,6 +5796,7 @@ struct saved_window
   Lisp_Object left_margin_cols, right_margin_cols;
   Lisp_Object left_fringe_width, right_fringe_width, fringes_outside_margins;
   Lisp_Object scroll_bar_width, vertical_scroll_bar_type;
+  Lisp_Object dedicated;
 };
 
 #define SAVED_WINDOW_N(swv,n) \
@@ -5804,9 +5807,7 @@ DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_
      (object)
      Lisp_Object object;
 {
-  if (WINDOW_CONFIGURATIONP (object))
-    return Qt;
-  return Qnil;
+  return WINDOW_CONFIGURATIONP (object) ? Qt : Qnil;
 }
 
 DEFUN ("window-configuration-frame", Fwindow_configuration_frame, Swindow_configuration_frame, 1, 1, 0,
@@ -6028,6 +6029,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->fringes_outside_margins = p->fringes_outside_margins;
 	  w->scroll_bar_width = p->scroll_bar_width;
 	  w->vertical_scroll_bar_type = p->vertical_scroll_bar_type;
+	  w->dedicated = p->dedicated;
 	  XSETFASTINT (w->last_modified, 0);
 	  XSETFASTINT (w->last_overlay_modified, 0);
 
@@ -6297,6 +6299,7 @@ save_window_save (window, vector, i)
       p->fringes_outside_margins = w->fringes_outside_margins;
       p->scroll_bar_width = w->scroll_bar_width;
       p->vertical_scroll_bar_type = w->vertical_scroll_bar_type;
+      p->dedicated = w->dedicated;
       if (!NILP (w->buffer))
 	{
 	  /* Save w's value of point in the window configuration.
@@ -6796,7 +6799,9 @@ foreach_window (f, fn, user_data)
      int (* fn) P_ ((struct window *, void *));
      void *user_data;
 {
-  foreach_window_1 (XWINDOW (FRAME_ROOT_WINDOW (f)), fn, user_data);
+  /* Fdelete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
+  if (WINDOWP (FRAME_ROOT_WINDOW (f)))
+    foreach_window_1 (XWINDOW (FRAME_ROOT_WINDOW (f)), fn, user_data);
 }
 
 
