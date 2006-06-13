@@ -775,9 +775,9 @@ elements are deleted from the history list.
 ** Redisplay changes:
 
 +++
-*** Preemtive redisplay now adapts to current load and bandwidth.
+*** Preemptive redisplay now adapts to current load and bandwidth.
 
-To avoid preemping redisplay on fast computers, networks, and displays,
+To avoid preempting redisplay on fast computers, networks, and displays,
 the arrival of new input is now performed at regular intervals during
 redisplay.  The new variable `redisplay-preemption-period' specifies
 the period; the default is to check for input every 0.1 seconds.
