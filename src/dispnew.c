@@ -6495,15 +6495,22 @@ Lisp_Object
 sit_for (sec, usec, reading, display, initial_display)
      int sec, usec, reading, display, initial_display;
 {
+  int preempt = (sec >= 0) || (sec == 0 && usec >= 0);
+
   swallow_events (display);
 
-  if ((detect_input_pending_run_timers (display)
-       && !redisplay_dont_pause)
+  if ((detect_input_pending_run_timers (display) && preempt)
       || !NILP (Vexecuting_kbd_macro))
     return Qnil;
 
   if (initial_display)
-    redisplay_preserve_echo_area (2);
+    {
+      int count = SPECPDL_INDEX ();
+      if (!preempt)
+	specbind (Qredisplay_dont_pause, Qt);
+      redisplay_preserve_echo_area (2);
+      unbind_to (count, Qnil);
+    }
 
   if (sec == 0 && usec == 0)
     return Qt;
@@ -6529,8 +6536,7 @@ Redisplay is preempted as always if input arrives, and does not happen
 if input is available before it starts.
 Value is t if waited the full time with no input arriving.
 
-Redisplay will occur even when input is available if you bind
-`redisplay-dont-pause' to a non-nil value.
+Redisplay will occur even when input is available if SECONDS is negative.
 
 An obsolete but still supported form is
 \(sit-for SECONDS &optional MILLISECONDS NODISP)
