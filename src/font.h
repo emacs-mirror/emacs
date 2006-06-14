@@ -164,7 +164,7 @@ struct font
      -1 means that the contents of the font must be looked up to
      determine it.
    */
-  int repertory_charet;
+  int repertory_charset;
 
   /* Minimum glyph width (in pixels).  */
   int min_width;
