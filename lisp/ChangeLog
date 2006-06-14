@@ -1,3 +1,7 @@
+2006-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-retrieve-revision): Use decode-coding-inserted-region.
+
 2006-06-13  Martin J. Reed  <mjreed@essex.ac.uk>  (tiny change)
 
 	* net/ldap.el (ldap-ldapsearch-args): Default to SASL search.
@@ -14,7 +18,7 @@
 
 2006-06-11  Robert J. Chassell  <bob@rattlesnake.com>
 
-	* textmodes/page-ext.el (pages-directory-for-addresses): 
+	* textmodes/page-ext.el (pages-directory-for-addresses):
 	Including `pages-directory-address-mode' in the function results
 	in the message "Buffer in which pages were found is deleted".
 
@@ -92,8 +96,7 @@
 
 2006-06-06  Jesper Harder  <harder@phys.au.dk>
 
-	* ediff-diff.el (ediff-test-utility): Protect against
-	file-error.
+	* ediff-diff.el (ediff-test-utility): Protect against file-error.
 
 2006-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -125,7 +128,7 @@
 	cookies but no other non-empty fields.
 	(org-set-tags): Allow groups of mutually exclusive tags.
 	(org-cmp-time): Sort 24:21 before items without time.
-	(org-get-time-of-day): Fixed the interpretation of 12pm and 12am.
+	(org-get-time-of-day): Fix the interpretation of 12pm and 12am.
 	(org-open-at-point): Require double colon also for numbers.
 
 2006-06-06  Kim F. Storm  <storm@cua.dk>
@@ -165,8 +168,8 @@
 
 2006-06-05  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (find-auto-coding): Handle
-	enable-character-translation in file header.
+	* international/mule.el (find-auto-coding):
+	Handle enable-character-translation in file header.
 
 2006-06-04  Kim F. Storm  <storm@cua.dk>
 
@@ -235,8 +238,8 @@
 	as well as `coding'.
 	(hack-local-variables): Likewise.
 
-	* international/mule.el (enable-character-translation): Put
-	permanent-local and safe-local-variable properties.
+	* international/mule.el (enable-character-translation):
+	Put permanent-local and safe-local-variable properties.
 	(find-auto-coding): Handle char-trans: tag.
 
 2006-06-02  Juri Linkov  <juri@jurta.org>
