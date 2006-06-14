@@ -1,5 +1,9 @@
 2006-06-14  Kenichi Handa  <handa@m17n.org>
 
+	* xfont.c (xfont_open, xfont_encode_char): Fix typo.
+
+	* font.h (struct font): Fix typo.
+
 	* font.c (enum xlfd_field_index): Rename XLFD_XXX_SIZE_INDEX to
 	XLFD_XXX_INDEX.
 	(enum xlfd_field_mask): New enum.
