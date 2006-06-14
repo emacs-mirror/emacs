@@ -578,7 +578,7 @@ xfont_open (f, entity, pixel_size)
   bcopy (name, font->font.name, len + 1);
   font->font.charset = encoding->id;
   font->encoding_charset = encoding->id;
-  font->repertory_charet = repertory ? repertory->id : -1;
+  font->repertory_charset = repertory ? repertory->id : -1;
   font->ascent = xfont->ascent;
   font->descent = xfont->descent;
 
@@ -772,9 +772,9 @@ xfont_encode_char (font, c)
   code = ENCODE_CHAR (charset, c);
   if (code == CHARSET_INVALID_CODE (charset))
     return 0xFFFFFFFF;
-  if (font->repertory_charet >= 0)
+  if (font->repertory_charset >= 0)
     {
-      charset = CHARSET_FROM_ID (font->repertory_charet);
+      charset = CHARSET_FROM_ID (font->repertory_charset);
       return (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset)
 	      ? code : 0xFFFFFFFF);
     }
