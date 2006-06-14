@@ -96,7 +96,7 @@ ftfont_pattern_entity (p, frame, registry, name)
 
   if (FcPatternGetString (p, FC_FILE, 0, &file) != FcResultMatch)
     return Qnil;
-  if (FcPatternGetCharSet (p, FC_CHARSET, 0, &charset) == FcResultMatch)
+  if (FcPatternGetCharSet (p, FC_CHARSET, 0, &charset) != FcResultMatch)
     charset = NULL;
 
   entity = Fmake_vector (make_number (FONT_ENTITY_MAX), null_string);
@@ -391,8 +391,13 @@ ftfont_list (frame, spec)
     {
       FcPattern *pat;
       FcResult result;
+      FcValue v;
       Lisp_Object entity;
 
+      if (FcPatternGet (pattern, FC_LANG, 0, &v) == FcResultNoMatch)
+	/* If no language is specified in PATTERN, fontconfig will use
+	   that of the current locale.  This cancel that effect.  */
+	FcPatternAddString (pattern, FC_LANG, (FcChar8 *) "en");
       FcConfigSubstitute (NULL, pattern, FcMatchPattern);
       FcDefaultSubstitute (pattern);
       pat = FcFontMatch (NULL, pattern, &result);
