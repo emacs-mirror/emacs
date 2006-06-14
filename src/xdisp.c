@@ -5139,6 +5139,8 @@ back_to_previous_visible_line_start (it)
       break;
     }
 
+  it->continuation_lines_width = 0;
+
   xassert (IT_CHARPOS (*it) >= BEGV);
   xassert (IT_CHARPOS (*it) == BEGV
 	   || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
