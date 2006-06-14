@@ -358,8 +358,8 @@ enum xlfd_field_index
   XLFD_SLANT_INDEX,
   XLFD_SWIDTH_INDEX,
   XLFD_ADSTYLE_INDEX,
-  XLFD_PIXEL_SIZE_INDEX,
-  XLFD_POINT_SIZE_INDEX,
+  XLFD_PIXEL_INDEX,
+  XLFD_POINT_INDEX,
   XLFD_RESX_INDEX,
   XLFD_RESY_INDEX,
   XLFD_SPACING_INDEX,
@@ -369,28 +369,49 @@ enum xlfd_field_index
   XLFD_LAST_INDEX
 };
 
-/* Return a symbol interned by string at STR and bytes LEN.
+enum xlfd_field_mask
+{
+  XLFD_FOUNDRY_MASK = 0x0001,
+  XLFD_FAMILY_MASK = 0x0002,
+  XLFD_WEIGHT_MASK = 0x0004,
+  XLFD_SLANT_MASK = 0x0008,
+  XLFD_SWIDTH_MASK = 0x0010,
+  XLFD_ADSTYLE_MASK = 0x0020,
+  XLFD_PIXEL_MASK = 0x0040,
+  XLFD_POINT_MASK = 0x0080,
+  XLFD_RESX_MASK = 0x0100,
+  XLFD_RESY_MASK = 0x0200,
+  XLFD_SPACING_MASK = 0x0400,
+  XLFD_AVGWIDTH_MASK = 0x0800,
+  XLFD_REGISTRY_MASK = 0x1000,
+  XLFD_ENCODING_MASK = 0x2000
+};
+
+
+/* Return a Lispy value for string at STR and bytes LEN.
    If LEN == 0, return a null string.
    If the string is "*", return Qnil.
    It is assured that LEN < 256.   */
 
 static Lisp_Object
-intern_font_field (f, xlfd)
-     char *f[XLFD_LAST_INDEX + 1];
-     int xlfd;
+intern_font_field (str, len)
+     char *str;
+     int len;
 {
-  char *str = f[xlfd] + 1;
-  int len;
-  
-  if (xlfd != XLFD_RESY_INDEX)
-    len = f[xlfd + 1] - f[xlfd] - 1;
-  else
-    len = f[XLFD_REGISTRY_INDEX] - f[xlfd] - 1;
+  int i;
 
   if (len == 0)
     return null_string;
   if (*str == '*' && len == 1)
     return Qnil;
+  if (isdigit (*str))
+    {
+      for (i = 1; i < len; i++)
+	if (! isdigit (str[i]))
+	  break;
+      if (i == len)
+	return make_number (atoi (str));
+    }
   return intern_downcase (str, len);
 }
 
@@ -427,6 +448,184 @@ parse_matrix (p)
   return (i == 4 ? (int) matrix[3] : -1);
 }
 
+/* Expand a wildcard field in FIELD (the first N fields are filled) to
+   multiple fields to fill in all 14 XLFD fields while restring a
+   field position by its contents.  */
+
+int
+font_expand_wildcards (field, n)
+     Lisp_Object field[XLFD_LAST_INDEX];
+     int n;
+{
+  /* Copy of FIELD.  */
+  Lisp_Object tmp[XLFD_LAST_INDEX];
+  /* Array of information about where this element can go.  Nth
+     element is for Nth element of FIELD. */
+  struct {
+    /* Minimum possible field.  */
+    int from;
+    /* Maxinum possible field.  */
+    int to;
+    /* Bit mask of possible field.  Nth bit corresponds to Nth field.  */
+    int mask;
+  } range[XLFD_LAST_INDEX];
+  int i, j;
+  unsigned range_mask;
+
+#define XLFD_SYMBOL_MASK (XLFD_FOUNDRY_MASK | XLFD_FAMILY_MASK \
+			  | XLFD_ADSTYLE_MASK  | XLFD_REGISTRY_MASK)
+#define XLFD_NULL_MASK (XLFD_FOUNDRY_MASK | XLFD_ADSTYLE_MASK)
+#define XLFD_SMALLNUM_MASK (XLFD_PIXEL_MASK | XLFD_ENCODING_MASK)
+#define XLFD_LARGENUM_MASK (XLFD_POINT_MASK | XLFD_RESX_MASK | XLFD_RESY_MASK \
+			    | XLFD_AVGWIDTH_MASK | XLFD_ENCODING_MASK)
+#define XLFD_REGENC_MASK (XLFD_REGISTRY_MASK | XLFD_ENCODING_MASK)
+
+  /* Initialize RANGE_MASK for FIELD[0] which can be 0th to (14 - N)th
+     field.  The value is shifted to left one bit by one in the
+     following loop.  */
+  for (i = 0, range_mask = 0; i <= 14 - n; i++)
+    range_mask = (range_mask << 1) | 1;
+
+  for (i = 0; i < n; i++, range_mask <<= 1)
+    {
+      /* The triplet RANGE_FROM, RANGE_TO, and RANGE_MASK is a
+	 position-based retriction for FIELD[I].  */
+      int range_from = i, range_to = 14 - n + i;
+      Lisp_Object val = field[i];
+
+      tmp[i] = val;
+      if (NILP (val))
+	{
+	  /* Wildcard.  */
+	  range[i].from = range_from;
+	  range[i].to = range_to;
+	  range[i].mask = range_mask;
+	}
+      else
+	{
+	  /* The triplet FROM, TO, and MASK is a value-based
+	     retriction for FIELD[I].  */
+	  int from, to;
+	  unsigned mask;
+
+	  if (INTEGERP (val))
+	    {
+	      int numeric = XINT (val);
+
+	      if (numeric <= 48)
+		from = XLFD_PIXEL_INDEX, to = XLFD_ENCODING_INDEX,
+		  mask = XLFD_SMALLNUM_MASK;
+	      else
+		from = XLFD_POINT_INDEX, to = XLFD_ENCODING_INDEX,
+		  mask = XLFD_LARGENUM_MASK;
+	    }
+	  else if (EQ (val, null_string))
+	    from = XLFD_FOUNDRY_INDEX, to = XLFD_ADSTYLE_INDEX,
+	      mask = XLFD_NULL_MASK;
+	  else if (i == 0)
+	    from = to = XLFD_FOUNDRY_INDEX, mask = XLFD_FOUNDRY_MASK;
+	  else if (i + 1 == n)
+	    {
+	      Lisp_Object name = SYMBOL_NAME (val);
+
+	      if (SDATA (name)[SBYTES (name) - 1] == '*')
+		from = XLFD_REGISTRY_INDEX, to = XLFD_ENCODING_INDEX,
+		  mask = XLFD_REGENC_MASK;
+	      else
+		from = to = XLFD_ENCODING_INDEX,
+		  mask = XLFD_ENCODING_MASK;
+	    }
+	  else if (!NILP (prop_name_to_numeric (FONT_WEIGHT_INDEX, val)))
+	    from = to = XLFD_WEIGHT_INDEX, mask = XLFD_WEIGHT_MASK;
+	  else if (!NILP (prop_name_to_numeric (FONT_SLANT_INDEX, val)))
+	    from = to = XLFD_SLANT_INDEX, mask = XLFD_SLANT_MASK;
+	  else if (!NILP (prop_name_to_numeric (FONT_WIDTH_INDEX, val)))
+	    from = to = XLFD_SWIDTH_INDEX, mask = XLFD_SWIDTH_MASK;
+	  else
+	    {
+	      Lisp_Object name = SYMBOL_NAME (val);
+
+	      if (SBYTES (name) == 1
+		  && (SDATA (name)[0] == 'c'
+		      || SDATA (name)[0] == 'm'
+		      || SDATA (name)[0] == 'p'))
+		from = to = XLFD_SPACING_INDEX, mask = XLFD_SPACING_MASK;
+	      else
+		from = XLFD_FOUNDRY_INDEX, to = XLFD_ENCODING_INDEX,
+		  mask = XLFD_SYMBOL_MASK;
+	    }
+
+	  /* Merge position-based and value-based restrictions.  */
+	  mask &= range_mask;
+	  while (from < range_from)
+	    mask &= ~(1 << from++);
+	  while (from < 14 && ! (mask & (1 << from)))
+	    from++;
+	  while (to > range_to)
+	    mask &= ~(1 << to--);
+	  while (to >= 0 && ! (mask & (1 << to)))
+	    to--;
+	  if (from > to)
+	    return -1;
+	  range[i].from = from;
+	  range[i].to = to;
+	  range[i].mask = mask;
+
+	  if (from > range_from || to < range_to)
+	    /* The range is narrowed by value-based restrictions.
+	       Reflect it to the previous fields.  */
+	    for (j = i - 1, from--, to--; j >= 0; j--, from--, to--)
+	      {
+		/* Check FROM for non-wildcard field.  */
+		if (! NILP (tmp[j]) && range[j].from < from)
+		  {
+		    while (range[j].from < from)
+		      range[j].mask &= ~(1 << range[j].from++);
+		    while (from < 14 && ! (range[j].mask & (1 << from)))
+		      from++;
+		    range[j].from = from;
+		  }
+		else
+		  from = range[j].from;
+		if (range[j].to > to)
+		  {
+		    while (range[j].to > to)
+		      range[j].mask &= ~(1 << range[j].to--);
+		    while (to >= 0 && ! (range[j].mask & (1 << to)))
+		      to--;
+		    range[j].to = to;
+		  }
+		else
+		  to = range[j].to;
+		if (from > to)
+		  return -1;
+	      }
+	}
+    }
+
+  /* Decide all fileds from restrictions in RANGE.  */
+  for (i = j = 0; i < n ; i++)
+    {
+      if (j < range[i].from)
+	{
+	  if (i == 0 || ! NILP (tmp[i - 1]))
+	    /* None of TMP[X] corresponds to Jth field.  */
+	    return -1;
+	  for (; j < range[i].from; j++)
+	    field[j] = Qnil;
+	}
+      field[j++] = tmp[i];
+    }
+  if (! NILP (tmp[n - 1]) && j < XLFD_REGISTRY_INDEX)
+    return -1;
+  for (; j < XLFD_LAST_INDEX; j++)
+    field[j] = Qnil;
+  if (INTEGERP (field[XLFD_ENCODING_INDEX]))
+    field[XLFD_ENCODING_INDEX]
+      = Fintern (Fnumber_to_string (field[XLFD_ENCODING_INDEX]), Qnil);
+  return 0;
+}
+
 /* Parse NAME (null terminated) as XLFD format, and store information
    in FONT (font-spec or font-entity).  If NAME is successfully
    parsed, return 2 (non-scalable font), 1 (scalable vector font), or
@@ -445,137 +644,206 @@ font_parse_xlfd (name, font, merge)
 {
   int len = strlen (name);
   int i, j;
-  int pixel_size, resy, avwidth;
+  int pixel_size, resy, avgwidth;
   double point_size;
-  char *f[XLFD_LAST_INDEX + 1];
+  Lisp_Object f[XLFD_LAST_INDEX];
   Lisp_Object val;
-  int first_wildcard_field = -1, last_wildcard_field = XLFD_LAST_INDEX;
+  char *p;
 
   if (len > 255)
     /* Maximum XLFD name length is 255. */
     return -1;
-  for (i = 0; *name; name++)
-    if (*name == '-'
-	&& i < XLFD_LAST_INDEX)
-      {
-	f[i] = name;
-	if (name[1] == '*' && (! name[2] || name[2] == '-'))
-	  {
-	    if (first_wildcard_field < 0)
-	      first_wildcard_field = i;
-	    last_wildcard_field = i;
-	  }
-	i++;
-      }
-
-  f[XLFD_LAST_INDEX] = name;
-  if (i < XLFD_LAST_INDEX)
+  i = (name[0] == '*' && name[1] == '-');
+  for (p = name + 1; *p; p++)
     {
-      /* Not a fully specified XLFD.  */
-      if (first_wildcard_field < 0 )
-	/* No wild card.  */
-	return -1;
-      i--;
-      if (last_wildcard_field < i)
+      if (*p == '-')
 	{
-	  /* Shift fields after the last wildcard field.   */
-	  for (j = XLFD_LAST_INDEX - 1; j > last_wildcard_field; j--, i--)
-	    f[j] = f[i];
-	  /* Make all fields between the first and last wildcard fieled
-	     also wildcard fields.  */
-	  for (j--; j > first_wildcard_field; j--)
-	    f[j] = "-*";
+	  i++;
+	  if (i == XLFD_ENCODING_INDEX)
+	    break;
 	}
     }
-  f[XLFD_ENCODING_INDEX] = f[XLFD_LAST_INDEX];
+
+  pixel_size = resy = avgwidth = -1;
+  point_size = -1;
+
+  if (i == XLFD_ENCODING_INDEX)
+    {
+      /* Fully specified XLFD.  */
+      if (name[0] == '-')
+	name++;
+      for (i = 0, p = name; ; p++)
+	{
+	  if (*p == '-')
+	    {
+	      if (i < XLFD_PIXEL_INDEX)
+		f[i++] = intern_font_field (name, p - name);
+	      else if (i == XLFD_PIXEL_INDEX)
+		{
+		  if (isdigit (*name))
+		    pixel_size = atoi (name);
+		  else if (*name == '[')
+		    pixel_size = parse_matrix (name);
+		  i++;
+		}
+	      else if (i == XLFD_POINT_INDEX)
+		{
+		  if (pixel_size < 0)
+		    {
+		      if (isdigit (*name))
+			point_size = atoi (name);
+		      else if (*name == '[')
+			point_size = parse_matrix (name);
+		    }
+		  i++;
+		}
+	      else if (i == XLFD_RESX_INDEX)
+		{
+		  /* Skip this field.  */
+		  f[i++] = Qnil;
+		}
+	      else if (i == XLFD_RESY_INDEX)
+		{
+		  /* Stuff RESY, SPACING, and AVGWIDTH.  */
+		  if (pixel_size < 0 && isdigit (*name))
+		    resy = atoi (name);
+		  for (p++; *p != '-'; p++);
+		  if (isdigit (p[1]))
+		    avgwidth = atoi (p + 1);
+		  else if (p[1] == '~' && isdigit (p[2]))
+		    avgwidth = atoi (p + 2);
+		  for (p++; *p != '-'; p++);
+		  if (FONT_ENTITY_P (font))
+		    f[i] = intern_font_field (name, p - name);
+		  else
+		    f[i] = Qnil;
+		  i = XLFD_REGISTRY_INDEX;
+		}
+	      else
+		{
+		  /* Stuff REGISTRY and ENCODING.  */
+		  for (p++; *p; p++);
+		  f[i++] = intern_font_field (name, p - name);
+		  break;
+		}
+	      name = p + 1;
+	    }
+	}
+      xassert (i == XLFD_ENCODING_INDEX);
+    }
+  else
+    {
+      int wild_card_found = 0;
+
+      if (name[0] == '-')
+	name++;
+      for (i = 0, p = name; ; p++)
+	{
+	  if (*p == '-' || ! *p)
+	    {
+	      if (*name == '*')
+		{
+		  if (name + 1 != p)
+		    return -1;
+		  f[i++] = Qnil;
+		  wild_card_found = 1;
+		}
+	      else if (isdigit (*name))
+		{
+		  f[i++] = make_number (atoi (name));
+		  /* Check if all chars in this field is number.  */
+		  name++;
+		  while (isdigit (*name)) name++;
+		  if (name != p)
+		    return -1;
+		}
+	      else if (p == name)
+		f[i++] = null_string;
+	      else
+		{
+		  f[i++] = intern_downcase (name, p - name);
+		}
+	      if (! *p)
+		break;
+	      name = p + 1;
+	    }
+	}
+      if (! wild_card_found)
+	return -1;
+      if (font_expand_wildcards (f, i) < 0)
+	return -1;
+      if (! NILP (f[XLFD_PIXEL_INDEX]))
+	pixel_size = XINT (f[XLFD_PIXEL_INDEX]);
+      if (! NILP (f[XLFD_POINT_INDEX]))
+	point_size = XINT (f[XLFD_POINT_INDEX]);
+      if (! NILP (f[XLFD_RESY_INDEX]))
+	resy = XINT (f[XLFD_RESY_INDEX]);
+      if (! NILP (f[XLFD_AVGWIDTH_INDEX]))
+	avgwidth = XINT (f[XLFD_AVGWIDTH_INDEX]);
+      if (NILP (f[XLFD_REGISTRY_INDEX]))
+	{
+	  if (! NILP (f[XLFD_ENCODING_INDEX]))
+	    f[XLFD_REGISTRY_INDEX]
+	      = Fintern (concat2 (build_string ("*-"),
+				  SYMBOL_NAME (f[XLFD_ENCODING_INDEX])), Qnil);
+	}
+      else
+	{
+	  if (! NILP (f[XLFD_ENCODING_INDEX]))
+	    f[XLFD_REGISTRY_INDEX]
+	      = Fintern (concat2 (SYMBOL_NAME (f[XLFD_REGISTRY_INDEX]),
+				  SYMBOL_NAME (f[XLFD_ENCODING_INDEX])), Qnil);
+	}
+    }
 
   if (! merge || NILP (AREF (font, FONT_FOUNDRY_INDEX)))
-    ASET (font, FONT_FOUNDRY_INDEX, intern_font_field (f, XLFD_FOUNDRY_INDEX));
+    ASET (font, FONT_FOUNDRY_INDEX, f[XLFD_FOUNDRY_INDEX]);
   if (! merge || NILP (AREF (font, FONT_FAMILY_INDEX)))
-    ASET (font, FONT_FAMILY_INDEX, intern_font_field (f, XLFD_FAMILY_INDEX));
+    ASET (font, FONT_FAMILY_INDEX, f[XLFD_FAMILY_INDEX]);
   if (! merge || NILP (AREF (font, FONT_ADSTYLE_INDEX)))
-    ASET (font, FONT_ADSTYLE_INDEX, intern_font_field (f, XLFD_ADSTYLE_INDEX));
+    ASET (font, FONT_ADSTYLE_INDEX, f[XLFD_ADSTYLE_INDEX]);
   if (! merge || NILP (AREF (font, FONT_REGISTRY_INDEX)))
-    ASET (font, FONT_REGISTRY_INDEX, intern_font_field (f, XLFD_REGISTRY_INDEX));
+    ASET (font, FONT_REGISTRY_INDEX, f[XLFD_REGISTRY_INDEX]);
 
   for (i = FONT_WEIGHT_INDEX, j = XLFD_WEIGHT_INDEX;
        j <= XLFD_SWIDTH_INDEX; i++, j++)
     if (! merge || NILP (AREF (font, i)))
       {
-	if (isdigit(f[j][1]))
-	  val = make_number (atoi (f[j] + 1));
-	else
+	if (! INTEGERP (f[j]))
 	  {
-	    Lisp_Object sym = intern_font_field (f, j);
-
-	    val = prop_name_to_numeric (i, sym);
-	    if (NILP (val))
-	      val = sym;
+	    val = prop_name_to_numeric (i, f[j]);
+	    if (INTEGERP (val))
+	      f[j] = val;
 	  }
-	ASET (font, i, val);
+	ASET (font, i, f[j]);
       }
-
-  if (f[XLFD_PIXEL_SIZE_INDEX][1] == '*')
-    pixel_size = -1;		/* indicates "unspecified" */
-  else if (f[XLFD_PIXEL_SIZE_INDEX][1] == '[')
-    pixel_size = parse_matrix (f[XLFD_PIXEL_SIZE_INDEX] + 1);
-  else if (isdigit (f[XLFD_PIXEL_SIZE_INDEX][1]))
-    pixel_size = strtod (f[XLFD_PIXEL_SIZE_INDEX] + 1, NULL);
-  else
-    pixel_size = -1;
 
   if (pixel_size < 0 && FONT_ENTITY_P (font))
     return -1;
-
-  if (f[XLFD_POINT_SIZE_INDEX][1] == '*')
-    point_size = -1;		/* indicates "unspecified" */
-  else if (f[XLFD_POINT_SIZE_INDEX][1] == '[')
-    point_size = parse_matrix (f[XLFD_POINT_SIZE_INDEX] + 1);
-  else if (isdigit (f[XLFD_POINT_SIZE_INDEX][1]))
-    point_size = strtod (f[XLFD_POINT_SIZE_INDEX] + 1, NULL);
-  else
-    point_size = -1;
-
-  if (f[XLFD_RESY_INDEX][1] == '*')
-    resy = -1;			/* indicates "unspecified" */
-  else
-    resy = strtod (f[XLFD_RESY_INDEX] + 1, NULL);
-
-  if (f[XLFD_AVGWIDTH_INDEX][1] == '*')
-    avwidth = -1;		/* indicates "unspecified" */
-  else if (f[XLFD_AVGWIDTH_INDEX][1] == '~')
-    avwidth = - strtod (f[XLFD_AVGWIDTH_INDEX] + 2, NULL);
-  else
-    avwidth = strtod (f[XLFD_AVGWIDTH_INDEX] + 1, NULL);
 
   if (! merge || NILP (AREF (font, FONT_SIZE_INDEX)))
     {
       if (pixel_size >= 0)
 	ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));
-      else
+      else if (point_size >= 0)
 	{
-	  if (point_size >= 0)
+	  if (resy > 0)
 	    {
-	      if (resy > 0)
-		{
-		  pixel_size = POINT_TO_PIXEL (point_size, resy);
-		  ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));
-		}
-	      else
-		{
-		  ASET (font, FONT_SIZE_INDEX, make_float (point_size / 10));
-		}
+	      pixel_size = POINT_TO_PIXEL (point_size, resy);
+	      ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));
 	    }
 	  else
-	    ASET (font, FONT_SIZE_INDEX, Qnil);
+	    {
+	      ASET (font, FONT_SIZE_INDEX, make_float (point_size / 10));
+	    }
 	}
     }
 
   if (FONT_ENTITY_P (font)
       && EQ (AREF (font, FONT_TYPE_INDEX), Qx))
-    ASET (font, FONT_EXTRA_INDEX, intern_font_field (f, XLFD_RESY_INDEX));
+    ASET (font, FONT_EXTRA_INDEX, f[XLFD_RESY_INDEX]);
 
-  return (avwidth > 0 ? 2 : resy == 0);
+  return (avgwidth > 0 ? 2 : resy == 0);
 }
 
 /* Store XLFD name of FONT (font-spec or font-entity) in NAME (NBYTES
@@ -1998,7 +2266,11 @@ usage: (font-spec &rest properties)  */)
       if (prop < FONT_EXTRA_INDEX)
 	ASET (spec, prop, (font_property_table[prop].validater) (prop, val));
       else
-	extra = Fcons (Fcons (key, val), extra);
+	{
+	  if (EQ (key, QCname))
+	    font_parse_xlfd ((char *) SDATA (val), spec, 0);
+	  extra = Fcons (Fcons (key, val), extra);
+	}
     }  
   ASET (spec, FONT_EXTRA_INDEX, extra);
   return spec;
