@@ -195,6 +195,30 @@ AMCFix() (and now AMCHeaderFix() too).</p>
 
 <p>It's a bit messy -- sorry.</p>
 
+<h2><a id="Root-User">Roots -- User's Guide</a></h2>
+
+<pre>
+<a href="/project/mps/import/2001-09-27/mminfo/doc/impl/h/mps/index.txt#1">//info.ravenbrook.com/project/mps/import/2001-09-27/mminfo/doc/impl/h/mps/index.txt#1</a>
+   307 /* Root Creation and Destruction
+   308  *
+   309  * mps_root_create creates the most general type of root: a scanning
+   310  * function with two closure elements, p and s.
+   311  *
+   312  * mps_root_create_table creates a root from a block of memory which
+   313  * contains a contiguous array of references.  Pages containing table
+   314  * roots may be protected by the MPS if MPS_RM_PROT is set in the
+   315  * root mode.
+   316  *
+   317  * mps_root_create_fmt creates a root from a block of memory which
+   318  * contains formatted objects.  Pages containing fmt roots may be
+   319  * protected by the MPS if MPS_RM_PROT is set in the root mode.
+   320  *
+   321  * mps_root_create_reg creates a root which will be used to scan
+   322  * the registers of a thread.  (Often it will scan the stack, too.)
+   323  */
+</pre>
+
+
 
 <h2><a id="Allocation-Point-User">Allocation Points -- User's Guide</a></h2>
 
@@ -203,8 +227,10 @@ AMCFix() (and now AMCHeaderFix() too).</p>
   RB and NB.</p>
   
 <p><strong>Note:</strong> the text in this "Allocation Point" 
-  section <em>supersedes</em> the MPS Reference Manual version....</p>
-  
+  section may <em>supersede</em> the MPS Reference Manual version???.
+  At least, the mutator's obligation to ensure there are no exact 
+  references to a failed new-object, before it calls mps_ap_trip, 
+  is suspected to be new light.</p>
   
 <p><strong>Warning:</strong> the text in this "Allocation Point" 
   section is preliminary, but believed to be 'conservatively correct'.
@@ -212,6 +238,16 @@ AMCFix() (and now AMCHeaderFix() too).</p>
   will be correct, and will not violate the current or future 
   definitions of the MPS ap protocol.  But this is not (yet) an 
   accurate statement of the MPS ap protocol.  RHSK 2006-06-13.</p>
+
+<p><strong>Warning:</strong> the text in this "Allocation Point" 
+  section is in transition from 
+  1: not assuming ambiguous scanning of reg+stack, 
+  to 2: assuming ambiguous scanning of reg+stack.  
+  This transition was necessary because we found that we don't have 
+  (or haven't rediscovered) a specification of the MPS guarantees 
+  that a mutator would require for an unscanned reg+stack to be 
+  practical.  
+  RHSK 2006-06-13.</p>
 
 <h3>Overview of two-phase allocation</h3>
 
@@ -251,26 +287,30 @@ AMCFix() (and now AMCHeaderFix() too).</p>
 
 <p>If commit fails, the client should simply try to build the 
   object again (it is very rare for commit to fail even once, let 
-  alone twice).  So the standard allocation point idiom is:</p>
+  alone twice).</p>
+  
+<p>Usually, the client's registers and stack are scanned 
+  ambiguously, which takes care of point 3 above.  
+  So the standard allocation point idiom is:</p>
 
 <blockquote><pre><code>int make_object(object *parent)
 {
-  object *new;
+  void *p;
+  object *neo = NULL;
 
   do {
-    if (mps_reserve((void**)&amp;new, ap, SIZE_OBJECT) != MPS_RES_OK) {
+    if (mps_reserve(&amp;p, ap, SIZE_OBJECT) != MPS_RES_OK) {
       goto fail_make_object;
     }
     /* Initialize the new object */
-    new-&gt;type = TYPE_OBJECT;
-    new-&gt;size = SIZE_OBJECT;
-    new-&gt;child = NULL;
-    /* Store an ambiguous reference to the new object */
-    global-&gt;ambigroot = new;
-  } while (! mps_commit(ap, (void*)new, SIZE_OBJECT);
+    neo = p;
+    neo-&gt;type = TYPE_OBJECT;
+    neo-&gt;size = SIZE_OBJECT;
+    neo-&gt;child = NULL;
+  } while (! mps_commit(ap, p, SIZE_OBJECT);
 
-  /* Link the new object into my object graph */
-  parent-&gt;child = new;
+  /* Success: link the new object into my object graph */
+  parent-&gt;child = neo;
   return TRUE;
 
 fail_make_object:
@@ -280,6 +320,153 @@ fail_make_object:
 
 <p>The rest of this section goes through these steps in more 
   detail.</p>
+
+<p>.talk.RB.2006-06-13:</p>
+<blockquote><pre>
+ need two snippets:
+  1= with stack being ambig scanned
+  
+  2. without stack being ambig scanned: means, snippet should 
+     show parent being pinned.
+      /* Store an ambiguous reference to the new object */
+      global-&gt;ambigroot = neo;
+  [RHSK 2006-06-14: I'm not sure that unscanned reg+stack is possible!]
+Also:
+  = can't use "new";
+  = ? (void**) is not portable.
+  - avoid use of "race" -- it conventionally means a bad race.
+</pre></blockquote>
+
+<p>.talk.RB.2006-06-14:</p>
+<blockquote><pre>
+Modes of MPS use:
+1. manual only, no collection
+  1a. pure malloc/free replacement
+  1b. faster manual: ap, SAC, etc
+2. formatless fully ambig Boehm-like
+3. mostly copying formatted, ambiguous reg+stack
+  3a. single-threaded (may be the same as 3b);
+  3b. multi-threaded
+4. unscanned reg+stack, single-threaded, non-moving.
+5. unscanned reg+stack, single-threaded, moving.
+6: unscanned reg+stack, multi-threaded, non-moving.
+7: unscanned reg+stack, multi-threaded, moving -- may be 
+   impossible?impractical?
+
+For 4 and 5 (and 6 and 7), MPS could make a promise about when it 
+might invalidate unmanaged references.  (We currently only invalidate 
+when we flip the mutator for a trace, so each trace flip starts 
+a new epoch, and unmanaged references are only valid during 
+the epoch in which the unmanaged reference was created by copying
+some managed reference).
+</pre></blockquote>
+
+<p>.think.RHSK.2006-06-14:</p>
+<blockquote><pre>
+For 7: unscanned reg+stack, multi-threaded, moving.
+
+How do we support operations like:
+  a-&gt;b-&gt;c-&gt;d = e-&gt;f-&gt;g-&gt;h;
+?
+
+If forwarding pointers (broken hearts) didn't over-write the old 
+objects, then the long chain would be 'safe' as long as you throw 
+away the answer at the end, and as long as you do that before 
+the reclaim phase of the trace.  
+
+Hmm, it's easy to write a format where the broken heart doesn't 
+obliterate the object's slots -- store the forwarding pointer 
+solely in the object's format header, invisible to 'normal' client 
+code.  
+
+(By the way, are there any limits on the size of pad object that 
+the MPS can request of a format pad method?)
+
+With such a format, and the current behaviour of MPS's only 
+moving pool (amc):
+  -  after flip, unmanaged references are stale (point  
+     to stale copies of objects), but are otherwise still 
+     connected as the client expects;
+  -  after reclaim, they may be to unmapped memory.  
+But the MPS does not currently give a guarantee that it will 
+behave be like this.  Perhaps it could.
+
+Allocation Point is two things:
+  a. a fast inlined allocation protocol;
+  b. a quarantine that allows unmanaged references to be safely 
+     written, and either:
+       - safely converted into valid managed references 
+         (if commit succeeds); or
+       - flagged as invalid (if commit fails).
+
+b. is nearly what we want for 7.
+
+We want a defined region of time and space within 
+which we can use unmanaged references.  
+
+This can either be guaranteed success, or an attempt 
+followed by a 'did we get away with that?' check.  
+
+We could work with this primitive:
+  - load word from (ref1 + offset) and store it in (ref2 + offset).
+Exact stacks, manually maintained.  But it's painful.  (Okay for a 
+language compiler, but not for a human.)
+
+From a pinned object, how do i pin its child?
+do {
+  Read epoch
+  Read o-&gt;child into unmanaged ref "child"
+} while(! mps_pin(child, epoch);
+
+We can do this already with an allocation point "ap_PinStack".  Each 
+mps_pin_t object in the PinStack is simply a managed ambiguous ref:
+
+/* object o MUST be pinned */
+int pin_child(object *child_o, object *o)
+{
+  void *p;
+  mps_pin_t *pin;
+
+  do {
+    void *child;  /* unmanaged ref: we must not deref it */
+    
+    if (mps_reserve(&amp;p, ap_PinStack, sizeof(mps_pin_t)) != MPS_RES_OK) {
+      goto fail_pin_child;
+    }
+    pin = p;
+    
+    child = o-&gt;child;
+
+    /* We must not dereference child;
+       We must not store child anywhere managed.  
+       We must not store child in any quarantine except pin.
+       
+       We may store child in the pin quarantine.
+       We may store child somewhere where it will 
+         always remain umnanaged.  
+       
+       We may do whatever else we like with child!
+       (Not much!)
+    */
+    
+    pin-&gt;thing = child;
+  } while (! mps_commit(ap_PinStack, p, sizeof(mps_pin_t));
+
+  /* Success: we managed to pin the child */
+  child_o = pin-&gt;thing;
+  return TRUE;
+
+fail_pin_child:
+  child_o = NULL;
+  return FALSE;  /* out of memory, etc */
+}
+
+Given pinned object o, can we pin its child simply by telling our 
+own format code that the o-&gt;child slot is to be RankAMBIG now?
+
+NO!  We may have finished scanning at RankAMBIG, be scanning at 
+RankEXACT now, come across another ref to child, and move it.
+</pre></blockquote>
 
 <h3>The graph of managed references to mobile objects</h3>
 
@@ -717,6 +904,16 @@ fail_make_object:
                     exact refs; flipping at other times.
   2006-06-13  RHSK  Allocation point user's guide: Tidy; clarify-- not yet complete.
                     Distinguish it from section on AP internals.
+  2006-06-14  RHSK  Roots -- User's Guide: bare bones: root variants.
+                    Allocation point user's guide: standard reserve-commit 
+                      idiom: corrections, and now assume ambiguous reg+stack:
+                      transitioning to this assumption.
+                    Add .talk.RB.2006-06-13 about standard r-c idiom 
+                    Add .talk.RB.2006-06-14 about Modes of use of MPS, 
+                      and Promises to not flip (single-threaded).
+                    Add .think.RHSK.2006-06-14 about how we could support 
+                      unscanned reg+stack, even with multi-threaded, moving
+                      collector.
 </pre>
 
 
