@@ -1,3 +1,19 @@
+2006-06-14  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (enum xlfd_field_index): Rename XLFD_XXX_SIZE_INDEX to
+	XLFD_XXX_INDEX.
+	(enum xlfd_field_mask): New enum.
+	(intern_font_field): Argument changed.  Caller changed.  If digits
+	are followed by non-digits, return a symbol.
+	(font_expand_wildcards): New function.
+	(font_parse_xlfd): Fix wildcard handling.
+	(Ffont_spec): If :name is specified, reflect the info in the other
+	properties.
+
+	* ftfont.c (ftfont_pattern_entity): Fix typo.
+	(ftfont_list): Enforce FC_LANG in PATTERN to cancel the effect of
+	locale.
+
 2006-06-09  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Extern them.
