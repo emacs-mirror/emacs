@@ -116,11 +116,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define WHITE_PIX_DEFAULT(f) WhitePixel (FRAME_X_DISPLAY (f), \
 					 XScreenNumberOfScreen (FRAME_X_SCREEN (f)))
 
-#ifdef HAVE_XFT
-#define FONT_WIDTH(f)	((f)->max_advance_width)
-#else
 #define FONT_WIDTH(f)	((f)->max_bounds.width)
-#endif
 #define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)
 #define FONT_DESCENT(f) ((f)->descent)
@@ -527,7 +523,7 @@ struct x_output
   int icon_bitmap;
 
   /* Default ASCII font of this frame.  */
-  x_font_type *font;
+  XFontStruct *font;
 
   /* The baseline offset of the default ASCII font.  */
   int baseline_offset;

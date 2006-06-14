@@ -34,7 +34,7 @@ Boston, MA 02110-1301, USA.  */
 struct font_info
 {
   /* Pointer to window system dependent font structure.  On X window,
-     this value should be coerced to (x_font_type *).  */
+     this value should be coerced to (XFontStruct *).  */
   void *font;
 
   /* Index number of the font.  */
@@ -135,9 +135,6 @@ struct font_info
 
   /* CCL program to calculate code points of the font.  */
   struct ccl_program *font_encoder;
-#ifdef HAVE_XFT
-  Display *dpy;
-#endif
 };
 
 /* A value which may appear in the member `encoding' of struch

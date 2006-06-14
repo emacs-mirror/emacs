@@ -3192,6 +3192,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       /* Perhaps, we must allow frame parameter, say `font-backend',
 	 to specify which font backends to use.  */
+      register_font_driver (&xfont_driver, f);
 #ifdef HAVE_FREETYPE
 #ifdef HAVE_XFT
       register_font_driver (&xftfont_driver, f);
@@ -3199,7 +3200,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
       register_font_driver (&ftxfont_driver, f);
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
-      register_font_driver (&xfont_driver, f);
     }
 #endif	/* USE_FONT_BACKEND */
 

@@ -204,6 +204,10 @@ Boston, MA 02110-1301, USA.  */
 #include "keyboard.h"
 #include "frame.h"
 
+#ifdef HAVE_WINDOW_SYSTEM
+#include "fontset.h"
+#endif /* HAVE_WINDOW_SYSTEM */
+
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #ifdef USE_MOTIF
@@ -211,10 +215,6 @@ Boston, MA 02110-1301, USA.  */
 #include <Xm/XmStrDefs.h>
 #endif /* USE_MOTIF */
 #endif /* HAVE_X_WINDOWS */
-
-#ifdef HAVE_WINDOW_SYSTEM
-#include "fontset.h"
-#endif /* HAVE_WINDOW_SYSTEM */
 
 #ifdef MSDOS
 #include "dosfns.h"
@@ -5545,6 +5545,7 @@ free_realized_face (f, face)
 	      x_free_gc (f, face->gc);
 	      face->gc = 0;
 	    }
+
 	  free_face_colors (f, face);
 	  x_destroy_bitmap (f, face->stipple);
 	}
@@ -5567,30 +5568,6 @@ prepare_face_for_display (f, face)
 #ifdef HAVE_WINDOW_SYSTEM
   xassert (FRAME_WINDOW_P (f));
 
-#ifdef HAVE_XFT
-  if (face->xft_draw == 0)
-    {
-      BLOCK_INPUT;
-      XColor colors[2];
-      face->xft_draw = XftDrawCreate (FRAME_X_DISPLAY (f),
-                                      FRAME_X_WINDOW (f),
-                                      FRAME_X_DISPLAY_INFO (f)->visual,
-                                      FRAME_X_DISPLAY_INFO (f)->cmap);
-      colors[0].pixel = face->xft_fg.pixel = face->foreground;
-      colors[1].pixel = face->xft_bg.pixel = face->background;
-      
-      XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->cmap,
-                    colors, 2);
-      face->xft_fg.color.alpha = face->xft_bg.color.alpha = 0xffff;
-      face->xft_fg.color.red = colors[0].red;
-      face->xft_fg.color.green = colors[0].green;
-      face->xft_fg.color.blue = colors[0].blue;
-      face->xft_bg.color.red = colors[1].red;
-      face->xft_bg.color.green = colors[1].green;
-      face->xft_bg.color.blue = colors[1].blue;
-      UNBLOCK_INPUT;
-    }
-#endif
   if (face->gc == 0)
     {
       XGCValues xgcv;
@@ -5602,14 +5579,10 @@ prepare_face_for_display (f, face)
       xgcv.graphics_exposures = False;
 #endif
       /* The font of FACE may be null if we couldn't load it.  */
-      if (!face->font)
-        fprintf (stderr, "%s: font is NULL\n", __func__);
       if (face->font)
 	{
 #ifdef HAVE_X_WINDOWS
-#ifndef HAVE_XFT
 	  xgcv.font = face->font->fid;
-#endif
 #endif
 #ifdef WINDOWSNT
 	  xgcv.font = face->font;
@@ -5617,9 +5590,7 @@ prepare_face_for_display (f, face)
 #ifdef MAC_OS
 	  xgcv.font = face->font;
 #endif
-#ifndef HAVE_XFT
 	  mask |= GCFont;
-#endif
 	}
 
       BLOCK_INPUT;
@@ -5740,15 +5711,6 @@ clear_face_gcs (c)
       for (i = BASIC_FACE_ID_SENTINEL; i < c->used; ++i)
 	{
 	  struct face *face = c->faces_by_id[i];
-#ifdef HAVE_XFT
-          if (face && face->xft_draw)
-            {
-              BLOCK_INPUT;
-              XftDrawDestroy (face->xft_draw);
-              UNBLOCK_INPUT;
-              face->xft_draw = 0;
-            }
-#endif
 	  if (face && face->gc)
 	    {
 #ifdef USE_FONT_BACKEND
@@ -7103,28 +7065,28 @@ best_matching_font (f, attrs, fonts, nfonts, width_ratio, needs_overstrike)
 		best = fonts + i;
 	      }
 	  }
+    }
+  
+  /* We should have found SOME font.  */
+  if (best == NULL)
+    abort ();
+ 
+  if (! exact_p && needs_overstrike)
+    {
+      enum xlfd_weight want_weight = specified[XLFD_WEIGHT];
+      enum xlfd_weight got_weight = best->numeric[XLFD_WEIGHT];
 
-#ifndef HAVE_XFT
-      /* KOKO: overstrike only works with non-aliased fonts.  How to figure
-         out if a font is aliased?  It is in the XFT properties.  */
-      if (needs_overstrike)
-	{
-	  enum xlfd_weight want_weight = specified[XLFD_WEIGHT];
-	  enum xlfd_weight got_weight = best->numeric[XLFD_WEIGHT];
-
-	  if (want_weight > XLFD_WEIGHT_MEDIUM && want_weight > got_weight)
-	    {
-	      /* We want a bold font, but didn't get one; try to use
-		 overstriking instead to simulate bold-face.  However,
-		 don't overstrike an already-bold fontn unless the
-		 desired weight grossly exceeds the available weight.  */
-	      if (got_weight > XLFD_WEIGHT_MEDIUM)
-		*needs_overstrike = (got_weight - want_weight) > 2;
-	      else
-		*needs_overstrike = 1;
-	    }
-	}
-#endif
+      if (want_weight > XLFD_WEIGHT_MEDIUM && want_weight > got_weight)
+        {
+          /* We want a bold font, but didn't get one; try to use
+             overstriking instead to simulate bold-face.  However,
+             don't overstrike an already-bold fontn unless the
+             desired weight grossly exceeds the available weight.  */
+          if (got_weight > XLFD_WEIGHT_MEDIUM)
+            *needs_overstrike = (got_weight - want_weight) > 2;
+          else
+            *needs_overstrike = 1;
+        }
     }
 
   if (font_scalable_p (best))
@@ -7436,7 +7398,6 @@ realize_default_face (f)
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object frame_font;
   struct face *face;
-  int do_font = 0;
 
   /* If the `default' face is not yet known, create it.  */
   lface = lface_from_face_name (f, Qdefault, 0);
@@ -7458,7 +7419,6 @@ realize_default_face (f)
       set_lface_from_font_name (f, lface, frame_font,
                                 f->default_face_done_p, 1);
       f->default_face_done_p = 1;
-      do_font = 1;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -7528,12 +7488,6 @@ realize_default_face (f)
   check_lface (lface);
   bcopy (XVECTOR (lface)->contents, attrs, sizeof attrs);
   face = realize_face (c, attrs, DEFAULT_FACE_ID);
-
-#ifdef HAVE_WINDOW_SYSTEM
-#warning "Must get face parameters and font cache right"
-  if (do_font)
-    face->font = FRAME_FONT (f);
-#endif
 
 #ifdef HAVE_WINDOW_SYSTEM
 #ifdef HAVE_X_WINDOWS
@@ -7644,9 +7598,6 @@ realize_non_ascii_face (f, font_id, base_face)
   face = (struct face *) xmalloc (sizeof *face);
   *face = *base_face;
   face->gc = 0;
-#ifdef HAVE_XFT
-  face->xft_draw = NULL;
-#endif
 
   /* Don't try to free the colors copied bitwise from BASE_FACE.  */
   face->colors_copied_bitwise_p = 1;

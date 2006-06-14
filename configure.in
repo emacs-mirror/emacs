@@ -109,6 +109,8 @@ AC_ARG_WITH(gif,
 [  --with-gif              use -lungif for displaying GIF images])
 AC_ARG_WITH(png,
 [  --with-png              use -lpng for displaying PNG images])
+AC_ARG_WITH(freetype,
+[  --with-freetype         use -lfreetype for local fonts support])
 AC_ARG_WITH(xft,
 [  --with-xft              use -lXft for anti aliased fonts])
 AC_ARG_WITH(gtk,
@@ -130,7 +132,7 @@ AC_ARG_ENABLE(carbon-app,
 AC_ARG_ENABLE(font-backend,
 [  --enable-font-backend   compile code of font-backend support],
       USE_FONT_BACKEND=$enableval,
-      USE_FONT_BACKEND=no)
+      USE_FONT_BACKEND=yes)
 
 AC_ARG_ENABLE(asserts,
 [  --enable-asserts        compile code with asserts enabled],

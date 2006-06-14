@@ -1160,7 +1160,7 @@ struct glyph_string
   struct face *face;
 
   /* Font in which this string is to be drawn.  */
-  x_font_type *font;
+  XFontStruct *font;
 
   /* Font info for this string.  */
   struct font_info *font_info;
@@ -1445,11 +1445,6 @@ struct face
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-#ifdef HAVE_XFT
-  XftColor xft_fg;
-  XftColor xft_bg;
-  XftDraw *xft_draw;
-#endif
   /* If non-zero, this is a GC that we can use without modification for
      drawing the characters in this face.  */
   GC gc;
@@ -1458,7 +1453,7 @@ struct face
      for some reason.  This points to a `font' slot of a struct
      font_info, and we should not call XFreeFont on it because the
      font may still be used somewhere else.  */
-  x_font_type *font;
+  XFontStruct *font;
 
   /* Background stipple or bitmap used for this face.  This is
      an id as returned from load_pixmap.  */
@@ -1656,19 +1651,11 @@ struct face_cache
 /* Prepare face FACE for use on frame F.  This must be called before
    using X resources of FACE.  */
 
-#ifdef HAVE_XFT
-#define PREPARE_FACE_FOR_DISPLAY(F, FACE)               \
-     if ((FACE)->xft_draw == 0 || (FACE)->gc == 0)      \
-       prepare_face_for_display ((F), (FACE));          \
-     else                                               \
-       (void) 0
-#else
 #define PREPARE_FACE_FOR_DISPLAY(F, FACE)	\
      if ((FACE)->gc == 0)			\
        prepare_face_for_display ((F), (FACE));	\
      else					\
        (void) 0
-#endif /* not HAVE_XFT */
 
 /* Return a pointer to the face with ID on frame F, or null if such a
    face doesn't exist.  */
@@ -2325,9 +2312,7 @@ struct redisplay_interface
 
 /* Get metrics of character CHAR2B in FONT of type FONT_TYPE.
    Value is null if CHAR2B is not contained in the font.  */
-  XCharStruct * (*per_char_metric) P_ ((struct frame *f,
-                                        x_font_type *font,
-                                        XChar2b *char2b,
+  XCharStruct * (*per_char_metric) P_ ((XFontStruct *font, XChar2b *char2b,
 					int font_type));
 
 /* Encode CHAR2B using encoding information from FONT_INFO.  CHAR2B is
@@ -2705,7 +2690,7 @@ extern int unibyte_display_via_language_environment;
 extern void reseat_at_previous_visible_line_start P_ ((struct it *));
 
 extern int calc_pixel_width_or_height P_ ((double *, struct it *, Lisp_Object,
-					   /* x_font_type */ void *, int, int *));
+					   /* XFontStruct */ void *, int, int *));
 
 #ifdef HAVE_WINDOW_SYSTEM
 

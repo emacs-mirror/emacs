@@ -18413,9 +18413,9 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
 
 #ifdef HAVE_WINDOW_SYSTEM
       if (EQ (prop, Qheight))
-	return OK_PIXELS (font ? FONT_HEIGHT ((x_font_type *)font) : FRAME_LINE_HEIGHT (it->f));
+	return OK_PIXELS (font ? FONT_HEIGHT ((XFontStruct *)font) : FRAME_LINE_HEIGHT (it->f));
       if (EQ (prop, Qwidth))
-	return OK_PIXELS (font ? FONT_WIDTH ((x_font_type *)font) : FRAME_COLUMN_WIDTH (it->f));
+	return OK_PIXELS (font ? FONT_WIDTH ((XFontStruct *)font) : FRAME_COLUMN_WIDTH (it->f));
 #else
       if (EQ (prop, Qheight) || EQ (prop, Qwidth))
 	return OK_PIXELS (1);
@@ -19031,7 +19031,7 @@ x_get_glyph_overhangs (glyph, f, left, right)
 
   if (glyph->type == CHAR_GLYPH)
     {
-      x_font_type *font;
+      XFontStruct *font;
       struct face *face;
       struct font_info *font_info;
       XChar2b char2b;
@@ -19039,9 +19039,9 @@ x_get_glyph_overhangs (glyph, f, left, right)
 
       face = get_glyph_face_and_encoding (f, glyph, &char2b, NULL);
       font = face->font;
-      font_info = FONT_INFO_FROM_ID (f, face->font_info_id);
+      font_info = FONT_INFO_FROM_FACE (f, face);
       if (font  /* ++KFS: Should this be font_info ?  */
-	  && (pcm = rif->per_char_metric (f, font, &char2b, glyph->font_type)))
+	  && (pcm = get_per_char_metric (font, font_info, &char2b, glyph->font_type)))
 	{
 	  if (pcm->rbearing > pcm->width)
 	    *right = pcm->rbearing - pcm->width;
@@ -20072,7 +20072,7 @@ produce_stretch_glyph (it)
   int ascent = 0;
   double tem;
   struct face *face = FACE_FROM_ID (it->f, it->face_id);
-  x_font_type *font = face->font ? face->font : FRAME_FONT (it->f);
+  XFontStruct *font = face->font ? face->font : FRAME_FONT (it->f);
 
   PREPARE_FACE_FOR_DISPLAY (it->f, face);
 
@@ -20213,7 +20213,7 @@ static Lisp_Object
 calc_line_height_property (it, val, font, boff, override)
      struct it *it;
      Lisp_Object val;
-     x_font_type *font;
+     XFontStruct *font;
      int boff, override;
 {
   Lisp_Object face_name = Qnil;
@@ -20303,7 +20303,7 @@ x_produce_glyphs (it)
   if (it->what == IT_CHARACTER)
     {
       XChar2b char2b;
-      x_font_type *font;
+      XFontStruct *font;
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
       XCharStruct *pcm;
       int font_not_found_p;
@@ -20367,9 +20367,8 @@ x_produce_glyphs (it)
 
 	  it->nglyphs = 1;
 
-	  pcm = rif->per_char_metric (it->f, font, &char2b,
-				      FONT_TYPE_FOR_UNIBYTE (font,
-                                                             it->char_to_display));
+	  pcm = get_per_char_metric (font, font_info, &char2b,
+				      FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
 
 	  if (it->override_ascent >= 0)
 	    {
@@ -20599,8 +20598,8 @@ x_produce_glyphs (it)
 	     multiplying the width of font by the width of the
 	     character.  */
 
-	  pcm = rif->per_char_metric (it->f, font, &char2b,
-				      FONT_TYPE_FOR_MULTIBYTE (font, it->c));
+	  pcm = get_per_char_metric (font, font_info, &char2b,
+                                     FONT_TYPE_FOR_MULTIBYTE (font, it->c));
 
 	  if (font_not_found_p || !pcm)
 	    {
@@ -20658,7 +20657,7 @@ x_produce_glyphs (it)
       /* Note: A composition is represented as one glyph in the
 	 glyph matrix.  There are no padding glyphs.  */
       XChar2b char2b;
-      x_font_type *font;
+      XFontStruct *font;
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
       XCharStruct *pcm;
       int font_not_found_p;
@@ -20744,9 +20743,8 @@ x_produce_glyphs (it)
 
 	  /* Initialize the bounding box.  */
 	  if (font_info
-	      && (pcm = rif->per_char_metric (it->f, font, &char2b,
-					      FONT_TYPE_FOR_MULTIBYTE (font,
-                                                                       it->c))))
+	      && (pcm = get_per_char_metric (font, font_info, &char2b,
+                                             FONT_TYPE_FOR_MULTIBYTE (font, it->c))))
 	    {
 	      width = pcm->width;
 	      ascent = pcm->ascent;
@@ -20816,14 +20814,14 @@ x_produce_glyphs (it)
 	      else
 		{
 		  font_info
-		    = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+		    = FONT_INFO_FROM_FACE (it->f, face);
 		  boff = font_info->baseline_offset;
 		  if (font_info->vertical_centering)
 		    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 		}
 
 	      if (font_info
-		  && (pcm = rif->per_char_metric (it->f, font, &char2b,
+		  && (pcm = get_per_char_metric (font, font_info, &char2b,
 						  FONT_TYPE_FOR_MULTIBYTE (font, ch))))
 		{
 		  width = pcm->width;

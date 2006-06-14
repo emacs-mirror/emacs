@@ -1441,10 +1441,10 @@ main (argc, argv
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
 #ifdef USE_FONT_BACKEND
-  enable_font_backend = 0;
-  if (argmatch (argv, argc, "-enable-font-backend", "--enable-font-backend",
+  enable_font_backend = 1;
+  if (argmatch (argv, argc, "-disable-font-backend", "--disable-font-backend",
 		4, NULL, &skip_args))
-    enable_font_backend = 1;
+    enable_font_backend = 0;
 #endif	/* USE_FONT_BACKEND */
 
 #ifdef HAVE_X_WINDOWS
@@ -1849,7 +1849,7 @@ struct standard_args standard_args[] =
   { "-unibyte", "--unibyte", 81, 0 },
   { "-no-multibyte", "--no-multibyte", 80, 0 },
   { "-nl", "--no-loadup", 70, 0 },
-  { "-enable-font-backend", "--enable-font-backend", 65, 0 },
+  { "-disable-font-backend", "--disable-font-backend", 65, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
