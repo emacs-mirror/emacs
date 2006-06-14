@@ -173,7 +173,7 @@ xft_font_open_name (Display *dpy, int screen, char *name)
 {
     x_font_type *font;
 
-    if (*name == '-') {
+    if (*name == '-' || *name == '*') {
 	font = XftFontOpenXlfd (dpy, screen, name);
 	if (font)
 	    return font;
@@ -226,7 +226,7 @@ xft_pad_fields (char *pattern)
 	strcat (new, "*-");
       strcat (new, third);
     }
-  return new;
+  return ret;
 }
 
 static char *
@@ -253,7 +253,7 @@ xft_name_parse (char *name)
 {
     FcPattern	*pattern;
     
-    if (*name == '-') {
+    if (*name == '-' || *name == '*') {
 	char *full_xlfd = xft_fillout_xlfd (name);
 	pattern = XftXlfdParse (full_xlfd, FcFalse, FcFalse);
 	free (full_xlfd);
