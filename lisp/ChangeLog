@@ -1,3 +1,15 @@
+2006-06-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-same-frame): New option.
+	(gud-old-arrow, gdb-frame-begin, gdb-printing): New variables.
+	(gdb-init-1): Initialise them.
+	(gdb-starting): Reset gdb-printing
+	(gdb-starting): Save value of gud-overlay-arrow-position.
+	(gdb-frame-begin): Set gdb-frame-begin, gdb-printing.
+	(gdb-stopped): Don't look for source if calling procedure e.g "p a ()".
+	Use gdb-*-gdb-buffer conditionally on gdb-same-frame.
+	(gdb-frame-gdb-buffer): Keep menu bar, tool bar for GUD buffer.
+
 2006-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-retrieve-revision): Use decode-coding-inserted-region.
