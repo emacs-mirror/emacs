@@ -544,25 +544,71 @@ RankEXACT now, come across another ref to child, and move it.
 
 <p>The client will typically do all these things:</p>
 <ul>
-  <li> write data to make the new object 'valid' for the client's format;</li>
+  <li> write data that makes the new object 'valid' for the 
+       client's format;</li>
   <li> write other data into the new object;</li>
   <li> write references (to existing objects) into the new object;</li>
   <li> write a reference TO the new object into an existing object
+     [alert: must be an ambiguously-scanned cell; 
+     this section is in transistion.  RHSK 2006-06-15]
      -- this connects the new object into the client's graph of 
      managed objects;</li>
 </ul>
 
 <p>However, during the build, the client <strong>MUST NOT</strong> read 
   (from the new object) a reference to an existing mobile object -- 
-  because the reference is unmanaged and may be stale.</p>
+  because the reference is unmanaged and may have become stale.</p>
 
 <p>(Actually, the restriction is: the moment a reference to an 
   existing mobile object is written into the new object, that 
   reference (in the new object) may become stale.  And you'd better 
   not use (dereference) a stale reference.  And you'd better not 
-  write it into any existing object.  Writing it back into another 
-  part of the new object is okay.  Just don't trust it to be a valid 
-  reference.)</p>
+  write it into any exactly-scanned cell (such as in an existing 
+  object).  
+  Reading it into an ambiguously-scanned cell (such as an ambiguously 
+  scanned register or stack cell) is okay as long as you don't 
+  dereference it.  
+  Writing it back into another part of the new object is okay.  
+  Just don't trust it to be a valid reference.)</p>
+  
+<p>Before the end of the build phase:</p>
+<ul>
+  <li> the new object must be validly formatted;</li>
+  <li> all exactly-scanned cells in the new object must
+       contain valid references;</li>
+  <li> the new object must be ambiguously reachable.</li>
+</ul>
+
+<p>Note that if there are parts of the new object that are not 
+  yet being used to store useful data (such as a string buffer),
+  and you leave them uninitialised, they may contain data that 
+  looks like a valid object -- this is called a "spoof object".  
+  (This might be the 'ghost' of a previous object, or just random 
+  junk that happens to look like a valid object).
+  If your code and the MPS are bug-free, spoof objects are not 
+  a problem.  
+  However, if there is a bug in your code (or in the MPS) that 
+  results in a bogus exact reference to this spoof, it will go 
+  undetected, 
+  and arbitrary corruption may occur before the bug comes to light.  
+  So, consider filling these as-yet unused parts with specially 
+  chosen dummy values, at least as an option for debugging.  
+  Choose dummy values that your format code will recognise as 
+  invalid.</p>
+  
+<p>[RHSK 2006-06-15:
+  In poolamc, these ghosts will be forwarding pointers, 
+  and they will usually get unmapped (though 
+  unless we use zeroed / secure / etc VM they may get mapped-in 
+  again intact).  
+  But if the tract is nailed they won't even get unmapped.  
+  And ghost forwarding pointers are just as bad news as any other 
+  spoof.
+  There's currently no format method "destroy".  If there was, 
+  we could call it in the reclaim phase, to allow format code to 
+  safely mark these ghosts as dead.  Actually, perhaps that's a 
+  valid use of the 'pad' method?
+  ]</p>
 
 <h3>mps_commit</h3>
 
@@ -582,9 +628,13 @@ RankEXACT now, come across another ref to child, and move it.
 </ul>
 
 <p>Occasionally but rarely, <code>mps_commit</code> fails.  
-  This means that the new object no longer exists.  
-  The memory may even be unmapped by the time 
-  <code>mps_commit</code> returns.</p>
+  This means:</p>
+<ul>
+  <li> the new object no longer exists &mdash;
+       the memory may even be unmapped by the time 
+       <code>mps_commit</code> returns;</li>
+  <li> there must be no exact references to the new object.</li>
+</ul>
 
 <p>When this happens the client should take care to clear up any 
   managed references to the (now vanished) new object.</p>
@@ -797,7 +847,7 @@ RankEXACT now, come across another ref to child, and move it.
 
 <p>The only safe way to cope with such a bogus reference is for 
    Fix to verify that the reference points to the start of a real 
-   object, which it could do by iteratating the format skip method 
+   object, which it could do by iterating the format skip method 
    from some known point in the pool.</p>
 
 <p>The consequences of fixing a bogus exact 
@@ -864,7 +914,7 @@ RankEXACT now, come across another ref to child, and move it.
     based on intimate knowledge of the mutator's behaviour.  
     Dodgy.</li>
   <li>Mutator wants permission to keep bogus exact references 
-    in general.  Collector must cope safely, with all the cases 
+    in general.  Collector must safely cope with all the cases 
     of bogus exact references listed above.  I believe the MPS 
     does not currently do this.  It would require a very fast 
     check at fix time that the reference is to the start of a 
@@ -873,14 +923,34 @@ RankEXACT now, come across another ref to child, and move it.
 
 <h3>with exact refs</h3>
 
-<p>We could define the protocol such that 
-  the mutator can clear exact references to the new object 
-  after Lc and before calling mps_ap_trip.  During this time, 
+<p>The MPS needs to keep the buffer mapped for some time -- 
+  until the mutator has stopped writing into it.
+  The MPS needs to remember If1 forever.  
+  The MPS needs to remember the rest of the 
+  about-to-be-detached buffer structure for some time -- 
+  when is the MPS permitted to detach the buffer?</p>
+
+<p>Keeping the buffer mapped consumes resource.  
+  There must be a contract with the mutator about when the 
+  MPS is permitted to free it.  
+</p>
+
+<p>We could define the protocol such that there is a window: 
+  after the mutator discovers that it has lost the race, but 
+  while the collector is still remembering that this object 
+  is invalid.  The mutator could use this window to null-out 
+  exact references to the new object.</p>
+
+<p>This window could be after Lc and before calling mps_ap_trip.  
+  During this time, 
   the collector must keep the new object as pinned unmanaged 
   memory.  By calling mps_ap_trip, the mutator promises that 
   it has nulled-out any exact references to the new object, 
   and the collector in mps_ap_trip may unmap the memory or 
   safely re-use it without fear of spoofing.</p>
+  
+<p>Or, we could leave the window open until mps_ap_fill is 
+  called.  We just need to define it.</p>
 
 <h3>flipping at other times</h3>
 
@@ -914,6 +984,9 @@ RankEXACT now, come across another ref to child, and move it.
                     Add .think.RHSK.2006-06-14 about how we could support 
                       unscanned reg+stack, even with multi-threaded, moving
                       collector.
+  2006-06-15  RHSK  Allocation Points: clarifications and further notes 
+                    into User Guide and Internals, including initializing 
+                    as-yet unused parts of new objects to reduce spoofing.
 </pre>
 
 
