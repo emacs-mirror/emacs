@@ -3613,7 +3613,7 @@ all pending output has been dealt with."))
 		   (progn
 		     ;; Delete scroll-needed lines at term-scroll-end,
 		     ;; then insert scroll-needed lines.
-		     (term-vertical-motion (1- term-scroll-end))
+		     (term-vertical-motion term-scroll-end)
 		     (end-of-line)
 		     (setq save-top (point))
 		     (term-vertical-motion scroll-needed)
@@ -3767,11 +3767,12 @@ Should only be called when point is at the start of a screen line."
 	(save-current-column term-current-column)
 	(save-start-line-column term-start-line-column)
 	(save-current-row (term-current-row)))
-    (when (>= (+ save-current-row lines) term-scroll-end)
-	(setq lines (- lines (- (+ save-current-row lines) term-scroll-end))))
+    ;; The number of inserted lines shouldn't exceed the scroll region end.
+    (when (> (+ save-current-row lines) (1+ term-scroll-end))
+      (setq lines (- lines (- (+ save-current-row lines) (1+ term-scroll-end)))))
     (term-down lines)
     (delete-region start (point))
-    (term-down (- term-scroll-end save-current-row lines))
+    (term-down (- (1+ term-scroll-end) save-current-row lines))
     (term-insert-char ?\n lines)
     (setq term-current-column save-current-column)
     (setq term-start-line-column save-start-line-column)
@@ -3792,9 +3793,9 @@ Should only be called when point is at the start of a screen line."
 	  (term-down (- term-scroll-start save-current-row))
 	  (setq start (point)))
       ;; The number of inserted lines shouldn't exceed the scroll region end.
-      (when (>= (+ save-current-row lines) term-scroll-end)
-	(setq lines (- lines (- (+ save-current-row lines) term-scroll-end))))
-      (term-down (- term-scroll-end save-current-row lines)))
+      (when (> (+ save-current-row lines) (1+ term-scroll-end))
+	(setq lines (- lines (- (+ save-current-row lines)(1+ term-scroll-end)))))
+      (term-down (- (1+ term-scroll-end) save-current-row lines)))
     (setq start-deleted (point))
     (term-down lines)
     (delete-region start-deleted (point))
