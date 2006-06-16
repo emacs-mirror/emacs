@@ -1,3 +1,17 @@
+2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Fx_display_mm_height, Fx_display_mm_width)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Use CGDisplayScreenSize.
+
+	* macterm.c (do_app_resume, do_app_suspend): Remove functions.
+	(mac_tsm_resume, mac_tsm_suspend) [USE_MAC_TSM]: New functions.
+	(mac_handle_window_event, XTread_socket) [USE_MAC_TSM]: Use them.
+	(Vmac_ts_script_language_on_focus) [USE_MAC_TSM]: New variable.
+	(syms_of_macterm) [USE_MAC_TSM]: Defvar it.
+	(saved_ts_language, saved_ts_component) [USE_MAC_TSM]: New variables.
+	(mac_initialize_display_info) [MAC_OSX]: Use Quartz Display
+	Services functions to get size of main display in pixels.
+
 2006-06-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (back_to_previous_visible_line_start): Reset

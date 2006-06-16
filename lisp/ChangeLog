@@ -1,3 +1,11 @@
+2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-start.el (all): Add mac-ts-script-language-on-focus.
+
+	* term/mac-win.el (mac-text-encoding-ascii): New constant.
+	(mac-utxt-to-string): Use it.
+	(mac-ts-update-active-input-area): Use mac-ae-number.
+
 2006-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-handle-scroll, term-delete-lines)
