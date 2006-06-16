@@ -2986,6 +2986,7 @@ x_default_font_parameter (f, parms)
 	    /* If those didn't work, look for something which will
 	       at least work.  */
 	    "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1",
+	    "fixed",
 	    NULL };
       int i;
 
@@ -2996,7 +2997,7 @@ x_default_font_parameter (f, parms)
 	    break;
 	}
       if (NILP (font))
-	font = build_string ("fixed");
+	error ("No suitable font was found");
     }
   x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
