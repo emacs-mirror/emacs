@@ -440,9 +440,9 @@ different syntax for specifying characters with code points above
 Unicode code point is @samp{U+@var{nnnnnn}}, if such a character
 is supported by Emacs.
 
-  Unlike in some other programming languages, in Emacs Lisp this
-syntax is available for character literals, and (see later) in
-strings, but not elsewhere.
+  This peculiar and inconvenient syntax was adopted for compatibility
+with other programming languages.  Unlike some other languages, Emacs
+Lisp supports this syntax in only character literals and strings.
 
 @cindex @samp{\} in character constant
 @cindex backslash in character constant
@@ -1012,6 +1012,9 @@ the string contains no other characters forcing it to be multibyte,
 this produces a unibyte string.  However, using any hex escape in a
 string (even for an @acronym{ASCII} character) forces the string to be
 multibyte.
+
+  You can also specify characters in a string by their numeric values
+in Unicode, using @samp{\u} and @samp{\U} (@pxref{Character Type}).
 
   @xref{Text Representations}, for more information about the two
 text representations.
