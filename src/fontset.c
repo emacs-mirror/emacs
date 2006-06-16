@@ -1834,17 +1834,39 @@ new_fontset_from_font_name (Lisp_Object fontname)
 
 #ifdef USE_FONT_BACKEND
 int
-new_fontset_from_font (f, font_object)
-     FRAME_PTR f;
+new_fontset_from_font (font_object)
      Lisp_Object font_object;
 {
-  Lisp_Object xlfd = Ffont_xlfd_name (font_object);
-  int id = new_fontset_from_font_name (xlfd);
-  Lisp_Object fontset = FONTSET_FROM_ID (id);
+  Lisp_Object font_name = font_get_name (font_object);
+  Lisp_Object font_spec = font_get_spec (font_object);
+  Lisp_Object short_name, name, fontset;
 
-  FONTSET_ASCII (fontset) = build_string (font_get_name (font_object));
+  if (NILP (auto_fontset_alist))
+    short_name = build_string ("fontset-startup");
+  else
+    {
+      char temp[32];
+      int len = XINT (Flength (auto_fontset_alist));
 
-  return id;
+      sprintf (temp, "fontset-auto%d", len);
+      short_name = build_string (temp);
+    }
+  ASET (font_spec, FONT_REGISTRY_INDEX, short_name);
+  name = Ffont_xlfd_name (font_spec);
+  if (NILP (name))
+    {
+      int i;
+
+      for (i = 0; i < FONT_SIZE_INDEX; i++)
+	if ((i != FONT_FAMILY_INDEX) && (i != FONT_REGISTRY_INDEX))
+	  ASET (font_spec, i, Qnil);
+      name = Ffont_xlfd_name (font_spec);
+      if (NILP (name))
+	abort ();
+    }
+  fontset = make_fontset (Qnil, name, Qnil);
+  FONTSET_ASCII (fontset) = font_name;
+  return XINT (FONTSET_ID (fontset));
 }
 
 struct font *
