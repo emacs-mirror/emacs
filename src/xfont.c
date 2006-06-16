@@ -238,7 +238,6 @@ xfont_registry_charsets (registry, encoding, repertory)
 }
 
 static Lisp_Object xfont_get_cache P_ ((Lisp_Object));
-static int xfont_parse_name P_ ((FRAME_PTR, char *, Lisp_Object));
 static Lisp_Object xfont_list P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object xfont_list_family P_ ((Lisp_Object));
 static struct font *xfont_open P_ ((FRAME_PTR, Lisp_Object, int));
@@ -257,7 +256,6 @@ struct font_driver xfont_driver =
   {
     (Lisp_Object) NULL,		/* Qx */
     xfont_get_cache,
-    xfont_parse_name,
     xfont_list,
     xfont_list_family,
     NULL,
@@ -280,23 +278,6 @@ xfont_get_cache (frame)
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (frame));
 
   return (dpyinfo->name_list_element);
-}
-
-static int
-xfont_parse_name (f, name, spec)
-     FRAME_PTR f;
-     char *name;
-     Lisp_Object spec;
-{
-  if (font_parse_xlfd (name, spec, 0) >= 0)
-    return 0;
-  name = xfont_query_font (FRAME_X_DISPLAY (f), name, spec);
-  if (name)
-    {
-      XFree (name);
-      return 0;
-    }
-  return -1;
 }
 
 extern Lisp_Object Vface_alternative_font_registry_alist;
