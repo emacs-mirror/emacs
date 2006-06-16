@@ -1,3 +1,7 @@
+2006-06-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frame.h (x_new_fontset2): Fix prototype.
+
 2006-06-16  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (struct font_driver): Member parse_name deleted.
