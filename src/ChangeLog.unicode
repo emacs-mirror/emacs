@@ -1,3 +1,7 @@
+2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_set_unicode_keystroke_event): Don't use MAKE_CHAR.
+
 2006-06-14  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_open, xfont_encode_char): Fix typo.
