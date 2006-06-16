@@ -46,7 +46,7 @@
 
 <h2>Introduction</h2>
 
-<p>The essential MPS concepts for GC are:</p>
+<h3>The essential MPS concepts for GC are:</h3>
 <dl>
   <dt> <a href="#Format">Format&darr;</a></dt>
   <dd> lets the MPS ask the client a question about an object;</dd>
@@ -55,8 +55,15 @@
   <dd> tell the MPS which things (eg. stack, globals) are always alive.</dd>
 </dl>
 
-<p>The advanced MPS concepts for GC are:</p>
+<h3>The advanced MPS concepts for GC are:</h3>
 <dl>
+  <dt> <a href="#Protection">Protection and incremental collection&darr;</a></dt>
+  <dd> MPS sets operating-system read- or write-barriers on certain 
+    pages.  When client tries to use this protected memory, the MPS 
+    interrupts and does just enough garbage-collection to allow the 
+    client to see this page.
+  </dd>
+    
   <dt> Allocation Point
        <a href="#Allocation-Point-User">(user's guide&darr;)</a></dt>
   <dd> reserve memory, build a new object, and commit 
@@ -220,10 +227,53 @@ AMCFix() (and now AMCHeaderFix() too).</p>
 
 
 
+<h2><a id="Protection">Protection and incremental collection</a></h2>
+
+<p>These notes on Protection and incremental collection were written 
+  by RHSK between 2006-06-15 and 2006-06-15, following research and 
+  discussion with RB and DRJ.</p>
+
+<p>The MPS can set operating-system read- or write-barriers on certain 
+    pages.  When client tries to use this protected memory, the MPS 
+    interrupts and does just enough garbage-collection to allow the 
+    client to see this page.</p>
+
+<p>On Windows, currently, these barriers are implemented using SEH -- Structured Exception Handling.</p>
+
+<blockquote><pre>
+<a href="http://info.ravenbrook.com/mail/2006/05/17/11-03-54/0.txt">//info.ravenbrook.com/mail/2006/05/17/11-03-54/0.txt</a>
+"chat with DRJ RB RHSK about work for Configura, and other MPS issues"
+...
+MPS should be part of runtime for a language.
+One necessary part is SEH:
+   - required once per thread;
+   - AND required on foreign function calls inward.
+Otherwise,
+   1. some foreign C++ might steal our exception;
+   2. this might be a thread we've never seen before
+(In fact, client need to have a bit standard of code that works out  
+if the MPS has seen this thread before.  It must call this code on  
+every inbound call from foreign code.)  DRJ: "Dylan does this".
+There's a bunch of assumes about compiled code, ABI etc, play nice  
+with sighandler etc.
+Might be poss for GR to geneerate code that doesn't use SEH if he  
+wasn't using MPS.
+
+MPS has a requirement that you use this extremely poorly documented  
+SEH interface.
+2 improvements:
+   1. better documentation for this
+   2. try to make the MPS *not* require SEH
+
+job001360 -- SEH
+</pre></blockquote>
+
+
+
 <h2><a id="Allocation-Point-User">Allocation Points -- User's Guide</a></h2>
 
 <p>These notes on Allocation Points were written by RHSK between 
-  2006-06-07 and 2006-06-12, following research and discussion with 
+  2006-06-07 and 2006-06-15, following research and discussion with 
   RB and NB.</p>
   
 <p><strong>Note:</strong> the text in this "Allocation Point" 
@@ -987,6 +1037,7 @@ RankEXACT now, come across another ref to child, and move it.
   2006-06-15  RHSK  Allocation Points: clarifications and further notes 
                     into User Guide and Internals, including initializing 
                     as-yet unused parts of new objects to reduce spoofing.
+  2006-06-15  RHSK  Brief notes on Protection and incremental collection.
 </pre>
 
 
