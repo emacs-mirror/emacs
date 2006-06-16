@@ -1,3 +1,12 @@
+2006-06-16  Francis Litterio  <flitterio@gmail.com>
+
+	* xterm.c (x_check_expected_move, handle_one_xevent)
+	(x_set_offset, x_check_fullscreen): Extensive changes to make
+	frame positioning deterministic under X.
+
+	* xterm.h (x_output): Added members left_before_move and
+	top_before_move.  Removed members expected_left and expected_top.
+
 2006-06-16  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (struct it): Add union to iterator stack to save
