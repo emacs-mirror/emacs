@@ -10037,34 +10037,10 @@ mac_set_unicode_keystroke_event (code, buf)
   int charset_id, c1, c2;
 
   if (code < 0x80)
-    {
-      buf->kind = ASCII_KEYSTROKE_EVENT;
-      buf->code = code;
-    }
-  else if (code < 0x100)
-    {
-      if (code < 0xA0)
-	charset_id = CHARSET_8_BIT_CONTROL;
-      else
-	charset_id = charset_latin_iso8859_1;
-      buf->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-      buf->code = MAKE_CHAR (charset_id, code, 0);
-    }
+    buf->kind = ASCII_KEYSTROKE_EVENT;
   else
-    {
-      if (code < 0x2500)
-	charset_id = charset_mule_unicode_0100_24ff,
-	  code -= 0x100;
-      else if (code < 0x33FF)
-	charset_id = charset_mule_unicode_2500_33ff,
-	  code -= 0x2500;
-      else if (code >= 0xE000)
-	charset_id = charset_mule_unicode_e000_ffff,
-	  code -= 0xE000;
-      c1 = (code / 96) + 32, c2 = (code % 96) + 32;
-      buf->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-      buf->code = MAKE_CHAR (charset_id, c1, c2);
-    }
+    buf->kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+  buf->code = code;
 }
 #endif
 
