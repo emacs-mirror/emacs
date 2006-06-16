@@ -515,6 +515,10 @@ struct x_output
   /* Default ASCII font of this frame.  */
   XFontStruct *font;
 
+#ifdef USE_FONT_BACKEND
+  struct font *fontp;
+#endif	/* USE_FONT_BACKEND */
+
   /* The baseline offset of the default ASCII font.  */
   int baseline_offset;
 
@@ -703,6 +707,10 @@ enum
 #define FRAME_MENUBAR_HEIGHT(f) ((f)->output_data.x->menubar_height)
 #define FRAME_TOOLBAR_HEIGHT(f) ((f)->output_data.x->toolbar_height)
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.x->baseline_offset)
+
+#ifdef USE_FONT_BACKEND
+#define FRAME_FONT_OBJECT(f) ((f)->output_data.x->fontp)
+#endif	/* USE_FONT_BACKEND */
 
 /* This gives the x_display_info structure for the display F is on.  */
 #define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
