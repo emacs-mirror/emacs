@@ -1,5 +1,21 @@
 2006-06-16  Kim F. Storm  <storm@cua.dk>
 
+	* dispextern.h (struct it): Add union to iterator stack to save
+	image, composition, and stretch specific paramters.
+
+	* xdisp.c (next_overlay_string): Fix assert.
+	(push_it, pop_it): Handle composition and stretch specific values.
+	Only handle it->slice in image (for now).
+	(back_to_previous_visible_line_start): Continue search if newline is
+	part of a compisition.  Simplify.
+	(reseat_1): Set it->object to buffer.
+	(set_iterator_to_next): Set it->object to string or buffer, when
+	setting it->method to GET_FROM_STRING or GET_FROM_BUFFER.
+	(next_element_from_composition): Set it->object to buffer if not
+	from string.
+	(set_cursor_from_row): Only save start of string if not already
+	done to handle multiple strings in a row.
+
 	* .gdbinit (pitx): Show composition parameters.
 	(pgx, pg): New commands to print a glyph structure.
 	(pgi, pgn): New commands to print specific/next glyph.
