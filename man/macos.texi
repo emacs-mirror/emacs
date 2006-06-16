@@ -45,16 +45,17 @@ features such as file dialogs, drag-and-drop, and Unicode menus.
 @vindex mac-control-modifier
 @vindex mac-command-modifier
 @vindex mac-option-modifier
-  On Mac, Emacs can use @key{control}, @key{command}, and @key{option}
-keys as any of Emacs modifier keys except @key{SHIFT} (i.e.,
-@key{ALT}, @key{CTRL}, @key{HYPER}, @key{META}, and @key{SUPER}).  The
-assignment is controlled by the variables @code{mac-control-modifier},
-@code{mac-command-modifier}, and @code{mac-option-modifier}.  The
-value for each of these variables can be one of the following symbols:
-@code{alt}, @code{control}, @code{hyper}, @code{meta}, @code{super},
-and @code{nil} (no particular assignment).  By default, the
-@key{control} key works as @key{CTRL}, and the @key{command} key as
-@key{META}.
+@vindex mac-function-modifier
+  On Mac, Emacs can use @key{control}, @key{command}, @key{option}, and
+laptop @key{function} keys as any of Emacs modifier keys except
+@key{SHIFT} (i.e., @key{ALT}, @key{CTRL}, @key{HYPER}, @key{META}, and
+@key{SUPER}).  The assignment is controlled by the variables
+@code{mac-control-modifier}, @code{mac-command-modifier},
+@code{mac-option-modifier}, @code{mac-function-modifier}.  The value for
+each of these variables can be one of the following symbols: @code{alt},
+@code{control}, @code{hyper}, @code{meta}, @code{super}, and @code{nil}
+(no particular assignment).  By default, the @key{control} key works as
+@key{CTRL}, and the @key{command} key as @key{META}.
 
   For the @key{option} key, if @code{mac-option-modifier} is set to
 @code{nil}, which is the default, the key works as the normal
@@ -64,13 +65,9 @@ Mac keyboard, for example.
 
   Emacs recognizes the setting in the Keyboard control panel (Mac OS
 Classic) or the International system preference pane (Mac OS X) and
-supports international and alternative keyboard layouts (e.g., Dvorak)
-if its script is either Roman, Japanese, Traditional Chinese, Korean,
-Cyrillic, Simplified Chinese, or Central European.  Keyboard layouts
-based on Unicode may not work properly.  (Try drag-and-drop if input
-from the Character Palette does not work.)  Selecting one of the layouts
-from the keyboard layout pull-down menu will affect how the keys typed
-on the keyboard are interpreted.
+supports international and alternative keyboard layouts (e.g., Dvorak).
+Selecting one of the layouts from the keyboard layout pull-down menu
+will affect how the keys typed on the keyboard are interpreted.
 
 @vindex mac-pass-command-to-system
 @vindex mac-pass-control-to-system
