@@ -233,6 +233,20 @@ reading the keyboard input:
  (let ((string (read-string "Foo: " nil 'my-history)))
    (list (region-beginning) (region-end) string)))
 @end smallexample
+
+@strong{Warning:} the argument values should not include any data
+types that can't be printed and then read.  Some facilities save
+@code{command-history} in a file to be read in the subsequent
+sessions; if a command's arguments contain a data type that prints
+using @samp{#<@dots{}>} syntax, those facilities won't work.
+
+There are, however, a few exceptions: it is ok to use a limited set of
+expressions such as @code{(point)}, @code{(mark)},
+@code{(region-beginning)}, and @code{(region-end)}, because Emacs
+recognizes them specially and puts the expression (rather than its
+value) into the command history.  To see whether the expression you
+wrote is one of these exceptions, run the command, then examine
+@code{(car command-history)}.
 @end itemize
 
 @cindex examining the @code{interactive} form
