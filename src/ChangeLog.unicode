@@ -1,3 +1,76 @@
+2006-06-16  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (struct font_driver): Member parse_name deleted.
+	(font_match_p, font_get_spec, font_parse_fcname)
+	(font_unparse_fcname): Extern them.
+	(font_get_name): Prototype adjusted.
+
+	* font.c (XLFD_SMALLNUM_MASK): Delete this macro.
+	(XLFD_LARGENUM_MASK): Delete XLFD_ENCODING_MASK from it.
+	(font_expand_wildcards): Fix handling ENCODING field.  Avoid
+	unnecessary checks for weight, slant, and swidth.
+	(font_parse_fcname): New function.
+	(font_unparse_fcname): New function.
+	(font_parse_name): New function.
+	(font_match_p): New function.
+	(font_get_name): Return value changed to Lisp string.
+	(font_get_spec): New function.
+	(Qunspecified, Qignore_defface): Don't extern them.
+	(font_find_for_lface): Assume that LFACE is fully specified.
+	(font_load_for_face): If lface[LFACE_FONT_INDEX] is an font
+	object, use it for FACE.
+	(font_open_by_name): Call Ffont_spec with QCname prop.  Don't call
+	driver->parse_name.
+	(Ffont_spec): Call font_parse_name, not font_parse_xlfd.
+
+	* fontset.h (new_fontset_from_font) [USE_FONT_BACKEND]: Prototype
+	adjusted.
+
+	* fontset.c (new_fontset_from_font) [USE_FONT_BACKEND]: Argument F
+	deleted.  Don't call Fnew_fontset.  Instead, directly call
+	make_fontset.
+
+	* frame.h (x_new_fontset2) [USE_FONT_BACKEND]: Prototype adjusted.
+
+	* frame.c (x_set_font) [USE_FONT_BACKEND]: Adjusted for the change
+	of x_new_fontset2.
+
+	* ftfont.c (Qmonospace, Qsans_serif, Qserif, Qmono, Qsans)
+	(Qsans__serif): New variables.
+	(ftfont_generic_family_list): New variable.
+	(syms_of_ftfont): Initialize the above variables.
+	(ftfont_pattern_entity): Argument NAME deleted.
+	(ftfont_list_generic_family): New function.
+	(ftfont_parse_name): Delete this function.
+	(ftfont_list): Try generic family only when FcFontList found no
+	font.
+	(ftfont_list_family): Fix args to FcObjectSetBuild.
+
+	* xfaces.c (check_lface_attrs) [USE_FONT_BACKEND]: Accept font
+	object in attrs[LFACE_FONT_INDEX].
+	(set_lface_from_font_name): Cancel all changes for font-backend.
+	(set_lface_from_font_and_fontset) [USE_FONT_BACKEND]: New
+	function.
+	(Finternal_set_lisp_face_attribute) [USE_FONT_BACKEND]: Accept a
+	font object in QCfont attribute.
+	(set_font_frame_param) [USE_FONT_BACKEND]: Likewise.
+	(realize_default_face) [USE_FONT_BACKEND]: Call
+	set_lface_from_font_and_fontset.
+
+	* xfns.c (x_default_font_parameter) [USE_FONT_BACKEND]: Try also
+	"fixed", and signal error here if no suitable font was found.
+
+	* xfont.c (xfont_parse_name): Delete this function.
+
+	* xftfont.c (xftfont_open): Change coding style of error
+	handling.  Generate fontconfig's fontname pattern.
+
+	* xterm.h (struct x_output) [USE_FONT_BACKEND]: New member fontp.
+	(FRAME_FONT_OBJECT) [USE_FONT_BACKEND]: New macro.
+
+	* xterm.c (x_new_fontset2) [USE_FONT_BACKEND]: Change arguments.
+	Both args FONTSET and FONT_OBJECT must be existing ones.
+
 2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_set_unicode_keystroke_event): Don't use MAKE_CHAR.
