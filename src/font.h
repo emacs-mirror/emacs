@@ -258,6 +258,8 @@ struct composition;
 
 #define FONT_INVALID_CODE 0xFFFFFFFF
 
+/* Font driver.  Members specified as "optional" can be NULL.  */
+
 struct font_driver
 {
   /* Symbol indicating the type of the font-driver.  */
@@ -267,23 +269,18 @@ struct font_driver
      cons whose cdr part is the actual cache area.  */
   Lisp_Object (*get_cache) P_ ((Lisp_Object frame));
 
-  /* Parse font name NAME, store the font properties in SPEC, and
-     return 0.  If the font-driver can't parse NAME, return -1.  */
-  int (*parse_name) P_ ((FRAME_PTR f, char *name, Lisp_Object spec));
-
   /* List fonts matching with FONT_SPEC on FRAME.  The value is a
      vector of font-entities.  This is the sole API that allocates
      font-entities.  */
   Lisp_Object (*list) P_ ((Lisp_Object frame, Lisp_Object font_spec));
 
-  /* List available families.  The value is a list of family names
-     (symbols).  The method can be NULL if the driver doesn't support
-     this facility. */
+  /* Optional.
+     List available families.  The value is a list of family names
+     (symbols).  */
   Lisp_Object (*list_family) P_ ((Lisp_Object frame));
 
-  /* Free FONT_EXTRA_INDEX field of FONT_ENTITY.  This method can be
-     NULL if FONT_EXTRA_INDEX of FONT_ENTITY is a normal Lisp object
-     (i.e. not Lisp_Save_Value).  */
+  /* Optional (if FONT_EXTRA_INDEX is not Lisp_Save_Value).
+     Free FONT_EXTRA_INDEX field of FONT_ENTITY.  */
   void (*free_entity) P_ ((Lisp_Object font_entity));
 
   /* Open a font specified by FONT_ENTITY on frame F.  If the font is
@@ -294,24 +291,24 @@ struct font_driver
   /* Close FONT on frame F.  */
   void (*close) P_ ((FRAME_PTR f, struct font *font));
 
-  /* Prepare FACE for displaying characters by FONT on frame F.  If
-     successful, return 0.  Otherwise, return -1.  This method can be
-     NULL if there's nothing to do.  */
+  /* Optional (if FACE->extra is not used).
+     Prepare FACE for displaying characters by FONT on frame F by
+     storing some data in FACE->extra.  If successful, return 0.
+     Otherwise, return -1.  */
   int (*prepare_face) P_ ((FRAME_PTR f, struct face *face));
 
-  /* Done FACE for displaying characters by FACE->font on frame F.
-     This method can be NULL if there's nothing to do.  */
+  /* Optional.
+     Done FACE for displaying characters by FACE->font on frame F.  */
   void (*done_face) P_ ((FRAME_PTR f, struct face *face));
 
-  /* If FONT_ENTITY has a glyph for character C, return 1.  If not,
-     return 0.  If a font must be opened to check it, return -1.  This
-     method can be NULL if the driver always requires a font to be
-     opened for this check.  In that case, we must open a font and use
-     `encode_char' method.  */
+  /* Optional.
+     If FONT_ENTITY has a glyph for character C (Unicode code point),
+     return 1.  If not, return 0.  If a font must be opened to check
+     it, return -1.  */
   int (*has_char) P_ ((Lisp_Object entity, int c));
 
-  /* Return a glyph code of FONT for characer C.  If FONT doesn't have
-     such a glyph, return FONT_INVALID_CODE.  */
+  /* Return a glyph code of FONT for characer C (Unicode code point).
+     If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
   unsigned (*encode_char) P_ ((struct font *font, int c));
 
   /* Perform the size computation of glyphs of FONT and fillin members
@@ -321,46 +318,49 @@ struct font_driver
 			   unsigned *code, int nglyphs,
 			   struct font_metrics *metrics));
 
-  /* Draw glyphs between FROM and TO of S->char2b at (X Y) pixel
+  /* Optional.
+     Draw glyphs between FROM and TO of S->char2b at (X Y) pixel
      position of frame F with S->FACE and S->GC.  If WITH_BACKGROUND
      is nonzero, fill the background in advance.  It is assured that
      WITH_BACKGROUND is zero when (FROM > 0 || TO < S->nchars).  */
   int (*draw) P_ ((struct glyph_string *s, int from, int to,
 		   int x, int y, int with_background));
 
-  /* Store bitmap data for glyph-code CODE of FONT in BITMAP.  This
-     method can be NULL if the driver doesn't support this facility.
-     It is intended that this method is callled from the other
-     font-driver for actual drawing.  */
+  /* Optional.
+     Store bitmap data for glyph-code CODE of FONT in BITMAP.  It is
+     intended that this method is callled from the other font-driver
+     for actual drawing.  */
   int (*get_bitmap) P_ ((struct font *font, unsigned code,
 			 struct font_bitmap *bitmap,
 			 int bits_per_pixel));
 
-  /* Free bitmap data in BITMAP.  This method can be NULL if no data
-     have to be freed.  */
+  /* Optional.
+     Free bitmap data in BITMAP.  */
   void (*free_bitmap) P_ ((struct font *font, struct font_bitmap *bitmap));
 
-  /* Return an outline data for glyph-code CODE of FONT.  The format
-     of the outline data depends on the font-driver.  This method can
-     be NULL if the driver doesn't support this facility.  */
+  /* Optional.
+     Return an outline data for glyph-code CODE of FONT.  The format
+     of the outline data depends on the font-driver.  */
   void *(*get_outline) P_ ((struct font *font, unsigned code));
 
-  /* Free OUTLINE (that is obtained by the above method).  */
+  /* Optional.
+     Free OUTLINE (that is obtained by the above method).  */
   void (*free_outline) P_ ((struct font *font, void *outline));
 
-  /* Get coordinates of the INDEXth anchor point of the glyph whose
+  /* Optional.
+     Get coordinates of the INDEXth anchor point of the glyph whose
      code is CODE.  Store the coordinates in *X and *Y.  Return 0 if
-     the operations was successfull.  Otherwise return -1.  This
-     method can be NULL if the driver doesn't support this
-     facility.  */
+     the operations was successfull.  Otherwise return -1.  */
   int (*anchor_point) P_ ((struct font *font, unsigned code, int index,
 			   int *x, int *y));
 
-  /* Return a list describing which scripts/languages FONT
+  /* Optional.
+     Return a list describing which scripts/languages FONT
      supports by which GSUB/GPOS features of OpenType tables.  */
   Lisp_Object (*otf_capability) P_ ((struct font *font));
 
-  /* Drive FONT's OTF GSUB features according to GSUB_SPEC.
+  /* Optional.
+     Drive FONT's OTF GSUB features according to GSUB_SPEC.
 
      GSUB_SPEC is in this format (all elements are symbols):
 	(SCRIPT LANGSYS GSUB-FEATURE ...)
@@ -384,7 +384,8 @@ struct font_driver
 		       Lisp_Object gstring_in, int from, int to,
 		       Lisp_Object gstring_out, int idx));
 
-  /* Drive FONT's OTF GPOS features according to GPOS_SPEC.
+  /* Optional.
+     Drive FONT's OTF GPOS features according to GPOS_SPEC.
 
      GPOS_SPEC is in this format (all elements are symbols):
 	(SCRIPT LANGSYS GPOS-FEATURE ...)
@@ -416,9 +417,12 @@ extern Lisp_Object font_symbolic_weight P_ ((Lisp_Object font));
 extern Lisp_Object font_symbolic_slant P_ ((Lisp_Object font));
 extern Lisp_Object font_symbolic_width P_ ((Lisp_Object font));
 
+extern int font_match_p P_ ((Lisp_Object spec, Lisp_Object entity));
+
 extern Lisp_Object font_find_object P_ ((struct font *font));
-extern char *font_get_name P_ ((Lisp_Object));
-extern Lisp_Object font_get_frame P_ ((Lisp_Object font));
+extern Lisp_Object font_get_name P_ ((Lisp_Object font_object));
+extern Lisp_Object font_get_spec P_ ((Lisp_Object font_object));
+extern Lisp_Object font_get_frame P_ ((Lisp_Object font_object));
 extern int font_has_char P_ ((FRAME_PTR, Lisp_Object, int));
 extern unsigned font_encode_char P_ ((Lisp_Object, int));
 
@@ -443,6 +447,9 @@ extern void font_parse_old_font_spec P_ ((Lisp_Object, Lisp_Object,
 
 extern int font_parse_xlfd P_ ((char *name, Lisp_Object font, int merge));
 extern int font_unparse_xlfd P_ ((Lisp_Object font, int pixel_size,
+				  char *name, int bytes));
+extern int font_parse_fcname P_ ((char *name, Lisp_Object font, int merge));
+extern int font_unparse_fcname P_ ((Lisp_Object font, int pixel_size,
 				  char *name, int bytes));
 extern void register_font_driver P_ ((struct font_driver *driver, FRAME_PTR f));
 extern void free_font_driver_list P_ ((FRAME_PTR f));
