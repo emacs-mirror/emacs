@@ -3077,7 +3077,38 @@ x_set_font (f, arg, oldval)
 
 #ifdef USE_FONT_BACKEND
   if (enable_font_backend)
-    fontset_name = result = x_new_fontset2 (f, arg);
+    {
+      int fontset = -1;
+      Lisp_Object font_object;
+
+      /* ARG is a fontset name, a font name, or a font object.
+	 In the last case, this function never fail.  */
+      if (STRINGP (arg))
+	{
+	  fontset = fs_query_fontset (arg, Qnil);
+	  if (fontset < 0)
+	    font_object = font_open_by_name (f, SDATA (arg));
+	  else if (fontset > 0)
+	    {
+	      Lisp_Object ascii_font = fontset_ascii (fontset);
+
+	      font_object = font_open_by_name (f, SDATA (arg));
+	    }
+	}
+      else
+	font_object = arg;
+
+      if (fontset < 0 && ! NILP (font_object))
+	fontset = new_fontset_from_font (font_object);
+
+      if (fontset == 0)
+	/* Refuse the default fontset.  */
+	result = Qt;
+      else if (NILP (font_object))
+	result = Qnil;
+      else
+	result = x_new_fontset2 (f, fontset, font_object);
+    }
   else
     {
 #endif	/* USE_FONT_BACKEND */
