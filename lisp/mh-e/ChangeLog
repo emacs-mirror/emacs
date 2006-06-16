@@ -1,3 +1,9 @@
+2006-06-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-search.el (mh-index-new-folder): Use -2 suffix instead of <2>
+	suffix for folder names, as <> are illegal filenakme characters on
+	Windows	(closes SF #1507002).
+
 2006-06-05  Jacob Morzinski  <morzinski@MIT.EDU>  (tiny change)
 
 	* mh-comp.el (mh-send-uses-spost): New variable.
