@@ -8172,46 +8172,22 @@ x_new_fontset (f, fontsetname)
 
 #ifdef USE_FONT_BACKEND
 Lisp_Object
-x_new_fontset2 (f, fontsetname)
+x_new_fontset2 (f, fontset, font_object)
      struct frame *f;
-     Lisp_Object fontsetname;
+     int fontset;
+     Lisp_Object font_object;
 {
-  int fontset;
-  struct font *font;
-  XFontStruct *xfont;
+  struct font *font = XSAVE_VALUE (font_object)->pointer;
 
-  if (STRINGP (fontsetname))
-    {
-      fontset = fs_query_fontset (fontsetname, 0);
-      if (fontset > 0 && f->output_data.x->fontset == fontset)
-	/* This fontset is already set in frame F.  There's nothing more
-	   to do.  */
-	return fontset_name (fontset);
-      if (fontset == 0)
-	/* The default fontset can't be the default font.   */
-	return Qt;
-      if (fontset < 0)
-	fontset = new_fontset_from_font_name (fontsetname);
-    }
-  else
-    fontset = new_fontset_from_font (f, fontsetname);
-
-  if (fontset < 0)
-    return Qnil;
-
-  font = fontset_ascii_font (f, fontset);
-  if (! font)
-    return Qnil;
-  xfont = font->font.font;
-
-  if (FRAME_FONT (f) == xfont)
+  if (FRAME_FONT_OBJECT (f) == font)
     /* This font is already set in frame F.  There's nothing more to
        do.  */
     return fontset_name (fontset);
 
   BLOCK_INPUT;
 
-  FRAME_FONT (f) = xfont;
+  FRAME_FONT_OBJECT (f) = font;
+  FRAME_FONT (f) = font->font.font;
   FRAME_BASELINE_OFFSET (f) = font->font.baseline_offset;
   FRAME_FONTSET (f) = fontset;
 
