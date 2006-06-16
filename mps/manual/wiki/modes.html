@@ -42,7 +42,16 @@
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<h2>Modes of MPS use:</h2>
+<p>This article has the following sections:</p>
+<ul>
+  <li>Modes of use of MPS</li>
+  <li>Objects, cells, and references</li>
+  <li>Using unmanaged workspace</li>
+</ul>
+
+<p><strong>Warning: this document is very young, and does not represent consensus, let alone truth!</strong>  RHSK 2006-06-16.</p>
+
+<h2>Modes of use of MPS:</h2>
 <dl>
   <dt>.manual:</dt>
   <dd>
@@ -76,51 +85,62 @@
       or even without stopping mutator?</p>
   </dd>
   
-  <dt>.simple-collecting:</dt>
+  <dt><a id="unmanaged-workspace">.unmanaged-workspace:</a></dt>
   <dd>
-    <p>= simplest collecting</p>
-    <p>Probably formatted, non-incremental stop+collect, 
-      with no protection, single-threaded.</p>
-    <p>Does this need a scanned reg+stack?  We don't know yet:  
-      see <a href="#unmanaged-workspace">.unmanaged-workspace</a>.</p>
+    <p>= workspace (eg. registers and stack) are not scanned</p>
+    
+    <p>This should be the simplest, but surprisingly it 
+      doesn't seem to be well defined -- the MPS seems to lack 
+      specified protocols for it!
+      See 
+      <a href="#using-unmanaged-workspace">Using unmanaged workspace&darr;</a>.</p>
+    
+    <p>The simplest starting point is probably:
+      formatted, exact, non-incremental, and single-threaded.
+      (No protection, no stack or register scanner).  
+      This is fine for:</p>
+    <ul>
+      <li> adding GC to part of bigger application;</li>
+      <li> implementing a simple language in C.</li>
+    </ul>
+    
+    <p>It's what the SC integration wants.</p>
+      
+    <p>We're not sure what the limits are.  Multi-threaded might 
+      be very hard.</p>
   </dd>
   
-  <dt>.dylan-like:</dt>
+  <dt>.ambiguous-workspace:</dt>
   <dd>
-    <p>= ?</p>
+    <p>= workspace (eg. registers and stack) are scanned ambiguously</p>
     <p>This is our Dylan-like bread and butter:
       incremental, generational, mostly copying, 
       formatted, ambiguous reg+stack, 
-      supports foreign code, multi-threaded.</p>
+      supports foreign code, multi-threaded.  
+      And we do location-dependency, weakness, finalization, ...</p>
   </dd>
   
-  <dt><a id="unmanaged-workspace">.unmanaged-workspace:</a></dt>
+  <dt>.exact-workspace:</dt>
   <dd>
-    <p>= registers (and possibly stack) are not scanned </p>
-    
-    <p>Clearly, things in the workspace needs to be either
-      <a href="#guarantee">guaranteed</a> or 
-      <a href="#quarantine">quarantined</a> -- probably some of each.</p>
-    
-    <p>We're not sure what's possible here, or what contracts 
-      the MPS supports.</p>
-    
-    <p>Among the things we're not yet sure of are:</p>
-    <ul>
-      <li> the nature / extent of these guaranteed or 
-        quarantined regions;</li>
-      <li> what operations we'll be able to allow;</li>
-      <li> whether the mutator can be multi-threaded.</li>
-    </ul>
+    <p>= workspace (eg. registers and stack) all scanned exactly</p>
+    <p>Might be useful for someone writing their own compiler.  
+      You wouldn't want to write this code in C.</p>
   </dd>
 </dl>
 
 <h2>Objects, cells, and references</h2>
 
+<p><em class="note">
+  [Note: I just made up most of the terminology in this section; 
+  it may not be helpful.  RHSK 2006-06-16]
+</em></p>
+
 <p>An <dfn>object</dfn> is some memory that contains data and cells.  
   A <dfn>cell</dfn> is memory that stores one reference.  
-  A <dfn>reference</dfn> is a value that designates an object.</p>
+  A <dfn>reference</dfn> is a stored instance of a value that 
+  may designate an object.</p>
 
+  
 <h3>Types of object:</h3>
 <dl>
   <dt>Root object (in MPS terminology)</dt>
@@ -141,7 +161,7 @@
 
 <h3>Types of cell:</h3>
 <dl>
-  <dt><a id="managed">Managed</a></dt>
+  <dt><a id="managed-cell">Managed</a></dt>
   <dd>&equiv; a scanned cell in a reachable object.
     If the reference in the cell is TO a 
     reachable object, then the MPS ensures the reference 
@@ -152,7 +172,7 @@
     If exact, may update the reference.)
   </dd>
 
-  <dt><a id="unmanaged">Unmanaged</a></dt>
+  <dt><a id="unmanaged-cell">Unmanaged</a></dt>
   <dd>&equiv; a cell that is not managed.
     A reference stored in an unmanaged cell is not useful 
     unless the reference is guaranteed or quarantined.
@@ -163,7 +183,7 @@
 <h3>The state of a reference:</h3>
 <p>A reference may be:</p>
 <dl>
-  <dt><a id="fresh">Fresh</a></dt>
+  <dt><a id="fresh-reference">Fresh</a></dt>
   <dd>&equiv; a reference that the MPS has kept up-to-date.  
     (The definition 
     of 'up-to-date' depends on context.  For example, for a weak 
@@ -171,8 +191,8 @@
     object, or it has been nulled out.)
   </dd>
 
-  <dt><a id="stale">Stale</a></dt>
-  <dd>&equiv; a value that has not been kept up-to-date, and 
+  <dt><a id="stale-reference">Stale</a></dt>
+  <dd>&equiv; a reference that has not been kept up-to-date, and 
     may now 
     designate an out-of-date copy of the object, some other object, 
     random memory, or unmapped memory.
@@ -180,7 +200,12 @@
 </dl>
 
 
-<h2>Using unmanaged workspace</h2>
+<h2><a id="using-unmanaged-workspace">Using unmanaged workspace</a></h2>
+
+<p><em class="note">
+  [Note: I just made up most of the terminology in this section; 
+  it may not be helpful.  RHSK 2006-06-16]
+</em></p>
 
 <p>This involves:</p>
 <ul>
@@ -196,25 +221,13 @@
 
 <p>In a <dfn>guarded</dfn> protocol, permitted operations are safe, but the results may be invalid.  After performing the operations, the mutator can find out whether the results are valid or not.</p>
 
-<p>Using unmanaged workspace means:</p>
-<ol>
-  <li> moving references from managed source cells into unmanaged cells;</li>
-  <li> then moving them from unmanaged into destination managed cells.</li>
-</ol>
-
-<p>(The destination cells may be pre-existing, or created as part of this process).</p>
-
-<h3>Reference stored in an unmanaged cell:</h3>
-
-<p>References in unmanaged cells may be either 
-  guaranteed, guarded, or unsafe:</p>
-
 <dl>
-  <dt><a id="guarantee">Guaranteed</a></dt>
+  <dt><a id="guaranteed-reference">Guaranteed reference</a></dt>
   <dd>
-    <p>&equiv; a reference that
+    <p>&equiv; a value that
       the MPS guarantees will 
-      remain fresh, even when stored in an unmanaged cell, until 
+      remain a fresh reference, 
+      even when stored in an unmanaged cell, until 
       the end of the guaranteed period.
       Permitted operations are safe and correct.
       (The MPS guarantees that the referent does not move or get 
@@ -224,23 +237,23 @@
         clearly defined.  RHSK 2006-06-15]
       </em>
     </p>
-    <p>A guaranteed reference is fresh, so it may also be 
-      stored back into a managed cell.</p>
+    <p>A guaranteed reference may be 
+      copied into a managed cell.</p>
   </dd>
 
-  <dt><a id="quarantine">Guarded</a></dt>
+  <dt><a id="guarded-value">Guarded value</a></dt>
   <dd>
     <p>&equiv; a value that may be a fresh reference, or may be 
       stale.  (The MPS knows which, but the mutator doesn't).  
       A protocol defines how the reference may be used.</p>
   </dd>
   
-  <dt>Unsafe</dt>
+  <dt><a id="unsafe-value">Unsafe value</a></dt>
   <dd>
-    <p>&equiv; a reference that is neither guaranteed nor guarded, 
-      but is nonetheless stored in an unmanaged cell.
-      The mutator must not use an unsafe reference: it must not 
-      dereference it, or store it in a managed cell.
+    <p>&equiv; a value that is neither guaranteed nor guarded, 
+      and even the MPS does not know if it is a fresh reference or 
+      not.  An unsafe reference must not be copied into a 
+      managed non-ambiguous cell.
     </p>
   </dd>
 </dl>
@@ -248,7 +261,8 @@
 
 <h3>Operations with guarded references</h3>
 
-<p>A guarded protocol has an "open" phase, followed by a "commit" event 
+<p>A guarded protocol defines the "guarded period", which has 
+  an "open" phase, followed by an atomic "commit" event 
   that may succeed or fail, followed by an "abort" phase (only if the 
   commit failed).</p>
   
@@ -257,37 +271,59 @@
   A successful commit may atomically change other state too, such 
   as making a previously unmanaged object become managed.</p>
 
-<p>If the "commit" fails, the guarded references became stale, 
+<p>If the "commit" fails, the guarded references are stale, 
   the results are invalid, and the guarded 
   period enters an "abort" phase.  The mutator should detect this, 
-  clear up if necessary, and then close the abort phase 
+  clear up if necessary, and then "close" the abort phase 
   (this also closes the guarded period).</p>
 
 <p>A guarded protocol restricts which operations are permitted
   on guarded references.</p>
   
-<p class="note">
-  [Note: it might be possible to design a protocol where 
+<p><em class="note">
+  [Note: It might be possible to design a protocol where 
   guarded references may be dereferenced.  
   If stale, the mutator would see objects 
-  in a stale world.  I think these persist until reclaim, so 
-  it might be possible.  Not currently supported.  RHSK 2006-06-15]
-</p>
+  in the stale world that persists until reclaim.
+  Not currently supported.  RHSK 2006-06-15]
+</em></p>
 
 <h4>Example: the allocation point protocol:</h4>
 
 <blockquote>
-<p>Guarded references may not be dereferenced.  At the end of the 
-  guarded period, only the guarded references stored in the new 
-  object are valid.  All others become unsafe.</p>
 
-<p>The pointer to the object under construction is a special 
-  reference.</p>  
-<p>Storing a guarded reference into a managed cell is restricted: 
-  if the commit fails, the mutator must use the abort phase to 
-  remove all guarded references from managed cells.</p>
+<p>Throughout the guarded period, the new object is unmanaged.
+  On successful commit, the guarded period ends, and if the new 
+  object is reachable it becomes managed.</p>
 
-<p>The allocation point protocol is an example of a guarded protocol.</p>
+<p>Throughout the guarded period, 
+  the pointer value returned by mps_reserve is a guarded value 
+  that may be dereferenced to access the new object,
+  and may be copied into a managed cell.  
+  On successful commit, copies in the managed world 
+  (including copies in the new object, if it is reachable)
+  become fresh references to the new object.</p>
+
+<p>Throughout the guarded period, 
+  a reference to a reachable object may be
+  copied from a managed cell into the unmanaged world
+  (including into the new object):
+  it becomes a guarded value that may <strong>NOT</strong> be 
+  dereferenced.  
+  The guarded value may be copied into a managed cell.
+  On successful commit, all copies stored in 
+  managed cells
+  (including cells in the new object, if it is reachable)
+  are still fresh.  
+  All other copies are unsafe.</p>
+
+<p>On failed commit, for the duration of the abort phase, all
+  guarded values remain guarded.  After the abort 
+  phase is closed, all remaining copies of the guarded value 
+  become unsafe.
+  (The mutator must therefore use the abort phase to 
+  remove all guarded references from managed non-ambiguous cells.</p>
+
 </blockquote>
  
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
@@ -295,7 +331,7 @@
 <pre>
   2006-06-15  RHSK  Created.
   2006-06-15  RHSK  Modes of use; Types of object; Types of reference.
-  2006-06-16  RHSK  (temporary) still trying to get guarded values right.
+  2006-06-16  RHSK  Objects, cells, and references; Using unmanaged workspace
 </pre>
 
 
