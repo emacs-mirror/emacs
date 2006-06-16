@@ -1,3 +1,9 @@
+2006-06-05  Jacob Morzinski  <morzinski@MIT.EDU>  (tiny change)
+
+	* mh-comp.el (mh-send-uses-spost): New variable.
+	(mh-send-letter): Do not use -msgid and -mime if
+	mh-send-uses-spost is t (closes SF #1486726).
+
 2006-05-06  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.0.
