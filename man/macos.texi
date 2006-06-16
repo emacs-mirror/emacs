@@ -51,11 +51,11 @@ laptop @key{function} keys as any of Emacs modifier keys except
 @key{SHIFT} (i.e., @key{ALT}, @key{CTRL}, @key{HYPER}, @key{META}, and
 @key{SUPER}).  The assignment is controlled by the variables
 @code{mac-control-modifier}, @code{mac-command-modifier},
-@code{mac-option-modifier}, @code{mac-function-modifier}.  The value for
-each of these variables can be one of the following symbols: @code{alt},
-@code{control}, @code{hyper}, @code{meta}, @code{super}, and @code{nil}
-(no particular assignment).  By default, the @key{control} key works as
-@key{CTRL}, and the @key{command} key as @key{META}.
+@code{mac-option-modifier}, and @code{mac-function-modifier}.  The value
+for each of these variables can be one of the following symbols:
+@code{alt}, @code{control}, @code{hyper}, @code{meta}, @code{super}, and
+@code{nil} (no particular assignment).  By default, the @key{control}
+key works as @key{CTRL}, and the @key{command} key as @key{META}.
 
   For the @key{option} key, if @code{mac-option-modifier} is set to
 @code{nil}, which is the default, the key works as the normal
