@@ -196,14 +196,15 @@ xftfont_open (f, entity, pixel_size)
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Display *display = FRAME_X_DISPLAY (f);
   Lisp_Object val;
-  FcPattern *pattern, *pat;
-  FcChar8 *file, *name;
-  XFontStruct *xfont;
-  struct xftfont_info *xftfont_info;
+  FcPattern *pattern, *pat = NULL;
+  FcChar8 *file;
+  struct xftfont_info *xftfont_info = NULL;
+  XFontStruct *xfont = NULL;
   struct font *font;
   double size = 0;
-  XftFont *xftfont;
+  XftFont *xftfont = NULL;
   int spacing;
+  char *name;
   int len;
 
   val = AREF (entity, FONT_EXTRA_INDEX);
@@ -217,15 +218,6 @@ xftfont_open (f, entity, pixel_size)
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
-  if (FcPatternGetString (pattern, FC_FILE, 1, &name) != FcResultMatch)
-    {
-      int isize = size;
-
-      name = malloc (strlen ((char *) file) + 30);
-      if (! name)
-	return NULL;
-      sprintf (name, ":file=%s:pixelsize=%d", (char *) file, isize);
-    }
 
   pat = FcPatternCreate ();
   FcPatternAddString (pat, FC_FILE, file);
@@ -237,26 +229,14 @@ xftfont_open (f, entity, pixel_size)
   /* We should not destroy PAT here because it is kept in XFTFONT and
      destroyed automatically when XFTFONT is closed.  */
   if (! xftfont)
-    {
-      UNBLOCK_INPUT;
-      return NULL;
-    }
+    goto err;
 
   xftfont_info = malloc (sizeof (struct xftfont_info));
   if (! xftfont_info)
-    {
-      XftFontClose (display, xftfont);
-      UNBLOCK_INPUT;
-      return NULL;
-    }
+    goto err;
   xfont = malloc (sizeof (XFontStruct));
-  if (! xftfont_info)
-    {
-      XftFontClose (display, xftfont);
-      free (xftfont_info);
-      UNBLOCK_INPUT;
-      return NULL;
-    }
+  if (! xfont)
+    goto err;
   xftfont_info->display = display;
   xftfont_info->screen = FRAME_X_SCREEN_NUMBER (f);
   xftfont_info->xftfont = xftfont;
@@ -266,7 +246,19 @@ xftfont_open (f, entity, pixel_size)
   font->entity = entity;
   font->pixel_size = size;
   font->driver = &xftfont_driver;
-  font->font.full_name = font->font.name = (char *) name;
+  len = 64;
+  name = malloc (len);
+  while (name && font_unparse_fcname (entity, pixel_size, name, len) < 0)
+    {
+      char *new = realloc (name, len += 32);
+
+      if (! new)
+	free (name);
+      name = new;
+    }
+  if (! name)
+    goto err;
+  font->font.full_name = font->font.name = name;
   font->file_name = (char *) file;
   font->font.size = xftfont->max_advance_width;
   font->ascent = xftfont->ascent;
@@ -341,6 +333,13 @@ xftfont_open (f, entity, pixel_size)
     }
 
   return font;
+
+ err:
+  if (xftfont) XftFontClose (display, xftfont);
+  UNBLOCK_INPUT;
+  if (xftfont_info) free (xftfont_info);
+  if (xfont) free (xfont);
+  return NULL;
 }
 
 static void
