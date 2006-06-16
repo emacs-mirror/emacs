@@ -1,3 +1,14 @@
+2006-06-16  Richard Stallman  <rms@gnu.org>
+
+	* obsolete/options.el (list-options): Put "obsolete" msg in buffer.
+
+	* files.el (basic-save-buffer-2): For a new precious file,
+	use the default modes in the return value.
+
+	* facemenu.el (facemenu-color-alist): Doc fix.
+
+	* cus-edit.el (custom-guess-name-alist): Recognize `-flag'.
+
 2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* cus-start.el (all): Add mac-ts-script-language-on-focus.

@@ -1,3 +1,17 @@
+2006-06-16  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Better explain conventions
+	for definition constructs.
+
+	* text.texi (Special Properties): String value of `read-only'
+	serves as the error message.
+
+	* objects.texi (Character Type): Clarify prev. change.
+	(Non-ASCII in Strings): Mention \u and \U.
+
+	* commands.texi (Using Interactive): Explain problem of
+	markers, etc., in command-history.
+
 2006-06-14  Kim F. Storm  <storm@cua.dk>
 
 	* commands.texi (Waiting): Negative arg to sit-for forces
