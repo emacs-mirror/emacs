@@ -3630,8 +3630,9 @@ Before and after saving the buffer, this function runs
 		(set-visited-file-modtime old-modtime)))
 	    ;; Since we have created an entirely new file,
 	    ;; make sure it gets the right permission bits set.
-	    (setq setmodes (or setmodes (cons (file-modes buffer-file-name)
-					      buffer-file-name)))
+	    (setq setmodes (or setmodes
+			       (cons (or (file-modes buffer-file-name) umask)
+				     buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
 	    (rename-file tempname buffer-file-name t))
