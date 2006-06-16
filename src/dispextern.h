@@ -1932,7 +1932,21 @@ struct it
     int stop_charpos;
     int face_id;
     Lisp_Object string;
-    int image_id;
+    union {
+      struct {
+	Lisp_Object object;
+	struct it_slice slice;
+	int image_id;
+      } image;
+      struct {
+	Lisp_Object object;
+	int c, len;
+	int cmp_id, cmp_len;
+      } comp;
+      struct {
+	Lisp_Object object;
+      } stretch;
+    } u;
     struct display_pos pos;
     int end_charpos;
     int string_nchars;
@@ -1941,7 +1955,6 @@ struct it
     unsigned multibyte_p : 1;
     unsigned string_from_display_prop_p : 1;
     unsigned display_ellipsis_p : 1;
-    struct it_slice slice;
     Lisp_Object space_width;
     short voffset;
     Lisp_Object font_height;
