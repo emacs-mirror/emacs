@@ -543,6 +543,8 @@ static int merge_face_ref P_ ((struct frame *, Lisp_Object, Lisp_Object *,
 			       int, struct named_merge_point *));
 static int set_lface_from_font_name P_ ((struct frame *, Lisp_Object,
 					 Lisp_Object, int, int));
+static void set_lface_from_font_and_fontset P_ ((struct frame *, Lisp_Object,
+						 Lisp_Object, int, int));
 static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
 static struct face *make_realized_face P_ ((Lisp_Object *));
 static char *best_matching_font P_ ((struct frame *, Lisp_Object *,
@@ -3294,6 +3296,9 @@ check_lface_attrs (attrs)
   xassert (UNSPECIFIEDP (attrs[LFACE_FONT_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FONT_INDEX])
 	   || NILP (attrs[LFACE_FONT_INDEX])
+#ifdef USE_FONT_BACKEND
+	   || FONT_OBJECT_P (attrs[LFACE_FONT_INDEX])
+#endif	/* USE_FONT_BACKEND */
 	   || STRINGP (attrs[LFACE_FONT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_FONTSET_INDEX])
 	   || STRINGP (attrs[LFACE_FONTSET_INDEX]));
@@ -3533,109 +3538,6 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
   /* If FONTNAME is actually a fontset name, get ASCII font name of it.  */
   fontset = fs_query_fontset (fontname, 0);
 
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    {
-      Lisp_Object entity;
-      struct font *font = NULL;
-
-      if (fontset > 0)
-	font = fontset_ascii_font (f, fontset);
-      else if (fontset == 0)
-	{
-	  if (may_fail_p)
-	    return 0;
-	  abort ();
-	}
-      else
-	{
-	  Lisp_Object font_object = font_open_by_name (f, SDATA (fontname));
-
-	  if (! NILP (font_object))
-	    {
-	      font = XSAVE_VALUE (font_object)->pointer;
-	      fontset = new_fontset_from_font (f, font_object);
-	    }
-	}
-
-      if (! font)
-	{
-	  if (may_fail_p)
-	    return 0;
-	  abort ();
-	}
-
-      entity = font->entity;
-
-      /* Set attributes only if unspecified, otherwise face defaults for
-	 new frames would never take effect.  If we couldn't get a font
-	 name conforming to XLFD, set normal values.  */
-
-      if (force_p || UNSPECIFIEDP (LFACE_FAMILY (lface)))
-	{
-	  Lisp_Object foundry = AREF (entity, FONT_FOUNDRY_INDEX);
-	  Lisp_Object family = AREF (entity, FONT_FAMILY_INDEX);
-	  Lisp_Object val;
-
-	  if (! NILP (foundry))
-	    {
-	      if (! NILP (family))
-		val = concat3 (SYMBOL_NAME (foundry), build_string ("-"),
-			       SYMBOL_NAME (family));
-	      else
-		val = concat2 (SYMBOL_NAME (foundry), build_string ("-*"));
-	    }
-	  else
-	    {
-	      if (! NILP (family))
-		val = SYMBOL_NAME (family);
-	      else
-		val = build_string ("*");
-	    }
-	  LFACE_FAMILY (lface) = val;
-	}
-
-      if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
-	{
-	  int pt = pixel_point_size (f, font->pixel_size * 10);
-
-	  xassert (pt > 0);
-	  LFACE_HEIGHT (lface) = make_number (pt);
-	}
-
-      if (force_p || UNSPECIFIEDP (LFACE_AVGWIDTH (lface)))
-	LFACE_AVGWIDTH (lface) = make_number (0);
-
-      if (force_p || UNSPECIFIEDP (LFACE_WEIGHT (lface)))
-	{
-	  Lisp_Object weight = font_symbolic_weight (entity);
-	  Lisp_Object symbol = face_symbolic_weight (weight);
-
-	  LFACE_WEIGHT (lface) = NILP (symbol) ? weight : symbol;
-	}
-      if (force_p || UNSPECIFIEDP (LFACE_SLANT (lface)))
-	{
-	  Lisp_Object slant = font_symbolic_slant (entity);
-	  Lisp_Object symbol = face_symbolic_slant (slant);
-
-	  LFACE_SLANT (lface) = NILP (symbol) ? slant : symbol;
-	}
-      if (force_p || UNSPECIFIEDP (LFACE_SWIDTH (lface)))
-	{
-	  Lisp_Object width = font_symbolic_width (entity);
-	  Lisp_Object symbol = face_symbolic_swidth (width);
-
-	  LFACE_SWIDTH (lface) = NILP (symbol) ? width : symbol;
-	}
-
-      if (font->font.full_name)
-	LFACE_FONT (lface) = build_string (font->font.full_name);
-      else
-	LFACE_FONT (lface) = Qnil;
-      LFACE_FONTSET (lface) = fontset_name (fontset);
-      return 1;
-    }
-#endif	/* USE_FONT_BACKEND */
   if (fontset > 0)
     font_name = SDATA (fontset_ascii (fontset));
   else if (fontset == 0)
@@ -3727,6 +3629,88 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
     }
   return 1;
 }
+
+#ifdef USE_FONT_BACKEND
+/* Set font-related attributes of Lisp face LFACE from FONT-OBJECT and
+   FONTSET.  If FORCE_P is zero, set only unspecified attributes of
+   LFACE.  The exceptions are `font' and `fontset' attributes.  They
+   are set regardless of FORCE_P.  */
+
+static void
+set_lface_from_font_and_fontset (f, lface, font_object, fontset, force_p)
+     struct frame *f;
+     Lisp_Object lface, font_object;
+     int fontset;
+     int force_p;
+{
+  struct font *font = XSAVE_VALUE (font_object)->pointer;
+  Lisp_Object entity = font->entity;
+  Lisp_Object val;
+
+  /* Set attributes only if unspecified, otherwise face defaults for
+     new frames would never take effect.  If the font doesn't have a
+     specific property, set a normal value for that.  */
+
+  if (force_p || UNSPECIFIEDP (LFACE_FAMILY (lface)))
+    {
+      Lisp_Object foundry = AREF (entity, FONT_FOUNDRY_INDEX);
+      Lisp_Object family = AREF (entity, FONT_FAMILY_INDEX);
+
+      if (! NILP (foundry))
+	{
+	  if (! NILP (family))
+	    val = concat3 (SYMBOL_NAME (foundry), build_string ("-"),
+			   SYMBOL_NAME (family));
+	  else
+	    val = concat2 (SYMBOL_NAME (foundry), build_string ("-*"));
+	}
+      else
+	{
+	  if (! NILP (family))
+	    val = SYMBOL_NAME (family);
+	  else
+	    val = build_string ("*");
+	}
+      LFACE_FAMILY (lface) = val;
+    }
+
+  if (force_p || UNSPECIFIEDP (LFACE_HEIGHT (lface)))
+    {
+      int pt = pixel_point_size (f, font->pixel_size * 10);
+
+      xassert (pt > 0);
+      LFACE_HEIGHT (lface) = make_number (pt);
+    }
+
+  if (force_p || UNSPECIFIEDP (LFACE_AVGWIDTH (lface)))
+    LFACE_AVGWIDTH (lface) = make_number (font->font.average_width);
+
+  if (force_p || UNSPECIFIEDP (LFACE_WEIGHT (lface)))
+    {
+      Lisp_Object weight = font_symbolic_weight (entity);
+
+      val = NILP (weight) ? Qnormal : face_symbolic_weight (weight);
+      LFACE_WEIGHT (lface) = ! NILP (val) ? val : weight;
+    }
+  if (force_p || UNSPECIFIEDP (LFACE_SLANT (lface)))
+    {
+      Lisp_Object slant = font_symbolic_slant (entity);
+
+      val = NILP (slant) ? Qnormal : face_symbolic_slant (slant);
+      LFACE_SLANT (lface) = ! NILP (val) ? val : slant;
+    }
+  if (force_p || UNSPECIFIEDP (LFACE_SWIDTH (lface)))
+    {
+      Lisp_Object width = font_symbolic_width (entity);
+
+      val = NILP (width) ? Qnormal : face_symbolic_swidth (width);
+      LFACE_SWIDTH (lface) = ! NILP (val) ? val : width;
+    }
+
+  LFACE_FONT (lface) = font_object;
+  LFACE_FONTSET (lface) = fontset_name (fontset);
+}
+#endif	/* USE_FONT_BACKEND */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -4565,6 +4549,48 @@ FRAME 0 means change the face on all frames, and change the default
 	  else
 	    f = check_x_frame (frame);
 
+#ifdef USE_FONT_BACKEND
+	  if (enable_font_backend
+	      && !UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
+	    {
+	      int fontset;
+
+	      if (EQ (attr, QCfontset))
+		{
+		  Lisp_Object fontset_name = Fquery_fontset (value, Qnil);
+
+		  if (NILP (fontset_name))
+		    signal_error ("Invalid fontset name", value);
+		  LFACE_FONTSET (lface) = value;
+		}
+	      else
+		{
+		  Lisp_Object font_object;
+
+		  if (FONT_OBJECT_P (value))
+		    {
+		      font_object = value;
+		      fontset = FRAME_FONTSET (f);
+		    }
+		  else
+		    {
+		      CHECK_STRING (value);
+
+		      fontset = fs_query_fontset (value, 0);
+		      if (fontset >= 0)
+			value = fontset_ascii (fontset);
+		      else
+			fontset = FRAME_FONTSET (f);
+		      font_object = font_open_by_name (f, SDATA (value));
+		      if (NILP (font_object))
+			signal_error ("Invalid font", value);
+		    }
+		  set_lface_from_font_and_fontset (f, lface, font_object,
+						   fontset, 1);
+		}
+	    }
+	  else
+#endif	/* USE_FONT_BACKEND */
 	  if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	    {
 	      CHECK_STRING (value);
@@ -4764,13 +4790,18 @@ set_font_frame_param (frame, lface)
 #ifdef USE_FONT_BACKEND
       else if (enable_font_backend)
 	{
-	  Lisp_Object entity = font_find_for_lface (f, &AREF (lface, 0), Qnil);
-
-	  if (NILP (entity))
-	    error ("No font matches the specified attribute");
-	  font_name = font_open_for_lface (f, &AREF (lface, 0), entity);
-	  if (NILP (font_name))
-	    error ("No font matches the specified attribute");
+	  /* We set FONT_NAME to a font-object.  */
+	  if (FONT_OBJECT_P (LFACE_FONT (lface)))
+	    font_name = LFACE_FONT (lface);
+	  else
+	    {
+	      font_name = font_find_for_lface (f, &AREF (lface, 0), Qnil);
+	      if (NILP (font_name))
+		error ("No font matches the specified attribute");
+	      font_name = font_open_for_lface (f, &AREF (lface, 0), font_name);
+	      if (NILP (font_name))
+		error ("No font matches the specified attribute");
+	    }
 	}
 #endif
       else
@@ -7412,12 +7443,27 @@ realize_default_face (f)
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend)
+	{
+	  frame_font = font_find_object (FRAME_FONT_OBJECT (f));
+	  xassert (FONT_OBJECT_P (frame_font));
+	  set_lface_from_font_and_fontset (f, lface, frame_font,
+					   FRAME_FONTSET (f),
+					   f->default_face_done_p);
+	}
+      else
+	{
+#endif	/* USE_FONT_BACKEND */
       /* Set frame_font to the value of the `font' frame parameter.  */
       frame_font = Fassq (Qfont, f->param_alist);
       xassert (CONSP (frame_font) && STRINGP (XCDR (frame_font)));
       frame_font = XCDR (frame_font);
       set_lface_from_font_name (f, lface, frame_font,
                                 f->default_face_done_p, 1);
+#ifdef USE_FONT_BACKEND
+	}
+#endif	/* USE_FONT_BACKEND */
       f->default_face_done_p = 1;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
