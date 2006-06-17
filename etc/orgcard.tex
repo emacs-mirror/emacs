@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.36}
+\def\orgversionnumber{4.37}
 \def\year{2006}
 %
 %**start of header
@@ -336,83 +336,6 @@ To set archive location for current file, add a line like$^2$:
 \key{create sparse tree with matching tags}{C-c \\}
 \key{globally (agenda) match tags at cursor}{C-c C-o}
 
-\section{TODO Items}
-
-\key{rotate the state of the current item}{C-c C-t}
-\key{view TODO items in a sparse tree}{C-c C-v}
-\key{view 3rd TODO keyword's sparse tree}{C-3 C-c C-v}
-
-\key{set the priority of the current item}{C-c , [ABC]}
-\key{remove priority cookie from current item}{C-c , SPC}
-\key{raise priority of current item}{S-UP$^3$}
-\key{lower priority of current item}{S-DOWN$^3$}
-
-\key{\kbd{\#+SEQ_TODO: TODO TRY BLUFF DONE}}{\rm todo workflow}
-\key{\kbd{\#+TYP_TODO: Phil home work DONE}}{\rm todo types}
-
-\section{Timestamps}
-
-\key{prompt for date and insert timestamp}{C-c .}
-\key{like \kbd{C-c} . but insert date and time format}{C-u C-c .}
-\key{Like \kbd{C-c .} but make stamp inactive}{C-c !} % FIXME
-\key{insert DEADLINE timestamp}{C-c C-d}
-\key{insert SCHEDULED timestamp}{C-c C-s}
-\key{create sparse tree with all deadlines due}{C-c C-w}
-\key{the time between 2 dates in a time range}{C-c C-y}
-\key{change timestamp at cursor by $\pm 1$ day}{S-RIGHT/LEFT$^3$}
-\key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN$^3$}
-\key{access the calendar for the current date}{C-c >}
-\key{insert timestamp matching date in calendar}{C-c <}
-\key{access agenda for current date}{C-c C-o}
-\key{Select date while prompted}{mouse-1/RET}
-%\key{... select date in calendar}{mouse-1/RET}
-%\key{... scroll calendar back/forward one month}{< / >}
-%\key{... forward/backward one day}{S-LEFT/RIGHT}
-%\key{... forward/backward one week}{S-UP/DOWN}
-%\key{... forward/backward one month}{M-S-LEFT/RIGT}
-
-\section{Links}
-
-\key{globally store link to the current location}{C-c l$^1$}
-\key{insert a link (TAB completes stored links)}{C-c C-l}
-\key{insert file link with file name completion}{C-u C-c C-l}
-\key{edit (also hidden part of) link at point}{C-c C-l}
-
-\key{open file links in emacs (\kbd{C-u} : in emacs)}{C-c C-o}
-\key{open link at point (3: in emacs)}{mouse-2/3}
-%\key{open file links in emacs}{mouse-3}
-%\key{record a position in mark ring}{C-c \%}
-\key{jump back to last followed link(s)}{C-c \&}
-
-{\bf Internal Links}
-
-\key{\kbd{<<My Target>>}}{\rm target}
-\key{\kbd{<<<My Target>>>}}{\rm radio target$^2$}
-\key{\kbd{[[*this text]]}}{\rm find headline}
-\metax{\kbd{[[this text]]}}{\rm find target or text in buffer}
-\metax{\kbd{[[this text][description]]}}{\rm optional link text}
-
-{\bf External Links}
-
-\key{\kbd{file:/home/dominik/img/mars.jpg}}{\rm file, absolute}
-\key{\kbd{file:papers/last.pdf}}{\rm file, relative}
-\key{\kbd{file:projects.org::*that text}}{\rm find headline}
-\key{\kbd{file:projects.org::find me}}{\rm find tgt/string}
-%\key{\kbd{file:projects.org::/regexp/}}{\rm regexp search}
-\key{\kbd{http://www.astro.uva.nl/~dominik}}{\rm on the web}
-\key{\kbd{mailto:adent@galaxy.net}}{\rm EMail address}
-\key{\kbd{news:comp.emacs}}{\rm Usenet group}
-\key{\kbd{bbdb:Richard Stallman}}{\rm BBDB person}
-\key{\kbd{gnus:group}}{\rm GNUS group}
-\key{\kbd{gnus:group\#id}}{\rm GNUS message}
-\key{\kbd{vm|wl|mhe|rmail:folder}}{\rm Mail folder}
-\key{\kbd{vm|wl|mhe|rmail:folder\#id}}{\rm Mail message}
-\key{\kbd{info:emacs:Regexps}}{\rm Info file:node}
-\key{\kbd{shell:ls *.org}}{\rm shell command}
-\key{\kbd{elisp:(calendar)}}{\rm elisp form}
-\metax{\kbd{[[external link][description]]}}{\rm optional link text}
-%\key{\kbd{vm://myself@some.where.org/folder\#id}}{\rm VM remote}
-
 \section{Tables}
 
 %Org-mode has its own built-in intuitive table editor with unique
@@ -500,10 +423,97 @@ formula, \kbd{:=} a named-field formula.
 \key{recognize existing table.el table}{C-c C-c}
 \key{convert table (Org-mode $\leftrightarrow$ table.el)}{C-c ~}
 
+\section{Links}
+
+\key{globally store link to the current location}{C-c l$^1$}
+\key{insert a link (TAB completes stored links)}{C-c C-l}
+\key{insert file link with file name completion}{C-u C-c C-l}
+\key{edit (also hidden part of) link at point}{C-c C-l}
+
+\key{open file links in emacs (\kbd{C-u} : in emacs)}{C-c C-o}
+\key{open link at point (3: in emacs)}{mouse-2/3}
+%\key{open file links in emacs}{mouse-3}
+%\key{record a position in mark ring}{C-c \%}
+\key{jump back to last followed link(s)}{C-c \&}
+
+{\bf Internal Links}
+
+\key{\kbd{<<My Target>>}}{\rm target}
+\key{\kbd{<<<My Target>>>}}{\rm radio target$^2$}
+\key{\kbd{[[*this text]]}}{\rm find headline}
+\metax{\kbd{[[this text]]}}{\rm find target or text in buffer}
+\metax{\kbd{[[this text][description]]}}{\rm optional link text}
+
+{\bf External Links}
+
+\key{\kbd{file:/home/dominik/img/mars.jpg}}{\rm file, absolute}
+\key{\kbd{file:papers/last.pdf}}{\rm file, relative}
+\key{\kbd{file:projects.org::*that text}}{\rm find headline}
+\key{\kbd{file:projects.org::find me}}{\rm find tgt/string}
+%\key{\kbd{file:projects.org::/regexp/}}{\rm regexp search}
+\key{\kbd{http://www.astro.uva.nl/~dominik}}{\rm on the web}
+\key{\kbd{mailto:adent@galaxy.net}}{\rm EMail address}
+\key{\kbd{news:comp.emacs}}{\rm Usenet group}
+\key{\kbd{bbdb:Richard Stallman}}{\rm BBDB person}
+\key{\kbd{gnus:group}}{\rm GNUS group}
+\key{\kbd{gnus:group\#id}}{\rm GNUS message}
+\key{\kbd{vm|wl|mhe|rmail:folder}}{\rm Mail folder}
+\key{\kbd{vm|wl|mhe|rmail:folder\#id}}{\rm Mail message}
+\key{\kbd{info:emacs:Regexps}}{\rm Info file:node}
+\key{\kbd{shell:ls *.org}}{\rm shell command}
+\key{\kbd{elisp:(calendar)}}{\rm elisp form}
+\metax{\kbd{[[external link][description]]}}{\rm optional link text}
+%\key{\kbd{vm://myself@some.where.org/folder\#id}}{\rm VM remote}
+
+
+\section{TODO Items}
+
+\key{rotate the state of the current item}{C-c C-t}
+\key{view TODO items in a sparse tree}{C-c C-v}
+\key{view 3rd TODO keyword's sparse tree}{C-3 C-c C-v}
+
+\key{set the priority of the current item}{C-c , [ABC]}
+\key{remove priority cookie from current item}{C-c , SPC}
+\key{raise priority of current item}{S-UP$^3$}
+\key{lower priority of current item}{S-DOWN$^3$}
+
+\key{\kbd{\#+SEQ_TODO: TODO TRY BLUFF DONE}}{\rm todo workflow}
+\key{\kbd{\#+TYP_TODO: Phil home work DONE}}{\rm todo types}
+
+\section{Timestamps}
+
+\key{prompt for date and insert timestamp}{C-c .}
+\key{like \kbd{C-c} . but insert date and time format}{C-u C-c .}
+\key{Like \kbd{C-c .} but make stamp inactive}{C-c !} % FIXME
+\key{insert DEADLINE timestamp}{C-c C-d}
+\key{insert SCHEDULED timestamp}{C-c C-s}
+\key{create sparse tree with all deadlines due}{C-c C-w}
+\key{the time between 2 dates in a time range}{C-c C-y}
+\key{change timestamp at cursor by $\pm 1$ day}{S-RIGHT/LEFT$^3$}
+\key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN$^3$}
+\key{access the calendar for the current date}{C-c >}
+\key{insert timestamp matching date in calendar}{C-c <}
+\key{access agenda for current date}{C-c C-o}
+\key{Select date while prompted}{mouse-1/RET}
+%\key{... select date in calendar}{mouse-1/RET}
+%\key{... scroll calendar back/forward one month}{< / >}
+%\key{... forward/backward one day}{S-LEFT/RIGHT}
+%\key{... forward/backward one week}{S-UP/DOWN}
+%\key{... forward/backward one month}{M-S-LEFT/RIGT}
+
+
 \newcolumn
 \title{Org-Mode Reference Card (2/2)}
 
 \centerline{(for version \orgversionnumber)}
+
+\section{Clocking Time}
+
+\key{start clock on current item}{C-c C-x C-i}
+\key{stop clock on current item}{C-c C-x C-o}
+\key{cancel current clock}{C-c C-x C-x}
+\key{display total subtree times}{C-c C-x C-d}
+\key{remove displayed times}{C-c C-c}
 
 \section{Agenda Views}
 
@@ -563,6 +573,12 @@ To set categories, add lines like$^2$:
 \key{change timestamp to today}{>}
 \key{insert new entry into diary}{i}
 
+\key{Start the clock on current item (clock-in)}{I}
+\key{Stop the clock (clock-out)}{O}
+\key{Cancel current clock}{X}
+
+\newcolumn
+
 {\bf Calendar commands}
 
 \key{find agenda cursor date in calendar}{c}
@@ -577,23 +593,16 @@ To set categories, add lines like$^2$:
 \key{quit agenda, remove agenda buffer}{q}
 \key{exit agenda, remove all agenda buffers}{x}
 
-\section{Exporting}
+\section{Exporting and Publishing}
 
 Exporting creates files with extensions {\it .txt\/} and {\it .html\/}
-in the current directory.
+in the current directory.  Publishing puts the resulting file into
+some other place.
 
-\key{export as ASCII file}{C-c C-x a}
-\key{export visible text only (e.g. for printing)}{C-c C-x v}
-\key{export as HTML file}{C-c C-x h}
-\key{export as HTML and open in browser}{C-c C-x b}
-\key{prefix arg sets nb. of headline levels, e.g.}{C-3 C-c C-x h}
+\key{export/publish dispatcher}{C-c C-e}
 
-\key{export as iCalendar file}{C-c C-x i}
-\key{export all agenda files as iCalendar files}{C-c C-x C-i}
-\key{combine all agenda files to single iCal file}{C-c C-x C-c}
-
+\key{export visible part only}{C-c C-e v}
 \key{insert template of export options}{C-c C-x t}
-
 \key{toggle fixed width for entry or region}{C-c :}
 
 {\bf HTML formatting}
@@ -641,13 +650,6 @@ Lines starting with \kbd{\#} are comments and are not exported.
 Subtrees whose header starts with COMMENT are never exported.
 
 \key{toggle COMMENT keyword on entry}{C-c ;}
-
-
-\section{Publishing (requires org-publish.el)}
-\key{publishcurrent file}{C-c C-e C-f}
-\key{publish current project}{C-c C-e C-p}
-\key{publish project (prompted for)}{C-c C-e C-c}
-\key{publish all projects}{C-c C-e C-a}
 
 \section{Completion}
 

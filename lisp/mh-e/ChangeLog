@@ -1,3 +1,22 @@
+2006-06-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-search.el (mh-index-new-folder): Use -2 suffix instead of <2>
+	suffix for folder names, as <> are illegal filenakme characters on
+	Windows	(closes SF #1507002).
+	
+2006-06-05  Jacob Morzinski  <morzinski@MIT.EDU>  (tiny change)
+
+	* mh-comp.el (mh-send-uses-spost): New variable.
+	(mh-send-letter): Do not use -msgid and -mime if
+	mh-send-uses-spost is t (closes SF #1486726).
+
+2006-06-02  Bill Wohler  <wohler@newt.com>
+	
+	(mh-folder-exists-p): Change test from an empty buffer, to one
+	that contains the actual folder, since GNU mailutils' folder
+	command displays output if the folder doesn't exist (closes SF
+	#1499712).
+
 2006-05-06  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.0.

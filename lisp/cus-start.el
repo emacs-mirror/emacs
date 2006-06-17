@@ -225,6 +225,13 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (mac-pass-command-to-system mac boolean "22.1")
 	     (mac-pass-control-to-system mac boolean "22.1")
 	     (mac-allow-anti-aliasing mac boolean "22.1")
+	     (mac-ts-script-language-on-focus mac
+					      (choice (const :tag "System default behavior" nil)
+						      (const :tag "Restore to script/language used in the last focus frame" t)
+						      (cons :tag "Specify script/language"
+							    (integer :tag "Script code")
+							    (integer :tag "Language code")))
+					      "22.1")
 
 ;; This is not good news because it will use the wrong
 ;; version-specific directories when you upgrade.  We need

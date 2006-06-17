@@ -1,3 +1,52 @@
+2006-06-16  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Better explain conventions
+	for definition constructs.
+
+	* text.texi (Special Properties): String value of `read-only'
+	serves as the error message.
+
+	* objects.texi (Character Type): Clarify prev. change.
+	(Non-ASCII in Strings): Mention \u and \U.
+
+	* commands.texi (Using Interactive): Explain problem of
+	markers, etc., in command-history.
+
+2006-06-14  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Waiting): Negative arg to sit-for forces
+	redisplay even if input is pending.
+
+	* display.texi (Forcing Redisplay): Use (sit-for -1) to force a
+	redisplay.  Remove incorrect example of binding redisplay-dont-pause
+	around (sit-for 0).
+
+2006-06-13  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Forcing Redisplay): Clarify previous change.
+
+2006-06-13  Romain Francoise  <romain@orebokech.com>
+
+	* display.texi (Forcing Redisplay): Fix typo.
+
+2006-06-13  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Add redisplay-preemption-period.
+
+2006-06-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Coding Conventions): Add `@end itemize'.
+
+2006-06-10  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Explain use of coding systems
+	to ensure one decoding for strings.
+
+2006-06-09  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* objects.texi (Character Type): Describe the\uABCD and \U00ABCDEF
+	syntax.
+
 2006-06-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Font Selection): Remove description of

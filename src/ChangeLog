@@ -1,3 +1,126 @@
+2006-06-17  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (update_frame): Check for input pending on entry.
+	(update_window, update_frame_1): Break loop if input is detected.
+
+2006-06-16  Francis Litterio  <flitterio@gmail.com>
+
+	* xterm.c (x_check_expected_move, handle_one_xevent)
+	(x_set_offset, x_check_fullscreen): Extensive changes to make
+	frame positioning deterministic under X.
+
+	* xterm.h (x_output): Added members left_before_move and
+	top_before_move.  Removed members expected_left and expected_top.
+
+2006-06-16  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct it): Add union to iterator stack to save
+	image, composition, and stretch specific paramters.
+
+	* xdisp.c (next_overlay_string): Fix assert.
+	(push_it, pop_it): Handle composition and stretch specific values.
+	Only handle it->slice in image (for now).
+	(back_to_previous_visible_line_start): Continue search if newline is
+	part of a compisition.  Simplify.
+	(reseat_1): Set it->object to buffer.
+	(set_iterator_to_next): Set it->object to string or buffer, when
+	setting it->method to GET_FROM_STRING or GET_FROM_BUFFER.
+	(next_element_from_composition): Set it->object to buffer if not
+	from string.
+	(set_cursor_from_row): Only save start of string if not already
+	done to handle multiple strings in a row.
+
+	* .gdbinit (pitx): Show composition parameters.
+	(pgx, pg): New commands to print a glyph structure.
+	(pgi, pgn): New commands to print specific/next glyph.
+	(pgrowx, pgrow): New commands to print all glyphs in a row.
+
+2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Fx_display_mm_height, Fx_display_mm_width)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Use CGDisplayScreenSize.
+
+	* macterm.c (do_app_resume, do_app_suspend): Remove functions.
+	(mac_tsm_resume, mac_tsm_suspend) [USE_MAC_TSM]: New functions.
+	(mac_handle_window_event, XTread_socket) [USE_MAC_TSM]: Use them.
+	(Vmac_ts_script_language_on_focus) [USE_MAC_TSM]: New variable.
+	(syms_of_macterm) [USE_MAC_TSM]: Defvar it.
+	(saved_ts_language, saved_ts_component) [USE_MAC_TSM]: New variables.
+	(mac_initialize_display_info) [MAC_OSX]: Use Quartz Display
+	Services functions to get size of main display in pixels.
+
+2006-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (back_to_previous_visible_line_start): Reset
+	it->continuation_lines_width.
+
+2006-06-14  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (Fdefconst): Mark variable as risky.
+
+	* callproc.c (Fcall_process): Doc fix.
+
+	* window.c (adjust_window_trailing_edge): Don't break out of the loop
+	because there's no next window, if there are parallel windows.
+	Do break out when WINDOW is nil.
+
+2006-06-14  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (IT_STACK_SIZE): New macro specifying size of
+	iterator stack (instead of hardcoded number).  Increase from 2 to
+	4 to make room for propertized overlay strings before and after a
+	display string, image or composition.
+	(struct it): Add image_id and method members to iterator stack.
+
+	* xdisp.c (init_from_display_pos): Don't set it->method and
+	overlay_string_index after pop_it.  Add asserts.
+	(handle_stop): Look for overlay strings around a display string,
+	image, or composition.  Handle properties on those strings.
+	(next_overlay_string): Don't set string, pos or method after pop_it.
+	(get_overlay_strings_1): Split from get_overlay_strings; don't
+	modify it if no overlay strings are found.
+	(get_overlay_strings): Use get_overlay_strings_1.  Always set
+	it->string and it->method.
+	(push_it): Push it->image_id and it->method.  Push it->object
+	instead of it->string if method is GET_FROM_IMAGE.
+	(pop_it): Pop it->image_id and it->method.  Ppo it->object
+	instead of it->string if method is GET_FROM_IMAGE.
+	Reset it->current.string_pos if popped it->string is nil.
+	(reseat_1): Remove comment dated 19 May 2003.  It expressed doubt
+	whether a given change was correct; but the change is correct.
+	Clear it->string_from_display_prop_p.
+	(set_iterator_to_next): Rely on it->method and it->image_id from
+	iterator stack, instead of setting them explicitly after pop_it.
+
+	* dispnew.c (sit_for): Undo 2006-06-01 change.  Instead, a
+	negative time forces redisplay even when input is available.
+	(Fsit_for): Doc fix.
+
+2006-06-13  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c: Modify preemptive redisplay to be based on periodic
+	checks for input.
+	(PERIODIC_PREEMPTION_CHECKING): Define to 1 iff EMACS_HAS_USECS.
+	(Vredisplay_preemption_period): New variable.
+	(syms_of_display): DEFVAR_LISP and initialize it.
+	(preemption_period, preemption_next_check): New variables.
+	(update_frame, update_single_window): Initialize them based on
+	Vredisplay_preemption_period if !force_p.
+	(update_window, update_frame_1): Use them to determine when to
+	check for input.
+
+2006-06-03  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* lread.c (read_escape): Provide a Unicode character escape
+	syntax; \u followed by exactly four or \U followed by exactly
+	eight hex digits in a comment or string is read as a Unicode
+	character with that code point.
+
+2006-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Signal "Beginning of
+	buffer" when scroll-down at the beginning of an empty buffer.
+
 2006-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event): Exclude

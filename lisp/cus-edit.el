@@ -587,6 +587,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
 
 (defcustom custom-guess-name-alist
   '(("-p\\'" boolean)
+    ("-flag\\'" boolean)
     ("-hook\\'" hook)
     ("-face\\'" face)
     ("-file\\'" file)

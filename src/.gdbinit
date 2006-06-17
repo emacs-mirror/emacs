@@ -190,18 +190,20 @@ define pitx
       printf " ch=[%d,%d]", $it->c, $it->len
     end
   else
-    if ($it->what == IT_IMAGE)
-      printf " IMAGE=%d", $it->image_id
-    else
-      printf " "
-      output $it->what
-    end
+    printf " "
+    output $it->what
   end
   if ($it->method != GET_FROM_BUFFER)
     printf " next="
     output $it->method
     if ($it->method == GET_FROM_STRING)
       printf "[%d]", $it->current.string_pos.charpos
+    end
+    if ($it->method == GET_FROM_IMAGE)
+      printf "[%d]", $it->image_id
+    end
+    if ($it->method == GET_FROM_COMPOSITION)
+      printf "[%d,%d,%d]", $it->cmp_id, $it->len, $it->cmp_len
     end
   end
   printf "\n"
@@ -372,6 +374,121 @@ document pwin
 Pretty print window structure w.
 end
 
+define pgx
+  set $g = $arg0
+  if ($g->type == CHAR_GLYPH)
+    if ($g->u.ch >= ' ' && $g->u.ch < 127)
+      printf "CHAR[%c]", $g->u.ch
+    else
+      printf "CHAR[0x%x]", $g->u.ch
+    end
+  end
+  if ($g->type == COMPOSITE_GLYPH)
+    printf "COMP[%d]", $g->u.cmp_id
+  end
+  if ($g->type == IMAGE_GLYPH)
+    printf "IMAGE[%d]", $g->u.img_id
+  end
+  if ($g->type == STRETCH_GLYPH)
+    printf "STRETCH[%d+%d]", $g->u.stretch.height, $g->u.stretch.ascent
+  end
+  xgettype ($g->object)
+  if ($type == Lisp_String)
+    printf " str=%x[%d]", $g->object, $g->charpos
+  else
+    printf " pos=%d", $g->charpos
+  end
+  printf " w=%d a+d=%d+%d", $g->pixel_width, $g->ascent, $g->descent
+  if ($g->face_id != DEFAULT_FACE_ID)
+    printf " face=%d", $g->face_id
+  end
+  if ($g->voffset)
+    printf " vof=%d", $g->voffset
+  end
+  if ($g->multibyte_p)
+    printf " MB"
+  end
+  if ($g->padding_p)
+    printf " PAD"
+  end
+  if ($g->glyph_not_available_p)
+    printf " N/A"
+  end
+  if ($g->overlaps_vertically_p)
+    printf " OVL"
+  end
+  if ($g->left_box_line_p)
+    printf " ["
+  end
+  if ($g->right_box_line_p)
+    printf " ]"
+  end
+  if ($g->slice.x || $g->slice.y || $g->slice.width || $g->slice.height)
+    printf " slice=%d,%d,%d,%d" ,$g->slice.x, $g->slice.y, $g->slice.width, $g->slice.height
+  end
+  printf "\n"
+end
+document pgx
+Pretty print a glyph structure.
+Takes one argument, a pointer to a glyph structure
+end
+
+define pg
+  set $pgidx = 0
+  pgx glyph
+end
+document pg
+Pretty print glyph structure glyph.
+end
+
+define pgi
+  set $pgidx = $arg0
+  pgx (&glyph[$pgidx])
+end
+document pgi
+Pretty print glyph structure glyph[I].
+Takes one argument, a integer I.
+end
+
+define pgn
+  set $pgidx = $pgidx + 1
+  pgx (&glyph[$pgidx])
+end
+document pgn
+Pretty print next glyph structure.
+end
+
+define pgrowx
+  set $row = $arg0
+  set $area = 0
+  set $xofs = $row->x
+  while ($area < 3)
+    set $used = $row->used[$area]
+    if ($used > 0)
+      set $gl0 = $row->glyphs[$area]
+      set $pgidx = 0
+      printf "%s: %d glyphs\n", ($area == 0 ? "LEFT" : $area == 2 ? "RIGHT" : "TEXT"), $used
+      while ($pgidx < $used)
+	printf "%3d %4d: ", $pgidx, $xofs
+	pgx $gl0[$pgidx]
+	set $xofs = $xofs + $gl0[$pgidx]->pixel_width
+	set $pgidx = $pgidx + 1
+      end
+    end
+    set $area = $area + 1
+  end
+end
+document pgrowx
+Pretty print all glyphs in a row structure.
+Takes one argument, a pointer to a row structure.
+end
+
+define pgrow
+  pgrowx row
+end
+document pgrow
+Pretty print all glyphs in row structure row.
+end
 
 define xtype
   xgettype $

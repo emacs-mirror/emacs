@@ -1299,6 +1299,9 @@ correspoinding TextEncodingBase value."
 
 ;;;; Conversion between common flavors and Lisp string.
 
+(defconst mac-text-encoding-ascii #x600
+  "ASCII text encoding.")
+
 (defconst mac-text-encoding-mac-japanese-basic-variant #x20001
   "MacJapanese text encoding without Apple double-byte extensions.")
 
@@ -1319,7 +1322,7 @@ correspoinding TextEncodingBase value."
 	  (if (string-match "[\xa0\xfd-\xff]" str)
 	      (setq str nil)
 	    ;; ASCII-only?
-	    (unless (string-match "\\`[[:ascii:]]*\\'" str)
+	    (unless (mac-code-convert-string data nil mac-text-encoding-ascii)
 	      (subst-char-in-string ?\x5c ?\¥ str t)
 	      (subst-char-in-string ?\x80 ?\\ str t)))))
     (or str
@@ -2015,8 +2018,7 @@ either in the current buffer or in the echo area."
 	 (coding (or (cdr (assq (car script-language)
 				mac-script-code-coding-systems))
 		     'mac-roman))
-	 (fix-len (mac-bytes-to-integer
-		   (cdr (mac-ae-parameter ae "tsfx" "long"))))
+	 (fix-len (mac-ae-number ae "tsfx"))
 	 ;; Optional parameters
 	 (hilite-rng (mac-ae-text-range-array ae "tshi"))
 	 (update-rng (mac-ae-text-range-array ae "tsup"))
@@ -2058,15 +2060,15 @@ either in the current buffer or in the echo area."
       (put-text-property 0 (length active-input-string)
 			 'mac-ts-active-input-string t active-input-string)
       (if use-echo-area
-	  (let (msg message-log-max)
-	    (if (and (current-message)
+	  (let ((msg (current-message))
+		message-log-max)
+	    (if (and msg
 		     ;; Don't get confused by previously displayed
 		     ;; `active-input-string'.
 		     (null (get-text-property 0 'mac-ts-active-input-string
-					      (current-message))))
-		(setq msg (propertize (current-message) 'display
-				      (concat (current-message)
-					      active-input-string)))
+					      msg)))
+		(setq msg (propertize msg 'display
+				      (concat msg active-input-string)))
 	      (setq msg active-input-string))
 	    (message "%s" msg)
 	    (overlay-put mac-ts-active-input-overlay 'before-string nil))

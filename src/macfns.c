@@ -3070,11 +3070,20 @@ If omitted or nil, that stands for the selected frame's display.  */)
      (display)
      Lisp_Object display;
 {
-  /* MAC_TODO: this is an approximation, and only of the main display */
-
   struct mac_display_info *dpyinfo = check_x_display_info (display);
+  /* Only of the main display.  */
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+  CGSize size;
 
+  BLOCK_INPUT;
+  size = CGDisplayScreenSize (kCGDirectMainDisplay);
+  UNBLOCK_INPUT;
+
+  return make_number ((int) (size.height + .5f));
+#else
+  /* This is an approximation.  */
   return make_number ((int) (dpyinfo->height * 25.4 / dpyinfo->resy));
+#endif
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
@@ -3085,11 +3094,20 @@ If omitted or nil, that stands for the selected frame's display.  */)
      (display)
      Lisp_Object display;
 {
-  /* MAC_TODO: this is an approximation, and only of the main display */
-
   struct mac_display_info *dpyinfo = check_x_display_info (display);
+  /* Only of the main display.  */
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+  CGSize size;
 
+  BLOCK_INPUT;
+  size = CGDisplayScreenSize (kCGDirectMainDisplay);
+  UNBLOCK_INPUT;
+
+  return make_number ((int) (size.width + .5f));
+#else
+  /* This is an approximation.  */
   return make_number ((int) (dpyinfo->width * 25.4 / dpyinfo->resx));
+#endif
 }
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,

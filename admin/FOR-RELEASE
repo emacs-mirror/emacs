@@ -26,21 +26,24 @@ Requests to have been sent out on 2006-05-23 (Reiner Steib).
 LANG	Translator            Status
 cs	Pavel Janík           No response
 de	Sven Joachim          Done
-fr	Eric Jacoboni         No response
-pl	Włodek Bzyl           No response
+fr	Eric Jacoboni         Done        (layout might be improved)
+pl	Włodek Bzyl           Done
 pt-br	Rodrigo Real          Done
 ru	Alex Ott              Working
 sk	Miroslav Vaško        No response
 
-If there's no update for a translation on 2006-06-07, notify RMS.
+Reminders sent out on 2006-06-08.
 
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
 
-** We need a way a Lisp file encoded in iso-2022 can assure
-reliable decoding regardless of user options.
+** text_property_stickiness can be called with a POS value that is before BEGV.
+
+text_property_stickiness is called from get_pos_property,
+which is called from find_field, which is called from
+various user-level functions in editfns.c.
 
 ** JD Smith's 17 Apr 2006 bug report that CVS operations
 get mysterious unreproducible failures.
@@ -149,7 +152,7 @@ SECTION                  READERS
 etc/TUTORIAL             rms
 etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
 etc/TUTORIAL.cn
-etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
+etc/TUTORIAL.cs          Pavel JanÃ­k <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.es          Marcelo Toledo
 etc/TUTORIAL.fr          ttn
@@ -161,7 +164,7 @@ etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
-etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
+etc/TUTORIAL.sk          Pavel JanÃ­k <Pavel@Janik.cz>
 etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
 etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>

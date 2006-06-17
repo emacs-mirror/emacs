@@ -5017,15 +5017,16 @@ hosts, or files, disagree."
 (defun tramp-touch (file time)
   "Set the last-modified timestamp of the given file.
 TIME is an Emacs internal time value as returned by `current-time'."
-  (let ((touch-time (format-time-string "%Y%m%d%H%M.%S" time)))
+  (let ((touch-time (format-time-string "%Y%m%d%H%M.%S" time t)))
     (if (tramp-tramp-file-p file)
 	(with-parsed-tramp-file-name file nil
 	  (let ((buf (tramp-get-buffer multi-method method user host)))
 	    (unless (zerop (tramp-send-command-and-check
 			    multi-method method user host
-			    (format "touch -t %s %s"
+			    (format "TZ=UTC; export TZ; touch -t %s %s"
 				    touch-time
-				    localname)))
+				    localname)
+			    t))
 	      (pop-to-buffer buf)
 	      (error "tramp-touch: touch failed, see buffer `%s' for details"
 		     buf))))

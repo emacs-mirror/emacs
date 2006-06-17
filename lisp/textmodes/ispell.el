@@ -865,7 +865,7 @@ and added as a submenu of the \"Edit\" menu.")
 (defvar ispell-process nil
   "The process object for Ispell.")
 
-(defvar ispell-async-processp (and (fboundp 'kill-process)
+(defvar ispell-async-processp (and (fboundp 'delete-process)
 				   (fboundp 'process-send-string)
 				   (fboundp 'accept-process-output)
 				   ;;(fboundp 'start-process)
@@ -2542,15 +2542,7 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
       (or no-error
 	  (error "There is no ispell process running!"))
     (if ispell-async-processp
-	(progn
-	  (process-send-eof ispell-process)
-	  (if (eq (ispell-process-status) 'run)
-	      (ispell-accept-output 1))
-	  (if (eq (ispell-process-status) 'run)
-	      (kill-process ispell-process))
-	  (while (not (or (eq (ispell-process-status) 'exit)
-			  (eq (ispell-process-status) 'signal)))
-	    (sleep-for 0.25)))
+	(delete-process ispell-process)
       ;; synchronous processes
       (ispell-send-string "\n")		; make sure side effects occurred.
       (kill-buffer ispell-output-buffer)

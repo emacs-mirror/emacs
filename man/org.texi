@@ -1,10 +1,9 @@
 \input texinfo
-
 @c %**start of header
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.36
+@set VERSION 4.37
 @set DATE June 2006
 
 @dircategory Emacs
@@ -146,7 +145,6 @@ Internal links
 TODO items
 
 * TODO basics::                 Marking and displaying TODO entries
-* Progress logging::            Document your productivity
 * TODO extensions::             Workflow and assignments
 * Priorities::                  Some things are more important than others
 
@@ -160,6 +158,12 @@ Timestamps
 
 * Time stamps::                 Assigning a time to a tree entry
 * Creating timestamps::         Commands which insert timestamps
+* Progress logging::            Documenting when what work was done.
+
+Progress Logging
+
+* Closing items::               When was this entry makred DONE?
+* Clocking work time::          When exactly did you work on this item?
 
 Tags
 
@@ -1921,12 +1925,11 @@ things you have to do.
 
 @menu
 * TODO basics::                 Marking and displaying TODO entries
-* Progress logging::            Document your productivity
 * TODO extensions::             Workflow and assignments
 * Priorities::                  Some things are more important than others
 @end menu
 
-@node TODO basics, Progress logging, TODO items, TODO items
+@node TODO basics, TODO extensions, TODO items, TODO items
 @section Basic TODO functionality
 
 Any headline can become a TODO item by starting it with the word TODO,
@@ -1978,28 +1981,8 @@ the TODO entries directly from that buffer (@pxref{Agenda commands}).
 @c agenda, customize the variable @code{org-agenda-include-all-todo}.
 @end table
 
-@node Progress logging, TODO extensions, TODO basics, TODO items
-@section Progress Logging
-@cindex progress logging
-@cindex logging, of progress
-If you want to keep track of @emph{when} a certain TODO item was
-finished, turn on logging with
 
-@lisp
-(setq org-log-done t)
-@end lisp
-
-@noindent
-Then each time you turn a TODO entry into DONE using either @kbd{C-c
-C-t} in the Org-mode buffer or @kbd{t} in the agenda buffer, a line
-@samp{CLOSED: [timestamp]} will be inserted just after the headline.
-If you turn the entry back into a TODO item again through further
-state cycling, that line will be removed again.  In the timeline
-(@pxref{Timeline}) and in the agenda (@pxref{Weekly/Daily agenda}),
-you can then use the @kbd{L} key to display the TODO items closed on
-each day, giving you an overview of what has been done on a day.
-
-@node TODO extensions, Priorities, Progress logging, TODO items
+@node TODO extensions, Priorities, TODO basics, TODO items
 @section Extended use of TODO keywords
 @cindex extended TODO keywords
 
@@ -2166,6 +2149,7 @@ planning.
 @menu
 * Time stamps::                 Assigning a time to a tree entry
 * Creating timestamps::         Commands which insert timestamps
+* Progress logging::            Documenting when what work was done.
 @end menu
 
 
@@ -2239,9 +2223,17 @@ When @code{org-log-done} is non-nil, Org-mode will automatically insert
 a special time stamp each time a TODO entry is marked done
 (@pxref{Progress logging}).  This time stamp is enclosed in square
 brackets instead of angular brackets.
+
+@item Time range with CLOCK keyword
+@cindex CLOCK keyword
+When using the clock to time the work that is being done on specific
+items, time ranges preceeded by the CLOCK keyword are inserted
+automatically into the file.  The time stamps are enclosed in square
+brackets instead of angular brackets.  @xref{Clocking work time}.
+@c FIXME: Reference needed
 @end table
 
-@node Creating timestamps,  , Time stamps, Timestamps
+@node Creating timestamps, Progress logging, Time stamps, Timestamps
 @section Creating timestamps
 @cindex creating timestamps
 @cindex timestamps, creating
@@ -2372,6 +2364,82 @@ One month back.
 @item @key{RET}
 Choose date in calendar (only if nothing typed into minibuffer).
 @end table
+
+@node Progress logging,  , Creating timestamps, Timestamps
+@section Progress Logging
+@cindex progress logging
+@cindex logging, of progress
+
+Org-mode can automatically record a time stamp when you mark a TODO item
+as DONE.  You can also measure precisely the time you spent on specific
+items in a project by starting and stopping a clock when you start and
+stop working on an aspect of a project.
+
+@menu
+* Closing items::               When was this entry makred DONE?
+* Clocking work time::          When exactly did you work on this item?
+@end menu
+
+@node Closing items, Clocking work time, Progress logging, Progress logging
+@subsection Closing items
+
+If you want to keep track of @emph{when} a certain TODO item was
+finished, turn on logging with
+
+@lisp
+(setq org-log-done t)
+@end lisp
+
+@noindent
+Then each time you turn a TODO entry into DONE using either @kbd{C-c
+C-t} in the Org-mode buffer or @kbd{t} in the agenda buffer, a line
+@samp{CLOSED: [timestamp]} will be inserted just after the headline.
+If you turn the entry back into a TODO item again through further
+state cycling, that line will be removed again.  In the timeline
+(@pxref{Timeline}) and in the agenda (@pxref{Weekly/Daily agenda}),
+you can then use the @kbd{l} key to display the TODO items closed on
+each day, giving you an overview of what has been done on a day.
+
+@node Clocking work time,  , Closing items, Progress logging
+@subsection Clocking work time
+
+Org-mode allows you to clock the time you spent on specific tasks in a
+project.  When you start working on an item, you can start the clock.
+When you stop working on that tast, or when you makr the task done, the
+clock is stoppend and the corresponding time interval is recorded.  It
+also computes the total time spent on each subtree of a project.
+
+@table @kbd
+@kindex C-c C-x C-i
+@item C-c C-x C-i
+Start the clock on the current item (clock-in).  This inserts the CLOCK
+keyword together with a timestamp.
+@kindex C-c C-x C-o
+@item C-c C-x C-o
+Stop the clock (clock-out).  The inserts another timestamp at the same
+location where the clock was last started.  It also directly computes
+the resulting time in inserts it after the time range as @samp{=>
+HH:MM}.
+@kindex C-c C-t
+@item C-c C-t
+Changing the TODO state of an item to DONE automatically stops the clock
+if it is running in this same item.
+@kindex C-c C-x C-x
+@item C-c C-x C-x
+Cancel the current clock.  This is useful if a clock was started by
+mistake, or if you ended up working on something else.
+@kindex C-c C-x C-d
+@item C-c C-x C-d
+Display time summaries for each subtree in the current buffer.  This
+puts overlays at the end of each headline, showing the total time
+recorded under that heading, including the time of any subheadings. You
+can use visibility cycling to study the tree, but the overlays disappear
+automatically when the buffer is changed.
+@end table
+
+The @kbd{l} key may be used in the timeline (@pxref{Timeline}) and in
+the agenda (@pxref{Weekly/Daily agenda}) to show which tasks have been
+worked on or closed during a day.
 
 @node Tags, Agenda views, Timestamps, Top
 @chapter Tags
@@ -2958,7 +3026,8 @@ agenda buffers can be set with the variable
 @kindex l
 @item l
 Toggle Logbook mode.  In Logbook mode, entries that where marked DONE while
-logging was on (variable @code{org-log-done}) are shown in the agenda.
+logging was on (variable @code{org-log-done}) are shown in the agenda,
+as are entries that have been clocked on that day.
 
 @tsubheading{Change display}
 @kindex o
@@ -3075,13 +3144,16 @@ Change the time stamp associated with the current line to today.
 The key @kbd{>} has been chosen, because it is the same as @kbd{S-.}
 on my keyboard.
 
-@cindex diary entries, creating from agenda
-@kindex i
-@item i
-Insert a new entry into the diary.  Prompts for the type of entry
-(day, weekly, monthly, yearly, anniversary, cyclic) and creates a new
-entry in the diary, just as @kbd{i d} etc. would do in the calendar.
-The date is taken from the cursor position.
+@kindex I
+@item I
+Start the clock on the current item.  If a clock is running already, it
+is stopped first.
+@kindex O
+@item O
+Stop the previously started clock.
+@kindex X
+@item X
+Cancel the currently running clock.
 
 @tsubheading{Calendar commands}
 @kindex c
@@ -3091,6 +3163,14 @@ Open the Emacs calendar and move to the date at the agenda cursor.
 @item c
 When in the calendar, compute and show the Org-mode agenda for the
 date at the cursor.
+
+@cindex diary entries, creating from agenda
+@kindex i
+@item i
+Insert a new entry into the diary.  Prompts for the type of entry
+(day, weekly, monthly, yearly, anniversary, cyclic) and creates a new
+entry in the diary, just as @kbd{i d} etc. would do in the calendar.
+The date is taken from the cursor position.
 
 @kindex M
 @item M
