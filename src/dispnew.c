@@ -3849,6 +3849,12 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       double p = XFLOATINT (Vredisplay_preemption_period);
       int sec, usec;
 
+      if (detect_input_pending_ignore_squeezables ())
+	{
+	  paused_p = 1;
+	  goto do_pause;
+	}
+
       sec = (int) p;
       usec = (p - sec) * 1000000;
 
@@ -3936,6 +3942,7 @@ update_frame (f, force_p, inhibit_hairy_id_p)
 #endif
     }
 
+ do_pause:
   /* Reset flags indicating that a window should be updated.  */
   set_window_update_flags (root_window, 0);
 
@@ -4262,7 +4269,8 @@ update_window (w, force_p)
 		if (EMACS_TIME_NEG_P (dif))
 		  {
 		    EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
-		    detect_input_pending_ignore_squeezables ();
+		    if (detect_input_pending_ignore_squeezables ())
+		      break;
 		  }
 	      }
 #else
@@ -5288,7 +5296,8 @@ update_frame_1 (f, force_p, inhibit_id_p)
 	      if (EMACS_TIME_NEG_P (dif))
 		{
 		  EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
-		  detect_input_pending_ignore_squeezables ();
+		  if (detect_input_pending_ignore_squeezables ())
+		    break;
 		}
 	    }
 #else
