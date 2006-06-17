@@ -1064,7 +1064,7 @@ extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 extern Lisp_Object x_new_font P_ ((struct frame *, char *));
 extern Lisp_Object x_new_fontset P_ ((struct frame *, Lisp_Object));
 #ifdef USE_FONT_BACKEND
-extern Lisp_Object x_new_fontset2 P_ ((struct frame *, Lisp_Object));
+extern Lisp_Object x_new_fontset2 P_ ((struct frame *, int, Lisp_Object));
 #endif	/* USE_FONT_BACKEND */
 
 /* These are in frame.c  */

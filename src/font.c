@@ -358,8 +358,8 @@ enum xlfd_field_index
   XLFD_SLANT_INDEX,
   XLFD_SWIDTH_INDEX,
   XLFD_ADSTYLE_INDEX,
-  XLFD_PIXEL_SIZE_INDEX,
-  XLFD_POINT_SIZE_INDEX,
+  XLFD_PIXEL_INDEX,
+  XLFD_POINT_INDEX,
   XLFD_RESX_INDEX,
   XLFD_RESY_INDEX,
   XLFD_SPACING_INDEX,
@@ -369,28 +369,49 @@ enum xlfd_field_index
   XLFD_LAST_INDEX
 };
 
-/* Return a symbol interned by string at STR and bytes LEN.
+enum xlfd_field_mask
+{
+  XLFD_FOUNDRY_MASK = 0x0001,
+  XLFD_FAMILY_MASK = 0x0002,
+  XLFD_WEIGHT_MASK = 0x0004,
+  XLFD_SLANT_MASK = 0x0008,
+  XLFD_SWIDTH_MASK = 0x0010,
+  XLFD_ADSTYLE_MASK = 0x0020,
+  XLFD_PIXEL_MASK = 0x0040,
+  XLFD_POINT_MASK = 0x0080,
+  XLFD_RESX_MASK = 0x0100,
+  XLFD_RESY_MASK = 0x0200,
+  XLFD_SPACING_MASK = 0x0400,
+  XLFD_AVGWIDTH_MASK = 0x0800,
+  XLFD_REGISTRY_MASK = 0x1000,
+  XLFD_ENCODING_MASK = 0x2000
+};
+
+
+/* Return a Lispy value for string at STR and bytes LEN.
    If LEN == 0, return a null string.
    If the string is "*", return Qnil.
    It is assured that LEN < 256.   */
 
 static Lisp_Object
-intern_font_field (f, xlfd)
-     char *f[XLFD_LAST_INDEX + 1];
-     int xlfd;
+intern_font_field (str, len)
+     char *str;
+     int len;
 {
-  char *str = f[xlfd] + 1;
-  int len;
-  
-  if (xlfd != XLFD_RESY_INDEX)
-    len = f[xlfd + 1] - f[xlfd] - 1;
-  else
-    len = f[XLFD_REGISTRY_INDEX] - f[xlfd] - 1;
+  int i;
 
   if (len == 0)
     return null_string;
   if (*str == '*' && len == 1)
     return Qnil;
+  if (isdigit (*str))
+    {
+      for (i = 1; i < len; i++)
+	if (! isdigit (str[i]))
+	  break;
+      if (i == len)
+	return make_number (atoi (str));
+    }
   return intern_downcase (str, len);
 }
 
@@ -427,15 +448,195 @@ parse_matrix (p)
   return (i == 4 ? (int) matrix[3] : -1);
 }
 
-/* Parse NAME (null terminated) as XLFD format, and store information
-   in FONT (font-spec or font-entity).  If NAME is successfully
-   parsed, return 2 (non-scalable font), 1 (scalable vector font), or
-   0 (auto-scaled font).  Otherwise return -1.
+/* Expand a wildcard field in FIELD (the first N fields are filled) to
+   multiple fields to fill in all 14 XLFD fields while restring a
+   field position by its contents.  */
 
-   If FONT is a font-entity, store RESY-SPACING-AVWIDTH information as
-   a symbol in FONT_EXTRA_INDEX.
+int
+font_expand_wildcards (field, n)
+     Lisp_Object field[XLFD_LAST_INDEX];
+     int n;
+{
+  /* Copy of FIELD.  */
+  Lisp_Object tmp[XLFD_LAST_INDEX];
+  /* Array of information about where this element can go.  Nth
+     element is for Nth element of FIELD. */
+  struct {
+    /* Minimum possible field.  */
+    int from;
+    /* Maxinum possible field.  */
+    int to;
+    /* Bit mask of possible field.  Nth bit corresponds to Nth field.  */
+    int mask;
+  } range[XLFD_LAST_INDEX];
+  int i, j;
+  unsigned range_mask;
 
-   If MERGE is nonzero, set a property of FONT only when it's nil.  */
+#define XLFD_SYMBOL_MASK (XLFD_FOUNDRY_MASK | XLFD_FAMILY_MASK \
+			  | XLFD_ADSTYLE_MASK  | XLFD_REGISTRY_MASK)
+#define XLFD_NULL_MASK (XLFD_FOUNDRY_MASK | XLFD_ADSTYLE_MASK)
+#define XLFD_LARGENUM_MASK (XLFD_POINT_MASK | XLFD_RESX_MASK | XLFD_RESY_MASK \
+			    | XLFD_AVGWIDTH_MASK)
+#define XLFD_REGENC_MASK (XLFD_REGISTRY_MASK | XLFD_ENCODING_MASK)
+
+  /* Initialize RANGE_MASK for FIELD[0] which can be 0th to (14 - N)th
+     field.  The value is shifted to left one bit by one in the
+     following loop.  */
+  for (i = 0, range_mask = 0; i <= 14 - n; i++)
+    range_mask = (range_mask << 1) | 1;
+
+  for (i = 0; i < n; i++, range_mask <<= 1)
+    {
+      /* The triplet RANGE_FROM, RANGE_TO, and RANGE_MASK is a
+	 position-based retriction for FIELD[I].  */
+      int range_from = i, range_to = 14 - n + i;
+      Lisp_Object val = field[i];
+
+      tmp[i] = val;
+      if (NILP (val))
+	{
+	  /* Wildcard.  */
+	  range[i].from = range_from;
+	  range[i].to = range_to;
+	  range[i].mask = range_mask;
+	}
+      else
+	{
+	  /* The triplet FROM, TO, and MASK is a value-based
+	     retriction for FIELD[I].  */
+	  int from, to;
+	  unsigned mask;
+
+	  if (INTEGERP (val))
+	    {
+	      int numeric = XINT (val);
+
+	      if (i + 1 == n)
+		from = to = XLFD_ENCODING_INDEX,
+		  mask = XLFD_ENCODING_MASK;
+	      else if (numeric <= 48)
+		from = to = XLFD_PIXEL_INDEX,
+		  mask = XLFD_PIXEL_MASK;
+	      else
+		from = XLFD_POINT_INDEX, to = XLFD_AVGWIDTH_MASK,
+		  mask = XLFD_LARGENUM_MASK;
+	    }
+	  else if (EQ (val, null_string))
+	    from = XLFD_FOUNDRY_INDEX, to = XLFD_ADSTYLE_INDEX,
+	      mask = XLFD_NULL_MASK;
+	  else if (i == 0)
+	    from = to = XLFD_FOUNDRY_INDEX, mask = XLFD_FOUNDRY_MASK;
+	  else if (i + 1 == n)
+	    {
+	      Lisp_Object name = SYMBOL_NAME (val);
+
+	      if (SDATA (name)[SBYTES (name) - 1] == '*')
+		from = XLFD_REGISTRY_INDEX, to = XLFD_ENCODING_INDEX,
+		  mask = XLFD_REGENC_MASK;
+	      else
+		from = to = XLFD_ENCODING_INDEX,
+		  mask = XLFD_ENCODING_MASK;
+	    }
+	  else if (range_from <= XLFD_WEIGHT_INDEX
+		   && range_to >= XLFD_WEIGHT_INDEX
+		   && !NILP (prop_name_to_numeric (FONT_WEIGHT_INDEX, val)))
+	    from = to = XLFD_WEIGHT_INDEX, mask = XLFD_WEIGHT_MASK;
+	  else if (range_from <= XLFD_SLANT_INDEX
+		   && range_to >= XLFD_SLANT_INDEX
+		   && !NILP (prop_name_to_numeric (FONT_SLANT_INDEX, val)))
+	    from = to = XLFD_SLANT_INDEX, mask = XLFD_SLANT_MASK;
+	  else if (range_from <= XLFD_SWIDTH_INDEX
+		   && range_to >= XLFD_SWIDTH_INDEX
+		   && !NILP (prop_name_to_numeric (FONT_WIDTH_INDEX, val)))
+	    from = to = XLFD_SWIDTH_INDEX, mask = XLFD_SWIDTH_MASK;
+	  else
+	    {
+	      Lisp_Object name = SYMBOL_NAME (val);
+
+	      if (SBYTES (name) == 1
+		  && (SDATA (name)[0] == 'c'
+		      || SDATA (name)[0] == 'm'
+		      || SDATA (name)[0] == 'p'))
+		from = to = XLFD_SPACING_INDEX, mask = XLFD_SPACING_MASK;
+	      else
+		from = XLFD_FOUNDRY_INDEX, to = XLFD_ENCODING_INDEX,
+		  mask = XLFD_SYMBOL_MASK;
+	    }
+
+	  /* Merge position-based and value-based restrictions.  */
+	  mask &= range_mask;
+	  while (from < range_from)
+	    mask &= ~(1 << from++);
+	  while (from < 14 && ! (mask & (1 << from)))
+	    from++;
+	  while (to > range_to)
+	    mask &= ~(1 << to--);
+	  while (to >= 0 && ! (mask & (1 << to)))
+	    to--;
+	  if (from > to)
+	    return -1;
+	  range[i].from = from;
+	  range[i].to = to;
+	  range[i].mask = mask;
+
+	  if (from > range_from || to < range_to)
+	    /* The range is narrowed by value-based restrictions.
+	       Reflect it to the previous fields.  */
+	    for (j = i - 1, from--, to--; j >= 0; j--, from--, to--)
+	      {
+		/* Check FROM for non-wildcard field.  */
+		if (! NILP (tmp[j]) && range[j].from < from)
+		  {
+		    while (range[j].from < from)
+		      range[j].mask &= ~(1 << range[j].from++);
+		    while (from < 14 && ! (range[j].mask & (1 << from)))
+		      from++;
+		    range[j].from = from;
+		  }
+		else
+		  from = range[j].from;
+		if (range[j].to > to)
+		  {
+		    while (range[j].to > to)
+		      range[j].mask &= ~(1 << range[j].to--);
+		    while (to >= 0 && ! (range[j].mask & (1 << to)))
+		      to--;
+		    range[j].to = to;
+		  }
+		else
+		  to = range[j].to;
+		if (from > to)
+		  return -1;
+	      }
+	}
+    }
+
+  /* Decide all fileds from restrictions in RANGE.  */
+  for (i = j = 0; i < n ; i++)
+    {
+      if (j < range[i].from)
+	{
+	  if (i == 0 || ! NILP (tmp[i - 1]))
+	    /* None of TMP[X] corresponds to Jth field.  */
+	    return -1;
+	  for (; j < range[i].from; j++)
+	    field[j] = Qnil;
+	}
+      field[j++] = tmp[i];
+    }
+  if (! NILP (tmp[n - 1]) && j < XLFD_REGISTRY_INDEX)
+    return -1;
+  for (; j < XLFD_LAST_INDEX; j++)
+    field[j] = Qnil;
+  if (INTEGERP (field[XLFD_ENCODING_INDEX]))
+    field[XLFD_ENCODING_INDEX]
+      = Fintern (Fnumber_to_string (field[XLFD_ENCODING_INDEX]), Qnil);
+  return 0;
+}
+
+/* Parse NAME (null terminated) as XLFD and store information in FONT
+   (font-spec or font-entity).  See font_parse_name for more
+   detail.  */
 
 int
 font_parse_xlfd (name, font, merge)
@@ -445,137 +646,206 @@ font_parse_xlfd (name, font, merge)
 {
   int len = strlen (name);
   int i, j;
-  int pixel_size, resy, avwidth;
+  int pixel_size, resy, avgwidth;
   double point_size;
-  char *f[XLFD_LAST_INDEX + 1];
+  Lisp_Object f[XLFD_LAST_INDEX];
   Lisp_Object val;
-  int first_wildcard_field = -1, last_wildcard_field = XLFD_LAST_INDEX;
+  char *p;
 
   if (len > 255)
     /* Maximum XLFD name length is 255. */
     return -1;
-  for (i = 0; *name; name++)
-    if (*name == '-'
-	&& i < XLFD_LAST_INDEX)
-      {
-	f[i] = name;
-	if (name[1] == '*' && (! name[2] || name[2] == '-'))
-	  {
-	    if (first_wildcard_field < 0)
-	      first_wildcard_field = i;
-	    last_wildcard_field = i;
-	  }
-	i++;
-      }
-
-  f[XLFD_LAST_INDEX] = name;
-  if (i < XLFD_LAST_INDEX)
+  i = (name[0] == '*' && name[1] == '-');
+  for (p = name + 1; *p; p++)
     {
-      /* Not a fully specified XLFD.  */
-      if (first_wildcard_field < 0 )
-	/* No wild card.  */
-	return -1;
-      i--;
-      if (last_wildcard_field < i)
+      if (*p == '-')
 	{
-	  /* Shift fields after the last wildcard field.   */
-	  for (j = XLFD_LAST_INDEX - 1; j > last_wildcard_field; j--, i--)
-	    f[j] = f[i];
-	  /* Make all fields between the first and last wildcard fieled
-	     also wildcard fields.  */
-	  for (j--; j > first_wildcard_field; j--)
-	    f[j] = "-*";
+	  i++;
+	  if (i == XLFD_ENCODING_INDEX)
+	    break;
 	}
     }
-  f[XLFD_ENCODING_INDEX] = f[XLFD_LAST_INDEX];
+
+  pixel_size = resy = avgwidth = -1;
+  point_size = -1;
+
+  if (i == XLFD_ENCODING_INDEX)
+    {
+      /* Fully specified XLFD.  */
+      if (name[0] == '-')
+	name++;
+      for (i = 0, p = name; ; p++)
+	{
+	  if (*p == '-')
+	    {
+	      if (i < XLFD_PIXEL_INDEX)
+		f[i++] = intern_font_field (name, p - name);
+	      else if (i == XLFD_PIXEL_INDEX)
+		{
+		  if (isdigit (*name))
+		    pixel_size = atoi (name);
+		  else if (*name == '[')
+		    pixel_size = parse_matrix (name);
+		  i++;
+		}
+	      else if (i == XLFD_POINT_INDEX)
+		{
+		  if (pixel_size < 0)
+		    {
+		      if (isdigit (*name))
+			point_size = atoi (name);
+		      else if (*name == '[')
+			point_size = parse_matrix (name);
+		    }
+		  i++;
+		}
+	      else if (i == XLFD_RESX_INDEX)
+		{
+		  /* Skip this field.  */
+		  f[i++] = Qnil;
+		}
+	      else if (i == XLFD_RESY_INDEX)
+		{
+		  /* Stuff RESY, SPACING, and AVGWIDTH.  */
+		  if (pixel_size < 0 && isdigit (*name))
+		    resy = atoi (name);
+		  for (p++; *p != '-'; p++);
+		  if (isdigit (p[1]))
+		    avgwidth = atoi (p + 1);
+		  else if (p[1] == '~' && isdigit (p[2]))
+		    avgwidth = atoi (p + 2);
+		  for (p++; *p != '-'; p++);
+		  if (FONT_ENTITY_P (font))
+		    f[i] = intern_font_field (name, p - name);
+		  else
+		    f[i] = Qnil;
+		  i = XLFD_REGISTRY_INDEX;
+		}
+	      else
+		{
+		  /* Stuff REGISTRY and ENCODING.  */
+		  for (p++; *p; p++);
+		  f[i++] = intern_font_field (name, p - name);
+		  break;
+		}
+	      name = p + 1;
+	    }
+	}
+      xassert (i == XLFD_ENCODING_INDEX);
+    }
+  else
+    {
+      int wild_card_found = 0;
+
+      if (name[0] == '-')
+	name++;
+      for (i = 0, p = name; ; p++)
+	{
+	  if (*p == '-' || ! *p)
+	    {
+	      if (*name == '*')
+		{
+		  if (name + 1 != p)
+		    return -1;
+		  f[i++] = Qnil;
+		  wild_card_found = 1;
+		}
+	      else if (isdigit (*name))
+		{
+		  f[i++] = make_number (atoi (name));
+		  /* Check if all chars in this field is number.  */
+		  name++;
+		  while (isdigit (*name)) name++;
+		  if (name != p)
+		    return -1;
+		}
+	      else if (p == name)
+		f[i++] = null_string;
+	      else
+		{
+		  f[i++] = intern_downcase (name, p - name);
+		}
+	      if (! *p)
+		break;
+	      name = p + 1;
+	    }
+	}
+      if (! wild_card_found)
+	return -1;
+      if (font_expand_wildcards (f, i) < 0)
+	return -1;
+      if (! NILP (f[XLFD_PIXEL_INDEX]))
+	pixel_size = XINT (f[XLFD_PIXEL_INDEX]);
+      if (! NILP (f[XLFD_POINT_INDEX]))
+	point_size = XINT (f[XLFD_POINT_INDEX]);
+      if (! NILP (f[XLFD_RESY_INDEX]))
+	resy = XINT (f[XLFD_RESY_INDEX]);
+      if (! NILP (f[XLFD_AVGWIDTH_INDEX]))
+	avgwidth = XINT (f[XLFD_AVGWIDTH_INDEX]);
+      if (NILP (f[XLFD_REGISTRY_INDEX]))
+	{
+	  if (! NILP (f[XLFD_ENCODING_INDEX]))
+	    f[XLFD_REGISTRY_INDEX]
+	      = Fintern (concat2 (build_string ("*-"),
+				  SYMBOL_NAME (f[XLFD_ENCODING_INDEX])), Qnil);
+	}
+      else
+	{
+	  if (! NILP (f[XLFD_ENCODING_INDEX]))
+	    f[XLFD_REGISTRY_INDEX]
+	      = Fintern (concat2 (SYMBOL_NAME (f[XLFD_REGISTRY_INDEX]),
+				  SYMBOL_NAME (f[XLFD_ENCODING_INDEX])), Qnil);
+	}
+    }
 
   if (! merge || NILP (AREF (font, FONT_FOUNDRY_INDEX)))
-    ASET (font, FONT_FOUNDRY_INDEX, intern_font_field (f, XLFD_FOUNDRY_INDEX));
+    ASET (font, FONT_FOUNDRY_INDEX, f[XLFD_FOUNDRY_INDEX]);
   if (! merge || NILP (AREF (font, FONT_FAMILY_INDEX)))
-    ASET (font, FONT_FAMILY_INDEX, intern_font_field (f, XLFD_FAMILY_INDEX));
+    ASET (font, FONT_FAMILY_INDEX, f[XLFD_FAMILY_INDEX]);
   if (! merge || NILP (AREF (font, FONT_ADSTYLE_INDEX)))
-    ASET (font, FONT_ADSTYLE_INDEX, intern_font_field (f, XLFD_ADSTYLE_INDEX));
+    ASET (font, FONT_ADSTYLE_INDEX, f[XLFD_ADSTYLE_INDEX]);
   if (! merge || NILP (AREF (font, FONT_REGISTRY_INDEX)))
-    ASET (font, FONT_REGISTRY_INDEX, intern_font_field (f, XLFD_REGISTRY_INDEX));
+    ASET (font, FONT_REGISTRY_INDEX, f[XLFD_REGISTRY_INDEX]);
 
   for (i = FONT_WEIGHT_INDEX, j = XLFD_WEIGHT_INDEX;
        j <= XLFD_SWIDTH_INDEX; i++, j++)
     if (! merge || NILP (AREF (font, i)))
       {
-	if (isdigit(f[j][1]))
-	  val = make_number (atoi (f[j] + 1));
-	else
+	if (! INTEGERP (f[j]))
 	  {
-	    Lisp_Object sym = intern_font_field (f, j);
-
-	    val = prop_name_to_numeric (i, sym);
-	    if (NILP (val))
-	      val = sym;
+	    val = prop_name_to_numeric (i, f[j]);
+	    if (INTEGERP (val))
+	      f[j] = val;
 	  }
-	ASET (font, i, val);
+	ASET (font, i, f[j]);
       }
-
-  if (f[XLFD_PIXEL_SIZE_INDEX][1] == '*')
-    pixel_size = -1;		/* indicates "unspecified" */
-  else if (f[XLFD_PIXEL_SIZE_INDEX][1] == '[')
-    pixel_size = parse_matrix (f[XLFD_PIXEL_SIZE_INDEX] + 1);
-  else if (isdigit (f[XLFD_PIXEL_SIZE_INDEX][1]))
-    pixel_size = strtod (f[XLFD_PIXEL_SIZE_INDEX] + 1, NULL);
-  else
-    pixel_size = -1;
 
   if (pixel_size < 0 && FONT_ENTITY_P (font))
     return -1;
-
-  if (f[XLFD_POINT_SIZE_INDEX][1] == '*')
-    point_size = -1;		/* indicates "unspecified" */
-  else if (f[XLFD_POINT_SIZE_INDEX][1] == '[')
-    point_size = parse_matrix (f[XLFD_POINT_SIZE_INDEX] + 1);
-  else if (isdigit (f[XLFD_POINT_SIZE_INDEX][1]))
-    point_size = strtod (f[XLFD_POINT_SIZE_INDEX] + 1, NULL);
-  else
-    point_size = -1;
-
-  if (f[XLFD_RESY_INDEX][1] == '*')
-    resy = -1;			/* indicates "unspecified" */
-  else
-    resy = strtod (f[XLFD_RESY_INDEX] + 1, NULL);
-
-  if (f[XLFD_AVGWIDTH_INDEX][1] == '*')
-    avwidth = -1;		/* indicates "unspecified" */
-  else if (f[XLFD_AVGWIDTH_INDEX][1] == '~')
-    avwidth = - strtod (f[XLFD_AVGWIDTH_INDEX] + 2, NULL);
-  else
-    avwidth = strtod (f[XLFD_AVGWIDTH_INDEX] + 1, NULL);
 
   if (! merge || NILP (AREF (font, FONT_SIZE_INDEX)))
     {
       if (pixel_size >= 0)
 	ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));
-      else
+      else if (point_size >= 0)
 	{
-	  if (point_size >= 0)
+	  if (resy > 0)
 	    {
-	      if (resy > 0)
-		{
-		  pixel_size = POINT_TO_PIXEL (point_size, resy);
-		  ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));
-		}
-	      else
-		{
-		  ASET (font, FONT_SIZE_INDEX, make_float (point_size / 10));
-		}
+	      pixel_size = POINT_TO_PIXEL (point_size, resy);
+	      ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));
 	    }
 	  else
-	    ASET (font, FONT_SIZE_INDEX, Qnil);
+	    {
+	      ASET (font, FONT_SIZE_INDEX, make_float (point_size / 10));
+	    }
 	}
     }
 
   if (FONT_ENTITY_P (font)
       && EQ (AREF (font, FONT_TYPE_INDEX), Qx))
-    ASET (font, FONT_EXTRA_INDEX, intern_font_field (f, XLFD_RESY_INDEX));
+    ASET (font, FONT_EXTRA_INDEX, f[XLFD_RESY_INDEX]);
 
-  return (avwidth > 0 ? 2 : resy == 0);
+  return (avgwidth > 0 ? 2 : resy == 0);
 }
 
 /* Store XLFD name of FONT (font-spec or font-entity) in NAME (NBYTES
@@ -699,6 +969,179 @@ font_unparse_xlfd (font, pixel_size, name, nbytes)
 		  f[XLFD_SWIDTH_INDEX],
 		  f[XLFD_ADSTYLE_INDEX], pixel_point,
 		  f[XLFD_RESY_INDEX], f[XLFD_REGISTRY_INDEX]);
+}
+
+/* Parse NAME (null terminated) as Fonconfig's name format and store
+   information in FONT (font-spec or font-entity).  See
+   font_parse_name for more detail.  */
+
+int
+font_parse_fcname (name, font, merge)
+     char *name;
+     Lisp_Object font;
+     int merge;
+{
+  char *p0, *p1;
+  Lisp_Object family = Qnil;
+  double point_size = 0;
+  int pixel_size = 0;
+  Lisp_Object extra = AREF (font, FONT_EXTRA_INDEX);
+
+  /* It is assured that (name[0] && name[0] != '-').  */
+  if (name[0] == ':')
+    p0 = name;
+  else
+    {
+      for (p0 = name + 1; *p0 && (*p0 != '-' && *p0 != ':'); p0++);
+      family = intern_font_field (name, p0 - name);
+      if (*p0 == '-')
+	{
+	  point_size = strtod (p0 + 1, &p1);
+	  if (*p1 && *p1 != ':')
+	    return -1;
+	  p0 = p1;
+	}
+      if (! merge || NILP (AREF (font, FONT_FAMILY_INDEX)))
+	ASET (font, FONT_FAMILY_INDEX, family);
+    }
+  while (*p0)
+    {
+      Lisp_Object key, val;
+      enum font_property_index prop;
+
+      p1 = index (name, '=');
+      if (! p1)
+	return -1;
+      if (memcmp (p0 + 1, "pixelsize=", 10) == 0)
+	prop = FONT_SIZE_INDEX;
+      else
+	{
+	  key = intern_font_field (p0, p1 - p0);
+	  prop = check_font_prop_name (key);
+	}
+      p0 = p1 + 1;
+      for (p1 = p0; *p1 && *p1 != ':'; p1++);
+      if (prop == FONT_SIZE_INDEX)
+	{
+	  pixel_size = atoi (p0);
+	}
+      else
+	{
+	  val = intern_font_field (p0, p1 - p0);
+	  if (prop < FONT_EXTRA_INDEX)
+	    {
+	      if (! merge || NILP (AREF (font, prop)))
+		{
+		  val = font_property_table[prop].validater (prop, val);
+		  if (! EQ (val, Qerror))
+		    ASET (font, prop, val);
+		}
+	    }
+	  else
+	    {
+	      if (! merge || NILP (Fplist_get (extra, key)))
+		extra = Fplist_put (extra, key, val);
+	    }
+	}
+      p0 = p1;
+    }
+  ASET (font, FONT_EXTRA_INDEX, extra);
+  if (! merge || NILP (AREF (font, FONT_SIZE_INDEX)))
+    {
+      if (point_size > 0)
+	ASET (font, FONT_SIZE_INDEX, make_float (point_size));
+      else if (pixel_size > 0)
+	ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));
+    }
+
+  return (NILP (AREF (font, FONT_SIZE_INDEX)) ? 1 : 2);
+}
+
+/* Store fontconfig's font name of FONT (font-spec or font-entity) in
+   NAME (NBYTES length), and return the name length.  If
+   FONT_SIZE_INDEX of FONT is 0, use PIXEL_SIZE instead.  */
+
+int
+font_unparse_fcname (font, pixel_size, name, nbytes)
+     Lisp_Object font;
+     int pixel_size;
+     char *name;
+     int nbytes;
+{
+  Lisp_Object val, size;
+  int pt = 0;
+  int i, j, len = 1;
+  char *p;
+
+  if (SYMBOLP (AREF (font, FONT_FAMILY_INDEX))
+      && ! NILP (AREF (font, FONT_FAMILY_INDEX)))
+    len += SBYTES (SYMBOL_NAME (AREF (font, FONT_FAMILY_INDEX)));
+  size = AREF (font, FONT_SIZE_INDEX);
+  if (INTEGERP (size))
+    {
+      if (XINT (size) > 0)
+	pixel_size = XINT (size);
+      if (pixel_size > 0)
+	len += 21;		/* for ":pixelsize=NUM" */
+    }
+  else if (FLOATP (size))
+    {
+      pt = (int) XFLOAT_DATA (size);
+      if (pt > 0)
+	len += 11;		/* for "-NUM" */
+    }
+  if (SYMBOLP (AREF (font, FONT_FOUNDRY_INDEX))
+      && ! NILP (AREF (font, FONT_FOUNDRY_INDEX)))
+    /* ":foundry=NAME" */
+    len += 9 + SBYTES (SYMBOL_NAME (AREF (font, FONT_FOUNDRY_INDEX)));
+  if (INTEGERP (AREF (font, FONT_WEIGHT_INDEX)))
+    len += 18; /* ":weight=NUM" */
+  if (INTEGERP (AREF (font, FONT_SLANT_INDEX)))
+    len += 17; /* ":slant=NUM" */
+  if (INTEGERP (AREF (font, FONT_WIDTH_INDEX)))
+    len += 17; /* ":width=NUM" */
+  if (len > nbytes)
+    return -1;
+  p = name;
+  if (! NILP (AREF (font, FONT_FAMILY_INDEX)))
+    strcpy (p, SDATA (SYMBOL_NAME (AREF (font, FONT_FAMILY_INDEX)))),
+      p += SBYTES (SYMBOL_NAME (AREF (font, FONT_FAMILY_INDEX)));
+  if (pt > 0)
+    p += sprintf (p, "-%d", pt);
+  else if (pixel_size > 0)
+    p += sprintf (p, ":pixelsize=%d", pixel_size);
+  if (! NILP (AREF (font, FONT_FOUNDRY_INDEX)))
+    p += sprintf (p, ":foundry=%s", SDATA (AREF (font, FONT_FOUNDRY_INDEX)));
+  if (INTEGERP (AREF (font, FONT_WEIGHT_INDEX)))
+    p += sprintf (p, ":weight=%d", XINT (AREF (font, FONT_WEIGHT_INDEX)));
+  if (INTEGERP (AREF (font, FONT_SLANT_INDEX)))
+    p += sprintf (p, ":slant=%d", XINT (AREF (font, FONT_SLANT_INDEX)));
+  if (INTEGERP (AREF (font, FONT_WIDTH_INDEX)))
+    p += sprintf (p, ":width=%d", XINT (AREF (font, FONT_WIDTH_INDEX)));
+  return (p - name);
+}
+
+/* Parse NAME (null terminated) and store information in FONT
+   (font-spec or font-entity).  If NAME is successfully parsed, return
+   2 (size is specified), 1 (size is not specified), or 0 (size is not
+   specified but resolution is specified).  Otherwise return -1.
+
+   If NAME is XLFD and FONT is a font-entity, store
+   RESY-SPACING-AVWIDTH information as a symbol in FONT_EXTRA_INDEX.
+
+   If MERGE is nonzero, set a property of FONT only when it's nil.  */
+
+static int
+font_parse_name (name, font, merge)
+     char *name;
+     Lisp_Object font;
+     int merge;
+{
+  if (name[0] == '-' || index (name, '*'))
+    return font_parse_xlfd (name, font, merge);
+  if (name[0])
+    return font_parse_fcname (name, font, merge);
+  return -1;
 }
 
 void
@@ -1482,6 +1925,24 @@ font_symbolic_width (font)
   return width;
 }
 
+int
+font_match_p (spec, entity)
+     Lisp_Object spec, entity;
+{
+  int i;
+
+  for (i = FONT_FOUNDRY_INDEX; i < FONT_SIZE_INDEX; i++)
+    if (! NILP (AREF (spec, i))
+	&& ! EQ (AREF (spec, i), AREF (entity, i)))
+      return 0;
+  if (INTEGERP (AREF (spec, FONT_SIZE_INDEX))
+      && XINT (AREF (entity, FONT_SIZE_INDEX)) > 0
+      && (XINT (AREF (spec, FONT_SIZE_INDEX))
+	  != XINT (AREF (entity, FONT_SIZE_INDEX))))
+    return 0;
+  return 1;
+}
+
 Lisp_Object
 font_find_object (font)
      struct font *font;
@@ -1675,15 +2136,30 @@ font_encode_char (font_object, c)
   return font->driver->encode_char (font, c);
 }
 
-char *
+Lisp_Object
 font_get_name (font_object)
      Lisp_Object font_object;
 {
   struct font *font = XSAVE_VALUE (font_object)->pointer;
+  char *name = (font->font.full_name ? font->font.full_name
+		: font->font.name ? font->font.name
+		: NULL);
 
-  return (font->font.full_name ? font->font.full_name
-	  : font->file_name ? font->file_name
-	  : "");
+  return (name ? make_unibyte_string (name, strlen (name)) : null_string);
+}
+
+Lisp_Object
+font_get_spec (font_object)
+     Lisp_Object font_object;
+{
+  struct font *font = XSAVE_VALUE (font_object)->pointer;
+  Lisp_Object spec = Ffont_spec (0, NULL);
+  int i;
+
+  for (i = 0; i < FONT_SIZE_INDEX; i++)
+    ASET (spec, i, AREF (font->entity, i));
+  ASET (spec, FONT_SIZE_INDEX, make_number (font->pixel_size));
+  return spec;
 }
 
 Lisp_Object
@@ -1696,7 +2172,8 @@ font_get_frame (font)
   return AREF (font, FONT_FRAME_INDEX);
 }
 
-extern Lisp_Object Qunspecified, Qignore_defface;
+/* Find a font entity best matching with LFACE.  If SPEC is non-nil,
+   the font must exactly match with it.  */
 
 Lisp_Object
 font_find_for_lface (f, lface, spec)
@@ -1704,18 +2181,9 @@ font_find_for_lface (f, lface, spec)
      Lisp_Object *lface;
      Lisp_Object spec;
 {
-  Lisp_Object attrs[LFACE_FONT_INDEX + 1];
-  Lisp_Object frame, val, entities;
+  Lisp_Object frame, entities;
   int i;
-  unsigned char try_unspecified[FONT_SPEC_MAX];
 
-  for (i = 0; i <= LFACE_FONT_INDEX; i++)
-    {
-      val = lface[i];
-      if (EQ (val, Qunspecified) || EQ (val, Qignore_defface))
-	val = Qnil;
-      attrs[i] = val;
-    }
   if (NILP (spec))
     for (i = 0; i < FONT_SPEC_MAX; i++)
       ASET (scratch_font_spec, i, Qnil);
@@ -1723,54 +2191,26 @@ font_find_for_lface (f, lface, spec)
     for (i = 0; i < FONT_SPEC_MAX; i++)
       ASET (scratch_font_spec, i, AREF (spec, i));
 
-  /* If SPEC doesn't specify a specific property, it can be tried with
-     nil even if FACE specifies it.  */
-  for (i = FONT_FOUNDRY_INDEX; i <= FONT_SIZE_INDEX; i++)
-    try_unspecified[i] = NILP (AREF (scratch_font_spec, i));
-
-  if (NILP (spec) && STRINGP (attrs[LFACE_FONT_INDEX]))
-    font_merge_old_spec (attrs[LFACE_FONT_INDEX], Qnil, Qnil,
-			      scratch_font_spec);
   if (NILP (AREF (scratch_font_spec, FONT_FAMILY_INDEX))
-      && ! NILP (attrs[LFACE_FAMILY_INDEX]))
-    font_merge_old_spec (Qnil, attrs[LFACE_FAMILY_INDEX], Qnil,
-			      scratch_font_spec);
+      && ! NILP (lface[LFACE_FAMILY_INDEX]))
+    font_merge_old_spec (Qnil, lface[LFACE_FAMILY_INDEX], Qnil,
+			 scratch_font_spec);
   if (NILP (AREF (scratch_font_spec, FONT_REGISTRY_INDEX)))
-    {
-      ASET (scratch_font_spec, FONT_REGISTRY_INDEX, intern ("iso8859-1"));
-      try_unspecified[FONT_REGISTRY_INDEX] = 0;
-    }
-
-  for (i = FONT_FAMILY_INDEX; i <= FONT_SIZE_INDEX; i++)
-    if (try_unspecified[i]
-	&& NILP (AREF (scratch_font_spec, i)))
-      try_unspecified[i] = 0;
+    ASET (scratch_font_spec, FONT_REGISTRY_INDEX, intern ("iso8859-1"));
 
   XSETFRAME (frame, f);
   entities = font_list_entities (frame, scratch_font_spec);
   while (ASIZE (entities) == 0)
     {
-      if (try_unspecified[FONT_WEIGHT_INDEX]
-	  || try_unspecified[FONT_SLANT_INDEX]
-	  || try_unspecified[FONT_WIDTH_INDEX]
-	  || try_unspecified[FONT_SIZE_INDEX])
+      if (! NILP (AREF (scratch_font_spec, FONT_FOUNDRY_INDEX))
+	  && (NILP (spec) || NILP (AREF (spec, FONT_FOUNDRY_INDEX))))
 	{
-	  for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
-	    {
-	      try_unspecified[i] = 0;
-	      ASET (scratch_font_spec, i, Qnil);
-	    }
-	  entities = font_list_entities (frame, scratch_font_spec);
-	}
-      else if (try_unspecified[FONT_FOUNDRY_INDEX])
-	{
-	  try_unspecified[FONT_FOUNDRY_INDEX] = 0;
 	  ASET (scratch_font_spec, FONT_FOUNDRY_INDEX, Qnil);
 	  entities = font_list_entities (frame, scratch_font_spec);
 	}
-      else if (try_unspecified[FONT_FAMILY_INDEX])
+      else if (! NILP (AREF (scratch_font_spec, FONT_FAMILY_INDEX))
+	       && (NILP (spec) || NILP (AREF (spec, FONT_FAMILY_INDEX))))
 	{
-	  try_unspecified[FONT_FAMILY_INDEX] = 0;
 	  ASET (scratch_font_spec, FONT_FAMILY_INDEX, Qnil);
 	  entities = font_list_entities (frame, scratch_font_spec);
 	}
@@ -1780,30 +2220,22 @@ font_find_for_lface (f, lface, spec)
 
   if (ASIZE (entities) > 1)
     {
-      Lisp_Object prefer = scratch_font_prefer;
+      Lisp_Object prefer = scratch_font_prefer, val;
+      int size;
 
-      for (i = 0; i < FONT_WEIGHT_INDEX; i++)
-	ASET (prefer, i, Qnil);
-      if (! NILP (attrs[LFACE_WEIGHT_INDEX]))
-	ASET (prefer, FONT_WEIGHT_INDEX,
-	      font_prop_validate_style (FONT_WEIGHT_INDEX,
-					attrs[LFACE_WEIGHT_INDEX]));
-      if (! NILP (attrs[LFACE_SLANT_INDEX]))
-	ASET (prefer, FONT_SLANT_INDEX,
-	      font_prop_validate_style (FONT_SLANT_INDEX,
-					attrs[LFACE_SLANT_INDEX]));
-      if (! NILP (attrs[LFACE_SWIDTH_INDEX]))
-	ASET (prefer, FONT_WIDTH_INDEX,
-	      font_prop_validate_style (FONT_WIDTH_INDEX,
-					attrs[LFACE_SWIDTH_INDEX]));
-      if (! NILP (attrs[LFACE_HEIGHT_INDEX]))
-	{
-	  int size;
+      ASET (prefer, FONT_WEIGHT_INDEX,
+	    font_prop_validate_style (FONT_WEIGHT_INDEX,
+				      lface[LFACE_WEIGHT_INDEX]));
+      ASET (prefer, FONT_SLANT_INDEX,
+	    font_prop_validate_style (FONT_SLANT_INDEX,
+				      lface[LFACE_SLANT_INDEX]));
+      ASET (prefer, FONT_WIDTH_INDEX,
+	    font_prop_validate_style (FONT_WIDTH_INDEX,
+				      lface[LFACE_SWIDTH_INDEX]));
+      val = lface[LFACE_HEIGHT_INDEX];
+      size = POINT_TO_PIXEL (XINT (val), f->resy);
+      ASET (prefer, FONT_SIZE_INDEX, make_number (size));
 
-	  val = attrs[LFACE_HEIGHT_INDEX];
-	  size = POINT_TO_PIXEL (XINT (val), f->resy);
-	  ASET (prefer, FONT_SIZE_INDEX, make_number (size));
-	}
       font_sort_entites (entities, prefer, frame, spec);
     }
 
@@ -1827,30 +2259,33 @@ font_load_for_face (f, face)
      FRAME_PTR f;
      struct face *face;
 {
-  Lisp_Object entity;
+  Lisp_Object font_object = face->lface[LFACE_FONT_INDEX];
 
-  face->font_info_id = -1;
-  face->font_info = NULL;
-  face->font = NULL;
-  face->font_name = NULL;
-
-  entity = font_find_for_lface (f, face->lface, Qnil);
-  if (! NILP (entity))
+  if (NILP (font_object))
     {
-      Lisp_Object font_object = font_open_for_lface (f, face->lface, entity);
+      Lisp_Object entity = font_find_for_lface (f, face->lface, Qnil);
 
-      if (! NILP (font_object))
-	{
-	  struct font *font = XSAVE_VALUE (font_object)->pointer;
-
-	  face->font = font->font.font;
-	  face->font_info = (struct font_info *) font;
-	  face->font_info_id = 0;
-	  face->font_name = font->font.full_name;
-	}
+      if (! NILP (entity))
+	font_object = font_open_for_lface (f, face->lface, entity);
     }
-  if (! face->font)
-    add_to_log ("Unable to load font for a face%s", null_string, Qnil);
+
+  if (! NILP (font_object))
+    {
+      struct font *font = XSAVE_VALUE (font_object)->pointer;
+
+      face->font = font->font.font;
+      face->font_info = (struct font_info *) font;
+      face->font_info_id = 0;
+      face->font_name = font->font.full_name;
+    }
+  else
+    {
+      face->font = NULL;
+      face->font_info = NULL;
+      face->font_info_id = -1;
+      face->font_name = NULL;
+      add_to_log ("Unable to load font for a face%s", null_string, Qnil);
+    }
 }
 
 void
@@ -1881,32 +2316,37 @@ font_open_by_name (f, name)
      FRAME_PTR f;
      char *name;
 {
-  Lisp_Object spec = Ffont_spec (0, NULL);
+  Lisp_Object args[2];
+  Lisp_Object spec;
   Lisp_Object frame;
   struct font_driver_list *dlist;
+  int pixel_size;
 
   XSETFRAME (frame, f);
-  ASET (spec, FONT_EXTRA_INDEX,
-	Fcons (Fcons (QCname, make_unibyte_string (name, strlen (name))), 
-	       Qnil));
+  args[0] = QCname;
+  args[1] = make_unibyte_string (name, strlen (name));
+  spec = Ffont_spec (2, args);
 
+  if (INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
+    pixel_size = XINT (AREF (spec, FONT_SIZE_INDEX));
+  else if (FLOATP (AREF (spec, FONT_SIZE_INDEX)))
+    {
+      double pt = XFLOAT_DATA (AREF (spec, FONT_SIZE_INDEX));
+      pixel_size = POINT_TO_PIXEL (pt * 10, f->resy);
+    }
+  else
+    pixel_size = 12;
   for (dlist = f->font_driver_list; dlist; dlist = dlist->next)
-    if (dlist->driver->parse_name
-	&& dlist->driver->parse_name (f, name, spec) >= 0)
-      {
-	Lisp_Object entities  = font_list_entities (frame, spec);
-	Lisp_Object font_object;
-	int pixel_size;
+    {
+      Lisp_Object entities  = font_list_entities (frame, spec);
+      Lisp_Object font_object;
 
-	if (ASIZE (entities) == 0)
-	  continue;
-	pixel_size = XINT (AREF (AREF (entities, 0), FONT_SIZE_INDEX));
-	if (pixel_size == 0 && INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
-	  pixel_size = XINT (AREF (spec, FONT_SIZE_INDEX));
-	font_object = font_open_entity (f, AREF (entities, 0), pixel_size);
-	if (! NILP (font_object))
-	  return font_object;
-      }
+      if (ASIZE (entities) == 0)
+	continue;
+      font_object = font_open_entity (f, AREF (entities, 0), pixel_size);
+      if (! NILP (font_object))
+	return font_object;
+    }
   return Qnil;
 }
 
@@ -1998,7 +2438,11 @@ usage: (font-spec &rest properties)  */)
       if (prop < FONT_EXTRA_INDEX)
 	ASET (spec, prop, (font_property_table[prop].validater) (prop, val));
       else
-	extra = Fcons (Fcons (key, val), extra);
+	{
+	  if (EQ (key, QCname))
+	    font_parse_name ((char *) SDATA (val), spec, 0);
+	  extra = Fcons (Fcons (key, val), extra);
+	}
     }  
   ASET (spec, FONT_EXTRA_INDEX, extra);
   return spec;

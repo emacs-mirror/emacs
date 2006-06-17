@@ -259,7 +259,7 @@ extern int fontset_height P_ ((int));
 #ifdef USE_FONT_BACKEND
 struct font;
 extern int face_for_font P_ ((struct frame *, struct font *, struct face *));
-extern int new_fontset_from_font P_ ((FRAME_PTR, Lisp_Object));
+extern int new_fontset_from_font P_ ((Lisp_Object));
 extern struct font *fontset_ascii_font P_ ((FRAME_PTR, int));
 #endif	/* USE_FONT_BACKEND */
 
