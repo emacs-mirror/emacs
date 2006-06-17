@@ -4927,7 +4927,11 @@ N is the numerical prefix."
 	      (article-goto-body)
 	      (narrow-to-region (point-min) (point))
 	      (gnus-article-save-original-date
-	       (gnus-treat-article 'head)))))))))
+	       (gnus-treat-article 'head)))))))
+    ;; Cope with broken MIME messages.
+    (goto-char (point-max))
+    (unless (bolp)
+      (insert "\n"))))
 
 (defcustom gnus-mime-display-multipart-as-mixed nil
   "Display \"multipart\" parts as  \"multipart/mixed\".

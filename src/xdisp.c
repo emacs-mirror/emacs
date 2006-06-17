@@ -925,6 +925,7 @@ static int display_string P_ ((unsigned char *, Lisp_Object, Lisp_Object,
 static void compute_line_metrics P_ ((struct it *));
 static void run_redisplay_end_trigger_hook P_ ((struct it *));
 static int get_overlay_strings P_ ((struct it *, int));
+static int get_overlay_strings_1 P_ ((struct it *, int, int));
 static void next_overlay_string P_ ((struct it *));
 static void reseat P_ ((struct it *, struct text_pos, int));
 static void reseat_1 P_ ((struct it *, struct text_pos, int));
@@ -2918,8 +2919,8 @@ init_from_display_pos (it, w, pos)
 	 also ``processed'' overlay strings at ZV.  */
       while (it->sp)
 	pop_it (it);
-      it->current.overlay_string_index = -1;
-      it->method = GET_FROM_BUFFER;
+      xassert (it->current.overlay_string_index == -1);
+      xassert (it->method == GET_FROM_BUFFER);
       if (CHARPOS (pos->pos) == ZV)
 	it->overlay_strings_at_end_processed_p = 1;
     }
@@ -3030,7 +3031,18 @@ handle_stop (it)
 	  if (handled == HANDLED_RECOMPUTE_PROPS)
 	    break;
 	  else if (handled == HANDLED_RETURN)
-	    return;
+	    {
+	      /* We still want to show before and after strings from
+		 overlays even if the actual buffer text is replaced.  */
+	      if (!handle_overlay_change_p || it->sp > 1)
+		return;
+	      if (!get_overlay_strings_1 (it, 0, 0))
+		return;
+	      it->string_from_display_prop_p = 0;
+	      handle_overlay_change_p = 0;
+	      handled = HANDLED_RECOMPUTE_PROPS;
+	      break;
+	    }
 	  else if (handled == HANDLED_OVERLAY_STRING_CONSUMED)
 	    handle_overlay_change_p = 0;
 	}
@@ -4650,13 +4662,14 @@ next_overlay_string (it)
       int display_ellipsis_p = it->stack[it->sp - 1].display_ellipsis_p;
 
       pop_it (it);
-      xassert (it->stop_charpos >= BEGV
-	       && it->stop_charpos <= it->end_charpos);
-      it->string = Qnil;
+      xassert (it->sp > 0
+	       || it->method == GET_FROM_COMPOSITION
+	       || (NILP (it->string)
+		   && it->method == GET_FROM_BUFFER
+		   && it->stop_charpos >= BEGV
+		   && it->stop_charpos <= it->end_charpos));
       it->current.overlay_string_index = -1;
-      SET_TEXT_POS (it->current.string_pos, -1, -1);
       it->n_overlay_strings = 0;
-      it->method = GET_FROM_BUFFER;
 
       /* If we're at the end of the buffer, record that we have
 	 processed the overlay strings there already, so that
@@ -4912,7 +4925,7 @@ load_overlay_strings (it, charpos)
    least one overlay string was found.  */
 
 static int
-get_overlay_strings (it, charpos)
+get_overlay_strings_1 (it, charpos, compute_stop_p)
      struct it *it;
      int charpos;
 {
@@ -4934,12 +4947,13 @@ get_overlay_strings (it, charpos)
       /* Make sure we know settings in current_buffer, so that we can
 	 restore meaningful values when we're done with the overlay
 	 strings.  */
-      compute_stop_pos (it);
+      if (compute_stop_p)
+	compute_stop_pos (it);
       xassert (it->face_id >= 0);
 
       /* Save IT's settings.  They are restored after all overlay
 	 strings have been processed.  */
-      xassert (it->sp == 0);
+      xassert (!compute_stop_p || it->sp == 0);
       push_it (it);
 
       /* Set up IT to deliver display elements from the first overlay
@@ -4951,13 +4965,22 @@ get_overlay_strings (it, charpos)
       it->end_charpos = SCHARS (it->string);
       it->multibyte_p = STRING_MULTIBYTE (it->string);
       it->method = GET_FROM_STRING;
+      return 1;
     }
-  else
-    {
-      it->string = Qnil;
-      it->current.overlay_string_index = -1;
-      it->method = GET_FROM_BUFFER;
-    }
+
+  it->current.overlay_string_index = -1;
+  return 0;
+}
+
+static int
+get_overlay_strings (it, charpos)
+     struct it *it;
+     int charpos;
+{
+  it->string = Qnil;
+  it->method = GET_FROM_BUFFER;
+
+  (void) get_overlay_strings_1 (it, charpos, 1);
 
   CHECK_IT (it);
 
@@ -4982,19 +5005,37 @@ push_it (it)
 {
   struct iterator_stack_entry *p;
 
-  xassert (it->sp < 2);
+  xassert (it->sp < IT_STACK_SIZE);
   p = it->stack + it->sp;
 
   p->stop_charpos = it->stop_charpos;
   xassert (it->face_id >= 0);
   p->face_id = it->face_id;
   p->string = it->string;
+  p->method = it->method;
+  switch (p->method)
+    {
+    case GET_FROM_IMAGE:
+      p->u.image.object = it->object;
+      p->u.image.image_id = it->image_id;
+      p->u.image.slice = it->slice;
+      break;
+    case GET_FROM_COMPOSITION:
+      p->u.comp.object = it->object;
+      p->u.comp.c = it->c;
+      p->u.comp.len = it->len;
+      p->u.comp.cmp_id = it->cmp_id;
+      p->u.comp.cmp_len = it->cmp_len;
+      break;
+    case GET_FROM_STRETCH:
+      p->u.stretch.object = it->object;
+      break;
+    }
   p->pos = it->current;
   p->end_charpos = it->end_charpos;
   p->string_nchars = it->string_nchars;
   p->area = it->area;
   p->multibyte_p = it->multibyte_p;
-  p->slice = it->slice;
   p->space_width = it->space_width;
   p->font_height = it->font_height;
   p->voffset = it->voffset;
@@ -5021,13 +5062,33 @@ pop_it (it)
   p = it->stack + it->sp;
   it->stop_charpos = p->stop_charpos;
   it->face_id = p->face_id;
-  it->string = p->string;
   it->current = p->pos;
+  it->string = p->string;
+  if (NILP (it->string))
+    SET_TEXT_POS (it->current.string_pos, -1, -1);
+  it->method = p->method;
+  switch (it->method)
+    {
+    case GET_FROM_IMAGE:
+      it->image_id = p->u.image.image_id;
+      it->object = p->u.image.object;
+      it->slice = p->u.image.slice;
+      break;
+    case GET_FROM_COMPOSITION:
+      it->object = p->u.comp.object;
+      it->c = p->u.comp.c;
+      it->len = p->u.comp.len;
+      it->cmp_id = p->u.comp.cmp_id;
+      it->cmp_len = p->u.comp.cmp_len;
+      break;
+    case GET_FROM_STRETCH:
+      it->object = p->u.comp.object;
+      break;
+    }
   it->end_charpos = p->end_charpos;
   it->string_nchars = p->string_nchars;
   it->area = p->area;
   it->multibyte_p = p->multibyte_p;
-  it->slice = p->slice;
   it->space_width = p->space_width;
   it->font_height = p->font_height;
   it->voffset = p->voffset;
@@ -5178,36 +5239,46 @@ back_to_previous_visible_line_start (it)
 	  continue;
       }
 
-      /* If newline has a display property that replaces the newline with something
-	 else (image or text), find start of overlay or interval and continue search
-	 from that point.  */
-      if (IT_CHARPOS (*it) > BEGV)
-	{
-	  struct it it2 = *it;
-	  int pos;
-	  int beg, end;
-	  Lisp_Object val, overlay;
+      if (IT_CHARPOS (*it) <= BEGV)
+	break;
 
-	  pos = --IT_CHARPOS (it2);
-	  --IT_BYTEPOS (it2);
-	  it2.sp = 0;
-	  if (handle_display_prop (&it2) == HANDLED_RETURN
-	      && !NILP (val = get_char_property_and_overlay
-			(make_number (pos), Qdisplay, Qnil, &overlay))
-	      && (OVERLAYP (overlay)
-		  ? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
-		  : get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
-	    {
-	      if (beg < BEGV)
-		beg = BEGV;
-	      IT_CHARPOS (*it) = beg;
-	      IT_BYTEPOS (*it) = buf_charpos_to_bytepos (current_buffer, beg);
-	      continue;
-	    }
-	}
+      {
+	struct it it2;
+	int pos;
+	int beg, end;
+	Lisp_Object val, overlay;
 
-      break;
+	/* If newline is part of a composition, continue from start of composition */
+	if (find_composition (IT_CHARPOS (*it), -1, &beg, &end, &val, Qnil)
+	    && beg < IT_CHARPOS (*it))
+	  goto replaced;
+
+	/* If newline is replaced by a display property, find start of overlay
+	   or interval and continue search from that point.  */
+	it2 = *it;
+	pos = --IT_CHARPOS (it2);
+	--IT_BYTEPOS (it2);
+	it2.sp = 0;
+	if (handle_display_prop (&it2) == HANDLED_RETURN
+	    && !NILP (val = get_char_property_and_overlay
+		      (make_number (pos), Qdisplay, Qnil, &overlay))
+	    && (OVERLAYP (overlay)
+		? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
+		: get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
+	  goto replaced;
+
+	/* Newline is not replaced by anything -- so we are done.  */
+	break;
+
+      replaced:
+	if (beg < BEGV)
+	  beg = BEGV;
+	IT_CHARPOS (*it) = beg;
+	IT_BYTEPOS (*it) = buf_charpos_to_bytepos (current_buffer, beg);
+      }
     }
+
+  it->continuation_lines_width = 0;
 
   xassert (IT_CHARPOS (*it) >= BEGV);
   xassert (IT_CHARPOS (*it) == BEGV
@@ -5340,15 +5411,11 @@ reseat_1 (it, pos, set_stop_p)
   IT_STRING_BYTEPOS (*it) = -1;
   it->string = Qnil;
   it->method = GET_FROM_BUFFER;
-  /* RMS: I added this to fix a bug in move_it_vertically_backward
-     where it->area continued to relate to the starting point
-     for the backward motion.  Bug report from
-     Nick Roberts <nick@nick.uklinux.net> on 19 May 2003.
-     However, I am not sure whether reseat still does the right thing
-     in general after this change.  */
+  it->object = it->w->buffer;
   it->area = TEXT_AREA;
   it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
   it->sp = 0;
+  it->string_from_display_prop_p = 0;
   it->face_before_selective_p = 0;
 
   if (set_stop_p)
@@ -5830,6 +5897,7 @@ set_iterator_to_next (it, reseat_p)
 	  IT_STRING_BYTEPOS (*it) += it->len;
 	  IT_STRING_CHARPOS (*it) += it->cmp_len;
 	  it->method = GET_FROM_STRING;
+	  it->object = it->string;
 	  goto consider_string_end;
 	}
       else
@@ -5837,6 +5905,7 @@ set_iterator_to_next (it, reseat_p)
 	  IT_BYTEPOS (*it) += it->len;
 	  IT_CHARPOS (*it) += it->cmp_len;
 	  it->method = GET_FROM_BUFFER;
+	  it->object = it->w->buffer;
 	}
       break;
 
@@ -5866,7 +5935,10 @@ set_iterator_to_next (it, reseat_p)
 	  else if (STRINGP (it->string))
 	    it->method = GET_FROM_STRING;
 	  else
-	    it->method = GET_FROM_BUFFER;
+	    {
+	      it->method = GET_FROM_BUFFER;
+	      it->object = it->w->buffer;
+	    }
 
 	  it->dpvec = NULL;
 	  it->current.dpvec_index = -1;
@@ -5914,9 +5986,8 @@ set_iterator_to_next (it, reseat_p)
 	      && it->sp > 0)
 	    {
 	      pop_it (it);
-	      if (STRINGP (it->string))
+	      if (it->method == GET_FROM_STRING)
 		goto consider_string_end;
-	      it->method = GET_FROM_BUFFER;
 	    }
 	}
       break;
@@ -5928,13 +5999,8 @@ set_iterator_to_next (it, reseat_p)
          if the `display' property takes up the whole string.  */
       xassert (it->sp > 0);
       pop_it (it);
-      it->image_id = 0;
-      if (STRINGP (it->string))
-	{
-	  it->method = GET_FROM_STRING;
-	  goto consider_string_end;
-	}
-      it->method = GET_FROM_BUFFER;
+      if (it->method == GET_FROM_STRING)
+	goto consider_string_end;
       break;
 
     default:
@@ -6157,6 +6223,7 @@ next_element_from_ellipsis (it)
 	 setting face_before_selective_p.  */
       it->saved_face_id = it->face_id;
       it->method = GET_FROM_BUFFER;
+      it->object = it->w->buffer;
       reseat_at_next_visible_line_start (it, 1);
       it->face_before_selective_p = 1;
     }
@@ -6345,6 +6412,8 @@ next_element_from_composition (it)
 		  : it->current.pos);
   if (STRINGP (it->string))
     it->object = it->string;
+  else
+    it->object = it->w->buffer;
   return 1;
 }
 
@@ -11787,9 +11856,12 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	}
       else
 	{
-	  string_before_pos = last_pos;
-	  string_start = glyph;
-	  string_start_x = x;
+	  if (string_start == NULL)
+	    {
+	      string_before_pos = last_pos;
+	      string_start = glyph;
+	      string_start_x = x;
+	    }
 	  /* Skip all glyphs from string.  */
 	  do
 	    {

@@ -244,7 +244,7 @@
 
   (gamegrid-init-buffer pong-width
 			(+ 2 pong-height)
-			1)
+			?\s)
 
   (let ((buffer-read-only nil))
     (loop for y from 0 to (1- pong-height) do

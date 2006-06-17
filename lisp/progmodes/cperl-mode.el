@@ -6298,7 +6298,7 @@ $^E     Information about the last system error other than that provided by $!.
 $^F	The highest system file descriptor, ordinarily 2.
 $^H     The current set of syntax checks enabled by `use strict'.
 $^I	The value of the in-place edit extension (perl -i option).
-$^L     What formats output to perform a formfeed.  Default is \f.
+$^L     What formats output to perform a formfeed.  Default is \\f.
 $^M     A buffer for emergency memory allocation when running out of memory.
 $^O     The operating system name under which this copy of Perl was built.
 $^P	Internal debugging flag.
@@ -6380,11 +6380,11 @@ $~	The name of the current report format.
 @ARGV	Command line arguments (not including the command name - see $0).
 @INC	List of places to look for perl scripts during do/include/use.
 @_    Parameter array for subroutines; result of split() unless in list context.
-\\  Creates reference to what follows, like \$var, or quotes non-\w in strings.
+\\  Creates reference to what follows, like \\$var, or quotes non-\\w in strings.
 \\0	Octal char, e.g. \\033.
 \\E	Case modification terminator.  See \\Q, \\L, and \\U.
-\\L	Lowercase until \\E .  See also \l, lc.
-\\U	Upcase until \\E .  See also \u, uc.
+\\L	Lowercase until \\E .  See also \\l, lc.
+\\U	Upcase until \\E .  See also \\u, uc.
 \\Q	Quote metacharacters until \\E .  See also quotemeta.
 \\a	Alarm character (octal 007).
 \\b	Backspace character (octal 010).
@@ -6655,7 +6655,7 @@ ucfirst [ EXPR ]	Returns EXPR with upcased first letter.
 untie VAR	Unlink an object from a simple Perl variable.
 use PACKAGE [SYMBOL1, ...]  Compile-time `require' with consequent `import'.
 ... xor ...		Low-precedence synonym for exclusive or.
-prototype \&SUB	Returns prototype of the function given a reference.
+prototype \\&SUB	Returns prototype of the function given a reference.
 =head1		Top-level heading.
 =head2		Second-level heading.
 =head3		Third-level heading (is there such?).

@@ -1,3 +1,16 @@
+2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac Input): Add description of mac-function-modifier.
+	Now Unicode keyboard layouts work.
+
+2006-06-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Progress logging): New section.
+
+2006-06-10  Richard Stallman  <rms@gnu.org>
+
+	* mule.texi (Recognize Coding): Clarify previous change.
+
 2006-06-07  Kevin Ryde  <user42@zip.com.au>
 
 	* mule.texi (Coding Systems): Footnote xref "MS-DOS and MULE" in main

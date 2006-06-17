@@ -308,9 +308,8 @@ May also be t meaning to use `facemenu-add-face-function'."
 ;;; Internal Variables
 
 (defvar facemenu-color-alist nil
-  ;; Don't initialize here; that doesn't work if preloaded.
   "Alist of colors, used for completion.
-If null, `facemenu-read-color' will set it.")
+If this is nil, then the value of (defined-colors) is used.")
 
 (defun facemenu-update ()
   "Add or update the \"Face\" menu in the menu bar.

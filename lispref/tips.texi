@@ -204,11 +204,14 @@ say which functions are replaced, and how the behavior of the
 replacements differs from that of the originals.
 
 @item
-Avoid using macros that define functions and variables with names that
-are constructed.  It is best for maintenance when the name of the
-function or variable being defined is given explicitly in the source
-code, as the second element of the list---as it is when you use
-@code{defun}, @code{defalias}, @code{defvar} and @code{defcustom}.
+Constructs that define a function or variable should be macros,
+not functions, and their names should start with @samp{def}.
+
+@item
+Macros that define a functions or variables should take the name to be
+defined as the first argument.  That will help various tools find the
+definition automatically.  Avoid constructing the names in the macro
+itself, since that would confuse these tools.
 
 @item
 Please keep the names of your Emacs Lisp source files to 13 characters
@@ -222,6 +225,32 @@ that begin and end with @samp{*}.  We don't use that convention in Emacs
 Lisp, so please don't use it in your programs.  (Emacs uses such names
 only for special-purpose buffers.)  The users will find Emacs more
 coherent if all libraries use the same conventions.
+
+@item
+If your program contains non-ASCII characters in string or character
+constants, you should make sure Emacs always decodes these characters
+the same way, regardless of the user's settings.  There are two ways
+to do that:
+
+@itemize -
+@item
+Use coding system @code{emacs-mule}, and specify that for
+@code{coding} in the @samp{-*-} line or the local variables list.
+
+@example
+;; XXX.el  -*- coding: emacs-mule; -*-
+@end example
+
+@item
+Use one of the coding systems based on ISO 2022 (such as
+iso-8859-@var{n} and iso-2022-7bit), and specify it with @samp{!} at
+the end for @code{coding}.  (The @samp{!} turns off any possible
+character translation.)
+
+@example
+;; XXX.el -*- coding: iso-latin-2!; -*-
+@end example
+@end itemize
 
 @item
 Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the

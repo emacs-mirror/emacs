@@ -4279,14 +4279,16 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
     {
       Lisp_Object first_parallel = Qnil;
 
+      if (NILP (window))
+	{
+	  /* This can happen if WINDOW on the previous iteration was
+	     at top level of the tree and we did not exit.  */
+	  Fset_window_configuration (old_config);
+	  error ("Specified window edge is fixed");
+	}
+
       p = XWINDOW (window);
       parent = p->parent;
-
-      if (NILP (XWINDOW (window)->next))
-	{
-	  Fset_window_configuration (old_config);
-	  error ("No other window following this one");
-	}
 
       /* See if this level has windows in parallel in the specified
 	 direction.  If so, set FIRST_PARALLEL to the first one.  */
@@ -4299,6 +4301,14 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 	{
 	  if (! NILP (parent) && !NILP (XWINDOW (parent)->hchild))
 	    first_parallel = XWINDOW (parent)->hchild;
+	}
+
+      /* If this level's succession is in the desired dimension,
+	 and this window is the last one, its trailing edge is fixed.  */
+      if (NILP (XWINDOW (window)->next) && NILP (first_parallel))
+	{
+	  Fset_window_configuration (old_config);
+	  error ("Specified window edge is fixed");
 	}
 
       /* Don't make this window too small.  */
@@ -4324,7 +4334,7 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 	 we will fail and report an error, above.)  */
       if (NILP (first_parallel))
 	{
-	  if (!NILP (XWINDOW (window)->next))
+	  if (!NILP (p->next))
 	    {
               /* This may happen for the minibuffer.  In that case
                  the window_deletion_count check below does not work.  */
@@ -4895,6 +4905,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	    }
 	  else if (noerror)
 	    return;
+	  else if (n < 0)	/* could happen with empty buffers */
+	    Fsignal (Qbeginning_of_buffer, Qnil);
 	  else
 	    Fsignal (Qend_of_buffer, Qnil);
 	}

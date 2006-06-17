@@ -115,6 +115,10 @@ provides a way to display multilingual text in menus (with some caveats).
 ** The `emacsserver' program has been removed, replaced with Lisp code.
 
 ---
+** The `yow' program has been removed.
+Use the corresponding Emacs feature instead.
+
+---
 ** By default, Emacs now uses a setgid helper program to update game
 scores.  The directory ${localstatedir}/games/emacs is the normal
 place for game scores to be stored.  You can control this with the
@@ -168,7 +172,7 @@ the supported image types and their associated dynamic libraries by
 setting the variable `image-library-alist'.
 
 ---
-** Support for Cygwin was added.
+** Support for a Cygwin build of Emacs was added.
 
 ---
 ** Support for FreeBSD/Alpha has been added.
@@ -689,6 +693,7 @@ However, risky variables will not be added to
 *** The variable `enable-local-variables' controls how local variable
 lists are handled.  t, the default, specifies the standard querying
 behavior.  :safe means use only safe values, and ignore the rest.
+:all means set all variables, whether or not they are safe.
 nil means ignore them all.  Anything else means always query.
 
 +++
@@ -843,6 +848,14 @@ If set to t when adding a new history element, all previous identical
 elements are deleted from the history list.
 
 ** Redisplay changes:
+
++++
+*** Preemptive redisplay now adapts to current load and bandwidth.
+
+To avoid preempting redisplay on fast computers, networks, and displays,
+the arrival of new input is now performed at regular intervals during
+redisplay.  The new variable `redisplay-preemption-period' specifies
+the period; the default is to check for input every 0.1 seconds.
 
 +++
 *** The mode line position information now comes before the major mode.
@@ -3972,6 +3985,13 @@ text properties.
 been declared obsolete.
 
 +++
+*** New syntax: \uXXXX and \UXXXXXXXX specify Unicode code points in hex.
+Use "\u0428" to specify a string consisting of CYRILLIC CAPITAL LETTER SHA,
+or "\U0001D6E2" to specify one consisting of MATHEMATICAL ITALIC CAPITAL
+ALPHA (the latter is greater than #xFFFF and thus needs the longer
+syntax).  Also available for characters.
+
++++
 ** Displaying warnings to the user.
 
 See the functions `warn' and `display-warning', or the Lisp Manual.
@@ -4936,6 +4956,10 @@ of the display margins.
 
 +++
 *** `sit-for' can now be called with args (SECONDS &optional NODISP).
+
++++
+*** `sit-for' called with a negative SECONDS value now forces an
+immediate redisplay even if input is pending.
 
 +++
 *** New function `force-window-update' can initiate a full redisplay of

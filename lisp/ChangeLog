@@ -1,3 +1,136 @@
+2006-06-16  Richard Stallman  <rms@gnu.org>
+
+	* obsolete/options.el (list-options): Put "obsolete" msg in buffer.
+
+	* files.el (basic-save-buffer-2): For a new precious file,
+	use the default modes in the return value.
+
+	* facemenu.el (facemenu-color-alist): Doc fix.
+
+	* cus-edit.el (custom-guess-name-alist): Recognize `-flag'.
+
+2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-start.el (all): Add mac-ts-script-language-on-focus.
+
+	* term/mac-win.el (mac-text-encoding-ascii): New constant.
+	(mac-utxt-to-string): Use it.
+	(mac-ts-update-active-input-area): Use mac-ae-number.
+
+2006-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-handle-scroll, term-delete-lines)
+	(term-insert-lines): Fix off by one errors.
+
+2006-06-15  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+
+	* net/tramp.el (tramp-touch): Use UTC to express time.
+
+2006-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-send): Search explicitly for
+	mail-header-separator when checking for corrupted header lines.
+
+2006-06-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-same-frame): New option.
+	(gud-old-arrow, gdb-frame-begin, gdb-printing): New variables.
+	(gdb-init-1): Initialise them.
+	(gdb-starting): Reset gdb-printing
+	(gdb-starting): Save value of gud-overlay-arrow-position.
+	(gdb-frame-begin): Set gdb-frame-begin, gdb-printing.
+	(gdb-stopped): Don't look for source if calling procedure e.g "p a ()".
+	Use gdb-*-gdb-buffer conditionally on gdb-same-frame.
+	(gdb-frame-gdb-buffer): Keep menu bar, tool bar for GUD buffer.
+
+2006-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-retrieve-revision): Use decode-coding-inserted-region.
+
+2006-06-13  Martin J. Reed  <mjreed@essex.ac.uk>  (tiny change)
+
+	* net/ldap.el (ldap-ldapsearch-args): Default to SASL search.
+	(ldap-search-internal): Keep error messages, and a regexp fix.
+
+2006-06-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* files.el (hack-local-variables-confirm):
+	Display string value using its printed representation.
+
+2006-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-edit): No-op if no server buffers exist.
+
+2006-06-11  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/page-ext.el (pages-directory-for-addresses):
+	Including `pages-directory-address-mode' in the function results
+	in the message "Buffer in which pages were found is deleted".
+
+2006-06-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-agenda-mode-map): Add bindings for
+	clocking functions.
+
+	(org-agenda-clock-in, org-check-running-clock)
+	(org-clock-out-if-current, org-remove-clock-overlays)
+	(org-put-clock-overlay): New functions.
+	(org-clock-marker, org-clock-file-total-minutes)
+	(org-clock-overlays): New variables.
+	(org-clock-display, org-clock-sum, org-clock-cancel)
+	(org-clock-out, org-clock-in): New commands.
+	(org-export): New function.
+	(org-emph-re): New constant.
+	(org-set-emph-re, org-do-emphasis-faces): New functions.
+	(org-emphasis-regexp-components, org-emphasis-alist): New options.
+	(org-set-font-lock-defaults): Call `org-do-emphasis-faces'.
+	(org-export-html-convert-emphasize): Use the configurable emphasis.
+	(org-cleaned-string-for-export): Make multiline emphasis visible
+	to the exporter.  New optional argument PARAMETERS.
+	(org-export-as-html): Specify :emph-multiline parameter to
+	`org-cleaned-string-for-export'.
+
+2006-06-10  Richard Stallman  <rms@gnu.org>
+
+	* help.el (help-for-help-internal): Clean up help text.
+
+2006-06-10  Andreas Schwab  <schwab@suse.de>
+
+	* language/ethio-util.el (ethio-fidel-to-java-buffer): Fix quoting
+	in doc string.
+
+	* progmodes/cperl-mode.el (cperl-short-docs): Likewise.
+
+2006-06-09  Karl Chen  <quarl@cs.berkeley.edu>
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Don't remove
+	spaces after the comment start.
+
+2006-06-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* play/pong.el (pong-init-buffer):
+	Fill buffer with spaces instead of ^A.
+
+	* textmodes/ispell.el (ispell-kill-ispell): If ispell has been
+	launched asynchronously, delete its process instead of being cool.
+	(ispell-async-processp): Check for `delete-process' existence
+	instead of `kill-process' one for consistency.
+
+2006-06-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers-1)
+	(gdb-prompt, gdb-set-gud-minor-mode-existing-buffers): Show status
+	in mode line at startup.
+
+2006-06-08  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-take-first-match, ido-push-dir-first): New commands.
+	(ido-init-completion-maps): Bind them to M-SPC and M-v.
+	(ido-copy-current-file-name): Repeating C-w inserts whole file name.
+	(ido-file-internal): Pass full file name to write-file.
+	(ido-read-internal): Only pop stack elements automatically if they
+	actually match an existing directory or file name.
+
 2006-06-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (find-auto-coding): Don't handle the short
@@ -8,8 +141,7 @@
 
 2006-06-06  Jesper Harder  <harder@phys.au.dk>
 
-	* ediff-diff.el (ediff-test-utility): Protect against
-	file-error.
+	* ediff-diff.el (ediff-test-utility): Protect against file-error.
 
 2006-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -41,7 +173,7 @@
 	cookies but no other non-empty fields.
 	(org-set-tags): Allow groups of mutually exclusive tags.
 	(org-cmp-time): Sort 24:21 before items without time.
-	(org-get-time-of-day): Fixed the interpretation of 12pm and 12am.
+	(org-get-time-of-day): Fix the interpretation of 12pm and 12am.
 	(org-open-at-point): Require double colon also for numbers.
 
 2006-06-06  Kim F. Storm  <storm@cua.dk>
@@ -81,8 +213,8 @@
 
 2006-06-05  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (find-auto-coding): Handle
-	enable-character-translation in file header.
+	* international/mule.el (find-auto-coding):
+	Handle enable-character-translation in file header.
 
 2006-06-04  Kim F. Storm  <storm@cua.dk>
 
@@ -151,8 +283,8 @@
 	as well as `coding'.
 	(hack-local-variables): Likewise.
 
-	* international/mule.el (enable-character-translation): Put
-	permanent-local and safe-local-variable properties.
+	* international/mule.el (enable-character-translation):
+	Put permanent-local and safe-local-variable properties.
 	(find-auto-coding): Handle char-trans: tag.
 
 2006-06-02  Juri Linkov  <juri@jurta.org>

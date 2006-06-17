@@ -41,6 +41,8 @@ It is now better to use Customize instead."
   (interactive)
   (with-output-to-temp-buffer "*List Options*"
     (let (vars)
+      (princ "This facility is obsolete; we recommend using M-x customize instead.")
+
       (mapatoms (function (lambda (sym)
 			    (if (user-variable-p sym)
 				(setq vars (cons sym vars))))))

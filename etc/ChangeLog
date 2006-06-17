@@ -1,3 +1,23 @@
+2006-06-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* yow.lines: Delete existing data; add a new entry.
+
+2006-06-09  W$,1 b(Bodek Bzyl  <matwb@univ.gda.pl>
+
+	* pl-refcard.ps: Regenerate.
+
+2006-06-08  W$,1 b(Bodek Bzyl  <matwb@univ.gda.pl>
+
+	* pl-refcard.tex: Update for Emacs 22.
+
+2006-06-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* fr-refcard.tex: Fix errors in previous commit.
+
+2006-06-08  ,AI(Bric Jacoboni  <jaco@jacoboni.fr>
+
+	* fr-refcard.tex: Update for Emacs 22.
+
 2006-06-07  Kenichi Handa  <handa@m17n.org>
 
 	* NEWS: Mention how to disable character translation for a file.

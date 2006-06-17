@@ -1,3 +1,14 @@
+2006-06-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-syntax-checks): Doc fix.
+	(message-send-mail): Add check for continuation headers.
+	(message-check-news-header-syntax): Fix regexp used to check for
+	continuation headers.
+
+2006-06-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-display-mime): Make sure body ends with newline.
+
 2006-06-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-mime-mule-charset-alist): Use unicode-precedence-list
