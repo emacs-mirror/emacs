@@ -190,14 +190,13 @@ To disable checking of long signatures, for instance, add
 
 Don't touch this variable unless you really know what you're doing.
 
-Checks include `subject-cmsg', `multiple-headers', `sendsys',
-`message-id', `from', `long-lines', `control-chars', `size',
-`new-text', `quoting-style', `redirected-followup', `signature',
-`approved', `sender', `empty', `empty-headers', `message-id', `from',
-`subject', `shorten-followup-to', `existing-newsgroups',
-`buffer-file-name', `unchanged', `newsgroups', `reply-to',
-`continuation-headers', `long-header-lines', `invisible-text' and
-`illegible-text'."
+Checks include `approved', `continuation-headers', `control-chars',
+`empty', `existing-newsgroups', `from', `illegible-text',
+`invisible-text', `long-header-lines', `long-lines', `message-id',
+`multiple-headers', `new-text', `newsgroups', `quoting-style',
+`repeated-newsgroups', `reply-to', `sendsys', `shoot',
+`shorten-followup-to', `signature', `size', `subject', `subject-cmsg'
+and `valid-newsgroups'."
   :group 'message-news
   :type '(repeat sexp))			; Fixme: improve this
 
@@ -3769,6 +3768,16 @@ It should typically alter the sending method in some way or other."
       (let ((message-deletable-headers
 	     (if news nil message-deletable-headers)))
 	(message-generate-headers headers))
+      ;; Check continuation headers.
+      (message-check 'continuation-headers
+	(goto-char (point-min))
+	(while (re-search-forward "^[^ \t\n][^ \t\n:]*[ \t\n]" nil t)
+	  (goto-char (match-beginning 0))
+	  (if (y-or-n-p "Fix continuation lines? ")
+	      (insert " ")
+	    (forward-line 1)
+	    (unless (y-or-n-p "Send anyway? ")
+	      (error "Failed to send the message")))))
       ;; Let the user do all of the above.
       (run-hooks 'message-header-hook))
     (unwind-protect
@@ -4326,11 +4335,11 @@ Otherwise, generate and save a value for `canlock-password' first."
    (message-check 'continuation-headers
      (goto-char (point-min))
      (let ((do-posting t))
-       (while (re-search-forward "^[^ \t\n][^:\n]*$" nil t)
+       (while (re-search-forward "^[^ \t\n][^ \t\n:]*[ \t\n]" nil t)
+	 (goto-char (match-beginning 0))
 	 (if (y-or-n-p "Fix continuation lines? ")
-	     (progn
-	       (goto-char (match-beginning 0))
-	       (insert " "))
+	     (insert " ")
+	   (forward-line 1)
 	   (unless (y-or-n-p "Send anyway? ")
 	     (setq do-posting nil))))
        do-posting))
