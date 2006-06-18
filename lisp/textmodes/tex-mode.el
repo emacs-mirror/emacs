@@ -597,7 +597,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (defun tex-font-lock-match-suscript (limit)
   "Match subscript and superscript patterns up to LIMIT."
   (when (re-search-forward "[_^] *\\([^\n\\{}]\\|\
-\\\\\\([a-zA-Z@]+\\|[^ \t\n]\\)\\|{[^\\{]*}\\|\\({\\)\\)" limit t)
+\\\\\\([a-zA-Z@]+\\|[^ \t\n]\\)\\|\\({\\)\\)" limit t)
     (when (match-end 3)
       (let ((beg (match-beginning 3))
 	    (end (save-restriction

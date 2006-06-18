@@ -1,3 +1,9 @@
+2006-06-18  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/tex-mode.el (tex-font-lock-match-suscript): Remove
+	superfluous part of regexp for brace matching which is handled by
+	`scan-lists' call.
+
 2006-06-16  Richard Stallman  <rms@gnu.org>
 
 	* obsolete/options.el (list-options): Put "obsolete" msg in buffer.
