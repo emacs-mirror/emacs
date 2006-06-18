@@ -887,12 +887,15 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 		   (setq ch (aref (read-key-sequence nil) 0)))
 	       (insert ch))
 	      (t
-	       (setq ch (read-char-exclusive))
+	       ;;(setq ch (read-char-exclusive))
+	       (setq ch (aref (read-key-sequence nil) 0))
 	       ;; replace ^M with the newline
 	       (if (eq ch ?\C-m) (setq ch ?\n))
 	       ;; Make sure ^V and ^Q work as quotation chars
 	       (if (memq ch '(?\C-v ?\C-q))
-		   (setq ch (read-char-exclusive)))
+		   ;;(setq ch (read-char-exclusive))
+		   (setq ch (aref (read-key-sequence nil) 0))
+		 )
 	       (insert ch))
 	      )
 	(setq last-command-event
@@ -1730,20 +1733,34 @@ invokes the command before that, etc."
 
 ;; undoing
 
+;; hook used inside undo
+(defvar viper-undo-functions nil)
+
+;; Runs viper-before-change-functions inside before-change-functions
+(defun viper-undo-sentinel (beg end length)
+  (run-hook-with-args 'viper-undo-functions beg end length))
+
+(add-hook 'after-change-functions 'viper-undo-sentinel)
+
+;; Hook used in viper-undo
+(defun viper-after-change-undo-hook (beg end len)
+  (setq undo-beg-posn beg
+	undo-end-posn (or end beg))
+  ;; some other hooks may be changing various text properties in
+  ;; the buffer in response to 'undo'; so remove this hook to avoid
+  ;; its repeated invocation
+  (remove-hook 'viper-undo-functions 'viper-after-change-undo-hook 'local))
+
 (defun viper-undo ()
   "Undo previous change."
   (interactive)
   (message "undo!")
   (let ((modified (buffer-modified-p))
         (before-undo-pt (point-marker))
-	(after-change-functions after-change-functions)
 	undo-beg-posn undo-end-posn)
 
-    ;; no need to remove this hook, since this var has scope inside a let.
-    (add-hook 'after-change-functions
-	      '(lambda (beg end len)
-		 (setq undo-beg-posn beg
-		       undo-end-posn (or end beg))))
+    ;; the viper-after-change-undo-hook removes itself after the 1st invocation
+    (add-hook 'viper-undo-functions 'viper-after-change-undo-hook nil 'local)
 
     (undo-start)
     (undo-more 2)
@@ -1765,7 +1782,8 @@ invokes the command before that, etc."
 	    (goto-char undo-beg-posn)))
       (push-mark before-undo-pt t))
     (if (and (eolp) (not (bolp))) (backward-char 1))
-    (if (not modified) (set-buffer-modified-p t)))
+    ;;(if (not modified) (set-buffer-modified-p t))
+    )
   (setq this-command 'viper-undo))
 
 ;; Continue undoing previous changes.
@@ -1813,7 +1831,7 @@ invokes the command before that, etc."
 	    (setq viper-undo-needs-adjustment t)))))
 
 
-
+;;; Viper's destructive Command ring utilities
 
 (defun viper-display-current-destructive-command ()
   (let ((text (nth 4 viper-d-com))
@@ -1927,12 +1945,15 @@ Undo previous insertion and inserts new."
       (end-of-line)
       ;; make sure all lines end with newline, unless in the minibuffer or
       ;; when requested otherwise (require-final-newline is nil)
-      (if (and (eobp)
-	       (not (bolp))
-	       require-final-newline
-	       (not (viper-is-in-minibuffer))
-	       (not buffer-read-only))
-	  (insert "\n"))))
+      (save-restriction
+	(widen)
+	(if (and (eobp)
+		 (not (bolp))
+		 require-final-newline
+		 (not (viper-is-in-minibuffer))
+		 (not buffer-read-only))
+	    (insert "\n")))
+      ))
 
 (defun viper-yank-defun ()
   (mark-defun)
@@ -3045,19 +3066,34 @@ On reaching beginning of line, stop and signal error."
     (setq this-command 'next-line)
     (if com (viper-execute-com 'viper-next-line val com))))
 
+
 (defun viper-next-line-at-bol (arg)
-  "Next line at beginning of line."
+  "Next line at beginning of line.
+If point is on a widget or a button, simulate clicking on that widget/button."
   (interactive "P")
-  (viper-leave-region-active)
-  (save-excursion
-    (end-of-line)
-    (if (eobp) (error "Last line in buffer")))
-  (let ((val (viper-p-val arg))
-	(com (viper-getCom arg)))
-    (if com (viper-move-marker-locally 'viper-com-point (point)))
-    (forward-line val)
-    (back-to-indentation)
-    (if com (viper-execute-com 'viper-next-line-at-bol val com))))
+  (let* ((field (get-char-property (point) 'field))
+	 (button (get-char-property (point) 'button))
+	 (doc (get-char-property (point) 'widget-doc))
+	 (widget (or field button doc)))
+    (if (and widget
+             (if (symbolp widget)
+                 (get widget 'widget-type)
+               (and (consp widget)
+                    (get (widget-type widget) 'widget-type))))
+        (widget-button-press (point))
+      (if (button-at (point))
+          (push-button)
+	;; not a widget or a button
+        (viper-leave-region-active)
+        (save-excursion
+          (end-of-line)
+          (if (eobp) (error "Last line in buffer")))
+        (let ((val (viper-p-val arg))
+              (com (viper-getCom arg)))
+          (if com (viper-move-marker-locally 'viper-com-point (point)))
+          (forward-line val)
+          (back-to-indentation)
+          (if com (viper-execute-com 'viper-next-line-at-bol val com)))))))
 
 
 (defun viper-previous-line (arg)
