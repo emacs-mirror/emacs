@@ -1,3 +1,22 @@
+2006-06-19  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_parse_fcname): Fix parsing of point-size.
+	(font_unparse_fcname): Produce symbolic names for style
+	properties.
+	(font_list_entities): Handle float size correctly.
+	(font_open_by_name): Prefer `normal' property values if the name
+	doesn't specify them.
+
+	* fontset.c (Finternal_char_font): Use font_get_name, not
+	Ffont_xlfd_name.
+
+	* ftfont.c (ftfont_pattern_entity): Use the numeric value 100 for
+	FC_WEIGHT_REGULAR.  Exclude FC_SIZE and FC_PIXEL_SIZE from listing
+	pattern.  Don't force scalable.
+
+	* xftfont.c (xftfont_open): For generating a name, start from
+	96-byte buffer.
+
 2006-06-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frame.h (x_new_fontset2): Fix prototype.
