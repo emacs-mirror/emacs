@@ -1514,23 +1514,53 @@ the various files."
 			   ;; hexl-mode.
 			   (not (eq major-mode 'hexl-mode)))
 		  (if (buffer-modified-p)
-		      (if (y-or-n-p (if rawfile
-					"Save file and revisit literally? "
-				      "Save file and revisit non-literally? "))
+		      (if (y-or-n-p
+			   (format 
+			    (if rawfile
+				"The file %s is already visited normally,
+and you have edited the buffer.  Now you have asked to visit it literally,
+meaning no coding system handling, format conversion, or local variables.
+Emacs can only visit a file in one way at a time.
+
+Do you want to save the file, and visit it literally instead? "
+				"The file %s is already visited literally,
+meaning no coding system handling, format conversion, or local variables.
+You have edited the buffer.  Now you have asked to visit the file normally,
+but Emacs can only visit a file in one way at a time.
+
+Do you want to save the file, and visit it normally instead? ")
+			    (file-name-nondirectory filename)))
 			  (progn
 			    (save-buffer)
 			    (find-file-noselect-1 buf filename nowarn
 						  rawfile truename number))
-			(if (y-or-n-p (if rawfile
-					  "Discard your edits and revisit file literally? "
-					"Discard your edits and revisit file non-literally? "))
+			(if (y-or-n-p
+			     (format 
+			      (if rawfile
+				  "\
+Do you want to discard your changes, and visit the file literally now? "
+				"\
+Do you want to discard your changes, and visit the file normally now? ")))
 			    (find-file-noselect-1 buf filename nowarn
 						  rawfile truename number)
 			  (error (if rawfile "File already visited non-literally"
 				   "File already visited literally"))))
-		    (if (y-or-n-p (if rawfile
-				      "Revisit file literally? "
-				    "Revisit file non-literally? "))
+		    (if (y-or-n-p 
+			 (format 
+			  (if rawfile
+			      "The file %s is already visited normally.
+You have asked to visit it literally,
+meaning no coding system decoding, format conversion, or local variables.
+But Emacs can only visit a file in one way at a time.
+
+Do you want to revisit the file literally now? "
+			    "The file %s is already visited literally,
+meaning no coding system decoding, format conversion, or local variables.
+You have asked to visit it normally,
+but Emacs can only visit a file in one way at a time.
+
+Do you want to revisit the file normally now? ")
+			  (file-name-nondirectory filename)))
 			(find-file-noselect-1 buf filename nowarn
 					      rawfile truename number)
 		      (error (if rawfile "File already visited non-literally"
@@ -3631,7 +3661,8 @@ Before and after saving the buffer, this function runs
 	    ;; Since we have created an entirely new file,
 	    ;; make sure it gets the right permission bits set.
 	    (setq setmodes (or setmodes
-			       (cons (or (file-modes buffer-file-name) umask)
+ 			       (cons (or (file-modes buffer-file-name)
+					 (logand ?\666 umask))
 				     buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
