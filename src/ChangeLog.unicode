@@ -1,5 +1,7 @@
 2006-06-19  Kenichi Handa  <handa@m17n.org>
 
+	* lread.c (read_escape): Fix the code synched with HEAD.
+
 	* font.c (font_parse_fcname): Fix parsing of point-size.
 	(font_unparse_fcname): Produce symbolic names for style
 	properties.
