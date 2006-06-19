@@ -1131,6 +1131,8 @@ font_parse_fcname (name, font, merge)
 	}
       else
 	{
+	  char *pbeg = p0; 
+
 	  if (memcmp (p0 + 1, "pixelsize=", 10) == 0)
 	    prop = FONT_SIZE_INDEX;
 	  else
@@ -1163,8 +1165,8 @@ font_parse_fcname (name, font, merge)
 	  else
 	    {
 	      /* unknown key */
-	      bcopy (p0, copy, p1 - p0);
-	      copy += p1 - p0;
+	      bcopy (pbeg, copy, p1 - pbeg);
+	      copy += p1 - pbeg;
 	    }
 	}
       p0 = p1;
