@@ -1,5 +1,36 @@
 2006-06-19  Kenichi Handa  <handa@m17n.org>
 
+	* font.h (QCspacing, QCdpi): Extern them.
+	(enum font_spacing): New enum.
+	(FONT_PIXEL_SIZE_QUANTUM): New macro.
+
+	* font.c (POINT_TO_PIXEL): Don't divice POINT by 10.
+	(QCspacing, QCdpi): New variables.
+	(syms_of_font): Initialize them.
+	(font_pixel_size): New function.
+	(font_put_extra): New function.
+	(font_parse_xlfd): Fix handling of font size.  Add QCdpi property
+	in FONT_EXTRA.
+	(font_parse_fcname): Handle enumenrated values (e.g. bold).  Fix
+	handling font size.  Add QCname property that contains only
+	unknown properties.
+	(font_score): Change argument.  Caller changed.  Pay attention to
+	FONT_PIXEL_SIZE_QUANTUM.
+	(font_sort_entites): Fix handling of font size.
+	(font_list_entities): Likewise.
+	(font_find_for_lface): Likewise.
+	(font_open_for_lface): Likewise.
+	(font_open_by_name): Likewise.
+	(Ffont_spec): Add QCname property that contains only unknown
+	properties.
+
+	* ftfont.c (ftfont_list): Use assq_no_quit, not Fassq.  Don't
+	include weight in listing pattern, instead check weight of each
+	listed font.  Don't include scalable in pattern.  Pay attention to
+	FONT_PIXEL_SIZE_QUANTUM.
+
+2006-06-19  Kenichi Handa  <handa@m17n.org>
+
 	* lread.c (read_escape): Fix the code synched with HEAD.
 
 	* font.c (font_parse_fcname): Fix parsing of point-size.
