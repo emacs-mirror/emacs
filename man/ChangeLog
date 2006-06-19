@@ -1,3 +1,7 @@
+2006-06-19  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Advanced): mention C-q, especially with ?.
+
 2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Publishing links): Document the `:link-validation-function'
