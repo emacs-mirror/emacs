@@ -246,7 +246,7 @@ xftfont_open (f, entity, pixel_size)
   font->entity = entity;
   font->pixel_size = size;
   font->driver = &xftfont_driver;
-  len = 64;
+  len = 96;
   name = malloc (len);
   while (name && font_unparse_fcname (entity, pixel_size, name, len) < 0)
     {
