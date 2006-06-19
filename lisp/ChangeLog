@@ -1,3 +1,35 @@
+2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Require noutline, also on XEmacs.
+	(org-end-of-subtree): Return point.
+	(org-dblock-start-re, org-dblock-end-re): New constants.
+	(org-create-dblock, org-prepare-dblock, org-map-dblocks)
+	(org-dblock-update, org-update-dblock, org-beginning-of-dblock)
+	(org-update-all-dblocks, org-find-dblock): New functions.
+	(org-collect-clock-time-entries): New function.
+	(org-html-handle-time-stamps): Never export CLOCK timeranges.
+	(org-fixup-indentation): Modified to deadl correctly with lines
+	starting with TAB.  Only one argument DIFF now.
+	(org-demote, org-promote): Call `org-fixup-indentation' with just
+	one argument, DIFF.
+	(org-mode): Don't mark buffer as modified when aligning tables.
+	(org-clock-sum): Don't makr buffer modified when adding time sum
+	properties.
+	(org-export-as-html): Added support for a link validation
+	function.
+	(org-archive-all-done): New function.
+	(org-archive-subtree): New prefix argument.  When set, archive all
+	done subtrees in this buffer.
+	(org-remove-clock-overlays)
+	(org-remove-occur-highlights): Use
+	`org-inhibit-highlight-removal'.
+	(org-inhibit-highlight-removal): New variable, for dynamic
+	scoping.
+	(org-put-clock-overlay): Don't swallow last headline character
+	when displaying overlay.
+	(org-store-link): Link to `image-mode' with just the file name.
+	
+
 2006-06-18  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* viper-cmd.el (viper-special-read-and-insert-char): use
