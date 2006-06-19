@@ -2073,7 +2073,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
 	  Lisp_Object font_object = AREF (rfont_def, 4);
 	  struct font *font = XSAVE_VALUE (font_object)->pointer;
 	  unsigned code = font->driver->encode_char (font, c);
-	  Lisp_Object fontname = Ffont_xlfd_name (font_object);
+	  Lisp_Object fontname = font_get_name (font_object);
 
 	  if (code == FONT_INVALID_CODE)
 	    return Fcons (fontname, Qnil);
