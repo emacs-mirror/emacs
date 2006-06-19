@@ -2230,13 +2230,12 @@ of @var{form}.  A non-@code{nil} result indicates a match.
 @var{tag} matches unconditionally if it is @code{t}.
 @end itemize
 
-@item repeat @var{count} @var{field-spec}@dots{}
-Process the set of @var{field-spec}s recursively, in order, and loop
-starting from the first one, for @var{count} times overall (looping
-@code{@var{count} @minus{} 1} times).
-@var{count} may be an integer, or a list of one element naming a
-previous field.  For correct operation, each @var{field-spec} must
-include a name.
+@item repeat @var{count} @var{field-specs}@dots{}
+Process the @var{field-specs} recursively, in order, then repeat
+starting from the first one, processing all the specs @var{count}
+times overall.  @var{count} may be an integer, or a list of one
+element that names a previous field.  For correct operation, each spec
+in @var{field-specs} must include a name.
 @end table
 
 @node Bindat Functions
