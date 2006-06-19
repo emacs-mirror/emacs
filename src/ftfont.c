@@ -311,6 +311,7 @@ ftfont_list (frame, spec)
   FcFontSet *fontset = NULL;
   FcObjectSet *objset = NULL;
   Lisp_Object registry = Qunicode_bmp;
+  int weight = 0;
   
   val = null_vector;
 
@@ -320,8 +321,14 @@ ftfont_list (frame, spec)
       fc_initialized = 1;
     }
 
-  if (! NILP (AREF (spec, FONT_ADSTYLE_INDEX)))
+  if (! NILP (AREF (spec, FONT_ADSTYLE_INDEX))
+      && ! EQ (AREF (spec, FONT_ADSTYLE_INDEX), null_string))
     return val;
+  if (! NILP (AREF (spec, FONT_SLANT_INDEX))
+      && XINT (AREF (spec, FONT_SLANT_INDEX)) < 100)
+    /* Fontconfig doesn't support reverse-italic/obligue.  */
+    return val;
+
   if (! NILP (AREF (spec, FONT_REGISTRY_INDEX)))
     {
       registry = AREF (spec, FONT_REGISTRY_INDEX);
@@ -340,10 +347,10 @@ ftfont_list (frame, spec)
   font_name = Qnil;
   if (CONSP (extra))
     {
-      tmp = Fassq (QCotf, extra);
+      tmp = assq_no_quit (QCotf, extra);
       if (! NILP (tmp))
 	return val;
-      tmp = Fassq (QClanguage, extra);
+      tmp = assq_no_quit (QClanguage, extra);
       if (CONSP (tmp))
 	{
 	  langset = FcLangSetCreate ();
@@ -367,7 +374,7 @@ ftfont_list (frame, spec)
       tmp = Fassq (QCname, extra);
       if (CONSP (tmp))
 	font_name = XCDR (tmp);
-      tmp = Fassq (QCscript, extra);
+      tmp = assq_no_quit (QCscript, extra);
       if (CONSP (tmp) && ! charset)
 	{
 	  Lisp_Object script = XCDR (tmp);
@@ -388,13 +395,7 @@ ftfont_list (frame, spec)
     }
 
   if (STRINGP (font_name))
-    {
-      pattern = FcNameParse (SDATA (font_name));
-      /* Ignore these values in listing.  */
-      FcPatternDel (pattern, FC_PIXEL_SIZE);
-      FcPatternDel (pattern, FC_SIZE);
-      FcPatternDel (pattern, FC_FAMILY);
-    }
+    pattern = FcNameParse (SDATA (font_name));
   else
     pattern = FcPatternCreate ();
   if (! pattern)
@@ -408,23 +409,20 @@ ftfont_list (frame, spec)
   if (SYMBOLP (tmp) && ! NILP (tmp)
       && ! FcPatternAddString (pattern, FC_FAMILY, SYMBOL_FcChar8 (tmp)))
     goto err;
+  /* Emacs conventionally doesn't distinguish normal, regular, and
+     medium weight, but fontconfig does.  So, we can't restrict font
+     listing by weight.  We check it after getting a list.  */
   tmp = AREF (spec, FONT_WEIGHT_INDEX);
-  if (INTEGERP (tmp)
-      && ! FcPatternAddInteger (pattern, FC_WEIGHT, XINT (tmp)))
-    goto err;
+  if (INTEGERP (tmp))
+    weight = XINT (tmp);
   tmp = AREF (spec, FONT_SLANT_INDEX);
   if (INTEGERP (tmp)
-      && XINT (tmp) >= 100
       && ! FcPatternAddInteger (pattern, FC_SLANT, XINT (tmp) - 100))
     goto err;
   tmp = AREF (spec, FONT_WIDTH_INDEX);
   if (INTEGERP (tmp)
       && ! FcPatternAddInteger (pattern, FC_WIDTH, XINT (tmp)))
     goto err;
-#if 0
-  if (! FcPatternAddBool (pattern, FC_SCALABLE, FcTrue))
-    goto err;
-#endif
 
   if (charset
       && ! FcPatternAddCharSet (pattern, FC_CHARSET, charset))
@@ -462,7 +460,20 @@ ftfont_list (frame, spec)
 
 	      if (FcPatternGetDouble (fontset->fonts[i], FC_PIXEL_SIZE, 0,
 				      &this) == FcResultMatch
-		  && this != pixel_size)
+		  && ((this < pixel_size - FONT_PIXEL_SIZE_QUANTUM)
+		      || (this > pixel_size + FONT_PIXEL_SIZE_QUANTUM)))
+		continue;
+	    }
+	  if (weight > 0)
+	    {
+	      int this;
+
+	      if (FcPatternGetInteger (fontset->fonts[i], FC_WEIGHT, 0,
+				       &this) != FcResultMatch
+		  || (this != weight
+		      && (weight != 100
+			  || this < FC_WEIGHT_REGULAR
+			  || this > FC_WEIGHT_MEDIUM)))
 		continue;
 	    }
 	  entity = ftfont_pattern_entity (fontset->fonts[i], frame, registry);
