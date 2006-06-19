@@ -109,8 +109,7 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
     (light . 50)
     (semilight . 65) (semi-light . 65)
     (book . 75)
-    (normal . 80) (regular . 80)
-    (medium . 100)
+    (medium . 100) (regular . 100) (normal . 100)
     (semibold . 180) (semi-bold . 180) (demibold . 180) (demi . 180)
     (bold . 200)
     (extrabold . 205) (extra-bold . 205)
@@ -129,7 +128,7 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 (defcustom font-slant-table
   '((ro . 0)
     (ri . 10)
-    (r . 100) (normal . 100)
+    (r . 100) (roman . 100) (normal . 100)
     (i . 200) (italic . 200) (ot . 200)
     (o . 210) (oblique . 210))
   "*Alist of font slant symbols vs the corresponding numeric values."

@@ -128,7 +128,7 @@ enum font_property_index
     FONT_ENTITY_MAX
   };
 
-extern Lisp_Object QCotf, QClanguage, QCscript;
+extern Lisp_Object QCspacing, QCdpi, QCotf, QClanguage, QCscript;
 
 /* Important character set symbols.  */
 extern Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp;
@@ -176,6 +176,14 @@ struct font
      font-driver.  */
 };
 
+enum font_spacing
+  {
+    FONT_SPACING_PROPORTIONAL = 0,
+    FONT_SPACING_DUAL = 90,
+    FONT_SPACING_MONO = 100,
+    FONT_SPACING_CHARCELL = 110
+  };
+
 struct font_metrics
 {
   short lbearing, rbearing, width, ascent, descent;
@@ -222,6 +230,10 @@ struct font_bitmap
     if (! XSAVE_VALUE (x)->pointer) error ("Font already closed");	\
     font = XSAVE_VALUE (x)->pointer;					\
   } while (0)
+
+/* Ignore the difference of font pixel sizes less than or equal to
+   this value.  */
+#define FONT_PIXEL_SIZE_QUANTUM 1
 
 struct face;
 struct composition;
