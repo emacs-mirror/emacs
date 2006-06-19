@@ -122,7 +122,11 @@ ftfont_pattern_entity (p, frame, registry)
   if (FcPatternGetString (p, FC_FAMILY, 0, (FcChar8 **) &str) == FcResultMatch)
     ASET (entity, FONT_FAMILY_INDEX, intern_downcase (str, strlen (str)));
   if (FcPatternGetInteger (p, FC_WEIGHT, 0, &numeric) == FcResultMatch)
-    ASET (entity, FONT_WEIGHT_INDEX, make_number (numeric));
+    {
+      if (numeric == FC_WEIGHT_REGULAR)
+	numeric = 100;
+      ASET (entity, FONT_WEIGHT_INDEX, make_number (numeric));
+    }
   if (FcPatternGetInteger (p, FC_SLANT, 0, &numeric) == FcResultMatch)
     ASET (entity, FONT_SLANT_INDEX, make_number (numeric + 100));
   if (FcPatternGetInteger (p, FC_WIDTH, 0, &numeric) == FcResultMatch)
@@ -384,7 +388,13 @@ ftfont_list (frame, spec)
     }
 
   if (STRINGP (font_name))
-    pattern = FcNameParse (SDATA (font_name));
+    {
+      pattern = FcNameParse (SDATA (font_name));
+      /* Ignore these values in listing.  */
+      FcPatternDel (pattern, FC_PIXEL_SIZE);
+      FcPatternDel (pattern, FC_SIZE);
+      FcPatternDel (pattern, FC_FAMILY);
+    }
   else
     pattern = FcPatternCreate ();
   if (! pattern)
@@ -411,8 +421,10 @@ ftfont_list (frame, spec)
   if (INTEGERP (tmp)
       && ! FcPatternAddInteger (pattern, FC_WIDTH, XINT (tmp)))
     goto err;
+#if 0
   if (! FcPatternAddBool (pattern, FC_SCALABLE, FcTrue))
     goto err;
+#endif
 
   if (charset
       && ! FcPatternAddCharSet (pattern, FC_CHARSET, charset))
@@ -426,16 +438,34 @@ ftfont_list (frame, spec)
 			     FC_CHARSET, FC_FILE, NULL);
   if (! objset)
     goto err;
+
   fontset = FcFontList (NULL, pattern, objset);
   if (! fontset)
     goto err;
 
   if (fontset->nfont > 0)
     {
+      double pixel_size;
+
+      if (NILP (AREF (spec, FONT_SIZE_INDEX)))
+	pixel_size = 0;
+      else
+	pixel_size = XINT (AREF (spec, FONT_SIZE_INDEX));
+
       for (i = 0, val = Qnil; i < fontset->nfont; i++)
 	{
-	  Lisp_Object entity = ftfont_pattern_entity (fontset->fonts[i],
-						      frame, registry);
+	  Lisp_Object entity;
+
+	  if (pixel_size > 0)
+	    {
+	      double this;
+
+	      if (FcPatternGetDouble (fontset->fonts[i], FC_PIXEL_SIZE, 0,
+				      &this) == FcResultMatch
+		  && this != pixel_size)
+		continue;
+	    }
+	  entity = ftfont_pattern_entity (fontset->fonts[i], frame, registry);
 	  if (! NILP (entity))
 	    val = Fcons (entity, val);
 	}

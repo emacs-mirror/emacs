@@ -2103,8 +2103,6 @@ read_escape (readcharfun, stringp)
       {
 	int i = 0;
 	int count = 0;
-	Lisp_Object lisp_char;
-	struct gcpro gcpro1;
 
 	while (++count <= unicode_hex_count)
 	  {
@@ -2121,22 +2119,7 @@ read_escape (readcharfun, stringp)
 	      }
 	  }
 
-	GCPRO1 (readcharfun);
-	lisp_char = call2(intern("decode-char"), intern("ucs"),
-			  make_number(i));
-	UNGCPRO;
-
-	if (EQ(Qnil, lisp_char))
-	  {
-	    /* This is ugly and horrible and trashes the user's data.  */
-	    XSETFASTINT (i, MAKE_CHAR (charset_katakana_jisx0201,
-				       34 + 128, 46 + 128));
-            return i;
-	  }
-	else
-	  {
-	    return XFASTINT (lisp_char);
-	  }
+	return i;
       }
 
     default:
