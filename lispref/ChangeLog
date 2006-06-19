@@ -1,3 +1,7 @@
+2006-06-19  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Bindat Spec): Clarify previous change.
+
 2006-06-16  Richard Stallman  <rms@gnu.org>
 
 	* tips.texi (Coding Conventions): Better explain conventions

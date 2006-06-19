@@ -1,3 +1,13 @@
+2006-06-19  Richard Stallman  <rms@gnu.org>
+
+	* window.c (size_window): New arg FIRST_ONLY.  All callers changed.
+	(adjust_window_trailing_edge): Specially compute FIRST_PARALLEL
+	for the case of a top-level window and the following minibuffer.
+	Don't exit because of no `next' when there is a parent.
+	Use the FIRST_ONLY feature when resizing following windows.
+	
+	* syntax.c (init_syntax_once): Give most control chars' syntax Spunct.
+
 2006-06-17  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (update_frame): Check for input pending on entry.

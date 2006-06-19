@@ -1,3 +1,16 @@
+2006-06-19  Richard Stallman  <rms@gnu.org>
+
+	* bindings.el (mode-line-format): Save some mode line space.
+
+	* files.el (find-file-noselect): Improve the question wording.
+	(basic-save-buffer-2): Mask UMASK against 666.
+
+	* mouse.el (mouse-drag-vertical-line-rightward-window): New function.
+	(mouse-drag-vertical-line): Call it.
+
+	* cus-edit.el (customize-option, customize-option-other-window): 
+	Error if SYMBOL is nil.
+
 2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: Require noutline, also on XEmacs.
