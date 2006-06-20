@@ -13,6 +13,9 @@
 
 2006-06-20  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.el (hack-local-variables): Run `hack-local-variables-hook'
+	whether or not a local variables list is defined.
+
 	* msb.el (msb): Move `sit-for' hack here to handle both
 	"mouse-down and drag" and "mouse-up and select" situations.
 	(mouse-select-buffer): Move `sit-for' hack to `msb'.

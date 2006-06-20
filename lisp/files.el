@@ -2665,8 +2665,8 @@ is specified, returning t if it is specified."
 		      (hack-local-variables-confirm
 		       result unsafe-vars risky-vars))
 		  (dolist (elt result)
-		    (hack-one-local-variable (car elt) (cdr elt))))))
-	  (run-hooks 'hack-local-variables-hook))))))
+		    (hack-one-local-variable (car elt) (cdr elt)))))))
+	(run-hooks 'hack-local-variables-hook)))))
 
 (defun safe-local-variable-p (sym val)
   "Non-nil if SYM is safe as a file-local variable with value VAL.
