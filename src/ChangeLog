@@ -5,7 +5,7 @@
 	for the case of a top-level window and the following minibuffer.
 	Don't exit because of no `next' when there is a parent.
 	Use the FIRST_ONLY feature when resizing following windows.
-	
+
 	* syntax.c (init_syntax_once): Give most control chars' syntax Spunct.
 
 2006-06-17  Kim F. Storm  <storm@cua.dk>
