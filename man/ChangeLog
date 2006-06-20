@@ -26,6 +26,11 @@
 
 	* mule.texi (Recognize Coding): Clarify previous change.
 
+2006-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (Recognize Coding): Describe the convention of "CODING!"
+	notation.
+
 2006-06-07  Kevin Ryde  <user42@zip.com.au>
 
 	* mule.texi (Coding Systems): Footnote xref "MS-DOS and MULE" in main

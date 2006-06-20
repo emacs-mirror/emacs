@@ -1,3 +1,8 @@
+2006-06-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el (word-combining-categories): Add
+	entries for 2-byte Han characters.
+
 2006-06-19  Richard Stallman  <rms@gnu.org>
 
 	* bindings.el (mode-line-format): Save some mode line space.
