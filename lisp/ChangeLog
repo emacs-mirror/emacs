@@ -13,7 +13,7 @@
 	* mouse.el (mouse-drag-vertical-line-rightward-window): New function.
 	(mouse-drag-vertical-line): Call it.
 
-	* cus-edit.el (customize-option, customize-option-other-window): 
+	* cus-edit.el (customize-option, customize-option-other-window):
 	Error if SYMBOL is nil.
 
 2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
@@ -46,10 +46,9 @@
 	(org-put-clock-overlay): Don't swallow last headline character
 	when displaying overlay.
 	(org-store-link): Link to `image-mode' with just the file name.
-	
 
 2006-06-18  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* viper-cmd.el (viper-special-read-and-insert-char): use
 	read-key-sequence.
 	(viper-after-change-undo-hook): enhancements.
@@ -58,10 +57,10 @@
 	(viper-add-newline-at-eob-if-necessary): widen before making changes.
 	(viper-next-line-at-bol): If point is on a widget or a button, simulate
 	clicking on that widget/button.
-	
+
 	* viper.el (viper-mode): allow for a separate cursor color in Emacs
 	state.
-	
+
 	* ediff-diff (ediff-test-patch-utility): catch errors.
 	(ediff-actual-diff-options, ediff-actual-diff3-options): new variables.
 	(ediff-set-actual-diff-options): new function.
@@ -70,23 +69,23 @@
 	(ediff-extract-diffs): catch errors.
 	(ediff-whitespace): add nonbreakable space.
 	(ediff-same-file-contents): catch errors.
-	
+
 	* ediff-mult.el (ediff-collect-custom-diffs): save
 	coding-system-for-read.
-	
+
 	* ediff-vers.el (ediff-keep-tmp-versions): new var.
 	(ediff-vc-internal, ediff-vc-merge-internal): use
 	ediff-delete-version-file.
 	(ediff-delete-version-file): new function.
-	
+
 	* ediff-wind.el (ediff-control-frame-parameters): set frame fringes.
-	
+
 	* ediff.el (ediff-directories, ediff-directory-revisions,
 	ediff-merge-directories, ediff-merge-directories-with-ancestor,
 	ediff-directories-internal, ediff-merge-directory-revisions,
 	ediff-merge-directory-revisions-with-ancestor,
 	ediff-directories3): use read-directory-name.
-	
+
 2006-06-18  Ralf Angeli  <angeli@caeruleus.net>
 
 	* textmodes/tex-mode.el (tex-font-lock-match-suscript): Remove
