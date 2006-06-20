@@ -1,3 +1,11 @@
+2006-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Update key availability
+	info.
+
+	* term.el (term-delete-lines, term-insert-lines): Clarify
+	comments.
+
 2006-06-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* msb.el (msb): Move `sit-for' hack here to handle both

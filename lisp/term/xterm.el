@@ -228,8 +228,8 @@
       (define-key map "\e[4~" [select])
       (define-key map "\e[29~" [print])
       
-      ;; These keys will be available xterm starting probably from
-      ;; version 214.
+      ;; These keys are available in xterm starting from version 214
+      ;; if the modifyOtherKeys resource is set.
       (define-key map "\e[27;5;9~"  [(control ?\t)])
       (define-key map "\e[27;5;44~" [(control ?\,)])
       (define-key map "\e[27;5;46~" [(control ?\.)])
