@@ -136,21 +136,21 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
   "Encrypt the current region between START and END."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
 	 (passphrase (or passphrase
-                         (when sign
-                           (pgg-read-passphrase
-                            (format "PGP passphrase for %s: "
-                                    pgg-pgp-user-id)
-                            pgg-pgp-user-id))))
+			 (when sign
+			   (pgg-read-passphrase
+			    (format "PGP passphrase for %s: "
+				    pgg-pgp-user-id)
+			    pgg-pgp-user-id))))
 	 (args
-          (append
-           `("+encrypttoself=off +verbose=1" "+batchmode"
-             "+language=us" "-fate"
-             ,@(if recipients
-                   (mapcar (lambda (rcpt) (concat "\"" rcpt "\""))
-                           (append recipients
-                                   (if pgg-encrypt-for-me
-                                       (list pgg-pgp-user-id))))))
-           (if sign '("-s" "-u" pgg-pgp-user-id)))))
+	  (append
+	   `("+encrypttoself=off +verbose=1" "+batchmode"
+	     "+language=us" "-fate"
+	     ,@(if recipients
+		   (mapcar (lambda (rcpt) (concat "\"" rcpt "\""))
+			   (append recipients
+				   (if pgg-encrypt-for-me
+				       (list pgg-pgp-user-id))))))
+	   (if sign '("-s" "-u" pgg-pgp-user-id)))))
     (pgg-pgp-process-region start end nil pgg-pgp-program args)
     (pgg-process-when-success nil)))
 
@@ -162,11 +162,11 @@ passphrase cache or user."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
 	 (key (pgg-pgp-lookup-key pgg-pgp-user-id 'encrypt))
 	 (passphrase
-          (or passphrase
-              (pgg-read-passphrase
-               (format "PGP passphrase for %s: " pgg-pgp-user-id) key)))
+	  (or passphrase
+	      (pgg-read-passphrase
+	       (format "PGP passphrase for %s: " pgg-pgp-user-id) key)))
 	 (args
-          '("+verbose=1" "+batchmode" "+language=us" "-f")))
+	  '("+verbose=1" "+batchmode" "+language=us" "-f")))
     (pgg-pgp-process-region start end passphrase pgg-pgp-program args)
     (pgg-process-when-success
       (if pgg-cache-passphrase
@@ -179,10 +179,10 @@ If optional PASSPHRASE is not specified, it will be obtained from the
 passphrase cache or user."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
 	 (passphrase
-          (or passphrase
-              (pgg-read-passphrase
-               (format "PGP passphrase for %s: " pgg-pgp-user-id)
-               (pgg-pgp-lookup-key pgg-pgp-user-id 'sign))))
+	  (or passphrase
+	      (pgg-read-passphrase
+	       (format "PGP passphrase for %s: " pgg-pgp-user-id)
+	       (pgg-pgp-lookup-key pgg-pgp-user-id 'sign))))
 	 (args
 	  (list (if clearsign "-fast" "-fbast")
 		"+verbose=1" "+language=us" "+batchmode"

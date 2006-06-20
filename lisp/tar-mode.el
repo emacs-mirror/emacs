@@ -736,7 +736,8 @@ appear on disk when you save the tar-file's buffer."
 				    (funcall set-auto-coding-function
 					     name (- (point-max) (point)))))
 			     (car (find-operation-coding-system
-				   'insert-file-contents name t))))
+				   'insert-file-contents
+				   (cons name (current-buffer)) t))))
 			(multibyte enable-multibyte-characters)
 			(detected (detect-coding-region
 				   (point-min)

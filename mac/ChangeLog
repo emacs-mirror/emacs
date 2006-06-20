@@ -1,3 +1,7 @@
+2006-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (SOME_MACHINE_LISP): Add fringe.elc.
+
 2006-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* inc/config.h (pid_t): Define to int.

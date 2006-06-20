@@ -2866,8 +2866,11 @@ Give an empty topic name to go to the Index node itself."
 	   (car (car Info-index-alternatives))
 	   (nth 2 (car Info-index-alternatives))
 	   (if (cdr Info-index-alternatives)
-	       (format "(%s total; use `,' for next)"
-		       (length Info-index-alternatives))
+	       (format "(%s total; use `%s' for next)"
+		       (length Info-index-alternatives)
+		       (key-description (where-is-internal
+					 'Info-index-next overriding-local-map
+					 t)))
 	     "(Only match)")))
 
 (defun Info-find-index-name (name)
@@ -2907,11 +2910,20 @@ Build a menu of the possible matches."
 	  manuals matches node nodes)
       (let ((Info-fontify-maximum-menu-size nil))
 	(Info-directory)
+	;; current-node and current-file are nil when they invoke info-apropos
+	;; as the first Info command, i.e. info-apropos loads info.el.  In that
+	;; case, we use (DIR)Top instead, to avoid signalling an error after
+	;; the search is complete.
+	(when (null current-node)
+	  (setq current-file Info-current-file)
+	  (setq current-node Info-current-node))
 	(message "Searching indices...")
 	(goto-char (point-min))
 	(re-search-forward "\\* Menu: *\n" nil t)
 	(while (re-search-forward "\\*.*: *(\\([^)]+\\))" nil t)
-	  (setq manuals (cons (match-string 1) manuals)))
+	  ;; add-to-list makes sure we don't have duplicates in `manuals',
+	  ;; so that the following dolist loop runs faster.
+	  (add-to-list 'manuals (match-string 1)))
 	(dolist (manual (nreverse manuals))
 	  (message "Searching %s" manual)
 	  (condition-case err

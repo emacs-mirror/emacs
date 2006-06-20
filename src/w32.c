@@ -950,11 +950,11 @@ init_environment (char ** argv)
     struct stat ignored;
     char default_home[MAX_PATH];
 
-    static struct env_entry
+    static const struct env_entry
     {
       char * name;
       char * def_value;
-    } env_vars[] =
+    } dflt_envvars[] =
     {
       {"HOME", "C:/"},
       {"PRELOAD_WINSOCK", NULL},
@@ -970,6 +970,17 @@ init_environment (char ** argv)
       {"TERM", "cmd"},
       {"LANG", NULL},
     };
+
+#define N_ENV_VARS sizeof(dflt_envvars)/sizeof(dflt_envvars[0])
+
+    /* We need to copy dflt_envvars[] and work on the copy because we
+       don't want the dumped Emacs to inherit the values of
+       environment variables we saw during dumping (which could be on
+       a different system).  The defaults above must be left intact.  */
+    struct env_entry env_vars[N_ENV_VARS];
+
+    for (i = 0; i < N_ENV_VARS; i++)
+      env_vars[i] = dflt_envvars[i];
 
     /* For backwards compatibility, check if a .emacs file exists in C:/
        If not, then we can try to default to the appdata directory under the
@@ -1005,7 +1016,7 @@ init_environment (char ** argv)
                      LOCALE_SABBREVLANGNAME | LOCALE_USE_CP_ACP,
                      locale_name, sizeof (locale_name)))
     {
-      for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++)
+      for (i = 0; i < N_ENV_VARS; i++)
         {
           if (strcmp (env_vars[i].name, "LANG") == 0)
             {
@@ -1069,7 +1080,7 @@ init_environment (char ** argv)
 	}
     }
 
-    for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++)
+    for (i = 0; i < N_ENV_VARS; i++)
       {
 	if (!getenv (env_vars[i].name))
 	  {
@@ -1084,20 +1095,17 @@ init_environment (char ** argv)
 
 	    if (lpval)
 	      {
+		char buf1[SET_ENV_BUF_SIZE], buf2[SET_ENV_BUF_SIZE];
+
 		if (dwType == REG_EXPAND_SZ)
-		  {
-		    char buf1[SET_ENV_BUF_SIZE], buf2[SET_ENV_BUF_SIZE];
-
-		    ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof(buf1));
-		    _snprintf (buf2, sizeof(buf2)-1, "%s=%s", env_vars[i].name, buf1);
-		    _putenv (strdup (buf2));
-		  }
+		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof(buf1));
 		else if (dwType == REG_SZ)
+		  strcpy (buf1, lpval);
+		if (dwType == REG_EXPAND_SZ || dwType == REG_SZ)
 		  {
-		    char buf[SET_ENV_BUF_SIZE];
-
-		    _snprintf (buf, sizeof(buf)-1, "%s=%s", env_vars[i].name, lpval);
-		    _putenv (strdup (buf));
+		    _snprintf (buf2, sizeof(buf2)-1, "%s=%s", env_vars[i].name,
+			       buf1);
+		    _putenv (strdup (buf2));
 		  }
 
 		if (!dont_free)

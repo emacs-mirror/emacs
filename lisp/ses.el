@@ -399,7 +399,7 @@ for safety.  This is a macro to prevent propagate-on-load viruses."
 (defmacro ses-header-row (row)
   "Load the header row from the spreadsheet file and checks it
 for safety.  This is a macro to prevent propagate-on-load viruses."
-  (or (and (wholenump row) (< row ses--numrows))
+  (or (and (wholenump row) (or (zerop ses--numrows) (< row ses--numrows)))
       (error "Bad header-row"))
   (setq ses--header-row row)
   t)
@@ -940,14 +940,18 @@ cell (ROW,COL) has changed."
 
 (defun ses-narrowed-p () (/= (- (point-max) (point-min)) (buffer-size)))
 
+(defun ses-widen ()
+  "Turn off narrowing, to be reenabled at end of command loop."
+  (if (ses-narrowed-p)
+      (setq ses--deferred-narrow t))
+  (widen))
+
 (defun ses-goto-data (def &optional col)
   "Move point to data area for (DEF,COL).  If DEF is a row
 number, COL is the column number for a data cell -- otherwise DEF
 is one of the symbols ses--col-widths, ses--col-printers,
 ses--default-printer, ses--numrows, or ses--numcols."
-  (if (ses-narrowed-p)
-      (setq ses--deferred-narrow t))
-  (widen)
+  (ses-widen)
   (let ((inhibit-point-motion-hooks t)) ;In case intangible attrs are wrong
     (goto-char (point-min))
     (if col
@@ -966,9 +970,6 @@ If ELEM is specified, it is the array subscript within DEF to be set to VALUE."
     ;;We call ses-goto-data early, using the old values of numrows and
     ;;numcols in case one of them is being changed.
     (ses-goto-data def)
-    (if elem
-	(ses-aset-with-undo (symbol-value def) elem value)
-      (ses-set-with-undo def value))
     (let ((inhibit-read-only t)
 	  (fmt (plist-get '(ses--col-widths      "(ses-column-widths %S)"
 			    ses--col-printers    "(ses-column-printers %S)"
@@ -977,9 +978,20 @@ If ELEM is specified, it is the array subscript within DEF to be set to VALUE."
 			    ses--file-format     " %S ;SES file-format"
 			    ses--numrows         " %S ;numrows"
 			    ses--numcols         " %S ;numcols")
-			  def)))
-      (delete-region (point) (line-end-position))
-      (insert (format fmt (symbol-value def))))))
+			  def))
+	  oldval)
+      (if elem
+	  (progn
+	    (setq oldval (aref (symbol-value def) elem))
+	    (aset (symbol-value def) elem value))
+	(setq oldval (symbol-value def))
+	(set def value))
+      ;;Special undo since it's outside the narrowed buffer
+      (let (buffer-undo-list)
+	(delete-region (point) (line-end-position))
+	(insert (format fmt (symbol-value def))))
+      (push `(apply ses-set-parameter ,def ,oldval ,elem) buffer-undo-list))))
+
 
 (defun ses-write-cells ()
   "Write cells in `ses--deferred-write' from local variables to data area.
@@ -1278,23 +1290,6 @@ to each symbol."
 ;; Undo control
 ;;----------------------------------------------------------------------------
 
-;; This should be unnecessary, because the feature is now built in.
-
-(defadvice undo-more (around ses-undo-more activate preactivate)
-  "For SES mode, allow undo outside of narrowed buffer range."
-  (if (not (eq major-mode 'ses-mode))
-      ad-do-it
-    ;;Here is some extra code for SES mode.
-    (setq ses--deferred-narrow
-	  (or ses--deferred-narrow (ses-narrowed-p)))
-    (widen)
-    (condition-case x
-	ad-do-it
-      (error
-       ;;Restore narrow if appropriate
-       (ses-command-hook)
-       (signal (car x) (cdr x))))))
-
 (defun ses-begin-change ()
   "For undo, remember point before we start changing hidden stuff."
   (let ((inhibit-read-only t))
@@ -1303,7 +1298,7 @@ to each symbol."
 
 (defun ses-set-with-undo (sym newval)
   "Like set, but undoable.  Result is t if value has changed."
-  ;;We avoid adding redundant entries to the undo list, but this is
+  ;;We try to avoid adding redundant entries to the undo list, but this is
   ;;unavoidable for strings because equal ignores text properties and there's
   ;;no easy way to get the whole property list to see if it's different!
   (unless (and (boundp sym)
@@ -1346,7 +1341,7 @@ execute cell formulas or print functions."
     (or (and (= (safe-length params) 3)
 	     (numberp (car params))
 	     (numberp (cadr params))
-	     (> (cadr params) 0)
+	     (>= (cadr params) 0)
 	     (numberp (nth 2 params))
 	     (> (nth 2 params) 0))
 	(error "Invalid SES file"))
@@ -1568,11 +1563,12 @@ narrows the buffer now."
 	  (let ((old ses--deferred-recalc))
 	    (setq ses--deferred-recalc nil)
 	    (ses-update-cells old)))
-	(if ses--deferred-write
-	    ;;We don't reset the deferred list before starting -- the most
-	    ;;likely error is keyboard-quit, and we do want to keep trying
-	    ;;these writes after a quit.
-	    (ses-write-cells))
+	(when ses--deferred-write
+	  ;;We don't reset the deferred list before starting -- the most
+	  ;;likely error is keyboard-quit, and we do want to keep trying
+	  ;;these writes after a quit.
+	  (ses-write-cells)
+	  (push '(apply ses-widen) buffer-undo-list))
 	(when ses--deferred-narrow
 	  ;;We're not allowed to narrow the buffer until after-find-file has
 	  ;;read the local variables at the end of the file.  Now it's safe to
@@ -1794,9 +1790,7 @@ cells."
 			(cons (ses-cell-symbol row col)
 			      (ses-cell-references yrow ycol)))))))
   ;;Delete everything and reconstruct basic data area
-  (if (ses-narrowed-p)
-      (setq ses--deferred-narrow t))
-  (widen)
+  (ses-widen)
   (let ((inhibit-read-only t))
     (goto-char (point-max))
     (if (search-backward ";; Local Variables:\n" nil t)
@@ -1877,7 +1871,9 @@ cell formula was unsafe and user declined confirmation."
             ses-mode-edit-map
             t                         ;Convert to Lisp object
             'ses-read-cell-history
-            (prin1-to-string curval)))))
+            (prin1-to-string (if (eq (car-safe curval) 'ses-safe-formula)
+				 (cadr curval)
+			       curval))))))
   (when (ses-edit-cell row col newval)
     (ses-command-hook) ;Update cell widths before movement
     (dolist (x ses-after-entry-functions)
@@ -2073,6 +2069,8 @@ before current one."
       (ses-reset-header-string)))
   ;;Reconstruct text attributes
   (ses-setup)
+  ;;Prepare for undo
+  (push '(apply ses-widen) buffer-undo-list)
   ;;Return to current cell
   (if ses--curcell
       (ses-jump-safe ses--curcell)
@@ -2109,6 +2107,8 @@ current one."
       (ses-reset-header-string)))
   ;;Reconstruct attributes
   (ses-setup)
+  ;;Prepare for undo
+  (push '(apply ses-widen) buffer-undo-list)
   (ses-jump-safe ses--curcell))
 
 (defun ses-insert-column (count &optional col width printer)
@@ -2643,7 +2643,10 @@ The top row is row 1.  Selecting row 0 displays the default header row."
   (if (or (< row 0) (> row ses--numrows))
       (error "Invalid header-row"))
   (ses-begin-change)
-  (ses-set-parameter 'ses--header-row row)
+  (let ((oldval ses--header-row))
+    (let (buffer-undo-list)
+      (ses-set-parameter 'ses--header-row row))
+    (push `(apply ses-set-header-row ,oldval) buffer-undo-list))
   (ses-reset-header-string))
 
 (defun ses-mark-row ()

@@ -49,13 +49,14 @@
   :type 'integer
   :group 'sgml)
 
-(defcustom sgml-transformation 'identity
-  "*Default value for `skeleton-transformation' (which see) in SGML mode."
+(defcustom sgml-transformation-function 'identity
+  "*Default value for `skeleton-transformation-function' in SGML mode."
   :type 'function
   :group 'sgml)
 
-(put 'sgml-transformation 'variable-interactive
+(put 'sgml-transformation-function 'variable-interactive
      "aTransformation function: ")
+(defvaralias 'sgml-transformation 'sgml-transformation-function)
 
 (defcustom sgml-mode-hook nil
   "Hook run by command `sgml-mode'.
@@ -335,6 +336,7 @@ an optional alist of possible values."
   :type '(repeat (cons (string :tag "Tag Name")
 		       (repeat :tag "Tag Rule" sexp)))
   :group 'sgml)
+(put 'sgml-tag-alist 'risky-local-variable t)
 
 (defcustom sgml-tag-help
   '(("!" . "Empty declaration for comment")
@@ -391,7 +393,7 @@ a DOCTYPE or an XML declaration."
 (defun sgml-mode-facemenu-add-face-function (face end)
   (if (setq face (cdr (assq face sgml-face-tag-alist)))
       (progn
-	(setq face (funcall skeleton-transformation face))
+	(setq face (funcall skeleton-transformation-function face))
 	(setq facemenu-end-add-face (concat "</" face ">"))
 	(concat "<" face ">"))
     (error "Face not configured for %s mode" mode-name)))
@@ -415,8 +417,8 @@ An argument of N to a tag-inserting command means to wrap it around
 the next N words.  In Transient Mark mode, when the mark is active,
 N defaults to -1, which means to wrap it around the current region.
 
-If you like upcased tags, put (setq sgml-transformation 'upcase) in
-your `.emacs' file.
+If you like upcased tags, put (setq sgml-transformation-function 'upcase)
+in your `.emacs' file.
 
 Use \\[sgml-validate] to validate your document with an SGML parser.
 
@@ -460,7 +462,8 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (sgml-xml-guess)
   (if sgml-xml-mode
       (setq mode-name "XML")
-    (set (make-local-variable 'skeleton-transformation) sgml-transformation))
+    (set (make-local-variable 'skeleton-transformation-function)
+         sgml-transformation-function))
   ;; This will allow existing comments within declarations to be
   ;; recognized.
   (set (make-local-variable 'comment-start-skip) "\\(?:<!\\)?--[ \t]*")
@@ -604,9 +607,9 @@ This only works for Latin-1 input."
 	   (if sgml-name-8bit-mode "ON" "OFF")))
 
 ;; When an element of a skeleton is a string "str", it is passed
-;; through skeleton-transformation and inserted.  If "str" is to be
-;; inserted literally, one should obtain it as the return value of a
-;; function, e.g. (identity "str").
+;; through `skeleton-transformation-function' and inserted.
+;; If "str" is to be inserted literally, one should obtain it as
+;; the return value of a function, e.g. (identity "str").
 
 (defvar sgml-tag-last nil)
 (defvar sgml-tag-history nil)
@@ -614,9 +617,10 @@ This only works for Latin-1 input."
   "Prompt for a tag and insert it, optionally with attributes.
 Completion and configuration are done according to `sgml-tag-alist'.
 If you like tags and attributes in uppercase do \\[set-variable]
-skeleton-transformation RET upcase RET, or put this in your `.emacs':
-  (setq sgml-transformation 'upcase)"
-  (funcall (or skeleton-transformation 'identity)
+`skeleton-transformation-function' RET `upcase' RET, or put this
+in your `.emacs':
+  (setq sgml-transformation-function 'upcase)"
+  (funcall (or skeleton-transformation-function 'identity)
            (setq sgml-tag-last
 		 (completing-read
 		  (if (> (length sgml-tag-last) 0)
@@ -639,7 +643,7 @@ skeleton-transformation RET upcase RET, or put this in your `.emacs':
       ;; For xhtml's `tr' tag, we should maybe use \n instead.
       (if (eq v2 t) (setq v2 nil))
       ;; We use `identity' to prevent skeleton from passing
-      ;; `str' through skeleton-transformation a second time.
+      ;; `str' through `skeleton-transformation-function' a second time.
       '(("") v2 _ v2 "</" (identity ',str) ?>))
      ((eq (car v2) t)
       (cons '("") (cdr v2)))
@@ -670,12 +674,12 @@ If QUIET, do not print a message when there are no attributes for TAG."
 	(if (stringp (car alist))
 	    (progn
 	      (insert (if (eq (preceding-char) ?\s) "" ?\s)
-		      (funcall skeleton-transformation (car alist)))
+		      (funcall skeleton-transformation-function (car alist)))
 	      (sgml-value alist))
 	  (setq i (length alist))
 	  (while (> i 0)
 	    (insert ?\s)
-	    (insert (funcall skeleton-transformation
+	    (insert (funcall skeleton-transformation-function
 			     (setq attribute
 				   (skeleton-read '(completing-read
 						    "Attribute: "
@@ -1981,12 +1985,12 @@ Can be used as a value for `html-mode-hook'."
    "\" name=\"" (or v1 (setq v1 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
    (when (y-or-n-p "Set \"checked\" attribute? ")
-     (funcall skeleton-transformation
+     (funcall skeleton-transformation-function
 	      (if sgml-xml-mode " checked=\"checked\"" " checked")))
    (if sgml-xml-mode " />" ">")
    (skeleton-read "Text: " (capitalize str))
    (or v2 (setq v2 (if (y-or-n-p "Newline after text? ")
-		       (funcall skeleton-transformation
+		       (funcall skeleton-transformation-function
                                 (if sgml-xml-mode "<br />" "<br>"))
 		     "")))
    \n))
@@ -2001,12 +2005,12 @@ Can be used as a value for `html-mode-hook'."
    "\" name=\"" (or (car v2) (setcar v2 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
    (when (and (not v1) (setq v1 (y-or-n-p "Set \"checked\" attribute? ")))
-     (funcall skeleton-transformation
+     (funcall skeleton-transformation-function
 	      (if sgml-xml-mode " checked=\"checked\"" " checked")))
    (if sgml-xml-mode " />" ">")
    (skeleton-read "Text: " (capitalize str))
    (or (cdr v2) (setcdr v2 (if (y-or-n-p "Newline after text? ")
-			       (funcall skeleton-transformation
+			       (funcall skeleton-transformation-function
                                         (if sgml-xml-mode "<br />" "<br>"))
 			     "")))
    \n))

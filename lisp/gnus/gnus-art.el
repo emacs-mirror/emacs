@@ -492,7 +492,10 @@ be fed to `format-time-string'."
   :group 'gnus-article-washing)
 
 (defcustom gnus-save-all-headers t
-  "*If non-nil, don't remove any headers before saving."
+  "*If non-nil, don't remove any headers before saving.
+This will be overridden by the `:headers' property that the symbol of
+the saver function, which is specified by `gnus-default-article-saver',
+might have."
   :group 'gnus-article-saving
   :type 'boolean)
 
@@ -513,14 +516,17 @@ each invocation of the saving commands."
   "Headers to keep if `gnus-save-all-headers' is nil.
 If `gnus-save-all-headers' is non-nil, this variable will be ignored.
 If that variable is nil, however, all headers that match this regexp
-will be kept while the rest will be deleted before saving."
+will be kept while the rest will be deleted before saving.  This and
+`gnus-save-all-headers' will be overridden by the `:headers' property
+that the symbol of the saver function, which is specified by
+`gnus-default-article-saver', might have."
   :group 'gnus-article-saving
   :type 'regexp)
 
 (defcustom gnus-default-article-saver 'gnus-summary-save-in-rmail
   "A function to save articles in your favourite format.
-The function must be interactively callable (in other words, it must
-be an Emacs command).
+The function will be called by way of the `gnus-summary-save-article'
+command, and friends such as `gnus-summary-save-article-rmail'.
 
 Gnus provides the following functions:
 
@@ -530,7 +536,28 @@ Gnus provides the following functions:
 * gnus-summary-save-in-file (article format)
 * gnus-summary-save-body-in-file (article body)
 * gnus-summary-save-in-vm (use VM's folder format)
-* gnus-summary-write-to-file (article format -- overwrite)."
+* gnus-summary-write-to-file (article format -- overwrite)
+* gnus-summary-write-body-to-file (article body -- overwrite)
+
+The symbol of each function may have the following properties:
+
+* :decode
+The value non-nil means save decoded articles.  This is meaningful
+only with `gnus-summary-save-in-file', `gnus-summary-save-body-in-file',
+`gnus-summary-write-to-file', and `gnus-summary-write-body-to-file'.
+
+* :function
+The value specifies an alternative function which appends, not
+overwrites, articles to a file.  This implies that when saving many
+articles at a time, `gnus-prompt-before-saving' is bound to t and all
+articles are saved in a single file.  This is meaningful only with
+`gnus-summary-write-to-file' and `gnus-summary-write-body-to-file'.
+
+* :headers
+The value specifies the symbol of a variable of which the value
+specifies headers to be saved.  If it is omitted,
+`gnus-save-all-headers' and `gnus-saved-headers' control what
+headers should be saved."
   :group 'gnus-article-saving
   :type '(radio (function-item gnus-summary-save-in-rmail)
 		(function-item gnus-summary-save-in-mail)
@@ -539,7 +566,48 @@ Gnus provides the following functions:
 		(function-item gnus-summary-save-body-in-file)
 		(function-item gnus-summary-save-in-vm)
 		(function-item gnus-summary-write-to-file)
+		(function-item gnus-summary-write-body-to-file)
 		(function)))
+
+(defcustom gnus-article-save-coding-system
+  (or (and (mm-coding-system-p 'utf-8) 'utf-8)
+      (and (mm-coding-system-p 'iso-2022-7bit) 'iso-2022-7bit)
+      (and (mm-coding-system-p 'emacs-mule) 'emacs-mule)
+      (and (mm-coding-system-p 'escape-quoted) 'escape-quoted))
+  "Coding system used to save decoded articles to a file.
+
+The recommended coding systems are `utf-8', `iso-2022-7bit' and so on,
+which can safely encode any characters in text.  This is used by the
+commands including:
+
+* gnus-summary-save-article-file
+* gnus-summary-save-article-body-file
+* gnus-summary-write-article-file
+* gnus-summary-write-article-body-file
+
+and the functions to which you may set `gnus-default-article-saver':
+
+* gnus-summary-save-in-file
+* gnus-summary-save-body-in-file
+* gnus-summary-write-to-file
+* gnus-summary-write-body-to-file
+
+Those commands and functions save just text displayed in the article
+buffer to a file if the value of this variable is non-nil.  Note that
+buttonized MIME parts will be lost in a saved file in that case.
+Otherwise, raw articles will be saved."
+  :group 'gnus-article-saving
+  :type `(choice
+	  :format "%{%t%}:\n %[Value Menu%] %v"
+	  (const :tag "Save raw articles" nil)
+	  ,@(delq nil
+		  (mapcar
+		   (lambda (arg) (if (mm-coding-system-p (nth 3 arg)) arg))
+		   '((const :tag "UTF-8" utf-8)
+		     (const :tag "iso-2022-7bit" iso-2022-7bit)
+		     (const :tag "Emacs internal" emacs-mule)
+		     (const :tag "escape-quoted" escape-quoted))))
+	  (symbol :tag "Coding system")))
 
 (defcustom gnus-rmail-save-name 'gnus-plain-save-name
   "A function generating a file name to save articles in Rmail format.
@@ -3249,10 +3317,13 @@ This format is defined by the `gnus-article-time-format' variable."
 
 (defun gnus-article-save (save-buffer file &optional num)
   "Save the currently selected article."
-  (unless gnus-save-all-headers
-    ;; Remove headers according to `gnus-saved-headers'.
+  (when (or (get gnus-default-article-saver :headers)
+	    (not gnus-save-all-headers))
+    ;; Remove headers according to `gnus-saved-headers' or the value
+    ;; of the `:headers' property that the saver function might have.
     (let ((gnus-visible-headers
-	   (or gnus-saved-headers gnus-visible-headers))
+	   (or (symbol-value (get gnus-default-article-saver :headers))
+	       gnus-saved-headers gnus-visible-headers))
 	  (gnus-article-buffer save-buffer))
       (save-excursion
 	(set-buffer save-buffer)
@@ -3277,7 +3348,8 @@ This format is defined by the `gnus-article-time-format' variable."
 	(funcall gnus-default-article-saver filename)))))
 
 (defun gnus-read-save-file-name (prompt &optional filename
-					function group headers variable)
+					function group headers variable
+					dir-var)
   (let ((default-name
 	  (funcall function group headers (symbol-value variable)))
 	result)
@@ -3290,6 +3362,10 @@ This format is defined by the `gnus-article-time-format' variable."
 	     default-name)
 	    (filename filename)
 	    (t
+	     (when (symbol-value dir-var)
+	       (setq default-name (expand-file-name
+				   (file-name-nondirectory default-name)
+				   (symbol-value dir-var))))
 	     (let* ((split-name (gnus-get-split-value gnus-split-methods))
 		    (prompt
 		     (format prompt
@@ -3354,7 +3430,11 @@ This format is defined by the `gnus-article-time-format' variable."
 	       ;; Possibly translate some characters.
 	       (nnheader-translate-file-chars file))))))
     (gnus-make-directory (file-name-directory result))
-    (set variable result)))
+    (when variable
+      (set variable result))
+    (when dir-var
+      (set dir-var (file-name-directory result)))
+    result))
 
 (defun gnus-article-archive-name (group)
   "Return the first instance of an \"Archive-name\" in the current buffer."
@@ -3402,6 +3482,8 @@ Directory to save to is default to `gnus-article-save-directory'."
 	  (gnus-output-to-mail filename)))))
   filename)
 
+(put 'gnus-summary-save-in-file :decode t)
+(put 'gnus-summary-save-in-file :headers 'gnus-saved-headers)
 (defun gnus-summary-save-in-file (&optional filename overwrite)
   "Append this article to file.
 Optional argument FILENAME specifies file name.
@@ -3420,13 +3502,21 @@ Directory to save to is default to `gnus-article-save-directory'."
 	(gnus-output-to-file filename))))
   filename)
 
+(put 'gnus-summary-write-to-file :decode t)
+(put 'gnus-summary-write-to-file :function 'gnus-summary-save-in-file)
+(put 'gnus-summary-write-to-file :headers 'gnus-saved-headers)
 (defun gnus-summary-write-to-file (&optional filename)
   "Write this article to a file, overwriting it if the file exists.
 Optional argument FILENAME specifies file name.
 The directory to save in defaults to `gnus-article-save-directory'."
-  (gnus-summary-save-in-file nil t))
+  (setq filename (gnus-read-save-file-name
+		  "Save %s in file" filename
+		  gnus-file-save-name gnus-newsgroup-name
+		  gnus-current-headers nil 'gnus-newsgroup-last-directory))
+  (gnus-summary-save-in-file filename t))
 
-(defun gnus-summary-save-body-in-file (&optional filename)
+(put 'gnus-summary-save-body-in-file :decode t)
+(defun gnus-summary-save-body-in-file (&optional filename overwrite)
   "Append this article body to a file.
 Optional argument FILENAME specifies file name.
 The directory to save in defaults to `gnus-article-save-directory'."
@@ -3440,8 +3530,24 @@ The directory to save in defaults to `gnus-article-save-directory'."
 	(widen)
 	(when (article-goto-body)
 	  (narrow-to-region (point) (point-max)))
+	(when (and overwrite
+		   (file-exists-p filename))
+	  (delete-file filename))
 	(gnus-output-to-file filename))))
   filename)
+
+(put 'gnus-summary-write-body-to-file :decode t)
+(put 'gnus-summary-write-body-to-file
+     :function 'gnus-summary-save-body-in-file)
+(defun gnus-summary-write-body-to-file (&optional filename)
+  "Write this article body to a file, overwriting it if the file exists.
+Optional argument FILENAME specifies file name.
+The directory to save in defaults to `gnus-article-save-directory'."
+  (setq filename (gnus-read-save-file-name
+		  "Save %s body in file" filename
+		  gnus-file-save-name gnus-newsgroup-name
+		  gnus-current-headers nil 'gnus-newsgroup-last-directory))
+  (gnus-summary-save-body-in-file filename t))
 
 (defun gnus-summary-save-in-pipe (&optional command)
   "Pipe this article to subprocess."
@@ -5182,17 +5288,55 @@ Provided for backwards compatibility."
 ;;; Article savers.
 
 (defun gnus-output-to-file (file-name)
-  "Append the current article to a file named FILE-NAME."
-  (let ((artbuf (current-buffer)))
+  "Append the current article to a file named FILE-NAME.
+If `gnus-article-save-coding-system' is non-nil, it is used to encode
+text and used as the value of the coding cookie which is added to the
+top of a file.  Otherwise, this function saves a raw article without
+the coding cookie."
+  (let* ((artbuf (current-buffer))
+	 (file-name-coding-system nnmail-pathname-coding-system)
+	 (coding gnus-article-save-coding-system)
+	 (coding-system-for-read (if coding
+				     nil ;; Rely on the coding cookie.
+				   mm-text-coding-system))
+	 (coding-system-for-write (or coding
+				      mm-text-coding-system-for-write
+				      mm-text-coding-system))
+	 (exists (file-exists-p file-name)))
     (with-temp-buffer
+      (when exists
+	(insert-file-contents file-name)
+	(goto-char (point-min))
+	;; Remove the existing coding cookie.
+	(when (looking-at "X-Gnus-Coding-System: .+\n\n")
+	  (delete-region (match-beginning 0) (match-end 0))))
+      (goto-char (point-max))
       (insert-buffer-substring artbuf)
       ;; Append newline at end of the buffer as separator, and then
       ;; save it to file.
       (goto-char (point-max))
       (insert "\n")
-      (let ((file-name-coding-system nnmail-pathname-coding-system))
-	(mm-append-to-file (point-min) (point-max) file-name))
-      t)))
+      (when coding
+	;; If the coding system is not suitable to encode the text,
+	;; ask a user for a proper one.
+	(when (fboundp 'select-safe-coding-system)
+	  (setq coding (coding-system-base
+			(save-window-excursion
+			  (select-safe-coding-system (point-min) (point-max)
+						     coding))))
+	  (setq coding-system-for-write
+		(or (cdr (assq coding '((mule-utf-8 . utf-8))))
+		    coding)))
+	(goto-char (point-min))
+	;; Add the coding cookie.
+	(insert (format "X-Gnus-Coding-System: -*- coding: %s; -*-\n\n"
+			coding-system-for-write)))
+      (if exists
+	  (progn
+	    (write-region (point-min) (point-max) file-name nil 'no-message)
+	    (message "Appended to %s" file-name))
+	(write-region (point-min) (point-max) file-name))))
+  t)
 
 (defun gnus-narrow-to-page (&optional arg)
   "Narrow the article buffer to a page.

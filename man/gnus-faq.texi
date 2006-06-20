@@ -1,7 +1,7 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 @c
 @c Do not modify this file, it was generated from gnus-faq.xml, available from
 @c <URL:http://my.gnus.org/FAQ/>.
@@ -676,7 +676,7 @@ this (you don't really want to do this) add the following to
 @noindent
 
 You might have to tweak the values for stream and/or
-authentification, see the Gnus manual node "Mail Source
+authentication, see the Gnus manual node "Mail Source
 Specifiers" for possible values.
 
 If you want to use IMAP the way it's intended, you've got to
@@ -1654,7 +1654,7 @@ by saying:
 @end example
 @noindent
 
-in ~/.gnus.el.  If you use Gnus 5.9 or ealier, you can use this
+in ~/.gnus.el.  If you use Gnus 5.9 or earlier, you can use this
 instead (works for newer versions a well): 
 
 @example
@@ -2164,10 +2164,7 @@ I need real-time help, where to find it?
 
 @subsubheading Answer
 
-Point your IRC client to irc.my.gnus.org channel
-#mygnus. Don't be afraid if people there speak German,
-they are willing and capable of switching to
-English when people from outside Germany enter.
+Point your IRC client to irc.freenode.net, channel #gnus.
 
 @node FAQ 9 - Tuning Gnus
 @subsection Tuning Gnus

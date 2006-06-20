@@ -1,4 +1,8 @@
-                                                                -*-outline-*-
+Emacs TODO List                                                   -*-outline-*-
+
+Copyright (c) 2003, 2004, 2005, 2006
+Free software Foundation, Inc.
+See the end of the file for copying permissions.
 
 If you are ready to start working on any of these TODO items, we
 appreciate your help; please write to emacs-devel@gnu.org so we can be
@@ -8,6 +12,10 @@ prepared to sign legal papers to transfer the copyright on your work
 to the FSF.
 
 * Small but important fixes needed in existing features:
+
+** In C-x d, the default if you type RET should be the directory name,
+but if you type M-n you should get the visited file name of the
+current buffer.
 
 ** whitespace-cleanup should work only on the region if the region is active.
 
@@ -135,6 +143,8 @@ to the FSF.
 
 * Other features we would like:
 
+** Remove the default toggling behavior of minor modes when called from elisp
+rather than interactively.  This a trivial one-liner in easy-mode.el.
 ** Create a category of errors called `user-error' for errors which are
 typically due to pilot errors and should thus be in debug-ignored-errors.
 
@@ -483,5 +493,17 @@ not be noticed if it appears within a word.
 
 ** Fix unexelf.c to handle the .data.rel and .data.rel.local
    sections made by GCC 3.4 on IRIX.
+
+COPYING PERMISSIONS:
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this file, to deal in the file without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the file, and to
+    permit persons to whom the file is furnished to do so, subject to
+    the following condition:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the file.
 
 ;;; arch-tag: b0a3e40b-726a-457d-9999-ba848321b036

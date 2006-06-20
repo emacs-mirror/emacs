@@ -363,6 +363,7 @@ Lisp_Object Qno_conversion, Qundecided;
 Lisp_Object Qcoding_system_history;
 Lisp_Object Qsafe_chars;
 Lisp_Object Qvalid_codes;
+Lisp_Object Qascii_incompatible;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
 Lisp_Object Qcall_process, Qcall_process_region;
@@ -3625,7 +3626,10 @@ setup_coding_system (coding_system, coding)
 	= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
     }
   else
-    coding->eol_type = CODING_EOL_LF;
+    {
+      coding->common_flags = 0;
+      coding->eol_type = CODING_EOL_LF;
+    }
 
   coding_type = XVECTOR (coding_spec)->contents[0];
   /* Try short cut.  */
@@ -3684,6 +3688,12 @@ setup_coding_system (coding_system, coding)
   val = Fplist_get (plist, Qcomposition);
   if (!NILP (val))
     coding->composing = COMPOSITION_NO;
+
+  /* If the coding system is ascii-incompatible, record it in
+     common_flags.   */
+  val = Fplist_get (plist, Qascii_incompatible);
+  if (! NILP (val))
+    coding->common_flags |= CODING_ASCII_INCOMPATIBLE_MASK;
 
   switch (XFASTINT (coding_type))
     {
@@ -7447,7 +7457,7 @@ is selected as the TARGET.  For example, if OPERATION does file I/O,
 whichever argument specifies the file name is TARGET.
 
 TARGET has a meaning which depends on OPERATION:
-  For file I/O, TARGET is a file name.
+  For file I/O, TARGET is a file name (except for the special case below).
   For process I/O, TARGET is a process name.
   For network I/O, TARGET is a service name or a port number
 
@@ -7458,6 +7468,13 @@ They may specify a coding system, a cons of coding systems,
 or a function symbol to call.
 In the last case, we call the function with one argument,
 which is a list of all the arguments given to this function.
+
+If OPERATION is `insert-file-contents', the argument corresponding to
+TARGET may be a cons (FILENAME . BUFFER).  In that case, FILENAME is a
+file name to look up, and BUFFER is a buffer that contains the file's
+contents (not yet decoded).  If `file-coding-system-alist' specifies a
+function to call for FILENAME, that function should examine the
+contents of BUFFER instead of reading the file.
 
 usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
      (nargs, args)
@@ -7485,8 +7502,12 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
     target_idx = make_number (4);
   target = args[XINT (target_idx) + 1];
   if (!(STRINGP (target)
+	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
+	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
     error ("Invalid argument %d", XINT (target_idx) + 1);
+  if (CONSP (target))
+    target = XCAR (target);
 
   chain = ((EQ (operation, Qinsert_file_contents)
 	    || EQ (operation, Qwrite_region))
@@ -7519,7 +7540,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
 	    return Fcons (val, val);
 	  if (! NILP (Ffboundp (val)))
 	    {
-	      val = call1 (val, Flist (nargs, args));
+	      val = safe_call1 (val, Flist (nargs, args));
 	      if (CONSP (val))
 		return val;
 	      if (SYMBOLP (val) && ! NILP (Fcoding_system_p (val)))
@@ -7813,6 +7834,9 @@ syms_of_coding ()
 
   Qvalid_codes = intern ("valid-codes");
   staticpro (&Qvalid_codes);
+
+  Qascii_incompatible = intern ("ascii-incompatible");
+  staticpro (&Qascii_incompatible);
 
   Qemacs_mule = intern ("emacs-mule");
   staticpro (&Qemacs_mule);

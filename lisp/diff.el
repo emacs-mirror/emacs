@@ -67,9 +67,10 @@ CODE is the exit code of the process.  It should be 0 iff no diffs were found."
   (if diff-new-temp-file (delete-file diff-new-temp-file))
   (save-excursion
     (goto-char (point-max))
-    (insert (format "\nDiff finished%s.  %s\n"
-		    (if (equal 0 code) " (no differences)" "")
-		    (current-time-string)))))
+    (let ((inhibit-read-only t))
+      (insert (format "\nDiff finished%s.  %s\n"
+		      (if (equal 0 code) " (no differences)" "")
+		      (current-time-string))))))
 
 ;;;###autoload
 (defun diff (old new &optional switches no-async)
@@ -119,7 +120,8 @@ With prefix arg, prompt for diff switches."
       (set-buffer buf)
       (setq buffer-read-only nil)
       (buffer-disable-undo (current-buffer))
-      (erase-buffer)
+      (let ((inhibit-read-only t))
+	(erase-buffer))
       (buffer-enable-undo (current-buffer))
       (diff-mode)
       (set (make-local-variable 'revert-buffer-function)
@@ -128,20 +130,34 @@ With prefix arg, prompt for diff switches."
       (set (make-local-variable 'diff-old-temp-file) old-alt)
       (set (make-local-variable 'diff-new-temp-file) new-alt)
       (setq default-directory thisdir)
-      (insert command "\n")
+      (let ((inhibit-read-only t))
+	(insert command "\n"))
       (if (and (not no-async) (fboundp 'start-process))
 	  (progn
 	    (setq proc (start-process "Diff" buf shell-file-name
 				      shell-command-switch command))
+	    (set-process-filter proc 'diff-process-filter)
 	    (set-process-sentinel
 	     proc (lambda (proc msg)
 		    (with-current-buffer (process-buffer proc)
 		      (diff-sentinel (process-exit-status proc))))))
 	;; Async processes aren't available.
-	(diff-sentinel
-	 (call-process shell-file-name nil buf nil
-		       shell-command-switch command))))
+	(let ((inhibit-read-only t))
+	  (diff-sentinel
+	   (call-process shell-file-name nil buf nil
+			 shell-command-switch command)))))
     buf))
+
+(defun diff-process-filter (proc string)
+  (with-current-buffer (process-buffer proc)
+    (let ((moving (= (point) (process-mark proc))))
+      (save-excursion
+	;; Insert the text, advancing the process marker.
+	(goto-char (process-mark proc))
+	(let ((inhibit-read-only t))
+	  (insert string))
+	(set-marker (process-mark proc) (point)))
+      (if moving (goto-char (process-mark proc))))))
 
 ;;;###autoload
 (defun diff-backup (file &optional switches)

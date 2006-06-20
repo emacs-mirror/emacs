@@ -171,8 +171,8 @@
 ;;          |  INTEGER_CONSTANT
 ;;          |  DEREF
 
-;; DEREF   ::= ( [NAME | INTEGER]... )	-- Field NAME or Array index relative to
-;;                                         current structure spec.
+;; DEREF   ::= ( [NAME | INTEGER]... )	-- Field NAME or Array index relative
+;;                                         to current structure spec.
 ;;                                      -- see bindat-get-field
 
 ;; A `union' specification
@@ -188,23 +188,20 @@
 ;;  ([FIELD] eval FORM)
 ;; is interpreted by evalling FORM for its side effects only.
 ;; If FIELD is specified, the value is bound to that field.
-;; The FORM may access and update `raw-data' and `pos' (see `bindat-unpack'),
-;; as well as the lisp data structure in `struct'.
+;; The FORM may access and update `bindat-raw' and `bindat-idx' (see `bindat-unpack').
 
 ;;; Code:
 
 ;; Helper functions for structure unpacking.
-;; Relies on dynamic binding of RAW-DATA and POS
+;; Relies on dynamic binding of BINDAT-RAW and BINDAT-IDX
 
-(defvar raw-data)
-(defvar pos)
+(defvar bindat-raw)
+(defvar bindat-idx)
 
 (defun bindat--unpack-u8 ()
   (prog1
-      (if (stringp raw-data)
-	  (string-to-char (substring raw-data pos (1+ pos)))
-	(aref raw-data pos))
-    (setq pos (1+ pos))))
+    (aref bindat-raw bindat-idx)
+    (setq bindat-idx (1+ bindat-idx))))
 
 (defun bindat--unpack-u16 ()
   (let* ((a (bindat--unpack-u8)) (b (bindat--unpack-u8)))
@@ -261,16 +258,16 @@
 		  j (lsh j -1)))))
       bits))
    ((eq type 'str)
-    (let ((s (substring raw-data pos (+ pos len))))
-      (setq pos (+ pos len))
+    (let ((s (substring bindat-raw bindat-idx (+ bindat-idx len))))
+      (setq bindat-idx (+ bindat-idx len))
       (if (stringp s) s
 	(string-make-unibyte (concat s)))))
    ((eq type 'strz)
     (let ((i 0) s)
-      (while (and (< i len) (/= (aref raw-data (+ pos i)) 0))
+      (while (and (< i len) (/= (aref bindat-raw (+ bindat-idx i)) 0))
 	(setq i (1+ i)))
-      (setq s (substring raw-data pos (+ pos i)))
-      (setq pos (+ pos len))
+      (setq s (substring bindat-raw bindat-idx (+ bindat-idx i)))
+      (setq bindat-idx (+ bindat-idx len))
       (if (stringp s) s
 	(string-make-unibyte (concat s)))))
    ((eq type 'vec)
@@ -312,10 +309,10 @@
 	      (setq data (eval len))
 	    (eval len)))
 	 ((eq type 'fill)
-	  (setq pos (+ pos len)))
+	  (setq bindat-idx (+ bindat-idx len)))
 	 ((eq type 'align)
-	  (while (/= (% pos len) 0)
-	    (setq pos (1+ pos))))
+	  (while (/= (% bindat-idx len) 0)
+	    (setq bindat-idx (1+ bindat-idx))))
 	 ((eq type 'struct)
 	  (setq data (bindat--unpack-group (eval len))))
 	 ((eq type 'repeat)
@@ -343,11 +340,13 @@
 	      (setq struct (append data struct))))))
     struct))
 
-(defun bindat-unpack (spec raw-data &optional pos)
-  "Return structured data according to SPEC for binary data in RAW-DATA.
-RAW-DATA is a string or vector.  Optional third arg POS specifies the
-starting offset in RAW-DATA."
-  (unless pos (setq pos 0))
+(defun bindat-unpack (spec bindat-raw &optional bindat-idx)
+  "Return structured data according to SPEC for binary data in BINDAT-RAW.
+BINDAT-RAW is a unibyte string or vector.  Optional third arg BINDAT-IDX specifies
+the starting offset in BINDAT-RAW."
+  (when (multibyte-string-p bindat-raw)
+    (error "String is multibyte"))
+  (unless bindat-idx (setq bindat-idx 0))
   (bindat--unpack-group spec))
 
 (defun bindat-get-field (struct &rest field)
@@ -366,7 +365,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   struct)
 
 
-;; Calculate raw-data length of structured data
+;; Calculate bindat-raw length of structured data
 
 (defvar bindat--fixed-length-alist
   '((u8 . 1) (byte . 1)
@@ -405,17 +404,19 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	      (setq struct (cons (cons field (eval len)) struct))
 	    (eval len)))
 	 ((eq type 'fill)
-	  (setq pos (+ pos len)))
+	  (setq bindat-idx (+ bindat-idx len)))
 	 ((eq type 'align)
-	  (while (/= (% pos len) 0)
-	    (setq pos (1+ pos))))
+	  (while (/= (% bindat-idx len) 0)
+	    (setq bindat-idx (1+ bindat-idx))))
 	 ((eq type 'struct)
 	  (bindat--length-group
 	   (if field (bindat-get-field struct field) struct) (eval len)))
 	 ((eq type 'repeat)
 	  (let ((index 0))
 	    (while (< index len)
-	      (bindat--length-group (nth index (bindat-get-field struct field)) (nthcdr tail item))
+	      (bindat--length-group
+               (nth index (bindat-get-field struct field))
+               (nthcdr tail item))
 	      (setq index (1+ index)))))
 	 ((eq type 'union)
 	  (let ((tag len) (cases (nthcdr tail item)) case cc)
@@ -433,25 +434,25 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	      (setq len (cdr type)))
 	  (if field
 	      (setq last (bindat-get-field struct field)))
-	  (setq pos (+ pos len))))))))
+	  (setq bindat-idx (+ bindat-idx len))))))))
 
 (defun bindat-length (spec struct)
-  "Calculate raw-data length for STRUCT according to bindat specification SPEC."
-  (let ((pos 0))
+  "Calculate bindat-raw length for STRUCT according to bindat SPEC."
+  (let ((bindat-idx 0))
     (bindat--length-group struct spec)
-    pos))
+    bindat-idx))
 
 
-;; Pack structured data into raw-data
+;; Pack structured data into bindat-raw
 
 (defun bindat--pack-u8 (v)
-  (aset raw-data pos (logand v 255))
-  (setq pos (1+ pos)))
+  (aset bindat-raw bindat-idx (logand v 255))
+  (setq bindat-idx (1+ bindat-idx)))
 
 (defun bindat--pack-u16 (v)
-  (aset raw-data pos (logand (lsh v -8) 255))
-  (aset raw-data (1+ pos) (logand v 255))
-  (setq pos (+ pos 2)))
+  (aset bindat-raw bindat-idx (logand (lsh v -8) 255))
+  (aset bindat-raw (1+ bindat-idx) (logand v 255))
+  (setq bindat-idx (+ bindat-idx 2)))
 
 (defun bindat--pack-u24 (v)
   (bindat--pack-u8 (lsh v -16))
@@ -462,9 +463,9 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
   (bindat--pack-u16 v))
 
 (defun bindat--pack-u16r (v)
-  (aset raw-data (1+ pos) (logand (lsh v -8) 255))
-  (aset raw-data pos (logand v 255))
-  (setq pos (+ pos 2)))
+  (aset bindat-raw (1+ bindat-idx) (logand (lsh v -8) 255))
+  (aset bindat-raw bindat-idx (logand v 255))
+  (setq bindat-idx (+ bindat-idx 2)))
 
 (defun bindat--pack-u24r (v)
   (bindat--pack-u16r v)
@@ -479,7 +480,7 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
       (setq type 'vec len 4))
   (cond
    ((null v)
-    (setq pos (+ pos len)))
+    (setq bindat-idx (+ bindat-idx len)))
    ((memq type '(u8 byte))
     (bindat--pack-u8 v))
    ((memq type '(u16 word short))
@@ -511,11 +512,11 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
     (let ((l (length v)) (i 0))
       (if (> l len) (setq l len))
       (while (< i l)
-	(aset raw-data (+ pos i) (aref v i))
+	(aset bindat-raw (+ bindat-idx i) (aref v i))
 	(setq i (1+ i)))
-      (setq pos (+ pos len))))
+      (setq bindat-idx (+ bindat-idx len))))
    (t
-    (setq pos (+ pos len)))))
+    (setq bindat-idx (+ bindat-idx len)))))
 
 (defun bindat--pack-group (struct spec)
   (let (last)
@@ -547,17 +548,19 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	      (setq struct (cons (cons field (eval len)) struct))
 	    (eval len)))
 	 ((eq type 'fill)
-	  (setq pos (+ pos len)))
+	  (setq bindat-idx (+ bindat-idx len)))
 	 ((eq type 'align)
-	  (while (/= (% pos len) 0)
-	    (setq pos (1+ pos))))
+	  (while (/= (% bindat-idx len) 0)
+	    (setq bindat-idx (1+ bindat-idx))))
 	 ((eq type 'struct)
 	  (bindat--pack-group
 	   (if field (bindat-get-field struct field) struct) (eval len)))
 	 ((eq type 'repeat)
 	  (let ((index 0))
 	    (while (< index len)
-	      (bindat--pack-group (nth index (bindat-get-field struct field)) (nthcdr tail item))
+	      (bindat--pack-group
+               (nth index (bindat-get-field struct field))
+               (nthcdr tail item))
 	      (setq index (1+ index)))))
 	 ((eq type 'union)
 	  (let ((tag len) (cases (nthcdr tail item)) case cc)
@@ -575,17 +578,19 @@ e.g. corresponding to STRUCT.FIELD1[INDEX2].FIELD3..."
 	  (bindat--pack-item last type len)
 	  ))))))
 
-(defun bindat-pack (spec struct &optional raw-data pos)
+(defun bindat-pack (spec struct &optional bindat-raw bindat-idx)
   "Return binary data packed according to SPEC for structured data STRUCT.
-Optional third arg RAW-DATA is a pre-allocated string or vector to unpack into.
-Optional fourth arg POS is the starting offset into RAW-DATA.
-Note: The result is a multibyte string; use `string-make-unibyte' on it
-to make it unibyte if necessary."
-  (let ((no-return raw-data))
-    (unless pos (setq pos 0))
-    (unless raw-data (setq raw-data (make-vector (+ pos (bindat-length spec struct)) 0)))
+Optional third arg BINDAT-RAW is a pre-allocated unibyte string or vector to
+pack into.
+Optional fourth arg BINDAT-IDX is the starting offset into BINDAT-RAW."
+  (when (multibyte-string-p bindat-raw)
+    (error "Pre-allocated string is multibyte"))
+  (let ((no-return bindat-raw))
+    (unless bindat-idx (setq bindat-idx 0))
+    (unless bindat-raw
+      (setq bindat-raw (make-vector (+ bindat-idx (bindat-length spec struct)) 0)))
     (bindat--pack-group struct spec)
-    (if no-return nil (concat raw-data))))
+    (if no-return nil (concat bindat-raw))))
 
 
 ;; Misc. format conversions

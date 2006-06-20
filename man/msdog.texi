@@ -328,6 +328,12 @@ the default directory of the current buffer, so if the file name in
 files, each one in the directory of the buffer from which the printing
 was done.
 
+  If the value of @code{printer-name} is correct, but printing does
+not produce the hardcopy on your printer, it is possible that your
+printer does not support printing plain text (some cheap printers omit
+this functionality).  In that case, as a workaround, try the
+PostScript print commands, described below, to the same printer
+
 @findex print-buffer @r{(MS-DOS)}
 @findex print-region @r{(MS-DOS)}
 @vindex lpr-headers-switches @r{(MS-DOS)}

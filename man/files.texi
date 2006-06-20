@@ -261,17 +261,17 @@ copies the file into the displayed directory.  For details, see
 you had visited an existing empty file.  If you make any changes and
 save them, the file is created.
 
-  Emacs recognizes from the contents of a file which convention it uses
-to separate lines---newline (used on GNU/Linux and on Unix),
-carriage-return linefeed (used on Microsoft systems), or just
-carriage-return (used on the Macintosh)---and automatically converts the
-contents to the normal Emacs convention, which is that the newline
-character separates lines.  This is a part of the general feature of
-coding system conversion (@pxref{Coding Systems}), and makes it possible
-to edit files imported from different operating systems with
-equal convenience.  If you change the text and save the file, Emacs
-performs the inverse conversion, changing newlines back into
-carriage-return linefeed or just carriage-return if appropriate.
+  Emacs recognizes from the contents of a file which end-of-line
+convention it uses to separate lines---newline (used on GNU/Linux and
+on Unix), carriage-return linefeed (used on Microsoft systems), or
+just carriage-return (used on the Macintosh)---and automatically
+converts the contents to the normal Emacs convention, which is that
+the newline character separates lines.  This is a part of the general
+feature of coding system conversion (@pxref{Coding Systems}), and
+makes it possible to edit files imported from different operating
+systems with equal convenience.  If you change the text and save the
+file, Emacs performs the inverse conversion, changing newlines back
+into carriage-return linefeed or just carriage-return if appropriate.
 
 @vindex find-file-run-dired
   If the file you specify is actually a directory, @kbd{C-x C-f} invokes
@@ -2333,8 +2333,10 @@ diff-mode}.
   One general feature of Diff mode is that manual edits to the patch
 automatically correct line numbers, including those in the hunk
 header, so that you can actually apply the edited patch.  Diff mode
-also provides the following commands to navigate, manipulate and apply
-parts of patches:
+treats each hunk location as an ``error message'', so that you can use
+commands such as @kbd{C-x '} to visit the corresponding source
+locations.  It also provides the following commands to navigate,
+manipulate and apply parts of patches:
 
 @table @kbd
 @item M-n

@@ -550,9 +550,9 @@ labels.  Any given label is either present or absent on a particular
 message.  A few label names have standard meanings and are given to
 messages automatically by Rmail when appropriate; these special labels
 are called @dfn{attributes}.
-@ifinfo
+@ifnottex
 (@xref{Rmail Attributes}.)
-@end ifinfo
+@end ifnottex
 All other labels are assigned only by users.
 
 @table @kbd

@@ -959,10 +959,6 @@ void x_delete_display P_ ((struct x_display_info *));
 void x_make_frame_visible P_ ((struct frame *));
 void x_iconify_frame P_ ((struct frame *));
 void x_wm_set_size_hint P_ ((struct frame *, long, int));
-void x_catch_errors P_ ((Display *));
-int x_had_errors_p P_ ((Display *));
-void x_uncatch_errors P_ ((void));
-void x_check_errors P_ ((Display *, char *));
 int x_text_icon P_ ((struct frame *, char *));
 int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
 void x_set_window_size P_ ((struct frame *, int, int, int));
@@ -978,7 +974,10 @@ extern int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
 extern void x_catch_errors P_ ((Display *));
 extern void x_check_errors P_ ((Display *, char *));
 extern int x_had_errors_p P_ ((Display *));
+extern int x_catching_errors P_ ((void));
 extern void x_uncatch_errors P_ ((void));
+extern void x_clear_errors P_ ((Display *));
+extern void x_fully_uncatch_errors P_ ((void));
 extern void x_set_window_size P_ ((struct frame *, int, int, int));
 extern void x_set_mouse_position P_ ((struct frame *, int, int));
 extern void x_set_mouse_pixel_position P_ ((struct frame *, int, int));
@@ -997,6 +996,9 @@ extern void x_initialize P_ ((void));
 extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
+extern int x_alloc_lighter_color_for_widget __P ((Widget, Display*, Colormap,
+						  unsigned long *,
+						  double, int));
 #endif
 extern void x_query_colors P_ ((struct frame *f, XColor *, int));
 extern void x_query_color P_ ((struct frame *f, XColor *));

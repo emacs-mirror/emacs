@@ -1431,7 +1431,7 @@ with @code{add-name-to-file} and then deleting @var{filename} has the
 same effect as renaming, aside from momentary intermediate states.
 @end deffn
 
-@deffn Command copy-file oldname newname &optional ok-if-exists time mustbenew
+@deffn Command copy-file oldname newname &optional ok-if-exists time preserve-uid-gid
 This command copies the file @var{oldname} to @var{newname}.  An
 error is signaled if @var{oldname} does not exist.  If @var{newname}
 names a directory, it copies @var{oldname} into that directory,
@@ -1440,16 +1440,18 @@ preserving its final name component.
 If @var{time} is non-@code{nil}, then this function gives the new file
 the same last-modified time that the old one has.  (This works on only
 some operating systems.)  If setting the time gets an error,
-@code{copy-file} signals a @code{file-date-error} error.
+@code{copy-file} signals a @code{file-date-error} error.  In an
+interactive call, a prefix argument specifies a non-@code{nil} value
+for @var{time}.
 
 This function copies the file modes, too.
 
-In an interactive call, a prefix argument specifies a non-@code{nil}
-value for @var{time}.
-
-The argument @var{mustbenew} controls whether an existing file can be
-overwritten.  It works like the similarly-named argument of
-@code{write-region} (@pxref{Writing to Files, mustbenew}).
+If argument @var{preserve-uid-gid} is @code{nil}, we let the operating
+system decide the user and group ownership of the new file (this is
+usually set to the user running Emacs).  If @var{preserve-uid-gid} is
+non-@code{nil}, we attempt to copy the user and group ownership of the
+file.  This works only on some operating systems, and only if you have
+the correct permissions to do so.
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists

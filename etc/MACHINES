@@ -1,3 +1,9 @@
+Emacs machines list
+
+Copyright (c) 1989, 1990, 1992, 1993, 1998, 2001, 2003, 2006
+Free software Foundation, Inc.
+See the end of the file for copying permissions.
+
 This is a list of the status of GNU Emacs on various machines and systems.
 
 For each system and machine, we give the configuration name you should
@@ -1469,6 +1475,18 @@ Local variables:
 mode: indented-text
 fill-prefix: "  "
 End:
+
+COPYING PERMISSIONS:
+
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this file, to deal in the file without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the file, and to
+    permit persons to whom the file is furnished to do so, subject to
+    the following condition:
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the file.
 
 
 arch-tag: 7d2e93c7-e982-40ec-9055-3cd064042473

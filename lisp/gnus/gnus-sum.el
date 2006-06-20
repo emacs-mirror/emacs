@@ -1249,6 +1249,7 @@ the type of the variable (string, integer, character, etc).")
 (defvar gnus-newsgroup-last-mail nil)
 (defvar gnus-newsgroup-last-folder nil)
 (defvar gnus-newsgroup-last-file nil)
+(defvar gnus-newsgroup-last-directory nil)
 (defvar gnus-newsgroup-auto-expire nil)
 (defvar gnus-newsgroup-active nil)
 
@@ -1364,6 +1365,7 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
     gnus-newsgroup-begin gnus-newsgroup-end
     gnus-newsgroup-last-rmail gnus-newsgroup-last-mail
     gnus-newsgroup-last-folder gnus-newsgroup-last-file
+    gnus-newsgroup-last-directory
     gnus-newsgroup-auto-expire gnus-newsgroup-unreads
     gnus-newsgroup-unselected gnus-newsgroup-marked
     gnus-newsgroup-spam-marked
@@ -1991,6 +1993,7 @@ increase the score of each group you read."
   "r" gnus-summary-save-article-rmail
   "f" gnus-summary-save-article-file
   "b" gnus-summary-save-article-body-file
+  "B" gnus-summary-write-article-body-file
   "h" gnus-summary-save-article-folder
   "v" gnus-summary-save-article-vm
   "p" gnus-summary-pipe-output
@@ -3709,16 +3712,10 @@ If NO-DISPLAY, don't generate a summary buffer."
       (when gnus-build-sparse-threads
 	(gnus-build-sparse-threads))
       ;; Find the initial limit.
-      (if gnus-show-threads
-	  (if show-all
-	      (let ((gnus-newsgroup-dormant nil))
-		(gnus-summary-initial-limit show-all))
+      (if show-all
+	  (let ((gnus-newsgroup-dormant nil))
 	    (gnus-summary-initial-limit show-all))
-	;; When unthreaded, all articles are always shown.
-	(setq gnus-newsgroup-limit
-	      (mapcar
-	       (lambda (header) (mail-header-number header))
-	       gnus-newsgroup-headers)))
+	(gnus-summary-initial-limit show-all))
       ;; Generate the summary buffer.
       (unless no-display
 	(gnus-summary-prepare))
@@ -5419,8 +5416,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 
 (defun gnus-articles-to-read (group &optional read-all)
   "Find out what articles the user wants to read."
-  (let* ((display (gnus-group-find-parameter group 'display))
-	 (articles
+  (let* ((articles
 	  ;; Select all articles if `read-all' is non-nil, or if there
 	  ;; are no unread articles.
 	  (if (or read-all
@@ -9507,7 +9503,7 @@ deleted forever, right now."
   (interactive)
   (or gnus-expert-user
       (gnus-yes-or-no-p
-       "Are you really, really, really sure you want to delete all these messages? ")
+       "Are you really, really sure you want to delete all expirable messages? ")
       (error "Phew!"))
   (gnus-summary-expire-articles t))
 
@@ -10993,12 +10989,26 @@ If N is a positive number, save the N next articles.
 If N is a negative number, save the N previous articles.
 If N is nil and any articles have been marked with the process mark,
 save those articles instead.
-The variable `gnus-default-article-saver' specifies the saver function."
+The variable `gnus-default-article-saver' specifies the saver function.
+
+If the optional second argument NOT-SAVED is non-nil, articles saved
+will not be marked as saved."
   (interactive "P")
+  (require 'gnus-art)
   (let* ((articles (gnus-summary-work-articles n))
 	 (save-buffer (save-excursion
 			(nnheader-set-temp-buffer " *Gnus Save*")))
 	 (num (length articles))
+	 ;; Whether to save decoded articles or raw articles.
+	 (decode (when gnus-article-save-coding-system
+		   (get gnus-default-article-saver :decode)))
+	 ;; When saving many articles in a single file, use the other
+	 ;; function to save articles other than the first one.
+	 (saver2 (get gnus-default-article-saver :function))
+	 (gnus-prompt-before-saving (if saver2
+					t
+				      gnus-prompt-before-saving))
+	 (gnus-default-article-saver gnus-default-article-saver)
 	 header file)
     (dolist (article articles)
       (setq header (gnus-summary-article-header article))
@@ -11009,17 +11019,25 @@ The variable `gnus-default-article-saver' specifies the saver function."
 	    (gnus-message 1 "Article %d is unsaveable" article))
 	;; This is a real article.
 	(save-window-excursion
-	  (let ((gnus-display-mime-function nil)
-		(gnus-article-prepare-hook nil))
-	    (gnus-summary-select-article t nil nil article)))
+	  (let ((gnus-display-mime-function (when decode
+					      gnus-display-mime-function))
+		(gnus-article-prepare-hook (when decode
+					     gnus-article-prepare-hook)))
+	    (gnus-summary-select-article t nil nil article)
+	    (gnus-summary-goto-subject article)))
 	(save-excursion
 	  (set-buffer save-buffer)
 	  (erase-buffer)
-	  (insert-buffer-substring gnus-original-article-buffer))
+	  (insert-buffer-substring (if decode
+				       gnus-article-buffer
+				     gnus-original-article-buffer)))
 	(setq file (gnus-article-save save-buffer file num))
 	(gnus-summary-remove-process-mark article)
 	(unless not-saved
-	  (gnus-summary-set-saved-mark article))))
+	  (gnus-summary-set-saved-mark article)))
+      (when saver2
+	(setq gnus-default-article-saver saver2
+	      saver2 nil)))
     (gnus-kill-buffer save-buffer)
     (gnus-summary-position-point)
     (gnus-set-mode-line 'summary)
@@ -11043,7 +11061,7 @@ If HEADERS (the symbolic prefix), include the headers, too."
       (gnus-configure-windows 'pipe))))
 
 (defun gnus-summary-save-article-mail (&optional arg)
-  "Append the current article to an mail file.
+  "Append the current article to a Unix mail box file.
 If N is a positive number, save the N next articles.
 If N is a negative number, save the N previous articles.
 If N is nil and any articles have been marked with the process mark,
@@ -11095,6 +11113,17 @@ save those articles instead."
   (interactive "P")
   (require 'gnus-art)
   (let ((gnus-default-article-saver 'gnus-summary-save-body-in-file))
+    (gnus-summary-save-article arg)))
+
+(defun gnus-summary-write-article-body-file (&optional arg)
+  "Write the current article body to a file, deleting the previous file.
+If N is a positive number, save the N next articles.
+If N is a negative number, save the N previous articles.
+If N is nil and any articles have been marked with the process mark,
+save those articles instead."
+  (interactive "P")
+  (require 'gnus-art)
+  (let ((gnus-default-article-saver 'gnus-summary-write-body-to-file))
     (gnus-summary-save-article arg)))
 
 (defun gnus-summary-muttprint (&optional arg)

@@ -1927,6 +1927,10 @@ The current buffer name, obtained with the @code{buffer-name} function.
 @item %c
 The current column number of point.
 
+@item %e
+When Emacs is nearly out of memory for Lisp objects, a brief message
+saying so.  Otherwise, this is empty.
+
 @item %f
 The visited file name, obtained with the @code{buffer-file-name}
 function.  @xref{Buffer File Name}.
@@ -1971,6 +1975,12 @@ The status of the subprocess belonging to the current buffer, obtained with
 Whether the visited file is a text file or a binary file.  This is a
 meaningful distinction only on certain operating systems (@pxref{MS-DOS
 File Types}).
+
+@item %z
+The mnemonics of buffer, terminal, and keyboard coding systems.
+
+@item %Z
+Like @samp{%z}, but including the end-of-line format.
 
 @item %*
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*

@@ -244,7 +244,7 @@ int emacs_ospeed;
    under VMS, we place the input channel number here.  */
 int input_fd;
 
-void croak P_ ((char *));
+void croak P_ ((char *)) NO_RETURN;
 
 #ifdef AIXHFT
 void hft_init ();

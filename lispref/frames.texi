@@ -62,7 +62,7 @@ The frame is displayed on an MS-DOS terminal.
 * Mouse Position::		Asking where the mouse is, or moving it.
 * Pop-Up Menus::		Displaying a menu for the user to select from.
 * Dialog Boxes::                Displaying a box to ask yes or no.
-* Pointer Shapes::              Specifying the shape of the mouse pointer.
+* Pointer Shape::               Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
 * Color Names::	                Getting the definitions of color names.
@@ -1564,30 +1564,49 @@ for instance using the window manager, then this produces a quit and
 @code{x-popup-dialog} does not return.
 @end defun
 
-@node Pointer Shapes
-@section Pointer Shapes
+@node Pointer Shape
+@section Pointer Shape
 @cindex pointer shape
 @cindex mouse pointer shape
 
-  These variables specify which shape to use for the mouse pointer in
-various situations, when using the X Window System:
+  You can specify the mouse pointer style for particular text or
+images using the @code{pointer} text property, and for images with the
+@code{:pointer} and @code{:map} image properties.  The values you can
+use in these properties are @code{text} (or @code{nil}), @code{arrow},
+@code{hand}, @code{vdrag}, @code{hdrag}, @code{modeline}, and
+@code{hourglass}.  @code{text} stands for the usual mouse pointer
+style used over text.
 
-@table @code
-@item x-pointer-shape
-@vindex x-pointer-shape
-This variable specifies the pointer shape to use ordinarily in the Emacs
-frame.
+  Over void parts of the window (parts that do not correspond to any
+of the buffer contents), the mouse pointer usually uses the
+@code{arrow} style, but you can specify a different style (one of
+those above) by setting @code{void-text-area-pointer}.
 
-@item x-sensitive-text-pointer-shape
-@vindex x-sensitive-text-pointer-shape
+@defvar void-text-area-pointer
+@tindex void-text-area-pointer
+This variable specifies the mouse pointer style for void text areas.
+These include the areas after the end of a line or below the last line
+in the buffer.  The default is to use the @code{arrow} (non-text)
+pointer style.
+@end defvar
+
+  You can specify what the @code{text} pointer style really looks like
+by setting the variable @code{x-pointer-shape}.
+
+@defvar x-pointer-shape
+This variable specifies the pointer shape to use ordinarily in the
+Emacs frame, for the @code{text} pointer style.
+@end defvar
+
+@defvar x-sensitive-text-pointer-shape
 This variable specifies the pointer shape to use when the mouse
 is over mouse-sensitive text.
-@end table
+@end defvar
 
   These variables affect newly created frames.  They do not normally
-affect existing frames; however, if you set the mouse color of a frame,
-that also updates its pointer shapes based on the current values of
-these variables.  @xref{Color Parameters}.
+affect existing frames; however, if you set the mouse color of a
+frame, that also installs the current value of those two variables.
+@xref{Color Parameters}.
 
   The values you can use, to specify either of these pointer shapes, are
 defined in the file @file{lisp/term/x-win.el}.  Use @kbd{M-x apropos

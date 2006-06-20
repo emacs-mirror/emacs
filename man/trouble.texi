@@ -890,10 +890,10 @@ understand it at all.  And if we can't understand what bug you are
 trying to fix, or why your patch should be an improvement, we mustn't
 install it.
 
-@ifinfo
+@ifnottex
 @xref{Sending Patches}, for guidelines on how to make it easy for us to
 understand and install your patches.
-@end ifinfo
+@end ifnottex
 
 @item
 A guess about what the bug is or what it depends on.

@@ -1524,7 +1524,7 @@ construct the base name."
          (with-temp-buffer
            (mh-exec-cmd-output "folder" nil "-fast" "-nocreate" folder)
            (goto-char (point-min))
-           (not (eobp))))))
+           (looking-at (format "+?%s" folder))))))
 
 (defun mh-msg-exists-p (msg folder)
   "Check if MSG exists in FOLDER."

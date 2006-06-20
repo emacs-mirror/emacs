@@ -825,7 +825,7 @@ while (0)
 /* This is the maximum byte length of multi-byte sequence.  */
 #define MAX_MULTIBYTE_LENGTH 4
 
-extern void invalid_character P_ ((int));
+extern void invalid_character P_ ((int)) NO_RETURN;
 
 extern int translate_char P_ ((Lisp_Object, int, int, int, int));
 extern int split_string P_ ((const unsigned char *, int, int *,

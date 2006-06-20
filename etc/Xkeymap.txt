@@ -1,5 +1,10 @@
 #						-*-Mode: Fundamental-*-
 # X keymap file for rlk with some emacsified bindings
+#
+# Copyright (c) 1999, 2003, 2006
+# Free software Foundation, Inc.
+# See the end of the file for copying conditions.
+#
 # This file contains the default keyboard mapping.  The first column contains a X keyboard code; the other
 # 16 columns contain the mapping of the keycode to a character string, with various combinations
 # of the SHIFT, LOCK, META, and CONTROL keys down.  See the man page for "keycomp" for more information.
@@ -96,5 +101,16 @@
 # local variables:
 # tab-width: 4
 # End:
+#
+#  COPYING CONDITIONS
+#    Permission is hereby granted, free of charge, to any person obtaining
+#    a copy of this file, to deal in the file without restriction, including
+#    without limitation the rights to use, copy, modify, merge, publish,
+#    distribute, sublicense, and/or sell copies of the file, and to
+#    permit persons to whom the file is furnished to do so, subject to
+#    the following condition:
+#
+#    The above copyright notice and this permission notice shall be
+#    included in all copies or substantial portions of the file.
 
 # arch-tag: cbaa71af-719b-4647-a2c1-cd4d36a4fc64

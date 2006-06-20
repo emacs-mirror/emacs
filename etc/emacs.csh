@@ -1,3 +1,6 @@
+# Copyright (c) 1999, 2003, 2006
+# Free software Foundation, Inc.
+#
 # This defines a csh command named `edit' which resumes an
 # existing Emacs or starts a new one if none exists.
 # One way or another, any arguments are passed to Emacs to specify files
@@ -23,5 +26,18 @@ alias edit 'set emacs_command=("emacs -nw \!*" "fg %emacs" "emacs -i \!* &"\
  @ whichjob = 1 + $isjob + $?DISPLAY * 2 + $?WINDOW_PARENT * 4; \
  test -S ~/.emacs_server && emacsclient \!* \
  || echo `pwd` \!* >! ~/.emacs_args && eval $emacs_command[$whichjob]'
+
+#COPYING PERMISSIONS:
+#
+#    Permission is hereby granted, free of charge, to any person obtaining
+#    a copy of this file, to deal in the file without restriction, including
+#    without limitation the rights to use, copy, modify, merge, publish,
+#    distribute, sublicense, and/or sell copies of the file, and to
+#    permit persons to whom the file is furnished to do so, subject to
+#    the following condition:
+#
+#    The above copyright notice and this permission notice shall be
+#    included in all copies or substantial portions of the file.
+
 
 # arch-tag: 433d58df-15b9-446f-ad37-f0393e3a23d4

@@ -81,6 +81,7 @@
 
 (load "help")
 
+(load "jka-cmpr-hook")
 ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; multilingual text.
 (load "international/mule-cmds")
@@ -209,7 +210,6 @@
 (message "%s" (garbage-collect))
 
 (load "vc-hooks")
-(load "jka-cmpr-hook")
 (load "ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))
 
