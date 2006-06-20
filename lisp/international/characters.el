@@ -1078,7 +1078,10 @@
  char-script-table)
 
 (setq word-combining-categories
-      '((?l . ?l)))
+      '((?l . ?l)
+	(?C . ?C)
+	(?C . ?H)
+	(?C . ?K)))
 
 (setq word-separating-categories	;  (2-byte character sets)
       '((?A . ?K)			; Alpha numeric - Katakana

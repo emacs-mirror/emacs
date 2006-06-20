@@ -918,6 +918,15 @@ are using a stand-alone Info reader, there are additional commands
 specific to it, which are documented in several chapters of @ref{Top,,
 GNU Info, info-stnd, GNU Info}.)
 
+@kindex C-q @r{(Info mode)}
+  One advanced command useful with most of the others described here
+is @kbd{C-q}, which ``quotes'' the next character so that it is
+entered literally (@pxref{Inserting Text,,,emacs,The GNU Emacs
+Manual}).  For example, pressing @kbd{?} ordinarily brings up a list
+of completion possibilities.  If you want to (for example) search for
+an actual @samp{?} character, the simplest way is to insert it using
+@kbd{C-q ?}.  This works the same in Emacs and stand-alone Info.
+
 @menu
 * Search Text::          How to search Info documents.
 * Search Index::         How to search the indices for specific subjects.

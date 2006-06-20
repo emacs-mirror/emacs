@@ -3346,6 +3346,20 @@ init_syntax_once ()
 
   Vstandard_syntax_table = Fmake_char_table (Qsyntax_table, temp);
 
+  /* Control characters should not be whitespace.  */
+  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Spunct];
+  for (i = 0; i <= ' ' - 1; i++)
+    SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, 0177, temp);
+
+  /* Except that a few really are whitespace.  */
+  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Swhitespace];
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, ' ', temp);
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\t', temp);
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\n', temp);
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, 015, temp);
+  SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, 014, temp);
+
   temp = XVECTOR (Vsyntax_code_object)->contents[(int) Sword];
   for (i = 'a'; i <= 'z'; i++)
     SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);

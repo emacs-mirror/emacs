@@ -1614,6 +1614,9 @@ The variable @code{ediff-ignore-case} controls whether Ediff starts out by
 ignoring letter case or not. It can be set in @file{.emacs} using
 @code{setq-default}.
 
+When case sensitivity is toggled, all difference
+regions are recomputed.
+
 @node Highlighting Difference Regions, Narrowing, Selective Browsing, Customization
 @section Highlighting Difference Regions
 
@@ -2316,6 +2319,14 @@ prior to starting Ediff, so Ediff just preserves status quo here.
 
 Using @code{ediff-cleanup-hook}, one can make Ediff delete the variants
 unconditionally (e.g., by making @code{ediff-janitor} into one of these hooks).
+
+@item ediff-keep-tmp-versions
+@vindex @code{ediff-keep-tmp-versions}
+Default is @code{nil}. If @code{t}, the versions of the files being
+compared or merged using operations such as @code{ediff-revision} or
+@code{ediff-merge-revisions} are not deleted on exit. The normal action is
+to clean up and delete these version files.
+
 @item ediff-grab-mouse
 @vindex @code{ediff-grab-mouse}
 Default is @code{t}.  Normally, Ediff grabs mouse and puts it in its
@@ -2457,6 +2468,7 @@ Karl Heuer (kwzh@@gnu.org),
 (jaffe@@chipmunk.cita.utoronto.ca),
 David Karr (dkarr@@nmo.gtegsc.com),
 Norbert Kiesel (norbert@@i3.informatik.rwth-aachen.de),
+Steffen Kilb (skilb@@gmx.net),
 Leigh L Klotz (klotz@@adoc.xerox.com),
 Fritz Knabe (Fritz.Knabe@@ecrc.de),
 Heinz Knutzen (hk@@informatik.uni-kiel.d400.de),

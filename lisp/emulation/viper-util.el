@@ -139,8 +139,8 @@
 
 (defsubst viper-get-cursor-color ()
   (viper-cond-compile-for-xemacs-or-emacs
-   ;; xemacs
-   (color-instance-name (frame-property (selected-frame) 'cursor-color))
+   (color-instance-name
+    (frame-property (selected-frame) 'cursor-color)) ; xemacs
    (cdr (assoc 'cursor-color (frame-parameters))) ; emacs
    ))
 

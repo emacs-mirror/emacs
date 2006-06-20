@@ -1,3 +1,98 @@
+2006-06-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el (word-combining-categories): Add
+	entries for 2-byte Han characters.
+
+2006-06-19  Richard Stallman  <rms@gnu.org>
+
+	* bindings.el (mode-line-format): Save some mode line space.
+
+	* files.el (find-file-noselect): Improve the question wording.
+	(basic-save-buffer-2): Mask UMASK against 666.
+
+	* mouse.el (mouse-drag-vertical-line-rightward-window): New function.
+	(mouse-drag-vertical-line): Call it.
+
+	* cus-edit.el (customize-option, customize-option-other-window): 
+	Error if SYMBOL is nil.
+
+2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Require noutline, also on XEmacs.
+	(org-end-of-subtree): Return point.
+	(org-dblock-start-re, org-dblock-end-re): New constants.
+	(org-create-dblock, org-prepare-dblock, org-map-dblocks)
+	(org-dblock-update, org-update-dblock, org-beginning-of-dblock)
+	(org-update-all-dblocks, org-find-dblock): New functions.
+	(org-collect-clock-time-entries): New function.
+	(org-html-handle-time-stamps): Never export CLOCK timeranges.
+	(org-fixup-indentation): Modified to deadl correctly with lines
+	starting with TAB.  Only one argument DIFF now.
+	(org-demote, org-promote): Call `org-fixup-indentation' with just
+	one argument, DIFF.
+	(org-mode): Don't mark buffer as modified when aligning tables.
+	(org-clock-sum): Don't makr buffer modified when adding time sum
+	properties.
+	(org-export-as-html): Added support for a link validation
+	function.
+	(org-archive-all-done): New function.
+	(org-archive-subtree): New prefix argument.  When set, archive all
+	done subtrees in this buffer.
+	(org-remove-clock-overlays)
+	(org-remove-occur-highlights): Use
+	`org-inhibit-highlight-removal'.
+	(org-inhibit-highlight-removal): New variable, for dynamic
+	scoping.
+	(org-put-clock-overlay): Don't swallow last headline character
+	when displaying overlay.
+	(org-store-link): Link to `image-mode' with just the file name.
+	
+
+2006-06-18  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-cmd.el (viper-special-read-and-insert-char): use
+	read-key-sequence.
+	(viper-after-change-undo-hook): enhancements.
+	(viper-after-change-undo-hook): new hook.
+	(viper-undo): use viper-after-change-undo-hook.
+	(viper-add-newline-at-eob-if-necessary): widen before making changes.
+	(viper-next-line-at-bol): If point is on a widget or a button, simulate
+	clicking on that widget/button.
+	
+	* viper.el (viper-mode): allow for a separate cursor color in Emacs
+	state.
+	
+	* ediff-diff (ediff-test-patch-utility): catch errors.
+	(ediff-actual-diff-options, ediff-actual-diff3-options): new variables.
+	(ediff-set-actual-diff-options): new function.
+	(ediff-reset-diff-options, ediff-toggle-ignore-case):
+	use ediff-set-actual-diff-options.
+	(ediff-extract-diffs): catch errors.
+	(ediff-whitespace): add nonbreakable space.
+	(ediff-same-file-contents): catch errors.
+	
+	* ediff-mult.el (ediff-collect-custom-diffs): save
+	coding-system-for-read.
+	
+	* ediff-vers.el (ediff-keep-tmp-versions): new var.
+	(ediff-vc-internal, ediff-vc-merge-internal): use
+	ediff-delete-version-file.
+	(ediff-delete-version-file): new function.
+	
+	* ediff-wind.el (ediff-control-frame-parameters): set frame fringes.
+	
+	* ediff.el (ediff-directories, ediff-directory-revisions,
+	ediff-merge-directories, ediff-merge-directories-with-ancestor,
+	ediff-directories-internal, ediff-merge-directory-revisions,
+	ediff-merge-directory-revisions-with-ancestor,
+	ediff-directories3): use read-directory-name.
+	
+2006-06-18  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/tex-mode.el (tex-font-lock-match-suscript): Remove
+	superfluous part of regexp for brace matching which is handled by
+	`scan-lists' call.
+
 2006-06-16  Richard Stallman  <rms@gnu.org>
 
 	* obsolete/options.el (list-options): Put "obsolete" msg in buffer.

@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.37
+@set VERSION 4.38
 @set DATE June 2006
 
 @dircategory Emacs
@@ -86,6 +86,8 @@ Software Foundation raise funds for GNU development.''
 * Exporting::                   Sharing and publishing of notes
 * Publishing::                  Create a web site of linked Org-mode files
 * Miscellaneous::               All the rest which did not fit elsewhere
+* Extensions and Hacking::      
+* History and Acknowledgments::  
 * Index::                       The fast road to specific information
 * Key Index::                   Key bindings and where they are described
 
@@ -162,7 +164,7 @@ Timestamps
 
 Progress Logging
 
-* Closing items::               When was this entry makred DONE?
+* Closing items::               When was this entry marked DONE?
 * Clocking work time::          When exactly did you work on this item?
 
 Tags
@@ -231,16 +233,18 @@ Miscellaneous
 * The very busy C-c C-c key::   When in doubt, press C-c C-c
 * Clean view::                  Getting rid of leading stars in the outline
 * TTY keys::                    Using Org-mode on a tty
-* FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
 * Bugs::                        Things which do not work perfectly
-* Acknowledgments::             These people provided feedback and more
 
 Interaction with other packages
 
-* Extensions::                  Third-party extensions for Org-mode
 * Cooperation::                 Packages Org-mode cooperates with
 * Conflicts::                   Packages that lead to conflicts
+
+Extensions and Hacking
+
+* Extensions::                  
+* Dynamic blocks::              
 
 @end detailmenu
 @end menu
@@ -296,9 +300,10 @@ example:
 The Org-mode table editor can be integrated into any major mode by
 activating the minor Orgtbl-mode.
 
+@cindex FAQ
 There is a website for Org-mode which provides links to the newest
-version of Org-mode, as well as additional information, screen shots
-and example files.  This page is located at
+version of Org-mode, as well as additional information, frequently asked
+questions (FAQ), links to tutorials etc.  This page is located at
 @uref{http://www.astro.uva.nl/~dominik/Tools/org/}.
 
 @page
@@ -340,6 +345,10 @@ them together with @file{org-install.el} on your load path.  Then add to
 ;; This line only if org-mode is not part of the X/Emacs distribution.
 (require 'org-install)
 @end lisp
+
+If you use Org-mode with XEmacs, you also need to install the file
+@file{noutline.el} from the @file{xemacs} subdirectory of the Org-mode
+distribution.
 
 @cindex org-mode, turning on
 With this setup, all files with extension @samp{.org} will be put into
@@ -621,9 +630,16 @@ to move the tree to an archive place, either in the same file under a
 special top-level heading, or even to a different file.
 @table @kbd
 @kindex C-c $
-@item @kbd{C-c $}
+@item C-c $
 Archive the subtree starting at the cursor position to the location
 given by @code{org-archive-location}.
+@kindex C-u C-c $
+@item C-u C-c $
+When @kbd{C-c $} is called with @kbd{C-u} prefix argument, check for
+(sub)trees without any open TODO items and offer to archive them.  When
+the cursor is on a headline when this command is called, inly check the
+direct children of this headline.  When the cursor is @emph{not} on a
+headline, check all level 1 trees.
 @end table
 
 @cindex archive locations
@@ -1674,7 +1690,11 @@ and activation}.
 Insert a link.  This prompts for a link to be inserted into the buffer.
 You can just type a link, using text for an internal link, or one of the
 link type prefixes mentioned in the examples above.  Through completion,
-all links stored during the current session can be accessed.  The link
+all links stored during the current session can be
+accessed@footnote{After insertion of a stored link, the link will be
+removed from the list of stored links.  To keep it in the list later
+use, use a triple @kbd{C-u} prefix to @kbd{C-c C-l}, or configure the
+option @code{org-keep-stored-link-after-insertion}.}.  The link
 will be inserted into the buffer, along with a descriptive text.  Note
 that you don't have to use this command to insert a link.  Links in
 Org-mode are plain text, and you can type or paste them straight into
@@ -2227,10 +2247,9 @@ brackets instead of angular brackets.
 @item Time range with CLOCK keyword
 @cindex CLOCK keyword
 When using the clock to time the work that is being done on specific
-items, time ranges preceeded by the CLOCK keyword are inserted
+items, time ranges preceded by the CLOCK keyword are inserted
 automatically into the file.  The time stamps are enclosed in square
 brackets instead of angular brackets.  @xref{Clocking work time}.
-@c FIXME: Reference needed
 @end table
 
 @node Creating timestamps, Progress logging, Time stamps, Timestamps
@@ -2376,7 +2395,7 @@ items in a project by starting and stopping a clock when you start and
 stop working on an aspect of a project.
 
 @menu
-* Closing items::               When was this entry makred DONE?
+* Closing items::               When was this entry marked DONE?
 * Clocking work time::          When exactly did you work on this item?
 @end menu
 
@@ -2405,8 +2424,8 @@ each day, giving you an overview of what has been done on a day.
 
 Org-mode allows you to clock the time you spent on specific tasks in a
 project.  When you start working on an item, you can start the clock.
-When you stop working on that tast, or when you makr the task done, the
-clock is stoppend and the corresponding time interval is recorded.  It
+When you stop working on that task, or when you mark the task done, the
+clock is stopped and the corresponding time interval is recorded.  It
 also computes the total time spent on each subtree of a project.
 
 @table @kbd
@@ -2435,6 +2454,22 @@ puts overlays at the end of each headline, showing the total time
 recorded under that heading, including the time of any subheadings. You
 can use visibility cycling to study the tree, but the overlays disappear
 automatically when the buffer is changed.
+@kindex C-c C-x C-r
+@item C-c C-x C-r
+Insert a dynamic block containing a clock report as an org-mode table
+into the current file.
+@example
+#+BEGIN: clocktable :maxlevel 2 :emphasize nil
+
+#+END: clocktable
+@end example
+@noindent
+If such a block already exists, its content is replaced by the new
+table.  The @samp{BEGIN} line can specify options:
+@example
+:maxlevels   @r{Maximum level depth to which times are listed in the table.}
+:emphasize   @r{When @code{t}, emphasize level one and level two items}
+@end example
 @end table
 
 The @kbd{l} key may be used in the timeline (@pxref{Timeline}) and in
@@ -3765,6 +3800,24 @@ careful with relative pathnames, and provided you have also configured
 org-publish to upload the related files, these links will work
 too. @ref{Complex example} for an example of this usage.
 
+Sometime an Org-mode file to be published may contain links that are
+only valid in your production environment, but not in the publishing
+location.  In this case, use the property 
+
+@multitable @columnfractions 0.4 0.6
+@item @code{:link-validation-function}
+@tab Function to validate links
+@end multitable
+
+@noindent
+to define a function for checking link validity.  This function must
+accept two arguments, the file name and a directory relative to which
+the file name is interpreted in the production environment.  If this
+function returns @code{nil}, then the HTML generator will only insert a
+description into the HTML file, but no link.  One option for this
+function is @code{org-publish-validate-link} which checks if the given
+file is part of any project in @code{org-publish-project-alist}.
+
 @node Project page index,  , Publishing links, Configuration
 @subsection Project page index
 
@@ -3891,7 +3944,7 @@ Org uses timestamps to track when a file has changed. The above
 functions normally only publish changed files. You can override this and
 force publishing of all files by giving a prefix argument. 
 
-@node Miscellaneous, Index, Publishing, Top
+@node Miscellaneous, Extensions and Hacking, Publishing, Top
 @chapter Miscellaneous
 
 @menu
@@ -3901,10 +3954,8 @@ force publishing of all files by giving a prefix argument.
 * The very busy C-c C-c key::   When in doubt, press C-c C-c
 * Clean view::                  Getting rid of leading stars in the outline
 * TTY keys::                    Using Org-mode on a tty
-* FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
 * Bugs::                        Things which do not work perfectly
-* Acknowledgments::             These people provided feedback and more
 @end menu
 
 @node Completion, Customization, Miscellaneous, Miscellaneous
@@ -4043,14 +4094,13 @@ The key @kbd{C-c C-c} has many purposes in org-mode, which are all
 mentioned scattered throughout this manual.  One specific function of
 this key is to add @emph{tags} to a headline (@pxref{Tags}).  In many
 other circumstances it means something like @emph{Hey Org-mode, look
-here and update according to what you see here}.  Here is a summary of what
-this means in different contexts.
+here and update according to what you see here}.  Here is a summary of
+what this means in different contexts.
 
 @itemize @minus
-@c @item
-@c If the cursor is in a headline, prompt for tags and insert them
-@c into the current line, aligned to `org-tags-column'.  When called
-@c with prefix arg, realign all tags in the current buffer.
+@item
+If there are highlichts in the buffer from the creation of a sparse
+tree, or from clock display, remove these highlights.
 @item
 If the cursor is in one of the special @code{#+KEYWORD} lines, this
 triggers scanning the buffer for these lines and updating the
@@ -4180,7 +4230,7 @@ double-star-per-level convention with @kbd{M-x org-convert-to-odd-levels
 RET} in that file.  The reverse operation is @kbd{M-x
 org-convert-to-oddeven-levels}.
 
-@node TTY keys, FAQ, Clean view, Miscellaneous
+@node TTY keys, Interaction, Clean view, Miscellaneous
 @section Using org-mode on a tty
 @cindex tty keybindings
 
@@ -4217,251 +4267,19 @@ rather use @kbd{C-c .}  to re-insert the timestamp.
 @item @kbd{S-@key{down}}    @tab @kbd{C-c C-x @key{down}}  @tab
 @end multitable
 
-@node FAQ, Interaction, TTY keys, Miscellaneous
-@section Frequently asked questions
-@cindex FAQ
-
-@enumerate
-@cindex @code{keymapp nil} error
-@item @b{When I try to use Org-mode, I always get
-@code{(wrong-type-argument keymapp nil)}}.@*
-@cindex allout.el, conflict with
-This is a conflict with an outdated version of the @file{allout.el}.
-See @ref{Conflicts}.
-
-@item @b{Org-mode seems to be a useful default mode for the various
-@file{README} files I have scattered through my directories.  How do I
-turn it on for all @file{README} files?}
-
-@lisp
-(add-to-list 'auto-mode-alist '("README$" . org-mode))
-@end lisp
-
-@item @b{I would like to use editing features of org-mode in other
-modes, is this possible?}@*
-@c
-Not really.  For tables there is @code{orgtbl-mode} which implements the
-table editor as a minor mode.  For other features you need to switch to
-Org-mode temporarily, or prepare text in a different buffer.
-
-@item @b{Can I get the visibility-cycling features in outline-mode and
-outline-minor-mode?}@* 
-@c
-Yes, these functions are written in a way that they are independent of
-the outline setup.  The following setup provides standard Org-mode
-functionality in outline-mode on @key{TAB} and @kbd{S-@key{TAB}}.  For
-outline-minor-mode, we use @kbd{C-@key{TAB}} instead of @key{TAB},
-because @key{TAB} usually has mode-specific tasks.
-@lisp
-(add-hook 'outline-minor-mode-hook
-  (lambda ()
-    (define-key outline-minor-mode-map [(control tab)] 'org-cycle)
-    (define-key outline-minor-mode-map [(shift tab)] 'org-global-cycle)))
-(add-hook 'outline-mode-hook
-  (lambda ()
-    (define-key outline-mode-map [(tab)] 'org-cycle)
-    (define-key outline-mode-map [(shift tab)] 'org-global-cycle)))
-@end lisp
-
-Or check out @file{outline-magic.el}, which does this and also provides
-promotion and demotion functionality.  @file{outline-magic.el} is
-available at @url{http://www.astro.uva.nl/~dominik/Tools/OutlineMagic}.
-
-@item @b{Some of my links stopped working after I upgraded to a version
-4.20 or later.  Why is this, and how can I fix it?}@*
-@c
-These must be links in plain text, containing white space, such as
-@samp{bbdb:Richard Stallman}.  You need to protect these links by
-putting double brackets around them, like @samp{[[bbdb:Richard
-Stallman]]}.
-
-@item @b{I see that Org-mode now creates links using the double bracket
-convention that hides the link part and the brackets, only showing the
-description part.  How can I convert my old links to this new format?}@*
-@c
-Execute once in each Org-mode file: @kbd{M-x org-upgrade-old-links}.
-This replaces angular brackets with the new link format.
-
-@item @b{I don't care if you find the new bracket links great, I am
-attached to the old style using angular brackets and no hiding of the
-link text.  Please give them back to me, don't tell me it is not
-possible!}@*
-@c
-Would I let you down like that?  If you must, you can do this
-
-@lisp
-(setq org-link-style 'plain
-      org-link-format "<%s>")
-@end lisp
-
-@item @b{When I am executing shell/elisp links I always get a 
-confirmation prompt and need to type @kbd{yes @key{RET}}, that's 4 key
-presses!  Can I get rid of this?}@*
-@c
-@cindex shell links, confirmation
-@cindex dangerous commands
-The confirmation is there to protect you from unwantingly execute
-potentially dangerous commands.  For example, imagine a link
-@samp{[[shell:rm -rf ~/*][Google Search]]}.  In an Org-mode buffer, this
-command would look like @samp{Google Search}, but really it would remove
-your home directory.  If you wish, you can make it easier to respond to
-the query by setting @code{org-confirm-shell-link-function} and/or
-@code{org-confirm-elisp-link-function} to @code{y-or-n-p}.  Then a
-single @kbd{y} keypress will be enough to confirm those links.  It is
-also possible to turn off this check entirely, but I do not recommend to
-do this.  Be warned.
-
-@item @b{All these stars are driving me mad, I just find the Emacs
-outlines unreadable. Can't you just put white space and a single star as a
-starter for headlines?}@*
-@c
-See @ref{Clean view}.
-
-@item @b{I would like to have two windows on the same Org-mode
-file, but with different outline visibility.  Is that possible?}@*
-@c
-@cindex @code{make-indirect-buffer}
-@cindex indirect buffers
-In GNU Emacs, you may use @emph{indirect buffers} which do exactly this.
-See the documentation on the command @code{make-indirect-buffer}.  In
-XEmacs, this is currently not possible because of the different outline
-implementation.
-
-@item @b{When I export my TODO list, every TODO item becomes a
-separate section.  How do I enforce these items to be exported as an
-itemized list?}@*
-@c
-If you plan to use ASCII or HTML export, make sure things you want to
-be exported as item lists are level 4 at least, even if that does mean
-there is a level jump.  For example:
-
-@example
-* Todays top priorities
-**** TODO write a letter to xyz
-**** TODO Finish the paper
-**** Pick up kids at the school
-@end example
-
-Alternatively, if you need a specific value for the heading/item
-transition in a particular file, use the @samp{+OPTIONS} line to
-configure the @samp{H} switch.
-
-@example
-+OPTIONS:   H:2; ...
-@end example
-
-@item @b{I would like to export only a subtree of my file to HTML.
-How?}@*
-@c
-@cindex exporting a subtree
-If you want to export a subtree, mark the subtree as region and then
-export.  Marking can be done with @kbd{C-c @@ C-x C-x}, for example.
-
-@item @b{Org-mode takes over the S-cursor keys.  I also want to use
-CUA-mode, is there a way to fix this conflict?}@*
-Yes, see @ref{Conflicts}.
-
-@item @b{One of my table columns has started to fill up with
-@samp{#ERROR}.  What is going on?}@*
-@c
-Org-mode tried to compute the column from other fields using a
-formula stored in the @samp{#+TBLFM:} line just below the table, and
-the evaluation of the formula fails.  Fix the fields used in the
-formula, or fix the formula, or remove it!
-
-@item @b{When I am in the last column of a table and just above a
-horizontal line in the table, pressing TAB creates a new table line
-@i{before} the horizontal line.  How can I quickly move to the line
-@i{below} the horizontal line instead?}@*
-@c
-Press @key{down} (to get on the separator line) and then @key{TAB}.
-Or configure the variable @code{org-table-tab-jumps-over-hlines}.
-
-@item @b{How can I change the indentation of an entire table without
-fixing every line by hand?}@*
-@c
-@cindex indentation, of tables
-The indentation of a table is set by the first line.  So just fix the
-indentation of the first line and realign with @key{TAB}.
-
-@item @b{Is it possible to include entries from org-mode files into my
-emacs diary?}@*
-@c
-Since the org-mode agenda is much more powerful and can contain the
-diary (@pxref{Calendar/Diary integration}), you should think twice
-before deciding to do this.  Integrating Org-mode information into the
-diary is, however, possible.  You need to turn on @emph{fancy diary
-display} by setting in @file{.emacs}:
-
-@lisp
-(add-hook 'diary-display-hook 'fancy-diary-display)
-@end lisp
-
-Then include the following line into your @file{~/diary} file, in
-order to get the entries from all files listed in the variable
-@code{org-agenda-files}:
-
-@example
-&%%(org-diary)
-@end example
-@noindent
-You may also select specific files with
-
-@example
-&%%(org-diary) ~/path/to/some/org-file.org
-&%%(org-diary) ~/path/to/another/org-file.org
-@end example
-
-If you now launch the calendar and press @kbd{d} to display a diary, the
-headlines of entries containing a timestamp, date range, schedule, or
-deadline referring to the selected date will be listed.  Just like
-Org-mode's agenda view, the diary for @emph{today} contains additional
-entries for overdue deadlines and scheduled items.  See also the
-documentation of the @command{org-diary} function.  Under XEmacs, it is
-not possible to jump back from the diary to the org, this works only in
-the agenda buffer.
-
-@end enumerate
-
-
-@node Interaction, Bugs, FAQ, Miscellaneous
+@node Interaction, Bugs, TTY keys, Miscellaneous
 @section Interaction with other packages
 @cindex packages, interaction with other
 Org-mode lives in the world of GNU Emacs and interacts in various ways
 with other code out there.
 
 @menu
-* Extensions::                  Third-party extensions for Org-mode
 * Cooperation::                 Packages Org-mode cooperates with
 * Conflicts::                   Packages that lead to conflicts
 @end menu
 
-@node Extensions, Cooperation, Interaction, Interaction
-@subsection Third-party extensions for Org-mode
 
-The following extensions for Org-mode have been written by other people:
-
-@table @asis
-@cindex @file{org-mouse.el}
-@item @file{org-mouse.el} by Piotr Zielinski
-This package implements extended mouse functionality for Org-mode.  It
-allows you to cycle visibility and to edit the document structure with
-the mouse.  Best of all, it provides a context-sensitive menu on
-@key{mouse-3} that changes depending on the context of a mouse-click.
-@file{org-mouse.el} is freely available at @url{http://www.cl.cam.ac.uk/~pz215/files/org-mouse.el}.
-@cindex @file{org-publish.el}
-@item @file{org-publish.el} by David O'Toole
-This package provides facilities for publishing related sets of Org-mode
-files together with linked files like images as a webpages.  It is
-highly configurable and can be used for other publishing purposes as
-well.  As of Org-mode version 4.30, @file{org-publish.el} is part of
-the Org-mode distribution.  It is not yet part of Emacs, however, due to
-a pending copyright assignment.  In the mean time, @file{org-publish.el}
-can be downloaded from David's site:
-@url{http://dto.freeshell.org/e/org-publish.el}.
-@end table
-
-@node Cooperation, Conflicts, Extensions, Interaction
+@node Cooperation, Conflicts, Interaction, Interaction
 @subsection Packages that Org-mode cooperates with
 
 @table @asis
@@ -4538,7 +4356,7 @@ in the paragraph above about CUA mode also applies here.
 @end table
 
 
-@node Bugs, Acknowledgments, Interaction, Miscellaneous
+@node Bugs,  , Interaction, Miscellaneous
 @section Bugs
 @cindex bugs
 
@@ -4564,10 +4382,6 @@ When the application called by @kbd{C-c C-o} to open a file link fails
 (for example because the application does not exist or refuses to open
 the file), it does so silently.  No error message is displayed.
 @item
-Plain list items should be able to hold a TODO item.  Unfortunately this
-has so many technical problems that I will only consider this change for
-the next major release (5.0).
-@item
 The remote-editing commands in the agenda buffer cannot be undone with
 @code{undo} called from within the agenda buffer.  But you can go to
 the corresponding buffer (using @key{TAB} or @key{RET} and execute
@@ -4577,22 +4391,140 @@ Recalculating a table line applies the formulas from left to right.
 If a formula uses @emph{calculated} fields further down the row,
 multiple recalculation may be needed to get all fields consistent.
 @item
-Several words in a row may @b{*be made bold*}, but this does not work if
-the string is distributed over two lines.
+A single letter cannot be made bold, for example @samp{*a*}.
 @item
 The exporters work well, but could be made more efficient.
 @end itemize
 
-@node Acknowledgments,  , Bugs, Miscellaneous
-@section Acknowledgments
+
+@node Extensions and Hacking, History and Acknowledgments, Miscellaneous, Top
+@appendix Extensions, Hooks and Hacking
+
+This appendix lists extensions for Org-mode written by other authors.
+It also covers some aspects where users can easily extend the
+functionality of Org-mode.
+
+@menu
+* Extensions::                  
+* Dynamic blocks::              
+@end menu
+
+@node Extensions, Dynamic blocks, Extensions and Hacking, Extensions and Hacking
+@section Third-party extensions for Org-mode
+
+The following extensions for Org-mode have been written by other people:
+
+@table @asis
+@cindex @file{org-mouse.el}
+@item @file{org-mouse.el} by Piotr Zielinski
+This package implements extended mouse functionality for Org-mode.  It
+allows you to cycle visibility and to edit the document structure with
+the mouse.  Best of all, it provides a context-sensitive menu on
+@key{mouse-3} that changes depending on the context of a mouse-click.
+@file{org-mouse.el} is freely available at @url{http://www.cl.cam.ac.uk/~pz215/files/org-mouse.el}.
+@cindex @file{org-publish.el}
+@item @file{org-publish.el} by David O'Toole
+This package provides facilities for publishing related sets of Org-mode
+files together with linked files like images as a webpages.  It is
+highly configurable and can be used for other publishing purposes as
+well.  As of Org-mode version 4.30, @file{org-publish.el} is part of the
+Org-mode distribution.  It is not yet part of Emacs, however, a delay
+caused by the preparations for the 22.1 release.  In the mean time,
+@file{org-publish.el} can be downloaded from David's site:
+@url{http://dto.freeshell.org/e/org-publish.el}.
+@cindex @file{org-blog.el}
+@item @file{org-blog.el} by David O'Toole
+A blogging plug-in for @file{org-publish.el}.
+@cindex @file{org-blogging.el}
+@item @file{org-blogging.el} by  Bastien Guerry
+Publish Org-mode files as
+blogs. @url{http://www.cognition.ens.fr/~guerry/org-blogging.html}.
+@end table
+
+@node Dynamic blocks,  , Extensions, Extensions and Hacking
+@section Dynamic blocks
+
+Org-mode documents can contain @emph{dynamic blocks}.  These are
+specially marked regions that are updates by some user-written
+function.  A good example for such a block is the clock table inserted
+by the command @kbd{C-c C-x C-r} (@pxref{Clocking work time}).
+
+Dynamic block are enclosed by a BEGIN-END structure that assigns a name
+to the block and can also specify parameters for the function producing
+the content of the block.
+
+@example
+#+BEGIN: myblock :parameter1 value1 :parameter2 value2 .....
+
+#+END:
+@end example
+
+Dynamic blocks are updated with the following commands
+
+@table @kbd
+@kindex C-c C-x C-u
+@item C-c C-x C-u
+Update dynamic block at point.
+@kindex C-u C-c C-x C-u
+@item C-u C-c C-x C-u
+Update all dynamic blocks in the current file.
+@end table
+
+Updating a dynamic block means to remove all the text between BEGIN and
+END, parse the BEGIN line for parameters and then call the specific
+writer function for this block to insert the new content.  For a block
+with name @code{myblock}, the writer function is
+@code{org-dblock-write:myblock} with as only parameter a property list
+with the parameters given in the begin line.  Here is a trivial example
+of a block that keeps track of when the block update function was last
+run:
+
+@example
+#+BEGIN: block-update-time :format "on %m/%d/%Y at %H:%M"
+
+#+END:
+@end example
+
+@noindent
+The corresponding block writer function could look like this:
+
+@lisp
+(defun org-dblock-write:date-and-time (params)
+   (let ((fmt (or (plist-get params :format) "%d. %m. %Y")))
+     (insert "Last block update at: "
+	     (format-time-string fmt (current-time)))))
+@end lisp
+
+If you want to make sure that all dynamic blocks are always up-to-date,
+you could add the function @code{org-update-all-dblocks} to a hook, for
+example @code{before-save-hook}.  @code{org-update-all-dblocks} is
+written in a way that is does nothing in buffers that are not in Org-mode.
+
+
+@node History and Acknowledgments, Index, Extensions and Hacking, Top
+@appendix History and Acknowledgments
 @cindex acknowledgments
+@cindex history
 @cindex thanks
 
-Org-mode was created by @value{AUTHOR}, who still maintains it at the
-Org-mode homepage @uref{http://www.astro.uva.nl/~dominik/Tools/org/}.
-The following people (in alphabetic order) have helped the development
-along with ideas, suggestions and patches.  Many thanks to all of you,
-Org-mode would not be what it is without your input.
+Org-mode was conceived in 2003 out of frustration over the user
+interface of the emacs outline-mode.  The first driver was simply to
+make working with an outline tree possible without having to remember
+more than 10 commands just for hiding and unhiding parts of the outline
+tree, and to allow to restructure a tree easily.  Visibility cycling and
+structure editing were originally implemented in the package
+@file{outline-magic.el}, but quickly moved to the more general
+@file{org.el}.  TODO entries and table support were added relatively
+quickly, and pointed to the two main drivers of Org-mode: Creating a
+new plain text mode with intuitive editing features, and to
+incorporate project planning functionality directly into a notes file.
+
+Since the first release, hundreds of emails either directly to me or
+later on @code{emacs-orgmode@@gnu.org} have been a constant source of
+bug reports, feedback and new ideas.  While I cannot mention everyone, I
+try to keep here a list of the people who had significant
+influence in shaping one or more aspects of Org-mode.  Many thanks to
+all of you.  If I have forgotten someone, please accept my apologies.
 
 @itemize @bullet
 @item
@@ -4607,8 +4539,9 @@ for Remember.
 @i{Pavel Chalmoviansky} influenced the agenda treatment of items with
 specified time.
 @item
-@i{Gregory Chenov} patched support for lisp forms into table
-calculations and improved XEmacs compatibility.
+@i{Gregory Chernov} patched support for lisp forms into table
+calculations and improved XEmacs compatibility, in particular by porting
+@file{nouline.el} to XEmacs.
 @item
 @i{Sacha Chua} suggested to copy some linking code from Planner.
 @item
@@ -4618,6 +4551,8 @@ calculations and improved XEmacs compatibility.
 patched CSS formatting into the HTML exporter, and inspired the agenda.
 @item
 @i{Nic Ferrier} contributed mailcap and XOXO support.
+@item
+@i{Bastien Guerry} provoded extensive feedback.
 @item
 @i{Kai Grossjohann} pointed out key-binding conflicts caused by
 Org-mode.
@@ -4655,6 +4590,10 @@ other things.
 @item
 Linking to VM/BBDB/GNUS was inspired by @i{Tom Shannon}'s
 @file{organizer-mode.el}.
+@c FIXME:
+@c @item
+@c @i{Daniel Sinder} came up with the idea if internal archiving my locking
+@c subtrees.
 @item
 @i{David O'Toole} wrote @file{org-publish.el} and drafted the manual
 chapter about publishing.
@@ -4684,9 +4623,10 @@ work on a tty.
 @i{Piotr Zielinski} wrote @file{org-mouse.el} and showed how to follow
 links with mouse-1.
 @end itemize
- 
-@node Index, Key Index, Miscellaneous, Top
-@chapter Index
+
+
+@node Index, Key Index, History and Acknowledgments, Top
+@unnumbered Index
 
 @printindex cp
 
