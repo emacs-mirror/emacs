@@ -587,6 +587,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
 
 (defcustom custom-guess-name-alist
   '(("-p\\'" boolean)
+    ("-flag\\'" boolean)
     ("-hook\\'" hook)
     ("-face\\'" face)
     ("-file\\'" file)
@@ -1054,6 +1055,8 @@ then prompt for the MODE to customize."
 (defun customize-option (symbol)
   "Customize SYMBOL, which must be a user option variable."
   (interactive (custom-variable-prompt))
+  (unless symbol
+    (error "No variable specified"))
   (let ((basevar (indirect-variable symbol)))
     (custom-buffer-create (list (list basevar 'custom-variable))
 			  (format "*Customize Option: %s*"
@@ -1069,6 +1072,8 @@ then prompt for the MODE to customize."
   "Customize SYMBOL, which must be a user option variable.
 Show the buffer in another window, but don't select it."
   (interactive (custom-variable-prompt))
+  (unless symbol
+    (error "No variable specified"))
   (let ((basevar (indirect-variable symbol)))
     (custom-buffer-create-other-window
      (list (list basevar 'custom-variable))

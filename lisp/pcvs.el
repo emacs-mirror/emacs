@@ -1723,16 +1723,22 @@ Signal an error if there is no backup file."
 	  (message "Retrieving revision %s..." rev)
 	  ;; Discard stderr output to work around the CVS+SSH+libc
 	  ;; problem when stdout and stderr are the same.
-	  (let ((res (apply 'call-process cvs-program nil '(t nil) nil
-			    "-q" "update" "-p"
-			    ;; If `rev' is HEAD, don't pass it at all:
-			    ;; the default behavior is to get the head
-			    ;; of the current branch whereas "-r HEAD"
-			    ;; stupidly gives you the head of the trunk.
-			    (append (unless (equal rev "HEAD") (list "-r" rev))
-				    (list file)))))
+	  (let ((res
+                 (let ((coding-system-for-read 'binary))
+                   (apply 'call-process cvs-program nil '(t nil) nil
+                          "-q" "update" "-p"
+                          ;; If `rev' is HEAD, don't pass it at all:
+                          ;; the default behavior is to get the head
+                          ;; of the current branch whereas "-r HEAD"
+                          ;; stupidly gives you the head of the trunk.
+                          (append (unless (equal rev "HEAD") (list "-r" rev))
+                                  (list file))))))
 	    (when (and res (not (and (equal 0 res))))
 	      (error "Something went wrong retrieving revision %s: %s" rev res))
+            ;; Figure out the encoding used and decode the byte-sequence
+            ;; into a sequence of chars.
+            (decode-coding-inserted-region
+             (point-min) (point-max) file t nil nil t)
 	    (set-buffer-modified-p nil)
 	    (let ((buffer-file-name (expand-file-name file)))
 	      (after-find-file))

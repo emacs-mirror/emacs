@@ -1537,7 +1537,7 @@ If folder NAME already exists and was generated for the same
 SEARCH-REGEXP then it is reused.
 
 Otherwise if the folder NAME was generated from a different
-search then check if NAME<2> can be used. Otherwise try NAME<3>.
+search then check if NAME-2 can be used. Otherwise try NAME-3.
 This is repeated till we find a new folder name.
 
 If the folder returned doesn't exist then it is created."
@@ -1545,7 +1545,7 @@ If the folder returned doesn't exist then it is created."
     (error "The argument should be a valid MH folder name"))
   (let ((chosen-name
          (loop for i from 1
-               for candidate = (if (equal i 1) name (format "%s<%s>" name i))
+               for candidate = (if (equal i 1) name (format "%s-%s" name i))
                when (or (not (mh-folder-exists-p candidate))
                         (equal (mh-index-folder-search-regexp candidate)
                                search-regexp))

@@ -3659,7 +3659,7 @@ lack certain features, such as the Emacs Lisp extension language.
 
 For information on Emacs for Windows 95 and NT, read the FAQ produced by
 @email{voelker@@cs.washington.edu, Geoff Voelker} and currently maintained
-by @email{ramprasad_i82@@yahoo.com, Ramprasad B}, available at
+by @email{ramprasad@@gnu.org, Ramprasad B}, available at
 
 @uref{http://www.gnu.org/software/emacs/windows/ntemacs.html}
 

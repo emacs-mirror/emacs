@@ -63,7 +63,7 @@ static void window_scroll_pixel_based P_ ((Lisp_Object, int, int, int));
 static void window_scroll_line_based P_ ((Lisp_Object, int, int, int));
 static int window_min_size_1 P_ ((struct window *, int));
 static int window_min_size P_ ((struct window *, int, int, int *));
-static void size_window P_ ((Lisp_Object, int, int, int));
+static void size_window P_ ((Lisp_Object, int, int, int, int, int));
 static int freeze_window_start P_ ((struct window *, void *));
 static int window_fixed_size_p P_ ((struct window *, int, int));
 static void enlarge_window P_ ((Lisp_Object, int, int));
@@ -2826,17 +2826,23 @@ shrink_windows (total, size, nchildren, shrinkable,
 
 /* Set WINDOW's height or width to SIZE.  WIDTH_P non-zero means set
    WINDOW's width.  Resize WINDOW's children, if any, so that they
-   keep their proportionate size relative to WINDOW.  Propagate
-   WINDOW's top or left edge position to children.  Delete windows
-   that become too small unless NODELETE_P is non-zero.
+   keep their proportionate size relative to WINDOW.
+
+   If FIRST_ONLY is 1, change only the first of WINDOW's children when
+   they are in series.  If LAST_ONLY is 1, change only the last of
+   WINDOW's children when they are in series.
+
+   Propagate WINDOW's top or left edge position to children.  Delete
+   windows that become too small unless NODELETE_P is non-zero.
 
    If NODELETE_P is 2, that means we do delete windows that are
    too small, even if they were too small before!  */
 
 static void
-size_window (window, size, width_p, nodelete_p)
+size_window (window, size, width_p, nodelete_p, first_only, last_only)
      Lisp_Object window;
      int size, width_p, nodelete_p;
+     int first_only, last_only;
 {
   struct window *w = XWINDOW (window);
   struct window *c;
@@ -2911,6 +2917,7 @@ size_window (window, size, width_p, nodelete_p)
 
   if (!NILP (*sideward))
     {
+      /* We have a chain of parallel siblings whose size should all change.  */
       for (child = *sideward; !NILP (child); child = c->next)
 	{
 	  c = XWINDOW (child);
@@ -2918,8 +2925,44 @@ size_window (window, size, width_p, nodelete_p)
 	    c->left_col = w->left_col;
 	  else
 	    c->top_line = w->top_line;
-	  size_window (child, size, width_p, nodelete_p);
+	  size_window (child, size, width_p, nodelete_p,
+		       first_only, last_only);
 	}
+    }
+  else if (!NILP (*forward) && last_only)
+    {
+      /* Change the last in a series of siblings.  */
+      Lisp_Object last_child;
+      int child_size;
+
+      for (child = *forward; !NILP (child); child = c->next)
+	{
+	  c = XWINDOW (child);
+	  last_child = child;
+	}
+
+      child_size = XINT (width_p ? c->total_cols : c->total_lines);
+      size_window (last_child,
+		   size - old_size + child_size,
+		   width_p, nodelete_p, first_only, last_only);
+    }
+  else if (!NILP (*forward) && first_only)
+    {
+      /* Change the first in a series of siblings.  */
+      int child_size;
+
+      child = *forward;
+      c = XWINDOW (child);
+
+      if (width_p)
+	c->left_col = w->left_col;
+      else
+	c->top_line = w->top_line;
+
+      child_size = XINT (width_p ? c->total_cols : c->total_lines);
+      size_window (child,
+		   size - old_size + child_size,
+		   width_p, nodelete_p, first_only, last_only);
     }
   else if (!NILP (*forward))
     {
@@ -2928,7 +2971,7 @@ size_window (window, size, width_p, nodelete_p)
       int last_pos, first_pos, nchildren, total;
       int *new_sizes = NULL;
 
-      /* Determine the fixed-size portion of the this window, and the
+      /* Determine the fixed-size portion of this window, and the
 	 number of child windows.  */
       fixed_size = nchildren = nfixed = total = 0;
       for (child = *forward; !NILP (child); child = c->next, ++nchildren)
@@ -2991,7 +3034,7 @@ size_window (window, size, width_p, nodelete_p)
 	  /* Set new height.  Note that size_window also propagates
 	     edge positions to children, so it's not a no-op if we
 	     didn't change the child's size.  */
-	  size_window (child, new_size, width_p, 1);
+	  size_window (child, new_size, width_p, 1, first_only, last_only);
 
 	  /* Remember the bottom/right edge position of this child; it
 	     will be used to set the top/left edge of the next child.  */
@@ -3010,7 +3053,7 @@ size_window (window, size, width_p, nodelete_p)
 	    int child_size;
 	    c = XWINDOW (child);
 	    child_size = width_p ? XINT (c->total_cols) : XINT (c->total_lines);
-	    size_window (child, child_size, width_p, 2);
+	    size_window (child, child_size, width_p, 2, first_only, last_only);
 	  }
     }
 }
@@ -3026,7 +3069,7 @@ set_window_height (window, height, nodelete)
      int height;
      int nodelete;
 {
-  size_window (window, height, 0, nodelete);
+  size_window (window, height, 0, nodelete, 0, 0);
 }
 
 
@@ -3041,7 +3084,7 @@ set_window_width (window, width, nodelete)
      int width;
      int nodelete;
 {
-  size_window (window, width, 1, nodelete);
+  size_window (window, width, 1, nodelete, 0, 0);
 }
 
 /* Change window heights in windows rooted in WINDOW by N lines.  */
@@ -4279,14 +4322,16 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
     {
       Lisp_Object first_parallel = Qnil;
 
+      if (NILP (window))
+	{
+	  /* This happens if WINDOW on the previous iteration was
+	     at top level of the window tree.  */
+	  Fset_window_configuration (old_config);
+	  error ("Specified window edge is fixed");
+	}
+
       p = XWINDOW (window);
       parent = p->parent;
-
-      if (NILP (XWINDOW (window)->next))
-	{
-	  Fset_window_configuration (old_config);
-	  error ("No other window following this one");
-	}
 
       /* See if this level has windows in parallel in the specified
 	 direction.  If so, set FIRST_PARALLEL to the first one.  */
@@ -4294,11 +4339,29 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 	{
 	  if (! NILP (parent) && !NILP (XWINDOW (parent)->vchild))
 	    first_parallel = XWINDOW (parent)->vchild;
+	  else if (NILP (parent) && !NILP (p->next))
+	    {
+	      /* Handle the vertical chain of main window and minibuffer
+		 which has no parent.  */
+	      first_parallel = window;
+	      while (! NILP (XWINDOW (first_parallel)->prev))
+		first_parallel = XWINDOW (first_parallel)->prev;
+	    }
 	}
       else
 	{
 	  if (! NILP (parent) && !NILP (XWINDOW (parent)->hchild))
 	    first_parallel = XWINDOW (parent)->hchild;
+	}
+
+      /* If this level's succession is in the desired dimension,
+	 and this window is the last one, and there is no higher level,
+	 its trailing edge is fixed.  */
+      if (NILP (XWINDOW (window)->next) && NILP (first_parallel)
+	  && NILP (parent))
+	{
+	  Fset_window_configuration (old_config);
+	  error ("Specified window edge is fixed");
 	}
 
       /* Don't make this window too small.  */
@@ -4324,7 +4387,7 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 	 we will fail and report an error, above.)  */
       if (NILP (first_parallel))
 	{
-	  if (!NILP (XWINDOW (window)->next))
+	  if (!NILP (p->next))
 	    {
               /* This may happen for the minibuffer.  In that case
                  the window_deletion_count check below does not work.  */
@@ -4337,7 +4400,7 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 	      XSETINT (CURBEG (p->next),
 		       XINT (CURBEG (p->next)) + delta);
 	      size_window (p->next, XINT (CURSIZE (p->next)) - delta,
-			   horiz_flag, 0);
+			   horiz_flag, 0, 1, 0);
 	      break;
 	    }
 	}
@@ -4349,7 +4412,7 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 	     child = XWINDOW (child)->next)
 	  if (! EQ (child, window))
 	    size_window (child, XINT (CURSIZE (child)) + delta,
-			 horiz_flag, 0);
+			 horiz_flag, 0, 0, 1);
 
       window = parent;
     }
@@ -4895,6 +4958,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	    }
 	  else if (noerror)
 	    return;
+	  else if (n < 0)	/* could happen with empty buffers */
+	    Fsignal (Qbeginning_of_buffer, Qnil);
 	  else
 	    Fsignal (Qend_of_buffer, Qnil);
 	}

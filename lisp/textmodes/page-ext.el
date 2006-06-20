@@ -777,7 +777,9 @@ directory."
            (or filename pages-addresses-file-name))))
         (widen)
         (pages-directory t nil nil)
-        (pages-directory-address-mode)
+        ;; by RJC, 2006 Jun 11: including this causes failure; it results in
+        ;;  the message "Buffer in which pages were found is deleted"
+        ;;        (pages-directory-address-mode)
         (setq pages-directory-buffer-narrowing-p
               pages-directory-for-addresses-goto-narrowing-p)
         (or pages-directory-for-addresses-buffer-keep-windows-p

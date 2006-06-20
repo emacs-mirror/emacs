@@ -76,6 +76,9 @@
 ;; 3) M-x gdb doesn't work with "run" command in .gdbinit, use M-x gdba instead.
 ;; 4) M-x gdb doesn't work if the corefile is specified in the command in the
 ;;    minibuffer, use M-x gdba instead (or specify the core in the GUD buffer).
+;; 5) If you wish to call procedures from your program in GDB
+;;    e.g "call myproc ()", "p mysquare (5)" then use level 2 annotations
+;;    "gdb --annotate=2 myprog" to keep source buffer/selected frame fixed.
 
 ;;; Problems with watch expressions, GDB/MI:
 ;; 1) They go out of scope when the inferior is re-run.
@@ -110,6 +113,7 @@ Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS FP)
 where STATUS is nil (unchanged), `changed' or `out-of-scope', FP the frame
 address for root variables.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
+(defvar gud-old-arrow nil)
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
 (defvar gdb-flush-pending-output nil)
@@ -126,6 +130,9 @@ and #define directives otherwise.")
 (defvar gdb-inferior-status nil)
 (defvar gdb-continuation nil)
 (defvar gdb-look-up-stack nil)
+(defvar gdb-frame-begin nil
+  "Non-nil when GDB generates frame-begin annotation.")
+(defvar gdb-printing t)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -426,7 +433,8 @@ With arg, use separate IO iff arg is positive."
 	  (when gud-tooltip-mode
 	    (make-local-variable 'gdb-define-alist)
 	    (gdb-create-define-alist)
-	    (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))))
+	    (add-hook 'after-save-hook 'gdb-create-define-alist nil t))))))
+  (gdb-force-mode-line-update "ready"))
 
 (defun gdb-find-watch-expression ()
   (let* ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list))
@@ -542,7 +550,10 @@ With arg, use separate IO iff arg is positive."
 	gdb-source-window nil
 	gdb-inferior-status nil
 	gdb-continuation nil
-	gdb-look-up-stack nil)
+	gdb-look-up-stack nil
+        gdb-frame-begin nil
+	gdb-printing t
+	gud-old-arrow nil)
 
   (setq gdb-buffer-type 'gdba)
 
@@ -1238,6 +1249,7 @@ happens to be in effect."
   "An annotation handler for `prompt'.
 This sends the next command (if any) to gdb."
   (when gdb-first-prompt
+    (gdb-force-mode-line-update "initializing...")
     (gdb-init-1)
     (setq gdb-first-prompt nil))
   (let ((sink gdb-output-sink))
@@ -1268,6 +1280,7 @@ This sends the next command (if any) to gdb."
 This says that I/O for the subprocess is now the program being debugged,
 not GDB."
   (setq gdb-active-process t)
+  (setq gdb-printing t)
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user)
@@ -1276,6 +1289,7 @@ not GDB."
 	(setq gdb-inferior-status "running")
 	(gdb-force-mode-line-update gdb-inferior-status)
 	(gdb-remove-text-properties)
+	(setq gud-old-arrow gud-overlay-arrow-position)
 	(setq gud-overlay-arrow-position nil)
 	(setq gdb-overlay-arrow-position nil)
 	(if gdb-use-separate-io-buffer
@@ -1319,6 +1333,8 @@ directives."
   (setq gdb-signalled t))
 
 (defun gdb-frame-begin (ignored)
+  (setq gdb-frame-begin t)
+  (setq gdb-printing nil)
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'inferior)
@@ -1329,25 +1345,33 @@ directives."
       (gdb-resync)
       (error "Unexpected frame-begin annotation (%S)" sink)))))
 
+(defcustom gdb-same-frame focus-follows-mouse
+  "Non-nil means pop up GUD buffer in same frame."
+  :group 'gud
+  :type 'boolean
+  :version "22.1")
+
 (defun gdb-stopped (ignored)
   "An annotation handler for `stopped'.
 It is just like `gdb-stopping', except that if we already set the output
 sink to `user' in `gdb-stopping', that is fine."
   (setq gud-running nil)
   (unless (or gud-overlay-arrow-position gud-last-frame)
+    (if (and gdb-frame-begin gdb-printing)
+	(setq gud-overlay-arrow-position gud-old-arrow)
     ;;Pop up GUD buffer to display current frame when it doesn't have source
     ;;information i.e id not compiled with -g as with libc routines generally.
-    (let ((special-display-regexps (append special-display-regexps '(".*")))
-	  (special-display-frame-alist gdb-frame-parameters)
-	  (same-window-regexps nil))
-      (display-buffer gud-comint-buffer))
+    (if gdb-same-frame
+	(gdb-display-gdb-buffer)
+      (gdb-frame-gdb-buffer))
     ;;Try to find source further up stack e.g after signal.
     (setq gdb-look-up-stack
-	  (if (gdb-get-buffer 'gdb-stack-buffer) 'keep
+	  (if (gdb-get-buffer 'gdb-stack-buffer)
+	      'keep
 	    (progn
 	      (gdb-get-buffer-create 'gdb-stack-buffer)
 	      (gdb-invalidate-frames)
-	      'delete))))
+	      'delete)))))
   (unless (member gdb-inferior-status '("exited" "signal"))
     (setq gdb-inferior-status "stopped")
     (gdb-force-mode-line-update gdb-inferior-status))
@@ -2755,7 +2779,9 @@ corresponding to the mode line clicked."
   "Display GUD buffer in a new frame."
   (interactive)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
-	(special-display-frame-alist gdb-frame-parameters)
+	(special-display-frame-alist
+	 (remove '(menu-bar-lines) (remove '(tool-bar-lines)
+					   gdb-frame-parameters)))
 	(same-window-regexps nil))
     (display-buffer gud-comint-buffer)))
 
@@ -3239,7 +3265,8 @@ is set in them."
 	(when gud-tooltip-mode
 	  (make-local-variable 'gdb-define-alist)
 	  (gdb-create-define-alist)
-	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t))))))
+	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))
+  (gdb-force-mode-line-update "ready"))
 
 ; Uses "-var-list-children --all-values".  Needs GDB 6.1 onwards.
 (defun gdb-var-list-children-1 (varnum)

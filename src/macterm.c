@@ -8512,6 +8512,9 @@ static Lisp_Object Qtext_input;
 static Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
 static Lisp_Object Vmac_ts_active_input_overlay;
 extern Lisp_Object Qbefore_string;
+static Lisp_Object Vmac_ts_script_language_on_focus;
+static ScriptLanguageRecord saved_ts_language;
+static Component saved_ts_component;
 #endif
 #endif
 extern int mac_ready_for_apple_events;
@@ -8861,22 +8864,84 @@ is_emacs_window (WindowPtr win)
   return 0;
 }
 
-static void
-do_app_resume ()
-{
 #if USE_MAC_TSM
-  ActivateTSMDocument (tsm_document_id);
+static OSStatus
+mac_tsm_resume ()
+{
+  OSStatus err;
+  ScriptLanguageRecord slrec, *slptr = NULL;
+
+  err = ActivateTSMDocument (tsm_document_id);
+
+  if (err == noErr)
+    {
+      if (EQ (Vmac_ts_script_language_on_focus, Qt))
+	slptr = &saved_ts_language;
+      else if (CONSP (Vmac_ts_script_language_on_focus)
+	       && INTEGERP (XCAR (Vmac_ts_script_language_on_focus))
+	       && INTEGERP (XCDR (Vmac_ts_script_language_on_focus)))
+	{
+	  slrec.fScript = XINT (XCAR (Vmac_ts_script_language_on_focus));
+	  slrec.fLanguage = XINT (XCDR (Vmac_ts_script_language_on_focus));
+	  slptr = &slrec;
+	}
+    }
+
+  if (slptr)
+    {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+      err = SetDefaultInputMethodOfClass (saved_ts_component, slptr,
+					  kKeyboardInputMethodClass);
+#else
+      err = SetDefaultInputMethod (saved_ts_component, slptr);
 #endif
+      if (err == noErr)
+	err = SetTextServiceLanguage (slptr);
+
+      /* Seems to be needed on Mac OS X 10.2.  */
+      if (err == noErr)
+	KeyScript (slptr->fScript | smKeyForceKeyScriptMask);
+    }
+
+  return err;
 }
 
-static void
-do_app_suspend ()
+static OSStatus
+mac_tsm_suspend ()
 {
-#if USE_MAC_TSM
-  DeactivateTSMDocument (tsm_document_id);
-#endif
-}
+  OSStatus err;
+  ScriptLanguageRecord slrec, *slptr = NULL;
 
+  if (EQ (Vmac_ts_script_language_on_focus, Qt))
+    {
+      err = GetTextServiceLanguage (&saved_ts_language);
+      if (err == noErr)
+	slptr = &saved_ts_language;
+    }
+  else if (CONSP (Vmac_ts_script_language_on_focus)
+	   && INTEGERP (XCAR (Vmac_ts_script_language_on_focus))
+	   && INTEGERP (XCDR (Vmac_ts_script_language_on_focus)))
+    {
+      slrec.fScript = XINT (XCAR (Vmac_ts_script_language_on_focus));
+      slrec.fLanguage = XINT (XCDR (Vmac_ts_script_language_on_focus));
+      slptr = &slrec;
+    }
+
+  if (slptr)
+    {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+      GetDefaultInputMethodOfClass (&saved_ts_component, slptr,
+				    kKeyboardInputMethodClass);
+#else
+      GetDefaultInputMethod (&saved_ts_component, slptr);
+#endif
+    }
+
+  err = DeactivateTSMDocument (tsm_document_id);
+
+  return err;
+}
+#endif
 
 static void
 do_apple_menu (SInt16 menu_item)
@@ -9330,12 +9395,12 @@ mac_handle_window_event (next_handler, event, data)
 #if USE_MAC_TSM
     case kEventWindowFocusAcquired:
       result = CallNextEventHandler (next_handler, event);
-      err = ActivateTSMDocument (tsm_document_id);
+      err = mac_tsm_resume ();
       return err == noErr ? noErr : result;
 
     case kEventWindowFocusRelinquish:
       result = CallNextEventHandler (next_handler, event);
-      err = DeactivateTSMDocument (tsm_document_id);
+      err = mac_tsm_suspend ();
       return err == noErr ? noErr : result;
 #endif
     }
@@ -10394,10 +10459,12 @@ XTread_socket (sd, expected, hold_quit)
 	  switch ((er.message >> 24) & 0x000000FF)
 	    {
 	    case suspendResumeMessage:
-	      if ((er.message & resumeFlag) == 1)
-		do_app_resume ();
+#if USE_MAC_TSM
+	      if (er.message & resumeFlag)
+		mac_tsm_resume ();
 	      else
-		do_app_suspend ();
+		mac_tsm_suspend ();
+#endif
 	      break;
 
 	    case mouseMovedMessage:
@@ -10960,7 +11027,6 @@ void
 mac_initialize_display_info ()
 {
   struct mac_display_info *dpyinfo = &one_mac_display_info;
-  GDHandle main_device_handle;
 
   bzero (dpyinfo, sizeof (*dpyinfo));
 
@@ -10976,37 +11042,29 @@ mac_initialize_display_info ()
   strcpy (dpyinfo->mac_id_name, "Mac Display");
 #endif
 
-  main_device_handle = LMGetMainDevice();
-
   dpyinfo->reference_count = 0;
   dpyinfo->resx = 72.0;
   dpyinfo->resy = 72.0;
-  dpyinfo->color_p = TestDeviceAttribute (main_device_handle, gdDevType);
 #ifdef MAC_OSX
   /* HasDepth returns true if it is possible to have a 32 bit display,
-     but this may not be what is actually used.  Mac OSX can do better.
-     CGMainDisplayID is only available on OSX 10.2 and higher, but the
-     header for CGGetActiveDisplayList says that the first display returned
-     is the active one, so we use that.  */
-  {
-    CGDirectDisplayID disp_id[1];
-    CGDisplayCount disp_count;
-    CGDisplayErr error_code;
-
-    error_code = CGGetActiveDisplayList (1, disp_id, &disp_count);
-    if (error_code != 0)
-      error ("No display found, CGGetActiveDisplayList error %d", error_code);
-
-    dpyinfo->n_planes = CGDisplayBitsPerPixel (disp_id[0]);
-  }
+     but this may not be what is actually used.  Mac OSX can do better.  */
+  dpyinfo->color_p = 1;
+  dpyinfo->n_planes = CGDisplayBitsPerPixel (kCGDirectMainDisplay);
+  dpyinfo->height = CGDisplayPixelsHigh (kCGDirectMainDisplay);
+  dpyinfo->width = CGDisplayPixelsWide (kCGDirectMainDisplay);
 #else
-  for (dpyinfo->n_planes = 32; dpyinfo->n_planes > 0; dpyinfo->n_planes >>= 1)
-    if (HasDepth (main_device_handle, dpyinfo->n_planes,
-		  gdDevType, dpyinfo->color_p))
-      break;
+  {
+    GDHandle main_device_handle = LMGetMainDevice();
+
+    dpyinfo->color_p = TestDeviceAttribute (main_device_handle, gdDevType);
+    for (dpyinfo->n_planes = 32; dpyinfo->n_planes > 0; dpyinfo->n_planes >>= 1)
+      if (HasDepth (main_device_handle, dpyinfo->n_planes,
+		    gdDevType, dpyinfo->color_p))
+	break;
+    dpyinfo->height = (**main_device_handle).gdRect.bottom;
+    dpyinfo->width = (**main_device_handle).gdRect.right;
+  }
 #endif
-  dpyinfo->height = (**main_device_handle).gdRect.bottom;
-  dpyinfo->width = (**main_device_handle).gdRect.right;
   dpyinfo->grabbed = 0;
   dpyinfo->root_window = NULL;
   dpyinfo->image_cache = make_image_cache ();
@@ -11557,6 +11615,15 @@ order.  */);
   DEFVAR_LISP ("mac-ts-active-input-overlay", &Vmac_ts_active_input_overlay,
     doc: /* Overlay used to display Mac TSM active input area.  */);
   Vmac_ts_active_input_overlay = Qnil;
+
+  DEFVAR_LISP ("mac-ts-script-language-on-focus", &Vmac_ts_script_language_on_focus,
+    doc: /* *How to change Mac TSM script/language when a frame gets focus.
+If the value is t, the input script and language are restored to those
+used in the last focus frame.  If the value is a pair of integers, the
+input script and language codes, which are defined in the Script
+Manager, are set to its car and cdr parts, respectively.  Otherwise,
+Emacs doesn't set them and thus follows the system default behavior.  */);
+  Vmac_ts_script_language_on_focus = Qnil;
 #endif
 }
 
