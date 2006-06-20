@@ -1,3 +1,18 @@
+2006-06-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (News Headers): Update message-syntax-checks section.
+
+2006-06-19  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Advanced): mention C-q, especially with ?.
+
+2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Publishing links): Document the `:link-validation-function'
+	property.
+	(Extensions and Hacking): New chapter, includes some sections of the
+	"Miscellaneous" chapter.
+
 2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macos.texi (Mac Input): Add description of mac-function-modifier.
@@ -10,6 +25,11 @@
 2006-06-10  Richard Stallman  <rms@gnu.org>
 
 	* mule.texi (Recognize Coding): Clarify previous change.
+
+2006-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (Recognize Coding): Describe the convention of "CODING!"
+	notation.
 
 2006-06-07  Kevin Ryde  <user42@zip.com.au>
 

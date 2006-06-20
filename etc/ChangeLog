@@ -1,3 +1,9 @@
+2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Clocking Time}): Add new clocking
+	commands.
+	(section{Structure Editing}): Add global archiving command.
+
 2006-06-14  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* yow.lines: Delete existing data; add a new entry.

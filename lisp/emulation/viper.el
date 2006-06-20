@@ -534,6 +534,10 @@ If Viper is enabled, turn it off.  Otherwise, turn it on."
 (defun viper-mode ()
   "Turn on Viper emulation of Vi in Emacs. See Info node `(viper)Viper'."
   (interactive)
+  (if (null viper-vi-state-cursor-color)
+      (modify-frame-parameters
+	(selected-frame)
+	(list (cons 'viper-vi-state-cursor-color (viper-get-cursor-color)))))
   (if (not noninteractive)
       (progn
 	;; if the user requested viper-mode explicitly
@@ -545,8 +549,6 @@ If Viper is enabled, turn it off.  Otherwise, turn it on."
 	(if viper-first-time ; Important check.  Prevents mix-up of startup
 	    (progn	     ; and expert-level msgs when viper-mode recurses
 	      (setq viper-first-time nil)
-	      (setq viper-vi-state-cursor-color
-		    (viper-get-cursor-color))
 	      (if (not viper-inhibit-startup-message)
 		  (save-window-excursion
 		    (setq viper-inhibit-startup-message t)

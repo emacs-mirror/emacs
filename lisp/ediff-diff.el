@@ -65,10 +65,11 @@ Must produce output compatible with Unix's diff3 program."
 ;; The following functions needed for setting diff/diff3 options
 ;; test if diff supports the --binary option
 (defsubst ediff-test-utility (diff-util option &optional files)
-  (condition-case ()
+  (condition-case nil
       (eq 0 (apply 'call-process
 		   (append (list diff-util nil nil nil option) files)))
-    (file-error nil)))
+    (error (format "Cannot execute program %S." diff-util)))
+  )
 
 (defun ediff-diff-mandatory-option (diff-util)
   (let ((file (if (boundp 'null-device) null-device "/dev/null")))
@@ -77,12 +78,16 @@ Must produce output compatible with Unix's diff3 program."
 	   ((and (string= diff-util ediff-diff-program)
 		 (ediff-test-utility
 		  ediff-diff-program "--binary" (list file file)))
-	    "--binary")
+	    "--binary ")
 	   ((and (string= diff-util ediff-diff3-program)
 		 (ediff-test-utility
 		  ediff-diff3-program "--binary" (list file file file)))
-	    "--binary")
+	    "--binary ")
 	   (t ""))))
+
+
+;; must be before ediff-reset-diff-options to avoid compiler errors
+(fset 'ediff-set-actual-diff-options '(lambda () nil))
 
 ;; make sure that mandatory options are added even if the user changes
 ;; ediff-diff-options or ediff-diff3-options in the customization widget
@@ -91,12 +96,9 @@ Must produce output compatible with Unix's diff3 program."
 	  (if (eq symb 'ediff-diff-options)
 	      ediff-diff-program
 	    ediff-diff3-program))
-	 (mandatory-option (ediff-diff-mandatory-option diff-program))
-	 (spacer (if (string-equal mandatory-option "") "" " ")))
-    (set symb
-	 (if (string-match mandatory-option val)
-	     val
-	   (concat mandatory-option spacer val)))
+	 (mandatory-option (ediff-diff-mandatory-option diff-program)))
+    (set symb (concat mandatory-option val))
+    (ediff-set-actual-diff-options)
     ))
 
 
@@ -155,7 +157,7 @@ GNU diff3 doesn't have such an option."
   :group 'ediff-diff)
 
 ;; the actual options used in comparison
-(ediff-defvar-local ediff-actual-diff-options "" "")
+(ediff-defvar-local ediff-actual-diff-options ediff-diff-options "")
 
 (defcustom ediff-custom-diff-program ediff-diff-program
   "*Program to use for generating custom diff output for saving it in a file.
@@ -178,7 +180,7 @@ This output is not used by Ediff internally."
   :group 'ediff-diff)
 
 ;; the actual options used in comparison
-(ediff-defvar-local ediff-actual-diff3-options "" "")
+(ediff-defvar-local ediff-actual-diff3-options ediff-diff3-options "")
 
 (defcustom ediff-diff3-ok-lines-regexp
   "^\\([1-3]:\\|====\\|  \\|.*Warning *:\\|.*No newline\\|.*missing newline\\|^\C-m$\\)"
@@ -1272,7 +1274,9 @@ delimiter regions"))
 		;; Similarly for Windows-*
 		;; In DOS, must synchronize because DOS doesn't have
 		;; asynchronous processes.
-		(apply 'call-process program nil buffer nil args)
+		(condition-case nil
+		    (apply 'call-process program nil buffer nil args)
+		  (error (format "Cannot execute program %S." program)))
 	      ;; On other systems, do it asynchronously.
 	      (setq proc (get-buffer-process buffer))
 	      (if proc (kill-process proc))
@@ -1328,7 +1332,8 @@ delimiter regions"))
 Used for splitting difference regions into individual words.")
 (make-variable-buffer-local 'ediff-forward-word-function)
 
-(defvar ediff-whitespace " \n\t\f"
+;; \240 is unicode symbol for nonbreakable whitespace
+(defvar ediff-whitespace " \n\t\f\r\240"
   "*Characters constituting white space.
 These characters are ignored when differing regions are split into words.")
 (make-variable-buffer-local 'ediff-whitespace)
@@ -1442,11 +1447,13 @@ arguments to `skip-chars-forward'."
   "Return t if files F1 and F2 have identical contents."
   (if (and (not (file-directory-p f1))
            (not (file-directory-p f2)))
-      (let ((res
-	     (apply 'call-process ediff-cmp-program nil nil nil
-		    (append ediff-cmp-options (list f1 f2)))))
-	(and (numberp res) (eq res 0))))
-  )
+      (condition-case nil
+	  (let ((res
+		 (apply 'call-process ediff-cmp-program nil nil nil
+			(append ediff-cmp-options (list f1 f2)))))
+	    (and (numberp res) (eq res 0)))
+	(error (format "Cannot execute program %S." ediff-cmp-program)))
+    ))
 
 
 (defun ediff-same-contents (d1 d2 &optional filter-re)
@@ -1521,21 +1528,30 @@ affects only files whose names match the expression."
       (setq file-list-list (cdr file-list-list)))
     (reverse result)))
 
+
+(defun ediff-set-actual-diff-options ()
+  (if ediff-ignore-case
+      (setq ediff-actual-diff-options 
+	    (concat ediff-diff-options " " ediff-ignore-case-option)
+	    ediff-actual-diff3-options
+	    (concat ediff-diff3-options " " ediff-ignore-case-option3))
+    (setq ediff-actual-diff-options ediff-diff-options
+	  ediff-actual-diff3-options ediff-diff3-options)
+    )
+  (setq-default ediff-actual-diff-options ediff-actual-diff-options
+		ediff-actual-diff3-options ediff-actual-diff3-options)
+  )
+
+
 ;; Ignore case handling - some ideas from drew.adams@@oracle.com
 (defun ediff-toggle-ignore-case ()
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (setq ediff-ignore-case (not ediff-ignore-case))
-  (cond (ediff-ignore-case
-	 (setq ediff-actual-diff-options
-	       (concat ediff-diff-options " " ediff-ignore-case-option)
-	       ediff-actual-diff3-options
-	       (concat ediff-diff3-options " " ediff-ignore-case-option3))
-	 (message "Ignoring regions that differ only in case"))
-	(t
-	 (setq ediff-actual-diff-options ediff-diff-options
-	       ediff-actual-diff3-options ediff-diff3-options)
-	 (message "Ignoring case differences turned OFF")))
+  (ediff-set-actual-diff-options)
+  (if ediff-ignore-case
+      (message "Ignoring regions that differ only in case")
+    (message "Ignoring case differences turned OFF"))
   (cond (ediff-merge-job
 	 (message "Ignoring letter case is too dangerous in merge jobs"))
 	((and ediff-diff3-job (string= ediff-ignore-case-option3 ""))
