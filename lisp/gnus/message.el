@@ -194,7 +194,7 @@ Checks include `approved', `continuation-headers', `control-chars',
 `empty', `existing-newsgroups', `from', `illegible-text',
 `invisible-text', `long-header-lines', `long-lines', `message-id',
 `multiple-headers', `new-text', `newsgroups', `quoting-style',
-`repeated-newsgroups', `reply-to', `sendsys', `shoot',
+`repeated-newsgroups', `reply-to', `sender', `sendsys', `shoot',
 `shorten-followup-to', `signature', `size', `subject', `subject-cmsg'
 and `valid-newsgroups'."
   :group 'message-news

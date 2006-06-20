@@ -1,3 +1,7 @@
+2006-06-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (News Headers): Update message-syntax-checks section.
+
 2006-06-19  Karl Berry  <karl@gnu.org>
 
 	* info.texi (Advanced): mention C-q, especially with ?.
