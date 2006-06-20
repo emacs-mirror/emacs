@@ -3092,7 +3092,7 @@ x_set_font (f, arg, oldval)
 	    {
 	      Lisp_Object ascii_font = fontset_ascii (fontset);
 
-	      font_object = font_open_by_name (f, SDATA (arg));
+	      font_object = font_open_by_name (f, SDATA (ascii_font));
 	    }
 	}
       else
