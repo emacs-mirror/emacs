@@ -3529,7 +3529,7 @@ Outline mode sets this."
 		    (if (and track-eol (eolp)
 			     ;; Don't count beg of empty line as end of line
 			     ;; unless we just did explicit end-of-line.
-			     (or (not (bolp)) (eq last-command 'end-of-line)))
+			     (or (not (bolp)) (eq last-command 'move-end-of-line)))
 			9999
 		      (current-column))))
 
