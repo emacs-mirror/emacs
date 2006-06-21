@@ -862,7 +862,8 @@ font_parse_xlfd (name, font, merge)
 	{
 	  if (! NILP (f[XLFD_ENCODING_INDEX]))
 	    f[XLFD_REGISTRY_INDEX]
-	      = Fintern (concat2 (SYMBOL_NAME (f[XLFD_REGISTRY_INDEX]),
+	      = Fintern (concat3 (SYMBOL_NAME (f[XLFD_REGISTRY_INDEX]),
+				  build_string ("-"),
 				  SYMBOL_NAME (f[XLFD_ENCODING_INDEX])), Qnil);
 	}
     }
@@ -2240,20 +2241,39 @@ font_close_object (f, font_object)
 }
 
 int
-font_has_char (f, font_entity, c)
+font_has_char (f, font, c)
      FRAME_PTR f;
-     Lisp_Object font_entity;
+     Lisp_Object font;
      int c;
 {
-  Lisp_Object type = AREF (font_entity, FONT_TYPE_INDEX);
-  struct font_driver_list *driver_list;
+  struct font *fontp;
 
-  for (driver_list = f->font_driver_list;
-       driver_list && ! EQ (driver_list->driver->type, type);
-       driver_list = driver_list->next);
-  if (! driver_list)
-    return -1;
-  return driver_list->driver->has_char (font_entity, c);
+  if (FONT_ENTITY_P (font))
+    {
+      Lisp_Object type = AREF (font, FONT_TYPE_INDEX);
+      struct font_driver_list *driver_list;
+
+      for (driver_list = f->font_driver_list;
+	   driver_list && ! EQ (driver_list->driver->type, type);
+	   driver_list = driver_list->next);
+      if (! driver_list)
+	return 0;
+      if (! driver_list->driver->has_char)
+	return -1;
+      return driver_list->driver->has_char (font, c);
+    }
+
+  xassert (FONT_OBJECT_P (font));
+  fontp = XSAVE_VALUE (font)->pointer;
+
+  if (fontp->driver->has_char)
+    {
+      int result = fontp->driver->has_char (fontp->entity, c);
+
+      if (result >= 0)
+	return result;
+    }
+  return (fontp->driver->encode_char (fontp, c) != FONT_INVALID_CODE);
 }
 
 unsigned
@@ -2328,11 +2348,26 @@ font_find_for_lface (f, lface, spec)
   if (NILP (AREF (scratch_font_spec, FONT_REGISTRY_INDEX)))
     ASET (scratch_font_spec, FONT_REGISTRY_INDEX, intern ("iso8859-1"));
 
+  if (NILP (AREF (scratch_font_spec, FONT_SIZE_INDEX))
+      && ! NILP (lface[LFACE_HEIGHT_INDEX]))
+    {
+      double pt = XINT (lface[LFACE_HEIGHT_INDEX]);
+      int pixel_size = POINT_TO_PIXEL (pt / 10, f->resy);
+
+      ASET (scratch_font_spec, FONT_SIZE_INDEX, make_number (pixel_size));
+    }
+
   XSETFRAME (frame, f);
   entities = font_list_entities (frame, scratch_font_spec);
   while (ASIZE (entities) == 0)
     {
-      if (! NILP (AREF (scratch_font_spec, FONT_FOUNDRY_INDEX))
+      if (! NILP (AREF (scratch_font_spec, FONT_SIZE_INDEX))
+	  && (NILP (spec) || NILP (AREF (spec, FONT_SIZE_INDEX))))
+	{
+	  ASET (scratch_font_spec, FONT_SIZE_INDEX, Qnil);
+	  entities = font_list_entities (frame, scratch_font_spec);
+	}
+      else if (! NILP (AREF (scratch_font_spec, FONT_FOUNDRY_INDEX))
 	  && (NILP (spec) || NILP (AREF (spec, FONT_FOUNDRY_INDEX))))
 	{
 	  ASET (scratch_font_spec, FONT_FOUNDRY_INDEX, Qnil);
