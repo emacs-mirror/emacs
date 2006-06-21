@@ -1,3 +1,9 @@
+2006-06-20  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.0.1.
+
+	* mh-e.el (Version, mh-version): Update for release 8.0.1.
+
 2006-06-15  Bill Wohler  <wohler@newt.com>
 
 	* mh-search.el (mh-index-new-folder): Use -2 suffix instead of <2>
