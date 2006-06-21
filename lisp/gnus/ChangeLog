@@ -1,3 +1,7 @@
+2006-06-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-parse-string): Allow `*'s in parameter values.
+
 2006-06-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-syntax-checks): Doc fix.
