@@ -231,6 +231,7 @@
       ;; These keys are available in xterm starting from version 214
       ;; if the modifyOtherKeys resource is set.
       (define-key map "\e[27;5;9~"  [(control ?\t)])
+      (define-key map "\e[27;5;13~" [C-return])
       (define-key map "\e[27;5;44~" [(control ?\,)])
       (define-key map "\e[27;5;46~" [(control ?\.)])
       (define-key map "\e[27;5;47~" [(control ?\/)])
