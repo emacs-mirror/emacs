@@ -3029,6 +3029,7 @@ handle_stop (it)
 		return;
 	      if (!get_overlay_strings_1 (it, 0, 0))
 		return;
+	      it->ignore_overlay_strings_at_pos_p = 1;
 	      it->string_from_display_prop_p = 0;
 	      handle_overlay_change_p = 0;
 	      handled = HANDLED_RECOMPUTE_PROPS;
@@ -4924,7 +4925,8 @@ push_it (it)
       p->u.stretch.object = it->object;
       break;
     }
-  p->pos = it->current;
+  p->position = it->position;
+  p->current = it->current;
   p->end_charpos = it->end_charpos;
   p->string_nchars = it->string_nchars;
   p->area = it->area;
@@ -4955,7 +4957,8 @@ pop_it (it)
   p = it->stack + it->sp;
   it->stop_charpos = p->stop_charpos;
   it->face_id = p->face_id;
-  it->current = p->pos;
+  it->current = p->current;
+  it->position = p->position;
   it->string = p->string;
   if (NILP (it->string))
     SET_TEXT_POS (it->current.string_pos, -1, -1);
@@ -5113,6 +5116,7 @@ back_to_previous_visible_line_start (it)
   while (IT_CHARPOS (*it) > BEGV)
     {
       back_to_previous_line_start (it);
+
       if (IT_CHARPOS (*it) <= BEGV)
 	break;
 
@@ -11813,25 +11817,25 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	 glyph on point by scanning from string_start again.  */
       Lisp_Object limit;
       Lisp_Object string;
+      struct glyph *stop = glyph;
       int pos;
 
       limit = make_number (pt_old + 1);
-      end = glyph;
       glyph = string_start;
       x = string_start_x;
       string = glyph->object;
       pos = string_buffer_position (w, string, string_before_pos);
       /* If STRING is from overlay, LAST_POS == 0.  We skip such glyphs
 	 because we always put cursor after overlay strings.  */
-      while (pos == 0 && glyph < end)
+      while (pos == 0 && glyph < stop)
 	{
 	  string = glyph->object;
-	  SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
-	  if (glyph < end)
+	  SKIP_GLYPHS (glyph, stop, x, EQ (glyph->object, string));
+	  if (glyph < stop)
 	    pos = string_buffer_position (w, glyph->object, string_before_pos);
 	}
 
-      while (glyph < end)
+      while (glyph < stop)
 	{
 	  pos = XINT (Fnext_single_char_property_change
 		      (make_number (pos), Qdisplay, Qnil, limit));
@@ -11839,13 +11843,13 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	    break;
 	  /* Skip glyphs from the same string.  */
 	  string = glyph->object;
-	  SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
+	  SKIP_GLYPHS (glyph, stop, x, EQ (glyph->object, string));
 	  /* Skip glyphs from an overlay.  */
-	  while (glyph < end
+	  while (glyph < stop
 		 && ! string_buffer_position (w, glyph->object, pos))
 	    {
 	      string = glyph->object;
-	      SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
+	      SKIP_GLYPHS (glyph, stop, x, EQ (glyph->object, string));
 	    }
 	}
 
