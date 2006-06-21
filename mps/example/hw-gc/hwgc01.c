@@ -43,10 +43,19 @@ static void reportPoolmv(mps_pool_t Pool)
   size_t cbPoolFree = 0;
   cbPoolSize = mps_mv_size(Pool);
   cbPoolFree = mps_mv_free_size(Pool);
-  printf("  Pool has:\n    %lu bytes in use;\n    %lu bytes free.\n",
+  printf("  Pool is:\n    %lu bytes;\n    %lu bytes free; => %lu bytes in use;.\n",
     (unsigned long)cbPoolSize,
-    (unsigned long)cbPoolFree
+    (unsigned long)cbPoolFree,
+    (unsigned long)cbPoolSize-cbPoolFree
   );
+}
+
+static void exit_if(mps_res_t res, char *comment)
+{
+  if (res != MPS_RES_OK) {
+    printf("%s: failed with res %d.\n", comment, res);
+    exit(2);
+  }
 }
 
 int main(void)
@@ -62,10 +71,7 @@ int main(void)
     /* Create arena */
     
     res = mps_arena_create(&ArenaDemo, mps_arena_class_vm(), cbArena);
-    if (res != MPS_RES_OK) {
-      printf("mps_arena_create: failed with res %d.\n", res);
-      exit(2);
-    }
+    exit_if(res, "mps_arena_create");
     
     report("Created arena", ArenaDemo, NULL);
   }
@@ -78,10 +84,7 @@ int main(void)
     size_t cbPoolMax = 64 * 1024;
     
     res = mps_pool_create(&PoolDemo, ArenaDemo, mps_class_mv(), cbPoolExtend, cbObjectAvg, cbPoolMax);
-    if (res != MPS_RES_OK) {
-      printf("mps_pool_create: failed with res %d.\n", res);
-      exit(2);
-    }
+    exit_if(res, "mps_pool_create");
     
     report("Created pool", ArenaDemo, PoolDemo);
   }
@@ -90,10 +93,7 @@ int main(void)
     /* Create ap */
     
     res = mps_ap_create(&ApDemo, PoolDemo);
-    if (res != MPS_RES_OK) {
-      printf("mps_ap_create: failed with res %d.\n", res);
-      exit(2);
-    }
+    exit_if(res, "mps_ap_create");
     
     report("Created ap", ArenaDemo, PoolDemo);
   }
@@ -106,10 +106,7 @@ int main(void)
 
     do {
       res = mps_reserve(&p, ApDemo, cbBuffer);
-      if (res != MPS_RES_OK) {
-        printf("mps_reserve: failed with res %d.\n", res);
-        exit(2);
-      }
+      exit_if(res, "mps_reserve");
       /* Initialise my object here -- ie. make it valid. */
       /* (In this example, memory is manually managed, so even
           uninitialized memory is already a 'valid object'.  So 
@@ -128,12 +125,27 @@ int main(void)
       pbBuffer[6] = ' ';
       printf(pbBuffer);
     }
+    
+    mps_free(PoolDemo, p, cbBuffer);
+    
+    report("Freed 256 bytes", ArenaDemo, PoolDemo);
+  }
+  
+  {
+    /* Clear up */
+    
+    mps_ap_destroy(ApDemo);
+    report("Destroyed ap", ArenaDemo, PoolDemo);
+    mps_pool_destroy(PoolDemo);
+    report("Destroyed pool", ArenaDemo, NULL);
+    mps_arena_destroy(ArenaDemo);
   }
 
   printf(
     "Success: The hello-world example code successfully allocated\n"
     "some memory using an allocation point with\n"
-    "mps_reserve()..mps_commit(), in an MV pool, in a VM arena.\n"
+    "mps_reserve()..mps_commit(), in an MV pool, in a VM arena,\n"
+    "then freed the memory, and destroyed the ap, pool, and arena.\n"
   );
   return 0;
 }
