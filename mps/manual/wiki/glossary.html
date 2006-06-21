@@ -42,20 +42,67 @@
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
+<h2>Scope of terms</h2>
+
+<p>Terms are marked as being applicable in the following scopes:</p>
+<dl>
+  <dt> (general) </dt>
+  <dd>term in general use in the memory-management community;
+    see 
+    <a href="http://www.memorymanagement.org/glossary/">The Memory Management Glossary</a>.</dd>
+  
+  <dt> (mps.h) </dt>
+  <dd>term used in the published MPS interface or 
+    published documentation, for client programs to use</dd>
+  
+  <dt> (internal) </dt>
+  <dd>term used in internal MPS code or design documentation 
+    (not for use in client programs)</dd>
+</dl>
+
+<p>Note: often an mps.h term has a related (but not exactly 
+  corresponding) internal term.  The distinction can be critical.</p>
+    
+<h2>Terms</h2>  
+
+<p>Client &asymp; Mutator:</p>
+<dl>
+  <dt> Client (mps.h) </dt>
+  <dd>The program that uses the MPS via the mps.h interface.</dd>
+  
+  <dt> Mutator (internal) </dt>
+  <dd>The computational process that mutates (edits) the graph
+    of references</dd>
+</dl>
+
+<p>Allocation Point &asymp; Buffer:</p>
+<dl>
+  <dt> Allocation Point (mps.h) </dt>
+  <dd>MPS protocol that client uses to allocate memory with 
+    low overhead, and low thread-synchronization cost.</dd>
+  
+  <dt> Buffer (internal) </dt>
+  <dd>A piece of memory held by the MPS, often used to provide 
+    memory for an allocation point.</dd>
+</dl>
+
+<p>Other terms:</p>
 <dl>
   <dt> Format (mps.h) </dt>
-    <dd> Collection of client-implemented Format Methods, 
-         which MPS uses to ask questions about objects.
-         See <a href="gc.html">GC</a>.
-    </dd>
+  <dd>A collection of client-implemented Format Methods, 
+    which MPS uses to ask questions about objects.
+    See <a href="gc.html">GC</a>.</dd>
+
   <dt> Attr (internal) </dt>
-    <dd> See <a href="../../design/type/#attr">design/type/#attr</a> </dd>
+  <dd>A bitset of pool or pool class attributes.
+    See <a href="../../design/type/#attr">design/type/#attr</a></dd>
 </dl>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
   2006-06-06  RHSK  Created.
+  2006-06-21  RHSK  Scope of terms; client/mutator, ap/buffer.
 </pre>
 
 
