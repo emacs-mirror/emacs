@@ -1,3 +1,7 @@
+2006-06-21  Miles Bader  <miles@gnu.org>
+
+	* play/cookie1.el (cookie): Work properly when there's only one entry.
+
 2006-06-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-exited): Ensure overlay arrow gets killed.
