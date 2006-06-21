@@ -1,3 +1,14 @@
+2006-06-21  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct it): Add `position' member to iterator stack.
+	Rename `pos' member to `current'.  Rearrange and add comments.
+
+	* xdisp.c (handle_stop): Set it->ignore_overlay_strings_at_pos_p
+	if  we get any overlays.
+	(set_cursor_from_row): Don't clobber `end' if we rescan from
+	start_string.
+	(push_it, pop_it): Save it->position.
+
 2006-06-19  Richard Stallman  <rms@gnu.org>
 
 	* window.c (size_window): New arg FIRST_ONLY.  All callers changed.

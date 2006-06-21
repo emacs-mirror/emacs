@@ -1,3 +1,8 @@
+2006-06-21  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-1): Check for move-end-of-line instead of
+	end-of-line when setting temporary-goal-column.
+
 2006-06-21  Miles Bader  <miles@gnu.org>
 
 	* play/cookie1.el (cookie): Work properly when there's only one entry.
