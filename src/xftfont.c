@@ -362,8 +362,15 @@ xftfont_prepare_face (f, face)
      FRAME_PTR f;
      struct face *face;
 {
-  struct xftface_info *xftface_info = malloc (sizeof (struct xftface_info));
+  struct xftface_info *xftface_info;
 
+  if (face != face->ascii_face)
+    {
+      face->extra = face->ascii_face->extra;
+      return 0;
+    }
+
+  xftface_info = malloc (sizeof (struct xftface_info));
   if (! xftface_info)
     return -1;
 
@@ -385,16 +392,18 @@ xftfont_done_face (f, face)
      FRAME_PTR f;
      struct face *face;
 {
-  struct xftface_info *xftface_info = (struct xftface_info *) face->extra;
+  struct xftface_info *xftface_info;
+  
+  if (face != face->ascii_face
+      || ! face->extra)
+    return;
 
-  if (xftface_info)
-    {
-      BLOCK_INPUT;
-      XftDrawDestroy (xftface_info->xft_draw);
-      UNBLOCK_INPUT;
-      free (xftface_info);
-      face->extra = NULL;
-    }
+  xftface_info = (struct xftface_info *) face->extra;
+  BLOCK_INPUT;
+  XftDrawDestroy (xftface_info->xft_draw);
+  UNBLOCK_INPUT;
+  free (xftface_info);
+  face->extra = NULL;
 }
 
 static unsigned
