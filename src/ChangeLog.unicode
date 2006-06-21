@@ -1,3 +1,13 @@
+2006-06-21  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_parse_xlfd): Fix generating of CHARSET_REGISTRY field.
+	(font_has_char): Accept font-object too.
+	(font_find_for_lface): Try at first with a size specified in face.
+
+	* xftfont.c (xftfont_prepare_face): Make non-ascii face share
+	face->extra with ascii face.
+	(xftfont_done_face): Don't free face->extra of non-ascii face.
+
 2006-06-20  Kenichi Handa  <handa@m17n.org>
 
 	* frame.c (x_set_font) [USE_FONT_BACKEND]: Fix argument to
