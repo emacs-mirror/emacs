@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki</title>
+  <title>MPS Wiki: Glossary of MPS Terminology</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -23,68 +23,88 @@
 / <a href="/project/mps/">Memory Pool System</a>
 / <a href="/project/mps/master/">Master Product Sources</a>
 / <a href="/project/mps/master/manual/">Manuals</a>
+/ <a href="/project/mps/master/manual/wiki/">Wiki</a>
 </p>
 
 <p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
 
 <hr />
 
-<h1>MPS Wiki</h1>
+<h1>MPS Wiki: Glossary of MPS Terminology</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2006-05-25
+2006-06-06
 </address>
 
 </div>
 
+<p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<h2><a id="section-1" name="section-1">1. Introduction</a></h2>
+<h2>Scope of terms</h2>
 
-<p> This wiki is a collection of incomplete notes about the MPS, the precursor to more formal documentation.</p>
+<p>Terms are marked as being applicable in the following scopes:</p>
+<dl>
+  <dt> (general) </dt>
+  <dd>term in general use in the memory-management community;
+    see 
+    <a href="http://www.memorymanagement.org/glossary/">The Memory Management Glossary</a>.</dd>
+  
+  <dt> (mps.h) </dt>
+  <dd>term used in the published MPS interface or 
+    published documentation, for client programs to use</dd>
+  
+  <dt> (internal) </dt>
+  <dd>term used in internal MPS code or design documentation 
+    (not for use in client programs)</dd>
+</dl>
 
-<p> Not confidential.  Readership: MPS users and developers.  Status: incomplete.  </p>
+<p>Note: often an mps.h term has a related (but not exactly 
+  corresponding) internal term.  The distinction can be critical.</p>
+    
+<h2>Terms</h2>  
 
+<p>Client &asymp; Mutator:</p>
+<dl>
+  <dt> Client (mps.h) </dt>
+  <dd>The program that uses the MPS via the mps.h interface.</dd>
+  
+  <dt> Mutator (internal) </dt>
+  <dd>The computational process that mutates (edits) the graph
+    of references</dd>
+</dl>
 
-<h2><a id="section-2" name="section-2">2. Articles</a></h2>
+<p>Allocation Point &asymp; Buffer:</p>
+<dl>
+  <dt> Allocation Point (mps.h) </dt>
+  <dd>MPS protocol that client uses to allocate memory with 
+    low overhead, and low thread-synchronization cost.</dd>
+  
+  <dt> Buffer (internal) </dt>
+  <dd>A piece of memory held by the MPS, often used to provide 
+    memory for an allocation point.</dd>
+</dl>
 
-<p>Recommended:</p>
-<ul>
+<p>Other terms:</p>
+<dl>
+  <dt> Format (mps.h) </dt>
+  <dd>A collection of client-implemented Format Methods, 
+    which MPS uses to ask questions about objects.
+    See <a href="gc.html">GC</a>.</dd>
 
-  <li><a href="glossary.html">glossary of MPS terminology</a></li>
-
-  <li><a href="modes.html">modes of use of MPS</a></li>
-
-  <li><a href="gc.html">Garbage Collection</a> 
-    &mdash; notes on how to get started with GC</li>
-
-  <li><a href="apguide.html">Allocation Point User's Guide</a></li>
-
-</ul>
-
-<p>Internal or arcane:</p>
-<ul>
-  <li><a href="unmanaged.html">issues with unmanaged workspace</a>.</li>
-</ul>
-
-<p>Not much use yet:</p>
-<ul>
-  <li>The available <a href="pool_classes.html">pool classes</a>.</li>
-</ul>
-
-<p>Here's a <a href="template.html">template</a> for new articles.</p>
-
-<h2><a id="section-A" name="section-A">A. References</a></h2>
+  <dt> Attr (internal) </dt>
+  <dd>A bitset of pool or pool class attributes.
+    See <a href="../../design/type/#attr">design/type/#attr</a></dd>
+</dl>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2006-05-25  RHSK  Created.
-  2006-06-02  RHSK  Added template, and articles on: pool_classes, gc.
-  2006-06-06  RHSK  Added glossary.
-  2006-06-06  RHSK  Article: Modes of use of MPS.
+  2006-06-06  RHSK  Created.
+  2006-06-21  RHSK  Scope of terms; client/mutator, ap/buffer.
 </pre>
+
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
@@ -117,6 +137,7 @@
 / <a href="/project/mps/">Memory Pool System</a>
 / <a href="/project/mps/master/">Master Product Sources</a>
 / <a href="/project/mps/master/manual/">Manuals</a>
+/ <a href="/project/mps/master/manual/wiki/">Wiki</a>
 </p>
 
 </div>
