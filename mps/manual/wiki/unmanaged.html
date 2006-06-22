@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: ARTICLE-TITLE</title>
+  <title>MPS Wiki: Unmanaged workspace</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,28 +30,482 @@
 
 <hr />
 
-<h1>MPS Wiki: ARTICLE-TITLE</h1>
+<h1>MPS Wiki: issues with unmanaged workspace</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2006-06-02
+2006-06-21
 </address>
 
 </div>
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<pre>
-replace ARTICLE-TITLE throughout
-correct Document Author (above) and Document History (below)
-add YOUR ARTICLE HERE.
-</pre>
+<p><em class="warning">
+  Warning: As far as I am aware, issues with unmanaged workspace have 
+  not been formally addressed in MPS documentation to date.  This 
+  article is a start.  Consequently this article is even more 
+  speculative and new than others in the Wiki.
+  RHSK 2006-06-21</em></p>
 
+<h2>Introduction: What is unmanaged workspace?</h2>
+
+<p>"<a href="#unmanaged-cell">Unmanaged&darr;</a>" means
+  containing references that the MPS cannot see.  
+  "Workspace" means stack, registers, and incomplete objects.</p>
+  
+<p>We are most familiar with an 
+  MPS <a href="modes.html">mode of use</a> 
+  where the stack and registers are managed (they are declared as 
+  a root and are ambiguously scanned),
+  and the only unmanaged parts of the workspace are
+  one or more incomplete objects in one or more allocation points.</p>
+
+<p>(Several test executables omit the stack scanner, and rely on 
+  guarantees that the MPS will not move or collect memory that, 
+  I believe, we have not documented).</p>
+  
+<p>We should design 
+  <a href="#guaranteed-protocol">guaranteed protocols&darr;</a>
+  for simple single-threaded clients.</p>
+  
+<p>However, these are burdensome for complex clients (where it is 
+  hard to determine when writing client function X whether a call 
+  to client function Y will end some guaranteed period), and for 
+  multi-threaded clients.</p>
+
+<p>So this article also attempts to generalize some concepts from 
+  our experience of the allocation point protocol, to 
+  define a <a href="#guarded-protocol">guarded-protocol&darr;</a>,
+  and then restates the allocation point protocol in terms of those 
+  concepts.</p>
+
+<h2> Contents</h2>
+<p>This article has the following sections:</p>
+<ul>
+  <li>Objects, cells, references, and reference-values</li>
+  <li>Using unmanaged workspace</li>
+</ul>
+  
+<h2>Objects, cells, references, and reference-values</h2>
+
+<p><em class="note">
+  [Note: apart from "root" and "reachable", the terminology in 
+  this section is new (I think).  RHSK 2006-06-16]
+</em></p>
+
+<dl>
+  <dt> object </dt>
+  <dd>some memory allocated by the MPS; it may contain cells.</dd>
+
+  <dt> cell </dt>
+  <dd>a place that stores one reference; (A cell is most commonly: 
+      a register, 
+      a local (C-stack) variable, 
+      a statically allocated global variable,
+      or a memory word inside an object) </dd>
+  
+  <dt> reference </dt>
+  <dd>one stored instance of a reference-value;
+      (For example: the stored bit-pattern 0x1200A3B0 
+      in register r4)</dd>
+  
+  <dt> reference-value </dt>
+  <dd>a value that designates an allocated object;
+      (A reference-value is usually an address, 
+      for example: the bit-pattern 0x1200A3B0)
+  </dd>
+</dl>
+
+
+<h3>Types of object:</h3>
+<dl>
+  <dt>Root object (in MPS terminology)</dt>
+  <dd>&equiv; an object that the mutator has 
+    designated as a root.
+  </dd>
+
+  <dt>Reachable object (in MPS terminology)</dt>
+  <dd>&equiv; a root, or an object reachable from 
+    a root via scanned references.
+  </dd>
+</dl>
+
+<p>Note that the MPS does <strong>NOT</strong> assume that registers, 
+  the stack, etc, are roots.  This is a little unusual.  This means 
+  that "reachable" means "reachable to the collector"; the mutator 
+  may be able to access references that are not "reachable".</p>
+
+<h3>Types of cell:</h3>
+<dl>
+  <dt><a id="managed-cell">Managed</a></dt>
+  <dd>&equiv; a scanned cell in a reachable object.
+    If the reference in the cell is TO a 
+    reachable object, then the MPS ensures the reference 
+    remains fresh.  
+    (The MPS must ensure the referent does not get 
+    reclaimed.
+    If ambiguous, pins referent.  
+    If exact, may update the reference.)
+  </dd>
+
+  <dt><a id="unmanaged-cell">Unmanaged</a></dt>
+  <dd>&equiv; a cell that is not managed.
+    A reference stored in an unmanaged cell is not useful 
+    unless it is a 
+    <a href="#guaranteed-reference">guaranteed reference</a> or a 
+    <a href="#guarded-value">guarded value</a>.
+    (The MPS cannot see the reference).
+  </dd>
+</dl>
+
+<h3>The state of a reference:</h3>
+<p>A reference may be:</p>
+<dl>
+  <dt><a id="fresh-reference">Fresh</a></dt>
+  <dd>&equiv; a reference that the MPS has kept up-to-date.  
+    (The definition 
+    of 'up-to-date' depends on context.  For example, for a weak 
+    reference, 'up-to-date' means it either points to the intended 
+    object, or it has been nulled out.)
+  </dd>
+
+  <dt><a id="stale-reference">Stale</a></dt>
+  <dd>&equiv; a reference that has not been kept up-to-date, and 
+    may now 
+    designate an out-of-date copy of the object, some other object, 
+    random memory, or unmapped memory.
+  </dd>
+</dl>
+
+
+<h2><a id="using-unmanaged-workspace">Using unmanaged workspace</a></h2>
+
+<p><em class="note">
+  [Note: the terminology in 
+  this section is new (I think).  RHSK 2006-06-16]
+</em></p>
+
+<p>Unmanaged workspace must be used with care because the MPS cannot 
+  see the references stored in it, and so cannot keep these references 
+  fresh.</p>
+  
+<p>Surprisingly, the MPS seems to lack the necessary protocols for 
+  using unmanaged workspace in general.  
+  The MPS currently supports only one protocol for unmanaged 
+  workspace: objects under construction in allocation points.</p>
+
+<p>This section is a preliminary analysis of what protocols are 
+  needed (and appropriate) for using unmanaged workspace in general.</p>
+  
+<h3>Operations</h3>
+
+<p>Using unmanaged workspace involves:</p>
+<ul>
+  <li> copying references from the managed into the unmanaged world;</li>
+  <li> dereferencing references in the unmanaged world;</li>
+  <li> copying references from the unmanaged into the managed world;</li>
+  <li> moving objects (and the references they contain) 
+    from the unmanaged to the managed world.</li>
+</ul>
+
+<h3>Guaranteed -vs- guarded protocols</h3>
+
+<dl>
+  <dt><a id="guaranteed-protocol">guaranteed protocol</a></dt>
+  <dd>Permitted operations are safe and the results are always valid.</dd>
+
+  <dt><a id="guarded-protocol">guarded protocol</a></dt>
+  <dd>Permitted operations are safe, but the results may be invalid.  
+    After performing the operations, the mutator can find out whether 
+    the results are valid or not.</dd>
+</dl>
+
+<dl>
+  <dt><a id="guaranteed-reference">guaranteed reference</a></dt>
+  <dd>
+    <p>&equiv; a value that
+      the MPS guarantees will 
+      remain a fresh reference, 
+      even when stored in an unmanaged cell, until 
+      the end of the guaranteed period.
+      Permitted operations are safe and correct.
+      (The MPS guarantees that the referent does not move or get 
+      reclaimed).
+      <em class="note">
+        [Clearly possible, but these protocols are not currently 
+        clearly defined.  RHSK 2006-06-15]
+      </em>
+    </p>
+    <p>A guaranteed reference may be 
+      copied into a managed cell.</p>
+  </dd>
+
+  <dt><a id="guarded-value">guarded value</a></dt>
+  <dd>
+    <p>&equiv; a value that may be a fresh reference, or may be 
+      stale.  (The MPS knows which, but the mutator doesn't).  
+      A protocol defines how the value may be used.</p>
+  </dd>
+  
+  <dt><a id="unsafe-value">unsafe value</a></dt>
+  <dd>
+    <p>&equiv; a value that is neither guaranteed nor guarded, 
+      and even the MPS does not know if it is a fresh reference or 
+      not.  An unsafe value must not be copied into a 
+      managed non-ambiguous cell.
+    </p>
+  </dd>
+</dl>
+
+
+<h3>Operations with guarded values</h3>
+
+<p>A guarded protocol defines the "guarded period", which has 
+  an "operations" phase, followed by an atomic "commit" event 
+  that may succeed or fail, followed by an "abort" phase 
+  (only if the commit failed).
+  </p>
+  
+<p>"commit" succeeds &rArr; the guarded references remained fresh.
+  The result of the operations is valid, and the guarded period is over.  
+  A successful commit may atomically change other state too, such 
+  as making a previously unmanaged object become managed.</p>
+
+<p>"commit" fails &rArr; the guarded references are stale, 
+  the results are invalid, and the guarded 
+  period enters an "abort" phase.</p>
+
+<p>The mutator must detect the abort phase, 
+  clear up if necessary, and then "close" the abort phase 
+  (this also closes the guarded period).</p>
+
+<p>Note: although the "commit" is atomic and succeeds or fails, 
+  the mutator will not be able to both commit and test for success 
+  or failure atomically.</p>
+  
+<p>"false abort": the mutator may be unable to 
+  test commit's success or failure accurately: it may be 
+  required to make a conservative approximation, erring on the 
+  side of failure.
+  This may result in a 'false abort', where the
+  mutator believes it is in the "abort" phase of the guarded 
+  period, but actually the commit succeeded and the guarded period 
+  is over.  Write your mutator abort code with great care: it 
+  must be valid and have the same semantics whether run in a real 
+  abort phase or a false abort.</p>
+  
+<p>A guarded protocol restricts which operations are permitted
+  on guarded values.</p>
+  
+<p><em class="note">
+  [Note: It might be possible to design a protocol where 
+  guarded references may be dereferenced.  
+  If stale, the mutator would see objects 
+  in the stale world that persists until reclaim.
+  Not currently supported.  RHSK 2006-06-15]
+</em></p>
+
+<h4>Example: the allocation point protocol:</h4>
+
+<blockquote>
+
+<p><em class="note">
+  [Note: This example attempts to define the allocation
+  point protocol using the general concepts for 
+  unmanaged workspace and guarded protocols 
+  developed above, and extend the definition of 
+  the protocol to discuss storing guarded references in 
+  exactly-scanned managed cells.  Commit is when the 
+  mutator sets I=A.  MPS does not currently define 
+  abort-close: in practice the MPS code currently does it 
+  on the next mps_ap_fill, but we should probably define it 
+  as occurring earlier, when the mutator calls mps_ap_trip.
+  RHSK 2006-06-20]
+</em></p>
+
+<p>Throughout the guarded period, the new object is unmanaged.
+  On successful commit, the guarded period ends, and if the new 
+  object is reachable it becomes managed.</p>
+
+<p>Throughout the guarded period, 
+  the pointer value returned by mps_reserve is a guarded value 
+  that may be dereferenced to access the new object,
+  and may be copied into a managed cell.  
+  On successful commit, copies in the managed world 
+  (including copies in the new object, if it is reachable)
+  become fresh references to the new object.</p>
+
+<p>Throughout the guarded period, 
+  a reference to a reachable object may be
+  copied from a managed cell into the unmanaged world
+  (including into the new object):
+  it becomes a guarded value that may <strong>NOT</strong> be 
+  dereferenced.  
+  The guarded value may be copied into a managed cell.
+  On successful commit, all copies stored in 
+  managed cells
+  (including cells in the new object, if it is reachable)
+  are still fresh.  
+  All other copies are unsafe.</p>
+
+<p>On failed commit, for the duration of the abort phase, all
+  guarded values remain guarded.  
+  After the abort 
+  phase is closed, all remaining copies of the guarded value 
+  become unsafe.</p>
+
+<p>During its abort, the mutator must therefore
+  remove all guarded values from managed non-ambiguous cells,
+  and (because this may be a false abort) it must not 
+  dereference the pointer value returned by mps_reserve.</p>
+
+</blockquote>
+
+<h2>Other notes</h2>
+
+<p>.talk.RB.2006-06-13:</p>
+<blockquote><pre>
+ need two snippets:
+  1= with stack being ambig scanned
+  
+  2. without stack being ambig scanned: means, snippet should 
+     show parent being pinned.
+      /* Store an ambiguous reference to the new object */
+      global-&gt;ambigroot = neo;
+  [RHSK 2006-06-14: I'm not sure that unscanned reg+stack is possible!]
+Also:
+  = can't use "new";
+  = ? (void**) is not portable.
+  - avoid use of "race" -- it conventionally means a bad race.
+</pre></blockquote>
+
+<p>.talk.RB.2006-06-14:</p>
+<blockquote><pre>
+[Modes of MPS use snipped: now in its own wiki article. RHSK]
+
+MPS could make a promise about when it 
+might invalidate unmanaged references.  (We currently only invalidate 
+when we flip the mutator for a trace, so each trace flip starts 
+a new epoch, and unmanaged references are only valid during 
+the epoch in which the unmanaged reference was created by copying
+some managed reference).
+</pre></blockquote>
+
+<p>.think.RHSK.2006-06-14:</p>
+<blockquote><pre>
+For 7: unscanned reg+stack, multi-threaded, moving.
+
+How do we support operations like:
+  a-&gt;b-&gt;c-&gt;d = e-&gt;f-&gt;g-&gt;h;
+?
+
+If forwarding pointers (broken hearts) didn't over-write the old 
+objects, then the long chain would be 'safe' as long as you throw 
+away the answer at the end, and as long as you do that before 
+the reclaim phase of the trace.  
+
+Hmm, it's easy to write a format where the broken heart doesn't 
+obliterate the object's slots -- store the forwarding pointer 
+solely in the object's format header, invisible to 'normal' client 
+code.  
+
+(By the way, are there any limits on the size of pad object that 
+the MPS can request of a format pad method?)
+
+With such a format, and the current behaviour of MPS's only 
+moving pool (amc):
+  -  after flip, unmanaged references are stale (point  
+     to stale copies of objects), but are otherwise still 
+     connected as the client expects;
+  -  after reclaim, they may be to unmapped memory.  
+But the MPS does not currently give a guarantee that it will 
+behave be like this.  Perhaps it could.
+
+Allocation Point is two things:
+  a. a fast inlined allocation protocol;
+  b. a quarantine that allows unmanaged references to be safely 
+     written, and either:
+       - safely converted into valid managed references 
+         (if commit succeeds); or
+       - flagged as invalid (if commit fails).
+
+b. is nearly what we want for 7.
+
+We want a defined region of time and space within 
+which we can use unmanaged references.  
+
+This can either be guaranteed success, or an attempt 
+followed by a 'did we get away with that?' check.  
+
+We could work with this primitive:
+  - load word from (ref1 + offset) and store it in (ref2 + offset).
+Exact stacks, manually maintained.  But it's painful.  (Okay for a 
+language compiler, but not for a human.)
+
+From a pinned object, how do i pin its child?
+do {
+  Read epoch
+  Read o-&gt;child into unmanaged ref "child"
+} while(! mps_pin(child, epoch);
+
+We can do this already with an allocation point "ap_PinStack".  Each 
+mps_pin_t object in the PinStack is simply a managed ambiguous ref:
+
+/* object o MUST be pinned */
+int pin_child(object *child_o, object *o)
+{
+  void *p;
+  mps_pin_t *pin;
+
+  do {
+    void *child;  /* unmanaged ref: we must not deref it */
+    
+    if (mps_reserve(&amp;p, ap_PinStack, sizeof(mps_pin_t)) != MPS_RES_OK) {
+      goto fail_pin_child;
+    }
+    pin = p;
+    
+    child = o-&gt;child;
+
+    /* We must not dereference child;
+       We must not store child anywhere managed.  
+       We must not store child in any quarantine except pin.
+       
+       We may store child in the pin quarantine.
+       We may store child somewhere where it will 
+         always remain umnanaged.  
+       
+       We may do whatever else we like with child!
+       (Not much!)
+    */
+    
+    pin-&gt;thing = child;
+  } while (! mps_commit(ap_PinStack, p, sizeof(mps_pin_t));
+
+  /* Success: we managed to pin the child */
+  child_o = pin-&gt;thing;
+  return TRUE;
+
+fail_pin_child:
+  child_o = NULL;
+  return FALSE;  /* out of memory, etc */
+}
+
+Given pinned object o, can we pin its child simply by telling our 
+own format code that the o-&gt;child slot is to be RankAMBIG now?
+
+NO!  We may have finished scanning at RankAMBIG, be scanning at 
+RankEXACT now, come across another ref to child, and move it.
+</pre></blockquote>
+
+  
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2006-06-02  RHSK  Created.
+  2006-06-21  RHSK  Created.
+  2006-06-21  RHSK  Moved here from modes of use article; add Intro.
 </pre>
 
 
