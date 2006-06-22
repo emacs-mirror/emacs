@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: Garbage Collection</title>
+  <title>MPS Wiki: Allocation Points -- User's Guide</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,244 +30,24 @@
 
 <hr />
 
-<h1>MPS Wiki: Garbage Collection</h1>
+<h1>MPS Wiki: Allocation Points -- User's Guide</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2006-06-02
+2006-06-09
 </address>
 
 </div>
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<p>Notes on getting started with GC -- Garbage Collection.</p>
+<h2>Contents:</h2>
 
-<h2>Introduction</h2>
-
-<h3>The essential MPS concepts for GC are:</h3>
-<dl>
-  <dt> <a href="#Format">Format&darr;</a></dt>
-  <dd> lets the MPS ask the client a question about an object;</dd>
-
-  <dt> Root</dt>
-  <dd> tell the MPS which things (eg. stack, globals) are always alive.</dd>
-</dl>
-
-<h3>The advanced MPS concepts for GC are:</h3>
-<dl>
-  <dt> <a href="#Protection">Protection and incremental collection&darr;</a></dt>
-  <dd> MPS sets operating-system read- or write-barriers on certain 
-    pages.  When client tries to use this protected memory, the MPS 
-    interrupts and does just enough garbage-collection to allow the 
-    client to see this page.
-  </dd>
-    
-  <dt> Allocation Point
-       <a href="#Allocation-Point-User">(user's guide&darr;)</a></dt>
-  <dd> reserve memory, build a new object, and commit 
-       it to MPS management.  (For the internals see 
-       <a href="#Allocation-Point-Internals">AP internals&darr;</a>).
-  </dd>
-</dl>
-
-
-<h2><a id="Format">Format</a></h2>
-
-<p>The client can choose how to format its objects, but the MPS will
-sometimes need to ask the client some questions about an object, such
-as:</p>
 <ul>
-  <li> how big is it? (so that if it is dead the MPS collects only that
-       object)</li>
-  <li> what pointers does it contain? (so the MPS can mark referred-to
-       objects as still alive)</li>
+  <li><a href="#Allocation-Point-User">Allocation Points -- User's Guide</a></li>
+  <li><a href="#Allocation-Point-Internals">Allocation Point Internals</a></li>
 </ul>
-
-<p>For each type of question, the client must provide a function that gives
-the answer.  These functions are called "format methods", and are
-collected together into a "format"
-(mps_fmt_t).  Usually the client developer writes these functions,
-calls "<code>mps_fmt_create_...</code>" to
-collect them into a format, and passes this format to the MPS as an
-argument to <code>mps_pool_create()</code>.</p>
-
-<p>A client's format code is 'special'.  It is called at special times (eg.
-when handling an interrupt), and is quite restricted in what it is
-allowed to do.  Format code is often on the critical path for memory
-management operations.  The full requirement for a format is
-complicated; see documentation in the Reference Manual.  But
-here's a simplified overview:</p>
-
-<p>No format is required for an object in a non-scanned, non-collectable
-pool -- the MPS never needs to know the internal details of objects in
-these pools.</p>
-
-<p>For collectable and/or scannable pools, the client's format code
-generally needs to support three types of object:</p>
-<ol>
-  <li> the client's own initialized objects;</li>
-  <li> on behalf of the MPS, a "forwarding object";</li>
-  <li> on behalf of the MPS, a "padding object".</li>
-</ol>
-
-<p>A forwarding object is a placeholder that the MPS uses when it has moved
-the object that used to be there.  ('Normal' client code never sees
-these forwarding objects; only client format code does).</p>
-
-<p>A padding object is a 'dummy' object that the MPS uses when there is not
-enough room (eg. at the end of a memory page) to put a real client
-object.</p>
-
-<p>The client must be able to distinguish between these three types 
-of object.  To guarantee this, client code MUST initialize
-memory obtained from the MPS (by mps_alloc or mps_reserve) BEFORE it
-makes any other call into the MPS from that thread (including the call to
-mps_commit).  Here, "initialize" means at least enough initialization
-that the client's format code handles the object correctly, including
-whether it is a client object, a forwarding object, or a padding object.
-[See also protocol.mps.format.rel.ap.  RHSK 2006-06-02]</p>
-
-<h3><a id="format-methods">The most important format methods are:</a></h3>
-
-<p>Indicate the size of a collectable client object:</p>
-<ul>
-  <li> Skip (see <a href="../reference/index.html#mps_fmt_skip_t">mps_fmt_skip_t</a>):
-         client must tell the MPS how big this object is.</li>
-</ul>
-
-<p>List all references from this object to (other) collectable objects:</p>
-<ul>
-  <li> Scan (see <a href="../reference/index.html#mps_fmt_scan_t">mps_fmt_scan_t</a>): 
-         client must 'scan' the object for pointers, and tell 
-         the MPS to 'fix' each pointer it finds;</li>
-</ul>
-
-<p>Move this client object (obsolete, see below):</p>
-<ul>
-  <li> Copy (obsolete) (see <a href="../reference/index.html#mps_fmt_copy_t">mps_fmt_copy_t</a>):
-         client must copy the object to a new location.</li>
-</ul>
-
-<p>Create/use a forwarding object (used by an incremental moving pool after moving a client object):</p>
-<ul>
-  <li> Fwd (see <a href="../reference/index.html#mps_fmt_fwd_t">mps_fmt_fwd_t</a>):
-         client must create a forwarding object here, and store
-         the supplied forwarding pointer in it;</li>
-  <li> IsFwd (see <a href="../reference/index.html#mps_fmt_isfwd_t">mps_fmt_isfwd_t</a>):
-         client must test whether this is a forwarding object
-         (created by the Fwd method), and if so return the 
-         forwarding pointer stored in it.  (This is how the 
-         MPS remembers where a moved object was moved to).</li>
-</ul>
-
-<p>Create a padding object:</p>
-<ul>
-  <li> Pad (see <a href="../reference/index.html#mps_fmt_pad_t">mps_fmt_pad_t</a>):
-         create a padding object here, please.</li>
-</ul>
-
-<h3><a id="format-methods-copy-is-obsolete">Format Methods: the Copy method is obsolete</a></h3>
-
-<p>The Copy method is obsolete, and is never called.  The MPS just uses 
-<code>mps_lib_memcpy()</code> to copy the bytes to the new location.  
-It knows how many bytes to copy by using the Skip method.</p>
-
-<p>Historical notes: The original justification for Copy was:</p>
-<ul>
-  <li> client (knowing the object's data fields) might intelligently 
-         copy less than all the bytes;</li>
-  <li> client might alter the data, eg. fixing-up internal pointers.</li>
-</ul>
-<p>... but this didn't happen with actual clients, and the interface 
-to the copy method didn't pass the skip-size (which the MPS has 
-already determined by calling Skip) and so didn't allow an efficient 
-copy method to be written. So it was dropped, in 1998 or earlier.  
-The only place this memcpy currently occurs is in poolamc.c,  in 
-AMCFix() (and now AMCHeaderFix() too).</p>
-
-<p>There are notes on this change at 
-<a href="../../design/trace/#fix.nocopy">design/trace/#fix.nocopy</a>.</p>
-
-<h3><a id="format-variants">Format Variants</a></h3>
-
-<p>There are several different ways to package-up the format methods -- these different ways are called 'variants'.  MPS currently supports four format variants.  The creation functions for these are:</p>
-<ul>
-  <li> <a href="../reference/index.html#mps_fmt_create_A">mps_fmt_create_A</a>;</li>
-  <li> <a href="../reference/index.html#mps_fmt_create_B">mps_fmt_create_B</a>;</li>
-  <li> <a href="../reference/index.html#mps_fmt_create_auto_header">mps_fmt_create_auto_header</a>;</li>
-  <li> <a href="../reference/index.html#mps_fmt_create_fixed">mps_fmt_create_fixed</a>.</li>
-</ul>
-
-<p>It's a bit messy -- sorry.</p>
-
-<h2><a id="Root-User">Roots -- User's Guide</a></h2>
-
-<pre>
-<a href="/project/mps/import/2001-09-27/mminfo/doc/impl/h/mps/index.txt#1">//info.ravenbrook.com/project/mps/import/2001-09-27/mminfo/doc/impl/h/mps/index.txt#1</a>
-   307 /* Root Creation and Destruction
-   308  *
-   309  * mps_root_create creates the most general type of root: a scanning
-   310  * function with two closure elements, p and s.
-   311  *
-   312  * mps_root_create_table creates a root from a block of memory which
-   313  * contains a contiguous array of references.  Pages containing table
-   314  * roots may be protected by the MPS if MPS_RM_PROT is set in the
-   315  * root mode.
-   316  *
-   317  * mps_root_create_fmt creates a root from a block of memory which
-   318  * contains formatted objects.  Pages containing fmt roots may be
-   319  * protected by the MPS if MPS_RM_PROT is set in the root mode.
-   320  *
-   321  * mps_root_create_reg creates a root which will be used to scan
-   322  * the registers of a thread.  (Often it will scan the stack, too.)
-   323  */
-</pre>
-
-
-
-<h2><a id="Protection">Protection and incremental collection</a></h2>
-
-<p>These notes on Protection and incremental collection were written 
-  by RHSK between 2006-06-15 and 2006-06-15, following research and 
-  discussion with RB and DRJ.</p>
-
-<p>The MPS can set operating-system read- or write-barriers on certain 
-    pages.  When client tries to use this protected memory, the MPS 
-    interrupts and does just enough garbage-collection to allow the 
-    client to see this page.</p>
-
-<p>On Windows, currently, these barriers are implemented using SEH -- Structured Exception Handling.</p>
-
-<blockquote><pre>
-<a href="http://info.ravenbrook.com/mail/2006/05/17/11-03-54/0.txt">//info.ravenbrook.com/mail/2006/05/17/11-03-54/0.txt</a>
-"chat with DRJ RB RHSK about work for Configura, and other MPS issues"
-...
-MPS should be part of runtime for a language.
-One necessary part is SEH:
-   - required once per thread;
-   - AND required on foreign function calls inward.
-Otherwise,
-   1. some foreign C++ might steal our exception;
-   2. this might be a thread we've never seen before
-(In fact, client need to have a bit standard of code that works out  
-if the MPS has seen this thread before.  It must call this code on  
-every inbound call from foreign code.)  DRJ: "Dylan does this".
-There's a bunch of assumes about compiled code, ABI etc, play nice  
-with sighandler etc.
-Might be poss for GR to geneerate code that doesn't use SEH if he  
-wasn't using MPS.
-
-MPS has a requirement that you use this extremely poorly documented  
-SEH interface.
-2 improvements:
-   1. better documentation for this
-   2. try to make the MPS *not* require SEH
-
-job001360 -- SEH
-</pre></blockquote>
-
 
 
 <h2><a id="Allocation-Point-User">Allocation Points -- User's Guide</a></h2>
@@ -724,6 +504,8 @@ fail_make_object:
   
 <h2><a id="Allocation-Point-Internals">Allocation Point Internals</a></h2>
 
+<p><strong>This section should be moved out of this article.  RHSK 2006-06-22</strong></p>
+
 <p>The synchronization issues are a little tricky.  This following 
   notes on these issues were written by RHSK between 
   2006-06-12 and 2006-06-12.</p>
@@ -1067,11 +849,9 @@ it has read Lc to see whther the commit succeeded.</p>
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2006-06-02  RHSK  Created.
-  2006-06-02  RHSK  Introduction to MPS Formats
-  2006-06-06  RHSK  Formats: clarify explanation of methods, copy method is 
-                    obsolete, mention format variants.
-  2006-06-09  RHSK  Allocation points: how it's supposed to be, from RB 2006-06-09.
+(As part of GC article)
+  2006-06-09  RHSK  Allocation points: how it's supposed to be, from RB
+                    2006-06-09.
   2006-06-09  RHSK  Allocation points: must make at least one ambiguous ref 
                     and no exact refs to new object before calling commit.
   2006-06-12  RHSK  Allocation points: minor edits for clarity.
@@ -1079,10 +859,10 @@ it has read Lc to see whther the commit succeeded.</p>
                     ambiguous references only (to the new object); How 
                     bad is a bogus exact reference?; quick notes on: with 
                     exact refs; flipping at other times.
-  2006-06-13  RHSK  Allocation point user's guide: Tidy; clarify-- not yet complete.
+  2006-06-13  RHSK  Allocation point user's guide: Tidy; clarify-- not 
+                    yet complete.
                     Distinguish it from section on AP internals.
-  2006-06-14  RHSK  Roots -- User's Guide: bare bones: root variants.
-                    Allocation point user's guide: standard reserve-commit 
+  2006-06-14  RHSK  Allocation point user's guide: standard reserve-commit 
                       idiom: corrections, and now assume ambiguous reg+stack:
                       transitioning to this assumption.
                     Add .talk.RB.2006-06-13 about standard r-c idiom 
@@ -1094,11 +874,13 @@ it has read Lc to see whther the commit succeeded.</p>
   2006-06-15  RHSK  Allocation Points: clarifications and further notes 
                     into User Guide and Internals, including initializing 
                     as-yet unused parts of new objects to reduce spoofing.
-  2006-06-15  RHSK  Brief notes on Protection and incremental collection.
   2006-06-22  RHSK  Move rough notes .talk.RB.2006-06-13 etc elsewhere.
                     Make AP User Guide consistently .assume.ambig-workspace,
                     moving notes to APInternals; add Intro and Mistakes;
                     check example code.
+
+(This article)
+  2006-06-22  RHSK  Created from GC article.
 </pre>
 
 
