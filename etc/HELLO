@@ -64,10 +64,6 @@ Hebrew ($,1-",q-(,y-*(B)	$,1-),|,u,}(B
 Russian ($,1(`(c(a(a(Z(X(Y(B)	$,1(7(T(`(P(R(a(b(R(c(Y(b(U(B!
 Maltese (il-Malti)	Bon$,1 A(Bu, Sa$,1 G G(Ba
 
-;;; Local Variables:
-;;; tab-width: 32
-;;; End:
-
 
 
 Copyright (c) 2001, 2002, 2003, 2004, 2005, 2006
@@ -88,3 +84,8 @@ COPYING PERMISSIONS:
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+
+;;; Local Variables:
+;;; tab-width: 32
+;;; End:
