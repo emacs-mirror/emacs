@@ -15,7 +15,7 @@
 2006-06-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-exited): Ensure overlay arrow gets killed.
-	(gdb-frame-handler): Generalise frame regexp for templates.
+	(gdb-frame-handler): Generalize frame regexp for templates.
 
 2006-06-20  Glenn Morris  <rgm@gnu.org>
 
@@ -24,11 +24,10 @@
 
 2006-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* term/xterm.el (terminal-init-xterm): Update key availability
-	info.  Bind C-return.
+	* term/xterm.el (terminal-init-xterm): Update key availability info.
+	Bind C-return.
 
-	* term.el (term-delete-lines, term-insert-lines): Clarify
-	comments.
+	* term.el (term-delete-lines, term-insert-lines): Clarify comments.
 
 2006-06-20  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -74,58 +73,54 @@
 	(org-mode): Don't mark buffer as modified when aligning tables.
 	(org-clock-sum): Don't makr buffer modified when adding time sum
 	properties.
-	(org-export-as-html): Added support for a link validation
-	function.
+	(org-export-as-html): Added support for a link validation function.
 	(org-archive-all-done): New function.
 	(org-archive-subtree): New prefix argument.  When set, archive all
 	done subtrees in this buffer.
 	(org-remove-clock-overlays)
-	(org-remove-occur-highlights): Use
-	`org-inhibit-highlight-removal'.
-	(org-inhibit-highlight-removal): New variable, for dynamic
-	scoping.
+	(org-remove-occur-highlights): Use `org-inhibit-highlight-removal'.
+	(org-inhibit-highlight-removal): New variable, for dynamic scoping.
 	(org-put-clock-overlay): Don't swallow last headline character
 	when displaying overlay.
 	(org-store-link): Link to `image-mode' with just the file name.
 
 2006-06-18  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* viper-cmd.el (viper-special-read-and-insert-char): use
-	read-key-sequence.
-	(viper-after-change-undo-hook): enhancements.
-	(viper-after-change-undo-hook): new hook.
-	(viper-undo): use viper-after-change-undo-hook.
+	* viper-cmd.el (viper-special-read-and-insert-char):
+	Use read-key-sequence.
+	(viper-after-change-undo-hook): Misc enhancements.
+	(viper-after-change-undo-hook): New hook.
+	(viper-undo): Use viper-after-change-undo-hook.
 	(viper-add-newline-at-eob-if-necessary): widen before making changes.
 	(viper-next-line-at-bol): If point is on a widget or a button, simulate
 	clicking on that widget/button.
 
-	* viper.el (viper-mode): allow for a separate cursor color in Emacs
-	state.
+	* viper.el (viper-mode): Allow a separate cursor color in Emacs	state.
 
-	* ediff-diff (ediff-test-patch-utility): catch errors.
-	(ediff-actual-diff-options, ediff-actual-diff3-options): new variables.
-	(ediff-set-actual-diff-options): new function.
+	* ediff-diff (ediff-test-patch-utility): Catch errors.
+	(ediff-actual-diff-options, ediff-actual-diff3-options): New variables.
+	(ediff-set-actual-diff-options): New function.
 	(ediff-reset-diff-options, ediff-toggle-ignore-case):
-	use ediff-set-actual-diff-options.
-	(ediff-extract-diffs): catch errors.
-	(ediff-whitespace): add nonbreakable space.
-	(ediff-same-file-contents): catch errors.
+	Use ediff-set-actual-diff-options.
+	(ediff-extract-diffs): Catch errors.
+	(ediff-whitespace): Add non-breakable space.
+	(ediff-same-file-contents): Catch errors.
 
-	* ediff-mult.el (ediff-collect-custom-diffs): save
-	coding-system-for-read.
+	* ediff-mult.el (ediff-collect-custom-diffs):
+	Save coding-system-for-read.
 
-	* ediff-vers.el (ediff-keep-tmp-versions): new var.
-	(ediff-vc-internal, ediff-vc-merge-internal): use
-	ediff-delete-version-file.
-	(ediff-delete-version-file): new function.
+	* ediff-vers.el (ediff-keep-tmp-versions): New variable.
+	(ediff-vc-internal, ediff-vc-merge-internal):
+	Use ediff-delete-version-file.
+	(ediff-delete-version-file): New function.
 
-	* ediff-wind.el (ediff-control-frame-parameters): set frame fringes.
+	* ediff-wind.el (ediff-control-frame-parameters): Set frame fringes.
 
-	* ediff.el (ediff-directories, ediff-directory-revisions,
-	ediff-merge-directories, ediff-merge-directories-with-ancestor,
-	ediff-directories-internal, ediff-merge-directory-revisions,
-	ediff-merge-directory-revisions-with-ancestor,
-	ediff-directories3): use read-directory-name.
+	* ediff.el (ediff-directories, ediff-directory-revisions)
+	(ediff-merge-directories, ediff-merge-directories-with-ancestor)
+	(ediff-directories-internal, ediff-merge-directory-revisions)
+	(ediff-merge-directory-revisions-with-ancestor)
+	(ediff-directories3): Use read-directory-name.
 
 2006-06-18  Ralf Angeli  <angeli@caeruleus.net>
 
