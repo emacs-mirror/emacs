@@ -1,3 +1,8 @@
+2006-06-23  Michael Ernst  <mernst@alum.mit.edu>
+
+	* complete.el (PC-do-completion): Retain capitalization of user
+	input, when possible, even if completion-ignore-case is set.
+
 2006-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* generic-x.el (bat-generic-mode): Support .cmd files.
