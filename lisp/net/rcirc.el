@@ -719,8 +719,8 @@ If NOTICEP is non-nil, send a notice instead of privmsg."
 	  (serv (if (consp (car i)) (cdar i) "")))
       (when (and (string-match chan (or target ""))
 		 (string-match serv (rcirc-server-name process)))
-	(setq rcirc-decode-coding-system (if (consp (cdr i)) (cadr i) i)
-	      rcirc-encode-coding-system (if (consp (cdr i)) (cddr i) i)))))
+	(setq rcirc-decode-coding-system (if (consp (cdr i)) (cadr i) (cdr i))
+	      rcirc-encode-coding-system (if (consp (cdr i)) (cddr i) (cdr i))))))
 
   ;; setup the prompt and markers
   (make-local-variable 'rcirc-prompt-start-marker)
