@@ -54,6 +54,14 @@ static mps_addr_t myformat_skip(mps_addr_t addr)
   return (char*)addr + cbStringlet;
 }
 
+static void exit_if(mps_res_t res, char *comment)
+{
+  if (res != MPS_RES_OK) {
+    printf("%s: failed with res %d.\n", comment, res);
+    exit(2);
+  }
+}
+
 int main(void)
 {
   size_t cbArena = 1 * 1024 * 1024 * 1024;  /* 1GB, ie. one quarter of 32-bit address space */
@@ -68,10 +76,7 @@ int main(void)
     /* Create arena */
     
     res = mps_arena_create(&ArenaDemo, mps_arena_class_vm(), cbArena);
-    if (res != MPS_RES_OK) {
-      printf("mps_arena_create: failed with res %d.\n", res);
-      exit(2);
-    }
+    exit_if(res, "mps_arena_create");
     
     report("Created arena", ArenaDemo, NULL);
   }
@@ -102,10 +107,7 @@ int main(void)
     /* Create pool */
     
     res = mps_pool_create(&PoolDemo, ArenaDemo, mps_class_lo(), FormatDemo);
-    if (res != MPS_RES_OK) {
-      printf("mps_pool_create: failed with res %d.\n", res);
-      exit(2);
-    }
+    exit_if(res, "mps_pool_create");
     
     report("Created pool", ArenaDemo, PoolDemo);
   }
@@ -114,10 +116,7 @@ int main(void)
     /* Create ap */
     
     res = mps_ap_create(&ApDemo, PoolDemo);
-    if (res != MPS_RES_OK) {
-      printf("mps_ap_create: failed with res %d.\n", res);
-      exit(2);
-    }
+    exit_if(res, "mps_ap_create");
     
     report("Created ap", ArenaDemo, PoolDemo);
   }
@@ -130,10 +129,7 @@ int main(void)
 
     do {
       res = mps_reserve(&p, ApDemo, cbBuffer);
-      if (res != MPS_RES_OK) {
-        printf("mps_reserve: failed with res %d.\n", res);
-        exit(2);
-      }
+      exit_if(res, "mps_reserve");
       /* Initialise my object here -- ie. make it valid. */
       /* (In this example, memory is manually managed, so even
           uninitialized memory is already a 'valid object'.  So 
@@ -152,12 +148,27 @@ int main(void)
       pbBuffer[6] = ' ';
       printf(pbBuffer);
     }
+    
+    mps_free(PoolDemo, p, cbBuffer);
+    
+    report("Freed 256 bytes", ArenaDemo, PoolDemo);
+  }
+  
+  {
+    /* Clear up */
+    
+    mps_ap_destroy(ApDemo);
+    report("Destroyed ap", ArenaDemo, PoolDemo);
+    mps_pool_destroy(PoolDemo);
+    report("Destroyed pool", ArenaDemo, NULL);
+    mps_arena_destroy(ArenaDemo);
   }
 
   printf(
     "Success: The hello-world example code successfully allocated\n"
     "some memory using an allocation point with\n"
     "mps_reserve()..mps_commit(), in an LO pool, in a VM arena.\n"
+    "then freed the memory, and destroyed the ap, pool, and arena.\n"
   );
   return 0;
 }
