@@ -1,5 +1,7 @@
 2006-06-23  Kim F. Storm  <storm@cua.dk>
 
+	* .gdbinit (pitx): Dump iterator stack.
+
 	* xdisp.c (handle_composition_prop): Push iterator on stack.
 	(set_iterator_to_next): Pop iterator at end of composition.
 
