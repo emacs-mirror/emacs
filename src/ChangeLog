@@ -1,3 +1,9 @@
+2006-06-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* fileio.c (Frename_file) [DOS_NT]: Don't try to move directory to
+	itself on DOS_NT platforms, if the old and new names are identical
+	but for the letter-case.
+
 2006-06-21  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (struct it): Add `position' member to iterator stack.

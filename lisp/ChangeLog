@@ -1,3 +1,8 @@
+2006-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* dos-w32.el (top level): Use find-file-not-found-functions
+	instead of the obsolete find-file-not-found-hooks.
+
 2006-06-22  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/grep.el (grep-mode-font-lock-keywords): Correct regexps
