@@ -1,3 +1,7 @@
+2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{LaTeX and cdlatex-mode}): New section.
+
 2006-06-23  Kim F. Storm  <storm@cua.dk>
 
 	* DEBUG: Mention `pv variable' to print value of Lisp variables.

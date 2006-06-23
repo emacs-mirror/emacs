@@ -1,3 +1,34 @@
+2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-cdlatex-mode-map)
+	(org-cdlatex-texmathp-advice-is-done): New variables.
+	(org-cdlatex-mode): New minor mode.
+	(org-inside-LaTeX-fragment-p, org-try-cdlatex-tab): New
+	functions. 
+	(org-cdlatex-underscore-caret, org-cdlatex-math-modify): New
+	commands.
+	(org-export-with-archived-trees): New option.
+	(org-open-file): Removed the call to
+	`convert-standard-filename'.
+	(org-archive-tag, org-agenda-skip-archived-trees)
+	(org-cycle-open-archived-trees)
+	(org-sparse-tree-open-archived-trees): New options.
+	(org-cycle-hide-archived-subtrees, org-hide-archived-subtrees)
+	(org-toggle-tag, org-prepare-agenda-buffers, org-agenda-skip): New
+	functions. 
+	(org-agenda-toggle-archive-tag, org-toggle-archive-tag): New
+	commands.
+	(org-agenda-mode-map): Add binding of
+	`org-agenda-toggle-archive-tag'. 
+	(org-mode-map): Add binding for `org-toggle-archive-tag'.
+	(org-timeline, org-agenda-list, org-todo-list, org-tags-view):
+	Call `org-prepare-agenda-buffers'.
+	(org-occur, org-scan-tags): Call `org-hide-archived-subtrees'.
+	(org-file-apps, org-file-apps-defaults-gnu)
+	(org-file-apps-defaults-macosx)
+	(org-file-apps-defaults-windowsnt): Handle remote files by forcing
+	them to be opened in Emacs.
+
 2006-06-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-diff-knows-L): New variable.
