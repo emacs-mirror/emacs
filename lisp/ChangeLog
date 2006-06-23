@@ -1,5 +1,7 @@
 2006-06-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* generic-x.el (bat-generic-mode): Support .cmd files.
+
 	* dos-w32.el (top level): Use find-file-not-found-functions
 	instead of the obsolete find-file-not-found-hooks.
 
