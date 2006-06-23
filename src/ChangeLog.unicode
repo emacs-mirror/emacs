@@ -1,3 +1,8 @@
+2006-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_draw_glyph_string) [USE_FONT_BACKEND]: Check
+	s->face->font on determining underline position.
+
 2006-06-21  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_parse_xlfd): Fix generating of CHARSET_REGISTRY field.
