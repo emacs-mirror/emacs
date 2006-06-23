@@ -4487,6 +4487,8 @@ handle_composition_prop (it)
 		}
 	      return HANDLED_RECOMPUTE_PROPS;
 	    }
+
+	  push_it (it);
 	  it->method = GET_FROM_COMPOSITION;
 	  it->cmp_id = id;
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
@@ -5791,19 +5793,19 @@ set_iterator_to_next (it, reseat_p)
 
     case GET_FROM_COMPOSITION:
       xassert (it->cmp_id >= 0 && it->cmp_id < n_compositions);
-      if (STRINGP (it->string))
+      xassert (it->sp > 0);
+      pop_it (it);
+      if (it->method == GET_FROM_STRING)
 	{
 	  IT_STRING_BYTEPOS (*it) += it->len;
 	  IT_STRING_CHARPOS (*it) += it->cmp_len;
-	  it->method = GET_FROM_STRING;
 	  it->object = it->string;
 	  goto consider_string_end;
 	}
-      else
+      else if (it->method == GET_FROM_BUFFER)
 	{
 	  IT_BYTEPOS (*it) += it->len;
 	  IT_CHARPOS (*it) += it->cmp_len;
-	  it->method = GET_FROM_BUFFER;
 	  it->object = it->w->buffer;
 	}
       break;
