@@ -74,7 +74,7 @@
   :group 'rcirc)
 
 (defcustom rcirc-default-user-full-name (if (string= (user-full-name) "")
-					    rcirc-user-name
+					    rcirc-default-user-name
 					  (user-full-name))
   "The full name sent to the server when connecting."
   :type 'string
@@ -469,7 +469,7 @@ Functions are called with PROCESS and SENTINEL arguments.")
   "Return a list of rcirc processes."
   (let (ps)
     (mapc (lambda (p)
-            (when (process-buffer p)
+            (when (buffer-live-p (process-buffer p))
               (with-rcirc-process-buffer p
                 (when (eq major-mode 'rcirc-mode)
                   (setq ps (cons p ps))))))
