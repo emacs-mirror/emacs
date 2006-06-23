@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.38}
+\def\orgversionnumber{4.39}
 \def\year{2006}
 %
 %**start of header
@@ -310,8 +310,12 @@ are preserved on all copies.
 \key{yank subtree}{C-c C-x C-y}
 \key{narrow buffer to current subtree}{C-x n s}
 
-\key{archive subtree}{C-c \$}
-\key{archive all fully done children}{C-u C-c \$}
+\section{Archiving}
+
+\key{toggle ARCHIVE tag}{C-c C-x C-a}
+\metax{mark fully dine children}{C-u C-c C-x C-a}
+\key{move subtree to achive file}{C-c \$}
+\key{move all fully done children}{C-u C-c \$}
 To set archive location for current file, add a line like$^2$:
 \vskip -1mm
 \beginexample%
@@ -327,11 +331,6 @@ To set archive location for current file, add a line like$^2$:
 \key{time sorted view of current org file}{C-c C-r}
 %\key{agenda for the week}{C-c a$^1$}
 %\key{agenda for date at cursor}{C-c C-o}
-
-\section{Dynamic Blocks}
-
-\key{update dynamic block at point}{C-c C-x C-u}
-\metax{update all dynamic blocks}{C-u C-c C-x C-u}
 
 \section{Tables}
 
@@ -546,6 +545,17 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{remove displayed times}{C-c C-c}
 \key{insert/update table with clock report}{C-c C-x C-r}
 
+\section{Dynamic Blocks}
+
+\key{update dynamic block at point}{C-c C-x C-u}
+\metax{update all dynamic blocks}{C-u C-c C-x C-u}
+
+\section{LaTeX and cdlatex-mode}
+
+\key{preview LaTeX fragment}{C-c C-x C-l}
+\key{Expand abbreviation (cdlatex-mode)}{TAB}
+\key{Insert/modify math symbol (cdlatex-mode)}{` / '}
+
 \section{Agenda Views}
 
 \key{add/move current file to front of agenda}{C-c [}
@@ -596,6 +606,7 @@ To set categories, add lines like$^2$:
 \key{change state of current TODO item}{t}
 \key{show tags of current headline}{T}
 \key{set tags for current headline}{:}
+\key{toggle ARCHIVE tag}{a}
 \key{set priority of current item}{p}
 \key{raise/lower priority of current item}{S-UP/DOWN$^3$}
 \key{display weighted priority of current item}{P}
