@@ -1,3 +1,11 @@
+2006-06-23  Daniel Brockman  <daniel@brockman.se>
+
+	* net/rcirc.el (rcirc-default-user-full-name): Default to
+	`rcirc-default-user-name' instead of `rcirc-user-name' (which no
+	longer exists).
+	(rcirc-process-list): Check `buffer-live-p' before attempting to
+	switch to a buffer.
+
 2006-06-23  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-mode): Fix initialization of coding systems
