@@ -1607,7 +1607,7 @@ Do you want to revisit the file normally now? ")
 	     (kill-buffer buf)
 	     (signal 'file-error (list "File is not readable"
 				       filename)))
-	   ;; Run find-file-not-found-hooks until one returns non-nil.
+	   ;; Run find-file-not-found-functions until one returns non-nil.
 	   (or (run-hook-with-args-until-success 'find-file-not-found-functions)
 	       ;; If they fail too, set error.
 	       (setq error t)))))
