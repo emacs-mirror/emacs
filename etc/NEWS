@@ -379,10 +379,6 @@ understand two new boolean pseudo-frame-parameters `same-frame' and
 ** The default for the paper size (variable ps-paper-type) is taken
 from the locale.
 
-** The command `list-faces-display' now accepts a prefix arg.
-When passed, the function prompts for a regular expression and lists
-only faces matching this regexp.
-
 ** Mark command changes:
 
 +++
@@ -4726,12 +4722,6 @@ connection is closed by the remote peer has been changed to
 
 This is like `window-height' but does not count the mode line or the
 header line.
-
-+++
-*** New function `window-body-height'.
-
-This is like `window-height' but does not count the mode line
-or the header line.
 
 +++
 *** You can now make a window as short as one line.
