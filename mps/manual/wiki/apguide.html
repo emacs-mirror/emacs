@@ -491,7 +491,7 @@ fail_make_object:
 
 <p>Incorrect-1: do not read references from the new object.  
   Dereferencing <code>neo-&gt;parent</code> is illegal.
-  (The code may use <code>parent-&gt;family</code>).</p>
+  (The code should use <code>parent-&gt;family</code>).</p>
 
 <p>Incorrect-2: making an exact reference to the new object is illegal.
   (The code should only do this after a successful commit).</p>
