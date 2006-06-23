@@ -20,6 +20,8 @@ document.]
 ** When you debug Emacs with GDB, you should start it in the directory
 where the executable was made.  That directory has a .gdbinit file
 that defines various "user-defined" commands for debugging Emacs.
+(These commands are described below under "Examining Lisp object
+values" and "Debugging Emacs Redisplay problems".)
 
 ** When you are trying to analyze failed assertions, it will be
 essential to compile Emacs either completely without optimizations or
@@ -276,9 +278,9 @@ Debugging with GDB in Emacs offers some advantages over the command line (See
 the GDB Graphical Interface node of the Emacs manual).  There are also some
 features available just for debugging Emacs:
 
-1) The command gud-pp isavailable on the tool bar (the `pp' icon) and allows
-   the user to print the s-expression of the variable at point, in the GUD
-   buffer.
+1) The command gud-pp is available on the tool bar (the `pp' icon) and
+   allows the user to print the s-expression of the variable at point,
+   in the GUD buffer.
 
 2) Pressing `p' on a component of a watch expression that is a lisp object
    in the speedbar prints its s-expression in the GUD buffer.
