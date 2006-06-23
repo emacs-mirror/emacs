@@ -1,3 +1,10 @@
+2006-06-23  Kim F. Storm  <storm@cua.dk>
+
+	* DEBUG: Mention `pv variable' to print value of Lisp variables.
+	Mention `xpr' and fix example to use it.  Add section describing
+	commands such as `pit' that are useful for debugging redisplay
+	related problems.
+
 2006-06-22  Kim F. Storm  <storm@cua.dk>
 
 	* HELLO (Local Variables): Move to end of file.
