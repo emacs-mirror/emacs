@@ -49,7 +49,7 @@ typedef struct {
   char  ac[cbStringlet];
 } StringletStruct, *Stringlet;
 
-static mps_addr_t myformat_skip(mps_addr_t addr)
+static mps_addr_t demoformat_skip(mps_addr_t addr)
 {
   return (char*)addr + cbStringlet;
 }
@@ -84,17 +84,17 @@ int main(void)
   {
     /* Create format */
     
-    struct mps_fmt_A_s myfmt_A = { 0 };
+    struct mps_fmt_A_s demofmt_A = { 0 };
     
-    myfmt_A.align = 4;
-    myfmt_A.scan  = (mps_fmt_scan_t)  1;
-    myfmt_A.skip  = myformat_skip;
-    myfmt_A.copy  = (mps_fmt_copy_t)  1;
-    myfmt_A.fwd   = (mps_fmt_fwd_t)   1;
-    myfmt_A.isfwd = (mps_fmt_isfwd_t) 1;
-    myfmt_A.pad   = (mps_fmt_pad_t)   1;
+    demofmt_A.align = 4;
+    demofmt_A.scan  = (mps_fmt_scan_t)  1;
+    demofmt_A.skip  = demoformat_skip;
+    demofmt_A.copy  = (mps_fmt_copy_t)  1;
+    demofmt_A.fwd   = (mps_fmt_fwd_t)   1;
+    demofmt_A.isfwd = (mps_fmt_isfwd_t) 1;
+    demofmt_A.pad   = (mps_fmt_pad_t)   1;
     
-    res = mps_fmt_create_A(&FormatDemo, ArenaDemo, &myfmt_A);
+    res = mps_fmt_create_A(&FormatDemo, ArenaDemo, &demofmt_A);
     if (res != MPS_RES_OK) {
       printf("mps_fmt_create_A: failed with res %d.\n", res);
       exit(2);
@@ -148,15 +148,13 @@ int main(void)
       pbBuffer[6] = ' ';
       printf(pbBuffer);
     }
-    
-    mps_free(PoolDemo, p, cbBuffer);
-    
-    report("Freed 256 bytes", ArenaDemo, PoolDemo);
   }
   
   {
     /* Clear up */
     
+    mps_fmt_destroy(FormatDemo);
+    report("Destroyed format", ArenaDemo, PoolDemo);
     mps_ap_destroy(ApDemo);
     report("Destroyed ap", ArenaDemo, PoolDemo);
     mps_pool_destroy(PoolDemo);
@@ -168,7 +166,7 @@ int main(void)
     "Success: The hello-world example code successfully allocated\n"
     "some memory using an allocation point with\n"
     "mps_reserve()..mps_commit(), in an LO pool, in a VM arena.\n"
-    "then freed the memory, and destroyed the ap, pool, and arena.\n"
+    "then destroyed the ap, pool, format, and arena.\n"
   );
   return 0;
 }
