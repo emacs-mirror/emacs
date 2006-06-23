@@ -1,3 +1,13 @@
+2006-06-23  Lars Hansen <larsh@soem.dk>
+	* desktop.el (desktop-full-file-name): New function.
+	(desktop-kill, desktop-save, desktop-remove, desktop-read)
+	(desktop-revert): Use it.
+	(desktop-clear, desktop-save, desktop-remove): Add autoload cookie.
+	(desktop-after-read-hook): Add option list-buffers.
+	(desktop-locals-to-save): Add tab-width.
+	(desktop-save-mode, desktop-no-desktop-file-hook, desktop-save-hook):
+	Fix docstring.
+
 2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-cdlatex-mode-map)
