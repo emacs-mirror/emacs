@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.38
+@set VERSION 4.39
 @set DATE June 2006
 
 @dircategory Emacs
@@ -83,11 +83,12 @@ Software Foundation raise funds for GNU development.''
 * Timestamps::                  Assign date and time to items
 * Tags::                        Tagging headlines and matching sets of tags
 * Agenda views::                Collecting information into views
+* Embedded LaTeX::              LaTeX fragments and formulas
 * Exporting::                   Sharing and publishing of notes
 * Publishing::                  Create a web site of linked Org-mode files
 * Miscellaneous::               All the rest which did not fit elsewhere
-* Extensions and Hacking::      
-* History and Acknowledgments::  
+* Extensions and Hacking::      It is possible to write add-on code
+* History and Acknowledgments::  How Org-mode came into being 
 * Index::                       The fast road to specific information
 * Key Index::                   Key bindings and where they are described
 
@@ -97,7 +98,7 @@ Software Foundation raise funds for GNU development.''
 Introduction
 
 * Summary::                     Brief summary of what Org-mode does
-* Installation and activation::  How to install Org-mode
+* Installation::                How to install Org-mode
 * Feedback::                    Bug reports, ideas, patches etc.
 
 Document Structure
@@ -110,6 +111,11 @@ Document Structure
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 * Plain lists::                 Editing hand-formatted lists
+
+Archiving
+
+* ARCHIVE tag::                 Marking a tree as inactive
+* Moving subtrees::             Moving a tree to an archive file
 
 Tables
 
@@ -190,6 +196,14 @@ The weekly/daily agenda
 * Calendar/Diary integration::  Integrating Anniversaries and more
 * Sorting of agenda items::     The order of things
 
+Embedded LaTeX
+
+* Math symbols::                TeX macros for symbols and greek letters
+* Subscripts and Superscripts::  Simple syntax for raising/lowering text
+* LaTeX fragments::             Complex formulas made easy
+* Processing LaTeX fragments::  Previewing LaTeX processing
+* CDLaTeX mode::                Speed up entering of formulas
+
 Exporting
 
 * ASCII export::                Exporting to plain ASCII
@@ -213,7 +227,7 @@ Publishing
 Configuration
 
 * Project alist::               The central configuration variable
-* File sources and destinations::  From here to there
+* Sources and destinations::    From here to there
 * Selecting files::             What files are part of the project?
 * Publishing action::           Setting the function doing the publishing
 * Publishing options::          Tweaking HTML export
@@ -229,7 +243,7 @@ Miscellaneous
 
 * Completion::                  M-TAB knows what you need
 * Customization::               Adapting Org-mode to your taste
-* Summary of in-buffer settings::  Using special lines to set options
+* In-buffer settings::          Overview of the #+KEYWORDS
 * The very busy C-c C-c key::   When in doubt, press C-c C-c
 * Clean view::                  Getting rid of leading stars in the outline
 * TTY keys::                    Using Org-mode on a tty
@@ -241,10 +255,10 @@ Interaction with other packages
 * Cooperation::                 Packages Org-mode cooperates with
 * Conflicts::                   Packages that lead to conflicts
 
-Extensions and Hacking
+Extensions, Hooks and Hacking
 
-* Extensions::                  
-* Dynamic blocks::              
+* Extensions::                  Existing 3rd-part extensions
+* Dynamic blocks::              Automatically filled blocks
 
 @end detailmenu
 @end menu
@@ -255,11 +269,11 @@ Extensions and Hacking
 
 @menu
 * Summary::                     Brief summary of what Org-mode does
-* Installation and activation::  How to install Org-mode
+* Installation::                How to install Org-mode
 * Feedback::                    Bug reports, ideas, patches etc.
 @end menu
 
-@node Summary, Installation and activation, Introduction, Introduction
+@node Summary, Installation, Introduction, Introduction
 @section Summary
 @cindex summary
 
@@ -308,7 +322,7 @@ questions (FAQ), links to tutorials etc.  This page is located at
 
 @page
 
-@node Installation and activation, Feedback, Summary, Introduction
+@node Installation, Feedback, Summary, Introduction
 @section Installation and Activation
 @cindex installation
 @cindex autoload
@@ -363,7 +377,7 @@ MY PROJECTS    -*- mode: org; -*-
 the file's name is.  See also the variable
 @code{org-insert-mode-line-in-empty-file}.
 
-@node Feedback,  , Installation and activation, Introduction
+@node Feedback,  , Installation, Introduction
 @section Feedback
 @cindex feedback
 @cindex bug reports
@@ -623,11 +637,69 @@ functionality.
 @node Archiving, Sparse trees, Structure editing, Document structure
 @section Archiving
 @cindex archiving
-@cindex filing subtrees
 
 When a project represented by a (sub)tree is finished, you may want
-to move the tree to an archive place, either in the same file under a
-special top-level heading, or even to a different file.
+to move the tree out of the way and to stop it from contributing to the
+agenda.  Org-mode knows two ways of archiving.  You can mark a tree with
+the ARCHIVE tag, or you can move an entire (sub)tree to a different
+location.
+
+@menu
+* ARCHIVE tag::                 Marking a tree as inactive
+* Moving subtrees::             Moving a tree to an archive file
+@end menu
+
+@node ARCHIVE tag, Moving subtrees, Archiving, Archiving
+@subsection The ARCHIVE tag
+@cindex internal archiving
+
+A headline that is marked with the ARCHIVE tag (@pxref{Tags}) stays at
+its location in the outline tree, but behaves in the following way:
+@itemize @minus
+@item
+It does not open when you attempt to do so with a visibility cycling
+command (@pxref{Visibility cycling}).  You can still open it with a
+normal outline command like @code{show-all}.  Or you can modify the
+option @code{org-cycle-open-archived-trees}.
+@item
+During sparse tree construction (@pxref{Sparse trees}), matches in
+archived subtrees are not exposed, unless you configure the option
+@code{org-sparse-tree-open-archived-trees}.
+@item
+During agenda view construction (@pxref{Agenda views}), the content of
+archived trees is ignored unless you configure the option
+@code{org-agenda-skip-archived-trees}.
+@item
+Archived trees are not exported (@pxref{Exporting}), only the headline
+is.  Configure the details using the variable
+@code{org-export-with-archived-trees}.
+@end itemize
+
+The following commands allow to set or clear the ARCHIVE tag:
+
+@table @kbd
+@kindex C-c C-x C-a
+@item C-c C-x C-a
+Toggle the ARCHIVE tag for the current headline.  When the tag is set,
+the headline changes to a shadowish face, and the subtree below it is
+hidden.
+@kindex C-u C-c C-x C-a
+@item C-u C-c C-x C-a
+Check if any direct children of the current headline should be archived.
+To do this, each subtree is checked for open TODO entries.  If none are
+found, the command offers to set the ARCHIVE tag for the child.  If the
+cursor is @emph{not} on a headline when this command is invoked, the
+level 1 trees will be checked.
+@end table
+
+@node Moving subtrees,  , ARCHIVE tag, Archiving
+@subsection Moving subtrees
+@cindex external archiving
+
+Once an entire project is finished, you may want to move it to a
+different location, either in the current file, or even in a different
+file, the archive file.
+
 @table @kbd
 @kindex C-c $
 @item C-c $
@@ -635,21 +707,19 @@ Archive the subtree starting at the cursor position to the location
 given by @code{org-archive-location}.
 @kindex C-u C-c $
 @item C-u C-c $
-When @kbd{C-c $} is called with @kbd{C-u} prefix argument, check for
-(sub)trees without any open TODO items and offer to archive them.  When
-the cursor is on a headline when this command is called, inly check the
-direct children of this headline.  When the cursor is @emph{not} on a
-headline, check all level 1 trees.
+Check if any direct children of the current headline could be moved to
+the archive.  To do this, each subtree is checked for open TODO entries.
+If none are found, the command offers to move it to the archive
+location.  If the cursor is @emph{not} on a headline when this command
+is invoked, the level 1 trees will be checked.
 @end table
 
 @cindex archive locations
-The default archive is a file in the same directory as the current
-file, with the name derived by appending @file{_archive} to the
-current file name.  For information and examples on how to change
-this, see the documentation string of the variable
-@code{org-archive-location}.  If you are also using the Org-mode
-agenda, archiving to a different file is a good way to keep archived
-trees from contributing agenda items.
+The default archive location is a file in the same directory as the
+current file, with the name derived by appending @file{_archive} to the
+current file name.  For information and examples on how to change this,
+see the documentation string of the variable
+@code{org-archive-location}.
 
 @node Sparse trees, Plain lists, Archiving, Document structure
 @section Sparse trees
@@ -821,6 +891,7 @@ If there is a checkbox in the item line, toggle the state of the
 checkbox.  Otherwise, if this is an ordered list, renumber the ordered
 list at the cursor.
 @end table
+
 
 @node Tables, Hyperlinks, Document structure, Top
 @chapter Tables
@@ -1679,8 +1750,7 @@ selected words will form the basis of the search string.  If the
 automatically created link is not working correctly or accurately
 enough, you can write custom functions to select the search string and
 to do the search for particular file types - see @ref{Custom searches}.
-The key binding @kbd{C-c l} is only a suggestion - see @ref{Installation
-and activation}.
+The key binding @kbd{C-c l} is only a suggestion - see @ref{Installation}.
 
 @kindex C-c C-l
 @cindex link completion
@@ -1731,11 +1801,11 @@ When the cursor is on an internal link, this commands runs the
 corresponding search.  When the cursor is on a TAG list in a headline,
 it creates the corresponding TAGS view.  If the cursor is on a time
 stamp, it compiles the agenda for that date.  Furthermore, it will visit
-text files in @samp{file:} links with Emacs and select a suitable
-application for non-text files.  Classification of files is based on
-file extension only.  See option @code{org-file-apps}.  If you want to
-override the default application and visit the file with Emacs, use a
-@kbd{C-u} prefix.
+text and remote files in @samp{file:} links with Emacs and select a
+suitable application for local non-text files.  Classification of files
+is based on file extension only.  See option @code{org-file-apps}.  If
+you want to override the default application and visit the file with
+Emacs, use a @kbd{C-u} prefix.
 
 @kindex mouse-2
 @kindex mouse-1
@@ -2647,7 +2717,7 @@ tagged @samp{:WORK:} or @samp{:LAPTOP:}.  The string
 @samp{WORK|LAPTOP&NIGHT} requires that the @samp{:LAPTOP:} lines are
 also tagged @samp{NIGHT}.
 
-@node Agenda views, Exporting, Tags, Top
+@node Agenda views, Embedded LaTeX, Tags, Top
 @chapter Agenda Views
 @cindex agenda views
 
@@ -2728,12 +2798,11 @@ to visit any of them.
 @cindex custom agenda commands
 @cindex agenda commands, custom
 The views are created through a dispatcher that should be bound to a
-global key, for example @kbd{C-c a} (@pxref{Installation and
-activation}).  In the following we will assume that @kbd{C-c a} is
-indeed how the dispatcher is accessed and list keyboard access to
-commands accordingly.  After pressing @kbd{C-c a}, an additional
-letter is required to execute a command.  The dispatcher offers the
-following default commands:
+global key, for example @kbd{C-c a} (@pxref{Installation}).  In the
+following we will assume that @kbd{C-c a} is indeed how the dispatcher
+is accessed and list keyboard access to commands accordingly.  After
+pressing @kbd{C-c a}, an additional letter is required to execute a
+command.  The dispatcher offers the following default commands:
 @table @kbd
 @item a
 Create the calendar-like agenda (@pxref{Weekly/Daily agenda}).
@@ -3127,6 +3196,10 @@ inheritance, this may be more than the tags listed in the line itself.
 @item :
 Set tags for the current headline.
 
+@kindex a
+@item a
+Toggle the ARCHIVE tag for the current headline.
+
 @kindex ,
 @item ,
 Set the priority for the current item.  Org-mode prompts for the
@@ -3243,7 +3316,200 @@ visit org files will not be removed.
 
 @end table
 
-@node Exporting, Publishing, Agenda views, Top
+@node Embedded LaTeX, Exporting, Agenda views, Top
+@chapter Embedded LaTeX
+@cindex @TeX{} interpretation
+@cindex La@TeX{} interpretation
+
+Plain ASCII is normally sufficient for almost all note taking.  One
+exception, however, are scientific notes which need to be able to
+contain mathematical symbols and the occasional formula.
+La@TeX{}@footnote{La@TeX{} is a macro system based on Donald E. Knuth's
+@TeX{} system.  Many of the features described here as ``La@TeX{}'' are
+really from @TeX{}, but for simplicity I am blurring this distinction.}
+is widely used to typeset scientific documents. Org-mode supports
+embedding La@TeX{} code into its files, because many academics are used
+to read La@TeX{} source code, and because it can be readily processed
+into images for HTML production.
+
+It is not necessary to mark La@TeX{} macros and code in any special way.
+If you observe a few conventions, Org-mode knows how to find it and what
+to do with it.
+
+@menu
+* Math symbols::                TeX macros for symbols and Greek letters
+* Subscripts and Superscripts::  Simple syntax for raising/lowering text
+* LaTeX fragments::             Complex formulas made easy
+* Processing LaTeX fragments::  Previewing LaTeX processing
+* CDLaTeX mode::                Speed up entering of formulas
+@end menu
+
+@node Math symbols, Subscripts and Superscripts, Embedded LaTeX, Embedded LaTeX
+@section Math symbols
+
+You can use La@TeX{} macros to insert special symbols like @samp{\alpha}
+to indicate the Greek letter, or @samp{\to} to indicate an arrow.
+Completion for these macros is available, just type @samp{\} and maybe a
+few letters, and press @kbd{M-@key{TAB}} to see possible completions.
+Unlike La@TeX{} code, Org-mode allows these macros to be present
+without surrounding math delimiters, for example:
+
+@example
+Angles are written as Greek letters \alpha, \beta and \gamma.
+@end example
+
+During HTML export (@pxref{HTML export}), these symbols are translated
+into the proper syntax for HTML, for the above examples this is
+@samp{&alpha;} and @samp{&rarr;}, respectively.
+
+@node Subscripts and Superscripts, LaTeX fragments, Math symbols, Embedded LaTeX
+@section Subscripts and Superscripts
+
+Just like in La@TeX{}, @samp{^} and @samp{_} are used to indicate super-
+and subscripts.  Again, these can be used without embedding them in
+math-mode delimiters.  To increase the readability of ASCII text, it is
+not necessary (but OK) to surround multi-character sub- and superscripts
+with curly braces.  For example
+
+@example
+The mass if the sun is M_sun = 1.989 x 10^30 kg.  The radius o
+the sun is R_@{sun@} = 6.96 x 10^8 m.
+@end example
+
+To avoid interpretation as raised or lowered text, you can quote
+@samp{^} and @samp{_} with a backslash: @samp{\_} and @samp{\^}.
+
+During HTML export (@pxref{HTML export}), subscript and superscripts
+are surrounded with @code{<sub>} and @code{<sup>} tags, respectively.
+
+@node LaTeX fragments, Processing LaTeX fragments, Subscripts and Superscripts, Embedded LaTeX
+@section LaTeX fragments
+
+With symbols, sub- and superscripts, HTML is pretty much at its end when
+it comes to representing mathematical formulas.  More complex
+expressions need a dedicated formula processor.  To this end, Org-mode
+can contain arbitrary La@TeX{} fragments.  It provides commands to
+preview the typeset result of these fragments, and upon export to HTML,
+all fragments will be converted to images and inlined into the HTML
+document.  For this to work you need to be on a system with a working
+La@TeX{} installation.  You also need the @file{dvipng} program,
+available at @url{http://sourceforge.net/projects/dvipng/}.
+
+La@TeX{} fragments don't need any special marking at all.  The following
+snippets will be identified as LaTeX source code:
+@itemize @bullet
+@item
+Environments of any kind.  The only requirement is that the
+@code{\begin} statements appears on a new line, preceded by only
+whitespace.
+@item
+Text within the usual La@TeX{} math delimiters.  Org-mode recognizes
+single @samp{$} characters as math delimiters only if they are directly
+attached to the surrounded text, with no whitespace in between.  For the
+other delimiters, there is no such restriction.
+@end itemize
+
+@noindent For example:
+
+@example
+\begin@{equation@}                          % arbitrary environments,
+x=\sqrt@{b@}                                % even tables, figures
+\end@{equation@}                            % etc
+
+If $a=\sqrt@{b@}$ and \( b=2 \), then the solution must be
+either $$ a=+\sqrt@{2@} $$ or \[ a=-\sqrt@{2@} \].
+@end example
+
+@noindent
+If you need any of the delimiter ASCII sequences for other purposes, you
+can configure the option @code{org-format-latex-options} to deselect the
+ones you do not wish to have interpreted by the La@TeX{} converter.
+
+@node Processing LaTeX fragments, CDLaTeX mode, LaTeX fragments, Embedded LaTeX
+@section Processing LaTeX fragments
+
+La@TeX{} fragments can be processed to produce a preview images of the
+typeset expressions:
+
+@table @kbd
+@kindex C-c C-x C-l
+@item C-c C-x C-l
+Produce a preview image of the La@TeX{} fragment at point and overlay it
+over the source code.  If there is no fragment at point, process all
+fragments in the current entry (between two headlines).  When called
+with a prefix argument, process the entire subtree.  When called with
+two prefix arguments, or when the cursor is before the first headline,
+process the entire buffer.
+@kindex C-c C-c
+@item C-c C-c
+Remove the overlay preview images.
+@end table
+
+During HTML export (@pxref{HTML export}), all La@TeX{} fragments are
+converted into images and inlined into the document if the following
+setting is active:
+
+@lisp
+(setq org-export-with-LaTeX-fragments t)
+@end lisp
+
+@node CDLaTeX mode,  , Processing LaTeX fragments, Embedded LaTeX
+@section Using CDLaTeX to enter math
+
+CDLaTeX-mode is a minor mode that is normally used in combination with a
+major LaTeX mode like AUCTeX in order to speed-up insertion of
+environments and math templates.  Inside Org-mode, you can make use of
+some of the features of cdlatex-mode by turning on a special minor mode
+with @code{M-x org-cdlatex-mode}.  You can also turn it on for all
+Org-mode files with
+
+@lisp
+(add-hook 'org-mode-hook 'turn-on-org-cdlatex)
+@end lisp
+
+When this mode is enabled, the following features are present (for more
+details see the documentation of cdlatex-mode):
+@itemize @bullet
+@kindex C-c @{
+@item
+Environment templates can be inserted with @kbd{C-c @{}.
+@item
+@kindex @key{TAB}
+The @key{TAB} key will do template expansion if the cursor is inside a
+LaTeX fragment@footnote{Org-mode has a heuristic method to test if the
+cursor is inside such a fragment, see the documentation of the function
+@code{org-inside-LaTeX-fragment-p}.}.  For example, @key{TAB} will
+expand @code{fr} to @code{\frac@{@}@{@}} and position the cursor
+correctly inside the first brace.  Another @key{TAB} will get you into
+the second brace.  Even outside fragments, @key{TAB} will expand
+environment abbreviations at the beginning of a line.  For example, if
+you write @samp{equ} at the beginning of a line and press @key{TAB},
+this abbreviation will be expanded to an @code{equation} environment.
+To get a list of all abbreviations, type @kbd{M-x
+cdlatex-command-help}. 
+@item
+@kindex _
+@kindex ^
+Pressing @kbd{_} and @kbd{^} inside a LaTeX fragment will insert these
+characters together with a pair of braces.  If you use @key{TAB} to move
+out of the braces, and if the braces surround only a single character or
+macro, they are removed again (depending on the variable
+@code{cdlatex-simplify-sub-super-scripts}).
+@item
+@kindex `
+Pressing the backquote @kbd{`} followed by a character inserts math
+macros, also outside LaTeX fragments.  If you wait more than 1.5 seconds
+after the backquote, a help window will pop up.
+@item
+@kindex '
+Pressing the normal quote @kbd{'} followed by another character modifies
+the symbol before point with an accent or a font.  If you wait more than
+1.5 seconds after the backquote, a help window will pop up.  Character
+modification will work only inside La@TeX{} fragments, outside the quote
+is normal.
+@end itemize
+
+@node Exporting, Publishing, Embedded LaTeX, Top
 @chapter Exporting
 @cindex exporting
 
@@ -3505,7 +3771,6 @@ formatting, this is true in particular for the HTML backend.  Org-mode
 has a number of typing conventions that allow to produce a richly
 formatted output.
 
-
 @itemize @bullet
 
 @cindex hand-formatted lists
@@ -3519,22 +3784,14 @@ backend supports lists.  See @xref{Plain lists}.
 @cindex bold text
 @cindex italic text
 @item
-You can make words @b{*bold*}, @i{/italic/}, and _underlined_
+You can make words @b{*bold*}, @i{/italic/}, _underlined_,
+@code{=code=}, and @samp{+strikethrough+}.
 
-@cindex @TeX{} interpretation
+@cindex LaTeX fragments, export
+@cindex TeX macros, export
 @item
-Simple @TeX{}-like math constructs are interpreted:
-
-@cindex completion, of @TeX{} symbols
-@itemize @minus
-@item
-@samp{10^22} and @samp{J_n} are super- and subscripts.  You can quote
-@samp{^} and @samp{_} with a backslash: @samp{\_} and @samp{\^}
-@item
-@samp{\alpha} indicates a Greek letter, @samp{\to} an arrow.  You can
-use completion for these macros, just type @samp{\} and maybe a few
-letters, and press @kbd{M-@key{TAB}} to see possible completions.
-@end itemize
+Many @TeX{} macros and entire La@TeX{} fragments are converted into HTML
+entities or images (@pxref{Embedded LaTeX}).
 
 @cindex tables, export
 @item
@@ -3566,6 +3823,7 @@ customization group @code{org-export-general}, and the following section
 which explains how to set export options with special lines in a
 buffer.
 
+
 @node Export options,  , Enhancing text, Text interpretation
 @subsection Export options
 @cindex options, for export
@@ -3591,7 +3849,7 @@ Insert template with export options, see example below.
 #+LANGUAGE:  language for HTML, e.g. @samp{en} (@code{org-export-default-language})
 #+TEXT:      Some descriptive text to be inserted at the beginning.
 #+TEXT:      Several lines may be given.
-#+OPTIONS:   H:2  num:t  toc:t  \n:nil  @:t  ::t  |:t  ^:t  *:nil  TeX:t
+#+OPTIONS:   H:2 num:t toc:t \n:nil @@:t ::t |:t ^:t *:nil TeX:t LaTeX:t
 @end example
 
 @noindent
@@ -3607,6 +3865,7 @@ you can:
 @cindex @TeX{}-like syntax for sub- and superscripts
 @cindex emphasized text
 @cindex @TeX{} macros
+@cindex La@TeX{} fragments
 @example
 H:      @r{set the number of headline levels for export}
 num:    @r{turn on/off section-numbers}
@@ -3617,11 +3876,13 @@ toc:    @r{turn on/off table of contents}
 |:      @r{turn on/off tables}
 ^:      @r{turn on/off @TeX{}-like syntax for sub- and superscripts.}
 *:      @r{turn on/off emphasized text (bold, italic, underlined)}
-TeX:    @r{turn on/off @TeX{} macros}
+TeX:    @r{turn on/off simple @TeX{} macros in plain text}
+LaTeX:  @r{turn on/off La@TeX{} fragments}
 @end example
 
 @node Publishing, Miscellaneous, Exporting, Top
 @chapter Publishing
+@cindex publishing
 
 Org-mode includes@footnote{@file{org-publish.el} is not yet part of
 emacs, so if you are using @file{org.el} as it comes with Emacs, you
@@ -3650,7 +3911,7 @@ and many other properties of a project.
 
 @menu
 * Project alist::               The central configuration variable
-* File sources and destinations::  From here to there
+* Sources and destinations::    From here to there
 * Selecting files::             What files are part of the project?
 * Publishing action::           Setting the function doing the publishing
 * Publishing options::          Tweaking HTML export
@@ -3658,8 +3919,10 @@ and many other properties of a project.
 * Project page index::          Publishing a list of project files
 @end menu
 
-@node Project alist, File sources and destinations, Configuration, Configuration
+@node Project alist, Sources and destinations, Configuration, Configuration
 @subsection The variable @code{org-publish-project-alist}
+@cindex org-publish-project-alist
+@cindex projects, for publishing
 
 Org-publish is configured almost entirely through setting the value of
 one variable, called @code{org-publish-project-alist}.
@@ -3684,8 +3947,9 @@ project, which group together files requiring different publishing
 options. When you publish such a ``meta-project'' all the components
 will also publish.
 
-@node File sources and destinations, Selecting files, Project alist, Configuration
+@node Sources and destinations, Selecting files, Project alist, Configuration
 @subsection Sources and destinations for files
+@cindex directories, for publishing
 
 Most properties are optional, but some should always be set. In
 particular, org-publish needs to know where to look for source files,
@@ -3699,8 +3963,9 @@ and where to put published files.
 @end multitable
 @noindent
 
-@node Selecting files, Publishing action, File sources and destinations, Configuration
+@node Selecting files, Publishing action, Sources and destinations, Configuration
 @subsection Selecting files
+@cindex files, selecting for publishing
 
 By default, all files with extension @file{.org} in the base directory
 are considered part of the project.  This can be modified by setting the
@@ -3722,6 +3987,7 @@ and @code{:exclude}.
 
 @node Publishing action, Publishing options, Selecting files, Configuration
 @subsection Publishing Action
+@cindex action, for publishing
 
 Publishing means that a file is copied to the destination directory and
 possibly transformed in the process.  The default transformation is to
@@ -3746,6 +4012,7 @@ provides one for attachments (files that only need to be copied):
 
 @node Publishing options, Publishing links, Publishing action, Configuration
 @subsection Options for the HTML exporter
+@cindex options, for publishing
 
 The property list can be used to set many export options for the HTML
 exporter.  In most cases, these properties correspond to user variables
@@ -3758,9 +4025,11 @@ respective variable for details.
 @item @code{:headline-levels}       @tab @code{org-export-headline-levels}
 @item @code{:section-numbers}       @tab @code{org-export-with-section-numbers}
 @item @code{:table-of-contents}     @tab @code{org-export-with-toc}
+@item @code{:archived-trees}        @tab @code{org-export-with-archived-trees}
 @item @code{:emphasize}             @tab @code{org-export-with-emphasize}
 @item @code{:sub-superscript}       @tab @code{org-export-with-sub-superscripts}
 @item @code{:TeX-macros}            @tab @code{org-export-with-TeX-macros}
+@item @code{:LaTeX-fragments}       @tab @code{org-export-with-LaTeX-fragments}
 @item @code{:fixed-width}           @tab @code{org-export-with-fixed-width}
 @item @code{:timestamps}           .@tab @code{org-export-with-timestamps}
 @item @code{:tags}                 .@tab @code{org-export-with-tags}
@@ -3787,6 +4056,7 @@ options}), however, override everything.
 
 @node Publishing links, Project page index, Publishing options, Configuration
 @subsection Links between published files
+@cindex links, publishing
 
 To create a link from one Org-mode file to another, you would use
 something like @samp{[[file:foo.org][The foo]]} or simply
@@ -3820,6 +4090,7 @@ file is part of any project in @code{org-publish-project-alist}.
 
 @node Project page index,  , Publishing links, Configuration
 @subsection Project page index
+@cindex index, of published pages
 
 The following properties may be used to control publishing of an
 index of files or summary page for a given project.
@@ -3950,7 +4221,7 @@ force publishing of all files by giving a prefix argument.
 @menu
 * Completion::                  M-TAB knows what you need
 * Customization::               Adapting Org-mode to your taste
-* Summary of in-buffer settings::  Using special lines to set options
+* In-buffer settings::          Overview of the #+KEYWORDS
 * The very busy C-c C-c key::   When in doubt, press C-c C-c
 * Clean view::                  Getting rid of leading stars in the outline
 * TTY keys::                    Using Org-mode on a tty
@@ -4001,8 +4272,7 @@ Elsewhere, complete dictionary words using ispell.
 @end itemize
 @end table
 
-
-@node Customization, Summary of in-buffer settings, Completion, Miscellaneous
+@node Customization, In-buffer settings, Completion, Miscellaneous
 @section Customization
 @cindex customization
 @cindex options, for customization
@@ -4014,9 +4284,9 @@ describing the variables here.  A structured overview of customization
 variables is available with @kbd{M-x org-customize}.  Or select
 @code{Browse Org Group} from the @code{Org->Customization} menu.  Many
 settings can also be activated on a per-file basis, by putting special
-lines into the buffer (@pxref{Summary of in-buffer settings}).
+lines into the buffer (@pxref{In-buffer settings}).
 
-@node Summary of in-buffer settings, The very busy C-c C-c key, Customization, Miscellaneous
+@node In-buffer settings, The very busy C-c C-c key, Customization, Miscellaneous
 @section Summary of in-buffer settings
 @cindex in-buffer settings
 @cindex special keywords
@@ -4086,7 +4356,7 @@ These lines provide settings for exporting files.  For more details see
 @ref{Export options}.
 @end table
 
-@node The very busy C-c C-c key, Clean view, Summary of in-buffer settings, Miscellaneous
+@node The very busy C-c C-c key, Clean view, In-buffer settings, Miscellaneous
 @section The very busy C-c C-c key
 @kindex C-c C-c
 
@@ -4305,6 +4575,11 @@ at @url{http://www.astro.uva.nl/~dominik/Tools}. Org-mode checks for
 the function @code{constants-get}, which has to be autoloaded in your
 setup.  See the installation instructions in the file
 @file{constants.el}.
+@item @file{cdlatex.el} by Carsten Dominik
+@cindex @file{cdlatex.el}
+Org-mode can make use of the cdlatex package to efficiently enter
+La@TeX{} fragments into Org-mode files.
+@file{cdlatex.el} is not part of Emacs, find it on the web.
 @item @file{remember.el} by John Wiegley
 @cindex @file{remember.el}
 Org mode cooperates with remember, see @ref{Remember}.
@@ -4405,8 +4680,8 @@ It also covers some aspects where users can easily extend the
 functionality of Org-mode.
 
 @menu
-* Extensions::                  
-* Dynamic blocks::              
+* Extensions::                  Existing 3rd-part extensions
+* Dynamic blocks::              Automatically filled blocks
 @end menu
 
 @node Extensions, Dynamic blocks, Extensions and Hacking, Extensions and Hacking
@@ -4435,6 +4710,7 @@ caused by the preparations for the 22.1 release.  In the mean time,
 @cindex @file{org-blog.el}
 @item @file{org-blog.el} by David O'Toole
 A blogging plug-in for @file{org-publish.el}.
+@url{http://dto.freeshell.org/notebook/OrgMode.html}.
 @cindex @file{org-blogging.el}
 @item @file{org-blogging.el} by  Bastien Guerry
 Publish Org-mode files as
@@ -4507,24 +4783,27 @@ written in a way that is does nothing in buffers that are not in Org-mode.
 @cindex history
 @cindex thanks
 
-Org-mode was conceived in 2003 out of frustration over the user
-interface of the emacs outline-mode.  The first driver was simply to
-make working with an outline tree possible without having to remember
-more than 10 commands just for hiding and unhiding parts of the outline
-tree, and to allow to restructure a tree easily.  Visibility cycling and
-structure editing were originally implemented in the package
+The beginnings of Org-mode go back to 2003.  It was borne out of
+frustration over the user interface of the emacs outline-mode.  All I
+wanted was to make working with an outline tree possible without having
+to remember more than 10 commands just for hiding and unhiding parts of
+the outline tree, and to allow to restructure a tree easily.  Visibility
+cycling and structure editing were originally implemented in the package
 @file{outline-magic.el}, but quickly moved to the more general
-@file{org.el}.  TODO entries and table support were added relatively
-quickly, and pointed to the two main drivers of Org-mode: Creating a
-new plain text mode with intuitive editing features, and to
-incorporate project planning functionality directly into a notes file.
+@file{org.el}.  TODO entries, basic time stamps, and table support were
+added next, and highlight the two main goals that Org-mode still has
+today:  To create a new, outline-based, plain text mode with innovative
+and intuitive editing features, and to incorporate project planning
+functionality directly into a notes file.
 
-Since the first release, hundreds of emails either directly to me or
-later on @code{emacs-orgmode@@gnu.org} have been a constant source of
-bug reports, feedback and new ideas.  While I cannot mention everyone, I
-try to keep here a list of the people who had significant
-influence in shaping one or more aspects of Org-mode.  Many thanks to
-all of you.  If I have forgotten someone, please accept my apologies.
+Since the first release, hundreds of emails to me or on
+@code{emacs-orgmode@@gnu.org} have provided a constant stream of bug
+reports, feedback, new ideas, and sometimes even patches and add-on
+code.  Many thanks to everyone who has helped to improve this package.
+I am trying to keep here a list of the people who had significant
+influence in shaping one or more aspects of Org-mode.  The list may not
+be complete, if I have forgotten someone, please accept my apologies and
+let me know.
 
 @itemize @bullet
 @item
@@ -4551,6 +4830,8 @@ calculations and improved XEmacs compatibility, in particular by porting
 patched CSS formatting into the HTML exporter, and inspired the agenda.
 @item
 @i{Nic Ferrier} contributed mailcap and XOXO support.
+@item
+@i{Niels Giessen} had the idea to automatically archive DONE trees.
 @item
 @i{Bastien Guerry} provoded extensive feedback.
 @item
@@ -4590,10 +4871,9 @@ other things.
 @item
 Linking to VM/BBDB/GNUS was inspired by @i{Tom Shannon}'s
 @file{organizer-mode.el}.
-@c FIXME:
-@c @item
-@c @i{Daniel Sinder} came up with the idea if internal archiving my locking
-@c subtrees.
+@item
+@i{Daniel Sinder} came up with the idea of internal archiving my locking
+subtrees.
 @item
 @i{David O'Toole} wrote @file{org-publish.el} and drafted the manual
 chapter about publishing.
