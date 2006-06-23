@@ -1,3 +1,10 @@
+2006-06-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-diff-knows-L): New variable.
+	(vc-diff-internal): Use it to handle "diff" programs that don't
+	understand -L.  This works automatically, no user action is
+	necessary.
+
 2006-06-23  Daniel Brockman  <daniel@brockman.se>
 
 	* net/rcirc.el (rcirc-default-user-full-name): Default to
