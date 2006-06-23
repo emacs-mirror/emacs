@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+  <title>MPS Wiki: Allocation Points -- Internals</title>
+  <style type = "text/css">
+    <!--
+    div.banner {text-align:center}
+    dt {font-weight:bold}
+    
+    -->
+  </style>
+</head>
+
+<body>
+
+<div class="banner">
+
+<p>
+<a href="/">Ravenbrook</a>
+/ <a href="/project/">Projects</a>
+/ <a href="/project/mps/">Memory Pool System</a>
+/ <a href="/project/mps/master/">Master Product Sources</a>
+/ <a href="/project/mps/master/manual/">Manuals</a>
+/ <a href="/project/mps/master/manual/wiki/">Wiki</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+<h1>MPS Wiki: Allocation Points -- Internals</h1>
+
+<address>
+<a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2006-06-09
+</address>
+
+</div>
+
+<p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS developers.  </p>
+
+<p>These notes on Allocation Points were written by RHSK between 
+  2006-06-12 and 2006-06-23, following research and discussion with 
+  RB and NB.</p>
+
+<p><strong>Warning:</strong> this article is more of a technical 
+  discussion than a set of facts.  It is not authoritative.
+  This is not (yet) an accurate statement of the MPS ap protocol.  
+  RHSK 2006-06-23.</p>
+
+<h2><a id="synchronization">Synchronization</a></h2>
+
+<p>The synchronization issues are a little tricky.</p>
+
+<h3>scenario</h3>
+
+<p>The MPS allocation point protocol is a binary protocol.  You don't 
+  have to use the mps_reserve and mps_commit macros, but they are 
+  conventional and useful pre-packaged implementations.  
+  I'm using them as an example of correct protocol, referring to
+  <a href="http://www.ravenbrook.com/project/mps/master/code/mps.h">mps.h#17</a>.
+  It looks like this:</p>
+
+<pre><code>#define mps_reserve(_p_o, _mps_ap, _size) \
+  ((char *)(_mps_ap)-&gt;alloc + (_size) &gt; (char *)(_mps_ap)-&gt;alloc &amp;&amp; \
+   (char *)(_mps_ap)-&gt;alloc + (_size) &lt;= (char *)(_mps_ap)-&gt;limit ? \
+     ((_mps_ap)-&gt;alloc = \
+       (mps_addr_t)((char *)(_mps_ap)-&gt;alloc + (_size)), \
+      *(_p_o) = (_mps_ap)-&gt;init, \
+      MPS_RES_OK) : \
+     mps_ap_fill(_p_o, _mps_ap, _size))
+
+#define mps_commit(_mps_ap, _p, _size) \
+  ((_mps_ap)-&gt;init = (_mps_ap)-&gt;alloc, \
+   (_mps_ap)-&gt;limit != 0 || mps_ap_trip(_mps_ap, _p, _size))
+</code></pre>
+
+<p>Abstractly, the mutator code has a cycle of four operations on the 
+  allocation point:</p>
+<dl>
+  <dt> Lr </dt>
+  <dd> read Limit at reserve </dd>
+  
+  <dt> A </dt>
+  <dd> write Alloc at reserve </dd>
+  
+  <dt> I </dt>
+  <dd> write Init at commit </dd>
+  
+  <dt> Lc </dt>
+  <dd> read Limit at commit </dd>
+</dl>
+
+<p>The normal cycle is Lr A I Lc.</p>
+
+<p>After Lr, the mutator checks that A + size &lt;= Lr.  If this fails, 
+  then the mutator does mps_ap_fill instead of A.  So Lr mps_ap_fill I Lc 
+  is also a valid cycle.</p>
+
+<p>After Lc, the mutator checks that Lc != 0.  If this fails, the 
+  mutator will call mps_ap_trip before beginning a new cycle.  So 
+  Lr A I Lc mps_ap_trip is also a valid cycle.</p>
+
+<p>The mutator cannot interrupt the 
+  collector.</p>
+
+<p>The collector can interrupt the mutator (between any 
+  two mutator instructions).  The collector can only see the A, I, 
+  and mps_ap_trip (if present) operations; Lr and Lc are invisible 
+  to it.</p>
+
+<p>If the ap is not going to trip, the collector sees two 
+  equivalence classes:</p>
+<ul>
+  <li> (A)</li>
+  <li> (I Lc Lr)</li>
+</ul>
+
+<p>If the ap is going to trip, the collector sees four
+  equivalence classes:</p>
+<ul>
+  <li> (A)</li>
+  <li> (I Lc)</li>
+  <li> (the call to mps_ap_trip)</li>
+  <li> (mps_ap_trip Lr)</li>
+</ul>
+
+<p>The collector has two responsibilities:</p>
+<dl>
+  <dt> FIX </dt> 
+  <dd> to fix (or not fix) references TO the object;</dd>
+  <dt> SCAN </dt>
+  <dd> to scan (or not scan) references IN the object.</dd>
+</dl>
+
+<h3>A mutator with ambiguous references only (to the new object)</h3>
+
+<p>Let's see what's required for a mutator that promises to make no 
+  exact references to the new object until Lc succeeds, 
+  and promises to have at least one ambiguous reference to the 
+  new object when it sets I.</p>
+  
+<p>Consider a flip -- f1 -- in state A.</p>
+
+<p>The collector at f1 sees (A), and recognises that the I..A region 
+  is unmanaged memory.  
+  The object is never going to be valid, 
+  because it may contain stale references from before the flip, and the 
+  collector can't fix them.</p>
+
+<p>The f1 collector writes L = 0, tripping the allocation 
+  point, and the rest of this collection is easy.  
+  The FIX responsibility is easy: 
+  all references to the new object are ambiguous, so the 
+  collector can fix them or not -- it 
+  doesn't matter.  
+  For SCAN, the collector must not scan the new object 
+  (because it is not yet formatted), so 
+  it must not scan the buffered pool beyond I.</p>
+
+<p>Further collections at this point are idempotent.</p>
+
+<p>Now, suppose the mutator then restarts, but only gets as far 
+  as (I Lc) before we have a second collection and a 
+  second flip -- f2.</p>
+
+<p>For FIX, f2 can fix or not -- it still doesn't matter.</p>
+
+<p>But for SCAN, f2 <strong>MUST NOT</strong> scan the new object.
+  Why not?</p>
+
+<p>The mutator's format code will be okay: the fact 
+  that I is set tells f2 that the object 
+  is fully formatted.</p>
+
+<p>But there is a problem: the object may contain stale exact 
+  references -- unfixed references from before f1.  
+  These stale exact references will be bogus.  
+  Opinions differ on the implications of bogus exact references.  
+  See the next section for a discussion.</p>
+
+<p>Additionally, the collector is not <em>obliged</em> to scan the 
+  object: this object is dead!  
+  The mutator will later notice that Lr == 0 and realise the object 
+  is invalid.  The mutator is not relying 
+  on this object to keep anything else alive.</p>
+
+<p>It is easy to avoid scanning the invalid object: 
+  the first flip in state (A), f1, must record the value of I.  
+  Call the recorded pointer If1.  
+  Collections must not scan beyond If1.  
+  If1 remains set until the mutator calls mps_ap_trip, 
+  which resets If1 to 0.
+  [Note: I have not checked whether the MPS 
+  records and uses If1 -- RHSK 2006-06-12]</p>
+
+<h3>How bad is a bogus exact reference?</h3>
+
+<p>Tucker said:</p>
+<blockquote><p>I believe the collector must be prepared to deal 
+  with exact dangling pointers anyways, so this complex 
+  mechanism is unnecessary.  
+  [<a href="/project/mps/mail/1997/05/12/12-46/1.txt">//info.ravenbrook.com/project/mps/mail/1997/05/12/12-46/1.txt:X-MMInfo-Tag: mail.ptw.1997-05-12.12-46(1)</a>]
+</p></blockquote>
+
+<p>I'm not convinced.</p>
+
+<p>Fixing a bogus exact reference is bad news.  
+  The worst case is spoofing:
+  Imagine the bogus exact reference points at part of a 
+  JPEG that <em>just happens</em> to look like a validly formatted 
+  object.  
+  If this JPEG is in the middle of an object in a moving MPS 
+  pool, fixing the bogus exact reference will overwrite a portion 
+  of the JPEG with a forwarding object.  
+  It gets worse: the spoof object is preserved and will later be 
+  scanned, producing more bogus exact references!
+  For "JPEG", you can substitute "encrypted string".</p>
+
+<p>The only safe way to cope with such a bogus reference is for 
+   Fix to verify that the reference points to the start of a real 
+   object, which it could do by iterating the format skip method 
+   from some known point in the pool.</p>
+
+<p>The consequences of fixing a bogus exact 
+  reference may be:</p>
+<ul>
+  <li> Referent is not in MPS memory:
+    <ul>
+      <li> MPS must detect and ignore these; there should be a 
+           debug option to report it;</li>
+    </ul>
+  </li>
+  <li> Referent is not validly formatted:
+    <ul>
+      <li> mutator format code crashes; or</li>
+      <li> mutator format code does something stupid or 
+           illegal, and causes corruption or makes MPS crash; or</li>
+      <li> (if we're lucky) mutator format code detects this 
+           and avoids any harmful action.</li>
+    </ul>
+  </li>
+  <li> Referent appears validly formatted, but is a spoof 
+       (that is, it is actually data inside some other 
+       object):
+    <ul>
+      <li> in a moving pool: the object is silently corrupted 
+           with a forwarding pointer, and the spoof object is 
+           preserved and will later be scanned, producing more 
+           bogus exact references!</li>
+      <li> in a non-moving pool: object is safe from corruption, 
+           but MPS greying/blackening code needs to be robust to 
+           this case.</li>
+    </ul>
+  </li>
+  <li> Referent is a validly formatted but dead object:
+    <ul>
+      <li>it gets needlessly preserved;</li>
+      <li>if it had been dead for some time, this dead object may 
+          itself contain bogus exact references, and these will get 
+          'fixed' too.</li>
+    </ul>
+  </li>
+</ul>  
+
+<p>Also, more arcanely, I wonder whether there's a problem if the 
+  referent violates the tri-colour invariant (when scanning at 
+  black)?  Does the MPS care about this, or does it 'safely' just 
+  cause more conservatism?  Does MPS detect and flag this in 
+  debug versions?  Could it?</p>
+
+<p>If MPS or format code detects a bogus exact reference, it could 
+  assert, and/or to fix them to a canonical special value.</p>
+
+<p>Some possible contracts between mutator and collector:</p>
+<ol>
+  <li>Mutator and collector promise never to have bogus exact 
+    references.  The collector is permitted to crash if it 
+    encounters one.</li>
+  <li>Mutator agrees that bogus exact references are wrong.  
+    But mutator would like a helpful error message, please.  
+    (Collector is not permitted to crash).</li>
+  <li>Mutator wants permission to keep bogus exact references 
+    in certain circumstances, such as on the stack.  Collector 
+    must cope safely.  Need to specify how this is guaranteed, 
+    based on intimate knowledge of the mutator's behaviour.  
+    Dodgy.</li>
+  <li>Mutator wants permission to keep bogus exact references 
+    in general.  Collector must safely cope with all the cases 
+    of bogus exact references listed above.  I believe the MPS 
+    does not currently do this.  It would require a very fast 
+    check at fix time that the reference is to the start of a 
+    valid object in an MPS client pool.</li>
+</ol>
+
+<h3>with exact refs</h3>
+
+<p>For an all-exact mode of use, mutator must make an exact pointer 
+before setting I=A, and must keep it at least until it after 
+it has read Lc to see whther the commit succeeded.</p>
+
+<p>So, some additions to the AP User's Guide, in the section on mps_reserve:</p>
+
+<blockquote>
+<p>Secondly, "raw data" means that any references TO the new 
+  object are treated like other references to unmanaged memory.
+      [.belief.refs-to-uninit-safe:
+       We're 'sure', but I need to check this.  What does Fix 
+       actually do with a pointer into the init-alloc zone?  We
+       hope it ignores it.  RHSK 2006-06-09]
+  Because of this, you are permitted to connect the new object 
+  into your graph of managed objects immediately.  The MPS gives 
+  you these guarantees:</p>
+<ul>
+  <li> the new object is pinned (won't move), so references to it 
+    that you write in old objects won't become stale at this time 
+    (but see <code>mps_commit</code> below!)</li>
+  <li> although the new object is 'reachable' by these references,
+    at this stage (while I &lt; A) the MPS knows it 
+    is not yet managed, and will not try to preserve it;</li>
+  <li> the MPS will not call the client's format code to answer 
+    questions about the new object.</li>
+</ul>
+</blockquote>
+
+<p>And to the section on mps_commit:</p>
+<blockquote>
+  <p>When this happens the client should take care to clear up any 
+    managed references to the (now vanished) new object.</p>
+  
+  <p>[But there's a hole here, before the client does this.  
+      Are managed (aka scanned) references TO 
+      it still safe?  They were safe during building 
+      (by .belief.refs-to-uninit-safe).  But now the AP pointers have 
+      gone away.  Are they still safe?  
+      Clearly, if they are only RankAMBIG, they are safe.  
+      What if they are RankEXACT?
+      RHSK 2006-06-09]</p>
+    
+  <p>[Discussion with RB 2006-06-09: yes, that's a problem for exact 
+      references.  Must not make any exact refs to a new object.  And 
+      unmanaged refs are not sufficient, because they won't preserve the 
+      new object during commit.  So must make at least one ambiguous 
+      ref to new object before calling commit.  That's the truth 
+      currently.  There are various ways to solve this to allow 
+      purely-exact mutators.  For instance, 
+      keep the old init..alloc address-space flagged as a zombie zone, 
+      until some communication with mutator (perhaps another reserve 
+      from same AP?) indicates that mutator has removed all those 
+      pesky exact refs to the now-dead ex-new object.  RHSK 2006-06-09]</p>
+</blockquote>  
+
+<p>See <a href="unmanaged.html">issues with unmanaged workspace</a> for 
+  a discussion of the "abort" phase, which we need to define 
+  for allocation points.</p>
+
+<p>The MPS needs to keep the buffer mapped for some time -- 
+  until the mutator has stopped writing into it.
+  The MPS needs to remember If1 forever.  
+  The MPS needs to remember the rest of the 
+  about-to-be-detached buffer structure for some time -- 
+  when is the MPS permitted to detach the buffer?</p>
+
+<p>Keeping the buffer mapped consumes resource.  
+  There must be a contract with the mutator about when the 
+  MPS is permitted to free it.  
+</p>
+
+<p>We could define the protocol such that there is a window: 
+  after the mutator discovers that it has lost the race, but 
+  while the collector is still remembering that this object 
+  is invalid.  The mutator could use this window to null-out 
+  exact references to the new object.</p>
+
+<p>This window could be after Lc and before calling mps_ap_trip.  
+  During this time, 
+  the collector must keep the new object as pinned unmanaged 
+  memory.  By calling mps_ap_trip, the mutator promises that 
+  it has nulled-out any exact references to the new object, 
+  and the collector in mps_ap_trip may unmap the memory or 
+  safely re-use it without fear of spoofing.</p>
+  
+<p>Or, we could leave the window open until mps_ap_fill is 
+  called.  We just need to define it.</p>
+
+<h3>flipping at other times</h3>
+
+<p>Perhaps the collector wants to flip even when the ap is not 
+  at (A).  Need to analyse synchronization issues here.</p>
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<pre>
+(As part of GC article)
+  2006-06-12  RHSK  Allocation point internals: Scenario; A mutator with 
+                    ambiguous references only (to the new object); How 
+                    bad is a bogus exact reference?; quick notes on: with 
+                    exact refs; flipping at other times.
+  2006-06-15  RHSK  Allocation Points: clarifications and further notes 
+                    into User Guide and Internals, including initializing 
+                    as-yet unused parts of new objects to reduce spoofing.
+  2006-06-22  RHSK  Move rough notes .talk.RB.2006-06-13 etc elsewhere.
+                    Make AP User Guide consistently .assume.ambig-workspace,
+                    moving notes to APInternals; add Intro and Mistakes;
+                    check example code.
+
+(As part of AP User Guide article)
+  2006-06-22  RHSK  Created from GC article.
+
+(This article)
+  2006-06-23  RHSK  Created from AP User Guide article.
+</pre>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 2006 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div class="banner">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a>
+/ <a href="/project/">Projects</a>
+/ <a href="/project/mps/">Memory Pool System</a>
+/ <a href="/project/mps/master/">Master Product Sources</a>
+/ <a href="/project/mps/master/manual/">Manuals</a>
+/ <a href="/project/mps/master/manual/wiki/">Wiki</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
