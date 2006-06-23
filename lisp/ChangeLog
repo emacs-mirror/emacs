@@ -1,3 +1,8 @@
+2006-06-23  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-mode): Fix initialization of coding systems
+	based on rcirc-coding-system-alist.
+
 2006-06-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-edit.el (customize-apropos): A better error message.
