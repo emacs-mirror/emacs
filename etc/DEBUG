@@ -84,7 +84,9 @@ arguments.  This calls a subroutine which uses the Lisp printer.
 
 You can also use `pp value' to print the emacs value directly.
 
-Note: It is not a good idea to try `pr' or `pp' if you know that Emacs
+To see the current value of a Lisp Variable, use `pv variable'.
+
+Note: It is not a good idea to try `pr', `pp', or `pv' if you know that Emacs
 is in deep trouble: its stack smashed (e.g., if it encountered SIGSEGV
 due to stack overflow), or crucial data structures, such as `obarray',
 corrupted, etc.  In such cases, the Emacs subroutine called by `pr'
@@ -97,10 +99,17 @@ you stop Emacs while it is waiting.  In such a situation, don't try to
 use `pr'.  Instead, use `s' to step out of the system call.  Then
 Emacs will be between instructions and capable of handling `pr'.
 
-If you can't use `pr' command, for whatever reason, you can fall back
-on lower-level commands.  Use the `xtype' command to print out the
-data type of the last data value.  Once you know the data type, use
-the command that corresponds to that type.  Here are these commands:
+If you can't use `pr' command, for whatever reason, you can use the
+`xpr' command to print out the data type and value of the last data
+value, For example:
+
+    p it->object
+    xpr
+
+You may also analyze data values using lower-level commands.  Use the
+`xtype' command to print out the data type of the last data value.
+Once you know the data type, use the command that corresponds to that
+type.  Here are these commands:
 
     xint xptr xwindow xmarker xoverlay xmiscfree xintfwd xboolfwd xobjfwd
     xbufobjfwd xkbobjfwd xbuflocal xbuffer xsymbol xstring xvector xframe
@@ -132,11 +141,11 @@ Then Emacs hits the breakpoint:
 
     (gdb) p frame
     $1 = 139854428
-    (gdb) xtype
+    (gdb) xpr
     Lisp_Vectorlike
     PVEC_FRAME
-    (gdb) xframe
     $2 = (struct frame *) 0x8560258
+    "emacs@localhost"
     (gdb) p *$
     $3 = {
       size = 1073742931,
@@ -144,13 +153,12 @@ Then Emacs hits the breakpoint:
       name = 140615219,
       [...]
     }
-    (gdb) p $3->name
-    $4 = 140615219
 
-Now we can use `pr' to print the name of the frame:
+Now we can use `pr' to print the frame parameters:
 
-    (gdb) pr
-    "emacs@steenrod.math.nwu.edu"
+    (gdb) pp $->param_alist
+    ((background-mode . light) (display-type . color) [...])
+
 
 The Emacs C code heavily uses macros defined in lisp.h.  So suppose
 we want the address of the l-value expression near the bottom of
@@ -244,6 +252,23 @@ conveniently.  For example:
 and, assuming that "xtype" says that args[0] is a symbol:
 
    xsymbol
+
+** Debugging Emacs Redisplay problems
+
+The src/.gdbinit file defines many useful commands for dumping redisplay
+related data structures in a terse and user-friendly format:
+
+ `ppt' prints value of PT, narrowing, and gap in current buffer.
+ `pit' dumps the current display iterator `it'.
+ `pwin' dumps the current window 'win'.
+ `prow' dumps the current glyph_row `row'.
+ `pg' dumps the current glyph `glyph'.
+ `pgi' dumps the next glyph.
+ `pgrow' dumps all glyphs in current glyph_row `row'.
+ `pcursor' dumps current output_cursor.
+
+The above commands also exist in a version with an `x' suffix which
+takes an object of the relevant type as argument.
 
 ** Using GDB in Emacs
 
