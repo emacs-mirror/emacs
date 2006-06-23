@@ -2866,8 +2866,13 @@ x_draw_glyph_string (s)
 
 #ifdef USE_FONT_BACKEND
 	  if (enable_font_backend)
-	    /* In the future, we must use information of font.  */
-	    y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
+	    {
+	      if (s->face->font)
+		/* In the future, we must use information of font.  */
+		y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
+	      else
+		y = s->y + s->height - h;
+	    }
 	  else
 #endif
 	  if (x_use_underline_position_properties
