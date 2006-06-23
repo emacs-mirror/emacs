@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.38
+;; Version: 4.39
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -90,6 +90,13 @@
 ;;
 ;; Recent changes
 ;; --------------
+;; Version 4.39
+;;    - Special tag ARCHIVE keeps a subtree closed and away from agenda lists.
+;;    - LaTeX code in Org-mode files can be converted to images for HTML.
+;;    - Bug fixes.
+;;    - CDLaTeX-mode features can be used in Org-mode to help inserting
+;;      LaTeX environment and math.
+;;
 ;; Version 4.38
 ;;    - noutline.el is now required (important for XEmacs users only).
 ;;    - Dynamic blocks.
@@ -189,7 +196,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.38"
+(defvar org-version "4.39"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -409,7 +416,8 @@ visibility is cycled."
 		 (const :tag "Everywhere except in headlines" t)
 		 ))
 
-(defcustom org-cycle-hook '(org-optimize-window-after-visibility-change)
+(defcustom org-cycle-hook '(org-cycle-hide-archived-subtrees
+			    org-optimize-window-after-visibility-change)
   "Hook that is run after `org-cycle' has changed the buffer visibility.
 The function(s) in this hook must accept a single argument which indicates
 the new state that was set by the most recent `org-cycle' command.  The
@@ -537,6 +545,38 @@ use \\[org-ctrl-c-ctrl-c] to trigger renumbering."
   :tag "Org Archive"
   :group 'org-structure)
 
+(defcustom org-archive-tag "ARCHIVE"
+  "The tag that marks a subtree as archived.
+An archived subtree does not open during visibility cycling, and does
+not contribute to the agenda listings."
+  :group 'org-archive
+  :group 'org-keywords
+  :type 'string)
+
+(defcustom org-agenda-skip-archived-trees t
+  "Non-nil means, the agenda will skip any items located in archived trees.
+An archived tree is a tree marked with the tag ARCHIVE."
+  :group 'org-archive
+  :group 'org-agenda-display
+  :type 'boolean)
+
+(defcustom org-cycle-open-archived-trees nil
+  "Non-nil means, `org-cycle' will open archived trees.
+An archived tree is a tree marked with the tag ARCHIVE.
+When nil, archived trees will stay folded.  You can still open them with
+normal outline commands like `show-all', but not with the cycling commands."
+  :group 'org-archive
+  :group 'org-cycle
+  :type 'boolean)
+
+(defcustom org-sparse-tree-open-archived-trees nil
+  "Non-nil means sparse tree construction shows matches in archived trees.
+When nil, matches in these trees are highlighted, but the trees are kept in
+collapsed state."
+  :group 'org-archive
+  :group 'org-sparse-trees
+  :type 'boolean)
+
 (defcustom org-archive-location "%s_archive::"
   "The location where subtrees should be archived.
 This string consists of two parts, separated by a double-colon.
@@ -574,12 +614,12 @@ line like
   :type 'string)
 
 (defcustom org-archive-mark-done t
-  "Non-nil means, mark archived entries as DONE."
+  "Non-nil means, mark entries as DONE when they are moved to the archive file."
   :group 'org-archive
   :type 'boolean)
 
 (defcustom org-archive-stamp-time t
-  "Non-nil means, add a time stamp to archived entries.
+  "Non-nil means, add a time stamp to entries moved to an archive file.
 The time stamp will be added directly after the TODO state keyword in the
 first line, so it is probably best to use this in combinations with
 `org-archive-mark-done'."
@@ -1028,12 +1068,14 @@ rather than having to type \"yes\"."
 	  (const :tag "no confirmation (dangerous)" nil)))
 
 (defconst org-file-apps-defaults-gnu
-  '((t . mailcap))
+  '((remote . emacs)
+    (t . mailcap))
   "Default file applications on a UNIX or GNU/Linux system.
 See `org-file-apps'.")
 
 (defconst org-file-apps-defaults-macosx
-  '((t        . "open %s")
+  '((remote . emacs)
+    (t        . "open %s")
     ("ps"     . "gv %s")
     ("ps.gz"  . "gv %s")
     ("eps"    . "gv %s")
@@ -1046,11 +1088,13 @@ for some files for which the OS does not have a good default.
 See `org-file-apps'.")
 
 (defconst org-file-apps-defaults-windowsnt
-  (list (cons t
-	      (list (if (featurep 'xemacs)
-			'mswindows-shell-execute
-		      'w32-shell-execute)
-		      "open" 'file)))
+  (list 
+   '(remote . emacs)
+   (cons t
+	 (list (if (featurep 'xemacs)
+		   'mswindows-shell-execute
+		 'w32-shell-execute)
+	       "open" 'file)))
   "Default file applications on a Windows NT system.
 The system \"open\" is used for most files.
 See `org-file-apps'.")
@@ -1072,6 +1116,9 @@ files and the cdr the corresponding command.  Possible values for the
 file identifier are
  \"ext\"         A string identifying an extension
  `directory'   Matches a directory
+ `remote'      Matches a remove file, accessible through tramp or efs.
+               Remote files most likely should be visited through emacs
+               because external applications cannot handle such paths.
  t             Default for all remaining files
 
 Possible values for the command are:
@@ -1090,6 +1137,7 @@ For more examples, see the system specific constants
 	  (cons (choice :value ""
 			(string :tag "Extension")
 			(const :tag "Default for unrecognized files" t)
+			(const :tag "Remote file" remote)
 			(const :tag "Links to a directory" directory))
 		(choice :value ""
 			(const :tag "Visit with Emacs" emacs)
@@ -1715,6 +1763,29 @@ N days, just insert a special line indicating the size of the gap."
 	  (const :tag "All" t)
 	  (number :tag "at most")))
 
+(defgroup org-latex nil
+  "Options for embedding LaTeX code into Org-mode"
+  :tag "Org LaTeX"
+  :group 'org)
+
+(defcustom org-format-latex-options
+  '(:foreground "Black" :background "Transparent" :scale 1.0
+		:matchers ("begin" "$" "$$" "\\(" "\\["))
+  "Options for creating images from LaTeX fragments.
+This is a property list with the following properties:
+:foreground  the foreground color, for example \"Black\".
+:background  the background color, or \"Transparent\".
+:scale       a scaling factor for the size of the images
+:matchers    a list indicating which matchers should be used to
+             find LaTeX fragments.  Valid members of this list are:
+             \"begin\"  find environments
+             \"$\"      find mathc expressions surrounded by $...$
+             \"$$\"     find math expressions surrounded by $$....$$
+             \"\\(\"    find math expressions surrounded by \\(...\\)
+             \"\\[\"    find math expressions surrounded by \\[...\\]"
+  :group 'org-latex
+  :type 'plist)
+
 (defgroup org-export nil
   "Options for exporting org-listings."
   :tag "Org Export"
@@ -1813,6 +1884,19 @@ This option can also be set with the +OPTIONS line, e.g. \"\\n:t\"."
   :group 'org-export-general
   :type 'boolean)
 
+(defcustom org-export-with-archived-trees 'headline
+  "Whether subtrees with the ARCHIVE tag should be exported.
+This can have three different values
+nil       Do not export, pretend this tree is not present
+t         Do export the entire tree
+headline  Only export the headline, but skip the tree below it."
+  :group 'org-export-general
+  :group 'org-archive
+  :type '(choice
+	  (const :tag "not at all" nil)
+	  (const :tag "headline only" 'headline)
+	  (const :tag "entirely" t)))
+
 (defcustom org-export-with-timestamps t
   "Nil means, do not export time stamps and associated keywords."
   :group 'org-export
@@ -1876,6 +1960,19 @@ Not all export backends support this.
 
 This option can also be set with the +OPTIONS line, e.g. \"TeX:nil\"."
   :group 'org-export-translation
+  :group 'org-latex
+  :type 'boolean)
+
+(defcustom org-export-with-LaTeX-fragments nil
+  "Non-nil means, convert LaTeX fragments to images when exporting to HTML.
+When set, the exporter will find LaTeX environments if the \\begin line is
+the first non-white thing on a line.  It will also find the math delimiters
+like $a=b$ and \\( a=b \\) for inline math,  $$a=b$$ and \\[ a=b \\] for
+display math.
+
+This option can also be set with the +OPTIONS line, e.g. \"LaTeX:t\"."
+  :group 'org-export-translation
+  :group 'org-latex
   :type 'boolean)
 
 (defcustom org-export-with-fixed-width t
@@ -2387,6 +2484,19 @@ color of the frame."
 This face is only used if `org-fontify-done-headline' is set."
   :group 'org-faces)
 
+(defface org-archived    ; similar to shadow
+  (org-compatible-face
+   '((((class color grayscale) (min-colors 88) (background light))
+      (:foreground "grey50"))
+     (((class color grayscale) (min-colors 88) (background dark))
+      (:foreground "grey70"))
+     (((class color) (min-colors 8) (background light))
+      (:foreground "green"))
+     (((class color) (min-colors 8) (background dark))
+      (:foreground "yellow"))))
+   "Face for headline with the ARCHIVE tag."
+   :group 'org-faces)
+
 (defface org-link
   '((((class color) (background light)) (:foreground "Purple" :underline t))
     (((class color) (background dark)) (:foreground "Cyan" :underline t))
@@ -2625,7 +2735,7 @@ Also put tags into group 4 if tags are present.")
       (and arch (set (make-local-variable 'org-archive-location) arch))
       (and int (set (make-local-variable 'org-todo-interpretation) int))
       (when tags
-	(let (e tg c tgs)
+	(let (e tgs)
 	  (while (setq e (pop tags))
 	    (cond
 	     ((equal e "{") (push '(:startgroup) tgs))
@@ -2707,6 +2817,8 @@ Also put tags into group 4 if tags are present.")
 (defvar org-goto-start-pos) ; dynamically scoped parameter
 (defvar org-time-was-given) ; dynamically scoped parameter
 (defvar org-ts-what) ; dynamically scoped parameter
+(defvar org-current-export-file) ; dynamically scoped parameter
+(defvar org-current-export-dir) ; dynamically scoped parameter
 (defvar mark-active) ; Emacs only, not available in XEmacs.
 (defvar timecnt) ; dynamically scoped parameter
 (defvar levels-open) ; dynamically scoped parameter
@@ -3197,6 +3309,7 @@ between words."
 	   '("^[ \t]*| *\\([#!$*_^]\\) *|" (1 'org-formula t))
 	   (if org-format-transports-properties-p
 	       '("| *\\(<[0-9]+>\\) *" (1 'org-formula t)))
+	   '("^\\*+ \\(.*:ARCHIVE:.*\\)" (1 'org-archived prepend))
 	   )))
     (setq org-font-lock-extra-keywords (delq nil org-font-lock-extra-keywords))
     ;; Now set the full font-lock-keywords
@@ -3273,7 +3386,11 @@ between words."
 	    outline-regexp))
 	 (bob-special (and org-cycle-global-at-bob (bobp)
 			   (not (looking-at outline-regexp))))
-	 (org-cycle-hook (if bob-special nil org-cycle-hook))
+	 (org-cycle-hook
+	  (if bob-special
+	      (delq 'org-optimize-window-after-visibility-change
+		    (copy-sequence org-cycle-hook))
+	    org-cycle-hook))
 	 (pos (point)))
 
     (if (or bob-special (equal arg '(4)))
@@ -3291,7 +3408,7 @@ between words."
 	      (call-interactively 'org-table-next-field)))))
 
      ((eq arg t) ;; Global cycling
-
+      
       (cond
        ((and (eq last-command this-command)
 	     (eq org-cycle-global-status 'overview))
@@ -3370,6 +3487,9 @@ between words."
 
      ;; TAB emulation
      (buffer-read-only (org-back-to-heading))
+
+     ((org-try-cdlatex-tab))
+
      ((if (and (memq org-cycle-emulate-tab '(white whitestart))
 	       (save-excursion (beginning-of-line 1) (looking-at "[ \t]*"))
 	       (or (and (eq org-cycle-emulate-tab 'white)
@@ -3637,10 +3757,8 @@ Return t when things worked, nil when we are not in an item."
 		t)
 	    (error nil)))
     (let* ((bul (match-string 0))
-	   (end (match-end 0))
 	   (eow (save-excursion (beginning-of-line 1) (looking-at "[ \t]*")
 				(match-end 0)))
-	   (eowcol (save-excursion (goto-char eow) (current-column)))
 	   pos)
       (cond
        ((and (org-at-item-p) (<= (point) eow))
@@ -4129,12 +4247,10 @@ If the cursor is not in an item, throw an error."
   "Move to the beginning of the next item in the current plain list.
 Error if not at a plain list, or if this is the last item in the list."
   (interactive)
-  (let (beg end ind ind1 (pos (point)) txt)
+  (let (ind ind1 (pos (point)))
     (org-beginning-of-item)
-    (setq beg (point))
     (setq ind (org-get-indentation))
     (org-end-of-item)
-    (setq end (point))
     (setq ind1 (org-get-indentation))
     (unless (and (org-at-item-p) (= ind ind1))
       (goto-char pos)
@@ -4144,7 +4260,7 @@ Error if not at a plain list, or if this is the last item in the list."
   "Move to the beginning of the previous item in the current plain list.
 Error if not at a plain list, or if this is the last item in the list."
   (interactive)
-  (let (beg end ind ind1 (pos (point)) txt)
+  (let (beg ind (pos (point)))
     (org-beginning-of-item)
     (setq beg (point))
     (setq ind (org-get-indentation))
@@ -4154,7 +4270,7 @@ Error if not at a plain list, or if this is the last item in the list."
 	(beginning-of-line 0)
 	(if (looking-at "[ \t]*$")
 	    nil
-	  (if (<= (setq ind1 (org-get-indentation)) ind)
+	  (if (<= (org-get-indentation) ind)
 	      (throw 'exit t)))))
     (condition-case nil
 	(org-beginning-of-item)
@@ -4427,13 +4543,17 @@ this heading. "
 		   (concat "under heading: " heading)
 		 (concat "in file: " (abbreviate-file-name file)))))))
 
-(defun org-archive-all-done ()
+(defun org-archive-all-done (&optional tag)
   "Archive sublevels of the current tree without open TODO items.
 If the cursor is not on a headline, try all level 1 trees.  If
-it is on a headline, try all direct children."
+it is on a headline, try all direct children.
+When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
   (let ((re (concat "^\\*+ +" org-not-done-regexp)) re1
+	(rea (concat ".*:" org-archive-tag ":"))
 	(begm (make-marker))
 	(endm (make-marker))
+	(question (if tag "Set ARCHIVE tag (no open TODO items)? "
+		    "Move subtree to archive (no open TODO items)? "))
 	beg end (cntarch 0))
     (if (org-on-heading-p)
 	(progn
@@ -4456,12 +4576,141 @@ it is on a headline, try all direct children."
 	(if (re-search-forward re end t)
 	    (goto-char end)
 	  (goto-char beg)
-	  (if (y-or-n-p "Archive this subtree (no open TODO items)? ")
+	  (if (and (or (not tag) (not (looking-at rea)))
+		   (y-or-n-p question))
 	      (progn
-		(org-archive-subtree)
+		(if tag
+		    (org-toggle-tag org-archive-tag 'on)
+		  (org-archive-subtree))
 		(setq cntarch (1+ cntarch)))
 	    (goto-char end))))
     (message "%d trees archived" cntarch)))
+
+
+(defun org-cycle-hide-archived-subtrees (state)
+  "Re-hide all archived subtrees after a visibility state change."
+  (when (and (not org-cycle-open-archived-trees)
+             (not (memq state '(overview folded))))
+    (save-excursion
+      (let* ((globalp (memq state '(contents all)))
+             (beg (if globalp (point-min) (point)))
+             (end (if globalp (point-max) (org-end-of-subtree))))
+	(org-hide-archived-subtrees beg end)))))
+
+(defun org-hide-archived-subtrees (beg end)
+  "Re-hide all archived subtrees after a visibility state change."
+  (save-excursion
+    (let* ((re (concat ":" org-archive-tag ":")))
+      (goto-char beg)
+      (while (re-search-forward re end t)
+	(and (org-on-heading-p) (hide-subtree))
+	(org-end-of-subtree)))))
+
+(defun org-toggle-tag (tag &optional onoff)
+  "Toggle the tag TAG for the current line.
+If ONOFF is `on' or `off', don't toggle but set to this state."
+  (unless (org-on-heading-p) (error "Not on headling"))
+  (let (res current)
+    (save-excursion
+      (beginning-of-line)
+      (if (re-search-forward "[ \t]:\\([a-zA-Z0-9_@:]+\\):[ \t]*$"
+			     (point-at-eol) t)
+	  (progn
+	    (setq current (match-string 1))
+	    (replace-match ""))
+	(setq current ""))
+      (setq current (nreverse (org-split-string current ":")))
+      (cond
+       ((eq onoff 'on)
+	(setq res t)
+	(or (member tag current) (push tag current)))
+       ((eq onoff 'off)
+	(or (not (member tag current)) (setq current (delete tag current))))
+       (t (if (member tag current)
+	      (setq current (delete tag current))
+	    (setq res t)
+	    (push tag current))))
+      (end-of-line 1)
+      (when current
+	(insert " :" (mapconcat 'identity (nreverse current) ":") ":"))
+      (org-set-tags nil t))
+    res))
+
+(defun org-toggle-archive-tag (&optional arg)
+  "Toggle the archive tag for the current headline.
+With prefix ARG, check all children of current headline and offer tagging
+the children that do not contain any open TODO items."
+  (interactive "P")
+  (if arg
+      (org-archive-all-done 'tag)
+    (let (set)
+      (save-excursion
+	(org-back-to-heading t)
+	(setq set (org-toggle-tag org-archive-tag))
+	(when set (hide-subtree)))
+      (and set (beginning-of-line 1))
+      (message "Subtree %s" (if set "archived" "unarchived")))))
+
+(defun org-prepare-agenda-buffers (files)
+  "Create buffers for all agenda files, protect archived trees and comments."
+  (let ((pa '(:org-archived t))
+	(pc '(:org-comment t))
+	(pall '(:org-archived t :org-comment t))
+	(rea (concat ":" org-archive-tag ":"))
+	file re)
+    (save-excursion
+      (while (setq file (pop files))
+	(org-check-agenda-file file)
+	(set-buffer (org-get-agenda-file-buffer file))
+	(widen)
+	(save-excursion
+	  (remove-text-properties (point-min) (point-max) pall)
+	  (when org-agenda-skip-archived-trees
+	    (goto-char (point-min))
+	    (while (re-search-forward rea nil t)
+	      (if (org-on-heading-p)
+		  (add-text-properties (point-at-bol) (org-end-of-subtree) pa))))
+	  (goto-char (point-min))
+	  (setq re (concat "^\\*+ +" org-comment-string "\\>"))
+	  (while (re-search-forward re nil t)
+	    (add-text-properties
+	     (match-beginning 0) (org-end-of-subtree) pc)))))))
+
+(defun org-agenda-skip ()
+  "Throw to `:skip' in places that should be skipped."
+  (let ((p (point-at-bol)))
+    (and org-agenda-skip-archived-trees
+	 (get-text-property p :org-archived)
+	 (org-end-of-subtree)
+	 (throw :skip t))
+    (and (get-text-property p :org-comment)
+	 (org-end-of-subtree)
+	 (throw :skip t))
+    (if (equal (char-after p) ?#) (throw :skip t))))
+  
+(defun org-agenda-toggle-archive-tag ()
+  "Toggle the archive tag for the current entry."
+  (interactive)
+  (org-agenda-check-no-diary)
+  (org-agenda-show)   ;;; FIXME This is a stupid hack and should not be needed
+  (let* ((hdmarker (or (get-text-property (point) 'org-hd-marker)
+                       (org-agenda-error)))
+	 (buffer (marker-buffer hdmarker))
+	 (pos (marker-position hdmarker))
+	 (buffer-read-only nil)
+	 newhead)
+    (with-current-buffer buffer
+      (widen)
+      (goto-char pos)
+      (org-show-hidden-entry)
+      (save-excursion
+	(and (outline-next-heading)
+	     (org-flag-heading nil)))   ; show the next heading
+      (call-interactively 'org-toggle-archive-tag)
+      (end-of-line 1)
+      (setq newhead (org-get-heading)))
+    (org-agenda-change-all-lines newhead hdmarker)
+    (beginning-of-line 1)))
 
 ;;; Dynamic blocks
 
@@ -4503,8 +4752,7 @@ This empties the block, puts the cursor at the insert position and returns
 the property list including an extra property :name with the block name."
   (unless (looking-at org-dblock-start-re)
     (error "Not at a dynamic block"))
-  (let* ((beg (match-beginning 0))
-	 (begdel (1+ (match-end 0)))
+  (let* ((begdel (1+ (match-end 0)))
 	 (name (match-string 1))
 	 (params (append (list :name name)
 			 (read (concat "(" (match-string 2) ")")))))
@@ -4557,7 +4805,7 @@ the correct writing function."
   "Find the beginning of the dynamic block at point.
 Error if there is no scuh block at point."
   (let ((pos (point))
-	beg end)
+	beg)
     (end-of-line 1)
     (if (and (re-search-backward org-dblock-start-re nil t)
 	     (setq beg (match-beginning 0))
@@ -4846,9 +5094,8 @@ be removed."
      (format-time-string (car org-time-stamp-formats) time))
     (setq what nil))
   (save-excursion
-    (let (beg end col list elt (buffer-invisibility-spec nil) ts)
+    (let (col list elt (buffer-invisibility-spec nil) ts)
       (org-back-to-heading t)
-      (setq beg (point))
       (looking-at (concat outline-regexp "\\( *\\)[^\r\n]*"))
       (goto-char (match-end 1))
       (setq col (current-column))
@@ -4918,6 +5165,8 @@ that the match should indeed be shown."
 	  (org-show-hierarchy-above))))
     (org-add-hook 'before-change-functions 'org-remove-occur-highlights
 		  nil 'local)
+    (unless org-sparse-tree-open-archived-trees
+      (org-hide-archived-subtrees (point-min) (point-max)))
     (run-hooks 'org-occur-hook)
     (if (interactive-p)
 	(message "%d match(es) for regexp %s" cnt regexp))
@@ -4961,6 +5210,7 @@ that the match should indeed be shown."
     (overlay-put ovl prop value)))
 
 (defvar org-occur-highlights nil)
+(make-variable-buffer-local 'org-occur-highlights)
 (defun org-highlight-new-match (beg end)
   "Highlight from BEG to END and mark the highlight is an occur headline."
   (let ((ov (org-make-overlay beg end)))
@@ -5643,7 +5893,7 @@ Puts the resulting times in minutes as a text property on each headline."
 	 (ltimes (make-vector lmax 0))
 	 (t1 0)
 	 (level 0)
-	 (lastlevel 0) time)
+	 time)
     (remove-text-properties (point-min) (point-max) '(:org-clock-minutes t))
     (save-excursion
       (goto-char (point-max))
@@ -5688,6 +5938,8 @@ in the echo area."
   (message "Total file time: %d:%02d (%d hours and %d minutes)" h m h m)))
 
 (defvar org-clock-overlays nil)
+(make-variable-buffer-local 'org-clock-overlays)
+
 (defun org-put-clock-overlay (time &optional level)
   "Put an overlays on the current line, displaying TIME.
 If LEVEL is given, prefix time with a corresponding number of stars.
@@ -5769,9 +6021,8 @@ The BEGIN line can contain parameters.  Allowed are:
   "Write the standard clocktable."
   (let ((hlchars '((1 . "*") (2 . ?/)))
 	(emph nil)
-	(pos (point)) ipos
 	(ins (make-marker))
-	time h m p level hlc hdl maxlevel)
+	ipos time h m p level hlc hdl maxlevel)
     (setq maxlevel (or (plist-get params :maxlevel) 3)
 	  emph (plist-get params :emphasize))
     (move-marker ins (point))
@@ -5912,6 +6163,7 @@ The following commands are available:
 (define-key org-agenda-mode-map "o"        'delete-other-windows)
 (define-key org-agenda-mode-map "L"        'org-agenda-recenter)
 (define-key org-agenda-mode-map "t"        'org-agenda-todo)
+(define-key org-agenda-mode-map "a"        'org-agenda-toggle-archive-tag)
 (define-key org-agenda-mode-map ":"        'org-agenda-set-tags)
 (define-key org-agenda-mode-map "."        'org-agenda-goto-today)
 (define-key org-agenda-mode-map "d"        'org-agenda-day-view)
@@ -6279,6 +6531,7 @@ dates."
 	 (past t)
 	 args
 	 s e rtn d emptyp)
+    (org-prepare-agenda-buffers org-agenda-files)
     (setq org-agenda-redo-command
 	  (list 'progn
 		(list 'switch-to-buffer-other-window (current-buffer))
@@ -6373,6 +6626,7 @@ NDAYS defaults to `org-agenda-ndays'."
 	 (day-numbers (list start))
 	 (inhibit-redisplay t)
 	 s e rtn rtnall file date d start-pos end-pos todayp nd)
+    (org-prepare-agenda-buffers files)
     (setq org-agenda-redo-command
 	  (list 'org-agenda-list (list 'quote include-all) start-day ndays t))
     ;; Make the list of days
@@ -6508,6 +6762,7 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
 	 '(org-todo-list (or current-prefix-arg last-arg) t))
     (setq files (org-agenda-files)
 	  rtnall nil)
+    (org-prepare-agenda-buffers files)
     (while (setq file (pop files))
       (catch 'nextfile
 	(org-check-agenda-file file)
@@ -7116,8 +7371,11 @@ the documentation of `org-diary'."
 	 ee txt)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
-      (when (not (and org-agenda-todo-ignore-scheduled
-		      (save-match-data (looking-at sched-re))))
+      (catch :skip
+	(and org-agenda-todo-ignore-scheduled
+	     (looking-at sched-re)
+	     (throw :skip nil))
+	(org-agenda-skip)
 	(goto-char (match-beginning 1))
 	(setq marker (org-agenda-new-marker (1+ (match-beginning 0)))
 	      category (org-get-category)
@@ -7129,14 +7387,14 @@ the documentation of `org-diary'."
 		     (- org-todo-kwd-max-priority -2
 			(length
 			 (member (match-string 2) org-todo-keywords)))
-		   1)))
+		     1)))
 	(org-add-props txt props
 	  'org-marker marker 'org-hd-marker marker
 	  'priority priority 'category category)
-	(push txt ee))
-      (if org-agenda-todo-list-sublevels
-	  (goto-char (match-end 1))
-	(org-end-of-subtree 'invisible)))
+	(push txt ee)
+	(if org-agenda-todo-list-sublevels
+	    (goto-char (match-end 1))
+	  (org-end-of-subtree 'invisible))))
     (nreverse ee)))
 
 (defconst org-agenda-no-heading-message
@@ -7162,50 +7420,51 @@ the documentation of `org-diary'."
 	 ee txt timestr tags)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
-      (if (not (save-match-data (org-at-date-range-p)))
-	  (progn
-	    (setq marker (org-agenda-new-marker (match-beginning 0))
-		  category (org-get-category (match-beginning 0))
-		  tmp (buffer-substring (max (point-min)
-					     (- (match-beginning 0)
-						org-ds-keyword-length))
-					(match-beginning 0))
-		  timestr (buffer-substring (match-beginning 0) (point-at-eol))
-		  deadlinep (string-match org-deadline-regexp tmp)
-		  scheduledp (string-match org-scheduled-regexp tmp)
-		  donep (org-entry-is-done-p))
-	    (if (string-match ">" timestr)
-		;; substring should only run to end of time stamp
-		(setq timestr (substring timestr 0 (match-end 0))))
-	    (save-excursion
-	      (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
-		  (progn
-		    (goto-char (match-end 1))
-		    (setq hdmarker (org-agenda-new-marker)
-			  tags (org-get-tags-at))
-		    (looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
-		    (setq txt (org-format-agenda-item
-			       (format "%s%s"
-				       (if deadlinep  "Deadline:  " "")
-				       (if scheduledp "Scheduled: " ""))
-			       (match-string 1) category tags timestr)))
-		(setq txt org-agenda-no-heading-message))
-	      (setq priority (org-get-priority txt))
-	      (org-add-props txt props
-		'org-marker marker 'org-hd-marker hdmarker)
-	      (if deadlinep
-		  (org-add-props txt nil
-		    'face (if donep 'org-done 'org-warning)
-		    'undone-face 'org-warning 'done-face 'org-done
-		    'category category 'priority (+ 100 priority))
-		(if scheduledp
-		    (org-add-props txt nil
-		      'face 'org-scheduled-today
-		      'undone-face 'org-scheduled-today 'done-face 'org-done
-		      'category category 'priority (+ 99 priority))
-		  (org-add-props txt nil 'priority priority 'category category)))
-	      (push txt ee))
-	    (outline-next-heading))))
+      (catch :skip
+	(and (save-match-data (org-at-date-range-p)) (throw :skip nil))
+	(org-agenda-skip)
+	(setq marker (org-agenda-new-marker (match-beginning 0))
+	      category (org-get-category (match-beginning 0))
+	      tmp (buffer-substring (max (point-min)
+					 (- (match-beginning 0)
+					    org-ds-keyword-length))
+				    (match-beginning 0))
+	      timestr (buffer-substring (match-beginning 0) (point-at-eol))
+	      deadlinep (string-match org-deadline-regexp tmp)
+	      scheduledp (string-match org-scheduled-regexp tmp)
+	      donep (org-entry-is-done-p))
+	(if (string-match ">" timestr)
+	    ;; substring should only run to end of time stamp
+	    (setq timestr (substring timestr 0 (match-end 0))))
+	(save-excursion
+	  (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
+	      (progn
+		(goto-char (match-end 1))
+		(setq hdmarker (org-agenda-new-marker)
+		      tags (org-get-tags-at))
+		(looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
+		(setq txt (org-format-agenda-item
+			   (format "%s%s"
+				   (if deadlinep  "Deadline:  " "")
+				   (if scheduledp "Scheduled: " ""))
+			   (match-string 1) category tags timestr)))
+	    (setq txt org-agenda-no-heading-message))
+	  (setq priority (org-get-priority txt))
+	  (org-add-props txt props
+	    'org-marker marker 'org-hd-marker hdmarker)
+	  (if deadlinep
+	      (org-add-props txt nil
+		'face (if donep 'org-done 'org-warning)
+		'undone-face 'org-warning 'done-face 'org-done
+		'category category 'priority (+ 100 priority))
+	    (if scheduledp
+		(org-add-props txt nil
+		  'face 'org-scheduled-today
+		  'undone-face 'org-scheduled-today 'done-face 'org-done
+		  'category category 'priority (+ 99 priority))
+	      (org-add-props txt nil 'priority priority 'category category)))
+	  (push txt ee))
+	(outline-next-heading)))
     (nreverse ee)))
 
 (defun org-agenda-get-closed ()
@@ -7229,35 +7488,35 @@ the documentation of `org-diary'."
 	 ee txt timestr)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
-      (if (not (save-match-data (org-at-date-range-p)))
-	  (progn
-	    (setq marker (org-agenda-new-marker (match-beginning 0))
-		  closedp (equal (match-string 1) org-closed-string)
-		  category (org-get-category (match-beginning 0))
-		  timestr (buffer-substring (match-beginning 0) (point-at-eol))
-		  ;; donep (org-entry-is-done-p)
-		  )
-	    (if (string-match "\\]" timestr)
-		;; substring should only run to end of time stamp
-		(setq timestr (substring timestr 0 (match-end 0))))
-	    (save-excursion
-	      (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
-		  (progn
-		    (goto-char (match-end 1))
-		    (setq hdmarker (org-agenda-new-marker)
-			  tags (org-get-tags-at))
-		    (looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
-		    (setq txt (org-format-agenda-item
-			       (if closedp "Closed:    " "Clocked:   ")
-			       (match-string 1) category tags timestr)))
-		(setq txt org-agenda-no-heading-message))
-	      (setq priority 100000)
-	      (org-add-props txt props
-		'org-marker marker 'org-hd-marker hdmarker 'face 'org-done
-		'priority priority 'category category
-		'undone-face 'org-warning 'done-face 'org-done)
-	      (push txt ee))
-	    (outline-next-heading))))
+      (catch :skip
+	(org-agenda-skip)
+	(setq marker (org-agenda-new-marker (match-beginning 0))
+	      closedp (equal (match-string 1) org-closed-string)
+	      category (org-get-category (match-beginning 0))
+	      timestr (buffer-substring (match-beginning 0) (point-at-eol))
+	      ;; donep (org-entry-is-done-p)
+	      )
+	(if (string-match "\\]" timestr)
+	    ;; substring should only run to end of time stamp
+	    (setq timestr (substring timestr 0 (match-end 0))))
+	(save-excursion
+	  (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
+	      (progn
+		(goto-char (match-end 1))
+		(setq hdmarker (org-agenda-new-marker)
+		      tags (org-get-tags-at))
+		(looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
+		(setq txt (org-format-agenda-item
+			   (if closedp "Closed:    " "Clocked:   ")
+			   (match-string 1) category tags timestr)))
+	    (setq txt org-agenda-no-heading-message))
+	  (setq priority 100000)
+	  (org-add-props txt props
+	    'org-marker marker 'org-hd-marker hdmarker 'face 'org-done
+	    'priority priority 'category category
+	    'undone-face 'org-warning 'done-face 'org-done)
+	  (push txt ee))
+	(outline-next-heading)))
     (nreverse ee)))
 
 (defun org-agenda-get-deadlines ()
@@ -7276,41 +7535,43 @@ the documentation of `org-diary'."
 	 ee txt head face)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
-      (setq pos (1- (match-beginning 1))
-	    d2 (time-to-days
-		(org-time-string-to-time (match-string 1)))
-	    diff (- d2 d1))
-      ;; When to show a deadline in the calendar:
-      ;; If the expiration is within wdays warning time.
-      ;; Past-due deadlines are only shown on the current date
-      (if (and (< diff wdays) todayp (not (= diff 0)))
-	  (save-excursion
-	    (setq category (org-get-category))
-	    (if (re-search-backward "\\(^\\|\r\\)\\*+[ \t]*" nil t)
-		(progn
-		  (goto-char (match-end 0))
-		  (setq pos1 (match-end 1))
-		  (setq tags (org-get-tags-at pos1))
-		  (setq head (buffer-substring-no-properties
-			      (point)
-			      (progn (skip-chars-forward "^\r\n")
-				     (point))))
-		  (if (string-match org-looking-at-done-regexp head)
-		      (setq txt nil)
-		    (setq txt (org-format-agenda-item
-			       (format "In %3d d.: " diff) head category tags))))
-	      (setq txt org-agenda-no-heading-message))
-	    (when txt
-	      (setq face (cond ((<= diff 0) 'org-warning)
-			       ((<= diff 5) 'org-upcoming-deadline)
-			       (t nil)))
-	      (org-add-props txt props
-		'org-marker (org-agenda-new-marker pos)
-		'org-hd-marker (org-agenda-new-marker pos1)
-		'priority (+ (- 10 diff) (org-get-priority txt))
-		'category category
-		'face face 'undone-face face 'done-face 'org-done)
-	      (push txt ee)))))
+      (catch :skip
+	(org-agenda-skip)
+	(setq pos (1- (match-beginning 1))
+	      d2 (time-to-days
+		  (org-time-string-to-time (match-string 1)))
+	      diff (- d2 d1))
+	;; When to show a deadline in the calendar:
+	;; If the expiration is within wdays warning time.
+	;; Past-due deadlines are only shown on the current date
+	(if (and (< diff wdays) todayp (not (= diff 0)))
+	    (save-excursion
+	      (setq category (org-get-category))
+	      (if (re-search-backward "\\(^\\|\r\\)\\*+[ \t]*" nil t)
+		  (progn
+		    (goto-char (match-end 0))
+		    (setq pos1 (match-end 1))
+		    (setq tags (org-get-tags-at pos1))
+		    (setq head (buffer-substring-no-properties
+				(point)
+				(progn (skip-chars-forward "^\r\n")
+				       (point))))
+		    (if (string-match org-looking-at-done-regexp head)
+			(setq txt nil)
+		      (setq txt (org-format-agenda-item
+				 (format "In %3d d.: " diff) head category tags))))
+		(setq txt org-agenda-no-heading-message))
+	      (when txt
+		(setq face (cond ((<= diff 0) 'org-warning)
+				 ((<= diff 5) 'org-upcoming-deadline)
+				 (t nil)))
+		(org-add-props txt props
+		  'org-marker (org-agenda-new-marker pos)
+		  'org-hd-marker (org-agenda-new-marker pos1)
+		  'priority (+ (- 10 diff) (org-get-priority txt))
+		  'category category
+		  'face face 'undone-face face 'done-face 'org-done)
+		(push txt ee))))))
     ee))
 
 (defun org-agenda-get-scheduled ()
@@ -7331,36 +7592,38 @@ the documentation of `org-diary'."
 	 ee txt head)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
-      (setq pos (1- (match-beginning 1))
-	    d2 (time-to-days
-		(org-time-string-to-time (match-string 1)))
-	    diff (- d2 d1))
-      ;; When to show a scheduled item in the calendar:
-      ;; If it is on or past the date.
-      (if (and (< diff 0) todayp)
-	  (save-excursion
-	    (setq category (org-get-category))
-	    (if (re-search-backward "\\(^\\|\r\\)\\*+[ \t]*" nil t)
-		(progn
-		  (goto-char (match-end 0))
-		  (setq pos1 (match-end 1))
-		  (setq tags (org-get-tags-at))
-		  (setq head (buffer-substring-no-properties
-			      (point)
-			      (progn (skip-chars-forward "^\r\n") (point))))
-		  (if (string-match org-looking-at-done-regexp head)
-		      (setq txt nil)
-		    (setq txt (org-format-agenda-item
-			       (format "Sched.%2dx: " (- 1 diff)) head
-			       category tags))))
-	      (setq txt org-agenda-no-heading-message))
-	    (when txt
-	      (org-add-props txt props
-		'org-marker (org-agenda-new-marker pos)
-		'org-hd-marker (org-agenda-new-marker pos1)
-		'priority (+ (- 5 diff) (org-get-priority txt))
-		'category category)
-	      (push txt ee)))))
+      (catch :skip
+	(org-agenda-skip)
+	(setq pos (1- (match-beginning 1))
+	      d2 (time-to-days
+		  (org-time-string-to-time (match-string 1)))
+	      diff (- d2 d1))
+	;; When to show a scheduled item in the calendar:
+	;; If it is on or past the date.
+	(if (and (< diff 0) todayp)
+	    (save-excursion
+	      (setq category (org-get-category))
+	      (if (re-search-backward "\\(^\\|\r\\)\\*+[ \t]*" nil t)
+		  (progn
+		    (goto-char (match-end 0))
+		    (setq pos1 (match-end 1))
+		    (setq tags (org-get-tags-at))
+		    (setq head (buffer-substring-no-properties
+				(point)
+				(progn (skip-chars-forward "^\r\n") (point))))
+		    (if (string-match org-looking-at-done-regexp head)
+			(setq txt nil)
+		      (setq txt (org-format-agenda-item
+				 (format "Sched.%2dx: " (- 1 diff)) head
+				 category tags))))
+		(setq txt org-agenda-no-heading-message))
+	      (when txt
+		(org-add-props txt props
+		  'org-marker (org-agenda-new-marker pos)
+		  'org-hd-marker (org-agenda-new-marker pos1)
+		  'priority (+ (- 5 diff) (org-get-priority txt))
+		  'category category)
+		(push txt ee))))))
     ee))
 
 (defun org-agenda-get-blocks ()
@@ -7377,34 +7640,36 @@ the documentation of `org-diary'."
 	 marker hdmarker ee txt d1 d2 s1 s2 timestr category tags)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
-      (setq timestr (match-string 0)
-	    s1 (match-string 1)
-	    s2 (match-string 2)
-	    d1 (time-to-days (org-time-string-to-time s1))
-	    d2 (time-to-days (org-time-string-to-time s2)))
-      (if (and (> (- d0 d1) -1) (> (- d2 d0) -1))
-	  ;; Only allow days between the limits, because the normal
-	  ;; date stamps will catch the limits.
-	  (save-excursion
-	    (setq marker (org-agenda-new-marker (point)))
-	    (setq category (org-get-category))
-	    (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
-		(progn
-		  (setq hdmarker (org-agenda-new-marker (match-end 1)))
-		  (goto-char (match-end 1))
-		  (setq tags (org-get-tags-at))
-		  (looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
-		  (setq txt (org-format-agenda-item
-			     (format (if (= d1 d2) "" "(%d/%d): ")
-				     (1+ (- d0 d1)) (1+ (- d2 d1)))
-			     (match-string 1) category tags
-			     (if (= d0 d1) timestr))))
-	      (setq txt org-agenda-no-heading-message))
-	    (org-add-props txt props
-	      'org-marker marker 'org-hd-marker hdmarker
-	      'priority (org-get-priority txt) 'category category)
-	    (push txt ee)))
-      (outline-next-heading))
+      (catch :skip
+	(org-agenda-skip)
+	(setq timestr (match-string 0)
+	      s1 (match-string 1)
+	      s2 (match-string 2)
+	      d1 (time-to-days (org-time-string-to-time s1))
+	      d2 (time-to-days (org-time-string-to-time s2)))
+	(if (and (> (- d0 d1) -1) (> (- d2 d0) -1))
+	    ;; Only allow days between the limits, because the normal
+	    ;; date stamps will catch the limits.
+	    (save-excursion
+	      (setq marker (org-agenda-new-marker (point)))
+	      (setq category (org-get-category))
+	      (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
+		  (progn
+		    (setq hdmarker (org-agenda-new-marker (match-end 1)))
+		    (goto-char (match-end 1))
+		    (setq tags (org-get-tags-at))
+		    (looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
+		    (setq txt (org-format-agenda-item
+			       (format (if (= d1 d2) "" "(%d/%d): ")
+				       (1+ (- d0 d1)) (1+ (- d2 d1)))
+			       (match-string 1) category tags
+			       (if (= d0 d1) timestr))))
+		(setq txt org-agenda-no-heading-message))
+	      (org-add-props txt props
+		'org-marker marker 'org-hd-marker hdmarker
+		'priority (org-get-priority txt) 'category category)
+	      (push txt ee)))
+	(outline-next-heading)))
     ;; Sort the entries by expiration date.
     (nreverse ee)))
 
@@ -8005,9 +8270,7 @@ be used to request time specification in the time stamp."
   (org-agenda-check-no-diary)
   (let* ((marker (or (get-text-property (point) 'org-marker)
 		     (org-agenda-error)))
-	 (buffer (marker-buffer marker))
-	 (pos (marker-position marker))
-	 (hdmarker (get-text-property (point) 'org-hd-marker)))
+	 (pos (marker-position marker)))
     (with-current-buffer (marker-buffer marker)
       (widen)
       (goto-char pos)
@@ -8173,53 +8436,59 @@ are included in the output."
          lspos
 	 tags tags-list tags-alist (llast 0) rtn level category i txt
 	 todo marker)
-
     (save-excursion
       (goto-char (point-min))
       (when (eq action 'sparse-tree) (org-overview))
       (while (re-search-forward re nil t)
-	(setq todo (if (match-end 1) (match-string 2))
-	      tags (if (match-end 4) (match-string 4)))
-	(goto-char (setq lspos (1+ (match-beginning 0))))
-	(setq level (funcall outline-level)
-	      category (org-get-category))
-	(setq i llast llast level)
-	;; remove tag lists from same and sublevels
-	(while (>= i level)
-	  (when (setq entry (assoc i tags-alist))
-	    (setq tags-alist (delete entry tags-alist)))
-	  (setq i (1- i)))
-	;; add the nex tags
-	(when tags
-	  (setq tags (mapcar 'downcase (org-split-string tags ":"))
-		tags-alist
-		(cons (cons level tags) tags-alist)))
-	;; compile tags for current headline
-	(setq tags-list
-	      (if org-use-tag-inheritance
-		  (apply 'append (mapcar 'cdr tags-alist))
-		tags))
-	(when (and (or (not todo-only) todo)
-		   (eval matcher))
-	  ;; list this headline
-	  (if (eq action 'sparse-tree)
-	      (progn
-		(org-show-hierarchy-above))
-	    (setq txt (org-format-agenda-item
-		       ""
-		       (concat
-			(if org-tags-match-list-sublevels
-			    (make-string (1- level) ?.) "")
-			(org-get-heading))
-		       category tags-list))
-            (goto-char lspos)
-	    (setq marker (org-agenda-new-marker))
-	    (org-add-props txt props
-	      'org-marker marker 'org-hd-marker marker 'category category)
-	    (push txt rtn))
-	  ;; if we are to skip sublevels, jump to end of subtree
-          (point)
-	  (or org-tags-match-list-sublevels (org-end-of-subtree)))))
+	(catch :skip
+	  (and (eq action 'agenda) (org-agenda-skip))
+	  (setq todo (if (match-end 1) (match-string 2))
+		tags (if (match-end 4) (match-string 4)))
+	  (goto-char (setq lspos (1+ (match-beginning 0))))
+	  (setq level (funcall outline-level)
+		category (org-get-category))
+	  (setq i llast llast level)
+	  ;; remove tag lists from same and sublevels
+	  (while (>= i level)
+	    (when (setq entry (assoc i tags-alist))
+	      (setq tags-alist (delete entry tags-alist)))
+	    (setq i (1- i)))
+	  ;; add the nex tags
+	  (when tags
+	    (setq tags (mapcar 'downcase (org-split-string tags ":"))
+		  tags-alist
+		  (cons (cons level tags) tags-alist)))
+	  ;; compile tags for current headline
+	  (setq tags-list
+		(if org-use-tag-inheritance
+		    (apply 'append (mapcar 'cdr tags-alist))
+		  tags))
+	  (when (and (or (not todo-only) todo)
+		     (eval matcher)
+		     (or (not org-agenda-skip-archived-trees)
+			 (not (member org-archive-tag tags-list))))
+	    ;; list this headline
+	    (if (eq action 'sparse-tree)
+		(progn
+		  (org-show-hierarchy-above))
+	      (setq txt (org-format-agenda-item
+			 ""
+			 (concat
+			  (if org-tags-match-list-sublevels
+			      (make-string (1- level) ?.) "")
+			  (org-get-heading))
+			 category tags-list))
+	      (goto-char lspos)
+	      (setq marker (org-agenda-new-marker))
+	      (org-add-props txt props
+		'org-marker marker 'org-hd-marker marker 'category category)
+	      (push txt rtn))
+	    ;; if we are to skip sublevels, jump to end of subtree
+	    (point)
+	    (or org-tags-match-list-sublevels (org-end-of-subtree))))))
+    (when (and (eq action 'sparse-tree)
+	       (not org-sparse-tree-open-archived-trees))
+      (org-hide-archived-subtrees (point-min) (point-max)))
     (nreverse rtn)))
 
 (defun org-tags-sparse-tree (&optional arg match)
@@ -8290,6 +8559,7 @@ The prefix arg TODO-ONLY limits the search to TODO entries."
 	       (list 'if 'current-prefix-arg nil match) t))
     (setq files (org-agenda-files)
 	  rtnall nil)
+    (org-prepare-agenda-buffers files)
     (while (setq file (pop files))
       (catch 'nextfile
 	(org-check-agenda-file file)
@@ -8380,7 +8650,11 @@ With prefix ARG, realign all tags in headings in the current buffer."
 	(setq hd (match-string 1))
 	(delete-region (match-beginning 0) (match-end 0))
 	(insert-before-markers (org-trim hd) (if empty "" " ")))
-      (unless (equal tags "")
+      (if (equal tags "")
+	  (save-excursion
+	    (beginning-of-line 1)
+	    (and (re-search-forward "[ \t]+$" (point-at-eol) t)
+		 (replace-match "")))
 	(move-to-column (max (current-column)
 			     (if (> org-tags-column 0)
 				 org-tags-column
@@ -8886,7 +9160,7 @@ in all files."
 (defun org-search-not-link (&rest args)
   "Execute `re-search-forward', but only accept matches that are not a link."
   (catch 'exit
-    (let ((pos (point)) p1)
+    (let (p1)
       (while (apply 're-search-forward args)
 	(setq p1 (point))
 	(if (not (save-match-data
@@ -9286,24 +9560,23 @@ If the file does not exist, an error is thrown."
   (setq in-emacs (or in-emacs line search))
   (let* ((file (if (equal path "")
 		   buffer-file-name
-		 (convert-standard-filename (org-expand-file-name path))))
-	 (dirp (file-directory-p file))
+		 path))
+	 (apps (append org-file-apps (org-default-apps)))
+	 (remp (and (assq 'remote apps) (org-file-remote-p file)))
+	 (dirp (if remp nil (file-directory-p file)))
 	 (dfile (downcase file))
 	 (old-buffer (current-buffer))
 	 (old-pos (point))
 	 (old-mode major-mode)
-	 ext cmd apps)
-    (if (and (not (file-exists-p file))
-	     (not org-open-non-existing-files))
-	(error "No such file: %s" file))
+	 ext cmd)
     (if (string-match "^.*\\.\\([a-zA-Z0-9]+\\.gz\\)$" dfile)
 	(setq ext (match-string 1 dfile))
       (if (string-match "^.*\\.\\([a-zA-Z0-9]+\\)$" dfile)
 	  (setq ext (match-string 1 dfile))))
-    (setq apps (append org-file-apps (org-default-apps)))
     (if in-emacs
 	(setq cmd 'emacs)
-      (setq cmd (or (and dirp (cdr (assoc 'directory apps)))
+      (setq cmd (or (and remp (cdr (assoc 'remote apps)))
+		    (and dirp (cdr (assoc 'directory apps)))
 		    (cdr (assoc ext apps))
 		    (cdr (assoc t apps)))))
     (when (eq cmd 'mailcap)
@@ -9314,6 +9587,10 @@ If the file does not exist, an error is thrown."
 	(if (stringp command)
 	    (setq cmd command)
 	  (setq cmd 'emacs))))
+    (if (and (not (eq cmd 'emacs)) ; Emacs has not problems with non-ex files
+	     (not (file-exists-p file))
+	     (not org-open-non-existing-files))
+	(error "No such file: %s" file))
     (cond
      ((and (stringp cmd) (not (string-match "^\\s-*$" cmd)))
       ;; Normalize use of quote, this can vary.
@@ -9324,8 +9601,9 @@ If the file does not exist, an error is thrown."
 	(shell-command (concat cmd " &"))))
      ((or (stringp cmd)
 	  (eq cmd 'emacs))
-      (unless (equal (file-truename file) (file-truename (or buffer-file-name "")))
-	(funcall (cdr (assq 'file org-link-frame-setup)) file))
+;      (unless (equal (file-truename file) (file-truename (or buffer-file-name "")))
+;	(funcall (cdr (assq 'file org-link-frame-setup)) file))
+      (funcall (cdr (assq 'file org-link-frame-setup)) file)
       (if line (goto-line line)
 	(if search (org-link-search search))))
      ((consp cmd)
@@ -9349,6 +9627,20 @@ If the file does not exist, an error is thrown."
   "Replace special path abbreviations and expand the file name."
   (expand-file-name path))
 
+(defun org-file-remote-p (file)
+  "Test whether FILE specifies a location on a remote system.
+Return non-nil if the location is indeed remote.
+
+For example, the filename \"/user@host:/foo\" specifies a location
+on the system \"/user@host:\"."
+  (cond ((fboundp 'file-remote-p)
+         (file-remote-p file))
+        ((fboundp 'tramp-handle-file-remote-p)
+         (tramp-handle-file-remote-p file))
+        ((and (boundp 'ange-ftp-name-format)
+              (string-match ange-ftp-name-format file))
+         t)
+        (t nil)))
 
 (defvar org-insert-link-history nil
   "Minibuffer history for links inserted with `org-insert-link'.")
@@ -10212,7 +10504,7 @@ This is being used to correctly align a single field after TAB or RET.")
 	 (linepos (+ (if (bolp) 1 0) (count-lines (point-min) (point))))
 	 (colpos (org-table-current-column))
 	 (winstart (window-start))
-	 text lines (new "") lengths l typenums ty fields maxfields i
+	 lines (new "") lengths l typenums ty fields maxfields i
 	 column
 	 (indent "") cnt frac
 	 rfmt hfmt
@@ -10223,7 +10515,7 @@ This is being used to correctly align a single field after TAB or RET.")
 		 (make-string sp2 ?\ ) "%%%s%ds" (make-string sp1 ?\ ) "|"))
 	 (hfmt1 (concat
 		 (make-string sp2 ?-) "%s" (make-string sp1 ?-) "+"))
-	 emptystrings xx links narrow fmax fmin f1 len c e)
+	 emptystrings links narrow fmax f1 len c e)
     (untabify beg end)
     (remove-text-properties beg end '(org-cwidth t display t))
     ;; Check if we have links
@@ -12359,9 +12651,11 @@ overwritten, and the table is not marked as requiring realignment."
     (:headline-levels      . org-export-headline-levels)
     (:section-numbers      . org-export-with-section-numbers)
     (:table-of-contents    . org-export-with-toc)
+    (:archived-trees       . org-export-with-archived-trees)
     (:emphasize            . org-export-with-emphasize)
     (:sub-superscript      . org-export-with-sub-superscripts)
     (:TeX-macros           . org-export-with-TeX-macros)
+    (:LaTeX-fragments      . org-export-with-LaTeX-fragments)
     (:fixed-width          . org-export-with-fixed-width)
     (:timestamps           . org-export-with-timestamps)
     (:tables               . org-export-with-tables)
@@ -12392,7 +12686,6 @@ overwritten, and the table is not marked as requiring realignment."
     (goto-char 0)
     (let ((re (org-make-options-regexp
 	       '("TITLE" "AUTHOR" "EMAIL" "TEXT" "OPTIONS" "LANGUAGE")))
-	  (text nil)
 	  p key val text options)
       (while (re-search-forward re nil t)
 	(setq key (org-match-string-no-properties 1)
@@ -12416,7 +12709,8 @@ overwritten, and the table is not marked as requiring realignment."
 		    ("|"     . :tables)
 		    ("^"     . :sub-superscript)
 		    ("*"     . :emphasize)
-		    ("TeX"   . :TeX-macros)))
+		    ("TeX"   . :TeX-macros)
+		    ("LaTeX" . :LaTeX-fragments)))
 	      o)
 	  (while (setq o (pop op))
 	    (if (string-match (concat (regexp-quote (car o))
@@ -12831,32 +13125,56 @@ translations.  There is currently no way for users to extend this.")
 (defun org-cleaned-string-for-export (string &rest parameters)
   "Cleanup a buffer substring so that links can be created safely."
   (interactive)
-  (let* ((cb (current-buffer))
-	 (re-radio (and org-target-link-regexp
+  (let* ((re-radio (and org-target-link-regexp
 			(concat "\\([^<]\\)\\(" org-target-link-regexp "\\)")))
 	 (re-plain-link (concat "\\([^[<]\\)" org-plain-link-re))
 	 (re-angle-link (concat "\\([^[]\\)" org-angle-link-re))
+	 (re-archive (concat ":" org-archive-tag ":"))
 	 rtn)
     (save-excursion
       (set-buffer (get-buffer-create " org-mode-tmp"))
       (erase-buffer)
       (insert string)
-      (org-mode)
+      (let ((org-inhibit-startup t)) (org-mode))
+
+      ;; Get rid of archived trees
+      (when (not (eq org-export-with-archived-trees t))
+	(goto-char (point-min))
+	(while (re-search-forward re-archive nil t)
+	  (if (not (org-on-heading-p))
+	      (org-end-of-subtree t)
+	    (beginning-of-line 1)
+	    (delete-region
+	     (if org-export-with-archived-trees (1+ (point-at-eol)) (point))
+	     (org-end-of-subtree)))))
+
       ;; Find targets in comments and move them out of comments,
       ;; but mark them as targets that should be invisible
       (goto-char (point-min))
       (while (re-search-forward "^#.*?\\(<<<?[^>\r\n]+>>>?\\).*" nil t)
 	(replace-match "\\1(INVISIBLE)"))
+
       ;; Find matches for radio targets and turn them into internal links
       (goto-char (point-min))
       (when re-radio
 	(while (re-search-forward re-radio nil t)
 	  (replace-match "\\1[[\\2]]")))
+
       ;; Find all links that contain a newline and put them into a single line
       (goto-char (point-min))
       (while (re-search-forward "\\(\\(\\[\\|\\]\\)\\[[^]]*?\\)[ \t]*\n[ \t]*\\([^]]*\\]\\(\\[\\|\\]\\)\\)" nil t)
 	(replace-match "\\1 \\3")
 	(goto-char (match-beginning 0)))
+
+      ;; Convert LaTeX fragments to images
+      (when (memq :LaTeX-fragments parameters)
+	(org-format-latex 
+	 (concat "ltxpng/" (file-name-sans-extension
+			    (file-name-nondirectory
+			     org-current-export-file)))
+	 org-current-export-dir nil "Creating LaTeX image %s"))
+      (message "Expriting...")
+
       ;; Normalize links: Convert angle and plain links into bracket links
       (goto-char (point-min))
       (while (re-search-forward re-plain-link nil t)
@@ -12870,6 +13188,7 @@ translations.  There is currently no way for users to extend this.")
 	 (concat
 	  (match-string 1) "[[" (match-string 2) ":" (match-string 3) "]]")
 	 t t))
+
       ;; Find multiline emphasis and put them into single line
       (when (memq :emph-multiline parameters)
 	(goto-char (point-min))
@@ -12976,7 +13295,6 @@ underlined headlines.  The default is 3."
 	 (title       (or (plist-get opt-plist :title)
 			  (file-name-sans-extension
 			   (file-name-nondirectory buffer-file-name))))
-	 (options     nil)
 	 (email       (plist-get opt-plist :email))
 	 (language    (plist-get opt-plist :language))
 	 (text        nil)
@@ -13077,7 +13395,7 @@ underlined headlines.  The default is 3."
     (normal-mode)
     (save-buffer)
     ;; remove display and invisible chars
-    (let (beg end s)
+    (let (beg end)
       (goto-char (point-min))
       (while (setq beg (next-single-property-change (point) 'display))
 	(setq end (next-single-property-change beg 'display))
@@ -13154,9 +13472,9 @@ underlined headlines.  The default is 3."
 (defun org-export-visible (type arg)
   "Create a copy of the visible part of the current buffer, and export it.
 The copy is created in a temporary buffer and removed after use.
-TYPE is the final key (as a string) of the `C-c C-x' key sequence that will
-run the export command - in interactive use, the command prompts for this
-key.  As a special case, if the you type SPC at the prompt, the temporary
+TYPE is the final key (as a string) that also select the export command in
+the `C-c C-e' export dispatcher.
+As a special case, if the you type SPC at the prompt, the temporary
 org-mode file will not be removed but presented to you so that you can
 continue to use it.  The prefix arg ARG is passed through to the exporting
 command."
@@ -13235,7 +13553,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 #+EMAIL:     %s
 #+LANGUAGE:  %s
 #+TEXT:      Some descriptive text to be emitted.  Several lines OK.
-#+OPTIONS:   H:%d num:%s toc:%s \\n:%s @:%s ::%s |:%s ^:%s *:%s TeX:%s
+#+OPTIONS:   H:%d num:%s toc:%s \\n:%s @:%s ::%s |:%s ^:%s *:%s TeX:%s LaTeX:%s
 #+CATEGORY:  %s
 #+SEQ_TODO:  %s
 #+TYP_TODO:  %s
@@ -13254,6 +13572,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
    org-export-with-sub-superscripts
    org-export-with-emphasize
    org-export-with-TeX-macros
+   org-export-with-LaTeX-fragments
    (file-name-nondirectory buffer-file-name)
    (if (equal org-todo-interpretation 'sequence)
        (mapconcat 'identity org-todo-keywords " ")
@@ -13351,6 +13670,7 @@ When HIDDEN is non-nil, don't display the HTML buffer.
 EXT-PLIST is a property list with external parameters overriding
 org-mode's default settings, but still inferior to file-local settings."
   (interactive "P")
+  (message "Exporting...")
   (setq-default org-todo-line-regexp org-todo-line-regexp)
   (setq-default org-deadline-line-regexp org-deadline-line-regexp)
   (setq-default org-done-string org-done-string)
@@ -13367,10 +13687,16 @@ org-mode's default settings, but still inferior to file-local settings."
           (buffer-substring
            (if region-p (region-beginning) (point-min))
            (if region-p (region-end) (point-max))))
+	 ;; The following two are dynamically scoped into other
+	 ;; routines below.
+	 (org-current-export-dir (org-export-directory :html opt-plist))
+	 (org-current-export-file buffer-file-name)
          (all_lines
           (org-skip-comments (org-split-string
 			      (org-cleaned-string-for-export
-			       region :emph-multiline)
+			       region :emph-multiline 
+			       (if (plist-get opt-plist :LaTeX-fragments)
+				   :LaTeX-fragments))
 			      "[\r\n]")))
          (lines (org-export-find-first-heading-line all_lines))
          (level 0) (line "") (origline "") txt todo
@@ -13815,7 +14141,9 @@ lang=\"%s\" xml:lang=\"%s\">
       (while (re-search-forward "<li>[ \r\n\t]*</li>\n?" nil t)
 	(replace-match ""))
       (save-buffer)
-      (goto-char (point-min)))))
+      (goto-char (point-min))
+      (message "Exporting... done"))))
+
 
 (defun org-format-table-html (lines olines)
   "Find out which HTML converter to use and return the HTML code."
@@ -14469,6 +14797,255 @@ a time), or the day by one (if it does not contain a time)."
     (setq fmt (if have-time ":%Y%m%dT%H%M%S" ";VALUE=DATE:%Y%m%d"))
     (concat keyword (format-time-string fmt time))))
 
+;;; LaTeX stuff
+
+(defvar org-cdlatex-mode-map (make-sparse-keymap)
+  "Keymap for the minor `org-cdlatex-mode'.")
+
+(define-key org-cdlatex-mode-map "_" 'org-cdlatex-underscore-caret)
+(define-key org-cdlatex-mode-map "^" 'org-cdlatex-underscore-caret)
+(define-key org-cdlatex-mode-map "`" 'cdlatex-math-symbol)
+(define-key org-cdlatex-mode-map "'" 'org-cdlatex-math-modify)
+(define-key org-cdlatex-mode-map "\C-c{" 'cdlatex-environment)
+
+(defvar org-cdlatex-texmathp-advice-is-done nil
+  "Flag remembering if we have applied the advice to texmathp already.")
+
+(define-minor-mode org-cdlatex-mode 
+  "Toggle the minor `org-cdlatex-mode'.
+This mode supports entering LaTeX environment and math in LaTeX fragments
+in Org-mode.
+\\{org-cdlatex-mode-map}"
+  nil " CDLtx" nil
+  (when org-cdlatex-mode (require 'cdlatex))
+  (unless org-cdlatex-texmathp-advice-is-done
+    (setq org-cdlatex-texmathp-advice-is-done t)
+    (defadvice texmathp (around org-math-always-on activate)
+      "Always return t in org-mode buffers.
+This is because we want to insert math symbols without dollars even outside
+the LaTeX math segments.
+\\[org-cdlatex-mode-map]"
+      (interactive)
+      (if (or (not (eq major-mode 'org-mode))
+	      (org-inside-LaTeX-fragment-p))
+	  ad-do-it
+	(if (eq this-command 'cdlatex-math-symbol)
+	    (setq ad-return-value t))))))
+
+(defun org-inside-LaTeX-fragment-p ()
+  "Test if point is inside a LaTeX fragment. I.e. after a \\begin, \\(, \\[, $, or $$, withoout the corresponding closing
+sequence appearing also before point."
+  (let ((pos (point))
+	(lim (progn
+	       (re-search-backward (concat "^\\(" paragraph-start "\\)") nil t)
+	       (point)))
+	dollar-on p1)
+    (goto-char pos)
+    (if (re-search-backward "\\(\\\\begin{\\|\\\\(\\|\\\\\\[\\)\\|\\(\\\\end{\\|\\\\)\\|\\\\\\]\\)\\|\\(\\$\\)" lim t)
+	(progn
+	  (goto-char pos)
+	  (cond
+	   ((match-beginning 1) (match-beginning 0))
+	   ((match-beginning 2) nil)
+	   (t (while (re-search-backward "\\$" lim t)
+		(setq dollar-on (not dollar-on))
+		(if (= (char-before) ?$) (backward-char 1))
+		(setq p1 (or p1 (point))))
+	      (goto-char pos)
+	      (if dollar-on p1))))
+      (goto-char pos)
+      nil)))
+
+(defun org-try-cdlatex-tab ()
+  "Check if it makes sense to execute `cdlatex-tab', and do it if yes.
+It makes sense to do so if `org-cdlatex-mode' is active and if the cursor is
+  - inside a LaTeX fragment, or
+  - after the first word in a line, where an abbreviation expansion could
+    insert a LaTeX environment."
+  ;; FIXME:  This may still need refinement.
+  (when org-cdlatex-mode
+    (cond
+     ((save-excursion
+	(skip-chars-backward "a-zA-Z0-9*")
+	(skip-chars-backward " \t")
+	(bolp))
+      (cdlatex-tab) t)
+     ((org-inside-LaTeX-fragment-p)
+      (cdlatex-tab) t)
+     (t nil))))
+
+(defun org-cdlatex-underscore-caret (&optional arg)
+  "Execute `cdlatex-sub-superscript' in LaTeX fragments.
+Revert to the normal definition outside of these fragments."
+  (interactive "P")
+  (if (org-inside-LaTeX-fragment-p)
+      (call-interactively 'cdlatex-sub-superscript)
+    (let (org-cdlatex-mode)
+      (call-interactively (key-binding (vector last-input-event))))))
+
+(defun org-cdlatex-math-modify (&optional arg)
+  "Execute `cdlatex-math-modify' in LaTeX fragments.
+Revert to the normal definition outside of these fragments."
+  (interactive "P")
+  (if (org-inside-LaTeX-fragment-p)
+      (call-interactively 'cdlatex-math-modify)
+    (let (org-cdlatex-mode)
+      (call-interactively (key-binding (vector last-input-event))))))
+
+(defvar org-latex-fragment-image-overlays nil
+  "List of overlays carrying the images of latex fragments.")
+(make-variable-buffer-local 'org-latex-fragment-image-overlays)
+
+(defun org-remove-latex-fragment-image-overlays ()
+  "Remove all overlays with LaTeX fragment images in current buffer."
+  (mapc 'org-delete-overlay org-latex-fragment-image-overlays)
+  (setq org-latex-fragment-image-overlays nil))
+
+(defun org-preview-latex-fragment (&optional subtree)
+  "Preview the LaTeX fragment at point, or all locally or globally.
+If the cursor is in a LaTeX fragment, create the image and overlay
+it over the source code.  If there is no fragment at point, display
+all fragments in the current text, from one headline to the next.  With
+prefix SUBTREE, display all fragments in the current subtree.  With a 
+double prefix `C-u C-u', or when the cursor is before the first headline,
+display all fragments in the buffer.
+The images can be removed again with \\[org-ctrl-c-ctrl-c]."
+  (interactive "P")
+  (org-remove-latex-fragment-image-overlays)
+  (save-excursion
+    (save-restriction
+      (let (beg end at msg)
+	(cond
+	 ((or (equal subtree '(16))
+	      (not (save-excursion
+		     (re-search-backward (concat "^" outline-regexp) nil t))))
+	  (setq beg (point-min) end (point-max)
+		msg "Creating images for buffer...%s"))
+	 ((equal subtree '(4))
+	  (org-back-to-heading)
+	  (setq beg (point) end (org-end-of-subtree)
+		msg "Creating images for subtree...%s"))
+	 (t
+	  (if (setq at (org-inside-LaTeX-fragment-p))
+	      (goto-char (max (point-min) (- at 2)))
+	    (org-back-to-heading))
+	  (setq beg (point) end (progn (outline-next-heading) (point))
+		msg (if at "Creating image...%s"
+		      "Creating images for entry...%s"))))
+	(message msg "")
+	(narrow-to-region beg end)
+	(org-format-latex
+	 (concat "ltxpng/" (file-name-sans-extension
+			    (file-name-nondirectory
+			     buffer-file-name)))
+	 default-directory 'overlays msg at)
+      (message msg "done.  Use `C-c C-c' to remove images.")))))
+
+(defun org-format-latex (prefix &optional dir overlays msg at)
+  "Replace LaTeX fragments with links to an image, and produce images."
+  (if (and overlays (fboundp 'clear-image-cache)) (clear-image-cache))
+  (let* ((prefixnodir (file-name-nondirectory prefix))
+	 (absprefix (expand-file-name prefix dir))
+	 (todir (file-name-directory absprefix))
+	 (opt org-format-latex-options)
+	 (matchers (plist-get opt :matchers))
+	 (re-list
+	  '(("begin" "^[ \t]*\\(\\\\begin{\\([a-zA-Z0-9\\*]+\\)[^\000]+?\\\\end{\\2}\\)" 1 t)
+	    ("$" "\\([ 	(]\\|^\\)\\(\\(\\([$]\\)\\([^ 	\r\n,.$].*?\\(\n.*?\\)\\{0,5\\}[^ 	\r\n,.$]\\)\\4\\)\\)\\([ 	.,?;:'\")]\\|$\\)" 2 nil)
+	    ("\\(" "\\\\([^\000]*?\\\\)" 0 nil)
+	    ("\\[" "\\\\\\[[^\000]*?\\\\\\]" 0 t)
+	    ("$$" "\\$\\$[^\000]*?\\$\\$" 0 t)))
+	 (cnt 0) txt link beg end re e oldfiles
+	 m n block linkfile movefile ov)
+    ;; Make sure the directory exists
+    (or (file-directory-p todir) (make-directory todir))
+    ;; Check if there are old images files with this prefix, and remove them
+    (setq oldfiles (directory-files
+		    todir 'full
+		    (concat (regexp-quote prefixnodir) "_[0-9]+\\.png$")))
+    (while oldfiles (delete-file (pop oldfiles)))
+    ;; Check the different regular expressions
+    (while (setq e (pop re-list))
+      (setq m (car e) re (nth 1 e) n (nth 2 e)
+	    block (if (nth 3 e) "\n\n" ""))
+      (when (member m matchers)
+	(goto-char (point-min))
+	(while (re-search-forward re nil t)
+	  (when (or (not at) (equal at (match-beginning n)))
+	    (setq txt (match-string n)
+		  beg (match-beginning n) end (match-end n)
+		  cnt (1+ cnt)
+		  linkfile (format "%s_%04d.png" prefix cnt)
+		  movefile (format "%s_%04d.png" absprefix cnt)
+		  link (concat block "[[file:" linkfile "]]" block))
+	    (if msg (message msg cnt))
+	    (goto-char beg)
+	    (org-create-formula-image
+	     txt movefile opt)
+	    (if overlays
+		(progn
+		  (setq ov (org-make-overlay beg end))
+		  (if (featurep 'xemacs)
+		      (progn
+			(org-overlay-put ov 'invisible t)
+			(org-overlay-put
+			 ov 'end-glyph 
+			 (make-glyph (vector 'png :file movefile))))
+		    (org-overlay-put 
+		     ov 'display 
+		     (list 'image :type 'png :file movefile :ascent 'center)))
+		  (push ov org-latex-fragment-image-overlays)
+		  (goto-char end))
+	      (delete-region beg end)
+	      (insert link))))))))
+    
+;; This function borrows from Ganesh Swami's latex2png.el
+(defun org-create-formula-image (string tofile options)
+  (let* ((tmpdir (if (featurep 'xemacs)
+		     (temp-directory)
+		   temporary-file-directory))
+	 (texfilebase (make-temp-name
+		       (expand-file-name "orgtex" tmpdir)))
+
+;(texfilebase (make-temp-file "orgtex"))
+;	 (dummy (delete-file texfilebase))
+	 (texfile (concat texfilebase ".tex"))
+	 (dvifile (concat texfilebase ".dvi"))
+	 (pngfile (concat texfilebase ".png"))
+	 (scale (number-to-string (* 1000 (or (plist-get options :scale) 1.0))))
+	 (fg (or (plist-get options :foreground) "Black"))
+	 (bg (or (plist-get options :background) "Transparent")))
+    (with-temp-file texfile
+      (insert "\\documentclass{article}
+\\usepackage{fullpage}
+\\usepackage{amssymb}
+\\usepackage[usenames]{color}
+\\usepackage{amsmath}
+\\usepackage{latexsym}
+\\usepackage[mathscr]{eucal}
+\\pagestyle{empty}
+\\begin{document}\n" string "\n\\end{document}\n"))
+    (let ((dir default-directory))
+      (condition-case nil
+	  (progn
+	    (cd tmpdir)
+	    (call-process "latex" nil nil nil texfile))
+	(error nil))
+      (cd dir))
+    (if (not (file-exists-p dvifile))
+	(progn (message "Failed to create dvi file from %s" texfile) nil)
+      (call-process "dvipng" nil nil nil
+		    "-E" "-fg" fg "-bg" bg
+		    "-x" scale "-y" scale "-T" "tight"
+		    "-o" pngfile
+		    dvifile)
+      (if (not (file-exists-p pngfile))
+	  (progn (message "Failed to create png file from %s" texfile) nil)
+	;; Use the requested file name and clean up
+	(copy-file pngfile tofile 'replace)
+	(loop for e in '(".dvi" ".tex" ".aux" ".log" ".png") do
+	      (delete-file (concat texfilebase e)))
+	pngfile))))
 
 ;;; Key bindings
 
@@ -14536,6 +15113,7 @@ a time), or the day by one (if it does not contain a time)."
 (define-key org-mode-map "\C-c\C-a" 'show-all)  ; in case allout messed up.
 (define-key org-mode-map "\C-xns" 'org-narrow-to-subtree)
 (define-key org-mode-map "\C-c$"    'org-archive-subtree)
+(define-key org-mode-map "\C-c\C-x\C-a" 'org-toggle-archive-tag)
 (define-key org-mode-map "\C-c\C-j" 'org-goto)
 (define-key org-mode-map "\C-c\C-t" 'org-todo)
 (define-key org-mode-map "\C-c\C-s" 'org-schedule)
@@ -14590,8 +15168,8 @@ a time), or the day by one (if it does not contain a time)."
 (define-key org-mode-map "\C-c\C-x\C-x" 'org-clock-cancel)
 (define-key org-mode-map "\C-c\C-x\C-d" 'org-clock-display)
 (define-key org-mode-map "\C-c\C-x\C-r" 'org-clock-report)
-
 (define-key org-mode-map "\C-c\C-x\C-u" 'org-dblock-update)
+(define-key org-mode-map "\C-c\C-x\C-l" 'org-preview-latex-fragment)
 
 (when (featurep 'xemacs)
   (define-key org-mode-map 'button3   'popup-mode-menu))
@@ -14898,12 +15476,12 @@ This command does many different things, depending on context:
   (interactive "P")
   (let  ((org-enable-table-editor t))
     (cond
-     (org-clock-overlays 
+     ((or org-clock-overlays org-occur-highlights
+	  org-latex-fragment-image-overlays)
       (org-remove-clock-overlays)
-      (message "Clock overlays removed"))
-     (org-occur-highlights
       (org-remove-occur-highlights)
-      (message "occur highlights removed"))
+      (org-remove-latex-fragment-image-overlays)
+      (message "Temporary highlights/overlays removed from current buffer"))
      ((and (local-variable-p 'org-finish-function (current-buffer))
 	   (fboundp org-finish-function))
       (funcall org-finish-function))
@@ -15053,10 +15631,26 @@ See the individual commands for more information."
      ["Demote Heading"  org-metaright (not (org-at-table-p))]
      ["Demote Subtree"  org-shiftmetaright (not (org-at-table-p))]
      "--"
-     ["Archive Subtree" org-archive-subtree t]
-     "--"
      ["Convert to odd levels" org-convert-to-odd-levels t]
      ["Convert to odd/even levels" org-convert-to-oddeven-levels t])
+    ("Archive"
+     ["Toggle ARCHIVE tag" org-toggle-archive-tag t]
+     ["Check and Tag Children" (org-toggle-archive-tag (4))
+      :active t :keys "C-u C-c C-x C-a"]
+     ["Sparse trees open ARCHIVE trees"
+      (setq org-sparse-tree-open-archived-trees
+	    (not org-sparse-tree-open-archived-trees))
+      :style toggle :selected org-sparse-tree-open-archived-trees]
+     ["Cycling opens ARCHIVE trees"
+      (setq org-cycle-open-archived-trees (not org-cycle-open-archived-trees))
+      :style toggle :selected org-cycle-open-archived-trees]
+     ["Agenda includes ARCHIVE trees"
+      (setq org-agenda-skip-archived-trees (not org-agenda-skip-archived-trees))
+      :style toggle :selected (not org-agenda-skip-archived-trees)]
+     "--"
+     ["Move Subtree to Archive" org-archive-subtree t]
+     ["Check and Move Children" (org-archive-subtree '(4)) 
+      :active t :keys "C-u C-c $"])
     "--"
     ("TODO Lists"
      ["TODO/DONE/-" org-todo t]
@@ -15120,6 +15714,16 @@ See the individual commands for more information."
 		      (re-search-forward "<[a-z]+:" nil t))])
     "--"
     ["Export/Publish" org-export t]
+    ("LaTeX"
+     ["Org CDLaTeX mode" org-cdlatex-mode :style toggle 
+      :selected org-cdlatex-mode]
+     ["Insert Environment" cdlatex-environment (fboundp 'cdlatex-environment)]
+     ["Insert math symbol" cdlatex-math-symbol (fboundp 'cdlatex-math-symbol)]
+     ["Modify math symbol" org-cdlatex-math-modify
+      (org-inside-LaTeX-fragment-p)]
+     ["Export LaTeX fragments as images"
+      (setq org-export-with-LaTeX-fragments (not org-export-with-LaTeX-fragments)) 
+      :style toggle :selected org-export-with-LaTeX-fragments])
     "--"
     ("Documentation"
      ["Show Version" org-version t]
@@ -15313,6 +15917,7 @@ return nil."
   ;; In the paragraph separator we include headlines, because filling
   ;; text in a line directly attached to a headline would otherwise
   ;; fill the headline as well.
+  (set (make-local-variable 'comment-start-skip) "^#+[ \t]*")
   (set (make-local-variable 'paragraph-separate) "\f\\|\\*\\|[ 	]*$\\|[ \t]*[:|]")
   ;; The paragraph starter includes hand-formatted lists.
   (set (make-local-variable 'paragraph-start)
@@ -15636,9 +16241,7 @@ Show the heading too, if it is currently invisible."
 			   (org-invisible-p)))
        (org-show-hierarchy-above)))
 
-
 ;;; Experimental code
-
 
 ;;; Finish up
 	
