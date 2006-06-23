@@ -114,7 +114,8 @@
 	("iso10646.indian-1" . (unicode-bmp . nil))))
 
 (setq script-representative-chars
-      '((greek #x3A9)
+      '((latin ?A ?Z ?a ?z)
+	(greek #x3A9)
 	(coptic #x3E2)
 	(cyrillic #x42F)
 	(armenian #x531)
