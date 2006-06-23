@@ -1,3 +1,9 @@
+2006-06-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-edit.el (customize-apropos): A better error message.
+	(top level) <debug-ignored-errors>: Extend and update the list of
+	ignored error messages.
+
 2006-06-23  Michael Ernst  <mernst@alum.mit.edu>
 
 	* complete.el (PC-do-completion): Retain capitalization of user
