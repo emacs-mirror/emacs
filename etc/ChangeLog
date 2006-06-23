@@ -1,3 +1,7 @@
+2006-06-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* NEWS: Remove duplicate entries.
+
 2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* orgcard.tex (section{LaTeX and cdlatex-mode}): New section.
