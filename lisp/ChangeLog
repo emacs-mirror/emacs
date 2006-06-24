@@ -4,6 +4,7 @@
 	the "Oriya-Akruti" registry name.
 
 2006-06-23  Lars Hansen <larsh@soem.dk>
+
 	* desktop.el (desktop-full-file-name): New function.
 	(desktop-kill, desktop-save, desktop-remove, desktop-read)
 	(desktop-revert): Use it.
@@ -18,38 +19,31 @@
 	* textmodes/org.el (org-cdlatex-mode-map)
 	(org-cdlatex-texmathp-advice-is-done): New variables.
 	(org-cdlatex-mode): New minor mode.
-	(org-inside-LaTeX-fragment-p, org-try-cdlatex-tab): New
-	functions. 
-	(org-cdlatex-underscore-caret, org-cdlatex-math-modify): New
-	commands.
+	(org-inside-LaTeX-fragment-p, org-try-cdlatex-tab): New functions.
+	(org-cdlatex-underscore-caret, org-cdlatex-math-modify): New commands.
 	(org-export-with-archived-trees): New option.
-	(org-open-file): Removed the call to
-	`convert-standard-filename'.
+	(org-open-file): Removed the call to `convert-standard-filename'.
 	(org-archive-tag, org-agenda-skip-archived-trees)
 	(org-cycle-open-archived-trees)
 	(org-sparse-tree-open-archived-trees): New options.
 	(org-cycle-hide-archived-subtrees, org-hide-archived-subtrees)
 	(org-toggle-tag, org-prepare-agenda-buffers, org-agenda-skip): New
-	functions. 
-	(org-agenda-toggle-archive-tag, org-toggle-archive-tag): New
-	commands.
-	(org-agenda-mode-map): Add binding of
-	`org-agenda-toggle-archive-tag'. 
+	functions.
+	(org-agenda-toggle-archive-tag, org-toggle-archive-tag): New commands.
+	(org-agenda-mode-map): Add binding of `org-agenda-toggle-archive-tag'.
 	(org-mode-map): Add binding for `org-toggle-archive-tag'.
 	(org-timeline, org-agenda-list, org-todo-list, org-tags-view):
 	Call `org-prepare-agenda-buffers'.
 	(org-occur, org-scan-tags): Call `org-hide-archived-subtrees'.
 	(org-file-apps, org-file-apps-defaults-gnu)
-	(org-file-apps-defaults-macosx)
-	(org-file-apps-defaults-windowsnt): Handle remote files by forcing
-	them to be opened in Emacs.
+	(org-file-apps-defaults-macosx, org-file-apps-defaults-windowsnt):
+	Handle remote files by forcing them to be opened in Emacs.
 
 2006-06-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-diff-knows-L): New variable.
 	(vc-diff-internal): Use it to handle "diff" programs that don't
-	understand -L.  This works automatically, no user action is
-	necessary.
+	understand -L.  This works automatically, no user action is necessary.
 
 2006-06-23  Daniel Brockman  <daniel@brockman.se>
 
@@ -124,8 +118,8 @@
 
 2006-06-20  Kenichi Handa  <handa@m17n.org>
 
-	* international/characters.el (word-combining-categories): Add
-	entries for 2-byte Han characters.
+	* international/characters.el (word-combining-categories):
+	Add entries for 2-byte Han characters.
 
 2006-06-19  Richard Stallman  <rms@gnu.org>
 
@@ -155,7 +149,7 @@
 	(org-demote, org-promote): Call `org-fixup-indentation' with just
 	one argument, DIFF.
 	(org-mode): Don't mark buffer as modified when aligning tables.
-	(org-clock-sum): Don't makr buffer modified when adding time sum
+	(org-clock-sum): Don't mark buffer modified when adding time sum
 	properties.
 	(org-export-as-html): Added support for a link validation function.
 	(org-archive-all-done): New function.
@@ -175,7 +169,7 @@
 	(viper-after-change-undo-hook): Misc enhancements.
 	(viper-after-change-undo-hook): New hook.
 	(viper-undo): Use viper-after-change-undo-hook.
-	(viper-add-newline-at-eob-if-necessary): widen before making changes.
+	(viper-add-newline-at-eob-if-necessary): Widen before making changes.
 	(viper-next-line-at-bol): If point is on a widget or a button, simulate
 	clicking on that widget/button.
 

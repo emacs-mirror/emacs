@@ -1,3 +1,8 @@
+2006-06-25  Kim F. Storm  <storm@cua.dk>
+
+	* s/gnu-linux.h (SIGNALS_VIA_CHARACTERS): Define for Linux kernel
+	version 2.4 and later.
+
 2006-06-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (Fx_create_frame): Set font parameter directly instead of
