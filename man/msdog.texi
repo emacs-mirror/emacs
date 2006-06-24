@@ -29,6 +29,7 @@ here.
 @menu
 * Text and Binary::     Text files use CRLF to terminate lines.
 * Windows Files::       File-name conventions on Windows.
+* ls in Lisp::          Emulation of @code{ls} for Dired.
 * Windows HOME::        Where Emacs looks for your @file{.emacs}.
 * Windows Processes::   Running subprocesses on Windows.
 * Windows Printing::    How to specify the printer on MS-Windows.
@@ -166,6 +167,104 @@ backslash, and also knows about drive letters in file names.
 @cindex file-name completion, on MS-Windows
   On MS-DOS/MS-Windows, file names are case-insensitive, so Emacs by
 default ignores letter-case in file names during completion.
+
+@node ls in Lisp
+@section Emulation of @code{ls} on MS-Windows
+@cindex Dired, and MS-Windows/MS-DOS
+@cindex @code{ls} emulation
+
+  Dired normally uses the external program @code{ls} (or its close
+work-alike) to produce the directory listing displayed in Dired
+buffers (@pxref{Dired}).  However, MS-Windows and MS-DOS systems don't
+come with such a program, although several ports of @sc{gnu} @code{ls}
+are available.  Therefore, Emacs on those systems @emph{emulates}
+@code{ls} in Lisp, by using the @file{ls-lisp.el} package.  While
+@file{ls-lisp.el} provides a reasonably full emulation of @code{ls},
+there are some options and features peculiar to that emulation; they
+are described in this section.
+
+  The @code{ls} emulation supports many of the @code{ls} switches, but
+it doesn't support all of them.  Here's the list of the switches it
+does support: @option{-A}, @option{-a}, @option{-B}, @option{-C},
+@option{-c}, @option{-i}, @option{-G}, @option{-g}, @option{-R},
+@option{-r}, @option{-S}, @option{-s}, @option{-t}, @option{-U},
+@option{-u}, and @option{-X}.  The @option{-F} switch is partially
+supported (it appends the character that classifies the file, but does
+not prevent symlink following).
+
+@vindex ls-lisp-use-insert-directory-program
+  On MS-Windows and MS-DOS, @file{ls-lisp.el} is preloaded when Emacs
+is built, so the Lisp emulation of @code{ls} is always used on those
+platforms.  If you have a ported @code{ls}, setting
+@code{ls-lisp-use-insert-directory-program} to a non-@code{nil} value
+will revert to using an external program named by the variable
+@code{insert-directory-program}.
+
+@vindex ls-lisp-ignore-case
+  By default, @file{ls-lisp.el} uses a case-sensitive sort order for
+the directory listing it produces; this is so the listing looks the
+same as on other platforms.  If you wish that the files be sorted in
+case-insensitive order, set the variable @code{ls-lisp-ignore-case} to
+a non-@code{nil} value.
+
+@vindex ls-lisp-dirs-first
+  By default, files and subdirectories are sorted together, to emulate
+the behavior of @code{ls}.  However, native MS-Windows/MS-DOS file
+managers list the directories before the files; if you want that
+behavior, customize the option @code{ls-lisp-dirs-first} to a
+non-@code{nil} value.
+
+@vindex ls-lisp-verbosity
+  The variable @code{ls-lisp-verbosity} controls the file attributes
+that @file{ls-lisp.el} displays.  The value should be a list that
+contains one or more of the symbols @code{links}, @code{uid}, and
+@code{gid}.  @code{links} means display the count of different file
+names that are associated with (a.k.a.@: @dfn{links to}) the file's
+data.  @code{uid} means display the numerical identifier of the user
+who owns the file.  @code{gid} means display the numerical identifier
+of the file owner's group.  The default value is @code{(links uid gid)}
+i.e.@: all the 3 optional attributes are displayed.
+
+@vindex ls-lisp-emulation
+  The variable @code{ls-lisp-emulation} controls the flavour of the
+@code{ls} emulation by setting the defaults for the 3 options
+described above: @code{ls-lisp-ignore-case},
+@code{ls-lisp-dirs-first}, and @code{ls-lisp-verbosity}.  The value of
+this option can be one of the following symbols:
+
+@table @code
+@item GNU
+@itemx nil
+Emulate @sc{gnu} systems; this is the default.  This sets
+@code{ls-lisp-ignore-case} and @code{ls-lisp-dirs-first} to
+@code{nil}, and @code{ls-lisp-verbosity} to @code{(links uid gid)}.
+@item UNIX
+Emulate Unix systems.  Like @code{GNU}, but sets
+@code{ls-lisp-verbosity} to @code{(links uid)}.
+@item MacOS
+Emulate MacOS.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
+@code{ls-lisp-dirs-first} and @code{ls-lisp-verbosity} to @code{nil}.
+@item MS-Windows
+Emulate MS-Windows.  Sets @code{ls-lisp-ignore-case} and
+@code{ls-lisp-dirs-first} to @code{t}, and @code{ls-lisp-verbosity} to
+@code{(links)} on Windows NT/2K/XP/2K3 and to @code{nil} on Windows 9X.
+Note that the default emulation is @emph{not} @code{MS-Windows}, even
+on Windows, since many users of Emacs on those platforms prefer the
+@sc{gnu} defaults.
+@end table
+
+@noindent
+Any other value of @code{ls-lisp-emulation} means the same as
+@code{GNU}.  Note that this option needs to be set @emph{before}
+@file{ls-lisp.el} is loaded, which means that on MS-Windows and MS-DOS
+you will have to set the value from your @file{.emacs} file and then
+restart Emacs, since @file{ls-lisp.el} is preloaded.
+
+@vindex ls-lisp-support-shell-wildcards
+  The variable @code{ls-lisp-support-shell-wildcards} controls how
+file-name patterns are supported: if it is non-@code{nil} (the
+default), they are treated as shell-style wildcards; otherwise they
+are treated as Emacs regular expressions.
 
 @node Windows HOME
 @section HOME Directory on MS-Windows
