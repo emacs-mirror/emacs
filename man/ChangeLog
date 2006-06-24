@@ -1,3 +1,8 @@
+2006-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Visiting): Document case-insensitive wildcard matching
+	under find-file-wildcards.
+
 2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Embedded LaTeX): New chapter.
