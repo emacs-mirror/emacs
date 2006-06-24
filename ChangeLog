@@ -1,3 +1,8 @@
+2006-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Mention www.nongnu.org pages that list free Unicode
+	fonts.
+
 2006-06-05  Kim F. Storm  <storm@cua.dk>
 
 	* AUTHORS: Regenerate.

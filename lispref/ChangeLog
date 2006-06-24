@@ -1,5 +1,8 @@
 2006-06-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* files.texi (Contents of Directories): Document case-insensitive
+	behavior on respective filesystems.
+
 	* objects.texi (Character Type): Document that Emacs signals an
 	error for unsupported Unicode characters specified as \uNNNN.
 
