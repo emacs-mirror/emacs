@@ -32,9 +32,10 @@ here.
 * ls in Lisp::          Emulation of @code{ls} for Dired.
 * Windows HOME::        Where Emacs looks for your @file{.emacs}.
 * Windows Keyboard::    Windows-specific keyboard features.
+* Windows Mouse::       Windows-specific mouse features.
 * Windows Processes::   Running subprocesses on Windows.
 * Windows Printing::    How to specify the printer on MS-Windows.
-* Windows System Menu:: Controlling what the ALT key does.
+* Windows Misc::        Miscellaneous Windows features.
 @ifnottex
 * MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
 @end ifnottex
@@ -168,6 +169,13 @@ backslash, and also knows about drive letters in file names.
 @cindex file-name completion, on MS-Windows
   On MS-DOS/MS-Windows, file names are case-insensitive, so Emacs by
 default ignores letter-case in file names during completion.
+
+@vindex w32-get-true-file-attributes
+  If the variable @code{w32-get-true-file-attributes} is
+non-@code{nil} (the default), Emacs tries to determine the accurate
+link counts for files.  This option is only useful on the NT family of
+Windows (2K/XP/2K3), and it considerably slows down Dired and other
+features.
 
 @node ls in Lisp
 @section Emulation of @code{ls} on MS-Windows
@@ -376,18 +384,30 @@ right Windows key produces the symbol @code{rwindow} and @key{ScrLock}
 produces the symbol @code{scroll}.
 
 @vindex w32-pass-alt-to-system
+@cindex Windows system menu
+@cindex @code{Alt} key invokes menu (Windows)
+  Emacs compiled as a native Windows application normally turns off
+the Windows feature that tapping the @key{ALT} key invokes the Windows
+menu.  The reason is that the @key{ALT} serves as @key{META} in Emacs.
+When using Emacs, users often press the @key{META} key temporarily and
+then change their minds; if this has the effect of bringing up the
+Windows menu, it alters the meaning of subsequent commands.  Many
+users find this frustrating.
+
+  You can re-enable Windows' default handling of tapping the @key{ALT}
+key by setting @code{w32-pass-alt-to-system} to a non-@code{nil}
+value.
+
 @vindex w32-pass-lwindow-to-system
 @vindex w32-pass-rwindow-to-system
-  The variables @code{w32-pass-alt-to-system},
-@code{w32-pass-lwindow-to-system}, and
+  The variables @code{w32-pass-lwindow-to-system} and
 @code{w32-pass-rwindow-to-system} determine whether the respective
 keys are passed to Windows or swallowed by Emacs.  If the value is
 @code{nil}, the respective key is silently swallowed by Emacs,
-otherwise it is passed to Windows.  The default is @code{nil} for
-@code{w32-pass-alt-to-system} and @code{t} for the other two
-variables.  Passing each of these keys to Windows produces its normal
-effect: for example, @kbd{@key{Alt} @key{SPC}} opens the @code{System}
-menu, @kbd{@key{Lwindow}} opens the @code{Start} menu, etc.
+otherwise it is passed to Windows.  The default is @code{t} for both
+of these variables.  Passing each of these keys to Windows produces
+its normal effect: for example, @kbd{@key{Lwindow}} opens the
+@code{Start} menu, etc.
 
 @vindex w32-recognize-altgr
 @kindex AltGr @r{(MS-Windows)}
@@ -398,6 +418,32 @@ key.  The default is @code{t}, which means these keys produce
 @code{AltGr}; setting them to @code{nil} causes these keys to be
 interpreted normally (as the respective modifiers).
 
+@node Windows Mouse
+@section Mouse Usage on MS-Windows
+@cindex mouse, and MS-Windows
+
+  This section describes the Windows-specific variables related to
+mouse.
+
+@vindex w32-mouse-button-tolerance
+@cindex simulation of middle mouse button
+  The variable @code{w32-mouse-button-tolerance} specifies the
+time interval, in milliseconds, for faking middle mouse button press
+on 2-button mice.  If both mouse buttons are depressed within this
+time interval, Emacs generates a middle mouse button click event
+instead of a double click on one of the buttons.
+
+@vindex w32-pass-extra-mouse-buttons-to-system
+  If the variable @code{w32-pass-extra-mouse-buttons-to-system} is
+non-@code{nil}, Emacs passes the fourth and fifth mouse buttons to
+Windows.
+
+@vindex w32-swap-mouse-buttons
+  The variable @code{w32-swap-mouse-buttons} controls which of the 3
+mouse buttons generates the @kbd{mouse-2} events.  When it is
+@code{nil} (the default), the middle button generates @kbd{mouse-2}
+and the right button generates @kbd{mouse-3} events.  If this variable
+is non-@code{nil}, the roles of these two buttons are reversed.
 
 @node Windows Processes
 @section Subprocesses on Windows 9X/ME and Windows NT/2K/XP
@@ -450,6 +496,14 @@ If you have to reboot Windows 9X in this situation, do not use the
 system.  Instead, type @kbd{CTL-ALT-@key{DEL}} and then choose
 @code{Shutdown}.  That usually works, although it may take a few minutes
 to do its job.
+
+@vindex w32-quote-process-args
+  The variable @code{w32-quote-process-args} controls how the process
+arguments are quoted.  If it is non-@code{nil} means they are quoted
+with the @code{"} character.  If the value is a character, that
+character will be used to escape any quote characters that appear;
+otherwise a suitable escape character will be chosen based on the type
+of the program.
 
 @node Windows Printing
 @section Printing and MS-Windows
@@ -596,21 +650,33 @@ printer, put this in your @file{.emacs} file:
 (This assumes that Ghostscript is installed in the
 @file{D:/gs6.01} directory.)
 
-@node Windows System Menu
-@section Using the System Menu on Windows
-@cindex @code{Alt} key invokes menu (Windows)
+@node Windows Misc
+@section Miscellaneous Windows-specific features
 
-Emacs compiled as a native Windows application normally turns off the
-Windows feature that tapping the @key{ALT} key invokes the Windows
-menu.  The reason is that the @key{ALT} serves as @key{META} in Emacs.
-When using Emacs, users often press the @key{META} key temporarily and
-then change their minds; if this has the effect of bringing up the
-Windows menu, it alters the meaning of subsequent commands.  Many
-users find this frustrating.
+  This section describes miscellaneous Windows-specific features.
 
-@vindex w32-pass-alt-to-system
-You can re-enable Windows' default handling of tapping the @key{ALT} key
-by setting @code{w32-pass-alt-to-system} to a non-@code{nil} value.
+@vindex w32-grab-focus-on-raise
+@cindex frame focus policy, MS-Windows
+  The variable @code{w32-grab-focus-on-raise}, if set to a
+non-@code{nil} value causes a frame to grab focus when it is raised.
+The default is @code{t}, which fits well with the Windows default
+click-to-focus policy.
+
+@vindex w32-list-proportional-fonts
+  The variable @code{w32-list-proportional-fonts} controls whether
+proportional fonts are included in the font selection dialog.  If its
+value is non-@code{nil}, these fonts will be included.  The default is
+@code{nil}.
+
+@vindex w32-use-visible-system-caret
+@cindex screen reader software, MS-Windows
+  The variable @code{w32-use-visible-system-caret} is a flag that
+determines whether to make the system caret visible.  The default is
+@code{nil}, which means Emacs draws its own cursor to indicate the
+position of point.  A non-@code{nil} value means Emacs will indicate
+point location by the system caret; this facilitates use of screen
+reader software.  When this variable is non-@code{nil}, other
+variables affecting the cursor display have no effect.
 
 @ifnottex
 @include msdog-xtra.texi
