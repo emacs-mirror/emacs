@@ -1,6 +1,13 @@
 2006-06-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* emacs.texi (Top): Update the detailed menu according to changes in
+	msdog.texi.
+
 	* msdog.texi (Windows Keyboard): New section.
+	(Windows Mouse): New section.
+	(Windows System Menu): Remove section (text merged with "Windows
+	Keyboard").
+	(Windows Misc): New section.
 
 	* dired.texi (Dired Enter): Refer to msdog.texi for ls-lisp emulation.
 
