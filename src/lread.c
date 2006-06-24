@@ -1964,17 +1964,12 @@ read_escape (readcharfun, stringp, byterep)
 			  make_number(i));
 	UNGCPRO;
 
-	if (EQ(Qnil, lisp_char))
+	if (NILP(lisp_char))
 	  {
-	    /* This is ugly and horrible and trashes the user's data.  */
-	    XSETFASTINT (i, MAKE_CHAR (charset_katakana_jisx0201,
-				       34 + 128, 46 + 128));
-            return i;
+	    error ("Unsupported Unicode code point: U+%x", (unsigned)i);
 	  }
-	else
-	  {
-	    return XFASTINT (lisp_char);
-	  }
+
+	return XFASTINT (lisp_char);
       }
 
     default:
