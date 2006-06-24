@@ -3189,8 +3189,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     if (! STRINGP (font))
       font = build_string ("fixed");
 
-    x_default_parameter (f, parms, Qfont, font,
-			 "font", "Font", RES_TYPE_STRING);
+    x_set_frame_parameters (f, Fcons (Fcons (Qfont, font), Qnil));
   }
 
 #ifdef USE_LUCID
