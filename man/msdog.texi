@@ -331,14 +331,6 @@ item, and @key{ESC} closes the menu.
 key.  If you wish it to produce the @code{Alt} modifier instead, set
 the variable @code{w32-alt-is-meta} to a @code{nil} value.
 
-@vindex w32-apps-modifier
-  The variable @code{w32-apps-modifier} controls the effect of the
-@key{Apps} key (usually located between the right @key{Alt} and the
-right @key{Ctrl} keys).  Its value can be one of the symbols
-@code{hyper}, @code{super}, @code{meta}, @code{alt}, @code{control},
-or @code{shift} for the respective modifier, or @code{nil} to appear
-as the key @code{apps}.  The default is @code{nil}.
-
 @vindex w32-capslock-is-shiftlock
   By default, the @key{CapsLock} key only affects normal character
 keys (it converts lower-case characters to their upper-case
@@ -359,6 +351,14 @@ instead of the shifted version of they keys.  The default value is
 @key{NumLock} key will produce the symbol @code{kp-numlock}.  The
 default is @code{t}, which causes @key{NumLock} to work as expected:
 toggle the meaning of the keys on the numeric keypad.
+
+@vindex w32-apps-modifier
+  The variable @code{w32-apps-modifier} controls the effect of the
+@key{Apps} key (usually located between the right @key{Alt} and the
+right @key{Ctrl} keys).  Its value can be one of the symbols
+@code{hyper}, @code{super}, @code{meta}, @code{alt}, @code{control},
+or @code{shift} for the respective modifier, or @code{nil} to appear
+as the key @code{apps}.  The default is @code{nil}.
 
 @vindex w32-lwindow-modifier
 @vindex w32-rwindow-modifier
