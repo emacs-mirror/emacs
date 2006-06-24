@@ -52,6 +52,9 @@ Boston, MA 02110-1301, USA.  */
 #if LINUX_VERSION_CODE >= 0x20000
 #define LINUX_MAP_SHARED_DOES_WORK
 #endif /* LINUX_VERSION_CODE >= 0x20000 */
+#if LINUX_VERSION_CODE >= 0x20400
+#define LINUX_SIGNALS_VIA_CHARACTERS_DOES_WORK
+#endif /* LINUX_VERSION_CODE >= 0x20400 */
 #endif /* HAVE_LINUX_VERSION_H */
 #endif /* emacs */
 #endif /* NOT_C_CODE */
@@ -247,9 +250,9 @@ Boston, MA 02110-1301, USA.  */
 #define C_DEBUG_SWITCH
 #endif
 
-/* Let's try this out, just in case.
-   Nah.  Rik Faith <faith@cs.unc.edu> says it doesn't work well.  */
-/* #define SIGNALS_VIA_CHARACTERS */
+#ifdef LINUX_SIGNALS_VIA_CHARACTERS_DOES_WORK
+#define SIGNALS_VIA_CHARACTERS
+#endif
 
 /* Rob Malouf <malouf@csli.stanford.edu> says:
    SYSV IPC is standard a standard part of Linux since version 0.99pl10,
