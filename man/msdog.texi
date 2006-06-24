@@ -31,6 +31,7 @@ here.
 * Windows Files::       File-name conventions on Windows.
 * ls in Lisp::          Emulation of @code{ls} for Dired.
 * Windows HOME::        Where Emacs looks for your @file{.emacs}.
+* Windows Keyboard::    Windows-specific keyboard features.
 * Windows Processes::   Running subprocesses on Windows.
 * Windows Printing::    How to specify the printer on MS-Windows.
 * Windows System Menu:: Controlling what the ALT key does.
@@ -309,6 +310,94 @@ because older Windows systems made it hard to create files with such
 names, the Windows port of Emacs supports an alternative name
 @file{_emacs} as a fallback, if such a file exists in the home
 directory, whereas @file{.emacs} does not.
+
+@node Windows Keyboard
+@section Keyboard Usage on MS-Windows
+@cindex keyboard, MS-Windows
+
+  This section describes the Windows-specific features related to
+keyboard input in Emacs.
+
+@kindex F10 @r{(MS-Windows)}
+@cindex menu bar access using keyboard @r{(MS-Windows)}
+  The @key{F10} key on Windows activates the menu bar in a way that
+makes it possible to use the menus without a mouse.  In this mode, the
+arrow keys traverse the menus, @key{RET} selects a highlighted menu
+item, and @key{ESC} closes the menu.
+
+@vindex w32-alt-is-meta
+@cindex @code{Alt} key (MS-Windows)
+  By default, the key labeled @key{Alt} is mapped as the @key{META}
+key.  If you wish it to produce the @code{Alt} modifier instead, set
+the variable @code{w32-alt-is-meta} to a @code{nil} value.
+
+@vindex w32-apps-modifier
+  The variable @code{w32-apps-modifier} controls the effect of the
+@key{Apps} key (usually located between the right @key{Alt} and the
+right @key{Ctrl} keys).  Its value can be one of the symbols
+@code{hyper}, @code{super}, @code{meta}, @code{alt}, @code{control},
+or @code{shift} for the respective modifier, or @code{nil} to appear
+as the key @code{apps}.  The default is @code{nil}.
+
+@vindex w32-capslock-is-shiftlock
+  By default, the @key{CapsLock} key only affects normal character
+keys (it converts lower-case characters to their upper-case
+variants).  However, if you set the variable
+@code{w32-capslock-is-shiftlock} to a non-@code{nil} value, the
+@key{CapsLock} key will affect non-character keys as well, as if you
+pressed the @key{Shift} key while typing the non-character key.
+
+@vindex w32-enable-caps-lock
+  If the variable @code{w32-enable-caps-lock} is set to a @code{nil}
+value, the @key{CapsLock} key produces the symbol @code{capslock}
+instead of the shifted version of they keys.  The default value is
+@code{t}.
+
+@vindex w32-enable-num-lock
+@cindex keypad keys (MS-Windows)
+  Similarly, if @code{w32-enable-num-lock} is @code{nil}, the
+@key{NumLock} key will produce the symbol @code{kp-numlock}.  The
+default is @code{t}, which causes @key{NumLock} to work as expected:
+toggle the meaning of the keys on the numeric keypad.
+
+@vindex w32-lwindow-modifier
+@vindex w32-rwindow-modifier
+@vindex w32-scroll-lock-modifier
+  The variable @code{w32-lwindow-modifier} determines the effect of
+the left Windows key (usually labeled with @key{start} and the Windows
+logo).  If its value is @code{nil} (the default), the key will produce
+the symbol @code{lwindow}.  Setting it to one of the symbols
+@code{hyper}, @code{super}, @code{meta}, @code{alt}, @code{control},
+or @code{shift} will produce the respective modifier.  A similar
+variable @code{w32-rwindow-modifier} controls the effect of the right
+Windows key, and @code{w32-scroll-lock-modifier} does the same for the
+@key{ScrLock} key.  If these variables are set to @code{nil}, the
+right Windows key produces the symbol @code{rwindow} and @key{ScrLock}
+produces the symbol @code{scroll}.
+
+@vindex w32-pass-alt-to-system
+@vindex w32-pass-lwindow-to-system
+@vindex w32-pass-rwindow-to-system
+  The variables @code{w32-pass-alt-to-system},
+@code{w32-pass-lwindow-to-system}, and
+@code{w32-pass-rwindow-to-system} determine whether the respective
+keys are passed to Windows or swallowed by Emacs.  If the value is
+@code{nil}, the respective key is silently swallowed by Emacs,
+otherwise it is passed to Windows.  The default is @code{nil} for
+@code{w32-pass-alt-to-system} and @code{t} for the other two
+variables.  Passing each of these keys to Windows produces its normal
+effect: for example, @kbd{@key{Alt} @key{SPC}} opens the @code{System}
+menu, @kbd{@key{Lwindow}} opens the @code{Start} menu, etc.
+
+@vindex w32-recognize-altgr
+@kindex AltGr @r{(MS-Windows)}
+@cindex AltGr key (MS-Windows)
+  The variable @code{w32-recognize-altgr} controls whether the right
+@key{Alt} and left @key{Ctrl} keys are recognized as the @key{AltGr}
+key.  The default is @code{t}, which means these keys produce
+@code{AltGr}; setting them to @code{nil} causes these keys to be
+interpreted normally (as the respective modifiers).
+
 
 @node Windows Processes
 @section Subprocesses on Windows 9X/ME and Windows NT/2K/XP
