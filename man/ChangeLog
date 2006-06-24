@@ -1,5 +1,7 @@
 2006-06-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdog.texi (Windows Keyboard): New section.
+
 	* dired.texi (Dired Enter): Refer to msdog.texi for ls-lisp emulation.
 
 	* msdog.texi (ls in Lisp): New section.
