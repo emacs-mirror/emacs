@@ -1,3 +1,11 @@
+2006-06-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/rcompile.el (remote-compile): Replace ange-ftp based
+	implementation by Tramp functions.  Based on a patch published by
+	Marc Abramowitz <msabramo@gmail.com>.
+
+	* net/tramp.el (tramp-unload-tramp): Provide a doc string.
+
 2006-06-24  Yoshinori Koseki  <kose@meadowy.org>
 
 	* international/fontset.el (setup-default-fontset): Fix a typo in

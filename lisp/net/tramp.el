@@ -7591,6 +7591,7 @@ Therefore, the contents of files might be included in the debug buffer(s).")
 ;; - Cleanup autoloads
 ;;;###autoload
 (defun tramp-unload-tramp ()
+  "Discard Tramp from loading remote files."
   (interactive)
   ;; When Tramp is not loaded yet, its autoloads are still active.
   (tramp-unload-file-name-handlers)
