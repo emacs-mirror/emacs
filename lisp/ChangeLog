@@ -1,3 +1,7 @@
+2006-06-26  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (view-emacs-news): Declare `res' in the right let* form.
+
 2006-06-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/rcompile.el (remote-compile): Replace ange-ftp based
