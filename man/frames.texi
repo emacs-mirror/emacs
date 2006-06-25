@@ -57,7 +57,7 @@ so that you can use many of the features described in this chapter.
 * Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
-* XTerm Mouse::         Using the mouse in an XTerm terminal emulator.
+* Text-Only Mouse::     Using the mouse in text-only terminals.
 @end menu
 
 @node Mouse Commands
@@ -1035,21 +1035,26 @@ and use @kbd{M-x select-frame-by-name @key{RET} @var{name} @key{RET}}
 to select a frame according to its name.  The name you specify appears
 in the mode line when the frame is selected.
 
-@node XTerm Mouse
+@node Text-Only Mouse
 @section Using a Mouse in Terminal Emulators
-@cindex xterm, mouse support
+@cindex mouse support
 @cindex terminal emulators, mouse support
 
-  Some terminal emulators under X support mouse clicks in the terminal
-window.  In a terminal emulator which is compatible with @code{xterm},
+Some terminal emulators support mouse clicks in the terminal window.
+
+@cindex xterm
+In a terminal emulator which is compatible with @code{xterm},
 you can use @kbd{M-x xterm-mouse-mode} to give Emacs control over
 simple use of the mouse---basically, only non-modified single clicks
 are supported.  The normal @code{xterm} mouse functionality for such
 clicks is still available by holding down the @kbd{SHIFT} key when you
-press the mouse button.
+press the mouse button.  Xterm Mouse mode is a global minor mode
+(@pxref{Minor Modes}).  Repeating the command turns the mode off
+again.
 
-  Xterm Mouse mode is a global minor mode (@pxref{Minor Modes}).
-Repeating the command turns the mode off again.
+In the console on GNU/Linux, you can use @kbd{M-x t-mouse-mode}.  You
+need to have the gpm package installed and running on your system in
+order for this to work.
 
 @ignore
    arch-tag: 7dcf3a31-a43b-45d4-a900-445b10d77e49
