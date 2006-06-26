@@ -2203,7 +2203,7 @@ should compute the directory like this:
 @cindex completion, file name
 
   This section describes low-level subroutines for completing a file
-name.  For other completion functions, see @ref{Completion}.
+name.  For higher level functions, see @ref{Reading File Names}.
 
 @defun file-name-all-completions partial-filename directory
 This function returns a list of all possible completions for a file
