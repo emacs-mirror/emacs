@@ -1,3 +1,7 @@
+2006-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (Flist_fonts): EXFUN it.
+
 2006-06-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_initialize): Add back smoothing_type and
