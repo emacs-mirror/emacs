@@ -13,6 +13,10 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** mouse-autoselect-window should wait to select the window until
+the mouse is put to rest or after a delay or both, so that moving over
+a window doesn't select it.
+
 ** In C-x d, the default if you type RET should be the directory name,
 but if you type M-n you should get the visited file name of the
 current buffer.
