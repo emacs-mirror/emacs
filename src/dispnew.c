@@ -192,6 +192,28 @@ struct window *frame_row_to_window P_ ((struct window *, int));
 
 int redisplay_dont_pause;
 
+/* Define PERIODIC_PREEMPTION_CHECKING to 1, if micro-second timers
+   are supported, so we can check for input during redisplay at
+   regular intervals.  */
+#ifdef EMACS_HAS_USECS
+#define PERIODIC_PREEMPTION_CHECKING 1
+#else
+#define PERIODIC_PREEMPTION_CHECKING 0
+#endif
+
+#if PERIODIC_PREEMPTION_CHECKING
+
+/* If a number (float), check for user input every N seconds.  */
+
+Lisp_Object Vredisplay_preemption_period;
+
+/* Redisplay preemption timers.  */
+
+static EMACS_TIME preemption_period;
+static EMACS_TIME preemption_next_check;
+
+#endif
+
 /* Nonzero upon entry to redisplay means do not assume anything about
    current contents of actual terminal frame; clear and redraw it.  */
 
@@ -3814,6 +3836,28 @@ update_frame (f, force_p, inhibit_hairy_id_p)
   int paused_p;
   struct window *root_window = XWINDOW (f->root_window);
 
+#if PERIODIC_PREEMPTION_CHECKING
+  if (!force_p && NUMBERP (Vredisplay_preemption_period))
+    {
+      EMACS_TIME tm;
+      double p = XFLOATINT (Vredisplay_preemption_period);
+      int sec, usec;
+
+      if (detect_input_pending_ignore_squeezables ())
+	{
+	  paused_p = 1;
+	  goto do_pause;
+	}
+
+      sec = (int) p;
+      usec = (p - sec) * 1000000;
+
+      EMACS_GET_TIME (tm);
+      EMACS_SET_SECS_USECS (preemption_period, sec, usec);
+      EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
+    }
+#endif
+
   if (FRAME_WINDOW_P (f))
     {
       /* We are working on window matrix basis.  All windows whose
@@ -3895,6 +3939,7 @@ update_frame (f, force_p, inhibit_hairy_id_p)
 #endif
     }
 
+ do_pause:
   /* Reset flags indicating that a window should be updated.  */
   set_window_update_flags (root_window, 0);
 
@@ -3948,6 +3993,22 @@ update_single_window (w, force_p)
 
       /* Record that this is not a frame-based redisplay.  */
       set_frame_matrix_frame (NULL);
+
+#if PERIODIC_PREEMPTION_CHECKING
+      if (!force_p && NUMBERP (Vredisplay_preemption_period))
+	{
+	  EMACS_TIME tm;
+	  double p = XFLOATINT (Vredisplay_preemption_period);
+	  int sec, usec;
+
+	  sec = (int) p;
+	  usec = (p - sec) * 1000000;
+
+	  EMACS_GET_TIME (tm);
+	  EMACS_SET_SECS_USECS (preemption_period, sec, usec);
+	  EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
+	}
+#endif
 
       /* Update W.  */
       update_begin (f);
@@ -4108,7 +4169,9 @@ update_window (w, force_p)
 {
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   int paused_p;
+#if !PERIODIC_PREEMPTION_CHECKING
   int preempt_count = baud_rate / 2400 + 1;
+#endif
   extern int input_pending;
   extern Lisp_Object do_mouse_tracking;
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
@@ -4120,8 +4183,13 @@ update_window (w, force_p)
   /* Check pending input the first time so that we can quickly return.  */
   if (redisplay_dont_pause)
     force_p = 1;
-  else
+#if PERIODIC_PREEMPTION_CHECKING
+  else if (NILP (Vredisplay_preemption_period))
+    force_p = 1;
+#else
+  else if (!force_p)
     detect_input_pending_ignore_squeezables ();
+#endif
 
   /* If forced to complete the update, or if no input is pending, do
      the update.  */
@@ -4193,9 +4261,23 @@ update_window (w, force_p)
 	       detect_input_pending.  If it's done too often,
 	       scrolling large windows with repeated scroll-up
 	       commands will too quickly pause redisplay.  */
+#if PERIODIC_PREEMPTION_CHECKING
+	    if (!force_p)
+	      {
+		EMACS_TIME tm, dif;
+		EMACS_GET_TIME (tm);
+		EMACS_SUB_TIME (dif, preemption_next_check, tm);
+		if (EMACS_TIME_NEG_P (dif))
+		  {
+		    EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
+		    if (detect_input_pending_ignore_squeezables ())
+		      break;
+		  }
+	      }
+#else
 	    if (!force_p && ++n_updated % preempt_count == 0)
 	      detect_input_pending_ignore_squeezables ();
-
+#endif
 	    changed_p |= update_window_line (w, vpos,
 					     &mouse_face_overwritten_p);
 
@@ -5151,11 +5233,16 @@ update_frame_1 (f, force_p, inhibit_id_p)
 
   if (redisplay_dont_pause)
     force_p = 1;
+#if PERIODIC_PREEMPTION_CHECKING
+  else if (NILP (Vredisplay_preemption_period))
+    force_p = 1;
+#else
   else if (!force_p && detect_input_pending_ignore_squeezables ())
     {
       pause = 1;
       goto do_pause;
     }
+#endif
 
   /* If we cannot insert/delete lines, it's no use trying it.  */
   if (!FRAME_LINE_INS_DEL_OK (f))
@@ -5206,8 +5293,23 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		}
 	    }
 
-	  if ((i - 1) % preempt_count == 0)
+#if PERIODIC_PREEMPTION_CHECKING
+	  if (!force_p)
+	    {
+	      EMACS_TIME tm, dif;
+	      EMACS_GET_TIME (tm);
+	      EMACS_SUB_TIME (dif, preemption_next_check, tm);
+	      if (EMACS_TIME_NEG_P (dif))
+		{
+		  EMACS_ADD_TIME (preemption_next_check, tm, preemption_period);
+		  if (detect_input_pending_ignore_squeezables ())
+		    break;
+		}
+	    }
+#else
+	  if (!force_p && (i - 1) % preempt_count == 0)
 	    detect_input_pending_ignore_squeezables ();
+#endif
 
 	  update_frame_line (f, i);
 	}
@@ -6434,15 +6536,22 @@ Lisp_Object
 sit_for (sec, usec, reading, display, initial_display)
      int sec, usec, reading, display, initial_display;
 {
+  int preempt = (sec >= 0) || (sec == 0 && usec >= 0);
+
   swallow_events (display);
 
-  if ((detect_input_pending_run_timers (display)
-       && !redisplay_dont_pause)
+  if ((detect_input_pending_run_timers (display) && preempt)
       || !NILP (Vexecuting_kbd_macro))
     return Qnil;
 
   if (initial_display)
-    redisplay_preserve_echo_area (2);
+    {
+      int count = SPECPDL_INDEX ();
+      if (!preempt)
+	specbind (Qredisplay_dont_pause, Qt);
+      redisplay_preserve_echo_area (2);
+      unbind_to (count, Qnil);
+    }
 
   if (sec == 0 && usec == 0)
     return Qt;
@@ -6468,8 +6577,7 @@ Redisplay is preempted as always if input arrives, and does not happen
 if input is available before it starts.
 Value is t if waited the full time with no input arriving.
 
-Redisplay will occur even when input is available if you bind
-`redisplay-dont-pause' to a non-nil value.
+Redisplay will occur even when input is available if SECONDS is negative.
 
 An obsolete but still supported form is
 \(sit-for SECONDS &optional MILLISECONDS NODISP)
@@ -7000,7 +7108,14 @@ See `buffer-display-table' for more information.  */);
 	       doc: /* *Non-nil means update isn't paused when input is detected.  */);
   redisplay_dont_pause = 0;
 
-  /* Initialize `window-system', unless init_display already decided it.  */
+#if PERIODIC_PREEMPTION_CHECKING
+  DEFVAR_LISP ("redisplay-preemption-period", &Vredisplay_preemption_period,
+	       doc: /* *The period in seconds between checking for input during redisplay.
+If input is detected, redisplay is pre-empted, and the input is processed.
+If nil, never pre-empt redisplay.  */);
+  Vredisplay_preemption_period = make_float (0.10);
+#endif
+
 #ifdef CANNOT_DUMP
   if (noninteractive)
 #endif

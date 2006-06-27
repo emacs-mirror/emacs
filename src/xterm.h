@@ -639,18 +639,14 @@ struct x_output
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   int focus_state;
 
-  /* The latest move we made to FRAME_OUTER_WINDOW.  Saved so we can
-     compensate for type A WMs (see wm_type in dpyinfo above).  */
-  int expected_top;
-  int expected_left;
-
   /* The offset we need to add to compensate for type A WMs.  */
   int move_offset_top;
   int move_offset_left;
 
-  /* Nonzero if we have made a move and needs to check if the WM placed us
-     at the right position.  */
-  int check_expected_move;
+  /* The frame's left/top offsets before we call XMoveWindow.  See
+     x_check_expected_move.  */
+  int left_before_move;
+  int top_before_move;
 };
 
 #define No_Cursor (None)

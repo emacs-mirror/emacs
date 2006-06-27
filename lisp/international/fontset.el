@@ -130,7 +130,7 @@
 	     (,(indian-font-char-range 'akruti:guj)
 	      . (nil . "Gujarati-Akruti"))
 	     (,(indian-font-char-range 'akruti:ori)
-	      . (nil . "Oriay-Akruti"))
+	      . (nil . "Oriya-Akruti"))
 	     (,(indian-font-char-range 'akruti:tml)
 	      . (nil . "Tamil-Akruti"))
 	     (,(indian-font-char-range 'akruti:tlg)

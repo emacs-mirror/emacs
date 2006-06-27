@@ -1814,6 +1814,8 @@ enum it_method {
   NUM_IT_METHODS
 };
 
+#define IT_STACK_SIZE 4
+
 struct it
 {
   /* The window in which we iterate over current_buffer (or a string).  */
@@ -1922,22 +1924,47 @@ struct it
      from what we previously had.  */
   struct iterator_stack_entry
   {
+    Lisp_Object string;
+    int string_nchars;
+    int end_charpos;
     int stop_charpos;
     int face_id;
-    Lisp_Object string;
-    struct display_pos pos;
-    int end_charpos;
-    int string_nchars;
+
+    /* Save values specific to a given method.  */
+    union {
+      /* method == GET_FROM_IMAGE */
+      struct {
+	Lisp_Object object;
+	struct it_slice slice;
+	int image_id;
+      } image;
+      /* method == GET_FROM_COMPOSITION */
+      struct {
+	Lisp_Object object;
+	int c, len;
+	int cmp_id, cmp_len;
+      } comp;
+      /* method == GET_FROM_STRETCH */
+      struct {
+	Lisp_Object object;
+      } stretch;
+    } u;
+
+    /* current text and display positions.  */
+    struct text_pos position;
+    struct display_pos current;
     enum glyph_row_area area;
+    enum it_method method;
     unsigned multibyte_p : 1;
     unsigned string_from_display_prop_p : 1;
     unsigned display_ellipsis_p : 1;
-    struct it_slice slice;
+
+    /* properties from display property that are reset by another display property. */
     Lisp_Object space_width;
-    short voffset;
     Lisp_Object font_height;
+    short voffset;
   }
-  stack[2];
+  stack[IT_STACK_SIZE];
 
   /* Stack pointer.  */
   int sp;

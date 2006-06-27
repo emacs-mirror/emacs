@@ -6,6 +6,35 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 8.0.1
+
+Version 8.0.1 works around a couple of bugs in GNU mailutils, spost,
+and Windows. MH-E now requires the use of version 1.0 of mailutils due
+to a bug in the folder command.
+
+** Bug Fixes in MH-E 8.0.1
+
+*** Infinite Loop When Searching (mailutils)
+
+The GNU mailutils folder command displays output when a folder doesn't
+exist. MH-E didn't expect this and responded with an infinite loop
+during searches. While this bug has since been fixed in mailutils,
+MH-E has been modified to work anyway (closes SF #1499712).
+
+*** spost Doesn't Have -msgid or -mime Flags
+
+The post replacement spost does not support the -msgid or -mime flags.
+A new variable `mh-send-uses-spost-flag' was added to control the use
+of these flags (closes SF #1486726).
+
+*** <2> in Search Folders Illegal in Windows
+
+The <2> suffix to the search folder names contain illegal filename
+characters in Windows. These cause searches to fail on Windows. This
+has been fixed by changing the suffix to -2 (closes SF #1507002).
+
+
+
 * Changes in MH-E 8.0
 
 Version 8.0 supports GNU mailutils, S/MIME, picons, which-func-mode,

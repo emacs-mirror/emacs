@@ -500,12 +500,13 @@ expression; only file names that match the regexp are considered."
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
-     (list (setq f (ediff-read-file-name "Directory A to compare:" dir-A nil))
-	   (ediff-read-file-name "Directory B to compare:"
-				 (if ediff-use-last-dir
-				     ediff-last-dir-B
-				   (ediff-strip-last-dir f))
-				 nil)
+     (list (setq f (read-directory-name
+		    "Directory A to compare:" dir-A nil 'must-match))
+	   (read-directory-name "Directory B to compare:"
+			   (if ediff-use-last-dir
+			       ediff-last-dir-B
+			     (ediff-strip-last-dir f))
+			   nil 'must-match)
 	   (read-string
 	    (if (stringp default-regexp)
 		(format "Filter through regular expression (default %s): "
@@ -532,8 +533,8 @@ names.  Only the files that are under revision control are taken into account."
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp))
 	 )
-     (list (ediff-read-file-name
-	    "Directory to compare with revision:" dir-A nil)
+     (list (read-directory-name
+	    "Directory to compare with revision:" dir-A nil 'must-match)
 	   (read-string
 	    (if (stringp default-regexp)
 		(format "Filter through regular expression (default %s): "
@@ -561,17 +562,17 @@ regular expression; only file names that match the regexp are considered."
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
-     (list (setq f (ediff-read-file-name "Directory A to compare:" dir-A nil))
-	   (setq f (ediff-read-file-name "Directory B to compare:"
-					 (if ediff-use-last-dir
-					     ediff-last-dir-B
-					   (ediff-strip-last-dir f))
-					 nil))
-	   (ediff-read-file-name "Directory C to compare:"
-				 (if ediff-use-last-dir
-				     ediff-last-dir-C
-				   (ediff-strip-last-dir f))
-				 nil)
+     (list (setq f (read-directory-name "Directory A to compare:" dir-A nil))
+	   (setq f (read-directory-name "Directory B to compare:"
+				   (if ediff-use-last-dir
+				       ediff-last-dir-B
+				     (ediff-strip-last-dir f))
+				   nil 'must-match))
+	   (read-directory-name "Directory C to compare:"
+			   (if ediff-use-last-dir
+			       ediff-last-dir-C
+			     (ediff-strip-last-dir f))
+			   nil 'must-match)
 	   (read-string
 	    (if (stringp default-regexp)
 		(format "Filter through regular expression (default %s): "
@@ -597,12 +598,13 @@ expression; only file names that match the regexp are considered."
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
-     (list (setq f (ediff-read-file-name "Directory A to merge:" dir-A nil))
-	   (ediff-read-file-name "Directory B to merge:"
-				 (if ediff-use-last-dir
-				     ediff-last-dir-B
-				   (ediff-strip-last-dir f))
-				 nil)
+     (list (setq f (read-directory-name "Directory A to merge:"
+					dir-A nil 'must-match))
+	   (read-directory-name "Directory B to merge:"
+			   (if ediff-use-last-dir
+			       ediff-last-dir-B
+			     (ediff-strip-last-dir f))
+			   nil 'must-match)
 	   (read-string
 	    (if (stringp default-regexp)
 		(format "Filter through regular expression (default %s): "
@@ -633,17 +635,17 @@ only file names that match the regexp are considered."
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp))
 	 f)
-     (list (setq f (ediff-read-file-name "Directory A to merge:" dir-A nil))
-	   (setq f (ediff-read-file-name "Directory B to merge:"
+     (list (setq f (read-directory-name "Directory A to merge:" dir-A nil))
+	   (setq f (read-directory-name "Directory B to merge:"
 				 (if ediff-use-last-dir
 				     ediff-last-dir-B
 				   (ediff-strip-last-dir f))
-				 nil))
-	   (ediff-read-file-name "Ancestor directory:"
+				 nil 'must-match))
+	   (read-directory-name "Ancestor directory:"
 				 (if ediff-use-last-dir
 				     ediff-last-dir-C
 				   (ediff-strip-last-dir f))
-				 nil)
+				 nil 'must-match)
 	   (read-string
 	    (if (stringp default-regexp)
 		(format "Filter through regular expression (default %s): "
@@ -669,8 +671,8 @@ names.  Only the files that are under revision control are taken into account."
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp))
 	 )
-     (list (ediff-read-file-name
-	    "Directory to merge with revisions:" dir-A nil)
+     (list (read-directory-name
+	    "Directory to merge with revisions:" dir-A nil 'must-match)
 	   (read-string
 	    (if (stringp default-regexp)
 		(format "Filter through regular expression (default %s): "
@@ -699,8 +701,9 @@ names.  Only the files that are under revision control are taken into account."
    (let ((dir-A (ediff-get-default-directory-name))
 	 (default-regexp (eval ediff-default-filtering-regexp))
 	 )
-     (list (ediff-read-file-name
-	    "Directory to merge with revisions and ancestors:" dir-A nil)
+     (list (read-directory-name
+	    "Directory to merge with revisions and ancestors:"
+	    dir-A nil 'must-match)
 	   (read-string
 	    (if (stringp default-regexp)
 		(format "Filter through regular expression (default %s): "
@@ -733,11 +736,6 @@ names.  Only the files that are under revision control are taken into account."
 (defun ediff-directories-internal (dir1 dir2 dir3 regexp action jobname
 					&optional startup-hooks
 					merge-autostore-dir)
-  ;; ediff-read-file-name is set to attach a previously entered file name if
-  ;; the currently entered file is a directory.  This code takes care of that.
-  (setq dir1 (if (file-directory-p dir1) dir1 (file-name-directory dir1))
-	dir2 (if (file-directory-p dir2) dir2 (file-name-directory dir2)))
-
   (if (stringp dir3)
       (setq dir3 (if (file-directory-p dir3) dir3 (file-name-directory dir3))))
 
@@ -763,7 +761,7 @@ names.  Only the files that are under revision control are taken into account."
 	     (ediff-merge-metajob jobname)
 	     (not merge-autostore-dir))
 	(setq merge-autostore-dir
-	      (read-file-name "Save merged files in directory: "
+	      (read-directory-name "Save merged files in directory: "
 			      (if ediff-use-last-dir
 					ediff-last-merge-autostore-dir
 				      (ediff-strip-last-dir dir1))
@@ -823,7 +821,7 @@ names.  Only the files that are under revision control are taken into account."
 	     (ediff-merge-metajob jobname)
 	     (not merge-autostore-dir))
 	(setq merge-autostore-dir
-	      (read-file-name "Save merged files in directory: "
+	      (read-directory-name "Save merged files in directory: "
 			      (if ediff-use-last-dir
 				  ediff-last-merge-autostore-dir
 				(ediff-strip-last-dir dir1))

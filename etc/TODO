@@ -305,6 +305,8 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
 
 ** Check what hooks would help Emacspeak -- see the defadvising in W3.
 
+** Add definitions for symbol properties, for documentation purposes.
+
 ** Add horizontal scroll bars.
 
 ** Provide an optional feature which computes a scroll bar slider's

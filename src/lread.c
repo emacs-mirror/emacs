@@ -1949,7 +1949,7 @@ read_escape (readcharfun, stringp, byterep)
 	while (++count <= unicode_hex_count)
 	  {
 	    c = READCHAR;
-	    /* isdigit(), isalpha() may be locale-specific, which we don't
+	    /* isdigit and isalpha may be locale-specific, which we don't
 	       want. */
 	    if      (c >= '0' && c <= '9')  i = (i << 4) + (c - '0');
 	    else if (c >= 'a' && c <= 'f')  i = (i << 4) + (c - 'a') + 10;
@@ -1962,21 +1962,16 @@ read_escape (readcharfun, stringp, byterep)
 	  }
 
 	GCPRO1 (readcharfun);
-	lisp_char = call2(intern("decode-char"), intern("ucs"),
-			  make_number(i));
+	lisp_char = call2 (intern ("decode-char"), intern ("ucs"),
+			  make_number (i));
 	UNGCPRO;
 
-	if (EQ(Qnil, lisp_char))
+	if (NILP (lisp_char))
 	  {
-	    /* This is ugly and horrible and trashes the user's data.  */
-	    XSETFASTINT (i, MAKE_CHAR (charset_katakana_jisx0201,
-				       34 + 128, 46 + 128));
-            return i;
+	    error ("Unsupported Unicode code point: U+%x", (unsigned)i);
 	  }
-	else
-	  {
-	    return XFASTINT (lisp_char);
-	  }
+
+	return XFASTINT (lisp_char);
       }
 
     default:

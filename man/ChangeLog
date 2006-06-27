@@ -1,3 +1,63 @@
+2006-06-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* frames.texi (XTerm Mouse) Rename to...
+	(Text-Only Mouse): ...this.  Mention t-mouse-mode.
+
+	* emacs.texi (Top): Use new node name.
+
+2006-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.texi (Top): Update the detailed menu according to changes in
+	msdog.texi.
+
+	* msdog.texi (Windows Keyboard): New section.
+	(Windows Mouse): New section.
+	(Windows System Menu): Remove section (text merged with "Windows
+	Keyboard").
+	(Windows Misc): New section.
+
+	* dired.texi (Dired Enter): Refer to msdog.texi for ls-lisp emulation.
+
+	* msdog.texi (ls in Lisp): New section.
+
+	* files.texi (Visiting): Document case-insensitive wildcard matching
+	under find-file-wildcards.
+
+2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Embedded LaTeX): New chapter.
+	(Archiving): Section rewritten.
+	(Enhancing text): Some parts moved to the new chapter about
+	LaTeX.
+
+2006-06-20  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E manual version 8.0.1.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.0.1.
+	(Preface): Depend on GNU mailutils 1.0 and higher.
+
+2006-06-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (News Headers): Update message-syntax-checks section.
+
+2006-06-19  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Advanced): mention C-q, especially with ?.
+
+2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Publishing links): Document the `:link-validation-function'
+	property.
+	(Extensions and Hacking): New chapter, includes some sections of the
+	"Miscellaneous" chapter.
+
+2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac Input): Add description of mac-function-modifier.
+	Now Unicode keyboard layouts work.
+
 2006-06-10  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Progress logging): New section.
@@ -5,6 +65,11 @@
 2006-06-10  Richard Stallman  <rms@gnu.org>
 
 	* mule.texi (Recognize Coding): Clarify previous change.
+
+2006-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (Recognize Coding): Describe the convention of "CODING!"
+	notation.
 
 2006-06-07  Kevin Ryde  <user42@zip.com.au>
 

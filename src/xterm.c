@@ -359,7 +359,8 @@ static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    Lisp_Object *, Lisp_Object *,
 					    unsigned long *));
 static void x_check_fullscreen P_ ((struct frame *));
-static void x_check_expected_move P_ ((struct frame *));
+static void x_check_expected_move P_ ((struct frame *, int, int));
+static void x_sync_with_move P_ ((struct frame *, int, int, int));
 static int handle_one_xevent P_ ((struct x_display_info *, XEvent *,
 				  int *, struct input_event *));
 static SIGTYPE x_connection_closed P_ ((Display *, char *));
@@ -6686,11 +6687,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
               && GTK_WIDGET_MAPPED (FRAME_GTK_OUTER_WIDGET (f)))
 #endif
             {
-	      /* What we have now is the position of Emacs's own window.
-		 Convert that to the position of the window manager window.  */
 	      x_real_positions (f, &f->left_pos, &f->top_pos);
 
-	      x_check_expected_move (f);
 	      if (f->want_fullscreen & FULLSCREEN_WAIT)
 		f->want_fullscreen &= ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
             }
@@ -8260,8 +8258,11 @@ x_set_offset (f, xoff, yoff, change_gravity)
 {
   int modified_top, modified_left;
 
-  if (change_gravity > 0)
+  if (change_gravity != 0)
     {
+      FRAME_X_OUTPUT (f)->left_before_move = f->left_pos;
+      FRAME_X_OUTPUT (f)->top_before_move = f->top_pos;
+
       f->top_pos = yoff;
       f->left_pos = xoff;
       f->size_hint_flags &= ~ (XNegative | YNegative);
@@ -8279,7 +8280,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
   modified_left = f->left_pos;
   modified_top = f->top_pos;
 
-  if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_A)
+  if (change_gravity != 0 && FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_A)
     {
       /* Some WMs (twm, wmaker at least) has an offset that is smaller
          than the WM decorations.  So we use the calculated offset instead
@@ -8291,13 +8292,26 @@ x_set_offset (f, xoff, yoff, change_gravity)
   XMoveWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
                modified_left, modified_top);
 
-  if (FRAME_VISIBLE_P (f)
-      && FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN)
-    {
-      FRAME_X_OUTPUT (f)->check_expected_move = 1;
-      FRAME_X_OUTPUT (f)->expected_top = f->top_pos;
-      FRAME_X_OUTPUT (f)->expected_left = f->left_pos;
-    }
+  x_sync_with_move (f, f->left_pos, f->top_pos,
+                    FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN
+                    ? 1 : 0);
+
+  /* change_gravity is non-zero when this function is called from Lisp to
+     programmatically move a frame.  In that case, we call
+     x_check_expected_move to discover if we have a "Type A" or "Type B"
+     window manager, and, for a "Type A" window manager, adjust the position
+     of the frame.
+
+     We call x_check_expected_move if a programmatic move occurred, and
+     either the window manager type (A/B) is unknown or it is Type A but we
+     need to compute the top/left offset adjustment for this frame.  */
+
+  if (change_gravity != 0 &&
+      (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN
+       || (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_A
+           && (FRAME_X_OUTPUT (f)->move_offset_left == 0
+               && FRAME_X_OUTPUT (f)->move_offset_top == 0))))
+    x_check_expected_move (f, modified_left, modified_top);
 
   UNBLOCK_INPUT;
 }
@@ -8332,37 +8346,96 @@ x_check_fullscreen (f)
     }
 }
 
-/* If frame parameters are set after the frame is mapped, we need to move
-   the window.
-   Some window managers moves the window to the right position, some
-   moves the outer window manager window to the specified position.
-   Here we check that we are in the right spot.  If not, make a second
-   move, assuming we are dealing with the second kind of window manager. */
+/* This function is called by x_set_offset to determine whether the window
+   manager interfered with the positioning of the frame.  Type A window
+   managers position the surrounding window manager decorations a small
+   amount above and left of the user-supplied position.  Type B window
+   managers position the surrounding window manager decorations at the
+   user-specified position.  If we detect a Type A window manager, we
+   compensate by moving the window right and down by the proper amount.  */
+
 static void
-x_check_expected_move (f)
+x_check_expected_move (f, expected_left, expected_top)
      struct frame *f;
+     int expected_left;
+     int expected_top;
 {
-  if (FRAME_X_OUTPUT (f)->check_expected_move)
-  {
-    int expect_top = FRAME_X_OUTPUT (f)->expected_top;
-    int expect_left = FRAME_X_OUTPUT (f)->expected_left;
+  int count = 0, current_left = 0, current_top = 0;
 
-    if (expect_top != f->top_pos || expect_left != f->left_pos)
+  /* x_real_positions returns the left and top offsets of the outermost
+     window manager window around the frame.  */
+
+  x_real_positions (f, &current_left, &current_top);
+
+  if (current_left != expected_left || current_top != expected_top)
       {
+      /* It's a "Type A" window manager. */
+
+      int adjusted_left;
+      int adjusted_top;
+
         FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_A;
-        FRAME_X_OUTPUT (f)->move_offset_left = expect_left - f->left_pos;
-        FRAME_X_OUTPUT (f)->move_offset_top = expect_top - f->top_pos;
+      FRAME_X_OUTPUT (f)->move_offset_left = expected_left - current_left;
+      FRAME_X_OUTPUT (f)->move_offset_top = expected_top - current_top;
 
-        f->left_pos = expect_left;
-        f->top_pos = expect_top;
-        x_set_offset (f, expect_left, expect_top, 0);
+      /* Now fix the mispositioned frame's location. */
+
+      adjusted_left = expected_left + FRAME_X_OUTPUT (f)->move_offset_left;
+      adjusted_top = expected_top + FRAME_X_OUTPUT (f)->move_offset_top;
+
+      XMoveWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+                   adjusted_left, adjusted_top);
+
+      x_sync_with_move (f, expected_left, expected_top, 0);
       }
-    else if (FRAME_X_DISPLAY_INFO (f)->wm_type == X_WMTYPE_UNKNOWN)
-      FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_B;
+  else
+    /* It's a "Type B" window manager.  We don't have to adjust the
+       frame's position. */
 
-    /* Just do this once */
-    FRAME_X_OUTPUT (f)->check_expected_move = 0;
+      FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_B;
+}
+
+
+/* Wait for XGetGeometry to return up-to-date position information for a
+   recently-moved frame.  Call this immediately after calling XMoveWindow.
+   If FUZZY is non-zero, then LEFT and TOP are just estimates of where the
+   frame has been moved to, so we use a fuzzy position comparison instead
+   of an exact comparison.  */
+
+static void
+x_sync_with_move (f, left, top, fuzzy)
+    struct frame *f;
+    int left, top, fuzzy;
+{
+  int count = 0;
+
+  while (count++ < 50)
+    {
+      int current_left = 0, current_top = 0;
+
+      /* In theory, this call to XSync only needs to happen once, but in
+         practice, it doesn't seem to work, hence the need for the surrounding
+         loop.  */
+
+      XSync (FRAME_X_DISPLAY (f), False);
+      x_real_positions (f, &current_left, &current_top);
+
+      if (fuzzy)
+        {
+          /* The left fuzz-factor is 10 pixels.  The top fuzz-factor is 40
+             pixels.  */
+
+          if (abs (current_left - left) <= 10 && abs (current_top - top) <= 40)
+            return;
   }
+      else if (current_left == left && current_top == top)
+        return;
+    }
+
+  /* As a last resort, just wait 0.5 seconds and hope that XGetGeometry
+     will then return up-to-date position info. */
+
+  wait_reading_process_output (0, 500000, 0, 0, Qnil, NULL, 0);
 }
 
 

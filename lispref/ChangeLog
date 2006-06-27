@@ -1,3 +1,50 @@
+2006-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Contents of Directories): Document case-insensitive
+	behavior on respective filesystems.
+
+	* objects.texi (Character Type): Document that Emacs signals an
+	error for unsupported Unicode characters specified as \uNNNN.
+
+2006-06-19  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Bindat Spec): Clarify previous change.
+
+2006-06-16  Richard Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Better explain conventions
+	for definition constructs.
+
+	* text.texi (Special Properties): String value of `read-only'
+	serves as the error message.
+
+	* objects.texi (Character Type): Clarify prev. change.
+	(Non-ASCII in Strings): Mention \u and \U.
+
+	* commands.texi (Using Interactive): Explain problem of
+	markers, etc., in command-history.
+
+2006-06-14  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Waiting): Negative arg to sit-for forces
+	redisplay even if input is pending.
+
+	* display.texi (Forcing Redisplay): Use (sit-for -1) to force a
+	redisplay.  Remove incorrect example of binding redisplay-dont-pause
+	around (sit-for 0).
+
+2006-06-13  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Forcing Redisplay): Clarify previous change.
+
+2006-06-13  Romain Francoise  <romain@orebokech.com>
+
+	* display.texi (Forcing Redisplay): Fix typo.
+
+2006-06-13  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Add redisplay-preemption-period.
+
 2006-06-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* tips.texi (Coding Conventions): Add `@end itemize'.

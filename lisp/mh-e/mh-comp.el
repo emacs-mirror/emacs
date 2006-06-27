@@ -53,6 +53,15 @@
   "Name of the MH send program.
 Some sites need to change this because of a name conflict.")
 
+(defvar mh-send-uses-spost-flag nil
+  "Non-nil means \"send\" uses \"spost\" to submit messages.
+
+If the value of \"postproc:\" is \"spost\", you may need to set
+this variable to t to tell MH-E to avoid using features of
+\"post\" that are not supported by \"spost\". You'll know that
+you'll need to do this if sending mail fails with an error of
+\"spost: -msgid unknown\".")
+
 (defvar mh-redist-background nil
   "If non-nil redist will be done in background like send.
 This allows transaction log to be visible if -watch, -verbose or
@@ -267,16 +276,18 @@ use `mh-send-prog' to tell MH-E the name."
                (and (boundp 'default-buffer-file-coding-system )
                     default-buffer-file-coding-system)
                'iso-latin-1))))
-    ;; Adding a Message-ID field looks good, makes it easier to search for
-    ;; message in your +outbox, and best of all doesn't break threading for
-    ;; the recipient if you reply to a message in your +outbox.
-    (setq mh-send-args (concat "-msgid " mh-send-args))
-    ;; The default BCC encapsulation will make a MIME message unreadable.
-    ;; With nmh use the -mime arg to prevent this.
-    (if (and (mh-variant-p 'nmh)
-             (mh-goto-header-field "Bcc:")
-             (mh-goto-header-field "Content-Type:"))
-        (setq mh-send-args (concat "-mime " mh-send-args)))
+    ;; Older versions of spost do not support -msgid and -mime.
+    (unless mh-send-uses-spost-flag
+      ;; Adding a Message-ID field looks good, makes it easier to search for
+      ;; message in your +outbox, and best of all doesn't break threading for
+      ;; the recipient if you reply to a message in your +outbox.
+      (setq mh-send-args (concat "-msgid " mh-send-args))
+      ;; The default BCC encapsulation will make a MIME message unreadable.
+      ;; With nmh use the -mime arg to prevent this.
+      (if (and (mh-variant-p 'nmh)
+               (mh-goto-header-field "Bcc:")
+               (mh-goto-header-field "Content-Type:"))
+          (setq mh-send-args (concat "-mime " mh-send-args))))
     (cond (arg
            (pop-to-buffer mh-mail-delivery-buffer)
            (erase-buffer)

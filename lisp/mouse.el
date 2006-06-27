@@ -529,6 +529,24 @@ resized by dragging their header-line."
       (mouse-drag-mode-line-1 start-event nil))))
 
 
+(defun mouse-drag-vertical-line-rightward-window (window)
+  "Return a window that is immediately to the right of WINDOW, or nil."
+  (let ((bottom (nth 3 (window-inside-edges window)))
+	(left (nth 0 (window-inside-edges window)))
+	best best-right
+	(try (previous-window window)))
+    (while (not (eq try window))
+      (let ((try-top (nth 1 (window-inside-edges try)))
+	    (try-bottom (nth 3 (window-inside-edges try)))
+	    (try-right (nth 2 (window-inside-edges try))))
+	(if (and (< try-top bottom)
+		 (>= try-bottom bottom)
+		 (< try-right left)
+		 (or (null best-right) (> try-right best-right)))
+	    (setq best-right try-right best try)))
+      (setq try (previous-window try)))
+    best))
+
 (defun mouse-drag-vertical-line (start-event)
   "Change the width of a window by dragging on the vertical line."
   (interactive "e")
@@ -594,7 +612,8 @@ resized by dragging their header-line."
 			;; adjust the window on the left.
 			(if (eq which-side 'right)
 			    (selected-window)
-			  (previous-window))))
+			  (mouse-drag-vertical-line-rightward-window
+			   (selected-window)))))
 		   (setq x (- (car (cdr mouse))
 			      (if (eq which-side 'right) 0 2))
 			 edges (window-edges window)

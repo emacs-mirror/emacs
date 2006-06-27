@@ -206,6 +206,10 @@ t (mix it with ordinary output), or a file name string.
 Fourth arg DISPLAY non-nil means redisplay buffer as output is inserted.
 Remaining arguments are strings passed as command arguments to PROGRAM.
 
+If executable PROGRAM can't be found as an executable, `call-process'
+signals a Lisp error.  `call-process' reports errors in execution of
+the program only through its return and output.
+
 If BUFFER is 0, `call-process' returns immediately with value nil.
 Otherwise it waits for PROGRAM to terminate
 and returns a numeric exit status or a signal description string.

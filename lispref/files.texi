@@ -2364,7 +2364,8 @@ the specified directory.
 
 If @var{match-regexp} is non-@code{nil}, this function returns only
 those file names that contain a match for that regular expression---the
-other file names are excluded from the list.
+other file names are excluded from the list.  On case-insensitive
+filesystems, the regular expression matching is case-insensitive.
 
 @c Emacs 19 feature
 If @var{nosort} is non-@code{nil}, @code{directory-files} does not sort

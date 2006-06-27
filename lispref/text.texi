@@ -3098,7 +3098,8 @@ about this particular character.  @xref{Syntax Properties}.
 @kindex read-only @r{(text property)}
 If a character has the property @code{read-only}, then modifying that
 character is not allowed.  Any command that would do so gets an error,
-@code{text-read-only}.
+@code{text-read-only}.  If the property value is a string, that string
+is used as the error message.
 
 Insertion next to a read-only character is an error if inserting
 ordinary text there would inherit the @code{read-only} property due to

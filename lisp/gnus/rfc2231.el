@@ -176,14 +176,14 @@ must never cause a Lisp error."
 			  (buffer-substring
 			   (point)
 			   (progn
-			     (forward-sexp)
-			     ;; We might not have reached at the end of
-			     ;; the value because of non-ascii chars,
-			     ;; so we should jump over them if any.
-			     (while (and (not (eobp))
-					 (> (char-after) ?\177))
+			     ;; Jump over asterisk, non-ASCII
+			     ;; and non-boundary characters.
+			     (while (and c
+					 (or (eq c ?*)
+					     (> c ?\177)
+					     (not (eq (char-syntax c) ? ))))
 			       (forward-char 1)
-			       (forward-sexp))
+			       (setq c (char-after)))
 			     (point)))))
 		   (t
 		    (error "Invalid header: %s" string)))

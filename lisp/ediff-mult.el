@@ -1656,22 +1656,26 @@ This operation is defined only for `ediff-directories' and
 multifile patches.  For `ediff-directory-revisions', we insist that
 all marked sessions must be active."
   (interactive)
-  (or (ediff-buffer-live-p ediff-meta-diff-buffer)
-      (setq ediff-meta-diff-buffer
-	    (get-buffer-create
-	     (ediff-unique-buffer-name "*Ediff Multifile Diffs" "*"))))
-  (ediff-with-current-buffer ediff-meta-diff-buffer
-    (setq buffer-read-only nil)
-    (erase-buffer))
-  (if (> (ediff-operate-on-marked-sessions 'ediff-append-custom-diff) 0)
-      ;; did something
-      (progn
-	(display-buffer ediff-meta-diff-buffer 'not-this-window)
-	(ediff-with-current-buffer ediff-meta-diff-buffer
-	  (set-buffer-modified-p nil)
-	  (setq buffer-read-only t)))
-    (beep)
-    (message "No marked sessions found")))
+  (let ((coding-system-for-read ediff-coding-system-for-read))
+    (or (ediff-buffer-live-p ediff-meta-diff-buffer)
+	(setq ediff-meta-diff-buffer
+	      (get-buffer-create
+	       (ediff-unique-buffer-name "*Ediff Multifile Diffs" "*"))))
+    (ediff-with-current-buffer ediff-meta-diff-buffer
+			       (setq buffer-read-only nil)
+			       (erase-buffer))
+    (if (> (ediff-operate-on-marked-sessions 'ediff-append-custom-diff) 0)
+	;; did something
+	(progn
+	  (display-buffer ediff-meta-diff-buffer 'not-this-window)
+	  (ediff-with-current-buffer ediff-meta-diff-buffer
+				     (set-buffer-modified-p nil)
+				     (setq buffer-read-only t))
+	  (if (fboundp 'diff-mode)
+	      (with-current-buffer ediff-meta-diff-buffer
+		(diff-mode))))
+      (beep)
+      (message "No marked sessions found"))))
 
 (defun ediff-meta-show-patch ()
   "Show the multi-file patch associated with this group session."

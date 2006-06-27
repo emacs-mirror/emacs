@@ -1,10 +1,285 @@
+2006-06-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/rcompile.el (remote-compile): Replace ange-ftp based
+	implementation by Tramp functions.  Based on a patch published by
+	Marc Abramowitz <msabramo@gmail.com>.
+
+	* net/tramp.el (tramp-unload-tramp): Provide a doc string.
+
+2006-06-24  Yoshinori Koseki  <kose@meadowy.org>
+
+	* international/fontset.el (setup-default-fontset): Fix a typo in
+	the "Oriya-Akruti" registry name.
+
+2006-06-23  Lars Hansen <larsh@soem.dk>
+
+	* desktop.el (desktop-full-file-name): New function.
+	(desktop-kill, desktop-save, desktop-remove, desktop-read)
+	(desktop-revert): Use it.
+	(desktop-clear, desktop-save, desktop-remove): Add autoload cookie.
+	(desktop-after-read-hook): Add option list-buffers.
+	(desktop-locals-to-save): Add tab-width.
+	(desktop-save-mode, desktop-no-desktop-file-hook, desktop-save-hook):
+	Fix docstring.
+
+2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-cdlatex-mode-map)
+	(org-cdlatex-texmathp-advice-is-done): New variables.
+	(org-cdlatex-mode): New minor mode.
+	(org-inside-LaTeX-fragment-p, org-try-cdlatex-tab): New functions.
+	(org-cdlatex-underscore-caret, org-cdlatex-math-modify): New commands.
+	(org-export-with-archived-trees): New option.
+	(org-open-file): Removed the call to `convert-standard-filename'.
+	(org-archive-tag, org-agenda-skip-archived-trees)
+	(org-cycle-open-archived-trees)
+	(org-sparse-tree-open-archived-trees): New options.
+	(org-cycle-hide-archived-subtrees, org-hide-archived-subtrees)
+	(org-toggle-tag, org-prepare-agenda-buffers, org-agenda-skip): New
+	functions.
+	(org-agenda-toggle-archive-tag, org-toggle-archive-tag): New commands.
+	(org-agenda-mode-map): Add binding of `org-agenda-toggle-archive-tag'.
+	(org-mode-map): Add binding for `org-toggle-archive-tag'.
+	(org-timeline, org-agenda-list, org-todo-list, org-tags-view):
+	Call `org-prepare-agenda-buffers'.
+	(org-occur, org-scan-tags): Call `org-hide-archived-subtrees'.
+	(org-file-apps, org-file-apps-defaults-gnu)
+	(org-file-apps-defaults-macosx, org-file-apps-defaults-windowsnt):
+	Handle remote files by forcing them to be opened in Emacs.
+
+2006-06-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-diff-knows-L): New variable.
+	(vc-diff-internal): Use it to handle "diff" programs that don't
+	understand -L.  This works automatically, no user action is necessary.
+
+2006-06-23  Daniel Brockman  <daniel@brockman.se>
+
+	* net/rcirc.el (rcirc-default-user-full-name): Default to
+	`rcirc-default-user-name' instead of `rcirc-user-name' (which no
+	longer exists).
+	(rcirc-process-list): Check `buffer-live-p' before attempting to
+	switch to a buffer.
+
+2006-06-23  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-mode): Fix initialization of coding systems
+	based on rcirc-coding-system-alist.
+
+2006-06-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-edit.el (customize-apropos): A better error message.
+	(top level) <debug-ignored-errors>: Extend and update the list of
+	ignored error messages.
+
+2006-06-23  Michael Ernst  <mernst@alum.mit.edu>
+
+	* complete.el (PC-do-completion): Retain capitalization of user
+	input, when possible, even if completion-ignore-case is set.
+
+2006-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* generic-x.el (bat-generic-mode): Support .cmd files.
+
+	* dos-w32.el (top level): Use find-file-not-found-functions
+	instead of the obsolete find-file-not-found-hooks.
+
+2006-06-22  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (grep-mode-font-lock-keywords): Correct regexps
+	to recognize mode name containing submodes, such as Grep/lw.
+
+2006-06-21  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-1): Check for move-end-of-line instead of
+	end-of-line when setting temporary-goal-column.
+
+2006-06-21  Miles Bader  <miles@gnu.org>
+
+	* play/cookie1.el (cookie): Work properly when there's only one entry.
+
+2006-06-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-exited): Ensure overlay arrow gets killed.
+	(gdb-frame-handler): Generalize frame regexp for templates.
+
+2006-06-20  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-display-format): Default value must be
+	one of the customize options.
+
+2006-06-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Update key availability info.
+	Bind C-return.
+
+	* term.el (term-delete-lines, term-insert-lines): Clarify comments.
+
+2006-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (hack-local-variables): Run `hack-local-variables-hook'
+	whether or not a local variables list is defined.
+
+	* msb.el (msb): Move `sit-for' hack here to handle both
+	"mouse-down and drag" and "mouse-up and select" situations.
+	(mouse-select-buffer): Move `sit-for' hack to `msb'.
+
+2006-06-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el (word-combining-categories):
+	Add entries for 2-byte Han characters.
+
+2006-06-19  Richard Stallman  <rms@gnu.org>
+
+	* bindings.el (mode-line-format): Save some mode line space.
+
+	* files.el (find-file-noselect): Improve the question wording.
+	(basic-save-buffer-2): Mask UMASK against 666.
+
+	* mouse.el (mouse-drag-vertical-line-rightward-window): New function.
+	(mouse-drag-vertical-line): Call it.
+
+	* cus-edit.el (customize-option, customize-option-other-window):
+	Error if SYMBOL is nil.
+
+2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Require noutline, also on XEmacs.
+	(org-end-of-subtree): Return point.
+	(org-dblock-start-re, org-dblock-end-re): New constants.
+	(org-create-dblock, org-prepare-dblock, org-map-dblocks)
+	(org-dblock-update, org-update-dblock, org-beginning-of-dblock)
+	(org-update-all-dblocks, org-find-dblock): New functions.
+	(org-collect-clock-time-entries): New function.
+	(org-html-handle-time-stamps): Never export CLOCK timeranges.
+	(org-fixup-indentation): Modified to deadl correctly with lines
+	starting with TAB.  Only one argument DIFF now.
+	(org-demote, org-promote): Call `org-fixup-indentation' with just
+	one argument, DIFF.
+	(org-mode): Don't mark buffer as modified when aligning tables.
+	(org-clock-sum): Don't mark buffer modified when adding time sum
+	properties.
+	(org-export-as-html): Added support for a link validation function.
+	(org-archive-all-done): New function.
+	(org-archive-subtree): New prefix argument.  When set, archive all
+	done subtrees in this buffer.
+	(org-remove-clock-overlays)
+	(org-remove-occur-highlights): Use `org-inhibit-highlight-removal'.
+	(org-inhibit-highlight-removal): New variable, for dynamic scoping.
+	(org-put-clock-overlay): Don't swallow last headline character
+	when displaying overlay.
+	(org-store-link): Link to `image-mode' with just the file name.
+
+2006-06-18  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-cmd.el (viper-special-read-and-insert-char):
+	Use read-key-sequence.
+	(viper-after-change-undo-hook): Misc enhancements.
+	(viper-after-change-undo-hook): New hook.
+	(viper-undo): Use viper-after-change-undo-hook.
+	(viper-add-newline-at-eob-if-necessary): Widen before making changes.
+	(viper-next-line-at-bol): If point is on a widget or a button, simulate
+	clicking on that widget/button.
+
+	* viper.el (viper-mode): Allow a separate cursor color in Emacs	state.
+
+	* ediff-diff (ediff-test-patch-utility): Catch errors.
+	(ediff-actual-diff-options, ediff-actual-diff3-options): New variables.
+	(ediff-set-actual-diff-options): New function.
+	(ediff-reset-diff-options, ediff-toggle-ignore-case):
+	Use ediff-set-actual-diff-options.
+	(ediff-extract-diffs): Catch errors.
+	(ediff-whitespace): Add non-breakable space.
+	(ediff-same-file-contents): Catch errors.
+
+	* ediff-mult.el (ediff-collect-custom-diffs):
+	Save coding-system-for-read.
+
+	* ediff-vers.el (ediff-keep-tmp-versions): New variable.
+	(ediff-vc-internal, ediff-vc-merge-internal):
+	Use ediff-delete-version-file.
+	(ediff-delete-version-file): New function.
+
+	* ediff-wind.el (ediff-control-frame-parameters): Set frame fringes.
+
+	* ediff.el (ediff-directories, ediff-directory-revisions)
+	(ediff-merge-directories, ediff-merge-directories-with-ancestor)
+	(ediff-directories-internal, ediff-merge-directory-revisions)
+	(ediff-merge-directory-revisions-with-ancestor)
+	(ediff-directories3): Use read-directory-name.
+
+2006-06-18  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/tex-mode.el (tex-font-lock-match-suscript): Remove
+	superfluous part of regexp for brace matching which is handled by
+	`scan-lists' call.
+
+2006-06-16  Richard Stallman  <rms@gnu.org>
+
+	* obsolete/options.el (list-options): Put "obsolete" msg in buffer.
+
+	* files.el (basic-save-buffer-2): For a new precious file,
+	use the default modes in the return value.
+
+	* facemenu.el (facemenu-color-alist): Doc fix.
+
+	* cus-edit.el (custom-guess-name-alist): Recognize `-flag'.
+
+2006-06-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-start.el (all): Add mac-ts-script-language-on-focus.
+
+	* term/mac-win.el (mac-text-encoding-ascii): New constant.
+	(mac-utxt-to-string): Use it.
+	(mac-ts-update-active-input-area): Use mac-ae-number.
+
+2006-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-handle-scroll, term-delete-lines)
+	(term-insert-lines): Fix off by one errors.
+
+2006-06-15  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+
+	* net/tramp.el (tramp-touch): Use UTC to express time.
+
+2006-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail-send): Search explicitly for
+	mail-header-separator when checking for corrupted header lines.
+
+2006-06-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-same-frame): New option.
+	(gud-old-arrow, gdb-frame-begin, gdb-printing): New variables.
+	(gdb-init-1): Initialise them.
+	(gdb-starting): Reset gdb-printing
+	(gdb-starting): Save value of gud-overlay-arrow-position.
+	(gdb-frame-begin): Set gdb-frame-begin, gdb-printing.
+	(gdb-stopped): Don't look for source if calling procedure e.g "p a ()".
+	Use gdb-*-gdb-buffer conditionally on gdb-same-frame.
+	(gdb-frame-gdb-buffer): Keep menu bar, tool bar for GUD buffer.
+
+2006-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-retrieve-revision): Use decode-coding-inserted-region.
+
+2006-06-13  Martin J. Reed  <mjreed@essex.ac.uk>  (tiny change)
+
+	* net/ldap.el (ldap-ldapsearch-args): Default to SASL search.
+	(ldap-search-internal): Keep error messages, and a regexp fix.
+
+2006-06-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* files.el (hack-local-variables-confirm):
+	Display string value using its printed representation.
+
 2006-06-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-edit): No-op if no server buffers exist.
 
 2006-06-11  Robert J. Chassell  <bob@rattlesnake.com>
 
-	* textmodes/page-ext.el (pages-directory-for-addresses): 
+	* textmodes/page-ext.el (pages-directory-for-addresses):
 	Including `pages-directory-address-mode' in the function results
 	in the message "Buffer in which pages were found is deleted".
 
@@ -82,8 +357,7 @@
 
 2006-06-06  Jesper Harder  <harder@phys.au.dk>
 
-	* ediff-diff.el (ediff-test-utility): Protect against
-	file-error.
+	* ediff-diff.el (ediff-test-utility): Protect against file-error.
 
 2006-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -115,7 +389,7 @@
 	cookies but no other non-empty fields.
 	(org-set-tags): Allow groups of mutually exclusive tags.
 	(org-cmp-time): Sort 24:21 before items without time.
-	(org-get-time-of-day): Fixed the interpretation of 12pm and 12am.
+	(org-get-time-of-day): Fix the interpretation of 12pm and 12am.
 	(org-open-at-point): Require double colon also for numbers.
 
 2006-06-06  Kim F. Storm  <storm@cua.dk>
@@ -155,8 +429,8 @@
 
 2006-06-05  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (find-auto-coding): Handle
-	enable-character-translation in file header.
+	* international/mule.el (find-auto-coding):
+	Handle enable-character-translation in file header.
 
 2006-06-04  Kim F. Storm  <storm@cua.dk>
 
@@ -225,8 +499,8 @@
 	as well as `coding'.
 	(hack-local-variables): Likewise.
 
-	* international/mule.el (enable-character-translation): Put
-	permanent-local and safe-local-variable properties.
+	* international/mule.el (enable-character-translation):
+	Put permanent-local and safe-local-variable properties.
 	(find-auto-coding): Handle char-trans: tag.
 
 2006-06-02  Juri Linkov  <juri@jurta.org>

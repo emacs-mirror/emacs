@@ -94,6 +94,20 @@ at all if input is available before it starts.  Most of the time, this
 is exactly what you want.  However, you can prevent preemption by
 binding @code{redisplay-dont-pause} to a non-@code{nil} value.
 
+@tindex redisplay-preemption-period
+@defvar redisplay-preemption-period
+This variable specifies how many seconds Emacs waits between checks
+for new input during redisplay.  (The default is 0.1 seconds.)  If
+input has arrived when Emacs checks, it pre-empts redisplay and
+processes the available input before trying again to redisplay.
+
+If this variable is @code{nil}, Emacs does not check for input during
+redisplay, and redisplay cannot be preempted by input.
+
+@emph{Note} that this variable is only available if Emacs is built
+with support for sub-second timers.
+@end defvar
+
 @tindex redisplay-dont-pause
 @defvar redisplay-dont-pause
 If this variable is non-@code{nil}, pending input does not
@@ -101,14 +115,10 @@ prevent or halt redisplay; redisplay occurs, and finishes,
 regardless of whether input is available.
 @end defvar
 
+@tindex sit-for
   You can request a display update, but only if no input is pending,
 with @code{(sit-for 0)}.  To force a display update even when input is
-pending, do this:
-
-@example
-(let ((redisplay-dont-pause t))
-  (sit-for 0))
-@end example
+pending, use @code{(sit-for -1)}.
 
 @node Truncation
 @section Truncation

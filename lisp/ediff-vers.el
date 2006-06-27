@@ -52,6 +52,13 @@
 	 )))
 ;; end pacifier
 
+(defcustom ediff-keep-tmp-versions nil
+  "*If t, do not delete temporary previous versions for the files on which
+comparison or merge operations are being performed."
+  :type 'boolean
+  :group 'ediff-vers
+  )
+
 ;; VC.el support
 
 (defun ediff-vc-latest-version (file)
@@ -87,8 +94,8 @@
 	      file2 (buffer-file-name)))
       (setq startup-hooks
 	    (cons `(lambda ()
-		     (delete-file ,file1)
-		     (or ,(string= rev2 "") (delete-file ,file2)))
+		     (ediff-delete-version-file ,file1)
+		     (or ,(string= rev2 "") (ediff-delete-version-file ,file2)))
 		  startup-hooks)))
     (ediff-buffers
      rev1buf rev2buf
@@ -199,12 +206,12 @@
       (setq startup-hooks
 	    (cons
 	     `(lambda ()
-		(delete-file ,(buffer-file-name buf1))
+		(ediff-delete-version-file ,(buffer-file-name buf1))
 		(or ,(string= rev2 "")
-		    (delete-file ,(buffer-file-name buf2)))
+		    (ediff-delete-version-file ,(buffer-file-name buf2)))
 		(or ,(string= ancestor-rev "")
 		    ,(not ancestor-rev)
-		    (delete-file ,(buffer-file-name ancestor-buf)))
+		    (ediff-delete-version-file ,(buffer-file-name ancestor-buf)))
 		)
 	     startup-hooks)))
     (if ancestor-rev
@@ -305,8 +312,13 @@
 	      (find-file-noselect (cvs-fileinfo->full-name fileinfo)))
 	    nil ; startup-hooks
 	    'ediff-revisions)))
-    (if (stringp tmp-file) (delete-file tmp-file))
-    (if (stringp ancestor-file) (delete-file ancestor-file))))
+    (if (stringp tmp-file) (ediff-delete-version-file tmp-file))
+    (if (stringp ancestor-file) (ediff-delete-version-file ancestor-file))))
+
+
+;; delete version file on exit unless ediff-keep-tmp-versions is true
+(defun ediff-delete-version-file (file)
+  (or ediff-keep-tmp-versions (delete-file file)))
 
 
 (provide 'ediff-vers)

@@ -1,3 +1,38 @@
+2006-06-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* NEWS: Remove duplicate entries.
+
+2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{LaTeX and cdlatex-mode}): New section.
+
+2006-06-23  Kim F. Storm  <storm@cua.dk>
+
+	* DEBUG: Mention `pv variable' to print value of Lisp variables.
+	Mention `xpr' and fix example to use it.  Add section describing
+	commands such as `pit' that are useful for debugging redisplay
+	related problems.
+
+2006-06-22  Kim F. Storm  <storm@cua.dk>
+
+	* HELLO (Local Variables): Move to end of file.
+
+2006-06-20  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.0.1.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.0.1.
+
+2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Clocking Time}): Add new clocking
+	commands.
+	(section{Structure Editing}): Add global archiving command.
+
+2006-06-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* yow.lines: Delete existing data; add a new entry.
+
 2006-06-09  W$,1 b(Bodek Bzyl  <matwb@univ.gda.pl>
 
 	* pl-refcard.ps: Regenerate.

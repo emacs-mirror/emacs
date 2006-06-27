@@ -457,7 +457,7 @@ Frames and X Windows
 * Tooltips::            Showing "tooltips", AKA "balloon help" for active text.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
-* XTerm Mouse::         Using the mouse in an XTerm terminal emulator.
+* Text-Only Mouse::     Using the mouse in text-only terminals.
 
 International Character Set Support
 
@@ -879,9 +879,15 @@ Emacs and Mac OS
 
 Emacs and Microsoft Windows
 
-* Text and Binary::     Text files on MS-DOS use CRLF to separate lines.
+* Text and Binary::     Text files use CRLF to terminate lines.
+* Windows Files::       File-name conventions on Windows.
+* ls in Lisp::          Emulation of @code{ls} for Dired.
+* Windows HOME::        Where Emacs looks for your @file{.emacs}.
+* Windows Keyboard::    Windows-specific keyboard features.
+* Windows Mouse::       Windows-specific mouse features.
 * Windows Processes::   Running subprocesses on Windows.
-* Windows System Menu:: Controlling what the ALT key does.
+* Windows Printing::    How to specify the printer on MS-Windows.
+* Windows Misc::        Miscellaneous Windows features.
 @end menu
 
 @iftex

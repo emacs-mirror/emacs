@@ -1514,23 +1514,53 @@ the various files."
 			   ;; hexl-mode.
 			   (not (eq major-mode 'hexl-mode)))
 		  (if (buffer-modified-p)
-		      (if (y-or-n-p (if rawfile
-					"Save file and revisit literally? "
-				      "Save file and revisit non-literally? "))
+		      (if (y-or-n-p
+			   (format 
+			    (if rawfile
+				"The file %s is already visited normally,
+and you have edited the buffer.  Now you have asked to visit it literally,
+meaning no coding system handling, format conversion, or local variables.
+Emacs can only visit a file in one way at a time.
+
+Do you want to save the file, and visit it literally instead? "
+				"The file %s is already visited literally,
+meaning no coding system handling, format conversion, or local variables.
+You have edited the buffer.  Now you have asked to visit the file normally,
+but Emacs can only visit a file in one way at a time.
+
+Do you want to save the file, and visit it normally instead? ")
+			    (file-name-nondirectory filename)))
 			  (progn
 			    (save-buffer)
 			    (find-file-noselect-1 buf filename nowarn
 						  rawfile truename number))
-			(if (y-or-n-p (if rawfile
-					  "Discard your edits and revisit file literally? "
-					"Discard your edits and revisit file non-literally? "))
+			(if (y-or-n-p
+			     (format 
+			      (if rawfile
+				  "\
+Do you want to discard your changes, and visit the file literally now? "
+				"\
+Do you want to discard your changes, and visit the file normally now? ")))
 			    (find-file-noselect-1 buf filename nowarn
 						  rawfile truename number)
 			  (error (if rawfile "File already visited non-literally"
 				   "File already visited literally"))))
-		    (if (y-or-n-p (if rawfile
-				      "Revisit file literally? "
-				    "Revisit file non-literally? "))
+		    (if (y-or-n-p 
+			 (format 
+			  (if rawfile
+			      "The file %s is already visited normally.
+You have asked to visit it literally,
+meaning no coding system decoding, format conversion, or local variables.
+But Emacs can only visit a file in one way at a time.
+
+Do you want to revisit the file literally now? "
+			    "The file %s is already visited literally,
+meaning no coding system decoding, format conversion, or local variables.
+You have asked to visit it normally,
+but Emacs can only visit a file in one way at a time.
+
+Do you want to revisit the file normally now? ")
+			  (file-name-nondirectory filename)))
 			(find-file-noselect-1 buf filename nowarn
 					      rawfile truename number)
 		      (error (if rawfile "File already visited non-literally"
@@ -1577,7 +1607,7 @@ the various files."
 	     (kill-buffer buf)
 	     (signal 'file-error (list "File is not readable"
 				       filename)))
-	   ;; Run find-file-not-found-hooks until one returns non-nil.
+	   ;; Run find-file-not-found-functions until one returns non-nil.
 	   (or (run-hook-with-args-until-success 'find-file-not-found-functions)
 	       ;; If they fail too, set error.
 	       (setq error t)))))
@@ -2407,7 +2437,11 @@ n  -- to ignore the local variables list.")
 		   (insert "    ")))
 	    (princ (car elt) buf)
 	    (insert " : ")
-	    (princ (cdr elt) buf)
+            (if (stringp (cdr elt))
+                ;; Make strings with embedded whitespace easier to read.
+                (let ((print-escape-newlines t))
+                  (prin1 (cdr elt) buf))
+              (princ (cdr elt) buf))
 	    (insert "\n"))
 	  (setq prompt
 		(format "Please type %s%s: "
@@ -2632,8 +2666,8 @@ is specified, returning t if it is specified."
 		      (hack-local-variables-confirm
 		       result unsafe-vars risky-vars))
 		  (dolist (elt result)
-		    (hack-one-local-variable (car elt) (cdr elt))))))
-	  (run-hooks 'hack-local-variables-hook))))))
+		    (hack-one-local-variable (car elt) (cdr elt)))))))
+	(run-hooks 'hack-local-variables-hook)))))
 
 (defun safe-local-variable-p (sym val)
   "Non-nil if SYM is safe as a file-local variable with value VAL.
@@ -3627,8 +3661,10 @@ Before and after saving the buffer, this function runs
 		(set-visited-file-modtime old-modtime)))
 	    ;; Since we have created an entirely new file,
 	    ;; make sure it gets the right permission bits set.
-	    (setq setmodes (or setmodes (cons (file-modes buffer-file-name)
-					      buffer-file-name)))
+	    (setq setmodes (or setmodes
+ 			       (cons (or (file-modes buffer-file-name)
+					 (logand ?\666 umask))
+				     buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
 	    (rename-file tempname buffer-file-name t))

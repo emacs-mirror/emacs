@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.37}
+\def\orgversionnumber{4.39}
 \def\year{2006}
 %
 %**start of header
@@ -288,10 +288,8 @@ are preserved on all copies.
 
 \section{Motion}
 
-\key{next heading}{C-c C-n}
-\key{previous heading}{C-c C-p}
-\key{next heading, same level}{C-c C-f}
-\key{previous heading, same level}{C-c C-b}
+\key{next/previous heading}{C-c C-n/p}
+\key{next/previous heading, same level}{C-c C-f/b}
 \key{backward to higher level heading}{C-c C-u}
 \key{jump to another place in document}{C-c C-j}
 \key{previous/next plain list item}{S-UP/DOWN$^3$}
@@ -306,13 +304,18 @@ are preserved on all copies.
 \key{promote current subtree up one level}{M-S-LEFT}
 \key{demote current subtree down one level}{M-S-RIGHT}
 
-\key{move subtree/list item up}{M-S-UP}
-\key{move subtree/list item down}{M-S-DOWN}
+\key{move subtree/list item up/down}{M-S-UP/DOWN}
 \key{kill subtree}{C-c C-x C-w}
 \key{copy subtree}{C-c C-x M-w}
 \key{yank subtree}{C-c C-x C-y}
+\key{narrow buffer to current subtree}{C-x n s}
 
-\key{archive subtree}{C-c \$}
+\section{Archiving}
+
+\key{toggle ARCHIVE tag}{C-c C-x C-a}
+\metax{mark fully dine children}{C-u C-c C-x C-a}
+\key{move subtree to achive file}{C-c \$}
+\key{move all fully done children}{C-u C-c \$}
 To set archive location for current file, add a line like$^2$:
 \vskip -1mm
 \beginexample%
@@ -329,17 +332,7 @@ To set archive location for current file, add a line like$^2$:
 %\key{agenda for the week}{C-c a$^1$}
 %\key{agenda for date at cursor}{C-c C-o}
 
-\section{Tags}
-
-\key{set tags for current heading}{C-c C-c}
-\key{realign tags in all headings}{C-u C-c C-c}
-\key{create sparse tree with matching tags}{C-c \\}
-\key{globally (agenda) match tags at cursor}{C-c C-o}
-
 \section{Tables}
-
-%Org-mode has its own built-in intuitive table editor with unique
-%capabilities.
 
 {\bf Creating a table}
 
@@ -466,6 +459,39 @@ formula, \kbd{:=} a named-field formula.
 %\key{\kbd{vm://myself@some.where.org/folder\#id}}{\rm VM remote}
 
 
+\section{Remember-mode Integration}
+
+See the manual for how to make remember.el use Org-mode links and
+files.  The note-finishing command \kbd{C-c C-c} will first prompt for
+an org file. In the file, find a location with:
+
+\key{rotate subtree visibility}{TAB}
+\key{next heading}{DOWN}
+\key{previous heading}{UP}
+
+Insert the note with one of the following: 
+
+\key{as sublevel of heading at cursor}{RET}
+\key{right here (cursor not on heading)}{RET}
+\key{before current heading}{LEFT}
+\key{after current heading}{RIGHT}
+\key{shortcut to end of buffer (cursor at buf-start)}{RET}
+\key{Abort}{q}
+
+\section{Completion}
+
+In-buffer completion completes TODO keywords at headline start, TeX
+macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'', TAGS
+after  ``{\tt :}'', and dictionary words elsewhere.
+
+\key{Complete word at point}{M-TAB}
+
+
+\newcolumn
+\title{Org-Mode Reference Card (2/2)}
+
+\centerline{(for version \orgversionnumber)}
+
 \section{TODO Items}
 
 \key{rotate the state of the current item}{C-c C-t}
@@ -479,6 +505,13 @@ formula, \kbd{:=} a named-field formula.
 
 \key{\kbd{\#+SEQ_TODO: TODO TRY BLUFF DONE}}{\rm todo workflow}
 \key{\kbd{\#+TYP_TODO: Phil home work DONE}}{\rm todo types}
+
+\section{Tags}
+
+\key{set tags for current heading}{C-c C-c}
+\key{realign tags in all headings}{C-u C-c C-c}
+\key{create sparse tree with matching tags}{C-c \\}
+\key{globally (agenda) match tags at cursor}{C-c C-o}
 
 \section{Timestamps}
 
@@ -502,18 +535,26 @@ formula, \kbd{:=} a named-field formula.
 %\key{... forward/backward one month}{M-S-LEFT/RIGT}
 
 
-\newcolumn
-\title{Org-Mode Reference Card (2/2)}
-
-\centerline{(for version \orgversionnumber)}
-
 \section{Clocking Time}
 
 \key{start clock on current item}{C-c C-x C-i}
 \key{stop clock on current item}{C-c C-x C-o}
 \key{cancel current clock}{C-c C-x C-x}
+
 \key{display total subtree times}{C-c C-x C-d}
 \key{remove displayed times}{C-c C-c}
+\key{insert/update table with clock report}{C-c C-x C-r}
+
+\section{Dynamic Blocks}
+
+\key{update dynamic block at point}{C-c C-x C-u}
+\metax{update all dynamic blocks}{C-u C-c C-x C-u}
+
+\section{LaTeX and cdlatex-mode}
+
+\key{preview LaTeX fragment}{C-c C-x C-l}
+\key{Expand abbreviation (cdlatex-mode)}{TAB}
+\key{Insert/modify math symbol (cdlatex-mode)}{` / '}
 
 \section{Agenda Views}
 
@@ -565,6 +606,7 @@ To set categories, add lines like$^2$:
 \key{change state of current TODO item}{t}
 \key{show tags of current headline}{T}
 \key{set tags for current headline}{:}
+\key{toggle ARCHIVE tag}{a}
 \key{set priority of current item}{p}
 \key{raise/lower priority of current item}{S-UP/DOWN$^3$}
 \key{display weighted priority of current item}{P}
@@ -577,7 +619,6 @@ To set categories, add lines like$^2$:
 \key{Stop the clock (clock-out)}{O}
 \key{Cancel current clock}{X}
 
-\newcolumn
 
 {\bf Calendar commands}
 
@@ -592,6 +633,13 @@ To set categories, add lines like$^2$:
 
 \key{quit agenda, remove agenda buffer}{q}
 \key{exit agenda, remove all agenda buffers}{x}
+
+\section{Calendar and Diary Integration}
+
+To include entries from the Emacs diary in your Org-mode agenda:
+\beginexample%
+(setq org-agenda-include-diary t)
+\endexample
 
 \section{Exporting and Publishing}
 
@@ -629,18 +677,19 @@ keywords. {\tt M-TAB} again just after keyword is complete inserts examples.
 \key{language code for html}{\#+LANGUAGE:}
 \key{free text description of file}{\#+TEXT:}
 \key{... which can carry over multiple lines}{\#+TEXT:}
-\key{settings for the export process - see below}{\#+OPTIONS:}
+%\key{settings for the export process - see below}{\#+OPTIONS:}
+\key{settings for the export process}{\#+OPTIONS:}
 
-\key{set number of headline levels for export}{H:2}
-\key{turn on/off section numbers}{num:t}
-\key{turn on/off table of contents}{toc:t}
-\key{turn on/off linebreak preservation}{\\n:nil}
-\key{turn on/off quoted html tags}{@:t}
-\key{turn on/off fixed width sections}{::t}
-\key{turn on/off tables}{|:t}
-\key{turn on/off \TeX\ syntax for sub/super-scripts}{\^{}:t}
-\key{turn on/off emphasised text}{*:nil}
-\key{turn on/off \TeX\ macros}{TeX:t}
+%\key{set number of headline levels for export}{H:2}
+%\key{turn on/off section numbers}{num:t}
+%\key{turn on/off table of contents}{toc:t}
+%\key{turn on/off linebreak preservation}{\\n:nil}
+%\key{turn on/off quoted html tags}{@:t}
+%\key{turn on/off fixed width sections}{::t}
+%\key{turn on/off tables}{|:t}
+%\key{turn on/off \TeX\ syntax for sub/super-scripts}{\^{}:t}
+%\key{turn on/off emphasised text}{*:nil}
+%\key{turn on/off \TeX\ macros}{TeX:t}
 
 {\bf Comments: Text not being exported}
 
@@ -651,53 +700,20 @@ Subtrees whose header starts with COMMENT are never exported.
 
 \key{toggle COMMENT keyword on entry}{C-c ;}
 
-\section{Completion}
 
-In-buffer completion completes TODO keywords at headline start, TeX
-macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'', TAGS
-after  ``{\tt :}'', and dictionary words elsewhere.
+%\section{CUA and pc-select compatibility}%
 
-\key{Complete word at point}{M-TAB}
-
-\section{Calendar and Diary Integration}
-
-To include entries from the Emacs diary in your Org-mode agenda:
-\beginexample%
-(setq org-agenda-include-diary t)
-\endexample
-
-\section{Remember-mode Integration}
-
-See the manual for how to make remember.el use Org-mode links and
-files.  The note-finishing command \kbd{C-c C-c} will first prompt for
-an org file. In the file, find a location with:
-
-\key{rotate subtree visibility}{TAB}
-\key{next heading}{DOWN}
-\key{previous heading}{UP}
-
-Insert the note with one of the following: 
-
-\key{as sublevel of heading at cursor}{RET}
-\key{right here (cursor not on heading)}{RET}
-\key{before current heading}{LEFT}
-\key{after current heading}{RIGHT}
-\key{shortcut to end of buffer (cursor at buf-start)}{RET}
-\key{Abort}{q}
-
-\section{CUA and pc-select compatibility}
-
-Configure the variable {\tt org-CUA-compatibility} to make Org-mode
-avoid the \kbd{S-<cursor>} bindings used by these modes.  When set,
-Org-mode will change the following keybindings (also in the agenda
-buffer, but not during date selection). See note mark four$^3$
-throughout the reference card.
-%\vskip-mm
-\beginexample
-S-UP    $\to$ M-p             S-DOWN  $\to$ M-n
-S-LEFT  $\to$ M--             S-RIGHT $\to$ M-+
-S-RET   $\to$ C-S-RET
-\endexample
+%Configure the variable {\tt org-CUA-compatibility} to make Org-mode
+%avoid the \kbd{S-<cursor>} bindings used by these modes.  When set,
+%Org-mode will change the following keybindings (also in the agenda
+%buffer, but not during date selection). See note mark four$^3$
+%throughout the reference card.
+%%\vskip-mm
+%\beginexample
+%S-UP    $\to$ M-p             S-DOWN  $\to$ M-n
+%S-LEFT  $\to$ M--             S-RIGHT $\to$ M-+
+%S-RET   $\to$ C-S-RET
+%\endexample
 
 \section{Notes}
 $^1$ This is only a suggestion for a binding of this command.  Choose

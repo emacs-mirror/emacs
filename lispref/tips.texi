@@ -204,11 +204,14 @@ say which functions are replaced, and how the behavior of the
 replacements differs from that of the originals.
 
 @item
-Avoid using macros that define functions and variables with names that
-are constructed.  It is best for maintenance when the name of the
-function or variable being defined is given explicitly in the source
-code, as the second element of the list---as it is when you use
-@code{defun}, @code{defalias}, @code{defvar} and @code{defcustom}.
+Constructs that define a function or variable should be macros,
+not functions, and their names should start with @samp{def}.
+
+@item
+Macros that define a functions or variables should take the name to be
+defined as the first argument.  That will help various tools find the
+definition automatically.  Avoid constructing the names in the macro
+itself, since that would confuse these tools.
 
 @item
 Please keep the names of your Emacs Lisp source files to 13 characters
