@@ -1,3 +1,18 @@
+2006-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.texi (Help-Small-Screen): Clarify placement of "All" and "Top"
+	text for standalone vs Emacs info.
+	(Help): Clarify header line description.  Use mouse-1 for clicks.
+	(Help-P): Use mouse-1 for clicks.
+	(Help-^L): "Top" and "All" not displayed with dashes in Emacs.
+	(Help-^L, Help-M, Help-Int, Search Index, Go to node)
+	(Choose menu subtopic): Remove gratuitous Emacs command names.
+	(Help-FOO): Put usual behavior first.
+	(Help-Xref): Clicking on xrefs works in Emacs.
+	(Search Text): Clarify what the default behavior is.
+	(Create Info buffer): Fix Emacs window/X window confusion.
+	(Emacs Info Variables): Fix for new Emacs init file behavior.
+
 2006-06-27  Richard Stallman  <rms@gnu.org>
 
 	* mini.texi (Minibuffer File): Minor cleanup.
