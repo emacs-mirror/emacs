@@ -1,3 +1,7 @@
+2006-06-27  Richard Stallman  <rms@gnu.org>
+
+	* mini.texi (Minibuffer File): Minor cleanup.
+
 2006-06-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* frames.texi (XTerm Mouse) Rename to...
