@@ -1,3 +1,7 @@
+2006-06-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_composition_prop): Set stop_charpos before push_it.
+
 2006-06-25  Kim F. Storm  <storm@cua.dk>
 
 	* s/gnu-linux.h (SIGNALS_VIA_CHARACTERS): Define for Linux kernel
