@@ -4488,7 +4488,9 @@ handle_composition_prop (it)
 	      return HANDLED_RECOMPUTE_PROPS;
 	    }
 
+	  it->stop_charpos = end;
 	  push_it (it);
+
 	  it->method = GET_FROM_COMPOSITION;
 	  it->cmp_id = id;
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
@@ -4498,7 +4500,6 @@ handle_composition_prop (it)
 	  it->len = (STRINGP (it->string)
 		     ? string_char_to_byte (it->string, end)
 		     : CHAR_TO_BYTE (end)) - pos_byte;
-	  it->stop_charpos = end;
 	  handled = HANDLED_RETURN;
 	}
     }
