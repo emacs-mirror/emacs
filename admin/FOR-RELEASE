@@ -76,8 +76,6 @@ It seems that to fix this, w32 server sockets must use WSAAsyncSelect
 
 * DOCUMENTATION
 
-** Check man/info.texi.
-
 ** Check the Emacs Lisp manual.
 
 Each manual section should be checked for factual correctness
