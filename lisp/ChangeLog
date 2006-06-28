@@ -3,6 +3,8 @@
 	* help-mode.el (help-xref-symbol-regexp): Add property as a keyword
 	for ignoring links.
 
+	* faces.el (read-face-name): Use it.
+
 2006-06-28  Juri Linkov  <juri@jurta.org>
 
 	* buff-menu.el (list-buffers-noselect): Compare Info file
