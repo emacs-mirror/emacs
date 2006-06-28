@@ -8,6 +8,23 @@
 #include "mps.h"
 #include "mpsavm.h"   /* for mps_arena_class_vm */
 #include "mpsclo.h"   /* for mps_class_lo */
+#include "fmtno.h"    /* no_skip etc */
+
+#define ASRT(cond)  \
+ do {               \
+   if (!(cond)) {   \
+     printf( "ASRT failed" __FILE__ "(%d): " #cond "\n", __LINE__ );  \
+     exit(1);       \
+   }                \
+ } while (0)
+
+static void exit_if(mps_res_t res, char *comment)
+{
+  if (res != MPS_RES_OK) {
+    printf("%s: failed with res %d.\n", comment, res);
+    exit(2);
+  }
+}
 
 static void reportArena(mps_arena_t Arena);
 static void reportPoollo(mps_pool_t Pool);
@@ -42,24 +59,90 @@ static void reportPoollo(mps_pool_t Pool)
 }
 
 enum {
+  /* formatcode */
+  FORMAT_CLIENT = 0,
+  FORMAT_FWD    = 1,
+  FORMAT_PAD    = 2,
+  
+  /* type */
+  TYPE_STRINGLET = 1
+};
+
+enum {
   cbStringlet = 32
 };
 
 typedef struct {
-  char  ac[cbStringlet];
+  int     formatcode;  /* FORMAT_CLIENT, _FWD, or _PAD */
+  int     type;
+  size_t  size;  /* in bytes */
+} FormatHeaderStruct, *FormatHeader;
+
+typedef struct {
+  FormatHeaderStruct  formatheader;
+  char                ab[cbStringlet];
 } StringletStruct, *Stringlet;
 
 static mps_addr_t demoformat_skip(mps_addr_t addr)
 {
-  return (char*)addr + cbStringlet;
+  FormatHeader fh = addr;
+  mps_addr_t next;
+  
+  printf( "SKIP: " );
+  printf( "%d, %d, %d, ", fh->formatcode, fh->type, fh->size );
+
+  next = (char*)addr + fh->size;
+  printf( "%p -> %p", addr, next);
+  printf( "\n" );
+  return next;
 }
 
-static void exit_if(mps_res_t res, char *comment)
+static Stringlet make_stringlet(mps_ap_t ap, char *pb)
 {
-  if (res != MPS_RES_OK) {
-    printf("%s: failed with res %d.\n", comment, res);
-    exit(2);
-  }
+  mps_res_t res;
+  void *p;
+  size_t size = sizeof(StringletStruct);
+  Stringlet neo = NULL;
+
+  do {
+    res = mps_reserve(&p, ap, size);
+    exit_if(res, "make_stringlet: mps_reserve");
+    
+    neo = p;
+    
+    /* Build the new object: */    
+    /* ...format it */
+    neo->formatheader.formatcode = FORMAT_CLIENT;  /* (not fwd or pad) */
+    neo->formatheader.type = TYPE_STRINGLET;
+    neo->formatheader.size = size;
+    
+    /* ...initialize it */
+    {
+      int i;
+      for (i = 0; i < cbStringlet; i += 1) {
+        neo->ab[i] = *pb;
+        if (*pb != '\0')
+          pb += 1;
+      }
+      ASRT(neo->ab[cbStringlet - 1] == '\0');
+    }
+    
+    /* neo (ambiguous reference) preserves the new object */
+  } while (! mps_commit(ap, p, size));
+
+  /* Success: link the new object into my object graph */
+  return neo;
+}
+
+static void DemoStepper(
+  mps_addr_t addr, 
+  mps_fmt_t fmt,
+  mps_pool_t pool,
+  void *p,
+  size_t s
+)
+{
+  printf( "Something... " );
 }
 
 int main(void)
@@ -87,12 +170,12 @@ int main(void)
     struct mps_fmt_A_s demofmt_A = { 0 };
     
     demofmt_A.align = 4;
-    demofmt_A.scan  = (mps_fmt_scan_t)  1;
+    demofmt_A.scan  = no_scan;
     demofmt_A.skip  = demoformat_skip;
-    demofmt_A.copy  = (mps_fmt_copy_t)  1;
-    demofmt_A.fwd   = (mps_fmt_fwd_t)   1;
-    demofmt_A.isfwd = (mps_fmt_isfwd_t) 1;
-    demofmt_A.pad   = (mps_fmt_pad_t)   1;
+    demofmt_A.copy  = no_copy;
+    demofmt_A.fwd   = no_fwd;
+    demofmt_A.isfwd = no_isfwd;
+    demofmt_A.pad   = no_pad;
     
     res = mps_fmt_create_A(&FormatDemo, ArenaDemo, &demofmt_A);
     if (res != MPS_RES_OK) {
@@ -122,43 +205,35 @@ int main(void)
   }
 
   {
-    /* Allocate memory */
+    Stringlet s1, s2;
     
-    size_t cbBuffer = 256;
-    void *p = NULL;
-
-    do {
-      res = mps_reserve(&p, ApDemo, cbBuffer);
-      exit_if(res, "mps_reserve");
-      /* Initialise my object here -- ie. make it valid. */
-      /* (In this example, memory is manually managed, so even
-          uninitialized memory is already a 'valid object'.  So 
-          we can call commit immediately.) */
-    } while (! mps_commit(ApDemo, p, cbBuffer));
+    s1 = make_stringlet(ApDemo, "hello,");
+    s2 = make_stringlet(ApDemo, " world\n");
     
-    report("Allocated 256 bytes", ArenaDemo, PoolDemo);
+    report("Made two stringlets", ArenaDemo, PoolDemo);
 
-    {
-      /* Show that it really is memory */
-
-      char *pbBuffer = (char *)p;
-      
-      strcpy(pbBuffer, "hello--world\n");
-      pbBuffer[5] = ',';
-      pbBuffer[6] = ' ';
-      printf(pbBuffer);
-    }
+    printf(s1->ab);
+    printf(s2->ab);
+  }
+  
+  {
+    mps_arena_formatted_objects_walk(ArenaDemo, DemoStepper, NULL, 0);
+  }
+  
+  {
+    mps_arena_collect(ArenaDemo);
+    report("Collected arena", ArenaDemo, PoolDemo);
   }
   
   {
     /* Clear up */
     
-    mps_fmt_destroy(FormatDemo);
-    report("Destroyed format", ArenaDemo, PoolDemo);
     mps_ap_destroy(ApDemo);
     report("Destroyed ap", ArenaDemo, PoolDemo);
     mps_pool_destroy(PoolDemo);
     report("Destroyed pool", ArenaDemo, NULL);
+    mps_fmt_destroy(FormatDemo);
+    report("Destroyed format", ArenaDemo, PoolDemo);
     mps_arena_destroy(ArenaDemo);
   }
 
@@ -170,6 +245,8 @@ int main(void)
   );
   return 0;
 }
+
+
 
 /*
 COPYRIGHT AND LICENSE

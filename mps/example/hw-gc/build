@@ -5,6 +5,6 @@ FLAGS="-std=iso9899:1990 -pedantic -Wimplicit -Wmissing-prototypes"
 # gcc  hwgc01.c -o hwgc01  -I$MPSCODE $MPSLIBS/mps.a $MPSLIBS/mpsplan.a $FLAGS
 # ./hwgc01
 
-gcc  hwgc02.c -o hwgc02  -I$MPSCODE $MPSLIBS/mps.a $MPSLIBS/poollo.o $MPSLIBS/mpsplan.a $FLAGS
+gcc  hwgc02.c -o hwgc02  -I$MPSCODE $MPSLIBS/mps.a $MPSLIBS/poollo.o $MPSLIBS/fmtno.o $MPSLIBS/mpsplan.a $FLAGS -g
 ./hwgc02
 
