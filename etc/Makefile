@@ -6,6 +6,30 @@ MANEXT=1
 
 all:
 
+refcards:	refcard.ps cs-refcard.ps de-refcard.ps fr-refcard.ps \
+		pl-refcard.ps pt-br-refcard.ps ru-refcard.ps sk-refcard.ps
+
+refcard.dvi de-refcard.dvi fr-refcard.dvi pt-br-refcard.dvi sk-refcard.dvi:	%.dvi:	%.tex
+	tex $<
+
+cs-refcard.dvi:	%.dvi:	%.tex
+	csplain $<
+
+pl-refcard.dvi: %.dvi:	%.tex
+	if ! kpsewhich -format=fmt mex > /dev/null; then \
+	  echo "No mex format found."; false; \
+	fi
+	tex $<
+
+ru-refcard.dvi:	%.dvi:	%.tex
+	latex $<
+
+refcard.ps de-refcard.ps fr-refcard.ps pt-br-refcard.ps:	%.ps:	%.dvi
+	dvips -t landscape $<
+
+cs-refcard.ps pl-refcard.ps ru-refcard.ps sk-refcard.ps:	%.ps:	%.dvi
+	dvips $<
+
 mostlyclean:
 	-rm -f core *.dvi *.log
 
