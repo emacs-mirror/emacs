@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.39
+;; Version: 4.40
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -90,6 +90,9 @@
 ;;
 ;; Recent changes
 ;; --------------
+;; Version 4.40
+;;    - Bug fixes.
+;;
 ;; Version 4.39
 ;;    - Special tag ARCHIVE keeps a subtree closed and away from agenda lists.
 ;;    - LaTeX code in Org-mode files can be converted to images for HTML.
@@ -196,7 +199,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.39"
+(defvar org-version "4.40"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -1779,10 +1782,10 @@ This is a property list with the following properties:
 :matchers    a list indicating which matchers should be used to
              find LaTeX fragments.  Valid members of this list are:
              \"begin\"  find environments
-             \"$\"      find mathc expressions surrounded by $...$
+             \"$\"      find math expressions surrounded by $...$
              \"$$\"     find math expressions surrounded by $$....$$
-             \"\\(\"    find math expressions surrounded by \\(...\\)
-             \"\\[\"    find math expressions surrounded by \\[...\\]"
+             \"\\(\"     find math expressions surrounded by \\(...\\)
+             \"\\ [\"    find math expressions surrounded by \\ [...\\]"
   :group 'org-latex
   :type 'plist)
 
@@ -2853,6 +2856,8 @@ Also put tags into group 4 if tags are present.")
 (defvar orgtbl-mode) ; defined later in this file
 (defvar Info-current-file) ; from info.el
 (defvar Info-current-node) ; from info.el
+(defvar texmathp-why) ; from texmathp.el
+(defvar org-latex-regexps)
 
 ;;; Define the mode
 
@@ -5208,6 +5213,12 @@ that the match should indeed be shown."
   (if (featurep 'xemacs)
       (set-extent-property ovl prop value)
     (overlay-put ovl prop value)))
+(defun org-overlays-at (pos)
+  (if (featurep 'xemacs) (extents-at pos) (overlays-at pos)))
+(defun org-overlay-start (o)
+  (if (featurep 'xemacs) (extent-start-position o) (overlay-start o)))
+(defun org-overlay-end (o)
+  (if (featurep 'xemacs) (extent-end-position o) (overlay-end o)))
 
 (defvar org-occur-highlights nil)
 (make-variable-buffer-local 'org-occur-highlights)
@@ -12073,10 +12084,10 @@ not overwrite the stored one."
       ;; Insert ranges in current column
       (while (string-match "\\&[-I0-9]+" form)
 	(setq form (replace-match
-		     (save-match-data
-		       (org-table-get-vertical-vector (match-string 0 form)
-						      nil n0))
-		     t t form)))
+		    (save-match-data
+		      (org-table-get-vertical-vector (match-string 0 form)
+						     nil n0))
+		    t t form)))
       (if lispp
 	  (setq ev (eval (eval (read form)))
 		ev (if (numberp ev) (number-to-string ev) ev))
@@ -13173,7 +13184,7 @@ translations.  There is currently no way for users to extend this.")
 			    (file-name-nondirectory
 			     org-current-export-file)))
 	 org-current-export-dir nil "Creating LaTeX image %s"))
-      (message "Expriting...")
+      (message "Exporting...")
 
       ;; Normalize links: Convert angle and plain links into bracket links
       (goto-char (point-min))
@@ -14816,45 +14827,78 @@ a time), or the day by one (if it does not contain a time)."
 This mode supports entering LaTeX environment and math in LaTeX fragments
 in Org-mode.
 \\{org-cdlatex-mode-map}"
-  nil " CDLtx" nil
+  nil " OCDL" nil
   (when org-cdlatex-mode (require 'cdlatex))
   (unless org-cdlatex-texmathp-advice-is-done
     (setq org-cdlatex-texmathp-advice-is-done t)
     (defadvice texmathp (around org-math-always-on activate)
       "Always return t in org-mode buffers.
 This is because we want to insert math symbols without dollars even outside
-the LaTeX math segments.
+the LaTeX math segments.  If Orgmode thinks that point is actually inside
+en embedded LaTeX fragement, let texmathp do its job.
 \\[org-cdlatex-mode-map]"
       (interactive)
-      (if (or (not (eq major-mode 'org-mode))
-	      (org-inside-LaTeX-fragment-p))
-	  ad-do-it
-	(if (eq this-command 'cdlatex-math-symbol)
-	    (setq ad-return-value t))))))
+      (let (p)
+	(cond
+	 ((not (eq major-mode 'org-mode)) ad-do-it)
+	 ((eq this-command 'cdlatex-math-symbol)
+	  (setq ad-return-value t
+		texmathp-why '("cdlatex-math-symbol in org-mode" . 0)))
+	 (t
+	  (let ((p (org-inside-LaTeX-fragment-p)))
+	    (if (and p (member (car p) (plist-get org-format-latex-options :matchers)))
+		(setq ad-return-value t
+		      texmathp-why '("Org-mode embedded math" . 0))
+	      (if p ad-do-it)))))))))
+
+(defun turn-on-org-cdlatex ()
+  "Unconditionally turn on `org-cdlatex-mode'."
+  (org-cdlatex-mode 1))
 
 (defun org-inside-LaTeX-fragment-p ()
-  "Test if point is inside a LaTeX fragment. I.e. after a \\begin, \\(, \\[, $, or $$, withoout the corresponding closing
-sequence appearing also before point."
-  (let ((pos (point))
-	(lim (progn
-	       (re-search-backward (concat "^\\(" paragraph-start "\\)") nil t)
-	       (point)))
-	dollar-on p1)
-    (goto-char pos)
-    (if (re-search-backward "\\(\\\\begin{\\|\\\\(\\|\\\\\\[\\)\\|\\(\\\\end{\\|\\\\)\\|\\\\\\]\\)\\|\\(\\$\\)" lim t)
-	(progn
-	  (goto-char pos)
-	  (cond
-	   ((match-beginning 1) (match-beginning 0))
-	   ((match-beginning 2) nil)
-	   (t (while (re-search-backward "\\$" lim t)
-		(setq dollar-on (not dollar-on))
-		(if (= (char-before) ?$) (backward-char 1))
-		(setq p1 (or p1 (point))))
-	      (goto-char pos)
-	      (if dollar-on p1))))
+  "Test if point is inside a LaTeX fragment.
+I.e. after a \\begin, \\(, \\[, $, or $$, without the corresponding closing
+sequence appearing also before point.
+Even though the matchers for math are configurable, this function assumes
+that \\begin, \\(, \\[, and $$ are always used.  Only the single dollar
+delimiters are skipped when they have been removed by customization.
+The return value is nil, or a cons cell with the delimiter and
+and the position of this delimiter.
+
+This function does a reasonably good job, but can locally be fooled by
+for example currency specifications.  For example it will assume being in
+inline math after \"$22.34\".  The LaTeX fragment formatter will only format
+fragments that are properly closed, but during editing, we have to live
+with the uncertainty caused by missing closing delimiters.  This function
+looks only before point, not after."
+  (catch 'exit
+    (let ((pos (point))
+	  (dodollar (member "$" (plist-get org-format-latex-options :matchers)))
+	  (lim (progn
+		 (re-search-backward (concat "^\\(" paragraph-start "\\)") nil t)
+		 (point)))
+	  dd-on str (start 0) m re)
       (goto-char pos)
-      nil)))
+      (when dodollar
+	(setq str (concat (buffer-substring lim (point)) "\000 X$.")
+	      re (nth 1 (assoc "$" org-latex-regexps)))
+	(while (string-match re str start)
+	  (cond
+	   ((= (match-end 0) (length str))
+	    (throw 'exit (cons "$" (+ lim (match-beginning 0)))))
+	   ((= (match-end 0) (- (length str) 5))
+	    (throw 'exit nil))
+	   (t (setq start (match-end 0))))))
+      (when (setq m (re-search-backward "\\(\\\\begin{[^}]*}\\|\\\\(\\|\\\\\\[\\)\\|\\(\\\\end{[^}]*}\\|\\\\)\\|\\\\\\]\\)\\|\\(\\$\\$\\)" lim t))
+	(goto-char pos)
+	(and (match-beginning 1) (throw 'exit (cons (match-string 1) m)))
+	(and (match-beginning 2) (throw 'exit nil))
+	;; count $$
+	(while (re-search-backward "\\$\\$" lim t)
+	  (setq dd-on (not dd-on)))
+	(goto-char pos)
+	(if dd-on (cons "$$" m))))))
+
 
 (defun org-try-cdlatex-tab ()
   "Check if it makes sense to execute `cdlatex-tab', and do it if yes.
@@ -14927,7 +14971,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 		msg "Creating images for subtree...%s"))
 	 (t
 	  (if (setq at (org-inside-LaTeX-fragment-p))
-	      (goto-char (max (point-min) (- at 2)))
+	      (goto-char (max (point-min) (- (cdr at) 2)))
 	    (org-back-to-heading))
 	  (setq beg (point) end (progn (outline-next-heading) (point))
 		msg (if at "Creating image...%s"
@@ -14941,6 +14985,16 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 	 default-directory 'overlays msg at)
       (message msg "done.  Use `C-c C-c' to remove images.")))))
 
+(defvar org-latex-regexps
+  '(("begin" "^[ \t]*\\(\\\\begin{\\([a-zA-Z0-9\\*]+\\)[^\000]+?\\\\end{\\2}\\)" 1 t)
+    ;; ("$" "\\([ 	(]\\|^\\)\\(\\(\\([$]\\)\\([^ 	\r\n,.$].*?\\(\n.*?\\)\\{0,5\\}[^ 	\r\n,.$]\\)\\4\\)\\)\\([ 	.,?;:'\")]\\|$\\)" 2 nil)
+    ;; \000 in the following regex is needed for org-inside-LaTeX-fragment-p
+    ("$" "\\([^$]\\)\\(\\(\\$\\([^ 	\r\n,;.$][^$\n\r]*?\\(\n[^$\n\r]*?\\)\\{0,2\\}[^ 	\r\n,.$]\\)\\$\\)\\)\\([ 	.,?;:'\")\000]\\|$\\)" 2 nil)
+    ("\\(" "\\\\([^\000]*?\\\\)" 0 nil)
+    ("\\[" "\\\\\\[[^\000]*?\\\\\\]" 0 t)
+    ("$$" "\\$\\$[^\000]*?\\$\\$" 0 t))
+  "Regular expressions for matching embedded LaTeX.")
+
 (defun org-format-latex (prefix &optional dir overlays msg at)
   "Replace LaTeX fragments with links to an image, and produce images."
   (if (and overlays (fboundp 'clear-image-cache)) (clear-image-cache))
@@ -14949,12 +15003,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 	 (todir (file-name-directory absprefix))
 	 (opt org-format-latex-options)
 	 (matchers (plist-get opt :matchers))
-	 (re-list
-	  '(("begin" "^[ \t]*\\(\\\\begin{\\([a-zA-Z0-9\\*]+\\)[^\000]+?\\\\end{\\2}\\)" 1 t)
-	    ("$" "\\([ 	(]\\|^\\)\\(\\(\\([$]\\)\\([^ 	\r\n,.$].*?\\(\n.*?\\)\\{0,5\\}[^ 	\r\n,.$]\\)\\4\\)\\)\\([ 	.,?;:'\")]\\|$\\)" 2 nil)
-	    ("\\(" "\\\\([^\000]*?\\\\)" 0 nil)
-	    ("\\[" "\\\\\\[[^\000]*?\\\\\\]" 0 t)
-	    ("$$" "\\$\\$[^\000]*?\\$\\$" 0 t)))
+	 (re-list org-latex-regexps)
 	 (cnt 0) txt link beg end re e oldfiles
 	 m n block linkfile movefile ov)
     ;; Make sure the directory exists
@@ -14971,7 +15020,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
       (when (member m matchers)
 	(goto-char (point-min))
 	(while (re-search-forward re nil t)
-	  (when (or (not at) (equal at (match-beginning n)))
+	  (when (or (not at) (equal (cdr at) (match-beginning n)))
 	    (setq txt (match-string n)
 		  beg (match-beginning n) end (match-end n)
 		  cnt (1+ cnt)
@@ -15802,6 +15851,7 @@ contexts are:
 :tags             on the TAGS in a headline
 :priority         on the priority cookie in a headline
 :item             on the first line of a plain list item
+:item-bullet      on the bullet/number of a plain list item
 :checkbox         on the checkbox in a plain list item
 :table            in an org-mode table
 :table-special    on a special filed in a table
@@ -15810,13 +15860,15 @@ contexts are:
 :keyword          on a keyword: SCHEDULED, DEADLINE, CLOSE,COMMENT, QUOTE.
 :target           on a <<target>>
 :radio-target     on a <<<radio-target>>>
+:latex-fragment   on a LaTeX fragment
+:latex-preview    on a LaTeX fragment with overlayed preview image
 
 This function expects the position to be visible because it uses font-lock
 faces as a help to recognize the following contexts: :table-special, :link,
 and :keyword."
   (let* ((f (get-text-property (point) 'face))
 	 (faces (if (listp f) f (list f)))
-	 (p (point)) clist)
+	 (p (point)) clist o)
     ;; First the large context
     (cond
      ((org-on-heading-p)
@@ -15833,6 +15885,7 @@ and :keyword."
 	  (push (org-point-in-group p 0 :priority) clist)))
 
      ((org-at-item-p)
+      (push (org-point-in-group p 2 :item-bullet) clist)
       (push (list :item (point-at-bol)
 		  (save-excursion (org-end-of-item) (point)))
 	    clist)
@@ -15866,7 +15919,19 @@ and :keyword."
       (goto-char (1- (match-beginning 0)))
       (if (looking-at org-radio-target-regexp)
 	  (push (org-point-in-group p 0 :radio-target) clist))
-      (goto-char p)))
+      (goto-char p))
+     ((setq o (car (delq nil
+			 (mapcar 
+			  (lambda (x)
+			    (if (memq x org-latex-fragment-image-overlays) x))
+			  (org-overlays-at (point))))))
+      (push (list :latex-fragment 
+		  (org-overlay-start o) (org-overlay-end o)) clist)
+      (push (list :latex-preview 
+		  (org-overlay-start o) (org-overlay-end o)) clist))
+     ((org-inside-LaTeX-fragment-p)
+      ;; FIXME: positions wring.
+      (push (list :latex-fragment (point) (point)) clist)))
 
     (setq clist (nreverse (delq nil clist)))
     clist))
