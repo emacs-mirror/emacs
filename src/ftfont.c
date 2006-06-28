@@ -312,6 +312,9 @@ ftfont_list (frame, spec)
   FcObjectSet *objset = NULL;
   Lisp_Object registry = Qunicode_bmp;
   int weight = 0;
+  double dpi = -1;
+  int spacing = -1;
+  int scalable = -1;
   
   val = null_vector;
 
@@ -347,6 +350,13 @@ ftfont_list (frame, spec)
   font_name = Qnil;
   if (CONSP (extra))
     {
+      tmp = assq_no_quit (QCname, extra);
+      if (CONSP (tmp))
+	{
+	  font_name = XCDR (tmp);
+	  if (SDATA (font_name)[0] != ':')
+	    return val;
+	}
       tmp = assq_no_quit (QCotf, extra);
       if (! NILP (tmp))
 	return val;
@@ -371,9 +381,6 @@ ftfont_list (frame, spec)
 		tmp = XCDR (tmp);
 	      }
 	}
-      tmp = Fassq (QCname, extra);
-      if (CONSP (tmp))
-	font_name = XCDR (tmp);
       tmp = assq_no_quit (QCscript, extra);
       if (CONSP (tmp) && ! charset)
 	{
@@ -392,6 +399,15 @@ ftfont_list (frame, spec)
 		  goto err;
 	    }
 	}
+      tmp = assq_no_quit (QCdpi, extra);
+      if (CONSP (tmp))
+	dpi = XINT (XCDR (tmp));
+      tmp = assq_no_quit (QCspacing, extra);
+      if (CONSP (tmp))
+	spacing = XINT (XCDR (tmp));
+      tmp = assq_no_quit (QCscalable, extra);
+      if (CONSP (tmp))
+	spacing = ! NILP (XCDR (tmp));
     }
 
   if (STRINGP (font_name))
@@ -429,6 +445,15 @@ ftfont_list (frame, spec)
     goto err;
   if (langset
       && ! FcPatternAddLangSet (pattern, FC_LANG, langset))
+    goto err;
+  if (dpi >= 0
+      && ! FcPatternAddDouble (pattern, FC_DPI, dpi))
+    goto err;
+  if (spacing >= 0
+      && ! FcPatternAddInteger (pattern, FC_SPACING, spacing))
+    goto err;
+  if (scalable >= 0
+      && ! FcPatternAddBool (pattern, FC_SPACING, spacing ? FcTrue : FcFalse))
     goto err;
 
   objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
