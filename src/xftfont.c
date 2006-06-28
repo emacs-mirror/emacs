@@ -364,11 +364,14 @@ xftfont_prepare_face (f, face)
 {
   struct xftface_info *xftface_info;
 
+#if 0
+  /* This doesn't work if face->ascii_face doesn't use an Xft font. */
   if (face != face->ascii_face)
     {
       face->extra = face->ascii_face->extra;
       return 0;
     }
+#endif
 
   xftface_info = malloc (sizeof (struct xftface_info));
   if (! xftface_info)
@@ -394,9 +397,12 @@ xftfont_done_face (f, face)
 {
   struct xftface_info *xftface_info;
   
+#if 0
+  /* This doesn't work if face->ascii_face doesn't use an Xft font. */
   if (face != face->ascii_face
       || ! face->extra)
     return;
+#endif
 
   xftface_info = (struct xftface_info *) face->extra;
   BLOCK_INPUT;
