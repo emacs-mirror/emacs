@@ -1,3 +1,9 @@
+2006-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fdelete_field, Ffield_string, Ffield_beginning)
+	(Ffield_string_no_properties, Ffield_end): Mention
+	args-out-of-range error condition in docstring.
+
 2006-06-27  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (handle_composition_prop): Set stop_charpos before push_it.
