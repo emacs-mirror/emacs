@@ -1,3 +1,48 @@
+2006-06-28  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (QCscalable, Qc, Qm, Qp, Qd): New variables.
+	(syms_of_font): Initialize them.
+	(font_pixel_size): Allow float value in dpi.
+	(font_prop_validate_type): Deleted.
+	(font_prop_validate_symbol, font_prop_validate_style): Argument
+	changed.  Caller changed.
+	(font_prop_validate_non_neg): Renamed from
+	font_prop_validate_size.
+	(font_prop_validate_extra): Deleted.
+	(font_prop_validate_spacing): New function.
+	(font_property_table): Add elements for all known properties.
+	(get_font_prop_index): Renamed from check_font_prop_name.  New
+	argument FROM.  Caller changed.
+	(font_prop_validate): Validate all known properties.
+	(font_put_extra): Argument force deleted.  Caller changed.
+	(font_expand_wildcards): Make it static.  Fix the way of shrinking
+	the possible range.
+	(font_parse_xlfd): Arguemnt merge deleted.  Fix handling of RESX,
+	RESY, SPACING, and AVGWIDTH.  Don't validate property values here.
+	Caller changed.
+	(font_unparse_xlfd): Handle dpi, spacing, and scalable properties.
+	(font_parse_fcname): Arguemnt merge deleted.  Fix parsing of point
+	size.  Don't validate properties values here.  Caller changed.
+	(font_unparse_fcname): Handle dpi, spacing, and scalable
+	properties.
+	(font_open_by_name): Delete unused variable.
+	(Ffont_spec): Likewise.  Validate property values.
+	(Ffont_match_p): New function.
+
+	* font.h (QCscalable): Extern it.
+	(font_parse_xlfd, font_parse_fcname): Prototype adjusted.
+
+	* ftfont.c (ftfont_list): Handle properties dpi, spacing, and
+	scalable.
+
+	* xfont.c (xfont_query_font): Adjusted for the change of
+	font_parse_xlfd.
+	(xfont_list_pattern): New function.
+	(xfont_list): Use xfont_list_pattern.
+
+	* xftfont.c (xftfont_prepare_face): Cancel previous change.
+	(xftfont_done_face): Likewise.
+
 2006-06-26  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (Flist_fonts): EXFUN it.

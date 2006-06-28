@@ -1,3 +1,8 @@
+2006-06-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Fix for
+	"ethiopic-unicode".
+
 2006-06-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (script-representative-chars): Add an
