@@ -1787,8 +1787,12 @@ text_property_stickiness (prop, pos, buffer)
 	/* PROP is rear-non-sticky.  */
 	is_rear_sticky = 0;
     }
+  else
+    return 0;
 
   /* Consider following character.  */
+  /* This signals an arg-out-of-range error if pos is outside the
+     buffer's accessible range.  */
   front_sticky = Fget_text_property (pos, Qfront_sticky, buffer);
 
   if (EQ (front_sticky, Qt)
