@@ -859,7 +859,7 @@ of the default face.  Value is FACE."
 
 (defun read-face-name (prompt &optional string-describing-default multiple)
   "Read a face, defaulting to the face or faces on the char after point.
-If it has a `read-face-name' property, that overrides the `face' property.
+If it has the property `read-face-name', that overrides the `face' property.
 PROMPT describes what you will do with the face (don't end in a space).
 STRING-DESCRIBING-DEFAULT describes what default you will use
 if this function returns nil.
