@@ -2646,8 +2646,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       error ("Cannot find any usable font");
     UNBLOCK_INPUT;
 
-    x_default_parameter (f, parms, Qfont, font,
-			 "font", "Font", RES_TYPE_STRING);
+    x_set_frame_parameters (f, Fcons (Fcons (Qfont, font), Qnil));
   }
 
   x_default_parameter (f, parms, Qborder_width, make_number (0),
