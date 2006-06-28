@@ -6515,6 +6515,9 @@ w32_initialize ()
 
   /* Dynamically link to optional system components.  */
   {
+    UINT smoothing_type;
+    BOOL smoothing_enabled;
+
     HANDLE gdi_lib = LoadLibrary ("gdi32.dll");
 
 #define LOAD_PROC(lib, fn) pfn##fn = (void *) GetProcAddress (lib, #fn)
