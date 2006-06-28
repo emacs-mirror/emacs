@@ -460,7 +460,7 @@ static void LOWalk(Pool pool, Seg seg,
     }
     object = AddrAdd(object, format->headerSize);
     next = (*format->skip)(object);
-    next = AddrSub(object, format->headerSize);
+    next = AddrSub(next, format->headerSize);
     j = loIndexOfAddr(base, lo, next);
     AVER(i < j);
     (*f)(object, pool->format, pool, p, s);
