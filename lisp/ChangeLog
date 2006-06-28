@@ -1,3 +1,12 @@
+2006-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-handle-font-selection): Change keys of
+	mac-atsu-font-table from strings to numbers.
+	(mac-ts-caret-position): Use also when cursor-type is nil.
+	(mac-ts-update-active-input-area): Add Mac OS Classic support.
+	Relax condition for using overlay strings.  Use
+	mac-ts-caret-position face when cursor-type is nil.
+
 2006-06-26  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (view-emacs-news): Declare `res' in the right let* form.

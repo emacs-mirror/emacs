@@ -1,3 +1,28 @@
+2006-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Don't include FixMath.h or Scrap.h.
+
+	* macfns.c (Fx_create_frame): Apply 2006-06-24 change for xfns.c.
+
+	* macgui.h (USE_MAC_TSM) [TARGET_API_MAC_CARBON]: Set default to 1.
+
+	* macterm.c (Qeql): Add extern.
+	(x_set_mouse_pixel_position) [MAC_OSX]: Use CGWarpMouseCursorPosition.
+	(fm_style_face_attributes_alist) [USE_ATSUI]: New variable.
+	(syms_of_macterm) [USE_ATSUI]: Initialize and staticpro it.
+	Change keys of Vmac_atsu_font_table from strings to numbers.
+	(fm_style_to_face_attributes) [USE_ATSUI]: New function.
+	(init_font_name_table) [USE_ATSUI]: Use it.
+	(saved_ts_script_language_on_focus) [USE_MAC_TSM]: New variable.
+	(syms_of_macterm) [USE_MAC_TSM]: Initialize and staticpro it.
+	[USE_MAC_TSM] (mac_tsm_resume): Restore script and language codes
+	only when saved_ts_script_language_on_focus coincides with
+	Vmac_ts_script_language_on_focus.
+	[USE_MAC_TSM] (mac_tsm_suspend): Save value of
+	Vmac_ts_script_language_on_focus to saved_ts_script_language_on_focus.
+	(XTread_socket) [USE_MAC_TSM]: Add Mac OS Classic support.
+	[USE_MAC_TSM] (mac_handle_text_input_event, init_tsm): Likewise.
+
 2006-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* editfns.c (Fdelete_field, Ffield_string, Ffield_beginning)
