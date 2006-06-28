@@ -150,7 +150,14 @@ static void pad(mps_addr_t base, size_t size)
 static void stepper(mps_addr_t addr, mps_fmt_t fmt, mps_pool_t pool, 
                     void *p, size_t s)
 {
-  size_t *pcount = p;
+  size_t *pcount;
+
+  testlib_unused(addr);
+  testlib_unused(fmt);
+  testlib_unused(pool);
+  testlib_unused(s);
+  
+  pcount = p;
   *pcount += 1;
   return;
 }
