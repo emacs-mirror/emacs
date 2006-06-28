@@ -1,3 +1,13 @@
+2006-06-28  Juri Linkov  <juri@jurta.org>
+
+	* buff-menu.el (list-buffers-noselect): Compare Info file
+	with the string "dir" to detect Info directory.
+
+	* complete.el (partial-completion-mode): In lambda for
+	`choose-completion-string-functions' use full function signature
+	with 4 args, and move point to the end of the minibuffer only if arg
+	`mini-p' is non-nil.
+
 2006-06-28  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuffer.el (ibuffer-mode): Doc fix.

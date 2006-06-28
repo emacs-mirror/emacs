@@ -1,3 +1,7 @@
+2006-06-28  Juri Linkov  <juri@jurta.org>
+
+	* grep.txt (Local Variables): Move to end of file.
+
 2006-06-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* Makefile: Add rules for refcards.
