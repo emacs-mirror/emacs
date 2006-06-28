@@ -92,7 +92,7 @@ xfont_query_font (display, name, spec)
 	{
 	  char *n = (char *) XGetAtomName (display, (Atom) value);
 
-	  if (font_parse_xlfd (n, spec, 0) >= 0)
+	  if (font_parse_xlfd (n, spec) >= 0)
 	    name = n;
 	  else
 	    XFree (n);
@@ -283,158 +283,153 @@ xfont_get_cache (frame)
 extern Lisp_Object Vface_alternative_font_registry_alist;
 
 static Lisp_Object
-xfont_list (frame, spec)
-     Lisp_Object frame, spec;
+xfont_list_pattern (frame, display, pattern)
+     Lisp_Object frame;
+     Display *display;
+     char *pattern;
 {
-  FRAME_PTR f = XFRAME (frame);
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  Lisp_Object *vec, val, extra, font_name, entity;
-  char name[256], **names;
-  int i, idx, limit, num_fonts;
-  int error_occurred = 0;
-  USE_SAFE_ALLOCA;
-  
-  extra = AREF (spec, FONT_EXTRA_INDEX);
-  font_name = Qnil;
-  if (CONSP (extra))
-    {
-      val = Fassq (QCotf, extra);
-      if (! NILP (val))
-	return null_vector;
-      val = Fassq (QCscript, extra);
-      if (! NILP (val))
-	return null_vector;
-      val = Fassq (QCname, extra);
-      if (CONSP (val))
-	font_name = XCDR (val);
-    }
-
-  if (! STRINGP (font_name)
-      && font_unparse_xlfd (spec, 0, name, 256) < 0)
-    return null_vector;
+  Lisp_Object list = Qnil;
+  int i, limit, num_fonts;
+  char **names;
 
   BLOCK_INPUT;
-  x_catch_errors (dpyinfo->display);
+  x_catch_errors (display);
 
-  if (STRINGP (font_name))
+  for (limit = 512; ; limit *= 2)
     {
-      XFontStruct *font = XLoadQueryFont (dpyinfo->display,
-					  (char *) SDATA (font_name));
-      unsigned long value;
-
-      num_fonts = 0;
-      if (x_had_errors_p (dpyinfo->display))
+      names = XListFonts (display, pattern, limit, &num_fonts);
+      if (x_had_errors_p (display))
 	{
 	  /* This error is perhaps due to insufficient memory on X
 	     server.  Let's just ignore it.  */
-	  font = NULL;
-	  error_occurred = 1;
-	  x_clear_errors (dpyinfo->display);
+	  x_clear_errors (display);
+	  num_fonts = 0;
+	  break;
 	}
-      if (font)
+      if (num_fonts < limit)
+	break;
+      XFreeFontNames (names);
+    }
+
+  for (i = 0; i < num_fonts; i++)
+    {
+      Lisp_Object entity = Fmake_vector (make_number (FONT_ENTITY_MAX), Qnil);
+      int result;
+
+      ASET (entity, FONT_TYPE_INDEX, Qx);
+      ASET (entity, FONT_FRAME_INDEX, frame);
+
+      result = font_parse_xlfd (names[i], entity);
+      if (result < 0)
 	{
+	  /* This may be an alias name.  Try to get the full XLFD name
+	     from XA_FONT property of the font.  */
+	  XFontStruct *font = XLoadQueryFont (display, names[i]);
+	  unsigned long value;
+
+	  if (! font)
+	    continue;
 	  if (XGetFontProperty (font, XA_FONT, &value))
 	    {
-	      char *n = (char *) XGetAtomName (dpyinfo->display, (Atom) value);
-	      int len = strlen (n);
-	      char *tmp;
+	      char *name = (char *) XGetAtomName (display, (Atom) value);
+	      int len = strlen (name);
 
 	      /* If DXPC (a Differential X Protocol Compressor)
                  Ver.3.7 is running, XGetAtomName will return null
                  string.  We must avoid such a name.  */
 	      if (len > 0)
-		{
-		  num_fonts = 1;
-		  names = (char **) alloca (sizeof (char *));
-		  /* Some systems only allow alloca assigned to a
-                     simple var.  */
-		  tmp = (char *) alloca (len + 1);  names[0] = tmp;
-		  bcopy (n, names[0], len + 1);
-		}
-	      XFree (n);
+		result = font_parse_xlfd (name, entity);
+	      XFree (name);
 	    }
-	  XFreeFont (dpyinfo->display, font);
+	  XFreeFont (display, font);
 	}
-    }
-  else
-    {
-      Lisp_Object registry = AREF (spec, FONT_REGISTRY_INDEX);
-      Lisp_Object alter = Qnil;
-      char *r = NULL;
 
-      if (! NILP (registry))
-	alter = Fassoc_string (SYMBOL_NAME (registry),
-			       Vface_alternative_font_registry_alist);
-      while (1)
+      if (result == 0)
 	{
-	  for (limit = 512, num_fonts = 0; ; limit *= 2)
-	    {
-	      names = XListFonts (dpyinfo->display, name, limit, &num_fonts);
-	      if (x_had_errors_p (dpyinfo->display))
-		{
-		  /* This error is perhaps due to insufficient memory
-		     on X server.  Let's just ignore it.  */
-		  x_clear_errors (dpyinfo->display);
-		  error_occurred = 1;
-		  num_fonts = 0;
-		  break;
-		}
-	      if (num_fonts < limit)
-		break;
-	      XFreeFontNames (names);
-	    }
-	  if (num_fonts > 0
-	      || NILP (alter))
-	    break;
+	  Lisp_Object val = AREF (entity, FONT_EXTRA_INDEX);
+	  char *p = (char *) SDATA (SYMBOL_NAME (val));
 
-	  /* Setup for trying alternatives.  */
-	  if (! r
-	      && ! (r = strstr (name, (char *) SDATA (SYMBOL_NAME (registry)))))
-	    abort ();
-	  while (1)
+	  /* P == "RESX-RESY-SPACING-AVGWIDTH.  We rejust this font if
+	     it's an autoscaled one (i.e. RESX > 0 && AVGWIDTH == 0).  */
+	  if (atoi (p) > 0)
 	    {
-	      registry = Qnil;
-	      alter = XCDR (alter);
-	      if (NILP (alter))
-		break;
-	      registry = XCAR (alter);
-	      if ((r - name) + SBYTES (registry) < 255)
-		break;
+	      p += SBYTES (SYMBOL_NAME (val));
+	      while (p[-1] != '-') p--;
+	      if (atoi (p) == 0)
+		continue;
 	    }
-	  if (NILP (registry))
-	    break;
-	  bcopy (SDATA (registry), r, SBYTES (registry));
+	  list = Fcons (entity, list);
 	}
     }
 
   x_uncatch_errors ();
   UNBLOCK_INPUT;
 
-  if (error_occurred)
-    return Qnil;
-  if (num_fonts == 0)
+  return list;
+}
+
+static Lisp_Object
+xfont_list (frame, spec)
+     Lisp_Object frame, spec;
+{
+  FRAME_PTR f = XFRAME (frame);
+  Display *display = FRAME_X_DISPLAY_INFO (f)->display;
+  Lisp_Object list, val, extra, font_name;
+  int len;
+  char name[256];
+  
+  extra = AREF (spec, FONT_EXTRA_INDEX);
+  font_name = Qnil;
+  if (CONSP (extra))
+    {
+      val = assq_no_quit (QCotf, extra);
+      if (! NILP (val))
+	return null_vector;
+      val = assq_no_quit (QCscript, extra);
+      if (! NILP (val))
+	return null_vector;
+      val = assq_no_quit (QClanguage, extra);
+      if (! NILP (val))
+	return null_vector;
+      val = assq_no_quit (QCname, extra);
+      if (CONSP (val))
+	font_name = XCDR (val);
+    }
+
+  if (STRINGP (font_name))
+    list = xfont_list_pattern (frame, display, (char *) SDATA (font_name));
+  else if ((len = font_unparse_xlfd (spec, 0, name, 256)) < 0)
     return null_vector;
-
-  entity = Fmake_vector (make_number (FONT_ENTITY_MAX), Qnil);
-  ASET (entity, FONT_TYPE_INDEX, Qx);
-  ASET (entity, FONT_FRAME_INDEX, frame);
-
-  SAFE_ALLOCA_LISP (vec, num_fonts);
-  for (i = idx = 0; i < num_fonts; i++)
+  else
     {
-      if (font_parse_xlfd (names[i], entity, 0) > 0)
-	vec[idx++] = Fcopy_sequence (entity);
-    }
-  if (! STRINGP (font_name))
-    {
-      BLOCK_INPUT;
-      XFreeFontNames (names);
-      UNBLOCK_INPUT;
-    }
-  val = Fvector (idx, vec);
-  SAFE_FREE ();
+      list = xfont_list_pattern (frame, display, name);
+      if (NILP (list))
+	{
+	  Lisp_Object registry = AREF (spec, FONT_REGISTRY_INDEX);
+	  Lisp_Object alter;
 
-  return val;
+	  if (! NILP (registry)
+	      && (alter = Fassoc (SYMBOL_NAME (registry),
+				  Vface_alternative_font_registry_alist))
+	      && CONSP (alter))
+	    {
+	      /* Pointer to REGISTRY-ENCODING field.  */
+	      char *r = name + len - SBYTES (SYMBOL_NAME (registry));
+
+	      for (alter = XCDR (alter); CONSP (alter); alter = XCDR (alter))
+		if (STRINGP (XCAR (alter))
+		    && ((r - name) + SBYTES (XCAR (alter))) < 255)
+		  {
+		    strcpy (r, (char *) SDATA (XCAR (alter)));
+		    list = xfont_list_pattern (frame, display, name);
+		    if (! NILP (list))
+		      break;
+		  }
+	    }
+	}
+    }
+
+  return (NILP (list) ? null_vector : Fvconcat (1, &list));
 }
 
 static int
