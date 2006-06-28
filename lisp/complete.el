@@ -234,7 +234,9 @@ second TAB brings up the `*Completions*' buffer."
   (funcall
    (if partial-completion-mode 'add-hook 'remove-hook)
    'choose-completion-string-functions
-   (lambda (&rest x) (goto-char (point-max)) nil))
+   (lambda (choice buffer mini-p base-size)
+     (if mini-p (goto-char (point-max)))
+     nil))
   ;; Build the env-completion and mapping table.
   (when (and partial-completion-mode (null PC-env-vars-alist))
     (setq PC-env-vars-alist
