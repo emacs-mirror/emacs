@@ -777,7 +777,7 @@ For more information, see the function `buffer-menu'."
 			((eq major-mode 'Info-mode)
 			 (setq file Info-current-file)
 			 (cond
-			  ((eq file t)
+			  ((equal file "dir")
 			   (setq file "*Info Directory*"))
 			  ((eq file 'apropos)
 			   (setq file "*Info Apropos*"))
