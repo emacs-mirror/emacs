@@ -1,3 +1,8 @@
+2006-06-28  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Embedded LaTeX): Fix typos and implement small improvements
+	throughout this chapter.
+
 2006-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info.texi (Help-Small-Screen): Clarify placement of "All" and "Top"
