@@ -1,3 +1,7 @@
+2006-06-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Checkboxes): New section.
+
 2006-06-28  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Embedded LaTeX): Fix typos and implement small improvements

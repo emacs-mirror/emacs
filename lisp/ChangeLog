@@ -1,3 +1,21 @@
+2006-06-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-prepare-agenda-buffers): Use
+	`invisible-OK' argument for `org-end-of-subtree'.
+	(org-export-cleanup-toc-line): Renamed from
+	`org-html-cleanup-toc-line'.
+	(org-beginning-of-item): Fixed bug in regular expression for white
+	line.
+	(org-export-as-html): Enforce space after bullet in plain list
+	items.
+	(org-set-autofill-regexps): Require space after plain list bullet
+	for paragraph-start.
+	(org-ts-regexp3): New constant.
+	(org-at-timestamp-p): New optional argument ALSO-INACTIVE.
+	(org-timestamp-up-day, org-timestamp-down-day)
+	(org-timestamp-change): Work with inactive timestamps.
+	(org-ts-regexp1): Don't allow brackets in time stamps.
+
 2006-06-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* help-mode.el (help-xref-symbol-regexp): Add property as a keyword
