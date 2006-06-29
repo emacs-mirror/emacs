@@ -16,7 +16,7 @@
 
 all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe\
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     finalcv.exe finaltest.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
+     finalcv.exe finaltest.exe arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe \
      eventcnv.exe \
@@ -32,7 +32,7 @@ swall: mmsw.lib replaysw.exe
 
 mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
-     finalcv.exe finaltest.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
+     finalcv.exe finaltest.exe arenacv.exe bttest.exe teletest.exe \
      expt825.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      walkt0.exe locbwcss.exe locusss.exe \
@@ -108,21 +108,22 @@ FORCE:
 $(PFM)\$(VARIETY)\version.obj: FORCE
 
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
 	$(MRGOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\finaltest.exe: $(PFM)\$(VARIETY)\finaltest.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
 	$(MRGOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\expt825.exe: $(PFM)\$(VARIETY)\expt825.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(FMTTESTOBJ) \
 	$(MRGOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ)
 
 $(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
+	$(PFM)\$(VARIETY)\poolmvff.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\apss.exe: $(PFM)\$(VARIETY)\apss.obj \
@@ -141,34 +142,35 @@ $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
 $(PFM)\$(VARIETY)\lockutw3.exe: $(PFM)\$(VARIETY)\lockutw3.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
-$(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
-	$(MPMOBJ) $(PLINTHOBJ)
-
 $(PFM)\$(VARIETY)\mpsicv.exe: $(PFM)\$(VARIETY)\mpsicv.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(HETESTOBJ) \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
-	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amssshe.exe: $(PFM)\$(VARIETY)\amssshe.obj \
-	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(HETESTOBJ) \
+	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \
-	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\locbwcss.exe: $(PFM)\$(VARIETY)\locbwcss.obj \
+	$(PFM)\$(VARIETY)\poolmvff.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\locusss.exe: $(PFM)\$(VARIETY)\locusss.obj \
 	$(PFM)\$(VARIETY)\poolmvff.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
@@ -176,11 +178,11 @@ $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
 	$(DWOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ)
 
 $(PFM)\$(VARIETY)\awlut.exe:  $(PFM)\$(VARIETY)\awlut.obj \
-        $(DWTESTOBJ) \
+        $(FMTTESTOBJ) \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
 
 $(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
-	$(HETESTOBJ) \
+	$(FMTTESTOBJ) \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
 
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
@@ -229,15 +231,15 @@ $(PFM)\$(VARIETY)\messtest.exe: $(PFM)\$(VARIETY)\messtest.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\steptest.exe: $(PFM)\$(VARIETY)\steptest.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\walkt0.exe: $(PFM)\$(VARIETY)\walkt0.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)	
 
 $(PFM)\$(VARIETY)\exposet0.exe: $(PFM)\$(VARIETY)\exposet0.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(FMTTESTOBJ) \
 	$(TESTLIBOBJ)	
 
 $(PFM)\$(VARIETY)\mmsw.lib: $(SWOBJ)
