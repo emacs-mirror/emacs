@@ -6,8 +6,8 @@
 	
 2006-06-29  Ted Phelps  <phelps@gnusto.com>  (tiny change)
 
-	(mh-folder-exists-p): Strip + from folder to avoid redundant +s in
-	regexp (closes SF #1514424).
+	* mh-search.el (mh-folder-exists-p): Strip + from folder to avoid
+	redundant +s in regexp (closes SF #1514424).
 
 2006-06-29  Sergey Poznyakoff  <gray@Mirddin.farlep.net>  (tiny change)
 
