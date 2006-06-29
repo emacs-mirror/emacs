@@ -1,3 +1,8 @@
+2006-06-29  Sergey Poznyakoff  <gray@Mirddin.farlep.net>  (tiny change)
+
+	* mh-mime.el (mh-mime-save-parts): Add -store option to
+	mhn (closes SF #1513140).
+
 2006-06-20  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.0.1.
