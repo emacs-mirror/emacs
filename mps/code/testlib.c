@@ -18,6 +18,16 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
 
+#ifdef MPS_OS_W3
+#ifdef _MSC_VER
+#pragma warning(disable: 4702)  /* unreachable code */
+ /* job000605: believed needed to prevent VC7 warning 
+  * for error() below, in which va_end is mandated by 
+  * ISO C (C99:7.15.1) even though it is unreachable.
+  */
+#endif
+#endif
+
 
 /* rnd -- a random number generator
  *

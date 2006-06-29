@@ -226,7 +226,8 @@ Bool ResIsAllocFailure(Res res)
 static Res WriteWord(mps_lib_FILE *stream, Word w, unsigned base,
                      unsigned width)
 {
-  static const char digit[16] = "0123456789ABCDEF";
+  static const char digit[16 + 1] = "0123456789ABCDEF";
+    /* + 1 for terminator: unused, but prevents compiler warning */
   static const char pad = '0'; /* padding character */
   char buf[MPS_WORD_WIDTH + 1]; /* enough for binary, */
                                 /* plus one for terminator */
