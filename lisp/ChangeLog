@@ -31,7 +31,6 @@
 	(org-cdlatex-mode): Improved advice for `texmathp'.
 	(turn-on-org-cdlatex): New function.
 
-
 2006-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-handle-font-selection): Change keys of
@@ -58,7 +57,7 @@
 	* international/fontset.el (setup-default-fontset): Fix a typo in
 	the "Oriya-Akruti" registry name.
 
-2006-06-23  Lars Hansen <larsh@soem.dk>
+2006-06-23  Lars Hansen  <larsh@soem.dk>
 
 	* desktop.el (desktop-full-file-name): New function.
 	(desktop-kill, desktop-save, desktop-remove, desktop-read)
@@ -82,8 +81,8 @@
 	(org-cycle-open-archived-trees)
 	(org-sparse-tree-open-archived-trees): New options.
 	(org-cycle-hide-archived-subtrees, org-hide-archived-subtrees)
-	(org-toggle-tag, org-prepare-agenda-buffers, org-agenda-skip): New
-	functions.
+	(org-toggle-tag, org-prepare-agenda-buffers, org-agenda-skip):
+	New functions.
 	(org-agenda-toggle-archive-tag, org-toggle-archive-tag): New commands.
 	(org-agenda-mode-map): Add binding of `org-agenda-toggle-archive-tag'.
 	(org-mode-map): Add binding for `org-toggle-archive-tag'.
@@ -199,7 +198,7 @@
 	(org-update-all-dblocks, org-find-dblock): New functions.
 	(org-collect-clock-time-entries): New function.
 	(org-html-handle-time-stamps): Never export CLOCK timeranges.
-	(org-fixup-indentation): Modified to deadl correctly with lines
+	(org-fixup-indentation): Modified to deal correctly with lines
 	starting with TAB.  Only one argument DIFF now.
 	(org-demote, org-promote): Call `org-fixup-indentation' with just
 	one argument, DIFF.
@@ -332,7 +331,7 @@
 
 2006-06-10  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-agenda-mode-map): Add bindings for
+	* textmodes/org.el (org-agenda-mode-map): Add bindings for
 	clocking functions.
 
 	(org-agenda-clock-in, org-check-running-clock)
@@ -420,7 +419,7 @@
 
 2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-archive-subtree): Use end-of-subtree as
+	* textmodes/org.el (org-archive-subtree): Use end-of-subtree as
 	insertion point and control the number of empty lines.
 	(org-paste-subtree): Limit the number of empty lines at the end of
 	the inserted tree.
@@ -562,7 +561,7 @@
 2006-06-02  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist::gcov-*):
-	Almost rewrite. Underlines over all lines of gcov output are too
+	Almost rewrite.  Underlines over all lines of gcov output are too
 	uncomfortable to read.  Suggested by Dan Nicolaescu.
 
 2006-06-01  Luc Teirlinck  <teirllm@auburn.edu>
@@ -606,7 +605,7 @@
 2006-05-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-query-cmdline, gud-common-init):
-	Revert inadvertant changes made with last commit.
+	Revert inadvertent changes made with last commit.
 
 2006-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -617,7 +616,7 @@
 
 2006-05-30  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-agenda-highlight-todo): Make sure regexp
+	* textmodes/org.el (org-agenda-highlight-todo): Make sure regexp
 	only matches in the right place.
 	(org-upcoming-deadline): New face.
 	(org-agenda-get-deadlines): Use new face `org-upcoming-deadline'.
@@ -629,7 +628,8 @@
 	(org-open-par, org-close-par-maybe, org-close-li-maybe): New functions.
 	(org-html-do-expand, org-section-number): Fixedcase in `replace-match'.
 	(org-timeline): Pass `org-timeline-show-empty-dates' to
-	`org-get-all-dates'. Interpret empty dates returned by `org-get-all-dates'.
+	`org-get-all-dates'.  Interpret empty dates returned by
+	`org-get-all-dates'.
 	(org-get-all-dates): New argument EMPTY.  Add dates without
 	entries to the list, mark large ranges of empty dates.
 	(org-point-in-group, org-context): New functions.
@@ -855,7 +855,7 @@
 
 2006-05-26  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-next-item, org-previous-item): Emit more
+	* textmodes/org.el (org-next-item, org-previous-item): Emit more
 	compact error message.
 	(org-tags-view): Refresh category table in each file.
 	(org-table-justify-field-maybe): Remove superfluous arguments to
@@ -977,7 +977,7 @@
 
 2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-open-at-point): Use renamed variable
+	* textmodes/org.el (org-open-at-point): Use renamed variable
 	`org-confirm-shell-link-function'.
 	(org-confirm-shell-link-function): Rename from
 	`org-confirm-shell-links'.
@@ -1052,7 +1052,6 @@
 	(org-beginning-of-item, org-end-of-item): Add (interactive) to
 	make command.
 	(org-shiftup, org-shiftdown): Accommodate the item-navigation commands.
-
 
 2006-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -1380,7 +1379,7 @@
 
 2006-05-12  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el: (allout-view-change-hook): Mark as being deprecated,
+	* allout.el (allout-view-change-hook): Mark as being deprecated,
 	to be replaced by `allout-exposure-change-hook'.
 	(allout-exposure-change-hook): New, replacing
 	`allout-view-change-hook'.
@@ -1656,7 +1655,7 @@
 
 2006-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* term/mac-win.el: (mac-utxt-to-string): Don't make adjustment for
+	* term/mac-win.el (mac-utxt-to-string): Don't make adjustment for
 	MacJapanese if text is ASCII-only.
 
 2006-05-06  Nick Roberts  <nickrob@snap.net.nz>
@@ -1743,7 +1742,7 @@
 
 	* cus-start.el (all): Add mac-dnd-known-types.
 
-	* term/mac-win.el: (mac-utxt-to-string, mac-string-to-utxt)
+	* term/mac-win.el (mac-utxt-to-string, mac-string-to-utxt)
 	(mac-TEXT-to-string, mac-string-to-TEXT, mac-furl-to-string)
 	(mac-TIFF-to-string): New functions.
 	(x-get-selection, x-selection-value)
@@ -1788,7 +1787,7 @@
 2006-05-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* isearch.el (isearch-update-ring): Take history-delete-duplicates
-	into consideration. Replace one arm ifs with whens.
+	into consideration.  Replace one arm ifs with whens.
 
 2006-05-03  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -1801,7 +1800,7 @@
 
 2006-05-02  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-embed.el: (calc-override-minor-modes-map)
+	* calc/calc-embed.el (calc-override-minor-modes-map)
 	(calc-override-minor-modes): New variables.
 	(calc-do-embedded): Make sure that Calc keystrokes aren't
 	overwritten by minor modes.
@@ -2784,7 +2783,7 @@
 	(Man-abstract-xref-man-page): If Man-target-string is a function,
 	call it.
 	(Man-highlight-references): Use Man-default-man-entry to get the
-	target. Deal with xrefs too.
+	target.  Deal with xrefs too.
 	(Man-highlight-references0): Don't call the target function.
 
 	* woman.el (WoMan-xref-man-page): Strip the section number, woman
