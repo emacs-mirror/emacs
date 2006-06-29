@@ -213,6 +213,7 @@ There are currently two built-in format functions:
 ;; #### NOTE: Gnus sometimes gives me a HEADER not corresponding to any
 ;; message, with all fields set to nil here. I don't know what it is for, and
 ;; I just ignore it.
+;;;###autoload
 (defun gnus-user-format-function-d (header)
   ;; Returns an aproximative delay string for the next occurence of this
   ;; message. The delay is given only in the first non zero unit.
@@ -249,6 +250,7 @@ There are currently two built-in format functions:
 ;; #### NOTE: Gnus sometimes gives me a HEADER not corresponding to any
 ;; message, with all fields set to nil here. I don't know what it is for, and
 ;; I just ignore it.
+;;;###autoload
 (defun gnus-user-format-function-D (header)
   ;; Returns a formatted time string for the next occurence of this message.
   (let* ((extras (mail-header-extra header))

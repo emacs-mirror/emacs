@@ -51,6 +51,10 @@
 	* files.texi (Visiting): Document case-insensitive wildcard matching
 	under find-file-wildcards.
 
+2006-06-24  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus.texi (Summary Buffer Lines): Fix typo.
+
 2006-06-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Embedded LaTeX): New chapter.

@@ -4579,7 +4579,7 @@ specification(s) are understood:
 Article number.
 @item S
 Subject string.  List identifiers stripped,
-@code{gnus-list-identifies}.  @xref{Article Hiding}.
+@code{gnus-list-identifiers}.  @xref{Article Hiding}.
 @item s
 Subject if the article is the root of the thread or the previous article
 had a different subject, @code{gnus-summary-same-subject} otherwise.

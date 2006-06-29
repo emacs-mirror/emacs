@@ -1,3 +1,13 @@
+2006-06-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-diary.el (gnus-user-format-function-d)
+	(gnus-user-format-function-D): Autoload.
+
+2006-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-select-group): Doc fix.
+	[ See 2004-05-19 change on the trunk. ]
+
 2006-06-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2231.el (rfc2231-parse-string): Allow `*'s in parameter values.

@@ -2039,7 +2039,10 @@ group."
 No article is selected automatically.
 If the group is opened, just switch the summary buffer.
 If ALL is non-nil, already read articles become readable.
-If ALL is a number, fetch this number of articles."
+If ALL is a positive number, fetch this number of the latest
+articles in the group.
+If ALL is a negative number, fetch this number of the earliest
+articles in the group."
   (interactive "P")
   (when (and (eobp) (not (gnus-group-group-name)))
     (forward-line -1))
