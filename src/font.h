@@ -128,7 +128,7 @@ enum font_property_index
     FONT_ENTITY_MAX
   };
 
-extern Lisp_Object QCspacing, QCdpi, QCotf, QClanguage, QCscript;
+extern Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClanguage, QCscript;
 
 /* Important character set symbols.  */
 extern Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp;
@@ -458,10 +458,10 @@ extern void font_parse_old_font_spec P_ ((Lisp_Object, Lisp_Object,
 					  Lisp_Object, Lisp_Object));
 
 
-extern int font_parse_xlfd P_ ((char *name, Lisp_Object font, int merge));
+extern int font_parse_xlfd P_ ((char *name, Lisp_Object font));
 extern int font_unparse_xlfd P_ ((Lisp_Object font, int pixel_size,
 				  char *name, int bytes));
-extern int font_parse_fcname P_ ((char *name, Lisp_Object font, int merge));
+extern int font_parse_fcname P_ ((char *name, Lisp_Object font));
 extern int font_unparse_fcname P_ ((Lisp_Object font, int pixel_size,
 				  char *name, int bytes));
 extern void register_font_driver P_ ((struct font_driver *driver, FRAME_PTR f));

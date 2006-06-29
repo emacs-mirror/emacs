@@ -79,7 +79,7 @@
 	("mulearabic-1" . arabic-1-column)
 	("mulearabic-2" . arabic-2-column)
 	("muleipa" . ipa)
-	("ethiopic-unicode" . ethiopic)
+	("ethiopic-unicode" . (unicode-bmp . ethiopic))
 	("is13194-devanagari" . indian-is13194)
 	("Devanagari-CDAC" . devanagari-cdac)
  	("Sanskrit-CDAC" . sanskrit-cdac)
