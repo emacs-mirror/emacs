@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.40
+@set VERSION 4.41
 @set DATE June 2006
 
 @dircategory Emacs
@@ -111,6 +111,7 @@ Document Structure
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 * Plain lists::                 Editing hand-formatted lists
+* Checkboxes::                  Easily checking off things.
 
 Archiving
 
@@ -419,6 +420,7 @@ edit the structure of the document.
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 * Plain lists::                 Editing hand-formatted lists
+* Checkboxes::                  Easily checking off things.
 @end menu
 
 @node Outlines, Headlines, Document structure, Document structure
@@ -780,7 +782,7 @@ Or you can use the command @kbd{C-c C-x v} to export only the visible
 part of the document and print the resulting file.
 
 
-@node Plain lists,  , Sparse trees, Document structure
+@node Plain lists, Checkboxes, Sparse trees, Document structure
 @section Plain lists
 @cindex plain lists
 @cindex lists, plain
@@ -827,18 +829,6 @@ But in the end, not individual scenes matter but the film as a whole.
 Org-mode supports these lists by tuning filling and wrapping commands
 to deal with them correctly.  
 
-@cindex checkboxes
-Every item in a plain list can be made a checkbox by starting it with
-the string @samp{[ ]}.  The checkbox status can conveniently be toggled
-with @kbd{C-c C-c}.
-
-@example
-* Stupid mistakes when distributing a new version
-  - [ ] update also Emacs CVS
-  - [X] forget to update index.html on the website
-  - [X] leaving a `(debug)' form in the code
-@end example
-
 The following commands act on items when the cursor is in the first line
 of an item (the line with the bullet or number).
 
@@ -862,7 +852,7 @@ an item but does not contain the bullet, a bullet is added to the
 current line.
 @kindex M-S-@key{RET}
 @item M-S-@key{RET}
-Insert a new item with a checkbox.
+Insert a new item with a checkbox (@pxref{Checkboxes}).
 @kindex S-@key{up}
 @kindex S-@key{down}
 @item S-@key{up}
@@ -887,11 +877,60 @@ would imply a different hierarchy.  To use the new hierarchy, break
 the command chain with a cursor motion or so.
 @kindex C-c C-c
 @item C-c C-c
-If there is a checkbox in the item line, toggle the state of the
-checkbox.  Otherwise, if this is an ordered list, renumber the ordered
-list at the cursor.
+If there is a checkbox (@pxref{Checkboxes}) in the item line, toggle the
+state of the checkbox.  Otherwise, if this is an ordered list, renumber
+the ordered list at the cursor.
 @end table
 
+@page
+@node Checkboxes,  , Plain lists, Document structure
+@section Checkboxes
+@cindex checkboxes
+
+Every item in a plain list (ordered and unordered) can be made a
+checkbox by starting it with the string @samp{[ ]}.  This feature is
+similar to TODO items (@pxref{TODO items}), but more lightweight.
+Checkboxes are not included into the global TODO list, so they are often
+great to split a task into a number of simple steps.  Or you can use
+them in a shopping list to select the items you need to buy.  To toggle
+a checkbox, use @kbd{C-c C-c}, or try Piotr Zielinski's
+@file{org-mouse.el}.  Here is an example of a checkbox list.
+
+@example
+* Avoid stupid mistakes when distributing a new version
+  - [ ] update also Emacs CVS
+  - [X] forget to update index.html on the website
+  - [X] leaving a `(debug)' form in the code
+@end example
+
+@noindent The following commands work with checkboxes:
+
+@table @kbd
+@kindex C-c C-c
+@item C-c C-c
+Toggle checkbox at point.
+@kindex C-c C-x C-b
+@item C-c C-x C-b
+Toggle checkbox at point.
+@itemize @minus
+@item
+If there is an active region, toggle the first checkbox in the region
+and set all remaining boxes to the same status as the first.  If you
+want to toggle all boxes in the region independently, use a prefix
+argument.
+@item
+If the cursor is in a headline, toggle checkboxes in the region between
+this headline and the next.  This does @emph{not} act on the entire
+subtree, just the current entry.
+@item
+If no active region, just toggle the checkbox at point.
+@end itemize
+@kindex M-S-@key{RET}
+@item M-S-@key{RET}
+Insert a new item with a checkbox.
+This works only if the cursor is already in a plain list item
+(@pxref{Plain lists}).
+@end table
 
 @node Tables, Hyperlinks, Document structure, Top
 @chapter Tables
