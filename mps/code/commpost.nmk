@@ -19,7 +19,8 @@ all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe
      finalcv.exe finaltest.exe arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe steptest.exe \
      locbwcss.exe locusss.exe \
-     eventcnv.exe
+     eventcnv.exe \
+     mps.lib mpsplan.lib
 
 swall: mmsw.lib replaysw.exe
 
