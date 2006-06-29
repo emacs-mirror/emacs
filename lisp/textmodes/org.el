@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.40
+;; Version: 4.41
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -90,6 +90,12 @@
 ;;
 ;; Recent changes
 ;; --------------
+;; Version 4.41
+;;    - Shift-curser keys can modify inactive time stamps (inactive time
+;;      stamps are the ones in [...] brackets.
+;;    - Toggle all checkboxes in a region/below a headline.
+;;    - Bug fixes.
+;;
 ;; Version 4.40
 ;;    - Bug fixes.
 ;;
@@ -199,7 +205,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.40"
+(defvar org-version "4.41"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -1905,6 +1911,11 @@ headline  Only export the headline, but skip the tree below it."
   :group 'org-export
   :type 'boolean)
 
+(defcustom org-export-remove-timestamps-from-toc t
+  "Nil means, remove timestamps from the table of contents entries."
+  :group 'org-export
+  :type 'boolean)
+
 (defcustom org-export-with-tags t
   "Nil means, do not export tags, just remove them from headlines."
   :group 'org-export-general
@@ -3075,10 +3086,12 @@ that will be added to PLIST.  Returns the string that was modified."
   "Regular expression for fast time stamp matching.")
 (defconst org-ts-regexp-both "[[<]\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}[^\r\n>]*?\\)[]>]"
   "Regular expression for fast time stamp matching.")
-(defconst org-ts-regexp1 "\\(\\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\)\\([^0-9>\r\n]*\\)\\(\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)\\)?\\)"
+(defconst org-ts-regexp1 "\\(\\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\)\\([^]0-9>\r\n]*\\)\\(\\([0-9]\\{2\\}\\):\\([0-9]\\{2\\}\\)\\)?\\)"
   "Regular expression matching time strings for analysis.")
 (defconst org-ts-regexp2 (concat "<" org-ts-regexp1 ">")
   "Regular expression matching time stamps, with groups.")
+(defconst org-ts-regexp3 (concat "[[<]" org-ts-regexp1 "[]>]")
+  "Regular expression matching time stamps (also [..]), with groups.")
 (defconst org-tr-regexp (concat org-ts-regexp "--?-?" org-ts-regexp)
   "Regular expression matching a time stamp range.")
 (defconst org-tsr-regexp (concat org-ts-regexp "\\(--?-?"
@@ -4157,12 +4170,31 @@ If optional TXT is given, check this string instead of the current kill."
 	 (skip-chars-forward " \t")
 	 (looking-at "\\[[ X]\\]"))))
 
-(defun org-toggle-checkbox ()
+(defun org-toggle-checkbox (&optional arg)
   "Toggle the checkbox in the current line."
-  (interactive)
-  (save-excursion
-    (if (org-at-item-checkbox-p)
-	(replace-match (if (equal (match-string 0) "[ ]") "[X]" "[ ]") t t))))
+  (interactive "P")
+  (catch 'exit
+    (let (beg end status (firstnew 'unknown))
+      (cond
+       ((org-region-active-p)
+	(setq beg (region-beginning) end (region-end)))
+       ((org-on-heading-p)
+	(setq beg (point) end (save-excursion (outline-next-heading) (point))))
+       ((org-at-item-checkbox-p)
+	(save-excursion
+	  (replace-match (if (equal (match-string 0) "[ ]") "[X]" "[ ]") t t))
+	(throw 'exit t))
+       (t (error "Not at a checkbox or heading, and no active region")))
+      (save-excursion
+	(goto-char beg)
+	(while (< (point) end)
+	  (when (org-at-item-checkbox-p)
+	    (setq status (equal (match-string 0) "[X]"))
+	    (when (eq firstnew 'unknown)
+	      (setq firstnew (not status)))
+	    (replace-match 
+	     (if (if arg (not status) firstnew) "[X]" "[ ]") t t))
+	  (beginning-of-line 2))))))
 
 (defun org-get-indentation (&optional line)
   "Get the indentation of the current line, interpreting tabs.
@@ -4216,7 +4248,7 @@ If the cursor is not in an item, throw an error."
 	    (while t
 	      (beginning-of-line 0)
 	      (if (< (point) limit) (throw 'exit nil))
-	      (unless (looking-at " \t]*$")
+	      (unless (looking-at "[ \t]*$")
 		(skip-chars-forward " \t")
 		(setq ind1 (current-column))
 		(if (< ind1 ind)
@@ -4575,7 +4607,7 @@ When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
     (save-excursion
       (goto-char begm)
       (while (re-search-forward re1 endm t)
-	      beg (match-beginning 0)
+	(setq beg (match-beginning 0)
 	      end (save-excursion (org-end-of-subtree t) (point)))
 	(goto-char beg)
 	(if (re-search-forward re end t)
@@ -4588,9 +4620,8 @@ When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
 		    (org-toggle-tag org-archive-tag 'on)
 		  (org-archive-subtree))
 		(setq cntarch (1+ cntarch)))
-	    (goto-char end))))
+	    (goto-char end)))))
     (message "%d trees archived" cntarch)))
-
 
 (defun org-cycle-hide-archived-subtrees (state)
   "Re-hide all archived subtrees after a visibility state change."
@@ -4658,6 +4689,7 @@ the children that do not contain any open TODO items."
 
 (defun org-prepare-agenda-buffers (files)
   "Create buffers for all agenda files, protect archived trees and comments."
+  (interactive)
   (let ((pa '(:org-archived t))
 	(pc '(:org-comment t))
 	(pall '(:org-archived t :org-comment t))
@@ -4674,12 +4706,12 @@ the children that do not contain any open TODO items."
 	    (goto-char (point-min))
 	    (while (re-search-forward rea nil t)
 	      (if (org-on-heading-p)
-		  (add-text-properties (point-at-bol) (org-end-of-subtree) pa))))
+		  (add-text-properties (point-at-bol) (org-end-of-subtree t) pa))))
 	  (goto-char (point-min))
 	  (setq re (concat "^\\*+ +" org-comment-string "\\>"))
 	  (while (re-search-forward re nil t)
 	    (add-text-properties
-	     (match-beginning 0) (org-end-of-subtree) pc)))))))
+	     (match-beginning 0) (org-end-of-subtree t) pc)))))))
 
 (defun org-agenda-skip ()
   "Throw to `:skip' in places that should be skipped."
@@ -5686,7 +5718,7 @@ With prefix ARG, change by that many units."
   "Increase the date in the time stamp by one day.
 With prefix ARG, change that many days."
   (interactive "p")
-  (if (and (not (org-at-timestamp-p))
+  (if (and (not (org-at-timestamp-p t))
 	   (org-on-heading-p))
       (org-todo 'up)
     (org-timestamp-change (prefix-numeric-value arg) 'day)))
@@ -5695,7 +5727,7 @@ With prefix ARG, change that many days."
   "Decrease the date in the time stamp by one day.
 With prefix ARG, change that many days."
   (interactive "p")
-  (if (and (not (org-at-timestamp-p))
+  (if (and (not (org-at-timestamp-p t))
 	   (org-on-heading-p))
       (org-todo 'down)
     (org-timestamp-change (- (prefix-numeric-value arg)) 'day)))
@@ -5705,14 +5737,14 @@ With prefix ARG, change that many days."
        (<= (match-beginning n) pos)
        (>= (match-end n) pos)))
 
-(defun org-at-timestamp-p ()
+(defun org-at-timestamp-p (&optional also-inactive)
   "Determine if the cursor is in or at a timestamp."
   (interactive)
-  (let* ((tsr org-ts-regexp2)
+  (let* ((tsr (if also-inactive org-ts-regexp3 org-ts-regexp2))
 	 (pos (point))
 	 (ans (or (looking-at tsr)
 		  (save-excursion
-		    (skip-chars-backward "^<\n\r\t")
+		    (skip-chars-backward "^[<\n\r\t")
 		    (if (> (point) 1) (backward-char 1))
 		    (and (looking-at tsr)
 			 (> (- (match-end 0) pos) -1))))))
@@ -5737,7 +5769,7 @@ in the timestamp determines what will be changed."
 	org-ts-what
 	(pos (point))
 	ts time time0)
-    (if (not (org-at-timestamp-p))
+    (if (not (org-at-timestamp-p t))
 	(error "Not at a timestamp"))
     (setq org-ts-what (or what org-ts-what))
     (setq fmt (if (<= (abs (- (cdr org-ts-lengths)
@@ -5745,6 +5777,8 @@ in the timestamp determines what will be changed."
 		      1)
 		  (cdr org-time-stamp-formats)
 		(car org-time-stamp-formats)))
+    (if (= (char-after (match-beginning 0)) ?\[)
+	(setq fmt (concat "[" (substring fmt 1 -1) "]")))
     (setq ts (match-string 0))
     (replace-match "")
     (setq time0 (org-parse-time-string ts))
@@ -13819,7 +13853,7 @@ lang=\"%s\" xml:lang=\"%s\">
 				   level (org-tr-level level)
 				   txt (save-match-data
 					 (org-html-expand
-					  (org-html-cleanup-toc-line
+					  (org-export-cleanup-toc-line
 					   (match-string 3 line))))
 				   todo
 				   (or (and org-export-mark-todo-in-toc
@@ -14055,9 +14089,9 @@ lang=\"%s\" xml:lang=\"%s\">
 	    ;; Normal lines
 	    (when (string-match
 		   (cond
-		    ((eq llt t) "^\\([ \t]*\\)\\(\\([-+*]\\)\\|\\([0-9]+[.)]\\) \\)?\\( *[^ \t\n\r]\\|[ \t]*$\\)")
-		    ((= llt ?.) "^\\([ \t]*\\)\\(\\([-+*]\\)\\|\\([0-9]+\\.\\) \\)?\\( *[^ \t\n\r]\\|[ \t]*$\\)")
-		    ((= llt ?\)) "^\\( \t]*\\)\\(\\([-+*]\\)\\|\\([0-9]+)\\) \\)?\\( *[^ \t\n\r]\\|[ \t]*$\\)")
+		    ((eq llt t) "^\\([ \t]*\\)\\(\\([-+*] \\)\\|\\([0-9]+[.)]\\) \\)?\\( *[^ \t\n\r]\\|[ \t]*$\\)")
+		    ((= llt ?.) "^\\([ \t]*\\)\\(\\([-+*] \\)\\|\\([0-9]+\\.\\) \\)?\\( *[^ \t\n\r]\\|[ \t]*$\\)")
+		    ((= llt ?\)) "^\\( \t]*\\)\\(\\([-+*] \\)\\|\\([0-9]+)\\) \\)?\\( *[^ \t\n\r]\\|[ \t]*$\\)")
 		    (t (error "Invalid value of `org-plain-list-ordered-item-terminator'")))
 		   line)
 	      (setq ind (org-get-string-indentation line)
@@ -14345,12 +14379,13 @@ But it has the disadvantage, that Org-mode's HTML conversions cannot be used."
       (setq s (replace-match "&gt;" t t s))))
   s)
 
-(defun org-html-cleanup-toc-line (s)
+(defun org-export-cleanup-toc-line (s)
   "Remove tags and time staps from lines going into the toc."
   (if (string-match " +:[a-zA-Z0-9_@:]+: *$" s)
       (setq s (replace-match "" t t s)))
-  (while (string-match org-maybe-keyword-time-regexp s)
-    (setq s (replace-match "" t t s)))
+  (when org-export-remove-timestamps-from-toc
+    (while (string-match org-maybe-keyword-time-regexp s)
+      (setq s (replace-match "" t t s))))
   s)
 
 (defun org-html-expand (string)
@@ -15219,6 +15254,7 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 (define-key org-mode-map "\C-c\C-x\C-r" 'org-clock-report)
 (define-key org-mode-map "\C-c\C-x\C-u" 'org-dblock-update)
 (define-key org-mode-map "\C-c\C-x\C-l" 'org-preview-latex-fragment)
+(define-key org-mode-map "\C-c\C-x\C-b" 'org-toggle-checkbox)
 
 (when (featurep 'xemacs)
   (define-key org-mode-map 'button3   'popup-mode-menu))
@@ -15435,7 +15471,7 @@ Calls `org-timestamp-up' or `org-priority-up', depending on context.
 See the individual commands for more information."
   (interactive "P")
   (cond
-   ((org-at-timestamp-p) (call-interactively 'org-timestamp-up))
+   ((org-at-timestamp-p t) (call-interactively 'org-timestamp-up))
    ((org-on-heading-p) (call-interactively 'org-priority-up))
    ((org-at-item-p) (call-interactively 'org-previous-item))
    (t (call-interactively 'org-beginning-of-item) (beginning-of-line 1))))
@@ -15446,7 +15482,7 @@ Calls `org-timestamp-down' or `org-priority-down', depending on context.
 See the individual commands for more information."
   (interactive "P")
   (cond
-   ((org-at-timestamp-p) (call-interactively 'org-timestamp-down))
+   ((org-at-timestamp-p t) (call-interactively 'org-timestamp-down))
    ((org-on-heading-p) (call-interactively 'org-priority-down))
    (t (call-interactively 'org-next-item))))
 
@@ -15454,7 +15490,7 @@ See the individual commands for more information."
   "Next TODO keyword or timestamp one day later, depending on context."
   (interactive)
   (cond
-   ((org-at-timestamp-p) (call-interactively 'org-timestamp-up-day))
+   ((org-at-timestamp-p t) (call-interactively 'org-timestamp-up-day))
    ((org-on-heading-p) (org-call-with-arg 'org-todo 'right))
    (t (org-shiftcursor-error))))
 
@@ -15462,7 +15498,7 @@ See the individual commands for more information."
   "Previous TODO keyword or timestamp one day earlier, depending on context."
   (interactive)
   (cond
-   ((org-at-timestamp-p) (call-interactively 'org-timestamp-down-day))
+   ((org-at-timestamp-p t) (call-interactively 'org-timestamp-down-day))
    ((org-on-heading-p) (org-call-with-arg 'org-todo 'left))
    (t (org-shiftcursor-error))))
 
@@ -15986,7 +16022,7 @@ return nil."
   (set (make-local-variable 'paragraph-separate) "\f\\|\\*\\|[ 	]*$\\|[ \t]*[:|]")
   ;; The paragraph starter includes hand-formatted lists.
   (set (make-local-variable 'paragraph-start)
-       "\f\\|[ 	]*$\\|\\([*\f]+\\)\\|[ \t]*\\([-+*]\\|[0-9]+[.)][ \t]+\\)\\|[ \t]*[:|]")
+       "\f\\|[ 	]*$\\|\\([*\f]+\\)\\|[ \t]*\\([-+*][ \t]+\\|[0-9]+[.)][ \t]+\\)\\|[ \t]*[:|]")
   ;; Inhibit auto-fill for headers, tables and fixed-width lines.
   ;; But only if the user has not turned off tables or fixed-width regions
   (set (make-local-variable 'auto-fill-inhibit-regexp)
