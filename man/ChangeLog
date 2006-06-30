@@ -1,3 +1,9 @@
+2006-06-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (ls in Lisp, Windows Keyboard, Windows Mouse)
+	(Windows Processes, Windows Misc): Shorten the printed version by
+	selectively conditioning less important portions by @ifnottex.
+
 2006-06-30  Ralf Angeli  <angeli@caeruleus.net>
 
 	* pcl-cvs.texi (Customizing Faces): Remove -face suffix from face

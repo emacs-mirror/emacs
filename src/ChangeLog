@@ -1,3 +1,15 @@
+2006-06-30  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32term.c (x_make_frame_visible): Use SystemParametersInfo with
+	SPI_GETWORKAREA to find the dimensions of the screen work area,
+	and adjust vertical position of the frame in order to avoid being
+	covered by the task bar.
+
+	* w32fns.c (w32_createwindow): Use CW_USEDEFAULT instead of
+	f->left_pos and SH_SHOW instead of f->top_pos in the call to
+	CreateWindow.  Record the actual position in f->left_pos and
+	f->top_pos.
+
 2006-06-30  John Paul Wallington  <jpw@pobox.com>
 
 	* w32console.c (syms_of_ntterm) <w32-use-full-screen-buffer>:
