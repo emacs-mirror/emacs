@@ -225,14 +225,6 @@ Used for communication between mouse commands and scroll-bar commands.
 @xref{Saving Buffers}.
 @end table
 
-@ignore
-Buffer local variables mentioned in manual but not considered worth
-mentioning here:
-
-left-fringe-width
-right-fringe-width
-@end ignore
-
 
 @ignore
    arch-tag: 6baae835-b667-4447-91e2-9829ae1cf543
