@@ -492,6 +492,11 @@ but which can also be used as a modifier).
    allocation functions (allocate_string etc.) without worrying about
    data munging.
 
+** Add "link" button class
+   Add a standard button-class named "link", and make all other link-like
+   button classes inherit from it.  Set the default face of the "link" button
+   class to the standard "link" face.
+
 * Other known bugs:
 
 ** a two-char comment-starter whose two chars are symbol constituents will
