@@ -1,3 +1,8 @@
+2006-06-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* info.el (Info-find-node-2): Search for makeinfo version more
+	carefully.
+
 2006-06-29  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-prepare-agenda-buffers): Use
