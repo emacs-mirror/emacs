@@ -1,3 +1,8 @@
+2006-06-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* locals.texi (Standard Buffer-Local Variables): Update the list
+	of variables.
+
 2006-06-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* files.texi (File Name Completion): Point user to the node

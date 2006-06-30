@@ -1,3 +1,8 @@
+2006-06-30  Ralf Angeli  <angeli@caeruleus.net>
+
+	* pcl-cvs.texi (Customizing Faces): Remove -face suffix from face
+	names.  Mention `cvs-msg' face.
+
 2006-06-29  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Checkboxes): New section.
