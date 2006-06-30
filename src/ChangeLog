@@ -1,3 +1,8 @@
+2006-06-30  John Paul Wallington  <jpw@pobox.com>
+
+	* w32console.c (syms_of_ntterm) <w32-use-full-screen-buffer>:
+	Doc fix - default value has changed.
+
 2006-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c [!TARGET_API_MAC_CARBON]: Don't include FixMath.h or Scrap.h.
