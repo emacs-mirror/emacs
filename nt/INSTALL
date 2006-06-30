@@ -42,7 +42,8 @@
      (If you are building from CVS, say "make bootstrap" or "nmake
      bootstrap" instead.)
 
-  4. Generate the Info manuals (only if you are building out of CVS):
+  4. Generate the Info manuals (only if you are building out of CVS, and
+     if you have makeinfo.exe installed):
 
      make info
 
@@ -251,6 +252,9 @@
     make info
   or
     nmake info
+
+  Note that you will need makeinfo.exe (from the GNU Texinfo package)
+  in order for this command to succeed.
 
 * Installing
 
