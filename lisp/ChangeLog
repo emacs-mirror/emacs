@@ -1,3 +1,9 @@
+2006-06-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-mode.el (ada-which-compiler, ada-mode-menu)
+	(ada-compile-mouse-goto-error, ada-deactivate-properties)
+	(ada-no-auto-case): Fix typos in docstrings.
+
 2006-06-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* info.el (Info-find-node-2): Search for makeinfo version more
