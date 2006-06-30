@@ -438,7 +438,7 @@ An example is:
 
 (defcustom ada-which-compiler 'gnat
   "*Name of the compiler to use.
-This will determine what features are made available through the ada-mode.
+This will determine what features are made available through the Ada mode.
 The possible choices are :
 `gnat': Use Ada Core Technologies' Gnat compiler.  Add some cross-referencing
     features
@@ -460,7 +460,7 @@ The extensions should include a `.' if needed.")
 The extensions should include a `.' if needed.")
 
 (defvar ada-mode-menu (make-sparse-keymap "Ada")
-  "Menu for ada-mode.")
+  "Menu for Ada mode.")
 
 (defvar ada-mode-map (make-sparse-keymap)
   "Local keymap used for Ada mode.")
@@ -728,7 +728,7 @@ each type of entity that can be found in an Ada file.")
 ;;------------------------------------------------------------
 
 (defun ada-compile-mouse-goto-error ()
-  "Mouse interface for ada-compile-goto-error."
+  "Mouse interface for `ada-compile-goto-error'."
   (interactive)
   (mouse-set-point last-input-event)
   (ada-compile-goto-error (point))
@@ -906,7 +906,7 @@ declares it as a word constituent."
             (setq change (cdr change)))))))
 
 (defun ada-deactivate-properties ()
-  "Deactivate ada-mode's properties handling.
+  "Deactivate Ada mode's properties handling.
 This would be a duplicate of font-lock if both are used at the same time."
   (remove-hook 'after-change-functions 'ada-after-change-function t))
 
@@ -977,7 +977,7 @@ If parse-result is non-nil, use is instead of calling `parse-partial-sexp'."
 
 ;;------------------------------------------------------------------
 ;; Contextual menus
-;; The Ada-mode comes with contextual menus, bound by default to the right
+;; The Ada mode comes with contextual menus, bound by default to the right
 ;; mouse button.
 ;; Add items to this menu by modifying `ada-contextual-menu'. Note that the
 ;; variable `ada-contextual-menu-on-identifier' is set automatically to t
@@ -1419,7 +1419,7 @@ If you use ada-xref.el:
 
 ;;-----------------------------------------------------------------
 ;;                      auto-casing
-;; Since Ada is case-insensitive, the Ada-mode provides an extensive set of
+;; Since Ada is case-insensitive, the Ada mode provides an extensive set of
 ;; functions to auto-case identifiers, keywords, ...
 ;; The basic rules for autocasing are defined through the variables
 ;; `ada-case-attribute', `ada-case-keyword' and `ada-case-identifier'. These
@@ -1766,7 +1766,7 @@ ARG is ignored, and is there for compatibility with `capitalize-word' only."
 
 (defun ada-no-auto-case (&optional arg)
   "Do nothing.
-This function can be used for the auto-casing variables in the ada-mode, to
+This function can be used for the auto-casing variables in the Ada mode, to
 adapt to unusal auto-casing schemes. Since it does nothing, you can for
 instance use it for `ada-case-identifier' if you don't want any special
 auto-casing for identifiers, whereas keywords have to be lower-cased.
@@ -2122,7 +2122,7 @@ Return the equivalent internal parameter list."
 ;;       that are evaluated)
 ;;  Thus the total indentation for a line is the column number of the reference
 ;;  position plus whatever value the evaluation of the second element provides.
-;;  This mechanism is used so that the ada-mode can "explain" how the
+;;  This mechanism is used so that the Ada mode can "explain" how the
 ;;  indentation was calculated, by showing which variables were used.
 ;;
 ;;  The indentation itself is done in only one pass: first we try to guess in
@@ -5268,7 +5268,7 @@ Use `M-x widen' to go back to the full visibility for the buffer."
 
 ;; ---------------------------------------------------------
 ;;    Automatic generation of code
-;; The Ada-mode has a set of function to automatically generate a subprogram
+;; The Ada mode has a set of function to automatically generate a subprogram
 ;; or package body from its spec.
 ;; These function only use a primary and basic algorithm, this could use a
 ;; lot of improvement.
@@ -5440,7 +5440,7 @@ This function typically is to be hooked into `ff-file-created-hooks'."
 ;;  Read the special cases for exceptions
 (ada-case-read-exceptions)
 
-;;  Setup auto-loading of the other ada-mode files.
+;;  Setup auto-loading of the other Ada mode files.
 (if (equal ada-which-compiler 'gnat)
     (progn
       (autoload 'ada-change-prj                   "ada-xref" nil t)
