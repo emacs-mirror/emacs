@@ -1,3 +1,7 @@
+2006-06-30  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.1: -m and -M options do not exist.
+
 2006-06-29  Carsten Dominik  <dominik@science.uva.nl>
 
 	* orgcard.tex (section{Structure Editing}): Document checkbox
