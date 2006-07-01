@@ -1,3 +1,13 @@
+2006-07-02  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_tool_bar_line): Skip glyphs which are too big
+	to ever fit the tool-bar,
+	(MAX_FRAME_TOOL_BAR_HEIGHT): New macro.
+	(tool_bar_lines_needed): Use unused mode-line row as temp_row.
+	(redisplay_tool_bar): Only clear desired matrix if we actually
+	change the tool-bar window height.  Only try to make the tool-bar
+	window bigger if there is actually room for it.
+
 2006-06-30  Ralf Angeli  <angeli@caeruleus.net>
 
 	* w32term.c (x_make_frame_visible): Use SystemParametersInfo with
