@@ -1,3 +1,12 @@
+2006-07-02  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-macroassign-regex): Accept
+	preceding keyword.
+	(makefile-gmake-statements): Reorganize, now that makepp has
+	"override" and also handle forgotten "override define".
+	(makefile-makepp-statements): Add new "global", "override export"
+	and "override global".
+
 2006-06-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ada-mode.el (ada-which-compiler, ada-mode-menu)
