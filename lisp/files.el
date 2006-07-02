@@ -488,7 +488,7 @@ This variable does not affect the use of major modes
 specified in a -*- line.")
 
 (defcustom enable-local-eval 'maybe
-  "*Control processing of the \"variable\" `eval' in a file's local variables.
+  "Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
 A value of t means obey `eval' variables;
 nil means ignore them; anything else means query."
@@ -1314,7 +1314,7 @@ removes automounter prefixes (see the variable `automount-dir-prefix')."
 			 (string-match "^[a-zA-`]:/$" filename)))))
 	(setq filename
 	      (concat "~"
-		      (substring filename (match-beginning 1) (match-end 1))
+		      (match-string 1 filename)
 		      (substring filename (match-end 0)))))
     filename))
 
@@ -1627,9 +1627,7 @@ Do you want to revisit the file normally now? ")
 	     (not (member logical find-file-not-true-dirname-list)))
 	   (setq buffer-file-name buffer-file-truename))
       (if find-file-visit-truename
-	  (setq buffer-file-name
-		(setq filename
-		      (expand-file-name buffer-file-truename))))
+	  (setq buffer-file-name (expand-file-name buffer-file-truename)))
       ;; Set buffer's default directory to that of the file.
       (setq default-directory (file-name-directory buffer-file-name))
       ;; Turn off backup files for certain file names.  Since
@@ -2436,11 +2434,9 @@ n  -- to ignore the local variables list.")
 		   (insert "    ")))
 	    (princ (car elt) buf)
 	    (insert " : ")
-            (if (stringp (cdr elt))
-                ;; Make strings with embedded whitespace easier to read.
-                (let ((print-escape-newlines t))
-                  (prin1 (cdr elt) buf))
-              (princ (cdr elt) buf))
+            ;; Make strings with embedded whitespace easier to read.
+            (let ((print-escape-newlines t))
+              (prin1 (cdr elt) buf))
 	    (insert "\n"))
 	  (setq prompt
 		(format "Please type %s%s: "
@@ -2511,9 +2507,7 @@ and VAL is the specified value."
 	       ;; There used to be a downcase here,
 	       ;; but the manual didn't say so,
 	       ;; and people want to set var names that aren't all lc.
-	       (let ((key (intern (buffer-substring
-				   (match-beginning 1)
-				   (match-end 1))))
+	       (let ((key (intern (match-string 1)))
 		     (val (save-restriction
 			    (narrow-to-region (point) end)
 			    (read (current-buffer)))))
@@ -2752,17 +2746,16 @@ It is dangerous if either of these conditions are met:
 (defun hack-one-local-variable (var val)
   "Set local variable VAR with value VAL."
   (cond ((eq var 'mode)
-	 (funcall (intern (concat (downcase (symbol-name val))
-				  "-mode"))))
+	 (funcall (intern (concat (downcase (symbol-name val)) "-mode"))))
 	((eq var 'eval)
 	 (save-excursion (eval val)))
-	(t (make-local-variable var)
-	   ;; Make sure the string has no text properties.
-	   ;; Some text properties can get evaluated in various ways,
-	   ;; so it is risky to put them on with a local variable list.
-	   (if (stringp val)
-	       (set-text-properties 0 (length val) nil val))
-	   (set var val))))
+	(t
+         ;; Make sure the string has no text properties.
+         ;; Some text properties can get evaluated in various ways,
+         ;; so it is risky to put them on with a local variable list.
+         (if (stringp val)
+             (set-text-properties 0 (length val) nil val))
+         (set (make-local-variable var) val))))
 
 
 (defcustom change-major-mode-with-file-name t
@@ -4220,9 +4213,7 @@ This command is used in the special Dired buffer created by
 		      (setq autofile
 			    (buffer-substring-no-properties
 			     (point)
-			     (save-excursion
-			       (end-of-line)
-			       (point))))
+			     (line-end-position)))
 		      (setq thisfile
 			    (expand-file-name
 			     (substring
