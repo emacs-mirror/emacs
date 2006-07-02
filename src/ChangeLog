@@ -1,3 +1,8 @@
+2006-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read_filtered_event): Treat select-window just like
+	switch-frame.
+
 2006-07-02  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (display_tool_bar_line): Skip glyphs which are too big

@@ -484,7 +484,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
      switch-frame events will read it and process it.  */
   if (no_switch_frame
       && EVENT_HAS_PARAMETERS (val)
-      && EQ (EVENT_HEAD (val), Qswitch_frame))
+      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (val)), Qswitch_frame))
     {
       delayed_switch_frame = val;
       goto retry;
