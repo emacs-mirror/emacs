@@ -1,3 +1,7 @@
+2006-07-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Preserve current-buffer.
+
 2006-07-02  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/make-mode.el (makefile-macroassign-regex): Accept

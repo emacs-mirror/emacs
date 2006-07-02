@@ -3572,7 +3572,8 @@ This will break if COMMAND prints a newline, followed by the value of
   ;; for `find-grep-dired' and `find-name-dired' in Emacs 22.
   (if (tramp-tramp-file-p default-directory)
       (with-parsed-tramp-file-name default-directory nil
-	(let ((asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
+	(let ((curbuf (current-buffer))
+	      (asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
 	      status)
 	  (unless output-buffer
 	    (setq output-buffer
@@ -3674,6 +3675,7 @@ This will break if COMMAND prints a newline, followed by the value of
 	  (unless (zerop (buffer-size))
 	    (when tramp-display-shell-command-buffer
 	      (display-buffer output-buffer)))
+	  (set-buffer curbuf)
 	  status))
     ;; The following is only executed if something strange was
     ;; happening.  Emit a helpful message and do it anyway.
