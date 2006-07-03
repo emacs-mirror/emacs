@@ -213,7 +213,7 @@ the command with the name of the file you wish to visit, terminated by a
   The file name is read using the minibuffer (@pxref{Minibuffer}), with
 defaulting and completion in the standard manner (@pxref{File Names}).
 While in the minibuffer, you can abort @kbd{C-x C-f} by typing
-@kbd{C-g}.  File-name completion ignores certain filenames; for more
+@kbd{C-g}.  File-name completion ignores certain file names; for more
 about this, see @ref{Completion Options}.
 
   Your confirmation that @kbd{C-x C-f} has completed successfully is
