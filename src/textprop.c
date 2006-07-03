@@ -690,10 +690,11 @@ overlays are considered only if they are associated with OBJECT.  */)
 DEFUN ("get-char-property-and-overlay", Fget_char_property_and_overlay,
        Sget_char_property_and_overlay, 2, 3, 0,
        doc: /* Like `get-char-property', but with extra overlay information.
-Return a cons whose car is the return value of `get-char-property'
-with the same arguments, that is, the value of POSITION's property
-PROP in OBJECT, and whose cdr is the overlay in which the property was
+The value is a cons cell.  Its car is the return value of `get-char-property'
+with the same arguments--that is, the value of POSITION's property
+PROP in OBJECT.  Its cdr is the overlay in which the property was
 found, or nil, if it was found as a text property or not found at all.
+
 OBJECT is optional and defaults to the current buffer.  OBJECT may be
 a string, a buffer or a window.  For strings, the cdr of the return
 value is always nil, since strings do not have overlays.  If OBJECT is
