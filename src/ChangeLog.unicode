@@ -1,3 +1,20 @@
+2006-07-03  Kenichi Handa  <handa@m17n.org>
+
+	* xftfont.c (xftfont_open): Set charset related members to -1.
+
+	* ftfont.c (ftfont_list): Handle QCotf property.
+	(ftfont_open): Set charset related members to -1.
+
+	* fontset.c (Votf_script_alist): New variable.
+	(syms_of_fontset): Initialize it.
+	(fontset_font): Delete unused variable.
+
+	* fontset.h (Votf_script_alist): Extern it.
+
+	* font.c (font_find_for_lface): Code optimized.
+
+	* font.h (font_close_object, font_merge_old_spec): Extern them.
+
 2006-06-28  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (QCscalable, Qc, Qm, Qp, Qd): New variables.

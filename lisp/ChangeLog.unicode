@@ -1,3 +1,7 @@
+2006-07-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (otf-script-alist): Set it.
+
 2006-06-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (font-encoding-alist): Fix for
