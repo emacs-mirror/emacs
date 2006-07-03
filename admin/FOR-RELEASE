@@ -12,9 +12,6 @@ has to be set to nil: when t, it can leak memory and cause other problems.
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
-** Update facemenu-unlisted-faces, adding whatever other
-face name prefixes should be in it for good results.
-
 ** Update AUTHORS.
 
 ** Regenerate the postscript files of the reference cards in etc.
@@ -38,15 +35,6 @@ Reminders sent out on 2006-06-08.
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
-
-** text_property_stickiness can be called with a POS value that is before BEGV.
-
-text_property_stickiness is called from get_pos_property,
-which is called from find_field, which is called from
-various user-level functions in editfns.c.
-
-** JD Smith's 17 Apr 2006 bug report that CVS operations
-get mysterious unreproducible failures.
 
 ** Is there a basic problem with cl-byte-compile-compiler-macro?
 
