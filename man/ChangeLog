@@ -1,3 +1,8 @@
+2006-07-03  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Agenda commands): Document `s' key to save all org-mode
+	buffers.
+
 2006-06-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (ls in Lisp, Windows Keyboard, Windows Mouse)

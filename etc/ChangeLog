@@ -1,3 +1,8 @@
+2006-07-03  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Agenda Views}): Document `s' key to save
+	all org-mode buffers.
+
 2006-06-30  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.1: -m and -M options do not exist.

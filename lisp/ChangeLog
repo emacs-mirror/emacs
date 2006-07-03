@@ -6,6 +6,7 @@
 	(org-save-all-org-buffers): New function.
 	(org-first-headline-recenter): Enclose outline-regexp in group
 	delimiters.
+	(org-set-tags): Keep single space after stars.
 
 2006-07-02  Michael Albinus  <michael.albinus@gmx.de>
 
