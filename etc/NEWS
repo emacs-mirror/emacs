@@ -5172,6 +5172,12 @@ property names as argument rather than a property list.
 ** Face changes
 
 +++
+*** The variable `facemenu-unlisted-faces' has been removed.
+Emacs has a lot more faces than in the past, and nearly all of them
+needed to be excluded.  The new variable `facemenu-listed-faces' lists
+the faces to include in the face menu.
+
++++
 *** The new face attribute condition `min-colors' can be used to tailor
 the face color to the number of colors supported by a display, and
 define the foreground and background colors accordingly so that they
