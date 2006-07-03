@@ -1,3 +1,7 @@
+2006-07-03  Romain Francoise  <romain@orebokech.com>
+
+	* m-x.texi (M-x): Fix.
+
 2006-07-03  Richard Stallman  <rms@gnu.org>
 
 	* rcirc.texi (Scrolling conservatively): Fix xref.

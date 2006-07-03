@@ -24,7 +24,7 @@ beginning of the minibuffer as a @dfn{prompt} to remind you to enter a
 command name to be run.  @key{RET} exits the minibuffer and runs the
 command.  @xref{Minibuffer}, for more information on the minibuffer.
 
-  You can use completion to enter the command name.  For example, you
+  You can use completion to enter the command name.  For example,
 to invoke the command @code{forward-char}, you can type
 
 @example
