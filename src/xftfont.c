@@ -261,6 +261,7 @@ xftfont_open (f, entity, pixel_size)
   font->font.full_name = font->font.name = name;
   font->file_name = (char *) file;
   font->font.size = xftfont->max_advance_width;
+  font->font.charset = font->encoding_charset = font->repertory_charset = -1;
   font->ascent = xftfont->ascent;
   font->descent = xftfont->descent;
   font->font.height = xftfont->ascent + xftfont->descent;
