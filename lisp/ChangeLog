@@ -1,3 +1,12 @@
+2006-07-03  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-mode): Removed no invalid settings for
+	calc embedded mode.
+	(org-mode-p): New defsubst.
+	(org-save-all-org-buffers): New function.
+	(org-first-headline-recenter): Enclose outline-regexp in group
+	delimiters.
+
 2006-07-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-shell-command): Preserve current-buffer.
