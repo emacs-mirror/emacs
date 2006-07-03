@@ -1,3 +1,7 @@
+2006-07-03  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (sit_for): Fix preempt condition.
+
 2006-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (read_filtered_event): Treat select-window just like
