@@ -3,8 +3,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.41
-@set DATE June 2006
+@set VERSION 4.42
+@set DATE July 2006
 
 @dircategory Emacs
 @direntry
@@ -3201,6 +3201,10 @@ after modification of the time stamps of items with S-@key{left} and
 S-@key{right}.  When the buffer is the global todo list, a prefix
 argument is interpreted to create a selective list for a specific TODO
 keyword.
+
+@kindex s
+@item s
+Save all Org-mode buffers in the current Emacs session.
 
 @kindex @key{right}
 @item @key{right}
