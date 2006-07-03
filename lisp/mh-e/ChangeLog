@@ -1,3 +1,8 @@
+2006-07-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el: Require mh-buffers and mh-compat before mh-xemacs now
+	that mh-xemacs needs functions in mh-compat.
+
 2006-06-29  Bill Wohler  <wohler@newt.com>
 
 	* mh-search.el (mh-search, mh-index-group-by-folder): Add "the" in

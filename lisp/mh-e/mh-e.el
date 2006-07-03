@@ -96,15 +96,15 @@
 
 (mh-require-cl)
 
+(require 'mh-buffers)
+(require 'mh-compat)
+
 (eval-and-compile
   (defvar mh-xemacs-flag (featurep 'xemacs)
     "Non-nil means the current Emacs is XEmacs."))
 
 (mh-do-in-xemacs
   (require 'mh-xemacs))
-
-(require 'mh-buffers)
-(require 'mh-compat)
 
 (mh-font-lock-add-keywords
  'emacs-lisp-mode
