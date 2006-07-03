@@ -355,12 +355,9 @@ ftfont_list (frame, spec)
       Lisp_Object script = Qnil;
 
       tmp = assq_no_quit (QCname, extra);
-      if (CONSP (tmp))
-	{
-	  font_name = XCDR (tmp);
-	  if (SDATA (font_name)[0] != ':')
-	    return val;
-	}
+      if (CONSP (tmp) && STRINGP (XCDR (tmp))
+	  && SDATA (XCDR (tmp))[0] == ':')
+	font_name = XCDR (tmp);
       tmp = assq_no_quit (QCotf, extra);
       if (CONSP (tmp) && SYMBOLP (XCDR (tmp)))
 	{
