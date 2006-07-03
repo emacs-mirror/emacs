@@ -1,3 +1,15 @@
+2006-07-03  Ted Phelps  <phelps@gnusto.com>  (tiny change)
+
+	* mh-tool-bar.el (mh-tool-bar-define): Fix XEmacs' vector-list so
+	it refers to the icons in mh-xemacs-icon-map instead of trying to
+	declare the icons in situ. This allows mh-tool-bar.el to be
+	compiled under XEmacs. Remove initial value for
+	mh-tool-bar-folder-buttons, mh-tool-bar-show-buttons,
+	mh-tool-bar-letter-buttons. The MH-E icons now appear in XEmacs.
+	In mh-tool-bar-init, check for mh-xemacs-use-tool-bar-flag sooner.
+	This allows MH-E to be used in XEmacs in a tty (closes SF
+	#1506846).
+
 2006-07-03  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el: Require mh-buffers and mh-compat before mh-xemacs now
