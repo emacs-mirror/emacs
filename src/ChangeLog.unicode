@@ -2,7 +2,8 @@
 
 	* xftfont.c (xftfont_open): Set charset related members to -1.
 
-	* ftfont.c (ftfont_list): Handle QCotf property.
+	* ftfont.c (ftfont_list): Handle QCotf property.  Handling of
+	QCname fixed.
 	(ftfont_open): Set charset related members to -1.
 
 	* fontset.c (Votf_script_alist): New variable.
