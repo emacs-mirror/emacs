@@ -1776,11 +1776,11 @@ rectangle moves along with the text inside the rectangle.
 making the rest temporarily inaccessible.  The portion which you can
 still get to is called the @dfn{accessible portion}.  Canceling the
 narrowing, which makes the entire buffer once again accessible, is
-called @dfn{widening}.  The amount of narrowing in effect in a buffer at
-any time is called the buffer's @dfn{restriction}.
+called @dfn{widening}.  The bounds of narrowing in effect in a buffer
+are called the buffer's @dfn{restriction}.
 
   Narrowing can make it easier to concentrate on a single subroutine or
-paragraph by eliminating clutter.  It can also be used to restrict the
+paragraph by eliminating clutter.  It can also be used to limit the
 range of operation of a replace command or repeating keyboard macro.
 
 @table @kbd
