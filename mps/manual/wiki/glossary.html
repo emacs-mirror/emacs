@@ -95,7 +95,19 @@
 
   <dt> Attr (internal) </dt>
   <dd>A bitset of pool or pool class attributes.
-    See <a href="../../design/type/#attr">design/type/#attr</a></dd>
+    See 
+    <a href="../../design/type/index.html#attr">design/type/#attr</a>.
+  </dd>
+  
+  <dt> Ring (internal) </dt>
+  <dd>A Parent node, linked to zero or more Child nodes.  
+    Used throughout MPS internals.  See 
+    <a href="../../design/ring/index.html">design/ring</a>.
+    The <code>RING_FOR</code> macro visits all Child nodes.
+    Note: when a node (RingStruct) appears in a larger structure, 
+    there is (alas) no indication whether it is the parent node, 
+    or a child node.
+  </dd>
 </dl>
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
@@ -103,6 +115,7 @@
 <pre>
   2006-06-06  RHSK  Created.
   2006-06-21  RHSK  Scope of terms; client/mutator, ap/buffer.
+  2006-07-03  RHSK  Ring.
 </pre>
 
 
