@@ -854,11 +854,6 @@ Related buffers can be cycled through via :R and :P commands."
 
 ;;; Face-saving tricks
 
-(defun viper-hide-face (face)
-  (if (and (viper-has-face-support-p) viper-emacs-p)
-      (add-to-list 'facemenu-unlisted-faces face)))
-
-
 (defgroup viper-highlighting nil
   "Hilighting of replace region, search pattern, minibuffer, etc."
   :prefix "viper-"
@@ -876,8 +871,6 @@ Related buffers can be cycled through via :R and :P commands."
 DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-search'
 this variable represents.")
-(viper-hide-face viper-search-face)
-
 
 (defface viper-replace-overlay
   '((((class color)) (:foreground "Black" :background "darkseagreen2"))
@@ -890,8 +883,6 @@ this variable represents.")
 DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-replace-overlay'
 this variable represents.")
-(viper-hide-face viper-replace-overlay-face)
-
 
 (defface viper-minibuffer-emacs
   '((((class color)) (:foreground "Black" :background "darkseagreen2"))
@@ -904,8 +895,6 @@ this variable represents.")
 DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-minibuffer-emacs'
 this variable represents.")
-(viper-hide-face viper-minibuffer-emacs-face)
-
 
 (defface viper-minibuffer-insert
   '((((class color)) (:foreground "Black" :background "pink"))
@@ -918,8 +907,6 @@ this variable represents.")
 DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-minibuffer-insert'
 this variable represents.")
-(viper-hide-face viper-minibuffer-insert-face)
-
 
 (defface viper-minibuffer-vi
   '((((class color)) (:foreground "DarkGreen" :background "grey"))
@@ -932,7 +919,6 @@ this variable represents.")
 DO NOT CHANGE this variable.  Instead, use the customization widget
 to customize the actual face object `viper-minibuffer-vi'
 this variable represents.")
-(viper-hide-face viper-minibuffer-vi-face)
 
 ;; the current face to be used in the minibuffer
 (viper-deflocalvar
