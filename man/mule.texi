@@ -91,6 +91,8 @@ to make sure Emacs interprets keyboard input correctly; see
 * Coding Systems::          Character set conversion when you read and
                               write files, and so on.
 * Recognize Coding::        How Emacs figures out which conversion to use.
+* Specify Coding::          Specifying a file's coding system explicitly.
+* Output Coding::           Choosing coding systems for output.
 * Text Coding::             Choosing conversion to use for file text.
 * Communication Coding::    Coding systems for interprocess communication.
 * File Name Coding::        Coding systems for file @emph{names}.
@@ -718,6 +720,23 @@ non-@acronym{ASCII} characters stored with the internal Emacs encoding.  It
 handles end-of-line conversion based on the data encountered, and has
 the usual three variants to specify the kind of end-of-line conversion.
 
+@findex unify-8859-on-decoding-mode
+  The @dfn{character translation} feature can modify the effect of
+various coding systems, by changing the internal Emacs codes that
+decoding produces.  For instance, the command
+@code{unify-8859-on-decoding-mode} enables a mode that ``unifies'' the
+Latin alphabets when decoding text.  This works by converting all
+non-@acronym{ASCII} Latin-@var{n} characters to either Latin-1 or
+Unicode characters.  This way it is easier to use various
+Latin-@var{n} alphabets together.  (In a future Emacs version we hope
+to move towards full Unicode support and complete unification of
+character sets.)
+
+@vindex enable-character-translation
+  If you set the variable @code{enable-character-translation} to
+@code{nil}, that disables all character translation (including
+@code{unify-8859-on-decoding-mode}).
+
 @node Recognize Coding
 @section Recognizing Coding Systems
 
@@ -812,26 +831,6 @@ coding system @code{iso-2022-7bit}, and they won't be
 decoded correctly when you visit those files if you suppress the
 escape sequence detection.
 
-@vindex coding
-  You can specify the coding system for a particular file using the
-@w{@samp{-*-@dots{}-*-}} construct at the beginning of a file, or a
-local variables list at the end (@pxref{File Variables}).  You do this
-by defining a value for the ``variable'' named @code{coding}.  Emacs
-does not really have a variable @code{coding}; instead of setting a
-variable, this uses the specified coding system for the file.  For
-example, @samp{-*-mode: C; coding: latin-1;-*-} specifies use of the
-Latin-1 coding system, as well as C mode.  When you specify the coding
-explicitly in the file, that overrides
-@code{file-coding-system-alist}.
-
-  If you add the character @samp{!} at the end of the coding system
-name, it disables any character translation while decoding the file.
-For instance, it effectively cancels the effect of
-@code{unify-8859-on-decoding-mode}.  This is useful when you need to
-make sure that the character codes in the Emacs buffer will not
-according to user settings; for instance, for the sake of strings in
-Emacs Lisp source files.
-
 @vindex auto-coding-alist
 @vindex auto-coding-regexp-alist
 @vindex auto-coding-functions
@@ -848,72 +847,6 @@ RMAIL files, whose names in general don't match any particular
 pattern, are decoded correctly.  One of the builtin
 @code{auto-coding-functions} detects the encoding for XML files.
 
-  If Emacs recognizes the encoding of a file incorrectly, you can
-reread the file using the correct coding system by typing @kbd{C-x
-@key{RET} r @var{coding-system} @key{RET}}.  To see what coding system
-Emacs actually used to decode the file, look at the coding system
-mnemonic letter near the left edge of the mode line (@pxref{Mode
-Line}), or type @kbd{C-h C @key{RET}}.
-
-@findex unify-8859-on-decoding-mode
-  The command @code{unify-8859-on-decoding-mode} enables a mode that
-``unifies'' the Latin alphabets when decoding text.  This works by
-converting all non-@acronym{ASCII} Latin-@var{n} characters to either
-Latin-1 or Unicode characters.  This way it is easier to use various
-Latin-@var{n} alphabets together.  In a future Emacs version we hope
-to move towards full Unicode support and complete unification of
-character sets.
-
-@vindex buffer-file-coding-system
-  Once Emacs has chosen a coding system for a buffer, it stores that
-coding system in @code{buffer-file-coding-system} and uses that coding
-system, by default, for operations that write from this buffer into a
-file.  This includes the commands @code{save-buffer} and
-@code{write-region}.  If you want to write files from this buffer using
-a different coding system, you can specify a different coding system for
-the buffer using @code{set-buffer-file-coding-system} (@pxref{Text
-Coding}).
-
-  You can insert any possible character into any Emacs buffer, but
-most coding systems can only handle some of the possible characters.
-This means that it is possible for you to insert characters that
-cannot be encoded with the coding system that will be used to save the
-buffer.  For example, you could start with an @acronym{ASCII} file and insert a
-few Latin-1 characters into it, or you could edit a text file in
-Polish encoded in @code{iso-8859-2} and add some Russian words to it.
-When you save the buffer, Emacs cannot use the current value of
-@code{buffer-file-coding-system}, because the characters you added
-cannot be encoded by that coding system.
-
-  When that happens, Emacs tries the most-preferred coding system (set
-by @kbd{M-x prefer-coding-system} or @kbd{M-x
-set-language-environment}), and if that coding system can safely
-encode all of the characters in the buffer, Emacs uses it, and stores
-its value in @code{buffer-file-coding-system}.  Otherwise, Emacs
-displays a list of coding systems suitable for encoding the buffer's
-contents, and asks you to choose one of those coding systems.
-
-  If you insert the unsuitable characters in a mail message, Emacs
-behaves a bit differently.  It additionally checks whether the
-most-preferred coding system is recommended for use in MIME messages;
-if not, Emacs tells you that the most-preferred coding system is
-not recommended and prompts you for another coding system.  This is so
-you won't inadvertently send a message encoded in a way that your
-recipient's mail software will have difficulty decoding.  (If you do
-want to use the most-preferred coding system, you can still type its
-name in response to the question.)
-
-@vindex sendmail-coding-system
-  When you send a message with Mail mode (@pxref{Sending Mail}), Emacs has
-four different ways to determine the coding system to use for encoding
-the message text.  It tries the buffer's own value of
-@code{buffer-file-coding-system}, if that is non-@code{nil}.  Otherwise,
-it uses the value of @code{sendmail-coding-system}, if that is
-non-@code{nil}.  The third way is to use the default coding system for
-new files, which is controlled by your choice of language environment,
-if that is non-@code{nil}.  If all of these three values are @code{nil},
-Emacs encodes outgoing mail using the Latin-1 coding system.
-
 @vindex rmail-decode-mime-charset
   When you get new mail in Rmail, each message is translated
 automatically from the coding system it is written in, as if it were a
@@ -928,6 +861,87 @@ system specified by the variable @code{rmail-file-coding-system}.  The
 default value is @code{nil}, which means that Rmail files are not
 translated (they are read and written in the Emacs internal character
 code).
+
+@node Specify Coding
+@section Specifying a File's Coding System
+
+  If Emacs recognizes the encoding of a file incorrectly, you can
+reread the file using the correct coding system by typing @kbd{C-x
+@key{RET} r @var{coding-system} @key{RET}}.  To see what coding system
+Emacs actually used to decode the file, look at the coding system
+mnemonic letter near the left edge of the mode line (@pxref{Mode
+Line}), or type @kbd{C-h C @key{RET}}.
+
+@vindex coding
+  You can specify the coding system for a particular file in the file
+itself, using the @w{@samp{-*-@dots{}-*-}} construct at the beginning,
+or a local variables list at the end (@pxref{File Variables}).  You do
+this by defining a value for the ``variable'' named @code{coding}.
+Emacs does not really have a variable @code{coding}; instead of
+setting a variable, this uses the specified coding system for the
+file.  For example, @samp{-*-mode: C; coding: latin-1;-*-} specifies
+use of the Latin-1 coding system, as well as C mode.  When you specify
+the coding explicitly in the file, that overrides
+@code{file-coding-system-alist}.
+
+  If you add the character @samp{!} at the end of the coding system
+name in @code{coding}, it disables any character translation while
+decoding the file.  For instance, it effectively cancels the effect of
+@code{unify-8859-on-decoding-mode}.  This is useful when you need to
+make sure that the character codes in the Emacs buffer will not vary
+due to changes in user settings; for instance, for the sake of strings
+in Emacs Lisp source files.
+
+@node Output Coding
+@section Choosing Coding Systems for Output
+
+@vindex buffer-file-coding-system
+  Once Emacs has chosen a coding system for a buffer, it stores that
+coding system in @code{buffer-file-coding-system}.  That makes it the
+default for operations that write from this buffer into a file, such
+as @code{save-buffer} and @code{write-region}.  You can specify a
+different coding system for further file output from the buffer using
+@code{set-buffer-file-coding-system} (@pxref{Text Coding}).
+
+  You can insert any character Emacs supports into any Emacs buffer,
+but most coding systems can only handle a subset of these characters.
+Therefore, you can insert characters that cannot be encoded with the
+coding system that will be used to save the buffer.  For example, you
+could start with an @acronym{ASCII} file and insert a few Latin-1
+characters into it, or you could edit a text file in Polish encoded in
+@code{iso-8859-2} and add some Russian words to it.  When you save
+that buffer, Emacs cannot use the current value of
+@code{buffer-file-coding-system}, because the characters you added
+cannot be encoded by that coding system.
+
+  When that happens, Emacs tries the most-preferred coding system (set
+by @kbd{M-x prefer-coding-system} or @kbd{M-x
+set-language-environment}), and if that coding system can safely
+encode all of the characters in the buffer, Emacs uses it, and stores
+its value in @code{buffer-file-coding-system}.  Otherwise, Emacs
+displays a list of coding systems suitable for encoding the buffer's
+contents, and asks you to choose one of those coding systems.
+
+  If you insert the unsuitable characters in a mail message, Emacs
+behaves a bit differently.  It additionally checks whether the
+most-preferred coding system is recommended for use in MIME messages;
+if not, Emacs tells you that the most-preferred coding system is not
+recommended and prompts you for another coding system.  This is so you
+won't inadvertently send a message encoded in a way that your
+recipient's mail software will have difficulty decoding.  (You can
+still use an unsuitable coding system if you type its name in response
+to the question.)
+
+@vindex sendmail-coding-system
+  When you send a message with Mail mode (@pxref{Sending Mail}), Emacs has
+four different ways to determine the coding system to use for encoding
+the message text.  It tries the buffer's own value of
+@code{buffer-file-coding-system}, if that is non-@code{nil}.  Otherwise,
+it uses the value of @code{sendmail-coding-system}, if that is
+non-@code{nil}.  The third way is to use the default coding system for
+new files, which is controlled by your choice of language environment,
+if that is non-@code{nil}.  If all of these three values are @code{nil},
+Emacs encodes outgoing mail using the Latin-1 coding system.
 
 @node Text Coding
 @section Specifying a Coding System for File Text
