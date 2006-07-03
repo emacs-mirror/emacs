@@ -220,6 +220,7 @@ Lisp_Object Vignore_relative_composition;
 Lisp_Object Valternate_fontname_alist;
 Lisp_Object Vfontset_alias_alist;
 Lisp_Object Vvertical_centering_font_regexp;
+Lisp_Object Votf_script_alist;
 
 /* The following six are declarations of callback functions depending
    on window system.  See the comments in src/fontset.h for more
@@ -672,7 +673,6 @@ fontset_font (fontset, c, face, id)
 	    {
 	      Lisp_Object tmp = AREF (font_def, 0);
 	      Lisp_Object spec = Ffont_spec (0, NULL);
-	      Lisp_Object script;
 
 	      if (STRINGP (tmp))
 		font_merge_old_spec (tmp, Qnil, Qnil, spec);
@@ -2462,6 +2462,10 @@ alternate fontnames (if any) are tried instead.  */);
 When a character is displayed with such fonts, the character is displayed
 at the vertical center of lines.  */);
   Vvertical_centering_font_regexp = Qnil;
+
+  DEFVAR_LISP ("otf-script-alist", &Votf_script_alist,
+	       doc: /* Alist of OpenType script tags vs the corresponding script names.  */);
+  Votf_script_alist = Qnil;
 
   defsubr (&Squery_fontset);
   defsubr (&Snew_fontset);
