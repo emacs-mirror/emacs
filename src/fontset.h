@@ -218,6 +218,7 @@ extern Lisp_Object Vignore_relative_composition;
 extern Lisp_Object Valternate_fontname_alist;
 extern Lisp_Object Vfontset_alias_alist;
 extern Lisp_Object Vvertical_centering_font_regexp;
+extern Lisp_Object Votf_script_alist;
 
 /* Load a font named FONTNAME on frame F.  All fonts for frame F is
    stored in a table pointed by FONT_TABLE.  Return a pointer to the
