@@ -1024,8 +1024,8 @@ branch) in the repository (@code{cvs-mode-diff-head}).@refill
 Display a @samp{cvs diff} between the base revision of the selected
 files and the head revision in the repository.  This displays the
 changes anyone has committed to the repository since you last executed
-"checkout", "update" or "commit"
-(@code{cvs-mode-diff-repository}).@refill
+a checkout, update or commit operation
+(@code{cvs-mode-diff-repository}).
 
 @item d v
 Display a @samp{cvs diff} between the selected files and the head
