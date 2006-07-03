@@ -156,14 +156,14 @@ struct font
      a file.  */
   char *file_name;
 
-  /* Charset to encode a character code into a glyph code of the
-     font.  */
+  /* Charset to encode a character code into a glyph code of the font.
+     -1 means that the font doesn't require this information to encode
+     a character.  */
   int encoding_charset;
 
   /* Charset to check if a character code is supported by the font.
      -1 means that the contents of the font must be looked up to
-     determine it.
-   */
+     determine it.  */
   int repertory_charset;
 
   /* Minimum glyph width (in pixels).  */
@@ -450,12 +450,13 @@ extern Lisp_Object font_open_for_lface P_ ((FRAME_PTR f, Lisp_Object *lface,
 extern void font_load_for_face P_ ((FRAME_PTR f, struct face *face));
 extern void font_prepare_for_face P_ ((FRAME_PTR f, struct face *face));
 extern Lisp_Object font_open_by_name P_ ((FRAME_PTR f, char *name));
+extern void font_close_object (FRAME_PTR f, Lisp_Object font_object);
 
 extern Lisp_Object intern_downcase P_ ((char *str, int len));
 extern void font_update_sort_order P_ ((int *order));
 
-extern void font_parse_old_font_spec P_ ((Lisp_Object, Lisp_Object,
-					  Lisp_Object, Lisp_Object));
+extern void font_merge_old_spec P_ ((Lisp_Object name, Lisp_Object family,
+				     Lisp_Object registry, Lisp_Object spec));
 
 
 extern int font_parse_xlfd P_ ((char *name, Lisp_Object font));
