@@ -749,8 +749,7 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
 
 DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 3, 0,
        doc: /* Make NEW-ALIAS a variable alias for symbol BASE-VARIABLE.
-Setting the value of NEW-ALIAS will subsequently set the value of BASE-VARIABLE,
- and getting the value of NEW-ALIAS will return the value BASE-VARIABLE has.
+Aliased variables always have the same value; setting one sets the other.
 Third arg DOCSTRING, if non-nil, is documentation for NEW-ALIAS.  If it is
  omitted or nil, NEW-ALIAS gets the documentation string of BASE-VARIABLE,
  or of the variable at the end of the chain of aliases, if BASE-VARIABLE is
