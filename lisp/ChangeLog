@@ -1,3 +1,12 @@
+2006-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* facemenu.el (facemenu-listed-faces): New var.
+	(facemenu-unlisted-faces): Variable deleted.
+	(facemenu-add-new-face): Use facemenu-listed-faces.
+
+	* emulation/viper-init.el, calendar/calendar.el:
+	* progmodes/make-mode.el: Delete calls to facemenu-unlisted-faces.
+
 2006-07-03  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-mode): Removed no invalid settings for

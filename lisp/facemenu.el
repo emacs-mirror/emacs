@@ -67,8 +67,8 @@
 ;;
 ;; The order of the faces that appear in the menu and their keybindings can be
 ;; controlled by setting the variables `facemenu-keybindings' and
-;; `facemenu-new-faces-at-end'.  List faces that you don't use in documents
-;; (eg, `region') in `facemenu-unlisted-faces'.
+;; `facemenu-new-faces-at-end'.  List faces that you want to use in documents
+;; in `facemenu-listed-faces'.
 
 ;;; Known Problems:
 ;; Bold and Italic do not combine to create bold-italic if you select them
@@ -116,9 +116,9 @@ the next element is the key to use as a keyboard equivalent of the menu item;
 the binding is made in `facemenu-keymap'.
 
 The faces specifically mentioned in this list are put at the top of
-the menu, in the order specified.  All other faces which are defined,
-except for those in `facemenu-unlisted-faces', are listed after them,
-but get no keyboard equivalents.
+the menu, in the order specified.  All other faces which are defined
+in `facemenu-listed-faces' are listed after them, but get no
+keyboard equivalents.
 
 If you change this variable after loading facemenu.el, you will need to call
 `facemenu-update' to make it take effect."
@@ -132,28 +132,25 @@ just before \"Other\" at the end."
   :type 'boolean
   :group 'facemenu)
 
-(defcustom facemenu-unlisted-faces
-  `(modeline region secondary-selection highlight scratch-face
-    ,(purecopy "^font-lock-") ,(purecopy "^gnus-") ,(purecopy "^message-")
-    ,(purecopy "^ediff-") ,(purecopy "^term-") ,(purecopy "^vc-")
-    ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
-  "*List of faces not to include in the Face menu.
-Each element may be either a symbol, which is the name of a face, or a string,
-which is a regular expression to be matched against face names.  Matching
-faces will not be added to the menu.
+(defcustom facemenu-listed-faces nil
+  "*List of faces to include in the Face menu.
+Each element should be a symbol, which is the name of a face.
+The \"basic \" faces in `facemenu-keybindings' are automatically
+added to the Face menu, and are not included in this list.
 
 You can set this list before loading facemenu.el, or add a face to it before
-creating that face if you do not want it to be listed.  If you change the
+creating that face if you want it to be listed.  If you change the
 variable so as to eliminate faces that have already been added to the menu,
 call `facemenu-update' to recalculate the menu contents.
 
-If this variable is t, no faces will be added to the menu.  This is useful for
-temporarily turning off the feature that automatically adds faces to the menu
-when they are created."
-  :type '(choice (const :tag "Don't add faces" t)
-		 (const :tag "None (do add any face)" nil)
-		 (repeat (choice symbol regexp)))
-  :group 'facemenu)
+If this variable is t, all faces will be added to the menu.  This
+is useful for setting temporarily if you want to add faces to the
+menu when they are created."
+  :type '(choice (const :tag "List all faces" t)
+		 (const :tag "None" nil)
+		 (repeat symbol))
+  :group 'facemenu
+  :version "22.1")
 
 ;;;###autoload
 (defvar facemenu-face-menu
@@ -675,18 +672,13 @@ This is called whenever you create a new face."
     (setq docstring
 	  (format "Select face `%s' for subsequent insertion."
 		  name))
-    (cond ((eq t facemenu-unlisted-faces))
-	  ((memq symbol facemenu-unlisted-faces))
-	  ;; test against regexps in facemenu-unlisted-faces
-	  ((let ((unlisted facemenu-unlisted-faces)
-		 (matched nil))
-	     (while (and unlisted (not matched))
-	       (if (and (stringp (car unlisted))
-			(string-match (car unlisted) name))
-		   (setq matched t)
-		 (setq unlisted (cdr unlisted))))
-	     matched))
-	  (key ; has a keyboard equivalent.  These go at the front.
+    (cond ((facemenu-iterate ; check if equivalent face is already in the menu
+	    (lambda (m) (and (listp m)
+			     (symbolp (car m))
+			     (face-equal (car m) symbol)))
+	    (cdr (symbol-function menu))))
+	  ;; Faces with a keyboard equivalent.  These go at the front.
+	  (key
 	   (setq function (intern (concat "facemenu-set-" name)))
 	   (fset function
 		 `(lambda ()
@@ -700,17 +692,14 @@ This is called whenever you create a new face."
 			 (region-end)))))
 	   (define-key 'facemenu-keymap key (cons name function))
 	   (define-key menu key (cons name function)))
-	  ((facemenu-iterate ; check if equivalent face is already in the menu
-	    (lambda (m) (and (listp m)
-			     (symbolp (car m))
-			     (face-equal (car m) symbol)))
-	    (cdr (symbol-function menu))))
-	  (t   ; No keyboard equivalent.  Figure out where to put it:
+	  ;; Faces with no keyboard equivalent.  Figure out where to put it:
+	  ((or (eq t facemenu-listed-faces)
+	       (memq symbol facemenu-listed-faces))
 	   (setq key (vector symbol)
 		 function 'facemenu-set-face-from-menu
 		 menu-val (symbol-function menu))
 	   (if (and facemenu-new-faces-at-end
-		   (> (length menu-val) 3))
+		    (> (length menu-val) 3))
 	       (define-key-after menu-val key (cons name function)
 		 (car (nth (- (length menu-val) 3) menu-val)))
 	     (define-key menu key (cons name function))))))
