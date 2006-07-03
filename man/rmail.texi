@@ -1349,7 +1349,7 @@ POP server.
 
 @cindex IMAP mailboxes
   Another method for accessing remote mailboxes is IMAP.  This method is
-supported only by the Mailutils {movemail}.  To specify an IMAP
+supported only by the Mailutils @code{movemail}.  To specify an IMAP
 mailbox in the inbox list, use the following mailbox @acronym{URL}:
 @samp{imap://@var{username}[:@var{password}]@@@var{hostname}}.  The
 @var{password} part is optional, as described above.
@@ -1400,7 +1400,7 @@ downloaded messages by adding the @samp{-r} flag to
 @code{rmail-movemail-flags}.
 
 @cindex TLS encryption (Rmail)
-  Mailutils {movemail} supports TLS encryption.  If you wish to
+  Mailutils @code{movemail} supports TLS encryption.  If you wish to
 use it, add the @samp{--tls} flag to @code{rmail-movemail-flags}.
 
 @node Other Mailbox Formats
