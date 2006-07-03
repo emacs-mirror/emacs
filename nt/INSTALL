@@ -141,6 +141,7 @@
     [5] fails when building leim due to the use of cygwin style paths.
         May work if building emacs without leim.
     [6] please report if you try this combination.
+    [7] tested only on Windows XP.
 
   Other compilers may work, but specific reports from people that have
   tried suggest that the Intel C compiler (for example) may produce an
