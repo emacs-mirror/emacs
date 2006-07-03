@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.41
+;; Version: 4.42
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -90,6 +90,10 @@
 ;;
 ;; Recent changes
 ;; --------------
+;; Version 4.42
+;;    - Bug fixes
+;;    - `s' key in the agenda saves all org-mode buffers.
+;;
 ;; Version 4.41
 ;;    - Shift-curser keys can modify inactive time stamps (inactive time
 ;;      stamps are the ones in [...] brackets.
@@ -205,7 +209,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.41"
+(defvar org-version "4.42"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -2687,9 +2691,13 @@ Also put tags into group 4 if tags are present.")
   (remove-text-properties 0 (length s) org-rm-props s)
   s)
 
+(defsubst org-mode-p ()
+  "Check if the current buffer is in Org-mode."
+  (eq major-mode 'org-mode))
+
 (defun org-set-regexps-and-options ()
   "Precompute regular expressions for current buffer."
-  (when (eq major-mode 'org-mode)
+  (when (org-mode-p)
     (let ((re (org-make-options-regexp
 	       '("CATEGORY" "SEQ_TODO" "PRI_TODO" "TYP_TODO"
 		 "STARTUP" "ARCHIVE" "TAGS")))
@@ -2960,9 +2968,7 @@ The following commands are available:
   ;; Paragraphs and auto-filling
   (org-set-autofill-regexps)
   (org-update-radio-target-regexp)
-  ;; Settings for Calc embedded mode
-  (set (make-local-variable 'calc-embedded-open-formula) "|\\|\n")
-  (set (make-local-variable 'calc-embedded-close-formula) "|\\|\n")
+
   (if (and org-insert-mode-line-in-empty-file
 	   (interactive-p)
 	   (= (point-min) (point-max)))
@@ -3592,7 +3598,7 @@ This function is the default value of the hook `org-cycle-hook'."
   "Move cursor to the first headline and recenter the headline.
 Optional argument N means, put the headline into the Nth line of the window."
   (goto-char (point-min))
-  (when (re-search-forward (concat "^" outline-regexp) nil t)
+  (when (re-search-forward (concat "^\\(" outline-regexp "\\)") nil t)
     (beginning-of-line)
     (recenter (prefix-numeric-value N))))
 
@@ -4520,7 +4526,7 @@ this heading. "
 	(let (this-command) (org-copy-subtree))
 	(set-buffer buffer)
 	;; Enforce org-mode for the archive buffer
-	(if (not (eq major-mode 'org-mode))
+	(if (not (org-mode-p))
 	    ;; Force the mode for future visits.
 	    (let ((org-insert-mode-line-in-empty-file t))
 	      (call-interactively 'org-mode)))
@@ -4855,7 +4861,7 @@ Error if there is no scuh block at point."
 (defun org-update-all-dblocks ()
   "Update all dynamic blocks in the buffer.
 This function can be used in a hook."
-  (when (eq major-mode 'org-mode)
+  (when (org-mode-p)
     (org-map-dblocks 'org-update-dblock)))
 
 
@@ -6232,6 +6238,7 @@ The following commands are available:
 (define-key org-agenda-mode-map "r" 'org-agenda-redo)
 (define-key org-agenda-mode-map "q" 'org-agenda-quit)
 (define-key org-agenda-mode-map "x" 'org-agenda-exit)
+(define-key org-agenda-mode-map "s" 'org-save-all-org-buffers)
 (define-key org-agenda-mode-map "P" 'org-agenda-show-priority)
 (define-key org-agenda-mode-map "T" 'org-agenda-show-tags)
 (define-key org-agenda-mode-map "n" 'next-line)
@@ -6248,7 +6255,6 @@ The following commands are available:
 (define-key org-agenda-mode-map "C" 'org-agenda-convert-date)
 (define-key org-agenda-mode-map "m" 'org-agenda-phases-of-moon)
 (define-key org-agenda-mode-map "M" 'org-agenda-phases-of-moon)
-(define-key org-agenda-mode-map "s" 'org-agenda-sunrise-sunset)
 (define-key org-agenda-mode-map "S" 'org-agenda-sunrise-sunset)
 (define-key org-agenda-mode-map "h" 'org-agenda-holidays)
 (define-key org-agenda-mode-map "H" 'org-agenda-holidays)
@@ -6302,6 +6308,7 @@ The following commands are available:
     "--"
     ;; ["New agenda command" org-agenda t]
     ["Rebuild buffer" org-agenda-redo t]
+    ["Save all Org-mode Buffers" org-save-all-org-buffers t]
     "--"
     ["Goto Today" org-agenda-goto-today (org-agenda-check-type nil 'agenda 'timeline)]
     ["Next Dates" org-agenda-later (org-agenda-check-type nil 'agenda)]
@@ -6355,7 +6362,7 @@ first press `1' to indicate that the agenda should be temporarily (until the
 next use of \\[org-agenda]) restricted to the current file."
   (interactive "P")
   (catch 'exit
-    (let ((restrict-ok (and buffer-file-name (eq major-mode 'org-mode)))
+    (let ((restrict-ok (and buffer-file-name (org-mode-p)))
 	  (bfn buffer-file-name)
 	  (custom org-agenda-custom-commands)
 	  c entry key type string)
@@ -6430,7 +6437,7 @@ C   Configure your own agenda commands")
 
 (defun org-check-for-org-mode ()
   "Make sure current buffer is in org-mode.  Error if not."
-  (or (eq major-mode 'org-mode)
+  (or (org-mode-p)
       (error "Cannot execute org-mode agenda command on buffer in %s."
 	     major-mode)))
 
@@ -6872,6 +6879,14 @@ Org-mode buffers visited directly by the user will not be touched."
   (org-release-buffers org-agenda-new-buffers)
   (setq org-agenda-new-buffers nil)
   (org-agenda-quit))
+
+;; FIXME: move this function.
+(defun org-save-all-org-buffers ()
+  "Save all Org-mode buffers without user confirmation."
+  (interactive)
+  (message "Saving all Org-mode buffers...")
+  (save-some-buffers t 'org-mode-p)
+  (message "Saving all Org-mode buffers... done"))
 
 (defun org-agenda-redo ()
   "Rebuild Agenda.
@@ -7334,7 +7349,7 @@ the documentation of `org-diary'."
 	;; If file does not exist, make sure an error message ends up in diary
 	(list (format "ORG-AGENDA-ERROR: No such org-file %s" file))
       (with-current-buffer buffer
-	(unless (eq major-mode 'org-mode)
+	(unless (org-mode-p)
 	  (error "Agenda file %s is not in `org-mode'" file))
 	(setq org-category-table (org-get-category-table))
 	(let ((case-fold-search nil))
@@ -8006,7 +8021,7 @@ and by additional input from the age of a schedules or deadline entry."
     (switch-to-buffer-other-window buffer)
     (widen)
     (goto-char pos)
-    (when (eq major-mode 'org-mode)
+    (when (org-mode-p)
       (org-show-hidden-entry)
       (save-excursion
 	(and (outline-next-heading)
@@ -8024,7 +8039,7 @@ and by additional input from the age of a schedules or deadline entry."
     (delete-other-windows)
     (widen)
     (goto-char pos)
-    (when (eq major-mode 'org-mode)
+    (when (org-mode-p)
       (org-show-hidden-entry)
       (save-excursion
 	(and (outline-next-heading)
@@ -8617,7 +8632,7 @@ The prefix arg TODO-ONLY limits the search to TODO entries."
 		       (format "ORG-AGENDA-ERROR: No such org-file %s" file))
 		  rtnall (append rtnall rtn))
 	  (with-current-buffer buffer
-	    (unless (eq major-mode 'org-mode)
+	    (unless (org-mode-p)
 	      (error "Agenda file %s is not in `org-mode'" file))
 	    (setq org-category-table (org-get-category-table))
 	    (save-excursion
@@ -9144,7 +9159,7 @@ in all files."
      ((string-match "^/\\(.*\\)/$" s)
       ;; A regular expression
       (cond
-       ((eq major-mode 'org-mode)
+       ((org-mode-p)
 	(org-occur (match-string 1 s)))
        ;;((eq major-mode 'dired-mode)
        ;; (grep (concat "grep -n -e '" (match-string 1 s) "' *")))
@@ -9200,7 +9215,7 @@ in all files."
       (if (search-forward s nil t)
 	  (goto-char (match-beginning 0))
 	(error "No match"))))
-    (and (eq major-mode 'org-mode) (org-show-hierarchy-above))))
+    (and (org-mode-p) (org-show-hierarchy-above))))
 
 (defun org-search-not-link (&rest args)
   "Execute `re-search-forward', but only accept matches that are not a link."
@@ -9654,7 +9669,7 @@ If the file does not exist, an error is thrown."
      ((consp cmd)
       (eval cmd))
      (t (funcall (cdr (assq 'file org-link-frame-setup)) file)))
-    (and (eq major-mode 'org-mode) (eq old-mode 'org-mode)
+    (and (org-mode-p) (eq old-mode 'org-mode)
 	 (or (not (equal old-buffer (current-buffer)))
 	     (not (equal old-pos (point))))
 	 (org-mark-ring-push old-pos old-buffer))))
@@ -9833,7 +9848,7 @@ For file links, arg negates `org-context-in-file-links'."
 			   (abbreviate-file-name buffer-file-name))
 	    link (org-make-link cpltxt)))      
 
-     ((eq major-mode 'org-mode)
+     ((org-mode-p)
       ;; Just link to current headline
       (setq cpltxt (concat "file:"
 			   (abbreviate-file-name buffer-file-name)))
@@ -10678,7 +10693,7 @@ This is being used to correctly align a single field after TAB or RET.")
     (move-marker org-table-aligned-begin-marker (point))
     (insert new)
     (move-marker org-table-aligned-end-marker (point))
-    (when (and orgtbl-mode (not (eq major-mode 'org-mode)))
+    (when (and orgtbl-mode (not (org-mode-p)))
       (goto-char org-table-aligned-begin-marker)
       (while (org-hide-wide-columns org-table-aligned-end-marker)))
     ;; Try to move to the old location (approximately)
@@ -12444,7 +12459,7 @@ table editor in arbitrary modes.")
 (defun orgtbl-mode (&optional arg)
   "The `org-mode' table editor as a minor mode for use in other modes."
   (interactive)
-  (if (eq major-mode 'org-mode)
+  (if (org-mode-p)
       ;; Exit without error, in case some hook functions calls this
       ;; by accident in org-mode.
       (message "Orgtbl-mode is not useful in org-mode, command ignored")
@@ -14875,7 +14890,7 @@ en embedded LaTeX fragement, let texmathp do its job.
       (interactive)
       (let (p)
 	(cond
-	 ((not (eq major-mode 'org-mode)) ad-do-it)
+	 ((not (org-mode-p)) ad-do-it)
 	 ((eq this-command 'cdlatex-math-symbol)
 	  (setq ad-return-value t
 		texmathp-why '("cdlatex-math-symbol in org-mode" . 0)))
@@ -15834,8 +15849,8 @@ With optional NODE, go directly to that node."
     (save-excursion
       (while bl
 	(set-buffer (pop bl))
-	(if (eq major-mode 'org-mode) (setq bl nil)))
-      (when (eq major-mode 'org-mode)
+	(if (org-mode-p) (setq bl nil)))
+      (when (org-mode-p)
 	(easy-menu-change
 	 '("Org") "File List for Agenda"
 	 (append
@@ -16336,13 +16351,14 @@ Show the heading too, if it is currently invisible."
 
 (defun org-bookmark-jump-unhide ()
   "Unhide the current position, to show the bookmark location."
-  (and (eq major-mode 'org-mode)
+  (and (org-mode-p)
        (or (org-invisible-p)
 	   (save-excursion (goto-char (max (point-min) (1- (point))))
 			   (org-invisible-p)))
        (org-show-hierarchy-above)))
 
 ;;; Experimental code
+
 
 ;;; Finish up
 	
