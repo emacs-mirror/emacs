@@ -315,6 +315,7 @@ ftfont_list (frame, spec)
   double dpi = -1;
   int spacing = -1;
   int scalable = -1;
+  char otf_script[15];		/* For "otlayout\:XXXX" */
   
   val = null_vector;
 
@@ -348,8 +349,11 @@ ftfont_list (frame, spec)
 
   extra = AREF (spec, FONT_EXTRA_INDEX);
   font_name = Qnil;
+  otf_script[0] = '\0';
   if (CONSP (extra))
     {
+      Lisp_Object script = Qnil;
+
       tmp = assq_no_quit (QCname, extra);
       if (CONSP (tmp))
 	{
@@ -358,8 +362,15 @@ ftfont_list (frame, spec)
 	    return val;
 	}
       tmp = assq_no_quit (QCotf, extra);
-      if (! NILP (tmp))
-	return val;
+      if (CONSP (tmp) && SYMBOLP (XCDR (tmp)))
+	{
+	  tmp = XCDR (tmp);
+	  script = assq_no_quit (tmp, Votf_script_alist);
+	  if (CONSP (script) && SYMBOLP (XCDR (script)))
+	    script = XCDR (script);
+	  tmp = SYMBOL_NAME (tmp);
+	  sprintf (otf_script, "otlayout:%s", (char *) SDATA (tmp));
+	}
       tmp = assq_no_quit (QClanguage, extra);
       if (CONSP (tmp))
 	{
@@ -382,11 +393,12 @@ ftfont_list (frame, spec)
 	      }
 	}
       tmp = assq_no_quit (QCscript, extra);
-      if (CONSP (tmp) && ! charset)
+      if (CONSP (tmp))
+	script = XCDR (tmp);
+      if (! NILP (script) && ! charset)
 	{
-	  Lisp_Object script = XCDR (tmp);
-	  Lisp_Object chars = assq_no_quit (script,
-					    Vscript_representative_chars);
+	  Lisp_Object chars
+	    = assq_no_quit (script, Vscript_representative_chars);
 
 	  if (CONSP (chars))
 	    {
@@ -461,6 +473,8 @@ ftfont_list (frame, spec)
 			     FC_CHARSET, FC_FILE, NULL);
   if (! objset)
     goto err;
+  if (otf_script[0] && ! FcObjectSetAdd (objset, FC_CAPABILITY))
+    goto err;
 
   fontset = FcFontList (NULL, pattern, objset);
   if (! fontset)
@@ -499,6 +513,15 @@ ftfont_list (frame, spec)
 		      && (weight != 100
 			  || this < FC_WEIGHT_REGULAR
 			  || this > FC_WEIGHT_MEDIUM)))
+		continue;
+	    }
+	  if (otf_script[0])
+	    {
+	      FcChar8 *this;
+
+	      if (FcPatternGetString (fontset->fonts[i], FC_CAPABILITY, 0,
+				      &this) != FcResultMatch
+		  || ! strstr ((char *) this, otf_script))
 		continue;
 	    }
 	  entity = ftfont_pattern_entity (fontset->fonts[i], frame, registry);
@@ -652,6 +675,7 @@ ftfont_open (f, entity, pixel_size)
   font->font.name = font->font.full_name = NULL;
   font->file_name = (char *) file;
   font->font.size = ft_face->size->metrics.max_advance >> 6;
+  font->font.charset = font->encoding_charset = font->repertory_charset = -1;
   font->ascent = ft_face->size->metrics.ascender >> 6;
   font->descent = - ft_face->size->metrics.descender >> 6;
   font->font.height = ft_face->size->metrics.height >> 6;
