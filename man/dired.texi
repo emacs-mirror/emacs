@@ -822,7 +822,7 @@ selected file by prepending @samp{x-} to its name.  The inverse of this,
 removing @samp{x-} from the front of each file name, is also possible:
 one method is @kbd{% R ^x-\(.*\)$ @key{RET} \1 @key{RET}}; another is
 @kbd{% R ^x- @key{RET} @key{RET}}.  (Use @samp{^} and @samp{$} to anchor
-matches that should span the whole filename.)
+matches that should span the whole file name.)
 
   Normally, the replacement process does not consider the files'
 directory names; it operates on the file name within the directory.  If
@@ -1155,7 +1155,7 @@ back to ordinary Dired mode.
 
   Apart from simply renaming files, you can move a file to another
 directory by typing in the new file name (either absolute or
-relative).  To mark a file for deletion, delete the entire filename.
+relative).  To mark a file for deletion, delete the entire file name.
 To change the target of a symbolic link, edit the link target name
 which appears next to the link name.
 
