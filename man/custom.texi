@@ -1204,7 +1204,7 @@ variables list, and asks you for confirmation before setting them.
 You can type @kbd{y} or @key{SPC} to put the local variables list into
 effect, or @kbd{n} to ignore it.  When Emacs is run in batch mode
 (@pxref{Initial Options}), it can't really ask you, so it assumes the
-answer @samp{n}.
+answer @kbd{n}.
 
   Emacs normally recognizes certain variables/value pairs as safe.
 For instance, it is safe to give @code{comment-column} or
