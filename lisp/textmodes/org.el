@@ -8713,6 +8713,8 @@ With prefix ARG, realign all tags in headings in the current buffer."
       (if (equal tags "")
 	  (save-excursion
 	    (beginning-of-line 1)
+	    (skip-chars-forward "*")
+	    (if (= (char-after) ?\ ) (forward-char 1))
 	    (and (re-search-forward "[ \t]+$" (point-at-eol) t)
 		 (replace-match "")))
 	(move-to-column (max (current-column)
