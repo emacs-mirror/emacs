@@ -1,3 +1,9 @@
+2006-07-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el: Move comment about track-mouse...
+
+	* progmodes/gud.el: ...to here.
+
 2006-07-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* facemenu.el (facemenu-listed-faces): New var.

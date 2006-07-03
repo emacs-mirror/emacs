@@ -1,3 +1,7 @@
+2006-07-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* rmail.texi (Remote Mailboxes): Add missing @code keyword.
+
 2006-07-03  Karl Berry  <karl@gnu.org>
 
 	* emacs.texi (\hbadness): set to 6000 so we aren't bothered by
