@@ -1215,11 +1215,11 @@ function @code{file-attributes}).  This expression is evaluated for
 each pair of like-named files, and if the expression's value is
 non-@code{nil}, those files are considered ``different''.
 
-  For instance, @code{M-x dired-compare-directories @key{RET} (>
-mtime1 mtime2) @key{RET}} marks files newer in this directory than in
-the other, and marks files older in the other directory than in this
-one.  It also marks files with no counterpart, in both directories, as
-always.
+  For instance, the sequence @code{M-x dired-compare-directories
+@key{RET} (> mtime1 mtime2) @key{RET}} marks files newer in this
+directory than in the other, and marks files older in the other
+directory than in this one.  It also marks files with no counterpart,
+in both directories, as always.
 
 @cindex drag and drop, Dired
   On the X window system, Emacs supports the ``drag and drop''

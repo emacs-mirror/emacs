@@ -653,15 +653,15 @@ changing any environment or registry settings.
 @pindex addpm, MS-Windows installation program
 @cindex registry, setting environment variables and resources on MS-Windows
 
-On MS-Windows, the installation program @command{addpm.exe} adds values
-for @env{emacs_dir}, @env{EMACSLOADPATH}, @env{EMACSDATA},
+Under MS-Windows, the installation program @command{addpm.exe} adds
+values for @env{emacs_dir}, @env{EMACSLOADPATH}, @env{EMACSDATA},
 @env{EMACSPATH}, @env{EMACSDOC}, @env{SHELL} and @env{TERM} to the
 @file{HKEY_LOCAL_MACHINE} section of the system registry, under
 @file{/Software/GNU/Emacs}.  It does this because there is no standard
 place to set environment variables across different versions of
-Windows.  Running @command{addpm.exe} is no longer strictly
-necessary in recent versions of Emacs, but if you are upgrading from
-an older version, running @command{addpm.exe} ensures that you do not have
+Windows.  Running @command{addpm.exe} is no longer strictly necessary
+in recent versions of Emacs, but if you are upgrading from an older
+version, running @command{addpm.exe} ensures that you do not have
 older registry entries from a previous installation, which may not be
 compatible with the latest version of Emacs.
 

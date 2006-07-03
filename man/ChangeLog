@@ -1,3 +1,12 @@
+2006-07-03  Karl Berry  <karl@gnu.org>
+
+	* emacs.texi (\hbadness): set to 6000 so we aren't bothered by
+	not-too-underfull hboxes in the TeX output.
+	* abbrevs.texi, buffers.texi, building.texi, calendar.texi,
+	cmdargs.texi, custom.texi, dired.texi, macos.texi,
+	maintaining.texi, misc.texi, mule.texi, programs.texi, rmail.texi,
+	sending.texi, text.texi: fix overfull/underfull boxes.
+
 2006-07-03  Romain Francoise  <romain@orebokech.com>
 
 	* m-x.texi (M-x): Fix.

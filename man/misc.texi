@@ -1331,7 +1331,7 @@ automatically when you finish with them.
 @subsection Invoking @code{emacsclient}
 
   To run the @code{emacsclient} program, specify file names as arguments,
-and optionally line numbers as well.  Do it like this:
+and optionally line numbers as well, like this:
 
 @example
 emacsclient @r{@{}@r{[}+@var{line}@r{[}@var{column}@r{]}@r{]} @var{filename}@r{@}}@dots{}
@@ -1352,10 +1352,10 @@ return.
 @code{emacsclient}, then it returns immediately.  (You can take as
 long as you like to edit the files in Emacs.)
 
-  The option @samp{--alternate-editor=@var{command}} is useful when
-running @code{emacsclient} in a script.  It specifies a command to run
-if @code{emacsclient} fails to contact Emacs.  For example, the
-following setting for the @var{EDITOR} environment variable will
+  The option @samp{--alternate-editor=@var{command}} specifies a
+command to run if @code{emacsclient} fails to contact Emacs.  This is
+useful when running @code{emacsclient} in a script.  For example, the
+following setting for the @env{EDITOR} environment variable will
 always give you an editor, even if no Emacs server is running:
 
 @example
@@ -1363,8 +1363,8 @@ EDITOR="emacsclient --alternate-editor emacs +%d %s"
 @end example
 
 @noindent
-The environment variable @var{ALTERNATE_EDITOR} has the same effect, but
-the value of the @samp{--alternate-editor} takes precedence.
+The environment variable @env{ALTERNATE_EDITOR} has the same effect, with
+the value of the @samp{--alternate-editor} option taking precedence.
 
 @pindex emacs.bash
   Alternatively, the file @file{etc/emacs.bash} defines a bash

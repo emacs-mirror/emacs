@@ -285,7 +285,7 @@ are treated as Emacs regular expressions.
 @section HOME Directory on MS-Windows
 @cindex @code{HOME} directory on MS-Windows
 
-  The MS-Windows equivalent of the @code{HOME} directory is the
+  The Windows equivalent of the @code{HOME} directory is the
 @dfn{user-specific application data directory}.  The actual location
 depends on your Windows version and system configuration; typical values
 are @file{C:\Documents and Settings\@var{username}\Application Data} on

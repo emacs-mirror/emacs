@@ -47,6 +47,7 @@ Software Foundation raise funds for GNU development.''
 @c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
 @fonttextsize 10
+\global\hbadness=6000 % don't worry about not-too-underfull boxes
 @end tex
 
 @defcodeindex op

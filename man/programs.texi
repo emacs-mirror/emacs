@@ -1623,11 +1623,11 @@ needs a binding to be useful.  The following code will bind it to
 @kbd{C-j}.  We use @code{c-initialization-hook} here to make sure
 the keymap is loaded before we try to change it.
 
-@example
+@smallexample
 (defun my-bind-clb ()
   (define-key c-mode-base-map "\C-j" 'c-context-line-break))
 (add-hook 'c-initialization-hook 'my-bind-clb)
-@end example
+@end smallexample
 
 @item C-M-h
 Put mark at the end of a function definition, and put point at the

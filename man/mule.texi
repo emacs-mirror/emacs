@@ -545,7 +545,7 @@ shows that information in addition to the other information about the
 character.
 
 @findex list-input-methods
-  To display a list of all the supported input methods, type @kbd{M-x
+  To see a list of all the supported input methods, type @kbd{M-x
 list-input-methods}.  The list gives information about each input
 method, including the string that stands for it in the mode line.
 
