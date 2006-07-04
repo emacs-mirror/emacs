@@ -1,3 +1,8 @@
+2006-07-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* mule.texi (Coding Systems, Specify Coding): Link descriptions
+	of character translation.
+
 2006-07-04  Nick Roberts  <nickrob@snap.net.nz>
 
 	* rmail.texi (Remote Mailboxes): Add missing @code keyword.
