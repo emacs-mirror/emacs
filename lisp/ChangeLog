@@ -5,8 +5,7 @@
 	of set-language-environment-XXX to make INFO effective now.
 	(set-language-environment): Call set-language-environment-XXX
 	functions instead of doing the various setups directly.
-	(set-language-environment-coding-systems): Argument eol-type
-	deleted.
+	(set-language-environment-coding-systems): Delete argument eol-type.
 	(set-language-environment-input-method)
 	(set-language-environment-nonascii-translation)
 	(set-language-environment-charset)
@@ -38,7 +37,7 @@
 
 2006-07-03  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-mode): Removed no invalid settings for
+	* textmodes/org.el (org-mode): Remove no invalid settings for
 	calc embedded mode.
 	(org-mode-p): New defsubst.
 	(org-save-all-org-buffers): New function.
@@ -46,14 +45,33 @@
 	delimiters.
 	(org-set-tags): Keep single space after stars.
 
+2006-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (set-window-text-height): Only set window-min-height to
+	1 if that's the requested size.
+
+	* diff-mode.el (diff-find-file-name): Obey cvs-pcl-cvs-dirchange-re.
+	(diff-unified->context, diff-context->unified)
+	(diff-reverse-direction): Make sure the end marker stays at the end.
+	(diff-mode): Add the keymap table at the end of docstring.
+	Use lexical-let rather than constructing a closure manually.
+
+	* files.el (find-file-noselect-1): Remove unused var assignment.
+	(hack-local-variables-confirm): Print lists of strings as lists of
+	strings rather than lists of symbols.
+	(abbreviate-file-name, hack-local-variables-prop-line):
+	Use match-string.
+	(hack-one-local-variable): Move `make-local-variable' nearer its use.
+	(recover-session-finish): Use line-end-position.
+
 2006-07-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-shell-command): Preserve current-buffer.
 
 2006-07-02  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* progmodes/make-mode.el (makefile-macroassign-regex): Accept
-	preceding keyword.
+	* progmodes/make-mode.el (makefile-macroassign-regex):
+	Accept preceding keyword.
 	(makefile-gmake-statements): Reorganize, now that makepp has
 	"override" and also handle forgotten "override define".
 	(makefile-makepp-statements): Add new "global", "override export"
@@ -72,14 +90,11 @@
 
 2006-06-29  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-prepare-agenda-buffers): Use
-	`invisible-OK' argument for `org-end-of-subtree'.
-	(org-export-cleanup-toc-line): Renamed from
-	`org-html-cleanup-toc-line'.
-	(org-beginning-of-item): Fixed bug in regular expression for white
-	line.
-	(org-export-as-html): Enforce space after bullet in plain list
-	items.
+	* textmodes/org.el (org-prepare-agenda-buffers):
+	Use `invisible-OK' argument for `org-end-of-subtree'.
+	(org-export-cleanup-toc-line): Rename from `org-html-cleanup-toc-line'.
+	(org-beginning-of-item): Fix bug in regular expression for white line.
+	(org-export-as-html): Enforce space after bullet in plain list items.
 	(org-set-autofill-regexps): Require space after plain list bullet
 	for paragraph-start.
 	(org-ts-regexp3): New constant.
@@ -113,12 +128,12 @@
 
 	* textmodes/org.el (org-context): New contexts :item-bullet,
 	:latex-fragment, :latex-preview.
-	(org-overlays-at, org-overlay-start, org-overlay-end): New
-	compatibility functions.
+	(org-overlays-at, org-overlay-start, org-overlay-end):
+	New compatibility functions.
 	(org-inside-LaTeX-fragment-p): More accurate matching, using the
 	exact regexp that will be used during export.
 	(org-latex-regexps): New variable.
-	(org-cdlatex-mode): Improved advice for `texmathp'.
+	(org-cdlatex-mode): Improve advice for `texmathp'.
 	(turn-on-org-cdlatex): New function.
 
 2006-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -127,8 +142,8 @@
 	mac-atsu-font-table from strings to numbers.
 	(mac-ts-caret-position): Use also when cursor-type is nil.
 	(mac-ts-update-active-input-area): Add Mac OS Classic support.
-	Relax condition for using overlay strings.  Use
-	mac-ts-caret-position face when cursor-type is nil.
+	Relax condition for using overlay strings.
+	Use mac-ts-caret-position face when cursor-type is nil.
 
 2006-06-26  Kim F. Storm  <storm@cua.dk>
 
@@ -166,7 +181,7 @@
 	(org-inside-LaTeX-fragment-p, org-try-cdlatex-tab): New functions.
 	(org-cdlatex-underscore-caret, org-cdlatex-math-modify): New commands.
 	(org-export-with-archived-trees): New option.
-	(org-open-file): Removed the call to `convert-standard-filename'.
+	(org-open-file): Remove the call to `convert-standard-filename'.
 	(org-archive-tag, org-agenda-skip-archived-trees)
 	(org-cycle-open-archived-trees)
 	(org-sparse-tree-open-archived-trees): New options.
@@ -288,14 +303,14 @@
 	(org-update-all-dblocks, org-find-dblock): New functions.
 	(org-collect-clock-time-entries): New function.
 	(org-html-handle-time-stamps): Never export CLOCK timeranges.
-	(org-fixup-indentation): Modified to deal correctly with lines
+	(org-fixup-indentation): Modify to deal correctly with lines
 	starting with TAB.  Only one argument DIFF now.
 	(org-demote, org-promote): Call `org-fixup-indentation' with just
 	one argument, DIFF.
 	(org-mode): Don't mark buffer as modified when aligning tables.
 	(org-clock-sum): Don't mark buffer modified when adding time sum
 	properties.
-	(org-export-as-html): Added support for a link validation function.
+	(org-export-as-html): Add support for a link validation function.
 	(org-archive-all-done): New function.
 	(org-archive-subtree): New prefix argument.  When set, archive all
 	done subtrees in this buffer.
@@ -346,9 +361,9 @@
 
 2006-06-18  Ralf Angeli  <angeli@caeruleus.net>
 
-	* textmodes/tex-mode.el (tex-font-lock-match-suscript): Remove
-	superfluous part of regexp for brace matching which is handled by
-	`scan-lists' call.
+	* textmodes/tex-mode.el (tex-font-lock-match-suscript):
+	Remove superfluous part of regexp for brace matching which is handled
+	by `scan-lists' call.
 
 2006-06-16  Richard Stallman  <rms@gnu.org>
 
@@ -498,7 +513,7 @@
 2006-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* diff-mode.el (diff-mode): Set buffer-read-only to t when
-	diff-default-read-only is non-nill.
+	diff-default-read-only is non-nil.
 	(diff-hunk-kill, diff-file-kill, diff-split-hunk)
 	(diff-refine-hunk): Set inhibit-read-only to t.
 
@@ -575,9 +590,9 @@
 	(authors-canonical-file-name): Don't report error for wildcards.
 
 	* help.el (view-emacs-news): Rewrite to support new NEWS,
-	NEWS.major, and NEWS.1-17 file naming.  Add more intelligense,
+	NEWS.major, and NEWS.1-17 file naming.  Add more intelligence,
 	e.g. version 10 matches 1.10, and don't be confused by version 1.1
-	begin a prefix of 1.12 (etc).  A numeric prefix arg also works.
+	being a prefix of 1.12 (etc).  A numeric prefix arg also works.
 
 2006-06-03  Vivek Dasmohapatra  <vivek@etla.org>
 
@@ -716,7 +731,7 @@
 	(org-export-as-html): Many changes to emit valid XHTML.
 	(org-par-open): New variable.
 	(org-open-par, org-close-par-maybe, org-close-li-maybe): New functions.
-	(org-html-do-expand, org-section-number): Fixedcase in `replace-match'.
+	(org-html-do-expand, org-section-number): Fix case in `replace-match'.
 	(org-timeline): Pass `org-timeline-show-empty-dates' to
 	`org-get-all-dates'.  Interpret empty dates returned by
 	`org-get-all-dates'.
