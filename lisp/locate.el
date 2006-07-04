@@ -191,17 +191,37 @@ This should contain the \"-l\" switch, but not the \"-F\" or \"-b\" switches."
   :group 'locate
   :version "22.1")
 
+(defcustom locate-update-when-revert nil
+  "This option affects how the *Locate* buffer gets reverted.
+If non-nil, offer to update the locate database when reverting that buffer.
+\(Normally, you need to have root privileges for this to work.  See the
+option `locate-update-path'.)
+If nil, reverting does not update the locate database."
+  :type 'boolean
+  :group 'locate
+  :version "22.1")
+
 (defcustom locate-update-command "updatedb"
   "The executable program used to update the locate database."
   :type 'string
   :group 'locate)
 
+(defcustom locate-update-path "/"
+  "The default directory from where `locate-update-command' is called.
+Usually, root permissions are required to run that command.  This
+can be achieved by setting this option to \"/su::\" or \"/sudo::\"
+\(if you have the appropriate authority).  If your current user
+permissions are sufficient to run the command, you can set this
+option to \"/\"."
+  :type 'string
+  :group 'locate
+  :version "22.1")
+
 (defcustom locate-prompt-for-command nil
   "If non-nil, the `locate' command prompts for a command to run.
 Otherwise, that behavior is invoked via a prefix argument."
   :group 'locate
-  :type 'boolean
-  )
+  :type 'boolean)
 
 ;; Functions
 
@@ -557,12 +577,18 @@ do not work in subdirectories.
 
 ;; From Stephen Eglen <stephen@cns.ed.ac.uk>
 (defun locate-update (ignore1 ignore2)
-  "Update the locate database.
-Database is updated using the shell command in `locate-update-command'."
+  "Revert the *Locate* buffer.
+If `locate-update-when-revert' is non-nil, offer to update the
+locate database using the shell command in `locate-update-command'."
   (let ((str (car locate-history-list)))
-    (cond ((yes-or-no-p "Update locate database (may take a few seconds)? ")
-	   (shell-command locate-update-command)
-	   (locate str)))))
+    (and locate-update-when-revert
+	 (yes-or-no-p "Update locate database (may take a few seconds)? ")
+	 ;; `expand-file-name' is used in order to autoload Tramp if
+	 ;; necessary.  It cannot be loaded when `default-directory'
+	 ;; is remote.
+	 (let ((default-directory (expand-file-name locate-update-path)))
+	   (shell-command locate-update-command)))
+    (locate str)))
 
 ;;; Modified three functions from `dired.el':
 ;;;   dired-find-directory,
