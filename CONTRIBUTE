@@ -10,7 +10,7 @@ the Emacs distribution, the Emacs web pages also contain much
 information.
 
 You may also want to submit your change so that can be considered for
-conclusion in a future version of Emacs (see below).
+inclusion in a future version of Emacs (see below).
 
 If you don't feel up to hacking Emacs, there are still plenty of ways to
 help!  You can answer questions on the mailing lists, write
@@ -23,7 +23,8 @@ work in progress.
 Ref: http://www.gnu.org/software/emacs/
 
 Finally, there are certain legal requirements and style issues which
-all contributors need to be aware of.
+all contributors need to be aware of:
+
 
 o	Coding Standards
 
@@ -34,6 +35,7 @@ o	Coding Standards
 	Emacs has certain additional coding requirements.
 
 	Ref: http://www.gnu.org/prep/standards_toc.html
+	Ref: Standards Info Manual
 
 
 o	Copyright Assignment
@@ -41,14 +43,11 @@ o	Copyright Assignment
 	Before we can accept code contributions from you, we need a
 	copyright assignment form filled out and filed with the FSF.
 
-	See some documentation by the FSF for details and contact us
-	via the Emacs mailing list to obtain the relevant
+	Contact us via the Emacs mailing list to obtain the relevant
 	forms.
 
 	Small changes can be accepted without a copyright assignment
 	form on file.
-
-	Ref: http://www.gnu.org/prep/maintain.html#SEC6
 
 
 o	Getting the Source Code
@@ -57,7 +56,7 @@ o	Getting the Source Code
 	from the Savannah web site.  It is important that you submit
 	your patch using this version, as any bug in a released version
 	of Emacs may already be fixed.  It also makes it easier for
-	others to test your patch,
+	others to test your patch.
 	
 	Ref: http://savannah.gnu.org/projects/emacs
 
@@ -76,34 +75,35 @@ o	Submitting Patches
 	A ChangeLog entry as plaintext (separate from the patch); see
 	the various ChangeLog files for format and content. Note that,
 	unlike some other projects, we do require ChangeLogs also for
-	documentation (i.e., .texi files).
+	documentation i.e. texinfo files.
 
-	The patch itself. If you are accessing the CVS repository use
-	"cvs update; cvs diff -cp"; else, use "diff -cp OLD NEW" or
-	"diff -up OLD NEW". If your version of diff does not support
-	these options, then get the latest version of GNU diff.
+	Ref: Change Log Concepts node of the Standards Info Manual
+
+	The patch itself.  If you are accessing the CVS repository use
+	"cvs update; cvs diff -cp"; else, use "diff -cp OLD NEW".  If
+	your version of diff does not support these options, then get
+	the latest version of GNU diff.
 
 	We accept patches as plain text (preferred for the compilers
-	themselves), MIME attachments (preferred for the web pages),
-	or as uuencoded gzipped text.
+	themselves), MIME attachments (preferred for the web pages), or
+	as uuencoded gzipped text.
 
 	When you have all these pieces, bundle them up in a mail message
 	and send it to emacs-pretest-bug@gnu.org or emacs-devel@gnu.org.
-	All patches and related discussion should be sent to the
-	emacs-pretest-bug mailinglist. 
+	All subsequent discussion should also be sent to the mailing
+	list.
 
 
 o	Please read your patch before submitting it.
 
-	A patch containing several unrelated changes or
-	arbitrary reformats will be returned with a request
-	to re-formatting / split it.
+	A patch containing several unrelated changes reformats will be
+	returned with a request to send them separately.
 	
 
 o	Supplemental information for Emacs Developers:
 
-	If you wish to contribute to Emacs on a regular basis then
-	you may be given write access to the CVS repository.
+	If you wish to contribute to Emacs on a regular basis then you
+	may be given write access to the CVS repository.
 	
 	Discussion about Emacs development takes place on
 	emacs-devel@gnu.org.
@@ -113,8 +113,8 @@ o	Supplemental information for Emacs Developers:
 	add an item to the NEWS file.
 
 	The best way to understand Emacs Internals is to read the code
-	but there is also a node "GNU Emacs Internals" in the Appendix
-	of the Emacs Lisp Reference Manual that may help.
+	but the  nodes "Tips" and "GNU Emacs Internals" in the Appendix
+	of the Emacs Lisp Reference Manual may also help.
 
 	The file DEBUG describes how to debug Emacs.
 
