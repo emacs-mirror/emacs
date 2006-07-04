@@ -1,3 +1,11 @@
+2006-07-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* locate.el (locate-update-when-revert): New option.
+	(locate-update-path): New option (suggested by Michael Albinus).
+	(locate-prompt-for-command): Whitespace change.
+	(locate-update): No longer offer to update the locate database by
+	default.  Implement the two new options.
+
 2006-07-04  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tooltip.el: Move comment about track-mouse...

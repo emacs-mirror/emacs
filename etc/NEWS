@@ -3494,6 +3494,15 @@ For example, these two sequences of expressions behave identically:
 (defun PP (data) (insert (format "%S\n" data)))
 (ewoc-create 'PP "start\n\n" "\n" t)
 
+** Locate changes
+
+---
+*** By default, reverting the *Locate* buffer now just runs the last
+`locate' command back over again without offering to update the locate
+database (which normally only works if you have root privileges).  If
+you prefer the old behavior, set the new customizable option
+`locate-update-when-revert' to t.
+
 
 * Changes in Emacs 22.1 on non-free operating systems
 
