@@ -24,6 +24,15 @@ so we will look at it and add it to the manual.
 * Installation Changes in Emacs 22.1
 
 ---
+** Emacs comes with a new set of icons.
+These icons are displayed on the taskbar and/or titlebar when Emacs
+runs in a graphical environment.  Source files for these icons can be
+found in etc/images/icons.  (You can't change the icons displayed by
+Emacs by changing these files directly.  On X, the icon is compiled
+into the Emacs executable; see gnu.h in the source tree.  On MS
+Windows, see nt/icons/emacs.ico.)
+
+---
 ** Emacs now supports new configure options `--program-prefix',
 `--program-suffix' and `--program-transform-name' that affect the names of
 installed programs.
@@ -136,6 +145,10 @@ terminfo name, since term.el now supports color.
 
 ---
 ** Emacs Lisp source files are compressed by default if `gzip' is available.
+
+---
+** All images used in Emacs have been consolidated in etc/images and subdirs.
+See also the changes to `find-image', documented below.
 
 
 * Startup Changes in Emacs 22.1
