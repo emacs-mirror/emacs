@@ -721,6 +721,7 @@ handles end-of-line conversion based on the data encountered, and has
 the usual three variants to specify the kind of end-of-line conversion.
 
 @findex unify-8859-on-decoding-mode
+@anchor{Character Translation} 
   The @dfn{character translation} feature can modify the effect of
 various coding systems, by changing the internal Emacs codes that
 decoding produces.  For instance, the command
@@ -885,12 +886,11 @@ the coding explicitly in the file, that overrides
 @code{file-coding-system-alist}.
 
   If you add the character @samp{!} at the end of the coding system
-name in @code{coding}, it disables any character translation while
-decoding the file.  For instance, it effectively cancels the effect of
-@code{unify-8859-on-decoding-mode}.  This is useful when you need to
-make sure that the character codes in the Emacs buffer will not vary
-due to changes in user settings; for instance, for the sake of strings
-in Emacs Lisp source files.
+name in @code{coding}, it disables any character translation
+(@pxref{Character Translation}) while decoding the file.  This is
+useful when you need to make sure that the character codes in the
+Emacs buffer will not vary due to changes in user settings; for
+instance, for the sake of strings in Emacs Lisp source files.
 
 @node Output Coding
 @section Choosing Coding Systems for Output
