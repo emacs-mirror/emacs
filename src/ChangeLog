@@ -1,3 +1,7 @@
+2006-07-04  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (x_delete_display): Don't free or derefence NULL pointers.
+
 2006-07-04  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Fset_overriding_fontspec_internal): Check if we need
