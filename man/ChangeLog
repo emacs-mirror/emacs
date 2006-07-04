@@ -4,7 +4,7 @@
 
 2006-07-03  Karl Berry  <karl@gnu.org>
 
-	* emacs.texi (\hbadness): set to 6000 so we aren't bothered by
+	* emacs.texi (\hbadness): Set to 6000 so we aren't bothered by
 	not-too-underfull hboxes in the TeX output.
 	* abbrevs.texi, buffers.texi, building.texi, calendar.texi,
 	cmdargs.texi, custom.texi, dired.texi, macos.texi,
@@ -123,8 +123,7 @@
 
 	* org.texi (Embedded LaTeX): New chapter.
 	(Archiving): Section rewritten.
-	(Enhancing text): Some parts moved to the new chapter about
-	LaTeX.
+	(Enhancing text): Some parts moved to the new chapter about LaTeX.
 
 2006-06-20  Bill Wohler  <wohler@newt.com>
 
@@ -140,7 +139,7 @@
 
 2006-06-19  Karl Berry  <karl@gnu.org>
 
-	* info.texi (Advanced): mention C-q, especially with ?.
+	* info.texi (Advanced): Mention C-q, especially with ?.
 
 2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -174,6 +173,17 @@
 
 	* cmdargs.texi (General Variables): Fix smtpmail xref.
 
+2006-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* viper.texi (Viper Specials):
+	* programs.texi (Comment Commands):
+	* gnus.texi (Example Setup):
+	* faq.texi (Backspace invokes help):
+	* dired-x.texi (Optional Installation Dired Jump):
+	* custom.texi (Specifying File Variables):
+	* calc.texi (Defining Simple Commands): Use ;; instead of ;;; to better
+	follow coding conventions.
+
 2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
@@ -182,7 +192,7 @@
 
 	* building.texi (Watch Expressions): Move node to end.
 	(GDB Graphical Interface): Move description of clicks in fringe...
-        (GDB commands in the Fringe): ...to here.  New node.
+	(GDB commands in the Fringe): ...to here.  New node.
 
 2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -227,8 +237,8 @@
 2006-06-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Update bindings.
-	(Commands of GUD): Add gud-print.  Remove gud-run.  Restate
-	availability more generally.
+	(Commands of GUD): Add gud-print.  Remove gud-run.
+	Restate availability more generally.
 
 2006-06-03  Ted Zlatanov  <tzz@lifelogs.com>
 
@@ -288,8 +298,8 @@
 
 2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Plain lists): Added new item navigation commands.
-	(External links): Documented elisp and info links.
+	* org.texi: (Plain lists): Add new item navigation commands.
+	(External links): Document elisp and info links.
 	(Custom searches): New section.
 	(Publishing): New chapter.
 	(HTML export): Include a list of supported CSS classes.
@@ -353,8 +363,8 @@
 	(MIME): Describe mml-dnd-protocol-alist and
 	mml-dnd-attach-options.
 
-	* gnus.texi (Oort Gnus): Reorder entries in sections.  Fix some
-	entries.
+	* gnus.texi (Oort Gnus): Reorder entries in sections.
+	Fix some entries.
 	(Starting Up): Add references to "Emacs for Heathens" and to
 	"Finding the News".  Add user-full-name and user-mail-address.
 	(Group Buffer Format): Add tool bar customization and update.
@@ -377,8 +387,8 @@
 
 	* files.texi (Visiting): Fix wording.
 
-	* mule.texi (Coding Systems, Text Coding): More indexing.  Mention
-	that C-x RET f can set eol conversion.
+	* mule.texi (Coding Systems, Text Coding): More indexing.
+	Mention that C-x RET f can set eol conversion.
 
 2006-05-09  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -386,7 +396,7 @@
 
 2006-05-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xresmini.texi (GTK resources): Inserted GTK description.
+	* xresmini.texi (GTK resources): Insert GTK description.
 
 	* xresources.texi (GTK resources): metafont should be menufont.
 
@@ -694,8 +704,8 @@
 
 2006-04-20  Chong Yidong <cyd@stupidchicken.com>
 
-	* gnus.texi (Spam Package): Major revision of the text.  Previouly
-	this node was "Filtering Spam Using The Spam ELisp Package".
+	* gnus.texi (Spam Package): Major revision of the text.
+	Previouly this node was "Filtering Spam Using The Spam ELisp Package".
 
 2006-04-20  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -706,7 +716,7 @@
 
 2006-04-18  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* misc.texi (Shell Ring): Added notes on saved input when
+	* misc.texi (Shell Ring): Add notes on saved input when
 	navigating off the end of the history list.
 
 2006-04-18  Chong Yidong  <cyd@mit.edu>
@@ -716,7 +726,7 @@
 
 2006-04-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi (Formula syntax): Fixed link to Calc Manual.
+	* org.texi (Formula syntax): Fix link to Calc Manual.
 
 2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -724,7 +734,7 @@
 
 2006-04-17  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.texi (Folders): Updated mh-before-quit-hook and
+	* mh-e.texi (Folders): Update mh-before-quit-hook and
 	mh-quit-hook example with code that removes the buffers rather
 	than just bury them.
 
@@ -762,15 +772,15 @@
 
 2006-04-11  Karl Berry  <karl@gnu.org>
 
-        * emacs-xtra.texi, emacs.texi (Dired under VC, VC Dired Commands,
-         Remote Repositories, Version Backups, Local Version Control,
-         Snapshots, Making and Using Snapshots, Snapshot Caveats,
-         Miscellaneous Commands and Features of VC, Change Logs and VC,
-         Renaming VC Work Files and Master Files,
-         Inserting Version Control Headers, Customizing VC, General Options,
-         Options for RCS and SCCS, Options specific for CVS): move all
-	 these nodes to emacs-xtra.texi, for brevity.
-	 * cmdargs.texi, files.texi: change cross-references.
+	* emacs-xtra.texi, emacs.texi (Dired under VC, VC Dired Commands)
+	(Remote Repositories, Version Backups, Local Version Control)
+	(Snapshots, Making and Using Snapshots, Snapshot Caveats)
+	(Miscellaneous Commands and Features of VC, Change Logs and VC)
+	(Renaming VC Work Files and Master Files)
+	(Inserting Version Control Headers, Customizing VC, General Options)
+	(Options for RCS and SCCS, Options specific for CVS): Move all
+	these nodes to emacs-xtra.texi, for brevity.
+	* cmdargs.texi, files.texi: change cross-references.
 
 2006-04-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -790,7 +800,7 @@
 
 	* org.texi (Link format): New section, emphasis on bracket links.
 	(External links): Document bracket links.
-	(FAQ): Expanded to cover shell links and the new link format.
+	(FAQ): Expand to cover shell links and the new link format.
 
 2006-04-09  Kevin Ryde  <user42@zip.com.au>
 
@@ -816,8 +826,8 @@
 
 2006-04-07  Jochen K,A|(Bpper  <jochen@fhi-berlin.mpg.de>
 
-	* gnus.texi (Group Parameters): Mention
-	gnus-permanently-visible-groups.
+	* gnus.texi (Group Parameters):
+	Mention gnus-permanently-visible-groups.
 
 2006-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -847,8 +857,7 @@
 
 2006-04-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* killing.texi (Rectangles): Add index entry for marking a
-	rectangle.
+	* killing.texi (Rectangles): Add index entry for marking a rectangle.
 
 2006-04-06  J.D. Smith  <jdsmith@as.arizona.edu>
 
@@ -908,7 +917,7 @@
 	* dired.texi: Many cleanups.
 	(Dired Deletion): Describe dired-recursive-deletes.
 	(Operating on Files): dired-create-directory moved.
-	(Misc Dired Features): Moved to here.
+	(Misc Dired Features): Move to here.
 	(Tumme): Node moved to misc.texi.
 
 	* custom.texi: Many cleanups.
@@ -989,8 +998,7 @@
 
 2006-03-21  Andre Spiegel  <spiegel@gnu.org>
 
-	* files.texi: Various updates and clarifications in the VC
-	chapter.
+	* files.texi: Various updates and clarifications in the VC chapter.
 
 2006-03-19  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -998,8 +1006,8 @@
 
 2006-03-19  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.texi (Replying): Document Mail-Followup-To.  Change
-	manually-formatted table to multitable.  Add debugging info.
+	* mh-e.texi (Replying): Document Mail-Followup-To.
+	Change manually-formatted table to multitable.  Add debugging info.
 	Move description of mh-reply-default-reply-to into paragraph
 	that describes its values.
 
@@ -1024,7 +1032,7 @@
 	* programs.texi (Fortran): Section moved to emacs-xtra.
 	(Program Modes): Xref to Fortran in emacs-xtra.
 
-	* maintaining.texi (Emerge): Moved to emacs-xtra.
+	* maintaining.texi (Emerge): Move to emacs-xtra.
 	* files.texi (Comparing Files): Xref to Emerge in emacs-xtra.
 
 	* picture.texi: File deleted.
@@ -1053,8 +1061,7 @@
 	use of heading produced very large fonts in Info--as large as the
 	main heading.
 	(From Bill Wohler): MH-E never did appear in Emacs 21--MH-E
-	versions 6 and 7 appeared *around* the time of these Emacs
-	releases.
+	versions 6 and 7 appeared *around* the time of these Emacs releases.
 
 2006-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -1248,8 +1255,8 @@
 
 2006-02-15  Nick Roberts  <nickrob@snap.net.nz>
 
-	* building.texi (GDB Graphical Interface): Replace
-	gdb-use-inferior-io-buffer with gdb-use-separate-io-buffer.
+	* building.texi (GDB Graphical Interface):
+	Replace gdb-use-inferior-io-buffer with gdb-use-separate-io-buffer.
 
 2006-02-13  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1268,7 +1275,7 @@
 
 2006-02-12  Karl Berry  <karl@gnu.org>
 
-	* faq.texi (Emacs for Atari ST): use Sch@"auble instead of the
+	* faq.texi (Emacs for Atari ST): Use Sch@"auble instead of the
 	8-bit accented a.
 
 2006-02-12  Richard M. Stallman  <rms@gnu.org>
@@ -1297,7 +1304,7 @@
 
 2006-02-11  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* dired.texi (Tumme): Fixed small bug.
+	* dired.texi (Tumme): Fix small bug.
 
 2006-02-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -1379,7 +1386,7 @@
 
 	* mule.texi (Communication Coding): Say "other applications".
 	(Fontsets): Not specific to X.  Add xref to X Resources.
-	(Unibyte Mode): Renamed from Single-Byte Character Support.
+	(Unibyte Mode): Rename from Single-Byte Character Support.
 	"Graphical display", not window system.
 	(International): Update menu.
 
@@ -1467,7 +1474,7 @@
 	* mule.texi: Minor clarifications.
 	Reduce the specific references to X Windows.
 	Refer to "graphical" terminals, rather than window systems.
-	(Text Coding): Renamed from Specify Coding.
+	(Text Coding): Rename from Specify Coding.
 	(Communication Coding, File Name Coding, Terminal Coding):
 	New nodes split out from Text Coding.
 
@@ -1556,18 +1563,17 @@
 
 	* emacs.texi (Top): Update subnode menus.
 
-	* basic.texi (Basic Undo): Renamed from Undo.  Most of text
+	* basic.texi (Basic Undo): Rename from Undo.  Most of text
 	moved to new Undo node.
 
 2006-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
-	* makefile.w32-in (clean): Add newsticker, sieve, pgg, erc and
-	rcirc.
+	* makefile.w32-in (clean): Add newsticker, sieve, pgg, erc and rcirc.
 
 2006-01-29  Chong Yidong  <cyd@stupidchicken.com>
 
-	* basic.texi (Continuation Lines, Inserting Text): Mention
-	longlines mode.
+	* basic.texi (Continuation Lines, Inserting Text):
+	Mention longlines mode.
 
 2006-01-29  Richard M. Stallman  <rms@gnu.org>
 
@@ -1619,8 +1625,7 @@
 
 2006-01-28  Bj,Av(Brn Lindstr,Av(Bm  <bkhl@elektrubadur.se>
 
-	* rcirc.texi: Some @cindex changes, some changes from @kbd to
-	@key.
+	* rcirc.texi: Some @cindex changes, some changes from @kbd to @key.
 
 2006-01-27  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1650,8 +1655,7 @@
 	Sync with Tramp 2.0.52.
 
 	* tramp.texi (Frequently Asked Questions): Remove Ange-FTP item.
-	Add Tramp disabling item.  New item for common connection
-	problems.
+	Add Tramp disabling item.  New item for common connection problems.
 	(various): Apply "ftp" as method for the download URL.
 	(Bug Reports): Refer to FAQ for common problems.
 
@@ -1712,8 +1716,8 @@
 
 2006-01-11  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* custom.texi (Changing a Variable, Face Customization): Update
-	for changes in Custom menus.
+	* custom.texi (Changing a Variable, Face Customization):
+	Update for changes in Custom menus.
 
 2006-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -1889,7 +1893,7 @@
 
 2005-12-12  Jay Belanger  <belanger@truman.edu>
 
-	* faq.texi (Calc): Updated version number.
+	* faq.texi (Calc): Update version number.
 
 2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
 

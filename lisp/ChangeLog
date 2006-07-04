@@ -1,3 +1,11 @@
+2006-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* thingatpt.el (symbol-at-point): Don't use `form-at-point' which
+	fails if the symbol contains chars like ( or '.
+	(bounds-of-thing-at-point): Remove unused vars `end' and `beg'.
+	(thing-at-point-bounds-of-url-at-point): Remove unused vars `url' and
+	`short'.
+
 2006-07-04  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (set-language-info): If LANG-ENV is
