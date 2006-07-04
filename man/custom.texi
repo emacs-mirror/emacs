@@ -1112,16 +1112,16 @@ variables list afterward.
   Here is an example of a local variables list:
 
 @example
-;;; Local Variables: ***
-;;; mode:lisp ***
-;;; comment-column:0 ***
-;;; comment-start: ";;; "  ***
-;;; comment-end:"***" ***
-;;; End: ***
+;; Local Variables: **
+;; mode:lisp **
+;; comment-column:0 **
+;; comment-start: ";; "  **
+;; comment-end:"**" **
+;; End: **
 @end example
 
-  Each line starts with the prefix @samp{;;; } and each line ends with
-the suffix @samp{ ***}.  Emacs recognizes these as the prefix and
+  Each line starts with the prefix @samp{;; } and each line ends with
+the suffix @samp{ **}.  Emacs recognizes these as the prefix and
 suffix based on the first line of the list, by finding them
 surrounding the magic string @samp{Local Variables:}; then it
 automatically discards them from the other lines of the list.
@@ -1129,8 +1129,8 @@ automatically discards them from the other lines of the list.
   The usual reason for using a prefix and/or suffix is to embed the
 local variables list in a comment, so it won't confuse other programs
 that the file is intended as input for.  The example above is for a
-language where comment lines start with @samp{;;; } and end with
-@samp{***}; the local values for @code{comment-start} and
+language where comment lines start with @samp{;; } and end with
+@samp{**}; the local values for @code{comment-start} and
 @code{comment-end} customize the rest of Emacs for this unusual
 syntax.  Don't use a prefix (or a suffix) if you don't need one.
 

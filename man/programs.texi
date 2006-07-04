@@ -954,10 +954,10 @@ these conventions by indenting a double-semicolon comment using @key{TAB},
 and by not changing the indentation of a triple-semicolon comment at all.
 
 @example
-;; This function is just an example
-;;; Here either two or three semicolons are appropriate.
+;; This function is just an example.
+;; Here either two or three semicolons are appropriate.
 (defun foo (x)
-;;; And now, the first part of the function:
+;;;  And now, the first part of the function:
   ;; The following line adds one.
   (1+ x))           ; This line adds one.
 @end example

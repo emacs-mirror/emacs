@@ -18849,20 +18849,20 @@ setup, you may be able to use something like the following as your
 @file{~/.gnus.el} file to get started.
 
 @lisp
-;;; @r{Define how Gnus is to fetch news.  We do this over @acronym{NNTP}}
-;;; @r{from your ISP's server.}
+;; @r{Define how Gnus is to fetch news.  We do this over @acronym{NNTP}}
+;; @r{from your ISP's server.}
 (setq gnus-select-method '(nntp "news.your-isp.com"))
 
-;;; @r{Define how Gnus is to read your mail.  We read mail from}
-;;; @r{your ISP's @acronym{POP} server.}
+;; @r{Define how Gnus is to read your mail.  We read mail from}
+;; @r{your ISP's @acronym{POP} server.}
 (setq mail-sources '((pop :server "pop.your-isp.com")))
 
-;;; @r{Say how Gnus is to store the mail.  We use nnml groups.}
+;; @r{Say how Gnus is to store the mail.  We use nnml groups.}
 (setq gnus-secondary-select-methods '((nnml "")))
 
-;;; @r{Make Gnus into an offline newsreader.}
-;;; (gnus-agentize) ; @r{The obsolete setting.}
-;;; (setq gnus-agent t) ; @r{Now the default.}
+;; @r{Make Gnus into an offline newsreader.}
+;; (gnus-agentize) ; @r{The obsolete setting.}
+;; (setq gnus-agent t) ; @r{Now the default.}
 @end lisp
 
 That should be it, basically.  Put that in your @file{~/.gnus.el} file,

@@ -4532,7 +4532,7 @@ instead:
 @lisp
 (global-set-key "\C-h" 'delete-backward-char)
 
-;;; overrides mark-whole-buffer
+;; overrides mark-whole-buffer
 (global-set-key "\C-xh" 'help-command)
 @end lisp
 
@@ -4664,7 +4664,7 @@ under X).  For many terminals (notably DEC terminals) @key{F11}
 generates @key{ESC}.  If not, the following form can be used to bind it:
 
 @lisp
-;;; F11 is the documented ESC replacement on DEC terminals.
+;; F11 is the documented ESC replacement on DEC terminals.
 (define-key function-key-map [f11] [?\e])
 @end lisp
 
