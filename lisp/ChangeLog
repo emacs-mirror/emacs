@@ -1,3 +1,18 @@
+2006-07-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-info): If LANG-ENV is
+	the current one, don't call set-language-environment, but call one
+	of set-language-environment-XXX to make INFO effective now.
+	(set-language-environment): Call set-language-environment-XXX
+	functions instead of doing the various setups directly.
+	(set-language-environment-coding-systems): Argument eol-type
+	deleted.
+	(set-language-environment-input-method)
+	(set-language-environment-nonascii-translation)
+	(set-language-environment-charset)
+	(set-language-environment-fontset)
+	(set-language-environment-unibyte): New functions.
+
 2006-07-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* locate.el (locate-update-when-revert): New option.
