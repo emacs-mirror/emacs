@@ -1128,7 +1128,19 @@ see `language-info-alist'."
       (setq lang-env (symbol-name lang-env)))
   (set-language-info-internal lang-env key info)
   (if (equal lang-env current-language-environment)
-      (set-language-environment lang-env)))
+      (cond ((eq key 'coding-priority)
+	     (set-language-environment-coding-systems lang-env))
+	    ((eq key 'input-method)
+	     (set-language-environment-input-method lang-env))
+	    ((eq key 'nonascii-translation)
+	     (set-language-environment-nonascii-translation lang-env))
+	    ((eq key 'charset)
+	     (set-language-environment-charset lang-env))
+	    ((eq key 'overriding-fontspec)
+	     (set-language-environment-fontset lang-env))
+	    ((and (not default-enable-multibyte-characters)
+		  (or (eq key 'unibyte-syntax) (eq key 'unibyte-display)))
+	     (set-language-environment-unibyte lang-env)))))
 
 (defun set-language-info-internal (lang-env key info)
   "Internal use only.
@@ -1835,92 +1847,29 @@ specifies the character set for the major languages of Western Europe."
 				     'exit-function)))
 	(run-hooks 'exit-language-environment-hook)
 	(if (functionp func) (funcall func))))
-  (let ((default-eol-type (coding-system-eol-type
-			   default-buffer-file-coding-system)))
-    (reset-language-environment)
 
-    ;; The features might set up coding systems.
-    (let ((required-features (get-language-info language-name 'features)))
-      (while required-features
-	(require (car required-features))
-	(setq required-features (cdr required-features))))
-
-    (setq current-language-environment language-name)
-    (set-language-environment-coding-systems language-name default-eol-type))
-  (let ((input-method (get-language-info language-name 'input-method)))
-    (when input-method
-      (setq default-input-method input-method)
-      (if input-method-history
-	  (setq input-method-history
-		(cons input-method
-		      (delete input-method input-method-history))))))
-  (let ((nonascii (get-language-info language-name 'nonascii-translation))
-	(dos-table
-	 (if (eq window-system 'pc)
-	     (intern
-	      (format "cp%d-nonascii-translation-table" dos-codepage)))))
-    (cond
-     ((char-table-p nonascii)
-      (setq nonascii-translation-table nonascii))
-     ((and (eq window-system 'pc) (boundp dos-table))
-      ;; DOS terminals' default is to use a special non-ASCII translation
-      ;; table as appropriate for the installed codepage.
-      (setq nonascii-translation-table (symbol-value dos-table)))
-     ((charsetp nonascii)
-      (setq nonascii-insert-offset (- (make-char nonascii) 128)))))
-
-  ;; Unibyte setups if necessary.
-  (unless default-enable-multibyte-characters
-    ;; Syntax and case table.
-    (let ((syntax (get-language-info language-name 'unibyte-syntax)))
-      (if syntax
-	  (let ((set-case-syntax-set-multibyte nil))
-	    (load syntax nil t))
-	;; No information for syntax and case.  Reset to the defaults.
-	(let ((syntax-table (standard-syntax-table))
-	      (standard-table (standard-case-table))
-	      (case-table (make-char-table 'case-table))
-	      (ch (if (eq window-system 'pc) 128 160)))
-	  (while (< ch 256)
-	    (modify-syntax-entry ch " " syntax-table)
-	    (setq ch (1+ ch)))
-	  (dotimes (i 128)
-	    (aset case-table i (aref standard-table i)))
-	  (set-char-table-extra-slot case-table 0 nil)
-	  (set-char-table-extra-slot case-table 1 nil)
-	  (set-char-table-extra-slot case-table 2 nil)
-	  (set-standard-case-table case-table))
-	(let ((list (buffer-list)))
-	  (while list
-	    (with-current-buffer (car list)
-	      (set-case-table (standard-case-table)))
-	    (setq list (cdr list))))))
-    (set-display-table-and-terminal-coding-system language-name))
-
+  (reset-language-environment)
+  ;; The features might set up coding systems.
   (let ((required-features (get-language-info language-name 'features)))
     (while required-features
       (require (car required-features))
       (setq required-features (cdr required-features))))
 
-  ;; Don't invoke fontset-related functions if fontsets aren't
-  ;; supported in this build of Emacs.
-  (when (fboundp 'fontset-list)
-    (let ((overriding-fontspec (get-language-info language-name
-						  'overriding-fontspec)))
-      (if overriding-fontspec
-	  (set-overriding-fontspec-internal overriding-fontspec))))
+  (setq current-language-environment language-name)
+
+  (set-language-environment-coding-systems language-name)
+  (set-language-environment-input-method language-name)
+  (set-language-environment-nonascii-translation language-name)
+  (set-language-environment-charset language-name)
+  (set-language-environment-fontset language-name)
+  ;; Unibyte setups if necessary.
+  (unless default-enable-multibyte-characters
+    (set-language-environment-unibyte language-name))
 
   (let ((func (get-language-info language-name 'setup-function)))
     (if (functionp func)
 	(funcall func)))
-  (if (and utf-translate-cjk-mode
-	   (not (eq utf-translate-cjk-lang-env language-name))
-	   (catch 'tag
-	     (dolist (charset (get-language-info language-name 'charset))
-	       (if (memq charset utf-translate-cjk-charsets)
-		   (throw 'tag t)))
-	     nil))
-      (utf-translate-cjk-load-tables))
+
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
 
@@ -1949,14 +1898,11 @@ specifies the character set for the major languages of Western Europe."
 	;; proper windows-1252 coding system.  --fx]
 	(aset standard-display-table 146 [39]))))
 
-(defun set-language-environment-coding-systems (language-name
-						&optional eol-type)
-  "Do various coding system setups for language environment LANGUAGE-NAME.
-
-The optional arg EOL-TYPE specifies the eol-type of the default value
-of `buffer-file-coding-system' set by this function."
+(defun set-language-environment-coding-systems (language-name)
+  "Do various coding system setups for language environment LANGUAGE-NAME."
   (let* ((priority (get-language-info language-name 'coding-priority))
-	 (default-coding (car priority)))
+	 (default-coding (car priority))
+	 (eol-type (coding-system-eol-type default-buffer-file-coding-system)))
     (if priority
 	(let ((categories (mapcar 'coding-system-category priority)))
 	  (set-default-coding-systems
@@ -1970,6 +1916,80 @@ of `buffer-file-coding-system' set by this function."
 	    (setq priority (cdr priority) categories (cdr categories)))
 	  ;; Changing the binding of a coding category requires this call.
 	  (update-coding-systems-internal)))))
+
+(defun set-language-environment-input-method (language-name)
+  "Do various input method setups for language environment LANGUAGE-NAME."
+  (let ((input-method (get-language-info language-name 'input-method)))
+    (when input-method
+      (setq default-input-method input-method)
+      (if input-method-history
+	  (setq input-method-history
+		(cons input-method
+		      (delete input-method input-method-history)))))))
+
+(defun set-language-environment-nonascii-translation (language-name)
+  "Do unibyte/multibyte translation setup for language environment LANGUAGE-NAME."
+  (let ((nonascii (get-language-info language-name 'nonascii-translation))
+	(dos-table
+	 (if (eq window-system 'pc)
+	     (intern
+	      (format "cp%d-nonascii-translation-table" dos-codepage)))))
+    (cond
+     ((char-table-p nonascii)
+      (setq nonascii-translation-table nonascii))
+     ((and (eq window-system 'pc) (boundp dos-table))
+      ;; DOS terminals' default is to use a special non-ASCII translation
+      ;; table as appropriate for the installed codepage.
+      (setq nonascii-translation-table (symbol-value dos-table)))
+     ((charsetp nonascii)
+      (setq nonascii-insert-offset (- (make-char nonascii) 128))))))
+
+(defun set-language-environment-charset (language-name)
+  "Do various charset setups for language environment LANGUAGE-NAME."
+  (if (and utf-translate-cjk-mode
+	   (not (eq utf-translate-cjk-lang-env language-name))
+	   (catch 'tag
+	     (dolist (charset (get-language-info language-name 'charset))
+	       (if (memq charset utf-translate-cjk-charsets)
+		   (throw 'tag t)))
+	     nil))
+      (utf-translate-cjk-load-tables)))
+
+(defun set-language-environment-fontset (language-name)
+  "Do various fontset setups for language environment LANGUAGE-NAME."
+  ;; Don't invoke fontset-related functions if fontsets aren't
+  ;; supported in this build of Emacs.
+  (if (fboundp 'fontset-list)
+      (set-overriding-fontspec-internal
+       (get-language-info language-name 'overriding-fontspec))))
+
+(defun set-language-environment-unibyte (language-name)
+  "Do various unibyte-mode setups for language environment LANGUAGE-NAME."
+  ;; Syntax and case table.
+  (let ((syntax (get-language-info language-name 'unibyte-syntax)))
+    (if syntax
+	(let ((set-case-syntax-set-multibyte nil))
+	  (load syntax nil t))
+      ;; No information for syntax and case.  Reset to the defaults.
+      (let ((syntax-table (standard-syntax-table))
+	    (standard-table (standard-case-table))
+	    (case-table (make-char-table 'case-table))
+	    (ch (if (eq window-system 'pc) 128 160)))
+	(while (< ch 256)
+	  (modify-syntax-entry ch " " syntax-table)
+	  (setq ch (1+ ch)))
+	(dotimes (i 128)
+	  (aset case-table i (aref standard-table i)))
+	(set-char-table-extra-slot case-table 0 nil)
+	(set-char-table-extra-slot case-table 1 nil)
+	(set-char-table-extra-slot case-table 2 nil)
+	(set-standard-case-table case-table))
+      (let ((list (buffer-list)))
+	(while list
+	  (with-current-buffer (car list)
+	    (set-case-table (standard-case-table)))
+	  (setq list (cdr list))))))
+  (set-display-table-and-terminal-coding-system language-name))
 
 (defsubst princ-list (&rest args)
   "Print all arguments with `princ', then print \"\n\"."
