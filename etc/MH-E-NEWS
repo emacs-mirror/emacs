@@ -6,6 +6,30 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 8.0.2
+
+Version 8.0.2 fixes the tool bar and `F n' on XEmacs, and `K a' on GNU
+mailutils.
+
+** Bug Fixes in MH-E 8.0.2
+
+*** Tool Bar Not Displayed in XEmacs
+
+The MH-E tool bar didn't show up in XEmacs; now it does. Thanks to Ted
+Phelps <phelps@gnusto.com> (closes SF #1506846).
+
+*** mh-mime-save-parts Assumes -store Default
+
+It was assumed that -store was the default for both mhn and mhstore.
+This has been fixed by using -store except when using nmh. Thanks to
+Sergey Poznyakoff <gray@Mirddin.farlep.net> (closes SF #1513140).
+
+*** F-n Doesn't Work
+
+The fix for SF #1499712 broke `F n' (`mh-index-new-messages') on
+XEmacs since a regular expression that XEmacs could not handle was
+added. This regexp has been fixed (closes SF #1514424).
+
 * Changes in MH-E 8.0.1
 
 Version 8.0.1 works around a couple of bugs in GNU mailutils, spost,

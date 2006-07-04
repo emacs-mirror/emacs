@@ -1,3 +1,9 @@
+2006-07-03  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.0.2.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.0.2.
+
 2006-07-03  Carsten Dominik  <dominik@science.uva.nl>
 
 	* orgcard.tex (section{Agenda Views}): Document `s' key to save
