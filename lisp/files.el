@@ -1275,48 +1275,49 @@ Choose the buffer's name using `generate-new-buffer-name'."
 This also substitutes \"~\" for the user's home directory and
 removes automounter prefixes (see the variable `automount-dir-prefix')."
   ;; Get rid of the prefixes added by the automounter.
-  (if (and automount-dir-prefix
-	   (string-match automount-dir-prefix filename)
-	   (file-exists-p (file-name-directory
-			   (substring filename (1- (match-end 0))))))
-      (setq filename (substring filename (1- (match-end 0)))))
-  (let ((tail directory-abbrev-alist))
-    ;; If any elt of directory-abbrev-alist matches this name,
-    ;; abbreviate accordingly.
-    (while tail
-      (if (string-match (car (car tail)) filename)
-	  (setq filename
-		(concat (cdr (car tail)) (substring filename (match-end 0)))))
-      (setq tail (cdr tail)))
-    ;; Compute and save the abbreviated homedir name.
-    ;; We defer computing this until the first time it's needed, to
-    ;; give time for directory-abbrev-alist to be set properly.
-    ;; We include a slash at the end, to avoid spurious matches
-    ;; such as `/usr/foobar' when the home dir is `/usr/foo'.
-    (or abbreviated-home-dir
-	(setq abbreviated-home-dir
-	      (let ((abbreviated-home-dir "$foo"))
-		(concat "^" (abbreviate-file-name (expand-file-name "~"))
-			"\\(/\\|$\\)"))))
+  (save-match-data
+    (if (and automount-dir-prefix
+	     (string-match automount-dir-prefix filename)
+	     (file-exists-p (file-name-directory
+			     (substring filename (1- (match-end 0))))))
+	(setq filename (substring filename (1- (match-end 0)))))
+    (let ((tail directory-abbrev-alist))
+      ;; If any elt of directory-abbrev-alist matches this name,
+      ;; abbreviate accordingly.
+      (while tail
+	(if (string-match (car (car tail)) filename)
+	    (setq filename
+		  (concat (cdr (car tail)) (substring filename (match-end 0)))))
+	(setq tail (cdr tail)))
+      ;; Compute and save the abbreviated homedir name.
+      ;; We defer computing this until the first time it's needed, to
+      ;; give time for directory-abbrev-alist to be set properly.
+      ;; We include a slash at the end, to avoid spurious matches
+      ;; such as `/usr/foobar' when the home dir is `/usr/foo'.
+      (or abbreviated-home-dir
+	  (setq abbreviated-home-dir
+		(let ((abbreviated-home-dir "$foo"))
+		  (concat "^" (abbreviate-file-name (expand-file-name "~"))
+			  "\\(/\\|$\\)"))))
 
-    ;; If FILENAME starts with the abbreviated homedir,
-    ;; make it start with `~' instead.
-    (if (and (string-match abbreviated-home-dir filename)
-	     ;; If the home dir is just /, don't change it.
-	     (not (and (= (match-end 0) 1)
-		       (= (aref filename 0) ?/)))
-	     ;; MS-DOS root directories can come with a drive letter;
-	     ;; Novell Netware allows drive letters beyond `Z:'.
-	     (not (and (or (eq system-type 'ms-dos)
-			   (eq system-type 'cygwin)
-			   (eq system-type 'windows-nt))
-		       (save-match-data
-			 (string-match "^[a-zA-`]:/$" filename)))))
-	(setq filename
-	      (concat "~"
-		      (match-string 1 filename)
-		      (substring filename (match-end 0)))))
-    filename))
+      ;; If FILENAME starts with the abbreviated homedir,
+      ;; make it start with `~' instead.
+      (if (and (string-match abbreviated-home-dir filename)
+	       ;; If the home dir is just /, don't change it.
+	       (not (and (= (match-end 0) 1)
+			 (= (aref filename 0) ?/)))
+	       ;; MS-DOS root directories can come with a drive letter;
+	       ;; Novell Netware allows drive letters beyond `Z:'.
+	       (not (and (or (eq system-type 'ms-dos)
+			     (eq system-type 'cygwin)
+			     (eq system-type 'windows-nt))
+			 (save-match-data
+			   (string-match "^[a-zA-`]:/$" filename)))))
+	  (setq filename
+		(concat "~"
+			(match-string 1 filename)
+			(substring filename (match-end 0)))))
+      filename)))
 
 (defcustom find-file-not-true-dirname-list nil
   "*List of logical names for which visiting shouldn't save the true dirname.
