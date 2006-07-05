@@ -2,6 +2,10 @@
 
 	* make-dist (top-level): Add CONTRIBUTE.
 
+2006-07-04  Richard Stallman  <rms@gnu.org>
+
+	* CONTRIBUTE: Much rewrite.
+
 2006-07-04  Nick Roberts  <nickrob@snap.net.nz>
 
 	* CONTRIBUTE: New file.

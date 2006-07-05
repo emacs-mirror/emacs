@@ -1,3 +1,7 @@
+2006-07-05  Richard Stallman  <rms@gnu.org>
+
+	* faq.texi (Scrolling only one line): Fix xref.
+
 2006-07-05  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* building.texi (Lisp Eval):

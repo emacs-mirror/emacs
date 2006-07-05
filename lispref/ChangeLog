@@ -1,3 +1,18 @@
+2006-07-05  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Buffer Contents): Add example of text props
+	in result of buffer-substring.
+	(Text Properties): Explain better about use of specific property names.
+	(Property Search): Some cleanups; reorder some functions.
+
+	* keymaps.texi (Changing Key Bindings): Cleanup.
+	Add xref to Key Binding Conventions.
+
+	* display.texi (Attribute Functions): Add examples for
+	face-attribute-relative-p.
+
+	* tips.texi (Coding Conventions): Cleanup last change.
+
 2006-07-05  Karl Berry  <karl@gnu.org>
 
 	* elisp.texi: use @fonttextsize 10pt, a la emacs.texi.
