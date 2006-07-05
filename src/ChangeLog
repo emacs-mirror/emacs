@@ -1,5 +1,8 @@
 2006-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* insdel.c (prepare_to_modify_buffer): For an indirect buffer, do
+	clash detection using the base buffer.
+
 	* puresize.h (BASE_PURESIZE): Increment to 1210500.
 
 2006-07-04  Kim F. Storm  <storm@cua.dk>

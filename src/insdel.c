@@ -2031,6 +2031,8 @@ prepare_to_modify_buffer (start, end, preserve_ptr)
      int start, end;
      int *preserve_ptr;
 {
+  struct buffer *base_buffer;
+
   if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only ();
 
@@ -2056,20 +2058,26 @@ prepare_to_modify_buffer (start, end, preserve_ptr)
 	verify_interval_modification (current_buffer, start, end);
     }
 
+  /* For indirect buffers, use the base buffer to check clashes.  */
+  if (current_buffer->base_buffer != 0)
+    base_buffer = current_buffer->base_buffer;
+  else
+    base_buffer = current_buffer;
+
 #ifdef CLASH_DETECTION
-  if (!NILP (current_buffer->file_truename)
+  if (!NILP (base_buffer->file_truename)
       /* Make binding buffer-file-name to nil effective.  */
-      && !NILP (current_buffer->filename)
+      && !NILP (base_buffer->filename)
       && SAVE_MODIFF >= MODIFF)
-    lock_file (current_buffer->file_truename);
+    lock_file (base_buffer->file_truename);
 #else
   /* At least warn if this file has changed on disk since it was visited.  */
-  if (!NILP (current_buffer->filename)
+  if (!NILP (base_buffer->filename)
       && SAVE_MODIFF >= MODIFF
       && NILP (Fverify_visited_file_modtime (Fcurrent_buffer ()))
-      && !NILP (Ffile_exists_p (current_buffer->filename)))
+      && !NILP (Ffile_exists_p (base_buffer->filename)))
     call1 (intern ("ask-user-about-supersession-threat"),
-	   current_buffer->filename);
+	   base_buffer->filename);
 #endif /* not CLASH_DETECTION */
 
   signal_before_change (start, end, preserve_ptr);
