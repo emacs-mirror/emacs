@@ -176,10 +176,7 @@ It is not necessary for @var{start} to be less than @var{end}; the
 arguments can be given in either order.  But most often the smaller
 argument is written first.
 
-If the text being copied has any text properties, these are copied into
-the string along with the characters they belong to.  @xref{Text
-Properties}.  However, overlays (@pxref{Overlays}) in the buffer and
-their properties are ignored, not copied.
+Here's an example which assumes Font-Lock mode is not enabled:
 
 @example
 @group
@@ -196,6 +193,21 @@ This is the contents of buffer foo
 @group
 (buffer-substring (point-max) 10)
      @result{} "he contents of buffer foo\n"
+@end group
+@end example
+
+If the text being copied has any text properties, these are copied into
+the string along with the characters they belong to.  @xref{Text
+Properties}.  However, overlays (@pxref{Overlays}) in the buffer and
+their properties are ignored, not copied.
+
+For example, if Font-Lock mode is enabled, you might get results like
+these:
+
+@example
+@group
+(buffer-substring 1 10)
+     @result{} #("This is t" 0 1 (fontified t) 1 9 (fontified t))
 @end group
 @end example
 @end defun
@@ -2530,12 +2542,15 @@ property list}, much like the property list of a symbol (@pxref{Property
 Lists}).  The properties belong to a particular character at a
 particular place, such as, the letter @samp{T} at the beginning of this
 sentence or the first @samp{o} in @samp{foo}---if the same character
-occurs in two different places, the two occurrences generally have
+occurs in two different places, the two occurrences in general have
 different properties.
 
   Each property has a name and a value.  Both of these can be any Lisp
-object, but the name is normally a symbol.  The usual way to access the
-property list is to specify a name and ask what value corresponds to it.
+object, but the name is normally a symbol.  Typically each property
+name symbol is used for a particular purpose; for instance, the text
+property @code{face} specifies the faces for displaying the character
+(@pxref{Special Properties}).  The usual way to access the property
+list is to specify a name and ask what value corresponds to it.
 
   If a character has a @code{category} property, we call it the
 @dfn{category} of the character.  It should be a symbol.  The properties
@@ -2838,13 +2853,20 @@ which all properties are constant:
 @end smallexample
 @end defun
 
+@defun previous-property-change pos &optional object limit
+This is like @code{next-property-change}, but scans back from @var{pos}
+instead of forward.  If the value is non-@code{nil}, it is a position
+less than or equal to @var{pos}; it equals @var{pos} only if @var{limit}
+equals @var{pos}.
+@end defun
+
 @defun next-single-property-change pos prop &optional object limit
-The function scans the text forward from position @var{pos} in the
-string or buffer @var{object} till it finds a change in the @var{prop}
-property, then returns the position of the change.  In other words, it
-returns the position of the first character beyond @var{pos} whose
-@var{prop} property differs from that of the character just after
-@var{pos}.
+The function scans text for a change in the @var{prop} property, then
+returns the position of the change.  The scan goes forward from
+position @var{pos} in the string or buffer @var{object}.  In other
+words, this function returns the position of the first character
+beyond @var{pos} whose @var{prop} property differs from that of the
+character just after @var{pos}.
 
 If @var{limit} is non-@code{nil}, then the scan ends at position
 @var{limit}.  If there is no property change before that point,
@@ -2854,13 +2876,6 @@ The value is @code{nil} if the property remains unchanged all the way to
 the end of @var{object} and @var{limit} is @code{nil}.  If the value is
 non-@code{nil}, it is a position greater than or equal to @var{pos}; it
 equals @var{pos} only if @var{limit} equals @var{pos}.
-@end defun
-
-@defun previous-property-change pos &optional object limit
-This is like @code{next-property-change}, but scans back from @var{pos}
-instead of forward.  If the value is non-@code{nil}, it is a position
-less than or equal to @var{pos}; it equals @var{pos} only if @var{limit}
-equals @var{pos}.
 @end defun
 
 @defun previous-single-property-change pos prop &optional object limit
