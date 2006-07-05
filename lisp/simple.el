@@ -1043,7 +1043,7 @@ display the result of expression evaluation."
           (format " (#o%o, #x%x)" value value)))))
 
 ;; We define this, rather than making `eval' interactive,
-;; for the sake of completion of names like eval-region, eval-current-buffer.
+;; for the sake of completion of names like eval-region, eval-buffer.
 (defun eval-expression (eval-expression-arg
 			&optional eval-expression-insert-value)
   "Evaluate EVAL-EXPRESSION-ARG and print value in the echo area.
