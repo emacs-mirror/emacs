@@ -1,3 +1,7 @@
+2006-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* ftfont.c (ftfont_list): Move misplaced #endif
+
 2006-07-05  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_list): Pay attention to the case that

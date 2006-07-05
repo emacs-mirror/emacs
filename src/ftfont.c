@@ -477,8 +477,8 @@ ftfont_list (frame, spec)
 #else  /* not FC_CAPABILITY */
       if (! FcObjectSetAdd (objset, FC_CAPABILITY))
 	goto err;
-    }
 #endif	/* not FC_CAPABILITY */
+    }
 
   fontset = FcFontList (NULL, pattern, objset);
   if (! fontset)
