@@ -1,38 +1,37 @@
 
 			Contributing to Emacs
 
-Emacs is a collaborative project and one which wants to encourage new
-development.  You may wish to fix Emacs bugs, improve testing, port
-Emacs to a new platform, update documentation, add new Emacs features,
-and the like.  To help with this, there is a lot of documentation
-available.  In addition to the user guide and Lisp Reference Manual in
-the Emacs distribution, the Emacs web pages also contain much
-information.
+Emacs is a collaborative project and we encourage contributions from
+anyone and everyone.  If you want to contribute in the way that will
+help us most, we recommend (1) fixing reported bugs and (2)
+implementing the feature ideas in etc/TODO.  However, if you think of
+new features to add, please suggest them too -- we might like your
+idea.  Porting to new platforms is also useful, when there is a new
+platform, but that is not common nowadays.
+
+For documentation on how to develop Emacs changes, refer to the Emacs
+Manual and the Emacs Lisp Reference Manual (both included in the Emacs
+distribution).  The web pages in http://www.gnu.org/software/emacs
+contain additional information.
 
 You may also want to submit your change so that can be considered for
 inclusion in a future version of Emacs (see below).
 
-If you don't feel up to hacking Emacs, there are still plenty of ways to
-help!  You can answer questions on the mailing lists, write
-documentation, find bugs, create a Emacs related website (contribute to
-the official Emacs web site), or create a Emacs related software
-package.  We welcome all of the above and feel free to ask on the Emacs
-mailing lists if you are looking for feedback or for people to review a
-work in progress.
+If you don't feel up to hacking Emacs, there are many other ways to
+help.  You can answer questions on the mailing lists, write
+documentation, find and report bugs, contribute to the Emacs web
+pages, or develop a package that works with Emacs.
 
-Ref: http://www.gnu.org/software/emacs/
-
-Finally, there are certain legal requirements and style issues which
-all contributors need to be aware of:
+Here are some style and legal conventions for contributors to Emacs:
 
 
 o	Coding Standards
 
-	All contributions must conform to the GNU Coding Standard.
-	Submissions which do not conform to the standards will be
-	returned with a request to reformat the changes.
+	Contributed code should follow the GNU Coding Standard.
+	If it doesn't, we'll need to find someone to fix the code
+	before we can use it.
 
-	Emacs has certain additional coding requirements.
+	Emacs has certain additional style and coding conventions.
 
 	Ref: http://www.gnu.org/prep/standards_toc.html
 	Ref: Standards Info Manual
@@ -40,23 +39,21 @@ o	Coding Standards
 
 o	Copyright Assignment
 
-	Before we can accept code contributions from you, we need a
-	copyright assignment form filled out and filed with the FSF.
+	We can accept small changes without legal papers, and for
+	medium-size changes a copyright disclaimer is ok too.  Toa
+	accept substantial contributions from you, we need a copyright
+	assignment form filled out and filed with the FSF.
 
-	Contact us via the Emacs mailing list to obtain the relevant
+	Contact us at emacs-devel@gnu.org to obtain the relevant
 	forms.
-
-	Small changes can be accepted without a copyright assignment
-	form on file.
 
 
 o	Getting the Source Code
 
-	The latest version of Emacs can be downloaded using CVS or Arch
-	from the Savannah web site.  It is important that you submit
-	your patch using this version, as any bug in a released version
-	of Emacs may already be fixed.  It also makes it easier for
-	others to test your patch.
+	The latest version of Emacs can be downloaded using CVS or
+	Arch from the Savannah web site.  It is important to write
+	your patch based this version; if you start from an older
+	version, your patch may be outdated when you write it.
 	
 	Ref: http://savannah.gnu.org/projects/emacs
 
@@ -94,16 +91,18 @@ o	Submitting Patches
 	list.
 
 
-o	Please read your patch before submitting it.
+o	Please reread your patch before submitting it.
 
-	A patch containing several unrelated changes reformats will be
-	returned with a request to send them separately.
+
+o	If you send several unrelated changes together, we will
+	ask you to separate them so we can consider each of the changes
+	by itself.
 	
 
 o	Supplemental information for Emacs Developers:
 
-	If you wish to contribute to Emacs on a regular basis then you
-	may be given write access to the CVS repository.
+	Once you become a frequent contributor to Emacs, we can
+	consider giving you write access to the CVS repository.
 	
 	Discussion about Emacs development takes place on
 	emacs-devel@gnu.org.
@@ -116,7 +115,7 @@ o	Supplemental information for Emacs Developers:
 	but the  nodes "Tips" and "GNU Emacs Internals" in the Appendix
 	of the Emacs Lisp Reference Manual may also help.
 
-	The file DEBUG describes how to debug Emacs.
+	The file DEBUG describes how to debug Emacs bugs.
 
-	Avoid using `defadvice' or `eval-after-load' for lisp
+	Avoid using `defadvice' or `eval-after-load' for Lisp
 	code to be included in Emacs.
