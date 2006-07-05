@@ -2147,7 +2147,7 @@ forms in a file.  (To do this from Lisp use the function @code{load}
 instead.)
 
 The functions @code{load-library}, @code{eval-region},
-@code{eval-current-buffer}, @code{require}, and @code{autoload} are also
+@code{eval-buffer}, @code{require}, and @code{autoload} are also
 useful; see @ref{Emacs Lisp documentation}, if you want to learn more
 about them.
 
