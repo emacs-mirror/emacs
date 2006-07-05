@@ -1,3 +1,7 @@
+2006-07-05  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-diff-internal): Fix prev change.
+
 2006-07-05  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Use eval-buffer.
