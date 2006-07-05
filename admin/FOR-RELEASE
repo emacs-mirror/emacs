@@ -36,8 +36,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
 
-** Is there a basic problem with cl-byte-compile-compiler-macro?
-
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
 	(setq-default truncate-lines t)
