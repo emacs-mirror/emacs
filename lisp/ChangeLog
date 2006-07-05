@@ -1,3 +1,7 @@
+2006-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/goto-addr.el (goto-address): Mark as safe for local evals.
+
 2006-07-05  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-diff-internal): Fix prev change.
