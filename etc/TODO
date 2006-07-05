@@ -357,6 +357,8 @@ when the body only calls primitives.
 
 ** Face remapping.
 
+** Make `format-time-string' preserve text properties like `format'.
+
 ** Optionally make the cursor a little thinner at the end of a line
   or the end of the buffer.
 
