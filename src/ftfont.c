@@ -470,8 +470,15 @@ ftfont_list (frame, spec)
 			     FC_CHARSET, FC_FILE, NULL);
   if (! objset)
     goto err;
-  if (otf_script[0] && ! FcObjectSetAdd (objset, FC_CAPABILITY))
-    goto err;
+  if (otf_script[0])
+    {
+#ifndef FC_CAPABILITY
+      goto finish;
+#else  /* not FC_CAPABILITY */
+      if (! FcObjectSetAdd (objset, FC_CAPABILITY))
+	goto err;
+    }
+#endif	/* not FC_CAPABILITY */
 
   fontset = FcFontList (NULL, pattern, objset);
   if (! fontset)
@@ -512,6 +519,7 @@ ftfont_list (frame, spec)
 			  || this > FC_WEIGHT_MEDIUM)))
 		continue;
 	    }
+#ifdef FC_CAPABILITY
 	  if (otf_script[0])
 	    {
 	      FcChar8 *this;
@@ -521,6 +529,7 @@ ftfont_list (frame, spec)
 		  || ! strstr ((char *) this, otf_script))
 		continue;
 	    }
+#endif	/* FC_CAPABILITY */
 	  entity = ftfont_pattern_entity (fontset->fonts[i], frame, registry);
 	  if (! NILP (entity))
 	    val = Fcons (entity, val);
