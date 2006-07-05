@@ -1250,7 +1250,7 @@ Evaluate the defun containing or after point, and print the value in
 the echo area (@code{eval-defun}).
 @item M-x eval-region
 Evaluate all the Lisp expressions in the region.
-@item M-x eval-current-buffer
+@item M-x eval-buffer
 Evaluate all the Lisp expressions in the buffer.
 @end table
 
@@ -1305,11 +1305,11 @@ displaying it in the echo area.  The argument's value does not matter.
 definition for Edebug (@pxref{Instrumenting, Instrumenting for Edebug,, elisp, the Emacs Lisp Reference Manual}).
 
 @findex eval-region
-@findex eval-current-buffer
+@findex eval-buffer
   The most general command for evaluating Lisp expressions from a buffer
 is @code{eval-region}.  @kbd{M-x eval-region} parses the text of the
 region as one or more Lisp expressions, evaluating them one by one.
-@kbd{M-x eval-current-buffer} is similar but evaluates the entire
+@kbd{M-x eval-buffer} is similar but evaluates the entire
 buffer.  This is a reasonable way to install the contents of a file of
 Lisp code that you are ready to test.  Later, as you find bugs and
 change individual functions, use @kbd{C-M-x} on each function that you
