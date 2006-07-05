@@ -177,9 +177,9 @@ compatibility issues.
 Redefining (or advising) an Emacs primitive is a bad idea.  It may do
 the right thing for a particular program, but there is no telling what
 other programs might break as a result.  In any case, it is a problem
-for debugging, because the two advised function doesn't do what its
-source code says it does.  If the programmer investigating the problem
-is unaware that there is advice on the function, the experience can be
+for debugging, because the advised function doesn't do what its source
+code says it does.  If the programmer investigating the problem is
+unaware that there is advice on the function, the experience can be
 very frustrating.
 
 We hope to remove all the places in Emacs that advise primitives.
@@ -192,10 +192,10 @@ in another Lisp package.
 @item
 Likewise, avoid using @code{eval-after-load} (@pxref{Hooks for
 Loading}) in libraries and packages.  This feature is meant for
-personal customizations; using it in a Lisp program is unclean because
-it modifies the behavior of another Lisp file in an invisible way.
-This is an obstacle for debugging, much like advising a function in
-the other package.
+personal customizations; using it in a Lisp program is unclean,
+because it modifies the behavior of another Lisp file in a way that's
+not visible in that file.  This is an obstacle for debugging, much
+like advising a function in the other package.
 
 @item
 If a file does replace any of the functions or library programs of
