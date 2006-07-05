@@ -2592,7 +2592,7 @@ consult the documentation of the variables @code{ps-printer-name},
 Customize the @code{scroll-conservatively} variable with @kbd{M-x
 customize-variable @key{RET} scroll-conservatively @key{RET}} and set it
 to a large value like, say, 10000.  For an explanation of what this
-means, @inforef{Scrolling, Scrolling, emacs}.
+means, @inforef{Auto Scrolling, Auto Scrolling, emacs}.
 
 Alternatively, use the following Lisp form in your @file{.emacs}:
 
