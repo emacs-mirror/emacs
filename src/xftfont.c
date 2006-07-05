@@ -750,7 +750,6 @@ syms_of_xftfont ()
   xftfont_driver.text_extents = xftfont_text_extents;
   xftfont_driver.draw = xftfont_draw;
   xftfont_driver.anchor_point = xftfont_anchor_point;
-  xftfont_driver.parse_name = xftfont_parse_name;
 
   register_font_driver (&xftfont_driver, NULL);
 }
