@@ -1846,7 +1846,7 @@ actually call the backend, but performs a local diff."
     (if (and file-rev1 file-rev2)
         (let ((status
                (if (eq vc-diff-knows-L 'no)
-                   (apply 'vc-do-command "*vc-diff*" 1 "diff"
+                   (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
                           (append (vc-switches nil 'diff)
                                   (list (file-relative-name file-rev1)
                                         (file-relative-name file-rev2))))
@@ -1864,7 +1864,7 @@ actually call the backend, but performs a local diff."
           (if (eq status 2)
               (if (not vc-diff-knows-L)
                   (setq vc-diff-knows-L 'no
-                        status (apply 'vc-do-command "*vc-diff*" 1 "diff"
+                        status (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
                                       (append 
                                        (vc-switches nil 'diff)
                                        (list (file-relative-name file-rev1)
