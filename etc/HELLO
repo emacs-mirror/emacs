@@ -20,7 +20,7 @@ Braille	$,2(3(1('('(5(B
 Bulgarian (,LQj[SP`aZX(B)	,L7T`PRUYbU(B
 C	printf ("Hello, world!\n");
 Czech (,Bh(Be,B9(Btina)	Dobr,B}(B den
-Danish (dansk)	Hej, Goddag, bl,Ae(Bb,Af(Brgr,Ax(Bd, Hall,Ax(Bj
+Danish (dansk)	Hej, Goddag, Hall,Ax(Bj
 Emacs	emacs --no-splash -f view-hello-file
 English [,0p U(B-,0EZ L(B]	Hello
 Esperanto	Saluton (E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde)
