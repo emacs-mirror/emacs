@@ -2116,9 +2116,22 @@ and examine the face attributes which existed in those versions.
 
 @tindex face-attribute-relative-p
 @defun face-attribute-relative-p attribute value
-This function returns non-@code{nil} if @var{value}, when used as
-the value of the face attribute @var{attribute}, is relative (that is,
-if it modifies an underlying or inherited value of @var{attribute}).
+This function returns non-@code{nil} if @var{value}, when used as the
+value of the face attribute @var{attribute}, is relative.  This means
+it would modify, rather than completely override, any value that comes
+from a subsequent face in the face list or that is inherited from
+another face.
+
+@code{unspecified} is a relative value for all attributes.
+For @code{:height}, floating point values are also relative.
+
+For example:
+
+@example
+(read-face-name "Describe face" "= `default' face" t)
+@end example
+
+prompts with @samp{Describe face (default = `default' face): }.
 @end defun
 
 @tindex merge-face-attribute
