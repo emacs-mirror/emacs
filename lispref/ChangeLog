@@ -1,3 +1,13 @@
+2006-07-05  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi: use @fonttextsize 10pt, a la emacs.texi.
+	and remove @setchapternewpage odd.
+	Result is 1013 pages, down from 1100.
+
+	* anti.texi, customize.texi, display.texi,
+        internals.texi, minibuf.texi, modes.texi tips.texi:
+        fix overfull/underfull boxes.
+
 2006-07-05  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* edebug.texi (Instrumenting):

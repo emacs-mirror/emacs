@@ -425,7 +425,7 @@ The @code{table} argument to @code{translate-region} can no longer be
 a char-table; it has to be a string.
 
 @item
-The functions @code{merge-coding-systems} and
+The two functions @code{merge-coding-systems} and
 @code{decode-coding-inserted-region}, and the variable
 @code{auto-coding-functions}, have been deleted.  The
 @code{mime-text-unsuitable} coding system property no longer has any

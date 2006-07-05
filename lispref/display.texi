@@ -2889,20 +2889,19 @@ The value of this variable is the default value for
 @code{fringe-indicator-alist} in buffers that do not override it.
 @end defvar
 
-@table @asis
-@item Standard fringe bitmaps for indicators:
-@code{left-arrow}, @code{right-arrow}, @code{up-arrow}, @code{down-arrow},
-@code{left-curly-arrow}, @code{right-curly-arrow},
-@code{left-triangle}, @code{right-triangle},
-@code{top-left-angle}, @code{top-right-angle},
-@code{bottom-left-angle}, @code{bottom-right-angle},
-@code{left-bracket}, @code{right-bracket},
-@code{filled-rectangle}, @code{hollow-rectangle},
-@code{filled-square}, @code{hollow-square},
-@code{vertical-bar}, @code{horizontal-bar},
-@code{empty-line},
-@code{question-mark}.
-@end table
+Standard fringe bitmaps for indicators:
+@example
+left-arrow right-arrow up-arrow down-arrow
+left-curly-arrow right-curly-arrow
+left-triangle right-triangle
+top-left-angle top-right-angle
+bottom-left-angle bottom-right-angle
+left-bracket right-bracket
+filled-rectangle hollow-rectangle
+filled-square hollow-square
+vertical-bar horizontal-bar
+empty-line question-mark
+@end example
 
 @node Fringe Cursors
 @subsection Fringe Cursors
@@ -2950,12 +2949,11 @@ The value of this variable is the default value for
 @code{fringe-cursor-alist} in buffers that do not override it.
 @end defvar
 
-@table @asis
-@item Standard bitmaps for displaying the cursor in right fringe:
-@code{filled-rectangle}, @code{hollow-rectangle},
-@code{filled-square}, @code{hollow-square},
-@code{vertical-bar}, @code{horizontal-bar}.
-@end table
+Standard bitmaps for displaying the cursor in right fringe:
+@example
+filled-rectangle hollow-rectangle filled-square hollow-square
+vertical-bar horizontal-bar
+@end example
 
 
 @node Fringe Bitmaps
@@ -4117,11 +4115,12 @@ should specify the image as follows:
 This function returns a suitable search path for images used by the
 Lisp package @var{library}.
 
-It searches for @var{image} in @code{image-load-path} (excluding
-@file{@code{data-directory}/images}) and @code{load-path}, followed by
-a path suitable for @var{library}, which includes
-@file{../../etc/images} and @file{../etc/images} relative to the
-library file itself, and then in @file{@code{data-directory}/images}.
+The function searches for @var{image} first in @code{image-load-path}
+(excluding @file{@code{data-directory}/images}) and then in
+@code{load-path}, followed by a path suitable for @var{library}, which
+includes @file{../../etc/images} and @file{../etc/images} relative to
+the library file itself, and finally in
+@file{@code{data-directory}/images}.
 
 Then this function returns a list of directories which contains first
 the directory in which @var{image} was found, followed by the value of
@@ -4136,10 +4135,9 @@ Here is an example that uses a common idiom to provide compatibility
 with versions of Emacs that lack the variable @code{image-load-path}:
 
 @example
-;; Shush compiler.
-(defvar image-load-path)
-
-(let* ((load-path (image-load-path-for-library "mh-e" "mh-logo.xpm"))
+(defvar image-load-path) ; shush compiler
+(let* ((load-path (image-load-path-for-library
+                        "mh-e" "mh-logo.xpm"))
        (image-load-path (cons (car load-path)
                               (when (boundp 'image-load-path)
                                 image-load-path))))
@@ -4913,7 +4911,7 @@ design paradigm) by defining commands to modify @code{colorcomp-data}
 and to ``finish'' the selection process, and a keymap to tie it all
 together conveniently.
 
-@example
+@smallexample
 (defun colorcomp-mod (index limit delta)
   (let ((cur (aref colorcomp-data index)))
     (unless (= limit cur)
@@ -4951,7 +4949,7 @@ The string is formatted #RRGGBB (hash followed by six hex digits)."
         (define-key m "." 'colorcomp-B-more)
         (define-key m " " 'colorcomp-copy-as-kill-and-exit)
         m))
-@end example
+@end smallexample
 
 Note that we never modify the data in each node, which is fixed when the
 ewoc is created to be either @code{nil} or an index into the vector
