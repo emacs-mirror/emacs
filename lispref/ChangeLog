@@ -1,3 +1,10 @@
+2006-07-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* edebug.texi (Instrumenting):
+	Add Edebug-specific findex for eval-buffer.
+	* loading.texi (Loading):
+	Replace eval-current-buffer with eval-buffer.
+
 2006-06-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* locals.texi (Standard Buffer-Local Variables): Update the list
