@@ -1,3 +1,7 @@
+2006-07-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xftfont.c (syms_of_xftfont): Make compilable.
+
 2006-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* ftfont.c (ftfont_list): Move misplaced #endif
