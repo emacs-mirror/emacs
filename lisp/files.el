@@ -1192,7 +1192,11 @@ If the current buffer now contains an empty file that you just visited
 \(presumably by mistake), use this command to visit the file you really want.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and replace the file with multiple files."
+expand wildcards (if any) and replace the file with multiple files.
+
+If the current buffer is an indirect buffer, or the base buffer
+for one or more indirect buffers, the other buffer(s) are not
+killed."
   (interactive
    (let ((file buffer-file-name)
 	 (file-name nil)
