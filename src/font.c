@@ -2426,60 +2426,54 @@ font_find_for_lface (f, lface, spec)
   Lisp_Object frame, entities;
   int i;
 
-  if (NILP (spec))
-    for (i = 0; i < FONT_SPEC_MAX; i++)
-      ASET (scratch_font_spec, i, Qnil);
-  else
-    for (i = 0; i < FONT_SPEC_MAX; i++)
-      ASET (scratch_font_spec, i, AREF (spec, i));
-
-  if (NILP (AREF (scratch_font_spec, FONT_FAMILY_INDEX))
-      && ! NILP (lface[LFACE_FAMILY_INDEX]))
-    font_merge_old_spec (Qnil, lface[LFACE_FAMILY_INDEX], Qnil,
-			 scratch_font_spec);
-  if (NILP (AREF (scratch_font_spec, FONT_REGISTRY_INDEX)))
-    ASET (scratch_font_spec, FONT_REGISTRY_INDEX, intern ("iso8859-1"));
-
-  if (NILP (AREF (scratch_font_spec, FONT_SIZE_INDEX))
-      && ! NILP (lface[LFACE_HEIGHT_INDEX]))
-    {
-      double pt = XINT (lface[LFACE_HEIGHT_INDEX]);
-      int pixel_size = POINT_TO_PIXEL (pt / 10, f->resy);
-
-      ASET (scratch_font_spec, FONT_SIZE_INDEX, make_number (pixel_size));
-    }
-
   XSETFRAME (frame, f);
-  entities = font_list_entities (frame, scratch_font_spec);
-  while (ASIZE (entities) == 0)
+
+  if (NILP (spec))
     {
-      if (! NILP (AREF (scratch_font_spec, FONT_SIZE_INDEX))
-	  && (NILP (spec) || NILP (AREF (spec, FONT_SIZE_INDEX))))
+      for (i = 0; i < FONT_SPEC_MAX; i++)
+	ASET (scratch_font_spec, i, Qnil);
+      ASET (scratch_font_spec, FONT_REGISTRY_INDEX, Qiso8859_1);
+
+      if (! NILP (lface[LFACE_FAMILY_INDEX]))
+	font_merge_old_spec (Qnil, lface[LFACE_FAMILY_INDEX], Qnil,
+			     scratch_font_spec);
+      entities = font_list_entities (frame, scratch_font_spec);
+      while (ASIZE (entities) == 0)
 	{
-	  ASET (scratch_font_spec, FONT_SIZE_INDEX, Qnil);
-	  entities = font_list_entities (frame, scratch_font_spec);
+	  /* Try without FOUNDRY or FAMILY.  */
+	  if (! NILP (AREF (scratch_font_spec, FONT_FOUNDRY_INDEX)))
+	    {
+	      ASET (scratch_font_spec, FONT_FOUNDRY_INDEX, Qnil);
+	      entities = font_list_entities (frame, scratch_font_spec);
+	    }
+	  else if (! NILP (AREF (scratch_font_spec, FONT_FAMILY_INDEX)))
+	    {
+	      ASET (scratch_font_spec, FONT_FAMILY_INDEX, Qnil);
+	      entities = font_list_entities (frame, scratch_font_spec);
+	    }
+	  else
+	    break;
 	}
-      else if (! NILP (AREF (scratch_font_spec, FONT_FOUNDRY_INDEX))
-	  && (NILP (spec) || NILP (AREF (spec, FONT_FOUNDRY_INDEX))))
-	{
-	  ASET (scratch_font_spec, FONT_FOUNDRY_INDEX, Qnil);
-	  entities = font_list_entities (frame, scratch_font_spec);
-	}
-      else if (! NILP (AREF (scratch_font_spec, FONT_FAMILY_INDEX))
-	       && (NILP (spec) || NILP (AREF (spec, FONT_FAMILY_INDEX))))
-	{
-	  ASET (scratch_font_spec, FONT_FAMILY_INDEX, Qnil);
-	  entities = font_list_entities (frame, scratch_font_spec);
-	}
-      else
-	return Qnil;
+    }
+  else
+    {
+      for (i = 0; i < FONT_SPEC_MAX; i++)
+	ASET (scratch_font_spec, i, AREF (spec, i));
+      if (NILP (AREF (spec, FONT_REGISTRY_INDEX)))
+	ASET (scratch_font_spec, FONT_REGISTRY_INDEX, Qiso8859_1);
+      entities = font_list_entities (frame, scratch_font_spec);
     }
 
+  if (ASIZE (entities) == 0)
+    return Qnil;
   if (ASIZE (entities) > 1)
     {
+      /* Sort fonts by properties specified in LFACE.  */
       Lisp_Object prefer = scratch_font_prefer;
       double pt;
 
+      if (! NILP (lface[LFACE_FAMILY_INDEX]))
+	font_merge_old_spec (Qnil, lface[LFACE_FAMILY_INDEX], Qnil, prefer);
       ASET (prefer, FONT_WEIGHT_INDEX,
 	    font_prop_validate_style (FONT_WEIGHT_INDEX, QCweight,
 				      lface[LFACE_WEIGHT_INDEX]));
@@ -3259,7 +3253,7 @@ syms_of_font ()
   sort_shift_bits[FONT_FOUNDRY_INDEX] = 29;
   sort_shift_bits[FONT_FAMILY_INDEX] = 30;
   sort_shift_bits[FONT_REGISTRY_INDEX] = 31;
-  /* Note that sort_shift_bits[FONT_SLANT_TYPE] is never used.  */
+  /* Note that sort_shift_bits[FONT_TYPE_INDEX] is never used.  */
 
   staticpro (&font_style_table);
   font_style_table = Fmake_vector (make_number (3), Qnil);
