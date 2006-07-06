@@ -203,18 +203,14 @@ are done with it in the server.")
     (dolist (frame (frame-list))
       (when (equal (frame-parameter frame 'display) display)
 	(select-frame frame)))
-    ;; If there's no frame on that display yet, create a dummy one
-    ;; and select it.
+    ;; If there's no frame on that display yet, create and select one.
     (unless (equal (frame-parameter (selected-frame) 'display) display)
       (select-frame
        (make-frame-on-display
 	display
-	;; This frame is only there in place of an actual "current display"
-	;; setting, so we want it to be as unobtrusive as possible.  That's
-	;; what the invisibility is for.  The minibuffer setting is so that
-	;; we don't end up displaying a buffer in it (which noone would
-	;; notice).
-	'((visibility . nil) (minibuffer . only)))))))
+	;; This frame may be deleted later (see server-process-filter)
+	;; so we want it to be as unobtrusive as possible.
+	'((visibility . nil)))))))
 
 (defun server-unquote-arg (arg)
   (replace-regexp-in-string
@@ -383,8 +379,14 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (unless nowait
 	    (message "%s" (substitute-command-keys
 		      "When done with a buffer, type \\[server-edit]")))))
-      ;; Avoid preserving the connection after the last real frame is deleted.
-      (if tmp-frame (delete-frame tmp-frame))))
+      ;; If the temporary frame is still the selected frame, make it
+      ;; real.  If not (which can happen if the user's customizations
+      ;; call pop-to-buffer etc.), delete it to avoid preserving the
+      ;; connection after the last real frame is deleted.
+      (if tmp-frame
+	  (if (eq (selected-frame) tmp-frame)
+	      (set-frame-parameter tmp-frame 'visibility t)
+	    (delete-frame tmp-frame)))))
   ;; Save for later any partial line that remains.
   (when (> (length string) 0)
     (process-put proc 'previous-string string)))

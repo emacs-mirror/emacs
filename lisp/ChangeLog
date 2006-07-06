@@ -1,5 +1,10 @@
 2006-07-06  Chong Yidong  <cyd@stupidchicken.com>
 
+	* server.el (server-select-display): Don't make the temp frame
+	minibuffer-only, in case it's not a temp frame.
+	(server-process-filter): Don't delete the temp frame if it's the
+	only one we have on that display.
+
 	* files.el (find-alternate-file): Doc fix.
 
 2006-07-05  Richard Stallman  <rms@gnu.org>
