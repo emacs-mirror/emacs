@@ -294,7 +294,8 @@ not be enclosed in { } or ( )."
   ;; We used to match not just the varname but also the whole value
   ;; (spanning potentially several lines).
   ;; "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)\\)"
-  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=\\|[*:+]?[:?]?=\\)"
+  ;; What about the define statement?  What about differentiating this for makepp?
+  "\\(?:^\\|^export\\|^override\\|:\\|: *override\\) *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=\\|[*:+]?[:?]?=\\)"
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-var-use-regex
@@ -305,8 +306,6 @@ not be enclosed in { } or ( )."
   "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)\\|\\(\\.[chy]\\)"
   "Regex for filenames that will NOT be included in the target list.")
 
-(if (fboundp 'facemenu-unlisted-faces)
-    (add-to-list 'facemenu-unlisted-faces 'makefile-space))
 (defvar makefile-space 'makefile-space
   "Face to use for highlighting leading spaces in Font-Lock mode.")
 
@@ -320,9 +319,9 @@ not be enclosed in { } or ( )."
   "List of keywords understood by automake.")
 
 (defconst makefile-gmake-statements
-  `("-sinclude" "sinclude" "override" "vpath"
+  `("-sinclude" "sinclude" "vpath"	; makefile-makepp-statements takes rest
     "ifdef" "ifndef" "ifeq" "ifneq" "-include" "define" "endef" "export"
-    "unexport"
+    "override define" "override" "unexport"
     ,@(cdr makefile-automake-statements))
   "List of keywords understood by gmake.")
 
@@ -331,13 +330,14 @@ not be enclosed in { } or ( )."
   `("and ifdef" "and ifndef" "and ifeq" "and ifneq" "and ifperl"
     "and ifmakeperl" "and ifsys" "and ifnsys" "build_cache" "build_check"
     "else ifdef" "else ifndef" "else ifeq" "else ifneq" "else ifperl"
-    "else ifmakeperl" "else ifsys" "else ifnsys" "enddef" "load_makefile"
-    "ifperl" "ifmakeperl" "ifsys" "ifnsys" "_include"  "makeperl" "makesub"
-    "no_implicit_load" "perl" "perl-begin" "perl_begin" "perl-end" "perl_end"
-    "prebuild" "or ifdef" "or ifndef" "or ifeq" "or ifneq" "or ifperl"
-    "or ifmakeperl" "or ifsys" "or ifnsys" "register_command_parser"
+    "else ifmakeperl" "else ifsys" "else ifnsys" "enddef" "global"
+    "load_makefile" "ifperl" "ifmakeperl" "ifsys" "ifnsys" "_include"
+    "makeperl" "makesub" "no_implicit_load" "perl" "perl-begin" "perl_begin"
+    "perl-end" "perl_end" "prebuild" "or ifdef" "or ifndef" "or ifeq"
+    "or ifneq" "or ifperl" "or ifmakeperl" "or ifsys" "or ifnsys"
+    "override export" "override global" "register_command_parser"
     "register_scanner" "repository" "runtime" "signature" "sub"
-    ,@(nthcdr 4 makefile-gmake-statements))
+    ,@(nthcdr 3 makefile-gmake-statements))
   "List of keywords understood by gmake.")
 
 (defconst makefile-bsdmake-statements

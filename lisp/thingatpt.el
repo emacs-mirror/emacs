@@ -53,7 +53,7 @@
 
 ;;;###autoload
 (defun forward-thing (thing &optional n)
-  "Move forward to the end of the next THING."
+  "Move forward to the end of the Nth next THING."
   (let ((forward-op (or (get thing 'forward-op)
 			(intern-soft (format "forward-%s" thing)))))
     (if (functionp forward-op)
@@ -80,16 +80,13 @@ of the textual entity that was found."
       (condition-case nil
 	  (save-excursion
 	    ;; Try moving forward, then back.
-	    (let ((end (progn
-			 (funcall
-			  (or (get thing 'end-op)
-			      (function (lambda () (forward-thing thing 1)))))
-			 (point)))
-		  (beg (progn
-			 (funcall
-			  (or (get thing 'beginning-op)
-			      (function (lambda () (forward-thing thing -1)))))
-			 (point))))
+            (funcall ;; First move to end.
+             (or (get thing 'end-op)
+                 (lambda () (forward-thing thing 1))))
+            (funcall ;; Then move to beg.
+             (or (get thing 'beginning-op)
+                 (lambda () (forward-thing thing -1))))
+	    (let ((beg (point)))
 	      (if (not (and beg (> beg orig)))
 		  ;; If that brings us all the way back to ORIG,
 		  ;; it worked.  But END may not be the real end.
@@ -98,28 +95,25 @@ of the textual entity that was found."
 			 (progn
 			   (funcall
 			    (or (get thing 'end-op)
-				(function (lambda () (forward-thing thing 1)))))
+                                (lambda () (forward-thing thing 1))))
 			   (point))))
 		    (if (and beg real-end (<= beg orig) (<= orig real-end))
 			(cons beg real-end)))
 		(goto-char orig)
 		;; Try a second time, moving backward first and then forward,
 		;; so that we can find a thing that ends at ORIG.
-		(let ((beg (progn
-			     (funcall
-			      (or (get thing 'beginning-op)
-				  (function (lambda () (forward-thing thing -1)))))
-			     (point)))
-		      (end (progn
-			     (funcall
-			      (or (get thing 'end-op)
-				  (function (lambda () (forward-thing thing 1)))))
-			     (point)))
-		      (real-beg
+                (funcall ;; First, move to beg.
+                 (or (get thing 'beginning-op)
+                     (lambda () (forward-thing thing -1))))
+                (funcall ;; Then move to end.
+                 (or (get thing 'end-op)
+                     (lambda () (forward-thing thing 1))))
+		(let ((end (point))
+                      (real-beg
 		       (progn
 			 (funcall
 			  (or (get thing 'beginning-op)
-			      (function (lambda () (forward-thing thing -1)))))
+                              (lambda () (forward-thing thing -1))))
 			 (point))))
 		  (if (and real-beg end (<= real-beg orig) (<= orig end))
 		      (cons real-beg end))))))
@@ -160,7 +154,7 @@ a symbol as a valid THING."
 ;; and it has no final newline.
 
 (put 'line 'beginning-op
-     (function (lambda () (if (bolp) (forward-line -1) (beginning-of-line)))))
+     (lambda () (if (bolp) (forward-line -1) (beginning-of-line))))
 
 ;;  Sexps
 
@@ -190,7 +184,7 @@ a symbol as a valid THING."
 
 ;;  Lists
 
-(put 'list 'end-op (function (lambda () (up-list 1))))
+(put 'list 'end-op (lambda () (up-list 1)))
 (put 'list 'beginning-op 'backward-sexp)
 
 ;;  Filenames and URLs  www.com/foo%32bar
@@ -229,7 +223,7 @@ Hostname matching is stricter in this case than for
     "afs:" "tn3270:" "mailserver:"
   ;; Compatibility
     "snews:")
-  "Uniform Resource Identifier (URI) Schemes")
+  "Uniform Resource Identifier (URI) Schemes.")
 
 (defvar thing-at-point-url-regexp
   (concat "\\<\\(" (mapconcat 'identity thing-at-point-uri-schemes "\\|") "\\)"
@@ -243,18 +237,19 @@ This may contain whitespace (including newlines) .")
 
 (put 'url 'bounds-of-thing-at-point 'thing-at-point-bounds-of-url-at-point)
 (defun thing-at-point-bounds-of-url-at-point ()
-  (let ((url "") short strip)
-    (if (or (setq strip (thing-at-point-looking-at
-			 thing-at-point-markedup-url-regexp))
-	    (thing-at-point-looking-at thing-at-point-url-regexp)
+  (let ((strip (thing-at-point-looking-at
+			 thing-at-point-markedup-url-regexp))) ;; (url "") short
+    (if (or strip
+`	    (thing-at-point-looking-at thing-at-point-url-regexp)
 	    ;; Access scheme omitted?
-	    (setq short (thing-at-point-looking-at
-			 thing-at-point-short-url-regexp)))
+	    ;; (setq short (thing-at-point-looking-at
+	    ;;     	 thing-at-point-short-url-regexp))
+            )
 	(let ((beginning (match-beginning 0))
 	      (end (match-end 0)))
-	  (cond (strip
-		 (setq beginning (+ beginning 5))
-		 (setq end (- end 1))))
+	  (when strip
+            (setq beginning (+ beginning 5))
+            (setq end (- end 1)))
 	  (cons beginning end)))))
 
 (put 'url 'thing-at-point 'thing-at-point-url-at-point)
@@ -327,17 +322,17 @@ point."
 	(looking-at regexp)))))
 
 (put 'url 'end-op
-     (function (lambda ()
-		 (let ((bounds (thing-at-point-bounds-of-url-at-point)))
-		   (if bounds
-		       (goto-char (cdr bounds))
-		     (error "No URL here"))))))
+     (lambda ()
+       (let ((bounds (thing-at-point-bounds-of-url-at-point)))
+         (if bounds
+             (goto-char (cdr bounds))
+           (error "No URL here")))))
 (put 'url 'beginning-op
-     (function (lambda ()
-		 (let ((bounds (thing-at-point-bounds-of-url-at-point)))
-		   (if bounds
-		       (goto-char (car bounds))
-		     (error "No URL here"))))))
+     (lambda ()
+       (let ((bounds (thing-at-point-bounds-of-url-at-point)))
+         (if bounds
+             (goto-char (car bounds))
+           (error "No URL here")))))
 
 ;;  Whitespace
 
@@ -385,7 +380,7 @@ point."
 (defun sentence-at-point () (thing-at-point 'sentence))
 
 (defun read-from-whole-string (str)
-  "Read a lisp expression from STR.
+  "Read a Lisp expression from STR.
 Signal an error if the entire string was not used."
   (let* ((read-data (read-from-string str))
 	 (more-left
@@ -407,11 +402,13 @@ Signal an error if the entire string was not used."
 ;;;###autoload
 (defun sexp-at-point ()   (form-at-point 'sexp))
 ;;;###autoload
-(defun symbol-at-point () (form-at-point 'sexp 'symbolp))
+(defun symbol-at-point ()
+  (let ((thing (thing-at-point 'symbol)))
+    (if thing (intern thing))))
 ;;;###autoload
 (defun number-at-point () (form-at-point 'sexp 'numberp))
 ;;;###autoload
 (defun list-at-point ()   (form-at-point 'list 'listp))
 
-;;; arch-tag: bb65a163-dae2-4055-aedc-fe11f497f698
+;; arch-tag: bb65a163-dae2-4055-aedc-fe11f497f698
 ;;; thingatpt.el ends here

@@ -438,7 +438,8 @@ the Unicode code point @samp{U+@var{nnnn}}.  There is a slightly
 different syntax for specifying characters with code points above
 @code{#xFFFF}; @code{\U00@var{nnnnnn}} represents the character whose
 Unicode code point is @samp{U+@var{nnnnnn}}, if such a character
-is supported by Emacs.
+is supported by Emacs.  If the corresponding character is not
+supported, Emacs signals an error.
 
   This peculiar and inconvenient syntax was adopted for compatibility
 with other programming languages.  Unlike some other languages, Emacs

@@ -1,3 +1,53 @@
+2006-07-05  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Buffer Contents): Add example of text props
+	in result of buffer-substring.
+	(Text Properties): Explain better about use of specific property names.
+	(Property Search): Some cleanups; reorder some functions.
+
+	* keymaps.texi (Changing Key Bindings): Cleanup.
+	Add xref to Key Binding Conventions.
+
+	* display.texi (Attribute Functions): Add examples for
+	face-attribute-relative-p.
+
+	* tips.texi (Coding Conventions): Cleanup last change.
+
+2006-07-05  Karl Berry  <karl@gnu.org>
+
+	* elisp.texi: use @fonttextsize 10pt, a la emacs.texi.
+	and remove @setchapternewpage odd.
+	Result is 1013 pages, down from 1100.
+
+	* anti.texi, customize.texi, display.texi,
+        internals.texi, minibuf.texi, modes.texi tips.texi:
+        fix overfull/underfull boxes.
+
+2006-07-05  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* edebug.texi (Instrumenting):
+	Add Edebug-specific findex for eval-buffer.
+	* loading.texi (Loading):
+	Replace eval-current-buffer with eval-buffer.
+
+2006-06-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* locals.texi (Standard Buffer-Local Variables): Update the list
+	of variables.
+
+2006-06-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* files.texi (File Name Completion): Point user to the node
+	"Reading File Names".
+
+2006-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Contents of Directories): Document case-insensitive
+	behavior on respective filesystems.
+
+	* objects.texi (Character Type): Document that Emacs signals an
+	error for unsupported Unicode characters specified as \uNNNN.
+
 2006-06-19  Richard Stallman  <rms@gnu.org>
 
 	* processes.texi (Bindat Spec): Clarify previous change.

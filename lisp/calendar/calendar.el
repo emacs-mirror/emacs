@@ -213,12 +213,6 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
 ;; backward-compatibility alias
 (put 'holiday-face 'face-alias 'holiday)
 
-(eval-after-load "facemenu"
-  '(progn
-     (add-to-list 'facemenu-unlisted-faces 'diary)
-     (add-to-list 'facemenu-unlisted-faces 'calendar-today)
-     (add-to-list 'facemenu-unlisted-faces 'holiday)))
-
 (defcustom diary-entry-marker
   (if (not (display-color-p))
       "+"

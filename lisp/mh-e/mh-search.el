@@ -318,9 +318,9 @@ folder containing the index search results."
 
         (message "%s found %s matches in %s folders"
                  (upcase-initials (symbol-name mh-searcher))
-                 (loop for msg-hash being hash-values of mh-index-data
+                 (loop for msg-hash being the hash-values of mh-index-data
                        sum (hash-table-count msg-hash))
-                 (loop for msg-hash being hash-values of mh-index-data
+                 (loop for msg-hash being the hash-values of mh-index-data
                        count (> (hash-table-count msg-hash) 0)))))))
 
 ;; Shush compiler.
@@ -1362,7 +1362,7 @@ being the list of messages originally from that folder."
   (save-excursion
     (goto-char (point-min))
     (let ((result-table (make-hash-table :test #'equal)))
-      (loop for msg being hash-keys of mh-index-msg-checksum-map
+      (loop for msg being the hash-keys of mh-index-msg-checksum-map
             do (push msg (gethash (car (gethash
                                         (gethash msg mh-index-msg-checksum-map)
                                         mh-index-checksum-origin-map))
@@ -1524,7 +1524,8 @@ construct the base name."
          (with-temp-buffer
            (mh-exec-cmd-output "folder" nil "-fast" "-nocreate" folder)
            (goto-char (point-min))
-           (looking-at (format "+?%s" folder))))))
+           ;; Strip + from folder; use optional + in regexp.
+           (looking-at (format "+?%s" (substring folder 1)))))))
 
 (defun mh-msg-exists-p (msg folder)
   "Check if MSG exists in FOLDER."

@@ -2457,10 +2457,13 @@ Sorting commands:
 
 Other commands:
 
+  '\\[ibuffer-update]' - Regenerate the list of all buffers.
+          Prefix arg means to toggle whether buffers that match
+          `ibuffer-maybe-show-predicates' should be displayed.
+
   '\\[ibuffer-switch-format]' - Change the current display format.
   '\\[forward-line]' - Move point to the next line.
   '\\[previous-line]' - Move point to the previous line.
-  '\\[ibuffer-update]' - As above, but add new buffers to the list.
   '\\[ibuffer-quit]' - Bury the Ibuffer buffer.
   '\\[describe-mode]' - This help.
   '\\[ibuffer-diff-with-file]' - View the differences between this buffer

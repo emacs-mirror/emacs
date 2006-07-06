@@ -1366,10 +1366,10 @@ that are not customizable options, as well as faces and groups
 				      (get symbol 'variable-documentation))))
 		    (push (list symbol 'custom-variable) found)))))
     (if (not found)
-	(error "No matches")
-      (custom-buffer-create (custom-sort-items found t
-					       custom-buffer-order-groups)
-			    "*Customize Apropos*"))))
+	(error "No customizable items matching %s" regexp)
+      (custom-buffer-create
+       (custom-sort-items found t custom-buffer-order-groups)
+       "*Customize Apropos*"))))
 
 ;;;###autoload
 (defun customize-apropos-options (regexp &optional arg)
@@ -4520,9 +4520,18 @@ if that value is non-nil."
 
 (put 'custom-mode 'mode-class 'special)
 
-(add-to-list
- 'debug-ignored-errors
- "^No user options have changed defaults in recent Emacs versions$")
+(dolist (regexp
+	 '("^No user option defaults have been changed since Emacs "
+	   "^Invalid face:? "
+	   "^No \\(?:customized\\|rogue\\|saved\\) user options"
+	   "^No customizable items matching "
+	   "^There are unset changes"
+	   "^Cannot set hidden variable"
+	   "^No \\(?:saved\\|backup\\) value for "
+	   "^No standard setting known for "
+	   "^No standard setting for this face"
+	   "^Saving settings from \"emacs -q\" would overwrite existing customizations"))
+  (add-to-list 'debug-ignored-errors regexp))
 
 ;;; The End.
 

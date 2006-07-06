@@ -1088,7 +1088,19 @@ see `language-info-alist'."
       (setq lang-env (symbol-name lang-env)))
   (set-language-info-internal lang-env key info)
   (if (equal lang-env current-language-environment)
-      (set-language-environment lang-env)))
+      (cond ((eq key 'coding-priority)
+	     (set-language-environment-coding-systems lang-env))
+	    ((eq key 'input-method)
+	     (set-language-environment-input-method lang-env))
+	    ((eq key 'nonascii-translation)
+	     (set-language-environment-nonascii-translation lang-env))
+	    ((eq key 'charset)
+	     (set-language-environment-charset lang-env))
+	    ((eq key 'overriding-fontspec)
+	     (set-language-environment-fontset lang-env))
+	    ((and (not default-enable-multibyte-characters)
+		  (or (eq key 'unibyte-syntax) (eq key 'unibyte-display)))
+	     (set-language-environment-unibyte lang-env)))))
 
 (defun set-language-info-internal (lang-env key info)
   "Internal use only.
@@ -1920,6 +1932,80 @@ of `buffer-file-coding-system' set by this function."
 	 default-coding))
       (setq default-sendmail-coding-system default-coding)
       (apply 'set-coding-system-priority priority))))
+
+(defun set-language-environment-input-method (language-name)
+  "Do various input method setups for language environment LANGUAGE-NAME."
+  (let ((input-method (get-language-info language-name 'input-method)))
+    (when input-method
+      (setq default-input-method input-method)
+      (if input-method-history
+	  (setq input-method-history
+		(cons input-method
+		      (delete input-method input-method-history)))))))
+
+(defun set-language-environment-nonascii-translation (language-name)
+  "Do unibyte/multibyte translation setup for language environment LANGUAGE-NAME."
+  (let ((nonascii (get-language-info language-name 'nonascii-translation))
+	(dos-table
+	 (if (eq window-system 'pc)
+	     (intern
+	      (format "cp%d-nonascii-translation-table" dos-codepage)))))
+    (cond
+     ((char-table-p nonascii)
+      (setq nonascii-translation-table nonascii))
+     ((and (eq window-system 'pc) (boundp dos-table))
+      ;; DOS terminals' default is to use a special non-ASCII translation
+      ;; table as appropriate for the installed codepage.
+      (setq nonascii-translation-table (symbol-value dos-table)))
+     ((charsetp nonascii)
+      (setq nonascii-insert-offset (- (make-char nonascii) 128))))))
+
+(defun set-language-environment-charset (language-name)
+  "Do various charset setups for language environment LANGUAGE-NAME."
+  (if (and utf-translate-cjk-mode
+	   (not (eq utf-translate-cjk-lang-env language-name))
+	   (catch 'tag
+	     (dolist (charset (get-language-info language-name 'charset))
+	       (if (memq charset utf-translate-cjk-charsets)
+		   (throw 'tag t)))
+	     nil))
+      (utf-translate-cjk-load-tables)))
+
+(defun set-language-environment-fontset (language-name)
+  "Do various fontset setups for language environment LANGUAGE-NAME."
+  ;; Don't invoke fontset-related functions if fontsets aren't
+  ;; supported in this build of Emacs.
+  (if (fboundp 'fontset-list)
+      (set-overriding-fontspec-internal
+       (get-language-info language-name 'overriding-fontspec))))
+
+(defun set-language-environment-unibyte (language-name)
+  "Do various unibyte-mode setups for language environment LANGUAGE-NAME."
+  ;; Syntax and case table.
+  (let ((syntax (get-language-info language-name 'unibyte-syntax)))
+    (if syntax
+	(let ((set-case-syntax-set-multibyte nil))
+	  (load syntax nil t))
+      ;; No information for syntax and case.  Reset to the defaults.
+      (let ((syntax-table (standard-syntax-table))
+	    (standard-table (standard-case-table))
+	    (case-table (make-char-table 'case-table))
+	    (ch (if (eq window-system 'pc) 128 160)))
+	(while (< ch 256)
+	  (modify-syntax-entry ch " " syntax-table)
+	  (setq ch (1+ ch)))
+	(dotimes (i 128)
+	  (aset case-table i (aref standard-table i)))
+	(set-char-table-extra-slot case-table 0 nil)
+	(set-char-table-extra-slot case-table 1 nil)
+	(set-char-table-extra-slot case-table 2 nil)
+	(set-standard-case-table case-table))
+      (let ((list (buffer-list)))
+	(while list
+	  (with-current-buffer (car list)
+	    (set-case-table (standard-case-table)))
+	  (setq list (cdr list))))))
+  (set-display-table-and-terminal-coding-system language-name))
 
 (defsubst princ-list (&rest args)
   "Print all arguments with `princ', then print \"\n\"."

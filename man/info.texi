@@ -153,13 +153,15 @@ number of lines; most readers pass by it without seeing it.)
 Since your terminal has a relatively small number of lines on its
 screen, it is necessary to give you special advice at the beginning.
 
-If you see the text @samp{--All----} near the bottom right corner
-of the screen, it means the entire text you are looking at fits on the
-screen.  If you see @samp{--Top----} instead, it means that there is
-more text below that does not fit.  To move forward through the text
-and see another screen full, press @key{SPC}, the Space bar.  To move
-back up, press the key labeled @samp{Backspace} or @samp{DEL} (on some
-keyboards, this key might be labeled @samp{Delete}).
+If the entire text you are looking at fits on the screen, the text
+@samp{All} will be displayed at the bottom of the screen.  In the
+stand-alone Info reader, it is displayed at the bottom right corner of
+the screen; in Emacs, it is displayed on the modeline.  If you see the
+text @samp{Top} instead, it means that there is more text below that
+does not fit.  To move forward through the text and see another screen
+full, press @key{SPC}, the Space bar.  To move back up, press the key
+labeled @samp{Backspace} or @samp{DEL} (on some keyboards, this key
+might be labeled @samp{Delete}).
 
 @ifinfo
 Here are 40 lines of junk, so you can try @key{SPC} and @key{DEL} and
@@ -239,9 +241,9 @@ line says that this is node @samp{Help} in the file @file{info}.
 node called @samp{Help-P}.  An advanced Info command lets you go to
 any node whose name you know.  In the stand-alone Info reader program,
 the header line shows the names of this node and the Info file as
-well.  In Emacs, the header line is duplicated in a special typeface,
-and the duplicate remains at the top of the window all the time even
-if you scroll through the node.
+well.  In Emacs, the header line is displayed with a special typeface,
+and remains at the top of the window all the time even if you scroll
+through the node.
 
   Besides a @samp{Next}, a node can have a @samp{Previous} link, or an
 @samp{Up} link, or both.  As you can see, this node has all of these
@@ -260,7 +262,7 @@ links.
 
 @format
 >> If you are in Emacs and have a mouse, and if you already practiced
-   typing @kbd{n} to get to the next node, click now with the middle
+   typing @kbd{n} to get to the next node, click now with the left 
    mouse button on the @samp{Next} link to do the same ``the mouse way''.
 @end format
 
@@ -276,9 +278,8 @@ node, @samp{Help-^L}.
 
 @format
 >> But do not type @kbd{n} yet.  First, try the @kbd{p} command, or
-   (in Emacs) click the middle mouse button on the @samp{Prev} link.
-   That takes you to the @samp{Previous} node.  Then use @kbd{n} to
-   return here.
+   (in Emacs) click on the @samp{Prev} link.  That takes you to
+   the @samp{Previous} node.  Then use @kbd{n} to return here.
 @end format
 
   If you read this in Emacs, you will see an @samp{Info} item in the
@@ -309,8 +310,8 @@ underlined as well; it says what the node is about.
 
   This is a big node and it does not all fit on your display screen.
 You can tell that there is more that is not visible because you
-can see the string @samp{--Top-----} rather than @samp{--All----} near
-the bottom right corner of the screen.
+can see the text @samp{Top} rather than @samp{All} near the bottom of
+the screen.
 
 @kindex SPC @r{(Info mode)}
 @kindex DEL @r{(Info mode)}
@@ -394,17 +395,13 @@ the @key{BACKSPACE} key (or @key{DEL}) many times.  You can also type
    Then come back, by typing @key{SPC} one or more times.
 @end format
 
-  If your screen is very tall, all of this node might fit at once.  In
-that case, @kbd{b} won't do anything.  But you could observe the
-effect of the @kbd{b} key if you use a smaller window.
-
 @kindex ? @r{(Info mode)}
 @findex Info-summary
   You have just learned a considerable number of commands.  If you
 want to use one but have trouble remembering which, you should type
-a @kbd{?} (in Emacs it runs the @code{Info-summary} command) which
-displays a brief list of commands.  When you are finished looking at
-the list, make it go away by typing a @key{SPC} repeatedly.
+@kbd{?}, which displays a brief list of commands.  When you are
+finished looking at the list, make it go away by typing @key{SPC}
+repeatedly.
 
 @format
 >> Type a @key{?} now.  Press @key{SPC} to see consecutive screenfuls of
@@ -597,7 +594,7 @@ line becomes blank again.  Then you can type Info commands again.
   The command to go to a subnode via a menu is @kbd{m}.  After you type
 the @kbd{m}, the line at the bottom of the screen says @samp{Menu item: }.
 You must then type the name of the subtopic you want, and end it with
-a @key{RET}.  In Emacs, @kbd{m} runs the command @code{Info-menu}.
+a @key{RET}.
 
 @cindex abbreviating Info subnodes
   You can abbreviate the subtopic name.  If the abbreviation is not
@@ -725,12 +722,10 @@ usually used to ``stay on the same level but go backwards''.
 @kindex u @r{(Info mode)}
 @findex Info-up
   You can go back to the node @samp{Help-M} by typing the command
-@kbd{u} for ``Up'' (the Emacs command run by @kbd{u} is
-@code{Info-up}).  That puts you at the @emph{front} of the node---to
-get back to where you were reading you have to type some @key{SPC}s.
-(Some Info readers, such as the one built into Emacs, put you at the
-menu subtopic line which points to the subnode that the @kbd{u} command
-brought you from.)
+@kbd{u} for ``Up''.  This puts you at the menu subtopic line pointing
+to the subnode that the @kbd{u} command brought you from.  (Some Info
+readers may put you at the @emph{front} of the node instead---to get
+back to where you were reading, you have to type some @key{SPC}s.)
 
   Another way to go Up is to click @kbd{Mouse-2} on the @samp{Up}
 pointer shown in the header line (provided that you have a mouse).
@@ -752,19 +747,21 @@ in Emacs.  Do @kbd{M-x visible-mode} to show or hide it.)
 
 @kindex f @r{(Info mode)}
 @findex Info-follow-reference
-  There are two ways to follow a cross reference.  You can move the
-cursor to it and press @key{RET}, just as in a menu.  @key{RET}
-follows the cross reference that the cursor is on.  Or you can type
-@kbd{f} and then specify the name of the cross reference (in this
-case, @samp{Cross}) as an argument.  In Emacs Info, @kbd{f} runs
-@code{Info-follow-reference},
+  You can follow a cross reference by moving the cursor to it and
+press @key{RET}, just as in a menu.  In Emacs, you can also click
+@kbd{Mouse-1} on a cross reference to follow it; you can see that the
+cross reference is mouse-sensitive by moving the mouse pointer to the
+reference and watching how the underlying text and the mouse pointer
+change in response.
 
-  In the @kbd{f} command, you select the cross reference with its
-name, so it does not matter where the cursor was.  If the cursor is on
-or near a cross reference, @kbd{f} suggests that reference name in
-parentheses as the default; typing @key{RET} will follow that
-reference.  However, if you type a different reference name, @kbd{f}
-will follow the other reference which has that name.
+  Another way to follow a cross reference is to type @kbd{f} and then
+specify the name of the cross reference (in this case, @samp{Cross})
+as an argument.  For this command, it does not matter where the cursor
+was.  If the cursor is on or near a cross reference, @kbd{f} suggests
+that reference name in parentheses as the default; typing @key{RET}
+will follow that reference.  However, if you type a different
+reference name, @kbd{f} will follow the other reference which has that
+name.
 
 @format
 >> Type @kbd{f}, followed by @kbd{Cross}, and then @key{RET}.
@@ -791,11 +788,6 @@ to cancel the @kbd{f}.
   The @key{TAB}, @kbd{M-@key{TAB}} and @kbd{S-@key{TAB}} keys,
 which move between menu items in a menu, also move between cross
 references outside of menus.
-
-  Clicking @kbd{Mouse-2} on or near a cross reference also follows the
-reference.  You can see that the cross reference is mouse-sensitive by
-moving the mouse pointer to the reference and watching how the
-underlying text and the mouse pointer change in response.
 
   Sometimes a cross reference (or a node) can lead to another file (in
 other words another ``manual''), or, on occasion, even a file on a
@@ -858,8 +850,6 @@ do that, one node-step at a time.  As you move from node to node, Info
 records the nodes where you have been in a special history list.  The
 @kbd{l} command revisits nodes in the history list; each successive
 @kbd{l} command moves one step back through the history.
-
-  In Emacs, @kbd{l} runs the command @code{Info-history-back}.
 
 @format
 >> Try typing @kbd{p p n} and then three @kbd{l}'s, pausing in between
@@ -980,8 +970,8 @@ command @code{Info-search}.
   Instead of using @kbd{s} in Emacs Info and in the stand-alone Info,
 you can use an incremental search started with @kbd{C-s} or @kbd{C-r}.
 It can search through multiple Info nodes.  @xref{Incremental Search,,,
-emacs, The GNU Emacs Manual}.  In Emacs, this behavior is enabled only
-if the variable @code{Info-isearch-search} is non-@code{nil}
+emacs, The GNU Emacs Manual}.  In Emacs, you can disable this behavior
+by setting the variable @code{Info-isearch-search} to @code{nil}
 (@pxref{Emacs Info Variables}).
 
 @node Search Index, Go to node, Search Text, Advanced
@@ -1022,8 +1012,6 @@ their names when @kbd{i} prompts you for a topic.  For example, if you
 want to read the description of what the @kbd{C-l} key does, type
 @kbd{iC-l@key{RET}} literally.
 
-  In Emacs, @kbd{i} runs the command @code{Info-index}.
-
 @findex info-apropos
 @findex index-apropos
 If you aren't sure which manual documents the topic you are looking
@@ -1043,7 +1031,6 @@ Info documents installed on your system.
 name, and @key{RET}.  Thus, @kbd{gTop@key{RET}} would go to the node
 called @samp{Top} in this file.  (This is equivalent to @kbd{t}, see
 @ref{Help-Int}.)  @kbd{gGo to node@key{RET}} would come back here.
-@kbd{g} in Emacs runs the command @code{Info-goto-node}.
 
   Unlike @kbd{m}, @kbd{g} does not allow the use of abbreviations.
 But it does allow completion, so you can type @key{TAB} to complete a
@@ -1073,8 +1060,7 @@ you might like to use the commands @kbd{1}, @kbd{2}, @kbd{3}, @kbd{4},
 with a name of a menu subtopic.  @kbd{1} goes through the first item
 in the current node's menu; @kbd{2} goes through the second item, etc.
 In the stand-alone reader, @kbd{0} goes through the last menu item;
-this is so you need not count how many entries are there.  In Emacs,
-the digit keys run the command @code{Info-nth-menu-item}.
+this is so you need not count how many entries are there.
 
   If your display supports multiple fonts, colors or underlining, and
 you are using Emacs' Info mode to read Info files, the third, sixth
@@ -1095,7 +1081,7 @@ move between menu items.
 @findex clone-buffer
 @cindex multiple Info buffers
   If you are reading Info in Emacs, you can select a new independent
-Info buffer in the same window by typing @kbd{M-n}.  The new buffer
+Info buffer in a new Emacs window by typing @kbd{M-n}.  The new buffer
 starts out as an exact copy of the old one, but you will be able to
 move independently between nodes in the two buffers.  (In Info mode,
 @kbd{M-n} runs the Emacs command @code{clone-buffer}.)
@@ -1116,8 +1102,8 @@ switches to the buffer @samp{*info*<2>}, creating it if necessary.
 @section Emacs Info-mode Variables
 
 The following variables may modify the behavior of Info-mode in Emacs;
-you may wish to set one or several of these variables interactively, or
-in your @file{~/.emacs} init file.  @xref{Examining, Examining and Setting
+you may wish to set one or several of these variables interactively,
+or in your init file.  @xref{Examining, Examining and Setting
 Variables, Examining and Setting Variables, emacs, The GNU Emacs
 Manual}.  The stand-alone Info reader program has its own set of
 variables, described in @ref{Variables,, Manipulating Variables,

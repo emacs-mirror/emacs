@@ -176,9 +176,15 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
 #ifdef VMS
       bufp = compile_pattern (match, 0,
 			      buffer_defaults.downcase_table, 0, 1);
-#else
+#else  /* !VMS */
+# ifdef WINDOWSNT
+      /* Windows users want case-insensitive wildcards.  */
+      bufp = compile_pattern (match, 0,
+			      buffer_defaults.case_canon_table, 0, 1);
+# else	/* !WINDOWSNT */
       bufp = compile_pattern (match, 0, Qnil, 0, 1);
-#endif
+# endif	 /* !WINDOWSNT */
+#endif	 /* !VMS */
     }
 
   /* Note: ENCODE_FILE and DECODE_FILE can GC because they can run

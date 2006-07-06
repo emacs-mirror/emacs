@@ -488,7 +488,7 @@ This variable does not affect the use of major modes
 specified in a -*- line.")
 
 (defcustom enable-local-eval 'maybe
-  "*Control processing of the \"variable\" `eval' in a file's local variables.
+  "Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
 A value of t means obey `eval' variables;
 nil means ignore them; anything else means query."
@@ -1275,48 +1275,49 @@ Choose the buffer's name using `generate-new-buffer-name'."
 This also substitutes \"~\" for the user's home directory and
 removes automounter prefixes (see the variable `automount-dir-prefix')."
   ;; Get rid of the prefixes added by the automounter.
-  (if (and automount-dir-prefix
-	   (string-match automount-dir-prefix filename)
-	   (file-exists-p (file-name-directory
-			   (substring filename (1- (match-end 0))))))
-      (setq filename (substring filename (1- (match-end 0)))))
-  (let ((tail directory-abbrev-alist))
-    ;; If any elt of directory-abbrev-alist matches this name,
-    ;; abbreviate accordingly.
-    (while tail
-      (if (string-match (car (car tail)) filename)
-	  (setq filename
-		(concat (cdr (car tail)) (substring filename (match-end 0)))))
-      (setq tail (cdr tail)))
-    ;; Compute and save the abbreviated homedir name.
-    ;; We defer computing this until the first time it's needed, to
-    ;; give time for directory-abbrev-alist to be set properly.
-    ;; We include a slash at the end, to avoid spurious matches
-    ;; such as `/usr/foobar' when the home dir is `/usr/foo'.
-    (or abbreviated-home-dir
-	(setq abbreviated-home-dir
-	      (let ((abbreviated-home-dir "$foo"))
-		(concat "^" (abbreviate-file-name (expand-file-name "~"))
-			"\\(/\\|$\\)"))))
+  (save-match-data
+    (if (and automount-dir-prefix
+	     (string-match automount-dir-prefix filename)
+	     (file-exists-p (file-name-directory
+			     (substring filename (1- (match-end 0))))))
+	(setq filename (substring filename (1- (match-end 0)))))
+    (let ((tail directory-abbrev-alist))
+      ;; If any elt of directory-abbrev-alist matches this name,
+      ;; abbreviate accordingly.
+      (while tail
+	(if (string-match (car (car tail)) filename)
+	    (setq filename
+		  (concat (cdr (car tail)) (substring filename (match-end 0)))))
+	(setq tail (cdr tail)))
+      ;; Compute and save the abbreviated homedir name.
+      ;; We defer computing this until the first time it's needed, to
+      ;; give time for directory-abbrev-alist to be set properly.
+      ;; We include a slash at the end, to avoid spurious matches
+      ;; such as `/usr/foobar' when the home dir is `/usr/foo'.
+      (or abbreviated-home-dir
+	  (setq abbreviated-home-dir
+		(let ((abbreviated-home-dir "$foo"))
+		  (concat "^" (abbreviate-file-name (expand-file-name "~"))
+			  "\\(/\\|$\\)"))))
 
-    ;; If FILENAME starts with the abbreviated homedir,
-    ;; make it start with `~' instead.
-    (if (and (string-match abbreviated-home-dir filename)
-	     ;; If the home dir is just /, don't change it.
-	     (not (and (= (match-end 0) 1)
-		       (= (aref filename 0) ?/)))
-	     ;; MS-DOS root directories can come with a drive letter;
-	     ;; Novell Netware allows drive letters beyond `Z:'.
-	     (not (and (or (eq system-type 'ms-dos)
-			   (eq system-type 'cygwin)
-			   (eq system-type 'windows-nt))
-		       (save-match-data
-			 (string-match "^[a-zA-`]:/$" filename)))))
-	(setq filename
-	      (concat "~"
-		      (substring filename (match-beginning 1) (match-end 1))
-		      (substring filename (match-end 0)))))
-    filename))
+      ;; If FILENAME starts with the abbreviated homedir,
+      ;; make it start with `~' instead.
+      (if (and (string-match abbreviated-home-dir filename)
+	       ;; If the home dir is just /, don't change it.
+	       (not (and (= (match-end 0) 1)
+			 (= (aref filename 0) ?/)))
+	       ;; MS-DOS root directories can come with a drive letter;
+	       ;; Novell Netware allows drive letters beyond `Z:'.
+	       (not (and (or (eq system-type 'ms-dos)
+			     (eq system-type 'cygwin)
+			     (eq system-type 'windows-nt))
+			 (save-match-data
+			   (string-match "^[a-zA-`]:/$" filename)))))
+	  (setq filename
+		(concat "~"
+			(match-string 1 filename)
+			(substring filename (match-end 0)))))
+      filename)))
 
 (defcustom find-file-not-true-dirname-list nil
   "*List of logical names for which visiting shouldn't save the true dirname.
@@ -1607,7 +1608,7 @@ Do you want to revisit the file normally now? ")
 	     (kill-buffer buf)
 	     (signal 'file-error (list "File is not readable"
 				       filename)))
-	   ;; Run find-file-not-found-hooks until one returns non-nil.
+	   ;; Run find-file-not-found-functions until one returns non-nil.
 	   (or (run-hook-with-args-until-success 'find-file-not-found-functions)
 	       ;; If they fail too, set error.
 	       (setq error t)))))
@@ -1627,9 +1628,7 @@ Do you want to revisit the file normally now? ")
 	     (not (member logical find-file-not-true-dirname-list)))
 	   (setq buffer-file-name buffer-file-truename))
       (if find-file-visit-truename
-	  (setq buffer-file-name
-		(setq filename
-		      (expand-file-name buffer-file-truename))))
+	  (setq buffer-file-name (expand-file-name buffer-file-truename)))
       ;; Set buffer's default directory to that of the file.
       (setq default-directory (file-name-directory buffer-file-name))
       ;; Turn off backup files for certain file names.  Since
@@ -2436,11 +2435,9 @@ n  -- to ignore the local variables list.")
 		   (insert "    ")))
 	    (princ (car elt) buf)
 	    (insert " : ")
-            (if (stringp (cdr elt))
-                ;; Make strings with embedded whitespace easier to read.
-                (let ((print-escape-newlines t))
-                  (prin1 (cdr elt) buf))
-              (princ (cdr elt) buf))
+            ;; Make strings with embedded whitespace easier to read.
+            (let ((print-escape-newlines t))
+              (prin1 (cdr elt) buf))
 	    (insert "\n"))
 	  (setq prompt
 		(format "Please type %s%s: "
@@ -2511,9 +2508,7 @@ and VAL is the specified value."
 	       ;; There used to be a downcase here,
 	       ;; but the manual didn't say so,
 	       ;; and people want to set var names that aren't all lc.
-	       (let ((key (intern (buffer-substring
-				   (match-beginning 1)
-				   (match-end 1))))
+	       (let ((key (intern (match-string 1)))
 		     (val (save-restriction
 			    (narrow-to-region (point) end)
 			    (read (current-buffer)))))
@@ -2665,8 +2660,8 @@ is specified, returning t if it is specified."
 		      (hack-local-variables-confirm
 		       result unsafe-vars risky-vars))
 		  (dolist (elt result)
-		    (hack-one-local-variable (car elt) (cdr elt))))))
-	  (run-hooks 'hack-local-variables-hook))))))
+		    (hack-one-local-variable (car elt) (cdr elt)))))))
+	(run-hooks 'hack-local-variables-hook)))))
 
 (defun safe-local-variable-p (sym val)
   "Non-nil if SYM is safe as a file-local variable with value VAL.
@@ -2752,17 +2747,16 @@ It is dangerous if either of these conditions are met:
 (defun hack-one-local-variable (var val)
   "Set local variable VAR with value VAL."
   (cond ((eq var 'mode)
-	 (funcall (intern (concat (downcase (symbol-name val))
-				  "-mode"))))
+	 (funcall (intern (concat (downcase (symbol-name val)) "-mode"))))
 	((eq var 'eval)
 	 (save-excursion (eval val)))
-	(t (make-local-variable var)
-	   ;; Make sure the string has no text properties.
-	   ;; Some text properties can get evaluated in various ways,
-	   ;; so it is risky to put them on with a local variable list.
-	   (if (stringp val)
-	       (set-text-properties 0 (length val) nil val))
-	   (set var val))))
+	(t
+         ;; Make sure the string has no text properties.
+         ;; Some text properties can get evaluated in various ways,
+         ;; so it is risky to put them on with a local variable list.
+         (if (stringp val)
+             (set-text-properties 0 (length val) nil val))
+         (set (make-local-variable var) val))))
 
 
 (defcustom change-major-mode-with-file-name t
@@ -4220,9 +4214,7 @@ This command is used in the special Dired buffer created by
 		      (setq autofile
 			    (buffer-substring-no-properties
 			     (point)
-			     (save-excursion
-			       (end-of-line)
-			       (point))))
+			     (line-end-position)))
 		      (setq thisfile
 			    (expand-file-name
 			     (substring

@@ -3038,6 +3038,7 @@ handle_stop (it)
 		return;
 	      if (!get_overlay_strings_1 (it, 0, 0))
 		return;
+	      it->ignore_overlay_strings_at_pos_p = 1;
 	      it->string_from_display_prop_p = 0;
 	      handle_overlay_change_p = 0;
 	      handled = HANDLED_RECOMPUTE_PROPS;
@@ -4588,6 +4589,10 @@ handle_composition_prop (it)
 		}
 	      return HANDLED_RECOMPUTE_PROPS;
 	    }
+
+	  it->stop_charpos = end;
+	  push_it (it);
+
 	  it->method = GET_FROM_COMPOSITION;
 	  it->cmp_id = id;
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
@@ -4602,7 +4607,6 @@ handle_composition_prop (it)
 	  it->len = (STRINGP (it->string)
 		     ? string_char_to_byte (it->string, end)
 		     : CHAR_TO_BYTE (end)) - pos_byte;
-	  it->stop_charpos = end;
 	  handled = HANDLED_RETURN;
 	}
     }
@@ -5031,7 +5035,8 @@ push_it (it)
       p->u.stretch.object = it->object;
       break;
     }
-  p->pos = it->current;
+  p->position = it->position;
+  p->current = it->current;
   p->end_charpos = it->end_charpos;
   p->string_nchars = it->string_nchars;
   p->area = it->area;
@@ -5062,7 +5067,8 @@ pop_it (it)
   p = it->stack + it->sp;
   it->stop_charpos = p->stop_charpos;
   it->face_id = p->face_id;
-  it->current = p->pos;
+  it->current = p->current;
+  it->position = p->position;
   it->string = p->string;
   if (NILP (it->string))
     SET_TEXT_POS (it->current.string_pos, -1, -1);
@@ -5220,6 +5226,7 @@ back_to_previous_visible_line_start (it)
   while (IT_CHARPOS (*it) > BEGV)
     {
       back_to_previous_line_start (it);
+
       if (IT_CHARPOS (*it) <= BEGV)
 	break;
 
@@ -5892,19 +5899,19 @@ set_iterator_to_next (it, reseat_p)
 
     case GET_FROM_COMPOSITION:
       xassert (it->cmp_id >= 0 && it->cmp_id < n_compositions);
-      if (STRINGP (it->string))
+      xassert (it->sp > 0);
+      pop_it (it);
+      if (it->method == GET_FROM_STRING)
 	{
 	  IT_STRING_BYTEPOS (*it) += it->len;
 	  IT_STRING_CHARPOS (*it) += it->cmp_len;
-	  it->method = GET_FROM_STRING;
 	  it->object = it->string;
 	  goto consider_string_end;
 	}
-      else
+      else if (it->method == GET_FROM_BUFFER)
 	{
 	  IT_BYTEPOS (*it) += it->len;
 	  IT_CHARPOS (*it) += it->cmp_len;
-	  it->method = GET_FROM_BUFFER;
 	  it->object = it->w->buffer;
 	}
       break;
@@ -9718,6 +9725,12 @@ display_tool_bar_line (it, height)
 	      /* Glyph doesn't fit on line.  Backtrack.  */
 	      row->used[TEXT_AREA] = n_glyphs_before;
 	      *it = it_before;
+	      /* If this is the only glyph on this line, it will never fit on the
+		 toolbar, so skip it.   But ensure there is at least one glyph,
+		 so we don't accidentally disable the tool-bar.  */
+	      if (n_glyphs_before == 0
+		  && (it->vpos > 0 || IT_STRING_CHARPOS (*it) < it->end_charpos-1))
+		break;
 	      goto out;
 	    }
 
@@ -9776,6 +9789,11 @@ display_tool_bar_line (it, height)
 }
 
 
+/* Max tool-bar height.  */
+
+#define MAX_FRAME_TOOL_BAR_HEIGHT(f) \
+  ((FRAME_LINE_HEIGHT (f) * FRAME_LINES (f)))
+
 /* Value is the number of screen lines needed to make all tool-bar
    items of frame F visible.  The number of actual rows needed is
    returned in *N_ROWS if non-NULL.  */
@@ -9787,7 +9805,10 @@ tool_bar_lines_needed (f, n_rows)
 {
   struct window *w = XWINDOW (f->tool_bar_window);
   struct it it;
-  struct glyph_row *temp_row = w->desired_matrix->rows;
+  /* tool_bar_lines_needed is called from redisplay_tool_bar after building
+     the desired matrix, so use (unused) mode-line row as temporary row to
+     avoid destroying the first tool-bar row.  */
+  struct glyph_row *temp_row = MATRIX_MODE_LINE_ROW (w->desired_matrix);
 
   /* Initialize an iterator for iteration over
      F->desired_tool_bar_string in the tool-bar window of frame F.  */
@@ -9893,13 +9914,13 @@ redisplay_tool_bar (f)
 	  int old_height = WINDOW_TOTAL_LINES (w);
 
 	  XSETFRAME (frame, f);
-	  clear_glyph_matrix (w->desired_matrix);
 	  Fmodify_frame_parameters (frame,
 				    Fcons (Fcons (Qtool_bar_lines,
 						  make_number (nlines)),
 					   Qnil));
 	  if (WINDOW_TOTAL_LINES (w) != old_height)
 	    {
+	      clear_glyph_matrix (w->desired_matrix);
 	      fonts_changed_p = 1;
 	      return 1;
 	    }
@@ -9951,17 +9972,20 @@ redisplay_tool_bar (f)
 
   if (auto_resize_tool_bars_p)
     {
-      int nlines;
+      int nlines, nrows;
+      int max_tool_bar_height = MAX_FRAME_TOOL_BAR_HEIGHT (f);
 
       /* If we couldn't display everything, change the tool-bar's
-	 height.  */
-      if (IT_STRING_CHARPOS (it) < it.end_charpos)
+	 height if there is room for more.  */
+      if (IT_STRING_CHARPOS (it) < it.end_charpos
+	  && it.current_y < max_tool_bar_height)
 	change_height_p = 1;
+
+      row = it.glyph_row - 1;
 
       /* If there are blank lines at the end, except for a partially
 	 visible blank line at the end that is smaller than
 	 FRAME_LINE_HEIGHT, change the tool-bar's height.  */
-      row = it.glyph_row - 1;
       if (!row->displays_text_p
 	  && row->height >= FRAME_LINE_HEIGHT (f))
 	change_height_p = 1;
@@ -9969,13 +9993,14 @@ redisplay_tool_bar (f)
       /* If row displays tool-bar items, but is partially visible,
 	 change the tool-bar's height.  */
       if (row->displays_text_p
-	  && MATRIX_ROW_BOTTOM_Y (row) > it.last_visible_y)
+	  && MATRIX_ROW_BOTTOM_Y (row) > it.last_visible_y
+	  && MATRIX_ROW_BOTTOM_Y (row) < max_tool_bar_height)
 	change_height_p = 1;
 
       /* Resize windows as needed by changing the `tool-bar-lines'
 	 frame parameter.  */
       if (change_height_p
-	  && (nlines = tool_bar_lines_needed (f, &f->n_tool_bar_rows),
+	  && (nlines = tool_bar_lines_needed (f, &nrows),
 	      nlines != WINDOW_TOTAL_LINES (w)))
 	{
 	  extern Lisp_Object Qtool_bar_lines;
@@ -9983,13 +10008,16 @@ redisplay_tool_bar (f)
 	  int old_height = WINDOW_TOTAL_LINES (w);
 
 	  XSETFRAME (frame, f);
-	  clear_glyph_matrix (w->desired_matrix);
 	  Fmodify_frame_parameters (frame,
 				    Fcons (Fcons (Qtool_bar_lines,
 						  make_number (nlines)),
 					   Qnil));
 	  if (WINDOW_TOTAL_LINES (w) != old_height)
-	    fonts_changed_p = 1;
+	    {
+	      clear_glyph_matrix (w->desired_matrix);
+	      f->n_tool_bar_rows = nrows;
+	      fonts_changed_p = 1;
+	    }
 	}
     }
 
@@ -11919,25 +11947,25 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	 glyph on point by scanning from string_start again.  */
       Lisp_Object limit;
       Lisp_Object string;
+      struct glyph *stop = glyph;
       int pos;
 
       limit = make_number (pt_old + 1);
-      end = glyph;
       glyph = string_start;
       x = string_start_x;
       string = glyph->object;
       pos = string_buffer_position (w, string, string_before_pos);
       /* If STRING is from overlay, LAST_POS == 0.  We skip such glyphs
 	 because we always put cursor after overlay strings.  */
-      while (pos == 0 && glyph < end)
+      while (pos == 0 && glyph < stop)
 	{
 	  string = glyph->object;
-	  SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
-	  if (glyph < end)
+	  SKIP_GLYPHS (glyph, stop, x, EQ (glyph->object, string));
+	  if (glyph < stop)
 	    pos = string_buffer_position (w, glyph->object, string_before_pos);
 	}
 
-      while (glyph < end)
+      while (glyph < stop)
 	{
 	  pos = XINT (Fnext_single_char_property_change
 		      (make_number (pos), Qdisplay, Qnil, limit));
@@ -11945,13 +11973,13 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	    break;
 	  /* Skip glyphs from the same string.  */
 	  string = glyph->object;
-	  SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
+	  SKIP_GLYPHS (glyph, stop, x, EQ (glyph->object, string));
 	  /* Skip glyphs from an overlay.  */
-	  while (glyph < end
+	  while (glyph < stop
 		 && ! string_buffer_position (w, glyph->object, pos))
 	    {
 	      string = glyph->object;
-	      SKIP_GLYPHS (glyph, end, x, EQ (glyph->object, string));
+	      SKIP_GLYPHS (glyph, stop, x, EQ (glyph->object, string));
 	    }
 	}
 

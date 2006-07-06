@@ -99,6 +99,15 @@ eight-bit-control/eight-bit-graphic charsets aren't now in the range
 * Installation Changes in Emacs 22.1
 
 ---
+** Emacs comes with a new set of icons.
+These icons are displayed on the taskbar and/or titlebar when Emacs
+runs in a graphical environment.  Source files for these icons can be
+found in etc/images/icons.  (You can't change the icons displayed by
+Emacs by changing these files directly.  On X, the icon is compiled
+into the Emacs executable; see gnu.h in the source tree.  On MS
+Windows, see nt/icons/emacs.ico.)
+
+---
 ** Emacs now supports new configure options `--program-prefix',
 `--program-suffix' and `--program-transform-name' that affect the names of
 installed programs.
@@ -211,6 +220,10 @@ terminfo name, since term.el now supports color.
 
 ---
 ** Emacs Lisp source files are compressed by default if `gzip' is available.
+
+---
+** All images used in Emacs have been consolidated in etc/images and subdirs.
+See also the changes to `find-image', documented below.
 
 
 * Startup Changes in Emacs 22.1
@@ -453,10 +466,6 @@ understand two new boolean pseudo-frame-parameters `same-frame' and
 +++
 ** The default for the paper size (variable ps-paper-type) is taken
 from the locale.
-
-** The command `list-faces-display' now accepts a prefix arg.
-When passed, the function prompts for a regular expression and lists
-only faces matching this regexp.
 
 ** Mark command changes:
 
@@ -2018,6 +2027,7 @@ paragraph will scroll the buffer by the respective amount of lines
 instead and point will be kept vertically fixed relative to window
 boundaries during scrolling.
 
++++
 ** The file t-mouse.el is now part of Emacs and provides access to mouse
 events from the console.  It still requires gpm to work but has been updated
 for Emacs 22. In particular, the mode-line is now position sensitive.
@@ -3226,7 +3236,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 8.0.  There have been major changes since
+Upgraded to MH-E version 8.0.2.  There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:
@@ -3571,6 +3581,15 @@ For example, these two sequences of expressions behave identically:
 ;; NOSEP t
 (defun PP (data) (insert (format "%S\n" data)))
 (ewoc-create 'PP "start\n\n" "\n" t)
+
+** Locate changes
+
+---
+*** By default, reverting the *Locate* buffer now just runs the last
+`locate' command back over again without offering to update the locate
+database (which normally only works if you have root privileges).  If
+you prefer the old behavior, set the new customizable option
+`locate-update-when-revert' to t.
 
 
 * Changes in Emacs 22.1 on non-free operating systems
@@ -4803,12 +4822,6 @@ This is like `window-height' but does not count the mode line or the
 header line.
 
 +++
-*** New function `window-body-height'.
-
-This is like `window-height' but does not count the mode line
-or the header line.
-
-+++
 *** You can now make a window as short as one line.
 
 A window that is just one line tall does not display either a mode
@@ -5254,6 +5267,12 @@ It is like `remove-text-properties' except that it takes a list of
 property names as argument rather than a property list.
 
 ** Face changes
+
++++
+*** The variable `facemenu-unlisted-faces' has been removed.
+Emacs has a lot more faces than in the past, and nearly all of them
+needed to be excluded.  The new variable `facemenu-listed-faces' lists
+the faces to include in the face menu.
 
 +++
 *** The new face attribute condition `min-colors' can be used to tailor

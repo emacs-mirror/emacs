@@ -2755,7 +2755,13 @@ This is what happens in interactive use with M-x.  */)
   CHECK_STRING (newname);
   file = Fexpand_file_name (file, Qnil);
 
-  if (!NILP (Ffile_directory_p (newname)))
+  if ((!NILP (Ffile_directory_p (newname)))
+#ifdef DOS_NT
+      /* If the file names are identical but for the case,
+	 don't attempt to move directory to itself. */
+      && (NILP (Fstring_equal (Fdowncase (file), Fdowncase (newname))))
+#endif
+      )
     newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
   else
     newname = Fexpand_file_name (newname, Qnil);

@@ -1,3 +1,144 @@
+2006-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* insdel.c (prepare_to_modify_buffer): For an indirect buffer, do
+	clash detection using the base buffer.
+
+	* puresize.h (BASE_PURESIZE): Increment to 1210500.
+
+2006-07-04  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (x_delete_display): Don't free or derefence NULL pointers.
+
+2006-07-04  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Fset_overriding_fontspec_internal): Check if we need
+	to update Voverriding_fontspec_alist.
+
+2006-07-03  Richard Stallman  <rms@gnu.org>
+
+	* xfns.c (Fx_create_frame): Move unwind_create_frame setup down.
+
+	* xfaces.c (Fface_attribute_relative_p): Doc fix.
+
+	* textprop.c (Fget_char_property_and_overlay): Doc fix.
+
+	* eval.c (Fdefvaralias): Doc fix.
+
+2006-07-03  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (sit_for): Fix preempt condition.
+
+2006-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read_filtered_event): Treat select-window just like
+	switch-frame.
+
+2006-07-02  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_tool_bar_line): Skip glyphs which are too big
+	to ever fit the tool-bar,
+	(MAX_FRAME_TOOL_BAR_HEIGHT): New macro.
+	(tool_bar_lines_needed): Use unused mode-line row as temp_row.
+	(redisplay_tool_bar): Only clear desired matrix if we actually
+	change the tool-bar window height.  Only try to make the tool-bar
+	window bigger if there is actually room for it.
+
+2006-06-30  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32term.c (x_make_frame_visible): Use SystemParametersInfo with
+	SPI_GETWORKAREA to find the dimensions of the screen work area,
+	and adjust vertical position of the frame in order to avoid being
+	covered by the task bar.
+
+	* w32fns.c (w32_createwindow): Use CW_USEDEFAULT instead of
+	f->left_pos and SH_SHOW instead of f->top_pos in the call to
+	CreateWindow.  Record the actual position in f->left_pos and
+	f->top_pos.
+
+2006-06-30  John Paul Wallington  <jpw@pobox.com>
+
+	* w32console.c (syms_of_ntterm) <w32-use-full-screen-buffer>:
+	Doc fix - default value has changed.
+
+2006-06-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Don't include FixMath.h or Scrap.h.
+
+	* macfns.c (Fx_create_frame): Apply 2006-06-24 change for xfns.c.
+
+	* macgui.h (USE_MAC_TSM) [TARGET_API_MAC_CARBON]: Set default to 1.
+
+	* macterm.c (Qeql): Add extern.
+	(x_set_mouse_pixel_position) [MAC_OSX]: Use CGWarpMouseCursorPosition.
+	(fm_style_face_attributes_alist) [USE_ATSUI]: New variable.
+	(syms_of_macterm) [USE_ATSUI]: Initialize and staticpro it.
+	Change keys of Vmac_atsu_font_table from strings to numbers.
+	(fm_style_to_face_attributes) [USE_ATSUI]: New function.
+	(init_font_name_table) [USE_ATSUI]: Use it.
+	(saved_ts_script_language_on_focus) [USE_MAC_TSM]: New variable.
+	(syms_of_macterm) [USE_MAC_TSM]: Initialize and staticpro it.
+	[USE_MAC_TSM] (mac_tsm_resume): Restore script and language codes
+	only when saved_ts_script_language_on_focus coincides with
+	Vmac_ts_script_language_on_focus.
+	[USE_MAC_TSM] (mac_tsm_suspend): Save value of
+	Vmac_ts_script_language_on_focus to saved_ts_script_language_on_focus.
+	(XTread_socket) [USE_MAC_TSM]: Add Mac OS Classic support.
+	[USE_MAC_TSM] (mac_handle_text_input_event, init_tsm): Likewise.
+
+2006-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fdelete_field, Ffield_string, Ffield_beginning)
+	(Ffield_string_no_properties, Ffield_end): Mention
+	args-out-of-range error condition in docstring.
+
+2006-06-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_composition_prop): Set stop_charpos before push_it.
+
+2006-06-25  Kim F. Storm  <storm@cua.dk>
+
+	* s/gnu-linux.h (SIGNALS_VIA_CHARACTERS): Define for Linux kernel
+	version 2.4 and later.
+
+2006-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Set font parameter directly instead of
+	using x_default_parameter, since x_get_args clears the parm alist.
+
+2006-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.c (directory_files_internal) [WINDOWSNT]: Find files
+	case-insensitively.
+
+2006-06-24  Aidan Kehoe  <kehoea@parhasard.net>
+
+	* lread.c (read_escape): When an unknown Unicode code point is
+	encountered as a string or character escape, signal an error.
+
+2006-06-23  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (pitx): Dump iterator stack.
+
+	* xdisp.c (handle_composition_prop): Push iterator on stack.
+	(set_iterator_to_next): Pop iterator at end of composition.
+
+2006-06-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* fileio.c (Frename_file) [DOS_NT]: Don't try to move directory to
+	itself on DOS_NT platforms, if the old and new names are identical
+	but for the letter-case.
+
+2006-06-21  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct it): Add `position' member to iterator stack.
+	Rename `pos' member to `current'.  Rearrange and add comments.
+
+	* xdisp.c (handle_stop): Set it->ignore_overlay_strings_at_pos_p
+	if  we get any overlays.
+	(set_cursor_from_row): Don't clobber `end' if we rescan from
+	start_string.
+	(push_it, pop_it): Save it->position.
+
 2006-06-19  Richard Stallman  <rms@gnu.org>
 
 	* window.c (size_window): New arg FIRST_ONLY.  All callers changed.
@@ -5,7 +146,7 @@
 	for the case of a top-level window and the following minibuffer.
 	Don't exit because of no `next' when there is a parent.
 	Use the FIRST_ONLY feature when resizing following windows.
-	
+
 	* syntax.c (init_syntax_once): Give most control chars' syntax Spunct.
 
 2006-06-17  Kim F. Storm  <storm@cua.dk>

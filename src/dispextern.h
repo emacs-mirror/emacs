@@ -1937,35 +1937,45 @@ struct it
      from what we previously had.  */
   struct iterator_stack_entry
   {
+    Lisp_Object string;
+    int string_nchars;
+    int end_charpos;
     int stop_charpos;
     int face_id;
-    Lisp_Object string;
+
+    /* Save values specific to a given method.  */
     union {
+      /* method == GET_FROM_IMAGE */
       struct {
 	Lisp_Object object;
 	struct it_slice slice;
 	int image_id;
       } image;
+      /* method == GET_FROM_COMPOSITION */
       struct {
 	Lisp_Object object;
 	int c, len;
 	int cmp_id, cmp_len;
       } comp;
+      /* method == GET_FROM_STRETCH */
       struct {
 	Lisp_Object object;
       } stretch;
     } u;
-    struct display_pos pos;
-    int end_charpos;
-    int string_nchars;
+
+    /* current text and display positions.  */
+    struct text_pos position;
+    struct display_pos current;
     enum glyph_row_area area;
     enum it_method method;
     unsigned multibyte_p : 1;
     unsigned string_from_display_prop_p : 1;
     unsigned display_ellipsis_p : 1;
+
+    /* properties from display property that are reset by another display property. */
     Lisp_Object space_width;
-    short voffset;
     Lisp_Object font_height;
+    short voffset;
   }
   stack[IT_STACK_SIZE];
 

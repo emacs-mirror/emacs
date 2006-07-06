@@ -1,3 +1,23 @@
+2006-07-05  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist (top-level): Add CONTRIBUTE.
+
+2006-07-04  Richard Stallman  <rms@gnu.org>
+
+	* CONTRIBUTE: Much rewrite.
+
+2006-07-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* CONTRIBUTE: New file.
+
+2006-06-25  Kim F. Storm  <storm@cua.dk>
+
+	* AUTHORS: Regenerate.
+
+2006-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Mention www.nongnu.org pages that list free Unicode fonts.
+
 2006-06-05  Kim F. Storm  <storm@cua.dk>
 
 	* AUTHORS: Regenerate.
@@ -19,7 +39,7 @@
 
 2006-04-01  Eli Zaretskii  <eliz@gnu.org>
 
-	* configure: Regenerated.
+	* configure: Regenerate.
 
 2006-04-01  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
@@ -46,7 +66,7 @@
 
 2006-02-14  Eli Zaretskii  <eliz@gnu.org>
 
-	* configure: Regenerated.
+	* configure: Regenerate.
 
 2006-02-14  Richard M. Stallman  <rms@gnu.org>
 
@@ -55,7 +75,7 @@
 2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Require GTK 2.4 or newer.
-	* configure: Regenerate
+	* configure: Regenerate.
 
 2006-01-29  Michael Olson  <mwolson@gnu.org>
 
@@ -92,7 +112,7 @@
 
 2005-12-25  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
-	* configure.in: use amdx86-64 for freebsd on x86_64.
+	* configure.in: Use amdx86-64 for freebsd on x86_64.
 
 2005-11-22  Romain Francoise  <romain@orebokech.com>
 

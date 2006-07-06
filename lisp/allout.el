@@ -37,7 +37,7 @@
 ;;  - Incremental search with dynamic exposure and reconcealment of text
 ;;  - Customizable bullet format - enables programming-language specific
 ;;    outlining, for code-folding editing.  (Allout code itself is to try it;
-;;    formatted as an outline - do ESC-x eval-current-buffer in allout.el; but
+;;    formatted as an outline - do ESC-x eval-buffer in allout.el; but
 ;;    emacs local file variables need to be enabled when the
 ;;    file was visited - see `enable-local-variables'.)
 ;;  - Configurable per-file initial exposure settings
@@ -72,7 +72,7 @@
 ;; 3.x, for those of you that depend on the old method.)
 ;;
 ;; Note - the lines beginning with `;;;_' are outline topic headers.
-;;        Just `ESC-x eval-current-buffer' to give it a whirl.
+;;        Just `ESC-x eval-buffer' to give it a whirl.
 
 ;; ken manheimer (ken dot manheimer at gmail dot com)
 

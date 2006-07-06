@@ -40,12 +40,6 @@
 
 ;;; Switching tooltips on/off
 
-;; We don't set track-mouse globally because this is a big redisplay
-;; problem in buffers having a pre-command-hook or such installed,
-;; which does a set-buffer, like the summary buffer of Gnus.  Calling
-;; set-buffer prevents redisplay optimizations, so every mouse motion
-;; would be accompanied by a full redisplay.
-
 (define-minor-mode tooltip-mode
   "Toggle Tooltip mode.
 With ARG, turn Tooltip mode on if and only if ARG is positive.

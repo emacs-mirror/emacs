@@ -1304,7 +1304,7 @@ for a moment, then straighten yourself up.
       (condition-case nil
 	  (dun-rot13)
 	(error (yank)))
-      (eval-current-buffer)
+      (eval-buffer)
       (kill-buffer (current-buffer)))
       (switch-to-buffer old-buffer)
     result))
@@ -2576,7 +2576,7 @@ treasures for points?" "4" "four")
     (insert ")")
     (setq eval-error nil)
     (condition-case nil
-	(eval-current-buffer)
+	(eval-buffer)
       (error (setq eval-error t)))
     (kill-buffer (current-buffer))
     (switch-to-buffer "*dungeon*")
