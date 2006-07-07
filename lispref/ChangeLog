@@ -1,3 +1,9 @@
+2006-07-07  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Fringe Cursors): Fix typo.
+	(Customizing Bitmaps): Fix define-fringe-bitmap entry.
+	(Overlay Arrow): Default is overlay-arrow fringe indicator.
+
 2006-07-05  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Buffer Contents): Add example of text props
