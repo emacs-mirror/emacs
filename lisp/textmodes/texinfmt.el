@@ -1555,7 +1555,9 @@ The node is constructed automatically."
               "  Node: " node-name "-Footnotes, Up: " node-name "\n")
       (setq start (point))
       (insert (format "\n(%d)  %s\n" texinfo-footnote-number arg))
-      (fill-region start (point))))))
+      (narrow-to-region (save-excursion (goto-char start) (point)) (point))
+      (fill-region (point-min) (point-max))
+      (widen)))))
 
 (defun texinfo-format-end-node ()
   "Format footnote in the End of node style, with notes at end of node."
@@ -2118,11 +2120,18 @@ This command is executed when texinfmt sees @item inside @multitable."
     (insert unformated-row)
     (goto-char (point-min))
 ;; 1. Check for correct number of @tab in line.
-    (let ((tab-number 1))                       ; one @tab between two columns
+    (let ((tab-number 1))               ; one @tab between two columns
       (while (search-forward "@tab" nil t)
         (setq tab-number (1+ tab-number)))
-      (if (/= tab-number (length table-widths))
-          (error "Wrong number of @tab's in a @multitable row")))
+      (let ((needed-tabs (- (length table-widths) tab-number)))
+        (when (> needed-tabs 0)
+              (goto-char (point-min)) 
+              (end-of-line)
+              (while (> needed-tabs 0)
+                (insert "@w{ }\n@tab")
+                (setq needed-tabs (1- needed-tabs))
+                (message
+                 "Added @tabs and empty spaces to a @multitable row")))))
     (goto-char (point-min))
 ;; 2. Format each cell, and copy to a rectangle
     ;; buffer looks like this:    A1  @tab  A2  @tab  A3
