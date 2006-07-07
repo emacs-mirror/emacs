@@ -87,9 +87,12 @@ ftfont_build_basic_charsets ()
   for (c = ' '; c < 127; c++)
     if (! FcCharSetAddChar (cs_iso8859_1, c))
       return -1;
+#if 0
+  /* This part is currently disabled.  Should be fixed later.  */
   for (c = 192; c < 256; c++)
     if (! FcCharSetAddChar (cs_iso8859_1, c))
       return -1;
+#endif
   return 0;
 }
 
