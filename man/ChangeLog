@@ -1,3 +1,11 @@
+2006-07-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Exporting): Document `C-c C-e' as the prefix for exporting
+	commands.
+	(Global TODO list): Document the use of the variables
+	`org-agenda-todo-ignore-scheduled' and
+	`org-agenda-todo-list-sublevels'.
+
 2006-07-05  Richard Stallman  <rms@gnu.org>
 
 	* faq.texi (Scrolling only one line): Fix xref.

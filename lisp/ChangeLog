@@ -1,3 +1,10 @@
+2006-07-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-get-todos): Skip subtree also if
+	entry is skipped because it has been scheduled.
+	(org-prepare-agenda-buffers): Don't mark buffers as modified when
+	changing `:org-archived' and `:org-comment' properties.
+
 2006-07-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-select-display): Don't make the temp frame
