@@ -1,3 +1,7 @@
+2006-07-07  Kim F. Storm  <storm@cua.dk>
+
+	* CONTRIBUTE: Mention INSTALL.CVS.
+
 2006-07-05  Romain Francoise  <romain@orebokech.com>
 
 	* make-dist (top-level): Add CONTRIBUTE.
