@@ -2946,7 +2946,7 @@ fringe.
 @defvar fringe-cursor-alist
 This variable specifies the mapping from logical cursor type to the
 actual fringe bitmaps displayed in the right fringe.  The value is an
-alist where each element @code{(@var{cursor}. @var{bitmap})} specifies
+alist where each element @code{(@var{cursor} . @var{bitmap})} specifies
 the fringe bitmaps used to display a specific logical cursor type in
 the fringe.  Here, @var{cursor} specifies the logical cursor type and
 @var{bitmap} is a symbol specifying the fringe bitmap to be displayed
@@ -3035,12 +3035,6 @@ The @var{align} argument may also be a list @code{(@var{align}
 If @var{periodic} is non-@code{nil}, it specifies that the rows in
 @code{bits} should be repeated enough times to reach the specified
 height.
-
-The return value on success is an integer identifying the new bitmap.
-You should save that integer in a variable so it can be used to select
-this bitmap.
-
-This function signals an error if there are no more free bitmap slots.
 @end defun
 
 @defun destroy-fringe-bitmap bitmap
@@ -3114,8 +3108,8 @@ Each variable on this list can have properties
 specify an overlay arrow string (for text-only terminals) or fringe
 bitmap (for graphical terminals) to display at the corresponding
 overlay arrow position.  If either property is not set, the default
-(@code{overlay-arrow-string} or @code{overlay-arrow-fringe-bitmap}) is
-used.
+@code{overlay-arrow-string} or @code{overlay-arrow} fringe indicator
+is used.
 
 @node Scroll Bars
 @section Scroll Bars
