@@ -54,7 +54,10 @@ o	Getting the Source Code
 	Arch from the Savannah web site.  It is important to write
 	your patch based this version; if you start from an older
 	version, your patch may be outdated when you write it.
-	
+
+	After you have downloaded the source, you should read the file
+	INSTALL.CVS for further instructions.
+
 	Ref: http://savannah.gnu.org/projects/emacs
 
 
@@ -97,13 +100,13 @@ o	Please reread your patch before submitting it.
 o	If you send several unrelated changes together, we will
 	ask you to separate them so we can consider each of the changes
 	by itself.
-	
+
 
 o	Supplemental information for Emacs Developers:
 
 	Once you become a frequent contributor to Emacs, we can
 	consider giving you write access to the CVS repository.
-	
+
 	Discussion about Emacs development takes place on
 	emacs-devel@gnu.org.
 
