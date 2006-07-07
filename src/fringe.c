@@ -1398,7 +1398,7 @@ init_fringe_bitmap (which, fb, once_p)
 DEFUN ("define-fringe-bitmap", Fdefine_fringe_bitmap, Sdefine_fringe_bitmap,
        2, 5, 0,
        doc: /* Define fringe bitmap BITMAP from BITS of size HEIGHT x WIDTH.
-BITMAP is a symbol or string naming the new fringe bitmap.
+BITMAP is a symbol identifying the new fringe bitmap.
 BITS is either a string or a vector of integers.
 HEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.
 WIDTH must be an integer between 1 and 16, or nil which defaults to 8.
