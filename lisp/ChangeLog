@@ -1,5 +1,13 @@
 2006-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dirtrack.el (dirtrack-default-directory-function): Remove.
+	(dirtrack-directory-function): Use file-name-as-directory.
+	(dirtrack-windows-directory-function): Simplify.
+	(dirtrack-forward-slash, dirtrack-backward-slash)
+	(dirtrack-replace-slash): Remove.
+	(dirtrack-toggle): Adjust comint-preoutput-filter-functions as well.
+	(dirtrack): Fix wrong parenthesizing; use match-string.
+
 	* progmodes/octave-inf.el: Remove spurious * in docstrings.
 	(inferior-octave-mode): Only change the buffer-local value of
 	comint-dynamic-complete-functions.

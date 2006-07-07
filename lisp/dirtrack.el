@@ -29,12 +29,12 @@
 ;; Shell directory tracking by watching the prompt.
 ;;
 ;; This is yet another attempt at a directory-tracking package for
-;; Emacs shell-mode. However, this package makes one strong assumption:
+;; Emacs shell-mode.  However, this package makes one strong assumption:
 ;; that you can customize your shell's prompt to contain the
-;; current working directory. Most shells do support this, including
+;; current working directory.  Most shells do support this, including
 ;; almost every type of Bourne and C shell on Unix, the native shells on
 ;; Windows95 (COMMAND.COM) and Windows NT (CMD.EXE), and most 3rd party
-;; Windows shells. If you cannot do this, or do not wish to, this package
+;; Windows shells.  If you cannot do this, or do not wish to, this package
 ;; will be useless to you.
 ;;
 ;; Installation:
@@ -45,30 +45,27 @@
 ;;
 ;; Note that directory tracking is done by matching regular expressions,
 ;; therefore it is *VERY IMPORTANT* for your prompt to be easily
-;; distinguishable from other output. If your prompt regexp is too general,
+;; distinguishable from other output.  If your prompt regexp is too general,
 ;; you will see error messages from the dirtrack filter as it attempts to cd
 ;; to non-existent directories.
 ;;
-;; 2) Set the variable `dirtrack-list' to an appropriate value. This
+;; 2) Set the variable `dirtrack-list' to an appropriate value.  This
 ;; should be a list of two elements: the first is a regular expression
 ;; which matches your prompt up to and including the pathname part.
 ;; The second is a number which tells which regular expression group to
-;; match to extract only the pathname. If you use a multi-line prompt,
-;; add 't' as a third element. Note that some of the functions in
+;; match to extract only the pathname.  If you use a multi-line prompt,
+;; add 't' as a third element.  Note that some of the functions in
 ;; 'comint.el' assume a single-line prompt (eg, comint-bol).
 ;;
-;; Determining this information may take some experimentation. Setting
+;; Determining this information may take some experimentation.  Setting
 ;; the variable `dirtrack-debug' may help; it causes the directory-tracking
-;; filter to log messages to the buffer `dirtrack-debug-buffer'. You can easily
+;; filter to log messages to the buffer `dirtrack-debug-buffer'.  You can easily
 ;; toggle this setting with the `dirtrack-debug-toggle' function.
 ;;
 ;; 3) Add a hook to shell-mode to enable the directory tracking:
 ;;
 ;; (add-hook 'shell-mode-hook
-;;   (function (lambda ()
-;; 	      (setq comint-preoutput-filter-functions
-;; 		    (append (list 'dirtrack)
-;; 			    comint-preoutput-filter-functions)))))
+;;   (lambda () (add-hook 'comint-preoutput-filter-functions 'dirtrack nil t)))
 ;;
 ;; You may wish to turn ordinary shell tracking off by calling
 ;; `shell-dirtrack-toggle' or setting `shell-dirtrackp'.
@@ -107,13 +104,13 @@
 ;;   (eg, when logged in as myself, I'll run a root shell in the same Emacs).
 ;;   If you do this, and the shell prompt contains a ~, Emacs will interpret
 ;;   this relative to the user which owns the Emacs process, not the user
-;;   who owns the shell buffer. This may cause dirtrack to behave strangely
+;;   who owns the shell buffer.  This may cause dirtrack to behave strangely
 ;;   (typically it reports that it is unable to cd to a directory
 ;;   with a ~ in it).
 ;;
 ;;   The same behavior can occur if you use dirtrack with remote filesystems
 ;;   (using telnet, rlogin, etc) as Emacs will be checking the local
-;;   filesystem, not the remote one. This problem is not specific to dirtrack,
+;;   filesystem, not the remote one.  This problem is not specific to dirtrack,
 ;;   but also affects file completion, etc.
 
 ;;; Code:
@@ -132,7 +129,7 @@
   :group 'shell)
 
 (defcustom dirtrack-list (list "^emacs \\([a-zA-Z]:.*\\)>" 1)
-  "*List for directory tracking.
+  "List for directory tracking.
 First item is a regexp that describes where to find the path in a prompt.
 Second is a number, the regexp group to match.  Optional third item is
 whether the prompt is multi-line.  If nil or omitted, prompt is assumed to
@@ -140,77 +137,58 @@ be on a single line."
   :group 'dirtrack
   :type  '(sexp (regexp  :tag "Prompt Expression")
 		(integer :tag "Regexp Group")
-		(boolean :tag "Multiline Prompt")
-		)
-  )
+		(boolean :tag "Multiline Prompt")))
 
 (make-variable-buffer-local 'dirtrack-list)
 
 (defcustom dirtrack-debug nil
-  "*If non-nil, the function `dirtrack' will report debugging info."
+  "If non-nil, the function `dirtrack' will report debugging info."
   :group 'dirtrack
-  :type  'boolean
-  )
+  :type  'boolean)
 
 (defcustom dirtrack-debug-buffer "*Directory Tracking Log*"
   "Buffer to write directory tracking debug information."
   :group 'dirtrack
-  :type  'string
-  )
+  :type  'string)
 
 (defcustom dirtrackp t
-  "*If non-nil, directory tracking via `dirtrack' is enabled."
+  "If non-nil, directory tracking via `dirtrack' is enabled."
   :group 'dirtrack
-  :type  'boolean
-  )
+  :type  'boolean)
 
 (make-variable-buffer-local 'dirtrackp)
 
 (defcustom dirtrack-directory-function
   (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
       'dirtrack-windows-directory-function
-    'dirtrack-default-directory-function)
-  "*Function to apply to the prompt directory for comparison purposes."
+    'file-name-as-directory)
+  "Function to apply to the prompt directory for comparison purposes."
   :group 'dirtrack
-  :type  'function
-  )
+  :type  'function)
 
 (defcustom dirtrack-canonicalize-function
   (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
       'downcase 'identity)
-  "*Function to apply to the default directory for comparison purposes."
+  "Function to apply to the default directory for comparison purposes."
   :group 'dirtrack
-  :type  'function
-  )
+  :type  'function)
 
 (defcustom dirtrack-directory-change-hook nil
   "Hook that is called when a directory change is made."
   :group 'dirtrack
-  :type 'hook
-  )
+  :type 'hook)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun dirtrack-default-directory-function (dir)
-  "Return a canonical directory for comparison purposes.
-Such a directory ends with a forward slash."
-  (let ((directory dir))
-    (if (not (char-equal ?/ (string-to-char (substring directory -1))))
-	(concat directory "/")
-      directory)))
 
 (defun dirtrack-windows-directory-function (dir)
   "Return a canonical directory for comparison purposes.
 Such a directory is all lowercase, has forward-slashes as delimiters,
 and ends with a forward slash."
-  (let ((directory dir))
-    (setq directory (downcase (dirtrack-replace-slash directory t)))
-    (if (not (char-equal ?/ (string-to-char (substring directory -1))))
-	(concat directory "/")
-      directory)))
+  (file-name-as-directory (downcase (subst-char-in-string ?\\ ?/ dir))))
 
 (defun dirtrack-cygwin-directory-function (dir)
   "Return a canonical directory taken from a Cygwin path for comparison purposes."
@@ -218,30 +196,13 @@ and ends with a forward slash."
       (concat (match-string 1 dir) ":" (match-string 2 dir))
     dir))
 
-(defconst dirtrack-forward-slash  (regexp-quote "/"))
-(defconst dirtrack-backward-slash (regexp-quote "\\"))
-
-(defun dirtrack-replace-slash (string &optional opposite)
-  "Replace forward slashes with backwards ones.
-If additional argument is non-nil, replace backwards slashes with
-forward ones."
-  (let ((orig     (if opposite
-		      dirtrack-backward-slash
-		    dirtrack-forward-slash))
-	(replace  (if opposite
-		      dirtrack-forward-slash
-		    dirtrack-backward-slash))
-	(newstring string)
-	)
-    (while (string-match orig newstring)
-      (setq newstring (replace-match replace nil t newstring)))
-  newstring))
-
 ;; Copied from shell.el
 (defun dirtrack-toggle ()
   "Enable or disable Dirtrack directory tracking in a shell buffer."
   (interactive)
-  (setq dirtrackp (not dirtrackp))
+  (if (setq dirtrackp (not dirtrackp))
+      (add-hook 'comint-preoutput-filter-functions 'dirtrack nil t)
+    (remove-hook 'comint-preoutput-filter-functions 'dirtrack t))
   (message "Directory tracking %s" (if dirtrackp "ON" "OFF")))
 
 (defun dirtrack-debug-toggle ()
@@ -273,67 +234,60 @@ If directory tracking does not seem to be working, you can use the
 function `dirtrack-debug-toggle' to turn on debugging output.
 
 You can enable directory tracking by adding this function to
-`comint-output-filter-functions'.
-"
-  (if (null dirtrackp)
+`comint-output-filter-functions'."
+  (if (or (null dirtrackp)
+          ;; No output?
+          (eq (point) (point-min)))
       nil
     (let (prompt-path
-	  matched
 	  (current-dir default-directory)
 	  (dirtrack-regexp    (nth 0 dirtrack-list))
 	  (match-num	      (nth 1 dirtrack-list))
-	  (multi-line	      (nth 2 dirtrack-list))
-	  )
-      ;; No output?
-      (if (eq (point) (point-min))
-	  nil
-	(save-excursion
-	  (setq matched (string-match dirtrack-regexp input)))
-	  ;; No match
-	  (if (null matched)
-	      (and dirtrack-debug
-		   (dirtrack-debug-message
-		    (format
-		     "Input `%s' failed to match regexp: %s"
-		    input dirtrack-regexp)))
-	    (setq prompt-path
-		  (substring input
-		   (match-beginning match-num) (match-end match-num)))
-	    ;; Empty string
-	    (if (not (> (length prompt-path) 0))
-		(and dirtrack-debug
-		     (dirtrack-debug-message "Match is empty string"))
-	      ;; Transform prompts into canonical forms
-	      (setq prompt-path (funcall dirtrack-directory-function
-					 prompt-path))
-	      (setq current-dir (funcall dirtrack-canonicalize-function
-					 current-dir))
-	      (and dirtrack-debug
-		   (dirtrack-debug-message
-		    (format
-		     "Prompt is %s\nCurrent directory is %s"
-		     prompt-path current-dir)))
-	      ;; Compare them
-	      (if (or (string= current-dir prompt-path)
-		      (string= current-dir
-			       (abbreviate-file-name prompt-path)))
-		  (and dirtrack-debug
-		       (dirtrack-debug-message
-			(format "Not changing directory")))
-		;; It's possible that Emacs will think the directory
-		;; won't exist (eg, rlogin buffers)
-		(if (file-accessible-directory-p prompt-path)
-		    ;; Change directory
-		    (and (shell-process-cd prompt-path)
-			 (run-hooks 'dirtrack-directory-change-hook)
-			 dirtrack-debug
-			 (dirtrack-debug-message
-			  (format "Changing directory to %s" prompt-path)))
-		  (error "Directory %s does not exist" prompt-path)))
-	      )))))
+          ;; Currently unimplemented, it seems.  --Stef
+	  (multi-line	      (nth 2 dirtrack-list)))
+      (save-excursion
+        ;; No match
+        (if (null (string-match dirtrack-regexp input))
+            (and dirtrack-debug
+                 (dirtrack-debug-message
+                  (format
+                   "Input `%s' failed to match `dirtrack-regexp'" input)))
+          (setq prompt-path (match-string match-num input))
+          ;; Empty string
+          (if (not (> (length prompt-path) 0))
+              (and dirtrack-debug
+                   (dirtrack-debug-message "Match is empty string"))
+            ;; Transform prompts into canonical forms
+            (setq prompt-path (funcall dirtrack-directory-function
+                                       prompt-path))
+            (setq current-dir (funcall dirtrack-canonicalize-function
+                                       current-dir))
+            (and dirtrack-debug
+                 (dirtrack-debug-message
+                  (format
+                   "Prompt is %s\nCurrent directory is %s"
+                   prompt-path current-dir)))
+            ;; Compare them
+            (if (or (string= current-dir prompt-path)
+                    (string= current-dir
+                             (abbreviate-file-name prompt-path)))
+                (and dirtrack-debug
+                     (dirtrack-debug-message
+                      (format "Not changing directory")))
+              ;; It's possible that Emacs will think the directory
+              ;; won't exist (eg, rlogin buffers)
+              (if (file-accessible-directory-p prompt-path)
+                  ;; Change directory
+                  (and (shell-process-cd prompt-path)
+                       (run-hooks 'dirtrack-directory-change-hook)
+                       dirtrack-debug
+                       (dirtrack-debug-message
+                        (format "Changing directory to %s" prompt-path)))
+                (error "Directory %s does not exist" prompt-path)))
+            )))))
   input)
 
 (provide 'dirtrack)
 
-;;; arch-tag: 168de071-be88-4937-aff6-2aba9f328d5a
+;; arch-tag: 168de071-be88-4937-aff6-2aba9f328d5a
 ;;; dirtrack.el ends here
