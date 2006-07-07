@@ -1,3 +1,15 @@
+2006-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-inf.el: Remove spurious * in docstrings.
+	(inferior-octave-mode): Only change the buffer-local value of
+	comint-dynamic-complete-functions.
+	(inferior-octave-mode-map, inferior-octave-mode-syntax-table):
+	Move the initialization to the declaration.
+	(inferior-octave-complete): Remove unused var `filter'.
+
+	* shell.el (shell-mode): Only change the buffer-local value of
+	comint-dynamic-complete-functions.
+
 2006-07-07  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-agenda-get-todos): Skip subtree also if
