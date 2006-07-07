@@ -1,6 +1,6 @@
 ;;; mule.el --- basic commands for mulitilingual environment
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
 ;;   Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
@@ -283,16 +283,14 @@ would need to index the corresponding Emacs charset."
   (make-char-internal (charset-id charset) code1 code2))
 
 (put 'make-char 'byte-compile
-     (function
-      (lambda (form)
-	(let ((charset (nth 1 form)))
-	  (if (charset-quoted-standard-p charset)
-	      (byte-compile-normal-call
-	       (cons 'make-char-internal
-		     (cons (charset-id (nth 1 charset)) (nthcdr 2 form))))
-	    (byte-compile-normal-call
-	     (cons 'make-char-internal
-		   (cons (list 'charset-id charset) (nthcdr 2 form)))))))))
+     (lambda (form)
+       (let ((charset (nth 1 form)))
+         (byte-compile-normal-call
+          (cons 'make-char-internal
+                (cons (if (charset-quoted-standard-p charset)
+                          (charset-id (nth 1 charset))
+                        (list 'charset-id charset))
+                      (nthcdr 2 form)))))))
 
 (defun charset-list ()
   "Return list of charsets ever defined.
@@ -2301,5 +2299,5 @@ This function is intended to be added to `auto-coding-functions'."
 ;;;
 (provide 'mule)
 
-;;; arch-tag: 9aebaa6e-0e8a-40a9-b857-cb5d04a39e7c
+;; arch-tag: 9aebaa6e-0e8a-40a9-b857-cb5d04a39e7c
 ;;; mule.el ends here
