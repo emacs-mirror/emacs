@@ -1369,7 +1369,6 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   struct buffer *b = 0;
-  int bpos;
   int continue_reading_p;
   /* Nonzero if reading an entire buffer.  */
   int whole_buffer = 0;
@@ -1402,8 +1401,8 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 
   /* Try to ensure sourcename is a truename, except whilst preloading. */
   if (NILP (Vpurify_flag)
-      && !NILP (sourcename) && Ffile_name_absolute_p (sourcename)
-      && (!NILP (Ffboundp (Qfile_truename))))
+      && !NILP (sourcename) && !NILP (Ffile_name_absolute_p (sourcename))
+      && !NILP (Ffboundp (Qfile_truename)))
     sourcename = call1 (Qfile_truename, sourcename) ;
 
   LOADHIST_ATTACH (sourcename);

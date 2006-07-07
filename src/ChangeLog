@@ -2,6 +2,8 @@
 
 	* lread.c (read_filtered_event): Remove `register' qualifier because it
 	causes compilation problem with gcc-4.0.2-20051125 on amd64.
+	(readevalloop): Remove unused var `bpos'.
+	Yet another int/Lisp_Object mixup (YAILOM).
 
 2006-07-07  Eli Zaretskii  <eliz@gnu.org>
 
