@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.42
+@set VERSION 4.43
 @set DATE July 2006
 
 @dircategory Emacs
@@ -771,14 +771,14 @@ a sparse tree matching the string @samp{FIXME}.
 Other commands use sparse trees as well.  For example @kbd{C-c
 C-v} creates a sparse TODO tree (@pxref{TODO basics}).
 
-@kindex C-c C-x v
+@kindex C-c C-e v
 @cindex printing sparse trees
 @cindex visible text, printing
 To print a sparse tree, you can use the Emacs command
 @code{ps-print-buffer-with-faces} which does not print invisible parts
 of the document @footnote{This does not work under XEmacs, because
 XEmacs uses selective display for outlining, not text properties.}.
-Or you can use the command @kbd{C-c C-x v} to export only the visible
+Or you can use the command @kbd{C-c C-e v} to export only the visible
 part of the document and print the resulting file.
 
 
@@ -3059,6 +3059,23 @@ Remote editing of TODO items means that you can change the state of a
 TODO entry with a single key press.  The commands available in the
 TODO list are described in @ref{Agenda commands}.
 
+Nomally the global todo list simply shows all headlines with TODO
+keywords.  This list can become very long.  There are two ways to keep
+it more compact:
+@itemize @minus
+@item
+Some people view a TODO item that has been @emph{scheduled} for
+execution (@pxref{Time stamps}) as no longer @emph{open}.  Configure the
+variable @code{org-agenda-todo-ignore-scheduled} to exclude scheduled
+items from the global TODO list.
+@item
+TODO items may have sublevels to break up the task into subtasks.  In
+such cases it may be enough to list only the highest level TODO headline
+and omit the sublevels from the global list.  Configure the variable
+@code{org-agenda-todo-list-sublevels} to get this behavior.
+@end itemize
+
+
 @node Matching headline tags, Timeline, Global TODO list, Agenda views
 @section Matching headline tags
 @cindex matching, of tags
@@ -3341,6 +3358,7 @@ calendars.
 @item H
 Show holidays for three month around the cursor date.
 
+@c FIXME:  This should be a different key.
 @kindex C-c C-x C-c
 @item C-c C-x C-c
 Export a single iCalendar file containing entries from all agenda files.
@@ -3575,6 +3593,14 @@ import of these different formats.
 When exporting, Org-mode uses special conventions to enrich the output
 produced.  @xref{Text interpretation}, for more details.
 
+@table @kbd
+@kindex C-c C-e
+@item C-c C-e
+Dispatcher for export and publishing commands.  Displays a help-window
+listing the additional key(s) needed to launch an export or publishing
+command.
+@end table
+
 @menu
 * ASCII export::                Exporting to plain ASCII
 * HTML export::                 Exporting to HTML
@@ -3594,14 +3620,14 @@ file.
 @cindex active region
 @cindex transient-mark-mode
 @table @kbd
-@kindex C-c C-x a
-@item C-c C-x a
+@kindex C-c C-e a
+@item C-c C-e a
 Export as ASCII file.  If there is an active region, only the region
 will be exported.  For an org file @file{myfile.org}, the ASCII file
 will be @file{myfile.txt}.  The file will be overwritten without
 warning.
-@kindex C-c C-x v a
-@item C-c C-x v a
+@kindex C-c C-e v a
+@item C-c C-e v a
 Export only the visible part of the document.
 @end table
 
@@ -3612,7 +3638,7 @@ will be exported as itemized lists.  If you want that transition to occur
 at a different level, specify it with a prefix argument.  For example,
 
 @example
-@kbd{C-1 C-c C-x a}
+@kbd{C-1 C-c C-e a}
 @end example
 
 @noindent
@@ -3636,16 +3662,16 @@ language, but with additional support for tables.
 @cindex active region
 @cindex transient-mark-mode
 @table @kbd
-@kindex C-c C-x h
-@item C-c C-x h
+@kindex C-c C-e h
+@item C-c C-e h
 Export as HTML file @file{myfile.html}.
-@kindex C-c C-x b
-@item C-c C-x b
+@kindex C-c C-e b
+@item C-c C-e b
 Export as HTML file and open it with a browser.
-@kindex C-c C-x v h
-@kindex C-c C-x v b
-@item C-c C-x v h
-@item C-c C-x v b
+@kindex C-c C-e v h
+@kindex C-c C-e v b
+@item C-c C-e v h
+@item C-c C-e v b
 Export only the visible part of the document.
 @end table
 
@@ -3656,7 +3682,7 @@ will be exported as itemized lists.  If you want that transition to occur
 at a different level, specify it with a prefix argument.  For example,
 
 @example
-@kbd{C-2 C-c C-x b}
+@kbd{C-2 C-c C-e b}
 @end example
 
 @noindent
@@ -3725,11 +3751,11 @@ Currently, this exporter only handles the general outline structure and
 does not interpret any additional Org-mode features.
 
 @table @kbd
-@kindex C-c C-x C-x
-@item C-c C-x C-x
+@kindex C-c C-e x
+@item C-c C-e x
 Export as XOXO file @file{myfile.html}.
-@kindex C-c C-x v
-@item C-c C-x v x
+@kindex C-c C-e v
+@item C-c C-e v x
 Export only the visible part of the document.
 @end table
 
@@ -3745,17 +3771,17 @@ application.  Org-mode can export calendar information in the standard
 iCalendar format.
 
 @table @kbd
-@kindex C-c C-x i
-@item C-c C-x i
+@kindex C-c C-e i
+@item C-c C-e i
 Create iCalendar entries for the current file and store them in the same
 directory, using a file extension @file{.ics}.
-@kindex C-c C-x C-i
-@item C-c C-x C-i
-Like @kbd{C-c C-x i}, but do this for all files in
+@kindex C-c C-e I
+@item C-c C-e I
+Like @kbd{C-c C-e i}, but do this for all files in
 @code{org-agenda-files}.  For each of these files, a separate iCalendar
 file will be written.
-@kindex C-c C-x c
-@item C-c C-x c
+@kindex C-c C-e c
+@item C-c C-e c
 Create a single large iCalendar file from all files in
 @code{org-agenda-files} and write it to the file given by
 @code{org-combined-agenda-icalendar-file}.
@@ -3764,7 +3790,7 @@ Create a single large iCalendar file from all files in
 How this calendar is best read and updated, depends on the application
 you are using.  For example, when using iCal under Apple MacOS X, you
 could create a new calendar @samp{OrgMode} (the default name for the
-calendar created by @kbd{C-c C-x c}, see the variables
+calendar created by @kbd{C-c C-e c}, see the variables
 @code{org-icalendar-combined-name} and
 @code{org-combined-agenda-icalendar-file}).  Then set Org-mode to
 overwrite the corresponding file
@@ -3881,13 +3907,13 @@ buffer.
 The exporter recognizes special lines in the buffer which provide
 additional information.  These lines may be put anywhere in the file.
 The whole set of lines can be inserted into the buffer with @kbd{C-c
-C-x t}.  For individual lines, a good way to make sure the keyword is
+C-e t}.  For individual lines, a good way to make sure the keyword is
 correct is to type @samp{#+} and then use @kbd{M-@key{TAB}} completion
 (@pxref{Completion}).
 
 @table @kbd
-@kindex C-c C-x t
-@item C-c C-x t
+@kindex C-c C-e t
+@item C-c C-e t
 Insert template with export options, see example below.
 @end table
 
@@ -4251,18 +4277,18 @@ following functions:
 
 @table @kbd
 @item C-c C-e c
-Prompts for a specific project to publish.
+Prompt for a specific project and publish all files that belong to it.
 @item C-c C-e p
-Publishes the project the current file is part of. 
+Publish the project containin the current file.
 @item C-c C-e f
-Publishes only the current file.
+Publish only the current file.
 @item C-c C-e a
 Publish all projects.
 @end table
 
 Org uses timestamps to track when a file has changed. The above
 functions normally only publish changed files. You can override this and
-force publishing of all files by giving a prefix argument. 
+force publishing of all files by giving a prefix argument.
 
 @node Miscellaneous, Extensions and Hacking, Publishing, Top
 @chapter Miscellaneous
@@ -4770,7 +4796,7 @@ blogs. @url{http://www.cognition.ens.fr/~guerry/org-blogging.html}.
 @section Dynamic blocks
 
 Org-mode documents can contain @emph{dynamic blocks}.  These are
-specially marked regions that are updates by some user-written
+specially marked regions that are updated by some user-written
 function.  A good example for such a block is the clock table inserted
 by the command @kbd{C-c C-x C-r} (@pxref{Clocking work time}).
 
@@ -4814,7 +4840,7 @@ run:
 The corresponding block writer function could look like this:
 
 @lisp
-(defun org-dblock-write:date-and-time (params)
+(defun org-dblock-write:block-update-time (params)
    (let ((fmt (or (plist-get params :format) "%d. %m. %Y")))
      (insert "Last block update at: "
 	     (format-time-string fmt (current-time)))))
