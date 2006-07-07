@@ -1,5 +1,7 @@
 2006-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* syntax.c (Fforward_comment): Fix int-32 vs EMACS_INT-64 mixup.
+
 	* lread.c (read_filtered_event): Remove `register' qualifier because it
 	causes compilation problem with gcc-4.0.2-20051125 on amd64.
 	(readevalloop): Remove unused var `bpos'.
