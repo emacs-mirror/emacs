@@ -1,6 +1,8 @@
 2006-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_list): Fix typo.
+	(ftfont_build_basic_charsets): Don't include letters with
+	diactrics.
 
 2006-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
