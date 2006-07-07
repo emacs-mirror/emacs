@@ -1,5 +1,7 @@
 2006-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcvs-defs.el (cvs-temp-buffer-name): Fix non-hiddenness.
+
 	* progmodes/compile.el (compilation-error-regexp-alist-alist) <gnu>:
 	Use shy regexp.  Fix incorrect backref to potentially unmatched group.
 
