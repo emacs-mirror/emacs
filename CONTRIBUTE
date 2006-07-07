@@ -34,13 +34,13 @@ o	Coding Standards
 	Emacs has certain additional style and coding conventions.
 
 	Ref: http://www.gnu.org/prep/standards_toc.html
-	Ref: Standards Info Manual
+	Ref: GNU Coding Standards Info Manual
 
 
 o	Copyright Assignment
 
 	We can accept small changes without legal papers, and for
-	medium-size changes a copyright disclaimer is ok too.  Toa
+	medium-size changes a copyright disclaimer is ok too.  To
 	accept substantial contributions from you, we need a copyright
 	assignment form filled out and filed with the FSF.
 
@@ -52,11 +52,13 @@ o	Getting the Source Code
 
 	The latest version of Emacs can be downloaded using CVS or
 	Arch from the Savannah web site.  It is important to write
-	your patch based this version; if you start from an older
-	version, your patch may be outdated when you write it.
+	your patch based on this version; if you start from an older
+	version, your patch may be outdated when you write it, and
+	maintainers will have hard time applying it.
 
-	After you have downloaded the source, you should read the file
-	INSTALL.CVS for further instructions.
+	After you have downloaded the CVS source, you should read the
+	file INSTALL.CVS for build instructions (they differ to some
+	extent from a normal build).
 
 	Ref: http://savannah.gnu.org/projects/emacs
 
@@ -66,27 +68,28 @@ o	Submitting Patches
 	Every patch must have several pieces of information before we
 	can properly evaluate it.
 
-	For bug fixes, a description of the bug and how your patch fixes
-	this bug.
+	* For bug fixes, a description of the bug and how your patch
+	  fixes this bug.
 
-	For new features, a description of the feature and your
-	implementation.
+	* For new features, a description of the feature and your
+	  implementation.
 
-	A ChangeLog entry as plaintext (separate from the patch); see
-	the various ChangeLog files for format and content. Note that,
-	unlike some other projects, we do require ChangeLogs also for
-	documentation i.e. texinfo files.
+	* A ChangeLog entry as plaintext (separate from the patch);
+	  see the various ChangeLog files for format and content. Note
+	  that, unlike some other projects, we do require ChangeLogs
+	  also for documentation, i.e. Texinfo files.
 
-	Ref: Change Log Concepts node of the Standards Info Manual
+	  Ref: "Change Log Concepts" node of the GNU Coding Standards
+	  Info Manual, for how to write good log entries.
 
-	The patch itself.  If you are accessing the CVS repository use
-	"cvs update; cvs diff -cp"; else, use "diff -cp OLD NEW".  If
-	your version of diff does not support these options, then get
-	the latest version of GNU diff.
+	* The patch itself.  If you are accessing the CVS repository
+	  use "cvs update; cvs diff -cp"; else, use "diff -cp OLD NEW".
+	  If your version of diff does not support these options, then
+	  get the latest version of GNU Diff. 
 
-	We accept patches as plain text (preferred for the compilers
-	themselves), MIME attachments (preferred for the web pages), or
-	as uuencoded gzipped text.
+	* We accept the patches as plain text (preferred for the
+	  compilers themselves), MIME attachments (preferred for the
+	  web pages), or as uuencoded gzipped text.
 
 	When you have all these pieces, bundle them up in a mail message
 	and send it to emacs-pretest-bug@gnu.org or emacs-devel@gnu.org.
@@ -114,11 +117,20 @@ o	Supplemental information for Emacs Developers:
 	documentation.  If it does, you can either do this yourself or
 	add an item to the NEWS file.
 
-	The best way to understand Emacs Internals is to read the code
-	but the  nodes "Tips" and "GNU Emacs Internals" in the Appendix
+	If you document your change in NEWS, please mark the NEWS
+	entry with the documentation status of the change: if you
+	submit the changes for the manuals, mark it with "+++"; if it
+	doesn't need to be documented, mark it with "---"; if it needs
+	to be documented, but you didn't submit documentation changes,
+	leave the NEWS entry unmarked.  (These marks are checked by
+	the Emacs maintainers to make sure every change was reflected
+	in the manuals.)
+
+	The best way to understand Emacs Internals is to read the code,
+	but the nodes "Tips" and "GNU Emacs Internals" in the Appendix
 	of the Emacs Lisp Reference Manual may also help.
 
-	The file DEBUG describes how to debug Emacs bugs.
+	The file etc/DEBUG describes how to debug Emacs bugs.
 
 	Avoid using `defadvice' or `eval-after-load' for Lisp
 	code to be included in Emacs.
