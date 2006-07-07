@@ -949,13 +949,14 @@ comment delimiters to add or how many to delete.
 comments in certain contexts.  For example, in Lisp code, comments which
 start with two semicolons are indented as if they were lines of code,
 instead of at the comment column.  Comments which start with three
-semicolons are supposed to start at the left margin.  Emacs understands
+semicolons are supposed to start at the left margin and are often used
+for sectioning purposes.  Emacs understands
 these conventions by indenting a double-semicolon comment using @key{TAB},
 and by not changing the indentation of a triple-semicolon comment at all.
 
 @example
 ;; This function is just an example.
-;; Here either two or three semicolons are appropriate.
+;;; Here either two or three semicolons are appropriate.
 (defun foo (x)
 ;;;  And now, the first part of the function:
   ;; The following line adds one.
