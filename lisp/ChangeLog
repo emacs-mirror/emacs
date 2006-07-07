@@ -1,5 +1,11 @@
 2006-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/fill.el (fill-delete-prefix): Don't ignore excessively
+	long prefixes.
+	(fill-region-as-paragraph): Don't round up to a whole line.
+	(fill-comment-paragraph): Don't include the code-before-the-comment
+	when calling fill-region-as-paragraph.
+
 	* international/mule.el (make-char): Remove redundancy.
 
 	* emacs-lisp/bytecomp.el (byte-compile-form): The `byte-compile'
