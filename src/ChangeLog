@@ -1,3 +1,8 @@
+2006-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read_filtered_event): Remove `register' qualifier because it
+	causes compilation problem with gcc-4.0.2-20051125 on amd64.
+
 2006-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* keyboard.c (Fexecute_extended_command): Mention the argument

@@ -459,7 +459,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 		     input_method)
      int no_switch_frame, ascii_required, error_nonascii, input_method;
 {
-  register Lisp_Object val, delayed_switch_frame;
+  Lisp_Object val, delayed_switch_frame;
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
