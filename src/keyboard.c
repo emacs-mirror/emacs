@@ -9768,7 +9768,13 @@ a special event, so ignore the prefix argument and don't clear it.  */)
 
 DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_command,
        1, 1, "P",
-       doc: /* Read function name, then read its arguments and call it.  */)
+       doc: /* Read function name, then read its arguments and call it.
+
+To pass a numeric argument to the command you are invoking with, specify
+the numeric argument to this command.
+
+Noninteractively, the argument PREFIXARG is the prefix argument to
+give to the command you invoke, if it asks for an argument.  */)
      (prefixarg)
      Lisp_Object prefixarg;
 {
