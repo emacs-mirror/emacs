@@ -1,3 +1,7 @@
+2006-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Sync with HEAD.
+
 2005-02-12  Miles Bader  <miles@gnu.org>
 
 	* TODO, PROBLEMS, NEWS: Replace references to Emacs version "22"
