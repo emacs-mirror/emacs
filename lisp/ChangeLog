@@ -1,5 +1,8 @@
 2006-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-form): The `byte-compile'
+	property may contain an anonymous function rather than a symbol.
+
 	* pcvs-defs.el (cvs-temp-buffer-name): Fix non-hiddenness.
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist) <gnu>:
