@@ -564,7 +564,8 @@ This is done by using a customization type specification instead of a
 symbol for the key.
 
 @smallexample
-:options '("foo" ((function-item some-function) integer) "baz")
+:options '("foo" ((function-item some-function) integer)
+           "baz")
 @end smallexample
 
 Many alists use lists with two elements, instead of cons cells.  For

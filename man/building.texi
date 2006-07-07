@@ -111,7 +111,7 @@ line of the @samp{*compilation*} buffer changes to say @samp{exit}
 @samp{run}.
 
 @findex kill-compilation
-  Starting a new compilation also kills any compilation
+  Starting a new compilation also kills any compilation already
 running in @samp{*compilation*}, as the buffer can only handle one
 compilation at any time.  However, @kbd{M-x compile} asks for
 confirmation before actually killing a compilation that is running.
@@ -850,21 +850,17 @@ you are debugging.
   If @code{gdb-many-windows} is non-@code{nil}, then @kbd{M-x gdb}
 displays the following frame layout:
 
-@example
+@smallexample
+@group
 +--------------------------------+--------------------------------+
-|                                |                                |
 |   GUD buffer (I/O of GDB)      |   Locals buffer                |
-|                                |                                |
 |--------------------------------+--------------------------------+
-|                                |                                |
 |   Source buffer                |   I/O buffer for debugged pgm  |
-|                                |                                |
 |--------------------------------+--------------------------------+
-|                                |                                |
 |   Stack buffer                 |   Breakpoints buffer           |
-|                                |                                |
 +--------------------------------+--------------------------------+
-@end example
+@end group
+@end smallexample
 
   However, if @code{gdb-use-separate-io-buffer} is @code{nil}, the I/O
 buffer does not appear and the source buffer occupies the full width
@@ -1254,7 +1250,7 @@ Evaluate the defun containing or after point, and print the value in
 the echo area (@code{eval-defun}).
 @item M-x eval-region
 Evaluate all the Lisp expressions in the region.
-@item M-x eval-current-buffer
+@item M-x eval-buffer
 Evaluate all the Lisp expressions in the buffer.
 @end table
 
@@ -1309,11 +1305,11 @@ displaying it in the echo area.  The argument's value does not matter.
 definition for Edebug (@pxref{Instrumenting, Instrumenting for Edebug,, elisp, the Emacs Lisp Reference Manual}).
 
 @findex eval-region
-@findex eval-current-buffer
+@findex eval-buffer
   The most general command for evaluating Lisp expressions from a buffer
 is @code{eval-region}.  @kbd{M-x eval-region} parses the text of the
 region as one or more Lisp expressions, evaluating them one by one.
-@kbd{M-x eval-current-buffer} is similar but evaluates the entire
+@kbd{M-x eval-buffer} is similar but evaluates the entire
 buffer.  This is a reasonable way to install the contents of a file of
 Lisp code that you are ready to test.  Later, as you find bugs and
 change individual functions, use @kbd{C-M-x} on each function that you
@@ -1322,7 +1318,7 @@ change.  This keeps the Lisp world in step with the source file.
 @vindex eval-expression-print-level
 @vindex eval-expression-print-length
 @vindex eval-expression-debug-on-error
-The customizable variables @code{eval-expression-print-level} and
+  The two customizable variables @code{eval-expression-print-level} and
 @code{eval-expression-print-length} control the maximum depth and length
 of lists to print in the result of the evaluation commands before
 abbreviating them.  @code{eval-expression-debug-on-error} controls

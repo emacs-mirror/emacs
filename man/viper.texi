@@ -2558,9 +2558,9 @@ Viper provides some support for multi-file documents and programs.
 If a document consists of several files we can designate one of them as a
 master and put the following at the end of that file:
 @lisp
-;;; Local Variables:
-;;; eval: (viper-setup-master-buffer "file1" "file2" "file3" "file4")
-;;; End:
+;; Local Variables:
+;; eval: (viper-setup-master-buffer "file1" "file2" "file3" "file4")
+;; End:
 @end lisp
 @noindent
 where @code{file1} to @code{file4} are names of files related to the master
@@ -2578,7 +2578,7 @@ These commands are akin to @kbd{:n} and @kbd{:N}, but they allow the user to
 focus on relevant files only.
 
 Note that only the master file needs to have the aforementioned block of
-commands.  Also, ";;;" above can be replaced by some other
+commands.  Also, ";;" above can be replaced by some other
 markers.  Semicolon is good for Lisp programs, since it is considered a
 comment designator there.  For LaTeX, this could be "%%%", and for C the
 above block should be commented out.

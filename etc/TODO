@@ -13,6 +13,10 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** mouse-autoselect-window should wait to select the window until
+the mouse is put to rest or after a delay or both, so that moving over
+a window doesn't select it.
+
 ** In C-x d, the default if you type RET should be the directory name,
 but if you type M-n you should get the visited file name of the
 current buffer.
@@ -353,6 +357,8 @@ when the body only calls primitives.
 
 ** Face remapping.
 
+** Make `format-time-string' preserve text properties like `format'.
+
 ** Optionally make the cursor a little thinner at the end of a line
   or the end of the buffer.
 
@@ -487,6 +493,11 @@ but which can also be used as a modifier).
    switch to using SYNC_INPUT, we can remove the BLOCK_INPUTs in the
    allocation functions (allocate_string etc.) without worrying about
    data munging.
+
+** Add "link" button class
+   Add a standard button-class named "link", and make all other link-like
+   button classes inherit from it.  Set the default face of the "link" button
+   class to the standard "link" face.
 
 * Other known bugs:
 

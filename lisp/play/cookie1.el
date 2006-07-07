@@ -1,6 +1,6 @@
 ;;; cookie1.el --- retrieve random phrases from fortune cookie files
 
-;; Copyright (C) 1993, 2002, 2003, 2004, 2005,
+;; Copyright (C) 1993, 2002, 2003, 2004, 2005, 2006,
 ;;   2006 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
@@ -75,7 +75,7 @@ When the phrase file is read in, display STARTMSG at the beginning
 of load, ENDMSG at the end."
   (let ((cookie-vector (cookie-snarf phrase-file startmsg endmsg)))
     (shuffle-vector cookie-vector)
-    (aref cookie-vector 1)))
+    (aref cookie-vector 0)))
 
 ;;;###autoload
 (defun cookie-insert (phrase-file &optional count startmsg endmsg)

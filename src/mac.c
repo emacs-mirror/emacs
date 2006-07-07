@@ -46,11 +46,9 @@ Boston, MA 02110-1301, USA.  */
 #include <Folders.h>
 #include <Resources.h>
 #include <Aliases.h>
-#include <FixMath.h>
 #include <Timer.h>
 #include <OSA.h>
 #include <AppleScript.h>
-#include <Scrap.h>
 #include <Events.h>
 #include <Processes.h>
 #include <EPPC.h>

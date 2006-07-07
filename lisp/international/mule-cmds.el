@@ -1088,7 +1088,18 @@ see `language-info-alist'."
       (setq lang-env (symbol-name lang-env)))
   (set-language-info-internal lang-env key info)
   (if (equal lang-env current-language-environment)
-      (set-language-environment lang-env)))
+      (cond ((eq key 'coding-priority)
+	     (set-language-environment-coding-systems lang-env)
+	     (set-language-environment-charset lang-env))
+	    ((eq key 'input-method)
+	     (set-language-environment-input-method lang-env))
+	    ((eq key 'nonascii-translation)
+	     (set-language-environment-nonascii-translation lang-env))
+	    ((eq key 'charset)
+	     (set-language-environment-charset lang-env))
+	    ((and (not default-enable-multibyte-characters)
+		  (or (eq key 'unibyte-syntax) (eq key 'unibyte-display)))
+	     (set-language-environment-unibyte lang-env)))))
 
 (defun set-language-info-internal (lang-env key info)
   "Internal use only.
@@ -1765,56 +1776,28 @@ specifies the character set for the major languages of Western Europe."
 				     'exit-function)))
 	(run-hooks 'exit-language-environment-hook)
 	(if (functionp func) (funcall func))))
-  (let ((default-eol-type (coding-system-eol-type
-			   default-buffer-file-coding-system)))
-    (reset-language-environment)
 
-    ;; The features might set up coding systems.
-    (let ((required-features (get-language-info language-name 'features)))
-      (while required-features
-	(require (car required-features))
-	(setq required-features (cdr required-features))))
-
-    (setq current-language-environment language-name)
-    (set-language-environment-coding-systems language-name default-eol-type))
-  (let ((input-method (get-language-info language-name 'input-method)))
-    (when input-method
-      (setq default-input-method input-method)
-      (if input-method-history
-	  (setq input-method-history
-		(cons input-method
-		      (delete input-method input-method-history))))))
-
-  ;; Put higher priorities to such charsets that are supported by the
-  ;; coding systems of higher priorities in this environment.
-  (let ((charsets (get-language-info language-name 'charset)))
-    (dolist (coding (get-language-info language-name 'coding-priority))
-      (setq charsets (append charsets (coding-system-charset-list coding))))
-    (if charsets
-	(apply 'set-charset-priority charsets)))
-
-  ;; Note: For DOS, we assumed that the charset cpXXX is already
-  ;; defined.
-  (let ((nonascii (get-language-info language-name 'nonascii-translation)))
-    (if (eq window-system 'pc)
-	(setq nonascii (intern "cp%d" dos-codepage)))
-    (or (and (charsetp nonascii)
-	     (get-charset-property nonascii :ascii-compatible-p))
-	(setq nonascii 'iso-8859-1))
-    (set-unibyte-charset nonascii))
-
-  ;; Unibyte setups if necessary.
-  (or default-enable-multibyte-characters
-      (set-display-table-and-terminal-coding-system language-name))
-
+  (reset-language-environment)
+  ;; The features might set up coding systems.
   (let ((required-features (get-language-info language-name 'features)))
     (while required-features
       (require (car required-features))
       (setq required-features (cdr required-features))))
 
+  (setq current-language-environment language-name)
+
+  (set-language-environment-coding-systems language-name)
+  (set-language-environment-input-method language-name)
+  (set-language-environment-nonascii-translation language-name)
+  (set-language-environment-charset language-name)
+  ;; Unibyte setups if necessary.
+  (unless default-enable-multibyte-characters
+    (set-language-environment-unibyte language-name))
+
   (let ((func (get-language-info language-name 'setup-function)))
     (if (functionp func)
 	(funcall func)))
+
   (run-hooks 'set-language-environment-hook)
   (force-mode-line-update t))
 
@@ -1905,14 +1888,11 @@ Setting this variable directly does not take effect.  See
 	;; proper windows-1252 coding system.  --fx]
 	(aset standard-display-table 146 [39]))))
 
-(defun set-language-environment-coding-systems (language-name
-						&optional eol-type)
-  "Do various coding system setups for language environment LANGUAGE-NAME.
-
-The optional arg EOL-TYPE specifies the eol-type of the default value
-of `buffer-file-coding-system' set by this function."
+(defun set-language-environment-coding-systems (language-name)
+  "Do various coding system setups for language environment LANGUAGE-NAME."
   (let* ((priority (get-language-info language-name 'coding-priority))
-	 (default-coding (car priority)))
+	 (default-coding (car priority))
+	 (eol-type (coding-system-eol-type default-buffer-file-coding-system)))
     (when priority
       (set-default-coding-systems
        (if (memq eol-type '(0 1 2 unix dos mac))
@@ -1920,6 +1900,42 @@ of `buffer-file-coding-system' set by this function."
 	 default-coding))
       (setq default-sendmail-coding-system default-coding)
       (apply 'set-coding-system-priority priority))))
+
+(defun set-language-environment-input-method (language-name)
+  "Do various input method setups for language environment LANGUAGE-NAME."
+  (let ((input-method (get-language-info language-name 'input-method)))
+    (when input-method
+      (setq default-input-method input-method)
+      (if input-method-history
+	  (setq input-method-history
+		(cons input-method
+		      (delete input-method input-method-history)))))))
+
+(defun set-language-environment-nonascii-translation (language-name)
+  "Do unibyte/multibyte translation setup for language environment LANGUAGE-NAME."
+  ;; Note: For DOS, we assumed that the charset cpXXX is already
+  ;; defined.
+  (let ((nonascii (get-language-info language-name 'nonascii-translation)))
+    (if (eq window-system 'pc)
+	(setq nonascii (intern "cp%d" dos-codepage)))
+    (or (and (charsetp nonascii)
+	     (get-charset-property nonascii :ascii-compatible-p))
+	(setq nonascii 'iso-8859-1))
+    (set-unibyte-charset nonascii)))
+
+(defun set-language-environment-charset (language-name)
+  "Do various charset setups for language environment LANGUAGE-NAME."
+  ;; Put higher priorities to such charsets that are supported by the
+  ;; coding systems of higher priorities in this environment.
+  (let ((charsets (get-language-info language-name 'charset)))
+    (dolist (coding (get-language-info language-name 'coding-priority))
+      (setq charsets (append charsets (coding-system-charset-list coding))))
+    (if charsets
+	(apply 'set-charset-priority charsets))))
+
+(defun set-language-environment-unibyte (language-name)
+  "Do various unibyte-mode setups for language environment LANGUAGE-NAME."
+  (set-display-table-and-terminal-coding-system language-name))
 
 (defsubst princ-list (&rest args)
   "Print all arguments with `princ', then print \"\n\"."

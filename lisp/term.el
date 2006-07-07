@@ -3766,6 +3766,9 @@ Should only be called when point is at the start of a screen line."
 	(save-start-line-column term-start-line-column)
 	(save-current-row (term-current-row)))
     ;; The number of inserted lines shouldn't exceed the scroll region end.
+    ;; The `term-scroll-end' line is part of the scrolling region, so
+    ;; we need to go one line past it in order to ensure correct
+    ;; scrolling.
     (when (> (+ save-current-row lines) (1+ term-scroll-end))
       (setq lines (- lines (- (+ save-current-row lines) (1+ term-scroll-end)))))
     (term-down lines)
@@ -3784,6 +3787,9 @@ Should only be called when point is at the start of a screen line."
 	(save-start-line-column term-start-line-column)
 	(save-current-row (term-current-row)))
     ;; Inserting lines should take into account the scroll region.
+    ;; The `term-scroll-end' line is part of the scrolling region, so
+    ;; we need to go one line past it in order to ensure correct
+    ;; scrolling.
     (if (< save-current-row term-scroll-start)
 	;; If point is before scroll start, 
 	(progn 

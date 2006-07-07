@@ -31974,7 +31974,7 @@ decreases the precision.
 
 @smallexample
 ;;; Increase and decrease Calc precision.  Dave Gillespie, 5/31/91.
-;;; (Include copyright or copyleft stuff here.)
+;; (Include copyright or copyleft stuff here.)
 
 (defvar inc-prec-base-key "P"
   "Base key for inc-prec.el commands.")

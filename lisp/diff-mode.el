@@ -46,13 +46,15 @@
 ;;   of a hunk.  Show then the changes between <file> and <hunk> and make it
 ;;   possible to apply them to <file>, <hunk-src>, or <hunk-dst>.
 ;;   Or maybe just make it into a ".rej to diff3-markers converter".
+;;   Maybe just use `wiggle' (by Neil Brown) to do it for us.
 ;;
 ;; - Refine hunk on a word-by-word basis.
-;;
+;; 
+;; - in diff-apply-hunk, strip context in replace-match to better
+;;   preserve markers and spacing.
 ;; - Handle `diff -b' output in context->unified.
 
 ;;; Code:
-
 (eval-when-compile (require 'cl))
 
 (defvar add-log-buffer-file-name-function)
@@ -128,14 +130,14 @@ when editing big diffs)."
     ;;("h" . diff-show-header)
     ;;("j" . diff-show-difference)	;jump to Nth diff
     ;;("q" . diff-quit)
-;; Not useful if you have to metafy them.
-;;    (" " . scroll-up)
-;;    ("\177" . scroll-down)
-;; Standard M-a is useful, so don't change M-A.
-;;    ("A" . diff-ediff-patch)
-;; Standard M-r is useful, so don't change M-r or M-R.
-;;    ("r" . diff-restrict-view)
-;;    ("R" . diff-reverse-direction)
+    ;; Not useful if you have to metafy them.
+    ;;(" " . scroll-up)
+    ;;("\177" . scroll-down)
+    ;; Standard M-a is useful, so don't change M-A.
+    ;;("A" . diff-ediff-patch)
+    ;; Standard M-r is useful, so don't change M-r or M-R.
+    ;;("r" . diff-restrict-view)
+    ;;("R" . diff-reverse-direction)
     ("q" . quit-window))
   "Basic keymap for `diff-mode', bound to various prefix keys.")
 
@@ -581,14 +583,16 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
 	       (list (if old (match-string 2) (match-string 4))
 		     (if old (match-string 4) (match-string 2)))))))))
 
-(defun diff-find-file-name (&optional old)
+(defun diff-find-file-name (&optional old prefix)
   "Return the file corresponding to the current patch.
-Non-nil OLD means that we want the old file."
+Non-nil OLD means that we want the old file.
+PREFIX is only used internally: don't use it."
   (save-excursion
     (unless (looking-at diff-file-header-re)
       (or (ignore-errors (diff-beginning-of-file))
 	  (re-search-forward diff-file-header-re nil t)))
     (let ((fs (diff-hunk-file-names old)))
+      (if prefix (setq fs (mapcar (lambda (f) (concat prefix f)) fs)))
       (or
        ;; use any previously used preference
        (cdr (assoc fs diff-remembered-files-alist))
@@ -610,6 +614,13 @@ Non-nil OLD means that we want the old file."
        (and (string-match "\\.rej\\'" (or buffer-file-name ""))
 	    (let ((file (substring buffer-file-name 0 (match-beginning 0))))
 	      (when (file-exists-p file) file)))
+       ;; If we haven't found the file, maybe it's because we haven't paid
+       ;; attention to the PCL-CVS hint.
+       (and (not prefix)
+	    (boundp 'cvs-pcl-cvs-dirchange-re)
+	    (save-excursion
+	      (re-search-backward cvs-pcl-cvs-dirchange-re nil t))
+	    (diff-find-file-name old (match-string 1)))
        ;; if all else fails, ask the user
        (let ((file (read-file-name (format "Use file %s: " (or (first fs) ""))
 				   nil (first fs) t (first fs))))
@@ -639,7 +650,7 @@ else cover the whole bufer."
   (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
-  (unless (markerp end) (setq end (copy-marker end)))
+  (unless (markerp end) (setq end (copy-marker end t)))
   (let (;;(diff-inhibit-after-change t)
 	(inhibit-read-only t))
     (save-excursion
@@ -729,7 +740,7 @@ With a prefix argument, convert unified format to context format."
 		 (list (point-min) (point-max) current-prefix-arg)))
   (if to-context
       (diff-unified->context start end)
-    (unless (markerp end) (setq end (copy-marker end)))
+    (unless (markerp end) (setq end (copy-marker end t)))
     (let ( ;;(diff-inhibit-after-change t)
 	  (inhibit-read-only t))
       (save-excursion
@@ -801,7 +812,7 @@ else cover the whole bufer."
   (interactive (if (or current-prefix-arg (and transient-mark-mode mark-active))
 		   (list (region-beginning) (region-end))
 		 (list (point-min) (point-max))))
-  (unless (markerp end) (setq end (copy-marker end)))
+  (unless (markerp end) (setq end (copy-marker end t)))
   (let (;;(diff-inhibit-after-change t)
 	(inhibit-read-only t))
     (save-excursion
@@ -979,7 +990,8 @@ headers for you on-the-fly.
 
 You can also switch between context diff and unified diff with \\[diff-context->unified],
 or vice versa with \\[diff-unified->context] and you can also reverse the direction of
-a diff with \\[diff-reverse-direction]."
+a diff with \\[diff-reverse-direction].
+\\{diff-mode-map}"
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
   (set (make-local-variable 'imenu-generic-expression)
@@ -1004,13 +1016,13 @@ a diff with \\[diff-reverse-direction]."
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
     (add-hook 'post-command-hook 'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
-  (let ((ro-bind (cons 'buffer-read-only diff-mode-shared-map)))
+  (lexical-let ((ro-bind (cons 'buffer-read-only diff-mode-shared-map)))
     (add-to-list 'minor-mode-overriding-map-alist ro-bind)
     ;; Turn off this little trick in case the buffer is put in view-mode.
     (add-hook 'view-mode-hook
-	      `(lambda ()
-		 (setq minor-mode-overriding-map-alist
-		       (delq ',ro-bind minor-mode-overriding-map-alist)))
+	      (lambda ()
+		(setq minor-mode-overriding-map-alist
+		      (delq ro-bind minor-mode-overriding-map-alist)))
 	      nil t))
   ;; add-log support
   (set (make-local-variable 'add-log-current-defun-function)
@@ -1031,7 +1043,7 @@ a diff with \\[diff-reverse-direction]."
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
     (add-hook 'post-command-hook 'diff-post-command-hook nil t)))
 
-;;; Handy hook functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Handy hook functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun diff-delete-if-empty ()
   ;; An empty diff file means there's no more diffs to integrate, so we

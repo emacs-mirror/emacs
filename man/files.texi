@@ -213,7 +213,7 @@ the command with the name of the file you wish to visit, terminated by a
   The file name is read using the minibuffer (@pxref{Minibuffer}), with
 defaulting and completion in the standard manner (@pxref{File Names}).
 While in the minibuffer, you can abort @kbd{C-x C-f} by typing
-@kbd{C-g}.  File-name completion ignores certain filenames; for more
+@kbd{C-g}.  File-name completion ignores certain file names; for more
 about this, see @ref{Completion Options}.
 
   Your confirmation that @kbd{C-x C-f} has completed successfully is
@@ -289,13 +289,14 @@ Archives}, for more about these features.
 @cindex wildcard characters in file names
 @vindex find-file-wildcards
   If the file name you specify contains shell-style wildcard
-characters, Emacs visits all the files that match it.  Wildcards
-include @samp{?}, @samp{*}, and @samp{[@dots{}]} sequences.  To enter
-the wild card @samp{?} in a file name in the minibuffer, you need to
-type @kbd{C-q ?}.  @xref{Quoted File Names}, for information on how to
-visit a file whose name actually contains wildcard characters.  You
-can disable the wildcard feature by customizing
-@code{find-file-wildcards}.
+characters, Emacs visits all the files that match it.  (On
+case-insensitive filesystems, Emacs matches the wildcards disregarding
+the letter case.)  Wildcards include @samp{?}, @samp{*}, and
+@samp{[@dots{}]} sequences.  To enter the wild card @samp{?} in a file
+name in the minibuffer, you need to type @kbd{C-q ?}.  @xref{Quoted
+File Names}, for information on how to visit a file whose name
+actually contains wildcard characters.  You can disable the wildcard
+feature by customizing @code{find-file-wildcards}.
 
   If you visit a file that the operating system won't let you modify,
 or that is marked read-only, Emacs makes the buffer read-only too, so

@@ -1,23 +1,37 @@
 This is a list of ways to say hello in various languages.
-Its purpose is to illustrate a number of scripts.
----------------------------------------------------------
+
+Non-ASCII examples:
+  Europe: ,A!(BHola!, Hyv,Add(B p,Ad(Biv,Add(B, Gr,A|_(B Gott, Bon,Cu(Bu, Dobr,B}(B den, Tere p,Ad(Bevast
+          Cze,B6f(B!, ,FCei\(B ,Fsar(B, ,L7T`PRabRcYbU(B!, $,1J2J0J;J0J@JOJ=J1J0(B
+  Africa: $(3!A!,!>(B
+  Middle/Near East: ,Hylem(B, (38R(47d(3T!JSa(4W(3W(B
+  South Asia: $,15h5n5x6-5d6'(B, $,1?(?.?8?M>u?>?0(B, $,1@H@N@X@m@5@^@P@"(B, $,1<U<C<5<m<5<N<m(B, $(7"7"!#C"Q!;"E"S"G!;"7"2"[!;"D"["#"G!>(B
+  South East Asia: (1JP:R-4U(B, ,TJGQJ4U$CQ:(B, Ch,1`(Bo b,1U(Bn
+  East Asia: $ADc:C(B, $(0*/=((B, $B$3$s$K$A$O(B, $(C>H3gGO<<?d(B
+  Misc: E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde, $,2(3(1('('(5(B, $,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
+  CJK variety: GB($AT*Fx(B,$A?*7"(B), BIG5($(0&x86(B,$(0DeBv(B), JIS($B855$(B,$B3+H/(B), KSC($(Cj*Q((B,$(CKR[!(B)
+  Unicode charset: E$,1 E(Bo$,1 }(Ban$,1 =(Bo $,1 )(Biu$,1 U(Ba$,1!-(Bde, $,1&s'5'9',(B $,1'C'1'B(B, $,1-),|,u,}(B, $,1(7(T(`(P(R(a(b(R(c(Y(b(U(B!
+
+LANGUAGE (NATIVE NAME)	HELLO
+----------------------	-----
 Amharic ($,1O M[MmN{(B)	$,1M`MKM](B
 Arabic (,GIqjHQYdG(B)	,GecjdY(B ,GeGdqSdG(B
 Braille	$,2(3(1('('(5(B
 C	printf ("Hello, world!\n");
-Czech (,Bh(Besky)	Dobr,A}(B den
-Danish (dansk)	Hej, Goddag
+Czech (,Bh(Be,B9(Btina)	Dobr,A}(B den
+Danish (dansk)	Hej, Goddag, Hall,Ax(Bj
 Dutch (Nederlands)	Hallo, Dag
 Emacs	emacs --no-splash -f view-hello-file
 English [$(O+S(Bi,D?(B-gli$(O*h(B]	Hello
 Esperanto	Saluton (E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde)
-Estonian (eesti keel)	Tere, Tervist
-Finnish (Suomi)	Hei
+Estonian (eesti keel)	Tere p,Ad(Bevast, Tere ,Au(Bhtust
+Finnish (Suomi)	Hei, Hyv,Add(B p,Ad(Biv,Add(B
 French (fran,Ag(Bais)	Bonjour, Salut
 Georgian ($,1JEJ0J@J7J5J4J:J8(B)	$,1J2J0J;J0J@JOJ=J1J0(B
 German (Deutsch)	Guten Tag, Gr,A|_(B Gott
 Greek (,Fekkgmij\(B)	,FCei\(B ,Fsar(B
 Hebrew (,Hzixar(B)	,Hylem(B
+Hungarian (??)	Sz,Bi(Bp j,Bs(B napot!
 Hindi ($,15y55B5f6 (B)	$,15h5n5x6-5d6'(B, $,15h5n5x6-5U5~5p(B $,16D(B
 Italian (italiano)	Ciao, Buon giorno
 Javanese (Jawa)	System.out.println("Halo, selamat sore!");
@@ -33,7 +47,7 @@ Russian (,L`caaZXY(B)	,L7T`PRabRcYbU(B!
 Slovak (sloven,Bh(Bina)	Dobr,A}(B de,Br(B
 Slovenian (sloven,B9h(Bina)	Pozdravljeni!
 Spanish (espa,Aq(Bol)	,A!(BHola!
-Swedish (p,Ae(B svenska)	Hej, Goddag
+Swedish (p,Ae(B svenska)	Hej, Goddag, Hall,Ae(B
 Tamil ($,1<D<N<_<T<m(B)	$,1<U<C<5<m<5<N<m(B
 Thai (,T@RIRd7B(B)	,TJGQJ4U$CQ:(B, ,TJGQJ4U$hP(B
 Tibetan ($(7"7"]"2!;"G#!"Q"2!;(B)	$(7"7"!#C"Q!;"E"S"G!;"7"2"[!;"D"["#"G!>(B
@@ -46,26 +60,6 @@ Japanese ($BF|K\8l(B)	$B$3$s$K$A$O(B, (I:]FAJ(B
 Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B
 Cantonese ($(0GnM$(B,$(Gl]$(00*Hd(B)	$(0*/=((B, $(0+$)p(B
 Korean ($(CGQ1[(B)	$(C>H3gGO<<?d(B, $(C>H3gGO=J4O1n(B
-
-Difference among chinese characters in GB, JIS, KSC, BIG5:
-GB	$AT*Fx(B  $A?*7"(B
-JIS	$B855$(B  $B3+H/(B
-KSC	$(Cj*Q((B  $(CKR[!(B
-BIG5	$(0&x86(B  $(0DeBv(B
-
-Just for a test of JISX0212: $BqV$(DiQ(B (the second character is of JISX0212)
-
-A short test for Unicode characters:
-Czech (,Bh(Besky)	Dobr,A}(B den
-Esperanto	Saluton (E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde)
-Greek (,FEkkgmij\(B)	,FCei\(B ,Fsar(B
-Hebrew	,Hylem(B
-Russian (,L@caaZXY(B)	,L7T`PRabRcYbU(B!
-Maltese (Malti)	Bon,Cu(Bu, Sa,C11(Ba
-
-;;; Local Variables:
-;;; tab-width: 32
-;;; End:
 
 
 
@@ -87,3 +81,8 @@ COPYING PERMISSIONS:
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+
+;;; Local Variables:
+;;; tab-width: 32
+;;; End:

@@ -2172,7 +2172,7 @@ color menu for the duration of the Emacs session.
 
 @findex facemenu-set-foreground
 @findex facemenu-set-background
-  There are no key bindings for specifying colors, but you can do so
+  There are no predefined key bindings for specifying colors, but you can do so
 with the extended commands @kbd{M-x facemenu-set-foreground} and
 @kbd{M-x facemenu-set-background}.  Both of these commands read the name
 of the color with the minibuffer.
@@ -2772,8 +2772,8 @@ following three paragraphs (the latter two are indented with header
 lines):
 
 @example
-@samp{table-capture} is a powerful command however mastering its power
-requires some practice.  Here are some things it can do:
+@samp{table-capture} is a powerful command, but mastering its
+power requires some practice.  Here are some things it can do:
 
 Parse Cell Items      By using column delimiter regular
                       expression and raw delimiter regular
@@ -2797,7 +2797,7 @@ following one.
 @c The first line's right-hand frame in the following two examples
 @c sticks out to accommodate for the removal of @samp in the
 @c produced output!!
-@example
+@smallexample
 +-----------------------------------------------------------------+
 |@samp{table-capture} is a powerful command, but mastering its         |
 |power requires some practice.  Here are some things it can do:   |
@@ -2814,14 +2814,14 @@ following one.
 |                      the specified region is placed in that     |
 |                      cell.                                      |
 +-----------------------------------------------------------------+
-@end example
+@end smallexample
 
 @noindent
 By splitting the cell appropriately we now have a table consisting of
 paragraphs occupying its own cell.  Each cell can now be edited
 independently without affecting the layout of other cells.
 
-@example
+@smallexample
 +-----------------------------------------------------------------+
 |@samp{table-capture} is a powerful command, but mastering its         |
 |power requires some practice.  Here are some things it can do:   |
@@ -2838,7 +2838,7 @@ independently without affecting the layout of other cells.
 |                     |the specified region is placed in that     |
 |                     |cell.                                      |
 +---------------------+-------------------------------------------+
-@end example
+@end smallexample
 
 @noindent
 By applying @code{table-release}, which does the opposite process, the

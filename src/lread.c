@@ -659,7 +659,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
      switch-frame events will read it and process it.  */
   if (no_switch_frame
       && EVENT_HAS_PARAMETERS (val)
-      && EQ (EVENT_HEAD (val), Qswitch_frame))
+      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (val)), Qswitch_frame))
     {
       delayed_switch_frame = val;
       goto retry;
@@ -2107,7 +2107,7 @@ read_escape (readcharfun, stringp)
 	while (++count <= unicode_hex_count)
 	  {
 	    c = READCHAR;
-	    /* isdigit(), isalpha() may be locale-specific, which we don't
+	    /* isdigit and isalpha may be locale-specific, which we don't
 	       want. */
 	    if      (c >= '0' && c <= '9')  i = (i << 4) + (c - '0');
 	    else if (c >= 'a' && c <= 'f')  i = (i << 4) + (c - 'a') + 10;

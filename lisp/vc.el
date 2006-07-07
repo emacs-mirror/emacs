@@ -567,6 +567,13 @@ specific to any particular backend."
   :group 'vc
   :version "21.1")
 
+(defcustom vc-diff-knows-L nil
+  "*Indicates whether diff understands the -L option.
+The value is either `yes', `no', or nil.  If it is nil, VC tries
+to use -L and sets this variable to remember whether it worked."
+  :type '(choice (const :tag "Work out" nil) (const yes) (const no))
+  :group 'vc)
+
 (defcustom vc-allow-async-revert nil
   "Specifies whether the diff during \\[vc-revert-buffer] may be asynchronous.
 Enabling this option means that you can confirm a revert operation even
@@ -1837,17 +1844,35 @@ actually call the backend, but performs a local diff."
                      (vc-version-backup-file file rev2)))
         (coding-system-for-read (vc-coding-system-for-diff file)))
     (if (and file-rev1 file-rev2)
-        (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
-	       (append (vc-switches nil 'diff)
-		       ;; Provide explicit labels like RCS or CVS would do
-		       ;; so diff-mode refers to `file' rather than to
-		       ;; `file-rev1' when trying to find/apply/undo hunks.
-		       (list "-L" (vc-diff-label file file-rev1 rev1)
-			     "-L" (vc-diff-label file file-rev2 rev2)
-			     (file-relative-name file-rev1)
-			     (file-relative-name file-rev2))))
+        (let ((status
+               (if (eq vc-diff-knows-L 'no)
+                   (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
+                          (append (vc-switches nil 'diff)
+                                  (list (file-relative-name file-rev1)
+                                        (file-relative-name file-rev2))))
+                 (apply 'vc-do-command "*vc-diff*" 2 "diff" nil
+                        (append (vc-switches nil 'diff)
+                                ;; Provide explicit labels like RCS or
+                                ;; CVS would do so diff-mode refers to
+                                ;; `file' rather than to `file-rev1'
+                                ;; when trying to find/apply/undo
+                                ;; hunks.
+                                (list "-L" (vc-diff-label file file-rev1 rev1)
+                                      "-L" (vc-diff-label file file-rev2 rev2)
+                                      (file-relative-name file-rev1)
+                                      (file-relative-name file-rev2)))))))
+          (if (eq status 2)
+              (if (not vc-diff-knows-L)
+                  (setq vc-diff-knows-L 'no
+                        status (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
+                                      (append 
+                                       (vc-switches nil 'diff)
+                                       (list (file-relative-name file-rev1)
+                                             (file-relative-name file-rev2)))))
+                (error "diff failed"))
+            (if (not vc-diff-knows-L) (setq vc-diff-knows-L 'yes)))
+          status)
       (vc-call diff file rev1 rev2))))
-
 
 (defun vc-switches (backend op)
   (let ((switches

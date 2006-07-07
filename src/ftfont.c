@@ -416,7 +416,7 @@ ftfont_list (frame, spec)
 	spacing = XINT (XCDR (tmp));
       tmp = assq_no_quit (QCscalable, extra);
       if (CONSP (tmp))
-	spacing = ! NILP (XCDR (tmp));
+	scalable = ! NILP (XCDR (tmp));
     }
 
   if (STRINGP (font_name))
@@ -462,7 +462,7 @@ ftfont_list (frame, spec)
       && ! FcPatternAddInteger (pattern, FC_SPACING, spacing))
     goto err;
   if (scalable >= 0
-      && ! FcPatternAddBool (pattern, FC_SPACING, spacing ? FcTrue : FcFalse))
+      && ! FcPatternAddBool (pattern, FC_SCALABLE, scalable ? FcTrue : FcFalse))
     goto err;
 
   objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,

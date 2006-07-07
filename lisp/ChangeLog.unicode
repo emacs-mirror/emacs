@@ -1,3 +1,14 @@
+2006-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-info): Fix synching
+	with HEAD.
+	(set-language-environment): Likewise.
+	(standard-display-european-internal): Sync with HEAD.
+	(set-language-environment-nonascii-translation): Fix synching with
+	HEAD.
+	(set-language-environment-fontset): Delete it.
+	(set-language-environment-unibyte): Fix synching with HEAD.
+
 2006-07-03  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (otf-script-alist): Set it.
