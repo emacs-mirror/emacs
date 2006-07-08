@@ -278,7 +278,6 @@ This is the contents of buffer foo
 @end example
 @end defun
 
-@tindex current-word
 @defun current-word &optional strict really-word
 This function returns the symbol (or word) at or near point, as a string.
 The return value includes no text properties.
@@ -581,7 +580,6 @@ Otherwise, point relocates with the surrounding text, as markers do.
 @end deffn
 
 @defun delete-and-extract-region start end
-@tindex delete-and-extract-region
 This function deletes the text between positions @var{start} and
 @var{end} in the current buffer, and returns a string containing the
 text just deleted.
@@ -2765,7 +2763,6 @@ Do not rely on the return value of this function.
 is with @code{propertize}:
 
 @defun propertize string &rest properties
-@tindex propertize
 This function returns a copy of @var{string} which has the text
 properties @var{properties}.  These properties apply to all the
 characters in the string that is returned.  Here is an example that
@@ -2903,7 +2900,6 @@ position if no change is found.
 @end defun
 
 @defun next-single-char-property-change pos prop &optional object limit
-@tindex next-single-char-property-change
 This is like @code{next-single-property-change} except that it
 considers overlay properties as well as text properties, and if no
 change is found before the end of the @var{object}, it returns the
@@ -2914,7 +2910,6 @@ text-properties are considered.
 @end defun
 
 @defun previous-single-char-property-change pos prop &optional object limit
-@tindex previous-single-char-property-change
 This is like @code{next-single-char-property-change}, but scans back
 from @var{pos} instead of forward, and returns the minimum valid
 position in @var{object} if no change is found.
@@ -3247,7 +3242,6 @@ property has no effect.  Do not set this variable globally; bind it with
 @end defvar
 
 @defvar show-help-function
-@tindex show-help-function
 @anchor{Help display} If this variable is non-@code{nil}, it specifies a
 function called to display help strings.  These may be @code{help-echo}
 properties, menu help strings (@pxref{Simple Menu Items},
@@ -3339,7 +3333,6 @@ list, properties are rear-sticky @emph{unless} their names are in the
 list.
 
 @defvar text-property-default-nonsticky
-@tindex text-property-default-nonsticky
 This variable holds an alist which defines the default rear-stickiness
 of various text properties.  Each element has the form
 @code{(@var{property} . @var{nonstickiness})}, and it defines the
@@ -3672,7 +3665,6 @@ a @key{Mouse-1} click shall be translated to @key{RET}:
 @end smallexample
 
 @defun mouse-on-link-p pos
-@tindex mouse-on-link-p
 This function returns non-@code{nil} if position @var{pos} in the
 current buffer is on a link.
 @end defun
@@ -3711,7 +3703,6 @@ to an empty field whose beginning and end are both at @var{pos}.
 value of point is used by default.
 
 @defun field-beginning &optional pos escape-from-edge limit
-@tindex field-beginning
 This function returns the beginning of the field specified by @var{pos}.
 
 If @var{pos} is at the beginning of its field, and
@@ -3726,7 +3717,6 @@ returned instead.
 @end defun
 
 @defun field-end &optional pos escape-from-edge limit
-@tindex field-end
 This function returns the end of the field specified by @var{pos}.
 
 If @var{pos} is at the end of its field, and @var{escape-from-edge} is
@@ -3740,24 +3730,20 @@ instead.
 @end defun
 
 @defun field-string &optional pos
-@tindex field-string
 This function returns the contents of the field specified by @var{pos},
 as a string.
 @end defun
 
 @defun field-string-no-properties &optional pos
-@tindex field-string-no-properties
 This function returns the contents of the field specified by @var{pos},
 as a string, discarding text properties.
 @end defun
 
 @defun delete-field &optional pos
-@tindex delete-field
 This function deletes the text of the field specified by @var{pos}.
 @end defun
 
 @defun constrain-to-field new-pos old-pos &optional escape-from-edge only-in-line inhibit-capture-property
-@tindex constrain-to-field
 This function ``constrains'' @var{new-pos} to the field that
 @var{old-pos} belongs to---in other words, it returns the position
 closest to @var{new-pos} that is in the same field as @var{old-pos}.
@@ -4082,7 +4068,6 @@ manner.
 converting to and from this code.
 
 @defun base64-encode-region beg end &optional no-line-break
-@tindex base64-encode-region
 This function converts the region from @var{beg} to @var{end} into base
 64 code.  It returns the length of the encoded text.  An error is
 signaled if a character in the region is multibyte, i.e.@: in a
@@ -4097,7 +4082,6 @@ the output is just one long line.
 @end defun
 
 @defun base64-encode-string string &optional no-line-break
-@tindex base64-encode-string
 This function converts the string @var{string} into base 64 code.  It
 returns a string containing the encoded text.  As for
 @code{base64-encode-region}, an error is signaled if a character in the
@@ -4110,7 +4094,6 @@ the result string is just one long line.
 @end defun
 
 @defun base64-decode-region beg end
-@tindex base64-decode-region
 This function converts the region from @var{beg} to @var{end} from base
 64 code into the corresponding decoded text.  It returns the length of
 the decoded text.
@@ -4119,7 +4102,6 @@ The decoding functions ignore newline characters in the encoded text.
 @end defun
 
 @defun base64-decode-string string
-@tindex base64-decode-string
 This function converts the string @var{string} from base 64 code into
 the corresponding decoded text.  It returns a unibyte string containing the
 decoded text.
@@ -4360,7 +4342,6 @@ that was previously in the unmodified state.
 @end defvar
 
 @defvar inhibit-modification-hooks
-@tindex inhibit-modification-hooks
 If this variable is non-@code{nil}, all of the change hooks are
 disabled; none of them run.  This affects all the hook variables
 described above in this section, as well as the hooks attached to
