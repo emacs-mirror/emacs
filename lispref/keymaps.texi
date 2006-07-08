@@ -2436,7 +2436,6 @@ accommodated conveniently, and the default bindings make this easy by
 using an indirection through @code{tool-bar-map}.
 
 @defvar tool-bar-map
-@tindex tool-bar-map
 By default, the global map binds @code{[tool-bar]} as follows:
 @example
 (global-set-key [tool-bar]
@@ -2456,7 +2455,6 @@ There are two convenience functions for defining tool bar items, as
 follows.
 
 @defun tool-bar-add-item icon def key &rest props
-@tindex tool-bar-add-item
 This function adds an item to the tool bar by modifying
 @code{tool-bar-map}.  The image to use is defined by @var{icon}, which
 is the base name of an XPM, XBM or PBM image file to be located by
@@ -2480,7 +2478,6 @@ To define items in some local map, bind @code{tool-bar-map} with
 @end defun
 
 @defun tool-bar-add-item-from-menu command icon &optional map &rest props
-@tindex tool-bar-add-item-from-menu
 This function is a convenience for defining tool bar items which are
 consistent with existing menu bar bindings.  The binding of
 @var{command} is looked up in the menu bar in @var{map} (default
@@ -2503,32 +2500,27 @@ specifies the local map to make the definition in.  The argument
 @code{tool-bar-add-item-from-menu}.
 @end defun
 
-@tindex auto-resize-tool-bar
 @defvar auto-resize-tool-bar
 If this variable is non-@code{nil}, the tool bar automatically resizes to
 show all defined tool bar items---but not larger than a quarter of the
 frame's height.
 @end defvar
 
-@tindex auto-raise-tool-bar-buttons
 @defvar auto-raise-tool-bar-buttons
 If this variable is non-@code{nil}, tool bar items display
 in raised form when the mouse moves over them.
 @end defvar
 
-@tindex tool-bar-button-margin
 @defvar tool-bar-button-margin
 This variable specifies an extra margin to add around tool bar items.
 The value is an integer, a number of pixels.  The default is 4.
 @end defvar
 
-@tindex tool-bar-button-relief
 @defvar tool-bar-button-relief
 This variable specifies the shadow width for tool bar items.
 The value is an integer, a number of pixels.  The default is 1.
 @end defvar
 
-@tindex tool-bar-border
 @defvar tool-bar-border
 This variable specifies the height of the border drawn below the tool
 bar area.  An integer value specifies height as a number of pixels.
