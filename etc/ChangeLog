@@ -1,3 +1,8 @@
+2006-07-08  David Kastrup  <dak@gnu.org>
+
+	* TODO: Suggest consolidation with user customization when the
+	system default of a customized variable changes.
+
 2006-07-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* compilation.txt: Add an example "Compilation started ..." line.

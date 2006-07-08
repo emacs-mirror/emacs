@@ -171,11 +171,18 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   to save their changes. If the user says yes, show them
   in a Custom buffer using customize-customized.
 
+** Record the sxhash of the default value for customized variables
+  and notify the user (maybe by adding a menu item or toolbar button,
+  as the detection can occur during autoload time) when the default
+  changes (meaning that new versions of the Lisp source with a changed
+  default value got installed) and offer ediff on the respective
+  customization buffers.
+
 ** Emacs Lisp mode could put an overlay on the defun for every
-  function that has advice.  The overlay could have `after-text' like "
-  [Function has advice]".  It might look like
-     (defun foo [Function has advice] (x y)
-  The overlay could also be a button that you could use to view the advice.
+  function that has advice.  The overlay could have `after-text' like
+  " [Function has advice]".  It might look like (defun foo [Function
+  has advice] (x y) The overlay could also be a button that you could
+  use to view the advice.
 
 ** ange-ftp
 *** understand sftp
