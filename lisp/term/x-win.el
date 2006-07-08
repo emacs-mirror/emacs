@@ -182,7 +182,10 @@
 				  initial-frame-alist)))
 
 (defvar x-display-name nil
-  "The X display name specifying server and X frame.")
+  "The name of the X display on which Emacs was started.
+
+For the X display name of individual frames, see the`display'
+frame parameter.")
 
 (defun x-handle-display (switch)
   (setq x-display-name (car x-invocation-args)
