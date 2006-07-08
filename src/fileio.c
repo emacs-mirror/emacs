@@ -5853,7 +5853,11 @@ static Lisp_Object
 do_auto_save_make_dir (dir)
      Lisp_Object dir;
 {
-  return call2 (Qmake_directory, dir, Qt);
+  Lisp_Object mode;
+
+  call2 (Qmake_directory, dir, Qt);
+  XSETFASTINT (mode, 0700);
+  return Fset_file_modes (dir, mode);
 }
 
 static Lisp_Object

@@ -1,3 +1,8 @@
+2006-07-08  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* fileio.c (do_auto_save_make_dir): Make the auto-save-list-file
+	directory unreadable for better user privacy.
+
 2006-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (Fforward_comment): Fix int-32 vs EMACS_INT-64 mixup.
