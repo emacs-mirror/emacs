@@ -792,13 +792,11 @@ Emacs-Lisp Expressions, emacs, The GNU Emacs Manual}).
   These variables are used for detecting and reporting circular
 and shared structure:
 
-@tindex print-circle
 @defvar print-circle
 If non-@code{nil}, this variable enables detection of circular
 and shared structure in printing.
 @end defvar
 
-@tindex print-gensym
 @defvar print-gensym
 If non-@code{nil}, this variable enables detection of uninterned symbols
 (@pxref{Creating Symbols}) in printing.  When this is enabled,
