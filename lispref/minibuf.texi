@@ -1835,7 +1835,6 @@ minibuffer.  If no minibuffer is active, it returns @code{nil}.
 @end defun
 
 @defun minibuffer-prompt-end
-@tindex minibuffer-prompt-end
 This function returns the current
 position of the end of the minibuffer prompt, if a minibuffer is
 current.  Otherwise, it returns the minimum valid buffer position.
@@ -1847,7 +1846,6 @@ prompt, if a minibuffer is current.  Otherwise, it returns zero.
 @end defun
 
 @defun minibuffer-contents
-@tindex minibuffer-contents
 This function returns the editable
 contents of the minibuffer (that is, everything except the prompt) as
 a string, if a minibuffer is current.  Otherwise, it returns the
@@ -1855,20 +1853,17 @@ entire contents of the current buffer.
 @end defun
 
 @defun minibuffer-contents-no-properties
-@tindex minibuffer-contents-no-properties
 This is like @code{minibuffer-contents}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
 @defun minibuffer-completion-contents
-@tindex minibuffer-completion-contents
 This is like @code{minibuffer-contents}, except that it returns only
 the contents before point.  That is the part that completion commands
 operate on.  @xref{Minibuffer Completion}.
 @end defun
 
 @defun delete-minibuffer-contents
-@tindex delete-minibuffer-contents
 This function erases the editable contents of the minibuffer (that is,
 everything except the prompt), if a minibuffer is current.  Otherwise,
 it erases the entire current buffer.
