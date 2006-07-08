@@ -59,8 +59,8 @@ This function clears and redisplays all visible frames.
 redisplay is done, but does not clear them first.
 
 @defun force-window-update &optional object
-This function forces redisplay of some or all windows.  If
-@var{object} is a window, it forces redisplay of that window.  If
+This function forces some or all windows to be updated on next redisplay.
+If @var{object} is a window, it forces redisplay of that window.  If
 @var{object} is a buffer or buffer name, it forces redisplay of all
 windows displaying that buffer.  If @var{object} is @code{nil} (or
 omitted), it forces redisplay of all windows.
@@ -128,11 +128,14 @@ pending, use @code{(sit-for -1)}.
   When a line of text extends beyond the right edge of a window, the
 line can either be continued on the next screen line, or truncated to
 one screen line.  The additional screen lines used to display a long
-text line are called @dfn{continuation} lines.  Normally, a @samp{$} in
-the rightmost column of the window indicates truncation; a @samp{\} on
-the rightmost column indicates a line that ``wraps'' onto the next line,
-which is also called @dfn{continuing} the line.  (The display table can
-specify alternative indicators; see @ref{Display Tables}.)
+text line are called @dfn{continuation} lines.  Normally, tiny arrow images
+are displayed in the window fringes to indicate truncated and continued
+lines (*note Fringes).
+
+   On a text terminal, a `$' in the rightmost column of the window
+indicates truncation; a `\' on the rightmost column indicates a
+continued line that "wraps" onto the next line.  (The display table can
+specify alternative indicators; see *Note Display Tables.)
 
   On a graphical display, the @samp{$} and @samp{\} indicators are
 replaced with arrow images displayed in the window fringes
