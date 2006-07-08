@@ -1,3 +1,7 @@
+2006-07-09  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fforce_window_update): Doc fix.
+
 2006-07-08  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* fileio.c (do_auto_save_make_dir): Make the auto-save-list-file
