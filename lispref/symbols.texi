@@ -584,7 +584,6 @@ using @code{equal} instead of @code{eq}.
 @end defun
 
 @defun plist-member plist property
-@tindex plist-member
 This returns non-@code{nil} if @var{plist} contains the given
 @var{property}.  Unlike @code{plist-get}, this allows you to distinguish
 between a missing property and a property with the value @code{nil}.
