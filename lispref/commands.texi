@@ -809,7 +809,6 @@ in a vector, so you don't need to deal with the complexities of storing
 input events in a string (@pxref{Strings of Events}).
 @end defun
 
-@tindex clear-this-command-keys
 @defun clear-this-command-keys &optional keep-record
 This function empties out the table of events for
 @code{this-command-keys} to return.  Unless @var{keep-record} is
@@ -875,7 +874,6 @@ the sequence.
 @code{disable-point-adjustment}:
 
 @defvar disable-point-adjustment
-@tindex disable-point-adjustment
 If this variable is non-@code{nil} when a command returns to the
 command loop, then the command loop does not check for those text
 properties, and does not move point out of sequences that have them.
@@ -885,7 +883,6 @@ so if a command sets it, the effect applies only to that command.
 @end defvar
 
 @defvar global-disable-point-adjustment
-@tindex global-disable-point-adjustment
 If you set this variable to a non-@code{nil} value, the feature of
 moving point out of these sequences is completely turned off.
 @end defvar
