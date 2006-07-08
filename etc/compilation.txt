@@ -5,6 +5,9 @@ how they are rendered.  It is intended both to help you decide which matchers
 you need and as a test of the matchers.  Move the mouse over a colored part or
 use `compilation-message-face', to see how much text was actually matched.
 
+Note that the following example line should NOT be highlighted:
+Compilation started at Sat Jul  8 15:19:25
+
 The important part is the symbol(s) line at the beginning of each entry.
 These are the symbols you can customize `compilation-error-regexp-alist' for,
 to match the messages shown in that entry.  A few complex cases have more than
