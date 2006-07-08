@@ -1,3 +1,11 @@
+2006-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: Regenerated.
+
+	* configure.in (PKG_CHECK_MODUILES): Redirect stderr of pkg-config
+	to /dev/null, since we don't need the error message, just the
+	exit status.
+
 2006-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* CONTRIBUTE: Slight formatting changes and typo fixes.  Add
