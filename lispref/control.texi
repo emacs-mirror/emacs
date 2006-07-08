@@ -475,7 +475,6 @@ body, just the end test (which also does the real work of moving point).
 write two common kinds of loops.
 
 @defmac dolist (var list [result]) body@dots{}
-@tindex dolist
 This construct executes @var{body} once for each element of
 @var{list}, binding the variable @var{var} locally to hold the current
 element.  Then it returns the value of evaluating @var{result}, or
@@ -491,7 +490,6 @@ could use @code{dolist} to define the @code{reverse} function:
 @end defmac
 
 @defmac dotimes (var count [result]) body@dots{}
-@tindex dotimes
 This construct executes @var{body} once for each integer from 0
 (inclusive) to @var{count} (exclusive), binding the variable @var{var}
 to the integer for the current iteration.  Then it returns the value
