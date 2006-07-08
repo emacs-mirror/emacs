@@ -246,13 +246,11 @@ command-line action arguments.
 @end defvar
 
 @defvar emacs-startup-hook
-@tindex emacs-startup-hook
 This normal hook is run, once, just after handling the command line
 arguments, just before @code{term-setup-hook}.
 @end defvar
 
 @defvar user-init-file
-@tindex user-init-file
 This variable holds the absolute file name of the user's init file.  If the
 actual init file loaded is a compiled file, such as @file{.emacs.elc},
 the value refers to the corresponding source file.
@@ -793,7 +791,6 @@ and MS-Windows.
 @end defvar
 
 @defun parse-colon-path path
-@tindex parse-colon-path
 This function takes a search path string such as would be the value of
 the @code{PATH} environment variable, and splits it at the separators,
 returning a list of directory names.  @code{nil} in this list stands for
@@ -1915,7 +1912,6 @@ earlier did not support sound at all.
   The sound must be stored as a file in RIFF-WAVE format (@samp{.wav})
 or Sun Audio format (@samp{.au}).
 
-@tindex play-sound
 @defun play-sound sound
 This function plays a specified sound.  The argument, @var{sound}, has
 the form @code{(sound @var{properties}...)}, where the @var{properties}
@@ -1952,12 +1948,10 @@ Each function is called with one argument, @var{sound}.
 @end defun
 
 @defun play-sound-file file &optional volume device
-@tindex play-sound-file
 This function is an alternative interface to playing a sound @var{file}
 specifying an optional @var{volume} and @var{device}.
 @end defun
 
-@tindex play-sound-functions
 @defvar play-sound-functions
 A list of functions to be called before playing a sound.  Each function
 is called with one argument, a property list that describes the sound.
@@ -2060,7 +2054,6 @@ saved session to restore.  For Emacs, this argument is @samp{--smid
 @var{session}}.
 
 @defvar emacs-save-session-functions
-@tindex emacs-save-session-functions
 Emacs supports saving state by using a hook called
 @code{emacs-save-session-functions}.  Each function in this hook is
 called when the session manager tells Emacs that the window system is
