@@ -152,7 +152,6 @@ function.  For example:
 @end defun
 
 @defun subr-arity subr
-@tindex subr-arity
 This function provides information about the argument list of a
 primitive, @var{subr}.  The returned value is a pair
 @code{(@var{min} . @var{max})}.  @var{min} is the minimum number of
@@ -807,7 +806,6 @@ Return the list of results."
 @end defun
 
 @defun mapc function sequence
-@tindex mapc
 @code{mapc} is like @code{mapcar} except that @var{function} is used for
 side-effects only---the values it returns are ignored, not collected
 into a list.  @code{mapc} always returns @var{sequence}.
