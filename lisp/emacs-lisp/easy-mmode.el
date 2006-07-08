@@ -101,7 +101,7 @@ Optional KEYMAP is the default (defvar) keymap bound to the mode keymap.
 The above three arguments can be skipped if keyword arguments are
 used (see below).
 
-BODY contains code that will be executed each time the mode is (dis)activated.
+BODY contains code to execute each time the mode is activated or deactivated.
   It will be executed after any toggling but before running the hook variable
   `mode-HOOK'.
   Before the actual body code, you can write keyword arguments (alternating
