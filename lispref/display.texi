@@ -94,7 +94,6 @@ at all if input is available before it starts.  Most of the time, this
 is exactly what you want.  However, you can prevent preemption by
 binding @code{redisplay-dont-pause} to a non-@code{nil} value.
 
-@tindex redisplay-preemption-period
 @defvar redisplay-preemption-period
 This variable specifies how many seconds Emacs waits between checks
 for new input during redisplay.  (The default is 0.1 seconds.)  If
@@ -108,14 +107,13 @@ redisplay, and redisplay cannot be preempted by input.
 with support for sub-second timers.
 @end defvar
 
-@tindex redisplay-dont-pause
 @defvar redisplay-dont-pause
 If this variable is non-@code{nil}, pending input does not
 prevent or halt redisplay; redisplay occurs, and finishes,
 regardless of whether input is available.
 @end defvar
 
-@tindex sit-for
+@findex sit-for
   You can request a display update, but only if no input is pending,
 with @code{(sit-for 0)}.  To force a display update even when input is
 pending, use @code{(sit-for -1)}.
@@ -257,7 +255,6 @@ To automatically display a message in the echo area or in a pop-buffer,
 depending on its size, use @code{display-message-or-buffer} (see below).
 @end defun
 
-@tindex with-temp-message
 @defmac with-temp-message message &rest body
 This construct displays a message in the echo area temporarily, during
 the execution of @var{body}.  It displays @var{message}, executes
@@ -288,7 +285,6 @@ support them, then @code{message-box} uses the echo area, like
 @end defun
 
 @defun display-message-or-buffer message &optional buffer-name not-this-window frame
-@tindex display-message-or-buffer
 This function displays the message @var{message}, which may be either a
 string or a buffer.  If it is shorter than the maximum height of the
 echo area, as defined by @code{max-mini-window-height}, it is displayed
@@ -1027,7 +1023,6 @@ selected.
 @end defvar
 
 @defvar temp-buffer-setup-hook
-@tindex temp-buffer-setup-hook
 This normal hook is run by @code{with-output-to-temp-buffer} before
 evaluating @var{body}.  When the hook runs, the temporary buffer is
 current.  This hook is normally set up with a function to put the
@@ -2055,7 +2050,6 @@ functions.  If you specify @var{frame}, they affect just that frame;
 otherwise, they affect all frames as well as the defaults that apply to
 new frames.
 
-@tindex set-face-attribute
 @defun set-face-attribute face frame &rest arguments
 This function sets one or more attributes of face @var{face}
 for frame @var{frame}.  If @var{frame} is @code{nil}, it sets
@@ -2078,7 +2072,6 @@ sets the attributes @code{:width}, @code{:weight} and @code{:underline}
 to the corresponding values.
 @end defun
 
-@tindex face-attribute
 @defun face-attribute face attribute &optional frame inherit
 This returns the value of the @var{attribute} attribute of face
 @var{face} on @var{frame}.  If @var{frame} is @code{nil},
@@ -2114,7 +2107,6 @@ For example,
 with older Emacs versions, you can use the following functions to set
 and examine the face attributes which existed in those versions.
 
-@tindex face-attribute-relative-p
 @defun face-attribute-relative-p attribute value
 This function returns non-@code{nil} if @var{value}, when used as the
 value of the face attribute @var{attribute}, is relative.  This means
@@ -2134,7 +2126,6 @@ For example:
 prompts with @samp{Describe face (default = `default' face): }.
 @end defun
 
-@tindex merge-face-attribute
 @defun merge-face-attribute attribute value1 value2
 If @var{value1} is a relative value for the face attribute
 @var{attribute}, returns it merged with the underlying value
@@ -2323,7 +2314,6 @@ not available, you can specify a set of mappings for alternatives to
 try.
 
 @defvar face-font-selection-order
-@tindex face-font-selection-order
 This variable specifies the order of importance of the face attributes
 @code{:width}, @code{:height}, @code{:weight}, and @code{:slant}.  The
 value should be a list containing those four symbols, in order of
@@ -2353,7 +2343,6 @@ quite right.
 @end defvar
 
 @defvar face-font-family-alternatives
-@tindex face-font-family-alternatives
 This variable lets you specify alternative font families to try, if a
 given family is specified and doesn't exist.  Each element should have
 this form:
@@ -2368,7 +2357,6 @@ family that does exist.
 @end defvar
 
 @defvar face-font-registry-alternatives
-@tindex face-font-registry-alternatives
 This variable lets you specify alternative font registries to try, if a
 given registry is specified and doesn't exist.  Each element should have
 this form:
@@ -2387,7 +2375,6 @@ them, since the use of too many or too big scalable fonts can crash
 XFree86 servers.
 
 @defvar scalable-fonts-allowed
-@tindex scalable-fonts-allowed
 This variable controls which scalable fonts to use.  A value of
 @code{nil}, the default, means do not use scalable fonts.  @code{t}
 means to use any scalable font that seems appropriate for the text.
@@ -2488,7 +2475,6 @@ makes @code{modeline} an alias for the @code{mode-line} face.
   This hook is used for automatically assigning faces to text in the
 buffer.  It is part of the implementation of Font-Lock mode.
 
-@tindex fontification-functions
 @defvar fontification-functions
 This variable holds a list of functions that are called by Emacs
 redisplay as needed to assign faces automatically to text in the buffer.
@@ -2538,7 +2524,6 @@ many fonts match the pattern.
 @end defun
 
 @defun x-family-fonts &optional family frame
-@tindex x-family-fonts
 This function returns a list describing the available fonts for family
 @var{family} on @var{frame}.  If @var{family} is omitted or @code{nil},
 this list applies to all families, and therefore, it contains all
@@ -2569,7 +2554,6 @@ The result list is sorted according to the current face font sort order.
 @end defun
 
 @defun x-font-family-list &optional frame
-@tindex x-font-family-list
 This function returns a list of the font families available for
 @var{frame}'s display.  If @var{frame} is omitted or @code{nil}, it
 describes the selected frame's display (@pxref{Input Focus}).
@@ -2586,7 +2570,6 @@ non-@code{nil} if fonts of that family are fixed-pitch.
 @end defun
 
 @defvar font-list-limit
-@tindex font-list-limit
 This variable specifies maximum number of fonts to consider in font
 matching.  The function @code{x-family-fonts} will not return more than
 that many fonts, and font selection will consider only that many fonts
@@ -2803,7 +2786,6 @@ window fringe (on a graphic display) to indicate truncated or
 continued lines, buffer boundaries, overlay arrow, etc.
 
 @defopt indicate-empty-lines
-@tindex indicate-empty-lines
 @cindex fringes, and empty line indication
 When this is non-@code{nil}, Emacs displays a special glyph in the
 fringe of each empty line at the end of the buffer, on graphical
@@ -3533,13 +3515,11 @@ them a nonzero width.  The usual way to do that is to set these
 variables:
 
 @defvar left-margin-width
-@tindex left-margin-width
 This variable specifies the width of the left margin.
 It is buffer-local in all buffers.
 @end defvar
 
 @defvar right-margin-width
-@tindex right-margin-width
 This variable specifies the width of the right margin.
 It is buffer-local in all buffers.
 @end defvar
@@ -3552,14 +3532,12 @@ Thus, you can make changes take effect by calling
   You can also set the margin widths immediately.
 
 @defun set-window-margins window left &optional right
-@tindex set-window-margins
 This function specifies the margin widths for window @var{window}.
 The argument @var{left} controls the left margin and
 @var{right} controls the right margin (default @code{0}).
 @end defun
 
 @defun window-margins &optional window
-@tindex window-margins
 This function returns the left and right margins of @var{window}
 as a cons cell of the form @code{(@var{left} . @var{right})}.
 If @var{window} is @code{nil}, the selected window is used.
@@ -3842,7 +3820,6 @@ mouse event; for instance, @code{[area4 mouse-1]} if the hot-spot's
 @end table
 
 @defun image-mask-p spec &optional frame
-@tindex image-mask-p
 This function returns @code{t} if image @var{spec} has a mask bitmap.
 @var{frame} is the frame on which the image will be displayed.
 @var{frame} @code{nil} or omitted means to use the selected frame
@@ -4026,7 +4003,6 @@ background color.
 @code{find-image} provide convenient ways to create image descriptors.
 
 @defun create-image file-or-data &optional type data-p &rest props
-@tindex create-image
 This function creates and returns an image descriptor which uses the
 data in @var{file-or-data}.  @var{file-or-data} can be a file name or
 a string containing the image data; @var{data-p} should be @code{nil}
@@ -4049,7 +4025,6 @@ supported.  Otherwise it returns an image descriptor.
 @end defun
 
 @defmac defimage symbol specs &optional doc
-@tindex defimage
 This macro defines @var{symbol} as an image name.  The arguments
 @var{specs} is a list which specifies how to display the image.
 The third argument, @var{doc}, is an optional documentation string.
@@ -4078,7 +4053,6 @@ as @code{nil}.
 @end defmac
 
 @defun find-image specs
-@tindex find-image
 This function provides a convenient way to find an image satisfying one
 of a list of image specifications @var{specs}.
 
@@ -4096,7 +4070,6 @@ The image is looked for in @code{image-load-path}.
 @end defun
 
 @defvar image-load-path
-@tindex image-load-path
 This variable's value is a list of locations in which to search for
 image files.  If an element is a string or a variable symbol whose
 value is a string, the string is taken to be the name of a directory
@@ -4118,7 +4091,6 @@ should specify the image as follows:
 @end defvar
 
 @defun image-load-path-for-library library image &optional path no-error
-@tindex image-load-path-for-library
 This function returns a suitable search path for images used by the
 Lisp package @var{library}.
 
@@ -4225,7 +4197,6 @@ This removes only images that were put into @var{buffer} the way
 @end defun
 
 @defun image-size spec &optional pixels frame
-@tindex image-size
 This function returns the size of an image as a pair
 @w{@code{(@var{width} . @var{height})}}.  @var{spec} is an image
 specification.  @var{pixels} non-@code{nil} means return sizes
@@ -4237,7 +4208,6 @@ Focus}).
 @end defun
 
 @defvar max-image-size
-@tindex max-image-size
 This variable is used to define the maximum size of image that Emacs
 will load.  Emacs will refuse to load (and display) any image that is
 larger than this limit.
@@ -4267,7 +4237,6 @@ with cached image specifications using @code{equal}.  This means that
 all images with equal specifications share the same image in the cache.
 
 @defvar image-cache-eviction-delay
-@tindex image-cache-eviction-delay
 This variable specifies the number of seconds an image can remain in the
 cache without being displayed.  When an image is not displayed for this
 length of time, Emacs removes it from the image cache.
@@ -4278,7 +4247,6 @@ debugging.
 @end defvar
 
 @defun clear-image-cache &optional frame
-@tindex clear-image-cache
 This function clears the image cache.  If @var{frame} is non-@code{nil},
 only the cache for that frame is cleared.  Otherwise all frames' caches
 are cleared.
@@ -4400,7 +4368,6 @@ so that it's easy to define special-purpose types of buttons for
 specific tasks.
 
 @defun define-button-type name &rest properties
-@tindex define-button-type
 Define a `button type' called @var{name}.  The remaining arguments
 form a sequence of @var{property value} pairs, specifying default
 property values for buttons with this type (a button's type may be set
@@ -4449,13 +4416,11 @@ defines such a property).
 (@pxref{Overlays}) to hold the button properties:
 
 @defun make-button beg end &rest properties
-@tindex make-button
 This makes a button from @var{beg} to @var{end} in the
 current buffer, and returns it.
 @end defun
 
 @defun insert-button label &rest properties
-@tindex insert-button
 This insert a button with the label @var{label} at point,
 and returns it.
 @end defun
@@ -4469,13 +4434,11 @@ numbers of buttons.  Both functions return the position of the start
 of the new button:
 
 @defun make-text-button beg end &rest properties
-@tindex make-text-button
 This makes a button from @var{beg} to @var{end} in the current buffer, using
 text properties.
 @end defun
 
 @defun insert-text-button label &rest properties
-@tindex insert-text-button
 This inserts a button with the label @var{label} at point, using text
 properties.
 @end defun
@@ -4495,27 +4458,22 @@ Such an object is passed as the first argument to a button's
 invocation function when it is invoked.
 
 @defun button-start button
-@tindex button-start
 Return the position at which @var{button} starts.
 @end defun
 
 @defun button-end button
-@tindex button-end
 Return the position at which @var{button} ends.
 @end defun
 
 @defun button-get button prop
-@tindex button-get
 Get the property of button @var{button} named @var{prop}.
 @end defun
 
 @defun button-put button prop val
-@tindex button-put
 Set @var{button}'s @var{prop} property to @var{val}.
 @end defun
 
 @defun button-activate button &optional use-mouse-action
-@tindex button-activate
 Call @var{button}'s @code{action} property (i.e., invoke it).  If
 @var{use-mouse-action} is non-@code{nil}, try to invoke the button's
 @code{mouse-action} property instead of @code{action}; if the button
@@ -4523,38 +4481,31 @@ has no @code{mouse-action} property, use @code{action} as normal.
 @end defun
 
 @defun button-label button
-@tindex button-label
 Return @var{button}'s text label.
 @end defun
 
 @defun button-type button
-@tindex button-type
 Return @var{button}'s button-type.
 @end defun
 
 @defun button-has-type-p button type
-@tindex button-has-type-p
 Return @code{t} if @var{button} has button-type @var{type}, or one of
 @var{type}'s subtypes.
 @end defun
 
 @defun button-at pos
-@tindex button-at
 Return the button at position @var{pos} in the current buffer, or @code{nil}.
 @end defun
 
 @defun button-type-put type prop val
-@tindex button-type-put
 Set the button-type @var{type}'s @var{prop} property to @var{val}.
 @end defun
 
 @defun button-type-get type prop
-@tindex button-type-get
 Get the property of button-type @var{type} named @var{prop}.
 @end defun
 
 @defun button-type-subtype-p type supertype
-@tindex button-type-subtype-p
 Return @code{t} if button-type @var{type} is a subtype of @var{supertype}.
 @end defun
 
@@ -4580,7 +4531,6 @@ will also activate the @code{push-button} command.
 @xref{Links and Mouse-1}.
 
 @deffn Command push-button &optional pos use-mouse-action
-@tindex push-button
 Perform the action specified by a button at location @var{pos}.
 @var{pos} may be either a buffer position or a mouse-event.  If
 @var{use-mouse-action} is non-@code{nil}, or @var{pos} is a
@@ -4594,7 +4544,6 @@ nothing and return @code{nil}, otherwise return @code{t}.
 @end deffn
 
 @deffn Command forward-button n &optional wrap display-message
-@tindex forward-button
 Move to the @var{n}th next button, or @var{n}th previous button if
 @var{n} is negative.  If @var{n} is zero, move to the start of any
 button at point.  If @var{wrap} is non-@code{nil}, moving past either
@@ -4605,7 +4554,6 @@ is skipped over.  Returns the button found.
 @end deffn
 
 @deffn Command backward-button n &optional wrap display-message
-@tindex backward-button
 Move to the @var{n}th previous button, or @var{n}th next button if
 @var{n} is negative.  If @var{n} is zero, move to the start of any
 button at point.  If @var{wrap} is non-@code{nil}, moving past either
@@ -4616,14 +4564,12 @@ is skipped over.  Returns the button found.
 @end deffn
 
 @defun next-button pos &optional count-current
-@tindex next-button
 Return the next button after position @var{pos} in the current buffer.
 If @var{count-current} is non-@code{nil}, count any button at
 @var{pos} in the search, instead of starting at the next button.
 @end defun
 
 @defun previous-button pos &optional count-current
-@tindex previous-button
 Return the @var{n}th button before position @var{pos} in the current
 buffer.  If @var{count-current} is non-@code{nil}, count any button at
 @var{pos} in the search, instead of starting at the next button.
@@ -5216,13 +5162,11 @@ This function stores @var{value} in the extra slot @var{slot} of
 @end defun
 
 @defun describe-display-table display-table
-@tindex describe-display-table
 This function displays a description of the display table
 @var{display-table} in a help buffer.
 @end defun
 
 @deffn Command describe-current-display-table
-@tindex describe-current-display-table
 This command displays a description of the current display table in a
 help buffer.
 @end deffn
@@ -5328,7 +5272,6 @@ This glyph is simple.
 @end table
 
 @defun create-glyph string
-@tindex create-glyph
 This function returns a newly-allocated glyph code which is set up to
 display by sending @var{string} to the terminal.
 @end defun
