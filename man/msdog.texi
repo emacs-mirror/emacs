@@ -339,6 +339,10 @@ makes it possible to use the menus without a mouse.  In this mode, the
 arrow keys traverse the menus, @key{RET} selects a highlighted menu
 item, and @key{ESC} closes the menu.
 
+@iftex
+@inforef{Windows Keyboard, , emacs}, for information about additional
+Windows-specific variables in this category.
+@end iftex
 @ifnottex
 @vindex w32-alt-is-meta
 @cindex @code{Alt} key (MS-Windows)
@@ -443,12 +447,10 @@ on 2-button mice.  If both mouse buttons are depressed within this
 time interval, Emacs generates a middle mouse button click event
 instead of a double click on one of the buttons.
 
-@ifnottex
 @vindex w32-pass-extra-mouse-buttons-to-system
   If the variable @code{w32-pass-extra-mouse-buttons-to-system} is
 non-@code{nil}, Emacs passes the fourth and fifth mouse buttons to
 Windows.
-@end ifnottex
 
 @vindex w32-swap-mouse-buttons
   The variable @code{w32-swap-mouse-buttons} controls which of the 3
@@ -509,15 +511,12 @@ system.  Instead, type @kbd{CTL-ALT-@key{DEL}} and then choose
 @code{Shutdown}.  That usually works, although it may take a few minutes
 to do its job.
 
-@ifnottex
 @vindex w32-quote-process-args
-  The variable @code{w32-quote-process-args} controls how the process
-arguments are quoted.  If it is non-@code{nil} means they are quoted
-with the @code{"} character.  If the value is a character, that
-character will be used to escape any quote characters that appear;
-otherwise a suitable escape character will be chosen based on the type
-of the program.
-@end ifnottex
+  The variable @code{w32-quote-process-args} controls how Emacs quotes
+the process arguments.  Non-@code{nil} means quote with the @code{"}
+character.  If the value is a character, use that character to escape
+any quote characters that appear; otherwise chose a suitable escape
+character based on the type of the program.
 
 @node Windows Printing
 @section Printing and MS-Windows
@@ -587,8 +586,8 @@ was done.
   If the value of @code{printer-name} is correct, but printing does
 not produce the hardcopy on your printer, it is possible that your
 printer does not support printing plain text (some cheap printers omit
-this functionality).  In that case, as a workaround, try the
-PostScript print commands, described below, to the same printer
+this functionality).  In that case, try the PostScript print commands,
+described below.
 
 @findex print-buffer @r{(MS-DOS)}
 @findex print-region @r{(MS-DOS)}
@@ -669,6 +668,21 @@ printer, put this in your @file{.emacs} file:
 
   This section describes miscellaneous Windows-specific features.
 
+@vindex w32-use-visible-system-caret
+@cindex screen reader software, MS-Windows
+  The variable @code{w32-use-visible-system-caret} is a flag that
+determines whether to make the system caret visible.  The default is
+@code{nil}, which means Emacs draws its own cursor to indicate the
+position of point.  A non-@code{nil} value means Emacs will indicate
+point location by the system caret; this facilitates use of screen
+reader software.  When this variable is non-@code{nil}, other
+variables affecting the cursor display have no effect.
+
+@iftex
+@inforef{Windows Misc, , emacs}, for information about additional
+Windows-specific variables in this category.
+@end iftex
+
 @ifnottex
 @vindex w32-grab-focus-on-raise
 @cindex frame focus policy, MS-Windows
@@ -683,16 +697,6 @@ proportional fonts are included in the font selection dialog.  If its
 value is non-@code{nil}, these fonts will be included.  The default is
 @code{nil}.
 @end ifnottex
-
-@vindex w32-use-visible-system-caret
-@cindex screen reader software, MS-Windows
-  The variable @code{w32-use-visible-system-caret} is a flag that
-determines whether to make the system caret visible.  The default is
-@code{nil}, which means Emacs draws its own cursor to indicate the
-position of point.  A non-@code{nil} value means Emacs will indicate
-point location by the system caret; this facilitates use of screen
-reader software.  When this variable is non-@code{nil}, other
-variables affecting the cursor display have no effect.
 
 @ifnottex
 @include msdog-xtra.texi
