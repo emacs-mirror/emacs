@@ -126,7 +126,6 @@ nil @equiv{} 'nil
 @end example
 
 @defun keywordp object
-@tindex keywordp
 function returns @code{t} if @var{object} is a symbol whose name
 starts with @samp{:}, interned in the standard obarray, and returns
 @code{nil} otherwise.
