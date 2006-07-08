@@ -184,7 +184,7 @@
 (defvar x-display-name nil
   "The name of the X display on which Emacs was started.
 
-For the X display name of individual frames, see the`display'
+For the X display name of individual frames, see the `display'
 frame parameter.")
 
 (defun x-handle-display (switch)
