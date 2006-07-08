@@ -3676,7 +3676,7 @@ displayed.  */)
 
 DEFUN ("force-window-update", Fforce_window_update, Sforce_window_update,
        0, 1, 0,
-       doc: /* Force redisplay of all windows.
+       doc: /* Force all windows to be updated on next redisplay.
 If optional arg OBJECT is a window, force redisplay of that window only.
 If OBJECT is a buffer or buffer name, force redisplay of all windows
 displaying that buffer.  */)
