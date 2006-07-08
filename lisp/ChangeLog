@@ -1,5 +1,7 @@
 2006-07-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* hexl.el (hexl-find-file): Doc fix.
+
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
 
 2006-07-07  Chong Yidong  <cyd@stupidchicken.com>
