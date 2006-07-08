@@ -1,3 +1,15 @@
+2006-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Keyboard) [@iftex]: Add an @inforef to the
+	on-line manual for the rest of this node.
+	(Windows Mouse) <w32-pass-extra-mouse-buttons-to-system>: Include
+	unconditionally.
+	(Windows Processes) <w32-quote-process-args>: Include unconditionally.
+	Improve wording.
+	(Windows Printing): Improve wording.
+	(Windows Misc) [@iftex]: Add an @inforef to the on-line manual for the
+	rest of this node.
+
 2006-07-07  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Exporting): Document `C-c C-e' as the prefix for exporting

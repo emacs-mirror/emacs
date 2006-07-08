@@ -1,3 +1,42 @@
+2006-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* windows.texi (Textual Scrolling, Resizing Windows): 
+	* variables.texi (Constant Variables): 
+	* text.texi (Buffer Contents, Deletion, Changing Properties)
+	(Property Search, Special Properties, Sticky Properties)
+	(Links and Mouse-1, Fields, Change Hooks): 
+	* syntax.texi (Syntax Table Functions, Parsing Expressions)
+	(Categories): 
+	* symbols.texi (Other Plists): 
+	* streams.texi (Output Variables): 
+	* processes.texi (Input to Processes, Query Before Exit): 
+	* positions.texi (Word Motion, Text Lines, List Motion): 
+	* os.texi (Init File, System Environment, Sound Output)
+	(Session Management): 
+	* nonascii.texi (Text Representations, Character Sets)
+	(Chars and Bytes, Locales): 
+	* modes.texi (Defining Minor Modes, Header Lines): 
+	* minibuf.texi (Minibuffer Contents): 
+	* markers.texi (Information from Markers): 
+	* lists.texi (List Elements, Building Lists, Association Lists): 
+	* keymaps.texi (Tool Bar): 
+	* hash.texi (Creating Hash, Hash Access, Defining Hash, Other Hash): 
+	* functions.texi (What Is a Function, Mapping Functions): 
+	* frames.texi (Creating Frames, Parameter Access, Pointer Shape)
+	(Color Names, Text Terminal Colors, Display Feature Testing):
+	* files.texi (Visiting Functions, File Name Components)
+	(Unique File Names, Contents of Directories): 
+	* display.texi (Forcing Redisplay, Displaying Messages)
+	(Temporary Displays, Font Selection, Auto Faces)
+	(Font Lookup, Fringe Indicators, Display Margins)
+	(Image Descriptors, Showing Images, Image Cache, Button Types)
+	(Making Buttons, Manipulating Buttons, Button Buffer Commands)
+	(Display Table Format, Glyphs): 
+	* control.texi (Iteration): 
+	* commands.texi (Command Loop Info, Adjusting Point): 
+	* backups.texi (Making Backups, Auto-Saving): Remove @tindex
+	entries.
+
 2006-07-07  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Fringe Cursors): Fix typo.
