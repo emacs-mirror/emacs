@@ -2602,8 +2602,12 @@ font_open_by_name (f, name)
       size = make_number (pixel_size);
     }
   ASET (prefer, FONT_SIZE_INDEX, size);
+#if 0
+  /* Waiting for real fix here.  At least this gets you a font, but maybe not
+     the AA one in the Xft case. */
   if (NILP (AREF (spec, FONT_REGISTRY_INDEX)))
     ASET (spec, FONT_REGISTRY_INDEX, Qiso8859_1);
+#endif
 
   entities = Flist_fonts (spec, frame, make_number (1), prefer);
   return (NILP (entities)
