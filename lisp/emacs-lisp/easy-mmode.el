@@ -102,8 +102,8 @@ The above three arguments can be skipped if keyword arguments are
 used (see below).
 
 BODY contains code to execute each time the mode is activated or deactivated.
-  It will be executed after any toggling but before running the hook variable
-  `mode-HOOK'.
+  It is executed after toggling the mode,
+  and before running the hook variable `mode-HOOK'.
   Before the actual body code, you can write keyword arguments (alternating
   keywords and values).  These following keyword arguments are supported (other
   keywords will be passed to `defcustom' if the minor mode is global):
