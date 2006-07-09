@@ -628,10 +628,13 @@ space does not end a sentence, so don't break a line there."
   (let ((from-plus-indent (point))
 	(oneleft nil))
 
+    (beginning-of-line)
     ;; We used to round up to whole line, but that prevents us from
-    ;; correctly handling filling of mixed code-and-comment where we
-    ;; do want to fill the comment but not the code.
-    ;; (beginning-of-line) (setq from (point))
+    ;; correctly handling filling of mixed code-and-comment where we do want
+    ;; to fill the comment but not the code.  So only use (point) if it's
+    ;; further than `from', which means that `from' is followed by some
+    ;; number of empty lines.
+    (setq from (max (point) from))
 
     ;; Delete all but one soft newline at end of region.
     ;; And leave TO before that one.
