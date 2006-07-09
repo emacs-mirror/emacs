@@ -1994,14 +1994,14 @@ between them, return t; otherwise return nil.  */)
 {
   register int from;
   int from_byte;
-  register EMACS_INT stop;
+  register int stop;
   register int c, c1;
   register enum syntaxcode code;
   int comstyle = 0;	    /* style of comment encountered */
   int comnested = 0;	    /* whether the comment is nestable or not */
   int found;
-  EMACS_INT count1;
-  EMACS_INT out_charpos, out_bytepos;
+  int count1;
+  int out_charpos, out_bytepos;
   int dummy;
 
   CHECK_NUMBER (count);
