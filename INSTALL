@@ -255,14 +255,14 @@ accept a list of directories, separated with colons.
 
 To get more attractive menus, you can specify an X toolkit when you
 configure Emacs; use the option `--with-x-toolkit=TOOLKIT', where
-TOOLKIT is `athena', `motif' or `gtk' (`yes' and `lucid' are synonyms for
-`athena').  On some systems, it does not work to use a toolkit with
-shared libraries.  A free implementation of Motif, called LessTif, is
-available ftom <http://www.lesstif.org>.  Compiling with LessTif or
-Motif causes a standard File Selection Dialog to pop up when you type
-"C-x C-f" and similar commands.  You can get fancy 3D-style scroll
-bars, even without LessTif/Motif, if you have the Xaw3d library
-installed (see "Image support libraries" above for Xaw3d
+TOOLKIT is `athena', `motif' or `gtk' (`yes' and `lucid' are synonyms
+for `athena').  On some systems, it does not work to use a toolkit
+with shared libraries.  A free implementation of Motif, called
+LessTif, is available from <http://www.lesstif.org>.  Compiling with
+LessTif or Motif causes a standard File Selection Dialog to pop up
+when you invoke file commands with the mouse.  You can get fancy
+3D-style scroll bars, even without LessTif/Motif, if you have the
+Xaw3d library installed (see "Image support libraries" above for Xaw3d
 availability).
 
 If `--with-x-toolkit=gtk' is specified, you can tell configure where
