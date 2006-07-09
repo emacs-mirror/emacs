@@ -1,3 +1,7 @@
+2006-07-08  Richard Stallman  <rms@gnu.org>
+
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Minor corrections.
+
 2006-07-09  Kim F. Storm  <storm@cua.dk>
 
 	* CONTRIBUTE: Use outline format.
@@ -7,7 +11,7 @@
 
 	* configure: Regenerated.
 
-	* configure.in (PKG_CHECK_MODUILES): Redirect stderr of pkg-config
+	* configure.in (PKG_CHECK_MODULES): Redirect stderr of pkg-config
 	to /dev/null, since we don't need the error message, just the
 	exit status.
 

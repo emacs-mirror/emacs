@@ -1,3 +1,14 @@
+2006-07-08  Richard Stallman  <rms@gnu.org>
+
+	* term/x-win.el (x-handle-display): Add doc string.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix.
+
+	* subr.el (def-edebug-spec): Moved here.
+	* emacs-lisp/edebug.el (def-edebug-spec): Moved to subr.el.
+
+	* imenu.el (imenu-choose-buffer-index): Doc fix.
+
 2006-07-08  Romain Francoise  <romain@orebokech.com>
 
 	* term/x-win.el (x-display-name): Fix typo.

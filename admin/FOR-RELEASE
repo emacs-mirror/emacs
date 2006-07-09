@@ -64,8 +64,6 @@ It seems that to fix this, w32 server sockets must use WSAAsyncSelect
 
 * DOCUMENTATION
 
-** Delete all @tindex commands from the Emacs Lisp Manual.
-
 ** Check the Emacs Lisp manual.
 
 Each manual section should be checked for factual correctness

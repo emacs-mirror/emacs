@@ -90,6 +90,8 @@ current buffer.
    list fonts, display a font as a sample, etc.  [fx is looking at
   multilingual font selection for the Unicode branch of Emacs.]
 
+** Provide a convenient way to select a color with the mouse.
+
 ** Rewrite the face code to be simpler, clearer and faster.
 
 ** Program Enriched mode to read and save in RTF.  [Is there actually a

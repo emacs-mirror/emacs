@@ -451,6 +451,8 @@ C-h e displays the *Messages* buffer.
 
 C-h d runs apropos-documentation.
 
+C-h r visits the Emacs Manual in Info.
+
 C-h followed by a control character is used for displaying files
     that do not change:
 
@@ -3667,6 +3669,8 @@ deleting the part of subprocess output that matches the input.
 ** The variable `memory-full' now remains t until
 there is no longer a shortage of memory.
 
+** When Emacs receives a USR1 or USR2 signal, this generates
+an input event: usr1-signal or usr2-signal.
 
 * Lisp Changes in Emacs 22.1
 
