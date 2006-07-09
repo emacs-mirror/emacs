@@ -1992,16 +1992,16 @@ between them, return t; otherwise return nil.  */)
      (count)
      Lisp_Object count;
 {
-  register int from;
-  int from_byte;
-  register int stop;
+  register EMACS_INT from;
+  EMACS_INT from_byte;
+  register EMACS_INT stop;
   register int c, c1;
   register enum syntaxcode code;
   int comstyle = 0;	    /* style of comment encountered */
   int comnested = 0;	    /* whether the comment is nestable or not */
   int found;
-  int count1;
-  int out_charpos, out_bytepos;
+  EMACS_INT count1;
+  EMACS_INT out_charpos, out_bytepos;
   int dummy;
 
   CHECK_NUMBER (count);
