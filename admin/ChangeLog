@@ -1,3 +1,7 @@
+2006-07-09  Kim F. Storm  <storm@cua.dk>
+
+	* README: Use outline format.  Add FOR-RELEASE.
+
 2006-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* FOR-RELEASE: Checking of info.texi done.

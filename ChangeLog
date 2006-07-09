@@ -1,3 +1,8 @@
+2006-07-09  Kim F. Storm  <storm@cua.dk>
+
+	* CONTRIBUTE: Use outline format.
+	Add section on copyright years (from admin/notes/years).
+
 2006-07-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure: Regenerated.
