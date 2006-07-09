@@ -36,8 +36,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
 
-** Stephen.Berman@gmx.net: isearch-yank-line and field text property
-
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
 	(setq-default truncate-lines t)
