@@ -125,25 +125,21 @@ pending, use @code{(sit-for -1)}.
 @cindex @samp{$} in display
 @cindex @samp{\} in display
 
-  When a line of text extends beyond the right edge of a window, the
-line can either be continued on the next screen line, or truncated to
-one screen line.  The additional screen lines used to display a long
-text line are called @dfn{continuation} lines.  Normally, tiny arrow images
-are displayed in the window fringes to indicate truncated and continued
-lines (*note Fringes).
+  When a line of text extends beyond the right edge of a window, Emacs
+can @dfn{continue} the line (make it ``wrap'' to the next screen
+line), or @dfn{truncate} the line (limit it to one screen line).  The
+additional screen lines used to display a long text line are called
+@dfn{continuation} lines.  Continuation is not the same as filling;
+continuation happens on the screen only, not in the buffer contents,
+and it breaks a line precisely at the right margin, not at a word
+boundary.  @xref{Filling}.
 
-   On a text terminal, a `$' in the rightmost column of the window
-indicates truncation; a `\' on the rightmost column indicates a
-continued line that "wraps" onto the next line.  (The display table can
-specify alternative indicators; see *Note Display Tables.)
-
-  On a graphical display, the @samp{$} and @samp{\} indicators are
-replaced with arrow images displayed in the window fringes
-(@pxref{Fringes}).
-
-  Note that continuation is different from filling; continuation happens
-on the screen only, not in the buffer contents, and it breaks a line
-precisely at the right margin, not at a word boundary.  @xref{Filling}.
+   On a graphical display, tiny arrow images in the window fringes
+indicate truncated and continued lines (@pxref{Fringes}).  On a text
+terminal, a @samp{$} in the rightmost column of the window indicates
+truncation; a @samp{\} on the rightmost column indicates a line that
+``wraps''.  (The display table can specify alternate characters to use
+for this; @pxref{Display Tables}).
 
 @defopt truncate-lines
 This buffer-local variable controls how Emacs displays lines that extend
