@@ -1,7 +1,6 @@
 2006-07-10  Nick Roberts  <nickrob@snap.net.nz>
 
-	* misc.texi, killing.texi, gnus.texi, message.texi, mini.texi:
-	Fix typos.
+	* killing.texi, gnus.texi, message.texi, mini.texi: Fix typos.
 
 2006-07-09  Chong Yidong  <cyd@stupidchicken.com>
 
