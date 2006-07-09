@@ -1,3 +1,8 @@
+2006-07-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Invoking emacsclient): Document behavior when emacsclient
+	is invoked for multiple files.
+
 2006-07-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Keyboard) [@iftex]: Add an @inforef to the
