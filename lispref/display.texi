@@ -4266,7 +4266,7 @@ etc.  Emacs uses buttons for the hyper-links in help text and the like.
 properties or overlays) to a region of text in an Emacs buffer.  These
 properties are called @dfn{button properties}.
 
-  One of the these properties (@code{action}) is a function, which will
+  One of these properties (@code{action}) is a function, which will
 be called when the user invokes it using the keyboard or the mouse.
 The invoked function may then examine the button and use its other
 properties as desired.
