@@ -1,3 +1,8 @@
+2006-07-09  Romain Francoise  <romain@orebokech.com>
+
+	* isearch.el (isearch-yank-line): Let-bind `inhibit-field-text-motion'
+	to t.
+
 2006-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/fill.el (fill-region-as-paragraph): Refine last change.

@@ -1357,7 +1357,8 @@ might return the position of the end of the line."
   "Pull rest of line from buffer into search string."
   (interactive)
   (isearch-yank-internal
-   (lambda () (line-end-position (if (eolp) 2 1)))))
+   (lambda () (let ((inhibit-field-text-motion t))
+		(line-end-position (if (eolp) 2 1))))))
 
 (defun isearch-search-and-update ()
   ;; Do the search and update the display.
