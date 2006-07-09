@@ -53,6 +53,12 @@ This is the global do-nothing version.  There is also `testcover-1value'
 that complains if FORM ever does return differing values."
   form)
 
+(defmacro def-edebug-spec (symbol spec)
+  "Set the `edebug-form-spec' property of SYMBOL according to SPEC.
+Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
+\(naming a function), or a list."
+  `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
+
 (defmacro lambda (&rest cdr)
   "Return a lambda expression.
 A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
