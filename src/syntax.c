@@ -97,10 +97,11 @@ static int find_start_modiff;
 
 
 static int find_defun_start P_ ((int, int));
-static int back_comment P_ ((int, int, int, int, int, int *, int *));
+static int back_comment P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int, int,
+			     EMACS_INT *, EMACS_INT *));
 static int char_quoted P_ ((int, int));
 static Lisp_Object skip_chars P_ ((int, int, Lisp_Object, Lisp_Object, int));
-static Lisp_Object scan_lists P_ ((int, int, int, int));
+static Lisp_Object scan_lists P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int));
 static void scan_sexps_forward P_ ((struct lisp_parse_state *,
 				    int, int, int, int,
 				    int, Lisp_Object, int));
@@ -471,9 +472,9 @@ prev_char_comend_first (pos, pos_byte)
 
 static int
 back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_ptr)
-     int from, from_byte, stop;
+     EMACS_INT from, from_byte, stop;
      int comnested, comstyle;
-     int *charpos_ptr, *bytepos_ptr;
+     EMACS_INT *charpos_ptr, *bytepos_ptr;
 {
   /* Look back, counting the parity of string-quotes,
      and recording the comment-starters seen.
@@ -2199,11 +2200,12 @@ between them, return t; otherwise return nil.  */)
 
 static Lisp_Object
 scan_lists (from, count, depth, sexpflag)
-     register int from;
-     int count, depth, sexpflag;
+     register EMACS_INT from;
+     EMACS_INT count, depth;
+     int sexpflag;
 {
   Lisp_Object val;
-  register int stop = count > 0 ? ZV : BEGV;
+  register EMACS_INT stop = count > 0 ? ZV : BEGV;
   register int c, c1;
   int stringterm;
   int quoted;
@@ -2212,11 +2214,11 @@ scan_lists (from, count, depth, sexpflag)
   int min_depth = depth;    /* Err out if depth gets less than this.  */
   int comstyle = 0;	    /* style of comment encountered */
   int comnested = 0;	    /* whether the comment is nestable or not */
-  int temp_pos;
-  int last_good = from;
+  EMACS_INT temp_pos;
+  EMACS_INT last_good = from;
   int found;
-  int from_byte;
-  int out_bytepos, out_charpos;
+  EMACS_INT from_byte;
+  EMACS_INT out_bytepos, out_charpos;
   int temp, dummy;
   int multibyte_symbol_p = sexpflag && multibyte_syntax_as_symbol;
 
