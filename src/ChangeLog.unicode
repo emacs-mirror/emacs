@@ -1,3 +1,10 @@
+2006-07-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (realize_non_ascii_face): Set face->extra to NULL.
+
+	* xftfont.c (xftfont_done_face): Call XftDrawDestroy only if xftface_info
+	is non-NULL.
+
 2006-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_list): Fix typo.
