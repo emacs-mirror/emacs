@@ -406,10 +406,13 @@ xftfont_done_face (f, face)
 #endif
 
   xftface_info = (struct xftface_info *) face->extra;
-  BLOCK_INPUT;
-  XftDrawDestroy (xftface_info->xft_draw);
-  UNBLOCK_INPUT;
-  free (xftface_info);
+  if (xftface_info)
+    {
+      BLOCK_INPUT;
+      XftDrawDestroy (xftface_info->xft_draw);
+      UNBLOCK_INPUT;
+      free (xftface_info);
+    }
   face->extra = NULL;
 }
 
