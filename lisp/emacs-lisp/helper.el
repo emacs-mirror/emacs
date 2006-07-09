@@ -77,7 +77,7 @@
 		   "Delete scrolls back. Other keys %s"
 		   "Type anything to %s"))
 	    blurb)
-	  (setq continue (read-char))
+	  (setq continue (read-event))
 	  (cond ((and (memq continue '(?\s ?\C-v)) (< state 2))
 		 (scroll-up))
 		((= continue ?\C-l)

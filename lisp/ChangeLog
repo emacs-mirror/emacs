@@ -1,3 +1,8 @@
+2006-07-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/helper.el (Helper-help-scroller): Don't signal error
+	on non-char events.
+
 2006-07-09  Romain Francoise  <romain@orebokech.com>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords):
