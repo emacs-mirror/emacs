@@ -1992,8 +1992,8 @@ between them, return t; otherwise return nil.  */)
      (count)
      Lisp_Object count;
 {
-  register EMACS_INT from;
-  EMACS_INT from_byte;
+  register int from;
+  int from_byte;
   register EMACS_INT stop;
   register int c, c1;
   register enum syntaxcode code;
