@@ -400,7 +400,10 @@ you may also want to change `compilation-page-delimiter'.")
   "Value of `page-delimiter' in Compilation mode.")
 
 (defvar compilation-mode-font-lock-keywords
-   '(;; configure output lines.
+   '(;; Don't highlight this as a compilation message.
+     ("^Compilation started at.*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t))
+     ;; configure output lines.
      ("^[Cc]hecking \\(?:[Ff]or \\|[Ii]f \\|[Ww]hether \\(?:to \\)?\\)?\\(.+\\)\\.\\.\\. *\\(?:(cached) *\\)?\\(\\(yes\\(?: .+\\)?\\)\\|no\\|\\(.*\\)\\)$"
       (1 font-lock-variable-name-face)
       (2 (compilation-face '(4 . 3))))
@@ -408,9 +411,11 @@ you may also want to change `compilation-page-delimiter'.")
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
      (" --?o\\(?:utfile\\|utput\\)?[= ]?\\(\\S +\\)" . 1)
-     ("^Compilation \\(finished\\)"
+     ("^Compilation \\(finished\\).*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face))
-     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?"
+     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-error-face)
       (2 compilation-error-face nil t)))
    "Additional things to highlight in Compilation mode.

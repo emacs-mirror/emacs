@@ -1,5 +1,8 @@
 2006-07-09  Romain Francoise  <romain@orebokech.com>
 
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Don't highlight start/end markers as compilation messages.
+
 	* isearch.el (isearch-yank-line): Let-bind `inhibit-field-text-motion'
 	to t.
 
