@@ -696,7 +696,7 @@ cross-post, add that target newsgroup to the @samp{Newsgroups} header if
 it is not a member of @samp{Newsgroups}, and insert a note in the body.
 If @code{message-cross-post-default} is @code{nil} or if this command is
 called with a prefix-argument, only the @samp{FollowUp-To} header will
-be set but the the target newsgroup will not be added to the
+be set but the target newsgroup will not be added to the
 @samp{Newsgroups} header.  The function to insert a note is controlled
 by the @code{message-cross-post-note-function} variable.
 

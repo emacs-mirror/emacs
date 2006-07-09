@@ -193,7 +193,7 @@ a list of the possible completions at any time.
 command, so it provides a list of all Emacs command names for
 completion candidates.  The completion keys match the minibuffer text
 against these candidates, find any additional name characters implied
-by the the text already present in the minibuffer, and add those
+by the text already present in the minibuffer, and add those
 characters.  This makes it possible to type @kbd{M-x ins @key{SPC} b
 @key{RET}} instead of @kbd{M-x insert-buffer @key{RET}}, for example.
 

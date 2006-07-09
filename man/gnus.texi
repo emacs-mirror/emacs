@@ -2137,7 +2137,7 @@ newsgroups.
 @vindex gnus-auto-select-subject
 If @code{gnus-auto-select-first} is non-@code{nil}, select an article
 automatically when entering a group with the @kbd{SPACE} command.
-Which article this is is controlled by the
+Which article this is controlled by the
 @code{gnus-auto-select-subject} variable.  Valid values for this
 variable is:
 
@@ -22974,7 +22974,7 @@ variable @code{gnus-ham-process-destinations}, or the group parameter
 group specified by the variable @code{gnus-spam-process-destinations},
 or the group parameter @code{spam-process-destination}.  If these
 variables are not set, the articles are left in their current group.
-If an article cannot not be moved (e.g., with a read-only backend such
+If an article cannot be moved (e.g., with a read-only backend such
 as @acronym{NNTP}), it is copied.
 
 If an article is moved to another group, it is processed again when
@@ -24245,10 +24245,10 @@ file is treated as one non-spam mail.
 @end defun
 
 Usually you would call @code{spam-stat-process-spam-directory} on a
-directory such as @file{~/Mail/mail/spam} (this usually corresponds
-the the group @samp{nnml:mail.spam}), and you would call
+directory such as @file{~/Mail/mail/spam} (this usually corresponds to
+the group @samp{nnml:mail.spam}), and you would call
 @code{spam-stat-process-non-spam-directory} on a directory such as
-@file{~/Mail/mail/misc} (this usually corresponds the the group
+@file{~/Mail/mail/misc} (this usually corresponds the group
 @samp{nnml:mail.misc}).
 
 When you are using @acronym{IMAP}, you won't have the mails available
