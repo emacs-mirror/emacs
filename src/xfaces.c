@@ -7651,6 +7651,9 @@ realize_non_ascii_face (f, font_id, base_face)
   face = (struct face *) xmalloc (sizeof *face);
   *face = *base_face;
   face->gc = 0;
+#ifdef USE_FONT_BACKEND
+  face->extra = NULL;
+#endif
 
   /* Don't try to free the colors copied bitwise from BASE_FACE.  */
   face->colors_copied_bitwise_p = 1;
