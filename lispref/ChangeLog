@@ -1,3 +1,7 @@
+2006-07-09  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Truncation): Clean up previous change.
+
 2006-07-08  Richard Stallman  <rms@gnu.org>
 
 	* commands.texi (Interactive Call): Use 3 as prefix in example
