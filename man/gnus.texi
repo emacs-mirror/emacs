@@ -24248,7 +24248,7 @@ Usually you would call @code{spam-stat-process-spam-directory} on a
 directory such as @file{~/Mail/mail/spam} (this usually corresponds to
 the group @samp{nnml:mail.spam}), and you would call
 @code{spam-stat-process-non-spam-directory} on a directory such as
-@file{~/Mail/mail/misc} (this usually corresponds the group
+@file{~/Mail/mail/misc} (this usually corresponds to the group
 @samp{nnml:mail.misc}).
 
 When you are using @acronym{IMAP}, you won't have the mails available
