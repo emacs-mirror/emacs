@@ -2106,10 +2106,6 @@ For example,
 @end example
 @end defun
 
-  The functions above did not exist before Emacs 21.  For compatibility
-with older Emacs versions, you can use the following functions to set
-and examine the face attributes which existed in those versions.
-
 @defun face-attribute-relative-p attribute value
 This function returns non-@code{nil} if @var{value}, when used as the
 value of the face attribute @var{attribute}, is relative.  This means
@@ -2135,6 +2131,10 @@ If @var{value1} is a relative value for the face attribute
 @var{value2}; otherwise, if @var{value1} is an absolute value for the
 face attribute @var{attribute}, returns @var{value1} unchanged.
 @end defun
+
+  The functions above did not exist before Emacs 21.  For compatibility
+with older Emacs versions, you can use the following functions to set
+and examine the face attributes which existed in those versions.
 
 @defun set-face-foreground face color &optional frame
 @defunx set-face-background face color &optional frame
