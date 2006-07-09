@@ -1,3 +1,7 @@
+2006-07-09  John Paul Wallington  <jpw@pobox.com>
+
+	* syntax.c (Fforward_comment): Revert previous change.
+
 2006-07-09  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (Fforce_window_update): Doc fix.
