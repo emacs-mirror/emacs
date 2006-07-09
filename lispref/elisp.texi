@@ -166,7 +166,9 @@ Appendices
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
 
+@ignore
 * New Symbols::             New functions and variables in Emacs @value{EMACSVER}.
+@end ignore
 
 Detailed Node Listing
 ---------------------
@@ -1151,10 +1153,12 @@ Object Internals
 
 @include index.texi
 
+@ignore
 @node New Symbols, , Index, Top
 @unnumbered New Symbols Since the Previous Edition
 
 @printindex tp
+@end ignore
 
 @bye
 
