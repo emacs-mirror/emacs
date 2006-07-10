@@ -107,7 +107,8 @@
 (eval-and-compile
   (defconst c-awk-escaped-nl "\\\\[\n\r]"))
 ;; Matches an escaped newline.
-(defconst c-awk-escaped-nls* (concat "\\(" c-awk-escaped-nl "\\)*"))
+(eval-and-compile
+  (defconst c-awk-escaped-nls* (concat "\\(" c-awk-escaped-nl "\\)*")))
 ;; Matches a possibly empty sequence of escaped newlines.  Used in
 ;; awk-font-lock-keywords.
 ;; (defconst c-awk-escaped-nls*-with-space*
