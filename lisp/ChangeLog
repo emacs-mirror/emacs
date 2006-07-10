@@ -1,3 +1,8 @@
+2006-07-10  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-awk.el, cc-defs.el, cc-fonts.el, cc-langs.el,
+	cc-mode.el: Changes to eradicate eval-after-load.
+
 2006-07-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/helper.el (Helper-help-scroller): Don't signal error
