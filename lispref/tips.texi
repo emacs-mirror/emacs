@@ -118,8 +118,9 @@ run time.  Use of this package is optional, and it is not part of the
 standard Emacs namespace.  If your package loads @code{cl} at run time,
 that could cause name clashes for users who don't use that package.
 
-However, there is no problem with using macros from the @code{cl}
-package at compile time, with @code{(eval-when-compile (require 'cl))}.
+However, there is no problem with using the @code{cl} package at
+compile time, e.g. for macros, with
+@code{(eval-when-compile (require 'cl))}.
 
 @item
 When defining a major mode, please follow the major mode
