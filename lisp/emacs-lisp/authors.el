@@ -169,7 +169,7 @@ listed.")
   '("external-lisp"
     "lock" "share-lib" "local-lisp"
     "noleim-Makefile.in"
-    "NEWS" "PROBLEMS" "FAQ" "AUTHORS")
+    "NEWS" "PROBLEMS" "FAQ" "AUTHORS" "FOR-RELEASE" "TODO")
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 
