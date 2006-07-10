@@ -1,5 +1,7 @@
 2006-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/cc-awk.el (defconst): Fix compilation error.
+
 	* subr.el (sit-for): New function.
 
 	* play/hanoi.el (hanoi-sit-for): Check sit-for return value.
