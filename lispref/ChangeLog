@@ -1,6 +1,7 @@
 2006-07-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tips.texi (Coding Conventions): Mention macros.
+	Suggested by Ken Manheimer.
 
 2006-07-10  Nick Roberts  <nickrob@snap.net.nz>
 
