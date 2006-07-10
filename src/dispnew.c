@@ -6532,19 +6532,26 @@ sit_for (sec, usec, reading, display, initial_display)
 }
 
 
-DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 0, 0,
-       doc: /* Perform redisplay.
-If input is available before this starts, redisplay is preempted
-unless `redisplay-dont-pause' is non-nil.  */)
-     ()
+DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
+       doc: /* Perform redisplay if no input is available.
+If optional arg FORCE is non-nil, perform a full redisplay even if
+input is available.  */)
+     (force)
+  Lisp_Object force;
 {
+  int count;
+
   swallow_events (Qt);
   if ((detect_input_pending_run_timers (Qt)
-       && NILP (Qredisplay_dont_pause))
+       && NILP (force) && !redisplay_dont_pause)
       || !NILP (Vexecuting_kbd_macro))
     return Qnil;
 
+  count = SPECPDL_INDEX ();
+  if (!NILP (force) && !redisplay_dont_pause)
+    specbind (Qredisplay_dont_pause, Qt);
   redisplay_preserve_echo_area (2);
+  unbind_to (count, Qnil);
   return Qt;
 }
 
