@@ -1,6 +1,7 @@
 2006-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/cc-awk.el (defconst): Fix compilation error.
+	* progmodes/cc-awk.el (defconst): Use eval-and-compile to avoid
+	compilation error.
 
 	* subr.el (sit-for): New function.
 
