@@ -1,3 +1,7 @@
+2006-07-10  Richard Stallman  <rms@gnu.org>
+
+	* ldefs-boot.el (edebug): Update page.
+
 2006-07-10  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/authors.el (authors-ignored-files): Ignore changes
