@@ -1,11 +1,16 @@
+2006-07-10  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/authors.el (authors-ignored-files): Ignore changes
+	to FOR-RELEASE and TODO.
+
 2006-07-10  Romain Francoise  <romain@orebokech.com>
 
 	* emacs-lisp/authors.el (authors-aliases): Update.
 
 2006-07-10  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-awk.el, cc-defs.el, cc-fonts.el, cc-langs.el,
-	cc-mode.el: Changes to eradicate eval-after-load.
+	* progmodes/cc-awk.el, cc-defs.el, cc-fonts.el, cc-langs.el:
+	* cc-mode.el: Changes to eradicate eval-after-load.
 
 2006-07-09  Chong Yidong  <cyd@stupidchicken.com>
 
