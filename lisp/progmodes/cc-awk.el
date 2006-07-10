@@ -32,7 +32,7 @@
 ;;   1. The AWK Mode syntax table.
 ;;   2. Regular expressions for analysing AWK code.
 ;;   3. Indentation calculation stuff ("c-awk-NL-prop text-property").
-;;   4. Syntax-table property/font-locking stuff, but not including the
+;;   4. Syntax-table property/font-locking stuff, including the
 ;;      font-lock-keywords setting.
 ;;   5. The AWK Mode before/after-change-functions.
 ;;   6. AWK Mode specific versions of commands like beginning-of-defun.
@@ -852,6 +852,96 @@
 (c-awk-advise-fl-for-awk-region lazy-lock-defer-rest-after-change)
 (c-awk-advise-fl-for-awk-region lazy-lock-defer-line-after-change)
 
+;; Awk regexps written with help from Peter Galbraith
+;; <galbraith@mixing.qc.dfo.ca>.
+;; Take GNU Emacs's 'words out of the following regexp-opts.  They dont work
+;; in Xemacs 21.4.4.  acm 2002/9/19.
+(defconst awk-font-lock-keywords
+  (eval-when-compile
+    (list
+     ;; Function names.
+     '("^\\s *\\(func\\(tion\\)?\\)\\>\\s *\\(\\sw+\\)?"
+       (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
+     ;;
+     ;; Variable names.
+     (cons
+      (concat "\\<"
+	      (regexp-opt
+	       '("ARGC" "ARGIND" "ARGV" "BINMODE" "CONVFMT" "ENVIRON"
+		 "ERRNO" "FIELDWIDTHS" "FILENAME" "FNR" "FS" "IGNORECASE"
+		 "LINT" "NF" "NR" "OFMT" "OFS" "ORS" "PROCINFO" "RLENGTH"
+		 "RS" "RSTART" "RT" "SUBSEP" "TEXTDOMAIN") t) "\\>")
+      'font-lock-variable-name-face)
+
+     ;; Special file names.  (acm, 2002/7/22)
+     ;; The following regexp was created by first evaluating this in GNU Emacs 21.1:
+     ;; (regexp-opt '("/dev/stdin" "/dev/stdout" "/dev/stderr" "/dev/fd/n" "/dev/pid"
+     ;;                 "/dev/ppid" "/dev/pgrpid" "/dev/user") 'words)
+     ;; , removing the "?:" from each "\\(?:" (for backward compatibility with older Emacsen)
+     ;; , replacing the "n" in "dev/fd/n" with "[0-9]+"
+     ;; , removing the unwanted \\< at the beginning, and finally filling out the
+     ;; regexp so that a " must come before, and either a " or heuristic stuff after.
+     ;; The surrounding quotes are fontified along with the filename, since, semantically,
+     ;; they are an indivisible unit.
+     '("\\(\"/dev/\\(fd/[0-9]+\\|p\\(\\(\\(gr\\)?p\\)?id\\)\\|\
+std\\(err\\|in\\|out\\)\\|user\\)\\)\\>\
+\\(\\(\"\\)\\|\\([^\"/\n\r][^\"\n\r]*\\)?$\\)"
+       (1 font-lock-variable-name-face t)
+       (8 font-lock-variable-name-face t t))
+     ;; Do the same (almost) with
+     ;; (regexp-opt '("/inet/tcp/lport/rhost/rport" "/inet/udp/lport/rhost/rport"
+     ;;                 "/inet/raw/lport/rhost/rport") 'words)
+     ;; This cannot be combined with the above pattern, because the match number
+     ;; for the (optional) closing \" would then exceed 9.
+     '("\\(\"/inet/\\(\\(raw\\|\\(tc\\|ud\\)p\\)/lport/rhost/rport\\)\\)\\>\
+\\(\\(\"\\)\\|\\([^\"/\n\r][^\"\n\r]*\\)?$\\)"
+       (1 font-lock-variable-name-face t)
+       (6 font-lock-variable-name-face t t))
+
+     ;; Keywords.
+     (concat "\\<"
+	     (regexp-opt
+	      '("BEGIN" "END" "break" "continue" "delete" "do" "else"
+		"exit" "for" "getline" "if" "in" "next" "nextfile"
+		"return" "while")
+	      t) "\\>")
+
+     ;; Builtins.
+     `(eval . (list
+	       ,(concat
+		 "\\<"
+		 (regexp-opt
+		  '("adump" "and" "asort" "atan2" "bindtextdomain" "close"
+		    "compl" "cos" "dcgettext" "exp" "extension" "fflush"
+		    "gensub" "gsub" "index" "int" "length" "log" "lshift"
+		    "match" "mktime" "or" "print" "printf" "rand" "rshift"
+		    "sin" "split" "sprintf" "sqrt" "srand" "stopme"
+		    "strftime" "strtonum" "sub" "substr"  "system"
+		    "systime" "tolower" "toupper" "xor") t)
+		 "\\>")
+	       0 c-preprocessor-face-name))
+
+     ;; gawk debugging keywords.  (acm, 2002/7/21)
+     ;; (Removed, 2003/6/6.  These functions are now fontified as built-ins)
+     ;;	(list (concat "\\<" (regexp-opt '("adump" "stopme") t) "\\>")
+     ;;	   0 'font-lock-warning-face)
+
+     ;; User defined functions with an apparent spurious space before the
+     ;; opening parenthesis.  acm, 2002/5/30.
+     `(,(concat "\\(\\w\\|_\\)" c-awk-escaped-nls* "\\s "
+		c-awk-escaped-nls*-with-space* "(")
+       (0 'font-lock-warning-face))
+
+     ;; Space after \ in what looks like an escaped newline.  2002/5/31
+     '("\\\\\\s +$" 0 font-lock-warning-face t)
+
+     ;; Unbalanced string (") or regexp (/) delimiters.  2002/02/16.
+     '("\\s|" 0 font-lock-warning-face t nil)
+     ;; gawk 3.1 localizable strings ( _"translate me!").  2002/5/21
+     '("\\(_\\)\\s|" 1 font-lock-warning-face)
+     '("\\(_\\)\\s\"" 1 font-lock-string-face) ; FIXME! not for XEmacs. 2002/10/6
+     ))
+  "Default expressions to highlight in AWK mode.")
 
 ;; ACM 2002/9/29.  Movement functions, e.g. for C-M-a and C-M-e
 
