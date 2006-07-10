@@ -399,9 +399,8 @@ BITS must be of length nrings.  Start at START-TIME."
 ;; update display and pause, quitting with a pithy comment if the user
 ;; hits a key.
 (defun hanoi-sit-for (seconds)
-  (sit-for seconds)
-  (if (input-pending-p)
-      (signal 'quit '("I can tell you've had enough"))))
+  (unless (sit-for seconds)
+    (signal 'quit '("I can tell you've had enough"))))
 
 ;; move ring to a given buffer position and update ring's car.
 (defun hanoi-ring-to-pos (ring pos)

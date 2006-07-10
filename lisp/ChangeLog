@@ -1,3 +1,9 @@
+2006-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (sit-for): New function.
+
+	* play/hanoi.el (hanoi-sit-for): Check sit-for return value.
+
 2006-07-10  Richard Stallman  <rms@gnu.org>
 
 	* ldefs-boot.el (edebug): Update page.
