@@ -1,3 +1,15 @@
+2006-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1211000.
+
+	* dispnew.c (Fredisplay): New function, equivalent to (sit-for 0).
+	(Fsit_for): Function deleted.
+
+	* keyboard.c (command_loop_1, Fexecute_extended_command): Call
+	sit_for instead of Fsit_for.
+
+	* minibuf.c (temp_echo_area_glyphs): Likewise.
+
 2006-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (Fforward_comment): Revert the reversion.

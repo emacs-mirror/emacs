@@ -1488,9 +1488,11 @@ command_loop_1 ()
 	  /* Bind inhibit-quit to t so that C-g gets read in
 	     rather than quitting back to the minibuffer.  */
 	  int count = SPECPDL_INDEX ();
+	  double duration = extract_float (Vminibuffer_message_timeout);
 	  specbind (Qinhibit_quit, Qt);
 
-	  Fsit_for (Vminibuffer_message_timeout, Qnil, Qnil);
+	  sit_for ((int) duration, (duration - (int) duration) * 1000000,
+		   0, Qt, Qt);
 	  /* Clear the echo area.  */
 	  message2 (0, 0, 0);
 	  safe_run_hooks (Qecho_area_clear_hook);
@@ -9880,19 +9882,26 @@ give to the command you invoke, if it asks for an argument.  */)
 				      Qmouse_movement)))
     {
       /* But first wait, and skip the message if there is input.  */
-      int delay_time;
-      if (!NILP (echo_area_buffer[0]))
-	/* This command displayed something in the echo area;
-	   so wait a few seconds, then display our suggestion message.  */
-	delay_time = (NUMBERP (Vsuggest_key_bindings)
-		      ? XINT (Vsuggest_key_bindings) : 2);
-      else
-	/* This command left the echo area empty,
-	   so display our message immediately.  */
-	delay_time = 0;
+      Lisp_Object waited;
 
-      if (!NILP (Fsit_for (make_number (delay_time), Qnil, Qnil))
-	  && ! CONSP (Vunread_command_events))
+      if (!NILP (echo_area_buffer[0]))
+	{
+	  /* This command displayed something in the echo area;
+	     so wait a few seconds, then display our suggestion message.  */
+	  if (NUMBERP (Vsuggest_key_bindings))
+	    {
+	      double duration = extract_float (Vminibuffer_message_timeout);
+	      waited = sit_for ((int) duration,
+				(duration - (int) duration) * 1000000,
+				0, Qt, Qt);
+	    }
+	  else
+	    waited = sit_for (2, 0, 0, Qt, Qt);
+	}
+      else
+	waited = sit_for (0, 0, 0, Qt, Qt);
+
+      if (!NILP (waited) && ! CONSP (Vunread_command_events))
 	{
 	  Lisp_Object binding;
 	  char *newmessage;
@@ -9912,10 +9921,17 @@ give to the command you invoke, if it asks for an argument.  */)
 	  message2_nolog (newmessage,
 			  strlen (newmessage),
 			  STRING_MULTIBYTE (binding));
-	  if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
-				? Vsuggest_key_bindings : make_number (2)),
-			       Qnil, Qnil))
-	      && message_p)
+	  if (NUMBERP (Vsuggest_key_bindings))
+	    {
+	      double duration = extract_float (Vsuggest_key_bindings);
+	      waited = sit_for ((int) duration,
+				(duration - (int) duration) * 1000000,
+				0, Qt, Qt);
+	    }
+	  else
+	    waited = sit_for (2, 0, 0, Qt, Qt);
+
+	  if (!NILP (waited) && message_p)
 	    restore_message ();
 
 	  unbind_to (count, Qnil);
