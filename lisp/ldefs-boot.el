@@ -8218,8 +8218,8 @@ With prefix arg NOCONFIRM, execute current line as-is without editing.
 ;;;***
 
 ;;;### (autoloads (edebug-all-forms edebug-all-defs edebug-eval-top-level-form
-;;;;;;  def-edebug-spec edebug-all-forms edebug-all-defs) "edebug"
-;;;;;;  "emacs-lisp/edebug.el" (17416 11967))
+;;;;;;  edebug-basic-spec edebug-all-forms edebug-all-defs) "edebug"
+;;;;;;  "emacs-lisp/edebug.el" (17581 24219))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -8242,12 +8242,12 @@ Use the command `edebug-all-forms' to toggle the value of this option.")
 
 (custom-autoload (quote edebug-all-forms) "edebug")
 
-(autoload (quote def-edebug-spec) "edebug" "\
-Set the `edebug-form-spec' property of SYMBOL according to SPEC.
-Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
-\(naming a function), or a list.
+(autoload (quote edebug-basic-spec) "edebug" "\
+Return t if SPEC uses only extant spec symbols.
+An extant spec symbol is a symbol that is not a function and has a
+`edebug-form-spec' property.
 
-\(fn SYMBOL SPEC)" nil (quote macro))
+\(fn SPEC)" nil nil)
 
 (defalias (quote edebug-defun) (quote edebug-eval-top-level-form))
 
