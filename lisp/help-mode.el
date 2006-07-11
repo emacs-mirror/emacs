@@ -168,7 +168,7 @@ The format is (FUNCTION ARGS...).")
 		   (let ((location (find-variable-noselect var file)))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
-  'help-echo (purecopy"mouse-2, RET: find variable's definition"))
+  'help-echo (purecopy "mouse-2, RET: find variable's definition"))
 
 (define-button-type 'help-face-def
   :supertype 'help-xref
