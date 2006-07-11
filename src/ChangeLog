@@ -3,6 +3,7 @@
 	* dispnew.c (sit_for): Reduce number of args from 5 to 3.
 	Now just one TIMEOUT arg that can be a Lisp float or Lisp int.
 	Combine args DISPLAY and INITIAL_DISPLAY into one arg DO_DISPLAY.
+	Signal error if TIMEOUT is not a number.
 	Undo 2006-06-14 change for non-preemptive display if TIMEOUT < 0.
 	The rework of sit_for args also fixes several incorrect Qt args
 	which should have been 1.
