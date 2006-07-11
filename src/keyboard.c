@@ -1488,11 +1488,10 @@ command_loop_1 ()
 	  /* Bind inhibit-quit to t so that C-g gets read in
 	     rather than quitting back to the minibuffer.  */
 	  int count = SPECPDL_INDEX ();
-	  double duration = extract_float (Vminibuffer_message_timeout);
 	  specbind (Qinhibit_quit, Qt);
 
-	  sit_for ((int) duration, (duration - (int) duration) * 1000000,
-		   0, Qt, Qt);
+	  sit_for (Vminibuffer_message_timeout, 0, 2);
+
 	  /* Clear the echo area.  */
 	  message2 (0, 0, 0);
 	  safe_run_hooks (Qecho_area_clear_hook);
@@ -2691,8 +2690,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  /* Or not echoing before and echoing allowed.  */
 	  || (!echo_kboard && ok_to_echo_at_next_pause)))
     {
-      Lisp_Object tem0;
-
       /* After a mouse event, start echoing right away.
 	 This is because we are probably about to display a menu,
 	 and we don't want to delay before doing so.  */
@@ -2700,13 +2697,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	echo_now ();
       else
 	{
-	  int sec, usec;
-	  double duration = extract_float (Vecho_keystrokes);
-	  sec = (int) duration;
-	  usec = (duration - sec) * 1000000;
+	  Lisp_Object tem0;
+
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
-	  tem0 = sit_for (sec, usec, 1, 1, 0);
+	  tem0 = sit_for (Vecho_keystrokes, 1, 1);
 	  restore_getcjmp (save_jump);
 	  if (EQ (tem0, Qt)
 	      && ! CONSP (Vunread_command_events))
@@ -2773,11 +2768,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  && XINT (Vauto_save_timeout) > 0)
 	{
 	  Lisp_Object tem0;
+	  int timeout = delay_level * XFASTINT (Vauto_save_timeout) / 4;
 
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
-	  tem0 = sit_for (delay_level * XFASTINT (Vauto_save_timeout) / 4,
-			  0, 1, 1, 0);
+	  tem0 = sit_for (make_number (timeout), 1, 1);
 	  restore_getcjmp (save_jump);
 
 	  if (EQ (tem0, Qt)
@@ -9884,22 +9879,14 @@ give to the command you invoke, if it asks for an argument.  */)
       /* But first wait, and skip the message if there is input.  */
       Lisp_Object waited;
 
-      if (!NILP (echo_area_buffer[0]))
-	{
-	  /* This command displayed something in the echo area;
-	     so wait a few seconds, then display our suggestion message.  */
-	  if (NUMBERP (Vsuggest_key_bindings))
-	    {
-	      double duration = extract_float (Vminibuffer_message_timeout);
-	      waited = sit_for ((int) duration,
-				(duration - (int) duration) * 1000000,
-				0, Qt, Qt);
-	    }
-	  else
-	    waited = sit_for (2, 0, 0, Qt, Qt);
-	}
+      /* If this command displayed something in the echo area;
+	 wait a few seconds, then display our suggestion message.  */
+      if (NILP (echo_area_buffer[0]))
+	waited = sit_for (make_number (0), 0, 2);
+      else if (NUMBERP (Vsuggest_key_bindings))
+	waited = sit_for (Vminibuffer_message_timeout, 0, 2);
       else
-	waited = sit_for (0, 0, 0, Qt, Qt);
+	waited = sit_for (make_number (2), 0, 2);
 
       if (!NILP (waited) && ! CONSP (Vunread_command_events))
 	{
@@ -9922,14 +9909,9 @@ give to the command you invoke, if it asks for an argument.  */)
 			  strlen (newmessage),
 			  STRING_MULTIBYTE (binding));
 	  if (NUMBERP (Vsuggest_key_bindings))
-	    {
-	      double duration = extract_float (Vsuggest_key_bindings);
-	      waited = sit_for ((int) duration,
-				(duration - (int) duration) * 1000000,
-				0, Qt, Qt);
-	    }
+	    waited = sit_for (Vsuggest_key_bindings, 0, 2);
 	  else
-	    waited = sit_for (2, 0, 0, Qt, Qt);
+	    waited = sit_for (make_number (2), 0, 2);
 
 	  if (!NILP (waited) && message_p)
 	    restore_message ();
