@@ -1708,22 +1708,21 @@ second, floating-point values are rounded down to the nearest integer.)
 
 If optional arg NODISP is t, don't redisplay, just wait for input.
 Redisplay does not happen if input is available before it starts.
-However, as a special exception, redisplay will occur even when
-input is available if SECONDS is negative.
 
 Value is t if waited the full time with no input arriving, and nil otherwise.
 
-An obsolete but still supported form is
+An obsolete, but still supported form is
 \(sit-for SECONDS &optional MILLISECONDS NODISP)
-Where the optional arg MILLISECONDS specifies an additional wait period,
+where the optional arg MILLISECONDS specifies an additional wait period,
 in milliseconds; this was useful when Emacs was built without
-floating point support."
+floating point support.
+
+\(fn SECONDS &optional NODISP)"
   (when (or obsolete (numberp nodisp))
     (setq seconds (+ seconds (* 1e-3 nodisp)))
     (setq nodisp obsolete))
   (unless nodisp
-    (let ((redisplay-dont-pause (or (< seconds 0) redisplay-dont-pause)))
-      (redisplay)))
+    (redisplay))
   (or (<= seconds 0)
       (let ((timer (timer-create))
 	    (echo-keystrokes 0))
