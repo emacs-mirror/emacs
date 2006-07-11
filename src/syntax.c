@@ -1891,9 +1891,10 @@ in_classes (c, iso_classes)
 static int
 forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 	      charpos_ptr, bytepos_ptr, incomment_ptr)
-     int from, from_byte, stop;
+     EMACS_INT from, from_byte, stop;
      int nesting, style, prev_syntax;
-     int *charpos_ptr, *bytepos_ptr, *incomment_ptr;
+     EMACS_INT *charpos_ptr, *bytepos_ptr;
+     int *incomment_ptr;
 {
   register int c, c1;
   register enum syntaxcode code;

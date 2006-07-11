@@ -1,3 +1,7 @@
+2006-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (forw_comment): Also use EMACS_INT for buffer positions.
+
 2006-07-11  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (Fredisplay): Add FORCE argument to force redisplay	when
@@ -11,8 +15,8 @@
 	* dispnew.c (Fredisplay): New function, equivalent to (sit-for 0).
 	(Fsit_for): Function deleted.
 
-	* keyboard.c (command_loop_1, Fexecute_extended_command): Call
-	sit_for instead of Fsit_for.
+	* keyboard.c (command_loop_1, Fexecute_extended_command):
+	Call sit_for instead of Fsit_for.
 
 	* minibuf.c (temp_echo_area_glyphs): Likewise.
 
