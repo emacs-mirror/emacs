@@ -1,3 +1,12 @@
+2006-07-11  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Add `redisplay' function.
+	Don't mention (sit-for -1) -- use (redisplay t) instead.
+
+	* commands.texi (Waiting): (sit-for -1) is no longer special.
+	(sit-for 0) is equivalent to (redisplay).
+	Iconifying/deiconifying no longer makes sit-for return.
+
 2006-07-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tips.texi (Coding Conventions): Mention macros.

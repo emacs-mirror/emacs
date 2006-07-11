@@ -4900,8 +4900,12 @@ of the display margins.
 *** `sit-for' can now be called with args (SECONDS &optional NODISP).
 
 +++
-*** `sit-for' called with a negative SECONDS value now forces an
-immediate redisplay even if input is pending.
+*** Iconifying or deiconifying a frame no longer makes sit-for return.
+
++++
+*** New function `redisplay' causes an immediate redisplay if no input is
+available, equivalent to (sit-for 0).  The call (redisplay t) forces
+an immediate redisplay even if input is pending.
 
 +++
 *** New function `force-window-update' can initiate a full redisplay of

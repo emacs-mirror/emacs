@@ -1,3 +1,9 @@
+2006-07-11  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (Fredisplay): Add FORCE argument to force redisplay	when
+	input is available.  Fix test for redisplay_dont_pause non-nil.
+	Specbind redisplay-dont-pause to t if FORCE non-nil.
+
 2006-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* puresize.h (BASE_PURESIZE): Increment to 1211000.
