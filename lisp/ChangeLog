@@ -1,3 +1,8 @@
+2006-07-11  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-copy-current-file-name): Use buffer-name if
+	buffer-file-name is nil.
+
 2006-07-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (undo-ask-before-discard): Set to nil.
