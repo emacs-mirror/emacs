@@ -2968,7 +2968,6 @@ int scrolling P_ ((struct frame *));
 void do_pending_window_change P_ ((int));
 void change_frame_size P_ ((struct frame *, int, int, int, int, int));
 void bitch_at_user P_ ((void));
-Lisp_Object sit_for P_ ((int, int, int, int, int));
 void init_display P_ ((void));
 void syms_of_display P_ ((void));
 extern Lisp_Object Qredisplay_dont_pause;
