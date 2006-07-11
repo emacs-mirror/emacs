@@ -721,10 +721,10 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 	    do
 	      {
 		Lisp_Object tem;
-		if (!  first)
+		if (! first)
 		  {
 		    message ("Please enter a number.");
-		    sit_for (1, 0, 0, 0, 0);
+		    sit_for (make_number (1), 0, 0);
 		  }
 		first = 0;
 
