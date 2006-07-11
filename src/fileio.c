@@ -6055,7 +6055,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	{
 	  /* If we are going to restore an old message,
 	     give time to read ours.  */
-	  sit_for (1, 0, 0, 0, 0);
+	  sit_for (make_number (1), 0, 0);
 	  restore_message ();
 	}
       else
