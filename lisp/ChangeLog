@@ -1,5 +1,7 @@
 2006-07-11  Chong Yidong  <cyd@stupidchicken.com>
 
+	* simple.el (undo-ask-before-discard): Set to nil.
+
 	* vc.el (vc-exec-after): Don't delete process manually.
 	(vc-print-log): Run log-view-mode in process sentinel inside
 	inhibit-read-only.  Don't shrink window due to timing issues.
