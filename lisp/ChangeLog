@@ -1,3 +1,10 @@
+2006-07-11  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/texinfmt.el:  (texinfo-format-separate-node):
+          Insert a string before point, which fits documentation, not after.
+          (texinfo-multitable-item): In a multitable row, insert any
+          additional needed @tabs and spaces.
+
 2006-07-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tumme.el (tumme-create-thumb)
