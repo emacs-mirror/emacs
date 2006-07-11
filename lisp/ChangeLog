@@ -1,9 +1,16 @@
+2006-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fix ambiguity introduced by last change.
+	(compilation-find-file): Move save-excursion to where it may
+	make sense.  Fix a left over `find-file'.
+
 2006-07-11  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* textmodes/texinfmt.el:  (texinfo-format-separate-node):
-          Insert a string before point, which fits documentation, not after.
-          (texinfo-multitable-item): In a multitable row, insert any
-          additional needed @tabs and spaces.
+	Insert a string before point, which fits documentation, not after.
+	(texinfo-multitable-item): In a multitable row, insert any
+	additional needed @tabs and spaces.
 
 2006-07-11  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -19,7 +26,7 @@
 	(tumme-display-properties-format)
 	(tumme-dired-insert-marked-thumbs, tumme-rotate-original)
 	(tumme-get-exif-file-name)
-	(tumme-thumbnail-set-image-description, tumme-gallery-generate): 
+	(tumme-thumbnail-set-image-description, tumme-gallery-generate):
 	Fit to 80 columns.
 
 2006-07-11  Kim F. Storm  <storm@cua.dk>
