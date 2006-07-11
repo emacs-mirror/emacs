@@ -3049,6 +3049,8 @@ specified to etags, variables are tags also.
 The new keywords are def, newcommand, renewcommand, newenvironment and
 renewenvironment.
 
+**** In C and derived languages, etags creates tags for #undef
+
 *** Honor #line directives.
 
 When Etags parses an input file that contains C preprocessor's #line
