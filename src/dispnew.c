@@ -6495,27 +6495,40 @@ Emacs was built without floating point support.
 
 
 /* This is just like wait_reading_process_output, except that
-   it does redisplay.  */
+   it does redisplay.
+
+   TIMEOUT is number of seconds to wait (float or integer).
+   READING is 1 if reading input.
+   If DO_DISPLAY is >0 display process output while waiting.
+   If DO_DISPLAY is >1 perform an initial redisplay before waiting.
+*/
 
 Lisp_Object
-sit_for (sec, usec, reading, display, initial_display)
-     int sec, usec, reading, display, initial_display;
+sit_for (timeout, reading, do_display)
+     Lisp_Object timeout;
+     int reading, do_display;
 {
-  int preempt = (sec > 0) || (sec == 0 && usec >= 0);
+  int sec, usec;
 
-  swallow_events (display);
+  swallow_events (do_display);
 
-  if ((detect_input_pending_run_timers (display) && preempt)
+  if ((detect_input_pending_run_timers (do_display))
       || !NILP (Vexecuting_kbd_macro))
     return Qnil;
 
-  if (initial_display)
+  if (do_display >= 2)
+    redisplay_preserve_echo_area (2);
+
+  if (FLOATP (timeout))
     {
-      int count = SPECPDL_INDEX ();
-      if (!preempt)
-	specbind (Qredisplay_dont_pause, Qt);
-      redisplay_preserve_echo_area (2);
-      unbind_to (count, Qnil);
+      double seconds = XFLOAT_DATA (timeout);
+      sec = (int) seconds;
+      usec = (int) ((seconds - sec) * 1000000);
+    }
+  else
+    {
+      sec = XFASTINT (timeout);
+      usec = 0;
     }
 
   if (sec == 0 && usec == 0)
@@ -6525,7 +6538,7 @@ sit_for (sec, usec, reading, display, initial_display)
   gobble_input (0);
 #endif
 
-  wait_reading_process_output (sec, usec, reading ? -1 : 1, display,
+  wait_reading_process_output (sec, usec, reading ? -1 : 1, do_display,
 			       Qnil, NULL, 0);
 
   return detect_input_pending () ? Qnil : Qt;
@@ -6541,8 +6554,8 @@ perform a full redisplay even if input is available.  */)
 {
   int count;
 
-  swallow_events (Qt);
-  if ((detect_input_pending_run_timers (Qt)
+  swallow_events (1);
+  if ((detect_input_pending_run_timers (1)
        && NILP (force) && !redisplay_dont_pause)
       || !NILP (Vexecuting_kbd_macro))
     return Qnil;
