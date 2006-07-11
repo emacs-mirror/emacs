@@ -6534,7 +6534,7 @@ sit_for (sec, usec, reading, display, initial_display)
 
 DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
        doc: /* Perform redisplay if no input is available.
-If optional arg FORCE is non-nil or `rediplay-dont-pause' is non-nil,
+If optional arg FORCE is non-nil or `redisplay-dont-pause' is non-nil,
 perform a full redisplay even if input is available.  */)
      (force)
   Lisp_Object force;
