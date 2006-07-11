@@ -2,9 +2,6 @@ Tasks needed before the next release.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 
-** `undo-ask-before-discard', currently set to t for debugging purposes
-has to be set to nil: when t, it can leak memory and cause other problems.
-
 ** Update release dates of manuals.
 
 ** Get rid of overfull and underfull boxes in manuals.
