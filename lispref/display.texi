@@ -113,10 +113,13 @@ prevent or halt redisplay; redisplay occurs, and finishes,
 regardless of whether input is available.
 @end defvar
 
-@findex sit-for
-  You can request a display update, but only if no input is pending,
-with @code{(sit-for 0)}.  To force a display update even when input is
-pending, use @code{(sit-for -1)}.
+@defun redisplay &optional force
+This function performs an immediate redisplay provided there are no
+pending input events.  This is equivalent to @code{(sit-for 0)}.
+
+If the optional argument @var{force} is non-@code{nil}, it forces an
+immediate and complete redisplay even if input is available.
+@end defun
 
 @node Truncation
 @section Truncation
