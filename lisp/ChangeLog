@@ -1,3 +1,8 @@
+2006-07-11  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (sit-for): Doc fix.  Specify normal arg list using fn-form.
+	Simplify by calling redisplay with non-nil arg if seconds < 0.
+
 2006-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/cc-awk.el (defconst): Use eval-and-compile to avoid
