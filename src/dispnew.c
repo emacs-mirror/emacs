@@ -6519,17 +6519,21 @@ sit_for (timeout, reading, do_display)
   if (do_display >= 2)
     redisplay_preserve_echo_area (2);
 
-  if (FLOATP (timeout))
-    {
-      double seconds = XFLOAT_DATA (timeout);
-      sec = (int) seconds;
-      usec = (int) ((seconds - sec) * 1000000);
-    }
-  else
+  if (INTEGERP (timeout))
     {
       sec = XFASTINT (timeout);
       usec = 0;
     }
+  else if (FLOATP (timeout))
+    {
+      double seconds;
+
+      seconds = XFLOAT_DATA (timeout);
+      sec = (int) seconds;
+      usec = (int) ((seconds - sec) * 1000000);
+    }
+  else
+    wrong_type_argument (Qnumberp, timeout);
 
   if (sec == 0 && usec == 0)
     return Qt;
