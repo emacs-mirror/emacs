@@ -1,3 +1,72 @@
+2006-07-12  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (CHECK_TYPE): New macro for generic type checking.
+	(CAR_SAFE, CDR_SAFE): New macros.
+	(ARRAYP, CHECK_ARRAY): New macros.
+	(CHECK_VECTOR_OR_STRING, CHECK_SUBR): New macros.
+	(CHECK_WINDOW_CONFIGURATION): New macro.
+	(CHECK_LIST_CONS, CHECK_LIST_END): New checks for list traversal.
+	(CHECK_STRING_OR_BUFFER, CHECK_HASH_TABLE, CHECK_LIST)
+	(CHECK_STRING, CHECK_STRING_CAR, CHECK_CONS, CHECK_SYMBOL)
+	(CHECK_CHAR_TABLE, CHECK_VECTOR, CHECK_VECTOR_OR_CHAR_TABLE)
+	(CHECK_BUFFER, CHECK_WINDOW, CHECK_LIVE_WINDOW, CHECK_PROCESS)
+	(CHECK_NUMBER, CHECK_NATNUM, CHECK_MARKER, CHECK_OVERLAY)
+	(CHECK_NUMBER_COERCE_MARKER, CHECK_FLOAT, CHECK_NUMBER_OR_FLOAT)
+	(CHECK_NUMBER_OR_FLOAT_COERCE_MARKER): Use CHECK_TYPE.
+
+	* category.h (CHECK_CATEGORY, CHECK_CATEGORY_SET):
+	* frame.h (CHECK_FRAME, CHECK_LIVE_FRAME): Use CHECK_TYPE.
+
+	* callint.c (Fcall_interactively):
+	* casefiddle.c (casify_object):
+	* editfns.c (general_insert_function):
+	* fns.c (Flength, Felt, Ffillarray):
+	* data.c (Fcar, Fcdr): Remove loop around wrong_type_argument.
+
+	* data.c (wrong_type_argument): Remove loop around Fsignal.
+	(Farrayp, Fsequencep): Use ARRAYP.
+	(Fcar): Use CAR.
+	(Fcar_safe): Use CAR_SAFE.
+	(Fcdr): Use CDR.
+	(Fcdr_safe): Use CDR_SAFE.
+	(Fsetcar, Fsetcdr): Use CHECK_CONS.
+	(Fsubr_arity, Fsubr_name): Use CHECK_SUBR.
+	(Faset): Use CHECK_ARRAY.
+
+	* fns.c (Felt): Use CHECK_ARRAY.
+	(concat): Use CHECK_NUMBER.
+	(Fsubstring, substring_both): Use CHECK_VECTOR_OR_STRING.
+	(Fmemq): Use CHECK_LIST.
+	(Fassq, Fassoc, Frassq, Frassoc): Use CAR.
+	(assq_no_quit): Use CAR_SAFE.
+	(Fnthcdr, Fmember, Fdelq, Fdelete, Fnreverse, Fnconc):
+	Use CHECK_LIST_CONS.
+	(Freverse, Fplist_get, Flax_plist_get): Use CHECK_LIST_END.
+
+	* bytecode.c (Fbyte_code): Use CHECK_VECTOR.
+
+	* casetab.c (check_case_table):
+	* category.c (check_category_table):
+	* marker.c (Fcopy_marker):
+	* syntax.c (check_syntax_table):
+	* xfaces.c (load_pixmap): Use CHECK_TYPE.
+
+	* fns.c (Fcopy_sequence, concat):
+	* fringe.c (Fdefine_fringe_bitmap):
+	* lread.c (check_obarray): Cleanup wrong_type_argument use.
+
+	* keymap.c (Fdefine_key, Flookup_key):
+	* macros.c (Fstart_kbd_macro): Use CHECK_VECTOR_OR_STRING.
+
+	* mac.c (Fmac_get_preference): Use CHECK_LIST_END.
+
+	* search.c (Fset_match_data): Use CHECK_LIST.
+
+	* sunfns.c (sun_item_create): Use CHECK_LIST_CONS.
+
+	* window.c (Fwindow_configuration_frame, Fset_window_configuration):
+	(compare_window_configurations): Use CHECK_WINDOW_CONFIGURATION.
+
 2006-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (dired.o, editfns.o, fileio.o): Depend on blockinput.h.
