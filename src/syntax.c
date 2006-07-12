@@ -749,9 +749,8 @@ static void
 check_syntax_table (obj)
      Lisp_Object obj;
 {
-  if (!(CHAR_TABLE_P (obj)
-	&& EQ (XCHAR_TABLE (obj)->purpose, Qsyntax_table)))
-    wrong_type_argument (Qsyntax_table_p, obj);
+  CHECK_TYPE (CHAR_TABLE_P (obj) && EQ (XCHAR_TABLE (obj)->purpose, Qsyntax_table),
+	      Qsyntax_table_p, obj);
 }
 
 DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
