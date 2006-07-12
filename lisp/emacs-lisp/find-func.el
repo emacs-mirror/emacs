@@ -205,6 +205,9 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
 ;;;###autoload
 (defun find-function-search-for-symbol (symbol type library)
   "Search for SYMBOL's definition of type TYPE in LIBRARY.
+Visit the library in a buffer, and return a cons cell (BUFFER . POSITION),
+or just (BUFFER . nil) if the definition can't be found in the file.
+
 If TYPE is nil, look for a function definition.
 Otherwise, TYPE specifies the kind of definition,
 and it is interpreted via `find-function-regexp-alist'.
@@ -244,8 +247,7 @@ The search is done in the source for library LIBRARY."
 		(progn
 		  (beginning-of-line)
 		  (cons (current-buffer) (point)))
-	      (error "Cannot find definition of `%s' in library `%s'"
-		     symbol library))))))))
+	      (cons (current-buffer) nil))))))))
 
 ;;;###autoload
 (defun find-function-noselect (function)
@@ -253,7 +255,8 @@ The search is done in the source for library LIBRARY."
 
 Finds the source file containing the definition of FUNCTION
 in a buffer and the point of the definition.  The buffer is
-not selected.
+not selected.  If the function definition can't be found in
+the buffer, returns (BUFFER).
 
 If the file where FUNCTION is defined is not known, then it is
 searched for in `find-function-source-path' if non nil, otherwise
@@ -335,7 +338,7 @@ Set mark before moving, if the buffer already existed."
       (when (memq new-buf orig-buffers)
 	(push-mark orig-point))
       (funcall switch-fn new-buf)
-      (goto-char new-point)
+      (when new-point (goto-char new-point))
       (recenter find-function-recenter-line)
       (run-hooks 'find-function-after-hook))))
 
@@ -376,6 +379,7 @@ See `find-function' for more details."
 
 Finds the library containing the definition of VARIABLE in a buffer and
 the point of the definition.  The buffer is not selected.
+If the variable's definition can't be found in the buffer, return (BUFFER).
 
 The library where VARIABLE is defined is searched for in FILE or
 `find-function-source-path', if non nil, otherwise in `load-path'."
@@ -421,6 +425,7 @@ See `find-variable' for more details."
 ;;;###autoload
 (defun find-definition-noselect (symbol type &optional file)
   "Return a pair `(BUFFER . POINT)' pointing to the definition of SYMBOL.
+If the definition can't be found in the buffer, return (BUFFER).
 TYPE says what type of definition: nil for a function, `defvar' for a
 variable, `defface' for a face.  This function does not switch to the
 buffer nor display it.
