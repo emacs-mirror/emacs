@@ -113,7 +113,7 @@
 
 2006-07-11  Kim F. Storm  <storm@cua.dk>
 
-	* dispnew.c (Fredisplay): Add FORCE argument to force redisplay	when
+	* dispnew.c (Fredisplay): Add FORCE argument to force redisplay when
 	input is available.  Fix test for redisplay_dont_pause non-nil.
 	Specbind redisplay-dont-pause to t if FORCE non-nil.
 

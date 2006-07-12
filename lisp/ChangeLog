@@ -11,7 +11,7 @@
 	If can't find definition, return nil for position.
 	(find-function-do-it): Handle new return value
 	of find-definition-noselect.
-	(find-definition-noselect, find-variable-noselect): Doc fix. 
+	(find-definition-noselect, find-variable-noselect): Doc fix.
 	(find-function-noselect): Doc fix.
 
 	* help-mode.el (help-variable-def): Handle find-variable-noselect
@@ -62,7 +62,7 @@
 
 2006-07-11  Robert J. Chassell  <bob@rattlesnake.com>
 
-	* textmodes/texinfmt.el:  (texinfo-format-separate-node):
+	* textmodes/texinfmt.el (texinfo-format-separate-node):
 	Insert a string before point, which fits documentation, not after.
 	(texinfo-multitable-item): In a multitable row, insert any
 	additional needed @tabs and spaces.
