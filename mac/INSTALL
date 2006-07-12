@@ -160,11 +160,8 @@ For usage of other options, use the --help option.
 
 * BUILDING EMACS ON MAC OS Classic
 
-You can use either MPW-GM (Aug. 2001) to build Emacs.  MPW-GM can be
+You can use MPW-GM (Aug. 2001) to build Emacs.  MPW-GM can be
 downloaded free of charge from Apple.
-
-In either case, you will need MPW-GM to build the make-docfile utility
-and to generate the doc string file DOC.
 
 ### IMPORTANT ### You can use StuffIt Expander to decompress and untar
 the distribution.  However, you *must* set the radio button in the
@@ -183,8 +180,8 @@ makefile.MPW.  I.e., execute the commands
   make Emacs -f makefile.MPW > Emacs.MakeScript
   Emacs.MakeScript
 
-The above commands create an executable that uses the Carbon API.  The
-non-Carbon version can also be created by replacing all the
+The above commands create an executable that uses the Carbon API.
+The non-Carbon version can also be created by replacing all the
 occurrences of `Emacs' above with `NonCarbon'.  Not that the
 non-Carbon version does not support some features such as file
 dialogs, drag-and-drop, and Unicode menus.
