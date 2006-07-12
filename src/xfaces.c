@@ -1171,14 +1171,11 @@ load_pixmap (f, name, w_ptr, h_ptr)
      unsigned int *w_ptr, *h_ptr;
 {
   int bitmap_id;
-  Lisp_Object tem;
 
   if (NILP (name))
     return 0;
 
-  tem = Fbitmap_spec_p (name);
-  if (NILP (tem))
-    wrong_type_argument (Qbitmap_spec_p, name);
+  CHECK_TYPE (!NILP (Fbitmap_spec_p (name)), Qbitmap_spec_p, name);
 
   BLOCK_INPUT;
   if (CONSP (name))
