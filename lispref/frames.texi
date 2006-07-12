@@ -8,7 +8,7 @@
 @chapter Frames
 @cindex frame
 
-  In Emacs editing, A @dfn{frame} is a screen objec that contains one
+  In Emacs editing, A @dfn{frame} is a screen object that contains one
 or more Emacs windows.  It's the kind of object that is called a
 ``window'' in the terminology of graphical environments; but we can't
 call it a ``window'' here, because Emacs uses that word in a different
