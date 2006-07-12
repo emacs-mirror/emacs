@@ -1,3 +1,17 @@
+2006-07-12  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi: Fix typos.
+	(Getting started with rcirc): New calling convention for M-x irc.
+	Mention #rcirc.  Removed channel tracking.
+	(Configuration): Changed the names of all variables that got changed
+	recently, eg. rcirc-server to rcirc-default-server.  Added
+	documentation for rcirc-authinfo, some background for Bitlbee, and
+	rcirc-track-minor-mode.
+	(Scrolling conservatively): Fixed the xref from Auto Scrolling to just
+	Scrolling.
+	(Reconnecting after you have lost the connection): Fixed example code
+	to match code changes.
+
 2006-07-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* killing.texi, gnus.texi, message.texi, mini.texi: Fix typos.
