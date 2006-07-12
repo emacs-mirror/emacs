@@ -1442,10 +1442,9 @@ in any given window can change frequently.
 @node Frame Type
 @subsection Frame Type
 
-  A @dfn{frame} is a rectangle on the screen that contains one or more
-Emacs windows.  A frame initially contains a single main window (plus
-perhaps a minibuffer window) which you can subdivide vertically or
-horizontally into smaller windows.
+  A @dfn{frame} is a screen area that contains one or more Emacs
+windows; we also use the term ``frame'' to refer to the Lisp object
+that Emacs uses to refer to the screen area.
 
   Frames have no read syntax.  They print in hash notation, giving the
 frame's title, plus its address in core (useful to identify the frame
