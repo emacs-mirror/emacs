@@ -1,3 +1,10 @@
+2006-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frames.texi (Window System Selections): Mention scrap support for Mac.
+	Default value of x-select-enable-clipboard is t on Mac.
+
+	* os.texi (Getting Out): Suspending is not allowed on Mac, either.
+
 2006-07-11  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Forcing Redisplay): Add `redisplay' function.

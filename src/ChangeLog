@@ -1,3 +1,19 @@
+2006-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (dired.o, editfns.o, fileio.o): Depend on blockinput.h.
+
+	* dired.c: Include blockinput.h.
+	(Ffile_attributes): Add BLOCK_INPUT around getpwuid/getgrgid.
+
+	* editfns.c: Include blockinput.h.
+	(Fuser_login_name, Fuser_full_name): Add BLOCK_INPUT around
+	getpwuid/getpwnam.
+
+	* fileio.c: Include blockinput.h.
+	(Fexpand_file_name, search_embedded_absfilename): Add BLOCK_INPUT
+	around getpwnam.
+	(search_embedded_absfilename): Remove spurious xfree.
+
 2006-07-11  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (sit_for): Reduce number of args from 5 to 3.
