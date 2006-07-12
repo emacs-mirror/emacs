@@ -55,6 +55,8 @@
 	* fringe.c (Fdefine_fringe_bitmap):
 	* lread.c (check_obarray): Cleanup wrong_type_argument use.
 
+	* keyboard.c (access_keymap_keyremap): Use ARRAYP.
+
 	* keymap.c (Fdefine_key, Flookup_key):
 	* macros.c (Fstart_kbd_macro): Use CHECK_VECTOR_OR_STRING.
 
