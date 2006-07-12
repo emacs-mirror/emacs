@@ -628,7 +628,7 @@ according to the Thumbnail Managing Standard."
                 (setq thumbnail-dir (file-name-directory thumbnail-file))))
       (message "Creating thumbnail directory.")
       (make-directory thumbnail-dir))
-    (call-process shell-file-name nil nil nil "-c" command)))
+    (call-process shell-file-name nil nil nil shell-command-switch command)))
 
 ;;;###autoload
 (defun tumme-dired-insert-marked-thumbs ()
@@ -1692,7 +1692,7 @@ Ask user how many thumbnails should be displayed per row."
         (message "No thumbnail at point")
       (if (not file)
           (message "No original file name found")
-        (call-process shell-file-name nil nil nil "-c"
+        (call-process shell-file-name nil nil nil shell-command-switch
 		      (format "%s \"%s\"" tumme-external-viewer file))))))
 
 ;;;###autoload
@@ -1700,7 +1700,7 @@ Ask user how many thumbnails should be displayed per row."
   "Display file at point using an external viewer."
   (interactive)
   (let ((file (dired-get-filename)))
-    (call-process shell-file-name nil nil nil "-c"
+    (call-process shell-file-name nil nil nil shell-command-switch
 		  (format "%s \"%s\"" tumme-external-viewer file))))
 
 (defun tumme-window-width-pixels (window)
@@ -1773,7 +1773,8 @@ original size."
                   (cons ?h height)
                   (cons ?f file)
                   (cons ?t new-file))))
-          (setq ret (call-process shell-file-name nil nil nil "-c" command))
+          (setq ret (call-process shell-file-name nil nil nil
+				  shell-command-switch command))
           (if (not (= 0 ret))
               (error "Could not resize image")))
       (copy-file file new-file t))
@@ -1825,7 +1826,7 @@ With prefix argument ARG, display image in its original size."
                       (cons ?p tumme-cmd-rotate-thumbnail-program)
                       (cons ?d degrees)
                       (cons ?t (expand-file-name file)))))
-      (call-process shell-file-name nil nil nil "-c" command)
+      (call-process shell-file-name nil nil nil shell-command-switch command)
       ;; Clear the cache to refresh image. I wish I could just refresh
       ;; the current file but I do not know how to do that. Yet...
       (clear-image-cache))))
@@ -1870,7 +1871,8 @@ overwritten.  This confirmation can be turned off using
                       (cons ?d degrees)
                       (cons ?o (expand-file-name file))
                       (cons ?t tumme-temp-rotate-image-file))))
-      (if (not (= 0 (call-process shell-file-name nil nil nil "-c" command)))
+      (if (not (= 0 (call-process shell-file-name nil nil nil
+				  shell-command-switch command)))
           (error "Could not rotate image")
         (tumme-display-image tumme-temp-rotate-image-file)
         (if (or (and tumme-rotate-original-ask-before-overwrite
@@ -1943,7 +1945,7 @@ default value at the prompt."
                     (cons ?f (expand-file-name file))
                     (cons ?t tag-name)
                     (cons ?v tag-value))))
-    (call-process shell-file-name nil nil nil "-c" command)))
+    (call-process shell-file-name nil nil nil shell-command-switch command)))
 
 (defun tumme-get-exif-data (file tag-name)
   "From FILE, return EXIF tag TAG-NAME."
@@ -1957,7 +1959,8 @@ default value at the prompt."
                     (cons ?t tag-name))))
     (with-current-buffer buf
       (delete-region (point-min) (point-max))
-      (if (not (eq (call-process shell-file-name nil t nil "-c" command) 0))
+      (if (not (eq (call-process shell-file-name nil t nil
+				 shell-command-switch command) 0))
           (error "Could not get EXIF tag")
         (goto-char (point-min))
         ;; Clean buffer from newlines and carriage returns before
