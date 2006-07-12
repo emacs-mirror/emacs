@@ -527,7 +527,7 @@ subprocess of Emacs.  Then you would exit the shell to return to Emacs.
 may not have a parent that can resume it again, and in any case you can
 give input to some other job such as a shell merely by moving to a
 different window.  Therefore, suspending is not allowed when Emacs is using
-a window system (X or MS Windows).
+a window system (X, MS Windows, or Mac).
 
 @defun suspend-emacs &optional string
 This function stops Emacs and returns control to the superior process.
