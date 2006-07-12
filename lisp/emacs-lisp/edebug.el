@@ -3419,6 +3419,8 @@ go to the end of the last sexp, or if that is the same point, then step."
       func)
      (t
       (let ((loc (find-function-noselect func)))
+	(unless (cdr loc)
+	  (error "Could not find the definition in its file"))
 	(with-current-buffer (car loc)
 	  (goto-char (cdr loc))
 	  (edebug-eval-top-level-form)
