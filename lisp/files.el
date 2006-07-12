@@ -691,7 +691,7 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 	(when (file-directory-p dir)
 	  (dolist (file (file-name-all-completions
 			 (file-name-nondirectory string) dir))
-	    (push (if string-dir (concat string-dir file) file) names)
+	    (add-to-list 'names (if string-dir (concat string-dir file) file))
 	    (when (string-match suffix file)
 	      (setq file (substring file 0 (match-beginning 0)))
 	      (push (if string-dir (concat string-dir file) file) names)))))
