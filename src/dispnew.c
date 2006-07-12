@@ -6526,9 +6526,7 @@ sit_for (timeout, reading, do_display)
     }
   else if (FLOATP (timeout))
     {
-      double seconds;
-
-      seconds = XFLOAT_DATA (timeout);
+      double seconds = XFLOAT_DATA (timeout);
       sec = (int) seconds;
       usec = (int) ((seconds - sec) * 1000000);
     }
