@@ -77,6 +77,7 @@ extern int errno;
 #include "charset.h"
 #include "coding.h"
 #include "window.h"
+#include "blockinput.h"
 
 #ifdef WINDOWSNT
 #define NOMINMAX 1
@@ -1386,7 +1387,9 @@ See also the function `substitute-in-file-name'.  */)
 	  bcopy ((char *) nm, o, p - nm);
 	  o [p - nm] = 0;
 
+	  BLOCK_INPUT;
 	  pw = (struct passwd *) getpwnam (o + 1);
+	  UNBLOCK_INPUT;
 	  if (pw)
 	    {
 	      newdir = (unsigned char *) pw -> pw_dir;
@@ -1917,7 +1920,9 @@ See also the function `substitute-in-file-name'.")
 	o[len] = 0;
 
 	/* Look up the user name. */
+	BLOCK_INPUT;
 	pw = (struct passwd *) getpwnam (o + 1);
+	UNBLOCK_INPUT;
 	if (!pw)
 	  error ("\"%s\" isn't a registered user", o + 1);
 
@@ -2111,10 +2116,11 @@ search_embedded_absfilename (nm, endp)
 	      /* If we have ~user and `user' exists, discard
 		 everything up to ~.  But if `user' does not exist, leave
 		 ~user alone, it might be a literal file name.  */
-	      if ((pw = getpwnam (o + 1)))
+	      BLOCK_INPUT;
+	      pw = getpwnam (o + 1);
+	      UNBLOCK_INPUT;
+	      if (pw)
 		return p;
-	      else
-		xfree (pw);
 	    }
 	  else
 	    return p;
