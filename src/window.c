@@ -5883,8 +5883,7 @@ DEFUN ("window-configuration-frame", Fwindow_configuration_frame, Swindow_config
   register struct save_window_data *data;
   struct Lisp_Vector *saved_windows;
 
-  if (! WINDOW_CONFIGURATIONP (config))
-    wrong_type_argument (Qwindow_configuration_p, config);
+  CHECK_WINDOW_CONFIGURATION (config);
 
   data = (struct save_window_data *) XVECTOR (config);
   saved_windows = XVECTOR (data->saved_windows);
@@ -5909,8 +5908,7 @@ the return value is nil.  Otherwise the value is t.  */)
   FRAME_PTR f;
   int old_point = -1;
 
-  while (!WINDOW_CONFIGURATIONP (configuration))
-    wrong_type_argument (Qwindow_configuration_p, configuration);
+  CHECK_WINDOW_CONFIGURATION (configuration);
 
   data = (struct save_window_data *) XVECTOR (configuration);
   saved_windows = XVECTOR (data->saved_windows);
@@ -6949,10 +6947,8 @@ compare_window_configurations (c1, c2, ignore_positions)
   struct Lisp_Vector *sw1, *sw2;
   int i;
 
-  if (!WINDOW_CONFIGURATIONP (c1))
-    wrong_type_argument (Qwindow_configuration_p, c1);
-  if (!WINDOW_CONFIGURATIONP (c2))
-    wrong_type_argument (Qwindow_configuration_p, c2);
+  CHECK_WINDOW_CONFIGURATION (c1);
+  CHECK_WINDOW_CONFIGURATION (c2);
 
   d1 = (struct save_window_data *) XVECTOR (c1);
   d2 = (struct save_window_data *) XVECTOR (c2);
