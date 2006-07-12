@@ -8384,7 +8384,7 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
   /* Handle a symbol whose function definition is a keymap
      or an array.  */
   if (SYMBOLP (next) && !NILP (Ffboundp (next))
-      && (!NILP (Farrayp (XSYMBOL (next)->function))
+      && (ARRAYP (XSYMBOL (next)->function)
 	  || KEYMAPP (XSYMBOL (next)->function)))
     next = XSYMBOL (next)->function;
 
