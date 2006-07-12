@@ -1138,8 +1138,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
   GCPRO3 (keymap, key, def);
   keymap = get_keymap (keymap, 1, 1);
 
-  if (!VECTORP (key) && !STRINGP (key))
-    key = wrong_type_argument (Qarrayp, key);
+  CHECK_VECTOR_OR_STRING (key);
 
   length = XFASTINT (Flength (key));
   if (length == 0)
@@ -1249,8 +1248,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
   GCPRO2 (keymap, key);
   keymap = get_keymap (keymap, 1, 1);
 
-  if (!VECTORP (key) && !STRINGP (key))
-    key = wrong_type_argument (Qarrayp, key);
+  CHECK_VECTOR_OR_STRING (key);
 
   length = XFASTINT (Flength (key));
   if (length == 0)
