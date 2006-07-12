@@ -6521,7 +6521,7 @@ sit_for (timeout, reading, do_display)
 
   if (INTEGERP (timeout))
     {
-      sec = XFASTINT (timeout);
+      sec = XINT (timeout);
       usec = 0;
     }
   else if (FLOATP (timeout))
