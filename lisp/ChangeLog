@@ -1,3 +1,8 @@
+2006-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-post-command-function): Handle open-line
+	too.
+
 2006-07-12  Richard Stallman  <rms@gnu.org>
 
 	* progmodes/grep.el (grep-last-buffer): Doc fix.
