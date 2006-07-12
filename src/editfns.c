@@ -2140,7 +2140,6 @@ general_insert_function (insert_func, insert_from_string_func,
   for (argnum = 0; argnum < nargs; argnum++)
     {
       val = args[argnum];
-    retry:
       if (INTEGERP (val))
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
@@ -2165,10 +2164,7 @@ general_insert_function (insert_func, insert_from_string_func,
 				      inherit);
 	}
       else
-	{
-	  val = wrong_type_argument (Qchar_or_string_p, val);
-	  goto retry;
-	}
+	wrong_type_argument (Qchar_or_string_p, val);
     }
 }
 
