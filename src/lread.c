@@ -1378,7 +1378,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   if (MARKERP (readcharfun))
     {
       if (NILP (start))
-	start = readcharfun;	
+	start = readcharfun;
     }
 
   if (BUFFERP (readcharfun))
@@ -1511,7 +1511,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
       first_sexp = 0;
     }
 
-  build_load_history (sourcename, 
+  build_load_history (sourcename,
 		      stream || whole_buffer);
 
   UNGCPRO;
@@ -3249,12 +3249,11 @@ Lisp_Object
 check_obarray (obarray)
      Lisp_Object obarray;
 {
-  while (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
+  if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
     {
       /* If Vobarray is now invalid, force it to be valid.  */
       if (EQ (Vobarray, obarray)) Vobarray = initial_obarray;
-
-      obarray = wrong_type_argument (Qvectorp, obarray);
+      wrong_type_argument (Qvectorp, obarray);
     }
   return obarray;
 }
