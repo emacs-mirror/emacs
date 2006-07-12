@@ -160,9 +160,8 @@ For usage of other options, use the --help option.
 
 * BUILDING EMACS ON MAC OS Classic
 
-FIXME: You can use either Metrowerks CodeWarrior Pro 6 or MPW-GM
-(Aug. 2001) to build Emacs.  MPW-GM can be downloaded free of charge
-from Apple.
+You can use either MPW-GM (Aug. 2001) to build Emacs.  MPW-GM can be
+downloaded free of charge from Apple.
 
 In either case, you will need MPW-GM to build the make-docfile utility
 and to generate the doc string file DOC.
@@ -172,10 +171,10 @@ the distribution.  However, you *must* set the radio button in the
 Preferences->Cross Platform->Convert text files to Macintosh format to
 "Never".  Otherwise the compiled Lisp files will be corrupted.
 
-FIXME: (Optional) A subset of the fonts from the GNU intlfonts-1.2
+(Optional) A subset of the fonts from the GNU intlfonts-1.2
 distribution converted to NFNT format can be obtained from
 
-  ftp://mac-emacs.sourceforge.net/pub/mac-emacs/GNU-fonts.smi.bin
+  http://members.shaw.ca/akochoi-emacs/stories/Resources/GNU-Fonts.smi.bin
 
 To build Emacs in the MPW Shell, simply set the directory to
 ...:emacs:mac: and build the target Emacs of the make file
@@ -190,21 +189,8 @@ occurrences of `Emacs' above with `NonCarbon'.  Not that the
 non-Carbon version does not support some features such as file
 dialogs, drag-and-drop, and Unicode menus.
 
-FIXME: To build Emacs using CodeWarrior, start up the CodeWarrior IDE,
-choose File->Import Project...  and select the file cw6-mcp.xml.  When
-prompted to save the project, navigate to same directory as the file
-cw6-mcp.xml, name the project emacs-cw6.mcp, and save it there.  Then
-choose Project->Make.  Note that this does not build the DOC file.  To
-do so, use MPW and build the target "Doc" in makefile.MPW.
-
-FIXME: Once built, the Emacs application (Emacs CW or Emacs MPW) can
-be launched where it is created.
-
-FIXME: To build an optimized version of Emacs in CodeWarrior, change
-the value in the Emacs Settings->Code Generation->Global Optimization
-dialog.  To build a version for profiling, check the Profiler
-Information box in the Emacs Settings->Code Generation->PPC Processor
-dialog and include the Profiler PPC.Lib library.
+Once built, the Emacs application (Emacs MPW) can be launched where it
+is created.
 
 * NOTES
 
@@ -234,12 +220,12 @@ There are some compile-time flags that enable experimental features.
 Please use them at your own risk after reading the corresponding
 threads in the emacs-devel@gnu.org archive.
 
-  USE_ATSUI: Enable ATSUI (Apple Type Services for Unicode Imaging)
-  support.  Available on Mac OS 9/Carbon and Mac OS X.
-  http://lists.gnu.org/archive/html/emacs-devel/2005-10/msg00005.html
-
-  SELECT_USE_CFSOCKET: Avoid polling in sys_select (in src/mac.c).
-  Available on Mac OS X.
+  SELECT_USE_CFSOCKET (on Mac OS X): Avoid polling in sys_select (in
+  src/mac.c).
   http://lists.gnu.org/archive/html/emacs-devel/2004-12/msg00789.html
+
+  USE_ATSUI (on Mac OS 9/Carbon): Enable ATSUI (Apple Type Services
+  for Unicode Imaging) support.
+  http://lists.gnu.org/archive/html/emacs-devel/2005-10/msg00005.html
 
 Enjoy!
