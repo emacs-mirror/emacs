@@ -119,8 +119,9 @@ standard Emacs namespace.  If your package loads @code{cl} at run time,
 that could cause name clashes for users who don't use that package.
 
 However, there is no problem with using the @code{cl} package at
-compile time, e.g. for macros, with
-@code{(eval-when-compile (require 'cl))}.
+compile time, with @code{(eval-when-compile (require 'cl))}.  That's
+sufficient for using the macros in the @code{cl} package, because the
+compiler expands them before generating the byte-code.
 
 @item
 When defining a major mode, please follow the major mode
