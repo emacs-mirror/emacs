@@ -1108,7 +1108,7 @@ pre-crt0.o: pre-crt0.c
 ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
 dired.o: dired.c commands.h buffer.h $(config_h) charset.h coding.h regex.h \
-   systime.h
+   systime.h blockinput.h
 dispnew.o: dispnew.c  systty.h systime.h commands.h process.h frame.h \
    window.h buffer.h dispextern.h termchar.h termopts.h termhooks.h cm.h \
    disptab.h indent.h intervals.h \
@@ -1119,12 +1119,12 @@ doprnt.o: doprnt.c charset.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
    msdos.h dosfns.h dispextern.h charset.h coding.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
-   coding.h dispextern.h frame.h $(config_h)
+   coding.h dispextern.h frame.h blockinput.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h) \
    window.h dispextern.h keyboard.h keymap.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
-   coding.h msdos.h dispextern.h $(config_h)
+   coding.h msdos.h dispextern.h blockinput.h $(config_h)
 filelock.o: filelock.c buffer.h charset.h coding.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
