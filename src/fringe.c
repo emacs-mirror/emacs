@@ -1423,7 +1423,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   else if (VECTORP (bits))
     h = XVECTOR (bits)->size;
   else
-    bits = wrong_type_argument (Qsequencep, bits);
+    wrong_type_argument (Qsequencep, bits);
 
   if (NILP (height))
     fb.height = h;
