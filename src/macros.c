@@ -97,10 +97,7 @@ macro before appending to it. */)
       int cvt;
 
       /* Check the type of last-kbd-macro in case Lisp code changed it.  */
-      if (!STRINGP (current_kboard->Vlast_kbd_macro)
-	  && !VECTORP (current_kboard->Vlast_kbd_macro))
-	current_kboard->Vlast_kbd_macro
-	  = wrong_type_argument (Qarrayp, current_kboard->Vlast_kbd_macro);
+      CHECK_VECTOR_OR_STRING (current_kboard->Vlast_kbd_macro);
 
       len = XINT (Flength (current_kboard->Vlast_kbd_macro));
 
