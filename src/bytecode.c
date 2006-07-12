@@ -433,8 +433,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 #endif
 
   CHECK_STRING (bytestr);
-  if (!VECTORP (vector))
-    vector = wrong_type_argument (Qvectorp, vector);
+  CHECK_VECTOR (vector);
   CHECK_NUMBER (maxdepth);
 
   if (STRING_MULTIBYTE (bytestr))
@@ -547,9 +546,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    else if (NILP (v1))
 	      TOP = Qnil;
 	    else
-	      {
-		wrong_type_argument (Qlistp, v1);
-	      }
+	      wrong_type_argument (Qlistp, v1);
 	    break;
 	  }
 
@@ -580,9 +577,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    else if (NILP (v1))
 	      TOP = Qnil;
 	    else
-	      {
-		wrong_type_argument (Qlistp, v1);
-	      }
+	      wrong_type_argument (Qlistp, v1);
 	    break;
 	  }
 
