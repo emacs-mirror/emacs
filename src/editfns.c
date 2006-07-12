@@ -56,6 +56,7 @@ Boston, MA 02110-1301, USA.  */
 #include "coding.h"
 #include "frame.h"
 #include "window.h"
+#include "blockinput.h"
 
 #ifdef STDC_HEADERS
 #include <float.h>
@@ -1302,7 +1303,9 @@ with that uid, or nil if there is no such user.  */)
     return Vuser_login_name;
 
   CHECK_NUMBER (uid);
+  BLOCK_INPUT;
   pw = (struct passwd *) getpwuid (XINT (uid));
+  UNBLOCK_INPUT;
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
 
@@ -1356,9 +1359,17 @@ name, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_full_name;
   else if (NUMBERP (uid))
-    pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
+    {
+      BLOCK_INPUT;
+      pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
+      UNBLOCK_INPUT;
+    }
   else if (STRINGP (uid))
-    pw = (struct passwd *) getpwnam (SDATA (uid));
+    {
+      BLOCK_INPUT;
+      pw = (struct passwd *) getpwnam (SDATA (uid));
+      UNBLOCK_INPUT;
+    }
   else
     error ("Invalid UID specification");
 
