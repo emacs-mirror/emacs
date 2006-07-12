@@ -1,3 +1,13 @@
+2006-07-12  Richard Stallman  <rms@gnu.org>
+
+	* objects.texi (Frame Type): Explain nature of frames better.
+
+	* frames.texi (Frames): Explain nature of frames better.
+
+2006-07-12  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* tips.texi (Coding Conventions): Explain why use cl at compile time.
+
 2006-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frames.texi (Window System Selections): Mention scrap support for Mac.
@@ -13,11 +23,6 @@
 	* commands.texi (Waiting): (sit-for -1) is no longer special.
 	(sit-for 0) is equivalent to (redisplay).
 	Iconifying/deiconifying no longer makes sit-for return.
-
-2006-07-11  Nick Roberts  <nickrob@snap.net.nz>
-
-	* tips.texi (Coding Conventions): Mention macros.
-	Suggested by Ken Manheimer.
 
 2006-07-10  Nick Roberts  <nickrob@snap.net.nz>
 

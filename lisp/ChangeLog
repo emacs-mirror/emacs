@@ -1,3 +1,33 @@
+2006-07-12  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/grep.el (grep-last-buffer): Doc fix.
+
+	* info.el (Info-try-follow-nearest-node): Doc fix.
+
+	* emacs-lisp/edebug.el (edebug-instrument-function):
+	Err if find-function-noselect gives no position.
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	If can't find definition, return nil for position.
+	(find-function-do-it): Handle new return value
+	of find-definition-noselect.
+	(find-definition-noselect, find-variable-noselect): Doc fix. 
+	(find-function-noselect): Doc fix.
+
+	* help-mode.el (help-variable-def): Handle find-variable-noselect
+	returning no position.
+	(help-function-def): Likewise for find-function-search-for-symbol.
+	(help-face-def): Likewise.
+
+	* help-fns.el (describe-variable): Handle find-variable-noselect
+	returning no position.
+
+	* files.el (locate-file-completion): Avoid duplicates in result.
+
+	* cus-edit.el (custom-no-edit): New command.
+	(custom-mode-map): Remap to custom-no-edit instead of
+	using suppress-keymap.
+
 2006-07-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tumme.el (tumme-create-thumb)
