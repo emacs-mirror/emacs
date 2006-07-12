@@ -8,10 +8,16 @@
 @chapter Frames
 @cindex frame
 
-  A @dfn{frame} is a rectangle on the screen that contains one or more
-Emacs windows.  A frame initially contains a single main window (plus
-perhaps a minibuffer window), which you can subdivide vertically or
-horizontally into smaller windows.
+  In Emacs editing, A @dfn{frame} is a screen objec that contains one
+or more Emacs windows.  It's the kind of object that is called a
+``window'' in the terminology of graphical environments; but we can't
+call it a ``window'' here, because Emacs uses that word in a different
+way.
+
+  A frame initially contains a single main window and/or a minibuffer
+window; you can subdivide the main window vertically or horizontally
+into smaller windows.  In Emacs Lisp, a @dfn{frame object} is a Lisp
+object that represents a frame on the screen.
 
 @cindex terminal frame
   When Emacs runs on a text-only terminal, it starts with one
