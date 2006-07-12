@@ -1,3 +1,12 @@
+2006-07-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tumme.el (tumme-create-thumb)
+	(tumme-thumbnail-display-external, tumme-display-image)
+	(tumme-rotate-thumbnail, tumme-rotate-original)
+	(tumme-set-exif-data, tumme-get-exif-data): Use shell-command-switch.
+
+	* thumbs.el (thumbs-call-convert): Use shell-command-switch.
+
 2006-07-11  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-copy-current-file-name): Use buffer-name if
