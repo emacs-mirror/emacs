@@ -1289,16 +1289,14 @@ Both TAG and VALUE are evalled.  */)
 {
   register struct catchtag *c;
 
-  while (1)
-    {
-      if (!NILP (tag))
-	for (c = catchlist; c; c = c->next)
-	  {
-	    if (EQ (c->tag, tag))
-	      unwind_to_catch (c, value);
-	  }
-      tag = Fsignal (Qno_catch, Fcons (tag, Fcons (value, Qnil)));
-    }
+  if (!NILP (tag))
+    for (c = catchlist; c; c = c->next)
+      {
+	if (EQ (c->tag, tag))
+	  unwind_to_catch (c, value);
+      }
+  Fsignal (Qno_catch, list2 (tag, value));
+  abort ();
 }
 
 
@@ -2166,7 +2164,12 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   /* At this point, only original_fun and original_args
      have values that will be used below */
  retry:
-  fun = Findirect_function (original_fun, Qnil);
+
+  /* Optimize for no indirection.  */
+  fun = original_fun;
+  if (SYMBOLP (fun) && !EQ (fun, Qunbound)
+      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+    fun = indirect_function (fun);
 
   if (SUBRP (fun))
     {
@@ -2182,7 +2185,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 
       if (XINT (numargs) < XSUBR (fun)->min_args ||
 	  (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < XINT (numargs)))
-	return Fsignal (Qwrong_number_of_arguments, Fcons (fun, Fcons (numargs, Qnil)));
+	Fsignal (Qwrong_number_of_arguments, list2 (original_fun, numargs));
 
       if (XSUBR (fun)->max_args == UNEVALLED)
 	{
@@ -2285,11 +2288,13 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
     val = apply_lambda (fun, original_args, 1);
   else
     {
+      if (EQ (fun, Qunbound))
+	Fsignal (Qvoid_function, Fcons (original_fun, Qnil));
       if (!CONSP (fun))
-	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
       funcar = Fcar (fun);
       if (!SYMBOLP (funcar))
-	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
       if (EQ (funcar, Qautoload))
 	{
 	  do_autoload (fun, original_fun);
@@ -2300,7 +2305,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       else if (EQ (funcar, Qlambda))
 	val = apply_lambda (fun, original_args, 1);
       else
-	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
     }
  done:
   CHECK_CONS_LIST ();
@@ -2345,7 +2350,10 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 
   numargs += nargs - 2;
 
-  fun = indirect_function (fun);
+  /* Optimize for no indirection.  */
+  if (SYMBOLP (fun) && !EQ (fun, Qunbound)
+      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+    fun = indirect_function (fun);
   if (EQ (fun, Qunbound))
     {
       /* Let funcall get the error */
@@ -2824,7 +2832,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
      int nargs;
      Lisp_Object *args;
 {
-  Lisp_Object fun;
+  Lisp_Object fun, original_fun;
   Lisp_Object funcar;
   int numargs = nargs - 1;
   Lisp_Object lisp_numargs;
@@ -2861,11 +2869,15 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 
   CHECK_CONS_LIST ();
 
+  original_fun = args[0];
+
  retry:
 
-  fun = args[0];
-
-  fun = Findirect_function (fun, Qnil);
+  /* Optimize for no indirection.  */
+  fun = original_fun;
+  if (SYMBOLP (fun) && !EQ (fun, Qunbound)
+      && (fun = XSYMBOL (fun)->function, SYMBOLP (fun)))
+    fun = indirect_function (fun);
 
   if (SUBRP (fun))
     {
@@ -2873,11 +2885,11 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  || (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < numargs))
 	{
 	  XSETFASTINT (lisp_numargs, numargs);
-	  return Fsignal (Qwrong_number_of_arguments, Fcons (fun, Fcons (lisp_numargs, Qnil)));
+	  Fsignal (Qwrong_number_of_arguments, list2 (original_fun, lisp_numargs));
 	}
 
       if (XSUBR (fun)->max_args == UNEVALLED)
-	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
 
       if (XSUBR (fun)->max_args == MANY)
 	{
@@ -2949,21 +2961,23 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
     val = funcall_lambda (fun, numargs, args + 1);
   else
     {
+      if (EQ (fun, Qunbound))
+	Fsignal (Qvoid_function, Fcons (original_fun, Qnil));
       if (!CONSP (fun))
-	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
       funcar = Fcar (fun);
       if (!SYMBOLP (funcar))
-	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
       if (EQ (funcar, Qlambda))
 	val = funcall_lambda (fun, numargs, args + 1);
       else if (EQ (funcar, Qautoload))
 	{
-	  do_autoload (fun, args[0]);
+	  do_autoload (fun, original_fun);
 	  CHECK_CONS_LIST ();
 	  goto retry;
 	}
       else
-	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
     }
  done:
   CHECK_CONS_LIST ();
@@ -3039,7 +3053,7 @@ funcall_lambda (fun, nargs, arg_vector)
       if (CONSP (syms_left))
 	syms_left = XCAR (syms_left);
       else
-	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	Fsignal (Qinvalid_function, Fcons (fun, Qnil));
     }
   else if (COMPILEDP (fun))
     syms_left = AREF (fun, COMPILED_ARGLIST);
@@ -3052,8 +3066,8 @@ funcall_lambda (fun, nargs, arg_vector)
       QUIT;
 
       next = XCAR (syms_left);
-      while (!SYMBOLP (next))
-	next = Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+      if (!SYMBOLP (next))
+	Fsignal (Qinvalid_function, Fcons (fun, Qnil));
 
       if (EQ (next, Qand_rest))
 	rest = 1;
@@ -3067,17 +3081,15 @@ funcall_lambda (fun, nargs, arg_vector)
       else if (i < nargs)
 	specbind (next, arg_vector[i++]);
       else if (!optional)
-	return Fsignal (Qwrong_number_of_arguments,
-			Fcons (fun, Fcons (make_number (nargs), Qnil)));
+	Fsignal (Qwrong_number_of_arguments, list2 (fun, make_number (nargs)));
       else
 	specbind (next, Qnil);
     }
 
   if (!NILP (syms_left))
-    return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+    Fsignal (Qinvalid_function, Fcons (fun, Qnil));
   else if (i < nargs)
-    return Fsignal (Qwrong_number_of_arguments,
-		    Fcons (fun, Fcons (make_number (nargs), Qnil)));
+    Fsignal (Qwrong_number_of_arguments, list2 (fun, make_number (nargs)));
 
   if (CONSP (fun))
     val = Fprogn (XCDR (XCDR (fun)));
