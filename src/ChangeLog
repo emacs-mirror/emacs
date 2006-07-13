@@ -1,3 +1,8 @@
+2006-07-13  Andreas Schwab  <schwab@suse.de>
+
+	* syntax.c (scan_sexps_forward): Use EMACS_INT for out_bytepos and
+	out_charpos.
+
 2006-07-13  Kenichi Handa  <handa@m17n.org>
 
 	* editfns.c (Fformat): Fix calculation of text property positions
