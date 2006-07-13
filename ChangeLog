@@ -1,3 +1,7 @@
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* AUTHORS: Regenerate.
+
 2006-07-08  Richard Stallman  <rms@gnu.org>
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Minor corrections.
@@ -9,7 +13,7 @@
 
 2006-07-08  Eli Zaretskii  <eliz@gnu.org>
 
-	* configure: Regenerated.
+	* configure: Regenerate.
 
 	* configure.in (PKG_CHECK_MODULES): Redirect stderr of pkg-config
 	to /dev/null, since we don't need the error message, just the
