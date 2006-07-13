@@ -1,3 +1,15 @@
+2006-07-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-display-buffer): Check for
+	gdb-source-window.  Add dedicated argument.
+	(gdb-display-separate-io-buffer, gdb-append-to-inferior-io)
+	(gdb-display-breakpoints-buffer, gdb-display-stack-buffer)
+	(gdb-display-threads-buffer, gdb-display-memory-buffer)
+	(gdb-display-locals-buffer): Use it.
+	
+	* progmodes/gud.el (gud-display-line): Use gdb-display-buffer.
+	Set gdb-source-window.
+
 2006-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (make-autoload): Remove special handling of
