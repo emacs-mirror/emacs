@@ -396,22 +396,11 @@ that has changed."
   "Perform line wrapping on the parts of the buffer that have changed.
 This is called by `post-command-hook' after each command."
   (when longlines-wrap-beg
-    (cond ((or (eq this-command 'yank)
-               (eq this-command 'yank-pop))
-           (longlines-decode-region (point) (mark t))
-           (if longlines-showing
-               (longlines-show-region (point) (mark t))))
-	  (longlines-showing
-	   (cond ((eq this-command 'newline)
-		  (save-excursion
-		    (if (search-backward "\n" nil t)
-			(longlines-show-region
-			 (match-beginning 0) (match-end 0)))))
-		 ((eq this-command 'open-line)
-		  (save-excursion
-		    (if (search-forward "\n" nil t)
-			(longlines-show-region
-			 (match-beginning 0) (match-end 0))))))))
+    (if (or (eq this-command 'yank)
+	    (eq this-command 'yank-pop))
+	(longlines-decode-region (point) (mark t)))
+    (if longlines-showing
+	(longlines-show-region longlines-wrap-beg longlines-wrap-end))
     (unless (or (eq this-command 'fill-paragraph)
                 (eq this-command 'fill-region))
       (longlines-wrap-region longlines-wrap-beg longlines-wrap-end))
