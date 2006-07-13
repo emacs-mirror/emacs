@@ -279,6 +279,7 @@ You can force use of the mouse or of the echo area by binding
 @end defun
 
 @defun message-box format-string &rest arguments
+@anchor{message-box}
 This function displays a message like @code{message}, but uses a dialog
 box (or a pop-up menu) whenever that is possible.  If it is impossible
 to use a dialog box or pop-up menu, because the terminal does not

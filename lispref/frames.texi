@@ -1557,7 +1557,7 @@ window don't matter; only the frame matters.
 
 If @var{header} is non-@code{nil}, the frame title for the box is
 @samp{Information}, otherwise it is @samp{Question}.  The former is used
-for @code{message-box} (@pxref{The Echo Area}).
+for @code{message-box} (@pxref{message-box}).
 
 In some configurations, Emacs cannot display a real dialog box; so
 instead it displays the same items in a pop-up menu in the center of the
