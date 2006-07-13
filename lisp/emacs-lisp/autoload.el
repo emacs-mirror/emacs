@@ -124,17 +124,7 @@ or macro definition or a defcustom)."
 	    )
 	`(progn
 	   (defvar ,varname ,init ,doc)
-	   (custom-autoload ',varname ,file)
-           ;; The use of :require in a defcustom can be annoying, especially
-           ;; when defcustoms are moved from one file to another between
-           ;; releases because the :require arg gets placed in the user's
-           ;; .emacs.  In order for autoloaded minor modes not to need the
-           ;; use of :require, we arrange to store their :setter.
-           ,(let ((setter (condition-case nil
-                              (cadr (memq :set form))
-                            (error nil))))
-              (if (equal setter ''custom-set-minor-mode)
-                  `(put ',varname 'custom-set 'custom-set-minor-mode))))))
+	   (custom-autoload ',varname ,file))))
 
      ((eq car 'defgroup)
       ;; In Emacs this is normally handled separately by cus-dep.el, but for

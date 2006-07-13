@@ -1,7 +1,11 @@
+2006-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (make-autoload): Remove special handling of
+	minor modes, redundant with the custom-autoload line above.
+
 2006-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
-	* longlines.el (longlines-post-command-function): Handle open-line
-	too.
+	* longlines.el (longlines-post-command-function): Handle open-line too.
 
 2006-07-12  Richard Stallman  <rms@gnu.org>
 
@@ -55,8 +59,8 @@
 	(vc-print-log): Run log-view-mode in process sentinel inside
 	inhibit-read-only.  Don't shrink window due to timing issues.
 
-	* progmodes/ebrowse.el (ebrowse-display-member-buffer): Avoid
-	using with-output-to-temp-buffer, which clobbers local vars.
+	* progmodes/ebrowse.el (ebrowse-display-member-buffer):
+	Avoid using with-output-to-temp-buffer, which clobbers local vars.
 
 2006-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
