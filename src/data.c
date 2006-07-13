@@ -1913,13 +1913,18 @@ function chain of symbols.  */)
 {
   Lisp_Object result;
 
-  result = indirect_function (object);
+  /* Optimize for no indirection.  */
+  result = object;
+  if (SYMBOLP (result) && !EQ (result, Qunbound)
+      && (result = XSYMBOL (result)->function, SYMBOLP (result)))
+    result = indirect_function (result);
+  if (!EQ (result, Qunbound))
+    return result;
 
-  if (EQ (result, Qunbound))
-    return (NILP (noerror)
-	    ? Fsignal (Qvoid_function, Fcons (object, Qnil))
-	    : Qnil);
-  return result;
+  if (NILP (noerror))
+    Fsignal (Qvoid_function, Fcons (object, Qnil));
+
+  return Qnil;
 }
 
 /* Extract and set vector and string elements */
