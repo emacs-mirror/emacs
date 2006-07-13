@@ -3886,7 +3886,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      /* Likewise adjust the property end position.  */
 	      pos = XINT (XCAR (XCDR (item)));
 
-	      for (; bytepos < pos; bytepos++)
+	      for (; position < pos; bytepos++)
 		{
 		  if (! discarded[bytepos])
 		    position++, translated++;
