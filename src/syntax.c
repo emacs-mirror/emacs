@@ -2702,7 +2702,7 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
   int boundary_stop = commentstop == -1;
   int nofence;
   int found;
-  int out_bytepos, out_charpos;
+  EMACS_INT out_bytepos, out_charpos;
   int temp;
 
   prev_from = from;
