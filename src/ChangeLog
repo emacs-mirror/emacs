@@ -1,3 +1,17 @@
+2006-07-13  Kim F. Storm  <storm@cua.dk>
+
+	* bytecode.c (Fbyte_code): Use CAR, CDR for Bcar, Bcdr.
+	Use CAR_SAFE, CDR_SAFE for Bcar_safe, Bcdr_safe.
+	Simplify loops and use CAR for Bnth and Belt.
+
+	* data.c (Findirect_function): Optimize for no indirection.
+
+	* eval.c (Fthrow): Remove loop around Fsignal.
+	(Feval, Fapply, Ffuncall): Optimize for no function indirection.
+	Use original function name in all signaled errors.
+	Simplify Fsignal calls (no return).
+	(funcall_lambda): Simplify Fsignal calls (no return).
+
 2006-07-13  Andreas Schwab  <schwab@suse.de>
 
 	* syntax.c (scan_sexps_forward): Use EMACS_INT for out_bytepos and
