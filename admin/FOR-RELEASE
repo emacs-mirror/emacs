@@ -54,16 +54,16 @@ people who have checked it.
 SECTION                  READERS
 ----------------------------------
 lispref/abbrevs.texi     "Luc Teirlinck"   Chong Yidong
-lispref/advice.texi	 joakim@verona.se  Chong Yidong
-lispref/anti.texi        Chong Yidong
+lispref/advice.texi      Joakim Verona     Chong Yidong
+lispref/anti.texi        Chong Yidong      Kim F. Storm
 lispref/backups.texi     "Luc Teirlinck"   Chong Yidong
 lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
-lispref/calendar.texi    Joakim Verona <joakim@verona.se>  Chong Yidong
+lispref/calendar.texi    Joakim Verona     Chong Yidong
 lispref/commands.texi    "Luc Teirlinck"   Chong Yidong
 lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
 lispref/control.texi     "Luc Teirlinck"   Chong Yidong
 lispref/customize.texi   Chong Yidong      "Luc Teirlinck"
-lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
+lispref/debugging.texi   Joakim Verona     Lute Kamstra
 lispref/display.texi     Chong Yidong      Jason Rumney
 lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
 lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
