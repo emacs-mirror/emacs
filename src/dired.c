@@ -99,6 +99,7 @@ extern struct direct *readdir ();
 #include "charset.h"
 #include "coding.h"
 #include "regex.h"
+#include "blockinput.h"
 
 /* Returns a search buffer, with a fastmap allocated and ready to go.  */
 extern struct re_pattern_buffer *compile_pattern ();
@@ -951,10 +952,12 @@ Elements of the attribute list are:
     }
   else
     {
+      BLOCK_INPUT;
       pw = (struct passwd *) getpwuid (s.st_uid);
       values[2] = (pw ? build_string (pw->pw_name) : make_number (s.st_uid));
       gr = (struct group *) getgrgid (s.st_gid);
       values[3] = (gr ? build_string (gr->gr_name) : make_number (s.st_gid));
+      UNBLOCK_INPUT;
     }
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);

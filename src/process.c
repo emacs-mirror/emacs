@@ -5165,7 +5165,7 @@ read_process_output (proc, channel)
 #endif
 	/* But do it only if the caller is actually going to read events.
 	   Otherwise there's no need to make him wake up, and it could
-	   cause trouble (for example it would make Fsit_for return).  */
+	   cause trouble (for example it would make sit_for return).  */
 	if (waiting_for_user_input_p == -1)
 	  record_asynch_buffer_change ();
 
@@ -6612,7 +6612,7 @@ exec_sentinel (proc, reason)
 #endif
     /* But do it only if the caller is actually going to read events.
        Otherwise there's no need to make him wake up, and it could
-       cause trouble (for example it would make Fsit_for return).  */
+       cause trouble (for example it would make sit_for return).  */
     if (waiting_for_user_input_p == -1)
       record_asynch_buffer_change ();
 

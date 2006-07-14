@@ -11,7 +11,7 @@
 ;;               Andreas Fuchs (afs@void.at)
 ;;               Gergely Nagy (algernon@midgard.debian.net)
 ;;               David Edmondson (dme@dme.org)
-;; Maintainer: Mario Lang (mlang@delysid.org)
+;; Maintainer: Michael Olson (mwolson@gnu.org)
 ;; Keywords: IRC, chat, client, Internet
 
 ;; This file is part of GNU Emacs.
@@ -36,12 +36,13 @@
 ;; ERC is an IRC client for Emacs.
 
 ;; For more information, see the following URLs:
-;; * http://sf.net/projects/erc/
+;; * http://sv.gnu.org/projects/erc/
 ;; * http://www.emacswiki.org/cgi-bin/wiki.pl?EmacsIRCClient
 
-;; Jul-26-2001. erc.el is now in CVS on SourceForge.  I invite everyone
-;; who wants to hack it to contact me <mlang@delysid.org> in order to
-;; get write access on the CVS.
+;; As of 2006-06-13, ERC development is now hosted on Savannah
+;; (http://sv.gnu.org/projects/erc).  I invite everyone who wants to
+;; hack on it to contact me <mwolson@gnu.org> in order to get write
+;; access to the shared Arch archive.
 
 ;; Installation:
 
@@ -66,7 +67,7 @@
 
 ;;; Code:
 
-(defconst erc-version-string "Version 5.1.2"
+(defconst erc-version-string "Version 5.1.3"
   "ERC version.  This is used by function `erc-version'.")
 
 (eval-when-compile (require 'cl))
@@ -77,12 +78,12 @@
 (require 'erc-menu)
 
 (defvar erc-official-location
-  "http://erc.sf.net (comments mailto://mlang@delysid.org)"
+  "http://emacswiki.org/cgi-bin/wiki/ERC (mailing list: erc-discuss@gnu.org)"
   "Location of the ERC client on the Internet.")
 
 (defgroup erc nil
   "Emacs Internet Relay Chat client."
-  :link '(url-link "http://www.emacswiki.org/cgi-bin/wiki.pl?EmacsIRCClient")
+  :link '(url-link "http://www.emacswiki.org/cgi-bin/wiki/ERC")
   :prefix "erc-"
   :group 'applications)
 
@@ -143,57 +144,69 @@
 ;; tunable connection and authentication parameters
 
 (defcustom erc-server nil
-  "IRC server to use.
+  "IRC server to use if one is not provided.
 See function `erc-compute-server' for more details on connection
 parameters and authentication."
   :group 'erc
-  :type '(choice (const nil) string))
+  :type '(choice (const :tag "None" nil)
+		 (string :tag "Server")))
 
 (defcustom erc-port nil
-  "IRC port to use."
+  "IRC port to use if not specified.
+
+This can be either a string or a number."
   :group 'erc
-  :type '(choice (const nil) number string))
+  :type '(choice (const :tag "None" nil)
+		 (const :tag "Port number" number)
+		 (const :tag "Port string" string)))
 
 (defcustom erc-nick nil
-  "Nickname to use.
+  "Nickname to use if one is not provided.
 
-Can be either a string, or a list of strings.
+This can be either a string, or a list of strings.
 In the latter case, if the first nick in the list is already in use,
 other nicks are tried in the list order.
 
 See function `erc-compute-nick' for more details on connection
 parameters and authentication."
   :group 'erc
-  :type '(choice (const nil)
+  :type '(choice (const :tag "None" nil)
 		 (string :tag "Nickname")
-		 (repeat string)))
+		 (repeat (string :tag "Nickname"))))
 
 (defcustom erc-nick-uniquifier "`"
-  "The character to append to the nick if it is already in use."
+  "The string to append to the nick if it is already in use."
   :group 'erc
   :type 'string)
 
-(defcustom erc-manual-set-nick-on-bad-nick-p nil
-  "If the nickname you chose isn't available, ERC should not automatically
-attempt to set another nickname.  You can manually set another nickname with
-the /NICK command."
+(defcustom erc-try-new-nick-p t
+  "If the nickname you chose isn't available, and this option is non-nil,
+ERC should automatically attempt to connect with another nickname.
+
+You can manually set another nickname with the /NICK command."
   :group 'erc
   :type 'boolean)
 
 (defcustom erc-user-full-name nil
   "User full name.
 
+This can be either a string or a function to call.
+
 See function `erc-compute-full-name' for more details on connection
 parameters and authentication."
   :group 'erc
-  :type '(choice (const nil) string function)
+  :type '(choice (const :tag "No name" nil)
+		 (string :tag "Name")
+		 (function :tag "Get from function"))
   :set (lambda (sym val)
 	 (if (functionp val)
 	     (set sym (funcall val))
 	   (set sym val))))
 
 (defvar erc-password nil
-  "ERC password to use in authentication (not necessary).")
+  "Password to use when authenticating to an IRC server.
+It is not strictly necessary to provide this, since ERC will
+prompt you for it.")
 
 (defcustom erc-user-mode nil
   "Initial user modes to be set after a connection is established."
@@ -871,7 +884,7 @@ As an example:
 	(\"xmms\" dme:now-playing)
 	(\"version\" erc-quit-reason-normal)
 	(\"home\" \"Gone home !\")
-	(\"\" \"Default Reason\")))
+	(\"^$\" \"Default Reason\")))
 If the user types \"/quit zippy\", then a Zippy the Pinhead quotation
 will be used as the quit message."
   :group 'erc-quit-and-part
@@ -895,7 +908,7 @@ As an example:
 	(\"xmms\" dme:now-playing)
 	(\"version\" erc-part-reason-normal)
 	(\"home\" \"Gone home !\")
-	(\"\" \"Default Reason\")))
+	(\"^$\" \"Default Reason\")))
 If the user types \"/part zippy\", then a Zippy the Pinhead quotation
 will be used as the part message."
   :group 'erc-quit-and-part
@@ -1373,7 +1386,10 @@ server buffer")
 (defun erc-active-buffer ()
   "Return the value of `erc-active-buffer' for the current server.
 Defaults to the server buffer."
-  (with-current-buffer (erc-server-buffer) erc-active-buffer))
+  (with-current-buffer (erc-server-buffer)
+    (if (buffer-live-p erc-active-buffer)
+	erc-active-buffer)
+    (setq erc-active-buffer (current-buffer))))
 
 (defun erc-set-active-buffer (buffer)
   "Set the value of `erc-active-buffer' to BUFFER."
@@ -1595,12 +1611,13 @@ server connection, or nil which means all open connections."
     (delq
      nil
      (mapcar (lambda (buf)
-	       (with-current-buffer buf
-		 (and (eq major-mode 'erc-mode)
-		      (or (not proc)
-			  (eq proc erc-server-process))
-		      (funcall predicate)
-		      buf)))
+	       (when (buffer-live-p buf)
+		 (with-current-buffer buf
+		   (and (eq major-mode 'erc-mode)
+			(or (not proc)
+			    (eq proc erc-server-process))
+			(funcall predicate)
+			buf))))
 	     (buffer-list)))))
 
 (defun erc-buffer-list (&optional predicate proc)
@@ -1760,11 +1777,12 @@ removed from the list will be disabled."
     :greedy t
     (const :tag "Set away status automatically" autoaway)
     (const :tag "Join channels automatically" autojoin)
-    (const :tag "Integrate with Big Brother Database" bbdb)
     (const :tag "Buttonize URLs, nicknames, and other text" button)
     (const :tag "Wrap long lines" fill)
+    (const :tag "Launch an identd server on port 8113" identd)
     (const :tag "Highlight or remove IRC control characters"
 	   irccontrols)
+    (const :tag "List channels in a separate buffer" list)
     (const :tag "Save buffers in logs" log)
     (const :tag "Highlight pals, fools, and other keywords" match)
     (const :tag "Detect netsplits" netsplit)
@@ -1776,6 +1794,7 @@ removed from the list will be disabled."
     (const :tag "Complete nicknames and commands (programmable)"
 	   completion)
     (const :tag "Complete nicknames and commands (old)" hecomplete)
+    (const :tag "Process CTCP PAGE requests from IRC" page)
     (const :tag "Make displayed lines read-only" readonly)
     (const :tag "Replace text in messages" replace)
     (const :tag "Enable an input history" ring)
@@ -2063,10 +2082,12 @@ Non-interactively, it takes keyword arguments
    (full-name (erc-compute-full-name)))
 
 That is, if called with
+
    (erc-select :server \"irc.freenode.net\" :full-name \"Harry S Truman\")
+
 server and full-name will be set to those values, whereas
-erc-compute-port, erc-compute-nick and erc-compute-full-name will
-be invoked for those parameters' values"
+`erc-compute-port', `erc-compute-nick' and `erc-compute-full-name' will
+be invoked for the values of the other parameters."
   (interactive (erc-select-read-args))
 
   (run-hook-with-args 'erc-before-connect server port nick)
@@ -3047,8 +3068,8 @@ If S is non-nil, it will be used as the quit reason."
     (cond
      ((functionp res) (funcall res))
      ((stringp res) res)
-     ;; hopefully never reached
-     (s))))
+     (s s)
+     (t (erc-quit-reason-normal)))))
 
 (defun erc-part-reason-normal (&optional s)
   "Normal part message.
@@ -3074,7 +3095,8 @@ If S is non-nil, it will be used as the quit reason."
     (cond
      ((functionp res) (funcall res))
      ((stringp res) res)
-     (s))))
+     (s s)
+     (t (erc-part-reason-normal)))))
 
 (defun erc-cmd-QUIT (reason)
   "Disconnect from the current server.
@@ -3713,7 +3735,7 @@ E.g. \"Read error to Nick [user@some.host]: 110\" would be shortened to
   "If NICK is unavailable, tell the user the REASON.
 
 See also `erc-display-error-notice'."
-  (if (or erc-manual-set-nick-on-bad-nick-p
+  (if (or (not erc-try-new-nick-p)
 	  ;; how many default-nicks are left + one more try...
 	  (eq erc-nick-change-attempt-count
 	      (if (consp erc-nick)
@@ -3735,12 +3757,13 @@ See also `erc-display-error-notice'."
 	  (setq newnick (concat (truncate-string-to-width
 				 nick
 				 (if (and erc-server-connected nicklen)
-				     (- (string-to-number nicklen) 1)
+				     (- (string-to-number nicklen)
+					(length erc-nick-uniquifier))
 				   ;; rfc2812 max nick length = 9
 				   ;; we must assume this is the
 				   ;; server's setting if we haven't
 				   ;; established a connection yet
-				   8))
+				   (- 9 (length erc-nick-uniquifier))))
 				erc-nick-uniquifier)))
       (erc-cmd-NICK newnick)
       (erc-display-error-notice
@@ -5098,13 +5121,16 @@ If ARG is non-nil and not positive, turns CTCP replies off."
 (defun erc-toggle-flood-control (&optional arg)
   "Toggle use of flood control on sent messages.
 
-If ARG is non-nil, use flood control.
-If ARG is nil, do not use flood control.
+If ARG is positive, use flood control.
+If ARG is non-nil and not positive, do not use flood control.
 
 See `erc-server-flood-margin' for an explanation of the available
 flood control parameters."
   (interactive "P")
-  (setq erc-flood-protect arg)
+  (cond ((and (numberp arg) (> arg 0))
+	 (setq erc-flood-protect t))
+	(arg (setq erc-flood-protect nil))
+	(t (setq erc-flood-protect (not erc-flood-protect))))
   (message "ERC flood control is %s"
 	   (cond (erc-flood-protect "ON")
 		 (t "OFF"))))
@@ -5130,10 +5156,10 @@ This command is sent even if excess flood is detected."
 
 (defun erc-get-channel-mode-from-keypress (key)
   "Read a key sequence and call the corresponding channel mode function.
-After doing C-c C-o type in a channel mode letter.
+After doing C-c C-o, type in a channel mode letter.
 
 C-g means quit.
-RET let's you type more than one mode at a time.
+RET lets you type more than one mode at a time.
 If \"l\" is pressed, `erc-set-channel-limit' gets called.
 If \"k\" is pressed, `erc-set-channel-key' gets called.
 Anything else will be sent to `erc-toggle-channel-mode'."
@@ -5384,28 +5410,28 @@ Sets the buffer local variables:
 (defun erc-compute-server (&optional server)
   "Return an IRC server name.
 
-Tries a number of increasingly more default methods until a non-nil value is
-found:
+This tries a number of increasingly more default methods until a
+non-nil value is found.
 
-- SERVER
-- `erc-server'
+- SERVER (the argument passwd to this function)
+- The `erc-server' option
 - The value of the IRCSERVER environment variable
-- `erc-default-server'."
+- The `erc-default-server' variable"
   (or server
       erc-server
       (getenv "IRCSERVER")
       erc-default-server))
 
 (defun erc-compute-nick (&optional nick)
-  "Return user's NICK.
+  "Return user's IRC nick.
 
-Tries a number of increasingly more default methods until a non-nil value is
-found:
+This tries a number of increasingly more default methods until a
+non-nil value is found.
 
-- NICK
-- `erc-nick'
+- NICK (the argument passed to this function)
+- The `erc-nick' option
 - The value of the IRCNICK environment variable
-- via the function `user-login-name'."
+- The result from the `user-login-name' function"
   (or nick
       (if (consp erc-nick) (car erc-nick) erc-nick)
       (getenv "IRCNICK")
@@ -5413,15 +5439,15 @@ found:
 
 
 (defun erc-compute-full-name (&optional full-name)
-  "Return user's FULL-NAME.
+  "Return user's full name.
 
-Tries a number of increasingly more default methods until a non-nil value is
-found:
+This tries a number of increasingly more default methods until a
+non-nil value is found.
 
-- FULL-NAME
-- `erc-user-full-name'
+- FULL-NAME (the argument passed to this function)
+- The `erc-user-full-name' option
 - The value of the IRCNAME environment variable
-- via the function `user-full-name'."
+- The result from the `user-full-name' function"
   (or full-name
       erc-user-full-name
       (getenv "IRCNAME")
@@ -5431,12 +5457,13 @@ found:
 (defun erc-compute-port (&optional port)
   "Return a port for an IRC server.
 
-Tries a number of increasingly more default methods until a non-nil
-value is found:
+This tries a number of increasingly more default methods until a
+non-nil value is found.
 
-- PORT
-- \"ircd\"."
-  (or port erc-port "ircd"))
+- PORT (the argument passed to this function)
+- The `erc-port' option
+- The `erc-default-port' variable"
+  (or port erc-port erc-default-port))
 
 ;; time routines
 
@@ -5818,26 +5845,6 @@ If optional argument HERE is non-nil, insert version number at point."
 	  (message "%s" version-string)
 	version-string))))
 
-(defun erc-version-modules (&optional here)
-  "Show the version numbers of all loaded ERC modules in the minibuffer.
-If optional argument HERE is non-nil, insert version number at point."
-  (interactive "P")
-  (let ((version-string
-	 (mapconcat 'identity
-		    (let (versions (case-fold-search nil))
-		      (dolist (var (apropos-internal "^erc-.*version$"))
-			(when (and (boundp var)
-				   (stringp (symbol-value var)))
-			  (setq versions (cons (format "%S: %s"
-						       var (symbol-value var))
-					       versions))))
-		      versions) ", ")))
-    (if here
-	(insert version-string)
-      (if (interactive-p)
-	  (message "%s" version-string)
-	version-string))))
-
 (defun erc-modes (&optional here)
   "Show the active ERC modes in the minibuffer.
 If optional argument HERE is non-nil, insert version number at point."
@@ -5857,32 +5864,6 @@ If optional argument HERE is non-nil, insert version number at point."
       (if (interactive-p)
 	  (message "%s" string)
 	string))))
-
-(defun erc-latest-version ()
-  "Retrieve the latest erc.el version from CVS."
-  (interactive)
-  (if (ignore-errors (require 'url))
-      (progn
-	(switch-to-buffer (get-buffer-create "*erc.el latest version*"))
-	(delete-region (point-min) (point-max))
-	(kill-all-local-variables)
-	(url-insert-file-contents (concat
-				   "http://cvs.sourceforge.net/viewcvs.py/"
-				   "*checkout*/erc/erc/erc.el?content-type"
-				   "=text%2Fplain&rev=HEAD"))
-	(emacs-lisp-mode)
-	(current-buffer))
-    (error "URL needs to be installed")))
-
-(defun erc-ediff-latest-version ()
-  "Ediff your installed erc.el with the latest CVS version.
-See also `erc-latest-version'."
-  (interactive)
-  (let ((current (locate-library "erc.el")))
-    (if current
-	(ediff-buffers (find-file current)
-		       (erc-latest-version))
-      (error "You do not appear to have the uncompiled erc.el file"))))
 
 (defun erc-trim-string (s)
   "Trim leading and trailing spaces off S."
@@ -6183,6 +6164,29 @@ This function should be on `erc-kill-channel-hook'."
   "Return message type in the parsed vector VECT."
   (and vect
        (erc-response.command vect)))
+
+;; Teach url.el how to open irc:// URLs with ERC.
+;; To activate, customize `url-irc-function' to `url-irc-erc'.
+
+;;;###autoload
+(defun erc-handle-irc-url (host port channel user password)
+  "Use ERC to IRC on HOST:PORT in CHANNEL as USER with PASSWORD.
+If ERC is already connected to HOST:PORT, simply /join CHANNEL.
+Otherwise, connect to HOST:PORT as USER and /join CHANNEL."
+  (let ((server-buffer
+	 (car (erc-buffer-filter
+	       (lambda ()
+		 (and (string-equal erc-session-server host)
+		      (= erc-session-port port)
+		      erc-server-connected
+		      (eq (erc-server-buffer) (current-buffer))))))))
+    (with-current-buffer (or server-buffer (current-buffer))
+      (if (and server-buffer channel)
+	  (erc-cmd-JOIN channel)
+	(erc host port (or user (erc-compute-nick)) (erc-compute-full-name)
+	     (not server-buffer) password nil channel
+	     (when server-buffer
+	       (get-buffer-process server-buffer)))))))
 
 (provide 'erc)
 

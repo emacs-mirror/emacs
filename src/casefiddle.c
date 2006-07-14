@@ -45,75 +45,73 @@ casify_object (flag, obj)
   if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
     Fset_case_table (current_buffer->downcase_table);
 
-  while (1)
+  if (INTEGERP (obj))
     {
-      if (INTEGERP (obj))
+      int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
+		      | CHAR_SHIFT | CHAR_CTL | CHAR_META);
+      int flags = XINT (obj) & flagbits;
+
+      /* If the character has higher bits set
+	 above the flags, return it unchanged.
+	 It is not a real character.  */
+      if ((unsigned) XFASTINT (obj) > (unsigned) flagbits)
+	return obj;
+
+      c = DOWNCASE (XFASTINT (obj) & ~flagbits);
+      if (inword)
+	XSETFASTINT (obj, c | flags);
+      else if (c == (XFASTINT (obj) & ~flagbits))
 	{
-	  int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
-			  | CHAR_SHIFT | CHAR_CTL | CHAR_META);
-	  int flags = XINT (obj) & flagbits;
-
-	  /* If the character has higher bits set
-	     above the flags, return it unchanged.
-	     It is not a real character.  */
-	  if ((unsigned) XFASTINT (obj) > (unsigned) flagbits)
-	    return obj;
-
-	  c = DOWNCASE (XFASTINT (obj) & ~flagbits);
-	  if (inword)
-	    XSETFASTINT (obj, c | flags);
-	  else if (c == (XFASTINT (obj) & ~flagbits))
-	    {
-	      c = UPCASE1 ((XFASTINT (obj) & ~flagbits));
-	      XSETFASTINT (obj, c | flags);
-	    }
-	  return obj;
+	  c = UPCASE1 ((XFASTINT (obj) & ~flagbits));
+	  XSETFASTINT (obj, c | flags);
 	}
+      return obj;
+    }
 
-      if (STRINGP (obj))
+  if (STRINGP (obj))
+    {
+      int multibyte = STRING_MULTIBYTE (obj);
+      int n;
+
+      obj = Fcopy_sequence (obj);
+      len = SBYTES (obj);
+
+      /* I counts bytes, and N counts chars.  */
+      for (i = n = 0; i < len; n++)
 	{
-	  int multibyte = STRING_MULTIBYTE (obj);
-	  int n;
+	  int from_len = 1, to_len = 1;
 
-	  obj = Fcopy_sequence (obj);
-	  len = SBYTES (obj);
+	  c = SREF (obj, i);
 
-	  /* I counts bytes, and N counts chars.  */
-	  for (i = n = 0; i < len; n++)
+	  if (multibyte && c >= 0x80)
+	    c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i, len -i, from_len);
+	  if (inword && flag != CASE_CAPITALIZE_UP)
+	    c = DOWNCASE (c);
+	  else if (!UPPERCASEP (c)
+		   && (!inword || flag != CASE_CAPITALIZE_UP))
+	    c = UPCASE1 (c);
+	  if ((ASCII_BYTE_P (c) && from_len == 1)
+	      || (! multibyte && SINGLE_BYTE_CHAR_P (c)))
+	    SSET (obj, i, c);
+	  else
 	    {
-	      int from_len = 1, to_len = 1;
-
-	      c = SREF (obj, i);
-
-	      if (multibyte && c >= 0x80)
-		c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i, len -i, from_len);
-	      if (inword && flag != CASE_CAPITALIZE_UP)
-		c = DOWNCASE (c);
-	      else if (!UPPERCASEP (c)
-		       && (!inword || flag != CASE_CAPITALIZE_UP))
-		c = UPCASE1 (c);
-	      if ((ASCII_BYTE_P (c) && from_len == 1)
-		  || (! multibyte && SINGLE_BYTE_CHAR_P (c)))
-		SSET (obj, i, c);
+	      to_len = CHAR_BYTES (c);
+	      if (from_len == to_len)
+		CHAR_STRING (c, SDATA (obj) + i);
 	      else
 		{
-		  to_len = CHAR_BYTES (c);
-		  if (from_len == to_len)
-		    CHAR_STRING (c, SDATA (obj) + i);
-		  else
-		    {
-		      Faset (obj, make_number (n), make_number (c));
-		      len += to_len - from_len;
-		    }
+		  Faset (obj, make_number (n), make_number (c));
+		  len += to_len - from_len;
 		}
-	      if ((int) flag >= (int) CASE_CAPITALIZE)
-		inword = SYNTAX (c) == Sword;
-	      i += to_len;
 	    }
-	  return obj;
+	  if ((int) flag >= (int) CASE_CAPITALIZE)
+	    inword = SYNTAX (c) == Sword;
+	  i += to_len;
 	}
-      obj = wrong_type_argument (Qchar_or_string_p, obj);
+      return obj;
     }
+
+  return wrong_type_argument (Qchar_or_string_p, obj);
 }
 
 DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,

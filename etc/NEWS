@@ -24,6 +24,15 @@ so we will look at it and add it to the manual.
 * Installation Changes in Emacs 22.1
 
 ---
+** Emacs comes with a new set of icons.
+These icons are displayed on the taskbar and/or titlebar when Emacs
+runs in a graphical environment.  Source files for these icons can be
+found in etc/images/icons.  (You can't change the icons displayed by
+Emacs by changing these files directly.  On X, the icon is compiled
+into the Emacs executable; see gnu.h in the source tree.  On MS
+Windows, see nt/icons/emacs.ico.)
+
+---
 ** Emacs now supports new configure options `--program-prefix',
 `--program-suffix' and `--program-transform-name' that affect the names of
 installed programs.
@@ -136,6 +145,10 @@ terminfo name, since term.el now supports color.
 
 ---
 ** Emacs Lisp source files are compressed by default if `gzip' is available.
+
+---
+** All images used in Emacs have been consolidated in etc/images and subdirs.
+See also the changes to `find-image', documented below.
 
 
 * Startup Changes in Emacs 22.1
@@ -437,6 +450,8 @@ is already active in Transient Mark mode.
 C-h e displays the *Messages* buffer.
 
 C-h d runs apropos-documentation.
+
+C-h r visits the Emacs Manual in Info.
 
 C-h followed by a control character is used for displaying files
     that do not change:
@@ -3034,6 +3049,8 @@ specified to etags, variables are tags also.
 The new keywords are def, newcommand, renewcommand, newenvironment and
 renewenvironment.
 
+**** In C and derived languages, etags creates tags for #undef
+
 *** Honor #line directives.
 
 When Etags parses an input file that contains C preprocessor's #line
@@ -3148,7 +3165,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 8.0.1.  There have been major changes since
+Upgraded to MH-E version 8.0.2.  There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:
@@ -3494,6 +3511,15 @@ For example, these two sequences of expressions behave identically:
 (defun PP (data) (insert (format "%S\n" data)))
 (ewoc-create 'PP "start\n\n" "\n" t)
 
+** Locate changes
+
+---
+*** By default, reverting the *Locate* buffer now just runs the last
+`locate' command back over again without offering to update the locate
+database (which normally only works if you have root privileges).  If
+you prefer the old behavior, set the new customizable option
+`locate-update-when-revert' to t.
+
 
 * Changes in Emacs 22.1 on non-free operating systems
 
@@ -3645,6 +3671,8 @@ deleting the part of subprocess output that matches the input.
 ** The variable `memory-full' now remains t until
 there is no longer a shortage of memory.
 
+** When Emacs receives a USR1 or USR2 signal, this generates
+an input event: usr1-signal or usr2-signal.
 
 * Lisp Changes in Emacs 22.1
 
@@ -4874,8 +4902,12 @@ of the display margins.
 *** `sit-for' can now be called with args (SECONDS &optional NODISP).
 
 +++
-*** `sit-for' called with a negative SECONDS value now forces an
-immediate redisplay even if input is pending.
+*** Iconifying or deiconifying a frame no longer makes sit-for return.
+
++++
+*** New function `redisplay' causes an immediate redisplay if no input is
+available, equivalent to (sit-for 0).  The call (redisplay t) forces
+an immediate redisplay even if input is pending.
 
 +++
 *** New function `force-window-update' can initiate a full redisplay of
@@ -5170,6 +5202,12 @@ It is like `remove-text-properties' except that it takes a list of
 property names as argument rather than a property list.
 
 ** Face changes
+
++++
+*** The variable `facemenu-unlisted-faces' has been removed.
+Emacs has a lot more faces than in the past, and nearly all of them
+needed to be excluded.  The new variable `facemenu-listed-faces' lists
+the faces to include in the face menu.
 
 +++
 *** The new face attribute condition `min-colors' can be used to tailor

@@ -147,7 +147,6 @@ To get the number of bytes, use `string-bytes'. */)
   register Lisp_Object val;
   register int i;
 
- retry:
   if (STRINGP (sequence))
     XSETFASTINT (val, SCHARS (sequence));
   else if (VECTORP (sequence))
@@ -176,18 +175,15 @@ To get the number of bytes, use `string-bytes'. */)
 	  QUIT;
 	}
 
-      if (!NILP (sequence))
-	wrong_type_argument (Qlistp, sequence);
+      CHECK_LIST_END (sequence, sequence);
 
       val = make_number (i);
     }
   else if (NILP (sequence))
     XSETFASTINT (val, 0);
   else
-    {
-      sequence = wrong_type_argument (Qsequencep, sequence);
-      goto retry;
-    }
+    val = wrong_type_argument (Qsequencep, sequence);
+
   return val;
 }
 
@@ -529,7 +525,8 @@ with the original. */)
     }
 
   if (!CONSP (arg) && !VECTORP (arg) && !STRINGP (arg))
-    arg = wrong_type_argument (Qsequencep, arg);
+    wrong_type_argument (Qsequencep, arg);
+
   return concat (1, &arg, CONSP (arg) ? Lisp_Cons : XTYPE (arg), 0);
 }
 
@@ -581,15 +578,13 @@ concat (nargs, args, target_type, last_special)
   else
     last_tail = Qnil;
 
-  /* Canonicalize each argument.  */
+  /* Check each argument.  */
   for (argnum = 0; argnum < nargs; argnum++)
     {
       this = args[argnum];
       if (!(CONSP (this) || NILP (this) || VECTORP (this) || STRINGP (this)
 	    || COMPILEDP (this) || BOOL_VECTOR_P (this)))
-	{
-	    args[argnum] = wrong_type_argument (Qsequencep, this);
-	}
+	wrong_type_argument (Qsequencep, this);
     }
 
   /* Compute total length in chars of arguments in RESULT_LEN.
@@ -616,8 +611,7 @@ concat (nargs, args, target_type, last_special)
 	    for (i = 0; i < len; i++)
 	      {
 		ch = XVECTOR (this)->contents[i];
-		if (! INTEGERP (ch))
-		  wrong_type_argument (Qintegerp, ch);
+		CHECK_NUMBER (ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
 		if (!SINGLE_BYTE_CHAR_P (XINT (ch)))
@@ -629,8 +623,7 @@ concat (nargs, args, target_type, last_special)
 	    for (; CONSP (this); this = XCDR (this))
 	      {
 		ch = XCAR (this);
-		if (! INTEGERP (ch))
-		  wrong_type_argument (Qintegerp, ch);
+		CHECK_NUMBER (ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
 		if (!SINGLE_BYTE_CHAR_P (XINT (ch)))
@@ -1252,9 +1245,7 @@ This function allows vectors as well as strings.  */)
   int from_char, to_char;
   int from_byte = 0, to_byte = 0;
 
-  if (! (STRINGP (string) || VECTORP (string)))
-    wrong_type_argument (Qarrayp, string);
-
+  CHECK_VECTOR_OR_STRING (string);
   CHECK_NUMBER (from);
 
   if (STRINGP (string))
@@ -1378,8 +1369,7 @@ substring_both (string, from, from_byte, to, to_byte)
   int size;
   int size_byte;
 
-  if (! (STRINGP (string) || VECTORP (string)))
-    wrong_type_argument (Qarrayp, string);
+  CHECK_VECTOR_OR_STRING (string);
 
   if (STRINGP (string))
     {
@@ -1419,8 +1409,7 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
   for (i = 0; i < num && !NILP (list); i++)
     {
       QUIT;
-      if (! CONSP (list))
-	wrong_type_argument (Qlistp, list);
+      CHECK_LIST_CONS (list, list);
       list = XCDR (list);
     }
   return list;
@@ -1441,16 +1430,12 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
      register Lisp_Object sequence, n;
 {
   CHECK_NUMBER (n);
-  while (1)
-    {
-      if (CONSP (sequence) || NILP (sequence))
-	return Fcar (Fnthcdr (n, sequence));
-      else if (STRINGP (sequence) || VECTORP (sequence)
-	       || BOOL_VECTOR_P (sequence) || CHAR_TABLE_P (sequence))
-	return Faref (sequence, n);
-      else
-	sequence = wrong_type_argument (Qsequencep, sequence);
-    }
+  if (CONSP (sequence) || NILP (sequence))
+    return Fcar (Fnthcdr (n, sequence));
+
+  /* Faref signals a "not array" error, so check here.  */
+  CHECK_ARRAY (sequence, Qsequencep);
+  return Faref (sequence, n);
 }
 
 DEFUN ("member", Fmember, Smember, 2, 2, 0,
@@ -1464,8 +1449,7 @@ The value is actually the tail of LIST whose car is ELT.  */)
   for (tail = list; !NILP (tail); tail = XCDR (tail))
     {
       register Lisp_Object tem;
-      if (! CONSP (tail))
-	wrong_type_argument (Qlistp, list);
+      CHECK_LIST_CONS (tail, list);
       tem = XCAR (tail);
       if (! NILP (Fequal (elt, tem)))
 	return tail;
@@ -1498,9 +1482,7 @@ whose car is ELT.  */)
       QUIT;
     }
 
-  if (!CONSP (list) && !NILP (list))
-    list = wrong_type_argument (Qlistp, list);
-
+  CHECK_LIST (list);
   return list;
 }
 
@@ -1511,8 +1493,6 @@ Elements of LIST that are not conses are ignored.  */)
      (key, list)
      Lisp_Object key, list;
 {
-  Lisp_Object result;
-
   while (1)
     {
       if (!CONSP (list)
@@ -1536,14 +1516,7 @@ Elements of LIST that are not conses are ignored.  */)
       QUIT;
     }
 
-  if (CONSP (list))
-    result = XCAR (list);
-  else if (NILP (list))
-    result = Qnil;
-  else
-    result = wrong_type_argument (Qlistp, list);
-
-  return result;
+  return CAR (list);
 }
 
 /* Like Fassq but never report an error and do not allow quits.
@@ -1558,7 +1531,7 @@ assq_no_quit (key, list)
 	     || !EQ (XCAR (XCAR (list)), key)))
     list = XCDR (list);
 
-  return CONSP (list) ? XCAR (list) : Qnil;
+  return CAR_SAFE (list);
 }
 
 DEFUN ("assoc", Fassoc, Sassoc, 2, 2, 0,
@@ -1567,7 +1540,7 @@ The value is actually the first element of LIST whose car equals KEY.  */)
      (key, list)
      Lisp_Object key, list;
 {
-  Lisp_Object result, car;
+  Lisp_Object car;
 
   while (1)
     {
@@ -1595,14 +1568,7 @@ The value is actually the first element of LIST whose car equals KEY.  */)
       QUIT;
     }
 
-  if (CONSP (list))
-    result = XCAR (list);
-  else if (NILP (list))
-    result = Qnil;
-  else
-    result = wrong_type_argument (Qlistp, list);
-
-  return result;
+  return CAR (list);
 }
 
 DEFUN ("rassq", Frassq, Srassq, 2, 2, 0,
@@ -1612,8 +1578,6 @@ The value is actually the first element of LIST whose cdr is KEY.  */)
      register Lisp_Object key;
      Lisp_Object list;
 {
-  Lisp_Object result;
-
   while (1)
     {
       if (!CONSP (list)
@@ -1637,14 +1601,7 @@ The value is actually the first element of LIST whose cdr is KEY.  */)
       QUIT;
     }
 
-  if (NILP (list))
-    result = Qnil;
-  else if (CONSP (list))
-    result = XCAR (list);
-  else
-    result = wrong_type_argument (Qlistp, list);
-
-  return result;
+  return CAR (list);
 }
 
 DEFUN ("rassoc", Frassoc, Srassoc, 2, 2, 0,
@@ -1653,7 +1610,7 @@ The value is actually the first element of LIST whose cdr equals KEY.  */)
      (key, list)
      Lisp_Object key, list;
 {
-  Lisp_Object result, cdr;
+  Lisp_Object cdr;
 
   while (1)
     {
@@ -1681,14 +1638,7 @@ The value is actually the first element of LIST whose cdr equals KEY.  */)
       QUIT;
     }
 
-  if (CONSP (list))
-    result = XCAR (list);
-  else if (NILP (list))
-    result = Qnil;
-  else
-    result = wrong_type_argument (Qlistp, list);
-
-  return result;
+  return CAR (list);
 }
 
 DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
@@ -1708,8 +1658,7 @@ to be sure of changing the value of `foo'.  */)
   prev = Qnil;
   while (!NILP (tail))
     {
-      if (! CONSP (tail))
-	wrong_type_argument (Qlistp, list);
+      CHECK_LIST_CONS (tail, list);
       tem = XCAR (tail);
       if (EQ (elt, tem))
 	{
@@ -1831,8 +1780,7 @@ to be sure of changing the value of `foo'.  */)
 
       for (tail = seq, prev = Qnil; !NILP (tail); tail = XCDR (tail))
 	{
-	  if (!CONSP (tail))
-	    wrong_type_argument (Qlistp, seq);
+	  CHECK_LIST_CONS (tail, seq);
 
 	  if (!NILP (Fequal (elt, XCAR (tail))))
 	    {
@@ -1864,8 +1812,7 @@ Return the reversed list.  */)
   while (!NILP (tail))
     {
       QUIT;
-      if (! CONSP (tail))
-	wrong_type_argument (Qlistp, list);
+      CHECK_LIST_CONS (tail, list);
       next = XCDR (tail);
       Fsetcdr (tail, prev);
       prev = tail;
@@ -1887,8 +1834,7 @@ See also the function `nreverse', which is used more often.  */)
       QUIT;
       new = Fcons (XCAR (list), new);
     }
-  if (!NILP (list))
-    wrong_type_argument (Qconsp, list);
+  CHECK_LIST_END (list, list);
   return new;
 }
 
@@ -2012,8 +1958,7 @@ one of the properties on the list.  */)
 	QUIT;
     }
 
-  if (!NILP (tail))
-    wrong_type_argument (Qlistp, prop);
+  CHECK_LIST_END (tail, prop);
 
   return Qnil;
 }
@@ -2129,8 +2074,7 @@ one of the properties on the list.  */)
       QUIT;
     }
 
-  if (!NILP (tail))
-    wrong_type_argument (Qlistp, prop);
+  CHECK_LIST_END (tail, prop);
 
   return Qnil;
 }
@@ -2344,7 +2288,6 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
      Lisp_Object array, item;
 {
   register int size, index, charval;
- retry:
   if (VECTORP (array))
     {
       register Lisp_Object *p = XVECTOR (array)->contents;
@@ -2408,10 +2351,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	}
     }
   else
-    {
-      array = wrong_type_argument (Qarrayp, array);
-      goto retry;
-    }
+    wrong_type_argument (Qarrayp, array);
   return array;
 }
 
@@ -3042,8 +2982,7 @@ usage: (nconc &rest LISTS)  */)
 
       if (argnum + 1 == nargs) break;
 
-      if (!CONSP (tem))
-	tem = wrong_type_argument (Qlistp, tem);
+      CHECK_LIST_CONS (tem, tem);
 
       while (CONSP (tem))
 	{

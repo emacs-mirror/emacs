@@ -88,10 +88,11 @@ will get @file{/u2/emacs/lisp/simple.el}.  Alternatively, you can use
 @kbd{M-@key{DEL}} to kill the directory names you don't want
 (@pxref{Words}).
 
-  You can kill it the entire default with @kbd{C-a C-k}, but there's
-no need.  You can simply ignore it and give an absolute file name
-starting with a slash or a tilde after the default directory.  For
-example, to specify @file{/etc/termcap}, just type that name:
+  You can kill the entire default with @kbd{C-a C-k}, but there's no
+need to do that.  It's easier to ignore the default, and enter an
+absolute file name starting with a slash or a tilde after the default
+directory.  For example, to specify @file{/etc/termcap}, just type
+that name:
 
 @example
 Find File: /u2/emacs/src//etc/termcap
@@ -192,7 +193,7 @@ a list of the possible completions at any time.
 command, so it provides a list of all Emacs command names for
 completion candidates.  The completion keys match the minibuffer text
 against these candidates, find any additional name characters implied
-by the the text already present in the minibuffer, and add those
+by the text already present in the minibuffer, and add those
 characters.  This makes it possible to type @kbd{M-x ins @key{SPC} b
 @key{RET}} instead of @kbd{M-x insert-buffer @key{RET}}, for example.
 

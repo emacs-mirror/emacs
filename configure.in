@@ -1500,7 +1500,7 @@ AC_DEFUN([PKG_CHECK_MODULES], [
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
         AC_MSG_CHECKING(for $2)
 
-        if $PKG_CONFIG --exists "$2" ; then
+        if $PKG_CONFIG --exists "$2" 2> /dev/null; then
             AC_MSG_RESULT(yes)
             succeeded=yes
 

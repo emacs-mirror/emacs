@@ -1199,8 +1199,9 @@ Variable name? @point{}
 If the user then types @kbd{fill-p @key{RET}}, @code{read-variable}
 returns @code{fill-prefix}.
 
-This function is similar to @code{read-command}, but uses the
-predicate @code{user-variable-p} instead of @code{commandp}:
+In general, @code{read-variable} is similar to @code{read-command},
+but uses the predicate @code{user-variable-p} instead of
+@code{commandp}:
 
 @cindex @code{user-variable-p} example
 @example
@@ -1237,7 +1238,7 @@ value of @var{existing} is neither @code{nil} nor @code{t}, then
 @var{existing} is @code{nil}, then the name of a nonexistent file is
 acceptable.
 
-The function @code{read-file-name} uses
+@code{read-file-name} uses
 @code{minibuffer-local-filename-completion-map} as the keymap if
 @var{existing} is @code{nil}, and uses
 @code{minibuffer-local-must-match-filename-map} if @var{existing} is
@@ -1834,7 +1835,6 @@ minibuffer.  If no minibuffer is active, it returns @code{nil}.
 @end defun
 
 @defun minibuffer-prompt-end
-@tindex minibuffer-prompt-end
 This function returns the current
 position of the end of the minibuffer prompt, if a minibuffer is
 current.  Otherwise, it returns the minimum valid buffer position.
@@ -1846,7 +1846,6 @@ prompt, if a minibuffer is current.  Otherwise, it returns zero.
 @end defun
 
 @defun minibuffer-contents
-@tindex minibuffer-contents
 This function returns the editable
 contents of the minibuffer (that is, everything except the prompt) as
 a string, if a minibuffer is current.  Otherwise, it returns the
@@ -1854,20 +1853,17 @@ entire contents of the current buffer.
 @end defun
 
 @defun minibuffer-contents-no-properties
-@tindex minibuffer-contents-no-properties
 This is like @code{minibuffer-contents}, except that it does not copy text
 properties, just the characters themselves.  @xref{Text Properties}.
 @end defun
 
 @defun minibuffer-completion-contents
-@tindex minibuffer-completion-contents
 This is like @code{minibuffer-contents}, except that it returns only
 the contents before point.  That is the part that completion commands
 operate on.  @xref{Minibuffer Completion}.
 @end defun
 
 @defun delete-minibuffer-contents
-@tindex delete-minibuffer-contents
 This function erases the editable contents of the minibuffer (that is,
 everything except the prompt), if a minibuffer is current.  Otherwise,
 it erases the entire current buffer.

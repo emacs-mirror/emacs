@@ -461,7 +461,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 		     input_method)
      int no_switch_frame, ascii_required, error_nonascii, input_method;
 {
-  volatile register Lisp_Object val, delayed_switch_frame;
+  Lisp_Object val, delayed_switch_frame;
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -486,7 +486,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
      switch-frame events will read it and process it.  */
   if (no_switch_frame
       && EVENT_HAS_PARAMETERS (val)
-      && EQ (EVENT_HEAD (val), Qswitch_frame))
+      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (val)), Qswitch_frame))
     {
       delayed_switch_frame = val;
       goto retry;
@@ -1371,7 +1371,6 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   struct buffer *b = 0;
-  int bpos;
   int continue_reading_p;
   /* Nonzero if reading an entire buffer.  */
   int whole_buffer = 0;
@@ -1381,7 +1380,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   if (MARKERP (readcharfun))
     {
       if (NILP (start))
-	start = readcharfun;	
+	start = readcharfun;
     }
 
   if (BUFFERP (readcharfun))
@@ -1404,8 +1403,8 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 
   /* Try to ensure sourcename is a truename, except whilst preloading. */
   if (NILP (Vpurify_flag)
-      && !NILP (sourcename) && Ffile_name_absolute_p (sourcename)
-      && (!NILP (Ffboundp (Qfile_truename))))
+      && !NILP (sourcename) && !NILP (Ffile_name_absolute_p (sourcename))
+      && !NILP (Ffboundp (Qfile_truename)))
     sourcename = call1 (Qfile_truename, sourcename) ;
 
   LOADHIST_ATTACH (sourcename);
@@ -1514,7 +1513,7 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
       first_sexp = 0;
     }
 
-  build_load_history (sourcename, 
+  build_load_history (sourcename,
 		      stream || whole_buffer);
 
   UNGCPRO;
@@ -3252,12 +3251,11 @@ Lisp_Object
 check_obarray (obarray)
      Lisp_Object obarray;
 {
-  while (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
+  if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
     {
       /* If Vobarray is now invalid, force it to be valid.  */
       if (EQ (Vobarray, obarray)) Vobarray = initial_obarray;
-
-      obarray = wrong_type_argument (Qvectorp, obarray);
+      wrong_type_argument (Qvectorp, obarray);
     }
   return obarray;
 }

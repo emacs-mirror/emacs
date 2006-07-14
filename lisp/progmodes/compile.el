@@ -223,10 +223,15 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 \\(.+\\):\\([0-9]+\\)\\(?:\\(:\\)\\|\\(,\\)\\)?" 1 2 nil (3 . 4))
 
     (gnu
+     ;; I have no idea what this first line is supposed to match, but it
+     ;; makes things ambiguous with output such as "foo:344:50:blabla" since
+     ;; the "foo" part can match this first line (in which case the file
+     ;; name as "344").  To avoid this, we disallow filenames exclusively
+     ;; composed of digits.  --Stef
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\)?\
-\\([/.]*[a-zA-Z]:?[^ \t\n:]*\\|{standard input}\\): ?\
-\\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
-\\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?:\
+\\([0-9]*[^0-9\n].*?\\): ?\
+\\([0-9]+\\)\\(?:\\([.:]\\)\\([0-9]+\\)\\)?\
+\\(?:-\\([0-9]+\\)?\\(?:\\3\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
  *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|instantiated from\\)\\)?"
      1 (2 . 5) (4 . 6) (7 . 8))
@@ -293,7 +298,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 \\(?:: \\(warning:\\)?\\|$\\| ),\\)" 1 2 nil (3))
 
     (gcov-file
-     "^ *-: *\\(0\\):Source:\\(.+\\)$" 
+     "^ *-: *\\(0\\):Source:\\(.+\\)$"
      2 1 nil 0 nil
      (1 compilation-line-face prepend) (2 compilation-info-face prepend))
     (gcov-header
@@ -312,11 +317,11 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      (1 compilation-line-face prepend))
     (gcov-called-line
      "^ *\\([0-9]+\\): *\\([0-9]+\\):.*$"
-     nil 2 nil 0 nil 
+     nil 2 nil 0 nil
      (0 'default t)
      (1 compilation-info-face prepend) (2 compilation-line-face prepend))
     (gcov-never-called
-     "^ *\\(#####\\): *\\([0-9]+\\):.*$" 
+     "^ *\\(#####\\): *\\([0-9]+\\):.*$"
      nil 2 nil 2 nil
      (0 'default t)
      (1 compilation-error-face prepend) (2 compilation-line-face prepend))
@@ -400,7 +405,10 @@ you may also want to change `compilation-page-delimiter'.")
   "Value of `page-delimiter' in Compilation mode.")
 
 (defvar compilation-mode-font-lock-keywords
-   '(;; configure output lines.
+   '(;; Don't highlight this as a compilation message.
+     ("^Compilation started at.*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t))
+     ;; configure output lines.
      ("^[Cc]hecking \\(?:[Ff]or \\|[Ii]f \\|[Ww]hether \\(?:to \\)?\\)?\\(.+\\)\\.\\.\\. *\\(?:(cached) *\\)?\\(\\(yes\\(?: .+\\)?\\)\\|no\\|\\(.*\\)\\)$"
       (1 font-lock-variable-name-face)
       (2 (compilation-face '(4 . 3))))
@@ -408,9 +416,11 @@ you may also want to change `compilation-page-delimiter'.")
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
      (" --?o\\(?:utfile\\|utput\\)?[= ]?\\(\\S +\\)" . 1)
-     ("^Compilation \\(finished\\)"
+     ("^Compilation \\(finished\\).*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face))
-     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?"
+     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-error-face)
       (2 compilation-error-face nil t)))
    "Additional things to highlight in Compilation mode.
@@ -1791,49 +1801,51 @@ If DIRECTORY. is nil, that means use `default-directory'.
 If FILENAME is not found at all, ask the user where to find it.
 Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
   (or formats (setq formats '("%s")))
-  (save-excursion
-    (let ((dirs compilation-search-path)
-	  (spec-dir (if directory
-			(expand-file-name directory)
-		      default-directory))
-	  buffer thisdir fmts name)
-      (if (file-name-absolute-p filename)
-	  ;; The file name is absolute.  Use its explicit directory as
-	  ;; the first in the search path, and strip it from FILENAME.
-	  (setq filename (abbreviate-file-name (expand-file-name filename))
-		dirs (cons (file-name-directory filename) dirs)
-		filename (file-name-nondirectory filename)))
-      ;; Now search the path.
-      (while (and dirs (null buffer))
-	(setq thisdir (or (car dirs) spec-dir)
-	      fmts formats)
-	;; For each directory, try each format string.
-	(while (and fmts (null buffer))
-	  (setq name (expand-file-name (format (car fmts) filename) thisdir)
-		buffer (and (file-exists-p name)
-			    (find-file-noselect name))
-		fmts (cdr fmts)))
-	(setq dirs (cdr dirs)))
-      (or buffer
-	  ;; The file doesn't exist.  Ask the user where to find it.
-	  (let ((pop-up-windows t))
-	    (compilation-set-window (display-buffer (marker-buffer marker))
-				    marker)
-	    (let ((name (expand-file-name
-			 (read-file-name
-			  (format "Find this %s in (default %s): "
-				  compilation-error filename)
-			  spec-dir filename t))))
-	      (if (file-directory-p name)
-		  (setq name (expand-file-name filename name)))
-	      (setq buffer (and (file-exists-p name)
-				(find-file name))))))
-      ;; Make intangible overlays tangible.
-      (mapcar (function (lambda (ov)
-			  (when (overlay-get ov 'intangible)
-			    (overlay-put ov 'intangible nil))))
-	      (overlays-in (point-min) (point-max)))
-      buffer)))
+  (let ((dirs compilation-search-path)
+        (spec-dir (if directory
+                      (expand-file-name directory)
+                    default-directory))
+        buffer thisdir fmts name)
+    (if (file-name-absolute-p filename)
+        ;; The file name is absolute.  Use its explicit directory as
+        ;; the first in the search path, and strip it from FILENAME.
+        (setq filename (abbreviate-file-name (expand-file-name filename))
+              dirs (cons (file-name-directory filename) dirs)
+              filename (file-name-nondirectory filename)))
+    ;; Now search the path.
+    (while (and dirs (null buffer))
+      (setq thisdir (or (car dirs) spec-dir)
+            fmts formats)
+      ;; For each directory, try each format string.
+      (while (and fmts (null buffer))
+        (setq name (expand-file-name (format (car fmts) filename) thisdir)
+              buffer (and (file-exists-p name)
+                          (find-file-noselect name))
+              fmts (cdr fmts)))
+      (setq dirs (cdr dirs)))
+    (or buffer
+        ;; The file doesn't exist.  Ask the user where to find it.
+        (save-excursion          ;This save-excursion is probably not right.
+          (let ((pop-up-windows t))
+            (compilation-set-window (display-buffer (marker-buffer marker))
+                                    marker)
+            (let ((name (expand-file-name
+                         (read-file-name
+                          (format "Find this %s in (default %s): "
+                                  compilation-error filename)
+                          spec-dir filename t))))
+              (if (file-directory-p name)
+                  (setq name (expand-file-name filename name)))
+              (setq buffer (and (file-exists-p name)
+                                (find-file-noselect name)))))))
+    ;; Make intangible overlays tangible.
+    ;; This is very weird: it's not even clear which is the current buffer,
+    ;; so the code below can't be expected to DTRT here.  --Stef
+    (mapcar (function (lambda (ov)
+                        (when (overlay-get ov 'intangible)
+                          (overlay-put ov 'intangible nil))))
+            (overlays-in (point-min) (point-max)))
+    buffer))
 
 (defun compilation-get-file-structure (file &optional fmt)
   "Retrieve FILE's file-structure or create a new one.

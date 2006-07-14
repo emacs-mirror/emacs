@@ -934,11 +934,12 @@ Else, add CODE to the process' sentinel."
   (let ((proc (get-buffer-process (current-buffer))))
     (cond
      ;; If there's no background process, just execute the code.
-     ((null proc) (eval code))
-     ;; If the background process has exited, reap it and try again
-     ((eq (process-status proc) 'exit)
-      (delete-process proc)
-      (vc-exec-after code))
+     ;; We used to explicitly call delete-process on exited processes,
+     ;; but this led to timing problems causing process output to be
+     ;; lost.  Terminated processes get deleted automatically
+     ;; anyway. -- cyd
+     ((or (null proc) (eq (process-status proc) 'exit))
+      (eval code))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
       (let ((sentinel (process-sentinel proc)))
@@ -1846,7 +1847,7 @@ actually call the backend, but performs a local diff."
     (if (and file-rev1 file-rev2)
         (let ((status
                (if (eq vc-diff-knows-L 'no)
-                   (apply 'vc-do-command "*vc-diff*" 1 "diff"
+                   (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
                           (append (vc-switches nil 'diff)
                                   (list (file-relative-name file-rev1)
                                         (file-relative-name file-rev2))))
@@ -1864,7 +1865,7 @@ actually call the backend, but performs a local diff."
           (if (eq status 2)
               (if (not vc-diff-knows-L)
                   (setq vc-diff-knows-L 'no
-                        status (apply 'vc-do-command "*vc-diff*" 1 "diff"
+                        status (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
                                       (append 
                                        (vc-switches nil 'diff)
                                        (list (file-relative-name file-rev1)
@@ -2446,9 +2447,9 @@ If FOCUS-REV is non-nil, leave the point at that revision."
          (vc-call print-log file)
          (set-buffer "*vc*"))))
     (pop-to-buffer (current-buffer))
-    (log-view-mode)
     (vc-exec-after
      `(let ((inhibit-read-only t))
+    	(log-view-mode)
 	(goto-char (point-max)) (forward-line -1)
 	(while (looking-at "=*\n")
 	  (delete-char (- (match-end 0) (match-beginning 0)))
@@ -2456,7 +2457,7 @@ If FOCUS-REV is non-nil, leave the point at that revision."
 	(goto-char (point-min))
 	(if (looking-at "[\b\t\n\v\f\r ]+")
 	    (delete-char (- (match-end 0) (match-beginning 0))))
-	(shrink-window-if-larger-than-buffer)
+	;; (shrink-window-if-larger-than-buffer)
 	;; move point to the log entry for the current version
 	(vc-call-backend ',(vc-backend file)
 			 'show-log-entry

@@ -3096,7 +3096,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.x->scroll_bar_top_shadow_pixel = -1;
   f->output_data.x->scroll_bar_bottom_shadow_pixel = -1;
 #endif /* USE_TOOLKIT_SCROLL_BARS */
-  record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
     = x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title",
@@ -3105,6 +3104,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f->icon_name = Qnil;
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
+
+  /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
+  record_unwind_protect (unwind_create_frame, frame);
 #if GLYPH_DEBUG
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;

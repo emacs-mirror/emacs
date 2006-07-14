@@ -840,7 +840,6 @@ The function returns @var{process}.
 @end defun
 
 @defun process-running-child-p process
-@tindex process-running-child-p process
 This function will tell you whether a subprocess has given control of
 its terminal to its own child process.  The value is @code{t} if this is
 true, or if Emacs cannot tell; it is @code{nil} if Emacs can be certain
@@ -1452,12 +1451,10 @@ non-@code{nil}, says that Emacs should ask for confirmation before
 exiting and thus killing that process.  The default for the query flag
 is @code{t}, meaning @emph{do} query.
 
-@tindex process-query-on-exit-flag
 @defun process-query-on-exit-flag process
 This returns the query flag of @var{process}.
 @end defun
 
-@tindex set-process-query-on-exit-flag
 @defun set-process-query-on-exit-flag process flag
 This function sets the query flag of @var{process} to @var{flag}.  It
 returns @var{flag}.

@@ -291,7 +291,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
     (define-key map [byte-compile]
       '("Byte-compile This File" . emacs-lisp-byte-compile))
     (define-key map [separator-eval] '("--"))
-    (define-key map [eval-buffer] '("Evaluate Buffer" . eval-current-buffer))
+    (define-key map [eval-buffer] '("Evaluate Buffer" . eval-buffer))
     (define-key map [eval-region] '("Evaluate Region" . eval-region))
     (define-key map [eval-sexp] '("Evaluate Last S-expression" . eval-last-sexp))
     (define-key map [separator-format] '("--"))

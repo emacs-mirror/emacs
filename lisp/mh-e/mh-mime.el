@@ -415,7 +415,9 @@ do the work."
         (let ((initial-size (mh-truncate-log-buffer)))
           (apply 'call-process
                  (expand-file-name command mh-progs) nil t nil
-                 (mh-list-to-string (list folder msg "-auto")))
+                 (mh-list-to-string (list folder msg "-auto"
+                                          (if (not (mh-variant-p 'nmh))
+                                              "-store"))))
           (if (> (buffer-size) initial-size)
               (save-window-excursion
                 (switch-to-buffer-other-window mh-log-buffer)

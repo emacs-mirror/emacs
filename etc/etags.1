@@ -13,7 +13,7 @@ etags, ctags \- generate tag file for Emacs, vi
 .SH SYNOPSIS
 .hy 0
 .na
-\fBetags\fP [\|\-aCDGImRVh\|] [\|\-i \fIfile\fP\|] [\|\-l \fIlanguage\fP\|]
+\fBetags\fP [\|\-aCDGIRVh\|] [\|\-i \fIfile\fP\|] [\|\-l \fIlanguage\fP\|]
 .if n .br
 [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 [\|\-\-parse\-stdin=\fIfile\fP\|]
@@ -26,7 +26,7 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
 
-\fBctags\fP [\|\-aCdgImRVh\|] [\|\-BtTuvwx\|] [\|\-l \fIlanguage\fP\|]
+\fBctags\fP [\|\-aCdgIRVh\|] [\|\-BtTuvwx\|] [\|\-l \fIlanguage\fP\|]
 .if n .br
 [\|\-o \fItagfile\fP\|] [\|\-r \fIregexp\fP\|]
 [\|\-\-parse\-stdin=\fIfile\fP\|]
@@ -133,11 +133,11 @@ detection of language based on the file name.  The `none'
 language may be used to disable language parsing altogether; only
 regexp matching is done in this case (see the \fB\-\-regex\fP option).
 .TP
-.B \-m, \-\-members
+.B \-\-members
 Create tag entries for variables that are members of structure-like
 constructs in C++, Objective C, Java.
 .TP
-.B \-M, \-\-no\-members
+.B \-\-no\-members
 Do not tag member variables.  This is the default behavior.
 .TP
 .B \-\-packages\-only

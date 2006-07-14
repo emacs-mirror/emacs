@@ -41,7 +41,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.17";
+char pot_etags_version[] = "@(#) pot revision number is 17.18";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -2457,6 +2457,7 @@ extern,		0,			st_C_extern
 enum,		0,			st_C_enum
 typedef,	0,			st_C_typedef
 define,		0,			st_C_define
+undef,		0,			st_C_define
 operator,	C_PLPL,			st_C_operator
 template,	0,			st_C_template
 # DEFUN used in emacs, the next three used in glibc (SYSCALL only for mach).
@@ -2475,10 +2476,10 @@ and replace lines between %< and %> with its output, then:
 /*%<*/
 /* C code produced by gperf version 3.0.1 */
 /* Command-line: gperf -m 5  */
-/* Computed positions: -k'1-2' */
+/* Computed positions: -k'2-3' */
 
 struct C_stab_entry { char *name; int c_ext; enum sym_type type; };
-/* maximum key range = 31, duplicates = 0 */
+/* maximum key range = 33, duplicates = 0 */
 
 #ifdef __GNUC__
 __inline
@@ -2494,34 +2495,45 @@ hash (str, len)
 {
   static unsigned char asso_values[] =
     {
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34,  1, 34, 34, 34, 14, 14,
-      34, 34, 34, 34, 34, 34, 34, 34, 13, 34,
-      13, 34, 34, 12, 34, 34, 34, 34, 34, 11,
-      34, 34, 34, 34, 34,  8, 34, 11, 34, 12,
-      11,  0,  1, 34,  7,  0, 34, 34, 11,  9,
-       0,  4,  0, 34,  7,  4, 14, 21, 34, 15,
-       0,  2, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34, 34, 34, 34, 34,
-      34, 34, 34, 34, 34, 34
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 15,
+      14, 35, 35, 35, 35, 35, 35, 35, 14, 35,
+      35, 35, 35, 12, 13, 35, 35, 35, 35, 12,
+      35, 35, 35, 35, 35,  1, 35, 16, 35,  6,
+      23,  0,  0, 35, 22,  0, 35, 35,  5,  0,
+       0, 15,  1, 35,  6, 35,  8, 19, 35, 16,
+       4,  5, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
+      35, 35, 35, 35, 35, 35
     };
-  return len + asso_values[(unsigned char)str[1]] + asso_values[(unsigned char)str[0]];
+  register int hval = len;
+
+  switch (hval)
+    {
+      default:
+        hval += asso_values[(unsigned char)str[2]];
+      /*FALLTHROUGH*/
+      case 2:
+        hval += asso_values[(unsigned char)str[1]];
+        break;
+    }
+  return hval;
 }
 
 static struct C_stab_entry *
@@ -2531,46 +2543,48 @@ in_word_set (str, len)
 {
   enum
     {
-      TOTAL_KEYWORDS = 31,
+      TOTAL_KEYWORDS = 32,
       MIN_WORD_LENGTH = 2,
       MAX_WORD_LENGTH = 15,
-      MIN_HASH_VALUE = 3,
-      MAX_HASH_VALUE = 33
+      MIN_HASH_VALUE = 2,
+      MAX_HASH_VALUE = 34
     };
 
   static struct C_stab_entry wordlist[] =
     {
-      {""}, {""}, {""},
+      {""}, {""},
       {"if",		0,			st_C_ignore},
-      {"enum",		0,			st_C_enum},
+      {""},
       {"@end",		0,			st_C_objend},
+      {"union",		0,			st_C_struct},
+      {"define",		0,			st_C_define},
+      {"import",		(C_JAVA & !C_PLPL),	st_C_ignore},
+      {"template",	0,			st_C_template},
+      {"operator",	C_PLPL,			st_C_operator},
+      {"@interface",	0,			st_C_objprot},
+      {"implements",	(C_JAVA & !C_PLPL),	st_C_javastruct},
+      {"friend",		C_PLPL,			st_C_ignore},
+      {"typedef",	0,			st_C_typedef},
+      {"return",		0,			st_C_ignore},
+      {"@implementation",0,			st_C_objimpl},
+      {"@protocol",	0,			st_C_objprot},
+      {"interface",	(C_JAVA & !C_PLPL),	st_C_struct},
       {"extern",		0,			st_C_extern},
       {"extends",	(C_JAVA & !C_PLPL),	st_C_javastruct},
-      {"for",		0,			st_C_ignore},
-      {"interface",	(C_JAVA & !C_PLPL),	st_C_struct},
-      {"@protocol",	0,			st_C_objprot},
-      {"@interface",	0,			st_C_objprot},
-      {"operator",	C_PLPL,			st_C_operator},
-      {"return",		0,			st_C_ignore},
-      {"friend",		C_PLPL,			st_C_ignore},
-      {"import",		(C_JAVA & !C_PLPL),	st_C_ignore},
-      {"@implementation",0,			st_C_objimpl},
-      {"define",		0,			st_C_define},
-      {"package",	(C_JAVA & !C_PLPL),	st_C_ignore},
-      {"implements",	(C_JAVA & !C_PLPL),	st_C_javastruct},
-      {"namespace",	C_PLPL,			st_C_struct},
-      {"domain",		C_STAR,			st_C_struct},
-      {"template",	0,			st_C_template},
-      {"typedef",	0,			st_C_typedef},
       {"struct",		0,			st_C_struct},
+      {"domain",		C_STAR,			st_C_struct},
       {"switch",		0,			st_C_ignore},
-      {"union",		0,			st_C_struct},
-      {"while",		0,			st_C_ignore},
+      {"enum",		0,			st_C_enum},
+      {"for",		0,			st_C_ignore},
+      {"namespace",	C_PLPL,			st_C_struct},
       {"class",		0,			st_C_class},
+      {"while",		0,			st_C_ignore},
+      {"undef",		0,			st_C_define},
+      {"package",	(C_JAVA & !C_PLPL),	st_C_ignore},
       {"__attribute__",	0,			st_C_attribute},
       {"SYSCALL",	0,			st_C_gnumacro},
-      {"PSEUDO",		0,			st_C_gnumacro},
       {"ENTRY",		0,			st_C_gnumacro},
+      {"PSEUDO",		0,			st_C_gnumacro},
       {"DEFUN",		0,			st_C_gnumacro}
     };
 
@@ -6786,8 +6800,11 @@ absolute_filename (file, dir)
       slashp = etags_strchr (slashp + 1, '/');
     }
 
-  if (res[0] == '\0')
-    return savestr ("/");
+  if (res[0] == '\0')		/* just a safety net: should never happen */
+    {
+      free (res);
+      return savestr ("/");
+    }
   else
     return res;
 }

@@ -9,7 +9,7 @@
 
 ;;;_* Usage
 ;;; Just type
-;;;   M-x eval-current-buffer
+;;;   M-x eval-buffer
 ;;;   M-x lm-test-run
 
 

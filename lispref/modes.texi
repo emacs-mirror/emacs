@@ -502,7 +502,7 @@ the conventions listed above:
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\" ".   " st)
     (modify-syntax-entry ?\\ ".   " st)
-    ;; We add `p' so that M-c on 'hello' leads to 'Hello' rather than 'hello'.
+    ;; Add `p' so M-c on `hello' leads to `Hello', not `hello'.
     (modify-syntax-entry ?' "w p" st)
     st)
   "Syntax table used while in `text-mode'.")
@@ -517,8 +517,9 @@ the conventions listed above:
     (define-key map "\eS" 'center-paragraph)
     map)
   "Keymap for `text-mode'.
-Many other modes, such as `mail-mode', `outline-mode' and `indented-text-mode',
-inherit all the commands defined in this map.")
+Many other modes, such as Mail mode, Outline mode
+and Indented Text mode, inherit all the commands
+defined in this map.")
 @end group
 @end smallexample
 
@@ -1364,7 +1365,6 @@ characters are reserved for major modes.)
 implementing a mode in one self-contained definition.
 
 @defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args@dots{} body@dots{}
-@tindex define-minor-mode
 This macro defines a new minor mode whose name is @var{mode} (a
 symbol).  It defines a command named @var{mode} to toggle the minor
 mode, with @var{doc} as its documentation string.  It also defines a
@@ -2078,14 +2078,12 @@ top, just as it can have a mode line at the bottom.  The header line
 feature works just like the mode-line feature, except that it's
 controlled by different variables.
 
-@tindex header-line-format
 @defvar header-line-format
 This variable, local in every buffer, specifies how to display the
 header line, for windows displaying the buffer.  The format of the value
 is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
 @end defvar
 
-@tindex default-header-line-format
 @defvar default-header-line-format
 This variable holds the default @code{header-line-format} for buffers
 that do not override it.  This is the same as @code{(default-value

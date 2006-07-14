@@ -250,6 +250,7 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
   (interactive)
   (if goto-address-highlight-p
       (goto-address-fontify)))
+;;;###autoload(put 'goto-address 'safe-local-eval-function t)
 
 (provide 'goto-addr)
 

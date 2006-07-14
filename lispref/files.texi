@@ -194,7 +194,6 @@ When @code{view-file} is called interactively, it prompts for
 @var{filename}.
 @end deffn
 
-@tindex find-file-wildcards
 @defopt find-file-wildcards
 If this variable is non-@code{nil}, then the various @code{find-file}
 commands check for wildcard characters and visit all the files that
@@ -1728,7 +1727,6 @@ not an extension.
 Andrew Innes says that this
 
 @c @defvar directory-sep-char
-@c @tindex directory-sep-char
 This variable holds the character that Emacs normally uses to separate
 file name components.  The default value is @code{?/}, but on MS-Windows
 you can set it to @code{?\\}; then the functions that transform file names
@@ -2098,7 +2096,6 @@ The job of @code{make-temp-file} is to prevent two different users or
 two different jobs from trying to use the exact same file name.
 
 @defun make-temp-file prefix &optional dir-flag suffix
-@tindex make-temp-file
 This function creates a temporary file and returns its name.  Emacs
 creates the temporary file's name by adding to @var{prefix} some
 random characters that are different in each Emacs job.  The result is
@@ -2181,7 +2178,6 @@ should use @code{small-temporary-file-directory} first if that is
 non-@code{nil}.
 @end defvar
 
-@tindex small-temporary-file-directory
 @defvar small-temporary-file-directory
 This variable specifies the directory name for
 creating certain temporary files, which are likely to be small.
@@ -2203,7 +2199,7 @@ should compute the directory like this:
 @cindex completion, file name
 
   This section describes low-level subroutines for completing a file
-name.  For other completion functions, see @ref{Completion}.
+name.  For higher level functions, see @ref{Reading File Names}.
 
 @defun file-name-all-completions partial-filename directory
 This function returns a list of all possible completions for a file
@@ -2403,7 +2399,6 @@ This function returns a list of all versions of the file named
 @var{file} in directory @var{dirname}.  It is only available on VMS.
 @end defun
 
-@tindex file-expand-wildcards
 @defun file-expand-wildcards pattern &optional full
 This function expands the wildcard pattern @var{pattern}, returning
 a list of file names that match it.

@@ -301,8 +301,8 @@ alias chief-torturer "George W. Bush <bush@@whitehouse.gov>"
 @end example
 
 @noindent
-is correct.  Emacs will insert the address as @samp{"George W. Bush"
-<bush@@whitehouse.gov>}.
+is correct in @samp{.mailrc}.  Emacs will insert the address as
+@samp{"George W. Bush" <bush@@whitehouse.gov>}.
 
   Emacs also recognizes ``include'' commands in @samp{.mailrc} files.
 They look like this:
@@ -377,11 +377,11 @@ expansion as well.  Here's how to do that:
 
 @smallexample
 (add-hook 'mail-mode-hook
-          (lambda ()
-            (define-key
-              mail-mode-map [remap next-line] 'mail-abbrev-next-line)
-            (define-key
-              mail-mode-map [remap end-of-buffer] 'mail-abbrev-end-of-buffer)))
+    (lambda ()
+      (define-key
+        mail-mode-map [remap next-line] 'mail-abbrev-next-line)
+      (define-key
+        mail-mode-map [remap end-of-buffer] 'mail-abbrev-end-of-buffer)))
 @end smallexample
 
 @node Mail Mode

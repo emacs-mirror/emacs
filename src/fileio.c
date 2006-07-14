@@ -77,6 +77,7 @@ extern int errno;
 #include "charset.h"
 #include "coding.h"
 #include "window.h"
+#include "blockinput.h"
 #include "frame.h"
 #include "dispextern.h"
 
@@ -1388,7 +1389,9 @@ See also the function `substitute-in-file-name'.  */)
 	  bcopy ((char *) nm, o, p - nm);
 	  o [p - nm] = 0;
 
+	  BLOCK_INPUT;
 	  pw = (struct passwd *) getpwnam (o + 1);
+	  UNBLOCK_INPUT;
 	  if (pw)
 	    {
 	      newdir = (unsigned char *) pw -> pw_dir;
@@ -1919,7 +1922,9 @@ See also the function `substitute-in-file-name'.")
 	o[len] = 0;
 
 	/* Look up the user name. */
+	BLOCK_INPUT;
 	pw = (struct passwd *) getpwnam (o + 1);
+	UNBLOCK_INPUT;
 	if (!pw)
 	  error ("\"%s\" isn't a registered user", o + 1);
 
@@ -2113,10 +2118,11 @@ search_embedded_absfilename (nm, endp)
 	      /* If we have ~user and `user' exists, discard
 		 everything up to ~.  But if `user' does not exist, leave
 		 ~user alone, it might be a literal file name.  */
-	      if ((pw = getpwnam (o + 1)))
+	      BLOCK_INPUT;
+	      pw = getpwnam (o + 1);
+	      UNBLOCK_INPUT;
+	      if (pw)
 		return p;
-	      else
-		xfree (pw);
 	    }
 	  else
 	    return p;
@@ -5855,7 +5861,11 @@ static Lisp_Object
 do_auto_save_make_dir (dir)
      Lisp_Object dir;
 {
-  return call2 (Qmake_directory, dir, Qt);
+  Lisp_Object mode;
+
+  call2 (Qmake_directory, dir, Qt);
+  XSETFASTINT (mode, 0700);
+  return Fset_file_modes (dir, mode);
 }
 
 static Lisp_Object
@@ -6053,7 +6063,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	{
 	  /* If we are going to restore an old message,
 	     give time to read ours.  */
-	  sit_for (1, 0, 0, 0, 0);
+	  sit_for (make_number (1), 0, 0);
 	  restore_message ();
 	}
       else

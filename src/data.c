@@ -114,18 +114,13 @@ Lisp_Object
 wrong_type_argument (predicate, value)
      register Lisp_Object predicate, value;
 {
-  register Lisp_Object tem;
-  do
-    {
-      /* If VALUE is not even a valid Lisp object, abort here
-	 where we can get a backtrace showing where it came from.  */
-      if ((unsigned int) XGCTYPE (value) >= Lisp_Type_Limit)
-	abort ();
+  /* If VALUE is not even a valid Lisp object, abort here
+     where we can get a backtrace showing where it came from.  */
+  if ((unsigned int) XGCTYPE (value) >= Lisp_Type_Limit)
+    abort ();
 
-      value = Fsignal (Qwrong_type_argument, Fcons (predicate, Fcons (value, Qnil)));
-      tem = call1 (predicate, value);
-    }
-  while (NILP (tem));
+  Fsignal (Qwrong_type_argument, list2 (predicate, value));
+
   /* This function is marked as NO_RETURN, gcc would warn if it has a
      return statement or if falls off the function.  Other compilers
      warn if no return statement is present.  */
@@ -395,8 +390,7 @@ DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0,
      (object)
      Lisp_Object object;
 {
-  if (VECTORP (object) || STRINGP (object)
-      || CHAR_TABLE_P (object) || BOOL_VECTOR_P (object))
+  if (ARRAYP (object))
     return Qt;
   return Qnil;
 }
@@ -406,8 +400,7 @@ DEFUN ("sequencep", Fsequencep, Ssequencep, 1, 1, 0,
      (object)
      register Lisp_Object object;
 {
-  if (CONSP (object) || NILP (object) || VECTORP (object) || STRINGP (object)
-      || CHAR_TABLE_P (object) || BOOL_VECTOR_P (object))
+  if (CONSP (object) || NILP (object) || ARRAYP (object))
     return Qt;
   return Qnil;
 }
@@ -537,15 +530,7 @@ Lisp concepts such as car, cdr, cons cell and list.  */)
      (list)
      register Lisp_Object list;
 {
-  while (1)
-    {
-      if (CONSP (list))
-	return XCAR (list);
-      else if (EQ (list, Qnil))
-	return Qnil;
-      else
-	list = wrong_type_argument (Qlistp, list);
-    }
+  return CAR (list);
 }
 
 DEFUN ("car-safe", Fcar_safe, Scar_safe, 1, 1, 0,
@@ -553,10 +538,7 @@ DEFUN ("car-safe", Fcar_safe, Scar_safe, 1, 1, 0,
      (object)
      Lisp_Object object;
 {
-  if (CONSP (object))
-    return XCAR (object);
-  else
-    return Qnil;
+  return CAR_SAFE (object);
 }
 
 DEFUN ("cdr", Fcdr, Scdr, 1, 1, 0,
@@ -568,15 +550,7 @@ Lisp concepts such as cdr, car, cons cell and list.  */)
      (list)
      register Lisp_Object list;
 {
-  while (1)
-    {
-      if (CONSP (list))
-	return XCDR (list);
-      else if (EQ (list, Qnil))
-	return Qnil;
-      else
-	list = wrong_type_argument (Qlistp, list);
-    }
+  return CDR (list);
 }
 
 DEFUN ("cdr-safe", Fcdr_safe, Scdr_safe, 1, 1, 0,
@@ -584,10 +558,7 @@ DEFUN ("cdr-safe", Fcdr_safe, Scdr_safe, 1, 1, 0,
      (object)
      Lisp_Object object;
 {
-  if (CONSP (object))
-    return XCDR (object);
-  else
-    return Qnil;
+  return CDR_SAFE (object);
 }
 
 DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
@@ -595,9 +566,7 @@ DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
      (cell, newcar)
      register Lisp_Object cell, newcar;
 {
-  if (!CONSP (cell))
-    cell = wrong_type_argument (Qconsp, cell);
-
+  CHECK_CONS (cell);
   CHECK_IMPURE (cell);
   XSETCAR (cell, newcar);
   return newcar;
@@ -608,9 +577,7 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
      (cell, newcdr)
      register Lisp_Object cell, newcdr;
 {
-  if (!CONSP (cell))
-    cell = wrong_type_argument (Qconsp, cell);
-
+  CHECK_CONS (cell);
   CHECK_IMPURE (cell);
   XSETCDR (cell, newcdr);
   return newcdr;
@@ -765,8 +732,7 @@ function with `&rest' args, or `unevalled' for a special form.  */)
      Lisp_Object subr;
 {
   short minargs, maxargs;
-  if (!SUBRP (subr))
-    wrong_type_argument (Qsubrp, subr);
+  CHECK_SUBR (subr);
   minargs = XSUBR (subr)->min_args;
   maxargs = XSUBR (subr)->max_args;
   if (maxargs == MANY)
@@ -784,8 +750,7 @@ SUBR must be a built-in function.  */)
      Lisp_Object subr;
 {
   const char *name;
-  if (!SUBRP (subr))
-    wrong_type_argument (Qsubrp, subr);
+  CHECK_SUBR (subr);
   name = XSUBR (subr)->symbol_name;
   return make_string (name, strlen (name));
 }
@@ -2005,13 +1970,18 @@ function chain of symbols.  */)
 {
   Lisp_Object result;
 
-  result = indirect_function (object);
+  /* Optimize for no indirection.  */
+  result = object;
+  if (SYMBOLP (result) && !EQ (result, Qunbound)
+      && (result = XSYMBOL (result)->function, SYMBOLP (result)))
+    result = indirect_function (result);
+  if (!EQ (result, Qunbound))
+    return result;
 
-  if (EQ (result, Qunbound))
-    return (NILP (noerror)
-	    ? Fsignal (Qvoid_function, Fcons (object, Qnil))
-	    : Qnil);
-  return result;
+  if (NILP (noerror))
+    Fsignal (Qvoid_function, Fcons (object, Qnil));
+
+  return Qnil;
 }
 
 /* Extract and set vector and string elements */
@@ -2173,9 +2143,7 @@ bool-vector.  IDX starts at 0.  */)
 
   CHECK_NUMBER (idx);
   idxval = XINT (idx);
-  if (!VECTORP (array) && !STRINGP (array) && !BOOL_VECTOR_P (array)
-      && ! CHAR_TABLE_P (array))
-    array = wrong_type_argument (Qarrayp, array);
+  CHECK_ARRAY (array, Qarrayp);
   CHECK_IMPURE (array);
 
   if (VECTORP (array))

@@ -14,9 +14,18 @@
 * Elisp: (elisp).       The Emacs Lisp Reference Manual.
 @end direntry
 
+@c So that anyone making the printed manual gets the version we have
+@c tuned to avoid bad line breaks, etc.
 @smallbook
-@setchapternewpage odd
-@finalout
+
+@c per rms and peterb, use 10pt fonts for the main text, mostly to
+@c save on paper cost.  Also, do not declare @setchapternewpage odd,
+@c for the same reason. Do this inside @tex for now, so the
+@c last-released makeinfo does not complain.
+@tex
+@fonttextsize 10
+\global\hbadness=6000 % don't worry about not-too-underfull boxes
+@end tex
 
 @c Combine indices.
 @synindex cp fn
@@ -157,7 +166,9 @@ Appendices
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
 
+@ignore
 * New Symbols::             New functions and variables in Emacs @value{EMACSVER}.
+@end ignore
 
 Detailed Node Listing
 ---------------------
@@ -1142,10 +1153,12 @@ Object Internals
 
 @include index.texi
 
+@ignore
 @node New Symbols, , Index, Top
 @unnumbered New Symbols Since the Previous Edition
 
 @printindex tp
+@end ignore
 
 @bye
 

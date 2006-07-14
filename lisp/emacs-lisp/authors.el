@@ -118,6 +118,7 @@ files.")
     ("Robert J. Chassell" "Bob Chassell")
     ("Roland B. Roberts" "Roland B Roberts" "Roland Roberts")
     ("Rui-Tao Dong" "Rui-Tao Dong ~{6-Hpln~}")
+    ("Sacha Chua" "Sandra Jean Chua")
     ("Sam Steingold" "Sam Shteingold")
     ("Satyaki Das" "Indexed search by Satyaki Das")
     ("Stefan Monnier" "Stefan")
@@ -168,7 +169,7 @@ listed.")
   '("external-lisp"
     "lock" "share-lib" "local-lisp"
     "noleim-Makefile.in"
-    "NEWS" "PROBLEMS" "FAQ" "AUTHORS")
+    "NEWS" "PROBLEMS" "FAQ" "AUTHORS" "FOR-RELEASE" "TODO")
   "List of files and directories to ignore.
 Changes to files in this list are not listed.")
 

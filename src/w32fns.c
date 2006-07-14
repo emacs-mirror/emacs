@@ -2085,8 +2085,8 @@ w32_createwindow (f)
     = CreateWindow (EMACS_CLASS,
 		    f->namebuf,
 		    f->output_data.w32->dwStyle | WS_CLIPCHILDREN,
-		    f->left_pos,
-		    f->top_pos,
+		    CW_USEDEFAULT,
+		    SW_SHOW,
 		    rect.right - rect.left,
 		    rect.bottom - rect.top,
 		    NULL,
@@ -2107,6 +2107,11 @@ w32_createwindow (f)
 
       /* Do this to discard the default setting specified by our parent. */
       ShowWindow (hwnd, SW_HIDE);
+
+      /* Update frame positions. */
+      GetWindowRect (hwnd, &rect);
+      f->left_pos = rect.left;
+      f->top_pos = rect.top;
     }
 }
 

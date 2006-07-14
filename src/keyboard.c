@@ -1564,7 +1564,8 @@ command_loop_1 ()
 	  int count = SPECPDL_INDEX ();
 	  specbind (Qinhibit_quit, Qt);
 
-	  Fsit_for (Vminibuffer_message_timeout, Qnil, Qnil);
+	  sit_for (Vminibuffer_message_timeout, 0, 2);
+
 	  /* Clear the echo area.  */
 	  message2 (0, 0, 0);
 	  safe_run_hooks (Qecho_area_clear_hook);
@@ -2778,8 +2779,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  /* Or not echoing before and echoing allowed.  */
 	  || (!echo_kboard && ok_to_echo_at_next_pause)))
     {
-      Lisp_Object tem0;
-
       /* After a mouse event, start echoing right away.
 	 This is because we are probably about to display a menu,
 	 and we don't want to delay before doing so.  */
@@ -2787,13 +2786,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	echo_now ();
       else
 	{
-	  int sec, usec;
-	  double duration = extract_float (Vecho_keystrokes);
-	  sec = (int) duration;
-	  usec = (duration - sec) * 1000000;
+	  Lisp_Object tem0;
+
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
-	  tem0 = sit_for (sec, usec, 1, 1, 0);
+	  tem0 = sit_for (Vecho_keystrokes, 1, 1);
 	  restore_getcjmp (save_jump);
 	  if (EQ (tem0, Qt)
 	      && ! CONSP (Vunread_command_events))
@@ -2860,11 +2857,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  && XINT (Vauto_save_timeout) > 0)
 	{
 	  Lisp_Object tem0;
+	  int timeout = delay_level * XFASTINT (Vauto_save_timeout) / 4;
 
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
-	  tem0 = sit_for (delay_level * XFASTINT (Vauto_save_timeout) / 4,
-			  0, 1, 1, 0);
+	  tem0 = sit_for (make_number (timeout), 1, 1);
 	  restore_getcjmp (save_jump);
 
 	  if (EQ (tem0, Qt)
@@ -8574,7 +8571,7 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
   /* Handle a symbol whose function definition is a keymap
      or an array.  */
   if (SYMBOLP (next) && !NILP (Ffboundp (next))
-      && (!NILP (Farrayp (XSYMBOL (next)->function))
+      && (ARRAYP (XSYMBOL (next)->function)
 	  || KEYMAPP (XSYMBOL (next)->function)))
     next = XSYMBOL (next)->function;
 
@@ -9976,7 +9973,13 @@ a special event, so ignore the prefix argument and don't clear it.  */)
 
 DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_command,
        1, 1, "P",
-       doc: /* Read function name, then read its arguments and call it.  */)
+       doc: /* Read function name, then read its arguments and call it.
+
+To pass a numeric argument to the command you are invoking with, specify
+the numeric argument to this command.
+
+Noninteractively, the argument PREFIXARG is the prefix argument to
+give to the command you invoke, if it asks for an argument.  */)
      (prefixarg)
      Lisp_Object prefixarg;
 {
@@ -10082,19 +10085,18 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 				      Qmouse_movement)))
     {
       /* But first wait, and skip the message if there is input.  */
-      int delay_time;
-      if (!NILP (echo_area_buffer[0]))
-	/* This command displayed something in the echo area;
-	   so wait a few seconds, then display our suggestion message.  */
-	delay_time = (NUMBERP (Vsuggest_key_bindings)
-		      ? XINT (Vsuggest_key_bindings) : 2);
-      else
-	/* This command left the echo area empty,
-	   so display our message immediately.  */
-	delay_time = 0;
+      Lisp_Object waited;
 
-      if (!NILP (Fsit_for (make_number (delay_time), Qnil, Qnil))
-	  && ! CONSP (Vunread_command_events))
+      /* If this command displayed something in the echo area;
+	 wait a few seconds, then display our suggestion message.  */
+      if (NILP (echo_area_buffer[0]))
+	waited = sit_for (make_number (0), 0, 2);
+      else if (NUMBERP (Vsuggest_key_bindings))
+	waited = sit_for (Vminibuffer_message_timeout, 0, 2);
+      else
+	waited = sit_for (make_number (2), 0, 2);
+
+      if (!NILP (waited) && ! CONSP (Vunread_command_events))
 	{
 	  Lisp_Object binding;
 	  char *newmessage;
@@ -10114,10 +10116,12 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  message2_nolog (newmessage,
 			  strlen (newmessage),
 			  STRING_MULTIBYTE (binding));
-	  if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
-				? Vsuggest_key_bindings : make_number (2)),
-			       Qnil, Qnil))
-	      && message_p)
+	  if (NUMBERP (Vsuggest_key_bindings))
+	    waited = sit_for (Vsuggest_key_bindings, 0, 2);
+	  else
+	    waited = sit_for (make_number (2), 0, 2);
+
+	  if (!NILP (waited) && message_p)
 	    restore_message ();
 
 	  unbind_to (count, Qnil);

@@ -56,6 +56,7 @@ Boston, MA 02110-1301, USA.  */
 #include "coding.h"
 #include "frame.h"
 #include "window.h"
+#include "blockinput.h"
 
 #ifdef STDC_HEADERS
 #include <float.h>
@@ -628,7 +629,10 @@ find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
 DEFUN ("delete-field", Fdelete_field, Sdelete_field, 0, 1, 0,
        doc: /* Delete the field surrounding POS.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS.  */)
+If POS is nil, the value of point is used for POS.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion.  */)
      (pos)
      Lisp_Object pos;
 {
@@ -642,7 +646,10 @@ If POS is nil, the value of point is used for POS.  */)
 DEFUN ("field-string", Ffield_string, Sfield_string, 0, 1, 0,
        doc: /* Return the contents of the field surrounding POS as a string.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS.  */)
+If POS is nil, the value of point is used for POS.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion.  */)
      (pos)
      Lisp_Object pos;
 {
@@ -654,7 +661,10 @@ If POS is nil, the value of point is used for POS.  */)
 DEFUN ("field-string-no-properties", Ffield_string_no_properties, Sfield_string_no_properties, 0, 1, 0,
        doc: /* Return the contents of the field around POS, without text-properties.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS.  */)
+If POS is nil, the value of point is used for POS.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion.  */)
      (pos)
      Lisp_Object pos;
 {
@@ -670,7 +680,10 @@ If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the beginning of its
 field, then the beginning of the *previous* field is returned.
 If LIMIT is non-nil, it is a buffer position; if the beginning of the field
-is before LIMIT, then LIMIT will be returned instead.  */)
+is before LIMIT, then LIMIT will be returned instead.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion.  */)
      (pos, escape_from_edge, limit)
      Lisp_Object pos, escape_from_edge, limit;
 {
@@ -686,7 +699,10 @@ If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the end of its field,
 then the end of the *following* field is returned.
 If LIMIT is non-nil, it is a buffer position; if the end of the field
-is after LIMIT, then LIMIT will be returned instead.  */)
+is after LIMIT, then LIMIT will be returned instead.
+
+An `args-out-of-range' error is signaled if POS is outside the
+buffer's accessible portion.  */)
      (pos, escape_from_edge, limit)
      Lisp_Object pos, escape_from_edge, limit;
 {
@@ -1287,7 +1303,9 @@ with that uid, or nil if there is no such user.  */)
     return Vuser_login_name;
 
   CHECK_NUMBER (uid);
+  BLOCK_INPUT;
   pw = (struct passwd *) getpwuid (XINT (uid));
+  UNBLOCK_INPUT;
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
 
@@ -1341,9 +1359,17 @@ name, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_full_name;
   else if (NUMBERP (uid))
-    pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
+    {
+      BLOCK_INPUT;
+      pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
+      UNBLOCK_INPUT;
+    }
   else if (STRINGP (uid))
-    pw = (struct passwd *) getpwnam (SDATA (uid));
+    {
+      BLOCK_INPUT;
+      pw = (struct passwd *) getpwnam (SDATA (uid));
+      UNBLOCK_INPUT;
+    }
   else
     error ("Invalid UID specification");
 
@@ -2114,7 +2140,6 @@ general_insert_function (insert_func, insert_from_string_func,
   for (argnum = 0; argnum < nargs; argnum++)
     {
       val = args[argnum];
-    retry:
       if (INTEGERP (val))
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
@@ -2139,10 +2164,7 @@ general_insert_function (insert_func, insert_from_string_func,
 				      inherit);
 	}
       else
-	{
-	  val = wrong_type_argument (Qchar_or_string_p, val);
-	  goto retry;
-	}
+	wrong_type_argument (Qchar_or_string_p, val);
     }
 }
 
@@ -3864,7 +3886,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      /* Likewise adjust the property end position.  */
 	      pos = XINT (XCAR (XCDR (item)));
 
-	      for (; bytepos < pos; bytepos++)
+	      for (; position < pos; bytepos++)
 		{
 		  if (! discarded[bytepos])
 		    position++, translated++;

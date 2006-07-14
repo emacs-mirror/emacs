@@ -491,7 +491,8 @@ with the comment."
   :group 'tumme)
 
 (defcustom tumme-external-viewer
-  ;; TODO: use mailcap, dired-guess-shell-alist-default, dired-view-command-alist
+  ;; TODO: Use mailcap, dired-guess-shell-alist-default,
+  ;; dired-view-command-alist.
   (cond ((executable-find "display"))
         ((executable-find "xli"))
         ((executable-find "qiv") "qiv -t"))
@@ -627,7 +628,7 @@ according to the Thumbnail Managing Standard."
                 (setq thumbnail-dir (file-name-directory thumbnail-file))))
       (message "Creating thumbnail directory.")
       (make-directory thumbnail-dir))
-    (shell-command command nil)))
+    (call-process shell-file-name nil nil nil shell-command-switch command)))
 
 ;;;###autoload
 (defun tumme-dired-insert-marked-thumbs ()
@@ -643,8 +644,10 @@ according to the Thumbnail Managing Standard."
                                ;; Can't use (overlays-at (point)), BUG?
                                (overlays-in (point) (1+ (point)))))
        (put-image thumb-file image-pos)
-       (setq overlay (car (delq nil (mapcar (lambda (o) (and (overlay-get o 'put-image) o))
-                                            (overlays-in (point) (1+ (point)))))))
+       (setq 
+	overlay
+	(car (delq nil (mapcar (lambda (o) (and (overlay-get o 'put-image) o))
+			       (overlays-in (point) (1+ (point)))))))
        (overlay-put overlay 'image-file image-file)
        (overlay-put overlay 'thumb-file thumb-file)))
    nil)
@@ -716,8 +719,7 @@ Otherwise, delete overlays."
 (defun tumme-create-thumbnail-buffer ()
   "Create thumb buffer and set `tumme-thumbnail-mode'."
   (let ((buf (get-buffer-create tumme-thumbnail-buffer)))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (setq buffer-read-only t)
       (if (not (eq major-mode 'tumme-thumbnail-mode))
           (tumme-thumbnail-mode)))
@@ -729,8 +731,7 @@ Otherwise, delete overlays."
 (defun tumme-create-display-image-buffer ()
   "Create image display buffer and set `tumme-display-image-mode'."
   (let ((buf (get-buffer-create tumme-display-image-buffer)))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (setq buffer-read-only t)
       (if (not (eq major-mode 'tumme-display-image-mode))
           (tumme-display-image-mode)))
@@ -812,8 +813,7 @@ thumbnail buffer to be selected."
         (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files)))
     (setq dired-buf (current-buffer))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (let ((inhibit-read-only t))
         (if (not append)
             (erase-buffer)
@@ -1170,10 +1170,9 @@ dired."
         (dired-buf (tumme-associated-dired-buffer)))
     (if (not (and dired-buf file-name))
         (message "No image, or image with correct properties, at point.")
-      (save-excursion
+    (with-current-buffer dired-buf
         (message file-name)
         (setq file-name (file-name-nondirectory file-name))
-        (set-buffer dired-buf)
         (goto-char (point-min))
         (if (search-forward file-name nil t)
             (cond ((eq command 'mark) (dired-mark 1))
@@ -1294,7 +1293,8 @@ You probably want to use this together with
   (define-key tumme-thumbnail-mode-map "L" 'tumme-rotate-original-left)
   (define-key tumme-thumbnail-mode-map "R" 'tumme-rotate-original-right)
 
-  (define-key tumme-thumbnail-mode-map "D" 'tumme-thumbnail-set-image-description)
+  (define-key tumme-thumbnail-mode-map "D"
+    'tumme-thumbnail-set-image-description)
 
   (define-key tumme-thumbnail-mode-map "\C-d" 'tumme-delete-char)
   (define-key tumme-thumbnail-mode-map " "
@@ -1686,25 +1686,22 @@ Ask user how many thumbnails should be displayed per row."
 
 (defun tumme-thumbnail-display-external ()
   "Display original image for thumbnail at point using external viewer."
-
   (interactive)
   (let ((file (tumme-original-file-name)))
     (if (not (tumme-image-at-point-p))
         (message "No thumbnail at point")
       (if (not file)
           (message "No original file name found")
-        (shell-command (format "%s \"%s\""
-                               tumme-external-viewer
-                               file))))))
+        (call-process shell-file-name nil nil nil shell-command-switch
+		      (format "%s \"%s\"" tumme-external-viewer file))))))
 
 ;;;###autoload
 (defun tumme-dired-display-external ()
   "Display file at point using an external viewer."
   (interactive)
   (let ((file (dired-get-filename)))
-    (shell-command (format "%s \"%s\""
-                           tumme-external-viewer
-                           file))))
+    (call-process shell-file-name nil nil nil shell-command-switch
+		  (format "%s \"%s\"" tumme-external-viewer file))))
 
 (defun tumme-window-width-pixels (window)
   "Calculate WINDOW width in pixels."
@@ -1776,12 +1773,12 @@ original size."
                   (cons ?h height)
                   (cons ?f file)
                   (cons ?t new-file))))
-          (setq ret (shell-command command nil))
+          (setq ret (call-process shell-file-name nil nil nil
+				  shell-command-switch command))
           (if (not (= 0 ret))
               (error "Could not resize image")))
       (copy-file file new-file t))
-    (save-excursion
-      (set-buffer (tumme-create-display-image-buffer))
+    (with-current-buffer (tumme-create-display-image-buffer)
       (let ((inhibit-read-only t))
         (erase-buffer)
         (clear-image-cache)
@@ -1829,7 +1826,7 @@ With prefix argument ARG, display image in its original size."
                       (cons ?p tumme-cmd-rotate-thumbnail-program)
                       (cons ?d degrees)
                       (cons ?t (expand-file-name file)))))
-      (shell-command command nil)
+      (call-process shell-file-name nil nil nil shell-command-switch command)
       ;; Clear the cache to refresh image. I wish I could just refresh
       ;; the current file but I do not know how to do that. Yet...
       (clear-image-cache))))
@@ -1874,11 +1871,13 @@ overwritten.  This confirmation can be turned off using
                       (cons ?d degrees)
                       (cons ?o (expand-file-name file))
                       (cons ?t tumme-temp-rotate-image-file))))
-      (if (not (= 0 (shell-command command nil)))
+      (if (not (= 0 (call-process shell-file-name nil nil nil
+				  shell-command-switch command)))
           (error "Could not rotate image")
         (tumme-display-image tumme-temp-rotate-image-file)
         (if (or (and tumme-rotate-original-ask-before-overwrite
-                     (y-or-n-p "Rotate to temp file OK.  Overwrite original image? "))
+                     (y-or-n-p
+		      "Rotate to temp file OK.  Overwrite original image? "))
                 (not tumme-rotate-original-ask-before-overwrite))
             (progn
               (copy-file tumme-temp-rotate-image-file file t)
@@ -1910,7 +1909,8 @@ YYYY_MM_DD_HH_MM_DD_ORIG_FILE_NAME.jpg.  Used from
                 (format-time-string
                  "%Y:%m:%d %H:%M:%S"
                  (nth 5 (file-attributes (expand-file-name file))))))
-      (setq data (tumme-get-exif-data (expand-file-name file) "DateTimeOriginal")))
+      (setq data (tumme-get-exif-data (expand-file-name file)
+				      "DateTimeOriginal")))
     (while (string-match "[ :]" data)
       (setq data (replace-match "_" nil nil data)))
     (format "%s%s%s" data
@@ -1930,7 +1930,8 @@ default value at the prompt."
            (old-value (tumme-get-exif-data file "ImageDescription")))
       (if (eq 0
               (tumme-set-exif-data file "ImageDescription"
-                                   (read-string "Value of ImageDescription: " old-value)))
+                                   (read-string "Value of ImageDescription: "
+						old-value)))
           (message "Successfully wrote ImageDescription tag.")
         (error "Could not write ImageDescription tag")))))
 
@@ -1944,7 +1945,7 @@ default value at the prompt."
                     (cons ?f (expand-file-name file))
                     (cons ?t tag-name)
                     (cons ?v tag-value))))
-    (shell-command command nil)))
+    (call-process shell-file-name nil nil nil shell-command-switch command)))
 
 (defun tumme-get-exif-data (file tag-name)
   "From FILE, return EXIF tag TAG-NAME."
@@ -1956,10 +1957,10 @@ default value at the prompt."
                     (cons ?p tumme-cmd-read-exif-data-program)
                     (cons ?f file)
                     (cons ?t tag-name))))
-    (save-excursion
-      (set-buffer buf)
+    (with-current-buffer buf
       (delete-region (point-min) (point-max))
-      (if (not (eq (shell-command command buf) 0))
+      (if (not (eq (call-process shell-file-name nil t nil
+				 shell-command-switch command) 0))
           (error "Could not get EXIF tag")
         (goto-char (point-min))
         ;; Clean buffer from newlines and carriage returns before
@@ -2377,7 +2378,8 @@ when using per-directory thumbnail file storage"))
               ;; Insert thumbnail with link to full image
               (insert
                (format "<a href=\"%s/%s\"><img src=\"%s/%s\"%s></a>\n"
-                       tumme-gallery-image-root-url (file-name-nondirectory file)
+                       tumme-gallery-image-root-url
+		       (file-name-nondirectory file)
                        tumme-gallery-thumb-image-root-url
                        (file-name-nondirectory (tumme-thumb-name file)) file))
               ;; Insert comment, if any

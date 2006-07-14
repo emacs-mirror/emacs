@@ -97,10 +97,11 @@ static int find_start_modiff;
 
 
 static int find_defun_start P_ ((int, int));
-static int back_comment P_ ((int, int, int, int, int, int *, int *));
+static int back_comment P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int, int,
+			     EMACS_INT *, EMACS_INT *));
 static int char_quoted P_ ((int, int));
 static Lisp_Object skip_chars P_ ((int, int, Lisp_Object, Lisp_Object, int));
-static Lisp_Object scan_lists P_ ((int, int, int, int));
+static Lisp_Object scan_lists P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int));
 static void scan_sexps_forward P_ ((struct lisp_parse_state *,
 				    int, int, int, int,
 				    int, Lisp_Object, int));
@@ -471,9 +472,9 @@ prev_char_comend_first (pos, pos_byte)
 
 static int
 back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_ptr)
-     int from, from_byte, stop;
+     EMACS_INT from, from_byte, stop;
      int comnested, comstyle;
-     int *charpos_ptr, *bytepos_ptr;
+     EMACS_INT *charpos_ptr, *bytepos_ptr;
 {
   /* Look back, counting the parity of string-quotes,
      and recording the comment-starters seen.
@@ -748,9 +749,8 @@ static void
 check_syntax_table (obj)
      Lisp_Object obj;
 {
-  if (!(CHAR_TABLE_P (obj)
-	&& EQ (XCHAR_TABLE (obj)->purpose, Qsyntax_table)))
-    wrong_type_argument (Qsyntax_table_p, obj);
+  CHECK_TYPE (CHAR_TABLE_P (obj) && EQ (XCHAR_TABLE (obj)->purpose, Qsyntax_table),
+	      Qsyntax_table_p, obj);
 }
 
 DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
@@ -1890,9 +1890,10 @@ in_classes (c, iso_classes)
 static int
 forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 	      charpos_ptr, bytepos_ptr, incomment_ptr)
-     int from, from_byte, stop;
+     EMACS_INT from, from_byte, stop;
      int nesting, style, prev_syntax;
-     int *charpos_ptr, *bytepos_ptr, *incomment_ptr;
+     EMACS_INT *charpos_ptr, *bytepos_ptr;
+     int *incomment_ptr;
 {
   register int c, c1;
   register enum syntaxcode code;
@@ -1992,16 +1993,16 @@ between them, return t; otherwise return nil.  */)
      (count)
      Lisp_Object count;
 {
-  register int from;
-  int from_byte;
-  register int stop;
+  register EMACS_INT from;
+  EMACS_INT from_byte;
+  register EMACS_INT stop;
   register int c, c1;
   register enum syntaxcode code;
   int comstyle = 0;	    /* style of comment encountered */
   int comnested = 0;	    /* whether the comment is nestable or not */
   int found;
-  int count1;
-  int out_charpos, out_bytepos;
+  EMACS_INT count1;
+  EMACS_INT out_charpos, out_bytepos;
   int dummy;
 
   CHECK_NUMBER (count);
@@ -2199,11 +2200,12 @@ between them, return t; otherwise return nil.  */)
 
 static Lisp_Object
 scan_lists (from, count, depth, sexpflag)
-     register int from;
-     int count, depth, sexpflag;
+     register EMACS_INT from;
+     EMACS_INT count, depth;
+     int sexpflag;
 {
   Lisp_Object val;
-  register int stop = count > 0 ? ZV : BEGV;
+  register EMACS_INT stop = count > 0 ? ZV : BEGV;
   register int c, c1;
   int stringterm;
   int quoted;
@@ -2212,11 +2214,11 @@ scan_lists (from, count, depth, sexpflag)
   int min_depth = depth;    /* Err out if depth gets less than this.  */
   int comstyle = 0;	    /* style of comment encountered */
   int comnested = 0;	    /* whether the comment is nestable or not */
-  int temp_pos;
-  int last_good = from;
+  EMACS_INT temp_pos;
+  EMACS_INT last_good = from;
   int found;
-  int from_byte;
-  int out_bytepos, out_charpos;
+  EMACS_INT from_byte;
+  EMACS_INT out_bytepos, out_charpos;
   int temp, dummy;
   int multibyte_symbol_p = sexpflag && multibyte_syntax_as_symbol;
 
@@ -2700,7 +2702,7 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
   int boundary_stop = commentstop == -1;
   int nofence;
   int found;
-  int out_bytepos, out_charpos;
+  EMACS_INT out_bytepos, out_charpos;
   int temp;
 
   prev_from = from;

@@ -250,6 +250,7 @@ Boston, MA 02110-1301, USA.  */
 #define C_DEBUG_SWITCH
 #endif
 
+/* 21 Jun 06: Eric Hanchrow <offby1@blarg.net> says this works.  */
 #ifdef LINUX_SIGNALS_VIA_CHARACTERS_DOES_WORK
 #define SIGNALS_VIA_CHARACTERS
 #endif

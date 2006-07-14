@@ -59,7 +59,6 @@ of object and are used only for recording interned symbols
   The principal function for creating a hash table is
 @code{make-hash-table}.
 
-@tindex make-hash-table
 @defun make-hash-table &rest keyword-args
 This function creates a new hash table according to the specified
 arguments.  The arguments should consist of alternating keywords
@@ -155,7 +154,6 @@ of the nominal size.  The default for @var{threshold} is 0.8.
 @end table
 @end defun
 
-@tindex makehash
 @defun makehash &optional test
 This is equivalent to @code{make-hash-table}, but with a different style
 argument list.  The argument @var{test} specifies the method
@@ -172,21 +170,18 @@ associations in a hash table.  In general, any Lisp object can be used
 as a hash key, unless the comparison method imposes limits.  Any Lisp
 object can also be used as the value.
 
-@tindex gethash
 @defun gethash key table &optional default
 This function looks up @var{key} in @var{table}, and returns its
 associated @var{value}---or @var{default}, if @var{key} has no
 association in @var{table}.
 @end defun
 
-@tindex puthash
 @defun puthash key value table
 This function enters an association for @var{key} in @var{table}, with
 value @var{value}.  If @var{key} already has an association in
 @var{table}, @var{value} replaces the old associated value.
 @end defun
 
-@tindex remhash
 @defun remhash key table
 This function removes the association for @var{key} from @var{table}, if
 there is one.  If @var{key} has no association, @code{remhash} does
@@ -197,7 +192,6 @@ non-@code{nil} if it actually removed an association and @code{nil}
 otherwise.  In Emacs Lisp, @code{remhash} always returns @code{nil}.
 @end defun
 
-@tindex clrhash
 @defun clrhash table
 This function removes all the associations from hash table @var{table},
 so that it becomes empty.  This is also called @dfn{clearing} the hash
@@ -207,7 +201,6 @@ table.
 @var{table}.  In Emacs Lisp, it returns @code{nil}.
 @end defun
 
-@tindex maphash
 @defun maphash function table
 @anchor{Definition of maphash}
 This function calls @var{function} once for each of the associations in
@@ -235,7 +228,6 @@ other nearby slots, to see if it has found the key being sought.
 function to compute the hash code from a key, and a function to compare
 two keys directly.
 
-@tindex define-hash-table-test
 @defun define-hash-table-test name test-fn hash-fn
 This function defines a new hash table test, named @var{name}.
 
@@ -257,7 +249,6 @@ under the property @code{hash-table-test}; the property value's form is
 @code{(@var{test-fn} @var{hash-fn})}.
 @end defun
 
-@tindex sxhash
 @defun sxhash obj
 This function returns a hash code for Lisp object @var{obj}.
 This is an integer which reflects the contents of @var{obj}
@@ -303,46 +294,38 @@ and equal-looking objects are considered the same key.
 
   Here are some other functions for working with hash tables.
 
-@tindex hash-table-p
 @defun hash-table-p table
 This returns non-@code{nil} if @var{table} is a hash table object.
 @end defun
 
-@tindex copy-hash-table
 @defun copy-hash-table table
 This function creates and returns a copy of @var{table}.  Only the table
 itself is copied---the keys and values are shared.
 @end defun
 
-@tindex hash-table-count
 @defun hash-table-count table
 This function returns the actual number of entries in @var{table}.
 @end defun
 
-@tindex hash-table-test
 @defun hash-table-test table
 This returns the @var{test} value that was given when @var{table} was
 created, to specify how to hash and compare keys.  See
 @code{make-hash-table} (@pxref{Creating Hash}).
 @end defun
 
-@tindex hash-table-weakness
 @defun hash-table-weakness table
 This function returns the @var{weak} value that was specified for hash
 table @var{table}.
 @end defun
 
-@tindex hash-table-rehash-size
 @defun hash-table-rehash-size table
 This returns the rehash size of @var{table}.
 @end defun
 
-@tindex hash-table-rehash-threshold
 @defun hash-table-rehash-threshold table
 This returns the rehash threshold of @var{table}.
 @end defun
 
-@tindex hash-table-size
 @defun hash-table-size table
 This returns the current nominal size of @var{table}.
 @end defun

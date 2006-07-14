@@ -1,12 +1,26 @@
 This is a list of ways to say hello in various languages.
-Its purpose is to illustrate a number of scripts.
----------------------------------------------------------
+
+Non-ASCII examples:
+  Europe: ,A!(BHola!, Hyv,Add(B p,Ad(Biv,Add(B, Gr,A|_(B Gott, Bon,Cu(Bu, Dobr,B}(B den, Tere p,Ad(Bevast
+          Cze,B6f(B!, ,FCei\(B ,Fsar(B, ,L7T`PRabRcYbU(B!, $,1J2J0J;J0J@JOJ=J1J0(B
+  Africa: $(3!A!,!>(B
+  Middle/Near East: ,Hylem(B, (38R(47d(3T!JSa(4W(3W(B
+  South Asia: 4$,4!8v#")0$,15h14$,4!hv#")0$,15n14$,4!zv#!)v#")v#"D0$,15x6-5d6'1(B, 4$,44Kv#4z0$,1?(14$,44hv#4zv#40$,1?.14$,44qv#4{v#3Q0$,1?8?M>u?>14$,44av#4z0$,1?01(B, 4$,46<0$,1@H14$,46A0$,1@N14$,46Kv#6Vv#6)v#6M0$,1@X@m@5@^14$,46Cv#6W0$,1@P@"1(B, 4$,4*U0$,1<U14$,4*M0$,1<C14$,4*Hv#)b0$,1<5<m14$,4*H0$,1<514$,4*Qv#)b0$,1<N<m1(B, 4$(7"70"714$P0"!#C"Q1!;4"Er'"S0"E"S14"G0"G1!;4"70"714"2r'"[0"2"[1!;4"Dr'"[0"D"[14"#0"#14"G0"G1!>(B
+  South East Asia: (1JP:R-04U1(B, ,TJ0GQ1J04U1$0CQ1:(B, Ch,1`(Bo b,1U(Bn
+  East Asia: $ADc:C(B, $(0*/=((B, $B$3$s$K$A$O(B, $(C>H3gGO<<?d(B
+  Misc: E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde, $,2(3(1('('(5(B, $,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
+  CJK variety: GB($AT*Fx(B,$A?*7"(B), BIG5($(0&x86(B,$(0DeBv(B), JIS($B855$(B,$B3+H/(B), KSC($(Cj*Q((B,$(CKR[!(B)
+  Unicode charset: E$,1 E(Bo$,1 }(Ban$,1 =(Bo $,1 )(Biu$,1 U(Ba$,1!-(Bde, $,1&s'5'9',(B $,1'C'1'B(B, $,1-),|,u,}(B, $,1(7(T(`(P(R(a(b(R(c(Y(b(U(B!
+
+LANGUAGE (NATIVE NAME)	HELLO
+----------------------	-----
 Amharic ($(3"c!<!N"^(B)	$(3!A!,!>(B
 Arabic	(38R(47d(3T!JSa(4W(3W(B
 Braille	$,2(3(1('('(5(B
+Bulgarian (,LQj[SP`aZX(B)	,L7T`PRUYbU(B
 C	printf ("Hello, world!\n");
 Czech (,Bh(Be,B9(Btina)	Dobr,B}(B den
-Danish (dansk)	Hej, Goddag
+Danish (dansk)	Hej, Goddag, Hall,Ax(Bj
 Emacs	emacs --no-splash -f view-hello-file
 English [,0p U(B-,0EZ L(B]	Hello
 Esperanto	Saluton (E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde)
@@ -17,6 +31,7 @@ Georgian ($,1JEJ0J@J7J5J4J:J8(B)	$,1J2J0J;J0J@JOJ=J1J0(B
 German (Deutsch)	Guten Tag, Gr,A|_(B Gott
 Greek (,Fekkgmij\(B)	,FCei\(B ,Fsar(B
 Hebrew (,Hraxiz(B)	,Hylem(B
+Hungarian (magyar)	Sz,Bi(Bp j,Bs(B napot!
 Hindi (4$,4!}t%"+0$,15y55B14$,4!.v#"Yv#"20$,15f6 1(B)	4$,4!8v#")0$,15h14$,4!hv#")0$,15n14$,4!zv#!)v#")v#"D0$,15x6-5d6'1(B, 4$,4!8v#")0$,15h14$,4!hv#")0$,15n14$,4!zv# ev#"Rv#")0$,15x6-5U5~14$,4!nv#"W0$,15p1(B 4$,4 J0$,16D1(B
 Italian (italiano)	Ciao, Buon giorno
 Javanese (Jawa)	System.out.println("Halo, selamat sore!");
@@ -32,7 +47,7 @@ Russian (,L`caaZXY(B)	,L7T`PRabRcYbU(B!
 Slovak (sloven,Bh(Bina)	Dobr,B}(B de,Br(B
 Slovenian (sloven,B9h(Bina)	Pozdravljeni!
 Spanish (espa,Aq(Bol)	,A!(BHola!
-Swedish (p,Ae(B svenska)	Hej, Goddag
+Swedish (svenska)	Hej, Goddag, Hall,Ae(B
 Tamil (4$,4*N0$,1<D14$,4(i0$,1<N<_14$,4*Vv#)b0$,1<T<m1(B)	4$,4*U0$,1<U14$,4*M0$,1<C14$,4*Hv#)b0$,1<5<m14$,4*H0$,1<514$,4*Qv#)b0$,1<N<m1(B
 Thai (,T@RIRd7B(B)	,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B
 Tibetan (4$(7"7r'"]0"7"]14"20"21!;4%P0"G#!"Q14"20"21!;(B)	4$(7"70"714$P0"!#C"Q1!;4"Er'"S0"E"S14"G0"G1!;4"70"714"2r'"[0"2"[1!;4"Dr'"[0"D"[14"#0"#14"G0"G1!>(B
@@ -45,24 +60,6 @@ Japanese ($BF|K\8l(B)	$B$3$s$K$A$O(B, (I:]FAJ(B
 Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B
 Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B
 Korean ($(CGQ1[(B)	$(C>H3gGO<<?d(B, $(C>H3gGO=J4O1n(B
-
-Difference among chinese characters in GB, JIS, KSC, BIG5:
-GB	$AT*Fx(B  $A?*7"(B
-JIS	$B855$(B  $B3+H/(B
-KSC	$(Cj*Q((B  $(CKR[!(B
-BIG5	$(0&x86(B  $(0DeBv(B
-
-Just for a test of JISX0212: $BqV$(DiQ(B (the second character is of JISX0212)
-
-A short test for characters represented by the character set
-mule-unicode-0100-24ff:
-
-Czech ($,1 ,(Besky)	Dobr,A}(B den
-Esperanto	Saluton (E$,1 E(Bo$,1 }(Ban$,1 =(Bo $,1 )(Biu$,1 U(Ba$,1!-(Bde)
-Greek ($,1'5';';'7'='9':',(B)	$,1&s'5'9',(B $,1'C'1'B(B
-Hebrew ($,1-",q-(,y-*(B)	$,1-),|,u,}(B
-Russian ($,1(`(c(a(a(Z(X(Y(B)	$,1(7(T(`(P(R(a(b(R(c(Y(b(U(B!
-Maltese (il-Malti)	Bon$,1 A(Bu, Sa$,1 G G(Ba
 
 
 

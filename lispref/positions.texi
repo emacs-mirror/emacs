@@ -228,7 +228,6 @@ words.  Otherwise, they do not.
 @end defvar
 
 @defvar inhibit-field-text-motion
-@tindex inhibit-field-text-motion
 If this variable is non-@code{nil}, certain motion functions including
 @code{forward-word}, @code{forward-sentence}, and
 @code{forward-paragraph} ignore field boundaries.
@@ -345,7 +344,6 @@ is signaled.
 @end deffn
 
 @defun line-beginning-position &optional count
-@tindex line-beginning-position
 Return the position that @code{(beginning-of-line @var{count})}
 would move to.
 @end defun
@@ -367,7 +365,6 @@ is signaled.
 @end deffn
 
 @defun line-end-position &optional count
-@tindex line-end-position
 Return the position that @code{(end-of-line @var{count})}
 would move to.
 @end defun
@@ -735,14 +732,12 @@ The default is @code{t}.
 @end defopt
 
 @defvar beginning-of-defun-function
-@tindex beginning-of-defun-function
 If non-@code{nil}, this variable holds a function for finding the
 beginning of a defun.  The function @code{beginning-of-defun}
 calls this function instead of using its normal method.
 @end defvar
 
 @defvar end-of-defun-function
-@tindex end-of-defun-function
 If non-@code{nil}, this variable holds a function for finding the end of
 a defun.  The function @code{end-of-defun} calls this function instead
 of using its normal method.

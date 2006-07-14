@@ -5665,7 +5665,22 @@ x_make_frame_visible (f)
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
 	  && ! f->output_data.w32->asked_for_visible)
-	x_set_offset (f, f->left_pos, f->top_pos, 0);
+	{
+	  RECT workarea_rect;
+	  RECT window_rect;
+
+	  /* Adjust vertical window position in order to avoid being
+	     covered by a task bar placed at the bottom of the desktop. */
+	  SystemParametersInfo(SPI_GETWORKAREA, 0, &workarea_rect, 0);
+	  GetWindowRect(FRAME_W32_WINDOW(f), &window_rect);
+	  if (window_rect.bottom > workarea_rect.bottom
+	      && window_rect.top > workarea_rect.top)
+	    f->top_pos = max (window_rect.top
+			      - window_rect.bottom + workarea_rect.bottom,
+			      workarea_rect.top);
+
+	  x_set_offset (f, f->left_pos, f->top_pos, 0);
+	}
 
       f->output_data.w32->asked_for_visible = 1;
 

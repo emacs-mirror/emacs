@@ -119,11 +119,11 @@ between them.
   You should put a copyright notice and permission notice at the
 end of the change log file.  Here is an example:
 
-@example
+@smallexample
 Copyright 1997, 1998 Free Software Foundation, Inc.
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.
-@end example
+@end smallexample
 
 @noindent
 Of course, you should substitute the proper years and copyright holder.
@@ -182,7 +182,8 @@ convenient.  Each name recorded is called a @dfn{tag}.
 @item
 In C code, any C function or typedef is a tag, and so are definitions of
 @code{struct}, @code{union} and @code{enum}.
-@code{#define} macro definitions and @code{enum} constants are also
+@code{#define} macro definitions, @code{#undef} and @code{enum}
+constants are also 
 tags, unless you specify @samp{--no-defines} when making the tags table.
 Similarly, global variables are tags, unless you specify
 @samp{--no-globals}.  Use of @samp{--no-globals} and @samp{--no-defines}

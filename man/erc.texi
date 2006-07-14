@@ -12,7 +12,7 @@
 @syncodeindex fn cp
 
 @copying
-This manual is for ERC version 5.1.2.
+This manual is for ERC version 5.1.3.
 
 Copyright @copyright{} 2005, 2006 Free Software Foundation, Inc.
 
@@ -68,6 +68,13 @@ Obtaining ERC
 * Releases::                    Released versions of ERC.
 * Development::                 Latest unreleased development changes.
 
+Advanced Usage
+
+* Connecting::                  Ways of connecting to an IRC server.
+* Options::                     Options that are available for ERC.
+* Tips and Tricks::             Ways of enhancing your ERC experience.
+* Sample Configuration::        An example configuration file.
+
 @end detailmenu
 @end menu
 
@@ -114,7 +121,7 @@ comes with Emacs.
 Choose to install a release if you want to minimize risk.
 
 Errors are corrected in development first.  User-visible changes will be
-announced on the @email{erc-help@@lists.sourceforge.net} mailing list.
+announced on the @email{erc-discuss@@gnu.org} mailing list.
 @pxref{Getting Help and Reporting Bugs}.
 
 @cindex releases, Debian package
@@ -124,7 +131,7 @@ available in the official Debian repository.
 
 @cindex releases, from source
 Alternatively, you can download the latest release from
-@uref{http://sourceforge.net/project/showfiles.php?group_id=30118}.
+@uref{http://ftp.gnu.org/gnu/erc}.
 
 @node Development,  , Releases, Obtaining ERC
 @comment  node-name,  next,  previous,  up
@@ -134,43 +141,13 @@ Alternatively, you can download the latest release from
 Choose the development version if you want to live on the bleeding edge
 of ERC development or try out new features before release.
 
-@subsection Using CVS
-@cindex CVS, using
+@subheading GNU Arch
 
-ERC is primarily developed using a CVS repository on sourceforge.net.
-To check out a copy of the latest changes, do the following.
-
-@example
-cvs -d:pserver:anonymous@@cvs.sourceforge.net:/cvsroot/erc login
-cvs -z3 -d:pserver:anonymous@@cvs.sourceforge.net:/cvsroot/erc co -P erc
-@end example
-
-@cindex CVS snapshot
-Alternatively, the latest CVS snapshot may be downloaded in the
-following forms.
-
-@itemize @bullet
-@item http://mwolson.org/static/dist/erc-latest.tar.gz
-@item http://mwolson.org/static/dist/erc-latest.zip
-@end itemize
-
-@subsection Using the GNU Arch Revision Control System
-@cindex arch revision control system, using
-The Arch revision control system allows you to retrieve previous
-versions and select specific features and bug fixes.
-
-Michael Olson maintains an official Arch branch for ERC which stays
-current with the CVS repository for ERC.  If you would like to
-contribute to ERC development, and would prefer to use a modern Revision
-Control System, feel free to make your own branch.
-
-If you are new to Arch, you might find this tutorial helpful:
-@uref{http://www.mwolson.org/projects/ArchTutorial.html}.
-
-Downloading ERC with Arch and staying up-to-date involves the following
-steps.
+ERC is developed using GNU Arch.  Downloading ERC with Arch and staying
+up-to-date involves the following steps.
 
 @enumerate
+@cindex GNU Arch, installing
 @item Install arch
 
 @itemize @bullet
@@ -178,15 +155,16 @@ steps.
 @item Other distributions: see @uref{ftp://ftp.gnu.org/gnu/gnu-arch/}.
 @end itemize
 
+@cindex GNU Arch, downloading ERC
 @item Register the archive.
 @example
-tla register-archive -f http://www.mwolson.org/archives/2006
+tla register-archive -f http://arch.sv.gnu.org/archives/erc/erc
 @end example
 
 @item Download the ERC source code.
 @example
 # Download ERC into the @file{erc} directory.
-tla get mwolson@@gnu.org--2006/erc--cvs--0 erc
+tla get erc@@sv.gnu.org/erc--main--0 erc
 @end example
 
 @item List upstream changes that are missing from your local copy.
@@ -201,24 +179,29 @@ cd erc/
 tla missing --summary
 @end example
 
-@cindex updating ERC with Arch
+@cindex GNU Arch, updating ERC
 @item Update to the latest version by replaying missing changes.
 @example
 cd erc
-tla replay
+tla update
 @end example
 
 @end enumerate
 
-There are other ways to interact with the ERC archive.
+If you are new to Arch and want to learn more about developing with it,
+you might find this tutorial helpful:
+@uref{http://www.mwolson.org/projects/ArchTutorial.html}.
 
-@itemize
-@item Browse arch repository: @uref{http://www.mwolson.org/archives/}
-@item Latest development snapshot: @uref{http://www.mwolson.org/static/dist/erc-latest.tar.gz}
+@subheading Development snapshots
+
+@cindex development snapshot
+Alternatively, the latest development snapshot may be downloaded in both
+``.tar.gz'' and ``.zip'' forms.
+
+@itemize @bullet
+@item @uref{http://www.mwolson.org/static/dist/erc-latest.tar.gz}
+@item @uref{http://www.mwolson.org/static/dist/erc-latest.zip}
 @end itemize
-
-The latest development snapshot will be kept up-to-date since it is
-updated at the same time as the Arch repository.
 
 
 @node Installation, Getting Started, Obtaining ERC, Top
@@ -282,15 +265,13 @@ locations that require this.
 
 To use ERC, add the directory containing its files to your
 @code{load-path} variable, in your @file{.emacs} file.  Then, load ERC
-itself along with any extra modules you desire.  An example follows.
+itself.  An example follows.
 
 @lisp
 (require 'erc)
-
-(require 'erc-spelling)
 @end lisp
 
-Once this is loaded, the command @kbd{M-x erc-select} will start ERC and
+Once ERC is loaded, the command @kbd{M-x erc-select} will start ERC and
 prompt for the server to connect to.
 
 @c PRE5_2: Sample session, including:
@@ -362,12 +343,12 @@ Run "/names #channel" in the current channel.
 
 @item C-c C-o (`erc-get-channel-mode-from-keypress')
 Read a key sequence and call the corresponding channel mode function.
-After doing C-c C-o type in a channel mode letter.
+After doing @kbd{C-c C-o}, type in a channel mode letter.
 
-C-g means quit.
-RET let's you type more than one mode at a time.
-If "l" is pressed, `erc-set-channel-limit' gets called.
-If "k" is pressed, `erc-set-channel-key' gets called.
+@kbd{C-g} means quit.
+@kbd{RET} lets you type more than one mode at a time.
+If @kbd{l} is pressed, @code{erc-set-channel-limit} gets called.
+If @kbd{k} is pressed, @code{erc-set-channel-key} gets called.
 Anything else will be sent to `erc-toggle-channel-mode'.
 
 @item C-c C-p (`erc-part-from-channel')
@@ -406,7 +387,7 @@ The following is a list of available modules.
 
 @cindex modules, autoaway
 @item autoaway
-Set away status automatically.
+Set away status automatically
 
 @cindex modules, autojoin
 @item autojoin
@@ -420,13 +401,30 @@ Integrate with the Big Brother Database
 @item button
 Buttonize URLs, nicknames, and other text
 
+@cindex modules, completion
+@item pcomplete
+Complete nicknames and commands (programmable)
+
 @cindex modules, fill
 @item fill
 Wrap long lines
 
+@cindex modules, hecomplete
+@item completion
+Complete nicknames and commands (old).  This is the old module---you
+might prefer the ``completion'' module instead.
+
+@cindex modules, identd
+@item identd
+Launch an identd server on port 8113
+
 @cindex modules, irccontrols
 @item irccontrols
 Highlight or remove IRC control characters
+
+@cindex modules, list
+@item list
+List channels nicely in a separate buffer
 
 @cindex modules, log
 @item log
@@ -448,9 +446,9 @@ Don't display non-IRC commands after evaluation
 @item notify
 Notify when the online status of certain users changes
 
-@cindex modules, pcomplete
-@item pcomplete
-Complete nicknames and commands (programmable)
+@cindex modules, page
+@item page
+Process CTCP PAGE requests from IRC
 
 @cindex modules, readonly
 @item readonly
@@ -480,9 +478,9 @@ Convert smileys to pretty icons
 @item sound
 Play sounds when you receive CTCP SOUND requests
 
-@cindex modules, spell
-@item spell
-Check spelling
+@cindex modules, spelling
+@item spelling
+Check spelling of messages
 
 @cindex modules, stamp
 @item stamp
@@ -510,13 +508,174 @@ Translate morse code in messages
 @chapter Advanced Usage
 @cindex advanced topics
 
-Write me.
+@menu
+* Connecting::                  Ways of connecting to an IRC server.
+* Options::                     Options that are available for ERC.
+* Tips and Tricks::             Ways of enhancing your ERC experience.
+* Sample Configuration::        An example configuration file.
+@end menu
 
-@c PRE5_2: (Node) Document every ERC option
+@node Connecting, Options, Advanced Usage, Advanced Usage
+@comment  node-name,  next,  previous,  up
+@section Connecting to an IRC Server
+@cindex connecting
+
+The easiest way to connect to an IRC server is to call
+@kbd{M-x erc-select}.  If you want to assign this function to a
+keystroke, the following will help you figure out its parameters.
+
+@defun erc-select
+Select connection parameters and run ERC.
+Non-interactively, it takes the following keyword arguments.
+
+@itemize @bullet
+@item @var{server}
+@item @var{port}
+@item @var{nick}
+@item @var{password}
+@item @var{full-name}
+@end itemize
+
+That is, if called with the following arguments, @var{server} and
+@var{full-name} will be set to those values, whereas
+@code{erc-compute-port}, @code{erc-compute-nick} and
+@code{erc-compute-full-name} will be invoked for the values of the other
+parameters.
+
+@example
+(erc-select :server "irc.freenode.net" :full-name "Harry S Truman")
+@end example
+@end defun
+
+@subheading Server
+
+@defun erc-compute-server &optional server
+Return an IRC server name.
+
+This tries a number of increasingly more default methods until a non-nil
+value is found.
+
+@itemize @bullet
+@item @var{server} (the argument passed to this function)
+@item The @code{erc-server} option
+@item The value of the IRCSERVER environment variable
+@item The @code{erc-default-server} variable
+@end itemize
+
+@end defun
+
+@defopt erc-server nil
+IRC server to use if one is not provided.
+@end defopt
+
+@subheading Port
+
+@defun erc-compute-port &optional port
+Return a port for an IRC server.
+
+This tries a number of increasingly more default methods until a non-nil
+value is found.
+
+@itemize @bullet
+@item @var{port} (the argument passed to this function)
+@item The @code{erc-port} option
+@item The @code{erc-default-port} variable
+@end itemize
+
+@end defun
+
+@defopt erc-port
+IRC port to use if not specified.
+
+This can be either a string or a number.
+@end defopt
+
+@subheading Nick
+
+@defun erc-compute-nick &optional nick
+Return user's IRC nick.
+
+This tries a number of increasingly more default methods until a
+non-nil value is found.
+
+@itemize
+@item @var{nick} (the argument passed to this function)
+@item The @code{erc-nick} option
+@item The value of the IRCNICK environment variable
+@item The result from the @code{user-login-name} function
+@end itemize
+
+@end defun
+
+@defopt erc-nick
+Nickname to use if one is not provided.
+
+This can be either a string, or a list of strings.
+In the latter case, if the first nick in the list is already in use,
+other nicks are tried in the list order.
+@end defopt
+
+@defopt erc-nick-uniquifier
+The string to append to the nick if it is already in use.
+@end defopt
+
+@defopt erc-try-new-nick-p
+If the nickname you chose isn't available, and this option is non-nil,
+ERC should automatically attempt to connect with another nickname.
+
+You can manually set another nickname with the /NICK command.
+@end defopt
+
+@subheading Full name
+
+@defun erc-compute-full-name &optional full-name
+Return user's full name.
+
+This tries a number of increasingly more default methods until a
+non-nil value is found.
+
+@itemize @bullet
+@item @var{full-name} (the argument passed to this function)
+@item The @code{erc-user-full-name} option
+@item The value of the IRCNAME environment variable
+@item The result from the @code{user-full-name} function
+@end itemize
+
+@end defun
+
+@defopt erc-user-full-name
+User full name.
+
+This can be either a string or a function to call.
+@end defopt
+
+@node Options, Tips and Tricks, Connecting, Advanced Usage
+@comment  node-name,  next,  previous,  up
+@section Options
+@cindex options
+
+@c PRE5_2: (Node) Document every ERC option (module options go in
+@c previous chapter)
+
+This section has not yet been written.
+
+@node Tips and Tricks, Sample Configuration, Options, Advanced Usage
+@comment  node-name,  next,  previous,  up
+@section Tips and Tricks
+@cindex tips and tricks
 
 @c PRE5_2: (Node) Tips and tricks
 
+This section has not yet been written.
+
+@node Sample Configuration, , Tips and Tricks, Advanced Usage
+@comment  node-name,  next,  previous,  up
+@section Sample Configuration
+@cindex configuration, sample
+
 @c PRE5_2: (Node) Sample configs
+
+This section has not yet been written.
 
 
 @node Getting Help and Reporting Bugs, History, Advanced Usage, Top
@@ -536,14 +695,24 @@ emacswiki.org page for ERC.  Anyone may add tips, hints, or bug
 descriptions to it.
 
 @item
-You can join the mailing list at @email{erc-help@@lists.sourceforge.net}
-using the subscription form at
-@uref{http://lists.sourceforge.net/lists/listinfo/erc-help}.
+There are several mailing lists for ERC.  To subscribe, visit
+@uref{http://savannah.gnu.org/mail/?group=erc}.
 
-This mailing list is also available via Gmane
-(@url{http://gmane.org/}). The group is called
-@samp{gmane.emacs.erc.general}.  This provides additional methods for
-accessing the mailing list, adding content to it, and searching it.
+The mailing lists are also available on Gmane.
+(@url{http://gmane.org/}).  Gmane provides additional methods for
+accessing the mailing lists, adding content to them, and searching them.
+
+@enumerate
+@item gmane.emacs.erc.announce
+Announcements
+
+@item gmane.emacs.erc.discuss
+General discussion
+
+@item gmane.emacs.erc.cvs
+Log messages for changes to the ERC source code
+
+@end enumerate
 
 @item
 You can visit the IRC Freenode channel @samp{#emacs}. Many of the
@@ -561,7 +730,7 @@ questions.
 ERC was originally written by Alexander L. Belikoff
 @email{abel@@bfr.co.il} and Sergey Berezin
 @email{sergey.berezin@@cs.cmu.edu}.  They stopped development around
-December 1999. Their last released version was ERC 2.0.
+December 1999.  Their last released version was ERC 2.0.
 
 P.S.: If one of the original developers of ERC reads this, we'd like to
 receive additional information for this file and hear comments in
@@ -572,42 +741,46 @@ general.
 
 In June 2001, Mario Lang @email{mlang@@delysid.org} and Alex Schroeder
 @email{alex@@gnu.org} took over development and created a ERC Project at
-sourceforge.net.
+@uref{http://sourceforge.net/projects/erc}.
 
-In reaction to a mail about the new erc development, Sergey Berezin
-said, "First of all, I'm glad that my version of ERC is being used out
-there. The thing is, I do not have free time and enough incentive
-anymore to work on ERC, so I would be happy if you guys take over the
-project entirely."
+In reaction to a mail about the new ERC development effort, Sergey
+Berezin said, ``First of all, I'm glad that my version of ERC is being
+used out there.  The thing is, I do not have free time and enough
+incentive anymore to work on ERC, so I would be happy if you guys take
+over the project entirely.''
 
 So we happily hacked away on ERC, and soon after (September 2001)
 released the next "stable" version, 2.1.
 
 Most of the development of the new ERC happened on #emacs on
-irc.openprojects.net. Over time, many people contributed code, ideas,
-bugfixes. And not to forget a lot of alpha/beta/gamma testing.
+irc.openprojects.net.  Over time, many people contributed code, ideas,
+bugfixes, and a lot of alpha/beta/gamma testing.
 
 See the @file{CREDITS} file for a list of contributors.
 
 @item 2003
 
-ERC 3.0 is released.
+ERC 3.0 was released.
 
 @item 2004
 
-ERC 4.0 is released.
+ERC 4.0 was released.
 
 @item 2005
 
-ERC 5.0 is released.  Michael Olson @email{mwolson@@gnu.org} becomes
+ERC 5.0 was released.  Michael Olson @email{mwolson@@gnu.org} became
 the release manager and eventually the maintainer.
 
-After some discussion between him and the Emacs developers, it is
+After some discussion between him and the Emacs developers, it was
 decided to include ERC in Emacs.
 
 @item 2006
 
-ERC 5.1 is released.  It is subsequently included in Emacs 22.
+ERC 5.1 was released.  It was subsequently included in Emacs 22.
+
+ERC became an official GNU project, and development moved to
+@uref{http://sv.gnu.org/projects/erc}.  We switched to using GNU Arch as
+our revision control system.  Our mailing list address changed as well.
 
 @end itemize
 

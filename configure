@@ -5675,7 +5675,7 @@ fi
         echo "$as_me:$LINENO: checking for $ALSA_MODULES" >&5
 echo $ECHO_N "checking for $ALSA_MODULES... $ECHO_C" >&6
 
-        if $PKG_CONFIG --exists "$ALSA_MODULES" ; then
+        if $PKG_CONFIG --exists "$ALSA_MODULES" 2> /dev/null; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
             succeeded=yes
@@ -10319,7 +10319,7 @@ echo "$as_me: error:
         echo "$as_me:$LINENO: checking for $GTK_MODULES" >&5
 echo $ECHO_N "checking for $GTK_MODULES... $ECHO_C" >&6
 
-        if $PKG_CONFIG --exists "$GTK_MODULES" ; then
+        if $PKG_CONFIG --exists "$GTK_MODULES" 2> /dev/null; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
             succeeded=yes

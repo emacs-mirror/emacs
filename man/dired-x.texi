@@ -298,9 +298,9 @@ In order to have @code{dired-jump} and @code{dired-jump-other-window}
 for these functions.  In your @file{.emacs} file put
 
 @example
-;;; Autoload `dired-jump' and `dired-jump-other-window'.
-;;; We autoload from FILE dired.el.  This will then load dired-x.el
-;;; and hence define `dired-jump' and `dired-jump-other-window'.
+;; Autoload `dired-jump' and `dired-jump-other-window'.
+;; We autoload from FILE dired.el.  This will then load dired-x.el
+;; and hence define `dired-jump' and `dired-jump-other-window'.
 (define-key global-map "\C-x\C-j" 'dired-jump)
 (define-key global-map "\C-x4\C-j" 'dired-jump-other-window)
 

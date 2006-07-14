@@ -149,7 +149,7 @@ where,
              (name-str (symbol-name name))
              (icon (nth 2 button))
              (xemacs-icon (mh-do-in-xemacs
-                            (cdr (assoc (intern icon) mh-xemacs-icon-map))))
+                            `(cdr (assoc (quote ,(intern icon)) mh-xemacs-icon-map))))
              (full-doc (nth 3 button))
              (doc (if (string-match "\\(.*\\)\n" full-doc)
                       (match-string 1 full-doc)
@@ -189,7 +189,7 @@ where,
                                  (t 'folder-buttons)))
                  (docs (cond ((eq mbuttons 'letter-buttons) 'letter-docs)
                              ((eq mbuttons 'folder-buttons) 'folder-docs))))
-            (add-to-list vector-list `[,xemacs-icon ,function t ,full-doc])
+            (add-to-list vector-list `(vector ,xemacs-icon ',function t ,full-doc))
             (add-to-list
              setter `(when (member ',name ,list)
                        (mh-funcall-if-exists
@@ -288,27 +288,28 @@ Use SEQUENCE-MAP if display is limited; DEFAULT-MAP otherwise."
        ;; XEmacs specific code
        (mh-do-in-xemacs
          (defvar mh-tool-bar-folder-vector-map
-           ',(loop for button in folder-buttons
-                   for vector in folder-vectors
-                   collect (cons button vector)))
+           (list ,@(loop for button in folder-buttons
+                     for vector in folder-vectors
+                     collect `(cons ',button ,vector))))
          (defvar mh-tool-bar-show-vector-map
-           ',(loop for button in show-buttons
-                   for vector in show-vectors
-                   collect (cons button vector)))
+           (list ,@(loop for button in show-buttons
+                     for vector in show-vectors
+                     collect `(cons ',button ,vector))))
          (defvar mh-tool-bar-letter-vector-map
-           ',(loop for button in letter-buttons
-                   for vector in letter-vectors
-                   collect (cons button vector)))
-         (defvar mh-tool-bar-folder-buttons nil)
-         (defvar mh-tool-bar-show-buttons nil)
-         (defvar mh-tool-bar-letter-buttons nil)
+           (list ,@(loop for button in letter-buttons
+                     for vector in letter-vectors
+                     collect `(cons ',button ,vector))))
+         (defvar mh-tool-bar-folder-buttons)
+         (defvar mh-tool-bar-show-buttons)
+         (defvar mh-tool-bar-letter-buttons)
          ;; Custom setter functions
          (defun mh-tool-bar-letter-buttons-set (symbol value)
            (set-default symbol value)
            (when mh-xemacs-has-tool-bar-flag
              (setq mh-tool-bar-letter-buttons
                    (loop for b in value
-                         collect (cdr (assoc b mh-tool-bar-letter-vector-map))))))
+                         collect (cdr
+                                  (assoc b mh-tool-bar-letter-vector-map))))))
          (defun mh-tool-bar-folder-buttons-set (symbol value)
            (set-default symbol value)
            (when mh-xemacs-has-tool-bar-flag
@@ -320,13 +321,16 @@ Use SEQUENCE-MAP if display is limited; DEFAULT-MAP otherwise."
                          collect (cdr (assoc b mh-tool-bar-show-vector-map))))))
          (defun mh-tool-bar-init (mode)
            "Install tool bar in MODE."
-           (let ((tool-bar (cond ((eq mode :folder) mh-tool-bar-folder-buttons)
-                                ((eq mode :letter) mh-tool-bar-letter-buttons)
-                                ((eq mode :show) mh-tool-bar-show-buttons)))
-                 (height 37)
-                 (width 40)
-                 (buffer (current-buffer)))
-             (when mh-xemacs-use-tool-bar-flag
+           (when mh-xemacs-use-tool-bar-flag
+             (let ((tool-bar (cond ((eq mode :folder)
+                                    mh-tool-bar-folder-buttons)
+                                   ((eq mode :letter)
+                                    mh-tool-bar-letter-buttons)
+                                   ((eq mode :show)
+                                    mh-tool-bar-show-buttons)))
+                   (height 37)
+                   (width 40)
+                   (buffer (current-buffer)))
                (cond
                 ((eq mh-xemacs-tool-bar-position 'top)
                  (set-specifier top-toolbar tool-bar buffer)
@@ -367,8 +371,9 @@ Use SEQUENCE-MAP if display is limited; DEFAULT-MAP otherwise."
                             for y in letter-docs
                             collect `(const :tag ,y ,x)))
         ;;:package-version '(MH-E "7.1")
-       ))))
+        ))))
 
+;; The icon names are duplicated in the Makefile and mh-xemacs.el.
 (mh-tool-bar-define
  ((:folder mh-inc-folder mh-mime-save-parts
            mh-previous-undeleted-msg mh-page-msg

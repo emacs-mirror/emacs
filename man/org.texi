@@ -3,8 +3,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.39
-@set DATE June 2006
+@set VERSION 4.43
+@set DATE July 2006
 
 @dircategory Emacs
 @direntry
@@ -111,6 +111,7 @@ Document Structure
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 * Plain lists::                 Editing hand-formatted lists
+* Checkboxes::                  Easily checking off things.
 
 Archiving
 
@@ -198,7 +199,7 @@ The weekly/daily agenda
 
 Embedded LaTeX
 
-* Math symbols::                TeX macros for symbols and greek letters
+* Math symbols::                TeX macros for symbols and Greek letters
 * Subscripts and Superscripts::  Simple syntax for raising/lowering text
 * LaTeX fragments::             Complex formulas made easy
 * Processing LaTeX fragments::  Previewing LaTeX processing
@@ -419,6 +420,7 @@ edit the structure of the document.
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 * Plain lists::                 Editing hand-formatted lists
+* Checkboxes::                  Easily checking off things.
 @end menu
 
 @node Outlines, Headlines, Document structure, Document structure
@@ -769,18 +771,18 @@ a sparse tree matching the string @samp{FIXME}.
 Other commands use sparse trees as well.  For example @kbd{C-c
 C-v} creates a sparse TODO tree (@pxref{TODO basics}).
 
-@kindex C-c C-x v
+@kindex C-c C-e v
 @cindex printing sparse trees
 @cindex visible text, printing
 To print a sparse tree, you can use the Emacs command
 @code{ps-print-buffer-with-faces} which does not print invisible parts
 of the document @footnote{This does not work under XEmacs, because
 XEmacs uses selective display for outlining, not text properties.}.
-Or you can use the command @kbd{C-c C-x v} to export only the visible
+Or you can use the command @kbd{C-c C-e v} to export only the visible
 part of the document and print the resulting file.
 
 
-@node Plain lists,  , Sparse trees, Document structure
+@node Plain lists, Checkboxes, Sparse trees, Document structure
 @section Plain lists
 @cindex plain lists
 @cindex lists, plain
@@ -827,18 +829,6 @@ But in the end, not individual scenes matter but the film as a whole.
 Org-mode supports these lists by tuning filling and wrapping commands
 to deal with them correctly.  
 
-@cindex checkboxes
-Every item in a plain list can be made a checkbox by starting it with
-the string @samp{[ ]}.  The checkbox status can conveniently be toggled
-with @kbd{C-c C-c}.
-
-@example
-* Stupid mistakes when distributing a new version
-  - [ ] update also Emacs CVS
-  - [X] forget to update index.html on the website
-  - [X] leaving a `(debug)' form in the code
-@end example
-
 The following commands act on items when the cursor is in the first line
 of an item (the line with the bullet or number).
 
@@ -862,7 +852,7 @@ an item but does not contain the bullet, a bullet is added to the
 current line.
 @kindex M-S-@key{RET}
 @item M-S-@key{RET}
-Insert a new item with a checkbox.
+Insert a new item with a checkbox (@pxref{Checkboxes}).
 @kindex S-@key{up}
 @kindex S-@key{down}
 @item S-@key{up}
@@ -887,11 +877,60 @@ would imply a different hierarchy.  To use the new hierarchy, break
 the command chain with a cursor motion or so.
 @kindex C-c C-c
 @item C-c C-c
-If there is a checkbox in the item line, toggle the state of the
-checkbox.  Otherwise, if this is an ordered list, renumber the ordered
-list at the cursor.
+If there is a checkbox (@pxref{Checkboxes}) in the item line, toggle the
+state of the checkbox.  Otherwise, if this is an ordered list, renumber
+the ordered list at the cursor.
 @end table
 
+@page
+@node Checkboxes,  , Plain lists, Document structure
+@section Checkboxes
+@cindex checkboxes
+
+Every item in a plain list (ordered and unordered) can be made a
+checkbox by starting it with the string @samp{[ ]}.  This feature is
+similar to TODO items (@pxref{TODO items}), but more lightweight.
+Checkboxes are not included into the global TODO list, so they are often
+great to split a task into a number of simple steps.  Or you can use
+them in a shopping list to select the items you need to buy.  To toggle
+a checkbox, use @kbd{C-c C-c}, or try Piotr Zielinski's
+@file{org-mouse.el}.  Here is an example of a checkbox list.
+
+@example
+* Avoid stupid mistakes when distributing a new version
+  - [ ] update also Emacs CVS
+  - [X] forget to update index.html on the website
+  - [X] leaving a `(debug)' form in the code
+@end example
+
+@noindent The following commands work with checkboxes:
+
+@table @kbd
+@kindex C-c C-c
+@item C-c C-c
+Toggle checkbox at point.
+@kindex C-c C-x C-b
+@item C-c C-x C-b
+Toggle checkbox at point.
+@itemize @minus
+@item
+If there is an active region, toggle the first checkbox in the region
+and set all remaining boxes to the same status as the first.  If you
+want to toggle all boxes in the region independently, use a prefix
+argument.
+@item
+If the cursor is in a headline, toggle checkboxes in the region between
+this headline and the next.  This does @emph{not} act on the entire
+subtree, just the current entry.
+@item
+If no active region, just toggle the checkbox at point.
+@end itemize
+@kindex M-S-@key{RET}
+@item M-S-@key{RET}
+Insert a new item with a checkbox.
+This works only if the cursor is already in a plain list item
+(@pxref{Plain lists}).
+@end table
 
 @node Tables, Hyperlinks, Document structure, Top
 @chapter Tables
@@ -3020,6 +3059,23 @@ Remote editing of TODO items means that you can change the state of a
 TODO entry with a single key press.  The commands available in the
 TODO list are described in @ref{Agenda commands}.
 
+Nomally the global todo list simply shows all headlines with TODO
+keywords.  This list can become very long.  There are two ways to keep
+it more compact:
+@itemize @minus
+@item
+Some people view a TODO item that has been @emph{scheduled} for
+execution (@pxref{Time stamps}) as no longer @emph{open}.  Configure the
+variable @code{org-agenda-todo-ignore-scheduled} to exclude scheduled
+items from the global TODO list.
+@item
+TODO items may have sublevels to break up the task into subtasks.  In
+such cases it may be enough to list only the highest level TODO headline
+and omit the sublevels from the global list.  Configure the variable
+@code{org-agenda-todo-list-sublevels} to get this behavior.
+@end itemize
+
+
 @node Matching headline tags, Timeline, Global TODO list, Agenda views
 @section Matching headline tags
 @cindex matching, of tags
@@ -3163,6 +3219,10 @@ S-@key{right}.  When the buffer is the global todo list, a prefix
 argument is interpreted to create a selective list for a specific TODO
 keyword.
 
+@kindex s
+@item s
+Save all Org-mode buffers in the current Emacs session.
+
 @kindex @key{right}
 @item @key{right}
 Display the following @code{org-agenda-ndays} days.  For example, if
@@ -3298,6 +3358,7 @@ calendars.
 @item H
 Show holidays for three month around the cursor date.
 
+@c FIXME:  This should be a different key.
 @kindex C-c C-x C-c
 @item C-c C-x C-c
 Export a single iCalendar file containing entries from all agenda files.
@@ -3372,7 +3433,7 @@ not necessary (but OK) to surround multi-character sub- and superscripts
 with curly braces.  For example
 
 @example
-The mass if the sun is M_sun = 1.989 x 10^30 kg.  The radius o
+The mass if the sun is M_sun = 1.989 x 10^30 kg.  The radius of
 the sun is R_@{sun@} = 6.96 x 10^8 m.
 @end example
 
@@ -3400,13 +3461,16 @@ snippets will be identified as LaTeX source code:
 @itemize @bullet
 @item
 Environments of any kind.  The only requirement is that the
-@code{\begin} statements appears on a new line, preceded by only
+@code{\begin} statement appears on a new line, preceded by only
 whitespace.
 @item
-Text within the usual La@TeX{} math delimiters.  Org-mode recognizes
-single @samp{$} characters as math delimiters only if they are directly
-attached to the surrounded text, with no whitespace in between.  For the
-other delimiters, there is no such restriction.
+Text within the usual La@TeX{} math delimiters.  To avoid conflicts with
+currency specifications, single @samp{$} characters are only recognized
+as math delimiters if the enclosed text contains at most two line breaks,
+is directly attached to the @samp{$} characters with no whitespace in
+between, and if the closing @samp{$} is followed by whitespace or
+punctuation.  For the other delimiters, there is no such restriction, so
+when in doubt, use @samp{\(...\)} as inline math delimiters.
 @end itemize
 
 @noindent For example:
@@ -3416,7 +3480,7 @@ other delimiters, there is no such restriction.
 x=\sqrt@{b@}                                % even tables, figures
 \end@{equation@}                            % etc
 
-If $a=\sqrt@{b@}$ and \( b=2 \), then the solution must be
+If $a^2=b$ and \( b=2 \), then the solution must be
 either $$ a=+\sqrt@{2@} $$ or \[ a=-\sqrt@{2@} \].
 @end example
 
@@ -3459,8 +3523,12 @@ setting is active:
 CDLaTeX-mode is a minor mode that is normally used in combination with a
 major LaTeX mode like AUCTeX in order to speed-up insertion of
 environments and math templates.  Inside Org-mode, you can make use of
-some of the features of cdlatex-mode by turning on a special minor mode
-with @code{M-x org-cdlatex-mode}.  You can also turn it on for all
+some of the features of cdlatex-mode.  You need to install
+@file{cdlatex.el} and @file{texmathp.el} (the latter comes also with
+AUCTeX) from @url{http://www.astro.uva.nl/~dominik/Tools/cdlatex}.
+Don't turn cdlatex-mode itself under Org-mode, but use the light
+version @code{org-cdlatex-mode} that comes as part of Org-mode.  Turn it
+on for the current buffer with @code{M-x org-cdlatex-mode}, or for all
 Org-mode files with
 
 @lisp
@@ -3476,8 +3544,8 @@ Environment templates can be inserted with @kbd{C-c @{}.
 @item
 @kindex @key{TAB}
 The @key{TAB} key will do template expansion if the cursor is inside a
-LaTeX fragment@footnote{Org-mode has a heuristic method to test if the
-cursor is inside such a fragment, see the documentation of the function
+LaTeX fragment@footnote{Org-mode has a method to test if the cursor is
+inside such a fragment, see the documentation of the function
 @code{org-inside-LaTeX-fragment-p}.}.  For example, @key{TAB} will
 expand @code{fr} to @code{\frac@{@}@{@}} and position the cursor
 correctly inside the first brace.  Another @key{TAB} will get you into
@@ -3485,8 +3553,7 @@ the second brace.  Even outside fragments, @key{TAB} will expand
 environment abbreviations at the beginning of a line.  For example, if
 you write @samp{equ} at the beginning of a line and press @key{TAB},
 this abbreviation will be expanded to an @code{equation} environment.
-To get a list of all abbreviations, type @kbd{M-x
-cdlatex-command-help}. 
+To get a list of all abbreviations, type @kbd{M-x cdlatex-command-help}.
 @item
 @kindex _
 @kindex ^
@@ -3526,6 +3593,14 @@ import of these different formats.
 When exporting, Org-mode uses special conventions to enrich the output
 produced.  @xref{Text interpretation}, for more details.
 
+@table @kbd
+@kindex C-c C-e
+@item C-c C-e
+Dispatcher for export and publishing commands.  Displays a help-window
+listing the additional key(s) needed to launch an export or publishing
+command.
+@end table
+
 @menu
 * ASCII export::                Exporting to plain ASCII
 * HTML export::                 Exporting to HTML
@@ -3545,14 +3620,14 @@ file.
 @cindex active region
 @cindex transient-mark-mode
 @table @kbd
-@kindex C-c C-x a
-@item C-c C-x a
+@kindex C-c C-e a
+@item C-c C-e a
 Export as ASCII file.  If there is an active region, only the region
 will be exported.  For an org file @file{myfile.org}, the ASCII file
 will be @file{myfile.txt}.  The file will be overwritten without
 warning.
-@kindex C-c C-x v a
-@item C-c C-x v a
+@kindex C-c C-e v a
+@item C-c C-e v a
 Export only the visible part of the document.
 @end table
 
@@ -3563,15 +3638,15 @@ will be exported as itemized lists.  If you want that transition to occur
 at a different level, specify it with a prefix argument.  For example,
 
 @example
-@kbd{C-1 C-c C-x a}
+@kbd{C-1 C-c C-e a}
 @end example
 
 @noindent
 creates only top level headlines and does the rest as items.  When
 headlines are converted to items, the indentation of the text following
 the headline is changed to fit nicely under the item.  This is done with
-the assumption that the first bodyline indicates the base indenation of
-the body text.  Any indenation larger than this is adjusted to preserve
+the assumption that the first bodyline indicates the base indentation of
+the body text.  Any indentation larger than this is adjusted to preserve
 the layout relative to the first line.  Should there be lines with less
 indentation than the first, these are left alone.
 
@@ -3587,16 +3662,16 @@ language, but with additional support for tables.
 @cindex active region
 @cindex transient-mark-mode
 @table @kbd
-@kindex C-c C-x h
-@item C-c C-x h
+@kindex C-c C-e h
+@item C-c C-e h
 Export as HTML file @file{myfile.html}.
-@kindex C-c C-x b
-@item C-c C-x b
+@kindex C-c C-e b
+@item C-c C-e b
 Export as HTML file and open it with a browser.
-@kindex C-c C-x v h
-@kindex C-c C-x v b
-@item C-c C-x v h
-@item C-c C-x v b
+@kindex C-c C-e v h
+@kindex C-c C-e v b
+@item C-c C-e v h
+@item C-c C-e v b
 Export only the visible part of the document.
 @end table
 
@@ -3607,7 +3682,7 @@ will be exported as itemized lists.  If you want that transition to occur
 at a different level, specify it with a prefix argument.  For example,
 
 @example
-@kbd{C-2 C-c C-x b}
+@kbd{C-2 C-c C-e b}
 @end example
 
 @noindent
@@ -3676,11 +3751,11 @@ Currently, this exporter only handles the general outline structure and
 does not interpret any additional Org-mode features.
 
 @table @kbd
-@kindex C-c C-x C-x
-@item C-c C-x C-x
+@kindex C-c C-e x
+@item C-c C-e x
 Export as XOXO file @file{myfile.html}.
-@kindex C-c C-x v
-@item C-c C-x v x
+@kindex C-c C-e v
+@item C-c C-e v x
 Export only the visible part of the document.
 @end table
 
@@ -3696,17 +3771,17 @@ application.  Org-mode can export calendar information in the standard
 iCalendar format.
 
 @table @kbd
-@kindex C-c C-x i
-@item C-c C-x i
+@kindex C-c C-e i
+@item C-c C-e i
 Create iCalendar entries for the current file and store them in the same
 directory, using a file extension @file{.ics}.
-@kindex C-c C-x C-i
-@item C-c C-x C-i
-Like @kbd{C-c C-x i}, but do this for all files in
+@kindex C-c C-e I
+@item C-c C-e I
+Like @kbd{C-c C-e i}, but do this for all files in
 @code{org-agenda-files}.  For each of these files, a separate iCalendar
 file will be written.
-@kindex C-c C-x c
-@item C-c C-x c
+@kindex C-c C-e c
+@item C-c C-e c
 Create a single large iCalendar file from all files in
 @code{org-agenda-files} and write it to the file given by
 @code{org-combined-agenda-icalendar-file}.
@@ -3715,7 +3790,7 @@ Create a single large iCalendar file from all files in
 How this calendar is best read and updated, depends on the application
 you are using.  For example, when using iCal under Apple MacOS X, you
 could create a new calendar @samp{OrgMode} (the default name for the
-calendar created by @kbd{C-c C-x c}, see the variables
+calendar created by @kbd{C-c C-e c}, see the variables
 @code{org-icalendar-combined-name} and
 @code{org-combined-agenda-icalendar-file}).  Then set Org-mode to
 overwrite the corresponding file
@@ -3832,13 +3907,13 @@ buffer.
 The exporter recognizes special lines in the buffer which provide
 additional information.  These lines may be put anywhere in the file.
 The whole set of lines can be inserted into the buffer with @kbd{C-c
-C-x t}.  For individual lines, a good way to make sure the keyword is
+C-e t}.  For individual lines, a good way to make sure the keyword is
 correct is to type @samp{#+} and then use @kbd{M-@key{TAB}} completion
 (@pxref{Completion}).
 
 @table @kbd
-@kindex C-c C-x t
-@item C-c C-x t
+@kindex C-c C-e t
+@item C-c C-e t
 Insert template with export options, see example below.
 @end table
 
@@ -4202,18 +4277,18 @@ following functions:
 
 @table @kbd
 @item C-c C-e c
-Prompts for a specific project to publish.
+Prompt for a specific project and publish all files that belong to it.
 @item C-c C-e p
-Publishes the project the current file is part of. 
+Publish the project containin the current file.
 @item C-c C-e f
-Publishes only the current file.
+Publish only the current file.
 @item C-c C-e a
 Publish all projects.
 @end table
 
 Org uses timestamps to track when a file has changed. The above
 functions normally only publish changed files. You can override this and
-force publishing of all files by giving a prefix argument. 
+force publishing of all files by giving a prefix argument.
 
 @node Miscellaneous, Extensions and Hacking, Publishing, Top
 @chapter Miscellaneous
@@ -4369,7 +4444,7 @@ what this means in different contexts.
 
 @itemize @minus
 @item
-If there are highlichts in the buffer from the creation of a sparse
+If there are highlights in the buffer from the creation of a sparse
 tree, or from clock display, remove these highlights.
 @item
 If the cursor is in one of the special @code{#+KEYWORD} lines, this
@@ -4721,7 +4796,7 @@ blogs. @url{http://www.cognition.ens.fr/~guerry/org-blogging.html}.
 @section Dynamic blocks
 
 Org-mode documents can contain @emph{dynamic blocks}.  These are
-specially marked regions that are updates by some user-written
+specially marked regions that are updated by some user-written
 function.  A good example for such a block is the clock table inserted
 by the command @kbd{C-c C-x C-r} (@pxref{Clocking work time}).
 
@@ -4765,7 +4840,7 @@ run:
 The corresponding block writer function could look like this:
 
 @lisp
-(defun org-dblock-write:date-and-time (params)
+(defun org-dblock-write:block-update-time (params)
    (let ((fmt (or (plist-get params :format) "%d. %m. %Y")))
      (insert "Last block update at: "
 	     (format-time-string fmt (current-time)))))
@@ -4838,6 +4913,8 @@ patched CSS formatting into the HTML exporter, and inspired the agenda.
 @i{Kai Grossjohann} pointed out key-binding conflicts caused by
 Org-mode.
 @item
+@i{Leon Liu} asked for embedded LaTeX and tested it.
+@item
 @i{Stefan Monnier} provided a patch to keep the Emacs-Lisp compiler
 happy.
 @item
@@ -4872,7 +4949,7 @@ other things.
 Linking to VM/BBDB/GNUS was inspired by @i{Tom Shannon}'s
 @file{organizer-mode.el}.
 @item
-@i{Daniel Sinder} came up with the idea of internal archiving my locking
+@i{Daniel Sinder} came up with the idea of internal archiving by locking
 subtrees.
 @item
 @i{David O'Toole} wrote @file{org-publish.el} and drafted the manual

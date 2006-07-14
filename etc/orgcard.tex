@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{4.39}
+\def\orgversionnumber{4.43}
 \def\year{2006}
 %
 %**start of header
@@ -297,7 +297,9 @@ are preserved on all copies.
 \section{Structure Editing}
 
 \key{insert new heading/item at current level}{M-RET}
-\key{insert new TODO entry}{M-S-RET}
+\key{insert new TODO entry/checkbox item}{M-S-RET}
+\key{toggle checkbox(es) in region/entry/at point}{C-c C-x C-b}
+\key{toggle checkbox at point}{C-c C-c}
 
 \key{promote current heading up one level}{M-LEFT}
 \key{demote current heading down one level}{M-RIGHT}
@@ -596,6 +598,7 @@ To set categories, add lines like$^2$:
 \key{toggle time grid for daily schedule}{g}
 \key{toggle display of logbook entries}{l}
 \key{refresh agenda buffer with any changes}{r}
+\key{save all org-mode buffers}{s}
 \key{display the following \kbd{org-agenda-ndays}}{RIGHT}
 \key{display the previous \kbd{org-agenda-ndays}}{LEFT}
 \key{goto today}{.}
@@ -636,7 +639,7 @@ To set categories, add lines like$^2$:
 
 \section{Calendar and Diary Integration}
 
-To include entries from the Emacs diary in your Org-mode agenda:
+Include Emacs diary entries into Org-mode agenda with:
 \beginexample%
 (setq org-agenda-include-diary t)
 \endexample

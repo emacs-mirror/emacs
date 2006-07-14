@@ -196,6 +196,8 @@ static int input_signal_count;
 
 extern Lisp_Object Vsystem_name;
 
+extern Lisp_Object Qeql;
+
 /* A mask of extra modifier bits to put into every keyboard char.  */
 
 extern EMACS_INT extra_keyboard_modifiers;
@@ -6031,12 +6033,27 @@ x_set_mouse_pixel_position (f, pix_x, pix_y)
      struct frame *f;
      int pix_x, pix_y;
 {
-#if 0 /* MAC_TODO: CursorDeviceMoveTo is non-Carbon */
+#ifdef MAC_OSX
+  Point p;
+  CGPoint point;
+
+  BLOCK_INPUT;
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
+  p.h = pix_x;
+  p.v = pix_y;
+  LocalToGlobal (&p);
+  point.x = p.h;
+  point.y = p.v;
+  CGWarpMouseCursorPosition (point);
+  UNBLOCK_INPUT;
+#else
+#if 0 /* MAC_TODO: LMSetMouseLocation and CursorDeviceMoveTo are non-Carbon */
   BLOCK_INPUT;
 
   XWarpPointer (FRAME_X_DISPLAY (f), None, FRAME_X_WINDOW (f),
 		0, 0, 0, 0, pix_x, pix_y);
   UNBLOCK_INPUT;
+#endif
 #endif
 }
 
@@ -6897,6 +6914,8 @@ static Lisp_Object fm_font_family_alist;
 #if USE_ATSUI
 /* Hash table linking font family names to ATSU font IDs.  */
 static Lisp_Object atsu_font_id_hash;
+/* Alist linking Font Manager style to face attributes.  */
+static Lisp_Object fm_style_face_attributes_alist;
 static Lisp_Object Vmac_atsu_font_table;
 extern Lisp_Object QCfamily, QCweight, QCslant, Qnormal, Qbold, Qitalic;
 #endif
@@ -7132,6 +7151,29 @@ add_mac_font_name (name, size, style, charset)
     }
 }
 
+#if USE_ATSUI
+static Lisp_Object
+fm_style_to_face_attributes (fm_style)
+     FMFontStyle fm_style;
+{
+  Lisp_Object tem;
+
+  fm_style &= (bold | italic);
+  tem = assq_no_quit (make_number (fm_style),
+		      fm_style_face_attributes_alist);
+  if (!NILP (tem))
+    return XCDR (tem);
+
+  tem = list4 (QCweight, fm_style & bold ? Qbold : Qnormal,
+	       QCslant, fm_style & italic ? Qitalic : Qnormal);
+  fm_style_face_attributes_alist =
+    Fcons (Fcons (make_number (fm_style), tem),
+	   fm_style_face_attributes_alist);
+
+  return tem;
+}
+#endif
+
 /* Sets up the table font_name_table to contain the list of all fonts
    in the system the first time the table is used so that the Resource
    Manager need not be accessed every time this information is
@@ -7200,14 +7242,12 @@ init_font_name_table ()
 		decode_mac_font_name (name, name_len + 1, Qnil);
 		family = make_unibyte_string (name, name_len);
 		FMGetFontFamilyInstanceFromFont (font_ids[i], &ff, &style);
-		Fputhash (make_unibyte_string ((char *)(font_ids + i),
-					       sizeof (ATSUFontID)),
+		Fputhash ((font_ids[i] > MOST_POSITIVE_FIXNUM
+			   ? make_float (font_ids[i])
+			   : make_number (font_ids[i])),
 			  Fcons (QCfamily,
-				 list5 (family,
-					QCweight,
-					style & bold ? Qbold : Qnormal,
-					QCslant,
-					style & italic ? Qitalic : Qnormal)),
+				 Fcons (family,
+					fm_style_to_face_attributes (style))),
 			  Vmac_atsu_font_table);
 		if (*name != '.'
 		    && hash_lookup (h, family, &hash_code) < 0)
@@ -8513,6 +8553,7 @@ static Lisp_Object Qupdate_active_input_area, Qunicode_for_key_event;
 static Lisp_Object Vmac_ts_active_input_overlay;
 extern Lisp_Object Qbefore_string;
 static Lisp_Object Vmac_ts_script_language_on_focus;
+static Lisp_Object saved_ts_script_language_on_focus;
 static ScriptLanguageRecord saved_ts_language;
 static Component saved_ts_component;
 #endif
@@ -8875,11 +8916,17 @@ mac_tsm_resume ()
 
   if (err == noErr)
     {
-      if (EQ (Vmac_ts_script_language_on_focus, Qt))
+      if (EQ (Vmac_ts_script_language_on_focus, Qt)
+	  && EQ (saved_ts_script_language_on_focus, Qt))
 	slptr = &saved_ts_language;
       else if (CONSP (Vmac_ts_script_language_on_focus)
 	       && INTEGERP (XCAR (Vmac_ts_script_language_on_focus))
-	       && INTEGERP (XCDR (Vmac_ts_script_language_on_focus)))
+	       && INTEGERP (XCDR (Vmac_ts_script_language_on_focus))
+	       && CONSP (saved_ts_script_language_on_focus)
+	       && EQ (XCAR (saved_ts_script_language_on_focus),
+		      XCAR (Vmac_ts_script_language_on_focus))
+	       && EQ (XCDR (saved_ts_script_language_on_focus),
+		      XCDR (Vmac_ts_script_language_on_focus)))
 	{
 	  slrec.fScript = XINT (XCAR (Vmac_ts_script_language_on_focus));
 	  slrec.fLanguage = XINT (XCDR (Vmac_ts_script_language_on_focus));
@@ -8911,6 +8958,8 @@ mac_tsm_suspend ()
 {
   OSStatus err;
   ScriptLanguageRecord slrec, *slptr = NULL;
+
+  saved_ts_script_language_on_focus = Vmac_ts_script_language_on_focus;
 
   if (EQ (Vmac_ts_script_language_on_focus, Qt))
     {
@@ -9560,7 +9609,11 @@ mac_handle_text_input_event (next_handler, event, data)
      typeLongInteger,
      typeIntlWritingCode,
      typeLongInteger,
+#ifdef MAC_OSX
      typeUnicodeText,
+#else
+     typeChar,
+#endif
      typeTextRangeArray,
      typeTextRangeArray,
      typeOffsetArray,
@@ -10646,7 +10699,7 @@ XTread_socket (sd, expected, hold_quit)
 #endif
 	    mapped_modifiers &= modifiers;
 
-#if USE_CARBON_EVENTS && defined (MAC_OSX)
+#if USE_CARBON_EVENTS && (defined (MAC_OSX) || USE_MAC_TSM)
 	    /* When using Carbon Events, we need to pass raw keyboard
 	       events to the TSM ourselves.  If TSM handles it, it
 	       will pass back noErr, otherwise it will pass back
@@ -11302,7 +11355,11 @@ init_menu_bar ()
 static void
 init_tsm ()
 {
+#ifdef MAC_OSX
   static InterfaceTypeList types = {kUnicodeDocument};
+#else
+  static InterfaceTypeList types = {kTextService};
+#endif
 
   NewTSMDocument (sizeof (types) / sizeof (types[0]), types,
 		  &tsm_document_id, 0);
@@ -11491,6 +11548,14 @@ syms_of_macterm ()
 #if USE_ATSUI
   staticpro (&atsu_font_id_hash);
   atsu_font_id_hash = Qnil;
+
+  staticpro (&fm_style_face_attributes_alist);
+  fm_style_face_attributes_alist = Qnil;
+#endif
+
+#if USE_MAC_TSM
+  staticpro (&saved_ts_script_language_on_focus);
+  saved_ts_script_language_on_focus = Qnil;
 #endif
 
   /* We don't yet support this, but defining this here avoids whining
@@ -11603,11 +11668,9 @@ CODING_SYSTEM is a coding system corresponding to TEXT-ENCODING.  */);
 
 #if USE_ATSUI
   DEFVAR_LISP ("mac-atsu-font-table", &Vmac_atsu_font_table,
-    doc: /* Hash table of ATSU font IDs vs plist of attributes and values.
-Each font ID is represented as a four-byte string in native byte
-order.  */);
+    doc: /* Hash table of ATSU font IDs vs plist of attributes and values.  */);
   Vmac_atsu_font_table =
-    make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+    make_hash_table (Qeql, make_number (DEFAULT_HASH_SIZE),
 		     make_float (DEFAULT_REHASH_SIZE),
 		     make_float (DEFAULT_REHASH_THRESHOLD),
 		     Qnil, Qnil, Qnil);

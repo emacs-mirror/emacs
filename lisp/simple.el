@@ -1031,7 +1031,7 @@ display the result of expression evaluation."
           (format " (#o%o, #x%x)" value value)))))
 
 ;; We define this, rather than making `eval' interactive,
-;; for the sake of completion of names like eval-region, eval-current-buffer.
+;; for the sake of completion of names like eval-region, eval-buffer.
 (defun eval-expression (eval-expression-arg
 			&optional eval-expression-insert-value)
   "Evaluate EVAL-EXPRESSION-ARG and print value in the echo area.
@@ -1657,7 +1657,7 @@ is not *inside* the region START...END."
 	     '(0 . 0)))
     '(0 . 0)))
 
-(defcustom undo-ask-before-discard t
+(defcustom undo-ask-before-discard nil
   "If non-nil ask about discarding undo info for the current command.
 Normally, Emacs discards the undo info for the current command if
 it exceeds `undo-outer-limit'.  But if you set this option

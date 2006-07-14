@@ -6527,31 +6527,43 @@ Emacs was built without floating point support.
 
 
 /* This is just like wait_reading_process_output, except that
-   it does the redisplay.
+   it does redisplay.
 
-   It's also much like Fsit_for, except that it can be used for
-   waiting for input as well.  */
+   TIMEOUT is number of seconds to wait (float or integer).
+   READING is 1 if reading input.
+   If DO_DISPLAY is >0 display process output while waiting.
+   If DO_DISPLAY is >1 perform an initial redisplay before waiting.
+*/
 
 Lisp_Object
-sit_for (sec, usec, reading, display, initial_display)
-     int sec, usec, reading, display, initial_display;
+sit_for (timeout, reading, do_display)
+     Lisp_Object timeout;
+     int reading, do_display;
 {
-  int preempt = (sec >= 0) || (sec == 0 && usec >= 0);
+  int sec, usec;
 
-  swallow_events (display);
+  swallow_events (do_display);
 
-  if ((detect_input_pending_run_timers (display) && preempt)
+  if ((detect_input_pending_run_timers (do_display))
       || !NILP (Vexecuting_kbd_macro))
     return Qnil;
 
-  if (initial_display)
+  if (do_display >= 2)
+    redisplay_preserve_echo_area (2);
+
+  if (INTEGERP (timeout))
     {
-      int count = SPECPDL_INDEX ();
-      if (!preempt)
-	specbind (Qredisplay_dont_pause, Qt);
-      redisplay_preserve_echo_area (2);
-      unbind_to (count, Qnil);
+      sec = XINT (timeout);
+      usec = 0;
     }
+  else if (FLOATP (timeout))
+    {
+      double seconds = XFLOAT_DATA (timeout);
+      sec = (int) seconds;
+      usec = (int) ((seconds - sec) * 1000000);
+    }
+  else
+    wrong_type_argument (Qnumberp, timeout);
 
   if (sec == 0 && usec == 0)
     return Qt;
@@ -6560,63 +6572,34 @@ sit_for (sec, usec, reading, display, initial_display)
   gobble_input (0);
 #endif
 
-  wait_reading_process_output (sec, usec, reading ? -1 : 1, display,
+  wait_reading_process_output (sec, usec, reading ? -1 : 1, do_display,
 			       Qnil, NULL, 0);
 
   return detect_input_pending () ? Qnil : Qt;
 }
 
 
-DEFUN ("sit-for", Fsit_for, Ssit_for, 1, 3, 0,
-       doc: /* Perform redisplay, then wait for SECONDS seconds or until input is available.
-SECONDS may be a floating-point value, meaning that you can wait for a
-fraction of a second.
-\(Not all operating systems support waiting for a fraction of a second.)
-Optional arg NODISP non-nil means don't redisplay, just wait for input.
-Redisplay is preempted as always if input arrives, and does not happen
-if input is available before it starts.
-Value is t if waited the full time with no input arriving.
-
-Redisplay will occur even when input is available if SECONDS is negative.
-
-An obsolete but still supported form is
-\(sit-for SECONDS &optional MILLISECONDS NODISP)
-Where the optional arg MILLISECONDS specifies an additional wait period,
-in milliseconds; this was useful when Emacs was built without
-floating point support.
-usage: (sit-for SECONDS &optional NODISP OLD-NODISP) */)
-
-/* The `old-nodisp' stuff is there so that the arglist has the correct
-   length.  Otherwise, `defdvice' will redefine it with fewer args.  */
-     (seconds, milliseconds, nodisp)
-     Lisp_Object seconds, milliseconds, nodisp;
+DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
+       doc: /* Perform redisplay if no input is available.
+If optional arg FORCE is non-nil or `redisplay-dont-pause' is non-nil,
+perform a full redisplay even if input is available.  */)
+     (force)
+  Lisp_Object force;
 {
-  int sec, usec;
+  int count;
 
-  if (NILP (nodisp) && !NUMBERP (milliseconds))
-    { /* New style.  */
-      nodisp = milliseconds;
-      milliseconds = Qnil;
-    }
+  swallow_events (1);
+  if ((detect_input_pending_run_timers (1)
+       && NILP (force) && !redisplay_dont_pause)
+      || !NILP (Vexecuting_kbd_macro))
+    return Qnil;
 
-  if (NILP (milliseconds))
-    XSETINT (milliseconds, 0);
-  else
-    CHECK_NUMBER (milliseconds);
-  usec = XINT (milliseconds) * 1000;
-
-  {
-    double duration = extract_float (seconds);
-    sec = (int) duration;
-    usec += (duration - sec) * 1000000;
-  }
-
-#ifndef EMACS_HAS_USECS
-  if (usec != 0 && sec == 0)
-    error ("Millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
-#endif
-
-  return sit_for (sec, usec, 0, NILP (nodisp), NILP (nodisp));
+  count = SPECPDL_INDEX ();
+  if (!NILP (force) && !redisplay_dont_pause)
+    specbind (Qredisplay_dont_pause, Qt);
+  redisplay_preserve_echo_area (2);
+  unbind_to (count, Qnil);
+  return Qt;
 }
 
 
@@ -7038,7 +7021,7 @@ syms_of_display ()
   defsubr (&Sframe_or_buffer_changed_p);
   defsubr (&Sopen_termscript);
   defsubr (&Sding);
-  defsubr (&Ssit_for);
+  defsubr (&Sredisplay);
   defsubr (&Ssleep_for);
   defsubr (&Ssend_string_to_terminal);
   defsubr (&Sinternal_show_cursor);

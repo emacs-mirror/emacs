@@ -47,6 +47,7 @@ Software Foundation raise funds for GNU development.''
 @c Do this inside @tex for now, so current makeinfo does not complain.
 @tex
 @fonttextsize 10
+\global\hbadness=6000 % don't worry about not-too-underfull boxes
 @end tex
 
 @defcodeindex op
@@ -137,7 +138,7 @@ and Sending Mail and Registers and Minibuffer.
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
 * Acknowledgments::     Major contributors to GNU Emacs.
 
-Indexes (nodes containing large menus)
+Indexes (each index contains a large menu)
 * Key Index::	        An item for each standard Emacs key sequence.
 * Option Index::        An item for every command-line option.
 * Command Index::       An item for each command name.
@@ -320,6 +321,7 @@ Registers
 Controlling the Display
 
 * Scrolling::	           Moving text up and down in a window.
+* Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::	           How to change the display style using faces.
@@ -470,6 +472,8 @@ International Character Set Support
 * Coding Systems::          Character set conversion when you read and
                               write files, and so on.
 * Recognize Coding::        How Emacs figures out which conversion to use.
+* Specify Coding::          Specifying a file's coding system explicitly.
+* Output Coding::           Choosing coding systems for output.
 * Text Coding::             Choosing conversion to use for file text.
 * Communication Coding::    Coding systems for interprocess communication.
 * File Name Coding::        Coding systems for file @emph{names}.

@@ -239,7 +239,10 @@ The CMD used for `cvs-mode-commit' is \"message\".  For that special
 This expression will be evaluated in an environment where DIR is set to
 the directory name of the cvs buffer.")
 
-(defvar cvs-temp-buffer-name '(expand-file-name " *cvs-tmp*" dir)
+(defvar cvs-temp-buffer-name
+  ;; Was '(expand-file-name " *cvs-tmp*" dir), but that causes them to
+  ;; become non-hidden if uniquification is done `forward'.
+  " *cvs-tmp*"
   "*Name of the cvs temporary buffer.
 Output from cvs is placed here for asynchronous commands.")
 

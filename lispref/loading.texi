@@ -15,7 +15,7 @@ environment in the form of Lisp objects.  Emacs finds and opens the
 file, reads the text, evaluates each form, and then closes the file.
 
   The load functions evaluate all the expressions in a file just
-as the @code{eval-current-buffer} function evaluates all the
+as the @code{eval-buffer} function evaluates all the
 expressions in a buffer.  The difference is that the load functions
 read and evaluate the text in the file as found on disk, not the text
 in an Emacs buffer.

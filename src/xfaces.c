@@ -1174,14 +1174,11 @@ load_pixmap (f, name, w_ptr, h_ptr)
      unsigned int *w_ptr, *h_ptr;
 {
   int bitmap_id;
-  Lisp_Object tem;
 
   if (NILP (name))
     return 0;
 
-  tem = Fbitmap_spec_p (name);
-  if (NILP (tem))
-    wrong_type_argument (Qbitmap_spec_p, name);
+  CHECK_TYPE (!NILP (Fbitmap_spec_p (name)), Qbitmap_spec_p, name);
 
   BLOCK_INPUT;
   if (CONSP (name))
@@ -4816,7 +4813,14 @@ x_update_menu_appearance (f)
 DEFUN ("face-attribute-relative-p", Fface_attribute_relative_p,
        Sface_attribute_relative_p,
        2, 2, 0,
-       doc: /* Return non-nil if face ATTRIBUTE VALUE is relative.  */)
+       doc: /* Check whether a face attribute value is relative.
+Specifically, this function returns t if the attribute ATTRIBUTE
+with the value VALUE is relative.
+
+A relative value is one that doesn't entirely override whatever is
+inherited from another face.  For most possible attributes,
+the only relative value that users see is `unspecified'.
+However, for :height, floating point values are also relative.  */)
      (attribute, value)
      Lisp_Object attribute, value;
 {

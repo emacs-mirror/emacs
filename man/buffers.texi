@@ -575,7 +575,7 @@ buffer name.  To select one, customize the variable
 
   For instance, the @code{forward} naming method puts part of the
 directory name at the beginning of the buffer name; using this method,
-buffers visiting @file{/u/mernst/tmp/Makefile} and
+buffers visiting @file{/u/rms/tmp/Makefile} and
 @file{/usr/projects/zaphod/Makefile} would be named
 @samp{tmp/Makefile} and @samp{zaphod/Makefile}, respectively (instead
 of @samp{Makefile} and @samp{Makefile<2>}).

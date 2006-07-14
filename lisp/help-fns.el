@@ -540,7 +540,8 @@ it is displayed along with the global value."
 			 (error nil))))
 		  (when location
 		    (with-current-buffer (car location)
-		      (goto-char (cdr location))
+		      (when (cdr location)
+			(goto-char (cdr location)))
 		      (when (re-search-backward
 			     "^;;; Generated autoloads from \\(.*\\)" nil t)
 			(setq file-name (match-string 1)))))))

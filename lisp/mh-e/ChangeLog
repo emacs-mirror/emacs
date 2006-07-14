@@ -1,3 +1,42 @@
+2006-07-03  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.0.2.
+
+	* mh-e.el (Version, mh-version): Update for release 8.0.2.
+
+2006-07-03  Ted Phelps  <phelps@gnusto.com>  (tiny change)
+
+	* mh-tool-bar.el (mh-tool-bar-define): Fix XEmacs' vector-list so
+	it refers to the icons in mh-xemacs-icon-map instead of trying to
+	declare the icons in situ. This allows mh-tool-bar.el to be
+	compiled under XEmacs. Remove initial value for
+	mh-tool-bar-folder-buttons, mh-tool-bar-show-buttons,
+	mh-tool-bar-letter-buttons. The MH-E icons now appear in XEmacs.
+	In mh-tool-bar-init, check for mh-xemacs-use-tool-bar-flag sooner.
+	This allows MH-E to be used in XEmacs in a tty (closes SF
+	#1506846).
+
+2006-07-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el: Require mh-buffers and mh-compat before mh-xemacs now
+	that mh-xemacs needs functions in mh-compat.
+
+2006-06-29  Bill Wohler  <wohler@newt.com>
+
+	* mh-search.el (mh-search, mh-index-group-by-folder): Add "the" in
+	loop construct to be consistent with other loops, and because
+	edebug doesn't work without it.
+	
+2006-06-29  Ted Phelps  <phelps@gnusto.com>  (tiny change)
+
+	* mh-search.el (mh-folder-exists-p): Strip + from folder to avoid
+	redundant +s in regexp (closes SF #1514424).
+
+2006-06-29  Sergey Poznyakoff  <gray@Mirddin.farlep.net>  (tiny change)
+
+	* mh-mime.el (mh-mime-save-parts): Add -store option to
+	mhn (closes SF #1513140).
+
 2006-06-20  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.0.1.

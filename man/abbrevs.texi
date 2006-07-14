@@ -212,7 +212,7 @@ to turn on Abbrev mode first.  It may also be useful together with a
 special set of abbrev definitions for making several global replacements at
 once.  This command is effective even if Abbrev mode is not enabled.
 
-  Expanding an abbrev runs the hook @code{pre-abbrev-expand-hook}
+  Expanding any abbrev first runs the hook @code{pre-abbrev-expand-hook}
 (@pxref{Hooks}).
 
 @need 1500

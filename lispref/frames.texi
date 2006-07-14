@@ -8,10 +8,16 @@
 @chapter Frames
 @cindex frame
 
-  A @dfn{frame} is a rectangle on the screen that contains one or more
-Emacs windows.  A frame initially contains a single main window (plus
-perhaps a minibuffer window), which you can subdivide vertically or
-horizontally into smaller windows.
+  In Emacs editing, A @dfn{frame} is a screen object that contains one
+or more Emacs windows.  It's the kind of object that is called a
+``window'' in the terminology of graphical environments; but we can't
+call it a ``window'' here, because Emacs uses that word in a different
+way.
+
+  A frame initially contains a single main window and/or a minibuffer
+window; you can subdivide the main window vertically or horizontally
+into smaller windows.  In Emacs Lisp, a @dfn{frame object} is a Lisp
+object that represents a frame on the screen.
 
 @cindex terminal frame
   When Emacs runs on a text-only terminal, it starts with one
@@ -107,7 +113,6 @@ frame.
 @end defvar
 
 @defvar after-make-frame-functions
-@tindex after-make-frame-functions
 An abnormal hook run by @code{make-frame} after it creates the frame.
 Each function in @code{after-make-frame-functions} receives one argument, the
 frame just created.
@@ -216,7 +221,6 @@ These functions let you read and change the parameter values of a
 frame.
 
 @defun frame-parameter frame parameter
-@tindex frame-parameter
 This function returns the value of the parameter @var{parameter} (a
 symbol) of @var{frame}.  If @var{frame} is @code{nil}, it returns the
 selected frame's parameter.  If @var{frame} has no setting for
@@ -1553,7 +1557,7 @@ window don't matter; only the frame matters.
 
 If @var{header} is non-@code{nil}, the frame title for the box is
 @samp{Information}, otherwise it is @samp{Question}.  The former is used
-for @code{message-box} (@pxref{The Echo Area}).
+for @code{message-box} (@pxref{message-box}).
 
 In some configurations, Emacs cannot display a real dialog box; so
 instead it displays the same items in a pop-up menu in the center of the
@@ -1583,7 +1587,6 @@ of the buffer contents), the mouse pointer usually uses the
 those above) by setting @code{void-text-area-pointer}.
 
 @defvar void-text-area-pointer
-@tindex void-text-area-pointer
 This variable specifies the mouse pointer style for void text areas.
 These include the areas after the end of a line or below the last line
 in the buffer.  The default is to use the @code{arrow} (non-text)
@@ -1697,12 +1700,33 @@ and @code{x-set-selection} on MS-Windows support the text data type
 only; if the clipboard holds other types of data, Emacs treats the
 clipboard as empty.
 
+@cindex scrap support (for Mac OS)
+On Mac OS, selection-like data transfer between applications is
+performed through a mechanism called @dfn{scraps}.  The clipboard is a
+particular scrap named @code{com.apple.scrap.clipboard}.  Types of scrap
+data are called @dfn{scrap flavor types}, which are identified by
+four-char codes such as @code{TEXT}.  Emacs associates a selection with
+a scrap, and a selection type with a scrap flavor type via
+@code{mac-scrap-name} and @code{mac-ostype} properties, respectively.
+
+@example
+(get 'CLIPBOARD 'mac-scrap-name)
+     @result{} "com.apple.scrap.clipboard"
+(get 'com.apple.traditional-mac-plain-text 'mac-ostype)
+     @result{} "TEXT"
+@end example
+
+Conventionally, selection types for scrap flavor types on Mac OS have
+the form of @acronym{UTI, Uniform Type Identifier} such as
+@code{com.apple.traditional-mac-plain-text},
+@code{public.utf16-plain-text}, and @code{public.file-url}.
+
 @defopt x-select-enable-clipboard
 If this is non-@code{nil}, the Emacs yank functions consult the
 clipboard before the primary selection, and the kill functions store in
 the clipboard as well as the primary selection.  Otherwise they do not
 access the clipboard at all.  The default is @code{nil} on most systems,
-but @code{t} on MS-Windows.
+but @code{t} on MS-Windows and Mac.
 @end defopt
 
 @node Drag and Drop
@@ -1759,7 +1783,6 @@ valid, and what they look like.  In some cases, the value depends on the
 meaning of the term ``selected frame''.
 
 @defun color-defined-p color &optional frame
-@tindex color-defined-p
 This function reports whether a color name is meaningful.  It returns
 @code{t} if so; otherwise, @code{nil}.  The argument @var{frame} says
 which frame's display to ask about; if @var{frame} is omitted or
@@ -1777,7 +1800,6 @@ and that name is still supported as an alias.
 @end defun
 
 @defun defined-colors &optional frame
-@tindex defined-colors
 This function returns a list of the color names that are defined
 and supported on frame @var{frame} (default, the selected frame).
 If @var{frame} does not support colors, the value is @code{nil}.
@@ -1788,7 +1810,6 @@ and that name is still supported as an alias.
 @end defun
 
 @defun color-supported-p color &optional frame background-p
-@tindex color-supported-p
 This returns @code{t} if @var{frame} can really display the color
 @var{color} (or at least something close to it).  If @var{frame} is
 omitted or @code{nil}, the question applies to the selected frame.
@@ -1802,7 +1823,6 @@ The argument @var{color} must be a valid color name.
 @end defun
 
 @defun color-gray-p color &optional frame
-@tindex color-gray-p
 This returns @code{t} if @var{color} is a shade of gray, as defined on
 @var{frame}'s display.  If @var{frame} is omitted or @code{nil}, the
 question applies to the selected frame.  If @var{color} is not a valid
@@ -1810,7 +1830,6 @@ color name, this function returns @code{nil}.
 @end defun
 
 @defun color-values color &optional frame
-@tindex color-values
 @cindex rgb value
 This function returns a value that describes what @var{color} should
 ideally look like on @var{frame}.  If @var{color} is defined, the
@@ -1870,7 +1889,6 @@ selected frame's terminal; @pxref{Input Focus}).  At present, though,
 the @var{frame} argument has no effect.
 
 @defun tty-color-define name number &optional rgb frame
-@tindex tty-color-define
 This function associates the color name @var{name} with
 color number @var{number} on the terminal.
 
@@ -1882,12 +1900,10 @@ Emacs will not know what it looks like.
 @end defun
 
 @defun tty-color-clear &optional frame
-@tindex tty-color-clear
 This function clears the table of defined colors for a text-only terminal.
 @end defun
 
 @defun tty-color-alist &optional frame
-@tindex tty-color-alist
 This function returns an alist recording the known colors supported by a
 text-only terminal.
 
@@ -1899,7 +1915,6 @@ and blue) that says what the color actually looks like.
 @end defun
 
 @defun tty-color-approximate rgb &optional frame
-@tindex tty-color-approximate
 This function finds the closest color, among the known colors
 supported for @var{display}, to that described by the rgb value
 @var{rgb} (a list of color values).  The return value is an element of
@@ -1907,7 +1922,6 @@ supported for @var{display}, to that described by the rgb value
 @end defun
 
 @defun tty-color-translate color &optional frame
-@tindex tty-color-translate
 This function finds the closest color to @var{color} among the known
 colors supported for @var{display} and returns its index (an integer).
 If the name @var{color} is not defined, the value is @code{nil}.
@@ -1989,7 +2003,6 @@ refers to the selected frame's display, @pxref{Input Focus}).
 obtain information about displays.
 
 @defun display-popup-menus-p &optional display
-@tindex display-popup-menus-p
 This function returns @code{t} if popup menus are supported on
 @var{display}, @code{nil} if not.  Support for popup menus requires that
 the mouse be available, since the user cannot choose menu items without
@@ -1997,7 +2010,6 @@ a mouse.
 @end defun
 
 @defun display-graphic-p &optional display
-@tindex display-graphic-p
 @cindex frames, more than one on display
 @cindex fonts, more than one on display
 This function returns @code{t} if @var{display} is a graphic display
@@ -2007,14 +2019,12 @@ false for text-only terminals.
 @end defun
 
 @defun display-mouse-p &optional display
-@tindex display-mouse-p
 @cindex mouse, availability
 This function returns @code{t} if @var{display} has a mouse available,
 @code{nil} if not.
 @end defun
 
 @defun display-color-p &optional display
-@tindex display-color-p
 @findex x-display-color-p
 This function returns @code{t} if the screen is a color screen.
 It used to be called @code{x-display-color-p}, and that name
@@ -2022,14 +2032,12 @@ is still supported as an alias.
 @end defun
 
 @defun display-grayscale-p &optional display
-@tindex display-grayscale-p
 This function returns @code{t} if the screen can display shades of gray.
 (All color displays can do this.)
 @end defun
 
 @defun display-supports-face-attributes-p attributes &optional display
 @anchor{Display Face Attribute Testing}
-@tindex display-supports-face-attributes-p
 This function returns non-@code{nil} if all the face attributes in
 @var{attributes} are supported (@pxref{Face Attributes}).
 
@@ -2055,7 +2063,6 @@ italic.
 @end defun
 
 @defun display-selections-p &optional display
-@tindex display-selections-p
 This function returns @code{t} if @var{display} supports selections.
 Windowed displays normally support selections, but they may also be
 supported in some other cases.
@@ -2069,36 +2076,30 @@ images, Emacs cannot display a tool bar.
 @end defun
 
 @defun display-screens &optional display
-@tindex display-screens
 This function returns the number of screens associated with the display.
 @end defun
 
 @defun display-pixel-height &optional display
-@tindex display-pixel-height
 This function returns the height of the screen in pixels.
 On a character terminal, it gives the height in characters.
 @end defun
 
 @defun display-mm-height &optional display
-@tindex display-mm-height
 This function returns the height of the screen in millimeters,
 or @code{nil} if Emacs cannot get that information.
 @end defun
 
 @defun display-pixel-width &optional display
-@tindex display-pixel-width
 This function returns the width of the screen in pixels.
 On a character terminal, it gives the width in characters.
 @end defun
 
 @defun display-mm-width &optional display
-@tindex display-mm-width
 This function returns the width of the screen in millimeters,
 or @code{nil} if Emacs cannot get that information.
 @end defun
 
 @defun display-backing-store &optional display
-@tindex display-backing-store
 This function returns the backing store capability of the display.
 Backing store means recording the pixels of windows (and parts of
 windows) that are not exposed, so that when exposed they can be
@@ -2110,7 +2111,6 @@ when the question is inapplicable to a certain kind of display.
 @end defun
 
 @defun display-save-under &optional display
-@tindex display-save-under
 This function returns non-@code{nil} if the display supports the
 SaveUnder feature.  That feature is used by pop-up windows
 to save the pixels they obscure, so that they can pop down
@@ -2118,14 +2118,12 @@ quickly.
 @end defun
 
 @defun display-planes &optional display
-@tindex display-planes
 This function returns the number of planes the display supports.
 This is typically the number of bits per pixel.
 For a tty display, it is log to base two of the number of colors supported.
 @end defun
 
 @defun display-visual-class &optional display
-@tindex display-visual-class
 This function returns the visual class for the screen.  The value is one
 of the symbols @code{static-gray}, @code{gray-scale},
 @code{static-color}, @code{pseudo-color}, @code{true-color}, and
@@ -2133,7 +2131,6 @@ of the symbols @code{static-gray}, @code{gray-scale},
 @end defun
 
 @defun display-color-cells &optional display
-@tindex display-color-cells
 This function returns the number of color cells the screen supports.
 @end defun
 

@@ -664,12 +664,12 @@ appear as well (even if not already loaded).  However, the subgroups'
 own contents are not included.
 
 @findex customize-apropos
-  To control more precisely what to customize, you can use @kbd{M-x
-customize-apropos}.  You specify a regular expression as argument;
-then all @emph{loaded} settings and groups whose names match this
-regular expression are set up in the customization buffer.  If you
-specify an empty regular expression, this includes @emph{all} loaded
-groups and settings---which takes a long time to set up.
+  For a more general way of controlling what to customize, you can use
+@kbd{M-x customize-apropos}.  You specify a regular expression as
+argument; then all @emph{loaded} settings and groups whose names match
+this regular expression are set up in the customization buffer.  If
+you specify an empty regular expression, this includes @emph{all}
+loaded groups and settings---which takes a long time to set up.
 
 @findex customize-changed
   When you upgrade to a new Emacs version, you might want to consider
@@ -1112,16 +1112,16 @@ variables list afterward.
   Here is an example of a local variables list:
 
 @example
-;;; Local Variables: ***
-;;; mode:lisp ***
-;;; comment-column:0 ***
-;;; comment-start: ";;; "  ***
-;;; comment-end:"***" ***
-;;; End: ***
+;; Local Variables: **
+;; mode:lisp **
+;; comment-column:0 **
+;; comment-start: ";; "  **
+;; comment-end:"**" **
+;; End: **
 @end example
 
-  Each line starts with the prefix @samp{;;; } and each line ends with
-the suffix @samp{ ***}.  Emacs recognizes these as the prefix and
+  Each line starts with the prefix @samp{;; } and each line ends with
+the suffix @samp{ **}.  Emacs recognizes these as the prefix and
 suffix based on the first line of the list, by finding them
 surrounding the magic string @samp{Local Variables:}; then it
 automatically discards them from the other lines of the list.
@@ -1129,8 +1129,8 @@ automatically discards them from the other lines of the list.
   The usual reason for using a prefix and/or suffix is to embed the
 local variables list in a comment, so it won't confuse other programs
 that the file is intended as input for.  The example above is for a
-language where comment lines start with @samp{;;; } and end with
-@samp{***}; the local values for @code{comment-start} and
+language where comment lines start with @samp{;; } and end with
+@samp{**}; the local values for @code{comment-start} and
 @code{comment-end} customize the rest of Emacs for this unusual
 syntax.  Don't use a prefix (or a suffix) if you don't need one.
 
@@ -1204,7 +1204,7 @@ variables list, and asks you for confirmation before setting them.
 You can type @kbd{y} or @key{SPC} to put the local variables list into
 effect, or @kbd{n} to ignore it.  When Emacs is run in batch mode
 (@pxref{Initial Options}), it can't really ask you, so it assumes the
-answer @samp{n}.
+answer @kbd{n}.
 
   Emacs normally recognizes certain variables/value pairs as safe.
 For instance, it is safe to give @code{comment-column} or
@@ -1482,7 +1482,7 @@ just like @key{RET}.  This is used mainly for Mocklisp compatibility.
 @code{minibuffer-local-must-match-map} is for strict completion and
 for cautious completion.
 @item
-@code{minibuffer-local-filename-completion-map} and
+Finally, @code{minibuffer-local-filename-completion-map} and
 @code{minibuffer-local-must-match-filename-map} are like the two
 previous ones, but they are specifically for file name completion.
 They do not bind @key{SPC}.

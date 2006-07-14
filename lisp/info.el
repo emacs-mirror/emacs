@@ -844,7 +844,7 @@ a case-insensitive match is tried."
 		(goto-char (point-min))
 		(condition-case ()
 		    (if (and (re-search-forward
-			      "makeinfo version \\([0-9]+.[0-9]+\\)"
+			      "makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
 			      (line-beginning-position 3) t)
 			     (not (version< (match-string 1) "4.7")))
 			(setq found t))
@@ -3077,7 +3077,8 @@ If FORK is a string, it is the name to use for the new buffer."
 
 ;; Common subroutine.
 (defun Info-try-follow-nearest-node (&optional fork)
-  "Follow a node reference near point.  Return non-nil if successful."
+  "Follow a node reference near point.  Return non-nil if successful.
+If FORK is non-nil, it i spassed to `Info-goto-node'."
   (let (node)
     (cond
      ((Info-get-token (point) "[hf]t?tp://" "[hf]t?tp://\\([^ \t\n\"`({<>})']+\\)")

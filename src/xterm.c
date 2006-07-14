@@ -10841,13 +10841,16 @@ x_delete_display (dpyinfo)
 	xfree (dpyinfo->font_table[i].name);
       }
 
-  if (dpyinfo->font_table && dpyinfo->font_table->font_encoder)
-    xfree (dpyinfo->font_table->font_encoder);
-
   if (dpyinfo->font_table)
-    xfree (dpyinfo->font_table);
-  xfree (dpyinfo->x_id_name);
-  xfree (dpyinfo->color_cells);
+    {
+      if (dpyinfo->font_table->font_encoder)
+	xfree (dpyinfo->font_table->font_encoder);
+      xfree (dpyinfo->font_table);
+    }
+  if (dpyinfo->x_id_name)
+    xfree (dpyinfo->x_id_name);
+  if (dpyinfo->color_cells)
+    xfree (dpyinfo->color_cells);
   xfree (dpyinfo);
 }
 

@@ -245,7 +245,6 @@ This is in contrast to @code{cdr}, which signals an error if
 @end example
 @end defun
 
-@tindex pop
 @defmac pop listname
 This macro is a way of examining the @sc{car} of a list,
 and taking it off the list, all at once.
@@ -432,7 +431,6 @@ used in this example and the function named @code{list} described below;
 any symbol can serve both purposes.
 @end defun
 
-@tindex push
 @defmac push newelt listname
 This macro provides an alternative way to write
 @code{(setq @var{listname} (cons @var{newelt} @var{listname}))}.
@@ -1649,7 +1647,6 @@ the associations of one copy without affecting the other:
 @end defun
 
 @defun assq-delete-all key alist
-@tindex assq-delete-all
 This function deletes from @var{alist} all the elements whose @sc{car}
 is @code{eq} to @var{key}, much as if you used @code{delq} to delete
 each such element one by one.  It returns the shortened alist, and

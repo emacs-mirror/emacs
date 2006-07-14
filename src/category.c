@@ -164,11 +164,9 @@ Lisp_Object
 check_category_table (table)
      Lisp_Object table;
 {
-  register Lisp_Object tem;
   if (NILP (table))
     return current_buffer->category_table;
-  while (tem = Fcategory_table_p (table), NILP (tem))
-    table = wrong_type_argument (Qcategory_table_p, table);
+  CHECK_TYPE (!NILP (Fcategory_table_p (table)), Qcategory_table_p, table);
   return table;
 }
 

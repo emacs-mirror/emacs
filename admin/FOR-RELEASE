@@ -2,18 +2,12 @@ Tasks needed before the next release.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 
-** `undo-ask-before-discard', currently set to t for debugging purposes
-has to be set to nil: when t, it can leak memory and cause other problems.
-
 ** Update release dates of manuals.
 
 ** Get rid of overfull and underfull boxes in manuals.
 
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
-
-** Update facemenu-unlisted-faces, adding whatever other
-face name prefixes should be in it for good results.
 
 ** Update AUTHORS.
 
@@ -38,17 +32,6 @@ Reminders sent out on 2006-06-08.
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
-
-** text_property_stickiness can be called with a POS value that is before BEGV.
-
-text_property_stickiness is called from get_pos_property,
-which is called from find_field, which is called from
-various user-level functions in editfns.c.
-
-** JD Smith's 17 Apr 2006 bug report that CVS operations
-get mysterious unreproducible failures.
-
-** Is there a basic problem with cl-byte-compile-compiler-macro?
 
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
@@ -76,8 +59,6 @@ It seems that to fix this, w32 server sockets must use WSAAsyncSelect
 
 * DOCUMENTATION
 
-** Check man/info.texi.
-
 ** Check the Emacs Lisp manual.
 
 Each manual section should be checked for factual correctness
@@ -98,7 +79,7 @@ lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
 lispref/control.texi     "Luc Teirlinck"   Chong Yidong
 lispref/customize.texi   Chong Yidong      "Luc Teirlinck"
 lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
-lispref/display.texi     Chong Yidong
+lispref/display.texi     Chong Yidong      Jason Rumney
 lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
 lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
 lispref/errors.texi      "Luc Teirlinck"   Chong Yidong
@@ -114,7 +95,7 @@ lispref/intro.texi	 "Luc Teirlinck"   Josh Varner
 lispref/keymaps.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
-lispref/locals.texi      Chong Yidong
+lispref/locals.texi      Chong Yidong      Nick Roberts
 lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
 lispref/maps.texi        Chong Yidong
 lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
@@ -152,7 +133,7 @@ SECTION                  READERS
 etc/TUTORIAL             rms
 etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
 etc/TUTORIAL.cn
-etc/TUTORIAL.cs          Pavel JanÃ­k <Pavel@Janik.cz>
+etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.es          Marcelo Toledo
 etc/TUTORIAL.fr          ttn
@@ -164,7 +145,7 @@ etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
-etc/TUTORIAL.sk          Pavel JanÃ­k <Pavel@Janik.cz>
+etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
 etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>

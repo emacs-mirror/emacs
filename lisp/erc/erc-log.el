@@ -115,11 +115,6 @@ SERVER and PORT are the parameters used to connect BUFFERs
 		 (const erc-generate-log-file-name-with-date)
 		 (symbol)))
 
-(defcustom erc-save-buffer-on-part nil
-  "*Save the channel buffer content using `erc-save-buffer-in-logs' on PART."
-  :group 'erc-log
-  :type 'boolean)
-
 (defcustom erc-truncate-buffer-on-save nil
   "Truncate any ERC (channel, query, server) buffer when it is saved."
   :group 'erc-log
@@ -150,14 +145,41 @@ directory should not end with a trailing slash."
   :type '(choice directory
 		 (const nil)))
 
-(defcustom erc-log-insert-log-on-open t
+(defcustom erc-log-insert-log-on-open nil
   "*Insert log file contents into the buffer if a log file exists."
   :group 'erc-log
   :type 'boolean)
 
-(defcustom erc-save-queries-on-quit nil
-  "Save all query (also channel) buffers of the server on QUIT.
-See the variable `erc-save-buffer-on-part' for details."
+(defcustom erc-save-buffer-on-part t
+  "*Save the channel buffer content using `erc-save-buffer-in-logs' on PART.
+
+If you set this to nil, you may want to enable both
+`erc-log-write-after-send' and `erc-log-write-after-insert'."
+  :group 'erc-log
+  :type 'boolean)
+
+(defcustom erc-save-queries-on-quit t
+  "*Save all query (also channel) buffers of the server on QUIT.
+
+If you set this to nil, you may want to enable both
+`erc-log-write-after-send' and `erc-log-write-after-insert'."
+  :group 'erc-log
+  :type 'boolean)
+
+(defcustom erc-log-write-after-send nil
+  "*If non-nil, write to log file after every message you send.
+
+If you set this to nil, you may want to enable both
+`erc-save-buffer-on-part' and `erc-save-queries-on-quit'."
+  :group 'erc-log
+  :type 'boolean)
+
+(defcustom erc-log-write-after-insert nil
+  "*If non-nil, write to log file when new text is added to a
+logged ERC buffer.
+
+If you set this to nil, you may want to enable both
+`erc-save-buffer-on-part' and `erc-save-queries-on-quit'."
   :group 'erc-log
   :type 'boolean)
 
@@ -187,29 +209,28 @@ also be a predicate function. To only log when you are not set away, use:
 	(with-current-buffer buffer
 	  (not erc-away))))"
   ;; enable
-  ((add-hook 'erc-insert-post-hook
-	     'erc-save-buffer-in-logs)
-   (add-hook 'erc-send-post-hook
-	     'erc-save-buffer-in-logs))
+  ((when erc-log-write-after-insert
+     (add-hook 'erc-insert-post-hook 'erc-save-buffer-in-logs))
+   (when erc-log-write-after-send
+     (add-hook 'erc-send-post-hook 'erc-save-buffer-in-logs))
+   (add-hook 'erc-kill-buffer-hook 'erc-save-buffer-in-logs)
+   (add-hook 'erc-kill-channel-hook 'erc-save-buffer-in-logs)
+   (add-hook 'erc-quit-hook 'erc-conditional-save-queries)
+   (add-hook 'erc-part-hook 'erc-conditional-save-buffer)
+   ;; append, so that 'erc-initialize-log-marker runs first
+   (add-hook 'erc-connect-pre-hook 'erc-log-setup-logging 'append))
   ;; disable
-  ((remove-hook 'erc-insert-post-hook
-		'erc-save-buffer-in-logs)
-   (remove-hook 'erc-send-post-hook
-		'erc-save-buffer-in-logs)))
-
-(when erc-enable-logging
-  (add-hook 'erc-kill-buffer-hook
-	    'erc-save-buffer-in-logs)
-  (add-hook 'erc-kill-channel-hook
-	    'erc-save-buffer-in-logs)
-  (add-hook 'erc-quit-hook
-	    'erc-conditional-save-queries)
-  (add-hook 'erc-part-hook
-	    'erc-conditional-save-buffer))
+  ((remove-hook 'erc-insert-post-hook 'erc-save-buffer-in-logs)
+   (remove-hook 'erc-send-post-hook 'erc-save-buffer-in-logs)
+   (remove-hook 'erc-kill-buffer-hook 'erc-save-buffer-in-logs)
+   (remove-hook 'erc-kill-channel-hook 'erc-save-buffer-in-logs)
+   (remove-hook 'erc-quit-hook 'erc-conditional-save-queries)
+   (remove-hook 'erc-part-hook 'erc-conditional-save-buffer)
+   (remove-hook 'erc-connect-pre-hook 'erc-log-setup-logging)))
 
 (define-key erc-mode-map "\C-c\C-l" 'erc-save-buffer-in-logs)
 
-;;;functionality referenced from erc.el
+;;; functionality referenced from erc.el
 (defun erc-log-setup-logging ()
   "Setup the buffer-local logging variables in the current buffer.
 This function is destined to be run from `erc-connect-pre-hook'."
@@ -223,9 +244,6 @@ This function is destined to be run from `erc-connect-pre-hook'."
       (ignore-errors (insert-file-contents (erc-current-logfile))
 		     (move-marker erc-last-saved-position
 				  (1- (point-max)))))))
-
-;;; Append, so that 'erc-initialize-log-marker keeps running first.
-(add-hook 'erc-connect-pre-hook 'erc-log-setup-logging 'append)
 
 (defun erc-log-all-but-server-buffers (buffer)
   "Returns t if logging should be enabled in BUFFER.

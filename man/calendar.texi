@@ -1500,7 +1500,8 @@ iCalendar data; for example with the Rmail mail client one could use:
 and adds the results to an Emacs diary file.  For example:
 
 @example
-(icalendar-import-file "/here/is/calendar.ics" "/there/goes/ical-diary")
+(icalendar-import-file "/here/is/calendar.ics"
+                       "/there/goes/ical-diary")
 @end example
 
 @noindent

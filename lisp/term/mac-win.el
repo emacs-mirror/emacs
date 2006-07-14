@@ -1784,7 +1784,7 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   (interactive "e")
   (let* ((ae (mac-event-ae event))
 	 (fm-font-size (mac-ae-number ae "fmsz"))
-	 (atsu-font-id (cdr (mac-ae-parameter ae "auid")))
+	 (atsu-font-id (mac-ae-number ae "auid"))
 	 (attribute-values (gethash atsu-font-id mac-atsu-font-table)))
     (if fm-font-size
 	(setq attribute-values
@@ -1815,8 +1815,8 @@ With numeric ARG, display the font panel if and only if ARG is positive."
 (defface mac-ts-caret-position
   '((t :inverse-video t))
   "Face for caret position in Mac TSM active input area.
-This is used only when the active input area is displayed in the
-echo area."
+This is used when the active input area is displayed either in
+the echo area or in a buffer where the cursor is not displayed."
   :group 'mac)
 
 (defface mac-ts-raw-text
@@ -1963,7 +1963,10 @@ into `unread-command-events'.  The unconfirmed text is displayed
 either in the current buffer or in the echo area."
   (interactive "e")
   (let* ((ae (mac-event-ae event))
-	 (text (or (cdr (mac-ae-parameter ae "tstx" "utxt")) ""))
+	 (type-text (mac-ae-parameter ae "tstx"))
+	 (text (or (cdr type-text) ""))
+	 (decode-fun (if (equal (car type-text) "TEXT")
+			 'mac-TEXT-to-string 'mac-utxt-to-string))
 	 (script-language (mac-ae-script-language ae "tssl"))
 	 (coding (or (cdr (assq (car script-language)
 				mac-script-code-coding-systems))
@@ -1985,22 +1988,27 @@ either in the current buffer or in the echo area."
 	   (or isearch-mode
 	       (and cursor-in-echo-area (current-message))
 	       ;; Overlay strings are not shown in some cases.
-	       (get-char-property (point) 'display)
 	       (get-char-property (point) 'invisible)
-	       (get-char-property (point) 'composition)))
+	       (and (not (bobp))
+		    (or (and (get-char-property (point) 'display)
+			     (eq (get-char-property (1- (point)) 'display)
+				 (get-char-property (point) 'display)))
+			(and (get-char-property (point) 'composition)
+			     (eq (get-char-property (1- (point)) 'composition)
+				 (get-char-property (point) 'composition)))))))
 	  active-input-string caret-seen)
       ;; Decode the active input area text with inheriting faces and
       ;; the caret position.
       (setq active-input-string
 	    (mapconcat
 	     (lambda (str)
-	       (let ((decoded (mac-utxt-to-string str coding)))
+	       (let ((decoded (funcall decode-fun str coding)))
 		 (put-text-property 0 (length decoded) 'face
 				    (get-text-property 0 'face str) decoded)
 		 (when (and (not caret-seen)
 			    (get-text-property 0 'cursor str))
 		   (setq caret-seen t)
-		   (if use-echo-area
+		   (if (or use-echo-area (null cursor-type))
 		       (put-text-property 0 1 'face 'mac-ts-caret-position
 					  decoded)
 		     (put-text-property 0 1 'cursor t decoded)))
@@ -2030,7 +2038,7 @@ either in the current buffer or in the echo area."
       ;; macro being defined.
       (apply 'isearch-unread
 	     (append (mac-replace-untranslated-utf-8-chars
-		      (mac-utxt-to-string confirmed coding)) '())))
+		      (funcall decode-fun confirmed coding)) '())))
     ;; The event is successfully processed.  Sync the sequence number.
     (setq mac-ts-update-active-input-area-seqno (1+ seqno))))
 

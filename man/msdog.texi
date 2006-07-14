@@ -175,7 +175,7 @@ default ignores letter-case in file names during completion.
 non-@code{nil} (the default), Emacs tries to determine the accurate
 link counts for files.  This option is only useful on the NT family of
 Windows (2K/XP/2K3), and it considerably slows down Dired and other
-features.
+features, so use it only on fast machines.
 
 @node ls in Lisp
 @section Emulation of @code{ls} on MS-Windows
@@ -189,8 +189,13 @@ come with such a program, although several ports of @sc{gnu} @code{ls}
 are available.  Therefore, Emacs on those systems @emph{emulates}
 @code{ls} in Lisp, by using the @file{ls-lisp.el} package.  While
 @file{ls-lisp.el} provides a reasonably full emulation of @code{ls},
-there are some options and features peculiar to that emulation; they
-are described in this section.
+there are some options and features peculiar to that emulation;
+@iftex
+for more details, see the documentation of the variables whose names
+begin with @code{ls-lisp}.
+@end iftex
+@ifnottex
+they are described in this section.
 
   The @code{ls} emulation supports many of the @code{ls} switches, but
 it doesn't support all of them.  Here's the list of the switches it
@@ -274,12 +279,13 @@ restart Emacs, since @file{ls-lisp.el} is preloaded.
 file-name patterns are supported: if it is non-@code{nil} (the
 default), they are treated as shell-style wildcards; otherwise they
 are treated as Emacs regular expressions.
+@end ifnottex
 
 @node Windows HOME
 @section HOME Directory on MS-Windows
 @cindex @code{HOME} directory on MS-Windows
 
-  The MS-Windows equivalent of the @code{HOME} directory is the
+  The Windows equivalent of the @code{HOME} directory is the
 @dfn{user-specific application data directory}.  The actual location
 depends on your Windows version and system configuration; typical values
 are @file{C:\Documents and Settings\@var{username}\Application Data} on
@@ -333,6 +339,11 @@ makes it possible to use the menus without a mouse.  In this mode, the
 arrow keys traverse the menus, @key{RET} selects a highlighted menu
 item, and @key{ESC} closes the menu.
 
+@iftex
+@inforef{Windows Keyboard, , emacs}, for information about additional
+Windows-specific variables in this category.
+@end iftex
+@ifnottex
 @vindex w32-alt-is-meta
 @cindex @code{Alt} key (MS-Windows)
   By default, the key labeled @key{Alt} is mapped as the @key{META}
@@ -359,6 +370,7 @@ instead of the shifted version of they keys.  The default value is
 @key{NumLock} key will produce the symbol @code{kp-numlock}.  The
 default is @code{t}, which causes @key{NumLock} to work as expected:
 toggle the meaning of the keys on the numeric keypad.
+@end ifnottex
 
 @vindex w32-apps-modifier
   The variable @code{w32-apps-modifier} controls the effect of the
@@ -398,6 +410,7 @@ users find this frustrating.
 key by setting @code{w32-pass-alt-to-system} to a non-@code{nil}
 value.
 
+@ifnottex
 @vindex w32-pass-lwindow-to-system
 @vindex w32-pass-rwindow-to-system
   The variables @code{w32-pass-lwindow-to-system} and
@@ -417,6 +430,7 @@ its normal effect: for example, @kbd{@key{Lwindow}} opens the
 key.  The default is @code{t}, which means these keys produce
 @code{AltGr}; setting them to @code{nil} causes these keys to be
 interpreted normally (as the respective modifiers).
+@end ifnottex
 
 @node Windows Mouse
 @section Mouse Usage on MS-Windows
@@ -498,12 +512,11 @@ system.  Instead, type @kbd{CTL-ALT-@key{DEL}} and then choose
 to do its job.
 
 @vindex w32-quote-process-args
-  The variable @code{w32-quote-process-args} controls how the process
-arguments are quoted.  If it is non-@code{nil} means they are quoted
-with the @code{"} character.  If the value is a character, that
-character will be used to escape any quote characters that appear;
-otherwise a suitable escape character will be chosen based on the type
-of the program.
+  The variable @code{w32-quote-process-args} controls how Emacs quotes
+the process arguments.  Non-@code{nil} means quote with the @code{"}
+character.  If the value is a character, use that character to escape
+any quote characters that appear; otherwise chose a suitable escape
+character based on the type of the program.
 
 @node Windows Printing
 @section Printing and MS-Windows
@@ -573,8 +586,8 @@ was done.
   If the value of @code{printer-name} is correct, but printing does
 not produce the hardcopy on your printer, it is possible that your
 printer does not support printing plain text (some cheap printers omit
-this functionality).  In that case, as a workaround, try the
-PostScript print commands, described below, to the same printer
+this functionality).  In that case, try the PostScript print commands,
+described below.
 
 @findex print-buffer @r{(MS-DOS)}
 @findex print-region @r{(MS-DOS)}
@@ -655,6 +668,22 @@ printer, put this in your @file{.emacs} file:
 
   This section describes miscellaneous Windows-specific features.
 
+@vindex w32-use-visible-system-caret
+@cindex screen reader software, MS-Windows
+  The variable @code{w32-use-visible-system-caret} is a flag that
+determines whether to make the system caret visible.  The default is
+@code{nil}, which means Emacs draws its own cursor to indicate the
+position of point.  A non-@code{nil} value means Emacs will indicate
+point location by the system caret; this facilitates use of screen
+reader software.  When this variable is non-@code{nil}, other
+variables affecting the cursor display have no effect.
+
+@iftex
+@inforef{Windows Misc, , emacs}, for information about additional
+Windows-specific variables in this category.
+@end iftex
+
+@ifnottex
 @vindex w32-grab-focus-on-raise
 @cindex frame focus policy, MS-Windows
   The variable @code{w32-grab-focus-on-raise}, if set to a
@@ -667,16 +696,7 @@ click-to-focus policy.
 proportional fonts are included in the font selection dialog.  If its
 value is non-@code{nil}, these fonts will be included.  The default is
 @code{nil}.
-
-@vindex w32-use-visible-system-caret
-@cindex screen reader software, MS-Windows
-  The variable @code{w32-use-visible-system-caret} is a flag that
-determines whether to make the system caret visible.  The default is
-@code{nil}, which means Emacs draws its own cursor to indicate the
-position of point.  A non-@code{nil} value means Emacs will indicate
-point location by the system caret; this facilitates use of screen
-reader software.  When this variable is non-@code{nil}, other
-variables affecting the cursor display have no effect.
+@end ifnottex
 
 @ifnottex
 @include msdog-xtra.texi

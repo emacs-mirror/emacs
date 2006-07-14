@@ -1,3 +1,45 @@
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* AUTHORS: Regenerate.
+
+2006-07-08  Richard Stallman  <rms@gnu.org>
+
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Minor corrections.
+
+2006-07-09  Kim F. Storm  <storm@cua.dk>
+
+	* CONTRIBUTE: Use outline format.
+	Add section on copyright years (from admin/notes/years).
+
+2006-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: Regenerate.
+
+	* configure.in (PKG_CHECK_MODULES): Redirect stderr of pkg-config
+	to /dev/null, since we don't need the error message, just the
+	exit status.
+
+2006-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* CONTRIBUTE: Slight formatting changes and typo fixes.  Add
+	description of NEWS markings.
+
+2006-07-07  Kim F. Storm  <storm@cua.dk>
+
+	* CONTRIBUTE: Mention INSTALL.CVS.
+
+2006-07-05  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist (top-level): Add CONTRIBUTE.
+
+2006-07-04  Richard Stallman  <rms@gnu.org>
+
+	* CONTRIBUTE: Much rewrite.
+
+2006-07-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* CONTRIBUTE: New file.
+
 2006-06-25  Kim F. Storm  <storm@cua.dk>
 
 	* AUTHORS: Regenerate.

@@ -13,6 +13,10 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** mouse-autoselect-window should wait to select the window until
+the mouse is put to rest or after a delay or both, so that moving over
+a window doesn't select it.
+
 ** In C-x d, the default if you type RET should be the directory name,
 but if you type M-n you should get the visited file name of the
 current buffer.
@@ -85,6 +89,8 @@ current buffer.
 ** Provide user-friendly ways to list all available font families,
    list fonts, display a font as a sample, etc.  [fx is looking at
   multilingual font selection for the Unicode branch of Emacs.]
+
+** Provide a convenient way to select a color with the mouse.
 
 ** Rewrite the face code to be simpler, clearer and faster.
 
@@ -167,11 +173,18 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   to save their changes. If the user says yes, show them
   in a Custom buffer using customize-customized.
 
+** Record the sxhash of the default value for customized variables
+  and notify the user (maybe by adding a menu item or toolbar button,
+  as the detection can occur during autoload time) when the default
+  changes (meaning that new versions of the Lisp source with a changed
+  default value got installed) and offer ediff on the respective
+  customization buffers.
+
 ** Emacs Lisp mode could put an overlay on the defun for every
-  function that has advice.  The overlay could have `after-text' like "
-  [Function has advice]".  It might look like
-     (defun foo [Function has advice] (x y)
-  The overlay could also be a button that you could use to view the advice.
+  function that has advice.  The overlay could have `after-text' like
+  " [Function has advice]".  It might look like (defun foo [Function
+  has advice] (x y) The overlay could also be a button that you could
+  use to view the advice.
 
 ** ange-ftp
 *** understand sftp
@@ -353,6 +366,8 @@ when the body only calls primitives.
 
 ** Face remapping.
 
+** Make `format-time-string' preserve text properties like `format'.
+
 ** Optionally make the cursor a little thinner at the end of a line
   or the end of the buffer.
 
@@ -487,6 +502,11 @@ but which can also be used as a modifier).
    switch to using SYNC_INPUT, we can remove the BLOCK_INPUTs in the
    allocation functions (allocate_string etc.) without worrying about
    data munging.
+
+** Add "link" button class
+   Add a standard button-class named "link", and make all other link-like
+   button classes inherit from it.  Set the default face of the "link" button
+   class to the standard "link" face.
 
 * Other known bugs:
 

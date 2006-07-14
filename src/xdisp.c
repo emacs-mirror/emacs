@@ -4474,7 +4474,9 @@ handle_composition_prop (it)
 	      return HANDLED_RECOMPUTE_PROPS;
 	    }
 
+	  it->stop_charpos = end;
 	  push_it (it);
+
 	  it->method = GET_FROM_COMPOSITION;
 	  it->cmp_id = id;
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
@@ -4484,7 +4486,6 @@ handle_composition_prop (it)
 	  it->len = (STRINGP (it->string)
 		     ? string_char_to_byte (it->string, end)
 		     : CHAR_TO_BYTE (end)) - pos_byte;
-	  it->stop_charpos = end;
 	  handled = HANDLED_RETURN;
 	}
     }
@@ -9608,6 +9609,12 @@ display_tool_bar_line (it, height)
 	      /* Glyph doesn't fit on line.  Backtrack.  */
 	      row->used[TEXT_AREA] = n_glyphs_before;
 	      *it = it_before;
+	      /* If this is the only glyph on this line, it will never fit on the
+		 toolbar, so skip it.   But ensure there is at least one glyph,
+		 so we don't accidentally disable the tool-bar.  */
+	      if (n_glyphs_before == 0
+		  && (it->vpos > 0 || IT_STRING_CHARPOS (*it) < it->end_charpos-1))
+		break;
 	      goto out;
 	    }
 
@@ -9666,6 +9673,11 @@ display_tool_bar_line (it, height)
 }
 
 
+/* Max tool-bar height.  */
+
+#define MAX_FRAME_TOOL_BAR_HEIGHT(f) \
+  ((FRAME_LINE_HEIGHT (f) * FRAME_LINES (f)))
+
 /* Value is the number of screen lines needed to make all tool-bar
    items of frame F visible.  The number of actual rows needed is
    returned in *N_ROWS if non-NULL.  */
@@ -9677,7 +9689,10 @@ tool_bar_lines_needed (f, n_rows)
 {
   struct window *w = XWINDOW (f->tool_bar_window);
   struct it it;
-  struct glyph_row *temp_row = w->desired_matrix->rows;
+  /* tool_bar_lines_needed is called from redisplay_tool_bar after building
+     the desired matrix, so use (unused) mode-line row as temporary row to
+     avoid destroying the first tool-bar row.  */
+  struct glyph_row *temp_row = MATRIX_MODE_LINE_ROW (w->desired_matrix);
 
   /* Initialize an iterator for iteration over
      F->desired_tool_bar_string in the tool-bar window of frame F.  */
@@ -9783,13 +9798,13 @@ redisplay_tool_bar (f)
 	  int old_height = WINDOW_TOTAL_LINES (w);
 
 	  XSETFRAME (frame, f);
-	  clear_glyph_matrix (w->desired_matrix);
 	  Fmodify_frame_parameters (frame,
 				    Fcons (Fcons (Qtool_bar_lines,
 						  make_number (nlines)),
 					   Qnil));
 	  if (WINDOW_TOTAL_LINES (w) != old_height)
 	    {
+	      clear_glyph_matrix (w->desired_matrix);
 	      fonts_changed_p = 1;
 	      return 1;
 	    }
@@ -9841,17 +9856,20 @@ redisplay_tool_bar (f)
 
   if (auto_resize_tool_bars_p)
     {
-      int nlines;
+      int nlines, nrows;
+      int max_tool_bar_height = MAX_FRAME_TOOL_BAR_HEIGHT (f);
 
       /* If we couldn't display everything, change the tool-bar's
-	 height.  */
-      if (IT_STRING_CHARPOS (it) < it.end_charpos)
+	 height if there is room for more.  */
+      if (IT_STRING_CHARPOS (it) < it.end_charpos
+	  && it.current_y < max_tool_bar_height)
 	change_height_p = 1;
+
+      row = it.glyph_row - 1;
 
       /* If there are blank lines at the end, except for a partially
 	 visible blank line at the end that is smaller than
 	 FRAME_LINE_HEIGHT, change the tool-bar's height.  */
-      row = it.glyph_row - 1;
       if (!row->displays_text_p
 	  && row->height >= FRAME_LINE_HEIGHT (f))
 	change_height_p = 1;
@@ -9859,13 +9877,14 @@ redisplay_tool_bar (f)
       /* If row displays tool-bar items, but is partially visible,
 	 change the tool-bar's height.  */
       if (row->displays_text_p
-	  && MATRIX_ROW_BOTTOM_Y (row) > it.last_visible_y)
+	  && MATRIX_ROW_BOTTOM_Y (row) > it.last_visible_y
+	  && MATRIX_ROW_BOTTOM_Y (row) < max_tool_bar_height)
 	change_height_p = 1;
 
       /* Resize windows as needed by changing the `tool-bar-lines'
 	 frame parameter.  */
       if (change_height_p
-	  && (nlines = tool_bar_lines_needed (f, &f->n_tool_bar_rows),
+	  && (nlines = tool_bar_lines_needed (f, &nrows),
 	      nlines != WINDOW_TOTAL_LINES (w)))
 	{
 	  extern Lisp_Object Qtool_bar_lines;
@@ -9873,13 +9892,16 @@ redisplay_tool_bar (f)
 	  int old_height = WINDOW_TOTAL_LINES (w);
 
 	  XSETFRAME (frame, f);
-	  clear_glyph_matrix (w->desired_matrix);
 	  Fmodify_frame_parameters (frame,
 				    Fcons (Fcons (Qtool_bar_lines,
 						  make_number (nlines)),
 					   Qnil));
 	  if (WINDOW_TOTAL_LINES (w) != old_height)
-	    fonts_changed_p = 1;
+	    {
+	      clear_glyph_matrix (w->desired_matrix);
+	      f->n_tool_bar_rows = nrows;
+	      fonts_changed_p = 1;
+	    }
 	}
     }
 

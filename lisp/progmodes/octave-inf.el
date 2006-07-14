@@ -37,18 +37,18 @@
   :group 'octave)
 
 (defcustom inferior-octave-program "octave"
-  "*Program invoked by `inferior-octave'."
+  "Program invoked by `inferior-octave'."
   :type 'string
   :group 'octave-inferior)
 
 (defcustom inferior-octave-prompt
   "\\(^octave\\(\\|.bin\\)\\(-[.0-9]+\\)?\\(:[0-9]+\\)?\\|^debug\\|^\\)>+ "
-  "*Regexp to match prompts for the inferior Octave process."
+  "Regexp to match prompts for the inferior Octave process."
   :type 'regexp
   :group 'octave-inferior)
 
 (defcustom inferior-octave-startup-file nil
-  "*Name of the inferior Octave startup file.
+  "Name of the inferior Octave startup file.
 The contents of this file are sent to the inferior Octave process on
 startup."
   :type '(choice (const :tag "None" nil)
@@ -56,34 +56,31 @@ startup."
   :group 'octave-inferior)
 
 (defcustom inferior-octave-startup-args nil
-  "*List of command line arguments for the inferior Octave process.
+  "List of command line arguments for the inferior Octave process.
 For example, for suppressing the startup message and using `traditional'
 mode, set this to (\"-q\" \"--traditional\")."
   :type '(repeat string)
   :group 'octave-inferior)
 
-(defvar inferior-octave-mode-map nil
-  "Keymap used in Inferior Octave mode.")
-(if inferior-octave-mode-map
-    ()
-  (let ((map (copy-keymap comint-mode-map)))
+(defvar inferior-octave-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map comint-mode-map)
     (define-key map "\t" 'comint-dynamic-complete)
     (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
     (define-key map "\C-c\C-l" 'inferior-octave-dynamic-list-input-ring)
     (define-key map [menu-bar inout list-history]
       '("List Input History" . inferior-octave-dynamic-list-input-ring))
     (define-key map "\C-c\C-h" 'octave-help)
-    (setq inferior-octave-mode-map map)))
+    map)
+  "Keymap used in Inferior Octave mode.")
 
-(defvar inferior-octave-mode-syntax-table nil
-  "Syntax table in use in inferior-octave-mode buffers.")
-(if inferior-octave-mode-syntax-table
-    ()
+(defvar inferior-octave-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\` "w" table)
     (modify-syntax-entry ?\# "<" table)
     (modify-syntax-entry ?\n ">" table)
-    (setq inferior-octave-mode-syntax-table table)))
+    table)
+  "Syntax table in use in inferior-octave-mode buffers.")
 
 (defcustom inferior-octave-mode-hook nil
   "*Hook to be run when Inferior Octave mode is started."
@@ -154,9 +151,9 @@ Entry to this mode successively runs the hooks `comint-mode-hook' and
   (setq comint-input-ring-file-name
 	(or (getenv "OCTAVE_HISTFILE") "~/.octave_hist")
 	comint-input-ring-size (or (getenv "OCTAVE_HISTSIZE") 1024)
-	comint-input-filter-functions '(inferior-octave-directory-tracker)
-	comint-dynamic-complete-functions
-	inferior-octave-dynamic-complete-functions)
+	comint-input-filter-functions '(inferior-octave-directory-tracker))
+  (set (make-local-variable 'comint-dynamic-complete-functions)
+       inferior-octave-dynamic-complete-functions)
   (comint-read-input-ring t)
 
   (run-mode-hooks 'inferior-octave-mode-hook))
@@ -272,8 +269,7 @@ is NOT available with versions of Octave prior to 2.0."
 	  (save-excursion
 	    (skip-syntax-backward "w_" (comint-line-beginning-position))
 	    (buffer-substring-no-properties (point) end)))
-	 (proc (get-buffer-process inferior-octave-buffer))
-	 (filter (process-filter proc)))
+	 (proc (get-buffer-process inferior-octave-buffer)))
     (cond (inferior-octave-complete-impossible
 	   (error (concat
 		   "Your Octave does not have `completion_matches'.  "
@@ -299,7 +295,7 @@ is NOT available with versions of Octave prior to 2.0."
 	    command inferior-octave-output-list)))))
 
 (defun inferior-octave-dynamic-list-input-ring ()
-  "List the buffer's input history in a help buffer"
+  "List the buffer's input history in a help buffer."
   ;; We cannot use `comint-dynamic-list-input-ring', because it replaces
   ;; "completion" by "history reference" ...
   (interactive)
@@ -394,5 +390,5 @@ directory and makes this the current buffer's default directory."
 
 (provide 'octave-inf)
 
-;;; arch-tag: bdce0395-24d1-4bb4-bfba-6fb1eeb1a660
+;; arch-tag: bdce0395-24d1-4bb4-bfba-6fb1eeb1a660
 ;;; octave-inf.el ends here

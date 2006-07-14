@@ -910,9 +910,8 @@ select from ALIST.
 With no index alist ALIST, it calls `imenu--make-index-alist' to
 create the index alist.
 
-If `imenu-use-popup-menu' is non-nil, then the
-completion buffer is always used, no matter if the mouse was used or
-not.
+If `imenu-use-popup-menu' is nil, then the completion buffer
+is always used, no matter if the mouse was used or not.
 
 The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
   (let (index-alist

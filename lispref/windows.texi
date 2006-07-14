@@ -1506,7 +1506,6 @@ never happens.
 @end defopt
 
 @defopt scroll-down-aggressively
-@tindex scroll-down-aggressively
 The value of this variable should be either @code{nil} or a fraction
 @var{f} between 0 and 1.  If it is a fraction, that specifies where on
 the screen to put point when scrolling down.  More precisely, when a
@@ -1521,7 +1520,6 @@ fashion.
 @end defopt
 
 @defopt scroll-up-aggressively
-@tindex scroll-up-aggressively
 Likewise, for scrolling up.  The value, @var{f}, specifies how far
 point should be placed from the bottom of the window; thus, as with
 @code{scroll-up-aggressively}, a larger value scrolls more aggressively.
@@ -1835,7 +1833,6 @@ If @var{window} is @code{nil}, the function uses the selected window.
 @end example
 @end defun
 
-@tindex window-body-height
 @defun window-body-height &optional window
 Like @code{window-height} but the value does not include the
 mode line (if any) or the header line (if any).
@@ -2068,7 +2065,6 @@ This command returns non-@code{nil} if it actually shrank the window
 and @code{nil} otherwise.
 @end deffn
 
-@tindex window-size-fixed
 @defvar window-size-fixed
 If this variable is non-@code{nil}, in any given buffer,
 then the size of any window displaying the buffer remains fixed

@@ -1622,6 +1622,8 @@ It is intended that this function is called only from
       elt = Fcons (target, Fcons (Qnil, Fcons (Qnil, elt)));
       XSETCAR (tail, elt);
     }
+  if (! NILP (Fequal (fontlist, Voverriding_fontspec_alist)))
+    return Qnil;
   Voverriding_fontspec_alist = fontlist;
   clear_face_cache (0);
   ++windows_or_buffers_changed;

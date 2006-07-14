@@ -170,6 +170,7 @@ a prefix argument.  The default value of @code{edebug-all-defs} is
 of the variable @code{edebug-all-defs}.
 
 @findex eval-region @r{(Edebug)}
+@findex eval-buffer @r{(Edebug)}
 @findex eval-current-buffer @r{(Edebug)}
   If @code{edebug-all-defs} is non-@code{nil}, then the commands
 @code{eval-region}, @code{eval-current-buffer}, and @code{eval-buffer}

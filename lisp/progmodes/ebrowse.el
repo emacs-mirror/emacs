@@ -2734,24 +2734,24 @@ means the member buffer is standalone.  CLASS is its class."
     ;; is on if not specified as an argument.
     (unless class
       (setq class (ebrowse-tree-at-point)))
-    (with-output-to-temp-buffer ebrowse-member-buffer-name
-      (save-excursion
-	(set-buffer standard-output)
+    (save-selected-window
+      (if temp-buffer
+	  (pop-to-buffer temp-buffer)
+	(pop-to-buffer (get-buffer-create ebrowse-member-buffer-name))
 	;; If new buffer, set the mode and initial values of locals
-	(unless temp-buffer
-	  (ebrowse-member-mode))
-	;; Set local variables
-	(setq ebrowse--member-list (funcall list class)
-	      ebrowse--displayed-class class
-	      ebrowse--accessor list
-	      ebrowse--tree-obarray classes
-	      ebrowse--frozen-flag stand-alone
-	      ebrowse--tags-file-name tags-file-name
-	      ebrowse--header header
-	      ebrowse--tree tree
-	      buffer-read-only t)
-	(ebrowse-redisplay-member-buffer)
-	(current-buffer)))))
+	(ebrowse-member-mode))
+      ;; Set local variables
+      (setq ebrowse--member-list (funcall list class)
+	    ebrowse--displayed-class class
+	    ebrowse--accessor list
+	    ebrowse--tree-obarray classes
+	    ebrowse--frozen-flag stand-alone
+	    ebrowse--tags-file-name tags-file-name
+	    ebrowse--header header
+	    ebrowse--tree tree
+	    buffer-read-only t)
+      (ebrowse-redisplay-member-buffer)
+      (current-buffer))))
 
 
 (defun ebrowse-member-display-p (member)

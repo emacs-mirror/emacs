@@ -2874,8 +2874,7 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
   if (running_asynch_code)
     save_search_regs ();
 
-  if (!CONSP (list) && !NILP (list))
-    list = wrong_type_argument (Qconsp, list);
+  CHECK_LIST (list);
 
   /* Unless we find a marker with a buffer or an explicit buffer
      in LIST, assume that this match data came from a string.  */

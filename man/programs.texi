@@ -949,15 +949,16 @@ comment delimiters to add or how many to delete.
 comments in certain contexts.  For example, in Lisp code, comments which
 start with two semicolons are indented as if they were lines of code,
 instead of at the comment column.  Comments which start with three
-semicolons are supposed to start at the left margin.  Emacs understands
+semicolons are supposed to start at the left margin and are often used
+for sectioning purposes.  Emacs understands
 these conventions by indenting a double-semicolon comment using @key{TAB},
 and by not changing the indentation of a triple-semicolon comment at all.
 
 @example
-;; This function is just an example
+;; This function is just an example.
 ;;; Here either two or three semicolons are appropriate.
 (defun foo (x)
-;;; And now, the first part of the function:
+;;;  And now, the first part of the function:
   ;; The following line adds one.
   (1+ x))           ; This line adds one.
 @end example
@@ -1623,11 +1624,11 @@ needs a binding to be useful.  The following code will bind it to
 @kbd{C-j}.  We use @code{c-initialization-hook} here to make sure
 the keymap is loaded before we try to change it.
 
-@example
+@smallexample
 (defun my-bind-clb ()
   (define-key c-mode-base-map "\C-j" 'c-context-line-break))
 (add-hook 'c-initialization-hook 'my-bind-clb)
-@end example
+@end smallexample
 
 @item C-M-h
 Put mark at the end of a function definition, and put point at the

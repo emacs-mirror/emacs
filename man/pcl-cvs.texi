@@ -1024,8 +1024,8 @@ branch) in the repository (@code{cvs-mode-diff-head}).@refill
 Display a @samp{cvs diff} between the base revision of the selected
 files and the head revision in the repository.  This displays the
 changes anyone has committed to the repository since you last executed
-"checkout", "update" or "commit"
-(@code{cvs-mode-diff-repository}).@refill
+a checkout, update or commit operation
+(@code{cvs-mode-diff-repository}).
 
 @item d v
 Display a @samp{cvs diff} between the selected files and the head
@@ -1321,36 +1321,40 @@ default.
 
 @node Customizing Faces,  , Customization, Customization
 @section Customizing Faces
-@vindex cvs-header-face (face)
-@vindex cvs-filename-face (face)
-@vindex cvs-unknown-face (face)
-@vindex cvs-handled-face (face)
-@vindex cvs-need-action-face (face)
-@vindex cvs-marked-face (face)
+@vindex cvs-header (face)
+@vindex cvs-filename (face)
+@vindex cvs-unknown (face)
+@vindex cvs-handled (face)
+@vindex cvs-need-action (face)
+@vindex cvs-marked (face)
+@vindex cvs-msg (face)
 
 PCL-CVS adds a few extra features, including menus, mouse bindings, and
-fontification the @samp{*cvs*} buffer.  The faces defined for
+fontification of the @samp{*cvs*} buffer.  The faces defined for
 fontification are listed below:
 
 @table @samp
-@item cvs-header-face
+@item cvs-header
 used to highlight directory changes.
 
-@item cvs-filename-face
-used to highlight file names.
+@item cvs-filename
+Used to highlight file names.
 
-@item cvs-unknown-face
-used to highlight the status of files which are @samp{Unknown}.
+@item cvs-unknown
+Used to highlight the status of files which are @samp{Unknown}.
 
-@item cvs-handled-face
-used to highlight the status of files which are handled and
+@item cvs-handled
+Used to highlight the status of files which are handled and
 need no further action.
 
-@item cvs-need-action-face
-used to highlight the status of files which still need action.
+@item cvs-need-action
+Used to highlight the status of files which still need action.
 
-@item cvs-marked-face
-used to highlight the marked file indicator (@samp{*}).
+@item cvs-marked
+Used to highlight the marked file indicator (@samp{*}).
+
+@item cvs-msg
+Used to highlight CVS messages.
 @end table
 
 

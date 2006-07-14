@@ -627,9 +627,9 @@ part of the prompt.
 
 @example
 @group
-(execute-extended-command 1)
+(execute-extended-command 3)
 ---------- Buffer: Minibuffer ----------
-1 M-x forward-word RET
+3 M-x forward-word RET
 ---------- Buffer: Minibuffer ----------
      @result{} t
 @end group
@@ -809,7 +809,6 @@ in a vector, so you don't need to deal with the complexities of storing
 input events in a string (@pxref{Strings of Events}).
 @end defun
 
-@tindex clear-this-command-keys
 @defun clear-this-command-keys &optional keep-record
 This function empties out the table of events for
 @code{this-command-keys} to return.  Unless @var{keep-record} is
@@ -875,7 +874,6 @@ the sequence.
 @code{disable-point-adjustment}:
 
 @defvar disable-point-adjustment
-@tindex disable-point-adjustment
 If this variable is non-@code{nil} when a command returns to the
 command loop, then the command loop does not check for those text
 properties, and does not move point out of sequences that have them.
@@ -885,7 +883,6 @@ so if a command sets it, the effect applies only to that command.
 @end defvar
 
 @defvar global-disable-point-adjustment
-@tindex global-disable-point-adjustment
 If you set this variable to a non-@code{nil} value, the feature of
 moving point out of these sequences is completely turned off.
 @end defvar
@@ -2546,18 +2543,13 @@ point number, @code{sit-for} waits for a fractional number of seconds.
 Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
 
-If @var{seconds} is negative, force a redisplay even if there is
-pending input.  So use @code{(sit-for -1)} to force a redisplay.
-
-The expression @code{(sit-for 0)} is a convenient way to request a
-redisplay, without any delay, if there is no pending input.  @xref{Forcing Redisplay}.
+The expression @code{(sit-for 0)} is equivalent to @code{(redisplay)},
+i.e. it requests a redisplay, without any delay, if there is no pending input.
+@xref{Forcing Redisplay}.
 
 If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not
 redisplay, but it still returns as soon as input is available (or when
 the timeout elapses).
-
-Iconifying or deiconifying a frame makes @code{sit-for} return, because
-that generates an event.  @xref{Misc Events}.
 
 The usual purpose of @code{sit-for} is to give the user time to read
 text that you display.

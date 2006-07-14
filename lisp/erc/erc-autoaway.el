@@ -40,19 +40,6 @@ yourself back when you type something."
   "The Emacs idletimer.
 This is only used when `erc-autoaway-use-emacs-idle' is non-nil.")
 
-(defcustom erc-autoaway-use-emacs-idle nil
-  "*If non-nil, the idle time refers to idletime in Emacs.
-If nil, the idle time refers to idletime on IRC only.
-The time itself is specified by `erc-autoaway-idle-seconds'.
-See `erc-autoaway-mode' for more information on the various
-definitions of being idle.
-
-Note that using Emacs idletime is currently broken for most versions,
-since process activity (as happens all the time on IRC) makes Emacs
-non-idle.  Emacs idle-time and user idle-time are just not the same."
-  :group 'erc-autoaway
-  :type 'boolean)
-
 ;;;###autoload (autoload 'erc-autoaway-mode "erc-autoaway")
 (define-erc-module autoaway nil
   "In ERC autoaway mode, you can be set away automatically.
@@ -61,35 +48,65 @@ the number of seconds specified in `erc-autoaway-idle-seconds'.
 
 There are several kinds of being idle:
 
-IRC idle time measures how long since you last sent something (see
-`erc-autoaway-last-sent-time').  This is the default.
+User idle time measures how long you have not been sending any
+commands to Emacs.  This is the default.
 
 Emacs idle time measures how long Emacs has been idle.  This is
 currently not useful, since Emacs is non-idle when it handles
-ping-pong with IRC servers.  See `erc-autoaway-use-emacs-idle' for
-more information.
+ping-pong with IRC servers.  See `erc-autoaway-idle-method'
+for more information.
 
-User idle time measures how long you have not been sending any
-commands to Emacs, or to your system.  Emacs currently provides no way
-to measure user idle time.
+IRC idle time measures how long since you last sent something (see
+`erc-autoaway-last-sent-time').
 
 If `erc-auto-discard-away' is set, then typing anything, will
 set you no longer away.
 
 Related variables: `erc-public-away-p' and `erc-away-nickname'."
   ;; Enable:
-  ((add-hook 'erc-send-completed-hook 'erc-autoaway-reset-idletime)
-   (add-hook 'erc-server-001-functions 'erc-autoaway-reset-idletime)
-   (add-hook 'erc-timer-hook 'erc-autoaway-possibly-set-away)
-   (when erc-autoaway-use-emacs-idle
-     (erc-autoaway-reestablish-idletimer)))
+  ((when (boundp 'erc-autoaway-idle-method)
+     (cond
+      ((eq erc-autoaway-idle-method 'irc)
+       (add-hook 'erc-send-completed-hook 'erc-autoaway-reset-idle-irc)
+       (add-hook 'erc-server-001-functions 'erc-autoaway-reset-idle-irc))
+      ((eq erc-autoaway-idle-method 'user)
+       (add-hook 'post-command-hook 'erc-autoaway-reset-idle-user))
+      ((eq erc-autoaway-idle-method 'emacs)
+       (erc-autoaway-reestablish-idletimer)))
+     (add-hook 'erc-timer-hook 'erc-autoaway-possibly-set-away)
+     (add-hook 'erc-server-305-functions 'erc-autoaway-reset-indicators)))
   ;; Disable:
-  ((remove-hook 'erc-send-completed-hook 'erc-autoaway-reset-idletime)
-   (remove-hook 'erc-server-001-functions 'erc-autoaway-reset-idletime)
-   (remove-hook 'erc-timer-hook 'erc-autoaway-possibly-set-away)
-   (when erc-autoaway-idletimer
-     (erc-cancel-timer erc-autoaway-idletimer)
-     (setq erc-autoaway-idletimer nil))))
+  ((when (boundp 'erc-autoaway-idle-method)
+     (cond
+      ((eq erc-autoaway-idle-method 'irc)
+       (remove-hook 'erc-send-completed-hook 'erc-autoaway-reset-idle-irc)
+       (remove-hook 'erc-server-001-functions 'erc-autoaway-reset-idle-irc))
+      ((eq erc-autoaway-idle-method 'user)
+       (remove-hook 'post-command-hook 'erc-autoaway-reset-idle-user))
+      ((eq erc-autoaway-idle-method 'emacs)
+       (erc-cancel-timer erc-autoaway-idletimer)
+       (setq erc-autoaway-idletimer nil)))
+     (remove-hook 'erc-timer-hook 'erc-autoaway-possibly-set-away)
+     (remove-hook 'erc-server-305-functions 'erc-autoaway-reset-indicators))))
+
+(defcustom erc-autoaway-idle-method 'user
+  "*The method used to determine how long you have been idle.
+If 'user, the time of the last command sent to Emacs is used.
+If 'emacs, the idle time in Emacs is used.
+If 'irc, the time of the last IRC command is used.
+
+The time itself is specified by `erc-autoaway-idle-seconds'.
+
+See `erc-autoaway-mode' for more information on the various
+definitions of being idle."
+  :group 'erc-autoaway
+  :type '(choice (const :tag "User idle time" user)
+		 (const :tag "Emacs idle time" emacs)
+		 (const :tag "Last IRC action" irc))
+  :set (lambda (sym val)
+	 (erc-autoaway-disable)
+	 (set-default sym val)
+	 (erc-autoaway-enable)))
 
 (defcustom erc-auto-set-away t
   "*If non-nil, set away after `erc-autoaway-idle-seconds' seconds of idling.
@@ -120,8 +137,8 @@ See `erc-auto-discard-away'."
 
 (defun erc-autoaway-reestablish-idletimer ()
   "Reestablish the emacs idletimer.
-You have to call this function each time you change
-`erc-autoaway-idle-seconds', if `erc-autoaway-use-emacs-idle' is set."
+If `erc-autoaway-idle-method' is 'emacs, you must call this
+function each time you change `erc-autoaway-idle-seconds'."
   (interactive)
   (when erc-autoaway-idletimer
     (erc-cancel-timer erc-autoaway-idletimer))
@@ -138,36 +155,49 @@ you have to run `erc-autoaway-reestablish-idletimer' afterwards."
   :group 'erc-autoaway
   :set (lambda (sym val)
 	 (set-default sym val)
-	 (when erc-autoaway-use-emacs-idle
+	 (when (eq erc-autoaway-idle-method 'emacs)
 	   (erc-autoaway-reestablish-idletimer)))
   :type 'number)
 
 (defcustom erc-autoaway-message
   "I'm gone (autoaway after %i seconds of idletime)"
-  "*Message ERC will use when he sets you automatically away.
-It is used as a `format' string with the argument of the idletime in
-seconds."
+  "*Message ERC will use when setting you automatically away.
+It is used as a `format' string with the argument of the idletime
+in seconds."
   :group 'erc-autoaway
   :type 'string)
 
 (defvar erc-autoaway-last-sent-time (erc-current-time)
   "The last time the user sent something.")
 
-(defun erc-autoaway-reset-idletime (line &rest stuff)
-  "Reset the stored idletime for the user.
-This is one global variable since a user talking on one net can talk
-on another net too."
+(defvar erc-autoaway-caused-away nil
+  "Indicates whether this module was responsible for setting the
+user's away status.")
+
+(defun erc-autoaway-reset-idle-user (&rest stuff)
+  "Reset the stored user idle time.
+This is one global variable since a user talking on one net can
+talk on another net too."
+  (when erc-auto-discard-away
+    (erc-autoaway-set-back))
+  (setq erc-autoaway-last-sent-time (erc-current-time)))
+
+(defun erc-autoaway-reset-idle-irc (line &rest stuff)
+  "Reset the stored IRC idle time.
+This is one global variable since a user talking on one net can
+talk on another net too."
   (when (and erc-auto-discard-away
 	     (stringp line)
 	     (not (string-match erc-autoaway-no-auto-discard-regexp line)))
-    (erc-autoaway-set-back line))
+    (erc-autoaway-set-back))
   (setq erc-autoaway-last-sent-time (erc-current-time)))
 
-(defun erc-autoaway-set-back (line)
+(defun erc-autoaway-set-back ()
   "Discard the away state globally."
-  (when (erc-away-p)
-    (setq erc-autoaway-last-sent-time (erc-current-time))
-    (erc-cmd-GAWAY "")))
+  (let ((server-buffer (car (erc-buffer-list #'erc-server-buffer-p))))
+    (when (and erc-autoaway-caused-away
+	       (with-current-buffer server-buffer (erc-away-p)))
+      (erc-cmd-GAWAY ""))))
 
 (defun erc-autoaway-possibly-set-away (current-time)
   "Set autoaway when `erc-auto-set-away' is true and the idletime is
@@ -193,7 +223,13 @@ exceeds `erc-autoaway-idle-seconds'."
   ;; existing process.
   (when (and (erc-server-process-alive)
 	     (not (erc-away-p)))
+    (setq erc-autoaway-caused-away t)
     (erc-cmd-GAWAY (format erc-autoaway-message idle-time))))
+
+(defun erc-autoaway-reset-indicators (&rest stuff)
+  "Reset indicators used by the erc-autoaway module."
+  (setq erc-autoaway-last-sent-time (erc-current-time))
+  (setq erc-autoaway-caused-away nil))
 
 (provide 'erc-autoaway)
 

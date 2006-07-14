@@ -53,6 +53,12 @@ This is the global do-nothing version.  There is also `testcover-1value'
 that complains if FORM ever does return differing values."
   form)
 
+(defmacro def-edebug-spec (symbol spec)
+  "Set the `edebug-form-spec' property of SYMBOL according to SPEC.
+Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
+\(naming a function), or a list."
+  `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
+
 (defmacro lambda (&rest cdr)
   "Return a lambda expression.
 A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
@@ -1693,6 +1699,44 @@ by doing (clear-string STRING)."
 	    (sit-for 1)
 	    t)))
     n))
+
+(defun sit-for (seconds &optional nodisp obsolete)
+  "Perform redisplay, then wait for SECONDS seconds or until input is available.
+SECONDS may be a floating-point value.
+\(On operating systems that do not support waiting for fractions of a
+second, floating-point values are rounded down to the nearest integer.)
+
+If optional arg NODISP is t, don't redisplay, just wait for input.
+Redisplay does not happen if input is available before it starts.
+
+Value is t if waited the full time with no input arriving, and nil otherwise.
+
+An obsolete, but still supported form is
+\(sit-for SECONDS &optional MILLISECONDS NODISP)
+where the optional arg MILLISECONDS specifies an additional wait period,
+in milliseconds; this was useful when Emacs was built without
+floating point support.
+
+\(fn SECONDS &optional NODISP)"
+  (when (or obsolete (numberp nodisp))
+    (setq seconds (+ seconds (* 1e-3 nodisp)))
+    (setq nodisp obsolete))
+  (unless nodisp
+    (redisplay))
+  (or (<= seconds 0)
+      (let ((timer (timer-create))
+	    (echo-keystrokes 0))
+      	(if (catch 'sit-for-timeout
+      	      (timer-set-time timer (timer-relative-time
+				     (current-time) seconds))
+      	      (timer-set-function timer 'with-timeout-handler
+				  '(sit-for-timeout))
+      	      (timer-activate timer)
+	      (push (read-event) unread-command-events)
+      	      nil)
+      	    t
+      	  (cancel-timer timer)
+      	  nil))))
 
 ;;; Atomic change groups.
 

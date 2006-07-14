@@ -513,7 +513,6 @@ the current buffer.
 @end defun
 
 @defmac with-syntax-table @var{table} @var{body}@dots{}
-@tindex with-syntax-table
 This macro executes @var{body} using @var{table} as the current syntax
 table.  It returns the value of the last form in @var{body}, after
 restoring the old current syntax table.
@@ -799,7 +798,6 @@ before count is used up, @code{nil} is returned.
 @end defun
 
 @defvar multibyte-syntax-as-symbol
-@tindex multibyte-syntax-as-symbol
 If this variable is non-@code{nil}, @code{scan-sexps} treats all
 non-@acronym{ASCII} characters as symbol constituents regardless
 of what the syntax table says about them.  (However, text properties
@@ -1076,7 +1074,6 @@ buffer.  It returns @var{table}.
 @end defun
 
 @defun make-category-table
-@tindex make-category-table
 This creates and returns an empty category table.  In an empty category
 table, no categories have been allocated, and no characters belong to
 any categories.

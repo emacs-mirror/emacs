@@ -314,8 +314,6 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
   /* Save this now, since use of minibuffer will clobber it. */
   prefix_arg = Vcurrent_prefix_arg;
 
- retry:
-
   if (SYMBOLP (function))
     enable = Fget (function, Qenable_recursive_minibuffers);
   else
@@ -334,8 +332,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
   up_event = Qnil;
 
   /* Decode the kind of function.  Either handle it and return,
-     or go to `lose' if not interactive, or go to `retry'
-     to specify a different function, or set either STRING or SPECS.  */
+     or go to `lose' if not interactive, or set either STRING or SPECS.  */
 
   if (SUBRP (fun))
     {
@@ -343,8 +340,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
       if (!string)
 	{
 	lose:
-	  function = wrong_type_argument (Qcommandp, function);
-	  goto retry;
+	  wrong_type_argument (Qcommandp, function);
 	}
     }
   else if (COMPILEDP (fun))
@@ -721,10 +717,10 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 	    do
 	      {
 		Lisp_Object tem;
-		if (!  first)
+		if (! first)
 		  {
 		    message ("Please enter a number.");
-		    sit_for (1, 0, 0, 0, 0);
+		    sit_for (make_number (1), 0, 0);
 		  }
 		first = 0;
 

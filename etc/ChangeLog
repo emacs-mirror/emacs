@@ -1,3 +1,55 @@
+2006-07-12  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for ERC 5.1.3.
+
+2006-07-08  David Kastrup  <dak@gnu.org>
+
+	* TODO: Suggest consolidation with user customization when the
+	system default of a customized variable changes.
+
+2006-07-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* compilation.txt: Add an example "Compilation started ..." line.
+
+2006-07-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version number change.
+
+2006-07-05  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Add a paragraph for non-ASCII examples at the head.  Add
+	Bulgarian and Hungarian.  Add more "hello"s to Danish and Swedish.
+
+2006-07-03  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.0.2.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.0.2.
+
+2006-07-03  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Agenda Views}): Document `s' key to save
+	all org-mode buffers.
+
+2006-06-30  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.1: -m and -M options do not exist.
+
+2006-06-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Structure Editing}): Document checkbox
+	toggling.
+
+2006-06-28  Juri Linkov  <juri@jurta.org>
+
+	* grep.txt (Local Variables): Move to end of file.
+
+2006-06-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* Makefile: Add rules for refcards.
+
+	* de-refcard.ps, fr-refcard.ps, pt-br-refcard.ps: Regenerate.
+
 2006-06-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* NEWS: Remove duplicate entries.
