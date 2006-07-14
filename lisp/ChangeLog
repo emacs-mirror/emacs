@@ -1,3 +1,49 @@
+2006-07-14  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Require 'cl during byte-compilation/interactive load,
+	for the `assert' macro.
+	(allout-mode-deactivate-hook): New hook, is run when allout mode
+	deactivates.
+	(allout-developer): New allout customization subgroup.
+	(allout-run-unit-tests-on-load): New allout-developer
+	customization variable, when true allout unit tests are run towards
+	end of file load/eval.
+	(allout-inhibit-auto-fill): Disable auto-fill activity even during
+	auto-fill-mode.
+	(allout-resumptions): Removed, to be replaced by...
+	(allout-add-resumptions): Register variable settings to be
+	reinstated by `allout-do-resumptions'.  The settings are made
+	buffer-local, but the locality/globality of the suspended setting
+	is restored on resumption.
+	(allout-do-resumptions): Reinstate all settings suspended using
+	`allout-add-resumptions'.
+	(allout-test-resumptions): Unit tests (and intermediate variables)
+	for resumptions.
+	(allout-tests-globally-unbound, allout-tests-globally-true)
+	(allout-tests-locally-true): Intermediate variables for
+	resumptions unit tests.
+	(allout-overlay-preparations): Replaces `allout-set-overlay-category'.
+	(allout-exposure-category): Replaces 'allout-overlay-category variable.
+	(allout-mode): Use `allout-add-resumptions' and `allout-do-resumptions'
+	instead of retired `allout-resumptions'.  For hook functions, use
+	`local' parameter so hook settings are created and removed as
+	buffer-local settings.  Revise (resumptions) setting
+	auto-fill-function so it is set only if already active.  (The
+	related fill-function settings are all made in either case, so
+	that activating auto-fill-mode activity will have the custom
+	allout-mode behaviors (hanging indent on topics, if configured for
+	it).  Also, remove all allout-exposure-category overlays on mode
+	deactivation.
+	(allout-hotspot-key-handler): New function extracted from
+	`allout-pre-command-business', so the functionality can be used
+	for other purposes, eg as a binding in an overlay.
+	(allout-pre-command-business): Use new `allout-hotspot-key-handler'.
+	(allout-auto-fill): Respect new `allout-inhibit-auto-fill'
+	customization variable.
+	(allout-run-unit-tests): Run the (currently quite small)
+	repertoire of unit tests.  Called just before the provide iff user
+	has customized `allout-run-unit-tests-on-load' non-nil.
+
 2006-07-14  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
 
 	* emacs-lisp/authors.el (authors-aliases): Update.
