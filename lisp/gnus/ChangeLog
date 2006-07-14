@@ -1,3 +1,7 @@
+2006-07-14  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* gnus-start.el (gnus-subscribe-options-newsgroup-method): Doc fix.
+
 2006-06-26  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-diary.el (gnus-user-format-function-d)
