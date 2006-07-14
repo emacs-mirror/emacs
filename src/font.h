@@ -257,16 +257,19 @@ struct composition;
 
 #define LGLYPH_CHAR(g) AREF ((g), 2)
 #define LGLYPH_CODE(g) AREF ((g), 3)
-#define LGLYPH_XOFF(g) AREF ((g), 4)
-#define LGLYPH_YOFF(g) AREF ((g), 5)
-#define LGLYPH_WIDTH(g) AREF ((g), 6)
-#define LGLYPH_WADJUST(g) AREF ((g), 7)
+#define LGLYPH_WIDTH(g) AREF ((g), 4)
+#define LGLYPH_ADJUSTMENT(g) AREF ((g), 5)
 #define LGLYPH_SET_CHAR(g, val) ASET ((g), 2, (val))
 #define LGLYPH_SET_CODE(g, val) ASET ((g), 3, (val))
-#define LGLYPH_SET_XOFF(g, val) ASET ((g), 4, (val))
-#define LGLYPH_SET_YOFF(g, val) ASET ((g), 5, (val))
-#define LGLYPH_SET_WIDTH(g, val) ASET ((g), 6, (val))
-#define LGLYPH_SET_WADJUST(g, val) ASET ((g), 7, (val))
+#define LGLYPH_SET_WIDTH(g, val) ASET ((g), 4, (val))
+#define LGLYPH_SET_ADJUSTMENT(g, val) ASET ((g), 5, (val))
+
+#define LGLYPH_XOFF(g) (NILP (LGLYPH_ADJUSTMENT (g)) ? 0 \
+			: XINT (AREF (LGLYPH_ADJUSTMENT (g), 0)))
+#define LGLYPH_YOFF(g) (NILP (LGLYPH_ADJUSTMENT (g)) ? 0 \
+			: XINT (AREF (LGLYPH_ADJUSTMENT (g), 1)))
+#define LGLYPH_WADJUST(g) (NILP (LGLYPH_ADJUSTMENT (g)) ? 0 \
+			   : XINT (AREF (LGLYPH_ADJUSTMENT (g), 2)))
 
 #define FONT_INVALID_CODE 0xFFFFFFFF
 
