@@ -1,3 +1,9 @@
+2006-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.in (PKG_CHECK_MODULES): Redirect the output of
+	$PKG_CONFIG --exists "$2" to config.log.
+	* configure: Regenerated.
+
 2006-07-14  Kim F. Storm  <storm@cua.dk>
 
 	* AUTHORS: Regenerate.
