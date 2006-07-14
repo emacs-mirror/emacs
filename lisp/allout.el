@@ -8,6 +8,7 @@
 ;; Created: Dec 1991 - first release to usenet
 ;; Version: 2.2.1
 ;; Keywords: outlines wp languages
+;; Website: http://myriadicity.net/Sundry/EmacsAllout
 
 ;; This file is part of GNU Emacs.
 
@@ -58,7 +59,9 @@
 ;; and more.
 ;;
 ;; See the `allout-mode' function's docstring for an introduction to the
-;; mode.  The development version and helpful notes are available at
+;; mode.
+;;
+;; The latest development version and helpful notes are available at
 ;; http://myriadicity.net/Sundry/EmacsAllout .
 ;;
 ;; The outline menubar additions provide quick reference to many of
@@ -80,10 +83,19 @@
 
 ;;;_* Dependency autoloads
 (require 'overlay)
-(eval-when-compile (progn (require 'pgg)
-                          (require 'pgg-gpg)
-                          (require 'overlay)
-			  ))
+(eval-when-compile
+  ;; Most of the requires here are for stuff covered by autoloads.
+  ;; Since just byte-compiling doesn't trigger autoloads, so that
+  ;; "function not found" warnings would occur without these requires.
+  (progn
+    (require 'pgg)
+    (require 'pgg-gpg)
+    (require 'overlay)
+    ;; `cl' is required for `assert'.  `assert' is not covered by a standard
+    ;; autoload, but it is a macro, so that eval-when-compile is sufficient
+    ;; to byte-compile it in, or to do the require when the buffer evalled.
+    (require 'cl)
+    ))
 
 ;;;_* USER CUSTOMIZATION VARIABLES:
 
@@ -556,6 +568,25 @@ disable auto-saves for that file."
   :group 'allout-encryption)
 (make-variable-buffer-local 'allout-encrypt-unencrypted-on-saves)
 
+;;;_ + Developer
+;;;_  = allout-developer group
+(defgroup allout-developer nil
+  "Settings for topic encryption features of allout outliner."
+  :group 'allout)
+;;;_  = allout-run-unit-tests-on-load
+(defcustom allout-run-unit-tests-on-load nil
+  "*When non-nil, unit tests will be run at end of loading the allout module.
+
+Generally, allout code developers are the only ones who'll want to set this.
+
+\(If set, this makes it an even better practice to exercise changes by
+doing byte-compilation with a repeat count, so the file is loaded at the
+of compilation.)
+
+See `allout-run-unit-tests' to see what's run."
+  :type 'boolean
+  :group 'allout-developer)
+
 ;;;_ + Miscellaneous customization
 
 ;;;_  = allout-command-prefix
@@ -614,6 +645,23 @@ unless optional third, non-nil element is present.")
         ("=i" allout-indented-exposed-to-buffer)
 	("=t" allout-latexify-exposed)
 	("=p" allout-flatten-exposed-to-buffer)))
+
+;;;_  = allout-inhibit-auto-fill
+(defcustom allout-inhibit-auto-fill nil
+  "*If non-nil, auto-fill will be inhibited in the allout buffers.
+
+You can customize this setting to set it for all allout buffers, or set it
+in individual buffers if you want to inhibit auto-fill only in particular
+buffers.  \(You could use a function on `allout-mode-hook' to inhibit
+auto-fill according, eg, to the major mode.\)
+
+If you don't set this and auto-fill-mode is enabled, allout will use the
+value that `normal-auto-fill-function', if any, when allout mode starts, or
+else allout's special hanging-indent maintaining auto-fill function,
+`allout-auto-fill'."
+  :type 'boolean
+  :group 'allout)
+(make-variable-buffer-local 'allout-inhibit-auto-fill)
 
 ;;;_  = allout-use-hanging-indents
 (defcustom allout-use-hanging-indents t
@@ -993,69 +1041,68 @@ activation.  Being deprecated.")
 		      "----"
 		      ["Set Header Lead" allout-reset-header-lead t]
 		      ["Set New Exposure" allout-expose-topic t])))
-;;;_  : Mode-Specific Variable Maintenance Utilities
+;;;_  : Allout Modal-Variables Utilities
 ;;;_   = allout-mode-prior-settings
 (defvar allout-mode-prior-settings nil
-  "Internal `allout-mode' use; settings to be resumed on mode deactivation.")
+  "Internal `allout-mode' use; settings to be resumed on mode deactivation.
+
+See `allout-add-resumptions' and `allout-do-resumptions'.")
 (make-variable-buffer-local 'allout-mode-prior-settings)
-;;;_   > allout-resumptions (name &optional value)
-(defun allout-resumptions (name &optional value)
+;;;_   > allout-add-resumptions (&rest pairs)
+(defun allout-add-resumptions (&rest pairs)
+  "Set name/value pairs.
 
-  "Registers or resumes settings over `allout-mode' activation/deactivation.
+Old settings are preserved for later resumption using `allout-do-resumptions'.
 
-First arg is NAME of variable affected.  Optional second arg is list
-containing allout-mode-specific VALUE to be imposed on named
-variable, and to be registered.  \(It's a list so you can specify
-registrations of null values.)  If no value is specified, the
-registered value is returned (encapsulated in the list, so the caller
-can distinguish nil vs no value), and the registration is popped
-from the list."
+The pairs are lists whose car is the name of the variable and car of the
+cdr is the new value:  '(some-var some-value)'.
 
-  (let ((on-list (assq name allout-mode-prior-settings))
-        prior-capsule                   ; By `capsule' i mean a list
-                                        ; containing a value, so we can
-                                        ; distinguish nil from no value.
-        )
+The new value is set as a buffer local.
 
-    (if value
+If the variable was not previously buffer-local, then that is noted and the
+`allout-do-resumptions' will just `kill-local-variable' of that binding.
 
-        ;; Registering:
-        (progn
-          (if on-list
-              nil 	; Already preserved prior value - don't mess with it.
-            ;; Register the old value, or nil if previously unbound:
-            (setq allout-mode-prior-settings
-                  (cons (list name
-                              (if (boundp name) (list (symbol-value name))))
-                        allout-mode-prior-settings)))
-                                        ; And impose the new value, locally:
-	  (progn (make-local-variable name)
-		 (set name (car value))))
+If it previously was buffer-local, the old value is noted and resurrected
+by `allout-do-resumptions'.  \(If the local value was previously void, then
+it is left as nil on resumption.\)
 
-      ;; Relinquishing:
-      (if (not on-list)
+The settings are stored on `allout-mode-prior-settings'."
+  (while pairs
+    (let* ((pair (pop pairs))
+           (name (car pair))
+           (value (cadr pair)))
+      (if (not (symbolp name))
+          (error "Pair's name, %S, must be a symbol, not %s"
+                 name (type-of name)))
+      (when (not (assoc name allout-mode-prior-settings))
+        ;; Not already added as a resumption, create the prior setting entry.
+        (if (local-variable-p name)
+            ;; is already local variable - preserve the prior value:
+            (push (list name (condition-case err
+                                 (symbol-value name)
+                               (void-variable nil)))
+                  allout-mode-prior-settings)
+          ;; wasn't local variable, indicate so for resumption by killing
+          ;; local value, and make it local:
+          (push (list name) allout-mode-prior-settings)
+          (make-local-variable name)))
+      (set name value))))
+;;;_   > allout-do-resumptions ()
+(defun allout-do-resumptions ()
+  "Resume all name/value settings registered by `allout-add-resumptions'.
 
-          ;; Oops, not registered - leave it be:
-          nil
+This is used when concluding allout-mode, to resume selected variables to
+their settings before allout-mode was started."
 
-        ;; Some registration:
-                                        ; reestablish it:
-        (setq prior-capsule (car (cdr on-list)))
-        (if prior-capsule
-            (set name (car prior-capsule)) ; Some prior value - reestablish it.
-          (makunbound name))		; Previously unbound - demolish var.
-                                        ; Remove registration:
-        (let (rebuild)
-          (while allout-mode-prior-settings
-            (if (not (eq (car allout-mode-prior-settings)
-                         on-list))
-                (setq rebuild
-                      (cons (car allout-mode-prior-settings)
-                            rebuild)))
-            (setq allout-mode-prior-settings
-                  (cdr allout-mode-prior-settings)))
-          (setq allout-mode-prior-settings rebuild)))))
-  )
+    (while allout-mode-prior-settings
+      (let* ((pair (pop allout-mode-prior-settings))
+             (name (car pair))
+             (value-cell (cdr pair)))
+        (if (not value-cell)
+            ;; Prior value was global:
+            (kill-local-variable name)
+          ;; Prior value was explicit:
+          (set name (car value-cell))))))
 ;;;_  : Mode-specific incidentals
 ;;;_   > allout-unprotected (expr)
 (defmacro allout-unprotected (expr)
@@ -1065,9 +1112,12 @@ from the list."
 ;;;_   = allout-mode-hook
 (defvar allout-mode-hook nil
   "*Hook that's run when allout mode starts.")
-;;;_   = allout-overlay-category
-(defvar allout-overlay-category nil
-  "Symbol for use in allout invisible-text overlays as the category.")
+;;;_   = allout-mode-deactivate-hook
+(defvar allout-mode-deactivate-hook nil
+  "*Hook that's run when allout mode ends.")
+;;;_   = allout-exposure-category
+(defvar allout-exposure-category nil
+  "Symbol for use as allout invisible-text overlay category.")
 ;;;_   x allout-view-change-hook
 (defvar allout-view-change-hook nil
   "*\(Deprecated\)  Hook that's run after allout outline exposure changes.
@@ -1293,30 +1343,26 @@ the following two lines in your Emacs init file:
       (setq cur (car menus)
 	    menus (cdr menus))
       (easy-menu-add cur))))
-;;;_  > allout-set-overlay-category
-(defun allout-set-overlay-category ()
-  "Set the properties of the allout invisible-text overlay."
-  (setplist 'allout-overlay-category nil)
-  (put 'allout-overlay-category 'invisible 'allout)
-  (put 'allout-overlay-category 'evaporate t)
+;;;_  > allout-overlay-preparations
+(defun allout-overlay-preparations ()
+  "Set the properties of the allout invisible-text overlay and others."
+  (setplist 'allout-exposure-category nil)
+  (put 'allout-exposure-category 'invisible 'allout)
+  (put 'allout-exposure-category 'evaporate t)
   ;; XXX We use isearch-open-invisible *and* isearch-mode-end-hook.  The
   ;; latter would be sufficient, but it seems that a separate behavior -
   ;; the _transient_ opening of invisible text during isearch - is keyed to
   ;; presence of the isearch-open-invisible property - even though this
   ;; property controls the isearch _arrival_ behavior.  This is the case at
   ;; least in emacs 21, 22.0, and xemacs 21.4.
-  (put 'allout-overlay-category 'isearch-open-invisible
+  (put 'allout-exposure-category 'isearch-open-invisible
        'allout-isearch-end-handler)
   (if (featurep 'xemacs)
-      (put 'allout-overlay-category 'start-open t)
-    (put 'allout-overlay-category 'insert-in-front-hooks
+      (put 'allout-exposure-category 'start-open t)
+    (put 'allout-exposure-category 'insert-in-front-hooks
          '(allout-overlay-insert-in-front-handler)))
-  (if (featurep 'xemacs)
-      (progn (make-variable-buffer-local 'before-change-functions)
-             (add-hook 'before-change-functions
-                       'allout-before-change-handler))
-    (put 'allout-overlay-category 'modification-hooks
-         '(allout-overlay-interior-modification-handler))))
+  (put 'allout-exposure-category 'modification-hooks
+       '(allout-overlay-interior-modification-handler)))
 ;;;_  > allout-mode (&optional toggle)
 ;;;_   : Defun:
 ;;;###autoload
@@ -1575,118 +1621,92 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 				       ; active state or *de*activation
 				       ; specifically requested:
       (setq allout-explicitly-deactivated t)
-      (if (string-match "^18\." emacs-version)
-				       ; Revoke those keys that remain
-				       ; as we set them:
-	  (let ((curr-loc (current-local-map)))
-	   (mapcar (function
-		    (lambda (cell)
-		      (if (eq (lookup-key curr-loc (car cell))
-			      (car (cdr cell)))
-			  (define-key curr-loc (car cell)
-			    (assq (car cell) allout-prior-bindings)))))
-		   allout-added-bindings)
-	   (allout-resumptions 'allout-added-bindings)
-	   (allout-resumptions 'allout-prior-bindings)))
 
-      (if allout-old-style-prefixes
-	  (progn
-	   (allout-resumptions 'allout-primary-bullet)
-	   (allout-resumptions 'allout-old-style-prefixes)))
-      ;;(allout-resumptions 'selective-display)
+      (allout-do-resumptions)
+
       (remove-from-invisibility-spec '(allout . t))
-      (set write-file-hook-var-name
-	   (delq 'allout-write-file-hook-handler
-                 (symbol-value write-file-hook-var-name)))
-      (setq auto-save-hook
-	   (delq 'allout-auto-save-hook-handler
-		 auto-save-hook))
-      (allout-resumptions 'paragraph-start)
-      (allout-resumptions 'paragraph-separate)
-      (allout-resumptions 'auto-fill-function)
-      (allout-resumptions 'normal-auto-fill-function)
-      (allout-resumptions 'allout-former-auto-filler)
+      (remove-hook 'pre-command-hook 'allout-pre-command-business t)
+      (remove-hook 'post-command-hook 'allout-post-command-business t)
+      (when (featurep 'xemacs)
+        (remove-hook 'before-change-functions 'allout-before-change-handler t))
+      (remove-hook 'isearch-mode-end-hook 'allout-isearch-end-handler t)
+      (remove-hook write-file-hook-var-name 'allout-write-file-hook-handler t)
+      (remove-hook 'auto-save-hook 'allout-auto-save-hook-handler t)
+
+      (remove-overlays (point-min) (point-max)
+                       'category 'allout-exposure-category)
+
+      (run-hooks 'allout-mode-deactivate-hook)
       (setq allout-mode nil))
 
      ;; Activation:
      ((not active)
       (setq allout-explicitly-deactivated nil)
       (if allout-old-style-prefixes
-	  (progn			; Inhibit all the fancy formatting:
-	   (allout-resumptions 'allout-primary-bullet '("*"))
-	   (allout-resumptions 'allout-old-style-prefixes '(()))))
+          ;; Inhibit all the fancy formatting:
+          (allout-add-resumptions '((allout-primary-bullet "*")
+                                    (allout-old-style-prefixes ()))))
 
-      (allout-set-overlay-category)     ; Doesn't hurt to redo this.
+      (allout-overlay-preparations)     ; Doesn't hurt to redo this.
 
       (allout-infer-header-lead)
       (allout-infer-body-reindent)
 
       (set-allout-regexp)
 
-				       ; Produce map from current version
-				       ; of allout-keybindings-list:
-      (if (boundp 'minor-mode-map-alist)
+      ;; Produce map from current version of allout-keybindings-list:
+      (setq allout-mode-map
+            (produce-allout-mode-map allout-keybindings-list))
+      (substitute-key-definition 'beginning-of-line
+                                 'move-beginning-of-line
+                                 allout-mode-map global-map)
+      (substitute-key-definition 'end-of-line
+                                 'move-end-of-line
+                                 allout-mode-map global-map)
+      (produce-allout-mode-menubar-entries)
+      (fset 'allout-mode-map allout-mode-map)
 
-	  (progn			; V19, and maybe lucid and
-				       ; epoch, minor-mode key bindings:
-	   (setq allout-mode-map
-		 (produce-allout-mode-map allout-keybindings-list))
-           (substitute-key-definition 'beginning-of-line
-                                      'move-beginning-of-line
-                                      allout-mode-map global-map)
-           (substitute-key-definition 'end-of-line
-                                      'move-end-of-line
-                                      allout-mode-map global-map)
-	   (produce-allout-mode-menubar-entries)
-	   (fset 'allout-mode-map allout-mode-map)
-				       ; Include on minor-mode-map-alist,
-				       ; if not already there:
-	   (if (not (member '(allout-mode . allout-mode-map)
-			    minor-mode-map-alist))
-	       (setq minor-mode-map-alist
-		     (cons '(allout-mode . allout-mode-map)
-			   minor-mode-map-alist))))
-
-				       ; V18 minor-mode key bindings:
-				       ; Stash record of added bindings
-				       ; for later revocation:
-	(allout-resumptions 'allout-added-bindings
-			    (list allout-keybindings-list))
-	(allout-resumptions 'allout-prior-bindings
-			    (list (current-local-map)))
-				       ; and add them:
-	(use-local-map (produce-allout-mode-map allout-keybindings-list
-						(current-local-map)))
-	)
+      ;; Include on minor-mode-map-alist, if not already there:
+      (if (not (member '(allout-mode . allout-mode-map)
+                       minor-mode-map-alist))
+          (setq minor-mode-map-alist
+                (cons '(allout-mode . allout-mode-map)
+                      minor-mode-map-alist)))
 
       (add-to-invisibility-spec '(allout . t))
-      (make-local-variable 'line-move-ignore-invisible)
-      (setq line-move-ignore-invisible t)
-      (add-hook 'pre-command-hook 'allout-pre-command-business)
-      (add-hook 'post-command-hook 'allout-post-command-business)
-      (add-hook 'isearch-mode-end-hook 'allout-isearch-end-handler)
-      (add-hook write-file-hook-var-name 'allout-write-file-hook-handler)
-      (add-hook 'auto-save-hook 'allout-auto-save-hook-handler)
-				       ; Custom auto-fill func, to support
-				       ; respect for topic headline,
-				       ; hanging-indents, etc:
-      ;; Register prevailing fill func for use by allout-auto-fill:
-      (allout-resumptions 'allout-former-auto-filler (list auto-fill-function))
-      ;; Register allout-auto-fill to be used if filling is active:
-      (allout-resumptions 'auto-fill-function '(allout-auto-fill))
-      (allout-resumptions 'allout-outside-normal-auto-fill-function
-                          (list normal-auto-fill-function))
-      (allout-resumptions 'normal-auto-fill-function '(allout-auto-fill))
-      ;; Paragraphs are broken by topic headlines.
-      (make-local-variable 'paragraph-start)
-      (allout-resumptions 'paragraph-start
-			  (list (concat paragraph-start "\\|^\\("
-					allout-regexp "\\)")))
-      (make-local-variable 'paragraph-separate)
-      (allout-resumptions 'paragraph-separate
-			  (list (concat paragraph-separate "\\|^\\("
-					allout-regexp "\\)")))
+      (allout-add-resumptions '(line-move-ignore-invisible t))
+      (add-hook 'pre-command-hook 'allout-pre-command-business nil t)
+      (add-hook 'post-command-hook 'allout-post-command-business nil t)
+      (when (featurep 'xemacs)
+        (add-hook 'before-change-functions 'allout-before-change-handler
+                  nil t))
+      (add-hook 'isearch-mode-end-hook 'allout-isearch-end-handler nil t)
+      (add-hook write-file-hook-var-name 'allout-write-file-hook-handler
+                nil t)
+      (add-hook 'auto-save-hook 'allout-auto-save-hook-handler
+                nil t)
 
+      ;; Stash auto-fill settings and adjust so custom allout auto-fill
+      ;; func will be used if auto-fill is active or activated.  (The
+      ;; custom func respects topic headline, maintains hanging-indents,
+      ;; etc.)
+      (if (and auto-fill-function (not allout-inhibit-auto-fill))
+          ;; allout-auto-fill will use the stashed values and so forth.
+          (allout-add-resumptions '(auto-fill-function allout-auto-fill)))
+      (allout-add-resumptions (list 'allout-former-auto-filler
+                                    auto-fill-function)
+                              ;; Register allout-auto-fill to be used if
+                              ;; filling is active:
+                              (list 'allout-outside-normal-auto-fill-function
+                                    normal-auto-fill-function)
+                              '(normal-auto-fill-function allout-auto-fill)
+                              ;; Paragraphs are broken by topic headlines.
+                              (list 'paragraph-start
+                                    (concat paragraph-start "\\|^\\("
+                                            allout-regexp "\\)"))
+                              (list 'paragraph-separate
+                                    (concat paragraph-separate "\\|^\\("
+                                            allout-regexp "\\)")))
       (or (assq 'allout-mode minor-mode-alist)
 	  (setq minor-mode-alist
 	       (cons '(allout-mode " Allout") minor-mode-alist)))
@@ -1702,8 +1722,9 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
      ;; Reactivation:
      ((setq do-layout t)
       (allout-infer-body-reindent))
-     )					; cond
+     ) ;; end of activation-mode cases.
 
+    ;; Do auto layout if warranted:
     (let ((use-layout (if (listp allout-layout)
                           allout-layout
                         allout-default-layout)))
@@ -1802,9 +1823,14 @@ See allout-overlay-interior-modification-handler for details.
 
 This before-change handler is used only where modification-hooks
 overlay property is not supported."
-  (if (not (allout-mode-p))
-      nil
-    (allout-overlay-interior-modification-handler nil nil beg end nil)))
+  ;; allout-overlay-interior-modification-handler on an overlay handles
+  ;; this in other emacs, via `allout-exposure-category's 'modification-hooks.
+  (when (and (featurep 'xemacs) (allout-mode-p))
+    ;; process all of the pending overlays:
+    (dolist (overlay (overlays-in beg end))
+      (if (eq (overlay-get ol 'invisible) 'allout)
+          (allout-overlay-interior-modification-handler
+             overlay nil beg end nil)))))
 ;;;_  > allout-isearch-end-handler (&optional overlay)
 (defun allout-isearch-end-handler (&optional overlay)
   "Reconcile allout outline exposure on arriving in hidden text after isearch.
@@ -2018,12 +2044,12 @@ Outermost is first."
     (if (allout-hidden-p) (forward-char 1))))
 ;;;_   > allout-next-heading ()
 (defsubst allout-next-heading ()
-  "Move to the heading for the topic \(possibly invisible) before this one.
+  "Move to the heading for the topic \(possibly invisible) after this one.
 
 Returns the location of the heading, or nil if none found."
 
-  (if (and (bobp) (not (eobp)))
-       (forward-char 1))
+  (if (and (bobp) (not (eobp)) (looking-at allout-regexp))
+      (forward-char 1))
 
   (if (re-search-forward allout-line-boundary-regexp nil 0)
       (allout-prefix-data		; Got valid location state - set vars:
@@ -2688,36 +2714,52 @@ return to regular interpretation of self-insert characters."
 
   (if (not (allout-mode-p))
       nil
-    ;; Hot-spot navigation provisions:
     (if (and (eq this-command 'self-insert-command)
 	     (eq (point)(allout-current-bullet-pos)))
-	(let* ((this-key-num (cond
-			      ((numberp last-command-char)
-			       last-command-char)
-			      ;; Only xemacs has characterp.
-			      ((and (fboundp 'characterp)
-				    (apply 'characterp
-                                           (list last-command-char)))
-			       (apply 'char-to-int (list last-command-char)))
-			      (t 0)))
-	       mapped-binding)
-	  (if (zerop this-key-num)
-	      nil
-					; Map upper-register literals
-					; to lower register:
-	    (if (<= 96 this-key-num)
-		(setq this-key-num (- this-key-num 32)))
-					; Check if we have a literal:
-	    (if (and (<= 64 this-key-num)
-		     (>= 96 this-key-num))
-		(setq mapped-binding
-		      (lookup-key 'allout-mode-map
-				  (concat allout-command-prefix
-					  (char-to-string (- this-key-num
-							     64))))))
-	    (if mapped-binding
-		(setq allout-post-goto-bullet t
-		      this-command mapped-binding)))))))
+        (allout-hotspot-key-handler))))
+;;;_   > allout-hotspot-key-handler ()
+(defun allout-hotspot-key-handler ()
+  "Catchall handling of key bindings in hot-spots.
+
+Translates unmodified keystrokes to corresponding allout commands, when
+they would qualify if prefixed with the allout-command-prefix, and sets
+this-command accordingly.
+
+Returns the qualifying command, if any, else nil."
+  (interactive)
+  (let* ((key-num (cond ((numberp last-command-char) last-command-char)
+                        ;; for XEmacs character type:
+                        ((and (fboundp 'characterp)
+                              (apply 'characterp (list last-command-char)))
+                         (apply 'char-to-int (list last-command-char)))
+                        (t 0)))
+         mapped-binding
+         (on-bullet (eq (point) (allout-current-bullet-pos))))
+
+    (if (zerop key-num)
+        nil
+
+      (if (and (<= 33 key-num)
+               (setq mapped-binding
+                     (key-binding (concat allout-command-prefix
+                                          (char-to-string
+                                           (if (and (<= 97 key-num) ; "a"
+                                                    (>= 122 key-num)) ; "z"
+                                               (- key-num 96) key-num)))
+                                  t)))
+          ;; Qualified with the allout prefix - do hot-spot operation.
+          (setq allout-post-goto-bullet t)
+        ;; accept-defaults nil, or else we'll get allout-item-icon-key-handler.
+        (setq mapped-binding (key-binding (char-to-string key-num))))
+
+      (while (keymapp mapped-binding)
+        (setq mapped-binding
+              (lookup-key mapped-binding (read-key-sequence-vector nil t))))
+
+      (if mapped-binding
+          (setq allout-post-goto-bullet on-bullet
+                this-command mapped-binding)))))
+
 ;;;_   > allout-find-file-hook ()
 (defun allout-find-file-hook ()
   "Activate `allout-mode' on non-nil `allout-auto-activation', `allout-layout'.
@@ -3146,21 +3188,23 @@ topic prior to the current one."
 
 Maintains outline hanging topic indentation if
 `allout-use-hanging-indents' is set."
-  (let ((fill-prefix (if allout-use-hanging-indents
-                         ;; Check for topic header indentation:
-                         (save-excursion
-                           (beginning-of-line)
-                           (if (looking-at allout-regexp)
-                               ;; ... construct indentation to account for
-                               ;; length of topic prefix:
-                               (make-string (progn (allout-end-of-prefix)
-                                                   (current-column))
-                                            ?\ )))))
-        (use-auto-fill-function (or allout-outside-normal-auto-fill-function
-                                    auto-fill-function
-                                    'do-auto-fill)))
-    (if (or allout-former-auto-filler allout-use-hanging-indents)
-        (funcall use-auto-fill-function))))
+
+  (when (not allout-inhibit-auto-fill)
+    (let ((fill-prefix (if allout-use-hanging-indents
+                           ;; Check for topic header indentation:
+                           (save-excursion
+                             (beginning-of-line)
+                             (if (looking-at allout-regexp)
+                                 ;; ... construct indentation to account for
+                                 ;; length of topic prefix:
+                                 (make-string (progn (allout-end-of-prefix)
+                                                     (current-column))
+                                              ?\ )))))
+          (use-auto-fill-function (or allout-outside-normal-auto-fill-function
+                                      auto-fill-function
+                                      'do-auto-fill)))
+      (if (or allout-former-auto-filler allout-use-hanging-indents)
+          (funcall use-auto-fill-function)))))
 ;;;_    > allout-reindent-body (old-depth new-depth &optional number)
 (defun allout-reindent-body (old-depth new-depth &optional number)
   "Reindent body lines which were indented at OLD-DEPTH to NEW-DEPTH.
@@ -3601,8 +3645,10 @@ when yank with allout-yank into an outline as a heading."
 	    (forward-char 1)))
 
     (if collapsed
-        (put-text-property beg (1+ beg) 'allout-was-collapsed t)
-      (remove-text-properties beg (1+ beg) '(allout-was-collapsed t)))
+        (allout-unprotected
+         (put-text-property beg (1+ beg) 'allout-was-collapsed t))
+      (allout-unprotected
+       (remove-text-properties beg (1+ beg) '(allout-was-collapsed t))))
     (allout-unprotected (kill-region beg (point)))
     (sit-for 0)
     (save-excursion
@@ -3834,12 +3880,12 @@ by pops to non-distinctive yanks.  Bug..."
 
 Text is shown if flag is nil and hidden otherwise."
   ;; We use outline invisibility spec.
-  (remove-overlays from to 'category 'allout-overlay-category)
+  (remove-overlays from to 'category 'allout-exposure-category)
   (when flag
     (let ((o (make-overlay from to)))
-      (overlay-put o 'category 'allout-overlay-category)
+      (overlay-put o 'category 'allout-exposure-category)
       (when (featurep 'xemacs)
-        (let ((props (symbol-plist 'allout-overlay-category)))
+        (let ((props (symbol-plist 'allout-exposure-category)))
           (while props
             (overlay-put o (pop props) (pop props)))))))
   (run-hooks 'allout-view-change-hook)
@@ -3860,9 +3906,9 @@ Text is shown if flag is nil and hidden otherwise."
                         flag)))
 
 ;;;_  - Topic-specific
-;;;_   > allout-show-entry (&optional inclusive)
-(defun allout-show-entry (&optional inclusive)
-  "Like `allout-show-current-entry', reveals entries nested in hidden topics.
+;;;_   > allout-show-entry ()
+(defun allout-show-entry ()
+  "Like `allout-show-current-entry', but reveals entries in hidden topics.
 
 This is a way to give restricted peek at a concealed locality without the
 expense of exposing its context, but can leave the outline with aberrant
@@ -3977,7 +4023,6 @@ Useful for coherently exposing to a random point in a hidden region."
                         t)))
 ;;;_   > allout-show-current-entry (&optional arg)
 (defun allout-show-current-entry (&optional arg)
-
   "Show body following current heading, or hide entry with universal argument."
 
   (interactive "P")
@@ -5919,7 +5964,131 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     (isearch-repeat 'forward)
     (isearch-mode t)))
 
-;;;_ #11 Provide
+;;;_ #11 Unit tests - this should be last item before "Provide"
+;;;_  > allout-run-unit-tests ()
+(defun allout-run-unit-tests ()
+  "Run the various allout unit tests."
+  (message "Running allout tests...")
+  (allout-test-resumptions)
+  (message "Running allout tests...  Done.")
+  (sit-for .5))
+;;;_  : test resumptions:
+;;;_   > allout-tests-obliterate-variable (name)
+(defun allout-tests-obliterate-variable (name)
+  "Completely unbind variable with NAME."
+  (if (local-variable-p name) (kill-local-variable name))
+  (while (boundp name) (makunbound name)))
+;;;_   > allout-test-resumptions ()
+(defvar allout-tests-globally-unbound nil
+  "Fodder for allout resumptions tests - defvar just for byte compiler.")
+(defvar allout-tests-globally-true nil
+  "Fodder for allout resumptions tests - defvar just just for byte compiler.")
+(defvar allout-tests-locally-true nil
+  "Fodder for allout resumptions tests - defvar just for byte compiler.")
+(defun allout-test-resumptions ()
+  "Exercise allout resumptions."
+  ;; for each resumption case, we also test that the right local/global
+  ;; scopes are affected during resumption effects:
+
+  ;; ensure that previously unbound variables return to the unbound state.
+  (with-temp-buffer
+    (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
+    (allout-add-resumptions '(allout-tests-globally-unbound t))
+    (assert (not (default-boundp 'allout-tests-globally-unbound)))
+    (assert (local-variable-p 'allout-tests-globally-unbound))
+    (assert (boundp 'allout-tests-globally-unbound))
+    (assert (equal allout-tests-globally-unbound t))
+    (allout-do-resumptions)
+    (assert (not (local-variable-p 'allout-tests-globally-unbound)))
+    (assert (not (boundp 'allout-tests-globally-unbound))))
+
+  ;; ensure that variable with prior global value is resumed
+  (with-temp-buffer
+    (allout-tests-obliterate-variable 'allout-tests-globally-true)
+    (setq allout-tests-globally-true t)
+    (allout-add-resumptions '(allout-tests-globally-true nil))
+    (assert (equal (default-value 'allout-tests-globally-true) t))
+    (assert (local-variable-p 'allout-tests-globally-true))
+    (assert (equal allout-tests-globally-true nil))
+    (allout-do-resumptions)
+    (assert (not (local-variable-p 'allout-tests-globally-true)))
+    (assert (boundp 'allout-tests-globally-true))
+    (assert (equal allout-tests-globally-true t)))
+
+  ;; ensure that prior local value is resumed
+  (with-temp-buffer
+    (allout-tests-obliterate-variable 'allout-tests-locally-true)
+    (set (make-local-variable 'allout-tests-locally-true) t)
+    (assert (not (default-boundp 'allout-tests-locally-true))
+            nil (concat "Test setup mistake - variable supposed to"
+                        " not have global binding, but it does."))
+    (assert (local-variable-p 'allout-tests-locally-true)
+            nil (concat "Test setup mistake - variable supposed to have"
+                        " local binding, but it lacks one."))
+    (allout-add-resumptions '(allout-tests-locally-true nil))
+    (assert (not (default-boundp 'allout-tests-locally-true)))
+    (assert (local-variable-p 'allout-tests-locally-true))
+    (assert (equal allout-tests-locally-true nil))
+    (allout-do-resumptions)
+    (assert (boundp 'allout-tests-locally-true))
+    (assert (local-variable-p 'allout-tests-locally-true))
+    (assert (equal allout-tests-locally-true t))
+    (assert (not (default-boundp 'allout-tests-locally-true))))
+
+  ;; ensure that last of multiple resumptions holds, for various scopes.
+  (with-temp-buffer
+    (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
+    (allout-tests-obliterate-variable 'allout-tests-globally-true)
+    (setq allout-tests-globally-true t)
+    (allout-tests-obliterate-variable 'allout-tests-locally-true)
+    (set (make-local-variable 'allout-tests-locally-true) t)
+    (allout-add-resumptions '(allout-tests-globally-unbound t)
+                            '(allout-tests-globally-true nil)
+                            '(allout-tests-locally-true nil))
+    (allout-add-resumptions '(allout-tests-globally-unbound 2)
+                            '(allout-tests-globally-true 3)
+                            '(allout-tests-locally-true 4))
+    ;; reestablish many of the basic conditions are maintained after re-add:
+    (assert (not (default-boundp 'allout-tests-globally-unbound)))
+    (assert (local-variable-p 'allout-tests-globally-unbound))
+    (assert (equal allout-tests-globally-unbound 2))
+    (assert (default-boundp 'allout-tests-globally-true))
+    (assert (local-variable-p 'allout-tests-globally-true))
+    (assert (equal allout-tests-globally-true 3))
+    (assert (not (default-boundp 'allout-tests-locally-true)))
+    (assert (local-variable-p 'allout-tests-locally-true))
+    (assert (equal allout-tests-locally-true 4))
+    (allout-do-resumptions)
+    (assert (not (local-variable-p 'allout-tests-globally-unbound)))
+    (assert (not (boundp 'allout-tests-globally-unbound)))
+    (assert (not (local-variable-p 'allout-tests-globally-true)))
+    (assert (boundp 'allout-tests-globally-true))
+    (assert (equal allout-tests-globally-true t))
+    (assert (boundp 'allout-tests-locally-true))
+    (assert (local-variable-p 'allout-tests-locally-true))
+    (assert (equal allout-tests-locally-true t))
+    (assert (not (default-boundp 'allout-tests-locally-true))))
+
+  ;; ensure that deliberately unbinding registered variables doesn't foul things
+  (with-temp-buffer
+    (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
+    (allout-tests-obliterate-variable 'allout-tests-globally-true)
+    (setq allout-tests-globally-true t)
+    (allout-tests-obliterate-variable 'allout-tests-locally-true)
+    (set (make-local-variable 'allout-tests-locally-true) t)
+    (allout-add-resumptions '(allout-tests-globally-unbound t)
+                            '(allout-tests-globally-true nil)
+                            '(allout-tests-locally-true nil))
+    (allout-tests-obliterate-variable 'allout-tests-globally-unbound)
+    (allout-tests-obliterate-variable 'allout-tests-globally-true)
+    (allout-tests-obliterate-variable 'allout-tests-locally-true)
+    (allout-do-resumptions))
+  )
+;;;_  % Run unit tests if `allout-run-unit-tests-after-load' is true:
+(when allout-run-unit-tests-on-load
+  (allout-run-unit-tests))
+
+;;;_ #12 Provide
 (provide 'allout)
 
 ;;;_* Local emacs vars.
