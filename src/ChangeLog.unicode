@@ -1,9 +1,30 @@
+2006-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (LGLYPH_XOFF, LGLYPH_YOFF, LGLYPH_WIDTH, LGLYPH_WADJUST)
+	(LGLYPH_SET_WIDTH): Adjusted for the change of LGLYPH format.
+	(LGLYPH_ADJUSTMENT, LGLYPH_SET_ADJUSTMENT): New macros.
+
+	* font.c (font_merge_old_spec): Treat '*' in foundry as a wild
+	card.
+	(DEVICE_DELTA): Fix typo.
+	(font_otf_gpos): Adjusted for the change of LGLYPH format.
+	(font_prepare_composition): Likewise.
+
+	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
+	the change of LGLYPH format.
+
+2006-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_list): Fix typo.
+	(ftfont_build_basic_charsets): Don't include letters with
+	diactrics.
+
 2006-07-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (realize_non_ascii_face): Set face->extra to NULL.
 
-	* xftfont.c (xftfont_done_face): Call XftDrawDestroy only if xftface_info
-	is non-NULL.
+	* xftfont.c (xftfont_done_face): Call XftDrawDestroy only if
+	xftface_info is non-NULL.
 
 2006-07-07  Kenichi Handa  <handa@m17n.org>
 
