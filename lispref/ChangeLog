@@ -1,3 +1,9 @@
+2006-07-15  Kim F. Storm  <storm@cua.dk>
+
+	* anti.texi (Antinews): Mention redisplay function.
+	The kbd macro existed, but was not documented, before 22.x.
+	Function pos-visible-in-window-p is not new in 22.x, just enhanced.
+
 2006-07-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* display.texi (Displaying Messages): Add anchor.
