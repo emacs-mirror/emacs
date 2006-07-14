@@ -41,21 +41,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 	 '(hscroll-step 1)
 	)
 
-** TCP server processes do not work on Windows.
-
-TCP/IP server processes created with `make-network-process' consume
-excesive CPU on some Windows environments.  Usages of 50% and 100%
-CPU time have been observed on different Window XP configurations.
-Seems to be a problem in sys_select in w32proc.c.
-
-In its current form, it sys_select says the socket is ready, so we
-call server_accept_connection which again calls accept() which returns
--1 with errno == WSAEWOULDBLOCK (10035) indicating that there is no
-pending connection to accept.
-
-It seems that to fix this, w32 server sockets must use WSAAsyncSelect
-+ FD_ACCEPT to request notifications of incoming connections...
-
 
 * DOCUMENTATION
 
