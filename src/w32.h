@@ -137,6 +137,9 @@ extern void syms_of_w32menu (void);
 extern void globals_of_w32menu (void);
 extern void syms_of_fontset (void);
 
+extern int _sys_read_ahead (int fd);
+extern int _sys_wait_accept (int fd);
+
 #endif /* EMACS_W32_H */
 
 /* arch-tag: 02c36b00-312b-4c4d-a1d9-f905c5e968f0
