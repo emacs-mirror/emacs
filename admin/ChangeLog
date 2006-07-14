@@ -1,3 +1,7 @@
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* FOR-RELEASE (BUGS): High cpu load on windows server sockets fixed.
+
 2006-07-09  Kim F. Storm  <storm@cua.dk>
 
 	* README: Use outline format.  Add FOR-RELEASE.
@@ -56,7 +60,7 @@
 
 2006-01-27  Chong Yidong  <cyd@stupidchicken.com>
 
-	* FOR-RELEASE: string allocation bugs fixed.
+	* FOR-RELEASE: String allocation bugs fixed.
 
 2005-12-13  Bill Wohler  <wohler@newt.com>
 

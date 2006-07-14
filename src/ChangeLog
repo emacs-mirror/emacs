@@ -1,3 +1,15 @@
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* w32.c: Fix high cpu load for server sockets.
+	(pfn_WSAEventSelect): New function ptr.
+	(init_winsock): Load it.
+	(sys_listen): Set FILE_LISTEN flag. Set event mask for socket's
+	char_avail event object to FD_ACCEPT.
+	(sys_accept): Check FILE_LISTEN flag.  Set event mask on new
+	socket's char_avail event object to FD_READ|FD_CLOSE.
+
+	* w32.h (FILE_LISTEN): New filedesc flag value.
+
 2006-07-13  Kim F. Storm  <storm@cua.dk>
 
 	* bytecode.c (Fbyte_code): Use CAR, CDR for Bcar, Bcdr.

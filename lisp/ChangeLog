@@ -10,7 +10,7 @@
 	(gdb-display-breakpoints-buffer, gdb-display-stack-buffer)
 	(gdb-display-threads-buffer, gdb-display-memory-buffer)
 	(gdb-display-locals-buffer): Use it.
-	
+
 	* progmodes/gud.el (gud-display-line): Use gdb-display-buffer.
 	Set gdb-source-window.
 
@@ -55,10 +55,9 @@
 
 2006-07-12  Nick Roberts  <nickrob@snap.net.nz>
 
-	* tumme.el (tumme-create-thumb)
-	(tumme-thumbnail-display-external, tumme-display-image)
-	(tumme-rotate-thumbnail, tumme-rotate-original)
-	(tumme-set-exif-data, tumme-get-exif-data): Use shell-command-switch.
+	* tumme.el (tumme-create-thumb, tumme-thumbnail-display-external)
+	(tumme-display-image, tumme-rotate-thumbnail, tumme-rotate-original)
+	(tumme-set-exif-data, tumme-get-exif-data): Use	shell-command-switch.
 
 	* thumbs.el (thumbs-call-convert): Use shell-command-switch.
 
@@ -94,20 +93,16 @@
 
 2006-07-11  Nick Roberts  <nickrob@snap.net.nz>
 
-	* tumme.el (tumme-create-thumb)
-	(tumme-thumbnail-display-external, tumme-display-image)
-	(tumme-rotate-thumbnail, tumme-rotate-original)
+	* tumme.el (tumme-create-thumb, tumme-thumbnail-display-external)
+	(tumme-display-image, tumme-rotate-thumbnail, tumme-rotate-original)
 	(tumme-set-exif-data, tumme-get-exif-data): Use call-process
 	instead of shell-command.
-	(tumme-create-thumbnail-buffer)
-	(tumme-create-display-image-buffer, tumme-display-thumbs)
-	(tumme-modify-mark-on-thumb-original-file, tumme-display-image)
-	(tumme-get-exif-data): Use with-current-buffer.
-	(tumme-display-properties-format)
-	(tumme-dired-insert-marked-thumbs, tumme-rotate-original)
-	(tumme-get-exif-file-name)
-	(tumme-thumbnail-set-image-description, tumme-gallery-generate):
-	Fit to 80 columns.
+	(tumme-create-thumbnail-buffer, tumme-create-display-image-buffer)
+	(tumme-display-thumbs, tumme-modify-mark-on-thumb-original-file)
+	(tumme-display-image, tumme-get-exif-data): Use with-current-buffer.
+	(tumme-display-properties-format, tumme-dired-insert-marked-thumbs)
+	(tumme-thumbnail-set-image-description, tumme-gallery-generate)
+	(tumme-rotate-original, tumme-get-exif-file-name): Fit to 80 columns.
 
 2006-07-11  Kim F. Storm  <storm@cua.dk>
 
@@ -418,8 +413,8 @@
 2006-06-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/rcompile.el (remote-compile): Replace ange-ftp based
-	implementation by Tramp functions.  Based on a patch published by
-	Marc Abramowitz <msabramo@gmail.com>.
+	implementation by Tramp functions.
+	Suggested by Marc Abramowitz <msabramo@gmail.com>.
 
 	* net/tramp.el (tramp-unload-tramp): Provide a doc string.
 
