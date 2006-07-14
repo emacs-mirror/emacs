@@ -1,3 +1,19 @@
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* w32.c (pfn_WSACreateEvent, pfn_WSACloseEvent): New func ptrs.
+	(init_winsock): Load them.  Use ws2_32.dll.
+	(sys_listen): Undo last change.  Just set FILE_LISTEN flag.
+	(sys_accept): Undo last change.  Instead, set child status to
+	STATUS_READ_ACKNOWLEDGED and reset char_avail event so next
+	sys_select will wakeup the reader thread.
+	(_sys_wait_accept): New function used by reader thread to wait for
+	an incoming connection on a server socket.
+
+	* w32.h (_sys_read_ahead, _sys_wait_accept): Add prototypes.
+
+	* w32proc.c (reader_thread): Use _sys_wait_accept to wait on a
+	server socket (FILE_LISTEN flag).
+
 2006-07-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* sound.c (alsa_init): Call snd_pcm_close after successful snd_pcm_open.
