@@ -1,3 +1,14 @@
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-delete-selection)
+	(cua-toggle-set-mark): New defcustoms.
+	(cua-rectangle-modifier-key): Add `alt' modifier.
+	(cua-replace-region): Don't delete if cua-delete-selection is nil.
+	(cua-set-mark): Don't clear mark if cua-toggle-set-mark is nil.
+	Suggested by Klaus Zeitler <kzeitler@lucent.com>.
+
+	* emulation/cua-rect.el (cua-help-for-rectangle): Add `alt' modifier.
+
 2006-07-14  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el: Require 'cl during byte-compilation/interactive load,
