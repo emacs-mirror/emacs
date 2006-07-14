@@ -4518,6 +4518,8 @@ example,
 
 (kbd "C-x C-f") => "\^x\^f"
 
+Actually, this format has existed since Emacs 20.1.
+
 *** Interactive commands can be remapped through keymaps.
 
 This is an alternative to using `defadvice' or `substitute-key-definition'
