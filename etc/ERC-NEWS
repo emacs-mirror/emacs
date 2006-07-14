@@ -2,6 +2,116 @@ ERC NEWS                                                       -*- outline -*-
 
 * Changes in ERC 5.2 (unreleased)
 
+* Changes in ERC 5.1.3
+
+** Fix use of /quote command with no initial whitespace.
+
+** Make it possible to customize the colorization of the header line.
+The `erc-header-line' face is used to color the header line.
+The `erc-header-line-face-method' determines the method to use when
+colorizing the header line.
+
+** Add the new function `erc-handle-irc-url', which is a suitable
+candidate to use for `url-irc-function'.  This permits some
+integration of url.el and ERC.
+
+** Fix several errors that occur when server or channel buffers are killed
+prematurely.
+
+** Fix toggling of flood control.
+
+** Match the patterns in `erc-encoding-coding-alist' as regexps,
+instead of verbatim text.  Also, match case-insensitively.
+
+** The /SMV command has been removed, since we no longer have
+meaningful module-specific version information.
+
+** Fix a "(stringp nil)" error that can happen when doing /PART.
+
+** Use a better example in the `erc-part-reason-various-alist'
+documentation.
+
+** When using `erc-quit-reason-various' and `erc-part-reason-various'
+and no matches are found, default to using the ERC version string
+rather than "nil".
+
+** Add the `list' and `page' modules to the `erc-modules' customize
+interface.
+
+** Changes to the ERC manual
+
+*** Update the list of available modules.
+
+*** Revise information about releases and development.
+
+*** Provide a simpler example in the "Getting Started" chapter.
+
+*** Fully document how to connect to an IRC server in the new
+"Connecting" chapter.
+
+** Changes and additions to modules
+
+*** Autoaway (erc-autoaway.el)
+
+**** Rename the `erc-autoaway-use-emacs-idle' option to
+`erc-autoaway-idle-method'.
+
+**** Add support for autoaway based on user idle time.
+This is now the default.
+
+**** If you set the AWAY status yourself, erc-autoaway will not
+interfere by un-setting AWAY prematurely.
+
+**** If you are set away while visiting a non-ERC buffer,
+erc-autoaway used to fail in bringing the user back.  This is now
+fixed.
+
+*** BBDB (erc-bbdb.el)
+
+**** Add new option `erc-bbdb-electric-p', which determines whether
+to make the BBDB buffer electric.  This defaults to not electric.
+
+*** Button (erc-button.el)
+
+**** Use <backtab> instead of <C-tab> for `erc-button-previous'.
+
+*** Identd (erc-identd.el)
+
+**** Fix a bug that involves starting the identd server.
+
+**** Make this work with Emacs 22.
+
+**** Provide a real ERC module named `identd'.
+
+**** Don't create an extra buffer for the identd process.
+
+*** Logging (erc-log.el)
+
+**** By default, don't insert old logs when opening an ERC buffer.
+This may be changed by customizing `erc-log-insert-log-on-open'.
+
+**** New option `erc-log-write-after-send' determines whether the
+log file will be written to after every sent message.  The default is
+not to do this.
+
+**** New option `erc-log-write-after-insert' determines whether the
+log file will be written to when new text is added to a logged ERC
+buffer.  The default is not to do this.  With this option and the
+previous option, logging should no longer slow down ERC as much.
+
+**** Default to saving buffers and queries on quit.
+This may be changed by customizing the `erc-save-buffer-on-quit' and
+`erc-save-queries-on-quit' options, respectively.
+
+**** Only perform logging when the `logging' module is added to
+`erc-modules'.  This prevents logging from being activated just by
+loading the erc-log.el file, and makes logging act like other ERC
+modules.
+
+*** Programmable completion (erc-pcomplete.el)
+
+**** Don't complete the user's current nickname.
+
 * Changes in ERC 5.1.2
 
 ** Fix compiler errors in erc-autojoin.el and erc-dcc.el.

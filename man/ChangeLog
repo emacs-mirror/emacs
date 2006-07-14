@@ -1,3 +1,7 @@
+2006-07-12  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update for ERC 5.1.3.
+
 2006-07-12  Alex Schroeder  <alex@gnu.org>
 
 	* rcirc.texi: Fix typos.

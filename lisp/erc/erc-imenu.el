@@ -31,11 +31,6 @@
 
 ;;; Code:
 
-
-;; Author: Mario Lang <mlang@delysid.org>
-
-;; This file is not part of GNU Emacs. But the same license applies.
-
 ;;; Commentary:
 
 ;; This package defines the function `erc-create-imenu-index'.  ERC

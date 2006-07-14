@@ -553,10 +553,9 @@ deactivate/activate match logging in the latter. See
 		    ?m message
 		    ?u nickuserhost))))
 	(with-current-buffer (erc-log-matches-make-buffer match-buffer-name)
-	  (toggle-read-only -1)
-	  (point-max)
-	  (insert line)
-	  (toggle-read-only 1))))))
+	  (let ((inhibit-read-only t))
+	    (goto-char (point-max))
+	    (insert line)))))))
 
 (defun erc-log-matches-make-buffer (name)
   "Create or get a log-matches buffer named NAME and return it."

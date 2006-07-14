@@ -68,9 +68,7 @@ PASSWORD - What password to use"
       (switch-to-buffer (concat chan "@" host)))))
 
 (defun url-irc-erc (host port channel user password)
-  (erc-select :server host :port port :nick user :password password)
-  (when channel
-    (erc-join-channel channel)))
+  (erc-handle-irc-url host port channel user password))
 
 ;;;###autoload
 (defun url-irc (url)
