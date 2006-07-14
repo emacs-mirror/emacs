@@ -93,6 +93,7 @@ extern filedesc fd_info [ MAXDESC ];
 /* fd_info flag definitions */
 #define FILE_READ               0x0001
 #define FILE_WRITE              0x0002
+#define FILE_LISTEN		0x0004
 #define FILE_BINARY             0x0010
 #define FILE_LAST_CR            0x0020
 #define FILE_AT_EOF             0x0040
