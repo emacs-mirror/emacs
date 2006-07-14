@@ -2700,6 +2700,7 @@ utime (const char *name, struct utimbuf *times)
 int (PASCAL *pfn_WSAStartup) (WORD wVersionRequired, LPWSADATA lpWSAData);
 void (PASCAL *pfn_WSASetLastError) (int iError);
 int (PASCAL *pfn_WSAGetLastError) (void);
+int (PASCAL *pfn_WSAEventSelect) (SOCKET s, HANDLE hEventObject, long lNetworkEvents);
 int (PASCAL *pfn_socket) (int af, int type, int protocol);
 int (PASCAL *pfn_bind) (SOCKET s, const struct sockaddr *addr, int namelen);
 int (PASCAL *pfn_connect) (SOCKET s, const struct sockaddr *addr, int namelen);
@@ -2782,6 +2783,7 @@ init_winsock (int load_now)
       LOAD_PROC( WSAStartup );
       LOAD_PROC( WSASetLastError );
       LOAD_PROC( WSAGetLastError );
+      LOAD_PROC( WSAEventSelect );
       LOAD_PROC( socket );
       LOAD_PROC( bind );
       LOAD_PROC( connect );
@@ -3295,6 +3297,11 @@ sys_listen (int s, int backlog)
       int rc = pfn_listen (SOCK_HANDLE (s), backlog);
       if (rc == SOCKET_ERROR)
 	set_errno ();
+      else
+	{
+	  fd_info[s].flags |= FILE_LISTEN;
+	  pfn_WSAEventSelect (SOCK_HANDLE (s), fd_info[s].cp->char_avail, FD_ACCEPT);
+	}
       return rc;
     }
   h_errno = ENOTSOCK;
@@ -3332,11 +3339,16 @@ sys_accept (int s, struct sockaddr * addr, int * addrlen)
     }
 
   check_errno ();
-  if (fd_info[s].flags & FILE_SOCKET)
+  if (fd_info[s].flags & FILE_LISTEN)
     {
       SOCKET t = pfn_accept (SOCK_HANDLE (s), addr, addrlen);
       if (t != INVALID_SOCKET)
-	return socket_to_fd (t);
+	{
+	  int fd = socket_to_fd (t);
+	  if (fd >= 0)
+	    pfn_WSAEventSelect (SOCK_HANDLE (fd), fd_info[fd].cp->char_avail, FD_READ | FD_CLOSE);
+	  return fd;
+	}
 
       set_errno ();
       return -1;
