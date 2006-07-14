@@ -1,3 +1,7 @@
+2006-07-14  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
+
+	* emacs-lisp/authors.el (authors-aliases): Update.
+
 2006-07-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-display-buffer): Check for
