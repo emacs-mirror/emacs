@@ -1466,9 +1466,10 @@ x_draw_composite_glyph_string_foreground (s)
 	  for (i = from = 0; i < s->nchars; i++)
 	    {
 	      Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+	      Lisp_Object adjustment = LGLYPH_ADJUSTMENT (g);
+	      int xoff, yoff, wadjust;
 
-	      if (XINT (LGLYPH_XOFF (4)) == 0 && XINT (LGLYPH_YOFF (g)) == 0
-		  && XINT (LGLYPH_WADJUST (g)) == 0)
+	      if (NILP (adjustment))
 		{
 		  width += XINT (LGLYPH_WIDTH (g));
 		  continue;
@@ -1478,11 +1479,12 @@ x_draw_composite_glyph_string_foreground (s)
 		  font->driver->draw (s, from, i, x, y, 0);
 		  x += width;
 		}
-	      font->driver->draw (s, i, i + 1,
-				  x + XINT (LGLYPH_XOFF (g)),
-				  y + XINT (LGLYPH_XOFF (g)),
-				  0);
-	      x += XINT (LGLYPH_WIDTH (g)) + XINT (LGLYPH_WADJUST (g));
+	      xoff = XINT (AREF (adjustment, 0));
+	      yoff = XINT (AREF (adjustment, 1));
+	      wadjust = XINT (AREF (adjustment, 2));
+
+	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, 0);
+	      x += XINT (LGLYPH_WIDTH (g)) + wadjust;
 	      from = i + 1;
 	      width = 0;
 	    }
