@@ -92,6 +92,7 @@ files.")
      "Kai.Grossjohann@Cs.Uni-Dortmund.De"
      "Kai.Grossjohann@Gmx.Net")
     ("Karl Berry" "K. Berry")
+    ("K,Aa(Broly L$,1 q(Brentey" "L$,1 q(Brentey K,Aa(Broly")
     ("Kazushi Marukawa" "Kazushi")
     ("Ken Manheimer" "Kenneth Manheimer")
     ("Kenichi Handa" "Ken'ichi Handa" "Kenichi HANDA")
