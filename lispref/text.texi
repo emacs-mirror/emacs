@@ -3012,24 +3012,23 @@ that all text between the character and where the mouse is have the same
 
 @item fontified
 @kindex fontified @r{(text property)}
-This property says whether the text has had faces assigned to it by
-font locking.  The display engine tests it to decide whether a buffer
+This property says whether the character has a face assigned to it by font
+locking.  The display engine tests it to decide whether a buffer
 portion needs refontifying before display.  @xref{Auto Faces}.  It
-takes one of these three values---other values are invalid:
+takes one of three values:
 
 @table @asis
 @item @code{nil}
-Font locking is disabled, or the @code{face} properties on the text,
-if any, are invalid.
+Font locking is disabled, or the character's @code{face} property, if
+any, is invalid.
 
-@item The symbol @code{defer}
-This value states that the text's @code{face} properties are invalid
-and marks it for deferred fontification.  It is used only when ``just
-in time'' font locking is enabled.
+@item @code{defer}
+The character's @code{face} property is invalid and it needs deferred
+fontification.  It is used only when ``just in time'' font locking is
+enabled.
 
 @item @code{t}
-The @code{face} properties, or lack of them, on the text are currently
-valid.
+The character's @code{face} property, or absence of one, is valid.
 @end table
 
 @item display
@@ -3058,16 +3057,14 @@ argument is as follows:
 
 @itemize @bullet{}
 @item
-If @var{object} is a buffer, @var{pos} is the position in the buffer
-where the @code{help-echo} text property was found.
+If @var{object} is a buffer, @var{pos} is the position in the buffer.
 @item
 If @var{object} is an overlay, that overlay has a @code{help-echo}
-property, and @var{pos} is the position in the overlay's buffer under
-the mouse.
+property, and @var{pos} is the position in the overlay's buffer.
 @item
 If @var{object} is a string (an overlay string or a string displayed
 with the @code{display} property), @var{pos} is the position in that
-string under the mouse.
+string.
 @end itemize
 
 If the value of the @code{help-echo} property is neither a function nor
