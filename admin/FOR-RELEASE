@@ -82,7 +82,7 @@ lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
 lispref/locals.texi      Chong Yidong      Nick Roberts
 lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
-lispref/maps.texi        Chong Yidong
+lispref/maps.texi        Chong Yidong	   Kim F. Storm
 lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
 lispref/modes.texi	 Chong Yidong
