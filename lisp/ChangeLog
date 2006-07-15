@@ -1,3 +1,15 @@
+2006-07-14  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-run-unit-tests-on-load): Rectified docstring
+	grammar.
+        (allout-beginning-of-current-line): Beware beginning of buffer.
+	Also, a comment is simplified.
+        (allout-hotspot-key-handler): Only set allout-post-goto-bullet
+	when appropriate.  (This fix enables use for other than
+	bullet-hotspot operation.)
+        (allout-hide-current-subtree): While escalating to sibling-close,
+	make sure to situate on a topic.
+
 2006-07-14  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-delete-selection)
