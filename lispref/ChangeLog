@@ -1,3 +1,8 @@
+2006-07-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* text.texi (Special Properties): Describe fontified text property
+	in relation to a character (not text).
+
 2006-07-15  Kim F. Storm  <storm@cua.dk>
 
 	* maps.texi (Standard Keymaps): Add xref for minibuffer maps.
