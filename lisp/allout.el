@@ -580,8 +580,8 @@ disable auto-saves for that file."
 Generally, allout code developers are the only ones who'll want to set this.
 
 \(If set, this makes it an even better practice to exercise changes by
-doing byte-compilation with a repeat count, so the file is loaded at the
-of compilation.)
+doing byte-compilation with a repeat count, so the file is loaded after
+compilation.)
 
 See `allout-run-unit-tests' to see what's run."
   :type 'boolean
@@ -2022,13 +2022,11 @@ Outermost is first."
 (defun allout-beginning-of-current-line ()
   "Like beginning of line, but to visible text."
 
-  ;; XXX We would use `(move-beginning-of-line 1)', but it gets
-  ;; stuck on some hidden newlines, eg at column 80, as of GNU Emacs 22.0.50.
-  ;; Conversely, `beginning-of-line' can make no progress in other
-  ;; situations.  Both are necessary, in the order used below.
+  ;; This combination of move-beginning-of-line and beginning-of-line is
+  ;; deliberate, but the (beginning-of-line) may now be superfluous.
   (move-beginning-of-line 1)
   (beginning-of-line)
-  (while (or (not (bolp)) (allout-hidden-p))
+  (while (and (not (bobp)) (or (not (bolp)) (allout-hidden-p)))
     (beginning-of-line)
     (if (or (allout-hidden-p) (not (bolp)))
         (forward-char -1))))
@@ -2757,8 +2755,7 @@ Returns the qualifying command, if any, else nil."
               (lookup-key mapped-binding (read-key-sequence-vector nil t))))
 
       (if mapped-binding
-          (setq allout-post-goto-bullet on-bullet
-                this-command mapped-binding)))))
+          (setq this-command mapped-binding)))))
 
 ;;;_   > allout-find-file-hook ()
 (defun allout-find-file-hook ()
@@ -4087,6 +4084,7 @@ siblings, even if the target topic is already closed."
           ((allout-up-current-level 1 t) (allout-hide-current-subtree))
           (t (goto-char 0)
              (message sibs-msg)
+             (allout-goto-prefix)
              (allout-expose-topic '(0 :))
              (message (concat sibs-msg "  Done."))))
     (goto-char from)))
