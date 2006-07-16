@@ -1,7 +1,7 @@
 2006-07-16  Karl Berry  <karl@gnu.org>
 
-	* objects.texi, numbers.texi, strings.texi, lists.texi, hash.texi:
-	fix bad page breaks through chapter 7 (hash.texi).
+	* objects.texi, numbers.texi, strings.texi, lists.texi, hash.texi,
+        control.texi: fix bad page breaks through chapter 10 (control).
 
 	* anti.texi (Antinews): reorder face-attribute fns to avoid
 	underfull hbox.
