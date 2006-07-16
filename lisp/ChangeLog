@@ -1,3 +1,13 @@
+2006-07-16  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* find-file.el (ff-special-constructs): Doc fix.  Also, for C/C++
+	entry, don't assign to free var; simply return the extracted filename.
+	(ff-treat-as-special): Incorporate common preamble from callers.
+	(ff-other-file-name, ff-find-the-other-file):
+	Update call to ff-treat-as-special.
+
+	* progmodes/ada-mode.el (ada-mode): Rewrite ff-special-constructs init.
+
 2006-07-16  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-get-comment): Fix bug.
