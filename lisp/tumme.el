@@ -2085,11 +2085,11 @@ as initial value."
 (defun tumme-get-comment (file)
   "Get comment for file FILE."
   (save-excursion
-    (let (end buf comment-beg comment (base-name (file-name-nondirectory file)))
+    (let (end buf comment-beg comment)
       (setq buf (find-file tumme-db-file))
       (goto-char (point-min))
       (when (search-forward-regexp
-             (format "^%s" base-name) nil t)
+             (format "^%s" file) nil t)
         (end-of-line)
         (setq end (point))
         (beginning-of-line)
