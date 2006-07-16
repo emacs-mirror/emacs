@@ -1,3 +1,7 @@
+2006-07-16  NAKAJI Hiroyuki  <nakaji@heimat.jp>  (tiny change)
+
+	* mm-util.el (mm-charset-synonym-alist): Map windows-31j to cp932.
+
 2006-07-14  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* gnus-start.el (gnus-subscribe-options-newsgroup-method): Doc fix.
