@@ -285,7 +285,7 @@ If @var{omit-nulls} is @code{nil}, the result contains null strings
 whenever there are two consecutive matches for @var{separators}, or a
 match is adjacent to the beginning or end of @var{string}.  If
 @var{omit-nulls} is @code{t}, these null strings are omitted from the
-result list.
+result.
 
 If @var{separators} is @code{nil} (or omitted),
 the default is the value of @code{split-string-default-separators}.
@@ -544,10 +544,11 @@ be a list of strings rather than an actual alist.
 @xref{Association Lists}.
 @end defun
 
-  See also @code{compare-buffer-substrings} in @ref{Comparing Text}, for
-a way to compare text in buffers.  The function @code{string-match},
-which matches a regular expression against a string, can be used
-for a kind of string comparison; see @ref{Regexp Search}.
+  See also the @code{compare-buffer-substrings} function in
+@ref{Comparing Text}, for a way to compare text in buffers.  The
+function @code{string-match}, which matches a regular expression
+against a string, can be used for a kind of string comparison; see
+@ref{Regexp Search}.
 
 @node String Conversion
 @comment  node-name,  next,  previous,  up
@@ -566,7 +567,7 @@ text representation of a string (@pxref{Converting Representations}).
   @xref{Documentation}, for functions that produce textual descriptions
 of text characters and general input events
 (@code{single-key-description} and @code{text-char-description}).  These
-functions are used primarily for making help messages.
+are used primarily for making help messages.
 
 @defun char-to-string character
 @cindex character to string

@@ -1822,12 +1822,14 @@ This function returns a symbol naming the primitive type of
 @example
 (type-of 1)
      @result{} integer
+@group
 (type-of 'nil)
      @result{} symbol
 (type-of '())    ; @r{@code{()} is @code{nil}.}
      @result{} symbol
 (type-of '(x))
      @result{} cons
+@end group
 @end example
 @end defun
 

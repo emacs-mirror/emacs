@@ -1412,8 +1412,8 @@ the value @code{cones}; the key @code{oak} is associated with
 @end group
 @end example
 
-  The associated values in an alist may be any Lisp objects; so may the
-keys.  For example, in the following alist, the symbol @code{a} is
+  Both the values and the keys in an alist may be any Lisp objects.
+For example, in the following alist, the symbol @code{a} is
 associated with the number @code{1}, and the string @code{"b"} is
 associated with the @emph{list} @code{(2 3)}, which is the @sc{cdr} of
 the alist element:
@@ -1439,7 +1439,7 @@ below) to find the element containing a given value.  When neither of
 these considerations is important, the choice is a matter of taste, as
 long as you are consistent about it for any given alist.
 
-  Note that the same alist shown above could be regarded as having the
+  The same alist shown above could be regarded as having the
 associated value in the @sc{cdr} of the element; the value associated
 with @code{rose} would be the list @code{(red)}.
 
@@ -1557,7 +1557,7 @@ For example:
      @result{} nil
 @end smallexample
 
-Note that @code{rassq} cannot search for a value stored in the @sc{car}
+@code{rassq} cannot search for a value stored in the @sc{car}
 of the @sc{cdr} of an element:
 
 @smallexample
