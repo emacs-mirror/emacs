@@ -1,13 +1,17 @@
+2006-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el: Remove spurious * in docstrings.
+
 2006-07-14  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el (allout-run-unit-tests-on-load): Rectified docstring
+	* allout.el (allout-run-unit-tests-on-load): Rectify docstring
 	grammar.
-        (allout-beginning-of-current-line): Beware beginning of buffer.
+	(allout-beginning-of-current-line): Beware beginning of buffer.
 	Also, a comment is simplified.
-        (allout-hotspot-key-handler): Only set allout-post-goto-bullet
+	(allout-hotspot-key-handler): Only set allout-post-goto-bullet
 	when appropriate.  (This fix enables use for other than
 	bullet-hotspot operation.)
-        (allout-hide-current-subtree): While escalating to sibling-close,
+	(allout-hide-current-subtree): While escalating to sibling-close,
 	make sure to situate on a topic.
 
 2006-07-14  Kim F. Storm  <storm@cua.dk>
@@ -25,7 +29,7 @@
 
 	* allout.el: Require 'cl during byte-compilation/interactive load,
 	for the `assert' macro.
-	(allout-mode-deactivate-hook): New hook, is run when allout mode
+	(allout-mode-deactivate-hook): New hook, run when allout mode
 	deactivates.
 	(allout-developer): New allout customization subgroup.
 	(allout-run-unit-tests-on-load): New allout-developer
@@ -33,7 +37,7 @@
 	end of file load/eval.
 	(allout-inhibit-auto-fill): Disable auto-fill activity even during
 	auto-fill-mode.
-	(allout-resumptions): Removed, to be replaced by...
+	(allout-resumptions): Remove, to be replaced by...
 	(allout-add-resumptions): Register variable settings to be
 	reinstated by `allout-do-resumptions'.  The settings are made
 	buffer-local, but the locality/globality of the suspended setting
@@ -54,9 +58,8 @@
 	auto-fill-function so it is set only if already active.  (The
 	related fill-function settings are all made in either case, so
 	that activating auto-fill-mode activity will have the custom
-	allout-mode behaviors (hanging indent on topics, if configured for
-	it).  Also, remove all allout-exposure-category overlays on mode
-	deactivation.
+	allout-mode behaviors (hanging indent on topics, if configured for it).
+	Remove all allout-exposure-category overlays on mode deactivation.
 	(allout-hotspot-key-handler): New function extracted from
 	`allout-pre-command-business', so the functionality can be used
 	for other purposes, eg as a binding in an overlay.
