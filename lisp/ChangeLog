@@ -1,3 +1,7 @@
+2006-07-16  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-get-comment): Fix bug.
+
 2006-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el: Remove spurious * in docstrings.
