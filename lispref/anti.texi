@@ -86,8 +86,8 @@ removed.  In @code{defface} specifications, the @code{supports}
 predicate is no longer supported.
 
 @item
-The functions @code{face-attribute-relative-p} and
-@code{merge-face-attribute} have been removed.
+The functions @code{merge-face-attribute} and
+@code{face-attribute-relative-p} have been removed.
 
 @item
 The priority of faces in a list supplied by the @code{:inherit} face
