@@ -1,5 +1,7 @@
 2006-07-17  Richard Stallman  <rms@gnu.org>
 
+	* control.texi (Processing of Errors): Add command-error-function.
+
 	* variables.texi (File Local Variables): Clarify that
 	file local variables make buffer-local bindings.
 

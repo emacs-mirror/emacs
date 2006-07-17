@@ -4,8 +4,6 @@ Tasks needed before the next release.
 
 ** Update release dates of manuals.
 
-** Get rid of overfull and underfull boxes in manuals.
-
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
@@ -32,6 +30,8 @@ Reminders sent out on 2006-06-08.
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
+
+** Simon Marshall reported on July 3, First CVS command generates empty buffer.
 
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":

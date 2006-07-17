@@ -3840,6 +3840,12 @@ If it is non-nil, the function lists only faces matching this regexp.
 `string-or-null-p' returns non-nil iff OBJECT is a string or nil.
 `booleanp' returns non-nil iff OBJECT is a t or nil.
 
++++
+*** New hook `command-error-function'.
+
+By setting this variable to a function, you can control
+how the editor command loop shows the user an error message.
+
 ** Lisp code indentation features:
 
 +++
