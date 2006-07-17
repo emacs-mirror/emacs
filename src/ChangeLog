@@ -1,3 +1,12 @@
+2006-07-17  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_single_display_spec): Ensure the right value of
+	it->position is saved by push_it.
+	(pop_it): Restore it->object for GET_FROM_BUFFER and GET_FROM_STRING.
+	(reseat_1): Don't setup it->object twice.
+	(set_iterator_to_next): No need to set it->object after pop_it.
+	(move_it_to): Explicitly check to see if last move reached to_charpos.
+
 2006-07-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* xdisp.c (display_mode_line): Preserve match data.
