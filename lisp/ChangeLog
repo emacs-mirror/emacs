@@ -1,5 +1,8 @@
 2006-07-17  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Don't highlight "Compiling file" messages as error.
+
 	* dired-aux.el (dired-compress-file): Confirm again if gzipped
 	file already exists.
 

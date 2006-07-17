@@ -408,6 +408,8 @@ you may also want to change `compilation-page-delimiter'.")
    '(;; Don't highlight this as a compilation message.
      ("^Compilation started at.*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t))
+     ("^Compiling file .*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t))
      ;; configure output lines.
      ("^[Cc]hecking \\(?:[Ff]or \\|[Ii]f \\|[Ww]hether \\(?:to \\)?\\)?\\(.+\\)\\.\\.\\. *\\(?:(cached) *\\)?\\(\\(yes\\(?: .+\\)?\\)\\|no\\|\\(.*\\)\\)$"
       (1 font-lock-variable-name-face)
