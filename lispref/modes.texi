@@ -2918,7 +2918,8 @@ way for a mode to set this variable to @code{t} is with
 @defvar font-lock-syntax-table
 This variable holds the syntax table to use for fontification of
 comments and strings.  Specify it using @var{syntax-alist} in
-@code{font-lock-defaults}.
+@code{font-lock-defaults}.  If this is @code{nil}, fontification uses
+the buffer's syntax table.
 @end defvar
 
 @defvar font-lock-beginning-of-syntax-function
