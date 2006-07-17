@@ -982,7 +982,10 @@ Point is at the beginning of the next line."
 (defun sh-quoted-subshell (limit)
   "Search for a subshell embedded in a string. Find all the unescaped
 \" characters within said subshell, remembering that subshells can nest."
-  (if (re-search-forward "\"\\(?:.\\|\n\\)*?\\(\\$(\\|`\\)" limit t)
+  ;; FIXME: This can (and often does) match multiple lines, yet it makes no
+  ;; effort to handle multiline cases correctly, so it ends up being
+  ;; rather flakey.
+  (if (re-search-forward "\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(\\\\\\\\\\)*\\)?\\(\\$(\\|`\\)" limit t)
       ;; bingo we have a $( or a ` inside a ""
       (let ((char (char-after (point)))
             (continue t)
@@ -1002,23 +1005,27 @@ Point is at the beginning of the next line."
           ;; ( [preceeded by $ ]   => increase nesting
           ;; " [nesting <= 0 ]     => terminate, we're done.
           ;; " [nesting >  0 ]     => remember this, it's not a proper "
-          (if (eq ?\\ last) nil
-            (if (eq ?\` char) (setq nest (+ nest (if bq -1 1)) bq (not bq))
-              (if (and (> nest 0) (eq ?\) char))  (setq nest (1- nest))
-                (if (and (eq ?$ last) (eq ?\( char)) (setq nest (1+ nest))
-                  (if (and (> nest 0) (eq ?\( char)) (setq nest (1+ nest))
-                    (if (eq char ?\")
-                        (if (>= 0 nest) (setq continue nil)
-                          (setq seen (cons pos seen)) ) ))))))
+          ;; FIXME: don't count parens that appear within quotes.
+          (cond
+           ((eq ?\\ last) nil)
+           ((eq ?\` char) (setq nest (+ nest (if bq -1 1)) bq (not bq)))
+           ((and (> nest 0) (eq ?\) char))   (setq nest (1- nest)))
+           ((and (eq ?$ last) (eq ?\( char)) (setq nest (1+ nest)))
+           ((and (> nest 0) (eq ?\( char))   (setq nest (1+ nest)))
+           ((eq char ?\")
+            (if (>= 0 nest) (setq continue nil) (push pos seen))))
           ;;(message "POS: %d [%d]" pos nest)
           (setq last char
                 pos  (1+ pos)
                 char (char-after pos)) )
+        ;; FIXME: why construct a costly match data to pass to
+        ;; sh-apply-quoted-subshell rather than apply the highlight
+        ;; directly here?  -- Stef
         (when seen
           ;;(message "SEEN: %S" seen)
           (setq data (list (current-buffer)))
-          (mapc (lambda (P)
-                  (setq data (cons P (cons (1+ P) data)) ) ) seen)
+          (dolist(P seen)
+            (setq data (cons P (cons (1+ P) data))))
           (store-match-data data))
         data) ))
 
@@ -1554,7 +1561,7 @@ This adds rules for comments and assignments."
 			 (regexp-opt (sh-feature sh-builtins) t)
 			 "\\>")
 		(2 font-lock-keyword-face nil t)
-		(6 font-lock-builtin-face))
+		(4 font-lock-builtin-face))
 	       ,@(sh-feature sh-font-lock-keywords-var-2)))
 	 (,(concat keywords "\\)\\>")
 	  2 font-lock-keyword-face)
