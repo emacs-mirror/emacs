@@ -6825,9 +6825,15 @@ init_display ()
 For types defined in VMS, use  set term /device=TYPE.\n\
 For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 \(The quotation marks are necessary since terminal types are lower case.)\n");
-#else
-      fprintf (stderr, "Please set the environment variable TERM; see tset(1).\n");
-#endif
+#else /* not VMS */
+
+#ifdef HAVE_WINDOW_SYSTEM
+      if (inhibit_window_system)
+	fprintf (stderr, "Please set the environment variable TERM; see `tset'.\n");
+      else
+#endif /* HAVE_WINDOW_SYSTEM */
+	fprintf (stderr, "Please set the environment variable DISPLAY or TERM (see `tset').\n");
+#endif /* not VMS */
       exit (1);
     }
 
