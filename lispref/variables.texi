@@ -1744,10 +1744,12 @@ local bindings, we will provide it in a subsequent Emacs version.
 @node File Local Variables
 @section File Local Variables
 
-  This section describes the functions and variables that affect
-processing of file local variables.  @xref{File variables, ,
-Local Variables in Files, emacs, The GNU Emacs Manual}, for basic
-information about file local variables.
+  A file can specify local variable values; Emacs uses these to create
+buffer-local bindings for those variables in the buffer visiting that
+file.  @xref{File variables, , Local Variables in Files, emacs, The
+GNU Emacs Manual}, for basic information about file local variables.
+This section describes the functions and variables that affect
+processing of file local variables.
 
 @defopt enable-local-variables
 This variable controls whether to process file local variables.  A
