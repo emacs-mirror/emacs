@@ -6827,12 +6827,12 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 \(The quotation marks are necessary since terminal types are lower case.)\n");
 #else /* not VMS */
 
-#ifdef HAVE_WINDOW_SYSTEM
-      if (inhibit_window_system)
-	fprintf (stderr, "Please set the environment variable TERM; see `tset'.\n");
+#ifndef HAVE_WINDOW_SYSTEM
+      if (! inhibit_window_system)
+	fprintf (stderr, "Please set the environment variable DISPLAY or TERM (see `tset').\n");
       else
 #endif /* HAVE_WINDOW_SYSTEM */
-	fprintf (stderr, "Please set the environment variable DISPLAY or TERM (see `tset').\n");
+	fprintf (stderr, "Please set the environment variable TERM; see `tset'.\n");
 #endif /* not VMS */
       exit (1);
     }
