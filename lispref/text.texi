@@ -3023,9 +3023,9 @@ Font locking is disabled, or the character's @code{face} property, if
 any, is invalid.
 
 @item @code{defer}
-The character's @code{face} property is invalid and it needs deferred
-fontification.  It is used only when ``just in time'' font locking is
-enabled.
+This value is only used when ``just in time'' font locking is enabled
+and it means that the character's @code{face} property is invalid and
+needs deferred fontification.
 
 @item @code{t}
 The character's @code{face} property, or absence of one, is valid.
