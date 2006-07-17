@@ -1,3 +1,11 @@
+2006-07-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* ru-refcard.ps: Regenerate.
+
+2006-07-17  Alex Ott  <alexott@gmail.com>
+
+	* ru-refcard.tex: Update for Emacs 22.
+
 2006-07-14  Kim F. Storm  <storm@cua.dk>
 
 	* PROBLEMS: Emacs now requires ws2_32.dll on Windows.
