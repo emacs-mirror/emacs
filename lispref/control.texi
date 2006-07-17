@@ -849,11 +849,22 @@ executes in the environment of the @code{condition-case} that
 established it; all functions called within that @code{condition-case}
 have already been exited, and the handler cannot return to them.
 
-If there is no applicable handler for the error, the current command is
-terminated and control returns to the editor command loop, because the
-command loop has an implicit handler for all kinds of errors.  The
+If there is no applicable handler for the error, it terminates the
+current command and returns control to the editor command loop.  (The
+command loop has an implicit handler for all kinds of errors.)  The
 command loop's handler uses the error symbol and associated data to
-print an error message.
+print an error message.  You can use the variable
+@code{command-error-function} to control how this is done:
+
+@defvar command-error-function
+This variable, if non-@code{nil}, specifies a function to use to
+handle errors that return control to the Emacs command loop.  The
+function should take three arguments: @var{data}, a list of the same
+form that @code{condition-case} would bind to its variable;
+@var{context}, a string describing the situation in which the error
+occurred, or (more often) @code{nil}; and @code{caller}, the Lisp
+function which called the primitive that signaled the error.
+@end defvar
 
 @cindex @code{debug-on-error} use
 An error that has no explicit handler may call the Lisp debugger.  The
