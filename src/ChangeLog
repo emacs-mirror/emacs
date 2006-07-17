@@ -1,3 +1,7 @@
+2006-07-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xdisp.c (display_mode_line): Preserve match data.
+
 2006-07-14  Kim F. Storm  <storm@cua.dk>
 
 	* w32.c (pfn_WSACreateEvent, pfn_WSACloseEvent): New func ptrs.
