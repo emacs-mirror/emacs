@@ -1,5 +1,18 @@
 2006-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (make-autoload): Use new arg.
+
+	* custom.el (custom-autoload): Add `noset' argument.
+	(custom-push-theme): Don't autoload the variable, let callers do it.
+	(custom-theme-set-variables): Autoload the variable if necessary.
+
+	* cus-edit.el (custom-variable-state-set): If the variable was
+	originally set outside custom, but to the same value as the default,
+	consider it to be standard.
+
+	* Makefile.in (mh-loaddefs.el): Finish setting up the default empty
+	file *before* telling Emacs to add the autoloads, in case it fails.
+
 	* progmodes/sh-script.el (sh-quoted-subshell): Don't match escaped `.
 	Use `cond', push', and `dolist'.
 
