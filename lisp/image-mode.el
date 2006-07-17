@@ -118,6 +118,9 @@ information on these modes."
   (if (get-text-property (point-min) 'display)
       (image-toggle-display)))
 
+(defvar archive-superior-buffer)
+(defvar tar-superior-buffer)
+
 (defun image-toggle-display ()
   "Start or stop displaying an image file as the actual image.
 This command toggles between showing the text of the image file
