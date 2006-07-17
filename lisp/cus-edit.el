@@ -2668,7 +2668,18 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 			     (error nil))
 			   (cond
 			    ((eq (caar tmp) 'user) 'saved)
-			    ((eq (caar tmp) 'changed) 'changed)
+			    ((eq (caar tmp) 'changed)
+                             (if (condition-case nil
+                                     (and (null comment)
+                                          (equal value
+                                                 (eval
+                                                  (car (get symbol 'standard-value)))))
+                                   (error nil))
+                                 ;; The value was originally set outside
+                                 ;; custom, but it was set to the standard
+                                 ;; value (probably an autoloaded defcustom).
+                                 'standard
+                               'changed))
 			    (t 'themed))
 			 'changed))
 		      ((setq tmp (get symbol 'standard-value))
