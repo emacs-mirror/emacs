@@ -247,12 +247,6 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	echo ";;; Commentary:" >> $@
 	echo ";;; Change Log:" >> $@
 	echo ";;; Code:" >> $@
-	$(EMACS) $(EMACSOPT) \
-	   -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
-	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/mh-e
 	echo "" >> $@
 	echo "(provide 'mh-loaddefs)" >> $@
 	echo ";; Local Variables:" >> $@
@@ -261,6 +255,12 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	echo ";; no-update-autoloads: t" >> $@
 	echo ";; End:" >> $@
 	echo ";;; mh-loaddefs.el ends here" >> $@
+	$(EMACS) $(EMACSOPT) \
+	   -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(lisp)/mh-e
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
