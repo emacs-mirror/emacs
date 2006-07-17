@@ -16542,6 +16542,7 @@ display_mode_line (w, face_id, format)
      kboard-local variables in the mode_line_format will get the right
      values.  */
   push_frame_kboard (it.f);
+  record_unwind_save_match_data ();
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
   pop_frame_kboard ();
 
