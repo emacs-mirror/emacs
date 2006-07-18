@@ -10681,7 +10681,6 @@ XTread_socket (sd, expected, hold_quit)
 	case autoKey:
 	  {
 	    int keycode = (er.message & keyCodeMask) >> 8;
-	    int char_code = er.message & charCodeMask;
 	    static SInt16 last_key_script = -1;
 	    SInt16 current_key_script;
 	    UInt32 modifiers = er.modifiers, mapped_modifiers;
@@ -10764,11 +10763,6 @@ XTread_socket (sd, expected, hold_quit)
 	      {
 		inev.kind = NON_ASCII_KEYSTROKE_EVENT;
 		inev.code = 0xff00 | keycode_to_xkeysym_table [keycode];
-		/* Some keyboards (e.g., German, French ones) use
-		   different layouts for keypad keys.  */
-		if (inev.code >= 0xffaa && inev.code <= 0xffbd
-		    && char_code >= 0x2a && char_code <= 0x3d)
-		  inev.code = 0xff80 | char_code;
 #ifdef MAC_OSX
 		if (modifiers & kEventKeyModifierFnMask
 		    && keycode <= 0x7f
@@ -10852,7 +10846,7 @@ XTread_socket (sd, expected, hold_quit)
 	    if (inev.kind == NO_EVENT)
 	      {
 		inev.kind = ASCII_KEYSTROKE_EVENT;
-		inev.code = char_code;
+		inev.code = er.message & charCodeMask;
 	      }
 
 	    inev.modifiers = mac_to_emacs_modifiers (modifiers);
