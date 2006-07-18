@@ -1,3 +1,8 @@
+2006-07-18  Francis Litterio  <franl@world.std.com>
+
+	* w32term.c (x_calc_absolute_position): Fix frame positioning
+	with negative X/Y coordinates.
+
 2006-07-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xterm.c (x_connection_closed, x_error_quitter): Mark as NO_RETURN.
