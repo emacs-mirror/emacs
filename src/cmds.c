@@ -77,12 +77,12 @@ On reaching end of buffer, stop and signal error.  */)
     if (new_point < BEGV)
       {
 	SET_PT (BEGV);
-	Fsignal (Qbeginning_of_buffer, Qnil);
+	xsignal0 (Qbeginning_of_buffer);
       }
     if (new_point > ZV)
       {
 	SET_PT (ZV);
-	Fsignal (Qend_of_buffer, Qnil);
+	xsignal0 (Qend_of_buffer);
       }
 
     SET_PT (new_point);
@@ -245,14 +245,14 @@ N was explicitly specified.  */)
       if (XINT (n) < 0)
 	{
 	  if (pos < BEGV)
-	    Fsignal (Qbeginning_of_buffer, Qnil);
+	    xsignal0 (Qbeginning_of_buffer);
 	  else
 	    del_range (pos, PT);
 	}
       else
 	{
 	  if (pos > ZV)
-	    Fsignal (Qend_of_buffer, Qnil);
+	    xsignal0 (Qend_of_buffer);
 	  else
 	    del_range (PT, pos);
 	}
