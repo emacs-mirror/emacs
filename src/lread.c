@@ -215,6 +215,7 @@ static Lisp_Object load_unwind P_ ((Lisp_Object));
 static Lisp_Object load_descriptor_unwind P_ ((Lisp_Object));
 
 static void invalid_syntax P_ ((const char *, int)) NO_RETURN;
+static void end_of_file_error P_ (()) NO_RETURN;
 
 
 /* Handle unreading and rereading of characters.

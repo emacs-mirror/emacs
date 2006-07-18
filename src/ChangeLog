@@ -1,3 +1,18 @@
+2006-07-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_connection_closed, x_error_quitter): Mark as NO_RETURN.
+
+	* textprop.c (text_read_only): Likewise.
+
+	* lread.c (end_of_file_error): Likewise.
+
+	* lisp.h (circular_list_error, memory_full, buffer_memory_full):
+	Likewise.
+
+	* eval.c (unwind_to_catch): Likewise.
+
+	* buffer.h (buffer_slot_type_mismatch): Likewise.
+
 2006-07-18  Kim F. Storm  <storm@cua.dk>
 
 	Cleanup Fsignal calls that never returns; now only use it for Qquit.

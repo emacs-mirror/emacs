@@ -2174,7 +2174,7 @@ extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
 extern Lisp_Object Qinteger;
 
-extern void circular_list_error P_ ((Lisp_Object));
+extern void circular_list_error P_ ((Lisp_Object)) NO_RETURN;
 EXFUN (Finteractive_form, 1);
 
 /* Defined in frame.c */
@@ -2549,8 +2549,8 @@ extern void allocate_string_data P_ ((struct Lisp_String *, int, int));
 extern void reset_malloc_hooks P_ ((void));
 extern void uninterrupt_malloc P_ ((void));
 extern void malloc_warning P_ ((char *));
-extern void memory_full P_ ((void));
-extern void buffer_memory_full P_ ((void));
+extern void memory_full P_ ((void)) NO_RETURN;
+extern void buffer_memory_full P_ ((void)) NO_RETURN;
 extern int survives_gc_p P_ ((Lisp_Object));
 extern void mark_object P_ ((Lisp_Object));
 extern Lisp_Object Vpurify_flag;

@@ -198,6 +198,7 @@ Lisp_Object Vmacro_declaration_function;
 extern Lisp_Object Qrisky_local_variable;
 
 static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object*));
+static void unwind_to_catch P_ ((struct catchtag *, Lisp_Object)) NO_RETURN;
 
 void
 init_eval_once ()

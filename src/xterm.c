@@ -358,7 +358,7 @@ static void x_check_expected_move P_ ((struct frame *, int, int));
 static void x_sync_with_move P_ ((struct frame *, int, int, int));
 static int handle_one_xevent P_ ((struct x_display_info *, XEvent *,
 				  int *, struct input_event *));
-static SIGTYPE x_connection_closed P_ ((Display *, char *));
+static SIGTYPE x_connection_closed P_ ((Display *, char *)) NO_RETURN;
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -7771,7 +7771,7 @@ x_connection_closed (dpy, error_message)
 
 /* We specifically use it before defining it, so that gcc doesn't inline it,
    otherwise gdb doesn't know how to properly put a breakpoint on it.  */
-static void x_error_quitter (Display *display, XErrorEvent *error);
+static void x_error_quitter P_ ((Display *, XErrorEvent *)) NO_RETURN;
 
 /* This is the first-level handler for X protocol errors.
    It calls x_error_quitter or x_error_catcher.  */
