@@ -6072,7 +6072,7 @@ set_conversion_work_buffer (multibyte)
       /* As we are already in the work buffer, we must generate a new
 	 buffer for the work.  */
       Lisp_Object name;
-	
+
       name = Fgenerate_new_buffer_name (Vcode_conversion_workbuf_name, Qnil);
       buffer = buffer_to_kill = Fget_buffer_create (name);
       buf = XBUFFER (buffer);
@@ -6595,8 +6595,7 @@ The value of this property should be a vector of length 5.  */)
     }
   if (!NILP (Fcoding_system_p (coding_system)))
     return coding_system;
-  while (1)
-    Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
+  xsignal1 (Qcoding_system_error, coding_system);
 }
 
 Lisp_Object
@@ -7623,11 +7622,13 @@ This function is internal use only.  */)
   Lisp_Object safe_chars, slot;
 
   if (NILP (Fcheck_coding_system (coding_system)))
-    Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
+    xsignal1 (Qcoding_system_error, coding_system);
+
   safe_chars = coding_safe_chars (coding_system);
   if (! EQ (safe_chars, Qt) && ! CHAR_TABLE_P (safe_chars))
     error ("No valid safe-chars property for %s",
 	   SDATA (SYMBOL_NAME (coding_system)));
+
   if (EQ (safe_chars, Qt))
     {
       if (NILP (Fmemq (coding_system, XCAR (Vcoding_system_safe_chars))))
