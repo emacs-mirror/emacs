@@ -111,7 +111,7 @@ casify_object (flag, obj)
       return obj;
     }
 
-  return wrong_type_argument (Qchar_or_string_p, obj);
+  wrong_type_argument (Qchar_or_string_p, obj);
 }
 
 DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,
