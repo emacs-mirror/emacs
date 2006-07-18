@@ -1474,7 +1474,7 @@ window is the one at the bottom right corner.  In this case,
 @code{scroll-other-window} attempts to scroll the minibuffer.  If the
 minibuffer contains just one line, it has nowhere to scroll to, so the
 line reappears after the echo area momentarily displays the message
-``Beginning of buffer''.
+@samp{Beginning of buffer}.
 @end deffn
 
 @c Emacs 19 feature
@@ -1676,8 +1676,8 @@ times the normal character width.  How many characters actually
 disappear off to the left depends on their width, and could vary from
 line to line.
 
-  Because we read from side to side in the ``inner loop'', and from top
-to bottom in the ``outer loop'', the effect of horizontal scrolling is
+  Because we read from side to side in the ``inner loop,'' and from top
+to bottom in the ``outer loop,'' the effect of horizontal scrolling is
 not like that of textual or vertical scrolling.  Textual scrolling
 involves selection of a portion of text to display, and vertical
 scrolling moves the window contents contiguously; but horizontal
