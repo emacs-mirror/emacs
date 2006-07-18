@@ -57,8 +57,8 @@ the character after point.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
-* MD5 Checksum::     Compute the MD5 ``message digest''/``checksum''.
-* Atomic Changes::   Installing several buffer changes ``atomically''.
+* MD5 Checksum::     Compute the MD5 "message digest"/"checksum".
+* Atomic Changes::   Installing several buffer changes "atomically".
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
 
@@ -566,7 +566,7 @@ error; if some of the text in it is read-only, it signals a
 asking for any confirmation.  It returns @code{nil}.
 
 Normally, deleting a large amount of text from a buffer inhibits further
-auto-saving of that buffer ``because it has shrunk''.  However,
+auto-saving of that buffer ``because it has shrunk.''  However,
 @code{erase-buffer} does not do this, the idea being that the future
 text is not really related to the former text, and its size should not
 be compared with that of the former text.
@@ -817,7 +817,7 @@ that treat it as a ring.
 
   Some people think this use of the word ``kill'' is unfortunate, since
 it refers to operations that specifically @emph{do not} destroy the
-entities ``killed''.  This is in sharp contrast to ordinary life, in
+entities ``killed.''  This is in sharp contrast to ordinary life, in
 which death is permanent and ``killed'' entities do not come back to
 life.  Therefore, other metaphors have been proposed.  For example, the
 term ``cut ring'' makes sense to people who, in pre-computer days, used
@@ -1106,8 +1106,8 @@ programs, when you are using a window system.  Its value should be
 @code{nil} or a function of no arguments.
 
 If the value is a function, @code{current-kill} calls it to get the
-``most recent kill''.  If the function returns a non-@code{nil} value,
-then that value is used as the ``most recent kill''.  If it returns
+``most recent kill.''  If the function returns a non-@code{nil} value,
+then that value is used as the ``most recent kill.''  If it returns
 @code{nil}, then the front of the kill ring is used.
 
 The normal use of this hook is to get the window system's primary
