@@ -2534,9 +2534,10 @@ screen.
 @defun sit-for seconds &optional nodisp
 This function performs redisplay (provided there is no pending input
 from the user), then waits @var{seconds} seconds, or until input is
-available.  The value is @code{t} if @code{sit-for} waited the full
-time with no input arriving (see @code{input-pending-p} in @ref{Event
-Input Misc}).  Otherwise, the value is @code{nil}.
+available.  The usual purpose of @code{sit-for} is to give the user
+time to read text that you display.  The value is @code{t} if
+@code{sit-for} waited the full time with no input arriving
+(@pxref{Event Input Misc}).  Otherwise, the value is @code{nil}.
 
 The argument @var{seconds} need not be an integer.  If it is a floating
 point number, @code{sit-for} waits for a fractional number of seconds.
@@ -2551,8 +2552,9 @@ If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not
 redisplay, but it still returns as soon as input is available (or when
 the timeout elapses).
 
-The usual purpose of @code{sit-for} is to give the user time to read
-text that you display.
+In batch mode (@pxref{Batch Mode}), @code{sit-for} cannot be
+interrupted, even by input from the standard input descriptor.  It is
+thus equivalent to @code{sleep-for}, which is described below.
 
 It is also possible to call @code{sit-for} with three arguments,
 as @code{(sit-for @var{seconds} @var{millisec} @var{nodisp})},

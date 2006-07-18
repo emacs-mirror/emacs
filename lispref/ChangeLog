@@ -1,3 +1,7 @@
+2006-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Waiting): Document batch-mode sit-for behavior.
+
 2006-07-17  Richard Stallman  <rms@gnu.org>
 
 	* eval.texi, elisp.texi, text.texi: Use real doublequote inside menus.
