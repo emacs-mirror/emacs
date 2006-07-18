@@ -1006,7 +1006,7 @@ recursive_edit_1 ()
   /* Handle throw from read_minibuf when using minibuffer
      while it's active but we're in another window.  */
   if (STRINGP (val))
-    Fsignal (Qerror, Fcons (val, Qnil));
+    xsignal1 (Qerror, val);
 
   return unbind_to (count, Qnil);
 }
