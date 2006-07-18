@@ -758,7 +758,7 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
   if (INTEGERP (function))
     /* We have to stop integers early since map_keymap gives them special
        significance.  */
-    Fsignal (Qinvalid_function, Fcons (function, Qnil));
+    xsignal1 (Qinvalid_function, function);
   if (! NILP (sort_first))
     return call3 (intern ("map-keymap-internal"), function, keymap, Qt);
 
