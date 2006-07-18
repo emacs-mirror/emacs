@@ -1836,10 +1836,11 @@ tells you what Emacs thinks is the output speed of the terminal.
 This variable's value is the output speed of the terminal, as far as
 Emacs knows.  Setting this variable does not change the speed of actual
 data transmission, but the value is used for calculations such as
-padding.  It also affects decisions about whether to scroll part of the
-screen or repaint---even when using a window system.  (We designed it
-this way despite the fact that a window system has no true ``output
-speed,'' to give you a way to tune these decisions.)
+padding.
+
+  It also affects decisions about whether to scroll part of the
+screen or repaint on non-window systems.  @xref{Forcing Redisplay},
+for the corresponding functionality on window systems.
 
 The value is measured in baud.
 @end defvar
