@@ -201,17 +201,15 @@ static char *float_error_fn_name;
   while (0)
 
 #define arith_error(op,arg) \
-  Fsignal (Qarith_error, Fcons (build_string ((op)), Fcons ((arg), Qnil)))
+  xsignal2 (Qarith_error, build_string ((op)), (arg))
 #define range_error(op,arg) \
-  Fsignal (Qrange_error, Fcons (build_string ((op)), Fcons ((arg), Qnil)))
+  xsignal2 (Qrange_error, build_string ((op)), (arg))
 #define range_error2(op,a1,a2) \
-  Fsignal (Qrange_error, Fcons (build_string ((op)), \
-				Fcons ((a1), Fcons ((a2), Qnil))))
+  xsignal3 (Qrange_error, build_string ((op)), (a1), (a2))
 #define domain_error(op,arg) \
-  Fsignal (Qdomain_error, Fcons (build_string ((op)), Fcons ((arg), Qnil)))
+  xsignal2 (Qdomain_error, build_string ((op)), (arg))
 #define domain_error2(op,a1,a2) \
-  Fsignal (Qdomain_error, Fcons (build_string ((op)), \
-				 Fcons ((a1), Fcons ((a2), Qnil))))
+  xsignal3 (Qdomain_error, build_string ((op)), (a1), (a2))
 
 /* Extract a Lisp number as a `double', or signal an error.  */
 
@@ -756,7 +754,7 @@ rounding_driver (arg, divisor, double_round, int_round2, name)
 	  f1 = FLOATP (arg) ? XFLOAT_DATA (arg) : XINT (arg);
 	  f2 = (FLOATP (divisor) ? XFLOAT_DATA (divisor) : XINT (divisor));
 	  if (! IEEE_FLOATING_POINT && f2 == 0)
-	    Fsignal (Qarith_error, Qnil);
+	    xsignal0 (Qarith_error);
 
 	  IN_FLOAT2 (f1 = (*double_round) (f1 / f2), name, arg, divisor);
 	  FLOAT_TO_INT2 (f1, arg, name, arg, divisor);
@@ -767,7 +765,7 @@ rounding_driver (arg, divisor, double_round, int_round2, name)
       i2 = XINT (divisor);
 
       if (i2 == 0)
-	Fsignal (Qarith_error, Qnil);
+	xsignal0 (Qarith_error);
 
       XSETINT (arg, (*int_round2) (i1, i2));
       return arg;
@@ -907,7 +905,7 @@ fmod_float (x, y)
   f2 = FLOATP (y) ? XFLOAT_DATA (y) : XINT (y);
 
   if (! IEEE_FLOATING_POINT && f2 == 0)
-    Fsignal (Qarith_error, Qnil);
+    xsignal0 (Qarith_error);
 
   /* If the "remainder" comes out with the wrong sign, fix it.  */
   IN_FLOAT2 ((f1 = fmod (f1, f2),
@@ -986,7 +984,7 @@ float_error (signo)
   SIGNAL_THREAD_CHECK (signo);
   in_float = 0;
 
-  Fsignal (Qarith_error, Fcons (float_error_arg, Qnil));
+  xsignal1 (Qarith_error, float_error_arg);
 }
 
 /* Another idea was to replace the library function `infnan'
@@ -1014,11 +1012,11 @@ matherr (x)
 		     : Qnil)));
   switch (x->type)
     {
-    case DOMAIN:	Fsignal (Qdomain_error, args);		break;
-    case SING:		Fsignal (Qsingularity_error, args);	break;
-    case OVERFLOW:	Fsignal (Qoverflow_error, args);	break;
-    case UNDERFLOW:	Fsignal (Qunderflow_error, args);	break;
-    default:		Fsignal (Qarith_error, args);		break;
+    case DOMAIN:	xsignal (Qdomain_error, args);		break;
+    case SING:		xsignal (Qsingularity_error, args);	break;
+    case OVERFLOW:	xsignal (Qoverflow_error, args);	break;
+    case UNDERFLOW:	xsignal (Qunderflow_error, args);	break;
+    default:		xsignal (Qarith_error, args);		break;
     }
   return (1);	/* don't set errno or print a message */
 }
