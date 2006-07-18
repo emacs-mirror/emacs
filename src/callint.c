@@ -174,7 +174,7 @@ check_mark (for_region)
 	   : "The mark is not set now");
   if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
       && NILP (current_buffer->mark_active))
-    Fsignal (Qmark_inactive, Qnil);
+    xsignal0 (Qmark_inactive);
 }
 
 /* If the list of args INPUT was produced with an explicit call to
