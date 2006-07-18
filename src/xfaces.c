@@ -486,7 +486,6 @@ static int font_scalable_p P_ ((struct font_name *));
 static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *, int));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
 static unsigned char *xstrlwr P_ ((unsigned char *));
-static void signal_error P_ ((char *, Lisp_Object));
 static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
 static void load_face_font P_ ((struct frame *, struct face *, int));
 static void load_face_colors P_ ((struct frame *, struct face *, Lisp_Object *));
@@ -852,17 +851,6 @@ xstrlwr (s)
       *p = tolower (*p);
 
   return s;
-}
-
-
-/* Signal `error' with message S, and additional argument ARG.  */
-
-static void
-signal_error (s, arg)
-     char *s;
-     Lisp_Object arg;
-{
-  Fsignal (Qerror, Fcons (build_string (s), Fcons (arg, Qnil)));
 }
 
 
@@ -3273,7 +3261,7 @@ resolve_face_name (face_name, signal_p)
       if (EQ (hare, tortoise))
 	{
 	  if (signal_p)
-	    Fsignal (Qcircular_list, Fcons (orig_face, Qnil));
+	    xsignal1 (Qcircular_list, orig_face);
 	  return Qdefault;
 	}
     }
