@@ -1509,7 +1509,7 @@ the call.
 This function asks the user a question, expecting input in the echo
 area.  It returns @code{t} if the user types @kbd{y}, @code{nil} if the
 user types @kbd{n}.  This function also accepts @key{SPC} to mean yes
-and @key{DEL} to mean no.  It accepts @kbd{C-]} to mean ``quit'', like
+and @key{DEL} to mean no.  It accepts @kbd{C-]} to mean ``quit,'' like
 @kbd{C-g}, because the question might look like a minibuffer and for
 that reason the user might try to use @kbd{C-]} to get out.  The answer
 is a single character, with no @key{RET} needed to terminate it.  Upper
@@ -1699,7 +1699,7 @@ answer); @var{function} is a function of one argument (an object from
 
 When the user responds with @var{char}, @code{map-y-or-n-p} calls
 @var{function}.  If it returns non-@code{nil}, the object is considered
-``acted upon'', and @code{map-y-or-n-p} advances to the next object in
+``acted upon,'' and @code{map-y-or-n-p} advances to the next object in
 @var{list}.  If it returns @code{nil}, the prompt is repeated for the
 same object.
 

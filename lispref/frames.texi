@@ -641,7 +641,7 @@ This variable specifies how to blink the cursor.  Each element has the
 form @code{(@var{on-state} . @var{off-state})}.  Whenever the cursor
 type equals @var{on-state} (comparing using @code{equal}), the
 corresponding @var{off-state} specifies what the cursor looks like
-when it blinks ``off''.  Both @var{on-state} and @var{off-state}
+when it blinks ``off.''  Both @var{on-state} and @var{off-state}
 should be suitable values for the @code{cursor-type} frame parameter.
 
 There are various defaults for how to blink each type of cursor, if
@@ -967,7 +967,7 @@ internals of Emacs.
 @defun visible-frame-list
 This function returns a list of just the currently visible frames.
 @xref{Visibility of Frames}.  (Terminal frames always count as
-``visible'', even though only the selected one is actually displayed.)
+``visible,'' even though only the selected one is actually displayed.)
 @end defun
 
 @defun next-frame &optional frame minibuf
@@ -1251,7 +1251,7 @@ changes.  @xref{Misc Events}.
   Most window systems use a desktop metaphor.  Part of this metaphor is
 the idea that windows are stacked in a notional third dimension
 perpendicular to the screen surface, and thus ordered from ``highest''
-to ``lowest''.  Where two windows overlap, the one higher up covers
+to ``lowest.''  Where two windows overlap, the one higher up covers
 the one underneath.  Even a window at the bottom of the stack can be
 seen if no other window overlaps it.
 
@@ -1259,7 +1259,7 @@ seen if no other window overlaps it.
 @cindex lowering a frame
   A window's place in this ordering is not fixed; in fact, users tend
 to change the order frequently.  @dfn{Raising} a window means moving
-it ``up'', to the top of the stack.  @dfn{Lowering} a window means
+it ``up,'' to the top of the stack.  @dfn{Lowering} a window means
 moving it to the bottom of the stack.  This motion is in the notional
 third dimension only, and does not change the position of the window
 on the screen.
@@ -1519,7 +1519,7 @@ the menu keymap as necessary.
   A dialog box is a variant of a pop-up menu---it looks a little
 different, it always appears in the center of a frame, and it has just
 one level and one or more buttons.  The main use of dialog boxes is
-for asking questions that the user can answer with ``yes'', ``no'',
+for asking questions that the user can answer with ``yes,'' ``no,''
 and a few other alternatives.  With a single button, they can also
 force the user to acknowledge important information.  The functions
 @code{y-or-n-p} and @code{yes-or-no-p} use dialog boxes instead of the
@@ -1780,7 +1780,7 @@ colors.)
   These functions provide a way to determine which color names are
 valid, and what they look like.  In some cases, the value depends on the
 @dfn{selected frame}, as described below; see @ref{Input Focus}, for the
-meaning of the term ``selected frame''.
+meaning of the term ``selected frame.''
 
 @defun color-defined-p color &optional frame
 This function reports whether a color name is meaningful.  It returns
@@ -2150,7 +2150,7 @@ software (as a string).  Really this means whoever distributes the X
 server.
 
 When the developers of X labelled software distributors as
-``vendors'', they showed their false assumption that no system could
+``vendors,'' they showed their false assumption that no system could
 ever be developed and distributed noncommercially.
 @end defun
 

@@ -97,7 +97,7 @@ in a while, to keep Emacs Lisp programmers on their toes.
 @item
 The @code{min-colors} face attribute, used for tailoring faces to
 limited-color displays, does not exist.  If in doubt, use colors like
-``white'' and ``black'', which ought to be defined everywhere.
+``white'' and ``black,'' which ought to be defined everywhere.
 
 @item
 The @code{tty-color-mode} frame parameter does not exist.  You should
@@ -170,7 +170,7 @@ the sentinel.
 
 @item
 Many programming shortcuts have been deleted, to provide you with the
-enjoyment of ``rolling your own''.  The macros @code{while-no-input},
+enjoyment of ``rolling your own.''  The macros @code{while-no-input},
 @code{with-local-quit}, and @code{with-selected-window}, along with
 @code{dynamic-completion-table} and @code{lazy-completion-table} no
 longer exist.  Also, there are no built-in progress reporters;

@@ -145,7 +145,7 @@ If @var{function} is already present in @var{hook} (comparing using
 
 It is best to design your hook functions so that the order in which they
 are executed does not matter.  Any dependence on the order is ``asking
-for trouble''.  However, the order is predictable: normally,
+for trouble.''  However, the order is predictable: normally,
 @var{function} goes at the front of the hook list, so it will be
 executed first (barring another @code{add-hook} call).  If the optional
 argument @var{append} is non-@code{nil}, the new hook function goes at
@@ -1139,7 +1139,7 @@ it should not use @code{after-change-major-mode-hook} as of yet.
 
   When you defined a major mode using @code{define-derived-mode}, it
 automatically makes sure these conventions are followed.  If you
-define a major mode ``from scratch'', not using
+define a major mode ``from scratch,'' not using
 @code{define-derived-mode}, make sure the major mode command follows
 these and other conventions.  @xref{Major Mode Conventions}.  You use
 these functions to do it properly.
@@ -1456,7 +1456,7 @@ See the command \\[hungry-electric-delete]."
 @end smallexample
 
 @noindent
-This defines a minor mode named ``Hungry mode'', a command named
+This defines a minor mode named ``Hungry mode,'' a command named
 @code{hungry-mode} to toggle it, a variable named @code{hungry-mode}
 which indicates whether the mode is enabled, and a variable named
 @code{hungry-mode-map} which holds the keymap that is active when the

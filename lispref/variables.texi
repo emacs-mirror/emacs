@@ -1096,7 +1096,7 @@ is no longer bound to the actual argument 2.
 @end example
 
 @cindex closures not available
-  Some Lisp dialects have ``closures'', objects that are like functions
+  Some Lisp dialects have ``closures,'' objects that are like functions
 but record additional variable bindings.  Emacs Lisp does not have
 closures.
 
@@ -1459,7 +1459,7 @@ buffer-local variables interactively.
 
 @defun kill-all-local-variables
 This function eliminates all the buffer-local variable bindings of the
-current buffer except for variables marked as ``permanent''.  As a
+current buffer except for variables marked as ``permanent.''  As a
 result, the buffer will see the default values of most variables.
 
 This function also resets certain other information pertaining to the

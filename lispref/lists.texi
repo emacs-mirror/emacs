@@ -1503,7 +1503,7 @@ a @sc{cdr} @code{equal} to @var{value}.
 
 @code{rassoc} is like @code{assoc} except that it compares the @sc{cdr} of
 each @var{alist} association instead of the @sc{car}.  You can think of
-this as ``reverse @code{assoc}'', finding the key for a given value.
+this as ``reverse @code{assoc},'' finding the key for a given value.
 @end defun
 
 @defun assq key alist
@@ -1544,7 +1544,7 @@ a @sc{cdr} @code{eq} to @var{value}.
 
 @code{rassq} is like @code{assq} except that it compares the @sc{cdr} of
 each @var{alist} association instead of the @sc{car}.  You can think of
-this as ``reverse @code{assq}'', finding the key for a given value.
+this as ``reverse @code{assq},'' finding the key for a given value.
 
 For example:
 

@@ -141,7 +141,7 @@ boundary.  @xref{Filling}.
 indicate truncated and continued lines (@pxref{Fringes}).  On a text
 terminal, a @samp{$} in the rightmost column of the window indicates
 truncation; a @samp{\} on the rightmost column indicates a line that
-``wraps''.  (The display table can specify alternate characters to use
+``wraps.''  (The display table can specify alternate characters to use
 for this; @pxref{Display Tables}).
 
 @defopt truncate-lines
@@ -1189,7 +1189,7 @@ The return value is @var{overlay}.
 This is the only valid way to change the endpoints of an overlay.  Do
 not try modifying the markers in the overlay by hand, as that fails to
 update other vital data structures and can cause some overlays to be
-``lost''.
+``lost.''
 @end defun
 
 @defun remove-overlays &optional start end name value
@@ -2013,7 +2013,7 @@ A non-@code{nil} value specifies a bold font.
 A non-@code{nil} value specifies an italic font.
 @end table
 
-  For compatibility, you can still set these ``attributes'', even
+  For compatibility, you can still set these ``attributes,'' even
 though they are not real face attributes.  Here is what that does:
 
 @table @code
@@ -3767,7 +3767,7 @@ $$\pmatrix{ 2 & -1 &  0 \cr
 @end ifnottex
 
 @item disabled
-Specifies transforming the image so that it looks ``disabled''.
+Specifies transforming the image so that it looks ``disabled.''
 @end table
 
 @item :mask @var{mask}
@@ -4804,7 +4804,7 @@ Any @var{args} are passed to @var{map-function}.
 @subsection Abstract Display Example
 
   Here is a simple example using functions of the ewoc package to
-implement a ``color components display'', an area in a buffer that
+implement a ``color components display,'' an area in a buffer that
 represents a vector of three integers (itself representing a 24-bit RGB
 value) in various ways.
 
@@ -5320,7 +5320,7 @@ variable.
 @section Window Systems
 
   Emacs works with several window systems, most notably the X Window
-System.  Both Emacs and X use the term ``window'', but use it
+System.  Both Emacs and X use the term ``window,'' but use it
 differently.  An Emacs frame is a single window as far as X is
 concerned; the individual Emacs windows are not known to X at all.
 

@@ -632,7 +632,7 @@ come to refer to any structure made out of cons cells.
 
 @cindex atom
   Because cons cells are so central to Lisp, we also have a word for
-``an object which is not a cons cell''.  These objects are called
+``an object which is not a cons cell.''  These objects are called
 @dfn{atoms}.
 
 @cindex parenthesis
@@ -1238,7 +1238,7 @@ without qualification, we mean a Lisp macro, not a keyboard macro.
   A @dfn{primitive function} is a function callable from Lisp but
 written in the C programming language.  Primitive functions are also
 called @dfn{subrs} or @dfn{built-in functions}.  (The word ``subr'' is
-derived from ``subroutine''.)  Most primitive functions evaluate all
+derived from ``subroutine.'')  Most primitive functions evaluate all
 their arguments when they are called.  A primitive function that does
 not evaluate all its arguments is called a @dfn{special form}
 (@pxref{Special Forms}).@refill
