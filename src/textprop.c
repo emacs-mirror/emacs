@@ -86,7 +86,10 @@ static void
 text_read_only (propval)
      Lisp_Object propval;
 {
-  Fsignal (Qtext_read_only, STRINGP (propval) ? Fcons (propval, Qnil) : Qnil);
+  if (STRINGP (propval))
+    xsignal1 (Qtext_read_only, propval);
+
+  xsignal0 (Qtext_read_only);
 }
 
 
