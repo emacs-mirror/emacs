@@ -1,7 +1,7 @@
 2006-07-18  Karl Berry  <karl@gnu.org>
 
-	* variables.texi, functions.texi, customize.texi, loading.texi,
-	edebug.texi, minibuf.texi: fix page breaks through chapter 20.
+	* variables.texi, functions.texi, customize.texi, loading.texi:
+	* edebug.texi, minibuf.texi: Fix page breaks through chapter 20.
 
 2006-07-17  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -11,20 +11,20 @@
 
 	* eval.texi, elisp.texi, text.texi: Use real doublequote inside menus.
 	Put period and comma inside quotes.
-	
+
 	* loading.texi, markers.texi: Use real doublequote inside menus.
 
 	* windows.texi: Put point and comma inside quotes.
 	(Textual Scrolling): Use @samp for error message.
 
-	* variables.texi, tips.texi, syntax.texi, symbols.texi: 
-	* strings.texi, streams.texi, processes.texi, os.texi: 
+	* variables.texi, tips.texi, syntax.texi, symbols.texi:
+	* strings.texi, streams.texi, processes.texi, os.texi:
 	* objects.texi, numbers.texi, modes.texi, minibuf.texi:
 	* lists.texi, keymaps.texi, intro.texi, hash.texi, internals.texi:
-	* gpl.texi, functions.texi, files.texi, frames.texi, doclicense.texi: 
-	* display.texi, control.texi, commands.texi, buffers.texi, anti.texi: 
+	* gpl.texi, functions.texi, files.texi, frames.texi, doclicense.texi:
+	* display.texi, control.texi, commands.texi, buffers.texi, anti.texi:
 	Put point and comma inside quotes.
-	
+
 	* control.texi (Processing of Errors): Add command-error-function.
 
 	* variables.texi (File Local Variables): Clarify that
@@ -39,10 +39,10 @@
 
 2006-07-16  Karl Berry  <karl@gnu.org>
 
-	* objects.texi, numbers.texi, strings.texi, lists.texi, hash.texi,
-        control.texi: fix bad page breaks through chapter 10 (control).
+	* objects.texi, numbers.texi, strings.texi, lists.texi, hash.texi:
+	* control.texi: Fix bad page breaks through chapter 10 (control).
 
-	* anti.texi (Antinews): reorder face-attribute fns to avoid
+	* anti.texi (Antinews): Reorder face-attribute fns to avoid
 	underfull hbox.
 
 2006-07-15  Nick Roberts  <nickrob@snap.net.nz>
