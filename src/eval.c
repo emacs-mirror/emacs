@@ -983,9 +983,7 @@ usage: (let* VARLIST BODY...)  */)
       if (SYMBOLP (elt))
 	specbind (elt, Qnil);
       else if (! NILP (Fcdr (Fcdr (elt))))
-	Fsignal (Qerror,
-		 Fcons (build_string ("`let' bindings can have only one value-form"),
-			elt));
+	signal_error ("`let' bindings can have only one value-form", elt);
       else
 	{
 	  val = Feval (Fcar (Fcdr (elt)));
@@ -1032,9 +1030,7 @@ usage: (let VARLIST BODY...)  */)
       if (SYMBOLP (elt))
 	temps [argnum++] = Qnil;
       else if (! NILP (Fcdr (Fcdr (elt))))
-	Fsignal (Qerror,
-		 Fcons (build_string ("`let' bindings can have only one value-form"),
-			elt));
+	signal_error ("`let' bindings can have only one value-form", elt);
       else
 	temps [argnum++] = Feval (Fcar (Fcdr (elt)));
       gcpro2.nvars = argnum;
@@ -1295,8 +1291,7 @@ Both TAG and VALUE are evalled.  */)
 	if (EQ (c->tag, tag))
 	  unwind_to_catch (c, value);
       }
-  Fsignal (Qno_catch, list2 (tag, value));
-  abort ();
+  xsignal2 (Qno_catch, tag, value);
 }
 
 
@@ -1704,6 +1699,78 @@ See also the function `condition-case'.  */)
   fatal ("%s", SDATA (string), 0);
 }
 
+/* Internal version of Fsignal that never returns.
+   Used for anything but Qquit (which can return from Fsignal).  */
+
+void
+xsignal (error_symbol, data)
+     Lisp_Object error_symbol, data;
+{
+  Fsignal (error_symbol, data);
+  abort ();
+}
+
+/* Like xsignal, but takes 0, 1, 2, or 3 args instead of a list.  */
+
+void
+xsignal0 (error_symbol)
+     Lisp_Object error_symbol;
+{
+  xsignal (error_symbol, Qnil);
+}
+
+void
+xsignal1 (error_symbol, arg)
+     Lisp_Object error_symbol, arg;
+{
+  xsignal (error_symbol, list1 (arg));
+}
+
+void
+xsignal2 (error_symbol, arg1, arg2)
+     Lisp_Object error_symbol, arg1, arg2;
+{
+  xsignal (error_symbol, list2 (arg1, arg2));
+}
+
+void
+xsignal3 (error_symbol, arg1, arg2, arg3)
+     Lisp_Object error_symbol, arg1, arg2, arg3;
+{
+  xsignal (error_symbol, list3 (arg1, arg2, arg3));
+}
+
+/* Signal `error' with message S, and additional arg ARG.
+   If ARG is not a genuine list, make it a one-element list.  */
+
+void
+signal_error (s, arg)
+     char *s;
+     Lisp_Object arg;
+{
+  Lisp_Object tortoise, hare;
+
+  hare = tortoise = arg;
+  while (CONSP (hare))
+    {
+      hare = XCDR (hare);
+      if (!CONSP (hare))
+	break;
+
+      hare = XCDR (hare);
+      tortoise = XCDR (tortoise);
+
+      if (EQ (hare, tortoise))
+	break;
+    }
+
+  if (!NILP (hare))
+    arg = Fcons (arg, Qnil);	/* Make it a list.  */
+
+  xsignal (Qerror, Fcons (build_string (s), arg));
+}
+
+
 /* Return nonzero iff LIST is a non-nil atom or
    a list containing one of CONDITIONS.  */
 
@@ -1918,8 +1985,7 @@ error (m, a1, a2, a3)
   if (allocated)
     xfree (buffer);
 
-  Fsignal (Qerror, Fcons (string, Qnil));
-  abort ();
+  xsignal1 (Qerror, string);
 }
 
 DEFUN ("commandp", Fcommandp, Scommandp, 1, 2, 0,
@@ -2185,7 +2251,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 
       if (XINT (numargs) < XSUBR (fun)->min_args ||
 	  (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < XINT (numargs)))
-	Fsignal (Qwrong_number_of_arguments, list2 (original_fun, numargs));
+	xsignal2 (Qwrong_number_of_arguments, original_fun, numargs);
 
       if (XSUBR (fun)->max_args == UNEVALLED)
 	{
@@ -2289,12 +2355,12 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
   else
     {
       if (EQ (fun, Qunbound))
-	Fsignal (Qvoid_function, Fcons (original_fun, Qnil));
+	xsignal1 (Qvoid_function, original_fun);
       if (!CONSP (fun))
-	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
-      funcar = Fcar (fun);
+	xsignal1 (Qinvalid_function, original_fun);
+      funcar = XCAR (fun);
       if (!SYMBOLP (funcar))
-	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
+	xsignal1 (Qinvalid_function, original_fun);
       if (EQ (funcar, Qautoload))
 	{
 	  do_autoload (fun, original_fun);
@@ -2305,7 +2371,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       else if (EQ (funcar, Qlambda))
 	val = apply_lambda (fun, original_args, 1);
       else
-	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
+	xsignal1 (Qinvalid_function, original_fun);
     }
  done:
   CHECK_CONS_LIST ();
@@ -2885,11 +2951,11 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  || (XSUBR (fun)->max_args >= 0 && XSUBR (fun)->max_args < numargs))
 	{
 	  XSETFASTINT (lisp_numargs, numargs);
-	  Fsignal (Qwrong_number_of_arguments, list2 (original_fun, lisp_numargs));
+	  xsignal2 (Qwrong_number_of_arguments, original_fun, lisp_numargs);
 	}
 
       if (XSUBR (fun)->max_args == UNEVALLED)
-	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
+	xsignal1 (Qinvalid_function, original_fun);
 
       if (XSUBR (fun)->max_args == MANY)
 	{
@@ -2962,12 +3028,12 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   else
     {
       if (EQ (fun, Qunbound))
-	Fsignal (Qvoid_function, Fcons (original_fun, Qnil));
+	xsignal1 (Qvoid_function, original_fun);
       if (!CONSP (fun))
-	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
-      funcar = Fcar (fun);
+	xsignal1 (Qinvalid_function, original_fun);
+      funcar = XCAR (fun);
       if (!SYMBOLP (funcar))
-	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
+	xsignal1 (Qinvalid_function, original_fun);
       if (EQ (funcar, Qlambda))
 	val = funcall_lambda (fun, numargs, args + 1);
       else if (EQ (funcar, Qautoload))
@@ -2977,7 +3043,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  goto retry;
 	}
       else
-	Fsignal (Qinvalid_function, Fcons (original_fun, Qnil));
+	xsignal1 (Qinvalid_function, original_fun);
     }
  done:
   CHECK_CONS_LIST ();
@@ -3053,7 +3119,7 @@ funcall_lambda (fun, nargs, arg_vector)
       if (CONSP (syms_left))
 	syms_left = XCAR (syms_left);
       else
-	Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	xsignal1 (Qinvalid_function, fun);
     }
   else if (COMPILEDP (fun))
     syms_left = AREF (fun, COMPILED_ARGLIST);
@@ -3067,7 +3133,7 @@ funcall_lambda (fun, nargs, arg_vector)
 
       next = XCAR (syms_left);
       if (!SYMBOLP (next))
-	Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	xsignal1 (Qinvalid_function, fun);
 
       if (EQ (next, Qand_rest))
 	rest = 1;
@@ -3081,15 +3147,15 @@ funcall_lambda (fun, nargs, arg_vector)
       else if (i < nargs)
 	specbind (next, arg_vector[i++]);
       else if (!optional)
-	Fsignal (Qwrong_number_of_arguments, list2 (fun, make_number (nargs)));
+	xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));
       else
 	specbind (next, Qnil);
     }
 
   if (!NILP (syms_left))
-    Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+    xsignal1 (Qinvalid_function, fun);
   else if (i < nargs)
-    Fsignal (Qwrong_number_of_arguments, list2 (fun, make_number (nargs)));
+    xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));
 
   if (CONSP (fun))
     val = Fprogn (XCDR (XCDR (fun)));
@@ -3141,8 +3207,7 @@ grow_specpdl ()
       if (max_specpdl_size < 400)
 	max_specpdl_size = 400;
       if (specpdl_size >= max_specpdl_size)
-	Fsignal (Qerror,
-		 Fcons (build_string ("Variable binding depth exceeds max-specpdl-size"), Qnil));
+	signal_error ("Variable binding depth exceeds max-specpdl-size", Qnil);
     }
   specpdl_size *= 2;
   if (specpdl_size > max_specpdl_size)
