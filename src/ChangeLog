@@ -1,3 +1,13 @@
+2006-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (keycode_to_xkeysym): Remove function.  All uses now
+	directly lookup keycode_to_xkeysym_table.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Don't construct
+	ASCII_KEYSTROKE_EVENT for non-zero keycode_to_xkeysym_table entries.
+	(XTread_socket): Use character codes to construct keypad key events.
+	(mac_initialize_display_info) [MAC_OSX]: Use CGDisplaySamplesPerPixel.
+	(x_delete_display): Apply 2006-07-04 change for xterm.c.
+
 2006-07-17  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (handle_single_display_spec): Ensure the right value of
