@@ -674,7 +674,11 @@ language you are using."
   (define-key map [prior] 'previous-history-element)
   (define-key map [up]    'previous-history-element)
   (define-key map "\es"   'next-matching-history-element)
-  (define-key map "\er"   'previous-matching-history-element))
+  (define-key map "\er"   'previous-matching-history-element)
+  ;; Override the global binding (which calls indent-relative via
+  ;; indent-for-tab-command).  The alignment that indent-relative tries to
+  ;; do doesn't make much sense here since the prompt messes it up.
+  (define-key map "\t"    'self-insert-command))
 
 (define-key global-map "\C-u" 'universal-argument)
 (let ((i ?0))
