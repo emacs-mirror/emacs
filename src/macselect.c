@@ -594,11 +594,9 @@ x_get_local_selection (selection_symbol, target_type, local_request)
 		&& INTEGERP (XCAR (XCDR (check)))
 		&& NILP (XCDR (XCDR (check))))))
     return value;
-  else
-    return
-      Fsignal (Qerror,
-	       Fcons (build_string ("invalid data returned by selection-conversion function"),
-		      Fcons (handler_fn, Fcons (value, Qnil))));
+
+  signal_error ("Invalid data returned by selection-conversion function",
+		list2 (handler_fn, value));
 }
 
 
