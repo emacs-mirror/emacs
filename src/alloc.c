@@ -559,8 +559,7 @@ buffer_memory_full ()
 
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
-  while (1)
-    Fsignal (Qnil, Vmemory_signal_data);
+  xsignal (Qnil, Vmemory_signal_data);
 }
 
 
@@ -2777,7 +2776,14 @@ check_cons_list ()
 #endif
 }
 
-/* Make a list of 2, 3, 4 or 5 specified objects.  */
+/* Make a list of 1, 2, 3, 4 or 5 specified objects.  */
+
+Lisp_Object
+list1 (arg1)
+     Lisp_Object arg1;
+{
+  return Fcons (arg1, Qnil);
+}
 
 Lisp_Object
 list2 (arg1, arg2)
@@ -3493,8 +3499,7 @@ memory_full ()
 
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
-  while (1)
-    Fsignal (Qnil, Vmemory_signal_data);
+  xsignal (Qnil, Vmemory_signal_data);
 }
 
 /* If we released our reserve (due to running out of memory),
