@@ -1,3 +1,102 @@
+2006-07-18  Kim F. Storm  <storm@cua.dk>
+
+	Cleanup Fsignal calls that never returns; now only use it for Qquit.
+
+	* eval.c (xsignal): New func.  Like Fsignal, but marked no-return.
+	(xsignal0, xsignal1, xsignal2, xsignal3): New no-return functions.
+	(signal_error): New no-return function (from xfaces.c).
+	(Fthrow): Use xsignal2 instead of Fsignal + abort.
+	(error): Use xsignal1 instead of Fsignal + abort.
+	(FletX, Flet, grow_specpdl): Use signal_error.
+	(Feval, Ffuncall, funcall_lambda): Use xsignal1, xsignal2.
+
+	* alloc.c (buffer_memory_full, memory_full): Use xsignal. Remove loop.
+	(list1): New function.
+
+	* lisp.h (list1): Add EXFUN.
+	(xsignal, xsignal0, xsignal1, xsignal2, xsignal3, signal_error):
+	Add prototypes.  Mark them as no-return.
+
+	* buffer.c (Fbuffer_local_value, Fbarf_if_buffer_read_only):
+	Use xsignal1.
+
+	* callint.c (check_mark): Use xsignal0.
+
+	* casefiddle.c (casify_object): wrong_type_argument is no-return.
+
+	* cmds.c (Fforward_char, Fdelete_char): Use xsignal0.
+
+	* coding.c (Fcheck_coding_system): Use xsignal1.  Remove loop.
+	(Fdefine_coding_system_internal): Use xsignal1.
+
+	* data.c (circular_list_error): Use xsignal.
+	(wrong_type_argument): Use xsignal2.  Don't care about return value.
+	(args_out_of_range, args_out_of_range_3): Use xsignal2, xsignal3.
+	Remove loop around Fsignal.
+	(indirect_variable, Fsymbol_value, set_internal, Fdefault_value)
+	(indirect_function, Findirect_function, Fstring_to_number)
+	(Fmakunbound, Ffmakunbound, Fsymbol_function, Ffset): Use xsignal1.
+	(arith_driver, float_arith_driver, Frem, Fmod, arith_error):
+	Use xsignal0.
+
+	* doc.c (Fdocumentation): Use xsignal1.
+
+	* editfns.c (region_limit, Fget_internal_run_time): Use xsignal0.
+
+	* fileio.c (report_file_error): Use xsignal.
+	(barf_or_query_if_file_exists, Fcopy_file, Fdelete_file)
+	(Finsert_file_contents): Use xsignal2.
+	(syms_of_fileio): Use list2, list3.
+
+	* floatfns.c (arith_error, range_error, domain_error): Use xsignal2.
+	(range_error2, domain_error2): Use xsignal3.
+	(rounding_driver, fmod_float): Use xsignal0.
+	(float_error): Use xsignal1.
+	(matherr): Use xsignal.
+
+	* fns.c (Flength): wrong_type_argument is no-return.
+	(hashfn_user_defined, Fmake_hash_table): Use signal_error.
+	(Fmd5): Use xsignal1.
+
+	* frame.c (x_set_line_spacing, x_set_screen_gamma): Use signal_error.
+
+	* keyboard.c (recursive_edit_1): Use xsignal1.
+
+	* keymap.c (Fmap_keymap): Use xsignal1.
+
+	* lread.c (Fload): Use xsignal2, signal_error.
+	(end_of_file_error): Use xsignal0, xsignal1.
+	(read0): Use xsignal1.
+	(invalid_syntax): New error function marked no-return.
+	(read_integer, read1, read_list): Use it.
+
+	* macselect.c (x_get_local_selection): Use signal_error.
+
+	* msdos.c (Fmsdos_set_mouse_buttons): Use xsignal2.
+
+	* search.c (compile_pattern_1): Use xsignal1.
+	(signal_failure): Remove (was only called once).
+	(search_command): Use xsignal1 instead of signal_failure.
+
+	* syntax.c (scan_lists): Use xsignal3.
+
+	* textprop.c (text_read_only): Use xsignal0, xsignal1.
+
+	* unexsol.c (unexec): Use xsignal.
+
+	* window.c (window_scroll_pixel_based, window_scroll_line_based):
+	Use xsignal0.
+
+	* xfaces.c (signal_error): Move to eval.c.
+	(resolve_face_name): Use xsignal1.
+
+	* xfns.c (x_decode_color): Use signal_error.
+
+	* xselect.c (x_get_local_selection, copy_multiple_data)
+	(x_get_window_property_as_lisp_data)
+	(lisp_data_to_selection_data, CHECK_CUT_BUFFER)
+	(Fx_get_cut_buffer_internal): Use signal_error.
+
 2006-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (XTread_socket): Undo previous change.

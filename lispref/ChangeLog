@@ -1,3 +1,8 @@
+2006-07-18  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Low-Level Network): Rename node "Make Network"
+	to "Network Processes".
+
 2006-07-18  Karl Berry  <karl@gnu.org>
 
 	* variables.texi, functions.texi, customize.texi, loading.texi:
