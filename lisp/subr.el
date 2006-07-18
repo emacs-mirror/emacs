@@ -1721,22 +1721,23 @@ floating point support.
   (when (or obsolete (numberp nodisp))
     (setq seconds (+ seconds (* 1e-3 nodisp)))
     (setq nodisp obsolete))
-  (unless nodisp
-    (redisplay))
-  (or (<= seconds 0)
-      (let ((timer (timer-create))
-	    (echo-keystrokes 0))
-      	(if (catch 'sit-for-timeout
-      	      (timer-set-time timer (timer-relative-time
-				     (current-time) seconds))
-      	      (timer-set-function timer 'with-timeout-handler
-				  '(sit-for-timeout))
-      	      (timer-activate timer)
-	      (push (read-event) unread-command-events)
-      	      nil)
-      	    t
-      	  (cancel-timer timer)
-      	  nil))))
+  (if noninteractive
+      (progn (sleep-for seconds) t)
+    (unless nodisp (redisplay))
+    (or (<= seconds 0)
+	(let ((timer (timer-create))
+	      (echo-keystrokes 0))
+	  (if (catch 'sit-for-timeout
+		(timer-set-time timer (timer-relative-time
+				       (current-time) seconds))
+		(timer-set-function timer 'with-timeout-handler
+				    '(sit-for-timeout))
+		(timer-activate timer)
+		(push (read-event) unread-command-events)
+		nil)
+	      t
+	    (cancel-timer timer)
+	    nil)))))
 
 ;;; Atomic change groups.
 

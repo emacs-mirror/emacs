@@ -1,3 +1,7 @@
+2006-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (sit-for): Just sleep-for if noninteractive.
+
 2006-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/autoload.el (make-autoload): Use new arg.
