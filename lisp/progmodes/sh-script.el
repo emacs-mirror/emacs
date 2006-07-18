@@ -1561,7 +1561,7 @@ This adds rules for comments and assignments."
 			 (regexp-opt (sh-feature sh-builtins) t)
 			 "\\>")
 		(2 font-lock-keyword-face nil t)
-		(4 font-lock-builtin-face))
+		(6 font-lock-builtin-face))
 	       ,@(sh-feature sh-font-lock-keywords-var-2)))
 	 (,(concat keywords "\\)\\>")
 	  2 font-lock-keyword-face)
