@@ -1,5 +1,11 @@
 2006-07-18  Kim F. Storm  <storm@cua.dk>
 
+	* display.texi (Forcing Redisplay): redisplay-preemption-period
+	only used on window systems.  Add xref to Terminal Output.
+
+	* os.texi (Terminal Output): baud-rate only controls preemption on
+	non-window systems.  Add xref to Forcing Redisplay.
+
 	* processes.texi (Low-Level Network): Rename node "Make Network"
 	to "Network Processes".
 

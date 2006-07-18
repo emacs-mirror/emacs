@@ -39,6 +39,8 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 	 '(hscroll-step 1)
 	)
 
+** David Kastrup's report on strange scrolling of large images.
+
 
 * DOCUMENTATION
 
