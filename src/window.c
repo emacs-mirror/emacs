@@ -4959,9 +4959,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	  else if (noerror)
 	    return;
 	  else if (n < 0)	/* could happen with empty buffers */
-	    Fsignal (Qbeginning_of_buffer, Qnil);
+	    xsignal0 (Qbeginning_of_buffer);
 	  else
-	    Fsignal (Qend_of_buffer, Qnil);
+	    xsignal0 (Qend_of_buffer);
 	}
       else
 	{
@@ -4972,7 +4972,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	  else if (noerror)
 	    return;
 	  else
-	    Fsignal (Qbeginning_of_buffer, Qnil);
+	    xsignal0 (Qbeginning_of_buffer);
 	}
 
       /* If control gets here, then we vscrolled.  */
@@ -5173,7 +5173,7 @@ window_scroll_line_based (window, n, whole, noerror)
       if (noerror)
 	return;
       else
-	Fsignal (Qbeginning_of_buffer, Qnil);
+	xsignal0 (Qbeginning_of_buffer);
     }
 
   if (pos < ZV)
@@ -5259,7 +5259,7 @@ window_scroll_line_based (window, n, whole, noerror)
       if (noerror)
 	return;
       else
-	Fsignal (Qend_of_buffer, Qnil);
+	xsignal0 (Qend_of_buffer);
     }
 }
 
