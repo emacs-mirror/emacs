@@ -810,7 +810,7 @@ operation} error.
 
 @cindex field width
 @cindex padding
-  All the specification characters allow an optional ``width'', which
+  All the specification characters allow an optional ``width,'' which
 is a digit-string between the @samp{%} and the character.  If the
 printed representation of the object contains fewer characters than
 this width, then it is padded.  The padding is on the left if the
@@ -881,7 +881,7 @@ A space character inserts a space for positive numbers (otherwise
 nothing is inserted for positive numbers).  This flag is ignored
 except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}.
 
-The flag @samp{#} indicates ``alternate form''.  For @samp{%o} it
+The flag @samp{#} indicates ``alternate form.''  For @samp{%o} it
 ensures that the result begins with a 0.  For @samp{%x} and @samp{%X}
 the result is prefixed with @samp{0x} or @samp{0X}. For @samp{%e},
 @samp{%f}, and @samp{%g} a decimal point is always shown even if the
