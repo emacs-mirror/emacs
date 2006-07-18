@@ -182,7 +182,7 @@ To get the number of bytes, use `string-bytes'. */)
   else if (NILP (sequence))
     XSETFASTINT (val, 0);
   else
-    val = wrong_type_argument (Qsequencep, sequence);
+    wrong_type_argument (Qsequencep, sequence);
 
   return val;
 }
@@ -4487,10 +4487,7 @@ hashfn_user_defined (h, key)
   args[1] = key;
   hash = Ffuncall (2, args);
   if (!INTEGERP (hash))
-    Fsignal (Qerror,
-	     list2 (build_string ("Invalid hash code returned from \
-user-supplied hash function"),
-		    hash));
+    signal_error ("Invalid hash code returned from user-supplied hash function", hash);
   return XUINT (hash);
 }
 
@@ -5246,8 +5243,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
 
       prop = Fget (test, Qhash_table_test);
       if (!CONSP (prop) || !CONSP (XCDR (prop)))
-	Fsignal (Qerror, list2 (build_string ("Invalid hash table test"),
-				test));
+	signal_error ("Invalid hash table test", test);
       user_test = XCAR (prop);
       user_hash = XCAR (XCDR (prop));
     }
@@ -5260,9 +5256,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   if (NILP (size))
     size = make_number (DEFAULT_HASH_SIZE);
   else if (!INTEGERP (size) || XINT (size) < 0)
-    Fsignal (Qerror,
-	     list2 (build_string ("Invalid hash table size"),
-		    size));
+    signal_error ("Invalid hash table size", size);
 
   /* Look for `:rehash-size SIZE'.  */
   i = get_key_arg (QCrehash_size, nargs, args, used);
@@ -5270,9 +5264,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   if (!NUMBERP (rehash_size)
       || (INTEGERP (rehash_size) && XINT (rehash_size) <= 0)
       || XFLOATINT (rehash_size) <= 1.0)
-    Fsignal (Qerror,
-	     list2 (build_string ("Invalid hash table rehash size"),
-		    rehash_size));
+    signal_error ("Invalid hash table rehash size", rehash_size);
 
   /* Look for `:rehash-threshold THRESHOLD'.  */
   i = get_key_arg (QCrehash_threshold, nargs, args, used);
@@ -5280,9 +5272,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   if (!FLOATP (rehash_threshold)
       || XFLOATINT (rehash_threshold) <= 0.0
       || XFLOATINT (rehash_threshold) > 1.0)
-    Fsignal (Qerror,
-	     list2 (build_string ("Invalid hash table rehash threshold"),
-		    rehash_threshold));
+    signal_error ("Invalid hash table rehash threshold", rehash_threshold);
 
   /* Look for `:weakness WEAK'.  */
   i = get_key_arg (QCweakness, nargs, args, used);
@@ -5294,14 +5284,12 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
       && !EQ (weak, Qvalue)
       && !EQ (weak, Qkey_or_value)
       && !EQ (weak, Qkey_and_value))
-    Fsignal (Qerror, list2 (build_string ("Invalid hash table weakness"),
-			    weak));
+    signal_error ("Invalid hash table weakness", weak);
 
   /* Now, all args should have been used up, or there's a problem.  */
   for (i = 0; i < nargs; ++i)
     if (!used[i])
-      Fsignal (Qerror,
-	       list2 (build_string ("Invalid argument list"), args[i]));
+      signal_error ("Invalid argument list", args[i]);
 
   return make_hash_table (test, size, rehash_size, rehash_threshold, weak,
 			  user_test, user_hash);
@@ -5552,8 +5540,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	  if (!NILP (noerror))
 	    coding_system = Qraw_text;
 	  else
-	    while (1)
-	      Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
+	    xsignal1 (Qcoding_system_error, coding_system);
 	}
 
       if (STRING_MULTIBYTE (object))
@@ -5687,8 +5674,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	      if (!NILP (noerror))
 		coding_system = Qraw_text;
 	      else
-		while (1)
-		  Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
+		xsignal1 (Qcoding_system_error, coding_system);
 	    }
 	}
 
