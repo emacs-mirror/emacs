@@ -214,6 +214,8 @@ static void readevalloop P_ ((Lisp_Object, FILE*, Lisp_Object,
 static Lisp_Object load_unwind P_ ((Lisp_Object));
 static Lisp_Object load_descriptor_unwind P_ ((Lisp_Object));
 
+static void invalid_syntax P_ ((const char *, int)) NO_RETURN;
+
 
 /* Handle unreading and rereading of characters.
    Write READCHAR to read a character,
@@ -797,10 +799,8 @@ Return t if the file exists and loads successfully.  */)
   if (fd == -1)
     {
       if (NILP (noerror))
-	Fsignal (Qfile_error, Fcons (build_string ("Cannot open load file"),
-				     Fcons (file, Qnil)));
-      else
-	return Qnil;
+	xsignal2 (Qfile_error, build_string ("Cannot open load file"), file);
+      return Qnil;
     }
 
   /* Tell startup.el whether or not we found the user's init file.  */
@@ -841,8 +841,7 @@ Return t if the file exists and loads successfully.  */)
       {
 	if (fd >= 0)
 	  emacs_close (fd);
-	Fsignal (Qerror, Fcons (build_string ("Recursive load"),
-				Fcons (found, Vloads_in_progress)));
+	signal_error ("Recursive load", Fcons (found, Vloads_in_progress));
       }
     record_unwind_protect (record_load_unwind, Vloads_in_progress);
     Vloads_in_progress = Fcons (found, Vloads_in_progress);
@@ -1339,11 +1338,9 @@ end_of_file_error ()
   Lisp_Object data;
 
   if (STRINGP (Vload_file_name))
-    data = Fcons (Vload_file_name, Qnil);
-  else
-    data = Qnil;
+    xsignal1 (Qend_of_file, Vload_file_name);
 
-  Fsignal (Qend_of_file, data);
+  xsignal0 (Qend_of_file);
 }
 
 /* UNIBYTE specifies how to set load_convert_to_unibyte
@@ -1694,6 +1691,21 @@ read_internal_start (stream, start, end)
   return retval;
 }
 
+
+/* Signal Qinvalid_read_syntax error.
+   S is error string of length N (if > 0)  */
+
+static void
+invalid_syntax (s, n)
+     const char *s;
+     int n;
+{
+  if (!n)
+    n = strlen (s);
+  xsignal1 (Qinvalid_read_syntax, make_string (s, n));
+}
+
+
 /* Use this for recursive reads, in contexts where internal tokens
    are not allowed. */
 
@@ -1705,12 +1717,11 @@ read0 (readcharfun)
   int c;
 
   val = read1 (readcharfun, &c, 0);
-  if (c)
-    Fsignal (Qinvalid_read_syntax, Fcons (Fmake_string (make_number (1),
-							make_number (c)),
-					  Qnil));
+  if (!c)
+    return val;
 
-  return val;
+  xsignal1 (Qinvalid_read_syntax,
+	    Fmake_string (make_number (1), make_number (c)));
 }
 
 static int read_buffer_size;
@@ -1978,7 +1989,6 @@ read_escape (readcharfun, stringp, byterep)
     }
 }
 
-
 /* Read an integer in radix RADIX using READCHARFUN to read
    characters.  RADIX must be in the interval [2..36]; if it isn't, a
    read error is signaled .  Value is the integer read.  Signals an
@@ -2038,7 +2048,7 @@ read_integer (readcharfun, radix)
     {
       char buf[50];
       sprintf (buf, "integer, radix %d", radix);
-      Fsignal (Qinvalid_read_syntax, Fcons (build_string (buf), Qnil));
+      invalid_syntax (buf, 0);
     }
 
   return make_number (sign * number);
@@ -2149,10 +2159,9 @@ read1 (readcharfun, pch, first_in_list)
 		  XCHAR_TABLE (tmp)->top = Qnil;
 		  return tmp;
 		}
-	      Fsignal (Qinvalid_read_syntax,
-		       Fcons (make_string ("#^^", 3), Qnil));
+	      invalid_syntax ("#^^", 3);
 	    }
-	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#^", 2), Qnil));
+	  invalid_syntax ("#^", 2);
 	}
       if (c == '&')
 	{
@@ -2174,8 +2183,7 @@ read1 (readcharfun, pch, first_in_list)
 		     Accept such input in case it came from an old version.  */
 		  && ! (XFASTINT (length)
 			== (SCHARS (tmp) - 1) * BOOL_VECTOR_BITS_PER_CHAR))
-		Fsignal (Qinvalid_read_syntax,
-			 Fcons (make_string ("#&...", 5), Qnil));
+		invalid_syntax ("#&...", 5);
 
 	      val = Fmake_bool_vector (length, Qnil);
 	      bcopy (SDATA (tmp), XBOOL_VECTOR (val)->data,
@@ -2186,8 +2194,7 @@ read1 (readcharfun, pch, first_in_list)
 		  &= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 	      return val;
 	    }
-	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#&...", 5),
-						Qnil));
+	  invalid_syntax ("#&...", 5);
 	}
       if (c == '[')
 	{
@@ -2207,7 +2214,7 @@ read1 (readcharfun, pch, first_in_list)
 	  /* Read the string itself.  */
 	  tmp = read1 (readcharfun, &ch, 0);
 	  if (ch != 0 || !STRINGP (tmp))
-	    Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
+	    invalid_syntax ("#", 1);
 	  GCPRO1 (tmp);
 	  /* Read the intervals and their properties.  */
 	  while (1)
@@ -2223,9 +2230,7 @@ read1 (readcharfun, pch, first_in_list)
 	      if (ch == 0)
 		plist = read1 (readcharfun, &ch, 0);
 	      if (ch)
-		Fsignal (Qinvalid_read_syntax,
-			 Fcons (build_string ("invalid string property list"),
-				Qnil));
+		invalid_syntax ("Invalid string property list", 0);
 	      Fset_text_properties (beg, end, plist, tmp);
 	    }
 	  UNGCPRO;
@@ -2378,7 +2383,7 @@ read1 (readcharfun, pch, first_in_list)
 	return read_integer (readcharfun, 2);
 
       UNREAD (c);
-      Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#", 1), Qnil));
+      invalid_syntax ("#", 1);
 
     case ';':
       while ((c = READCHAR) >= 0 && c != '\n');
@@ -2472,10 +2477,10 @@ read1 (readcharfun, pch, first_in_list)
 			  || (new_backquote_flag && next_char == ','))));
 	  }
 	UNREAD (next_char);
-	if (!ok)
-	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("?", 1), Qnil));
+	if (ok)
+	  return make_number (c);
 
-	return make_number (c);
+	invalid_syntax ("?", 1);
       }
 
     case '"':
@@ -3120,8 +3125,7 @@ read_list (flag, readcharfun)
 	    {
 	      if (ch == ']')
 		return val;
-	      Fsignal (Qinvalid_read_syntax,
-		       Fcons (make_string (") or . in a vector", 18), Qnil));
+	      invalid_syntax (") or . in a vector", 18);
 	    }
 	  if (ch == ')')
 	    return val;
@@ -3214,9 +3218,9 @@ read_list (flag, readcharfun)
 
 		  return val;
 		}
-	      return Fsignal (Qinvalid_read_syntax, Fcons (make_string (". in wrong context", 18), Qnil));
+	      invalid_syntax (". in wrong context", 18);
 	    }
-	  return Fsignal (Qinvalid_read_syntax, Fcons (make_string ("] in a list", 11), Qnil));
+	  invalid_syntax ("] in a list", 11);
 	}
       tem = (read_pure && flag <= 0
 	     ? pure_cons (elt, Qnil)
