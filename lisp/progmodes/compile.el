@@ -1825,28 +1825,44 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
                           (find-file-noselect name))
               fmts (cdr fmts)))
       (setq dirs (cdr dirs)))
-    (or buffer
-        ;; The file doesn't exist.  Ask the user where to find it.
-        (save-excursion          ;This save-excursion is probably not right.
-          (let ((pop-up-windows t))
-            (compilation-set-window (display-buffer (marker-buffer marker))
-                                    marker)
-            (let ((name (expand-file-name
-                         (read-file-name
-                          (format "Find this %s in (default %s): "
-                                  compilation-error filename)
-                          spec-dir filename t))))
-              (if (file-directory-p name)
-                  (setq name (expand-file-name filename name)))
-              (setq buffer (and (file-exists-p name)
-                                (find-file-noselect name)))))))
+    (while (null buffer)    ;Repeat until the user selects an existing file.
+      ;; The file doesn't exist.  Ask the user where to find it.
+      (save-excursion            ;This save-excursion is probably not right.
+        (let ((pop-up-windows t))
+          (compilation-set-window (display-buffer (marker-buffer marker))
+                                  marker)
+          (let* ((name (read-file-name
+                        (format "Find this %s in (default %s): "
+                                compilation-error filename)
+                        spec-dir filename t nil
+                        ;; Try to make sure the user can only select
+                        ;; a valid answer.  This predicate may be ignored,
+                        ;; tho, so we still have to double-check afterwards.
+                        ;; TODO: We should probably fix read-file-name so
+                        ;; that it never ignores this predicate, even when
+                        ;; using popup dialog boxes.
+                        (lambda (name)
+                          (if (file-directory-p name)
+                              (setq name (expand-file-name filename name)))
+                          (file-exists-p name))))
+                 (origname name))
+            (cond
+             ((not (file-exists-p name))
+              (message "Cannot find file `%s'" name)
+              (ding) (sit-for 2))
+             ((and (file-directory-p name)
+                   (not (file-exists-p
+                         (setq name (expand-file-name filename name)))))
+              (message "No `%s' in directory %s" filename origname)
+              (ding) (sit-for 2))
+             (t
+              (setq buffer (find-file-noselect name))))))))
     ;; Make intangible overlays tangible.
-    ;; This is very weird: it's not even clear which is the current buffer,
-    ;; so the code below can't be expected to DTRT here.  --Stef
-    (mapcar (function (lambda (ov)
-                        (when (overlay-get ov 'intangible)
-                          (overlay-put ov 'intangible nil))))
-            (overlays-in (point-min) (point-max)))
+    ;; This is weird: it's not even clear which is the current buffer,
+    ;; so the code below can't be expected to DTRT here.  -- Stef
+    (dolist (ov (overlays-in (point-min) (point-max)))
+      (when (overlay-get ov 'intangible)
+        (overlay-put ov 'intangible nil)))
     buffer))
 
 (defun compilation-get-file-structure (file &optional fmt)

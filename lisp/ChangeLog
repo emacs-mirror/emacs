@@ -1,3 +1,12 @@
+2006-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-find-file): Handle the
+	cases where the user selects a non-existent file.
+
+2006-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (minibuffer-local-map): Rebind TAB so it inserts a \t.
+
 2006-07-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (sit-for): Just sleep-for if noninteractive.
