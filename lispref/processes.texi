@@ -1724,13 +1724,13 @@ level that that of @code{open-network-stream}, using
 @code{make-network-process}.
 
 @menu
-* Make Network::             Using @code{make-network-process}.
+* Network Processes::        Using @code{make-network-process}.
 * Network Options::          Further control over network connections.
 * Network Feature Testing::  Determining which network features work on
                                the machine you are using.
 @end menu
 
-@node Make Network
+@node Network Processes
 @subsection @code{make-network-process}
 
    The basic function for creating network connections and network
