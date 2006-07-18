@@ -1,3 +1,8 @@
+2006-07-18  Karl Berry  <karl@gnu.org>
+
+	* variables.texi, functions.texi, customize.texi, loading.texi,
+	edebug.texi, minibuf.texi: fix page breaks through chapter 20.
+
 2006-07-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* commands.texi (Waiting): Document batch-mode sit-for behavior.

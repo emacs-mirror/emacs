@@ -766,12 +766,10 @@ in turn, and returns a list of the results.
 The argument @var{sequence} can be any kind of sequence except a
 char-table; that is, a list, a vector, a bool-vector, or a string.  The
 result is always a list.  The length of the result is the same as the
-length of @var{sequence}.
+length of @var{sequence}.  For example:
 
 @smallexample
 @group
-@exdent @r{For example:}
-
 (mapcar 'car '((a b) (c d) (e f)))
      @result{} (a c e)
 (mapcar '1+ [1 2 3])

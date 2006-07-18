@@ -155,8 +155,10 @@ file, and it is @code{nil} otherwise.
 @end defvar
 
 @defvar load-read-function
+This
 @anchor{Definition of load-read-function}
-This variable specifies an alternate expression-reading function for
+@c do not allow page break at anchor; work around Texinfo deficiency.
+variable specifies an alternate expression-reading function for
 @code{load} and @code{eval-region} to use instead of @code{read}.
 The function should accept one argument, just as @code{read} does.
 

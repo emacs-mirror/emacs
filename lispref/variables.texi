@@ -726,7 +726,7 @@ has no local bindings.
 @end group
 
 @group
-;; @r{Here the value of @code{abracadabra},}
+;; @r{Here, the value of @code{abracadabra},}
 ;;   @r{which is @code{foo},}
 ;;   @r{is the symbol whose value is examined.}
 (let ((abracadabra 'foo))

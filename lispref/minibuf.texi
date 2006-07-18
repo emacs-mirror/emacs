@@ -208,8 +208,10 @@ properties unconditionally, regardless of the value of this variable.
 @end defvar
 
 @defvar minibuffer-local-map
+This
 @anchor{Definition of minibuffer-local-map}
-This is the default local keymap for reading from the minibuffer.  By
+@c avoid page break at anchor; work around Texinfo deficiency
+is the default local keymap for reading from the minibuffer.  By
 default, it makes the following bindings:
 
 @table @asis
