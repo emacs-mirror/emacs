@@ -1,3 +1,7 @@
+2006-07-18  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Low-Level Network): Make menu more convenient.
+
 2006-07-18  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Forcing Redisplay): redisplay-preemption-period
