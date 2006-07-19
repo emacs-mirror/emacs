@@ -1,3 +1,13 @@
+2006-07-19  mathias  <mathias@mattis>
+
+	* tumme.el (tumme-display-thumbnail-original-image): Make sure
+	image display buffer is displayed before call to
+	`tumme-display-image.
+	(tumme-dired-display-image): Make sure image display buffer is
+	displayed before call to `tumme-display-image.
+	(tumme-mouse-display-image): Make sure image display buffer is
+	displayed before call to `tumme-display-image.
+
 2006-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-quoted-subshell): Fix last change.
