@@ -161,6 +161,10 @@
 
 (require 'dired)
 (require 'format-spec)
+(require 'widget)
+
+(eval-when-compile
+  (require 'wid-edit))
 
 (defgroup tumme nil
   "Use dired to browse your images as thumbnails, and more."
@@ -2425,6 +2429,104 @@ when using per-directory thumbnail file storage"))
         (delete-window (selected-window))
       (error nil))
     (kill-buffer buffer)))
+
+(defvar tumme-widget-list nil
+  "List to keep track of meta data in edit buffer")
+
+;;;###autoload
+(defun tumme-dired-edit-comment-and-tags ()
+  "Edit comment and tags of current or marked image files.
+Edit comment and tags for all marked image files in an
+easy-to-use form."
+  (interactive)
+  (setq tumme-widget-list nil)
+  ;; Setup buffer.
+  (let ((files (dired-get-marked-files)))
+    (switch-to-buffer "*Tumme Edit Meta Data*")
+    (kill-all-local-variables)
+    (make-local-variable 'widget-example-repeat)
+    (let ((inhibit-read-only t))
+      (erase-buffer))
+    (remove-overlays)
+    ;; Some help for the user.
+    (widget-insert 
+"\nEdit comments and tags for each image.  Separate multiple tags
+with a comma.  Move forward between fields using TAB or RET.
+Move to the previous field using backtab (S-TAB).  Save by
+activating the Save button at the bottom of the form or cancel
+the operation by activating the Cancel button.\n\n")
+    ;; Here comes all images and a comment and tag field for each
+    ;; image.
+    (let (thumb-file img comment-widget tag-widget)
+
+      (dolist (file files)
+
+       (setq thumb-file (tumme-thumb-name file)
+             img (create-image thumb-file))
+
+       (insert-image img)
+       (widget-insert "\n\nComment: ")
+       (setq comment-widget
+             (widget-create 'editable-field
+                            :size 60
+                            :format "%v "
+                            :value (or (tumme-get-comment file) "")))
+       (widget-insert "\nTags:    ")
+       (setq tag-widget
+             (widget-create 'editable-field
+                            :size 60
+                            :format "%v "
+                            :value (or (mapconcat
+                                        (lambda (tag)
+                                          tag)
+                                        (tumme-list-tags file)
+                                        ",") "")))
+       ;; Save information in all widgets so that we can use it when
+       ;; the user saves the form.
+       (setq tumme-widget-list 
+             (append tumme-widget-list 
+                     (list (list file comment-widget tag-widget))))
+       (widget-insert "\n\n")))
+
+    ;; Footer with Save and Cancel button.
+    (widget-insert "\n")
+    (widget-create 'push-button
+                 :notify 
+                 (lambda (&rest ignore)
+                   (tumme-save-information-from-widgets)
+                   (bury-buffer)
+                   (message "Done."))
+                 "Save")
+    (widget-insert " ")
+    (widget-create 'push-button
+                   :notify 
+                   (lambda (&rest ignore)
+                     (bury-buffer)
+                     (message "Operation canceled."))
+                   "Cancel")
+    (widget-insert "\n")
+    (use-local-map widget-keymap)
+    (widget-setup)
+    ;; Jump to the first widget.
+    (widget-forward 1)))
+
+(defun tumme-save-information-from-widgets ()
+  "Save information found in `tumme-widget-list'.
+Use the information in `tumme-widget-list' to save comments and
+tags to their respective image file.  Internal function used by
+`tumme-dired-edit-comment-and-tags'."
+  (mapc
+   (lambda (x)
+     (let ((file (car x))
+           (comment (widget-value (cadr x)))
+           (tags (widget-value (car (cddr x)))))
+       (tumme-write-comment file comment)
+       (mapc
+        (lambda (tag)
+          (tumme-write-tag file tag))
+        (split-string tags ","))))
+   tumme-widget-list))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
