@@ -1,3 +1,21 @@
+2006-07-18  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	[ Backported bug fixes from No Gnus. ]
+
+	* nnweb.el (nnweb-google-parse-1): Update regexp for author and date.
+	(nnweb-google-search): Respect nnweb-max-hits as upper bound.
+	(nnweb-request-article): Do proper xwfu encoding when fetching articles
+	by message-id.
+
+	* gnus-srvr.el (gnus-browse-unsubscribe-group): Don't subscribe
+	unsubscribed groups as if they were killed ones.  It causes duplicate
+	entries in gnus-newsrc-alist.
+
+2006-07-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-delete-article): Don't use TAB in doc
+	string.
+
 2006-07-16  NAKAJI Hiroyuki  <nakaji@heimat.jp>  (tiny change)
 
 	* mm-util.el (mm-charset-synonym-alist): Map windows-31j to cp932.
