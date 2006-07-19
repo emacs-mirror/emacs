@@ -1398,7 +1398,8 @@ font_merge_old_spec (name, family, registry, spec)
 	  p1 = index (p0, '-');
 	  if (p1)
 	    {
-	      if (NILP (AREF (spec, FONT_FOUNDRY_INDEX)))
+	      if ((*p0 != '*' || p1 - p0 > 1)
+		  && NILP (AREF (spec, FONT_FOUNDRY_INDEX)))
 		ASET (spec, FONT_FOUNDRY_INDEX,
 		      intern_downcase (p0, p1 - p0));
 	      if (NILP (AREF (spec, FONT_FAMILY_INDEX)))
@@ -1574,7 +1575,7 @@ parse_gsub_gpos_spec (spec, script, langsys, features)
 
 #define DEVICE_DELTA(table, size)				\
   (((size) >= (table).StartSize && (size) <= (table).EndSize)	\
-   ? (table).DeltaValue[(size) >= (table).StartSize]		\
+   ? (table).DeltaValue[(size) - (table).StartSize]		\
    : 0)
 
 void
@@ -1741,7 +1742,7 @@ font_otf_gpos (font, gpos_spec, gstring, from, to)
   for (i = 0, g = otf_gstring.glyphs; i < otf_gstring.used; i++, g++)
     {
       Lisp_Object prev;
-      int xoff = 0, yoff = 0,  width_adjust = 0;
+      int xoff = 0, yoff = 0, width_adjust = 0;
 
       if (! g->glyph_id)
 	continue;
@@ -1805,20 +1806,29 @@ font_otf_gpos (font, gpos_spec, gstring, from, to)
 		width = font->driver->text_extents (font, &code, 1, NULL);
 		LGLYPH_SET_WIDTH (prev, make_number (width));
 	      }
+	    else
+	      width = XINT (LGLYPH_WIDTH (prev));
 	    xoff = XINT (LGLYPH_XOFF (prev)) + (base_x - width) - mark_x;
 	    yoff = XINT (LGLYPH_YOFF (prev)) + mark_y - base_y;
 	  }
 	}
+
+      if (xoff || yoff || width_adjust)
+	{
+	  Lisp_Object adjustment = Fmake_vector (make_number (3), Qnil);
+
+	  ASET (adjustment, 0, make_number (xoff));
+	  ASET (adjustment, 1, make_number (yoff));
+	  ASET (adjustment, 2, make_number (width_adjust));
+	  LGLYPH_SET_ADJUSTMENT (glyph, adjustment);
+	}
+
       if (g->GlyphClass == OTF_GlyphClass0)
 	base = mark = glyph;
       else if (g->GlyphClass == OTF_GlyphClassMark)
 	mark = glyph;
       else
 	base = glyph;
-
-      LGLYPH_SET_XOFF (glyph, make_number (xoff));
-      LGLYPH_SET_YOFF (glyph, make_number (yoff));
-      LGLYPH_SET_WADJUST (glyph, make_number (width_adjust));
     }
 
   free (otf_gstring.glyphs);  
@@ -1831,9 +1841,9 @@ font_otf_gpos (font, gpos_spec, gstring, from, to)
 /* glyph-string handler */
 
 /* GSTRING is a vector of this form:
-	[ [FONT-OBJECT LBEARING RBEARING WITH ASCENT DESCENT] GLYPH ... ]
+	[ [FONT-OBJECT LBEARING RBEARING WIDTH ASCENT DESCENT] GLYPH ... ]
    and GLYPH is a vector of this form:
-	[ FROM-IDX TO-IDX C CODE X-OFF Y-OFF WIDTH WADJUST ]
+	[ FROM-IDX TO-IDX C CODE [ [X-OFF Y-OFF WIDTH WADJUST] | nil] ]
    where
 	FROM-IDX and TO-IDX are used internally and should not be touched.
 	C is a character of the glyph.
@@ -1866,10 +1876,10 @@ font_prepare_composition (cmp)
 
       font->driver->text_extents (font, &code, 1, &metrics);
       LGLYPH_SET_WIDTH (g, make_number (metrics.width));
-      metrics.lbearing += XINT (LGLYPH_XOFF (g));
-      metrics.rbearing += XINT (LGLYPH_XOFF (g));
-      metrics.ascent += XINT (LGLYPH_YOFF (g));
-      metrics.descent += XINT (LGLYPH_YOFF (g));
+      metrics.lbearing += LGLYPH_XOFF (g);
+      metrics.rbearing += LGLYPH_XOFF (g);
+      metrics.ascent += LGLYPH_YOFF (g);
+      metrics.descent += LGLYPH_YOFF (g);
 
       if (cmp->lbearing > cmp->pixel_width + metrics.lbearing)
 	cmp->lbearing = cmp->pixel_width + metrics.lbearing;
@@ -1879,7 +1889,7 @@ font_prepare_composition (cmp)
 	cmp->ascent = metrics.ascent;
       if (cmp->descent < metrics.descent)
 	cmp->descent = metrics.descent;
-      cmp->pixel_width += metrics.width + XINT (LGLYPH_WADJUST (g));
+      cmp->pixel_width += metrics.width + LGLYPH_WADJUST (g);
     }
   LGSTRING_SET_LBEARING (gstring, make_number (cmp->lbearing));
   LGSTRING_SET_RBEARING (gstring, make_number (cmp->rbearing));
