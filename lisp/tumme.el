@@ -1798,8 +1798,10 @@ With prefix argument ARG, display image in its original size."
           (message "No thumbnail at point")
         (if (not file)
             (message "No original file name found")
-          (tumme-display-image file arg)
-          (display-buffer tumme-display-image-buffer))))))
+	  (tumme-create-display-image-buffer)
+          (display-buffer tumme-display-image-buffer)
+          (tumme-display-image file arg))))))
+
 
 ;;;###autoload
 (defun tumme-dired-display-image (&optional arg)
@@ -1807,8 +1809,9 @@ With prefix argument ARG, display image in its original size."
 See documentation for `tumme-display-image' for more information.
 With prefix argument ARG, display image in its original size."
   (interactive "P")
-  (tumme-display-image (dired-get-filename) arg)
-  (display-buffer tumme-display-image-buffer))
+  (tumme-create-display-image-buffer)
+  (display-buffer tumme-display-image-buffer)
+  (tumme-display-image (dired-get-filename) arg))
 
 (defun tumme-image-at-point-p ()
   "Return true if there is a tumme thumbnail at point."
@@ -2153,6 +2156,8 @@ non-nil."
     (setq file (tumme-original-file-name))
     (if tumme-track-movement
         (tumme-track-original-file))
+    (tumme-create-display-image-buffer)
+    (display-buffer tumme-display-image-buffer)
     (tumme-display-image file)))
 
 (defun tumme-mouse-select-thumbnail (event)
