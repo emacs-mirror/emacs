@@ -7,6 +7,9 @@
 	displayed before call to `tumme-display-image.
 	(tumme-mouse-display-image): Make sure image display buffer is
 	displayed before call to `tumme-display-image.
+	(tumme-widget-list): Add.
+	(tumme-dired-edit-comment-and-tags): Add.
+	(tumme-save-information-from-widgets): Add.
 
 2006-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
