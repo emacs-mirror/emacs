@@ -1,5 +1,8 @@
 2006-07-19  Mathias Dahl  <mathias.dahl@gmail.com>
 
+	* dired.el (dired-mode-map): Add key binding `C-te' for
+	`tumme-dired-edit-comment-and-tags'.
+
 	* tumme.el (tumme-display-thumbnail-original-image): Make sure
 	image display buffer is displayed before call to
 	`tumme-display-image.
