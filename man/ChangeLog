@@ -1,3 +1,8 @@
+2006-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faq.texi (Security risks with Emacs): Document Emacs 22
+	file-local-variable mechanism.
+
 2006-07-17  Richard Stallman  <rms@gnu.org>
 
 	* building.texi (Grep Searching): Explain about chaining grep commands.

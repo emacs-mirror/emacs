@@ -3125,14 +3125,12 @@ arbitrary Emacs Lisp code evaluated when the file is visited.
 Obviously, there is a potential for Trojan horses to exploit this
 feature.
 
-Emacs 18 allowed this feature by default; users could disable it by
-setting the variable @code{inhibit-local-variables} to a non-@code{nil} value.
-
-As of Emacs 19, Emacs has a list of local variables that create a
-security risk.  If a file tries to set one of them, it asks the user to
-confirm whether the variables should be set.  You can also tell Emacs
-whether to allow the evaluation of Emacs Lisp code found at the bottom
-of files by setting the variable @code{enable-local-eval}.
+As of Emacs 22, Emacs has a list of local variables that are known to
+be safe to set.  If a file tries to set any variable outside this
+list, it asks the user to confirm whether the variables should be set.
+You can also tell Emacs whether to allow the evaluation of Emacs Lisp
+code found at the bottom of files by setting the variable
+@code{enable-local-eval}.
 
 For more information, @inforef{File Variables, File Variables, emacs}.
 
