@@ -1,5 +1,7 @@
 2006-07-18  Richard Stallman  <rms@gnu.org>
 
+	* display.texi (Forcing Redisplay): Cleanups in previous change.
+
 	* processes.texi (Low-Level Network): Make menu more convenient.
 
 2006-07-18  Kim F. Storm  <storm@cua.dk>
