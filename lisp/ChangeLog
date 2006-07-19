@@ -1,3 +1,11 @@
+2006-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist) <gnu>:
+	Try to rule out false positives due to time stamps.
+	(compilation-mode-font-lock-keywords): Remove rules made redundant
+	because of the above change.  Add `segmentation fault' to the known and
+	highlighted compilation termination messages.
+
 2006-07-19  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/grep.el (grep-find-ignored-directories):
