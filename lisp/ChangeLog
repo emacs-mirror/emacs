@@ -1,4 +1,4 @@
-2006-07-19  mathias  <mathias@mattis>
+2006-07-19  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-display-thumbnail-original-image): Make sure
 	image display buffer is displayed before call to
