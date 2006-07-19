@@ -985,7 +985,7 @@ Point is at the beginning of the next line."
   ;; FIXME: This can (and often does) match multiple lines, yet it makes no
   ;; effort to handle multiline cases correctly, so it ends up being
   ;; rather flakey.
-  (if (re-search-forward "\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(\\\\\\\\\\)*\\)?\\(\\$(\\|`\\)" limit t)
+  (if (re-search-forward "\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)" limit t)
       ;; bingo we have a $( or a ` inside a ""
       (let ((char (char-after (point)))
             (continue t)
