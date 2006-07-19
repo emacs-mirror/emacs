@@ -7170,8 +7170,7 @@ function `define-coding-system'.  */)
     }
   if (!NILP (Fcoding_system_p (coding_system)))
     return coding_system;
-  while (1)
-    Fsignal (Qcoding_system_error, Fcons (coding_system, Qnil));
+  xsignal1 (Qcoding_system_error, coding_system);
 }
 
 

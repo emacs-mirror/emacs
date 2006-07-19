@@ -4384,7 +4384,7 @@ idlwave-shell-electric-debug-mode-map)
      ["Edit Default Cmd" idlwave-shell-edit-default-command-line t])
     ("Breakpoints"
      ["Set Breakpoint" idlwave-shell-break-here 
-      :keys "C-c C-d C-c" :active (eq major-mode 'idlwave-mode)]
+      :keys "C-c C-d C-b" :active (eq major-mode 'idlwave-mode)]
      ("Set Special Breakpoint"
       ["Set After Count Breakpoint"
        (progn

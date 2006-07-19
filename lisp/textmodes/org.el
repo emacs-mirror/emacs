@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.42
+;; Version: 4.43
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -90,6 +90,9 @@
 ;;
 ;; Recent changes
 ;; --------------
+;; Version 4.43
+;;    - Big fixes
+;;
 ;; Version 4.42
 ;;    - Bug fixes
 ;;    - `s' key in the agenda saves all org-mode buffers.
@@ -209,7 +212,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.42"
+(defvar org-version "4.43"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -4700,12 +4703,13 @@ the children that do not contain any open TODO items."
 	(pc '(:org-comment t))
 	(pall '(:org-archived t :org-comment t))
 	(rea (concat ":" org-archive-tag ":"))
-	file re)
+	bmp file re)
     (save-excursion
       (while (setq file (pop files))
 	(org-check-agenda-file file)
 	(set-buffer (org-get-agenda-file-buffer file))
 	(widen)
+	(setq bmp (buffer-modified-p))
 	(save-excursion
 	  (remove-text-properties (point-min) (point-max) pall)
 	  (when org-agenda-skip-archived-trees
@@ -4717,7 +4721,8 @@ the children that do not contain any open TODO items."
 	  (setq re (concat "^\\*+ +" org-comment-string "\\>"))
 	  (while (re-search-forward re nil t)
 	    (add-text-properties
-	     (match-beginning 0) (org-end-of-subtree t) pc)))))))
+	     (match-beginning 0) (org-end-of-subtree t) pc)))
+	(set-buffer-modified-p bmp)))))
 
 (defun org-agenda-skip ()
   "Throw to `:skip' in places that should be skipped."
@@ -7432,9 +7437,11 @@ the documentation of `org-diary'."
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (catch :skip
-	(and org-agenda-todo-ignore-scheduled
-	     (looking-at sched-re)
-	     (throw :skip nil))
+	(when (and org-agenda-todo-ignore-scheduled
+		   (looking-at sched-re))
+	  ;; FIXME: the following test also happens below, but we need it here
+	  (or org-agenda-todo-list-sublevels (org-end-of-subtree 'invisible))
+	  (throw :skip nil))
 	(org-agenda-skip)
 	(goto-char (match-beginning 1))
 	(setq marker (org-agenda-new-marker (1+ (match-beginning 0)))
@@ -8696,7 +8703,7 @@ With prefix ARG, realign all tags in headings in the current buffer."
 				   nil nil current 'org-tags-history))))
 	(while (string-match "[-+&]+" tags)
 	  (setq tags (replace-match ":" t t tags))))
-
+      
       (unless (setq empty (string-match "\\`[\t ]*\\'" tags))
 	(unless (string-match ":$" tags) (setq tags (concat tags ":")))
 	(unless (string-match "^:" tags) (setq tags (concat ":" tags))))

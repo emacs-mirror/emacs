@@ -496,7 +496,6 @@ static int font_scalable_p P_ ((struct font_name *));
 static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *, int));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
 static unsigned char *xstrlwr P_ ((unsigned char *));
-static void signal_error P_ ((char *, Lisp_Object));
 static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
 static void load_face_font P_ ((struct frame *, struct face *));
 static void load_face_colors P_ ((struct frame *, struct face *, Lisp_Object *));
@@ -863,17 +862,6 @@ xstrlwr (s)
 }
 
 
-/* Signal `error' with message S, and additional argument ARG.  */
-
-static void
-signal_error (s, arg)
-     char *s;
-     Lisp_Object arg;
-{
-  Fsignal (Qerror, Fcons (build_string (s), Fcons (arg, Qnil)));
-}
-
-
 /* If FRAME is nil, return a pointer to the selected frame.
    Otherwise, check that FRAME is a live frame, and return a pointer
    to it.  NPARAM is the parameter number of FRAME, for
@@ -1182,14 +1170,11 @@ load_pixmap (f, name, w_ptr, h_ptr)
      unsigned int *w_ptr, *h_ptr;
 {
   int bitmap_id;
-  Lisp_Object tem;
 
   if (NILP (name))
     return 0;
 
-  tem = Fbitmap_spec_p (name);
-  if (NILP (tem))
-    wrong_type_argument (Qbitmap_spec_p, name);
+  CHECK_TYPE (!NILP (Fbitmap_spec_p (name)), Qbitmap_spec_p, name);
 
   BLOCK_INPUT;
   if (CONSP (name))
@@ -3409,7 +3394,7 @@ resolve_face_name (face_name, signal_p)
       if (EQ (hare, tortoise))
 	{
 	  if (signal_p)
-	    Fsignal (Qcircular_list, Fcons (orig_face, Qnil));
+	    xsignal1 (Qcircular_list, orig_face);
 	  return Qdefault;
 	}
     }

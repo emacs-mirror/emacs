@@ -1361,6 +1361,7 @@ With prefix arg, indent to that column."
   (interactive)
   (let ((M (cond ((eq cua--rectangle-modifier-key 'hyper) " H-")
 		 ((eq cua--rectangle-modifier-key 'super) " s-")
+		 ((eq cua--rectangle-modifier-key 'alt) " A-")
 		 (t " M-"))))
     (message
      (concat (if help "C-?:help" "")

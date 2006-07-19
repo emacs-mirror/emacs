@@ -242,6 +242,9 @@ static int inhibit_local_menu_bar_menus;
 /* Nonzero means C-g should cause immediate error-signal.  */
 int immediate_quit;
 
+/* The user's hook function for outputting an error message.  */
+Lisp_Object Vcommand_error_function;
+
 /* The user's ERASE setting.  */
 Lisp_Object Vtty_erase_char;
 
@@ -1003,7 +1006,7 @@ recursive_edit_1 ()
   /* Handle throw from read_minibuf when using minibuffer
      while it's active but we're in another window.  */
   if (STRINGP (val))
-    Fsignal (Qerror, Fcons (val, Qnil));
+    xsignal1 (Qerror, val);
 
   return unbind_to (count, Qnil);
 }
@@ -1230,52 +1233,47 @@ cmd_error_internal (data, context)
      Lisp_Object data;
      char *context;
 {
-  Lisp_Object stream;
-  int kill_emacs_p = 0;
   struct frame *sf = SELECTED_FRAME ();
-
-  Vquit_flag = Qnil;
-  Vinhibit_quit = Qt;
-  clear_message (1, 0);
-
-  /* If the window system or terminal frame hasn't been initialized
-     yet, or we're not interactive, it's best to dump this message out
-     to stderr and exit.  */
-  if (!sf->glyphs_initialized_p
-      /* This is the case of the frame dumped with Emacs, when we're
-	 running under a window system.  */
-      || (!NILP (Vwindow_system)
-	  && !inhibit_window_system
-	  && FRAME_TERMCAP_P (sf))
-      || noninteractive)
-    {
-      stream = Qexternal_debugging_output;
-      kill_emacs_p = 1;
-    }
-  else
-    {
-      Fdiscard_input ();
-      message_log_maybe_newline ();
-      bitch_at_user ();
-      stream = Qt;
-    }
 
   /* The immediate context is not interesting for Quits,
      since they are asyncronous.  */
   if (EQ (XCAR (data), Qquit))
     Vsignaling_function = Qnil;
 
-  print_error_message (data, stream, context, Vsignaling_function);
+  Vquit_flag = Qnil;
+  Vinhibit_quit = Qt;
 
-  Vsignaling_function = Qnil;
-
+  /* Use user's specified output function if any.  */
+  if (!NILP (Vcommand_error_function))
+    call3 (Vcommand_error_function, data,
+	   build_string (context ? context : ""),
+	   Vsignaling_function);
   /* If the window system or terminal frame hasn't been initialized
-     yet, or we're in -batch mode, this error should cause Emacs to exit.  */
-  if (kill_emacs_p)
+     yet, or we're not interactive, write the message to stderr and exit.  */
+  else if (!sf->glyphs_initialized_p
+	   /* This is the case of the frame dumped with Emacs, when we're
+	      running under a window system.  */
+	   || (!NILP (Vwindow_system)
+	       && !inhibit_window_system
+	       && FRAME_TERMCAP_P (sf))
+	   || noninteractive)
     {
-      Fterpri (stream);
+      print_error_message (data, Qexternal_debugging_output,
+			   context, Vsignaling_function);
+      Fterpri (Qexternal_debugging_output);
       Fkill_emacs (make_number (-1));
     }
+  else
+    {
+      clear_message (1, 0);
+      Fdiscard_input ();
+      message_log_maybe_newline ();
+      bitch_at_user ();
+
+      print_error_message (data, Qt, context, Vsignaling_function);
+    }
+
+  Vsignaling_function = Qnil;
 }
 
 Lisp_Object command_loop_1 ();
@@ -1490,7 +1488,8 @@ command_loop_1 ()
 	  int count = SPECPDL_INDEX ();
 	  specbind (Qinhibit_quit, Qt);
 
-	  Fsit_for (Vminibuffer_message_timeout, Qnil, Qnil);
+	  sit_for (Vminibuffer_message_timeout, 0, 2);
+
 	  /* Clear the echo area.  */
 	  message2 (0, 0, 0);
 	  safe_run_hooks (Qecho_area_clear_hook);
@@ -2689,8 +2688,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  /* Or not echoing before and echoing allowed.  */
 	  || (!echo_kboard && ok_to_echo_at_next_pause)))
     {
-      Lisp_Object tem0;
-
       /* After a mouse event, start echoing right away.
 	 This is because we are probably about to display a menu,
 	 and we don't want to delay before doing so.  */
@@ -2698,13 +2695,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	echo_now ();
       else
 	{
-	  int sec, usec;
-	  double duration = extract_float (Vecho_keystrokes);
-	  sec = (int) duration;
-	  usec = (duration - sec) * 1000000;
+	  Lisp_Object tem0;
+
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
-	  tem0 = sit_for (sec, usec, 1, 1, 0);
+	  tem0 = sit_for (Vecho_keystrokes, 1, 1);
 	  restore_getcjmp (save_jump);
 	  if (EQ (tem0, Qt)
 	      && ! CONSP (Vunread_command_events))
@@ -2771,11 +2766,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  && XINT (Vauto_save_timeout) > 0)
 	{
 	  Lisp_Object tem0;
+	  int timeout = delay_level * XFASTINT (Vauto_save_timeout) / 4;
 
 	  save_getcjmp (save_jump);
 	  restore_getcjmp (local_getcjmp);
-	  tem0 = sit_for (delay_level * XFASTINT (Vauto_save_timeout) / 4,
-			  0, 1, 1, 0);
+	  tem0 = sit_for (make_number (timeout), 1, 1);
 	  restore_getcjmp (save_jump);
 
 	  if (EQ (tem0, Qt)
@@ -8387,7 +8382,7 @@ access_keymap_keyremap (map, key, prompt, do_funcall)
   /* Handle a symbol whose function definition is a keymap
      or an array.  */
   if (SYMBOLP (next) && !NILP (Ffboundp (next))
-      && (!NILP (Farrayp (XSYMBOL (next)->function))
+      && (ARRAYP (XSYMBOL (next)->function)
 	  || KEYMAPP (XSYMBOL (next)->function)))
     next = XSYMBOL (next)->function;
 
@@ -9767,7 +9762,13 @@ a special event, so ignore the prefix argument and don't clear it.  */)
 
 DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_command,
        1, 1, "P",
-       doc: /* Read function name, then read its arguments and call it.  */)
+       doc: /* Read function name, then read its arguments and call it.
+
+To pass a numeric argument to the command you are invoking with, specify
+the numeric argument to this command.
+
+Noninteractively, the argument PREFIXARG is the prefix argument to
+give to the command you invoke, if it asks for an argument.  */)
      (prefixarg)
      Lisp_Object prefixarg;
 {
@@ -9873,19 +9874,18 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 				      Qmouse_movement)))
     {
       /* But first wait, and skip the message if there is input.  */
-      int delay_time;
-      if (!NILP (echo_area_buffer[0]))
-	/* This command displayed something in the echo area;
-	   so wait a few seconds, then display our suggestion message.  */
-	delay_time = (NUMBERP (Vsuggest_key_bindings)
-		      ? XINT (Vsuggest_key_bindings) : 2);
-      else
-	/* This command left the echo area empty,
-	   so display our message immediately.  */
-	delay_time = 0;
+      Lisp_Object waited;
 
-      if (!NILP (Fsit_for (make_number (delay_time), Qnil, Qnil))
-	  && ! CONSP (Vunread_command_events))
+      /* If this command displayed something in the echo area;
+	 wait a few seconds, then display our suggestion message.  */
+      if (NILP (echo_area_buffer[0]))
+	waited = sit_for (make_number (0), 0, 2);
+      else if (NUMBERP (Vsuggest_key_bindings))
+	waited = sit_for (Vminibuffer_message_timeout, 0, 2);
+      else
+	waited = sit_for (make_number (2), 0, 2);
+
+      if (!NILP (waited) && ! CONSP (Vunread_command_events))
 	{
 	  Lisp_Object binding;
 	  char *newmessage;
@@ -9905,10 +9905,12 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  message2_nolog (newmessage,
 			  strlen (newmessage),
 			  STRING_MULTIBYTE (binding));
-	  if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
-				? Vsuggest_key_bindings : make_number (2)),
-			       Qnil, Qnil))
-	      && message_p)
+	  if (NUMBERP (Vsuggest_key_bindings))
+	    waited = sit_for (Vsuggest_key_bindings, 0, 2);
+	  else
+	    waited = sit_for (make_number (2), 0, 2);
+
+	  if (!NILP (waited) && message_p)
 	    restore_message ();
 
 	  unbind_to (count, Qnil);
@@ -11478,6 +11480,15 @@ If the value is not a number, such messages don't time out.  */);
 The value of that variable is passed to `quit-flag' and later causes a
 peculiar kind of quitting.  */);
   Vthrow_on_input = Qnil;
+
+  DEFVAR_LISP ("command-error-function", &Vcommand_error_function,
+	       doc: /* If non-nil, function to output error messages.
+The arguments are the error data, a list of the form
+ (SIGNALED-CONDITIONS . SIGNAL-DATA)
+such as just as `condition-case' would bind its variable to,
+the context (a string which normally goes at the start of the message),
+and the Lisp function within which the error was signaled.  */);
+  Vcommand_error_function = Qnil;
 
   DEFVAR_LISP ("enable-disabled-menus-and-buttons",
 	       &Venable_disabled_menus_and_buttons,

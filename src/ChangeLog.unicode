@@ -1,3 +1,7 @@
+2006-07-18  Miles Bader  <miles@gnu.org>
+
+	* character.h (CHECK_CHARACTER): Redefine in terms of CHECK_TYPE.
+
 2006-07-14  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (LGLYPH_XOFF, LGLYPH_YOFF, LGLYPH_WIDTH, LGLYPH_WADJUST)

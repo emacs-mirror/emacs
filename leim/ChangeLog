@@ -1,3 +1,8 @@
+2006-07-12  David Kastrup  <dak@gnu.org>
+
+	* quail/greek.el: Change iota subscriptum transliteration in
+	Ibycus4 encoding's capitals from "i" to "|".
+
 2006-03-03  Claudio Fontana  <claudio@gnu.org>
 
 	* Makefile.in (install): Add DESTDIR variable to support staged

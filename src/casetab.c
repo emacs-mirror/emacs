@@ -1,5 +1,5 @@
 /* GNU Emacs routines to deal with case tables.
-   Copyright (C) 1993, 1994, 2002, 2003, 2004, 
+   Copyright (C) 1993, 1994, 2002, 2003, 2004,
                  2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -67,10 +67,7 @@ static Lisp_Object
 check_case_table (obj)
      Lisp_Object obj;
 {
-  register Lisp_Object tem;
-
-  while (tem = Fcase_table_p (obj), NILP (tem))
-    obj = wrong_type_argument (Qcase_table_p, obj);
+  CHECK_TYPE (!NILP (Fcase_table_p (obj)), Qcase_table_p, obj);
   return (obj);
 }
 

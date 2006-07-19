@@ -2895,7 +2895,8 @@ With \\[universal-argument], pop all element."
   "Insert file name of current buffer.
 If repeated, insert text from buffer instead."
   (interactive "P")
-  (let* ((bfname (buffer-file-name ido-entry-buffer))
+  (let* ((bfname (or (buffer-file-name ido-entry-buffer)
+		     (buffer-name ido-entry-buffer)))
 	 (name (and bfname (file-name-nondirectory bfname))))
     (when name
       (setq ido-text-init

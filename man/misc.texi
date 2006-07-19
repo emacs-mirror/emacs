@@ -1348,6 +1348,11 @@ in the line.
 Emacs sends a message to the @code{emacsclient} program telling it to
 return.
 
+  If you invoke @code{emacsclient} for more than one file, the
+additional client buffers are buried at the bottom of the buffer list
+(@pxref{Buffers}).  If you call @kbd{C-x #} after you are done editing
+a client buffer, the next client buffer is automatically selected.
+
   But if you use the option @samp{-n} or @samp{--no-wait} when running
 @code{emacsclient}, then it returns immediately.  (You can take as
 long as you like to edit the files in Emacs.)
