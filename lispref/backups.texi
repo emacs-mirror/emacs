@@ -122,7 +122,6 @@ its value.  Major modes should not set this variable---they should set
 @end defvar
 
 @defvar backup-directory-alist
-@tindex backup-directory-alist
 This variable's value is an alist of filename patterns and backup
 directory names.  Each element looks like
 @smallexample
@@ -150,7 +149,6 @@ ignored.
 @end defvar
 
 @defvar make-backup-file-name-function
-@tindex make-backup-file-name-function
 This variable's value is a function to use for making backups instead
 of the default @code{make-backup-file-name}.  A value of @code{nil}
 gives the default @code{make-backup-file-name} behavior.
@@ -654,7 +652,6 @@ host name.
 @end defvar
 
 @defvar auto-save-list-file-prefix
-@tindex auto-save-list-file-prefix
 After Emacs reads your init file, it initializes
 @code{auto-save-list-file-name} (if you have not already set it
 non-@code{nil}) based on this prefix, adding the host name and process

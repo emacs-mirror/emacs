@@ -733,7 +733,7 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
   if (INTEGERP (function))
     /* We have to stop integers early since map_keymap gives them special
        significance.  */
-    Fsignal (Qinvalid_function, Fcons (function, Qnil));
+    xsignal1 (Qinvalid_function, function);
   if (! NILP (sort_first))
     return call3 (intern ("map-keymap-internal"), function, keymap, Qt);
 
@@ -1161,8 +1161,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
   GCPRO3 (keymap, key, def);
   keymap = get_keymap (keymap, 1, 1);
 
-  if (!VECTORP (key) && !STRINGP (key))
-    key = wrong_type_argument (Qarrayp, key);
+  CHECK_VECTOR_OR_STRING (key);
 
   length = XFASTINT (Flength (key));
   if (length == 0)
@@ -1282,8 +1281,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
   GCPRO2 (keymap, key);
   keymap = get_keymap (keymap, 1, 1);
 
-  if (!VECTORP (key) && !STRINGP (key))
-    key = wrong_type_argument (Qarrayp, key);
+  CHECK_VECTOR_OR_STRING (key);
 
   length = XFASTINT (Flength (key));
   if (length == 0)

@@ -555,11 +555,9 @@ x_get_local_selection (selection_symbol, target_type, local_request)
 		&& INTEGERP (XCAR (XCDR (check)))
 		&& NILP (XCDR (XCDR (check))))))
     return value;
-  else
-    return
-      Fsignal (Qerror,
-	       Fcons (build_string ("invalid data returned by selection-conversion function"),
-		      Fcons (handler_fn, Fcons (value, Qnil))));
+
+  signal_error ("Invalid data returned by selection-conversion function",
+		list2 (handler_fn, value));
 }
 
 /* Subroutines of x_reply_selection_request.  */
@@ -1348,8 +1346,7 @@ copy_multiple_data (obj)
       CHECK_VECTOR (vec2);
       if (XVECTOR (vec2)->size != 2)
 	/* ??? Confusing error message */
-	Fsignal (Qerror, Fcons (build_string ("vectors must be of length 2"),
-				Fcons (vec2, Qnil)));
+	signal_error ("Vectors must be of length 2", vec2);
       XVECTOR (vec)->contents [i] = Fmake_vector (2, Qnil);
       XVECTOR (XVECTOR (vec)->contents [i])->contents [0]
 	= XVECTOR (vec2)->contents [0];
@@ -1717,19 +1714,15 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
       there_is_a_selection_owner
 	= XGetSelectionOwner (display, selection_atom);
       UNBLOCK_INPUT;
-      Fsignal (Qerror,
-	       there_is_a_selection_owner
-	       ? Fcons (build_string ("selection owner couldn't convert"),
-			actual_type
-			? Fcons (target_type,
-				 Fcons (x_atom_to_symbol (display,
-							  actual_type),
-					Qnil))
-			: Fcons (target_type, Qnil))
-	       : Fcons (build_string ("no selection"),
-			Fcons (x_atom_to_symbol (display,
-						 selection_atom),
-			       Qnil)));
+      if (there_is_a_selection_owner)
+	signal_error ("Selection owner couldn't convert",
+		      actual_type
+		      ? list2 (target_type,
+			       x_atom_to_symbol (display, actual_type))
+		      : target_type);
+      else
+	signal_error ("No selection",
+		      x_atom_to_symbol (display, selection_atom));
     }
 
   if (actual_type == dpyinfo->Xatom_INCR)
@@ -1929,10 +1922,7 @@ lisp_data_to_selection_data (display, obj,
     {
       if (SCHARS (obj) < SBYTES (obj))
 	/* OBJ is a multibyte string containing a non-ASCII char.  */
-	Fsignal (Qerror, /* Qselection_error */
-		 Fcons (build_string
-			("Non-ASCII string must be encoded in advance"),
-			Fcons (obj, Qnil)));
+	signal_error ("Non-ASCII string must be encoded in advance", obj);
       if (NILP (type))
 	type = QSTRING;
       *format_ret = 8;
@@ -1993,10 +1983,7 @@ lisp_data_to_selection_data (display, obj,
 	      (*(Atom **) data_ret) [i]
 		= symbol_to_x_atom (dpyinfo, display, XVECTOR (obj)->contents [i]);
 	    else
-	      Fsignal (Qerror, /* Qselection_error */
-		       Fcons (build_string
-		   ("all elements of selection vector must have same type"),
-			      Fcons (obj, Qnil)));
+	      signal_error ("All elements of selection vector must have same type", obj);
 	}
 #if 0 /* #### MULTIPLE doesn't work yet */
       else if (VECTORP (XVECTOR (obj)->contents [0]))
@@ -2012,10 +1999,9 @@ lisp_data_to_selection_data (display, obj,
 	      {
 		Lisp_Object pair = XVECTOR (obj)->contents [i];
 		if (XVECTOR (pair)->size != 2)
-		  Fsignal (Qerror,
-			   Fcons (build_string
-       ("elements of the vector must be vectors of exactly two elements"),
-				  Fcons (pair, Qnil)));
+		  signal_error (
+	"Elements of the vector must be vectors of exactly two elements",
+				pair);
 
 		(*(Atom **) data_ret) [i * 2]
 		  = symbol_to_x_atom (dpyinfo, display,
@@ -2025,10 +2011,8 @@ lisp_data_to_selection_data (display, obj,
 				      XVECTOR (pair)->contents [1]);
 	      }
 	    else
-	      Fsignal (Qerror,
-		       Fcons (build_string
-		   ("all elements of the vector must be of the same type"),
-			      Fcons (obj, Qnil)));
+	      signal_error ("All elements of the vector must be of the same type",
+			    obj);
 
 	}
 #endif
@@ -2043,10 +2027,9 @@ lisp_data_to_selection_data (display, obj,
 	    if (CONSP (XVECTOR (obj)->contents [i]))
 	      *format_ret = 32;
 	    else if (!INTEGERP (XVECTOR (obj)->contents [i]))
-	      Fsignal (Qerror, /* Qselection_error */
-		       Fcons (build_string
-	("elements of selection vector must be integers or conses of integers"),
-			      Fcons (obj, Qnil)));
+	      signal_error (/* Qselection_error */
+    "Elements of selection vector must be integers or conses of integers",
+			    obj);
 
           /* Use sizeof(long) even if it is more than 32 bits.  See comment
              in x_get_window_property and x_fill_property_data.  */
@@ -2063,9 +2046,7 @@ lisp_data_to_selection_data (display, obj,
 	}
     }
   else
-    Fsignal (Qerror, /* Qselection_error */
-	     Fcons (build_string ("unrecognized selection data"),
-		    Fcons (obj, Qnil)));
+    signal_error (/* Qselection_error */ "Unrecognized selection data", obj);
 
   *type_ret = symbol_to_x_atom (dpyinfo, display, type);
 }
@@ -2351,15 +2332,13 @@ initialize_cut_buffers (display, window)
 
 
 #define CHECK_CUT_BUFFER(symbol)					\
-  { CHECK_SYMBOL ((symbol));					\
+  do { CHECK_SYMBOL ((symbol));					\
     if (!EQ((symbol), QCUT_BUFFER0) && !EQ((symbol), QCUT_BUFFER1)	\
 	&& !EQ((symbol), QCUT_BUFFER2) && !EQ((symbol), QCUT_BUFFER3)	\
 	&& !EQ((symbol), QCUT_BUFFER4) && !EQ((symbol), QCUT_BUFFER5)	\
 	&& !EQ((symbol), QCUT_BUFFER6) && !EQ((symbol), QCUT_BUFFER7))	\
-      Fsignal (Qerror,							\
-	       Fcons (build_string ("doesn't name a cut buffer"),	\
-			     Fcons ((symbol), Qnil)));			\
-  }
+      signal_error ("Doesn't name a cut buffer", (symbol));		\
+  } while (0)
 
 DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
        Sx_get_cut_buffer_internal, 1, 1, 0,
@@ -2392,10 +2371,9 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
     return Qnil;
 
   if (format != 8 || type != XA_STRING)
-    Fsignal (Qerror,
-	     Fcons (build_string ("cut buffer doesn't contain 8-bit data"),
-		    Fcons (x_atom_to_symbol (display, type),
-			   Fcons (make_number (format), Qnil))));
+    signal_error ("Cut buffer doesn't contain 8-bit data",
+		  list2 (x_atom_to_symbol (display, type),
+			 make_number (format)));
 
   ret = (bytes ? make_unibyte_string ((char *) data, bytes) : Qnil);
   /* Use xfree, not XFree, because x_get_window_property

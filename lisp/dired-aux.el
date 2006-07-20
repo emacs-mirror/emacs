@@ -745,19 +745,22 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	   ;;; We don't recognize the file as compressed, so compress it.
 	   ;;; Try gzip; if we don't have that, use compress.
 	   (condition-case nil
-	       (if (not (dired-check-process (concat "Compressing " file)
-					     "gzip" "-f" file))
-		   (let ((out-name
-			  (if (file-exists-p (concat file ".gz"))
-			      (concat file ".gz")
-			    (concat file ".z"))))
-		     ;; Rename the compressed file to NEWNAME
-		     ;; if it hasn't got that name already.
-		     (if (and newname (not (equal newname out-name)))
-			 (progn
-			   (rename-file out-name newname t)
-			   newname)
-		       out-name)))
+	       (let ((out-name (concat file ".gz")))
+		 (and (or (not (file-exists-p out-name))
+			  (y-or-n-p
+			   (format "File %s already exists.  Really compress? "
+				   out-name)))
+		      (not (dired-check-process (concat "Compressing " file)
+						"gzip" "-f" file))
+		      (or (file-exists-p out-name)
+			  (setq out-name (concat file ".z")))
+		      ;; Rename the compressed file to NEWNAME
+		      ;; if it hasn't got that name already.
+		      (if (and newname (not (equal newname out-name)))
+			  (progn
+			    (rename-file out-name newname t)
+			    newname)
+			out-name)))
 	     (file-error
 	      (if (not (dired-check-process (concat "Compressing " file)
 					    "compress" "-f" file))

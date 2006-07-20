@@ -351,8 +351,9 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
 ;;;###autoload
 (defun hexl-find-file (filename)
-  "Edit file FILENAME in `hexl-mode'.
-Switch to a buffer visiting file FILENAME, creating one in none exists."
+  "Edit file FILENAME as a binary file in hex dump format.
+Switch to a buffer visiting file FILENAME, creating one if none exists,
+and edit the file in `hexl-mode'."
   (interactive
    (list
     (let ((completion-ignored-extensions nil))

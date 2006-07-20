@@ -24,7 +24,7 @@ unexec (char *new_name, char *old_name, unsigned int data_start,
   errstring = code_convert_string_norecord (build_string (dlerror ()),
 					    Vlocale_coding_system, 0);
 
-  Fsignal (Qfile_error,
+  xsignal (Qfile_error,
 	   Fcons (build_string ("Cannot unexec"), Fcons (errstring, data)));
 }
 

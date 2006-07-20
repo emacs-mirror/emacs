@@ -105,7 +105,7 @@ void
 circular_list_error (list)
      Lisp_Object list;
 {
-  Fsignal (Qcircular_list, list);
+  xsignal (Qcircular_list, list);
 }
 
 
@@ -113,26 +113,12 @@ Lisp_Object
 wrong_type_argument (predicate, value)
      register Lisp_Object predicate, value;
 {
-  register Lisp_Object tem;
-  do
-    {
-      /* If VALUE is not even a valid Lisp object, abort here
-	 where we can get a backtrace showing where it came from.  */
-      if ((unsigned int) XGCTYPE (value) >= Lisp_Type_Limit)
-	abort ();
+  /* If VALUE is not even a valid Lisp object, abort here
+     where we can get a backtrace showing where it came from.  */
+  if ((unsigned int) XGCTYPE (value) >= Lisp_Type_Limit)
+    abort ();
 
-      value = Fsignal (Qwrong_type_argument, Fcons (predicate, Fcons (value, Qnil)));
-      tem = call1 (predicate, value);
-    }
-  while (NILP (tem));
-  /* This function is marked as NO_RETURN, gcc would warn if it has a
-     return statement or if falls off the function.  Other compilers
-     warn if no return statement is present.  */
-#ifndef __GNUC__
-  return value;
-#else
-  abort ();
-#endif
+  xsignal2 (Qwrong_type_argument, predicate, value);
 }
 
 void
@@ -145,16 +131,14 @@ void
 args_out_of_range (a1, a2)
      Lisp_Object a1, a2;
 {
-  while (1)
-    Fsignal (Qargs_out_of_range, Fcons (a1, Fcons (a2, Qnil)));
+  xsignal2 (Qargs_out_of_range, a1, a2);
 }
 
 void
 args_out_of_range_3 (a1, a2, a3)
      Lisp_Object a1, a2, a3;
 {
-  while (1)
-    Fsignal (Qargs_out_of_range, Fcons (a1, Fcons (a2, Fcons (a3, Qnil))));
+  xsignal3 (Qargs_out_of_range, a1, a2, a3);
 }
 
 /* On some machines, XINT needs a temporary location.
@@ -394,8 +378,7 @@ DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0,
      (object)
      Lisp_Object object;
 {
-  if (VECTORP (object) || STRINGP (object)
-      || CHAR_TABLE_P (object) || BOOL_VECTOR_P (object))
+  if (ARRAYP (object))
     return Qt;
   return Qnil;
 }
@@ -405,8 +388,7 @@ DEFUN ("sequencep", Fsequencep, Ssequencep, 1, 1, 0,
      (object)
      register Lisp_Object object;
 {
-  if (CONSP (object) || NILP (object) || VECTORP (object) || STRINGP (object)
-      || CHAR_TABLE_P (object) || BOOL_VECTOR_P (object))
+  if (CONSP (object) || NILP (object) || ARRAYP (object))
     return Qt;
   return Qnil;
 }
@@ -536,15 +518,7 @@ Lisp concepts such as car, cdr, cons cell and list.  */)
      (list)
      register Lisp_Object list;
 {
-  while (1)
-    {
-      if (CONSP (list))
-	return XCAR (list);
-      else if (EQ (list, Qnil))
-	return Qnil;
-      else
-	list = wrong_type_argument (Qlistp, list);
-    }
+  return CAR (list);
 }
 
 DEFUN ("car-safe", Fcar_safe, Scar_safe, 1, 1, 0,
@@ -552,10 +526,7 @@ DEFUN ("car-safe", Fcar_safe, Scar_safe, 1, 1, 0,
      (object)
      Lisp_Object object;
 {
-  if (CONSP (object))
-    return XCAR (object);
-  else
-    return Qnil;
+  return CAR_SAFE (object);
 }
 
 DEFUN ("cdr", Fcdr, Scdr, 1, 1, 0,
@@ -567,15 +538,7 @@ Lisp concepts such as cdr, car, cons cell and list.  */)
      (list)
      register Lisp_Object list;
 {
-  while (1)
-    {
-      if (CONSP (list))
-	return XCDR (list);
-      else if (EQ (list, Qnil))
-	return Qnil;
-      else
-	list = wrong_type_argument (Qlistp, list);
-    }
+  return CDR (list);
 }
 
 DEFUN ("cdr-safe", Fcdr_safe, Scdr_safe, 1, 1, 0,
@@ -583,10 +546,7 @@ DEFUN ("cdr-safe", Fcdr_safe, Scdr_safe, 1, 1, 0,
      (object)
      Lisp_Object object;
 {
-  if (CONSP (object))
-    return XCDR (object);
-  else
-    return Qnil;
+  return CDR_SAFE (object);
 }
 
 DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
@@ -594,9 +554,7 @@ DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
      (cell, newcar)
      register Lisp_Object cell, newcar;
 {
-  if (!CONSP (cell))
-    cell = wrong_type_argument (Qconsp, cell);
-
+  CHECK_CONS (cell);
   CHECK_IMPURE (cell);
   XSETCAR (cell, newcar);
   return newcar;
@@ -607,9 +565,7 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
      (cell, newcdr)
      register Lisp_Object cell, newcdr;
 {
-  if (!CONSP (cell))
-    cell = wrong_type_argument (Qconsp, cell);
-
+  CHECK_CONS (cell);
   CHECK_IMPURE (cell);
   XSETCDR (cell, newcdr);
   return newcdr;
@@ -651,7 +607,7 @@ Return SYMBOL.  */)
 {
   CHECK_SYMBOL (symbol);
   if (XSYMBOL (symbol)->constant)
-    return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
+    xsignal1 (Qsetting_constant, symbol);
   Fset (symbol, Qunbound);
   return symbol;
 }
@@ -664,7 +620,7 @@ Return SYMBOL.  */)
 {
   CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
-    return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
+    xsignal1 (Qsetting_constant, symbol);
   XSYMBOL (symbol)->function = Qunbound;
   return symbol;
 }
@@ -675,9 +631,9 @@ DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
      register Lisp_Object symbol;
 {
   CHECK_SYMBOL (symbol);
-  if (EQ (XSYMBOL (symbol)->function, Qunbound))
-    return Fsignal (Qvoid_function, Fcons (symbol, Qnil));
-  return XSYMBOL (symbol)->function;
+  if (!EQ (XSYMBOL (symbol)->function, Qunbound))
+    return XSYMBOL (symbol)->function;
+  xsignal1 (Qvoid_function, symbol);
 }
 
 DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
@@ -708,7 +664,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
 {
   CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
-    return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
+    xsignal1 (Qsetting_constant, symbol);
   if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (symbol)->function, Qunbound))
     Vautoload_queue = Fcons (Fcons (symbol, XSYMBOL (symbol)->function),
 			     Vautoload_queue);
@@ -764,8 +720,7 @@ function with `&rest' args, or `unevalled' for a special form.  */)
      Lisp_Object subr;
 {
   short minargs, maxargs;
-  if (!SUBRP (subr))
-    wrong_type_argument (Qsubrp, subr);
+  CHECK_SUBR (subr);
   minargs = XSUBR (subr)->min_args;
   maxargs = XSUBR (subr)->max_args;
   if (maxargs == MANY)
@@ -783,8 +738,7 @@ SUBR must be a built-in function.  */)
      Lisp_Object subr;
 {
   const char *name;
-  if (!SUBRP (subr))
-    wrong_type_argument (Qsubrp, subr);
+  CHECK_SUBR (subr);
   name = XSUBR (subr)->symbol_name;
   return make_string (name, strlen (name));
 }
@@ -852,7 +806,7 @@ indirect_variable (symbol)
       tortoise = XSYMBOL (tortoise)->value;
 
       if (EQ (hare, tortoise))
-	Fsignal (Qcyclic_variable_indirection, Fcons (symbol, Qnil));
+	xsignal1 (Qcyclic_variable_indirection, symbol);
     }
 
   return hare;
@@ -1153,10 +1107,10 @@ DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
   Lisp_Object val;
 
   val = find_symbol_value (symbol);
-  if (EQ (val, Qunbound))
-    return Fsignal (Qvoid_variable, Fcons (symbol, Qnil));
-  else
+  if (!EQ (val, Qunbound))
     return val;
+
+  xsignal1 (Qvoid_variable, symbol);
 }
 
 DEFUN ("set", Fset, Sset, 2, 2, 0,
@@ -1220,7 +1174,7 @@ set_internal (symbol, newval, buf, bindflag)
   if (SYMBOL_CONSTANT_P (symbol)
       && (NILP (Fkeywordp (symbol))
 	  || !EQ (newval, SYMBOL_VALUE (symbol))))
-    return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
+    xsignal1 (Qsetting_constant, symbol);
 
   innercontents = valcontents = SYMBOL_VALUE (symbol);
 
@@ -1414,9 +1368,10 @@ local bindings in certain buffers.  */)
   register Lisp_Object value;
 
   value = default_value (symbol);
-  if (EQ (value, Qunbound))
-    return Fsignal (Qvoid_variable, Fcons (symbol, Qnil));
-  return value;
+  if (!EQ (value, Qunbound))
+    return value;
+
+  xsignal1 (Qvoid_variable, symbol);
 }
 
 DEFUN ("set-default", Fset_default, Sset_default, 2, 2, 0,
@@ -1928,7 +1883,7 @@ indirect_function (object)
       tortoise = XSYMBOL (tortoise)->function;
 
       if (EQ (hare, tortoise))
-	Fsignal (Qcyclic_function_indirection, Fcons (object, Qnil));
+	xsignal1 (Qcyclic_function_indirection, object);
     }
 
   return hare;
@@ -1948,13 +1903,18 @@ function chain of symbols.  */)
 {
   Lisp_Object result;
 
-  result = indirect_function (object);
+  /* Optimize for no indirection.  */
+  result = object;
+  if (SYMBOLP (result) && !EQ (result, Qunbound)
+      && (result = XSYMBOL (result)->function, SYMBOLP (result)))
+    result = indirect_function (result);
+  if (!EQ (result, Qunbound))
+    return result;
 
-  if (EQ (result, Qunbound))
-    return (NILP (noerror)
-	    ? Fsignal (Qvoid_function, Fcons (object, Qnil))
-	    : Qnil);
-  return result;
+  if (NILP (noerror))
+    xsignal1 (Qvoid_function, object);
+
+  return Qnil;
 }
 
 /* Extract and set vector and string elements */
@@ -2028,9 +1988,7 @@ bool-vector.  IDX starts at 0.  */)
 
   CHECK_NUMBER (idx);
   idxval = XINT (idx);
-  if (!VECTORP (array) && !STRINGP (array) && !BOOL_VECTOR_P (array)
-      && ! CHAR_TABLE_P (array))
-    array = wrong_type_argument (Qarrayp, array);
+  CHECK_ARRAY (array, Qarrayp);
   CHECK_IMPURE (array);
 
   if (VECTORP (array))
@@ -2340,7 +2298,7 @@ If the base used is not 10, floating point is not recognized.  */)
       CHECK_NUMBER (base);
       b = XINT (base);
       if (b < 2 || b > 16)
-	Fsignal (Qargs_out_of_range, Fcons (base, Qnil));
+	xsignal1 (Qargs_out_of_range, base);
     }
 
   /* Skip any whitespace at the front of the number.  Some versions of
@@ -2452,7 +2410,7 @@ arith_driver (code, nargs, args)
 	  else
 	    {
 	      if (next == 0)
-		Fsignal (Qarith_error, Qnil);
+		xsignal0 (Qarith_error);
 	      accum /= next;
 	    }
 	  break;
@@ -2525,7 +2483,7 @@ float_arith_driver (accum, argnum, code, nargs, args)
 	  else
 	    {
 	      if (! IEEE_FLOATING_POINT && next == 0)
-		Fsignal (Qarith_error, Qnil);
+		xsignal0 (Qarith_error);
 	      accum /= next;
 	    }
 	  break;
@@ -2607,7 +2565,7 @@ Both must be integers or markers.  */)
   CHECK_NUMBER_COERCE_MARKER (y);
 
   if (XFASTINT (y) == 0)
-    Fsignal (Qarith_error, Qnil);
+    xsignal0 (Qarith_error);
 
   XSETINT (val, XINT (x) % XINT (y));
   return val;
@@ -2656,7 +2614,7 @@ Both X and Y must be numbers or markers.  */)
   i2 = XINT (y);
 
   if (i2 == 0)
-    Fsignal (Qarith_error, Qnil);
+    xsignal0 (Qarith_error);
 
   i1 %= i2;
 
@@ -3260,7 +3218,7 @@ arith_error (signo)
 #endif /* not BSD4_1 */
 
   SIGNAL_THREAD_CHECK (signo);
-  Fsignal (Qarith_error, Qnil);
+  xsignal0 (Qarith_error);
 }
 
 void

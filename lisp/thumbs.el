@@ -256,7 +256,7 @@ ACTION-PREFIX is the symbol to place before the ACTION command
 			 filein
 			 (or output-format "jpeg")
 			 fileout)))
-    (call-process shell-file-name nil nil nil "-c" command)))
+    (call-process shell-file-name nil nil nil shell-command-switch command)))
 
 (defun thumbs-new-image-size (s increment)
   "New image (a cons of width x height)."

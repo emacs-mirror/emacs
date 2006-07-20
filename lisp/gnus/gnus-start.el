@@ -313,8 +313,8 @@ If, for instance, you want to subscribe to all newsgroups in the
 
 options -n no.all alt.all
 
-Gnus will the subscribe all new newsgroups in these hierarchies with
-the subscription method in this variable."
+Gnus will then subscribe all new newsgroups in these hierarchies
+with the subscription method in this variable."
   :group 'gnus-group-new
   :type '(radio (function-item gnus-subscribe-randomly)
 		(function-item gnus-subscribe-alphabetically)

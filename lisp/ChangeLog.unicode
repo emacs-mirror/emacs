@@ -1,3 +1,8 @@
+2006-07-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Modify category-table and
+	script-table for new Ethiopic character range.
+
 2006-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (set-language-info): Fix synching

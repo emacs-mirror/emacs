@@ -112,10 +112,8 @@ extern char unibyte_has_multibyte_table[256];
 #define CHAR_VALID_P(c, genericp) ((unsigned) (c) <= MAX_CHAR)
 
 /* Check if Lisp object X is a character or not.  */
-#define CHECK_CHARACTER(x)						\
-  do {									\
-    if (! CHARACTERP(x)) x = wrong_type_argument (Qcharacterp, (x));	\
-  } while (0)
+#define CHECK_CHARACTER(x) \
+  CHECK_TYPE (CHARACTERP (x), Qcharacterp, x)
 
 #define CHECK_CHARACTER_CAR(x) \
   do {					\

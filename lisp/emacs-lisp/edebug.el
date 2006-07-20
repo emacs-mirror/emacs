@@ -235,13 +235,6 @@ If the result is non-nil, then break.  Errors are ignored."
 
 ;;; Form spec utilities.
 
-;;;###autoload
-(defmacro def-edebug-spec (symbol spec)
-  "Set the `edebug-form-spec' property of SYMBOL according to SPEC.
-Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
-\(naming a function), or a list."
-  `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
-
 (defmacro def-edebug-form-spec (symbol spec-form)
   "For compatibility with old version."
   (def-edebug-spec symbol (eval spec-form)))
@@ -3426,6 +3419,8 @@ go to the end of the last sexp, or if that is the same point, then step."
       func)
      (t
       (let ((loc (find-function-noselect func)))
+	(unless (cdr loc)
+	  (error "Could not find the definition in its file"))
 	(with-current-buffer (car loc)
 	  (goto-char (cdr loc))
 	  (edebug-eval-top-level-form)

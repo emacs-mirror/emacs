@@ -43,7 +43,7 @@ containing Lisp code.
 * Repeated Loading::        Precautions about loading a file twice.
 * Named Features::          Loading a library if it isn't already loaded.
 * Where Defined::           Finding which file defined a certain symbol.
-* Unloading::		    How to ``unload'' a library that was loaded.
+* Unloading::		    How to "unload" a library that was loaded.
 * Hooks for Loading::	    Providing code to be run when
 			      particular libraries are loaded.
 @end menu
@@ -155,8 +155,10 @@ file, and it is @code{nil} otherwise.
 @end defvar
 
 @defvar load-read-function
+This
 @anchor{Definition of load-read-function}
-This variable specifies an alternate expression-reading function for
+@c do not allow page break at anchor; work around Texinfo deficiency.
+variable specifies an alternate expression-reading function for
 @code{load} and @code{eval-region} to use instead of @code{read}.
 The function should accept one argument, just as @code{read} does.
 

@@ -136,9 +136,9 @@ all the other users on the same channel.
 @cindex addressing other people
 @cindex other people, addressing them
 @cindex talk to other people
-If you want to address someone specifically, for example as an answer
-to a question, it is custom to prefix the message with the nick
-followed by a colon, like this:
+If you want to address someone specifically, for example as an answer to
+a question, it is customary to prefix the message with the nick followed
+by a colon, like this:
 
 @example
 deego: fsbot rules!
@@ -155,8 +155,12 @@ Since this is so common, you can use @key{TAB} to do nick completion.
 @cindex connecting to a server
 
 @cindex irc command
-Use the command @kbd{M-x irc} to connect to a server.  You will be asked
-for four things:
+Use the command @kbd{M-x irc} to connect using the defaults.
+@xref{Configuration}, if you want to change the defaults.
+
+Use @kbd{C-u M-x irc} if you don't want to use the defaults, eg. if you
+want to connect to a different network, or connect to the same network
+using a different nick.  This will prompt you for four things:
 
 @table @asis
 @cindex server, connecting
@@ -184,7 +188,7 @@ have to use a different port.
 @vindex user-login-name
 Every users needs a handle on-line.  You will automatically be assigned
 a slightly different nick if your chosen nick is already in use.  If
-your @code{user-login-name} is @code{"alex"}, and this nick is already
+your @code{user-login-name} is @code{alex}, and this nick is already
 in use, you might for example get assigned the nick @code{alex`}.
 
 @cindex channels, connecting
@@ -194,7 +198,8 @@ in use, you might for example get assigned the nick @code{alex`}.
 A space separated list of channels you want to join when connecting.
 You don't need to join any channels, if you just want to have one-to-one
 conversations with friends on the same network.  If you're new to the
-Freenode network, join @code{#emacs}, the about all things Emacs.
+Freenode network, join @code{#emacs}, the channel about all things
+Emacs, or join @code{#rcirc}, the channel about @code{rcirc}.
 @end table
 
 @cindex server buffer
@@ -218,17 +223,6 @@ If you want to paste multiple lines, such as source code, you can use
 C-c} to finish editing.  You still need to press @key{RET} to send it,
 though.  Generally, IRC users don't like people pasting more than around
 four lines of code, so use with care.
-
-@kindex C-c C-SPC
-@cindex switching channels
-@cindex tracking activity
-@cindex active channel
-@cindex abbreviated channel names
-@cindex modeline tracks activity
-You will note that when other people say things in buffers that are
-currently buried (no window is showing them), the mode line will show
-you the abbreviated channel or nick name.  Use @kbd{C-c C-@key{SPC}} to switch
-to these buffers.
 
 @node Reference, Hacking and Tweaking, Basics, Top
 @chapter Reference
@@ -441,35 +435,35 @@ These are some variables you can change to configure @code{rcirc} to your
 liking.
 
 @table @code
-@item rcirc-server
-@vindex rcirc-server
+@item rcirc-default-server
+@vindex rcirc-default-server
 the default server to connect to.
 
-@item rcirc-port
-@vindex rcirc-port
+@item rcirc-default-port
+@vindex rcirc-default-port
 the default port to connect to.
 
-@item rcirc-nick
-@vindex rcirc-nick
+@item rcirc-default-nick
+@vindex rcirc-default-nick
 the default nick to use.
 @end table
 
 @example
-(setq rcirc-server "irc.mozilla.org"
-      rcirc-port 6666
-      rcirc-nick "alx")
+(setq rcirc-default-server "irc.mozilla.org"
+      rcirc-default-port 6666
+      rcirc-default-nick "alx")
 @end example
 
-@vindex rcirc-user-full-name
+@vindex rcirc-default-user-full-name
 @cindex full name
 @cindex real name
 @cindex surname
-@code{rcirc-user-full-name} is used to set your ``real name'' on IRC.
-It defaults to @code{user-full-name}.  If you want to hide your full
-name, you might want to set it to some pseudonym.
+@code{rcirc-default-user-full-name} is used to set your ``real name'' on
+IRC.  It defaults to @code{user-full-name}.  If you want to hide your
+full name, you might want to set it to some pseudonym.
 
 @example
-(setq rcirc-user-full-name "Curious Minds Want To Know")
+(setq rcirc-default-user-full-name "Curious Minds Want To Know")
 @end example
 
 @vindex rcirc-startup-channels-alist
@@ -492,6 +486,108 @@ there is no way of knowing which servers belong to a particular network.
 In the example above we're exploiting a naming convention used by within
 the Freenode network --- all servers within the network have a host in
 the @code{freenode.net} domain.
+
+@vindex rcirc-authinfo
+@cindex authentification
+@cindex identification
+@cindex nickserv
+@cindex login
+@code{rcirc-authinfo} is an alist used to automatically identify
+yourself on networks.  Each sublist starts with a regular expression
+that is compared to the server address you're connecting to.  The second
+element in the list is a symbol representing the method to use, followed
+by the arguments this method requires.
+
+Here is an example to illustrate how you would set it:
+
+@example
+(setq rcirc-startup-channels-alist
+      '(("freenode" nickserv "bob" "p455w0rd")
+        ("freenode" chanserv "bob" "#bobland" "passwd99")
+        ("bitlbee" bitlbee "robert" "sekrit")))
+@end example
+
+And here are the valid method symbols and the arguments they require:
+
+@table @code
+@item nickserv
+@cindex nickserv authentification
+Use this symbol if you need to identify yourself as follows when
+connecting to a network: @code{/msg nickserv identify secret}.  The
+necessary arguments are the nickname you want to use this for, and the
+password to use.
+
+Before you can use this method, you will have to register your nick and
+pick a password for it.  Contact @code{nickserv} and check out the
+details.  (Using @code{/msg nickserv help}, for example.)
+
+@item chanserv
+@cindex chanserv authentification
+Use this symbol if you need to identify yourself as follows if you want
+to join a particular channel: @code{/msg chanserv identify #underground
+secret}.  The necessary arguments are the nickname and channel you want
+to use this for, and the password to use.
+
+Before you can use this method, a channel contact must tell you about
+the password to use.  Contact @code{chanserv} and check out the details.
+(Using @code{/msg chanserv help}, for example.)
+
+@item bitlbee
+@cindex bitlbee authentification
+Use this symbol if you need to identify yourself in the Bitlbee channel
+as follows: @code{identify secret}.  The necessary arguments are the
+nickname you want to use this for, and the password to use.
+
+@cindex gateway to other IM services
+@cindex instant messaging, other services
+@cindex Jabber
+@cindex AIM
+@cindex ICQ
+@cindex MSN
+@cindex Yahoo!
+Bitlbee acts like an IRC server, but in fact it is a gateway to a lot of
+other instant messaging services.  You can either install Bitlbee
+locally or use a public Bitlbee server.  There, you need to create an
+account with a password.  This is the nick and password you need to
+provide for the bitlbee authentification method.
+
+Later, you will tell Bitlbee about your accounts and passwords on all
+the other instant messaging services, and Bitlbee will log you in.  All
+@code{rcirc} needs to know, is the login to your Bitlbee account.  Don't
+confuse the Bitlbee account with all the other accounts.
+@end table
+
+@kindex C-c C-SPC
+@vindex rcirc-track-minor-mode
+@cindex switching channels
+@cindex tracking activity
+@cindex active channel
+@cindex abbreviated channel names
+@cindex modeline tracks activity
+Most people want a notification when something is said on a channel they
+have joined, particularly if they have been addressed directly.  There
+is a global minor mode that will do this kind of tracking for you.  All
+you need to do is switch it on using @kbd{M-x rcirc-track-minor-mode}.
+To make this permanent, add the following to your init file:
+
+@example
+(rcirc-track-minor-mode 1)
+@end example
+
+When other people say things in buffers that are currently buried (no
+window is showing them), the mode line will now show you the abbreviated
+channel or nick name.  Use @kbd{C-c C-@key{SPC}} to switch to these
+buffers.
+
+@vindex rcirc-mode-hook
+If you prefer not to load @code{rcirc} immediately, you can delay the
+activation of this mode:
+
+@example
+(add-hook 'rcirc-mode-hook
+          (lambda ()
+            (rcirc-track-minor-mode 1)))
+@end example
 
 @node Hacking and Tweaking, Key Index, Reference, Top
 @chapter Hacking and Tweaking
@@ -566,7 +662,7 @@ window when possible.  The following snippet uses a local value for
                  8192)))
 @end example
 
-@xref{Auto Scrolling, , Scrolling conservatively, emacs, The GNU Emacs
+@xref{Scrolling, , Scrolling conservatively, emacs, The GNU Emacs
 Manual}, for details.
 
 @node Changing the time stamp format, Defining a new command, Scrolling conservatively, Hacking and Tweaking
@@ -630,21 +726,21 @@ The real answer, therefore, is a @code{/reconnect} command:
        (error "There's no process for this target"))
      (let* ((server (car (process-contact process)))
             (port (process-contact process :service))
-            (nick (with-rcirc-process-buffer process rcirc-nick))
+            (nick (rcirc-nick process))
             channels query-buffers)
        (dolist (buf (buffer-list))
          (with-current-buffer buf
-           (when (eq process rcirc-process)
+           (when (eq process (rcirc-buffer-process))
+             (remove-hook 'change-major-mode-hook
+                          'rcirc-change-major-mode-hook)
              (if (rcirc-channel-p rcirc-target)
                  (setq channels (cons rcirc-target channels))
                (setq query-buffers (cons buf query-buffers))))))
        (delete-process process)
-       (let ((new-process (rcirc-connect server port nick
-                                         rcirc-user-name user-full-name
-                                         channels)))
-         (dolist (buf query-buffers)
-           (with-current-buffer buf
-             (setq rcirc-process new-process)))))))
+       (rcirc-connect server port nick
+                      rcirc-default-user-name
+                      rcirc-default-user-full-name
+                      channels))))
 @end smallexample
 
 @node Key Index, Variable Index, Hacking and Tweaking, Top

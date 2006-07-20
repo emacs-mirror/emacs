@@ -32,10 +32,9 @@ There is basic support for synchronous subprocesses (call-process) on
 Mac OS Classic (non-Carbon build only) although Unix commands that are
 used will need to be ported.
 
-FIXME: Metrowerks CodeWarrior Pro 6 or MPW-GM (August 2001) can be
-used to build Emacs on the Mac OS Classic.  On Mac OS X, Emacs can be
-built using the Developer Tools.  See the INSTALL file in this
-directory for instructions on building Emacs.
+MPW-GM (August 2001) can be used to build Emacs on the Mac OS Classic.
+On Mac OS X, Emacs can be built using the Developer Tools.  See the
+INSTALL file in this directory for instructions on building Emacs.
 
 Read the Mac OS section of the on-line help to find out about how to
 use Emacs on the Mac.

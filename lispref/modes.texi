@@ -145,7 +145,7 @@ If @var{function} is already present in @var{hook} (comparing using
 
 It is best to design your hook functions so that the order in which they
 are executed does not matter.  Any dependence on the order is ``asking
-for trouble''.  However, the order is predictable: normally,
+for trouble.''  However, the order is predictable: normally,
 @var{function} goes at the front of the hook list, so it will be
 executed first (barring another @code{add-hook} call).  If the optional
 argument @var{append} is non-@code{nil}, the new hook function goes at
@@ -1139,7 +1139,7 @@ it should not use @code{after-change-major-mode-hook} as of yet.
 
   When you defined a major mode using @code{define-derived-mode}, it
 automatically makes sure these conventions are followed.  If you
-define a major mode ``from scratch'', not using
+define a major mode ``from scratch,'' not using
 @code{define-derived-mode}, make sure the major mode command follows
 these and other conventions.  @xref{Major Mode Conventions}.  You use
 these functions to do it properly.
@@ -1365,7 +1365,6 @@ characters are reserved for major modes.)
 implementing a mode in one self-contained definition.
 
 @defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args@dots{} body@dots{}
-@tindex define-minor-mode
 This macro defines a new minor mode whose name is @var{mode} (a
 symbol).  It defines a command named @var{mode} to toggle the minor
 mode, with @var{doc} as its documentation string.  It also defines a
@@ -1457,7 +1456,7 @@ See the command \\[hungry-electric-delete]."
 @end smallexample
 
 @noindent
-This defines a minor mode named ``Hungry mode'', a command named
+This defines a minor mode named ``Hungry mode,'' a command named
 @code{hungry-mode} to toggle it, a variable named @code{hungry-mode}
 which indicates whether the mode is enabled, and a variable named
 @code{hungry-mode-map} which holds the keymap that is active when the
@@ -2079,14 +2078,12 @@ top, just as it can have a mode line at the bottom.  The header line
 feature works just like the mode-line feature, except that it's
 controlled by different variables.
 
-@tindex header-line-format
 @defvar header-line-format
 This variable, local in every buffer, specifies how to display the
 header line, for windows displaying the buffer.  The format of the value
 is the same as for @code{mode-line-format} (@pxref{Mode Line Data}).
 @end defvar
 
-@tindex default-header-line-format
 @defvar default-header-line-format
 This variable holds the default @code{header-line-format} for buffers
 that do not override it.  This is the same as @code{(default-value
@@ -2921,7 +2918,8 @@ way for a mode to set this variable to @code{t} is with
 @defvar font-lock-syntax-table
 This variable holds the syntax table to use for fontification of
 comments and strings.  Specify it using @var{syntax-alist} in
-@code{font-lock-defaults}.
+@code{font-lock-defaults}.  If this is @code{nil}, fontification uses
+the buffer's syntax table.
 @end defvar
 
 @defvar font-lock-beginning-of-syntax-function

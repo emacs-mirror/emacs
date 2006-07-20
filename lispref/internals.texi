@@ -1270,7 +1270,7 @@ Non-@code{nil} means current value of @code{start} was the beginning of a line
 when it was chosen.
 
 @item too_small_ok
-Non-@code{nil} means don't delete this window for becoming ``too small''.
+Non-@code{nil} means don't delete this window for becoming ``too small.''
 
 @item height_fixed_p
 This field is temporarily set to 1 to fix the height of the selected

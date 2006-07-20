@@ -160,7 +160,7 @@ be customized, use @code{defcustom} (@pxref{Customization}).
   @code{defun} defines a symbol as a function, creating a lambda
 expression and storing it in the function cell of the symbol.  This
 lambda expression thus becomes the function definition of the symbol.
-(The term ``function definition'', meaning the contents of the function
+(The term ``function definition,'' meaning the contents of the function
 cell, is derived from the idea that @code{defun} gives the symbol its
 definition as a function.)  @code{defsubst} and @code{defalias} are two
 other ways of defining a function.  @xref{Functions}.
@@ -584,7 +584,6 @@ using @code{equal} instead of @code{eq}.
 @end defun
 
 @defun plist-member plist property
-@tindex plist-member
 This returns non-@code{nil} if @var{plist} contains the given
 @var{property}.  Unlike @code{plist-get}, this allows you to distinguish
 between a missing property and a property with the value @code{nil}.

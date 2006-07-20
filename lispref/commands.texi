@@ -627,9 +627,9 @@ part of the prompt.
 
 @example
 @group
-(execute-extended-command 1)
+(execute-extended-command 3)
 ---------- Buffer: Minibuffer ----------
-1 M-x forward-word RET
+3 M-x forward-word RET
 ---------- Buffer: Minibuffer ----------
      @result{} t
 @end group
@@ -809,7 +809,6 @@ in a vector, so you don't need to deal with the complexities of storing
 input events in a string (@pxref{Strings of Events}).
 @end defun
 
-@tindex clear-this-command-keys
 @defun clear-this-command-keys &optional keep-record
 This function empties out the table of events for
 @code{this-command-keys} to return.  Unless @var{keep-record} is
@@ -875,7 +874,6 @@ the sequence.
 @code{disable-point-adjustment}:
 
 @defvar disable-point-adjustment
-@tindex disable-point-adjustment
 If this variable is non-@code{nil} when a command returns to the
 command loop, then the command loop does not check for those text
 properties, and does not move point out of sequences that have them.
@@ -885,7 +883,6 @@ so if a command sets it, the effect applies only to that command.
 @end defvar
 
 @defvar global-disable-point-adjustment
-@tindex global-disable-point-adjustment
 If you set this variable to a non-@code{nil} value, the feature of
 moving point out of these sequences is completely turned off.
 @end defvar
@@ -2168,7 +2165,7 @@ same symbol that would normally represent that combination of mouse
 button and modifier keys.  The information about the window part is kept
 elsewhere in the event---in the coordinates.  But
 @code{read-key-sequence} translates this information into imaginary
-``prefix keys'', all of which are symbols: @code{header-line},
+``prefix keys,'' all of which are symbols: @code{header-line},
 @code{horizontal-scroll-bar}, @code{menu-bar}, @code{mode-line},
 @code{vertical-line}, and @code{vertical-scroll-bar}.  You can define
 meanings for mouse clicks in special window parts by defining key
@@ -2413,7 +2410,7 @@ individual events, which you can put in @code{unread-command-events}.
 
 @defvar unread-command-char
 This variable holds a character to be read as command input.
-A value of -1 means ``empty''.
+A value of -1 means ``empty.''
 
 This variable is mostly obsolete now that you can use
 @code{unread-command-events} instead; it exists only to support programs
@@ -2537,30 +2534,27 @@ screen.
 @defun sit-for seconds &optional nodisp
 This function performs redisplay (provided there is no pending input
 from the user), then waits @var{seconds} seconds, or until input is
-available.  The value is @code{t} if @code{sit-for} waited the full
-time with no input arriving (see @code{input-pending-p} in @ref{Event
-Input Misc}).  Otherwise, the value is @code{nil}.
+available.  The usual purpose of @code{sit-for} is to give the user
+time to read text that you display.  The value is @code{t} if
+@code{sit-for} waited the full time with no input arriving
+(@pxref{Event Input Misc}).  Otherwise, the value is @code{nil}.
 
 The argument @var{seconds} need not be an integer.  If it is a floating
 point number, @code{sit-for} waits for a fractional number of seconds.
 Some systems support only a whole number of seconds; on these systems,
 @var{seconds} is rounded down.
 
-If @var{seconds} is negative, force a redisplay even if there is
-pending input.  So use @code{(sit-for -1)} to force a redisplay.
-
-The expression @code{(sit-for 0)} is a convenient way to request a
-redisplay, without any delay, if there is no pending input.  @xref{Forcing Redisplay}.
+The expression @code{(sit-for 0)} is equivalent to @code{(redisplay)},
+i.e. it requests a redisplay, without any delay, if there is no pending input.
+@xref{Forcing Redisplay}.
 
 If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not
 redisplay, but it still returns as soon as input is available (or when
 the timeout elapses).
 
-Iconifying or deiconifying a frame makes @code{sit-for} return, because
-that generates an event.  @xref{Misc Events}.
-
-The usual purpose of @code{sit-for} is to give the user time to read
-text that you display.
+In batch mode (@pxref{Batch Mode}), @code{sit-for} cannot be
+interrupted, even by input from the standard input descriptor.  It is
+thus equivalent to @code{sleep-for}, which is described below.
 
 It is also possible to call @code{sit-for} with three arguments,
 as @code{(sit-for @var{seconds} @var{millisec} @var{nodisp})},
@@ -2906,7 +2900,7 @@ using the minibuffer.  Usually it is more convenient for the user if you
 change the major mode of the current buffer temporarily to a special
 major mode, which should have a command to go back to the previous mode.
 (The @kbd{e} command in Rmail uses this technique.)  Or, if you wish to
-give the user different text to edit ``recursively'', create and select
+give the user different text to edit ``recursively,'' create and select
 a new buffer in a special mode.  In this mode, define a command to
 complete the processing and go back to the previous buffer.  (The
 @kbd{m} command in Rmail does this.)

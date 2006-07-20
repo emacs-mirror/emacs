@@ -57,8 +57,8 @@ the character after point.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
-* MD5 Checksum::     Compute the MD5 ``message digest''/``checksum''.
-* Atomic Changes::   Installing several buffer changes ``atomically''.
+* MD5 Checksum::     Compute the MD5 "message digest"/"checksum".
+* Atomic Changes::   Installing several buffer changes "atomically".
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
 
@@ -278,7 +278,6 @@ This is the contents of buffer foo
 @end example
 @end defun
 
-@tindex current-word
 @defun current-word &optional strict really-word
 This function returns the symbol (or word) at or near point, as a string.
 The return value includes no text properties.
@@ -567,7 +566,7 @@ error; if some of the text in it is read-only, it signals a
 asking for any confirmation.  It returns @code{nil}.
 
 Normally, deleting a large amount of text from a buffer inhibits further
-auto-saving of that buffer ``because it has shrunk''.  However,
+auto-saving of that buffer ``because it has shrunk.''  However,
 @code{erase-buffer} does not do this, the idea being that the future
 text is not really related to the former text, and its size should not
 be compared with that of the former text.
@@ -581,7 +580,6 @@ Otherwise, point relocates with the surrounding text, as markers do.
 @end deffn
 
 @defun delete-and-extract-region start end
-@tindex delete-and-extract-region
 This function deletes the text between positions @var{start} and
 @var{end} in the current buffer, and returns a string containing the
 text just deleted.
@@ -819,7 +817,7 @@ that treat it as a ring.
 
   Some people think this use of the word ``kill'' is unfortunate, since
 it refers to operations that specifically @emph{do not} destroy the
-entities ``killed''.  This is in sharp contrast to ordinary life, in
+entities ``killed.''  This is in sharp contrast to ordinary life, in
 which death is permanent and ``killed'' entities do not come back to
 life.  Therefore, other metaphors have been proposed.  For example, the
 term ``cut ring'' makes sense to people who, in pre-computer days, used
@@ -1108,8 +1106,8 @@ programs, when you are using a window system.  Its value should be
 @code{nil} or a function of no arguments.
 
 If the value is a function, @code{current-kill} calls it to get the
-``most recent kill''.  If the function returns a non-@code{nil} value,
-then that value is used as the ``most recent kill''.  If it returns
+``most recent kill.''  If the function returns a non-@code{nil} value,
+then that value is used as the ``most recent kill.''  If it returns
 @code{nil}, then the front of the kill ring is used.
 
 The normal use of this hook is to get the window system's primary
@@ -2765,7 +2763,6 @@ Do not rely on the return value of this function.
 is with @code{propertize}:
 
 @defun propertize string &rest properties
-@tindex propertize
 This function returns a copy of @var{string} which has the text
 properties @var{properties}.  These properties apply to all the
 characters in the string that is returned.  Here is an example that
@@ -2903,7 +2900,6 @@ position if no change is found.
 @end defun
 
 @defun next-single-char-property-change pos prop &optional object limit
-@tindex next-single-char-property-change
 This is like @code{next-single-property-change} except that it
 considers overlay properties as well as text properties, and if no
 change is found before the end of the @var{object}, it returns the
@@ -2914,7 +2910,6 @@ text-properties are considered.
 @end defun
 
 @defun previous-single-char-property-change pos prop &optional object limit
-@tindex previous-single-char-property-change
 This is like @code{next-single-char-property-change}, but scans back
 from @var{pos} instead of forward, and returns the minimum valid
 position in @var{object} if no change is found.
@@ -3017,24 +3012,23 @@ that all text between the character and where the mouse is have the same
 
 @item fontified
 @kindex fontified @r{(text property)}
-This property says whether the text has had faces assigned to it by
-font locking.  The display engine tests it to decide whether a buffer
+This property says whether the character has a face assigned to it by font
+locking.  The display engine tests it to decide whether a buffer
 portion needs refontifying before display.  @xref{Auto Faces}.  It
-takes one of these three values---other values are invalid:
+takes one of three values:
 
 @table @asis
 @item @code{nil}
-Font locking is disabled, or the @code{face} properties on the text,
-if any, are invalid.
+Font locking is disabled, or the character's @code{face} property, if
+any, is invalid.
 
-@item The symbol @code{defer}
-This value states that the text's @code{face} properties are invalid
-and marks it for deferred fontification.  It is used only when ``just
-in time'' font locking is enabled.
+@item @code{defer}
+This value is only used when ``just in time'' font locking is enabled
+and it means that the character's @code{face} property is invalid and
+needs deferred fontification.
 
 @item @code{t}
-The @code{face} properties, or lack of them, on the text are currently
-valid.
+The character's @code{face} property, or absence of one, is valid.
 @end table
 
 @item display
@@ -3063,16 +3057,14 @@ argument is as follows:
 
 @itemize @bullet{}
 @item
-If @var{object} is a buffer, @var{pos} is the position in the buffer
-where the @code{help-echo} text property was found.
+If @var{object} is a buffer, @var{pos} is the position in the buffer.
 @item
 If @var{object} is an overlay, that overlay has a @code{help-echo}
-property, and @var{pos} is the position in the overlay's buffer under
-the mouse.
+property, and @var{pos} is the position in the overlay's buffer.
 @item
 If @var{object} is a string (an overlay string or a string displayed
 with the @code{display} property), @var{pos} is the position in that
-string under the mouse.
+string.
 @end itemize
 
 If the value of the @code{help-echo} property is neither a function nor
@@ -3247,7 +3239,6 @@ property has no effect.  Do not set this variable globally; bind it with
 @end defvar
 
 @defvar show-help-function
-@tindex show-help-function
 @anchor{Help display} If this variable is non-@code{nil}, it specifies a
 function called to display help strings.  These may be @code{help-echo}
 properties, menu help strings (@pxref{Simple Menu Items},
@@ -3339,7 +3330,6 @@ list, properties are rear-sticky @emph{unless} their names are in the
 list.
 
 @defvar text-property-default-nonsticky
-@tindex text-property-default-nonsticky
 This variable holds an alist which defines the default rear-stickiness
 of various text properties.  Each element has the form
 @code{(@var{property} . @var{nonstickiness})}, and it defines the
@@ -3672,7 +3662,6 @@ a @key{Mouse-1} click shall be translated to @key{RET}:
 @end smallexample
 
 @defun mouse-on-link-p pos
-@tindex mouse-on-link-p
 This function returns non-@code{nil} if position @var{pos} in the
 current buffer is on a link.
 @end defun
@@ -3711,7 +3700,6 @@ to an empty field whose beginning and end are both at @var{pos}.
 value of point is used by default.
 
 @defun field-beginning &optional pos escape-from-edge limit
-@tindex field-beginning
 This function returns the beginning of the field specified by @var{pos}.
 
 If @var{pos} is at the beginning of its field, and
@@ -3726,7 +3714,6 @@ returned instead.
 @end defun
 
 @defun field-end &optional pos escape-from-edge limit
-@tindex field-end
 This function returns the end of the field specified by @var{pos}.
 
 If @var{pos} is at the end of its field, and @var{escape-from-edge} is
@@ -3740,24 +3727,20 @@ instead.
 @end defun
 
 @defun field-string &optional pos
-@tindex field-string
 This function returns the contents of the field specified by @var{pos},
 as a string.
 @end defun
 
 @defun field-string-no-properties &optional pos
-@tindex field-string-no-properties
 This function returns the contents of the field specified by @var{pos},
 as a string, discarding text properties.
 @end defun
 
 @defun delete-field &optional pos
-@tindex delete-field
 This function deletes the text of the field specified by @var{pos}.
 @end defun
 
 @defun constrain-to-field new-pos old-pos &optional escape-from-edge only-in-line inhibit-capture-property
-@tindex constrain-to-field
 This function ``constrains'' @var{new-pos} to the field that
 @var{old-pos} belongs to---in other words, it returns the position
 closest to @var{new-pos} that is in the same field as @var{old-pos}.
@@ -4082,7 +4065,6 @@ manner.
 converting to and from this code.
 
 @defun base64-encode-region beg end &optional no-line-break
-@tindex base64-encode-region
 This function converts the region from @var{beg} to @var{end} into base
 64 code.  It returns the length of the encoded text.  An error is
 signaled if a character in the region is multibyte, i.e.@: in a
@@ -4097,7 +4079,6 @@ the output is just one long line.
 @end defun
 
 @defun base64-encode-string string &optional no-line-break
-@tindex base64-encode-string
 This function converts the string @var{string} into base 64 code.  It
 returns a string containing the encoded text.  As for
 @code{base64-encode-region}, an error is signaled if a character in the
@@ -4110,7 +4091,6 @@ the result string is just one long line.
 @end defun
 
 @defun base64-decode-region beg end
-@tindex base64-decode-region
 This function converts the region from @var{beg} to @var{end} from base
 64 code into the corresponding decoded text.  It returns the length of
 the decoded text.
@@ -4119,7 +4099,6 @@ The decoding functions ignore newline characters in the encoded text.
 @end defun
 
 @defun base64-decode-string string
-@tindex base64-decode-string
 This function converts the string @var{string} from base 64 code into
 the corresponding decoded text.  It returns a unibyte string containing the
 decoded text.
@@ -4360,7 +4339,6 @@ that was previously in the unmodified state.
 @end defvar
 
 @defvar inhibit-modification-hooks
-@tindex inhibit-modification-hooks
 If this variable is non-@code{nil}, all of the change hooks are
 disabled; none of them run.  This affects all the hook variables
 described above in this section, as well as the hooks attached to

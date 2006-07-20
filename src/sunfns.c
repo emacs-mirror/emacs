@@ -363,7 +363,7 @@ sun_item_create (Pair)
   Lisp_Object String;
   Lisp_Object Value;
 
-  if (!CONSP(Pair)) wrong_type_argument(Qlistp, Pair);
+  CHECK_LIST_CONS (Pair, Pair);
   String = Fcar(Pair);
   CHECK_STRING(String);
   Value = Fcdr(Pair);

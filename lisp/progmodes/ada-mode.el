@@ -1208,60 +1208,36 @@ If you use ada-xref.el:
         ff-file-created-hook 'ada-make-body)
   (add-hook 'ff-pre-load-hook 'ada-which-function-are-we-in)
 
-  ;; Some special constructs for find-file.el
-  ;; We do not need to add the construction for 'with', which is in the
-  ;; standard find-file.el
+  ;; Some special constructs for find-file.el.
   (make-local-variable 'ff-special-constructs)
-
-  ;; Go to the parent package :
-  (add-to-list 'ff-special-constructs
-               (cons (eval-when-compile
-                       (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
-                               "\\(body[ \t]+\\)?"
-                               "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
-                     (lambda ()
-		       (if (fboundp 'ff-get-file)
-			   (if (boundp 'fname)
-			       (set 'fname (ff-get-file
-					    ada-search-directories-internal
-					    (ada-make-filename-from-adaname
-					     (match-string 3))
-					    ada-spec-suffixes)))))))
-  ;; Another special construct for find-file.el : when in a separate clause,
-  ;; go to the correct package.
-  (add-to-list 'ff-special-constructs
-               (cons "^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
-                     (lambda ()
-		       (if (fboundp 'ff-get-file)
-			   (if (boundp 'fname)
-			       (setq fname (ff-get-file
-					    ada-search-directories-internal
-					    (ada-make-filename-from-adaname
-					     (match-string 1))
-					    ada-spec-suffixes)))))))
-
-  ;; Another special construct, that redefines the one in find-file.el. The
-  ;; old one can handle only one possible type of extension for Ada files
-  ;;  remove from the list the standard "with..." that is put by find-file.el,
-  ;;  since it uses the old ada-spec-suffix variable
-  ;; This one needs to replace the standard one defined in find-file.el (with
-  ;;  Emacs <= 20.4), since that one uses the old variable ada-spec-suffix
-  (let ((old-construct
-         (assoc "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)" ff-special-constructs))
-        (new-cdr
-         (lambda ()
-	   (if (fboundp 'ff-get-file)
-	       (if (boundp 'fname)
-		   (set 'fname (ff-get-file
-				ada-search-directories-internal
-				(ada-make-filename-from-adaname
-				 (match-string 1))
-				ada-spec-suffixes)))))))
-    (if old-construct
-        (setcdr old-construct new-cdr)
-      (add-to-list 'ff-special-constructs
-                   (cons "^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
-                         new-cdr))))
+  (mapc (lambda (pair)
+          (add-to-list 'ff-special-constructs pair))
+        `(
+          ;; Go to the parent package.
+          (,(eval-when-compile
+              (concat "^\\(private[ \t]\\)?[ \t]*package[ \t]+"
+                      "\\(body[ \t]+\\)?"
+                      "\\(\\(\\sw\\|[_.]\\)+\\)\\.\\(\\sw\\|_\\)+[ \t\n]+is"))
+           . ,(lambda ()
+                (ff-get-file
+                 ada-search-directories-internal
+                 (ada-make-filename-from-adaname (match-string 3))
+                 ada-spec-suffixes)))
+          ;; A "separate" clause.
+          ("^separate[ \t\n]*(\\(\\(\\sw\\|[_.]\\)+\\))"
+           . ,(lambda ()
+                (ff-get-file
+                 ada-search-directories-internal
+                 (ada-make-filename-from-adaname (match-string 1))
+                 ada-spec-suffixes)))
+          ;; A "with" clause.
+          ("^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)"
+           . ,(lambda ()
+                (ff-get-file
+                 ada-search-directories-internal
+                 (ada-make-filename-from-adaname (match-string 1))
+                 ada-spec-suffixes)))
+          ))
 
   ;;  Support for outline-minor-mode
   (set (make-local-variable 'outline-regexp)

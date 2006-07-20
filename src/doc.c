@@ -416,7 +416,7 @@ string is passed through `substitute-command-keys'.  */)
     {
       funcar = Fcar (fun);
       if (!SYMBOLP (funcar))
-	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+	xsignal1 (Qinvalid_function, fun);
       else if (EQ (funcar, Qkeymap))
 	return build_string ("Prefix command (definition is a keymap associating keystrokes with commands).");
       else if (EQ (funcar, Qlambda)
@@ -443,7 +443,7 @@ string is passed through `substitute-command-keys'.  */)
   else
     {
     oops:
-      Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+      xsignal1 (Qinvalid_function, fun);
     }
 
   /* If DOC is 0, it's typically because of a dumped file missing

@@ -1,3 +1,372 @@
+2006-07-18  Francis Litterio  <franl@world.std.com>
+
+	* w32term.c (x_calc_absolute_position): Fix frame positioning
+	with negative X/Y coordinates.
+
+2006-07-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_connection_closed, x_error_quitter): Mark as NO_RETURN.
+
+	* textprop.c (text_read_only): Likewise.
+
+	* lread.c (end_of_file_error): Likewise.
+
+	* lisp.h (circular_list_error, memory_full, buffer_memory_full):
+	Likewise.
+
+	* eval.c (unwind_to_catch): Likewise.
+
+	* buffer.h (buffer_slot_type_mismatch): Likewise.
+
+2006-07-18  Kim F. Storm  <storm@cua.dk>
+
+	Cleanup Fsignal calls that never returns; now only use it for Qquit.
+
+	* eval.c (xsignal): New func.  Like Fsignal, but marked no-return.
+	(xsignal0, xsignal1, xsignal2, xsignal3): New no-return functions.
+	(signal_error): New no-return function (from xfaces.c).
+	(Fthrow): Use xsignal2 instead of Fsignal + abort.
+	(error): Use xsignal1 instead of Fsignal + abort.
+	(FletX, Flet, grow_specpdl): Use signal_error.
+	(Feval, Ffuncall, funcall_lambda): Use xsignal1, xsignal2.
+
+	* alloc.c (buffer_memory_full, memory_full): Use xsignal. Remove loop.
+	(list1): New function.
+
+	* lisp.h (list1): Add EXFUN.
+	(xsignal, xsignal0, xsignal1, xsignal2, xsignal3, signal_error):
+	Add prototypes.  Mark them as no-return.
+
+	* buffer.c (Fbuffer_local_value, Fbarf_if_buffer_read_only):
+	Use xsignal1.
+
+	* callint.c (check_mark): Use xsignal0.
+
+	* casefiddle.c (casify_object): wrong_type_argument is no-return.
+
+	* cmds.c (Fforward_char, Fdelete_char): Use xsignal0.
+
+	* coding.c (Fcheck_coding_system): Use xsignal1.  Remove loop.
+	(Fdefine_coding_system_internal): Use xsignal1.
+
+	* data.c (circular_list_error): Use xsignal.
+	(wrong_type_argument): Use xsignal2.  Don't care about return value.
+	(args_out_of_range, args_out_of_range_3): Use xsignal2, xsignal3.
+	Remove loop around Fsignal.
+	(indirect_variable, Fsymbol_value, set_internal, Fdefault_value)
+	(indirect_function, Findirect_function, Fstring_to_number)
+	(Fmakunbound, Ffmakunbound, Fsymbol_function, Ffset): Use xsignal1.
+	(arith_driver, float_arith_driver, Frem, Fmod, arith_error):
+	Use xsignal0.
+
+	* doc.c (Fdocumentation): Use xsignal1.
+
+	* editfns.c (region_limit, Fget_internal_run_time): Use xsignal0.
+
+	* fileio.c (report_file_error): Use xsignal.
+	(barf_or_query_if_file_exists, Fcopy_file, Fdelete_file)
+	(Finsert_file_contents): Use xsignal2.
+	(syms_of_fileio): Use list2, list3.
+
+	* floatfns.c (arith_error, range_error, domain_error): Use xsignal2.
+	(range_error2, domain_error2): Use xsignal3.
+	(rounding_driver, fmod_float): Use xsignal0.
+	(float_error): Use xsignal1.
+	(matherr): Use xsignal.
+
+	* fns.c (Flength): wrong_type_argument is no-return.
+	(hashfn_user_defined, Fmake_hash_table): Use signal_error.
+	(Fmd5): Use xsignal1.
+
+	* frame.c (x_set_line_spacing, x_set_screen_gamma): Use signal_error.
+
+	* keyboard.c (recursive_edit_1): Use xsignal1.
+
+	* keymap.c (Fmap_keymap): Use xsignal1.
+
+	* lread.c (Fload): Use xsignal2, signal_error.
+	(end_of_file_error): Use xsignal0, xsignal1.
+	(read0): Use xsignal1.
+	(invalid_syntax): New error function marked no-return.
+	(read_integer, read1, read_list): Use it.
+
+	* macselect.c (x_get_local_selection): Use signal_error.
+
+	* msdos.c (Fmsdos_set_mouse_buttons): Use xsignal2.
+
+	* search.c (compile_pattern_1): Use xsignal1.
+	(signal_failure): Remove (was only called once).
+	(search_command): Use xsignal1 instead of signal_failure.
+
+	* syntax.c (scan_lists): Use xsignal3.
+
+	* textprop.c (text_read_only): Use xsignal0, xsignal1.
+
+	* unexsol.c (unexec): Use xsignal.
+
+	* window.c (window_scroll_pixel_based, window_scroll_line_based):
+	Use xsignal0.
+
+	* xfaces.c (signal_error): Move to eval.c.
+	(resolve_face_name): Use xsignal1.
+
+	* xfns.c (x_decode_color): Use signal_error.
+
+	* xselect.c (x_get_local_selection, copy_multiple_data)
+	(x_get_window_property_as_lisp_data)
+	(lisp_data_to_selection_data, CHECK_CUT_BUFFER)
+	(Fx_get_cut_buffer_internal): Use signal_error.
+
+2006-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XTread_socket): Undo previous change.
+
+2006-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (keycode_to_xkeysym): Remove function.  All uses now
+	directly lookup keycode_to_xkeysym_table.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Don't construct
+	ASCII_KEYSTROKE_EVENT for non-zero keycode_to_xkeysym_table entries.
+	(XTread_socket): Use character codes to construct keypad key events.
+	(mac_initialize_display_info) [MAC_OSX]: Use CGDisplaySamplesPerPixel.
+	(x_delete_display): Apply 2006-07-04 change for xterm.c.
+
+2006-07-17  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_single_display_spec): Ensure the right value of
+	it->position is saved by push_it.
+	(pop_it): Restore it->object for GET_FROM_BUFFER and GET_FROM_STRING.
+	(reseat_1): Don't setup it->object twice.
+	(set_iterator_to_next): No need to set it->object after pop_it.
+	(move_it_to): Explicitly check to see if last move reached to_charpos.
+
+2006-07-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xdisp.c (display_mode_line): Preserve match data.
+
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* w32.c (pfn_WSACreateEvent, pfn_WSACloseEvent): New func ptrs.
+	(init_winsock): Load them.  Use ws2_32.dll.
+	(sys_listen): Undo last change.  Just set FILE_LISTEN flag.
+	(sys_accept): Undo last change.  Instead, set child status to
+	STATUS_READ_ACKNOWLEDGED and reset char_avail event so next
+	sys_select will wakeup the reader thread.
+	(_sys_wait_accept): New function used by reader thread to wait for
+	an incoming connection on a server socket.
+
+	* w32.h (_sys_read_ahead, _sys_wait_accept): Add prototypes.
+
+	* w32proc.c (reader_thread): Use _sys_wait_accept to wait on a
+	server socket (FILE_LISTEN flag).
+
+2006-07-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sound.c (alsa_init): Call snd_pcm_close after successful snd_pcm_open.
+
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* w32.c: Fix high cpu load for server sockets.
+	(pfn_WSAEventSelect): New function ptr.
+	(init_winsock): Load it.
+	(sys_listen): Set FILE_LISTEN flag. Set event mask for socket's
+	char_avail event object to FD_ACCEPT.
+	(sys_accept): Check FILE_LISTEN flag.  Set event mask on new
+	socket's char_avail event object to FD_READ|FD_CLOSE.
+
+	* w32.h (FILE_LISTEN): New filedesc flag value.
+
+2006-07-13  Kim F. Storm  <storm@cua.dk>
+
+	* bytecode.c (Fbyte_code): Use CAR, CDR for Bcar, Bcdr.
+	Use CAR_SAFE, CDR_SAFE for Bcar_safe, Bcdr_safe.
+	Simplify loops and use CAR for Bnth and Belt.
+
+	* data.c (Findirect_function): Optimize for no indirection.
+
+	* eval.c (Fthrow): Remove loop around Fsignal.
+	(Feval, Fapply, Ffuncall): Optimize for no function indirection.
+	Use original function name in all signaled errors.
+	Simplify Fsignal calls (no return).
+	(funcall_lambda): Simplify Fsignal calls (no return).
+
+2006-07-13  Andreas Schwab  <schwab@suse.de>
+
+	* syntax.c (scan_sexps_forward): Use EMACS_INT for out_bytepos and
+	out_charpos.
+
+2006-07-13  Kenichi Handa  <handa@m17n.org>
+
+	* editfns.c (Fformat): Fix calculation of text property positions
+	of format string.
+
+2006-07-12  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (CHECK_TYPE): New macro for generic type checking.
+	(CAR_SAFE, CDR_SAFE): New macros.
+	(ARRAYP, CHECK_ARRAY): New macros.
+	(CHECK_VECTOR_OR_STRING, CHECK_SUBR): New macros.
+	(CHECK_WINDOW_CONFIGURATION): New macro.
+	(CHECK_LIST_CONS, CHECK_LIST_END): New checks for list traversal.
+	(CHECK_STRING_OR_BUFFER, CHECK_HASH_TABLE, CHECK_LIST)
+	(CHECK_STRING, CHECK_STRING_CAR, CHECK_CONS, CHECK_SYMBOL)
+	(CHECK_CHAR_TABLE, CHECK_VECTOR, CHECK_VECTOR_OR_CHAR_TABLE)
+	(CHECK_BUFFER, CHECK_WINDOW, CHECK_LIVE_WINDOW, CHECK_PROCESS)
+	(CHECK_NUMBER, CHECK_NATNUM, CHECK_MARKER, CHECK_OVERLAY)
+	(CHECK_NUMBER_COERCE_MARKER, CHECK_FLOAT, CHECK_NUMBER_OR_FLOAT)
+	(CHECK_NUMBER_OR_FLOAT_COERCE_MARKER): Use CHECK_TYPE.
+
+	* category.h (CHECK_CATEGORY, CHECK_CATEGORY_SET):
+	* frame.h (CHECK_FRAME, CHECK_LIVE_FRAME): Use CHECK_TYPE.
+
+	* callint.c (Fcall_interactively):
+	* casefiddle.c (casify_object):
+	* editfns.c (general_insert_function):
+	* fns.c (Flength, Felt, Ffillarray):
+	* data.c (Fcar, Fcdr): Remove loop around wrong_type_argument.
+
+	* data.c (wrong_type_argument): Remove loop around Fsignal.
+	(Farrayp, Fsequencep): Use ARRAYP.
+	(Fcar): Use CAR.
+	(Fcar_safe): Use CAR_SAFE.
+	(Fcdr): Use CDR.
+	(Fcdr_safe): Use CDR_SAFE.
+	(Fsetcar, Fsetcdr): Use CHECK_CONS.
+	(Fsubr_arity, Fsubr_name): Use CHECK_SUBR.
+	(Faset): Use CHECK_ARRAY.
+
+	* fns.c (Felt): Use CHECK_ARRAY.
+	(concat): Use CHECK_NUMBER.
+	(Fsubstring, substring_both): Use CHECK_VECTOR_OR_STRING.
+	(Fmemq): Use CHECK_LIST.
+	(Fassq, Fassoc, Frassq, Frassoc): Use CAR.
+	(assq_no_quit): Use CAR_SAFE.
+	(Fnthcdr, Fmember, Fdelq, Fdelete, Fnreverse, Fnconc):
+	Use CHECK_LIST_CONS.
+	(Freverse, Fplist_get, Flax_plist_get): Use CHECK_LIST_END.
+
+	* bytecode.c (Fbyte_code): Use CHECK_VECTOR.
+
+	* casetab.c (check_case_table):
+	* category.c (check_category_table):
+	* marker.c (Fcopy_marker):
+	* syntax.c (check_syntax_table):
+	* xfaces.c (load_pixmap): Use CHECK_TYPE.
+
+	* fns.c (Fcopy_sequence, concat):
+	* fringe.c (Fdefine_fringe_bitmap):
+	* lread.c (check_obarray): Cleanup wrong_type_argument use.
+
+	* keyboard.c (access_keymap_keyremap): Use ARRAYP.
+
+	* keymap.c (Fdefine_key, Flookup_key):
+	* macros.c (Fstart_kbd_macro): Use CHECK_VECTOR_OR_STRING.
+
+	* mac.c (Fmac_get_preference): Use CHECK_LIST_END.
+
+	* search.c (Fset_match_data): Use CHECK_LIST.
+
+	* sunfns.c (sun_item_create): Use CHECK_LIST_CONS.
+
+	* window.c (Fwindow_configuration_frame, Fset_window_configuration):
+	(compare_window_configurations): Use CHECK_WINDOW_CONFIGURATION.
+
+2006-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (dired.o, editfns.o, fileio.o): Depend on blockinput.h.
+
+	* dired.c: Include blockinput.h.
+	(Ffile_attributes): Add BLOCK_INPUT around getpwuid/getgrgid.
+
+	* editfns.c: Include blockinput.h.
+	(Fuser_login_name, Fuser_full_name): Add BLOCK_INPUT around
+	getpwuid/getpwnam.
+
+	* fileio.c: Include blockinput.h.
+	(Fexpand_file_name, search_embedded_absfilename): Add BLOCK_INPUT
+	around getpwnam.
+	(search_embedded_absfilename): Remove spurious xfree.
+
+2006-07-11  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (sit_for): Reduce number of args from 5 to 3.
+	Now just one TIMEOUT arg that can be a Lisp float or Lisp int.
+	Combine args DISPLAY and INITIAL_DISPLAY into one arg DO_DISPLAY.
+	Signal error if TIMEOUT is not a number.
+	Undo 2006-06-14 change for non-preemptive display if TIMEOUT < 0.
+	The rework of sit_for args also fixes several incorrect Qt args
+	which should have been 1.
+	(Fredisplay): Pass 1 instead of Qt to swallow_events and
+	detect_input_pending_run_timers.
+
+	* lisp.h (sit_for): Update prototype.
+	(Fredisplay): Add EXFUN.
+
+	* dispextern.h (sit_for): Remove prototype.
+
+	* callint.c (Fcall_interactively):
+	* minibuf.c (temp_echo_area_glyphs):
+	* keyboard.c (command_loop_1, read_char, Fexecute_extended_command):
+	* fileio.c (Fdo_auto_save): Update/simplify sit_for calls.
+
+2006-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (forw_comment): Also use EMACS_INT for buffer positions.
+
+2006-07-11  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (Fredisplay): Add FORCE argument to force redisplay when
+	input is available.  Fix test for redisplay_dont_pause non-nil.
+	Specbind redisplay-dont-pause to t if FORCE non-nil.
+
+2006-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1211000.
+
+	* dispnew.c (Fredisplay): New function, equivalent to (sit-for 0).
+	(Fsit_for): Function deleted.
+
+	* keyboard.c (command_loop_1, Fexecute_extended_command):
+	Call sit_for instead of Fsit_for.
+
+	* minibuf.c (temp_echo_area_glyphs): Likewise.
+
+2006-07-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (Fforward_comment): Revert the reversion.
+	(back_comment, scan_lists): Also use EMACS_INT for buffer positions.
+
+2006-07-09  John Paul Wallington  <jpw@pobox.com>
+
+	* syntax.c (Fforward_comment): Revert previous change.
+
+2006-07-09  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fforce_window_update): Doc fix.
+
+2006-07-08  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* fileio.c (do_auto_save_make_dir): Make the auto-save-list-file
+	directory unreadable for better user privacy.
+
+2006-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (Fforward_comment): Fix int-32 vs EMACS_INT-64 mixup.
+
+	* lread.c (read_filtered_event): Remove `register' qualifier because it
+	causes compilation problem with gcc-4.0.2-20051125 on amd64.
+	(readevalloop): Remove unused var `bpos'.
+	Yet another int/Lisp_Object mixup (YAILOM).
+
+2006-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (Fexecute_extended_command): Mention the argument
+	PREFIXARG in the doc string.
+
+2006-07-07  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (Fdefine_fringe_bitmap): Doc fix.
+
 2006-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* insdel.c (prepare_to_modify_buffer): For an indirect buffer, do

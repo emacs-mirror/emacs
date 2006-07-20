@@ -1669,7 +1669,7 @@ is not *inside* the region START...END."
 	     '(0 . 0)))
     '(0 . 0)))
 
-(defcustom undo-ask-before-discard t
+(defcustom undo-ask-before-discard nil
   "If non-nil ask about discarding undo info for the current command.
 Normally, Emacs discards the undo info for the current command if
 it exceeds `undo-outer-limit'.  But if you set this option

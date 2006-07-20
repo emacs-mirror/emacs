@@ -232,8 +232,7 @@ See `compilation-error-screen-columns'"
 ;; override compilation-last-buffer
 (defvar grep-last-buffer nil
   "The most recent grep buffer.
-A grep buffer becomes most recent when its process is started
-or when it is used with \\[grep-next-match].
+A grep buffer becomes most recent when you select Grep mode in it.
 Notice that using \\[next-error] or \\[compile-goto-error] modifies
 `complation-last-buffer' rather than `grep-last-buffer'.")
 

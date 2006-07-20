@@ -45,83 +45,81 @@ casify_object (flag, obj)
   if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
     Fset_case_table (current_buffer->downcase_table);
 
-  while (1)
+  if (INTEGERP (obj))
     {
-      if (INTEGERP (obj))
+      int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
+		      | CHAR_SHIFT | CHAR_CTL | CHAR_META);
+      int flags = XINT (obj) & flagbits;
+      int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+
+      /* If the character has higher bits set
+	 above the flags, return it unchanged.
+	 It is not a real character.  */
+      if ((unsigned) XFASTINT (obj) > (unsigned) flagbits)
+	return obj;
+
+      c1 = XFASTINT (obj) & ~flagbits;
+      if (! multibyte)
+	MAKE_CHAR_MULTIBYTE (c1);
+      c = DOWNCASE (c1);
+      if (inword)
+	XSETFASTINT (obj, c | flags);
+      else if (c == (XFASTINT (obj) & ~flagbits))
 	{
-	  int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
-			  | CHAR_SHIFT | CHAR_CTL | CHAR_META);
-	  int flags = XINT (obj) & flagbits;
-	  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
-
-	  /* If the character has higher bits set
-	     above the flags, return it unchanged.
-	     It is not a real character.  */
-	  if ((unsigned) XFASTINT (obj) > (unsigned) flagbits)
-	    return obj;
-
-	  c1 = XFASTINT (obj) & ~flagbits;
+	  if (! inword)
+	    c = UPCASE1 (c1);
 	  if (! multibyte)
-	    MAKE_CHAR_MULTIBYTE (c1);
-	  c = DOWNCASE (c1);
-	  if (inword)
-	    XSETFASTINT (obj, c | flags);
-	  else if (c == (XFASTINT (obj) & ~flagbits))
-	    {
-	      if (! inword)
-		c = UPCASE1 (c1);
-	      if (! multibyte)
-		MAKE_CHAR_UNIBYTE (c);
-	      XSETFASTINT (obj, c | flags);
-	    }
-	  return obj;
+	    MAKE_CHAR_UNIBYTE (c);
+	  XSETFASTINT (obj, c | flags);
 	}
+      return obj;
+    }
 
-      if (STRINGP (obj))
+  if (STRINGP (obj))
+    {
+      int multibyte = STRING_MULTIBYTE (obj);
+      int i, i_byte, len;
+      int size = SCHARS (obj);
+
+      obj = Fcopy_sequence (obj);
+      for (i = i_byte = 0; i < size; i++, i_byte += len)
 	{
-	  int multibyte = STRING_MULTIBYTE (obj);
-	  int i, i_byte, len;
-	  int size = SCHARS (obj);
-
-	  obj = Fcopy_sequence (obj);
-	  for (i = i_byte = 0; i < size; i++, i_byte += len)
+	  if (multibyte)
+	    c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, 0, len);
+	  else
 	    {
-	      if (multibyte)
-		c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, 0, len);
+	      c = SREF (obj, i_byte);
+	      len = 1;
+	      MAKE_CHAR_MULTIBYTE (c);
+	    }
+	  c1 = c;
+	  if (inword && flag != CASE_CAPITALIZE_UP)
+	    c = DOWNCASE (c);
+	  else if (!UPPERCASEP (c)
+		   && (!inword || flag != CASE_CAPITALIZE_UP))
+	    c = UPCASE1 (c1);
+	  if ((int) flag >= (int) CASE_CAPITALIZE)
+	    inword = (SYNTAX (c) == Sword);
+	  if (c != c1)
+	    {
+	      if (! multibyte)
+		{
+		  MAKE_CHAR_UNIBYTE (c);
+		  SSET (obj, i_byte, c);
+		}
+	      else if (ASCII_CHAR_P (c1) && ASCII_CHAR_P (c))
+		SSET (obj, i_byte,  c);
 	      else
 		{
-		  c = SREF (obj, i_byte);
-		  len = 1;
-		  MAKE_CHAR_MULTIBYTE (c);
-		}
-	      c1 = c;
-	      if (inword && flag != CASE_CAPITALIZE_UP)
-		c = DOWNCASE (c);
-	      else if (!UPPERCASEP (c)
-		       && (!inword || flag != CASE_CAPITALIZE_UP))
-		c = UPCASE1 (c1);
-	      if ((int) flag >= (int) CASE_CAPITALIZE)
-		inword = (SYNTAX (c) == Sword);
-	      if (c != c1)
-		{
-		  if (! multibyte)
-		    {
-		      MAKE_CHAR_UNIBYTE (c);
-		      SSET (obj, i_byte, c);
-		    }
-		  else if (ASCII_CHAR_P (c1) && ASCII_CHAR_P (c))
-		    SSET (obj, i_byte,  c);
-		  else
-		    {
-		      Faset (obj, make_number (i), make_number (c));
-		      i_byte += CHAR_BYTES (c) - len;
-		    }
+		  Faset (obj, make_number (i), make_number (c));
+		  i_byte += CHAR_BYTES (c) - len;
 		}
 	    }
-	  return obj;
 	}
-      obj = wrong_type_argument (Qchar_or_string_p, obj);
+      return obj;
     }
+
+  wrong_type_argument (Qchar_or_string_p, obj);
 }
 
 DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,

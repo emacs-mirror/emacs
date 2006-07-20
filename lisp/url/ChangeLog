@@ -1,8 +1,23 @@
+2006-07-12  Michael Olson  <mwolson@gnu.org>
+
+	* url-irc.el (url-irc-erc): Call erc-handle-irc-url.
+
+2006-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-cookie.el: Remove spurious * in docstrings.
+	(url-cookie-write-file): Don't use versioned backups.
+	(url-cookie-host-can-set-p): Remove unused var `tmp'.
+
+2006-07-04  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* url-cookie.el (url-cookie-save-interval): Move to url-cookie group.
+	(url-cookie-write-file): Reset url-cookies-changed-since-last-save.
+
 2006-05-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* url-http.el (url-http-file-exists-p): Test if status is integer.
 
-2006-05-05  Andreas Seltenreich  <seltenreich@gmx.de>  (tiny change)
+2006-05-05  Andreas Seltenreich  <seltenreich@gmx.de>
 
 	* url-http.el (url-http-parse-headers): Don't reuse connection if
 	"Connection: close" header was seen.

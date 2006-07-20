@@ -594,6 +594,12 @@ extern size_t pure_size;
 #define STRING_COPYIN(string, index, new, count) \
     bcopy (new, XSTRING (string)->data + index, count)
 
+/* Type checking.  */
+
+#define CHECK_TYPE(ok, Qxxxp, x) \
+  do { if (!(ok)) wrong_type_argument (Qxxxp, (x)); } while (0)
+
+
 
 /* See the macros in intervals.h.  */
 
@@ -601,8 +607,8 @@ typedef struct interval *INTERVAL;
 
 /* Complain if object is not string or buffer type */
 #define CHECK_STRING_OR_BUFFER(x) \
-  { if (!STRINGP ((x)) && !BUFFERP ((x))) \
-      x = wrong_type_argument (Qbuffer_or_string_p, (x)); }
+  CHECK_TYPE (STRINGP (x) || BUFFERP (x), Qbuffer_or_string_p, x)
+
 
 /* In a cons, the markbit of the car is the gc mark bit */
 
@@ -670,6 +676,13 @@ struct Lisp_Cons
  (CONSP ((c)) ? XCDR ((c))			\
   : NILP ((c)) ? Qnil				\
   : wrong_type_argument (Qlistp, (c)))
+
+/* Take the car or cdr of something whose type is not known.  */
+#define CAR_SAFE(c)				\
+  (CONSP ((c)) ? XCAR ((c)) : Qnil)
+
+#define CDR_SAFE(c)				\
+  (CONSP ((c)) ? XCDR ((c)) : Qnil)
 
 /* Nonzero if STR is a multibyte string.  */
 #define STRING_MULTIBYTE(STR)  \
@@ -1049,13 +1062,8 @@ struct Lisp_Hash_Table
 #define HASH_TABLE_P(OBJ)  PSEUDOVECTORP (OBJ, PVEC_HASH_TABLE)
 #define GC_HASH_TABLE_P(x) GC_PSEUDOVECTORP (x, PVEC_HASH_TABLE)
 
-#define CHECK_HASH_TABLE(x)					\
-     do								\
-       {							\
-	 if (!HASH_TABLE_P ((x)))				\
-	   x = wrong_type_argument (Qhash_table_p, (x));	\
-       }							\
-     while (0)
+#define CHECK_HASH_TABLE(x) \
+  CHECK_TYPE (HASH_TABLE_P (x), Qhash_table_p, x)
 
 /* Value is the key part of entry IDX in hash table H.  */
 
@@ -1520,41 +1528,57 @@ typedef unsigned char UCHAR;
 /* Test for image (image . spec)  */
 #define IMAGEP(x) (CONSP (x) && EQ (XCAR (x), Qimage))
 
+/* Array types.  */
+
+#define ARRAYP(x) \
+  (VECTORP (x) || STRINGP (x) || CHAR_TABLE_P (x) || BOOL_VECTOR_P (x))
 
 #define GC_EQ(x, y) EQ (x, y)
 
 #define CHECK_LIST(x) \
-  do { if (!CONSP ((x)) && !NILP (x)) x = wrong_type_argument (Qlistp, (x)); } while (0)
+  CHECK_TYPE (CONSP (x) || NILP (x), Qlistp, x)
+
+#define CHECK_LIST_CONS(x, y) \
+  CHECK_TYPE (CONSP (x), Qlistp, y)
+
+#define CHECK_LIST_END(x, y) \
+  CHECK_TYPE (NILP (x), Qlistp, y)
 
 #define CHECK_STRING(x) \
-  do { if (!STRINGP ((x))) x = wrong_type_argument (Qstringp, (x)); } while (0)
+  CHECK_TYPE (STRINGP (x), Qstringp, x)
 
 #define CHECK_STRING_CAR(x) \
-  do { if (!STRINGP (XCAR (x))) XSETCAR (x, wrong_type_argument (Qstringp, XCAR (x))); } while (0)
+  CHECK_TYPE (STRINGP (XCAR (x)), Qstringp, XCAR (x))
 
 #define CHECK_CONS(x) \
-  do { if (!CONSP ((x))) x = wrong_type_argument (Qconsp, (x)); } while (0)
+  CHECK_TYPE (CONSP (x), Qconsp, x)
 
 #define CHECK_SYMBOL(x) \
-  do { if (!SYMBOLP ((x))) x = wrong_type_argument (Qsymbolp, (x)); } while (0)
+  CHECK_TYPE (SYMBOLP (x), Qsymbolp, x)
 
 #define CHECK_CHAR_TABLE(x) \
-  do { if (!CHAR_TABLE_P ((x)))	\
-	 x = wrong_type_argument (Qchar_table_p, (x)); } while (0)
+  CHECK_TYPE (CHAR_TABLE_P (x), Qchar_table_p, x)
 
 #define CHECK_VECTOR(x) \
-  do { if (!VECTORP ((x))) x = wrong_type_argument (Qvectorp, (x)); } while (0)
+  CHECK_TYPE (VECTORP (x), Qvectorp, x)
 
-#define CHECK_VECTOR_OR_CHAR_TABLE(x)				\
-  do { if (!VECTORP ((x)) && !CHAR_TABLE_P ((x)))			\
-	 x = wrong_type_argument (Qvector_or_char_table_p, (x));	\
-     } while (0)
+#define CHECK_VECTOR_OR_STRING(x) \
+  CHECK_TYPE (VECTORP (x) || STRINGP (x), Qarrayp, x)
+
+#define CHECK_ARRAY(x, Qxxxp)							\
+  CHECK_TYPE (ARRAYP (x), Qxxxp, x)
+
+#define CHECK_VECTOR_OR_CHAR_TABLE(x) \
+  CHECK_TYPE (VECTORP (x) || CHAR_TABLE_P (x), Qvector_or_char_table_p, x)
 
 #define CHECK_BUFFER(x) \
-  do { if (!BUFFERP ((x))) x = wrong_type_argument (Qbufferp, (x)); } while (0)
+  CHECK_TYPE (BUFFERP (x), Qbufferp, x)
 
 #define CHECK_WINDOW(x) \
-  do { if (!WINDOWP ((x))) x = wrong_type_argument (Qwindowp, (x)); } while (0)
+  CHECK_TYPE (WINDOWP (x), Qwindowp, x)
+
+#define CHECK_WINDOW_CONFIGURATION(x) \
+  CHECK_TYPE (WINDOW_CONFIGURATIONP (x), Qwindow_configuration_p, x)
 
 /* This macro rejects windows on the interior of the window tree as
    "dead", which is what we want; this is an argument-checking macro, and
@@ -1563,46 +1587,42 @@ typedef unsigned char UCHAR;
    A window of any sort, leaf or interior, is dead iff the buffer,
    vchild, and hchild members are all nil.  */
 
-#define CHECK_LIVE_WINDOW(x)				\
-  do {							\
-    if (!WINDOWP ((x))					\
-	|| NILP (XWINDOW ((x))->buffer))		\
-      x = wrong_type_argument (Qwindow_live_p, (x));	\
-  } while (0)
+#define CHECK_LIVE_WINDOW(x) \
+  CHECK_TYPE (WINDOWP (x) && !NILP (XWINDOW (x)->buffer), Qwindow_live_p, x)
 
 #define CHECK_PROCESS(x) \
-  do { if (!PROCESSP ((x))) x = wrong_type_argument (Qprocessp, (x)); } while (0)
+  CHECK_TYPE (PROCESSP (x), Qprocessp, x)
+
+#define CHECK_SUBR(x) \
+  CHECK_TYPE (SUBRP (x), Qsubrp, x)
 
 #define CHECK_NUMBER(x) \
-  do { if (!INTEGERP ((x))) x = wrong_type_argument (Qintegerp, (x)); } while (0)
+  CHECK_TYPE (INTEGERP (x), Qintegerp, x)
 
 #define CHECK_NATNUM(x) \
-  do { if (!NATNUMP (x)) x = wrong_type_argument (Qwholenump, (x)); } while (0)
+  CHECK_TYPE (NATNUMP (x), Qwholenump, x)
 
 #define CHECK_MARKER(x) \
-  do { if (!MARKERP ((x))) x = wrong_type_argument (Qmarkerp, (x)); } while (0)
+  CHECK_TYPE (MARKERP (x), Qmarkerp, x)
 
 #define CHECK_NUMBER_COERCE_MARKER(x) \
   do { if (MARKERP ((x))) XSETFASTINT (x, marker_position (x)); \
-    else if (!INTEGERP ((x))) x = wrong_type_argument (Qinteger_or_marker_p, (x)); } while (0)
+    else CHECK_TYPE (INTEGERP (x), Qinteger_or_marker_p, x); } while (0)
 
 #define XFLOATINT(n) extract_float((n))
 
 #define CHECK_FLOAT(x)		\
-  do { if (!FLOATP (x))			\
-    x = wrong_type_argument (Qfloatp, (x)); } while (0)
+  CHECK_TYPE (FLOATP (x), Qfloatp, x)
 
 #define CHECK_NUMBER_OR_FLOAT(x)	\
-  do { if (!FLOATP (x) && !INTEGERP (x))	\
-    x = wrong_type_argument (Qnumberp, (x)); } while (0)
+  CHECK_TYPE (FLOATP (x) || INTEGERP (x), Qnumberp, x)
 
 #define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x) \
   do { if (MARKERP (x)) XSETFASTINT (x, marker_position (x));	\
-  else if (!INTEGERP (x) && !FLOATP (x))		\
-    x = wrong_type_argument (Qnumber_or_marker_p, (x)); } while (0)
+    else CHECK_TYPE (INTEGERP (x) || FLOATP (x), Qnumber_or_marker_p, x); } while (0)
 
 #define CHECK_OVERLAY(x) \
-  do { if (!OVERLAYP ((x))) x = wrong_type_argument (Qoverlayp, (x));} while (0)
+  CHECK_TYPE (OVERLAYP (x), Qoverlayp, x)
 
 /* Since we can't assign directly to the CAR or CDR fields of a cons
    cell, use these when checking that those fields contain numbers.  */
@@ -2164,7 +2184,7 @@ extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
 extern Lisp_Object Qinteger;
 
-extern void circular_list_error P_ ((Lisp_Object));
+extern void circular_list_error P_ ((Lisp_Object)) NO_RETURN;
 EXFUN (Finteractive_form, 1);
 
 /* Defined in frame.c */
@@ -2482,8 +2502,8 @@ EXFUN (Fding, 1);
 EXFUN (Fredraw_frame, 1);
 EXFUN (Fredraw_display, 0);
 EXFUN (Fsleep_for, 2);
-EXFUN (Fsit_for, 3);
-extern Lisp_Object sit_for P_ ((int, int, int, int, int));
+EXFUN (Fredisplay, 1);
+extern Lisp_Object sit_for P_ ((Lisp_Object, int, int));
 extern void init_display P_ ((void));
 extern void syms_of_display P_ ((void));
 extern void safe_bcopy P_ ((const char *, char *, int));
@@ -2542,13 +2562,14 @@ extern void allocate_string_data P_ ((struct Lisp_String *, int, int));
 extern void reset_malloc_hooks P_ ((void));
 extern void uninterrupt_malloc P_ ((void));
 extern void malloc_warning P_ ((char *));
-extern void memory_full P_ ((void));
-extern void buffer_memory_full P_ ((void));
+extern void memory_full P_ ((void)) NO_RETURN;
+extern void buffer_memory_full P_ ((void)) NO_RETURN;
 extern int survives_gc_p P_ ((Lisp_Object));
 extern void mark_object P_ ((Lisp_Object));
 extern Lisp_Object Vpurify_flag;
 extern Lisp_Object Vmemory_full;
 EXFUN (Fcons, 2);
+EXFUN (list1, 1);
 EXFUN (list2, 2);
 EXFUN (list3, 3);
 EXFUN (list4, 4);
@@ -2724,6 +2745,12 @@ EXFUN (Fthrow, 2) NO_RETURN;
 EXFUN (Funwind_protect, UNEVALLED);
 EXFUN (Fcondition_case, UNEVALLED);
 EXFUN (Fsignal, 2);
+extern void xsignal P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
+extern void xsignal0 P_ ((Lisp_Object)) NO_RETURN;
+extern void xsignal1 P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
+extern void xsignal2 P_ ((Lisp_Object, Lisp_Object, Lisp_Object)) NO_RETURN;
+extern void xsignal3 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)) NO_RETURN;
+extern void signal_error P_ ((char *, Lisp_Object)) NO_RETURN;
 EXFUN (Fautoload, 5);
 EXFUN (Fcommandp, 2);
 EXFUN (Feval, 1);

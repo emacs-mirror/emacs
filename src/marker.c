@@ -835,8 +835,7 @@ see `marker-insertion-type'.  */)
 {
   register Lisp_Object new;
 
-  if (! (INTEGERP (marker) || MARKERP (marker)))
-    marker = wrong_type_argument (Qinteger_or_marker_p, marker);
+  CHECK_TYPE (INTEGERP (marker) || MARKERP (marker), Qinteger_or_marker_p, marker);
 
   new = Fmake_marker ();
   Fset_marker (new, marker,
