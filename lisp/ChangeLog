@@ -1,3 +1,8 @@
+2006-07-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Fix the
+	way of deciding eol-type of the coding system.
+
 2006-07-20  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-langs.el (c-emacs-variable-inits): new variable.
