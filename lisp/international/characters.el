@@ -265,7 +265,8 @@
 
 ;; Ethiopic character set
 
-(modify-category-entry '(#x1200 . #x137c) ?e)
+(modify-category-entry '(#x1200 . #x1399) ?e)
+(modify-category-entry '(#x2d80 . #x2dde) ?e)
 (let ((chars '(?á¡ ?á¢ ?á£ ?á¤ ?á¥ ?á¦ ?á§ ?á¨ ?ö ‡€ ?ö ‡‹ ?ö ‡Œ ?ö ‡ ?ö ‡Ž ?ö ‡)))
   (while chars
     (modify-syntax-entry (car chars) ".")
@@ -974,7 +975,7 @@
 	 (#x1000 #x105F myanmar)
 	 (#x10A0 #x10FF georgian)
 	 (#x1100 #x11FF hangul)
-	 (#x1200 #x137F ethiopic)
+	 (#x1200 #x139F ethiopic)
 	 (#x13A0 #x13FF cherokee)
 	 (#x1400 #x167F canadian-aboriginal)
 	 (#x1680 #x169F ogham)
@@ -985,6 +986,7 @@
 	 (#x1F00 #x1FFF greek)
 	 (#x2000 #x27FF symbol)
 	 (#x2800 #x28FF braille)
+	 (#x2D80 #x2DDF ethiopic)
 	 (#x2E80 #x2FDF han)
 	 (#x2FF0 #x2FFF ideographic-description)
 	 (#x3000 #x303F cjk-misc)
