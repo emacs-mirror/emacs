@@ -1,3 +1,17 @@
+2006-07-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-emacs-variable-inits): new variable.
+	(c-lang-setvar): new macro.
+	(c-make-init-lang-vars-fun): Use the initialization forms in
+	c-emacs-variable-inits in addition to those in c-lang-variable-inits.
+	(comment-start, comment-end, comment-start-skip): Change these from
+	c-lang-defvar's to c-lang-setvar's.
+
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): new macro,
+	which calls make-local-variable on the elements of
+	c-emacs-variable-inits.
+	(c-init-language-vars-for): Call this new macro.
+
 2006-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist) <gnu>:
