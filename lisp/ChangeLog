@@ -1,3 +1,33 @@
+2006-07-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.el (calc-previous-alg-entry):  Remove variable.
+
+	* calc-aent.el  (calc-alg-entry-history, calc-quick-calc-history):
+	New variables.
+	(calc-alg-entry): Use `calc-alg-entry-history'.
+	(calc-do-quick-calc): Use `calc-quick-calc-history'.
+	Remove reference to `calc-previous-alg-entry'.
+	(calcAlg-edit, calcAlg-enter): Remove reference to
+	`calc-previous-alg-entry'.
+	(calcAlg-previous): Use `previous-history-element' instead of
+	`calc-previous-alg-entry'.
+	(calc-do-alg-entry): Use history when calling `read-from-minibuffer'.
+	Change keybinding for `calcAlg-plus-minus', add keybindings for	
+	`previous-history-element' and `next-history-element'.
+
+	* calc-rewr.el (calc-match): Remove reference to
+	`calc-previous-alg-entry'.
+
+	* calc-sel.el (calc-selection-history): New variable.
+	(calc-enter-selection, calc-sel-mult-both-sides)
+	(calc-sel-add-both-sides): Use `calc-selection-history'.
+
+	* calc-map.el (calc-get-operator-history): New variable.
+	(calc-get-operator): Use `calc-get-operator-history'.
+
+	* calcalg3.el (calc-curve-fit-history): New variable.
+	(calc-curve-fit): Use `calc-curve-fit-history'.
+
 2006-07-20  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Fix the

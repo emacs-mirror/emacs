@@ -1,3 +1,8 @@
+2006-07-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Error forms):  Mention M-+ keybinding for
+	`calc-plus-minus'.
+
 2006-07-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faq.texi (Security risks with Emacs): Document Emacs 22
