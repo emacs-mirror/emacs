@@ -1,3 +1,8 @@
+2006-07-20  Andreas Schwab  <schwab@suse.de>
+
+	* fakemail.c (fatal): Drop second parameter and treat first
+	parameter as a plain string.  Callers changed.
+
 2006-07-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ebrowse.c (usage, version): Mark as NO_RETURN.
