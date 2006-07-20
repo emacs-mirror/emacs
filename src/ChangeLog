@@ -1,3 +1,12 @@
+2006-07-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp): New	vars.
+	(init_alloc_once): Initialize them.
+	(pure_alloc): Allocate non-Lisp objects from the end of pure storage
+	without alignment.
+
+	* puresize.h (BASE_PURESIZE): Decrease to 1141000.
+
 2006-07-18  Francis Litterio  <franl@world.std.com>
 
 	* w32term.c (x_calc_absolute_position): Fix frame positioning
