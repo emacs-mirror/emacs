@@ -289,9 +289,17 @@ static size_t pure_bytes_used_before_overflow;
       && ((PNTR_COMPARISON_TYPE) (P)				\
 	  >= (PNTR_COMPARISON_TYPE) purebeg))
 
-/* Index in pure at which next pure object will be allocated.. */
+/* Total number of bytes allocated in pure storage. */
 
 EMACS_INT pure_bytes_used;
+
+/* Index in pure at which next pure Lisp object will be allocated.. */
+
+static EMACS_INT pure_bytes_used_lisp;
+
+/* Number of bytes allocated for non-Lisp objects in pure storage.  */
+
+static EMACS_INT pure_bytes_used_non_lisp;
 
 /* If nonzero, this is a warning delivered by malloc and not yet
    displayed.  */
@@ -4692,10 +4700,7 @@ valid_lisp_object_p (obj)
 
 /* Allocate room for SIZE bytes from pure Lisp storage and return a
    pointer to it.  TYPE is the Lisp type for which the memory is
-   allocated.  TYPE < 0 means it's not used for a Lisp object.
-
-   If store_pure_type_info is set and TYPE is >= 0, the type of
-   the allocated object is recorded in pure_types.  */
+   allocated.  TYPE < 0 means it's not used for a Lisp object.  */
 
 static POINTER_TYPE *
 pure_alloc (size, type)
@@ -4720,8 +4725,21 @@ pure_alloc (size, type)
 #endif
 
  again:
-  result = ALIGN (purebeg + pure_bytes_used, alignment);
-  pure_bytes_used = ((char *)result - (char *)purebeg) + size;
+  if (type >= 0)
+    {
+      /* Allocate space for a Lisp object from the beginning of the free
+	 space with taking account of alignment.  */
+      result = ALIGN (purebeg + pure_bytes_used_lisp, alignment);
+      pure_bytes_used_lisp = ((char *)result - (char *)purebeg) + size;
+    }
+  else
+    {
+      /* Allocate space for a non-Lisp object from the end of the free
+	 space.  */
+      pure_bytes_used_non_lisp += size;
+      result = purebeg + pure_size - pure_bytes_used_non_lisp;
+    }
+  pure_bytes_used = pure_bytes_used_lisp + pure_bytes_used_non_lisp;
 
   if (pure_bytes_used <= pure_size)
     return result;
@@ -4733,6 +4751,7 @@ pure_alloc (size, type)
   pure_size = 10000;
   pure_bytes_used_before_overflow += pure_bytes_used - size;
   pure_bytes_used = 0;
+  pure_bytes_used_lisp = pure_bytes_used_non_lisp = 0;
   goto again;
 }
 
@@ -6225,6 +6244,7 @@ init_alloc_once ()
   purebeg = PUREBEG;
   pure_size = PURESIZE;
   pure_bytes_used = 0;
+  pure_bytes_used_lisp = pure_bytes_used_non_lisp = 0;
   pure_bytes_used_before_overflow = 0;
 
   /* Initialize the list of free aligned blocks.  */
