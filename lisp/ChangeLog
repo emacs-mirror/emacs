@@ -1,3 +1,7 @@
+2006-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-quoted-subshell): Further fix last change.
+
 2006-07-20  Jay Belanger  <belanger@truman.edu>
 
 	* calc.el (calc-previous-alg-entry):  Remove variable.
@@ -12,7 +16,7 @@
 	(calcAlg-previous): Use `previous-history-element' instead of
 	`calc-previous-alg-entry'.
 	(calc-do-alg-entry): Use history when calling `read-from-minibuffer'.
-	Change keybinding for `calcAlg-plus-minus', add keybindings for	
+	Change keybinding for `calcAlg-plus-minus', add keybindings for
 	`previous-history-element' and `next-history-element'.
 
 	* calc-rewr.el (calc-match): Remove reference to
@@ -35,14 +39,14 @@
 
 2006-07-20  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-langs.el (c-emacs-variable-inits): new variable.
-	(c-lang-setvar): new macro.
+	* progmodes/cc-langs.el (c-emacs-variable-inits): New variable.
+	(c-lang-setvar): New macro.
 	(c-make-init-lang-vars-fun): Use the initialization forms in
 	c-emacs-variable-inits in addition to those in c-lang-variable-inits.
 	(comment-start, comment-end, comment-start-skip): Change these from
 	c-lang-defvar's to c-lang-setvar's.
 
-	* progmodes/cc-mode.el (c-make-emacs-variables-local): new macro,
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): New macro,
 	which calls make-local-variable on the elements of
 	c-emacs-variable-inits.
 	(c-init-language-vars-for): Call this new macro.
