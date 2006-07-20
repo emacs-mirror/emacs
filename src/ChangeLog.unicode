@@ -1,3 +1,7 @@
+2006-07-20  Kenichi Handa  <handa@m17n.org>
+
+	* casefiddle.c (casify_object): Sync with HEAD.
+
 2006-07-18  Miles Bader  <miles@gnu.org>
 
 	* character.h (CHECK_CHARACTER): Redefine in terms of CHECK_TYPE.
