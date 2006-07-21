@@ -1,3 +1,8 @@
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Input Focus): Document that focus-follows-mouse has
+	no effect on MS-Windows.
+
 2006-07-18  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Forcing Redisplay): Cleanups in previous change.

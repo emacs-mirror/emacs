@@ -1,3 +1,17 @@
+2006-07-21  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-unprotected, allout-e-o-prefix-p)
+	(allout-beginning-of-current-line, allout-end-of-current-line)
+	(allout-next-visible-heading, allout-open-topic)
+	(allout-kill-topic, allout-yank-processing, allout-resolve-xref)
+	(allout-flag-current-subtree, allout-show-to-offshoot)
+	(allout-hide-current-entry, allout-show-current-branches)
+	(allout-hide-region-body, allout-old-expose-topic)
+	(allout-listify-exposed, allout-latex-verbatim-quote-curr-line)
+	(allout-mark-topic, allout-adjust-file-variable): Enclose scopes
+	containing `beginning-of-line' and `end-of-line' with
+	`inhibit-field-text-motion' t.
+
 2006-07-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.el (focus-follows-mouse): Document that it doesn't have
