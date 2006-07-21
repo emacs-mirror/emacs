@@ -1,3 +1,8 @@
+2006-07-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* help-mode.el (help-function-def, help-variable-def)
+	(help-face-def): Print a message in the minibuffer.
+
 2006-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Fix key bindings
