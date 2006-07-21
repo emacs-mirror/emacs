@@ -1839,8 +1839,8 @@ data transmission, but the value is used for calculations such as
 padding.
 
   It also affects decisions about whether to scroll part of the
-screen or repaint on non-window systems.  @xref{Forcing Redisplay},
-for the corresponding functionality on window systems.
+screen or repaint on text terminals.  @xref{Forcing Redisplay},
+for the corresponding functionality on graphical terminals.
 
 The value is measured in baud.
 @end defvar
