@@ -1,3 +1,10 @@
+2006-07-21  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Don't mention systems which
+	don't support sub-second timers for redisplay-preemption-period.
+
+	* os.texi (Terminal Output): Clarify text vs graphical terminal.
+
 2006-07-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Input Focus): Document that focus-follows-mouse has
