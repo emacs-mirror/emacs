@@ -1,3 +1,8 @@
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (convert_time): Use explicit long double constants to
+	ensure long double arithmetics is used throughout.
+
 2006-07-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp): New	vars.
