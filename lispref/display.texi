@@ -103,9 +103,8 @@ processes the available input before trying again to redisplay.
 If this variable is @code{nil}, Emacs does not check for input during
 redisplay, and redisplay cannot be preempted by input.
 
-This variable is only obeyed on graphical terminals, and is only
-available if Emacs is built with support for sub-second timers.  For
-other platforms, see @ref{Terminal Output}.
+This variable is only obeyed on graphical terminals.  For
+text terminals, see @ref{Terminal Output}.
 @end defvar
 
 @defvar redisplay-dont-pause
