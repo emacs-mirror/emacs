@@ -1,3 +1,10 @@
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* dos-w32.el (find-buffer-file-type-coding-system): Support calls
+	where `(nth 1 command)' is a cons cell.  Doc fix.
+
+	* textmodes/po.el (po-find-charset): Doc fix.
+
 2006-07-21  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-unprotected, allout-e-o-prefix-p)
