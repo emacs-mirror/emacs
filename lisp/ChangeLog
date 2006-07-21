@@ -1,3 +1,8 @@
+2006-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix key bindings
+	syntax. Bind S-return, C-M-., C-TAB, S-TAB and C-S-TAB.
+
 2006-07-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* dos-w32.el (find-buffer-file-type-coding-system): Support calls
