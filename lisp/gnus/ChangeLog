@@ -1,3 +1,9 @@
+2006-07-18  Karl Fogel  <kfogel@red-bean.com>
+
+	* nnmail.el (nnmail-article-group): If splitting raises an error, give
+	some information about the error when saying that the `bogus' mail
+	group will be used.
+
 2006-07-18  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	[ Backported bug fixes from No Gnus. ]

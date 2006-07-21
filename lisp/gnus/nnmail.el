@@ -1131,7 +1131,7 @@ FUNC will be called with the group name to determine the article number."
 	(if (and (symbolp nnmail-split-methods)
 		 (fboundp nnmail-split-methods))
 	    (let ((split
-		   (condition-case nil
+		   (condition-case error-info
 		       ;; `nnmail-split-methods' is a function, so we
 		       ;; just call this function here and use the
 		       ;; result.
@@ -1139,7 +1139,7 @@ FUNC will be called with the group name to determine the article number."
 			   '("bogus"))
 		     (error
 		      (nnheader-message
-		       5 "Error in `nnmail-split-methods'; using `bogus' mail group")
+		       5 "Error in `nnmail-split-methods'; using `bogus' mail group: %S" error-info)
 		      (sit-for 1)
 		      '("bogus")))))
 	      (setq split (mm-delete-duplicates split))
