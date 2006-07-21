@@ -88,10 +88,13 @@ against the file name, and TYPE is nil for text, t for binary.")
 (setq-default buffer-file-coding-system 'undecided-dos)
 
 (defun find-buffer-file-type-coding-system (command)
-  "Choose a coding system for a file operation.
-If COMMAND is `insert-file-contents', the coding system is chosen based
-upon the filename, the contents of `untranslated-filesystem-list' and
-`file-name-buffer-file-type-alist', and whether the file exists:
+  "Choose a coding system for a file operation in COMMAND.
+COMMAND is a list that specifies the operation, and I/O primitive as its
+CAR, and the arguments that might be given to that operation as its CDR.
+If operation is `insert-file-contents', the coding system is chosen based
+upon the filename (the CAR of the arguments beyond the operation), the contents
+of `untranslated-filesystem-list' and `file-name-buffer-file-type-alist',
+and whether the file exists:
 
   If it matches in `untranslated-filesystem-list':
     If the file exists:					`undecided'
@@ -103,7 +106,7 @@ upon the filename, the contents of `untranslated-filesystem-list' and
     If the file exists:					`undecided'
     If the file does not exist:	       default-buffer-file-coding-system
 
-If COMMAND is `write-region', the coding system is chosen based upon
+If operation is `write-region', the coding system is chosen based upon
 the value of `buffer-file-coding-system' and `buffer-file-type'. If
 `buffer-file-coding-system' is non-nil, its value is used.  If it is
 nil and `buffer-file-type' is t, the coding system is `no-conversion'.
@@ -126,6 +129,13 @@ set to the appropriate coding system, and the value of
 	(undecided nil) (undecided-unix nil))
     (cond ((eq op 'insert-file-contents)
 	   (setq target (nth 1 command))
+	   ;; If TARGET is a cons cell, it has the form (FILENAME . BUFFER),
+	   ;; where BUFFER is a buffer into which the file was already read,
+	   ;; but its contents were not yet decoded.  (This form of the
+	   ;; arguments is used, e.g., in arc-mode.el.)  This function
+	   ;; doesn't care about the contents, it only looks at the file's
+	   ;; name, which is the CAR of the cons cell.
+	   (if (consp target) (setq target (car target)))
 	   ;; First check for a file name that indicates
 	   ;; it is truly binary.
 	   (setq binary (find-buffer-file-type target))
