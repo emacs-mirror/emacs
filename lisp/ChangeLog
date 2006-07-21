@@ -1,3 +1,8 @@
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (focus-follows-mouse): Document that it doesn't have
+	any effect on MS-Windows.
+
 2006-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-quoted-subshell): Further fix last change.
