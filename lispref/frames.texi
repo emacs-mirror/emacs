@@ -1189,7 +1189,9 @@ change it.
 This option is how you inform Emacs whether the window manager transfers
 focus when the user moves the mouse.  Non-@code{nil} says that it does.
 When this is so, the command @code{other-frame} moves the mouse to a
-position consistent with the new selected frame.
+position consistent with the new selected frame.  (This option has no
+effect on MS-Windows, where the mouse pointer is always automatically
+moved by the OS to the selected frame.)
 @end defopt
 
 @node Visibility of Frames
