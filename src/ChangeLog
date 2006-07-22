@@ -1,3 +1,9 @@
+2006-07-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32fns.c (w32_createwindow): If `left' and/or `top' frame
+	parameters are bound to some values, use that instead of
+	CW_USEDEFAULT.
+
 2006-07-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (convert_time): Use explicit long double constants to

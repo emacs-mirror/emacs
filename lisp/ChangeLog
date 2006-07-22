@@ -1,3 +1,8 @@
+2006-07-22  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* textmodes/table.el: Add move-beginning-of-line and
+	move-end-of-line to Point Motion Only Group.
+
 2006-07-22  Eric Hanchrow  <offby1@blarg.net>
 
 	* progmodes/delphi.el (delphi-fill-comment): Use save-restriction.

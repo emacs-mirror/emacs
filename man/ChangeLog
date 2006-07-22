@@ -1,3 +1,7 @@
+2006-07-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (General Variables): Document EMAIL.
+
 2006-07-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Frame Commands): Mention that focus-follows-mouse
