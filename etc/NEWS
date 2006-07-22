@@ -238,6 +238,11 @@ automatically at startup, if it exists.  When Emacs offers to save
 modified buffers, it saves the abbrevs too if they have changed.  It
 can do this either silently or asking for confirmation first,
 according to the value of `save-abbrevs'.
+
++++
+** If the environment variable EMAIL is defined, Emacs now uses its value
+to compute the default value of `use-mail-address', in preference to
+concatenation of `user-login-name' with the name of your host machine.
 
 * Incompatible Editing Changes in Emacs 22.1
 
