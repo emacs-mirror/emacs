@@ -1,3 +1,8 @@
+2006-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ibuffer.el (ibuffer-formats): Use left alignment for the mode
+	column.
+
 2006-07-22  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* textmodes/table.el: Add move-beginning-of-line and
