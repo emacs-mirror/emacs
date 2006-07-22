@@ -247,14 +247,16 @@ this variable usefully is to set it while building and dumping Emacs."
   :group 'mail)
 
 (defcustom user-mail-address (if command-line-processed
-				 (concat (user-login-name) "@"
-					 (or mail-host-address
-					     (system-name)))
+				 (or (getenv "EMAIL")
+				     (concat (user-login-name) "@"
+					     (or mail-host-address
+						 (system-name))))
 			       ;; Empty string means "not set yet".
 			       "")
   "*Full mailing address of this user.
-This is initialized based on `mail-host-address',
-after your init file is read, in case it sets `mail-host-address'."
+This is initialized with environment variable `EMAIL' or, as a
+fallback, using `mail-host-address'. This is done after your
+init file is read, in case it sets `mail-host-address'."
   :type 'string
   :group 'mail)
 
@@ -977,9 +979,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
     ;; Do this here in case the init file sets mail-host-address.
     (if (equal user-mail-address "")
-	(setq user-mail-address (concat (user-login-name) "@"
-					(or mail-host-address
-					    (system-name)))))
+	(setq user-mail-address (or (getenv "EMAIL")
+				    (concat (user-login-name) "@"
+					    (or mail-host-address
+						(system-name))))))
 
     ;; Originally face attributes were specified via
     ;; `font-lock-face-attributes'.  Users then changed the default
