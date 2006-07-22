@@ -1,3 +1,7 @@
+2006-07-22  Eric Hanchrow  <offby1@blarg.net>
+
+	* progmodes/delphi.el (delphi-fill-comment): Use save-restriction.
+
 2006-07-22  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* startup.el (user-mail-address): Initialize from the `EMAIL'
