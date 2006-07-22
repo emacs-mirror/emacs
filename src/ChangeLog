@@ -1,3 +1,8 @@
+2006-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key): If the key binding definition looks like an
+	XEmacs-style key sequence, convert it to Emacs's format.
+
 2006-07-22  Ralf Angeli  <angeli@caeruleus.net>
 
 	* w32fns.c (w32_createwindow): If `left' and/or `top' frame

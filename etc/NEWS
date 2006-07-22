@@ -4617,6 +4617,8 @@ Lisp packages using many minor mode keymaps can now maintain their own
 keymap alist separate from `minor-mode-map-alist' by adding their
 keymap alist to this list.
 
+*** The definition of a key-binding passed to define-key can use XEmacs-style
+key-sequences, such as [(control a)].
 ** Abbrev changes:
 
 +++
