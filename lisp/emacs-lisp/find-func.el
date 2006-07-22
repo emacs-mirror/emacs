@@ -226,7 +226,9 @@ The search is done in the source for library LIBRARY."
 	   (regexp-symbol (cdr (assq type find-function-regexp-alist))))
       (with-current-buffer (find-file-noselect filename)
 	(let ((regexp (format (symbol-value regexp-symbol)
-			      (regexp-quote (symbol-name symbol))))
+			      ;; Catch ` (backquote) macro.
+			      (concat "\\\\?"
+				      (regexp-quote (symbol-name symbol)))))
 	      (case-fold-search))
 	  (with-syntax-table emacs-lisp-mode-syntax-table
 	    (goto-char (point-min))
