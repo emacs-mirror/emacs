@@ -1,3 +1,9 @@
+2006-07-22  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* startup.el (user-mail-address): Initialize from the `EMAIL'
+	environment variable first.  Document this.
+	(command-line): Ditto.
+
 2006-07-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* help-mode.el (help-function-def, help-variable-def)
