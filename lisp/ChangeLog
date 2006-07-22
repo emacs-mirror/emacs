@@ -1,3 +1,8 @@
+2006-07-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol): 
+	Handle "C-h f `".
+
 2006-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ibuffer.el (ibuffer-formats): Use left alignment for the mode
