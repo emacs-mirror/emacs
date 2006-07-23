@@ -3663,7 +3663,8 @@ a @key{Mouse-1} click shall be translated to @key{RET}:
 
 @defun mouse-on-link-p pos
 This function returns non-@code{nil} if position @var{pos} in the
-current buffer is on a link.
+current buffer is on a link.  @var{pos} can also be a mouse event
+location, as returned by @code{event-start} (@pxref{Accessing Events}).
 @end defun
 
 @node Fields
