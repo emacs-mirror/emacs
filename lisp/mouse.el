@@ -777,8 +777,8 @@ If the click is in the echo area, display the `*Messages*' buffer."
 
 (defun mouse-on-link-p (pos)
   "Return non-nil if POS is on a link in the current buffer.
-POS must be a buffer position in the current buffer or an mouse
-event location in the selected window, see `event-start'.
+POS must be a buffer position in the current buffer or a mouse
+event location in the selected window (see `event-start').
 However, if `mouse-1-click-in-non-selected-windows' is non-nil,
 POS may be a mouse event location in any window.
 
@@ -798,7 +798,7 @@ is a non-nil `mouse-face' property at POS.  Return t in this case.
 
 - If the value is a function, FUNC, POS is inside a link if
 the call \(FUNC POS) returns non-nil.  Return the return value
-from that call.  Arg is \(posn-point POS) if POS is a mouse event,
+from that call.  Arg is \(posn-point POS) if POS is a mouse event.
 
 - Otherwise, return the value itself.
 
