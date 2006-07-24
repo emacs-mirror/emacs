@@ -3479,13 +3479,12 @@ being called over and over for the same text.
 @subsection Defining Clickable Text
 @cindex clickable text
 
-  There are two ways to set up @dfn{clickable text} in a buffer.
-There are typically two parts of this: to make the text highlight
-when the mouse is over it, and to make a mouse button do something
-when you click it on that part of the text.
+  There are two parts of setting up @dfn{clickable text} in a buffer:
+(1) to make that text highlight when the mouse moves over it, and (2)
+to make a mouse button do something when you click on that text.
 
-  Highlighting is done with the @code{mouse-face} text property.
-Here is an example of how Dired does it:
+  For highlighting, use the @code{mouse-face} text property.  Here is
+an example of how Dired does it:
 
 @smallexample
 (condition-case nil
