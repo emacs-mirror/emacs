@@ -977,15 +977,19 @@ is an alist in the following form:
   (let ((tag (read-string "Tags to add (separate tags with a semicolon): "))
         curr-file files)
     (if arg
-        (setq files (dired-get-filename))
+        (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files)))
-    (tumme-write-tag files tag)))
+    (tumme-write-tags
+     (mapcar
+      (lambda (x)
+        (cons x tag))
+      files))))
 
 (defun tumme-tag-thumbnail ()
   "Tag current thumbnail."
   (interactive)
   (let ((tag (read-string "Tags to add (separate tags with a semicolon): ")))
-    (tumme-write-tag (tumme-original-file-name) tag))
+    (tumme-write-tags (list (cons (tumme-original-file-name) tag))))
   (tumme-update-property
    'tags (tumme-list-tags (tumme-original-file-name))))
 
@@ -2121,19 +2125,19 @@ the following form:
 (defun tumme-dired-comment-files ()
   "Add comment to current or marked files in dired."
   (interactive)
-  (let ((files (dired-get-marked-files))
-         (comment (tumme-read-comment)))
-    (mapcar
-     (lambda (curr-file)
-       (tumme-write-comment curr-file comment))
-     files)))
+  (let ((comment (tumme-read-comment)))
+    (tumme-write-comments
+     (mapcar
+      (lambda (curr-file)
+        (cons curr-file comment))
+      (dired-get-marked-files)))))
 
 (defun tumme-comment-thumbnail ()
   "Add comment to current thumbnail in thumbnail buffer."
   (interactive)
   (let* ((file (tumme-original-file-name))
          (comment (tumme-read-comment file)))
-    (tumme-write-comment file comment)
+    (tumme-write-comments (list (cons file comment)))
     (tumme-update-property 'comment comment))
   (tumme-display-thumb-properties))
 
@@ -2573,18 +2577,21 @@ the operation by activating the Cancel button.\n\n")
 Use the information in `tumme-widget-list' to save comments and
 tags to their respective image file.  Internal function used by
 `tumme-dired-edit-comment-and-tags'."
-  (mapc
-   (lambda (x)
-     (let ((file (car x))
-           (comment (widget-value (cadr x)))
-           (tags (widget-value (car (cddr x)))))
-       (tumme-write-comment file comment)
-       (mapc
-        (lambda (tag)
-          (tumme-write-tag file tag))
-        (split-string tags ","))))
-   tumme-widget-list))
-
+  (let (file comment tag-string tag-list lst)
+    (tumme-write-comments
+          (mapcar
+           (lambda (widget)
+             (setq file (car widget)
+                   comment (widget-value (cadr widget)))
+             (cons file comment))
+           tumme-widget-list))
+    (tumme-write-tags
+     (dolist (widget tumme-widget-list lst)
+       (setq file (car widget)
+             tag-string (widget-value (car (cddr widget)))
+             tag-list (split-string tag-string ","))
+       (dolist (tag tag-list)
+         (push (cons file tag) lst))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;
