@@ -1,3 +1,10 @@
+2006-07-19  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* mm-url.el (mm-url-insert-file-contents): Inhibit Connection: close
+	workaround for the url package included with Emacs.
+
+	* nnweb.el (nnweb-google-create-mapping): Update regexp.
+
 2006-07-18  Karl Fogel  <kfogel@red-bean.com>
 
 	* nnmail.el (nnmail-article-group): If splitting raises an error, give
