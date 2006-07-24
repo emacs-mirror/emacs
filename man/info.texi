@@ -22,7 +22,7 @@ Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+Manual,'' and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License'' in the Emacs manual.
 
@@ -687,7 +687,7 @@ ends the subtopic's brief name.  You will see the subtopic's name
 change its appearance (usually, its background color will change), and
 the shape of the mouse pointer will change if your platform supports
 that.  After a while, if you leave the mouse on that spot, a small
-window will pop up, saying ``Mouse-2: go to that node'', or the same
+window will pop up, saying ``Mouse-2: go to that node,'' or the same
 message may appear at the bottom of the screen.
 
   @kbd{Mouse-2} is the second button of your mouse counting from the
@@ -1002,8 +1002,8 @@ area before looking at the node it displays.
 if you are not sure how they are spelled in the index.  For example,
 suppose you want to find something that is pertinent to commands which
 complete partial input (e.g., when you type @key{TAB}).  If you want
-to catch index entries that refer to ``complete'', ``completion'', and
-``completing'', you could type @kbd{icomplet@key{RET}}.
+to catch index entries that refer to ``complete,'' ``completion,'' and
+``completing,'' you could type @kbd{icomplet@key{RET}}.
 
   Info documents which describe programs should index the commands,
 options, and key sequences that the program provides.  If you are
@@ -1264,7 +1264,7 @@ in the names is insignificant.
 what appears after the @samp{Node: } in that node's first line.  For
 example, this node's name is @samp{Add}.  A node in another file is
 named by @samp{(@var{filename})@var{node-within-file}}, as in
-@samp{(info)Add} for this node.  If the file name starts with ``./'',
+@samp{(info)Add} for this node.  If the file name starts with @samp{./},
 then it is relative to the current directory; otherwise, it is
 relative starting from the standard directory for Info files of your
 site.  The name @samp{(@var{filename})Top} can be abbreviated to just
@@ -1322,7 +1322,7 @@ short abbreviations.  In a long menu, it is a good idea to capitalize
 the beginning of each item name which is the minimum acceptable
 abbreviation for it (a long menu is more than 5 or so entries).
 
-  The nodes listed in a node's menu are called its ``subnodes'', and it
+  The nodes listed in a node's menu are called its ``subnodes,'' and it
 is their ``superior''.  They should each have an @samp{Up:} pointing at
 the superior.  It is often useful to arrange all or most of the subnodes
 in a sequence of @samp{Next} and @samp{Previous} pointers so that
@@ -1336,7 +1336,7 @@ Info's files live in that file directory, but they do not have to; and
 files in that directory are not automatically listed in the Info
 Directory node.
 
-  Also, although the Info node graph is claimed to be a ``hierarchy'',
+  Also, although the Info node graph is claimed to be a ``hierarchy,''
 in fact it can be @emph{any} directed graph.  Shared structures and
 pointer cycles are perfectly possible, and can be used if they are
 appropriate to the meaning to be expressed.  There is no need for all

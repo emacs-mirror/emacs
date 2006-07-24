@@ -2481,7 +2481,7 @@ To move a menu option from one position to another, simply evaluate
 
 More detailed information---and more examples of how to create and
 modify menu options---are in the @cite{Emacs Lisp Reference Manual}, under
-``Menu Keymaps''.  (@xref{Emacs Lisp documentation}, for information on
+``Menu Keymaps.''  (@xref{Emacs Lisp documentation}, for information on
 this manual.)
 
 @node Deleting menus and menu options, Turning on syntax highlighting, Modifying pull-down menus, Common requests
@@ -3395,7 +3395,7 @@ On OpenWindows, you may need to use @code{add_services} to add the
 ``OpenWindows Programmers'' optional software category from the CD-ROM.
 
 On HP-UX 8.0, you may need to run @code{update} again to load the
-X11-PRG ``fileset''.  This may be missing even if you specified ``all
+X11-PRG ``fileset.''  This may be missing even if you specified ``all
 filesets'' the first time.  If @file{libcurses.a} is missing, you may
 need to load the ``Berkeley Development Option.''
 

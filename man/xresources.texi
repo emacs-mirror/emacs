@@ -951,7 +951,7 @@ where @var{r}, @var{g} and @var{b} are either integers in the range
 0-65535 or floats in the range 0.0-1.0.
 
   Pango font names have the form ``@var{family-list} @var{style-options}
-@var{size}''.
+@var{size}.''
 @cindex Pango font name
 @noindent
 @var{family-list} is a comma separated list of font families optionally
@@ -964,7 +964,7 @@ an X font name, for example in
 @end smallexample
 
 @noindent
-the family name is ``times''.
+the family name is ``times.''
 
 @noindent
 @var{style-options} is a whitespace separated list of words where each word

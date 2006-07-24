@@ -1117,7 +1117,7 @@ You can also use @kbd{M-x info-lookup-file} to look for documentation
 for a file name.
 
   If you use @kbd{C-h S} in a major mode that does not support it,
-it asks you to specify the ``symbol help mode''.  You should enter
+it asks you to specify the ``symbol help mode.''  You should enter
 a command such as @code{c-mode} that would select a major
 mode which @kbd{C-h S} does support.
 

@@ -1010,7 +1010,7 @@ it can refer to all or part of what is matched by the @var{regexp}.
 @samp{\&} in @var{newstring} stands for the entire match being
 replaced.  @samp{\@var{d}} in @var{newstring}, where @var{d} is a
 digit, stands for whatever matched the @var{d}th parenthesized
-grouping in @var{regexp}.  (This is called a ``back reference''.)
+grouping in @var{regexp}.  (This is called a ``back reference.'')
 @samp{\#} refers to the count of replacements already made in this
 command, as a decimal number.  In the first replacement, @samp{\#}
 stands for @samp{0}; in the second, for @samp{1}; and so on.  For

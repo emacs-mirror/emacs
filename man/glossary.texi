@@ -665,7 +665,7 @@ sequences of existing ones, with no need to write a Lisp program.
 @item Keyboard Shortcut
 A keyboard shortcut is a key sequence (q.v.@:) which invokes a
 command.  What some programs call ``assigning a keyboard shortcut,''
-Emacs calls ``binding a key sequence''.  See `binding.'
+Emacs calls ``binding a key sequence.''  See `binding.'
 
 @item Key Sequence
 A key sequence (key, for short) is a sequence of input events (q.v.@:)
