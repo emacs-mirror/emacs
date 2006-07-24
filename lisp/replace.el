@@ -1283,8 +1283,8 @@ N     (match-string N)           (where N is a string of digits)
 #     replace-count
 
 Note that these symbols must be preceeded by a backslash in order to
-type them."
-  (while n
+type them using Lisp syntax."
+  (while (consp n)
     (cond
      ((consp (car n))
       (replace-match-string-symbols (car n))) ;Process sub-list
