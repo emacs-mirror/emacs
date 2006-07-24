@@ -895,6 +895,28 @@ displayed."
       (save-buffer)
       (kill-buffer buf))))
 
+(defun tumme-write-tags (file-tags)
+  "Write file tags to database.
+Write each file and tag in FILE-TAGS to the database.  FILE-TAGS
+is an alist in the following form:
+ ((FILE . TAG) ... )"
+  (let (end file tag)
+    (with-temp-file tumme-db-file
+      (insert-file-contents tumme-db-file)
+      (dolist (elt file-tags)
+	(setq file (car elt)
+	      tag (cdr elt))
+	(goto-char (point-min))
+	(if (search-forward-regexp (format "^%s.*$" file) nil t)
+	    (progn
+	      (setq end (point))
+	      (beginning-of-line)
+	      (when (not (search-forward (format ";%s" tag) end t))
+		(end-of-line)
+		(insert (format ";%s" tag))))
+	  (goto-char (point-max))
+	  (insert (format "\n%s;%s" file tag)))))))
+
 (defun tumme-remove-tag (files tag)
   "For all FILES, remove TAG from the image database."
   (save-excursion
