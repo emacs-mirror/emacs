@@ -2,6 +2,12 @@
 
 	* tumme.el (tumme-write-tags): Add.
 	(tumme-write-comments): Add.
+	(tumme-tag-files): Change to use `tumme-write-tags'.
+	(tumme-tag-thumbnail): Change to use `tumme-write-tags'.
+	(tumme-dired-comment-files): Change to use `tumme-write-comments'.
+	(tumme-save-information-from-widgets): Change to use
+	`tumme-write-comments' and `tumme-write-tags'.
+	(tumme-comment-thumbnail): Change to use `tumme-write-comments'.
 
 2006-07-24  mathias  <mathias.dahl@gmail.com>
 
