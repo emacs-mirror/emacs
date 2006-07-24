@@ -11,6 +11,7 @@
 	(tumme-write-tag): Remove.
 	(tumme-write-comment): Remove.
 	(tumme-display-previous-thumbnail-original): Remove empty line.
+	(tumme-widget-list): Add punctuation.
 
 2006-07-24  mathias  <mathias.dahl@gmail.com>
 
