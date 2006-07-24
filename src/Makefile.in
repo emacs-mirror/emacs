@@ -1153,8 +1153,8 @@ frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h character.h fontset.h \
    msdos.h dosfns.h dispextern.h w32term.h macterm.h $(config_h)
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h $(config_h)
-font.o: font.c dispextern.h frame.h ccl.h character.h charset.h font.h \
-   $(config_h)
+font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
+   font.h $(config_h)
 ftfont.o: dispextern.h frame.h character.h charset.h font.h $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
    charset.h frame.h keyboard.h $(FONTSRC) $(config_h)
