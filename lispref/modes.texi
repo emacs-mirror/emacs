@@ -1354,9 +1354,8 @@ substituting your own definition of @code{self-insert-command} for the
 standard one.  The editor command loop handles this function specially.)
 
 The key sequences bound in a minor mode should consist of @kbd{C-c}
-followed by a punctuation character @emph{other than} @kbd{@{},
-@kbd{@}}, @kbd{<}, @kbd{>}, @kbd{:}, and @kbd{;}.  (Those few punctuation
-characters are reserved for major modes.)
+followed by one of @kbd{.,/?`'"[]\|~!#$%^&*()-_+=}.  (The other
+punctuation characters are reserved for major modes.)
 
 @node Defining Minor Modes
 @subsection Defining Minor Modes
