@@ -8,6 +8,9 @@
 	(tumme-save-information-from-widgets): Change to use
 	`tumme-write-comments' and `tumme-write-tags'.
 	(tumme-comment-thumbnail): Change to use `tumme-write-comments'.
+	(tumme-write-tag): Remove.
+	(tumme-write-comment): Remove.
+	(tumme-display-previous-thumbnail-original): Remove empty line.
 
 2006-07-24  mathias  <mathias.dahl@gmail.com>
 
