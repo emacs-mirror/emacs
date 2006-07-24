@@ -1469,7 +1469,7 @@ x_draw_composite_glyph_string_foreground (s)
 	      Lisp_Object adjustment = LGLYPH_ADJUSTMENT (g);
 	      int xoff, yoff, wadjust;
 
-	      if (NILP (adjustment))
+	      if (! VECTORP (adjustment))
 		{
 		  width += XINT (LGLYPH_WIDTH (g));
 		  continue;
