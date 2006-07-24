@@ -964,7 +964,7 @@ an X font name, for example in
 @end smallexample
 
 @noindent
-the family name is ``times.''
+the family name is @samp{times}.
 
 @noindent
 @var{style-options} is a whitespace separated list of words where each word
