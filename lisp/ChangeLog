@@ -1,3 +1,7 @@
+2006-07-24  mathias  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-line-up): Add an extra check for end of buffer.
+
 2006-07-24  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
