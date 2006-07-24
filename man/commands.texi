@@ -25,9 +25,18 @@ and mouse input.
 @cindex Control
 @cindex control characters
 
-  GNU Emacs uses an extension of the @acronym{ASCII} character set for keyboard
-input; it also accepts non-character input events including function
-keys and mouse button actions.
+  GNU Emacs is designed for use with keyboard commands because that is
+the most efficient way to edit.  You can do editing with the mouse, as
+in other editors, and you can give commands with the menu bar and tool
+bar, and scroll with the scroll bar.  But if you keep on editing that
+way, you won't get the benefits of Emacs.  Therefore, this manual
+documents primarily how to edit with the keyboard.  You can practice
+using the keyboard by using the shell command @samp{emacs -nw} to
+start Emacs.
+
+  Emacs uses an extension of the @acronym{ASCII} character set for
+keyboard input; it also accepts non-character input events including
+function keys and mouse button actions.
 
   @acronym{ASCII} consists of 128 character codes.  Some of these codes are
 assigned graphic symbols such as @samp{a} and @samp{=}; the rest are
