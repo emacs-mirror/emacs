@@ -84,7 +84,7 @@
 ;; USAGE
 ;; =====
 ;;
-;; This information has been moved to the manual. Type `C-h r' to open
+;; This information has been moved to the manual.  Type `C-h r' to open
 ;; the Emacs manual and go to the node Thumbnails by typing `g
 ;; Thumbnails RET'.
 ;;
@@ -648,7 +648,7 @@ according to the Thumbnail Managing Standard."
                                ;; Can't use (overlays-at (point)), BUG?
                                (overlays-in (point) (1+ (point)))))
        (put-image thumb-file image-pos)
-       (setq 
+       (setq
 	overlay
 	(car (delq nil (mapcar (lambda (o) (and (overlay-get o 'put-image) o))
 			       (overlays-in (point) (1+ (point)))))))
@@ -2431,7 +2431,7 @@ when using per-directory thumbnail file storage"))
     (kill-buffer buffer)))
 
 (defvar tumme-widget-list nil
-  "List to keep track of meta data in edit buffer")
+  "List to keep track of meta data in edit buffer.")
 
 ;;;###autoload
 (defun tumme-dired-edit-comment-and-tags ()
@@ -2449,7 +2449,7 @@ easy-to-use form."
       (erase-buffer))
     (remove-overlays)
     ;; Some help for the user.
-    (widget-insert 
+    (widget-insert
 "\nEdit comments and tags for each image.  Separate multiple tags
 with a comma.  Move forward between fields using TAB or RET.
 Move to the previous field using backtab (S-TAB).  Save by
@@ -2483,15 +2483,15 @@ the operation by activating the Cancel button.\n\n")
                                         ",") "")))
        ;; Save information in all widgets so that we can use it when
        ;; the user saves the form.
-       (setq tumme-widget-list 
-             (append tumme-widget-list 
+       (setq tumme-widget-list
+             (append tumme-widget-list
                      (list (list file comment-widget tag-widget))))
        (widget-insert "\n\n")))
 
     ;; Footer with Save and Cancel button.
     (widget-insert "\n")
     (widget-create 'push-button
-                 :notify 
+                 :notify
                  (lambda (&rest ignore)
                    (tumme-save-information-from-widgets)
                    (bury-buffer)
@@ -2499,7 +2499,7 @@ the operation by activating the Cancel button.\n\n")
                  "Save")
     (widget-insert " ")
     (widget-create 'push-button
-                   :notify 
+                   :notify
                    (lambda (&rest ignore)
                      (bury-buffer)
                      (message "Operation canceled."))
