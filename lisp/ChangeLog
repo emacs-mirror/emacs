@@ -1,3 +1,9 @@
+2006-07-24  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
+	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org> and
+	andreas@altroot.de (Andreas V,Av(Bgele)
+
 2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* mouse.el (mouse-on-link-p): Doc fix.
