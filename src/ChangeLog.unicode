@@ -1,5 +1,42 @@
 2006-07-24  Kenichi Handa  <handa@m17n.org>
 
+	* font.h (LGLYPH_FROM, LGLYPH_TO, LGLYPH_SET_FROM)
+	(LGLYPH_SET_TO): New macros.
+	(LGLYPH_XOFF, LGLYPH_YOFF, LGLYPH_WADJUST): Check if adjustment
+	element of G is vector or not.
+	(font_at): Extern it.
+
+	* font.c: Include window.h.
+	(font_lispy_object): New function.
+	(font_prepare_composition): Check LGLYPH_FORM (g) to detect the
+	end of valid glyph.
+	(font_close_object): Fix getting (struct font *).
+	(font_at): New function.
+	(Ffont_get): If FONT is a font-object, get entity from it.
+	(Ffont_make_gstring): Initialize elements of glyphs with nil.
+	(Ffont_fill_gstring): Use macro LGSTRING_XXX and LGLYPH_XXX.  Fix
+	range check.
+	(Ffont_at): New function.
+	(syms_of_font): Defsubr Sfont_at.
+
+	* xdisp.c (it_props): Move the entry for Qauto_composed to just
+	before the entry for Qcompostion.
+	(handle_auto_composed_prop): Call auto-composition-function with 4
+	args.
+	(handle_composition_prop) [USE_FONT_BACKEND]: Set it->face_id from
+	the font in gstring.
+	(fill_composite_glyph_string) [USE_FONT_BACKEND]: Check
+	LGLYPH_FORM (g) to detect the end of valid glyph.
+	(x_produce_glyphs) [USE_FONT_BACKEND]: Don't update it->face_id if
+	we are composing with gstring.
+
+	* xterm.c (x_draw_composite_glyph_string_foreground) [USE_FONT_BACKEND]:
+	Check if adjustment is vector or not.
+
+	* Makefile.in (font.o): Make it depends on window.h.
+
+2006-07-24  Kenichi Handa  <handa@m17n.org>
+
 	* xterm.c (x_draw_composite_glyph_string_foreground): Check if
 	adjustment is vector or not.
 
