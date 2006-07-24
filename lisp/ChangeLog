@@ -1,3 +1,7 @@
+2006-07-24  mathias  <mathias@mattis>
+
+	* tumme.el (tumme-write-tags): Add.
+
 2006-07-24  mathias  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-line-up): Add an extra check for end of buffer.
