@@ -868,33 +868,6 @@ displayed."
 ;;;###autoload
 (defalias 'tumme 'tumme-show-all-from-dir)
 
-(defun tumme-write-tag (files tag)
-  "For all FILES, writes TAG to the image database."
-  (save-excursion
-    (let (end buf)
-      (setq buf (find-file tumme-db-file))
-      (if (not (listp files))
-          (if (stringp files)
-              (setq files (list files))
-            (error "Files must be a string or a list of strings!")))
-      (mapcar
-       (lambda (file)
-         (goto-char (point-min))
-         (if (search-forward-regexp
-              (format "^%s" file) nil t)
-             (progn
-               (end-of-line)
-               (setq end (point))
-               (beginning-of-line)
-               (when (not (search-forward (format ";%s" tag) end t))
-                 (end-of-line)
-                 (insert (format ";%s" tag))))
-           (goto-char (point-max))
-           (insert (format "\n%s;%s" file tag))))
-       files)
-      (save-buffer)
-      (kill-buffer buf))))
-
 (defun tumme-write-tags (file-tags)
   "Write file tags to database.
 Write each file and tag in FILE-TAGS to the database.  FILE-TAGS
@@ -2039,44 +2012,9 @@ function.  The result is a couple of new files in
 
 (defun tumme-display-previous-thumbnail-original ()
   "Move to previous thumbnail and display image."
-
   (interactive)
   (tumme-backward-char)
   (tumme-display-thumbnail-original-image))
-
-(defun tumme-write-comment (file comment)
-  "For FILE, write comment COMMENT in database."
-  (save-excursion
-    (let (end buf comment-beg)
-      (setq buf (find-file tumme-db-file))
-      (goto-char (point-min))
-      (if (search-forward-regexp
-           (format "^%s" file) nil t)
-          (progn
-            (end-of-line)
-            (setq end (point))
-            (beginning-of-line)
-            ;; Delete old comment, if any
-            (cond ((search-forward ";comment:" end t)
-                   (setq comment-beg (match-beginning 0))
-                   ;; Any tags after the comment?
-                   (if (search-forward ";" end t)
-                       (setq comment-end (- (point) 1))
-                     (setq comment-end end))
-                   ;; Delete comment tag and comment
-                   (delete-region comment-beg comment-end)))
-            ;; Insert new comment
-            (beginning-of-line)
-            (if (not (search-forward ";" end t))
-                (progn
-                  (end-of-line)
-                  (insert ";")))
-            (insert (format "comment:%s;" comment)))
-        ;; File does not exist in databse - add it.
-        (goto-char (point-max))
-        (insert (format "\n%s;comment:%s" file comment)))
-      (save-buffer)
-      (kill-buffer buf))))
 
 (defun tumme-write-comments (file-comments)
   "Write file comments to database.
