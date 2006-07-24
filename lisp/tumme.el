@@ -2074,6 +2074,41 @@ function.  The result is a couple of new files in
       (save-buffer)
       (kill-buffer buf))))
 
+(defun tumme-write-comments (file-comments)
+  "Write file comments to database.
+Write file comments to one or more files.  FILE-COMMENTS is an alist on
+the following form:
+ ((FILE . COMMENT) ... )"
+  (let (end comment-beg file comment)
+    (with-temp-file tumme-db-file
+      (insert-file-contents tumme-db-file)
+      (dolist (elt file-comments)
+	(setq file (car elt)
+	      comment (cdr elt))
+	(goto-char (point-min))
+	(if (search-forward-regexp (format "^%s.*$" file) nil t)
+	    (progn
+	      (setq end (point))
+	      (beginning-of-line)
+	      ;; Delete old comment, if any
+	      (when (search-forward ";comment:" end t)
+		(setq comment-beg (match-beginning 0))
+		;; Any tags after the comment?
+		(if (search-forward ";" end t)
+		    (setq comment-end (- (point) 1))
+		  (setq comment-end end))
+		;; Delete comment tag and comment
+		(delete-region comment-beg comment-end))
+	      ;; Insert new comment
+	      (beginning-of-line)
+	      (unless (search-forward ";" end t)
+		(end-of-line)
+		(insert ";"))
+	      (insert (format "comment:%s;" comment)))
+	  ;; File does not exist in database - add it.
+	  (goto-char (point-max))
+	  (insert (format "\n%s;comment:%s" file comment)))))))
+
 (defun tumme-update-property (prop value)
   "Update text property PROP with value VALUE at point."
   (let ((inhibit-read-only t))
