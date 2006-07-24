@@ -1,5 +1,7 @@
 2006-07-24  Richard Stallman  <rms@gnu.org>
 
+	* text.texi (Clickable Text): Clarify.
+
 	* sequences.texi (Vector Functions): Delete duplicate xref.
 
 	* objects.texi (Function Type): Clarify.
