@@ -1,6 +1,7 @@
 2006-07-24  mathias  <mathias@mattis>
 
 	* tumme.el (tumme-write-tags): Add.
+	(tumme-write-comments): Add.
 
 2006-07-24  mathias  <mathias.dahl@gmail.com>
 
