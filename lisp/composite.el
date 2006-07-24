@@ -427,10 +427,14 @@ See also the command `toggle-auto-composition'.")
 
 (put 'save-buffer-state 'lisp-indent-function 1)
 
-(defun auto-compose-chars (pos string)
+(defvar auto-compose-current-font nil
+  "The current font-object used for characters being composed automatically.")
+
+(defun auto-compose-chars (pos string font-object)
   "Compose characters after the buffer position POS.
 If STRING is non-nil, it is a string, and POS is an index into the string.
 In that case, compose characters in the string.
+FONT-OBJECT is a font selected for the character at POS.
 
 This function is the default value of `auto-composition-function' (which see)."
   (save-buffer-state nil
@@ -439,6 +443,7 @@ This function is the default value of `auto-composition-function' (which see)."
 	(condition-case nil
 	    (let ((start pos)
 		  (limit (if string (length string) (point-max)))
+		  (auto-compose-current-font font-object)
 		  ch func newpos)
 	      (setq limit
 		    (or (text-property-any pos limit 'auto-composed t string)
