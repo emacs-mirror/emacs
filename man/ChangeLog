@@ -1,3 +1,18 @@
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* xresources.texi (GTK styles): Fix texinfo usage.
+
+	* pgg.texi, org.texi, info.texi, forms.texi, flymake.texi: 
+	* faq.texi: Move periods and commas inside quotes.
+
+	* commands.texi (User Input): Explain why we teach keyboard cmds.
+	
+	* xresources.texi, xresmini.texi, search.texi, programs.texi: 
+	* misc.texi, kmacro.texi, killing.texi, glossary.texi: 
+	* fortran-xtra.texi, files.texi, emacs.texi, emacs-xtra.texi: 
+	* doclicense.texi, display.texi, dired.texi, basic.texi: 
+	* anti.texi, ack.texi: Move periods and commas inside quotes.
+
 2006-07-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmdargs.texi (General Variables): Document EMAIL.

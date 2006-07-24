@@ -41,6 +41,10 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 ** David Kastrup's report on strange scrolling of large images.
 
+** Jorgen Schaefer <forcer@forcix.cx>'s June 18 bug report about
+  fields and invisible overlays needs attention from a field expert.
+
+** Implement buffer-chars-modified-tick.
 
 * DOCUMENTATION
 

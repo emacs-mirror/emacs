@@ -1,5 +1,7 @@
 2006-07-24  Richard Stallman  <rms@gnu.org>
 
+	* xml.el (xml-parse-file): Clean up, and use with-temp-buffer.
+
 	* subr.el (dolist, dotimes): Use interned symbols for locals.
 	(--dotimes-limit--, --dolist-tail--): New defvars.
 	(looking-back): Doc fix.

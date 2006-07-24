@@ -1,3 +1,18 @@
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* sequences.texi (Vector Functions): Delete duplicate xref.
+
+	* objects.texi (Function Type): Clarify.
+
+	* modes.texi (Keymaps and Minor Modes): List punct chars for minor
+	modes.
+
+	* lists.texi (List Variables): New node.
+	Material moved from other nodes.
+
+	* variables.texi (Setting Variables): add-to-list and
+	add-to-ordered-list moved to List Variables node.
+
 2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* text.texi (Links and Mouse-1):
