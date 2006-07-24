@@ -1,3 +1,11 @@
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (dolist, dotimes): Use interned symbols for locals.
+	(--dotimes-limit--, --dolist-tail--): New defvars.
+	(looking-back): Doc fix.
+
+	* replace.el (replace-match-string-symbols): Handle dotted lists.
+
 2006-07-24  mathias  <mathias@mattis>
 
 	* tumme.el (tumme-write-tags): Add.
