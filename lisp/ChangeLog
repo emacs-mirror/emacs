@@ -6,6 +6,7 @@
 	missing `let' variable that cause font-lock problems.
 	(tumme-write-comments): Change variable names inside `let'.  Add
 	missing `let' variable that cause font-lock problems.
+	(tumme-forward-image): Rename from `tumme-forward-char'.
 
 2006-07-25  Masatake YAMATO  <jet@gyve.org>
 
