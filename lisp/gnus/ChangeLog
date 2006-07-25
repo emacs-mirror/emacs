@@ -166,8 +166,7 @@
 	(mm-display-part): Simplify.
 	(mm-inlinable-p): Add optional arg `type'.
 
-	* gnus-art.el (gnus-mime-view-part-as-type): Add optional PRED
-	argument.
+	* gnus-art.el (gnus-mime-view-part-as-type): Add optional PRED arg.
 	(gnus-mime-view-part-externally, gnus-mime-view-part-internally):
 	Try harder to show the attachment internally or externally using
 	gnus-mime-view-part-as-type.
@@ -177,8 +176,7 @@
 	* gnus-art.el (gnus-mime-view-part-as-type-internal): Try to fetch
 	`filename' from Content-Disposition if Content-Type doesn't
 	provide `name'.
-	(gnus-mime-view-part-as-type): Set default instead of
-	initial-input.
+	(gnus-mime-view-part-as-type): Set default instead of initial-input.
 
 2006-04-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -201,8 +199,8 @@
 
 	* mml-sec.el (mml-secure-method): New internal variable.
 	(mml-secure-sign, mml-secure-encrypt, mml-secure-message-sign)
-	(mml-secure-message-sign-encrypt, mml-secure-message-encrypt): New
-	functions using mml-secure-method.  Sync from the trunk.
+	(mml-secure-message-sign-encrypt, mml-secure-message-encrypt):
+	New functions using mml-secure-method.  Sync from the trunk.
 
 	* mml.el (mml-mode-map): Add key bindings for those functions.
 	(mml-menu): Simplify security menu entries.  Suggested by Jesper
@@ -246,8 +244,8 @@
 
 2006-04-20  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-util.el (gnus-replace-in-string): Prefer
-	replace-regexp-in-string over of replace-in-string.
+	* gnus-util.el (gnus-replace-in-string):
+	Prefer replace-regexp-in-string over of replace-in-string.
 
 2006-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -255,8 +253,8 @@
 
 	* gnus-sum.el: Ditto.
 
-	* gnus-util.el (gnus-select-frame-set-input-focus): Use
-	select-frame-set-input-focus if it is available in XEmacs; use
+	* gnus-util.el (gnus-select-frame-set-input-focus):
+	Use select-frame-set-input-focus if it is available in XEmacs; use
 	definition defined in Emacs 22 for old Emacsen.
 
 2006-04-17  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -268,13 +266,13 @@
 	(mm-charset-to-coding-system): Use it.
 	(mm-codepage-setup): New helper function.
 	(mm-charset-eval-alist): New variable.
-	(mm-charset-to-coding-system): Use mm-charset-eval-alist.  Warn
-	about unknown charsets.  Add allow-override.  Use
-	`mm-charset-override-alist' only when decoding.
+	(mm-charset-to-coding-system): Use mm-charset-eval-alist.
+	Warn about unknown charsets.  Add allow-override.
+	Use `mm-charset-override-alist' only when decoding.
 	(mm-detect-mime-charset-region): Use :mime-charset.
 
-	* mm-bodies.el (mm-decode-body, mm-decode-string): Call
-	`mm-charset-to-coding-system' with allow-override argument.
+	* mm-bodies.el (mm-decode-body, mm-decode-string):
+	Call `mm-charset-to-coding-system' with allow-override argument.
 
 	* message.el (message-tool-bar-zap-list, message-tool-bar)
 	(message-tool-bar-gnome, message-tool-bar-retro): New variables.
@@ -290,8 +288,8 @@
 	`gmm-tool-bar-from-list'.
 
 	* gnus-group.el (gnus-group-tool-bar, gnus-group-tool-bar-gnome)
-	(gnus-group-tool-bar-retro, gnus-group-tool-bar-zap-list): New
-	variables.
+	(gnus-group-tool-bar-retro, gnus-group-tool-bar-zap-list):
+	New variables.
 	(gnus-group-make-tool-bar): Complete rewrite using
 	`gmm-tool-bar-from-list'.
 	(gnus-group-tool-bar-update): New function.
@@ -305,8 +303,8 @@
 
 2006-04-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-art.el (gnus-article-mode): Set
-	cursor-in-non-selected-windows to nil.
+	* gnus-art.el (gnus-article-mode):
+	Set cursor-in-non-selected-windows to nil.
 
 2006-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -337,8 +335,7 @@
 
 2006-04-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* nnslashdot.el (nnslashdot-retrieve-headers-1): Fix up to new
-	layout.
+	* nnslashdot.el (nnslashdot-retrieve-headers-1): Fix up to new layout.
 
 	* rfc2047.el (rfc2047-decode-encoded-words): Don't message about
 	unknown charset.
@@ -400,13 +397,12 @@
 
 	* gnus-agent.el (gnus-agent-queue-mail): Fix custom tag for `t'.
 
-	* spam.el (spam-mark-new-messages-in-spam-group-as-spam): Add
-	comment on version.
+	* spam.el (spam-mark-new-messages-in-spam-group-as-spam):
+	Add comment on version.
 
 2006-03-20  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* spam.el (spam-mark-new-messages-in-spam-group-as-spam): New
-	variable.
+	* spam.el (spam-mark-new-messages-in-spam-group-as-spam): New variable.
 	(spam-mark-junk-as-spam-routine): Use it.  Allow to disable
 	assigning the spam-mark to new messages.
 
@@ -437,14 +433,14 @@
 
 	* gnus-art.el (gnus-article-only-boring-p):
 	Bind inhibit-point-motion-hooks to avoid infinite loop when entering
-	intangible text.  Reported by Ralf Wachinger
-	<rwnewsmampfer@geekmail.de>.
+	intangible text.
+	Reported by Ralf Wachinger <rwnewsmampfer@geekmail.de>.
 
 2006-03-14  Simon Josefsson  <jas@extundo.com>
 
 	* message.el (message-unique-id): Don't use message-number-base36
-	if (user-uid) is a float.  Reported by Bjorn Solberg
-	<bjorn_ding1@hekneby.org>.
+	if (user-uid) is a float.
+	Reported by Bjorn Solberg <bjorn_ding1@hekneby.org>.
 
 2006-03-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
