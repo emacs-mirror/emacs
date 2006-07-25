@@ -1,3 +1,10 @@
+2006-07-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (find_string_data_in_pure): New function.
+	(make_pure_string): Use it to reuse existing string data if possible.
+
+	* puresize.h (BASE_PURESIZE): Decrease to 1102000.
+
 2006-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fdefine_key): If the key binding definition looks like an
