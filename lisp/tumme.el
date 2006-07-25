@@ -2021,7 +2021,7 @@ function.  The result is a couple of new files in
 Write file comments to one or more files.  FILE-COMMENTS is an alist on
 the following form:
  ((FILE . COMMENT) ... )"
-  (let (end comment-beg file comment)
+  (let (end comment-beg-pos comment-end-pos file comment)
     (with-temp-file tumme-db-file
       (insert-file-contents tumme-db-file)
       (dolist (elt file-comments)
@@ -2034,13 +2034,13 @@ the following form:
 	      (beginning-of-line)
 	      ;; Delete old comment, if any
 	      (when (search-forward ";comment:" end t)
-		(setq comment-beg (match-beginning 0))
+		(setq comment-beg-pos (match-beginning 0))
 		;; Any tags after the comment?
 		(if (search-forward ";" end t)
-		    (setq comment-end (- (point) 1))
-		  (setq comment-end end))
+		    (setq comment-end-pos (- (point) 1))
+		  (setq comment-end-pos end))
 		;; Delete comment tag and comment
-		(delete-region comment-beg comment-end))
+		(delete-region comment-beg-pos comment-end-pos))
 	      ;; Insert new comment
 	      (beginning-of-line)
 	      (unless (search-forward ";" end t)
@@ -2092,7 +2092,7 @@ as initial value."
 (defun tumme-get-comment (file)
   "Get comment for file FILE."
   (save-excursion
-    (let (end buf comment-beg comment)
+    (let (end buf comment-beg-pos comment-end-pos comment)
       (setq buf (find-file tumme-db-file))
       (goto-char (point-min))
       (when (search-forward-regexp
@@ -2101,12 +2101,12 @@ as initial value."
         (setq end (point))
         (beginning-of-line)
         (cond ((search-forward ";comment:" end t)
-               (setq comment-beg (point))
+               (setq comment-beg-pos (point))
                (if (search-forward ";" end t)
-                   (setq comment-end (- (point) 1))
-                 (setq comment-end end))
+                   (setq comment-end-pos (- (point) 1))
+                 (setq comment-end-pos end))
                (setq comment (buffer-substring
-                              comment-beg comment-end)))))
+                              comment-beg-pos comment-end-pos)))))
       (kill-buffer buf)
       comment)))
 
