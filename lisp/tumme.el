@@ -1009,7 +1009,7 @@ use only useful if `tumme-track-movement' is nil."
   (let ((old-buf (current-buffer))
         (dired-buf (tumme-associated-dired-buffer))
         (file-name (tumme-original-file-name)))
-    (when (and dired-buf file-name)
+    (when (and (buffer-live-p dired-buf) file-name)
       (setq file-name (file-name-nondirectory file-name))
       (set-buffer dired-buf)
       (goto-char (point-min))
@@ -1134,7 +1134,7 @@ comment."
   (format-spec
    tumme-display-properties-format
    (list
-    (cons ?b buf)
+    (cons ?b (or buf ""))
     (cons ?f file)
     (cons ?t (or (princ props) ""))
     (cons ?c (or comment "")))))
