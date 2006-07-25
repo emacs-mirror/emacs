@@ -1,3 +1,9 @@
+2006-07-25  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/ld-script.el (ld-script-keywords)
+	(ld-script-font-lock-keywords, ld-script-builtins): Update keywords
+	and add comments.
+
 2006-07-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers)
