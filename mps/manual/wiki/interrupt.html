@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
-  <title>MPS Wiki: ARTICLE-TITLE</title>
+  <title>MPS Wiki: Interrupts, etc</title>
   <style type = "text/css">
     <!--
     div.banner {text-align:center}
@@ -30,28 +30,82 @@
 
 <hr />
 
-<h1>MPS Wiki: ARTICLE-TITLE</h1>
+<h1>MPS Wiki: Interrupts, etc</h1>
 
 <address>
 <a href="mailto:rhsk@ravenbrook.com">Richard Kistruck</a>,
 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
-2006-06-02
+2006-07-25
 </address>
 
 </div>
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<pre>
-replace ARTICLE-TITLE throughout
-correct Document Author (above) and Document History (below)
-add YOUR ARTICLE HERE.
-</pre>
+<p> MPS use may involve interrupts, faults, exceptions, etc. </p>
+
+<p> We need to document: </p>
+<ul>
+  <li> stack faults; </li>
+  <li> incremental collection; </li>
+  <li> SEH trampoline on Windows; </li>
+  <li> ... </li>
+</ul> 
+
+<h2> Stack Faults </h2>
+
+<p> The operating system may provide each thread with a limited 
+  amount of stack space (the
+  <a href="http://www.memorymanagement.org/glossary/c.html#control.stack">control stack</a>
+  used for subroutine return addresses), and generate a "stack fault"
+  if the thread exceeds it.  This could cause a problem if that 
+  thread is in MPS code at the time of the fault. </p>
+
+
+<h3> Preventing stack faults </h3>
+
+<p> On some OSs, the default per-thread stack size is very small.
+  <strong>Recommendation: it is wise to check the default, and 
+    increase it if necessary</strong>. </p>
+
+<p> The MPS is not deeply recursive.  One conservative estimate of 
+  the stack space that should be available when calling the MPS 
+  is 2048 bytes (on Windows with x86 instruction set). </p>
+
+
+<h3> Handling stack faults </h3>
+
+<p> An MPS client that wishes to catch and handle operating-system 
+  stack faults must install a handler for them.  If this handler 
+  simply increases the available stack space and continues the 
+  thread, this should be invisible to the MPS. </p>
+
+<p> But if the handler needs to use MPS-allocated memory or
+  references, then we must make sure the MPS is not in the 
+  middle of an operation when the stack fault occurs. </p>
+
+<p> To help prevent this, the MPS does a "stack probe"
+  to check that there is sufficient stack space
+  before beginning each MPS operation (each one that calls
+  <code>arenaEnterLock</code> at least).  
+  If the space is insufficient
+  this probe will generate a stack fault before the MPS
+  operation begins. </p>
+
+<p> Note: the stack probe is currently only implemented for 
+  the i3 (Intel) architecture when building using mv (Visual 
+  Studio).  See <code>span.c</code> and <code>spi3.c</code>. </p>
+
+<p> [Note: if <code>THREAD_SINGLE</code> and
+  <code>PROTECTION_NONE</code> are defined, the 
+  stack probe is skipped.  RHSK 2006-07-25, reading <code>//info.ravenbrook.com/project/mps/master/code/global.c#18</code>.] </p>
+
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
 <pre>
-  2006-06-02  RHSK  Created.
+  2006-06-25  RHSK  Created.
+  2006-06-25  RHSK  Stack faults 
 </pre>
 
 
