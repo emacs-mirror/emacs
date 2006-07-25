@@ -1072,7 +1072,7 @@ move ARG lines."
   (if tumme-track-movement
       (tumme-track-thumbnail)))
 
-(defun tumme-forward-char ()
+(defun tumme-forward-image ()
   "Move to next image and display properties."
   (interactive)
   ;; Before we move, make sure that there is an image two positions
@@ -1088,7 +1088,7 @@ move ARG lines."
         (tumme-track-original-file)))
   (tumme-display-thumb-properties))
 
-(defun tumme-backward-char ()
+(defun tumme-backward-image ()
   "Move to previous image and display properties."
   (interactive)
   (when (not (bobp))
@@ -1106,7 +1106,7 @@ move ARG lines."
   (next-line 1)
   ;; If we end up in an empty spot, back up to the next thumbnail.
   (if (not (tumme-image-at-point-p))
-      (tumme-backward-char))
+      (tumme-backward-image))
   (if tumme-track-movement
       (tumme-track-original-file))
   (tumme-display-thumb-properties))
@@ -1121,7 +1121,7 @@ move ARG lines."
   ;; thumbnail and did not refresh, so it is not very common. But we
   ;; can handle it in a good manner, so why not?
   (if (not (tumme-image-at-point-p))
-      (tumme-backward-char))
+      (tumme-backward-image))
   (if tumme-track-movement
       (tumme-track-original-file))
   (tumme-display-thumb-properties))
@@ -1190,19 +1190,19 @@ dired."
   "Mark original image file in associated dired buffer."
   (interactive)
   (tumme-modify-mark-on-thumb-original-file 'mark)
-  (tumme-forward-char))
+  (tumme-forward-image))
 
 (defun tumme-unmark-thumb-original-file ()
   "Unmark original image file in associated dired buffer."
   (interactive)
   (tumme-modify-mark-on-thumb-original-file 'unmark)
-  (tumme-forward-char))
+  (tumme-forward-image))
 
 (defun tumme-flag-thumb-original-file ()
   "Flag original image file for deletion in associated dired buffer."
   (interactive)
   (tumme-modify-mark-on-thumb-original-file 'flag)
-  (tumme-forward-char))
+  (tumme-forward-image))
 
 (defun tumme-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated dired buffer."
@@ -1250,12 +1250,12 @@ You probably want to use this together with
   "Define keymap for `tumme-thumbnail-mode'."
 
   ;; Keys
-  (define-key tumme-thumbnail-mode-map [right] 'tumme-forward-char)
-  (define-key tumme-thumbnail-mode-map [left] 'tumme-backward-char)
+  (define-key tumme-thumbnail-mode-map [right] 'tumme-forward-image)
+  (define-key tumme-thumbnail-mode-map [left] 'tumme-backward-image)
   (define-key tumme-thumbnail-mode-map [up] 'tumme-previous-line)
   (define-key tumme-thumbnail-mode-map [down] 'tumme-next-line)
-  (define-key tumme-thumbnail-mode-map "\C-f" 'tumme-forward-char)
-  (define-key tumme-thumbnail-mode-map "\C-b" 'tumme-backward-char)
+  (define-key tumme-thumbnail-mode-map "\C-f" 'tumme-forward-image)
+  (define-key tumme-thumbnail-mode-map "\C-b" 'tumme-backward-image)
   (define-key tumme-thumbnail-mode-map "\C-p" 'tumme-previous-line)
   (define-key tumme-thumbnail-mode-map "\C-n" 'tumme-next-line)
 
@@ -2007,13 +2007,13 @@ function.  The result is a couple of new files in
 (defun tumme-display-next-thumbnail-original ()
   "In thubnail buffer, move to next thumbnail and display the image."
   (interactive)
-  (tumme-forward-char)
+  (tumme-forward-image)
   (tumme-display-thumbnail-original-image))
 
 (defun tumme-display-previous-thumbnail-original ()
   "Move to previous thumbnail and display image."
   (interactive)
-  (tumme-backward-char)
+  (tumme-backward-image)
   (tumme-display-thumbnail-original-image))
 
 (defun tumme-write-comments (file-comments)
