@@ -1,3 +1,8 @@
+2006-07-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-track-original-file): Add `buffer-live-p' check.
+	(tumme-format-properties-string): Handle empty `buf'.
+
 2006-07-25  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/ld-script.el (ld-script-keywords)
