@@ -2,6 +2,10 @@
 
 	* tumme.el (tumme-track-original-file): Add `buffer-live-p' check.
 	(tumme-format-properties-string): Handle empty `buf'.
+	(tumme-get-comment): Change variable names inside `let'.  Add
+	missing `let' variable that cause font-lock problems.
+	(tumme-write-comments): Change variable names inside `let'.  Add
+	missing `let' variable that cause font-lock problems.
 
 2006-07-25  Masatake YAMATO  <jet@gyve.org>
 
