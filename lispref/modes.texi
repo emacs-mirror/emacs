@@ -3049,7 +3049,7 @@ constructs:
 
 @itemize
 @item
-Place a @code{font-lock-multiline} or @code{jit-lock-defer-multiline}
+Place a @code{font-lock-multiline}
 property on the construct when it is added to the buffer.
 @item
 Use @code{font-lock-fontify-region-function} hook to extend the scan
@@ -3076,7 +3076,6 @@ this can be an attractive solution.
 Place a @code{jit-lock-defer-multiline} property on the construct.
 This works only if @code{jit-lock-contextually} is used, but it can
 handle the case where highlighting depends on subsequent lines.
-@item
 @end itemize
 
 @menu
