@@ -1,3 +1,10 @@
+2006-07-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers)
+	(gdb-resync, gdb-prompt, gdb-starting, gdb-exited, gdb-stopped)
+	(gdb-set-gud-minor-mode-existing-buffers-1): Use different faces
+	for status indicator.
+
 2006-07-24  Richard Stallman  <rms@gnu.org>
 
 	* xml.el (xml-parse-file): Clean up, and use with-temp-buffer.
