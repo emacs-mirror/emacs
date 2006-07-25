@@ -4767,6 +4767,73 @@ check_pure_size ()
 }
 
 
+/* Find the byte sequence {DATA[0], ..., DATA[NBYTES-1], '\0'} from
+   the non-Lisp data pool of the pure storage, and return its start
+   address.  Return NULL if not found.  */
+
+static char *
+find_string_data_in_pure (data, nbytes)
+     char *data;
+     int nbytes;
+{
+  int i, skip, bm_skip[256], last_char_skip, infinity, start, start_max;
+  unsigned char *p;
+  char *non_lisp_beg;
+
+  if (pure_bytes_used_non_lisp < nbytes + 1)
+    return NULL;
+
+  /* Set up the Boyer-Moore table.  */
+  skip = nbytes + 1;
+  for (i = 0; i < 256; i++)
+    bm_skip[i] = skip;
+
+  p = (unsigned char *) data;
+  while (--skip > 0)
+    bm_skip[*p++] = skip;
+
+  last_char_skip = bm_skip['\0'];
+
+  non_lisp_beg = purebeg + pure_size - pure_bytes_used_non_lisp;
+  start_max = pure_bytes_used_non_lisp - (nbytes + 1);
+
+  /* See the comments in the function `boyer_moore' (search.c) for the
+     use of `infinity'.  */
+  infinity = pure_bytes_used_non_lisp + 1;
+  bm_skip['\0'] = infinity;
+
+  p = (unsigned char *) non_lisp_beg + nbytes;
+  start = 0;
+  do
+    {
+      /* Check the last character (== '\0').  */
+      do
+	{
+	  start += bm_skip[*(p + start)];
+	}
+      while (start <= start_max);
+
+      if (start < infinity)
+	/* Couldn't find the last character.  */
+	return NULL;
+
+      /* No less than `infinity' means we could find the last
+	 character at `p[start - infinity]'.  */
+      start -= infinity;
+
+      /* Check the remaining characters.  */
+      if (memcmp (data, non_lisp_beg + start, nbytes) == 0)
+	/* Found.  */
+	return non_lisp_beg + start;
+
+      start += last_char_skip;
+    }
+  while (start <= start_max);
+
+  return NULL;
+}
+
+
 /* Return a string allocated in pure space.  DATA is a buffer holding
    NCHARS characters, and NBYTES bytes of string data.  MULTIBYTE
    non-zero means make the result string multibyte.
@@ -4785,11 +4852,15 @@ make_pure_string (data, nchars, nbytes, multibyte)
   struct Lisp_String *s;
 
   s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
-  s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
+  s->data = find_string_data_in_pure (data, nbytes);
+  if (s->data == NULL)
+    {
+      s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
+      bcopy (data, s->data, nbytes);
+      s->data[nbytes] = '\0';
+    }
   s->size = nchars;
   s->size_byte = multibyte ? nbytes : -1;
-  bcopy (data, s->data, nbytes);
-  s->data[nbytes] = '\0';
   s->intervals = NULL_INTERVAL;
   XSETSTRING (string, s);
   return string;
