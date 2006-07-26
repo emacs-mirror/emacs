@@ -3249,7 +3249,7 @@ is nil and `use-dialog-box' is non-nil.  */)
 	  Fraise_frame (mini_frame);
 	}
 
-      obj = read_filtered_event (1, 0, 0, 0);
+      obj = read_filtered_event (1, 0, 0, 0, Qnil);
       cursor_in_echo_area = 0;
       /* If we need to quit, quit with cursor_in_echo_area = 0.  */
       QUIT;
