@@ -3193,6 +3193,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
       register_font_driver (&xfont_driver, f);
+
+      x_default_parameter (f, parms, Qfont_backend, Qnil,
+			   "fontBackend", "FontBackend", RES_TYPE_STRING);
     }
 #endif	/* USE_FONT_BACKEND */
 
@@ -5762,6 +5765,9 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_fringe_width,
   x_set_wait_for_wm,
   x_set_fullscreen,
+#ifdef USE_FONT_BACKEND
+  x_set_font_backend
+#endif	/* USE_FONT_BACKEND */
 };
 
 void
