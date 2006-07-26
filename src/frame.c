@@ -112,6 +112,9 @@ Lisp_Object Qbuffer_predicate, Qbuffer_list;
 Lisp_Object Qtty_color_mode;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
+#ifdef USE_FONT_BACKEND
+Lisp_Object Qfont_backend;
+#endif	/* USE_FONT_BACKEND */
 
 Lisp_Object Qface_set_after_frame_default;
 
@@ -2587,6 +2590,9 @@ static struct frame_parm_table frame_parms[] =
   {"right-fringe",		&Qright_fringe},
   {"wait-for-wm",		&Qwait_for_wm},
   {"fullscreen",                &Qfullscreen},
+#ifdef USE_FONT_BACKEND
+  {"font-backend",		&Qfont_backend}
+#endif	/* USE_FONT_BACKEND */
 };
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3165,6 +3171,39 @@ x_set_font (f, arg, oldval)
       call1 (Qface_set_after_frame_default, frame);
     }
 }
+
+
+#ifdef USE_FONT_BACKEND
+void
+x_set_font_backend (f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+  Lisp_Object frame;
+
+  if (! NILP (new_value)
+      && !CONSP (new_value))
+    {
+      char *p0, *p1;
+	
+      CHECK_STRING (new_value);
+      p0 = p1 = SDATA (new_value);
+      new_value = Qnil;
+      while (*p0)
+	{
+	  while (*p1 && *p1 != ',') p1++;
+	  if (p0 < p1)
+	    new_value = Fcons (Fintern (make_string (p0, p1 - p0), Qnil),
+			       new_value);
+	  if (*p1)
+	    p1++;
+	  p0 = p1;
+	}
+    }
+
+  font_update_drivers (f, new_value, FRAME_FONT_OBJECT (f));
+}
+#endif	/* USE_FONT_BACKEND */
 
 
 void
