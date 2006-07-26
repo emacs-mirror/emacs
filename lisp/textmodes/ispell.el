@@ -1650,9 +1650,15 @@ quit          spell session exited."
 					     cursor-location))
 		    (if (not (equal new-word (car poss)))
 			(progn
-			  (delete-region start end)
-			  (setq start (point))
+			  (goto-char start)
+			  ;; Insert first and then delete,
+			  ;; to avoid collapsing markers before and after
+			  ;; into a single place.
 			  (ispell-insert-word new-word)
+			  (delete-region (point) (+ (point) (- end start)))
+			  ;; It is meaningless to preserve the cursor position
+			  ;; inside a word that has changed.
+			  (setq cursor-location (point))
 			  (setq end (point))))
 		    (if (not (atom replace)) ;recheck spelling of replacement
 			(progn
