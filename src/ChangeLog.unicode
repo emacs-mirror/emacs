@@ -1,3 +1,30 @@
+2006-07-26  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (struct font_driver_list): New member `on'.
+	(Fclear_font_cache): EXFUN it.
+	(font_update_drivers): Extern it.
+
+	* font.c (font_unparse_fcname): Fix typo (swidth->width).
+	(font_list_entities): Check driver_list->on.
+	(register_font_driver): Initalize `on' member to 0.
+	(font_update_drivers): New function.
+	(Fclear_font_cache): Check driver_list->on.
+
+	* frame.h (Qfont_backend): Extern it.
+	(x_set_font_backend): Extern it.
+
+	* frame.c (Qfont_backend): New variable.
+	(frame_parms): New element for font-backend.
+	(x_set_font_backend): New function.
+
+	* xfns.c (x_create_tip_frame) [USE_FONT_BACKEND]: Handle
+	FontBackend frame parameter.
+	(x_frame_parm_handlers) [USE_FONT_BACKEND]: New element
+	x_set_font_backend.
+
+	* xfont.c (xfont_list): Don't try listing by :name property if the
+	name is not for XLFD.
+
 2006-07-24  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (LGLYPH_FROM, LGLYPH_TO, LGLYPH_SET_FROM)

@@ -424,6 +424,8 @@ struct font_driver
 
 struct font_driver_list
 {
+  /* 1 iff this driver is currently used.  */
+  int on;
   struct font_driver *driver;
   struct font_driver_list *next;
 };
@@ -432,6 +434,7 @@ extern int enable_font_backend;
 
 EXFUN (Ffont_spec, MANY);
 EXFUN (Flist_fonts, 4);
+EXFUN (Fclear_font_cache, 0);
 
 extern Lisp_Object font_symbolic_weight P_ ((Lisp_Object font));
 extern Lisp_Object font_symbolic_slant P_ ((Lisp_Object font));
@@ -474,6 +477,8 @@ extern int font_unparse_fcname P_ ((Lisp_Object font, int pixel_size,
 				  char *name, int bytes));
 extern void register_font_driver P_ ((struct font_driver *driver, FRAME_PTR f));
 extern void free_font_driver_list P_ ((FRAME_PTR f));
+extern void font_update_drivers P_ ((FRAME_PTR f, Lisp_Object name_list,
+				     struct font *));
 extern Lisp_Object font_at P_ ((int c, EMACS_INT pos, struct face *face,
 				struct window *w, Lisp_Object object));
 
