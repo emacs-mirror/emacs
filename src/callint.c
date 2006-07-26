@@ -563,7 +563,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 	  break;
 
         case 'c':		/* Character */
-	  args[i] = Fread_char (build_string (callint_message), Qnil);
+	  args[i] = Fread_char (build_string (callint_message), Qnil, Qnil);
 	  message1_nolog ((char *) 0);
 	  /* Passing args[i] directly stimulates compiler bug */
 	  teml = args[i];
@@ -635,7 +635,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 		/* Ignore first element, which is the base key.  */
 		tem2 = Fmemq (intern ("down"), Fcdr (teml));
 		if (! NILP (tem2))
-		  up_event = Fread_event (Qnil, Qnil);
+		  up_event = Fread_event (Qnil, Qnil, Qnil);
 	      }
 	  }
 	  break;
@@ -663,7 +663,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 		/* Ignore first element, which is the base key.  */
 		tem2 = Fmemq (intern ("down"), Fcdr (teml));
 		if (! NILP (tem2))
-		  up_event = Fread_event (Qnil, Qnil);
+		  up_event = Fread_event (Qnil, Qnil, Qnil);
 	      }
 	  }
 	  break;
