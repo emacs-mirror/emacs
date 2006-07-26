@@ -1242,7 +1242,7 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
   int i, len = 1;
   char *p;
   Lisp_Object styles[3];
-  char *style_names[3] = { "weight", "slant", "swidth" };
+  char *style_names[3] = { "weight", "slant", "width" };
 
   val = AREF (font, FONT_FAMILY_INDEX);
   if (SYMBOLP (val) && ! NILP (val))
@@ -2247,7 +2247,8 @@ font_list_entities (frame, spec)
   ftype = AREF (spec, FONT_TYPE_INDEX);
   
   for (i = 0; driver_list; driver_list = driver_list->next)
-    if (NILP (ftype) || EQ (driver_list->driver->type, ftype))
+    if (driver_list->on
+	&& (NILP (ftype) || EQ (driver_list->driver->type, ftype)))
       {
 	Lisp_Object cache = driver_list->driver->get_cache (frame);
 	Lisp_Object tail = alternate_familes;
@@ -2645,10 +2646,10 @@ font_open_by_name (f, name)
 
 /* Register font-driver DRIVER.  This function is used in two ways.
 
-   The first is with frame F non-NULL.  In this case, DRIVER is
-   registered to be used for drawing characters on F.  All frame
-   creaters (e.g. Fx_create_frame) must call this function at least
-   once with an available font-driver.
+   The first is with frame F non-NULL.  In this case, make DRIVER
+   available (but not yet activated) on F.  All frame creaters
+   (e.g. Fx_create_frame) must call this function at least once with
+   an available font-driver.
 
    The second is with frame F NULL.  In this case, DRIVER is globally
    registered in the variable `font_driver_list'.  All font-driver
@@ -2672,6 +2673,7 @@ register_font_driver (driver, f)
       error ("Duplicated font driver: %s", SDATA (SYMBOL_NAME (driver->type)));
 
   list = malloc (sizeof (struct font_driver_list));
+  list->on = 0;
   list->driver = driver;
   list->next = NULL;
   if (prev)
@@ -2698,6 +2700,53 @@ free_font_driver_list (f)
       f->font_driver_list = next;
     }
 }
+
+/* Make all font drivers listed in NEW_DRIVERS be used on F.  If
+   NEW_DRIVERS is nil, make all available font drivers be used.
+   FONT is the current default font of F, it may be NULL.  */
+
+void
+font_update_drivers (f, new_drivers, font)
+     FRAME_PTR f;
+     Lisp_Object new_drivers;
+     struct font *font;
+{
+  Lisp_Object active_drivers = Qnil;
+  Lisp_Object old_spec;
+  struct font_driver_list *list;
+
+  if (font)
+    {
+      old_spec = font_get_spec (font_find_object (font));
+      free_all_realized_faces (Qnil);
+      Fclear_font_cache ();
+    }
+
+  for (list = f->font_driver_list; list; list = list->next)
+    {
+      if (NILP (new_drivers)
+	  || ! NILP (Fmemq (list->driver->type, new_drivers)))
+	{
+	  list->on = 1;
+	  active_drivers = Fcons (list->driver->type, active_drivers);
+	}
+      else
+	list->on = 0;
+    }
+
+  store_frame_param (f, Qfont_backend, active_drivers);
+
+  if (font)
+    {
+      Lisp_Object frame;
+
+      XSETFRAME (frame, f);
+      x_set_font (f, Fframe_parameter (frame, Qfont), Qnil);
+      ++face_change_count;
+      ++windows_or_buffers_changed;
+    }
+}
+
 
 Lisp_Object
 font_at (c, pos, face, w, object)
@@ -2954,42 +3003,49 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
       struct font_driver_list *driver_list = f->font_driver_list;
 
       for (; driver_list; driver_list = driver_list->next)
-	{
-	  Lisp_Object cache = driver_list->driver->get_cache (frame);
-	  Lisp_Object tail, elt;
+	if (driver_list->on)
+	  {
+	    Lisp_Object cache = driver_list->driver->get_cache (frame);
+	    Lisp_Object tail, elt;
 	    
-	  for (tail = XCDR (cache); CONSP (tail); tail = XCDR (tail))
-	    {
-	      elt = XCAR (tail);
-	      if (CONSP (elt) && FONT_SPEC_P (XCAR (elt)))
-		{
-		  Lisp_Object vec = XCDR (elt);
-		  int i;
+	    for (tail = XCDR (cache); CONSP (tail); tail = XCDR (tail))
+	      {
+		elt = XCAR (tail);
+		if (CONSP (elt) && FONT_SPEC_P (XCAR (elt)))
+		  {
+		    Lisp_Object vec = XCDR (elt);
+		    int i;
 
-		  for (i = 0; i < ASIZE (vec); i++)
-		    {
-		      Lisp_Object entity = AREF (vec, i);
-		      Lisp_Object objlist = AREF (entity, FONT_OBJLIST_INDEX);
+		    for (i = 0; i < ASIZE (vec); i++)
+		      {
+			Lisp_Object entity = AREF (vec, i);
 
-		      for (; CONSP (objlist); objlist = XCDR (objlist))
-			{
-			  Lisp_Object val = XCAR (objlist);
-			  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
-			  struct font *font = p->pointer;
+			if (EQ (driver_list->driver->type,
+				AREF (entity, FONT_TYPE_INDEX)))
+			  {
+			    Lisp_Object objlist
+			      = AREF (entity, FONT_OBJLIST_INDEX);
 
-			  xassert (font
-				   && driver_list->driver == font->driver);
-			  driver_list->driver->close (f, font);
-			  p->pointer = NULL;
-			  p->integer = 0;
-			}
-		      if (driver_list->driver->free_entity)
-			driver_list->driver->free_entity (entity);
-		    }
-		}
-	    }
-	  XSETCDR (cache, Qnil);
-	}
+			    for (; CONSP (objlist); objlist = XCDR (objlist))
+			      {
+				Lisp_Object val = XCAR (objlist);
+				struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+				struct font *font = p->pointer;
+
+				xassert (font && (driver_list->driver
+						  == font->driver));
+				driver_list->driver->close (f, font);
+				p->pointer = NULL;
+				p->integer = 0;
+			      }
+			    if (driver_list->driver->free_entity)
+			      driver_list->driver->free_entity (entity);
+			  }
+		      }
+		  }
+	      }
+	    XSETCDR (cache, Qnil);
+	  }
     }
 
   return Qnil;
