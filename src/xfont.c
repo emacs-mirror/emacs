@@ -396,7 +396,8 @@ xfont_list (frame, spec)
 	font_name = XCDR (val);
     }
 
-  if (STRINGP (font_name))
+  if (STRINGP (font_name)
+      && ! strchr ((char *) SDATA (font_name), ':'))
     list = xfont_list_pattern (frame, display, (char *) SDATA (font_name));
   else if ((len = font_unparse_xlfd (spec, 0, name, 256)) < 0)
     return null_vector;
