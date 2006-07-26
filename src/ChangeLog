@@ -1,3 +1,17 @@
+2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): New arg END_TIME specifying timeout.
+	All callers changed.  Turn off echoing if END_TIME is non-NULL.
+	(kbd_buffer_get_event): New arg END_TIME.
+
+	* lread.c (read_filtered_event): New arg SECONDS to wait until.
+	(Fread_char, Fread_event, Fread_char_exclusive): New arg SECONDS.
+
+	* lisp.h: Update read-char, read-event, and read_filtered_event
+	prototypes.
+
+	* keyboard.h: Include systime.h.  Update read_char prototype.
+
 2006-07-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c (find_string_data_in_pure): New function.
