@@ -1737,19 +1737,9 @@ floating point support.
       (progn (sleep-for seconds) t)
     (unless nodisp (redisplay))
     (or (<= seconds 0)
-	(let ((timer (timer-create))
-	      (echo-keystrokes 0))
-	  (if (catch 'sit-for-timeout
-		(timer-set-time timer (timer-relative-time
-				       (current-time) seconds))
-		(timer-set-function timer 'with-timeout-handler
-				    '(sit-for-timeout))
-		(timer-activate timer)
-		(push (read-event) unread-command-events)
-		nil)
-	      t
-	    (cancel-timer timer)
-	    nil)))))
+	(let ((read (read-event nil nil seconds)))
+	  (or (null read)
+	      (progn (push read unread-command-events) nil))))))
 
 ;;; Atomic change groups.
 
