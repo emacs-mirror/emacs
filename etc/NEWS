@@ -4409,6 +4409,12 @@ name handlers.  This will be exploited for remote files mainly.
 ** Input changes:
 
 +++
+*** The functions `read-event', `read-char', and `read-char-exclusive'
+have a new optional argument SECONDS.  If non-nil, this specifies a
+maximum time to wait for input, in seconds.  If no input arrives after
+this time elapses, the functions stop waiting and return nil.
+
++++
 *** An interactive specification can now use the code letter 'U' to get
 the up-event that was discarded in case the last key sequence read for a
 previous `k' or `K' argument was a down-event; otherwise nil is used.
