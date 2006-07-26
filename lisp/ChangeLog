@@ -1,3 +1,10 @@
+2006-07-26  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-backward-image): Add prefix argument. Add error
+	when at first image.
+	(tumme-forward-image): Add prefix argument. Add error when at last
+	image.
+
 2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* tabify.el (tabify-regexp): Use more specific regexps.
