@@ -455,14 +455,19 @@ extern Lisp_Object read_char ();
    character.
 
    If INPUT_METHOD is nonzero, we invoke the current input method
-   if the character warrants that.  */
+   if the character warrants that.
+
+   If SECONDS is a number, we wait that many seconds for input, and
+   return Qnil if no input arrives within that time.  */
 
 Lisp_Object
 read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
-		     input_method)
+		     input_method, seconds)
      int no_switch_frame, ascii_required, error_nonascii, input_method;
+     Lisp_Object seconds;
 {
   Lisp_Object val, delayed_switch_frame;
+  EMACS_TIME end_time;
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -471,11 +476,24 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 
   delayed_switch_frame = Qnil;
 
+  /* Compute timeout.  */
+  if (NUMBERP (seconds))
+    {
+      EMACS_TIME wait_time;
+      int sec, usec;
+      double duration = extract_float (seconds); 	 
+
+      sec  = (int) duration;
+      usec = (duration - sec) * 1000000;
+      EMACS_GET_TIME (end_time);
+      EMACS_SET_SECS_USECS (wait_time, sec, usec);
+      EMACS_ADD_TIME (end_time, end_time, wait_time);
+    }
+
   /* Read until we get an acceptable event.  */
  retry:
-  val = read_char (0, 0, 0,
-		   (input_method ? Qnil : Qt),
-		   0);
+  val = read_char (0, 0, 0, (input_method ? Qnil : Qt), 0,
+		   NUMBERP (seconds) ? &end_time : NULL);
 
   if (BUFFERP (val))
     goto retry;
@@ -493,7 +511,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
       goto retry;
     }
 
-  if (ascii_required)
+  if (ascii_required && !(NUMBERP (seconds) && NILP (val)))
     {
       /* Convert certain symbols to their ASCII equivalents.  */
       if (SYMBOLP (val))
@@ -538,7 +556,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
   return val;
 }
 
-DEFUN ("read-char", Fread_char, Sread_char, 0, 2, 0,
+DEFUN ("read-char", Fread_char, Sread_char, 0, 3, 0,
        doc: /* Read a character from the command input (keyboard or macro).
 It is returned as a number.
 If the user generates an event which is not a character (i.e. a mouse
@@ -551,43 +569,55 @@ If you want to read non-character events, or ignore them, call
 If the optional argument PROMPT is non-nil, display that as a prompt.
 If the optional argument INHERIT-INPUT-METHOD is non-nil and some
 input method is turned on in the current buffer, that input method
-is used for reading a character.  */)
-     (prompt, inherit_input_method)
-     Lisp_Object prompt, inherit_input_method;
+is used for reading a character.
+If the optional argument SECONDS is non-nil, it should be a number
+specifying the maximum number of seconds to wait for input.  If no
+input arrives in that time, return nil.  SECONDS may be a
+floating-point value.  */)
+     (prompt, inherit_input_method, seconds)
+     Lisp_Object prompt, inherit_input_method, seconds;
 {
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
-  return read_filtered_event (1, 1, 1, ! NILP (inherit_input_method));
+  return read_filtered_event (1, 1, 1, ! NILP (inherit_input_method), seconds);
 }
 
-DEFUN ("read-event", Fread_event, Sread_event, 0, 2, 0,
+DEFUN ("read-event", Fread_event, Sread_event, 0, 3, 0,
        doc: /* Read an event object from the input stream.
 If the optional argument PROMPT is non-nil, display that as a prompt.
 If the optional argument INHERIT-INPUT-METHOD is non-nil and some
 input method is turned on in the current buffer, that input method
-is used for reading a character.  */)
-     (prompt, inherit_input_method)
-     Lisp_Object prompt, inherit_input_method;
+is used for reading a character.
+If the optional argument SECONDS is non-nil, it should be a number
+specifying the maximum number of seconds to wait for input.  If no
+input arrives in that time, return nil.  SECONDS may be a
+floating-point value.  */)
+     (prompt, inherit_input_method, seconds)
+     Lisp_Object prompt, inherit_input_method, seconds;
 {
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
-  return read_filtered_event (0, 0, 0, ! NILP (inherit_input_method));
+  return read_filtered_event (0, 0, 0, ! NILP (inherit_input_method), seconds);
 }
 
-DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 2, 0,
+DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 3, 0,
        doc: /* Read a character from the command input (keyboard or macro).
 It is returned as a number.  Non-character events are ignored.
 
 If the optional argument PROMPT is non-nil, display that as a prompt.
 If the optional argument INHERIT-INPUT-METHOD is non-nil and some
 input method is turned on in the current buffer, that input method
-is used for reading a character.  */)
-     (prompt, inherit_input_method)
-     Lisp_Object prompt, inherit_input_method;
+is used for reading a character.
+If the optional argument SECONDS is non-nil, it should be a number
+specifying the maximum number of seconds to wait for input.  If no
+input arrives in that time, return nil.  SECONDS may be a
+floating-point value.  */)
+     (prompt, inherit_input_method, seconds)
+     Lisp_Object prompt, inherit_input_method, seconds;
 {
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
-  return read_filtered_event (1, 1, 0, ! NILP (inherit_input_method));
+  return read_filtered_event (1, 1, 0, ! NILP (inherit_input_method), seconds);
 }
 
 DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
