@@ -2199,7 +2199,7 @@ single event.
 
 None of the three functions below suppresses quitting.
 
-@defun read-event &optional prompt inherit-input-method
+@defun read-event &optional prompt inherit-input-method seconds
 This function reads and returns the next event of command input, waiting
 if necessary until an event is available.  Events can come directly from
 the user or from a keyboard macro.
@@ -2220,6 +2220,15 @@ If @code{cursor-in-echo-area} is non-@code{nil}, then @code{read-event}
 moves the cursor temporarily to the echo area, to the end of any message
 displayed there.  Otherwise @code{read-event} does not move the cursor.
 
+If @code{seconds} is non-@code{nil}, it should be a number specifying
+the maximum time to wait for input, in seconds.  If no input arrives
+within that time, @code{read-event} stops waiting and returns
+@code{nil}.  A floating-point value for @code{seconds} means to wait
+for a fractional number of seconds.  Some systems support only a whole
+number of seconds; on these systems, @code{seconds} is rounded down.
+If @code{seconds} is @code{nil}, @code{read-event} waits as long as
+necessary for input to arrive.
+
 If @code{read-event} gets an event that is defined as a help character,
 then in some cases @code{read-event} processes the event directly without
 returning.  @xref{Help Functions}.  Certain other events, called
@@ -2237,7 +2246,7 @@ right-arrow function key:
 @end example
 @end defun
 
-@defun read-char &optional prompt inherit-input-method
+@defun read-char &optional prompt inherit-input-method seconds
 This function reads and returns a character of command input.  If the
 user generates an event which is not a character (i.e. a mouse click or
 function key event), @code{read-char} signals an error.  The arguments
@@ -2269,7 +2278,7 @@ the echo area.
 @end example
 @end defun
 
-@defun read-char-exclusive &optional prompt inherit-input-method
+@defun read-char-exclusive &optional prompt inherit-input-method seconds
 This function reads and returns a character of command input.  If the
 user generates an event which is not a character,
 @code{read-char-exclusive} ignores it and reads another event, until it

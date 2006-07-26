@@ -1,3 +1,8 @@
+2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Reading One Event): Document SECONDS argument for
+	read-event, read-char, and read-char-exclusive.
+
 2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Multiline Font Lock): Can't use jit-lock-defer-multiline
