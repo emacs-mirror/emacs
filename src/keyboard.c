@@ -2385,15 +2385,20 @@ do { if (polling_stopped_here) start_polling ();	\
    if we used a mouse menu to read the input, or zero otherwise.  If
    USED_MOUSE_MENU is null, we don't dereference it.
 
+   If END_TIME is non-null, it is a pointer to an EMACS_TIME
+   specifying the maximum time to wait until.  If no input arrives by
+   that time, stop waiting and return nil.
+
    Value is t if we showed a menu and the user rejected it.  */
 
 Lisp_Object
-read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
+read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
      int commandflag;
      int nmaps;
      Lisp_Object *maps;
      Lisp_Object prev_event;
      int *used_mouse_menu;
+     EMACS_TIME *end_time;
 {
   volatile Lisp_Object c;
   int count;
@@ -2673,6 +2678,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      start echoing if enough time elapses.  */
 
   if (minibuf_level == 0
+      && !end_time
       && !current_kboard->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
@@ -2855,11 +2861,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     {
       KBOARD *kb;
 
+      if (end_time)
+	{
+	  EMACS_TIME now;
+	  EMACS_GET_TIME (now);
+	  if (EMACS_TIME_GE (now, *end_time))
+	    goto exit;
+	}
+
       /* Actually read a character, waiting if necessary.  */
       save_getcjmp (save_jump);
       restore_getcjmp (local_getcjmp);
       timer_start_idle ();
-      c = kbd_buffer_get_event (&kb, used_mouse_menu);
+      c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
       restore_getcjmp (save_jump);
 
 #ifdef MULTI_KBOARD
@@ -3196,7 +3210,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       cancel_echoing ();
       do
-	c = read_char (0, 0, 0, Qnil, 0);
+	c = read_char (0, 0, 0, Qnil, 0, NULL);
       while (BUFFERP (c));
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
@@ -3206,7 +3220,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	{
 	  cancel_echoing ();
 	  do
-	    c = read_char (0, 0, 0, Qnil, 0);
+	    c = read_char (0, 0, 0, Qnil, 0, NULL);
 	  while (BUFFERP (c));
 	}
     }
@@ -3885,9 +3899,10 @@ clear_event (event)
    We always read and discard one event.  */
 
 static Lisp_Object
-kbd_buffer_get_event (kbp, used_mouse_menu)
+kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
      KBOARD **kbp;
      int *used_mouse_menu;
+     EMACS_TIME *end_time;
 {
   register int c;
   Lisp_Object obj;
@@ -3931,13 +3946,24 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       if (!NILP (do_mouse_tracking) && some_mouse_moved ())
 	break;
 #endif
-      {
+      if (end_time)
+	{
+	  EMACS_TIME duration;
+	  EMACS_GET_TIME (duration);
+	  EMACS_SUB_TIME (duration, *end_time, duration);
+	  if (EMACS_TIME_NEG_P (duration))
+	    return Qnil;
+	  else
+	    wait_reading_process_output (EMACS_SECS (duration),
+					 EMACS_USECS (duration), 
+					 -1, 1, Qnil, NULL, 0);
+	}
+      else
 	wait_reading_process_output (0, 0, -1, 1, Qnil, NULL, 0);
 
-	if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
-	  /* Pass 1 for EXPECT since we just waited to have input.  */
-	  read_avail_input (1);
-      }
+      if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
+	/* Pass 1 for EXPECT since we just waited to have input.  */
+	read_avail_input (1);
 #endif /* not VMS */
     }
 
@@ -8282,7 +8308,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
       orig_defn_macro = current_kboard->defining_kbd_macro;
       current_kboard->defining_kbd_macro = Qnil;
       do
-	obj = read_char (commandflag, 0, 0, Qt, 0);
+	obj = read_char (commandflag, 0, 0, Qt, 0, NULL);
       while (BUFFERP (obj));
       current_kboard->defining_kbd_macro = orig_defn_macro;
 
@@ -8655,7 +8681,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Read the first char of the sequence specially, before setting
      up any keymaps, in case a filter runs and switches buffers on us.  */
   first_event = read_char (NILP (prompt), 0, submaps, last_nonmenu_event,
-			   &junk);
+			   &junk, NULL);
 #endif /* GOBBLE_FIRST_EVENT */
 
   orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
@@ -8858,7 +8884,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 #endif
 	    key = read_char (NILP (prompt), nmaps,
 			     (Lisp_Object *) submaps, last_nonmenu_event,
-			     &used_mouse_menu);
+			     &used_mouse_menu, NULL);
 	  }
 
 	  /* read_char returns t when it shows a menu and the user rejects it.
