@@ -1072,32 +1072,46 @@ move ARG lines."
   (if tumme-track-movement
       (tumme-track-thumbnail)))
 
-(defun tumme-forward-image ()
-  "Move to next image and display properties."
-  (interactive)
-  ;; Before we move, make sure that there is an image two positions
-  ;; forward.
-  (when (save-excursion
-        (forward-char 2)
-        (tumme-image-at-point-p))
-    (forward-char)
-    (while (and (not (eobp))
-                (not (tumme-image-at-point-p)))
-      (forward-char))
-    (if tumme-track-movement
-        (tumme-track-original-file)))
+(defun tumme-forward-image (&optional arg)
+  "Move to next image and display properties.
+Optional prefix ARG says how many images to move; default is one
+image."
+  (interactive "p")
+  (let (pos (steps (or arg 1)))
+    (dotimes (i steps)
+      (if (and (not (eobp))
+               (save-excursion
+                 (forward-char)
+                 (while (and (not (eobp))
+                             (not (tumme-image-at-point-p)))
+                   (forward-char))
+                 (setq pos (point))
+                 (tumme-image-at-point-p)))
+          (goto-char pos)
+        (error "At last image"))))
+  (when tumme-track-movement
+    (tumme-track-original-file))
   (tumme-display-thumb-properties))
 
-(defun tumme-backward-image ()
-  "Move to previous image and display properties."
-  (interactive)
-  (when (not (bobp))
-    (backward-char)
-    (while (and (not (bobp))
-                (not (tumme-image-at-point-p)))
-      (backward-char))
-    (if tumme-track-movement
-        (tumme-track-original-file)))
+(defun tumme-backward-image (&optional arg)
+  "Move to previous image and display properties.
+Optional prefix ARG says how many images to move; default is one
+image."
+  (interactive "p")
+  (let (pos (steps (or arg 1)))
+    (dotimes (i steps)
+      (if (and (not (bobp))
+               (save-excursion
+                 (backward-char)
+                 (while (and (not (bobp))
+                             (not (tumme-image-at-point-p)))
+                   (backward-char))
+                 (setq pos (point))
+                 (tumme-image-at-point-p)))
+          (goto-char pos)
+        (error "At first image"))))
+  (when tumme-track-movement
+    (tumme-track-original-file))
   (tumme-display-thumb-properties))
 
 (defun tumme-next-line ()
