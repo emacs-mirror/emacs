@@ -262,11 +262,11 @@ It calls them sequentially, and if any returns non-nil,
 
 (defun which-function ()
   "Return current function name based on point.
-Uses `which-function-functions', `imenu--index-alist'
+Uses `which-func-functions', `imenu--index-alist'
 or `add-log-current-defun-function'.
 If no function name is found, return nil."
   (let ((name
-	 ;; Try the `which-function-functions' functions first.
+	 ;; Try the `which-func-functions' functions first.
 	 (run-hook-with-args-until-success 'which-func-functions)))
 
     ;; If Imenu is loaded, try to make an index alist with it.
