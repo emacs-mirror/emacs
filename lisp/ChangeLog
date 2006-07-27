@@ -1,3 +1,8 @@
+2006-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix bindings for C-tab,
+	S-tab and C-S-tab.
+
 2006-07-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/which-func.el (which-function): Fix documentation/

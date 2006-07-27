@@ -230,17 +230,17 @@
       
       ;; These keys are available in xterm starting from version 214
       ;; if the modifyOtherKeys resource is set to 1.
-      (define-key map "\e[27;5;9~"  [?\C-\t])
+      (define-key map "\e[27;5;9~"  [C-tab])
       (define-key map "\e[27;5;13~" [C-return])
       (define-key map "\e[27;5;44~" [?\C-,])
       (define-key map "\e[27;5;46~" [?\C-.])
       (define-key map "\e[27;5;47~" [?\C-/])
       (define-key map "\e[27;5;92~" [?\C-\\])
 
-      (define-key map "\e[27;2;9~"  [?\S-\t])
+      (define-key map "\e[27;2;9~"  [S-tab])
       (define-key map "\e[27;2;13~" [S-return])
 
-      (define-key map "\e[27;6;9~"  [?\C-\S-\t])
+      (define-key map "\e[27;6;9~"  [(C-S-tab)])
 
       (define-key map "\e[27;13;46~" [?\C-\M-.])
 
