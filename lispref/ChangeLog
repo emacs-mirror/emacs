@@ -1,3 +1,7 @@
+2006-07-28  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Reading One Event): Fix last change.
+
 2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* commands.texi (Reading One Event): Document SECONDS argument for
