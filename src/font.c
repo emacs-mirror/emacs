@@ -1222,6 +1222,15 @@ font_parse_fcname (name, font)
   if (name < copy)
     font_put_extra (font, QCname, make_unibyte_string (name, copy - name));
 
+  /* Force scalable to Qt if not set already. */
+  {
+    Lisp_Object extra = AREF (font, FONT_EXTRA_INDEX);
+    Lisp_Object slot = (NILP (extra) ? Qnil : assq_no_quit (QCscalable, extra));
+
+    if (NILP (slot))
+      font_put_extra (font, QCscalable, Qt);
+  }
+
   return 0;
 }
 

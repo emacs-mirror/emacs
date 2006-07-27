@@ -1,5 +1,7 @@
 2006-07-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* font.c (font_parse_fcname): Force scalable to Qt if not set already.
+
 	* puresize.h (BASE_PURESIZE): Increase to 1212000.
 
 	* alloc.c (NSTATICS): Increase to 1600.
