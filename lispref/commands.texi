@@ -2220,13 +2220,13 @@ If @code{cursor-in-echo-area} is non-@code{nil}, then @code{read-event}
 moves the cursor temporarily to the echo area, to the end of any message
 displayed there.  Otherwise @code{read-event} does not move the cursor.
 
-If @code{seconds} is non-@code{nil}, it should be a number specifying
+If @var{seconds} is non-@code{nil}, it should be a number specifying
 the maximum time to wait for input, in seconds.  If no input arrives
 within that time, @code{read-event} stops waiting and returns
-@code{nil}.  A floating-point value for @code{seconds} means to wait
+@code{nil}.  A floating-point value for @var{seconds} means to wait
 for a fractional number of seconds.  Some systems support only a whole
-number of seconds; on these systems, @code{seconds} is rounded down.
-If @code{seconds} is @code{nil}, @code{read-event} waits as long as
+number of seconds; on these systems, @var{seconds} is rounded down.
+If @var{seconds} is @code{nil}, @code{read-event} waits as long as
 necessary for input to arrive.
 
 If @code{read-event} gets an event that is defined as a help character,
