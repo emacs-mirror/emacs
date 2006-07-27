@@ -255,21 +255,25 @@ struct composition;
 #define LGSTRING_LENGTH(lgs) (ASIZE ((lgs)) - 1)
 #define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 1)
 
+#define LGLYPH_FROM(g) AREF ((g), 0)
+#define LGLYPH_TO(g) AREF ((g), 1)
 #define LGLYPH_CHAR(g) AREF ((g), 2)
 #define LGLYPH_CODE(g) AREF ((g), 3)
 #define LGLYPH_WIDTH(g) AREF ((g), 4)
 #define LGLYPH_ADJUSTMENT(g) AREF ((g), 5)
+#define LGLYPH_SET_FROM(g, val) ASET ((g), 0, (val))
+#define LGLYPH_SET_TO(g, val) ASET ((g), 1, (val))
 #define LGLYPH_SET_CHAR(g, val) ASET ((g), 2, (val))
 #define LGLYPH_SET_CODE(g, val) ASET ((g), 3, (val))
 #define LGLYPH_SET_WIDTH(g, val) ASET ((g), 4, (val))
 #define LGLYPH_SET_ADJUSTMENT(g, val) ASET ((g), 5, (val))
 
-#define LGLYPH_XOFF(g) (NILP (LGLYPH_ADJUSTMENT (g)) ? 0 \
-			: XINT (AREF (LGLYPH_ADJUSTMENT (g), 0)))
-#define LGLYPH_YOFF(g) (NILP (LGLYPH_ADJUSTMENT (g)) ? 0 \
-			: XINT (AREF (LGLYPH_ADJUSTMENT (g), 1)))
-#define LGLYPH_WADJUST(g) (NILP (LGLYPH_ADJUSTMENT (g)) ? 0 \
-			   : XINT (AREF (LGLYPH_ADJUSTMENT (g), 2)))
+#define LGLYPH_XOFF(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
+			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 0)) : 0)
+#define LGLYPH_YOFF(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
+			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 1)) : 0)
+#define LGLYPH_WADJUST(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
+			   ? XINT (AREF (LGLYPH_ADJUSTMENT (g), 2)) : 0)
 
 #define FONT_INVALID_CODE 0xFFFFFFFF
 
@@ -420,6 +424,8 @@ struct font_driver
 
 struct font_driver_list
 {
+  /* 1 iff this driver is currently used.  */
+  int on;
   struct font_driver *driver;
   struct font_driver_list *next;
 };
@@ -428,6 +434,7 @@ extern int enable_font_backend;
 
 EXFUN (Ffont_spec, MANY);
 EXFUN (Flist_fonts, 4);
+EXFUN (Fclear_font_cache, 0);
 
 extern Lisp_Object font_symbolic_weight P_ ((Lisp_Object font));
 extern Lisp_Object font_symbolic_slant P_ ((Lisp_Object font));
@@ -470,6 +477,10 @@ extern int font_unparse_fcname P_ ((Lisp_Object font, int pixel_size,
 				  char *name, int bytes));
 extern void register_font_driver P_ ((struct font_driver *driver, FRAME_PTR f));
 extern void free_font_driver_list P_ ((FRAME_PTR f));
+extern void font_update_drivers P_ ((FRAME_PTR f, Lisp_Object name_list,
+				     struct font *));
+extern Lisp_Object font_at P_ ((int c, EMACS_INT pos, struct face *face,
+				struct window *w, Lisp_Object object));
 
 extern struct font *font_prepare_composition P_ ((struct composition *cmp));
 

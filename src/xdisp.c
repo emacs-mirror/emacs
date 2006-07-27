@@ -755,13 +755,13 @@ static enum prop_handled handle_auto_composed_prop P_ ((struct it *));
 
 static struct props it_props[] =
 {
-  {&Qauto_composed,	AUTO_COMPOSED_PROP_IDX,	handle_auto_composed_prop},
   {&Qfontified,		FONTIFIED_PROP_IDX,	handle_fontified_prop},
   /* Handle `face' before `display' because some sub-properties of
      `display' need to know the face.  */
   {&Qface,		FACE_PROP_IDX,		handle_face_prop},
   {&Qdisplay,		DISPLAY_PROP_IDX,	handle_display_prop},
   {&Qinvisible,		INVISIBLE_PROP_IDX,	handle_invisible_prop},
+  {&Qauto_composed,	AUTO_COMPOSED_PROP_IDX,	handle_auto_composed_prop},
   {&Qcomposition,	COMPOSITION_PROP_IDX,	handle_composition_prop},
   {NULL,		0,			NULL}
 };
@@ -4479,7 +4479,7 @@ handle_auto_composed_prop (it)
 	    limit = make_number (find_next_newline_no_quit (pos, 1));
 
 	  next = (Fnext_single_property_change
-		     (make_number (pos), Qauto_composed, it->string, limit));
+		  (make_number (pos), Qauto_composed, it->string, limit));
 	  if (XINT (next) < XINT (limit))
 	    {
 	      /* The current point is auto-composed, but there exist
@@ -4507,13 +4507,40 @@ handle_auto_composed_prop (it)
       if (NILP (val))
 	{
 	  int count = SPECPDL_INDEX ();
-	  Lisp_Object args[3];
+	  Lisp_Object args[4];
 
 	  args[0] = Vauto_composition_function;
 	  specbind (Qauto_composition_function, Qnil);
 	  args[1] = make_number (pos);
 	  args[2] = it->string;
-	  safe_call (3, args);
+#ifdef USE_FONT_BACKEND
+	  if (enable_font_backend)
+	    {
+	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+	      int c;
+
+	      if (STRINGP (it->string))
+		{
+		  EMACS_INT pos_byte = IT_STRING_BYTEPOS (*it);
+		  const unsigned char *s = SDATA (it->string) + pos_byte;
+
+		  if (STRING_MULTIBYTE (it->string))
+		    it->c = STRING_CHAR (s, 0);
+		  else
+		    it->c = *s;
+		}
+	      else
+		{
+		  EMACS_INT pos_byte = IT_BYTEPOS (*it);
+
+		  it->c = FETCH_CHAR (pos_byte);
+		}
+	      args[3] = font_at (it->c, this_pos, face, it->w, it->string);
+	    }
+	  else
+#endif	/* USE_FONT_BACKEND */
+	    args[3] = Qnil;
+	  safe_call (4, args);
 	  unbind_to (count, Qnil);
 
 	  if (this_pos == pos)
@@ -4604,7 +4631,17 @@ handle_composition_prop (it)
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
 #ifdef USE_FONT_BACKEND
 	  if (composition_table[id]->method == COMPOSITION_WITH_GLYPH_STRING)
-	    it->c = ' ';
+	    {
+	      Lisp_Object lgstring = AREF (XHASH_TABLE (composition_hash_table)
+					   ->key_and_value,
+					   cmp->hash_index * 2);
+	      Lisp_Object font_object = LGSTRING_FONT (lgstring);
+	      struct font *font = XSAVE_VALUE (font_object)->pointer;
+	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+
+	      it->face_id = face_for_font (it->f, font, face);
+	      it->c = ' ';
+	    }
 	  else
 #endif /* USE_FONT_BACKEND */
 	  /* For a terminal, draw only the first character of the
@@ -18912,14 +18949,16 @@ fill_composite_glyph_string (s, faces, overlaps)
 	= AREF (XHASH_TABLE (composition_hash_table)->key_and_value,
 		s->cmp->hash_index * 2);
 
-      for (i = 0; i < s->cmp->glyph_len; i++)
+      for (i = 0, s->nchars = 0; i < s->cmp->glyph_len; i++, s->nchars++)
 	{
 	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
-	  unsigned code = XUINT (LGLYPH_CODE (g));
+	  unsigned code;
 
+	  if (NILP (LGLYPH_FROM (g)))
+	    break;
+	  code = XUINT (LGLYPH_CODE (g));
 	  STORE_XCHAR2B (s->char2b + i, code >> 8, code & 0xFF);
 	}
-      s->nchars = s->cmp->glyph_len;
       s->width = s->cmp->pixel_width;
     }
   else
@@ -20786,6 +20825,10 @@ x_produce_glyphs (it)
 	  it->char_to_display = unibyte_char_to_multibyte (it->c);
 	}
 
+#ifdef USE_FONT_BACKEND
+      if (cmp->method != COMPOSITION_WITH_GLYPH_STRING)
+	{
+#endif	/* USE_FONT_BACKEND */
       /* Get face and font to use.  Encode IT->char_to_display.  */
       pos = STRINGP (it->string) ? IT_STRING_CHARPOS (*it) : IT_CHARPOS (*it);
       it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display,
@@ -20810,6 +20853,9 @@ x_produce_glyphs (it)
 	  if (font_info->vertical_centering)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 	}
+#ifdef USE_FONT_BACKEND
+	}
+#endif
 
       /* There are no padding glyphs, so there is only one glyph to
 	 produce for the composition.  Important is that pixel_width,

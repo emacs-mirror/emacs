@@ -29,6 +29,7 @@ Boston, MA 02110-1301, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "frame.h"
+#include "window.h"
 #include "dispextern.h"
 #include "charset.h"
 #include "character.h"
@@ -1241,7 +1242,7 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
   int i, len = 1;
   char *p;
   Lisp_Object styles[3];
-  char *style_names[3] = { "weight", "slant", "swidth" };
+  char *style_names[3] = { "weight", "slant", "width" };
 
   val = AREF (font, FONT_FAMILY_INDEX);
   if (SYMBOLP (val) && ! NILP (val))
@@ -1414,6 +1415,23 @@ font_merge_old_spec (name, family, registry, spec)
 	ASET (spec, FONT_REGISTRY_INDEX,
 	      intern_downcase ((char *) SDATA (registry), SBYTES (registry)));
     }
+}
+
+static Lisp_Object
+font_lispy_object (font)
+     struct font *font;
+{
+  Lisp_Object objlist = AREF (font->entity, FONT_OBJLIST_INDEX);
+
+  for (; ! NILP (objlist); objlist = XCDR (objlist))
+    {
+      struct Lisp_Save_Value *p = XSAVE_VALUE (XCAR (objlist));
+
+      if (font == (struct font *) p->pointer)
+	break;
+    }
+  xassert (! NILP (objlist));
+  return XCAR (objlist);
 }
 
 
@@ -1843,7 +1861,7 @@ font_otf_gpos (font, gpos_spec, gstring, from, to)
 /* GSTRING is a vector of this form:
 	[ [FONT-OBJECT LBEARING RBEARING WIDTH ASCENT DESCENT] GLYPH ... ]
    and GLYPH is a vector of this form:
-	[ FROM-IDX TO-IDX C CODE [ [X-OFF Y-OFF WIDTH WADJUST] | nil] ]
+	[ FROM-IDX TO-IDX C CODE WIDTH [ [X-OFF Y-OFF WADJUST] | nil] ]
    where
 	FROM-IDX and TO-IDX are used internally and should not be touched.
 	C is a character of the glyph.
@@ -1871,9 +1889,12 @@ font_prepare_composition (cmp)
   for (i = 0; i < len; i++)
     {
       Lisp_Object g = LGSTRING_GLYPH (gstring, i);
-      unsigned code = XINT (LGLYPH_CODE (g));
+      unsigned code;
       struct font_metrics metrics;
 
+      if (NILP (LGLYPH_FROM (g)))
+	break;
+      code = XINT (LGLYPH_CODE (g));
       font->driver->text_extents (font, &code, 1, &metrics);
       LGLYPH_SET_WIDTH (g, make_number (metrics.width));
       metrics.lbearing += LGLYPH_XOFF (g);
@@ -2226,7 +2247,8 @@ font_list_entities (frame, spec)
   ftype = AREF (spec, FONT_TYPE_INDEX);
   
   for (i = 0; driver_list; driver_list = driver_list->next)
-    if (NILP (ftype) || EQ (driver_list->driver->type, ftype))
+    if (driver_list->on
+	&& (NILP (ftype) || EQ (driver_list->driver->type, ftype)))
       {
 	Lisp_Object cache = driver_list->driver->get_cache (frame);
 	Lisp_Object tail = alternate_familes;
@@ -2316,30 +2338,30 @@ font_close_object (f, font_object)
      FRAME_PTR f;
      Lisp_Object font_object;
 {
-  struct font *font;
-  Lisp_Object objlist = AREF (font->entity, FONT_OBJLIST_INDEX);
+  struct font *font = XSAVE_VALUE (font_object)->pointer;
+  Lisp_Object objlist;
   Lisp_Object tail, prev = Qnil;
 
+  XSAVE_VALUE (font_object)->integer--;
+  xassert (XSAVE_VALUE (font_object)->integer >= 0);
+  if (XSAVE_VALUE (font_object)->integer > 0)
+    return;
+
+  objlist = AREF (font->entity, FONT_OBJLIST_INDEX);
   for (prev = Qnil, tail = objlist; CONSP (tail);
        prev = tail, tail = XCDR (tail))
     if (EQ (font_object, XCAR (tail)))
       {
-	struct Lisp_Save_Value *p = XSAVE_VALUE (font_object);
-
-	xassert (p->integer > 0);
-	p->integer--;
-	if (p->integer == 0)
-	  {
-	    if (font->driver->close)
-	      font->driver->close (f, p->pointer);
-	    p->pointer = NULL;
-	    if (NILP (prev))
-	      ASET (font->entity, FONT_OBJLIST_INDEX, XCDR (objlist));
-	    else
-	      XSETCDR (prev, XCDR (objlist));
-	  }
-	break;
+	if (font->driver->close)
+	  font->driver->close (f, font);
+	XSAVE_VALUE (font_object)->pointer = NULL;
+	if (NILP (prev))
+	  ASET (font->entity, FONT_OBJLIST_INDEX, XCDR (objlist));
+	else
+	  XSETCDR (prev, XCDR (objlist));
+	return;
       }
+  abort ();
 }
 
 int
@@ -2628,10 +2650,10 @@ font_open_by_name (f, name)
 
 /* Register font-driver DRIVER.  This function is used in two ways.
 
-   The first is with frame F non-NULL.  In this case, DRIVER is
-   registered to be used for drawing characters on F.  All frame
-   creaters (e.g. Fx_create_frame) must call this function at least
-   once with an available font-driver.
+   The first is with frame F non-NULL.  In this case, make DRIVER
+   available (but not yet activated) on F.  All frame creaters
+   (e.g. Fx_create_frame) must call this function at least once with
+   an available font-driver.
 
    The second is with frame F NULL.  In this case, DRIVER is globally
    registered in the variable `font_driver_list'.  All font-driver
@@ -2655,6 +2677,7 @@ register_font_driver (driver, f)
       error ("Duplicated font driver: %s", SDATA (SYMBOL_NAME (driver->type)));
 
   list = malloc (sizeof (struct font_driver_list));
+  list->on = 0;
   list->driver = driver;
   list->next = NULL;
   if (prev)
@@ -2680,6 +2703,83 @@ free_font_driver_list (f)
       free (f->font_driver_list);
       f->font_driver_list = next;
     }
+}
+
+/* Make all font drivers listed in NEW_DRIVERS be used on F.  If
+   NEW_DRIVERS is nil, make all available font drivers be used.
+   FONT is the current default font of F, it may be NULL.  */
+
+void
+font_update_drivers (f, new_drivers, font)
+     FRAME_PTR f;
+     Lisp_Object new_drivers;
+     struct font *font;
+{
+  Lisp_Object active_drivers = Qnil;
+  Lisp_Object old_spec;
+  struct font_driver_list *list;
+
+  if (font)
+    {
+      old_spec = font_get_spec (font_find_object (font));
+      free_all_realized_faces (Qnil);
+      Fclear_font_cache ();
+    }
+
+  for (list = f->font_driver_list; list; list = list->next)
+    {
+      if (NILP (new_drivers)
+	  || ! NILP (Fmemq (list->driver->type, new_drivers)))
+	{
+	  list->on = 1;
+	  active_drivers = Fcons (list->driver->type, active_drivers);
+	}
+      else
+	list->on = 0;
+    }
+
+  store_frame_param (f, Qfont_backend, active_drivers);
+
+  if (font)
+    {
+      Lisp_Object frame;
+
+      XSETFRAME (frame, f);
+      x_set_font (f, Fframe_parameter (frame, Qfont), Qnil);
+      ++face_change_count;
+      ++windows_or_buffers_changed;
+    }
+}
+
+
+Lisp_Object
+font_at (c, pos, face, w, object)
+     int c;
+     EMACS_INT pos;
+     struct face *face;
+     struct window *w;
+     Lisp_Object object;
+{
+  FRAME_PTR f;
+  int face_id;
+  int dummy;
+
+  f = XFRAME (w->frame);
+  if (! face)
+    {
+      if (STRINGP (object))
+	face_id = face_at_string_position (w, object, pos, 0, -1, -1, &dummy,
+					   DEFAULT_FACE_ID, 0);
+      else
+	face_id = face_at_buffer_position (w, pos, -1, -1, &dummy,
+					   pos + 100, 0);
+      face = FACE_FROM_ID (f, face_id);
+    }
+  face_id = FACE_FOR_CHAR (f, face, c, pos, object);
+  face = FACE_FROM_ID (f, face_id);
+  if (! face->font_info)
+    return Qnil;
+  return font_lispy_object ((struct font *) face->font_info);
 }
 
 
@@ -2736,7 +2836,10 @@ If FONT is font-entity and PROP is :extra, always nil is returned.  */)
 {
   enum font_property_index idx;
 
-  CHECK_FONT (font);
+  if (FONT_OBJECT_P (font))
+    font = ((struct font *) XSAVE_VALUE (font)->pointer)->entity;
+  else
+    CHECK_FONT (font);
   idx = get_font_prop_index (prop, 0);
   if (idx < FONT_EXTRA_INDEX)
     return AREF (font, idx);
@@ -2904,42 +3007,49 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
       struct font_driver_list *driver_list = f->font_driver_list;
 
       for (; driver_list; driver_list = driver_list->next)
-	{
-	  Lisp_Object cache = driver_list->driver->get_cache (frame);
-	  Lisp_Object tail, elt;
+	if (driver_list->on)
+	  {
+	    Lisp_Object cache = driver_list->driver->get_cache (frame);
+	    Lisp_Object tail, elt;
 	    
-	  for (tail = XCDR (cache); CONSP (tail); tail = XCDR (tail))
-	    {
-	      elt = XCAR (tail);
-	      if (CONSP (elt) && FONT_SPEC_P (XCAR (elt)))
-		{
-		  Lisp_Object vec = XCDR (elt);
-		  int i;
+	    for (tail = XCDR (cache); CONSP (tail); tail = XCDR (tail))
+	      {
+		elt = XCAR (tail);
+		if (CONSP (elt) && FONT_SPEC_P (XCAR (elt)))
+		  {
+		    Lisp_Object vec = XCDR (elt);
+		    int i;
 
-		  for (i = 0; i < ASIZE (vec); i++)
-		    {
-		      Lisp_Object entity = AREF (vec, i);
-		      Lisp_Object objlist = AREF (entity, FONT_OBJLIST_INDEX);
+		    for (i = 0; i < ASIZE (vec); i++)
+		      {
+			Lisp_Object entity = AREF (vec, i);
 
-		      for (; CONSP (objlist); objlist = XCDR (objlist))
-			{
-			  Lisp_Object val = XCAR (objlist);
-			  struct Lisp_Save_Value *p = XSAVE_VALUE (val);
-			  struct font *font = p->pointer;
+			if (EQ (driver_list->driver->type,
+				AREF (entity, FONT_TYPE_INDEX)))
+			  {
+			    Lisp_Object objlist
+			      = AREF (entity, FONT_OBJLIST_INDEX);
 
-			  xassert (font
-				   && driver_list->driver == font->driver);
-			  driver_list->driver->close (f, font);
-			  p->pointer = NULL;
-			  p->integer = 0;
-			}
-		      if (driver_list->driver->free_entity)
-			driver_list->driver->free_entity (entity);
-		    }
-		}
-	    }
-	  XSETCDR (cache, Qnil);
-	}
+			    for (; CONSP (objlist); objlist = XCDR (objlist))
+			      {
+				Lisp_Object val = XCAR (objlist);
+				struct Lisp_Save_Value *p = XSAVE_VALUE (val);
+				struct font *font = p->pointer;
+
+				xassert (font && (driver_list->driver
+						  == font->driver));
+				driver_list->driver->close (f, font);
+				p->pointer = NULL;
+				p->integer = 0;
+			      }
+			    if (driver_list->driver->free_entity)
+			      driver_list->driver->free_entity (entity);
+			  }
+		      }
+		  }
+	      }
+	    XSETCDR (cache, Qnil);
+	  }
     }
 
   return Qnil;
@@ -3002,7 +3112,7 @@ FONT-OBJECT may be nil if it is not yet known.  */)
   ASET (g, 0, font_object);
   ASET (gstring, 0, g);
   for (i = 1; i < len; i++)
-    ASET (gstring, i, Fmake_vector (make_number (8), make_number (0)));
+    ASET (gstring, i, Fmake_vector (make_number (8), Qnil));
   return gstring;
 }
 
@@ -3021,7 +3131,7 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
 
   CHECK_VECTOR (gstring);
   if (NILP (font_object))
-    font_object = Faref (Faref (gstring, make_number (0)), make_number (0));
+    font_object = LGSTRING_FONT (gstring);
   CHECK_FONT_GET_OBJECT (font_object, font);
 
   if (STRINGP (object))
@@ -3032,7 +3142,7 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
       CHECK_NATNUM (end);
       if (XINT (start) > XINT (end)
 	  || XINT (end) > ASIZE (object)
-	  || XINT (end) - XINT (start) >= XINT (Flength (gstring)))
+	  || XINT (end) - XINT (start) > LGSTRING_LENGTH (gstring))
 	args_out_of_range (start, end);
 
       len = XINT (end) - XINT (start);
@@ -3045,8 +3155,8 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
 	  code = font->driver->encode_char (font, c);
 	  if (code > MOST_POSITIVE_FIXNUM)
 	    error ("Glyph code 0x%X is too large", code);
-	  ASET (g, 0, make_number (i));
-	  ASET (g, 1, make_number (i + 1));
+	  LGLYPH_SET_FROM (g, make_number (i));
+	  LGLYPH_SET_TO (g, make_number (i + 1));
 	  LGLYPH_SET_CHAR (g, make_number (c));
 	  LGLYPH_SET_CODE (g, make_number (code));
 	}
@@ -3058,7 +3168,7 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
       if (! NILP (object))
 	Fset_buffer (object);
       validate_region (&start, &end);
-      if (XINT (end) - XINT (start) > len)
+      if (XINT (end) - XINT (start) > LGSTRING_LENGTH (gstring))
 	args_out_of_range (start, end);
       len = XINT (end) - XINT (start);
       pos = XINT (start);
@@ -3071,11 +3181,17 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
 	  code = font->driver->encode_char (font, c);
 	  if (code > MOST_POSITIVE_FIXNUM)
 	    error ("Glyph code 0x%X is too large", code);
-	  ASET (g, 0, make_number (i));
-	  ASET (g, 1, make_number (i + 1));
+	  LGLYPH_SET_FROM (g, make_number (i));
+	  LGLYPH_SET_TO (g, make_number (i + 1));
 	  LGLYPH_SET_CHAR (g, make_number (c));
 	  LGLYPH_SET_CODE (g, make_number (code));
 	}
+    }
+  for (i = LGSTRING_LENGTH (gstring) - 1; i >= len; i--)
+    {
+      Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+
+      LGLYPH_SET_FROM (g, Qnil);
     }
   return Qnil;
 }
@@ -3203,6 +3319,31 @@ FONT is a font-spec, font-entity, or font-object. */)
   return (font_match_p (spec, font) ? Qt : Qnil);
 }
 
+DEFUN ("font-at", Ffont_at, Sfont_at, 1, 2, 0,
+       doc: /* Return a font-object for displaying a character at POSISTION.
+Optional second arg WINDOW, if non-nil, is a window displaying
+the current buffer.  It defaults to the currently selected window.  */)
+     (position, window)
+     Lisp_Object position, window;
+{
+  struct window *w;
+  EMACS_INT pos, pos_byte;
+  int c;
+
+  CHECK_NUMBER_COERCE_MARKER (position);
+  pos = XINT (position);
+  if (pos < BEGV || pos >= ZV)
+    args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
+  pos_byte = CHAR_TO_BYTE (pos);
+  c = FETCH_CHAR (pos_byte);
+  if (NILP (window))
+    window = selected_window;
+  CHECK_LIVE_WINDOW (window);
+  w = XWINDOW (selected_window);
+
+  return font_at (c, pos, NULL, w, Qnil);
+}
+
 #if 0
 DEFUN ("draw-string", Fdraw_string, Sdraw_string, 2, 2, 0,
        doc: /*  Draw STRING by FONT-OBJECT on the top left corner of the current frame.
@@ -3327,6 +3468,7 @@ syms_of_font ()
   defsubr (&Squery_font);
   defsubr (&Sget_font_glyphs);
   defsubr (&Sfont_match_p);
+  defsubr (&Sfont_at);
 #if 0
   defsubr (&Sdraw_string);
 #endif

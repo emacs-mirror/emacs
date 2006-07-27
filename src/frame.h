@@ -1017,6 +1017,7 @@ extern Lisp_Object Qscreen_gamma;
 extern Lisp_Object Qline_spacing;
 extern Lisp_Object Qwait_for_wm;
 extern Lisp_Object Qfullscreen;
+extern Lisp_Object Qfont_backend;
 
 extern Lisp_Object Qleft_fringe, Qright_fringe;
 extern Lisp_Object Qheight, Qwidth;
@@ -1078,6 +1079,7 @@ extern void x_set_fullscreen P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_screen_gamma P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_font P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_font_backend P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_fringe_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_border_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_internal_border_width P_ ((struct frame *, Lisp_Object,
