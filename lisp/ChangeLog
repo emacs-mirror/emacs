@@ -8,6 +8,11 @@
 	* progmodes/which-func.el (which-function): Fix documentation/
 	comment typo.
 
+2006-07-26  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-word): If we replace the word,
+	move point to the end.  Insert before deleting.
+
 2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* subr.el (sit-for): Use new SECONDS arg of read-event instead of
