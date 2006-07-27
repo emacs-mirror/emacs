@@ -1,3 +1,9 @@
+2006-07-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1212000.
+
+	* alloc.c (NSTATICS): Increase to 1600.
+
 2006-07-26  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (struct font_driver_list): New member `on'.
