@@ -455,13 +455,17 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		   (search-forward "--color" nil t))
 		 t)))))
 
+(defun grep-tag-default ()
+  (or (and transient-mark-mode mark-active
+	   (/= (point) (mark))
+	   (buffer-substring-no-properties (point) (mark)))
+      (funcall (or find-tag-default-function
+		   (get major-mode 'find-tag-default-function)
+		   'find-tag-default))
+      ""))
+
 (defun grep-default-command ()
-  (let ((tag-default
-         (shell-quote-argument
-          (or (funcall (or find-tag-default-function
-                           (get major-mode 'find-tag-default-function)
-                           'find-tag-default))
-              "")))
+  (let ((tag-default (shell-quote-argument (grep-tag-default)))
 	(sh-arg-re "\\(\\(?:\"\\(?:[^\"]\\|\\\\\"\\)+\"\\|'[^']+'\\|[^\"' \t\n]\\)+\\)")
 	(grep-default (or (car grep-history) grep-command)))
     ;; Replace the thing matching for with that around cursor.
@@ -590,15 +594,11 @@ substitution string.  Note dynamic scoping of variables.")
 
 (defun grep-read-regexp ()
   "Read regexp arg for interactive grep."
-  (let ((default
-	  (or (funcall (or find-tag-default-function
-			   (get major-mode 'find-tag-default-function)
-			   'find-tag-default))
-	      "")))
+  (let ((default (grep-tag-default)))
     (read-string
      (concat "Search for"
 	     (if (and default (> (length default) 0))
-		 (format " (default %s): " default) ": "))
+		 (format " (default \"%s\"): " default) ": "))
      nil 'grep-regexp-history default)))
 
 (defun grep-read-files (regexp)
