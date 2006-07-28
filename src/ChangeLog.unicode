@@ -1,5 +1,46 @@
 2006-07-28  Kenichi Handa  <handa@m17n.org>
 
+	* font.h (struct font): New member scalable.
+	(struct font_driver): New arg ALTERANTE_SUBST to otf_gsub.
+	(font_otf_gsub): Prototype adjusted.
+
+	* font.c (font_otf_capability): Fix handling of the default
+	langsys.
+	(parse_gsub_gpos_spec): Type changed to void.  New arg nbytes.
+	Check the contents of SPEC.
+	(LGSTRING_HEADER_SIZE, LGSTRING_GLYPH_SIZE): New macros.
+	(check_gstring): New function.
+	(REPLACEMENT_CHARACTER): New macro.
+	(font_otf_gsub): New arg alternate_subst.  Be sure to set all
+	glyph codes of GSTRING.
+	(font_otf_gpos): Be sure to set all glyph codes of GSTRING.
+	(font_prepare_composition): Set cmp->glyph_len.
+	(font_open_entity): Set font->scalable.
+	(Ffont_get): Handle :otf property.
+	(Ffont_otf_gsub, Ffont_otf_gpos, Ffont_otf_alternates): New
+	functions.
+	(Fquery_font): Use font->font.full_name.
+	(syms_of_font): Defsubr Sfont_otf_gsub, Sfont_otf_gpos, and
+	Sfont_otf_alternates.
+
+	* ftfont.c (ftfont_open): Set font->font.full_name and
+	font->font.name properly.  Fix calculation of font->font.height
+	and font->min_width.
+
+	* ftxfont.c (ftxfont_create_gcs): New function.
+	(ftxfont_draw_bitmap): Fix arg to ftfont_driver.get_bitmap.
+	(ftxfont_draw_backgrond): Fix filling region.
+	(ftxfont_default_fid): New function.
+	(ftxfont_open): Set xfotn->fid to the return value of
+	ftxfont_default_fid.
+	(ftxfont_prepare_face): Use ftxfont_create_gcs to create GCs.
+	(ftxfont_done_face): Free only GCs that are created by
+	ftxfont_create_gcs.
+	(ftxfont_draw): If face->gc != s->gc, create proper GCs.
+
+	* xterm.c (x_set_glyph_string_clipping_exactly) [USE_FONT_BACKEND]:
+	Clip to src->width, etc (not src->clip_XXX).
+
 	* xfns.c (x_create_tip_frame) [USE_FONT_BACKEND]: Handle
 	FontBackend frame parameter.
 
