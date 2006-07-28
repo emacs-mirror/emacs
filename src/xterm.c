@@ -1193,9 +1193,9 @@ x_set_glyph_string_clipping_exactly (src, dst)
   if (enable_font_backend)
     {
       r.x = dst->clip_x = src->x;
-      r.width = dst->clip_width = src->clip_width;
-      r.y = dst->clip_y = src->clip_y;
-      r.height = dst->clip_height = src->clip_height;
+      r.width = dst->clip_width = src->width;
+      r.y = dst->clip_y = src->y;
+      r.height = dst->clip_height = src->height;
     }
   else
     {
