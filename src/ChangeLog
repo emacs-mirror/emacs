@@ -1,3 +1,8 @@
+2006-07-28  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (valid_pointer_p): New function (from valid_lisp_object_p).
+	(valid_lisp_object_p): Use it to check for valid SUBRP obj.
+
 2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_char): New arg END_TIME specifying timeout.
