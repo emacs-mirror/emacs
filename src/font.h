@@ -172,6 +172,9 @@ struct font
   /* Ascent and descent of the font (in pixels).  */
   int ascent, descent;
 
+  /* 1 iff the font is scalable.  */
+  int scalable;
+
   /* There will be more to this structure, but they are private to a
      font-driver.  */
 };
@@ -401,7 +404,7 @@ struct font_driver
      short, return -1.  */
   int (*otf_gsub) P_ ((struct font *font, Lisp_Object gsub_spec,
 		       Lisp_Object gstring_in, int from, int to,
-		       Lisp_Object gstring_out, int idx));
+		       Lisp_Object gstring_out, int idx, int alternate_subst));
 
   /* Optional.
      Drive FONT's OTF GPOS features according to GPOS_SPEC.
@@ -491,7 +494,8 @@ extern Lisp_Object font_otf_capability P_ ((struct font *font));
 /* This can be used as `otf_gsub' method of a font-driver.  */
 extern int font_otf_gsub P_ ((struct font *font, Lisp_Object gsub_spec,
 			      Lisp_Object gstring_in, int from, int to,
-			      Lisp_Object gstring_out, int idx));
+			      Lisp_Object gstring_out, int idx,
+			      int alternate_subst));
 /* This can be used as `otf_gpos' method of a font-driver.  */
 extern int font_otf_gpos P_ ((struct font *font, Lisp_Object gpos_spec,
 			      Lisp_Object gstring, int from, int to));
