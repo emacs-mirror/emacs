@@ -1,3 +1,8 @@
+2006-07-28  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (x_create_tip_frame) [USE_FONT_BACKEND]: Handle
+	FontBackend frame parameter.
+
 2006-07-26  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (struct font_driver_list): New member `on'.
@@ -17,7 +22,7 @@
 	(frame_parms): New element for font-backend.
 	(x_set_font_backend): New function.
 
-	* xfns.c (x_create_tip_frame) [USE_FONT_BACKEND]: Handle
+	* xfns.c (Fx_create_frame) [USE_FONT_BACKEND]: Handle
 	FontBackend frame parameter.
 	(x_frame_parm_handlers) [USE_FONT_BACKEND]: New element
 	x_set_font_backend.
