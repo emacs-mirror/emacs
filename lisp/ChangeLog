@@ -1,3 +1,9 @@
+2006-07-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-no-edit): Revert 2006-07-27 change, so that
+	self-insert-command keys don't activate buttons.
+	(custom-mode-map): Just don't bind "\C-m" to `custom-no-edit'.
+
 2006-07-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Use different
