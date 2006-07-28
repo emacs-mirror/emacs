@@ -1087,18 +1087,24 @@ Show the buffer in another window, but don't select it."
 ;; Packages will update this variable, so make it available.
 ;;;###autoload
 (defvar customize-package-emacs-version-alist nil
-  "Alist mapping versions of Emacs to versions of a package.
-These package versions are listed in the :package-version
-keyword used in `defcustom', `defgroup', and `defface'. Its
-elements look like this:
+  "Alist mapping versions of a package to Emacs versions.
+We use this for packages that have their own names, but are released
+as part of Emacs itself.
+
+Each elements looks like this:
 
      (PACKAGE (PVERSION . EVERSION)...)
 
-For each PACKAGE, which is a symbol, there are one or more
-elements that contain a package version PVERSION with an
-associated Emacs version EVERSION.  These versions are strings.
-For example, the MH-E package updates this alist with the
-following:
+Here PACKAGE is the name of a package, as a symbol.  After
+PACKAGE come one or more elements, each associating a
+package version PVERSION with the first Emacs version
+EVERSION in which it (or a subsequent version of PACKAGE)
+was first released.  Both PVERSION and EVERSION are strings.
+PVERSION should be a string that this package used in
+the :package-version keyword for `defcustom', `defgroup',
+and `defface'.
+
+For example, the MH-E package updates this alist as follows:
 
      (add-to-list 'customize-package-emacs-version-alist
                   '(MH-E (\"6.0\" . \"22.1\") (\"6.1\" . \"22.1\")
@@ -1173,11 +1179,10 @@ that were added or redefined since that version."
 	     since-version))))
 
 (defun customize-package-emacs-version (symbol package-version)
-  "Return Emacs version of SYMBOL.
-PACKAGE-VERSION has the form (PACKAGE . VERSION).  The VERSION of
-PACKAGE is looked up in the associated list
+  "Return the Emacs version in which SYMBOL's meaning last changed.
+PACKAGE-VERSION has the form (PACKAGE . VERSION).  We use
 `customize-package-emacs-version-alist' to find the version of
-Emacs that is associated with it."
+Emacs that is associated with version VERSION of PACKAGE."
   (let (package-versions emacs-version)
     ;; Use message instead of error since we want user to be able to
     ;; see the rest of the symbols even if a package author has
@@ -1193,9 +1198,9 @@ Emacs that is associated with it."
                       (cdr package-version)
                       "customize-package-emacs-version-alist")))
           (t
-           (message "Package %s neglected to update %s"
+           (message "Package %s version %s lists no corresponding Emacs version"
                     (car package-version)
-                    "customize-package-emacs-version-alist")))
+                    (cdr package-version))))
     emacs-version))
 
 (defun customize-version-lessp (version1 version2)
@@ -4444,10 +4449,13 @@ The format is suitable for use with `easy-menu-define'."
     map)
   "Keymap for `custom-mode'.")
 
-(defun custom-no-edit ()
-  "Refuse to allow editing of Custom buffer."
-  (interactive)
-  (error "You can't edit this part of the Custom buffer"))
+(defun custom-no-edit (pos &optional event)
+  "Invoke button at POS, or refuse to allow editing of Custom buffer."
+  (interactive "@d")
+  (let ((button (get-char-property pos 'button)))
+    (if button
+	(widget-apply-action button event)
+      (error "You can't edit this part of the Custom buffer"))))
 
 (easy-menu-define Custom-mode-menu
     custom-mode-map
