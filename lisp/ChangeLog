@@ -1,3 +1,8 @@
+2006-07-28  Bill Atkins  <atkinw@rpi.edu>  (tiny change)
+
+	* wdired.el (wdired-change-to-wdired-mode, wdired-change-to-dired-mode):
+	Throw error if buffer is not in Dired and Wdired mode, respectively.
+
 2006-07-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-no-edit): Revert 2006-07-27 change, so that
