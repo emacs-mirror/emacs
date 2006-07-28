@@ -620,7 +620,9 @@ substitution string.  Note dynamic scoping of variables.")
 		      (cdr alias)))
 	       (and fn
 		    (let ((ext (file-name-extension fn)))
-		      (and ext (concat "*." ext))))))
+		      (and ext (concat "*." ext))))
+	       (car grep-files-history)
+	       (car (car grep-files-aliases))))
 	 (files (read-string
 		 (concat "Search for \"" regexp
 			 "\" in files"
