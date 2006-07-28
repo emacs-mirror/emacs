@@ -2,6 +2,8 @@
 
 	* progmodes/grep.el (grep-tag-default): New function.
 	(grep-default-command, grep-read-regexp): Use it.
+	(grep-read-files): Use car of grep-files-history or grep-files-aliases
+	as default if nothing else applies.
 
 2006-07-28  Bill Atkins  <atkinw@rpi.edu>  (tiny change)
 
