@@ -1,3 +1,9 @@
+2006-07-27  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (customize-package-emacs-version-alist): Doc fix.
+	(customize-package-emacs-version): Change msg when pkg has no entry.
+	(custom-no-edit): On a button, do like widget-button-press.
+
 2006-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Fix bindings for C-tab,
