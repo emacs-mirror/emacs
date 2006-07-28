@@ -1,3 +1,7 @@
+2006-07-27  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Non-ASCII Isearch): Clarify.  Mention C-q.
+
 2006-07-24  Richard Stallman  <rms@gnu.org>
 
 	* xresources.texi (GTK styles): Fix texinfo usage.
