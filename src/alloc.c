@@ -4606,6 +4606,27 @@ mark_stack ()
 #endif /* GC_MARK_STACK != 0 */
 
 
+/* Determine whether it is safe to access memory at address P.  */
+int valid_pointer_p (p)
+     void *p;
+{
+  int fd;
+
+  /* Obviously, we cannot just access it (we would SEGV trying), so we
+     trick the o/s to tell us whether p is a valid pointer.
+     Unfortunately, we cannot use NULL_DEVICE here, as emacs_write may
+     not validate p in that case.  */
+
+  if ((fd = emacs_open ("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
+    {
+      int valid = (emacs_write (fd, (char *)p, 16) == 16);
+      emacs_close (fd);
+      unlink ("__Valid__Lisp__Object__");
+      return valid;
+    }
+
+    return -1;
+}
 
 /* Return 1 if OBJ is a valid lisp object.
    Return 0 if OBJ is NOT a valid lisp object.
@@ -4618,9 +4639,7 @@ valid_lisp_object_p (obj)
      Lisp_Object obj;
 {
   void *p;
-#if !GC_MARK_STACK
-  int fd;
-#else
+#if GC_MARK_STACK
   struct mem_node *m;
 #endif
 
@@ -4632,26 +4651,22 @@ valid_lisp_object_p (obj)
     return 1;
 
 #if !GC_MARK_STACK
-  /* We need to determine whether it is safe to access memory at
-     address P.  Obviously, we cannot just access it (we would SEGV
-     trying), so we trick the o/s to tell us whether p is a valid
-     pointer.  Unfortunately, we cannot use NULL_DEVICE here, as
-     emacs_write may not validate p in that case.  */
-  if ((fd = emacs_open ("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
-    {
-      int valid = (emacs_write (fd, (char *)p, 16) == 16);
-      emacs_close (fd);
-      unlink ("__Valid__Lisp__Object__");
-      return valid;
-    }
-
-    return -1;
+  return valid_pointer_p (p);
 #else
 
   m = mem_find (p);
 
   if (m == MEM_NIL)
-    return 0;
+    {
+      int valid = valid_pointer_p (p);
+      if (valid <= 0)
+	return valid;
+
+      if (SUBRP (obj))
+	return 1;
+
+      return 0;
+    }
 
   switch (m->type)
     {
