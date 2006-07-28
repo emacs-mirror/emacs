@@ -1754,6 +1754,7 @@ static char *magick[] = {
 	    (gdb-remove-breakpoint-icons (point-min) (point-max)))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (save-excursion
+	(let ((buffer-read-only nil))
 	(goto-char (point-min))
 	(while (< (point) (- (point-max) 1))
 	  (forward-line 1)
@@ -1762,14 +1763,19 @@ static char *magick[] = {
 		(looking-at "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)")
 		(setq bptno (match-string 1))
 		(setq flag (char-after (match-beginning 2)))
+		(add-text-properties
+		 (match-beginning 2) (match-end 2)
+		 (if (eq flag ?y)
+		     '(face font-lock-warning-face)
+		   '(face font-lock-type-face)))
 		(beginning-of-line)
 		(if (re-search-forward " in \\(.*\\) at\\s-+" nil t)
 		    (progn
-		      (let ((buffer-read-only nil))
-			(add-text-properties (match-beginning 1) (match-end 1)
-					     '(face font-lock-function-name-face)))
+		      (add-text-properties
+		       (match-beginning 1) (match-end 1)
+		       '(face font-lock-function-name-face))
 		      (looking-at "\\(\\S-+\\):\\([0-9]+\\)")
-		      (let ((line (match-string 2)) (buffer-read-only nil)
+		      (let ((line (match-string 2))
 			    (file (match-string 1)))
 			(add-text-properties (line-beginning-position)
 					     (line-end-position)
@@ -1799,7 +1805,7 @@ static char *magick[] = {
 			   (list (concat gdb-server-prefix "info source\n")
 				 `(lambda () (gdb-get-location
 					      ,bptno ,line ,flag))))))))))
-	  (end-of-line)))))
+	  (end-of-line))))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
 (defun gdb-mouse-set-clear-breakpoint (event)
