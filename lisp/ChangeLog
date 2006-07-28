@@ -1,3 +1,8 @@
+2006-07-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Use different
+	faces for enable character.
+
 2006-07-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* Makefile.in (recompile): Update comment to reflect change
