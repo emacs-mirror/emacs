@@ -4806,6 +4806,9 @@ x_create_tip_frame (dpyinfo, parms, text)
 #endif	/* not HAVE_XFT */
 #endif	/* HAVE_FREETYPE */
       register_font_driver (&xfont_driver, f);
+
+      x_default_parameter (f, parms, Qfont_backend, Qnil,
+			   "fontBackend", "FontBackend", RES_TYPE_STRING);
     }
 #endif	/* USE_FONT_BACKEND */
 
