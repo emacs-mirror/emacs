@@ -629,6 +629,8 @@ ftfont_open (f, entity, pixel_size)
   FcPattern *pattern;
   FcChar8 *file;
   int spacing;
+  char *name;
+  int len;
 
   val = AREF (entity, FONT_EXTRA_INDEX);
   if (XTYPE (val) != Lisp_Misc
@@ -681,15 +683,28 @@ ftfont_open (f, entity, pixel_size)
   font->entity = entity;
   font->pixel_size = size;
   font->driver = &ftfont_driver;
-  font->font.name = font->font.full_name = NULL;
+  len = 96;
+  name = malloc (len);
+  while (name && font_unparse_fcname (entity, pixel_size, name, len) < 0)
+    {
+      char *new = realloc (name, len += 32);
+
+      if (! new)
+	free (name);
+      name = new;
+    }
+  font->font.full_name = font->font.name = name;
   font->file_name = (char *) file;
   font->font.size = ft_face->size->metrics.max_advance >> 6;
+  if (font->font.size <= 0)
+    font->font.size = size;
   font->font.charset = font->encoding_charset = font->repertory_charset = -1;
   font->ascent = ft_face->size->metrics.ascender >> 6;
   font->descent = - ft_face->size->metrics.descender >> 6;
-  font->font.height = ft_face->size->metrics.height >> 6;
-  if (FcPatternGetInteger (pattern, FC_SPACING, 0, &spacing) != FcResultMatch
-      || spacing != FC_PROPORTIONAL)
+  font->font.height = font->ascent + font->descent;
+  if (FcPatternGetInteger (pattern, FC_SPACING, 0, &spacing) != FcResultMatch)
+    spacing = FC_PROPORTIONAL;
+  if (spacing != FC_PROPORTIONAL)
     font->font.average_width = font->font.space_width = font->font.size;
   else
     {
@@ -715,6 +730,10 @@ ftfont_open (f, entity, pixel_size)
 	  font->font.average_width = font->font.size;
 	}
     }
+
+  /* Unfortunately FreeType doesn't provide a way to get minimum char
+     width.  So, we use space_width instead.  */
+  font->min_width = font->font.space_width;
 
   font->font.baseline_offset = 0;
   font->font.relative_compose = 0;
