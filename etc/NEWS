@@ -202,6 +202,13 @@ an interactively callable function.
 all frames you create.  A position specified with --geometry only
 affects the initial frame.
 
+---
+** Emacs built for MS-Windows now behaves like Emacs on X does,
+wrt its frame position: if you don't specify a position (in your
+.emacs init file, in the Registry, or with the --geometry command-line
+option), Emacs leaves the frame position to the Windows' window
+manager.
+
 +++
 ** Emacs can now be invoked in full-screen mode on a windowed display.
 When Emacs is invoked on a window system, the new command-line options
@@ -243,6 +250,7 @@ according to the value of `save-abbrevs'.
 ** If the environment variable EMAIL is defined, Emacs now uses its value
 to compute the default value of `use-mail-address', in preference to
 concatenation of `user-login-name' with the name of your host machine.
+
 
 * Incompatible Editing Changes in Emacs 22.1
 
