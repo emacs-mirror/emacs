@@ -40,10 +40,56 @@ Boston, MA 02110-1301, USA.  */
 static Lisp_Object Qftx;
 
 /* Prototypes for helper function.  */
+static int ftxfont_create_gcs P_ ((FRAME_PTR, GC *,
+				   unsigned long, unsigned long));
 static int ftxfont_draw_bitmap P_ ((FRAME_PTR, GC *, struct font *, unsigned,
 				    int, int, XPoint *, int, int *n));
 static void ftxfont_draw_backgrond P_ ((FRAME_PTR, struct font *, GC,
 					int, int, int));
+static Font ftxfont_default_fid P_ ((FRAME_PTR));
+
+/* Create 6 GCs for antialiasing by interpolating colors FOREGROUND
+   and BACKGROUND.  GCS[0] is closest to BACKGROUND, and GCS[5] is
+   closest to FOREGROUND.  */
+
+static int
+ftxfont_create_gcs (f, gcs, foreground, background)
+     FRAME_PTR f;
+     GC *gcs;
+     unsigned long foreground, background;
+{
+  XColor colors[3];
+  XGCValues xgcv;
+  int i;
+
+  colors[0].pixel = foreground;
+  colors[1].pixel = background;
+
+  BLOCK_INPUT;
+  XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), colors, 2);
+  for (i = 1; i < 7; i++)
+    {
+      colors[2].red = (colors[0].red * i + colors[1].red * (8 - i)) / 8;
+      colors[2].green = (colors[0].green * i + colors[1].green * (8 - i)) / 8;
+      colors[2].blue = (colors[0].blue * i + colors[1].blue * (8 - i)) / 8;
+      if (! x_alloc_nearest_color (f, FRAME_X_COLORMAP (f), &colors[2]))
+	break;
+      xgcv.foreground = colors[2].pixel;
+      gcs[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+			      GCForeground, &xgcv);
+    }
+  UNBLOCK_INPUT;
+
+  if (i < 7)
+    {
+      BLOCK_INPUT;
+      for (i--; i >= 0; i--)
+	XFreeGC (FRAME_X_DISPLAY (f), gcs[i]);
+      UNBLOCK_INPUT;
+      return -1;
+    }
+  return 0;
+}
 
 static int
 ftxfont_draw_bitmap (f, gc, font, code, x, y, p, size, n)
@@ -59,7 +105,7 @@ ftxfont_draw_bitmap (f, gc, font, code, x, y, p, size, n)
   unsigned char *b;
   int i, j;
 
-  if (ftfont_driver.get_bitmap (font, code, &bitmap, 1) < 0)
+  if (ftfont_driver.get_bitmap (font, code, &bitmap, size > 0x100 ? 1 : 8) < 0)
     return 0;
   for (i = 0, b = bitmap.buffer; i < bitmap.rows;
        i++, b += bitmap.pitch)
@@ -121,8 +167,31 @@ ftxfont_draw_backgrond (f, font, gc, x, y, width)
 		GCForeground | GCBackground, &xgcv);
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.background);
   XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), gc,
-		  x, y - font->ascent, width, font->font.height);
+		  x, y - font->ascent, width, y + font->descent);
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
+}
+
+/* Return the default Font ID on frame F.  */
+
+static Font
+ftxfont_default_fid (f)
+     FRAME_PTR f;
+{
+  static int fid_known;
+  static Font fid;
+
+  if (! fid_known)
+    {
+      fid = XLoadFont (FRAME_X_DISPLAY (f), "fixed");
+      if (! fid)
+	{
+	  fid = XLoadFont (FRAME_X_DISPLAY (f), "*");
+	  if (! fid)
+	    abort ();
+	}
+      fid_known = 1;
+    }
+  return fid;
 }
 
 /* Prototypes for font-driver methods.  */
@@ -172,7 +241,7 @@ ftxfont_open (f, entity, pixel_size)
       return NULL;
     }
 
-  xfont->fid = FRAME_FONT (f)->fid;
+  xfont->fid = ftxfont_default_fid (f);
   xfont->ascent = font->ascent;
   xfont->descent = font->descent;
   xfont->max_bounds.width = font->font.size;
@@ -218,7 +287,8 @@ ftxfont_prepare_face (f, face)
      FRAME_PTR f;
      struct face *face;
 {
-  GC gc[6];
+  struct font *font = (struct font *) face->font_info;
+  GC gcs[6];
   XColor colors[3];
   XGCValues xgcv;
   unsigned long mask = GCForeground | GCBackground | GCGraphicsExposures;
@@ -226,32 +296,18 @@ ftxfont_prepare_face (f, face)
 
   face->extra = NULL;
 
-  /* Here, we create 6 more GCs to simulate anti-aliasing.  */
-  BLOCK_INPUT;
-  XGetGCValues (FRAME_X_DISPLAY (f), face->gc, mask, &xgcv);
-  colors[0].pixel = face->foreground;
-  colors[1].pixel = face->background;
-  XQueryColors (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), colors, 2);
-  for (i = 1; i < 7; i++)
-    {
-      colors[2].red = (colors[0].red * i + colors[1].red * (7 - i)) / 7;
-      colors[2].green = (colors[0].green * i + colors[1].green * (7 - i)) / 7;
-      colors[2].blue = (colors[0].blue * i + colors[1].blue * (7 - i)) / 7;
-      if (! x_alloc_nearest_color (f, FRAME_X_COLORMAP (f), &colors[2]))
-	break;
-      xgcv.foreground = colors[2].pixel;
-      gc[i - 1] = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			     mask, &xgcv);
-    }
-  UNBLOCK_INPUT;
+  if (! font->scalable)
+    return 0;
 
-  if (i < 7)
-    return -1;
+  if (ftxfont_create_gcs (f, gcs, face->foreground, face->background) < 0)
+    /* Give up antialiasing.  */
+    return 0;
+
   face->extra = malloc (sizeof (GC) * 7);
   if (! face->extra)
     return -1;
   for (i = 0; i < 6; i++)
-    ((GC *) face->extra)[i] = gc[i];
+    ((GC *) face->extra)[i] = gcs[i];
   ((GC *) face->extra)[i] = face->gc;
   return 0;
 }
@@ -266,7 +322,7 @@ ftxfont_done_face (f, face)
       int i;
 
       BLOCK_INPUT;
-      for (i = 0; i < 7; i++)
+      for (i = 0; i < 6; i++)
 	XFreeGC (FRAME_X_DISPLAY (f), ((GC *) face->extra)[i]);
       UNBLOCK_INPUT;
       free (face->extra);
@@ -281,12 +337,13 @@ ftxfont_draw (s, from, to, x, y, with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
-  struct font *font = (struct font *) face->font;
+  struct font *font = (struct font *) face->font_info;
   XPoint p[0x700];
   int n[7];
   unsigned *code;
   int len = to - from;
   int i;
+  GC *gcs;
 
   n[0] = n[1] = n[2] = n[3] = n[4] = n[5] = n[6] = 0;
 
@@ -299,26 +356,46 @@ ftxfont_draw (s, from, to, x, y, with_background)
     code[i] = ((XCHAR2B_BYTE1 (s->char2b + from + i) << 8)
 	       | XCHAR2B_BYTE2 (s->char2b + from + i));
 
-  if (! face->extra)
+  gcs = face->extra;
+  if (gcs && face->gc != s->gc)
     {
+      /* We are drawing for cursor or for mouse highlighting, and
+	 can't use the prepared GCs.  */
+      XGCValues xgcv;
+      unsigned long mask = GCForeground | GCBackground;
+
+      gcs = alloca (sizeof (GC) * 7);
+      XGetGCValues (FRAME_X_DISPLAY (f), s->gc, mask, &xgcv);
+      if (ftxfont_create_gcs (f, gcs, xgcv.foreground, xgcv.background) < 0)
+	gcs = NULL;
+      gcs[6] = s->gc;
+    }
+
+  if (! gcs)
+    {
+      /* We are drawing with a bitmap font which doesn't use
+	 antialiasing.  */
       for (i = 0; i < len; i++)
-	x += ftxfont_draw_bitmap (f, &face->gc, font, code[i], x, y,
+	x += ftxfont_draw_bitmap (f, &s->gc, font, code[i], x, y,
 				  p, 0x700, n);
       if (n[0] > 0)
 	XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		     face->gc, p, n[0], CoordModeOrigin);
+		     s->gc, p, n[0], CoordModeOrigin);
     }
   else
     {
-      GC *gc = face->extra;
-
+      /* We are drawing with a scalable font which use
+	 antialiasing.  */
       for (i = 0; i < len; i++)
-	x += ftxfont_draw_bitmap (f, &face->gc, font, code[i], x, y,
+	x += ftxfont_draw_bitmap (f, gcs, font, code[i], x, y,
 				  p, 0x100, n);
       for (i = 0; i < 7; i++)
 	if (n[i] > 0)
 	  XDrawPoints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		       gc[i], p + 0x100 * i, n[i], CoordModeOrigin);
+		       gcs[i], p + 0x100 * i, n[i], CoordModeOrigin);
+      if (face->gc != s->gc)
+	for (i = 0; i < 6; i++)
+	  XFreeGC (FRAME_X_DISPLAY (f), gcs[i]);
     }
 
   UNBLOCK_INPUT;
