@@ -1857,9 +1857,9 @@ as if they had a light background.
 
   The effect of using a face is determined by a fixed set of @dfn{face
 attributes}.  This table lists all the face attributes, and what they
-mean.  Note that in general, more than one face can be specified for a
-given piece of text; when that happens, the attributes of all the faces
-are merged to specify how to display the text.  @xref{Displaying Faces}.
+mean.  You can specify more than one face for a given piece of text;
+Emacs merges the attributes of all the faces to determine how to
+display the text.  @xref{Displaying Faces}.
 
   Any attribute in a face can have the value @code{unspecified}.  This
 means the face doesn't specify that attribute.  In face merging, when
@@ -2054,9 +2054,9 @@ otherwise, they affect all frames as well as the defaults that apply to
 new frames.
 
 @defun set-face-attribute face frame &rest arguments
-This function sets one or more attributes of face @var{face}
-for frame @var{frame}.  If @var{frame} is @code{nil}, it sets
-the attribute for all frames, and the defaults for new frames.
+This function sets one or more attributes of face @var{face} for frame
+@var{frame}.  The attributes you specify this way override whatever
+the @code{defface} says.
 
 The extra arguments @var{arguments} specify the attributes to set, and
 the values for them.  They should consist of alternating attribute names
@@ -2073,6 +2073,11 @@ Thus,
 @noindent
 sets the attributes @code{:width}, @code{:weight} and @code{:underline}
 to the corresponding values.
+
+If @var{frame} is @code{t}, this function sets the attributes for all
+existing frames, and sets defaults that will apply for new frames.
+Default attribute values specified this way override the
+@code{defface} for newly created frames.
 @end defun
 
 @defun face-attribute face attribute &optional frame inherit
@@ -2080,8 +2085,10 @@ This returns the value of the @var{attribute} attribute of face
 @var{face} on @var{frame}.  If @var{frame} is @code{nil},
 that means the selected frame (@pxref{Input Focus}).
 
-If @var{frame} is @code{t}, the value is the default for
-@var{face} for new frames.
+If @var{frame} is @code{t}, this returns whatever new-frames default
+value you previously specified with @code{set-face-attribute} for the
+@var{attribute} attribute of @var{face}.  If you have not specified
+one, it returns @code{nil}.
 
 If @var{inherit} is @code{nil}, only attributes directly defined by
 @var{face} are considered, so the return value may be
