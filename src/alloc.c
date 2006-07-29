@@ -78,6 +78,10 @@ extern POINTER_TYPE *sbrk ();
 #define O_WRONLY 1
 #endif
 
+#ifdef WINDOWSNT
+#include <fcntl.h>
+#endif
+
 #ifdef DOUG_LEA_MALLOC
 
 #include <malloc.h>
