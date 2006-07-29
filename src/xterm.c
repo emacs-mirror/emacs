@@ -7615,6 +7615,8 @@ x_clear_errors (dpy)
   x_error_message->string[0] = 0;
 }
 
+#if 0 /* See comment in unwind_to_catch why calling this is a bad
+       * idea.  --lorentey   */
 /* Close off all unclosed x_catch_errors calls.  */
 
 void
@@ -7623,6 +7625,7 @@ x_fully_uncatch_errors ()
   while (x_error_message)
     x_uncatch_errors ();
 }
+#endif
 
 /* Nonzero if x_catch_errors has been done and not yet canceled.  */
 

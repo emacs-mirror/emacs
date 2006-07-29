@@ -975,7 +975,6 @@ extern int x_had_errors_p P_ ((Display *));
 extern int x_catching_errors P_ ((void));
 extern void x_uncatch_errors P_ ((void));
 extern void x_clear_errors P_ ((Display *));
-extern void x_fully_uncatch_errors P_ ((void));
 extern void x_set_window_size P_ ((struct frame *, int, int, int));
 extern void x_set_mouse_position P_ ((struct frame *, int, int));
 extern void x_set_mouse_pixel_position P_ ((struct frame *, int, int));
