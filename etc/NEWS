@@ -95,7 +95,6 @@ doesn't automatically select the right one.
 Its name is `pt-br-refcard.tex'.  The corresponding PostScript file is
 also included.
 
-
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
 
@@ -248,7 +247,7 @@ according to the value of `save-abbrevs'.
 
 +++
 ** If the environment variable EMAIL is defined, Emacs now uses its value
-to compute the default value of `use-mail-address', in preference to
+to compute the default value of `user-mail-address', in preference to
 concatenation of `user-login-name' with the name of your host machine.
 
 
