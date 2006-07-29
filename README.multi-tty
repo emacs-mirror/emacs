@@ -42,6 +42,7 @@ Romain Francoise <romain@orebokech.com>
 Ami Fischman <ami@fischman.org>
 Noah Friedman <friedman@splode.com>
 Friedrich Delgado Friedrichs <friedel@nomaden.org>
+Eric Hanchrow <offby1@blarg.net>
 IRIE Tetsuya <irie@t.email.ne.jp>
 Yoshiaki Kasahara <kasahara@nc.kyushu-u.ac.jp>
 Bas Kok <nekkobassu@yahoo.com>
@@ -406,6 +407,7 @@ THINGS TO DO
 ------------
 
 ** See if `tty-defined-color-alist' needs to be terminal-local.
+   Dan says it should be, so convert it.
 
 ** emacsclient -t on the console does not work after su.  You have to
    use non-root accounts or start as root to see this.
