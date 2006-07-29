@@ -4607,7 +4607,8 @@ mark_stack ()
 
 
 /* Determine whether it is safe to access memory at address P.  */
-int valid_pointer_p (p)
+int
+valid_pointer_p (p)
      void *p;
 {
   int fd;
