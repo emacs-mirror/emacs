@@ -550,26 +550,27 @@ next window, that other buffer's directory is suggested instead.
 @item C @var{new} @key{RET}
 Copy the specified files (@code{dired-do-copy}).  The argument @var{new}
 is the directory to copy into, or (if copying a single file) the new
-name.  This is similar to what the Unix @code{cp} command does.
+name.  This is like the shell command @code{cp}.
 
 @vindex dired-copy-preserve-time
 If @code{dired-copy-preserve-time} is non-@code{nil}, then copying
 with this command preserves the modification time of the old file in
-the copy, similarly to @kbd{cp -p}.
+the copy, like @samp{cp -p}.
 
 @vindex dired-recursive-copies
 @cindex recursive copying
 The variable @code{dired-recursive-copies} controls whether to copy
-directories recursively (a-la @kbd{cp -r}).  The default is
+directories recursively (like @samp{cp -r}).  The default is
 @code{nil}, which means that directories cannot be copied.
 
 @item D
 @findex dired-do-delete
 @kindex D @r{(Dired)}
-Delete the specified files (@code{dired-do-delete}).  This is similar
-to what the Unix @code{rm} command does.  Like the other commands in
-this section, this command operates on the @emph{marked} files, or the
-next @var{n} files.  By contrast, @kbd{x}
+Delete the specified files (@code{dired-do-delete}).  This is like the
+shell command @code{rm}.
+
+Like the other commands in this section, this command operates on the
+@emph{marked} files, or the next @var{n} files.  By contrast, @kbd{x}
 (@code{dired-do-flagged-delete}) deletes all @dfn{flagged} files.
 
 @findex dired-do-rename
@@ -580,8 +581,7 @@ next @var{n} files.  By contrast, @kbd{x}
 Rename the specified files (@code{dired-do-rename}).  If you rename a
 single file, the argument @var{new} is the new name of the file.  If
 you rename several files, the argument @var{new} is the directory into
-which to move the files (this is similar to what the Unix @code{mv}
-command does).
+which to move the files (this is like the shell command @code{mv}).
 
 Dired automatically changes the visited file name of buffers associated
 with renamed files so that they refer to the new names.
@@ -591,18 +591,18 @@ with renamed files so that they refer to the new names.
 @cindex hard links (in Dired)
 @item H @var{new} @key{RET}
 Make hard links to the specified files (@code{dired-do-hardlink}).
-This is similar to what the Unix @code{ln} command does.  The argument
-@var{new} is the directory to make the links in, or (if making just
-one link) the name to give the link.
+This is like the shell command @code{ln}.  The argument @var{new} is
+the directory to make the links in, or (if making just one link) the
+name to give the link.
 
 @findex dired-do-symlink
 @kindex S @r{(Dired)}
 @cindex symbolic links (creation in Dired)
 @item S @var{new} @key{RET}
-Make symbolic links to the specified files (@code{dired-do-symlink})
-(this is similar to what @kbd{ln -s} does on Unix).  The argument
-@var{new} is the directory to make the links in, or (if making just
-one link) the name to give the link.
+Make symbolic links to the specified files (@code{dired-do-symlink}).
+This is like @samp{ln -s}.  The argument @var{new} is the directory to
+make the links in, or (if making just one link) the name to give the
+link.
 
 @findex dired-do-chmod
 @kindex M @r{(Dired)}
@@ -637,8 +637,8 @@ different places).
 @cindex changing file time (in Dired)
 @item T @var{timestamp} @key{RET}
 Touch the specified files (@code{dired-do-touch}).  This means
-updating their modification times to the present time.  This is
-similar to what the Unix @code{touch} command does.
+updating their modification times to the present time.  This is like
+the shell command @code{touch}.
 
 @findex dired-do-print
 @kindex P @r{(Dired)}
