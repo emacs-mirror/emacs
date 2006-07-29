@@ -1,3 +1,15 @@
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* xfaces.c (lookup_named_face, Fdisplay_supports_face_attributes_p): 
+	Add conditional aborts for clarity.
+
+	* xdisp.c (update_menu_bar): New arg HOOKS_RUN.  Callers changed.
+	Used to avoid running the hooks over and over for each frame.
+	(prepare_menu_bars): Pass value from update_menu_bar
+	as HOOKS_RUN of next call.
+
+	* keyboard.c (safe_run_hooks_1): Don't crash if Vrun_hooks is nil.
+
 2006-07-28  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (valid_pointer_p): New function (from valid_lisp_object_p).
@@ -181,6 +193,14 @@
 	(XTread_socket): Use character codes to construct keypad key events.
 	(mac_initialize_display_info) [MAC_OSX]: Use CGDisplaySamplesPerPixel.
 	(x_delete_display): Apply 2006-07-04 change for xterm.c.
+
+2006-07-17  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (Vcommand_error_function): New variable.
+	(syms_of_keyboard): Defvar it.
+	(cmd_error_internal): Simplify, and handle Vcommand_error_function.
+
+	* dispnew.c (init_display): Mention DISPLAY as well as TERM in err msg.
 
 2006-07-17  Kim F. Storm  <storm@cua.dk>
 

@@ -1,5 +1,9 @@
 2006-07-28  Richard Stallman  <rms@gnu.org>
 
+	* display.texi (Face Attributes): Simplify wording.
+	(Attribute Functions): Clarify meaning of new-frame default
+	attribute settings.
+
 	* customize.texi (Common Keywords): Document how to use
 	:package-version in a package not in Emacs.
 

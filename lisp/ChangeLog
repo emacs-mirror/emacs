@@ -1,3 +1,12 @@
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* bindings.el (mode-line-frame-identification)
+	(propertized-buffer-identification): Centralize the code
+	to initialize the variable.
+
+	* progmodes/grep.el (grep-default-command): Catch errors from
+	wildcard-to-regexp.
+
 2006-07-29  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/grep.el (grep-tag-default): New function.
