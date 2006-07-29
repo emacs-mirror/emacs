@@ -1,3 +1,11 @@
+2006-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (convert-standard-filename): For Cygwin, replace
+	characters not allowed in Windows file names.
+	(make-auto-save-file-name): Add Cygwin to the list of systems
+	where the auto-save file name needs to be run through
+	convert-standard-filename.
+
 2006-07-29  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* window.el (bw-get-tree): Don't integerp subtree if it's nil.
