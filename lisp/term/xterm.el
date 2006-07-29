@@ -166,7 +166,7 @@
 (define-key xterm-function-map "\e[27;5;44~" [?\C-,])
 (define-key xterm-function-map "\e[27;5;46~" [?\C-.])
 (define-key xterm-function-map "\e[27;5;47~" [?\C-/])
-(define-key xterm-function-map "\e[27;5;92~" [?\C-\\)])
+(define-key xterm-function-map "\e[27;5;92~" [?\C-\\])
 
 (define-key xterm-function-map "\e[27;2;9~" [S-tab])
 (define-key xterm-function-map "\e[27;2;13~" [S-return])
