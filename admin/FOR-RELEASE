@@ -4,8 +4,6 @@ Tasks needed before the next release.
 
 ** Update release dates of manuals.
 
-** Get rid of overfull and underfull boxes in manuals.
-
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
@@ -18,12 +16,12 @@ make sure all the pages really look ok in the manual as formatted.
 Requests to have been sent out on 2006-05-23 (Reiner Steib).
 
 LANG	Translator            Status
-cs	Pavel Janík           No response
+cs	Pavel Janík           Can't work on it now.
 de	Sven Joachim          Done
 fr	Eric Jacoboni         Done        (layout might be improved)
 pl	Włodek Bzyl           Done
 pt-br	Rodrigo Real          Done
-ru	Alex Ott              Working
+ru	Alex Ott              Done
 sk	Miroslav Vaško        No response
 
 Reminders sent out on 2006-06-08.
@@ -41,21 +39,12 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 	 '(hscroll-step 1)
 	)
 
-** TCP server processes do not work on Windows.
+** David Kastrup's report on strange scrolling of large images.
 
-TCP/IP server processes created with `make-network-process' consume
-excesive CPU on some Windows environments.  Usages of 50% and 100%
-CPU time have been observed on different Window XP configurations.
-Seems to be a problem in sys_select in w32proc.c.
+** Jorgen Schaefer <forcer@forcix.cx>'s June 18 bug report about
+  fields and invisible overlays needs attention from a field expert.
 
-In its current form, it sys_select says the socket is ready, so we
-call server_accept_connection which again calls accept() which returns
--1 with errno == WSAEWOULDBLOCK (10035) indicating that there is no
-pending connection to accept.
-
-It seems that to fix this, w32 server sockets must use WSAAsyncSelect
-+ FD_ACCEPT to request notifications of incoming connections...
-
+** Implement buffer-chars-modified-tick.
 
 * DOCUMENTATION
 
@@ -69,16 +58,16 @@ people who have checked it.
 SECTION                  READERS
 ----------------------------------
 lispref/abbrevs.texi     "Luc Teirlinck"   Chong Yidong
-lispref/advice.texi	 joakim@verona.se  Chong Yidong
-lispref/anti.texi        Chong Yidong
+lispref/advice.texi      Joakim Verona     Chong Yidong
+lispref/anti.texi        Chong Yidong      Kim F. Storm
 lispref/backups.texi     "Luc Teirlinck"   Chong Yidong
 lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
-lispref/calendar.texi    Joakim Verona <joakim@verona.se>  Chong Yidong
+lispref/calendar.texi    Joakim Verona     Chong Yidong
 lispref/commands.texi    "Luc Teirlinck"   Chong Yidong
 lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
 lispref/control.texi     "Luc Teirlinck"   Chong Yidong
 lispref/customize.texi   Chong Yidong      "Luc Teirlinck"
-lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
+lispref/debugging.texi   Joakim Verona     Lute Kamstra
 lispref/display.texi     Chong Yidong      Jason Rumney
 lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
 lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
@@ -97,7 +86,7 @@ lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
 lispref/locals.texi      Chong Yidong      Nick Roberts
 lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
-lispref/maps.texi        Chong Yidong
+lispref/maps.texi        Chong Yidong	   Kim F. Storm
 lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
 lispref/modes.texi	 Chong Yidong

@@ -57,8 +57,8 @@ the character after point.
 * Registers::        How registers are implemented.  Accessing the text or
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
-* MD5 Checksum::     Compute the MD5 ``message digest''/``checksum''.
-* Atomic Changes::   Installing several buffer changes ``atomically''.
+* MD5 Checksum::     Compute the MD5 "message digest"/"checksum".
+* Atomic Changes::   Installing several buffer changes "atomically".
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
 
@@ -566,7 +566,7 @@ error; if some of the text in it is read-only, it signals a
 asking for any confirmation.  It returns @code{nil}.
 
 Normally, deleting a large amount of text from a buffer inhibits further
-auto-saving of that buffer ``because it has shrunk''.  However,
+auto-saving of that buffer ``because it has shrunk.''  However,
 @code{erase-buffer} does not do this, the idea being that the future
 text is not really related to the former text, and its size should not
 be compared with that of the former text.
@@ -817,7 +817,7 @@ that treat it as a ring.
 
   Some people think this use of the word ``kill'' is unfortunate, since
 it refers to operations that specifically @emph{do not} destroy the
-entities ``killed''.  This is in sharp contrast to ordinary life, in
+entities ``killed.''  This is in sharp contrast to ordinary life, in
 which death is permanent and ``killed'' entities do not come back to
 life.  Therefore, other metaphors have been proposed.  For example, the
 term ``cut ring'' makes sense to people who, in pre-computer days, used
@@ -1106,8 +1106,8 @@ programs, when you are using a window system.  Its value should be
 @code{nil} or a function of no arguments.
 
 If the value is a function, @code{current-kill} calls it to get the
-``most recent kill''.  If the function returns a non-@code{nil} value,
-then that value is used as the ``most recent kill''.  If it returns
+``most recent kill.''  If the function returns a non-@code{nil} value,
+then that value is used as the ``most recent kill.''  If it returns
 @code{nil}, then the front of the kill ring is used.
 
 The normal use of this hook is to get the window system's primary
@@ -3012,24 +3012,23 @@ that all text between the character and where the mouse is have the same
 
 @item fontified
 @kindex fontified @r{(text property)}
-This property says whether the text has had faces assigned to it by
-font locking.  The display engine tests it to decide whether a buffer
+This property says whether the character has a face assigned to it by font
+locking.  The display engine tests it to decide whether a buffer
 portion needs refontifying before display.  @xref{Auto Faces}.  It
-takes one of these three values---other values are invalid:
+takes one of three values:
 
 @table @asis
 @item @code{nil}
-Font locking is disabled, or the @code{face} properties on the text,
-if any, are invalid.
+Font locking is disabled, or the character's @code{face} property, if
+any, is invalid.
 
-@item The symbol @code{defer}
-This value states that the text's @code{face} properties are invalid
-and marks it for deferred fontification.  It is used only when ``just
-in time'' font locking is enabled.
+@item @code{defer}
+This value is only used when ``just in time'' font locking is enabled
+and it means that the character's @code{face} property is invalid and
+needs deferred fontification.
 
 @item @code{t}
-The @code{face} properties, or lack of them, on the text are currently
-valid.
+The character's @code{face} property, or absence of one, is valid.
 @end table
 
 @item display
@@ -3058,16 +3057,14 @@ argument is as follows:
 
 @itemize @bullet{}
 @item
-If @var{object} is a buffer, @var{pos} is the position in the buffer
-where the @code{help-echo} text property was found.
+If @var{object} is a buffer, @var{pos} is the position in the buffer.
 @item
 If @var{object} is an overlay, that overlay has a @code{help-echo}
-property, and @var{pos} is the position in the overlay's buffer under
-the mouse.
+property, and @var{pos} is the position in the overlay's buffer.
 @item
 If @var{object} is a string (an overlay string or a string displayed
 with the @code{display} property), @var{pos} is the position in that
-string under the mouse.
+string.
 @end itemize
 
 If the value of the @code{help-echo} property is neither a function nor
@@ -3482,13 +3479,12 @@ being called over and over for the same text.
 @subsection Defining Clickable Text
 @cindex clickable text
 
-  There are two ways to set up @dfn{clickable text} in a buffer.
-There are typically two parts of this: to make the text highlight
-when the mouse is over it, and to make a mouse button do something
-when you click it on that part of the text.
+  There are two parts of setting up @dfn{clickable text} in a buffer:
+(1) to make that text highlight when the mouse moves over it, and (2)
+to make a mouse button do something when you click on that text.
 
-  Highlighting is done with the @code{mouse-face} text property.
-Here is an example of how Dired does it:
+  For highlighting, use the @code{mouse-face} text property.  Here is
+an example of how Dired does it:
 
 @smallexample
 (condition-case nil
@@ -3666,7 +3662,8 @@ a @key{Mouse-1} click shall be translated to @key{RET}:
 
 @defun mouse-on-link-p pos
 This function returns non-@code{nil} if position @var{pos} in the
-current buffer is on a link.
+current buffer is on a link.  @var{pos} can also be a mouse event
+location, as returned by @code{event-start} (@pxref{Accessing Events}).
 @end defun
 
 @node Fields

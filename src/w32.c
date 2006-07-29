@@ -2256,16 +2256,17 @@ convert_time (FILETIME ft)
 
       SystemTimeToFileTime (&st, &utc_base_ft);
       utc_base = (long double) utc_base_ft.dwHighDateTime
-	* 4096 * 1024 * 1024 + utc_base_ft.dwLowDateTime;
+	* 4096.0L * 1024.0L * 1024.0L + utc_base_ft.dwLowDateTime;
       init = 1;
     }
 
   if (CompareFileTime (&ft, &utc_base_ft) < 0)
     return 0;
 
-  ret = (long double) ft.dwHighDateTime * 4096 * 1024 * 1024 + ft.dwLowDateTime;
+  ret = (long double) ft.dwHighDateTime
+    * 4096.0L * 1024.0L * 1024.0L + ft.dwLowDateTime;
   ret -= utc_base;
-  return (time_t) (ret * 1e-7);
+  return (time_t) (ret * 1e-7L);
 }
 
 void
@@ -2700,6 +2701,9 @@ utime (const char *name, struct utimbuf *times)
 int (PASCAL *pfn_WSAStartup) (WORD wVersionRequired, LPWSADATA lpWSAData);
 void (PASCAL *pfn_WSASetLastError) (int iError);
 int (PASCAL *pfn_WSAGetLastError) (void);
+int (PASCAL *pfn_WSAEventSelect) (SOCKET s, HANDLE hEventObject, long lNetworkEvents);
+HANDLE (PASCAL *pfn_WSACreateEvent) (void);
+int (PASCAL *pfn_WSACloseEvent) (HANDLE hEvent);
 int (PASCAL *pfn_socket) (int af, int type, int protocol);
 int (PASCAL *pfn_bind) (SOCKET s, const struct sockaddr *addr, int namelen);
 int (PASCAL *pfn_connect) (SOCKET s, const struct sockaddr *addr, int namelen);
@@ -2769,7 +2773,7 @@ init_winsock (int load_now)
     = (void *) GetProcAddress (GetModuleHandle ("kernel32.dll"),
 			       "SetHandleInformation");
 
-  winsock_lib = LoadLibrary ("wsock32.dll");
+  winsock_lib = LoadLibrary ("Ws2_32.dll");
 
   if (winsock_lib != NULL)
     {
@@ -2782,6 +2786,9 @@ init_winsock (int load_now)
       LOAD_PROC( WSAStartup );
       LOAD_PROC( WSASetLastError );
       LOAD_PROC( WSAGetLastError );
+      LOAD_PROC( WSAEventSelect );
+      LOAD_PROC( WSACreateEvent );
+      LOAD_PROC( WSACloseEvent );
       LOAD_PROC( socket );
       LOAD_PROC( bind );
       LOAD_PROC( connect );
@@ -3295,6 +3302,8 @@ sys_listen (int s, int backlog)
       int rc = pfn_listen (SOCK_HANDLE (s), backlog);
       if (rc == SOCKET_ERROR)
 	set_errno ();
+      else
+	fd_info[s].flags |= FILE_LISTEN;
       return rc;
     }
   h_errno = ENOTSOCK;
@@ -3332,14 +3341,18 @@ sys_accept (int s, struct sockaddr * addr, int * addrlen)
     }
 
   check_errno ();
-  if (fd_info[s].flags & FILE_SOCKET)
+  if (fd_info[s].flags & FILE_LISTEN)
     {
       SOCKET t = pfn_accept (SOCK_HANDLE (s), addr, addrlen);
-      if (t != INVALID_SOCKET)
-	return socket_to_fd (t);
+      int fd = -1;
+      if (t == INVALID_SOCKET)
+	set_errno ();
+      else
+	fd = socket_to_fd (t);
 
-      set_errno ();
-      return -1;
+      fd_info[s].cp->status = STATUS_READ_ACKNOWLEDGED;
+      ResetEvent (fd_info[s].cp->char_avail);
+      return fd;
     }
   h_errno = ENOTSOCK;
   return -1;
@@ -3637,6 +3650,36 @@ _sys_read_ahead (int fd)
     cp->status = STATUS_READ_SUCCEEDED;
   else
     cp->status = STATUS_READ_FAILED;
+
+  return cp->status;
+}
+
+int _sys_wait_accept (int fd)
+{
+  HANDLE hEv;
+  child_process * cp;
+  int rc;
+
+  if (fd < 0 || fd >= MAXDESC)
+    return STATUS_READ_ERROR;
+
+  cp = fd_info[fd].cp;
+
+  if (cp == NULL || cp->fd != fd || cp->status != STATUS_READ_READY)
+    return STATUS_READ_ERROR;
+
+  cp->status = STATUS_READ_FAILED;
+
+  hEv = pfn_WSACreateEvent ();
+  rc = pfn_WSAEventSelect (SOCK_HANDLE (fd), hEv, FD_ACCEPT);
+  if (rc != SOCKET_ERROR)
+    {
+      rc = WaitForSingleObject (hEv, INFINITE);
+      pfn_WSAEventSelect (SOCK_HANDLE (fd), NULL, 0);
+      pfn_WSACloseEvent (hEv);
+      if (rc == WAIT_OBJECT_0)
+	cp->status = STATUS_READ_SUCCEEDED;
+    }
 
   return cp->status;
 }

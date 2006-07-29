@@ -5312,20 +5312,52 @@ x_calc_absolute_position (f)
 {
   int flags = f->size_hint_flags;
 
-  /* Treat negative positions as relative to the leftmost bottommost
+  /* The sum of the widths of the frame's left and right borders, and
+     the sum of the heights of the frame's top and bottom borders (in
+     pixels) drawn by Windows.  */
+  unsigned int left_right_borders_width, top_bottom_borders_height;
+
+  /* Try to get the actual values of these two variables.  We compute
+     the border width (height) by subtracting the width (height) of
+     the frame's client area from the width (height) of the frame's
+     entire window.  */
+  WINDOWPLACEMENT wp = { 0 };
+  RECT client_rect = { 0 };
+
+  if (GetWindowPlacement (FRAME_W32_WINDOW (f), &wp)
+      && GetClientRect (FRAME_W32_WINDOW (f), &client_rect))
+    {
+      left_right_borders_width =
+	(wp.rcNormalPosition.right - wp.rcNormalPosition.left) -
+	(client_rect.right - client_rect.left);
+
+      top_bottom_borders_height =
+	(wp.rcNormalPosition.bottom - wp.rcNormalPosition.top) -
+	(client_rect.bottom - client_rect.top);
+    }
+  else
+    {
+      /* Use sensible default values.  */
+      left_right_borders_width = 8;
+      top_bottom_borders_height = 32;
+    }
+
+  /* Treat negative positions as relative to the rightmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
     f->left_pos = (FRAME_W32_DISPLAY_INFO (f)->width
 		   - FRAME_PIXEL_WIDTH (f)
-		   + f->left_pos);
+		   + f->left_pos
+		   - (left_right_borders_width - 1));
 
   if (flags & YNegative)
     f->top_pos = (FRAME_W32_DISPLAY_INFO (f)->height
 		  - FRAME_PIXEL_HEIGHT (f)
-		  + f->top_pos);
-  /* The left_pos and top_pos
-     are now relative to the top and left screen edges,
-     so the flags should correspond.  */
+		  + f->top_pos
+		  - (top_bottom_borders_height - 1));
+
+  /* The left_pos and top_pos are now relative to the top and left
+     screen edges, so the flags should correspond.  */
   f->size_hint_flags &= ~ (XNegative | YNegative);
 }
 

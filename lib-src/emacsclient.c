@@ -106,7 +106,7 @@ const char * alternate_editor = NULL;
 /* If non-NULL, the filename of the UNIX socket.  */
 char *socket_name = NULL;
 
-void print_help_and_exit ();
+void print_help_and_exit () NO_RETURN;
 
 struct option longopts[] =
 {

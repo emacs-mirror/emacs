@@ -145,7 +145,7 @@ If @var{function} is already present in @var{hook} (comparing using
 
 It is best to design your hook functions so that the order in which they
 are executed does not matter.  Any dependence on the order is ``asking
-for trouble''.  However, the order is predictable: normally,
+for trouble.''  However, the order is predictable: normally,
 @var{function} goes at the front of the hook list, so it will be
 executed first (barring another @code{add-hook} call).  If the optional
 argument @var{append} is non-@code{nil}, the new hook function goes at
@@ -1139,7 +1139,7 @@ it should not use @code{after-change-major-mode-hook} as of yet.
 
   When you defined a major mode using @code{define-derived-mode}, it
 automatically makes sure these conventions are followed.  If you
-define a major mode ``from scratch'', not using
+define a major mode ``from scratch,'' not using
 @code{define-derived-mode}, make sure the major mode command follows
 these and other conventions.  @xref{Major Mode Conventions}.  You use
 these functions to do it properly.
@@ -1354,9 +1354,8 @@ substituting your own definition of @code{self-insert-command} for the
 standard one.  The editor command loop handles this function specially.)
 
 The key sequences bound in a minor mode should consist of @kbd{C-c}
-followed by a punctuation character @emph{other than} @kbd{@{},
-@kbd{@}}, @kbd{<}, @kbd{>}, @kbd{:}, and @kbd{;}.  (Those few punctuation
-characters are reserved for major modes.)
+followed by one of @kbd{.,/?`'"[]\|~!#$%^&*()-_+=}.  (The other
+punctuation characters are reserved for major modes.)
 
 @node Defining Minor Modes
 @subsection Defining Minor Modes
@@ -1456,7 +1455,7 @@ See the command \\[hungry-electric-delete]."
 @end smallexample
 
 @noindent
-This defines a minor mode named ``Hungry mode'', a command named
+This defines a minor mode named ``Hungry mode,'' a command named
 @code{hungry-mode} to toggle it, a variable named @code{hungry-mode}
 which indicates whether the mode is enabled, and a variable named
 @code{hungry-mode-map} which holds the keymap that is active when the
@@ -2918,7 +2917,8 @@ way for a mode to set this variable to @code{t} is with
 @defvar font-lock-syntax-table
 This variable holds the syntax table to use for fontification of
 comments and strings.  Specify it using @var{syntax-alist} in
-@code{font-lock-defaults}.
+@code{font-lock-defaults}.  If this is @code{nil}, fontification uses
+the buffer's syntax table.
 @end defvar
 
 @defvar font-lock-beginning-of-syntax-function
@@ -3049,7 +3049,7 @@ constructs:
 
 @itemize
 @item
-Place a @code{font-lock-multiline} or @code{jit-lock-defer-multiline}
+Place a @code{font-lock-multiline}
 property on the construct when it is added to the buffer.
 @item
 Use @code{font-lock-fontify-region-function} hook to extend the scan
@@ -3076,7 +3076,6 @@ this can be an attractive solution.
 Place a @code{jit-lock-defer-multiline} property on the construct.
 This works only if @code{jit-lock-contextually} is used, but it can
 handle the case where highlighting depends on subsequent lines.
-@item
 @end itemize
 
 @menu

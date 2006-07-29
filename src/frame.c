@@ -3337,8 +3337,7 @@ x_set_line_spacing (f, new_value, old_value)
   else if (NATNUMP (new_value))
     f->extra_line_spacing = XFASTINT (new_value);
   else
-    Fsignal (Qerror, Fcons (build_string ("Invalid line-spacing"),
-			    Fcons (new_value, Qnil)));
+    signal_error ("Invalid line-spacing", new_value);
   if (FRAME_VISIBLE_P (f))
     redraw_frame (f);
 }
@@ -3358,8 +3357,7 @@ x_set_screen_gamma (f, new_value, old_value)
     /* The value 0.4545 is the normal viewing gamma.  */
     f->gamma = 1.0 / (0.4545 * XFLOATINT (new_value));
   else
-    Fsignal (Qerror, Fcons (build_string ("Invalid screen-gamma"),
-			    Fcons (new_value, Qnil)));
+    signal_error ("Invalid screen-gamma", new_value);
 
   clear_face_cache (0);
 }

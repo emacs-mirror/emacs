@@ -929,12 +929,12 @@ make it compiled by the latest Emacs.
 +    ;; The only way the function is used in this package is included
 +    ;; in `mucs-package-definition-end-hook' value, where it must
 +    ;; return (possibly empty) *list* of forms.  Do this.  Do not rely
-+    ;; on byte compiler to remove extra `progn's in `(progn ...)' 
++    ;; on byte compiler to remove extra `progn's in `(progn ...)'
 +    ;; form.
 +    `((setq mucs-ccl-facility-alist
 +	    (quote ,mucs-ccl-facility-alist))
 +      ,@result)))
- 
+
  ;;; Add hook for embedding translation informations to a package.
  (add-hook 'mucs-package-definition-end-hook
 
@@ -2023,6 +2023,15 @@ to allocate ptys reliably.
 
 * Runtime problems specific to MS-Windows
 
+** Windows 95 and networking.
+
+To support server sockets, Emacs 22.1 loads ws2_32.dll.  If this file
+is missing, all Emacs networking features are disabled.
+
+Old versions of Windows 95 may not have the required DLL.  To use
+Emacs' networking features on Windows 95, you must install the
+"Windows Socket 2" update available from MicroSoft's support Web.
+
 ** Emacs exits with "X protocol error" when run with an X server for MS-Windows.
 
 A certain X server for Windows had a bug which caused this.
@@ -2463,7 +2472,7 @@ command when running temacs like this:
 
     setarch i386 ./temacs --batch --load loadup [dump|bootstrap]
 
- 
+
 *** Fedora Core 4 GNU/Linux: Segfault during dumping.
 
 In addition to exec-shield explained above "Linux: Segfault during
@@ -2477,7 +2486,7 @@ command:
 
 or
 
-   setarch i386 -R make bootstrap      
+   setarch i386 -R make bootstrap
 
 *** Fatal signal in the command  temacs -l loadup inc dump.
 

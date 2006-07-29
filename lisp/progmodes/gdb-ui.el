@@ -434,7 +434,8 @@ With arg, use separate IO iff arg is positive."
 	    (make-local-variable 'gdb-define-alist)
 	    (gdb-create-define-alist)
 	    (add-hook 'after-save-hook 'gdb-create-define-alist nil t))))))
-  (gdb-force-mode-line-update "ready"))
+  (gdb-force-mode-line-update
+   (propertize "ready" 'face font-lock-variable-name-face)))
 
 (defun gdb-find-watch-expression ()
   (let* ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list))
@@ -1209,7 +1210,8 @@ This filter may simply queue input for a later time."
 (defun gdb-resync()
   (setq gdb-flush-pending-output t)
   (setq gud-running nil)
-  (gdb-force-mode-line-update "stopped")
+  (gdb-force-mode-line-update
+   (propertize "stopped"'face font-lock-warning-face))
   (setq gdb-output-sink 'user)
   (setq gdb-input-queue nil)
   (setq gdb-pending-triggers nil)
@@ -1249,7 +1251,8 @@ happens to be in effect."
   "An annotation handler for `prompt'.
 This sends the next command (if any) to gdb."
   (when gdb-first-prompt
-    (gdb-force-mode-line-update "initializing...")
+    (gdb-force-mode-line-update 
+     (propertize "initializing..." 'face font-lock-variable-name-face))
     (gdb-init-1)
     (setq gdb-first-prompt nil))
   (let ((sink gdb-output-sink))
@@ -1287,7 +1290,8 @@ not GDB."
       (progn
 	(setq gud-running t)
 	(setq gdb-inferior-status "running")
-	(gdb-force-mode-line-update gdb-inferior-status)
+	(gdb-force-mode-line-update
+	 (propertize gdb-inferior-status 'face font-lock-type-face))
 	(gdb-remove-text-properties)
 	(setq gud-old-arrow gud-overlay-arrow-position)
 	(setq gud-overlay-arrow-position nil)
@@ -1300,7 +1304,8 @@ not GDB."
 
 (defun gdb-signal (ignored)
   (setq gdb-inferior-status "signal")
-  (gdb-force-mode-line-update gdb-inferior-status)
+  (gdb-force-mode-line-update
+   (propertize gdb-inferior-status 'face font-lock-warning-face))
   (gdb-stopping ignored))
 
 (defun gdb-stopping (ignored)
@@ -1327,7 +1332,8 @@ directives."
   (setq gdb-overlay-arrow-position nil)
   (setq gud-old-arrow nil)
   (setq gdb-inferior-status "exited")
-  (gdb-force-mode-line-update gdb-inferior-status)
+  (gdb-force-mode-line-update
+   (propertize gdb-inferior-status 'face font-lock-warning-face))
   (gdb-stopping ignored))
 
 (defun gdb-signalled (ignored)
@@ -1375,7 +1381,8 @@ sink to `user' in `gdb-stopping', that is fine."
 	      'delete)))))
   (unless (member gdb-inferior-status '("exited" "signal"))
     (setq gdb-inferior-status "stopped")
-    (gdb-force-mode-line-update gdb-inferior-status))
+    (gdb-force-mode-line-update
+     (propertize gdb-inferior-status 'face font-lock-warning-face)))
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'inferior)
@@ -3268,7 +3275,8 @@ is set in them."
 	  (make-local-variable 'gdb-define-alist)
 	  (gdb-create-define-alist)
 	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))
-  (gdb-force-mode-line-update "ready"))
+  (gdb-force-mode-line-update
+   (propertize "ready" 'face font-lock-variable-name-face)))
 
 ; Uses "-var-list-children --all-values".  Needs GDB 6.1 onwards.
 (defun gdb-var-list-children-1 (varnum)

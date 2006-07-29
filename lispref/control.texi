@@ -221,7 +221,7 @@ non-@code{nil}, the clause ``succeeds''; then @code{cond} evaluates its
 @var{body-forms}, and the value of the last of @var{body-forms} becomes
 the value of the @code{cond}.  The remaining clauses are ignored.
 
-If the value of @var{condition} is @code{nil}, the clause ``fails'', so
+If the value of @var{condition} is @code{nil}, the clause ``fails,'' so
 the @code{cond} moves on to the following clause, trying its
 @var{condition}.
 
@@ -623,7 +623,7 @@ error is signaled with data @code{(@var{tag} @var{value})}.
 @subsection Examples of @code{catch} and @code{throw}
 
   One way to use @code{catch} and @code{throw} is to exit from a doubly
-nested loop.  (In most languages, this would be done with a ``go to''.)
+nested loop.  (In most languages, this would be done with a ``go to.'')
 Here we compute @code{(foo @var{i} @var{j})} for @var{i} and @var{j}
 varying from 0 to 9:
 
@@ -783,8 +783,11 @@ undesirable results.  Instead, use @code{(error "%s" @var{string})}.
 @end defun
 
 @defun signal error-symbol data
+This
 @anchor{Definition of signal}
-This function signals an error named by @var{error-symbol}.  The
+@c unfortunately, a page break is allowed if the anchor immediately
+@c follows the @defun, due to hard-to-fix TeXnicalities.  
+function signals an error named by @var{error-symbol}.  The
 argument @var{data} is a list of additional Lisp objects relevant to the
 circumstances of the error.
 
@@ -846,11 +849,22 @@ executes in the environment of the @code{condition-case} that
 established it; all functions called within that @code{condition-case}
 have already been exited, and the handler cannot return to them.
 
-If there is no applicable handler for the error, the current command is
-terminated and control returns to the editor command loop, because the
-command loop has an implicit handler for all kinds of errors.  The
+If there is no applicable handler for the error, it terminates the
+current command and returns control to the editor command loop.  (The
+command loop has an implicit handler for all kinds of errors.)  The
 command loop's handler uses the error symbol and associated data to
-print an error message.
+print an error message.  You can use the variable
+@code{command-error-function} to control how this is done:
+
+@defvar command-error-function
+This variable, if non-@code{nil}, specifies a function to use to
+handle errors that return control to the Emacs command loop.  The
+function should take three arguments: @var{data}, a list of the same
+form that @code{condition-case} would bind to its variable;
+@var{context}, a string describing the situation in which the error
+occurred, or (more often) @code{nil}; and @code{caller}, the Lisp
+function which called the primitive that signaled the error.
+@end defvar
 
 @cindex @code{debug-on-error} use
 An error that has no explicit handler may call the Lisp debugger.  The

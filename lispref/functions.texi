@@ -485,7 +485,7 @@ more convenient than making the function definition point to itself
 practice).
 
   We often identify functions with the symbols used to name them.  For
-example, we often speak of ``the function @code{car}'', not
+example, we often speak of ``the function @code{car},'' not
 distinguishing between the symbol @code{car} and the primitive
 subr-object that is its function definition.  For most purposes, the
 distinction is not important.
@@ -766,12 +766,10 @@ in turn, and returns a list of the results.
 The argument @var{sequence} can be any kind of sequence except a
 char-table; that is, a list, a vector, a bool-vector, or a string.  The
 result is always a list.  The length of the result is the same as the
-length of @var{sequence}.
+length of @var{sequence}.  For example:
 
 @smallexample
 @group
-@exdent @r{For example:}
-
 (mapcar 'car '((a b) (c d) (e f)))
      @result{} (a c e)
 (mapcar '1+ [1 2 3])
@@ -846,7 +844,7 @@ bool-vector, or a string.
 
   In Lisp, a function is a list that starts with @code{lambda}, a
 byte-code function compiled from such a list, or alternatively a
-primitive subr-object; names are ``extra''.  Although usually functions
+primitive subr-object; names are ``extra.''  Although usually functions
 are defined with @code{defun} and given names at the same time, it is
 occasionally more concise to use an explicit lambda expression---an
 anonymous function.  Such a list is valid wherever a function name is.

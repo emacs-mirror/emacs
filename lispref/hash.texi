@@ -79,13 +79,13 @@ alternatives:
 Keys which are numbers are ``the same'' if they are @code{equal}, that
 is, if they are equal in value and either both are integers or both
 are floating point numbers; otherwise, two distinct objects are never
-``the same''.
+``the same.''
 
 @item eq
 Any two distinct Lisp objects are ``different'' as keys.
 
 @item equal
-Two Lisp objects are ``the same'', as keys, if they are equal
+Two Lisp objects are ``the same,'' as keys, if they are equal
 according to @code{equal}.
 @end table
 
@@ -269,7 +269,6 @@ compared case-insensitively.
 @example
 (defun case-fold-string= (a b)
   (compare-strings a nil nil b nil nil t))
-
 (defun case-fold-string-hash (a)
   (sxhash (upcase a)))
 

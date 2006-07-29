@@ -533,6 +533,8 @@ struct sym *parse_qualified_ident_or_type P_ ((char **));
 void parse_qualified_param_ident_or_type P_ ((char **));
 int globals P_ ((int));
 void yyerror P_ ((char *, char *));
+void usage P_ ((int)) NO_RETURN;
+void version P_ (()) NO_RETURN;
 
 
 

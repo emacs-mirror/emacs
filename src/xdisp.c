@@ -3867,7 +3867,7 @@ handle_single_display_spec (it, spec, object, position,
 {
   Lisp_Object form;
   Lisp_Object location, value;
-  struct text_pos start_pos;
+  struct text_pos start_pos, save_pos;
   int valid_p;
 
   /* If SPEC is a list of the form `(when FORM . VALUE)', evaluate FORM.
@@ -4084,7 +4084,10 @@ handle_single_display_spec (it, spec, object, position,
       /* Save current settings of IT so that we can restore them
 	 when we are finished with the glyph property value.  */
 
+      save_pos = it->position;
+      it->position = *position;
       push_it (it);
+      it->position = save_pos;
 
       it->area = TEXT_AREA;
       it->what = IT_IMAGE;
@@ -4158,7 +4161,11 @@ handle_single_display_spec (it, spec, object, position,
     {
       /* Save current settings of IT so that we can restore them
 	 when we are finished with the glyph property value.  */
+      save_pos = it->position;
+      it->position = *position;
       push_it (it);
+      it->position = save_pos;
+
       if (NILP (location))
 	it->area = TEXT_AREA;
       else if (EQ (location, Qleft_margin))
@@ -4969,6 +4976,12 @@ pop_it (it)
     case GET_FROM_STRETCH:
       it->object = p->u.comp.object;
       break;
+    case GET_FROM_BUFFER:
+      it->object = it->w->buffer;
+      break;
+    case GET_FROM_STRING:
+      it->object = it->string;
+      break;
     }
   it->end_charpos = p->end_charpos;
   it->string_nchars = p->string_nchars;
@@ -5288,7 +5301,6 @@ reseat_1 (it, pos, set_stop_p)
   xassert (CHARPOS (pos) >= BEGV && CHARPOS (pos) <= ZV);
 
   it->current.pos = it->position = pos;
-  XSETBUFFER (it->object, current_buffer);
   it->end_charpos = ZV;
   it->dpvec = NULL;
   it->current.dpvec_index = -1;
@@ -5786,14 +5798,12 @@ set_iterator_to_next (it, reseat_p)
 	{
 	  IT_STRING_BYTEPOS (*it) += it->len;
 	  IT_STRING_CHARPOS (*it) += it->cmp_len;
-	  it->object = it->string;
 	  goto consider_string_end;
 	}
       else if (it->method == GET_FROM_BUFFER)
 	{
 	  IT_BYTEPOS (*it) += it->len;
 	  IT_CHARPOS (*it) += it->cmp_len;
-	  it->object = it->w->buffer;
 	}
       break;
 
@@ -6033,9 +6043,7 @@ next_element_from_string (it)
 	}
     }
 
-  /* Record what we have and where it came from.  Note that we store a
-     buffer position in IT->position although it could arguably be a
-     string position.  */
+  /* Record what we have and where it came from.  */
   it->what = IT_CHARACTER;
   it->object = it->string;
   it->position = position;
@@ -6750,6 +6758,10 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	  if (reached)
 	    break;
 	}
+      else if (BUFFERP (it->object)
+	       && it->method == GET_FROM_BUFFER
+	       && IT_CHARPOS (*it) >= to_charpos)
+	skip = MOVE_POS_MATCH_OR_ZV;
       else
 	skip = move_it_in_display_line_to (it, to_charpos, -1, MOVE_TO_POS);
 
@@ -16553,6 +16565,7 @@ display_mode_line (w, face_id, format)
      kboard-local variables in the mode_line_format will get the right
      values.  */
   push_kboard (FRAME_KBOARD (it.f));
+  record_unwind_save_match_data ();
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
   pop_kboard ();
 

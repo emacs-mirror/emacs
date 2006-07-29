@@ -116,7 +116,7 @@ When it is called with one argument (always a character), @var{function}
 should save the argument and arrange to return it on the next call.
 This is called @dfn{unreading} the character; it happens when the Lisp
 reader reads one character too many and wants to ``put it back where it
-came from''.  In this case, it makes no difference what value
+came from.''  In this case, it makes no difference what value
 @var{function} returns.
 @end itemize
 
@@ -620,7 +620,7 @@ spacing between calls.
 @defun terpri &optional stream
 @cindex newline in print
 This function outputs a newline to @var{stream}.  The name stands
-for ``terminate print''.
+for ``terminate print.''
 @end defun
 
 @defun write-char character &optional stream

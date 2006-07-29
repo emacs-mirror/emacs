@@ -238,6 +238,11 @@ automatically at startup, if it exists.  When Emacs offers to save
 modified buffers, it saves the abbrevs too if they have changed.  It
 can do this either silently or asking for confirmation first,
 according to the value of `save-abbrevs'.
+
++++
+** If the environment variable EMAIL is defined, Emacs now uses its value
+to compute the default value of `use-mail-address', in preference to
+concatenation of `user-login-name' with the name of your host machine.
 
 * Incompatible Editing Changes in Emacs 22.1
 
@@ -2011,10 +2016,22 @@ discretionary handling of edits of concealed text, undo concerns, etc.
    - repaired retention of topic body hanging indent upon topic depth shifts
    - refuse to create "containment discontinuities", where a
      topic is shifted deeper than the offspring-depth of its' container
+   - auto-fill-mode is now left inactive when allout-mode starts, if it
+     already was inactive.  also, `allout-inhibit-auto-fill' custom
+     configuration variable makes it easy to disable auto fill in allout
+     outlines in general or on a per-buffer basis.
+   - new hook `allout-mode-deactivate-hook', for coordinating with
+     deactivation of allout-mode.
    - bulleting variation is simpler and more accommodating, both in the
      default behavior and in ability to vary when creating new topics
-   - many internal fixes and refinements
-   - many module and function docstring clarifications
+   - mode deactivation now does cleans up effectively, more properly
+     restoring affected variables and hooks to former state, removing
+     overlays, etc.
+   - included a few unit-tests for interior functionality.  developers can
+     have them automatically run at the end of module load by customizing
+     the option `allout-run-unit-tests-on-load'.
+   - many, many minor tweaks and fixes.  many internal fixes and
+     refinements of docstrings.
    - version number incremented to 2.2
 
 ** The variable `woman-topic-at-point' was renamed
@@ -3828,6 +3845,12 @@ If it is non-nil, the function lists only faces matching this regexp.
 `string-or-null-p' returns non-nil iff OBJECT is a string or nil.
 `booleanp' returns non-nil iff OBJECT is a t or nil.
 
++++
+*** New hook `command-error-function'.
+
+By setting this variable to a function, you can control
+how the editor command loop shows the user an error message.
+
 ** Lisp code indentation features:
 
 +++
@@ -4386,6 +4409,12 @@ name handlers.  This will be exploited for remote files mainly.
 ** Input changes:
 
 +++
+*** The functions `read-event', `read-char', and `read-char-exclusive'
+have a new optional argument SECONDS.  If non-nil, this specifies a
+maximum time to wait for input, in seconds.  If no input arrives after
+this time elapses, the functions stop waiting and return nil.
+
++++
 *** An interactive specification can now use the code letter 'U' to get
 the up-event that was discarded in case the last key sequence read for a
 previous `k' or `K' argument was a down-event; otherwise nil is used.
@@ -4506,6 +4535,8 @@ example,
 
 (kbd "C-x C-f") => "\^x\^f"
 
+Actually, this format has existed since Emacs 20.1.
+
 *** Interactive commands can be remapped through keymaps.
 
 This is an alternative to using `defadvice' or `substitute-key-definition'
@@ -4592,6 +4623,8 @@ Lisp packages using many minor mode keymaps can now maintain their own
 keymap alist separate from `minor-mode-map-alist' by adding their
 keymap alist to this list.
 
+*** The definition of a key-binding passed to define-key can use XEmacs-style
+key-sequences, such as [(control a)].
 ** Abbrev changes:
 
 +++

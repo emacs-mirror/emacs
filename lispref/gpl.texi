@@ -75,13 +75,13 @@ modification follow.
 @item
 This License applies to any program or other work which contains
 a notice placed by the copyright holder saying it may be distributed
-under the terms of this General Public License.  The ``Program'', below,
+under the terms of this General Public License.  The ``Program,'' below,
 refers to any such program or work, and a ``work based on the Program''
 means either the Program or any derivative work under copyright law:
 that is to say, a work containing the Program or a portion of it,
 either verbatim or with modifications and/or translated into another
 language.  (Hereinafter, translation is included without limitation in
-the term ``modification''.)  Each licensee is addressed as ``you''.
+the term ``modification.'')  Each licensee is addressed as ``you.''
 
 Activities other than copying, distribution and modification are not
 covered by this License; they are outside its scope.  The act of
@@ -274,7 +274,7 @@ address new problems or concerns.
 
 Each version is given a distinguishing version number.  If the Program
 specifies a version number of this License which applies to it and ``any
-later version'', you have the option of following the terms and conditions
+later version,'' you have the option of following the terms and conditions
 either of that version or of any later version published by the Free
 Software Foundation.  If the Program does not specify a version number of
 this License, you may choose any version ever published by the Free Software

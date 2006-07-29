@@ -980,47 +980,55 @@ Point is at the beginning of the next line."
   (re-search-forward sh-here-doc-re limit t))
 
 (defun sh-quoted-subshell (limit)
-  "Search for a subshell embedded in a string. Find all the unescaped
-\" characters within said subshell, remembering that subshells can nest."
-  (if (re-search-forward "\"\\(?:.\\|\n\\)*?\\(\\$(\\|`\\)" limit t)
-      ;; bingo we have a $( or a ` inside a ""
-      (let ((char (char-after (point)))
-            (continue t)
-            (pos (point))
-            (data nil)    ;; value to put into match-data (and return)
-            (last nil)    ;; last char seen
-            (bq  (equal (match-string 1) "`")) ;; ` state flip-flop
-            (seen nil)    ;; list of important positions
-            (nest 1))     ;; subshell nesting level
-        (while (and continue char (<= pos limit))
-          ;; unescaped " inside a $( ... ) construct.
-          ;; state machine time...
-          ;; \ => ignore next char;
-          ;; ` => increase or decrease nesting level based on bq flag
-          ;; ) [where nesting > 0] => decrease nesting
-          ;; ( [where nesting > 0] => increase nesting
-          ;; ( [preceeded by $ ]   => increase nesting
-          ;; " [nesting <= 0 ]     => terminate, we're done.
-          ;; " [nesting >  0 ]     => remember this, it's not a proper "
-          (if (eq ?\\ last) nil
-            (if (eq ?\` char) (setq nest (+ nest (if bq -1 1)) bq (not bq))
-              (if (and (> nest 0) (eq ?\) char))  (setq nest (1- nest))
-                (if (and (eq ?$ last) (eq ?\( char)) (setq nest (1+ nest))
-                  (if (and (> nest 0) (eq ?\( char)) (setq nest (1+ nest))
-                    (if (eq char ?\")
-                        (if (>= 0 nest) (setq continue nil)
-                          (setq seen (cons pos seen)) ) ))))))
-          ;;(message "POS: %d [%d]" pos nest)
-          (setq last char
-                pos  (1+ pos)
-                char (char-after pos)) )
-        (when seen
-          ;;(message "SEEN: %S" seen)
-          (setq data (list (current-buffer)))
-          (mapc (lambda (P)
-                  (setq data (cons P (cons (1+ P) data)) ) ) seen)
-          (store-match-data data))
-        data) ))
+  "Search for a subshell embedded in a string.
+Find all the unescaped \" characters within said subshell, remembering that
+subshells can nest."
+  ;; FIXME: This can (and often does) match multiple lines, yet it makes no
+  ;; effort to handle multiline cases correctly, so it ends up being
+  ;; rather flakey.
+  (when (re-search-forward "\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)" limit t)
+    ;; bingo we have a $( or a ` inside a ""
+    (let ((char (char-after (point)))
+          (continue t)
+          (pos (point))
+          (data nil)      ;; value to put into match-data (and return)
+          (last nil)      ;; last char seen
+          (bq  (equal (match-string 1) "`")) ;; ` state flip-flop
+          (seen nil)                         ;; list of important positions
+          (nest 1))                          ;; subshell nesting level
+      (while (and continue char (<= pos limit))
+        ;; unescaped " inside a $( ... ) construct.
+        ;; state machine time...
+        ;; \ => ignore next char;
+        ;; ` => increase or decrease nesting level based on bq flag
+        ;; ) [where nesting > 0] => decrease nesting
+        ;; ( [where nesting > 0] => increase nesting
+        ;; ( [preceeded by $ ]   => increase nesting
+        ;; " [nesting <= 0 ]     => terminate, we're done.
+        ;; " [nesting >  0 ]     => remember this, it's not a proper "
+        ;; FIXME: don't count parens that appear within quotes.
+        (cond
+         ((eq ?\\ last) nil)
+         ((eq ?\` char) (setq nest (+ nest (if bq -1 1)) bq (not bq)))
+         ((and (> nest 0) (eq ?\) char))   (setq nest (1- nest)))
+         ((and (eq ?$ last) (eq ?\( char)) (setq nest (1+ nest)))
+         ((and (> nest 0) (eq ?\( char))   (setq nest (1+ nest)))
+         ((eq char ?\")
+          (if (>= 0 nest) (setq continue nil) (push pos seen))))
+        ;;(message "POS: %d [%d]" pos nest)
+        (setq last char
+              pos  (1+ pos)
+              char (char-after pos)) )
+      ;; FIXME: why construct a costly match data to pass to
+      ;; sh-apply-quoted-subshell rather than apply the highlight
+      ;; directly here?  -- Stef
+      (when seen
+        ;;(message "SEEN: %S" seen)
+        (setq data (list (current-buffer)))
+        (dolist(P seen)
+          (setq data (cons P (cons (1+ P) data))))
+        (store-match-data data))
+      data) ))
 
 (defun sh-is-quoted-p (pos)
   (and (eq (char-before pos) ?\\)

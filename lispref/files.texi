@@ -658,7 +658,7 @@ The file lock is really a file, a symbolic link with a special name,
 stored in the same directory as the file you are editing.
 
   When you access files using NFS, there may be a small probability that
-you and another user will both lock the same file ``simultaneously''.
+you and another user will both lock the same file ``simultaneously.''
 If this happens, it is possible for the two users to make changes
 simultaneously, but Emacs will still warn the user who saves second.
 Also, the detection of modification of a buffer visiting a file changed
@@ -1681,7 +1681,7 @@ return value, but backup version numbers are kept.
 @end defun
 
 @defun file-name-extension filename &optional period
-This function returns @var{filename}'s final ``extension'', if any,
+This function returns @var{filename}'s final ``extension,'' if any,
 after applying @code{file-name-sans-versions} to remove any
 version/backup part.  The extension, in a file name, is the part that
 starts with the last @samp{.} in the last name component (minus
@@ -2653,7 +2653,7 @@ unlocking the buffer if it is locked.
 possibly others to be added in the future.  It need not implement all
 these operations itself---when it has nothing special to do for a
 certain operation, it can reinvoke the primitive, to handle the
-operation ``in the usual way''.  It should always reinvoke the primitive
+operation ``in the usual way.''  It should always reinvoke the primitive
 for an operation it does not recognize.  Here's one way to do this:
 
 @smallexample

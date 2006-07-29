@@ -1,3 +1,45 @@
+2006-07-27  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Non-ASCII Isearch): Clarify.  Mention C-q.
+
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* xresources.texi (GTK styles): Fix texinfo usage.
+
+	* pgg.texi, org.texi, info.texi, forms.texi, flymake.texi: 
+	* faq.texi: Move periods and commas inside quotes.
+
+	* commands.texi (User Input): Explain why we teach keyboard cmds.
+	
+	* xresources.texi, xresmini.texi, search.texi, programs.texi: 
+	* misc.texi, kmacro.texi, killing.texi, glossary.texi: 
+	* fortran-xtra.texi, files.texi, emacs.texi, emacs-xtra.texi: 
+	* doclicense.texi, display.texi, dired.texi, basic.texi: 
+	* anti.texi, ack.texi: Move periods and commas inside quotes.
+
+2006-07-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (General Variables): Document EMAIL.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Frame Commands): Mention that focus-follows-mouse
+	doesn't have effect on MS-Windows.
+
+2006-07-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Error forms):  Mention M-+ keybinding for
+	`calc-plus-minus'.
+
+2006-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faq.texi (Security risks with Emacs): Document Emacs 22
+	file-local-variable mechanism.
+
+2006-07-17  Richard Stallman  <rms@gnu.org>
+
+	* building.texi (Grep Searching): Explain about chaining grep commands.
+
 2006-07-12  Michael Olson  <mwolson@gnu.org>
 
 	* erc.texi: Update for ERC 5.1.3.

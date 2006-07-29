@@ -632,7 +632,7 @@ come to refer to any structure made out of cons cells.
 
 @cindex atom
   Because cons cells are so central to Lisp, we also have a word for
-``an object which is not a cons cell''.  These objects are called
+``an object which is not a cons cell.''  These objects are called
 @dfn{atoms}.
 
 @cindex parenthesis
@@ -1195,18 +1195,19 @@ Hash tables have no read syntax, and print using hash notation.
 @node Function Type
 @subsection Function Type
 
-  Just as functions in other programming languages are executable,
-@dfn{Lisp function} objects are pieces of executable code.  However,
-functions in Lisp are primarily Lisp objects, and only secondarily the
-text which represents them.  These Lisp objects are lambda expressions:
-lists whose first element is the symbol @code{lambda} (@pxref{Lambda
-Expressions}).
+  Lisp functions are executable code, just like functions in other
+programming languages.  In Lisp, unlike most languages, functions are
+also Lisp objects.  A non-compiled function in Lisp is a lambda
+expression: that is, a list whose first element is the symbol
+@code{lambda} (@pxref{Lambda Expressions}).
 
   In most programming languages, it is impossible to have a function
 without a name.  In Lisp, a function has no intrinsic name.  A lambda
-expression is also called an @dfn{anonymous function} (@pxref{Anonymous
-Functions}).  A named function in Lisp is actually a symbol with a valid
-function in its function cell (@pxref{Defining Functions}).
+expression can be called as a function even though it has no name; to
+emphasize this, we also call it an @dfn{anonymous function}
+(@pxref{Anonymous Functions}).  A named function in Lisp is just a
+symbol with a valid function in its function cell (@pxref{Defining
+Functions}).
 
   Most of the time, functions are called when their names are written in
 Lisp expressions in Lisp programs.  However, you can construct or obtain
@@ -1238,7 +1239,7 @@ without qualification, we mean a Lisp macro, not a keyboard macro.
   A @dfn{primitive function} is a function callable from Lisp but
 written in the C programming language.  Primitive functions are also
 called @dfn{subrs} or @dfn{built-in functions}.  (The word ``subr'' is
-derived from ``subroutine''.)  Most primitive functions evaluate all
+derived from ``subroutine.'')  Most primitive functions evaluate all
 their arguments when they are called.  A primitive function that does
 not evaluate all its arguments is called a @dfn{special form}
 (@pxref{Special Forms}).@refill
@@ -1822,12 +1823,14 @@ This function returns a symbol naming the primitive type of
 @example
 (type-of 1)
      @result{} integer
+@group
 (type-of 'nil)
      @result{} symbol
 (type-of '())    ; @r{@code{()} is @code{nil}.}
      @result{} symbol
 (type-of '(x))
      @result{} cons
+@end group
 @end example
 @end defun
 

@@ -108,6 +108,9 @@ change the list."
   (declare (indent 1) (debug t))
   (cons 'if (cons cond (cons nil body))))
 
+(defvar --dolist-tail-- nil
+  "Temporary variable used in `dolist' expansion.")
+
 (defmacro dolist (spec &rest body)
   "Loop over a list.
 Evaluate BODY with VAR bound to each car from LIST, in turn.
@@ -115,15 +118,21 @@ Then evaluate RESULT to get return value, default nil.
 
 \(fn (VAR LIST [RESULT]) BODY...)"
   (declare (indent 1) (debug ((symbolp form &optional form) body)))
-  (let ((temp (make-symbol "--dolist-temp--")))
+  ;; It would be cleaner to create an uninterned symbol,
+  ;; but that uses a lot more space when many functions in many files
+  ;; use dolist.
+  (let ((temp '--dolist-tail--))
     `(let ((,temp ,(nth 1 spec))
 	   ,(car spec))
        (while ,temp
 	 (setq ,(car spec) (car ,temp))
-	 (setq ,temp (cdr ,temp))
-	 ,@body)
+	 ,@body
+	 (setq ,temp (cdr ,temp)))
        ,@(if (cdr (cdr spec))
 	     `((setq ,(car spec) nil) ,@(cdr (cdr spec)))))))
+
+(defvar --dotimes-limit-- nil
+  "Temporary variable used in `dotimes' expansion.")
 
 (defmacro dotimes (spec &rest body)
   "Loop a certain number of times.
@@ -133,7 +142,10 @@ the return value (nil if RESULT is omitted).
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
   (declare (indent 1) (debug dolist))
-  (let ((temp (make-symbol "--dotimes-temp--"))
+  ;; It would be cleaner to create an uninterned symbol,
+  ;; but that uses a lot more space when many functions in many files
+  ;; use dotimes.
+  (let ((temp '--dotimes-limit--)
 	(start 0)
 	(end (nth 1 spec)))
     `(let ((,temp ,end)
@@ -1721,22 +1733,13 @@ floating point support.
   (when (or obsolete (numberp nodisp))
     (setq seconds (+ seconds (* 1e-3 nodisp)))
     (setq nodisp obsolete))
-  (unless nodisp
-    (redisplay))
-  (or (<= seconds 0)
-      (let ((timer (timer-create))
-	    (echo-keystrokes 0))
-      	(if (catch 'sit-for-timeout
-      	      (timer-set-time timer (timer-relative-time
-				     (current-time) seconds))
-      	      (timer-set-function timer 'with-timeout-handler
-				  '(sit-for-timeout))
-      	      (timer-activate timer)
-	      (push (read-event) unread-command-events)
-      	      nil)
-      	    t
-      	  (cancel-timer timer)
-      	  nil))))
+  (if noninteractive
+      (progn (sleep-for seconds) t)
+    (unless nodisp (redisplay))
+    (or (<= seconds 0)
+	(let ((read (read-event nil nil seconds)))
+	  (or (null read)
+	      (progn (push read unread-command-events) nil))))))
 
 ;;; Atomic change groups.
 
@@ -2547,8 +2550,9 @@ STRING should be given if the last search was by `string-match' on STRING."
 (defun looking-back (regexp &optional limit greedy)
   "Return non-nil if text before point matches regular expression REGEXP.
 Like `looking-at' except matches before point, and is slower.
-LIMIT if non-nil speeds up the search by specifying how far back the
-match can start.
+LIMIT if non-nil speeds up the search by specifying a minimum
+starting position, to avoid checking matches that would start
+before LIMIT.
 
 If GREEDY is non-nil, extend the match backwards as far as possible,
 stopping when a single additional previous character cannot be part

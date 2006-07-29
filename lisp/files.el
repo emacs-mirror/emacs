@@ -44,7 +44,7 @@
 
 
 (defcustom delete-auto-save-files t
-  "*Non-nil means delete auto-save file when a buffer is saved or killed.
+  "Non-nil means delete auto-save file when a buffer is saved or killed.
 
 Note that the auto-save file will not be deleted if the buffer is killed
 when it has unsaved changes."
@@ -53,7 +53,7 @@ when it has unsaved changes."
 
 (defcustom directory-abbrev-alist
   nil
-  "*Alist of abbreviations for file directories.
+  "Alist of abbreviations for file directories.
 A list of elements of the form (FROM . TO), each meaning to replace
 FROM with TO when it appears in a directory name.  This replacement is
 done when setting up the default directory of a newly visited file.
@@ -74,7 +74,7 @@ the name it is linked to."
 
 ;; Turn off backup files on VMS since it has version numbers.
 (defcustom make-backup-files (not (eq system-type 'vax-vms))
-  "*Non-nil means make a backup of a file the first time it is saved.
+  "Non-nil means make a backup of a file the first time it is saved.
 This can be done by renaming the file or by copying.
 
 Renaming means that Emacs renames the existing file so that it is a
@@ -103,20 +103,20 @@ But it is local only if you make it local.")
 (put 'backup-inhibited 'permanent-local t)
 
 (defcustom backup-by-copying nil
- "*Non-nil means always use copying to create backup files.
+ "Non-nil means always use copying to create backup files.
 See documentation of variable `make-backup-files'."
  :type 'boolean
  :group 'backup)
 
 (defcustom backup-by-copying-when-linked nil
- "*Non-nil means use copying to create backups for files with multiple names.
+ "Non-nil means use copying to create backups for files with multiple names.
 This causes the alternate names to refer to the latest version as edited.
 This variable is relevant only if `backup-by-copying' is nil."
  :type 'boolean
  :group 'backup)
 
 (defcustom backup-by-copying-when-mismatch nil
-  "*Non-nil means create backups by copying if this preserves owner or group.
+  "Non-nil means create backups by copying if this preserves owner or group.
 Renaming may still be used (subject to control of other variables)
 when it would not result in changing the owner or group of the file;
 that is, for files which are owned by you and whose group matches
@@ -126,7 +126,7 @@ This variable is relevant only if `backup-by-copying' is nil."
   :group 'backup)
 
 (defcustom backup-by-copying-when-privileged-mismatch 200
-  "*Non-nil means create backups by copying to preserve a privileged owner.
+  "Non-nil means create backups by copying to preserve a privileged owner.
 Renaming may still be used (subject to control of other variables)
 when it would not result in changing the owner of the file or if the owner
 has a user id greater than the value of this variable.  This is useful
@@ -142,7 +142,7 @@ This variable is relevant only if `backup-by-copying' and
 Called with an absolute file name as argument, it returns t to enable backup.")
 
 (defcustom buffer-offer-save nil
-  "*Non-nil in a buffer means always offer to save buffer on exit.
+  "Non-nil in a buffer means always offer to save buffer on exit.
 Do so even if the buffer is not visiting a file.
 Automatically local in all buffers."
   :type 'boolean
@@ -150,7 +150,7 @@ Automatically local in all buffers."
 (make-variable-buffer-local 'buffer-offer-save)
 
 (defcustom find-file-existing-other-name t
-  "*Non-nil means find a file under alternative names, in existing buffers.
+  "Non-nil means find a file under alternative names, in existing buffers.
 This means if any existing buffer is visiting the file you want
 under another name, you get the existing buffer instead of a new buffer."
   :type 'boolean
@@ -165,7 +165,7 @@ both at the file level and at the levels of the containing directories."
 (put 'find-file-visit-truename 'safe-local-variable 'boolean)
 
 (defcustom revert-without-query nil
-  "*Specify which files should be reverted without query.
+  "Specify which files should be reverted without query.
 The value is a list of regular expressions.
 If the file name matches one of these regular expressions,
 then `revert-buffer' reverts the file without querying
@@ -226,7 +226,7 @@ have fast storage with limited space, such as a RAM disk."
   "Regexp recognizing file names which aren't allowed by the filesystem.")
 
 (defcustom file-precious-flag nil
-  "*Non-nil means protect against I/O errors while saving files.
+  "Non-nil means protect against I/O errors while saving files.
 Some modes set this non-nil in particular buffers.
 
 This feature works by writing the new contents into a temporary file
@@ -241,7 +241,7 @@ breaks any hard links between it and other files."
   :group 'backup)
 
 (defcustom version-control nil
-  "*Control use of version numbers for backup files.
+  "Control use of version numbers for backup files.
 t means make numeric backup versions unconditionally.
 nil means make them for files that have some already.
 `never' means do not make them."
@@ -254,13 +254,13 @@ nil means make them for files that have some already.
      '(lambda (x) (or (booleanp x) (equal x 'never))))
 
 (defcustom dired-kept-versions 2
-  "*When cleaning directory, number of versions to keep."
+  "When cleaning directory, number of versions to keep."
   :type 'integer
   :group 'backup
   :group 'dired)
 
 (defcustom delete-old-versions nil
-  "*If t, delete excess backup versions silently.
+  "If t, delete excess backup versions silently.
 If nil, ask confirmation.  Any other value prevents any trimming."
   :type '(choice (const :tag "Delete" t)
 		 (const :tag "Ask" nil)
@@ -268,20 +268,20 @@ If nil, ask confirmation.  Any other value prevents any trimming."
   :group 'backup)
 
 (defcustom kept-old-versions 2
-  "*Number of oldest versions to keep when a new numbered backup is made."
+  "Number of oldest versions to keep when a new numbered backup is made."
   :type 'integer
   :group 'backup)
 (put 'kept-old-versions 'safe-local-variable 'integerp)
 
 (defcustom kept-new-versions 2
-  "*Number of newest versions to keep when a new numbered backup is made.
+  "Number of newest versions to keep when a new numbered backup is made.
 Includes the new backup.  Must be > 0"
   :type 'integer
   :group 'backup)
 (put 'kept-new-versions 'safe-local-variable 'integerp)
 
 (defcustom require-final-newline nil
-  "*Whether to add a newline automatically at the end of the file.
+  "Whether to add a newline automatically at the end of the file.
 
 A value of t means do this only when the file is about to be saved.
 A value of `visit' means do this right after the file is visited.
@@ -299,7 +299,7 @@ from `mode-require-final-newline'."
   :group 'editing-basics)
 
 (defcustom mode-require-final-newline t
-  "*Whether to add a newline at end of file, in certain major modes.
+  "Whether to add a newline at end of file, in certain major modes.
 Those modes set `require-final-newline' to this value when you enable them.
 They do so because they are often used for files that are supposed
 to end in newlines, and the question is how to arrange that.
@@ -322,12 +322,12 @@ a final newline, whenever you save a file that really needs one."
   :version "22.1")
 
 (defcustom auto-save-default t
-  "*Non-nil says by default do auto-saving of every file-visiting buffer."
+  "Non-nil says by default do auto-saving of every file-visiting buffer."
   :type 'boolean
   :group 'auto-save)
 
 (defcustom auto-save-visited-file-name nil
-  "*Non-nil says auto-save a buffer in the file it is visiting, when practical.
+  "Non-nil says auto-save a buffer in the file it is visiting, when practical.
 Normally auto-save files are written under other names."
   :type 'boolean
   :group 'auto-save)
@@ -337,7 +337,7 @@ Normally auto-save files are written under other names."
      ;; Don't put "\\2" inside expand-file-name, since it will be
      ;; transformed to "/2" on DOS/Windows.
      ,(concat temporary-file-directory "\\2") t))
-  "*Transforms to apply to buffer file name before making auto-save file name.
+  "Transforms to apply to buffer file name before making auto-save file name.
 Each transform is a list (REGEXP REPLACEMENT UNIQUIFY):
 REGEXP is a regular expression to match against the file name.
 If it matches, `replace-match' is used to replace the
@@ -364,19 +364,19 @@ ignored."
   :version "21.1")
 
 (defcustom save-abbrevs t
-  "*Non-nil means save word abbrevs too when files are saved.
+  "Non-nil means save word abbrevs too when files are saved.
 If `silently', don't ask the user before saving."
   :type '(choice (const t) (const nil) (const silently))
   :group 'abbrev)
 
 (defcustom find-file-run-dired t
-  "*Non-nil means allow `find-file' to visit directories.
+  "Non-nil means allow `find-file' to visit directories.
 To visit the directory, `find-file' runs `find-directory-functions'."
   :type 'boolean
   :group 'find-file)
 
 (defcustom find-directory-functions '(cvs-dired-noselect dired-noselect)
-  "*List of functions to try in sequence to visit a directory.
+  "List of functions to try in sequence to visit a directory.
 Each function is called with the directory name as the sole argument
 and should return either a buffer or nil."
   :type '(hook :options (cvs-dired-noselect dired-noselect))
@@ -448,7 +448,7 @@ use `before-save-hook'.")
     'write-contents-functions "22.1")
 
 (defcustom enable-local-variables t
-  "*Control use of local variables in files you visit.
+  "Control use of local variables in files you visit.
 The value can be t, nil, :safe, or something else.
 
 A value of t means file local variables specifications are obeyed
@@ -506,7 +506,7 @@ nil means ignore them; anything else means query."
     (defalias 'file-locked-p 'ignore))
 
 (defcustom view-read-only nil
-  "*Non-nil means buffers visiting files read-only do so in view mode.
+  "Non-nil means buffers visiting files read-only do so in view mode.
 In fact, this means that all read-only buffers normally have
 View mode enabled, including buffers that are read-only because
 you visit a file you cannot alter, and buffers you make read-only
@@ -1324,7 +1324,7 @@ removes automounter prefixes (see the variable `automount-dir-prefix')."
       filename)))
 
 (defcustom find-file-not-true-dirname-list nil
-  "*List of logical names for which visiting shouldn't save the true dirname.
+  "List of logical names for which visiting shouldn't save the true dirname.
 On VMS, when you visit a file using a logical name that searches a path,
 you may or may not want the visited file name to record the specific
 directory where the file was found.  If you *do not* want that, add the logical
@@ -1373,7 +1373,7 @@ If there is no such live buffer, return nil."
           found))))
 
 (defcustom find-file-wildcards t
-  "*Non-nil means file-visiting commands should handle wildcards.
+  "Non-nil means file-visiting commands should handle wildcards.
 For example, if you specify `*.c', that would visit all the files
 whose names match the pattern."
   :group 'files
@@ -1381,7 +1381,7 @@ whose names match the pattern."
   :type 'boolean)
 
 (defcustom find-file-suppress-same-file-warnings nil
-  "*Non-nil means suppress warning messages for symlinked files.
+  "Non-nil means suppress warning messages for symlinked files.
 When nil, Emacs prints a warning when visiting a file that is already
 visited, but with a different name.  Setting this option to t
 suppresses this warning."
@@ -2303,7 +2303,7 @@ symbol and VAL is a value that is considered safe."
   :type  'alist)
 
 (defcustom safe-local-eval-forms nil
-  "*Expressions that are considered safe in an `eval:' local variable.
+  "Expressions that are considered safe in an `eval:' local variable.
 Add expressions to this list if you want Emacs to evaluate them, when
 they appear in an `eval' local variable specification, without first
 asking you for confirmation."
@@ -2765,7 +2765,7 @@ It is dangerous if either of these conditions are met:
 
 
 (defcustom change-major-mode-with-file-name t
-  "*Non-nil means \\[write-file] should set the major mode from the file name.
+  "Non-nil means \\[write-file] should set the major mode from the file name.
 However, the mode will not be changed if
 \(1) a local variables list or the `-*-' line specifies a major mode, or
 \(2) the current major mode is a \"special\" mode,
@@ -4500,7 +4500,7 @@ by `sh' are supported."
 
 (defcustom list-directory-brief-switches
   (if (eq system-type 'vax-vms) "" "-CF")
-  "*Switches for `list-directory' to pass to `ls' for brief listing."
+  "Switches for `list-directory' to pass to `ls' for brief listing."
   :type 'string
   :group 'dired)
 
@@ -4508,7 +4508,7 @@ by `sh' are supported."
   (if (eq system-type 'vax-vms)
       "/PROTECTION/SIZE/DATE/OWNER/WIDTH=(OWNER:10)"
     "-l")
-  "*Switches for `list-directory' to pass to `ls' for verbose listing."
+  "Switches for `list-directory' to pass to `ls' for verbose listing."
   :type 'string
   :group 'dired)
 
@@ -4639,7 +4639,7 @@ PATTERN that already quotes some of the special characters."
   "Absolute or relative name of the `ls' program used by `insert-directory'.")
 
 (defcustom directory-free-space-program "df"
-  "*Program to get the amount of free space on a file system.
+  "Program to get the amount of free space on a file system.
 We assume the output has the format of `df'.
 The value of this variable must be just a command name or file name;
 if you want to specify options, use `directory-free-space-args'.
@@ -4653,7 +4653,7 @@ preference to the program given by this variable."
 
 (defcustom directory-free-space-args
   (if (eq system-type 'darwin) "-k" "-Pk")
-  "*Options to use when running `directory-free-space-program'."
+  "Options to use when running `directory-free-space-program'."
   :type 'string
   :group 'dired)
 

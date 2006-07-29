@@ -83,6 +83,9 @@ static Lisp_Object last_thing_searched;
 
 Lisp_Object Qinvalid_regexp;
 
+/* Error condition used for failing searches */
+Lisp_Object Qsearch_failed;
+
 Lisp_Object Vsearch_spaces_regexp;
 
 static void set_search_regs ();
@@ -179,7 +182,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   re_set_syntax (old);
   UNBLOCK_INPUT;
   if (val)
-    Fsignal (Qinvalid_regexp, Fcons (build_string (val), Qnil));
+    xsignal1 (Qinvalid_regexp, build_string (val));
 
   cp->regexp = Fcopy_sequence (pattern);
 }
@@ -266,16 +269,6 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
   return &cp->buf;
 }
 
-/* Error condition used for failing searches */
-Lisp_Object Qsearch_failed;
-
-Lisp_Object
-signal_failure (arg)
-     Lisp_Object arg;
-{
-  Fsignal (Qsearch_failed, Fcons (arg, Qnil));
-  return Qnil;
-}
 
 static Lisp_Object
 looking_at_1 (string, posix)
@@ -948,7 +941,8 @@ search_command (string, bound, noerror, count, direction, RE, posix)
   if (np <= 0)
     {
       if (NILP (noerror))
-	return signal_failure (string);
+	xsignal1 (Qsearch_failed, string);
+
       if (!EQ (noerror, Qt))
 	{
 	  if (lim < BEGV || lim > ZV)

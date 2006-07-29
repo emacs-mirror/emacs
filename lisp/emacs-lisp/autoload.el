@@ -124,7 +124,10 @@ or macro definition or a defcustom)."
 	    )
 	`(progn
 	   (defvar ,varname ,init ,doc)
-	   (custom-autoload ',varname ,file))))
+	   (custom-autoload ',varname ,file
+                            ,(condition-case nil
+                                 (null (cadr (memq :set form)))
+                               (error nil))))))
 
      ((eq car 'defgroup)
       ;; In Emacs this is normally handled separately by cus-dep.el, but for

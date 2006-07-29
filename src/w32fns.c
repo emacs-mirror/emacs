@@ -2066,6 +2066,7 @@ w32_createwindow (f)
 {
   HWND hwnd;
   RECT rect;
+  Lisp_Object top, left;
 
   rect.left = rect.top = 0;
   rect.right = FRAME_PIXEL_WIDTH (f);
@@ -2081,12 +2082,17 @@ w32_createwindow (f)
       w32_init_class (hinst);
     }
 
+  /* When called with RES_TYPE_NUMBER, w32_get_arg will return zero
+     for anything that is not a number and is not Qunbound.  */
+  left = w32_get_arg (Qnil, Qleft, "left", "Left", RES_TYPE_NUMBER);
+  top = w32_get_arg (Qnil, Qtop, "top", "Top", RES_TYPE_NUMBER);
+
   FRAME_W32_WINDOW (f) = hwnd
     = CreateWindow (EMACS_CLASS,
 		    f->namebuf,
 		    f->output_data.w32->dwStyle | WS_CLIPCHILDREN,
-		    CW_USEDEFAULT,
-		    SW_SHOW,
+		    EQ (left, Qunbound) ? CW_USEDEFAULT : XINT (left),
+		    EQ (top, Qunbound) ? CW_USEDEFAULT : XINT (top),
 		    rect.right - rect.left,
 		    rect.bottom - rect.top,
 		    NULL,

@@ -175,10 +175,10 @@ error (s1, s2)
 /* Print error message and exit.  */
 
 static void
-fatal (s1, s2)
-     char *s1, *s2;
+fatal (s1)
+     char *s1;
 {
-  error (s1, s2);
+  error ("%s", s1);
   exit (EXIT_FAILURE);
 }
 
@@ -190,7 +190,7 @@ xmalloc (size)
 {
   long *result = (long *) malloc (((unsigned) size));
   if (result == ((long *) NULL))
-    fatal ("virtual memory exhausted", 0);
+    fatal ("virtual memory exhausted");
   return result;
 }
 
@@ -377,7 +377,7 @@ make_file_preface ()
   tm = localtime (&idiotic_interface);
   if (! (tm && TM_YEAR_IN_ASCTIME_RANGE (tm->tm_year)
 	 && (the_date = asctime (tm))))
-    fatal ("current time is out of range", 0);
+    fatal ("current time is out of range");
   /* the_date has an unwanted newline at the end */
   date_length = strlen (the_date) - 1;
   the_date[date_length] = '\0';

@@ -189,12 +189,16 @@ To override this, give an argument to `ff-find-other-file'."
     ;; C/C++ include, for NeXTSTEP too
     ("^\#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]" .
      (lambda ()
-       (setq fname (buffer-substring (match-beginning 2) (match-end 2)))))
+       (buffer-substring (match-beginning 2) (match-end 2))))
     )
-  "*A list of regular expressions for `ff-find-file'.
-Specifies how to recognize special constructs such as include files
-etc. and an associated method for extracting the filename from that
-construct.")
+  ;; We include `ff-treat-as-special' documentation here so that autoload
+  ;; can make it available to be read prior to loading this file.
+  "*List of special constructs for `ff-treat-as-special' to recognize.
+Each element, tried in order, has the form (REGEXP . EXTRACT).
+If REGEXP matches the current line (from the beginning of the line),
+`ff-treat-as-special' calls function EXTRACT with no args.
+If EXTRACT returns nil, keep trying.  Otherwise, return the
+filename that EXTRACT returned.")
 
 (defvaralias 'ff-related-file-alist 'ff-other-file-alist)
 (defcustom ff-other-file-alist 'cc-other-file-alist
@@ -405,9 +409,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
               (ff-list-replace-env-vars (symbol-value ff-search-directories))
             (ff-list-replace-env-vars ff-search-directories)))
 
-    (save-excursion
-      (beginning-of-line 1)
-      (setq fname (ff-treat-as-special)))
+    (setq fname (ff-treat-as-special))
 
     (cond
      ((and (not ff-ignore-include) fname)
@@ -540,9 +542,7 @@ the `ff-ignore-include' variable."
               (ff-list-replace-env-vars (symbol-value ff-search-directories))
             (ff-list-replace-env-vars ff-search-directories)))
 
-    (save-excursion
-      (beginning-of-line 1)
-      (setq fname (ff-treat-as-special)))
+    (setq fname (ff-treat-as-special))
 
     (cond
      ((and (not ff-ignore-include) fname)
@@ -771,20 +771,22 @@ The value used comes from `ff-case-fold-search'."
 
 (defun ff-treat-as-special ()
   "Return the file to look for if the construct was special, else nil.
-The construct is defined in the variable `ff-special-constructs'."
-  (let* (fname
-         (list ff-special-constructs)
-         (elem (car list))
-         (regexp (car elem))
-         (match (cdr elem)))
-    (while (and list (not fname))
-      (if (and (looking-at regexp) match)
-          (setq fname (funcall match)))
-      (setq list (cdr list))
-      (setq elem (car list))
-      (setq regexp (car elem))
-      (setq match (cdr elem)))
-    fname))
+See variable `ff-special-constructs'."
+  (save-excursion
+    (beginning-of-line 1)
+    (let* (fname
+           (list ff-special-constructs)
+           (elem (car list))
+           (regexp (car elem))
+           (match (cdr elem)))
+      (while (and list (not fname))
+        (if (and (looking-at regexp) match)
+            (setq fname (funcall match)))
+        (setq list (cdr list))
+        (setq elem (car list))
+        (setq regexp (car elem))
+        (setq match (cdr elem)))
+      fname)))
 
 (defun ff-basename (string)
   "Return the basename of pathname STRING."

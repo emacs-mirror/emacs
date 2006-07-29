@@ -204,9 +204,9 @@ them.  This happens with wheeled mice on Windows 9X, for example.  */)
   CHECK_NUMBER (nbuttons);
   n = XINT (nbuttons);
   if (n < 2 || n > 3)
-    Fsignal (Qargs_out_of_range,
-	     Fcons (build_string ("only 2 or 3 mouse buttons are supported"),
-		    Fcons (nbuttons, Qnil)));
+    xsignal2 (Qargs_out_of_range,
+	      build_string ("only 2 or 3 mouse buttons are supported"),
+	      nbuttons);
   mouse_setup_buttons (n);
   return Qnil;
 }

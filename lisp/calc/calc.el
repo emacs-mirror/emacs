@@ -886,7 +886,6 @@ If nil, selections displayed but ignored.")
   "Formatting function used for non-decimal numbers.")
 
 (defvar calc-last-kill nil)		; Last number killed in calc-mode.
-(defvar calc-previous-alg-entry nil)	; Previous algebraic entry.
 (defvar calc-dollar-values nil)		; Values to be used for '$'.
 (defvar calc-dollar-used nil)		; Highest order of '$' that occurred.
 (defvar calc-hashes-used nil)		; Highest order of '#' that occurred.

@@ -1,3 +1,227 @@
+2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): New arg END_TIME specifying timeout.
+	All callers changed.  Turn off echoing if END_TIME is non-NULL.
+	(kbd_buffer_get_event): New arg END_TIME.
+
+	* lread.c (read_filtered_event): New arg SECONDS to wait until.
+	(Fread_char, Fread_event, Fread_char_exclusive): New arg SECONDS.
+
+	* lisp.h: Update read-char, read-event, and read_filtered_event
+	prototypes.
+
+	* keyboard.h: Include systime.h.  Update read_char prototype.
+
+2006-07-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (find_string_data_in_pure): New function.
+	(make_pure_string): Use it to reuse existing string data if possible.
+
+	* puresize.h (BASE_PURESIZE): Decrease to 1102000.
+
+2006-07-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key): If the key binding definition looks like an
+	XEmacs-style key sequence, convert it to Emacs's format.
+
+2006-07-22  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32fns.c (w32_createwindow): If `left' and/or `top' frame
+	parameters are bound to some values, use that instead of
+	CW_USEDEFAULT.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (convert_time): Use explicit long double constants to
+	ensure long double arithmetics is used throughout.
+
+2006-07-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (pure_bytes_used_lisp, pure_bytes_used_non_lisp): New	vars.
+	(init_alloc_once): Initialize them.
+	(pure_alloc): Allocate non-Lisp objects from the end of pure storage
+	without alignment.
+
+	* puresize.h (BASE_PURESIZE): Decrease to 1141000.
+
+2006-07-18  Francis Litterio  <franl@world.std.com>
+
+	* w32term.c (x_calc_absolute_position): Fix frame positioning
+	with negative X/Y coordinates.
+
+2006-07-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_connection_closed, x_error_quitter): Mark as NO_RETURN.
+
+	* textprop.c (text_read_only): Likewise.
+
+	* lread.c (end_of_file_error): Likewise.
+
+	* lisp.h (circular_list_error, memory_full, buffer_memory_full):
+	Likewise.
+
+	* eval.c (unwind_to_catch): Likewise.
+
+	* buffer.h (buffer_slot_type_mismatch): Likewise.
+
+2006-07-18  Kim F. Storm  <storm@cua.dk>
+
+	Cleanup Fsignal calls that never returns; now only use it for Qquit.
+
+	* eval.c (xsignal): New func.  Like Fsignal, but marked no-return.
+	(xsignal0, xsignal1, xsignal2, xsignal3): New no-return functions.
+	(signal_error): New no-return function (from xfaces.c).
+	(Fthrow): Use xsignal2 instead of Fsignal + abort.
+	(error): Use xsignal1 instead of Fsignal + abort.
+	(FletX, Flet, grow_specpdl): Use signal_error.
+	(Feval, Ffuncall, funcall_lambda): Use xsignal1, xsignal2.
+
+	* alloc.c (buffer_memory_full, memory_full): Use xsignal. Remove loop.
+	(list1): New function.
+
+	* lisp.h (list1): Add EXFUN.
+	(xsignal, xsignal0, xsignal1, xsignal2, xsignal3, signal_error):
+	Add prototypes.  Mark them as no-return.
+
+	* buffer.c (Fbuffer_local_value, Fbarf_if_buffer_read_only):
+	Use xsignal1.
+
+	* callint.c (check_mark): Use xsignal0.
+
+	* casefiddle.c (casify_object): wrong_type_argument is no-return.
+
+	* cmds.c (Fforward_char, Fdelete_char): Use xsignal0.
+
+	* coding.c (Fcheck_coding_system): Use xsignal1.  Remove loop.
+	(Fdefine_coding_system_internal): Use xsignal1.
+
+	* data.c (circular_list_error): Use xsignal.
+	(wrong_type_argument): Use xsignal2.  Don't care about return value.
+	(args_out_of_range, args_out_of_range_3): Use xsignal2, xsignal3.
+	Remove loop around Fsignal.
+	(indirect_variable, Fsymbol_value, set_internal, Fdefault_value)
+	(indirect_function, Findirect_function, Fstring_to_number)
+	(Fmakunbound, Ffmakunbound, Fsymbol_function, Ffset): Use xsignal1.
+	(arith_driver, float_arith_driver, Frem, Fmod, arith_error):
+	Use xsignal0.
+
+	* doc.c (Fdocumentation): Use xsignal1.
+
+	* editfns.c (region_limit, Fget_internal_run_time): Use xsignal0.
+
+	* fileio.c (report_file_error): Use xsignal.
+	(barf_or_query_if_file_exists, Fcopy_file, Fdelete_file)
+	(Finsert_file_contents): Use xsignal2.
+	(syms_of_fileio): Use list2, list3.
+
+	* floatfns.c (arith_error, range_error, domain_error): Use xsignal2.
+	(range_error2, domain_error2): Use xsignal3.
+	(rounding_driver, fmod_float): Use xsignal0.
+	(float_error): Use xsignal1.
+	(matherr): Use xsignal.
+
+	* fns.c (Flength): wrong_type_argument is no-return.
+	(hashfn_user_defined, Fmake_hash_table): Use signal_error.
+	(Fmd5): Use xsignal1.
+
+	* frame.c (x_set_line_spacing, x_set_screen_gamma): Use signal_error.
+
+	* keyboard.c (recursive_edit_1): Use xsignal1.
+
+	* keymap.c (Fmap_keymap): Use xsignal1.
+
+	* lread.c (Fload): Use xsignal2, signal_error.
+	(end_of_file_error): Use xsignal0, xsignal1.
+	(read0): Use xsignal1.
+	(invalid_syntax): New error function marked no-return.
+	(read_integer, read1, read_list): Use it.
+
+	* macselect.c (x_get_local_selection): Use signal_error.
+
+	* msdos.c (Fmsdos_set_mouse_buttons): Use xsignal2.
+
+	* search.c (compile_pattern_1): Use xsignal1.
+	(signal_failure): Remove (was only called once).
+	(search_command): Use xsignal1 instead of signal_failure.
+
+	* syntax.c (scan_lists): Use xsignal3.
+
+	* textprop.c (text_read_only): Use xsignal0, xsignal1.
+
+	* unexsol.c (unexec): Use xsignal.
+
+	* window.c (window_scroll_pixel_based, window_scroll_line_based):
+	Use xsignal0.
+
+	* xfaces.c (signal_error): Move to eval.c.
+	(resolve_face_name): Use xsignal1.
+
+	* xfns.c (x_decode_color): Use signal_error.
+
+	* xselect.c (x_get_local_selection, copy_multiple_data)
+	(x_get_window_property_as_lisp_data)
+	(lisp_data_to_selection_data, CHECK_CUT_BUFFER)
+	(Fx_get_cut_buffer_internal): Use signal_error.
+
+2006-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XTread_socket): Undo previous change.
+
+2006-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (keycode_to_xkeysym): Remove function.  All uses now
+	directly lookup keycode_to_xkeysym_table.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Don't construct
+	ASCII_KEYSTROKE_EVENT for non-zero keycode_to_xkeysym_table entries.
+	(XTread_socket): Use character codes to construct keypad key events.
+	(mac_initialize_display_info) [MAC_OSX]: Use CGDisplaySamplesPerPixel.
+	(x_delete_display): Apply 2006-07-04 change for xterm.c.
+
+2006-07-17  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_single_display_spec): Ensure the right value of
+	it->position is saved by push_it.
+	(pop_it): Restore it->object for GET_FROM_BUFFER and GET_FROM_STRING.
+	(reseat_1): Don't setup it->object twice.
+	(set_iterator_to_next): No need to set it->object after pop_it.
+	(move_it_to): Explicitly check to see if last move reached to_charpos.
+
+2006-07-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xdisp.c (display_mode_line): Preserve match data.
+
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* w32.c (pfn_WSACreateEvent, pfn_WSACloseEvent): New func ptrs.
+	(init_winsock): Load them.  Use ws2_32.dll.
+	(sys_listen): Undo last change.  Just set FILE_LISTEN flag.
+	(sys_accept): Undo last change.  Instead, set child status to
+	STATUS_READ_ACKNOWLEDGED and reset char_avail event so next
+	sys_select will wakeup the reader thread.
+	(_sys_wait_accept): New function used by reader thread to wait for
+	an incoming connection on a server socket.
+
+	* w32.h (_sys_read_ahead, _sys_wait_accept): Add prototypes.
+
+	* w32proc.c (reader_thread): Use _sys_wait_accept to wait on a
+	server socket (FILE_LISTEN flag).
+
+2006-07-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sound.c (alsa_init): Call snd_pcm_close after successful snd_pcm_open.
+
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* w32.c: Fix high cpu load for server sockets.
+	(pfn_WSAEventSelect): New function ptr.
+	(init_winsock): Load it.
+	(sys_listen): Set FILE_LISTEN flag. Set event mask for socket's
+	char_avail event object to FD_ACCEPT.
+	(sys_accept): Check FILE_LISTEN flag.  Set event mask on new
+	socket's char_avail event object to FD_READ|FD_CLOSE.
+
+	* w32.h (FILE_LISTEN): New filedesc flag value.
+
 2006-07-13  Kim F. Storm  <storm@cua.dk>
 
 	* bytecode.c (Fbyte_code): Use CAR, CDR for Bcar, Bcdr.

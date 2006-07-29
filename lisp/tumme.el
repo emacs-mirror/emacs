@@ -84,7 +84,7 @@
 ;; USAGE
 ;; =====
 ;;
-;; This information has been moved to the manual. Type `C-h r' to open
+;; This information has been moved to the manual.  Type `C-h r' to open
 ;; the Emacs manual and go to the node Thumbnails by typing `g
 ;; Thumbnails RET'.
 ;;
@@ -161,6 +161,10 @@
 
 (require 'dired)
 (require 'format-spec)
+(require 'widget)
+
+(eval-when-compile
+  (require 'wid-edit))
 
 (defgroup tumme nil
   "Use dired to browse your images as thumbnails, and more."
@@ -644,7 +648,7 @@ according to the Thumbnail Managing Standard."
                                ;; Can't use (overlays-at (point)), BUG?
                                (overlays-in (point) (1+ (point)))))
        (put-image thumb-file image-pos)
-       (setq 
+       (setq
 	overlay
 	(car (delq nil (mapcar (lambda (o) (and (overlay-get o 'put-image) o))
 			       (overlays-in (point) (1+ (point)))))))
@@ -864,32 +868,27 @@ displayed."
 ;;;###autoload
 (defalias 'tumme 'tumme-show-all-from-dir)
 
-(defun tumme-write-tag (files tag)
-  "For all FILES, writes TAG to the image database."
-  (save-excursion
-    (let (end buf)
-      (setq buf (find-file tumme-db-file))
-      (if (not (listp files))
-          (if (stringp files)
-              (setq files (list files))
-            (error "Files must be a string or a list of strings!")))
-      (mapcar
-       (lambda (file)
-         (goto-char (point-min))
-         (if (search-forward-regexp
-              (format "^%s" file) nil t)
-             (progn
-               (end-of-line)
-               (setq end (point))
-               (beginning-of-line)
-               (when (not (search-forward (format ";%s" tag) end t))
-                 (end-of-line)
-                 (insert (format ";%s" tag))))
-           (goto-char (point-max))
-           (insert (format "\n%s;%s" file tag))))
-       files)
-      (save-buffer)
-      (kill-buffer buf))))
+(defun tumme-write-tags (file-tags)
+  "Write file tags to database.
+Write each file and tag in FILE-TAGS to the database.  FILE-TAGS
+is an alist in the following form:
+ ((FILE . TAG) ... )"
+  (let (end file tag)
+    (with-temp-file tumme-db-file
+      (insert-file-contents tumme-db-file)
+      (dolist (elt file-tags)
+	(setq file (car elt)
+	      tag (cdr elt))
+	(goto-char (point-min))
+	(if (search-forward-regexp (format "^%s.*$" file) nil t)
+	    (progn
+	      (setq end (point))
+	      (beginning-of-line)
+	      (when (not (search-forward (format ";%s" tag) end t))
+		(end-of-line)
+		(insert (format ";%s" tag))))
+	  (goto-char (point-max))
+	  (insert (format "\n%s;%s" file tag)))))))
 
 (defun tumme-remove-tag (files tag)
   "For all FILES, remove TAG from the image database."
@@ -951,15 +950,19 @@ displayed."
   (let ((tag (read-string "Tags to add (separate tags with a semicolon): "))
         curr-file files)
     (if arg
-        (setq files (dired-get-filename))
+        (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files)))
-    (tumme-write-tag files tag)))
+    (tumme-write-tags
+     (mapcar
+      (lambda (x)
+        (cons x tag))
+      files))))
 
 (defun tumme-tag-thumbnail ()
   "Tag current thumbnail."
   (interactive)
   (let ((tag (read-string "Tags to add (separate tags with a semicolon): ")))
-    (tumme-write-tag (tumme-original-file-name) tag))
+    (tumme-write-tags (list (cons (tumme-original-file-name) tag))))
   (tumme-update-property
    'tags (tumme-list-tags (tumme-original-file-name))))
 
@@ -1006,7 +1009,7 @@ use only useful if `tumme-track-movement' is nil."
   (let ((old-buf (current-buffer))
         (dired-buf (tumme-associated-dired-buffer))
         (file-name (tumme-original-file-name)))
-    (when (and dired-buf file-name)
+    (when (and (buffer-live-p dired-buf) file-name)
       (setq file-name (file-name-nondirectory file-name))
       (set-buffer dired-buf)
       (goto-char (point-min))
@@ -1069,32 +1072,46 @@ move ARG lines."
   (if tumme-track-movement
       (tumme-track-thumbnail)))
 
-(defun tumme-forward-char ()
-  "Move to next image and display properties."
-  (interactive)
-  ;; Before we move, make sure that there is an image two positions
-  ;; forward.
-  (when (save-excursion
-        (forward-char 2)
-        (tumme-image-at-point-p))
-    (forward-char)
-    (while (and (not (eobp))
-                (not (tumme-image-at-point-p)))
-      (forward-char))
-    (if tumme-track-movement
-        (tumme-track-original-file)))
+(defun tumme-forward-image (&optional arg)
+  "Move to next image and display properties.
+Optional prefix ARG says how many images to move; default is one
+image."
+  (interactive "p")
+  (let (pos (steps (or arg 1)))
+    (dotimes (i steps)
+      (if (and (not (eobp))
+               (save-excursion
+                 (forward-char)
+                 (while (and (not (eobp))
+                             (not (tumme-image-at-point-p)))
+                   (forward-char))
+                 (setq pos (point))
+                 (tumme-image-at-point-p)))
+          (goto-char pos)
+        (error "At last image"))))
+  (when tumme-track-movement
+    (tumme-track-original-file))
   (tumme-display-thumb-properties))
 
-(defun tumme-backward-char ()
-  "Move to previous image and display properties."
-  (interactive)
-  (when (not (bobp))
-    (backward-char)
-    (while (and (not (bobp))
-                (not (tumme-image-at-point-p)))
-      (backward-char))
-    (if tumme-track-movement
-        (tumme-track-original-file)))
+(defun tumme-backward-image (&optional arg)
+  "Move to previous image and display properties.
+Optional prefix ARG says how many images to move; default is one
+image."
+  (interactive "p")
+  (let (pos (steps (or arg 1)))
+    (dotimes (i steps)
+      (if (and (not (bobp))
+               (save-excursion
+                 (backward-char)
+                 (while (and (not (bobp))
+                             (not (tumme-image-at-point-p)))
+                   (backward-char))
+                 (setq pos (point))
+                 (tumme-image-at-point-p)))
+          (goto-char pos)
+        (error "At first image"))))
+  (when tumme-track-movement
+    (tumme-track-original-file))
   (tumme-display-thumb-properties))
 
 (defun tumme-next-line ()
@@ -1103,7 +1120,7 @@ move ARG lines."
   (next-line 1)
   ;; If we end up in an empty spot, back up to the next thumbnail.
   (if (not (tumme-image-at-point-p))
-      (tumme-backward-char))
+      (tumme-backward-image))
   (if tumme-track-movement
       (tumme-track-original-file))
   (tumme-display-thumb-properties))
@@ -1118,7 +1135,7 @@ move ARG lines."
   ;; thumbnail and did not refresh, so it is not very common. But we
   ;; can handle it in a good manner, so why not?
   (if (not (tumme-image-at-point-p))
-      (tumme-backward-char))
+      (tumme-backward-image))
   (if tumme-track-movement
       (tumme-track-original-file))
   (tumme-display-thumb-properties))
@@ -1131,7 +1148,7 @@ comment."
   (format-spec
    tumme-display-properties-format
    (list
-    (cons ?b buf)
+    (cons ?b (or buf ""))
     (cons ?f file)
     (cons ?t (or (princ props) ""))
     (cons ?c (or comment "")))))
@@ -1187,19 +1204,19 @@ dired."
   "Mark original image file in associated dired buffer."
   (interactive)
   (tumme-modify-mark-on-thumb-original-file 'mark)
-  (tumme-forward-char))
+  (tumme-forward-image))
 
 (defun tumme-unmark-thumb-original-file ()
   "Unmark original image file in associated dired buffer."
   (interactive)
   (tumme-modify-mark-on-thumb-original-file 'unmark)
-  (tumme-forward-char))
+  (tumme-forward-image))
 
 (defun tumme-flag-thumb-original-file ()
   "Flag original image file for deletion in associated dired buffer."
   (interactive)
   (tumme-modify-mark-on-thumb-original-file 'flag)
-  (tumme-forward-char))
+  (tumme-forward-image))
 
 (defun tumme-toggle-mark-thumb-original-file ()
   "Toggle mark on original image file in associated dired buffer."
@@ -1247,12 +1264,12 @@ You probably want to use this together with
   "Define keymap for `tumme-thumbnail-mode'."
 
   ;; Keys
-  (define-key tumme-thumbnail-mode-map [right] 'tumme-forward-char)
-  (define-key tumme-thumbnail-mode-map [left] 'tumme-backward-char)
+  (define-key tumme-thumbnail-mode-map [right] 'tumme-forward-image)
+  (define-key tumme-thumbnail-mode-map [left] 'tumme-backward-image)
   (define-key tumme-thumbnail-mode-map [up] 'tumme-previous-line)
   (define-key tumme-thumbnail-mode-map [down] 'tumme-next-line)
-  (define-key tumme-thumbnail-mode-map "\C-f" 'tumme-forward-char)
-  (define-key tumme-thumbnail-mode-map "\C-b" 'tumme-backward-char)
+  (define-key tumme-thumbnail-mode-map "\C-f" 'tumme-forward-image)
+  (define-key tumme-thumbnail-mode-map "\C-b" 'tumme-backward-image)
   (define-key tumme-thumbnail-mode-map "\C-p" 'tumme-previous-line)
   (define-key tumme-thumbnail-mode-map "\C-n" 'tumme-next-line)
 
@@ -1655,7 +1672,8 @@ See also `tumme-line-up-dynamic'."
             (insert "\n")
           (insert " ")
           (setq count (1+ count))
-          (when (= count (- tumme-thumbs-per-row 1))
+          (when (and (= count (- tumme-thumbs-per-row 1))
+		     (not (eobp)))
             (forward-char)
             (insert "\n")
             (setq count 0)))))
@@ -1798,8 +1816,10 @@ With prefix argument ARG, display image in its original size."
           (message "No thumbnail at point")
         (if (not file)
             (message "No original file name found")
-          (tumme-display-image file arg)
-          (display-buffer tumme-display-image-buffer))))))
+	  (tumme-create-display-image-buffer)
+          (display-buffer tumme-display-image-buffer)
+          (tumme-display-image file arg))))))
+
 
 ;;;###autoload
 (defun tumme-dired-display-image (&optional arg)
@@ -1807,8 +1827,9 @@ With prefix argument ARG, display image in its original size."
 See documentation for `tumme-display-image' for more information.
 With prefix argument ARG, display image in its original size."
   (interactive "P")
-  (tumme-display-image (dired-get-filename) arg)
-  (display-buffer tumme-display-image-buffer))
+  (tumme-create-display-image-buffer)
+  (display-buffer tumme-display-image-buffer)
+  (tumme-display-image (dired-get-filename) arg))
 
 (defun tumme-image-at-point-p ()
   "Return true if there is a tumme thumbnail at point."
@@ -2000,49 +2021,49 @@ function.  The result is a couple of new files in
 (defun tumme-display-next-thumbnail-original ()
   "In thubnail buffer, move to next thumbnail and display the image."
   (interactive)
-  (tumme-forward-char)
+  (tumme-forward-image)
   (tumme-display-thumbnail-original-image))
 
 (defun tumme-display-previous-thumbnail-original ()
   "Move to previous thumbnail and display image."
-
   (interactive)
-  (tumme-backward-char)
+  (tumme-backward-image)
   (tumme-display-thumbnail-original-image))
 
-(defun tumme-write-comment (file comment)
-  "For FILE, write comment COMMENT in database."
-  (save-excursion
-    (let (end buf comment-beg)
-      (setq buf (find-file tumme-db-file))
-      (goto-char (point-min))
-      (if (search-forward-regexp
-           (format "^%s" file) nil t)
-          (progn
-            (end-of-line)
-            (setq end (point))
-            (beginning-of-line)
-            ;; Delete old comment, if any
-            (cond ((search-forward ";comment:" end t)
-                   (setq comment-beg (match-beginning 0))
-                   ;; Any tags after the comment?
-                   (if (search-forward ";" end t)
-                       (setq comment-end (- (point) 1))
-                     (setq comment-end end))
-                   ;; Delete comment tag and comment
-                   (delete-region comment-beg comment-end)))
-            ;; Insert new comment
-            (beginning-of-line)
-            (if (not (search-forward ";" end t))
-                (progn
-                  (end-of-line)
-                  (insert ";")))
-            (insert (format "comment:%s;" comment)))
-        ;; File does not exist in databse - add it.
-        (goto-char (point-max))
-        (insert (format "\n%s;comment:%s" file comment)))
-      (save-buffer)
-      (kill-buffer buf))))
+(defun tumme-write-comments (file-comments)
+  "Write file comments to database.
+Write file comments to one or more files.  FILE-COMMENTS is an alist on
+the following form:
+ ((FILE . COMMENT) ... )"
+  (let (end comment-beg-pos comment-end-pos file comment)
+    (with-temp-file tumme-db-file
+      (insert-file-contents tumme-db-file)
+      (dolist (elt file-comments)
+	(setq file (car elt)
+	      comment (cdr elt))
+	(goto-char (point-min))
+	(if (search-forward-regexp (format "^%s.*$" file) nil t)
+	    (progn
+	      (setq end (point))
+	      (beginning-of-line)
+	      ;; Delete old comment, if any
+	      (when (search-forward ";comment:" end t)
+		(setq comment-beg-pos (match-beginning 0))
+		;; Any tags after the comment?
+		(if (search-forward ";" end t)
+		    (setq comment-end-pos (- (point) 1))
+		  (setq comment-end-pos end))
+		;; Delete comment tag and comment
+		(delete-region comment-beg-pos comment-end-pos))
+	      ;; Insert new comment
+	      (beginning-of-line)
+	      (unless (search-forward ";" end t)
+		(end-of-line)
+		(insert ";"))
+	      (insert (format "comment:%s;" comment)))
+	  ;; File does not exist in database - add it.
+	  (goto-char (point-max))
+	  (insert (format "\n%s;comment:%s" file comment)))))))
 
 (defun tumme-update-property (prop value)
   "Update text property PROP with value VALUE at point."
@@ -2056,19 +2077,19 @@ function.  The result is a couple of new files in
 (defun tumme-dired-comment-files ()
   "Add comment to current or marked files in dired."
   (interactive)
-  (let ((files (dired-get-marked-files))
-         (comment (tumme-read-comment)))
-    (mapcar
-     (lambda (curr-file)
-       (tumme-write-comment curr-file comment))
-     files)))
+  (let ((comment (tumme-read-comment)))
+    (tumme-write-comments
+     (mapcar
+      (lambda (curr-file)
+        (cons curr-file comment))
+      (dired-get-marked-files)))))
 
 (defun tumme-comment-thumbnail ()
   "Add comment to current thumbnail in thumbnail buffer."
   (interactive)
   (let* ((file (tumme-original-file-name))
          (comment (tumme-read-comment file)))
-    (tumme-write-comment file comment)
+    (tumme-write-comments (list (cons file comment)))
     (tumme-update-property 'comment comment))
   (tumme-display-thumb-properties))
 
@@ -2085,21 +2106,21 @@ as initial value."
 (defun tumme-get-comment (file)
   "Get comment for file FILE."
   (save-excursion
-    (let (end buf comment-beg comment (base-name (file-name-nondirectory file)))
+    (let (end buf comment-beg-pos comment-end-pos comment)
       (setq buf (find-file tumme-db-file))
       (goto-char (point-min))
       (when (search-forward-regexp
-             (format "^%s" base-name) nil t)
+             (format "^%s" file) nil t)
         (end-of-line)
         (setq end (point))
         (beginning-of-line)
         (cond ((search-forward ";comment:" end t)
-               (setq comment-beg (point))
+               (setq comment-beg-pos (point))
                (if (search-forward ";" end t)
-                   (setq comment-end (- (point) 1))
-                 (setq comment-end end))
+                   (setq comment-end-pos (- (point) 1))
+                 (setq comment-end-pos end))
                (setq comment (buffer-substring
-                              comment-beg comment-end)))))
+                              comment-beg-pos comment-end-pos)))))
       (kill-buffer buf)
       comment)))
 
@@ -2153,6 +2174,8 @@ non-nil."
     (setq file (tumme-original-file-name))
     (if tumme-track-movement
         (tumme-track-original-file))
+    (tumme-create-display-image-buffer)
+    (display-buffer tumme-display-image-buffer)
     (tumme-display-image file)))
 
 (defun tumme-mouse-select-thumbnail (event)
@@ -2420,6 +2443,107 @@ when using per-directory thumbnail file storage"))
         (delete-window (selected-window))
       (error nil))
     (kill-buffer buffer)))
+
+(defvar tumme-widget-list nil
+  "List to keep track of meta data in edit buffer.")
+
+;;;###autoload
+(defun tumme-dired-edit-comment-and-tags ()
+  "Edit comment and tags of current or marked image files.
+Edit comment and tags for all marked image files in an
+easy-to-use form."
+  (interactive)
+  (setq tumme-widget-list nil)
+  ;; Setup buffer.
+  (let ((files (dired-get-marked-files)))
+    (switch-to-buffer "*Tumme Edit Meta Data*")
+    (kill-all-local-variables)
+    (make-local-variable 'widget-example-repeat)
+    (let ((inhibit-read-only t))
+      (erase-buffer))
+    (remove-overlays)
+    ;; Some help for the user.
+    (widget-insert
+"\nEdit comments and tags for each image.  Separate multiple tags
+with a comma.  Move forward between fields using TAB or RET.
+Move to the previous field using backtab (S-TAB).  Save by
+activating the Save button at the bottom of the form or cancel
+the operation by activating the Cancel button.\n\n")
+    ;; Here comes all images and a comment and tag field for each
+    ;; image.
+    (let (thumb-file img comment-widget tag-widget)
+
+      (dolist (file files)
+
+       (setq thumb-file (tumme-thumb-name file)
+             img (create-image thumb-file))
+
+       (insert-image img)
+       (widget-insert "\n\nComment: ")
+       (setq comment-widget
+             (widget-create 'editable-field
+                            :size 60
+                            :format "%v "
+                            :value (or (tumme-get-comment file) "")))
+       (widget-insert "\nTags:    ")
+       (setq tag-widget
+             (widget-create 'editable-field
+                            :size 60
+                            :format "%v "
+                            :value (or (mapconcat
+                                        (lambda (tag)
+                                          tag)
+                                        (tumme-list-tags file)
+                                        ",") "")))
+       ;; Save information in all widgets so that we can use it when
+       ;; the user saves the form.
+       (setq tumme-widget-list
+             (append tumme-widget-list
+                     (list (list file comment-widget tag-widget))))
+       (widget-insert "\n\n")))
+
+    ;; Footer with Save and Cancel button.
+    (widget-insert "\n")
+    (widget-create 'push-button
+                 :notify
+                 (lambda (&rest ignore)
+                   (tumme-save-information-from-widgets)
+                   (bury-buffer)
+                   (message "Done."))
+                 "Save")
+    (widget-insert " ")
+    (widget-create 'push-button
+                   :notify
+                   (lambda (&rest ignore)
+                     (bury-buffer)
+                     (message "Operation canceled."))
+                   "Cancel")
+    (widget-insert "\n")
+    (use-local-map widget-keymap)
+    (widget-setup)
+    ;; Jump to the first widget.
+    (widget-forward 1)))
+
+(defun tumme-save-information-from-widgets ()
+  "Save information found in `tumme-widget-list'.
+Use the information in `tumme-widget-list' to save comments and
+tags to their respective image file.  Internal function used by
+`tumme-dired-edit-comment-and-tags'."
+  (let (file comment tag-string tag-list lst)
+    (tumme-write-comments
+          (mapcar
+           (lambda (widget)
+             (setq file (car widget)
+                   comment (widget-value (cadr widget)))
+             (cons file comment))
+           tumme-widget-list))
+    (tumme-write-tags
+     (dolist (widget tumme-widget-list lst)
+       (setq file (car widget)
+             tag-string (widget-value (car (cddr widget)))
+             tag-list (split-string tag-string ","))
+       (dolist (tag tag-list)
+         (push (cons file tag) lst))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;; TEST-SECTION ;;;;;;;;;;;

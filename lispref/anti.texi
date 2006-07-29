@@ -24,6 +24,12 @@ redisplay engine, which will be even simpler.)
 
 @itemize @minus
 @item
+The function @code{redisplay} has been removed.  To update the display
+without delay, call @code{(sit-for 0)}.  Since it is generally
+considered wasteful to update the display if there are any pending
+input events, no replacement for @code{(redisplay t)} is provided.
+
+@item
 The function @code{force-window-update} has been removed.  It
 shouldn't be needed, since changes in window contents are detected
 automatically.  In case they aren't, call @code{redraw-display} to
@@ -80,8 +86,8 @@ removed.  In @code{defface} specifications, the @code{supports}
 predicate is no longer supported.
 
 @item
-@code{face-attribute-relative-p} and @code{merge-face-attribute} have
-been removed.
+The functions @code{merge-face-attribute} and
+@code{face-attribute-relative-p} have been removed.
 
 @item
 The priority of faces in a list supplied by the @code{:inherit} face
@@ -91,7 +97,7 @@ in a while, to keep Emacs Lisp programmers on their toes.
 @item
 The @code{min-colors} face attribute, used for tailoring faces to
 limited-color displays, does not exist.  If in doubt, use colors like
-``white'' and ``black'', which ought to be defined everywhere.
+``white'' and ``black,'' which ought to be defined everywhere.
 
 @item
 The @code{tty-color-mode} frame parameter does not exist.  You should
@@ -126,9 +132,9 @@ and key sequences:
 
 @itemize @minus
 @item
-The @code{kbd} macro has been removed.  It isn't that difficult to
-write key sequences using the string and vector representations, and
-we want to encourage users to learn.
+The @code{kbd} macro is now obsolete and is no longer documented.
+It isn't that difficult to write key sequences using the string and
+vector representations, and we want to encourage users to learn.
 
 @item
 Emacs no longer supports key remapping.  You can do pretty much the
@@ -164,7 +170,7 @@ the sentinel.
 
 @item
 Many programming shortcuts have been deleted, to provide you with the
-enjoyment of ``rolling your own''.  The macros @code{while-no-input},
+enjoyment of ``rolling your own.''  The macros @code{while-no-input},
 @code{with-local-quit}, and @code{with-selected-window}, along with
 @code{dynamic-completion-table} and @code{lazy-completion-table} no
 longer exist.  Also, there are no built-in progress reporters;
@@ -304,7 +310,7 @@ In @code{replace-match}, the replacement text now inherits properties
 from the surrounding text.
 
 @item
-@code{mode-line-format} no longer supports the @code{:propertize},
+The variable @code{mode-line-format} no longer supports the @code{:propertize},
 @code{%i}, and @code{%I} constructs.  The function
 @code{format-mode-line} has been removed.
 
@@ -319,8 +325,9 @@ The functions @code{window-pixel-edges} and
 think in terms of lines and columns, not pixel coordinates.  (Sometime
 in the distant past, we will do away with graphical terminals
 entirely, in favor of text terminals.)  For similar reasons, the
-functions @code{posn-at-point}, @code{posn-at-x-y}, and
-@code{pos-visible-in-window-p} have been removed.
+functions @code{posn-at-point} and @code{posn-at-x-y} have been removed, and
+@code{pos-visible-in-window-p} no longer worries about partially
+visible rows.
 
 @item
 The macro @code{save-selected-window} only saves the selected window

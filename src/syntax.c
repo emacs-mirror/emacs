@@ -2347,10 +2347,9 @@ scan_lists (from, count, depth, sexpflag)
 	    close1:
 	      if (!--depth) goto done;
 	      if (depth < min_depth)
-		Fsignal (Qscan_error,
-			 Fcons (build_string ("Containing expression ends prematurely"),
-				Fcons (make_number (last_good),
-				       Fcons (make_number (from), Qnil))));
+		xsignal3 (Qscan_error,
+			  build_string ("Containing expression ends prematurely"),
+			  make_number (last_good), make_number (from));
 	      break;
 
 	    case Sstring:
@@ -2499,10 +2498,9 @@ scan_lists (from, count, depth, sexpflag)
 	    open2:
 	      if (!--depth) goto done2;
 	      if (depth < min_depth)
-		Fsignal (Qscan_error,
-			 Fcons (build_string ("Containing expression ends prematurely"),
-				Fcons (make_number (last_good),
-				       Fcons (make_number (from), Qnil))));
+		xsignal3 (Qscan_error,
+			  build_string ("Containing expression ends prematurely"),
+			  make_number (last_good), make_number (from));
 	      break;
 
 	    case Sendcomment:
@@ -2571,12 +2569,9 @@ scan_lists (from, count, depth, sexpflag)
   return val;
 
  lose:
-  Fsignal (Qscan_error,
-	   Fcons (build_string ("Unbalanced parentheses"),
-		  Fcons (make_number (last_good),
-			 Fcons (make_number (from), Qnil))));
-  abort ();
-  /* NOTREACHED */
+  xsignal3 (Qscan_error,
+	    build_string ("Unbalanced parentheses"),
+	    make_number (last_good), make_number (from));
 }
 
 DEFUN ("scan-lists", Fscan_lists, Sscan_lists, 3, 3, 0,

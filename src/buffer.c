@@ -951,10 +951,10 @@ is the default binding of the variable. */)
       result = XCDR (result);
     }
 
-  if (EQ (result, Qunbound))
-    return Fsignal (Qvoid_variable, Fcons (variable, Qnil));
+  if (!EQ (result, Qunbound))
+    return result;
 
-  return result;
+  xsignal1 (Qvoid_variable, variable);
 }
 
 /* Return an alist of the Lisp-level buffer-local bindings of
@@ -1991,7 +1991,7 @@ DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
 {
   if (!NILP (current_buffer->read_only)
       && NILP (Vinhibit_read_only))
-    Fsignal (Qbuffer_read_only, (Fcons (Fcurrent_buffer (), Qnil)));
+    xsignal1 (Qbuffer_read_only, Fcurrent_buffer ());
   return Qnil;
 }
 

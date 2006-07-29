@@ -751,7 +751,7 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
   if (INTEGERP (function))
     /* We have to stop integers early since map_keymap gives them special
        significance.  */
-    Fsignal (Qinvalid_function, Fcons (function, Qnil));
+    xsignal1 (Qinvalid_function, function);
   if (! NILP (sort_first))
     return call3 (intern ("map-keymap-internal"), function, keymap, Qt);
 
@@ -1141,6 +1141,20 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
     Vdefine_key_rebound_commands = Fcons (def, Vdefine_key_rebound_commands);
 
   meta_bit = VECTORP (key) ? meta_modifier : 0x80;
+
+  if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, make_number (0))))
+    { /* DEF is apparently an XEmacs-style keyboard macro.  */
+      Lisp_Object tmp = Fmake_vector (make_number (ASIZE (def)), Qnil);
+      int i = ASIZE (def);
+      while (--i >= 0)
+	{
+	  Lisp_Object c = AREF (def, i);
+	  if (CONSP (c) && lucid_event_type_list_p (c))
+	    c = Fevent_convert_list (c);
+	  ASET (tmp, i, c);
+	}
+      def = tmp;
+    }
 
   idx = 0;
   while (1)

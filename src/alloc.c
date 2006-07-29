@@ -289,9 +289,17 @@ static size_t pure_bytes_used_before_overflow;
       && ((PNTR_COMPARISON_TYPE) (P)				\
 	  >= (PNTR_COMPARISON_TYPE) purebeg))
 
-/* Index in pure at which next pure object will be allocated.. */
+/* Total number of bytes allocated in pure storage. */
 
 EMACS_INT pure_bytes_used;
+
+/* Index in pure at which next pure Lisp object will be allocated.. */
+
+static EMACS_INT pure_bytes_used_lisp;
+
+/* Number of bytes allocated for non-Lisp objects in pure storage.  */
+
+static EMACS_INT pure_bytes_used_non_lisp;
 
 /* If nonzero, this is a warning delivered by malloc and not yet
    displayed.  */
@@ -561,8 +569,7 @@ buffer_memory_full ()
 
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
-  while (1)
-    Fsignal (Qnil, Vmemory_signal_data);
+  xsignal (Qnil, Vmemory_signal_data);
 }
 
 
@@ -2779,7 +2786,14 @@ check_cons_list ()
 #endif
 }
 
-/* Make a list of 2, 3, 4 or 5 specified objects.  */
+/* Make a list of 1, 2, 3, 4 or 5 specified objects.  */
+
+Lisp_Object
+list1 (arg1)
+     Lisp_Object arg1;
+{
+  return Fcons (arg1, Qnil);
+}
 
 Lisp_Object
 list2 (arg1, arg2)
@@ -3495,8 +3509,7 @@ memory_full ()
 
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
-  while (1)
-    Fsignal (Qnil, Vmemory_signal_data);
+  xsignal (Qnil, Vmemory_signal_data);
 }
 
 /* If we released our reserve (due to running out of memory),
@@ -4689,10 +4702,7 @@ valid_lisp_object_p (obj)
 
 /* Allocate room for SIZE bytes from pure Lisp storage and return a
    pointer to it.  TYPE is the Lisp type for which the memory is
-   allocated.  TYPE < 0 means it's not used for a Lisp object.
-
-   If store_pure_type_info is set and TYPE is >= 0, the type of
-   the allocated object is recorded in pure_types.  */
+   allocated.  TYPE < 0 means it's not used for a Lisp object.  */
 
 static POINTER_TYPE *
 pure_alloc (size, type)
@@ -4717,8 +4727,21 @@ pure_alloc (size, type)
 #endif
 
  again:
-  result = ALIGN (purebeg + pure_bytes_used, alignment);
-  pure_bytes_used = ((char *)result - (char *)purebeg) + size;
+  if (type >= 0)
+    {
+      /* Allocate space for a Lisp object from the beginning of the free
+	 space with taking account of alignment.  */
+      result = ALIGN (purebeg + pure_bytes_used_lisp, alignment);
+      pure_bytes_used_lisp = ((char *)result - (char *)purebeg) + size;
+    }
+  else
+    {
+      /* Allocate space for a non-Lisp object from the end of the free
+	 space.  */
+      pure_bytes_used_non_lisp += size;
+      result = purebeg + pure_size - pure_bytes_used_non_lisp;
+    }
+  pure_bytes_used = pure_bytes_used_lisp + pure_bytes_used_non_lisp;
 
   if (pure_bytes_used <= pure_size)
     return result;
@@ -4730,6 +4753,7 @@ pure_alloc (size, type)
   pure_size = 10000;
   pure_bytes_used_before_overflow += pure_bytes_used - size;
   pure_bytes_used = 0;
+  pure_bytes_used_lisp = pure_bytes_used_non_lisp = 0;
   goto again;
 }
 
@@ -4742,6 +4766,73 @@ check_pure_size ()
   if (pure_bytes_used_before_overflow)
     message ("emacs:0:Pure Lisp storage overflow (approx. %d bytes needed)",
 	     (int) (pure_bytes_used + pure_bytes_used_before_overflow));
+}
+
+
+/* Find the byte sequence {DATA[0], ..., DATA[NBYTES-1], '\0'} from
+   the non-Lisp data pool of the pure storage, and return its start
+   address.  Return NULL if not found.  */
+
+static char *
+find_string_data_in_pure (data, nbytes)
+     char *data;
+     int nbytes;
+{
+  int i, skip, bm_skip[256], last_char_skip, infinity, start, start_max;
+  unsigned char *p;
+  char *non_lisp_beg;
+
+  if (pure_bytes_used_non_lisp < nbytes + 1)
+    return NULL;
+
+  /* Set up the Boyer-Moore table.  */
+  skip = nbytes + 1;
+  for (i = 0; i < 256; i++)
+    bm_skip[i] = skip;
+
+  p = (unsigned char *) data;
+  while (--skip > 0)
+    bm_skip[*p++] = skip;
+
+  last_char_skip = bm_skip['\0'];
+
+  non_lisp_beg = purebeg + pure_size - pure_bytes_used_non_lisp;
+  start_max = pure_bytes_used_non_lisp - (nbytes + 1);
+
+  /* See the comments in the function `boyer_moore' (search.c) for the
+     use of `infinity'.  */
+  infinity = pure_bytes_used_non_lisp + 1;
+  bm_skip['\0'] = infinity;
+
+  p = (unsigned char *) non_lisp_beg + nbytes;
+  start = 0;
+  do
+    {
+      /* Check the last character (== '\0').  */
+      do
+	{
+	  start += bm_skip[*(p + start)];
+	}
+      while (start <= start_max);
+
+      if (start < infinity)
+	/* Couldn't find the last character.  */
+	return NULL;
+
+      /* No less than `infinity' means we could find the last
+	 character at `p[start - infinity]'.  */
+      start -= infinity;
+
+      /* Check the remaining characters.  */
+      if (memcmp (data, non_lisp_beg + start, nbytes) == 0)
+	/* Found.  */
+	return non_lisp_beg + start;
+
+      start += last_char_skip;
+    }
+  while (start <= start_max);
+
+  return NULL;
 }
 
 
@@ -4763,11 +4854,15 @@ make_pure_string (data, nchars, nbytes, multibyte)
   struct Lisp_String *s;
 
   s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
-  s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
+  s->data = find_string_data_in_pure (data, nbytes);
+  if (s->data == NULL)
+    {
+      s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
+      bcopy (data, s->data, nbytes);
+      s->data[nbytes] = '\0';
+    }
   s->size = nchars;
   s->size_byte = multibyte ? nbytes : -1;
-  bcopy (data, s->data, nbytes);
-  s->data[nbytes] = '\0';
   s->intervals = NULL_INTERVAL;
   XSETSTRING (string, s);
   return string;
@@ -6225,6 +6320,7 @@ init_alloc_once ()
   purebeg = PUREBEG;
   pure_size = PURESIZE;
   pure_bytes_used = 0;
+  pure_bytes_used_lisp = pure_bytes_used_non_lisp = 0;
   pure_bytes_used_before_overflow = 0;
 
   /* Initialize the list of free aligned blocks.  */

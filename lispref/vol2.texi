@@ -417,7 +417,7 @@ Kinds of Forms
 * Classifying Lists::       How to distinguish various sorts of list forms.
 * Function Forms::          Forms that call functions.
 * Macro Forms::             Forms that call macros.
-* Special Forms::           ``Special forms'' are idiosyncratic primitives,
+* Special Forms::           "Special forms" are idiosyncratic primitives,
                               most of them extremely important.
 * Autoloading::             Functions set up to load files
                               containing their real definitions.
@@ -710,7 +710,7 @@ Buffers
                               is visited.
 * Buffer Modification::     A buffer is @dfn{modified} if it needs to be saved.
 * Modification Time::       Determining whether the visited file was changed
-                              ``behind Emacs's back''.
+                              "behind Emacs's back".
 * Read Only Buffers::       Modifying text is not allowed in a
                               read-only buffer.
 * The Buffer List::         How to look at all the existing buffers.
@@ -789,8 +789,8 @@ Markers
 * Information from Markers::  Finding the marker's buffer or character
                                 position.
 * Changing Markers::        Moving the marker to a new buffer or position.
-* The Mark::                How ``the mark'' is implemented with a marker.
-* The Region::              How to access ``the region''.
+* The Mark::                How "the mark" is implemented with a marker.
+* The Region::              How to access "the region".
 
 Text
 

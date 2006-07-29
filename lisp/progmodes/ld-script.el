@@ -74,25 +74,55 @@
   "Syntax table used while in `ld-script-mode'.")
 
 ;; Font lock keywords
+;; (The section number comes from ld's info.)
 (defvar ld-script-keywords
-  '("ENTRY" "INCLUDE" "INPUT" "GROUP"
-    "OUTPUT" "SEARCH_DIR" "STARTUP"
+  '(
+    ;; 3.4.1 Setting the Entry Point
+    "ENTRY" 
+    ;; 3.4.2 Commands Dealing with Files
+    "INCLUDE" "INPUT" "GROUP" "AS_NEEDED" "OUTPUT" "SEARCH_DIR" "STARTUP"
+    ;; 3.4.3 Commands Dealing with Object File Formats
     "OUTPUT_FORMAT" "TARGET"
-    "ASSERT" "EXTERN" "FORCE_COMMON_ALLOCATION" "NOCROSSREFS" "OUTPUT_ARCH"
+    ;; 3.4.3 Other Linker Script Commands
+    "ASSERT" "EXTERN" "FORCE_COMMON_ALLOCATION" 
+    "INHIBIT_COMMON_ALLOCATION" "NOCROSSREFS" "OUTPUT_ARCH"
+    ;; 3.5.2 PROVIDE
     "PROVIDE"
-    "SECTIONS" "SORT" "COMMON" "KEEP"
-    "BYTE" "SHORT" "LONG" "QUAD" "SQAD"
-    "FILL"
-    "CREATE_OBJECT_SYMBOLS"
-    "CONSTRUCTORS"
+    ;; 3.5.3 PROVIDE_HIDDEN
+    "PROVIDE_HIDEN"
+    ;; 3.6 SECTIONS Command
+    "SECTIONS" 
+    ;; 3.6.4.2 Input Section Wildcard Patterns
+    "SORT" "SORT_BY_NAME" "SORT_BY_ALIGNMENT"
+    ;; 3.6.4.3 Input Section for Common Symbols
+    "COMMON"
+    ;; 3.6.4.4 Input Section and Garbage Collection
+    "KEEP"
+    ;; 3.6.5 Output Section Data
+    "BYTE" "SHORT" "LONG" "QUAD" "SQUAD" "FILL"
+    ;; 3.6.6 Output Section Keywords
+    "CREATE_OBJECT_SYMBOLS" "CONSTRUCTORS"
+    "__CTOR_LIST__" "__CTOR_END__" "__DTOR_LIST__" "__DTOR_END__"
+    ;; 3.6.7 Output Section Discarding
+    ;; See `ld-script-font-lock-keywords'
+    ;; 3.6.8.1 Output Section Type
     "NOLOAD" "DSECT" "COPY" "INFO" "OVERLAY"
+    ;; 3.6.8.2 Output Section LMA
     "AT"
+    ;; 3.6.8.4 Forced Input Alignment
+    "SUBALIGN"
+    ;; 3.6.8.6 Output Section Phdr
+    ":PHDR"
+    ;; 3.7 MEMORY Command
     "MEMORY"
+    ;; 3.8 PHDRS Command
     "PHDRS" "FILEHDR" "FLAGS"
     "PT_NULL" "PT_LOAD" "PT_DYNAMIC" "PT_INTERP" "PT_NONE" "PT_SHLIB" "PT_PHDR"
+    ;; 3.9 VERSION Command
     "VERSION")
   "Keywords used of GNU ld script.")
 
+;; 3.10.8 Builtin Functions
 (defvar ld-script-builtins
   '("ABSOLUTE"
     "ADDR"
@@ -102,12 +132,12 @@
     "DATA_SEGMENT_END"
     "DATA_SEGMENT_RELRO_END"
     "DEFINED"
-    "LENGTH"
+    "LENGTH" "len" "l"
     "LOADADDR"
     "MAX"
     "MIN"
     "NEXT"
-    "ORIGIN"
+    "ORIGIN" "org" "o"
     "SEGMENT_START"
     "SIZEOF"
     "SIZEOF_HEADERS"
@@ -120,7 +150,10 @@
       1 font-lock-keyword-face)
      (,(regexp-opt ld-script-builtins 'words)
       1 font-lock-builtin-face)
-     ("/DISCARD/" . font-lock-warning-face)
+     ;; 3.6.7 Output Section Discarding
+     ;; 3.6.4.1 Input Section Basics
+     ;; 3.6.8.6 Output Section Phdr
+     ("/DISCARD/\\|EXCLUDE_FILE\\|:NONE" . font-lock-warning-face)
      ("\\W\\(\\.\\)\\W" 1 ld-script-location-counter-face)
      )
    cpp-font-lock-keywords)

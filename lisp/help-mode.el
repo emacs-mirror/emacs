@@ -157,8 +157,9 @@ The format is (FUNCTION ARGS...).")
 		   (let ((location
 			  (find-function-search-for-symbol fun nil file)))
 		     (pop-to-buffer (car location))
-		     (when (cdr location)
-		       (goto-char (cdr location)))))
+		     (if (cdr location)
+			 (goto-char (cdr location))
+		       (message "Unable to find location in file"))))
   'help-echo (purecopy "mouse-2, RET: find function's definition"))
 
 (define-button-type 'help-variable-def
@@ -168,8 +169,9 @@ The format is (FUNCTION ARGS...).")
 		     (setq file (help-C-file-name var 'var)))
 		   (let ((location (find-variable-noselect var file)))
 		     (pop-to-buffer (car location))
-		     (when (cdr location)
-		       (goto-char (cdr location)))))
+		     (if (cdr location)
+		       (goto-char (cdr location))
+		       (message "Unable to find location in file"))))
   'help-echo (purecopy "mouse-2, RET: find variable's definition"))
 
 (define-button-type 'help-face-def
@@ -181,8 +183,9 @@ The format is (FUNCTION ARGS...).")
 		   (let ((location
 			  (find-function-search-for-symbol fun 'defface file)))
 		     (pop-to-buffer (car location))
-		     (when (cdr location)
-		       (goto-char (cdr location)))))
+		     (if (cdr location)
+			 (goto-char (cdr location))
+		       (message "Unable to find location in file"))))
   'help-echo (purecopy "mouse-2, RET: find face's definition"))
 
 

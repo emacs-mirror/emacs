@@ -1141,7 +1141,7 @@ and erases all flags and marks.
 @findex wdired-change-to-wdired-mode
   Wdired is a special mode that allows you to perform file operations
 by editing the Dired buffer directly (the ``W'' in ``Wdired'' stands
-for ``writable''.)  To enter Wdired mode, type @kbd{M-x
+for ``writable.'')  To enter Wdired mode, type @kbd{M-x
 wdired-change-to-wdired-mode} while in a Dired buffer.  Alternatively,
 use @samp{Edit File Names} in the @samp{Immediate} menu bar menu.
 
@@ -1205,7 +1205,7 @@ the current buffer.
 
   The default comparison method (used if you type @key{RET} at the
 prompt) is to compare just the file names---each file name that does
-not appear in the other directory is ``different''.  You can specify
+not appear in the other directory is ``different.''  You can specify
 more stringent comparisons by entering a Lisp expression, which can
 refer to the variables @code{size1} and @code{size2}, the respective
 file sizes; @code{mtime1} and @code{mtime2}, the last modification
@@ -1213,7 +1213,7 @@ times in seconds, as floating point numbers; and @code{fa1} and
 @code{fa2}, the respective file attribute lists (as returned by the
 function @code{file-attributes}).  This expression is evaluated for
 each pair of like-named files, and if the expression's value is
-non-@code{nil}, those files are considered ``different''.
+non-@code{nil}, those files are considered ``different.''
 
   For instance, the sequence @code{M-x dired-compare-directories
 @key{RET} (> mtime1 mtime2) @key{RET}} marks files newer in this

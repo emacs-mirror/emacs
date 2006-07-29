@@ -238,6 +238,9 @@ static int inhibit_local_menu_bar_menus;
 /* Nonzero means C-g should cause immediate error-signal.  */
 int immediate_quit;
 
+/* The user's hook function for outputting an error message.  */
+Lisp_Object Vcommand_error_function;
+
 /* The user's ERASE setting.  */
 Lisp_Object Vtty_erase_char;
 
@@ -682,8 +685,6 @@ static void timer_start_idle P_ ((void));
 static void timer_stop_idle P_ ((void));
 static void timer_resume_idle P_ ((void));
 
-Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
-
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
 static int cannot_suspend;
@@ -990,7 +991,7 @@ recursive_edit_1 ()
   /* Handle throw from read_minibuf when using minibuffer
      while it's active but we're in another window.  */
   if (STRINGP (val))
-    Fsignal (Qerror, Fcons (val, Qnil));
+    xsignal1 (Qerror, val);
 
   return unbind_to (count, Qnil);
 }
@@ -1185,11 +1186,12 @@ temporarily_switch_to_single_kboard (f)
     {
       if (f != NULL && FRAME_KBOARD (f) != current_kboard)
         /* We can not switch keyboards while in single_kboard mode.
-           This can legally happen when Lisp code calls
-           `recursive-edit' (or `read-minibuffer' or `y-or-n-p') after
-           it switched to a locked frame.  This kind of situation is
-           likely to happen when server.el connects to a new
-           terminal.  */
+           In rare cases, Lisp code may call `recursive-edit' (or
+           `read-minibuffer' or `y-or-n-p') after it switched to a
+           locked frame.  For example, this is likely to happen
+           when server.el connects to a new terminal while Emacs is in
+           single_kboard mode.  It is best to throw an error instead
+           of presenting the user with a frozen screen.  */
         error ("Terminal %d is locked, cannot read from it",
                FRAME_TERMINAL (f)->id);
       else
@@ -1304,48 +1306,43 @@ cmd_error_internal (data, context)
      Lisp_Object data;
      char *context;
 {
-  Lisp_Object stream;
-  int kill_emacs_p = 0;
   struct frame *sf = SELECTED_FRAME ();
-
-  Vquit_flag = Qnil;
-  Vinhibit_quit = Qt;
-  clear_message (1, 0);
-
-  /* If the window system or terminal frame hasn't been initialized
-     yet, or we're not interactive, it's best to dump this message out
-     to stderr and exit.  */
-  if (!sf->glyphs_initialized_p
-      || FRAME_INITIAL_P (sf)
-      || noninteractive)
-    {
-      stream = Qexternal_debugging_output;
-      kill_emacs_p = 1;
-    }
-  else
-    {
-      Fdiscard_input ();
-      message_log_maybe_newline ();
-      bitch_at_user ();
-      stream = Qt;
-    }
 
   /* The immediate context is not interesting for Quits,
      since they are asyncronous.  */
   if (EQ (XCAR (data), Qquit))
     Vsignaling_function = Qnil;
 
-  print_error_message (data, stream, context, Vsignaling_function);
+  Vquit_flag = Qnil;
+  Vinhibit_quit = Qt;
 
-  Vsignaling_function = Qnil;
-
+  /* Use user's specified output function if any.  */
+  if (!NILP (Vcommand_error_function))
+    call3 (Vcommand_error_function, data,
+	   build_string (context ? context : ""),
+	   Vsignaling_function);
   /* If the window system or terminal frame hasn't been initialized
-     yet, or we're in -batch mode, this error should cause Emacs to exit.  */
-  if (kill_emacs_p)
+     yet, or we're not interactive, write the message to stderr and exit.  */
+  else if (!sf->glyphs_initialized_p
+	   || FRAME_INITIAL_P (sf)
+	   || noninteractive)
     {
-      Fterpri (stream);
+      print_error_message (data, Qexternal_debugging_output,
+			   context, Vsignaling_function);
+      Fterpri (Qexternal_debugging_output);
       Fkill_emacs (make_number (-1));
     }
+  else
+    {
+      clear_message (1, 0);
+      Fdiscard_input ();
+      message_log_maybe_newline ();
+      bitch_at_user ();
+
+      print_error_message (data, Qt, context, Vsignaling_function);
+    }
+
+  Vsignaling_function = Qnil;
 }
 
 Lisp_Object command_loop_1 ();
@@ -2470,15 +2467,20 @@ do { if (polling_stopped_here) start_polling ();	\
    Value is -2 when we find input on another keyboard.  A second call
    to read_char will read it. 
 
+   If END_TIME is non-null, it is a pointer to an EMACS_TIME
+   specifying the maximum time to wait until.  If no input arrives by
+   that time, stop waiting and return nil.
+
    Value is t if we showed a menu and the user rejected it.  */
 
 Lisp_Object
-read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
+read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
      int commandflag;
      int nmaps;
      Lisp_Object *maps;
      Lisp_Object prev_event;
      int *used_mouse_menu;
+     EMACS_TIME *end_time;
 {
   volatile Lisp_Object c;
   int count;
@@ -2764,6 +2766,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      start echoing if enough time elapses.  */
 
   if (minibuf_level == 0
+      && !end_time
       && !current_kboard->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
@@ -2959,11 +2962,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     {
       KBOARD *kb;
 
+      if (end_time)
+	{
+	  EMACS_TIME now;
+	  EMACS_GET_TIME (now);
+	  if (EMACS_TIME_GE (now, *end_time))
+	    goto exit;
+	}
+
       /* Actually read a character, waiting if necessary.  */
       save_getcjmp (save_jump);
       restore_getcjmp (local_getcjmp);
       timer_start_idle ();
-      c = kbd_buffer_get_event (&kb, used_mouse_menu);
+      c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
       restore_getcjmp (save_jump);
 
 #ifdef MULTI_KBOARD
@@ -3307,7 +3318,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       cancel_echoing ();
       do
-	c = read_char (0, 0, 0, Qnil, 0);
+	c = read_char (0, 0, 0, Qnil, 0, NULL);
       while (BUFFERP (c));
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
@@ -3317,7 +3328,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	{
 	  cancel_echoing ();
 	  do
-	    c = read_char (0, 0, 0, Qnil, 0);
+	    c = read_char (0, 0, 0, Qnil, 0, NULL);
 	  while (BUFFERP (c));
 	}
     }
@@ -3994,9 +4005,10 @@ clear_event (event)
    We always read and discard one event.  */
 
 static Lisp_Object
-kbd_buffer_get_event (kbp, used_mouse_menu)
+kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
      KBOARD **kbp;
      int *used_mouse_menu;
+     EMACS_TIME *end_time;
 {
   register int c;
   Lisp_Object obj;
@@ -4040,13 +4052,24 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       if (!NILP (do_mouse_tracking) && some_mouse_moved ())
 	break;
 #endif
-      {
+      if (end_time)
+	{
+	  EMACS_TIME duration;
+	  EMACS_GET_TIME (duration);
+	  EMACS_SUB_TIME (duration, *end_time, duration);
+	  if (EMACS_TIME_NEG_P (duration))
+	    return Qnil;
+	  else
+	    wait_reading_process_output (EMACS_SECS (duration),
+					 EMACS_USECS (duration), 
+					 -1, 1, Qnil, NULL, 0);
+	}
+      else
 	wait_reading_process_output (0, 0, -1, 1, Qnil, NULL, 0);
 
-	if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
-	  /* Pass 1 for EXPECT since we just waited to have input.  */
-	  read_avail_input (1);
-      }
+      if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
+	/* Pass 1 for EXPECT since we just waited to have input.  */
+	read_avail_input (1);
 #endif /* not VMS */
     }
 
@@ -8469,7 +8492,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
       orig_defn_macro = current_kboard->defining_kbd_macro;
       current_kboard->defining_kbd_macro = Qnil;
       do
-	obj = read_char (commandflag, 0, 0, Qt, 0);
+	obj = read_char (commandflag, 0, 0, Qt, 0, NULL);
       while (BUFFERP (obj));
       current_kboard->defining_kbd_macro = orig_defn_macro;
 
@@ -8839,7 +8862,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Read the first char of the sequence specially, before setting
      up any keymaps, in case a filter runs and switches buffers on us.  */
   first_event = read_char (NILP (prompt), 0, submaps, last_nonmenu_event,
-			   &junk);
+			   &junk, NULL);
 #endif /* GOBBLE_FIRST_EVENT */
 
   orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
@@ -9018,7 +9041,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 #endif
 	    key = read_char (NILP (prompt), nmaps,
 			     (Lisp_Object *) submaps, last_nonmenu_event,
-			     &used_mouse_menu);
+			     &used_mouse_menu, NULL);
 #ifdef MULTI_KBOARD
 	    if (INTEGERP (key) && XINT (key) == -2) /* wrong_kboard_jmpbuf */
 	      {
@@ -11947,6 +11970,15 @@ If the value is not a number, such messages don't time out.  */);
 The value of that variable is passed to `quit-flag' and later causes a
 peculiar kind of quitting.  */);
   Vthrow_on_input = Qnil;
+
+  DEFVAR_LISP ("command-error-function", &Vcommand_error_function,
+	       doc: /* If non-nil, function to output error messages.
+The arguments are the error data, a list of the form
+ (SIGNALED-CONDITIONS . SIGNAL-DATA)
+such as just as `condition-case' would bind its variable to,
+the context (a string which normally goes at the start of the message),
+and the Lisp function within which the error was signaled.  */);
+  Vcommand_error_function = Qnil;
 
   DEFVAR_LISP ("enable-disabled-menus-and-buttons",
 	       &Venable_disabled_menus_and_buttons,

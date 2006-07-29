@@ -1,3 +1,393 @@
+2006-07-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* Makefile.in (recompile): Update comment to reflect change
+	on 2004-04-21.
+
+2006-07-27  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (customize-package-emacs-version-alist): Doc fix.
+	(customize-package-emacs-version): Change msg when pkg has no entry.
+	(custom-no-edit): On a button, do like widget-button-press.
+
+2006-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix bindings for C-tab,
+	S-tab and C-S-tab.
+
+2006-07-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/which-func.el (which-function): Fix documentation/
+	comment typo.
+
+2006-07-26  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-word): If we replace the word,
+	move point to the end.  Insert before deleting.
+
+2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (sit-for): Use new SECONDS arg of read-event instead of
+	a timer.
+
+2006-07-26  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-backward-image): Add prefix argument. Add error
+	when at first image.
+	(tumme-forward-image): Add prefix argument. Add error when at last
+	image.
+
+2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tabify.el (tabify-regexp): Use more specific regexps.
+	(tabify): Avoid modifying the buffer unnecessarily.
+
+2006-07-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-track-original-file): Add `buffer-live-p' check.
+	(tumme-format-properties-string): Handle empty `buf'.
+	(tumme-get-comment): Change variable names inside `let'.  Add
+	missing `let' variable that cause font-lock problems.
+	(tumme-write-comments): Change variable names inside `let'.  Add
+	missing `let' variable that cause font-lock problems.
+	(tumme-forward-image): Rename from `tumme-forward-char'.
+	(tumme-backward-image): Rename from `tumme-backward-char'.
+
+2006-07-25  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/ld-script.el (ld-script-keywords)
+	(ld-script-font-lock-keywords, ld-script-builtins): Update keywords
+	and add comments.
+
+2006-07-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers)
+	(gdb-resync, gdb-prompt, gdb-starting, gdb-exited, gdb-stopped)
+	(gdb-set-gud-minor-mode-existing-buffers-1): Use different faces
+	for status indicator.
+
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* xml.el (xml-parse-file): Clean up, and use with-temp-buffer.
+
+	* subr.el (dolist, dotimes): Use interned symbols for locals.
+	(--dotimes-limit--, --dolist-tail--): New defvars.
+	(looking-back): Doc fix.
+
+	* replace.el (replace-match-string-symbols): Handle dotted lists.
+
+2006-07-24  mathias  <mathias@mattis>
+
+	* tumme.el (tumme-write-tags): Add.
+	(tumme-write-comments): Add.
+	(tumme-tag-files): Change to use `tumme-write-tags'.
+	(tumme-tag-thumbnail): Change to use `tumme-write-tags'.
+	(tumme-dired-comment-files): Change to use `tumme-write-comments'.
+	(tumme-save-information-from-widgets): Change to use
+	`tumme-write-comments' and `tumme-write-tags'.
+	(tumme-comment-thumbnail): Change to use `tumme-write-comments'.
+	(tumme-write-tag): Remove.
+	(tumme-write-comment): Remove.
+	(tumme-display-previous-thumbnail-original): Remove empty line.
+	(tumme-widget-list): Add punctuation.
+
+2006-07-24  mathias  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-line-up): Add an extra check for end of buffer.
+
+2006-07-24  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
+	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org> and
+	andreas@altroot.de (Andreas V,Av(Bgele)
+
+2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* mouse.el (mouse-on-link-p): Doc fix.
+
+2006-07-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	Handle "C-h f `".
+
+2006-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ibuffer.el (ibuffer-formats): Use left alignment for the mode
+	column.
+
+2006-07-22  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* textmodes/table.el: Add move-beginning-of-line and
+	move-end-of-line to Point Motion Only Group.
+
+2006-07-22  Eric Hanchrow  <offby1@blarg.net>
+
+	* progmodes/delphi.el (delphi-fill-comment): Use save-restriction.
+
+2006-07-22  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* startup.el (user-mail-address): Initialize from the `EMAIL'
+	environment variable first.  Document this.
+	(command-line): Ditto.
+
+2006-07-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* help-mode.el (help-function-def, help-variable-def)
+	(help-face-def): Print a message in the minibuffer.
+
+2006-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix key bindings
+	syntax. Bind S-return, C-M-., C-TAB, S-TAB and C-S-TAB.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* dos-w32.el (find-buffer-file-type-coding-system): Support calls
+	where `(nth 1 command)' is a cons cell.  Doc fix.
+
+	* textmodes/po.el (po-find-charset): Doc fix.
+
+2006-07-21  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-unprotected, allout-e-o-prefix-p)
+	(allout-beginning-of-current-line, allout-end-of-current-line)
+	(allout-next-visible-heading, allout-open-topic)
+	(allout-kill-topic, allout-yank-processing, allout-resolve-xref)
+	(allout-flag-current-subtree, allout-show-to-offshoot)
+	(allout-hide-current-entry, allout-show-current-branches)
+	(allout-hide-region-body, allout-old-expose-topic)
+	(allout-listify-exposed, allout-latex-verbatim-quote-curr-line)
+	(allout-mark-topic, allout-adjust-file-variable): Enclose scopes
+	containing `beginning-of-line' and `end-of-line' with
+	`inhibit-field-text-motion' t.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (focus-follows-mouse): Document that it doesn't have
+	any effect on MS-Windows.
+
+2006-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-quoted-subshell): Further fix last change.
+
+2006-07-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.el (calc-previous-alg-entry):  Remove variable.
+
+	* calc-aent.el  (calc-alg-entry-history, calc-quick-calc-history):
+	New variables.
+	(calc-alg-entry): Use `calc-alg-entry-history'.
+	(calc-do-quick-calc): Use `calc-quick-calc-history'.
+	Remove reference to `calc-previous-alg-entry'.
+	(calcAlg-edit, calcAlg-enter): Remove reference to
+	`calc-previous-alg-entry'.
+	(calcAlg-previous): Use `previous-history-element' instead of
+	`calc-previous-alg-entry'.
+	(calc-do-alg-entry): Use history when calling `read-from-minibuffer'.
+	Change keybinding for `calcAlg-plus-minus', add keybindings for
+	`previous-history-element' and `next-history-element'.
+
+	* calc-rewr.el (calc-match): Remove reference to
+	`calc-previous-alg-entry'.
+
+	* calc-sel.el (calc-selection-history): New variable.
+	(calc-enter-selection, calc-sel-mult-both-sides)
+	(calc-sel-add-both-sides): Use `calc-selection-history'.
+
+	* calc-map.el (calc-get-operator-history): New variable.
+	(calc-get-operator): Use `calc-get-operator-history'.
+
+	* calcalg3.el (calc-curve-fit-history): New variable.
+	(calc-curve-fit): Use `calc-curve-fit-history'.
+
+2006-07-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Fix the
+	way of deciding eol-type of the coding system.
+
+2006-07-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-emacs-variable-inits): New variable.
+	(c-lang-setvar): New macro.
+	(c-make-init-lang-vars-fun): Use the initialization forms in
+	c-emacs-variable-inits in addition to those in c-lang-variable-inits.
+	(comment-start, comment-end, comment-start-skip): Change these from
+	c-lang-defvar's to c-lang-setvar's.
+
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): New macro,
+	which calls make-local-variable on the elements of
+	c-emacs-variable-inits.
+	(c-init-language-vars-for): Call this new macro.
+
+2006-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist) <gnu>:
+	Try to rule out false positives due to time stamps.
+	(compilation-mode-font-lock-keywords): Remove rules made redundant
+	because of the above change.  Add `segmentation fault' to the known and
+	highlighted compilation termination messages.
+
+2006-07-19  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (grep-find-ignored-directories):
+	Add .svn and _darcs to list.
+
+2006-07-19  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* dired.el (dired-mode-map): Add key binding `C-te' for
+	`tumme-dired-edit-comment-and-tags'.
+
+	* tumme.el (tumme-display-thumbnail-original-image): Make sure
+	image display buffer is displayed before call to
+	`tumme-display-image.
+	(tumme-dired-display-image): Make sure image display buffer is
+	displayed before call to `tumme-display-image.
+	(tumme-mouse-display-image): Make sure image display buffer is
+	displayed before call to `tumme-display-image.
+	(tumme-widget-list): Add.
+	(tumme-dired-edit-comment-and-tags): Add.
+	(tumme-save-information-from-widgets): Add.
+
+2006-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-quoted-subshell): Fix last change.
+
+2006-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-keywords-1):
+	Revert inadvertently installed patch hunk.
+
+	* progmodes/compile.el (compilation-find-file): Handle the
+	cases where the user selects a non-existent file.
+
+2006-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (minibuffer-local-map): Rebind TAB so it inserts a \t.
+
+2006-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (sit-for): Just sleep-for if noninteractive.
+
+2006-07-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/autoload.el (make-autoload): Use new arg.
+
+	* custom.el (custom-autoload): Add `noset' argument.
+	(custom-push-theme): Don't autoload the variable, let callers do it.
+	(custom-theme-set-variables): Autoload the variable if necessary.
+
+	* cus-edit.el (custom-variable-state-set): If the variable was
+	originally set outside custom, but to the same value as the default,
+	consider it to be standard.
+
+	* Makefile.in (mh-loaddefs.el): Finish setting up the default empty
+	file *before* telling Emacs to add the autoloads, in case it fails.
+
+	* progmodes/sh-script.el (sh-quoted-subshell): Don't match escaped `.
+	Use `cond', push', and `dolist'.
+
+2006-07-17  Richard Stallman  <rms@gnu.org>
+
+	* image-mode.el (tar-superior-buffer, archive-superior-buffer):
+	Add defvars to silence warnings.
+
+2006-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Don't highlight "Compiling file" messages as error.
+
+	* dired-aux.el (dired-compress-file): Confirm again if gzipped
+	file already exists.
+
+2006-07-16  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* find-file.el (ff-special-constructs): Doc fix.  Also, for C/C++
+	entry, don't assign to free var; simply return the extracted filename.
+	(ff-treat-as-special): Incorporate common preamble from callers.
+	(ff-other-file-name, ff-find-the-other-file):
+	Update call to ff-treat-as-special.
+
+	* progmodes/ada-mode.el (ada-mode): Rewrite ff-special-constructs init.
+
+2006-07-16  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-get-comment): Fix bug.
+
+2006-07-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el: Remove spurious * in docstrings.
+
+2006-07-14  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-run-unit-tests-on-load): Rectify docstring
+	grammar.
+	(allout-beginning-of-current-line): Beware beginning of buffer.
+	Also, a comment is simplified.
+	(allout-hotspot-key-handler): Only set allout-post-goto-bullet
+	when appropriate.  (This fix enables use for other than
+	bullet-hotspot operation.)
+	(allout-hide-current-subtree): While escalating to sibling-close,
+	make sure to situate on a topic.
+
+2006-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-delete-selection)
+	(cua-toggle-set-mark): New defcustoms.
+	(cua-rectangle-modifier-key): Add `alt' modifier.
+	(cua-replace-region): Don't delete if cua-delete-selection is nil.
+	(cua-set-mark): Don't clear mark if cua-toggle-set-mark is nil.
+	Suggested by Klaus Zeitler <kzeitler@lucent.com>.
+
+	* emulation/cua-rect.el (cua-help-for-rectangle): Add `alt' modifier.
+
+2006-07-14  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Require 'cl during byte-compilation/interactive load,
+	for the `assert' macro.
+	(allout-mode-deactivate-hook): New hook, run when allout mode
+	deactivates.
+	(allout-developer): New allout customization subgroup.
+	(allout-run-unit-tests-on-load): New allout-developer
+	customization variable, when true allout unit tests are run towards
+	end of file load/eval.
+	(allout-inhibit-auto-fill): Disable auto-fill activity even during
+	auto-fill-mode.
+	(allout-resumptions): Remove, to be replaced by...
+	(allout-add-resumptions): Register variable settings to be
+	reinstated by `allout-do-resumptions'.  The settings are made
+	buffer-local, but the locality/globality of the suspended setting
+	is restored on resumption.
+	(allout-do-resumptions): Reinstate all settings suspended using
+	`allout-add-resumptions'.
+	(allout-test-resumptions): Unit tests (and intermediate variables)
+	for resumptions.
+	(allout-tests-globally-unbound, allout-tests-globally-true)
+	(allout-tests-locally-true): Intermediate variables for
+	resumptions unit tests.
+	(allout-overlay-preparations): Replaces `allout-set-overlay-category'.
+	(allout-exposure-category): Replaces 'allout-overlay-category variable.
+	(allout-mode): Use `allout-add-resumptions' and `allout-do-resumptions'
+	instead of retired `allout-resumptions'.  For hook functions, use
+	`local' parameter so hook settings are created and removed as
+	buffer-local settings.  Revise (resumptions) setting
+	auto-fill-function so it is set only if already active.  (The
+	related fill-function settings are all made in either case, so
+	that activating auto-fill-mode activity will have the custom
+	allout-mode behaviors (hanging indent on topics, if configured for it).
+	Remove all allout-exposure-category overlays on mode deactivation.
+	(allout-hotspot-key-handler): New function extracted from
+	`allout-pre-command-business', so the functionality can be used
+	for other purposes, eg as a binding in an overlay.
+	(allout-pre-command-business): Use new `allout-hotspot-key-handler'.
+	(allout-auto-fill): Respect new `allout-inhibit-auto-fill'
+	customization variable.
+	(allout-run-unit-tests): Run the (currently quite small)
+	repertoire of unit tests.  Called just before the provide iff user
+	has customized `allout-run-unit-tests-on-load' non-nil.
+
+2006-07-14  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
+
+	* emacs-lisp/authors.el (authors-aliases): Update.
+
 2006-07-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-display-buffer): Check for
@@ -6,7 +396,7 @@
 	(gdb-display-breakpoints-buffer, gdb-display-stack-buffer)
 	(gdb-display-threads-buffer, gdb-display-memory-buffer)
 	(gdb-display-locals-buffer): Use it.
-	
+
 	* progmodes/gud.el (gud-display-line): Use gdb-display-buffer.
 	Set gdb-source-window.
 
@@ -51,10 +441,9 @@
 
 2006-07-12  Nick Roberts  <nickrob@snap.net.nz>
 
-	* tumme.el (tumme-create-thumb)
-	(tumme-thumbnail-display-external, tumme-display-image)
-	(tumme-rotate-thumbnail, tumme-rotate-original)
-	(tumme-set-exif-data, tumme-get-exif-data): Use shell-command-switch.
+	* tumme.el (tumme-create-thumb, tumme-thumbnail-display-external)
+	(tumme-display-image, tumme-rotate-thumbnail, tumme-rotate-original)
+	(tumme-set-exif-data, tumme-get-exif-data): Use	shell-command-switch.
 
 	* thumbs.el (thumbs-call-convert): Use shell-command-switch.
 
@@ -90,20 +479,16 @@
 
 2006-07-11  Nick Roberts  <nickrob@snap.net.nz>
 
-	* tumme.el (tumme-create-thumb)
-	(tumme-thumbnail-display-external, tumme-display-image)
-	(tumme-rotate-thumbnail, tumme-rotate-original)
+	* tumme.el (tumme-create-thumb, tumme-thumbnail-display-external)
+	(tumme-display-image, tumme-rotate-thumbnail, tumme-rotate-original)
 	(tumme-set-exif-data, tumme-get-exif-data): Use call-process
 	instead of shell-command.
-	(tumme-create-thumbnail-buffer)
-	(tumme-create-display-image-buffer, tumme-display-thumbs)
-	(tumme-modify-mark-on-thumb-original-file, tumme-display-image)
-	(tumme-get-exif-data): Use with-current-buffer.
-	(tumme-display-properties-format)
-	(tumme-dired-insert-marked-thumbs, tumme-rotate-original)
-	(tumme-get-exif-file-name)
-	(tumme-thumbnail-set-image-description, tumme-gallery-generate):
-	Fit to 80 columns.
+	(tumme-create-thumbnail-buffer, tumme-create-display-image-buffer)
+	(tumme-display-thumbs, tumme-modify-mark-on-thumb-original-file)
+	(tumme-display-image, tumme-get-exif-data): Use with-current-buffer.
+	(tumme-display-properties-format, tumme-dired-insert-marked-thumbs)
+	(tumme-thumbnail-set-image-description, tumme-gallery-generate)
+	(tumme-rotate-original, tumme-get-exif-file-name): Fit to 80 columns.
 
 2006-07-11  Kim F. Storm  <storm@cua.dk>
 
@@ -414,8 +799,8 @@
 2006-06-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/rcompile.el (remote-compile): Replace ange-ftp based
-	implementation by Tramp functions.  Based on a patch published by
-	Marc Abramowitz <msabramo@gmail.com>.
+	implementation by Tramp functions.
+	Suggested by Marc Abramowitz <msabramo@gmail.com>.
 
 	* net/tramp.el (tramp-unload-tramp): Provide a doc string.
 
@@ -2090,8 +2475,6 @@
 	to `ispell-local-dictionary'.
 	(ispell-internal-change-dictionary): Check for a change in
 	personal dictionary use too.
-	Cosmetic changes from Agustin Martin
-	<agustin.martin@hispalinux.es>.
 
 2006-05-05  Eli Zaretskii  <eliz@gnu.org>
 

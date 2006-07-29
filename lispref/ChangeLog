@@ -1,3 +1,130 @@
+2006-07-28  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Reading One Event): Fix last change.
+
+2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Reading One Event): Document SECONDS argument for
+	read-event, read-char, and read-char-exclusive.
+
+2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Multiline Font Lock): Can't use jit-lock-defer-multiline
+	to ensure correct identification.
+
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Clickable Text): Clarify.
+
+	* sequences.texi (Vector Functions): Delete duplicate xref.
+
+	* objects.texi (Function Type): Clarify.
+
+	* modes.texi (Keymaps and Minor Modes): List punct chars for minor
+	modes.
+
+	* lists.texi (List Variables): New node.
+	Material moved from other nodes.
+
+	* variables.texi (Setting Variables): add-to-list and
+	add-to-ordered-list moved to List Variables node.
+
+2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Links and Mouse-1):
+	For mouse-on-link-p, expand on arg POS.
+
+2006-07-21  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Don't mention systems which
+	don't support sub-second timers for redisplay-preemption-period.
+
+	* os.texi (Terminal Output): Clarify text vs graphical terminal.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Input Focus): Document that focus-follows-mouse has
+	no effect on MS-Windows.
+
+2006-07-18  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Forcing Redisplay): Cleanups in previous change.
+
+	* processes.texi (Low-Level Network): Make menu more convenient.
+
+2006-07-18  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): redisplay-preemption-period
+	only used on window systems.  Add xref to Terminal Output.
+
+	* os.texi (Terminal Output): baud-rate only controls preemption on
+	non-window systems.  Add xref to Forcing Redisplay.
+
+	* processes.texi (Low-Level Network): Rename node "Make Network"
+	to "Network Processes".
+
+2006-07-18  Karl Berry  <karl@gnu.org>
+
+	* variables.texi, functions.texi, customize.texi, loading.texi:
+	* edebug.texi, minibuf.texi: Fix page breaks through chapter 20.
+
+2006-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Waiting): Document batch-mode sit-for behavior.
+
+2006-07-17  Richard Stallman  <rms@gnu.org>
+
+	* eval.texi, elisp.texi, text.texi: Use real doublequote inside menus.
+	Put period and comma inside quotes.
+
+	* loading.texi, markers.texi: Use real doublequote inside menus.
+
+	* windows.texi: Put point and comma inside quotes.
+	(Textual Scrolling): Use @samp for error message.
+
+	* variables.texi, tips.texi, syntax.texi, symbols.texi:
+	* strings.texi, streams.texi, processes.texi, os.texi:
+	* objects.texi, numbers.texi, modes.texi, minibuf.texi:
+	* lists.texi, keymaps.texi, intro.texi, hash.texi, internals.texi:
+	* gpl.texi, functions.texi, files.texi, frames.texi, doclicense.texi:
+	* display.texi, control.texi, commands.texi, buffers.texi, anti.texi:
+	Put point and comma inside quotes.
+
+	* control.texi (Processing of Errors): Add command-error-function.
+
+	* variables.texi (File Local Variables): Clarify that
+	file local variables make buffer-local bindings.
+
+	* modes.texi (Syntactic Font Lock): Give default for
+	font-lock-syntax-table.
+
+2006-07-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* text.texi (Special Properties): Clean up previous change.
+
+2006-07-16  Karl Berry  <karl@gnu.org>
+
+	* objects.texi, numbers.texi, strings.texi, lists.texi, hash.texi:
+	* control.texi: Fix bad page breaks through chapter 10 (control).
+
+	* anti.texi (Antinews): Reorder face-attribute fns to avoid
+	underfull hbox.
+
+2006-07-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* text.texi (Special Properties): Describe fontified text property
+	in relation to a character (not text).
+
+2006-07-15  Kim F. Storm  <storm@cua.dk>
+
+	* maps.texi (Standard Keymaps): Add xref for minibuffer maps.
+	Add apropos-mode-map, custom-mode-map, esc-map, global-map,
+	grep-mode-map, help-map, help-mode-map, kmacro-map, and tool-bar-map.
+
+	* anti.texi (Antinews): Mention redisplay function.
+	The kbd macro existed, but was not documented, before 22.x.
+	Function pos-visible-in-window-p is not new in 22.x, just enhanced.
+
 2006-07-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* display.texi (Displaying Messages): Add anchor.

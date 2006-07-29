@@ -699,7 +699,7 @@ that you specify for it.
 
 @item (list @var{element-types}@dots{})
 The value must be a list with exactly as many elements as the
-@var{element-types} you have specified; and each element must fit the
+@var{element-types} given; and each element must fit the
 corresponding @var{element-type}.
 
 For example, @code{(list integer string function)} describes a list of
@@ -718,7 +718,7 @@ The value must fit at least one of @var{alternative-types}.
 For example, @code{(choice integer string)} allows either an
 integer or a string.
 
-In the customization buffer, the user selects one of the alternatives
+In the customization buffer, the user selects an alternative
 using a menu, and can then edit the value in the usual way for that
 alternative.
 

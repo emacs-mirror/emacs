@@ -8587,6 +8587,81 @@ extern int emacs_main (int, char **, char **);
 extern void initialize_applescript();
 extern void terminate_applescript();
 
+/* Table for translating Mac keycode to X keysym values.  Contributed
+   by Sudhir Shenoy.
+   Mapping for special keys is now identical to that in Apple X11
+   except `clear' (-> <clear>) on the KeyPad, `enter' (-> <kp-enter>)
+   on the right of the Cmd key on laptops, and fn + `enter' (->
+   <linefeed>). */
+static unsigned char keycode_to_xkeysym_table[] = {
+  /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x20*/ 0, 0, 0, 0, 0x0d /*return*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+  /*0x30*/ 0x09 /*tab*/, 0 /*0x0020 space*/, 0, 0x08 /*backspace*/,
+  /*0x34*/ 0x8d /*enter on laptops*/, 0x1b /*escape*/, 0, 0,
+  /*0x38*/ 0, 0, 0, 0,
+  /*0x3C*/ 0, 0, 0, 0,
+
+  /*0x40*/ 0, 0xae /*kp-decimal*/, 0, 0xaa /*kp-multiply*/,
+  /*0x44*/ 0, 0xab /*kp-add*/, 0, 0x0b /*clear*/,
+  /*0x48*/ 0, 0, 0, 0xaf /*kp-divide*/,
+  /*0x4C*/ 0x8d /*kp-enter*/, 0, 0xad /*kp-subtract*/, 0,
+
+  /*0x50*/ 0, 0xbd /*kp-equal*/, 0xb0 /*kp-0*/, 0xb1 /*kp-1*/,
+  /*0x54*/ 0xb2 /*kp-2*/, 0xb3 /*kp-3*/, 0xb4 /*kp-4*/, 0xb5 /*kp-5*/,
+  /*0x58*/ 0xb6 /*kp-6*/, 0xb7 /*kp-7*/, 0, 0xb8 /*kp-8*/,
+  /*0x5C*/ 0xb9 /*kp-9*/, 0, 0, 0,
+
+  /*0x60*/ 0xc2 /*f5*/, 0xc3 /*f6*/, 0xc4 /*f7*/, 0xc0 /*f3*/,
+  /*0x64*/ 0xc5 /*f8*/, 0xc6 /*f9*/, 0, 0xc8 /*f11*/,
+  /*0x68*/ 0, 0xca /*f13*/, 0xcd /*f16*/, 0xcb /*f14*/,
+  /*0x6C*/ 0, 0xc7 /*f10*/, 0x0a /*fn+enter on laptops*/, 0xc9 /*f12*/,
+
+  /*0x70*/ 0, 0xcc /*f15*/, 0x6a /*help*/, 0x50 /*home*/,
+  /*0x74*/ 0x55 /*pgup*/, 0xff /*delete*/, 0xc1 /*f4*/, 0x57 /*end*/,
+  /*0x78*/ 0xbf /*f2*/, 0x56 /*pgdown*/, 0xbe /*f1*/, 0x51 /*left*/,
+  /*0x7C*/ 0x53 /*right*/, 0x54 /*down*/, 0x52 /*up*/, 0
+};
+
+#ifdef MAC_OSX
+/* Table for translating Mac keycode with the laptop `fn' key to that
+   without it.  Destination symbols in comments are keys on US
+   keyboard, and they may not be the same on other types of keyboards.
+   If the destination is identical to the source (f1 ... f12), it
+   doesn't map `fn' key to a modifier.  */
+static unsigned char fn_keycode_to_keycode_table[] = {
+  /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x20*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+  /*0x30*/ 0, 0, 0, 0,
+  /*0x34*/ 0, 0, 0, 0,
+  /*0x38*/ 0, 0, 0, 0,
+  /*0x3C*/ 0, 0, 0, 0,
+
+  /*0x40*/ 0, 0x2f /*kp-decimal -> '.'*/, 0, 0x23 /*kp-multiply -> 'p'*/,
+  /*0x44*/ 0, 0x2c /*kp-add -> '/'*/, 0, 0x16 /*clear -> '6'*/,
+  /*0x48*/ 0, 0, 0, 0x1d /*kp-/ -> '0'*/,
+  /*0x4C*/ 0x24 /*kp-enter -> return*/, 0, 0x29 /*kp-subtract -> ';'*/, 0,
+
+  /*0x50*/ 0, 0x1b /*kp-equal -> '-'*/, 0x2e /*kp-0 -> 'm'*/, 0x26 /*kp-1 -> 'j'*/,
+  /*0x54*/ 0x28 /*kp-2 -> 'k'*/, 0x25 /*kp-3 -> 'l'*/, 0x20 /*kp-4 -> 'u'*/, 0x22 /*kp-5 ->'i'*/,
+  /*0x58*/ 0x1f /*kp-6 -> 'o'*/, 0x1a /*kp-7 -> '7'*/, 0, 0x1c /*kp-8 -> '8'*/,
+  /*0x5C*/ 0x19 /*kp-9 -> '9'*/, 0, 0, 0,
+
+  /*0x60*/ 0x60 /*f5 = f5*/, 0x61 /*f6 = f6*/, 0x62 /*f7 = f7*/, 0x63 /*f3 = f3*/,
+  /*0x64*/ 0x64 /*f8 = f8*/, 0x65 /*f9 = f9*/, 0, 0x67 /*f11 = f11*/,
+  /*0x68*/ 0, 0, 0, 0,
+  /*0x6C*/ 0, 0x6d /*f10 = f10*/, 0, 0x6f /*f12 = f12*/,
+
+  /*0x70*/ 0, 0, 0, 0x7b /*home -> left*/,
+  /*0x74*/ 0x7e /*pgup -> up*/, 0x33 /*delete -> backspace*/, 0x76 /*f4 = f4*/, 0x7c /*end -> right*/,
+  /*0x78*/ 0x78 /*f2 = f2*/, 0x7d /*pgdown -> down*/, 0x7a /*f1 = f1*/, 0,
+  /*0x7C*/ 0, 0, 0, 0
+};
+#endif	/* MAC_OSX */
+
 static unsigned int
 #if USE_CARBON_EVENTS
 mac_to_emacs_modifiers (UInt32 mods)
@@ -9650,7 +9725,6 @@ mac_handle_text_input_event (next_handler, event, data)
       {
 	EventRef kbd_event;
 	UInt32 actual_size, modifiers, mapped_modifiers;
-	UniChar code;
 
 	err = GetEventParameter (event, kEventParamTextInputSendKeyboardEvent,
 				 typeEventRef, NULL, sizeof (EventRef), NULL,
@@ -9678,26 +9752,37 @@ mac_handle_text_input_event (next_handler, event, data)
 	  err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
 				   typeUnicodeText, NULL, 0, &actual_size,
 				   NULL);
-	if (err == noErr)
+	if (err == noErr && actual_size == sizeof (UniChar))
 	  {
-	    if (actual_size == sizeof (UniChar))
-	      err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
-				       typeUnicodeText, NULL,
-				       sizeof (UniChar), NULL, &code);
+	    UniChar code;
+
+	    err = GetEventParameter (kbd_event, kEventParamKeyUnicodes,
+				     typeUnicodeText, NULL,
+				     sizeof (UniChar), NULL, &code);
 	    if (err == noErr && code < 0x80)
 	      {
 		/* ASCII character.  Process it in XTread_socket.  */
 		if (read_socket_inev && code >= 0x20 && code <= 0x7e)
 		  {
-		    struct frame *f = mac_focus_frame (&one_mac_display_info);
+		    UInt32 key_code;
 
-		    read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
-		    read_socket_inev->code = code;
-		    read_socket_inev->modifiers =
-		      (extra_keyboard_modifiers
-		       & (meta_modifier | alt_modifier
-			  | hyper_modifier | super_modifier));
-		    XSETFRAME (read_socket_inev->frame_or_window, f);
+		    err = GetEventParameter (kbd_event, kEventParamKeyCode,
+					     typeUInt32, NULL, sizeof (UInt32),
+					     NULL, &key_code);
+		    if (!(err == noErr && key_code <= 0x7f
+			  && keycode_to_xkeysym_table [key_code]))
+		      {
+			struct frame *f =
+			  mac_focus_frame (&one_mac_display_info);
+
+			read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
+			read_socket_inev->code = code;
+			read_socket_inev->modifiers =
+			  (extra_keyboard_modifiers
+			   & (meta_modifier | alt_modifier
+			      | hyper_modifier | super_modifier));
+			XSETFRAME (read_socket_inev->frame_or_window, f);
+		      }
 		  }
 		return eventNotHandledErr;
 	      }
@@ -9969,89 +10054,6 @@ main (void)
   return 0;
 }
 #endif
-
-/* Table for translating Mac keycode to X keysym values.  Contributed
-   by Sudhir Shenoy.
-   Mapping for special keys is now identical to that in Apple X11
-   except `clear' (-> <clear>) on the KeyPad, `enter' (-> <kp-enter>)
-   on the right of the Cmd key on laptops, and fn + `enter' (->
-   <linefeed>). */
-static unsigned char keycode_to_xkeysym_table[] = {
-  /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  /*0x20*/ 0, 0, 0, 0, 0x0d /*return*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-
-  /*0x30*/ 0x09 /*tab*/, 0 /*0x0020 space*/, 0, 0x08 /*backspace*/,
-  /*0x34*/ 0x8d /*enter on laptops*/, 0x1b /*escape*/, 0, 0,
-  /*0x38*/ 0, 0, 0, 0,
-  /*0x3C*/ 0, 0, 0, 0,
-
-  /*0x40*/ 0, 0xae /*kp-.*/, 0, 0xaa /*kp-**/,
-  /*0x44*/ 0, 0xab /*kp-+*/, 0, 0x0b /*clear*/,
-  /*0x48*/ 0, 0, 0, 0xaf /*kp-/*/,
-  /*0x4C*/ 0x8d /*kp-enter*/, 0, 0xad /*kp--*/, 0,
-
-  /*0x50*/ 0, 0xbd /*kp-=*/, 0xb0 /*kp-0*/, 0xb1 /*kp-1*/,
-  /*0x54*/ 0xb2 /*kp-2*/, 0xb3 /*kp-3*/, 0xb4 /*kp-4*/, 0xb5 /*kp-5*/,
-  /*0x58*/ 0xb6 /*kp-6*/, 0xb7 /*kp-7*/, 0, 0xb8 /*kp-8*/,
-  /*0x5C*/ 0xb9 /*kp-9*/, 0, 0, 0,
-
-  /*0x60*/ 0xc2 /*f5*/, 0xc3 /*f6*/, 0xc4 /*f7*/, 0xc0 /*f3*/,
-  /*0x64*/ 0xc5 /*f8*/, 0xc6 /*f9*/, 0, 0xc8 /*f11*/,
-  /*0x68*/ 0, 0xca /*f13*/, 0xcd /*f16*/, 0xcb /*f14*/,
-  /*0x6C*/ 0, 0xc7 /*f10*/, 0x0a /*fn+enter on laptops*/, 0xc9 /*f12*/,
-
-  /*0x70*/ 0, 0xcc /*f15*/, 0x6a /*help*/, 0x50 /*home*/,
-  /*0x74*/ 0x55 /*pgup*/, 0xff /*delete*/, 0xc1 /*f4*/, 0x57 /*end*/,
-  /*0x78*/ 0xbf /*f2*/, 0x56 /*pgdown*/, 0xbe /*f1*/, 0x51 /*left*/,
-  /*0x7C*/ 0x53 /*right*/, 0x54 /*down*/, 0x52 /*up*/, 0
-};
-
-
-static int
-keycode_to_xkeysym (int keyCode, int *xKeySym)
-{
-  *xKeySym = keycode_to_xkeysym_table [keyCode & 0x7f];
-  return *xKeySym != 0;
-}
-
-#ifdef MAC_OSX
-/* Table for translating Mac keycode with the laptop `fn' key to that
-   without it.  Destination symbols in comments are keys on US
-   keyboard, and they may not be the same on other types of keyboards.
-   If the destination is identical to the source (f1 ... f12), it
-   doesn't map `fn' key to a modifier.  */
-static unsigned char fn_keycode_to_keycode_table[] = {
-  /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  /*0x20*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-
-  /*0x30*/ 0, 0, 0, 0,
-  /*0x34*/ 0, 0, 0, 0,
-  /*0x38*/ 0, 0, 0, 0,
-  /*0x3C*/ 0, 0, 0, 0,
-
-  /*0x40*/ 0, 0x2f /*kp-. -> '.'*/, 0, 0x23 /*kp-* -> 'p'*/,
-  /*0x44*/ 0, 0x2c /*kp-+ -> '/'*/, 0, 0x16 /*clear -> '6'*/,
-  /*0x48*/ 0, 0, 0, 0x1d /*kp-/ -> '0'*/,
-  /*0x4C*/ 0x24 /*kp-enter -> return*/, 0, 0x29 /*kp-- -> ';'*/, 0,
-
-  /*0x50*/ 0, 0x1b /*kp-= -> '-'*/, 0x2e /*kp-0 -> 'm'*/, 0x26 /*kp-1 -> 'j'*/,
-  /*0x54*/ 0x28 /*kp-2 -> 'k'*/, 0x25 /*kp-3 -> 'l'*/, 0x20 /*kp-4 -> 'u'*/, 0x22 /*kp-5 ->'i'*/,
-  /*0x58*/ 0x1f /*kp-6 -> 'o'*/, 0x1a /*kp-7 -> '7'*/, 0, 0x1c /*kp-8 -> '8'*/,
-  /*0x5C*/ 0x19 /*kp-9 -> '9'*/, 0, 0, 0,
-
-  /*0x60*/ 0x60 /*f5 = f5*/, 0x61 /*f6 = f6*/, 0x62 /*f7 = f7*/, 0x63 /*f3 = f3*/,
-  /*0x64*/ 0x64 /*f8 = f8*/, 0x65 /*f9 = f9*/, 0, 0x67 /*f11 = f11*/,
-  /*0x68*/ 0, 0, 0, 0,
-  /*0x6C*/ 0, 0x6d /*f10 = f10*/, 0, 0x6f /*f12 = f12*/,
-
-  /*0x70*/ 0, 0, 0, 0x7b /*home -> left*/,
-  /*0x74*/ 0x7e /*pgup -> up*/, 0x33 /*delete -> backspace*/, 0x76 /*f4 = f4*/, 0x7c /*end -> right*/,
-  /*0x78*/ 0x78 /*f2 = f2*/, 0x7d /*pgdown -> down*/, 0x7a /*f1 = f1*/, 0,
-  /*0x7C*/ 0, 0, 0, 0
-};
-#endif	/* MAC_OSX */
 
 #if !USE_CARBON_EVENTS
 static RgnHandle mouse_region = NULL;
@@ -10679,7 +10681,6 @@ XTread_socket (sd, expected, hold_quit)
 	case autoKey:
 	  {
 	    int keycode = (er.message & keyCodeMask) >> 8;
-	    int xkeysym;
 	    static SInt16 last_key_script = -1;
 	    SInt16 current_key_script;
 	    UInt32 modifiers = er.modifiers, mapped_modifiers;
@@ -10758,10 +10759,10 @@ XTread_socket (sd, expected, hold_quit)
 		&& fn_keycode_to_keycode_table[keycode])
 	      keycode = fn_keycode_to_keycode_table[keycode];
 #endif
-	    if (keycode_to_xkeysym (keycode, &xkeysym))
+	    if (keycode <= 0x7f && keycode_to_xkeysym_table [keycode])
 	      {
 		inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-		inev.code = 0xff00 | xkeysym;
+		inev.code = 0xff00 | keycode_to_xkeysym_table [keycode];
 #ifdef MAC_OSX
 		if (modifiers & kEventKeyModifierFnMask
 		    && keycode <= 0x7f
@@ -11101,7 +11102,7 @@ mac_initialize_display_info ()
 #ifdef MAC_OSX
   /* HasDepth returns true if it is possible to have a 32 bit display,
      but this may not be what is actually used.  Mac OSX can do better.  */
-  dpyinfo->color_p = 1;
+  dpyinfo->color_p = CGDisplaySamplesPerPixel (kCGDirectMainDisplay) > 1;
   dpyinfo->n_planes = CGDisplayBitsPerPixel (kCGDirectMainDisplay);
   dpyinfo->height = CGDisplayPixelsHigh (kCGDirectMainDisplay);
   dpyinfo->width = CGDisplayPixelsWide (kCGDirectMainDisplay);
@@ -11232,11 +11233,14 @@ x_delete_display (dpyinfo)
 	xfree (dpyinfo->font_table[i].name);
       }
 
-  if (dpyinfo->font_table->font_encoder)
-    xfree (dpyinfo->font_table->font_encoder);
-
-  xfree (dpyinfo->font_table);
-  xfree (dpyinfo->mac_id_name);
+  if (dpyinfo->font_table)
+    {
+      if (dpyinfo->font_table->font_encoder)
+	xfree (dpyinfo->font_table->font_encoder);
+      xfree (dpyinfo->font_table);
+    }
+  if (dpyinfo->mac_id_name)
+    xfree (dpyinfo->mac_id_name);
 
   if (x_display_list == 0)
     {

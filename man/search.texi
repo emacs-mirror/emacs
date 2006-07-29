@@ -208,15 +208,15 @@ of bindings, look at the documentation of @code{isearch-mode} with
 
 @node Non-ASCII Isearch
 @subsection Isearch for Non-@acronym{ASCII} Characters
-
 @cindex searching for non-@acronym{ASCII} characters
 @cindex input method, during incremental search
 
   To enter non-@acronym{ASCII} characters in an incremental search,
-you must use an input method (@pxref{Input Methods}).  If an input
-method is enabled in the current buffer when you start the search, you
-can use it while you type the search string also.  Emacs indicates
-that by including the input method mnemonic in its prompt, like this:
+you can use @kbd{C-q} (see the previous section), but it is easier to
+use an input method (@pxref{Input Methods}).  If an input method is
+enabled in the current buffer when you start the search, you can use
+it in the search string also.  Emacs indicates that by including the
+input method mnemonic in its prompt, like this:
 
 @example
 I-search [@var{im}]:
@@ -225,10 +225,11 @@ I-search [@var{im}]:
 @noindent
 @findex isearch-toggle-input-method
 @findex isearch-toggle-specified-input-method
-where @var{im} is the mnemonic of the active input method.  You can
-toggle (enable or disable) the input method while you type the search
-string with @kbd{C-\} (@code{isearch-toggle-input-method}).  You can
-turn on a certain (non-default) input method with @kbd{C-^}
+where @var{im} is the mnemonic of the active input method.
+
+  You can toggle (enable or disable) the input method while you type
+the search string with @kbd{C-\} (@code{isearch-toggle-input-method}).
+You can turn on a certain (non-default) input method with @kbd{C-^}
 (@code{isearch-toggle-specified-input-method}), which prompts for the
 name of the input method.  The input method you enable during
 incremental search remains enabled in the current buffer afterwards.
@@ -1010,7 +1011,7 @@ it can refer to all or part of what is matched by the @var{regexp}.
 @samp{\&} in @var{newstring} stands for the entire match being
 replaced.  @samp{\@var{d}} in @var{newstring}, where @var{d} is a
 digit, stands for whatever matched the @var{d}th parenthesized
-grouping in @var{regexp}.  (This is called a ``back reference''.)
+grouping in @var{regexp}.  (This is called a ``back reference.'')
 @samp{\#} refers to the count of replacements already made in this
 command, as a decimal number.  In the first replacement, @samp{\#}
 stands for @samp{0}; in the second, for @samp{1}; and so on.  For

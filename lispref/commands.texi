@@ -2165,7 +2165,7 @@ same symbol that would normally represent that combination of mouse
 button and modifier keys.  The information about the window part is kept
 elsewhere in the event---in the coordinates.  But
 @code{read-key-sequence} translates this information into imaginary
-``prefix keys'', all of which are symbols: @code{header-line},
+``prefix keys,'' all of which are symbols: @code{header-line},
 @code{horizontal-scroll-bar}, @code{menu-bar}, @code{mode-line},
 @code{vertical-line}, and @code{vertical-scroll-bar}.  You can define
 meanings for mouse clicks in special window parts by defining key
@@ -2199,7 +2199,7 @@ single event.
 
 None of the three functions below suppresses quitting.
 
-@defun read-event &optional prompt inherit-input-method
+@defun read-event &optional prompt inherit-input-method seconds
 This function reads and returns the next event of command input, waiting
 if necessary until an event is available.  Events can come directly from
 the user or from a keyboard macro.
@@ -2220,6 +2220,15 @@ If @code{cursor-in-echo-area} is non-@code{nil}, then @code{read-event}
 moves the cursor temporarily to the echo area, to the end of any message
 displayed there.  Otherwise @code{read-event} does not move the cursor.
 
+If @var{seconds} is non-@code{nil}, it should be a number specifying
+the maximum time to wait for input, in seconds.  If no input arrives
+within that time, @code{read-event} stops waiting and returns
+@code{nil}.  A floating-point value for @var{seconds} means to wait
+for a fractional number of seconds.  Some systems support only a whole
+number of seconds; on these systems, @var{seconds} is rounded down.
+If @var{seconds} is @code{nil}, @code{read-event} waits as long as
+necessary for input to arrive.
+
 If @code{read-event} gets an event that is defined as a help character,
 then in some cases @code{read-event} processes the event directly without
 returning.  @xref{Help Functions}.  Certain other events, called
@@ -2237,7 +2246,7 @@ right-arrow function key:
 @end example
 @end defun
 
-@defun read-char &optional prompt inherit-input-method
+@defun read-char &optional prompt inherit-input-method seconds
 This function reads and returns a character of command input.  If the
 user generates an event which is not a character (i.e. a mouse click or
 function key event), @code{read-char} signals an error.  The arguments
@@ -2269,7 +2278,7 @@ the echo area.
 @end example
 @end defun
 
-@defun read-char-exclusive &optional prompt inherit-input-method
+@defun read-char-exclusive &optional prompt inherit-input-method seconds
 This function reads and returns a character of command input.  If the
 user generates an event which is not a character,
 @code{read-char-exclusive} ignores it and reads another event, until it
@@ -2410,7 +2419,7 @@ individual events, which you can put in @code{unread-command-events}.
 
 @defvar unread-command-char
 This variable holds a character to be read as command input.
-A value of -1 means ``empty''.
+A value of -1 means ``empty.''
 
 This variable is mostly obsolete now that you can use
 @code{unread-command-events} instead; it exists only to support programs
@@ -2534,9 +2543,10 @@ screen.
 @defun sit-for seconds &optional nodisp
 This function performs redisplay (provided there is no pending input
 from the user), then waits @var{seconds} seconds, or until input is
-available.  The value is @code{t} if @code{sit-for} waited the full
-time with no input arriving (see @code{input-pending-p} in @ref{Event
-Input Misc}).  Otherwise, the value is @code{nil}.
+available.  The usual purpose of @code{sit-for} is to give the user
+time to read text that you display.  The value is @code{t} if
+@code{sit-for} waited the full time with no input arriving
+(@pxref{Event Input Misc}).  Otherwise, the value is @code{nil}.
 
 The argument @var{seconds} need not be an integer.  If it is a floating
 point number, @code{sit-for} waits for a fractional number of seconds.
@@ -2551,8 +2561,9 @@ If @var{nodisp} is non-@code{nil}, then @code{sit-for} does not
 redisplay, but it still returns as soon as input is available (or when
 the timeout elapses).
 
-The usual purpose of @code{sit-for} is to give the user time to read
-text that you display.
+In batch mode (@pxref{Batch Mode}), @code{sit-for} cannot be
+interrupted, even by input from the standard input descriptor.  It is
+thus equivalent to @code{sleep-for}, which is described below.
 
 It is also possible to call @code{sit-for} with three arguments,
 as @code{(sit-for @var{seconds} @var{millisec} @var{nodisp})},
@@ -2898,7 +2909,7 @@ using the minibuffer.  Usually it is more convenient for the user if you
 change the major mode of the current buffer temporarily to a special
 major mode, which should have a command to go back to the previous mode.
 (The @kbd{e} command in Rmail uses this technique.)  Or, if you wish to
-give the user different text to edit ``recursively'', create and select
+give the user different text to edit ``recursively,'' create and select
 a new buffer in a special mode.  In this mode, define a command to
 complete the processing and go back to the previous buffer.  (The
 @kbd{m} command in Rmail does this.)

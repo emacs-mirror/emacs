@@ -23,7 +23,7 @@ subprocess, the Lisp program waits for the subprocess to terminate
 before continuing execution.  When you create an asynchronous
 subprocess, it can run in parallel with the Lisp program.  This kind of
 subprocess is represented within Emacs by a Lisp object which is also
-called a ``process''.  Lisp programs can use this object to communicate
+called a ``process.''  Lisp programs can use this object to communicate
 with the subprocess or to control it.  For example, you can send
 signals, obtain status information, receive output from the process, or
 send input to it.
@@ -1724,13 +1724,14 @@ level that that of @code{open-network-stream}, using
 @code{make-network-process}.
 
 @menu
-* Make Network::             Using @code{make-network-process}.
-* Network Options::          Further control over network connections.
-* Network Feature Testing::  Determining which network features work on
+* Proc: Network Processes.   Using @code{make-network-process}.
+* Options: Network Options.  Further control over network connections.
+* Features: Network Feature Testing.
+                             Determining which network features work on
                                the machine you are using.
 @end menu
 
-@node Make Network
+@node Network Processes
 @subsection @code{make-network-process}
 
    The basic function for creating network connections and network
@@ -2106,7 +2107,7 @@ processed, and how to pack or unpack it.
 that the field represents and, in the case of multibyte fields, how
 the bytes are ordered within the field.  The two possible orderings
 are ``big endian'' (also known as ``network byte ordering'') and
-``little endian''.  For instance, the number @code{#x23cd} (decimal
+``little endian.''  For instance, the number @code{#x23cd} (decimal
 9165) in big endian would be the two bytes @code{#x23} @code{#xcd};
 and in little endian, @code{#xcd} @code{#x23}.  Here are the possible
 type values:

@@ -606,12 +606,11 @@ otherwise, it signals an @code{arith-error} error.
      @result{} 2.5
 (/ 25 3 2)
      @result{} 4
+@group
 (/ -17 6)
-     @result{} -2
+     @result{} -2   @r{(could in theory be @minus{}3 on some machines)}
+@end group
 @end example
-
-The result of @code{(/ -17 6)} could in principle be -3 on some
-machines.
 @end defun
 
 @defun % dividend divisor
@@ -738,7 +737,7 @@ and returns that value as a floating point number.
 sequence of @dfn{bits} (digits which are either zero or one).  A bitwise
 operation acts on the individual bits of such a sequence.  For example,
 @dfn{shifting} moves the whole sequence left or right one or more places,
-reproducing the same pattern ``moved over''.
+reproducing the same pattern ``moved over.''
 
   The bitwise operations in Emacs Lisp apply only to integers.
 

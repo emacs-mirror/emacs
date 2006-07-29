@@ -484,7 +484,7 @@ correspond to the new file name, unless the new name is already in
 use.
 
 If @var{filename} is @code{nil} or the empty string, that stands for
-``no visited file''.  In this case, @code{set-visited-file-name} marks
+``no visited file.''  In this case, @code{set-visited-file-name} marks
 the buffer as having no visited file, without changing the buffer's
 modified flag.
 

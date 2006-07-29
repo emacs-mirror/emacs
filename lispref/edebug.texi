@@ -1541,11 +1541,9 @@ The default value is @code{step}.
 @end defopt
 
 @defopt edebug-trace
-Non-@code{nil} means display a trace of function entry and exit.
+If this is non-@code{nil}, trace each function entry and exit.
 Tracing output is displayed in a buffer named @samp{*edebug-trace*}, one
 function entry or exit per line, indented by the recursion level.
-
-The default value is @code{nil}.
 
 Also see @code{edebug-tracing}, in @ref{Trace Buffer}.
 @end defopt

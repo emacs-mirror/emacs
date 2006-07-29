@@ -305,9 +305,21 @@ If the value is nil, use a shifted prefix key to inhibit the override."
 		 (const :tag "No delay" nil))
   :group 'cua)
 
+(defcustom cua-delete-selection t
+  "*If non-nil, typed text replaces text in the active selection."
+  :type '(choice (const :tag "Disabled" nil)
+		 (other :tag "Enabled" t))
+  :group 'cua)
+
 (defcustom cua-keep-region-after-copy nil
   "If non-nil, don't deselect the region after copying."
   :type 'boolean
+  :group 'cua)
+
+(defcustom cua-toggle-set-mark t
+  "*In non-nil, the `cua-set-mark' command toggles the mark."
+  :type '(choice (const :tag "Disabled" nil)
+		 (other :tag "Enabled" t))
   :group 'cua)
 
 (defcustom cua-enable-register-prefix 'not-ctrl-u
@@ -391,7 +403,8 @@ and after the region marked by the rectangle to search."
 On non-window systems, always use the meta modifier.
 Must be set prior to enabling CUA."
   :type '(choice (const :tag "Meta key" meta)
-		 (const :tag "Hyper key" hyper )
+		 (const :tag "Alt key" alt)
+		 (const :tag "Hyper key" hyper)
 		 (const :tag "Super key" super))
   :group 'cua)
 
@@ -783,7 +796,7 @@ Save a copy in register 0 if `cua-delete-copy-to-register-0' is non-nil."
 (defun cua-replace-region ()
   "Replace the active region with the character you type."
   (interactive)
-  (let ((not-empty (cua-delete-region)))
+  (let ((not-empty (and cua-delete-selection (cua-delete-region))))
     (unless (eq this-original-command this-command)
       (let ((overwrite-mode
 	     (and overwrite-mode
@@ -1001,7 +1014,7 @@ With a double \\[universal-argument] prefix argument, unconditionally set mark."
    (arg
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
-   (mark-active
+   ((and cua-toggle-set-mark mark-active)
     (cua--deactivate)
     (message "Mark Cleared"))
    (t

@@ -558,9 +558,10 @@ LOAD should be either a library file name, or a feature name."
     (unless (member load loads)
       (put symbol 'custom-loads (cons (purecopy load) loads)))))
 
-(defun custom-autoload (symbol load)
-  "Mark SYMBOL as autoloaded custom variable and add dependency LOAD."
-  (put symbol 'custom-autoload t)
+(defun custom-autoload (symbol load &optional noset)
+  "Mark SYMBOL as autoloaded custom variable and add dependency LOAD.
+If NOSET is non-nil, don't bother autoloading LOAD when setting the variable."
+  (put symbol 'custom-autoload (if noset 'noset t))
   (custom-add-load symbol load))
 
 ;; This test is also in the C code of `user-variable-p'.
@@ -699,10 +700,10 @@ Return non-nil iff the `customized-value' property actually changed."
 	 (customized (get symbol 'customized-value))
 	 (old (or (get symbol 'saved-value) (get symbol 'standard-value))))
     ;; Mark default value as set iff different from old value.
-    (if (or (null old)
-	    (not (equal value (condition-case nil
-				  (eval (car old))
-				(error nil)))))
+    (if (not (and old
+                  (equal value (condition-case nil
+                                   (eval (car old))
+                                 (error nil)))))
 	(progn (put symbol 'customized-value (list (custom-quote value)))
 	       (custom-push-theme 'theme-value symbol 'user 'set
 				  (custom-quote value)))
@@ -827,13 +828,9 @@ See `custom-known-themes' for a list of known themes."
 	    (if (and (eq prop 'theme-value)
 		     (boundp symbol))
 		(let ((sv (get symbol 'standard-value)))
-		  (when (and (null sv) (custom-variable-p symbol))
-		    (custom-load-symbol symbol)
-		    (setq sv (get symbol 'standard-value)))
-		  (if (or (null sv)
-			  (not (equal (eval (car (get symbol 'standard-value)))
-				      (symbol-value symbol))))
-		      (setq old (list (list 'changed (symbol-value symbol))))))
+		  (unless (and sv
+                               (equal (eval (car sv)) (symbol-value symbol)))
+                    (setq old (list (list 'changed (symbol-value symbol))))))
 	      (if (and (facep symbol)
 		       (not (face-spec-match-p symbol (get symbol 'face-defface-spec))))
 		  (setq old (list (list 'changed (list
@@ -907,6 +904,10 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 	    (when requests
 	      (put symbol 'custom-requests requests)
 	      (mapc 'require requests))
+            (unless (or (get symbol 'standard-value)
+                        (memq (get symbol 'custom-autoload) '(nil noset)))
+              ;; This symbol needs to be autoloaded, even just for a `set'.
+              (custom-load-symbol symbol))
 	    (setq set (or (get symbol 'custom-set) 'custom-set-default))
 	    (put symbol 'saved-value (list value))
 	    (put symbol 'saved-variable-comment comment)
@@ -926,6 +927,8 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 	    (setq args (cdr args))
 	    (and (or now (default-boundp symbol))
 		 (put symbol 'variable-comment comment)))
+        ;; I believe this is dead-code, because the `sort' code above would
+        ;; have burped before we could get here.  --Stef
 	;; Old format, a plist of SYMBOL VALUE pairs.
 	(message "Warning: old format `custom-set-variables'")
 	(ding)

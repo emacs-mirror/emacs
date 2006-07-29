@@ -160,13 +160,21 @@
 (define-key xterm-function-map "\e[29~" [print])
 
 ;; These keys are available in xterm starting from version 214
-;; if the modifyOtherKeys resource is set.
-(define-key xterm-function-map "\e[27;5;9~"  [(control ?\t)])
+;; if the modifyOtherKeys resource is set to 1.
+(define-key xterm-function-map "\e[27;5;9~"  [C-tab])
 (define-key xterm-function-map "\e[27;5;13~" [C-return])
-(define-key xterm-function-map "\e[27;5;44~" [(control ?\,)])
-(define-key xterm-function-map "\e[27;5;46~" [(control ?\.)])
-(define-key xterm-function-map "\e[27;5;47~" [(control ?\/)])
-(define-key xterm-function-map "\e[27;5;92~" [(control ?\\)])
+(define-key xterm-function-map "\e[27;5;44~" [?\C-,])
+(define-key xterm-function-map "\e[27;5;46~" [?\C-.])
+(define-key xterm-function-map "\e[27;5;47~" [?\C-/])
+(define-key xterm-function-map "\e[27;5;92~" [?\C-\\)])
+
+(define-key xterm-function-map "\e[27;2;9~" [S-tab])
+(define-key xterm-function-map "\e[27;2;13~" [S-return])
+
+(define-key xterm-function-map "\e[27;6;9~" [(C-S-tab)])
+
+(define-key xterm-function-map "\e[27;13;46~" [?\C-\M-.])
+
 
 ;; Other versions of xterm might emit these.
 (define-key xterm-function-map "\e[A" [up])

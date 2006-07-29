@@ -204,9 +204,8 @@ backup-compiled-files:
 
 compile-after-backup: backup-compiled-files compile-always
 
-# Recompile all Lisp files which are newer than their .elc files.
-# Note that this doesn't create .elc files.  It only recompiles if an
-# .elc is present.
+# Recompile all Lisp files which are newer than their .elc files and compile
+# new ones.
 
 recompile: doit mh-autoloads $(lisp)/progmodes/cc-mode.elc
 	$(EMACS) $(EMACSOPT) --eval "(batch-byte-recompile-directory 0)" $(lisp)
@@ -247,12 +246,6 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	echo ";;; Commentary:" >> $@
 	echo ";;; Change Log:" >> $@
 	echo ";;; Code:" >> $@
-	$(EMACS) $(EMACSOPT) \
-	   -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
-	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/mh-e
 	echo "" >> $@
 	echo "(provide 'mh-loaddefs)" >> $@
 	echo ";; Local Variables:" >> $@
@@ -261,6 +254,12 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	echo ";; no-update-autoloads: t" >> $@
 	echo ";; End:" >> $@
 	echo ";;; mh-loaddefs.el ends here" >> $@
+	$(EMACS) $(EMACSOPT) \
+	   -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(lisp)/mh-e
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
