@@ -2032,6 +2032,8 @@ static Lisp_Object
 safe_run_hooks_1 (hook)
      Lisp_Object hook;
 {
+  if (NILP (Vrun_hooks))
+    return Qnil;
   return call1 (Vrun_hooks, Vinhibit_quit);
 }
 
