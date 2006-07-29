@@ -246,9 +246,10 @@ then the smallest tree containing that window is returned."
                 (windowp window-or-frame))
       (error "Not a frame or window: %s" window-or-frame)))
   (let ((subtree (bw-find-tree-sub window-or-frame)))
-    (if (integerp subtree)
-        nil
-      (bw-get-tree-1 subtree))))
+    (when subtree
+      (if (integerp subtree)
+	  nil
+	(bw-get-tree-1 subtree)))))
 
 (defun bw-get-tree-1 (split)
   (if (windowp split)
