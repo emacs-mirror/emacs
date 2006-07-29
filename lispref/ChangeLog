@@ -1,3 +1,8 @@
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* customize.texi (Common Keywords): Document how to use
+	:package-version in a package not in Emacs.
+
 2006-07-28  Kim F. Storm  <storm@cua.dk>
 
 	* commands.texi (Reading One Event): Fix last change.
