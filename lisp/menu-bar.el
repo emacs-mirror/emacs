@@ -1768,6 +1768,22 @@ See `menu-bar-mode' for more information."
       (menu-bar-mode (if (> (frame-parameter nil 'menu-bar-lines) 0) 0 1))
     (menu-bar-mode arg)))
 
+(defun menu-bar-open (&optional frame)
+  "Start key navigation of the menu bar in FRAME.
+
+This function decides which method to use to access the menu
+depending on FRAME's terminal device.  On X displays, it calls
+`x-menu-bar-open'; otherwise it calls `tmm-menubar'.
+
+If FRAME is nil or not given, use the selected frame."
+  (interactive)
+  (if (eq window-system 'x)
+      (x-menu-bar-open frame)
+    (with-selected-frame (or frame (selected-frame))
+      (tmm-menubar))))
+
+(global-set-key [f10] 'menu-bar-open)
+
 (provide 'menu-bar)
 
 ;;; arch-tag: 6e6a3c22-4ec4-4d3d-8190-583f8ef94ced

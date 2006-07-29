@@ -1310,7 +1310,7 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers)
     }
 }
 
-DEFUN ("menu-bar-open", Fmenu_bar_open, Smenu_bar_open, 0, 1, "i",
+DEFUN ("x-menu-bar-open", Fx_menu_bar_open, Sx_menu_bar_open, 0, 1, "i",
        doc: /* Start key navigation of the menu bar in FRAME.
 This initially opens the first menu bar item and you can then navigate with the
 arrow keys, select a menu entry with the return key or cancel with the
@@ -1389,7 +1389,7 @@ If FRAME is nil or not given, use the selected frame.  */)
 
 
 #ifdef USE_GTK
-DEFUN ("menu-bar-open", Fmenu_bar_open, Smenu_bar_open, 0, 1, "i",
+DEFUN ("x-menu-bar-open", Fx_menu_bar_open, Sx_menu_bar_open, 0, 1, "i",
        doc: /* Start key navigation of the menu bar in FRAME.
 This initially opens the first menu bar item and you can then navigate with the
 arrow keys, select a menu entry with the return key or cancel with the
@@ -3816,9 +3816,10 @@ The enable predicate for a menu command should check this variable.  */);
   defsubr (&Sx_popup_menu);
 
 #if defined (USE_GTK) || defined (USE_X_TOOLKIT)
-  defsubr (&Smenu_bar_open);
-  Fdefalias (intern ("accelerate-menu"), intern (Smenu_bar_open.symbol_name),
-             Qnil);
+  defsubr (&Sx_menu_bar_open);
+  Fdefalias (intern ("accelerate-menu"),
+	     intern (Sx_menu_bar_open.symbol_name),
+	     Qnil);
 #endif
 
 #ifdef HAVE_MENUS

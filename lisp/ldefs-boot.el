@@ -81,7 +81,7 @@ Display alphabetical listing of ABBREV-TABLE in buffer OUTPUT-BUFFER.
 ;;;***
 
 ;;;### (autoloads (ada-mode ada-add-extensions) "ada-mode" "progmodes/ada-mode.el"
-;;;;;;  (17591 9287))
+;;;;;;  (17611 8432))
 ;;; Generated autoloads from progmodes/ada-mode.el
 
 (autoload (quote ada-add-extensions) "ada-mode" "\
@@ -524,7 +524,7 @@ A replacement function for `newline-and-indent', aligning as it goes.
 ;;;***
 
 ;;;### (autoloads (outlineify-sticky allout-mode) "allout" "allout.el"
-;;;;;;  (17591 9444))
+;;;;;;  (17611 9182))
 ;;; Generated autoloads from allout.el
 
 (put (quote allout-show-bodies) (quote safe-local-variable) (if (fboundp (quote booleanp)) (quote booleanp) (quote (lambda (x) (member x (quote (t nil)))))))
@@ -1077,8 +1077,8 @@ Returns list of symbols and documentation found.
 
 ;;;***
 
-;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (17549
-;;;;;;  4606))
+;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (17611
+;;;;;;  9183))
 ;;; Generated autoloads from arc-mode.el
 
 (autoload (quote archive-mode) "arc-mode" "\
@@ -1528,7 +1528,7 @@ insert a template for the file depending on the mode of the buffer.
 
 ;;;### (autoloads (batch-update-autoloads update-directory-autoloads
 ;;;;;;  update-file-autoloads) "autoload" "emacs-lisp/autoload.el"
-;;;;;;  (17591 9874))
+;;;;;;  (17611 8435))
 ;;; Generated autoloads from emacs-lisp/autoload.el
 
 (autoload (quote update-file-autoloads) "autoload" "\
@@ -2766,13 +2766,13 @@ from the cursor position.
 ;;;### (autoloads (defmath calc-embedded-activate calc-embedded calc-grab-rectangle
 ;;;;;;  calc-grab-region full-calc-keypad calc-keypad calc-eval quick-calc
 ;;;;;;  full-calc calc calc-dispatch calc-settings-file) "calc" "calc/calc.el"
-;;;;;;  (17383 38804))
+;;;;;;  (17611 9181))
 ;;; Generated autoloads from calc/calc.el
 
 (defvar calc-settings-file (convert-standard-filename "~/.calc.el") "\
 *File in which to record permanent settings.")
 
-(custom-autoload (quote calc-settings-file) "calc")
+(custom-autoload (quote calc-settings-file) "calc" t)
  (define-key ctl-x-map "*" 'calc-dispatch)
 
 (autoload (quote calc-dispatch) "calc" "\
@@ -3481,7 +3481,7 @@ Return the syntactic context of the current line.
 
 ;;;### (autoloads (pike-mode idl-mode java-mode objc-mode c++-mode
 ;;;;;;  c-mode c-initialize-cc-mode) "cc-mode" "progmodes/cc-mode.el"
-;;;;;;  (17591 9622))
+;;;;;;  (17611 8970))
 ;;; Generated autoloads from progmodes/cc-mode.el
 
 (autoload (quote c-initialize-cc-mode) "cc-mode" "\
@@ -4555,18 +4555,18 @@ on third call it again advances points to the next difference and so on.
 ;;;;;;  compilation-shell-minor-mode compilation-mode compilation-start
 ;;;;;;  compile compilation-disable-input compile-command compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (17591 9719))
+;;;;;;  "compile" "progmodes/compile.el" (17611 8969))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
 *List of hook functions run by `compilation-mode' (see `run-mode-hooks').")
 
-(custom-autoload (quote compilation-mode-hook) "compile")
+(custom-autoload (quote compilation-mode-hook) "compile" t)
 
 (defvar compilation-window-height nil "\
 *Number of lines in a compilation window.  If nil, use Emacs default.")
 
-(custom-autoload (quote compilation-window-height) "compile")
+(custom-autoload (quote compilation-window-height) "compile" t)
 
 (defvar compilation-process-setup-function nil "\
 *Function to call to customize the compilation process.
@@ -4596,14 +4596,14 @@ and a string describing how the process finished.")
 *Non-nil means \\[compile] asks which buffers to save before compiling.
 Otherwise, it saves all modified buffers without asking.")
 
-(custom-autoload (quote compilation-ask-about-save) "compile")
+(custom-autoload (quote compilation-ask-about-save) "compile" t)
 
 (defvar compilation-search-path (quote (nil)) "\
 *List of directories to search for source files named in error messages.
 Elements should be directory names, not file names of directories.
 nil as an element means to try the default directory.")
 
-(custom-autoload (quote compilation-search-path) "compile")
+(custom-autoload (quote compilation-search-path) "compile" t)
 
 (defvar compile-command "make -k " "\
 *Last shell command used to do a compilation; default for next compilation.
@@ -4619,7 +4619,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 		(concat \"make -k \"
 			(file-name-sans-extension buffer-file-name))))))")
 
-(custom-autoload (quote compile-command) "compile")
+(custom-autoload (quote compile-command) "compile" t)
 (put 'compile-command 'safe-local-variable 'stringp)
 
 (defvar compilation-disable-input nil "\
@@ -4627,7 +4627,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 This only affects platforms that support asynchronous processes (see
 `start-process'); synchronous compilation processes never accept input.")
 
-(custom-autoload (quote compilation-disable-input) "compile")
+(custom-autoload (quote compilation-disable-input) "compile" t)
 
 (autoload (quote compile) "compile" "\
 Compile the program including the current buffer.  Default: run `make'.
@@ -5463,7 +5463,7 @@ INHERIT-INPUT-METHOD.
 ;;;***
 
 ;;;### (autoloads (cua-selection-mode cua-mode) "cua-base" "emulation/cua-base.el"
-;;;;;;  (17524 8597))
+;;;;;;  (17611 8348))
 ;;; Generated autoloads from emulation/cua-base.el
 
 (defvar cua-mode nil "\
@@ -5472,7 +5472,7 @@ See the command `cua-mode' for a description of this minor-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `cua-mode'.")
 
-(custom-autoload (quote cua-mode) "cua-base")
+(custom-autoload (quote cua-mode) "cua-base" nil)
 
 (autoload (quote cua-mode) "cua-base" "\
 Toggle CUA key-binding mode.
@@ -5528,7 +5528,7 @@ Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings.
 ;;;;;;  customize-face customize-changed-options customize-option-other-window
 ;;;;;;  customize-option customize-group-other-window customize-group
 ;;;;;;  customize-mode customize customize-save-variable customize-set-variable
-;;;;;;  customize-set-value) "cus-edit" "cus-edit.el" (17591 9719))
+;;;;;;  customize-set-value) "cus-edit" "cus-edit.el" (17611 10401))
 ;;; Generated autoloads from cus-edit.el
  (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
 
@@ -5626,18 +5626,24 @@ Show the buffer in another window, but don't select it.
 \(fn SYMBOL)" t nil)
 
 (defvar customize-package-emacs-version-alist nil "\
-Alist mapping versions of Emacs to versions of a package.
-These package versions are listed in the :package-version
-keyword used in `defcustom', `defgroup', and `defface'. Its
-elements look like this:
+Alist mapping versions of a package to Emacs versions.
+We use this for packages that have their own names, but are released
+as part of Emacs itself.
+
+Each elements looks like this:
 
      (PACKAGE (PVERSION . EVERSION)...)
 
-For each PACKAGE, which is a symbol, there are one or more
-elements that contain a package version PVERSION with an
-associated Emacs version EVERSION.  These versions are strings.
-For example, the MH-E package updates this alist with the
-following:
+Here PACKAGE is the name of a package, as a symbol.  After
+PACKAGE come one or more elements, each associating a
+package version PVERSION with the first Emacs version
+EVERSION in which it (or a subsequent version of PACKAGE)
+was first released.  Both PVERSION and EVERSION are strings.
+PVERSION should be a string that this package used in
+the :package-version keyword for `defcustom', `defgroup',
+and `defface'.
+
+For example, the MH-E package updates this alist as follows:
 
      (add-to-list 'customize-package-emacs-version-alist
                   '(MH-E (\"6.0\" . \"22.1\") (\"6.1\" . \"22.1\")
@@ -5782,7 +5788,7 @@ in your init file, where CUSTOM-FILE is the actual name of the
 file.  Otherwise, Emacs will not load the file when it starts up,
 and hence will not set `custom-file' to that file either.")
 
-(custom-autoload (quote custom-file) "cus-edit")
+(custom-autoload (quote custom-file) "cus-edit" t)
 
 (autoload (quote custom-save-all) "cus-edit" "\
 Save all customizations in `custom-file'.
@@ -6246,8 +6252,8 @@ START and END delimits the corners of text rectangle.
 
 ;;;***
 
-;;;### (autoloads (delphi-mode) "delphi" "progmodes/delphi.el" (17390
-;;;;;;  27408))
+;;;### (autoloads (delphi-mode) "delphi" "progmodes/delphi.el" (17611
+;;;;;;  9414))
 ;;; Generated autoloads from progmodes/delphi.el
 
 (autoload (quote delphi-mode) "delphi" "\
@@ -6763,7 +6769,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (17549 4607))
+;;;;;;  "dired" "dired.el" (17611 8967))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -6775,7 +6781,7 @@ On systems such as MS-DOS and MS-Windows, which use `ls' emulation in Lisp,
 some of the `ls' switches are not supported; see the doc string of
 `insert-directory' on `ls-lisp.el' for more details.")
 
-(custom-autoload (quote dired-listing-switches) "dired")
+(custom-autoload (quote dired-listing-switches) "dired" t)
 
 (defvar dired-chown-program (if (memq system-type (quote (hpux dgux usg-unix-v irix linux gnu/linux cygwin))) "chown" (if (file-exists-p "/usr/sbin/chown") "/usr/sbin/chown" "/etc/chown")) "\
 Name of chown command (usually `chown' or `/etc/chown').")
@@ -6794,14 +6800,14 @@ marking `ls' program on one host and a non-marking on another host, and
 don't care about symbolic links which really end in a @, you can
 always set this variable to t.")
 
-(custom-autoload (quote dired-ls-F-marks-symlinks) "dired")
+(custom-autoload (quote dired-ls-F-marks-symlinks) "dired" t)
 
 (defvar dired-trivial-filenames "^\\.\\.?$\\|^#" "\
 *Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
 A value of t means move to first file.")
 
-(custom-autoload (quote dired-trivial-filenames) "dired")
+(custom-autoload (quote dired-trivial-filenames) "dired" t)
 
 (defvar dired-keep-marker-rename t "\
 *Controls marking of renamed files.
@@ -6809,28 +6815,28 @@ If t, files keep their previous marks when they are renamed.
 If a character, renamed files (whether previously marked or not)
 are afterward marked with that character.")
 
-(custom-autoload (quote dired-keep-marker-rename) "dired")
+(custom-autoload (quote dired-keep-marker-rename) "dired" t)
 
 (defvar dired-keep-marker-copy 67 "\
 *Controls marking of copied files.
 If t, copied files are marked if and as the corresponding original files were.
 If a character, copied files are unconditionally marked with that character.")
 
-(custom-autoload (quote dired-keep-marker-copy) "dired")
+(custom-autoload (quote dired-keep-marker-copy) "dired" t)
 
 (defvar dired-keep-marker-hardlink 72 "\
 *Controls marking of newly made hard links.
 If t, they are marked if and as the files linked to were marked.
 If a character, new links are unconditionally marked with that character.")
 
-(custom-autoload (quote dired-keep-marker-hardlink) "dired")
+(custom-autoload (quote dired-keep-marker-hardlink) "dired" t)
 
 (defvar dired-keep-marker-symlink 89 "\
 *Controls marking of newly made symbolic links.
 If t, they are marked if and as the files linked to were marked.
 If a character, new links are unconditionally marked with that character.")
 
-(custom-autoload (quote dired-keep-marker-symlink) "dired")
+(custom-autoload (quote dired-keep-marker-symlink) "dired" t)
 
 (defvar dired-dwim-target nil "\
 *If non-nil, Dired tries to guess a default target directory.
@@ -6839,13 +6845,13 @@ use its current subdir, instead of the current subdir of this dired buffer.
 
 The target is used in the prompt for file copy, rename etc.")
 
-(custom-autoload (quote dired-dwim-target) "dired")
+(custom-autoload (quote dired-dwim-target) "dired" t)
 
 (defvar dired-copy-preserve-time t "\
 *If non-nil, Dired preserves the last-modified time in a file copy.
 \(This works on only some systems.)")
 
-(custom-autoload (quote dired-copy-preserve-time) "dired")
+(custom-autoload (quote dired-copy-preserve-time) "dired" t)
 
 (defvar dired-directory nil "\
 The directory name or wildcard spec that this dired directory lists.
@@ -6968,7 +6974,7 @@ Keybindings:
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-clean-directory
 ;;;;;;  dired-do-print dired-do-touch dired-do-chown dired-do-chgrp
 ;;;;;;  dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" (17524 8597))
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" (17611 8435))
 ;;; Generated autoloads from dired-aux.el
 
 (autoload (quote dired-diff) "dired-aux" "\
@@ -10800,14 +10806,16 @@ Thus ARG can also contain additional grep options.
 
 ;;;### (autoloads (ff-mouse-find-other-file-other-window ff-mouse-find-other-file
 ;;;;;;  ff-find-other-file ff-get-other-file) "find-file" "find-file.el"
-;;;;;;  (17390 26939))
+;;;;;;  (17611 8432))
 ;;; Generated autoloads from find-file.el
 
-(defvar ff-special-constructs (quote (("^#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]" lambda nil (setq fname (buffer-substring (match-beginning 2) (match-end 2)))))) "\
-*A list of regular expressions for `ff-find-file'.
-Specifies how to recognize special constructs such as include files
-etc. and an associated method for extracting the filename from that
-construct.")
+(defvar ff-special-constructs (quote (("^#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]" lambda nil (buffer-substring (match-beginning 2) (match-end 2))))) "\
+*List of special constructs for `ff-treat-as-special' to recognize.
+Each element, tried in order, has the form (REGEXP . EXTRACT).
+If REGEXP matches the current line (from the beginning of the line),
+`ff-treat-as-special' calls function EXTRACT with no args.
+If EXTRACT returns nil, keep trying.  Otherwise, return the
+filename that EXTRACT returned.")
 
 (autoload (quote ff-get-other-file) "find-file" "\
 Find the header or source file corresponding to this file.
@@ -10892,7 +10900,7 @@ Visit the file you click on in another window.
 ;;;;;;  find-variable find-variable-noselect find-function-other-frame
 ;;;;;;  find-function-other-window find-function find-function-noselect
 ;;;;;;  find-function-search-for-symbol find-library) "find-func"
-;;;;;;  "emacs-lisp/find-func.el" (17591 9719))
+;;;;;;  "emacs-lisp/find-func.el" (17611 9415))
 ;;; Generated autoloads from emacs-lisp/find-func.el
 
 (autoload (quote find-library) "find-func" "\
@@ -11489,7 +11497,7 @@ and choose the directory as the fortune-file.
 ;;;***
 
 ;;;### (autoloads (gdb-enable-debug gdba) "gdb-ui" "progmodes/gdb-ui.el"
-;;;;;;  (17591 9876))
+;;;;;;  (17611 9419))
 ;;; Generated autoloads from progmodes/gdb-ui.el
 
 (autoload (quote gdba) "gdb-ui" "\
@@ -11547,7 +11555,7 @@ detailed description of this mode.
 (defvar gdb-enable-debug nil "\
 Non-nil means record the process input and output in `gdb-debug-ring'.")
 
-(custom-autoload (quote gdb-enable-debug) "gdb-ui")
+(custom-autoload (quote gdb-enable-debug) "gdb-ui" t)
 
 ;;;***
 
@@ -12478,13 +12486,13 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 ;;;### (autoloads (rgrep lgrep grep-find grep grep-mode grep-compute-defaults
 ;;;;;;  grep-process-setup grep-setup-hook grep-find-command grep-command
-;;;;;;  grep-window-height) "grep" "progmodes/grep.el" (17591 9719))
+;;;;;;  grep-window-height) "grep" "progmodes/grep.el" (17611 8967))
 ;;; Generated autoloads from progmodes/grep.el
 
 (defvar grep-window-height nil "\
 *Number of lines in a grep window.  If nil, use `compilation-window-height'.")
 
-(custom-autoload (quote grep-window-height) "grep")
+(custom-autoload (quote grep-window-height) "grep" t)
 
 (defvar grep-command nil "\
 The default grep command for \\[grep].
@@ -12495,19 +12503,19 @@ include it when specifying `grep-command'.
 The default value of this variable is set up by `grep-compute-defaults';
 call that function before using this variable in your program.")
 
-(custom-autoload (quote grep-command) "grep")
+(custom-autoload (quote grep-command) "grep" t)
 
 (defvar grep-find-command nil "\
 The default find command for \\[grep-find].
 The default value of this variable is set up by `grep-compute-defaults';
 call that function before using this variable in your program.")
 
-(custom-autoload (quote grep-find-command) "grep")
+(custom-autoload (quote grep-find-command) "grep" t)
 
 (defvar grep-setup-hook nil "\
 List of hook functions run by `grep-process-setup' (see `run-hooks').")
 
-(custom-autoload (quote grep-setup-hook) "grep")
+(custom-autoload (quote grep-setup-hook) "grep" t)
 
 (defvar grep-regexp-alist (quote (("^\\(.+?\\)\\(:[ 	]*\\)\\([0-9]+\\)\\2" 1 3) ("^\\(\\(.+?\\):\\([0-9]+\\):\\).*?\\(\\[01;31m\\(?:\\[K\\)?\\)\\(.*?\\)\\(\\[[0-9]*m\\)" 2 3 ((lambda nil (setq compilation-error-screen-columns nil) (- (match-beginning 4) (match-end 1))) lambda nil (- (match-end 5) (match-end 1) (- (match-end 4) (match-beginning 4)))) nil 1) ("^Binary file \\(.+\\) matches$" 1 nil nil 0 1))) "\
 Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
@@ -12977,7 +12985,7 @@ A value of nil means skip the middle step, so that
 
 ;;;### (autoloads (help-xref-on-pp help-insert-xref-button help-xref-button
 ;;;;;;  help-make-xrefs help-setup-xref help-mode-finish help-mode-setup
-;;;;;;  help-mode) "help-mode" "help-mode.el" (17591 9719))
+;;;;;;  help-mode) "help-mode" "help-mode.el" (17611 9183))
 ;;; Generated autoloads from help-mode.el
 
 (autoload (quote help-mode) "help-mode" "\
@@ -14209,7 +14217,7 @@ bound to the current value of the filter.
 ;;;***
 
 ;;;### (autoloads (ibuffer ibuffer-other-window ibuffer-list-buffers)
-;;;;;;  "ibuffer" "ibuffer.el" (17591 9281))
+;;;;;;  "ibuffer" "ibuffer.el" (17611 9414))
 ;;; Generated autoloads from ibuffer.el
 
 (autoload (quote ibuffer-list-buffers) "ibuffer" "\
@@ -14365,7 +14373,7 @@ with no args, if that value is non-nil.
 ;;;***
 
 ;;;### (autoloads (idlwave-shell) "idlw-shell" "progmodes/idlw-shell.el"
-;;;;;;  (17515 24857))
+;;;;;;  (17611 8436))
 ;;; Generated autoloads from progmodes/idlw-shell.el
 
 (autoload (quote idlwave-shell) "idlw-shell" "\
@@ -15045,7 +15053,7 @@ Image files are those whose name has an extension in
 ;;;***
 
 ;;;### (autoloads (image-mode-maybe image-minor-mode image-mode)
-;;;;;;  "image-mode" "image-mode.el" (17549 4607))
+;;;;;;  "image-mode" "image-mode.el" (17611 8435))
 ;;; Generated autoloads from image-mode.el
  (push '("\\.jpe?g\\'"    . image-mode) auto-mode-alist)
  (push '("\\.png\\'"      . image-mode) auto-mode-alist)
@@ -15755,7 +15763,7 @@ Add submenus to the File menu, to convert to and from various formats.
 ;;;;;;  ispell-region ispell-change-dictionary ispell-kill-ispell
 ;;;;;;  ispell-help ispell-pdict-save ispell-word ispell-local-dictionary-alist
 ;;;;;;  ispell-personal-dictionary) "ispell" "textmodes/ispell.el"
-;;;;;;  (17549 5052))
+;;;;;;  (17611 9421))
 ;;; Generated autoloads from textmodes/ispell.el
 (put 'ispell-check-comments 'safe-local-variable (lambda (a) (memq a '(nil t exclusive))))
 
@@ -15764,7 +15772,7 @@ Add submenus to the File menu, to convert to and from various formats.
 If nil, the default personal dictionary, \"~/.ispell_DICTNAME\" is used,
 where DICTNAME is the name of your default dictionary.")
 
-(custom-autoload (quote ispell-personal-dictionary) "ispell")
+(custom-autoload (quote ispell-personal-dictionary) "ispell" t)
 (put 'ispell-local-dictionary 'safe-local-variable 'string-or-null-p)
 
 (defvar ispell-local-dictionary-alist nil "\
@@ -15775,7 +15783,7 @@ To make permanent changes to your dictionary definitions, you
 will need to make your changes in this variable, save, and then
 re-start emacs.")
 
-(custom-autoload (quote ispell-local-dictionary-alist) "ispell")
+(custom-autoload (quote ispell-local-dictionary-alist) "ispell" t)
 
 (setq ispell-dictionary-alist-1 (quote ((nil "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1) ("american" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1) ("brasileiro" "[A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]" "[^A-Z\301\311\315\323\332\300\310\314\322\331\303\325\307\334\302\312\324a-z\341\351\355\363\372\340\350\354\362\371\343\365\347\374\342\352\364]" "[']" nil nil nil iso-8859-1) ("british" "[A-Za-z]" "[^A-Za-z]" "[']" nil ("-B") nil iso-8859-1) ("castellano" "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[-]" nil ("-B") "~tex" iso-8859-1) ("castellano8" "[A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[^A-Z\301\311\315\321\323\332\334a-z\341\351\355\361\363\372\374]" "[-]" nil ("-B" "-d" "castellano") "~latin1" iso-8859-1))))
 
@@ -16649,7 +16657,7 @@ Unconditionally turn on Lazy Lock mode.
 ;;;***
 
 ;;;### (autoloads (ld-script-mode) "ld-script" "progmodes/ld-script.el"
-;;;;;;  (17390 27408))
+;;;;;;  (17611 9419))
 ;;; Generated autoloads from progmodes/ld-script.el
 
 (add-to-list (quote auto-mode-alist) (quote ("\\.ld[si]?\\>" . ld-script-mode)))
@@ -17450,8 +17458,8 @@ yourself the value of `master-of' by calling `master-show-slave'.
 
 ;;;***
 
-;;;### (autoloads (menu-bar-mode) "menu-bar" "menu-bar.el" (17549
-;;;;;;  4607))
+;;;### (autoloads (menu-bar-mode) "menu-bar" "menu-bar.el" (17611
+;;;;;;  51325))
 ;;; Generated autoloads from menu-bar.el
 
 (put (quote menu-bar-mode) (quote standard-value) (quote (t)))
@@ -17462,7 +17470,7 @@ See the command `menu-bar-mode' for a description of this minor-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `menu-bar-mode'.")
 
-(custom-autoload (quote menu-bar-mode) "menu-bar")
+(custom-autoload (quote menu-bar-mode) "menu-bar" nil)
 
 (autoload (quote menu-bar-mode) "menu-bar" "\
 Toggle display of a menu bar on each frame.
@@ -18124,7 +18132,7 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing.
 ;;;***
 
 ;;;### (autoloads (mm-url-insert-file-contents-external mm-url-insert-file-contents)
-;;;;;;  "mm-url" "gnus/mm-url.el" (17383 38805))
+;;;;;;  "mm-url" "gnus/mm-url.el" (17611 9417))
 ;;; Generated autoloads from gnus/mm-url.el
 
 (autoload (quote mm-url-insert-file-contents) "mm-url" "\
@@ -20367,7 +20375,7 @@ they are not defaultly assigned to keys.
 ;;;***
 
 ;;;### (autoloads (po-find-file-coding-system) "po" "textmodes/po.el"
-;;;;;;  (17549 4608))
+;;;;;;  (17611 9183))
 ;;; Generated autoloads from textmodes/po.el
 
 (autoload (quote po-find-file-coding-system) "po" "\
@@ -23960,7 +23968,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (17549 4607))
+;;;;;;  (17611 9181))
 ;;; Generated autoloads from progmodes/sh-script.el
 (put 'sh-shell 'safe-local-variable 'symbolp)
 
@@ -25473,7 +25481,7 @@ Studlify-case the current buffer.
 
 ;;;***
 
-;;;### (autoloads (locate-library) "subr" "subr.el" (17591 9622))
+;;;### (autoloads (locate-library) "subr" "subr.el" (17611 9419))
 ;;; Generated autoloads from subr.el
 
 (autoload (quote locate-library) "subr" "\
@@ -25550,7 +25558,7 @@ Turn it on to use emacs mouse commands, and off to use t-mouse commands.
 
 ;;;***
 
-;;;### (autoloads (tabify untabify) "tabify" "tabify.el" (17390 26945))
+;;;### (autoloads (tabify untabify) "tabify" "tabify.el" (17611 9419))
 ;;; Generated autoloads from tabify.el
 
 (autoload (quote untabify) "tabify" "\
@@ -25585,29 +25593,29 @@ The variable `tab-width' controls the spacing of tab stops.
 ;;;;;;  table-recognize table-insert-row-column table-insert-column
 ;;;;;;  table-insert-row table-insert table-point-left-cell-hook
 ;;;;;;  table-point-entered-cell-hook table-load-hook table-cell-map-hook)
-;;;;;;  "table" "textmodes/table.el" (17549 4608))
+;;;;;;  "table" "textmodes/table.el" (17611 9414))
 ;;; Generated autoloads from textmodes/table.el
 
 (defvar table-cell-map-hook nil "\
 *Normal hooks run when finishing construction of `table-cell-map'.
 User can modify `table-cell-map' by adding custom functions here.")
 
-(custom-autoload (quote table-cell-map-hook) "table")
+(custom-autoload (quote table-cell-map-hook) "table" t)
 
 (defvar table-load-hook nil "\
 *List of functions to be called after the table is first loaded.")
 
-(custom-autoload (quote table-load-hook) "table")
+(custom-autoload (quote table-load-hook) "table" t)
 
 (defvar table-point-entered-cell-hook nil "\
 *List of functions to be called after point entered a table cell.")
 
-(custom-autoload (quote table-point-entered-cell-hook) "table")
+(custom-autoload (quote table-point-entered-cell-hook) "table" t)
 
 (defvar table-point-left-cell-hook nil "\
 *List of functions to be called after point left a table cell.")
 
-(custom-autoload (quote table-point-left-cell-hook) "table")
+(custom-autoload (quote table-point-left-cell-hook) "table" t)
 
 (autoload (quote table-insert) "table" "\
 Insert an editable text table.
@@ -27462,10 +27470,9 @@ PATTERN regexp.
 ;;;***
 
 ;;;### (autoloads (tmm-prompt tmm-menubar-mouse tmm-menubar) "tmm"
-;;;;;;  "tmm.el" (17390 26947))
+;;;;;;  "tmm.el" (17611 51386))
 ;;; Generated autoloads from tmm.el
  (define-key global-map "\M-`" 'tmm-menubar)
- (define-key global-map [f10] 'tmm-menubar)
  (define-key global-map [menu-bar mouse-1] 'tmm-menubar-mouse)
 
 (autoload (quote tmm-menubar) "tmm" "\
@@ -27856,13 +27863,13 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (tumme-mark-tagged-files tumme-dired-comment-files
-;;;;;;  tumme-dired-display-image tumme-dired-display-external tumme-display-thumb
-;;;;;;  tumme-display-thumbs-append tumme-setup-dired-keybindings
+;;;### (autoloads (tumme-dired-edit-comment-and-tags tumme-mark-tagged-files
+;;;;;;  tumme-dired-comment-files tumme-dired-display-image tumme-dired-display-external
+;;;;;;  tumme-display-thumb tumme-display-thumbs-append tumme-setup-dired-keybindings
 ;;;;;;  tumme-jump-thumbnail-buffer tumme-delete-tag tumme-tag-files
 ;;;;;;  tumme-show-all-from-dir tumme-display-thumbs tumme-dired-with-window-configuration
-;;;;;;  tumme-dired-insert-marked-thumbs) "tumme" "tumme.el" (17591
-;;;;;;  9719))
+;;;;;;  tumme-dired-insert-marked-thumbs) "tumme" "tumme.el" (17611
+;;;;;;  9421))
 ;;; Generated autoloads from tumme.el
 
 (autoload (quote tumme-dired-insert-marked-thumbs) "tumme" "\
@@ -27980,6 +27987,13 @@ image file and stored in tumme's database file.  This command
 lets you input a regexp and this will be matched against all tags
 on all image files in the database file.  The files that have a
 matching tags will be marked in the dired buffer.
+
+\(fn)" t nil)
+
+(autoload (quote tumme-dired-edit-comment-and-tags) "tumme" "\
+Edit comment and tags of current or marked image files.
+Edit comment and tags for all marked image files in an
+easy-to-use form.
 
 \(fn)" t nil)
 
@@ -30270,7 +30284,7 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 ;;;***
 
 ;;;### (autoloads (which-function-mode) "which-func" "progmodes/which-func.el"
-;;;;;;  (17390 27409))
+;;;;;;  (17611 10401))
 ;;; Generated autoloads from progmodes/which-func.el
  (put 'which-func-format 'risky-local-variable t)
  (put 'which-func-current 'risky-local-variable t)
@@ -30283,9 +30297,7 @@ See the command `which-function-mode' for a description of this minor-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `which-function-mode'.")
 
-(custom-autoload (quote which-function-mode) "which-func")
-
-(put (quote which-function-mode) (quote custom-set) (quote custom-set-minor-mode))
+(custom-autoload (quote which-function-mode) "which-func" nil)
 
 (autoload (quote which-function-mode) "which-func" "\
 Toggle Which Function mode, globally.
@@ -30686,7 +30698,7 @@ The key bindings are:
 ;;;***
 
 ;;;### (autoloads (xml-parse-region xml-parse-file) "xml" "xml.el"
-;;;;;;  (17390 26950))
+;;;;;;  (17611 9421))
 ;;; Generated autoloads from xml.el
 
 (autoload (quote xml-parse-file) "xml" "\
@@ -30960,7 +30972,7 @@ Zone-mode does two things:
 ;;;;;;  "url/url-nfs.el" "url/url-proxy.el" "url/url-vars.el" "url/vc-dav.el"
 ;;;;;;  "vc-hooks.el" "vcursor.el" "version.el" "vms-patch.el" "vmsproc.el"
 ;;;;;;  "vt-control.el" "vt100-led.el" "w32-fns.el" "w32-vars.el"
-;;;;;;  "widget.el" "window.el" "x-dnd.el") (17591 11825 253467))
+;;;;;;  "widget.el" "window.el" "x-dnd.el") (17611 51600 377025))
 
 ;;;***
 

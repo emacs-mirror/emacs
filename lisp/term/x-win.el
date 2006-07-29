@@ -2533,9 +2533,5 @@ order until succeed.")
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)
 (global-set-key [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
-;; Let F10 do menu bar navigation.
-(and (fboundp 'menu-bar-open)
-     (global-set-key [f10] 'menu-bar-open))
-
 ;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here

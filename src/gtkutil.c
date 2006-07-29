@@ -1970,7 +1970,7 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
   return w;
 }
 
-/* Callback called when keyboard traversal (started by menu-bar-open) ends.
+/* Callback called when keyboard traversal (started by x-menu-bar-open) ends.
    WMENU is the menu for which traversal has been done.  DATA points to the
    frame for WMENU.  We must release grabs, some bad interaction between GTK
    and Emacs makes the menus keep the grabs.  */
