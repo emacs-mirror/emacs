@@ -10574,7 +10574,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   SIGNAL_THREAD_CHECK (signalnum);
 
   /* See if we have an active terminal on our controlling tty. */
-  terminal = get_named_tty (NULL);
+  terminal = get_named_tty ("/dev/tty");
   if (!terminal)
     {
       /* If there are no frames there, let's pretend that we are a
@@ -10618,7 +10618,7 @@ handle_interrupt ()
   /* XXX This code needs to be revised for multi-tty support. */
   if (!NILP (Vquit_flag)
 #ifndef MSDOS
-      && get_named_tty (NULL)
+      && get_named_tty ("/dev/tty")
 #endif
       )
     {
@@ -10915,14 +10915,14 @@ DEFUN ("set-quit-char", Fset_quit_char, Sset_quit_char, 1, 1, 0,
        doc: /* Specify character used for quitting.
 QUIT must be an ASCII character.
 
-This function only has an effect on the terminal on the controlling
-tty of the Emacs process.
+This function only has an effect on the controlling tty of the Emacs
+process.
 
 See also `current-input-mode'.  */)
        (quit)
        Lisp_Object quit;
 {
-  struct terminal *t = get_named_tty (NULL);
+  struct terminal *t = get_named_tty ("/dev/tty");
   struct tty_display_info *tty;
   if (t == NULL || t->type != output_termcap)
     return Qnil;
