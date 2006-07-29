@@ -173,9 +173,7 @@ corresponding to the mode line clicked."
 (defvar mode-line-client
   `(""
     (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
-		 help-echo "Emacsclient frame"
-		 local-map ,mode-line-input-method-map
-		 mouse-face mode-line-highlight))
+		 help-echo "Emacsclient frame"))
   "Mode-line control for identifying Emacsclient frames.")
 
 (defvar mode-line-mule-info

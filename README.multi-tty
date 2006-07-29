@@ -42,6 +42,8 @@ Romain Francoise <romain@orebokech.com>
 Ami Fischman <ami@fischman.org>
 Noah Friedman <friedman@splode.com>
 Friedrich Delgado Friedrichs <friedel@nomaden.org>
+Samium Gromoff <_deepfire@mail.ru>
+Mikhail Gusarov <dottedmag@dottedmag.net>
 Eric Hanchrow <offby1@blarg.net>
 IRIE Tetsuya <irie@t.email.ne.jp>
 Yoshiaki Kasahara <kasahara@nc.kyushu-u.ac.jp>
@@ -407,7 +409,11 @@ THINGS TO DO
 ------------
 
 ** See if `tty-defined-color-alist' needs to be terminal-local.
-   Dan says it should be, so convert it.
+   Update: Dan says it should be, so convert it.
+
+** Mikhail Gusarov suggest to add a hook akin to
+   `after-make-frame-functions' that is called whenever Emacs connects
+   to a new terminal.  Good idea!
 
 ** emacsclient -t on the console does not work after su.  You have to
    use non-root accounts or start as root to see this.
@@ -695,7 +701,8 @@ THINGS TO DO
 ** Mark Plaksin suggests that emacsclient should accept the same
    X-related command-line arguments as Emacs.  Most of the X-related
    argument-handling is done in Lisp, so this should be quite easy to
-   implement.
+   implement.  (For example, Samium Gromoff wants emacsclient to
+   support --geometry; implementing this would add that support.)
 
 ** Gergely Nagy suggests that C-x # should only kill the current
    frame, not any other emacsclient frame that may have the same file
