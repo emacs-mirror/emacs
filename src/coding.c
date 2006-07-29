@@ -7539,6 +7539,9 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
 	    return Fcons (val, val);
 	  if (! NILP (Ffboundp (val)))
 	    {
+	      /* We use call1 rather than safe_call1
+		 so as to get bug reports about functions called here
+		 which don't handle the current interface.  */
 	      val = call1 (val, Flist (nargs, args));
 	      if (CONSP (val))
 		return val;
