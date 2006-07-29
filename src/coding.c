@@ -7539,7 +7539,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
 	    return Fcons (val, val);
 	  if (! NILP (Ffboundp (val)))
 	    {
-	      val = safe_call1 (val, Flist (nargs, args));
+	      val = call1 (val, Flist (nargs, args));
 	      if (CONSP (val))
 		return val;
 	      if (SYMBOLP (val) && ! NILP (Fcoding_system_p (val)))
