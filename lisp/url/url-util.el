@@ -352,17 +352,18 @@ forbidden in URL encoding."
 This is taken from RFC 2396.")
 
 ;;;###autoload
-(defun url-hexify-string (str)
-  "Escape characters in a string."
-  (mapconcat
-   (lambda (char)
-     ;; Fixme: use a char table instead.
-     (if (not (memq char url-unreserved-chars))
-	 (if (> char 255)
-	       (error "Hexifying multibyte character %s" str)
-	   (format "%%%02X" char))
-       (char-to-string char)))
-   str ""))
+(defun url-hexify-string (string)
+  "Return a new string that is STRING URI-encoded.
+First, STRING is converted to utf-8, if necessary.  Then, for each
+character in the utf-8 string, those found in `url-unreserved-chars'
+are left as-is, all others are represented as a three-character
+string: \"%\" followed by two lowercase hex digits."
+  (mapconcat (lambda (char)
+               (if (memq char url-unreserved-chars)
+                   (char-to-string char)
+                 (format "%%%02x" char)))
+             (encode-coding-string string 'utf-8 t)
+             ""))
 
 ;;;###autoload
 (defun url-file-extension (fname &optional x)
