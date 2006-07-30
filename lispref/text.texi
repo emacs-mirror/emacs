@@ -3697,7 +3697,8 @@ field nor the following field; the field functions treat it as belonging
 to an empty field whose beginning and end are both at @var{pos}.
 
   In all of these functions, if @var{pos} is omitted or @code{nil}, the
-value of point is used by default.
+value of point is used by default.  If narrowing is in effect, then
+@var{pos} should fall within the accessible portion.  @xref{Narrowing}.
 
 @defun field-beginning &optional pos escape-from-edge limit
 This function returns the beginning of the field specified by @var{pos}.
