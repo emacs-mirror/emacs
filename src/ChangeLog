@@ -1,3 +1,7 @@
+2006-07-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* editfns.c: Undo 2006-06-27 change.
+
 2006-07-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* coding.c (Ffind_operation_coding_system): Revert the change from
@@ -7,7 +11,7 @@
 
 2006-07-28  Richard Stallman  <rms@gnu.org>
 
-	* xfaces.c (lookup_named_face, Fdisplay_supports_face_attributes_p): 
+	* xfaces.c (lookup_named_face, Fdisplay_supports_face_attributes_p):
 	Add conditional aborts for clarity.
 
 	* xdisp.c (update_menu_bar): New arg HOOKS_RUN.  Callers changed.
