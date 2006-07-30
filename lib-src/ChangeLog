@@ -1,3 +1,14 @@
+2002-07-30  Adrian Aichner  <adrian@xemacs.org>  (tiny change)
+
+	* etags.c: It's XEmacs, not Xemacs: change all the occurences.
+
+2006-07-30  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c [ETAGS_REGEXPS]: Now is unconditionally defined.
+	[LONG_OPTIONS]: Changed to NO_LONG_OPTIONS, which is undefined.
+	(Objc_suffixes): Suggest using --lang=c for full help.
+	(C_entries): Initialise savetoken to 0 to shut up the compiler.
+
 2006-07-20  Andreas Schwab  <schwab@suse.de>
 
 	* fakemail.c (fatal): Drop second parameter and treat first
