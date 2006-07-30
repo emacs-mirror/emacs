@@ -1,3 +1,8 @@
+2006-07-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* url-util.el (url-hexify-string): Rewrite.
+	Suggested by David Smith <davidsmith@acm.org>.
+
 2006-07-12  Michael Olson  <mwolson@gnu.org>
 
 	* url-irc.el (url-irc-erc): Call erc-handle-irc-url.
