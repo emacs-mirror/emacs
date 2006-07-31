@@ -1,3 +1,7 @@
+2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* t-mouse.el (t-mouse-mode): Use set-process-query-on-exit-flag.
+
 2006-07-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* loadhist.el (unload-feature): Handle new `(t . SYMBOL)' format
