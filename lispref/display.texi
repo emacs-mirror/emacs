@@ -2048,10 +2048,8 @@ suitable for use with @code{:stipple} (see above).  It returns
 @node Attribute Functions
 @subsection Face Attribute Functions
 
-  You can modify the attributes of an existing face with the following
-functions.  If you specify @var{frame}, they affect just that frame;
-otherwise, they affect all frames as well as the defaults that apply to
-new frames.
+  This section describes the functions for accessing and modifying the
+attributes of an existing face.
 
 @defun set-face-attribute face frame &rest arguments
 This function sets one or more attributes of face @var{face} for frame
@@ -2074,10 +2072,12 @@ Thus,
 sets the attributes @code{:width}, @code{:weight} and @code{:underline}
 to the corresponding values.
 
-If @var{frame} is @code{t}, this function sets the attributes for all
-existing frames, and sets defaults that will apply for new frames.
-Default attribute values specified this way override the
-@code{defface} for newly created frames.
+If @var{frame} is @code{t}, this function sets the default attributes
+for new frames.  Default attribute values specified this way override
+the @code{defface} for newly created frames.
+
+If @var{frame} is @code{nil}, this function sets the attributes for
+all existing frames, and the default for new frames.
 @end defun
 
 @defun face-attribute face attribute &optional frame inherit
@@ -2142,6 +2142,8 @@ face attribute @var{attribute}, returns @var{value1} unchanged.
   The functions above did not exist before Emacs 21.  For compatibility
 with older Emacs versions, you can use the following functions to set
 and examine the face attributes which existed in those versions.
+They use values of @code{t} and @code{nil} for @var{frame}
+just like @code{set-face-attribute} and @code{face-attribute}.
 
 @defun set-face-foreground face color &optional frame
 @defunx set-face-background face color &optional frame
@@ -2198,9 +2200,10 @@ This function swaps the foreground and background colors of face
 @end defun
 
   These functions examine the attributes of a face.  If you don't
-specify @var{frame}, they refer to the default data for new frames.
-They return the symbol @code{unspecified} if the face doesn't define any
-value for that attribute.
+specify @var{frame}, they refer to the selected frame; @code{t} refers
+to the default data for new frames.  They return the symbol
+@code{unspecified} if the face doesn't define any value for that
+attribute.
 
 @defun face-foreground face &optional frame inherit
 @defunx face-background face &optional frame inherit
