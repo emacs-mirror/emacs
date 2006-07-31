@@ -1,3 +1,12 @@
+2006-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnheader.el (nnheader-insert-head): Make it work with Mac as well.
+
+2006-07-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnheader.el (nnheader-insert-head): Make it work even if the file
+	uses CRLF for the line-break code.
+
 2006-07-19  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* mm-url.el (mm-url-insert-file-contents): Inhibit Connection: close

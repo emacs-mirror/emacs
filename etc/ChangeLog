@@ -1,3 +1,8 @@
+2006-07-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* GNUS-NEWS: Regenerate from Oort Gnus node in texi/gnus.texi using
+	texi/gnus-news.el of the trunk.
+
 2006-07-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* NEWS: Fix typo.
