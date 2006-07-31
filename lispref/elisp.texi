@@ -1039,8 +1039,8 @@ Operating System Interface
 * Processor Run Time::      Getting the run time used by Emacs.
 * Time Calculations::       Adding, subtracting, comparing times, etc.
 * Timers::		    Setting a timer to call a function at a certain time.
-* Terminal Input::          Recording terminal input for debugging.
-* Terminal Output::         Recording terminal output for debugging.
+* Terminal Input::          Accessing and recordingo terminal input.
+* Terminal Output::         Controlling and recording terminal output.
 * Sound Output::            Playing sounds on the computer's speaker.
 * X11 Keysyms::             Operating on key symbols for X Windows
 * Batch Mode::              Running Emacs without terminal interaction.
