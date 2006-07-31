@@ -1358,6 +1358,12 @@ directives."
   :type 'boolean
   :version "22.1")
 
+(defcustom gdb-find-source-frame t
+  "Non-nil means try to find source further up stack e.g after signal."
+  :group 'gud
+  :type 'boolean
+  :version "22.1")
+
 (defun gdb-stopped (ignored)
   "An annotation handler for `stopped'.
 It is just like `gdb-stopping', except that if we already set the output
@@ -1371,14 +1377,15 @@ sink to `user' in `gdb-stopping', that is fine."
     (if gdb-same-frame
 	(gdb-display-gdb-buffer)
       (gdb-frame-gdb-buffer))
+    (if gdb-find-source-frame
     ;;Try to find source further up stack e.g after signal.
-    (setq gdb-look-up-stack
-	  (if (gdb-get-buffer 'gdb-stack-buffer)
-	      'keep
-	    (progn
-	      (gdb-get-buffer-create 'gdb-stack-buffer)
-	      (gdb-invalidate-frames)
-	      'delete)))))
+	(setq gdb-look-up-stack
+	      (if (gdb-get-buffer 'gdb-stack-buffer)
+		  'keep
+		(progn
+		  (gdb-get-buffer-create 'gdb-stack-buffer)
+		  (gdb-invalidate-frames)
+		  'delete))))))
   (unless (member gdb-inferior-status '("exited" "signal"))
     (setq gdb-inferior-status "stopped")
     (gdb-force-mode-line-update
