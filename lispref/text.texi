@@ -3480,25 +3480,31 @@ being called over and over for the same text.
 @cindex clickable text
 
   There are two parts of setting up @dfn{clickable text} in a buffer:
-(1) to make that text highlight when the mouse moves over it, and (2)
+(1) to indicate clickability when the mouse moves over the text, and (2)
 to make a mouse button do something when you click on that text.
 
-  For highlighting, use the @code{mouse-face} text property.  Here is
-an example of how Dired does it:
+  Indicating clickability usually involves highlighting the text, and
+often involves displaying helpful information about the action, such
+as which mouse button to press, or a short summary of the action.
+This can be done with the @code{mouse-face} and @code{help-echo}
+text properties.  @xref{Special Properties}.
+Here is an example of how Dired does it:
 
 @smallexample
 (condition-case nil
     (if (dired-move-to-filename)
-        (put-text-property (point)
-                           (save-excursion
-                             (dired-move-to-end-of-filename)
-                             (point))
-                           'mouse-face 'highlight))
+        (add-text-properties
+         (point)
+         (save-excursion
+           (dired-move-to-end-of-filename)
+           (point))
+         '(mouse-face highlight
+           help-echo "mouse-2: visit this file in other window")))
   (error nil))
 @end smallexample
 
 @noindent
-The first two arguments to @code{put-text-property} specify the
+The first two arguments to @code{add-text-properties} specify the
 beginning and end of the text.
 
   The usual way to make the mouse do something when you click it
@@ -3508,24 +3514,34 @@ is done by the command definition.  Here is how Dired does it:
 
 @smallexample
 (defun dired-mouse-find-file-other-window (event)
-  "In dired, visit the file or directory name you click on."
+  "In Dired, visit the file or directory name you click on."
   (interactive "e")
-  (let (file)
+  (let (window pos file)
     (save-excursion
-      (set-buffer (window-buffer (posn-window (event-end event))))
-      (save-excursion
-        (goto-char (posn-point (event-end event)))
-        (setq file (dired-get-filename))))
-    (select-window (posn-window (event-end event)))
-    (find-file-other-window (file-name-sans-versions file t))))
+      (setq window (posn-window (event-end event))
+            pos (posn-point (event-end event)))
+      (if (not (windowp window))
+          (error "No file chosen"))
+      (set-buffer (window-buffer window))
+      (goto-char pos)
+      (setq file (dired-get-file-for-visit)))
+    (if (file-directory-p file)
+        (or (and (cdr dired-subdir-alist)
+                 (dired-goto-subdir file))
+            (progn
+              (select-window window)
+              (dired-other-window file)))
+      (select-window window)
+      (find-file-other-window (file-name-sans-versions file t)))))
 @end smallexample
 
 @noindent
-The reason for the outer @code{save-excursion} construct is to avoid
-changing the current buffer; the reason for the inner one is to avoid
-permanently altering point in the buffer you click on.  In this case,
-Dired uses the function @code{dired-get-filename} to determine which
-file to visit, based on the position found in the event.
+The reason for the @code{save-excursion} construct is to avoid
+changing the current buffer.  In this case,
+Dired uses the functions @code{posn-window} and @code{posn-point}
+to determine which buffer the click happened in and where, and
+in that buffer, @code{dired-get-file-for-visit} to determine which
+file to visit.
 
   Instead of defining a mouse command for the major mode, you can define
 a key binding for the clickable text itself, using the @code{keymap}
