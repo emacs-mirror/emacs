@@ -292,9 +292,7 @@ Turn it on to use emacs mouse commands, and off to use t-mouse commands."
 				"-f")))
 	 (setq t-mouse-filter-accumulator "")
 	 (set-process-filter t-mouse-process 't-mouse-process-filter)
-; use commented line instead for emacs 21.4 onwards
-	 (process-kill-without-query t-mouse-process)))
-;	 (set-process-query-on-exit-flag t-mouse-process nil)))
+	 (set-process-query-on-exit-flag t-mouse-process nil)))
     ;; Turn it off
     (setq mouse-position-function nil)
     (delete-process t-mouse-process)
