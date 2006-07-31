@@ -834,12 +834,12 @@ that way, you can use @kbd{M-x gdba} to invoke GDB in graphical mode.
 
 @menu
 * GDB User Interface Layout::   Control the number of displayed buffers.
+* Source Buffers::              Use the mouse in the fringe/margin to
+                                control your program.
 * Breakpoints Buffer::          A breakpoint control panel.
 * Stack Buffer::                Select a frame from the call stack.
 * Other GDB User Interface Buffers:: Input/output, locals, registers,
                                 assembler, threads and memory buffers.
-* GDB commands in the Fringe::  Use the mouse in the fringe/margin to
-                                control your program.
 * Watch Expressions::           Monitor variable values in the speedbar.
 @end menu
 
@@ -863,7 +863,7 @@ displays the following frame layout:
 +--------------------------------+--------------------------------+
 |   GUD buffer (I/O of GDB)      |   Locals buffer                |
 |--------------------------------+--------------------------------+
-|   Source buffer                |   I/O buffer for debugged pgm  |
+|   Primary Source buffer        |   I/O buffer for debugged pgm  |
 |--------------------------------+--------------------------------+
 |   Stack buffer                 |   Breakpoints buffer           |
 +--------------------------------+--------------------------------+
@@ -871,8 +871,8 @@ displays the following frame layout:
 @end smallexample
 
   However, if @code{gdb-use-separate-io-buffer} is @code{nil}, the I/O
-buffer does not appear and the source buffer occupies the full width
-of the frame.
+buffer does not appear and the primary source buffer occupies the full
+width of the frame.
 
 @findex gdb-restore-windows
   If you change the window layout, for example, while editing and
@@ -904,6 +904,61 @@ as well as GDB's breakpoints.  You do need to check that the
 breakpoints in recently edited source files are still in the right
 places.
 
+@node Source Buffers
+@subsubsection Source Buffers
+@cindex GDB commands in Fringe
+
+@c @findex gdb-mouse-set-clear-breakpoint
+@c @findex gdb-mouse-toggle-breakpoint
+Many GDB commands can be entered using keybindings or the tool bar but
+sometimes it is quicker to use the fringe.  These commands either
+manipulate breakpoints or control program execution.  When there is no
+fringe, you can use the margin but this is only present when the
+source file already has a breakpoint.
+
+You can click @kbd{Mouse-1} in the fringe or display margin of a
+source buffer to set a breakpoint there and, on a graphical display, a
+red bullet will appear on that line.  If a breakpoint already exists
+on that line, the same click will remove it.  You can also enable or
+disable a breakpoint by clicking @kbd{C-Mouse-1} on the bullet.
+
+A solid arrow in the left fringe of a source buffer indicates the line
+of the innermost frame where the debugged program has stopped. A
+hollow arrow indicates the current execution line of higher level
+frames.
+
+If you drag the arrow in the fringe with @kbd{Mouse-1}
+(@code{gdb-mouse-until}), execution will continue to the line where
+you release the button, provided it is still in the same frame.
+Alternatively, you can click @kbd{Mouse-3} at some point in the fringe
+of this buffer and execution will advance to there.  A similar command
+(@code{gdb-mouse-jump}) allows you to jump to a source line without
+executing the intermediate lines by clicking @kbd{C-Mouse-3}.  This
+command allows you to go backwards which can be useful for running
+through code that has already executed, in order to examine its
+execution in more detail.
+
+@table @kbd
+@item Mouse-1
+Set or clear a breakpoint.
+
+@item C-Mouse-1
+Enable or disable a breakpoint.
+
+@item Mouse-3
+Continue execution to here.
+
+@item C-Mouse-3
+Jump to here.
+@end table
+
+If the variable @code{gdb-find-source-frame} is non-@code{nil} and
+execution stops in a frame for which there is no source code e.g after
+an interrupt, then Emacs finds and displays the first frame further up
+stack for which there is source.  If it is @code{nil} then the source
+buffer continues to display the last frame which maybe more useful,
+for example, when re-setting a breakpoint.
+
 @node Breakpoints Buffer
 @subsubsection Breakpoints Buffer
 
@@ -918,7 +973,7 @@ breakpoint}, the breakpoint which point is on.
 @findex gdb-toggle-breakpoint
 Enable/disable the current breakpoint (@code{gdb-toggle-breakpoint}).
 On a graphical display, this changes the color of a bullet in the
-margin of the source buffer at the relevant line.  This is red when
+margin of a source buffer at the relevant line.  This is red when
 the breakpoint is enabled and grey when it is disabled.  Text-only
 terminals correspondingly display a @samp{B} or @samp{b}.
 
@@ -1003,10 +1058,10 @@ The threads buffer displays a summary of all threads currently in your
 program (@pxref{Threads, Threads, Debugging programs with multiple
 threads, gdb, The GNU debugger}).  Move point to any thread in the
 list and press @key{RET} to select it (@code{gdb-threads-select}) and
-display the associated source in the source buffer.  Alternatively,
-click @kbd{Mouse-2} on a thread to select it.  If the locals buffer is
-visible, its contents update to display the variables that are local
-in the new thread.
+display the associated source in the primary source buffer.
+Alternatively, click @kbd{Mouse-2} on a thread to select it.  If the
+locals buffer is visible, its contents update to display the variables
+that are local in the new thread.
 
 @item Memory Buffer
 The memory buffer lets you examine sections of program memory
@@ -1015,49 +1070,6 @@ Click @kbd{Mouse-1} on the appropriate part of the header line to
 change the starting address or number of data items that the buffer
 displays.  Click @kbd{Mouse-3} on the header line to select the
 display format or unit size for these data items.
-@end table
-
-@node GDB commands in the Fringe
-@subsubsection GDB commands in the Fringe
-@cindex GDB commands in the Fringe
-
-@c @findex gdb-mouse-set-clear-breakpoint
-@c @findex gdb-mouse-toggle-breakpoint
-Many GDB commands can be entered using keybindings or the tool bar but
-sometimes it is quicker to use the fringe.  These commands either
-manipulate breakpoints or control program execution.  When there is no
-fringe, you can use the margin but this is only present when the
-source file already has a breakpoint.
-
-You can click @kbd{Mouse-1} in the fringe or display margin of a
-source buffer to set a breakpoint there and, on a graphical display, a
-red bullet will appear on that line.  If a breakpoint already exists
-on that line, the same click will remove it.  You can also enable or
-disable a breakpoint by clicking @kbd{C-Mouse-1} on the bullet.
-
-If you drag the debugger arrow in the fringe with @kbd{Mouse-1}
-(@code{gdb-mouse-until}), execution will continue to the line where
-you release the button, provided it is still in the same frame.
-Alternatively, you can click @kbd{Mouse-3} at some point in the fringe
-of this buffer and execution will advance to there.  A similar command
-(@code{gdb-mouse-jump}) allows you to jump to a source line without
-executing the intermediate lines by clicking @kbd{C-Mouse-3}.  This
-command allows you to go backwards which can be useful for running
-through code that has already executed, in order to examine its
-execution in more detail.
-
-@table @kbd
-@item Mouse-1
-Set or clear a breakpoint.
-
-@item C-Mouse-1
-Enable or disable a breakpoint.
-
-@item Mouse-3
-Continue execution to here.
-
-@item C-Mouse-3
-Jump to here.
 @end table
 
 @node Watch Expressions
