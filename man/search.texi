@@ -1241,8 +1241,10 @@ line.
 used the minibuffer to read its arguments.  @xref{Repetition, C-x ESC
 ESC}.
 
-  See also @ref{Transforming File Names}, for Dired commands to rename,
-copy, or link files by replacing regexp matches in file names.
+  @xref{Operating on Files}, for the Dired @kbd{Q} command which
+performs query replace on selected files.  See also @ref{Transforming
+File Names}, for Dired commands to rename, copy, or link files by
+replacing regexp matches in file names.
 
 @node Other Repeating Search
 @section Other Search-and-Loop Commands
