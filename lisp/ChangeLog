@@ -1,5 +1,8 @@
 2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/gdb-ui.el (gdb-find-source-frame): New option.
+	(gdb-stopped): Use it.
+
 	* t-mouse.el (t-mouse-mode): Use set-process-query-on-exit-flag.
 
 2006-07-29  Chong Yidong  <cyd@stupidchicken.com>

@@ -1,3 +1,9 @@
+2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB commands in Fringe): Rename to...
+	(Source Buffers): ..this and move forward.  Describe hollow arrow and
+	new option gdb-find-source-frame.
+	
 2006-07-29  Richard Stallman  <rms@gnu.org>
 
 	* dired.texi (Operating on Files): Simplify previous change
