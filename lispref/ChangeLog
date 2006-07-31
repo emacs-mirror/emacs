@@ -1,3 +1,9 @@
+2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* modes.texi (Minor Mode Conventions): Update link for add-to-list.
+
+	* lists.texi (Sets And Lists): Likewise.
+
 2006-07-30  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* text.texi (Fields): Mention POS
