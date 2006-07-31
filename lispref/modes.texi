@@ -1295,7 +1295,7 @@ check for an existing element, to avoid duplication.  For example:
 @end smallexample
 
 @noindent
-or like this, using @code{add-to-list} (@pxref{Setting Variables}):
+or like this, using @code{add-to-list} (@pxref{List Variables}):
 
 @smallexample
 @group
