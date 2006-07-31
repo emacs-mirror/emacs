@@ -33,6 +33,7 @@ found.  The whole process is called @dfn{key lookup}.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
 * Remapping Commands::          Bindings that translate one command to another.
+* Translation Keymaps::         Keymaps for translating sequences of events.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
 * Menu Keymaps::		Defining a menu as a keymap.
@@ -642,7 +643,7 @@ only when the mode is used for the first time in a session.
 and exit commands.  @xref{Intro to Minibuffers}.
 
   Emacs has other keymaps that are used in a different way---translating
-events within @code{read-key-sequence}.  @xref{Translating Input}.
+events within @code{read-key-sequence}.  @xref{Translation Keymaps}.
 
   @xref{Standard Keymaps}, for a list of standard keymaps.
 
@@ -682,7 +683,7 @@ An error is signaled if @var{key} is not a string or a vector.
 @node Searching Keymaps
 @section Searching the Active Keymaps
 
-  After translation of the input events (@pxref{Translating Input})
+  After translation of event subsequences (@pxref{Translation Keymaps})
 Emacs looks for them in the active keymaps.  Here is a pseudo-Lisp
 description of the order in which the active keymaps are searched:
 
@@ -1471,6 +1472,125 @@ given the current active keymaps.  If @var{command} is not remapped
 (which is the usual situation), or not a symbol, the function returns
 @code{nil}.
 @end defun
+
+@node Translation Keymaps
+@section Keymaps for Translating Sequences of Events
+
+  This section describes keymaps that are used during reading a key
+sequence, to translate certain event sequences into others.
+@code{read-key-sequence} checks every subsequence of the key sequence
+being read, as it is read, against @code{function-key-map} and then
+against @code{key-translation-map}.
+
+@defvar function-key-map
+This variable holds a keymap that describes the character sequences sent
+by function keys on an ordinary character terminal.  This keymap has the
+same structure as other keymaps, but is used differently: it specifies
+translations to make while reading key sequences, rather than bindings
+for key sequences.
+
+If @code{function-key-map} ``binds'' a key sequence @var{k} to a vector
+@var{v}, then when @var{k} appears as a subsequence @emph{anywhere} in a
+key sequence, it is replaced with the events in @var{v}.
+
+For example, VT100 terminals send @kbd{@key{ESC} O P} when the
+keypad @key{PF1} key is pressed.  Therefore, we want Emacs to translate
+that sequence of events into the single event @code{pf1}.  We accomplish
+this by ``binding'' @kbd{@key{ESC} O P} to @code{[pf1]} in
+@code{function-key-map}, when using a VT100.
+
+Thus, typing @kbd{C-c @key{PF1}} sends the character sequence @kbd{C-c
+@key{ESC} O P}; later the function @code{read-key-sequence} translates
+this back into @kbd{C-c @key{PF1}}, which it returns as the vector
+@code{[?\C-c pf1]}.
+
+Entries in @code{function-key-map} are ignored if they conflict with
+bindings made in the minor mode, local, or global keymaps.  The intent
+is that the character sequences that function keys send should not have
+command bindings in their own right---but if they do, the ordinary
+bindings take priority.
+
+The value of @code{function-key-map} is usually set up automatically
+according to the terminal's Terminfo or Termcap entry, but sometimes
+those need help from terminal-specific Lisp files.  Emacs comes with
+terminal-specific files for many common terminals; their main purpose is
+to make entries in @code{function-key-map} beyond those that can be
+deduced from Termcap and Terminfo.  @xref{Terminal-Specific}.
+@end defvar
+
+@defvar key-translation-map
+This variable is another keymap used just like @code{function-key-map}
+to translate input events into other events.  It differs from
+@code{function-key-map} in two ways:
+
+@itemize @bullet
+@item
+@code{key-translation-map} goes to work after @code{function-key-map} is
+finished; it receives the results of translation by
+@code{function-key-map}.
+
+@item
+Non-prefix bindings in @code{key-translation-map} override actual key
+bindings.  For example, if @kbd{C-x f} has a non-prefix binding in
+@code{key-translation-map}, that translation takes effect even though
+@kbd{C-x f} also has a key binding in the global map.
+@end itemize
+
+Note however that actual key bindings can have an effect on
+@code{key-translation-map}, even though they are overridden by it.
+Indeed, actual key bindings override @code{function-key-map} and thus
+may alter the key sequence that @code{key-translation-map} receives.
+Clearly, it is better to avoid this type of situation.
+
+The intent of @code{key-translation-map} is for users to map one
+character set to another, including ordinary characters normally bound
+to @code{self-insert-command}.
+@end defvar
+
+@cindex key translation function
+You can use @code{function-key-map} or @code{key-translation-map} for
+more than simple aliases, by using a function, instead of a key
+sequence, as the ``translation'' of a key.  Then this function is called
+to compute the translation of that key.
+
+The key translation function receives one argument, which is the prompt
+that was specified in @code{read-key-sequence}---or @code{nil} if the
+key sequence is being read by the editor command loop.  In most cases
+you can ignore the prompt value.
+
+If the function reads input itself, it can have the effect of altering
+the event that follows.  For example, here's how to define @kbd{C-c h}
+to turn the character that follows into a Hyper character:
+
+@example
+@group
+(defun hyperify (prompt)
+  (let ((e (read-event)))
+    (vector (if (numberp e)
+                (logior (lsh 1 24) e)
+              (if (memq 'hyper (event-modifiers e))
+                  e
+                (add-event-modifier "H-" e))))))
+
+(defun add-event-modifier (string e)
+  (let ((symbol (if (symbolp e) e (car e))))
+    (setq symbol (intern (concat string
+                                 (symbol-name symbol))))
+@end group
+@group
+    (if (symbolp e)
+        symbol
+      (cons symbol (cdr e)))))
+
+(define-key function-key-map "\C-ch" 'hyperify)
+@end group
+@end example
+
+  If you have enabled keyboard character set decoding using
+@code{set-keyboard-coding-system}, decoding is done after the
+translations listed above.  @xref{Terminal I/O Encoding}.  However, in
+future Emacs versions, character set decoding may be done at an
+earlier stage.
 
 @node Key Binding Commands
 @section Commands for Binding Keys
