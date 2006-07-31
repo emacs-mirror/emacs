@@ -1489,7 +1489,7 @@ several @code{equal} occurrences of an element in @var{list},
 @code{delete-dups} keeps the first one.
 @end defun
 
-  See also the function @code{add-to-list}, in @ref{Setting Variables},
+  See also the function @code{add-to-list}, in @ref{List Variables},
 for another way to add an element to a list stored in a variable.
 
 @node Association Lists
