@@ -1,3 +1,20 @@
+2006-07-31  Richard Stallman  <rms@gnu.org>
+
+	* commands.texi: Update xrefs.
+	(Event Mod): New node, cut out from old Translating Input.
+
+	* maps.texi: Update xrefs.
+	
+	* keymaps.texi (Translation Keymaps): New node.
+	Update xrefs from Translating Input to Translation Keymaps.
+	
+	* elisp.texi (Top): Update subnode menu.
+
+	* display.texi (Face Functions): Fix explanations of FRAME=t or nil.
+
+	* os.texi (System Interface): Fix menu descriptions of some nodes.
+	(Translating Input): Node deleted.
+	
 2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* modes.texi (Minor Mode Conventions): Update link for add-to-list.

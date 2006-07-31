@@ -1,3 +1,9 @@
+2006-07-31  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/vhdl-mode.el (vhdl-speedbar-display-directory)
+	(vhdl-speedbar-display-projects): Update old obsolete
+	speedbar variable names.
+
 2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-find-source-frame): New option.

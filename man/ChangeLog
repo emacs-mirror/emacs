@@ -1,3 +1,7 @@
+2006-07-31  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Query Replace): Add xref for Dired's Q command.
+
 2006-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Oort Gnus): Mention that the Lisp files are now installed
