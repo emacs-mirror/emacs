@@ -1,3 +1,10 @@
+2006-07-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-util.el (url-hexify-string): Only utf-8 encode if it's
+	a multibyte string.
+	(url-normalize-url): Remove unused var `grok'.
+	(url-truncate-url-for-viewing): Remove unused var `tail'.
+
 2006-07-30  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* url-util.el (url-hexify-string): Rewrite.

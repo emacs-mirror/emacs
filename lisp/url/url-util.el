@@ -163,7 +163,7 @@ Also replaces the \" character, so that the result may be safely used as
 (defun url-normalize-url (url)
   "Return a 'normalized' version of URL.
 Strips out default port numbers, etc."
-  (let (type data grok retval)
+  (let (type data retval)
     (setq data (url-generic-parse-url url)
 	  type (url-type data))
     (if (member type '("www" "about" "mailto" "info"))
@@ -358,11 +358,24 @@ First, STRING is converted to utf-8, if necessary.  Then, for each
 character in the utf-8 string, those found in `url-unreserved-chars'
 are left as-is, all others are represented as a three-character
 string: \"%\" followed by two lowercase hex digits."
-  (mapconcat (lambda (char)
-               (if (memq char url-unreserved-chars)
-                   (char-to-string char)
-                 (format "%%%02x" char)))
-             (encode-coding-string string 'utf-8 t)
+  ;; To go faster and avoid a lot of consing, we could do:
+  ;; 
+  ;; (defconst url-hexify-table
+  ;;   (let ((map (make-vector 256 nil)))
+  ;;     (dotimes (byte 256) (aset map byte
+  ;;                               (if (memq byte url-unreserved-chars)
+  ;;                                   (char-to-string byte)
+  ;;                                 (format "%%%02x" byte))))
+  ;;     map))
+  ;;
+  ;; (mapconcat (curry 'aref url-hexify-table) ...)
+  (mapconcat (lambda (byte)
+               (if (memq byte url-unreserved-chars)
+                   (char-to-string byte)
+                 (format "%%%02x" byte)))
+             (if (multibyte-string-p string)
+                 (encode-coding-string string 'utf-8)
+               string)
              ""))
 
 ;;;###autoload
@@ -390,7 +403,6 @@ then return the basename of the file with the extension stripped off."
 WIDTH defaults to the current frame width."
   (let* ((fr-width (or width (frame-width)))
 	 (str-width (length url))
-	 (tail (file-name-nondirectory url))
 	 (fname nil)
 	 (modified 0)
 	 (urlobj nil))
@@ -398,8 +410,7 @@ WIDTH defaults to the current frame width."
     (if (and (>= str-width fr-width)
 	     (string-match "?" url))
 	(setq url (concat (substring url 0 (match-beginning 0)) "?...")
-	      str-width (length url)
-	      tail (file-name-nondirectory url)))
+	      str-width (length url)))
     (if (< str-width fr-width)
 	nil				; Hey, we are done!
       (setq urlobj (url-generic-parse-url url)
