@@ -4,6 +4,8 @@
 	ftfont_match.
 	(ftfont_list): Don't check :name property.
 	(ftfont_match): New function.
+	(ftfont_pattern_entity): If the pattern doesn't contain
+	FC_SPACING, don't assuce FC_MONO.
 
 	* font.h (struct font_driver): New member `match'.
 	(font_update_drivers): Prototype adjusted.
