@@ -1,5 +1,8 @@
 2006-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font-lock.el (font-lock-extend-jit-lock-region-after-change): New fun.
+	(font-lock-turn-on-thing-lock): Use it.
+
 	* longlines.el (longlines-show-region): Make it work on read-only
 	buffers as well.
 

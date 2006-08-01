@@ -893,7 +893,11 @@ The value of this variable is used when Font Lock mode is turned on."
 	   (set (make-local-variable 'font-lock-fontified) t)
 	   ;; Use jit-lock.
 	   (jit-lock-register 'font-lock-fontify-region
-			      (not font-lock-keywords-only))))))
+			      (not font-lock-keywords-only))
+           ;; Tell jit-lock how we extend the region to refontify.
+           (add-hook 'jit-lock-after-change-extend-region-functions
+                     'font-lock-extend-jit-lock-region-after-change
+                     nil t)))))
 
 (defun font-lock-turn-off-thing-lock ()
   (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
@@ -1095,6 +1099,35 @@ what properties to clear before refontifying a region.")
 	  (setq beg (progn (goto-char beg) (line-beginning-position))
 		end (progn (goto-char end) (line-beginning-position 2))))
 	(font-lock-fontify-region beg end)))))
+
+(defvar jit-lock-start) (defvar jit-lock-end)
+(defun font-lock-extend-jit-lock-region-after-change (beg end old-len)
+  (let ((region (font-lock-extend-region beg end old-len)))
+    (if region
+        (setq jit-lock-start (min jit-lock-start (car region))
+              jit-lock-end (max jit-lock-end (cdr region)))
+      (save-excursion
+        (goto-char beg)
+        (forward-line 0)
+        (setq jit-lock-start
+              (min jit-lock-start
+                   (if (and (not (eobp))
+                            (get-text-property (point) 'font-lock-multiline))
+                       (or (previous-single-property-change
+                            (point) 'font-lock-multiline)
+                           (point-min))
+                     (point))))
+        (goto-char end)
+        (forward-line 1)
+        (setq jit-lock-end
+              (max jit-lock-end
+                   (if (and (not (bobp))
+                            (get-text-property (1- (point))
+                                               'font-lock-multiline))
+                       (or (next-single-property-change
+                            (1- (point)) 'font-lock-multiline)
+                           (point-max))
+                     (point))))))))
 
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.
