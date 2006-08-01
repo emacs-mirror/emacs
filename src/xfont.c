@@ -451,6 +451,7 @@ xfont_match (frame, spec)
   if (! CONSP (val) || ! STRINGP (XCDR (val)))
     return Qnil;
 
+  BLOCK_INPUT;
   entity = Qnil;
   name = (char *) SDATA (XCDR (val));
   xfont = XLoadQueryFont (display, name);
@@ -478,6 +479,7 @@ xfont_match (frame, spec)
 	}
       XFreeFont (display, xfont);
     }
+  UNBLOCK_INPUT;
 
   return entity;
 }
