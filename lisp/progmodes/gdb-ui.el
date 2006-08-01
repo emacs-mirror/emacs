@@ -1358,11 +1358,22 @@ directives."
   :type 'boolean
   :version "22.1")
 
-(defcustom gdb-find-source-frame t
-  "Non-nil means try to find source further up stack e.g after signal."
+(defcustom gdb-find-source-frame nil
+  "Non-nil means try to find a source frame further up stack e.g after signal."
   :group 'gud
   :type 'boolean
   :version "22.1")
+
+(defun gdb-find-source-frame (arg)
+  "Toggle trying to find a source frame further up stack.
+With arg, look for a source frame further up stack iff arg is positive."
+  (interactive "P")
+  (setq gdb-find-source-frame
+	(if (null arg)
+	    (not gdb-find-source-frame)
+	  (> (prefix-numeric-value arg) 0)))
+  (message (format "Looking for source frame %sabled"
+		   (if gdb-find-source-frame "en" "dis"))))
 
 (defun gdb-stopped (ignored)
   "An annotation handler for `stopped'.
@@ -2785,8 +2796,13 @@ corresponding to the mode line clicked."
   (define-key gud-menu-map [ui]
     `(menu-item (if (eq gud-minor-mode 'gdba) "GDB-UI" "GDB-MI")
 		,menu :visible (memq gud-minor-mode '(gdbmi gdba))))
+  (define-key menu [gdb-find-source-frame]
+  '(menu-item "Look For Source Frame" gdb-find-source-frame
+	      :visible (eq gud-minor-mode 'gdba)
+	      :help "Toggle look for source frame."
+	      :button (:toggle . gdb-find-source-frame)))
   (define-key menu [gdb-use-separate-io]
-  '(menu-item "Separate inferior IO" gdb-use-separate-io-buffer
+  '(menu-item "Separate Inferior IO" gdb-use-separate-io-buffer
 	      :visible (eq gud-minor-mode 'gdba)
 	      :help "Toggle separate IO for inferior."
 	      :button (:toggle . gdb-use-separate-io-buffer)))
