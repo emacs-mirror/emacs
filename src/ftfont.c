@@ -140,7 +140,7 @@ ftfont_pattern_entity (p, frame, registry)
     ASET (entity, FONT_SIZE_INDEX, make_number (0));
 
   if (FcPatternGetInteger (p, FC_SPACING, 0, &numeric) != FcResultMatch)
-    numeric = FC_MONO;
+    numeric = -1;
   file = FcStrCopy (file);
   if (! file)
     return Qnil;
@@ -151,7 +151,8 @@ ftfont_pattern_entity (p, frame, registry)
 
   if (FcPatternAddString (p, FC_FILE, file) == FcFalse
       || (charset && FcPatternAddCharSet (p, FC_CHARSET, charset) == FcFalse)
-      || FcPatternAddInteger (p, FC_SPACING, numeric) == FcFalse)
+      || (numeric >= 0
+	  && FcPatternAddInteger (p, FC_SPACING, numeric) == FcFalse))
     {
       FcPatternDestroy (p);
       return Qnil;
