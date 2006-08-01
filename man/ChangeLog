@@ -1,3 +1,9 @@
+2006-08-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Shorten node names.
+	(GDB-UI Layout): Use GDB-related.
+	(Stack Buffer): Simplify English.
+
 2006-07-31  Richard Stallman  <rms@gnu.org>
 
 	* search.texi (Query Replace): Add xref for Dired's Q command.
