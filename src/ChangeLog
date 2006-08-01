@@ -1,3 +1,10 @@
+2006-08-01  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_output_unwind): New function.
+	Restores waiting_for_user_input_p to saved value.
+	(wait_reading_process_output): Unwind protect waiting_for_user_input_p
+	instead of save/restore old value on stack.
+
 2006-07-30  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* editfns.c: Undo 2006-06-27 change.
