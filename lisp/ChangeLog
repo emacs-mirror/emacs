@@ -1,7 +1,11 @@
+2006-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* longlines.el (longlines-show-region): Make it work on read-only
+	buffers as well.
+
 2006-08-01  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-set-hollow): Check for
-	gud-last-last-frame.
+	* progmodes/gdb-ui.el (gdb-set-hollow): Check for gud-last-last-frame.
 
 2006-07-31  Richard Stallman  <rms@gnu.org>
 
@@ -112,10 +116,10 @@
 
 	* tumme.el (tumme-track-original-file): Add `buffer-live-p' check.
 	(tumme-format-properties-string): Handle empty `buf'.
-	(tumme-get-comment): Change variable names inside `let'.  Add
-	missing `let' variable that cause font-lock problems.
-	(tumme-write-comments): Change variable names inside `let'.  Add
-	missing `let' variable that cause font-lock problems.
+	(tumme-get-comment): Change variable names inside `let'.
+	Add missing `let' variable that cause font-lock problems.
+	(tumme-write-comments): Change variable names inside `let'.
+	Add missing `let' variable that cause font-lock problems.
 	(tumme-forward-image): Rename from `tumme-forward-char'.
 	(tumme-backward-image): Rename from `tumme-backward-char'.
 
