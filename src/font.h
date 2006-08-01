@@ -291,10 +291,15 @@ struct font_driver
      cons whose cdr part is the actual cache area.  */
   Lisp_Object (*get_cache) P_ ((Lisp_Object frame));
 
-  /* List fonts matching with FONT_SPEC on FRAME.  The value is a
-     vector of font-entities.  This is the sole API that allocates
-     font-entities.  */
+  /* List fonts exactly matching with FONT_SPEC on FRAME.  The value
+     is a vector of font-entities.  This is the sole API that
+     allocates font-entities.  */
   Lisp_Object (*list) P_ ((Lisp_Object frame, Lisp_Object font_spec));
+
+  /* Return a font entity most closely maching with FONT_SPEC on
+     FRAME.  The closeness is detemined by the font backend, thus
+     `face-font-selection-order' is ignored here.  */
+  Lisp_Object (*match) P_ ((Lisp_Object frame, Lisp_Object font_spec));
 
   /* Optional.
      List available families.  The value is a list of family names
@@ -480,8 +485,7 @@ extern int font_unparse_fcname P_ ((Lisp_Object font, int pixel_size,
 				  char *name, int bytes));
 extern void register_font_driver P_ ((struct font_driver *driver, FRAME_PTR f));
 extern void free_font_driver_list P_ ((FRAME_PTR f));
-extern void font_update_drivers P_ ((FRAME_PTR f, Lisp_Object name_list,
-				     struct font *));
+extern Lisp_Object font_update_drivers P_ ((FRAME_PTR f, Lisp_Object list));
 extern Lisp_Object font_at P_ ((int c, EMACS_INT pos, struct face *face,
 				struct window *w, Lisp_Object object));
 
