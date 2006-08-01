@@ -3179,8 +3179,6 @@ x_set_font_backend (f, new_value, old_value)
      struct frame *f;
      Lisp_Object new_value, old_value;
 {
-  Lisp_Object frame;
-
   if (! NILP (new_value)
       && !CONSP (new_value))
     {
@@ -3199,9 +3197,32 @@ x_set_font_backend (f, new_value, old_value)
 	    p1++;
 	  p0 = p1;
 	}
+      new_value = Fnreverse (new_value);
     }
 
-  font_update_drivers (f, new_value, FRAME_FONT_OBJECT (f));
+  if (! NILP (old_value) && ! NILP (Fequal (old_value, new_value)))
+    return;
+
+  if (FRAME_FONT_OBJECT (f))
+    {
+      free_all_realized_faces (Qnil);
+      Fclear_font_cache ();
+    }
+
+  new_value = font_update_drivers (f, new_value);
+  if (NILP (new_value))
+    error ("No font backend available");
+  store_frame_param (f, Qfont_backend, new_value);
+
+  if (FRAME_FONT_OBJECT (f))
+    {
+      Lisp_Object frame;
+
+      XSETFRAME (frame, f);
+      x_set_font (f, Fframe_parameter (frame, Qfont), Qnil);
+      ++face_change_count;
+      ++windows_or_buffers_changed;
+    }
 }
 #endif	/* USE_FONT_BACKEND */
 
