@@ -833,17 +833,17 @@ Emacs session.  If you have customized @code{gud-gdb-command-name} in
 that way, you can use @kbd{M-x gdba} to invoke GDB in graphical mode.
 
 @menu
-* GDB User Interface Layout::   Control the number of displayed buffers.
+* GDB-UI Layout::               Control the number of displayed buffers.
 * Source Buffers::              Use the mouse in the fringe/margin to
                                 control your program.
 * Breakpoints Buffer::          A breakpoint control panel.
 * Stack Buffer::                Select a frame from the call stack.
-* Other GDB User Interface Buffers:: Input/output, locals, registers,
+* Other GDB-UI Buffers::        Input/output, locals, registers,
                                 assembler, threads and memory buffers.
 * Watch Expressions::           Monitor variable values in the speedbar.
 @end menu
 
-@node GDB User Interface Layout
+@node GDB-UI Layout
 @subsubsection GDB User Interface Layout
 @cindex GDB User Interface layout
 
@@ -884,7 +884,7 @@ layout with the command @code{gdb-restore-windows}.
 containing just the GUD buffer and a source file, type @kbd{M-x
 gdb-many-windows}.
 
-  You may also specify additional GUD-related buffers to display,
+  You may also specify additional GDB-related buffers to display,
 either in the same frame or a different one.  Select the buffers you
 want with the @samp{GUD->GDB-windows} and @samp{GUD->GDB-Frames}
 sub-menus.  If the menu-bar is unavailable, type @code{M-x
@@ -1008,21 +1008,20 @@ frame and type @key{RET} (@code{gdb-frames-select}), or click
 selecting a stack frame updates it to display the local variables of
 the new frame.
 
-@node Other GDB User Interface Buffers
+@node Other GDB-UI Buffers
 @subsubsection Other Buffers
 
 @table @asis
 @item Input/Output Buffer
 @vindex gdb-use-separate-io-buffer
 If the variable @code{gdb-use-separate-io-buffer} is non-@code{nil},
-the executable program that is being debugged takes its input and
-displays its output here.  Otherwise it uses the GUD buffer for that.
-To toggle whether GUD mode uses this buffer, do @kbd{M-x
-gdb-use-separate-io-buffer}.  That takes effect when you next
-restart the program you are debugging.
+the program being debugged takes its input and displays its output
+here.  Otherwise it uses the GUD buffer for that.  To toggle whether
+GUD mode uses this buffer, do @kbd{M-x gdb-use-separate-io-buffer}.
+That takes effect when you next restart the program you are debugging.
 
 The history and replay commands from Shell mode are available here,
-as are the commands to send signals to the program you are debugging.
+as are the commands to send signals to the debugged program.
 @xref{Shell Mode}.
 
 @item Locals Buffer
