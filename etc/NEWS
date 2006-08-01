@@ -3661,8 +3661,10 @@ w32-use-full-screen-buffer to t.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
-** The function find-operation-coding-system accepts a cons (FILENAME
-. BUFFER) in an argument correponding to the target.
+** The function find-operation-coding-system may be called with a cons
+(FILENAME . BUFFER) in the second argument if the first argument
+OPERATION is `insert-file-contents', and thus a function registered in
+`file-coding-system-alist' is also called with such an argument.
 
 ---
 ** The variables post-command-idle-hook and post-command-idle-delay have
