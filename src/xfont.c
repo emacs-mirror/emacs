@@ -239,6 +239,7 @@ xfont_registry_charsets (registry, encoding, repertory)
 
 static Lisp_Object xfont_get_cache P_ ((Lisp_Object));
 static Lisp_Object xfont_list P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object xfont_match P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object xfont_list_family P_ ((Lisp_Object));
 static struct font *xfont_open P_ ((FRAME_PTR, Lisp_Object, int));
 static void xfont_close P_ ((FRAME_PTR, struct font *));
@@ -257,6 +258,7 @@ struct font_driver xfont_driver =
     (Lisp_Object) NULL,		/* Qx */
     xfont_get_cache,
     xfont_list,
+    xfont_match,
     xfont_list_family,
     NULL,
     xfont_open,
@@ -431,6 +433,53 @@ xfont_list (frame, spec)
     }
 
   return (NILP (list) ? null_vector : Fvconcat (1, &list));
+}
+
+static Lisp_Object
+xfont_match (frame, spec)
+     Lisp_Object frame, spec;
+{
+  FRAME_PTR f = XFRAME (frame);
+  Display *display = FRAME_X_DISPLAY_INFO (f)->display;
+  Lisp_Object extra, val, entity;
+  char *name;
+  XFontStruct *xfont;
+  unsigned long value;
+
+  extra = AREF (spec, FONT_EXTRA_INDEX);
+  val = assq_no_quit (QCname, extra);
+  if (! CONSP (val) || ! STRINGP (XCDR (val)))
+    return Qnil;
+
+  entity = Qnil;
+  name = (char *) SDATA (XCDR (val));
+  xfont = XLoadQueryFont (display, name);
+  if (xfont)
+    {
+      if (XGetFontProperty (xfont, XA_FONT, &value))
+	{
+	  int len;
+
+	  name = (char *) XGetAtomName (display, (Atom) value);
+	  len = strlen (name);
+
+	  /* If DXPC (a Differential X Protocol Compressor)
+	     Ver.3.7 is running, XGetAtomName will return null
+	     string.  We must avoid such a name.  */
+	  if (len > 0)
+	    {
+	      entity = Fmake_vector (make_number (FONT_ENTITY_MAX), Qnil);
+	      ASET (entity, FONT_TYPE_INDEX, Qx);
+	      ASET (entity, FONT_FRAME_INDEX, frame);
+	      if (font_parse_xlfd (name, entity) < 0)
+		entity = Qnil;
+	    }
+	  XFree (name);
+	}
+      XFreeFont (display, xfont);
+    }
+
+  return entity;
 }
 
 static int
@@ -805,6 +854,17 @@ xfont_draw (s, from, to, x, y, with_background)
 {
   XFontStruct *xfont = s->face->font;
   int len = to - from;
+  GC gc = s->gc;
+
+  if (gc != s->face->gc)
+    {
+      XGCValues xgcv;
+      Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (s->f);
+
+      XGetGCValues (s->display, gc, GCFont, &xgcv);
+      if (xgcv.font != xfont->fid)
+	XSetFont (s->display, gc, xfont->fid);
+    }
 
   if (xfont->min_byte1 == 0 && xfont->max_byte1 == 0)
     {
@@ -817,20 +877,20 @@ xfont_draw (s, from, to, x, y, with_background)
 	str[i] = XCHAR2B_BYTE2 (s->char2b + from + i);
       if (with_background > 0)
 	XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-			  s->gc, x, y, str, len);
+			  gc, x, y, str, len);
       else
 	XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-		     s->gc, x, y, str, len);
+		     gc, x, y, str, len);
       SAFE_FREE ();
       return s->nchars;
     }
 
   if (with_background > 0)
     XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-			s->gc, x, y, s->char2b + from, len);
+			gc, x, y, s->char2b + from, len);
   else
     XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-		   s->gc, x, y, s->char2b + from, len);
+		   gc, x, y, s->char2b + from, len);
 
   return len;
 }
