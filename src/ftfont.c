@@ -571,7 +571,6 @@ ftfont_match (frame, spec)
 	{
 	  FcDefaultSubstitute (pattern);
 	  match = FcFontMatch (NULL, pattern, &result);
-	  fprintf (stderr, "%s\n", (char *) FcNameUnparse (match));
 	  if (match)
 	    {
 	      entity = ftfont_pattern_entity (match, frame, Qunicode_bmp);
