@@ -49,14 +49,15 @@ struct xftfont_info
   Display *display;
   int screen;
   XftFont *xftfont;
-  FT_Face ft_face;
+  FT_Face ft_face;		/* set to XftLockFace (xftfont) */
 };
 
 /* Structure pointed by (struct face *)->extra  */
+
 struct xftface_info
 {
-  XftColor xft_fg;
-  XftColor xft_bg;
+  XftColor xft_fg;		/* color for face->foreground */
+  XftColor xft_bg;		/* color for face->background */
   XftDraw *xft_draw;
 };
 
@@ -66,8 +67,10 @@ static void xftfont_get_colors P_ ((FRAME_PTR, struct face *, GC gc,
 static Font xftfont_default_fid P_ ((FRAME_PTR));
 
 
-/* Setup colors pointed by FG and BG for GC.  If XFTFACE_INFO is not
-   NULL, reuse the colors in it if possible.  BG may be NULL.  */
+/* Setup foreground and background colors of GC into FG and BG.  If
+   XFTFACE_INFO is not NULL, reuse the colors in it if possible.  BG
+   may be NULL.  */
+
 static void
 xftfont_get_colors (f, face, gc, xftface_info, fg, bg)
      FRAME_PTR f;
@@ -129,7 +132,9 @@ xftfont_get_colors (f, face, gc, xftface_info, fg, bg)
     }
 }
 
-/* Return the default Font ID on frame F.  */
+/* Return the default Font ID on frame F.  The Returned Font ID is
+   stored in the GC of the frame F, but the font is never used.  So,
+   any ID is ok as long as it is valid.  */
 
 static Font
 xftfont_default_fid (f)
@@ -154,6 +159,7 @@ xftfont_default_fid (f)
 
 
 static Lisp_Object xftfont_list P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object xftfont_match P_ ((Lisp_Object, Lisp_Object));
 static struct font *xftfont_open P_ ((FRAME_PTR, Lisp_Object, int));
 static void xftfont_close P_ ((FRAME_PTR, struct font *));
 static int xftfont_prepare_face P_ ((FRAME_PTR, struct face *));
@@ -174,15 +180,24 @@ xftfont_list (frame, spec)
      Lisp_Object spec;
 {
   Lisp_Object val = ftfont_driver.list (frame, spec);
+  int i;
   
   if (! NILP (val))
-    {
-      int i;
-
-      for (i = 0; i < ASIZE (val); i++)
-	ASET (AREF (val, i), FONT_TYPE_INDEX, Qxft);
-    }
+    for (i = 0; i < ASIZE (val); i++)
+      ASET (AREF (val, i), FONT_TYPE_INDEX, Qxft);
   return val;
+}
+
+static Lisp_Object
+xftfont_match (frame, spec)
+     Lisp_Object frame;
+     Lisp_Object spec;
+{
+  Lisp_Object entity = ftfont_driver.match (frame, spec);
+
+  if (VECTORP (entity))
+    ASET (entity, FONT_TYPE_INDEX, Qxft);
+  return entity;
 }
 
 static FcChar8 ascii_printable[95];
@@ -529,6 +544,7 @@ syms_of_xftfont ()
   xftfont_driver.type = Qxft;
   xftfont_driver.get_cache = xfont_driver.get_cache;
   xftfont_driver.list = xftfont_list;
+  xftfont_driver.match = xftfont_match;
   xftfont_driver.open = xftfont_open;
   xftfont_driver.close = xftfont_close;
   xftfont_driver.prepare_face = xftfont_prepare_face;
