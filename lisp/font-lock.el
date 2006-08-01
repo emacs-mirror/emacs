@@ -975,6 +975,31 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; directives correctly and cleanly.  (It is the same problem as fontifying
 ;; multi-line strings and comments; regexps are not appropriate for the job.)
 
+(defvar font-lock-extend-region-function nil
+  "A function that determines the region to fontify after a change.
+
+This variable is either nil, or is a function that determines the
+region to refontify after a change.
+It is usually set by the major mode via `font-lock-defaults'.
+Font-lock calls this function after each buffer change.
+
+The function is given three parameters, the standard BEG, END, and OLD-LEN
+from `after-change-functions'.  It should return either a cons of the beginning
+and end buffer positions \(in that order) of the region to fontify, or nil
+\(which directs the caller to fontify a default region).  This function
+should preserve point and the match-data.
+The region it returns may start or end in the middle of a line.")
+
+(defun font-lock-extend-region (beg end old-len)
+  "Determine the region to fontify after a buffer change.
+
+BEG END and OLD-LEN are the standard parameters from `after-change-functions'.
+The return value is either nil \(which directs the caller to chose the region
+itself), or a cons of the beginning and end \(in that order) of the region.
+The region returned may start or end in the middle of a line."
+  (if font-lock-extend-region-function
+      (funcall font-lock-extend-region-function beg end old-len)))
+
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way the function `font-lock-mode' would."
   (interactive)

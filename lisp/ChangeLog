@@ -1,5 +1,17 @@
 2006-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font-core.el (font-lock-extend-region-function)
+	(font-lock-extend-region): Move to font-lock.el.
+
+	* font-lock.el (font-lock-extend-region-function)
+	(font-lock-extend-region): Move from font-core.el.  Simplify.
+
+	* jit-lock.el (jit-lock-fontify-now): Cause a second redisplay
+	if needed.
+	(jit-lock-start, jit-lock-end): New dynamic scoped vars.
+	(jit-lock-after-change-extend-region-functions): New hook.
+	(jit-lock-after-change): Use it instead of hard-coding font-lock code.
+
 	* font-lock.el (font-lock-extend-jit-lock-region-after-change): New fun.
 	(font-lock-turn-on-thing-lock): Use it.
 
