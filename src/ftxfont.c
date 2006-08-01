@@ -196,6 +196,7 @@ ftxfont_default_fid (f)
 
 /* Prototypes for font-driver methods.  */
 static Lisp_Object ftxfont_list P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object ftxfont_match P_ ((Lisp_Object, Lisp_Object));
 static struct font *ftxfont_open P_ ((FRAME_PTR, Lisp_Object, int));
 static void ftxfont_close P_ ((FRAME_PTR, struct font *));
 static int ftxfont_prepare_face (FRAME_PTR, struct face *);
@@ -220,6 +221,18 @@ ftxfont_list (frame, spec)
 	ASET (AREF (val, i), FONT_TYPE_INDEX, Qftx);
     }
   return val;
+}
+
+static Lisp_Object
+ftxfont_match (frame, spec)
+     Lisp_Object frame;
+     Lisp_Object spec;
+{
+  Lisp_Object entity = ftfont_driver.match (frame, spec);
+
+  if (VECTORP (entity))
+    ASET (entity, FONT_TYPE_INDEX, Qftx);
+  return entity;
 }
 
 static struct font *
@@ -289,9 +302,6 @@ ftxfont_prepare_face (f, face)
 {
   struct font *font = (struct font *) face->font_info;
   GC gcs[6];
-  XColor colors[3];
-  XGCValues xgcv;
-  unsigned long mask = GCForeground | GCBackground | GCGraphicsExposures;
   int i;
 
   face->extra = NULL;
@@ -413,6 +423,7 @@ syms_of_ftxfont ()
   ftxfont_driver = ftfont_driver;
   ftxfont_driver.type = Qftx;
   ftxfont_driver.list = ftxfont_list;
+  ftxfont_driver.match = ftxfont_match;
   ftxfont_driver.open = ftxfont_open;
   ftxfont_driver.close = ftxfont_close;
   ftxfont_driver.prepare_face = ftxfont_prepare_face;
