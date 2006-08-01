@@ -1,3 +1,10 @@
+2006-08-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-find-source-frame): Make nil the
+	default value.
+	(gdb-find-source-frame): New function.
+	(menu): Add to menu bar.
+
 2006-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-core.el (font-lock-extend-region-function)
