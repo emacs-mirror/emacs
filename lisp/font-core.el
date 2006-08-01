@@ -83,34 +83,6 @@ where MAJOR-MODE is a symbol and FONT-LOCK-DEFAULTS is a list of default
 settings.  See the variable `font-lock-defaults', which takes precedence.")
 (make-obsolete-variable 'font-lock-defaults-alist 'font-lock-defaults)
 
-(defvar font-lock-extend-region-function nil
-  "A function that determines the region to fontify after a change.
-
-This buffer-local variable is either nil, or is a function that determines the
-region to fontify.  It is usually set by the major mode.  The currently active
-font-lock after-change function calls this function after each buffer change.
-
-The function is given three parameters, the standard BEG, END, and OLD-LEN
-from after-change-functions.  It should return either a cons of the beginning
-and end buffer positions \(in that order) of the region to fontify, or nil
-\(which directs the caller to fontify a default region).  This function need
-not preserve point or the match-data, but must preserve the current
-restriction.  The region it returns may start or end in the middle of a
-line.")
-(make-variable-buffer-local 'font-lock-extend-region-function)
-
-(defun font-lock-extend-region (beg end old-len)
-  "Determine the region to fontify after a buffer change.
-
-BEG END and OLD-LEN are the standard parameters from after-change-functions.
-The return value is either nil \(which directs the caller to chose the region
-itself), or a cons of the beginning and end \(in that order) of the region.
-The region returned may start or end in the middle of a line."
-  (if font-lock-extend-region-function
-      (save-match-data
-	(save-excursion
-	  (funcall font-lock-extend-region-function beg end old-len)))))
-
 (defvar font-lock-function 'font-lock-default-function
   "A function which is called when `font-lock-mode' is toggled.
 It will be passed one argument, which is the current value of
