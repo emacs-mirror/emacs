@@ -247,6 +247,7 @@ ftfont_list_generic_family (spec, frame, registry)
 
 static Lisp_Object ftfont_get_cache P_ ((Lisp_Object));
 static Lisp_Object ftfont_list P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object ftfont_match P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object ftfont_list_family P_ ((Lisp_Object));
 static void ftfont_free_entity P_ ((Lisp_Object));
 static struct font *ftfont_open P_ ((FRAME_PTR, Lisp_Object, int));
@@ -265,6 +266,7 @@ struct font_driver ftfont_driver =
     (Lisp_Object) NULL,		/* Qfreetype */
     ftfont_get_cache,
     ftfont_list,
+    ftfont_match,
     ftfont_list_family,
     ftfont_free_entity,
     ftfont_open,
@@ -306,13 +308,14 @@ static Lisp_Object
 ftfont_list (frame, spec)
      Lisp_Object frame, spec;
 {
-  Lisp_Object val, tmp, extra, font_name;
+  Lisp_Object val, tmp, extra;
   int i;
   FcPattern *pattern = NULL;
   FcCharSet *charset = NULL;
   FcLangSet *langset = NULL;
   FcFontSet *fontset = NULL;
   FcObjectSet *objset = NULL;
+  Lisp_Object script;
   Lisp_Object registry = Qunicode_bmp;
   int weight = 0;
   double dpi = -1;
@@ -350,85 +353,68 @@ ftfont_list (frame, spec)
 	return val;
     }
 
-  extra = AREF (spec, FONT_EXTRA_INDEX);
-  font_name = Qnil;
   otf_script[0] = '\0';
-  if (CONSP (extra))
+  script = Qnil;
+  for (extra = AREF (spec, FONT_EXTRA_INDEX);
+       CONSP (extra); extra = XCDR (extra))
     {
-      Lisp_Object script = Qnil;
+      Lisp_Object key, val;
 
-      tmp = assq_no_quit (QCname, extra);
-      if (CONSP (tmp) && STRINGP (XCDR (tmp))
-	  && SDATA (XCDR (tmp))[0] == ':')
-	font_name = XCDR (tmp);
-      tmp = assq_no_quit (QCotf, extra);
-      if (CONSP (tmp) && SYMBOLP (XCDR (tmp)))
+      tmp = XCAR (extra);
+      key = XCAR (tmp), val = XCDR (tmp);
+      if (EQ (key, QCotf))
 	{
-	  tmp = XCDR (tmp);
-	  script = assq_no_quit (tmp, Votf_script_alist);
+	  script = assq_no_quit (val, Votf_script_alist);
 	  if (CONSP (script) && SYMBOLP (XCDR (script)))
 	    script = XCDR (script);
-	  tmp = SYMBOL_NAME (tmp);
+	  tmp = SYMBOL_NAME (val);
 	  sprintf (otf_script, "otlayout:%s", (char *) SDATA (tmp));
 	}
-      tmp = assq_no_quit (QClanguage, extra);
-      if (CONSP (tmp))
+      else if (EQ (key, QClanguage))
 	{
 	  langset = FcLangSetCreate ();
 	  if (! langset)
 	    goto err;
-	  tmp = XCDR (tmp);
-	  if (SYMBOLP (tmp))
+	  if (SYMBOLP (val))
 	    {
-	      if (! FcLangSetAdd (langset, SYMBOL_FcChar8 (tmp)))
+	      if (! FcLangSetAdd (langset, SYMBOL_FcChar8 (val)))
 		goto err;
 	    }
 	  else
-	    while (CONSP (tmp))
-	      {
-		if (SYMBOLP (XCAR (tmp))
-		    && ! FcLangSetAdd (langset, SYMBOL_FcChar8 (XCAR (tmp))))
-		  goto err;
-		tmp = XCDR (tmp);
-	      }
-	}
-      tmp = assq_no_quit (QCscript, extra);
-      if (CONSP (tmp))
-	script = XCDR (tmp);
-      if (! NILP (script) && ! charset)
-	{
-	  Lisp_Object chars
-	    = assq_no_quit (script, Vscript_representative_chars);
-
-	  if (CONSP (chars))
-	    {
-	      charset = FcCharSetCreate ();
-	      if (! charset)
+	    for (; CONSP (val); val = XCDR (val))
+	      if (SYMBOLP (XCAR (val))
+		  && ! FcLangSetAdd (langset, SYMBOL_FcChar8 (XCAR (val))))
 		goto err;
-	      for (chars = XCDR (chars); CONSP (chars); chars = XCDR (chars))
-		if (CHARACTERP (XCAR (chars))
-		    && ! FcCharSetAddChar (charset, XUINT (XCAR (chars))))
-		  goto err;
-	    }
 	}
-      tmp = assq_no_quit (QCdpi, extra);
-      if (CONSP (tmp))
-	dpi = XINT (XCDR (tmp));
-      tmp = assq_no_quit (QCspacing, extra);
-      if (CONSP (tmp))
-	spacing = XINT (XCDR (tmp));
-      tmp = assq_no_quit (QCscalable, extra);
-      if (CONSP (tmp))
-	scalable = ! NILP (XCDR (tmp));
+      else if (EQ (key, QCscript))
+	script = val;
+      else if (EQ (key, QCdpi))
+	dpi = XINT (val);
+      else if (EQ (key, QCspacing))
+	spacing = XINT (val);
+      else if (EQ (key, QCscalable))
+	scalable = ! NILP (val);
     }
 
-  if (STRINGP (font_name))
-    pattern = FcNameParse (SDATA (font_name));
-  else
-    pattern = FcPatternCreate ();
+  if (! NILP (script) && ! charset)
+    {
+      Lisp_Object chars = assq_no_quit (script, Vscript_representative_chars);
+
+      if (CONSP (chars))
+	{
+	  charset = FcCharSetCreate ();
+	  if (! charset)
+	    goto err;
+	  for (chars = XCDR (chars); CONSP (chars); chars = XCDR (chars))
+	    if (CHARACTERP (XCAR (chars))
+		&& ! FcCharSetAddChar (charset, XUINT (XCAR (chars))))
+	      goto err;
+	}
+    }
+
+  pattern = FcPatternCreate ();
   if (! pattern)
     goto err;
-
   tmp = AREF (spec, FONT_FOUNDRY_INDEX);
   if (SYMBOLP (tmp) && ! NILP (tmp)
       && ! FcPatternAddString (pattern, FC_FOUNDRY, SYMBOL_FcChar8 (tmp)))
@@ -556,6 +542,46 @@ ftfont_list (frame, spec)
   if (pattern) FcPatternDestroy (pattern);
 
   return val;
+}
+
+static Lisp_Object
+ftfont_match (frame, spec)
+     Lisp_Object frame, spec;
+{
+  Lisp_Object extra, val, entity;
+  FcPattern *pattern = NULL, *match = NULL;
+  FcResult result;
+
+  if (! fc_initialized)
+    {
+      FcInit ();
+      fc_initialized = 1;
+    }
+
+  extra = AREF (spec, FONT_EXTRA_INDEX);
+  val = assq_no_quit (QCname, extra);
+  if (! CONSP (val) || ! STRINGP (XCDR (val)))
+    return Qnil;
+
+  entity = Qnil;
+  pattern = FcNameParse (SDATA (XCDR (val)));
+  if (pattern)
+    {
+      if (FcConfigSubstitute (NULL, pattern, FcMatchPattern) == FcTrue)
+	{
+	  FcDefaultSubstitute (pattern);
+	  match = FcFontMatch (NULL, pattern, &result);
+	  fprintf (stderr, "%s\n", (char *) FcNameUnparse (match));
+	  if (match)
+	    {
+	      entity = ftfont_pattern_entity (match, frame, Qunicode_bmp);
+	      FcPatternDestroy (match);
+	    }
+	}
+      FcPatternDestroy (pattern);
+    }
+
+  return entity;
 }
 
 static Lisp_Object
