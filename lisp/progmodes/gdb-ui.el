@@ -2049,9 +2049,10 @@ static char *magick[] = {
   (setq gdb-look-up-stack nil))
 
 (defun gdb-set-hollow ()
-  (with-current-buffer (gud-find-file (car gud-last-last-frame))
-    (setq fringe-indicator-alist
-	  '((overlay-arrow . hollow-right-triangle)))))
+  (if gud-last-last-frame
+      (with-current-buffer (gud-find-file (car gud-last-last-frame))
+	(setq fringe-indicator-alist
+	      '((overlay-arrow . hollow-right-triangle))))))
 
 (defun gdb-stack-buffer-name ()
   (with-current-buffer gud-comint-buffer
