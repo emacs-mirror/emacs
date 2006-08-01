@@ -1,3 +1,45 @@
+2006-08-01  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_driver): Set ftfont_driver.match to
+	ftfont_match.
+	(ftfont_list): Don't check :name property.
+	(ftfont_match): New function.
+
+	* font.h (struct font_driver): New member `match'.
+	(font_update_drivers): Prototype adjusted.
+
+	* font.c (font_parse_fcname): Don't change :name property of FONT.
+	(font_parse_name): Likewise.
+	(LGSTRING_HEADER_SIZE, LGSTRING_GLYPH_SIZE, check_gstring): Define
+	them unconditionally.
+	(font_matching_entity): New function.
+	(font_open_by_name): Try font_matching_entity if exact match is
+	not found.
+	(font_update_drivers): Delete the arg FONT.  Return a list of
+	actually used backends.  Don't free faces, font caches here.
+	Don't store data in frame parameters.  Don't call x_set_font.
+	(Ffont_spec): Store :name property as is.
+	(Ffont_get): Check HAVE_LIBOTF before calling font_otf_capability.
+	(Ffont_otf_gsub): Call font->driver->otf_gsub instead of
+	font_otf_gsub.
+	(Ffont_otf_gpos): Call font->driver->otf_gpos instead of
+	font_otf_gpos.
+	(Ffont_otf_alternates): Check if the driver has otf_gsub function.
+	Call font->driver->otf_gsub instead of font_otf_gsub.
+	
+	* frame.c (x_set_font_backend): Do more works that were done in
+	font_update_drivers before.
+
+	* xfont.c (xfont_match): New function.
+	(xfont_driver): Set xfont_driver.match to xfont_match.
+	(xfont_draw): Set font in GC if necessary.
+
+	* ftxfont.c (ftxfont_match): New function.
+	(syms_of_ftxfont): Set ftxfont_driver.match to ftxfont_match.
+
+	* xftfont.c (xftfont_match): New function.
+	(syms_of_xftfont): Set xftfont_driver.match to xftfont_match.
+
 2006-07-28  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (struct font): New member scalable.
