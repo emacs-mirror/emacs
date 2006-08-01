@@ -1,3 +1,8 @@
+2006-08-01  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS (find-operation-coding-system): Describe the more detail of
+	the change.
+
 2006-07-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* GNUS-NEWS: Regenerate from Oort Gnus node in texi/gnus.texi using
