@@ -291,7 +291,8 @@ Keymap to display on minor modes.")
      'mode-line-buffer-identification
      (propertize "   " 'help-echo help-echo)
      'mode-line-position
-     `(vc-mode ("" vc-mode ,(propertize "   " 'help-echo help-echo)))
+     `(vc-mode ("" vc-mode))
+     (propertize "  " 'help-echo help-echo)
      'mode-line-modes
      `(which-func-mode ("" which-func-format ,dashes))
      `(global-mode-string (,dashes global-mode-string))
