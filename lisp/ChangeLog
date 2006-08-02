@@ -1,3 +1,8 @@
+2006-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-expand-many-files): Avoid signalling an error when
+	the current directory doesn't exist.  Reported by Micha,Ak(Bl Cadilhac.
+
 2006-08-02  Andreas Schwab  <schwab@suse.de>
 
 	* bindings.el (mode-line-format): Simplify reference to vc-mode.
