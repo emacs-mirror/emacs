@@ -88,9 +88,25 @@
 
 <p>Other terms:</p>
 <dl>
+  <dt> <a id="foreign_code">Foreign code (mps.h)</a> </dt>
+  <dd>From the MPS client's point of view, foreign code is 
+    external code (outside the client and MPS), which is not 
+    aware of and does not cooperate with the MPS.  
+    Examples include the operating system, graphics libraries,
+    etc.
+    Before the client passes MPS memory references to foreign 
+    code, it must ensure that the memory is not going to be moved, 
+    collected, or 
+    <a href="http://www.memorymanagement.org/glossary/p.html#protection">protected</a> by the MPS.
+    Some pool classes (eg. 
+    <a href="pool_classes.html#mps_class_lo"><code>mps_class_lo</code></a>
+    ) are specially 
+    designed for this.
+    </dd>
+
   <dt> Format (mps.h) </dt>
   <dd>A collection of client-implemented Format Methods, 
-    which MPS uses to ask questions about objects.
+    which MPS uses to ask the client questions about objects.
     See <a href="gc.html">GC</a>.</dd>
 
   <dt> Attr (internal) </dt>
@@ -116,6 +132,7 @@
   2006-06-06  RHSK  Created.
   2006-06-21  RHSK  Scope of terms; client/mutator, ap/buffer.
   2006-07-03  RHSK  Ring.
+  2006-08-02  RHSK  Foreign code.  Format (clarify).
 </pre>
 
 

@@ -42,18 +42,47 @@
 
 <p> This wiki article contains incomplete and informal notes about the MPS, the precursor to more formal documentation.  Not confidential.  Readership: MPS users and developers.  </p>
 
-<h2>Some notes about MPS pool classes</h2>
+<h2>How to choose the right MPS pool class</h2>
 
-<p>A useful survey from 1998:
+<p>We would like a 'map' from a client's requirements to the 
+  recommended pool class:</p>
+<blockquote><pre>
+Do you need garbage collection?
+Do you have objects with no references in them?
+Do you need to pass buffers to system calls?
+etc etc
+You need mps_class_lo.
+</pre></blockquote>
+  
+<p> For now, the closest we have to this is a survey from 1998 that 
+  still contains confidential material:
   <a href="/project/mps/doc/2002-06-18/obsolete-mminfo/mmdoc/doc/mps/guide/pool-classes/">guide.mps.pool-classes by RIT</a>
   <sup><a href="index.html#not-publicly-available" title="this document is not publicly available">&empty;</a></sup>.</p>
 
-<p>Other notes:</p>
+
+<h2>Some notes about MPS pool classes</h2>
+
 <dl>
-  <dt>mps_class_lo</dt>
+  <dt><a id="mps_class_lo">mps_class_lo</a></dt>
   <dd>
-    <p>Leaf Only pool class, for objects that contain no references.
-      Unit test: locv.c.</p>
+    <p>Leaf Only pool class (for objects that contain no references) 
+      that does not use memory protection.
+      Unit test: locv.c.  RefMan: -undocumented-.</p>
+    <p>This pool class should really be called "flat data 
+      that needs to be accessed by 
+      <a href="glossary.html#foreign_code">foreign code</a>"
+       -- that's what it was developed for.  If you want to allocate 
+       a buffer to pass to an operating system I/O call, this 
+       is probably the pool class you should use.  
+       [Conversation with DRJ, 2006-07].</p>
+    <p> For a general-purpose leaf-only pool, 
+       you probably want AMCZ.</p>
+  </dd>
+
+  <dt>mps_class_amcz</dt>
+  <dd>
+    <p>A variant of AMC for objects of Zero rank, ie. 
+      leaf-only objects (objects that contain no references).</p>
   </dd>
 
   <dt>mps_class_awl</dt>
@@ -185,6 +214,8 @@ NULL.
   2006-06-02  RHSK  Created.
   2006-06-23  RHSK  Link to RIT's 1998 guide.mps.pool-classes.
   2006-06-28  RHSK  Notes on AWL dependent object and scan method.
+  2006-08-02  RHSK  LO is for foreign code; for leaf-only use AMCZ.
+                    How to choose the right pool class.
 </pre>
 
 
