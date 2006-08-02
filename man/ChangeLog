@@ -1,3 +1,7 @@
+2006-08-01  Richard Stallman  <rms@gnu.org>
+
+	* help.texi (Name Help): Add index entries for describe-variable.
+
 2006-08-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Shorten node names.
