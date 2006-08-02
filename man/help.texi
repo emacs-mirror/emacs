@@ -251,6 +251,8 @@ name is defined as a Lisp function.  Type @kbd{C-g} to cancel the
 @kbd{C-h f} command if you don't really want to view the
 documentation.
 
+@kindex C-h v
+@findex describe-variable
   @kbd{C-h v} (@code{describe-variable}) is like @kbd{C-h f} but
 describes Lisp variables instead of Lisp functions.  Its default is
 the Lisp symbol around or before point, if that is the name of a
