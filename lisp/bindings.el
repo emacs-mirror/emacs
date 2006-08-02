@@ -330,6 +330,21 @@ Keymap to display on minor modes.")
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
 
+;; Add menu of buffer operations to the buffer identification part
+;; of the mode line.or header line.
+;
+(let ((map (make-sparse-keymap)))
+  ;; Bind down- events so that the global keymap won't ``shine
+  ;; through''.
+  (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
+  (define-key map [header-line down-mouse-1] 'ignore)
+  (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
+  (define-key map [header-line down-mouse-3] 'ignore)
+  (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
+  (define-key map [header-line down-mouse-3] 'ignore)
+  (define-key map [header-line mouse-3] 'mode-line-next-buffer)
+  (setq mode-line-buffer-identification-keymap map))
+
 (defun propertized-buffer-identification (fmt)
   "Return a list suitable for `mode-line-buffer-identification'.
 FMT is a format specifier such as \"%12b\".  This function adds
@@ -453,21 +468,6 @@ Menu of mode operations in the mode line.")
   (interactive "@e")
   (let ((indicator (car (nth 4 (car (cdr event))))))
     (describe-minor-mode-from-indicator indicator)))
-
-;; Add menu of buffer operations to the buffer identification part
-;; of the mode line.or header line.
-;
-(let ((map (make-sparse-keymap)))
-  ;; Bind down- events so that the global keymap won't ``shine
-  ;; through''.
-  (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
-  (define-key map [header-line down-mouse-1] 'ignore)
-  (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
-  (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
-  (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [header-line mouse-3] 'mode-line-next-buffer)
-  (setq mode-line-buffer-identification-keymap map))
 
 (defvar minor-mode-alist nil "\
 Alist saying how to show minor modes in the mode line.
