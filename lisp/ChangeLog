@@ -1,5 +1,8 @@
 2006-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcvs-util.el (cvs-get-buffer-create): Obey `noreuse' even if `name'
+	doesn't look like a file name.
+
 	* complete.el (PC-expand-many-files): Avoid signalling an error when
 	the current directory doesn't exist.  Reported by Micha,Ak(Bl Cadilhac.
 

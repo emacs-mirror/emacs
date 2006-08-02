@@ -126,7 +126,9 @@ with `create-file-buffer' and will probably get another name than NAME.
 In such a case, the search for another buffer with the same name doesn't
 use the buffer name but the buffer's `list-buffers-directory' variable.
 If NOREUSE is non-nil, always return a new buffer."
-  (or (and (not (file-name-absolute-p name)) (get-buffer-create name))
+  (or (and (not (file-name-absolute-p name))
+           (if noreuse (generate-new-buffer name)
+             (get-buffer-create name)))
       (unless noreuse
 	(dolist (buf (buffer-list))
 	  (with-current-buffer buf
