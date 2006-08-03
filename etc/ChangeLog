@@ -1,3 +1,7 @@
+2006-08-03  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for ERC 5.1.4.
+
 2006-08-01  Kenichi Handa  <handa@m17n.org>
 
 	* NEWS (find-operation-coding-system): Describe the more detail of

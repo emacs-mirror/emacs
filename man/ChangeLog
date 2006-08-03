@@ -1,3 +1,7 @@
+2006-08-03  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update for ERC 5.1.4.
+
 2006-08-01  Richard Stallman  <rms@gnu.org>
 
 	* help.texi (Name Help): Add index entries for describe-variable.

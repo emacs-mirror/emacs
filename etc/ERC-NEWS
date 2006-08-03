@@ -1,6 +1,27 @@
 ERC NEWS                                                       -*- outline -*-
 
-* Changes in ERC 5.2 (unreleased)
+* Changes in ERC 5.1.4
+
+** Make find-function and find-variable work in Emacs 22 for
+names that are constructed by `define-erc-module'.
+
+** Fix bug introduced in ERC 5.1.3 that caused messages to go the
+wrong buffer.
+
+** Changes and additions to modules
+
+*** Highlighting (erc-match.el)
+
+**** Don't activate view-mode.
+
+*** Logging (erc-log.el)
+
+**** When this module is activated, make sure logging is enabled on
+already-opened buffers.  Ditto for disabling logging when the module
+is deactivated.
+
+**** Fix some errors that occur when exiting Emacs without first
+quitting open IRC servers.
 
 * Changes in ERC 5.1.3
 

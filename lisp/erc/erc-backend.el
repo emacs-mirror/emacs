@@ -563,11 +563,12 @@ action."
   "Return the coding system or cons cell appropriate for TARGET.
 This is determined via `erc-encoding-coding-alist' or
 `erc-server-coding-system'."
-  (or (let ((case-fold-search t))
-        (catch 'match
-          (dolist (pat erc-encoding-coding-alist)
-            (when (string-match (car pat) target)
-              (throw 'match (cdr pat))))))
+  (or (when target
+        (let ((case-fold-search t))
+          (catch 'match
+            (dolist (pat erc-encoding-coding-alist)
+              (when (string-match (car pat) target)
+                (throw 'match (cdr pat)))))))
       (and (functionp erc-server-coding-system)
            (funcall erc-server-coding-system))
       erc-server-coding-system))
