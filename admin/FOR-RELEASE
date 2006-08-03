@@ -31,6 +31,9 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
 
+** Romain Francoise <romain@orebokech.com>, Aug 2:
+  Abort at end of Fbyte_code because specpdl did not balance.
+
 ** bojohan's and johnsu01@wjsullivan.net's 18 July bug reports that
   "C-n doesn't work in Customize Option buffer in -nw with long value
   displayed".  Yidong proposed a fix, but needs a field expert to check
