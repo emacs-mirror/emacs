@@ -1,3 +1,14 @@
+2006-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-extend-after-change-region-function):
+	Rename from font-lock-extend-region-function.
+	(font-lock-extend-region): Remove by inlining at call sites.
+	(font-lock-after-change-function): Don't needlessly round up to a whole
+	number of lines.
+	(font-lock-extend-jit-lock-region-after-change): Be more careful about
+	the boundary conditions and the interactions between the various ways
+	to extend the region.
+
 2006-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el (jit-lock-fontify-now): Preserve the buffer's

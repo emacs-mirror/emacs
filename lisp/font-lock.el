@@ -975,7 +975,7 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; directives correctly and cleanly.  (It is the same problem as fontifying
 ;; multi-line strings and comments; regexps are not appropriate for the job.)
 
-(defvar font-lock-extend-region-function nil
+(defvar font-lock-extend-after-change-region-function nil
   "A function that determines the region to fontify after a change.
 
 This variable is either nil, or is a function that determines the
@@ -986,19 +986,9 @@ Font-lock calls this function after each buffer change.
 The function is given three parameters, the standard BEG, END, and OLD-LEN
 from `after-change-functions'.  It should return either a cons of the beginning
 and end buffer positions \(in that order) of the region to fontify, or nil
-\(which directs the caller to fontify a default region).  This function
-should preserve point and the match-data.
+\(which directs the caller to fontify a default region).
+This function should preserve the match-data.
 The region it returns may start or end in the middle of a line.")
-
-(defun font-lock-extend-region (beg end old-len)
-  "Determine the region to fontify after a buffer change.
-
-BEG END and OLD-LEN are the standard parameters from `after-change-functions'.
-The return value is either nil \(which directs the caller to chose the region
-itself), or a cons of the beginning and end \(in that order) of the region.
-The region returned may start or end in the middle of a line."
-  (if font-lock-extend-region-function
-      (funcall font-lock-extend-region-function beg end old-len)))
 
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way the function `font-lock-mode' would."
@@ -1112,47 +1102,54 @@ what properties to clear before refontifying a region.")
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
-  (let ((inhibit-point-motion-hooks t)
-	(inhibit-quit t)
-	(region (font-lock-extend-region beg end old-len)))
-    (save-excursion
+  (save-excursion
+    (let ((inhibit-point-motion-hooks t)
+          (inhibit-quit t)
+          (region (if font-lock-extend-after-change-region-function
+                      (funcall font-lock-extend-after-change-region-function
+                               beg end old-len))))
       (save-match-data
 	(if region
 	    ;; Fontify the region the major mode has specified.
 	    (setq beg (car region) end (cdr region))
 	  ;; Fontify the whole lines which enclose the region.
-	  (setq beg (progn (goto-char beg) (line-beginning-position))
-		end (progn (goto-char end) (line-beginning-position 2))))
+          ;; Actually, this is not needed because
+          ;; font-lock-default-fontify-region already rounds up to a whole
+          ;; number of lines.
+	  ;; (setq beg (progn (goto-char beg) (line-beginning-position))
+	  ;;       end (progn (goto-char end) (line-beginning-position 2)))
+          )
 	(font-lock-fontify-region beg end)))))
 
 (defvar jit-lock-start) (defvar jit-lock-end)
 (defun font-lock-extend-jit-lock-region-after-change (beg end old-len)
-  (let ((region (font-lock-extend-region beg end old-len)))
-    (if region
-        (setq jit-lock-start (min jit-lock-start (car region))
-              jit-lock-end (max jit-lock-end (cdr region)))
-      (save-excursion
-        (goto-char beg)
-        (forward-line 0)
-        (setq jit-lock-start
-              (min jit-lock-start
-                   (if (and (not (eobp))
-                            (get-text-property (point) 'font-lock-multiline))
-                       (or (previous-single-property-change
-                            (point) 'font-lock-multiline)
-                           (point-min))
-                     (point))))
-        (goto-char end)
-        (forward-line 1)
-        (setq jit-lock-end
-              (max jit-lock-end
-                   (if (and (not (bobp))
-                            (get-text-property (1- (point))
-                                               'font-lock-multiline))
-                       (or (next-single-property-change
-                            (1- (point)) 'font-lock-multiline)
-                           (point-max))
-                     (point))))))))
+  (save-excursion
+    ;; First extend the region as font-lock-after-change-function would.
+    (let ((region (if font-lock-extend-after-change-region-function
+                      (funcall font-lock-extend-after-change-region-function
+                               beg end old-len))))
+      (if region
+          (setq beg (min jit-lock-start (car region))
+                end (max jit-lock-end (cdr region))))
+      ;; Then extend the region obeying font-lock-multiline properties,
+      ;; indicating which part of the buffer needs to be refontified.
+      (when (and (> beg (point-min))
+                 (get-text-property (1- beg) 'font-lock-multiline))
+        (setq beg (or (previous-single-property-change
+                       beg 'font-lock-multiline)
+                      (point-min))))
+      (setq end (or (text-property-any end (point-max)
+                                       'font-lock-multiline nil)
+                    (point-max)))
+      ;; Finally, pre-enlarge the region to a whole number of lines, to try
+      ;; and predict what font-lock-default-fontify-region will do, so as to
+      ;; avoid double-redisplay.
+      (goto-char beg)
+      (forward-line 0)
+      (setq jit-lock-start (min jit-lock-start (point)))
+      (goto-char end)
+      (forward-line 1)
+      (setq jit-lock-end (max jit-lock-end (point))))))
 
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.

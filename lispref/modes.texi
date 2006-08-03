@@ -3144,7 +3144,7 @@ earlier line.
   You can enlarge (or even reduce) the region to fontify by setting
 one the following variables:
 
-@defvar font-lock-extend-region-function
+@defvar font-lock-extend-after-change-region-function
 This buffer-local variable is either @code{nil} or a function for
 Font-Lock to call to determine the region to scan and fontify.
 
