@@ -547,12 +547,18 @@ Delete all frames except the selected one.
 how the system (or the window manager) generally handles
 focus-switching between windows.  There are two possibilities: either
 simply moving the mouse onto a window selects it (gives it focus), or
-you have to click on it in a suitable way to do so.  Unfortunately
-there is no way Emacs can find out automatically which way the system
-handles this, so you have to explicitly say, by setting the variable
-@code{focus-follows-mouse}.  If just moving the mouse onto a window
-selects it, that variable should be @code{t}; if a click is necessary,
-the variable should be @code{nil}.
+you have to click on it in a suitable way to do so.  On X, this focus
+policy also affects whether the focus is given to a frame that Emacs
+raises.  Unfortunately there is no way Emacs can find out
+automatically which way the system handles this, so you have to
+explicitly say, by setting the variable @code{focus-follows-mouse}.
+If just moving the mouse onto a window selects it, that variable
+should be @code{t}; if a click is necessary, the variable should be
+@code{nil}.
+
+The window manager that is part of MS-Windows always gives focus to a
+frame that raises, so this variable has no effect in the native
+MS-Windows build of Emacs.
 
 @node Speedbar
 @section Speedbar Frames

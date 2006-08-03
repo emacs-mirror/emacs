@@ -1,3 +1,8 @@
+2006-07-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (dired.c.x, editfns.c.x, fileio.c.x): Depend on
+	blockinput.h.
+
 2006-07-12  Kim F. Storm  <storm@cua.dk>
 
 	* INSTALL: More cleanup related to last change.

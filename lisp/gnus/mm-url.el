@@ -301,7 +301,13 @@ If `mm-url-use-external' is non-nil, use `mm-url-program'."
 	(list url (buffer-size)))
     (mm-url-load-url)
     (let ((name buffer-file-name)
-	  (url-request-extra-headers (list (cons "Connection" "Close")))
+	  (url-request-extra-headers
+	   ;; ISTM setting a Connection header was a workaround for
+	   ;; older versions of url included with w3, but it does more
+	   ;; harm than good with the one shipped with Emacs. --ansel
+	   (if (not (and (boundp 'url-version)
+			 (equal url-version "Emacs")))
+	       (list (cons "Connection" "Close"))))
 	  (url-package-name (or mm-url-package-name
 				url-package-name))
 	  (url-package-version (or mm-url-package-version

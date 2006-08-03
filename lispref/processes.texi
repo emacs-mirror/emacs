@@ -1724,9 +1724,10 @@ level that that of @code{open-network-stream}, using
 @code{make-network-process}.
 
 @menu
-* Network Processes::        Using @code{make-network-process}.
-* Network Options::          Further control over network connections.
-* Network Feature Testing::  Determining which network features work on
+* Proc: Network Processes.   Using @code{make-network-process}.
+* Options: Network Options.  Further control over network connections.
+* Features: Network Feature Testing.
+                             Determining which network features work on
                                the machine you are using.
 @end menu
 

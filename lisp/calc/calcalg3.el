@@ -103,6 +103,9 @@
 (defvar calc-curve-model)
 (defvar calc-curve-coefnames)
 
+(defvar calc-curve-fit-history nil
+  "History for calc-curve-fit.")
+
 (defun calc-curve-fit (arg &optional calc-curve-model 
                            calc-curve-coefnames calc-curve-varnames)
   (interactive "P")
@@ -259,7 +262,8 @@
 		    (let* ((calc-dollar-values calc-arg-values)
 			   (calc-dollar-used 0)
 			   (calc-hashes-used 0))
-		      (setq calc-curve-model (calc-do-alg-entry "" "Model formula: "))
+		      (setq calc-curve-model (calc-do-alg-entry "" "Model formula: "
+                                                        nil 'calc-curve-fit-history))
 		      (if (/= (length calc-curve-model) 1)
 			  (error "Bad format"))
 		      (setq calc-curve-model (car calc-curve-model)

@@ -1,3 +1,21 @@
+2006-08-03  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for ERC 5.1.4.
+
+2006-08-01  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS (find-operation-coding-system): Describe the more detail of
+	the change.
+
+2006-07-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* GNUS-NEWS: Regenerate from Oort Gnus node in texi/gnus.texi using
+	texi/gnus-news.el of the trunk.
+
+2006-07-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* NEWS: Fix typo.
+
 2006-07-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* ru-refcard.ps: Regenerate.

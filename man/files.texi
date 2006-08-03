@@ -2334,7 +2334,7 @@ diff-mode}.
   One general feature of Diff mode is that manual edits to the patch
 automatically correct line numbers, including those in the hunk
 header, so that you can actually apply the edited patch.  Diff mode
-treats each hunk location as an ``error message'', so that you can use
+treats each hunk location as an ``error message,'' so that you can use
 commands such as @kbd{C-x '} to visit the corresponding source
 locations.  It also provides the following commands to navigate,
 manipulate and apply parts of patches:

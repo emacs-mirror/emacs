@@ -170,7 +170,6 @@ doesn't automatically select the right one.
 Its name is `pt-br-refcard.tex'.  The corresponding PostScript file is
 also included.
 
-
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
 
@@ -277,6 +276,13 @@ an interactively callable function.
 all frames you create.  A position specified with --geometry only
 affects the initial frame.
 
+---
+** Emacs built for MS-Windows now behaves like Emacs on X does,
+wrt its frame position: if you don't specify a position (in your
+.emacs init file, in the Registry, or with the --geometry command-line
+option), Emacs leaves the frame position to the Windows' window
+manager.
+
 +++
 ** Emacs can now be invoked in full-screen mode on a windowed display.
 When Emacs is invoked on a window system, the new command-line options
@@ -313,6 +319,12 @@ automatically at startup, if it exists.  When Emacs offers to save
 modified buffers, it saves the abbrevs too if they have changed.  It
 can do this either silently or asking for confirmation first,
 according to the value of `save-abbrevs'.
+
++++
+** If the environment variable EMAIL is defined, Emacs now uses its value
+to compute the default value of `user-mail-address', in preference to
+concatenation of `user-login-name' with the name of your host machine.
+
 
 * Incompatible Editing Changes in Emacs 22.1
 
@@ -3724,8 +3736,10 @@ w32-use-full-screen-buffer to t.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
-** The function find-operation-coding-system accepts a cons (FILENAME
-. BUFFER) in an argument correponding to the target.
+** The function find-operation-coding-system may be called with a cons
+(FILENAME . BUFFER) in the second argument if the first argument
+OPERATION is `insert-file-contents', and thus a function registered in
+`file-coding-system-alist' is also called with such an argument.
 
 ---
 ** The variables post-command-idle-hook and post-command-idle-delay have
@@ -4479,6 +4493,12 @@ name handlers.  This will be exploited for remote files mainly.
 ** Input changes:
 
 +++
+*** The functions `read-event', `read-char', and `read-char-exclusive'
+have a new optional argument SECONDS.  If non-nil, this specifies a
+maximum time to wait for input, in seconds.  If no input arrives after
+this time elapses, the functions stop waiting and return nil.
+
++++
 *** An interactive specification can now use the code letter 'U' to get
 the up-event that was discarded in case the last key sequence read for a
 previous `k' or `K' argument was a down-event; otherwise nil is used.
@@ -4687,6 +4707,8 @@ Lisp packages using many minor mode keymaps can now maintain their own
 keymap alist separate from `minor-mode-map-alist' by adding their
 keymap alist to this list.
 
+*** The definition of a key-binding passed to define-key can use XEmacs-style
+key-sequences, such as [(control a)].
 ** Abbrev changes:
 
 +++
@@ -5415,6 +5437,11 @@ Adding/removing the last `e' changes the `bar' from being a piece of
 text to being a piece of code, so you'd put a `jit-lock-defer-multiline'
 property over the second half of the command to force (deferred)
 refontification of `bar' whenever the `e' is added/removed.
+
+*** `font-lock-extend-region-functions' makes it possible to alter the way
+the fontification region is chosen.  This can be used to prevent rounding
+up to whole lines, or to extend the region to include all related lines
+of multiline constructs so that such constructs get properly recognized.
 
 ** Major mode mechanism changes:
 

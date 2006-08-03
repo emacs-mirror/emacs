@@ -1767,6 +1767,7 @@ it is a routine."
 An error is raised if not in a comment."
   (interactive)
   (save-excursion
+    (save-restriction
     (let* ((comment (delphi-current-token))
            (comment-kind (delphi-token-kind comment)))
       (if (not (delphi-is comment-kind delphi-comments))
@@ -1845,7 +1846,7 @@ An error is raised if not in a comment."
           ;; React to the entire fill change as a whole.
           (delphi-progress-start)
           (delphi-parse-region comment-start comment-end)
-          (delphi-progress-done))))))
+            (delphi-progress-done)))))))
 
 (defun delphi-new-comment-line ()
   "If in a // comment, does a newline, indented such that one is still in the

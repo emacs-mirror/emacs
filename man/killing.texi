@@ -293,7 +293,7 @@ Replace text just yanked with an earlier batch of killed text
 (@code{yank-pop}).
 @item M-w
 Save region as last killed text without actually killing it
-(@code{kill-ring-save}).  Some systems call this ``copying''.
+(@code{kill-ring-save}).  Some systems call this ``copying.''
 @item C-M-w
 Append next kill to last batch of killed text (@code{append-next-kill}).
 @end table

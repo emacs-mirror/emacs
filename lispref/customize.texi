@@ -133,18 +133,21 @@ version.  The value @var{version} must be a string.
 
 @item :package-version '(@var{package} . @var{version})
 This option specifies that the item was first introduced in
-@var{package} version @var{version}, or that its default value was
-changed in that version.  This keyword takes priority over :version.
-The value of @var{package} is a symbol and @var{version} is a string.
-The @var{package} and @var{version} must appear in the alist
-@code{customize-package-emacs-version-alist}.  Since @var{package} must
-be unique and the user might see it in an error message, a good choice
-is the official name of the package, such as MH-E or Gnus.
+@var{package} version @var{version}, or that its meaning or default
+value was changed in that version.  The value of @var{package} is a
+symbol and @var{version} is a string.
 
+This keyword takes priority over @code{:version}.
+
+@var{package} should be the official name of the package, such as MH-E
+or Gnus.  If the package @var{package} is released as part of Emacs,
+@var{package} and @var{version} should appear in the value of
+@code{customize-package-emacs-version-alist}.
 @end table
 
-Packages that use the @code{:package-version} keyword must also update
-the @code{customize-package-emacs-version-alist} variable.
+Packages distributed as part of Emacs that use the
+@code{:package-version} keyword must also update the
+@code{customize-package-emacs-version-alist} variable.
 
 @defvar customize-package-emacs-version-alist
 This alist provides a mapping for the versions of Emacs that are

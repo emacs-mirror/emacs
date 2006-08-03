@@ -11,12 +11,12 @@ can customize some of the same aspects using the system registry.
 @xref{MS-Windows Registry}.  Likewise, Emacs on MacOS Carbon emulates X
 resources using the Preferences system.  @xref{Mac Environment Variables}.
 
-  When Emacs is built using an ``X toolkit'', such as Lucid or
+  When Emacs is built using an ``X toolkit,'' such as Lucid or
 LessTif, you need to use X resources to customize the appearance of
 the widgets, including the menu-bar, scroll-bar, and dialog boxes.
 This is because the libraries that implement these don't provide for
 customization through Emacs.  GTK+ widgets use a separate system of
-``GTK resources''.  In this chapter we describe the most commonly used
+``GTK resources.''  In this chapter we describe the most commonly used
 resource specifications.  For full documentation, see the online
 manual.
 

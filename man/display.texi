@@ -402,7 +402,7 @@ The face for highlighting excess spaces and tabs at the end of a line
 when @code{show-trailing-whitespace} is non-@code{nil}; see
 @ref{Useless Whitespace}.
 @item nobreak-space
-The face for displaying the character ``nobreak space''.
+The face for displaying the character ``nobreak space.''
 @item escape-glyph
 The face for highlighting the @samp{\} or @samp{^} that indicates
 a control character.  It's also used when @samp{\} indicates a
@@ -1062,7 +1062,7 @@ doesn't switch, so it uses the normal cursor.
 @vindex cursor-in-non-selected-windows
   Normally, the cursor appears in non-selected windows in the ``off''
 state, with the same appearance as when the blinking cursor blinks
-``off''.  For a box cursor, this is a hollow box; for a bar cursor,
+``off.''  For a box cursor, this is a hollow box; for a bar cursor,
 this is a thinner bar.  To turn off cursors in non-selected windows,
 customize the variable @code{cursor-in-non-selected-windows} and assign
 it a @code{nil} value.

@@ -115,7 +115,7 @@ Properties menu.
 @item function-key-map
 The keymap for translating keypad and function keys.@*
 If there are none, then it contains an empty sparse keymap.
-@xref{Translating Input}.
+@xref{Translation Keymaps}.
 
 @item fundamental-mode-map
 @vindex fundamental-mode-map
@@ -158,7 +158,7 @@ search.
 
 @item key-translation-map
 A keymap for translating keys.  This one overrides ordinary key
-bindings, unlike @code{function-key-map}.  @xref{Translating Input}.
+bindings, unlike @code{function-key-map}.  @xref{Translation Keymaps}.
 
 @item kmacro-map
 @vindex kmacro-map

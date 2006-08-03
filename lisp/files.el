@@ -540,13 +540,21 @@ is a valid DOS file name, but c:/bar/c:/foo is not.
 
 This function's standard definition is trivial; it just returns
 the argument.  However, on Windows and DOS, replace invalid
-characters.  On DOS, make sure to obey the 8.3 limitations.  On
-Windows, turn Cygwin names into native names, and also turn
-slashes into backslashes if the shell requires it (see
+characters.  On DOS, make sure to obey the 8.3 limitations.
+In the native Windows build, turn Cygwin names into native names,
+and also turn slashes into backslashes if the shell requires it (see
 `w32-shell-dos-semantics').
 
 See Info node `(elisp)Standard File Names' for more details."
-  filename)
+  (if (eq system-type 'cygwin)
+      (let ((name (copy-sequence filename))
+	    (start 0))
+	;; Replace invalid filename characters with !
+	(while (string-match "[?*:<>|\"\000-\037]" name start)
+	  (aset name (match-beginning 0) ?!)
+	  (setq start (match-end 0)))
+	name)
+    filename))
 
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
   "Read directory name, prompting with PROMPT and completing in directory DIR.
@@ -4368,7 +4376,7 @@ See also `auto-save-file-name-p'."
 			    "#")))
 	    ;; Make sure auto-save file names don't contain characters
 	    ;; invalid for the underlying filesystem.
-	    (if (and (memq system-type '(ms-dos windows-nt))
+	    (if (and (memq system-type '(ms-dos windows-nt cygwin))
 		     ;; Don't modify remote (ange-ftp) filenames
 		     (not (string-match "^/\\w+@[-A-Za-z0-9._]+:" result)))
 		(convert-standard-filename result)
@@ -4403,7 +4411,7 @@ See also `auto-save-file-name-p'."
 		      ((file-writable-p default-directory) default-directory)
 		      ((file-writable-p "/var/tmp/") "/var/tmp/")
 		      ("~/")))))
-	       (if (and (memq system-type '(ms-dos windows-nt))
+	       (if (and (memq system-type '(ms-dos windows-nt cygwin))
 			;; Don't modify remote (ange-ftp) filenames
 			(not (string-match "^/\\w+@[-A-Za-z0-9._]+:" fname)))
 		   ;; The call to convert-standard-filename is in case

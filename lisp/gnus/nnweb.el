@@ -171,7 +171,8 @@ Valid types include `google', `dejanews', and `gmane'.")
 		       (when (string-match "^<\\(.*\\)>$" article)
 			 (setq art (match-string 1 article)))
 		       (when (and fetch art)
-			 (setq url (format fetch art))
+			 (setq url (format fetch
+					   (mm-url-form-encode-xwfu art)))
 			 (mm-with-unibyte-current-buffer
 			   (mm-url-insert url))
 			 (if (nnweb-definition 'reference t)
@@ -365,7 +366,7 @@ Valid types include `google', `dejanews', and `gmane'.")
       (mm-url-decode-entities)
       (search-backward " - ")
       (when (looking-at
-	     " - \\([a-zA-Z]+\\) \\([0-9]+\\)\\(?: \\([0-9]\\{4\\}\\)\\)?, [^\n]+by \\([^<\n]+\\)\n")
+	     " - \\([a-zA-Z]+\\) \\([0-9]+\\)\\(?: \\([0-9]\\{4\\}\\)\\)?[^\n]+by ?\n?\\([^<\n]+\\)\n")
 	(setq From (match-string 4)
 	      Date (format "%s %s 00:00:00 %s"
 			   (match-string 1)
@@ -415,7 +416,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	    (goto-char (point-min))
 	    (incf i 100)
 	    (if (or (not (re-search-forward
-			  "<a href=\"\n\\([^>\" \n\t]+\\)[^<]*<img src=[^>]+next"
+			  "<a [^>]+href=\"\n?\\([^>\" \n\t]+\\)[^<]*<img[^>]+src=[^>]+next"
 			  nil t))
 		    (>= i nnweb-max-hits))
 		(setq more nil)
@@ -437,7 +438,8 @@ Valid types include `google', `dejanews', and `gmane'.")
     "?"
     (mm-url-encode-www-form-urlencoded
      `(("q" . ,search)
-       ("num" . "100")
+       ("num" . ,(number-to-string
+		  (min 100 nnweb-max-hits)))
        ("hq" . "")
        ("hl" . "en")
        ("lr" . "")

@@ -1,3 +1,40 @@
+2006-08-02  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-version-string): Release ERC 5.1.4.
+
+	* Makefile, NEWS, erc.texi: Update for the 5.1.4 release.
+
+	* erc.el (erc-active-buffer): Fix bug that caused messages to go
+	to the wrong buffer.  Thanks to offby1 for the report.
+
+	* erc-backend.el (erc-coding-system-for-target): Handle case where
+	target is nil.  Thanks to Kai Fan for the patch.
+
+2006-07-29  Michael Olson  <mwolson@gnu.org>
+
+	* erc-log.el (erc-log-setup-logging): Don't offer to save the
+	buffer.  It will be saved automatically killed.  Thanks to Johan
+	Bockgård and Tassilo Horn for pointing this out.
+
+2006-07-27  Johan Bockgård  <bojohan@users.sourceforge.net>
+
+	* erc.el (define-erc-module): Make find-function and find-variable
+	find the names constructed by `define-erc-module' in Emacs 22.
+
+2006-07-14  Michael Olson  <mwolson@gnu.org>
+
+	* erc-log.el (log): Make sure that we enable logging on
+	already-opened buffers as well, in case the user toggles this
+	module after loading ERC.  Also be sure to remove logging ability
+	from all ERC buffers when the module is disabled.
+	(erc-log-setup-logging): Set buffer-file-name to nil rather than
+	the empty string.  This should fix some errors that occur when
+	quitting Emacs without first killing all ERC buffers.
+	(erc-log-disable-logging): New function that removes the logging
+	ability from the current buffer.
+
+	* erc-spelling.el (spelling): Use dolist and buffer-live-p.
+
 2006-07-12  Michael Olson  <mwolson@gnu.org>
 
 	* erc-match.el (erc-log-matches): Bind inhibit-read-only rather

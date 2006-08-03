@@ -1,3 +1,99 @@
+2006-07-31  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Clickable Text): Mention `help-echo' text property.
+	Update intro, examples and associated explanations.
+
+2006-07-31  Richard Stallman  <rms@gnu.org>
+
+	* commands.texi: Update xrefs.
+	(Event Mod): New node, cut out from old Translating Input.
+
+	* maps.texi: Update xrefs.
+
+	* keymaps.texi (Translation Keymaps): New node.
+	Update xrefs from Translating Input to Translation Keymaps.
+
+	* elisp.texi (Top): Update subnode menu.
+
+	* display.texi (Face Functions): Fix explanations of FRAME=t or nil.
+
+	* os.texi (System Interface): Fix menu descriptions of some nodes.
+	(Translating Input): Node deleted.
+
+2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* modes.texi (Minor Mode Conventions): Update link for add-to-list.
+
+	* lists.texi (Sets And Lists): Likewise.
+
+2006-07-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Fields): Mention POS
+	requirement when narrowing is in effect.
+
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Face Attributes): Simplify wording.
+	(Attribute Functions): Clarify meaning of new-frame default
+	attribute settings.
+
+	* customize.texi (Common Keywords): Document how to use
+	:package-version in a package not in Emacs.
+
+2006-07-28  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Reading One Event): Fix last change.
+
+2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Reading One Event): Document SECONDS argument for
+	read-event, read-char, and read-char-exclusive.
+
+2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Multiline Font Lock): Can't use jit-lock-defer-multiline
+	to ensure correct identification.
+
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Clickable Text): Clarify.
+
+	* sequences.texi (Vector Functions): Delete duplicate xref.
+
+	* objects.texi (Function Type): Clarify.
+
+	* modes.texi (Keymaps and Minor Modes): List punct chars for minor
+	modes.
+
+	* lists.texi (List Variables): New node.
+	Material moved from other nodes.
+
+	* variables.texi (Setting Variables): add-to-list and
+	add-to-ordered-list moved to List Variables node.
+
+2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Links and Mouse-1):
+	For mouse-on-link-p, expand on arg POS.
+
+2006-07-21  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Don't mention systems which
+	don't support sub-second timers for redisplay-preemption-period.
+
+	* os.texi (Terminal Output): Clarify text vs graphical terminal.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Input Focus): Document that focus-follows-mouse has
+	no effect on MS-Windows.
+
+2006-07-18  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Forcing Redisplay): Cleanups in previous change.
+
+	* processes.texi (Low-Level Network): Make menu more convenient.
+
 2006-07-18  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Forcing Redisplay): redisplay-preemption-period

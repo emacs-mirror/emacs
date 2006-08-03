@@ -154,7 +154,6 @@
 	 (setq expr (calc-top-n 2)
 	       pat (calc-top-n 1)
 	       n 2)
-       (if interactive (setq calc-previous-alg-entry pat))
        (setq pat (if (stringp pat) (math-read-expr pat) pat))
        (if (eq (car-safe pat) 'error)
 	   (error "Bad format in expression: %s" (nth 1 pat)))

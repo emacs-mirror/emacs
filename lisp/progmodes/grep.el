@@ -155,7 +155,7 @@ The following place holders should be present in the string:
   :type 'alist
   :group 'grep)
 
-(defcustom grep-find-ignored-directories '("CVS" ".hg" "{arch}")
+(defcustom grep-find-ignored-directories '("CVS" ".svn" "{arch}" ".hg" "_darcs")
   "*List of names of sub-directories which `rgrep' shall not recurse into."
   :type '(repeat string)
   :group 'grep)
@@ -455,34 +455,48 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		   (search-forward "--color" nil t))
 		 t)))))
 
+(defun grep-tag-default ()
+  (or (and transient-mark-mode mark-active
+	   (/= (point) (mark))
+	   (buffer-substring-no-properties (point) (mark)))
+      (funcall (or find-tag-default-function
+		   (get major-mode 'find-tag-default-function)
+		   'find-tag-default))
+      ""))
+
 (defun grep-default-command ()
-  (let ((tag-default
-         (shell-quote-argument
-          (or (funcall (or find-tag-default-function
-                           (get major-mode 'find-tag-default-function)
-                           'find-tag-default))
-              "")))
+  "Compute the default grep command for C-u M-x grep to offer."
+  (let ((tag-default (shell-quote-argument (grep-tag-default)))
+	;; This a regexp to match single shell arguments.
+	;; Could someone please add comments explaining it?
 	(sh-arg-re "\\(\\(?:\"\\(?:[^\"]\\|\\\\\"\\)+\"\\|'[^']+'\\|[^\"' \t\n]\\)+\\)")
 	(grep-default (or (car grep-history) grep-command)))
-    ;; Replace the thing matching for with that around cursor.
+    ;; In the default command, find the arg that specifies the pattern.
     (when (or (string-match
 	       (concat "[^ ]+\\s +\\(?:-[^ ]+\\s +\\)*"
 		       sh-arg-re "\\(\\s +\\(\\S +\\)\\)?")
 	       grep-default)
 	      ;; If the string is not yet complete.
 	      (string-match "\\(\\)\\'" grep-default))
-      (unless (or (not (stringp buffer-file-name))
-		  (when (match-beginning 2)
-		    (save-match-data
-		      (string-match
-		       (wildcard-to-regexp
-			(file-name-nondirectory
-			 (match-string 3 grep-default)))
-		       (file-name-nondirectory buffer-file-name)))))
-	(setq grep-default (concat (substring grep-default
-					      0 (match-beginning 2))
-				   " *."
-				   (file-name-extension buffer-file-name))))
+      ;; Maybe we will replace the pattern with the default tag.
+      ;; But first, maybe replace the file name pattern.
+      (condition-case nil
+	  (unless (or (not (stringp buffer-file-name))
+		      (when (match-beginning 2)
+			(save-match-data
+			  (string-match
+			   (wildcard-to-regexp
+			    (file-name-nondirectory
+			     (match-string 3 grep-default)))
+			   (file-name-nondirectory buffer-file-name)))))
+	    (setq grep-default (concat (substring grep-default
+						  0 (match-beginning 2))
+				       " *."
+				       (file-name-extension buffer-file-name))))
+	;; In case wildcard-to-regexp gets an error
+	;; from invalid data.
+	(error nil))
+      ;; Now replace the pattern with the default tag.
       (replace-match tag-default t t grep-default 1))))
 
 
@@ -590,15 +604,11 @@ substitution string.  Note dynamic scoping of variables.")
 
 (defun grep-read-regexp ()
   "Read regexp arg for interactive grep."
-  (let ((default
-	  (or (funcall (or find-tag-default-function
-			   (get major-mode 'find-tag-default-function)
-			   'find-tag-default))
-	      "")))
+  (let ((default (grep-tag-default)))
     (read-string
      (concat "Search for"
 	     (if (and default (> (length default) 0))
-		 (format " (default %s): " default) ": "))
+		 (format " (default \"%s\"): " default) ": "))
      nil 'grep-regexp-history default)))
 
 (defun grep-read-files (regexp)
@@ -620,7 +630,9 @@ substitution string.  Note dynamic scoping of variables.")
 		      (cdr alias)))
 	       (and fn
 		    (let ((ext (file-name-extension fn)))
-		      (and ext (concat "*." ext))))))
+		      (and ext (concat "*." ext))))
+	       (car grep-files-history)
+	       (car (car grep-files-aliases))))
 	 (files (read-string
 		 (concat "Search for \"" regexp
 			 "\" in files"

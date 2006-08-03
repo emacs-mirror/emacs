@@ -633,6 +633,9 @@
      (setcar (nthcdr 2 entry) (and (not (eq sel (car entry))) sel))
      (calc-delete-selection num))))
 
+(defvar calc-selection-history nil
+  "History for calc selections.")
+
 (defun calc-enter-selection ()
   (interactive)
   (calc-wrapper
@@ -645,7 +648,8 @@
 	  alg)
      (let ((calc-dollar-values (list sel))
 	   (calc-dollar-used 0))
-       (setq alg (calc-do-alg-entry "" "Replace selection with: "))
+       (setq alg (calc-do-alg-entry "" "Replace selection with: " nil 
+                                    'calc-selection-history))
        (and alg
 	    (progn
 	      (setq alg (calc-encase-atoms (car alg)))
@@ -765,7 +769,8 @@
 		(car (calc-do-alg-entry ""
 					(if divide
 					    "Divide both sides by: "
-					  "Multiply both sides by: ")))))
+					  "Multiply both sides by: ")
+                                        nil 'calc-selection-history))))
      (and alg
 	  (progn
 	    (if (and (or (eq func '/)
@@ -830,7 +835,8 @@
 		(car (calc-do-alg-entry ""
 					(if subtract
 					    "Subtract from both sides: "
-					  "Add to both sides: ")))))
+					  "Add to both sides: ")
+                                        nil 'calc-selection-history))))
      (and alg
 	  (progn
 	    (if (and (assq func calc-tweak-eqn-table)

@@ -238,6 +238,8 @@ in disk.
 
 See `wdired-mode'."
   (interactive)
+  (or (eq major-mode 'dired-mode)
+      (error "Not a Dired buffer"))
   (set (make-local-variable 'wdired-old-content)
        (buffer-substring (point-min) (point-max)))
   (set (make-local-variable 'wdired-old-point) (point))
@@ -328,6 +330,8 @@ non-nil means return old filename."
 
 (defun wdired-change-to-dired-mode ()
   "Change the mode back to dired."
+  (or (eq major-mode 'wdired-mode)
+      (error "Not a Wdired buffer"))
   (let ((inhibit-read-only t))
     (remove-text-properties (point-min) (point-max)
 			    '(read-only nil local-map nil)))

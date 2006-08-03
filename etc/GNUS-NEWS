@@ -1,151 +1,200 @@
 GNUS NEWS -- history of user-visible changes.
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+   2006 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Gnus bug reports to bugs@gnus.org.
 For older news, see Gnus info node "New Features".
 
 
-* Changes in Oort Gnus
-
-** `F' (`gnus-article-followup-with-original') and `R'
-(`gnus-article-reply-with-original') only yank the text in the region if the
-region is active.
-
-** `gnus-group-read-ephemeral-group' can be called interactively, using `G M'.
-
-** In draft groups, `e' is now bound to `gnus-draft-edit-message'.
-Use `B w' for `gnus-summary-edit-article' instead.
-
-** The revised Gnus FAQ is included in the manual.
-See the info node "Frequently Asked Questions".
+* Installation changes
 
 ** Upgrading from previous (stable) version if you have used Oort.
 
 If you have tried Oort (the unstable Gnus branch leading to this
-release) but went back to a stable version, be careful when upgrading
-to this version.  In particular, you will probably want to remove all
-.marks (nnml) and .mrk (nnfolder) files, so that flags are read from
-your ~/.newsrc.eld instead of from the .marks/.mrk file where this
+release) but went back to a stable version, be careful when upgrading to
+this version.  In particular, you will probably want to remove all
+`.marks' (nnml) and `.mrk' (nnfolder) files, so that flags are read from
+your `.newsrc.eld' instead of from the `.marks'/`.mrk' file where this
 release store flags.  See a later entry for more information about
-marks.  Note that downgrading isn't safe in general.
+marks.  Note that downgrading isn't save in general.
+
+** Lisp files are now installed in `.../site-lisp/gnus/' by default.  It
+defaulted to `.../site-lisp/' formerly.  In addition to this, the new
+installer issues a warning if other Gnus installations which will shadow
+the latest one are detected.  You can then remove those shadows manually
+or remove them using `make remove-installed-shadows'.
+
+** New `make.bat' for compiling and installing Gnus under MS Windows
+
+Use `make.bat' if you want to install Gnus under MS Windows, the first
+argument to the batch-program should be the directory where `xemacs.exe'
+respectively `emacs.exe' is located, iff you want to install Gnus after
+compiling it, give `make.bat' `/copy' as the second parameter.
+
+`make.bat' has been rewritten from scratch, it now features automatic
+recognition of XEmacs and GNU Emacs, generates `gnus-load.el', checks if
+errors occur while compilation and generation of info files and reports
+them at the end of the build process.  It now uses `makeinfo' if it is
+available and falls back to `infohack.el' otherwise.  `make.bat' should
+now install all files which are necessary to run Gnus and be generally a
+complete replacement for the `configure; make; make install' cycle used
+under Unix systems.
+
+The new `make.bat' makes `make-x.bat' and `xemacs.mak' superfluous, so
+they have been removed.
+
+** `~/News/overview/' not used.
+
+As a result of the following change, the `~/News/overview/' directory is
+not used any more.  You can safely delete the entire hierarchy.
+
+** `(require 'gnus-load)'
+
+If you use a stand-alone Gnus distribution, you'd better add `(require
+'gnus-load)' into your `~/.emacs' after adding the Gnus lisp directory
+into load-path.
+
+File `gnus-load.el' contains autoload commands, functions and variables,
+some of which may not be included in distributions of Emacsen.
+
+
+
+* New packages and libraries within Gnus
+
+** The revised Gnus FAQ is included in the manual, *Note Frequently Asked
+Questions::.
+
+** TLS wrapper shipped with Gnus
+
+TLS/SSL is now supported in IMAP and NNTP via `tls.el' and GNUTLS.  The
+old TLS/SSL support via (external third party) `ssl.el' and OpenSSL
+still works.
+
+** Improved anti-spam features.
+
+Gnus is now able to take out spam from your mail and news streams using
+a wide variety of programs and filter rules.  Among the supported
+methods are RBL blocklists, bogofilter and white/blacklists.  Hooks for
+easy use of external packages such as SpamAssassin and Hashcash are also
+new.  *Note Thwarting Email Spam::.
+
+** Gnus supports server-side mail filtering using Sieve.
+
+Sieve rules can be added as Group Parameters for groups, and the
+complete Sieve script is generated using `D g' from the Group buffer,
+and then uploaded to the server using `C-c C-l' in the generated Sieve
+buffer.  *Note Sieve Commands::, and the new Sieve manual *Note Top:
+(sieve)Top.
+
+
+
+* Changes in group mode
+
+** `gnus-group-read-ephemeral-group' can be called interactively, using `G
+M'.
+
+** Retrieval of charters and control messages
+
+There are new commands for fetching newsgroup charters (`H c') and
+control messages (`H C').
+
+** The new variable `gnus-parameters' can be used to set group parameters.
+
+Earlier this was done only via `G p' (or `G c'), which stored the
+parameters in `~/.newsrc.eld', but via this variable you can enjoy the
+powers of customize, and simplified backups since you set the variable
+in `~/.gnus.el' instead of `~/.newsrc.eld'.  The variable maps regular
+expressions matching group names to group parameters, a'la:
+(setq gnus-parameters
+ '(("mail\\..*"
+    (gnus-show-threads nil)
+    (gnus-use-scoring nil))
+   ("^nnimap:\\(foo.bar\\)$"
+    (to-group . "\\1"))))
+
+** Unread count correct in nnimap groups.
+
+The estimated number of unread articles in the group buffer should now
+be correct for nnimap groups.  This is achieved by calling
+`nnimap-fixup-unread-after-getting-new-news' from the
+`gnus-setup-news-hook' (called on startup) and
+`gnus-after-getting-new-news-hook'. (called after getting new mail).  If
+you have modified those variables from the default, you may want to add
+`nnimap-fixup-unread-after-getting-new-news' again.  If you were happy
+with the estimate and want to save some (minimal) time when getting new
+mail, remove the function.
+
+** Group names are treated as UTF-8 by default.
+
+This is supposedly what USEFOR wanted to migrate to.  See
+`gnus-group-name-charset-group-alist' and
+`gnus-group-name-charset-method-alist' for customization.
+
+** `gnus-group-charset-alist' and `gnus-group-ignored-charsets-alist'.
+
+The regexps in these variables are compared with full group names
+instead of real group names in 5.8.  Users who customize these variables
+should change those regexps accordingly.  For example:
+("^han\\>" euc-kr) -> ("\\(^\\|:\\)han\\>" euc-kr)
+
+
+
+* Changes in summary and article mode
+
+** `F' (`gnus-article-followup-with-original') and `R'
+(`gnus-article-reply-with-original') only yank the text in the region if
+the region is active.
+
+** In draft groups, `e' is now bound to `gnus-draft-edit-message'.  Use `B
+w' for `gnus-summary-edit-article' instead.
 
 ** Article Buttons
 
-More buttons for URLs, mail addresses, Message-IDs, Info links, man pages and
-Emacs or Gnus related references, see the info node "Article Buttons".  The
-variables `gnus-button-*-level' can be used to control the appearance of all
-article buttons, see the info node "Article Button Levels".
-
-** Dired integration
-
-`gnus-dired-minor-mode' installs key bindings in dired buffers to send a file
-as an attachment (`C-c C-m C-a'), open a file using the approriate mailcap
-entry (`C-c C-m C-l'), and print a file using the mailcap entry (`C-c C-m
-C-p').  See the info node "Other modes".
-
-
-** Gnus can display RSS newsfeeds as a newsgroup.  To get started do `B
-nnrss RET RET' in the Group buffer.
+More buttons for URLs, mail addresses, Message-IDs, Info links, man
+pages and Emacs or Gnus related references.  *Note Article Buttons::.
+The variables `gnus-button-*-level' can be used to control the
+appearance of all article buttons.  *Note Article Button Levels::.
 
 ** Single-part yenc encoded attachments can be decoded.
 
 ** Picons
-The picons code has been reimplemented to work in Emacs 21 -- some of
-the previous options have been removed or renamed.
+
+The picons code has been reimplemented to work in GNU Emacs--some of the
+previous options have been removed or renamed.
 
 Picons are small "personal icons" representing users, domain and
-newsgroups, which can be displayed in the Article buffer.  To enable
-picons, install the picons database from
+newsgroups, which can be displayed in the Article buffer.  *Note
+Picons::.
 
-      http://www.cs.indiana.edu/picons/ftp/index.html
-
-and point `gnus-picon-databases' to that location.
-
-** If the new option `gnus-treat-body-boundary' is `head', a boundary
+** If the new option `gnus-treat-body-boundary' is non-`nil', a boundary
 line is drawn at the end of the headers.
-
-** Retrieval of charters and control messages
-There are new commands for fetching newsgroup charters (`H c') and
-control messages (`H C').
-
-** Delayed articles
-You can delay the sending of a message with `C-c C-j' in the Message
-buffer.  The messages are delivered at specified time.  This is useful
-for sending yourself reminders.  Setup with (gnus-delay-initialize).
-
-** If `auto-compression-mode' is enabled, attachments are automatically
-decompressed when activated.
-
-** If the new option `nnml-use-compressed-files' is non-nil,
-the nnml back end allows compressed message files.
 
 ** Signed article headers (X-PGP-Sig) can be verified with `W p'.
 
-** The Summary Buffer uses an arrow in the fringe to indicate the
-current article in Emacs 21 running on a graphical display.  Customize
-`gnus-summary-display-arrow' to disable it.
+** The Summary Buffer uses an arrow in the fringe to indicate the current
+article.  Use `(setq gnus-summary-display-arrow nil)' to disable it.
 
 ** Warn about email replies to news
+
 Do you often find yourself replying to news by email by mistake?  Then
 the new option `gnus-confirm-mail-reply-to-news' is just the thing for
 you.
 
-** If the new option `gnus-summary-display-while-building' is non-nil,
+** If the new option `gnus-summary-display-while-building' is non-`nil',
 the summary buffer is shown and updated as it's being built.
 
-** The new `recent' mark "." indicates newly arrived messages (as
-opposed to old but unread messages).
-
-** The new option `gnus-gcc-mark-as-read' automatically marks
-Gcc articles as read.
-
-** The nndoc back end now supports mailman digests and exim bounces.
+** The new `recent' mark `.' indicates newly arrived messages (as opposed
+to old but unread messages).
 
 ** Gnus supports RFC 2369 mailing list headers, and adds a number of
-related commands in mailing list groups.
+related commands in mailing list groups.  *Note Mailing List::.
 
-** The Date header can be displayed in a format that can be read aloud
-in English, see `gnus-treat-date-english'.
-
-** The envelope sender address can be customized when using Sendmail, see
-`message-sendmail-envelope-from'.
+** The Date header can be displayed in a format that can be read aloud in
+English.  *Note Article Date::.
 
 ** diffs are automatically highlighted in groups matching
 `mm-uu-diff-groups-regexp'
-
-** TLS wrapper shipped with Gnus
-
-TLS/SSL is now supported in IMAP and NNTP via tls.el and GNUTLS.  The
-old TLS/SSL support via (external third party) ssl.el and OpenSSL
-still works.
-
-** New make.bat for compiling and installing Gnus under MS Windows
-
-Use make.bat if you want to install Gnus under MS Windows, the first
-argument to the batch-program should be the directory where xemacs.exe
-respectively emacs.exe is located, iff you want to install Gnus after
-compiling it, give make.bat /copy as the second parameter.
-
-`make.bat' has been rewritten from scratch, it now features automatic
-recognition of XEmacs and GNU Emacs, generates gnus-load.el, checks if
-errors occur while compilation and generation of info files and reports
-them at the end of the build process.  It now uses makeinfo if it is
-available and falls back to infohack.el otherwise.  `make.bat' should now
-install all files which are necessary to run Gnus and be generally a
-complete replacement for the "configure; make; make install" cycle used
-under Unix systems.
-
-The new make.bat makes make-x.bat superfluous, so it has been removed.
-
-** Support for non-ASCII domain names
-
-Message supports non-ASCII domain names in From:, To: and Cc: and will
-encode them when you try to send a message.  The variable
-`message-use-idna' controls this.  Gnus will also decode non-ASCII
-domain names in From:, To: and Cc: when you view a message.  The
-variable `gnus-use-idna' controls this.
 
 ** Better handling of Microsoft citation styles
 
@@ -155,227 +204,183 @@ though it is not quoted in any way.  The variable
 `gnus-cite-unsightly-citation-regexp' matches the start of these
 citations.
 
-** gnus-article-skip-boring
+The new command `W Y f' (`gnus-article-outlook-deuglify-article') allows
+deuglifying broken Outlook (Express) articles.
 
-If you set `gnus-article-skip-boring' to t, then Gnus will not scroll
-down to show you a page that contains only boring text, which by
-default means cited text and signature.  You can customize what is
-skippable using `gnus-article-boring-faces'.
+** `gnus-article-skip-boring'
 
-This feature is especially useful if you read many articles that
-consist of a little new content at the top with a long, untrimmed
-message cited below.
+If you set `gnus-article-skip-boring' to `t', then Gnus will not scroll
+down to show you a page that contains only boring text, which by default
+means cited text and signature.  You can customize what is skippable
+using `gnus-article-boring-faces'.
 
-** The format spec %C for positioning point has changed to %*.
+This feature is especially useful if you read many articles that consist
+of a little new content at the top with a long, untrimmed message cited
+below.
 
-** The new variable `gnus-parameters' can be used to set group parameters.
+** Smileys (`:-)', `;-)' etc) are now displayed graphically in Emacs too.
 
-Earlier this was done only via `G p' (or `G c'), which stored the
-parameters in ~/.newsrc.eld, but via this variable you can enjoy the
-powers of customize, and simplified backups since you set the variable
-in ~/.emacs instead of ~/.newsrc.eld.  The variable maps regular
-expressions matching group names to group parameters, a'la:
+Put `(setq gnus-treat-display-smileys nil)' in `~/.gnus.el' to disable
+it.
 
-     (setq gnus-parameters
-           '(("mail\\..*"
-              (gnus-show-threads nil)
-              (gnus-use-scoring nil))
-             ("^nnimap:\\(foo.bar\\)$"
-              (to-group . "\\1"))))
+** Face headers handling.  *Note Face::.
 
-** Smileys (":-)", ";-)" etc) are now iconized for Emacs too.
+** In the summary buffer, the new command `/ N' inserts new messages and `/
+o' inserts old messages.
 
-Customize `gnus-treat-display-smileys' to disable it.
+** Gnus decodes morse encoded messages if you press `W m'.
 
-** Gnus no longer generates the Sender: header automatically.
+** `gnus-summary-line-format'
 
-Earlier it was generated iff the user configurable email address was
-different from the Gnus guessed default user address.  As the guessing
-algorithm is rarely correct these days, and (more controversially) the
-only use of the Sender: header was to check if you are entitled to
-cancel/supersede news (which is now solved by Cancel Locks instead,
-see another entry), generation of the header has been disabled by
-default.  See the variables `message-required-headers',
-`message-required-news-headers', and `message-required-mail-headers'.
-
-** Features from third party message-utils.el added to message.el.
-
-Message now asks if you wish to remove "(was: <old subject>)" from
-subject lines (see `message-subject-trailing-was-query').  C-c M-m and
-C-c M-f inserts markers indicating included text.  C-c C-f a adds a
-X-No-Archive: header.  C-c C-f x inserts appropriate headers and a
-note in the body for cross-postings and followups (see the variables
-`message-cross-post-*').
-
-** References and X-Draft-Headers are no longer generated when you
-start composing messages and `message-generate-headers-first' is nil.
-
-** Improved anti-spam features.
-
-Gnus is now able to take out spam from your mail and news streams
-using a wide variety of programs and filter rules.  Among the supported
-methods are RBL blocklists, bogofilter and white/blacklists.  Hooks
-for easy use of external packages such as SpamAssassin and Hashcash
-are also new.
-
-** Easy inclusion of X-Faces headers.
-
-** In the summary buffer, the new command / N inserts new messages and
-/ o inserts old messages.
-
-** Gnus decodes morse encoded messages if you press W m.
-
-** Unread count correct in nnimap groups.
-
-The estimated number of unread articles in the group buffer should now
-be correct for nnimap groups.  This is achieved by calling
-`nnimap-fixup-unread-after-getting-new-news' from the
-`gnus-setup-news-hook' (called on startup) and
-`gnus-after-getting-new-news-hook' (called after getting new mail).
-If you have modified those variables from the default, you may want to
-add n-f-u-a-g-n-n again.  If you were happy with the estimate and want
-to save some (minimal) time when getting new mail, remove the
-function.
-
-** Group Carbon Copy (GCC) quoting
-
-To support groups that contains SPC and other weird characters, groups
-are quoted before they are placed in the Gcc: header.  This means
-variables such as `gnus-message-archive-group' should no longer
-contain quote characters to make groups containing SPC work.  Also, if
-you are using the string "nnml:foo, nnml:bar" (indicating Gcc into two
-groups) you must change it to return the list ("nnml:foo" "nnml:bar"),
-otherwise the Gcc: line will be quoted incorrectly.  Note that
-returning the string "nnml:foo, nnml:bar" was incorrect earlier, it
-just didn't generate any problems since it was inserted directly.
-
-** ~/News/overview/ not used.
-
-As a result of the following change, the ~/News/overview/ directory is
-not used any more.  You can safely delete the entire hierarchy.
-
-** gnus-agent
-
-The Gnus Agent has seen a major update.  It is now enabled by default,
-and all nntp and nnimap servers from `gnus-select-method' and
-`gnus-secondary-select-method' are agentized by default.  Earlier only
-the server in `gnus-select-method' was agentized by the default, and the
-agent was disabled by default.  When the agent is enabled, headers are
-now also retrieved from the Agent cache instead of the backends when
-possible.  Earlier this only happened in the unplugged state.  You can
-enroll or remove servers with `J a' and `J r' in the server buffer.
-Gnus will not download articles into the Agent cache, unless you
-instruct it to do so, though, by using `J u' or `J s' from the Group
-buffer.  You revert to the old behaviour of having the Agent disabled
-by customizing `gnus-agent'.  Note that putting `(gnus-agentize)' in
-~/.gnus is not needed any more.
-
-** gnus-summary-line-format
-
-The default value changed to "%U%R%z%I%(%[%4L: %-23,23f%]%) %s\n".
+The default value changed to `%U%R%z%I%(%[%4L: %-23,23f%]%) %s\n'.
 Moreover `gnus-extra-headers', `nnmail-extra-headers' and
 `gnus-ignored-from-addresses' changed their default so that the users
-name will be replaced by the recipient's name or the group name
-posting to for NNTP groups.
+name will be replaced by the recipient's name or the group name posting
+to for NNTP groups.
 
-** deuglify.el (gnus-article-outlook-deuglify-article)
-
-A new file from Raymond Scholz <rscholz@zonix.de> for deuglifying
-broken Outlook (Express) articles.
-
-** (require 'gnus-load)
-
-If you use a stand-alone Gnus distribution, you'd better add
-"(require 'gnus-load)" to your ~/.emacs after adding the Gnus
-lisp directory into load-path.
-
-File gnus-load.el contains autoload commands, functions and variables,
-some of which may not be included in distributions of Emacsen.
-
-** gnus-slave-unplugged
-
-A new command which starts gnus offline in slave mode.
-
-** message-insinuate-rmail
-
-Adding (message-insinuate-rmail) in .emacs and customizing
-`mail-user-agent' to `gnus-user-agent' convinces Rmail to compose,
-reply and forward messages in Message mode, where you can enjoy the
-power of MML.
-
-** message-minibuffer-local-map
-
-The line below enables BBDB in resending a message:
-
-(define-key message-minibuffer-local-map [?\t] 'bbdb-complete-name)
-
-** Externalizing and deleting of attachments.
-
-If `gnus-gcc-externalize-attachments' (or
-`message-fcc-externalize-attachments') is non-nil, attach local files
-as external parts.
+** Deleting of attachments.
 
 The command `gnus-mime-save-part-and-strip' (bound to `C-o' on MIME
 buttons) saves a part and replaces the part with an external one.
 `gnus-mime-delete-part' (bound to `d' on MIME buttons) removes a part.
 It works only on back ends that support editing.
 
-** gnus-default-charset
+** `gnus-default-charset'
 
-The default value now guesses on the basis of your environment instead
-of using Latin-1.  Also the ".*" item in gnus-group-charset-alist is
-removed.
-
-** gnus-posting-styles
-
-Add a new format of match like
-
-        ((header "to" "larsi.*org")
-         (Organization "Somewhere, Inc."))
-
-The old format like the lines below is obsolete, but still accepted.
-
-        (header "to" "larsi.*org"
-         (Organization "Somewhere, Inc."))
-
-** message-ignored-news-headers and message-ignored-mail-headers
-
-X-Draft-From and X-Gnus-Agent-Meta-Information have been added into
-these two variables.  If you customized those, perhaps you need add
-those two headers too.
-
-** Gnus reads the NOV and articles in the Agent if plugged.
-
-If one reads an article while plugged, and the article already exists
-in the Agent, it won't get downloaded once more.  Customize
-`gnus-agent-cache' to revert to the old behavior.
-
-** Gnus supports the "format=flowed" (RFC 2646) parameter.
-
-On composing messages, it is enabled by `use-hard-newlines'.  Decoding
-format=flowed was present but not documented in earlier versions.
-
-** The option `mm-fill-flowed' can be used to disable treatment of
-format=flowed messages.  Also, flowed text is disabled when sending
-inline PGP signed messages.  (New in Gnus 5.10.8)
-
-** The tool bar icons are now (de)activated correctly in the group
-buffer, see the variable `gnus-group-update-tool-bar'.  It's default
-value depends on your Emacs version.  (New in Gnus 5.10.8)
-
-** Gnus supports the generation of RFC 2298 Disposition Notification requests.
-
-This is invoked with the C-c M-n key binding from message mode.
-
-** Gnus supports Maildir groups.
-
-Gnus includes a new backend nnmaildir.el.
+The default value is determined from the `current-language-environment'
+variable, instead of `iso-8859-1'.  Also the `.*' item in
+`gnus-group-charset-alist' is removed.
 
 ** Printing capabilities are enhanced.
 
-Gnus supports Muttprint natively with O P from the Summary and Article
-buffers.  Also, each individual MIME part can be printed using p on
+Gnus supports Muttprint natively with `O P' from the Summary and Article
+buffers.  Also, each individual MIME part can be printed using `p' on
 the MIME button.
+
+** Extended format specs.
+
+Format spec `%&user-date;' is added into
+`gnus-summary-line-format-alist'.  Also, user defined extended format
+specs are supported.  The extended format specs look like `%u&foo;',
+which invokes function `gnus-user-format-function-FOO'.  Because `&' is
+used as the escape character, old user defined format `%u&' is no longer
+supported.
+
+** `/ *' (`gnus-summary-limit-include-cached') is rewritten.
+
+It was aliased to `Y c' (`gnus-summary-insert-cached-articles').  The
+new function filters out other articles.
+
+** Some limiting commands accept a `C-u' prefix to negate the match.
+
+If `C-u' is used on subject, author or extra headers, i.e., `/ s', `/
+a', and `/ x' (`gnus-summary-limit-to-{subject,author,extra}')
+respectively, the result will be to display all articles that do not
+match the expression.
+
+** Gnus inlines external parts (message/external).
+
+
+
+* Changes in Message mode and related Gnus features
+
+** Delayed articles
+
+You can delay the sending of a message with `C-c C-j' in the Message
+buffer.  The messages are delivered at specified time.  This is useful
+for sending yourself reminders.  *Note Delayed Articles::.
+
+** If the new option `nnml-use-compressed-files' is non-`nil', the nnml
+back end allows compressed message files.
+
+** The new option `gnus-gcc-mark-as-read' automatically marks Gcc articles
+as read.
+
+** Externalizing of attachments
+
+If `gnus-gcc-externalize-attachments' or
+`message-fcc-externalize-attachments' is non-`nil', attach local files
+as external parts.
+
+** The envelope sender address can be customized when using Sendmail.
+ *Note Mail Variables: (message)Mail Variables.
+
+** Gnus no longer generate the Sender: header automatically.
+
+Earlier it was generated iff the user configurable email address was
+different from the Gnus guessed default user address.  As the guessing
+algorithm is rarely correct these days, and (more controversially) the
+only use of the Sender: header was to check if you are entitled to
+cancel/supersede news (which is now solved by Cancel Locks instead, see
+another entry), generation of the header has been disabled by default.
+See the variables `message-required-headers',
+`message-required-news-headers', and `message-required-mail-headers'.
+
+** Features from third party `message-utils.el' added to `message.el'.
+
+Message now asks if you wish to remove `(was: <old subject>)' from
+subject lines (see `message-subject-trailing-was-query').  `C-c M-m' and
+`C-c M-f' inserts markers indicating included text.  `C-c C-f a' adds a
+X-No-Archive: header.  `C-c C-f x' inserts appropriate headers and a
+note in the body for cross-postings and followups (see the variables
+`message-cross-post-*').
+
+** References and X-Draft-From headers are no longer generated when you
+start composing messages and `message-generate-headers-first' is `nil'.
+
+** Easy inclusion of X-Faces headers.  *Note X-Face::.
+
+** Group Carbon Copy (GCC) quoting
+
+To support groups that contains SPC and other weird characters, groups
+are quoted before they are placed in the Gcc: header.  This means
+variables such as `gnus-message-archive-group' should no longer contain
+quote characters to make groups containing SPC work.  Also, if you are
+using the string `nnml:foo, nnml:bar' (indicating Gcc into two groups)
+you must change it to return the list `("nnml:foo" "nnml:bar")',
+otherwise the Gcc: line will be quoted incorrectly.  Note that returning
+the string `nnml:foo, nnml:bar' was incorrect earlier, it just didn't
+generate any problems since it was inserted directly.
+
+** `message-insinuate-rmail'
+
+Adding `(message-insinuate-rmail)' and `(setq mail-user-agent
+'gnus-user-agent)' in `.emacs' convinces Rmail to compose, reply and
+forward messages in message-mode, where you can enjoy the power of MML.
+
+** `message-minibuffer-local-map'
+
+The line below enables BBDB in resending a message:
+(define-key message-minibuffer-local-map [(tab)]
+  'bbdb-complete-name)
+
+** `gnus-posting-styles'
+
+Add a new format of match like
+((header "to" "larsi.*org")
+ (Organization "Somewhere, Inc."))
+The old format like the lines below is obsolete, but still accepted.
+(header "to" "larsi.*org"
+   (Organization "Somewhere, Inc."))
+
+** `message-ignored-news-headers' and `message-ignored-mail-headers'
+
+`X-Draft-From' and `X-Gnus-Agent-Meta-Information' have been added into
+these two variables.  If you customized those, perhaps you need add
+those two headers too.
+
+** Gnus supports the "format=flowed" (RFC 2646) parameter.  On composing
+messages, it is enabled by `use-hard-newlines'.  Decoding format=flowed
+was present but not documented in earlier versions.
+
+** The option `mm-fill-flowed' can be used to disable treatment of
+"format=flowed" messages.  Also, flowed text is disabled when sending
+inline PGP signed messages.  (New in Gnus 5.10.7)
+
+** Gnus supports the generation of RFC 2298 Disposition Notification
+requests.
+
+This is invoked with the `C-c M-n' key binding from message mode.
 
 ** Message supports the Importance: (RFC 2156) header.
 
@@ -384,151 +389,130 @@ valid values.
 
 ** Gnus supports Cancel Locks in News.
 
-This means a header "Cancel-Lock" is inserted in news posting.  It is
-used to determine if you wrote a article or not (for cancelling and
+This means a header `Cancel-Lock' is inserted in news posting.  It is
+used to determine if you wrote an article or not (for canceling and
 superseding).  Gnus generates a random password string the first time
-you post a message, and saves it using the Custom system.  While the
-variable is called `canlock-password', it is not security sensitive
-data.  Publishing your canlock string on the web will not allow anyone
-to be able to anything she could not already do.  The behaviour can be
-changed by customizing `message-insert-canlock'.
+you post a message, and saves it in your `~/.emacs' using the Custom
+system.  While the variable is called `canlock-password', it is not
+security sensitive data.  Publishing your canlock string on the web will
+not allow anyone to be able to anything she could not already do.  The
+behavior can be changed by customizing `message-insert-canlock'.
 
-** Gnus supports server-side mail filtering using Sieve.
-
-Sieve rules can be added as Group Parameters for groups, and the
-complete Sieve script is generated using `D g' from the Group buffer,
-and then uploaded to the server using `C-c C-l' in the generated Sieve
-buffer.  Search the online Gnus manual for "sieve", and see the new
-Sieve manual, for more information.
-
-** Extended format specs.
-
-Format spec "%&user-date;" is added into
-`gnus-summary-line-format-alist'.  Also, user defined extended format
-specs are supported.  The extended format specs look like "%u&foo;",
-which invokes function `gnus-user-format-function-foo'.  Because "&" is
-used as the escape character, old user defined format "%u&" is no
-longer supported.
-
-** `/ *' (gnus-summary-limit-include-cached) is rewritten.
-
-It was aliased to `Y c' (gnus-summary-insert-cached-articles). The new
-function filters out other articles.
-
-** Some limiting commands accept a C-u prefix to negate the match.
-
-If C-u is used on subject, author or extra headers, i.e., `/ s', `/
-a', and `/ x' (gnus-summary-limit-to-{subject,author,extra})
-respectively, the result will be to display all articles that do not
-match the expression.
-
-** Group names are treated as UTF-8 by default.
-
-This is supposedly what USEFOR wanted to migrate to.  See
-`gnus-group-name-charset-group-alist' and
-`gnus-group-name-charset-method-alist' for customization.
-
-** The nnml and nnfolder backends store marks for each group.
-
-This makes it possible to take backup of nnml/nnfolder servers/groups
-separately of ~/.newsrc.eld, while preserving marks.  It also makes it
-possible to share articles and marks between users (without sharing
-the ~/.newsrc.eld file) within e.g. a department.  It works by storing
-the marks stored in ~/.newsrc.eld in a per-group file ".marks" (for
-nnml) and "groupname.mrk" (for nnfolder, named "groupname").  If the
-nnml/nnfolder is moved to another machine, Gnus will automatically use
-the .marks or .mrk file instead of the information in ~/.newsrc.eld.
-The new server variables `nnml-marks-is-evil' and
-`nnfolder-marks-is-evil' can be used to disable this feature.
-
-** The menu bar item (in Group and Summary buffer) named "Misc" has
-been renamed to "Gnus".
-
-** The menu bar item (in Message mode) named "MML" has been renamed to
-"Attachments".  Note that this menu also contains security related
-stuff, like signing and encryption.
-
-** gnus-group-charset-alist and gnus-group-ignored-charsets-alist.
-
-The regexps in these variables are compared with full group names
-instead of real group names in 5.8.  Users who customize these
-variables should change those regexps accordingly. For example:
-
-   ("^han\\>" euc-kr) -> ("\\(^\\|:\\)han\\>" euc-kr)
-
-** Gnus supports PGP (RFC 1991/2440), PGP/MIME (RFC 2015/3156) and
-S/MIME (RFC 2630-2633).
+** Gnus supports PGP (RFC 1991/2440), PGP/MIME (RFC 2015/3156) and S/MIME
+(RFC 2630-2633).
 
 It needs an external S/MIME and OpenPGP implementation, but no
-additional lisp libraries.  This add several menu items to the
-Attachments menu, and C-c RET key bindings, when composing messages.
+additional Lisp libraries.  This add several menu items to the
+Attachments menu, and `C-c RET' key bindings, when composing messages.
 This also obsoletes `gnus-article-hide-pgp-hook'.
-
-** Gnus inlines external parts (message/external).
 
 ** MML (Mime compose) prefix changed from `M-m' to `C-c C-m'.
 
 This change was made to avoid conflict with the standard binding of
 `back-to-indentation', which is also useful in message mode.
 
-** The default for message-forward-show-mml changed to symbol best.
+** The default for `message-forward-show-mml' changed to the symbol `best'.
 
-The behaviour for the `best' value is to show MML (i.e., convert MIME
-to MML) when appropriate.  MML will not be used when forwarding signed
-or encrypted messages, as the conversion invalidate the digital
-signature.
+The behavior for the `best' value is to show MML (i.e., convert to MIME)
+when appropriate.  MML will not be used when forwarding signed or
+encrypted messages, as the conversion invalidate the digital signature.
 
-** Bug fixes.
+** If `auto-compression-mode' is enabled, attachments are automatically
+decompressed when activated.
+
+** Support for non-ASCII domain names
+
+Message supports non-ASCII domain names in From:, To: and Cc: and will
+query you whether to perform encoding when you try to send a message.
+The variable `message-use-idna' controls this.  Gnus will also decode
+non-ASCII domain names in From:, To: and Cc: when you view a message.
+The variable `gnus-use-idna' controls this.
+
+** You can now drag and drop attachments to the Message buffer.  See
+`mml-dnd-protocol-alist' and `mml-dnd-attach-options'.  *Note MIME:
+(message)MIME.
+
 
 
-* Changes in Pterodactyl Gnus (5.8/5.9)
+* Changes in back ends
 
-The Gnus NEWS entries are short, but they reflect sweeping changes in
-four areas: Article display treatment, MIME treatment,
-internationalization and mail-fetching.
+** Gnus can display RSS newsfeeds as a newsgroup.  *Note RSS::.
 
-** The mail-fetching functions have changed.  See the manual for the
-many details.  In particular, all procmail fetching variables are gone.
+** The nndoc back end now supports mailman digests and exim bounces.
 
-If you used procmail like in
+** Gnus supports Maildir groups.
 
-(setq nnmail-use-procmail t)
-(setq nnmail-spool-file 'procmail)
-(setq nnmail-procmail-directory "~/mail/incoming/")
-(setq nnmail-procmail-suffix "\\.in")
+Gnus includes a new back end `nnmaildir.el'.  *Note Maildir::.
 
-this now has changed to
+** The nnml and nnfolder back ends store marks for each groups.
 
-(setq mail-sources
-      '((directory :path "~/mail/incoming/"
-		   :suffix ".in")))
+This makes it possible to take backup of nnml/nnfolder servers/groups
+separately of `~/.newsrc.eld', while preserving marks.  It also makes it
+possible to share articles and marks between users (without sharing the
+`~/.newsrc.eld' file) within e.g. a department.  It works by storing the
+marks stored in `~/.newsrc.eld' in a per-group file `.marks' (for nnml)
+and `GROUPNAME.mrk' (for nnfolder, named GROUPNAME).  If the
+nnml/nnfolder is moved to another machine, Gnus will automatically use
+the `.marks' or `.mrk' file instead of the information in
+`~/.newsrc.eld'.  The new server variables `nnml-marks-is-evil' and
+`nnfolder-marks-is-evil' can be used to disable this feature.
 
-More information is available in the info doc at Select Methods ->
-Getting Mail -> Mail Sources
 
-** Gnus is now a MIME-capable reader.  This affects many parts of
-Gnus, and adds a slew of new commands.  See the manual for details.
+
+* Appearance
 
-** Gnus has also been multilingualized.  This also affects too
-many parts of Gnus to summarize here, and adds many new variables.
+** The menu bar item (in Group and Summary buffer) named "Misc" has been
+renamed to "Gnus".
 
-** gnus-auto-select-first can now be a function to be
-called to position point.
+** The menu bar item (in Message mode) named "MML" has been renamed to
+"Attachments".  Note that this menu also contains security related
+stuff, like signing and encryption (*note Security: (message)Security.).
 
-** The user can now decide which extra headers should be included in
-summary buffers and NOV files.
+** The tool bars have been updated to use GNOME icons in Group, Summary and
+Message mode.  You can also customize the tool bars.  This is a new
+feature in Gnus 5.10.9.  (Only for Emacs, not in XEmacs.)
 
-** `gnus-article-display-hook' has been removed.  Instead, a number
-of variables starting with `gnus-treat-' have been added.
+** The tool bar icons are now (de)activated correctly in the group buffer,
+see the variable `gnus-group-update-tool-bar'.  Its default value
+depends on your Emacs version.  This is a new feature in Gnus 5.10.9.
 
-** The Gnus posting styles have been redone again and now works in a
-subtly different manner.
+
+* Miscellaneous changes
 
-** New web-based backends have been added: nnslashdot, nnwarchive
-and nnultimate.  nnweb has been revamped, again, to keep up with
-ever-changing layouts.
+** `gnus-agent'
 
-** Gnus can now read IMAP mail via nnimap.
+The Gnus Agent has seen a major updated and is now enabled by default,
+and all nntp and nnimap servers from `gnus-select-method' and
+`gnus-secondary-select-method' are agentized by default.  Earlier only
+the server in `gnus-select-method' was agentized by the default, and the
+agent was disabled by default.  When the agent is enabled, headers are
+now also retrieved from the Agent cache instead of the back ends when
+possible.  Earlier this only happened in the unplugged state.  You can
+enroll or remove servers with `J a' and `J r' in the server buffer.
+Gnus will not download articles into the Agent cache, unless you
+instruct it to do so, though, by using `J u' or `J s' from the Group
+buffer.  You revert to the old behavior of having the Agent disabled
+with `(setq gnus-agent nil)'.  Note that putting `(gnus-agentize)' in
+`~/.gnus.el' is not needed any more.
+
+** Gnus reads the NOV and articles in the Agent if plugged.
+
+If one reads an article while plugged, and the article already exists in
+the Agent, it won't get downloaded once more.  `(setq gnus-agent-cache
+nil)' reverts to the old behavior.
+
+** Dired integration
+
+`gnus-dired-minor-mode' (see *Note Other modes::) installs key bindings
+in dired buffers to send a file as an attachment, open a file using the
+appropriate mailcap entry, and print a file using the mailcap entry.
+
+** The format spec `%C' for positioning point has changed to `%*'.
+
+** `gnus-slave-unplugged'
+
+A new command which starts Gnus offline in slave mode.
+
 
 
 * For older news, see Gnus info node "New Features".
@@ -536,8 +520,8 @@ ever-changing layouts.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-   2005, 2006 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+   2006 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

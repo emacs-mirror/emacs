@@ -31,16 +31,19 @@
        nmake
 
      For the development environments based on GNU GCC (MinGW, MSYS,
-     Cygwin), depending on how Make is called, it could be:
+     Cygwin - but see notes about Cygwin make below), depending on how
+     Make is called, it could be:
 
        make
+     or
+       mingw32-make
      or
        gnumake
      or
        gmake
 
      (If you are building from CVS, say "make bootstrap" or "nmake
-     bootstrap" instead.)
+     bootstrap" instead and avoid using Cygwin make.)
 
   4. Generate the Info manuals (only if you are building out of CVS, and
      if you have makeinfo.exe installed):

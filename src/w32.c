@@ -2256,16 +2256,17 @@ convert_time (FILETIME ft)
 
       SystemTimeToFileTime (&st, &utc_base_ft);
       utc_base = (long double) utc_base_ft.dwHighDateTime
-	* 4096 * 1024 * 1024 + utc_base_ft.dwLowDateTime;
+	* 4096.0L * 1024.0L * 1024.0L + utc_base_ft.dwLowDateTime;
       init = 1;
     }
 
   if (CompareFileTime (&ft, &utc_base_ft) < 0)
     return 0;
 
-  ret = (long double) ft.dwHighDateTime * 4096 * 1024 * 1024 + ft.dwLowDateTime;
+  ret = (long double) ft.dwHighDateTime
+    * 4096.0L * 1024.0L * 1024.0L + ft.dwLowDateTime;
   ret -= utc_base;
-  return (time_t) (ret * 1e-7);
+  return (time_t) (ret * 1e-7L);
 }
 
 void

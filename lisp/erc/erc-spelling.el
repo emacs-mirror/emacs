@@ -40,15 +40,13 @@
   ;; Use erc-connect-pre-hook instead of erc-mode-hook as pre-hook is
   ;; called AFTER the server buffer is initialized.
   ((add-hook 'erc-connect-pre-hook 'erc-spelling-init)
-   (mapc (lambda (buffer)
-           (when buffer
-             (with-current-buffer buffer (erc-spelling-init))))
-         (erc-buffer-list)))
+   (dolist (buffer (erc-buffer-list))
+     (when (buffer-live-p buffer)
+       (with-current-buffer buffer (erc-spelling-init)))))
   ((remove-hook 'erc-connect-pre-hook 'erc-spelling-init)
-   (mapc (lambda (buffer)
-           (when buffer
-             (with-current-buffer buffer (flyspell-mode 0))))
-         (erc-buffer-list))))
+   (dolist (buffer (erc-buffer-list))
+     (when (buffer-live-p buffer)
+       (with-current-buffer buffer (flyspell-mode 0))))))
 
 (defcustom erc-spelling-dictionaries nil
   "An alist mapping buffer names to dictionaries.
