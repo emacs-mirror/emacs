@@ -3057,7 +3057,7 @@ so that the scanned text never starts or ends in the middle of a
 multiline construct.
 @item
 Add a function to @code{font-lock-extend-region-functions} that does
-the \emph{identification} and extends the scan so that the scanned
+the @emph{identification} and extends the scan so that the scanned
 text never starts or ends in the middle of a multiline construct.
 @end itemize
 
