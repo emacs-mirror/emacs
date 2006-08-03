@@ -290,7 +290,7 @@
 
 	* anti.texi, customize.texi, display.texi, internals.texi:
 	* minibuf.texi, modes.texi, tips.texi:
-        Fix overfull/underfull boxes.
+	Fix overfull/underfull boxes.
 
 2006-07-05  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -367,7 +367,7 @@
 
 2006-06-09  Aidan Kehoe  <kehoea@parhasard.net>
 
-	* objects.texi (Character Type): Describe the\uABCD and \U00ABCDEF
+	* objects.texi (Character Type): Describe the \uABCD and \U00ABCDEF
 	syntax.
 
 2006-06-07  Eli Zaretskii  <eliz@gnu.org>
@@ -679,7 +679,7 @@
 2006-04-13  Bill Wohler  <wohler@newt.com>
 
 	* customize.texi (Common Keywords): Use dotted notation for
-	:package-version value. Specify its values. Improve documentation
+	:package-version value.  Specify its values.  Improve documentation
 	for customize-package-emacs-version-alist.
 
 2006-04-12  Bill Wohler  <wohler@newt.com>
@@ -1724,7 +1724,7 @@
 	(Jumping): Clarify description of `h' command.
 	Eliminate redundant @ref.
 	(Breaks): New node.
-	(Breakpoints): is now a subsubsection.
+	(Breakpoints): Is now a subsubsection.
 	(Global Break Condition): Mention `C-x X X'.
 	(Edebug Views): Clarify `v' and `p'.  Mention `C-x X w'.
 	(Trace Buffer): Clarify STRING arg of `edebug-tracing'.
@@ -2974,7 +2974,7 @@
 
 2004-10-24  Jason Rumney  <jasonr@gnu.org>
 
-	* commands.texi (Misc Events): Remove mouse-wheel. Add wheel-up
+	* commands.texi (Misc Events): Remove mouse-wheel.  Add wheel-up
 	and wheel-down.
 
 2004-10-24  Kai Grossjohann  <kai.grossjohann@gmx.net>
@@ -3203,7 +3203,7 @@
 	except while processing `frame-title-format' or `icon-title-format'.
 	(Deleting Frames): Correct description of `delete-frame'.
 	Non-nil return values of `frame-live-p' are like those of `framep'.
-	(Frames and Windows): mention return value of
+	(Frames and Windows): Mention return value of
 	`set-frame-selected-window'.
 	(Visibility of Frames): Mention `force' argument to
 	`make-frame-invisible'.  `frame-visible-p' returns t for all
@@ -3530,7 +3530,7 @@
 
 2004-03-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* customize.texi: Fix typo. Remove eol whitespace.
+	* customize.texi: Fix typo.  Remove eol whitespace.
 
 2004-03-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -3566,7 +3566,7 @@
 	* text.texi: Various small changes in addition to the following:
 	(User-Level Deletion): Mention optional BACKWARD-ONLY argument
 	to delete-horizontal-space.
-	(Kill Functions, Yanking, Low-Level Kill Ring): clarify and correct
+	(Kill Functions, Yanking, Low-Level Kill Ring): Clarify and correct
 	description of yank-handler text property at various places.
 
 	* frames.texi (Window System Selections): Add anchor.
@@ -4593,7 +4593,7 @@
 	* loading.texi (Unloading): Fix recent change for load-history.
 
 	* customize.texi (Simple Types): Clarify description of custom
-	type 'number. Describe new custom type 'float.
+	type 'number.  Describe new custom type 'float.
 
 2002-12-04  Markus Rost  <rost@math.ohio-state.edu>
 
@@ -5123,7 +5123,7 @@ Mon Apr 17 18:56:50 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 	* Applied Karl Berry's patches to *.texinfo files, but not to
-	texinfo.tex; those diffs are in `berry-texinfo-tex-diffs'. (Karl's
+	texinfo.tex; those diffs are in `berry-texinfo-tex-diffs'.  (Karl's
 	new title page format is also not applied, since it requires
 	texinfo.tex changes.)
 

@@ -173,9 +173,9 @@
 
 2006-07-26  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el (tumme-backward-image): Add prefix argument. Add error
+	* tumme.el (tumme-backward-image): Add prefix argument.  Add error
 	when at first image.
-	(tumme-forward-image): Add prefix argument. Add error when at last
+	(tumme-forward-image): Add prefix argument.  Add error when at last
 	image.
 
 2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -239,8 +239,8 @@
 2006-07-24  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
-	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org> and
-	andreas@altroot.de (Andreas V,Av(Bgele)
+	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org>
+	and andreas@altroot.de (Andreas V,Av(Bgele).
 
 2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -279,7 +279,7 @@
 2006-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Fix key bindings
-	syntax. Bind S-return, C-M-., C-TAB, S-TAB and C-S-TAB.
+	syntax.  Bind S-return, C-M-., C-TAB, S-TAB and C-S-TAB.
 
 2006-07-21  Eli Zaretskii  <eliz@gnu.org>
 
@@ -315,7 +315,7 @@
 
 	* calc.el (calc-previous-alg-entry):  Remove variable.
 
-	* calc-aent.el  (calc-alg-entry-history, calc-quick-calc-history):
+	* calc-aent.el (calc-alg-entry-history, calc-quick-calc-history):
 	New variables.
 	(calc-alg-entry): Use `calc-alg-entry-history'.
 	(calc-do-quick-calc): Use `calc-quick-calc-history'.
