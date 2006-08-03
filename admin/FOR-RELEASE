@@ -34,6 +34,13 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 ** Romain Francoise <romain@orebokech.com>, Aug 2:
   Abort at end of Fbyte_code because specpdl did not balance.
 
+** lennart.borgman July 27: Custom and mode-line-format default
+   M-x customize-option RET mode-line-format RET
+
+and then click the button "Erase Customization". This will set 
+mode-line-format to "%-" which does not seem to be useful.
+
+
 ** bojohan's and johnsu01@wjsullivan.net's 18 July bug reports that
   "C-n doesn't work in Customize Option buffer in -nw with long value
   displayed".  Yidong proposed a fix, but needs a field expert to check
