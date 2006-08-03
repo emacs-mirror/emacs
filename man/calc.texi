@@ -11635,7 +11635,7 @@ would indeed have been negligible.
 To enter an error form during regular numeric entry, use the @kbd{p}
 (``plus-or-minus'') key to type the @samp{+/-} symbol.  (If you try actually
 typing @samp{+/-} the @kbd{+} key will be interpreted as the Calculator's
-@kbd{+} command!)  Within an algebraic formula, you can press @kbd{M-p} to
+@kbd{+} command!)  Within an algebraic formula, you can press @kbd{M-+} to
 type the @samp{+/-} symbol, or type it out by hand.
 
 Error forms and complex numbers can be mixed; the formulas shown above

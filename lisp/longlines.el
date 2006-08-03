@@ -44,7 +44,7 @@
   :group 'fill)
 
 (defcustom longlines-auto-wrap t
-  "*Non-nil means long lines are automatically wrapped after each command.
+  "Non-nil means long lines are automatically wrapped after each command.
 Otherwise, you can perform filling using `fill-paragraph' or
 `auto-fill-mode'.  In any case, the soft newlines will be removed
 when the file is saved to disk."
@@ -52,7 +52,7 @@ when the file is saved to disk."
   :type 'boolean)
 
 (defcustom longlines-wrap-follows-window-size nil
-  "*Non-nil means wrapping and filling happen at the edge of the window.
+  "Non-nil means wrapping and filling happen at the edge of the window.
 Otherwise, `fill-column' is used, regardless of the window size.  This
 does not work well when the buffer is displayed in multiple windows
 with differing widths."
@@ -60,7 +60,7 @@ with differing widths."
   :type 'boolean)
 
 (defcustom longlines-show-hard-newlines nil
-  "*Non-nil means each hard newline is marked on the screen.
+  "Non-nil means each hard newline is marked on the screen.
 \(The variable `longlines-show-effect' controls what they look like.)
 You can also enable the display temporarily, using the command
 `longlines-show-hard-newlines'"
@@ -68,7 +68,7 @@ You can also enable the display temporarily, using the command
   :type 'boolean)
 
 (defcustom longlines-show-effect (propertize "|\n" 'face 'escape-glyph)
-  "*A string to display when showing hard newlines.
+  "A string to display when showing hard newlines.
 This is used when `longlines-show-hard-newlines' is on."
   :group 'longlines
   :type 'string)
@@ -202,7 +202,8 @@ With optional argument ARG, make the hard newlines invisible again."
   "Make hard newlines between BEG and END visible."
   (let* ((pmin (min beg end))
          (pmax (max beg end))
-         (pos (text-property-not-all pmin pmax 'hard nil)))
+         (pos (text-property-not-all pmin pmax 'hard nil))
+         (inhibit-read-only t))
     (while pos
       (put-text-property pos (1+ pos) 'display
                          (copy-sequence longlines-show-effect))

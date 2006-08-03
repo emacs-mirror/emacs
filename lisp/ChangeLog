@@ -1,3 +1,398 @@
+2006-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-beg, font-lock-end)
+	(font-lock-extend-region-functions): New vars.
+	(font-lock-extend-region-multiline)
+	(font-lock-extend-region-wholelines): New functions.
+	(font-lock-default-fontify-region): Use them.
+	(font-lock-extend-jit-lock-region-after-change): Only round up
+	if font-lock-default-fontify-region will do it as well.
+
+	* font-lock.el (font-lock-extend-after-change-region-function):
+	Rename from font-lock-extend-region-function.
+	(font-lock-extend-region): Remove by inlining at call sites.
+	(font-lock-after-change-function): Don't needlessly round up to a whole
+	number of lines.
+	(font-lock-extend-jit-lock-region-after-change): Be more careful about
+	the boundary conditions and the interactions between the various ways
+	to extend the region.
+
+2006-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el (jit-lock-fontify-now): Preserve the buffer's
+	modification status when forcing the second redisplay.
+
+2006-08-03  Kim F. Storm  <storm@cua.dk>
+
+	* edmacro.el (edmacro-fix-menu-commands): Ignore switch-frame.
+
+2006-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-util.el (cvs-get-buffer-create): Obey `noreuse' even if `name'
+	doesn't look like a file name.
+
+	* complete.el (PC-expand-many-files): Avoid signalling an error when
+	the current directory doesn't exist.  Reported by Micha,Ak(Bl Cadilhac.
+
+2006-08-02  Andreas Schwab  <schwab@suse.de>
+
+	* bindings.el (mode-line-format): Simplify reference to vc-mode.
+
+2006-08-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (map): Make mode-line-buffer-identification-keymap
+	before defining propertized-buffer-identification.
+
+2006-08-01  Richard Stallman  <rms@gnu.org>
+
+	* bindings.el (mode-line-format): Adjust spacing around vc-mode.
+
+2006-08-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-find-source-frame): Make nil the
+	default value.
+	(gdb-find-source-frame): New function.
+	(menu): Add to menu bar.
+
+2006-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-core.el (font-lock-extend-region-function)
+	(font-lock-extend-region): Move to font-lock.el.
+
+	* font-lock.el (font-lock-extend-region-function)
+	(font-lock-extend-region): Move from font-core.el.  Simplify.
+
+	* jit-lock.el (jit-lock-fontify-now): Cause a second redisplay
+	if needed.
+	(jit-lock-start, jit-lock-end): New dynamic scoped vars.
+	(jit-lock-after-change-extend-region-functions): New hook.
+	(jit-lock-after-change): Use it instead of hard-coding font-lock code.
+
+	* font-lock.el (font-lock-extend-jit-lock-region-after-change): New fun.
+	(font-lock-turn-on-thing-lock): Use it.
+
+	* longlines.el (longlines-show-region): Make it work on read-only
+	buffers as well.
+
+2006-08-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-hollow): Check for gud-last-last-frame.
+
+2006-07-31  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/vhdl-mode.el (vhdl-speedbar-display-directory)
+	(vhdl-speedbar-display-projects): Update old obsolete
+	speedbar variable names.
+
+2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-find-source-frame): New option.
+	(gdb-stopped): Use it.
+
+	* t-mouse.el (t-mouse-mode): Use set-process-query-on-exit-flag.
+
+2006-07-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* loadhist.el (unload-feature): Handle new `(t . SYMBOL)' format
+	for load-history elements.
+
+2006-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (convert-standard-filename): For Cygwin, replace
+	characters not allowed in Windows file names.
+	(make-auto-save-file-name): Add Cygwin to the list of systems
+	where the auto-save file name needs to be run through
+	convert-standard-filename.
+
+2006-07-29  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* window.el (bw-get-tree): Don't integerp subtree if it's nil.
+
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* bindings.el (mode-line-frame-identification)
+	(propertized-buffer-identification): Centralize the code
+	to initialize the variable.
+
+	* progmodes/grep.el (grep-default-command): Catch errors from
+	wildcard-to-regexp.
+
+2006-07-29  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (grep-tag-default): New function.
+	(grep-default-command, grep-read-regexp): Use it.
+	(grep-read-files): Use car of grep-files-history or grep-files-aliases
+	as default if nothing else applies.
+
+2006-07-28  Bill Atkins  <atkinw@rpi.edu>  (tiny change)
+
+	* wdired.el (wdired-change-to-wdired-mode, wdired-change-to-dired-mode):
+	Throw error if buffer is not in Dired and Wdired mode, respectively.
+
+2006-07-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-no-edit): Revert 2006-07-27 change, so that
+	self-insert-command keys don't activate buttons.
+	(custom-mode-map): Just don't bind "\C-m" to `custom-no-edit'.
+
+2006-07-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Use different
+	faces for enable character.
+
+2006-07-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* Makefile.in (recompile): Update comment to reflect change
+	on 2004-04-21.
+
+2006-07-27  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (customize-package-emacs-version-alist): Doc fix.
+	(customize-package-emacs-version): Change msg when pkg has no entry.
+	(custom-no-edit): On a button, do like widget-button-press.
+
+2006-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix bindings for C-tab,
+	S-tab and C-S-tab.
+
+2006-07-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/which-func.el (which-function): Fix documentation/
+	comment typo.
+
+2006-07-26  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-word): If we replace the word,
+	move point to the end.  Insert before deleting.
+
+2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (sit-for): Use new SECONDS arg of read-event instead of
+	a timer.
+
+2006-07-26  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-backward-image): Add prefix argument. Add error
+	when at first image.
+	(tumme-forward-image): Add prefix argument. Add error when at last
+	image.
+
+2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tabify.el (tabify-regexp): Use more specific regexps.
+	(tabify): Avoid modifying the buffer unnecessarily.
+
+2006-07-25  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-track-original-file): Add `buffer-live-p' check.
+	(tumme-format-properties-string): Handle empty `buf'.
+	(tumme-get-comment): Change variable names inside `let'.
+	Add missing `let' variable that cause font-lock problems.
+	(tumme-write-comments): Change variable names inside `let'.
+	Add missing `let' variable that cause font-lock problems.
+	(tumme-forward-image): Rename from `tumme-forward-char'.
+	(tumme-backward-image): Rename from `tumme-backward-char'.
+
+2006-07-25  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/ld-script.el (ld-script-keywords)
+	(ld-script-font-lock-keywords, ld-script-builtins): Update keywords
+	and add comments.
+
+2006-07-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-existing-buffers)
+	(gdb-resync, gdb-prompt, gdb-starting, gdb-exited, gdb-stopped)
+	(gdb-set-gud-minor-mode-existing-buffers-1): Use different faces
+	for status indicator.
+
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* xml.el (xml-parse-file): Clean up, and use with-temp-buffer.
+
+	* subr.el (dolist, dotimes): Use interned symbols for locals.
+	(--dotimes-limit--, --dolist-tail--): New defvars.
+	(looking-back): Doc fix.
+
+	* replace.el (replace-match-string-symbols): Handle dotted lists.
+
+2006-07-24  mathias  <mathias@mattis>
+
+	* tumme.el (tumme-write-tags): Add.
+	(tumme-write-comments): Add.
+	(tumme-tag-files): Change to use `tumme-write-tags'.
+	(tumme-tag-thumbnail): Change to use `tumme-write-tags'.
+	(tumme-dired-comment-files): Change to use `tumme-write-comments'.
+	(tumme-save-information-from-widgets): Change to use
+	`tumme-write-comments' and `tumme-write-tags'.
+	(tumme-comment-thumbnail): Change to use `tumme-write-comments'.
+	(tumme-write-tag): Remove.
+	(tumme-write-comment): Remove.
+	(tumme-display-previous-thumbnail-original): Remove empty line.
+	(tumme-widget-list): Add punctuation.
+
+2006-07-24  mathias  <mathias.dahl@gmail.com>
+
+	* tumme.el (tumme-line-up): Add an extra check for end of buffer.
+
+2006-07-24  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
+	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org> and
+	andreas@altroot.de (Andreas V,Av(Bgele)
+
+2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* mouse.el (mouse-on-link-p): Doc fix.
+
+2006-07-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	Handle "C-h f `".
+
+2006-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ibuffer.el (ibuffer-formats): Use left alignment for the mode
+	column.
+
+2006-07-22  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* textmodes/table.el: Add move-beginning-of-line and
+	move-end-of-line to Point Motion Only Group.
+
+2006-07-22  Eric Hanchrow  <offby1@blarg.net>
+
+	* progmodes/delphi.el (delphi-fill-comment): Use save-restriction.
+
+2006-07-22  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* startup.el (user-mail-address): Initialize from the `EMAIL'
+	environment variable first.  Document this.
+	(command-line): Ditto.
+
+2006-07-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* help-mode.el (help-function-def, help-variable-def)
+	(help-face-def): Print a message in the minibuffer.
+
+2006-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix key bindings
+	syntax. Bind S-return, C-M-., C-TAB, S-TAB and C-S-TAB.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* dos-w32.el (find-buffer-file-type-coding-system): Support calls
+	where `(nth 1 command)' is a cons cell.  Doc fix.
+
+	* textmodes/po.el (po-find-charset): Doc fix.
+
+2006-07-21  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-unprotected, allout-e-o-prefix-p)
+	(allout-beginning-of-current-line, allout-end-of-current-line)
+	(allout-next-visible-heading, allout-open-topic)
+	(allout-kill-topic, allout-yank-processing, allout-resolve-xref)
+	(allout-flag-current-subtree, allout-show-to-offshoot)
+	(allout-hide-current-entry, allout-show-current-branches)
+	(allout-hide-region-body, allout-old-expose-topic)
+	(allout-listify-exposed, allout-latex-verbatim-quote-curr-line)
+	(allout-mark-topic, allout-adjust-file-variable): Enclose scopes
+	containing `beginning-of-line' and `end-of-line' with
+	`inhibit-field-text-motion' t.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.el (focus-follows-mouse): Document that it doesn't have
+	any effect on MS-Windows.
+
+2006-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-quoted-subshell): Further fix last change.
+
+2006-07-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.el (calc-previous-alg-entry):  Remove variable.
+
+	* calc-aent.el  (calc-alg-entry-history, calc-quick-calc-history):
+	New variables.
+	(calc-alg-entry): Use `calc-alg-entry-history'.
+	(calc-do-quick-calc): Use `calc-quick-calc-history'.
+	Remove reference to `calc-previous-alg-entry'.
+	(calcAlg-edit, calcAlg-enter): Remove reference to
+	`calc-previous-alg-entry'.
+	(calcAlg-previous): Use `previous-history-element' instead of
+	`calc-previous-alg-entry'.
+	(calc-do-alg-entry): Use history when calling `read-from-minibuffer'.
+	Change keybinding for `calcAlg-plus-minus', add keybindings for
+	`previous-history-element' and `next-history-element'.
+
+	* calc-rewr.el (calc-match): Remove reference to
+	`calc-previous-alg-entry'.
+
+	* calc-sel.el (calc-selection-history): New variable.
+	(calc-enter-selection, calc-sel-mult-both-sides)
+	(calc-sel-add-both-sides): Use `calc-selection-history'.
+
+	* calc-map.el (calc-get-operator-history): New variable.
+	(calc-get-operator): Use `calc-get-operator-history'.
+
+	* calcalg3.el (calc-curve-fit-history): New variable.
+	(calc-curve-fit): Use `calc-curve-fit-history'.
+
+2006-07-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Fix the
+	way of deciding eol-type of the coding system.
+
+2006-07-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-langs.el (c-emacs-variable-inits): New variable.
+	(c-lang-setvar): New macro.
+	(c-make-init-lang-vars-fun): Use the initialization forms in
+	c-emacs-variable-inits in addition to those in c-lang-variable-inits.
+	(comment-start, comment-end, comment-start-skip): Change these from
+	c-lang-defvar's to c-lang-setvar's.
+
+	* progmodes/cc-mode.el (c-make-emacs-variables-local): New macro,
+	which calls make-local-variable on the elements of
+	c-emacs-variable-inits.
+	(c-init-language-vars-for): Call this new macro.
+
+2006-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist) <gnu>:
+	Try to rule out false positives due to time stamps.
+	(compilation-mode-font-lock-keywords): Remove rules made redundant
+	because of the above change.  Add `segmentation fault' to the known and
+	highlighted compilation termination messages.
+
+2006-07-19  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (grep-find-ignored-directories):
+	Add .svn and _darcs to list.
+
+2006-07-19  Mathias Dahl  <mathias.dahl@gmail.com>
+
+	* dired.el (dired-mode-map): Add key binding `C-te' for
+	`tumme-dired-edit-comment-and-tags'.
+
+	* tumme.el (tumme-display-thumbnail-original-image): Make sure
+	image display buffer is displayed before call to
+	`tumme-display-image.
+	(tumme-dired-display-image): Make sure image display buffer is
+	displayed before call to `tumme-display-image.
+	(tumme-mouse-display-image): Make sure image display buffer is
+	displayed before call to `tumme-display-image.
+	(tumme-widget-list): Add.
+	(tumme-dired-edit-comment-and-tags): Add.
+	(tumme-save-information-from-widgets): Add.
+
+2006-07-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-quoted-subshell): Fix last change.
+
 2006-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-font-lock-keywords-1):

@@ -222,8 +222,8 @@ such as redefining an Emacs function."
 		  (if aload
                       (fset fun (cons 'autoload aload))
                     (fmakunbound fun))))))
-           (require nil)
-           (t (message "Unexpected element %s in load-history" x)))
+           ((t require) nil)
+	   (t (message "Unexpected element %s in load-history" x)))
 	;; Kill local values as much as possible.
 	(dolist (buf (buffer-list))
 	  (with-current-buffer buf

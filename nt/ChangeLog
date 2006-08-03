@@ -1,3 +1,7 @@
+2006-07-27  Jason Rumney  <jasonr@gnu.org>
+
+	* INSTALL: Add notes about Cygwin make to impatient section.
+
 2006-06-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* INSTALL: Add Make 3.81 to the list of Make & shell combinations

@@ -1242,7 +1242,7 @@ decoding UTF-8 data.
 
 @item
 Jean-Philippe Theberge wrote @file{thumbs.el}, a package for viewing
-image files as ``thumbnails''.
+image files as ``thumbnails.''
 
 @item
 Jens T.@: Berger Thielemann wrote @file{word-help.el}, which is

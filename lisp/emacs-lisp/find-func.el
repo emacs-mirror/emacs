@@ -226,7 +226,12 @@ The search is done in the source for library LIBRARY."
 	   (regexp-symbol (cdr (assq type find-function-regexp-alist))))
       (with-current-buffer (find-file-noselect filename)
 	(let ((regexp (format (symbol-value regexp-symbol)
-			      (regexp-quote (symbol-name symbol))))
+			      ;; Entry for ` (backquote) macro in loaddefs.el,
+			      ;; (defalias (quote \`)..., has a \ but
+			      ;; (symbol-name symbol) doesn't.  Add an
+			      ;; optional \ to catch this.
+			      (concat "\\\\?"
+				      (regexp-quote (symbol-name symbol)))))
 	      (case-fold-search))
 	  (with-syntax-table emacs-lisp-mode-syntax-table
 	    (goto-char (point-min))

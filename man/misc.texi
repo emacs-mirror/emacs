@@ -2377,7 +2377,7 @@ or through an external viewer.
   To enter Tumme, type @kbd{M-x tumme}.  It prompts for a directory;
 specify one that has images files.  This creates thumbnails for all
 the images in that directory, and displays them all in the ``thumbnail
-buffer''.  This takes a long time if the directory contains many image
+buffer.''  This takes a long time if the directory contains many image
 files, and it asks for confirmation if the number of image files
 exceeds @code{tumme-show-all-from-dir-max-files}.
 

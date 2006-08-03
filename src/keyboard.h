@@ -19,6 +19,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
+#include "systime.h"		/* for EMACS_TIME */
+
 /* Length of echobuf field in each KBOARD.  */
 
 /* Each KBOARD represents one logical input stream from which Emacs gets input.
@@ -297,7 +299,8 @@ struct input_event;
 
 extern Lisp_Object parse_modifiers P_ ((Lisp_Object));
 extern Lisp_Object reorder_modifiers P_ ((Lisp_Object));
-extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
+extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object,
+				  int *, EMACS_TIME *));
 /* User-supplied string to translate input characters through.  */
 extern Lisp_Object Vkeyboard_translate_table;
 

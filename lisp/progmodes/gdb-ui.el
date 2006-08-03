@@ -434,7 +434,8 @@ With arg, use separate IO iff arg is positive."
 	    (make-local-variable 'gdb-define-alist)
 	    (gdb-create-define-alist)
 	    (add-hook 'after-save-hook 'gdb-create-define-alist nil t))))))
-  (gdb-force-mode-line-update "ready"))
+  (gdb-force-mode-line-update
+   (propertize "ready" 'face font-lock-variable-name-face)))
 
 (defun gdb-find-watch-expression ()
   (let* ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list))
@@ -1209,7 +1210,8 @@ This filter may simply queue input for a later time."
 (defun gdb-resync()
   (setq gdb-flush-pending-output t)
   (setq gud-running nil)
-  (gdb-force-mode-line-update "stopped")
+  (gdb-force-mode-line-update
+   (propertize "stopped"'face font-lock-warning-face))
   (setq gdb-output-sink 'user)
   (setq gdb-input-queue nil)
   (setq gdb-pending-triggers nil)
@@ -1249,7 +1251,8 @@ happens to be in effect."
   "An annotation handler for `prompt'.
 This sends the next command (if any) to gdb."
   (when gdb-first-prompt
-    (gdb-force-mode-line-update "initializing...")
+    (gdb-force-mode-line-update 
+     (propertize "initializing..." 'face font-lock-variable-name-face))
     (gdb-init-1)
     (setq gdb-first-prompt nil))
   (let ((sink gdb-output-sink))
@@ -1287,7 +1290,8 @@ not GDB."
       (progn
 	(setq gud-running t)
 	(setq gdb-inferior-status "running")
-	(gdb-force-mode-line-update gdb-inferior-status)
+	(gdb-force-mode-line-update
+	 (propertize gdb-inferior-status 'face font-lock-type-face))
 	(gdb-remove-text-properties)
 	(setq gud-old-arrow gud-overlay-arrow-position)
 	(setq gud-overlay-arrow-position nil)
@@ -1300,7 +1304,8 @@ not GDB."
 
 (defun gdb-signal (ignored)
   (setq gdb-inferior-status "signal")
-  (gdb-force-mode-line-update gdb-inferior-status)
+  (gdb-force-mode-line-update
+   (propertize gdb-inferior-status 'face font-lock-warning-face))
   (gdb-stopping ignored))
 
 (defun gdb-stopping (ignored)
@@ -1327,7 +1332,8 @@ directives."
   (setq gdb-overlay-arrow-position nil)
   (setq gud-old-arrow nil)
   (setq gdb-inferior-status "exited")
-  (gdb-force-mode-line-update gdb-inferior-status)
+  (gdb-force-mode-line-update
+   (propertize gdb-inferior-status 'face font-lock-warning-face))
   (gdb-stopping ignored))
 
 (defun gdb-signalled (ignored)
@@ -1352,6 +1358,23 @@ directives."
   :type 'boolean
   :version "22.1")
 
+(defcustom gdb-find-source-frame nil
+  "Non-nil means try to find a source frame further up stack e.g after signal."
+  :group 'gud
+  :type 'boolean
+  :version "22.1")
+
+(defun gdb-find-source-frame (arg)
+  "Toggle trying to find a source frame further up stack.
+With arg, look for a source frame further up stack iff arg is positive."
+  (interactive "P")
+  (setq gdb-find-source-frame
+	(if (null arg)
+	    (not gdb-find-source-frame)
+	  (> (prefix-numeric-value arg) 0)))
+  (message (format "Looking for source frame %sabled"
+		   (if gdb-find-source-frame "en" "dis"))))
+
 (defun gdb-stopped (ignored)
   "An annotation handler for `stopped'.
 It is just like `gdb-stopping', except that if we already set the output
@@ -1365,17 +1388,19 @@ sink to `user' in `gdb-stopping', that is fine."
     (if gdb-same-frame
 	(gdb-display-gdb-buffer)
       (gdb-frame-gdb-buffer))
+    (if gdb-find-source-frame
     ;;Try to find source further up stack e.g after signal.
-    (setq gdb-look-up-stack
-	  (if (gdb-get-buffer 'gdb-stack-buffer)
-	      'keep
-	    (progn
-	      (gdb-get-buffer-create 'gdb-stack-buffer)
-	      (gdb-invalidate-frames)
-	      'delete)))))
+	(setq gdb-look-up-stack
+	      (if (gdb-get-buffer 'gdb-stack-buffer)
+		  'keep
+		(progn
+		  (gdb-get-buffer-create 'gdb-stack-buffer)
+		  (gdb-invalidate-frames)
+		  'delete))))))
   (unless (member gdb-inferior-status '("exited" "signal"))
     (setq gdb-inferior-status "stopped")
-    (gdb-force-mode-line-update gdb-inferior-status))
+    (gdb-force-mode-line-update
+     (propertize gdb-inferior-status 'face font-lock-warning-face)))
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'inferior)
@@ -1747,6 +1772,7 @@ static char *magick[] = {
 	    (gdb-remove-breakpoint-icons (point-min) (point-max)))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (save-excursion
+	(let ((buffer-read-only nil))
 	(goto-char (point-min))
 	(while (< (point) (- (point-max) 1))
 	  (forward-line 1)
@@ -1755,14 +1781,19 @@ static char *magick[] = {
 		(looking-at "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)")
 		(setq bptno (match-string 1))
 		(setq flag (char-after (match-beginning 2)))
+		(add-text-properties
+		 (match-beginning 2) (match-end 2)
+		 (if (eq flag ?y)
+		     '(face font-lock-warning-face)
+		   '(face font-lock-type-face)))
 		(beginning-of-line)
 		(if (re-search-forward " in \\(.*\\) at\\s-+" nil t)
 		    (progn
-		      (let ((buffer-read-only nil))
-			(add-text-properties (match-beginning 1) (match-end 1)
-					     '(face font-lock-function-name-face)))
+		      (add-text-properties
+		       (match-beginning 1) (match-end 1)
+		       '(face font-lock-function-name-face))
 		      (looking-at "\\(\\S-+\\):\\([0-9]+\\)")
-		      (let ((line (match-string 2)) (buffer-read-only nil)
+		      (let ((line (match-string 2))
 			    (file (match-string 1)))
 			(add-text-properties (line-beginning-position)
 					     (line-end-position)
@@ -1792,7 +1823,7 @@ static char *magick[] = {
 			   (list (concat gdb-server-prefix "info source\n")
 				 `(lambda () (gdb-get-location
 					      ,bptno ,line ,flag))))))))))
-	  (end-of-line)))))
+	  (end-of-line))))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
 (defun gdb-mouse-set-clear-breakpoint (event)
@@ -2029,9 +2060,10 @@ static char *magick[] = {
   (setq gdb-look-up-stack nil))
 
 (defun gdb-set-hollow ()
-  (with-current-buffer (gud-find-file (car gud-last-last-frame))
-    (setq fringe-indicator-alist
-	  '((overlay-arrow . hollow-right-triangle)))))
+  (if gud-last-last-frame
+      (with-current-buffer (gud-find-file (car gud-last-last-frame))
+	(setq fringe-indicator-alist
+	      '((overlay-arrow . hollow-right-triangle))))))
 
 (defun gdb-stack-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -2764,8 +2796,13 @@ corresponding to the mode line clicked."
   (define-key gud-menu-map [ui]
     `(menu-item (if (eq gud-minor-mode 'gdba) "GDB-UI" "GDB-MI")
 		,menu :visible (memq gud-minor-mode '(gdbmi gdba))))
+  (define-key menu [gdb-find-source-frame]
+  '(menu-item "Look For Source Frame" gdb-find-source-frame
+	      :visible (eq gud-minor-mode 'gdba)
+	      :help "Toggle look for source frame."
+	      :button (:toggle . gdb-find-source-frame)))
   (define-key menu [gdb-use-separate-io]
-  '(menu-item "Separate inferior IO" gdb-use-separate-io-buffer
+  '(menu-item "Separate Inferior IO" gdb-use-separate-io-buffer
 	      :visible (eq gud-minor-mode 'gdba)
 	      :help "Toggle separate IO for inferior."
 	      :button (:toggle . gdb-use-separate-io-buffer)))
@@ -3268,7 +3305,8 @@ is set in them."
 	  (make-local-variable 'gdb-define-alist)
 	  (gdb-create-define-alist)
 	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))
-  (gdb-force-mode-line-update "ready"))
+  (gdb-force-mode-line-update
+   (propertize "ready" 'face font-lock-variable-name-face)))
 
 ; Uses "-var-list-children --all-values".  Needs GDB 6.1 onwards.
 (defun gdb-var-list-children-1 (varnum)

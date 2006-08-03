@@ -67,7 +67,7 @@
 
 ;;; Code:
 
-(defconst erc-version-string "Version 5.1.3"
+(defconst erc-version-string "Version 5.1.4"
   "ERC version.  This is used by function `erc-version'.")
 
 (eval-when-compile (require 'cl))
@@ -1243,7 +1243,11 @@ With arg, turn ERC %S mode on if and only if arg is positive.
 		(format "erc-%s-mode"
 			(downcase (symbol-name alias)))))
 	     (quote
-	      ,mode))))))
+	      ,mode)))
+       ;; For find-function and find-variable.
+       (put ',mode    'definition-name ',name)
+       (put ',enable  'definition-name ',name)
+       (put ',disable 'definition-name ',name))))
 
 (put 'define-erc-module 'doc-string-elt 3)
 
@@ -1388,8 +1392,8 @@ server buffer")
 Defaults to the server buffer."
   (with-current-buffer (erc-server-buffer)
     (if (buffer-live-p erc-active-buffer)
-	erc-active-buffer)
-    (setq erc-active-buffer (current-buffer))))
+	erc-active-buffer
+      (setq erc-active-buffer (current-buffer)))))
 
 (defun erc-set-active-buffer (buffer)
   "Set the value of `erc-active-buffer' to BUFFER."

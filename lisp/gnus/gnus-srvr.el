@@ -943,19 +943,23 @@ If NUMBER, fetch this number of articles."
 	  (progn
 	    ;; Make sure the group has been properly removed before we
 	    ;; subscribe to it.
-	    (gnus-kill-ephemeral-group group)
+ 	    (if (gnus-ephemeral-group-p group)
+		(gnus-kill-ephemeral-group group))
+	    ;; We need to discern between killed/zombie groups and
+	    ;; just unsubscribed ones.
 	    (gnus-group-change-level
-	     (list t group gnus-level-default-subscribed
-		   nil nil (if (gnus-server-equal
-				gnus-browse-current-method "native")
-			       nil
-			     (gnus-method-simplify
-			      gnus-browse-current-method)))
+	     (or (gnus-group-entry group)
+		 (list t group gnus-level-default-subscribed
+		       nil nil (if (gnus-server-equal
+				    gnus-browse-current-method "native")
+				   nil
+				 (gnus-method-simplify
+				  gnus-browse-current-method))))
 	     gnus-level-default-subscribed (gnus-group-level group)
 	     (and (car (nth 1 gnus-newsrc-alist))
 		  (gnus-gethash (car (nth 1 gnus-newsrc-alist))
 				gnus-newsrc-hashtb))
-	     t)
+	     (null (gnus-group-entry group)))
 	    (delete-char 1)
 	    (insert ? ))
 	(gnus-group-change-level

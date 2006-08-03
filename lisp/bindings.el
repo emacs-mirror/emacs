@@ -209,14 +209,6 @@ mnemonics of the following coding systems:
 
 (make-variable-buffer-local 'mode-line-mule-info)
 
-(defvar mode-line-buffer-identification (purecopy '("%12b")) "\
-Mode-line control for identifying the buffer being displayed.
-Its default value is (\"%12b\").
-Major modes that edit things other than ordinary files may change this
-\(e.g. Info, Dired,...)")
-
-(make-variable-buffer-local 'mode-line-buffer-identification)
-
 (defvar mode-line-frame-identification '("-%F  ")
   "Mode-line control to describe the current frame.")
 
@@ -299,7 +291,8 @@ Keymap to display on minor modes.")
      'mode-line-buffer-identification
      (propertize "   " 'help-echo help-echo)
      'mode-line-position
-     `(vc-mode ("" vc-mode ,(propertize "   " 'help-echo help-echo)))
+     '(vc-mode vc-mode)
+     (propertize "  " 'help-echo help-echo)
      'mode-line-modes
      `(which-func-mode ("" which-func-format ,dashes))
      `(global-mode-string (,dashes global-mode-string))
@@ -336,6 +329,40 @@ Keymap to display on minor modes.")
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
+
+;; Add menu of buffer operations to the buffer identification part
+;; of the mode line.or header line.
+;
+(let ((map (make-sparse-keymap)))
+  ;; Bind down- events so that the global keymap won't ``shine
+  ;; through''.
+  (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
+  (define-key map [header-line down-mouse-1] 'ignore)
+  (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
+  (define-key map [header-line down-mouse-3] 'ignore)
+  (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
+  (define-key map [header-line down-mouse-3] 'ignore)
+  (define-key map [header-line mouse-3] 'mode-line-next-buffer)
+  (setq mode-line-buffer-identification-keymap map))
+
+(defun propertized-buffer-identification (fmt)
+  "Return a list suitable for `mode-line-buffer-identification'.
+FMT is a format specifier such as \"%12b\".  This function adds
+text properties for face, help-echo, and local-map to it."
+  (list (propertize fmt
+		    'face 'mode-line-buffer-id
+		    'help-echo
+		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
+		    'mouse-face 'mode-line-highlight
+		    'local-map mode-line-buffer-identification-keymap)))
+
+(defvar mode-line-buffer-identification (propertized-buffer-identification "%12b") "\
+Mode-line control for identifying the buffer being displayed.
+Its default value is (\"%12b\") with some text properties added.
+Major modes that edit things other than ordinary files may change this
+\(e.g. Info, Dired,...)")
+
+(make-variable-buffer-local 'mode-line-buffer-identification)
 
 (defun unbury-buffer () "\
 Switch to the last buffer in the buffer list."
@@ -441,35 +468,6 @@ Menu of mode operations in the mode line.")
   (interactive "@e")
   (let ((indicator (car (nth 4 (car (cdr event))))))
     (describe-minor-mode-from-indicator indicator)))
-
-;; Add menu of buffer operations to the buffer identification part
-;; of the mode line.or header line.
-;
-(let ((map (make-sparse-keymap)))
-  ;; Bind down- events so that the global keymap won't ``shine
-  ;; through''.
-  (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
-  (define-key map [header-line down-mouse-1] 'ignore)
-  (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
-  (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
-  (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [header-line mouse-3] 'mode-line-next-buffer)
-  (setq mode-line-buffer-identification-keymap map))
-
-(defun propertized-buffer-identification (fmt)
-  "Return a list suitable for `mode-line-buffer-identification'.
-FMT is a format specifier such as \"%12b\".  This function adds
-text properties for face, help-echo, and local-map to it."
-  (list (propertize fmt
-		    'face 'mode-line-buffer-id
-		    'help-echo
-		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
-		    'mouse-face 'mode-line-highlight
-		    'local-map mode-line-buffer-identification-keymap)))
-
-(setq-default mode-line-buffer-identification
-	      (propertized-buffer-identification "%12b"))
 
 (defvar minor-mode-alist nil "\
 Alist saying how to show minor modes in the mode line.

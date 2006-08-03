@@ -1295,7 +1295,7 @@ check for an existing element, to avoid duplication.  For example:
 @end smallexample
 
 @noindent
-or like this, using @code{add-to-list} (@pxref{Setting Variables}):
+or like this, using @code{add-to-list} (@pxref{List Variables}):
 
 @smallexample
 @group
@@ -1354,9 +1354,8 @@ substituting your own definition of @code{self-insert-command} for the
 standard one.  The editor command loop handles this function specially.)
 
 The key sequences bound in a minor mode should consist of @kbd{C-c}
-followed by a punctuation character @emph{other than} @kbd{@{},
-@kbd{@}}, @kbd{<}, @kbd{>}, @kbd{:}, and @kbd{;}.  (Those few punctuation
-characters are reserved for major modes.)
+followed by one of @kbd{.,/?`'"[]\|~!#$%^&*()-_+=}.  (The other
+punctuation characters are reserved for major modes.)
 
 @node Defining Minor Modes
 @subsection Defining Minor Modes
@@ -3045,17 +3044,21 @@ closely related, and often getting one of them to work will appear to
 make the other also work.  However, for reliable results you must
 attend explicitly to both aspects.
 
-  There are two ways to ensure correct identification of multiline
+  There are three ways to ensure correct identification of multiline
 constructs:
 
 @itemize
 @item
-Place a @code{font-lock-multiline} or @code{jit-lock-defer-multiline}
+Place a @code{font-lock-multiline}
 property on the construct when it is added to the buffer.
 @item
 Use @code{font-lock-fontify-region-function} hook to extend the scan
 so that the scanned text never starts or ends in the middle of a
 multiline construct.
+@item
+Add a function to @code{font-lock-extend-region-functions} that does
+the \emph{identification} and extends the scan so that the scanned
+text never starts or ends in the middle of a multiline construct.
 @end itemize
 
   There are three ways to do rehighlighting of multiline constructs:
@@ -3077,7 +3080,6 @@ this can be an attractive solution.
 Place a @code{jit-lock-defer-multiline} property on the construct.
 This works only if @code{jit-lock-contextually} is used, but it can
 handle the case where highlighting depends on subsequent lines.
-@item
 @end itemize
 
 @menu
@@ -3146,7 +3148,7 @@ earlier line.
   You can enlarge (or even reduce) the region to fontify by setting
 one the following variables:
 
-@defvar font-lock-extend-region-function
+@defvar font-lock-extend-after-change-region-function
 This buffer-local variable is either @code{nil} or a function for
 Font-Lock to call to determine the region to scan and fontify.
 

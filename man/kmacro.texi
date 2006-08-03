@@ -173,7 +173,7 @@ beginning of the line and then executing the macro.
 @node Keyboard Macro Ring
 @section The Keyboard Macro Ring
 
-  All defined keyboard macros are recorded in the ``keyboard macro ring'',
+  All defined keyboard macros are recorded in the ``keyboard macro ring,''
 a list of sequences of keys.  There is only one keyboard macro ring,
 shared by all buffers.
 

@@ -14112,8 +14112,8 @@ if required."
 (defun vhdl-speedbar-display-directory (directory depth &optional rescan)
   "Display directory and hierarchy information in speedbar."
   (setq vhdl-speedbar-show-projects nil)
-  (setq speedbar-ignored-path-regexp
-	(speedbar-extension-list-to-regex speedbar-ignored-path-expressions))
+  (setq speedbar-ignored-directory-regexp
+	(speedbar-extension-list-to-regex speedbar-ignored-directory-expressions))
   (setq directory (abbreviate-file-name (file-name-as-directory directory)))
   (setq speedbar-last-selected-file nil)
   (speedbar-with-writable
@@ -14133,7 +14133,7 @@ if required."
 (defun vhdl-speedbar-display-projects (project depth &optional rescan)
   "Display projects and hierarchy information in speedbar."
   (setq vhdl-speedbar-show-projects t)
-  (setq speedbar-ignored-path-regexp ".")
+  (setq speedbar-ignored-directory-regexp ".")
   (setq speedbar-last-selected-file nil)
   (setq vhdl-speedbar-last-selected-project nil)
   (speedbar-with-writable

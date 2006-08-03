@@ -165,22 +165,19 @@ If FILE is already visited, use its buffer and don't kill it.
 Returns the top node with all its children.
 If PARSE-DTD is non-nil, the DTD is parsed rather than skipped.
 If PARSE-NS is non-nil, then QNAMES are expanded."
-  (let ((keep))
-    (if (get-file-buffer file)
-	(progn
-	  (set-buffer (get-file-buffer file))
-	  (setq keep (point)))
-      (let (auto-mode-alist)		; no need for xml-mode
-	(find-file file)))
-
-    (let ((xml (xml-parse-region (point-min)
-				 (point-max)
-				 (current-buffer)
-				 parse-dtd parse-ns)))
-      (if keep
-	  (goto-char keep)
-	(kill-buffer (current-buffer)))
-      xml)))
+  (if (get-file-buffer file)
+      (with-current-buffer (get-file-buffer file)
+	(save-excursion
+	  (xml-parse-region (point-min)
+			    (point-max)
+			    (current-buffer)
+			    parse-dtd parse-ns)))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (xml-parse-region (point-min)
+			(point-max)
+			(current-buffer)
+			parse-dtd parse-ns))))
 
 
 (defvar xml-name-re)

@@ -736,7 +736,7 @@ can separate the argument from the digit to insert with another
 @kbd{C-u}; for example, @kbd{C-u 6 4 C-u 1} does insert 64 copies of
 the character @samp{1}.
 
-  We use the term ``prefix argument'' as well as ``numeric argument'',
+  We use the term ``prefix argument'' as well as ``numeric argument,''
 to emphasize that you type these argument before the command, and to
 distinguish them from minibuffer arguments that come after the
 command.

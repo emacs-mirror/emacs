@@ -78,6 +78,10 @@ extern POINTER_TYPE *sbrk ();
 #define O_WRONLY 1
 #endif
 
+#ifdef WINDOWSNT
+#include <fcntl.h>
+#endif
+
 #ifdef DOUG_LEA_MALLOC
 
 #include <malloc.h>
@@ -289,9 +293,17 @@ static size_t pure_bytes_used_before_overflow;
       && ((PNTR_COMPARISON_TYPE) (P)				\
 	  >= (PNTR_COMPARISON_TYPE) purebeg))
 
-/* Index in pure at which next pure object will be allocated.. */
+/* Total number of bytes allocated in pure storage. */
 
 EMACS_INT pure_bytes_used;
+
+/* Index in pure at which next pure Lisp object will be allocated.. */
+
+static EMACS_INT pure_bytes_used_lisp;
+
+/* Number of bytes allocated for non-Lisp objects in pure storage.  */
+
+static EMACS_INT pure_bytes_used_non_lisp;
 
 /* If nonzero, this is a warning delivered by malloc and not yet
    displayed.  */
@@ -4555,6 +4567,28 @@ mark_stack ()
 #endif /* GC_MARK_STACK != 0 */
 
 
+/* Determine whether it is safe to access memory at address P.  */
+int
+valid_pointer_p (p)
+     void *p;
+{
+  int fd;
+
+  /* Obviously, we cannot just access it (we would SEGV trying), so we
+     trick the o/s to tell us whether p is a valid pointer.
+     Unfortunately, we cannot use NULL_DEVICE here, as emacs_write may
+     not validate p in that case.  */
+
+  if ((fd = emacs_open ("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
+    {
+      int valid = (emacs_write (fd, (char *)p, 16) == 16);
+      emacs_close (fd);
+      unlink ("__Valid__Lisp__Object__");
+      return valid;
+    }
+
+    return -1;
+}
 
 /* Return 1 if OBJ is a valid lisp object.
    Return 0 if OBJ is NOT a valid lisp object.
@@ -4567,9 +4601,7 @@ valid_lisp_object_p (obj)
      Lisp_Object obj;
 {
   void *p;
-#if !GC_MARK_STACK
-  int fd;
-#else
+#if GC_MARK_STACK
   struct mem_node *m;
 #endif
 
@@ -4581,26 +4613,22 @@ valid_lisp_object_p (obj)
     return 1;
 
 #if !GC_MARK_STACK
-  /* We need to determine whether it is safe to access memory at
-     address P.  Obviously, we cannot just access it (we would SEGV
-     trying), so we trick the o/s to tell us whether p is a valid
-     pointer.  Unfortunately, we cannot use NULL_DEVICE here, as
-     emacs_write may not validate p in that case.  */
-  if ((fd = emacs_open ("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
-    {
-      int valid = (emacs_write (fd, (char *)p, 16) == 16);
-      emacs_close (fd);
-      unlink ("__Valid__Lisp__Object__");
-      return valid;
-    }
-
-    return -1;
+  return valid_pointer_p (p);
 #else
 
   m = mem_find (p);
 
   if (m == MEM_NIL)
-    return 0;
+    {
+      int valid = valid_pointer_p (p);
+      if (valid <= 0)
+	return valid;
+
+      if (SUBRP (obj))
+	return 1;
+
+      return 0;
+    }
 
   switch (m->type)
     {
@@ -4649,10 +4677,7 @@ valid_lisp_object_p (obj)
 
 /* Allocate room for SIZE bytes from pure Lisp storage and return a
    pointer to it.  TYPE is the Lisp type for which the memory is
-   allocated.  TYPE < 0 means it's not used for a Lisp object.
-
-   If store_pure_type_info is set and TYPE is >= 0, the type of
-   the allocated object is recorded in pure_types.  */
+   allocated.  TYPE < 0 means it's not used for a Lisp object.  */
 
 static POINTER_TYPE *
 pure_alloc (size, type)
@@ -4677,8 +4702,21 @@ pure_alloc (size, type)
 #endif
 
  again:
-  result = ALIGN (purebeg + pure_bytes_used, alignment);
-  pure_bytes_used = ((char *)result - (char *)purebeg) + size;
+  if (type >= 0)
+    {
+      /* Allocate space for a Lisp object from the beginning of the free
+	 space with taking account of alignment.  */
+      result = ALIGN (purebeg + pure_bytes_used_lisp, alignment);
+      pure_bytes_used_lisp = ((char *)result - (char *)purebeg) + size;
+    }
+  else
+    {
+      /* Allocate space for a non-Lisp object from the end of the free
+	 space.  */
+      pure_bytes_used_non_lisp += size;
+      result = purebeg + pure_size - pure_bytes_used_non_lisp;
+    }
+  pure_bytes_used = pure_bytes_used_lisp + pure_bytes_used_non_lisp;
 
   if (pure_bytes_used <= pure_size)
     return result;
@@ -4690,6 +4728,7 @@ pure_alloc (size, type)
   pure_size = 10000;
   pure_bytes_used_before_overflow += pure_bytes_used - size;
   pure_bytes_used = 0;
+  pure_bytes_used_lisp = pure_bytes_used_non_lisp = 0;
   goto again;
 }
 
@@ -4702,6 +4741,73 @@ check_pure_size ()
   if (pure_bytes_used_before_overflow)
     message ("emacs:0:Pure Lisp storage overflow (approx. %d bytes needed)",
 	     (int) (pure_bytes_used + pure_bytes_used_before_overflow));
+}
+
+
+/* Find the byte sequence {DATA[0], ..., DATA[NBYTES-1], '\0'} from
+   the non-Lisp data pool of the pure storage, and return its start
+   address.  Return NULL if not found.  */
+
+static char *
+find_string_data_in_pure (data, nbytes)
+     char *data;
+     int nbytes;
+{
+  int i, skip, bm_skip[256], last_char_skip, infinity, start, start_max;
+  unsigned char *p;
+  char *non_lisp_beg;
+
+  if (pure_bytes_used_non_lisp < nbytes + 1)
+    return NULL;
+
+  /* Set up the Boyer-Moore table.  */
+  skip = nbytes + 1;
+  for (i = 0; i < 256; i++)
+    bm_skip[i] = skip;
+
+  p = (unsigned char *) data;
+  while (--skip > 0)
+    bm_skip[*p++] = skip;
+
+  last_char_skip = bm_skip['\0'];
+
+  non_lisp_beg = purebeg + pure_size - pure_bytes_used_non_lisp;
+  start_max = pure_bytes_used_non_lisp - (nbytes + 1);
+
+  /* See the comments in the function `boyer_moore' (search.c) for the
+     use of `infinity'.  */
+  infinity = pure_bytes_used_non_lisp + 1;
+  bm_skip['\0'] = infinity;
+
+  p = (unsigned char *) non_lisp_beg + nbytes;
+  start = 0;
+  do
+    {
+      /* Check the last character (== '\0').  */
+      do
+	{
+	  start += bm_skip[*(p + start)];
+	}
+      while (start <= start_max);
+
+      if (start < infinity)
+	/* Couldn't find the last character.  */
+	return NULL;
+
+      /* No less than `infinity' means we could find the last
+	 character at `p[start - infinity]'.  */
+      start -= infinity;
+
+      /* Check the remaining characters.  */
+      if (memcmp (data, non_lisp_beg + start, nbytes) == 0)
+	/* Found.  */
+	return non_lisp_beg + start;
+
+      start += last_char_skip;
+    }
+  while (start <= start_max);
+
+  return NULL;
 }
 
 
@@ -4723,11 +4829,15 @@ make_pure_string (data, nchars, nbytes, multibyte)
   struct Lisp_String *s;
 
   s = (struct Lisp_String *) pure_alloc (sizeof *s, Lisp_String);
-  s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
+  s->data = find_string_data_in_pure (data, nbytes);
+  if (s->data == NULL)
+    {
+      s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
+      bcopy (data, s->data, nbytes);
+      s->data[nbytes] = '\0';
+    }
   s->size = nchars;
   s->size_byte = multibyte ? nbytes : -1;
-  bcopy (data, s->data, nbytes);
-  s->data[nbytes] = '\0';
   s->intervals = NULL_INTERVAL;
   XSETSTRING (string, s);
   return string;
@@ -6182,6 +6292,7 @@ init_alloc_once ()
   purebeg = PUREBEG;
   pure_size = PURESIZE;
   pure_bytes_used = 0;
+  pure_bytes_used_lisp = pure_bytes_used_non_lisp = 0;
   pure_bytes_used_before_overflow = 0;
 
   /* Initialize the list of free aligned blocks.  */

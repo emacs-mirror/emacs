@@ -685,7 +685,9 @@ the user during startup."
   "*Non-nil if window system changes focus when you move the mouse.
 You should set this variable to tell Emacs how your window manager
 handles focus, since there is no way in general for Emacs to find out
-automatically."
+automatically.
+
+This variable does not have any effect on MS-Windows."
   :type 'boolean
   :group 'frames
   :version "20.3")

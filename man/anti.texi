@@ -232,7 +232,7 @@ handle.
 
 @item
 The input methods for Emacs are included in a separate distribution
-called ``Leim''.  To use this, you must extract the Leim tar file on
+called ``Leim.''  To use this, you must extract the Leim tar file on
 top of the Emacs distribution, into the same directory, before you
 build Emacs.
 

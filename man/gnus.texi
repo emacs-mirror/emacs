@@ -9372,11 +9372,15 @@ default is @code{nil}.
 
 @item gnus-article-emulate-mime
 @vindex gnus-article-emulate-mime
+@cindex uuencode
+@cindex yEnc
 There are other, non-@acronym{MIME} encoding methods used.  The most common
 is @samp{uuencode}, but yEncode is also getting to be popular.  If
 this variable is non-@code{nil}, Gnus will look in message bodies to
 see if it finds these encodings, and if so, it'll run them through the
-Gnus @acronym{MIME} machinery.  The default is @code{t}.
+Gnus @acronym{MIME} machinery.  The default is @code{t}.  Only
+single-part yEnc encoded attachments can be decoded.  There's no support
+for encoding in Gnus.
 
 @item gnus-unbuttonized-mime-types
 @vindex gnus-unbuttonized-mime-types
@@ -26073,6 +26077,14 @@ read from your @file{.newsrc.eld} instead of from the
 @file{.marks}/@file{.mrk} file where this release store flags.  See a
 later entry for more information about marks.  Note that downgrading
 isn't save in general.
+
+@item
+Lisp files are now installed in @file{.../site-lisp/gnus/} by default.
+It defaulted to @file{.../site-lisp/} formerly.  In addition to this,
+the new installer issues a warning if other Gnus installations which
+will shadow the latest one are detected.  You can then remove those
+shadows manually or remove them using @code{make
+remove-installed-shadows}.
 
 @item
 New @file{make.bat} for compiling and installing Gnus under MS Windows

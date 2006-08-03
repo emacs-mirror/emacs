@@ -218,7 +218,10 @@ also be a predicate function. To only log when you are not set away, use:
    (add-hook 'erc-quit-hook 'erc-conditional-save-queries)
    (add-hook 'erc-part-hook 'erc-conditional-save-buffer)
    ;; append, so that 'erc-initialize-log-marker runs first
-   (add-hook 'erc-connect-pre-hook 'erc-log-setup-logging 'append))
+   (add-hook 'erc-connect-pre-hook 'erc-log-setup-logging 'append)
+   (dolist (buffer (erc-buffer-list))
+     (when (buffer-live-p buffer)
+       (with-current-buffer buffer (erc-log-setup-logging)))))
   ;; disable
   ((remove-hook 'erc-insert-post-hook 'erc-save-buffer-in-logs)
    (remove-hook 'erc-send-post-hook 'erc-save-buffer-in-logs)
@@ -226,7 +229,10 @@ also be a predicate function. To only log when you are not set away, use:
    (remove-hook 'erc-kill-channel-hook 'erc-save-buffer-in-logs)
    (remove-hook 'erc-quit-hook 'erc-conditional-save-queries)
    (remove-hook 'erc-part-hook 'erc-conditional-save-buffer)
-   (remove-hook 'erc-connect-pre-hook 'erc-log-setup-logging)))
+   (remove-hook 'erc-connect-pre-hook 'erc-log-setup-logging)
+   (dolist (buffer (erc-buffer-list))
+     (when (buffer-live-p buffer)
+       (with-current-buffer buffer (erc-log-disable-logging))))))
 
 (define-key erc-mode-map "\C-c\C-l" 'erc-save-buffer-in-logs)
 
@@ -236,14 +242,19 @@ also be a predicate function. To only log when you are not set away, use:
 This function is destined to be run from `erc-connect-pre-hook'."
   (when (erc-logging-enabled)
     (auto-save-mode -1)
-    (setq buffer-offer-save t
-	  buffer-file-name "")
+    (setq buffer-file-name nil)
     (set (make-local-variable 'write-file-functions)
 	 '(erc-save-buffer-in-logs))
     (when erc-log-insert-log-on-open
       (ignore-errors (insert-file-contents (erc-current-logfile))
 		     (move-marker erc-last-saved-position
 				  (1- (point-max)))))))
+
+(defun erc-log-disable-logging ()
+  "Disable logging in the current buffer."
+  (when (erc-logging-enabled)
+    (setq buffer-offer-save nil
+	  erc-enable-logging nil)))
 
 (defun erc-log-all-but-server-buffers (buffer)
   "Returns t if logging should be enabled in BUFFER.

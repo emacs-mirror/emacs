@@ -470,6 +470,11 @@ to search for Emacs Lisp files---used to initialize @code{load-path}.
 @item EMACSPATH
 A colon-separated list of directories to search for executable
 files---used to initialize @code{exec-path}.
+@item EMAIL
+@vindex user-mail-address@r{, initialization}
+Your email address; used to initialize the Lisp variable
+@code{user-mail-address}, which the Emacs mail interface puts into
+the @samp{From} header of outgoing messages (@pxref{Mail Headers}).
 @item ESHELL
 Used for shell-mode to override the @env{SHELL} environment variable.
 @item HISTFILE
