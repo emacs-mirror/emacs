@@ -1,3 +1,8 @@
+2006-08-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-to-column): Constrain move-to-column to
+	current field.
+
 2006-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-beg, font-lock-end)
