@@ -28745,12 +28745,6 @@ The buffer in question is current when this function is called.
 
 ;;;***
 
-;;;### (autoloads nil "utf-7" "international/utf-7.el" (17246 18006))
-;;; Generated autoloads from international/utf-7.el
-(autoload-coding-system 'utf-7 '(require 'utf-7))
-
-;;;***
-
 ;;;### (autoloads (uudecode-decode-region uudecode-decode-region-internal
 ;;;;;;  uudecode-decode-region-external) "uudecode" "gnus/uudecode.el"
 ;;;;;;  (17578 34777))
