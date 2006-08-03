@@ -1,3 +1,7 @@
+2006-08-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* ldefs-boot.el: Delete the section for utf-7.
+
 2006-07-24  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (auto-compose-current-font): New variable.
