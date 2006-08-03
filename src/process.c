@@ -4158,14 +4158,6 @@ server_accept_connection (server, channel)
    when not inside wait_reading_process_output.  */
 static int waiting_for_user_input_p;
 
-static Lisp_Object
-wait_reading_process_output_unwind (data)
-     Lisp_Object data;
-{
-  waiting_for_user_input_p = XINT (data);
-  return Qnil;
-}
-
 /* This is here so breakpoints can be put on it.  */
 static void
 wait_reading_process_output_1 ()
@@ -4248,7 +4240,11 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
   EMACS_TIME timeout, end_time;
   int wait_channel = -1;
   int got_some_input = 0;
-  int count = SPECPDL_INDEX ();
+  /* We can't record_unwind_protect here because after the
+     set_waiting_for_input call, C-g (interrupt_signal) would run
+     throw_to_read_char instead of Fsignal, which means unbind_to
+     doesn't get called.  */
+  int saved_waiting_for_user_input_p = waiting_for_user_input_p;
 
   FD_ZERO (&Available);
 #ifdef NON_BLOCKING_CONNECT
@@ -4259,8 +4255,6 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
   if (wait_proc != NULL)
     wait_channel = XINT (wait_proc->infd);
 
-  record_unwind_protect (wait_reading_process_output_unwind,
-			 make_number (waiting_for_user_input_p));
   waiting_for_user_input_p = read_kbd;
 
   /* Since we may need to wait several times,
@@ -4887,7 +4881,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	}			/* end for each file descriptor */
     }				/* end while exit conditions not met */
 
-  unbind_to (count, Qnil);
+  waiting_for_user_input_p = saved_waiting_for_user_input_p;
 
   /* If calling from keyboard input, do not quit
      since we want to return C-g as an input character.
