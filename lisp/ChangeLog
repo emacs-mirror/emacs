@@ -1,3 +1,8 @@
+2006-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el (jit-lock-fontify-now): Preserve the buffer's
+	modification status when forcing the second redisplay.
+
 2006-08-03  Kim F. Storm  <storm@cua.dk>
 
 	* edmacro.el (edmacro-fix-menu-commands): Ignore switch-frame.

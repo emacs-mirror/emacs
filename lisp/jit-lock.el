@@ -31,6 +31,8 @@
 
 
 (eval-when-compile
+  (require 'cl)
+
   (defmacro with-buffer-unmodified (&rest body)
     "Eval BODY, preserving the current buffer's modified state."
     (declare (debug t))
@@ -384,10 +386,14 @@ Defaults to the whole buffer.  END can be out of bounds."
            ;; eagerly extend the refontified region with
            ;; jit-lock-after-change-extend-region-functions.
            (when (< start orig-start)
-             (run-with-timer
-              0 nil `(lambda ()
-                       (put-text-property ',start ',orig-start
-                                          'fontified t ',(current-buffer)))))
+             (lexical-let ((start start)
+                           (orig-start orig-start)
+                           (buf (current-buffer)))
+               (run-with-timer
+                0 nil (lambda ()
+                        (with-buffer-prepared-for-jit-lock
+                            (put-text-property start orig-start
+                                               'fontified t buf))))))
 
 	   ;; Find the start of the next chunk, if any.
 	   (setq start (text-property-any next end 'fontified nil))))))))
