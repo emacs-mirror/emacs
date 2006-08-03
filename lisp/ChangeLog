@@ -185,13 +185,8 @@
 
 	* tumme.el (tumme-backward-image): Add prefix argument.  Add error
 	when at first image.
-<<<<<<< ChangeLog
-	(tumme-forward-image): Add prefix argument.
-	Add error when at last image.
-=======
 	(tumme-forward-image): Add prefix argument.  Add error when at last
 	image.
->>>>>>> 1.9899
 
 2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
