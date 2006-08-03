@@ -1,5 +1,13 @@
 2006-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font-lock.el (font-lock-beg, font-lock-end)
+	(font-lock-extend-region-functions): New vars.
+	(font-lock-extend-region-multiline)
+	(font-lock-extend-region-wholelines): New functions.
+	(font-lock-default-fontify-region): Use them.
+	(font-lock-extend-jit-lock-region-after-change): Only round up
+	if font-lock-default-fontify-region will do it as well.
+
 	* font-lock.el (font-lock-extend-after-change-region-function):
 	Rename from font-lock-extend-region-function.
 	(font-lock-extend-region): Remove by inlining at call sites.

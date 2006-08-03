@@ -3044,7 +3044,7 @@ closely related, and often getting one of them to work will appear to
 make the other also work.  However, for reliable results you must
 attend explicitly to both aspects.
 
-  There are two ways to ensure correct identification of multiline
+  There are three ways to ensure correct identification of multiline
 constructs:
 
 @itemize
@@ -3055,6 +3055,10 @@ property on the construct when it is added to the buffer.
 Use @code{font-lock-fontify-region-function} hook to extend the scan
 so that the scanned text never starts or ends in the middle of a
 multiline construct.
+@item
+Add a function to @code{font-lock-extend-region-functions} that does
+the \emph{identification} and extends the scan so that the scanned
+text never starts or ends in the middle of a multiline construct.
 @end itemize
 
   There are three ways to do rehighlighting of multiline constructs:

@@ -1040,6 +1040,53 @@ The region it returns may start or end in the middle of a line.")
 Useful for things like RMAIL and Info where the whole buffer is not
 a very meaningful entity to highlight.")
 
+
+(defvar font-lock-beg) (defvar font-lock-end)
+(defvar font-lock-extend-region-functions
+  '(font-lock-extend-region-wholelines
+    font-lock-extend-region-multiline)
+  "Special hook run just before proceeding to fontify a region.
+This is used to allow major modes to help font-lock find safe buffer positions
+as beginning and end of the fontified region.  Its most common use is to solve
+the problem of /identification/ of multiline elements by providing a function
+that tries to find such elements and move the boundaries such that they do
+not fall in the middle of one.
+Each function is called with no argument; it is expected to adjust the
+dynamically bound variables `font-lock-beg' and `font-lock-end'; and return
+non-nil iff it did make such an adjustment.
+These functions are run in turn repeatedly until they all return nil.
+Put first the functions more likely to cause a change and cheaper to compute.")
+;; Mark it as a special hook which doesn't use any global setting
+;; (i.e. doesn't obey the element t in the buffer-local value).
+(make-variable-buffer-local 'font-lock-extend-region-functions)
+
+(defun font-lock-extend-region-multiline ()
+  "Move fontification boundaries away from any `font-lock-multiline' property."
+  (let ((changed nil))
+    (when (and (> font-lock-beg (point-min))
+               (get-text-property (1- font-lock-beg) 'font-lock-multiline))
+      (setq changed t)
+      (setq font-lock-beg (or (previous-single-property-change
+                               font-lock-beg 'font-lock-multiline)
+                              (point-min))))
+    ;; 
+    (when (get-text-property font-lock-end 'font-lock-multiline)
+      (setq changed t)
+      (setq font-lock-end (or (text-property-any font-lock-end (point-max)
+                                                 'font-lock-multiline nil)
+                              (point-max))))
+    changed))
+  
+  
+(defun font-lock-extend-region-wholelines ()
+  "Move fontification boundaries to beginning of lines."
+  (let ((changed nil))
+    (goto-char font-lock-beg)
+    (unless (bobp) (setq changed t font-lock-beg (line-beginning-position)))
+    (goto-char font-lock-end)
+    (unless (bobp) (setq changed t font-lock-end (line-beginning-position 2)))
+    changed))
+
 (defun font-lock-default-fontify-region (beg end loudly)
   (save-buffer-state
       ((parse-sexp-lookup-properties
@@ -1051,24 +1098,21 @@ a very meaningful entity to highlight.")
 	  ;; Use the fontification syntax table, if any.
 	  (when font-lock-syntax-table
 	    (set-syntax-table font-lock-syntax-table))
-          (goto-char beg)
-	  (setq beg (line-beginning-position))
-	  ;; check to see if we should expand the beg/end area for
-	  ;; proper multiline matches
-	  (when (and (> beg (point-min))
-		     (get-text-property (1- beg) 'font-lock-multiline))
-	    ;; We are just after or in a multiline match.
-	    (setq beg (or (previous-single-property-change
-			   beg 'font-lock-multiline)
-			  (point-min)))
-	    (goto-char beg)
-	    (setq beg (line-beginning-position)))
-          (setq end (or (text-property-any end (point-max)
-                                           'font-lock-multiline nil)
-                        (point-max)))
-	  (goto-char end)
-	  ;; Round up to a whole line.
-          (unless (bolp) (setq end (line-beginning-position 2)))
+          ;; Extend the region to fontify so that it starts and ends at
+          ;; safe places.
+          (let ((funs font-lock-extend-region-functions)
+                (font-lock-beg beg)
+                (font-lock-end end))
+            (while funs
+              (setq funs (if (or (not (funcall (car funs)))
+                                 (eq funs font-lock-extend-region-functions))
+                             (cdr funs)
+                           ;; If there's been a change, we should go through
+                           ;; the list again since this new position may
+                           ;; warrant a different answer from one of the fun
+                           ;; we've already seen.
+                           font-lock-extend-region-functions)))
+            (setq beg font-lock-beg end font-lock-end))
 	  ;; Now do the fontification.
 	  (font-lock-unfontify-region beg end)
 	  (when font-lock-syntactic-keywords
@@ -1144,12 +1188,14 @@ what properties to clear before refontifying a region.")
       ;; Finally, pre-enlarge the region to a whole number of lines, to try
       ;; and predict what font-lock-default-fontify-region will do, so as to
       ;; avoid double-redisplay.
-      (goto-char beg)
-      (forward-line 0)
-      (setq jit-lock-start (min jit-lock-start (point)))
-      (goto-char end)
-      (forward-line 1)
-      (setq jit-lock-end (max jit-lock-end (point))))))
+      (when (memq 'font-lock-extend-region-wholelines
+                  font-lock-extend-region-functions)
+        (goto-char beg)
+        (forward-line 0)
+        (setq jit-lock-start (min jit-lock-start (point)))
+        (goto-char end)
+        (forward-line 1)
+        (setq jit-lock-end (max jit-lock-end (point)))))))
 
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.

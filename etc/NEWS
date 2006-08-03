@@ -5363,6 +5363,11 @@ text to being a piece of code, so you'd put a `jit-lock-defer-multiline'
 property over the second half of the command to force (deferred)
 refontification of `bar' whenever the `e' is added/removed.
 
+*** `font-lock-extend-region-functions' makes it possible to alter the way
+the fontification region is chosen.  This can be used to prevent rounding
+up to whole lines, or to extend the region to include all related lines
+of multiline constructs so that such constructs get properly recognized.
+
 ** Major mode mechanism changes:
 
 +++
