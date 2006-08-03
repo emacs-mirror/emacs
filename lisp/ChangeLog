@@ -1,3 +1,8 @@
+2006-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gud.el (gdb-script-font-lock-syntactic-keywords):
+	Correctly mark the end-of-docstring char.
+
 2006-08-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-to-column): Constrain move-to-column to
@@ -180,8 +185,13 @@
 
 	* tumme.el (tumme-backward-image): Add prefix argument.  Add error
 	when at first image.
+<<<<<<< ChangeLog
+	(tumme-forward-image): Add prefix argument.
+	Add error when at last image.
+=======
 	(tumme-forward-image): Add prefix argument.  Add error when at last
 	image.
+>>>>>>> 1.9899
 
 2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
