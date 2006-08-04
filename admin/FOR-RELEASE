@@ -41,11 +41,6 @@ and then click the button "Erase Customization". This will set
 mode-line-format to "%-" which does not seem to be useful.
 
 
-** bojohan's and johnsu01@wjsullivan.net's 18 July bug reports that
-  "C-n doesn't work in Customize Option buffer in -nw with long value
-  displayed".  Yidong proposed a fix, but needs a field expert to check
-  it.
-
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
 	(setq-default truncate-lines t)
