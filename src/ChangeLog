@@ -1,3 +1,7 @@
+2006-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_query_font): Compare names by ignoring case.
+
 2006-08-03  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (w32_menu_show, w32_dialog_show): Call Fsignal to quit

@@ -1,3 +1,8 @@
+2006-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (describe-font): Improve docstring
+	and error message.  Use frame-parameter (not frame-parameters).
+
 2006-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/gud.el (gdb-script-font-lock-syntactic-keywords):
