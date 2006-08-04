@@ -1039,18 +1039,28 @@ but still contains full information about each coding system."
 
 ;;;###autoload
 (defun describe-font (fontname)
-  "Display information about fonts which partially match FONTNAME."
-  (interactive "sFontname (default current choice for ASCII chars): ")
+  "Display information about a font whose name is FONTNAME.
+The font must be already used by Emacs."
+  (interactive "sFont name (default current choice for ASCII chars): ")
   (or (and window-system (fboundp 'fontset-list))
-      (error "No fontsets being used"))
-  (when (or (not fontname) (= (length fontname) 0))
-    (setq fontname (cdr (assq 'font (frame-parameters))))
-    (if (query-fontset fontname)
-	(setq fontname
-	      (nth 1 (assq 'ascii (aref (fontset-info fontname) 2))))))
-  (let ((font-info (font-info fontname)))
+      (error "No fonts being used"))
+  (let (fontset font-info)
+    (when (or (not fontname) (= (length fontname) 0))
+      (setq fontname (frame-parameter nil 'font))
+      ;; Check if FONTNAME is a fontset.
+      (if (query-fontset fontname)
+	  (setq fontset fontname
+		fontname (nth 1 (assq 'ascii
+				      (aref (fontset-info fontname) 2))))))
+    (setq font-info (font-info fontname))
     (if (null font-info)
-	(message "No matching font")
+	(if fontset
+	    ;; The font should be surely used.  So, there's some
+	    ;; problem about getting information about it.  It is
+	    ;; better to print the fontname to show which font has
+	    ;; this problem.
+	    (message "No information about \"%s\"" fontname)
+	  (message "No matching font being used"))
       (with-output-to-temp-buffer "*Help*"
 	(describe-font-internal font-info 'verbose)))))
 
