@@ -6236,7 +6236,7 @@ w32_query_font (struct frame *f, char *fontname)
 
   for (i = 0; i < one_w32_display_info.n_fonts ;i++, pfi++)
     {
-      if (strcasecmp(pfi->name, fontname) == 0) return pfi;
+      if (stricmp(pfi->name, fontname) == 0) return pfi;
     }
 
   return NULL;
