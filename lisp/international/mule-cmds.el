@@ -915,31 +915,49 @@ It is highly recommended to fix it before writing to a file."
     (if select-safe-coding-system-accept-default-p
 	(setq accept-default-p select-safe-coding-system-accept-default-p))
 
+    ;; Decide the eol-type from the top of the default codings,
+    ;; buffer-file-coding-system, or
+    ;; default-buffer-file-coding-system.
+    (if default-coding-system
+	(let ((default-eol-type (coding-system-eol-type
+				 (caar default-coding-system))))
+	  (if (and (vectorp default-eol-type) buffer-file-coding-system)
+	      (setq default-eol-type (coding-system-eol-type 
+				      buffer-file-coding-system)))
+	  (if (and (vectorp default-eol-type) default-buffer-file-coding-system)
+	      (setq default-eol-type (coding-system-eol-type 
+				      default-buffer-file-coding-system)))
+	  (if (and default-eol-type (not (vectorp default-eol-type)))
+	      (dolist (elt default-coding-system)
+		(setcar elt (coding-system-change-eol-conversion
+			     (car elt) default-eol-type))))))
+
     (let ((codings (find-coding-systems-region from to))
 	  (coding-system nil)
 	  safe rejected unsafe)
-      ;; Classify the defaults into safe, rejected, and unsafe.
-      (dolist (elt default-coding-system)
-	(if (or (eq (car codings) 'undecided)
-		(memq (cdr elt) codings))
-	    (if (and (functionp accept-default-p)
-		     (not (funcall accept-default-p (cdr elt))))
-		(push (car elt) rejected)
-	      (push (car elt) safe))
-	  (push (car elt) unsafe)))
-      (if safe
-	  (setq coding-system (car safe)))
+      (if (eq (car codings) 'undecided)
+	  ;; Any coding system is ok.
+	  (setq coding-system (caar default-coding-system))
+	;; Reverse the list so that elements are accumulated in safe,
+	;; rejected, and unsafe in the correct order.
+	(setq default-coding-system (nreverse default-coding-system))
+
+	;; Classify the defaults into safe, rejected, and unsafe.
+	(dolist (elt default-coding-system)
+	  (if (or (eq (car codings) 'undecided)
+		  (memq (cdr elt) codings))
+	      (if (and (functionp accept-default-p)
+		       (not (funcall accept-default-p (cdr elt))))
+		  (push (car elt) rejected)
+		(push (car elt) safe))
+	    (push (car elt) unsafe)))
+	(if safe
+	    (setq coding-system (car safe))))
 
       ;; If all the defaults failed, ask a user.
-      (unless coding-system
+      (when (not coding-system)
 	(setq coding-system (select-safe-coding-system-interactively
 			     from to codings unsafe rejected (car codings))))
-
-      (if (and coding-system (vectorp (coding-system-eol-type coding-system)))
-	  (let ((eol (coding-system-eol-type buffer-file-coding-system)))
-	    (if (numberp eol)
-		(setq coding-system
-		      (coding-system-change-eol-conversion coding-system eol)))))
 
       ;; Check we're not inconsistent with what `coding:' spec &c would
       ;; give when file is re-read.
