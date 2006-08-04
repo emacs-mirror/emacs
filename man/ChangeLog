@@ -1,3 +1,8 @@
+2006-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (Window Size X) <--geometry>: Only width and height
+	apply to all frames.
+
 2006-08-03  Michael Olson  <mwolson@gnu.org>
 
 	* erc.texi: Update for ERC 5.1.4.

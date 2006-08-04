@@ -1,3 +1,8 @@
+2006-08-04  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32fns.c (w32_createwindow): Handle -geometry command line option
+	and the geometry settings in the Registry.
+
 2006-08-04  Kenichi Handa  <handa@m17n.org>
 
 	* w32fns.c (w32_query_font): Compare names by ignoring case.
