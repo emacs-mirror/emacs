@@ -1,3 +1,8 @@
+2006-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* strings.texi (Formatting Strings): Warn against arbitrary
+	strings as first arg to `format'.
+
 2006-07-31  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* text.texi (Clickable Text): Mention `help-echo' text property.
