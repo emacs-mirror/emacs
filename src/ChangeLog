@@ -1,3 +1,7 @@
+2006-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_query_font): Fix last change: use stricmp.
+
 2006-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (Fsubst_char_in_region): Redo the setup work after running
