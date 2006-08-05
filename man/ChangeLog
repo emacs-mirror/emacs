@@ -1,3 +1,7 @@
+2006-08-05  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Expand.
+
 2006-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmdargs.texi (Window Size X) <--geometry>: Only width and height

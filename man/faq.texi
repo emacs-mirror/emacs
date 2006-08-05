@@ -1146,16 +1146,28 @@ and on @code{xterm} with @kbd{emacs -nw}.
 @cindex Emacs 22, new features in
 @cindex Recently introduced features
 
-@c FIXME: Improve this node before the 22.1 release.
 @cindex Default features
-Font-lock mode, auto-compression mode, and file name shadow mode are now
-enabled by default.  It is now possible to follow links with
-@kbd{mouse-1}.
+Font Lock mode, auto-compression mode, and file name shadow mode are now
+enabled by default.  On graphics displays it is now possible to follow
+links with @kbd{mouse-1}, and the modeline of the selected window is now
+highlighted.  Window fringes are now customizable.  The minibuffer
+prompt is now displayed in a distinct face.
 
-@cindex Supported systems
-Emacs 22 features support for GNU/Linux systems on S390 and X86-64
-machines, as well as support for the Mac OS X and Cygwin operating
-systems.
+Emacs now reads abbrev definitions automatically at startup.  The
+maximum size of buffers has been doubled and is now 256M on 32-bit
+machines.  Grep mode is now separate from Compilation mode and has many
+new specific options and commands.
+
+The original Emacs macro system has been replaced by the new Kmacro
+package, which provides many new commands and features and a simple
+interface that uses the function keys F3 and F4.  Macros are now stored
+in a macro ring, and can be debugged and edited interactively.
+
+The GUD (Grand Unified Debugger) package can now be used with a full
+graphical user interface to the debugger which provides many features
+found in traditional development environments, making it easy to
+manipulate breakpoints, add watch points, display the call stack, etc.
+Breakpoints are now displayed in the source buffer.
 
 @cindex GTK+ Toolkit
 @cindex Drag-and-drop
@@ -1164,14 +1176,38 @@ Emacs can now be built with GTK+ widgets, and supports drag-and-drop
 operation on X.  Mouse wheel support is now enabled by default.
 
 @cindex New modes
-Many new modes and packages have been included in Emacs, such as Leim,
-Calc, Tramp and URL, as well as IDO, CUA, rcirc, ERC, conf-mode,
-python-mode, table, tumme, SES, ruler, Flymake, Org, PGG, etc.
+Many new modes and packages have been included in Emacs, such as Calc,
+Tramp and URL, as well as IDO, CUA, rcirc, ERC, conf-mode, python-mode,
+table, tumme, SES, ruler, Flymake, Org, PGG, wdired, t-mouse, longlines,
+dns-mode, savehist, Password, Printing, Reveal, etc.
+
+@cindex Multilingual Environment
+Leim is now part of Emacs.  Unicode support has been much improved, and
+the following input methods have been added: belarusian, bulgarian-bds,
+bulgarian-phonetic, chinese-sisheng, croatian, dutch, georgian,
+latin-alt-postfix, latin-postfix, latin-prefix, latvian-keyboard,
+lithuanian-numeric, lithuanian-keyboard, malayalam-inscript, rfc1345,
+russian-computer, sgml, slovenian, tamil-inscript ucs,
+ukrainian-computer, vietnamese-telex, and welsh.
+
+The following language environment have also been added: Belarusian,
+Bulgarian, Chinese-EUC-TW, Croatian, French, Georgian, Italian, Latin-6,
+Latin-7, Latvian, Lithuanian, Malayalam, Russian, Russian, Slovenian,
+Swedish, Tajik, Tamil, UTF-8, Ukrainian, Ukrainian, Welsh, and
+Windows-1255.
+
+@cindex Supported systems
+Emacs 22 features support for GNU/Linux systems on S390 and x86-64
+machines, as well as support for the Mac OS X and Cygwin operating
+systems.
 
 @cindex Documentation
 @cindex Emacs Lisp Manual
 In addition, Emacs 22 now includes the Emacs Lisp Reference Manual
 (@pxref{Emacs Lisp documentation}) and the Emacs Lisp Intro.
+
+Many other changes have been made in Emacs 22, use @kbd{C-h n} to get a
+full list.
 
 @c ------------------------------------------------------------
 @node    Common requests, Bugs and problems, Status of Emacs, Top
