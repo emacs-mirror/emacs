@@ -1,3 +1,8 @@
+2006-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (kbd_buffer_get_event): Return Qnil when current time
+	is exactly equal to end_time, not only when it is past that.
+
 2006-08-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_char): Rebalance specpdl after receiving jump.
