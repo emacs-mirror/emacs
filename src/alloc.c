@@ -80,6 +80,7 @@ extern POINTER_TYPE *sbrk ();
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
+#include "w32.h"
 #endif
 
 #ifdef DOUG_LEA_MALLOC
@@ -4615,6 +4616,9 @@ int
 valid_pointer_p (p)
      void *p;
 {
+#ifdef WINDOWSNT
+  return w32_valid_pointer_p (p, 16);
+#else
   int fd;
 
   /* Obviously, we cannot just access it (we would SEGV trying), so we
@@ -4631,6 +4635,7 @@ valid_pointer_p (p)
     }
 
     return -1;
+#endif
 }
 
 /* Return 1 if OBJ is a valid lisp object.
