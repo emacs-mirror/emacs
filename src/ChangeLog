@@ -1,5 +1,13 @@
 2006-08-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32.c (w32_valid_pointer_p): New function.
+
+	* w32.h: Add prototype for w32_valid_pointer_p.
+
+	* alloc.c: Include w32.h.
+	(valid_lisp_object_p) [WINDOWSNT]: Call w32_valid_pointer_p to do
+	the job.
+
 	* keyboard.c (kbd_buffer_get_event): Return Qnil when current time
 	is exactly equal to end_time, not only when it is past that.
 
