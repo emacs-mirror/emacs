@@ -31,9 +31,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
 
-** Romain Francoise <romain@orebokech.com>, Aug 2:
-  Abort at end of Fbyte_code because specpdl did not balance.
-
 ** lennart.borgman July 27: Custom and mode-line-format default
    M-x customize-option RET mode-line-format RET
 
