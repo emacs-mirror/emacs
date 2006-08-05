@@ -3954,13 +3954,15 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	{
 	  EMACS_TIME duration;
 	  EMACS_GET_TIME (duration);
-	  EMACS_SUB_TIME (duration, *end_time, duration);
-	  if (EMACS_TIME_NEG_P (duration))
-	    return Qnil;
+	  if (EMACS_TIME_GE (duration, *end_time))
+	    return Qnil;	/* finished waiting */
 	  else
-	    wait_reading_process_output (EMACS_SECS (duration),
-					 EMACS_USECS (duration), 
-					 -1, 1, Qnil, NULL, 0);
+	    {
+	      EMACS_SUB_TIME (duration, *end_time, duration);
+	      wait_reading_process_output (EMACS_SECS (duration),
+					   EMACS_USECS (duration),
+					   -1, 1, Qnil, NULL, 0);
+	    }
 	}
       else
 	wait_reading_process_output (0, 0, -1, 1, Qnil, NULL, 0);
