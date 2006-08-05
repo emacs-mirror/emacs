@@ -2403,7 +2403,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
      EMACS_TIME *end_time;
 {
   volatile Lisp_Object c;
-  int count;
+  int count, jmpcount;
   jmp_buf local_getcjmp;
   jmp_buf save_jump;
   volatile int key_already_recorded = 0;
@@ -2629,11 +2629,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
      around any call to sit_for or kbd_buffer_get_event;
      it *must not* be in effect when we call redisplay.  */
 
+  jmpcount = SPECPDL_INDEX ();
   if (_setjmp (local_getcjmp))
     {
       /* We must have saved the outer value of getcjmp here,
 	 so restore it now.  */
       restore_getcjmp (save_jump);
+      unbind_to (jmpcount, Qnil);
       XSETINT (c, quit_char);
       internal_last_event_frame = selected_frame;
       Vlast_event_frame = internal_last_event_frame;

@@ -1,3 +1,9 @@
+2006-08-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): Rebalance specpdl after receiving jump.
+
+	* process.c: Reapply 2006-08-01 change.
+
 2006-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_query_font): Fix last change: use stricmp.
