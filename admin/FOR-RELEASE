@@ -46,8 +46,6 @@ mode-line-format to "%-" which does not seem to be useful.
 	 '(hscroll-step 1)
 	)
 
-** David Kastrup's report on strange scrolling of large images.
-
 ** Jorgen Schaefer <forcer@forcix.cx>'s June 18 bug report about
   fields and invisible overlays needs attention from a field expert.
 
