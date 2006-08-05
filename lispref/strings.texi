@@ -700,7 +700,8 @@ in the copy with encodings of the corresponding @var{objects}.  The
 arguments @var{objects} are the computed values to be formatted.
 
 The characters in @var{string}, other than the format specifications,
-are copied directly into the output; if they have text properties,
+are copied directly into the output, including their text properties,
+if any.
 @end defun
 
 @cindex @samp{%} in format
