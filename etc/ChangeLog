@@ -1,6 +1,6 @@
 2006-08-06  Nick Roberts  <nickrob@snap.net.nz>
 
-	* DEBUG (Note): Add note about ollowing a longjmp call.
+	* DEBUG (Note): Add note about following a longjmp call.
 	Add local variables list for outline mode.
 
 2006-08-03  Michael Olson  <mwolson@gnu.org>
