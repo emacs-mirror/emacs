@@ -822,16 +822,13 @@ whose documentation describes the minor mode."
 	      (sort minor-modes
 		    (lambda (a b) (string-lessp (cadr a) (cadr b)))))
 	(when minor-modes
-	  (princ "Summary of minor modes:\n")
+	  (princ "Enabled minor modes:\n")
 	  (make-local-variable 'help-button-cache)
 	  (with-current-buffer standard-output
 	    (dolist (mode minor-modes)
 	      (let ((mode-function (nth 0 mode))
 		    (pretty-minor-mode (nth 1 mode))
 		    (indicator (nth 2 mode)))
-		(setq indicator (if (zerop (length indicator))
-				    "no indicator"
-				  (format "indicator%s" indicator)))
 		(add-text-properties 0 (length pretty-minor-mode)
 				     '(face bold) pretty-minor-mode)
 		(save-excursion
@@ -840,16 +837,22 @@ whose documentation describes the minor mode."
 		  (push (point-marker) help-button-cache)
 		  ;; Document the minor modes fully.
 		  (insert pretty-minor-mode)
-		  (princ (format " minor mode (%s):\n" indicator))
+		  (princ (format " minor mode (%s):\n"
+				 (if (zerop (length indicator))
+				     "no indicator"
+				   (format "indicator%s"
+				   indicator))))
 		  (princ (documentation mode-function)))
-		(princ "  ")
 		(insert-button pretty-minor-mode
 			       'action (car help-button-cache)
 			       'follow-link t
 			       'help-echo "mouse-2, RET: show full information")
-		(princ (format " minor mode (%s):\n" indicator)))))
-	  (princ "\n(Full information about these minor modes
-follows the description of the major mode.)\n\n"))
+		(newline)))
+	    (forward-line -1)
+	    (fill-paragraph nil)
+	    (forward-line 1))
+
+	  (princ "\n(Information about these minor modes follows the major mode info.)\n\n"))
 	;; Document the major mode.
 	(let ((mode mode-name))
 	  (with-current-buffer standard-output
