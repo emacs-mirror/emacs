@@ -272,6 +272,13 @@ related data structures in a terse and user-friendly format:
 The above commands also exist in a version with an `x' suffix which
 takes an object of the relevant type as argument.
 
+** Following longjmp call.
+
+Recent versions of glibc (2.4+?) encrypt stored values for setjmp/longjmp which
+prevents GDB from being able to follow a longjmp call using `next'.  To
+disable this protection you need to set the environment variable
+LD_POINTER_GUARD to 0.
+
 ** Using GDB in Emacs
 
 Debugging with GDB in Emacs offers some advantages over the command line (See
