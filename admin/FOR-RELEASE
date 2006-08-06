@@ -31,13 +31,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * BUGS
 
-** lennart.borgman July 27: Custom and mode-line-format default
-   M-x customize-option RET mode-line-format RET
-
-and then click the button "Erase Customization". This will set 
-mode-line-format to "%-" which does not seem to be useful.
-
-
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
 	(setq-default truncate-lines t)
