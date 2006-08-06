@@ -1,3 +1,7 @@
+2006-08-06  Richard Stallman  <rms@gnu.org>
+
+	* help.el (describe-mode): Make minor mode list more concise.
+
 2006-08-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* bindings.el: Give mode-line-format, mode-line-modes, and
