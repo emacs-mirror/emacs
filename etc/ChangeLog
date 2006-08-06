@@ -1,3 +1,7 @@
+2006-08-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* DEBUG (Note): Add note about ollowing a longjmp call.
+
 2006-08-03  Michael Olson  <mwolson@gnu.org>
 
 	* ERC-NEWS: Update for ERC 5.1.4.
