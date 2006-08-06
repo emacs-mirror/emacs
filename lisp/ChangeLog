@@ -1,3 +1,8 @@
+2006-08-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el: Give mode-line-format, mode-line-modes, and
+	mode-line-position `standard-value' properties.
+
 2006-08-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* buff-menu.el (list-buffers-noselect): For Info buffers, use
