@@ -1,3 +1,16 @@
+2006-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Hooks): Clarify.
+	(Major Mode Basics): Mention define-derived-mode explicitly.
+	(Major Mode Conventions): Rebinding RET is OK for some modes.
+	Mention change-major-mode-hook and after-change-major-mode-hook.
+	(Example Major Modes): Moved to end of Modes section.
+	(Mode Line Basics): Clarify.
+	(Mode Line Data): Mention help-echo and local-map in strings.
+	Explain reason for treatment of non-risky variables.
+	(Properties in Mode): Clarify.
+	(Faces for Font Lock): Add font-lock-negation-char-face.
+
 2006-08-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* strings.texi (Formatting Strings): Warn against arbitrary
