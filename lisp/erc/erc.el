@@ -822,7 +822,8 @@ See `erc-server-flood-margin' for other flood-related parameters.")
 ;; Script parameters
 
 (defcustom erc-startup-file-list
-  '("~/.ercrc.el" "~/.ercrc" ".ercrc.el" ".ercrc")
+  '("~/.emacs.d/.ercrc.el" "~/.emacs.d/.ercrc"
+    "~/.ercrc.el" "~/.ercrc" ".ercrc.el" ".ercrc")
   "List of files to try for a startup script.
 The first existent and readable one will get executed.
 
@@ -5241,13 +5242,11 @@ If FILE is found, return the path to it."
 (defun erc-select-startup-file ()
   "Select an ERC startup file.
 See also `erc-startup-file-list'."
-  (let ((l erc-startup-file-list)
-	(f nil))
-    (while (and (not f) l)
-      (if (file-readable-p (car l))
-	  (setq f (car l)))
-      (setq l (cdr l)))
-    f))
+  (catch 'found
+    (dolist (f erc-startup-file-list)
+      (setq f (convert-standard-file-name f))
+      (when (file-readable-p f)
+	(throw 'found f)))))
 
 (defun erc-find-script-file (file)
   "Search for FILE in `default-directory', and any in `erc-script-path'."
@@ -5894,7 +5893,8 @@ All windows are opened in the current frame."
       (setq bufs (cdr bufs))
       (while bufs
 	(split-window)
-	(switch-to-buffer-other-window (car bufs))
+	(other-window 1)
+	(switch-to-buffer (car bufs))
 	(setq bufs (cdr bufs))
 	(balance-windows)))))
 

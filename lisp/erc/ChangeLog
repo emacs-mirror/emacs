@@ -1,3 +1,20 @@
+2006-08-06  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-arrange-session-in-multiple-windows): Fix bug with
+	multi-tty Emacs.
+
+2006-08-05  Michael Olson  <mwolson@gnu.org>
+
+	* erc-log.el (erc-log-standardize-name): New function that returns
+	a filename that is safe for use for a log file.
+	(erc-current-logfile): Use it.
+
+	* erc.el (erc-startup-file-list): Search in ~/.emacs.d first,
+	since that is a fairly standard directory.
+	(erc-select-startup-file): Re-write to use
+	convert-standard-filename, which will ensure that MS-DOS systems
+	look for the _ercrc.el file.
+
 2006-08-02  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-version-string): Release ERC 5.1.4.

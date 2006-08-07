@@ -71,8 +71,6 @@
 ;; markers.
 
 ;;; TODO:
-;; * Erc needs a generalised make-safe-file-name function, so that
-;;   generated file names don't contain any invalid file characters.
 ;;
 ;; * Really, we need to lock the logfiles somehow, so that if a user
 ;;   is running multiple emacsen and/or on the same channel as more
@@ -293,17 +291,27 @@ is writeable (it will be created as necessary) and
 	   (funcall erc-enable-logging (or buffer (current-buffer)))
 	 erc-enable-logging)))
 
+(defun erc-log-standardize-name (filename)
+  "Make FILENAME safe to use as the name of an ERC log.
+This will not work with full paths, only names.
+
+Any unsafe characters in the name are replaced with \"!\".  The
+filename is downcased."
+  (downcase (erc-replace-regexp-in-string
+	     "[/\\]" "!" (convert-standard-filename filename))))
+
 (defun erc-current-logfile (&optional buffer)
   "Return the logfile to use for BUFFER.
 If BUFFER is nil, the value of `current-buffer' is used.
 This is determined by `erc-generate-log-file-name-function'.
 The result is converted to lowercase, as IRC is case-insensitive"
   (expand-file-name
-   (downcase (funcall erc-generate-log-file-name-function
-		      (or buffer (current-buffer))
-		      (or (erc-default-target) (buffer-name buffer))
-		      (erc-current-nick)
-		      erc-session-server erc-session-port))
+   (erc-log-standardize-name
+    (funcall erc-generate-log-file-name-function
+	     (or buffer (current-buffer))
+	     (or (erc-default-target) (buffer-name buffer))
+	     (erc-current-nick)
+	     erc-session-server erc-session-port))
    erc-log-channels-directory))
 
 (defun erc-generate-log-file-name-with-date (buffer &rest ignore)
