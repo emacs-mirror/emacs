@@ -1,6 +1,6 @@
 2006-08-04  Kenichi Handa  <handa@m17n.org>
 
-	* alloc.c (NSTATICS): Increased to 0x7F0.
+	* alloc.c (NSTATICS): Increased to 0x600.
 
 2006-08-01  Kenichi Handa  <handa@m17n.org>
 
