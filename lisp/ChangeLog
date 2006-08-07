@@ -1,3 +1,9 @@
+2006-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-do-completion): Strip out completion-ignored-extensions
+	before checking whether there are multiple completions.
+	Don't use `list' unnecessarily when building completion tables.
+
 2006-08-06  Richard Stallman  <rms@gnu.org>
 
 	* help.el (describe-mode): Make minor mode list more concise.
@@ -672,8 +678,8 @@
 
 2006-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/cc-awk.el (defconst): Use eval-and-compile to avoid
-	compilation error.
+	* progmodes/cc-awk.el (c-awk-escaped-nls*): Use eval-and-compile to
+	avoid compilation error.
 
 	* subr.el (sit-for): New function.
 

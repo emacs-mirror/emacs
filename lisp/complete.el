@@ -543,8 +543,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	(let ((compl (all-completions (if env-on
 					  (file-name-nondirectory (substring str 0 p))
 					(substring str 0 p))
-                                        table
-                                        pred)))
+                                      table
+                                      pred)))
 	  (setq p compl)
 	  (while p
 	    (and (string-match regex (car p))
@@ -552,6 +552,34 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 		   (set-text-properties 0 (length (car p)) '() (car p))
 		   (setq poss (cons (car p) poss))))
 	    (setq p (cdr p)))))
+
+      ;; Handle completion-ignored-extensions
+      (and filename
+           (not (eq mode 'help))
+           (let ((p2 poss))
+
+             ;; Build a regular expression representing the extensions list
+             (or (equal completion-ignored-extensions PC-ignored-extensions)
+                 (setq PC-ignored-regexp
+                       (concat "\\("
+                               (mapconcat
+                                'regexp-quote
+                                (setq PC-ignored-extensions
+                                      completion-ignored-extensions)
+                                "\\|")
+                               "\\)\\'")))
+
+             ;; Check if there are any without an ignored extension.
+             ;; Also ignore `.' and `..'.
+             (setq p nil)
+             (while p2
+               (or (string-match PC-ignored-regexp (car p2))
+                   (string-match "\\(\\`\\|/\\)[.][.]?/?\\'" (car p2))
+                   (setq p (cons (car p2) p)))
+               (setq p2 (cdr p2)))
+
+             ;; If there are "good" names, use them
+             (and p (setq poss p))))
 
       ;; Now we have a list of possible completions
       (cond
@@ -575,34 +603,6 @@ of `minibuffer-completion-table' and the minibuffer contents.")
        ((or (cdr (setq helpposs poss))
 	    (memq mode '(help word)))
 
-	;; Handle completion-ignored-extensions
-	(and filename
-	     (not (eq mode 'help))
-	     (let ((p2 poss))
-
-	       ;; Build a regular expression representing the extensions list
-	       (or (equal completion-ignored-extensions PC-ignored-extensions)
-		   (setq PC-ignored-regexp
-			 (concat "\\("
-				 (mapconcat
-				  'regexp-quote
-				  (setq PC-ignored-extensions
-					completion-ignored-extensions)
-				  "\\|")
-				 "\\)\\'")))
-
-	       ;; Check if there are any without an ignored extension.
-	       ;; Also ignore `.' and `..'.
-	       (setq p nil)
-	       (while p2
-		 (or (string-match PC-ignored-regexp (car p2))
-		     (string-match "\\(\\`\\|/\\)[.][.]?/?\\'" (car p2))
-		     (setq p (cons (car p2) p)))
-		 (setq p2 (cdr p2)))
-
-	       ;; If there are "good" names, use them
-	       (and p (setq poss p))))
-
 	;; Is the actual string one of the possible completions?
 	(setq p (and (not (eq mode 'help)) poss))
 	(while (and p
@@ -623,7 +623,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 	    ;; Check if next few letters are the same in all cases
 	    (if (and (not (eq mode 'help))
-		     (setq prefix (try-completion (PC-chunk-after basestr skip) (mapcar 'list poss))))
+		     (setq prefix (try-completion (PC-chunk-after basestr skip)
+                                                  poss)))
 		(let ((first t) i)
 		  ;; Retain capitalization of user input even if
 		  ;; completion-ignore-case is set.
@@ -669,13 +670,9 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 					      (+ beg (length dirname)) end)
 					     skip)
 					    (mapcar
-					     (function
-					      (lambda (x)
-						(list
-						 (and (string-match skip x)
-						      (substring
-						       x
-						       (match-end 0))))))
+                                             (lambda (x)
+                                               (when (string-match skip x)
+                                                 (substring x (match-end 0))))
 					     poss)))
 			      (or (> i 0) (> (length prefix) 0))
 			      (or (not (eq mode 'word))
