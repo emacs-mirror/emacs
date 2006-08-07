@@ -1173,6 +1173,13 @@ what properties to clear before refontifying a region.")
 
 (defvar jit-lock-start) (defvar jit-lock-end)
 (defun font-lock-extend-jit-lock-region-after-change (beg end old-len)
+  "Function meant for `jit-lock-after-change-extend-region-functions'.
+This function does 2 things:
+- extend the region so that it not only includes the part that was modified
+  but also the surrounding text whose highlighting may change as a consequence.
+- anticipate (part of) the region extension that will happen later in
+  `font-lock-default-fontify-region', in order to avoid the need for
+  double-redisplay in `jit-lock-fontify-now'."
   (save-excursion
     ;; First extend the region as font-lock-after-change-function would.
     (let ((region (if font-lock-extend-after-change-region-function
@@ -1198,8 +1205,11 @@ what properties to clear before refontifying a region.")
                                        'font-lock-multiline nil)
                     (point-max)))
       ;; Finally, pre-enlarge the region to a whole number of lines, to try
-      ;; and predict what font-lock-default-fontify-region will do, so as to
+      ;; and anticipate what font-lock-default-fontify-region will do, so as to
       ;; avoid double-redisplay.
+      ;; We could just run `font-lock-extend-region-functions', but since
+      ;; the only purpose is to avoid the double-redisplay, we prefer to
+      ;; do here only the part that is cheap and most likely to be useful.
       (when (memq 'font-lock-extend-region-wholelines
                   font-lock-extend-region-functions)
         (goto-char beg)
