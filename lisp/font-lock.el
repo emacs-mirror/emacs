@@ -1196,6 +1196,10 @@ This function does 2 things:
       ;; it anyway.  Here OTOH we have no guarantee that
       ;; font-lock-default-fontify-region will be executed on this region
       ;; any time soon.
+      ;; Note: contrary to font-lock-default-fontify-region, we do not do
+      ;; any loop here because we are not looking for a safe spot: we just
+      ;; mark the text whose appearance may need to change as a result of
+      ;; the buffer modification.
       (when (and (> beg (point-min))
                  (get-text-property (1- beg) 'font-lock-multiline))
         (setq beg (or (previous-single-property-change
