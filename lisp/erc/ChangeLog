@@ -2,6 +2,7 @@
 
 	* erc.el (erc-arrange-session-in-multiple-windows): Fix bug with
 	multi-tty Emacs.
+	(erc-select-startup-file): Fix bug introduced by recent change.
 
 2006-08-05  Michael Olson  <mwolson@gnu.org>
 
