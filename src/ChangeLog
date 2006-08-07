@@ -1,3 +1,7 @@
+2006-08-07  Andreas Schwab  <schwab@suse.de>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1120000.
+
 2006-08-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffer.c (Vchange_major_mode_hook, Qchange_major_mode_hook): New vars.
