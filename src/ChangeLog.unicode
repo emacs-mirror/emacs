@@ -1,3 +1,7 @@
+2006-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* alloc.c (NSTATICS): Increased to 0x7F0.
+
 2006-08-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_driver): Set ftfont_driver.match to
