@@ -976,7 +976,7 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; multi-line strings and comments; regexps are not appropriate for the job.)
 
 (defvar font-lock-extend-after-change-region-function nil
-  "A function that determines the region to fontify after a change.
+  "A function that determines the region to refontify after a change.
 
 This variable is either nil, or is a function that determines the
 region to refontify after a change.
@@ -985,7 +985,7 @@ Font-lock calls this function after each buffer change.
 
 The function is given three parameters, the standard BEG, END, and OLD-LEN
 from `after-change-functions'.  It should return either a cons of the beginning
-and end buffer positions \(in that order) of the region to fontify, or nil
+and end buffer positions \(in that order) of the region to refontify, or nil
 \(which directs the caller to fontify a default region).
 This function should preserve the match-data.
 The region it returns may start or end in the middle of a line.")
@@ -1044,6 +1044,12 @@ a very meaningful entity to highlight.")
 (defvar font-lock-beg) (defvar font-lock-end)
 (defvar font-lock-extend-region-functions
   '(font-lock-extend-region-wholelines
+    ;; This use of font-lock-multiline property is unreliable but is just
+    ;; a handy heuristic: in case you don't have a function that does
+    ;; /identification/ of multiline elements, you may still occasionally
+    ;; discover them by accident (or you may /identify/ them but not in all
+    ;; cases), in which case the font-lock-multiline property can help make
+    ;; sure you will properly *re*identify them during refontification.
     font-lock-extend-region-multiline)
   "Special hook run just before proceeding to fontify a region.
 This is used to allow major modes to help font-lock find safe buffer positions
@@ -1177,6 +1183,12 @@ what properties to clear before refontifying a region.")
                 end (max jit-lock-end (cdr region))))
       ;; Then extend the region obeying font-lock-multiline properties,
       ;; indicating which part of the buffer needs to be refontified.
+      ;; !!! This is the *main* user of font-lock-multiline property !!!
+      ;; font-lock-after-change-function could/should also do that, but it
+      ;; doesn't need to because font-lock-default-fontify-region does
+      ;; it anyway.  Here OTOH we have no guarantee that
+      ;; font-lock-default-fontify-region will be executed on this region
+      ;; any time soon.
       (when (and (> beg (point-min))
                  (get-text-property (1- beg) 'font-lock-multiline))
         (setq beg (or (previous-single-property-change
