@@ -87,7 +87,7 @@ lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
 lispref/maps.texi        Chong Yidong	   Kim F. Storm
 lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
-lispref/modes.texi	 Chong Yidong
+lispref/modes.texi	 Chong Yidong      (double-checked)
 lispref/nonascii.texi    "Luc Teirlinck"   Chong Yidong
 lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
