@@ -1,3 +1,18 @@
+2006-08-07  Michael Olson  <mwolson@gnu.org>
+
+	* erc-backend.el (erc-process-sentinel-1): Use erc-display-message
+	in several places instead of inserting text.
+	(erc-process-sentinel): Move to the input-marker before removing
+	the prompt.
+
+	* erc.el (erc-port): Fix customization options.
+	(erc-display-message): Handle null type explicitly.  Previously,
+	this was relying on a chance side-effect.  Cosmetic indentation
+	tweak.
+	(english): Add 'finished and 'terminated entries to the catalog.
+	Add initial and terminal newlines to 'disconnected and
+	'disconnected-noreconnect entries.  Avoid long lines.
+
 2006-08-06  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-arrange-session-in-multiple-windows): Fix bug with
