@@ -1,3 +1,7 @@
+2006-08-08  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi: Clean up wording in previous change.
+
 2006-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* modes.texi (Hooks): Clarify.
