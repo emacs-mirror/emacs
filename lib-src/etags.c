@@ -5165,7 +5165,7 @@ TEX_mode (inf)
     {
       /* Skip to next line if we hit the TeX comment char. */
       if (c == '%')
-	while (c != '\n')
+	while (c != '\n' && c != EOF)
 	  c = getc (inf);
       else if (c == TEX_LESC || c == TEX_SESC )
 	break;
