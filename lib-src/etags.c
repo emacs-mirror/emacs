@@ -6259,7 +6259,7 @@ readline (lbp, stream)
 	  int start, lno;
 
 	  if (DEBUG) start = 0;	/* shut up the compiler */
-	  if (sscanf (lbp->buffer, "#line %d \"%n", &lno, &start) == 1)
+	  if (sscanf (lbp->buffer, "#line %d \"%n", &lno, &start) == 2)
 	    {
 	      char *endp = lbp->buffer + start;
 

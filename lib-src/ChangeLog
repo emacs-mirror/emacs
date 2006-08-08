@@ -1,5 +1,10 @@
 2006-08-07  Masatake YAMATO  <jet@gyve.org>
 
+	* etags.c (readline): expect sscanf returns 2, 
+	not 1.
+	
+2006-08-07  Masatake YAMATO  <jet@gyve.org>
+
 	* etags.c (TEX_mode): Check getc retruns EOF.
 	File ended without newline causes infinite loop.
 
