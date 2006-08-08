@@ -1,3 +1,8 @@
+2006-08-08  Romain Francoise  <romain@orebokech.com>
+
+	* dired.texi (Marks vs Flags): Fix typo reported by Ari Roponen
+	<arjuropo@cc.jyu.fi>.
+
 2006-08-05  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (New in Emacs 22): Expand.
