@@ -1,11 +1,17 @@
+2006-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-quoted-subshell): Make sure we don't
+	mistake a closing " for an opening one.
+
 2006-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Add more key bindings.
 
 2006-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* complete.el (PC-do-completion): Strip out completion-ignored-extensions
-	before checking whether there are multiple completions.
+	* complete.el (PC-do-completion): Filter out completions matching
+	completion-ignored-extensions before checking whether there are
+	multiple completions.
 	Don't use `list' unnecessarily when building completion tables.
 
 2006-08-06  Richard Stallman  <rms@gnu.org>
