@@ -52,8 +52,8 @@ possible, so that you can use them in a uniform way.
 the @dfn{mode hook} as the one of the last steps of initialization.
 This makes it easy for a user to customize the behavior of the mode,
 by overriding the buffer-local variable assignments already made by
-the mode.  Most minor modes also run a mode hook at their end.  But
-hooks are used in other contexts too.  For example, the hook
+the mode.  Most minor mode functions also run a mode hook at the end.
+But hooks are used in other contexts too.  For example, the hook
 @code{suspend-hook} runs just before Emacs suspends itself
 (@pxref{Suspending Emacs}).
 
@@ -66,17 +66,16 @@ globally or buffer-locally with @code{add-hook}.
 
 @cindex abnormal hook
   If the hook variable's name does not end with @samp{-hook}, that
-indicates it is probably an @dfn{abnormal hook}.  Then you should look at its
-documentation to see how to use the hook properly.
+indicates it is probably an @dfn{abnormal hook}.  That means the hook
+functions are called with arguments, or their return values are used
+in some way.  The hook's documentation says how the functions are
+called.  You can use @code{add-hook} to add a function to an abnormal
+hook, but you must write the function to follow the hook's calling
+convention.
 
-  @dfn{Abnormal hooks} are hooks in which the functions are called
-with arguments, or the return values are used in some way.  By
-convention, abnormal hook names end in @samp{-functions} or
-@samp{-hooks}.  You can use @code{add-hook} to add a function to the
-list, but you must take care in writing the function.
-
-  If the variable's name ends in @samp{-function}, then its value
-is just a single function, not a list of functions.
+  By convention, abnormal hook names end in @samp{-functions} or
+@samp{-hooks}.  If the variable's name ends in @samp{-function}, then
+its value is just a single function, not a list of functions.
 
   Here's an example that uses a mode hook to turn on Auto Fill mode when
 in Lisp Interaction mode:
@@ -95,12 +94,12 @@ symbol that is a normal hook variable.  These arguments are processed
 in the order specified.
 
 If a hook variable has a non-@code{nil} value, that value should be a
-list of functions.  Each function in this list is called,
-consecutively, with no arguments.
+list of functions.  @code{run-hooks} calls all the functions, one by
+one, with no arguments.
 
-A hook variable can also be a single function (either a lambda
-expression or a symbol with a function definition) to be called.  This
-use is considered obsolete.
+The hook variable's value can also be a single function---either a
+lambda expression or a symbol with a function definition---which
+@code{run-hooks} calls.  But this usage is obsolete.
 @end defun
 
 @defun run-hook-with-args hook &rest args
@@ -357,9 +356,10 @@ letters and other printing characters as special commands.
 
 @item
 Major modes modes for editing text should not define @key{RET} to do
-anything other than insert a newline.  The command to insert a newline
-and then indent is @kbd{C-j}.  It is ok for more specialized modes,
-such as Info mode, to redefine @key{RET} to something else.
+anything other than insert a newline.  However, it is ok for
+specialized modes for text that users don't directly edit, such as
+Dired and Info modes, to redefine @key{RET} to do something entirely
+different.
 
 @item
 Major modes should not alter options that are primarily a matter of user
@@ -801,101 +801,92 @@ Do not write an @code{interactive} spec in the definition;
 @subsection Generic Modes
 @cindex generic mode
 
-@dfn{Generic modes} are simple major modes with basic support for
+  @dfn{Generic modes} are simple major modes with basic support for
 comment syntax and Font Lock mode.  To define a generic mode, use the
 macro @code{define-generic-mode}.  See the file @file{generic-x.el}
 for some examples of the use of @code{define-generic-mode}.
 
 @defmac define-generic-mode mode comment-list keyword-list font-lock-list auto-mode-list function-list &optional docstring
-This macro creates a new generic mode.  The argument @var{mode} (an
-unquoted symbol) is the major mode command.  The optional argument
-@var{docstring} is the documentation for the mode command.  If you do
-not supply it, @code{define-generic-mode} uses a default documentation
-string instead.
+This macro defines a generic mode command named @var{mode} (a symbol,
+not quoted).  The optional argument @var{docstring} is the
+documentation for the mode command.  If you do not supply it,
+@code{define-generic-mode} generates one by default.
 
-@var{comment-list} is a list in which each element is either a
-character, a string of one or two characters, or a cons cell.  A
-character or a string is set up in the mode's syntax table as a
+The argument @var{comment-list} is a list in which each element is
+either a character, a string of one or two characters, or a cons cell.
+A character or a string is set up in the mode's syntax table as a
 ``comment starter.''  If the entry is a cons cell, the @sc{car} is set
 up as a ``comment starter'' and the @sc{cdr} as a ``comment ender.''
 (Use @code{nil} for the latter if you want comments to end at the end
-of the line.)  Note that the syntax table has limitations about what
-comment starters and enders are actually possible.  @xref{Syntax
-Tables}.
+of the line.)  Note that the syntax table mechanism has limitations
+about what comment starters and enders are actually possible.
+@xref{Syntax Tables}.
 
-@var{keyword-list} is a list of keywords to highlight with
-@code{font-lock-keyword-face}.  Each keyword should be a string.
-@var{font-lock-list} is a list of additional expressions to highlight.
-Each element of this list should have the same form as an element of
-@code{font-lock-keywords}.  @xref{Search-based Fontification}.
+The argument @var{keyword-list} is a list of keywords to highlight
+with @code{font-lock-keyword-face}.  Each keyword should be a string.
+Meanwhile, @var{font-lock-list} is a list of additional expressions to
+highlight.  Each element of this list should have the same form as an
+element of @code{font-lock-keywords}.  @xref{Search-based
+Fontification}.
 
-@var{auto-mode-list} is a list of regular expressions to add to the
-variable @code{auto-mode-alist}.  These regular expressions are added
-when Emacs runs the macro expansion.
+The argument @var{auto-mode-list} is a list of regular expressions to
+add to the variable @code{auto-mode-alist}.  They are added by the execution
+of the @code{define-generic-mode} form, not by expanding the macro call.
 
-@var{function-list} is a list of functions to call to do some
-additional setup.  The mode command calls these functions just before
-it runs the mode hook variable @code{@var{mode}-hook}.
+Finally, @var{function-list} is a list of functions for the mode
+command to call for additional setup.  It calls these functions just
+before it runs the mode hook variable @code{@var{mode}-hook}.
 @end defmac
 
 @node Mode Hooks
 @subsection Mode Hooks
 
-  The two last things a major mode function should do is run its mode
-hook and finally the mode independent normal hook
-@code{after-change-major-mode-hook}.  If the major mode is a derived
-mode, that is if it calls another major mode (the parent mode) in its
-body, then the parent's mode hook is run just before the derived
-mode's hook.  Neither the parent's mode hook nor
-@code{after-change-major-mode-hook} are run at the end of the actual
-call to the parent mode.  This applies recursively if the parent mode
-has itself a parent.  That is, the mode hooks of all major modes
-called directly or indirectly by the major mode function are all run
-in sequence at the end, just before
-@code{after-change-major-mode-hook}.
+  Every major mode function should finish by running its mode hook and
+the mode-independent normal hook @code{after-change-major-mode-hook}.
+It does this by calling @code{run-mode-hooks}.  If the major mode is a
+derived mode, that is if it calls another major mode (the parent mode)
+in its body, it should do this inside @code{delay-mode-hooks} so that
+the parent won't run these hooks itself.  Instead, the derived mode's
+call to @code{run-mode-hooks} runs the parent's mode hook too.
+@xref{Major Mode Conventions}.
 
-  These conventions are new in Emacs 22, and some major modes
-implemented by users do not follow them yet.  So if you put a function
-onto @code{after-change-major-mode-hook}, keep in mind that some modes
-will fail to run it.  If a user complains about that, you can respond,
-``That major mode fails to follow Emacs conventions, and that's why it
-fails to work.  Please fix the major mode.''  In most cases, that is
-good enough, so go ahead and use @code{after-change-major-mode-hook}.
-However, if a certain feature needs to be completely reliable,
-it should not use @code{after-change-major-mode-hook} as of yet.
+  Emacs versions before Emacs 22 did not have @code{delay-mode-hooks}.
+When user-implemented major modes have not been updated to use it,
+they won't entirely follow these conventions: they may run the
+parent's mode hook too early, or fail to run
+@code{after-change-major-mode-hook}.  If you encounter such a major
+mode, please correct it to follow these conventions.
 
   When you defined a major mode using @code{define-derived-mode}, it
 automatically makes sure these conventions are followed.  If you
-define a major mode ``from scratch,'' not using
-@code{define-derived-mode}, make sure the major mode command follows
-these and other conventions.  @xref{Major Mode Conventions}.  You use
-these functions to do it properly.
+define a major mode ``by hand,'' not using @code{define-derived-mode},
+use the following functions to handle these conventions automatically.
 
 @defun run-mode-hooks &rest hookvars
 Major modes should run their mode hook using this function.  It is
 similar to @code{run-hooks} (@pxref{Hooks}), but it also runs
 @code{after-change-major-mode-hook}.
 
-When the call to this function is dynamically inside a
-@code{delay-mode-hooks} form, this function does not run any hooks.
+When this function is called during the execution of a
+@code{delay-mode-hooks} form, it does not run the hooks immediately.
 Instead, it arranges for the next call to @code{run-mode-hooks} to run
-@var{hookvars}.
+them.
 @end defun
 
 @defmac delay-mode-hooks body@dots{}
-This macro executes @var{body} like @code{progn}, but all calls to
-@code{run-mode-hooks} inside @var{body} delay running their hooks.
-They will be run by the first call to @code{run-mode-hooks} after exit
-from @code{delay-mode-hooks}.  This is the proper way for a major mode
-command to invoke its parent mode.
+When one major mode command calls another, it should do so inside of
+@code{delay-mode-hooks}.
+
+This macro executes @var{body}, but tells all @code{run-mode-hooks}
+calls during the execution of @var{body} to delay running their hooks.
+The hooks will actually run during the next call to
+@code{run-mode-hooks} after the end of the @code{delay-mode-hooks}
+construct.
 @end defmac
 
 @defvar after-change-major-mode-hook
-Every major mode function should run this normal hook at its very end.
-It normally does not need to do so explicitly.  Indeed, a major mode
-function should normally run its mode hook with @code{run-mode-hooks}
-as the very last thing it does, and the last thing
-@code{run-mode-hooks} does is run @code{after-change-major-mode-hook}.
+This is a normal hook run by @code{run-mode-hooks}.  It is run at the
+very end of every properly-written major mode function.
 @end defvar
 
 @node Example Major Modes
@@ -1058,9 +1049,8 @@ correspondingly more complicated.  Here are excerpts from
 @end group
 @end smallexample
 
-  Much code is shared among the three Lisp modes.  The following
-function sets various variables; it is called by each of the major Lisp
-mode functions:
+  The three modes for Lisp share much of their code.  For instance,
+each calls the following function to set various variables:
 
 @smallexample
 @group
@@ -1072,13 +1062,10 @@ mode functions:
 @end group
 @end smallexample
 
-  Functions such as @code{forward-paragraph} use the value of the
-@code{paragraph-start} variable.  Since Lisp code is different from
-ordinary text, the @code{paragraph-start} variable needs to be set
-specially to handle Lisp.  Also, comments are indented in a special
-fashion in Lisp and the Lisp modes need their own mode-specific
-@code{comment-indent-function}.  The code to set these variables is the
-rest of @code{lisp-mode-variables}.
+  In Lisp and most programming languages, we want the paragraph
+commands to treat only blank lines as paragraph separators.  And the
+modes should undestand the Lisp conventions for comments.  The rest of
+@code{lisp-mode-variables} sets this up:
 
 @smallexample
 @group
