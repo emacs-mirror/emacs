@@ -841,7 +841,7 @@ whose documentation describes the minor mode."
 				 (if (zerop (length indicator))
 				     "no indicator"
 				   (format "indicator%s"
-				   indicator))))
+					   indicator))))
 		  (princ (documentation mode-function)))
 		(insert-button pretty-minor-mode
 			       'action (car help-button-cache)
