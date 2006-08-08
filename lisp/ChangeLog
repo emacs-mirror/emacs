@@ -1,3 +1,7 @@
+2006-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Add more key bindings.
+
 2006-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* complete.el (PC-do-completion): Strip out completion-ignored-extensions
