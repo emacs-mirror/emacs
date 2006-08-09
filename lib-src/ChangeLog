@@ -1,3 +1,7 @@
+2006-08-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* etags.c (readline): expect sscanf returns >= 1.
+
 2006-08-07  Masatake YAMATO  <jet@gyve.org>
 
 	* etags.c (readline): expect sscanf returns 2, 
