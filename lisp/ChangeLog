@@ -1,3 +1,9 @@
+2006-08-09  John Wiegley  <johnw@newartisans.com>
+
+	* calendar/timeclock.el (timeclock-use-elapsed): Added a new
+	variable, which causes timeclock to report elapsed time worked,
+	instead of just work remaining.
+
 2006-08-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
