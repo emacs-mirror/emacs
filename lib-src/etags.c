@@ -6260,7 +6260,7 @@ readline (lbp, stream)
 
 	  if (DEBUG) start = 0;	/* shut up the compiler */
 	  if (sscanf (lbp->buffer, "#line %d %n\"", &lno, &start) >= 1
-	      && inp[start] == '"')
+	      && lbp->buffer[start] == '"')
 	    {
 	      char *endp = lbp->buffer + ++start;
 
