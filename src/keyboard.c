@@ -8385,7 +8385,15 @@ follow_key (key, nmaps, current, defs, next)
    such as Vfunction_key_map and Vkey_translation_map.  */
 typedef struct keyremap
 {
-  Lisp_Object map, parent;
+  /* This is the map originally specified for this use.  */
+  Lisp_Object parent;
+  /* This is a submap reached by looking up, in PARENT,
+     the events from START to END.  */
+  Lisp_Object map;
+  /* Positions [START, END) in the key sequence buffer
+     are the key that we have scanned so far.
+     Those events are the ones that we will replace
+     if PAREHT maps them into a key sequence.  */
   int start, end;
 } keyremap;
 
@@ -8458,7 +8466,11 @@ keyremap_step (keybuf, bufsize, fkey, input, doit, diff, prompt)
   Lisp_Object next, key;
 
   key = keybuf[fkey->end++];
-  next = access_keymap_keyremap (fkey->map, key, prompt, doit);
+
+  if (KEYMAPP (fkey->parent))
+    next = access_keymap_keyremap (fkey->map, key, prompt, doit);
+  else
+    next = Qnil;
 
   /* If keybuf[fkey->start..fkey->end] is bound in the
      map and we're in a position to do the key remapping, replace it with
@@ -8656,9 +8668,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   delayed_switch_frame = Qnil;
   fkey.map = fkey.parent = Vfunction_key_map;
   keytran.map = keytran.parent = Vkey_translation_map;
-  /* If there is no translation-map, turn off scanning.  */
-  fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
-  keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
+  fkey.start = fkey.end = 0;
+  keytran.start = keytran.end = 0;
 
   if (INTERACTIVE)
     {
@@ -9486,8 +9497,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	      keybuf[t - 1] = new_key;
 	      mock_input = max (t, mock_input);
-	      fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
-	      keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
+	      fkey.start = fkey.end = 0;
+	      keytran.start = keytran.end = 0;
 
 	      goto replay_sequence;
 	    }
