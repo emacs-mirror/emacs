@@ -1,3 +1,9 @@
+2006-08-09  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (keyremap_step): No-op if fkey->parent = nil.
+	(read_key_sequence): Always start fkey.start and fkey.end at 0,
+	and likewise for keytran.
+
 2006-08-09  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (syms_of_coding): Improve the docstring
