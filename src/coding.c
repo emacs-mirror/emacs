@@ -7968,8 +7968,9 @@ the file contents.
 If VAL is a cons of coding systems, the car part is used for decoding,
 and the cdr part is used for encoding.
 If VAL is a function symbol, the function must return a coding system
-or a cons of coding systems which are used as above.  The function gets
-the arguments with which `find-operation-coding-system' was called.
+or a cons of coding systems which are used as above.  The function is
+called with an argument that is a list of the arguments with which
+`find-operation-coding-system' was called.
 
 See also the function `find-operation-coding-system'
 and the variable `auto-coding-alist'.  */);
