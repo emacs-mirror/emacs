@@ -1,3 +1,7 @@
+2006-08-09  Richard Stallman  <rms@gnu.org>
+
+	* TUTORIAL: Don't say which side scroll bar is on.
+
 2006-08-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* DEBUG (Note): Add note about following a longjmp call.
