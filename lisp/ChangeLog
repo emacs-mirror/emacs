@@ -1,3 +1,8 @@
+2006-08-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Fix for the case that the 2nd element of arg-list is a cons.
+
 2006-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info.el (Info-fontify-node): Handle preceding `in' for note
