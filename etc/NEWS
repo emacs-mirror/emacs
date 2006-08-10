@@ -1771,9 +1771,8 @@ type "C-h i m org RET" to read that manual.  A reference card is
 available in `etc/orgcard.tex' and `etc/orgcard.ps'.
 
 +++
-** The new package dns-mode.el add syntax highlight of DNS master files.
-The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
-to increment the SOA serial.
+** The new package dns-mode.el adds syntax highlighting of DNS master files.
+It is a modern replacement for zone-mode.el, which is now obsolete.
 
 ---
 ** The new global minor mode `file-name-shadow-mode' modifies the way
@@ -3511,6 +3510,9 @@ variable `calculator-radix-grouping-mode'.
 
 ---
 ** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
+
+---
+** zone-mode.el is now obsolete.  Use dns-mode.el instead.
 
 ---
 ** cplus-md.el has been deleted.
