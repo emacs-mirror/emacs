@@ -1,3 +1,8 @@
+2006-08-10  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-glob.el (eshell-glob-chars-list)
+	(eshell-glob-translate-alist): Add support for [^g] in character globs.
+
 2006-08-10  Richard Stallman  <rms@gnu.org>
 
 	* facemenu.el (facemenu-add-face): Pass frame to facemenu-active-faces.
