@@ -1,3 +1,14 @@
+2006-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c: Define in_sighandler.
+	(input_available_signal): Set in_sighandler.
+	(init_keyboard): Initialize in_sighandler.
+
+	* keyboard.h: Declare in_sighandler.
+
+	* alloc.c (UNBLOCK_INPUT_ALLOC, BLOCK_INPUT_ALLOC): Use in_sighandler
+	to check if mutex should be locked or not.
+
 2006-08-09  Richard Stallman  <rms@gnu.org>
 
 	* keyboard.c (keyremap_step): No-op if fkey->parent = nil.
