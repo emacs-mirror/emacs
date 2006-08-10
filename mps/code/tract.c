@@ -22,7 +22,7 @@ static void ChunkDecache(Arena arena, Chunk chunk);
 
 /* TractArena -- get the arena of a tract */
 
-#define TractArena(seg) PoolArena(TractPool(tract))
+#define TractArena(tract) PoolArena(TractPool(tract))
 
 
 /* TractCheck -- check the integrity of a tract */
