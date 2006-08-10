@@ -90,6 +90,18 @@
   :type 'sexp
   :group 'dns-mode)
 
+(defcustom dns-mode-soa-auto-increment-serial t
+  "Whether to increment the SOA serial number automatically.
+
+If this variable is t, the serial number is incremented upon each save of
+the file.  If it is `ask', Emacs asks for confirmation whether it should
+increment the serial upon saving.  If nil, serials must be incremented
+manually with \\[dns-mode-soa-increment-serial]."
+  :type '(choice (const :tag "Always" t)
+		 (const :tag "Ask" ask)
+		 (const :tag "Never" nil))
+  :group 'dns-mode)
+
 ;; Syntax table.
 
 (defvar dns-mode-syntax-table
@@ -135,7 +147,11 @@ Turning on DNS mode runs `dns-mode-hook'."
   (unless (featurep 'xemacs)
     (set (make-local-variable 'font-lock-defaults)
 	 '(dns-mode-font-lock-keywords nil nil ((?_ . "w")))))
+  (add-hook 'write-contents-functions 'dns-mode-soa-maybe-increment-serial
+	    nil t)
   (easy-menu-add dns-mode-menu dns-mode-map))
+
+;;;###autoload (defalias 'zone-mode 'dns-mode)
 
 ;; Tools.
 
@@ -191,6 +207,19 @@ Turning on DNS mode runs `dns-mode-hook'."
 	      (replace-match new nil nil nil 1)
 	      (message "Replaced old serial %s with %s" serial new))
 	  (error "Cannot locate serial number in SOA record"))))))
+
+(defun dns-mode-soa-maybe-increment-serial ()
+  "Increment SOA serial if needed.
+
+This function is run from `write-contents-functions'."
+  (when (and (buffer-modified-p)
+	     dns-mode-soa-auto-increment-serial
+	     (or (eq dns-mode-soa-auto-increment-serial t)
+		 (y-or-n-p "Increment SOA serial? ")))
+    ;; We must return nil.  If `dns-mode-soa-increment-serial' signals
+    ;; an error saving will fail but that probably means that the
+    ;; serial should be fixed to comply with the RFC anyway! -rfr
+    (progn (dns-mode-soa-increment-serial) nil)))
 
 ;;;###autoload(add-to-list 'auto-mode-alist '("\\.soa\\'" . dns-mode))
 

@@ -1,3 +1,13 @@
+2006-08-10  Romain Francoise  <romain@orebokech.com>
+
+	* textmodes/dns-mode.el: Alias `zone-mode' to `dns-mode'.
+	(dns-mode-soa-auto-increment-serial): New user option.
+	(dns-mode-soa-maybe-increment-serial): New function.
+	(dns-mode): Add the latter to `write-contents-functions'.
+
+	* obsolete/zone-mode.el: Move to obsolete/ from net/.
+	Delete autoload cookies.
+
 2006-08-10  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/em-glob.el (eshell-glob-chars-list)

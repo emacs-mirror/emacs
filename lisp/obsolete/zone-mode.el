@@ -64,7 +64,6 @@
 	    (error "Serial numbers want to move backwards from %s to %s" old-serial new-serial)
 	  (replace-match (concat cur-date new-seq old-flag) t t))))))
 
-;;;###autoload
 (defun zone-mode-update-serial-hook ()
   "Update the serial number in a zone if the file was modified."
   (interactive)
@@ -82,7 +81,6 @@
   (modify-syntax-entry ?\; "<" zone-mode-syntax-table)
   (modify-syntax-entry ?\n ">" zone-mode-syntax-table))
 
-;;;###autoload
 (define-derived-mode zone-mode fundamental-mode "zone"
   "A mode for editing DNS zone files.
 
