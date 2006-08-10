@@ -134,18 +134,24 @@ just before \"Other\" at the end."
 
 (defcustom facemenu-listed-faces nil
   "*List of faces to include in the Face menu.
-Each element should be a symbol, which is the name of a face.
+Each element should be a symbol, the name of a face.
 The \"basic \" faces in `facemenu-keybindings' are automatically
-added to the Face menu, and are not included in this list.
+added to the Face menu, and need not be in this list.
 
-You can set this list before loading facemenu.el, or add a face to it before
-creating that face if you want it to be listed.  If you change the
-variable so as to eliminate faces that have already been added to the menu,
-call `facemenu-update' to recalculate the menu contents.
+This value takes effect when you load facemenu.el.  If the
+list includes symbols which are not defined as faces, they
+are ignored; however, subsequently defining or creating
+those faces adds them to the menu then.  You can call
+`facemenu-update' to recalculate the menu contents, such as
+if you change the value of this variable,
 
-If this variable is t, all faces will be added to the menu.  This
-is useful for setting temporarily if you want to add faces to the
-menu when they are created."
+If this variable is t, all faces that you apply to text
+using the face menu commands (even by name), and all faces
+that you define or create, are added to the menu.  You may
+find it useful to set this variable to t temporarily while
+you define some faces, so that they will be added.  However,
+if the value is no longer t and you call `facemenu-update',
+it will remove any faces not explicitly in the list."
   :type '(choice (const :tag "List all faces" t)
 		 (const :tag "None" nil)
 		 (repeat symbol))
