@@ -2575,7 +2575,7 @@ MSG is printed after `::::} '."
 	      (overlay-arrow-string overlay-arrow-string)
 	      (cursor-in-echo-area nil)
 	      (default-cursor-in-non-selected-windows t)
-	      (unread-command-events nil)
+	      (unread-command-events unread-command-events)
 	      ;; any others??
 	      )
 	  (if (not (buffer-name edebug-buffer))
@@ -2664,6 +2664,7 @@ MSG is printed after `::::} '."
 
 	   (t (message "")))
 
+	  (setq unread-command-events nil)
 	  (if (eq 'after edebug-arg-mode)
 	      (progn
 		;; Display result of previous evaluation.
