@@ -1,3 +1,7 @@
+2006-08-10  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* mule.texi (Recognize Coding, Text Coding): Fix typos.
+
 2006-08-10  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Format Faces): Substantial rewrites to deal
@@ -51,7 +55,7 @@
 	* building.texi (GDB commands in Fringe): Rename to...
 	(Source Buffers): ..this and move forward.  Describe hollow arrow and
 	new option gdb-find-source-frame.
-	
+
 2006-07-29  Richard Stallman  <rms@gnu.org>
 
 	* dired.texi (Operating on Files): Simplify previous change
@@ -65,7 +69,7 @@
 2006-07-28  Richard Stallman  <rms@gnu.org>
 
 	* mark.texi (Transient Mark): Clarify that region never disappears
-	when Transient Mark mode is off, and not when it is on.	
+	when Transient Mark mode is off, and not when it is on.
 
 2006-07-27  Richard Stallman  <rms@gnu.org>
 
@@ -75,15 +79,15 @@
 
 	* xresources.texi (GTK styles): Fix texinfo usage.
 
-	* pgg.texi, org.texi, info.texi, forms.texi, flymake.texi: 
+	* pgg.texi, org.texi, info.texi, forms.texi, flymake.texi:
 	* faq.texi: Move periods and commas inside quotes.
 
 	* commands.texi (User Input): Explain why we teach keyboard cmds.
-	
-	* xresources.texi, xresmini.texi, search.texi, programs.texi: 
-	* misc.texi, kmacro.texi, killing.texi, glossary.texi: 
-	* fortran-xtra.texi, files.texi, emacs.texi, emacs-xtra.texi: 
-	* doclicense.texi, display.texi, dired.texi, basic.texi: 
+
+	* xresources.texi, xresmini.texi, search.texi, programs.texi:
+	* misc.texi, kmacro.texi, killing.texi, glossary.texi:
+	* fortran-xtra.texi, files.texi, emacs.texi, emacs-xtra.texi:
+	* doclicense.texi, display.texi, dired.texi, basic.texi:
 	* anti.texi, ack.texi: Move periods and commas inside quotes.
 
 2006-07-22  Eli Zaretskii  <eliz@gnu.org>
