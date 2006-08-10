@@ -2556,6 +2556,7 @@ MSG is printed after `::::} '."
 	(edebug-outside-buffer (current-buffer))
 	(edebug-outside-point (point))
  	(edebug-outside-mark (edebug-mark))
+	(edebug-outside-unread-command-events unread-command-events)
 	edebug-outside-windows		; window or screen configuration
 	edebug-buffer-points
 
@@ -2574,6 +2575,7 @@ MSG is printed after `::::} '."
 	      (overlay-arrow-string overlay-arrow-string)
 	      (cursor-in-echo-area nil)
 	      (default-cursor-in-non-selected-windows t)
+	      (unread-command-events nil)
 	      ;; any others??
 	      )
 	  (if (not (buffer-name edebug-buffer))
@@ -2681,8 +2683,7 @@ MSG is printed after `::::} '."
 	   ((eq edebug-execution-mode 'trace)
 	    (edebug-sit-for edebug-sit-for-seconds)) ; Force update and pause.
 	   ((eq edebug-execution-mode 'Trace-fast)
-	    (edebug-sit-for 0))		; Force update and continue.
-	   )
+	    (edebug-sit-for 0)))		; Force update and continue.
 
 	  (unwind-protect
 	      (if (or edebug-stop
@@ -2778,6 +2779,7 @@ MSG is printed after `::::} '."
       (with-timeout-unsuspend edebug-with-timeout-suspend)
       ;; Reset global variables to outside values in case they were changed.
       (setq
+       unread-command-events edebug-outside-unread-command-events
        overlay-arrow-position edebug-outside-o-a-p
        overlay-arrow-string edebug-outside-o-a-s
        cursor-in-echo-area edebug-outside-c-i-e-a
@@ -2868,7 +2870,6 @@ MSG is printed after `::::} '."
 
 	(edebug-outside-last-input-event last-input-event)
 	(edebug-outside-last-command-event last-command-event)
-	(edebug-outside-unread-command-events unread-command-events)
 	(edebug-outside-last-event-frame last-event-frame)
 	(edebug-outside-last-nonmenu-event last-nonmenu-event)
 	(edebug-outside-track-mouse track-mouse)
@@ -2890,7 +2891,6 @@ MSG is printed after `::::} '."
 	      ;; More for Emacs 19
 	      (last-input-event nil)
 	      (last-command-event nil)
-	      (unread-command-events nil)
 	      (last-event-frame nil)
 	      (last-nonmenu-event nil)
 	      (track-mouse nil)
@@ -2950,7 +2950,6 @@ MSG is printed after `::::} '."
        last-command edebug-outside-last-command
        this-command edebug-outside-this-command
        unread-command-char edebug-outside-unread-command-char
-       unread-command-events edebug-outside-unread-command-events
        current-prefix-arg edebug-outside-current-prefix-arg
        last-input-char edebug-outside-last-input-char
        last-input-event edebug-outside-last-input-event
