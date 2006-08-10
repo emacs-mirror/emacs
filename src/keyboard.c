@@ -100,6 +100,9 @@ int interrupt_input_pending;
 /* File descriptor to use for input.  */
 extern int input_fd;
 
+/* Nonzero if we are executing from the SIGIO signal handler. */
+int in_sighandler;
+
 #ifdef HAVE_WINDOW_SYSTEM
 /* Make all keyboard buffers much bigger when using X windows.  */
 #ifdef MAC_OS8
@@ -6924,6 +6927,8 @@ input_available_signal (signo)
   SIGNAL_THREAD_CHECK (signo);
 #endif
 
+  in_sighandler = 1;
+
   if (input_available_clear_time)
     EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 
@@ -6935,6 +6940,7 @@ input_available_signal (signo)
   sigfree ();
 #endif
   errno = old_errno;
+  in_sighandler = 0;
 }
 #endif /* SIGIO */
 
@@ -10802,6 +10808,7 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
+  in_sighandler = 0;
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
