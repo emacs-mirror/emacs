@@ -130,17 +130,27 @@ static pthread_mutex_t alloc_mutex;
 #define BLOCK_INPUT_ALLOC                       \
   do                                            \
     {                                           \
-      pthread_mutex_lock (&alloc_mutex);        \
-      if (pthread_self () == main_thread)       \
-        BLOCK_INPUT;                            \
+      if (!in_sighandler)                       \
+        {                                       \
+           pthread_mutex_lock (&alloc_mutex);   \
+           if (pthread_self () == main_thread)  \
+             BLOCK_INPUT;                       \
+           else                                 \
+             sigblock (sigmask (SIGIO));        \
+        }                                       \
     }                                           \
   while (0)
 #define UNBLOCK_INPUT_ALLOC                     \
   do                                            \
     {                                           \
-      if (pthread_self () == main_thread)       \
-        UNBLOCK_INPUT;                          \
-      pthread_mutex_unlock (&alloc_mutex);      \
+      if (!in_sighandler)                       \
+        {                                       \
+           pthread_mutex_unlock (&alloc_mutex); \
+           if (pthread_self () == main_thread)  \
+             UNBLOCK_INPUT;                     \
+           else                                 \
+             sigunblock (sigmask (SIGIO));      \
+        }                                       \
     }                                           \
   while (0)
 
