@@ -320,19 +320,24 @@ variables."
 
 ;;;###autoload
 (defun facemenu-set-face (face &optional start end)
-  "Add FACE to the region or next character typed.
-This adds FACE to the top of the face list; any faces lower on the list that
-will not show through at all will be removed.
+  "Apply FACE to the region or next character typed.
 
-Interactively, reads the face name with the minibuffer.
+If the region is active (normally true except in Transient
+Mark mode) and nonempty, and there is no prefix argument,
+this command applies FACE to the region.  Otherwise, it applies FACE
+to the faces to use for the next character
+inserted.  (Moving point or switching buffers before typing
+a character to insert cancels the specification.)
 
-If the region is active (normally true except in Transient Mark mode)
-and there is no prefix argument, this command sets the region to the
-requested face.
+If FACE is `default', to \"apply\" it means clearing
+the list of faces to be used.  For any other value of FACE,
+to \"apply\" it means putting FACE at the front of the list
+of faces to be used, and removing any faces further
+along in the list that would be completely overridden by
+preceding faces (including FACE).
 
-Otherwise, this command specifies the face for the next character
-inserted.  Moving point or switching buffers before
-typing a character to insert cancels the specification."
+This command can also add FACE to the menu of faces,
+if `facemenu-listed-faces' says to do that."
   (interactive (list (progn
 		       (barf-if-buffer-read-only)
 		       (read-face-name "Use face"))
@@ -612,7 +617,12 @@ effect.  See `facemenu-remove-face-function'."
 				      (cons face
 					    (if (listp prev)
 						prev
-					      (list prev)))))))
+					      (list prev)))
+				      ;; Specify the selected frame
+				      ;; because nil would mean to use
+				      ;; the new-frame default settings,
+				      ;; and those are usually nil.
+				      (selected-frame)))))
 	      (setq part-start part-end)))
 	(setq self-insert-face (if (eq last-command self-insert-face-command)
 				   (cons face (if (listp self-insert-face)
@@ -655,9 +665,8 @@ use the selected frame.  If t, then the global, non-frame faces are used."
     (nreverse active-list)))
 
 (defun facemenu-add-new-face (face)
-  "Add FACE (a face) to the Face menu.
-
-This is called whenever you create a new face."
+  "Add FACE (a face) to the Face menu if `facemenu-listed-faces' says so.
+This is called whenever you create a new face, and at other times."
   (let* (name
 	 symbol
 	 menu docstring
