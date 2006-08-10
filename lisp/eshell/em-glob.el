@@ -97,7 +97,7 @@ This option slows down recursive glob processing by quite a bit."
   :type 'boolean
   :group 'eshell-glob)
 
-(defcustom eshell-glob-chars-list '(?\] ?\[ ?* ?? ?~ ?\( ?\) ?| ?#)
+(defcustom eshell-glob-chars-list '(?\] ?\[ ?* ?? ?~ ?\( ?\) ?| ?# ?^)
   "*List of additional characters used in extended globbing."
   :type '(repeat character)
   :group 'eshell-glob)
@@ -105,6 +105,7 @@ This option slows down recursive glob processing by quite a bit."
 (defcustom eshell-glob-translate-alist
   '((?\] . "]")
     (?\[ . "[")
+    (?^  . "^")
     (??  . ".")
     (?*  . ".*")
     (?~  . "~")
