@@ -216,12 +216,12 @@ This function is run from `before-save-hook'."
 	     dns-mode-soa-auto-increment-serial
 	     (or (eq dns-mode-soa-auto-increment-serial t)
 		 (y-or-n-p "Increment SOA serial? ")))
-    ;; If `dns-mode-soa-increment-serial' signals
-    ;; an error saving will fail but that probably means that the
-    ;; serial should be fixed to comply with the RFC anyway! -rfr
+    ;; If `dns-mode-soa-increment-serial' signals an error saving will
+    ;; fail but that probably means that the serial should be fixed to
+    ;; comply with the RFC anyway! -rfr
     (progn (dns-mode-soa-increment-serial)
-           ;; We return nil in case this is used in write-contents-functions.
-           nil)))
+	   ;; We return nil in case this is used in write-contents-functions.
+	   nil)))
 
 ;;;###autoload(add-to-list 'auto-mode-alist '("\\.soa\\'" . dns-mode))
 
