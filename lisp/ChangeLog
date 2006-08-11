@@ -1,3 +1,7 @@
+2006-08-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/dns-mode.el (dns-mode): Use before-save-hook.
+
 2006-08-11  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/bindat.el (bindat-ip-to-string):

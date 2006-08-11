@@ -147,7 +147,7 @@ Turning on DNS mode runs `dns-mode-hook'."
   (unless (featurep 'xemacs)
     (set (make-local-variable 'font-lock-defaults)
 	 '(dns-mode-font-lock-keywords nil nil ((?_ . "w")))))
-  (add-hook 'write-contents-functions 'dns-mode-soa-maybe-increment-serial
+  (add-hook 'before-save-hook 'dns-mode-soa-maybe-increment-serial
 	    nil t)
   (easy-menu-add dns-mode-menu dns-mode-map))
 
@@ -211,15 +211,17 @@ Turning on DNS mode runs `dns-mode-hook'."
 (defun dns-mode-soa-maybe-increment-serial ()
   "Increment SOA serial if needed.
 
-This function is run from `write-contents-functions'."
+This function is run from `before-save-hook'."
   (when (and (buffer-modified-p)
 	     dns-mode-soa-auto-increment-serial
 	     (or (eq dns-mode-soa-auto-increment-serial t)
 		 (y-or-n-p "Increment SOA serial? ")))
-    ;; We must return nil.  If `dns-mode-soa-increment-serial' signals
+    ;; If `dns-mode-soa-increment-serial' signals
     ;; an error saving will fail but that probably means that the
     ;; serial should be fixed to comply with the RFC anyway! -rfr
-    (progn (dns-mode-soa-increment-serial) nil)))
+    (progn (dns-mode-soa-increment-serial)
+           ;; We return nil in case this is used in write-contents-functions.
+           nil)))
 
 ;;;###autoload(add-to-list 'auto-mode-alist '("\\.soa\\'" . dns-mode))
 
