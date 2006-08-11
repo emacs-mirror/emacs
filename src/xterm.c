@@ -10584,6 +10584,11 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo->cut_buffers_initialized = 0;
 
+  dpyinfo->x_dnd_atoms_size = 8;
+  dpyinfo->x_dnd_atoms_length = 0;
+  dpyinfo->x_dnd_atoms = xmalloc (sizeof (*dpyinfo->x_dnd_atoms)
+                                  * dpyinfo->x_dnd_atoms_size);
+
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;
 
