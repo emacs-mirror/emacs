@@ -2677,8 +2677,48 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   return ret;
 }
 
-/* Convert an XClientMessageEvent to a Lisp event of type DRAG_N_DROP_EVENT.
-   TODO: Check if this client event really is a DND event?  */
+DEFUN ("x-register-dnd-atom", Fx_register_dnd_atom,
+       Sx_register_dnd_atom, 1, 2, 0,
+       doc: /* Request that dnd events are made for ClientMessages with ATOM.
+ATOM can be a symbol or a string.  The ATOM is interned on the display that
+FRAME is on.  If FRAME is nil, the selected frame is used.  */)
+    (atom, frame)
+    Lisp_Object atom, frame;
+{
+  Atom x_atom;
+  struct frame *f = check_x_frame (frame);
+  size_t i;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+
+  if (SYMBOLP (atom))
+    x_atom = symbol_to_x_atom (dpyinfo, FRAME_X_DISPLAY (f), atom);
+  else if (STRINGP (atom))
+    {
+      BLOCK_INPUT;
+      x_atom = XInternAtom (FRAME_X_DISPLAY (f), (char *) SDATA (atom), False);
+      UNBLOCK_INPUT;
+    }
+  else
+    error ("ATOM must be a symbol or a string");
+
+  for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i) 
+    if (dpyinfo->x_dnd_atoms[i] == x_atom)
+      return Qnil;
+
+  if (dpyinfo->x_dnd_atoms_length == dpyinfo->x_dnd_atoms_size) 
+    {
+      dpyinfo->x_dnd_atoms_size *= 2;
+      dpyinfo->x_dnd_atoms = xrealloc (dpyinfo->x_dnd_atoms,
+                                       sizeof (*dpyinfo->x_dnd_atoms)
+                                       * dpyinfo->x_dnd_atoms_size);
+    }
+
+  dpyinfo->x_dnd_atoms[dpyinfo->x_dnd_atoms_length++] = x_atom;
+  return Qnil;
+}
+
+/* Convert an XClientMessageEvent to a Lisp event of type DRAG_N_DROP_EVENT.  */
 
 int
 x_handle_dnd_message (f, event, dpyinfo, bufp)
@@ -2694,6 +2734,12 @@ x_handle_dnd_message (f, event, dpyinfo, bufp)
   int x, y;
   unsigned char *data = (unsigned char *) event->data.b;
   int idata[5];
+  size_t i;
+
+  for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i) 
+    if (dpyinfo->x_dnd_atoms[i] == event->message_type) break;
+
+  if (i == dpyinfo->x_dnd_atoms_length) return 0;
 
   XSETFRAME (frame, f);
 
@@ -2867,6 +2913,7 @@ syms_of_xselect ()
 
   defsubr (&Sx_get_atom_name);
   defsubr (&Sx_send_client_message);
+  defsubr (&Sx_register_dnd_atom);
 
   reading_selection_reply = Fcons (Qnil, Qnil);
   staticpro (&reading_selection_reply);
