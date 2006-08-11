@@ -1,3 +1,7 @@
+2006-08-11  Romain Francoise  <romain@orebokech.com>
+
+	* ack.texi (Acknowledgments): Delete mention to zone-mode.el.
+
 2006-08-10  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
 
 	* mule.texi (Recognize Coding, Text Coding): Fix typos.
