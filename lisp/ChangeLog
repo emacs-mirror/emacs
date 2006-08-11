@@ -1,8 +1,6 @@
-2006-08-10  Chong Yidong  <cyd@stupidchicken.com>
+2006-08-11  Romain Francoise  <romain@orebokech.com>
 
-	* emacs-lisp/edebug.el (edebug-recursive-edit): Don't save and
-	restore unread-command-events here.
-	(edebug-display): Do it here, to detect sit-for interruptions.
+	* obsolete/zone-mode.el: Delete.
 
 2006-08-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -16,6 +14,12 @@
 2006-08-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-init-frame): Call x-register-dnd-atom.
+
+2006-08-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/edebug.el (edebug-recursive-edit): Don't save and
+	restore unread-command-events here.
+	(edebug-display): Do it here, to detect sit-for interruptions.
 
 2006-08-10  Romain Francoise  <romain@orebokech.com>
 
