@@ -1,3 +1,16 @@
+2006-08-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (Fx_register_dnd_atom): New function.
+	(syms_of_xselect): Defsubr it.
+	(x_handle_dnd_message): Check that message_type is in 
+	dpyinfo->x_dnd_atoms before generating lisp event.
+
+	* xterm.h (struct x_display_info): Add x_dnd_atoms* to keep track
+	of drag and drop Atoms.
+
+	* xterm.c (x_term_init): Initialize dpyinfo->x_dnd_atoms*
+
+
 2006-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c: Define in_sighandler.
