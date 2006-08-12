@@ -1,5 +1,7 @@
 2006-08-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* faq.texi (How to add fonts): New node.
+
 	* misc.texi (Saving Emacs Sessions): Clarify when desktop is restored
 	on startup.
 
