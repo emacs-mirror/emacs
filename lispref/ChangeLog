@@ -1,3 +1,9 @@
+2006-08-12  Kevin Ryde  <user42@zip.com.au>
+
+	* os.texi (Time Parsing): Add %z to description of
+	format-time-string, as per docstring.  Add cross reference to
+	glibc manual for strftime.
+
 2006-08-08  Richard Stallman  <rms@gnu.org>
 
 	* modes.texi: Clean up wording in previous change.

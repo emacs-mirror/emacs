@@ -1,3 +1,8 @@
+2006-08-12  Robert Thorpe <rthorpe@realworldtech.com>  (tiny change)
+
+	* cus-start.el <indent-tabs-mode>: Move to the `indent'
+	customization group.
+
 2006-08-12  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-prior-bindings, allout-added-bindings):
