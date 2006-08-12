@@ -1993,6 +1993,7 @@ using hi-lock-mode in an initialization file will turn on Hi Lock in all
 buffers and no warning will be issued (for compatibility with the
 behavior in older versions of Emacs).
 
+---
 ** Changes in Allout
 
 *** Topic cryptography added, enabling easy gpg topic encryption and
@@ -2001,11 +2002,19 @@ clear-text within a single file to your heart's content, using symmetric
 and/or public key modes.  Time-limited key caching, user-provided
 symmetric key hinting and consistency verification, auto-encryption of
 pending topics on save, and more, make it easy to use encryption in
-powerful ways.
+powerful ways.  Encryption behavior customization is collected in the
+allout-encryption customization group.
 
 *** `allout-view-change-hook' marked as being deprecated - use
-`allout-exposure-change-hook' instead.  Both are currently being used, but
-`allout-view-change-hook' will be ignored in a subsequent allout version.
+`allout-exposure-change-hook' instead.  Both are still invoked, but
+`allout-view-change-hook' will eventually be ignored.  The new
+`allout-exposure-change-hook' is called with args that were passed to
+`allout-flag-region', making it easier to use.
+
+*** Other allout functions which change the outline structure also have
+hooks, enabling cooperative allout enhancements.  See
+`allout-structure-added-hook', `allout-structure-deleted-hook', and
+`allout-structure-shifted-hook'.
 
 *** Default command prefix changed to "\C-c " (control-c space), to avoid
 intruding on user's keybinding space.  Customize the
@@ -2016,23 +2025,43 @@ concealed text, instead of selective-display.  This simplifies the code, in
 particular avoiding the need for kludges for isearch dynamic-display,
 discretionary handling of edits of concealed text, undo concerns, etc.
 
+*** Some previously rough topic-header format edge cases are reconciled.
+Level 1 topics use the mode's comment format, and lines starting with the
+asterisk - for instance, the comment close of some languages (eg, c's "*/"
+or mathematica's "*)") - at the beginning of line are no longer are
+interpreted as level 1 topics in those modes.  (Yay!)
+
 *** Many substantial fixes and refinements, including:
 
-   - repaired inhibition of inadvertent edits to concealed text
-   - repaired retention of topic body hanging indent upon topic depth shifts
+   - repaired regexp-quoting of custom header prefixes, so any literals
+     will now work (for instance, mathematica's "(*" is now properly
+     accepted).
+   - repaired inhibition of inadvertent edits to concealed text.
    - refuse to create "containment discontinuities", where a
      topic is shifted deeper than the offspring-depth of its' container
    - auto-fill-mode is now left inactive when allout-mode starts, if it
      already was inactive.  also, `allout-inhibit-auto-fill' custom
      configuration variable makes it easy to disable auto fill in allout
      outlines in general or on a per-buffer basis.
-   - new hook `allout-mode-deactivate-hook', for coordinating with
-     deactivation of allout-mode.
+   - mode hook changes: new hook `allout-mode-deactivate-hook', for
+     coordinating with deactivation of allout-mode.  `allout-mode-hook' is
+     now run after the `allout-mode' variable is changed, as is the new
+     `allout-mode-deactivate-hook'.
+   - allout now tolerates fielded text in outlines without disruption.
+   - hot-spot navigation now is modularized with a new function,
+     `allout-hotspot-key-handler', enabling easier articulation and
+     enhancement of the functionality by allout addons.
+   - topic body navigation is easier, where repeated beginning of line and
+     end of line key commands cycle through the actually beginning/end of
+     line and then beginning/end of topic, etc.  see new customization vars
+     `allout-beginning-of-line-cycles' and `allout-end-of-line-cycles'.
+   - repaired retention of topic body hanging indent upon topic depth shifts
    - bulleting variation is simpler and more accommodating, both in the
      default behavior and in ability to vary when creating new topics
    - mode deactivation now does cleans up effectively, more properly
      restoring affected variables and hooks to former state, removing
-     overlays, etc.
+     overlays, etc.  see `allout-add-resumptions' and
+     `allout-do-resumptions', which replace the old `allout-resumptions'.
    - included a few unit-tests for interior functionality.  developers can
      have them automatically run at the end of module load by customizing
      the option `allout-run-unit-tests-on-load'.
