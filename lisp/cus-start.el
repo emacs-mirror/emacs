@@ -175,7 +175,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; indent.c
-	     (indent-tabs-mode fill boolean)
+	     (indent-tabs-mode indent boolean)
 	     ;; keyboard.c
 	     (meta-prefix-char keyboard character)
 	     (auto-save-interval auto-save integer)
