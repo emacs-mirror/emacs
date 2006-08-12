@@ -1,3 +1,12 @@
+2006-08-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-frame-separate-io-buffer)
+	(gdb-use-separate-io-buffer, menu): Avoid using `inferior' in text.
+	(gdb-memory-mode, gdb-locals-watch-map): Don't quote lambda
+	expressions.
+	(gdb-info-breakpoints-custom): Only search till end of line.
+	Add face to function names in case of no filename.
+
 2006-08-12  Robert Thorpe <rthorpe@realworldtech.com>  (tiny change)
 
 	* cus-start.el <indent-tabs-mode>: Move to the `indent'
