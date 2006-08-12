@@ -1999,9 +1999,10 @@ subsequent Emacs sessions reload the saved desktop.
 @vindex desktop-save-mode
   You can save the desktop manually with the command @kbd{M-x
 desktop-save}.  You can also enable automatic desktop saving when
-you exit Emacs: use the Customization buffer (@pxref{Easy
-Customization}) to set @code{desktop-save-mode} to @code{t} for future
-sessions, or add this line in your @file{~/.emacs} file:
+you exit Emacs and its restoring when Emacs starts: use the
+Customization buffer (@pxref{Easy Customization}) to set
+@code{desktop-save-mode} to @code{t} for future sessions, or add this
+line in your @file{~/.emacs} file:
 
 @example
 (desktop-save-mode 1)
@@ -2009,7 +2010,8 @@ sessions, or add this line in your @file{~/.emacs} file:
 
 @findex desktop-change-dir
 @findex desktop-revert
-  When Emacs starts, it looks for a saved desktop in the current
+  If you turn on @code{desktop-save-mode} in your @file{~/.emacs},
+then when Emacs starts, it looks for a saved desktop in the current
 directory.  Thus, you can have separate saved desktops in different
 directories, and the starting directory determines which one Emacs
 reloads.  You can save the current desktop and reload one saved in
@@ -2018,7 +2020,10 @@ another directory by typing @kbd{M-x desktop-change-dir}.  Typing
 
   Specify the option @samp{--no-desktop} on the command line when you
 don't want it to reload any saved desktop.  This turns off
-@code{desktop-save-mode} for the current session.
+@code{desktop-save-mode} for the current session.  Starting Emacs with
+the @samp{--no-init-file} option also disables desktop reloading,
+since it bypasses the @file{.emacs} init file, where
+@code{desktop-save-mode} is usually turned on.
 
 @vindex desktop-restore-eager
   By default, all the buffers in the desktop are restored at one go.
