@@ -1,3 +1,87 @@
+2006-08-12  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-prior-bindings, allout-added-bindings):
+	Remove, after long deprecation.
+	(allout-beginning-of-line-cycles, allout-end-of-line-cycles):
+	Add customization vars controlling allout-beginning-of-line and
+	allout-end-of-line conveniences.
+	(allout-header-prefix, allout-use-mode-specific-leader)
+	(allout-use-mode-specific-leader, allout-mode-leaders): Revised
+	docstrings.
+	(allout-infer-header-lead): Change to be an alias for
+	allout-infer-header-lead-and-primary-bullet.
+	(allout-infer-header-lead-and-primary-bullet): New version of
+	allout-infer-header-lead which assigns the primary bullet to the
+	same as the header lead, when its being changed.
+	(allout-infer-body-reindent): Apply regexp-quote instead of
+	unconditionally prepending "\\", so that all literal
+	allout-header-prefix and allout-primary-bullet strings are
+	properly handled.
+	(allout-add-resumptions): Add optional qualifier for extending or
+	appending to existing values, rather than replacing them.
+	(allout-view-change-hook): Clarify docstring.
+	(allout-exposure-change-hook): Take explicit arguments, via
+	run-hook-with-args.
+	(allout-structure-added-hook)
+	(allout-structure-deleted-hook)
+	(allout-structure-shifted-hook): New hooks analogous to
+	allout-exposure-change-hook for other kinds of structural outline
+	edits.
+	(allout-encryption-plaintext-sanitization-regexps): New encryption
+	customization variable, by which cooperating modes can provde
+	massage of the plaintext without actually being passed it.
+	(allout-encryption-ciphertext-rejection-regexps)
+	(allout-encryption-ciphertext-rejection-ceiling): New encryption
+	customization variables, by which cooperating modes can prohibit
+	rare but possible ciphertext patterns from fouling their
+	operation, with actually being passed the ciphertext.
+	(allout-mode): Run activation and deactivation hooks after the
+	minor-mode variable has been toggled, to clarify the mode
+	disposition.  The new encryption ciphertext rejection variable is
+	used to ensure that the ciphertext does not contain text that
+	would be recognized as outline structural elements by allout.
+	Substite allout-beginning-of-line and allout-end-of-line for
+	conventionall beginning-of-line and end-of-line bindings.
+	If allout-old-style-prefixes is non-nil, don't nullify it on mode
+	activation!
+	(allout-beginning-of-line): Respect `allout-beginning-of-line-cycles'.
+	(allout-end-of-line): Respect `allout-end-of-line-cycles'.
+	(allout-chart-subtree): Implement new mode, charting only the
+	visible items in the subtree, when new 'visible' parameter is
+	non-nil.
+	(allout-end-of-subtree): Properly handle the last item in the
+	buffer.
+	(allout-pre-command-business, allout-command-counter): Increment
+	an advertised counter so that cooperating enhancements can track
+	revisions of items.
+	(allout-open-topic): Run allout-structure-added-hook with suitable
+	arguments.
+	(allout-shift-in): Run allout-structure-shifted-hook with suitable
+	arguments.
+	(allout-shift-out): Fix doubling for negative args and ensure call
+	of allout-structure-shifted-hook by solely using allout-shift-in.
+	(allout-kill-line, allout-kill-topic): Run
+	allout-structure-deleted-hook with suitable arguments.
+	(allout-yank-processing): Run allout-structure-added-hook with
+	proper arguments.
+	(allout-yank): Enclose activity in allout-unprotected.
+	(allout-flag-region): Run allout-exposure-change-hook with
+	suitable arguments, instead of making the callee infer the
+	arguments.
+	(allout-encrypt-string): Support
+	allout-encryption-plaintext-sanitization-regexps,
+	allout-encryption-ciphertext-rejection-regexps, and
+	allout-encryption-ciphertext-rejection-ceiling.  Indicate correct
+	en/de cryption mode in symmetric encryption failure message.
+	(allout-obtain-passphrase): Use copy-sequence to get a distinct
+	copy of the passphrase, and don't zero it or we'll corrupt the
+	stashed copy.
+	(allout-create-encryption-passphrase-verifier)
+	(allout-verify-passphrase): Respect the new signature for
+	allout-encrypt-string.
+	(allout-get-configvar-values): Convenience for getting a
+	configuration variable value and handling its absence gracefully.
+
 2006-08-11  Romain Francoise  <romain@orebokech.com>
 
 	* obsolete/zone-mode.el: Delete.
