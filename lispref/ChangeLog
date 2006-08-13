@@ -1,3 +1,21 @@
+2006-08-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Near Point): Say "cursor" not "terminal cursor".
+	(Commands for Insertion): Removed split-line since it's not
+	relevant for Lisp programming.
+	(Yank Commands): Rewrite introduction.
+	(Undo): Clarify.
+	(Maintaining Undo): Clarify.  Document undo-ask-before-discard.
+	(Filling): Remove redundant comment.  Clarify return value of
+	current-justification.
+	(Margins): Minor clarifications.
+	(Adaptive Fill): Update default value of adaptive-fill-regexp.
+	(Sorting): Update definition of sort-lines.
+	(Columns): Clarify behavior of sort-columns.
+	(Indent Tabs): Link to Tab Stops in Emacs manual.
+	(Special Properties): Clarify.
+	(Clickable Text): Mention Buttons package.
+
 2006-08-12  Kevin Ryde  <user42@zip.com.au>
 
 	* os.texi (Time Parsing): Add %z to description of
