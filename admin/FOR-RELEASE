@@ -46,65 +46,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 * DOCUMENTATION
 
-** Check the Emacs Lisp manual.
-
-Each manual section should be checked for factual correctness
-regarding recent changes by at least two people.  After each file
-name, on the same line or the following line, come the names of the
-people who have checked it.
-
-SECTION                  READERS
-----------------------------------
-lispref/abbrevs.texi     "Luc Teirlinck"   Chong Yidong
-lispref/advice.texi      Joakim Verona     Chong Yidong
-lispref/anti.texi        Chong Yidong      Kim F. Storm
-lispref/backups.texi     "Luc Teirlinck"   Chong Yidong
-lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
-lispref/calendar.texi    Joakim Verona     Chong Yidong
-lispref/commands.texi    "Luc Teirlinck"   Chong Yidong
-lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
-lispref/control.texi     "Luc Teirlinck"   Chong Yidong
-lispref/customize.texi   Chong Yidong      "Luc Teirlinck"
-lispref/debugging.texi   Joakim Verona     Lute Kamstra
-lispref/display.texi     Chong Yidong      Jason Rumney
-lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
-lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
-lispref/errors.texi      "Luc Teirlinck"   Chong Yidong
-lispref/eval.texi        "Luc Teirlinck"   Chong Yidong
-lispref/files.texi       "Luc Teirlinck"   Chong Yidong
-lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
-lispref/functions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/hash.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/help.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/hooks.texi	 Lute Kamstra      Chong Yidong
-lispref/internals.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/intro.texi	 "Luc Teirlinck"   Josh Varner
-lispref/keymaps.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
-lispref/locals.texi      Chong Yidong      Nick Roberts
-lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
-lispref/maps.texi        Chong Yidong	   Kim F. Storm
-lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
-lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
-lispref/modes.texi	 Chong Yidong      (double-checked)
-lispref/nonascii.texi    "Luc Teirlinck"   Chong Yidong
-lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
-lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/processes.texi   Chong Yidong	   ttn
-lispref/searching.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/strings.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/symbols.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/syntax.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/text.texi        Chong Yidong      (double-checked)
-lispref/tips.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/variables.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/windows.texi     "Luc Teirlinck"   Chong Yidong
-
 ** Check the Emacs Tutorial.
 
 The first line of every tutorial must begin with text ending in a period
