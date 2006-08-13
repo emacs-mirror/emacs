@@ -4,8 +4,10 @@
 	(gdb-use-separate-io-buffer, menu): Avoid using `inferior' in text.
 	(gdb-memory-mode, gdb-locals-watch-map): Don't quote lambda
 	expressions.
-	(gdb-info-breakpoints-custom): Only search till end of line.
+	(gdb-info-breakpoints-custom): Use gdb-breakpoint-regexp.
+	Only search till end of line.
 	Add face to function names in case of no filename.
+	Add face to variable names of watchpoints.
 
 2006-08-12  Robert Thorpe <rthorpe@realworldtech.com>  (tiny change)
 
