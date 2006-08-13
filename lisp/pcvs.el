@@ -2287,7 +2287,7 @@ this file, or a list of arguments to send to the program."
   (interactive "DNew repository: ")
   (if (or (file-directory-p (expand-file-name "CVSROOT" newroot))
 	  (y-or-n-p (concat "Warning: no CVSROOT found inside repository."
-			    " Change cvs-cvsroot anyhow?")))
+			    " Change cvs-cvsroot anyhow? ")))
       (setq cvs-cvsroot newroot)))
 
 ;;;;

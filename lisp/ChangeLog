@@ -1,3 +1,12 @@
+2006-08-13  Romain Francoise  <romain@orebokech.com>
+
+	* cus-theme.el (customize-create-theme)
+	(custom-theme-visit-theme): End `y-or-n-p' prompt with a space.
+
+	* filesets.el (filesets-add-buffer): Ditto.
+
+	* pcvs.el (cvs-change-cvsroot): Ditto.
+
 2006-08-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-frame-separate-io-buffer)
