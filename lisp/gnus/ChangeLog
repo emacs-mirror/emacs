@@ -1,3 +1,8 @@
+2006-08-13  Romain Francoise  <romain@orebokech.com>
+
+	* mm-extern.el (mm-extern-mail-server): End `y-or-n-p' prompt with a
+	space.
+
 2006-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnheader.el (nnheader-insert-head): Make it work with Mac as well.
