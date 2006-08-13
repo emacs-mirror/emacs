@@ -1,6 +1,7 @@
 2006-08-13  Romain Francoise  <romain@orebokech.com>
 
-	* erc-match.el (erc-log-matches-make-buffer): Add missing space.
+	* erc-match.el (erc-log-matches-make-buffer): End `y-or-n-p'
+	prompt with a space.
 
 2006-08-07  Michael Olson  <mwolson@gnu.org>
 
