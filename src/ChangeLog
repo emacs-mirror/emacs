@@ -1,3 +1,8 @@
+2006-08-14  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (pitx): Print iterator position.
+	Limit stack dump in case iterator is not initialized.
+
 2006-08-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (Fmouse_position, Fmouse_pixel_position)
@@ -7,7 +12,7 @@
 
 	* xselect.c (Fx_register_dnd_atom): New function.
 	(syms_of_xselect): Defsubr it.
-	(x_handle_dnd_message): Check that message_type is in 
+	(x_handle_dnd_message): Check that message_type is in
 	dpyinfo->x_dnd_atoms before generating lisp event.
 
 	* xterm.h (struct x_display_info): Add x_dnd_atoms* to keep track
