@@ -2679,7 +2679,14 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       goto non_reread;
     }
 
-  timer_start_idle ();
+  /* Start idle timers.  If a time limit is supplied, we don't reset
+     idle timers.  This avoids an infinite recursion in case an idle
+     timer calls `sit-for'.  */
+
+  if (end_time)
+    timer_resume_idle ();
+  else
+    timer_start_idle ();
 
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
@@ -2879,7 +2886,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       /* Actually read a character, waiting if necessary.  */
       save_getcjmp (save_jump);
       restore_getcjmp (local_getcjmp);
-      timer_start_idle ();
+      if (end_time)
+	timer_resume_idle ();
+      else
+	timer_start_idle ();
       c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
       restore_getcjmp (save_jump);
 
