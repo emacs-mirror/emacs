@@ -1,3 +1,8 @@
+2006-08-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (menu-bar-edit-menu): Disable paste if buffer is
+	read only.
+
 2006-08-13  Romain Francoise  <romain@orebokech.com>
 
 	* cus-theme.el (customize-create-theme)

@@ -2513,8 +2513,9 @@ order until succeed.")
     (yank)))
 
 (define-key menu-bar-edit-menu [paste]
-  (cons "Paste" (cons "Paste text from clipboard or kill ring"
-		      'x-clipboard-yank)))
+  '(menu-item "Paste" x-clipboard-yank
+	      :enable (not buffer-read-only)
+	      :help "Paste (yank) text most recently cut/copied"))
 
 ;; Initiate drag and drop
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)
