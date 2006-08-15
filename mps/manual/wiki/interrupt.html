@@ -61,6 +61,15 @@
   if the thread exceeds it.  This could cause a problem if that 
   thread is in MPS code at the time of the fault. </p>
 
+<p> The Windows runtime environment seems to do something about 
+  stack fault prevention / detection / handling, as governed by 
+  the /Gs (for compilations) and /GZ (for linking) options.  
+  From release 1.105 MPS uses...@@@@
+  See <a href="../build-notes/index.txt">build notes</a>.</p>
+
+<p> [Note: it seems that the current MPS has not fully addressed 
+  the issue of stack faults. @@@@  </p>
+
 
 <h3> Preventing stack faults </h3>
 
@@ -98,7 +107,8 @@
 
 <p> [Note: if <code>THREAD_SINGLE</code> and
   <code>PROTECTION_NONE</code> are defined, the 
-  stack probe is skipped.  RHSK 2006-07-25, reading <code>//info.ravenbrook.com/project/mps/master/code/global.c#18</code>.] </p>
+  stack probe is skipped.  This is probably wrong.
+  RHSK 2006-07-25, reading <code>//info.ravenbrook.com/project/mps/master/code/global.c#18</code>.] </p>
 
 
 <h2><a id="section-B" name="section-B">B. Document History</a></h2>
