@@ -1,3 +1,8 @@
+2006-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): Don't change idle timer state at all if
+	end_time is supplied.
+
 2006-08-15  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (ONE_MORE_BYTE_CHECK_MULTIBYTE): New arg RET.  If SRC

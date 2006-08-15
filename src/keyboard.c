@@ -2679,13 +2679,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       goto non_reread;
     }
 
-  /* Start idle timers.  If a time limit is supplied, we don't reset
-     idle timers.  This avoids an infinite recursion in case an idle
-     timer calls `sit-for'.  */
+  /* Start idle timers if no time limit is supplied.  We don't do it
+     if a time limit is supplied to avoid an infinite recursion in the
+     situation where an idle timer calls `sit-for'.  */
 
-  if (end_time)
-    timer_resume_idle ();
-  else
+  if (!end_time)
     timer_start_idle ();
 
   /* If in middle of key sequence and minibuffer not active,
@@ -2756,7 +2754,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
 
       /* Now that we have read an event, Emacs is not idle.  */
-      timer_stop_idle ();
+      if (!end_time)
+	timer_stop_idle ();
 
       goto exit;
     }
@@ -2886,9 +2885,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       /* Actually read a character, waiting if necessary.  */
       save_getcjmp (save_jump);
       restore_getcjmp (local_getcjmp);
-      if (end_time)
-	timer_resume_idle ();
-      else
+      if (!end_time)
 	timer_start_idle ();
       c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
       restore_getcjmp (save_jump);
@@ -2941,7 +2938,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 
  non_reread:
 
-  timer_stop_idle ();
+  if (!end_time)
+    timer_stop_idle ();
   RESUME_POLLING;
 
   if (NILP (c))
@@ -2975,7 +2973,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       last_input_char = c;
       Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
 
-      if (CONSP (c) && EQ (XCAR (c), Qselect_window))
+      if (CONSP (c) && EQ (XCAR (c), Qselect_window) && !end_time)
 	/* We stopped being idle for this event; undo that.  This
 	   prevents automatic window selection (under
 	   mouse_autoselect_window from acting as a real input event, for
@@ -3181,7 +3179,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       show_help_echo (help, window, object, position, 0);
 
       /* We stopped being idle for this event; undo that.  */
-      timer_resume_idle ();
+      if (!end_time)
+	timer_resume_idle ();
       goto retry;
     }
 
