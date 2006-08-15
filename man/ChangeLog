@@ -1,3 +1,9 @@
+2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Installation, Activation): Split from Installation and
+	Activation. 
+	(Clocking work time): Documented new features.
+
 2006-08-15  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Stack Buffer): Explain fringe arrow.

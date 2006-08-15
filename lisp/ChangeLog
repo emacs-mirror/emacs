@@ -1,3 +1,30 @@
+2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-clock-special-range,
+	org-clock-update-time-maybe): New functions.
+	(org-stamp-time-of-day-regexp): Allow weekday to be of word chars,
+	not only a-z.
+	(org-agenda-get-blocks): Allow multiple blocks per headline.
+	(org-timestamp-change): Call `org-clock-update-time-maybe'.
+	(org-export-html-title-format)
+	(org-export-html-toplevel-hlevel): New options.
+	(org-export-language-setup): Added support for Czech.
+	(org-mode, org-insert-todo-heading, org-find-visible)
+	(org-find-invisible, org-invisible-p, org-invisible-p2)
+	(org-back-to-heading, org-on-heading-p, org-up-heading-all)
+	(org-show-subtree, org-show-entry, org-make-options-regexp):
+	Removed compatibility support for old outline-mode.
+	(org-check-occur-regexp): Funtion removed.
+	(org-on-heading-p, org-back-to-heading): Made defalias.
+	(org-set-local): New defsubst.
+	(org-set-regexps-and-options, org-mode)
+	(org-set-font-lock-defaults, org-edit-agenda-file-list)
+	(org-timeline, org-agenda-list, org-todo-list, org-tags-view)
+	(org-remember-apply-template, org-table-edit-field)
+	(org-table-edit-formulas, orgtbl-mode, org-export-as-ascii)
+	(org-set-autofill-regexps): Use `org-set-local'.
+	(org-table-eval-formula): Fixed bug with parsing of display flags.
+
 2006-08-15  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-stack-custom): Indicate selected
