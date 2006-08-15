@@ -115,6 +115,7 @@ address for root variables.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gud-old-arrow nil)
 (defvar gdb-overlay-arrow-position nil)
+(defvar gdb-stack-position nil)
 (defvar gdb-server-prefix nil)
 (defvar gdb-flush-pending-output nil)
 (defvar gdb-location-alist nil
@@ -1296,6 +1297,7 @@ not GDB."
 	(setq gud-old-arrow gud-overlay-arrow-position)
 	(setq gud-overlay-arrow-position nil)
 	(setq gdb-overlay-arrow-position nil)
+	(setq gdb-stack-position nil)
 	(if gdb-use-separate-io-buffer
 	    (setq gdb-output-sink 'inferior))))
      (t
@@ -1330,6 +1332,7 @@ directives."
   (setq gdb-active-process nil)
   (setq gud-overlay-arrow-position nil)
   (setq gdb-overlay-arrow-position nil)
+  (setq gdb-stack-position nil)
   (setq gud-old-arrow nil)
   (setq gdb-inferior-status "exited")
   (gdb-force-mode-line-update
@@ -2037,8 +2040,14 @@ static char *magick[] = {
 	    (goto-char bl)
 	    (when (looking-at "^#\\([0-9]+\\)")
 	      (when (string-equal (match-string 1) gdb-frame-number)
-		(put-text-property bl (+ bl 4)
-				   'face '(:inverse-video t)))
+		(if (> (car (window-fringes)) 0)
+		    (progn
+		      (or gdb-stack-position
+			  (setq gdb-stack-position (make-marker)))
+		      (set-marker gdb-stack-position (point)))
+		  (set-marker gdb-stack-position nil)
+		  (put-text-property bl (+ bl 4)
+				     'face '(:inverse-video t))))
 	      (when (re-search-forward
 		     (concat
 		      (if (string-equal (match-string 1) "0") "" " in ")
@@ -2109,6 +2118,8 @@ static char *magick[] = {
   (kill-all-local-variables)
   (setq major-mode 'gdb-frames-mode)
   (setq mode-name "Frames")
+  (setq gdb-stack-position nil)
+  (add-to-list 'overlay-arrow-variable-list 'gdb-stack-position)
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
   (run-mode-hooks 'gdb-frames-mode-hook)
@@ -2912,12 +2923,13 @@ Kills the gdb buffers, and resets variables and the source buffers."
 	      (setq gud-minor-mode nil)
 	      (kill-local-variable 'tool-bar-map)
 	      (kill-local-variable 'gdb-define-alist))))))
-  (when (markerp gdb-overlay-arrow-position)
-    (move-marker gdb-overlay-arrow-position nil)
-    (setq gdb-overlay-arrow-position nil))
+  (setq gdb-overlay-arrow-position nil)
   (setq overlay-arrow-variable-list
 	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
   (setq fringe-indicator-alist '((overlay-arrow . right-triangle)))
+  (setq gdb-stack-position nil)
+  (setq overlay-arrow-variable-list
+	(delq 'gdb-stack-position overlay-arrow-variable-list))
   (if (boundp 'speedbar-frame) (speedbar-timer-fn))
   (setq gud-running nil)
   (setq gdb-active-process nil)
@@ -3139,8 +3151,7 @@ BUFFER nil or omitted means use the current buffer."
 			    '((overlay-arrow . hollow-right-triangle))))
 		    (or gdb-overlay-arrow-position
 			(setq gdb-overlay-arrow-position (make-marker)))
-		    (set-marker gdb-overlay-arrow-position
-				(point) (current-buffer))))))
+		    (set-marker gdb-overlay-arrow-position (point))))))
 	;; remove all breakpoint-icons in assembler buffer before updating.
 	(gdb-remove-breakpoint-icons (point-min) (point-max))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
