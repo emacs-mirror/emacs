@@ -219,14 +219,15 @@ encode_coding_XXX (coding, source, destination, src_bytes, dst_bytes)
 
 
 /* Like ONE_MORE_BYTE, but 8-bit bytes of data at SRC are in multibyte
-   form if MULTIBYTEP is nonzero.  */
+   form if MULTIBYTEP is nonzero.  In addition, if SRC is not less
+   than SRC_END, return with RET.  */
 
-#define ONE_MORE_BYTE_CHECK_MULTIBYTE(c1, multibytep)		\
+#define ONE_MORE_BYTE_CHECK_MULTIBYTE(c1, multibytep, ret)	\
   do {								\
     if (src >= src_end)						\
       {								\
 	coding->result = CODING_FINISH_INSUFFICIENT_SRC;	\
-	goto label_end_of_loop;					\
+	return ret;						\
       }								\
     c1 = *src++;						\
     if (multibytep && c1 == LEADING_CODE_8_BIT_CONTROL)		\
@@ -632,15 +633,15 @@ detect_coding_emacs_mule (src, src_end, multibytep)
 
   while (1)
     {
-      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
-
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep,
+				     CODING_CATEGORY_MASK_EMACS_MULE);
       if (composing)
 	{
 	  if (c < 0xA0)
 	    composing = 0;
 	  else if (c == 0xA0)
 	    {
-	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, 0);
 	      c &= 0x7F;
 	    }
 	  else
@@ -669,8 +670,6 @@ detect_coding_emacs_mule (src, src_end, multibytep)
 	    }
 	}
     }
- label_end_of_loop:
-  return CODING_CATEGORY_MASK_EMACS_MULE;
 }
 
 
@@ -1425,9 +1424,9 @@ detect_coding_iso2022 (src, src_end, multibytep)
   Lisp_Object safe_chars;
 
   reg[0] = CHARSET_ASCII, reg[1] = reg[2] = reg[3] = -1;
-  while (mask && src < src_end)
+  while (mask)
     {
-      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, mask & mask_found);
     retry:
       switch (c)
 	{
@@ -1435,11 +1434,11 @@ detect_coding_iso2022 (src, src_end, multibytep)
 	  if (inhibit_iso_escape_detection)
 	    break;
 	  single_shifting = 0;
-	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, mask & mask_found);
 	  if (c >= '(' && c <= '/')
 	    {
 	      /* Designation sequence for a charset of dimension 1.  */
-	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c1, multibytep);
+	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c1, multibytep, mask & mask_found);
 	      if (c1 < ' ' || c1 >= 0x80
 		  || (charset = iso_charset_table[0][c >= ','][c1]) < 0)
 		/* Invalid designation sequence.  Just ignore.  */
@@ -1449,13 +1448,14 @@ detect_coding_iso2022 (src, src_end, multibytep)
 	  else if (c == '$')
 	    {
 	      /* Designation sequence for a charset of dimension 2.  */
-	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+	      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, mask & mask_found);
 	      if (c >= '@' && c <= 'B')
 		/* Designation for JISX0208.1978, GB2312, or JISX0208.  */
 		reg[0] = charset = iso_charset_table[1][0][c];
 	      else if (c >= '(' && c <= '/')
 		{
-		  ONE_MORE_BYTE_CHECK_MULTIBYTE (c1, multibytep);
+		  ONE_MORE_BYTE_CHECK_MULTIBYTE (c1, multibytep,
+						 mask & mask_found);
 		  if (c1 < ' ' || c1 >= 0x80
 		      || (charset = iso_charset_table[1][c >= ','][c1]) < 0)
 		    /* Invalid designation sequence.  Just ignore.  */
@@ -1630,7 +1630,8 @@ detect_coding_iso2022 (src, src_end, multibytep)
 		  c = -1;
 		  while (src < src_end)
 		    {
-		      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+		      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep,
+						     mask & mask_found);
 		      if (c < 0xA0)
 			break;
 		      i++;
@@ -1648,7 +1649,6 @@ detect_coding_iso2022 (src, src_end, multibytep)
 	  break;
 	}
     }
- label_end_of_loop:
   return (mask & mask_found);
 }
 
@@ -2919,20 +2919,18 @@ detect_coding_sjis (src, src_end, multibytep)
 
   while (1)
     {
-      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, CODING_CATEGORY_MASK_SJIS);
       if (c < 0x80)
 	continue;
       if (c == 0x80 || c == 0xA0 || c > 0xEF)
 	return 0;
       if (c <= 0x9F || c >= 0xE0)
 	{
-	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, 0);
 	  if (c < 0x40 || c == 0x7F || c > 0xFC)
 	    return 0;
 	}
     }
- label_end_of_loop:
-  return CODING_CATEGORY_MASK_SJIS;
 }
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
@@ -2951,17 +2949,15 @@ detect_coding_big5 (src, src_end, multibytep)
 
   while (1)
     {
-      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, CODING_CATEGORY_MASK_BIG5);
       if (c < 0x80)
 	continue;
       if (c < 0xA1 || c > 0xFE)
 	return 0;
-      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, 0);
       if (c < 0x40 || (c > 0x7F && c < 0xA1) || c > 0xFE)
 	return 0;
     }
- label_end_of_loop:
-  return CODING_CATEGORY_MASK_BIG5;
 }
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
@@ -2989,7 +2985,7 @@ detect_coding_utf_8 (src, src_end, multibytep)
 
   while (1)
     {
-      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, CODING_CATEGORY_MASK_UTF_8);
       if (UTF_8_1_OCTET_P (c))
 	continue;
       else if (UTF_8_2_OCTET_LEADING_P (c))
@@ -3007,16 +3003,13 @@ detect_coding_utf_8 (src, src_end, multibytep)
 
       do
 	{
-	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+	  ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, 0);
 	  if (!UTF_8_EXTRA_OCTET_P (c))
 	    return 0;
 	  seq_maybe_bytes--;
 	}
       while (seq_maybe_bytes > 0);
     }
-
- label_end_of_loop:
-  return CODING_CATEGORY_MASK_UTF_8;
 }
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
@@ -3045,15 +3038,13 @@ detect_coding_utf_16 (src, src_end, multibytep)
   struct coding_system dummy_coding;
   struct coding_system *coding = &dummy_coding;
 
-  ONE_MORE_BYTE_CHECK_MULTIBYTE (c1, multibytep);
-  ONE_MORE_BYTE_CHECK_MULTIBYTE (c2, multibytep);
+  ONE_MORE_BYTE_CHECK_MULTIBYTE (c1, multibytep, 0);
+  ONE_MORE_BYTE_CHECK_MULTIBYTE (c2, multibytep, 0);
 
   if ((c1 == 0xFF) && (c2 == 0xFE))
     return CODING_CATEGORY_MASK_UTF_16_LE;
   else if ((c1 == 0xFE) && (c2 == 0xFF))
     return CODING_CATEGORY_MASK_UTF_16_BE;
-
- label_end_of_loop:
   return 0;
 }
 
@@ -3322,12 +3313,10 @@ detect_coding_ccl (src, src_end, multibytep)
   valid = coding_system_table[CODING_CATEGORY_IDX_CCL]->spec.ccl.valid_codes;
   while (1)
     {
-      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep);
+      ONE_MORE_BYTE_CHECK_MULTIBYTE (c, multibytep, CODING_CATEGORY_MASK_CCL);
       if (! valid[c])
 	return 0;
     }
- label_end_of_loop:
-  return CODING_CATEGORY_MASK_CCL;
 }
 
 
