@@ -1,3 +1,14 @@
+2006-08-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-stack-custom): Indicate selected
+	frame with fringe arrow.  Suggested by Simon Marshall
+	<simon.marshall@misys.com>.
+	(gdb-stack-position): New variable.
+	(gdb-starting, gdb-exited): Reset gdb-stack-position to nil.
+	(gdb-frames-mode): Set gdb-stack-position to nil.  Add to
+	overlay-arrow-variable-list
+	(gdb-reset): Delete gdb-stack-position from above list.
+
 2006-08-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (menu-bar-edit-menu): Disable paste if buffer is

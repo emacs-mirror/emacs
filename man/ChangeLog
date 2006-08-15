@@ -1,3 +1,7 @@
+2006-08-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Stack Buffer): Explain fringe arrow.
+
 2006-08-13  Alex Schroeder  <alex@gnu.org>
 
 	* rcirc.texi (Configuration): Use correct variable in rcirc-authinfo
@@ -50,7 +54,7 @@
 
 	* building.texi (GDB Graphical Interface): Shorten node names.
 	(GDB-UI Layout): Use GDB-related.
-	(Stack Buffer): Simplify English.
+	(Other GDB-UI Buffers): Simplify English.
 
 2006-07-31  Richard Stallman  <rms@gnu.org>
 
