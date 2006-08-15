@@ -44,6 +44,9 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 
 ** Implement buffer-chars-modified-tick.
 
+** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem.
+
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
