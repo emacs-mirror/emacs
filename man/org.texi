@@ -3,8 +3,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.43
-@set DATE July 2006
+@set VERSION 4.44
+@set DATE August 2006
 
 @dircategory Emacs
 @direntry
@@ -98,7 +98,8 @@ Software Foundation raise funds for GNU development.''
 Introduction
 
 * Summary::                     Brief summary of what Org-mode does
-* Installation::                How to install Org-mode
+* Installation::                How to install a downloaded version of Org-mode
+* Activation::                  How to activate Org-mode for certain buffers.
 * Feedback::                    Bug reports, ideas, patches etc.
 
 Document Structure
@@ -270,7 +271,8 @@ Extensions, Hooks and Hacking
 
 @menu
 * Summary::                     Brief summary of what Org-mode does
-* Installation::                How to install Org-mode
+* Installation::                How to install a downloaded version of Org-mode
+* Activation::                  How to activate Org-mode for certain buffers.
 * Feedback::                    Bug reports, ideas, patches etc.
 @end menu
 
@@ -323,18 +325,68 @@ questions (FAQ), links to tutorials etc.  This page is located at
 
 @page
 
-@node Installation, Feedback, Summary, Introduction
-@section Installation and Activation
+@node Installation, Activation, Summary, Introduction
+@section Installation
 @cindex installation
+@cindex XEmacs
+
+@b{Important:} If Org-mode is part of the Emacs distribution or an
+XEmacs package, please skip this section and go directly to
+@ref{Activation}.
+
+If you have downloaded Org-mode from the Web, you must take the
+following steps to install it: Go into the Org-mode distribution
+directory and edit the top section of the file @file{Makefile}.  You
+must set the name of the Emacs binary (likely either @file{emacs} or
+@file{xemacs}), and the paths to the directories where local Lisp and
+Info files are kept.  If you don't have access to the system-wide
+directories, create your own two directories for these files, enter them
+into the Makefile, and make sure Emacs finds the Lisp files by adding
+the following line to @file{.emacs}:
+
+@example
+(setq load-path (cons "~/path/to/lispdir" load-path))
+@end example
+
+@b{XEmacs users now need to install the file @file{noutline.el} from
+the @file{xemacs} subdirectory of the Org-mode distribution.  Use the
+command:}
+
+@example
+@b{make install-noutline}
+@end example
+
+@noindent Now byte-compile and install the Lisp files with the shell
+commands:
+
+@example
+make
+make install
+@end example
+
+@noindent If you want to install the info documentation, use this command:
+
+@example
+make install-info
+@end example
+
+@noindent Then add to @file{.emacs}:
+
+@lisp
+;; This line only if org-mode is not part of the X/Emacs distribution.
+(require 'org-install)
+@end lisp
+
+@node Activation, Feedback, Installation, Introduction
+@section Activation
+@cindex activation
 @cindex autoload
 @cindex global keybindings
 @cindex keybindings, global
 
-If Org-mode is part of the Emacs distribution or an XEmacs package,
-you only need to copy the following lines to your @file{.emacs} file.
-The last two lines define @emph{global} keys for the commands
-@command{org-store-link} and @command{org-agenda} - please
-choose suitable keys yourself.
+Add the following lines to your @file{.emacs} file.  The last two lines
+define @emph{global} keys for the commands @command{org-store-link} and
+@command{org-agenda} - please choose suitable keys yourself.
 
 @lisp
 ;; The following lines are always needed.  Choose your own keys.
@@ -345,30 +397,17 @@ choose suitable keys yourself.
 
 Furthermore, you must activate @code{font-lock-mode} in org-mode
 buffers, because significant functionality depends on font-locking being
-active.  You can do this with either one of the following two lines:
+active.  You can do this with either one of the following two lines
+(XEmacs user must use the second option):
 @lisp
 (global-font-lock-mode 1)                     ; for all buffers
 (add-hook 'org-mode-hook 'turn-on-font-lock)  ; org-mode buffers only
 @end lisp
 
-If you have downloaded Org-mode from the Web, you must take additional
-action:  Byte-compile @file{org.el} and @file{org-publish.el} and put
-them together with @file{org-install.el} on your load path.  Then add to
-@file{.emacs}:
-
-@lisp
-;; This line only if org-mode is not part of the X/Emacs distribution.
-(require 'org-install)
-@end lisp
-
-If you use Org-mode with XEmacs, you also need to install the file
-@file{noutline.el} from the @file{xemacs} subdirectory of the Org-mode
-distribution.
-
 @cindex org-mode, turning on
-With this setup, all files with extension @samp{.org} will be put into
-Org-mode.  As an alternative, make the first line of a file look like
-this:
+With this setup, all files with extension @samp{.org} will be put
+into Org-mode.  As an alternative, make the first line of a file look
+like this:
 
 @example
 MY PROJECTS    -*- mode: org; -*-
@@ -378,7 +417,7 @@ MY PROJECTS    -*- mode: org; -*-
 the file's name is.  See also the variable
 @code{org-insert-mode-line-in-empty-file}.
 
-@node Feedback,  , Installation, Introduction
+@node Feedback,  , Activation, Introduction
 @section Feedback
 @cindex feedback
 @cindex bug reports
@@ -826,8 +865,14 @@ But in the end, not individual scenes matter but the film as a whole.
 @end group
 @end example
 
-Org-mode supports these lists by tuning filling and wrapping commands
-to deal with them correctly.  
+Org-mode supports these lists by tuning filling and wrapping commands to
+deal with them correctly@footnote{Org-mode only changes the filling
+settings for Emacs.  For XEmacs, you should use Kyle E. Jones'
+@file{filladapt.el}.  To turn is on,  put into @file{.emacs}:
+@example
+(require 'filladapt)
+@end example
+}.
 
 The following commands act on items when the cursor is in the first line
 of an item (the line with the bullet or number).
@@ -2160,7 +2205,7 @@ If you define many keywords, you can use in-buffer completion (see
 
 The second possibility is to use TODO keywords to indicate different
 types of action items.  For example, you might want to indicate that
-items are for ``work'' or ``home.''  If you are into David Allen's
+items are for ``work'' or ``home''.  If you are into David Allen's
 @emph{Getting Things DONE}, you might want to use todo types
 @samp{NEXTACTION}, @samp{WAITING}, @samp{MAYBE}.  Or, when you work
 with several people on a single project, you might want to assign
@@ -2547,7 +2592,12 @@ keyword together with a timestamp.
 Stop the clock (clock-out).  The inserts another timestamp at the same
 location where the clock was last started.  It also directly computes
 the resulting time in inserts it after the time range as @samp{=>
-HH:MM}.
+HH:MM}.  
+@kindex C-c C-y
+@item C-c C-y
+Recompute the time interval after changing one of the time stamps.  This
+is only necessary if you edit the time stamps directly.  If you change
+them with @kbd{S-@key{cursor}} keys, the update is automatic.
 @kindex C-c C-t
 @item C-c C-t
 Changing the TODO state of an item to DONE automatically stops the clock
@@ -2565,8 +2615,8 @@ can use visibility cycling to study the tree, but the overlays disappear
 automatically when the buffer is changed.
 @kindex C-c C-x C-r
 @item C-c C-x C-r
-Insert a dynamic block containing a clock report as an org-mode table
-into the current file.
+Insert a dynamic block (@pxref{Dynamic blocks}) containing a clock
+report as an org-mode table into the current file.
 @example
 #+BEGIN: clocktable :maxlevel 2 :emphasize nil
 
@@ -2578,7 +2628,32 @@ table.  The @samp{BEGIN} line can specify options:
 @example
 :maxlevels   @r{Maximum level depth to which times are listed in the table.}
 :emphasize   @r{When @code{t}, emphasize level one and level two items}
+:block       @r{The time block to consider.  This block is specified relative}
+             @r{to the current time and may be any of these keywords:}
+             @r{@code{today}, @code{yesterday}, @code{thisweek}, @code{lastweek},}
+             @r{@code{thismonth}, @code{lastmonth}, @code{thisyear}, or @code{lastyear}}.
+:tstart      @r{A time string specifying when to start considering times}
+:tend        @r{A time string specifying when to stop considering times}
 @end example
+So to get a clock summary for the current day, you could write
+@example
+#+BEGIN: clocktable :maxlevel 2 :block today
+
+#+END: clocktable
+@end example
+and to use a specific time range you could write@footnote{Note that all
+parameters must be specified in a single line - the line is broken here
+only to fit it onto the manual.}
+@example
+#+BEGIN: clocktable :tstart "<2006-08-10 Thu 10:00>" 
+                    :tend "<2006-08-10 Thu 12:00>"
+
+#+END: clocktable
+@end example
+@kindex C-u C-c C-x C-u
+@item C-u C-c C-x C-u
+Update all dynamic blocks (@pxref{Dynamic blocks}).  This is useful if
+you have several clocktable blocks in a buffer.
 @end table
 
 The @kbd{l} key may be used in the timeline (@pxref{Timeline}) and in
@@ -4653,8 +4728,7 @@ setup.  See the installation instructions in the file
 @item @file{cdlatex.el} by Carsten Dominik
 @cindex @file{cdlatex.el}
 Org-mode can make use of the cdlatex package to efficiently enter
-La@TeX{} fragments into Org-mode files.
-@file{cdlatex.el} is not part of Emacs, find it on the web.
+La@TeX{} fragments into Org-mode files. See @ref{CDLaTeX mode}.
 @item @file{remember.el} by John Wiegley
 @cindex @file{remember.el}
 Org mode cooperates with remember, see @ref{Remember}.
@@ -4784,7 +4858,7 @@ caused by the preparations for the 22.1 release.  In the mean time,
 @url{http://dto.freeshell.org/e/org-publish.el}.
 @cindex @file{org-blog.el}
 @item @file{org-blog.el} by David O'Toole
-A blogging plug-in for @file{org-publish.el}.
+A blogging plug-in for @file{org-publish.el}.@*
 @url{http://dto.freeshell.org/notebook/OrgMode.html}.
 @cindex @file{org-blogging.el}
 @item @file{org-blogging.el} by  Bastien Guerry
@@ -4805,7 +4879,7 @@ to the block and can also specify parameters for the function producing
 the content of the block.
 
 @example
-#+BEGIN: myblock :parameter1 value1 :parameter2 value2 .....
+#+BEGIN: myblock :parameter1 value1 :parameter2 value2 ...
 
 #+END:
 @end example
