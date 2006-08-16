@@ -927,7 +927,7 @@ to make it write to the debugging output.  */)
 /* This function is never called.  Its purpose is to prevent
    print_output_debug_flag from being optimized away.  */
 
-int
+void
 debug_output_compilation_hack (x)
      int x;
 {
