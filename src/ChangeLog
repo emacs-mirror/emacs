@@ -1,3 +1,7 @@
+2006-08-16  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (debug_output_compilation_hack): Fix return type.
+
 2006-08-16  Richard Stallman  <rms@gnu.org>
 
 	* print.c (debug_output_compilation_hack): New function.
