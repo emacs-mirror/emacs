@@ -34,24 +34,28 @@ GNU/Linux system these might be in packages with names like `compface'
 or `faces-xface' and `netpbm' or `libgr-progs', for instance."
   (with-temp-buffer
     (insert face)
-    (and (eq 0 (apply 'call-process-region (point-min) (point-max)
-		      "uncompface"
-		      'delete '(t nil) nil))
-	 (progn
-	   (goto-char (point-min))
-	   (insert "/* Width=48, Height=48 */\n")
-	   ;; I just can't get "icontopbm" to work correctly on its
-	   ;; own in XEmacs.  And Emacs doesn't understand un-raw pbm
-	   ;; files.
-	   (if (not (featurep 'xemacs))
-	       (eq 0 (call-process-region (point-min) (point-max)
-					  "icontopbm"
-					  'delete '(t nil)))
-	     (shell-command-on-region (point-min) (point-max)
-				      "icontopbm | pnmnoraw"
-				      (current-buffer) t)
-	     t))
-	 (buffer-string))))
+    (let ((coding-system-for-read 'raw-text)
+	  ;; At least "icontopbm" doesn't work with Windows because
+	  ;; the line-break code is converted into CRLF by default.
+	  (coding-system-for-write 'binary))
+      (and (eq 0 (apply 'call-process-region (point-min) (point-max)
+			"uncompface"
+			'delete '(t nil) nil))
+	   (progn
+	     (goto-char (point-min))
+	     (insert "/* Width=48, Height=48 */\n")
+	     ;; I just can't get "icontopbm" to work correctly on its
+	     ;; own in XEmacs.  And Emacs doesn't understand un-raw pbm
+	     ;; files.
+	     (if (not (featurep 'xemacs))
+		 (eq 0 (call-process-region (point-min) (point-max)
+					    "icontopbm"
+					    'delete '(t nil)))
+	       (shell-command-on-region (point-min) (point-max)
+					"icontopbm | pnmnoraw"
+					(current-buffer) t)
+	       t))
+	   (buffer-string)))))
 
 (provide 'compface)
 

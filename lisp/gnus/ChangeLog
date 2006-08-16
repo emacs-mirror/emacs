@@ -3,6 +3,25 @@
 	* mm-extern.el (mm-extern-mail-server): End `y-or-n-p' prompt with a
 	space.
 
+2006-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* compface.el (uncompface): Use binary rather than raw-text-unix.
+
+2006-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* compface.el (uncompface): Make sure the eol conversion doesn't take
+	place when communicating with the external programs.  Reported by
+	ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+
+2006-07-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnheader.el (nnheader-insert-head): Fix typo in comment.
+
+2006-07-31  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-google-parse-1): Update regexp for author and date.
+	Make it more robust by parsing author and date independently.
+
 2006-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnheader.el (nnheader-insert-head): Make it work with Mac as well.
