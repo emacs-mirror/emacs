@@ -924,6 +924,15 @@ to make it write to the debugging output.  */)
   return character;
 }
 
+/* This function is never called.  Its purpose is to prevent
+   print_output_debug_flag from being optimized away.  */
+
+int
+debug_output_compilation_hack (x)
+     int x;
+{
+  print_output_debug_flag = x;
+}
 
 #if defined(GNU_LINUX)
 
