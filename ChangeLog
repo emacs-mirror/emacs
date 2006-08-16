@@ -1,3 +1,7 @@
+2006-08-16  Richard Stallman  <rms@gnu.org>
+
+	* INSTALL.CVS: Clean up wording.
+
 2006-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.in (PKG_CHECK_MODULES): Redirect the output of

@@ -1,3 +1,13 @@
+2006-08-16  Richard Stallman  <rms@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Clean up wording.
+
+	* mark.texi (Marking Objects): Mention term "select all".
+
+	* emacs.texi (Top): Update subnode menu.
+
+	* help.texi (Help Mode): Move node up in file.
+
 2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Installation, Activation): Split from Installation and

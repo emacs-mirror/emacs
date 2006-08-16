@@ -1,3 +1,11 @@
+2006-08-16  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Extended Menu Items): Show format of cached
+	bindings in extended menu items.
+
+	* customize.texi (Variable Definitions): Explain when the
+	standard value expression is evaluated.
+
 2006-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* commands.texi (Reading One Event): Explain idleness in

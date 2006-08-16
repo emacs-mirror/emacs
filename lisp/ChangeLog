@@ -1,3 +1,24 @@
+2006-08-16  Richard Stallman  <rms@gnu.org>
+
+	* term/x-win.el (x-clipboard-yank): Specify * in interactive spec.
+	(special-event-map): Process drag-n-drop events this way.
+
+	* simple.el (move-beginning-of-line): Test whether fields
+	would prevent motion back to line's first visible character.
+	If so, stop where the fields would stop the motion.
+
+	* newcomment.el (comment-indent): Fully update INDENT
+	before checking to see if it will change the text.
+
+	* cus-edit.el (custom-newline): New function.
+	(custom-mode-map): Bind newline to custom-newline.
+
+	* compare-w.el (compare-windows): Factor compare-ignore-whitespace
+	into ignore-whitespace.
+	Check each buffer for its skip-function.
+	Handle compare-windows-skip-whitespace special-case test
+	by returning t from default skip function.
+	
 2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-clock-special-range,
