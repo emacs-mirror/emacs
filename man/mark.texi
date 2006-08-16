@@ -369,7 +369,7 @@ negative) instead of the current page.
 
   Finally, @kbd{C-x h} (@code{mark-whole-buffer}) sets up the entire
 buffer as the region, by putting point at the beginning and the mark at
-the end.
+the end.  (In some programs this is called ``select all.'')
 
   In Transient Mark mode, all of these commands activate the mark.
 

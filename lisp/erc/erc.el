@@ -157,8 +157,8 @@ parameters and authentication."
 This can be either a string or a number."
   :group 'erc
   :type '(choice (const :tag "None" nil)
-		 (const :tag "Port number" number)
-		 (const :tag "Port string" string)))
+		 (integer :tag "Port number")
+		 (string :tag "Port string")))
 
 (defcustom erc-nick nil
   "Nickname to use if one is not provided.
@@ -822,7 +822,8 @@ See `erc-server-flood-margin' for other flood-related parameters.")
 ;; Script parameters
 
 (defcustom erc-startup-file-list
-  '("~/.ercrc.el" "~/.ercrc" ".ercrc.el" ".ercrc")
+  '("~/.emacs.d/.ercrc.el" "~/.emacs.d/.ercrc"
+    "~/.ercrc.el" "~/.ercrc" ".ercrc.el" ".ercrc")
   "List of files to try for a startup script.
 The first existent and readable one will get executed.
 
@@ -2362,6 +2363,8 @@ See also `erc-format-message' and `erc-display-line'."
 		  msg)))
     (setq string
 	  (cond
+	   ((null type)
+	    string)
 	   ((listp type)
 	    (mapc (lambda (type)
 		    (setq string
@@ -2374,7 +2377,7 @@ See also `erc-format-message' and `erc-display-line'."
     (if (not (erc-response-p parsed))
 	(erc-display-line string buffer)
       (unless (member (erc-response.command parsed) erc-hide-list)
-      (erc-put-text-property 0 (length string) 'erc-parsed parsed string)
+	(erc-put-text-property 0 (length string) 'erc-parsed parsed string)
 	(erc-put-text-property 0 (length string) 'rear-sticky t string)
 	(erc-display-line string buffer)))))
 
@@ -5241,13 +5244,11 @@ If FILE is found, return the path to it."
 (defun erc-select-startup-file ()
   "Select an ERC startup file.
 See also `erc-startup-file-list'."
-  (let ((l erc-startup-file-list)
-	(f nil))
-    (while (and (not f) l)
-      (if (file-readable-p (car l))
-	  (setq f (car l)))
-      (setq l (cdr l)))
-    f))
+  (catch 'found
+    (dolist (f erc-startup-file-list)
+      (setq f (convert-standard-filename f))
+      (when (file-readable-p f)
+	(throw 'found f)))))
 
 (defun erc-find-script-file (file)
   "Search for FILE in `default-directory', and any in `erc-script-path'."
@@ -5894,7 +5895,8 @@ All windows are opened in the current frame."
       (setq bufs (cdr bufs))
       (while bufs
 	(split-window)
-	(switch-to-buffer-other-window (car bufs))
+	(other-window 1)
+	(switch-to-buffer (car bufs))
 	(setq bufs (cdr bufs))
 	(balance-windows)))))
 
@@ -5946,12 +5948,17 @@ All windows are opened in the current frame."
    (ctcp-request-to . "==> CTCP request from %n (%u@%h) to %t: %r")
    (ctcp-too-many . "Too many CTCP queries in single message. Ignoring")
    (flood-ctcp-off . "FLOOD PROTECTION: Automatic CTCP responses turned off.")
-   (flood-strict-mode . "FLOOD PROTECTION: Switched to Strict Flood Control mode.")
-   (disconnected . "Connection failed!  Re-establishing connection...")
-   (disconnected-noreconnect . "Connection failed!  Not re-establishing connection.")
+   (flood-strict-mode
+    . "FLOOD PROTECTION: Switched to Strict Flood Control mode.")
+   (disconnected . "\n\nConnection failed!  Re-establishing connection...\n")
+   (disconnected-noreconnect
+    . "\n\nConnection failed!  Not re-establishing connection.\n")
+   (finished . "\n\n*** ERC finished ***\n")
+   (terminated . "\n\n*** ERC terminated: %e\n")
    (login . "Logging in as \'%n\'...")
    (nick-in-use . "%n is in use. Choose new nickname: ")
-   (nick-too-long . "WARNING: Nick length (%i) exceeds max NICKLEN(%l) defined by server")
+   (nick-too-long
+    . "WARNING: Nick length (%i) exceeds max NICKLEN(%l) defined by server")
    (no-default-channel . "No default channel")
    (no-invitation . "You've got no invitation")
    (no-target . "No target")

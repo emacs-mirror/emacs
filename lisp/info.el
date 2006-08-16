@@ -3806,6 +3806,8 @@ the variable `Info-file-list-for-emacs'."
                   (setq other-tag
 			(cond ((save-match-data (looking-back "\\<see"))
 			       "")
+			      ((save-match-data (looking-back "\\<in"))
+			       "")
 			      ((memq (char-before) '(nil ?\. ?! ??))
                                "See ")
 			      ((save-match-data

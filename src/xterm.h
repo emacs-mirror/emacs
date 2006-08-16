@@ -389,6 +389,12 @@ struct x_display_info
       X_WMTYPE_A,
       X_WMTYPE_B
     } wm_type;
+
+
+    /* Atoms that are drag and drop atoms */
+    Atom *x_dnd_atoms;
+    size_t x_dnd_atoms_size;
+    size_t x_dnd_atoms_length;
 };
 
 #ifdef HAVE_X_I18N

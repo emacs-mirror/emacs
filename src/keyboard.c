@@ -100,6 +100,9 @@ int interrupt_input_pending;
 /* File descriptor to use for input.  */
 extern int input_fd;
 
+/* Nonzero if we are executing from the SIGIO signal handler. */
+int in_sighandler;
+
 #ifdef HAVE_WINDOW_SYSTEM
 /* Make all keyboard buffers much bigger when using X windows.  */
 #ifdef MAC_OS8
@@ -2403,7 +2406,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
      EMACS_TIME *end_time;
 {
   volatile Lisp_Object c;
-  int count;
+  int count, jmpcount;
   jmp_buf local_getcjmp;
   jmp_buf save_jump;
   volatile int key_already_recorded = 0;
@@ -2629,11 +2632,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
      around any call to sit_for or kbd_buffer_get_event;
      it *must not* be in effect when we call redisplay.  */
 
+  jmpcount = SPECPDL_INDEX ();
   if (_setjmp (local_getcjmp))
     {
       /* We must have saved the outer value of getcjmp here,
 	 so restore it now.  */
       restore_getcjmp (save_jump);
+      unbind_to (jmpcount, Qnil);
       XSETINT (c, quit_char);
       internal_last_event_frame = selected_frame;
       Vlast_event_frame = internal_last_event_frame;
@@ -2674,7 +2679,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       goto non_reread;
     }
 
-  timer_start_idle ();
+  /* Start idle timers if no time limit is supplied.  We don't do it
+     if a time limit is supplied to avoid an infinite recursion in the
+     situation where an idle timer calls `sit-for'.  */
+
+  if (!end_time)
+    timer_start_idle ();
 
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
@@ -2744,7 +2754,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
 
       /* Now that we have read an event, Emacs is not idle.  */
-      timer_stop_idle ();
+      if (!end_time)
+	timer_stop_idle ();
 
       goto exit;
     }
@@ -2874,7 +2885,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       /* Actually read a character, waiting if necessary.  */
       save_getcjmp (save_jump);
       restore_getcjmp (local_getcjmp);
-      timer_start_idle ();
+      if (!end_time)
+	timer_start_idle ();
       c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
       restore_getcjmp (save_jump);
 
@@ -2926,7 +2938,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 
  non_reread:
 
-  timer_stop_idle ();
+  if (!end_time)
+    timer_stop_idle ();
   RESUME_POLLING;
 
   if (NILP (c))
@@ -2960,7 +2973,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       last_input_char = c;
       Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
 
-      if (CONSP (c) && EQ (XCAR (c), Qselect_window))
+      if (CONSP (c) && EQ (XCAR (c), Qselect_window) && !end_time)
 	/* We stopped being idle for this event; undo that.  This
 	   prevents automatic window selection (under
 	   mouse_autoselect_window from acting as a real input event, for
@@ -3166,7 +3179,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       show_help_echo (help, window, object, position, 0);
 
       /* We stopped being idle for this event; undo that.  */
-      timer_resume_idle ();
+      if (!end_time)
+	timer_resume_idle ();
       goto retry;
     }
 
@@ -3952,13 +3966,15 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	{
 	  EMACS_TIME duration;
 	  EMACS_GET_TIME (duration);
-	  EMACS_SUB_TIME (duration, *end_time, duration);
-	  if (EMACS_TIME_NEG_P (duration))
-	    return Qnil;
+	  if (EMACS_TIME_GE (duration, *end_time))
+	    return Qnil;	/* finished waiting */
 	  else
-	    wait_reading_process_output (EMACS_SECS (duration),
-					 EMACS_USECS (duration), 
-					 -1, 1, Qnil, NULL, 0);
+	    {
+	      EMACS_SUB_TIME (duration, *end_time, duration);
+	      wait_reading_process_output (EMACS_SECS (duration),
+					   EMACS_USECS (duration),
+					   -1, 1, Qnil, NULL, 0);
+	    }
 	}
       else
 	wait_reading_process_output (0, 0, -1, 1, Qnil, NULL, 0);
@@ -6920,6 +6936,8 @@ input_available_signal (signo)
   SIGNAL_THREAD_CHECK (signo);
 #endif
 
+  in_sighandler = 1;
+
   if (input_available_clear_time)
     EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 
@@ -6931,6 +6949,7 @@ input_available_signal (signo)
   sigfree ();
 #endif
   errno = old_errno;
+  in_sighandler = 0;
 }
 #endif /* SIGIO */
 
@@ -8381,7 +8400,15 @@ follow_key (key, nmaps, current, defs, next)
    such as Vfunction_key_map and Vkey_translation_map.  */
 typedef struct keyremap
 {
-  Lisp_Object map, parent;
+  /* This is the map originally specified for this use.  */
+  Lisp_Object parent;
+  /* This is a submap reached by looking up, in PARENT,
+     the events from START to END.  */
+  Lisp_Object map;
+  /* Positions [START, END) in the key sequence buffer
+     are the key that we have scanned so far.
+     Those events are the ones that we will replace
+     if PAREHT maps them into a key sequence.  */
   int start, end;
 } keyremap;
 
@@ -8454,7 +8481,11 @@ keyremap_step (keybuf, bufsize, fkey, input, doit, diff, prompt)
   Lisp_Object next, key;
 
   key = keybuf[fkey->end++];
-  next = access_keymap_keyremap (fkey->map, key, prompt, doit);
+
+  if (KEYMAPP (fkey->parent))
+    next = access_keymap_keyremap (fkey->map, key, prompt, doit);
+  else
+    next = Qnil;
 
   /* If keybuf[fkey->start..fkey->end] is bound in the
      map and we're in a position to do the key remapping, replace it with
@@ -8652,9 +8683,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   delayed_switch_frame = Qnil;
   fkey.map = fkey.parent = Vfunction_key_map;
   keytran.map = keytran.parent = Vkey_translation_map;
-  /* If there is no translation-map, turn off scanning.  */
-  fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
-  keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
+  fkey.start = fkey.end = 0;
+  keytran.start = keytran.end = 0;
 
   if (INTERACTIVE)
     {
@@ -9481,8 +9511,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	      keybuf[t - 1] = new_key;
 	      mock_input = max (t, mock_input);
-	      fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
-	      keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
+	      fkey.start = fkey.end = 0;
+	      keytran.start = keytran.end = 0;
 
 	      goto replay_sequence;
 	    }
@@ -10786,6 +10816,7 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
+  in_sighandler = 0;
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */

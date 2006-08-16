@@ -74,9 +74,9 @@ This displays the available Emacs packages based on keywords.
 * Key Help::		Asking what a key does in Emacs.
 * Name Help::		Asking about a command, variable or function name.
 * Apropos::		Asking what pertains to a given topic.
+* Help Mode::           Special features of Help mode and Help buffers.
 * Library Keywords::	Finding Lisp libraries by keywords (topics).
 * Language Help::       Help relating to international language support.
-* Help Mode::           Special features of Help mode and Help buffers.
 * Misc Help::		Other help commands.
 * Help Files::          Commands to display pre-written help files.
 * Help Echo::           Help on active text and tooltips (`balloon help')
@@ -390,6 +390,62 @@ display the most relevant ones first.
 the variable @code{apropos-documentation-sort-by-scores} is
 @code{nil}, apropos lists the symbols found in alphabetical order.
 
+@node Help Mode
+@section Help Mode Commands
+
+  Help buffers provide the same commands as View mode (@pxref{Misc File
+Ops}), plus a few special commands of their own.
+
+@table @kbd
+@item @key{SPC}
+Scroll forward.
+@item @key{DEL}
+Scroll backward.
+@item @key{RET}
+Follow a cross reference at point.
+@item @key{TAB}
+Move point forward to the next cross reference.
+@item S-@key{TAB}
+Move point back to the previous cross reference.
+@item Mouse-1
+@itemx Mouse-2
+Follow a cross reference that you click on.
+@item C-c C-c
+Show all documentation about the symbol at point.
+@end table
+
+  When a function name (@pxref{M-x,, Running Commands by Name}),
+variable name (@pxref{Variables}), or face name (@pxref{Faces})
+appears in the documentation, it normally appears inside paired
+single-quotes.  To view the documentation of that command, variable or
+face, you can click on the name with @kbd{Mouse-1} or @kbd{Mouse-2},
+or move point there and type @key{RET}.  Use @kbd{C-c C-b} to retrace
+your steps.
+
+@cindex URL, viewing in help
+@cindex help, viewing web pages
+@cindex viewing web pages in help
+@cindex web pages, viewing in help
+@findex browse-url
+  You can follow cross references to URLs (web pages) also.  This uses
+the @code{browse-url} command to view the page in the browser you
+choose.  @xref{Browse-URL}.
+
+@kindex @key{TAB} @r{(Help mode)}
+@findex help-next-ref
+@kindex S-@key{TAB} @r{(Help mode)}
+@findex help-previous-ref
+  There are convenient commands to move point to cross references in
+the help text.  @key{TAB} (@code{help-next-ref}) moves point down to
+the next cross reference.  @kbd{S-@key{TAB}} moves up to the previous
+cross reference (@code{help-previous-ref}).
+
+  To view all documentation about any symbol name that appears in the
+text, move point to the symbol name and type @kbd{C-c C-c}
+(@code{help-follow-symbol}).  This shows all available documentation
+about the symbol as a variable, function and/or face.  As above, use
+@kbd{C-c C-b} to retrace your steps.
+
 @node Library Keywords
 @section Keyword Search for Lisp Libraries
 
@@ -459,62 +515,6 @@ input method currently in use.  @xref{Input Methods}.
   The command @kbd{C-h C} (@code{describe-coding-system}) describes
 coding systems---either a specified coding system, or the ones
 currently in use.  @xref{Coding Systems}.
-
-@node Help Mode
-@section Help Mode Commands
-
-  Help buffers provide the same commands as View mode (@pxref{Misc File
-Ops}), plus a few special commands of their own.
-
-@table @kbd
-@item @key{SPC}
-Scroll forward.
-@item @key{DEL}
-Scroll backward.
-@item @key{RET}
-Follow a cross reference at point.
-@item @key{TAB}
-Move point forward to the next cross reference.
-@item S-@key{TAB}
-Move point back to the previous cross reference.
-@item Mouse-1
-@itemx Mouse-2
-Follow a cross reference that you click on.
-@item C-c C-c
-Show all documentation about the symbol at point.
-@end table
-
-  When a function name (@pxref{M-x,, Running Commands by Name}),
-variable name (@pxref{Variables}), or face name (@pxref{Faces})
-appears in the documentation, it normally appears inside paired
-single-quotes.  To view the documentation of that command, variable or
-face, you can click on the name with @kbd{Mouse-1} or @kbd{Mouse-2},
-or move point there and type @key{RET}.  Use @kbd{C-c C-b} to retrace
-your steps.
-
-@cindex URL, viewing in help
-@cindex help, viewing web pages
-@cindex viewing web pages in help
-@cindex web pages, viewing in help
-@findex browse-url
-  You can follow cross references to URLs (web pages) also.  This uses
-the @code{browse-url} command to view the page in the browser you
-choose.  @xref{Browse-URL}.
-
-@kindex @key{TAB} @r{(Help mode)}
-@findex help-next-ref
-@kindex S-@key{TAB} @r{(Help mode)}
-@findex help-previous-ref
-  There are convenient commands to move point to cross references in
-the help text.  @key{TAB} (@code{help-next-ref}) moves point down to
-the next cross reference.  @kbd{S-@key{TAB}} moves up to the previous
-cross reference (@code{help-previous-ref}).
-
-  To view all documentation about any symbol name that appears in the
-text, move point to the symbol name and type @kbd{C-c C-c}
-(@code{help-follow-symbol}).  This shows all available documentation
-about the symbol as a variable, function and/or face.  As above, use
-@kbd{C-c C-b} to retrace your steps.
 
 @node Misc Help
 @section Other Help Commands

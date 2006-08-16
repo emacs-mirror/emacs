@@ -599,11 +599,16 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 		    (if (and other (<= other max) (> other min))
 			;; There is a comment and it's in the range: bingo.
 			(setq indent other))))))))
+	;; Update INDENT to leave at least one space
+	;; after other nonwhite text on the line.
+	(save-excursion
+	  (skip-chars-backward " \t") 
+	  (unless (bolp)
+	    (setq indent (max indent (1+ (current-column))))))
+	;; If that's different from comment's current position, change it.
 	(unless (= (current-column) indent)
-	  ;; If that's different from current, change it.
 	  (delete-region (point) (progn (skip-chars-backward " \t") (point)))
-	  (indent-to (if (bolp) indent
-		       (max indent (1+ (current-column)))))))
+	  (indent-to indent)))
       (goto-char cpos)
       (set-marker cpos nil))))
 

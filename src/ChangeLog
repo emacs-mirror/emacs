@@ -1,3 +1,138 @@
+2006-08-16  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (debug_output_compilation_hack): Fix return type.
+
+2006-08-16  Richard Stallman  <rms@gnu.org>
+
+	* print.c (debug_output_compilation_hack): New function.
+
+2006-08-16  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (choose_write_coding_system): Use LF for end-of-line
+	in auto-saving.
+
+2006-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): Don't change idle timer state at all if
+	end_time is supplied.
+
+2006-08-15  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (ONE_MORE_BYTE_CHECK_MULTIBYTE): New arg RET.  If SRC
+	is exhausted, return with RET.
+	(detect_coding_emacs_mule, detect_coding_iso2022)
+	(detect_coding_sjis, detect_coding_big5, detect_coding_utf_8)
+	(detect_coding_utf_16, detect_coding_ccl): Adjusted for the above
+	change.
+
+2006-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): Don't reset idle timers if a time limit
+	is supplied.
+
+2006-08-14  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (pitx): Print iterator position.
+	Limit stack dump in case iterator is not initialized.
+
+2006-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (Fmouse_position, Fmouse_pixel_position)
+	(Fset_mouse_position, Fset_mouse_pixel_position): Doc fix.
+
+2006-08-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (Fx_register_dnd_atom): New function.
+	(syms_of_xselect): Defsubr it.
+	(x_handle_dnd_message): Check that message_type is in
+	dpyinfo->x_dnd_atoms before generating lisp event.
+
+	* xterm.h (struct x_display_info): Add x_dnd_atoms* to keep track
+	of drag and drop Atoms.
+
+	* xterm.c (x_term_init): Initialize dpyinfo->x_dnd_atoms*
+
+
+2006-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c: Define in_sighandler.
+	(input_available_signal): Set in_sighandler.
+	(init_keyboard): Initialize in_sighandler.
+
+	* keyboard.h: Declare in_sighandler.
+
+	* alloc.c (UNBLOCK_INPUT_ALLOC, BLOCK_INPUT_ALLOC): Use in_sighandler
+	to check if mutex should be locked or not.
+
+2006-08-09  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (keyremap_step): No-op if fkey->parent = nil.
+	(read_key_sequence): Always start fkey.start and fkey.end at 0,
+	and likewise for keytran.
+
+2006-08-09  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (syms_of_coding): Improve the docstring
+	file-coding-system-alist.
+
+2006-08-07  Andreas Schwab  <schwab@suse.de>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1120000.
+
+2006-08-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (Vchange_major_mode_hook, Qchange_major_mode_hook): New vars.
+	(Fkill_all_local_variables): Use it.
+	(syms_of_buffer): Defvar it.
+
+2006-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (w32_valid_pointer_p): New function.
+
+	* w32.h: Add prototype for w32_valid_pointer_p.
+
+	* alloc.c: Include w32.h.
+	(valid_lisp_object_p) [WINDOWSNT]: Call w32_valid_pointer_p to do
+	the job.
+
+	* keyboard.c (kbd_buffer_get_event): Return Qnil when current time
+	is exactly equal to end_time, not only when it is past that.
+
+2006-08-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): Rebalance specpdl after receiving jump.
+
+	* process.c: Reapply 2006-08-01 change.
+
+2006-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_query_font): Fix last change: use stricmp.
+
+2006-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (Fsubst_char_in_region): Redo the setup work after running
+	the before-change-functions since they may have altered the buffer.
+
+2006-08-04  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32fns.c (w32_createwindow): Handle -geometry command line option
+	and the geometry settings in the Registry.
+
+2006-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* w32fns.c (w32_query_font): Compare names by ignoring case.
+
+	* xterm.c (x_query_font): Compare names by ignoring case.
+
+2006-08-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (w32_menu_show, w32_dialog_show): Call Fsignal to quit
+	when no option selected.
+
+2006-08-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c: Revert last change.
+
 2006-08-01  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (wait_reading_process_output_unwind): New function.

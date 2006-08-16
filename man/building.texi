@@ -1001,12 +1001,13 @@ of the nested subroutine calls (@dfn{stack frames}) now active in the
 program.  @xref{Backtrace,, Backtraces, gdb, The GNU debugger}.
 
 @findex gdb-frames-select
-  The selected frame number is displayed in reverse contrast.  To
-select a frame in GDB, move point in the stack buffer to that stack
-frame and type @key{RET} (@code{gdb-frames-select}), or click
+An arrow in the fringe points to the selected frame or, if the fringe is
+not present, the number of the selected frame is displayed in reverse
+contrast.  To select a frame in GDB, move point in the stack buffer to
+that stack frame and type @key{RET} (@code{gdb-frames-select}), or click
 @kbd{Mouse-2} on a stack frame.  If the locals buffer is visible,
-selecting a stack frame updates it to display the local variables of
-the new frame.
+selecting a stack frame updates it to display the local variables of the
+new frame.
 
 @node Other GDB-UI Buffers
 @subsubsection Other Buffers
@@ -1018,7 +1019,7 @@ If the variable @code{gdb-use-separate-io-buffer} is non-@code{nil},
 the program being debugged takes its input and displays its output
 here.  Otherwise it uses the GUD buffer for that.  To toggle whether
 GUD mode uses this buffer, do @kbd{M-x gdb-use-separate-io-buffer}.
-That takes effect when you next restart the program you are debugging.
+This takes effect when you next restart the program you are debugging.
 
 The history and replay commands from Shell mode are available here,
 as are the commands to send signals to the debugged program.

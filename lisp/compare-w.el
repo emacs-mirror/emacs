@@ -167,16 +167,14 @@ on first call it advances points to the next difference,
 on second call it synchronizes points by skipping the difference,
 on third call it again advances points to the next difference and so on."
   (interactive "P")
+  (if compare-ignore-whitespace
+      (setq ignore-whitespace (not ignore-whitespace)))
   (let* (p1 p2 maxp1 maxp2 b1 b2 w2
 	    (progress 1)
 	    (opoint1 (point))
 	    opoint2
-	    (skip-func (if (if ignore-whitespace ; XOR
-                               (not compare-ignore-whitespace)
-                             compare-ignore-whitespace)
-                           (if (stringp compare-windows-whitespace)
-                               'compare-windows-skip-whitespace
-                             compare-windows-whitespace)))
+	    skip-func-1
+	    skip-func-2
 	    (sync-func (if (stringp compare-windows-sync)
                            'compare-windows-sync-regexp
                          compare-windows-sync)))
@@ -190,8 +188,19 @@ on third call it again advances points to the next difference and so on."
 	  b2 (window-buffer w2))
     (setq opoint2 p2)
     (setq maxp1 (point-max))
-    (save-excursion
-      (set-buffer b2)
+
+    (setq skip-func-1 (if ignore-whitespace
+			  (if (stringp compare-windows-whitespace)
+			      (lambda () (compare-windows-skip-whitespace)
+				t)
+			    compare-windows-whitespace)))
+
+    (with-current-buffer b2
+      (setq skip-func-2 (if ignore-whitespace
+			    (if (stringp compare-windows-whitespace)
+			      (lambda () (compare-windows-skip-whitespace)
+				t)
+			      compare-windows-whitespace)))
       (push-mark p2 t)
       (setq maxp2 (point-max)))
     (push-mark)
@@ -199,17 +208,16 @@ on third call it again advances points to the next difference and so on."
     (while (> progress 0)
       ;; If both windows have whitespace next to point,
       ;; optionally skip over it.
-      (and skip-func
+      (and skip-func-1
 	   (save-excursion
 	     (let (p1a p2a w1 w2 result1 result2)
-	       (setq result1 (funcall skip-func opoint1))
+	       (setq result1 (funcall skip-func-1 opoint1))
 	       (setq p1a (point))
 	       (set-buffer b2)
 	       (goto-char p2)
-	       (setq result2 (funcall skip-func opoint2))
+	       (setq result2 (funcall skip-func-2 opoint2))
 	       (setq p2a (point))
-	       (if (or (stringp compare-windows-whitespace)
-		       (and result1 result2 (eq result1 result2)))
+	       (if (and result1 result2 (eq result1 result2))
 		   (setq p1 p1a
 			 p2 p2a)))))
 

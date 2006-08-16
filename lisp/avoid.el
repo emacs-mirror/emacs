@@ -124,6 +124,7 @@ Only applies in mouse-avoidance-modes `animate' and `jump'."
 (defvar mouse-avoidance-pointer-shapes nil)
 (defvar mouse-avoidance-n-pointer-shapes 0)
 (defvar mouse-avoidance-old-pointer-shape nil)
+(defvar mouse-avoidance-animating-pointer nil)
 
 ;; This timer is used to run something when Emacs is idle.
 (defvar mouse-avoidance-timer nil)
@@ -243,16 +244,19 @@ You can redefine this if you want the mouse banished to a different corner."
 		(+ (cdr mouse-avoidance-state) deltay)))
     (if (or (eq mouse-avoidance-mode 'animate)
 	    (eq mouse-avoidance-mode 'proteus))
-	(let ((i 0.0))
+	(let ((i 0.0)
+	      (incr (max .1 (/ 1.0 mouse-avoidance-nudge-dist))))
+	  (setq mouse-avoidance-animating-pointer t)
 	  (while (<= i 1)
 	    (mouse-avoidance-set-mouse-position
 	     (cons (+ (car cur-pos) (round (* i deltax)))
 		   (+ (cdr cur-pos) (round (* i deltay)))))
-    	    (setq i (+ i (max .1 (/ 1.0 mouse-avoidance-nudge-dist))))
+    	    (setq i (+ i incr))
 	    (if (eq mouse-avoidance-mode 'proteus)
 		(mouse-avoidance-set-pointer-shape
 		 (mouse-avoidance-random-shape)))
-	    (sit-for mouse-avoidance-animation-delay)))
+	    (sit-for mouse-avoidance-animation-delay))
+	  (setq mouse-avoidance-animating-pointer nil))
       (mouse-avoidance-set-mouse-position (cons (+ (car (cdr cur)) deltax)
 						(+ (cdr (cdr cur)) deltay))))))
 
@@ -294,11 +298,11 @@ redefine this function to suit your own tastes."
 		   (memq 'drag modifiers)
 		   (memq 'down modifiers)))))))
 
-(defun mouse-avoidance-banish-hook ()
+(defun mouse-avoidance-banish ()
   (if (not (mouse-avoidance-ignore-p))
       (mouse-avoidance-banish-mouse)))
 
-(defun mouse-avoidance-exile-hook ()
+(defun mouse-avoidance-exile ()
   ;; For exile mode, the state is nil when the mouse is in its normal
   ;; position, and set to the old mouse-position when the mouse is in exile.
   (if (not (mouse-avoidance-ignore-p))
@@ -317,9 +321,10 @@ redefine this function to suit your own tastes."
 	       ;; but clear state anyway, to be ready for another move
 	       (setq mouse-avoidance-state nil))))))
 
-(defun mouse-avoidance-fancy-hook ()
+(defun mouse-avoidance-fancy ()
   ;; Used for the "fancy" modes, ie jump et al.
-  (if (and (not (mouse-avoidance-ignore-p))
+  (if (and (not mouse-avoidance-animating-pointer)
+	   (not (mouse-avoidance-ignore-p))
 	   (mouse-avoidance-too-close-p (mouse-position)))
       (let ((old-pos (mouse-position)))
 	(mouse-avoidance-nudge-mouse)
@@ -375,14 +380,14 @@ definition of \"random distance\".)"
 	     (eq mode 'animate)
 	     (eq mode 'proteus))
 	 (setq mouse-avoidance-timer
-	       (run-with-idle-timer 0.1 t 'mouse-avoidance-fancy-hook))
+	       (run-with-idle-timer 0.1 t 'mouse-avoidance-fancy))
 	 (setq mouse-avoidance-mode mode
 	       mouse-avoidance-state (cons 0 0)
 	       mouse-avoidance-old-pointer-shape
 	       (and (boundp 'x-pointer-shape) x-pointer-shape)))
 	((eq mode 'exile)
 	 (setq mouse-avoidance-timer
-	       (run-with-idle-timer 0.1 t 'mouse-avoidance-exile-hook))
+	       (run-with-idle-timer 0.1 t 'mouse-avoidance-exile))
 	 (setq mouse-avoidance-mode mode
 	       mouse-avoidance-state nil))
 	((or (eq mode 'banish)
@@ -390,7 +395,7 @@ definition of \"random distance\".)"
 	     (and (null mode) (null mouse-avoidance-mode))
 	     (and mode (> (prefix-numeric-value mode) 0)))
 	 (setq mouse-avoidance-timer
-	       (run-with-idle-timer 0.1 t 'mouse-avoidance-banish-hook))
+	       (run-with-idle-timer 0.1 t 'mouse-avoidance-banish))
 	 (setq mouse-avoidance-mode 'banish))
 	(t (setq mouse-avoidance-mode nil)))
   (force-mode-line-update))

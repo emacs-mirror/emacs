@@ -3180,7 +3180,15 @@ class of the file (using s to separate nested class ids)."
 (defvar gdb-script-font-lock-syntactic-keywords
   '(("^document\\s-.*\\(\n\\)" (1 "< b"))
     ;; It would be best to change the \n in front, but it's more difficult.
-    ("^en\\(d\\)\\>" (1 "> b"))))
+    ("^end\\>"
+     (0 (progn
+          (unless (eq (match-beginning 0) (point-min))
+            (put-text-property (1- (match-beginning 0)) (match-beginning 0)
+                               'syntax-table (eval-when-compile
+                                               (string-to-syntax "> b")))
+            (put-text-property (1- (match-beginning 0)) (match-end 0)
+                               'font-lock-multiline t)
+            nil))))))
 
 (defun gdb-script-font-lock-syntactic-face (state)
   (cond

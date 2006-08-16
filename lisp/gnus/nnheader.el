@@ -598,7 +598,7 @@ the line could be found."
 			(nth 1 (mm-insert-file-contents
 				file nil beg
 				(incf beg nnheader-head-chop-length))))
-		    ;; CRLF of CR might be used for the line-break code.
+		    ;; CRLF or CR might be used for the line-break code.
 		    (prog1 (not (re-search-forward "\n\r?\n\\|\r\r" nil t))
 		      (goto-char (point-max)))
 		    (or (null nnheader-max-head-length)

@@ -785,7 +785,7 @@ file.  The variable @code{file-coding-system-alist} specifies this
 correspondence.  There is a special function
 @code{modify-coding-system-alist} for adding elements to this list.  For
 example, to read and write all @samp{.txt} files using the coding system
-@code{china-iso-8bit}, you can execute this Lisp expression:
+@code{chinese-iso-8bit}, you can execute this Lisp expression:
 
 @smallexample
 (modify-coding-system-alist 'file "\\.txt\\'" 'chinese-iso-8bit)
@@ -1003,7 +1003,7 @@ of with @kbd{C-x @key{RET} f}, there is no warning if the buffer
 contains characters that the coding system cannot handle.
 
   Other file commands affected by a specified coding system include
-@kbd{C-x C-i} and @kbd{C-x C-v}, as well as the other-window variants
+@kbd{C-x i} and @kbd{C-x C-v}, as well as the other-window variants
 of @kbd{C-x C-f}.  @kbd{C-x @key{RET} c} also affects commands that
 start subprocesses, including @kbd{M-x shell} (@pxref{Shell}).  If the
 immediately following command does not use the coding system, then

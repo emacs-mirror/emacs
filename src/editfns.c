@@ -2712,6 +2712,10 @@ Both characters must have the same length of multi-byte form.  */)
      Lisp_Object start, end, fromchar, tochar, noundo;
 {
   register int pos, pos_byte, stop, i, len, end_byte;
+  /* Keep track of the first change in the buffer:
+     if 0 we haven't found it yet.
+     if < 0 we've found it and we've run the before-change-function.
+     if > 0 we've actually performed it and the value is its position.  */
   int changed = 0;
   unsigned char fromstr[MAX_MULTIBYTE_LENGTH], tostr[MAX_MULTIBYTE_LENGTH];
   unsigned char *p;
@@ -2723,6 +2727,8 @@ Both characters must have the same length of multi-byte form.  */)
   int maybe_byte_combining = COMBINING_NO;
   int last_changed = 0;
   int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
+
+ restart:
 
   validate_region (&start, &end);
   CHECK_NUMBER (fromchar);
@@ -2761,7 +2767,7 @@ Both characters must have the same length of multi-byte form.  */)
      That's faster than getting rid of things,
      and it prevents even the entry for a first change.
      Also inhibit locking the file.  */
-  if (!NILP (noundo))
+  if (!changed && !NILP (noundo))
     {
       record_unwind_protect (subst_char_in_region_unwind,
 			     current_buffer->undo_list);
@@ -2795,10 +2801,14 @@ Both characters must have the same length of multi-byte form.  */)
 		  && (len == 2 || (p[2] == fromstr[2]
 				 && (len == 3 || p[3] == fromstr[3]))))))
 	{
-	  if (! changed)
+	  if (changed < 0)
+	    /* We've already seen this and run the before-change-function;
+	       this time we only need to record the actual position. */
+	    changed = pos;
+	  else if (!changed)
 	    {
-	      changed = pos;
-	      modify_region (current_buffer, changed, XINT (end));
+	      changed = -1;
+	      modify_region (current_buffer, pos, XINT (end));
 
 	      if (! NILP (noundo))
 		{
@@ -2807,6 +2817,10 @@ Both characters must have the same length of multi-byte form.  */)
 		  if (MODIFF - 1 == current_buffer->auto_save_modified)
 		    current_buffer->auto_save_modified++;
 		}
+
+	      /* The before-change-function may have moved the gap
+		 or even modified the buffer so we should start over. */
+	      goto restart;
 	    }
 
 	  /* Take care of the case where the new character
@@ -2859,7 +2873,7 @@ Both characters must have the same length of multi-byte form.  */)
       pos++;
     }
 
-  if (changed)
+  if (changed > 0)
     {
       signal_after_change (changed,
 			   last_changed - changed, last_changed - changed);

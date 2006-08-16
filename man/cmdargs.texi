@@ -1013,7 +1013,9 @@ position of the initial Emacs frame:
 @cindex geometry, command-line argument
 Specify the size @var{width} and @var{height} (measured in character
 columns and lines), and positions @var{xoffset} and @var{yoffset}
-(measured in pixels).  This applies to all frames.
+(measured in pixels).  The @var{width} and @var{height} parameters
+apply to all frames, whereas @var{xoffset} and @var{yoffset} only to
+the initial frame.
 
 @item -fs
 @opindex -fs

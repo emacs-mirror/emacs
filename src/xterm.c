@@ -10362,8 +10362,8 @@ x_query_font (f, fontname)
 
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name
-	&& (!strcmp (dpyinfo->font_table[i].name, fontname)
-	    || !strcmp (dpyinfo->font_table[i].full_name, fontname)))
+	&& (!strcasecmp (dpyinfo->font_table[i].name, fontname)
+	    || !strcasecmp (dpyinfo->font_table[i].full_name, fontname)))
       return (dpyinfo->font_table + i);
   return NULL;
 }
@@ -11043,6 +11043,11 @@ x_term_init (display_name, xrm_option, resource_name)
 					  False);
 
   dpyinfo->cut_buffers_initialized = 0;
+
+  dpyinfo->x_dnd_atoms_size = 8;
+  dpyinfo->x_dnd_atoms_length = 0;
+  dpyinfo->x_dnd_atoms = xmalloc (sizeof (*dpyinfo->x_dnd_atoms)
+                                  * dpyinfo->x_dnd_atoms_size);
 
   connection = ConnectionNumber (dpyinfo->display);
   dpyinfo->connection = connection;

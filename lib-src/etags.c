@@ -5165,7 +5165,7 @@ TEX_mode (inf)
     {
       /* Skip to next line if we hit the TeX comment char. */
       if (c == '%')
-	while (c != '\n')
+	while (c != '\n' && c != EOF)
 	  c = getc (inf);
       else if (c == TEX_LESC || c == TEX_SESC )
 	break;
@@ -6259,9 +6259,10 @@ readline (lbp, stream)
 	  int start, lno;
 
 	  if (DEBUG) start = 0;	/* shut up the compiler */
-	  if (sscanf (lbp->buffer, "#line %d \"%n", &lno, &start) == 1)
+	  if (sscanf (lbp->buffer, "#line %d %n\"", &lno, &start) >= 1
+	      && lbp->buffer[start] == '"')
 	    {
-	      char *endp = lbp->buffer + start;
+	      char *endp = lbp->buffer + ++start;
 
 	      assert (start > 0);
 	      while ((endp = etags_strchr (endp, '"')) != NULL

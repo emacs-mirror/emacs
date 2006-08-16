@@ -251,19 +251,30 @@ turn this feature back on, if someone would like to do the work.
 
   Use @code{defcustom} to declare user-editable variables.
 
-@defmac defcustom option default doc [keyword value]@dots{}
-Declare @var{option} as a customizable user option variable.  Do not
-quote @var{option}.  The argument @var{doc} specifies the documentation
-string for the variable.  There is no need to start it with a @samp{*}
-because @code{defcustom} automatically marks @var{option} as a
-@dfn{user option} (@pxref{Defining Variables}).
+@defmac defcustom option standard doc [keyword value]@dots{}
+This construct declares @var{option} as a customizable user option
+variable.  You should not quote @var{option}.  The argument @var{doc}
+specifies the documentation string for the variable.  There is no need
+to start it with a @samp{*}, because @code{defcustom} automatically
+marks @var{option} as a @dfn{user option} (@pxref{Defining
+Variables}).
 
-If @var{option} is void, @code{defcustom} initializes it to
-@var{default}.  @var{default} should be an expression to compute the
-value; be careful in writing it, because it can be evaluated on more
-than one occasion.  You should normally avoid using backquotes in
-@var{default} because they are not expanded when editing the value,
-causing list values to appear to have the wrong structure.
+The argument @var{standard} is an expression that specifies the
+standard value for @var{option}.  Evaluating the @code{defcustom} form
+evaluates @var{standard}, but does not necessarily install the
+standard value.  If @var{option} already has a default value,
+@code{defcustom} does not change it.  If the user has saved a
+customization for @var{option}, @code{defcustom} installs the user's
+customized value as @var{option}'s default value.  If neither of those
+cases applies, @code{defcustom} installs the result of evaluating
+@var{standard} as the default value.
+
+The expression @var{standard} can be evaluated at various other times,
+too---whenever the customization facility needs to know @var{option}'s
+standard value.  So be sure to use an expression which is harmless to
+evaluate at any time.  We recommend avoiding backquotes in
+@var{standard}, because they are not expanded when editing the value,
+so list values will appear to have the wrong structure.
 
 If you specify the @code{:set} option, to make the variable take other
 special actions when set through the customization buffer, the
@@ -406,7 +417,7 @@ type of @var{symbol}.
 @end defun
 
 Internally, @code{defcustom} uses the symbol property
-@code{standard-value} to record the expression for the default value,
+@code{standard-value} to record the expression for the standard value,
 and @code{saved-value} to record the value saved by the user with the
 customization buffer.  Both properties are actually lists whose car is
 an expression which evaluates to the value.
