@@ -4845,6 +4845,8 @@ choose_write_coding_system (start, end, filename,
       /* ... but with the special flag to indicate not to strip off
 	 leading code of eight-bit-control chars.  */
       coding->flags = 1;
+      /* We force LF for end-of-line because that is faster.  */
+      coding->eol_type = CODING_EOL_LF;
       goto done_setup_coding;
     }
   else if (!NILP (Vcoding_system_for_write))
