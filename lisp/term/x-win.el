@@ -2505,7 +2505,7 @@ order until succeed.")
 ;; Override Paste so it looks at CLIPBOARD first.
 (defun x-clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
-  (interactive)
+  (interactive "*")
   (let ((clipboard-text (x-selection-value 'CLIPBOARD))
 	(x-select-enable-clipboard t))
     (if (and clipboard-text (> (length clipboard-text) 0))
@@ -2519,7 +2519,7 @@ order until succeed.")
 
 ;; Initiate drag and drop
 (add-hook 'after-make-frame-functions 'x-dnd-init-frame)
-(global-set-key [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
+(define-key special-event-map [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
 ;; Let F10 do menu bar navigation.
 (and (fboundp 'menu-bar-open)
