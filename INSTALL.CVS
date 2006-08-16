@@ -12,8 +12,9 @@ The bootstrap process makes sure all necessary files are rebuilt
 before it builds the final Emacs binary.
 
 Normally, it is not necessary to use "make bootstrap" after every CVS
-update.  Unless there are problems, we suggest to use the following
-alternative procedure, after you did "make bootstrap" at least once:
+update.  Unless there are problems, we suggest using the following
+alternative procedure after you have done "make bootstrap" at least
+once:
 
   $ ./configure
   $ make
