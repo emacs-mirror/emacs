@@ -2016,7 +2016,7 @@ binding, like this:
 
 @c This line is not too long--rms.
 @example
-(@var{item-string} @r{[}@var{help-string}@r{]} (@var{key-binding-data}) . @var{real-binding})
+(@var{item-string} @r{[}@var{help}@r{]} (@var{key-binding-data}) . @var{real-binding})
 @end example
 
 @noindent
@@ -2139,6 +2139,13 @@ Emacs can call this function at any time that it does redisplay or
 operates on menu data structures, so you should write it so it can
 safely be called at any time.
 @end table
+
+  When an equivalent key binding is cached, the binding looks like this.
+
+@example
+(menu-item @var{item-name} @var{real-binding} (@var{key-binding-data})
+    . @var{item-property-list})
+@end example
 
 @node Menu Separators
 @subsubsection Menu Separators
