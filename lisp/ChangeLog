@@ -1,3 +1,7 @@
+2006-08-17  Romain Francoise  <romain@orebokech.com>
+
+	* progmodes/gdb-ui.el (gdb-edit-locals-value): Balance parens.
+
 2006-08-17  Richard Stallman  <rms@gnu.org>
 
 	* compare-w.el (compare-windows): lambda's take an arg and pass

@@ -3536,7 +3536,7 @@ in_scope=\"\\(.*?\\)\".*?}")
 	   (value (read-string (format "New value (%s): " var))))
       (gdb-enqueue-input
        (list (concat  gdb-server-prefix"set variable " var " = " value "\n")
-	     'ignore))))))
+	     'ignore)))))
 
 ;; Dont display values of arrays or structures.
 ;; These can be expanded using gud-watch.
