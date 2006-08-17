@@ -1,3 +1,8 @@
+2006-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-extend-region-wholelines): Fix up typo.
+	Reported by Martin Rudalics <rudalics@gmx.at>.
+
 2006-08-16  Richard Stallman  <rms@gnu.org>
 
 	* term/x-win.el (x-clipboard-yank): Specify * in interactive spec.
@@ -18,23 +23,23 @@
 	Check each buffer for its skip-function.
 	Handle compare-windows-skip-whitespace special-case test
 	by returning t from default skip function.
-	
+
 2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-clock-special-range,
-	org-clock-update-time-maybe): New functions.
+	* textmodes/org.el (org-clock-special-range)
+	(org-clock-update-time-maybe): New functions.
 	(org-stamp-time-of-day-regexp): Allow weekday to be of word chars,
 	not only a-z.
 	(org-agenda-get-blocks): Allow multiple blocks per headline.
 	(org-timestamp-change): Call `org-clock-update-time-maybe'.
 	(org-export-html-title-format)
 	(org-export-html-toplevel-hlevel): New options.
-	(org-export-language-setup): Added support for Czech.
+	(org-export-language-setup): Add support for Czech.
 	(org-mode, org-insert-todo-heading, org-find-visible)
 	(org-find-invisible, org-invisible-p, org-invisible-p2)
 	(org-back-to-heading, org-on-heading-p, org-up-heading-all)
 	(org-show-subtree, org-show-entry, org-make-options-regexp):
-	Removed compatibility support for old outline-mode.
+	Remove compatibility support for old outline-mode.
 	(org-check-occur-regexp): Funtion removed.
 	(org-on-heading-p, org-back-to-heading): Made defalias.
 	(org-set-local): New defsubst.
@@ -44,7 +49,7 @@
 	(org-remember-apply-template, org-table-edit-field)
 	(org-table-edit-formulas, orgtbl-mode, org-export-as-ascii)
 	(org-set-autofill-regexps): Use `org-set-local'.
-	(org-table-eval-formula): Fixed bug with parsing of display flags.
+	(org-table-eval-formula): Fix bug with parsing of display flags.
 
 2006-08-15  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -53,8 +58,8 @@
 	<simon.marshall@misys.com>.
 	(gdb-stack-position): New variable.
 	(gdb-starting, gdb-exited): Reset gdb-stack-position to nil.
-	(gdb-frames-mode): Set gdb-stack-position to nil.  Add to
-	overlay-arrow-variable-list
+	(gdb-frames-mode): Set gdb-stack-position to nil.
+	Add to overlay-arrow-variable-list
 	(gdb-reset): Delete gdb-stack-position from above list.
 
 2006-08-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -95,8 +100,8 @@
 	Add customization vars controlling allout-beginning-of-line and
 	allout-end-of-line conveniences.
 	(allout-header-prefix, allout-use-mode-specific-leader)
-	(allout-use-mode-specific-leader, allout-mode-leaders): Revised
-	docstrings.
+	(allout-use-mode-specific-leader, allout-mode-leaders):
+	Revise docstrings.
 	(allout-infer-header-lead): Change to be an alias for
 	allout-infer-header-lead-and-primary-bullet.
 	(allout-infer-header-lead-and-primary-bullet): New version of
@@ -136,29 +141,26 @@
 	(allout-beginning-of-line): Respect `allout-beginning-of-line-cycles'.
 	(allout-end-of-line): Respect `allout-end-of-line-cycles'.
 	(allout-chart-subtree): Implement new mode, charting only the
-	visible items in the subtree, when new 'visible' parameter is
-	non-nil.
-	(allout-end-of-subtree): Properly handle the last item in the
-	buffer.
-	(allout-pre-command-business, allout-command-counter): Increment
-	an advertised counter so that cooperating enhancements can track
-	revisions of items.
+	visible items in the subtree, when new 'visible' parameter is non-nil.
+	(allout-end-of-subtree): Properly handle the last item in the buffer.
+	(allout-pre-command-business, allout-command-counter):
+	Increment an advertised counter so that cooperating enhancements can
+	track revisions of items.
 	(allout-open-topic): Run allout-structure-added-hook with suitable
 	arguments.
 	(allout-shift-in): Run allout-structure-shifted-hook with suitable
 	arguments.
 	(allout-shift-out): Fix doubling for negative args and ensure call
 	of allout-structure-shifted-hook by solely using allout-shift-in.
-	(allout-kill-line, allout-kill-topic): Run
-	allout-structure-deleted-hook with suitable arguments.
+	(allout-kill-line, allout-kill-topic):
+	Run allout-structure-deleted-hook with suitable arguments.
 	(allout-yank-processing): Run allout-structure-added-hook with
 	proper arguments.
 	(allout-yank): Enclose activity in allout-unprotected.
 	(allout-flag-region): Run allout-exposure-change-hook with
-	suitable arguments, instead of making the callee infer the
-	arguments.
-	(allout-encrypt-string): Support
-	allout-encryption-plaintext-sanitization-regexps,
+	suitable arguments, instead of making the callee infer the arguments.
+	(allout-encrypt-string):
+	Support allout-encryption-plaintext-sanitization-regexps,
 	allout-encryption-ciphertext-rejection-regexps, and
 	allout-encryption-ciphertext-rejection-ceiling.  Indicate correct
 	en/de cryption mode in symmetric encryption failure message.
