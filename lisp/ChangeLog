@@ -1,5 +1,8 @@
 2006-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mouse.el (global-map): Allow yanking with mouse-2 at a spot whose
+	cursor would normally be drawn in the fringe.
+
 	* font-lock.el (font-lock-extend-region-wholelines): Fix up typo.
 	Reported by Martin Rudalics <rudalics@gmx.at>.
 
