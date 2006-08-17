@@ -6656,10 +6656,12 @@ display marginal areas and the text area.  */)
     CHECK_NATNUM (left_width);
   if (!NILP (right_width))
     CHECK_NATNUM (right_width);
-
-  if (!EQ (w->left_fringe_width, left_width)
-      || !EQ (w->right_fringe_width, right_width)
-      || !EQ (w->fringes_outside_margins, outside_margins))
+ 
+      /* Do nothing on a tty.  */
+  if (FRAME_WINDOW_P (WINDOW_XFRAME (w))
+      && (!EQ (w->left_fringe_width, left_width)
+	  || !EQ (w->right_fringe_width, right_width)
+	  || !EQ (w->fringes_outside_margins, outside_margins)))
     {
       w->left_fringe_width = left_width;
       w->right_fringe_width = right_width;
@@ -6687,10 +6689,11 @@ Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
      Lisp_Object window;
 {
   struct window *w = decode_window (window);
+
   return Fcons (make_number (WINDOW_LEFT_FRINGE_WIDTH (w)),
 		Fcons (make_number (WINDOW_RIGHT_FRINGE_WIDTH (w)),
-		       Fcons ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w) ?
-			       Qt : Qnil), Qnil)));
+		       Fcons ((WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+			       ? Qt : Qnil), Qnil)));
 }
 
 
