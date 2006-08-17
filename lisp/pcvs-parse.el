@@ -285,7 +285,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        (and
 	(cvs-or
 	 (cvs-match "warning: \\(.*\\) is not (any longer) pertinent$" (file 1))
-	 (cvs-match "\\(.*\\) is no longer in the repository$" (file 1)))
+	 (cvs-match "`\\(.*\\)' is no longer in the repository$" (file 1))
+         (cvs-match "\\(.*\\) is no longer in the repository$" (file 1)))
 	(cvs-parsed-fileinfo
 	 (if dont-change-disc '(NEED-UPDATE . REMOVED) 'DEAD) file))
 

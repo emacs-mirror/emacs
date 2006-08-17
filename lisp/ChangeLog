@@ -1,3 +1,8 @@
+2006-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-parse.el (cvs-parse-table): Accept the new `...' format for
+	removed files.
+
 2006-08-17  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-locals-watch-map)
