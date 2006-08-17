@@ -391,9 +391,10 @@ Defaults to the whole buffer.  END can be out of bounds."
                            (buf (current-buffer)))
                (run-with-timer
                 0 nil (lambda ()
-                        (with-buffer-prepared-for-jit-lock
-                            (put-text-property start orig-start
-                                               'fontified t buf))))))
+                        (with-current-buffer buf
+                          (with-buffer-prepared-for-jit-lock
+                              (put-text-property start orig-start
+                                                 'fontified t)))))))
 
 	   ;; Find the start of the next chunk, if any.
 	   (setq start (text-property-any next end 'fontified nil))))))))
@@ -577,10 +578,10 @@ the three arguments of `after-change-functions': START END OLD-LEN.
 The extended region to refontify is returned indirectly by modifying
 the variables `jit-lock-start' and `jit-lock-end'.
 
-Note that extending the region this way is not strictly necessary,
-except that the nature of the redisplay code tends to otherwise leave
-some of the rehighlighted text displayed with the old highlight until the
-next redisplay.  See comment in `jit-lock-fontify-now'.")
+Note that extending the region this way is not strictly necessary, except
+that the nature of the redisplay code tends to otherwise leave some of
+the rehighlighted text displayed with the old highlight until the next
+redisplay (see comment about repeated redisplay in `jit-lock-fontify-now').")
 
 (defun jit-lock-after-change (start end old-len)
   "Mark the rest of the buffer as not fontified after a change.

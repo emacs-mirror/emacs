@@ -1,3 +1,8 @@
+2006-08-17  Martin Rudalics   <rudalics@gmx.at>
+
+	* jit-lock.el (jit-lock-fontify-now): Protect the modified status of
+	the right buffer.
+
 2006-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs-parse.el (cvs-parse-table): Accept the new `...' format for
