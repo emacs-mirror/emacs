@@ -3,7 +3,7 @@
 	* compare-w.el (compare-windows): lambda's take an arg and pass
 	it to compare-windows-skip-whitespace.
 
-2006-08-17  Martin Rudalics   <rudalics@gmx.at>
+2006-08-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* jit-lock.el (jit-lock-fontify-now): Protect the modified status of
 	the right buffer.
