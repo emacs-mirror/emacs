@@ -384,8 +384,7 @@ With arg, use separate IO iff arg is positive."
 			    (list t nil) nil "-c"
 			    (concat gdb-cpp-define-alist-program " "
 				    gdb-cpp-define-alist-flags)))))
-	(define-list (split-string output "\n" t))
-	(name))
+	(define-list (split-string output "\n" t)) (name))
     (setq gdb-define-alist nil)
     (dolist (define define-list)
       (setq name (nth 1 (split-string define "[( ]")))
@@ -2657,6 +2656,7 @@ corresponding to the mode line clicked."
 
 (defvar gdb-locals-watch-map
   (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
     (define-key map "\r" (lambda () (interactive)
 			   (beginning-of-line)
 			   (gud-watch)))
@@ -3512,9 +3512,31 @@ in_scope=\"\\(.*?\\)\".*?}")
 
 (defvar gdb-locals-watch-map-1
   (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "\r" 'gud-watch)
     (define-key map [mouse-2] 'gud-watch)
     map)
  "Keymap to create watch expression of a complex data type local variable.")
+
+(defvar gdb-edit-locals-map-1
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "\r" 'gdb-edit-locals-value)
+    (define-key map [mouse-2] 'gdb-edit-locals-value)
+    map)
+ "Keymap to edit value of a simple data type local variable.")
+
+(defun gdb-edit-locals-value (&optional event)
+  "Assign a value to a variable displayed in the locals buffer."
+  (interactive (list last-input-event))
+  (save-excursion
+    (if event (posn-set-point (event-end event)))
+    (beginning-of-line)
+    (let* ((var (current-word))
+	   (value (read-string (format "New value (%s): " var))))
+      (gdb-enqueue-input
+       (list (concat  gdb-server-prefix"set variable " var " = " value "\n")
+	     'ignore))))))
 
 ;; Dont display values of arrays or structures.
 ;; These can be expanded using gud-watch.
@@ -3543,17 +3565,23 @@ in_scope=\"\\(.*?\\)\".*?}")
 		   (let* ((window (get-buffer-window buf 0))
 			  (start (window-start window))
 			  (p (window-point window))
-			  (buffer-read-only nil))
+			  (buffer-read-only nil) (name) (value))
 		     (erase-buffer)
 		     (dolist (local locals-list)
 		       (setq name (car local))
-		       (if (or (not (nth 2 local))
-			       (string-match "^\\0x" (nth 2 local)))
+		       (setq value (nth 2 local))
+		       (if (or (not value)
+			       (string-match "^\\0x" value))
 			   (add-text-properties 0 (length name)
 			        `(mouse-face highlight
 			          help-echo "mouse-2: create watch expression"
 			          local-map ,gdb-locals-watch-map-1)
-				name))
+				name)
+			 (add-text-properties 0 (length value)
+			      `(mouse-face highlight
+			        help-echo "mouse-2: edit value"
+			        local-map ,gdb-edit-locals-map-1)
+			      value))
 		       (insert
 			(concat name "\t" (nth 1 local)
 				"\t" (nth 2 local) "\n")))
