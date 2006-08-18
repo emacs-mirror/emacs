@@ -39,9 +39,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 	 '(hscroll-step 1)
 	)
 
-** Jorgen Schaefer <forcer@forcix.cx>'s June 18 bug report about
-  fields and invisible overlays needs attention from a field expert.
-
 ** Implement buffer-chars-modified-tick.
 
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem.
