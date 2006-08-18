@@ -1,3 +1,11 @@
+2006-08-18  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
+
+	* whitespace.el (whitespace-cleanup-internal): New optional arg
+	REGION-ONLY.  If it's non-nil, modify the message to the user
+	accordingly.
+	(whitespace-cleanup-region): Call whitespace-cleanup-internal with
+	a non-nil argument.
+
 2006-08-18  Gustav H,Ae(Bllberg  <gustav@gmail.com>  (tiny change)
 
 	* rect.el (spaces-string): Simplify and add doc string.
