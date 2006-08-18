@@ -6657,7 +6657,7 @@ display marginal areas and the text area.  */)
   if (!NILP (right_width))
     CHECK_NATNUM (right_width);
  
-      /* Do nothing on a tty.  */
+  /* Do nothing on a tty.  */
   if (FRAME_WINDOW_P (WINDOW_XFRAME (w))
       && (!EQ (w->left_fringe_width, left_width)
 	  || !EQ (w->right_fringe_width, right_width)
