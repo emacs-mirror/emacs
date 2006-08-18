@@ -1,3 +1,7 @@
+2006-08-18  Gustav H,Ae(Bllberg  <gustav@gmail.com>  (tiny change)
+
+	* rect.el (spaces-string): Simplify and add doc string.
+
 2006-08-17  Romain Francoise  <romain@orebokech.com>
 
 	* progmodes/gdb-ui.el (gdb-edit-locals-value): Balance parens.
