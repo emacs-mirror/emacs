@@ -524,7 +524,7 @@ See `whitespace-buffer' docstring for a summary of the problems."
       (whitespace-cleanup-region (region-beginning) (region-end))
     (whitespace-cleanup-internal)))
 
-(defun whitespace-cleanup-internal ()
+(defun whitespace-cleanup-internal (&optional region-only)
   ;; If this buffer really contains a file, then run, else quit.
   (whitespace-check-whitespace-mode current-prefix-arg)
   (if (and buffer-file-name whitespace-mode)
@@ -569,9 +569,12 @@ See `whitespace-buffer' docstring for a summary of the problems."
 	;; Call this recursively till everything is taken care of
 	(if whitespace-any
 	    (whitespace-cleanup-internal)
+	  ;; if we are done, talk to the user
 	  (progn
-	    (if (not whitespace-silent)
-		(message "%s clean" buffer-file-name))
+	    (unless whitespace-silent
+	      (if region-only
+		  (message "The region is now clean")
+		(message "%s is now clean" buffer-file-name)))
 	    (whitespace-update-modeline)))
 	(setq tab-width whitespace-tabwith-saved))))
 
@@ -582,7 +585,7 @@ See `whitespace-buffer' docstring for a summary of the problems."
   (save-excursion
     (save-restriction
       (narrow-to-region s e)
-      (whitespace-cleanup-internal))
+      (whitespace-cleanup-internal t))
     (whitespace-buffer t)))
 
 (defun whitespace-buffer-leading ()
