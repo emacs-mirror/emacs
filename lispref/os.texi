@@ -28,6 +28,8 @@ pertaining to the terminal and the screen.
 * Processor Run Time::  Getting the run time used by Emacs.
 * Time Calculations::   Adding, subtracting, comparing times, etc.
 * Timers::		Setting a timer to call a function at a certain time.
+* Idle Timers::         Setting a timer to call a function when Emacs has
+                          been idle for a certain length of time.
 * Terminal Input::      Accessing and recording terminal input.
 * Terminal Output::     Controlling and recording terminal output.
 * Sound Output::        Playing sounds on the computer's speaker.
@@ -1473,6 +1475,21 @@ calls one of those primitives.  So use @code{with-timeout} only with a
 a timer to avoid waiting too long for an answer.  @xref{Yes-or-No
 Queries}.
 
+@defun cancel-timer timer
+This cancels the requested action for @var{timer}, which should be a
+timer---usually, one previously returned by @code{run-at-time} or
+@code{run-with-idle-timer}.  This cancels the effect of that call to
+one of these functions; the arrival of the specified time will not
+cause anything special to happen.
+@end defun
+
+@node Idle Timers
+@section Idle Timers
+
+  Here is how to set up a timer that runs when Emacs is idle for a
+certain length of time.  Aside from how to set them nup, idle timers
+work just like ordinary timers.
+
 @deffn Command run-with-idle-timer secs repeat function &rest args
 Set up a timer which runs when Emacs has been idle for @var{secs}
 seconds.  The value of @var{secs} may be an integer or a floating point
@@ -1508,11 +1525,49 @@ minutes, and even if there have been garbage collections and autosaves.
 input.  Then it becomes idle again, and all the idle timers that are
 set up to repeat will subsequently run another time, one by one.
 
-@defun cancel-timer timer
-Cancel the requested action for @var{timer}, which should be a value
-previously returned by @code{run-at-time} or @code{run-with-idle-timer}.
-This cancels the effect of that call to one of these functions; the
-arrival of the specified time will not cause anything special to happen.
+@c Emacs 19 feature
+@defun current-idle-time
+This function returns the length of time Emacs has been idle, as a
+list of three integers: @code{(@var{high} @var{low} @var{microsec})}.
+The integers @var{high} and @var{low} combine to give the number of
+seconds of idleness, which is
+@ifnottex
+@var{high} * 2**16 + @var{low}.
+@end ifnottex
+@tex
+$high*2^{16}+low$.
+@end tex
+
+The third element, @var{microsec}, gives the microseconds since the
+start of the current second (or 0 for systems that return time with
+the resolution of only one second).
+
+The main use of this function is when an idle timer function wants to
+``take a break'' for a while.  It can set up another idle timer to
+call the same function again, after a few seconds more idleness.
+Here's an example:
+
+@smallexample
+(defvar resume-timer nil
+  "Timer that `timer-function' used to reschedule itself, or nil.")
+
+(defun timer-function ()
+  ;; @r{If the user types a command while @code{resume-timer}}
+  ;; @r{is active, the next time this function is called from}
+  ;; @r{its main idle timer, deactivate @code{resume-timer}.}
+  (when resume-timer
+    (cancel-timer resume-timer))
+  ...@var{do the work for a while}...
+  (when @var{taking-a-break}
+    (setq resume-timer
+          (run-with-idle-timer
+            ;; Compute an idle time @var{break-length} 
+            ;; more than the current value.
+            (time-add (current-idle-time)
+                      (seconds-to-time @var{break-length}))
+            nil
+            'timer-function))))
+@end smallexample
 @end defun
 
 @node Terminal Input
