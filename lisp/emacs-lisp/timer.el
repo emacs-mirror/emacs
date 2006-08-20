@@ -413,6 +413,8 @@ This function is for compatibility; see also `run-with-timer'."
   "Perform an action the next time Emacs is idle for SECS seconds.
 The action is to call FUNCTION with arguments ARGS.
 SECS may be an integer or a floating point number.
+If Emacs is currently idle, and has been idle for N seconds (N < SECS),
+then it will call FUNCTION in SECS - N seconds from now.
 
 If REPEAT is non-nil, do the action each time Emacs has been idle for
 exactly SECS seconds (that is, only once for each time Emacs becomes idle).
@@ -425,7 +427,7 @@ This function returns a timer object which you can use in `cancel-timer'."
   (let ((timer (timer-create)))
     (timer-set-function timer function args)
     (timer-set-idle-time timer secs repeat)
-    (timer-activate-when-idle timer)
+    (timer-activate-when-idle timer t)
     timer))
 
 (defun with-timeout-handler (tag)
