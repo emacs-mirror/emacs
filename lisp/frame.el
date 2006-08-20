@@ -1291,11 +1291,13 @@ This starts the timer `blink-cursor-timer', which makes the cursor blink
 if appropriate.  It also arranges to cancel that timer when the next
 command starts, by installing a pre-command hook."
   (when (null blink-cursor-timer)
-    (add-hook 'pre-command-hook 'blink-cursor-end)
-    (internal-show-cursor nil nil)
+    ;; Set up the timer first, so that if this signals an error,
+    ;; blink-cursor-end is not added to pre-command-hook.
     (setq blink-cursor-timer
 	  (run-with-timer blink-cursor-interval blink-cursor-interval
-			  'blink-cursor-timer-function))))
+			  'blink-cursor-timer-function))
+    (add-hook 'pre-command-hook 'blink-cursor-end)
+    (internal-show-cursor nil nil)))
 
 (defun blink-cursor-timer-function ()
   "Timer function of timer `blink-cursor-timer'."
@@ -1308,9 +1310,10 @@ When run, it cancels the timer `blink-cursor-timer' and removes
 itself as a pre-command hook."
   (remove-hook 'pre-command-hook 'blink-cursor-end)
   (internal-show-cursor nil t)
-  (cancel-timer blink-cursor-timer)
+  (condition-case nil
+      (cancel-timer blink-cursor-timer)
+    (error nil))
   (setq blink-cursor-timer nil))
-
 
 
 ;; Hourglass pointer
