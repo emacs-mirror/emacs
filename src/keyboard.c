@@ -1390,6 +1390,72 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
   return Qnil;
 }
 
+#ifdef HAVE_MOUSE
+
+/* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
+   of this function.  */
+
+static Lisp_Object
+tracking_off (old_value)
+     Lisp_Object old_value;
+{
+  do_mouse_tracking = old_value;
+  if (NILP (old_value))
+    {
+      /* Redisplay may have been preempted because there was input
+	 available, and it assumes it will be called again after the
+	 input has been processed.  If the only input available was
+	 the sort that we have just disabled, then we need to call
+	 redisplay.  */
+      if (!readable_events (READABLE_EVENTS_DO_TIMERS_NOW))
+	{
+	  redisplay_preserve_echo_area (6);
+	  get_input_pending (&input_pending,
+			     READABLE_EVENTS_DO_TIMERS_NOW);
+	}
+    }
+  return Qnil;
+}
+
+DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
+       doc: /* Evaluate BODY with mouse movement events enabled.
+Within a `track-mouse' form, mouse motion generates input events that
+you can read with `read-event'.
+Normally, mouse motion is ignored.
+usage: (track-mouse BODY ...)  */)
+     (args)
+     Lisp_Object args;
+{
+  int count = SPECPDL_INDEX ();
+  Lisp_Object val;
+
+  record_unwind_protect (tracking_off, do_mouse_tracking);
+
+  do_mouse_tracking = Qt;
+
+  val = Fprogn (args);
+  return unbind_to (count, val);
+}
+
+/* If mouse has moved on some frame, return one of those frames.
+   Return 0 otherwise.  */
+
+static FRAME_PTR
+some_mouse_moved ()
+{
+  Lisp_Object tail, frame;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (XFRAME (frame)->mouse_moved)
+	return XFRAME (frame);
+    }
+
+  return 0;
+}
+
+#endif	/* HAVE_MOUSE */
+
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
@@ -2310,7 +2376,17 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 
 #ifdef HAVE_MOUSE
   if (!noninteractive && STRINGP (help))
-    help = call1 (Qmouse_fixup_help_message, help);
+    {
+      /* The mouse-fixup-help-message Lisp function can call
+	 mouse_position_hook, which resets the mouse_moved flags.
+	 This causes trouble if we are trying to read a mouse motion
+	 event (i.e., if we are inside a `track-mouse' form), so we
+	 restore the mouse_moved flag.  */
+      FRAME_PTR f = NILP (do_mouse_tracking) ? NULL : some_mouse_moved ();
+      help = call1 (Qmouse_fixup_help_message, help);
+      if (f)
+      	f->mouse_moved = 1;
+    }
 #endif
 
   if (STRINGP (help) || NILP (help))
@@ -3463,72 +3539,6 @@ restore_getcjmp (temp)
 {
   bcopy (temp, getcjmp, sizeof getcjmp);
 }
-
-#ifdef HAVE_MOUSE
-
-/* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
-   of this function.  */
-
-static Lisp_Object
-tracking_off (old_value)
-     Lisp_Object old_value;
-{
-  do_mouse_tracking = old_value;
-  if (NILP (old_value))
-    {
-      /* Redisplay may have been preempted because there was input
-	 available, and it assumes it will be called again after the
-	 input has been processed.  If the only input available was
-	 the sort that we have just disabled, then we need to call
-	 redisplay.  */
-      if (!readable_events (READABLE_EVENTS_DO_TIMERS_NOW))
-	{
-	  redisplay_preserve_echo_area (6);
-	  get_input_pending (&input_pending,
-			     READABLE_EVENTS_DO_TIMERS_NOW);
-	}
-    }
-  return Qnil;
-}
-
-DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
-       doc: /* Evaluate BODY with mouse movement events enabled.
-Within a `track-mouse' form, mouse motion generates input events that
-you can read with `read-event'.
-Normally, mouse motion is ignored.
-usage: (track-mouse BODY ...)  */)
-     (args)
-     Lisp_Object args;
-{
-  int count = SPECPDL_INDEX ();
-  Lisp_Object val;
-
-  record_unwind_protect (tracking_off, do_mouse_tracking);
-
-  do_mouse_tracking = Qt;
-
-  val = Fprogn (args);
-  return unbind_to (count, val);
-}
-
-/* If mouse has moved on some frame, return one of those frames.
-   Return 0 otherwise.  */
-
-static FRAME_PTR
-some_mouse_moved ()
-{
-  Lisp_Object tail, frame;
-
-  FOR_EACH_FRAME (tail, frame)
-    {
-      if (XFRAME (frame)->mouse_moved)
-	return XFRAME (frame);
-    }
-
-  return 0;
-}
-
-#endif	/* HAVE_MOUSE */
 
 /* Low level keyboard/mouse input.
    kbd_buffer_store_event places events in kbd_buffer, and
