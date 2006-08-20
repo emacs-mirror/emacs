@@ -1,3 +1,15 @@
+2006-08-20  Dave Love  <fx@gnu.org>
+
+	* emacs.py: Update to Dave Love's latest version.
+	(__all__): Fix args -> eargs.  Add new `modpath' fun.
+	(eargs): Add `imports' arg.
+	(all_names): New fun.
+	(complete): Rewrite without using rlcompleter.
+	Remove `namespace' arg, add `imports' arg.
+	(ehelp): Replace g and l args with `imports'.
+	(eimport): Use __main__ rather than `emacs' namespace.
+	(modpath): New fun.
+
 2006-08-20  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
 
 	* emacs.py (eexecfile): Use the __main__ rather than `emacs' namespace.
