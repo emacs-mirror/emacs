@@ -4543,6 +4543,35 @@ timer_check (do_it_now)
   UNGCPRO;
   return nexttime;
 }
+
+DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
+       /* Return the current length of Emacs idleness.
+The value is returned as a list of three integers.  The first has the
+most significant 16 bits of the seconds, while the second has the
+least significant 16 bits.  The third integer gives the microsecond
+count.
+
+The microsecond count is zero on systems that do not provide
+resolution finer than a second.  */)
+  ()
+{
+  EMACS_TIME now, idleness_now;
+  Lisp_Object result[3];
+
+  EMACS_GET_TIME (now);
+  if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+    {
+      EMACS_SUB_TIME (idleness_now, now, timer_idleness_start_time);
+
+      XSETINT (result[0], (EMACS_SECS (idleness_now) >> 16) & 0xffff);
+      XSETINT (result[1], (EMACS_SECS (idleness_now) >> 0)  & 0xffff);
+      XSETINT (result[2], EMACS_USECS (idleness_now));
+
+      return Flist (3, result);
+    }
+
+  return Qnil;
+}
 
 /* Caches for modify_event_symbol.  */
 static Lisp_Object accent_key_syms;
@@ -11131,6 +11160,7 @@ syms_of_keyboard ()
   menu_bar_items_vector = Qnil;
   staticpro (&menu_bar_items_vector);
 
+  defsubr (&Scurrent_idle_time);
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
   defsubr (&Sread_key_sequence_vector);
