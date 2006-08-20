@@ -1,3 +1,9 @@
+2006-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el: Remove * in defcustom docstrings.
+	(run-python, python-proc, python-try-complete): Use derived-mode-p.
+	(python-mode): Set tab-width and indent-tabs-mode.
+
 2006-08-20  Dave Love  <fx@gnu.org>
 
 	* progmodes/python.el: Update to Dave Love's latest version.

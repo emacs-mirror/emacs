@@ -400,18 +400,18 @@ The criteria are that the line isn't a comment or in string and
 ;;;; Indentation.
 
 (defcustom python-indent 4
-  "*Number of columns for a unit of indentation in Python mode.
+  "Number of columns for a unit of indentation in Python mode.
 See also `\\[python-guess-indent]'"
   :group 'python
   :type 'integer)
 
 (defcustom python-guess-indent t
-  "*Non-nil means Python mode guesses `python-indent' for the buffer."
+  "Non-nil means Python mode guesses `python-indent' for the buffer."
   :type 'boolean
   :group 'python)
 
 (defcustom python-indent-string-contents t
-  "*Non-nil means indent contents of multi-line strings together.
+  "Non-nil means indent contents of multi-line strings together.
 This means indent them the same as the preceding non-blank line.
 Otherwise preserve their indentation.
 
@@ -430,7 +430,7 @@ are always indented in lines with preceding comments."
   :group 'python)
 
 (defcustom python-continuation-offset 4
-  "*Number of columns of additional indentation for continuation lines.
+  "Number of columns of additional indentation for continuation lines.
 Continuation lines follow a backslash-terminated line starting a
 statement."
   :group 'python
@@ -1094,7 +1094,7 @@ Repeat ARG times."
 ;;;; pychecker
 
 (defcustom python-check-command "pychecker --stdlib"
-  "*Command used to check a Python file."
+  "Command used to check a Python file."
   :type 'string
   :group 'python)
 
@@ -1126,7 +1126,7 @@ See `python-check-command' for the default."
 ;; Fixme: Make sure we can work with IPython.
 
 (defcustom python-python-command "python"
-  "*Shell command to run Python interpreter.
+  "Shell command to run Python interpreter.
 Any arguments can't contain whitespace.
 Note that IPython may not work properly; it must at least be used
 with the `-cl' flag, i.e. use `ipython -cl'."
@@ -1134,7 +1134,7 @@ with the `-cl' flag, i.e. use `ipython -cl'."
   :type 'string)
 
 (defcustom python-jython-command "jython"
-  "*Shell command to run Jython interpreter.
+  "Shell command to run Jython interpreter.
 Any arguments can't contain whitespace."
   :group 'python
   :type 'string)
@@ -1227,7 +1227,7 @@ For running multiple processes in multiple buffers, see `run-python' and
   (compilation-shell-minor-mode 1))
 
 (defcustom inferior-python-filter-regexp "\\`\\s-*\\S-?\\S-?\\s-*\\'"
-  "*Input matching this regexp is not saved on the history list.
+  "Input matching this regexp is not saved on the history list.
 Default ignores all inputs of 0, 1, or 2 non-blank characters."
   :type 'regexp
   :group 'python)
@@ -1334,7 +1334,7 @@ buffer for a list of commands.)"
 	(setq python-buffer (current-buffer)))
       (accept-process-output (get-buffer-process python-buffer) 5)
       (inferior-python-mode)))
-  (if (eq 'python-mode major-mode)
+  (if (derived-mode-p 'python-mode)
       (setq python-buffer (default-value 'python-buffer))) ; buffer-local
   ;; Load function definitions we need.
   ;; Before the preoutput function was used, this was done via -c in
@@ -1441,7 +1441,7 @@ Then switch to the process buffer."
   (python-switch-to-python t))
 
 (defcustom python-source-modes '(python-mode jython-mode)
-  "*Used to determine if a buffer contains Python source code.
+  "Used to determine if a buffer contains Python source code.
 If a file is loaded into a buffer that is in one of these major modes,
 it is considered Python source by `python-load-file', which uses the
 value to determine defaults."
@@ -1484,9 +1484,9 @@ See variable `python-buffer'.  Starts a new process if necessary."
   ;; isn't one for `python-buffer'.
   (unless (comint-check-proc python-buffer)
     (run-python nil t))
-  (get-buffer-process (or (if (eq major-mode 'inferior-python-mode)
-				  (current-buffer)
-				python-buffer))))
+  (get-buffer-process (or (if (derived-mode-p 'inferior-python-mode)
+                              (current-buffer)
+                            python-buffer))))
 
 (defun python-set-proc ()
   "Set the default value of `python-buffer' to correspond to this buffer.
@@ -1912,7 +1912,7 @@ Repeating the command scrolls the completion window."
 
 (defun python-try-complete (old)
   "Completion function for Python for use with `hippie-expand'."
-  (when (eq major-mode 'python-mode)	; though we only add it locally
+  (when (derived-mode-p 'python-mode)	; though we only add it locally
     (unless old
       (let ((symbol (python-partial-symbol)))
 	(he-init-string (- (point) (length symbol)) (point))
@@ -2218,7 +2218,12 @@ with skeleton expansions for compound statement templates.
   (if (featurep 'hippie-exp)
       (set (make-local-variable 'hippie-expand-try-functions-list)
 	   (cons 'python-try-complete hippie-expand-try-functions-list)))
+  ;; Python defines TABs as being 8-char wide.
+  (set (make-local-variable 'tab-width) 8)
   (when python-guess-indent (python-guess-indent))
+  ;; Let's make it harder for the user to shoot himself in the foot.
+  (unless (= tab-width python-indent)
+    (setq indent-tabs-mode nil))
   (set (make-local-variable 'python-command) python-python-command)
   (python-find-imports)
   (unless (boundp 'python-mode-running)	; kill the recursion from jython-mode
@@ -2227,9 +2232,9 @@ with skeleton expansions for compound statement templates.
 
 (custom-add-option 'python-mode-hook 'imenu-add-menubar-index)
 (custom-add-option 'python-mode-hook
-		   '(lambda ()
-		      "Turn off Indent Tabs mode."
-		      (set (make-local-variable 'indent-tabs-mode) nil)))
+		   (lambda ()
+                     "Turn off Indent Tabs mode."
+                     (set (make-local-variable 'indent-tabs-mode) nil)))
 (custom-add-option 'python-mode-hook 'turn-on-eldoc-mode)
 (custom-add-option 'python-mode-hook 'abbrev-mode)
 (custom-add-option 'python-mode-hook 'python-setup-brm)
