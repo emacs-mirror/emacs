@@ -1,4 +1,4 @@
-2006-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+2006-08-20  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
 
 	* emacs.py (eexecfile): Use the __main__ rather than `emacs' namespace.
 
