@@ -26,13 +26,14 @@ __all__ = ["eexecfile", "args", "complete", "ehelp", "eimport"]
 
 def eexecfile (file):
     """Execute FILE and then remove it.
+    Execute the file within the __main__ namespace.
     If we get an exception, print a traceback with the top frame
-    (oursleves) excluded."""
+    (ourselves) excluded."""
     try:
-	try: execfile (file, globals (), globals ())
-	except:
-	    (type, value, tb) = sys.exc_info ()
-	    # Lose the stack frame for this location.
+       try: execfile (file, __main__.__dict__)
+       except:
+           (type, value, tb) = sys.exc_info ()
+           # Lose the stack frame for this location.
 	    tb = tb.tb_next
 	    if tb is None:	# print_exception won't do it
 		print "Traceback (most recent call last):"
