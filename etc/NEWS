@@ -4665,6 +4665,7 @@ keymap alist to this list.
 
 *** The definition of a key-binding passed to define-key can use XEmacs-style
 key-sequences, such as [(control a)].
+
 ** Abbrev changes:
 
 +++
@@ -5492,6 +5493,9 @@ been renamed to `disabled-command-function'.  The variable
 +++
 *** `emacsserver' now runs `pre-command-hook' and `post-command-hook'
 when it receives a request from emacsclient.
+
++++
+*** `current-idle-time' reports how long Emacs has been idle.
 
 ** Lisp file loading changes:
 

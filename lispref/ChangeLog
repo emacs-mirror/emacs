@@ -1,3 +1,10 @@
+2006-08-20  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Idle Timers): New node, split out from Timers.
+	Document current-idle-time.
+	* commands.texi (Reading One Event): Update xref.
+	* elisp.texi (Top): Update subnode menu.
+
 2006-08-16  Richard Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Extended Menu Items): Show format of cached

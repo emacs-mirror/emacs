@@ -1,3 +1,10 @@
+2006-08-20  Richard Stallman  <rms@gnu.org>
+
+	* xfaces.c (load_pixmap): Add quotes in error message.
+
+	* keyboard.c (Fcurrent_idle_time): New function.
+	(syms_of_keyboard): defsubr it.
+
 2006-08-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* window.c (Fset_window_fringes): Do nothing on a tty.
