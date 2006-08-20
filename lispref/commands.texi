@@ -2231,7 +2231,7 @@ necessary for input to arrive.
 
 If @var{seconds} is @code{nil}, Emacs is considered idle while waiting
 for user input to arrive.  Idle timers---those created with
-@code{run-with-idle-timer} (@pxref{Timers})---can run during this
+@code{run-with-idle-timer} (@pxref{Idle Timers})---can run during this
 period.  However, if @var{seconds} is non-@code{nil}, the state of
 idleness remains unchanged.  If Emacs is non-idle when
 @code{read-event} is called, it remains non-idle throughout the
