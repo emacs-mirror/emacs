@@ -1487,7 +1487,7 @@ cause anything special to happen.
 @section Idle Timers
 
   Here is how to set up a timer that runs when Emacs is idle for a
-certain length of time.  Aside from how to set them nup, idle timers
+certain length of time.  Aside from how to set them up, idle timers
 work just like ordinary timers.
 
 @deffn Command run-with-idle-timer secs repeat function &rest args
@@ -1561,7 +1561,7 @@ Here's an example:
   (when @var{taking-a-break}
     (setq resume-timer
           (run-with-idle-timer
-            ;; Compute an idle time @var{break-length} 
+            ;; Compute an idle time @var{break-length}
             ;; more than the current value.
             (time-add (current-idle-time)
                       (seconds-to-time @var{break-length}))
