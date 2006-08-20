@@ -1,3 +1,8 @@
+2006-08-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* newcomment.el (comment-box): Call `comment-normalize-vars'.
+	Add autoload cookie.
+
 2006-08-20  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (line-number-at-pos): Doc fix.
@@ -137,7 +142,7 @@
 	Add face to function names in case of no filename.
 	Add face to variable names of watchpoints.
 
-2006-08-12  Robert Thorpe <rthorpe@realworldtech.com>  (tiny change)
+2006-08-12  Robert Thorpe  <rthorpe@realworldtech.com>  (tiny change)
 
 	* cus-start.el <indent-tabs-mode>: Move to the `indent'
 	customization group.
