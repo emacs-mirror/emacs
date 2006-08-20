@@ -1,3 +1,45 @@
+2006-08-20  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el: Update to Dave Love's latest version.
+	(python-font-lock-keywords, python-mode): Don't use
+	font-lock-syntax-table, but match symbol elements explicitly instead.
+	(python-mode-map): Add help, and a few more key bindings.
+	(python-skip-comments/blanks): Move out of comments as well.
+	(python-continuation-line-p): Behave better with unbalanced parens.
+	(python-blank-line-p): New fun.
+	(python-open-block-statement-p): Don't use a heuristic.
+	(python-outdent-p): Better handle blocks-in-the-same-line.
+	(python-calculate-indentation): Misc improvements.
+	(python-comment-indent): Remove.
+	(python-block-pairs): New var.
+	(python-first-word): New fun.
+	(python-indentation-levels): Handle more common cases.
+	(python-indent-line-1): Add `leave' argument.
+	(python-indent-region): New fun.
+	(python-skip-out): New fun.
+	(python-beginning-of-statement, python-end-of-statement): Use it.
+	(python-next-statement): Return correct count even at eob.
+	(python-end-of-block): Fix paren-typo.
+	(python-imenu-create-index): Add module variables.
+	(run-python): Add `new' arg.
+	Check we're at a prompt before returning.
+	(python-send-command): Move to end of buffer.
+	Wait for prompt to return.
+	(python-set-proc): New fun.
+	(python-imports): New var.
+	(python-describe-symbol): Use it.  Adjust to new interface of `ehelp'.
+	(python-eldoc-function): Try to move out of arg list.
+	(python-outline-level): Offset by 1.
+	(python-find-imports): New fun.
+	(python-symbol-completions): Use python-imports.
+	(python-module-path, ffap-alist): Add support for ffap.
+	(python-skeletons, python-mode-abbrev-table, def-python-skeleton)
+	(pythin-insert-*, python-default-template, python-expand-template):
+	Add templates/skeletons.
+	(python-setup-brm): Support for Bicycle Repair Man.
+	(python-abbrev-syntax-table): New var.
+	(python-abbrev-pc-hook, python-pea-hook): New funs.
+
 2006-08-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (blink-cursor-start): Set timer first.
