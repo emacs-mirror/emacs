@@ -1,3 +1,11 @@
+2006-08-21  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/UnicodeData.txt: Updated to Unicode 5.0.
+
+	* unidata/README: Adjusted for Unicode 5.0.
+
+	* unidata/copyright.html: New file.
+
 2005-05-13  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-get-decomposition): For Hangul
