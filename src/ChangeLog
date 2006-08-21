@@ -1,3 +1,8 @@
+2006-08-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c: Clarify difference between in_sighandler and
+	handling_signal.
+
 2006-08-21  Kim F. Storm  <storm@cua.dk>
 
 	* macterm.c (x_draw_stretch_glyph_string):
