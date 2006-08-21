@@ -2418,7 +2418,9 @@ x_draw_stretch_glyph_string (s)
       int background_width = s->background_width;
       int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
 
-      if (x < left_x)
+      /* Don't draw into left margin, fringe or scrollbar area
+         except for header line and mode line.  */
+      if (x < left_x && !s->row->mode_line_p)
 	{
 	  background_width -= left_x - x;
 	  x = left_x;
