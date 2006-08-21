@@ -518,6 +518,8 @@ and:
 ;;;###autoload
 (defun whitespace-cleanup ()
   "Cleanup the five different kinds of whitespace problems.
+It normally applies to the whole buffer, but in Transient Mark mode
+when the mark is active it applies to the region.
 See `whitespace-buffer' docstring for a summary of the problems."
   (interactive)
   (if (and transient-mark-mode mark-active)
