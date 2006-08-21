@@ -1,3 +1,8 @@
+2006-08-21  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* lispintro/texinfo.tex: changed to version 2006-02-13.16
+          to enable a DVI build using the more recent versions of TeX.
+
 2006-05-25  David Kastrup  <dak@gnu.org>
 
 	* emacs-lisp-intro.texi (setcar): replace an antelope rather than
