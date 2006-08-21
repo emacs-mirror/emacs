@@ -240,6 +240,7 @@ xftfont_open (f, entity, pixel_size)
   FcPatternAddBool (pat, FC_ANTIALIAS, FcTrue);
 
   BLOCK_INPUT;
+  XftDefaultSubstitute (display, FRAME_X_SCREEN_NUMBER (f), pat);
   xftfont = XftFontOpenPattern (display, pat);
   /* We should not destroy PAT here because it is kept in XFTFONT and
      destroyed automatically when XFTFONT is closed.  */
