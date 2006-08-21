@@ -315,7 +315,7 @@ Also display the main routine in the disassembly buffer if present."
   "Nil means just pop up the GUD buffer unless `gdb-show-main' is t.
 In this case it starts with two windows: one displaying the GUD
 buffer and the other with the source file with the main routine
-of the inferior.  Non-nil means display the layout shown for
+of the debugged program.  Non-nil means display the layout shown for
 `gdba'."
   :type 'boolean
   :group 'gud
@@ -2638,8 +2638,11 @@ corresponding to the mode line clicked."
 (defun gdb-frame-memory-buffer ()
   "Display memory contents in a new frame."
   (interactive)
-  (let ((special-display-regexps (append special-display-regexps '(".*")))
-	(special-display-frame-alist gdb-frame-parameters))
+  (let* ((special-display-regexps (append special-display-regexps '(".*")))
+	 (special-display-frame-alist
+	  (cons '(left-fringe . 0)
+		(cons '(right-fringe . 0)
+		      (cons '(width . 83) gdb-frame-parameters)))))
     (display-buffer (gdb-get-buffer-create 'gdb-memory-buffer))))
 
 
@@ -3584,7 +3587,7 @@ in_scope=\"\\(.*?\\)\".*?}")
 			      value))
 		       (insert
 			(concat name "\t" (nth 1 local)
-				"\t" (nth 2 local) "\n")))
+				"\t" value "\n")))
 		     (set-window-start window start)
 		     (set-window-point window p))))))))
 
