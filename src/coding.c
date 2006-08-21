@@ -4963,8 +4963,14 @@ setup_coding_system (coding_system, coding)
 
   coding->mode = 0;
   coding->head_ascii = -1;
-  coding->common_flags
-    = (VECTORP (eol_type) ? CODING_REQUIRE_DETECTION_MASK : 0);
+  if (VECTORP (eol_type))
+    coding->common_flags = (CODING_REQUIRE_DECODING_MASK
+			    | CODING_REQUIRE_DETECTION_MASK);
+  else if (! EQ (eol_type, Qunix))
+    coding->common_flags = (CODING_REQUIRE_DECODING_MASK
+			    | CODING_REQUIRE_ENCODING_MASK);
+  else
+    coding->common_flags = 0;
   if (! NILP (CODING_ATTR_POST_READ (attrs)))
     coding->common_flags |= CODING_REQUIRE_DECODING_MASK;
   if (! NILP (CODING_ATTR_PRE_WRITE (attrs)))
@@ -5202,8 +5208,7 @@ coding_inherit_eol_type (coding_system, parent)
 	{
 	  Lisp_Object parent_spec;
 
-	  parent_spec
-	    = CODING_SYSTEM_SPEC (buffer_defaults.buffer_file_coding_system);
+	  parent_spec = CODING_SYSTEM_SPEC (parent);
 	  parent_eol_type = AREF (parent_spec, 2);
 	}
       else
