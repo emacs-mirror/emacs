@@ -1,3 +1,19 @@
+2006-08-20  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-show-maximum-output): New var.
+	(rcirc-buffer-process): If no buffer argument is supplied, use
+	current-buffer.
+	(rcirc-complete-nick): Complete to the last completed nick first.
+	(rcirc-mode): Preserve the value of `rcirc-urls' across
+	connections.  Setup scroll function.
+	(rcirc-scroll-to-bottom): New function.
+	(rcirc-print): Use nick syntax around regexp work.  Notice
+	dim-nicks speaking only if they say our nick.
+	(rcirc-update-activity-string): Do not show the modeline indicator
+	if there are no live rcirc processes.
+	(rcirc-cmd-ignore): Ignore case.
+	(rcirc-browse-url-at-point): Fix off-by-one error.
+
 2006-08-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el: Remove * in defcustom docstrings.
