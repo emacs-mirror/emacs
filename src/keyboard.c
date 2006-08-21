@@ -11228,14 +11228,16 @@ These events are processed first, before actual keyboard input.  */);
 
   DEFVAR_LISP ("unread-post-input-method-events", &Vunread_post_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
-These events are processed after `unread-command-events', but
-before actual keyboard input.  */);
+These events are processed before `unread-command-events'
+and actual keyboard input without given to `input-method-function'.  */);
   Vunread_post_input_method_events = Qnil;
 
   DEFVAR_LISP ("unread-input-method-events", &Vunread_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
 These events are processed after `unread-command-events', but
-before actual keyboard input.  */);
+before actual keyboard input.
+If there's an active input method, the events are given to
+`input-method-function'.  */);
   Vunread_input_method_events = Qnil;
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
