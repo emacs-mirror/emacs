@@ -100,7 +100,12 @@ int interrupt_input_pending;
 /* File descriptor to use for input.  */
 extern int input_fd;
 
-/* Nonzero if we are executing from the SIGIO signal handler. */
+/* Nonzero if we are executing from the SIGIO signal handler.
+   The difference between in_sighandler and handling_signal is that
+   in_sighandler is only set when executing in a signal handler.
+   handling_signal may be set even if not executing in a signal handler, for
+   example when reinvoke_input_signal is called from UNBLOCK_INPUT, or
+   when Emacs is compiled with SYNC_INPUT defined.  */
 int in_sighandler;
 
 #ifdef HAVE_WINDOW_SYSTEM
