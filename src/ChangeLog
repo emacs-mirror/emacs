@@ -1,3 +1,9 @@
+2006-08-21  Kenichi Handa  <handa@m17n.org>
+
+	* keyboard.c (syms_of_keyboard): Docstring of
+	Vunread_post_input_method_events and Vunread_input_method_events
+	fixed.
+
 2006-08-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (show_help_echo): Preserve mouse movement flag if
