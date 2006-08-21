@@ -2393,7 +2393,7 @@ font_matching_entity (frame, spec)
 	&& (NILP (ftype) || EQ (driver_list->driver->type, ftype)))
       {
 	Lisp_Object cache = driver_list->driver->get_cache (frame);
-	Lisp_Object val, key;
+	Lisp_Object key;
 
 	xassert (CONSP (cache));
 	ASET (spec, FONT_TYPE_INDEX, driver_list->driver->type);

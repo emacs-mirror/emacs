@@ -1,3 +1,20 @@
+2006-08-21  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_matching_entity): Dolete unused local var.
+
+	* xftfont.c (xftfont_open): Call XftDefaultSubstitute before
+	opening a font.
+
+	* fileio.c (Finsert_file_contents): On recovering a file, assume
+	Unix-like eol.
+	(choose_write_coding_system): On auto-saving a file, force
+	Unix-like eol.
+
+	* coding.c (setup_coding_system): Fix setting of
+	coding->common_flags based on eol_type.
+	(coding_inherit_eol_type): If PARENT is not nil, be sure to
+	inherit from it.
+
 2006-08-04  Kenichi Handa  <handa@m17n.org>
 
 	* alloc.c (NSTATICS): Increased to 0x600.
