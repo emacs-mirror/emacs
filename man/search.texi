@@ -64,6 +64,7 @@ Incremental search backward (@code{isearch-backward}).
 @node Basic Isearch
 @subsection Basics of Incremental Search
 @cindex incremental search
+@cindex isearch
 
 @kindex C-s
 @findex isearch-forward
