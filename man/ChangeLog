@@ -1,3 +1,7 @@
+2006-08-21  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Basic Isearch): Add `isearch' index entry.
+
 2006-08-16  Richard Stallman  <rms@gnu.org>
 
 	* misc.texi (Saving Emacs Sessions): Clean up wording.

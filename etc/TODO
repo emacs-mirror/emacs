@@ -21,7 +21,7 @@ a window doesn't select it.
 but if you type M-n you should get the visited file name of the
 current buffer.
 
-** whitespace-cleanup should work only on the region if the region is active.
+** describe-face should show an example of text in the face.
 
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
