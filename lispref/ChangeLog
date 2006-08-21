@@ -1,3 +1,7 @@
+2006-08-21  Lute Kamstra  <lute@gnu.org>
+
+	* Makefile.in: Use ../man/texinfo.tex to build elisp.dvi.
+
 2006-08-20  Richard Stallman  <rms@gnu.org>
 
 	* os.texi (Idle Timers): New node, split out from Timers.
