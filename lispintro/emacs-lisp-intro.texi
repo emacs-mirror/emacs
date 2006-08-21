@@ -1,4 +1,5 @@
-\input texinfo                                  @c -*-texinfo-*-
+\input ../man/texinfo                                  @c -*-texinfo-*-
+@c change above to   \input texinfo   if building on own.
 @comment %**start of header
 @setfilename ../info/eintr
 @c setfilename emacs-lisp-intro.info
