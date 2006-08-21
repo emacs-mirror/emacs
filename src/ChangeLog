@@ -1,3 +1,10 @@
+2006-08-21  Kim F. Storm  <storm@cua.dk>
+
+	* macterm.c (x_draw_stretch_glyph_string):
+	* w32term.c (x_draw_stretch_glyph_string):
+	* xterm.c (x_draw_stretch_glyph_string): It is ok to draw a
+	stretch	glyph in left marginal areas on	header and mode lines.
+
 2006-08-21  Kenichi Handa  <handa@m17n.org>
 
 	* keyboard.c (syms_of_keyboard): Docstring of
