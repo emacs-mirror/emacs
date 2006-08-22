@@ -9391,7 +9391,8 @@ update_tool_bar (f, save_match_data)
                                          &new_n_tool_bar);
 
 	  /* Redisplay the tool-bar if we changed it.  */
-	  if (NILP (Fequal (new_tool_bar, f->tool_bar_items)))
+	  if (new_n_tool_bar != f->n_tool_bar_items
+	      || NILP (Fequal (new_tool_bar, f->tool_bar_items)))
             {
               /* Redisplay that happens asynchronously due to an expose event
                  may access f->tool_bar_items.  Make sure we update both
