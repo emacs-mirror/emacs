@@ -1840,6 +1840,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 		       (and d (cdr d)))))))
 	(if (member ido-default-item ido-ignore-item-temp-list)
 	    (setq ido-default-item nil))
+	(ido-trace "new default" ido-default-item)
 	(setq ido-set-default-item nil))
 
       (if ido-process-ignore-lists-inhibit
@@ -3528,37 +3529,40 @@ for first matching file."
   (let* ((case-fold-search  ido-case-fold)
 	 (slash (and (not ido-enable-prefix) (ido-final-slash ido-text)))
 	 (text (if slash (substring ido-text 0 -1) ido-text))
-	 (rexq (concat (if ido-enable-regexp text (regexp-quote text)) (if slash ".*/" "")))
+	 (rex0 (if ido-enable-regexp text (regexp-quote text)))
+	 (rexq (concat rex0 (if slash ".*/" "")))
 	 (re (if ido-enable-prefix (concat "\\`" rexq) rexq))
-	 (full-re (and do-full (not ido-enable-regexp) (not (string-match "\$\\'" re))
-		       (concat "\\`" re "\\'")))
+	 (full-re (and do-full (not ido-enable-regexp) (not (string-match "\$\\'" rex0))
+		       (concat "\\`" rex0 (if slash "/" "") "\\'")))
+	 (suffix-re (and do-full slash
+			 (not ido-enable-regexp) (not (string-match "\$\\'" rex0))
+			 (concat rex0 "/\\'")))
 	 (prefix-re (and full-re (not ido-enable-prefix)
 			 (concat "\\`" rexq)))
 	 (non-prefix-dot (or (not ido-enable-dot-prefix)
 			     (not ido-process-ignore-lists)
 			     ido-enable-prefix
 			     (= (length ido-text) 0)))
-
-	 full-matches
-	 prefix-matches
-	 matches)
+	 full-matches suffix-matches prefix-matches matches)
     (setq ido-incomplete-regexp nil)
     (condition-case error
         (mapcar
          (lambda (item)
            (let ((name (ido-name item)))
-             (if (and (or non-prefix-dot
-                          (if (= (aref ido-text 0) ?.)
-                              (= (aref name 0) ?.)
-                            (/= (aref name 0) ?.)))
-                      (string-match re name))
-                 (cond
-                  ((and full-re (string-match full-re name))
-                   (setq full-matches (cons item full-matches)))
-                  ((and prefix-re (string-match prefix-re name))
-                   (setq prefix-matches (cons item prefix-matches)))
-                  (t (setq matches (cons item matches))))))
-           t)
+	     (if (and (or non-prefix-dot
+			  (if (= (aref ido-text 0) ?.)
+			      (= (aref name 0) ?.)
+			    (/= (aref name 0) ?.)))
+		      (string-match re name))
+		 (cond
+		  ((and full-re (string-match full-re name))
+		   (setq full-matches (cons item full-matches)))
+		  ((and suffix-re (string-match suffix-re name))
+		   (setq suffix-matches (cons item suffix-matches)))
+		  ((and prefix-re (string-match prefix-re name))
+		   (setq prefix-matches (cons item prefix-matches)))
+		  (t (setq matches (cons item matches))))))
+	   t)
          items)
       (invalid-regexp
        (setq ido-incomplete-regexp t
@@ -3566,10 +3570,15 @@ for first matching file."
              ;; special-case single match, and handle appropriately
              ;; elsewhere.
              matches (cdr error))))
-    (if prefix-matches
-	(setq matches (nconc prefix-matches matches)))
-    (if full-matches
-	(setq matches (nconc full-matches matches)))
+    (when prefix-matches
+      (ido-trace "prefix match" prefix-matches)
+      (setq matches (nconc prefix-matches matches)))
+    (when suffix-matches
+      (ido-trace "suffix match" (list text suffix-re suffix-matches))
+      (setq matches (nconc suffix-matches matches)))
+    (when full-matches
+      (ido-trace "full match" (list text full-re full-matches))
+      (setq matches (nconc full-matches matches)))
     (when (and (null matches)
 	       ido-enable-flex-matching
 	       (> (length ido-text) 1)
@@ -4096,12 +4105,13 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	  try-single-dir-match
 	  refresh)
 
-      (ido-trace "\nexhibit" this-command)
-      (ido-trace "dir" ido-current-directory)
-      (ido-trace "contents" contents)
-      (ido-trace "list" ido-cur-list)
-      (ido-trace "matches" ido-matches)
-      (ido-trace "rescan" ido-rescan)
+      (when ido-trace-enable
+	(ido-trace "\nexhibit" this-command)
+	(ido-trace "dir" ido-current-directory)
+	(ido-trace "contents" contents)
+	(ido-trace "list" ido-cur-list)
+	(ido-trace "matches" ido-matches)
+	(ido-trace "rescan" ido-rescan))
 
       (save-excursion
 	(goto-char (point-max))
