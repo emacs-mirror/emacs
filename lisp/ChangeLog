@@ -2,7 +2,12 @@
 
 	* progmodes/gdb-ui.el (gdb-frame-memory-buffer): Make frame
 	a bit wider and remove fringes to fit initial output on line.
-	
+
+2006-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (blink-cursor-end): Only ignore the error we care about.
+	(blink-cursor-mode): Use blink-cursor-end to simplify the code.
+
 2006-08-21  Richard Stallman  <rms@gnu.org>
 
 	* whitespace.el (whitespace-cleanup): Doc fix.
@@ -16,8 +21,8 @@
 	(rcirc-mode): Preserve the value of `rcirc-urls' across
 	connections.  Setup scroll function.
 	(rcirc-scroll-to-bottom): New function.
-	(rcirc-print): Use nick syntax around regexp work.  Notice
-	dim-nicks speaking only if they say our nick.
+	(rcirc-print): Use nick syntax around regexp work.
+	Notice dim-nicks speaking only if they say our nick.
 	(rcirc-update-activity-string): Do not show the modeline indicator
 	if there are no live rcirc processes.
 	(rcirc-cmd-ignore): Ignore case.
