@@ -1,3 +1,7 @@
+2006-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fset_buffer_multibyte): Record proper undo entry.
+
 2006-08-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keyboard.c: Clarify difference between in_sighandler and

@@ -1,3 +1,8 @@
+2006-08-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-set-matches-1): Fix full matching for subdirs.
+	Add suffix matching for subdirs.
+
 2006-08-22 Jorgen Schaefer <forcer@forcix.cx> (tiny change)
 
 	* x-dnd.el (x-dnd-drop-data): Don't call goto-char if
