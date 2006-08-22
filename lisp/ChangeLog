@@ -1,3 +1,8 @@
+2006-08-22 Jorgen Schaefer <forcer@forcix.cx> (tiny change)
+
+	* x-dnd.el (x-dnd-drop-data): Don't call goto-char if
+	mouse-yank-at-point is non-nil.
+
 2006-08-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-frame-memory-buffer): Make frame
