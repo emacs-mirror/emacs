@@ -2115,10 +2115,11 @@ current buffer is cleared.  */)
 {
   struct Lisp_Marker *tail, *markers;
   struct buffer *other;
-  int undo_enabled_p = !EQ (current_buffer->undo_list, Qt);
   int begv, zv;
   int narrowed = (BEG != BEGV || Z != ZV);
   int modified_p = !NILP (Fbuffer_modified_p (Qnil));
+  Lisp_Object old_undo = current_buffer->undo_list;
+  struct gcpro gcpro1;
 
   if (current_buffer->base_buffer)
     error ("Cannot do `set-buffer-multibyte' on an indirect buffer");
@@ -2127,10 +2128,11 @@ current buffer is cleared.  */)
   if (NILP (flag) == NILP (current_buffer->enable_multibyte_characters))
     return flag;
 
-  /* It would be better to update the list,
-     but this is good enough for now.  */
-  if (undo_enabled_p)
-    current_buffer->undo_list = Qt;
+  GCPRO1 (old_undo);
+
+  /* Don't record these buffer changes.  We will put a special undo entry
+     instead.  */
+  current_buffer->undo_list = Qt;
 
   /* If the cached position is for this buffer, clear it out.  */
   clear_charpos_cache (current_buffer);
@@ -2330,8 +2332,18 @@ current buffer is cleared.  */)
       set_intervals_multibyte (1);
     }
 
-  if (undo_enabled_p)
-    current_buffer->undo_list = Qnil;
+  if (!EQ (old_undo, Qt))
+    {
+      /* Represent all the above changes by a special undo entry.  */
+      extern Lisp_Object Qapply;
+      Lisp_Object args[3];
+      args[0] = Qapply;
+      args[1] = intern ("set-buffer-multibyte");
+      args[2] = NILP (flag) ? Qt : Qnil;
+      current_buffer->undo_list = Fcons (Flist (3, args), old_undo);
+    }
+
+  UNGCPRO;
 
   /* Changing the multibyteness of a buffer means that all windows
      showing that buffer must be updated thoroughly.  */
