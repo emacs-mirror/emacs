@@ -1290,6 +1290,7 @@ not GDB."
       (progn
 	(setq gud-running t)
 	(setq gdb-inferior-status "running")
+	(setq gdb-signalled nil)
 	(gdb-force-mode-line-update
 	 (propertize gdb-inferior-status 'face font-lock-type-face))
 	(gdb-remove-text-properties)
