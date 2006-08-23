@@ -1265,11 +1265,16 @@ where FACE is a valid face specification, as it can be used with
        "GNU Emacs is one component of the GNU/Linux operating system."
      "GNU Emacs is one component of the GNU operating system."))
   (insert "\n")
-  (unless (equal (buffer-name fancy-splash-outer-buffer) "*scratch*")
-    (fancy-splash-insert :face 'variable-pitch
-			 (substitute-command-keys
-			  "Type \\[recenter] to begin editing your file.\n"))))
-
+  (if fancy-splash-outer-buffer
+      (fancy-splash-insert
+       :face 'variable-pitch
+       (substitute-command-keys
+	(concat
+	 "Type \\[recenter] to begin editing"
+	 (if (equal (buffer-name fancy-splash-outer-buffer)
+		    "*scratch*")
+	     ".\n"
+	   " your file.\n"))))))
 
 (defun fancy-splash-tail ()
   "Insert the tail part of the splash screen into the current buffer."
@@ -1339,47 +1344,65 @@ mouse."
   (throw 'exit nil))
 
 
-(defun fancy-splash-screens ()
+(defun fancy-splash-screens (&optional hide-on-input)
   "Display fancy splash screens when Emacs starts."
   (setq fancy-splash-help-echo (startup-echo-area-message))
-  (let ((old-hourglass display-hourglass)
-	(fancy-splash-outer-buffer (current-buffer))
-	splash-buffer
-	(old-minor-mode-map-alist minor-mode-map-alist)
-	(old-emulation-mode-map-alists emulation-mode-map-alists)
-	(frame (fancy-splash-frame))
-	timer)
-    (save-selected-window
-      (select-frame frame)
-      (switch-to-buffer "GNU Emacs")
-      (setq tab-width 20)
-      (setq splash-buffer (current-buffer))
-      (catch 'stop-splashing
-	(unwind-protect
-	    (let ((map (make-sparse-keymap)))
-	      (use-local-map map)
-	      (define-key map [switch-frame] 'ignore)
-	      (define-key map [t] 'fancy-splash-default-action)
-	      (define-key map [mouse-movement] 'ignore)
-	      (define-key map [mode-line t] 'ignore)
-	      (setq cursor-type nil
-		    display-hourglass nil
-		    minor-mode-map-alist nil
-		    emulation-mode-map-alists nil
-		    buffer-undo-list t
-		    mode-line-format (propertize "---- %b %-"
-						 'face 'mode-line-buffer-id)
-		    fancy-splash-stop-time (+ (float-time)
-					      fancy-splash-max-time)
-		    timer (run-with-timer 0 fancy-splash-delay
-					  #'fancy-splash-screens-1
-					  splash-buffer))
-	      (recursive-edit))
-	  (cancel-timer timer)
-	  (setq display-hourglass old-hourglass
-		minor-mode-map-alist old-minor-mode-map-alist
-		emulation-mode-map-alists old-emulation-mode-map-alists)
-	  (kill-buffer splash-buffer))))))
+  (if hide-on-input
+      (let ((old-hourglass display-hourglass)
+	    (fancy-splash-outer-buffer (current-buffer))
+	    splash-buffer
+	    (old-minor-mode-map-alist minor-mode-map-alist)
+	    (old-emulation-mode-map-alists emulation-mode-map-alists)
+	    (frame (fancy-splash-frame))
+	    timer)
+	(save-selected-window
+	  (select-frame frame)
+	  (switch-to-buffer "GNU Emacs")
+	  (setq tab-width 20)
+	  (setq splash-buffer (current-buffer))
+	  (catch 'stop-splashing
+	    (unwind-protect
+		(let ((map (make-sparse-keymap)))
+		  (use-local-map map)
+		  (define-key map [switch-frame] 'ignore)
+		  (define-key map [t] 'fancy-splash-default-action)
+		  (define-key map [mouse-movement] 'ignore)
+		  (define-key map [mode-line t] 'ignore)
+		  (setq cursor-type nil
+			display-hourglass nil
+			minor-mode-map-alist nil
+			emulation-mode-map-alists nil
+			buffer-undo-list t
+			mode-line-format (propertize "---- %b %-"
+						     'face 'mode-line-buffer-id)
+			fancy-splash-stop-time (+ (float-time)
+						  fancy-splash-max-time)
+			timer (run-with-timer 0 fancy-splash-delay
+					      #'fancy-splash-screens-1
+					      splash-buffer))
+		  (recursive-edit))
+	      (cancel-timer timer)
+	      (setq display-hourglass old-hourglass
+		    minor-mode-map-alist old-minor-mode-map-alist
+		    emulation-mode-map-alists old-emulation-mode-map-alists)
+	      (kill-buffer splash-buffer)))))
+    ;; If hide-on-input is non-nil, don't hide the buffer on input.
+    (if (or (window-minibuffer-p)
+	    (window-dedicated-p (selected-window)))
+	(pop-to-buffer (current-buffer))
+      (switch-to-buffer "GNU Emacs"))
+    (erase-buffer)
+    (if pure-space-overflow
+	(insert "\
+Warning Warning!!!  Pure space overflow    !!!Warning Warning
+\(See the node Pure Storage in the Lisp manual for details.)\n"))
+    (let (fancy-splash-outer-buffer)
+      (fancy-splash-head)
+      (dolist (text fancy-splash-text)
+	(apply #'fancy-splash-insert text))
+      (fancy-splash-tail)
+      (set-buffer-modified-p nil)
+      (goto-char (point-min)))))
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
@@ -1410,14 +1433,16 @@ we put it on this frame."
 	  (> window-height (+ image-height 19)))))))
 
 
-(defun normal-splash-screen ()
+(defun normal-splash-screen (&optional hide-on-input)
   "Display splash screen when Emacs starts."
   (let ((prev-buffer (current-buffer)))
     (unwind-protect
 	(with-current-buffer (get-buffer-create "GNU Emacs")
+	  (erase-buffer)
 	  (set (make-local-variable 'tab-width) 8)
-          (set (make-local-variable 'mode-line-format)
-               (propertize "---- %b %-" 'face 'mode-line-buffer-id))
+	  (if hide-on-input
+	      (set (make-local-variable 'mode-line-format)
+		   (propertize "---- %b %-" 'face 'mode-line-buffer-id)))
 
           (if pure-space-overflow
               (insert "\
@@ -1433,9 +1458,13 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
                ", one component of the GNU/Linux operating system.\n"
              ", a part of the GNU operating system.\n"))
 
-          (unless (equal (buffer-name prev-buffer) "*scratch*")
-            (insert (substitute-command-keys
-                     "\nType \\[recenter] to begin editing your file.\n")))
+	  (if hide-on-input
+	      (insert (substitute-command-keys
+		       (concat
+			"\nType \\[recenter] to begin editing"
+			(if (equal (buffer-name prev-buffer) "*scratch*")
+			    ".\n"
+			  " your file.\n")))))
 
           (if (display-mouse-p)
               ;; The user can use the mouse to activate menus
@@ -1549,17 +1578,20 @@ Type \\[describe-distribution] for information on getting the latest version."))
           ;; Display the input that we set up in the buffer.
           (set-buffer-modified-p nil)
           (goto-char (point-min))
-          (if (or (window-minibuffer-p)
-                  (window-dedicated-p (selected-window)))
-              ;; There's no point is using pop-to-buffer since creating
-              ;; a new frame will generate enough events that the
-              ;; subsequent `sit-for' will immediately return anyway.
-              nil ;; (pop-to-buffer (current-buffer))
-            (save-window-excursion
-              (switch-to-buffer (current-buffer))
-              (sit-for 120))))
+	  (if (or (window-minibuffer-p)
+		  (window-dedicated-p (selected-window)))
+	      ;; If hide-on-input is nil, creating a new frame will
+	      ;; generate enough events that the subsequent `sit-for'
+	      ;; will immediately return anyway.
+	      (pop-to-buffer (current-buffer))
+	    (if hide-on-input
+		(save-window-excursion
+		  (switch-to-buffer (current-buffer))
+		  (sit-for 120))
+	      (switch-to-buffer (current-buffer)))))
       ;; Unwind ... ensure splash buffer is killed
-      (kill-buffer "GNU Emacs"))))
+      (if hide-on-input
+	  (kill-buffer "GNU Emacs")))))
 
 
 (defun startup-echo-area-message ()
@@ -1575,14 +1607,14 @@ Type \\[describe-distribution] for information on getting the latest version."))
     (message "%s" (startup-echo-area-message))))
 
 
-(defun display-splash-screen ()
+(defun display-splash-screen (&optional hide-on-input)
   "Display splash screen according to display.
 Fancy splash screens are used on graphic displays,
 normal otherwise."
   (interactive)
   (if (use-fancy-splash-screens-p)
-      (fancy-splash-screens)
-    (normal-splash-screen)))
+      (fancy-splash-screens hide-on-input)
+    (normal-splash-screen hide-on-input)))
 
 
 (defun command-line-1 (command-line-args-left)
@@ -1885,7 +1917,7 @@ normal otherwise."
     ;; If user typed input during all that work,
     ;; abort the startup screen.  Otherwise, display it now.
     (unless (input-pending-p)
-      (display-splash-screen))))
+      (display-splash-screen t))))
 
 
 (defun command-line-normalize-file-name (file)

@@ -1,3 +1,12 @@
+2006-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-splash-head): Give instructions for dismissing
+	the splash screen for default startup too.
+	(display-startup-echo-area-message, fancy-splash-screens)
+	(use-fancy-splash-screens-p): New arg hide-on-input.  If nil, show
+	all splash text at once and keep the splash buffer around.
+	(command-line-1): Give display-startup-echo-area-message a t arg.
+
 2006-08-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-follow-gnus-link): Make sure the dedicated
