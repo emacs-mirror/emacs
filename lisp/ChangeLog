@@ -1,3 +1,12 @@
+2006-08-24  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/grep.el (grep-find-use-xargs): Use explicit value `exec'
+	to mean "use find -exec"; nil now unambiguously means auto-detect.
+	(grep-compute-defaults): Set grep-find-use-xargs to `exec' if not `gnu'.
+	Use shell-quote-argument to build grep-find-command and grep-find-template.
+	(rgrep): Use shell-quote-argument to properly quote arguments to find.
+	Reported by Tom Seddon.
+
 2006-08-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (fancy-splash-head): Give instructions for dismissing
