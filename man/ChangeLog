@@ -1,3 +1,8 @@
+2006-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Init File): Reference Find Init to avoid "home
+	directory" confusion.
+
 2006-08-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Other GDB-UI Buffers): Describe how to edit
