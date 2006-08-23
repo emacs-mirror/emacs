@@ -125,6 +125,9 @@ current buffer.
 
 ** Internationalize Emacs's messages.
 
+** Set up a facility to save backtraces when errors happen during
+specified filters, specified timers, and specified hooks.
+
 ** Install mmc@maruska.dyndns.org's no-flicker change.
 
 ** Add a "current vertical pixel level" value that goes with point,
