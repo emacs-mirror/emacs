@@ -1,3 +1,8 @@
+2006-08-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* buffer.c (Fswitch_to_buffer): Move buffer to front of
+	buffer-alist if necessary.
+
 2006-08-22  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (update_tool_bar): Redisplay toolbar also when only
