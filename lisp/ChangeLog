@@ -1,3 +1,16 @@
+2006-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/timer.el (timer-set-idle-time, run-with-idle-timer):
+	Accept internal time format for SECS arg.
+	(timer-relative-time): Doc fix.
+
+	* jit-lock.el: "Stealth fontification by requeuing timers" patch,
+	adapted from Martin Rudalics.
+	(jit-lock-stealth-repeat-timer, jit-lock-stealth-buffers): New vars.
+	(jit-lock-mode): Create jit-lock-stealth-repeat-timer.
+	(jit-lock-stealth-fontify): Reschedule as a idle timer instead of
+	using sit-for.
+
 2006-08-24  Francesc Rocher  <francesc.rocher@gmail.com>
 
 	* cus-start.el (all): Add `overline-margin' and

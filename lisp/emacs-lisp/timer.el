@@ -60,14 +60,22 @@ fire repeatedly that many seconds apart."
 
 (defun timer-set-idle-time (timer secs &optional repeat)
   "Set the trigger idle time of TIMER to SECS.
+SECS may be an integer, floating point number, or the internal
+time format (HIGH LOW USECS) returned by, e.g., `current-idle-time'.
 If optional third argument REPEAT is non-nil, make the timer
 fire each time Emacs is idle for that many seconds."
   (or (timerp timer)
       (error "Invalid timer"))
-  (aset timer 1 0)
-  (aset timer 2 0)
-  (aset timer 3 0)
-  (timer-inc-time timer secs)
+  (if (consp secs)
+      (progn (aset timer 1 (car secs))
+	     (aset timer 2 (if (consp (cdr secs)) (car (cdr secs)) (cdr secs)))
+	     (aset timer 3 (or (and (consp (cdr secs)) (consp (cdr (cdr secs)))
+				    (nth 2 secs))
+			       0)))
+    (aset timer 1 0)
+    (aset timer 2 0)
+    (aset timer 3 0)
+    (timer-inc-time timer secs))
   (aset timer 4 repeat)
   timer)
 
@@ -104,7 +112,7 @@ of SECS seconds since the epoch.  SECS may be a fraction."
 
 (defun timer-relative-time (time secs &optional usecs)
   "Advance TIME by SECS seconds and optionally USECS microseconds.
-SECS may be a fraction."
+SECS may be either an integer or a floating point number."
   (let ((high (car time))
 	(low (if (consp (cdr time)) (nth 1 time) (cdr time)))
 	(micro (if (numberp (car-safe (cdr-safe (cdr time))))
@@ -412,7 +420,8 @@ This function is for compatibility; see also `run-with-timer'."
 (defun run-with-idle-timer (secs repeat function &rest args)
   "Perform an action the next time Emacs is idle for SECS seconds.
 The action is to call FUNCTION with arguments ARGS.
-SECS may be an integer or a floating point number.
+SECS may be an integer, a floating point number, or the internal
+time format (HIGH LOW USECS) returned by, e.g., `current-idle-time'.
 If Emacs is currently idle, and has been idle for N seconds (N < SECS),
 then it will call FUNCTION in SECS - N seconds from now.
 

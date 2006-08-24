@@ -171,6 +171,8 @@ If nil, contextual fontification is disabled.")
 
 (defvar jit-lock-stealth-timer nil
   "Timer for stealth fontification in Just-in-time Lock mode.")
+(defvar jit-lock-stealth-repeat-timer nil
+  "Timer for repeated stealth fontification in Just-in-time Lock mode.")
 (defvar jit-lock-context-timer nil
   "Timer for context fontification in Just-in-time Lock mode.")
 (defvar jit-lock-defer-timer nil
@@ -178,6 +180,8 @@ If nil, contextual fontification is disabled.")
 
 (defvar jit-lock-defer-buffers nil
   "List of buffers with pending deferred fontification.")
+(defvar jit-lock-stealth-buffers nil
+  "List of buffers that are being fontified stealthily.")
 
 ;;; JIT lock mode
 
@@ -224,6 +228,13 @@ the variable `jit-lock-stealth-nice'."
 	   (setq jit-lock-stealth-timer
 		 (run-with-idle-timer jit-lock-stealth-time t
 				      'jit-lock-stealth-fontify)))
+
+	 ;; Create, but do not activate, the idle timer for repeated
+	 ;; stealth fontification.
+	 (when (and jit-lock-stealth-time (null jit-lock-stealth-repeat-timer))
+	   (setq jit-lock-stealth-repeat-timer (timer-create))
+	   (timer-set-function jit-lock-stealth-repeat-timer
+			       'jit-lock-stealth-fontify '(t)))
 
 	 ;; Init deferred fontification timer.
 	 (when (and jit-lock-defer-time (null jit-lock-defer-timer))
@@ -443,71 +454,55 @@ Value is nil if there is nothing more to fontify."
 			   (t next))))
 	result))))
 
-
-(defun jit-lock-stealth-fontify ()
+(defun jit-lock-stealth-fontify (&optional repeat)
   "Fontify buffers stealthily.
-This functions is called after Emacs has been idle for
-`jit-lock-stealth-time' seconds."
-  ;; I used to check `inhibit-read-only' here, but I can't remember why.  -stef
+This function is called repeatedly after Emacs has become idle for
+`jit-lock-stealth-time' seconds.  Optional argument REPEAT is expected
+non-nil in a repeated invocation of this function."
+  ;; Cancel timer for repeated invocations.
+  (unless repeat
+    (cancel-timer jit-lock-stealth-repeat-timer))
   (unless (or executing-kbd-macro
 	      memory-full
-	      (window-minibuffer-p (selected-window)))
-    (let ((buffers (buffer-list))
-	  (outer-buffer (current-buffer))
+	      (window-minibuffer-p (selected-window))
+	      ;; For first invocation set up `jit-lock-stealth-buffers'.
+	      ;; In repeated invocations it's already been set up.
+	      (null (if repeat
+			jit-lock-stealth-buffers
+		      (setq jit-lock-stealth-buffers (buffer-list)))))
+    (let ((buffer (car jit-lock-stealth-buffers))
+	  (delay 0)
 	  minibuffer-auto-raise
-	  message-log-max)
-      (with-local-quit
-	(while (and buffers (not (input-pending-p)))
-	  (with-current-buffer (pop buffers)
-	    (when jit-lock-mode
-	      ;; This is funny.  Calling sit-for with 3rd arg non-nil
-	      ;; so that it doesn't redisplay, internally calls
-	      ;; wait_reading_process_input also with a parameter
-	      ;; saying "don't redisplay."  Since this function here
-	      ;; is called periodically, this effectively leads to
-	      ;; process output not being redisplayed at all because
-	      ;; redisplay_internal is never called.  (That didn't
-	      ;; work in the old redisplay either.)  So, we learn that
-	      ;; we mustn't call sit-for that way here.  But then, we
-	      ;; have to be cautious not to call sit-for in a widened
-	      ;; buffer, since this could display hidden parts of that
-	      ;; buffer.  This explains the seemingly weird use of
-	      ;; save-restriction/widen here.
-
-	      (with-temp-message (if jit-lock-stealth-verbose
-				     (concat "JIT stealth lock "
-					     (buffer-name)))
-
-		;; In the following code, the `sit-for' calls cause a
-		;; redisplay, so it's required that the
-		;; buffer-modified flag of a buffer that is displayed
-		;; has the right value---otherwise the mode line of
-		;; an unmodified buffer would show a `*'.
-		(let (start
-		      (nice (or jit-lock-stealth-nice 0))
-		      (point (point-min)))
-		  (while (and (setq start
-				    (jit-lock-stealth-chunk-start point))
-			      ;; In case sit-for runs any timers,
-			      ;; give them the expected current buffer.
-			      (with-current-buffer outer-buffer
-				(sit-for nice)))
-
-		    ;; fontify a block.
-		    (jit-lock-fontify-now start (+ start jit-lock-chunk-size))
-		    ;; If stealth jit-locking is done backwards, this leads to
-		    ;; excessive O(n^2) refontification.   -stef
-		    ;; (when (>= jit-lock-context-unfontify-pos start)
-		    ;;   (setq jit-lock-context-unfontify-pos end))
-
-		    ;; Wait a little if load is too high.
-		    (when (and jit-lock-stealth-load
-			       (> (car (load-average)) jit-lock-stealth-load))
-		      ;; In case sit-for runs any timers,
-		      ;; give them the expected current buffer.
-		      (with-current-buffer outer-buffer
-			(sit-for (or jit-lock-stealth-time 30))))))))))))))
-
+	  message-log-max
+	  start)
+      (if (and jit-lock-stealth-load
+	       (> (car (load-average)) jit-lock-stealth-load))
+	  ;; Wait a little if load is too high.
+	  (setq delay jit-lock-stealth-time)
+	(if (buffer-live-p buffer)
+	    (with-current-buffer buffer
+	      (if (and jit-lock-mode
+		       (setq start (jit-lock-stealth-chunk-start (point))))
+		  ;; Fontify one block of at most `jit-lock-chunk-size'
+		  ;; characters.
+		  (with-temp-message (if jit-lock-stealth-verbose
+					 (concat "JIT stealth lock "
+						 (buffer-name)))
+		    (jit-lock-fontify-now start
+					  (+ start jit-lock-chunk-size))
+		    ;; Run again after `jit-lock-stealth-nice' seconds.
+		    (setq delay (or jit-lock-stealth-nice 0)))
+		;; Nothing to fontify here.  Remove this buffer from
+		;; `jit-lock-stealth-buffers' and run again immediately.
+		(setq jit-lock-stealth-buffers (cdr jit-lock-stealth-buffers))))
+	  ;; Buffer is no longer live.  Remove it from
+	  ;; `jit-lock-stealth-buffers' and run again immediately.
+	  (setq jit-lock-stealth-buffers (cdr jit-lock-stealth-buffers))))
+      ;; Call us again.
+      (when jit-lock-stealth-buffers
+	(timer-set-idle-time jit-lock-stealth-repeat-timer (current-idle-time))
+	(timer-inc-time jit-lock-stealth-repeat-timer delay)
+	(timer-activate-when-idle jit-lock-stealth-repeat-timer t)))))
 
 
 ;;; Deferred fontification.
