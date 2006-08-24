@@ -710,6 +710,10 @@ Lisp_Object Vresize_mini_windows;
 
 struct buffer *displayed_buffer;
 
+/* Space between overline and text. */
+
+EMACS_INT overline_margin;
+
 /* Value returned from text property handlers (see below).  */
 
 enum prop_handled
@@ -20357,7 +20361,7 @@ x_produce_glyphs (it)
 	  /* If face has an overline, add the height of the overline
 	     (1 pixel) and a 1 pixel margin to the character height.  */
 	  if (face->overline_p)
-	    it->ascent += 2;
+	    it->ascent += overline_margin;
 
 	  if (it->constrain_row_ascent_descent_p)
 	    {
@@ -20559,7 +20563,7 @@ x_produce_glyphs (it)
 	  /* If face has an overline, add the height of the overline
 	     (1 pixel) and a 1 pixel margin to the character height.  */
 	  if (face->overline_p)
-	    it->ascent += 2;
+	    it->ascent += overline_margin;
 
 	  take_vertical_position_into_account (it);
 
@@ -20834,7 +20838,7 @@ x_produce_glyphs (it)
       /* If face has an overline, add the height of the overline
 	 (1 pixel) and a 1 pixel margin to the character height.  */
       if (face->overline_p)
-	it->ascent += 2;
+	it->ascent += overline_margin;
 
       take_vertical_position_into_account (it);
 
@@ -24110,6 +24114,12 @@ whose contents depend on various data.  */);
 	       doc: /* Inhibit try_cursor_movement display optimization.  */);
   inhibit_try_cursor_movement = 0;
 #endif /* GLYPH_DEBUG */
+
+  DEFVAR_INT ("overline-margin", &overline_margin,
+	       doc: /* *Space between overline and text, in pixels.
+The default value is 2: the height of the overline (1 pixel) plus 1 pixel
+margin to the caracter height.  */);
+  overline_margin = 2;
 }
 
 
