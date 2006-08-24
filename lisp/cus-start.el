@@ -360,6 +360,7 @@ since it could result in memory overflow and make Emacs crash."
 					    (other :tag "Unlimited" t)))
 	     (unibyte-display-via-language-environment mule boolean)
 	     (blink-cursor-alist cursor alist "22.1")
+	     (overline-margin display integer "22.1")
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean)
 	     ;; xfns.c
@@ -371,6 +372,7 @@ since it could result in memory overflow and make Emacs crash."
 	     ;; xterm.c
              (mouse-autoselect-window display boolean "21.3")
 	     (x-use-underline-position-properties display boolean "21.3")
+	     (x-underline-at-descent-line display boolean "22.1")
 	     (x-stretch-cursor display boolean "21.1")))
       this symbol group type standard version native-p
       ;; This function turns a value
