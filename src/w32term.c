@@ -91,6 +91,10 @@ static Lisp_Object last_window;
    (Not yet supported, see TODO in x_draw_glyph_string.)  */
 int x_use_underline_position_properties;
 
+/* Non-zero means to draw the underline at the same place as the descent line.  */
+
+int x_underline_at_descent_line;
+
 extern unsigned int msh_mousewheel;
 
 extern void free_frame_menubar ();
@@ -2509,21 +2513,27 @@ x_draw_glyph_string (s)
           && (s->font->bdf || !s->font->tm.tmUnderlined))
         {
           unsigned long h = 1;
-          unsigned long dy = s->height - h;
+          unsigned long dy = 0;
 
-	  /* TODO: Use font information for positioning and thickness
-	     of underline.  See OUTLINETEXTMETRIC, and xterm.c.
-	     Note: If you make this work, don't forget to change the
-	     doc string of x-use-underline-position-properties below.  */
+          if (x_underline_at_descent_line)
+            dy = s->height - h;
+          else
+            {
+              /* TODO: Use font information for positioning and thickness of
+                 underline.  See OUTLINETEXTMETRIC, and xterm.c.  Note: If
+                 you make this work, don't forget to change the doc string of
+                 x-use-underline-position-properties below.  */
+              dy = s->height - h;
+            }
           if (s->face->underline_defaulted_p)
             {
               w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                             s->y + dy, s->width, 1);
+                             s->y + dy, s->background_width, 1);
             }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->underline_color, s->x,
-                             s->y + dy, s->width, 1);
+                             s->y + dy, s->background_width, 1);
             }
         }
 
@@ -2535,12 +2545,12 @@ x_draw_glyph_string (s)
           if (s->face->overline_color_defaulted_p)
         {
           w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
-                         s->y + dy, s->width, h);
+                         s->y + dy, s->background_width, h);
         }
           else
             {
               w32_fill_area (s->f, s->hdc, s->face->overline_color, s->x,
-                             s->y + dy, s->width, h);
+                             s->y + dy, s->background_width, h);
             }
         }
 
@@ -6509,6 +6519,14 @@ to 4.1, set this to nil.
 
 NOTE: Not supported on MS-Windows yet.  */);
   x_use_underline_position_properties = 0;
+
+  DEFVAR_BOOL ("x-underline-at-descent-line",
+	       &x_underline_at_descent_line,
+     doc: /* *Non-nil means to draw the underline at the same place as the descent line.
+nil means to draw the underline according to the value of the variable
+`x-use-underline-position-properties', which is usually at the baseline
+level.  The default value is nil.  */);
+  x_underline_at_descent_line = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);

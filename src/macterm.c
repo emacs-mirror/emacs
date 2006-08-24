@@ -3679,14 +3679,14 @@ x_draw_glyph_string (s)
 
 	  if (s->face->underline_defaulted_p)
 	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-				s->width, h);
+				s->background_width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->underline_color);
 	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-				  s->width, h);
+				  s->background_width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -3698,14 +3698,14 @@ x_draw_glyph_string (s)
 
 	  if (s->face->overline_color_defaulted_p)
 	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-				s->width, h);
+				s->background_width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->overline_color);
 	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-				  s->width, h);
+				  s->background_width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}

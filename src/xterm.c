@@ -182,6 +182,10 @@ static Lisp_Object last_window;
 
 int x_use_underline_position_properties;
 
+/* Non-zero means to draw the underline at the same place as the descent line.  */
+
+int x_underline_at_descent_line;
+
 /* This is a chain of structures for all the X displays currently in
    use.  */
 
@@ -2685,32 +2689,35 @@ x_draw_glyph_string (s)
 	  if (!XGetFontProperty (s->font, XA_UNDERLINE_THICKNESS, &h))
 	    h = 1;
 
-	  /* Get the underline position.  This is the recommended
-	     vertical offset in pixels from the baseline to the top of
-	     the underline.  This is a signed value according to the
-	     specs, and its default is
-
-	     ROUND ((maximum descent) / 2), with
-	     ROUND(x) = floor (x + 0.5)  */
-
-	  if (x_use_underline_position_properties
-	      && XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &tem))
-	    y = s->ybase + (long) tem;
-	  else if (s->face->font)
-	    y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
-	  else
+          if (x_underline_at_descent_line)
 	    y = s->y + s->height - h;
+          else
+            {
+	      /* Get the underline position.  This is the recommended
+                 vertical offset in pixels from the baseline to the top of
+                 the underline.  This is a signed value according to the
+                 specs, and its default is
+
+	         ROUND ((maximum descent) / 2), with
+	         ROUND(x) = floor (x + 0.5)  */
+
+              if (x_use_underline_position_properties
+                  && XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &tem))
+                y = s->ybase + (long) tem;
+              else if (s->face->font)
+                y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
+            }
 
 	  if (s->face->underline_defaulted_p)
 	    XFillRectangle (s->display, s->window, s->gc,
-			    s->x, y, s->width, h);
+			    s->x, y, s->background_width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->underline_color);
 	      XFillRectangle (s->display, s->window, s->gc,
-			      s->x, y, s->width, h);
+			      s->x, y, s->background_width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -2722,14 +2729,14 @@ x_draw_glyph_string (s)
 
 	  if (s->face->overline_color_defaulted_p)
 	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			    s->width, h);
+			    s->background_width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->overline_color);
 	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			      s->width, h);
+			      s->background_width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -10978,6 +10985,14 @@ nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
 to 4.1, set this to nil.  */);
   x_use_underline_position_properties = 1;
+
+  DEFVAR_BOOL ("x-underline-at-descent-line",
+	       &x_underline_at_descent_line,
+     doc: /* *Non-nil means to draw the underline at the same place as the descent line.
+nil means to draw the underline according to the value of the variable
+`x-use-underline-position-properties', which is usually at the baseline
+level.  The default value is nil.  */);
+  x_underline_at_descent_line = 0;
 
   DEFVAR_BOOL ("x-mouse-click-focus-ignore-position",
 	       &x_mouse_click_focus_ignore_position,
