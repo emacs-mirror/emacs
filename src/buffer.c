@@ -1684,9 +1684,13 @@ the window-buffer correspondences.  */)
   char *err;
 
   if (EQ (buffer, Fwindow_buffer (selected_window)))
-    /* Basically a NOP.  Avoid signalling an error if the selected window
-       is dedicated, or a minibuffer, ...  */
-    return Fset_buffer (buffer);
+    {
+      if (NILP (norecord)  && !EQ (buffer, XCDR (XCAR (Vbuffer_alist))))
+	record_buffer (buffer);
+      /* Basically a NOP.  Avoid signalling an error if the selected window
+	 is dedicated, or a minibuffer, ...  */
+      return Fset_buffer (buffer);
+    }
 
   err = no_switch_window (selected_window);
   if (err) error (err);
