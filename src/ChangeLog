@@ -1,4 +1,20 @@
-2006-08-25  Nick Roberts  <nickrob@snap.net.nz>
+2006-08-24  Francesc Rocher  <francesc.rocher@gmail.com>
+
+	* xdisp.c (overline_margin): New variable.
+	(x_produce_glyphs): Use it.
+	(syms_of_xdisp): DEFVAR_INT it.
+
+	* xterm.c (x_underline_at_descent_line): New variable.
+	(syms_of_xterm): DEFVAR_BOOL it.
+	(x_draw_glyph_string): Use it.
+	Draw underline and overline up to the end of line if the face
+	extends to the end of line.
+
+	* macterm.c: Likewise.
+
+	* w32term.c: Likewise.
+
+2006-08-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* buffer.c (Fswitch_to_buffer): Move buffer to front of
 	buffer-alist if necessary.

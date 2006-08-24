@@ -839,6 +839,13 @@ The variable `automatic-hscrolling' was renamed to
 the window now works sensibly, by automatically adjusting the window's
 vscroll property.
 
+*** New customize option `overline-margin' controls the space between
+overline and text.
+
+*** New variable `x-underline-at-descent-line' controls the relative
+position of the underline.  When set, it overrides the
+`x-use-underline-position-properties' variables.
+
 +++
 *** The new face `mode-line-inactive' is used to display the mode line
 of non-selected windows.  The `mode-line' face is now used to display

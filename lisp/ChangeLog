@@ -1,3 +1,8 @@
+2006-08-24  Francesc Rocher  <francesc.rocher@gmail.com>
+
+	* cus-start.el (all): Add `overline-margin' and
+	`x-underline-at-descent-line'.
+
 2006-08-24  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/grep.el (grep-find-use-xargs): Use explicit value `exec'
