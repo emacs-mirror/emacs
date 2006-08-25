@@ -3475,14 +3475,9 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (x_defined_color (f, SDATA (color), &foo, 0))
-    {
-      Lisp_Object rgb[3];
-
-      rgb[0] = make_number (foo.red);
-      rgb[1] = make_number (foo.green);
-      rgb[2] = make_number (foo.blue);
-      return Flist (3, rgb);
-    }
+    return list3 (make_number (foo.red),
+		  make_number (foo.green),
+		  make_number (foo.blue));
   else
     return Qnil;
 }

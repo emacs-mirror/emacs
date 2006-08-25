@@ -6355,17 +6355,12 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (w32_defined_color (f, SDATA (color), &foo, 0))
-    {
-      Lisp_Object rgb[3];
-
-      rgb[0] = make_number ((GetRValue (foo.pixel) << 8)
-                            | GetRValue (foo.pixel));
-      rgb[1] = make_number ((GetGValue (foo.pixel) << 8)
-                            | GetGValue (foo.pixel));
-      rgb[2] = make_number ((GetBValue (foo.pixel) << 8)
-                            | GetBValue (foo.pixel));
-      return Flist (3, rgb);
-    }
+    return list3 (make_number ((GetRValue (foo.pixel) << 8)
+			       | GetRValue (foo.pixel)),
+		  make_number ((GetGValue (foo.pixel) << 8)
+			       | GetGValue (foo.pixel)),
+		  make_number ((GetBValue (foo.pixel) << 8)
+			       | GetBValue (foo.pixel)));
   else
     return Qnil;
 }
