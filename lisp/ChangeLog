@@ -1,3 +1,32 @@
+2006-08-25  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper.el (viper-set-hooks): use frame bindings for
+	viper-vi-state-cursor-color.
+	(viper-non-hook-settings): don't set default
+	mode-line-buffer-identification.
+	
+	* viper-util.el (viper-set-cursor-color-according-to-state): new
+	function.
+	(viper-set-cursor-color-according-to-state,
+	viper-get-saved-cursor-color-in-replace-mode,
+	viper-get-saved-cursor-color-in-insert-mode): make conditional on
+	viper-emacs-state-cursor-color.
+	
+	* viper-cmd.el (viper-envelop-ESC-key): bug fix.
+	(viper-undo): use point if undo-beg-posn is nil.
+	(viper-insert-state-post-command-sentinel,viper-change-state-to-emacs,
+	viper-after-change-undo-hook): don't use
+	viper-emacs-state-cursor-color by default.
+	(viper-undo): more sensible positioning after undo.
+	
+	* viper-ex.el (ex-splice-args-in-1-letr-cmd): got rid of caddr.
+	(viper-emacs-state-cursor-color): default to nil, since this feature
+	doesn't work well yet.
+	
+	* ediff-mult.el (ediff-intersect-directories,
+	ediff-get-directory-files-under-revision, ediff-dir-diff-copy-file):
+	always expand filenames.
+	
 2006-08-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/timer.el (timer-set-idle-time, run-with-idle-timer):

@@ -648,8 +648,8 @@ behavior."
 	   (mapcar
 	    (lambda (elt)
 	      (ediff-make-new-meta-list-element
-	       (concat auxdir1 elt)
-	       (concat auxdir2 elt)
+	       (expand-file-name (concat auxdir1 elt))
+	       (expand-file-name (concat auxdir2 elt))
 	       (if lis3
 		   (progn
 		     ;; The following is done because: In merging with
@@ -660,7 +660,7 @@ behavior."
 		     ;; the second case, we insert nil.
 		     (setq elt (ediff-add-slash-if-directory auxdir3 elt))
 		     (if (file-exists-p (concat auxdir3 elt))
-			 (concat auxdir3 elt))))))
+			 (expand-file-name (concat auxdir3 elt)))))))
 	    common)))
     ;; return result
     (cons common-part difflist)
@@ -716,7 +716,7 @@ behavior."
 				      auxdir1 nil nil
 				      merge-autostore-dir nil)
      (mapcar (lambda (elt) (ediff-make-new-meta-list-element
-			    (concat auxdir1 elt) nil nil))
+			    (expand-file-name (concat auxdir1 elt)) nil nil))
 	     common))
     ))
 
@@ -1338,7 +1338,10 @@ Useful commands:
 	;; update ediff-meta-list by direct modification
 	(nconc meta-list
 	       (list (ediff-make-new-meta-list-element
-		      otherfile1 otherfile2 otherfile3)))
+		      (expand-file-name otherfile1)
+		      (expand-file-name otherfile2)
+		      (if otherfile3
+			  (expand-file-name otherfile3)))))
       )
     (ediff-update-meta-buffer meta-buf 'must-redraw)
   ))

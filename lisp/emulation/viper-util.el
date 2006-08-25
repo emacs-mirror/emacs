@@ -137,10 +137,10 @@
    (x-display-color-p)  ; emacs
    ))
 
-(defsubst viper-get-cursor-color ()
+(defun viper-get-cursor-color (&optional frame)
   (viper-cond-compile-for-xemacs-or-emacs
    (color-instance-name
-    (frame-property (selected-frame) 'cursor-color)) ; xemacs
+    (frame-property (or frame (selected-frame)) 'cursor-color)) ; xemacs
    (cdr (assoc 'cursor-color (frame-parameters))) ; emacs
    ))
 
@@ -152,17 +152,30 @@
 
 
 ;; cursor colors
-(defun viper-change-cursor-color (new-color)
+(defun viper-change-cursor-color (new-color &optional frame)
   (if (and (viper-window-display-p)  (viper-color-display-p)
 	   (stringp new-color) (viper-color-defined-p new-color)
 	   (not (string= new-color (viper-get-cursor-color))))
       (viper-cond-compile-for-xemacs-or-emacs
        (set-frame-property
-	(selected-frame) 'cursor-color (make-color-instance new-color))
+	(or frame (selected-frame))
+	'cursor-color (make-color-instance new-color))
        (modify-frame-parameters
-	(selected-frame) (list (cons 'cursor-color new-color)))
+	(or frame (selected-frame))
+	(list (cons 'cursor-color new-color)))
        )
     ))
+
+(defun viper-set-cursor-color-according-to-state (&optional frame)
+  (cond ((eq viper-current-state 'replace-state)
+	 (viper-change-cursor-color viper-replace-state-cursor-color frame))
+	((and (eq viper-current-state 'emacs-state)
+	      viper-emacs-state-cursor-color)
+	 (viper-change-cursor-color viper-emacs-state-cursor-color frame))
+	((eq viper-current-state 'insert-state)
+	 (viper-change-cursor-color viper-insert-state-cursor-color frame))
+	(t
+	 (viper-change-cursor-color viper-vi-state-cursor-color frame))))
 
 ;; By default, saves current frame cursor color in the
 ;; viper-saved-cursor-color-in-replace-mode property of viper-replace-overlay
@@ -191,7 +204,7 @@
     (if viper-emacs-p 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-replace-mode)
-   (if (eq viper-current-state 'emacs-mode)
+   (if (and (eq viper-current-state 'emacs-mode) viper-emacs-state-cursor-color)
        viper-emacs-state-cursor-color
      viper-vi-state-cursor-color)))
 
@@ -201,7 +214,7 @@
     (if viper-emacs-p 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-insert-mode)
-   (if (eq viper-current-state 'emacs-mode)
+   (if (and (eq viper-current-state 'emacs-mode) viper-emacs-state-cursor-color)
        viper-emacs-state-cursor-color
      viper-vi-state-cursor-color)))
 
