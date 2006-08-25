@@ -29,7 +29,9 @@ Reminders sent out on 2006-06-08.
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
-* BUGS
+* WINDOWS SUPPORT BUGS.
+These don't need to be fixed to start pretest, but we call the
+attention of Windows users to fixing them.
 
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
@@ -39,9 +41,20 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 	 '(hscroll-step 1)
 	)
 
+** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
+Windows only bug.
+
+* BUGS
+
+** Milan Zamazal's Aug 23 bug report about crashes with certain fonts.
+
+** C-g fails to interrupt accept-process-output in Gnus.
+
 ** Implement buffer-chars-modified-tick.
 
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem.
+
+** Make key-binding use the maps specified by positions given in the events.
 
 
 * DOCUMENTATION

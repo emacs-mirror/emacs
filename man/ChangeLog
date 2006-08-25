@@ -1,3 +1,10 @@
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* entering.texi (Exiting): Rewrite to give graphical displays
+	priority over text terminals.
+
+	* search.texi (Incremental Search): Move index entries.
+
 2006-08-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Init File): Reference Find Init to avoid "home

@@ -1,3 +1,7 @@
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* kmacro.el (kmacro-repeat-on-last-key): Doc fix.
+
 2006-08-25  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* viper.el (viper-set-hooks): use frame bindings for
