@@ -65,6 +65,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'cl)
   (require 'compile)
   (require 'comint))
 
@@ -547,40 +548,39 @@ Set `python-indent' locally to the value guessed."
        ((looking-at (rx (0+ space) (syntax comment-start)
 			(not (any " \t\n")))) ; non-indentable comment
 	(current-indentation))
-       (t (let ((point (point)))
-	    (if python-honour-comment-indentation
-		;; Back over whitespace, newlines, non-indentable comments.
-		(catch 'done
-		  (while t
-		    (if (cond ((bobp))
-			      ;; not at comment start
-			      ((not (forward-comment -1))
-			       (python-beginning-of-statement)
-			       t)
-			      ;; trailing comment
-			      ((/= (current-column) (current-indentation))
-			       (python-beginning-of-statement)
-			       t)
-			      ;; indentable comment like python-mode.el
-			      ((and (looking-at (rx (syntax comment-start)
-						    (or space line-end)))
-				    (/= 0 (current-column)))))
-			(throw 'done t)))))
-	    (python-indentation-levels)
-	    ;; Prefer to indent comments with an immediately-following
-	    ;; statement, e.g.
-	    ;;       ...
-	    ;;   # ...
-	    ;;   def ...
-	    (when (and (> python-indent-list-length 1)
-		       (python-comment-line-p))
-	      (forward-line)
-	      (unless (python-comment-line-p)
-		(let ((elt (assq (current-indentation) python-indent-list)))
-		  (setq python-indent-list
-			(nconc (delete elt python-indent-list)
-			       (list elt))))))
-	    (caar (last python-indent-list))))))))
+       (t (if python-honour-comment-indentation
+              ;; Back over whitespace, newlines, non-indentable comments.
+              (catch 'done
+                (while t
+                  (if (cond ((bobp))
+                            ;; not at comment start
+                            ((not (forward-comment -1))
+                             (python-beginning-of-statement)
+                             t)
+                            ;; trailing comment
+                            ((/= (current-column) (current-indentation))
+                             (python-beginning-of-statement)
+                             t)
+                            ;; indentable comment like python-mode.el
+                            ((and (looking-at (rx (syntax comment-start)
+                                                  (or space line-end)))
+                                  (/= 0 (current-column)))))
+                      (throw 'done t)))))
+          (python-indentation-levels)
+          ;; Prefer to indent comments with an immediately-following
+          ;; statement, e.g.
+          ;;       ...
+          ;;   # ...
+          ;;   def ...
+          (when (and (> python-indent-list-length 1)
+                     (python-comment-line-p))
+            (forward-line)
+            (unless (python-comment-line-p)
+              (let ((elt (assq (current-indentation) python-indent-list)))
+                (setq python-indent-list
+                      (nconc (delete elt python-indent-list)
+                             (list elt))))))
+          (caar (last python-indent-list)))))))
 
 ;;;; Cycling through the possible indentations with successive TABs.
 
@@ -755,13 +755,13 @@ reached start of buffer."
   (let ((ci (current-indentation))
 	(def-re (rx line-start (0+ space) (or "def" "class") (1+ space)
 		    (group (1+ (or word (syntax symbol))))))
-	found lep def-line)
+	found lep) ;; def-line
     (if (python-comment-line-p)
 	(setq ci most-positive-fixnum))
     (while (and (not (bobp)) (not found))
       ;; Treat bol at beginning of function as outside function so
       ;; that successive C-M-a makes progress backwards.
-      (setq def-line (looking-at def-re))
+      ;;(setq def-line (looking-at def-re))
       (unless (bolp) (end-of-line))
       (setq lep (line-end-position))
       (if (and (re-search-backward def-re nil 'move)
@@ -773,7 +773,7 @@ reached start of buffer."
 		     ;; Not sure why it was like this -- fails in case of
 		     ;; last internal function followed by first
 		     ;; non-def statement of the main body.
-;; 		     (and def-line (= in ci))
+                     ;;(and def-line (= in ci))
 		     (= in ci)
 		     (< in ci)))
 	       (not (python-in-string/comment)))
@@ -1250,47 +1250,57 @@ Don't save anything for STR matching `inferior-python-filter-regexp'."
 (defvar python-preoutput-result nil
   "Data from last `_emacs_out' line seen by the preoutput filter.")
 
-(defvar python-preoutput-continuation nil
-  "If non-nil, funcall this when `python-preoutput-filter' sees `_emacs_ok'.")
-
 (defvar python-preoutput-leftover nil)
+(defvar python-preoutput-skip-next-prompt nil)
 
 ;; Using this stops us getting lines in the buffer like
 ;; >>> ... ... >>>
-;; Also look for (and delete) an `_emacs_ok' string and call
-;; `python-preoutput-continuation' if we get it.
 (defun python-preoutput-filter (s)
   "`comint-preoutput-filter-functions' function: ignore prompts not at bol."
   (when python-preoutput-leftover
     (setq s (concat python-preoutput-leftover s))
     (setq python-preoutput-leftover nil))
-  (cond ((and (string-match (rx string-start (repeat 3 (any ".>"))
-				" " string-end)
-                            s)
-              (/= (let ((inhibit-field-text-motion t))
-                    (line-beginning-position))
-                  (point)))
-	 ;; The need for this seems to be system-dependent:
-         ;; What is this all about, exactly?  --Stef
-	 ;; (if (and (eq ?. (aref s 0)))
-	 ;;     (accept-process-output (get-buffer-process (current-buffer)) 1))
-         "")
-        ((string= s "_emacs_ok\n")
-         (when python-preoutput-continuation
-           (funcall python-preoutput-continuation)
-           (setq python-preoutput-continuation nil))
-         "")
-        ((string-match "_emacs_out \\(.*\\)\n" s)
-         (setq python-preoutput-result (match-string 1 s))
-         "")
-	((string-match ".*\n" s)
-	 s)
-	((or (eq t (compare-strings s nil nil "_emacs_ok\n" nil (length s)))
-	     (let ((end (min (length "_emacs_out ") (length s))))
-	       (eq t (compare-strings s nil end "_emacs_out " nil end))))
-	 (setq python-preoutput-leftover s)
-	 "")
-        (t s)))
+  (let ((start 0)
+        (res ""))
+    ;; First process whole lines.
+    (while (string-match "\n" s start)
+      (let ((line (substring s start (setq start (match-end 0)))))
+        ;; Skip prompt if needed.
+        (when (and python-preoutput-skip-next-prompt
+                   (string-match comint-prompt-regexp line))
+          (setq python-preoutput-skip-next-prompt nil)
+          (setq line (substring line (match-end 0))))
+        ;; Recognize special _emacs_out lines.
+        (if (and (string-match "\\`_emacs_out \\(.*\\)\n\\'" line)
+                 (local-variable-p 'python-preoutput-result))
+            (progn
+              (setq python-preoutput-result (match-string 1 line))
+              (set (make-local-variable 'python-preoutput-skip-next-prompt) t))
+          (setq res (concat res line)))))
+    ;; Then process the remaining partial line.
+    (unless (zerop start) (setq s (substring s start)))
+    (cond ((and (string-match comint-prompt-regexp s)
+                ;; Drop this prompt if it follows an _emacs_out...
+                (or python-preoutput-skip-next-prompt
+                    ;; ... or if it's not gonna be inserted at BOL.
+                    ;; Maybe we could be more selective here.
+                    (if (zerop (length res))
+                        (not (bolp))
+                      (string-match res ".\\'"))))
+           ;; The need for this seems to be system-dependent:
+           ;; What is this all about, exactly?  --Stef
+           ;; (if (and (eq ?. (aref s 0)))
+           ;;     (accept-process-output (get-buffer-process (current-buffer)) 1))
+           (setq python-preoutput-skip-next-prompt nil)
+           res)
+          ((let ((end (min (length "_emacs_out ") (length s))))
+             (eq t (compare-strings s nil end "_emacs_out " nil end)))
+           ;; The leftover string is a prefix of _emacs_out so we don't know
+           ;; yet whether it's an _emacs_out or something else: wait until we
+           ;; get more output so we can resolve this ambiguity.
+           (set (make-local-variable 'python-preoutput-leftover) s)
+           res)
+          (t (concat res s)))))
 
 (autoload 'comint-check-proc "comint")
 
@@ -1342,9 +1352,8 @@ buffer for a list of commands.)"
   ;; file.  The code might be inline here, but there's enough that it
   ;; seems worth putting in a separate file, and it's probably cleaner
   ;; to put it in a module.
-  (python-send-string "import emacs")
   ;; Ensure we're at a prompt before doing anything else.
-  (python-send-receive "print '_emacs_out ()'")
+  (python-send-receive "import emacs; print '_emacs_out ()'")
   ;; Without this, help output goes into the inferior python buffer if
   ;; the process isn't already running.
   (sit-for 1 t)        ;Should we use accept-process-output instead?  --Stef
@@ -1358,13 +1367,14 @@ buffer for a list of commands.)"
 ;; commands having set up such a state.
 
 (defun python-send-command (command)
-  "Like `python-send-string' but resets `compilation-shell-minor-mode'."
+  "Like `python-send-string' but resets `compilation-shell-minor-mode'.
+COMMAND should be a single statement."
+  (assert (not (string-match "\n" command)))
   (let ((end (marker-position (process-mark (python-proc)))))
     (with-current-buffer python-buffer (goto-char (point-max)))
     (compilation-forget-errors)
-    (python-send-string command)
     ;; Must wait until this has completed before re-setting variables below.
-    (python-send-receive "print '_emacs_out ()'")
+    (python-send-receive (concat command "; print '_emacs_out ()'"))
     (with-current-buffer python-buffer
       (set-marker compilation-parsing-end end)
       (setq compilation-last-buffer (current-buffer)))))
@@ -1409,7 +1419,11 @@ buffer for a list of commands.)"
   "Evaluate STRING in inferior Python process."
   (interactive "sPython command: ")
   (comint-send-string (python-proc) string)
-  (comint-send-string (python-proc) "\n\n"))
+  (comint-send-string (python-proc)
+                      ;; If the string is single-line or if it ends with \n,
+                      ;; only add a single \n, otherwise add 2, so as to
+                      ;; make sure we terminate the multiline instruction.
+                      (if (string-match "\n.+\\'" string) "\n\n" "\n")))
 
 (defun python-send-buffer ()
   "Send the current buffer to the inferior Python process."
@@ -1561,14 +1575,15 @@ will."
 
 (defun python-send-receive (string)
   "Send STRING to inferior Python (if any) and return result.
-The result is what follows `_emacs_out' in the output (or nil)."
+The result is what follows `_emacs_out' in the output."
   (let ((proc (python-proc)))
     (python-send-string string)
-    (setq python-preoutput-result nil)
+    (set (make-local-variable 'python-preoutput-result) nil)
     (while (progn
 	     (accept-process-output proc 5)
-	     python-preoutput-leftover))
-    python-preoutput-result))
+	     (null python-preoutput-result)))
+    (prog1 python-preoutput-result
+      (kill-local-variable 'python-preoutput-result))))
 
 ;; Fixme:  Is there anything reasonable we can do with random methods?
 ;; (Currently only works with functions.)
@@ -2078,36 +2093,35 @@ without confirmation."
       (unless (fboundp 'brm-rename)
 	(pymacs-load "bikeemacs" "brm-") ; first line of normal recipe
 	(let ((py-mode-map (make-sparse-keymap)) ; it assumes this
-	      (features (cons 'python-mode features)) ; and requires this
-	      menu)
-	  (brm-init)			; second line of normal recipe
-	  (remove-hook 'python-mode-hook ; undo this from `brm-init'
-		       '(lambda () (easy-menu-add brm-menu)))
-	  (easy-menu-define
-	    python-brm-menu python-mode-map
-	    "Bicycle Repair Man"
-	    '("BicycleRepairMan"
-	      :help "Interface to navigation and refactoring tool"
-	      "Queries"
-	      ["Find References" brm-find-references
-	       :help "Find references to name at point in compilation buffer"]
-	      ["Find Definition" brm-find-definition
-	       :help "Find definition of name at point"]
-	      "-"
-	      "Refactoring"
-	      ["Rename" brm-rename
-	       :help "Replace name at point with a new name everywhere"]
-	      ["Extract Method" brm-extract-method
-	       :active (and mark-active (not buffer-read-only))
-	       :help "Replace statements in region with a method"]
-	      ["Extract Local Variable" brm-extract-local-variable
-	       :active (and mark-active (not buffer-read-only))
-	       :help "Replace expression in region with an assignment"]
-	      ["Inline Local Variable" brm-inline-local-variable
-	       :help
-	       "Substitute uses of variable at point with its definition"]
-	      ;; Fixme:  Should check for anything to revert.
-	      ["Undo Last Refactoring" brm-undo :help ""]))))
+	      (features (cons 'python-mode features))) ; and requires this
+	  (brm-init))			; second line of normal recipe
+        (remove-hook 'python-mode-hook ; undo this from `brm-init'
+                     '(lambda () (easy-menu-add brm-menu)))
+        (easy-menu-define
+          python-brm-menu python-mode-map
+          "Bicycle Repair Man"
+          '("BicycleRepairMan"
+            :help "Interface to navigation and refactoring tool"
+            "Queries"
+            ["Find References" brm-find-references
+             :help "Find references to name at point in compilation buffer"]
+            ["Find Definition" brm-find-definition
+             :help "Find definition of name at point"]
+            "-"
+            "Refactoring"
+            ["Rename" brm-rename
+             :help "Replace name at point with a new name everywhere"]
+            ["Extract Method" brm-extract-method
+             :active (and mark-active (not buffer-read-only))
+             :help "Replace statements in region with a method"]
+            ["Extract Local Variable" brm-extract-local-variable
+             :active (and mark-active (not buffer-read-only))
+             :help "Replace expression in region with an assignment"]
+            ["Inline Local Variable" brm-inline-local-variable
+             :help
+             "Substitute uses of variable at point with its definition"]
+            ;; Fixme:  Should check for anything to revert.
+            ["Undo Last Refactoring" brm-undo :help ""])))
     (error (error "Bicyclerepairman setup failed: %s" data))))
 
 ;;;; Modes.
@@ -2130,6 +2144,8 @@ without confirmation."
   (set-syntax-table python-abbrev-syntax-table)
   (add-hook 'post-command-hook 'python-abbrev-pc-hook nil t))
 (modify-syntax-entry ?/ "w" python-abbrev-syntax-table)
+
+(defvar python-mode-running)            ;Dynamically scoped var.
 
 ;;;###autoload
 (define-derived-mode python-mode fundamental-mode "Python"

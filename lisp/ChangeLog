@@ -1,36 +1,56 @@
+2006-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-preoutput-skip-next-prompt): New var.
+	(python-preoutput-continuation): Remove.
+	(python-preoutput-filter): Simplify correspondingly.
+	Remove handling of _emacs_ok.  Make sure we skip _emacs_out's prompts.
+	Loop around to catch embedded _emacs_out output.
+	(run-python): Send the import&print command on a single line.
+	(python-send-command): Send command&print on a single line.
+	(python-send-string): Only add double \n if needed.
+	(python-send-receive): Loop until the result comes.
+	(python-mode-running): Defvar it.
+	(python-setup-brm): Remove unused var `menu'.
+	Only bind py-mode-map and `features' around brm-init.
+	(python-calculate-indentation): Remove unused var `point'.
+	(python-beginning-of-defun): Remove unused var `def-line'.
+
 2006-08-25  Richard Stallman  <rms@gnu.org>
 
 	* kmacro.el (kmacro-repeat-on-last-key): Doc fix.
 
 2006-08-25  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper.el (viper-set-hooks): use frame bindings for
+
+	* viper.el (viper-set-hooks): Use frame bindings for
 	viper-vi-state-cursor-color.
-	(viper-non-hook-settings): don't set default
+	(viper-non-hook-settings): Don't set default
 	mode-line-buffer-identification.
-	
-	* viper-util.el (viper-set-cursor-color-according-to-state): new
-	function.
-	(viper-set-cursor-color-according-to-state,
-	viper-get-saved-cursor-color-in-replace-mode,
-	viper-get-saved-cursor-color-in-insert-mode): make conditional on
+
+	* viper-util.el (viper-set-cursor-color-according-to-state): New fun.
+	(viper-set-cursor-color-according-to-state)
+	(viper-get-saved-cursor-color-in-replace-mode)
+	(viper-get-saved-cursor-color-in-insert-mode): Make conditional on
 	viper-emacs-state-cursor-color.
-	
-	* viper-cmd.el (viper-envelop-ESC-key): bug fix.
-	(viper-undo): use point if undo-beg-posn is nil.
-	(viper-insert-state-post-command-sentinel,viper-change-state-to-emacs,
-	viper-after-change-undo-hook): don't use
+
+	* viper-cmd.el (viper-envelop-ESC-key): Bug fix.
+	(viper-undo): Use point if undo-beg-posn is nil.
+	(viper-insert-state-post-command-sentinel, viper-change-state-to-emacs)
+	(viper-after-change-undo-hook): Don't use
 	viper-emacs-state-cursor-color by default.
-	(viper-undo): more sensible positioning after undo.
-	
-	* viper-ex.el (ex-splice-args-in-1-letr-cmd): got rid of caddr.
-	(viper-emacs-state-cursor-color): default to nil, since this feature
+	(viper-undo): More sensible positioning after undo.
+
+	* viper-ex.el (ex-splice-args-in-1-letr-cmd): Get rid of caddr.
+	(viper-emacs-state-cursor-color): Default to nil, since this feature
 	doesn't work well yet.
 	
-	* ediff-mult.el (ediff-intersect-directories,
-	ediff-get-directory-files-under-revision, ediff-dir-diff-copy-file):
+	* ediff-mult.el (ediff-intersect-directories)
+	(ediff-get-directory-files-under-revision, ediff-dir-diff-copy-file):
 	always expand filenames.
-	
+
+2006-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tumme.el: Remove * in defcustoms's docstrings.
+
 2006-08-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/timer.el (timer-set-idle-time, run-with-idle-timer):
