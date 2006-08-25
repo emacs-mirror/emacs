@@ -1500,7 +1500,8 @@ work just like ordinary timers.
 @deffn Command run-with-idle-timer secs repeat function &rest args
 Set up a timer which runs when Emacs has been idle for @var{secs}
 seconds.  The value of @var{secs} may be an integer or a floating point
-number.
+number; a value of the type returned by @code{current-idle-time}
+is also allowed.
 
 If @var{repeat} is @code{nil}, the timer runs just once, the first time
 Emacs remains idle for a long enough time.  More often @var{repeat} is
@@ -1508,7 +1509,7 @@ non-@code{nil}, which means to run the timer @emph{each time} Emacs
 remains idle for @var{secs} seconds.
 
 The function @code{run-with-idle-timer} returns a timer value which you
-can use in calling @code{cancel-timer} (see below).
+can use in calling @code{cancel-timer} (@pxref{Timers}).
 @end deffn
 
 @cindex idleness
