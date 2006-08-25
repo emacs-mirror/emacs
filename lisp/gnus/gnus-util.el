@@ -607,6 +607,17 @@ If N, return the Nth ancestor instead."
 	 (substring gname (match-end 0))
        gname)))
 
+(defmacro gnus-group-server (group)
+  "Find the server name of a foreign newsgroup.
+For example, (gnus-group-server \"nnimap+yxa:INBOX.foo\") would
+yield \"nnimap:yxa\"."
+  `(let ((gname ,group))
+     (if (string-match "^\\([^:+]+\\)\\(?:\\+\\([^:]*\\)\\)?:" gname)
+	 (format "%s:%s" (match-string 1 gname) (or
+						 (match-string 2 gname)
+						 ""))
+       (format "%s:%s" (car gnus-select-method) (cadr gnus-select-method)))))
+
 (defun gnus-make-sort-function (funs)
   "Return a composite sort condition based on the functions in FUNS."
   (cond

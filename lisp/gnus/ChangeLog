@@ -1,3 +1,14 @@
+2006-08-23  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	[ Backported bug fix from No Gnus. ]
+
+	* gnus.el (gnus-find-method-for-group): On killed/unknown groups, try
+	looking up the method using GROUP's prefix before inventing a new one.
+	It is used on killed/unknown groups in various places where returning
+	an all-new method isn't expected by the caller.
+
+	* gnus-util.el (gnus-group-server): Copy required macro from No Gnus.
+
 2006-08-13  Romain Francoise  <romain@orebokech.com>
 
 	* mm-extern.el (mm-extern-mail-server): End `y-or-n-p' prompt with a
