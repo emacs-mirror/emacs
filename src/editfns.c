@@ -1435,14 +1435,11 @@ resolution finer than a second.  */)
      ()
 {
   EMACS_TIME t;
-  Lisp_Object result[3];
 
   EMACS_GET_TIME (t);
-  XSETINT (result[0], (EMACS_SECS (t) >> 16) & 0xffff);
-  XSETINT (result[1], (EMACS_SECS (t) >> 0)  & 0xffff);
-  XSETINT (result[2], EMACS_USECS (t));
-
-  return Flist (3, result);
+  return list3 (make_number ((EMACS_SECS (t) >> 16) & 0xffff),
+		make_number ((EMACS_SECS (t) >> 0)  & 0xffff),
+		make_number (EMACS_USECS (t)));
 }
 
 DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
@@ -1460,7 +1457,6 @@ systems that do not provide resolution finer than a second.  */)
 {
 #ifdef HAVE_GETRUSAGE
   struct rusage usage;
-  Lisp_Object result[3];
   int secs, usecs;
 
   if (getrusage (RUSAGE_SELF, &usage) < 0)
@@ -1476,11 +1472,9 @@ systems that do not provide resolution finer than a second.  */)
       secs++;
     }
 
-  XSETINT (result[0], (secs >> 16) & 0xffff);
-  XSETINT (result[1], (secs >> 0)  & 0xffff);
-  XSETINT (result[2], usecs);
-
-  return Flist (3, result);
+  return list3 (make_number ((secs >> 16) & 0xffff),
+		make_number ((secs >> 0)  & 0xffff),
+		make_number (usecs));
 #else
   return Fcurrent_time ();
 #endif
