@@ -5027,7 +5027,7 @@ sxhash_string (ptr, len)
       c = *p++;
       if (c >= 0140)
 	c -= 40;
-      hash = ((hash << 3) + (hash >> 28) + c);
+      hash = ((hash << 4) + (hash >> 28) + c);
     }
 
   return hash & INTMASK;
