@@ -1,3 +1,7 @@
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* fns.c (sxhash_string): Rotate properly; don't lose bits.
+
 2006-08-24  Francesc Rocher  <francesc.rocher@gmail.com>
 
 	* xdisp.c (overline_margin): New variable.

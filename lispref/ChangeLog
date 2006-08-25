@@ -1,3 +1,8 @@
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Idle Timers): run-with-idle-timer allows Lisp time value.
+	Add xref.
+
 2006-08-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* os.texi (Timers): Avoid waiting inside timers.
