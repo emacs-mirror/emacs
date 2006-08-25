@@ -1,3 +1,7 @@
+2006-08-25  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (Fcurrent_idle_time): Simplify.
+
 2006-08-25  Richard Stallman  <rms@gnu.org>
 
 	* fns.c (sxhash_string): Rotate properly; don't lose bits.
