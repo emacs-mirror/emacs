@@ -4570,19 +4570,16 @@ The microsecond count is zero on systems that do not provide
 resolution finer than a second.  */)
   ()
 {
-  EMACS_TIME now, idleness_now;
-  Lisp_Object result[3];
-
-  EMACS_GET_TIME (now);
   if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
     {
+      EMACS_TIME now, idleness_now;
+
+      EMACS_GET_TIME (now);
       EMACS_SUB_TIME (idleness_now, now, timer_idleness_start_time);
 
-      XSETINT (result[0], (EMACS_SECS (idleness_now) >> 16) & 0xffff);
-      XSETINT (result[1], (EMACS_SECS (idleness_now) >> 0)  & 0xffff);
-      XSETINT (result[2], EMACS_USECS (idleness_now));
-
-      return Flist (3, result);
+      return list3 (make_number ((EMACS_SECS (idleness_now) >> 16) & 0xffff),
+		    make_number ((EMACS_SECS (idleness_now) >> 0)  & 0xffff),
+		    make_number (EMACS_USECS (idleness_now)));
     }
 
   return Qnil;
