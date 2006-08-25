@@ -1685,10 +1685,15 @@ the window-buffer correspondences.  */)
 
   if (EQ (buffer, Fwindow_buffer (selected_window)))
     {
-      if (NILP (norecord)  && !EQ (buffer, XCDR (XCAR (Vbuffer_alist))))
+      /* Basically a NOP.  Avoid signalling an error in the case where
+	 the selected window is dedicated, or a minibuffer.  */
+
+      /* But do put this buffer at the front of the buffer list,
+	 unless that has been inhibited.  Note that even if
+	 BUFFER is at the front of the main buffer-list already,
+	 we still want to move it to the front of the frame's buffer list.  */
+      if (NILP (norecord))
 	record_buffer (buffer);
-      /* Basically a NOP.  Avoid signalling an error if the selected window
-	 is dedicated, or a minibuffer, ...  */
       return Fset_buffer (buffer);
     }
 
