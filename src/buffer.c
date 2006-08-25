@@ -2345,11 +2345,10 @@ current buffer is cleared.  */)
     {
       /* Represent all the above changes by a special undo entry.  */
       extern Lisp_Object Qapply;
-      Lisp_Object args[3];
-      args[0] = Qapply;
-      args[1] = intern ("set-buffer-multibyte");
-      args[2] = NILP (flag) ? Qt : Qnil;
-      current_buffer->undo_list = Fcons (Flist (3, args), old_undo);
+      current_buffer->undo_list = Fcons (list3 (Qapply,
+						intern ("set-buffer-multibyte"),
+						NILP (flag) ? Qt : Qnil),
+					 old_undo);
     }
 
   UNGCPRO;
