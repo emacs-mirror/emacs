@@ -1394,6 +1394,13 @@ both before and after changing the buffer, to separate the timer's
 changes from user commands' changes and prevent a single undo entry
 from growing to be quite large.
 
+  Timer functions should also avoid calling functions that cause Emacs
+to wait, such as @code{sit-for} (@pxref{Waiting}).  This can lead to
+unpredictable effects, since other timers (or even the same timer) can
+run while waiting.  If a timer function needs to perform an action
+after a certain time has elapsed, it can do this by scheduling a new
+timer.
+
   If a timer function calls functions that can change the match data,
 it should save and restore the match data.  @xref{Saving Match Data}.
 

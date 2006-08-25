@@ -1,3 +1,7 @@
+2006-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Timers): Avoid waiting inside timers.
+
 2006-08-21  Lute Kamstra  <lute@gnu.org>
 
 	* Makefile.in: Use ../man/texinfo.tex to build elisp.dvi.
