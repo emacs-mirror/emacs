@@ -868,8 +868,8 @@
 
 2006-06-14  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xdisp.c (back_to_previous_visible_line_start): Reset
-	it->continuation_lines_width.
+	* xdisp.c (back_to_previous_visible_line_start):
+	Reset it->continuation_lines_width.
 
 2006-06-14  Richard Stallman  <rms@gnu.org>
 
@@ -940,8 +940,8 @@
 
 2006-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event): Exclude
-	0x7f from ASCII range.
+	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event):
+	Exclude 0x7f from ASCII range.
 
 2006-06-05  Jason Rumney  <jasonr@gnu.org>
 
