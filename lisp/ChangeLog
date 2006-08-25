@@ -1,5 +1,8 @@
 2006-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/checkdoc.el: Remove * in defcustoms.
+	(defgroup checkdoc): Move to beginning.
+
 	* progmodes/python.el (python-preoutput-skip-next-prompt): New var.
 	(python-preoutput-continuation): Remove.
 	(python-preoutput-filter): Simplify correspondingly.
