@@ -45,7 +45,7 @@
 	* viper-ex.el (ex-splice-args-in-1-letr-cmd): Get rid of caddr.
 	(viper-emacs-state-cursor-color): Default to nil, since this feature
 	doesn't work well yet.
-	
+
 	* ediff-mult.el (ediff-intersect-directories)
 	(ediff-get-directory-files-under-revision, ediff-dir-diff-copy-file):
 	always expand filenames.
