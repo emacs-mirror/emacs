@@ -1576,14 +1576,15 @@ will."
 (defun python-send-receive (string)
   "Send STRING to inferior Python (if any) and return result.
 The result is what follows `_emacs_out' in the output."
+  (python-send-string string)
   (let ((proc (python-proc)))
-    (python-send-string string)
-    (set (make-local-variable 'python-preoutput-result) nil)
-    (while (progn
-	     (accept-process-output proc 5)
-	     (null python-preoutput-result)))
-    (prog1 python-preoutput-result
-      (kill-local-variable 'python-preoutput-result))))
+    (with-current-buffer (process-buffer proc)
+      (set (make-local-variable 'python-preoutput-result) nil)
+      (while (progn
+               (accept-process-output proc 5)
+               (null python-preoutput-result)))
+      (prog1 python-preoutput-result
+        (kill-local-variable 'python-preoutput-result)))))
 
 ;; Fixme:  Is there anything reasonable we can do with random methods?
 ;; (Currently only works with functions.)

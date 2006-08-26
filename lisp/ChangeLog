@@ -1,3 +1,8 @@
+2006-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-send-receive): Wait in the
+	process's buffer so as to check the right buffer-local variables.
+
 2006-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/checkdoc.el: Remove * in defcustoms.
