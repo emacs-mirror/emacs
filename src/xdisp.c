@@ -21213,9 +21213,30 @@ get_window_cursor_type (w, glyph, width, active_cursor)
   /* Use normal cursor if not blinked off.  */
   if (!w->cursor_off_p)
     {
-      if (glyph != NULL && glyph->type == IMAGE_GLYPH) {
-	if (cursor_type == FILLED_BOX_CURSOR)
-	  cursor_type = HOLLOW_BOX_CURSOR;
+      if (glyph != NULL && glyph->type == IMAGE_GLYPH)
+	{
+	  if (cursor_type == FILLED_BOX_CURSOR)
+	    {
+	      /* Using a block cursor on large images can be very annoying.
+		 So use a hollow cursor for "large" images.  */
+	      struct image *img = IMAGE_FROM_ID (f, glyph->u.img_id);
+	      if (img != NULL && IMAGEP (img->spec))
+		{
+		  /* Arbitrarily, interpret "Large" as >32x32 and >NxN
+		     where N = size of default frame font size.
+		     This should cover most of the "tiny" icons people may use.  */
+		  if (img->width > max (32, WINDOW_FRAME_COLUMN_WIDTH (w))
+		      || img->height > max (32, WINDOW_FRAME_LINE_HEIGHT (w)))
+		    cursor_type = HOLLOW_BOX_CURSOR;
+		}
+	    }
+	  else if (cursor_type != NO_CURSOR)
+	    {
+	      /* Display current only supports BOX and HOLLOW cursors for images.
+		 So for now, unconditionally use a HOLLOW cursor when cursor is
+		 not a solid box cursor.  */
+	      cursor_type = HOLLOW_BOX_CURSOR;
+	    }
       }
       return cursor_type;
     }
