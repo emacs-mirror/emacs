@@ -902,7 +902,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 #if USE_ATSUI
   if (GC_FONT (gc)->mac_style)
     {
-      OSErr err;
+      OSStatus err;
       ATSUTextLayout text_layout;
 
       xassert (bytes_per_char == 2);
@@ -1129,7 +1129,7 @@ mac_draw_image_string_16 (f, gc, x, y, buf, nchars, bg_width)
    the font of the current graphics port.  If CG_GLYPH is not NULL,
    *CG_GLYPH is set to the glyph ID or 0 if it cannot be obtained.  */
 
-static OSErr
+static OSStatus
 mac_query_char_extents (style, c,
 			font_ascent_return, font_descent_return,
 			overall_return, cg_glyph)
@@ -1147,7 +1147,7 @@ mac_query_char_extents (style, c,
      void *cg_glyph;
 #endif
 {
-  OSErr err = noErr;
+  OSStatus err = noErr;
   int width;
   Rect char_bounds;
 
@@ -1193,7 +1193,7 @@ mac_query_char_extents (style, c,
 #if USE_CG_TEXT_DRAWING
 	  if (err == noErr && cg_glyph)
 	    {
-	      OSErr err1;
+	      OSStatus err1;
 	      ATSUGlyphInfoArray glyph_info_array;
 	      ByteCount count = sizeof (ATSUGlyphInfoArray);
 
@@ -6314,7 +6314,7 @@ void
 x_iconify_frame (f)
      struct frame *f;
 {
-  OSErr err;
+  OSStatus err;
 
   /* A deactivate event does not occur when the last visible frame is
      iconified.  So if we clear the highlight here, it will not be
@@ -6377,11 +6377,6 @@ x_free_frame_resources (f)
 
   if (FRAME_SIZE_HINTS (f))
     xfree (FRAME_SIZE_HINTS (f));
-
-#if TARGET_API_MAC_CARBON
-  if (FRAME_FILE_NAME (f))
-    xfree (FRAME_FILE_NAME (f));
-#endif
 
   xfree (f->output_data.mac);
   f->output_data.mac = NULL;
@@ -7200,7 +7195,7 @@ init_font_name_table ()
   if (!NILP (assq_no_quit (make_number (kTextEncodingMacUnicode),
 			   text_encoding_info_alist)))
     {
-      OSErr err;
+      OSStatus err;
       struct Lisp_Hash_Table *h;
       unsigned hash_code;
       ItemCount nfonts, i;
@@ -7782,7 +7777,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
 #if USE_ATSUI
   if (strcmp (charset, "iso10646-1") == 0) /* XXX */
     {
-      OSErr err;
+      OSStatus err;
       ATSUAttributeTag tags[] = {kATSUFontTag, kATSUSizeTag,
 				 kATSUQDBoldfaceTag, kATSUQDItalicTag};
       ByteCount sizes[] = {sizeof (ATSUFontID), sizeof (Fixed),
@@ -7865,7 +7860,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
 #if USE_ATSUI
   if (font->mac_style)
     {
-      OSErr err;
+      OSStatus err;
       UniChar c;
 
       font->min_byte1 = 0;
@@ -8344,8 +8339,8 @@ x_query_font (f, fontname)
 
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name
-	&& (!strcmp (dpyinfo->font_table[i].name, fontname)
-	    || !strcmp (dpyinfo->font_table[i].full_name, fontname)))
+	&& (!xstricmp (dpyinfo->font_table[i].name, fontname)
+	    || !xstricmp (dpyinfo->font_table[i].full_name, fontname)))
       return (dpyinfo->font_table + i);
   return NULL;
 }
@@ -8539,7 +8534,7 @@ Point saved_menu_event_location;
 
 /* Apple Events */
 #if USE_CARBON_EVENTS
-static Lisp_Object Qhicommand;
+static Lisp_Object Qhi_command;
 #ifdef MAC_OSX
 extern Lisp_Object Qwindow;
 static Lisp_Object Qtoolbar_switch_mode;
@@ -8581,7 +8576,7 @@ static Lisp_Object Qservice, Qpaste, Qperform;
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
 						EventRef, void *);
 #endif
-OSErr install_window_handler (WindowPtr);
+OSStatus install_window_handler (WindowPtr);
 
 extern void init_emacs_passwd_dir ();
 extern int emacs_main (int, char **, char **);
@@ -9382,15 +9377,15 @@ mac_handle_command_event (next_handler, event, data)
   if (err != noErr || command.commandID == 0)
     return eventNotHandledErr;
 
-  /* A HICommand event is mapped to an Apple event whose event class
-     symbol is `hicommand' and event ID is its command ID.  */
+  /* A HI command event is mapped to an Apple event whose event class
+     symbol is `hi-command' and event ID is its command ID.  */
   err = mac_store_event_ref_as_apple_event (0, command.commandID,
-					    Qhicommand, Qnil,
+					    Qhi_command, Qnil,
 					    event, num_params, names, types);
   return err == noErr ? noErr : eventNotHandledErr;
 }
 
-static OSErr
+static OSStatus
 init_command_handler ()
 {
   EventTypeSpec specs[] = {{kEventClassCommand, kEventCommandProcess}};
@@ -9891,11 +9886,11 @@ mac_store_service_event (event)
 #endif	/* USE_CARBON_EVENTS */
 
 
-OSErr
+OSStatus
 install_window_handler (window)
      WindowPtr window;
 {
-  OSErr err = noErr;
+  OSStatus err = noErr;
 #if USE_CARBON_EVENTS
   EventTypeSpec specs_window[] =
     {{kEventClassWindow, kEventWindowUpdate},
@@ -11329,7 +11324,7 @@ static void
 init_menu_bar ()
 {
 #ifdef MAC_OSX
-  OSErr err;
+  OSStatus err;
   MenuRef menu;
   MenuItemIndex menu_index;
 
@@ -11512,7 +11507,7 @@ syms_of_macterm ()
   Fput (Qsuper,   Qmodifier_value, make_number (super_modifier));
 
 #if USE_CARBON_EVENTS
-  Qhicommand   = intern ("hicommand");    staticpro (&Qhicommand);
+  Qhi_command   = intern ("hi-command");    staticpro (&Qhi_command);
 #ifdef MAC_OSX
   Qtoolbar_switch_mode = intern ("toolbar-switch-mode");
   staticpro (&Qtoolbar_switch_mode);
