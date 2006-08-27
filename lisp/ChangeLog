@@ -1,3 +1,9 @@
+2006-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-apple-event-map): Rename hicommand to hi-command.
+	(mac-dnd-drop-data): Apply 2006-08-22 change for x-dnd-drop-data.
+	(special-event-map): Apply 2006-08-16 change for x-win.el.
+
 2006-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-send-receive): Wait in the

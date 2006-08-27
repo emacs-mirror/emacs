@@ -1,3 +1,52 @@
+2006-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Undo previous
+	change.  Move mutex lock/unlock operations inside BLOCK_INPUT.
+
+	* dired.c (directory_files_internal_unwind, directory_files_internal)
+	(file_name_completion): Add BLOCK_INPUT around opendir/closedir.
+
+	* image.c [MAC_OS] (image_load_qt_1): Use ComponentResult instead
+	of OSErr.
+
+	* keyboard.c (in_sighandler): Remove variable.
+	(Fcurrent_idle_time): Add missing `doc:'.
+	(input_available_signal, init_keyboard): Undo previous change.
+
+	* keyboard.h (in_sighandler): Remove extern.
+
+	* mac.c (create_apple_event_from_event_ref, select)
+	(Fmac_get_file_creator, Fmac_get_file_type, Fmac_set_file_creator)
+	(Fmac_set_file_type, cfstring_create_normalized)
+	(mac_get_system_locale, select_and_poll_event, sys_select): Use
+	OSStatus instead of OSErr.
+
+	* macfns.c [TARGET_API_MAC_CARBON] (mac_update_proxy_icon): Don't
+	use FRAME_FILE_NAME.  Use (FS)UpdateAlias.
+	(Fx_create_frame): Apply 2006-07-03 for xfns.c.
+
+	* macselect.c (get_scrap_from_symbol, clear_scrap, put_scrap_string)
+	(put_scrap_private_timestamp, scrap_has_target_type, get_scrap_string)
+	(get_scrap_private_timestamp, get_scrap_target_type_list)
+	(x_own_selection, x_get_foreign_selection)
+	(Fx_disown_selection_internal, Fx_selection_owner_p)
+	(Fx_selection_exists_p): Use OSStatus instead of OSErr.
+
+	* macterm.c (mac_draw_string_common, mac_query_char_extents)
+	(x_iconify_frame, XLoadQueryFont, install_window_handler)
+	(mac_handle_command_event, init_command_handler, init_menu_bar):
+	Use OSStatus instead of OSErr.
+	(x_free_frame_resources) [TARGET_API_MAC_CARBON]: Don't use
+	FRAME_FILE_NAME.
+	(x_query_font): Apply 2006-08-04 change for xterm.c.
+	(Qhi_command): Rename from Qhicommand.  All uses changed.
+
+	* macterm.h (struct mac_output) [TARGET_API_MAC_CARBON]: Remove member
+	file_name.
+	(FRAME_FILE_NAME): Remove macro.
+	(install_window_handler, create_apple_event_from_event_ref):
+	Return OSStatus instead of OSErr.
+
 2006-08-26  Kim F. Storm  <storm@cua.dk>
 
 	* buffer.c (Fset_buffer_multibyte):
