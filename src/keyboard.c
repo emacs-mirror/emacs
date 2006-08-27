@@ -100,14 +100,6 @@ int interrupt_input_pending;
 /* File descriptor to use for input.  */
 extern int input_fd;
 
-/* Nonzero if we are executing from the SIGIO signal handler.
-   The difference between in_sighandler and handling_signal is that
-   in_sighandler is only set when executing in a signal handler.
-   handling_signal may be set even if not executing in a signal handler, for
-   example when reinvoke_input_signal is called from UNBLOCK_INPUT, or
-   when Emacs is compiled with SYNC_INPUT defined.  */
-int in_sighandler;
-
 #ifdef HAVE_WINDOW_SYSTEM
 /* Make all keyboard buffers much bigger when using X windows.  */
 #ifdef MAC_OS8
@@ -4560,7 +4552,7 @@ timer_check (do_it_now)
 }
 
 DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
-       /* Return the current length of Emacs idleness.
+       doc: /* Return the current length of Emacs idleness.
 The value is returned as a list of three integers.  The first has the
 most significant 16 bits of the seconds, while the second has the
 least significant 16 bits.  The third integer gives the microsecond
@@ -6977,8 +6969,6 @@ input_available_signal (signo)
   SIGNAL_THREAD_CHECK (signo);
 #endif
 
-  in_sighandler = 1;
-
   if (input_available_clear_time)
     EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 
@@ -6990,7 +6980,6 @@ input_available_signal (signo)
   sigfree ();
 #endif
   errno = old_errno;
-  in_sighandler = 0;
 }
 #endif /* SIGIO */
 
@@ -10858,7 +10847,6 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
-  in_sighandler = 0;
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
