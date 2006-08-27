@@ -335,11 +335,6 @@ struct mac_output {
   /* Hints for the size and the position of a window.  */
   XSizeHints *size_hints;
 
-#if TARGET_API_MAC_CARBON
-  /* File name for the proxy icon of this frame.  Might be NULL.  */
-  char *file_name;
-#endif
-
 #if USE_CG_DRAWING
   /* Quartz 2D graphics context.  */
   CGContextRef cg_context;
@@ -364,8 +359,6 @@ typedef struct mac_output mac_output;
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.mac->baseline_offset)
 
 #define FRAME_SIZE_HINTS(f) ((f)->output_data.mac->size_hints)
-
-#define FRAME_FILE_NAME(f) ((f)->output_data.mac->file_name)
 
 /* This gives the mac_display_info structure for the display F is on.  */
 #define FRAME_MAC_DISPLAY_INFO(f) (&one_mac_display_info)
@@ -634,7 +627,7 @@ extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
 extern int mac_font_panel_visible_p P_ ((void));
 extern OSStatus mac_show_hide_font_panel P_ ((void));
 extern OSStatus mac_set_font_info_for_selection P_ ((struct frame *, int, int));
-extern OSErr install_window_handler P_ ((WindowPtr));
+extern OSStatus install_window_handler P_ ((WindowPtr));
 extern void remove_window_handler P_ ((WindowPtr));
 extern void do_menu_choice P_ ((SInt32));
 extern OSStatus mac_post_mouse_moved_event P_ ((void));
@@ -675,10 +668,10 @@ extern void mac_clear_font_name_table P_ ((void));
 extern Lisp_Object mac_aedesc_to_lisp P_ ((const AEDesc *));
 extern OSErr mac_ae_put_lisp P_ ((AEDescList *, UInt32, Lisp_Object));
 #if TARGET_API_MAC_CARBON
-extern OSErr create_apple_event_from_event_ref P_ ((EventRef, UInt32,
-						    EventParamName *,
-						    EventParamType *,
-						    AppleEvent *));
+extern OSStatus create_apple_event_from_event_ref P_ ((EventRef, UInt32,
+						       EventParamName *,
+						       EventParamType *,
+						       AppleEvent *));
 extern OSErr create_apple_event_from_drag_ref P_ ((DragRef, UInt32,
 						   FlavorType *,
 						   AppleEvent *));
