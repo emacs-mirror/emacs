@@ -1945,63 +1945,80 @@ static void
 mac_update_proxy_icon (f)
      struct frame *f;
 {
+  OSStatus err;
   Lisp_Object file_name =
     XBUFFER (XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer)->filename;
   Window w = FRAME_MAC_WINDOW (f);
-
-  if (FRAME_FILE_NAME (f) == NULL && !STRINGP (file_name))
-    return;
-  if (FRAME_FILE_NAME (f) && STRINGP (file_name)
-      && strcmp (FRAME_FILE_NAME (f), SDATA (file_name)) == 0)
-    return;
-
-  if (FRAME_FILE_NAME (f))
-    {
-      xfree (FRAME_FILE_NAME (f));
-      FRAME_FILE_NAME (f) = NULL;
-    }
+  AliasHandle alias = NULL;
 
   BLOCK_INPUT;
 
+  err = GetWindowProxyAlias (w, &alias);
+  if (err == errWindowDoesNotHaveProxy && !STRINGP (file_name))
+    goto out;
+
   if (STRINGP (file_name))
     {
-      OSStatus err;
       AEDesc desc;
+#ifdef MAC_OSX
+      FSRef fref;
+#else
+      FSSpec fss;
+#endif
+      Boolean changed;
       Lisp_Object encoded_file_name = ENCODE_FILE (file_name);
 
-#ifdef MAC_OS8
-      SetPortWindowPort (w);
-#endif
+#ifdef MAC_OSX
       err = AECoercePtr (TYPE_FILE_NAME, SDATA (encoded_file_name),
-			 SBYTES (encoded_file_name), typeAlias, &desc);
+			 SBYTES (encoded_file_name), typeFSRef, &desc);
+#else
+      SetPortWindowPort (w);
+      err = AECoercePtr (TYPE_FILE_NAME, SDATA (encoded_file_name),
+			 SBYTES (encoded_file_name), typeFSS, &desc);
+#endif
       if (err == noErr)
 	{
-	  Size size = AEGetDescDataSize (&desc);
-	  AliasHandle alias = (AliasHandle) NewHandle (size);
-
-	  if (alias == NULL)
-	    err = memFullErr;
-	  else
-	    {
-	      HLock ((Handle) alias);
-	      err = AEGetDescData (&desc, *alias, size);
-	      HUnlock ((Handle) alias);
-	      if (err == noErr)
-		err = SetWindowProxyAlias (w, alias);
-	      DisposeHandle ((Handle) alias);
-	    }
+#ifdef MAC_OSX
+	  err = AEGetDescData (&desc, &fref, sizeof (FSRef));
+#else
+	  err = AEGetDescData (&desc, &fss, sizeof (FSSpec));
+#endif
 	  AEDisposeDesc (&desc);
 	}
       if (err == noErr)
 	{
-	  FRAME_FILE_NAME (f) = xmalloc (SBYTES (file_name) + 1);
-	  strcpy (FRAME_FILE_NAME (f), SDATA (file_name));
+	  if (alias)
+	    {
+#ifdef MAC_OSX
+	      err = FSUpdateAlias (NULL, &fref, alias, &changed);
+#else
+	      err = UpdateAlias (NULL, &fss, alias, &changed);
+#endif
+	    }
+	  if (err != noErr || alias == NULL)
+	    {
+	      if (alias)
+		DisposeHandle ((Handle) alias);
+#ifdef MAC_OSX
+	      err = FSNewAliasMinimal (&fref, &alias);
+#else
+	      err = NewAliasMinimal (&fss, &alias);
+#endif
+	      changed = true;
+	    }
 	}
+      if (err == noErr)
+	if (changed)
+	  err = SetWindowProxyAlias (w, alias);
     }
 
-  if (FRAME_FILE_NAME (f) == NULL)
+  if (alias)
+    DisposeHandle ((Handle) alias);
+
+  if (err != noErr || !STRINGP (file_name))
     RemoveWindowProxy (w);
 
+ out:
   UNBLOCK_INPUT;
 }
 #endif
@@ -2566,7 +2583,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.mac = (struct mac_output *) xmalloc (sizeof (struct mac_output));
   bzero (f->output_data.mac, sizeof (struct mac_output));
   FRAME_FONTSET (f) = -1;
-  record_unwind_protect (unwind_create_frame, frame);
 
   f->icon_name
     = mac_get_arg (parms, Qicon_name, "iconName", "Title", RES_TYPE_STRING);
@@ -2574,6 +2590,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
     f->icon_name = Qnil;
 
 /*   FRAME_MAC_DISPLAY_INFO (f) = dpyinfo; */
+
+  /* With FRAME_MAC_DISPLAY_INFO set up, this unwind-protect is safe.  */
+  record_unwind_protect (unwind_create_frame, frame);
 #if GLYPH_DEBUG
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
