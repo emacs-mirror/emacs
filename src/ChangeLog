@@ -1,3 +1,11 @@
+2006-08-28  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_window_cursor_type): Replace BOX cursor on images
+	with a hollow box cursor if image is larger than 32x32 (or the default
+	frame font if that is bigger).  Replace any other cursor on images
+	with hollow box cursor, as redisplay doesn't support bar and hbar
+	cursors on images.
+
 2006-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Undo previous
