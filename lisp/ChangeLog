@@ -1,3 +1,11 @@
+2006-08-27  Michael Olson  <mwolson@gnu.org>
+
+	* emacs-lisp/tq.el: Small grammar fix in comments.
+	(tq-enqueue): Check for existence of queue rather than the
+	head queue item's question, which was a no-op.
+	(tq-filter, tq-process-buffer): Make sure the process buffer
+	exists before making it the current buffer.
+
 2006-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-apple-event-map): Rename hicommand to hi-command.
