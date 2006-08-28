@@ -1,3 +1,11 @@
+2006-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (otf-script-alist): Add byzm, math,
+	musc, and nko.
+
+	* international/characters.el (script-list): Add nko,
+	byzantine-musical-symbol, musical-symbol, and mathematical.
+
 2006-08-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/uni-bidi.el, international/uni-category.el,
