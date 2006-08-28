@@ -1330,30 +1330,30 @@ buffer for a list of commands.)"
   ;; (not a name) in Python buffers from which `run-python' &c is
   ;; invoked.  Would support multiple processes better.
   (when (or new (not (comint-check-proc python-buffer)))
-    (save-current-buffer
-      (let* ((cmdlist (append (python-args-to-list cmd) '("-i")))
-	     (path (getenv "PYTHONPATH"))
-	     (process-environment	; to import emacs.py
-	      (cons (concat "PYTHONPATH=" data-directory
-			    (if path (concat ":" path)))
-		    process-environment)))
-	(set-buffer (apply 'make-comint-in-buffer "Python"
-			   (generate-new-buffer "*Python*")
-			   (car cmdlist) nil (cdr cmdlist)))
-	(setq-default python-buffer (current-buffer))
-	(setq python-buffer (current-buffer)))
+    (with-current-buffer
+        (let* ((cmdlist (append (python-args-to-list cmd) '("-i")))
+               (path (getenv "PYTHONPATH"))
+               (process-environment	; to import emacs.py
+                (cons (concat "PYTHONPATH=" data-directory
+                              (if path (concat ":" path)))
+                      process-environment)))
+          (apply 'make-comint-in-buffer "Python"
+                 (if new (generate-new-buffer "*Python*") "*Python*")
+                 (car cmdlist) nil (cdr cmdlist)))
+      (setq-default python-buffer (current-buffer))
+      (setq python-buffer (current-buffer))
       (accept-process-output (get-buffer-process python-buffer) 5)
-      (inferior-python-mode)))
+      (inferior-python-mode)
+      ;; Load function definitions we need.
+      ;; Before the preoutput function was used, this was done via -c in
+      ;; cmdlist, but that loses the banner and doesn't run the startup
+      ;; file.  The code might be inline here, but there's enough that it
+      ;; seems worth putting in a separate file, and it's probably cleaner
+      ;; to put it in a module.
+      ;; Ensure we're at a prompt before doing anything else.
+      (python-send-receive "import emacs; print '_emacs_out ()'")))
   (if (derived-mode-p 'python-mode)
       (setq python-buffer (default-value 'python-buffer))) ; buffer-local
-  ;; Load function definitions we need.
-  ;; Before the preoutput function was used, this was done via -c in
-  ;; cmdlist, but that loses the banner and doesn't run the startup
-  ;; file.  The code might be inline here, but there's enough that it
-  ;; seems worth putting in a separate file, and it's probably cleaner
-  ;; to put it in a module.
-  ;; Ensure we're at a prompt before doing anything else.
-  (python-send-receive "import emacs; print '_emacs_out ()'")
   ;; Without this, help output goes into the inferior python buffer if
   ;; the process isn't already running.
   (sit-for 1 t)        ;Should we use accept-process-output instead?  --Stef
@@ -1369,8 +1369,8 @@ buffer for a list of commands.)"
 (defun python-send-command (command)
   "Like `python-send-string' but resets `compilation-shell-minor-mode'.
 COMMAND should be a single statement."
-  (assert (not (string-match "\n" command)))
-  (let ((end (marker-position (process-mark (python-proc)))))
+  ;; (assert (not (string-match "\n" command)))
+  ;; (let ((end (marker-position (process-mark (python-proc)))))
     (with-current-buffer python-buffer (goto-char (point-max)))
     (compilation-forget-errors)
     (python-send-string command)
@@ -1382,7 +1382,7 @@ COMMAND should be a single statement."
     ;; (python-send-receive "print '_emacs_out ()'")
     ;; (with-current-buffer python-buffer
     ;;   (set-marker compilation-parsing-end end))
-    ))
+    ) ;;)
 
 (defun python-send-region (start end)
   "Send the region to the inferior Python process."

@@ -1,5 +1,9 @@
 2006-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/python.el (python-send-command): Simplify.
+	(run-python): Don't generate a new buffer unless `new' was specified.
+	Make sure we send `import emacs' to the proper process.
+
 	* progmodes/python.el (python-send-command): Don't wait for the command
 	to terminate.  Don't fiddle with compilation-parsing-end.
 
