@@ -11917,7 +11917,7 @@ fi
         echo "$as_me:$LINENO: checking for xft >= 0.13.0" >&5
 echo $ECHO_N "checking for xft >= 0.13.0... $ECHO_C" >&6
 
-        if $PKG_CONFIG --exists "xft >= 0.13.0" ; then
+        if $PKG_CONFIG --exists "xft >= 0.13.0" 2>&5; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
             succeeded=yes
@@ -12190,6 +12190,8 @@ _ACEOF
       fi
     fi
   fi
+else
+  USE_FONT_BACKEND=no
 fi
 
 
@@ -12268,7 +12270,7 @@ fi
         echo "$as_me:$LINENO: checking for xft >= 0.13.0" >&5
 echo $ECHO_N "checking for xft >= 0.13.0... $ECHO_C" >&6
 
-        if $PKG_CONFIG --exists "xft >= 0.13.0" ; then
+        if $PKG_CONFIG --exists "xft >= 0.13.0" 2>&5; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
             succeeded=yes
@@ -12606,7 +12608,7 @@ fi
         echo "$as_me:$LINENO: checking for freetype2" >&5
 echo $ECHO_N "checking for freetype2... $ECHO_C" >&6
 
-        if $PKG_CONFIG --exists "freetype2" ; then
+        if $PKG_CONFIG --exists "freetype2" 2>&5; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
             succeeded=yes
@@ -12702,7 +12704,7 @@ fi
         echo "$as_me:$LINENO: checking for fontconfig" >&5
 echo $ECHO_N "checking for fontconfig... $ECHO_C" >&6
 
-        if $PKG_CONFIG --exists "fontconfig" ; then
+        if $PKG_CONFIG --exists "fontconfig" 2>&5; then
             echo "$as_me:$LINENO: result: yes" >&5
 echo "${ECHO_T}yes" >&6
             succeeded=yes
