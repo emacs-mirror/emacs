@@ -217,7 +217,7 @@ This should have scrolled the screen up by 8 lines.  If you would like
 to scroll it down again, you can give an argument to M-v.
 
 If you are using a windowed display, such as X11 or MS-Windows, there
-should be a tall rectangular area called a scroll bar at the left hand
+should be a tall rectangular area called a scroll bar at the
 side of the Emacs window.  You can scroll the text by clicking the
 mouse in the scroll bar.
 

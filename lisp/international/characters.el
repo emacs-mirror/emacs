@@ -958,6 +958,7 @@
 	 (#x0590 #x05FF hebrew)
 	 (#x0600 #x06FF arabic)
 	 (#x0700 #x074F syriac)
+	 (#x07C0 #x07FA nko)
 	 (#x0780 #x07BF thaana)
 	 (#x0900 #x097F devanagari)
 	 (#x0980 #x09FF bengali)
@@ -1005,6 +1006,9 @@
 	 (#xFF00 #xFF5F cjk-misc)
 	 (#xFF61 #xFF9F kana)
 	 (#xFFE0 #xFFE6 cjk-misc)
+	 (#x1D000 #x1D0FF byzantine-musical-symbol)
+	 (#x1D100 #x1D1FF musical-symbol)
+	 (#x1D400 #x1D7FF mathematical)
 	 (#x20000 #x2AFFF han)
 	 (#x2F800 #x2FFFF han)))
     (set-char-table-range char-script-table

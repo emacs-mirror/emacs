@@ -80,6 +80,7 @@ extern POINTER_TYPE *sbrk ();
 
 #ifdef WINDOWSNT
 #include <fcntl.h>
+#include "w32.h"
 #endif
 
 #ifdef DOUG_LEA_MALLOC
@@ -129,17 +130,27 @@ static pthread_mutex_t alloc_mutex;
 #define BLOCK_INPUT_ALLOC                       \
   do                                            \
     {                                           \
-      pthread_mutex_lock (&alloc_mutex);        \
-      if (pthread_self () == main_thread)       \
-        BLOCK_INPUT;                            \
+      if (!in_sighandler)                       \
+        {                                       \
+           pthread_mutex_lock (&alloc_mutex);   \
+           if (pthread_self () == main_thread)  \
+             BLOCK_INPUT;                       \
+           else                                 \
+             sigblock (sigmask (SIGIO));        \
+        }                                       \
     }                                           \
   while (0)
 #define UNBLOCK_INPUT_ALLOC                     \
   do                                            \
     {                                           \
-      if (pthread_self () == main_thread)       \
-        UNBLOCK_INPUT;                          \
-      pthread_mutex_unlock (&alloc_mutex);      \
+      if (!in_sighandler)                       \
+        {                                       \
+           pthread_mutex_unlock (&alloc_mutex); \
+           if (pthread_self () == main_thread)  \
+             UNBLOCK_INPUT;                     \
+           else                                 \
+             sigunblock (sigmask (SIGIO));      \
+        }                                       \
     }                                           \
   while (0)
 
@@ -4572,6 +4583,9 @@ int
 valid_pointer_p (p)
      void *p;
 {
+#ifdef WINDOWSNT
+  return w32_valid_pointer_p (p, 16);
+#else
   int fd;
 
   /* Obviously, we cannot just access it (we would SEGV trying), so we
@@ -4588,6 +4602,7 @@ valid_pointer_p (p)
     }
 
     return -1;
+#endif
 }
 
 /* Return 1 if OBJ is a valid lisp object.

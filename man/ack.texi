@@ -419,8 +419,6 @@ them.
 @item
 John Heidemann wrote @file{mouse-copy.el} and @file{mouse-drag.el},
 which provide alternative mouse-based editing and scrolling features.
-He also contributed @file{zone-mode.el}, a major mode for editing DNS
-zone files.
 
 @item
 Jon K Hellan wrote @file{utf7.el}, support for mail-safe transformation

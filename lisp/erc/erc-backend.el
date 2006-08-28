@@ -493,11 +493,7 @@ action."
   (if erc-server-quitting
       ;; normal quit
       (progn
-        (let ((string "\n\n*** ERC finished ***\n")
-              (inhibit-read-only t))
-          (erc-put-text-property 0 (length string)
-                                 'face 'erc-error-face string)
-          (insert string))
+        (erc-display-message nil 'error (current-buffer) 'finished)
         (when erc-kill-server-buffer-on-quit
           (set-buffer-modified-p nil)
           (kill-buffer (current-buffer))))
@@ -519,12 +515,8 @@ action."
         (erc erc-session-server erc-session-port erc-server-current-nick
              erc-session-user-full-name t erc-session-password)
       ;; terminate, do not reconnect
-      (let ((string (concat "\n\n*** ERC terminated: " event
-                            "\n"))
-            (inhibit-read-only t))
-        (erc-put-text-property 0 (length string)
-                               'face 'erc-error-face string)
-        (insert string)))))
+      (erc-display-message nil 'error (current-buffer)
+                           'terminated ?e event))))
 
 (defun erc-process-sentinel (cproc event)
   "Sentinel function for ERC process."
@@ -545,6 +537,7 @@ action."
         (run-hook-with-args 'erc-disconnected-hook
                             (erc-current-nick) (system-name) "")
         ;; Remove the prompt
+        (goto-char (or (marker-position erc-input-marker) (point-max)))
         (forward-line 0)
         (erc-remove-text-properties-region (point) (point-max))
         (delete-region (point) (point-max))

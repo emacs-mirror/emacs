@@ -2229,6 +2229,15 @@ number of seconds; on these systems, @var{seconds} is rounded down.
 If @var{seconds} is @code{nil}, @code{read-event} waits as long as
 necessary for input to arrive.
 
+If @var{seconds} is @code{nil}, Emacs is considered idle while waiting
+for user input to arrive.  Idle timers---those created with
+@code{run-with-idle-timer} (@pxref{Timers})---can run during this
+period.  However, if @var{seconds} is non-@code{nil}, the state of
+idleness remains unchanged.  If Emacs is non-idle when
+@code{read-event} is called, it remains non-idle throughout the
+operation of @code{read-event}; if Emacs is idle (which can happen if
+the call happens inside an idle timer), it remains idle.
+
 If @code{read-event} gets an event that is defined as a help character,
 then in some cases @code{read-event} processes the event directly without
 returning.  @xref{Help Functions}.  Certain other events, called

@@ -280,52 +280,62 @@ Keymap to display on minor modes.")
 	;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
 	;; drag-mouse-1: resize, C-mouse-2: split horizontally"
 	"mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete this")
-       (dashes (propertize "--" 'help-echo help-echo)))
-  (setq-default mode-line-format
-    (list
-     "%e"
-     (propertize "-" 'help-echo help-echo)
-     'mode-line-mule-info
-     'mode-line-modified
-     'mode-line-frame-identification
-     'mode-line-buffer-identification
-     (propertize "   " 'help-echo help-echo)
-     'mode-line-position
-     '(vc-mode vc-mode)
-     (propertize "  " 'help-echo help-echo)
-     'mode-line-modes
-     `(which-func-mode ("" which-func-format ,dashes))
-     `(global-mode-string (,dashes global-mode-string))
-     (propertize "-%-" 'help-echo help-echo)))
+       (dashes (propertize "--" 'help-echo help-echo))
+       (standard-mode-line-format
+	(list
+	 "%e"
+	 (propertize "-" 'help-echo help-echo)
+	 'mode-line-mule-info
+	 'mode-line-modified
+	 'mode-line-frame-identification
+	 'mode-line-buffer-identification
+	 (propertize "   " 'help-echo help-echo)
+	 'mode-line-position
+	 '(vc-mode vc-mode)
+	 (propertize "  " 'help-echo help-echo)
+	 'mode-line-modes
+	 `(which-func-mode ("" which-func-format ,dashes))
+	 `(global-mode-string (,dashes global-mode-string))
+	 (propertize "-%-" 'help-echo help-echo)))
+       (standard-mode-line-modes
+	(list
+	 (propertize "%[(" 'help-echo help-echo)
+	 `(:propertize ("" mode-name)
+		       help-echo "mouse-1: major mode, mouse-2: major mode help, mouse-3: toggle minor modes"
+		       mouse-face mode-line-highlight
+		       local-map ,mode-line-major-mode-keymap)
+	 '("" mode-line-process)
+	 `(:propertize ("" minor-mode-alist)
+		       mouse-face mode-line-highlight
+		       help-echo "mouse-2: minor mode help, mouse-3: toggle minor modes"
+		       local-map ,mode-line-minor-mode-keymap)
+	 (propertize "%n" 'help-echo "mouse-2: widen"
+		     'mouse-face 'mode-line-highlight
+		     'local-map (make-mode-line-mouse-map
+				 'mouse-2 #'mode-line-widen))
+	 (propertize ")%]--" 'help-echo help-echo)))
+       (standard-mode-line-position
+	`((-3 ,(propertize "%p" 'help-echo help-echo))
+	  (size-indication-mode
+	   (8 ,(propertize " of %I" 'help-echo help-echo)))
+	  (line-number-mode
+	   ((column-number-mode
+	     (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
+	     (6 ,(propertize " L%l" 'help-echo help-echo))))
+	   ((column-number-mode
+	     (5 ,(propertize " C%c" 'help-echo help-echo))))))))
 
-  (setq-default mode-line-modes
-    (list
-     (propertize "%[(" 'help-echo help-echo)
-     `(:propertize ("" mode-name)
-		   help-echo "mouse-1: major mode, mouse-2: major mode help, mouse-3: toggle minor modes"
-		   mouse-face mode-line-highlight
-		   local-map ,mode-line-major-mode-keymap)
-     '("" mode-line-process)
-     `(:propertize ("" minor-mode-alist)
-		   mouse-face mode-line-highlight
-		   help-echo "mouse-2: minor mode help, mouse-3: toggle minor modes"
-		   local-map ,mode-line-minor-mode-keymap)
-     (propertize "%n" 'help-echo "mouse-2: widen"
-		 'mouse-face 'mode-line-highlight
-		 'local-map (make-mode-line-mouse-map
-			     'mouse-2 #'mode-line-widen))
-     (propertize ")%]--" 'help-echo help-echo)))
+  (setq-default mode-line-format standard-mode-line-format)
+  (put 'mode-line-format 'standard-value
+       (list `(quote ,standard-mode-line-format)))
 
-  (setq-default mode-line-position
-    `((-3 ,(propertize "%p" 'help-echo help-echo))
-      (size-indication-mode
-       (8 ,(propertize " of %I" 'help-echo help-echo)))
-      (line-number-mode
-       ((column-number-mode
-	 (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
-	 (6 ,(propertize " L%l" 'help-echo help-echo))))
-       ((column-number-mode
-	 (5 ,(propertize " C%c" 'help-echo help-echo))))))))
+  (setq-default mode-line-modes standard-mode-line-modes)
+  (put 'mode-line-modes 'standard-value
+       (list `(quote ,standard-mode-line-modes)))
+
+  (setq-default mode-line-position standard-mode-line-position)
+  (put 'mode-line-position 'standard-value
+       (list `(quote ,standard-mode-line-position))))
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")

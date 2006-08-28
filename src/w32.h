@@ -110,6 +110,9 @@ extern void delete_child (child_process *cp);
 /* Equivalent of strerror for W32 error codes.  */
 extern char * w32_strerror (int error_no);
 
+/* Validate a pointer.  */
+extern int w32_valid_pointer_p (void *, int);
+
 /* Get long (aka "true") form of file name, if it exists.  */
 extern BOOL w32_get_long_filename (char * name, char * buf, int size);
 

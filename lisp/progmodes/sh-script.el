@@ -986,7 +986,9 @@ subshells can nest."
   ;; FIXME: This can (and often does) match multiple lines, yet it makes no
   ;; effort to handle multiline cases correctly, so it ends up being
   ;; rather flakey.
-  (when (re-search-forward "\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)" limit t)
+  (when (and (re-search-forward "\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)" limit t)
+             ;; Make sure the " we matched is an opening quote.
+	     (eq ?\" (nth 3 (syntax-ppss))))
     ;; bingo we have a $( or a ` inside a ""
     (let ((char (char-after (point)))
           (continue t)
@@ -1081,9 +1083,6 @@ This is used to flag quote characters in subshell constructs inside strings
     ("\\(\\\\\\)'" 1 ,sh-st-punc)
     ;; Make sure $@ and @? are correctly recognized as sexps.
     ("\\$\\([?@]\\)" 1 ,sh-st-symbol)
-    ;; highlight (possibly nested) subshells inside "" quoted regions correctly.
-    (sh-quoted-subshell
-     (1 (sh-apply-quoted-subshell) t t))
     ;; Find HEREDOC starters and add a corresponding rule for the ender.
     (sh-font-lock-here-doc
      (2 (sh-font-lock-open-heredoc
@@ -1093,7 +1092,11 @@ This is used to flag quote characters in subshell constructs inside strings
          (and (match-beginning 3) (/= (match-beginning 3) (match-end 3))))
       nil t))
     ;; Distinguish the special close-paren in `case'.
-    (")" 0 (sh-font-lock-paren (match-beginning 0)))))
+    (")" 0 (sh-font-lock-paren (match-beginning 0)))
+    ;; highlight (possibly nested) subshells inside "" quoted regions correctly.
+    ;; This should be at the very end because it uses syntax-ppss.
+    (sh-quoted-subshell
+     (1 (sh-apply-quoted-subshell) t t))))
 
 (defun sh-font-lock-syntactic-face-function (state)
   (let ((q (nth 3 state)))

@@ -366,14 +366,15 @@ Valid types include `google', `dejanews', and `gmane'.")
       (mm-url-decode-entities)
       (search-backward " - ")
       (when (looking-at
-	     " - \\([a-zA-Z]+\\) \\([0-9]+\\)\\(?: \\([0-9]\\{4\\}\\)\\)?[^\n]+by ?\n?\\([^<\n]+\\)\n")
-	(setq From (match-string 4)
-	      Date (format "%s %s 00:00:00 %s"
+	     "\\W+\\(\\w+\\) \\([0-9]+\\)\\(?: \\([0-9]\\{4\\}\\)\\)?")
+	(setq Date (format "%s %s 00:00:00 %s"
 			   (match-string 1)
 			   (match-string 2)
 			   (or (match-string 3)
-			       (substring (current-time-string) -4)))))
-
+			       (substring (current-time-string) -4))))
+	(goto-char (match-end 0)))
+      (when (looking-at "[^b]+by\\W+\\([^<\n]+\\)")
+	(setq From (match-string 1)))
       (widen)
       (forward-line 1)
       (incf i)

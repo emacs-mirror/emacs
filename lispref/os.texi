@@ -1256,7 +1256,9 @@ This stands for the year without century (00-99).
 @item %Y
 This stands for the year with century.
 @item %Z
-This stands for the time zone abbreviation.
+This stands for the time zone abbreviation (e.g., @samp{EST}).
+@item %z
+This stands for the time zone numerical offset (e.g., @samp{-0500}).
 @end table
 
 You can also specify the field width and type of padding for any of
@@ -1286,12 +1288,14 @@ If @var{universal} is non-@code{nil}, that means to describe the time as
 Universal Time; @code{nil} means describe it using what Emacs believes
 is the local time zone (see @code{current-time-zone}).
 
-This function uses the C library function @code{strftime} to do most of
-the work.  In order to communicate with that function, it first encodes
-its argument using the coding system specified by
-@code{locale-coding-system} (@pxref{Locales}); after @code{strftime}
-returns the resulting string, @code{format-time-string} decodes the
-string using that same coding system.
+This function uses the C library function @code{strftime}
+(@pxref{Formatting Calendar Time,,, libc, The GNU C Library Reference
+Manual}) to do most of the work.  In order to communicate with that
+function, it first encodes its argument using the coding system
+specified by @code{locale-coding-system} (@pxref{Locales}); after
+@code{strftime} returns the resulting string,
+@code{format-time-string} decodes the string using that same coding
+system.
 @end defun
 
 @defun seconds-to-time seconds

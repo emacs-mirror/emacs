@@ -228,8 +228,37 @@
       (define-key map "\e[4~" [select])
       (define-key map "\e[29~" [print])
       
-      ;; These keys are available in xterm starting from version 214
+      ;; These keys are available in xterm starting from version 216
       ;; if the modifyOtherKeys resource is set to 1.
+
+      (define-key map "\e[27;5;39~"  [?\C-\'])
+      (define-key map "\e[27;5;45~"  [?\C--])
+      
+      (define-key map "\e[27;5;48~"  [?\C-0])
+      (define-key map "\e[27;5;49~"  [?\C-1])
+      ;; Not all C-DIGIT keys have a distinct binding.
+      (define-key map "\e[27;5;57~"  [?\C-9])
+
+      (define-key map "\e[27;5;59~"  [?\C-\;])
+      (define-key map "\e[27;5;61~"  [?\C-=])
+
+
+      (define-key map "\e[27;6;33~"  [?\C-!])
+      (define-key map "\e[27;6;34~"  [?\C-\"])
+      (define-key map "\e[27;6;35~"  [?\C-#])
+      (define-key map "\e[27;6;36~"  [?\C-$])
+      (define-key map "\e[27;6;37~"  [?\C-%])
+      (define-key map "\e[27;6;38~"  [(C-&)])
+      (define-key map "\e[27;6;40~"  [?\C-(])
+      (define-key map "\e[27;6;41~"  [?\C-)])
+      (define-key map "\e[27;6;42~"  [?\C-*])
+      (define-key map "\e[27;6;43~"  [?\C-+])
+
+      (define-key map "\e[27;6;58~"  [?\C-:])
+      (define-key map "\e[27;6;60~"  [?\C-<])
+      (define-key map "\e[27;6;62~"  [?\C->])
+      (define-key map "\e[27;6;63~"  [(C-\?)])
+
       (define-key map "\e[27;5;9~"  [C-tab])
       (define-key map "\e[27;5;13~" [C-return])
       (define-key map "\e[27;5;44~" [?\C-,])

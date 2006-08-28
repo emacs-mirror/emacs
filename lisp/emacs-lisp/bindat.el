@@ -619,9 +619,12 @@ If optional second arg SEP is a string, use that as separator."
   (bindat-format-vector vect "%02x" (if (stringp sep) sep ":")))
 
 (defun bindat-ip-to-string (ip)
-  "Format vector IP as an ip address in dotted notation."
-  (format "%d.%d.%d.%d"
-	  (aref ip 0) (aref ip 1) (aref ip 2) (aref ip 3)))
+  "Format vector IP as an ip address in dotted notation.
+The port (if any) is omitted.  IP can be a string, as well."
+  (if (vectorp ip)
+      (format-network-address ip t)
+    (format "%d.%d.%d.%d"
+            (aref ip 0) (aref ip 1) (aref ip 2) (aref ip 3))))
 
 (provide 'bindat)
 

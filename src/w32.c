@@ -323,6 +323,28 @@ w32_strerror (int error_no)
   return buf;
 }
 
+/* Return 1 if P is a valid pointer to an object of size SIZE.  Return
+   0 if P is NOT a valid pointer.  Return -1 if we cannot validate P.
+
+   This is called from alloc.c:valid_pointer_p.  */
+int
+w32_valid_pointer_p (void *p, int size)
+{
+  SIZE_T done;
+  HANDLE h = OpenProcess (PROCESS_VM_READ, FALSE, GetCurrentProcessId ());
+
+  if (h)
+    {
+      unsigned char *buf = alloca (size);
+      int retval = ReadProcessMemory (h, p, buf, size, &done);
+
+      CloseHandle (h);
+      return retval;
+    }
+  else
+    return -1;
+}
+
 static char startup_dir[MAXPATHLEN];
 
 /* Get the current working directory.  */

@@ -3917,7 +3917,7 @@ actually used.  */)
 
   if (EQ (Vcoding_system_for_read, Qauto_save_coding))
     {
-      coding_system = Qutf_8_emacs;
+      coding_system = coding_inherit_eol_type (Qutf_8_emacs, Qunix);
       setup_coding_system (coding_system, &coding);
       /* Ensure we set Vlast_coding_system_used.  */
       set_coding_system = 1;
@@ -4806,11 +4806,15 @@ choose_write_coding_system (start, end, filename,
      struct coding_system *coding;
 {
   Lisp_Object val;
+  Lisp_Object eol_parent = Qnil;
 
   if (auto_saving
       && NILP (Fstring_equal (current_buffer->filename,
 			      current_buffer->auto_save_file_name)))
-    val = Qutf_8_emacs;
+    {
+      val = Qutf_8_emacs;
+      eol_parent = Qunix;
+    }
   else if (!NILP (Vcoding_system_for_write))
     {
       val = Vcoding_system_for_write;
@@ -4895,7 +4899,7 @@ choose_write_coding_system (start, end, filename,
 	val = raw_text_coding_system (val);
     }
 
-  val = coding_inherit_eol_type (val, Qnil);
+  val = coding_inherit_eol_type (val, eol_parent);
   setup_coding_system (val, coding);
 
   if (!STRINGP (start) && !NILP (current_buffer->selective_display))

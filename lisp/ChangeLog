@@ -1,3 +1,294 @@
+2006-08-16  Richard Stallman  <rms@gnu.org>
+
+	* term/x-win.el (x-clipboard-yank): Specify * in interactive spec.
+	(special-event-map): Process drag-n-drop events this way.
+
+	* simple.el (move-beginning-of-line): Test whether fields
+	would prevent motion back to line's first visible character.
+	If so, stop where the fields would stop the motion.
+
+	* newcomment.el (comment-indent): Fully update INDENT
+	before checking to see if it will change the text.
+
+	* cus-edit.el (custom-newline): New function.
+	(custom-mode-map): Bind newline to custom-newline.
+
+	* compare-w.el (compare-windows): Factor compare-ignore-whitespace
+	into ignore-whitespace.
+	Check each buffer for its skip-function.
+	Handle compare-windows-skip-whitespace special-case test
+	by returning t from default skip function.
+	
+2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-clock-special-range,
+	org-clock-update-time-maybe): New functions.
+	(org-stamp-time-of-day-regexp): Allow weekday to be of word chars,
+	not only a-z.
+	(org-agenda-get-blocks): Allow multiple blocks per headline.
+	(org-timestamp-change): Call `org-clock-update-time-maybe'.
+	(org-export-html-title-format)
+	(org-export-html-toplevel-hlevel): New options.
+	(org-export-language-setup): Added support for Czech.
+	(org-mode, org-insert-todo-heading, org-find-visible)
+	(org-find-invisible, org-invisible-p, org-invisible-p2)
+	(org-back-to-heading, org-on-heading-p, org-up-heading-all)
+	(org-show-subtree, org-show-entry, org-make-options-regexp):
+	Removed compatibility support for old outline-mode.
+	(org-check-occur-regexp): Funtion removed.
+	(org-on-heading-p, org-back-to-heading): Made defalias.
+	(org-set-local): New defsubst.
+	(org-set-regexps-and-options, org-mode)
+	(org-set-font-lock-defaults, org-edit-agenda-file-list)
+	(org-timeline, org-agenda-list, org-todo-list, org-tags-view)
+	(org-remember-apply-template, org-table-edit-field)
+	(org-table-edit-formulas, orgtbl-mode, org-export-as-ascii)
+	(org-set-autofill-regexps): Use `org-set-local'.
+	(org-table-eval-formula): Fixed bug with parsing of display flags.
+
+2006-08-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-stack-custom): Indicate selected
+	frame with fringe arrow.  Suggested by Simon Marshall
+	<simon.marshall@misys.com>.
+	(gdb-stack-position): New variable.
+	(gdb-starting, gdb-exited): Reset gdb-stack-position to nil.
+	(gdb-frames-mode): Set gdb-stack-position to nil.  Add to
+	overlay-arrow-variable-list
+	(gdb-reset): Delete gdb-stack-position from above list.
+
+2006-08-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (menu-bar-edit-menu): Disable paste if buffer is
+	read only.
+
+2006-08-13  Romain Francoise  <romain@orebokech.com>
+
+	* cus-theme.el (customize-create-theme)
+	(custom-theme-visit-theme): End `y-or-n-p' prompt with a space.
+
+	* filesets.el (filesets-add-buffer): Ditto.
+
+	* pcvs.el (cvs-change-cvsroot): Ditto.
+
+2006-08-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-frame-separate-io-buffer)
+	(gdb-use-separate-io-buffer, menu): Avoid using `inferior' in text.
+	(gdb-memory-mode, gdb-locals-watch-map): Don't quote lambda
+	expressions.
+	(gdb-info-breakpoints-custom): Use gdb-breakpoint-regexp.
+	Only search till end of line.
+	Add face to function names in case of no filename.
+	Add face to variable names of watchpoints.
+
+2006-08-12  Robert Thorpe <rthorpe@realworldtech.com>  (tiny change)
+
+	* cus-start.el <indent-tabs-mode>: Move to the `indent'
+	customization group.
+
+2006-08-12  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-prior-bindings, allout-added-bindings):
+	Remove, after long deprecation.
+	(allout-beginning-of-line-cycles, allout-end-of-line-cycles):
+	Add customization vars controlling allout-beginning-of-line and
+	allout-end-of-line conveniences.
+	(allout-header-prefix, allout-use-mode-specific-leader)
+	(allout-use-mode-specific-leader, allout-mode-leaders): Revised
+	docstrings.
+	(allout-infer-header-lead): Change to be an alias for
+	allout-infer-header-lead-and-primary-bullet.
+	(allout-infer-header-lead-and-primary-bullet): New version of
+	allout-infer-header-lead which assigns the primary bullet to the
+	same as the header lead, when its being changed.
+	(allout-infer-body-reindent): Apply regexp-quote instead of
+	unconditionally prepending "\\", so that all literal
+	allout-header-prefix and allout-primary-bullet strings are
+	properly handled.
+	(allout-add-resumptions): Add optional qualifier for extending or
+	appending to existing values, rather than replacing them.
+	(allout-view-change-hook): Clarify docstring.
+	(allout-exposure-change-hook): Take explicit arguments, via
+	run-hook-with-args.
+	(allout-structure-added-hook)
+	(allout-structure-deleted-hook)
+	(allout-structure-shifted-hook): New hooks analogous to
+	allout-exposure-change-hook for other kinds of structural outline
+	edits.
+	(allout-encryption-plaintext-sanitization-regexps): New encryption
+	customization variable, by which cooperating modes can provde
+	massage of the plaintext without actually being passed it.
+	(allout-encryption-ciphertext-rejection-regexps)
+	(allout-encryption-ciphertext-rejection-ceiling): New encryption
+	customization variables, by which cooperating modes can prohibit
+	rare but possible ciphertext patterns from fouling their
+	operation, with actually being passed the ciphertext.
+	(allout-mode): Run activation and deactivation hooks after the
+	minor-mode variable has been toggled, to clarify the mode
+	disposition.  The new encryption ciphertext rejection variable is
+	used to ensure that the ciphertext does not contain text that
+	would be recognized as outline structural elements by allout.
+	Substite allout-beginning-of-line and allout-end-of-line for
+	conventionall beginning-of-line and end-of-line bindings.
+	If allout-old-style-prefixes is non-nil, don't nullify it on mode
+	activation!
+	(allout-beginning-of-line): Respect `allout-beginning-of-line-cycles'.
+	(allout-end-of-line): Respect `allout-end-of-line-cycles'.
+	(allout-chart-subtree): Implement new mode, charting only the
+	visible items in the subtree, when new 'visible' parameter is
+	non-nil.
+	(allout-end-of-subtree): Properly handle the last item in the
+	buffer.
+	(allout-pre-command-business, allout-command-counter): Increment
+	an advertised counter so that cooperating enhancements can track
+	revisions of items.
+	(allout-open-topic): Run allout-structure-added-hook with suitable
+	arguments.
+	(allout-shift-in): Run allout-structure-shifted-hook with suitable
+	arguments.
+	(allout-shift-out): Fix doubling for negative args and ensure call
+	of allout-structure-shifted-hook by solely using allout-shift-in.
+	(allout-kill-line, allout-kill-topic): Run
+	allout-structure-deleted-hook with suitable arguments.
+	(allout-yank-processing): Run allout-structure-added-hook with
+	proper arguments.
+	(allout-yank): Enclose activity in allout-unprotected.
+	(allout-flag-region): Run allout-exposure-change-hook with
+	suitable arguments, instead of making the callee infer the
+	arguments.
+	(allout-encrypt-string): Support
+	allout-encryption-plaintext-sanitization-regexps,
+	allout-encryption-ciphertext-rejection-regexps, and
+	allout-encryption-ciphertext-rejection-ceiling.  Indicate correct
+	en/de cryption mode in symmetric encryption failure message.
+	(allout-obtain-passphrase): Use copy-sequence to get a distinct
+	copy of the passphrase, and don't zero it or we'll corrupt the
+	stashed copy.
+	(allout-create-encryption-passphrase-verifier)
+	(allout-verify-passphrase): Respect the new signature for
+	allout-encrypt-string.
+	(allout-get-configvar-values): Convenience for getting a
+	configuration variable value and handling its absence gracefully.
+
+2006-08-11  Romain Francoise  <romain@orebokech.com>
+
+	* obsolete/zone-mode.el: Delete.
+
+2006-08-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/dns-mode.el (dns-mode): Use before-save-hook.
+
+2006-08-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/bindat.el (bindat-ip-to-string):
+	Use `format-network-address' if possible.
+
+2006-08-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-init-frame): Call x-register-dnd-atom.
+
+2006-08-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/edebug.el (edebug-recursive-edit): Don't save and
+	restore unread-command-events here.
+	(edebug-display): Do it here, to detect sit-for interruptions.
+
+2006-08-10  Romain Francoise  <romain@orebokech.com>
+
+	* textmodes/dns-mode.el: Alias `zone-mode' to `dns-mode'.
+	(dns-mode-soa-auto-increment-serial): New user option.
+	(dns-mode-soa-maybe-increment-serial): New function.
+	(dns-mode): Add the latter to `write-contents-functions'.
+
+	* obsolete/zone-mode.el: Move to obsolete/ from net/.
+	Delete autoload cookies.
+
+2006-08-10  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-glob.el (eshell-glob-chars-list)
+	(eshell-glob-translate-alist): Add support for [^g] in character globs.
+
+2006-08-10  Richard Stallman  <rms@gnu.org>
+
+	* facemenu.el (facemenu-add-face): Pass frame to facemenu-active-faces.
+	(facemenu-set-face): Doc fix.
+	(facemenu-listed-faces): Doc fix.
+
+2006-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* avoid.el (mouse-avoidance-animating-pointer): New var.
+	(mouse-avoidance-nudge-mouse): Use it.
+	(mouse-avoidance-banish): Rename from mouse-avoidance-banish-hook.
+	(mouse-avoidance-exile): Rename from mouse-avoidance-exile-hook
+	(mouse-avoidance-fancy): Rename from mouse-avoidance-fancy-hook.
+	Don't activate if currently animating.  All callers changed.
+
+2006-08-09  John Wiegley  <johnw@newartisans.com>
+
+	* calendar/timeclock.el (timeclock-use-elapsed): Added a new
+	variable, which causes timeclock to report elapsed time worked,
+	instead of just work remaining.
+
+2006-08-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Fix for the case that the 2nd element of arg-list is a cons.
+
+2006-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-fontify-node): Handle preceding `in' for note
+	reference hiding rules.
+
+2006-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-quoted-subshell): Make sure we don't
+	mistake a closing " for an opening one.
+
+2006-08-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Add more key bindings.
+
+2006-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-do-completion): Filter out completions matching
+	completion-ignored-extensions before checking whether there are
+	multiple completions.
+	Don't use `list' unnecessarily when building completion tables.
+
+2006-08-06  Richard Stallman  <rms@gnu.org>
+
+	* help.el (describe-mode): Make minor mode list more concise.
+
+2006-08-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el: Give mode-line-format, mode-line-modes, and
+	mode-line-position `standard-value' properties.
+
+2006-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* buff-menu.el (list-buffers-noselect): For Info buffers, use
+	"(file)node" instead of the file name.
+
+2006-08-05  Richard Stallman  <rms@gnu.org>
+
+	* faces.el (escape-glyph): Doc fix.
+
+2006-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (describe-font): Improve docstring
+	and error message.  Use frame-parameter (not frame-parameters).
+
+2006-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gud.el (gdb-script-font-lock-syntactic-keywords):
+	Correctly mark the end-of-docstring char.
+
+2006-08-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-to-column): Constrain move-to-column to
+	current field.
+
 2006-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-beg, font-lock-end)
@@ -173,9 +464,9 @@
 
 2006-07-26  Mathias Dahl  <mathias.dahl@gmail.com>
 
-	* tumme.el (tumme-backward-image): Add prefix argument. Add error
+	* tumme.el (tumme-backward-image): Add prefix argument.  Add error
 	when at first image.
-	(tumme-forward-image): Add prefix argument. Add error when at last
+	(tumme-forward-image): Add prefix argument.  Add error when at last
 	image.
 
 2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -239,8 +530,8 @@
 2006-07-24  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
-	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org> and
-	andreas@altroot.de (Andreas V,Av(Bgele)
+	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org>
+	and andreas@altroot.de (Andreas V,Av(Bgele).
 
 2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -279,7 +570,7 @@
 2006-07-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Fix key bindings
-	syntax. Bind S-return, C-M-., C-TAB, S-TAB and C-S-TAB.
+	syntax.  Bind S-return, C-M-., C-TAB, S-TAB and C-S-TAB.
 
 2006-07-21  Eli Zaretskii  <eliz@gnu.org>
 
@@ -315,7 +606,7 @@
 
 	* calc.el (calc-previous-alg-entry):  Remove variable.
 
-	* calc-aent.el  (calc-alg-entry-history, calc-quick-calc-history):
+	* calc-aent.el (calc-alg-entry-history, calc-quick-calc-history):
 	New variables.
 	(calc-alg-entry): Use `calc-alg-entry-history'.
 	(calc-do-quick-calc): Use `calc-quick-calc-history'.
@@ -639,8 +930,8 @@
 
 2006-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/cc-awk.el (defconst): Use eval-and-compile to avoid
-	compilation error.
+	* progmodes/cc-awk.el (c-awk-escaped-nls*): Use eval-and-compile to
+	avoid compilation error.
 
 	* subr.el (sit-for): New function.
 

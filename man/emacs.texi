@@ -272,9 +272,9 @@ Help
 * Key Help::		Asking what a key does in Emacs.
 * Name Help::		Asking about a command, variable or function name.
 * Apropos::		Asking what pertains to a given topic.
+* Help Mode::           Special features of Help mode and Help buffers.
 * Library Keywords::	Finding Lisp libraries by keywords (topics).
 * Language Help::       Help relating to international language support.
-* Help Mode::           Special features of Help mode and Help buffers.
 * Misc Help::		Other help commands.
 * Help Files::          Commands to display pre-written help files.
 * Help Echo::           Help on active text and tooltips (`balloon help')
