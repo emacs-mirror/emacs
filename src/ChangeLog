@@ -73,6 +73,10 @@
 	(Frename_file, Fadd_name_to_file, Fmake_symbolic_link):
 	Simplify; remove NO_ARG_ARRAY stuff, use list2.
 
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* buffer.c (Fswitch_to_buffer): Fix previous change.
+
 2006-08-25  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (Fcurrent_idle_time): Simplify.
