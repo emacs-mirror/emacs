@@ -21213,6 +21213,7 @@ get_window_cursor_type (w, glyph, width, active_cursor)
   /* Use normal cursor if not blinked off.  */
   if (!w->cursor_off_p)
     {
+#ifdef HAVE_WINDOW_SYSTEM
       if (glyph != NULL && glyph->type == IMAGE_GLYPH)
 	{
 	  if (cursor_type == FILLED_BOX_CURSOR)
@@ -21238,6 +21239,7 @@ get_window_cursor_type (w, glyph, width, active_cursor)
 	      cursor_type = HOLLOW_BOX_CURSOR;
 	    }
       }
+#endif
       return cursor_type;
     }
 
