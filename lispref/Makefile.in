@@ -27,6 +27,7 @@ srcdir = @srcdir@
 VPATH=@srcdir@
 
 infodir = $(srcdir)/../info
+usermanualdir = $(srcdir)/../man
 
 TEXI2DVI = texi2dvi
 SHELL = /bin/sh
@@ -103,7 +104,7 @@ $(infodir)/elisp: $(srcs)
 	$(MAKEINFO) -I. -I$(srcdir) $(srcdir)/elisp.texi -o $(infodir)/elisp
 
 elisp.dvi: $(srcs)
-	$(TEXI2DVI) -I $(srcdir) $(srcdir)/elisp.texi
+	$(TEXI2DVI) -I $(srcdir) -I $(usermanualdir) $(srcdir)/elisp.texi
 
 # This is for use in a separate distro of the Emacs Lisp manual.
 install: elisp

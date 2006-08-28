@@ -717,6 +717,10 @@ Lisp_Object Vresize_mini_windows;
 
 struct buffer *displayed_buffer;
 
+/* Space between overline and text. */
+
+EMACS_INT overline_margin;
+
 /* Value returned from text property handlers (see below).  */
 
 enum prop_handled
@@ -9545,7 +9549,8 @@ update_tool_bar (f, save_match_data)
                                          &new_n_tool_bar);
 
 	  /* Redisplay the tool-bar if we changed it.  */
-	  if (NILP (Fequal (new_tool_bar, f->tool_bar_items)))
+	  if (new_n_tool_bar != f->n_tool_bar_items
+	      || NILP (Fequal (new_tool_bar, f->tool_bar_items)))
             {
               /* Redisplay that happens asynchronously due to an expose event
                  may access f->tool_bar_items.  Make sure we update both
@@ -20611,7 +20616,7 @@ x_produce_glyphs (it)
 	  /* If face has an overline, add the height of the overline
 	     (1 pixel) and a 1 pixel margin to the character height.  */
 	  if (face->overline_p)
-	    it->ascent += 2;
+	    it->ascent += overline_margin;
 
 	  if (it->constrain_row_ascent_descent_p)
 	    {
@@ -20811,7 +20816,7 @@ x_produce_glyphs (it)
 	  /* If face has an overline, add the height of the overline
 	     (1 pixel) and a 1 pixel margin to the character height.  */
 	  if (face->overline_p)
-	    it->ascent += 2;
+	    it->ascent += overline_margin;
 
 	  take_vertical_position_into_account (it);
 
@@ -21166,7 +21171,7 @@ x_produce_glyphs (it)
       /* If face has an overline, add the height of the overline
 	 (1 pixel) and a 1 pixel margin to the character height.  */
       if (face->overline_p)
-	it->ascent += 2;
+	it->ascent += overline_margin;
 
       take_vertical_position_into_account (it);
 
@@ -21542,9 +21547,30 @@ get_window_cursor_type (w, glyph, width, active_cursor)
   /* Use normal cursor if not blinked off.  */
   if (!w->cursor_off_p)
     {
-      if (glyph != NULL && glyph->type == IMAGE_GLYPH) {
-	if (cursor_type == FILLED_BOX_CURSOR)
-	  cursor_type = HOLLOW_BOX_CURSOR;
+      if (glyph != NULL && glyph->type == IMAGE_GLYPH)
+	{
+	  if (cursor_type == FILLED_BOX_CURSOR)
+	    {
+	      /* Using a block cursor on large images can be very annoying.
+		 So use a hollow cursor for "large" images.  */
+	      struct image *img = IMAGE_FROM_ID (f, glyph->u.img_id);
+	      if (img != NULL && IMAGEP (img->spec))
+		{
+		  /* Arbitrarily, interpret "Large" as >32x32 and >NxN
+		     where N = size of default frame font size.
+		     This should cover most of the "tiny" icons people may use.  */
+		  if (img->width > max (32, WINDOW_FRAME_COLUMN_WIDTH (w))
+		      || img->height > max (32, WINDOW_FRAME_LINE_HEIGHT (w)))
+		    cursor_type = HOLLOW_BOX_CURSOR;
+		}
+	    }
+	  else if (cursor_type != NO_CURSOR)
+	    {
+	      /* Display current only supports BOX and HOLLOW cursors for images.
+		 So for now, unconditionally use a HOLLOW cursor when cursor is
+		 not a solid box cursor.  */
+	      cursor_type = HOLLOW_BOX_CURSOR;
+	    }
       }
       return cursor_type;
     }
@@ -24443,6 +24469,12 @@ whose contents depend on various data.  */);
 	       doc: /* Inhibit try_cursor_movement display optimization.  */);
   inhibit_try_cursor_movement = 0;
 #endif /* GLYPH_DEBUG */
+
+  DEFVAR_INT ("overline-margin", &overline_margin,
+	       doc: /* *Space between overline and text, in pixels.
+The default value is 2: the height of the overline (1 pixel) plus 1 pixel
+margin to the caracter height.  */);
+  overline_margin = 2;
 }
 
 

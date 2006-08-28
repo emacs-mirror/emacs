@@ -325,7 +325,8 @@ nil if not."
 	  ;; If dropping in an ordinary window which we could use,
 	  ;; let dnd-open-file-other-window specify what to do.
 	  (progn
-	    (goto-char (posn-point (event-start event)))
+	    (when (not mouse-yank-at-point)
+	      (goto-char (posn-point (event-start event))))
 	    (funcall handler window action data))
 	;; If we can't display the file here,
 	;; make a new window for it.

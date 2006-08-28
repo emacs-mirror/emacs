@@ -191,14 +191,16 @@ on third call it again advances points to the next difference and so on."
 
     (setq skip-func-1 (if ignore-whitespace
 			  (if (stringp compare-windows-whitespace)
-			      (lambda () (compare-windows-skip-whitespace)
+			      (lambda (pos)
+				(compare-windows-skip-whitespace pos)
 				t)
 			    compare-windows-whitespace)))
 
     (with-current-buffer b2
       (setq skip-func-2 (if ignore-whitespace
 			    (if (stringp compare-windows-whitespace)
-			      (lambda () (compare-windows-skip-whitespace)
+			      (lambda (pos)
+				(compare-windows-skip-whitespace pos)
 				t)
 			      compare-windows-whitespace)))
       (push-mark p2 t)

@@ -219,9 +219,9 @@ La schermata si sposta di 8 righe verso l'alto.  Se vuoi tornare di nuovo
 in basso puoi usare un argomento numerico con M-v.
 
 Quando si usa un sistema a finestre, come X11 o MS-Windows, ci dovrebbe
-essere un'area rettangolare allungata chiamata barra di scorrimento sul
-lato sinistro della finestra di Emacs.  Si può far scorrere il testo con
-un click del mouse nella barra di scorrimento.
+essere un'area rettangolare allungata chiamata barra di scorrimento a
+un lato della finestra di Emacs.  Si può far scorrere il testo con un 
+click del mouse nella barra di scorrimento.
 
 >> Prova a premere il pulsante centrale del mouse sopra all'area
    evidenziata nella barra di scorrimento.  Verrà visualizzata una parte

@@ -21,7 +21,7 @@ a window doesn't select it.
 but if you type M-n you should get the visited file name of the
 current buffer.
 
-** whitespace-cleanup should work only on the region if the region is active.
+** describe-face should show an example of text in the face.
 
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
@@ -124,6 +124,9 @@ current buffer.
 *** Discretionary hyphens that are not visible when they are at end of line.
 
 ** Internationalize Emacs's messages.
+
+** Set up a facility to save backtraces when errors happen during
+specified filters, specified timers, and specified hooks.
 
 ** Install mmc@maruska.dyndns.org's no-flicker change.
 

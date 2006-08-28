@@ -1215,6 +1215,17 @@ page for other output.  On such terminals, you might want to set the variable
 assume, when resumed, that the screen page it is using still contains
 what Emacs last wrote there.
 
+@vindex overline-margin
+  On graphical display, this variables specifies the number of pixes
+the overline is shown above the text.  The value includes the height of
+the overline itself (1 pixel).  The default value is 2 pixels.
+
+@vindex x-underline-at-descent-line
+  On graphical display, the underline is normally drawn at the
+baseline level of the font.  If @code{x-underline-at-descent-line} is
+non-@code{nil}, the underline is drawn at the same position as the
+font's decent line.
+
 @ignore
    arch-tag: 2219f910-2ff0-4521-b059-1bd231a536c4
 @end ignore

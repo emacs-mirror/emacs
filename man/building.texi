@@ -1028,7 +1028,8 @@ as are the commands to send signals to the debugged program.
 @item Locals Buffer
 The locals buffer displays the values of local variables of the
 current frame for simple data types (@pxref{Frame Info, Frame Info,
-Information on a frame, gdb, The GNU debugger}).
+Information on a frame, gdb, The GNU debugger}). Press @key{RET} or
+click @kbd{Mouse-2} on the value if you want to edit it.
 
 Arrays and structures display their type only.  With GDB 6.4 or later,
 move point to their name and press @key{RET}, or alternatively click
@@ -1040,7 +1041,7 @@ of GDB, use @kbd{Mouse-2} or @key{RET} on the type description
 @findex toggle-gdb-all-registers
 The registers buffer displays the values held by the registers
 (@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{RET} or
-click @kbd{Mouse-2} on a register if you want to change its value.
+click @kbd{Mouse-2} on a register if you want to edit its value.
 With GDB 6.4 or later, recently changed register values display with
 @code{font-lock-warning-face}.  With earlier versions of GDB, you can
 press @key{SPC} to toggle the display of floating point registers

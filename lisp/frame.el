@@ -1253,6 +1253,35 @@ The function `blink-cursor-start' is called when the timer fires.")
 This timer calls `blink-cursor-timer-function' every
 `blink-cursor-interval' seconds.")
 
+(defun blink-cursor-start ()
+  "Timer function called from the timer `blink-cursor-idle-timer'.
+This starts the timer `blink-cursor-timer', which makes the cursor blink
+if appropriate.  It also arranges to cancel that timer when the next
+command starts, by installing a pre-command hook."
+  (when (null blink-cursor-timer)
+    ;; Set up the timer first, so that if this signals an error,
+    ;; blink-cursor-end is not added to pre-command-hook.
+    (setq blink-cursor-timer
+	  (run-with-timer blink-cursor-interval blink-cursor-interval
+			  'blink-cursor-timer-function))
+    (add-hook 'pre-command-hook 'blink-cursor-end)
+    (internal-show-cursor nil nil)))
+
+(defun blink-cursor-timer-function ()
+  "Timer function of timer `blink-cursor-timer'."
+  (internal-show-cursor nil (not (internal-show-cursor-p))))
+
+(defun blink-cursor-end ()
+  "Stop cursor blinking.
+This is installed as a pre-command hook by `blink-cursor-start'.
+When run, it cancels the timer `blink-cursor-timer' and removes
+itself as a pre-command hook."
+  (remove-hook 'pre-command-hook 'blink-cursor-end)
+  (internal-show-cursor nil t)
+  (when blink-cursor-timer
+    (cancel-timer blink-cursor-timer)
+    (setq blink-cursor-timer nil)))
+
 (define-minor-mode blink-cursor-mode
   "Toggle blinking cursor mode.
 With a numeric argument, turn blinking cursor mode on iff ARG is positive.
@@ -1270,48 +1299,17 @@ cursor display.  On a text-only terminal, this is not implemented."
   :group 'cursor
   :global t
   (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))
-  (if blink-cursor-timer (cancel-timer blink-cursor-timer))
-  (setq blink-cursor-idle-timer nil
-	blink-cursor-timer nil)
-  (if blink-cursor-mode
-      (progn
-	;; Hide the cursor.
-	;;(internal-show-cursor nil nil)
-	(setq blink-cursor-idle-timer
-	      (run-with-idle-timer blink-cursor-delay
-				   blink-cursor-delay
-				   'blink-cursor-start)))
-    (internal-show-cursor nil t)))
+  (setq blink-cursor-idle-timer nil)
+  (blink-cursor-end)
+  (when blink-cursor-mode
+    ;; Hide the cursor.
+    ;;(internal-show-cursor nil nil)
+    (setq blink-cursor-idle-timer
+          (run-with-idle-timer blink-cursor-delay
+                               blink-cursor-delay
+                               'blink-cursor-start))))
 
 (define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
-
-(defun blink-cursor-start ()
-  "Timer function called from the timer `blink-cursor-idle-timer'.
-This starts the timer `blink-cursor-timer', which makes the cursor blink
-if appropriate.  It also arranges to cancel that timer when the next
-command starts, by installing a pre-command hook."
-  (when (null blink-cursor-timer)
-    (add-hook 'pre-command-hook 'blink-cursor-end)
-    (internal-show-cursor nil nil)
-    (setq blink-cursor-timer
-	  (run-with-timer blink-cursor-interval blink-cursor-interval
-			  'blink-cursor-timer-function))))
-
-(defun blink-cursor-timer-function ()
-  "Timer function of timer `blink-cursor-timer'."
-  (internal-show-cursor nil (not (internal-show-cursor-p))))
-
-(defun blink-cursor-end ()
-  "Stop cursor blinking.
-This is installed as a pre-command hook by `blink-cursor-start'.
-When run, it cancels the timer `blink-cursor-timer' and removes
-itself as a pre-command hook."
-  (remove-hook 'pre-command-hook 'blink-cursor-end)
-  (internal-show-cursor nil t)
-  (cancel-timer blink-cursor-timer)
-  (setq blink-cursor-timer nil))
-
-
 
 ;; Hourglass pointer
 

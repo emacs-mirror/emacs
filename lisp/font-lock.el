@@ -1088,9 +1088,9 @@ Put first the functions more likely to cause a change and cheaper to compute.")
   "Move fontification boundaries to beginning of lines."
   (let ((changed nil))
     (goto-char font-lock-beg)
-    (unless (bobp) (setq changed t font-lock-beg (line-beginning-position)))
+    (unless (bolp) (setq changed t font-lock-beg (line-beginning-position)))
     (goto-char font-lock-end)
-    (unless (bobp) (setq changed t font-lock-end (line-beginning-position 2)))
+    (unless (bolp) (setq changed t font-lock-end (line-beginning-position 2)))
     changed))
 
 (defun font-lock-default-fontify-region (beg end loudly)
