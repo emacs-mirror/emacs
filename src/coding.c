@@ -7243,7 +7243,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 	    break;
 	  if (c < 0x20
 	      && (c == ISO_CODE_ESC || c == ISO_CODE_SI || c == ISO_CODE_SO)
-	      && inhibit_iso_escape_detection)
+	      && ! inhibit_iso_escape_detection)
 	    {
 	      coding.head_ascii = src - coding.source;
 	      if (detect_coding_iso_2022 (&coding, &detect_info))
@@ -7266,6 +7266,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 	    for (i = 0; i < coding_category_raw_text; i++)
 	      {
 		category = coding_priorities[i];
+		this = coding_categories + category;
 		if (detect_info.found & (1 << category))
 		  break;
 	      }
@@ -7349,7 +7350,8 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 		{
 		  found |= 1 << category;
 		  id = coding_categories[category].id;
-		  val = Fcons (make_number (id), val);
+		  if (id >= 0)
+		    val = Fcons (make_number (id), val);
 		}
 	    }
 	  for (i = coding_category_raw_text - 1; i >= 0; i--)
