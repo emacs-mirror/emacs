@@ -1,3 +1,10 @@
+2006-08-28  Kim F. Storm  <storm@cua.dk>
+
+	* find-dired.el	(find-dired): Use shell-quote-argument to properly
+	escape ( and ) args.  Also use it on {} and ; args in default
+	value of find-ls-option string.
+	(find-grep-dired): Use shell-quote-argument on {} and ; args.
+
 2006-08-27  Michael Olson  <mwolson@gnu.org>
 
 	* emacs-lisp/tq.el: Small grammar fix in comments.
