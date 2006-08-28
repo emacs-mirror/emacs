@@ -2326,6 +2326,8 @@ if test "${HAVE_X11}" = "yes"; then
       fi
     fi
   fi
+else
+  USE_FONT_BACKEND=no
 fi
 
 
