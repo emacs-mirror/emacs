@@ -1,3 +1,8 @@
+2006-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fdetect_coding_region, Fdetect_coding_string): Fix
+	docstring about ISO-2022 control characters.
+
 2006-08-28  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_window_cursor_type): Replace BOX cursor on images
