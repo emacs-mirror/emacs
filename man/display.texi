@@ -23,11 +23,14 @@ their values only make a difference at the time of redisplay.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.
 * Fringes::                Enabling or disabling window fringes.
+* Displaying Boundaries::  Displaying top and bottom of the buffer.
 * Useless Whitespace::     Showing possibly-spurious trailing whitespace.
 * Selective Display::      Hiding lines with lots of indentation.
 * Optional Mode Line::     Optional mode line display features.
 * Text Display::           How text characters are normally displayed.
 * Cursor Display::         Features for displaying the cursor.
+* Line Truncation::        Truncating lines to fit the screen width instead
+                             of continuing them to multiple screen lines.
 * Display Custom::         Information on variables for customizing display.
 @end menu
 
@@ -202,8 +205,8 @@ window, Emacs recenters the window.  By default, @code{scroll-margin} is
   @dfn{Horizontal scrolling} means shifting all the lines sideways
 within a window---so that some of the text near the left margin is not
 displayed at all.  When the text in a window is scrolled horizontally,
-text lines are truncated rather than continued (@pxref{Display
-Custom}).  Whenever a window shows truncated lines, Emacs
+text lines are truncated rather than continued (@pxref{Line
+Truncation}).  Whenever a window shows truncated lines, Emacs
 automatically updates its horizontal scrolling whenever point moves
 off the left or right edge of the screen.  You can also use these
 commands to do explicit horizontal scrolling.
@@ -751,6 +754,40 @@ program you are debugging is executing (@pxref{Debuggers}).
 @kbd{M-x fringe-mode}.  To enable and disable the fringes
 for the selected frame, use @kbd{M-x set-fringe-style}.
 
+@node Displaying Boundaries
+@section Displaying Boundaries
+
+@vindex indicate-buffer-boundaries
+  On a graphical display, Emacs can indicate the buffer boundaries in
+the fringes.  It indicates the first line and the last line with
+angle images in the fringes.  This can be combined with up and down
+arrow images which say whether it is possible to scroll the window up
+and down.
+
+  The buffer-local variable @code{indicate-buffer-boundaries} controls
+how the buffer boundaries and window scrolling is indicated in the
+fringes.  If the value is @code{left} or @code{right}, both angle and
+arrow bitmaps are displayed in the left or right fringe, respectively.
+
+  If value is an alist, each element @code{(@var{indicator} .
+@var{position})} specifies the position of one of the indicators.
+The @var{indicator} must be one of @code{top}, @code{bottom},
+@code{up}, @code{down}, or @code{t} which specifies the default
+position for the indicators not present in the alist.
+The @var{position} is one of @code{left}, @code{right}, or @code{nil}
+which specifies not to show this indicator.
+
+  For example, @code{((top . left) (t . right))} places the top angle
+bitmap in left fringe, the bottom angle bitmap in right fringe, and
+both arrow bitmaps in right fringe.  To show just the angle bitmaps in
+the left fringe, but no arrow bitmaps, use @code{((top .  left)
+(bottom . left))}.
+
+@vindex default-indicate-buffer-boundaries
+  The value of the variable @code{default-indicate-buffer-boundaries}
+is the default value for @code{indicate-buffer-boundaries} in buffers
+that do not override it.
+
 @node Useless Whitespace
 @section Useless Whitespace
 
@@ -1083,30 +1120,8 @@ minor mode that highlights the line containing point.  Use @kbd{M-x
 hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
 global-hl-line-mode} enables or disables the same mode globally.
 
-@node Display Custom
-@section Customization of Display
-
-  This section describes variables (@pxref{Variables}) that you can
-change to customize how Emacs displays.  Beginning users can skip
-it.
-@c the reason for that pxref is because an xref early in the
-@c ``echo area'' section leads here.
-
-@vindex inverse-video
-  If the variable @code{inverse-video} is non-@code{nil}, Emacs attempts
-to invert all the lines of the display from what they normally are.
-
-@vindex visible-bell
-  If the variable @code{visible-bell} is non-@code{nil}, Emacs attempts
-to make the whole screen blink when it would normally make an audible bell
-sound.  This variable has no effect if your terminal does not have a way
-to make the screen blink.
-
-@vindex echo-keystrokes
-  The variable @code{echo-keystrokes} controls the echoing of multi-character
-keys; its value is the number of seconds of pause required to cause echoing
-to start, or zero, meaning don't echo at all.  The value takes effect when
-there is someting to echo.  @xref{Echo Area}.
+@node Line Truncation
+@section Truncation of Lines
 
 @cindex truncation
 @cindex line truncation, and fringes
@@ -1145,36 +1160,30 @@ truncate a line which is exactly as wide as the window.  Instead, the
 newline overflows into the right fringe, and the cursor appears in the
 fringe when positioned on that newline.
 
-@vindex indicate-buffer-boundaries
-  On a graphical display, Emacs can indicate the buffer boundaries in
-the fringes.  It indicates the first line and the last line with
-angle images in the fringes.  This can be combined with up and down
-arrow images which say whether it is possible to scroll the window up
-and down.
+@node Display Custom
+@section Customization of Display
 
-  The buffer-local variable @code{indicate-buffer-boundaries} controls
-how the buffer boundaries and window scrolling is indicated in the
-fringes.  If the value is @code{left} or @code{right}, both angle and
-arrow bitmaps are displayed in the left or right fringe, respectively.
+  This section describes variables (@pxref{Variables}) that you can
+change to customize how Emacs displays.  Beginning users can skip
+it.
+@c the reason for that pxref is because an xref early in the
+@c ``echo area'' section leads here.
 
-  If value is an alist, each element @code{(@var{indicator} .
-@var{position})} specifies the position of one of the indicators.
-The @var{indicator} must be one of @code{top}, @code{bottom},
-@code{up}, @code{down}, or @code{t} which specifies the default
-position for the indicators not present in the alist.
-The @var{position} is one of @code{left}, @code{right}, or @code{nil}
-which specifies not to show this indicator.
+@vindex inverse-video
+  If the variable @code{inverse-video} is non-@code{nil}, Emacs attempts
+to invert all the lines of the display from what they normally are.
 
-  For example, @code{((top . left) (t . right))} places the top angle
-bitmap in left fringe, the bottom angle bitmap in right fringe, and
-both arrow bitmaps in right fringe.  To show just the angle bitmaps in
-the left fringe, but no arrow bitmaps, use @code{((top .  left)
-(bottom . left))}.
+@vindex visible-bell
+  If the variable @code{visible-bell} is non-@code{nil}, Emacs attempts
+to make the whole screen blink when it would normally make an audible bell
+sound.  This variable has no effect if your terminal does not have a way
+to make the screen blink.
 
-@vindex default-indicate-buffer-boundaries
-  The value of the variable @code{default-indicate-buffer-boundaries}
-is the default value for @code{indicate-buffer-boundaries} in buffers
-that do not override it.
+@vindex echo-keystrokes
+  The variable @code{echo-keystrokes} controls the echoing of multi-character
+keys; its value is the number of seconds of pause required to cause echoing
+to start, or zero, meaning don't echo at all.  The value takes effect when
+there is someting to echo.  @xref{Echo Area}.
 
 @vindex baud-rate
   The variable @anchor{baud-rate}@code{baud-rate} holds the output
@@ -1197,6 +1206,17 @@ or off, customize the group @code{cursor}.  You can also control the
 amount of time Emacs must remain busy before the busy indicator is
 displayed, by setting the variable @code{hourglass-delay}.
 
+@vindex overline-margin
+  On graphical display, this variables specifies the vertical position
+of an overline above the text, including the height of the overline
+itself (1 pixel).  The default value is 2 pixels.
+
+@vindex x-underline-at-descent-line
+  On graphical display, Emacs normally draws an underline at the
+baseline level of the font.  If @code{x-underline-at-descent-line} is
+non-@code{nil}, Emacs draws the underline at the same height as the
+font's descent line.
+
 @findex tty-suppress-bold-inverse-default-colors
   On some text-only terminals, bold face and inverse video together
 result in text that is hard to read.  Call the function
@@ -1214,17 +1234,6 @@ page for other output.  On such terminals, you might want to set the variable
 @code{no-redraw-on-reenter} non-@code{nil}; this tells Emacs to
 assume, when resumed, that the screen page it is using still contains
 what Emacs last wrote there.
-
-@vindex overline-margin
-  On graphical display, this variables specifies the number of pixes
-the overline is shown above the text.  The value includes the height of
-the overline itself (1 pixel).  The default value is 2 pixels.
-
-@vindex x-underline-at-descent-line
-  On graphical display, the underline is normally drawn at the
-baseline level of the font.  If @code{x-underline-at-descent-line} is
-non-@code{nil}, the underline is drawn at the same position as the
-font's decent line.
 
 @ignore
    arch-tag: 2219f910-2ff0-4521-b059-1bd231a536c4
