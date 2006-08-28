@@ -899,7 +899,9 @@ and the greater of them is not at the start of a line."
 
 (defun line-number-at-pos (&optional pos)
   "Return (narrowed) buffer line number at position POS.
-If POS is nil, use current buffer location."
+If POS is nil, use current buffer location.
+Counting starts at (point-min), so the value refers
+to the contents of the accessible portion of the buffer."
   (let ((opoint (or pos (point))) start)
     (save-excursion
       (goto-char (point-min))

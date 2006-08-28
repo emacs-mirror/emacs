@@ -100,9 +100,6 @@ int interrupt_input_pending;
 /* File descriptor to use for input.  */
 extern int input_fd;
 
-/* Nonzero if we are executing from the SIGIO signal handler. */
-int in_sighandler;
-
 #ifdef HAVE_WINDOW_SYSTEM
 /* Make all keyboard buffers much bigger when using X windows.  */
 #ifdef MAC_OS8
@@ -1390,6 +1387,72 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
   return Qnil;
 }
 
+#ifdef HAVE_MOUSE
+
+/* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
+   of this function.  */
+
+static Lisp_Object
+tracking_off (old_value)
+     Lisp_Object old_value;
+{
+  do_mouse_tracking = old_value;
+  if (NILP (old_value))
+    {
+      /* Redisplay may have been preempted because there was input
+	 available, and it assumes it will be called again after the
+	 input has been processed.  If the only input available was
+	 the sort that we have just disabled, then we need to call
+	 redisplay.  */
+      if (!readable_events (READABLE_EVENTS_DO_TIMERS_NOW))
+	{
+	  redisplay_preserve_echo_area (6);
+	  get_input_pending (&input_pending,
+			     READABLE_EVENTS_DO_TIMERS_NOW);
+	}
+    }
+  return Qnil;
+}
+
+DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
+       doc: /* Evaluate BODY with mouse movement events enabled.
+Within a `track-mouse' form, mouse motion generates input events that
+you can read with `read-event'.
+Normally, mouse motion is ignored.
+usage: (track-mouse BODY ...)  */)
+     (args)
+     Lisp_Object args;
+{
+  int count = SPECPDL_INDEX ();
+  Lisp_Object val;
+
+  record_unwind_protect (tracking_off, do_mouse_tracking);
+
+  do_mouse_tracking = Qt;
+
+  val = Fprogn (args);
+  return unbind_to (count, val);
+}
+
+/* If mouse has moved on some frame, return one of those frames.
+   Return 0 otherwise.  */
+
+static FRAME_PTR
+some_mouse_moved ()
+{
+  Lisp_Object tail, frame;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (XFRAME (frame)->mouse_moved)
+	return XFRAME (frame);
+    }
+
+  return 0;
+}
+
+#endif	/* HAVE_MOUSE */
+
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
@@ -2310,7 +2373,17 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 
 #ifdef HAVE_MOUSE
   if (!noninteractive && STRINGP (help))
-    help = call1 (Qmouse_fixup_help_message, help);
+    {
+      /* The mouse-fixup-help-message Lisp function can call
+	 mouse_position_hook, which resets the mouse_moved flags.
+	 This causes trouble if we are trying to read a mouse motion
+	 event (i.e., if we are inside a `track-mouse' form), so we
+	 restore the mouse_moved flag.  */
+      FRAME_PTR f = NILP (do_mouse_tracking) ? NULL : some_mouse_moved ();
+      help = call1 (Qmouse_fixup_help_message, help);
+      if (f)
+      	f->mouse_moved = 1;
+    }
 #endif
 
   if (STRINGP (help) || NILP (help))
@@ -3464,72 +3537,6 @@ restore_getcjmp (temp)
   bcopy (temp, getcjmp, sizeof getcjmp);
 }
 
-#ifdef HAVE_MOUSE
-
-/* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
-   of this function.  */
-
-static Lisp_Object
-tracking_off (old_value)
-     Lisp_Object old_value;
-{
-  do_mouse_tracking = old_value;
-  if (NILP (old_value))
-    {
-      /* Redisplay may have been preempted because there was input
-	 available, and it assumes it will be called again after the
-	 input has been processed.  If the only input available was
-	 the sort that we have just disabled, then we need to call
-	 redisplay.  */
-      if (!readable_events (READABLE_EVENTS_DO_TIMERS_NOW))
-	{
-	  redisplay_preserve_echo_area (6);
-	  get_input_pending (&input_pending,
-			     READABLE_EVENTS_DO_TIMERS_NOW);
-	}
-    }
-  return Qnil;
-}
-
-DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
-       doc: /* Evaluate BODY with mouse movement events enabled.
-Within a `track-mouse' form, mouse motion generates input events that
-you can read with `read-event'.
-Normally, mouse motion is ignored.
-usage: (track-mouse BODY ...)  */)
-     (args)
-     Lisp_Object args;
-{
-  int count = SPECPDL_INDEX ();
-  Lisp_Object val;
-
-  record_unwind_protect (tracking_off, do_mouse_tracking);
-
-  do_mouse_tracking = Qt;
-
-  val = Fprogn (args);
-  return unbind_to (count, val);
-}
-
-/* If mouse has moved on some frame, return one of those frames.
-   Return 0 otherwise.  */
-
-static FRAME_PTR
-some_mouse_moved ()
-{
-  Lisp_Object tail, frame;
-
-  FOR_EACH_FRAME (tail, frame)
-    {
-      if (XFRAME (frame)->mouse_moved)
-	return XFRAME (frame);
-    }
-
-  return 0;
-}
-
-#endif	/* HAVE_MOUSE */
-
 /* Low level keyboard/mouse input.
    kbd_buffer_store_event places events in kbd_buffer, and
    kbd_buffer_get_event retrieves them.  */
@@ -4542,6 +4549,32 @@ timer_check (do_it_now)
   /* Return 0 if we generated an event, and -1 if not.  */
   UNGCPRO;
   return nexttime;
+}
+
+DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
+       doc: /* Return the current length of Emacs idleness.
+The value is returned as a list of three integers.  The first has the
+most significant 16 bits of the seconds, while the second has the
+least significant 16 bits.  The third integer gives the microsecond
+count.
+
+The microsecond count is zero on systems that do not provide
+resolution finer than a second.  */)
+  ()
+{
+  if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+    {
+      EMACS_TIME now, idleness_now;
+
+      EMACS_GET_TIME (now);
+      EMACS_SUB_TIME (idleness_now, now, timer_idleness_start_time);
+
+      return list3 (make_number ((EMACS_SECS (idleness_now) >> 16) & 0xffff),
+		    make_number ((EMACS_SECS (idleness_now) >> 0)  & 0xffff),
+		    make_number (EMACS_USECS (idleness_now)));
+    }
+
+  return Qnil;
 }
 
 /* Caches for modify_event_symbol.  */
@@ -6936,8 +6969,6 @@ input_available_signal (signo)
   SIGNAL_THREAD_CHECK (signo);
 #endif
 
-  in_sighandler = 1;
-
   if (input_available_clear_time)
     EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 
@@ -6949,7 +6980,6 @@ input_available_signal (signo)
   sigfree ();
 #endif
   errno = old_errno;
-  in_sighandler = 0;
 }
 #endif /* SIGIO */
 
@@ -10816,7 +10846,6 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
-  in_sighandler = 0;
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
@@ -11130,6 +11159,7 @@ syms_of_keyboard ()
   menu_bar_items_vector = Qnil;
   staticpro (&menu_bar_items_vector);
 
+  defsubr (&Scurrent_idle_time);
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
   defsubr (&Sread_key_sequence_vector);
@@ -11187,14 +11217,16 @@ These events are processed first, before actual keyboard input.  */);
 
   DEFVAR_LISP ("unread-post-input-method-events", &Vunread_post_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
-These events are processed after `unread-command-events', but
-before actual keyboard input.  */);
+These events are processed before `unread-command-events'
+and actual keyboard input without given to `input-method-function'.  */);
   Vunread_post_input_method_events = Qnil;
 
   DEFVAR_LISP ("unread-input-method-events", &Vunread_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
 These events are processed after `unread-command-events', but
-before actual keyboard input.  */);
+before actual keyboard input.
+If there's an active input method, the events are given to
+`input-method-function'.  */);
   Vunread_input_method_events = Qnil;
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,

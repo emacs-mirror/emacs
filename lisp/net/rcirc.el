@@ -40,6 +40,8 @@
 ;; Open a new irc connection with:
 ;; M-x irc RET
 
+;;; Todo:
+
 ;;; Code:
 
 (require 'ring)
@@ -139,6 +141,10 @@ number.	 If zero or nil, no truncating is done."
   :type '(choice (const :tag "No truncation" nil)
 		 (integer :tag "Number of lines"))
   :group 'rcirc)
+
+(defcustom rcirc-show-maximum-output t
+  "*If non-nil, scroll buffer to keep the point at the bottom of
+the window.")
 
 (defcustom rcirc-authinfo nil
   "List of authentication passwords.
@@ -297,6 +303,7 @@ and the cdr part is used for encoding."
 
 (defvar rcirc-urls nil
   "List of urls seen in the current buffer.")
+(put 'rcirc-urls 'permanent-local t)
 
 (defvar rcirc-keepalive-seconds 60
   "Number of seconds between keepalive pings.
@@ -539,7 +546,10 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
 (defun rcirc-buffer-process (&optional buffer)
   "Return the process associated with channel BUFFER.
 With no argument or nil as argument, use the current buffer."
-  (get-buffer-process (or buffer rcirc-server-buffer)))
+  (get-buffer-process (if buffer
+			  (with-current-buffer buffer
+			    rcirc-server-buffer)
+			rcirc-server-buffer)))
 
 (defun rcirc-server-name (process)
   "Return PROCESS server name, given by the 001 response."
@@ -601,10 +611,11 @@ If NOTICEP is non-nil, send a notice instead of privmsg."
 
 (defvar rcirc-nick-completions nil)
 (defvar rcirc-nick-completion-start-offset nil)
+
 (defun rcirc-complete-nick ()
   "Cycle through nick completions from list of nicks in channel."
   (interactive)
-  (if (eq last-command 'rcirc-complete-nick)
+  (if (eq last-command this-command)
       (setq rcirc-nick-completions
             (append (cdr rcirc-nick-completions)
                     (list (car rcirc-nick-completions))))
@@ -626,9 +637,10 @@ If NOTICEP is non-nil, send a notice instead of privmsg."
 					  rcirc-target))))))
   (let ((completion (car rcirc-nick-completions)))
     (when completion
+      (rcirc-put-nick-channel (rcirc-buffer-process) completion rcirc-target)
       (delete-region (+ rcirc-prompt-end-marker
-                        rcirc-nick-completion-start-offset)
-                     (point))
+			rcirc-nick-completion-start-offset)
+		     (point))
       (insert (concat completion
                       (if (= (+ rcirc-prompt-end-marker
                                 rcirc-nick-completion-start-offset)
@@ -709,7 +721,6 @@ If NOTICEP is non-nil, send a notice instead of privmsg."
   (make-local-variable 'rcirc-short-buffer-name)
   (setq rcirc-short-buffer-name nil)
   (make-local-variable 'rcirc-urls)
-  (setq rcirc-urls nil)
   (setq use-hard-newlines t)
 
   (make-local-variable 'rcirc-decode-coding-system)
@@ -741,6 +752,9 @@ If NOTICEP is non-nil, send a notice instead of privmsg."
   (add-hook 'change-major-mode-hook 'rcirc-change-major-mode-hook)
   (make-local-variable 'kill-buffer-hook)
   (add-hook 'kill-buffer-hook 'rcirc-kill-buffer-hook)
+
+  (make-local-variable 'window-scroll-functions)
+  (add-hook 'window-scroll-functions 'rcirc-scroll-to-bottom)
 
   ;; add to buffer list, and update buffer abbrevs
   (when target				; skip server buffer
@@ -1144,6 +1158,15 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 (make-variable-buffer-local 'rcirc-last-sender)
 (defvar rcirc-gray-toggle nil)
 (make-variable-buffer-local 'rcirc-gray-toggle)
+
+(defun rcirc-scroll-to-bottom (window display-start)
+  "Scroll window to show maximum output if `rcirc-show-maximum-output' is
+non-nil."
+  (when rcirc-show-maximum-output
+    (with-selected-window window
+      (when (>= (window-point) rcirc-prompt-end-marker)
+	(recenter -1)))))
+
 (defun rcirc-print (process sender response target text &optional activity)
   "Print TEXT in the buffer associated with TARGET.
 Format based on SENDER and RESPONSE.  If ACTIVITY is non-nil,
@@ -1240,16 +1263,19 @@ record activity."
 	;; record modeline activity
 	(when activity
 	  (let ((nick-match
-		 (string-match (concat "\\b"
-				       (regexp-quote (rcirc-nick process))
-				       "\\b")
-			       text)))
+		 (with-syntax-table rcirc-nick-syntax-table		 
+		   (string-match (concat "\\b"
+					 (regexp-quote (rcirc-nick process))
+					 "\\b")
+				 text))))
 	    (when (if rcirc-ignore-buffer-activity-flag
 		      ;; - Always notice when our nick is mentioned
 		      nick-match
-		    ;; - Never bother us if a dim-nick spoke
-		    (not (and rcirc-dim-nick-regexp sender
-			      (string-match rcirc-dim-nick-regexp sender))))
+		    ;; - unless our nick is mentioned, don't bother us
+		    ;; - with dim-nicks
+		    (or nick-match
+			(not (and rcirc-dim-nick-regexp sender
+				  (string-match rcirc-dim-nick-regexp sender)))))
 	      (rcirc-record-activity
 	       (current-buffer)
 	       (when (or nick-match (and (not (rcirc-channel-p rcirc-target))
@@ -1504,18 +1530,20 @@ activity.  Only run if the buffer is not visible and
 	 (lopri (car pair))
 	 (hipri (cdr pair)))
     (setq rcirc-activity-string
-	  (if (or hipri lopri)
-	      (concat "-"
-		      (and hipri "[")
-		      (rcirc-activity-string hipri)
-		      (and hipri lopri ",")
-		      (and lopri
-			   (concat "("
-				   (rcirc-activity-string lopri)
-				   ")"))
-		      (and hipri "]")
-		      "-")
-	    "-[]-"))))
+	  (cond ((or hipri lopri)
+		 (concat "-"
+			 (and hipri "[")
+			 (rcirc-activity-string hipri)
+			 (and hipri lopri ",")
+			 (and lopri
+			      (concat "("
+				      (rcirc-activity-string lopri)
+				      ")"))
+			 (and hipri "]")
+			 "-"))
+		((not (null (rcirc-process-list)))
+		 "-[]-")
+		(t "")))))
 
 (defun rcirc-activity-string (buffers)
   (mapconcat (lambda (b)
@@ -1771,7 +1799,7 @@ nicks when no NICK is given.  When listing ignored nicks, the
 ones added to the list automatically are marked with an asterisk."
   (interactive "sToggle ignoring of nick: ")
   (when (not (string= "" nick))
-    (if (member nick rcirc-ignore-list)
+    (if (member-ignore-case nick rcirc-ignore-list)
 	(setq rcirc-ignore-list (delete nick rcirc-ignore-list))
       (setq rcirc-ignore-list (cons nick rcirc-ignore-list))))
   (rcirc-print process (rcirc-nick process) "IGNORE" target 
@@ -1800,6 +1828,7 @@ ones added to the list automatically are marked with an asterisk."
 		       "://")
 		  "www.")
 	      (1+ (char "-a-zA-Z0-9_."))
+	      (1+ (char "-a-zA-Z0-9_"))
 	      (optional ":" (1+ (char "0-9"))))
 	     (and (1+ (char "-a-zA-Z0-9_."))
 		  (or ".com" ".net" ".org")
@@ -1823,7 +1852,7 @@ ones added to the list automatically are marked with an asterisk."
 (defun rcirc-browse-url-at-point (point)
   "Send URL at point to `browse-url'."
   (interactive "d")
-  (let ((beg (previous-single-property-change point 'mouse-face))
+  (let ((beg (previous-single-property-change (1+ point) 'mouse-face))
 	(end (next-single-property-change point 'mouse-face)))
     (browse-url (buffer-substring-no-properties beg end))))
 

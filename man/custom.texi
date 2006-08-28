@@ -2063,9 +2063,8 @@ Reference Manual}.
 @cindex rebinding keys, permanently
 @cindex startup (init file)
 
-  When Emacs is started, it normally loads a Lisp program from the
-file @file{.emacs} or @file{.emacs.el} in your home directory
-(see @ref{General Variables, HOME}, if you don't know where that is).
+  When Emacs is started, it normally loads a Lisp program from the file
+@file{.emacs} or @file{.emacs.el} in your home directory (@pxref{Find Init}).
 We call this file your @dfn{init file} because it specifies how to
 initialize Emacs for you.  You can use the command line switch
 @samp{-q} to prevent loading your init file, and @samp{-u} (or

@@ -1520,7 +1520,7 @@ text at the end of the entire answer, but nothing before; that's how
 
 If the argument @var{delay-question} is non-nil, delay sending this
 question until the process has finished replying to any previous
-questions.  This produces more reliable results with some processes."
+questions.  This produces more reliable results with some processes.
 
 The return value of @code{tq-enqueue} itself is not meaningful.
 @end defun

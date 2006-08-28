@@ -1,3 +1,28 @@
+2006-08-27  Michael Olson  <mwolson@gnu.org>
+
+	* processes.texi (Transaction Queues): Remove stray quote
+	character.
+
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Idle Timers): run-with-idle-timer allows Lisp time value.
+	Add xref.
+
+2006-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Timers): Avoid waiting inside timers.
+
+2006-08-21  Lute Kamstra  <lute@gnu.org>
+
+	* Makefile.in: Use ../man/texinfo.tex to build elisp.dvi.
+
+2006-08-20  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Idle Timers): New node, split out from Timers.
+	Document current-idle-time.
+	* commands.texi (Reading One Event): Update xref.
+	* elisp.texi (Top): Update subnode menu.
+
 2006-08-16  Richard Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Extended Menu Items): Show format of cached

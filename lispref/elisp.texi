@@ -1039,6 +1039,8 @@ Operating System Interface
 * Processor Run Time::      Getting the run time used by Emacs.
 * Time Calculations::       Adding, subtracting, comparing times, etc.
 * Timers::		    Setting a timer to call a function at a certain time.
+* Idle Timers::             Setting a timer to call a function when Emacs has
+                              been idle for a certain length of time.
 * Terminal Input::          Accessing and recordingo terminal input.
 * Terminal Output::         Controlling and recording terminal output.
 * Sound Output::            Playing sounds on the computer's speaker.

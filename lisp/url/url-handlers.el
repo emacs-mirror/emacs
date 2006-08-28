@@ -213,7 +213,7 @@ A prefix arg makes KEEP-TIME non-nil."
 Returns the name of the local copy, or nil, if FILE is directly
 accessible."
   (let ((filename (make-temp-file "url")))
-    (url-copy-file url filename)
+    (url-copy-file url filename 'ok-if-already-exists)
     filename))
 
 (defun url-insert (buffer &optional beg end)

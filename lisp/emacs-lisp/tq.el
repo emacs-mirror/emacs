@@ -66,7 +66,7 @@
 ;; regexp: regular expression that matches the end of a response from
 ;; the process
 (defun tq-queue-head-regexp   (tq) (car (cdr (car (tq-queue tq)))))
-;; closure: additional data to pass to function
+;; closure: additional data to pass to the function
 (defun tq-queue-head-closure  (tq) (car (cdr (cdr (car (tq-queue tq))))))
 ;; fn: function to call upon receiving a complete response from the
 ;; process
@@ -119,7 +119,7 @@ If DELAY-QUESTION is non-nil, delay sending this question until
 the process has finished replying to any previous questions.
 This produces more reliable results with some processes."
   (let ((sendp (or (not delay-question)
-		   (not (tq-queue-head-question tq)))))
+		   (not (tq-queue tq)))))
     (tq-queue-add tq (unless sendp question) regexp closure fn)
     (when sendp
       (process-send-string (tq-process tq) question))))
@@ -131,35 +131,39 @@ This produces more reliable results with some processes."
 
 (defun tq-filter (tq string)
   "Append STRING to the TQ's buffer; then process the new data."
-  (with-current-buffer (tq-buffer tq)
-    (goto-char (point-max))
-    (insert string)
-    (tq-process-buffer tq)))
+  (let ((buffer (tq-buffer tq)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+	(goto-char (point-max))
+	(insert string)
+	(tq-process-buffer tq)))))
 
 (defun tq-process-buffer (tq)
   "Check TQ's buffer for the regexp at the head of the queue."
-  (set-buffer (tq-buffer tq))
-  (if (= 0 (buffer-size)) ()
-    (if (tq-queue-empty tq)
-	(let ((buf (generate-new-buffer "*spurious*")))
-	  (copy-to-buffer buf (point-min) (point-max))
-	  (delete-region (point-min) (point))
-	  (pop-to-buffer buf nil)
-	  (error "Spurious communication from process %s, see buffer %s"
-		 (process-name (tq-process tq))
-		 (buffer-name buf)))
-      (goto-char (point-min))
-      (if (re-search-forward (tq-queue-head-regexp tq) nil t)
-	  (let ((answer (buffer-substring (point-min) (point))))
-	    (delete-region (point-min) (point))
-	    (unwind-protect
-		(condition-case nil
-		    (funcall (tq-queue-head-fn tq)
-			     (tq-queue-head-closure tq)
-			     answer)
-		  (error nil))
-	      (tq-queue-pop tq))
-	    (tq-process-buffer tq))))))
+  (let ((buffer (tq-buffer tq)))
+    (when (buffer-live-p buffer)
+      (set-buffer buffer)
+      (if (= 0 (buffer-size)) ()
+	(if (tq-queue-empty tq)
+	    (let ((buf (generate-new-buffer "*spurious*")))
+	      (copy-to-buffer buf (point-min) (point-max))
+	      (delete-region (point-min) (point))
+	      (pop-to-buffer buf nil)
+	      (error "Spurious communication from process %s, see buffer %s"
+		     (process-name (tq-process tq))
+		     (buffer-name buf)))
+	  (goto-char (point-min))
+	  (if (re-search-forward (tq-queue-head-regexp tq) nil t)
+	      (let ((answer (buffer-substring (point-min) (point))))
+		(delete-region (point-min) (point))
+		(unwind-protect
+		    (condition-case nil
+			(funcall (tq-queue-head-fn tq)
+				 (tq-queue-head-closure tq)
+				 answer)
+		      (error nil))
+		  (tq-queue-pop tq))
+		(tq-process-buffer tq))))))))
 
 (provide 'tq)
 

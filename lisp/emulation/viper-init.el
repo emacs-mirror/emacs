@@ -434,7 +434,10 @@ delete the text being replaced, as in standard Vi."
 (if (fboundp 'make-variable-frame-local)
     (make-variable-frame-local 'viper-insert-state-cursor-color))
 
-(defcustom viper-emacs-state-cursor-color "Magenta"
+;; viper-emacs-state-cursor-color doesn't work well. Causes cursor colors to be
+;; confused in some cases. So, this var is nulled for now.
+;; (defcustom viper-emacs-state-cursor-color "Magenta"
+(defcustom viper-emacs-state-cursor-color nil
   "Cursor color when Viper is in emacs state."
   :type 'string
   :group 'viper)

@@ -644,18 +644,18 @@ session--this is the command C-x C-c.  (Do not worry about losing
 changes you have made; C-x C-c offers to save each changed file before
 it kills the Emacs.)
 
+If you are using a graphical display that supports multiple
+applications in parallel, you don't need any special command to move
+from Emacs to another application.  You can do this with the mouse or
+with window manager commands.  However, if you're using a text
+terminal which can only show one application at a time, you need to
+"suspend" Emacs to move to any other program.
+
 C-z is the command to exit Emacs *temporarily*--so that you can go
-back to the same Emacs session afterward.
-
-On systems which allow it, C-z "suspends" Emacs; that is, it returns
-to the shell but does not destroy the Emacs.  In the most common
-shells, you can resume Emacs with the `fg' command or with `%emacs'.
-
-On systems which do not implement suspending, C-z creates a subshell
-running under Emacs to give you the chance to run other programs and
-return to Emacs afterward; it does not truly "exit" from Emacs.  In
-this case, the shell command `exit' is the usual way to get back to
-Emacs from the subshell.
+back to the same Emacs session afterward.  When Emacs is running on a
+text terminal, C-z "suspends" Emacs; that is, it returns to the shell
+but does not destroy the Emacs.  In the most common shells, you can
+resume Emacs with the `fg' command or with `%emacs'.
 
 The time to use C-x C-c is when you are about to log out.  It's also
 the right thing to use to exit an Emacs invoked under mail handling

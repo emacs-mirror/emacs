@@ -46,6 +46,8 @@
 (defvar mark-even-if-inactive)
 (defvar init-message)
 (defvar initial)
+(defvar undo-beg-posn)
+(defvar undo-end-posn)
 
 ;; loading happens only in non-interactive compilation
 ;; in order to spare non-viperized emacs from being viperized
@@ -196,7 +198,7 @@
 	    (viper-save-cursor-color 'before-insert-mode))
 	;; set insert mode cursor color
 	(viper-change-cursor-color viper-insert-state-cursor-color)))
-  (if (eq viper-current-state 'emacs-state)
+  (if (and viper-emacs-state-cursor-color (eq viper-current-state 'emacs-state))
       (let ((has-saved-cursor-color-in-emacs-mode
 	     (stringp (viper-get-saved-cursor-color-in-emacs-mode))))
 	(or has-saved-cursor-color-in-emacs-mode
@@ -722,12 +724,13 @@
       (viper-set-replace-overlay (point-min) (point-min)))
   (viper-hide-replace-overlay)
 
-  (let ((has-saved-cursor-color-in-emacs-mode
-	 (stringp (viper-get-saved-cursor-color-in-emacs-mode))))
-    (or has-saved-cursor-color-in-emacs-mode
-	(string= (viper-get-cursor-color) viper-emacs-state-cursor-color)
-	(viper-save-cursor-color 'before-emacs-mode))
-    (viper-change-cursor-color viper-emacs-state-cursor-color))
+  (if viper-emacs-state-cursor-color
+      (let ((has-saved-cursor-color-in-emacs-mode
+	     (stringp (viper-get-saved-cursor-color-in-emacs-mode))))
+	(or has-saved-cursor-color-in-emacs-mode
+	    (string= (viper-get-cursor-color) viper-emacs-state-cursor-color)
+	    (viper-save-cursor-color 'before-emacs-mode))
+	(viper-change-cursor-color viper-emacs-state-cursor-color)))
 
   (viper-change-state 'emacs-state)
 
@@ -1030,10 +1033,13 @@ as a Meta key and any number of multiple escapes is allowed."
 	(inhibit-quit t))
     (if (viper-ESC-event-p event)
 	(progn
-	  ;; Emacs 22.50.8 introduced a bug, which makes even a single ESC into
-	  ;; a fast keyseq. To guard against this, we added a check if there
-	  ;; are other events as well
-	  (if (and (viper-fast-keysequence-p) unread-command-events)
+	  ;; Some versions of Emacs (eg., 22.50.8 have a bug, which makes even
+	  ;; a single ESC into ;; a fast keyseq. To guard against this, we
+	  ;; added a check if there are other events as well. Keep the next
+	  ;; line for the next time the bug reappears, so that will remember to
+	  ;; report it.
+	  ;;(if (and (viper-fast-keysequence-p) unread-command-events)
+	  (if (viper-fast-keysequence-p) ;; for Emacsen without the above bug
 	      (progn
 		(let (minor-mode-map-alist emulation-mode-map-alists)
 		  (viper-set-unread-command-events event)
@@ -1744,12 +1750,14 @@ invokes the command before that, etc."
 
 ;; Hook used in viper-undo
 (defun viper-after-change-undo-hook (beg end len)
-  (setq undo-beg-posn beg
-	undo-end-posn (or end beg))
-  ;; some other hooks may be changing various text properties in
-  ;; the buffer in response to 'undo'; so remove this hook to avoid
-  ;; its repeated invocation
-  (remove-hook 'viper-undo-functions 'viper-after-change-undo-hook 'local))
+  (if undo-in-progress
+      (setq undo-beg-posn beg
+	    undo-end-posn (or end beg))
+    ;; some other hooks may be changing various text properties in
+    ;; the buffer in response to 'undo'; so remove this hook to avoid
+    ;; its repeated invocation
+    (remove-hook 'viper-undo-functions 'viper-after-change-undo-hook 'local)
+  ))
 
 (defun viper-undo ()
   "Undo previous change."
@@ -1764,25 +1772,29 @@ invokes the command before that, etc."
 
     (undo-start)
     (undo-more 2)
-    (setq undo-beg-posn (or undo-beg-posn before-undo-pt)
-	  undo-end-posn (or undo-end-posn undo-beg-posn))
+    ;;(setq undo-beg-posn (or undo-beg-posn (point))
+    ;;    undo-end-posn (or undo-end-posn (point)))
+    ;;(setq undo-beg-posn (or undo-beg-posn before-undo-pt)
+    ;;      undo-end-posn (or undo-end-posn undo-beg-posn))
 
-    (goto-char undo-beg-posn)
-    (sit-for 0)
-    (if (and viper-keep-point-on-undo
-	     (pos-visible-in-window-p before-undo-pt))
+    (if (and undo-beg-posn undo-end-posn)
 	(progn
-	  (push-mark (point-marker) t)
-	  (viper-sit-for-short 300)
-	  (goto-char undo-end-posn)
-	  (viper-sit-for-short 300)
-	  (if (and (> (viper-chars-in-region undo-beg-posn before-undo-pt) 1)
-		   (> (viper-chars-in-region undo-end-posn before-undo-pt) 1))
-	      (goto-char before-undo-pt)
-	    (goto-char undo-beg-posn)))
-      (push-mark before-undo-pt t))
+	  (goto-char undo-beg-posn)
+	  (sit-for 0)
+	  (if (and viper-keep-point-on-undo
+		   (pos-visible-in-window-p before-undo-pt))
+	      (progn
+		(push-mark (point-marker) t)
+		(viper-sit-for-short 300)
+		(goto-char undo-end-posn)
+		(viper-sit-for-short 300)
+		(if (pos-visible-in-window-p undo-beg-posn)
+		    (goto-char before-undo-pt)
+		  (goto-char undo-beg-posn)))
+	    (push-mark before-undo-pt t))
+	  ))
+
     (if (and (eolp) (not (bolp))) (backward-char 1))
-    ;;(if (not modified) (set-buffer-modified-p t))
     )
   (setq this-command 'viper-undo))
 
@@ -3952,7 +3964,8 @@ Null string will repeat previous search."
   (let ((val (viper-p-val arg))
 	(com (viper-getcom arg))
 	debug-on-error)
-    (if (null viper-s-string) (error viper-NoPrevSearch))
+    (if (or (null viper-s-string) (string= viper-s-string ""))
+	(error viper-NoPrevSearch))
     (viper-search viper-s-string viper-s-forward arg)
     (if com
 	(progn

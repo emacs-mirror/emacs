@@ -9467,6 +9467,7 @@ onto the ring."
   "Follow a Gnus link to GROUP and ARTICLE."
   (require 'gnus)
   (funcall (cdr (assq 'gnus org-link-frame-setup)))
+  (if gnus-other-frame-object (select-frame gnus-other-frame-object))
   (if group (gnus-fetch-group group))
   (if article
       (or (gnus-summary-goto-article article nil 'force)
