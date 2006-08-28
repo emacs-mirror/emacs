@@ -882,8 +882,9 @@ decreasing priority.  But if @var{highest} is non-@code{nil}, then the
 return value is just one coding system, the one that is highest in
 priority.
 
-If the region contains only @acronym{ASCII} characters, the value
-is @code{undecided} or @code{(undecided)}, or a variant specifying
+If the region contains only @acronym{ASCII} characters except for such
+ISO-2022 control characters ISO-2022 as @code{ESC}, the value is
+@code{undecided} or @code{(undecided)}, or a variant specifying
 end-of-line conversion, if that can be deduced from the text.
 @end defun
 
