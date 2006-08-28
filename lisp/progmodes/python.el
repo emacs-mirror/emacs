@@ -1373,11 +1373,16 @@ COMMAND should be a single statement."
   (let ((end (marker-position (process-mark (python-proc)))))
     (with-current-buffer python-buffer (goto-char (point-max)))
     (compilation-forget-errors)
-    ;; Must wait until this has completed before re-setting variables below.
-    (python-send-receive (concat command "; print '_emacs_out ()'"))
+    (python-send-string command)
     (with-current-buffer python-buffer
-      (set-marker compilation-parsing-end end)
-      (setq compilation-last-buffer (current-buffer)))))
+      (setq compilation-last-buffer (current-buffer)))
+    ;; No idea what this is for but it breaks the call to
+    ;; compilation-fake-loc in python-send-region.  -- Stef
+    ;; Must wait until this has completed before re-setting variables below.
+    ;; (python-send-receive "print '_emacs_out ()'")
+    ;; (with-current-buffer python-buffer
+    ;;   (set-marker compilation-parsing-end end))
+    ))
 
 (defun python-send-region (start end)
   "Send the region to the inferior Python process."

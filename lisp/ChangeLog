@@ -1,7 +1,12 @@
+2006-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-send-command): Don't wait for the command
+	to terminate.  Don't fiddle with compilation-parsing-end.
+
 2006-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine): Insert
-	commentary after first line summary.
+	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine):
+	Insert commentary after first line summary.
 
 	* woman.el (woman-follow): New function, based on `man-follow'.
 	(woman-mode-map): Use it.
