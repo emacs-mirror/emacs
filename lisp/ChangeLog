@@ -1,3 +1,11 @@
+2006-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* woman.el (woman-follow): New function, based on `man-follow'.
+	(woman-mode-map): Use it.
+
+	* ibuffer.el (ibuffer-do-sort-by-recency): Perform full update
+	since ibuffer-do-sort-by-recency does not define a sorter.
+
 2006-08-28  Kim F. Storm  <storm@cua.dk>
 
 	* find-dired.el	(find-dired): Use shell-quote-argument to properly

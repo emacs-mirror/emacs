@@ -1750,7 +1750,18 @@ Leave point at end of new text.  Return length of inserted text."
   (define-key woman-mode-map [M-mouse-2] 'woman-follow-word)
 
   ;; We don't need to call `man' when we are in `woman-mode'.
-  (define-key woman-mode-map [remap man] 'woman))
+  (define-key woman-mode-map [remap man] 'woman)
+  (define-key woman-mode-map [remap man-follow] 'woman-follow))
+
+(defun woman-follow (topic)
+  "Get a Un*x manual page of the item under point and put it in a buffer."
+  (interactive (list (Man-default-man-entry)))
+  (if (or (not topic)
+	  (string= topic ""))
+      (error "No item under point")
+    (woman (if (string-match Man-reference-regexp topic)
+	       (substring topic 0 (match-end 1))
+	     topic))))
 
 (defun woman-follow-word (event)
   "Run WoMan with word under mouse as topic.
