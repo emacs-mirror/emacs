@@ -1,3 +1,7 @@
+2006-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-mode): Display image as text on a terminal.
+
 2006-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-send-command): Simplify.
