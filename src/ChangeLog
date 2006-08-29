@@ -1,3 +1,8 @@
+2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Don't move back if we were
+	displaying a Lisp string, either.
+
 2006-08-28  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_window_cursor_type) [!HAVE_WINDOW_SYSTEM]:
