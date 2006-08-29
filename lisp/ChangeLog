@@ -1,3 +1,8 @@
+2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-mode): Fix last fix.
+	Suggested by Kim F. Storm.
+
 2006-08-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.54.

@@ -60,20 +60,19 @@ to toggle between display as an image and display as text."
   (setq major-mode 'image-mode)
   (use-local-map image-mode-map)
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
-  (let ((image-display-supported-p (memq window-system '(x w32 mac))))
-    (if (and image-display-supported-p
-	     (not (get-text-property (point-min) 'display)))
-	(image-toggle-display)
-      ;; Set next vars when image is already displayed but local
-      ;; variables were cleared by kill-all-local-variables
-      (setq cursor-type nil truncate-lines t))
-    (run-mode-hooks 'image-mode-hook)
-    (if image-display-supported-p
-	(message "%s" (concat
-		       (substitute-command-keys
-			"Type \\[image-toggle-display] to view the image as ")
-		       (if (get-text-property (point-min) 'display)
-			   "text" "an image") ".")))))
+  (if (and (display-images-p)
+	   (not (get-text-property (point-min) 'display)))
+      (image-toggle-display)
+    ;; Set next vars when image is already displayed but local
+    ;; variables were cleared by kill-all-local-variables
+    (setq cursor-type nil truncate-lines t))
+  (run-mode-hooks 'image-mode-hook)
+  (if (display-images-p)
+      (message "%s" (concat
+		     (substitute-command-keys
+		      "Type \\[image-toggle-display] to view the image as ")
+		     (if (get-text-property (point-min) 'display)
+			 "text" "an image") "."))))
 
 ;;;###autoload
 (define-minor-mode image-minor-mode
