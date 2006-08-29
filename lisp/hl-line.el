@@ -64,15 +64,36 @@
 
 ;;; Code:
 
+(defvar hl-line-overlay nil
+  "Overlay used by Hl-Line mode to highlight the current line.")
+(make-variable-buffer-local 'hl-line-overlay)
+
+(defvar global-hl-line-overlay nil
+  "Overlay used by Global-Hl-Line mode to highlight the current line.")
+
 (defgroup hl-line nil
   "Highlight the current line."
   :version "21.1"
   :group 'editing)
 
-(defcustom hl-line-face 'highlight
-  "Face with which to highlight the current line."
-  :type 'face
+(defface hl-line
+  '((t :inherit highlight))
+  "Default face for highlighting the current line in Hl-Line mode."
+  :version "22.1"
   :group 'hl-line)
+
+(defcustom hl-line-face 'hl-line
+  "Face with which to highlight the current line in Hl-Line mode."
+  :type 'face
+  :group 'hl-line
+  :set (lambda (symbol value)
+	 (set symbol value)
+	 (dolist (buffer (buffer-list))
+	   (with-current-buffer buffer
+	     (when hl-line-overlay
+	       (overlay-put hl-line-overlay 'face hl-line-face))))
+	 (when global-hl-line-overlay
+	   (overlay-put global-hl-line-overlay 'face hl-line-face))))
 
 (defcustom hl-line-sticky-flag t
   "*Non-nil means highlight the current line in all windows.
@@ -91,13 +112,6 @@ end position of highlight in the buffer.
 It should return nil if there's no region to be highlighted.
 
 This variable is expected to be made buffer-local by modes.")
-
-(defvar hl-line-overlay nil
-  "Overlay used by Hl-Line mode to highlight the current line.")
-(make-variable-buffer-local 'hl-line-overlay)
-
-(defvar global-hl-line-overlay nil
-  "Overlay used by Global-Hl-Line mode to highlight the current line.")
 
 ;;;###autoload
 (define-minor-mode hl-line-mode
