@@ -1,3 +1,7 @@
+2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Images): Add xrref to display-images-p.
+
 2006-08-28  Kenichi Handa  <handa@m17n.org>
 
 	* nonascii.texi (Lisp and Coding Systems): Fix description of
