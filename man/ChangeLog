@@ -1,3 +1,10 @@
+2006-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.54.
+
+	* tramp.texi (Bug Reports): The Tramp mailing list is moderated
+	now.  Suggested by Adrian Phillips <a.phillips@met.no>.
+
 2006-08-28  Richard Stallman  <rms@gnu.org>
 
 	* windows.texi (Split Window): Update xref.

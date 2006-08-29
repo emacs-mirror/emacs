@@ -1,3 +1,18 @@
+2006-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.54.
+
+	* net/tramp.el (tramp-convert-file-attributes): Call `eql' instead
+	of `=', because `tramp-get-remote-gid' might not always return an
+	integer when expected.
+	(tramp-register-file-name-handlers): `partial-completion-mode' is
+	unknown to XEmacs.
+	(tramp-time-diff): Don't use `floor', it might fail for large
+	differences.
+	(tramp-handle-make-auto-save-file-name): For Emacs 21, set
+	`tramp-auto-save-directory' if unset in order to guarantee unique
+	auto-save file names.
+
 2006-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-mode.el (image-mode): Display image as text on a terminal.
