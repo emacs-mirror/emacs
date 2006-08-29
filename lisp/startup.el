@@ -1391,6 +1391,7 @@ mouse."
 	    (window-dedicated-p (selected-window)))
 	(pop-to-buffer (current-buffer))
       (switch-to-buffer "GNU Emacs"))
+    (setq buffer-read-only nil)
     (erase-buffer)
     (if pure-space-overflow
 	(insert "\
@@ -1402,6 +1403,9 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
 	(apply #'fancy-splash-insert text))
       (fancy-splash-tail)
       (set-buffer-modified-p nil)
+      (setq buffer-read-only t)
+      (if (and view-read-only (not view-mode))
+	  (view-mode-enter nil 'kill-buffer))
       (goto-char (point-min)))))
 
 (defun fancy-splash-frame ()
@@ -1438,6 +1442,7 @@ we put it on this frame."
   (let ((prev-buffer (current-buffer)))
     (unwind-protect
 	(with-current-buffer (get-buffer-create "GNU Emacs")
+	  (setq buffer-read-only nil)
 	  (erase-buffer)
 	  (set (make-local-variable 'tab-width) 8)
 	  (if hide-on-input
@@ -1577,6 +1582,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
 
           ;; Display the input that we set up in the buffer.
           (set-buffer-modified-p nil)
+	  (setq buffer-read-only t)
+	  (if (and view-read-only (not view-mode))
+	      (view-mode-enter nil 'kill-buffer))
           (goto-char (point-min))
 	  (if (or (window-minibuffer-p)
 		  (window-dedicated-p (selected-window)))

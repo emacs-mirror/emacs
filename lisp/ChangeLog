@@ -1,3 +1,8 @@
+2006-08-29  Romain Francoise  <romain@orebokech.com>
+
+	* startup.el (normal-splash-screen, fancy-splash-screens): Make
+	buffer read-only and arrange to enter view mode if necessary.
+
 2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hl-line.el (hl-line): New face.
@@ -47,7 +52,7 @@
 
 2006-08-28  Kim F. Storm  <storm@cua.dk>
 
-	* find-dired.el	(find-dired): Use shell-quote-argument to properly
+	* find-dired.el (find-dired): Use shell-quote-argument to properly
 	escape ( and ) args.  Also use it on {} and ; args in default
 	value of find-ls-option string.
 	(find-grep-dired): Use shell-quote-argument on {} and ; args.
