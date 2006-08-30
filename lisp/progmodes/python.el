@@ -1599,24 +1599,26 @@ Only works when point is in a function name, not its arg list, for
 instance.  Assumes an inferior Python is running."
   (let ((symbol (with-syntax-table python-dotty-syntax-table
 		  (current-word))))
-    ;; First try the symbol we're on.
-    (or (and symbol
-	     (python-send-receive (format "emacs.eargs(%S, %s)"
-					  symbol python-imports)))
-	;; Try moving to symbol before enclosing parens.
-	(let ((s (syntax-ppss)))
-	  (unless (zerop (car s))
-	    (when (eq ?\( (char-after (nth 1 s)))
-	      (save-excursion
-		(goto-char (nth 1 s))
-		(skip-syntax-backward "-")
-		(let ((point (point)))
-		  (skip-chars-backward "a-zA-Z._")
-		  (if (< (point) point)
-		      (python-send-receive
-		       (format "emacs.eargs(%S, %s)"
-			       (buffer-substring-no-properties (point) point)
-			       python-imports)))))))))))
+    ;; This is run from timers, so inhibit-quit tends to be set.
+    (with-local-quit
+      ;; First try the symbol we're on.
+      (or (and symbol
+               (python-send-receive (format "emacs.eargs(%S, %s)"
+                                            symbol python-imports)))
+          ;; Try moving to symbol before enclosing parens.
+          (let ((s (syntax-ppss)))
+            (unless (zerop (car s))
+              (when (eq ?\( (char-after (nth 1 s)))
+                (save-excursion
+                  (goto-char (nth 1 s))
+                  (skip-syntax-backward "-")
+                  (let ((point (point)))
+                    (skip-chars-backward "a-zA-Z._")
+                    (if (< (point) point)
+                        (python-send-receive
+                         (format "emacs.eargs(%S, %s)"
+                                 (buffer-substring-no-properties (point) point)
+                                 python-imports))))))))))))
 
 ;;;; Info-look functionality.
 

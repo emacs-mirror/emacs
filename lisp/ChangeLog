@@ -1,3 +1,8 @@
+2006-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-eldoc-function): Re-enable quit while
+	waiting for process.
+
 2006-08-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-string-to-utxt): If adjustment for MacJapanese
@@ -5,8 +10,8 @@
 
 2006-08-29  Romain Francoise  <romain@orebokech.com>
 
-	* startup.el (normal-splash-screen, fancy-splash-screens): Make
-	buffer read-only and arrange to enter view mode if necessary.
+	* startup.el (normal-splash-screen, fancy-splash-screens):
+	Make buffer read-only and arrange to enter view mode if necessary.
 
 2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
 
