@@ -1287,14 +1287,19 @@ correspoinding TextEncodingBase value."
 		     (find-coding-systems-string string)))
       (setq coding-system
 	    (coding-system-change-eol-conversion coding-system 'mac))
-      (when (and (eq system-type 'darwin)
-		 (eq coding-system 'japanese-shift-jis-mac))
-	(setq encoding mac-text-encoding-mac-japanese-basic-variant)
-	(setq string (subst-char-in-string ?\\ ?\x80 string))
-	(subst-char-in-string ?\(J\(B ?\x5c string t))
-      (setq data (mac-code-convert-string
-		  (encode-coding-string string coding-system)
-		  (or encoding coding-system) nil)))
+      (let ((str string))
+	(when (and (eq system-type 'darwin)
+		   (eq coding-system 'japanese-shift-jis-mac))
+	  (setq encoding mac-text-encoding-mac-japanese-basic-variant)
+	  (setq str (subst-char-in-string ?\\ ?\x80 str))
+	  (subst-char-in-string ?\(J\(B ?\x5c str t)
+	  ;; ASCII-only?
+	  (if (string-match "\\`[\x00-\x7f]*\\'" str)
+	      (setq str nil)))
+	(and str
+	     (setq data (mac-code-convert-string
+			 (encode-coding-string str coding-system)
+			 (or encoding coding-system) nil)))))
     (or data (encode-coding-string string (if (eq (byteorder) ?B)
 					      'utf-16be-mac
 					    'utf-16le-mac)))))
