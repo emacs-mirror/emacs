@@ -4255,19 +4255,31 @@ This function does not save the buffer."
 	(let ((spec (car-safe (get symbol 'theme-value)))
 	      (value (get symbol 'saved-value))
 	      (requests (get symbol 'custom-requests))
-	      (now (not (or (custom-variable-p symbol)
-			    (and (not (boundp symbol))
-				 (not (eq (get symbol 'force-value)
-					  'rogue))))))
+	      (now (and (not (custom-variable-p symbol))
+			(or (boundp symbol)
+			    (eq (get symbol 'force-value)
+				'rogue))))
 	      (comment (get symbol 'saved-variable-comment)))
-	  ;; Check `requests'.
+	  ;; Check REQUESTS for validity. 
 	  (dolist (request requests)
 	    (when (and (symbolp request) (not (featurep request)))
 	      (message "Unknown requested feature: %s" request)
 	      (setq requests (delq request requests))))
+	  ;; Is there anything customized about this variable?
 	  (when (or (and spec (eq (car spec) 'user))
 		    comment
 		    (and (null spec) (get symbol 'saved-value)))
+	    ;; Output an element for this variable.
+	    ;; It has the form (SYMBOL VALUE-FORM NOW REQUESTS COMMENT).
+	    ;; SYMBOL is the variable name.
+	    ;; VALUE-FORM is an expression to return the customized value.
+	    ;; NOW if non-nil means always set the variable immediately
+	    ;; when the customizations are reloaded.  This is used
+	    ;; for rogue variables
+	    ;; REQUESTS is a list of packages to load before setting the
+	    ;; variable.  Each element of it will be passed to `require'.
+	    ;; COMMENT is whatever comment the user has specified
+	    ;; with the customize facility.
 	    (unless (bolp)
 	      (princ "\n"))
 	    (princ " '(")
@@ -4435,8 +4447,8 @@ The format is suitable for use with `easy-menu-define'."
   ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
   (let ((map (make-keymap)))
     (set-keymap-parent map widget-keymap)
-    (define-key map [remap self-insert-command] 'custom-no-edit)
-    (define-key map "\^m" 'custom-newline)
+    (define-key map [remap self-insert-command] 'Custom-no-edit)
+    (define-key map "\^m" 'Custom-newline)
     (define-key map " " 'scroll-up)
     (define-key map "\177" 'scroll-down)
     (define-key map "\C-c\C-c" 'Custom-set)
@@ -4448,12 +4460,12 @@ The format is suitable for use with `easy-menu-define'."
     map)
   "Keymap for `custom-mode'.")
 
-(defun custom-no-edit (pos &optional event)
+(defun Custom-no-edit (pos &optional event)
   "Invoke button at POS, or refuse to allow editing of Custom buffer."
   (interactive "@d")
   (error "You can't edit this part of the Custom buffer"))
 
-(defun custom-newline (pos &optional event)
+(defun Custom-newline (pos &optional event)
   "Invoke button at POS, or refuse to allow editing of Custom buffer."
   (interactive "@d")
   (let ((button (get-char-property pos 'button)))
