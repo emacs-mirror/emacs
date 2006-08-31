@@ -1,9 +1,14 @@
+2006-08-31  Michael Mauger  <mmaug@yahoo.com>
+
+	* custom.el (custom-theme-set-variables): Autoload packages before
+	sorting the variables.
+
 2006-08-30  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper-cmd.el (viper-special-read-and-insert-char): convert events to
+
+	* viper-cmd.el (viper-special-read-and-insert-char): Convert events to
 	chars if XEmacs.
-	(viper-after-change-undo-hook): check if undo-in-progress is bound.
-	
+	(viper-after-change-undo-hook): Check if undo-in-progress is bound.
+
 2006-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (python-eldoc-function): Re-enable quit while
