@@ -3758,7 +3758,13 @@ usage: (format STRING &rest OBJECTS)  */)
 	      this_format[format - this_format_start] = 0;
 
 	      if (INTEGERP (args[n]))
-		sprintf (p, this_format, XINT (args[n]));
+		{
+		  if (format[-1] == 'd')
+		    sprintf (p, this_format, XINT (args[n]));
+		  /* Don't sign-extend for octal or hex printing.  */
+		  else
+		    sprintf (p, this_format, XUINT (args[n]));
+		}
 	      else
 		sprintf (p, this_format, XFLOAT_DATA (args[n]));
 
