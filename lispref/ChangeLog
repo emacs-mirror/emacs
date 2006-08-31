@@ -1,8 +1,12 @@
-2006-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+2006-08-31  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Syntactic Font Lock): Mention specific faces once again.
+
+2006-08-31  Richard Bielawski  <RBielawski@moneygram.com>  (tiny change)
 
 	* modes.texi (Syntactic Font Lock):
-	Mention font-lock-syntactic-face-function.
-	Suggested by Richard Bielawski <RBielawski@moneygram.com>
+	Mention font-lock-syntactic-face-function
+	instead of specific faces.
 
 2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
 
