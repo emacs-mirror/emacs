@@ -892,12 +892,17 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	      (t
 	       ;;(setq ch (read-char-exclusive))
 	       (setq ch (aref (read-key-sequence nil) 0))
+	       (if viper-xemacs-p
+		   (setq ch (event-to-character ch)))
 	       ;; replace ^M with the newline
 	       (if (eq ch ?\C-m) (setq ch ?\n))
 	       ;; Make sure ^V and ^Q work as quotation chars
 	       (if (memq ch '(?\C-v ?\C-q))
-		   ;;(setq ch (read-char-exclusive))
-		   (setq ch (aref (read-key-sequence nil) 0))
+		   (progn
+		     ;;(setq ch (read-char-exclusive))
+		     (setq ch (aref (read-key-sequence nil) 0))
+		     (if viper-xemacs-p
+			 (setq ch (event-to-character ch))))
 		 )
 	       (insert ch))
 	      )
@@ -1750,7 +1755,7 @@ invokes the command before that, etc."
 
 ;; Hook used in viper-undo
 (defun viper-after-change-undo-hook (beg end len)
-  (if undo-in-progress
+  (if (and (boundp 'undo-in-progress) undo-in-progress)
       (setq undo-beg-posn beg
 	    undo-end-posn (or end beg))
     ;; some other hooks may be changing various text properties in
