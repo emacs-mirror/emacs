@@ -147,23 +147,39 @@ available, macro "USE_FONT_BACKEND" is defined in src/config.h.
 In that case, the exiting of Xft library is checked too.
 
 The new files are:
+	font.h -- header providing font-backend related structures
+		(most important ones are "struct font" and "struct
+		font_driver"), macros, and etc.
 	font.c -- main font handling code.
 	xfont.c -- font-driver on X for X core fonts.
-	ftfont.c -- generic font-driver for FreeType fonts.
-	xftfont.c -- font-driver on X using Xft for FreeType fonts.
-	ftxfont.c -- font-driver on X not using Xft for FreeType fonts.
+	ftfont.c -- generic font-driver for FreeType fonts providing
+		device-independent methods of struct font_driver.
+	xftfont.c -- font-driver on X using Xft for FreeType fonts
+		utilizing methods provided by ftfont.c.
+	ftxfont.c -- font-driver on X directly using FreeType fonts
+		utilizing methods provided by ftfont.c.
 
-So we already have codes for X.  For the other systems (win32 and mac),
+So we already have codes for X.  For the other systems (w32 and mac),
 it seems that we need these files:
-	bdffont.c -- generic font-driver for BDF fonts.
-	w32font.c -- font driver on win32 using Windows native fonts.
-	w32bdffont.c -- font-driver on win32 using BDF fonts.
-	atmfont.c -- font-driver on mac using ATM fonts.
+	w32font.c -- font driver on w32 using Windows native fonts,
+		corresponding to xfont.c
+	atmfont.c -- font-driver on mac using ATM fonts, corresponding
+		to xfont.c
+As BDF fonts are currently used on w32, we may also implement these:
+	bdffont.c -- generic font-driver for BDF fonts, corresponding to
+		ftfont.c
+	bdfw32font.c -- font-driver on w32 using BDF fonts,
+		corresponding to ftxfont.c
+But, as FreeType already supports BDF fonts, if FreeType and
+Fontconfig are also available on w32, what we need may be:
+	ftw32font.c -- font-driver on w32 directly using FreeType fonts
+		utilizing methods provided by ftfont.c.
 
-It may be interesting if Emacs supports frame buffer directly and have
-these font driver.
+And, for those to work, w32term.c (macterm.c) and w32fns.c (macfns.c)
+must be changed by the simlilar way as xterm.c and xfns.c (the parts
+"#ifdef USE_FONT_BACKEND" ... "#endif" should be checked).
+
+It may be interesting if Emacs supports a frame buffer directly and
+have these font driver.
 	ftfbfont.c -- font-driver on FB for FreeType fonts.
 	bdffbfont.c -- font-driver on FB for BDF fonts.
-
-Several other files have "#ifdef USE_FONT_BACKEND ... #endif" at the
-place where changed for this new font codes.
