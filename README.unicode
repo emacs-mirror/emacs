@@ -143,8 +143,8 @@ same argument.
 
 The configure script, if invoked with "--enable-font-backend", checks
 existing of libraries freetype and fontconfig.  If they are both
-available, macro "USE_FONT_BACKEND" is defined in src/config.h.
-In that case, the exiting of Xft library is checked too.
+available, macro "USE_FONT_BACKEND" is defined in src/config.h.  In
+that case, the existing of Xft library is checked too.
 
 The new files are:
 	font.h -- header providing font-backend related structures
@@ -176,7 +176,7 @@ Fontconfig are also available on w32, what we need may be:
 		utilizing methods provided by ftfont.c.
 
 And, for those to work, w32term.c (macterm.c) and w32fns.c (macfns.c)
-must be changed by the simlilar way as xterm.c and xfns.c (the parts
+must be changed by the similar way as xterm.c and xfns.c (the parts
 "#ifdef USE_FONT_BACKEND" ... "#endif" should be checked).
 
 It may be interesting if Emacs supports a frame buffer directly and
