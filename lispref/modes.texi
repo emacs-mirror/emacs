@@ -2896,7 +2896,7 @@ directives in C.
 
 Syntactic fontification uses the syntax table to find comments and
 string constants (@pxref{Syntax Tables}).  It highlights them using
-@code{font-lock-comment-face} and @code{font-lock-string-face}
+the face returned by @code{font-lock-syntactic-face-function}
 (@pxref{Faces for Font Lock}).  There are several variables that
 affect syntactic fontification; you should set them by means of
 @code{font-lock-defaults} (@pxref{Font Lock Basics}).

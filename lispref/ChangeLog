@@ -1,3 +1,9 @@
+2006-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Syntactic Font Lock):
+	Mention font-lock-syntactic-face-function.
+	Suggested by Richard Bielawski <RBielawski@moneygram.com>
+
 2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Images): Add xrref to display-images-p.
