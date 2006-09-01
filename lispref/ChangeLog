@@ -1,3 +1,7 @@
+2006-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffers.texi (Buffer Modification): Fix last change.
+
 2006-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffers.texi (Buffer Modification): Document

@@ -1,3 +1,11 @@
+2006-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* rcirc.texi (Internet Relay Chat, Useful IRC commands): Don't use
+	@indicateurl.
+
+	* cc-mode.texi (Subword Movement): Don't use @headitem.
+	(Custom Braces, Clean-ups): Don't use @tie.
+
 2006-08-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.54.
