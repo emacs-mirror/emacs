@@ -1,4 +1,4 @@
-2006-08-03  Martin Rudalics  <address@hidden>
+2006-09-01  Martin Rudalics  <address@hidden>
 
         * buffer.h (struct buffer_text): New field chars_modiff.
         (CHARS_MODIFF, BUF_CHARS_MODIFF): New macros.
