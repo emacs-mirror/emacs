@@ -118,7 +118,7 @@ Here's a typical example:
 
 @cindex redirection to random servers
 When you connect to the Freenode network
-(@indicateurl{http://freenode.net/}), you point your IRC client at the
+(@code{http://freenode.net/}), you point your IRC client at the
 server @code{irc.freenode.net}.  That server will redirect your client
 to a random server on the network, such as @code{zelazny.freenode.net}.
 
@@ -424,8 +424,8 @@ your status as ``being back'' if you do not.  People can use the
 @cindex help about irc
 Typical IRC servers implement many more commands.  You can read more
 about the fantastic world of IRC online at
-@indicateurl{http://www.irchelp.org/}, the Internet Relay Chat (IRC)
-help archive.
+@uref{http://www.irchelp.org/, the Internet Relay Chat (IRC) help
+archive}.
 
 @node Configuration, , Useful IRC commands, Reference
 @section Configuration
