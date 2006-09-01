@@ -1,3 +1,16 @@
+2006-08-31  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-save-variables): Slight cleanup.
+	(Custom-no-edit): Renamed from custom-no-edit.
+	(Custom-newline): Renamed from custom-newline.
+	(custom-mode-map): Use new names.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Reference manual
+	about customization, rather than M-x customize, in the doc string
+	made for the defcustom.
+
+	* emacs-lisp/trace.el (trace-function-background): Doc fix.
+
 2006-08-31  Romain Francoise  <romain@orebokech.com>
 
 	* dired-x.el (dired-guess-shell-alist-default): Update.
