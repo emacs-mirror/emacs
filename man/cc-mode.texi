@@ -1624,8 +1624,16 @@ these mixed case symbols @dfn{nomenclatures}.  Also, each capitalized
 @dfn{subword}.  Here are some examples:
 
 @multitable {@samp{NSGraphicsContext}} {@samp{NS}, @samp{Graphics}, and @samp{Context}}
-@headitem Nomenclature
+@c This could be converted to @headitem when we require Texinfo 4.7
+@iftex
+@item @b{Nomenclature}
+  @tab @b{Subwords}
+@end iftex
+@ifnottex
+@item Nomenclature
   @tab Subwords
+@item ---------------------------------------------------------
+@end ifnottex
 @item @samp{GtkWindow}
   @tab @samp{Gtk} and @samp{Window}
 @item @samp{EmacsFrameClass}
@@ -1657,7 +1665,14 @@ nomenclature and treat them as separate words:
 @findex c-downcase-subword
 @findex downcase-subword (c-)
 @multitable @columnfractions .20 .40 .40
-@headitem Key         @tab Word oriented command     @tab Subword oriented command
+@c This could be converted to @headitem when we require Texinfo 4.7
+@iftex
+@item     @b{Key}     @tab @b{Word oriented command} @tab @b{Subword oriented command}
+@end iftex
+@ifnottex
+@item     Key         @tab Word oriented command     @tab Subword oriented command
+@item ----------------------------------------------------------------------------
+@end ifnottex
 @item     @kbd{M-f}   @tab @code{forward-word}       @tab @code{c-forward-subword}
 @item     @kbd{M-b}   @tab @code{backward-word}      @tab @code{c-backward-subword}
 @item     @kbd{M-@@}  @tab @code{mark-word}          @tab @code{c-mark-subword}
