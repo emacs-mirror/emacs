@@ -1,3 +1,33 @@
+2006-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-quote-special-characters-in-quoted-strings):
+	Use standard-syntax-table.
+
+2006-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-decode-address-function): New variable.
+	(article-decode-encoded-words): Use it to decode headers which are
+	assumed to contain addresses.
+	(gnus-mime-delete-part): Remove useless `or'.
+
+	* gnus-sum.el (gnus-decode-encoded-address-function): New variable.
+	(gnus-summary-from-or-to-or-newsgroups): Use it to decode To header.
+	(gnus-nov-parse-line): Use it to decode From header.
+	(gnus-get-newsgroup-headers): Ditto.
+	(gnus-summary-enter-digest-group): Use it to decode `to-address'.
+
+	* mail-parse.el (mail-decode-encoded-address-region): New alias.
+	(mail-decode-encoded-address-string): New alias.
+
+	* rfc2047.el (rfc2047-quote-special-characters-in-quoted-strings):
+	New function.
+	(rfc2047-encode-message-header, rfc2047-encode-region): Use it.
+	(rfc2047-strip-backslashes-in-quoted-strings): New fnction.
+	(rfc2047-decode-region): Use it; add optional argument `address-mime'.
+	(rfc2047-decode-string): Ditto.
+	(rfc2047-decode-address-region): New function.
+	(rfc2047-decode-address-string): New function.
+
 2006-08-23  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	[ Backported bug fix from No Gnus. ]

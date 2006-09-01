@@ -171,6 +171,40 @@ This is either `base64' or `quoted-printable'."
       (re-search-forward ":[ \t\n]*" nil t)
       (buffer-substring-no-properties (point) (point-max)))))
 
+(defun rfc2047-quote-special-characters-in-quoted-strings (&optional
+							   encodable-regexp)
+  "Quote special characters with `\\'s in quoted strings.
+Quoting will not be done in a quoted string if it contains characters
+matching ENCODABLE-REGEXP."
+  (goto-char (point-min))
+  (let ((tspecials (concat "[" ietf-drums-tspecials "]"))
+	beg)
+    (with-syntax-table (standard-syntax-table)
+      (while (search-forward "\"" nil t)
+	(unless (eq (char-before) ?\\)
+	  (setq beg (match-end 0))
+	  (goto-char (match-beginning 0))
+	  (condition-case nil
+	      (progn
+		(forward-sexp)
+		(save-restriction
+		  (narrow-to-region beg (1- (point)))
+		  (goto-char beg)
+		  (unless (and encodable-regexp
+			       (re-search-forward encodable-regexp nil t))
+		    (while (re-search-forward tspecials nil 'move)
+		      (unless (and (eq (char-before) ?\\) ;; Already quoted.
+				   (looking-at tspecials))
+			(goto-char (match-beginning 0))
+			(unless (or (eq (char-before) ?\\)
+				    (and rfc2047-encode-encoded-words
+					 (eq (char-after) ??)
+					 (eq (char-before) ?=)))
+			  (insert "\\")))
+		      (forward-char)))))
+	    (error
+	     (goto-char beg))))))))
+
 (defvar rfc2047-encoding-type 'address-mime
   "The type of encoding done by `rfc2047-encode-region'.
 This should be dynamically bound around calls to
@@ -187,8 +221,18 @@ Should be called narrowed to the head of the message."
       (while (not (eobp))
 	(save-restriction
 	  (rfc2047-narrow-to-field)
+	  (setq method nil
+		alist rfc2047-header-encoding-alist)
+	  (while (setq elem (pop alist))
+	    (when (or (and (stringp (car elem))
+			   (looking-at (car elem)))
+		      (eq (car elem) t))
+	      (setq alist nil
+		    method (cdr elem))))
 	  (if (not (rfc2047-encodable-p))
-	      (prog1
+	      (prog2
+		  (when (eq method 'address-mime)
+		    (rfc2047-quote-special-characters-in-quoted-strings))
 		  (if (and (eq (mm-body-7-or-8) '8bit)
 			   (mm-multibyte-p)
 			   (mm-coding-system-p
@@ -209,14 +253,6 @@ Should be called narrowed to the head of the message."
 		     (point))
 		   (point-max))))
 	    ;; We found something that may perhaps be encoded.
-	    (setq method nil
-		  alist rfc2047-header-encoding-alist)
-	    (while (setq elem (pop alist))
-	      (when (or (and (stringp (car elem))
-			     (looking-at (car elem)))
-			(eq (car elem) t))
-		(setq alist nil
-		      method (cdr elem))))
 	    (re-search-forward "^[^:]+: *" nil t)
 	    (cond
 	     ((eq method 'address-mime)
@@ -347,6 +383,7 @@ Dynamically bind `rfc2047-encoding-type' to change that."
 		  (rfc2047-encode start (point))
 		(goto-char end))))
 	;; `address-mime' case -- take care of quoted words, comments.
+	(rfc2047-quote-special-characters-in-quoted-strings encodable-regexp)
 	(with-syntax-table rfc2047-syntax-table
 	  (goto-char (point-min))
 	  (condition-case err		; in case of unbalanced quotes
@@ -821,6 +858,29 @@ encoded-word, concatenate them, and decode it by charset.  Otherwise,
 the decoder will fully decode each encoded-word before concatenating
 them.")
 
+(defun rfc2047-strip-backslashes-in-quoted-strings ()
+  "Strip backslashes in quoted strings.  `\\\"' and `\\\\' remain."
+  (goto-char (point-min))
+  (let (beg)
+    (with-syntax-table (standard-syntax-table)
+      (while (search-forward "\"" nil t)
+	(unless (eq (char-before) ?\\)
+	  (setq beg (match-end 0))
+	  (goto-char (match-beginning 0))
+	  (condition-case nil
+	      (progn
+		(forward-sexp)
+		(save-restriction
+		  (narrow-to-region beg (1- (point)))
+		  (goto-char beg)
+		  (while (search-forward "\\" nil 'move)
+		    (unless (memq (char-after) '(?\" ?\\))
+		      (delete-backward-char 1))
+		    (forward-char)))
+		(forward-char))
+	    (error
+	     (goto-char beg))))))))
+
 (defun rfc2047-charset-to-coding-system (charset)
   "Return coding-system corresponding to MIME CHARSET.
 If your Emacs implementation can't decode CHARSET, return nil."
@@ -898,8 +958,10 @@ ENCODED-WORD)."
 ;; and worthwhile (is it more correct or not?), e.g. something like
 ;; `=?iso-8859-1?q?foo?=@'.
 
-(defun rfc2047-decode-region (start end)
-  "Decode MIME-encoded words in region between START and END."
+(defun rfc2047-decode-region (start end &optional address-mime)
+  "Decode MIME-encoded words in region between START and END.
+If ADDRESS-MIME is non-nil, strip backslashes which precede characters
+other than `\"' and `\\' in quoted strings."
   (interactive "r")
   (let ((case-fold-search t)
 	(eword-regexp (eval-when-compile
@@ -910,6 +972,8 @@ ENCODED-WORD)."
     (save-excursion
       (save-restriction
 	(narrow-to-region start end)
+	(when address-mime
+	  (rfc2047-strip-backslashes-in-quoted-strings))
 	(goto-char (setq b start))
 	;; Look for the encoded-words.
 	(while (setq match (re-search-forward eword-regexp nil t))
@@ -995,8 +1059,16 @@ ENCODED-WORD)."
 		   (not (eq mail-parse-charset 'gnus-decoded)))
 	  (mm-decode-coding-region b (point-max) mail-parse-charset))))))
 
-(defun rfc2047-decode-string (string)
-  "Decode the quoted-printable-encoded STRING and return the results."
+(defun rfc2047-decode-address-region (start end)
+  "Decode MIME-encoded words in region between START and END.
+Backslashes which precede characters other than `\"' and `\\' in quoted
+strings are stripped."
+  (rfc2047-decode-region start end t))
+
+(defun rfc2047-decode-string (string &optional address-mime)
+  "Decode MIME-encoded STRING and return the result.
+If ADDRESS-MIME is non-nil, strip backslashes which precede characters
+other than `\"' and `\\' in quoted strings."
   (let ((m (mm-multibyte-p)))
     (if (string-match "=\\?" string)
 	(with-temp-buffer
@@ -1010,8 +1082,16 @@ ENCODED-WORD)."
 	    (mm-enable-multibyte))
 	  (insert string)
 	  (inline
-	    (rfc2047-decode-region (point-min) (point-max)))
+	    (rfc2047-decode-region (point-min) (point-max) address-mime))
 	  (buffer-string))
+      (when address-mime
+	(setq string
+	      (with-temp-buffer
+		(when (mm-multibyte-string-p string)
+		  (mm-enable-multibyte))
+		(insert string)
+		(rfc2047-strip-backslashes-in-quoted-strings)
+		(buffer-string))))
       ;; Fixme: As above, `m' here is inappropriate.
       (if (and m
 	       mail-parse-charset
@@ -1032,6 +1112,12 @@ ENCODED-WORD)."
 	      string
 	    (mm-decode-coding-string string mail-parse-charset))
 	(mm-string-as-multibyte string)))))
+
+(defun rfc2047-decode-address-string (string)
+  "Decode MIME-encoded STRING and return the result.
+Backslashes which precede characters other than `\"' and `\\' in quoted
+strings are stripped."
+  (rfc2047-decode-string string t))
 
 (defun rfc2047-pad-base64 (string)
   "Pad STRING to quartets."
