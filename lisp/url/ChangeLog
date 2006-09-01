@@ -1,6 +1,17 @@
-2006-08-29  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
+2006-08-31  Diane Murray  <disumu@x3y2z1.net>
 
-	* url-cookie.el (url-cookie-write-file): Really don't use versioned backups.
+	* url-parse.el (url-recreate-url-attributes): New function, code
+	simply moved from `url-recreate-url'.
+	(url-recreate-url): Use it.
+	Put the `url-target' at the end of the URL after the attributes.
+
+	* url-http.el (url-http-create-request):
+	Use `url-recreate-url-attributes' when setting real-fname.
+
+2006-08-29  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-cookie.el (url-cookie-write-file): Really don't use versioned
+	backups.
 
 2006-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
