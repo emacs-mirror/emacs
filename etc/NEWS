@@ -4083,6 +4083,13 @@ position or for a given window pixel coordinate.
 ** Text modification:
 
 +++
+*** The new function `buffer-chars-modified-tick' returns a buffer's
+tick counter for changes to characters.  Each time text in that buffer
+is inserted or deleted, the character-change counter is updated to the
+tick counter (`buffer-modified-tick').  Text property changes leave it
+unchanged.
+
++++
 *** The new function `insert-for-yank' normally works like `insert', but
 removes the text properties in the `yank-excluded-properties' list
 and handles the `yank-handler' text property.
