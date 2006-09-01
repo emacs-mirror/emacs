@@ -573,8 +573,24 @@ Don't use this function in programs, since it prints a message in the
 echo area; use @code{set-buffer-modified-p} (above) instead.
 @end deffn
 
-@c Emacs 19 feature
 @defun buffer-modified-tick &optional buffer
+This function returns @var{buffer}'s modification-count.  This is a
+counter that increments every time the buffer is modified.  If
+@var{buffer} is @code{nil} (or omitted), the current buffer is used.
+The counter can wrap around occasionally.
+@end defun
+
+@defun buffer-chars-modified-tick &optional buffer
+This function returns @var{buffer}'s character-change modification-count.
+Changes to text properties leave this counter unchanged; however, each
+time text is inserted or removed from the buffer, the counter is reset
+to the value that would be returned @code{buffer-modified-tick}.
+By comparing the values returned by two @code{buffer-chars-modified-tick}
+calls, you can tell whether a character change occurred in that buffer
+in between the calls.  If @var{buffer} is @code{nil} (or omitted), the
+current buffer is used.
+@end defun
+
 This function returns @var{buffer}'s modification-count.  This is a
 counter that increments every time the buffer is modified.  If
 @var{buffer} is @code{nil} (or omitted), the current buffer is used.

@@ -1,3 +1,8 @@
+2006-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffers.texi (Buffer Modification): Document
+	buffer-chars-modified-tick.
+
 2006-08-31  Richard Stallman  <rms@gnu.org>
 
 	* modes.texi (Syntactic Font Lock): Mention specific faces once again.
