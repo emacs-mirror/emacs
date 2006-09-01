@@ -1156,7 +1156,7 @@ DEFUN ("buffer-chars-modified-tick", Fbuffer_chars_modified_tick,
 Each buffer has a character-change tick counter, which is set to the
 value of the buffer's tick counter \(see `buffer-modified-tick'), each
 time text in that buffer is inserted or deleted.  By comparing the
-values returned by two individual calls of buffer-chars-modified-tick,
+values returned by two individual calls of `buffer-chars-modified-tick',
 you can tell whether a character change occurred in that buffer in
 between these calls.  No argument or nil as argument means use current
 buffer as BUFFER.  */)
