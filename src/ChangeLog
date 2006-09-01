@@ -1,25 +1,25 @@
-2006-09-01  Martin Rudalics   <rudalics@gmx.at>
+2006-09-01  Martin Rudalics  <rudalics@gmx.at>
 
-        * buffer.h (struct buffer_text): New field chars_modiff.
-        (CHARS_MODIFF, BUF_CHARS_MODIFF): New macros.
-        * buffer.c (Fbuffer_chars_modified_tick): New function returning
-        value of BUF_CHARS_MODIFF.
-        (syms_of_buffer): Defsubr it.
-        (Fget_buffer_create): Initialize BUF_CHARS_MODIFF.
-        * insdel.c (modify_region): New argument preserve_chars_modiff.
-        Set CHARS_MODIFF to MODIFF provided preserve_chars_modiff is zero.
-        (insert_1_both, insert_from_string_1, insert_from_buffer_1)
-        (adjust_after_replace, adjust_after_replace_noundo)
-        (replace_range, replace_range_2, del_range_2): Reset CHARS_MODIFF.
-        * lisp.h (modify_region): Add fourth argument in extern.
-        * casefiddle.c (casify_region): Call modify_region with fourth
-        argument zero to assert that CHARS_MODIFF is updated.
-        * editfns.c (Fsubst_char_in_region, Ftranslate_region_internal)
-        (Ftranspose_regions): Likewise.
-        * textprop.c (Fadd_text_properties, Fset_text_properties)
-        (Fremove_text_properties, Fremove_list_of_text_properties):
-        Call modify_region with fourth argument 1 to avoid that
-        CHARS_MODIFF is updated.
+	* buffer.h (struct buffer_text): New field chars_modiff.
+	(CHARS_MODIFF, BUF_CHARS_MODIFF): New macros.
+	* buffer.c (Fbuffer_chars_modified_tick): New function returning
+	value of BUF_CHARS_MODIFF.
+	(syms_of_buffer): Defsubr it.
+	(Fget_buffer_create): Initialize BUF_CHARS_MODIFF.
+	* insdel.c (modify_region): New argument preserve_chars_modiff.
+	Set CHARS_MODIFF to MODIFF provided preserve_chars_modiff is zero.
+	(insert_1_both, insert_from_string_1, insert_from_buffer_1)
+	(adjust_after_replace, adjust_after_replace_noundo)
+	(replace_range, replace_range_2, del_range_2): Reset CHARS_MODIFF.
+	* lisp.h (modify_region): Add fourth argument in extern.
+	* casefiddle.c (casify_region): Call modify_region with fourth
+	argument zero to assert that CHARS_MODIFF is updated.
+	* editfns.c (Fsubst_char_in_region, Ftranslate_region_internal)
+	(Ftranspose_regions): Likewise.
+	* textprop.c (Fadd_text_properties, Fset_text_properties)
+	(Fremove_text_properties, Fremove_list_of_text_properties):
+	Call modify_region with fourth argument 1 to avoid that
+	CHARS_MODIFF is updated.
 
 2006-08-31  Richard Stallman  <rms@gnu.org>
 
