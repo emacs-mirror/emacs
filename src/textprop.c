@@ -1253,7 +1253,7 @@ Return t if any property value actually changed, nil otherwise.  */)
     }
 
   if (BUFFERP (object))
-    modify_region (XBUFFER (object), XINT (start), XINT (end));
+    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 
   /* We are at the beginning of interval I, with LEN chars to scan.  */
   for (;;)
@@ -1393,7 +1393,7 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
     }
 
   if (BUFFERP (object))
-    modify_region (XBUFFER (object), XINT (start), XINT (end));
+    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 
   set_text_properties_1 (start, end, properties, object, i);
 
@@ -1541,7 +1541,7 @@ Use set-text-properties if you want to remove all text properties.  */)
     }
 
   if (BUFFERP (object))
-    modify_region (XBUFFER (object), XINT (start), XINT (end));
+    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 
   /* We are at the beginning of an interval, with len to scan */
   for (;;)
@@ -1655,7 +1655,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 	  if (LENGTH (i) == len)
 	    {
 	      if (!modified && BUFFERP (object))
-		modify_region (XBUFFER (object), XINT (start), XINT (end));
+		modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 	      remove_properties (Qnil, properties, i, object);
 	      if (BUFFERP (object))
 		signal_after_change (XINT (start), XINT (end) - XINT (start),
@@ -1668,7 +1668,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 	  i = split_interval_left (i, len);
 	  copy_properties (unchanged, i);
 	  if (!modified && BUFFERP (object))
-	    modify_region (XBUFFER (object), XINT (start), XINT (end));
+	    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 	  remove_properties (Qnil, properties, i, object);
 	  if (BUFFERP (object))
 	    signal_after_change (XINT (start), XINT (end) - XINT (start),
@@ -1679,7 +1679,7 @@ Return t if any property was actually removed, nil otherwise.  */)
       if (interval_has_some_properties_list (properties, i))
 	{
 	  if (!modified && BUFFERP (object))
-	    modify_region (XBUFFER (object), XINT (start), XINT (end));
+	    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 	  remove_properties (Qnil, properties, i, object);
 	  modified = 1;
 	}

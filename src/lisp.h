@@ -2471,7 +2471,7 @@ extern Lisp_Object del_range_1 P_ ((int, int, int, int));
 extern void del_range_byte P_ ((int, int, int));
 extern void del_range_both P_ ((int, int, int, int, int));
 extern Lisp_Object del_range_2 P_ ((int, int, int, int, int));
-extern void modify_region P_ ((struct buffer *, int, int));
+extern void modify_region P_ ((struct buffer *, int, int, int));
 extern void prepare_to_modify_buffer P_ ((int, int, int *));
 extern void signal_before_change P_ ((int, int, int *));
 extern void signal_after_change P_ ((int, int, int));
