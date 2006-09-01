@@ -3246,9 +3246,9 @@ give @code{c-syntactic-context} a value yourself---this would disrupt
 the proper functioning of @ccmode{}.
 
 This variable is also bound in three other circumstances:
-(i)@tie{}when calling a c-hanging-semi&comma-criteria function
-(@pxref{Hanging Semicolons and Commas}; (ii)@tie{}when calling a
-line-up function (@pxref{Custom Line-Up}; (iii)@tie{}when calling a
+(i)@w{ }when calling a c-hanging-semi&comma-criteria function
+(@pxref{Hanging Semicolons and Commas}; (ii)@w{ }when calling a
+line-up function (@pxref{Custom Line-Up}; (iii)@w{ }when calling a
 c-special-indent-hook function (@pxref{Other Indentation}).
 @end defvar
 
@@ -3645,8 +3645,8 @@ Auto-newline minor mode are enabled:
 @item space-before-funcall
 Insert a space between the function name and the opening parenthesis
 of a function call.  This produces function calls in the style
-mandated by the GNU coding standards, e.g. @samp{signal@tie{}(SIGINT,
-SIG_IGN)} and @samp{abort@tie{}()}.  Clean up occurs when the opening
+mandated by the GNU coding standards, e.g. @samp{signal@w{ }(SIGINT,
+SIG_IGN)} and @samp{abort@w{ }()}.  Clean up occurs when the opening
 parenthesis is typed.  This clean-up should never be active in AWK
 Mode, since such a space is syntactically invalid for user defined
 functions.
