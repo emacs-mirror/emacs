@@ -1196,7 +1196,7 @@ It is saved to the file named by the variable `woman-cache-filename'."
 	  (kill-buffer standard-output)
 	  ))))
 
-(defvar woman-topic-history nil "Topic read history.")
+(defvaralias 'woman-topic-history 'Man-topic-history)
 (defvar woman-file-history nil "File-name read history.")
 
 (defun woman-file-name (topic &optional re-cache)
