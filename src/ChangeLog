@@ -1,5 +1,9 @@
 2006-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_get_file_with_chooser): Change file chooser message
+	for writing files.  Call gtk_file_chooser_set_current_name to keep
+	default filename.
+
 	* minibuf.c (Finternal_complete_buffer): Move after DEFUN:s it calls
 
 2006-09-02  Jindrich Makovicka  <makovick@gmail.com>  (tiny change)

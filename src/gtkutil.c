@@ -1327,8 +1327,12 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
     strcat (message, "\nType C-l to display a file name text entry box.\n");
   strcat (message, "\nIf you don't like this file selector, customize "
-          "use-file-dialog\nto turn it off, or type C-x C-f to visit files.");
-
+          "use-file-dialog\nto turn it off, or type ");
+  if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
+    strcat (message, "C-x C-f to visit files.");
+  else
+    strcat (message, "C-x C-w to write files.");
+    
   wmessage = gtk_label_new (message);
   gtk_widget_show (wmessage);
   gtk_box_pack_start (GTK_BOX (wbox), wtoggle, FALSE, FALSE, 0);
@@ -1340,6 +1344,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
       Lisp_Object file;
       struct gcpro gcpro1;
       GCPRO1 (file);
+      char *utf8_filename;
 
       file = build_string (default_filename);
 
@@ -1347,14 +1352,20 @@ xg_get_file_with_chooser (f, prompt, default_filename,
          an absolute name starting with /.  */
       if (default_filename[0] != '/')
         file = Fexpand_file_name (file, Qnil);
-
-      default_filename = SSDATA (file);
-      if (Ffile_directory_p (file))
+      
+      utf8_filename = SSDATA (ENCODE_UTF_8 (file));
+      if (! NILP (Ffile_directory_p (file)))
         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filewin),
-                                             default_filename);
+                                             utf8_filename);
       else
-        gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
-                                       default_filename);
+        {
+          char *cp = strrchr (utf8_filename, '/');
+          if (cp) ++cp;
+          else cp = utf8_filename;
+          gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
+                                         utf8_filename);
+          gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (filewin), cp);
+        }
 
       UNGCPRO;
     }
