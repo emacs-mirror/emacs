@@ -1149,6 +1149,24 @@ A user variable is one for which `user-variable-p' returns non-nil.  */)
   return Fintern (name, Qnil);
 }
 
+DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete_buffer, 3, 3, 0,
+       doc: /* Perform completion on buffer names.
+If the argument FLAG is nil, invoke `try-completion', if it's t, invoke
+`all-completions', otherwise invoke `test-completion'.
+
+The arguments STRING and PREDICATE are as in  `try-completion',
+`all-completions', and `test-completion'. */)
+     (string, predicate, flag)
+     Lisp_Object string, predicate, flag;
+{
+  if (NILP (flag))
+    return Ftry_completion (string, Vbuffer_alist, predicate);
+  else if (EQ (flag, Qt))
+    return Fall_completions (string, Vbuffer_alist, predicate, Qt);
+  else				/* assume `lambda' */
+    return Ftest_completion (string, Vbuffer_alist, predicate);
+}
+
 DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 3, 0,
        doc: /* Read the name of a buffer and return as a string.
 Prompt with PROMPT.
@@ -1195,8 +1213,8 @@ The argument PROMPT should be a string ending with a colon and a space.  */)
 	  prompt = Fformat (3, args);
 	}
 
-      return Fcompleting_read (prompt, Vbuffer_alist, Qnil,
-			       require_match, Qnil, Qbuffer_name_history,
+      return Fcompleting_read (prompt, intern ("internal-complete-buffer"),
+			       Qnil, require_match, Qnil, Qbuffer_name_history,
 			       def, Qnil);
     }
   else
@@ -2915,6 +2933,7 @@ properties.  */);
   defsubr (&Sread_string);
   defsubr (&Sread_command);
   defsubr (&Sread_variable);
+  defsubr (&Sinternal_complete_buffer);
   defsubr (&Sread_buffer);
   defsubr (&Sread_no_blanks_input);
   defsubr (&Sminibuffer_depth);
