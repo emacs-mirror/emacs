@@ -7290,16 +7290,18 @@ See also `same-window-buffer-names'.  */);
   next_screen_context_lines = 2;
 
   DEFVAR_INT ("split-height-threshold", &split_height_threshold,
-	      doc: /* *A window must be at least this tall to be eligible for splitting by `display-buffer'.
+	      doc: /* *A window must be at least this tall to be eligible for splitting
+by `display-buffer'.  The value is in line units.
 If there is only one window, it is split regardless of this value.  */);
   split_height_threshold = 500;
 
   DEFVAR_INT ("window-min-height", &window_min_height,
-	      doc: /* *Delete any window less than this tall (including its mode line).  */);
+	      doc: /* *Delete any window less than this tall (including its mode line).
+The value is in line units. */);
   window_min_height = 4;
 
   DEFVAR_INT ("window-min-width", &window_min_width,
-	      doc: /* *Delete any window less than this wide.  */);
+	      doc: /* *Delete any window less than this wide (measured in characters).  */);
   window_min_width = 10;
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
