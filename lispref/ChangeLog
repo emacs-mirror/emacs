@@ -1,3 +1,8 @@
+2006-09-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (usermanualdir): New variable.
+	(elisp.dvi): Use it.
+
 2006-09-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffers.texi (Buffer Modification): Fix last change.

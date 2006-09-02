@@ -1,3 +1,9 @@
+2006-09-02  Stuart D. Herring  <herring@lanl.gov>
+
+	* minibuf.c (Finternal_complete_buffer): New function.
+	(syms_of_minibuf): Defsubr it.
+	(Fread_buffer): Use it, instead of Vbuffer_alist.
+
 2006-09-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.h (struct buffer_text): New field chars_modiff.
