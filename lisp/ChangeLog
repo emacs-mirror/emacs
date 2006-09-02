@@ -1,3 +1,19 @@
+2006-09-02  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-topic-history): New variable.
+	(man): Use it.
+
+	* woman.el (woman-topic-history): Change defvar to defvaralias
+	for symbol `Man-topic-history'.
+
+	* shell.el (shell-filter-ctrl-a-ctrl-b): Check if
+	`comint-last-output-start' is a marker by using `markerp' and
+	check if it has a position by using `marker-position', and use
+	this position for `goto-char'.
+
+	* international/quail.el (quail-defrule-internal): Add missing
+	`error' call for null key.
+
 2006-09-02  Ryan Yeske  <rcyeske@gmail.com>
 
 	* rcirc.el (rcirc-keywords): New variable.
