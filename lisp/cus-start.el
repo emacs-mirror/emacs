@@ -344,11 +344,11 @@ since it could result in memory overflow and make Emacs crash."
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
 	     (scroll-margin windows integer)
-	     (hscroll-margin windows integer "21.3")
-	     (hscroll-step windows number "21.3")
+	     (hscroll-margin windows integer "22.1")
+	     (hscroll-step windows number "22.1")
 	     (truncate-partial-width-windows display boolean)
 	     (mode-line-inverse-video modeline boolean)
-	     (mode-line-in-non-selected-windows modeline boolean "21.3")
+	     (mode-line-in-non-selected-windows modeline boolean "22.1")
 	     (line-number-display-limit display
 					(choice integer
 						(const :tag "No limit" nil)))
@@ -370,8 +370,8 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-gtk-show-hidden-files menu boolean "22.1")
 	     (x-gtk-whole-detached-tool-bar x boolean "22.1")
 	     ;; xterm.c
-             (mouse-autoselect-window display boolean "21.3")
-	     (x-use-underline-position-properties display boolean "21.3")
+	     (mouse-autoselect-window display boolean "22.1")
+	     (x-use-underline-position-properties display boolean "22.1")
 	     (x-underline-at-descent-line display boolean "22.1")
 	     (x-stretch-cursor display boolean "21.1")))
       this symbol group type standard version native-p
