@@ -1,3 +1,41 @@
+2006-09-02  Ryan Yeske  <rcyeske@gmail.com>
+
+	* rcirc.el (rcirc-keywords): New variable.
+	(rcirc-bright-nicks, rcirc-dim-nicks): New variables.
+	(rcirc-bright-nick-regexp, rcirc-dim-nick-regexp): Remove
+	variables.
+	(rcirc-responses-no-activity): New function.
+	(rcirc-handler-generic): Check for responses in above.
+	(rcirc-process-command): Add ?: character to arguments of raw
+	server commands.
+	(rcirc-format-response-string): Use `rcirc-bright-nicks' and
+	`rcirc-dim-nicks'.
+	(rcirc-gray-toggle): Remove unused variable.
+	(rcirc-print): Remove some tracking logic, which is moved into
+	markup functions.
+	(rcirc-activity-types): Was `rcirc-activity-type', now a list of
+	types.
+	(rcirc-activity-string): Look for 'keyword in activity-types.
+	(rcirc-window-configuration-change): Don't erase overlay-arrow
+	unnecessarily.
+	(rcirc-add-or-remove): New function.
+	(rcirc-cmd-ignore): Use it.
+	(rcirc-message-leader): Remove unused function.
+	(rcicr-cmd-bright, rcirc-cmd-dim, rcirc-cmd-keyword): New commands.
+	(rcirc-add-face): New function.
+	(rcirc-facify): Use rcirc-add-face.
+	(rcirc-url-regexp): Add parens.
+	(rcirc-map-regexp): Remove function.
+	(rcirc-mangle-regexp): Remove function.
+	(rcirc-markup-text-functions): New variable.
+	(rcirc-markup-text): New function (replaces `rcirc-mangle-text').
+	(rcirc-markup-body-text, rcirc-markup-attributes)
+	(rcirc-markup-my-nick, rcirc-markup-urls, rcirc-markup-keywords)
+	(rcirc-markup-bright-nicks): New markup handler functions.
+	(rcirc-nick-in-message-full-line): New face.
+	(rcirc-track-nick): Rename from `rcirc-mode-line-nick'.
+	(rcirc-track-keyword, rcirc-url, rcirc-keyword): New faces.
+
 2006-09-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-start.el (hscroll-margin, hscroll-step)
