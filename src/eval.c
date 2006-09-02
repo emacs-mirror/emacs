@@ -199,6 +199,14 @@ extern Lisp_Object Qrisky_local_variable;
 
 static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object*));
 static void unwind_to_catch P_ ((struct catchtag *, Lisp_Object)) NO_RETURN;
+
+#if __GNUC__
+/* "gcc -O3" enables automatic function inlining, which optimizes out
+   the arguments for the invocations of these functions, whereas they
+   expect these values on the stack.  */
+Lisp_Object apply1 () __attribute__((noinline));
+Lisp_Object call2 () __attribute__((noinline));
+#endif
 
 void
 init_eval_once ()
