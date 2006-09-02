@@ -483,7 +483,9 @@ This function can be put on `comint-output-filter-functions'.
 The argument STRING is ignored."
   (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
     (save-excursion
-      (goto-char (or comint-last-output-start (point-min)))
+      (goto-char (or (and (markerp comint-last-output-start)
+			  (marker-position comint-last-output-start))
+		     (point-min)))
       (while (re-search-forward "[\C-a\C-b]" pmark t)
         (replace-match "")))))
 
