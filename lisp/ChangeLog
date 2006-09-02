@@ -1,3 +1,10 @@
+2006-09-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-start.el (hscroll-margin, hscroll-step)
+	(mode-line-in-non-selected-windows, mouse-autoselect-window)
+	(x-use-underline-position-properties): Change version to "22.1"
+	since they will appear there for the first time.
+
 2006-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* imenu.el (imenu-update-menubar): Use buffer-chars-modified-tick.

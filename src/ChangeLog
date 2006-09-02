@@ -1,3 +1,11 @@
+2006-09-02  Jindrich Makovicka  <makovick@gmail.com>  (tiny change)
+
+	* fns.c (concat) [__GNUC__]: Declare with
+	`__attribute__((noinline))'.
+
+	* eval.c (apply1, call2) [__GNUC__]: Declare with
+	`__attribute__((noinline))'.
+
 2006-09-02  Stuart D. Herring  <herring@lanl.gov>
 
 	* minibuf.c (Finternal_complete_buffer): New function.
