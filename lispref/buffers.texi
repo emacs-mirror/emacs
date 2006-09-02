@@ -589,11 +589,6 @@ By comparing the values returned by two @code{buffer-chars-modified-tick}
 calls, you can tell whether a character change occurred in that buffer
 in between the calls.  If @var{buffer} is @code{nil} (or omitted), the
 current buffer is used.
-
-This function returns @var{buffer}'s modification-count.  This is a
-counter that increments every time the buffer is modified.  If
-@var{buffer} is @code{nil} (or omitted), the current buffer is used.
-The counter can wrap around occasionally.
 @end defun
 
 @node Modification Time
