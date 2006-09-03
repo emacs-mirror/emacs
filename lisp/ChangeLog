@@ -1,3 +1,8 @@
+2006-09-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-group-menu-create): Avoid deactivating the
+	mark after running the menu filter.
+
 2006-09-03  Juri Linkov  <juri@jurta.org>
 
 	* international/quail.el (quail-defrule-internal): Add a check

@@ -4395,7 +4395,8 @@ This function does not save the buffer."
   "Ignoring WIDGET, create a menu entry for customization group SYMBOL."
   `( ,(custom-unlispify-menu-entry symbol t)
      :filter (lambda (&rest junk)
-	       (let ((menu (custom-menu-create ',symbol)))
+	       (let* ((deactivate-mark nil)
+		      (menu (custom-menu-create ',symbol)))
 		 (if (consp menu) (cdr menu) menu)))))
 
 ;;;###autoload
