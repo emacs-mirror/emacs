@@ -4113,6 +4113,25 @@ init_ntproc ()
 }
 
 /*
+        shutdown_handler ensures that buffers' autosave files are
+	up to date when the user logs off, or the system shuts down.
+*/
+BOOL WINAPI shutdown_handler(DWORD type)
+{
+  /* Ctrl-C and Ctrl-Break are already suppressed, so don't handle them.  */
+  if (type == CTRL_CLOSE_EVENT        /* User closes console window.  */
+      || type == CTRL_LOGOFF_EVENT    /* User logs off.  */
+      || type == CTRL_SHUTDOWN_EVENT) /* User shutsdown.  */
+    {
+      /* Shut down cleanly, making sure autosave files are up to date.  */
+      shut_down_emacs (0, 0, Qnil);
+    }
+
+  /* Allow other handlers to handle this signal.  */  
+  return FALSE;
+}
+
+/*
 	globals_of_w32 is used to initialize those global variables that
 	must always be initialized on startup even when the global variable
 	initialized is non zero (see the function main in emacs.c).
@@ -4124,6 +4143,11 @@ void globals_of_w32 ()
   g_b_init_get_token_information = 0;
   g_b_init_lookup_account_sid = 0;
   g_b_init_get_sid_identifier_authority = 0;
+  /* The following sets a handler for shutdown notifications for
+     console apps. This actually applies to Emacs in both console and
+     GUI modes, since we had to fool windows into thinking emacs is a
+     console application to get console mode to work.  */
+  SetConsoleCtrlHandler(shutdown_handler, TRUE);
 }
 
 /* end of nt.c */
