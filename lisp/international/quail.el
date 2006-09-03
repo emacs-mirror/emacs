@@ -1095,7 +1095,7 @@ Optional 5th arg DECODE-MAP is a Quail decode map.
 
 Optional 6th arg PROPS is a property list annotating TRANS.  See the
 function `quail-define-rules' for the detail."
-  (if (null (stringp key))
+  (if (not (or (stringp key) (vectorp key)))
       (error "Invalid Quail key `%s'" key))
   (if (not (or (numberp trans) (stringp trans) (vectorp trans)
 	       (consp trans)
