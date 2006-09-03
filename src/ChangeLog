@@ -1,3 +1,8 @@
+2006-09-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (shutdown_handler): New function to exit cleanly on shutdown.
+	(globals_of_w32): Register it as a signal handler.
+
 2006-09-02  Juri Linkov  <juri@jurta.org>
 
 	* marker.c (Fmarker_position): Doc fix.
