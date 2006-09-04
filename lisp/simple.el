@@ -2554,6 +2554,8 @@ text.  See `insert-for-yank'."
   ;; Pass point first, then mark, because the order matters
   ;; when calling kill-append.
   (interactive (list (point) (mark)))
+  (unless (and beg end)
+    (error "The mark is not set now, so there is no region"))
   (condition-case nil
       (let ((string (filter-buffer-substring beg end t)))
 	(when string			;STRING is nil if BEG = END
