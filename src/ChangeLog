@@ -1,3 +1,9 @@
+2006-09-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Don't mention specific keys in
+	the file chooser message.  Only call gtk_file_chooser_set_current_name
+	when action is SAVE.
+
 2006-09-04  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in: Double all single and back quotes in C-style

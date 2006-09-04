@@ -1326,12 +1326,9 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   message[0] = '\0';
   if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
     strcat (message, "\nType C-l to display a file name text entry box.\n");
-  strcat (message, "\nIf you don't like this file selector, customize "
-          "use-file-dialog\nto turn it off, or type ");
-  if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
-    strcat (message, "C-x C-f to visit files.");
-  else
-    strcat (message, "C-x C-w to write files.");
+  strcat (message, "\nIf you don't like this file selector, use the "
+          "corresponding\nkey binding or customize "
+          "use-file-dialog to turn it off.");
     
   wmessage = gtk_label_new (message);
   gtk_widget_show (wmessage);
@@ -1359,12 +1356,15 @@ xg_get_file_with_chooser (f, prompt, default_filename,
                                              utf8_filename);
       else
         {
-          char *cp = strrchr (utf8_filename, '/');
-          if (cp) ++cp;
-          else cp = utf8_filename;
           gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
                                          utf8_filename);
-          gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (filewin), cp);
+          if (action == GTK_FILE_CHOOSER_ACTION_SAVE)
+            {
+              char *cp = strrchr (utf8_filename, '/');
+              if (cp) ++cp;
+              else cp = utf8_filename;
+              gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (filewin), cp);
+            }
         }
 
       UNGCPRO;
