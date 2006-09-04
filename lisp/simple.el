@@ -4984,6 +4984,12 @@ value of `completion-common-substring'. See also `display-completion-list'.")
 
 ;; Variables and faces used in `completion-setup-function'.
 
+(defcustom completion-show-help t
+  "Non-nil means show help message in *Completions* buffer."
+  :type 'boolean
+  :version "22.1"
+  :group 'completion)
+
 (defface completions-first-difference
   '((t (:inherit bold)))
   "Face put on the first uncommon character in completions in *Completions* buffer."
@@ -5070,14 +5076,15 @@ of the minibuffer before point is always the common substring.)")
 	      (if (get-char-property element-common-end 'mouse-face)
 		  (put-text-property element-common-end (1+ element-common-end)
 				     'font-lock-face 'completions-first-difference))))))
-      ;; Insert help string.
-      (goto-char (point-min))
-      (if (display-mouse-p)
-	  (insert (substitute-command-keys
-		   "Click \\[mouse-choose-completion] on a completion to select it.\n")))
-      (insert (substitute-command-keys
-	       "In this buffer, type \\[choose-completion] to \
-select the completion near point.\n\n")))))
+      ;; Maybe insert help string.
+      (when completion-show-help
+	(goto-char (point-min))
+	(if (display-mouse-p)
+	    (insert (substitute-command-keys
+		     "Click \\[mouse-choose-completion] on a completion to select it.\n")))
+	(insert (substitute-command-keys
+		 "In this buffer, type \\[choose-completion] to \
+select the completion near point.\n\n"))))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
 
