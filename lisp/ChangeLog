@@ -1,3 +1,7 @@
+2006-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Add C-M- bindings.
+
 2006-09-04  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (kill-region): Explicitly test there is a region.
