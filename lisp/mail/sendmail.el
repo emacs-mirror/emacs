@@ -48,6 +48,16 @@
   :group 'sendmail
   :version "22.1")
 
+(defcustom sendmail-program
+  (cond
+    ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
+    ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
+    ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
+    (t "fakemail"))			;In ../etc, to interface to /bin/mail.
+  "Program used to send messages."
+  :group 'mail
+  :type 'file)
+
 ;;;###autoload
 (defcustom mail-from-style 'angles
   "Specifies how \"From:\" fields look.

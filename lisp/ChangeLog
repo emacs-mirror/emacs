@@ -1,3 +1,12 @@
+2006-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/feedmail.el (feedmail-buffer-to-sendmail): Look for
+	sendmail in several common directories.
+
+	* mail/sendmail.el (sendmail-program): Moved here from pathe.el.
+
+	* paths.el (sendmail-program): Removed.
+
 2006-09-04  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-gpg.el (pgg-gpg-process-region): Revert two patches from Satyaki
