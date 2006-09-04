@@ -1,3 +1,8 @@
+2006-09-04  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in: Double all single and back quotes in C-style
+	comments to help fontifier.
+
 2006-09-03  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (shutdown_handler): New function to exit cleanly on shutdown.
