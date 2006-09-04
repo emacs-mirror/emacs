@@ -859,7 +859,7 @@ the decoder will fully decode each encoded-word before concatenating
 them.")
 
 (defun rfc2047-strip-backslashes-in-quoted-strings ()
-  "Strip backslashes in quoted strings.  `\\\"' and `\\\\' remain."
+  "Strip backslashes in quoted strings.  `\\\"' remains."
   (goto-char (point-min))
   (let (beg)
     (with-syntax-table (standard-syntax-table)
@@ -874,7 +874,7 @@ them.")
 		  (narrow-to-region beg (1- (point)))
 		  (goto-char beg)
 		  (while (search-forward "\\" nil 'move)
-		    (unless (memq (char-after) '(?\" ?\\))
+		    (unless (memq (char-after) '(?\"))
 		      (delete-backward-char 1))
 		    (forward-char)))
 		(forward-char))

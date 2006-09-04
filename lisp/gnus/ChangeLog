@@ -1,3 +1,8 @@
+2006-09-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-strip-backslashes-in-quoted-strings): Decode `\\'
+	in quoted string into `\'.
+
 2006-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-quote-special-characters-in-quoted-strings):
@@ -418,10 +423,6 @@
 
 	* gnus-sum.el (gnus-get-newsgroup-headers-xover): Group is an
 	optional parameter.
-
-2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
-
-	* pgg-gpg.el: Revert to revision 7.15 to allow the use of gpg-agent.
 
 2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
