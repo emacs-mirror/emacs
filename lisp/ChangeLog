@@ -4,6 +4,10 @@
 
 2006-09-04  Richard Stallman  <rms@gnu.org>
 
+	* mail/rmail-spam-filter.el (rsf-scanning-messages-now): Doc fix.
+	(rsf-min-region-to-spam-list): Doc fix.
+	(rsf-add-content-type-field): Doc fix.
+
 	* simple.el (kill-region): Explicitly test there is a region.
 
 2006-09-04  Chong Yidong  <cyd@stupidchicken.com>
