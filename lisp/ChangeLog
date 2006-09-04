@@ -1,3 +1,7 @@
+2006-09-04  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (kill-region): Explicitly test there is a region.
+
 2006-09-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/feedmail.el (feedmail-buffer-to-sendmail): Look for
