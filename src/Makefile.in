@@ -74,13 +74,13 @@ SHELL=/bin/sh
 #define NOT_C_CODE
 #include "config.h"
 
-/* We won't really call alloca;
-   don't let the file name alloca.c get messed up.  */
+/* We won''t really call alloca;
+   don''t let the file name alloca.c get messed up.  */
 #ifdef alloca
 #undef alloca
 #endif
 
-/* Don't let the file name mktime.c get messed up.  */
+/* Don''t let the file name mktime.c get messed up.  */
 #ifdef mktime
 #undef mktime
 #endif
@@ -95,7 +95,7 @@ SHELL=/bin/sh
 #endif
 
 /* On some machines #define register is done in config;
-   don't let it interfere with this file.  */
+   don''t let it interfere with this file.  */
 #undef register
 
 /* On some systems we may not be able to use the system make command. */
@@ -115,7 +115,7 @@ CC = C_COMPILER
 #endif
 #endif
 
-/* Some machines don't find the standard C libraries in the usual place.  */
+/* Some machines don''t find the standard C libraries in the usual place.  */
 #ifndef ORDINARY_LINK
 #ifndef LIB_STANDARD
 #define LIB_STANDARD -lc
@@ -247,7 +247,7 @@ STARTFILES = START_FILES
 #endif /* not ORDINARY_LINK */
 
 
-/* cc switches needed to make `asm' keyword work.
+/* cc switches needed to make ``asm'' keyword work.
    Nothing special needed on most machines.  */
 #ifndef C_SWITCH_ASM
 #define C_SWITCH_ASM
@@ -276,7 +276,7 @@ TOOLKIT_DEFINES =
    for use in Emacs.
 
    -DHAVE_CONFIG_H is needed for some other files to take advantage of
-   the information in `config.h'.  */
+   the information in ``config.h''.  */
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
@@ -336,7 +336,7 @@ LIBXMENU= -lXMenu
 
 #else /* not HAVE_MENUS */
 
-/* Otherwise, don't worry about the menu library at all.  */
+/* Otherwise, don''t worry about the menu library at all.  */
 LIBXMENU=
 #endif /* not HAVE_MENUS */
 
@@ -380,7 +380,7 @@ LIBXTR6 = -lSM -lICE
 #ifdef LIBXT_STATIC
 /* We assume the config files have defined STATIC_OPTION
    since that might depend on the operating system.
-   (Don't forget you need different definitions with and without __GNUC__.)  */
+   (Don''t forget you need different definitions with and without __GNUC__.)  */
 LIBXT= STATIC_OPTION $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext DYNAMIC_OPTION
 #else /* not LIBXT_STATIC */
 LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
@@ -468,9 +468,9 @@ CFLAGS_SOUND= @CFLAGS_SOUND@
 /* Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
    places that are difficult to figure out at make time.  Fortunately,
    these same versions allow you to pass arbitrary flags on to the
-   linker, so there's no reason not to use it as a linker.
+   linker, so there''s no reason not to use it as a linker.
 
-   Well, it's not quite perfect.  The `-nostdlib' keeps GCC from
+   Well, it''s not quite perfect.  The ``-nostdlib'' keeps GCC from
    searching for libraries in its internal directories, so we have to
    ask GCC explicitly where to find libgcc.a.  */
 
@@ -487,9 +487,9 @@ GNULIB_VAR = LIB_GCC
 
 #ifndef LINKER_WAS_SPECIFIED
 /* GCC passes any argument prefixed with -Xlinker directly to the
-   linker.  See prefix-args.c for an explanation of why we don't do
-   this with the shell's `for' construct.
-   Note that some people don't have '.'  in their paths, so we must
+   linker.  See prefix-args.c for an explanation of why we don''t do
+   this with the shell''s ``for'' construct.
+   Note that some people don''t have '.'  in their paths, so we must
    use ./prefix-args.  */
 #define YMF_PASS_LDFLAGS(flags) `./prefix-args -Xlinker flags`
 #else
@@ -530,12 +530,12 @@ LD=ld
 #endif /* not ORDINARY_LINK */
 
 /* Flags to pass to LD only for temacs.  */
-/* Don't split this line with a backslash.  That can cause trouble with
+/* Don''t split this line with a backslash.  That can cause trouble with
    some cpps.  */
 TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_SWITCH_MACHINE_TEMACS LD_SWITCH_SITE
 
 /* A macro which other sections of Makefile can redefine to munge the
-   flags before they're passed to LD.  This is helpful if you have
+   flags before they''re passed to LD.  This is helpful if you have
    redefined LD to something odd, like "gcc".
    (The YMF prefix is a holdover from the old name "ymakefile".)
   */
@@ -705,8 +705,8 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 #define TOOLTIP_SUPPORT
 #endif
 
-/* List of Lisp files loaded into the dumped Emacs.  It's arranged
-   like this because it's easier to generate it semi-mechanically from
+/* List of Lisp files loaded into the dumped Emacs.  It''s arranged
+   like this because it''s easier to generate it semi-mechanically from
    loadup.el this way.
 
    Note that this list should not include lisp files which might not
@@ -909,7 +909,7 @@ shortlisp= \
    We must unconditionally put them in the DOC file.
    We use ../lisp/ to start the file names
    to reduce the size of the argument list for make-docfile
-   for the sake of systems which can\'t handle large ones.  */
+   for the sake of systems which can''t handle large ones.  */
 SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/select.elc ${dotdot}/lisp/scroll-bar.elc \
   ${dotdot}/lisp/vmsproc.elc ${dotdot}/lisp/vms-patch.elc \
@@ -987,13 +987,13 @@ temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} $
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_MACHINE ${LIBES}
 
-/* We don't use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
-   often contain options that have to do with using Emacs's crt0,
+/* We don''t use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
+   often contain options that have to do with using Emacs''s crt0,
    which are only good with temacs.  */
 prefix-args${EXEEXT}: prefix-args.c $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
-/* Don't lose if this was not defined.  */
+/* Don''t lose if this was not defined.  */
 #ifndef OLDXMENU_OPTIONS
 #define OLDXMENU_OPTIONS
 #endif
@@ -1056,7 +1056,7 @@ really-oldXMenu:
 #endif /* not USE_X_TOOLKIT */
 #else /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! HAVE_GTK) */
 
-/* We don\'t really need this, but satisfy the dependency.  */
+/* We don''t really need this, but satisfy the dependency.  */
 stamp-oldxmenu:
 	touch stamp-oldxmenu
 #endif /* not (HAVE_X_WINDOWS && HAVE_X11 && HAVE_MENUS && ! HAVE_GTK) */
