@@ -9486,6 +9486,18 @@ mac_handle_window_event (next_handler, event, data)
 
       break;
 
+    case kEventWindowClose:
+      {
+	struct input_event buf;
+
+	EVENT_INIT (buf);
+	buf.kind = DELETE_WINDOW_EVENT;
+	XSETFRAME (buf.frame_or_window, mac_window_to_frame (wp));
+	buf.arg = Qnil;
+	kbd_buffer_store_event (&buf);
+      }
+      return noErr;
+
 #ifdef MAC_OSX
     case kEventWindowToolbarSwitchMode:
       result = CallNextEventHandler (next_handler, event);
@@ -9775,6 +9787,8 @@ mac_handle_text_input_event (next_handler, event, data)
 			read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
 			read_socket_inev->code = code;
 			read_socket_inev->modifiers =
+			  mac_to_emacs_modifiers (modifiers);
+			read_socket_inev->modifiers |=
 			  (extra_keyboard_modifiers
 			   & (meta_modifier | alt_modifier
 			      | hyper_modifier | super_modifier));
@@ -9899,6 +9913,7 @@ install_window_handler (window)
      {kEventClassWindow, kEventWindowHidden},
      {kEventClassWindow, kEventWindowExpanded},
      {kEventClassWindow, kEventWindowCollapsed},
+     {kEventClassWindow, kEventWindowClose},
 #ifdef MAC_OSX
      {kEventClassWindow, kEventWindowToolbarSwitchMode},
 #endif
