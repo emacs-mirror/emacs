@@ -1,3 +1,207 @@
+2006-09-04  John Paul Wallington  <jpw@pobox.com>
+
+	* simple.el (completion-show-help): New defcustom.
+	(completion-setup-function): Heed it.
+
+2006-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Add C-M- bindings.
+
+2006-09-04  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail-spam-filter.el (rsf-scanning-messages-now): Doc fix.
+	(rsf-min-region-to-spam-list): Doc fix.
+	(rsf-add-content-type-field): Doc fix.
+
+	* simple.el (kill-region): Explicitly test there is a region.
+
+2006-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/feedmail.el (feedmail-buffer-to-sendmail): Look for
+	sendmail in several common directories.
+
+	* mail/sendmail.el (sendmail-program): Moved here from pathe.el.
+
+	* paths.el (sendmail-program): Removed.
+
+2006-09-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Revert two patches from Satyaki
+	Das.  http://article.gmane.org/gmane.emacs.gnus.general/49947
+	http://article.gmane.org/gmane.emacs.gnus.general/50457
+
+2006-09-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-group-menu-create): Avoid deactivating the
+	mark after running the menu filter.
+
+2006-09-03  Juri Linkov  <juri@jurta.org>
+
+	* international/quail.el (quail-defrule-internal): Add a check
+	if a key is a vector.
+
+2006-09-02  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-topic-history): New variable.
+	(man): Use it.
+
+	* woman.el (woman-topic-history): Change defvar to defvaralias
+	for symbol `Man-topic-history'.
+
+	* shell.el (shell-filter-ctrl-a-ctrl-b): Check if
+	`comint-last-output-start' is a marker by using `markerp' and
+	check if it has a position by using `marker-position', and use
+	this position for `goto-char'.
+
+	* international/quail.el (quail-defrule-internal): Add missing
+	`error' call for null key.
+
+2006-09-02  Ryan Yeske  <rcyeske@gmail.com>
+
+	* rcirc.el (rcirc-keywords): New variable.
+	(rcirc-bright-nicks, rcirc-dim-nicks): New variables.
+	(rcirc-bright-nick-regexp, rcirc-dim-nick-regexp): Remove
+	variables.
+	(rcirc-responses-no-activity): New function.
+	(rcirc-handler-generic): Check for responses in above.
+	(rcirc-process-command): Add ?: character to arguments of raw
+	server commands.
+	(rcirc-format-response-string): Use `rcirc-bright-nicks' and
+	`rcirc-dim-nicks'.
+	(rcirc-gray-toggle): Remove unused variable.
+	(rcirc-print): Remove some tracking logic, which is moved into
+	markup functions.
+	(rcirc-activity-types): Was `rcirc-activity-type', now a list of
+	types.
+	(rcirc-activity-string): Look for 'keyword in activity-types.
+	(rcirc-window-configuration-change): Don't erase overlay-arrow
+	unnecessarily.
+	(rcirc-add-or-remove): New function.
+	(rcirc-cmd-ignore): Use it.
+	(rcirc-message-leader): Remove unused function.
+	(rcicr-cmd-bright, rcirc-cmd-dim, rcirc-cmd-keyword): New commands.
+	(rcirc-add-face): New function.
+	(rcirc-facify): Use rcirc-add-face.
+	(rcirc-url-regexp): Add parens.
+	(rcirc-map-regexp): Remove function.
+	(rcirc-mangle-regexp): Remove function.
+	(rcirc-markup-text-functions): New variable.
+	(rcirc-markup-text): New function (replaces `rcirc-mangle-text').
+	(rcirc-markup-body-text, rcirc-markup-attributes)
+	(rcirc-markup-my-nick, rcirc-markup-urls, rcirc-markup-keywords)
+	(rcirc-markup-bright-nicks): New markup handler functions.
+	(rcirc-nick-in-message-full-line): New face.
+	(rcirc-track-nick): Rename from `rcirc-mode-line-nick'.
+	(rcirc-track-keyword, rcirc-url, rcirc-keyword): New faces.
+
+2006-09-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-start.el (hscroll-margin, hscroll-step)
+	(mode-line-in-non-selected-windows, mouse-autoselect-window)
+	(x-use-underline-position-properties): Change version to "22.1"
+	since they will appear there for the first time.
+
+2006-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* imenu.el (imenu-update-menubar): Use buffer-chars-modified-tick.
+
+2006-08-31  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-save-variables): Slight cleanup.
+	(Custom-no-edit): Renamed from custom-no-edit.
+	(Custom-newline): Renamed from custom-newline.
+	(custom-mode-map): Use new names.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Reference manual
+	about customization, rather than M-x customize, in the doc string
+	made for the defcustom.
+
+	* emacs-lisp/trace.el (trace-function-background): Doc fix.
+
+2006-08-31  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el (dired-guess-shell-alist-default): Update.
+
+2006-08-31  Michael Mauger  <mmaug@yahoo.com>
+
+	* custom.el (custom-theme-set-variables): Autoload packages before
+	sorting the variables.
+
+2006-08-30  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-cmd.el (viper-special-read-and-insert-char): Convert events to
+	chars if XEmacs.
+	(viper-after-change-undo-hook): Check if undo-in-progress is bound.
+
+2006-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-eldoc-function): Re-enable quit while
+	waiting for process.
+
+2006-08-30  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-string-to-utxt): If adjustment for MacJapanese
+	results in ASCII-only string, encode original one directly.
+
+2006-08-29  Romain Francoise  <romain@orebokech.com>
+
+	* startup.el (normal-splash-screen, fancy-splash-screens):
+	Make buffer read-only and arrange to enter view mode if necessary.
+
+2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hl-line.el (hl-line): New face.
+	(hl-line-face): Use it.
+
+	* image-mode.el (image-mode): Fix last fix.
+	Suggested by Kim F. Storm.
+
+2006-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.54.
+
+	* net/tramp.el (tramp-convert-file-attributes): Call `eql' instead
+	of `=', because `tramp-get-remote-gid' might not always return an
+	integer when expected.
+	(tramp-register-file-name-handlers): `partial-completion-mode' is
+	unknown to XEmacs.
+	(tramp-time-diff): Don't use `floor', it might fail for large
+	differences.
+	(tramp-handle-make-auto-save-file-name): For Emacs 21, set
+	`tramp-auto-save-directory' if unset in order to guarantee unique
+	auto-save file names.
+
+2006-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-mode): Display image as text on a terminal.
+
+2006-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-send-command): Simplify.
+	(run-python): Don't generate a new buffer unless `new' was specified.
+	Make sure we send `import emacs' to the proper process.
+
+	* progmodes/python.el (python-send-command): Don't wait for the command
+	to terminate.  Don't fiddle with compilation-parsing-end.
+
+2006-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine):
+	Insert commentary after first line summary.
+
+	* woman.el (woman-follow): New function, based on `man-follow'.
+	(woman-mode-map): Use it.
+
+	* ibuffer.el (ibuffer-do-sort-by-recency): Perform full update
+	since ibuffer-do-sort-by-recency does not define a sorter.
+
+2006-08-28  Kim F. Storm  <storm@cua.dk>
+
+	* find-dired.el (find-dired): Use shell-quote-argument to properly
+	escape ( and ) args.  Also use it on {} and ; args in default
+	value of find-ls-option string.
+	(find-grep-dired): Use shell-quote-argument on {} and ; args.
+
 2006-08-27  Michael Olson  <mwolson@gnu.org>
 
 	* emacs-lisp/tq.el: Small grammar fix in comments.

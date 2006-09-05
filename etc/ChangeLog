@@ -1,3 +1,7 @@
+2006-09-02  Juri Linkov  <juri@jurta.org>
+
+	* HELLO: Regroup Europe Non-ASCII examples by similar scripts.
+
 2006-08-25  Richard Stallman  <rms@gnu.org>
 
 	* TUTORIAL: Give priority to graphical terminals over text terminals

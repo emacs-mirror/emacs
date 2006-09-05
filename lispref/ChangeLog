@@ -1,3 +1,44 @@
+2006-09-04  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Accepting Output): Explain SECONDS=0 for
+	accept-process-output.
+
+	* os.texi (Idle Timers): Explain why timer functions should not
+	loop until (input-pending-p).
+
+2006-09-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (usermanualdir): New variable.
+	(elisp.dvi): Use it.
+
+2006-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffers.texi (Buffer Modification): Fix last change.
+
+2006-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffers.texi (Buffer Modification): Document
+	buffer-chars-modified-tick.
+
+2006-08-31  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Syntactic Font Lock): Mention specific faces once again.
+
+2006-08-31  Richard Bielawski  <RBielawski@moneygram.com>  (tiny change)
+
+	* modes.texi (Syntactic Font Lock):
+	Mention font-lock-syntactic-face-function
+	instead of specific faces.
+
+2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Images): Add xrref to display-images-p.
+
+2006-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (Lisp and Coding Systems): Fix description of
+	detect-coding-region.
+
 2006-08-27  Michael Olson  <mwolson@gnu.org>
 
 	* processes.texi (Transaction Queues): Remove stray quote

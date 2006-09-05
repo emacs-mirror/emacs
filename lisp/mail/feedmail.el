@@ -1340,7 +1340,15 @@ complicated cases."
   (set-buffer prepped)
   (apply 'call-process-region
 	 (append (list (point-min) (point-max)
-		       (if (boundp 'sendmail-program) sendmail-program "/usr/lib/sendmail")
+		       (cond ((boundp 'sendmail-program)
+			      sendmail-program)
+			     ((file-exists-p "/usr/sbin/sendmail")
+			      "/usr/sbin/sendmail")
+			     ((file-exists-p "/usr/lib/sendmail")
+			      "/usr/lib/sendmail")
+			     ((file-exists-p "/usr/ucblib/sendmail")
+			      "/usr/ucblib/sendmail")
+			     (t "fakemail"))
 		       nil errors-to nil "-oi" "-t")
 		 ;; provide envelope "from" to sendmail; results will vary
 		 (list "-f" user-mail-address)

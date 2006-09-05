@@ -1931,12 +1931,16 @@ navigation in the @file{*Compilation*} buffer.
 @chapter Reporting Bugs and Problems
 @cindex bug reports
 
-Bugs and problems with @value{tramp} are actively worked on by the development
-team. Feature requests and suggestions are also more than welcome.
+Bugs and problems with @value{tramp} are actively worked on by the
+development team. Feature requests and suggestions are also more than
+welcome.
 
-The @value{tramp} mailing list is a great place to get information on working
-with @value{tramp}, solving problems and general discussion and advice on topics
-relating to the package.
+The @value{tramp} mailing list is a great place to get information on
+working with @value{tramp}, solving problems and general discussion
+and advice on topics relating to the package.  It is moderated so
+non-subscribers can post but messages will be delayed, possibly up to
+48 hours (or longer in case of holidays), until the moderator approves
+your message.
 
 The mailing list is at @email{tramp-devel@@gnu.org}.  Messages sent to
 this address go to all the subscribers. This is @emph{not} the address

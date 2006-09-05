@@ -958,119 +958,132 @@ dired."
 (defvar dired-guess-shell-alist-default
   (list
    (list "\\.tar$"
-         '(if dired-guess-shell-gnutar
-              (concat dired-guess-shell-gnutar " xvf")
-            "tar xvf")
-         ;; Extract files into a separate subdirectory
-         '(if dired-guess-shell-gnutar
-              (concat "mkdir " (file-name-sans-extension file)
-                      "; " dired-guess-shell-gnutar " -C "
-                      (file-name-sans-extension file) " -xvf")
-            (concat "mkdir " (file-name-sans-extension file)
-                    "; tar -C " (file-name-sans-extension file) " -xvf")))
+	 '(if dired-guess-shell-gnutar
+	      (concat dired-guess-shell-gnutar " xvf")
+	    "tar xvf")
+	 ;; Extract files into a separate subdirectory
+	 '(if dired-guess-shell-gnutar
+	      (concat "mkdir " (file-name-sans-extension file)
+		      "; " dired-guess-shell-gnutar " -C "
+		      (file-name-sans-extension file) " -xvf")
+	    (concat "mkdir " (file-name-sans-extension file)
+		    "; tar -C " (file-name-sans-extension file) " -xvf"))
+	 ;; List archive contents.
+	 '(if dired-guess-shell-gnutar
+	      (concat dired-guess-shell-gnutar " tvf")
+	    "tar tvf"))
 
    ;; REGEXPS for compressed archives must come before the .Z rule to
    ;; be recognized:
    (list "\\.tar\\.Z$"
-         ;; Untar it.
-         '(if dired-guess-shell-gnutar
-              (concat dired-guess-shell-gnutar " zxvf")
-            (concat "zcat * | tar xvf -"))
-         ;; Optional conversion to gzip format.
-         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
-                  " " dired-guess-shell-znew-switches))
+	 ;; Untar it.
+	 '(if dired-guess-shell-gnutar
+	      (concat dired-guess-shell-gnutar " zxvf")
+	    (concat "zcat * | tar xvf -"))
+	 ;; Optional conversion to gzip format.
+	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+		  " " dired-guess-shell-znew-switches))
 
    ;; gzip'ed archives
    (list "\\.t\\(ar\\.\\)?gz$"
-         '(if dired-guess-shell-gnutar
-              (concat dired-guess-shell-gnutar " zxvf")
-            (concat "gunzip -qc * | tar xvf -"))
-         ;; Extract files into a separate subdirectory
-         '(if dired-guess-shell-gnutar
-              (concat "mkdir " (file-name-sans-extension file)
-                      "; " dired-guess-shell-gnutar " -C "
-                      (file-name-sans-extension file) " -zxvf")
-            (concat "mkdir " (file-name-sans-extension file)
-                    "; gunzip -qc * | tar -C "
-                    (file-name-sans-extension file) " -xvf -"))
-         ;; Optional decompression.
-         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q" "")))
+	 '(if dired-guess-shell-gnutar
+	      (concat dired-guess-shell-gnutar " zxvf")
+	    (concat "gunzip -qc * | tar xvf -"))
+	 ;; Extract files into a separate subdirectory
+	 '(if dired-guess-shell-gnutar
+	      (concat "mkdir " (file-name-sans-extension file)
+		      "; " dired-guess-shell-gnutar " -C "
+		      (file-name-sans-extension file) " -zxvf")
+	    (concat "mkdir " (file-name-sans-extension file)
+		    "; gunzip -qc * | tar -C "
+		    (file-name-sans-extension file) " -xvf -"))
+	 ;; Optional decompression.
+	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q" ""))
+	 ;; List archive contents.
+	 '(if dired-guess-shell-gnutar
+	      (concat dired-guess-shell-gnutar " ztvf")
+	    (concat "gunzip -qc * | tar tvf -")))
 
    ;; bzip2'ed archives
    (list "\\.t\\(ar\\.bz2\\|bz\\)$"
 	 "bunzip2 -c * | tar xvf -"
-         ;; Extract files into a separate subdirectory
-         '(concat "mkdir " (file-name-sans-extension file)
-                  "; bunzip2 -c * | tar -C "
-                  (file-name-sans-extension file) " -xvf -")
+	 ;; Extract files into a separate subdirectory
+	 '(concat "mkdir " (file-name-sans-extension file)
+		  "; bunzip2 -c * | tar -C "
+		  (file-name-sans-extension file) " -xvf -")
 	 ;; Optional decompression.
-         "bunzip2")
+	 "bunzip2")
 
    '("\\.shar\\.Z$" "zcat * | unshar")
    '("\\.shar\\.g?z$" "gunzip -qc * | unshar")
 
    '("\\.e?ps$" "ghostview" "xloadimage" "lpr")
    (list "\\.e?ps\\.g?z$" "gunzip -qc * | ghostview -"
-         ;; Optional decompression.
-         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+	 ;; Optional decompression.
+	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
    (list "\\.e?ps\\.Z$" "zcat * | ghostview -"
-         ;; Optional conversion to gzip format.
-         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
-                  " " dired-guess-shell-znew-switches))
+	 ;; Optional conversion to gzip format.
+	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+		  " " dired-guess-shell-znew-switches))
 
    '("\\.patch$" "cat * | patch")
    (list "\\.patch\\.g?z$" "gunzip -qc * | patch"
-         ;; Optional decompression.
-         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+	 ;; Optional decompression.
+	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
    (list "\\.patch\\.Z$" "zcat * | patch"
-         ;; Optional conversion to gzip format.
-         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
-                  " " dired-guess-shell-znew-switches))
+	 ;; Optional conversion to gzip format.
+	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+		  " " dired-guess-shell-znew-switches))
 
    ;; The following four extensions are useful with dired-man ("N" key)
    (list "\\.\\(?:[0-9]\\|man\\)$" '(progn (require 'man)
-                             (if (Man-support-local-filenames)
-                                 "man -l"
-                               "cat * | tbl | nroff -man -h")))
+					   (if (Man-support-local-filenames)
+					       "man -l"
+					     "cat * | tbl | nroff -man -h")))
    (list "\\.\\(?:[0-9]\\|man\\)\\.g?z$" '(progn (require 'man)
-                                   (if (Man-support-local-filenames)
-                                       "man -l"
-                                     "gunzip -qc * | tbl | nroff -man -h"))
-         ;; Optional decompression.
-         '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
+						 (if (Man-support-local-filenames)
+						     "man -l"
+						   "gunzip -qc * | tbl | nroff -man -h"))
+	 ;; Optional decompression.
+	 '(concat "gunzip" (if dired-guess-shell-gzip-quiet " -q")))
    (list "\\.[0-9]\\.Z$" '(progn (require 'man)
-                                 (if (Man-support-local-filenames)
-                                     "man -l"
-                                   "zcat * | tbl | nroff -man -h"))
-         ;; Optional conversion to gzip format.
-         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
-                  " " dired-guess-shell-znew-switches))
+				 (if (Man-support-local-filenames)
+				     "man -l"
+				   "zcat * | tbl | nroff -man -h"))
+	 ;; Optional conversion to gzip format.
+	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+		  " " dired-guess-shell-znew-switches))
    '("\\.pod$" "perldoc" "pod2man * | nroff -man")
 
-   '("\\.dvi$" "xdvi" "dvips")          ; preview and printing
-   '("\\.au$" "play")                   ; play Sun audiofiles
-   '("\\.mpg$" "mpeg_play")
-   '("\\.uu$" "uudecode")               ; for uudecoded files
+   '("\\.dvi$" "xdvi" "dvips")		; preview and printing
+   '("\\.au$" "play")			; play Sun audiofiles
+   '("\\.mpe?g$\\|\\.avi$" "xine -p")
+   '("\\.wav$" "play")
+   '("\\.uu$" "uudecode")		; for uudecoded files
    '("\\.hqx$" "mcvert")
-   '("\\.sh$" "sh")                     ; execute shell scripts
-   '("\\.xbm$" "bitmap")                ; view X11 bitmaps
+   '("\\.sh$" "sh")			; execute shell scripts
+   '("\\.xbm$" "bitmap")		; view X11 bitmaps
    '("\\.gp$" "gnuplot")
    '("\\.p[bgpn]m$" "xloadimage")
-   '("\\.gif$" "xloadimage")                    ; view gif pictures
+   '("\\.gif$" "xloadimage")		; view gif pictures
    '("\\.tif$" "xloadimage")
    '("\\.png$" "display")		; xloadimage 4.1 doesn't grok PNG
    '("\\.jpe?g$" "xloadimage")
-   '("\\.fig$" "xfig")                  ; edit fig pictures
-   '("\\.out$" "xgraph")                ; for plotting purposes.
+   '("\\.fig$" "xfig")			; edit fig pictures
+   '("\\.out$" "xgraph")		; for plotting purposes.
    '("\\.tex$" "latex" "tex")
    '("\\.texi\\(nfo\\)?$" "makeinfo" "texi2dvi")
-   '("\\.pdf$" "xpdf")              ; edit PDF files
+   '("\\.pdf$" "xpdf")
+   '("\\.doc$" "antiword" "strings")
+   '("\\.rpm$" "rpm -qilp" "rpm -ivh")
+   '("\\.dia$" "dia")
+   '("\\.mgp$" "mgp")
 
    ;; Some other popular archivers.
-   (list "\\.zip$" "unzip"
-         ;; Extract files into a separate subdirectory
-         '(concat "unzip" (if dired-guess-shell-gzip-quiet " -q")
-                  " -d " (file-name-sans-extension file)))
+   (list "\\.zip$" "unzip" "unzip -l"
+	 ;; Extract files into a separate subdirectory
+	 '(concat "unzip" (if dired-guess-shell-gzip-quiet " -q")
+		  " -d " (file-name-sans-extension file)))
    '("\\.zoo$" "zoo x//")
    '("\\.lzh$" "lharc x")
    '("\\.arc$" "arc x")
@@ -1081,10 +1094,11 @@ dired."
    (list "\\.dz$" "dictunzip")
    (list "\\.bz2$" "bunzip2")
    (list "\\.Z$" "uncompress"
-         ;; Optional conversion to gzip format.
-         '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
-                  " " dired-guess-shell-znew-switches))
-   )
+	 ;; Optional conversion to gzip format.
+	 '(concat "znew" (if dired-guess-shell-gzip-quiet " -q")
+		  " " dired-guess-shell-znew-switches))
+
+   '("\\.sign?$" "gpg --verify"))
 
   "Default alist used for shell command guessing.
 See `dired-guess-shell-alist-user'.")

@@ -129,8 +129,17 @@ as the final argument."
 	  args (concat find-dired-find-program " . "
 		       (if (string= args "")
 			   ""
-			 (concat "\\( " args " \\) "))
-		       (car find-ls-option)))
+			 (concat
+			  (shell-quote-argument "(")
+			  " " args " "
+			  (shell-quote-argument ")")
+			  " "))
+		       (if (equal (car find-ls-option) "-exec ls -ld {} \\;")
+			   (concat "-exec ls -ld "
+				   (shell-quote-argument "{}")
+				   " "
+				   (shell-quote-argument ";"))
+			 (car find-ls-option))))
     ;; Start the find process.
     (shell-command (concat args "&") (current-buffer))
     ;; The next statement will bomb in classic dired (no optional arg allowed)
@@ -215,7 +224,10 @@ Thus ARG can also contain additional grep options."
   (find-dired dir
 	      (concat "-type f -exec grep " find-grep-options " -e "
 		      (shell-quote-argument regexp)
-		      " {} \\\; ")))
+		      " "
+		      (shell-quote-argument "{}")
+		      " "
+		      (shell-quote-argument ";"))))
 
 (defun find-dired-filter (proc string)
   ;; Filter for \\[find-dired] processes.

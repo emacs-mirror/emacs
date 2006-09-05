@@ -3564,6 +3564,13 @@ If @var{window} is @code{nil}, the selected window is used.
 descriptor, then use it as a display specifier in the @code{display}
 property of text that is displayed (@pxref{Display Property}).
 
+  Emacs is usually able to display images when it is run on a
+graphical terminal.  Images cannot be displayed in a text terminal, on
+certain graphical terminals that lack the support for this, or if
+Emacs is compiled without image support.  You can use the function
+@code{display-images-p} to determine if images can in principle be
+displayed (@pxref{Display Feature Testing}).
+
   Emacs can display a number of different image formats; some of them
 are supported only if particular support libraries are installed on
 your machine.  In some environments, Emacs can load image

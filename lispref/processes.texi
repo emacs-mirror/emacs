@@ -1308,6 +1308,8 @@ subprocess output.
 
 The argument @var{seconds} need not be an integer.  If it is a floating
 point number, this function waits for a fractional number of seconds.
+If @var{seconds} is 0, the function accepts whatever output is
+pending but does not wait.
 
 @c Emacs 22.1 feature
 If @var{process} is a process, and the argument @var{just-this-one} is
