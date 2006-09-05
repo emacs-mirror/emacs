@@ -1,3 +1,24 @@
+2006-09-06  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): Remove exact_mode_line_heights_p arg;
+	so always calculate heights even when pos-visible-in-window-p is
+	called with partially = t.  Don't overshoot last_visible_y in move_it_to.
+	Return row height and row number in new rowh and vpos args.
+	(cursor_row_fully_visible_p): First line is always "fully visible".
+	(try_window): Don't clear matrix if vscrolled.
+
+	* lisp.h (pos_visible_p): Update prototype.
+
+	* window.c (Fpos_visible_in_window_p): Adapt to new pos_visible_p.
+	Return row height and row number for partially visible rows.
+	Modify return value to a 2 element list for fully visible rows
+	and 6 for partially visible row.
+	(window_scroll_pixel_based): Use pos_visible_p directly instead of
+	Fpos_visible_in_window_p.  Fix auto vscrolling for partially visible lines.
+	Only vscroll backwards if already vscrolled forwards.  Unconditionally
+	vscroll forwards if PT is first (and only) line.  Set new window start
+	instead of scrolling at start/end of tall line.
+
 2006-09-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (install_window_handler, mac_handle_window_event)
