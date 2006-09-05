@@ -3781,7 +3781,8 @@ for first matching file."
 (defun ido-visit-buffer (buffer method &optional record)
   "Switch to BUFFER according to METHOD.
 Record command in `command-history' if optional RECORD is non-nil."
-
+  (if (bufferp buffer)
+      (setq buffer (buffer-name buffer)))
   (let (win newframe)
     (cond
      ((eq method 'kill)
