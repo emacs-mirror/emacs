@@ -46,15 +46,34 @@ Windows only bug.
 
 * BUGS
 
-** Milan Zamazal's Aug 23 bug report about crashes with certain fonts.
+** How rcirc puts cursor at bottom.
+
+** rcirc uses member*.
+
+** Field handling in C-n.
+
+** cursor display on images that don't use :mask.
 
 ** C-g fails to interrupt accept-process-output in Gnus.
-
-** Implement buffer-chars-modified-tick.
+  (Is that fixed?)
 
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem.
+  (Did we decide that is unreproducible?)
 
 ** Make key-binding use the maps specified by positions given in the events.
+
+** Is it necessary to solve in another way the problem that was solved
+ by Satyaki Das's removed pgg patches?
+
+** mouse-autoselect-window delay patch
+
+** savehist and ido bug, Michaël Cadilhac, Aug 27.
+
+** next-error confused by GCC included file message.
+
+** Bug in woman, Juri Linkov, Sep 3.
+
+** Problem of passing temp files to GPG thru call-process.
 
 
 * DOCUMENTATION
