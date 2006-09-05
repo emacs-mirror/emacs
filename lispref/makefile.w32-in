@@ -23,6 +23,7 @@
 srcdir = .
 
 infodir = $(srcdir)/../info
+usermanualdir = $(srcdir)/../man
 
 # Redefine `TEX' if `tex' does not invoke plain TeX.  For example:
 # TEX=platex
@@ -108,7 +109,7 @@ $(infodir)/elisp: $(srcs)
 	$(MAKEINFO) -I. -I$(srcdir) -o $(infodir)/elisp $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs)
-	$(texinputdir) $(TEX) $(srcdir)/elisp.texi
+	$(texinputdir) $(TEX) -I $(usermanualdir) $(srcdir)/elisp.texi
 
 clean:
 	- $(DEL) *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \

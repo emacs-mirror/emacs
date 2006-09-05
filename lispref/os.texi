@@ -1578,6 +1578,25 @@ Here's an example:
 @end smallexample
 @end defun
 
+  Some idle timer functions in user Lisp packages have a loop that
+does a certain amount of processing each time around, and exits when
+@code{(input-pending-p)} is non-@code{nil}.  That approach seems very
+natural but has two problems:
+
+@itemize
+@item
+It blocks out all process output (since Emacs accepts process output
+only while waiting).
+
+@item
+It blocks out any idle timers that ought to run during that time.
+@end itemize
+
+@noindent
+To avoid these problems, don't use that technique.  Instead, write
+such idle timers to reschedule themselves after a brief pause, using
+the method in the @code{timer-function} example above.
+
 @node Terminal Input
 @section Terminal Input
 @cindex terminal input

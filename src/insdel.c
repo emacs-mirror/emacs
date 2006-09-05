@@ -996,6 +996,7 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
      will add up to the right stuff in the undo list.  */
   record_insert (PT, nchars);
   MODIFF++;
+  CHARS_MODIFF = MODIFF;
 
   bcopy (string, GPT_ADDR, nbytes);
 
@@ -1133,6 +1134,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   record_insert (PT, nchars);
   MODIFF++;
+  CHARS_MODIFF = MODIFF;
 
   GAP_SIZE -= outgoing_nbytes;
   GPT += nchars;
@@ -1328,6 +1330,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 
   record_insert (PT, nchars);
   MODIFF++;
+  CHARS_MODIFF = MODIFF;
 
   GAP_SIZE -= outgoing_nbytes;
   GPT += nchars;
@@ -1436,6 +1439,7 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
   if (len == 0)
     evaporate_overlays (from);
   MODIFF++;
+  CHARS_MODIFF = MODIFF;
 }
 
 /* Like adjust_after_replace, but doesn't require PREV_TEXT.
@@ -1486,6 +1490,7 @@ adjust_after_replace_noundo (from, from_byte, nchars_del, nbytes_del, len, len_b
   if (len == 0)
     evaporate_overlays (from);
   MODIFF++;
+  CHARS_MODIFF = MODIFF;
 }
 
 /* Record undo information, adjust markers and position keepers for an
@@ -1678,6 +1683,7 @@ replace_range (from, to, new, prepare, inherit, markers)
   CHECK_MARKERS ();
 
   MODIFF++;
+  CHARS_MODIFF = MODIFF;
   UNGCPRO;
 
   signal_after_change (from, nchars_del, GPT - from);
@@ -1802,6 +1808,7 @@ replace_range_2 (from, from_byte, to, to_byte, ins, inschars, insbytes, markers)
   CHECK_MARKERS ();
 
   MODIFF++;
+  CHARS_MODIFF = MODIFF;
 }
 
 /* Delete characters in current buffer
@@ -1983,6 +1990,7 @@ del_range_2 (from, from_byte, to, to_byte, ret_string)
   if (! EQ (current_buffer->undo_list, Qt))
     record_delete (from, deletion);
   MODIFF++;
+  CHARS_MODIFF = MODIFF;
 
   /* Relocate point as if it were a marker.  */
   if (from < PT)
@@ -2023,12 +2031,15 @@ del_range_2 (from, from_byte, to, to_byte, ret_string)
    character positions START to END.  This checks the read-only
    properties of the region, calls the necessary modification hooks,
    and warns the next redisplay that it should pay attention to that
-   area.  */
+   area.
+
+   If PRESERVE_CHARS_MODIFF is non-zero, do not update CHARS_MODIFF.
+   Otherwise set CHARS_MODIFF to the new value of MODIFF.  */
 
 void
-modify_region (buffer, start, end)
+modify_region (buffer, start, end, preserve_chars_modiff)
      struct buffer *buffer;
-     int start, end;
+     int start, end, preserve_chars_modiff;
 {
   struct buffer *old_buffer = current_buffer;
 
@@ -2042,6 +2053,8 @@ modify_region (buffer, start, end)
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
   MODIFF++;
+  if (! preserve_chars_modiff)
+    CHARS_MODIFF = MODIFF;
 
   buffer->point_before_scroll = Qnil;
 

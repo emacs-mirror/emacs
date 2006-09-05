@@ -144,7 +144,9 @@ number.	 If zero or nil, no truncating is done."
 
 (defcustom rcirc-show-maximum-output t
   "*If non-nil, scroll buffer to keep the point at the bottom of
-the window.")
+the window."
+  :type 'boolean
+  :group 'rcirc)
 
 (defcustom rcirc-authinfo nil
   "List of authentication passwords.
@@ -200,6 +202,11 @@ use either M-x customize or also call `rcirc-update-prompt'."
   :initialize 'custom-initialize-default
   :group 'rcirc)
 
+(defcustom rcirc-keywords nil
+  "List of keywords to highlight in message text."
+  :type '(repeat string)
+  :group 'rcirc)
+
 (defcustom rcirc-ignore-list ()
   "List of ignored nicks.
 Use /ignore to list them, use /ignore NICK to add or remove a nick."
@@ -212,16 +219,16 @@ When an ignored person renames, their nick is added to both lists.
 Nicks will be removed from the automatic list on follow-up renamings or
 parts.")
 
-(defcustom rcirc-bright-nick-regexp nil
-  "Regexp matching nicks to be emphasized.
+(defcustom rcirc-bright-nicks nil
+  "List of nicks to be emphasized.
 See `rcirc-bright-nick' face."
-  :type 'regexp
+  :type '(repeat string)
   :group 'rcirc)
 
-(defcustom rcirc-dim-nick-regexp nil
-  "Regexp matching nicks to be deemphasized.
+(defcustom rcirc-dim-nicks nil
+  "List of nicks to be deemphasized.
 See `rcirc-dim-nick' face."
-  :type 'regexp
+  :type '(repeat string)
   :group 'rcirc)
 
 (defcustom rcirc-print-hooks nil
@@ -246,7 +253,7 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :group 'rcirc)
 
 (defcustom rcirc-coding-system-alist nil
-  "Alist to decide a coding system to use for a file I/O operation.
+  "Alist to decide a coding system to use for a channel I/O operation.
 The format is ((PATTERN . VAL) ...).
 PATTERN is either a string or a cons of strings.
 If PATTERN is a string, it is used to match a target.
@@ -528,10 +535,14 @@ Function is called with PROCESS, COMMAND, SENDER, ARGS and LINE.")
                             process cmd sender args text)))
     (message "UNHANDLED: %s" text)))
 
-(defun rcirc-handler-generic (process command sender args text)
+(defvar rcirc-responses-no-activity '("305" "306")
+  "Responses that don't trigger activity in the mode-line indicator.")
+
+(defun rcirc-handler-generic (process response sender args text)
   "Generic server response handler."
-  (rcirc-print process sender command nil
-               (mapconcat 'identity (cdr args) " ") t))
+  (rcirc-print process sender response nil
+               (mapconcat 'identity (cdr args) " ")
+	       (not (member response rcirc-responses-no-activity))))
 
 (defun rcirc-send-string (process string)
   "Send PROCESS a STRING plus a newline."
@@ -748,13 +759,10 @@ If NOTICEP is non-nil, send a notice instead of privmsg."
 
   ;; if the user changes the major mode or kills the buffer, there is
   ;; cleanup work to do
-  (make-local-variable 'change-major-mode-hook)
-  (add-hook 'change-major-mode-hook 'rcirc-change-major-mode-hook)
-  (make-local-variable 'kill-buffer-hook)
-  (add-hook 'kill-buffer-hook 'rcirc-kill-buffer-hook)
+  (add-hook 'change-major-mode-hook 'rcirc-change-major-mode-hook nil t)
+  (add-hook 'kill-buffer-hook 'rcirc-kill-buffer-hook nil t)
 
-  (make-local-variable 'window-scroll-functions)
-  (add-hook 'window-scroll-functions 'rcirc-scroll-to-bottom)
+  (add-hook 'window-scroll-functions 'rcirc-scroll-to-bottom nil t)
 
   ;; add to buffer list, and update buffer abbrevs
   (when target				; skip server buffer
@@ -941,7 +949,7 @@ Create the buffer if it doesn't exist."
 	(if (fboundp fun)
 	    (funcall fun args process rcirc-target)
 	  (rcirc-send-string process
-			     (concat command " " args)))))))
+			     (concat command " :" args)))))))
 
 (defvar rcirc-parent-buffer nil)
 (defvar rcirc-window-configuration nil)
@@ -1073,7 +1081,8 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 		   "%")
 		  ((or (eq key ?n) (eq key ?N))
 		   ;; %n/%N -- nick
-		   (let ((nick (concat (if (string= (with-rcirc-process-buffer process
+		   (let ((nick (concat (if (string= (with-rcirc-process-buffer 
+							process
 						      rcirc-server)
 						    sender)
 					   ""
@@ -1084,26 +1093,26 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 				       face
 				     (cond ((string= sender (rcirc-nick process))
 					    'rcirc-my-nick)
-					   ((and rcirc-bright-nick-regexp
-						 (string-match rcirc-bright-nick-regexp sender))
+					   ((and rcirc-bright-nicks
+						 (string-match 
+						  (regexp-opt rcirc-bright-nicks)
+						  sender))
 					    'rcirc-bright-nick)
-					   ((and rcirc-dim-nick-regexp
-						 (string-match rcirc-dim-nick-regexp sender))
+					   ((and rcirc-dim-nicks
+						 (string-match
+						  (regexp-opt rcirc-dim-nicks)
+						  sender))
 					    'rcirc-dim-nick)
 					   (t
 					    'rcirc-other-nick))))))
-		  ((eq key ?T)
+		   ((eq key ?T)
 		   ;; %T -- timestamp
 		   (rcirc-facify
 		    (format-time-string rcirc-time-format (current-time))
 		    'rcirc-timestamp))
 		  ((eq key ?m)
 		   ;; %m -- message text
-		   ;; We add the text property `rcirc-text' to identify this
-		   ;; as the body text.
-		   (propertize
-		    (rcirc-mangle-text process (rcirc-facify text face))
-		    'rcirc-text text))
+		   (rcirc-markup-text process sender response (rcirc-facify text face)))
 		  ((eq key ?t)
 		   ;; %t -- target
 		   (rcirc-facify (or rcirc-target "") face))
@@ -1152,12 +1161,10 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 	  ((or (rcirc-get-buffer process target)
 	       (rcirc-any-buffer process))))))
 
-(defvar rcirc-activity-type nil)
-(make-variable-buffer-local 'rcirc-activity-type)
+(defvar rcirc-activity-types nil)
+(make-variable-buffer-local 'rcirc-activity-types)
 (defvar rcirc-last-sender nil)
 (make-variable-buffer-local 'rcirc-last-sender)
-(defvar rcirc-gray-toggle nil)
-(make-variable-buffer-local 'rcirc-gray-toggle)
 
 (defun rcirc-scroll-to-bottom (window display-start)
   "Scroll window to show maximum output if `rcirc-show-maximum-output' is
@@ -1261,26 +1268,13 @@ record activity."
 	  (buffer-enable-undo))
 
 	;; record modeline activity
-	(when activity
-	  (let ((nick-match
-		 (with-syntax-table rcirc-nick-syntax-table		 
-		   (string-match (concat "\\b"
-					 (regexp-quote (rcirc-nick process))
-					 "\\b")
-				 text))))
-	    (when (if rcirc-ignore-buffer-activity-flag
-		      ;; - Always notice when our nick is mentioned
-		      nick-match
-		    ;; - unless our nick is mentioned, don't bother us
-		    ;; - with dim-nicks
-		    (or nick-match
-			(not (and rcirc-dim-nick-regexp sender
-				  (string-match rcirc-dim-nick-regexp sender)))))
-	      (rcirc-record-activity
-	       (current-buffer)
-	       (when (or nick-match (and (not (rcirc-channel-p rcirc-target))
-					 (not rcirc-low-priority-flag)))
-		 'nick)))))
+	(when (and activity
+		   (not rcirc-ignore-buffer-activity-flag)
+		   (not (and rcirc-dim-nicks sender
+			     (string-match (regexp-opt rcirc-dim-nicks) sender))))
+	      (rcirc-record-activity (current-buffer)
+				     (when (not (rcirc-channel-p rcirc-target))
+				       'nick)))
 
 	(sit-for 0)			; displayed text before hook
 	(run-hook-with-args 'rcirc-print-hooks
@@ -1501,8 +1495,7 @@ activity.  Only run if the buffer is not visible and
 		    (let ((t1 (with-current-buffer b1 rcirc-last-post-time))
 			  (t2 (with-current-buffer b2 rcirc-last-post-time)))
 		      (time-less-p t2 t1)))))
-      (if (not rcirc-activity-type)
-	  (setq rcirc-activity-type type))
+      (pushnew type rcirc-activity-types)
       (rcirc-update-activity-string)))
   (run-hook-with-args 'rcirc-activity-hooks buffer))
 
@@ -1510,7 +1503,7 @@ activity.  Only run if the buffer is not visible and
   "Clear the BUFFER activity."
   (setq rcirc-activity (delete buffer rcirc-activity))
   (with-current-buffer buffer
-    (setq rcirc-activity-type nil)))
+    (setq rcirc-activity-types nil)))
 
 (defun rcirc-split-activity (activity)
   "Return a cons cell with ACTIVITY split into (lopri . hipri)."
@@ -1518,7 +1511,7 @@ activity.  Only run if the buffer is not visible and
     (dolist (buf rcirc-activity)
       (with-current-buffer buf
 	(if (and rcirc-low-priority-flag
-		 (not (eq rcirc-activity-type 'nick)))
+		 (not (member 'nick rcirc-activity-types)))
 	    (add-to-list 'lopri buf t)
 	  (add-to-list 'hipri buf t))))
     (cons lopri hipri)))
@@ -1547,11 +1540,15 @@ activity.  Only run if the buffer is not visible and
 
 (defun rcirc-activity-string (buffers)
   (mapconcat (lambda (b)
-	       (let ((s (rcirc-short-buffer-name b)))
+	       (let ((s (substring-no-properties (rcirc-short-buffer-name b))))
 		 (with-current-buffer b
-		   (if (not (eq rcirc-activity-type 'nick))
-		       s
-		     (rcirc-facify s 'rcirc-mode-line-nick)))))
+		   (dolist (type rcirc-activity-types)
+		     (rcirc-add-face 0 (length s)
+				     (case type
+				       ('nick 'rcirc-track-nick)
+				       ('keyword 'rcirc-track-keyword))
+				     s)))
+		 s))
 	     buffers ","))
 
 (defun rcirc-short-buffer-name (buffer)
@@ -1566,15 +1563,18 @@ Also, clear the overlay arrow if the current buffer is now hidden."
   (let ((current-now-hidden t))
     (walk-windows (lambda (w)
 		    (let ((buf (window-buffer w)))
-		      (when (eq major-mode 'rcirc-mode)
-			(rcirc-clear-activity buf)
+		      (with-current-buffer buf
+			(when (eq major-mode 'rcirc-mode)
+			  (rcirc-clear-activity buf)))
 			(when (eq buf rcirc-current-buffer)
-			  (setq current-now-hidden nil))))))
+			  (setq current-now-hidden nil)))))
     ;; add overlay arrow if the buffer isn't displayed
-    (when (and rcirc-current-buffer current-now-hidden)
+    (when (and current-now-hidden
+	       rcirc-current-buffer
+	       (buffer-live-p rcirc-current-buffer))
       (with-current-buffer rcirc-current-buffer
-	(when (eq major-mode 'rcirc-mode)
-	  (marker-position overlay-arrow-position)
+	(when (and (eq major-mode 'rcirc-mode)
+		   (marker-position overlay-arrow-position))
 	  (set-marker overlay-arrow-position nil)))))
 
   ;; remove any killed buffers from list
@@ -1792,17 +1792,21 @@ With a prefix arg, prompt for new topic."
   (rcirc-send-string process (format "PRIVMSG %s :\C-aACTION %s\C-a"
                                      target args)))
 
+(defun rcirc-add-or-remove (set &optional elt)
+  (if (and elt (not (string= "" elt)))
+      (if (member-ignore-case elt set)
+	  (delete elt set)
+	(cons elt set))
+    set))
+
 (defun-rcirc-command ignore (nick)
   "Manage the ignore list.
 Ignore NICK, unignore NICK if already ignored, or list ignored
 nicks when no NICK is given.  When listing ignored nicks, the
 ones added to the list automatically are marked with an asterisk."
   (interactive "sToggle ignoring of nick: ")
-  (when (not (string= "" nick))
-    (if (member-ignore-case nick rcirc-ignore-list)
-	(setq rcirc-ignore-list (delete nick rcirc-ignore-list))
-      (setq rcirc-ignore-list (cons nick rcirc-ignore-list))))
-  (rcirc-print process (rcirc-nick process) "IGNORE" target 
+  (setq rcirc-ignore-list (rcirc-add-or-remove rcirc-ignore-list nick))
+  (rcirc-print process nil "IGNORE" target 
 	       (mapconcat
 		(lambda (nick)
 		  (concat nick
@@ -1810,14 +1814,47 @@ ones added to the list automatically are marked with an asterisk."
 			      "*" "")))
 		rcirc-ignore-list " ")))
 
+(defun-rcirc-command bright (nick)
+  "Manage the bright nick list."
+  (interactive "sToggle emphasis of nick: ")
+  (setq rcirc-bright-nicks (rcirc-add-or-remove rcirc-bright-nicks nick))
+  (rcirc-print process nil "BRIGHT" target 
+	       (mapconcat 'identity rcirc-bright-nicks " ")))
+
+(defun-rcirc-command dim (nick)
+  "Manage the dim nick list."
+  (interactive "sToggle deemphasis of nick: ")
+  (setq rcirc-dim-nicks (rcirc-add-or-remove rcirc-dim-nicks nick))
+  (rcirc-print process nil "DIM" target 
+	       (mapconcat 'identity rcirc-dim-nicks " ")))
+
+(defun-rcirc-command keyword (keyword)
+  "Manage the keyword list.
+Mark KEYWORD, unmark KEYWORD if already marked, or list marked
+keywords when no KEYWORD is given."
+  (interactive "sToggle highlighting of keyword: ")
+  (setq rcirc-keywords (rcirc-add-or-remove rcirc-keywords keyword))
+  (rcirc-print process nil "KEYWORD" target 
+	       (mapconcat 'identity rcirc-keywords " ")))
+
 
-(defun rcirc-message-leader (sender face)
-  "Return a string with SENDER propertized with FACE."
-  (rcirc-facify (concat "<" sender "> ") face))
+(defun rcirc-add-face (start end name &optional object)
+  "Add face NAME to the face text property of the text from START to END."
+  (when name
+    (let ((pos start)
+	  next prop)
+      (while (< pos end)
+	(setq prop (get-text-property pos 'face object)
+	      next (next-single-property-change pos 'face object end))
+	(unless (member name (get-text-property pos 'face object))
+	  (add-text-properties pos next (list 'face (cons name prop)) object))
+	(setq pos next)))))
 
 (defun rcirc-facify (string face)
   "Return a copy of STRING with FACE property added."
-  (propertize (or string "") 'face face 'rear-nonsticky t))
+  (let ((string (or string "")))
+    (rcirc-add-face 0 (length string) face string)
+    string))
 
 (defvar rcirc-url-regexp
   (rx-to-string
@@ -1835,8 +1872,8 @@ ones added to the list automatically are marked with an asterisk."
 		  word-boundary))
 	 (optional 
 	  (and "/"
-	       (1+ (char "-a-zA-Z0-9_=!?#$\@~`%&*+|\\/:;.,{}[]"))
-	       (char "-a-zA-Z0-9_=#$\@~`%&*+|\\/:;{}[]")))))
+	       (1+ (char "-a-zA-Z0-9_=!?#$\@~`%&*+|\\/:;.,{}[]()"))
+	       (char "-a-zA-Z0-9_=#$\@~`%&*+|\\/:;{}[]()")))))
   "Regexp matching URLs.  Set to nil to disable URL features in rcirc.")
 
 (defun rcirc-browse-url (&optional arg)
@@ -1863,68 +1900,99 @@ ones added to the list automatically are marked with an asterisk."
     (with-current-buffer (window-buffer (posn-window position))
       (rcirc-browse-url-at-point (posn-point position)))))
 
-(defun rcirc-map-regexp (function regexp string)
-  "Return a copy of STRING after calling FUNCTION for each REGEXP match.
-FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
-  (let ((start 0))
-    (while (string-match regexp string start)
-      (setq start (match-end 0))
-      (funcall function (match-beginning 0) (match-end 0) string)))
-  string)
+
+(defvar rcirc-markup-text-functions
+  '(rcirc-markup-body-text
+    rcirc-markup-attributes
+    rcirc-markup-my-nick
+    rcirc-markup-urls
+    rcirc-markup-keywords
+    rcirc-markup-bright-nicks)
+  "List of functions used to manipulate text before it is printed.
 
-(defun rcirc-mangle-text (process text)
+Each function takes three arguments, PROCESS, SENDER, RESPONSE
+and CHANNEL-BUFFER.  The current buffer is temporary buffer that
+contains the text to manipulate.  Each function works on the text
+in this buffer.")
+
+(defun rcirc-markup-text (process sender response text)
   "Return TEXT with properties added based on various patterns."
-  ;; ^B
-  (setq text
-        (rcirc-map-regexp
-	 (lambda (start end string)
-	   (let ((orig-face (get-text-property start 'face string)))
-	       (add-text-properties
-		start end
-		(list 'face (if (listp orig-face)
-				(append orig-face
-					(list 'bold))
-			      (list orig-face 'bold))
-		      'rear-nonsticky t)
-		string)))
-	   ".*?"
-	   text))
-  ;; TODO: deal with ^_ and ^C colors sequences
-  (while (string-match "\\(.*\\)[]\\(.*\\)" text)
-    (setq text (concat (match-string 1 text)
-                       (match-string 2 text))))
-  ;; my nick
-  (setq text
-        (with-syntax-table rcirc-nick-syntax-table
-          (rcirc-map-regexp (lambda (start end string)
-                              (add-text-properties
-                               start end
-                               (list 'face 'rcirc-nick-in-message
-                                     'rear-nonsticky t)
-                               string))
-                            (concat "\\b"
-                                    (regexp-quote (rcirc-nick process))
-                                    "\\b")
-                            text)))
-  ;; urls
-  (setq text
-        (rcirc-map-regexp
-	 (lambda (start end string)
-	   (let ((orig-face (get-text-property start 'face string)))
-	     (add-text-properties start end
-				  (list 'face (if (listp orig-face)
-						  (append orig-face
-							  (list 'bold))
-						(list orig-face 'bold))
-					'rear-nonsticky t
-					'mouse-face 'highlight
-					'keymap rcirc-browse-url-map)
-				  string))
-	     (push (substring-no-properties string start end) rcirc-urls))
-	   rcirc-url-regexp
-	   text))
-  text)
+  (let ((channel-buffer (current-buffer)))
+    (with-temp-buffer
+      (insert text)
+      (goto-char (point-min))
+      (dolist (fn rcirc-markup-text-functions)
+	(save-excursion
+	  (funcall fn process sender response channel-buffer)))
+      (buffer-substring (point-min) (point-max)))))
 
+(defun rcirc-markup-body-text (process sender response channel-buffer)
+  ;; We add the text property `rcirc-text' to identify this as the
+  ;; body text.
+  (add-text-properties (point-min) (point-max)
+		       (list 'rcirc-text (buffer-substring-no-properties
+					  (point-min) (point-max)))))
+
+(defun rcirc-markup-attributes (process sender response channel-buffer)
+  (while (re-search-forward "\\([\C-b\C-_\C-v]\\).*?\\(\\1\\|\C-o\\)" nil t)
+    (rcirc-add-face (match-beginning 0) (match-end 0)
+		    (case (char-after (match-beginning 1))
+		      (?\C-b 'bold)
+		      (?\C-v 'italic)
+		      (?\C-_ 'underline)))
+    ;; keep the ^O since it could terminate other attributes
+    (when (not (eq ?\C-o (char-before (match-end 2))))
+      (delete-region (match-beginning 2) (match-end 2)))
+    (delete-region (match-beginning 1) (match-end 1))
+    (goto-char (1+ (match-beginning 1))))
+  ;; remove the ^O characters now
+  (while (re-search-forward "\C-o+" nil t)
+    (delete-region (match-beginning 0) (match-end 0))))
+
+(defun rcirc-markup-my-nick (process sender response channel-buffer)
+  (with-syntax-table rcirc-nick-syntax-table
+    (while (re-search-forward (concat "\\b" 
+				      (regexp-quote (rcirc-nick process))
+				      "\\b")
+			      nil t)
+      (rcirc-add-face (match-beginning 0) (match-end 0) 
+		      'rcirc-nick-in-message)
+      (when (string= response "PRIVMSG")
+	(rcirc-add-face (point-min) (point-max) 'rcirc-nick-in-message-full-line)
+	(rcirc-record-activity channel-buffer 'nick)))))
+
+(defun rcirc-markup-urls (process sender response channel-buffer)
+  (while (re-search-forward rcirc-url-regexp nil t)
+    (let ((start (match-beginning 0))
+	  (end (match-end 0)))
+      (rcirc-add-face start end 'rcirc-url)
+      (add-text-properties start end (list 'mouse-face 'highlight
+					   'keymap rcirc-browse-url-map))
+      ;; record the url
+      (let ((url (buffer-substring-no-properties start end)))
+	(with-current-buffer channel-buffer
+	  (push url rcirc-urls))))))
+
+(defun rcirc-markup-keywords (process sender response channel-buffer)
+  (let* ((target (with-current-buffer channel-buffer (or rcirc-target "")))
+	 (keywords (delq nil (mapcar (lambda (keyword)
+				      (when (not (string-match keyword target))
+					keyword))
+				    rcirc-keywords))))
+    (when keywords
+      (while (re-search-forward (regexp-opt keywords 'words) nil t)
+	(rcirc-add-face (match-beginning 0) (match-end 0) 'rcirc-keyword)
+	(when (and (string= response "PRIVMSG")
+		   (not (string= sender (rcirc-nick process))))
+	  (rcirc-record-activity channel-buffer 'keyword))))))
+
+(defun rcirc-markup-bright-nicks (process sender response channel-buffer)
+  (when (and rcirc-bright-nicks
+	     (string= response "NAMES"))
+    (with-syntax-table rcirc-nick-syntax-table
+      (while (re-search-forward (regexp-opt rcirc-bright-nicks 'words) nil t)
+	(rcirc-add-face (match-beginning 0) (match-end 0)
+			'rcirc-bright-nick)))))
 
 ;;; handlers
 ;; these are called with the server PROCESS, the SENDER, which is a
@@ -2275,12 +2343,12 @@ Passwords are stored in `rcirc-authinfo' (which see)."
     (((class color) (min-colors 16) (background dark)) (:foreground "Aquamarine"))
     (((class color) (min-colors 8)) (:foreground "magenta"))
     (t (:weight bold :underline t)))
-  "Face used for nicks matched by `rcirc-bright-nick-regexp'."
+  "Face used for nicks matched by `rcirc-bright-nicks'."
   :group 'rcirc-faces)
 
 (defface rcirc-dim-nick
   '((t :inherit default))
-  "Face used for nicks matched by `rcirc-dim-nick-regexp'."
+  "Face used for nicks in `rcirc-dim-nicks'."
   :group 'rcirc-faces)
 
 (defface rcirc-server			; font-lock-comment-face
@@ -2329,8 +2397,13 @@ Passwords are stored in `rcirc-authinfo' (which see)."
     (((class color) (min-colors 16) (background dark)) (:foreground "Cyan"))
     (((class color) (min-colors 8)) (:foreground "cyan" :weight bold))
     (t (:weight bold)))
-  "The face used to highlight instances of nick within messages."
+  "The face used to highlight instances of your nick within messages."
   :group 'rcirc-faces)
+
+(defface rcirc-nick-in-message-full-line
+  '((t (:bold t)))
+  "The face used emphasize the entire message when your nick is mentioned."
+  :group 'rcirc-faces)  
 
 (defface rcirc-prompt			; comint-highlight-prompt
   '((((min-colors 88) (background dark)) (:foreground "cyan1"))
@@ -2339,9 +2412,24 @@ Passwords are stored in `rcirc-authinfo' (which see)."
   "The face used to highlight prompts."
   :group 'rcirc-faces)
 
-(defface rcirc-mode-line-nick
+(defface rcirc-track-nick
+  '((t (:inverse-video t)))
+  "The face used in the mode-line when your nick is mentioned."
+  :group 'rcirc-faces)
+
+(defface rcirc-track-keyword
+  '((t (:bold t )))
+  "The face used in the mode-line when keywords are mentioned."
+  :group 'rcirc-faces)
+
+(defface rcirc-url
   '((t (:bold t)))
-  "The face used indicate activity directed at you."
+  "The face used to highlight urls."
+  :group 'rcirc-faces)
+
+(defface rcirc-keyword
+  '((t (:inherit highlight)))
+  "The face used to highlight keywords."
   :group 'rcirc-faces)
 
 

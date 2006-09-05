@@ -74,23 +74,27 @@
 	 (errors-buffer pgg-errors-buffer)
 	 (orig-mode (default-file-modes))
 	 (process-connection-type nil)
-	 exit-status)
+	 process status exit-status)
     (with-current-buffer (get-buffer-create errors-buffer)
       (buffer-disable-undo)
       (erase-buffer))
     (unwind-protect
 	(progn
 	  (set-default-file-modes 448)
-	  (let ((coding-system-for-write 'binary)
-		(input (buffer-substring-no-properties start end))
-		(default-enable-multibyte-characters nil))
-	    (with-temp-buffer
-	      (when passphrase
-		(insert passphrase "\n"))
-	      (insert input)
-	      (setq exit-status
-		    (apply #'call-process-region (point-min) (point-max) program
-			   nil errors-buffer nil args))))
+	  (let ((coding-system-for-write 'binary))
+	    (setq process
+		  (apply #'start-process "*GnuPG*" errors-buffer
+			 program args)))
+	  (set-process-sentinel process #'ignore)
+	  (when passphrase
+	    (process-send-string process (concat passphrase "\n")))
+	  (process-send-region process start end)
+	  (process-send-eof process)
+	  (while (eq 'run (process-status process))
+	    (accept-process-output process 5))
+	  (setq status (process-status process)
+		exit-status (process-exit-status process))
+	  (delete-process process)
 	  (with-current-buffer (get-buffer-create output-buffer)
 	    (buffer-disable-undo)
 	    (erase-buffer)
@@ -100,9 +104,12 @@
 						'binary)))
 		  (insert-file-contents output-file-name)))
 	    (set-buffer errors-buffer)
-	    (if (not (equal exit-status 0))
-		(insert (format "\n%s exited abnormally: '%s'\n"
-				program exit-status)))))
+	    (if (memq status '(stop signal))
+		(error "%s exited abnormally: '%s'" program exit-status))
+	    (if (= 127 exit-status)
+		(error "%s could not be found" program))))
+      (if (and process (eq 'run (process-status process)))
+	  (interrupt-process process))
       (if (file-exists-p output-file-name)
 	  (delete-file output-file-name))
       (set-default-file-modes orig-mode))))

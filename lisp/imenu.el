@@ -967,15 +967,15 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
 (defvar imenu-buffer-menubar nil)
 
 (defvar imenu-menubar-modified-tick 0
-  "The value of (buffer-modified-tick) as of last call to `imenu-update-menubar'.")
+  "The value of (buffer-chars-modified-tick) as of the last call
+to `imenu-update-menubar'.")
 (make-variable-buffer-local 'imenu-menubar-modified-tick)
 
 (defun imenu-update-menubar ()
   (when (and (current-local-map)
 	     (keymapp (lookup-key (current-local-map) [menu-bar index]))
-	     (not (eq (buffer-modified-tick)
-		      imenu-menubar-modified-tick)))
-    (setq imenu-menubar-modified-tick (buffer-modified-tick))
+	     (/= (buffer-chars-modified-tick) imenu-menubar-modified-tick))
+    (setq imenu-menubar-modified-tick (buffer-chars-modified-tick))
     (let ((index-alist (imenu--make-index-alist t)))
       ;; Don't bother updating if the index-alist has not changed
       ;; since the last time we did it.

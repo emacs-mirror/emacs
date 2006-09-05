@@ -116,7 +116,7 @@ fit are frequent.  Continuing all those lines might be confusing, so
 if the variable @code{truncate-partial-width-windows} is
 non-@code{nil}, that forces truncation in all windows less than the
 full width of the screen, independent of the buffer being displayed
-and its value for @code{truncate-lines}.  @xref{Display Custom}.
+and its value for @code{truncate-lines}.  @xref{Line Truncation}.
 
   Horizontal scrolling is often used in side-by-side windows.
 @xref{Horizontal Scrolling}.

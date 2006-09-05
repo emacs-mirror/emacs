@@ -1972,12 +1972,12 @@ the value of point at the beginning of the line for that buffer."
 		(not (eq ibuffer-buf buf))))))
 
 ;; This function is a special case; it's not defined by
-;; `ibuffer-define-sorter'.
+;; `define-ibuffer-sorter'.
 (defun ibuffer-do-sort-by-recency ()
   "Sort the buffers by last view time."
   (interactive)
   (setq ibuffer-sorting-mode 'recency)
-  (ibuffer-redisplay t))
+  (ibuffer-update nil t))
 
 (defun ibuffer-update-format ()
   (when (null ibuffer-current-format)

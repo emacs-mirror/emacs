@@ -70,6 +70,8 @@
 (defalias 'mail-encode-encoded-word-string 'rfc2047-encode-string)
 (defalias 'mail-decode-encoded-word-region 'rfc2047-decode-region)
 (defalias 'mail-decode-encoded-word-string 'rfc2047-decode-string)
+(defalias 'mail-decode-encoded-address-region 'rfc2047-decode-address-region)
+(defalias 'mail-decode-encoded-address-string 'rfc2047-decode-address-string)
 
 (provide 'mail-parse)
 

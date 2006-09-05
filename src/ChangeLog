@@ -1,3 +1,99 @@
+2006-09-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (install_window_handler, mac_handle_window_event)
+	[USE_CARBON_EVENTS]: Handle kEventWindowClose.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Set modifiers for
+	ASCII keystroke event.
+
+2006-09-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Don't mention specific keys in
+	the file chooser message.  Only call gtk_file_chooser_set_current_name
+	when action is SAVE.
+
+2006-09-04  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in: Double all single and back quotes in C-style
+	comments to help fontifier.
+
+2006-09-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (shutdown_handler): New function to exit cleanly on shutdown.
+	(globals_of_w32): Register it as a signal handler.
+
+2006-09-02  Juri Linkov  <juri@jurta.org>
+
+	* marker.c (Fmarker_position): Doc fix.
+
+2006-09-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (syms_of_window) <split-height-threshold>:
+	<window-min-height, window-min-width>: Doc fix.
+
+2006-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Change file chooser message
+	for writing files.  Call gtk_file_chooser_set_current_name to keep
+	default filename.
+
+	* minibuf.c (Finternal_complete_buffer): Move after DEFUN:s it calls
+
+2006-09-02  Jindrich Makovicka  <makovick@gmail.com>  (tiny change)
+
+	* fns.c (concat) [__GNUC__]: Declare with
+	`__attribute__((noinline))'.
+
+	* eval.c (apply1, call2) [__GNUC__]: Declare with
+	`__attribute__((noinline))'.
+
+2006-09-02  Stuart D. Herring  <herring@lanl.gov>
+
+	* minibuf.c (Finternal_complete_buffer): New function.
+	(syms_of_minibuf): Defsubr it.
+	(Fread_buffer): Use it, instead of Vbuffer_alist.
+
+2006-09-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.h (struct buffer_text): New field chars_modiff.
+	(CHARS_MODIFF, BUF_CHARS_MODIFF): New macros.
+	* buffer.c (Fbuffer_chars_modified_tick): New function returning
+	value of BUF_CHARS_MODIFF.
+	(syms_of_buffer): Defsubr it.
+	(Fget_buffer_create): Initialize BUF_CHARS_MODIFF.
+	* insdel.c (modify_region): New argument preserve_chars_modiff.
+	Set CHARS_MODIFF to MODIFF provided preserve_chars_modiff is zero.
+	(insert_1_both, insert_from_string_1, insert_from_buffer_1)
+	(adjust_after_replace, adjust_after_replace_noundo)
+	(replace_range, replace_range_2, del_range_2): Reset CHARS_MODIFF.
+	* lisp.h (modify_region): Add fourth argument in extern.
+	* casefiddle.c (casify_region): Call modify_region with fourth
+	argument zero to assert that CHARS_MODIFF is updated.
+	* editfns.c (Fsubst_char_in_region, Ftranslate_region_internal)
+	(Ftranspose_regions): Likewise.
+	* textprop.c (Fadd_text_properties, Fset_text_properties)
+	(Fremove_text_properties, Fremove_list_of_text_properties):
+	Call modify_region with fourth argument 1 to avoid that
+	CHARS_MODIFF is updated.
+
+2006-08-31  Richard Stallman  <rms@gnu.org>
+
+	* editfns.c (Fformat): Don't sign-extend for %o or %x.
+
+2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Don't move back if we were
+	displaying a Lisp string, either.
+
+2006-08-28  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_window_cursor_type) [!HAVE_WINDOW_SYSTEM]:
+	Don't attempt to replace cursor on image glyphs.
+
+2006-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fdetect_coding_region, Fdetect_coding_string): Fix
+	docstring about ISO-2022 control characters.
+
 2006-08-28  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_window_cursor_type): Replace BOX cursor on images
@@ -67,6 +163,10 @@
 	(Fdelete_file): Simplify; use list1.
 	(Frename_file, Fadd_name_to_file, Fmake_symbolic_link):
 	Simplify; remove NO_ARG_ARRAY stuff, use list2.
+
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* buffer.c (Fswitch_to_buffer): Fix previous change.
 
 2006-08-25  Kim F. Storm  <storm@cua.dk>
 

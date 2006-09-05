@@ -265,11 +265,14 @@ display oriented stuff, use `trace-function-background' instead."
 ;;;###autoload
 (defun trace-function-background (function &optional buffer)
   "Traces FUNCTION with trace output going quietly to BUFFER.
-For every call of FUNCTION Lisp-style trace messages that display argument
-and return values will be inserted into BUFFER.  This function generates the
-trace advice for FUNCTION and activates it together with any other advice
-there might be!! Trace output will quietly go to BUFFER without changing
-the window or buffer configuration at all."
+When this tracing is enabled, every call to FUNCTION writes
+a Lisp-style trace message (showing the arguments and return value)
+into BUFFER.  This function generates advice to trace FUNCTION
+and activates it together with any other advice there might be.
+The trace output goes to BUFFER quietly, without changing
+the window or buffer configuration.
+
+BUFFER defaults to `trace-buffer'."
   (interactive
    (list
     (intern

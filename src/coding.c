@@ -7461,7 +7461,8 @@ DEFUN ("detect-coding-region", Fdetect_coding_region, Sdetect_coding_region,
        doc: /* Detect coding system of the text in the region between START and END.
 Return a list of possible coding systems ordered by priority.
 
-If only ASCII characters are found, it returns a list of single element
+If only ASCII characters are found (except for such ISO-2022 control
+characters ISO-2022 as ESC), it returns a list of single element
 `undecided' or its subsidiary coding system according to a detected
 end-of-line format.
 
@@ -7497,7 +7498,8 @@ DEFUN ("detect-coding-string", Fdetect_coding_string, Sdetect_coding_string,
        doc: /* Detect coding system of the text in STRING.
 Return a list of possible coding systems ordered by priority.
 
-If only ASCII characters are found, it returns a list of single element
+If only ASCII characters are found (except for such ISO-2022 control
+characters ISO-2022 as ESC), it returns a list of single element
 `undecided' or its subsidiary coding system according to a detected
 end-of-line format.
 

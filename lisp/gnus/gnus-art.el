@@ -853,6 +853,9 @@ be displayed by the first non-nil matching CONTENT face."
 (defvar gnus-decode-header-function 'mail-decode-encoded-word-region
   "Function used to decode headers.")
 
+(defvar gnus-decode-address-function 'mail-decode-encoded-address-region
+  "Function used to decode addresses.")
+
 (defvar gnus-article-dumbquotes-map
   '(("\200" "EUR")
     ("\202" ",")
@@ -2377,10 +2380,23 @@ If PROMPT (the prefix), prompt for a coding system to use."
 			     (set-buffer gnus-summary-buffer)
 			   (error))
 			 gnus-newsgroup-ignored-charsets))
-	(inhibit-read-only t))
+	(inhibit-read-only t)
+	start)
     (save-restriction
       (article-narrow-to-head)
-      (funcall gnus-decode-header-function (point-min) (point-max)))))
+      (while (not (eobp))
+	(setq start (point))
+	(if (prog1
+		(looking-at "\
+\\(?:Resent-\\)?\\(?:From\\|Cc\\|To\\|Bcc\\|\\(?:In-\\)?Reply-To\\|Sender\
+\\|Mail-Followup-To\\|Mail-Copies-To\\|Approved\\):")
+	      (while (progn
+		       (forward-line)
+		       (if (eobp)
+			   nil
+			 (memq (char-after) '(?\t ? ))))))
+	    (funcall gnus-decode-address-function start (point))
+	  (funcall gnus-decode-header-function start (point)))))))
 
 (defun article-decode-group-name ()
   "Decode group names in `Newsgroups:'."
@@ -4324,9 +4340,8 @@ Deleting parts may malfunction or destroy the article; continue? ")
 	   (handles gnus-article-mime-handles)
 	   (none "(none)")
 	   (description
-	    (or
-	     (mail-decode-encoded-word-string (or (mm-handle-description data)
-						  none))))
+	    (mail-decode-encoded-word-string (or (mm-handle-description data)
+						 none)))
 	   (filename
 	    (or (mail-content-type-get (mm-handle-disposition data) 'filename)
 		none))
