@@ -3477,6 +3477,56 @@ Outline mode sets this."
       (or (memq prop buffer-invisibility-spec)
 	  (assq prop buffer-invisibility-spec)))))
 
+;; Returns non-nil if partial move was done.
+(defun line-move-partial (arg noerror to-end)
+  (if (< arg 0)
+      ;; Move backward (up).
+      ;; If already vscrolled, reduce vscroll
+      (let ((vs (window-vscroll nil t)))
+	(when (> vs (frame-char-height))
+	  (set-window-vscroll nil (- vs (frame-char-height)) t)))
+
+    ;; Move forward (down).
+    (let* ((ppos (posn-at-point))
+	   (py (cdr (or (posn-actual-col-row ppos)
+			(posn-col-row ppos))))
+	   (vs (window-vscroll nil t))
+	   (evis (or (pos-visible-in-window-p (window-end nil t) nil t)
+		     (pos-visible-in-window-p (1- (window-end nil t)) nil t)))
+	   (rbot (nth 3 evis))
+	   (vpos (nth 5 evis)))
+      (cond
+       ;; (0) Last window line should be visible - fail if not.
+       ((null evis)
+	nil)
+       ;; If last line of window is fully visible, move forward.
+       ((null rbot)
+	nil)
+       ;; If cursor is not in the bottom scroll margin, move forward.
+       ((< py (min (- (window-text-height) scroll-margin 1)
+		   (1- vpos)))
+	nil)
+       ;; When already vscrolled, we vscroll some more if we can,
+       ;; or clear vscroll and move forward at end of tall image.
+       ((> vs 0)
+	(when (> rbot 0)
+	  (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
+       ;; If cursor just entered the bottom scroll margin, move forward,
+       ;; but also vscroll one line so redisplay wont recenter.
+       ((= py (min (- (window-text-height) scroll-margin 1)
+		   (1- vpos)))
+	(set-window-vscroll nil (frame-char-height) t)
+	(line-move-1 arg noerror to-end)
+	t)
+       ;; If there are lines above the last line, scroll-up one line.
+       ((> vpos 0)
+	(scroll-up 1)
+	t)
+       ;; Finally, start vscroll.
+       (t
+	(set-window-vscroll nil (frame-char-height) t))))))
+
+
 ;; This is like line-move-1 except that it also performs
 ;; vertical scrolling of tall images if appropriate.
 ;; That is not really a clean thing to do, since it mixes
@@ -3484,37 +3534,14 @@ Outline mode sets this."
 ;; a cleaner solution to the problem of making C-n do something
 ;; useful given a tall image.
 (defun line-move (arg &optional noerror to-end try-vscroll)
-  (if (and auto-window-vscroll try-vscroll
-	   ;; But don't vscroll in a keyboard macro.
-	   (not defining-kbd-macro)
-	   (not executing-kbd-macro))
-      (let ((forward (> arg 0))
-	    (part (nth 2 (pos-visible-in-window-p (point) nil t))))
-	(if (and (consp part)
-		 (> (if forward (cdr part) (car part)) 0))
-	    (set-window-vscroll nil
-				(if forward
-				    (+ (window-vscroll nil t)
-				       (min (cdr part)
-					    (* (frame-char-height) arg)))
-				  (max 0
-				       (- (window-vscroll nil t)
-					  (min (car part)
-					       (* (frame-char-height) (- arg))))))
-				t)
-	  (set-window-vscroll nil 0)
-	  (when (line-move-1 arg noerror to-end)
-	    (when (not forward)
-	      ;; Update display before calling pos-visible-in-window-p,
-	      ;; because it depends on window-start being up-to-date.
-	      (sit-for 0)
-	      ;; If the current line is partly hidden at the bottom,
-	      ;; scroll it partially up so as to unhide the bottom.
-	      (if (and (setq part (nth 2 (pos-visible-in-window-p
-					  (line-beginning-position) nil t)))
-		       (> (cdr part) 0))
-		  (set-window-vscroll nil (cdr part) t)))
-	    t)))
+  (unless (and auto-window-vscroll try-vscroll
+	       ;; Only vscroll for single line moves
+	       (= (abs arg) 1)
+	       ;; But don't vscroll in a keyboard macro.
+	       (not defining-kbd-macro)
+	       (not executing-kbd-macro)
+	       (line-move-partial arg noerror to-end))
+    (set-window-vscroll nil 0 t)
     (line-move-1 arg noerror to-end)))
 
 ;; This is the guts of next-line and previous-line.
