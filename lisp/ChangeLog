@@ -1,3 +1,8 @@
+2006-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Process the `gcc-include' after the `gnu' rule.
+
 2006-09-05  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-visit-buffer): Use buffer name if buffer arg is a buffer.
