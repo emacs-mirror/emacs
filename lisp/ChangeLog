@@ -1,3 +1,7 @@
+2006-09-05  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-visit-buffer): Use buffer name if buffer arg is a buffer.
+
 2006-09-05  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg.el (pgg-clear-string): Alias to clear-string for backward
