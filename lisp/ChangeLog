@@ -1,3 +1,11 @@
+2006-09-05  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg.el (pgg-clear-string): Alias to clear-string for backward
+	compatibility.
+
+	* pgg-gpg.el (pgg-gpg-process-region): Avoid display blinking with
+	inhibit-redisplay; encode passphrase with locale-coding-system.
+
 2006-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Add more C-M- bindings.
