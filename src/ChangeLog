@@ -1,3 +1,10 @@
+2006-09-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (install_window_handler, mac_handle_window_event)
+	[USE_CARBON_EVENTS]: Handle kEventWindowClose.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Set modifiers for
+	ASCII keystroke event.
+
 2006-09-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_with_chooser): Don't mention specific keys in
