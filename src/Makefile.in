@@ -74,13 +74,13 @@ SHELL=/bin/sh
 #define NOT_C_CODE
 #include "config.h"
 
-/* We won''t really call alloca;
-   don''t let the file name alloca.c get messed up.  */
+/* We will not really call alloca;
+   do not let the file name alloca.c get messed up.  */
 #ifdef alloca
 #undef alloca
 #endif
 
-/* Don''t let the file name mktime.c get messed up.  */
+/* Do not let the file name mktime.c get messed up.  */
 #ifdef mktime
 #undef mktime
 #endif
@@ -95,7 +95,7 @@ SHELL=/bin/sh
 #endif
 
 /* On some machines #define register is done in config;
-   don''t let it interfere with this file.  */
+   do not let it interfere with this file.  */
 #undef register
 
 /* On some systems we may not be able to use the system make command. */
@@ -115,7 +115,7 @@ CC = C_COMPILER
 #endif
 #endif
 
-/* Some machines don''t find the standard C libraries in the usual place.  */
+/* Some machines do not find the standard C libraries in the usual place.  */
 #ifndef ORDINARY_LINK
 #ifndef LIB_STANDARD
 #define LIB_STANDARD -lc
@@ -336,7 +336,7 @@ LIBXMENU= -lXMenu
 
 #else /* not HAVE_MENUS */
 
-/* Otherwise, don''t worry about the menu library at all.  */
+/* Otherwise, do not worry about the menu library at all.  */
 LIBXMENU=
 #endif /* not HAVE_MENUS */
 
@@ -380,7 +380,7 @@ LIBXTR6 = -lSM -lICE
 #ifdef LIBXT_STATIC
 /* We assume the config files have defined STATIC_OPTION
    since that might depend on the operating system.
-   (Don''t forget you need different definitions with and without __GNUC__.)  */
+   (Do not forget you need different definitions with and without __GNUC__.)  */
 LIBXT= STATIC_OPTION $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext DYNAMIC_OPTION
 #else /* not LIBXT_STATIC */
 LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
@@ -468,9 +468,9 @@ CFLAGS_SOUND= @CFLAGS_SOUND@
 /* Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
    places that are difficult to figure out at make time.  Fortunately,
    these same versions allow you to pass arbitrary flags on to the
-   linker, so there''s no reason not to use it as a linker.
+   linker, so there is no reason not to use it as a linker.
 
-   Well, it''s not quite perfect.  The ``-nostdlib'' keeps GCC from
+   Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
    searching for libraries in its internal directories, so we have to
    ask GCC explicitly where to find libgcc.a.  */
 
@@ -487,9 +487,9 @@ GNULIB_VAR = LIB_GCC
 
 #ifndef LINKER_WAS_SPECIFIED
 /* GCC passes any argument prefixed with -Xlinker directly to the
-   linker.  See prefix-args.c for an explanation of why we don''t do
+   linker.  See prefix-args.c for an explanation of why we do not do
    this with the shell''s ``for'' construct.
-   Note that some people don''t have '.'  in their paths, so we must
+   Note that some people do not have '.'  in their paths, so we must
    use ./prefix-args.  */
 #define YMF_PASS_LDFLAGS(flags) `./prefix-args -Xlinker flags`
 #else
@@ -530,12 +530,12 @@ LD=ld
 #endif /* not ORDINARY_LINK */
 
 /* Flags to pass to LD only for temacs.  */
-/* Don''t split this line with a backslash.  That can cause trouble with
+/* Do not split this line with a backslash.  That can cause trouble with
    some cpps.  */
 TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_SWITCH_MACHINE_TEMACS LD_SWITCH_SITE
 
 /* A macro which other sections of Makefile can redefine to munge the
-   flags before they''re passed to LD.  This is helpful if you have
+   flags before they are passed to LD.  This is helpful if you have
    redefined LD to something odd, like "gcc".
    (The YMF prefix is a holdover from the old name "ymakefile".)
   */
@@ -705,8 +705,8 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 #define TOOLTIP_SUPPORT
 #endif
 
-/* List of Lisp files loaded into the dumped Emacs.  It''s arranged
-   like this because it''s easier to generate it semi-mechanically from
+/* List of Lisp files loaded into the dumped Emacs.  It is arranged
+   like this because it is easier to generate it semi-mechanically from
    loadup.el this way.
 
    Note that this list should not include lisp files which might not
@@ -987,13 +987,13 @@ temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} $
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_MACHINE ${LIBES}
 
-/* We don''t use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
+/* We do not use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
    often contain options that have to do with using Emacs''s crt0,
    which are only good with temacs.  */
 prefix-args${EXEEXT}: prefix-args.c $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
-/* Don''t lose if this was not defined.  */
+/* Do not lose if this was not defined.  */
 #ifndef OLDXMENU_OPTIONS
 #define OLDXMENU_OPTIONS
 #endif

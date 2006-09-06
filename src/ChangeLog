@@ -1,3 +1,7 @@
+2006-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in: Avoid double quotes when possible.
+
 2006-09-06  Kenichi Handa  <handa@m17n.org>
 
 	* editfns.c (Fformat_time_string): Use make_unibyte_string to make
