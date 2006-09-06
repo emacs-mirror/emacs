@@ -1310,7 +1310,7 @@ removes automounter prefixes (see the variable `automount-dir-prefix')."
 	  (setq abbreviated-home-dir
 		(let ((abbreviated-home-dir "$foo"))
 		  (concat "^" (abbreviate-file-name (expand-file-name "~"))
-			  "\\(/\\|$\\)"))))
+			  "\\(/\\|\\'\\)"))))
 
       ;; If FILENAME starts with the abbreviated homedir,
       ;; make it start with `~' instead.
