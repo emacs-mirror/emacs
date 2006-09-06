@@ -1,5 +1,7 @@
 2006-09-06  Kim F. Storm  <storm@cua.dk>
 
+	* frames.texi (Display Feature Testing): display-mm-dimensions-alist.
+
 	* windows.texi (Window Start): Update pos-visible-in-window-p.
 
 2006-09-04  Richard Stallman  <rms@gnu.org>

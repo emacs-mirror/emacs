@@ -5194,6 +5194,11 @@ external packages to save users from having to update
 *** The new variable `max-image-size' defines the maximum size of
 images that Emacs will load and display.
 
++++
+*** The new variable `display-mm-dimensions-alist' can be used to
+override incorrect graphical display dimensions returned by functions
+`display-mm-height' and `display-mm-width'.
+
 ** Mouse pointer features:
 
 +++ (lispref)
