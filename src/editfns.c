@@ -1694,7 +1694,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 				SBYTES (format_string),
 				tm, ut);
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
-	return code_convert_string_norecord (make_string (buf, result),
+	return code_convert_string_norecord (make_unibyte_string (buf, result),
 					     Vlocale_coding_system, 0);
 
       /* If buffer was too small, make it bigger and try again.  */
