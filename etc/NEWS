@@ -4906,9 +4906,6 @@ be used in different windows showing different buffers.
 *** New function `define-fringe-bitmap' can now be used to create new
 fringe bitmaps, as well as change the built-in fringe bitmaps.
 
-To change a built-in bitmap, do (require 'fringe) and use the symbol
-identifying the bitmap such as `left-truncation' or `continued-line'.
-
 *** New function `destroy-fringe-bitmap' deletes a fringe bitmap
 or restores a built-in one to its default value.
 
