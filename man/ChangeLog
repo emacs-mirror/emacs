@@ -1,3 +1,7 @@
+2006-09-06  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Mention SSL.
+
 2006-09-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* rcirc.texi (Internet Relay Chat, Useful IRC commands): Don't use

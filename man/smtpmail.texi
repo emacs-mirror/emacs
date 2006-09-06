@@ -209,6 +209,8 @@ The following example illustrates what you could put in
 @cindex CRAM-MD5
 @cindex LOGIN
 @cindex STARTTLS
+@cindex TLS
+@cindex SSL
 Many environments require SMTP clients to authenticate themselves
 before they are allowed to route mail via a server.  The two following
 variables contains the authentication information needed for this.
@@ -220,10 +222,10 @@ that order if the server support both.
 The second variable, @code{smtpmail-starttls-credentials}, instructs
 the SMTP library to connect to the server using STARTTLS.  This means
 the protocol exchange may be integrity protected and confidential by
-using TLS, and optionally also authentication of the client.  This
-feature uses the elisp package @file{starttls.el} (see it for more
-information on customization), which in turn require that at least one
-of the following external tools are installed:
+using TLS, also known as SSL, and optionally also authentication of
+the client.  This feature uses the elisp package @file{starttls.el}
+(see it for more information on customization), which in turn require
+that at least one of the following external tools are installed:
 
 @enumerate
 @item
