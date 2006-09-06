@@ -1,3 +1,8 @@
+2006-09-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-regexp, gnus-button-marker-list)
+	(gnus-button-last): Move up.  Convert comments into doc strings.
+
 2006-09-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* message.el (message-send-mail-with-sendmail): Look for sendmail in
