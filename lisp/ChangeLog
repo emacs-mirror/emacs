@@ -1,5 +1,17 @@
 2006-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/prolog.el: Remove * in docstrings.
+	(prolog-program-name): Add SWI prolog.
+	(prolog-mode-menu): New menu.
+	(prolog-mode): Set comment-add.
+	(prolog-indent-line): Simplify.  Use indent-line-to.
+	(inferior-prolog-buffer): New var.
+	(inferior-prolog-run, inferior-prolog-process): New funs.
+	(run-prolog, switch-to-prolog): Rewrite, using them.
+	(prolog-consult-region): Use inferior-prolog-buffer.
+	(inferior-prolog-load-file): New function.
+	(prolog-mode-map): Add bindings for load-file and switch-to-prolog.
+
 	* textmodes/fill.el (fill-single-word-nobreak-p): Allow breaking before
 	last word, if it's not the end of the paragraph.
 
