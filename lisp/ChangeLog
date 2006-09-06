@@ -1,3 +1,9 @@
+2006-09-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list-children-regexp)
+	(gdb-var-list-children-regexp-1): Tweak regexps to catch full
+	string values.
+
 2006-09-06  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move-partial): New function to do vscrolling for
