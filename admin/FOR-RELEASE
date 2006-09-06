@@ -71,8 +71,6 @@ Windows only bug.
 
 ** Problem of passing temp files to GPG thru call-process.
 
-** Image scrolling problems reported by David Kastrup.  (KFS working).
-
 
 * DOCUMENTATION
 
