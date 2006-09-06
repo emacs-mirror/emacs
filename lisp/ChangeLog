@@ -1,5 +1,8 @@
 2006-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/fill.el (fill-single-word-nobreak-p): Allow breaking before
+	last word, if it's not the end of the paragraph.
+
 	* files.el (abbreviate-file-name): Don't mistakenly match newlines in
 	file name.
 

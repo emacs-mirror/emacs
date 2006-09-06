@@ -292,7 +292,9 @@ act as a paragraph-separator."
 
 (defun fill-single-word-nobreak-p ()
   "Don't break a line after the first or before the last word of a sentence."
-  (or (looking-at (concat "[ \t]*\\sw+" "\\(?:" (sentence-end) "\\)"))
+  ;; Actually, allow breaking before the last word of a sentence, so long as
+  ;; it's not the last word of the paragraph.
+  (or (looking-at (concat "[ \t]*\\sw+" "\\(?:" (sentence-end) "\\)[ \t]*$"))
       (save-excursion
 	(skip-chars-backward " \t")
 	(and (/= (skip-syntax-backward "w") 0)
