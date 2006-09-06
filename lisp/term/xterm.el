@@ -261,6 +261,9 @@
       (define-key map "\e[27;6;62~"  [?\C->])
       (define-key map "\e[27;6;63~"  [(C-\?)])
 
+      ;; These are the strings emitted for various C-M- combinations
+      ;; for keyboards that the Meta and Alt modifiers are on the same
+      ;; key (usually labeled "Alt").
       (define-key map "\e[27;13;9~"  [(C-M-tab)])
       (define-key map "\e[27;13;13~" [(C-M-return)])
 
@@ -297,6 +300,43 @@
       (define-key map "\e[27;14;60~"  [?\C-\M-<])
       (define-key map "\e[27;14;62~"  [?\C-\M->])
       (define-key map "\e[27;14;63~"  [(C-M-\?)])
+
+      (define-key map "\e[27;7;9~"  [(C-M-tab)])
+      (define-key map "\e[27;7;13~" [(C-M-return)])
+
+      (define-key map "\e[27;7;39~" [?\C-\M-\'])
+      (define-key map "\e[27;7;44~" [?\C-\M-,])
+      (define-key map "\e[27;7;45~" [?\C-\M--])
+      (define-key map "\e[27;7;46~" [?\C-\M-.])
+      (define-key map "\e[27;7;47~" [?\C-\M-/])
+      (define-key map "\e[27;7;48~" [?\C-\M-0])
+      (define-key map "\e[27;7;49~" [?\C-\M-1])
+      (define-key map "\e[27;7;50~" [?\C-\M-2])
+      (define-key map "\e[27;7;51~" [?\C-\M-3])
+      (define-key map "\e[27;7;52~" [?\C-\M-4])
+      (define-key map "\e[27;7;53~" [?\C-\M-5])
+      (define-key map "\e[27;7;54~" [?\C-\M-6])
+      (define-key map "\e[27;7;55~" [?\C-\M-7])
+      (define-key map "\e[27;7;56~" [?\C-\M-8])
+      (define-key map "\e[27;7;57~" [?\C-\M-9])
+      (define-key map "\e[27;7;59~" [?\C-\M-\;])
+      (define-key map "\e[27;7;61~" [?\C-\M-=])
+      (define-key map "\e[27;7;92~" [?\C-\M-\\])
+
+      (define-key map "\e[27;8;33~"  [?\C-\M-!])
+      (define-key map "\e[27;8;34~"  [?\C-\M-\"])
+      (define-key map "\e[27;8;35~"  [?\C-\M-#])
+      (define-key map "\e[27;8;36~"  [?\C-\M-$])
+      (define-key map "\e[27;8;37~"  [?\C-\M-%])
+      (define-key map "\e[27;8;38~"  [(C-M-&)])
+      (define-key map "\e[27;8;40~"  [?\C-\M-(])
+      (define-key map "\e[27;8;41~"  [?\C-\M-)])
+      (define-key map "\e[27;8;42~"  [?\C-\M-*])
+      (define-key map "\e[27;8;43~"  [?\C-\M-+])
+      (define-key map "\e[27;8;58~"  [?\C-\M-:])
+      (define-key map "\e[27;8;60~"  [?\C-\M-<])
+      (define-key map "\e[27;8;62~"  [?\C-\M->])
+      (define-key map "\e[27;8;63~"  [(C-M-\?)])
 
       (define-key map "\e[27;2;9~"   [S-tab])
       (define-key map "\e[27;2;13~"  [S-return])

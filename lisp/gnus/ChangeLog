@@ -5,6 +5,12 @@
 
 2006-09-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-art.el (article-decode-encoded-words): Make it fast.
+
+2006-09-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-decode-encoded-words): Don't infloop in XEmacs.
+
 	* rfc2047.el (rfc2047-strip-backslashes-in-quoted-strings): Decode `\\'
 	in quoted string into `\'.
 

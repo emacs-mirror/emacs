@@ -1281,13 +1281,12 @@ line_bottom_y (it)
 /* Return 1 if position CHARPOS is visible in window W.
    If visible, set *X and *Y to pixel coordinates of top left corner.
    Set *RTOP and *RBOT to pixel height of an invisible area of glyph at POS.
-   EXACT_MODE_LINE_HEIGHTS_P non-zero means compute exact mode-line
-   and header-lines heights.  */
+   Set *ROWH and *VPOS to row's visible height and VPOS (row number).  */
 
 int
-pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
+pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
      struct window *w;
-     int charpos, *x, *y, *rtop, *rbot, exact_mode_line_heights_p;
+     int charpos, *x, *y, *rtop, *rbot, *rowh, *vpos;
 {
   struct it it;
   struct text_pos top;
@@ -1305,22 +1304,19 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
-  /* Compute exact mode line heights, if requested.  */
-  if (exact_mode_line_heights_p)
-    {
-      if (WINDOW_WANTS_MODELINE_P (w))
-	current_mode_line_height
-	  = display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
-			       current_buffer->mode_line_format);
+  /* Compute exact mode line heights.  */
+  if (WINDOW_WANTS_MODELINE_P (w))
+    current_mode_line_height
+      = display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
+			   current_buffer->mode_line_format);
 
-      if (WINDOW_WANTS_HEADER_LINE_P (w))
-	current_header_line_height
-	  = display_mode_line (w, HEADER_LINE_FACE_ID,
+  if (WINDOW_WANTS_HEADER_LINE_P (w))
+    current_header_line_height
+      = display_mode_line (w, HEADER_LINE_FACE_ID,
 			       current_buffer->header_line_format);
-    }
 
   start_display (&it, w, top);
-  move_it_to (&it, charpos, -1, it.last_visible_y, -1,
+  move_it_to (&it, charpos, -1, it.last_visible_y-1, -1,
 	      MOVE_TO_POS | MOVE_TO_Y);
 
   /* Note that we may overshoot because of invisible text.  */
@@ -1341,6 +1337,9 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 	  *y = max (top_y + max (0, it.max_ascent - it.ascent), window_top_y);
 	  *rtop = max (0, window_top_y - top_y);
 	  *rbot = max (0, bottom_y - it.last_visible_y);
+	  *rowh = max (0, (min (bottom_y, it.last_visible_y)
+			   - max (top_y, window_top_y)));
+	  *vpos = it.vpos;
 	}
     }
   else
@@ -1359,6 +1358,11 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 	  *rtop = max (0, -it2.current_y);
 	  *rbot = max (0, ((it2.current_y + it2.max_ascent + it2.max_descent)
 			   - it.last_visible_y));
+	  *rowh = max (0, (min (it2.current_y + it2.max_ascent + it2.max_descent,
+				it.last_visible_y)
+			   - max (it2.current_y,
+				  WINDOW_HEADER_LINE_HEIGHT (w))));
+	  *vpos = it2.vpos;
 	}
     }
 
@@ -1369,6 +1373,15 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 
   if (visible_p && XFASTINT (w->hscroll) > 0)
     *x -= XFASTINT (w->hscroll) * WINDOW_FRAME_COLUMN_WIDTH (w);
+
+#if 0
+  /* Debugging code.  */
+  if (visible_p)
+    fprintf (stderr, "+pv pt=%d vs=%d --> x=%d y=%d rt=%d rb=%d rh=%d vp=%d\n",
+	     charpos, w->vscroll, *x, *y, *rtop, *rbot, *rowh, *vpos);
+  else
+    fprintf (stderr, "-pv pt=%d vs=%d\n", charpos, w->vscroll);
+#endif
 
   return visible_p;
 }
@@ -12166,7 +12179,8 @@ cursor_row_fully_visible_p (w, force_p, current_matrix_p)
   window_height = window_box_height (w);
   if (row->height >= window_height)
     {
-      if (!force_p || MINI_WINDOW_P (w) || w->vscroll)
+      if (!force_p || MINI_WINDOW_P (w)
+	  || w->vscroll || w->cursor.vpos == 0)
 	return 1;
     }
   return 0;
@@ -13650,7 +13664,8 @@ try_window (window, pos, check_margins)
       this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
       this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
 
-      if ((w->cursor.y < this_scroll_margin
+      if ((w->cursor.y >= 0	/* not vscrolled */
+	   && w->cursor.y < this_scroll_margin
 	   && CHARPOS (pos) > BEGV
 	   && IT_CHARPOS (it) < ZV)
 	  /* rms: considering make_cursor_line_fully_visible_p here

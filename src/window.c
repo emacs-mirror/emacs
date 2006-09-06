@@ -336,10 +336,12 @@ If POS is only out of view because of horizontal scrolling, return non-nil.
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
-return value is a list (X Y PARTIAL) where X and Y are the pixel coordinates
-relative to the top left corner of the window. PARTIAL is nil if the character
-after POS is fully visible; otherwise it is a cons (RTOP . RBOT) where RTOP
-and RBOT are the number of pixels invisible at the top and bottom of the row.  */)
+return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
+where X and Y are the pixel coordinates relative to the top left corner
+of the window.  The remaining elements are omitted if the character after
+POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
+invisible at the top and bottom of the row, ROWH is the height of the display
+row, and VPOS is the row number (0-based) containing POS.  */)
      (pos, window, partially)
      Lisp_Object pos, window, partially;
 {
@@ -348,7 +350,7 @@ and RBOT are the number of pixels invisible at the top and bottom of the row.  *
   register struct buffer *buf;
   struct text_pos top;
   Lisp_Object in_window = Qnil;
-  int rtop, rbot, fully_p = 1;
+  int rtop, rbot, rowh, vpos, fully_p = 1;
   int x, y;
 
   w = decode_window (window);
@@ -371,17 +373,20 @@ and RBOT are the number of pixels invisible at the top and bottom of the row.  *
       && posint <= BUF_ZV (buf)
       && CHARPOS (top) >= BUF_BEGV (buf)
       && CHARPOS (top) <= BUF_ZV (buf)
-      && pos_visible_p (w, posint, &x, &y, &rtop, &rbot, NILP (partially))
+      && pos_visible_p (w, posint, &x, &y, &rtop, &rbot, &rowh, &vpos)
       && (fully_p = !rtop && !rbot, (!NILP (partially) || fully_p)))
     in_window = Qt;
 
   if (!NILP (in_window) && !NILP (partially))
-    in_window = Fcons (make_number (x),
-		       Fcons (make_number (y),
-			      Fcons ((fully_p ? Qnil
-				     : Fcons (make_number (rtop),
-					      make_number (rbot))),
-				     Qnil)));
+    {
+      Lisp_Object part = Qnil;
+      if (!fully_p)
+	part = list4 (make_number (rtop), make_number (rbot),
+			make_number (rowh), make_number (vpos));
+      in_window = Fcons (make_number (x),
+			 Fcons (make_number (y), part));
+    }
+
   return in_window;
 }
 
@@ -4818,10 +4823,10 @@ window_scroll_pixel_based (window, n, whole, noerror)
   struct it it;
   struct window *w = XWINDOW (window);
   struct text_pos start;
-  Lisp_Object tem;
   int this_scroll_margin;
   /* True if we fiddled the window vscroll field without really scrolling.   */
   int vscrolled = 0;
+  int x, y, rtop, rbot, rowh, vpos;
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
 
@@ -4829,8 +4834,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
      the screen.  Allow PT to be partially visible, otherwise
      something like (scroll-down 1) with PT in the line before
      the partially visible one would recenter. */
-  tem = Fpos_visible_in_window_p (make_number (PT), window, Qt);
-  if (NILP (tem))
+
+  if (!pos_visible_p (w, PT, &x, &y, &rtop, &rbot, &rowh, &vpos))
     {
       /* Move backward half the height of the window.  Performance note:
 	 vmotion used here is about 10% faster, but would give wrong
@@ -4855,7 +4860,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
     }
   else if (auto_window_vscroll_p)
     {
-      if (tem = XCAR (XCDR (XCDR (tem))), CONSP (tem))
+      if (rtop || rbot)		/* partially visible */
 	{
 	  int px;
 	  int dy = WINDOW_FRAME_LINE_HEIGHT (w);
@@ -4865,19 +4870,52 @@ window_scroll_pixel_based (window, n, whole, noerror)
 		      dy);
 	  dy *= n;
 
-	  if (n < 0 && (px = XINT (XCAR (tem))) > 0)
+	  if (n < 0)
 	    {
-	      px = max (0, -w->vscroll - min (px, -dy));
-	      Fset_window_vscroll (window, make_number (px), Qt);
-	      return;
+	      /* Only vscroll backwards if already vscrolled forwards.  */
+	      if (w->vscroll < 0 && rtop > 0)
+		{
+		  px = max (0, -w->vscroll - min (rtop, -dy));
+		  Fset_window_vscroll (window, make_number (px), Qt);
+		  return;
+		}
 	    }
-	  if (n > 0 && (px = XINT (XCDR (tem))) > 0)
+	  if (n > 0)
 	    {
-	      px = max (0, -w->vscroll + min (px, dy));
-	      Fset_window_vscroll (window, make_number (px), Qt);
-	      return;
+	      /* Do vscroll if already vscrolled or only display line.  */
+	      if (rbot > 0 && (w->vscroll < 0 || vpos == 0))
+		{
+		  px = max (0, -w->vscroll + min (rbot, dy));
+		  Fset_window_vscroll (window, make_number (px), Qt);
+		  return;
+		}
+
+	      /* Maybe modify window start instead of scrolling.  */
+	      if (rbot > 0 || w->vscroll < 0)
+		{
+		  int spos;
+
+		  Fset_window_vscroll (window, make_number (0), Qt);
+		  /* If there are other text lines above the current row,
+		     move window start to current row.  Else to next row. */
+		  if (rbot > 0)
+		    spos = XINT (Fline_beginning_position (Qnil));
+		  else
+		    spos = min (XINT (Fline_end_position (Qnil)) + 1, ZV);
+		  set_marker_restricted (w->start, make_number (spos),
+					 w->buffer);
+		  w->start_at_line_beg = Qt;
+		  w->update_mode_line = Qt;
+		  XSETFASTINT (w->last_modified, 0);
+		  XSETFASTINT (w->last_overlay_modified, 0);
+		  /* Set force_start so that redisplay_window will run the
+		     window-scroll-functions.  */
+		  w->force_start = Qt;
+		  return;
+		}
 	    }
 	}
+      /* Cancel previous vscroll.  */
       Fset_window_vscroll (window, make_number (0), Qt);
     }
 
@@ -4918,7 +4956,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
       if (dy <= 0)
 	{
 	  move_it_vertically_backward (&it, -dy);
-	  /* Ensure we actually does move, e.g. in case we are currently
+	  /* Ensure we actually do move, e.g. in case we are currently
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
 		 && start_pos > BEGV)
@@ -4928,7 +4966,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	{
 	  move_it_to (&it, ZV, -1, it.current_y + dy, -1,
 		      MOVE_TO_POS | MOVE_TO_Y);
-	  /* Ensure we actually does move, e.g. in case we are currently
+	  /* Ensure we actually do move, e.g. in case we are currently
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
 		 && start_pos < ZV)
@@ -6656,7 +6694,7 @@ display marginal areas and the text area.  */)
     CHECK_NATNUM (left_width);
   if (!NILP (right_width))
     CHECK_NATNUM (right_width);
- 
+
   /* Do nothing on a tty.  */
   if (FRAME_WINDOW_P (WINDOW_XFRAME (w))
       && (!EQ (w->left_fringe_width, left_width)

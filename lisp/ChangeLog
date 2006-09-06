@@ -1,3 +1,49 @@
+2006-09-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list-children-regexp)
+	(gdb-var-list-children-regexp-1): Tweak regexps to catch full
+	string values.
+
+2006-09-06  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-partial): New function to do vscrolling for
+	partially visible images / tall lines.  Rewrite based on code
+	previously in line-move.  Simplify backwards vscrolling.
+	(line-move): Use it.  Simplify.
+
+2006-09-05  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--pre-command-handler-1): Rewrite.
+
+2006-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Process the `gcc-include' after the `gnu' rule.
+
+2006-09-05  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-visit-buffer): Use buffer name if buffer arg is a buffer.
+
+2006-09-05  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg.el (pgg-clear-string): Alias to clear-string for backward
+	compatibility.
+
+	* pgg-gpg.el (pgg-gpg-process-region): Avoid display blinking with
+	inhibit-redisplay; encode passphrase with locale-coding-system.
+
+2006-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Add more C-M- bindings.
+
+2006-09-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list-children-regexp)
+	(gdb-var-list-children-regexp): Make type field optional.
+
+	* progmodes/gud.el (gud-speedbar-buttons): Allow for no type
+	e.g public, protected in C++.
+
 2006-09-04  John Paul Wallington  <jpw@pobox.com>
 
 	* simple.el (completion-show-help): New defcustom.

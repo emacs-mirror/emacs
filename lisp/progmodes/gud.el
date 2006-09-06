@@ -456,8 +456,8 @@ required by the caller."
 	  (while var-list
 	    (let* (char (depth 0) (start 0) (var (car var-list))
 			(varnum (car var)) (expr (nth 1 var))
-			(type (nth 3 var)) (value (nth 4 var))
-			(status (nth 5 var)))
+			(type (if (nth 3 var) (nth 3 var) " "))
+			(value (nth 4 var)) (status (nth 5 var)))
 	      (put-text-property
 	       0 (length expr) 'face font-lock-variable-name-face expr)
 	      (put-text-property

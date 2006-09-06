@@ -74,7 +74,10 @@
 	 (errors-buffer pgg-errors-buffer)
 	 (orig-mode (default-file-modes))
 	 (process-connection-type nil)
-	 process status exit-status)
+	 (inhibit-redisplay t)
+	 process status exit-status
+	 passphrase-with-newline
+	 encoded-passphrase-with-new-line)
     (with-current-buffer (get-buffer-create errors-buffer)
       (buffer-disable-undo)
       (erase-buffer))
@@ -87,7 +90,16 @@
 			 program args)))
 	  (set-process-sentinel process #'ignore)
 	  (when passphrase
-	    (process-send-string process (concat passphrase "\n")))
+	    (setq passphrase-with-newline (concat passphrase "\n"))
+	    (if (boundp 'locale-coding-system)
+		(progn
+		  (setq encoded-passphrase-with-new-line
+			(encode-coding-string passphrase-with-newline
+					      locale-coding-system))
+		  (pgg-clear-string passphrase-with-newline))
+	      (setq encoded-passphrase-with-new-line passphrase-with-newline
+		    passphrase-with-newline nil))
+	    (process-send-string process encoded-passphrase-with-new-line))
 	  (process-send-region process start end)
 	  (process-send-eof process)
 	  (while (eq 'run (process-status process))
@@ -108,6 +120,10 @@
 		(error "%s exited abnormally: '%s'" program exit-status))
 	    (if (= 127 exit-status)
 		(error "%s could not be found" program))))
+      (if passphrase-with-newline
+	  (pgg-clear-string passphrase-with-newline))
+      (if encoded-passphrase-with-new-line
+	  (pgg-clear-string encoded-passphrase-with-new-line))
       (if (and process (eq 'run (process-status process)))
 	  (interrupt-process process))
       (if (file-exists-p output-file-name)

@@ -218,10 +218,6 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      nil 1 nil 2 0
      (2 (compilation-face '(3))))
 
-    (gcc-include
-     "^\\(?:In file included\\|                \\) from \
-\\(.+\\):\\([0-9]+\\)\\(?:\\(:\\)\\|\\(,\\)\\)?" 1 2 nil (3 . 4))
-
     (gnu
      ;; I have no idea what this first line is supposed to match, but it
      ;; makes things ambiguous with output such as "foo:344:50:blabla" since
@@ -240,6 +236,12 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
  *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|instantiated from\\)\\|\
 \[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
      1 (2 . 5) (4 . 6) (7 . 8))
+
+    ;; The `gnu' style above can incorrectly match gcc's "In file
+    ;; included from" message, so we process that first. -- cyd
+    (gcc-include
+     "^\\(?:In file included\\|                \\) from \
+\\(.+\\):\\([0-9]+\\)\\(?:\\(:\\)\\|\\(,\\)\\)?" 1 2 nil (3 . 4))
 
     (lcc
      "^\\(?:E\\|\\(W\\)\\), \\([^(\n]+\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)"
