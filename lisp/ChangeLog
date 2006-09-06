@@ -1,3 +1,8 @@
+2006-09-06  Ralf Angeli  <angeli@caeruleus.net>
+
+	* frame.el (display-mm-dimensions-alist): New defcustom.
+	(display-mm-height, display-mm-width): Use it.
+
 2006-09-06  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-starttls-credentials): Doc fix.
