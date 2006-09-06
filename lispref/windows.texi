@@ -1362,13 +1362,16 @@ non-@code{nil} anyway.  @xref{Horizontal Scrolling}.
 
 If @var{position} is visible, @code{pos-visible-in-window-p} returns
 @code{t} if @var{partially} is @code{nil}; if @var{partially} is
-non-@code{nil}, it returns a list of the form @code{(@var{x} @var{y}
-@var{partial})}, where @var{x} and @var{y} are the pixel coordinates
-relative to the top left corner of the window, and @var{partial} is
-@code{nil} if the character after @var{position} is fully visible;
-otherwise it is a cons @code{(@var{rtop} . @var{rbot})} where the
-@var{rtop} and @var{rbot} specify the number of invisible pixels at
-the top and bottom of the row at @var{position}.
+non-@code{nil}, and the character after @var{position} is fully
+visible, it returns a list of the form @code{(@var{x} @var{y})}, where
+@var{x} and @var{y} are the pixel coordinates relative to the top left
+corner of the window; otherwise it returns an extended list of the
+form @code{(@var{x} @var{y} @var{rtop} @var{rbot} @var{rowh}
+@var{vpos})}, where the @var{rtop} and @var{rbot} specify the number
+of invisible pixels at the top and bottom of the row at
+@var{position}, @var{rowh} specifies the visible height of that row,
+and @var{vpos} specifies the vertical position (zero-based row number)
+of that row.
 
 Here is an example:
 
