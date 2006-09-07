@@ -1,3 +1,7 @@
+2006-09-07  Kim F. Storm  <storm@cua.dk>
+
+	* AUTHORS: Regenerate.
+
 2006-08-16  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in (PKG_CHECK_MODULES): Use AS_MESSAGE_LOG_FD instead
