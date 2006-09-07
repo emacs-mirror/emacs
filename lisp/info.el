@@ -2792,7 +2792,8 @@ Use the \\<Info-mode-map>\\[Info-index-next] command to see the other matches.
 Give an empty topic name to go to the Index node itself."
   (interactive
    (list
-    (let ((Info-complete-menu-buffer (clone-buffer))
+    (let ((completion-ignore-case t)
+	  (Info-complete-menu-buffer (clone-buffer))
 	  (Info-complete-nodes (Info-index-nodes))
 	  (Info-history-list nil))
       (if (equal Info-current-file "dir")
