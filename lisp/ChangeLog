@@ -1,3 +1,9 @@
+2006-09-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* international/latexenc.el (latex-inputenc-coding-alist): Add cp858.
+
+	* international/code-pages.el: Add cp858.
+
 2006-09-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dnd.el: Fix bootstrapping.
