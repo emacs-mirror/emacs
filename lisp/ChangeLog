@@ -1,3 +1,13 @@
+2006-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el (inferior-prolog-flavor): New var left out of
+	previous commit.
+	(inferior-prolog-guess-flavor): New fun left out of previous commit.
+	(prolog-consult-region-and-go): Don't hard code "*prolog*" and don't
+	burp in dedicated windows.
+	(inferior-prolog-self-insert-command): New command.
+	(inferior-prolog-mode-map): Use it.
+
 2006-09-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* international/latexenc.el (latex-inputenc-coding-alist): Add cp858.

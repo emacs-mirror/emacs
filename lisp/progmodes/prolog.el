@@ -233,6 +233,8 @@ rigidly along with this one (not yet)."
   (let ((map (make-sparse-keymap)))
     ;; This map will inherit from `comint-mode-map' when entering
     ;; inferior-prolog-mode.
+    (define-key map [remap self-insert-command]
+      'inferior-prolog-self-insert-command)
     map))
 
 (defvar inferior-prolog-mode-syntax-table prolog-mode-syntax-table)
@@ -300,6 +302,27 @@ Return not at end copies rest of line to end and sends it.
         ;; Try again.
         (inferior-prolog-process))))
 
+(defvar inferior-prolog-flavor 'unknown
+  "Either a symbol or a buffer position offset by one.
+If a buffer position, the flavor has not been determined yet and
+it is expected that the process's output has been or will
+be inserted at that position plus one.")
+
+(defun inferior-prolog-guess-flavor (&optional ignored)
+  (save-excursion
+    (goto-char (1+ inferior-prolog-flavor))
+    (setq inferior-prolog-flavor
+          (cond
+           ((looking-at "GNU Prolog") 'gnu)
+           ((looking-at "Welcome to SWI-Prolog") 'swi)
+           ((looking-at ".*\n") 'unknown) ;There's at least one line.
+           (t inferior-prolog-flavor))))
+  (when (symbolp inferior-prolog-flavor)
+    (remove-hook 'comint-output-filter-functions
+                 'inferior-prolog-guess-flavor t)
+    (if (eq inferior-prolog-flavor 'gnu)
+        (set (make-local-variable 'comint-process-echoes) t))))
+
 ;;;###autoload
 (defalias 'run-prolog 'switch-to-prolog)
 ;;;###autoload
@@ -317,6 +340,22 @@ With prefix argument \\[universal-prefix], prompt for the program to use."
   (unless (inferior-prolog-process 'dontstart)
     (inferior-prolog-run name))
   (pop-to-buffer inferior-prolog-buffer))
+
+(defun inferior-prolog-self-insert-command ()
+  "Insert the char in the buffer or pass it directly to the process."
+  (interactive)
+  (let* ((proc (get-buffer-process (current-buffer)))
+         (pmark (and proc (marker-position (process-mark proc)))))
+    (if (and (eq inferior-prolog-flavor 'gnu)
+             pmark
+             (null current-prefix-arg)
+             (eobp)
+             (eq (point) pmark)
+             (save-excursion
+               (goto-char (- pmark 3))
+               (looking-at " \\? ")))
+        (comint-send-string proc (string last-command-char))
+      (call-interactively 'self-insert-command))))
 
 (defun prolog-consult-region (compile beg end)
   "Send the region to the Prolog process made by \"M-x run-prolog\".
@@ -338,7 +377,7 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
 If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
   (interactive "P\nr")
   (prolog-consult-region compile beg end)
-  (switch-to-buffer "*prolog*"))
+  (pop-to-buffer inferior-prolog-buffer))
 
 (defun inferior-prolog-load-file ()
   "Pass the current buffer's file to the inferior prolog process."
