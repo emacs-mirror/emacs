@@ -15,7 +15,7 @@
 	(dnd-open-remote-file-function): Set to dnd-open-remote-url if
 	not windows-nt.
 
-2006-09-07  Jason Rumney <jasonr@gnu.org>
+2006-09-07  Jason Rumney  <jasonr@gnu.org>
 
 	* dnd.el (dnd-open-remote-file-function): New variable.
 	(dnd-open-unc-file): New function.
@@ -124,7 +124,7 @@
 	* mail/feedmail.el (feedmail-buffer-to-sendmail): Look for
 	sendmail in several common directories.
 
-	* mail/sendmail.el (sendmail-program): Moved here from pathe.el.
+	* mail/sendmail.el (sendmail-program): Moved here from paths.el.
 
 	* paths.el (sendmail-program): Removed.
 
@@ -404,7 +404,8 @@
 	* progmodes/grep.el (grep-find-use-xargs): Use explicit value `exec'
 	to mean "use find -exec"; nil now unambiguously means auto-detect.
 	(grep-compute-defaults): Set grep-find-use-xargs to `exec' if not `gnu'.
-	Use shell-quote-argument to build grep-find-command and grep-find-template.
+	Use shell-quote-argument to build grep-find-command and
+	grep-find-template.
 	(rgrep): Use shell-quote-argument to properly quote arguments to find.
 	Reported by Tom Seddon.
 
@@ -15906,8 +15907,9 @@
 	Move to beginning of file.
 	(scheme-interaction-mode-commands-alist)
 	(scheme-interaction-mode-map, scheme-debugger-mode-map):
-	Declare them before use.  Note: the initialization code for the variables
-	has not been moved because it uses functions that reference the variables.
+	Declare them before use.  Note: the initialization code for the
+	variables has not been moved because it uses functions that reference
+	the variables.
 	(xscheme-control-g-message-string, xscheme-process-filter-alist)
 	(xscheme-prompt-for-expression-map): Declare them before use.
 	(scheme-debugger-mode-commands): "?\ " -> "?\s".
