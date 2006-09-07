@@ -1,4 +1,4 @@
-2006-09-07  Jan Dj,Ad(Brv  <Jan.Djarv@operax.com>
+2006-09-07  Jan Dj,Ad(Brv  <Janjan.h.d@swipnet.se>
 
 	* dnd.el (dnd-protocol-alist): Add what url-handler-mode can handle.
 	(dnd-open-remote-url): New function.
@@ -8612,7 +8612,7 @@
 	Let term-handle-ansi-terminal-messages override what Bash says about
 	its current directory.
 
-2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-12-16  L$,1 qrentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* bindings.el (last-buffer): Move to simple.el.
 	* simple.el (last-buffer): Move here.
@@ -10369,7 +10369,7 @@
 	prompts work for AUTH PLAIN.  Also reported by Steve Allan
 	<seallan@verizon.net>.
 
-2005-12-06  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-12-06  L$,1 qrentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* frame.el (set-frame-parameter): Add doc string.
 
@@ -10753,7 +10753,7 @@
 	(flyspell-post-command-hook): Check input-pending-p while processing
 	the potentially long list of buffer changes.
 
-2005-11-28  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-11-28  L$,1 qrentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* buff-menu.el (list-buffers-noselect): Display the selected
 	frame's buffer list, not the global one.
