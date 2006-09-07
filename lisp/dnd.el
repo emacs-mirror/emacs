@@ -34,8 +34,6 @@
 
 ;;; Customizable variables
 
-(eval-when-compile
-  (require 'url-handlers))
 
 ;;;###autoload
 (defcustom dnd-protocol-alist
@@ -198,6 +196,7 @@ Turns `url-handler-mode' on if not on before.  The file is opened in the
 current window, or a new window if `dnd-open-file-other-window' is set.
 URI is the url for the file.  ACTION is ignored."
   (progn
+    (require 'url-handlers)
     (or url-handler-mode (url-handler-mode))
     (if dnd-open-file-other-window
 	(find-file-other-window uri)

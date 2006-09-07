@@ -1,4 +1,8 @@
-2006-09-07  Jan Dj,Ad(Brv  <Janjan.h.d@swipnet.se>
+2006-09-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dnd.el: Fix bootstrapping.
+
+2006-09-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dnd.el (dnd-protocol-alist): Add what url-handler-mode can handle.
 	(dnd-open-remote-url): New function.
