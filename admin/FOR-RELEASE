@@ -58,6 +58,17 @@ Windows only bug.
 ** C-g fails to interrupt accept-process-output in Gnus.
   (Is that fixed?)
 
+** ispell.el: no option for no flyspell on non-ASCII
+
+** cfengine mode font lock.  cyril@bouthors.org, Sep 5.
+
+** allout.el patch from Manheimer to be installed.
+
+** regex char class matching needs a call to char-syntax.
+
+** regex char class matching breaks if you change entries
+in the syntax table.
+
 ** Make key-binding use the maps specified by positions given in the events.
 
 ** Is it necessary to solve in another way the problem that was solved
@@ -65,9 +76,15 @@ Windows only bug.
 
 ** mouse-autoselect-window delay patch
 
+** Handa's Sep 6 compilation font lock bug report.
+
+** Michael Cadilhac's Sep 7 bug report about set-input-method.
+
 ** Bug in woman, Juri Linkov, Sep 3.
 
 ** Problem of passing temp files to GPG thru call-process.
+
+** Xt timer runs very often, all the time.
 
 
 * DOCUMENTATION
