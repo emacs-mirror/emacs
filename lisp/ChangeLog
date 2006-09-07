@@ -1,3 +1,9 @@
+2006-09-06  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Encode passphrase with
+	pgg-passphrase-coding-system rather than locale-coding-system.
+	* pgg-def.el (pgg-passphrase-coding-system): New user option.
+
 2006-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/prolog.el: Remove * in docstrings.

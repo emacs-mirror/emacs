@@ -91,11 +91,11 @@
 	  (set-process-sentinel process #'ignore)
 	  (when passphrase
 	    (setq passphrase-with-newline (concat passphrase "\n"))
-	    (if (boundp 'locale-coding-system)
+	    (if pgg-passphrase-coding-system
 		(progn
 		  (setq encoded-passphrase-with-new-line
 			(encode-coding-string passphrase-with-newline
-					      locale-coding-system))
+					      pgg-passphrase-coding-system))
 		  (pgg-clear-string passphrase-with-newline))
 	      (setq encoded-passphrase-with-new-line passphrase-with-newline
 		    passphrase-with-newline nil))

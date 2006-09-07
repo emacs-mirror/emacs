@@ -2873,7 +2873,7 @@
 
 	* gnus.el (gnus-group-startup-message): Search for gnus images in
 	etc/images/gnus.
-	* mm-util.el (mm-find-charset-region): Likewise.
+	* mm-util.el (mm-image-load-path): Likewise.
 	* smiley.el (smiley-data-directory): Search for smilies in
 	etc/images/smilies.
 
