@@ -1,3 +1,16 @@
+2006-09-07  Jan Dj,Ad(Brv  <Jan.Djarv@operax.com>
+
+	* dnd.el (dnd-protocol-alist): Add what url-handler-mode can handle.
+	(dnd-open-remote-url): New function.
+	(dnd-open-remote-file-function): Set to dnd-open-remote-url if
+	not windows-nt.
+
+2006-09-07  Jason Rumney <jasonr@gnu.org>
+
+	* dnd.el (dnd-open-remote-file-function): New variable.
+	(dnd-open-unc-file): New function.
+	(dnd-open-file): Call dnd-open-remote-file-function if set.
+
 2006-09-06  Daiki Ueno  <ueno@unixuser.org>
 
 	* pgg-gpg.el (pgg-gpg-process-region): Encode passphrase with

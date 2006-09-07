@@ -34,14 +34,16 @@
 
 ;;; Customizable variables
 
+(eval-when-compile
+  (require 'url-handlers))
 
 ;;;###autoload
 (defcustom dnd-protocol-alist
-  '(
-    ("^file:///" . dnd-open-local-file)	; XDND format.
-    ("^file://"  . dnd-open-file)	; URL with host
-    ("^file:"    . dnd-open-local-file)	; Old KDE, Motif, Sun
-    )
+  '(("^file:///"  . dnd-open-local-file)	; XDND format.
+    ("^file://"   . dnd-open-file)		; URL with host
+    ("^file:"     . dnd-open-local-file)	; Old KDE, Motif, Sun
+    ("^\\(https?\\|ftp\\|file\\|nfs\\)://" . dnd-open-file)
+   )
 
   "The functions to call for different protocols when a drop is made.
 This variable is used by `dnd-handle-one-url' and `dnd-handle-file-name'.
@@ -58,6 +60,22 @@ if some action was made, or nil if the URL is ignored."
   :type '(repeat (cons (regexp) (function)))
   :group 'dnd)
 
+
+(defcustom dnd-open-remote-file-function
+  (if (eq system-type 'windows-nt)
+      'dnd-open-unc-file
+    'dnd-open-remote-url)
+  "The function to call when opening a file on a remote machine.
+The function will be called with two arguments; URI and ACTION. See
+`dnd-open-file' for details.
+If nil, then dragging remote files into Emacs will result in an error.
+Predefined functions are `dnd-open-unc-file' and `dnd-open-remote-url'.
+`dnd-open-unc-file' attempts to open the file using its UNC name and is the 
+default on MS-Windows.  `dnd-open-remote-url' uses `url-handler-mode' and
+is the default except for MS-Windows."
+  :version "22.1"
+  :type 'function
+  :group 'dnd)
 
 
 (defcustom dnd-open-file-other-window nil
@@ -158,6 +176,35 @@ The last / in file:/// is part of the file name.  ACTION is ignored."
 	  'private)
       (error "Can not read %s" uri))))
 
+(defun dnd-open-unc-file (uri action)
+  "Open a remote file using its unc path.
+The file is opened in the current window, or a new window if
+`dnd-open-file-other-window' is set. URI is the url for the file,
+and must have the format file://hostname/file-name. ACTION is ignored.
+//hostname/file-name is the unc path."
+  (let ((unc-file (if (string-match "^file:" uri)
+		      (substring uri 5))))
+    (if (and unc-file (file-readable-p unc-file))
+	(progn
+	  (if dnd-open-file-other-window
+	      (find-file-other-window unc-file)
+	    (find-file unc-file))
+	  'private)
+      (error "Invalid file url"))))
+
+(defun dnd-open-remote-url (uri action)
+  "Open a remote file with `find-file' and `url-handler-mode'.
+Turns `url-handler-mode' on if not on before.  The file is opened in the
+current window, or a new window if `dnd-open-file-other-window' is set.
+URI is the url for the file.  ACTION is ignored."
+  (progn
+    (or url-handler-mode (url-handler-mode))
+    (if dnd-open-file-other-window
+	(find-file-other-window uri)
+      (find-file uri))
+    'private))
+
+
 (defun dnd-open-file (uri action)
   "Open a local or remote file.
 The file is opened in the current window, or a new window if
@@ -169,7 +216,9 @@ The last / in file://hostname/ is part of the file name."
   ;; file.  Otherwise return nil.
   (let ((local-file (dnd-get-local-file-uri uri)))
     (if local-file (dnd-open-local-file local-file action)
-      (error "Remote files not supported"))))
+      (if dnd-open-remote-file-function
+	  (funcall dnd-open-remote-file-function uri action)
+	(error "Remote files not supported")))))
 
 
 (defun dnd-insert-text (window action text)
