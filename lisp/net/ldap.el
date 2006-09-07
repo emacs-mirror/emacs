@@ -490,6 +490,7 @@ to try to connect to.  Each host name may optionally be of the form HOST:PORT.
 for each matching entry. If nil, return all available attributes.
   `attrsonly', if non-nil, indicates that only attributes are retrieved,
 not their associated values.
+  `auth' is one of the symbols `simple', `krbv41' or `krbv42'.
   `base' is the base for the search as described in RFC 1779.
   `scope' is one of the three symbols `sub', `base' or `one'.
   `binddn' is the distinguished name of the user to bind as (in RFC 1779 syntax).
@@ -512,6 +513,7 @@ an alist of attribute/value pairs."
 		  ldap-default-base))
 	(scope (plist-get search-plist 'scope))
 	(binddn (plist-get search-plist 'binddn))
+        (auth (plist-get search-plist 'auth))
 	(passwd (plist-get search-plist 'passwd))
 	(deref (plist-get search-plist 'deref))
 	(timelimit (plist-get search-plist 'timelimit))
@@ -541,6 +543,9 @@ an alist of attribute/value pairs."
       (if (and binddn
 	       (not (equal "" binddn)))
 	  (setq arglist (nconc arglist (list (format "-D%s" binddn)))))
+      (if (and auth
+	       (equal 'simple auth))
+	  (setq arglist (nconc arglist (list "-x"))))
       (if (and passwd
 	       (not (equal "" passwd)))
 	  (setq arglist (nconc arglist (list (format "-w%s" passwd)))))

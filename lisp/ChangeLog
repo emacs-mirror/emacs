@@ -1,3 +1,7 @@
+2006-09-07  Toby Allsopp  <Toby.Allsopp@navman.com>  (tiny change)
+
+	* net/ldap.el (ldap-search-internal): Handle `auth' key.
+
 2006-09-07  Magnus Henoch <mange@freemail.hu>
 
 	* net/rcirc.el (rcirc-activity-string): Don't quote value in case
