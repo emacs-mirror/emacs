@@ -1545,8 +1545,8 @@ activity.  Only run if the buffer is not visible and
 		   (dolist (type rcirc-activity-types)
 		     (rcirc-add-face 0 (length s)
 				     (case type
-				       ('nick 'rcirc-track-nick)
-				       ('keyword 'rcirc-track-keyword))
+				       (nick 'rcirc-track-nick)
+				       (keyword 'rcirc-track-keyword))
 				     s)))
 		 s))
 	     buffers ","))
