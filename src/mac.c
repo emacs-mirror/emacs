@@ -2413,75 +2413,69 @@ sys_fopen (const char *name, const char *mode)
 }
 
 
-#include "keyboard.h"
-extern Boolean mac_wait_next_event (EventRecord *, UInt32, Boolean);
+extern Boolean mac_wait_next_event P_ ((EventRecord *, UInt32, Boolean));
 
 int
 select (n,  rfds, wfds, efds, timeout)
-  int n;
-  SELECT_TYPE *rfds;
-  SELECT_TYPE *wfds;
-  SELECT_TYPE *efds;
-  struct timeval *timeout;
+     int nfds;
+     SELECT_TYPE *rfds, *wfds, *efds;
+     EMACS_TIME *timeout;
 {
-  OSStatus err;
-#if TARGET_API_MAC_CARBON
-  EventTimeout timeout_sec =
-    (timeout
-     ? (EMACS_SECS (*timeout) * kEventDurationSecond
-	+ EMACS_USECS (*timeout) * kEventDurationMicrosecond)
-     : kEventDurationForever);
-
-  BLOCK_INPUT;
-  err = ReceiveNextEvent (0, NULL, timeout_sec, kEventLeaveInQueue, NULL);
-  UNBLOCK_INPUT;
-#else /* not TARGET_API_MAC_CARBON */
-  EventRecord e;
-  UInt32 sleep_time = EMACS_SECS (*timeout) * 60 +
-    ((EMACS_USECS (*timeout) * 60) / 1000000);
+  OSStatus err = noErr;
 
   /* Can only handle wait for keyboard input.  */
-  if (n > 1 || wfds || efds)
+  if (nfds > 1 || wfds || efds)
     return -1;
 
-  /* Also return true if an event other than a keyDown has occurred.
-     This causes kbd_buffer_get_event in keyboard.c to call
-     read_avail_input which in turn calls XTread_socket to poll for
-     these events.  Otherwise these never get processed except but a
-     very slow poll timer.  */
-  if (mac_wait_next_event (&e, sleep_time, false))
-    err = noErr;
-  else
-    err = -9875;		/* eventLoopTimedOutErr */
-#endif /* not TARGET_API_MAC_CARBON */
+  /* Try detect_input_pending before ReceiveNextEvent in the same
+     BLOCK_INPUT block, in case that some input has already been read
+     asynchronously.  */
+  BLOCK_INPUT;
+  if (!detect_input_pending ())
+    {
+#if TARGET_API_MAC_CARBON
+      EventTimeout timeoutval =
+	(timeout
+	 ? (EMACS_SECS (*timeout) * kEventDurationSecond
+	    + EMACS_USECS (*timeout) * kEventDurationMicrosecond)
+	 : kEventDurationForever);
 
-  if (FD_ISSET (0, rfds))
-    if (err == noErr)
-      return 1;
-    else
-      {
-	FD_ZERO (rfds);
-	return 0;
-      }
+      if (timeoutval == 0.0)
+	err = eventLoopTimedOutErr;
+      else
+	err = ReceiveNextEvent (0, NULL, timeoutval,
+				kEventLeaveInQueue, NULL);
+#else /* not TARGET_API_MAC_CARBON */
+      EventRecord e;
+      UInt32 sleep_time = EMACS_SECS (*timeout) * 60 +
+	((EMACS_USECS (*timeout) * 60) / 1000000);
+
+      if (sleep_time == 0)
+	err = -9875;		/* eventLoopTimedOutErr */
+      else
+	{
+	  if (mac_wait_next_event (&e, sleep_time, false))
+	    err = noErr;
+	  else
+	    err = -9875;	/* eventLoopTimedOutErr */
+	}
+#endif /* not TARGET_API_MAC_CARBON */
+    }
+  UNBLOCK_INPUT;
+
+  if (err == noErr)
+    {
+      /* Pretend that `select' is interrupted by a signal.  */
+      detect_input_pending ();
+      errno = EINTR;
+      return -1;
+    }
   else
-    if (err == noErr)
-      {
-	if (input_polling_used ())
-	  {
-	    /* It could be confusing if a real alarm arrives while
-	       processing the fake one.  Turn it off and let the
-	       handler reset it.  */
-	    extern void poll_for_input_1 P_ ((void));
-	    int old_poll_suppress_count = poll_suppress_count;
-	    poll_suppress_count = 1;
-	    poll_for_input_1 ();
-	    poll_suppress_count = old_poll_suppress_count;
-	  }
-	errno = EINTR;
-	return -1;
-      }
-    else
+    {
+      if (rfds)
+	FD_ZERO (rfds);
       return 0;
+    }
 }
 
 
@@ -4904,6 +4898,30 @@ On successful conversion, return the result string, else return nil.  */)
 
   return result;
 }
+
+DEFUN ("mac-process-hi-command", Fmac_process_hi_command, Smac_process_hi_command, 1, 1, 0,
+       doc: /* Send a HI command whose ID is COMMAND-ID to the command chain.
+COMMAND-ID must be a 4-character string.  Some common command IDs are
+defined in the Carbon Event Manager.  */)
+     (command_id)
+     Lisp_Object command_id;
+{
+  OSStatus err;
+  HICommand command;
+
+  bzero (&command, sizeof (HICommand));
+  command.commandID = mac_get_code_from_arg (command_id , 0);
+
+  BLOCK_INPUT;
+  err = ProcessHICommand (&command);
+  UNBLOCK_INPUT;
+
+  if (err != noErr)
+    error ("HI command (command ID: '%s') not handled.", SDATA (command_id));
+
+  return Qnil;
+}
+
 #endif	/* TARGET_API_MAC_CARBON */
 
 
@@ -4944,23 +4962,22 @@ extern int noninteractive;
       -> Use `select'.
    2. Sockets are not involved.
       -> Use ReceiveNextEvent.
-   3. [If SELECT_USE_CFSOCKET is defined]
-      Only the window event channel and socket read channels are
+   3. [If SELECT_USE_CFSOCKET is set]
+      Only the window event channel and socket read/write channels are
       involved, and timeout is not too short (greater than
       SELECT_TIMEOUT_THRESHHOLD_RUNLOOP seconds).
       -> Create CFSocket for each socket and add it into the current
-         event RunLoop so that a `ready-to-read' event can be posted
-         to the event queue that is also used for window events.  Then
-         ReceiveNextEvent can wait for both kinds of inputs.
+         event RunLoop so that the current event loop gets quit when
+         the socket becomes ready.  Then ReceiveNextEvent can wait for
+         both kinds of inputs.
    4. Otherwise.
       -> Periodically poll the window input channel while repeatedly
          executing `select' with a short timeout
          (SELECT_POLLING_PERIOD_USEC microseconds).  */
 
-#define SELECT_POLLING_PERIOD_USEC 20000
-#ifdef SELECT_USE_CFSOCKET
+#define SELECT_POLLING_PERIOD_USEC 100000
+#if SELECT_USE_CFSOCKET
 #define SELECT_TIMEOUT_THRESHOLD_RUNLOOP 0.2
-#define EVENT_CLASS_SOCK 'Sock'
 
 static void
 socket_callback (s, type, address, data, info)
@@ -4970,196 +4987,208 @@ socket_callback (s, type, address, data, info)
      const void *data;
      void *info;
 {
-  EventRef event;
+  int fd = CFSocketGetNative (s);
+  SELECT_TYPE *ofds = (SELECT_TYPE *)info;
 
-  CreateEvent (NULL, EVENT_CLASS_SOCK, 0, 0, kEventAttributeNone, &event);
-  PostEventToQueue (GetCurrentEventQueue (), event, kEventPriorityStandard);
-  ReleaseEvent (event);
+  if ((type == kCFSocketReadCallBack && FD_ISSET (fd, &ofds[0]))
+      || (type == kCFSocketConnectCallBack && FD_ISSET (fd, &ofds[1])))
+    QuitEventLoop (GetCurrentEventLoop ());
 }
 #endif	/* SELECT_USE_CFSOCKET */
 
 static int
-select_and_poll_event (n, rfds, wfds, efds, timeout)
-     int n;
-     SELECT_TYPE *rfds;
-     SELECT_TYPE *wfds;
-     SELECT_TYPE *efds;
-     struct timeval *timeout;
+select_and_poll_event (nfds, rfds, wfds, efds, timeout)
+     int nfds;
+     SELECT_TYPE *rfds, *wfds, *efds;
+     EMACS_TIME *timeout;
 {
-  int r;
-  OSStatus err;
+  OSStatus err = noErr;
+  int r = 0;
 
-  r = select (n, rfds, wfds, efds, timeout);
-  if (r != -1)
+  /* Try detect_input_pending before ReceiveNextEvent in the same
+     BLOCK_INPUT block, in case that some input has already been read
+     asynchronously.  */
+  BLOCK_INPUT;
+  if (!detect_input_pending ())
     {
-      BLOCK_INPUT;
-      err = ReceiveNextEvent (0, NULL, kEventDurationNoWait,
-			      kEventLeaveInQueue, NULL);
-      UNBLOCK_INPUT;
-      if (err == noErr)
-	{
-	  FD_SET (0, rfds);
-	  r++;
-	}
-    }
-  return r;
-}
-
-#if MAC_OS_X_VERSION_MAX_ALLOWED < 1020
-#undef SELECT_INVALIDATE_CFSOCKET
-#endif
-
-int
-sys_select (n, rfds, wfds, efds, timeout)
-     int n;
-     SELECT_TYPE *rfds;
-     SELECT_TYPE *wfds;
-     SELECT_TYPE *efds;
-     struct timeval *timeout;
-{
-  OSStatus err;
-  int i, r;
-  EMACS_TIME select_timeout;
-
-  if (inhibit_window_system || noninteractive
-      || rfds == NULL || !FD_ISSET (0, rfds))
-    return select (n, rfds, wfds, efds, timeout);
-
-  FD_CLR (0, rfds);
-
-  if (wfds == NULL && efds == NULL)
-    {
-      int nsocks = 0;
-      SELECT_TYPE orfds = *rfds;
-
-      EventTimeout timeout_sec =
+      EMACS_TIME select_timeout;
+      EventTimeout timeoutval =
 	(timeout
 	 ? (EMACS_SECS (*timeout) * kEventDurationSecond
 	    + EMACS_USECS (*timeout) * kEventDurationMicrosecond)
 	 : kEventDurationForever);
 
-      for (i = 1; i < n; i++)
-	if (FD_ISSET (i, rfds))
-	  nsocks++;
-
-      if (nsocks == 0)
+      EMACS_SET_SECS_USECS (select_timeout, 0, 0);
+      r = select (nfds, rfds, wfds, efds, &select_timeout);
+      if (timeoutval == 0.0)
+	err = eventLoopTimedOutErr;
+      else if (r == 0)
 	{
-	  BLOCK_INPUT;
-	  err = ReceiveNextEvent (0, NULL, timeout_sec,
-				  kEventLeaveInQueue, NULL);
-	  UNBLOCK_INPUT;
-	  if (err == noErr)
-	    {
-	      FD_SET (0, rfds);
-	      return 1;
-	    }
-	  else
-	    return 0;
-	}
-
 #if USE_CG_DRAWING
-      mac_prepare_for_quickdraw (NULL);
+	  mac_prepare_for_quickdraw (NULL);
 #endif
+	  err = ReceiveNextEvent (0, NULL, timeoutval,
+				  kEventLeaveInQueue, NULL);
+	}
+    }
+  UNBLOCK_INPUT;
+
+  if (r != 0)
+    return r;
+  else if (err == noErr)
+    {
+      /* Pretend that `select' is interrupted by a signal.  */
+      detect_input_pending ();
+      errno = EINTR;
+      return -1;
+    }
+  else
+    return 0;
+}
+
+int
+sys_select (nfds, rfds, wfds, efds, timeout)
+     int nfds;
+     SELECT_TYPE *rfds, *wfds, *efds;
+     EMACS_TIME *timeout;
+{
+  OSStatus err = noErr;
+  int r;
+  EMACS_TIME select_timeout;
+  SELECT_TYPE ofds[3];
+
+  if (inhibit_window_system || noninteractive
+      || rfds == NULL || !FD_ISSET (0, rfds))
+    return select (nfds, rfds, wfds, efds, timeout);
+
+  FD_CLR (0, rfds);
+  ofds[0] = *rfds;
+
+  if (wfds)
+    ofds[1] = *wfds;
+  else
+    FD_ZERO (&ofds[1]);
+
+  if (efds)
+    ofds[2] = *efds;
+  else
+    {
+      int maxfd;
+      EventTimeout timeoutval =
+	(timeout
+	 ? (EMACS_SECS (*timeout) * kEventDurationSecond
+	    + EMACS_USECS (*timeout) * kEventDurationMicrosecond)
+	 : kEventDurationForever);
+
+      for (maxfd = nfds - 1; maxfd > 0; maxfd--)
+	if (FD_ISSET (maxfd, rfds) || (wfds && FD_ISSET (maxfd, wfds)))
+	  break;
+
+      if (maxfd == 0)
+	return select_and_poll_event (nfds, rfds, wfds, efds, timeout);
+
       /* Avoid initial overhead of RunLoop setup for the case that
 	 some input is already available.  */
       EMACS_SET_SECS_USECS (select_timeout, 0, 0);
-      r = select_and_poll_event (n, rfds, wfds, efds, &select_timeout);
-      if (r != 0 || timeout_sec == 0.0)
+      r = select_and_poll_event (nfds, rfds, wfds, efds, &select_timeout);
+      if (r != 0 || timeoutval == 0.0)
 	return r;
 
-      *rfds = orfds;
+      *rfds = ofds[0];
+      if (wfds)
+	*wfds = ofds[1];
 
-#ifdef SELECT_USE_CFSOCKET
-      if (timeout_sec > 0 && timeout_sec <= SELECT_TIMEOUT_THRESHOLD_RUNLOOP)
+#if SELECT_USE_CFSOCKET
+      if (timeoutval > 0 && timeoutval <= SELECT_TIMEOUT_THRESHOLD_RUNLOOP)
 	goto poll_periodically;
 
-      {
-	CFRunLoopRef runloop =
-	  (CFRunLoopRef) GetCFRunLoopFromEventLoop (GetCurrentEventLoop ());
-	EventTypeSpec specs[] = {{EVENT_CLASS_SOCK, 0}};
-#ifdef SELECT_INVALIDATE_CFSOCKET
-	CFSocketRef *shead, *s;
-#else
-	CFRunLoopSourceRef *shead, *s;
+      /* Try detect_input_pending before ReceiveNextEvent in the same
+	 BLOCK_INPUT block, in case that some input has already been
+	 read asynchronously.  */
+      BLOCK_INPUT;
+      if (!detect_input_pending ())
+	{
+	  int minfd, fd;
+	  CFRunLoopRef runloop =
+	    (CFRunLoopRef) GetCFRunLoopFromEventLoop (GetCurrentEventLoop ());
+	  static CFSocketContext context;
+	  static CFMutableDictionaryRef sources;
+
+	  context.info = ofds;
+	  if (sources == NULL)
+	    sources =
+	      CFDictionaryCreateMutable (NULL, 0, NULL,
+					 &kCFTypeDictionaryValueCallBacks);
+
+	  for (minfd = 1; minfd < maxfd; minfd++)
+	    if (FD_ISSET (minfd, rfds) || (wfds && FD_ISSET (minfd, wfds)))
+	      break;
+
+	  for (fd = minfd; fd <= maxfd; fd++)
+	    if (FD_ISSET (fd, rfds) || (wfds && FD_ISSET (fd, wfds)))
+	      {
+		void *key = (void *) fd;
+		CFRunLoopSourceRef source =
+		  (CFRunLoopSourceRef) CFDictionaryGetValue (sources, key);
+
+		if (source == NULL)
+		  {
+		    CFSocketRef socket =
+		      CFSocketCreateWithNative (NULL, fd,
+						(kCFSocketReadCallBack
+						 | kCFSocketConnectCallBack),
+						socket_callback, &context);
+
+		    if (socket == NULL)
+		      continue;
+		    source = CFSocketCreateRunLoopSource (NULL, socket, 0);
+		    CFRelease (socket);
+		    if (source == NULL)
+		      continue;
+		    CFDictionaryAddValue (sources, key, source);
+		    CFRelease (source);
+		  }
+		CFRunLoopAddSource (runloop, source, kCFRunLoopDefaultMode);
+	      }
+
+#if USE_CG_DRAWING
+	  mac_prepare_for_quickdraw (NULL);
 #endif
+	  err = ReceiveNextEvent (0, NULL, timeoutval,
+				  kEventLeaveInQueue, NULL);
 
-	BLOCK_INPUT;
+	  for (fd = minfd; fd <= maxfd; fd++)
+	    if (FD_ISSET (fd, rfds) || (wfds && FD_ISSET (fd, wfds)))
+	      {
+		void *key = (void *) fd;
+		CFRunLoopSourceRef source =
+		  (CFRunLoopSourceRef) CFDictionaryGetValue (sources, key);
 
-#ifdef SELECT_INVALIDATE_CFSOCKET
-	shead = xmalloc (sizeof (CFSocketRef) * nsocks);
-#else
-	shead = xmalloc (sizeof (CFRunLoopSourceRef) * nsocks);
-#endif
-	s = shead;
-	for (i = 1; i < n; i++)
-	  if (FD_ISSET (i, rfds))
-	    {
-	      CFSocketRef socket =
-		CFSocketCreateWithNative (NULL, i, kCFSocketReadCallBack,
-					  socket_callback, NULL);
-	      CFRunLoopSourceRef source =
-		CFSocketCreateRunLoopSource (NULL, socket, 0);
+		CFRunLoopRemoveSource (runloop, source, kCFRunLoopDefaultMode);
+	      }
+	}
+      UNBLOCK_INPUT;
 
-#ifdef SELECT_INVALIDATE_CFSOCKET
-	      CFSocketSetSocketFlags (socket, 0);
-#endif
-	      CFRunLoopAddSource (runloop, source, kCFRunLoopDefaultMode);
-#ifdef SELECT_INVALIDATE_CFSOCKET
-	      CFRelease (source);
-	      *s = socket;
-#else
-	      CFRelease (socket);
-	      *s = source;
-#endif
-	      s++;
-	    }
-
-	err = ReceiveNextEvent (0, NULL, timeout_sec, kEventLeaveInQueue, NULL);
-
-	do
-	  {
-	    --s;
-#ifdef SELECT_INVALIDATE_CFSOCKET
-	    CFSocketInvalidate (*s);
-#else
-	    CFRunLoopRemoveSource (runloop, *s, kCFRunLoopDefaultMode);
-#endif
-	    CFRelease (*s);
-	  }
-	while (s != shead);
-
-	xfree (shead);
-
-	if (err)
-	  {
-	    FD_ZERO (rfds);
-	    r = 0;
-	  }
-	else
-	  {
-	    FlushEventsMatchingListFromQueue (GetCurrentEventQueue (),
-					      GetEventTypeCount (specs),
-					      specs);
-	    EMACS_SET_SECS_USECS (select_timeout, 0, 0);
-	    r = select_and_poll_event (n, rfds, wfds, efds, &select_timeout);
-	  }
-
-	UNBLOCK_INPUT;
-
-	return r;
-      }
+      if (err == noErr || err == eventLoopQuitErr)
+	{
+	  EMACS_SET_SECS_USECS (select_timeout, 0, 0);
+	  return select_and_poll_event (nfds, rfds, wfds, efds,
+					&select_timeout);
+	}
+      else
+	{
+	  FD_ZERO (rfds);
+	  if (wfds)
+	    FD_ZERO (wfds);
+	  return 0;
+	}
 #endif	/* SELECT_USE_CFSOCKET */
     }
 
  poll_periodically:
   {
     EMACS_TIME end_time, now, remaining_time;
-    SELECT_TYPE orfds = *rfds, owfds, oefds;
 
-    if (wfds)
-      owfds = *wfds;
-    if (efds)
-      oefds = *efds;
     if (timeout)
       {
 	remaining_time = *timeout;
@@ -5172,15 +5201,15 @@ sys_select (n, rfds, wfds, efds, timeout)
 	EMACS_SET_SECS_USECS (select_timeout, 0, SELECT_POLLING_PERIOD_USEC);
 	if (timeout && EMACS_TIME_LT (remaining_time, select_timeout))
 	  select_timeout = remaining_time;
-	r = select_and_poll_event (n, rfds, wfds, efds, &select_timeout);
+	r = select_and_poll_event (nfds, rfds, wfds, efds, &select_timeout);
 	if (r != 0)
 	  return r;
 
-	*rfds = orfds;
+	*rfds = ofds[0];
 	if (wfds)
-	  *wfds = owfds;
+	  *wfds = ofds[1];
 	if (efds)
-	  *efds = oefds;
+	  *efds = ofds[2];
 
 	if (timeout)
 	  {
@@ -5190,12 +5219,8 @@ sys_select (n, rfds, wfds, efds, timeout)
       }
     while (!timeout || EMACS_TIME_LT (now, end_time));
 
-    FD_ZERO (rfds);
-    if (wfds)
-      FD_ZERO (wfds);
-    if (efds)
-      FD_ZERO (efds);
-    return 0;
+    EMACS_SET_SECS_USECS (select_timeout, 0, 0);
+    return select_and_poll_event (nfds, rfds, wfds, efds, &select_timeout);
   }
 }
 
@@ -5387,6 +5412,7 @@ syms_of_mac ()
 #if TARGET_API_MAC_CARBON
   defsubr (&Smac_get_preference);
   defsubr (&Smac_code_convert_string);
+  defsubr (&Smac_process_hi_command);
 #endif
 
   defsubr (&Smac_set_file_creator);
