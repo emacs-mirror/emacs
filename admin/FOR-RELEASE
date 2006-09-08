@@ -79,8 +79,6 @@ in the syntax table.
 
 ** Michael Cadilhac's Sep 7 bug report about set-input-method.
 
-** Problem of passing temp files to GPG thru call-process.
-
 ** Xt timer runs very often, all the time.
 
 
