@@ -1,3 +1,8 @@
+2006-09-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-dblock-write:clocktable): Avoid infinite
+	loop.
+
 2006-09-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: (show-hide-font-panel): New HI command ID symbol.
