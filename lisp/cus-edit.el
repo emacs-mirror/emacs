@@ -4395,15 +4395,15 @@ This function does not save the buffer."
   "Ignoring WIDGET, create a menu entry for customization group SYMBOL."
   `( ,(custom-unlispify-menu-entry symbol t)
      :filter (lambda (&rest junk)
-	       (let* ((deactivate-mark nil)
-		      (menu (custom-menu-create ',symbol)))
+	       (let* ((menu (custom-menu-create ',symbol)))
 		 (if (consp menu) (cdr menu) menu)))))
 
 ;;;###autoload
 (defun custom-menu-create (symbol)
   "Create menu for customization group SYMBOL.
 The menu is in a format applicable to `easy-menu-define'."
-  (let* ((item (vector (custom-unlispify-menu-entry symbol)
+  (let* ((deactivate-mark nil)
+	 (item (vector (custom-unlispify-menu-entry symbol)
 		       `(customize-group ',symbol)
 		       t)))
     (if (and (or (not (boundp 'custom-menu-nesting))
