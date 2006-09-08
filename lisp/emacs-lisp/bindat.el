@@ -66,13 +66,13 @@
 ;;
 ;;  The corresponding Lisp bindat specification looks like this:
 ;;
-;;  (setq header-spec
+;;  (setq header-bindat-spec
 ;;    '((dest-ip   ip)
 ;;	(src-ip    ip)
 ;;	(dest-port u16)
 ;;	(src-port  u16)))
 ;;
-;;  (setq data-spec
+;;  (setq data-bindat-spec
 ;;    '((type      u8)
 ;;	(opcode	   u8)
 ;;	(length	   u16r)  ;; little endian order
@@ -80,12 +80,12 @@
 ;;	(data	   vec (length))
 ;;	(align     4)))
 ;;
-;;  (setq packet-spec
-;;    '((header    struct header-spec)
+;;  (setq packet-bindat-spec
+;;    '((header    struct header-bindat-spec)
 ;;	(items     u8)
 ;;	(fill      3)
 ;;	(item	   repeat (items)
-;;		   (struct data-spec))))
+;;		   (struct data-bindat-spec))))
 ;;
 ;;
 ;;  A binary data representation may look like
@@ -120,6 +120,9 @@
 
 ;; Binary Data Structure Specification Format
 ;; ------------------------------------------
+
+;; We recommend using names that end in `-bindat-spec'; such names
+;; are recognized automatically as "risky" variables.
 
 ;; The data specification is formatted as follows:
 
@@ -342,8 +345,8 @@
 
 (defun bindat-unpack (spec bindat-raw &optional bindat-idx)
   "Return structured data according to SPEC for binary data in BINDAT-RAW.
-BINDAT-RAW is a unibyte string or vector.  Optional third arg BINDAT-IDX specifies
-the starting offset in BINDAT-RAW."
+BINDAT-RAW is a unibyte string or vector.
+Optional third arg BINDAT-IDX specifies the starting offset in BINDAT-RAW."
   (when (multibyte-string-p bindat-raw)
     (error "String is multibyte"))
   (unless bindat-idx (setq bindat-idx 0))
