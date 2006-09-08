@@ -1,3 +1,9 @@
+2006-09-08  David Kastrup  <dak@gnu.org>
+
+	* desktop.el (desktop-read): when loading a desktop, disable
+	saving it while the load progresses, and switch off a pending lazy
+	load by calling `desktop-lazy-abort'.
+
 2006-08-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (mouse-autoselect-window-timer)
@@ -1469,7 +1475,7 @@
 	repertoire of unit tests.  Called just before the provide iff user
 	has customized `allout-run-unit-tests-on-load' non-nil.
 
-2006-07-14  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2006-07-14  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* emacs-lisp/authors.el (authors-aliases): Update.
 
@@ -4101,7 +4107,7 @@
 	Sync with Tramp 2.0.53.
 
 	* net/tramp.el (tramp-completion-mode): ?\t has event-modifier
-	'control.  Reported by Matthias F,bv(Brste <slashdevslashnull@gmx.net>.
+	'control.  Reported by Matthias F,Av(Brste <slashdevslashnull@gmx.net>.
 	(tramp-completion-file-name-handler): Add autoload cookie for
 	adding to `file-name-handler-alist'.
 
@@ -8695,7 +8701,7 @@
 	Let term-handle-ansi-terminal-messages override what Bash says about
 	its current directory.
 
-2005-12-16  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2005-12-16  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* bindings.el (last-buffer): Move to simple.el.
 	* simple.el (last-buffer): Move here.
@@ -10452,7 +10458,7 @@
 	prompts work for AUTH PLAIN.  Also reported by Steve Allan
 	<seallan@verizon.net>.
 
-2005-12-06  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2005-12-06  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* frame.el (set-frame-parameter): Add doc string.
 
@@ -10836,7 +10842,7 @@
 	(flyspell-post-command-hook): Check input-pending-p while processing
 	the potentially long list of buffer changes.
 
-2005-11-28  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2005-11-28  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* buff-menu.el (list-buffers-noselect): Display the selected
 	frame's buffer list, not the global one.

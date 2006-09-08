@@ -862,8 +862,9 @@ It returns t if a desktop file was loaded, nil otherwise."
       ;; Desktop file found, process it.
       (let ((desktop-first-buffer nil)
             (desktop-buffer-ok-count 0)
-            (desktop-buffer-fail-count 0))
-        (setq desktop-lazy-timer nil)
+            (desktop-buffer-fail-count 0)
+	    desktop-save)
+	(desktop-lazy-abort)
         ;; Evaluate desktop buffer.
         (load (desktop-full-file-name) t t t)
         ;; `desktop-create-buffer' puts buffers at end of the buffer list.
