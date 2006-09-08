@@ -413,7 +413,7 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
       if (size == size_byte)
 	{
 	  for (i = 0; i < size; ++i)
-	    insert_char ((unsigned char )*ptr++);
+	    insert_char ((unsigned char) *ptr++);
 	}
       else
 	{
