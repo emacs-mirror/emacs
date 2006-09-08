@@ -53,6 +53,8 @@ Windows only bug.
 
 ** Field handling in C-n.
 
+** Make pushnew avoid use of cl functions.
+
 ** cursor display on images that don't use :mask.
 
 ** C-g fails to interrupt accept-process-output in Gnus.
