@@ -7500,7 +7500,7 @@ struct x_error_message_stack {
 static struct x_error_message_stack *x_error_message;
 
 /* An X error handler which stores the error message in
-   x_error_message_string.  This is called from x_error_handler if
+   *x_error_message.  This is called from x_error_handler if
    x_catch_errors is in effect.  */
 
 static void
@@ -7519,7 +7519,7 @@ x_error_catcher (display, error)
 
    After calling this function, X protocol errors no longer cause
    Emacs to exit; instead, they are recorded in the string
-   stored in x_error_message_string.
+   stored in *x_error_message.
 
    Calling x_check_errors signals an Emacs error if an X error has
    occurred since the last call to x_catch_errors or x_check_errors.
@@ -7779,7 +7779,7 @@ x_connection_closed (dpy, error_message)
 
 /* We specifically use it before defining it, so that gcc doesn't inline it,
    otherwise gdb doesn't know how to properly put a breakpoint on it.  */
-static void x_error_quitter P_ ((Display *, XErrorEvent *)) NO_RETURN;
+static void x_error_quitter P_ ((Display *, XErrorEvent *));
 
 /* This is the first-level handler for X protocol errors.
    It calls x_error_quitter or x_error_catcher.  */
@@ -7823,6 +7823,12 @@ x_error_quitter (display, error)
      XErrorEvent *error;
 {
   char buf[256], buf1[356];
+
+  /* Ignore BadName errors.  They can happen because of fonts
+     or colors that are not defined.  */
+
+  if (error->error_code == BadName)
+    return;
 
   /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */
