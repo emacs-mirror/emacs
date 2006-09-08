@@ -1,3 +1,20 @@
+2006-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (mouse_autoselect_window): Removed.
+	(Vmouse_autoselect_window): New variable.  DEFVAR_LISP it.
+
+	* dispextern.h (mouse_autoselect_window): Remove extern.
+	(Vmouse_autoselect_window): Add extern.
+
+	* macterm.c (XTread_socket): Test Vmouse_autoselect_window
+	instead of mouse_autoselect_window.
+
+	* msdos.c (dos_rawgetc): Likewise.
+
+	* w32term.c (w32_read_socket): Likewise.
+
+	* xterm.c (handle_one_xevent): Likewise.
+
 2006-09-08  Richard Stallman  <rms@gnu.org>
 
 	* xdisp.c (Vmenu_updating_frame): Define here.

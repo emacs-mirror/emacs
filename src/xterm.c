@@ -6583,7 +6583,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           {
 
             /* Generate SELECT_WINDOW_EVENTs when needed.  */
-            if (mouse_autoselect_window)
+            if (!NILP (Vmouse_autoselect_window))
               {
                 Lisp_Object window;
 

@@ -256,9 +256,9 @@ Lisp_Object list_of_error;
 Lisp_Object Vfontification_functions;
 Lisp_Object Qfontification_functions;
 
-/* Non-zero means automatically select any window when the mouse
+/* Non-nil means automatically select any window when the mouse
    cursor moves into it.  */
-int mouse_autoselect_window;
+Lisp_Object Vmouse_autoselect_window;
 
 /* Non-zero means draw tool bar buttons raised when the mouse moves
    over them.  */
@@ -24019,9 +24019,22 @@ Each function is called with two arguments, the window and the end trigger value
 See `set-window-redisplay-end-trigger'.  */);
   Vredisplay_end_trigger_functions = Qnil;
 
-  DEFVAR_BOOL ("mouse-autoselect-window", &mouse_autoselect_window,
-    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  mouse_autoselect_window = 0;
+  DEFVAR_LISP ("mouse-autoselect-window", &Vmouse_autoselect_window,
+     doc: /* *Non-nil means autoselect window with mouse pointer.
+If nil, do not autoselect windows.
+A positive number means delay autoselection by that many seconds: a
+window is autoselected only after the mouse has remained in that
+window for the duration of the delay.
+A negative number has a similar effect, but causes windows to be
+autoselected only after the mouse has stopped moving.  \(Because of
+the way Emacs compares mouse events, you will occasionally wait twice
+that time before the window gets selected.\)
+Any other value means to autoselect window instantaneously when the
+mouse pointer enters it.
+
+Autoselection selects the minibuffer only if it is active, and never
+unselects the minibuffer if it is active.  */);
+  Vmouse_autoselect_window = Qnil;
 
   DEFVAR_BOOL ("auto-resize-tool-bars", &auto_resize_tool_bars_p,
     doc: /* *Non-nil means automatically resize tool-bars.

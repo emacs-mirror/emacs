@@ -10653,7 +10653,7 @@ XTread_socket (sd, expected, hold_quit)
 		  else
 		    {
 		      /* Generate SELECT_WINDOW_EVENTs when needed.  */
-		      if (mouse_autoselect_window)
+		      if (!NILP (Vmouse_autoselect_window))
 			{
 			  Lisp_Object window;
 
