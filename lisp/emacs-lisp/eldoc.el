@@ -432,7 +432,7 @@ Emacs Lisp mode) that support Eldoc.")
 ;; Prime the command list.
 (eldoc-add-command-completions
  "backward-" "beginning-of-" "move-beginning-of-" "delete-other-windows"
- "delete-window"
+ "delete-window" "handle-select-window"
  "end-of-" "move-end-of-" "exchange-point-and-mark" "forward-"
  "indent-for-tab-command" "goto-" "mark-page" "mark-paragraph"
  "mouse-set-point" "move-" "pop-global-mark" "next-" "other-window"

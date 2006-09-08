@@ -361,6 +361,11 @@ since it could result in memory overflow and make Emacs crash."
 	     (unibyte-display-via-language-environment mule boolean)
 	     (blink-cursor-alist cursor alist "22.1")
 	     (overline-margin display integer "22.1")
+             (mouse-autoselect-window
+	      display (choice
+		       (const :tag "Off (nil)" :value nil)
+		       (const :tag "Immediate" :value t)
+		       (number :tag "Delay by secs" :value 0.5)) "22.1")
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean)
 	     ;; xfns.c
@@ -370,7 +375,6 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-gtk-show-hidden-files menu boolean "22.1")
 	     (x-gtk-whole-detached-tool-bar x boolean "22.1")
 	     ;; xterm.c
-	     (mouse-autoselect-window display boolean "22.1")
 	     (x-use-underline-position-properties display boolean "22.1")
 	     (x-underline-at-descent-line display boolean "22.1")
 	     (x-stretch-cursor display boolean "21.1")))

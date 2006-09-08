@@ -1,3 +1,21 @@
+2006-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (mouse-autoselect-window-timer)
+	(mouse-autoselect-window-position)
+	(mouse-autoselect-window-window)
+	(mouse-autoselect-window-now): New vars.
+	(mouse-autoselect-window-cancel)
+	(mouse-autoselect-window-select)
+	(mouse-autoselect-window-start): New functions.
+	(handle-select-window): Call `mouse-autoselect-window-start' when
+	delayed window autoselection is enabled.
+
+	* cus-start.el (mouse-autoselect-window): Handle delayed window
+	autoselection.
+
+	* emacs-lisp/eldoc.el: Add `handle-select-window' to the set of
+	commands after which it is allowed to print in the echo area.
+
 2006-09-08  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/fill.el (adaptive-fill-regexp): Don't match `(1)' or `1.'
