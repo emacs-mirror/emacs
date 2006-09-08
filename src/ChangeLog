@@ -1,3 +1,20 @@
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* eval.c (find_handler_clause): Give up on debugger if INPUT_BLOCKED_P.
+
+	* casetab.c (init_casetab_once): Call set_case_table.
+
+	* emacs.c (shut_down_emacs): Set inhibit_sentinels.
+
+	* process.c (inhibit_sentinels): New variable.
+	(exec_sentinel): Test inhibit_sentinels.
+	(init_process): Initialize it.
+
+	* process.h (inhibit_sentinels): Add decl.
+
+	* search.c (looking_at_1, string_match_1, search_command):
+	Make syntax table's canon table point to eqv table.
+
 2006-09-08  Andreas Schwab  <schwab@suse.de>
 
 	* print.c (strout): Fix whitespace.
