@@ -64,6 +64,8 @@ Windows only bug.
 
 ** ispell.el: no option for no flyspell on non-ASCII
 
+** next-single-property-change bug, Magnus Henoch Sep 8.
+
 ** allout.el patch from Manheimer to be installed.
 
 ** regex char class matching needs a call to char-syntax.
