@@ -2135,6 +2135,7 @@ shut_down_emacs (sig, no_x, stuff)
 
   stuff_buffered_input (stuff);
 
+  inhibit_sentinels = 1;
   kill_buffer_processes (Qnil);
   Fdo_auto_save (Qt, Qnil);
 
