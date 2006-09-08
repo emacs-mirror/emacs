@@ -55,22 +55,25 @@
 
 	* xdisp.c (pos_visible_p): Remove exact_mode_line_heights_p arg;
 	so always calculate heights even when pos-visible-in-window-p is
-	called with partially = t.  Don't overshoot last_visible_y in move_it_to.
-	Return row height and row number in new rowh and vpos args.
-	(cursor_row_fully_visible_p): First line is always "fully visible".
+	called with partially = t.  Don't overshoot last_visible_y in
+	move_it_to.  Return row height and row number in new rowh and vpos
+	args.
+	(cursor_row_fully_visible_p): First line is always "fully
+	visible".
 	(try_window): Don't clear matrix if vscrolled.
 
 	* lisp.h (pos_visible_p): Update prototype.
 
 	* window.c (Fpos_visible_in_window_p): Adapt to new pos_visible_p.
 	Return row height and row number for partially visible rows.
-	Modify return value to a 2 element list for fully visible rows
-	and 6 for partially visible row.
+	Modify return value to a 2 element list for fully visible rows and
+	6 for partially visible row.
 	(window_scroll_pixel_based): Use pos_visible_p directly instead of
-	Fpos_visible_in_window_p.  Fix auto vscrolling for partially visible lines.
-	Only vscroll backwards if already vscrolled forwards.  Unconditionally
-	vscroll forwards if PT is first (and only) line.  Set new window start
-	instead of scrolling at start/end of tall line.
+	Fpos_visible_in_window_p.  Fix auto vscrolling for partially
+	visible lines.  Only vscroll backwards if already vscrolled
+	forwards.  Unconditionally vscroll forwards if PT is first (and
+	only) line.  Set new window start instead of scrolling at
+	start/end of tall line.
 
 2006-09-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -1605,13 +1608,13 @@
 
 2006-05-18  Kim F. Storm  <storm@cua.dk>
 
-	* xdisp.c (display_tool_bar_line): Restore entire tool-bar geometry when
-	backtracking in case last image doesn't fit on line.
+	* xdisp.c (display_tool_bar_line): Restore entire tool-bar
+	geometry when backtracking in case last image doesn't fit on line.
 
 2006-05-18  MIYOSHI Masanori <miyoshi@meadowy.org>  (tiny change)
 
-	* xdisp.c (display_tool_bar_line): Don't adjust tool-bar height by more than
-	height of one frame default line.
+	* xdisp.c (display_tool_bar_line): Don't adjust tool-bar height by
+	more than height of one frame default line.
 
 2006-05-17  Richard Stallman  <rms@gnu.org>
 
@@ -2411,10 +2414,11 @@
 	* term.c: Define aliases for append_glyph and produce_stretch_glyph
 	when `static' is defined to avoid name clash with those in xdisp.c.
 
-	* process.c (Faccept_process_output): Fix to comply with lisp reference.
-	Change arg "timeout" to "seconds" and allow both integer and float value.
-	Change arg "timeout-msec" to "millisec" and interpret" as milliseconds
-	rather than microseconds.  Fix doc string accordingly.
+	* process.c (Faccept_process_output): Fix to comply with lisp
+	reference.  Change arg "timeout" to "seconds" and allow both
+	integer and float value.  Change arg "timeout-msec" to "millisec"
+	and interpret" as milliseconds rather than microseconds.  Fix doc
+	string accordingly.
 
 2006-03-21  Ken Raeburn  <raeburn@raeburn.org>
 
@@ -4624,7 +4628,8 @@
 	* xdisp.c (pos_visible_p): Convert w->hscroll to pixels before use.
 	(remember_mouse_glyph): Clear RECT if mouse is over an image glyph.
 
-	* keyboard.c (make_lispy_position): Adjust wx for left margin if ON_TEXT.
+	* keyboard.c (make_lispy_position): Adjust wx for left margin if
+	ON_TEXT.
 	(Fposn_at_x_y): Fix calculation of x coordinate.
 	(Fposn_at_point): Return nil if point is hscrolled out of view.
 
@@ -11122,7 +11127,8 @@
 
 	* search.c (match_limit, Fmatch_data, Fset_match_data): YAILOM.
 
-	* fontset.c (Fset_fontset_font): Remove unused vars `family' and `registry'.
+	* fontset.c (Fset_fontset_font): Remove unused vars `family' and
+	`registry'.
 
 	* Makefile.in (${etc}DOC): Fix file name of make-docfile.
 
@@ -14096,11 +14102,11 @@
 	pointer types.
 	(Qrelative_width, Qalign_to): Remove unused variables.
 	(Vvoid_text_area_pointer): Replace Vshow_text_cursor_in_void.
-	(QCmap, QCpointer, Qrect, Qcircle, Qpoly): New variables for
-	image maps.
-	(x_y_to_hpos_vpos): Return glyph relative coordinates through
-	new dx and dy args.
-	Remove buffer_only_p arg (always 0).  Simplify code accordingly.
+	(QCmap, QCpointer, Qrect, Qcircle, Qpoly): New variables for image
+	maps.
+	(x_y_to_hpos_vpos): Return glyph relative coordinates through new
+	dx and dy args.  Remove buffer_only_p arg (always 0).  Simplify
+	code accordingly.
 	(get_glyph_string_clip_rect): Draw cursor using glyph's rather
 	than row's ascent and height, to get sensible height on tall rows.
 	(build_desired_tool_bar_string): Remove Qimage extern.
@@ -14113,14 +14119,16 @@
 	rectangular, circular, or polygon-shaped image hot-spot,
 	(find_hot_spot): New function to search for image hot-spot.
 	(Flookup_image_map): New defun to search for image hot-spot.
-	(define_frame_cursor1): New aux function to determine frame pointer.
-	(note_mode_line_or_margin_highlight, note_mouse_highlight):
-	Handle `pointer' text property and :pointer image property to
-	control frame pointer shape.  Detect image hot-spots for pointer
-	and help_echo properties.  Use define_frame_cursor1.
-	(note_mouse_highlight):	Use Vvoid_text_area_pointer.
-	(syms_of_xdisp): Defsubr new defun.  Intern and staticpro new variables.
-	DEFVAR_LISP Vvoid_text_area_pointer instead of Vshow_text_cursor_in_void.
+	(define_frame_cursor1): New aux function to determine frame
+	pointer.
+	(note_mode_line_or_margin_highlight, note_mouse_highlight): Handle
+	`pointer' text property and :pointer image property to control
+	frame pointer shape.  Detect image hot-spots for pointer and
+	help_echo properties.  Use define_frame_cursor1.
+	(note_mouse_highlight): Use Vvoid_text_area_pointer.
+	(syms_of_xdisp): Defsubr new defun.  Intern and staticpro new
+	variables.  DEFVAR_LISP Vvoid_text_area_pointer instead of
+	Vshow_text_cursor_in_void.
 
 	* xfaces.c (cache_face): Abort if c->size exceeds MAX_FACE_ID.
 
@@ -14604,8 +14612,8 @@
 	* alloc.c (lisp_align_malloc): If BASE is 0, call memory_full.
 
 	* window.c (Fset_window_margins): Allow only integers as args.
-	(syms_of_window) <special-display-buffer-names, special-display-regexps>:
-	Doc fixes.
+	(syms_of_window) <special-display-buffer-names,
+	special-display-regexps>: Doc fixes.
 
 2003-10-13  Lute Kamstra  <lute@gnu.org>
 
@@ -22408,15 +22416,15 @@
 
 	* process.c (Qlocal, QCname, QCbuffer, QChost, QCservice, QCfamily)
 	(QClocal, QCremote, QCserver, QCdatagram, QCnowait, QCnoquery, QCstop)
-	(QCcoding, QCoptions, QCfilter, QCsentinel, QClog, QCfeature):
-	New variables.
+	(QCcoding, QCoptions, QCfilter, QCsentinel, QClog, QCfeature): New
+	variables.
 	(NETCONN1_P): New macro.
 	(DATAGRAM_SOCKETS): New conditional symbol.
 	(datagram_address): New array.
 	(DATAGRAM_CONN_P, DATAGRAM_CHAN_P): New macros.
 	(status_message): Use concat3.
-	(Fprocess_status): Add `listen' status to doc string.  Return `stop'
-	for a stopped network process.
+	(Fprocess_status): Add `listen' status to doc string.  Return
+	`stop' for a stopped network process.
 	(Fset_process_buffer): Update contact plist for network process.
 	(Fset_process_filter): Ditto.  Don't enable input for stopped
 	network processes.  Server must listen, even if filter is t.
@@ -22426,26 +22434,29 @@
 	(Fprocess_contact): Added KEY argument.  Handle datagrams.
 	(list_processes_1): Optionally show only processes with the query
 	on exit flag set.  Dynamically adjust column widths.  Omit tty
-	column if not needed.  Report stopped network processes.
-	Identify server and datagram network processes.
+	column if not needed.  Report stopped network processes.  Identify
+	server and datagram network processes.
 	(Flist_processes): New optional arg `query-only'.
 	(conv_sockaddr_to_lisp, get_lisp_to_sockaddr_size)
 	(conv_lisp_to_sockaddr, set_socket_options)
-	(network_process_featurep, unwind_request_sigio): New helper functions.
+	(network_process_featurep, unwind_request_sigio): New helper
+	functions.
 	(Fprocess_datagram_address, Fset_process_datagram_address):
 	(Fset_network_process_options): New lisp functions.
 	(Fopen_network_stream): Removed.  Now defined in simple.el.
-	(Fmake_network_process): New lisp function.  Code is based on previous
-	Fopen_network_stream, but heavily reworked with new property list based
-	argument list, support for datagrams, server processes, and local
-	sockets in addition to old client-only functionality.
+	(Fmake_network_process): New lisp function.  Code is based on
+	previous Fopen_network_stream, but heavily reworked with new
+	property list based argument list, support for datagrams, server
+	processes, and local sockets in addition to old client-only
+	functionality.
 	(server_accept_connection): New function.
 	(wait_reading_process_input): Use it to handle incoming connects.
 	Do not enable input on a new connection if process is stopped.
-	(read_process_output): Handle datagram sockets.  Use 2k buffer for them.
+	(read_process_output): Handle datagram sockets.  Use 2k buffer for
+	them.
 	(send_process): Handle datagram sockets.
-	(Fstop_process, Fcontinue_process): Apply to network processes.  A stopped
-	network process is indicated by setting command field to t .
+	(Fstop_process, Fcontinue_process): Apply to network processes.  A
+	stopped network process is indicated by setting command field to t.
 	(Fprocess_send_eof): No-op if datagram connection.
 	(Fstatus_notify): Don't read input for a stream server socket or a
 	stopped network process.
