@@ -21,7 +21,7 @@
 	(syms_of_xdisp): DEFVAR it here.
 	(update_menu_bar): Always return hooks_run.
 	Set Vmenu_updating_frame.
-	
+
 	* xdisp.c (redisplay_internal): Test Vinhibit_redisplay
 	before calculating SELECTED_FRAME.
 
