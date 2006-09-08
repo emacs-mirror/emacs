@@ -1904,6 +1904,9 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 	  max_specpdl_size--;
 	}
       if (! no_debugger
+	  /* Don't try to run the debugger with interrupts blocked.
+	     The editing loop would return anyway.  */
+	  && ! INPUT_BLOCKED_P
 	  && (EQ (sig_symbol, Qquit)
 	      ? debug_on_quit
 	      : wants_debugger (Vdebug_on_error, conditions))
