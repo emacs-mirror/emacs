@@ -73,11 +73,6 @@ in the syntax table.
 
 ** Make key-binding use the maps specified by positions given in the events.
 
-** Is it necessary to solve in another way the problem that was solved
- by Satyaki Das's removed pgg patches?
-
-** mouse-autoselect-window delay patch
-
 ** Handa's Sep 6 compilation font lock bug report.
 
 ** Michael Cadilhac's Sep 7 bug report about set-input-method.
