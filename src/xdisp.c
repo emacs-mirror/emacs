@@ -615,6 +615,11 @@ int message_buf_print;
 Lisp_Object Qinhibit_menubar_update;
 int inhibit_menubar_update;
 
+/* When evaluating expressions from menu bar items (enable conditions,
+   for instance), this is the frame they are being processed for.  */
+
+Lisp_Object Vmenu_updating_frame;
+
 /* Maximum height for resizing mini-windows.  Either a float
    specifying a fraction of the available height, or an integer
    specifying a number of lines.  */
@@ -9143,7 +9148,7 @@ update_menu_bar (f, save_match_data, hooks_run)
      happen when, for instance, an activate-menubar-hook causes a
      redisplay.  */
   if (inhibit_menubar_update)
-    return;
+    return hooks_run;
 
   window = FRAME_SELECTED_WINDOW (f);
   w = XWINDOW (window);
@@ -9214,6 +9219,7 @@ update_menu_bar (f, save_match_data, hooks_run)
 	      hooks_run = 1;
 	    }
 
+	  XSETFRAME (Vmenu_updating_frame, f);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
 	  /* Redisplay the menu bar in case we changed it.  */
@@ -10795,13 +10801,13 @@ redisplay_internal (preserve_echo_area)
      int preserve_echo_area;
 {
   struct window *w = XWINDOW (selected_window);
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f;
   int pause;
   int must_finish = 0;
   struct text_pos tlbufpos, tlendpos;
   int number_of_visible_frames;
   int count;
-  struct frame *sf = SELECTED_FRAME ();
+  struct frame *sf;
   int polling_stopped_here = 0;
 
   /* Non-zero means redisplay has to consider all windows on all
@@ -10814,8 +10820,16 @@ redisplay_internal (preserve_echo_area)
      initialized, or redisplay is explicitly turned off by setting
      Vinhibit_redisplay.  */
   if (noninteractive
-      || !NILP (Vinhibit_redisplay)
-      || !f->glyphs_initialized_p)
+      || !NILP (Vinhibit_redisplay))
+    return;
+
+  /* Don't examine these until after testing Vinhibit_redisplay.
+     When Emacs is shutting down, perhaps because its connection to
+     X has dropped, we should not look at them at all.  */
+  f = XFRAME (w->frame);
+  sf = SELECTED_FRAME ();
+
+  if (!f->glyphs_initialized_p)
     return;
 
   /* The flag redisplay_performed_directly_p is set by
@@ -24126,6 +24140,11 @@ Redisplay runs this hook before it redisplays the menu bar.
 This is used to update submenus such as Buffers,
 whose contents depend on various data.  */);
   Vmenu_bar_update_hook = Qnil;
+
+  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
+	       doc: /* Frame for which we are updating a menu.
+The enable predicate for a menu binding should check this variable.  */);
+  Vmenu_updating_frame = Qnil;
 
   DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,
     doc: /* Non-nil means don't update menu bars.  Internal use only.  */);
