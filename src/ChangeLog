@@ -1,3 +1,7 @@
+2006-09-08  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (x_draw_glyph_string): Fix 2006-08-24 change.
+
 2006-09-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c [!MAC_OSX]: Don't include keyboard.h.
@@ -28,7 +32,7 @@
 	kEventWindowBoundsChanged.
 	(XTread_socket) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Don't call
 	DragWindow.
-	
+
 2006-09-07  Andreas Schwab  <schwab@suse.de>
 
 	* m/ibms390x.h (START_FILES, LIB_STANDARD): Override to
