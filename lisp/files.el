@@ -2696,8 +2696,8 @@ It is dangerous if either of these conditions are met:
 
  * Its name ends with \"hook(s)\", \"function(s)\", \"form(s)\", \"map\",
    \"program\", \"command(s)\", \"predicate(s)\", \"frame-alist\",
-   \"mode-alist\", \"font-lock-(syntactic-)keyword*\", or
-   \"map-alist\"."
+   \"mode-alist\", \"font-lock-(syntactic-)keyword*\",
+   \"map-alist\", or \"bindat-spec\"."
   ;; If this is an alias, check the base name.
   (condition-case nil
       (setq sym (indirect-variable sym))
@@ -2706,7 +2706,7 @@ It is dangerous if either of these conditions are met:
       (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|\
 -commands?$\\|-predicates?$\\|font-lock-keywords$\\|font-lock-keywords\
 -[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|\
--map$\\|-map-alist$" (symbol-name sym))))
+-map$\\|-map-alist$\\|-bindat-spec$" (symbol-name sym))))
 
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
