@@ -262,6 +262,9 @@ init_casetab_once ()
 		     : i)));
 
   XCHAR_TABLE (down)->extras[2] = Fcopy_sequence (up);
+
+  /* Fill in what isn't filled in.  */
+  set_case_table (down, 1);
 }
 
 void
