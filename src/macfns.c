@@ -2253,6 +2253,9 @@ mac_window (f)
 		   kWindowStandardDocumentAttributes
 #ifdef MAC_OSX
 		   | kWindowToolbarButtonAttribute
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+		   | kWindowAsyncDragAttribute
+#endif
 #endif
 		   , &r, &FRAME_MAC_WINDOW (f));
   if (FRAME_MAC_WINDOW (f))
