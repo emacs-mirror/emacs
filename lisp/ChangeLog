@@ -1,3 +1,8 @@
+2006-09-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: (show-hide-font-panel): New HI command ID symbol.
+	(mac-apple-event-map): Define its handler.
+
 2006-09-07  Toby Allsopp  <Toby.Allsopp@navman.com>  (tiny change)
 
 	* net/ldap.el (ldap-search-internal): Handle `auth' key.
