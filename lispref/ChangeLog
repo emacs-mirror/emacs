@@ -1,3 +1,7 @@
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Bindat Spec): Suggest names ending in -bindat-spec.
+
 2006-09-06  Kim F. Storm  <storm@cua.dk>
 
 	* frames.texi (Display Feature Testing): display-mm-dimensions-alist.

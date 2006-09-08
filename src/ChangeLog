@@ -1,5 +1,18 @@
 2006-09-08  Richard Stallman  <rms@gnu.org>
 
+	* xdisp.c (Vmenu_updating_frame): Define here.
+	(syms_of_xdisp): DEFVAR it here.
+	(update_menu_bar): Always return hooks_run.
+	Set Vmenu_updating_frame.
+	
+	* xdisp.c (redisplay_internal): Test Vinhibit_redisplay
+	before calculating SELECTED_FRAME.
+
+	* xmenu.c (Vmenu_updating_frame): Don't define here.
+	(syms_of_xmenu): Don't DEFVAR it here.
+
+	* xterm.c (x_error_quitter): For BadName error, just return.
+
 	* eval.c (find_handler_clause): Give up on debugger if INPUT_BLOCKED_P.
 
 	* casetab.c (init_casetab_once): Call set_case_table.

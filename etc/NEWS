@@ -336,6 +336,10 @@ by whitespace.  This means you can now use them as shell wildcards
 too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
+
+** Adaptive filling misfeature removed.
+It no longer treats `NNN.' or `(NNN)' as a prefix.
+
 
 * Editing Changes in Emacs 22.1
 

@@ -1,3 +1,24 @@
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/fill.el (adaptive-fill-regexp): Don't match `(1)' or `1.'
+
+	* mail/rmail.el (rmail-get-new-mail): Say whether all msgs are spam.
+	(rmail-convert-to-babyl-format): Don't record undo, leave list empty.
+
+	* emacs-lisp/timer.el (timer-create, timer-activate): Doc fixes.
+	(cancel-timer-internal): Add doc string.
+	(cancel-function-timers): Doc fix.
+	(with-timeout-handler, timer-event-last*): Add doc strings.
+
+	* emacs-lisp/bindat.el (bindat-unpack): Doc fix.
+
+	* files.el (risky-local-variable-p): Match ...-bindat-spec.
+
+	* dired.el (dired-log-summary): Add doc string.
+
+	* cus-edit.el (custom-menu-create): Bind deactivate-mark here
+	(custom-group-menu-create): Not here.
+
 2006-09-08  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-dblock-write:clocktable): Avoid infinite
