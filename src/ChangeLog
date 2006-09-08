@@ -1,3 +1,7 @@
+2006-09-08  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (strout): Fix whitespace.
+
 2006-09-08  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (x_draw_glyph_string): Fix 2006-08-24 change.
