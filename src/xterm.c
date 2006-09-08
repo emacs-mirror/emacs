@@ -2689,9 +2689,8 @@ x_draw_glyph_string (s)
 	  if (!XGetFontProperty (s->font, XA_UNDERLINE_THICKNESS, &h))
 	    h = 1;
 
-          if (x_underline_at_descent_line)
-	    y = s->y + s->height - h;
-          else
+	  y = s->y + s->height - h;
+	  if (!x_underline_at_descent_line)
             {
 	      /* Get the underline position.  This is the recommended
                  vertical offset in pixels from the baseline to the top of
