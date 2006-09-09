@@ -97,9 +97,9 @@ Boston, MA 02110-1301, USA.  */
 #define FALSE 0
 #endif /* no TRUE */
 
-Lisp_Object Vmenu_updating_frame;
-
 Lisp_Object Qdebug_on_next_call;
+
+extern Lisp_Object Vmenu_updating_frame;
 
 extern Lisp_Object Qmenu_bar;
 
@@ -3757,11 +3757,6 @@ syms_of_xmenu ()
 
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
-
-  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
-	       doc: /* Frame for which we are updating a menu.
-The enable predicate for a menu command should check this variable.  */);
-  Vmenu_updating_frame = Qnil;
 
 #ifdef USE_X_TOOLKIT
   widget_id_tick = (1<<16);
