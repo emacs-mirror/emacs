@@ -2347,6 +2347,10 @@ Displaying a different buffer in the window also runs these functions.
 These functions must be careful in using @code{window-end}
 (@pxref{Window Start}); if you need an up-to-date value, you must use
 the @var{update} argument to ensure you get it.
+
+@strong{Warning:} don't use this feature to alter the way the window
+is scrolled.  It's not designed for that, and such use probably won't
+work.
 @end defvar
 
 @defvar window-size-change-functions
