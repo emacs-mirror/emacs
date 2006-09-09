@@ -2816,26 +2816,32 @@ In addition, Emacs can display an up-arrow in the fringe to show
 that there is text above the screen, and a down-arrow to show
 there is text below the screen.
 
-There are four kinds of basic values:
+There are three kinds of basic values:
 
 @table @asis
 @item @code{nil}
-Don't display the icons.
+Don't display any of these fringe icons.
 @item @code{left}
-Display them in the left fringe.
+Display the angle icons and arrows in the left fringe.
 @item @code{right}
-Display them in the right fringe.
-@item @var{anything-else}
-Display the icon at the top of the window top in the left fringe, and other
-in the right fringe.
+Display the angle icons and arrows in the right fringe.
+@item any non-alist
+Display the angle icons in the left fringe
+and don't display the arrows.
 @end table
 
-If value is a cons @code{(@var{angles} . @var{arrows})}, @var{angles}
-controls the angle icons, and @var{arrows} controls the arrows.  Both
-@var{angles} and @var{arrows} work according to the table above.
-Thus, @code{(t .  right)} places the top angle icon in the left
-fringe, the bottom angle icon in the right fringe, and both arrows in
-the right fringe.
+Otherwise the value should be an alist that specifies which fringe
+indicators to display and where.  Each element of the alist should
+have the form @code{(@var{indicator} . @var{position})}.  Here,
+@var{indicator} is one of @code{top}, @code{bottom}, @code{up},
+@code{down}, and @code{t} (which covers all the icons not yet
+specified), while @var{position} is one of @code{left}, @code{right}
+and @code{nil}.
+
+For example, @code{((top . left) (t . right))} places the top angle
+bitmap in left fringe, and the bottom angle bitmap as well as both
+arrow bitmaps in right fringe.  To show the angle bitmaps in the left
+fringe, and no arrow bitmaps, use @code{((top .  left) (bottom . left))}.
 @end defvar
 
 @defvar default-indicate-buffer-boundaries
