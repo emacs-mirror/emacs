@@ -1390,7 +1390,7 @@ name, or nil if there is no such user.  */)
 }
 
 DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
-       doc: /* Return the name of the machine you are running on, as a string.  */)
+       doc: /* Return the host name of the machine you are running on, as a string.  */)
      ()
 {
   return Vsystem_name;
@@ -4370,7 +4370,7 @@ functions if all the text being accessed has this property.  */);
   Vbuffer_access_fontified_property = Qnil;
 
   DEFVAR_LISP ("system-name", &Vsystem_name,
-	       doc: /* The name of the machine Emacs is running on.  */);
+	       doc: /* The host name of the machine Emacs is running on.  */);
 
   DEFVAR_LISP ("user-full-name", &Vuser_full_name,
 	       doc: /* The full name of the user logged in.  */);
