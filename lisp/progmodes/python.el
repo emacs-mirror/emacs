@@ -96,7 +96,9 @@
 	     "import" "in" "is" "lambda" "not" "or" "pass" "print"
 	     "raise" "return" "try" "while" "yield"
 	     ;; Future keywords
-	     "as" "None")
+	     "as" "None"
+             ;; Not real keywords, but close enough to be fontified as such
+             "self" "True" "False")
 	 symbol-end)
     ;; Definitions
     (,(rx symbol-start (group "class") (1+ space) (group (1+ (or word ?_))))

@@ -1,3 +1,8 @@
+2006-09-09  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
+
+	* progmodes/python.el (python-font-lock-keywords): Add `self' and other
+	quasi-keywords.
+
 2006-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el: Quieten the compiler about hippie-expand vars.
