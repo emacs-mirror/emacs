@@ -55,8 +55,6 @@ Windows only bug.
 
 ** Make pushnew avoid use of cl functions.
 
-** desktop gets saved while one is being read.
-
 ** cursor display on images that don't use :mask.
 
 ** C-g fails to interrupt accept-process-output in Gnus.
