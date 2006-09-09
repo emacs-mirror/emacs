@@ -140,8 +140,9 @@ See definition of `print-region-1' for calling conventions."
 
 ;; Berkeley systems support -F, and GNU pr supports both -f and -F,
 ;; So it looks like -F is a better default.
-(defcustom lpr-page-header-switches '("-F")
-  "*List of strings to use as options for the page-header-generating program.
+(defcustom lpr-page-header-switches '("-h %s" "-F")
+  "List of strings to use as options for the page-header-generating program.
+If `%s' appears in one of the strings, it is substituted by the page title.
 The variable `lpr-page-header-program' specifies the program to use."
   :type '(repeat string)
   :group 'lpr)
@@ -243,8 +244,8 @@ for further customization of the printer command."
 	    (let ((new-coords (print-region-new-buffer start end)))
 	      (apply 'call-process-region (car new-coords) (cdr new-coords)
 		     lpr-page-header-program t t nil
-		     (nconc (list "-h" title)
-			    lpr-page-header-switches)))
+		     (mapcar (lambda (e) (format e title))
+			     lpr-page-header-switches)))
 	    (setq start (point-min)
 		  end   (point-max))))
       (apply (or print-region-function 'call-process-region)
