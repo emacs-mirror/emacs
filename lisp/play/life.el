@@ -269,7 +269,8 @@ generations (this defaults to 1)."
   (recenter 0)
 
   ;; Redisplay; if the user has hit a key, exit the loop.
-  (or (eq t (sit-for sleeptime))
+  (or (and (sit-for sleeptime) (< 0 sleeptime))
+      (not (input-pending-p))
       (throw 'life-exit nil)))
 
 (defun life-extinct-quit ()
