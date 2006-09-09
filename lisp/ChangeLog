@@ -1,3 +1,8 @@
+2006-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* startup.el (normal-splash-screen): Don't display the buffer if we'll
+	kill it right away anyway.
+
 2006-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/codepage.el (cp850-decode-table): Fix a few codes.
@@ -21,14 +26,12 @@
 	(locate): Set buffer local value.  Use current buffer if it is
 	in Locate mode.
 	(locate-mode): Disable undo here.
-	(locate-do-setup): Use locate-current-filter from buffer to be
-	killed. 
-	(locate-update): Use locate-current-search and
-	locate-current-filter.
+	(locate-do-setup): Use locate-current-filter from buffer to be killed.
+	(locate-update): Use locate-current-search and locate-current-filter.
 
 2006-09-08  David Kastrup  <dak@gnu.org>
 
-	* desktop.el (desktop-read): when loading a desktop, disable
+	* desktop.el (desktop-read): When loading a desktop, disable
 	saving it while the load progresses, and switch off a pending lazy
 	load by calling `desktop-lazy-abort'.
 
@@ -73,8 +76,7 @@
 
 2006-09-08  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-dblock-write:clocktable): Avoid infinite
-	loop.
+	* textmodes/org.el (org-dblock-write:clocktable): Avoid infinite loop.
 
 2006-09-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

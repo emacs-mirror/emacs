@@ -1386,7 +1386,7 @@ mouse."
 		    minor-mode-map-alist old-minor-mode-map-alist
 		    emulation-mode-map-alists old-emulation-mode-map-alists)
 	      (kill-buffer splash-buffer)))))
-    ;; If hide-on-input is non-nil, don't hide the buffer on input.
+    ;; If hide-on-input is nil, don't hide the buffer on input.
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
 	(pop-to-buffer (current-buffer))
@@ -1586,17 +1586,20 @@ Type \\[describe-distribution] for information on getting the latest version."))
 	  (if (and view-read-only (not view-mode))
 	      (view-mode-enter nil 'kill-buffer))
           (goto-char (point-min))
-	  (if (or (window-minibuffer-p)
-		  (window-dedicated-p (selected-window)))
-	      ;; If hide-on-input is nil, creating a new frame will
-	      ;; generate enough events that the subsequent `sit-for'
-	      ;; will immediately return anyway.
-	      (pop-to-buffer (current-buffer))
-	    (if hide-on-input
+          (if hide-on-input
+              (if (or (window-minibuffer-p)
+                      (window-dedicated-p (selected-window)))
+                  ;; If hide-on-input is nil, creating a new frame will
+                  ;; generate enough events that the subsequent `sit-for'
+                  ;; will immediately return anyway.
+                  nil ;; (pop-to-buffer (current-buffer))
 		(save-window-excursion
-		  (switch-to-buffer (current-buffer))
-		  (sit-for 120))
-	      (switch-to-buffer (current-buffer)))))
+                  (switch-to-buffer (current-buffer))
+		  (sit-for 120)))
+          (condition-case nil
+              (switch-to-buffer (current-buffer))
+            ;; In case the window is dedicated or something.
+            (error (pop-to-buffer (current-buffer))))))
       ;; Unwind ... ensure splash buffer is killed
       (if hide-on-input
 	  (kill-buffer "GNU Emacs")))))
