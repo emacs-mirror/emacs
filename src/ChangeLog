@@ -1,3 +1,8 @@
+2006-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Fsystem_name): Mention "host" in the doc string.
+	(syms_of_editfns) <system-name>: Likewise.
+
 2006-08-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (mouse_autoselect_window): Removed.
