@@ -1,3 +1,9 @@
+2006-09-09  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/conf-mode.el (conf-space-mode): Use
+	hack-local-variables-hook instead of calling hack-local-variables.
+	(conf-space-keywords-override): New variable.
+
 2006-09-09  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
 
 	* progmodes/python.el (python-font-lock-keywords): Add `self' and other

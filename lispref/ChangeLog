@@ -1,5 +1,8 @@
 2006-09-09  Richard Stallman  <rms@gnu.org>
 
+	* windows.texi (Window Hooks): Explain limits of
+	window-scroll-functions.
+
 	* display.texi (Fringe Indicators): Update for last change in
 	indicate-buffer-boundaries.
 
