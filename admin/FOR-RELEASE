@@ -55,6 +55,8 @@ Windows only bug.
 
 ** Make pushnew avoid use of cl functions.
 
+** Michael Fria's Sep 8 crash in GTK version.
+
 ** cursor display on images that don't use :mask.
 
 ** C-g fails to interrupt accept-process-output in Gnus.
