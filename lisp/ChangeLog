@@ -1,5 +1,8 @@
 2006-09-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
+	* play/life.el (life-display-generation): Test for input manually if
+	`sleeptime' is negative or null.
+
 	* lpr.el (lpr-page-header-switches): Page title switch is one of them.
 	(print-region-1): Substitute `%s' with the page title.
 
