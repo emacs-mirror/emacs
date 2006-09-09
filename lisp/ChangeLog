@@ -1,3 +1,14 @@
+2006-09-09  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* locate.el (locate-current-search): New variable.
+	(locate): Set buffer local value.  Use current buffer if it is
+	in Locate mode.
+	(locate-mode): Disable undo here.
+	(locate-do-setup): Use locate-current-filter from buffer to be
+	killed. 
+	(locate-update): Use locate-current-search and
+	locate-current-filter.
+
 2006-09-08  David Kastrup  <dak@gnu.org>
 
 	* desktop.el (desktop-read): when loading a desktop, disable
