@@ -1,3 +1,10 @@
+2006-09-10  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-edit-input, ido-complete, ido-take-first-match)
+	(ido-push-dir-first, ido-kill-buffer-at-head, ido-exhibit)
+	(ido-delete-file-at-head): Pass head of ido-matches through ido-name
+	in case of merged directories.  Reported by Micha,Ak(Bl Cadilhac.
+
 2006-09-10  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/cl.el (pushnew): Use add-to-list when convenient.

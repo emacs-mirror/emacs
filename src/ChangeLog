@@ -1,5 +1,8 @@
 2006-09-10  Kim F. Storm  <storm@cua.dk>
 
+	* keyboard.c (Finput_pending_p): Check Vunread_input_method_events
+	and Vunread_post_input_method_events.
+
 	* dispnew.c (Fredisplay): Document return value.
 
 2006-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
