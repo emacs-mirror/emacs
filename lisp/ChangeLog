@@ -1,3 +1,11 @@
+2006-09-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* filecache.el (file-cache-add-directory)
+	(file-cache-add-directory-list, file-cache-add-file)
+	(file-cache-add-directory-using-find)
+	(file-cache-add-directory-using-locate)
+	(file-cache-add-directory-recursively): Add autoloads.
+
 2006-09-09  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/conf-mode.el (conf-space-mode): Use
