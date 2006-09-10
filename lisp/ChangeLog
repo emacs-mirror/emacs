@@ -3,6 +3,10 @@
 	* textmodes/conf-mode.el (conf-space-mode): Use
 	hack-local-variables-hook instead of calling hack-local-variables.
 	(conf-space-keywords-override): New variable.
+	(conf-space-mode-internal): New subroutine.  Reinit Font Lock mode.
+	(conf-space-mode): Always make conf-space-keywords and
+	conf-space-keywords-override local.
+	Call conf-space-mode-internal directly as well as via hook.
 
 2006-09-09  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
 
