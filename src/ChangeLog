@@ -1,3 +1,8 @@
+2006-09-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_window_cursor_type): Use hollow cursor on
+	non-transparent images.
+
 2006-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c (Fsystem_name): Mention "host" in the doc string.
@@ -106,12 +111,10 @@
 2006-09-06  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (pos_visible_p): Remove exact_mode_line_heights_p arg;
-	so always calculate heights even when pos-visible-in-window-p is
-	called with partially = t.  Don't overshoot last_visible_y in
-	move_it_to.  Return row height and row number in new rowh and vpos
-	args.
-	(cursor_row_fully_visible_p): First line is always "fully
-	visible".
+	so calculate heights even when pos-visible-in-window-p is called
+	with partially = t.  Don't overshoot last_visible_y in move_it_to.
+	Return row height and row number in new rowh and vpos args.
+	(cursor_row_fully_visible_p): First line is always "fully visible".
 	(try_window): Don't clear matrix if vscrolled.
 
 	* lisp.h (pos_visible_p): Update prototype.
