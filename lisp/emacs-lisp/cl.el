@@ -149,13 +149,20 @@ be a symbol, or any generalized variable allowed by `setf'."
   (if (symbolp place) (list 'setq place (list 'cons x place))
     (list 'callf2 'cons x place)))
 
+(defvar pushnew-internal)
+
 (defmacro pushnew (x place &rest keys)
   "(pushnew X PLACE): insert X at the head of the list if not already there.
 Like (push X PLACE), except that the list is unmodified if X is `eql' to
 an element already on the list.
 \nKeywords supported:  :test :test-not :key
 \n(fn X PLACE [KEYWORD VALUE]...)"
-  (if (symbolp place) (list 'setq place (list* 'adjoin x place keys))
+  (if (symbolp place)
+      (if (null keys)
+	  `(let ((pushnew-internal ,place))
+	     (add-to-list 'pushnew-internal x nil 'eql)
+	     (setq ,place pushnew-internal))
+	(list 'setq place (list* 'adjoin x place keys)))
     (list* 'callf2 'adjoin x place keys)))
 
 (defun cl-set-elt (seq n val)
