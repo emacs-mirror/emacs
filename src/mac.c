@@ -4910,7 +4910,7 @@ defined in the Carbon Event Manager.  */)
   HICommand command;
 
   bzero (&command, sizeof (HICommand));
-  command.commandID = mac_get_code_from_arg (command_id , 0);
+  command.commandID = mac_get_code_from_arg (command_id, 0);
 
   BLOCK_INPUT;
   err = ProcessHICommand (&command);
@@ -5055,10 +5055,10 @@ sys_select (nfds, rfds, wfds, efds, timeout)
   OSStatus err = noErr;
   int r;
   EMACS_TIME select_timeout;
-  SELECT_TYPE ofds[3];
+  static SELECT_TYPE ofds[3];
 
   if (inhibit_window_system || noninteractive
-      || rfds == NULL || !FD_ISSET (0, rfds))
+      || nfds < 1 || rfds == NULL || !FD_ISSET (0, rfds))
     return select (nfds, rfds, wfds, efds, timeout);
 
   FD_CLR (0, rfds);
@@ -5073,18 +5073,22 @@ sys_select (nfds, rfds, wfds, efds, timeout)
     ofds[2] = *efds;
   else
     {
-      int maxfd;
       EventTimeout timeoutval =
 	(timeout
 	 ? (EMACS_SECS (*timeout) * kEventDurationSecond
 	    + EMACS_USECS (*timeout) * kEventDurationMicrosecond)
 	 : kEventDurationForever);
 
-      for (maxfd = nfds - 1; maxfd > 0; maxfd--)
-	if (FD_ISSET (maxfd, rfds) || (wfds && FD_ISSET (maxfd, wfds)))
-	  break;
+      FD_SET (0, rfds);		/* sentinel */
+      do
+	{
+	  nfds--;
+	}
+      while (!(FD_ISSET (nfds, rfds) || (wfds && FD_ISSET (nfds, wfds))));
+      nfds++;
+      FD_CLR (0, rfds);
 
-      if (maxfd == 0)
+      if (nfds == 1)
 	return select_and_poll_event (nfds, rfds, wfds, efds, timeout);
 
       /* Avoid initial overhead of RunLoop setup for the case that
@@ -5111,20 +5115,19 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	  int minfd, fd;
 	  CFRunLoopRef runloop =
 	    (CFRunLoopRef) GetCFRunLoopFromEventLoop (GetCurrentEventLoop ());
-	  static CFSocketContext context;
+	  static CFSocketContext context = {0, &ofds, NULL, NULL, NULL};
 	  static CFMutableDictionaryRef sources;
 
-	  context.info = ofds;
 	  if (sources == NULL)
 	    sources =
 	      CFDictionaryCreateMutable (NULL, 0, NULL,
 					 &kCFTypeDictionaryValueCallBacks);
 
-	  for (minfd = 1; minfd < maxfd; minfd++)
+	  for (minfd = 1; ; minfd++) /* nfds-1 works as a sentinel.  */
 	    if (FD_ISSET (minfd, rfds) || (wfds && FD_ISSET (minfd, wfds)))
 	      break;
 
-	  for (fd = minfd; fd <= maxfd; fd++)
+	  for (fd = minfd; fd < nfds; fd++)
 	    if (FD_ISSET (fd, rfds) || (wfds && FD_ISSET (fd, wfds)))
 	      {
 		void *key = (void *) fd;
@@ -5157,7 +5160,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	  err = ReceiveNextEvent (0, NULL, timeoutval,
 				  kEventLeaveInQueue, NULL);
 
-	  for (fd = minfd; fd <= maxfd; fd++)
+	  for (fd = minfd; fd < nfds; fd++)
 	    if (FD_ISSET (fd, rfds) || (wfds && FD_ISSET (fd, wfds)))
 	      {
 		void *key = (void *) fd;
