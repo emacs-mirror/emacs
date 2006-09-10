@@ -1,3 +1,9 @@
+2006-09-10  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/cl.el (pushnew): Use add-to-list when convenient.
+
+	* subr.el (add-to-list): New argument COMPARE-FN.
+
 2006-09-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* filecache.el (file-cache-add-directory)
