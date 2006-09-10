@@ -973,11 +973,12 @@ fontification in Info, remove `turn-on-font-lock' from
 `Info-mode-hook'.
 
 +++
-*** font-lock: in modes like C and Lisp where the fontification assumes that
-an open-paren in column 0 is always outside of any string or comment,
-font-lock now highlights any such open-paren-in-column-zero in bold-red
-if it is inside a string or a comment, to indicate that it can cause
-trouble with fontification and/or indentation.
+*** Font-Lock mode: in major modes such as Lisp mode, where some Emacs
+features assume that an open-paren in column 0 is always outside of
+any string or comment, Font-Lock now highlights any such open-paren in
+bold-red if it is inside a string or a comment, to indicate that it
+can cause trouble.  You should rewrite the string or comment so that
+the open-paren is not in column 0.
 
 +++
 *** New standard font-lock face `font-lock-preprocessor-face'.
