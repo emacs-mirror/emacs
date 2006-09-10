@@ -1,3 +1,10 @@
+2006-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_close_connection): Call xg_display_close when USE_GTK.
+
+	* gtkutil.c (xg_display_close): Always change default display if needed,
+	check for < Gtk+ version 2.10 before calling gdk_display_close.
+
 2006-09-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c [MAC_OSX] (sys_select): Check argument `nfds' more
