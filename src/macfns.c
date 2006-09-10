@@ -4345,12 +4345,13 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
      (prompt, dir, default_filename, mustmatch, only_dir_p)
      Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
 {
-  struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char filename[MAXPATHLEN];
   static NavEventUPP mac_nav_event_callbackUPP = NULL;
+
+  check_mac ();
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, file, only_dir_p);
   CHECK_STRING (prompt);
