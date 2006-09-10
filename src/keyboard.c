@@ -10088,7 +10088,9 @@ Actually, the value is nil only if we can be sure that no input is available;
 if there is a doubt, the value is t.  */)
      ()
 {
-  if (!NILP (Vunread_command_events) || unread_command_char != -1)
+  if (!NILP (Vunread_command_events) || unread_command_char != -1
+      || !NILP (Vunread_post_input_method_events)
+      || !NILP (Vunread_input_method_events))
     return (Qt);
 
   get_input_pending (&input_pending,
