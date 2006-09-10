@@ -1,3 +1,17 @@
+2006-09-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* src/mac.c [MAC_OSX] (sys_select): Check argument `nfds' more
+	rigidly.  Make variable `ofds' static.  Remove variable `maxfd'.
+
+	* src/macfns.c (Fx_file_dialog): Remove unused variable `f'.  Call
+	check_mac.
+
+	* src/macmenu.c (Vmenu_updating_frame, syms_of_xmenu):
+	* src/w32menu.c (Vmenu_updating_frame, syms_of_xmenu): Apply
+	2006-09-08 change for xmenu.c.
+
+	* src/xfns.c (Fx_file_dialog): Call check_x.
+
 2006-09-10  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_window_cursor_type): Use hollow cursor on
