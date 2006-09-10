@@ -5328,6 +5328,8 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
 
+  check_x ();
+
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 
   if (popup_activated ())
@@ -5494,6 +5496,8 @@ directories.  */)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char *cdef_file;
+
+  check_x ();
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 
