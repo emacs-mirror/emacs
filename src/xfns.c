@@ -4067,11 +4067,15 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
   x_destroy_all_bitmaps (dpyinfo);
   XSetCloseDownMode (dpyinfo->display, DestroyAll);
 
+#ifdef USE_GTK
+  xg_display_close (dpyinfo->display);
+#else
 #ifdef USE_X_TOOLKIT
   XtCloseDisplay (dpyinfo->display);
 #else
   XCloseDisplay (dpyinfo->display);
 #endif
+#endif /* ! USE_GTK */
 
   x_delete_display (dpyinfo);
   UNBLOCK_INPUT;
