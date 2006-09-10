@@ -1,3 +1,8 @@
+2006-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS (are): Emacs compiled with Gtk+ crashes when closing a 
+	display (x-close-connection).
+
 2006-09-02  Juri Linkov  <juri@jurta.org>
 
 	* HELLO: Regroup Europe Non-ASCII examples by similar scripts.

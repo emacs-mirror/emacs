@@ -202,6 +202,11 @@ necessary but missing, please report it via M-x report-emacs-bug.
 On platforms such as Solaris, you can also work around this problem by
 configuring your compiler to use the native linker instead of GNU ld.
 
+** Emacs compiled with Gtk+ crashes when closing a display (x-close-connection).
+
+This happens because of bugs in Gtk+.  Gtk+ 2.10 seems to be OK.  See bug
+http://bugzilla.gnome.org/show_bug.cgi?id=85715.
+
 * General runtime problems
 
 ** Lisp problems
