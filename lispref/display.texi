@@ -119,6 +119,8 @@ pending input events.  This is equivalent to @code{(sit-for 0)}.
 
 If the optional argument @var{force} is non-@code{nil}, it forces an
 immediate and complete redisplay even if input is available.
+
+Returns @code{t} if redisplay was performed, or @code{nil} otherwise.
 @end defun
 
 @node Truncation
