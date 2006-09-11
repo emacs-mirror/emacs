@@ -7,6 +7,15 @@
 
 2006-09-10  Richard Stallman  <rms@gnu.org>
 
+	* dired-aux.el: Handle errors in recursive copy usefully.
+	(dired-create-files-failures): New variable.
+	(dired-copy-file): Remove condition-case.
+	(dired-copy-file-recursive): Check for errors on all file
+	operations, and add them to dired-create-files-failures.
+	Check file file-date-erorr here too.
+	(dired-create-files): Check dired-create-files-failures
+	and report those errors too.
+
 	* emacs-lisp/cl.el (pushnew): Use add-to-list when convenient.
 
 	* subr.el (add-to-list): New argument COMPARE-FN.
