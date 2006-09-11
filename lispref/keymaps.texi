@@ -664,6 +664,10 @@ undefined in the keymaps.
 The argument @var{accept-defaults} controls checking for default
 bindings, as in @code{lookup-key} (above).
 
+When @var{key} is a vector containing an input event, such as a mouse
+click, @code{key-binding} first looks for the binding in the local
+keymap at the position specified by that event, if any.
+
 When commands are remapped (@pxref{Remapping Commands}),
 @code{key-binding} normally processes command remappings so as to
 returns the remapped command that will actually be executed.  However,

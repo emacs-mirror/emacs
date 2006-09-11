@@ -1,3 +1,8 @@
+2006-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Active Keymaps): Mention that key-binding checks
+	local maps.
+
 2006-09-10  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Forcing Redisplay): Document return value of
