@@ -1,3 +1,7 @@
+2006-09-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fkey_binding): Use string position for string objects.
+
 2006-09-11  Kim F. Storm  <storm@cua.dk>
 
 	* keymap.c (Fkey_binding): Fix last change.

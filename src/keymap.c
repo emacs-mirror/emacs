@@ -1587,13 +1587,16 @@ is non-nil, `key-binding' returns the unmapped command.  */)
 	  && XINT (Flength (pos)) == 10
 	  && INTEGERP (XCAR (XCDR (pos))))
 	{
-	  Lisp_Object map, obj;
-	  obj = Fnth (make_number(4), pos);
-	  map = Fget_char_property (XCAR (XCDR (pos)),
-				    Qkeymap,
-				    NILP (obj) ?
-				    Fwindow_buffer (XCAR (pos))
-				    : XCAR (obj));
+	  Lisp_Object map, object;
+
+	  object = Fnth (make_number(4), pos);
+
+	  if (CONSP (object))
+	    map = Fget_char_property (XCDR (object), Qkeymap, XCAR (object));
+	  else
+	    map = Fget_char_property (XCAR (XCDR (pos)), Qkeymap,
+				      Fwindow_buffer (XCAR (pos)));
+
 	  if (!NILP (Fkeymapp (map)))
 	    {
 	      value = Flookup_key (map, key, accept_default);
