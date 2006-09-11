@@ -1,3 +1,7 @@
+2006-09-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-lisp/cl.el (pushnew): Add missing `,'.
+
 2006-09-11  David Kastrup  <dak@gnu.org>
 
 	* help.el (string-key-binding, describe-key-briefly)

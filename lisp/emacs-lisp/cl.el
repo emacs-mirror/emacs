@@ -160,7 +160,7 @@ an element already on the list.
   (if (symbolp place)
       (if (null keys)
 	  `(let ((pushnew-internal ,place))
-	     (add-to-list 'pushnew-internal x nil 'eql)
+	     (add-to-list 'pushnew-internal ,x nil 'eql)
 	     (setq ,place pushnew-internal))
 	(list 'setq place (list* 'adjoin x place keys)))
     (list* 'callf2 'adjoin x place keys)))
