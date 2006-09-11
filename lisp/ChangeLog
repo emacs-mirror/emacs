@@ -1,3 +1,8 @@
+2006-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (mode-line-buffer-identification-keymap):
+	Move initialization into declaration.
+
 2006-09-10  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-edit-input, ido-complete, ido-take-first-match)
@@ -30,8 +35,8 @@
 
 2006-09-09  Richard Stallman  <rms@gnu.org>
 
-	* textmodes/conf-mode.el (conf-space-mode): Use
-	hack-local-variables-hook instead of calling hack-local-variables.
+	* textmodes/conf-mode.el (conf-space-mode):
+	Use hack-local-variables-hook instead of calling hack-local-variables.
 	(conf-space-keywords-override): New variable.
 	(conf-space-mode-internal): New subroutine.  Reinit Font Lock mode.
 	(conf-space-mode): Always make conf-space-keywords and

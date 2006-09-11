@@ -337,23 +337,21 @@ Keymap to display on minor modes.")
   (put 'mode-line-position 'standard-value
        (list `(quote ,standard-mode-line-position))))
 
-(defvar mode-line-buffer-identification-keymap nil "\
+(defvar mode-line-buffer-identification-keymap
+  ;; Add menu of buffer operations to the buffer identification part
+  ;; of the mode line.or header line.
+  (let ((map (make-sparse-keymap)))
+    ;; Bind down- events so that the global keymap won't ``shine
+    ;; through''.
+    (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
+    (define-key map [header-line down-mouse-1] 'ignore)
+    (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
+    (define-key map [header-line down-mouse-3] 'ignore)
+    (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
+    (define-key map [header-line down-mouse-3] 'ignore)
+    (define-key map [header-line mouse-3] 'mode-line-next-buffer)
+    map) "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
-
-;; Add menu of buffer operations to the buffer identification part
-;; of the mode line.or header line.
-;
-(let ((map (make-sparse-keymap)))
-  ;; Bind down- events so that the global keymap won't ``shine
-  ;; through''.
-  (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
-  (define-key map [header-line down-mouse-1] 'ignore)
-  (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
-  (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
-  (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [header-line mouse-3] 'mode-line-next-buffer)
-  (setq mode-line-buffer-identification-keymap map))
 
 (defun propertized-buffer-identification (fmt)
   "Return a list suitable for `mode-line-buffer-identification'.
