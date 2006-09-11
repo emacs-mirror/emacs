@@ -1,3 +1,8 @@
+2006-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fkey_binding): Check for local keymap for mouse click
+	events.
+
 2006-09-10  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (Finput_pending_p): Check Vunread_input_method_events
