@@ -1,5 +1,7 @@
 2006-09-11  Kim F. Storm  <storm@cua.dk>
 
+	* keymap.c (Fkey_binding): Fix last change.
+
 	* editfns.c (Fmessage): Recommend using (message "%s" ...).
 
 2006-09-10  Chong Yidong  <cyd@stupidchicken.com>
