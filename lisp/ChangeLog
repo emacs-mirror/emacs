@@ -1,5 +1,8 @@
 2006-09-12  Kim F. Storm  <storm@cua.dk>
 
+	* simple.el (next-error-highlight, next-error-highlight-no-select):
+	Fix spelling error.
+
 	* subr.el (sit-for): Rework to use input-pending-p and cond.
 	Return nil input is pending on entry also for SECONDS <= 0.
 	(while-no-input): Use input-pending-p instead of sit-for.
