@@ -3178,6 +3178,9 @@ The message also goes into the `*Messages*' buffer.
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
+Note: Use (message "%s" VALUE) to print the value of expressions and
+variables to avoid accidentally interpreting `%' as format specifiers.
+
 If the first argument is nil or the empty string, the function clears
 any existing message; this lets the minibuffer contents show.  See
 also `current-message'.
