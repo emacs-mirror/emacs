@@ -1,4 +1,9 @@
-2006-09-09  Reiner Steib  <Reiner.Steib@gmx.de>
+2006-09-11  Richard Stallman  <rms@gnu.org>
+
+	* building.texi (Compilation Mode): Clarification.
+	(Grep Searching): Add xref to Compilation Mode.
+
+2006-09-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Mail Source Specifiers): Mention problem of duplicate
 	mails with pop3-leave-mail-on-server.  Fix wording.
