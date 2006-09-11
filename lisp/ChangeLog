@@ -1,3 +1,8 @@
+2006-09-11  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (next-error-highlight, next-error-highlight-no-select): 
+	Fix custom type and doc strings.
+
 2006-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-apply-hunk-to-backup-file): New var.
