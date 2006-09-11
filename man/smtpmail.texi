@@ -214,6 +214,7 @@ The following example illustrates what you could put in
 Many environments require SMTP clients to authenticate themselves
 before they are allowed to route mail via a server.  The two following
 variables contains the authentication information needed for this.
+
 The first variable, @code{smtpmail-auth-credentials}, instructs the
 SMTP library to use a SASL authentication step, currently only the
 CRAM-MD5 and LOGIN mechanisms are supported and will be selected in
@@ -222,10 +223,17 @@ that order if the server support both.
 The second variable, @code{smtpmail-starttls-credentials}, instructs
 the SMTP library to connect to the server using STARTTLS.  This means
 the protocol exchange may be integrity protected and confidential by
-using TLS, also known as SSL, and optionally also authentication of
-the client.  This feature uses the elisp package @file{starttls.el}
-(see it for more information on customization), which in turn require
-that at least one of the following external tools are installed:
+using the Transport Layer Security (TLS) protocol, and optionally also
+authentication of the client and server.
+
+TLS is a security protocol that is also known as SSL, although
+strictly speaking, SSL is an older variant of TLS.  TLS is backwards
+compatible with SSL.  In most mundane situations, the two terms are
+equivalent.
+
+The TLS feature uses the elisp package @file{starttls.el} (see it for
+more information on customization), which in turn require that at
+least one of the following external tools are installed:
 
 @enumerate
 @item
