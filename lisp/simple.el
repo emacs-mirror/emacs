@@ -135,7 +135,7 @@ If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
   :type '(choice (number :tag "Highlight for specified time")
-                 (const :tag "Semipermantent highlighting" t)
+                 (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
                  (const :tag "Fringe arrow" fringe-arrow))
   :group 'next-error
@@ -148,7 +148,7 @@ If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
   :type '(choice (number :tag "Highlight for specified time")
-                 (const :tag "Semipermantent highlighting" t)
+                 (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
                  (const :tag "Fringe arrow" fringe-arrow))
   :group 'next-error
