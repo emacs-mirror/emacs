@@ -178,30 +178,32 @@ Quoting will not be done in a quoted string if it contains characters
 matching ENCODABLE-REGEXP."
   (goto-char (point-min))
   (let ((tspecials (concat "[" ietf-drums-tspecials "]"))
-	beg)
+	beg end)
     (with-syntax-table (standard-syntax-table)
       (while (search-forward "\"" nil t)
-	(unless (eq (char-before) ?\\)
-	  (setq beg (match-end 0))
-	  (goto-char (match-beginning 0))
+	(setq beg (match-beginning 0))
+	(unless (eq (char-before beg) ?\\)
+	  (goto-char beg)
+	  (setq beg (1+ beg))
 	  (condition-case nil
 	      (progn
 		(forward-sexp)
-		(save-restriction
-		  (narrow-to-region beg (1- (point)))
-		  (goto-char beg)
-		  (unless (and encodable-regexp
-			       (re-search-forward encodable-regexp nil t))
+		(setq end (1- (point)))
+		(goto-char beg)
+		(if (and encodable-regexp
+			 (re-search-forward encodable-regexp end t))
+		    (goto-char (1+ end))
+		  (save-restriction
+		    (narrow-to-region beg end)
 		    (while (re-search-forward tspecials nil 'move)
-		      (unless (and (eq (char-before) ?\\) ;; Already quoted.
-				   (looking-at tspecials))
+		      (if (eq (char-before) ?\\)
+			  (if (looking-at tspecials) ;; Already quoted.
+			      (forward-char)
+			    (insert "\\"))
 			(goto-char (match-beginning 0))
-			(unless (or (eq (char-before) ?\\)
-				    (and rfc2047-encode-encoded-words
-					 (eq (char-after) ??)
-					 (eq (char-before) ?=)))
-			  (insert "\\")))
-		      (forward-char)))))
+			(insert "\\")
+			(forward-char))))
+		  (forward-char)))
 	    (error
 	     (goto-char beg))))))))
 

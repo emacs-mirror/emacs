@@ -1,3 +1,13 @@
+2006-09-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pop3.el (pop3-leave-mail-on-server): Mention problem of duplicate
+	mails in the doc string.  Add some URLs in comment.
+
+2006-09-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-quote-special-characters-in-quoted-strings): Fix
+	backslashes handling and the way to find boundaries of quoted strings.
+
 2006-09-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-art.el (gnus-button-regexp, gnus-button-marker-list)
