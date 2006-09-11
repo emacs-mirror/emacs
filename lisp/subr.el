@@ -1737,20 +1737,23 @@ in milliseconds; this was useful when Emacs was built without
 floating point support.
 
 \(fn SECONDS &optional NODISP)"
-  (unless (or unread-command-events
-	      unread-post-input-method-events
-	      unread-input-method-events
-	      (>= unread-command-char 0))
-    (when (or obsolete (numberp nodisp))
-      (setq seconds (+ seconds (* 1e-3 nodisp)))
-      (setq nodisp obsolete))
-    (if noninteractive
-	(progn (sleep-for seconds) t)
-      (unless nodisp (redisplay))
-      (or (<= seconds 0)
-	  (let ((read (read-event nil nil seconds)))
-	    (or (null read)
-		(progn (push read unread-command-events) nil)))))))
+  (when (or obsolete (numberp nodisp))
+    (setq seconds (+ seconds (* 1e-3 nodisp)))
+    (setq nodisp obsolete))
+  (cond
+   (noninteractive
+    (sleep-for seconds)
+    t)
+   ((input-pending-p)
+    nil)
+   ((<= seconds 0)
+    (or nodisp (redisplay)))
+   (t
+    (or nodisp (redisplay))
+    (let ((read (read-event nil nil seconds)))
+      (or (null read)
+	  (progn (push read unread-command-events)
+		 nil))))))
 
 ;;; Atomic change groups.
 
@@ -2398,8 +2401,8 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
     `(with-local-quit
        (catch ',catch-sym
 	 (let ((throw-on-input ',catch-sym))
-	   (or (not (sit-for 0 0 t))
-	     ,@body))))))
+	   (or (input-pending-p)
+	       ,@body))))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
