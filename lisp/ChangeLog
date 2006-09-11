@@ -1,3 +1,8 @@
+2006-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-apply-hunk-to-backup-file): New var.
+	(diff-apply-hunk): Use it to ask for confirmation.
+
 2006-09-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* emacs-lisp/cl.el (pushnew): Add missing `,'.
