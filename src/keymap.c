@@ -1577,16 +1577,17 @@ is non-nil, `key-binding' returns the unmapped command.  */)
   GCPRO1 (key);
 
 #ifdef HAVE_MOUSE
-  if (VECTORP (key)
-      && ASIZE (key) > 0
-      && CONSP (AREF (key, 0))
-      && SYMBOLP (XCAR (AREF (key, 0)))
-      && CONSP (XCDR (AREF (key, 0))))
+  if (VECTORP (key) && ASIZE (key) > 0)
     {
-      Lisp_Object map, obj, pos = XCAR (XCDR (AREF (key, 0)));
-
-      if (XINT (Flength (pos)) == 10 && INTEGERP (XCAR (XCDR (pos))))
+      Lisp_Object ev, pos;
+      if ((ev = AREF (key, 0), CONSP (ev))
+	  && SYMBOLP (XCAR (ev))
+	  && CONSP (XCDR (ev))
+	  && (pos = XCAR (XCDR (ev)), CONSP (pos))
+	  && XINT (Flength (pos)) == 10
+	  && INTEGERP (XCAR (XCDR (pos))))
 	{
+	  Lisp_Object map, obj;
 	  obj = Fnth (make_number(4), pos);
 	  map = Fget_char_property (XCAR (XCDR (pos)),
 				    Qkeymap,
