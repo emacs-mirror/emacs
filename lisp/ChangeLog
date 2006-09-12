@@ -1,3 +1,7 @@
+2006-09-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-dispatch): Remove unnecessary `sit-for'.
+
 2006-09-07  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-scroll-show-maximum-output): Rename from
