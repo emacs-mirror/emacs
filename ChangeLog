@@ -1,3 +1,8 @@
+2006-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-dist (EMACS): Exit and fail if the EMACS environment
+	variable is set to something other than an absolute file name.
+
 2006-09-07  Kim F. Storm  <storm@cua.dk>
 
 	* AUTHORS: Regenerate.

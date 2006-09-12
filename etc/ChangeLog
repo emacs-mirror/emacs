@@ -1,6 +1,13 @@
+2006-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: In terminal-oriented subshells, the EMACS environment
+	variable now defaults to Emacs's absolute file name, instead of
+	to "t".
+	* PROBLEMS: Adjust tcsh advice for this.
+
 2006-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* PROBLEMS (are): Emacs compiled with Gtk+ crashes when closing a 
+	* PROBLEMS (are): Emacs compiled with Gtk+ crashes when closing a
 	display (x-close-connection).
 
 2006-09-02  Juri Linkov  <juri@jurta.org>

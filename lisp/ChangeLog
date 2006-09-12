@@ -1,3 +1,12 @@
+2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* comint.el (comint-exec-1): Set EMACS to the full name of Emacs,
+	not to "t".
+	* progmodes/compile.el (compilation-start): Likewise.
+	* progmodes/idlwave.el (idlwave-rescan-asynchronously):
+	Don't use expand-file-name on invocation-directory, since this
+	might mishandle special characters in invocation-directory.
+
 2006-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs-defs.el: Remove * in defcustom's docstrings.

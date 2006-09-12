@@ -540,7 +540,7 @@ on the flag to output ^M at the end of each line.  You can fix the
 problem by adding this to your .cshrc file:
 
     if ($?EMACS) then
-        if ($EMACS == "t") then
+        if ("$EMACS" =~ /*) then
             unset edit
             stty  -icrnl -onlcr -echo susp ^Z
         endif

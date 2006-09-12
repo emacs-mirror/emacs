@@ -2683,7 +2683,8 @@ shell init file.  You have two alternatives to solve this:
 @item
 Make the alias conditioned on the @code{EMACS} variable in the
 environment.  When Emacs runs a subsidiary shell, it exports the
-@code{EMACS} variable with the value @code{t} to that shell.  You can
+@code{EMACS} variable to that shell, with value equal to the absolute
+file name of Emacs.  You can
 unalias @code{ls} when that happens, thus limiting the alias to your
 interactive sessions.
 
@@ -2753,7 +2754,7 @@ file:
 
 @example
 if ($?EMACS) then
-    if ("$EMACS" == t) then
+    if ("$EMACS" =~ /*) then
         if ($?tcsh) unset edit
         stty nl
     endif

@@ -1,3 +1,10 @@
+2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* faq.texi (Escape sequences in shell output): EMACS is now set
+	to Emacs's absolute file name, not to "t".
+	(^M in the shell buffer): Likewise.
+	* misc.texi (Interactive Shell): Likewise.
+
 2006-09-11  Richard Stallman  <rms@gnu.org>
 
 	* building.texi (Compilation Mode): Clarification.
