@@ -863,7 +863,8 @@ It returns t if a desktop file was loaded, nil otherwise."
       (let ((desktop-first-buffer nil)
             (desktop-buffer-ok-count 0)
             (desktop-buffer-fail-count 0)
-	    desktop-save)
+            ;; Avoid desktop saving during evaluation of desktop buffer.
+	    (desktop-save nil))
 	(desktop-lazy-abort)
         ;; Evaluate desktop buffer.
         (load (desktop-full-file-name) t t t)
