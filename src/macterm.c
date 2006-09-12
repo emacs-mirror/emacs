@@ -10538,11 +10538,7 @@ XTread_socket (sd, expected, hold_quit)
 		    && (TrackWindowProxyDrag (window_ptr, er.where)
 			!= errUserWantsToDragWindow))
 		  break;
-		/* kWindowAsyncDragAttribute is specified on Mac OS X
-		   10.3 and later.*/
-#if MAC_OS_X_VERSION_MAX_ALLOWED < 1030
 		DragWindow (window_ptr, er.where, NULL);
-#endif
 #else /* not TARGET_API_MAC_CARBON */
 		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
 #endif /* not TARGET_API_MAC_CARBON */
