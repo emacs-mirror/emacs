@@ -1,3 +1,9 @@
+2006-09-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_window) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	* macterm.c (XTread_socket) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Undo 2006-09-08 change.
+
 2006-09-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymap.c (Fkey_binding): Use string position for string objects.
@@ -29,14 +35,14 @@
 
 2006-09-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* mac.c [MAC_OSX] (sys_select): Check argument `nfds' more
-	rigidly.  Make variable `ofds' static.  Remove variable `maxfd'.
+	* mac.c [MAC_OSX] (sys_select): Check argument `nfds' more rigidly.
+	Make variable `ofds' static.  Remove variable `maxfd'.
 
 	* macfns.c (Fx_file_dialog): Remove unused variable `f'.  Call
 	check_mac.
 
-	* macmenu.c (Vmenu_updating_frame, syms_of_xmenu):
-	* w32menu.c (Vmenu_updating_frame, syms_of_xmenu): Apply
+	* macmenu.c (Vmenu_updating_frame, syms_of_macmenu):
+	* w32menu.c (Vmenu_updating_frame, syms_of_w32menu): Apply
 	2006-09-08 change for xmenu.c.
 
 	* xfns.c (Fx_file_dialog): Call check_x.
