@@ -5118,13 +5118,14 @@ This creates and returns a display table.  The table initially has
 
   The ordinary elements of the display table are indexed by character
 codes; the element at index @var{c} says how to display the character
-code @var{c}.  The value should be @code{nil} or a vector of glyph
-values (@pxref{Glyphs}).  If an element is @code{nil}, it says to
-display that character according to the usual display conventions
+code @var{c}.  The value should be @code{nil} or a vector of the
+glyphs to be output (@pxref{Glyphs}).  @code{nil} says to display the
+character @var{c} according to the usual display conventions
 (@pxref{Usual Display}).
 
-  If you use the display table to change the display of newline
-characters, the whole buffer will be displayed as one long ``line.''
+  @strong{Warning:} if you use the display table to change the display
+of newline characters, the whole buffer will be displayed as one long
+``line.''
 
   The display table also has six ``extra slots'' which serve special
 purposes.  Here is a table of their meanings; @code{nil} in any slot
