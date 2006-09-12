@@ -1,3 +1,7 @@
+2006-09-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* reftex.texi (Citations Outside LaTeX): Simpify lisp example.
+
 2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* faq.texi (Escape sequences in shell output): EMACS is now set
