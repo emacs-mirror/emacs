@@ -5252,14 +5252,14 @@ are defined in the library @file{disp-table}.
   A @dfn{glyph} is a generalization of a character; it stands for an
 image that takes up a single character position on the screen.  Glyphs
 are represented in Lisp as integers, just as characters are.  Normally
-Emacs finds glyphs in the display table (@pxref{Display Tables}).
+glyph come from vectors in the display table (@pxref{Display Tables}).
 
-  A glyph can be @dfn{simple} or it can be defined by the @dfn{glyph
-table}.  A simple glyph is just a way of specifying a character and a
-face to output it in.  The glyph code for a simple glyph, mod 524288,
-is the character to output, and the glyph code divided by 524288
-specifies the face number (@pxref{Face Functions}) to use while
-outputting it.  (524288 is
+  A glyph code can be @dfn{simple} or it can be defined by the
+@dfn{glyph table}.  A simple glyph code is just a way of specifying a
+character and a face to output it in.  When a glyph code is simple,
+the code, mod 524288, is the character to output, and the code divided
+by 524288 specifies the face number (@pxref{Face Functions}) to use
+while outputting it.  (524288 is
 @ifnottex
 2**19.)
 @end ifnottex
@@ -5269,35 +5269,35 @@ $2^{19}$.)
 @xref{Faces}.
 
   On character terminals, you can set up a @dfn{glyph table} to define
-the meaning of glyph codes.  The glyph codes is the value of the
-variable @code{glyph-table}.
+the meaning of glyph codes.
 
 @defvar glyph-table
-The value of this variable is the current glyph table.  It should be a
-vector; the @var{g}th element defines glyph code @var{g}.
+The value of this variable is the current glyph table.  It should be
+@code{nil} or a vector whose @var{g}th element defines glyph code
+@var{g}.
 
 If a glyph code is greater than or equal to the length of the glyph
-table, that code is automatically simple.  If the value of
-@code{glyph-table} is @code{nil} instead of a vector, then all glyphs
-are simple.  The glyph table is not used on graphical displays, only
-on character terminals.  On graphical displays, all glyphs are simple.
+table, that code is automatically simple.  If @code{glyph-table} is
+@code{nil} then all glyph codes are simple.
+
+The glyph table is used only on character terminals.  On graphical
+displays, all glyph codes are simple.
 @end defvar
 
-  Here are the possible types of elements in the glyph table:
+  Here are the meaningful types of elements in the glyph table:
 
 @table @asis
 @item @var{string}
 Send the characters in @var{string} to the terminal to output
-this glyph.  This alternative is available on character terminals,
-but not on graphical displays.
+this glyph code.
 
 @item @var{integer}
 Define this glyph code as an alias for glyph code @var{integer}.  You
-can use an alias to specify a face code for the glyph and use a small
-number as its code.
+can use such an alias to define a small-numbered glyph code which
+specifies a face.
 
 @item @code{nil}
-This glyph is simple.
+This glyph code is simple.
 @end table
 
 @defun create-glyph string
