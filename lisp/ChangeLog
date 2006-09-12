@@ -1,3 +1,12 @@
+2006-09-07  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-scroll-show-maximum-output): Rename from
+	rcirc-show-maximum-output.
+	(rcirc-mode): Remove window-scroll-function hook.
+	(rcirc-scroll-to-bottom): Remove function.
+	(rcirc-print): Recenter so point stays at the bottom of the window
+	if point was already there.
+
 2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* comint.el (comint-exec-1): Set EMACS to the full name of Emacs,

@@ -142,7 +142,7 @@ number.	 If zero or nil, no truncating is done."
 		 (integer :tag "Number of lines"))
   :group 'rcirc)
 
-(defcustom rcirc-show-maximum-output t
+(defcustom rcirc-scroll-show-maximum-output t
   "*If non-nil, scroll buffer to keep the point at the bottom of
 the window."
   :type 'boolean
@@ -762,8 +762,6 @@ If NOTICEP is non-nil, send a notice instead of privmsg."
   (add-hook 'change-major-mode-hook 'rcirc-change-major-mode-hook nil t)
   (add-hook 'kill-buffer-hook 'rcirc-kill-buffer-hook nil t)
 
-  (add-hook 'window-scroll-functions 'rcirc-scroll-to-bottom nil t)
-
   ;; add to buffer list, and update buffer abbrevs
   (when target				; skip server buffer
     (let ((buffer (current-buffer)))
@@ -1166,14 +1164,6 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 (defvar rcirc-last-sender nil)
 (make-variable-buffer-local 'rcirc-last-sender)
 
-(defun rcirc-scroll-to-bottom (window display-start)
-  "Scroll window to show maximum output if `rcirc-show-maximum-output' is
-non-nil."
-  (when rcirc-show-maximum-output
-    (with-selected-window window
-      (when (>= (window-point) rcirc-prompt-end-marker)
-	(recenter -1)))))
-
 (defun rcirc-print (process sender response target text &optional activity)
   "Print TEXT in the buffer associated with TARGET.
 Format based on SENDER and RESPONSE.  If ACTIVITY is non-nil,
@@ -1252,16 +1242,33 @@ record activity."
 
 	  ;; set the window point for buffers show in windows
 	  (walk-windows (lambda (w)
-			  (unless (eq (selected-window) w)
-			    (when (and (eq (current-buffer)
-					   (window-buffer w))
-				       (>= (window-point w)
-					   rcirc-prompt-end-marker))
-			      (set-window-point w (point-max)))))
+			  (when (and (not (eq (selected-window) w))
+				     (eq (current-buffer)
+					 (window-buffer w))
+				     (>= (window-point w)
+					 rcirc-prompt-end-marker))
+			    (set-window-point w (point-max))))
 			nil t)
 
 	  ;; restore the point
 	  (goto-char (if moving rcirc-prompt-end-marker old-point))
+
+        ;; keep window on bottom line if it was already there
+	  (when rcirc-scroll-show-maximum-output
+	    (walk-windows (lambda (w)
+			    (when (eq (window-buffer w) (current-buffer))
+			      (with-current-buffer (window-buffer w)
+				(when (eq major-mode 'rcirc-mode)
+				  (with-selected-window w
+				    (when (<= (- (window-height) 
+						 (- (line-number-at-pos
+						     (window-point))
+						    (line-number-at-pos
+						     (window-start)))
+						 1)
+					      0)
+				      (recenter -1)))))))
+			  nil t))
 
 	  ;; flush undo (can we do something smarter here?)
 	  (buffer-disable-undo)
