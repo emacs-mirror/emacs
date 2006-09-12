@@ -625,7 +625,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 		   (cons (match-string-no-properties idx) dir))
       mouse-face highlight
       keymap compilation-button-map
-      help-echo "mouse-2: visit current directory")))
+      help-echo "mouse-2: visit this directory")))
 
 ;; Data type `reverse-ordered-alist' retriever.	 This function retrieves the
 ;; KEY element from the ALIST, creating it in the right position if not already
