@@ -1,6 +1,10 @@
+2006-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-defs.el: Remove * in defcustom's docstrings.
+
 2006-09-12  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/compile.el (compilation-directory-properties): 
+	* progmodes/compile.el (compilation-directory-properties):
 	Doc fix for help-echo.
 
 2006-09-12 Lars Hansen <larsh@soem.dk>
@@ -37,7 +41,7 @@
 
 2006-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* progmodes/cfengine.el (cfengine-font-lock-syntactic-keywords): New var.
+	* progmodes/cfengine.el (cfengine-font-lock-syntactic-keywords): Newvar.
 	(cfengine-mode): Use it.  Fix \ syntax to be like /.
 
 	* bindings.el (mode-line-buffer-identification-keymap):
