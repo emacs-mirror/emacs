@@ -1,4 +1,4 @@
-2006-09-12  Chong Yidong  <cyd@stupidchicken.com>
+2006-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textprop.c (Fnext_property_change, Fnext_single_property_change)
 	(Fprevious_property_change, Fprevious_single_property_change):
