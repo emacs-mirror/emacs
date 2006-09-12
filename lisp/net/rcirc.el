@@ -1260,11 +1260,10 @@ record activity."
 			      (with-current-buffer (window-buffer w)
 				(when (eq major-mode 'rcirc-mode)
 				  (with-selected-window w
-				    (when (<= (- (window-height) 
-						 (- (line-number-at-pos
-						     (window-point))
-						    (line-number-at-pos
-						     (window-start)))
+ 				    (when (<= (- (window-height)
+ 						 (count-screen-lines
+						  (window-point)
+						  (window-start))
 						 1)
 					      0)
 				      (recenter -1)))))))
