@@ -1,3 +1,10 @@
+2006-09-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textprop.c (Fnext_property_change, Fnext_single_property_change)
+	(Fprevious_property_change, Fprevious_single_property_change):
+	Avoid changing limit, so we can correctly catch the case where the
+	property is constant up to limit.
+
 2006-09-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (mac_window) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
