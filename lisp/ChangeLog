@@ -1,3 +1,6 @@
+2006-09-12 Lars Hansen <larsh@soem.dk>
+	* desktop.el (desktop-read): Add comment.
+
 2006-09-12  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (next-error-highlight, next-error-highlight-no-select):
