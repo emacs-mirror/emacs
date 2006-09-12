@@ -56,6 +56,8 @@ Windows only bug.
 ** C-g fails to interrupt accept-process-output in Gnus.
   (Is that fixed?)
 
+** Problem with splash screen (Lennart Borgman, Sep 12).
+
 ** ispell.el: no option for no flyspell on non-ASCII
 
 ** next-single-property-change bug, Magnus Henoch Sep 8.
