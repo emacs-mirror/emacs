@@ -1,3 +1,7 @@
+2006-09-11  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Display Table Format): Wording clarification.
+
 2006-09-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymaps.texi (Active Keymaps): Mention that key-binding checks
