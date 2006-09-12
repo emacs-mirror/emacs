@@ -2,7 +2,7 @@
 
 	* files.texi (Visiting): Add index entry "open file".
 
-	* reftex.texi (Citations Outside LaTeX): Simpify lisp example.
+	* reftex.texi (Citations Outside LaTeX): Simplify lisp example.
 
 2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
 
