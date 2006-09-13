@@ -3487,28 +3487,27 @@ Outline mode sets this."
 	  (set-window-vscroll nil (- vs (frame-char-height)) t)))
 
     ;; Move forward (down).
-    (let* ((ppos (posn-at-point))
-	   (py (cdr (or (posn-actual-col-row ppos)
-			(posn-col-row ppos))))
-	   (vs (window-vscroll nil t))
-	   (evis (or (pos-visible-in-window-p (window-end nil t) nil t)
+    (let* ((evis (or (pos-visible-in-window-p (window-end nil t) nil t)
 		     (pos-visible-in-window-p (1- (window-end nil t)) nil t)))
 	   (rbot (nth 3 evis))
-	   (vpos (nth 5 evis)))
+	   (vpos (nth 5 evis))
+	   ppos py vs)
       (cond
-       ;; (0) Last window line should be visible - fail if not.
+       ;; Last window line should be visible - fail if not.
        ((null evis)
 	nil)
        ;; If last line of window is fully visible, move forward.
        ((null rbot)
 	nil)
        ;; If cursor is not in the bottom scroll margin, move forward.
-       ((< py (min (- (window-text-height) scroll-margin 1)
-		   (1- vpos)))
+       ((< (setq ppos (posn-at-point)
+		 py (cdr (or (posn-actual-col-row ppos)
+			     (posn-col-row ppos))))
+	   (min (- (window-text-height) scroll-margin 1) (1- vpos)))
 	nil)
        ;; When already vscrolled, we vscroll some more if we can,
        ;; or clear vscroll and move forward at end of tall image.
-       ((> vs 0)
+       ((> (setq vs (window-vscroll nil t)) 0)
 	(when (> rbot 0)
 	  (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
        ;; If cursor just entered the bottom scroll margin, move forward,
