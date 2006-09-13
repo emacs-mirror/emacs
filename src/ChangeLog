@@ -1,3 +1,15 @@
+2006-09-13  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_initialize): Don't install Xt event timer here.
+	(x_timeout_atimer_activated_flag): New var.
+	(x_activate_timeout_atimer): New function to install Xt timer.
+	(x_send_scroll_bar_event, x_process_timeouts): Use it.
+
+	* xmenu.c (x_menu_set_in_use, popup_activate_callback)
+	(create_and_show_popup_menu, create_and_show_dialog): Use it.
+
+	* xterm.h (x_activate_timeout_atimer): prototype.
+
 2006-09-13  Richard Stallman  <rms@gnu.org>
 
 	* print.c (print_string): When printcharfun is t,

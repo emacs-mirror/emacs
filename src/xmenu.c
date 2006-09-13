@@ -1182,6 +1182,10 @@ x_menu_set_in_use (in_use)
 {
   menu_items_inuse = in_use ? Qt : Qnil;
   popup_activated_flag = in_use;
+#ifdef USE_X_TOOLKIT
+  if (popup_activated_flag)
+    x_activate_timeout_atimer ();
+#endif
 }
 
 /* Wait for an X event to arrive or for a timer to expire.  */
@@ -1498,6 +1502,9 @@ popup_activate_callback (widget, id, client_data)
      XtPointer client_data;
 {
   popup_activated_flag = 1;
+#ifdef USE_X_TOOLKIT
+  x_activate_timeout_atimer ();
+#endif
 }
 #endif
 
@@ -2798,6 +2805,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   /* Display the menu.  */
   lw_popup_menu (menu, (XEvent *) &dummy);
   popup_activated_flag = 1;
+  x_activate_timeout_atimer ();
 
   {
     int fact = 4 * sizeof (LWLIB_ID);
@@ -3175,6 +3183,7 @@ create_and_show_dialog (f, first_wv)
   /* Display the dialog box.  */
   lw_pop_up_all_widgets (dialog_id);
   popup_activated_flag = 1;
+  x_activate_timeout_atimer ();
 
   /* Process events that apply to the dialog box.
      Also handle timers.  */

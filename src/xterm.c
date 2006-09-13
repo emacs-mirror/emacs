@@ -4091,6 +4091,9 @@ x_send_scroll_bar_event (window, part, portion, whole)
 
   /* Make Xt timeouts work while the scroll bar is active.  */
   toolkit_scroll_bar_interaction = 1;
+#ifdef USE_X_TOOLKIT
+  x_activate_timeout_atimer ();
+#endif
 
   /* Setting the event mask to zero means that the message will
      be sent to the client that created the window, and if that
@@ -10134,6 +10137,11 @@ static XrmOptionDescRec emacs_options[] = {
   {"-mc",	"*pointerColor", XrmoptionSepArg, (XtPointer) NULL},
   {"-cr",	"*cursorColor", XrmoptionSepArg, (XtPointer) NULL}
 };
+
+/* Whether atimer for Xt timeouts is activated or not.  */
+
+static int x_timeout_atimer_activated_flag;
+
 #endif /* USE_X_TOOLKIT */
 
 static int x_initialized;
@@ -10815,13 +10823,39 @@ static void
 x_process_timeouts (timer)
      struct atimer *timer;
 {
+  BLOCK_INPUT;
+  x_timeout_atimer_activated_flag = 0;
   if (toolkit_scroll_bar_interaction || popup_activated ())
     {
-      BLOCK_INPUT;
       while (XtAppPending (Xt_app_con) & XtIMTimer)
 	XtAppProcessEvent (Xt_app_con, XtIMTimer);
-      UNBLOCK_INPUT;
+      /* Reactivate the atimer for next time.  */
+      x_activate_timeout_atimer ();
     }
+  UNBLOCK_INPUT;
+}
+
+/* Install an asynchronous timer that processes Xt timeout events
+   every 0.1s as long as either `toolkit_scroll_bar_interaction' or
+   `popup_activated_flag' (in xmenu.c) is set.  Make sure to call this
+   function whenever these variables are set.  This is necessary
+   because some widget sets use timeouts internally, for example the
+   LessTif menu bar, or the Xaw3d scroll bar.  When Xt timeouts aren't
+   processed, these widgets don't behave normally.  */
+
+void
+x_activate_timeout_atimer ()
+{
+  BLOCK_INPUT;
+  if (!x_timeout_atimer_activated_flag)
+    {
+      EMACS_TIME interval;
+
+      EMACS_SET_SECS_USECS (interval, 0, 100000);
+      start_atimer (ATIMER_RELATIVE, interval, x_process_timeouts, 0);
+      x_timeout_atimer_activated_flag = 1;
+    }
+  UNBLOCK_INPUT;
 }
 
 #endif /* USE_X_TOOLKIT */
@@ -10927,17 +10961,6 @@ x_initialize ()
 			 XtCacheByDisplay, cvt_pixel_dtor);
 
   XtAppSetFallbackResources (Xt_app_con, Xt_default_resources);
-
-  /* Install an asynchronous timer that processes Xt timeout events
-     every 0.1s.  This is necessary because some widget sets use
-     timeouts internally, for example the LessTif menu bar, or the
-     Xaw3d scroll bar.  When Xt timouts aren't processed, these
-     widgets don't behave normally.  */
-  {
-    EMACS_TIME interval;
-    EMACS_SET_SECS_USECS (interval, 0, 100000);
-    start_atimer (ATIMER_CONTINUOUS, interval, x_process_timeouts, 0);
-  }
 #endif
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
