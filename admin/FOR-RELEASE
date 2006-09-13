@@ -47,14 +47,14 @@ Windows only bug.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
+** Problem with splash screen (Lennart Borgman, Sep 12).
+
 * BUGS
 
 ** Field handling in C-n.
 
 ** C-g fails to interrupt accept-process-output in Gnus.
   (Is that fixed?)
-
-** Problem with splash screen (Lennart Borgman, Sep 12).
 
 ** ispell.el: no option for no flyspell on non-ASCII
 
