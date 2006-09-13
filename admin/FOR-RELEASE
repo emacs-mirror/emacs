@@ -69,8 +69,6 @@ in the syntax table.
 
 ** Xt timer runs very often, all the time.
 
-** Broken (sit-for 0) -- returns t even if input is available.
-
 
 * DOCUMENTATION
 
