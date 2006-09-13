@@ -67,9 +67,6 @@ in the syntax table.
 
 ** Michael Cadilhac's Sep 7 bug report about set-input-method.
 
-** Xt timer runs very often, all the time.
-
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
