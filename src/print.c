@@ -364,7 +364,10 @@ printchar (ch, fun)
    print_buffer.  PRINTCHARFUN t means output to the echo area or to
    stdout if non-interactive.  If neither nil nor t, call Lisp
    function PRINTCHARFUN for each character printed.  MULTIBYTE
-   non-zero means PTR contains multibyte characters.  */
+   non-zero means PTR contains multibyte characters.
+
+   In the case where PRINTCHARFUN is nil, it is safe for PTR to point
+   to data in a Lisp string.  Otherwise that is not safe.  */
 
 static void
 strout (ptr, size, size_byte, printcharfun, multibyte)
@@ -497,10 +500,29 @@ print_string (string, printcharfun)
       else
 	chars = SBYTES (string);
 
-      /* strout is safe for output to a frame (echo area) or to print_buffer.  */
-      strout (SDATA (string),
-	      chars, SBYTES (string),
-	      printcharfun, STRING_MULTIBYTE (string));
+      if (EQ (printcharfun, Qt))
+	{
+	  /* Output to echo area.  */
+	  int nbytes = SBYTES (string);
+	  char *buffer;
+
+	  /* Copy the string contents so that relocation of STRING by
+	     GC does not cause trouble.  */
+	  USE_SAFE_ALLOCA;
+
+	  SAFE_ALLOCA (buffer, char *, nbytes);
+	  bcopy (SDATA (string), buffer, nbytes);
+
+	  strout (buffer, chars, SBYTES (string),
+		  printcharfun, STRING_MULTIBYTE (string));
+
+	  SAFE_FREE ();
+	}
+      else
+	/* No need to copy, since output to print_buffer can't GC.  */
+	strout (SDATA (string),
+		chars, SBYTES (string),
+		printcharfun, STRING_MULTIBYTE (string));
     }
   else
     {
