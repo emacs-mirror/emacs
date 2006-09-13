@@ -3257,8 +3257,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       goto retry;
     }
 
-  if (! reread || this_command_key_count == 0
-      || this_command_key_count_reset)
+  if ((! reread || this_command_key_count == 0
+       || this_command_key_count_reset)
+      && !end_time)
     {
 
       /* Don't echo mouse motion events.  */
@@ -8765,17 +8766,25 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      the initial keymaps from the current buffer.  */
   nmaps = 0;
 
-  if (!NILP (current_kboard->Voverriding_terminal_local_map)
-      || !NILP (Voverriding_local_map))
+  if (!NILP (current_kboard->Voverriding_terminal_local_map))
     {
-      if (3 > nmaps_allocated)
+      if (2 > nmaps_allocated)
 	{
-	  submaps = (Lisp_Object *) alloca (3 * sizeof (submaps[0]));
-	  defs    = (Lisp_Object *) alloca (3 * sizeof (defs[0]));
-	  nmaps_allocated = 3;
+	  submaps = (Lisp_Object *) alloca (2 * sizeof (submaps[0]));
+	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
+	  nmaps_allocated = 2;
 	}
       if (!NILP (current_kboard->Voverriding_terminal_local_map))
 	submaps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
+    }
+  else if (!NILP (Voverriding_local_map))
+    {
+      if (2 > nmaps_allocated)
+	{
+	  submaps = (Lisp_Object *) alloca (2 * sizeof (submaps[0]));
+	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
+	  nmaps_allocated = 2;
+	}
       if (!NILP (Voverriding_local_map))
 	submaps[nmaps++] = Voverriding_local_map;
     }
