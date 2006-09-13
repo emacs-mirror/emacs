@@ -1,3 +1,13 @@
+2006-09-13  Richard Stallman  <rms@gnu.org>
+
+	* print.c (print_string): When printcharfun is t,
+	copy string contents and call strout on the copy.
+
+	* keyboard.c (read_char): If end_time specified, don't put the
+	event into this_command_keys.
+	(read_key_sequence): If Voverriding_terminal_local_map is specified,
+	don't check Voverriding_local_map at all.
+
 2006-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textprop.c (Fnext_property_change, Fnext_single_property_change)
