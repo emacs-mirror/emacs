@@ -2112,7 +2112,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 (defun ido-edit-input ()
   "Edit absolute file name entered so far with ido; terminate by RET."
   (interactive)
-  (setq ido-text-init (if ido-matches (car ido-matches) ido-text))
+  (setq ido-text-init (if ido-matches (ido-name (car ido-matches)) ido-text))
   (setq ido-exit 'edit)
   (exit-minibuffer))
 
@@ -2426,13 +2426,13 @@ If INITIAL is non-nil, it specifies the initial input string."
      ((and (= 1 (length ido-matches))
 	   (not (and ido-enable-tramp-completion
 		     (string-equal ido-current-directory "/")
-		     (string-match "..[@:]\\'" (car ido-matches)))))
+		     (string-match "..[@:]\\'" (ido-name (car ido-matches))))))
       ;; only one choice, so select it.
       (if (not ido-confirm-unique-completion)
 	  (exit-minibuffer)
 	(setq ido-rescan (not ido-enable-prefix))
 	(delete-region (minibuffer-prompt-end) (point))
-	(insert (car ido-matches))))
+	(insert (ido-name (car ido-matches)))))
 
      (t ;; else there could be some completions
       (setq res ido-common-match-string)
@@ -2814,7 +2814,7 @@ If input stack is non-empty, delete current directory component."
   "Use first matching item as input text."
   (interactive)
   (when ido-matches
-    (setq ido-text-init (car ido-matches))
+    (setq ido-text-init (ido-name (car ido-matches)))
     (setq ido-exit 'refresh)
     (exit-minibuffer)))
 
@@ -2828,7 +2828,7 @@ If input stack is non-empty, delete current directory component."
   "Move to previous directory in file name, push first match on stack."
   (interactive)
   (if ido-matches
-      (setq ido-text (car ido-matches)))
+      (setq ido-text (ido-name (car ido-matches))))
   (setq ido-exit 'push)
   (exit-minibuffer))
 
@@ -3745,7 +3745,7 @@ for first matching file."
   "Kill the buffer at the head of `ido-matches'."
   (interactive)
   (let ((enable-recursive-minibuffers t)
-	(buf (car ido-matches)))
+	(buf (ido-name (car ido-matches))))
     (when buf
       (kill-buffer buf)
       ;; Check if buffer still exists.
@@ -3760,7 +3760,7 @@ for first matching file."
   "Delete the file at the head of `ido-matches'."
   (interactive)
   (let ((enable-recursive-minibuffers t)
-	(file (car ido-matches)))
+	(file (ido-name (car ido-matches))))
     (if file
 	(setq file (concat ido-current-directory file)))
     (when (and file
@@ -4202,7 +4202,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	    ((= (length contents) 2)
 	     "/")
 	    (ido-matches
-	     (concat ido-current-directory (car ido-matches)))
+	     (concat ido-current-directory (ido-name (car ido-matches))))
 	    (t
 	     (concat ido-current-directory (substring contents 0 -1)))))
 	  (setq ido-text-init (substring contents -1))
@@ -4238,12 +4238,12 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 		   ido-matches
 		   (or (eq ido-enter-matching-directory 'first)
 		       (null (cdr ido-matches)))
-		   (ido-final-slash (car ido-matches))
+		   (ido-final-slash (ido-name (car ido-matches)))
 		   (or try-single-dir-match
 		       (eq ido-enter-matching-directory t)))
 	  (ido-trace "single match" (car ido-matches))
 	  (ido-set-current-directory
-	   (concat ido-current-directory (car ido-matches)))
+	   (concat ido-current-directory (ido-name (car ido-matches))))
 	  (setq ido-exit 'refresh)
 	  (exit-minibuffer))
 

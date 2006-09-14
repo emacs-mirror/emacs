@@ -1609,6 +1609,37 @@ is non-nil, `key-binding' returns the unmapped command.  */)
 
   GCPRO1 (key);
 
+#ifdef HAVE_MOUSE
+  if (VECTORP (key) && ASIZE (key) > 0)
+    {
+      Lisp_Object ev, pos;
+      if ((ev = AREF (key, 0), CONSP (ev))
+	  && SYMBOLP (XCAR (ev))
+	  && CONSP (XCDR (ev))
+	  && (pos = XCAR (XCDR (ev)), CONSP (pos))
+	  && XINT (Flength (pos)) == 10
+	  && INTEGERP (XCAR (XCDR (pos))))
+	{
+	  Lisp_Object map, object;
+
+	  object = Fnth (make_number(4), pos);
+
+	  if (CONSP (object))
+	    map = Fget_char_property (XCDR (object), Qkeymap, XCAR (object));
+	  else
+	    map = Fget_char_property (XCAR (XCDR (pos)), Qkeymap,
+				      Fwindow_buffer (XCAR (pos)));
+
+	  if (!NILP (Fkeymapp (map)))
+	    {
+	      value = Flookup_key (map, key, accept_default);
+	      if (! NILP (value) && !INTEGERP (value))
+		goto done;
+	    }
+	}
+    }
+#endif /* HAVE_MOUSE  */
+
   if (!NILP (current_kboard->Voverriding_terminal_local_map))
     {
       value = Flookup_key (current_kboard->Voverriding_terminal_local_map,

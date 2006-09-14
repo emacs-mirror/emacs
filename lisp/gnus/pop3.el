@@ -89,8 +89,12 @@ If the `pop3-leave-mail-on-server' is non-`nil' the mail is to be
 left on the POP server after fetching.  Note that POP servers
 maintain no state information between sessions, so what the
 client believes is there and what is actually there may not match
-up.  If they do not, then the whole thing can fall apart and
-leave you with a corrupt mailbox."
+up.  If they do not, then you may get duplicate mails or the
+whole thing can fall apart and leave you with a corrupt mailbox."
+  ;; We can't use the UILD support from XEmacs mail-lib or cvs.m17n.org:
+  ;; http://thread.gmane.org/v9lld8fml4.fsf@marauder.physik.uni-ulm.de
+  ;; http://thread.gmane.org/b9yy8hzy9ej.fsf@jpl.org
+  ;; Any volunteer to re-implement this?
   :version "22.1" ;; Oort Gnus
   :type 'boolean
   :group 'pop3)

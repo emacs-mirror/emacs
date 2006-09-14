@@ -1,3 +1,308 @@
+2006-09-13  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-word, flyspell-correct-word)
+	(flyspell-auto-correct-word): Make ispell-filter local to these
+	functions.  Check that ispell-filter has new stuff before calling
+	ispell-parse-output.
+ 
+2006-09-13  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-partial): Optimize.
+
+2006-09-13  Richard Stallman  <rms@gnu.org>
+
+	* thingatpt.el (thing-at-point-bounds-of-url-at-point): Delete spurious backquote.
+
+2006-09-07  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-print): Fix last change.
+
+2006-09-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-dispatch): Remove unnecessary `sit-for'.
+
+2006-09-07  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-scroll-show-maximum-output): Rename from
+	rcirc-show-maximum-output.
+	(rcirc-mode): Remove window-scroll-function hook.
+	(rcirc-scroll-to-bottom): Remove function.
+	(rcirc-print): Recenter so point stays at the bottom of the window
+	if point was already there.
+
+2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* comint.el (comint-exec-1): Set EMACS to the full name of Emacs,
+	not to "t".
+	* progmodes/compile.el (compilation-start): Likewise.
+	* progmodes/idlwave.el (idlwave-rescan-asynchronously):
+	Don't use expand-file-name on invocation-directory, since this
+	might mishandle special characters in invocation-directory.
+
+2006-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-defs.el: Remove * in defcustom's docstrings.
+
+2006-09-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/compile.el (compilation-directory-properties):
+	Doc fix for help-echo.
+
+2006-09-12  Lars Hansen  <larsh@soem.dk>
+
+	* desktop.el (desktop-read): Add comment.
+
+2006-09-12  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (next-error-highlight, next-error-highlight-no-select):
+	Fix spelling error.
+
+	* subr.el (sit-for): Rework to use input-pending-p and cond.
+	Return nil input is pending on entry also for SECONDS <= 0.
+	(while-no-input): Use input-pending-p instead of sit-for.
+
+2006-09-11  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (next-error-highlight, next-error-highlight-no-select):
+	Fix custom type and doc strings.
+
+2006-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-apply-hunk-to-backup-file): New var.
+	(diff-apply-hunk): Use it to ask for confirmation.
+
+2006-09-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* emacs-lisp/cl.el (pushnew): Add missing `,'.
+
+2006-09-11  David Kastrup  <dak@gnu.org>
+
+	* help.el (string-key-binding, describe-key-briefly)
+	(describe-key): Remove `string-key-binding' and its callers since
+	`key-binding' already caters for the proper lookup now.
+
+2006-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cfengine.el (cfengine-font-lock-syntactic-keywords): Newvar.
+	(cfengine-mode): Use it.  Fix \ syntax to be like /.
+
+	* bindings.el (mode-line-buffer-identification-keymap):
+	Move initialization into declaration.
+
+2006-09-10  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-edit-input, ido-complete, ido-take-first-match)
+	(ido-push-dir-first, ido-kill-buffer-at-head, ido-exhibit)
+	(ido-delete-file-at-head): Pass head of ido-matches through ido-name
+	in case of merged directories.  Reported by Micha,Ak(Bl Cadilhac.
+
+2006-09-10  Richard Stallman  <rms@gnu.org>
+
+	* dired-aux.el: Handle errors in recursive copy usefully.
+	(dired-create-files-failures): New variable.
+	(dired-copy-file): Remove condition-case.
+	(dired-copy-file-recursive): Check for errors on all file
+	operations, and add them to dired-create-files-failures.
+	Check file file-date-erorr here too.
+	(dired-create-files): Check dired-create-files-failures
+	and report those errors too.
+
+	* emacs-lisp/cl.el (pushnew): Use add-to-list when convenient.
+
+	* subr.el (add-to-list): New argument COMPARE-FN.
+
+2006-09-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* filecache.el (file-cache-add-directory)
+	(file-cache-add-directory-list, file-cache-add-file)
+	(file-cache-add-directory-using-find)
+	(file-cache-add-directory-using-locate)
+	(file-cache-add-directory-recursively): Add autoloads.
+
+2006-09-09  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/conf-mode.el (conf-space-mode):
+	Use hack-local-variables-hook instead of calling hack-local-variables.
+	(conf-space-keywords-override): New variable.
+	(conf-space-mode-internal): New subroutine.  Reinit Font Lock mode.
+	(conf-space-mode): Always make conf-space-keywords and
+	conf-space-keywords-override local.
+	Call conf-space-mode-internal directly as well as via hook.
+
+2006-09-09  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
+
+	* progmodes/python.el (python-font-lock-keywords): Add `self' and other
+	quasi-keywords.
+
+2006-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el: Quieten the compiler about hippie-expand vars.
+	(python-send-string): Be slightly more careful about adding \n.
+
+	* startup.el (normal-splash-screen): Don't display the buffer if we'll
+	kill it right away anyway.
+
+2006-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/codepage.el (cp850-decode-table): Fix a few codes.
+	(cp858-decode-table): New variable.
+
+2006-09-09  Toby Allsopp  <Toby.Allsopp@navman.com>  (tiny change)
+
+	* net/ldap.el (ldap-search-internal): Doc fix.
+
+2006-09-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* play/life.el (life-display-generation): Test for input manually if
+	`sleeptime' is negative or null.
+
+	* lpr.el (lpr-page-header-switches): Page title switch is one of them.
+	(print-region-1): Substitute `%s' with the page title.
+
+2006-09-09  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* locate.el (locate-current-search): New variable.
+	(locate): Set buffer local value.  Use current buffer if it is
+	in Locate mode.
+	(locate-mode): Disable undo here.
+	(locate-do-setup): Use locate-current-filter from buffer to be killed.
+	(locate-update): Use locate-current-search and locate-current-filter.
+
+2006-09-08  David Kastrup  <dak@gnu.org>
+
+	* desktop.el (desktop-read): When loading a desktop, disable
+	saving it while the load progresses, and switch off a pending lazy
+	load by calling `desktop-lazy-abort'.
+
+2006-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (mouse-autoselect-window-timer)
+	(mouse-autoselect-window-position)
+	(mouse-autoselect-window-window)
+	(mouse-autoselect-window-now): New vars.
+	(mouse-autoselect-window-cancel)
+	(mouse-autoselect-window-select)
+	(mouse-autoselect-window-start): New functions.
+	(handle-select-window): Call `mouse-autoselect-window-start' when
+	delayed window autoselection is enabled.
+
+	* cus-start.el (mouse-autoselect-window): Handle delayed window
+	autoselection.
+
+	* emacs-lisp/eldoc.el: Add `handle-select-window' to the set of
+	commands after which it is allowed to print in the echo area.
+
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/fill.el (adaptive-fill-regexp): Don't match `(1)' or `1.'
+
+	* mail/rmail.el (rmail-get-new-mail): Say whether all msgs are spam.
+	(rmail-convert-to-babyl-format): Don't record undo, leave list empty.
+
+	* emacs-lisp/timer.el (timer-create, timer-activate): Doc fixes.
+	(cancel-timer-internal): Add doc string.
+	(cancel-function-timers): Doc fix.
+	(with-timeout-handler, timer-event-last*): Add doc strings.
+
+	* emacs-lisp/bindat.el (bindat-unpack): Doc fix.
+
+	* files.el (risky-local-variable-p): Match ...-bindat-spec.
+
+	* dired.el (dired-log-summary): Add doc string.
+
+	* cus-edit.el (custom-menu-create): Bind deactivate-mark here
+	(custom-group-menu-create): Not here.
+
+2006-09-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-dblock-write:clocktable): Avoid infinite loop.
+
+2006-09-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: (show-hide-font-panel): New HI command ID symbol.
+	(mac-apple-event-map): Define its handler.
+
+2006-09-07  Toby Allsopp  <Toby.Allsopp@navman.com>  (tiny change)
+
+	* net/ldap.el (ldap-search-internal): Handle `auth' key.
+
+2006-09-07  Magnus Henoch <mange@freemail.hu>
+
+	* net/rcirc.el (rcirc-activity-string): Don't quote value in case
+	clause.
+
+2006-09-07  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* info.el (Info-index): Bind completion-ignore-case.
+
+2006-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el (inferior-prolog-flavor): New var left out of
+	previous commit.
+	(inferior-prolog-guess-flavor): New fun left out of previous commit.
+	(prolog-consult-region-and-go): Don't hard code "*prolog*" and don't
+	burp in dedicated windows.
+	(inferior-prolog-self-insert-command): New command.
+	(inferior-prolog-mode-map): Use it.
+
+2006-09-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* international/latexenc.el (latex-inputenc-coding-alist): Add cp858.
+
+	* international/code-pages.el: Add cp858.
+
+2006-09-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dnd.el: Fix bootstrapping.
+
+2006-09-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dnd.el (dnd-protocol-alist): Add what url-handler-mode can handle.
+	(dnd-open-remote-url): New function.
+	(dnd-open-remote-file-function): Set to dnd-open-remote-url if
+	not windows-nt.
+
+2006-09-07  Jason Rumney  <jasonr@gnu.org>
+
+	* dnd.el (dnd-open-remote-file-function): New variable.
+	(dnd-open-unc-file): New function.
+	(dnd-open-file): Call dnd-open-remote-file-function if set.
+
+2006-09-06  Daiki Ueno  <ueno@unixuser.org>
+
+	* pgg-gpg.el (pgg-gpg-process-region): Encode passphrase with
+	pgg-passphrase-coding-system rather than locale-coding-system.
+	* pgg-def.el (pgg-passphrase-coding-system): New user option.
+
+2006-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el: Remove * in docstrings.
+	(prolog-program-name): Add SWI prolog.
+	(prolog-mode-menu): New menu.
+	(prolog-mode): Set comment-add.
+	(prolog-indent-line): Simplify.  Use indent-line-to.
+	(inferior-prolog-buffer): New var.
+	(inferior-prolog-run, inferior-prolog-process): New funs.
+	(run-prolog, switch-to-prolog): Rewrite, using them.
+	(prolog-consult-region): Use inferior-prolog-buffer.
+	(inferior-prolog-load-file): New function.
+	(prolog-mode-map): Add bindings for load-file and switch-to-prolog.
+
+	* textmodes/fill.el (fill-single-word-nobreak-p): Allow breaking before
+	last word, if it's not the end of the paragraph.
+
+	* files.el (abbreviate-file-name): Don't mistakenly match newlines in
+	file name.
+
+2006-09-06  Ralf Angeli  <angeli@caeruleus.net>
+
+	* frame.el (display-mm-dimensions-alist): New defcustom.
+	(display-mm-height, display-mm-width): Use it.
+
+2006-09-06  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-starttls-credentials): Doc fix.
+
 2006-09-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-list-children-regexp)
@@ -66,7 +371,7 @@
 	* mail/feedmail.el (feedmail-buffer-to-sendmail): Look for
 	sendmail in several common directories.
 
-	* mail/sendmail.el (sendmail-program): Moved here from pathe.el.
+	* mail/sendmail.el (sendmail-program): Moved here from paths.el.
 
 	* paths.el (sendmail-program): Removed.
 
@@ -346,7 +651,8 @@
 	* progmodes/grep.el (grep-find-use-xargs): Use explicit value `exec'
 	to mean "use find -exec"; nil now unambiguously means auto-detect.
 	(grep-compute-defaults): Set grep-find-use-xargs to `exec' if not `gnu'.
-	Use shell-quote-argument to build grep-find-command and grep-find-template.
+	Use shell-quote-argument to build grep-find-command and
+	grep-find-template.
 	(rgrep): Use shell-quote-argument to properly quote arguments to find.
 	Reported by Tom Seddon.
 
@@ -1338,7 +1644,7 @@
 	repertoire of unit tests.  Called just before the provide iff user
 	has customized `allout-run-unit-tests-on-load' non-nil.
 
-2006-07-14  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2006-07-14  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* emacs-lisp/authors.el (authors-aliases): Update.
 
@@ -3970,7 +4276,7 @@
 	Sync with Tramp 2.0.53.
 
 	* net/tramp.el (tramp-completion-mode): ?\t has event-modifier
-	'control.  Reported by Matthias F,bv(Brste <slashdevslashnull@gmx.net>.
+	'control.  Reported by Matthias F,Av(Brste <slashdevslashnull@gmx.net>.
 	(tramp-completion-file-name-handler): Add autoload cookie for
 	adding to `file-name-handler-alist'.
 
@@ -8564,7 +8870,7 @@
 	Let term-handle-ansi-terminal-messages override what Bash says about
 	its current directory.
 
-2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-12-16  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* bindings.el (last-buffer): Move to simple.el.
 	* simple.el (last-buffer): Move here.
@@ -10321,7 +10627,7 @@
 	prompts work for AUTH PLAIN.  Also reported by Steve Allan
 	<seallan@verizon.net>.
 
-2005-12-06  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-12-06  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* frame.el (set-frame-parameter): Add doc string.
 
@@ -10705,7 +11011,7 @@
 	(flyspell-post-command-hook): Check input-pending-p while processing
 	the potentially long list of buffer changes.
 
-2005-11-28  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-11-28  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* buff-menu.el (list-buffers-noselect): Display the selected
 	frame's buffer list, not the global one.
@@ -15848,8 +16154,9 @@
 	Move to beginning of file.
 	(scheme-interaction-mode-commands-alist)
 	(scheme-interaction-mode-map, scheme-debugger-mode-map):
-	Declare them before use.  Note: the initialization code for the variables
-	has not been moved because it uses functions that reference the variables.
+	Declare them before use.  Note: the initialization code for the
+	variables has not been moved because it uses functions that reference
+	the variables.
 	(xscheme-control-g-message-string, xscheme-process-filter-alist)
 	(xscheme-prompt-for-expression-map): Declare them before use.
 	(scheme-debugger-mode-commands): "?\ " -> "?\s".

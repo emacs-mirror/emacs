@@ -131,26 +131,26 @@ If no other buffer exists, the buffer `*scratch*' is returned."
 (defcustom next-error-highlight 0.1
   "*Highlighting of locations in selected source buffers.
 If number, highlight the locus in `next-error' face for given time in seconds.
-If t, use persistent overlays fontified in `next-error' face.
+If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
-  :type '(choice (number :tag "Delay")
-                 (const :tag "Persistent overlay" t)
+  :type '(choice (number :tag "Highlight for specified time")
+                 (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
-                 (const :tag "Fringe arrow" 'fringe-arrow))
+                 (const :tag "Fringe arrow" fringe-arrow))
   :group 'next-error
   :version "22.1")
 
 (defcustom next-error-highlight-no-select 0.1
   "*Highlighting of locations in non-selected source buffers.
 If number, highlight the locus in `next-error' face for given time in seconds.
-If t, use persistent overlays fontified in `next-error' face.
+If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
-  :type '(choice (number :tag "Delay")
-                 (const :tag "Persistent overlay" t)
+  :type '(choice (number :tag "Highlight for specified time")
+                 (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
-                 (const :tag "Fringe arrow" 'fringe-arrow))
+                 (const :tag "Fringe arrow" fringe-arrow))
   :group 'next-error
   :version "22.1")
 
@@ -3487,28 +3487,27 @@ Outline mode sets this."
 	  (set-window-vscroll nil (- vs (frame-char-height)) t)))
 
     ;; Move forward (down).
-    (let* ((ppos (posn-at-point))
-	   (py (cdr (or (posn-actual-col-row ppos)
-			(posn-col-row ppos))))
-	   (vs (window-vscroll nil t))
-	   (evis (or (pos-visible-in-window-p (window-end nil t) nil t)
+    (let* ((evis (or (pos-visible-in-window-p (window-end nil t) nil t)
 		     (pos-visible-in-window-p (1- (window-end nil t)) nil t)))
 	   (rbot (nth 3 evis))
-	   (vpos (nth 5 evis)))
+	   (vpos (nth 5 evis))
+	   ppos py vs)
       (cond
-       ;; (0) Last window line should be visible - fail if not.
+       ;; Last window line should be visible - fail if not.
        ((null evis)
 	nil)
        ;; If last line of window is fully visible, move forward.
        ((null rbot)
 	nil)
        ;; If cursor is not in the bottom scroll margin, move forward.
-       ((< py (min (- (window-text-height) scroll-margin 1)
-		   (1- vpos)))
+       ((< (setq ppos (posn-at-point)
+		 py (cdr (or (posn-actual-col-row ppos)
+			     (posn-col-row ppos))))
+	   (min (- (window-text-height) scroll-margin 1) (1- vpos)))
 	nil)
        ;; When already vscrolled, we vscroll some more if we can,
        ;; or clear vscroll and move forward at end of tall image.
-       ((> vs 0)
+       ((> (setq vs (window-vscroll nil t)) 0)
 	(when (> rbot 0)
 	  (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
        ;; If cursor just entered the bottom scroll margin, move forward,

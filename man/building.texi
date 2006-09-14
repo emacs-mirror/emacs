@@ -210,9 +210,9 @@ click @kbd{Mouse-2} on the error message; you need not switch to the
 backquote or ``grave accent,'' not the single-quote.  This command is
 available in all buffers, not just in @samp{*compilation*}; it
 displays the next error message at the top of one window and source
-location of the error in another window.  It also momentarily
-highlights the relevant source line.  You can change the behavior of
-this highlighting with the variable @code{next-error-highlight}.
+location of the error in another window.  It also temporarily
+highlights the relevant source line, for a period controlled by the
+variable @code{next-error-highlight}.
 
   The first time @w{@kbd{C-x `}} is used after the start of a compilation,
 it moves to the first error's location.  Subsequent uses of @kbd{C-x
@@ -335,9 +335,11 @@ Emacs.
 @section Searching with Grep under Emacs
 
   Just as you can run a compiler from Emacs and then visit the lines
-with compilation errors, you can also run @code{grep} and
-then visit the lines on which matches were found.  This works by
-treating the matches reported by @code{grep} as if they were ``errors.''
+with compilation errors, you can also run @code{grep} and then visit
+the lines on which matches were found.  This works by treating the
+matches reported by @code{grep} as if they were ``errors.''  The
+buffer of matches uses Grep mode, which is a variant of Compilation
+mode (@pxref{Compilation Mode}).
 
 @table @kbd
 @item M-x grep

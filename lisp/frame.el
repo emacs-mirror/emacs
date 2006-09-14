@@ -1083,17 +1083,43 @@ For character terminals, each character counts as a single pixel."
      (t
       (frame-width (if (framep display) display (selected-frame)))))))
 
+(defcustom display-mm-dimensions-alist nil
+  "Alist for specifying screen dimensions in millimeters.
+The dimensions will be used for `display-mm-height' and
+`display-mm-width' if defined for the respective display.
+
+Each element of the alist has the form (display . (width . height)),
+e.g. (\":0.0\" . (287 . 215)).
+
+If `display' equals t, it specifies dimensions for all graphical
+displays not explicitely specified."
+  :version "22.1"
+  :type '(alist :key-type (choice (string :tag "Display name")
+				  (const :tag "Default" t))
+		:value-type (cons :tag "Dimensions"
+				  (integer :tag "Width")
+				  (integer :tag "Height")))
+  :group 'frames)
+
 (defun display-mm-height (&optional display)
   "Return the height of DISPLAY's screen in millimeters.
+System values can be overriden by `display-mm-dimensions-alist'.
 If the information is unavailable, value is nil."
   (and (memq (framep-on-display display) '(x w32 mac))
-       (x-display-mm-height display)))
+       (or (cddr (assoc (or display (frame-parameter nil 'display))
+			display-mm-dimensions-alist))
+	   (cddr (assoc t display-mm-dimensions-alist))
+	   (x-display-mm-height display))))
 
 (defun display-mm-width (&optional display)
   "Return the width of DISPLAY's screen in millimeters.
+System values can be overriden by `display-mm-dimensions-alist'.
 If the information is unavailable, value is nil."
   (and (memq (framep-on-display display) '(x w32 mac))
-       (x-display-mm-width display)))
+       (or (cadr (assoc (or display (frame-parameter nil 'display))
+			display-mm-dimensions-alist))
+	   (cadr (assoc t display-mm-dimensions-alist))
+	   (x-display-mm-width display))))
 
 (defun display-backing-store (&optional display)
   "Return the backing store capability of DISPLAY's screen.

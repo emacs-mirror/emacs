@@ -1085,9 +1085,10 @@ the hook's buffer-local value rather than its default value."
 	    (kill-local-variable hook)
 	  (set hook hook-value))))))
 
-(defun add-to-list (list-var element &optional append)
+(defun add-to-list (list-var element &optional append compare-fn)
   "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
-The test for presence of ELEMENT is done with `equal'.
+The test for presence of ELEMENT is done with `equal',
+or with COMPARE-FN if that's non-nil.
 If ELEMENT is added, it is added at the beginning of the list,
 unless the optional argument APPEND is non-nil, in which case
 ELEMENT is added at the end.
@@ -1099,7 +1100,13 @@ until a certain package is loaded, you should put the call to `add-to-list'
 into a hook function that will be run only after loading the package.
 `eval-after-load' provides one way to do this.  In some cases
 other hooks, such as major mode hooks, can do the job."
-  (if (member element (symbol-value list-var))
+  (if (if compare-fn
+	  (let (present)
+	    (dolist (elt (symbol-value list-var))
+	      (if (funcall compare-fn element elt)
+		  (setq present t)))
+	    present)
+	(member element (symbol-value list-var)))
       (symbol-value list-var)
     (set list-var
 	 (if append
@@ -1733,13 +1740,20 @@ floating point support.
   (when (or obsolete (numberp nodisp))
     (setq seconds (+ seconds (* 1e-3 nodisp)))
     (setq nodisp obsolete))
-  (if noninteractive
-      (progn (sleep-for seconds) t)
-    (unless nodisp (redisplay))
-    (or (<= seconds 0)
-	(let ((read (read-event nil nil seconds)))
-	  (or (null read)
-	      (progn (push read unread-command-events) nil))))))
+  (cond
+   (noninteractive
+    (sleep-for seconds)
+    t)
+   ((input-pending-p)
+    nil)
+   ((<= seconds 0)
+    (or nodisp (redisplay)))
+   (t
+    (or nodisp (redisplay))
+    (let ((read (read-event nil nil seconds)))
+      (or (null read)
+	  (progn (push read unread-command-events)
+		 nil))))))
 
 ;;; Atomic change groups.
 
@@ -2387,8 +2401,8 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
     `(with-local-quit
        (catch ',catch-sym
 	 (let ((throw-on-input ',catch-sym))
-	   (or (not (sit-for 0 0 t))
-	     ,@body))))))
+	   (or (input-pending-p)
+	       ,@body))))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.

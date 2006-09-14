@@ -2099,7 +2099,9 @@ direction is also known as @dfn{serializing} or @dfn{packing}.
   To control unpacking and packing, you write a @dfn{data layout
 specification}, a special nested list describing named and typed
 @dfn{fields}.  This specification controls length of each field to be
-processed, and how to pack or unpack it.
+processed, and how to pack or unpack it.  We normally keep bindat specs
+in variables whose names end in @samp{-bindat-spec}; that kind of name
+is automatically recognized as ``risky.''
 
 @cindex endianness
 @cindex big endian

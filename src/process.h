@@ -161,5 +161,9 @@ extern int synch_process_retcode;
 #define NULL_DEVICE "/dev/null"
 #endif
 
+/* Nonzero means don't run process sentinels.  This is used
+   when exiting.  */
+extern int inhibit_sentinels;
+
 /* arch-tag: dffedfc4-d7bc-4b58-a26f-c16155449c72
    (do not change this comment) */

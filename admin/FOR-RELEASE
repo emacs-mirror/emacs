@@ -49,30 +49,21 @@ Windows only bug.
 
 * BUGS
 
-** How rcirc puts cursor at bottom.
-
-** rcirc uses member*.
-
 ** Field handling in C-n.
-
-** cursor display on images that don't use :mask.
 
 ** C-g fails to interrupt accept-process-output in Gnus.
   (Is that fixed?)
 
-** Make key-binding use the maps specified by positions given in the events.
+** allout.el patch from Manheimer to be installed.
 
-** Is it necessary to solve in another way the problem that was solved
- by Satyaki Das's removed pgg patches?
+** regex char class matching needs a call to char-syntax.
 
-** mouse-autoselect-window delay patch
+** regex char class matching breaks if you change entries
+in the syntax table.
 
-** Bug in woman, Juri Linkov, Sep 3.
+** Handa's Sep 6 compilation font lock bug report.
 
-** Problem of passing temp files to GPG thru call-process.
-
-** Image scrolling problems reported by David Kastrup.  (KFS working).
-
+** Michael Cadilhac's Sep 7 bug report about set-input-method.
 
 * DOCUMENTATION
 

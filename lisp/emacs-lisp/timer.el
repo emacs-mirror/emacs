@@ -32,9 +32,11 @@
 ;; Layout of a timer vector:
 ;; [triggered-p high-seconds low-seconds usecs repeat-delay
 ;;  function args idle-delay]
+;; triggered-p is nil if the timer is active (waiting to be triggered),
+;;  t if it is inactive ("already triggered", in theory)
 
 (defun timer-create ()
-  "Create a timer object."
+  "Create a timer object which can be passed to `timer-activate'."
   (let ((timer (make-vector 8 nil)))
     (aset timer 0 t)
     timer))
@@ -173,6 +175,10 @@ fire repeatedly that many seconds apart."
 (defun timer-activate (timer &optional triggered-p reuse-cell)
   "Put TIMER on the list of active timers.
 
+If TRIGGERED-P is t, that means to make the timer inactive
+\(put it on the list, but mark it as already triggered).
+To remove from the list, use `cancel-timer'.
+
 REUSE-CELL, if non-nil, is a cons cell to reuse instead
 of allocating a new one."
   (if (and (timerp timer)
@@ -256,10 +262,10 @@ of allocating a new one."
   (setq timer-idle-list (delq timer timer-idle-list))
   nil)
 
-;; Remove TIMER from the list of active timers or idle timers.
-;; Only to be used in this file.  It returns the cons cell
-;; that was removed from the list.
 (defun cancel-timer-internal (timer)
+  "Remove TIMER from the list of active timers or idle timers.
+Only to be used in this file.  It returns the cons cell
+that was removed from the timer list."
   (let ((cell1 (memq timer timer-list))
 	(cell2 (memq timer timer-idle-list)))
     (if cell1
@@ -270,7 +276,9 @@ of allocating a new one."
 
 ;;;###autoload
 (defun cancel-function-timers (function)
-  "Cancel all timers scheduled by `run-at-time' which would run FUNCTION."
+  "Cancel all timers which would run FUNCTION.
+This affects ordinary timers such as are scheduled by `run-at-time',
+and idle timers such as are scheduled by `run-with-idle-timer'."
   (interactive "aCancel timers of function: ")
   (let ((tail timer-list))
     (while tail
@@ -284,9 +292,12 @@ of allocating a new one."
       (setq tail (cdr tail)))))
 
 ;; Record the last few events, for debugging.
-(defvar timer-event-last-2 nil)
-(defvar timer-event-last-1 nil)
-(defvar timer-event-last nil)
+(defvar timer-event-last nil
+  "Last timer that was run.")
+(defvar timer-event-last-1 nil
+  "Next-to-last timer that was run.")
+(defvar timer-event-last-2 nil
+  "Third-to-last timer that was run.")
 
 (defvar timer-max-repeats 10
   "*Maximum number of times to repeat a timer, if real time jumps.")
@@ -440,6 +451,7 @@ This function returns a timer object which you can use in `cancel-timer'."
     timer))
 
 (defun with-timeout-handler (tag)
+  "This is the timer function used for the timer made by `with-timeout'."
   (throw tag 'timeout))
 
 ;;;###autoload (put 'with-timeout 'lisp-indent-function 1)

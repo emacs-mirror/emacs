@@ -1101,7 +1101,7 @@ If nil, selections displayed but ignored.")
 (defun calc-dispatch (&optional arg)
   "Invoke the GNU Emacs Calculator.  See `calc-dispatch-help' for details."
   (interactive "P")
-  (sit-for echo-keystrokes)
+;  (sit-for echo-keystrokes)
   (condition-case err   ; look for other keys bound to calc-dispatch
       (let ((keys (this-command-keys)))
 	(unless (or (not (stringp keys))

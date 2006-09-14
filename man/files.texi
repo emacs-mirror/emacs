@@ -155,6 +155,7 @@ variable @code{file-name-coding-system} to a non-@code{nil} value.
 @node Visiting
 @section Visiting Files
 @cindex visiting files
+@cindex open file
 
 @table @kbd
 @item C-x C-f

@@ -535,28 +535,6 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	  (princ string)))))
   nil)
 
-(defun string-key-binding (key)
-  "Value is the binding of KEY in a string.
-If KEY is an event on a string, and that string has a `local-map'
-or `keymap' property, return the binding of KEY in the string's keymap."
-  (let* ((defn nil)
-	 (start (when (vectorp key)
-		  (if (memq (aref key 0)
-			    '(mode-line header-line left-margin right-margin))
-		      (event-start (aref key 1))
-		    (and (consp (aref key 0))
-			 (event-start (aref key 0))))))
-	 (string-info (and (consp start) (nth 4 start))))
-    (when string-info
-      (let* ((string (car string-info))
-	     (pos (cdr string-info))
-	     (local-map (and (>= pos 0)
-			     (< pos (length string))
-			     (or (get-text-property pos 'local-map string)
-				 (get-text-property pos 'keymap string)))))
-	(setq defn (and local-map (lookup-key local-map key)))))
-    defn))
-
 (defun help-key-description (key untranslated)
   (let ((string (key-description key)))
     (if (or (not untranslated)
@@ -620,8 +598,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	    (set-buffer (window-buffer window))
 	    (goto-char position)))
       ;; Ok, now look up the key and name the command.
-      (let ((defn (or (string-key-binding key)
-		      (key-binding key t)))
+      (let ((defn (key-binding key t))
 	    key-desc)
 	;; Handle the case where we faked an entry in "Select and Paste" menu.
 	(if (and (eq defn nil)
@@ -698,7 +675,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
       (when (windowp window)
 	    (set-buffer (window-buffer window))
 	(goto-char position))
-      (let ((defn (or (string-key-binding key) (key-binding key t))))
+      (let ((defn (key-binding key t)))
 	;; Handle the case where we faked an entry in "Select and Paste" menu.
 	(if (and (eq defn nil)
 		 (stringp (aref key (1- (length key))))
@@ -743,8 +720,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 			((vectorp mouse-1-remapped)
 			 (setcar up-event (elt mouse-1-remapped 0)))
 			(t (setcar up-event 'mouse-2))))
-		(setq defn (or (string-key-binding sequence)
-			       (key-binding sequence)))
+		(setq defn (key-binding sequence))
 		(unless (or (null defn) (integerp defn) (equal defn 'undefined))
 		  (princ (if mouse-1-tricky
 			     "\n\n----------------- up-event (short click) ----------------\n\n"
@@ -761,8 +737,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 		  (describe-function-1 defn))
 		(when mouse-1-tricky
 		  (setcar up-event 'mouse-1)
-		  (setq defn (or (string-key-binding (vector up-event))
-				 (key-binding (vector up-event))))
+		  (setq defn (key-binding (vector up-event)))
 		  (unless (or (null defn) (integerp defn) (eq defn 'undefined))
 		    (princ (or hdr
 			       "\n\n----------------- up-event (long click) ----------------\n\n"))

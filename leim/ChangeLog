@@ -1,3 +1,9 @@
+2006-09-06  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* quail/uni-input.el (ucs-input-method): Don't make the action of
+	a key not in [0-9a-zA-Z] when it was expected to be.  Let the Emacs
+	mechanism do it.
+
 2006-07-12  David Kastrup  <dak@gnu.org>
 
 	* quail/greek.el: Change iota subscriptum transliteration in

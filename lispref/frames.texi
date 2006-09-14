@@ -555,7 +555,7 @@ If non-@code{nil}, this frame's window is never split automatically.
 
 @node Management Parameters
 @subsubsection Window Management Parameters
- 
+
   These frame parameters, meaningful only on window system displays,
 interact with the window manager.
 
@@ -2086,20 +2086,26 @@ This function returns the height of the screen in pixels.
 On a character terminal, it gives the height in characters.
 @end defun
 
-@defun display-mm-height &optional display
-This function returns the height of the screen in millimeters,
-or @code{nil} if Emacs cannot get that information.
-@end defun
-
 @defun display-pixel-width &optional display
 This function returns the width of the screen in pixels.
 On a character terminal, it gives the width in characters.
+@end defun
+
+@defun display-mm-height &optional display
+This function returns the height of the screen in millimeters,
+or @code{nil} if Emacs cannot get that information.
 @end defun
 
 @defun display-mm-width &optional display
 This function returns the width of the screen in millimeters,
 or @code{nil} if Emacs cannot get that information.
 @end defun
+
+@defvar display-mm-dimensions-alist
+This variable allows the user to specify the dimensions of graphical
+displays returned by @code{display-mm-height} and
+@code{display-mm-width} in case the system provides incorrect values.
+@end defvar
 
 @defun display-backing-store &optional display
 This function returns the backing store capability of the display.

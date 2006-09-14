@@ -263,9 +263,9 @@ Lisp_Object list_of_error;
 Lisp_Object Vfontification_functions;
 Lisp_Object Qfontification_functions;
 
-/* Non-zero means automatically select any window when the mouse
+/* Non-nil means automatically select any window when the mouse
    cursor moves into it.  */
-int mouse_autoselect_window;
+Lisp_Object Vmouse_autoselect_window;
 
 /* Non-zero means draw tool bar buttons raised when the mouse moves
    over them.  */
@@ -621,6 +621,11 @@ int message_buf_print;
 
 Lisp_Object Qinhibit_menubar_update;
 int inhibit_menubar_update;
+
+/* When evaluating expressions from menu bar items (enable conditions,
+   for instance), this is the frame they are being processed for.  */
+
+Lisp_Object Vmenu_updating_frame;
 
 /* Maximum height for resizing mini-windows.  Either a float
    specifying a fraction of the available height, or an integer
@@ -9297,7 +9302,7 @@ update_menu_bar (f, save_match_data, hooks_run)
      happen when, for instance, an activate-menubar-hook causes a
      redisplay.  */
   if (inhibit_menubar_update)
-    return;
+    return hooks_run;
 
   window = FRAME_SELECTED_WINDOW (f);
   w = XWINDOW (window);
@@ -9368,6 +9373,7 @@ update_menu_bar (f, save_match_data, hooks_run)
 	      hooks_run = 1;
 	    }
 
+	  XSETFRAME (Vmenu_updating_frame, f);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
 	  /* Redisplay the menu bar in case we changed it.  */
@@ -10949,13 +10955,13 @@ redisplay_internal (preserve_echo_area)
      int preserve_echo_area;
 {
   struct window *w = XWINDOW (selected_window);
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f;
   int pause;
   int must_finish = 0;
   struct text_pos tlbufpos, tlendpos;
   int number_of_visible_frames;
   int count;
-  struct frame *sf = SELECTED_FRAME ();
+  struct frame *sf;
   int polling_stopped_here = 0;
 
   /* Non-zero means redisplay has to consider all windows on all
@@ -10968,8 +10974,16 @@ redisplay_internal (preserve_echo_area)
      initialized, or redisplay is explicitly turned off by setting
      Vinhibit_redisplay.  */
   if (noninteractive
-      || !NILP (Vinhibit_redisplay)
-      || !f->glyphs_initialized_p)
+      || !NILP (Vinhibit_redisplay))
+    return;
+
+  /* Don't examine these until after testing Vinhibit_redisplay.
+     When Emacs is shutting down, perhaps because its connection to
+     X has dropped, we should not look at them at all.  */
+  f = XFRAME (w->frame);
+  sf = SELECTED_FRAME ();
+
+  if (!f->glyphs_initialized_p)
     return;
 
   /* The flag redisplay_performed_directly_p is set by
@@ -21568,14 +21582,16 @@ get_window_cursor_type (w, glyph, width, active_cursor)
 	  if (cursor_type == FILLED_BOX_CURSOR)
 	    {
 	      /* Using a block cursor on large images can be very annoying.
-		 So use a hollow cursor for "large" images.  */
+		 So use a hollow cursor for "large" images.
+		 If image is not transparent (no mask), also use hollow cursor.  */
 	      struct image *img = IMAGE_FROM_ID (f, glyph->u.img_id);
 	      if (img != NULL && IMAGEP (img->spec))
 		{
 		  /* Arbitrarily, interpret "Large" as >32x32 and >NxN
 		     where N = size of default frame font size.
 		     This should cover most of the "tiny" icons people may use.  */
-		  if (img->width > max (32, WINDOW_FRAME_COLUMN_WIDTH (w))
+		  if (!img->mask
+		      || img->width > max (32, WINDOW_FRAME_COLUMN_WIDTH (w))
 		      || img->height > max (32, WINDOW_FRAME_LINE_HEIGHT (w)))
 		    cursor_type = HOLLOW_BOX_CURSOR;
 		}
@@ -24339,9 +24355,22 @@ Each function is called with two arguments, the window and the end trigger value
 See `set-window-redisplay-end-trigger'.  */);
   Vredisplay_end_trigger_functions = Qnil;
 
-  DEFVAR_BOOL ("mouse-autoselect-window", &mouse_autoselect_window,
-    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  mouse_autoselect_window = 0;
+  DEFVAR_LISP ("mouse-autoselect-window", &Vmouse_autoselect_window,
+     doc: /* *Non-nil means autoselect window with mouse pointer.
+If nil, do not autoselect windows.
+A positive number means delay autoselection by that many seconds: a
+window is autoselected only after the mouse has remained in that
+window for the duration of the delay.
+A negative number has a similar effect, but causes windows to be
+autoselected only after the mouse has stopped moving.  \(Because of
+the way Emacs compares mouse events, you will occasionally wait twice
+that time before the window gets selected.\)
+Any other value means to autoselect window instantaneously when the
+mouse pointer enters it.
+
+Autoselection selects the minibuffer only if it is active, and never
+unselects the minibuffer if it is active.  */);
+  Vmouse_autoselect_window = Qnil;
 
   DEFVAR_BOOL ("auto-resize-tool-bars", &auto_resize_tool_bars_p,
     doc: /* *Non-nil means automatically resize tool-bars.
@@ -24460,6 +24489,11 @@ Redisplay runs this hook before it redisplays the menu bar.
 This is used to update submenus such as Buffers,
 whose contents depend on various data.  */);
   Vmenu_bar_update_hook = Qnil;
+
+  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
+	       doc: /* Frame for which we are updating a menu.
+The enable predicate for a menu binding should check this variable.  */);
+  Vmenu_updating_frame = Qnil;
 
   DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,
     doc: /* Non-nil means don't update menu bars.  Internal use only.  */);

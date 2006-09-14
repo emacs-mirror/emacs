@@ -4449,7 +4449,7 @@ w32_read_socket (sd, expected, hold_quit)
 	  if (f)
 	    {
 	      /* Generate SELECT_WINDOW_EVENTs when needed.  */
-	      if (mouse_autoselect_window)
+	      if (!NILP (Vmouse_autoselect_window))
 		{
 		  Lisp_Object window;
 		  int x = LOWORD (msg.msg.lParam);

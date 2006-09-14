@@ -865,13 +865,12 @@
 	key id too (for decryption).
 	(pgg-gpg-sign-region): Likewise.
 
-2003-11-09  Simon Josefsson  <jas@extundo.com>
+2003-11-09  Satyaki Das  <satyakid@stanford.edu>
 
 	* pgg-gpg.el (pgg-gpg-all-secret-keys): New variable.
 	(pgg-gpg-lookup-all-secret-keys): New function.
 	(pgg-gpg-select-matching-key): Likewise.
-	(pgg-gpg-decrypt-region): Use new functions.  From Satyaki Das
-	<satyakid@stanford.edu>.
+	(pgg-gpg-decrypt-region): Use new functions.  
 
 2003-11-07  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -4511,7 +4510,6 @@
 	* spam.el: Fix typo.
 
 2003-03-01  Satyaki Das  <satyaki@theforce.stanford.edu>
-	(Trivial patch.)
 
 	* pgg-gpg.el (pgg-gpg-process-region): Insert process status into
 	errors-buffer. This produces a nicer error message in case of
@@ -5036,8 +5034,9 @@
 	* gnus-sum.el (gnus-summary-select-article): Remove blink removal
 	code that only worked under Emacs.
 
-	* pgg-gpg.el (pgg-gpg-process-region): Don't blink.  From Satyaki
-	Das <satyaki@chicory.stanford.edu>.
+2003-02-08  Satyaki Das  <satyaki@chicory.stanford.edu>
+	
+	* pgg-gpg.el (pgg-gpg-process-region): Don't blink.
 
 2003-02-08  Jesper Harder  <harder@ifa.au.dk>
 

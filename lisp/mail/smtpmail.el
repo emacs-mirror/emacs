@@ -176,7 +176,12 @@ looks like `user@realm'."
 (defcustom smtpmail-starttls-credentials '(("" 25 "" ""))
   "Specify STARTTLS keys and certificates for servers.
 This is a list of four-element list with `servername' (a string),
-`port' (an integer), `key' (a filename) and `certificate' (a filename)."
+`port' (an integer), `key' (a filename) and `certificate' (a
+filename).
+If you do not have a certificate/key pair, leave the `key' and
+`certificate' fields as `nil'.  A key/certificate pair is only
+needed if you want to use X.509 client authenticated
+connections."
   :type '(repeat (list (string  :tag "Server")
 		       (integer :tag "Port")
 		       (file    :tag "Key")

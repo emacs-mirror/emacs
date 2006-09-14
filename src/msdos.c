@@ -3381,7 +3381,7 @@ dos_rawgetc ()
 	    }
 
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
-	  if (mouse_autoselect_window)
+	  if (!NILP (Vmouse_autoselect_window))
 	    {
 	      mouse_window = window_from_coordinates (SELECTED_FRAME(),
 						      mouse_last_x,
