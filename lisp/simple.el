@@ -4366,21 +4366,21 @@ in the mode line.
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
 and `line-number-display-limit-width'."
-  :init-value t :global t :group 'editing-basics)
+  :init-value t :global t :group 'mode-line)
 
 (define-minor-mode column-number-mode
   "Toggle Column Number mode.
 With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
-  :global t :group 'editing-basics)
+  :global t :group 'mode-line)
 
 (define-minor-mode size-indication-mode
   "Toggle Size Indication mode.
 With arg, turn Size Indication mode on iff arg is positive.  When
 Size Indication mode is enabled, the size of the accessible part
 of the buffer appears in the mode line."
-  :global t :group 'editing-basics)
+  :global t :group 'mode-line)
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
