@@ -54,6 +54,8 @@ Windows only bug.
 ** C-g fails to interrupt accept-process-output in Gnus.
   (Is that fixed?)
 
+** david.hansen@physik.fu-berlin.de: WoMan Bug, Sep 13.
+
 ** allout.el patch from Manheimer to be installed.
 
 ** regex char class matching needs a call to char-syntax.
@@ -62,8 +64,6 @@ Windows only bug.
 in the syntax table.
 
 ** Handa's Sep 6 compilation font lock bug report.
-
-** Michael Cadilhac's Sep 7 bug report about set-input-method.
 
 * DOCUMENTATION
 
