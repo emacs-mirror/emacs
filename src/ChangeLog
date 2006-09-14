@@ -1,3 +1,7 @@
+2006-09-14  Andreas Schwab  <schwab@suse.de>
+
+	* print.c: Whitespace fixup.
+
 2006-09-14  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (produce_image_glyph): Automatically crop wide images at
