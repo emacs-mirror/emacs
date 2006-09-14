@@ -847,18 +847,37 @@ and `allout-distinctive-bullets-string'.")
 (defvar allout-bullets-string-len 0
   "Length of current buffers' `allout-plain-bullets-string'.")
 (make-variable-buffer-local 'allout-bullets-string-len)
+;;;_   = allout-depth-specific-regexp
+(defvar allout-depth-specific-regexp ""
+  "*Regular expression to match a heading line prefix for a particular depth.
+
+This expression is used to search for depth-specific topic
+headers at depth 2 and greater.  Use `allout-depth-one-regexp'
+for to seek topics at depth one.
+
+This var is set according to the user configuration vars by
+`set-allout-regexp'.  It is prepared with format strings for two
+decimal numbers, which should each be one less than the depth of the
+topic prefix to be matched.")
+(make-variable-buffer-local 'allout-depth-specific-regexp)
+;;;_   = allout-depth-one-regexp
+(defvar allout-depth-one-regexp ""
+  "*Regular expression to match a heading line prefix for depth one.
+
+This var is set according to the user configuration vars by
+`set-allout-regexp'.  It is prepared with format strings for two
+decimal numbers, which should each be one less than the depth of the
+topic prefix to be matched.")
+(make-variable-buffer-local 'allout-depth-one-regexp)
 ;;;_   = allout-line-boundary-regexp
 (defvar allout-line-boundary-regexp ()
   "`allout-regexp' with outline style beginning-of-line anchor.
 
-This is properly set when `allout-regexp' is produced by
-`set-allout-regexp', so that (match-beginning 2) and (match-end
-2) delimit the prefix.")
+This is properly set by `set-allout-regexp'.")
 (make-variable-buffer-local 'allout-line-boundary-regexp)
 ;;;_   = allout-bob-regexp
 (defvar allout-bob-regexp ()
-  "Like `allout-line-boundary-regexp', for headers at beginning of buffer.
-\(match-beginning 2) and \(match-end 2) delimit the prefix.")
+  "Like `allout-line-boundary-regexp', for headers at beginning of buffer.")
 (make-variable-buffer-local 'allout-bob-regexp)
 ;;;_   = allout-header-subtraction
 (defvar allout-header-subtraction (1- (length allout-header-prefix))
@@ -869,7 +888,14 @@ This is properly set when `allout-regexp' is produced by
   "Length of `allout-plain-bullets-string', updated by `set-allout-regexp'.")
 (make-variable-buffer-local 'allout-plain-bullets-string-len)
 
+;;;_   = allout-doublecheck-at-and-shallower
+(defconst allout-doublecheck-at-and-shallower 3
+  "Verify apparent topics of this depth and shallower as being non-aberrant.
 
+Verified with `allout-aberrant-container-p'.  This check's usefulness is
+limited to shallow prospects, because the determination of aberrance
+depends on the mistaken item being followed by a legitimate item of
+excessively greater depth.")
 ;;;_   X allout-reset-header-lead (header-lead)
 (defun allout-reset-header-lead (header-lead)
   "*Reset the leading string used to identify topic headers."
@@ -961,7 +987,9 @@ file is programming code."
   "Generate proper topic-header regexp form for outline functions.
 
 Works with respect to `allout-plain-bullets-string' and
-`allout-distinctive-bullets-string'."
+`allout-distinctive-bullets-string'.
+
+Also refresh various data structures that hinge on the regexp."
 
   (interactive)
   ;; Derive allout-bullets-string from user configured components:
@@ -996,19 +1024,84 @@ Works with respect to `allout-plain-bullets-string' and
   ;; Derive next for repeated use in allout-pending-bullet:
   (setq allout-plain-bullets-string-len (length allout-plain-bullets-string))
   (setq allout-header-subtraction (1- (length allout-header-prefix)))
-  ;; Produce the new allout-regexp:
-  (setq allout-regexp (concat "\\("
-                              (regexp-quote allout-header-prefix)
-                              "[ \t]*["
-                              allout-bullets-string
-                              "]\\)\\|"
-                              (regexp-quote allout-primary-bullet)
-                              "+\\|\^l"))
-  (setq allout-line-boundary-regexp
-        (concat "\\(\n\\)\\(" allout-regexp "\\)"))
-  (setq allout-bob-regexp
-        (concat "\\(\\`\\)\\(" allout-regexp "\\)"))
-  )
+
+  (let (new-part old-part)
+    (setq new-part (concat "\\("
+                           (regexp-quote allout-header-prefix)
+                           "[ \t]*"
+                           ;; already regexp-quoted in a custom way:
+                           "[" allout-bullets-string "]"
+                           "\\)")
+          old-part (concat "\\("
+                           (regexp-quote allout-primary-bullet)
+                           "\\|"
+                           (regexp-quote allout-header-prefix)
+                           "\\)"
+                           "+"
+                           " ?[^" allout-primary-bullet "]")
+          allout-regexp (concat new-part
+                                "\\|"
+                                old-part
+                                "\\|\^l")
+
+          allout-line-boundary-regexp (concat "\n" new-part
+                                              "\\|"
+                                              "\n" old-part)
+
+          allout-bob-regexp (concat "\\`" new-part
+                                    "\\|"
+                                    "\\`" old-part))
+
+    (setq allout-depth-specific-regexp
+          (concat "\\(^\\|\\`\\)"
+                  "\\("
+
+                  ;; new-style spacers-then-bullet string:
+                  "\\("
+                  (allout-format-quote (regexp-quote allout-header-prefix))
+                  " \\{%s\\}"
+                  "[" (allout-format-quote allout-bullets-string) "]"
+                  "\\)"
+
+                  ;; old-style all-bullets string, if primary not multi-char:
+                  (if (< 0 allout-header-subtraction)
+                      ""
+                    (concat "\\|\\("
+                            (allout-format-quote
+                             (regexp-quote allout-primary-bullet))
+                            (allout-format-quote
+                             (regexp-quote allout-primary-bullet))
+                            (allout-format-quote
+                             (regexp-quote allout-primary-bullet))
+                            "\\{%s\\}"
+                            ;; disqualify greater depths:
+                            "[^"
+                            (allout-format-quote allout-primary-bullet)
+                            "]\\)"
+                            ))
+                  "\\)"
+                  ))
+    (setq allout-depth-one-regexp
+          (concat "\\(^\\|\\`\\)"
+                  "\\("
+
+                  "\\("
+                  (regexp-quote allout-header-prefix)
+                  ;; disqualify any bullet char following any amount of
+                  ;; intervening whitespace:
+                  " *"
+                  (concat "[^ " allout-bullets-string "]")
+                  "\\)"
+                  (if (< 0 allout-header-subtraction)
+                      ;; Need not support anything like the old
+                      ;; bullet style if the prefix is multi-char.
+                      ""
+                    (concat "\\|"
+                            (regexp-quote allout-primary-bullet)
+                            ;; disqualify deeper primary-bullet sequences:
+                            "[^" allout-primary-bullet "]"))
+                  "\\)"
+                  ))))
 ;;;_  : Key bindings
 ;;;_   = allout-mode-map
 (defvar allout-mode-map nil "Keybindings for (allout) outline minor mode.")
@@ -1142,7 +1235,7 @@ The settings are stored on `allout-mode-prior-settings'."
       (if (not (symbolp name))
           (error "Pair's name, %S, must be a symbol, not %s"
                  name (type-of name)))
-      (setq prior-value (condition-case err
+      (setq prior-value (condition-case nil
                             (symbol-value name)
                           (void-variable nil)))
       (when (not (assoc name allout-mode-prior-settings))
@@ -1792,8 +1885,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
       (remove-from-invisibility-spec '(allout . t))
       (remove-hook 'pre-command-hook 'allout-pre-command-business t)
       (remove-hook 'post-command-hook 'allout-post-command-business t)
-      (when (featurep 'xemacs)
-        (remove-hook 'before-change-functions 'allout-before-change-handler t))
+      (remove-hook 'before-change-functions 'allout-before-change-handler t)
       (remove-hook 'isearch-mode-end-hook 'allout-isearch-end-handler t)
       (remove-hook write-file-hook-var-name 'allout-write-file-hook-handler t)
       (remove-hook 'auto-save-hook 'allout-auto-save-hook-handler t)
@@ -1813,7 +1905,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 
       (allout-overlay-preparations)     ; Doesn't hurt to redo this.
 
-      (allout-infer-header-lead)
+      (allout-infer-header-lead-and-primary-bullet)
       (allout-infer-body-reindent)
 
       (set-allout-regexp)
@@ -1854,9 +1946,8 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
       (allout-add-resumptions '(line-move-ignore-invisible t))
       (add-hook 'pre-command-hook 'allout-pre-command-business nil t)
       (add-hook 'post-command-hook 'allout-post-command-business nil t)
-      (when (featurep 'xemacs)
-        (add-hook 'before-change-functions 'allout-before-change-handler
-                  nil t))
+      (add-hook 'before-change-functions 'allout-before-change-handler
+                nil t)
       (add-hook 'isearch-mode-end-hook 'allout-isearch-end-handler nil t)
       (add-hook write-file-hook-var-name 'allout-write-file-hook-handler
                 nil t)
@@ -2000,14 +2091,19 @@ See allout-overlay-interior-modification-handler for details.
 
 This before-change handler is used only where modification-hooks
 overlay property is not supported."
+
+  (if (and (allout-mode-p) undo-in-progress (allout-hidden-p))
+      (allout-show-to-offshoot))
+
   ;; allout-overlay-interior-modification-handler on an overlay handles
   ;; this in other emacs, via `allout-exposure-category's 'modification-hooks.
   (when (and (featurep 'xemacs) (allout-mode-p))
     ;; process all of the pending overlays:
-    (dolist (overlay (overlays-in beg end))
-      (if (eq (overlay-get ol 'invisible) 'allout)
-          (allout-overlay-interior-modification-handler
-             overlay nil beg end nil)))))
+    (save-excursion
+      (got-char beg)
+      (let ((overlay (allout-get-invisibility-overlay)))
+	(allout-overlay-interior-modification-handler
+	 overlay nil beg end nil)))))
 ;;;_  > allout-isearch-end-handler (&optional overlay)
 (defun allout-isearch-end-handler (&optional overlay)
   "Reconcile allout outline exposure on arriving in hidden text after isearch.
@@ -2035,19 +2131,35 @@ function can also be used as an `isearch-mode-end-hook'."
 (defvar allout-recent-prefix-end 0
   "Buffer point of the end of the last topic prefix encountered.")
 (make-variable-buffer-local 'allout-recent-prefix-end)
+;;;_  = allout-recent-depth
+(defvar allout-recent-depth 0
+  "Depth of the last topic prefix encountered.")
+(make-variable-buffer-local 'allout-recent-depth)
 ;;;_  = allout-recent-end-of-subtree
 (defvar allout-recent-end-of-subtree 0
   "Buffer point last returned by `allout-end-of-current-subtree'.")
 (make-variable-buffer-local 'allout-recent-end-of-subtree)
-;;;_  > allout-prefix-data (beg end)
-(defmacro allout-prefix-data (beg end)
-  "Register allout-prefix state data - BEGINNING and END of prefix.
+;;;_  > allout-prefix-data ()
+(defsubst allout-prefix-data ()
+  "Register allout-prefix state data.
 
 For reference by `allout-recent' funcs.  Returns BEGINNING."
-  `(setq allout-recent-prefix-end ,end
-         allout-recent-prefix-beginning ,beg))
+  (setq allout-recent-prefix-end (or (match-end 1) (match-end 2))
+        allout-recent-prefix-beginning (or (match-beginning 1)
+                                           (match-beginning 2))
+        allout-recent-depth (max 1 (- allout-recent-prefix-end
+                                      allout-recent-prefix-beginning
+                                      allout-header-subtraction)))
+  allout-recent-prefix-beginning)
+;;;_  > nullify-allout-prefix-data ()
+(defsubst nullify-allout-prefix-data ()
+  "Mark allout prefix data as being uninformative."
+  (setq allout-recent-prefix-end (point)
+        allout-recent-prefix-beginning (point)
+        allout-recent-depth 0)
+  allout-recent-prefix-beginning)
 ;;;_  > allout-recent-depth ()
-(defmacro allout-recent-depth ()
+(defsubst allout-recent-depth ()
   "Return depth of last heading encountered by an outline maneuvering function.
 
 All outline functions which directly do string matches to assess
@@ -2055,19 +2167,17 @@ headings set the variables `allout-recent-prefix-beginning' and
 `allout-recent-prefix-end' if successful.  This function uses those settings
 to return the current depth."
 
-  '(max 1 (- allout-recent-prefix-end
-	     allout-recent-prefix-beginning
-	     allout-header-subtraction)))
+  allout-recent-depth)
 ;;;_  > allout-recent-prefix ()
-(defmacro allout-recent-prefix ()
+(defsubst allout-recent-prefix ()
   "Like `allout-recent-depth', but returns text of last encountered prefix.
 
 All outline functions which directly do string matches to assess
 headings set the variables `allout-recent-prefix-beginning' and
 `allout-recent-prefix-end' if successful.  This function uses those settings
-to return the current depth."
-  '(buffer-substring allout-recent-prefix-beginning
-		     allout-recent-prefix-end))
+to return the current prefix."
+  (buffer-substring-no-properties allout-recent-prefix-beginning
+                                  allout-recent-prefix-end))
 ;;;_  > allout-recent-bullet ()
 (defmacro allout-recent-bullet ()
   "Like allout-recent-prefix, but returns bullet of last encountered prefix.
@@ -2076,8 +2186,8 @@ All outline functions which directly do string matches to assess
 headings set the variables `allout-recent-prefix-beginning' and
 `allout-recent-prefix-end' if successful.  This function uses those settings
 to return the current depth of the most recently matched topic."
-  '(buffer-substring (1- allout-recent-prefix-end)
-		     allout-recent-prefix-end))
+  '(buffer-substring-no-properties (1- allout-recent-prefix-end)
+                                   allout-recent-prefix-end))
 
 ;;;_ #4 Navigation
 
@@ -2091,7 +2201,8 @@ Actually, returns prefix beginning point."
   (save-excursion
     (allout-beginning-of-current-line)
     (and (looking-at allout-regexp)
-	 (allout-prefix-data (match-beginning 0) (match-end 0)))))
+         (not (allout-aberrant-container-p))
+	 (allout-prefix-data))))
 ;;;_    > allout-on-heading-p ()
 (defalias 'allout-on-heading-p 'allout-on-current-heading-p)
 ;;;_    > allout-e-o-prefix-p ()
@@ -2101,6 +2212,51 @@ Actually, returns prefix beginning point."
                          (beginning-of-line))
 		       (looking-at allout-regexp))
        (= (point)(save-excursion (allout-end-of-prefix)(point)))))
+;;;_    > allout-aberrant-container-p ()
+(defun allout-aberrant-container-p ()
+  "True if topic, or next sibling with children, contains them discontinuously.
+
+Discontinuous means an immediate offspring that is nested more
+than one level deeper than the topic.
+
+If topic has no offspring, then the next sibling with offspring will
+determine whether or not this one is determined to be aberrant.
+
+If true, then the allout-recent-* settings are calibrated on the
+offspring that qaulifies it as aberrant, ie with depth that
+exceeds the topic by more than one."
+
+  ;; This is most clearly understood when considering standard-prefix-leader
+  ;; low-level topics, which can all too easily match text not intended as
+  ;; headers.  For example, any line with a leading '.' or '*' and lacking a
+  ;; following bullet qualifies without this protection.  (A sequence of
+  ;; them can occur naturally, eg a typical textual bullet list.)  We
+  ;; disqualify such low-level sequences when they are followed by a
+  ;; discontinuously contained child, inferring that the sequences are not
+  ;; actually connected with their prospective context.
+
+  (let ((depth (allout-depth))
+        (start-point (point))
+        done aberrant)
+    (save-excursion
+      (while (and (not done)
+                  (re-search-forward allout-line-boundary-regexp nil 0))
+        (allout-prefix-data)
+        (goto-char allout-recent-prefix-beginning)
+        (cond
+         ;; sibling - continue:
+         ((eq allout-recent-depth depth)) 
+         ;; first offspring is excessive - aberrant:
+         ((> allout-recent-depth (1+ depth))
+          (setq done t aberrant t))
+         ;; next non-sibling is lower-depth - not aberrant:
+         (t (setq done t)))))
+    (if aberrant
+        aberrant
+      (goto-char start-point)
+      ;; recalibrate allout-recent-*
+      (allout-depth)
+      nil)))
 ;;;_   : Location attributes
 ;;;_    > allout-depth ()
 (defun allout-depth ()
@@ -2113,10 +2269,10 @@ Like `allout-current-depth', but respects hidden as well as visible topics."
     (let ((start-point (point)))
       (if (and (allout-goto-prefix)
                (not (< start-point (point))))
-          (allout-recent-depth)
+          allout-recent-depth
         (progn
-          ;; Oops, no prefix, zero prefix data:
-          (allout-prefix-data (point)(point))
+          ;; Oops, no prefix, nullify it:
+          (nullify-allout-prefix-data)
           ;; ... and return 0:
           0)))))
 ;;;_    > allout-current-depth ()
@@ -2149,10 +2305,10 @@ Return zero if point is not within any topic."
   (condition-case nil
       (save-excursion
 	(allout-back-to-current-heading)
-	(buffer-substring (- allout-recent-prefix-end 1)
-			  allout-recent-prefix-end))
+	(buffer-substring-no-properties (- allout-recent-prefix-end 1)
+                                        allout-recent-prefix-end))
     ;; Quick and dirty provision, ostensibly for missing bullet:
-    ('args-out-of-range nil))
+    (args-out-of-range nil))
   )
 ;;;_    > allout-get-prefix-bullet (prefix)
 (defun allout-get-prefix-bullet (prefix)
@@ -2160,7 +2316,7 @@ Return zero if point is not within any topic."
   ;; Doesn't make sense if we're old-style prefixes, but this just
   ;; oughtn't be called then, so forget about it...
   (if (string-match allout-regexp prefix)
-      (substring prefix (1- (match-end 0)) (match-end 0))))
+      (substring prefix (1- (match-end 2)) (match-end 2))))
 ;;;_    > allout-sibling-index (&optional depth)
 (defun allout-sibling-index (&optional depth)
   "Item number of this prospective topic among its siblings.
@@ -2174,10 +2330,10 @@ If less than this depth, ascend to that depth and count..."
     (cond ((and depth (<= depth 0) 0))
           ((or (not depth) (= depth (allout-depth)))
            (let ((index 1))
-             (while (allout-previous-sibling (allout-recent-depth) nil)
+             (while (allout-previous-sibling allout-recent-depth nil)
 	       (setq index (1+ index)))
              index))
-          ((< depth (allout-recent-depth))
+          ((< depth allout-recent-depth)
            (allout-ascend-to-depth depth)
            (allout-sibling-index))
           (0))))
@@ -2229,11 +2385,17 @@ Outermost is first."
   (if (or (not allout-beginning-of-line-cycles)
           (not (equal last-command this-command)))
       (move-beginning-of-line 1)
-    (let ((beginning-of-body (save-excursion
-                               (allout-beginning-of-current-entry)
-                               (point))))
+    (allout-depth)
+    (let ((beginning-of-body
+           (save-excursion
+             (while (and (<= allout-recent-depth
+                             allout-doublecheck-at-and-shallower)
+                         (allout-aberrant-container-p)
+                         (allout-previous-visible-heading 1)))
+             (allout-beginning-of-current-entry)
+             (point))))
       (cond ((= (current-column) 0)
-             (allout-beginning-of-current-entry))
+             (goto-char beginning-of-body))
             ((< (point) beginning-of-body)
              (allout-beginning-of-current-line))
             ((= (point) beginning-of-body)
@@ -2241,7 +2403,7 @@ Outermost is first."
             (t (allout-beginning-of-current-line)
                (if (< (point) beginning-of-body)
                    ;; we were on the headline after its start:
-                   (allout-beginning-of-current-entry)))))))
+                   (goto-char beginning-of-body)))))))
 ;;;_   > allout-end-of-line ()
 (defun allout-end-of-line ()
   "End-of-line with `allout-end-of-line-cycles' behavior, if set."
@@ -2261,6 +2423,7 @@ Outermost is first."
                                      (allout-hidden-p)))
              (allout-back-to-current-heading)
              (allout-show-current-entry)
+             (allout-show-children)
              (allout-end-of-entry))
             ((>= (point) end-of-entry)
              (allout-back-to-current-heading)
@@ -2270,40 +2433,47 @@ Outermost is first."
 (defsubst allout-next-heading ()
   "Move to the heading for the topic \(possibly invisible) after this one.
 
-Returns the location of the heading, or nil if none found."
+Returns the location of the heading, or nil if none found.
 
-  (if (and (bobp) (not (eobp)) (looking-at allout-regexp))
+We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
+  (if (looking-at allout-regexp)
       (forward-char 1))
 
-  (if (re-search-forward allout-line-boundary-regexp nil 0)
-      (allout-prefix-data		; Got valid location state - set vars:
-       (goto-char (or (match-beginning 2)
-		      allout-recent-prefix-beginning))
-       (or (match-end 2) allout-recent-prefix-end))))
+  (when (re-search-forward allout-line-boundary-regexp nil 0)
+    (allout-prefix-data)
+    (and (<= allout-recent-depth allout-doublecheck-at-and-shallower)
+         ;; register non-aberrant or disqualifying offspring as allout-recent-*
+         (allout-aberrant-container-p))
+    (goto-char allout-recent-prefix-beginning)))
 ;;;_   > allout-this-or-next-heading
 (defun allout-this-or-next-heading ()
   "Position cursor on current or next heading."
   ;; A throwaway non-macro that is defined after allout-next-heading
   ;; and usable by allout-mode.
-  (if (not (allout-goto-prefix)) (allout-next-heading)))
+  (if (not (allout-goto-prefix-doublechecked)) (allout-next-heading)))
 ;;;_   > allout-previous-heading ()
-(defmacro allout-previous-heading ()
+(defsubst allout-previous-heading ()
   "Move to the prior \(possibly invisible) heading line.
 
-Return the location of the beginning of the heading, or nil if not found."
+Return the location of the beginning of the heading, or nil if not found.
 
-  '(if (bobp)
-       nil
-     (allout-goto-prefix)
-     (if
-	 ;; searches are unbounded and return nil if failed:
-	 (or (re-search-backward allout-line-boundary-regexp nil 0)
-	     (looking-at allout-bob-regexp))
-	 (progn				; Got valid location state - set vars:
-	   (allout-prefix-data
-	    (goto-char (or (match-beginning 2)
-			   allout-recent-prefix-beginning))
-	    (or (match-end 2) allout-recent-prefix-end))))))
+We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
+
+  (if (bobp)
+      nil
+    ;; allout-goto-prefix-doublechecked calls us, so we can't use it here.
+    (let ((start-point (point)))
+      (allout-goto-prefix)
+      (when (or (re-search-backward allout-line-boundary-regexp nil 0)
+                (looking-at allout-bob-regexp))
+        (goto-char (allout-prefix-data))
+        (if (and (<= allout-recent-depth allout-doublecheck-at-and-shallower)
+                 (allout-aberrant-container-p))
+            (or (allout-previous-heading)
+                (goto-char start-point)
+                ;; recalibrate allout-recent-*:
+                (allout-depth)))
+        (point)))))
 ;;;_   > allout-get-invisibility-overlay ()
 (defun allout-get-invisibility-overlay ()
   "Return the overlay at point that dictates allout invisibility."
@@ -2311,7 +2481,8 @@ Return the location of the beginning of the heading, or nil if not found."
         got)
     (while (and overlays (not got))
       (if (equal (overlay-get (car overlays) 'invisible) 'allout)
-          (setq got (car overlays))))
+          (setq got (car overlays))
+        (pop overlays)))
     got))
 ;;;_   > allout-back-to-visible-text ()
 (defun allout-back-to-visible-text ()
@@ -2324,11 +2495,8 @@ Return the location of the beginning of the heading, or nil if not found."
 ;;;_   " These routines either produce or assess charts, which are
 ;;; nested lists of the locations of topics within a subtree.
 ;;;
-;;; Use of charts enables efficient navigation of subtrees, by
-;;; requiring only a single regexp-search based traversal, to scope
-;;; out the subtopic locations.  The chart then serves as the basis
-;;; for assessment or adjustment of the subtree, without redundant
-;;; traversal of the structure.
+;;; Charts enable efficient subtree navigation by providing a reusable basis
+;;; for elaborate, compound assessment and adjustment of a subtree.
 
 ;;;_   > allout-chart-subtree (&optional levels visible orig-depth prev-depth)
 (defun allout-chart-subtree (&optional levels visible orig-depth prev-depth)
@@ -2348,12 +2516,12 @@ Charts are used to capture outline structure, so that outline-altering
 routines need assess the structure only once, and then use the chart
 for their elaborate manipulations.
 
-Topics are entered in the chart so the last one is at the car.
-The entry for each topic consists of an integer indicating the point
-at the beginning of the topic.  Charts for offspring consists of a
-list containing, recursively, the charts for the respective subtopics.
-The chart for a topics' offspring precedes the entry for the topic
-itself.
+The chart entries for the topics are in reverse order, so the
+last topic is listed first.  The entry for each topic consists of
+an integer indicating the point at the beginning of the topic
+prefix.  Charts for offspring consists of a list containing,
+recursively, the charts for the respective subtopics.  The chart
+for a topics' offspring precedes the entry for the topic itself.
 
 The other function parameters are for internal recursion, and should
 not be specified by external callers.  ORIG-DEPTH is depth of topic at
@@ -2380,17 +2548,17 @@ starting point, and PREV-DEPTH is depth of prior topic."
 
     (while (and (not (eobp))
 					; Still within original topic?
-		(< orig-depth (setq curr-depth (allout-recent-depth)))
+		(< orig-depth (setq curr-depth allout-recent-depth))
 		(cond ((= prev-depth curr-depth)
 		       ;; Register this one and move on:
-		       (setq chart (cons (point) chart))
+		       (setq chart (cons allout-recent-prefix-beginning chart))
 		       (if (and levels (<= levels 1))
 			   ;; At depth limit - skip sublevels:
 			   (or (allout-next-sibling curr-depth)
 			       ;; or no more siblings - proceed to
 			       ;; next heading at lesser depth:
 			       (while (and (<= curr-depth
-					       (allout-recent-depth))
+					       allout-recent-depth)
                                            (if visible
                                                (allout-next-visible-heading 1)
                                              (allout-next-heading)))))
@@ -2437,11 +2605,11 @@ starting point, and PREV-DEPTH is depth of prior topic."
 Effectively a top-level chart of siblings.  See `allout-chart-subtree'
 for an explanation of charts."
   (save-excursion
-    (if (allout-goto-prefix)
-	(let ((chart (list (point))))
-	  (while (allout-next-sibling)
-	    (setq chart (cons (point) chart)))
-	  (if chart (setq chart (nreverse chart)))))))
+    (when (allout-goto-prefix-doublechecked)
+      (let ((chart (list (point))))
+        (while (allout-next-sibling)
+          (setq chart (cons (point) chart)))
+        (if chart (setq chart (nreverse chart)))))))
 ;;;_   > allout-chart-to-reveal (chart depth)
 (defun allout-chart-to-reveal (chart depth)
 
@@ -2514,15 +2682,25 @@ Returns the point at the beginning of the prefix, or nil if none."
 		(search-backward "\n" nil 1))
       (forward-char 1)
       (if (looking-at allout-regexp)
-	  (setq done (allout-prefix-data (match-beginning 0)
-					  (match-end 0)))
+	  (setq done (allout-prefix-data))
 	(forward-char -1)))
     (if (bobp)
 	(cond ((looking-at allout-regexp)
-	       (allout-prefix-data (match-beginning 0)(match-end 0)))
+	       (allout-prefix-data))
 	      ((allout-next-heading))
 	      (done))
       done)))
+;;;_   > allout-goto-prefix-doublechecked ()
+(defun allout-goto-prefix-doublechecked ()
+  "Put point at beginning of immediately containing outline topic.
+
+Like `allout-goto-prefix', but shallow topics \(according to `allout-doublecheck-at-and-shallower') are checked and disqualified for child containment discontinuity, according to `allout-aberrant-container-p'."
+  (allout-goto-prefix)
+  (if (and (<= allout-recent-depth allout-doublecheck-at-and-shallower)
+           (allout-aberrant-container-p))
+      (allout-previous-heading)
+    (point)))
+
 ;;;_   > allout-end-of-prefix ()
 (defun allout-end-of-prefix (&optional ignore-decorations)
   "Position cursor at beginning of header text.
@@ -2530,15 +2708,13 @@ Returns the point at the beginning of the prefix, or nil if none."
 If optional IGNORE-DECORATIONS is non-nil, put just after bullet,
 otherwise skip white space between bullet and ensuing text."
 
-  (if (not (allout-goto-prefix))
+  (if (not (allout-goto-prefix-doublechecked))
       nil
-    (let ((match-data (match-data)))
-      (goto-char (match-end 0))
-      (if ignore-decorations
-	  t
-	(while (looking-at "[0-9]") (forward-char 1))
-	(if (and (not (eolp)) (looking-at "\\s-")) (forward-char 1)))
-      (store-match-data match-data))
+    (goto-char allout-recent-prefix-end)
+    (if ignore-decorations
+        t
+      (while (looking-at "[0-9]") (forward-char 1))
+      (if (and (not (eolp)) (looking-at "\\s-")) (forward-char 1)))
     ;; Reestablish where we are:
     (allout-current-depth)))
 ;;;_   > allout-current-bullet-pos ()
@@ -2547,7 +2723,7 @@ otherwise skip white space between bullet and ensuing text."
 
  (if (not (allout-current-depth))
       nil
-   (1- (match-end 0))))
+   (1- allout-recent-prefix-end)))
 ;;;_   > allout-back-to-current-heading ()
 (defun allout-back-to-current-heading ()
   "Move to heading line of current topic, or beginning if already on the line.
@@ -2562,11 +2738,9 @@ in which case we return nil."
                (progn (while (allout-hidden-p)
                         (allout-beginning-of-current-line)
                         (if (not (looking-at allout-regexp))
-                            (re-search-backward (concat
-                                                 "^\\(" allout-regexp "\\)")
+                            (re-search-backward allout-regexp
                                                 nil 'move)))
-                      (allout-prefix-data (match-beginning 1)
-                                          (match-end 1)))))
+                      (allout-prefix-data))))
       (if (interactive-p)
           (allout-end-of-prefix)
         (point))))
@@ -2579,8 +2753,7 @@ in which case we return nil."
 Returns that character position."
 
   (if (re-search-forward allout-line-boundary-regexp nil 'move)
-      (prog1 (goto-char (match-beginning 0))
-             (allout-prefix-data (match-beginning 2)(match-end 2)))))
+      (goto-char (1- (allout-prefix-data)))))
 ;;;_   > allout-end-of-subtree (&optional current include-trailing-blank)
 (defun allout-end-of-subtree (&optional current include-trailing-blank)
   "Put point at the end of the last leaf in the containing topic.
@@ -2596,11 +2769,11 @@ Returns the value of point."
   (interactive "P")
   (if current
       (allout-back-to-current-heading)
-    (allout-goto-prefix))
-  (let ((level (allout-recent-depth)))
+    (allout-goto-prefix-doublechecked))
+  (let ((level allout-recent-depth))
     (allout-next-heading)
     (while (and (not (eobp))
-                (> (allout-recent-depth) level))
+                (> allout-recent-depth level))
       (allout-next-heading))
     (if (eobp)
         (allout-end-of-entry)
@@ -2629,6 +2802,9 @@ If already there, move cursor to bullet for hot-spot operation.
   (interactive)
   (let ((start-point (point)))
     (move-beginning-of-line 1)
+    (if (< 0 (allout-current-depth))
+        (goto-char allout-recent-prefix-end)
+      (goto-char (point-min)))
     (allout-end-of-prefix)
     (if (and (interactive-p)
 	     (= (point) start-point))
@@ -2676,17 +2852,12 @@ collapsed."
 (defun allout-ascend-to-depth (depth)
   "Ascend to depth DEPTH, returning depth if successful, nil if not."
   (if (and (> depth 0)(<= depth (allout-depth)))
-      (let ((last-good (point)))
-        (while (and (< depth (allout-depth))
-                    (setq last-good (point))
-                    (allout-beginning-of-level)
-                    (allout-previous-heading)))
-        (if (= (allout-recent-depth) depth)
-            (progn (goto-char allout-recent-prefix-beginning)
-                   depth)
-          (goto-char last-good)
-          nil))
-    (if (interactive-p) (allout-end-of-prefix))))
+      (let (last-ascended)
+        (while (and (< depth allout-recent-depth)
+                    (setq last-ascended (allout-ascend))))
+        (goto-char allout-recent-prefix-beginning)
+        (if (interactive-p) (allout-end-of-prefix))
+        (and last-ascended allout-recent-depth))))
 ;;;_   > allout-ascend ()
 (defun allout-ascend ()
   "Ascend one level, returning t if successful, nil if not."
@@ -2703,49 +2874,24 @@ Returning depth if successful, nil if not."
         (start-depth (allout-depth)))
     (while
         (and (> (allout-depth) 0)
-             (not (= depth (allout-recent-depth))) ; ... not there yet
+             (not (= depth allout-recent-depth)) ; ... not there yet
              (allout-next-heading)     ; ... go further
-             (< start-depth (allout-recent-depth)))) ; ... still in topic
+             (< start-depth allout-recent-depth))) ; ... still in topic
     (if (and (> (allout-depth) 0)
-             (= (allout-recent-depth) depth))
+             (= allout-recent-depth depth))
         depth
       (goto-char start-point)
       nil))
   )
-;;;_   > allout-up-current-level (arg &optional dont-complain)
-(defun allout-up-current-level (arg &optional dont-complain)
-  "Move out ARG levels from current visible topic.
-
-Positions on heading line of containing topic.  Error if unable to
-ascend that far, or nil if unable to ascend but optional arg
-DONT-COMPLAIN is non-nil."
+;;;_   > allout-up-current-level (arg)
+(defun allout-up-current-level (arg)
+  "Move out ARG levels from current visible topic."
   (interactive "p")
   (allout-back-to-current-heading)
-  (let ((present-level (allout-recent-depth))
-	(last-good (point))
-	failed)
-    ;; Loop for iterating arg:
-    (while (and (> (allout-recent-depth) 1)
-                (> arg 0)
-                (not (bobp))
-		(not failed))
-      (setq last-good (point))
-      ;; Loop for going back over current or greater depth:
-      (while (and (not (< (allout-recent-depth) present-level))
-		  (or (allout-previous-visible-heading 1)
-		      (not (setq failed present-level)))))
-      (setq present-level (allout-current-depth))
-      (setq arg (- arg 1)))
-    (if (or failed
-	    (> arg 0))
-	(progn (goto-char last-good)
-	       (if (interactive-p) (allout-end-of-prefix))
-	       (if (not dont-complain)
-		   (error "Can't ascend past outermost level")
-		 (if (interactive-p) (allout-end-of-prefix))
-		 nil))
-      (if (interactive-p) (allout-end-of-prefix))
-      allout-recent-prefix-beginning)))
+  (if (not (allout-ascend))
+      (error "Can't ascend past outermost level")
+    (if (interactive-p) (allout-end-of-prefix))
+    allout-recent-prefix-beginning))
 
 ;;;_  - Linear
 ;;;_   > allout-next-sibling (&optional depth backward)
@@ -2756,24 +2902,101 @@ Traverse at optional DEPTH, or current depth if none specified.
 
 Go backward if optional arg BACKWARD is non-nil.
 
-Return depth if successful, nil otherwise."
+Return the start point of the new topic if successful, nil otherwise."
 
-  (if (and backward (bobp))
+  (if (if backward (bobp) (eobp))
       nil
-    (let ((start-depth (or depth (allout-depth)))
+    (let ((target-depth (or depth (allout-depth)))
           (start-point (point))
+          (count 0)
+          leaping
 	  last-depth)
-      (while (and (not (if backward (bobp) (eobp)))
-                  (if backward (allout-previous-heading)
-                    (allout-next-heading))
-                  (> (setq last-depth (allout-recent-depth)) start-depth)))
-      (if (and (not (eobp))
-               (and (> (or last-depth (allout-depth)) 0)
-                    (= (allout-recent-depth) start-depth)))
-          allout-recent-prefix-beginning
-        (goto-char start-point)
-	(if depth (allout-depth) start-depth)
-        nil))))
+      (while (and
+              ;; done too few single steps to resort to the leap routine:
+              (not leaping)
+              ;; not at limit:
+              (not (if backward (bobp) (eobp)))
+              ;; still traversable:
+              (if backward (allout-previous-heading) (allout-next-heading))
+              ;; we're below the target depth
+              (> (setq last-depth allout-recent-depth) target-depth))
+        (setq count (1+ count))
+        (if (> count 7)                 ; lists are commonly 7 +- 2, right?-)
+            (setq leaping t)))
+      (cond (leaping
+             (or (allout-next-sibling-leap target-depth backward)
+                 (progn
+                   (goto-char start-point)
+                   (if depth (allout-depth) target-depth)
+                   nil)))
+            ((and (not (eobp))
+                  (and (> (or last-depth (allout-depth)) 0)
+                       (= allout-recent-depth target-depth)))
+             allout-recent-prefix-beginning)
+            (t
+             (goto-char start-point)
+             (if depth (allout-depth) target-depth)
+             nil)))))
+;;;_   > allout-next-sibling-leap (&optional depth backward)
+(defun allout-next-sibling-leap (&optional depth backward)
+  "Like `allout-next-sibling', but by direct search for topic at depth.
+
+Traverse at optional DEPTH, or current depth if none specified.
+
+Go backward if optional arg BACKWARD is non-nil.
+
+Return the start point of the new topic if successful, nil otherwise.
+
+Costs more than regular `allout-next-sibling' for short traversals:
+
+ - we have to check the prior \(next, if travelling backwards)
+   item to confirm connectivity with the prior topic, and
+ - if confirmed, we have to reestablish the allout-recent-* settings with
+   some extra navigation
+ - if confirmation fails, we have to do more work to recover
+
+It is an increasingly big win when there are many intervening
+offspring before the next sibling, however, so
+`allout-next-sibling' resorts to this if it finds itself in that
+situation."
+
+  (if (if backward (bobp) (eobp))
+      nil
+    (let* ((start-point (point))
+           (target-depth (or depth (allout-depth)))
+           (search-whitespace-regexp nil)
+           (depth-biased (- target-depth 2))
+           (expression (if (<= target-depth 1)
+                           allout-depth-one-regexp
+                         (format allout-depth-specific-regexp
+                                 depth-biased depth-biased)))
+           found
+           done)
+      (while (not done)
+        (setq found (if backward
+                        (re-search-backward expression nil 'to-limit)
+                      (forward-char 1)
+                      (re-search-forward expression nil 'to-limit)))
+        (if (and found (allout-aberrant-container-p))
+            (setq found nil))
+        (setq done (or found (if backward (bobp) (eobp)))))
+      (if (not found)
+          (progn (goto-char start-point)
+                 nil)
+        ;; rationale: if any intervening items were at a lower depth, we
+        ;; would now be on the first offspring at the target depth - ie,
+        ;; the preceeding item (per the search direction) must be at a
+        ;; lesser depth.  that's all we need to check.
+        (if backward (allout-next-heading) (allout-previous-heading))
+        (if (< allout-recent-depth target-depth)
+            ;; return to start and reestablish allout-recent-*:
+            (progn
+              (goto-char start-point)
+              (allout-depth)
+              nil)
+          (goto-char found)
+          ;; locate cursor and set allout-recent-*:
+          (allout-goto-prefix))))))
 ;;;_   > allout-previous-sibling (&optional depth backward)
 (defun allout-previous-sibling (&optional depth backward)
   "Like `allout-forward-current-level' backwards, respecting invisible topics.
@@ -2807,7 +3030,7 @@ Presumes point is at the start of a topic prefix."
 
   (let ((depth (allout-depth)))
     (while (allout-previous-sibling depth nil))
-    (prog1 (allout-recent-depth)
+    (prog1 allout-recent-depth
       (if (interactive-p) (allout-end-of-prefix)))))
 ;;;_   > allout-next-visible-heading (arg)
 (defun allout-next-visible-heading (arg)
@@ -2821,21 +3044,36 @@ Move to buffer limit in indicated direction if headings are exhausted."
 	 (step (if backward -1 1))
 	 prev got)
 
-    (while (> arg 0)			; limit condition
-      (while (and (not (if backward (bobp)(eobp))) ; boundary condition
-		  ;; Move, skipping over all those concealed lines:
-		  (prog1 (condition-case nil (or (line-move step) t)
-                           (error nil))
-                    (allout-beginning-of-current-line))
-		  (not (setq got (looking-at allout-regexp)))))
+    (while (> arg 0)
+      (while (and
+              ;; Boundary condition:
+              (not (if backward (bobp)(eobp)))
+              ;; Move, skipping over all concealed lines in one fell swoop:
+              (prog1 (condition-case nil (or (line-move step) t)
+                       (error nil))
+                (allout-beginning-of-current-line))
+              ;; Deal with apparent header line:
+              (if (not (looking-at allout-regexp))
+                  ;; not a header line, keep looking:
+                  t
+                (allout-prefix-data)
+                (if (and (<= allout-recent-depth
+                             allout-doublecheck-at-and-shallower)
+                         (allout-aberrant-container-p))
+                    ;; skip this aberrant prospective header line:
+                    t
+                  ;; this prospective headerline qualifies - register:
+                  (setq got allout-recent-prefix-beginning)
+                  ;; and break the loop:
+                  nil))))
       ;; Register this got, it may be the last:
       (if got (setq prev got))
       (setq arg (1- arg)))
     (cond (got				; Last move was to a prefix:
-	   (allout-prefix-data (match-beginning 0) (match-end 0))
-	   (allout-end-of-prefix))
+           (allout-end-of-prefix))
 	  (prev				; Last move wasn't, but prev was:
-	   (allout-prefix-data (match-beginning 0) (match-end 0)))
+           (goto-char prev)
+           (allout-end-of-prefix))
 	  ((not backward) (end-of-line) nil))))
 ;;;_   > allout-previous-visible-heading (arg)
 (defun allout-previous-visible-heading (arg)
@@ -2845,7 +3083,8 @@ With argument, repeats or can move forward if negative.
 A heading line is one that starts with a `*' (or that `allout-regexp'
 matches)."
   (interactive "p")
-  (allout-next-visible-heading (- arg)))
+  (prog1 (allout-next-visible-heading (- arg))
+    (if (interactive-p) (allout-end-of-prefix))))
 ;;;_   > allout-forward-current-level (arg)
 (defun allout-forward-current-level (arg)
   "Position point at the next heading of the same level.
@@ -2856,38 +3095,25 @@ Returns resulting position, else nil if none found."
   (interactive "p")
   (let ((start-depth (allout-current-depth))
 	(start-arg arg)
-	(backward (> 0 arg))
-	last-depth
-	(last-good (point))
-	at-boundary)
+	(backward (> 0 arg)))
     (if (= 0 start-depth)
 	(error "No siblings, not in a topic..."))
     (if backward (setq arg (* -1 arg)))
-    (while (not (or (zerop arg)
-		    at-boundary))
-      (while (and (not (if backward (bobp) (eobp)))
-		  (if backward (allout-previous-visible-heading 1)
-		    (allout-next-visible-heading 1))
-		  (> (setq last-depth (allout-recent-depth)) start-depth)))
-      (if (and last-depth (= last-depth start-depth)
-	       (not (if backward (bobp) (eobp))))
-	  (setq last-good (point)
-		arg (1- arg))
-	(setq at-boundary t)))
-    (if (and (not (eobp))
-	     (= arg 0)
-	     (and (> (or last-depth (allout-depth)) 0)
-		  (= (allout-recent-depth) start-depth)))
-	allout-recent-prefix-beginning
-      (goto-char last-good)
-      (if (not (interactive-p))
-	  nil
-	(allout-end-of-prefix)
-	(error "Hit %s level %d topic, traversed %d of %d requested"
-	       (if backward "first" "last")
-	       (allout-recent-depth)
-	       (- (abs start-arg) arg)
-	       (abs start-arg))))))
+    (allout-back-to-current-heading)
+    (while (and (not (zerop arg))
+                (if backward
+                    (allout-previous-sibling)
+                  (allout-next-sibling)))
+      (setq arg (1- arg)))
+    (if (not (interactive-p))
+        nil
+      (allout-end-of-prefix)
+      (if (not (zerop arg))
+          (error "Hit %s level %d topic, traversed %d of %d requested"
+                 (if backward "first" "last")
+                 allout-recent-depth
+                 (- (abs start-arg) arg)
+                 (abs start-arg))))))
 ;;;_   > allout-backward-current-level (arg)
 (defun allout-backward-current-level (arg)
   "Inverse of `allout-forward-current-level'."
@@ -2977,34 +3203,41 @@ this-command accordingly.
 
 Returns the qualifying command, if any, else nil."
   (interactive)
-  (let* ((key-num (cond ((numberp last-command-char) last-command-char)
+  (let* ((key-string (if (numberp last-command-char)
+                         (char-to-string last-command-char)))
+         (key-num (cond ((numberp last-command-char) last-command-char)
                         ;; for XEmacs character type:
                         ((and (fboundp 'characterp)
                               (apply 'characterp (list last-command-char)))
                          (apply 'char-to-int (list last-command-char)))
                         (t 0)))
-         mapped-binding
-         (on-bullet (eq (point) (allout-current-bullet-pos))))
+         mapped-binding)
 
     (if (zerop key-num)
         nil
 
-      (if (and (<= 33 key-num)
-               (setq mapped-binding
+      (if (and
+           ;; exclude control chars and escape:
+           (<= 33 key-num)
+           (setq mapped-binding
+                 (or (and (assoc key-string allout-keybindings-list)
+                          ;; translate literal membership on list:
+                          (cadr (assoc key-string allout-keybindings-list)))
+                     ;; translate as a keybinding:
                      (key-binding (concat allout-command-prefix
                                           (char-to-string
-                                           (if (and (<= 97 key-num) ; "a"
+                                           (if (and (<= 97 key-num)   ; "a"
                                                     (>= 122 key-num)) ; "z"
                                                (- key-num 96) key-num)))
-                                  t)))
-          ;; Qualified with the allout prefix - do hot-spot operation.
+                                  t))))
+          ;; Qualified as an allout command - do hot-spot operation.
           (setq allout-post-goto-bullet t)
         ;; accept-defaults nil, or else we'll get allout-item-icon-key-handler.
         (setq mapped-binding (key-binding (char-to-string key-num))))
 
       (while (keymapp mapped-binding)
         (setq mapped-binding
-              (lookup-key mapped-binding (read-key-sequence-vector nil t))))
+              (lookup-key mapped-binding (vector (read-char)))))
 
       (if mapped-binding
           (setq this-command mapped-binding)))))
@@ -3036,7 +3269,7 @@ Offer one suitable for current depth DEPTH as default."
       (setq choice (solicit-char-in-string
                     (format "Select bullet: %s ('%s' default): "
                             sans-escapes
-                            default-bullet)
+                            (substring-no-properties default-bullet))
                     sans-escapes
                     t)))
     (message "")
@@ -3275,7 +3508,7 @@ Nuances:
                              (allout-ascend-to-depth depth))
                             ((>= relative-depth 1) nil)
                             (t (allout-back-to-current-heading)))
-                      (setq ref-depth (allout-recent-depth))
+                      (setq ref-depth allout-recent-depth)
                       (setq ref-bullet
                             (if (> allout-recent-prefix-end 1)
                                 (allout-recent-bullet)
@@ -3363,7 +3596,7 @@ Nuances:
                 (setq dbl-space t))
             (if (save-excursion
                   (allout-next-heading)
-                  (when (> (allout-recent-depth) ref-depth)
+                  (when (> allout-recent-depth ref-depth)
                     ;; This is an offspring.
                     (forward-line -1)
                     (looking-at "^\\s-*$")))
@@ -3388,7 +3621,13 @@ Nuances:
                      (if (and dbl-space (not (> relative-depth 0)))
 			 (newline 1))
                      (if (and (not (eobp))
-                              (not (bolp)))
+                              (or (not (bolp))
+                                  (and (not (bobp))
+                                       ;; bolp doesnt detect concealed
+                                       ;; trailing newlines, compensate:
+                                       (save-excursion
+                                         (forward-char -1)
+                                         (allout-hidden-p)))))
                          (forward-char 1))))
           ))
     (setq start (point))
@@ -3507,23 +3746,28 @@ Note that refill of indented paragraphs is not done."
   (interactive "p")
   (let ((initial-col (current-column))
 	(on-bullet (eq (point)(allout-current-bullet-pos)))
+        from to
 	(backwards (if (< arg 0)
 		       (setq arg (* arg -1)))))
     (while (> arg 0)
       (save-excursion (allout-back-to-current-heading)
 		      (allout-end-of-prefix)
+                      (setq from allout-recent-prefix-beginning
+                            to allout-recent-prefix-end)
 		      (allout-rebullet-heading t	;;; solicit
 						nil	;;; depth
 						nil	;;; number-control
 						nil	;;; index
-						t))	;;; do-successors
+						t)	;;; do-successors
+                      (run-hook-with-args 'allout-exposure-change-hook
+                                          from to t))
       (setq arg (1- arg))
       (if (<= arg 0)
 	  nil
 	(setq initial-col nil)		; Override positioning back to init col
 	(if (not backwards)
 	    (allout-next-visible-heading 1)
-	  (allout-goto-prefix)
+	  (allout-goto-prefix-doublechecked)
 	  (allout-next-visible-heading -1))))
     (message "Done.")
     (cond (on-bullet (goto-char (allout-current-bullet-pos)))
@@ -3573,7 +3817,7 @@ this function."
          (new-depth (or new-depth current-depth))
          (mb allout-recent-prefix-beginning)
          (me allout-recent-prefix-end)
-         (current-bullet (buffer-substring (- me 1) me))
+         (current-bullet (buffer-substring-no-properties (- me 1) me))
          (new-prefix (allout-make-topic-prefix current-bullet
                                                 nil
                                                 new-depth
@@ -3627,10 +3871,16 @@ this function."
     ) ; let* ((current-depth (allout-depth))...)
   ) ; defun
 ;;;_    > allout-rebullet-topic (arg)
-(defun allout-rebullet-topic (arg)
+(defun allout-rebullet-topic (arg &optional sans-offspring)
   "Rebullet the visible topic containing point and all contained subtopics.
 
 Descends into invisible as well as visible topics, however.
+
+When optional sans-offspring is non-nil, subtopics are not
+shifted.  \(Shifting a topic outwards without shifting its
+offspring is disallowed, since this would create a \"containment
+discontinuity\", where the depth difference between a topic and
+its immediate offspring is greater than one.)
 
 With repeat count, shift topic depth by that amount."
   (interactive "P")
@@ -3642,17 +3892,18 @@ With repeat count, shift topic depth by that amount."
       ;; Fill the user in, in case we're shifting a big topic:
       (if (not (zerop arg)) (message "Shifting..."))
       (allout-back-to-current-heading)
-      (if (<= (+ (allout-recent-depth) arg) 0)
+      (if (<= (+ allout-recent-depth arg) 0)
           (error "Attempt to shift topic below level 1"))
-      (allout-rebullet-topic-grunt arg)
+      (allout-rebullet-topic-grunt arg nil nil nil nil sans-offspring)
       (if (not (zerop arg)) (message "Shifting... done.")))
     (move-to-column (max 0 (+ start-col arg)))))
-;;;_     > allout-rebullet-topic-grunt (&optional relative-depth ...)
+;;;_    > allout-rebullet-topic-grunt (&optional relative-depth ...)
 (defun allout-rebullet-topic-grunt (&optional relative-depth
                                                starting-depth
                                                starting-point
                                                index
-                                               do-successors)
+                                               do-successors
+                                               sans-offspring)
   "Like `allout-rebullet-topic', but on nearest containing topic
 \(visible or not).
 
@@ -3663,8 +3914,23 @@ All arguments are optional.
 First arg RELATIVE-DEPTH means to shift the depth of the entire
 topic that amount.
 
-The rest of the args are for internal recursive use by the function
-itself.  The are STARTING-DEPTH, STARTING-POINT, and INDEX."
+Several subsequent args are for internal recursive use by the function
+itself: STARTING-DEPTH, STARTING-POINT, and INDEX.
+
+Finally, if optional SANS-OFFSPRING is non-nil then the offspring
+are not shifted.  \(Shifting a topic outwards without shifting
+its offspring is disallowed, since this would create a
+\"containment discontinuity\", where the depth difference between
+a topic and its immediate offspring is greater than one..)"
+
+  ;; XXX the recursion here is peculiar, and in general the routine may
+  ;; need simplification with refactoring.
+
+  (if (and sans-offspring
+           relative-depth
+           (< relative-depth 0))
+      (error (concat "Attempt to shift topic outwards without offspring,"
+                     " would cause containment discontinuity.")))
 
   (let* ((relative-depth (or relative-depth 0))
          (new-depth (allout-depth))
@@ -3676,44 +3942,57 @@ itself.  The are STARTING-DEPTH, STARTING-POINT, and INDEX."
                     (and (or (zerop relative-depth)
                              (not on-starting-call))
                          (allout-sibling-index))))
+         (starting-index index)
          (moving-outwards (< 0 relative-depth))
-         (starting-point (or starting-point (point))))
+         (starting-point (or starting-point (point)))
+         (local-point (point)))
 
     ;; Sanity check for excessive promotion done only on starting call:
     (and on-starting-call
          moving-outwards
          (> 0 (+ starting-depth relative-depth))
-         (error "Attempt to shift topic out beyond level 1"))	;;; ====>
+         (error "Attempt to shift topic out beyond level 1"))
 
     (cond ((= starting-depth new-depth)
-           ;; We're at depth to work on this one:
-           (allout-rebullet-heading nil		;;; solicit
-                                     (+ starting-depth	;;; starting-depth
-                                        relative-depth)
-                                     nil		;;; number
-                                     index		;;; index
-                                     ;; Every contained topic will get hit,
-                                     ;; and we have to get to outside ones
-                                     ;; deliberately:
-                                     nil)		;;; do-successors
-           ;; ... and work on subsequent ones which are at greater depth:
-           (setq index 0)
-           (allout-next-heading)
-           (while (and (not (eobp))
-                       (< starting-depth (allout-recent-depth)))
-             (setq index (1+ index))
-             (allout-rebullet-topic-grunt relative-depth   ;;; relative-depth
-                                           (1+ starting-depth);;;starting-depth
-                                           starting-point   ;;; starting-point
-                                           index)))	    ;;; index
+           ;; We're at depth to work on this one.
+
+           ;; When shifting out we work on the children before working on
+           ;; the parent to avoid interim `allout-aberrant-container-p'
+           ;; aberrancy, and vice-versa when shifting in:
+           (if (>= relative-depth 0)
+               (allout-rebullet-heading nil
+                                        (+ starting-depth relative-depth)
+                                        nil		;;; number
+                                        index
+                                        nil)) ;;; do-successors
+           (when (not sans-offspring)
+             ;; ... and work on subsequent ones which are at greater depth:
+             (setq index 0)
+             (allout-next-heading)
+             (while (and (not (eobp))
+                         (< starting-depth (allout-depth)))
+               (setq index (1+ index))
+               (allout-rebullet-topic-grunt relative-depth
+                                            (1+ starting-depth)
+                                            starting-point
+                                            index)))
+           (when (< relative-depth 0)
+             (save-excursion
+               (goto-char local-point)
+               (allout-rebullet-heading nil               ;;; solicit
+                                        (+ starting-depth relative-depth)
+                                        nil		;;; number
+                                        starting-index
+                                        nil)))) ;;; do-successors
 
           ((< starting-depth new-depth)
            ;; Rare case - subtopic more than one level deeper than parent.
            ;; Treat this one at an even deeper level:
-           (allout-rebullet-topic-grunt relative-depth   ;;; relative-depth
-                                         new-depth	  ;;; starting-depth
-                                         starting-point	  ;;; starting-point
-                                         index)))	  ;;; index
+           (allout-rebullet-topic-grunt relative-depth
+                                         new-depth
+                                         starting-point
+                                         index
+                                         sans-offspring)))
 
     (if on-starting-call
         (progn
@@ -3721,8 +4000,8 @@ itself.  The are STARTING-DEPTH, STARTING-POINT, and INDEX."
           ;; if topic has changed depth
           (if (or do-successors
                   (and (not (zerop relative-depth))
-                       (or (= (allout-recent-depth) starting-depth)
-                           (= (allout-recent-depth) (+ starting-depth
+                       (or (= allout-recent-depth starting-depth)
+                           (= allout-recent-depth (+ starting-depth
                                                         relative-depth)))))
               (allout-rebullet-heading nil nil nil nil t))
           ;; Now rectify numbering of new siblings of the adjusted topic,
@@ -3747,24 +4026,24 @@ Returns final depth."
 	was-eobp)
     (while (and (not (eobp))
 		(allout-depth)
-                (>= (allout-recent-depth) depth)
+                (>= allout-recent-depth depth)
                 (>= ascender depth))
                                         ; Skip over all topics at
                                         ; lesser depths, which can not
                                         ; have been disturbed:
       (while (and (not (setq was-eobp (eobp)))
-		  (> (allout-recent-depth) ascender))
+		  (> allout-recent-depth ascender))
         (allout-next-heading))
                                         ; Prime ascender for ascension:
-      (setq ascender (1- (allout-recent-depth)))
-      (if (>= (allout-recent-depth) depth)
+      (setq ascender (1- allout-recent-depth))
+      (if (>= allout-recent-depth depth)
           (allout-rebullet-heading nil	;;; solicit
                                     nil	;;; depth
                                     nil	;;; number-control
                                     nil	;;; index
                                     t)) ;;; do-successors
       (if was-eobp (goto-char (point-max)))))
-  (allout-recent-depth))
+  allout-recent-depth)
 ;;;_    > allout-number-siblings (&optional denumber)
 (defun allout-number-siblings (&optional denumber)
   "Assign numbered topic prefix to this topic and its siblings.
@@ -3780,7 +4059,7 @@ rebulleting each topic at this level."
   (save-excursion
     (allout-back-to-current-heading)
     (allout-beginning-of-level)
-    (let ((depth (allout-recent-depth))
+    (let ((depth allout-recent-depth)
 	  (index (if (not denumber) 1))
           (use-bullet (equal '(16) denumber))
           (more t))
@@ -3794,55 +4073,84 @@ rebulleting each topic at this level."
         (setq more (allout-next-sibling depth nil))))))
 ;;;_    > allout-shift-in (arg)
 (defun allout-shift-in (arg)
-  "Increase depth of current heading and any topics collapsed within it.
+  "Increase depth of current heading and any items collapsed within it.
 
-We disallow shifts that would result in the topic having a depth more than
-one level greater than the immediately previous topic, to avoid containment
-discontinuity.  The first topic in the file can be adjusted to any positive
-depth, however."
+With a negative argument, the item is shifted out using
+`allout-shift-out', instead.
+
+With an argument greater than one, shift-in the item but not its
+offspring, making the item into a sibling of its former children,
+and a child of sibling that formerly preceeded it.
+
+You are not allowed to shift the first offspring of a topic
+inwards, because that would yield a \"containment
+discontinuity\", where the depth difference between a topic and
+its immediate offspring is greater than one.  The first topic in
+the file can be adjusted to any positive depth, however."
+
   (interactive "p")
-  (if (> arg 0)
-      ;; refuse to create a containment discontinuity:
-      (save-excursion
-        (allout-back-to-current-heading)
-        (if (not (bobp))
-            (let* ((current-depth (allout-recent-depth))
-                   (start-point (point))
-                   (predecessor-depth (progn
-                                        (forward-char -1)
-                                        (allout-goto-prefix)
-                                        (if (< (point) start-point)
-                                            (allout-recent-depth)
-                                          0))))
-              (if (and (> predecessor-depth 0)
-                       (> (+ current-depth arg)
-                          (1+ predecessor-depth)))
-                  (error (concat "Disallowed shift deeper than"
-                                 " containing topic's children.")))))))
-  (let ((where (point))
-        has-successor)
-    (if (and (< arg 0)
-             (allout-current-topic-collapsed-p)
-             (save-excursion (allout-next-sibling)))
-        (setq has-successor t))
-    (allout-rebullet-topic arg)
-    (when (< arg 0)
-      (save-excursion
-        (if (allout-ascend)
-            (allout-show-children)))
-      (if has-successor
-          (allout-show-children)))
-    (run-hook-with-args 'allout-structure-shifted-hook arg where)))
+  (if (< arg 0)
+      (allout-shift-out (* arg -1))
+    ;; refuse to create a containment discontinuity:
+    (save-excursion
+      (allout-back-to-current-heading)
+      (if (not (bobp))
+          (let* ((current-depth allout-recent-depth)
+                 (start-point (point))
+                 (predecessor-depth (progn
+                                      (forward-char -1)
+                                      (allout-goto-prefix-doublechecked)
+                                      (if (< (point) start-point)
+                                          allout-recent-depth
+                                        0))))
+            (if (and (> predecessor-depth 0)
+                     (> (1+ current-depth)
+                        (1+ predecessor-depth)))
+                (error (concat "Disallowed shift deeper than"
+                               " containing topic's children."))))))
+    (let ((where (point)))
+      (allout-rebullet-topic 1 (and (> arg 1) 'sans-offspring))
+      (run-hook-with-args 'allout-structure-shifted-hook arg where))))
 ;;;_    > allout-shift-out (arg)
 (defun allout-shift-out (arg)
   "Decrease depth of current heading and any topics collapsed within it.
+This will make the item a sibling of its former container.
 
-We disallow shifts that would result in the topic having a depth more than
-one level greater than the immediately previous topic, to avoid containment
-discontinuity.  The first topic in the file can be adjusted to any positive
-depth, however."
+With a negative argument, the item is shifted in using
+`allout-shift-in', instead.
+
+With an argument greater than one, shift-out the item's offspring
+but not the item itself, making the former children siblings of
+the item.
+
+With an argument greater than 1, the item's offspring are shifted
+out without shifting the item.  This will make the immediate
+subtopics into siblings of the item."
   (interactive "p")
-  (allout-shift-in (* arg -1)))
+  (if (< arg 0)
+      (allout-shift-in (* arg -1))
+    ;; Get proper exposure in this area:
+    (save-excursion (if (allout-ascend)
+                        (allout-show-children)))
+    ;; Show collapsed children if there's a successor which will become
+    ;; their sibling:
+    (if (and (allout-current-topic-collapsed-p)
+             (save-excursion (allout-next-sibling)))
+        (allout-show-children))
+    (let ((where (and (allout-depth) allout-recent-prefix-beginning)))
+      (save-excursion
+        (if (> arg 1)
+            ;; Shift the offspring but not the topic:
+            (let ((children-chart (allout-chart-subtree 1)))
+              (if (listp (car children-chart))
+                  ;; whoops:
+                  (setq children-chart (allout-flatten children-chart)))
+              (save-excursion
+                (dolist (child-point children-chart)
+                  (goto-char child-point)
+                  (allout-shift-out 1))))
+          (allout-rebullet-topic (* arg -1))))
+      (run-hook-with-args 'allout-structure-shifted-hook (* arg -1) where))))
 ;;;_   : Surgery (kill-ring) functions with special provisions for outlines:
 ;;;_    > allout-kill-line (&optional arg)
 (defun allout-kill-line (&optional arg)
@@ -3857,21 +4165,18 @@ depth, however."
       (kill-line arg)
     ;; Ah, have to watch out for adjustments:
     (let* ((beg (point))
+           end
            (beg-hidden (allout-hidden-p))
            (end-hidden (save-excursion (allout-end-of-current-line)
+                                       (setq end (point))
                                        (allout-hidden-p)))
-           (depth (allout-depth))
-           (collapsed (allout-current-topic-collapsed-p)))
+           (depth (allout-depth)))
 
-      (if collapsed
-          (put-text-property beg (1+ beg) 'allout-was-collapsed t)
-        (remove-text-properties beg (1+ beg) '(allout-was-collapsed t)))
+      (allout-annotate-hidden beg end)
 
       (if (and (not beg-hidden) (not end-hidden))
           (allout-unprotected (kill-line arg))
         (kill-line arg))
-                                        ; Provide some feedback:
-      (sit-for 0)
       (if allout-numbered-bullet
           (save-excursion               ; Renumber subsequent topics if needed:
             (if (not (looking-at allout-regexp))
@@ -3889,20 +4194,13 @@ Trailing whitespace is killed with a topic if that whitespace:
  - would not be added to whitespace already separating the topic from the
    previous one.
 
-Completely collapsed topics are marked as such, for re-collapse
-when yank with allout-yank into an outline as a heading."
-
-  ;; Some finagling is done to make complex topic kills appear faster
-  ;; than they actually are.  A redisplay is performed immediately
-  ;; after the region is deleted, though the renumbering process
-  ;; has yet to be performed.  This means that there may appear to be
-  ;; a lag *after* a kill has been performed.
+Topic exposure is marked with text-properties, to be used by
+allout-yank-processing for exposure recovery."
 
   (interactive)
   (let* ((inhibit-field-text-motion t)
-         (collapsed (allout-current-topic-collapsed-p))
          (beg (prog1 (allout-back-to-current-heading) (beginning-of-line)))
-         (depth (allout-recent-depth)))
+         (depth allout-recent-depth))
     (allout-end-of-current-subtree)
     (if (and (/= (current-column) 0) (not (eobp)))
         (forward-char 1))
@@ -3910,21 +4208,88 @@ when yank with allout-yank into an outline as a heading."
 	(if (and (looking-at "\n")
                  (or (save-excursion
                        (or (not (allout-next-heading))
-                           (= depth (allout-recent-depth))))
+                           (= depth allout-recent-depth)))
                      (and (> (- beg (point-min)) 3)
                           (string= (buffer-substring (- beg 2) beg) "\n\n"))))
 	    (forward-char 1)))
 
-    (if collapsed
-        (allout-unprotected
-         (put-text-property beg (1+ beg) 'allout-was-collapsed t))
-      (allout-unprotected
-       (remove-text-properties beg (1+ beg) '(allout-was-collapsed t))))
+    (allout-annotate-hidden beg (point))
+
     (allout-unprotected (kill-region beg (point)))
-    (sit-for 0)
     (save-excursion
       (allout-renumber-to-depth depth))
     (run-hook-with-args 'allout-structure-deleted-hook depth (point))))
+;;;_    > allout-annotate-hidden (begin end)
+(defun allout-annotate-hidden (begin end)
+  "Qualify text with properties to indicate exposure status."
+
+  (let ((was-modified (buffer-modified-p)))
+    (allout-unprotected
+     (remove-text-properties begin end '(allout-was-hidden t)))
+    (save-excursion
+      (goto-char begin)
+      (let (done next prev overlay)
+        (while (not done)
+          ;; at or advance to start of next hidden region:
+          (if (not (allout-hidden-p))
+              (setq next
+                    (next-single-char-property-change (point)
+                                                      'invisible nil end)))
+          (if (or (not next) (eq prev next))
+              ;; still not at start of hidden area - must not be any left.
+              (setq done t)
+            (goto-char next)
+            (setq prev next)
+            (if (not (allout-hidden-p))
+                ;; still not at start of hidden area.
+                (setq done t)
+              (setq overlay (allout-get-invisibility-overlay))
+              (setq next (overlay-end overlay)
+                    prev next)
+              ;; advance to end of this hidden area:
+              (when next
+                (goto-char next)
+                (allout-unprotected
+                 (put-text-property (overlay-start overlay) next
+                                    'allout-was-hidden t))))))))
+    (set-buffer-modified-p was-modified)))
+;;;_    > allout-hide-by-annotation (begin end)
+(defun allout-hide-by-annotation (begin end)
+  "Translate text properties indicating exposure status into actual exposure."
+  (save-excursion
+    (goto-char begin)
+    (let ((was-modified (buffer-modified-p))
+          done next prev)
+      (while (not done)
+        ;; at or advance to start of next annotation:
+        (if (not (get-text-property (point) 'allout-was-hidden))
+            (setq next (next-single-char-property-change (point)
+                                                         'allout-was-hidden
+                                                         nil end)))
+        (if (or (not next) (eq prev next))
+            ;; no more or not advancing - must not be any left.
+            (setq done t)
+          (goto-char next)
+          (setq prev next)
+          (if (not (get-text-property (point) 'allout-was-hidden))
+              ;; still not at start of annotation.
+              (setq done t)
+            ;; advance to just after end of this annotation:
+            (setq next (next-single-char-property-change (point)
+                                                         'allout-was-hidden
+                                                         nil end))
+            (overlay-put (make-overlay prev next)
+                         'category 'allout-exposure-category)
+            (allout-unprotected
+             (remove-text-properties prev next '(allout-was-hidden t)))
+            (setq prev next)
+            (if next (goto-char next)))))
+      (set-buffer-modified-p was-modified))))
+;;;_    > allout-remove-exposure-annotation (begin end)
+(defun allout-remove-exposure-annotation (begin end)
+  "Remove text properties indicating exposure status."
+  (remove-text-properties begin end '(allout-was-hidden t)))
+
 ;;;_    > allout-yank-processing ()
 (defun allout-yank-processing (&optional arg)
 
@@ -3955,12 +4320,10 @@ however, are left exactly like normal, non-allout-specific yanks."
    (let* ((subj-beg (point))
           (into-bol (bolp))
           (subj-end (allout-mark-marker t))
-          (was-collapsed (get-text-property subj-beg 'allout-was-collapsed))
           ;; 'resituate' if yanking an entire topic into topic header:
           (resituate (and (allout-e-o-prefix-p)
-                          (looking-at (concat "\\(" allout-regexp "\\)"))
-                          (allout-prefix-data (match-beginning 1)
-					      (match-end 1))))
+                          (looking-at allout-regexp)
+                          (allout-prefix-data)))
           ;; `rectify-numbering' if resituating (where several topics may
           ;; be resituating) or yanking a topic into a topic slot (bol):
           (rectify-numbering (or resituate
@@ -3968,7 +4331,7 @@ however, are left exactly like normal, non-allout-specific yanks."
      (if resituate
                                         ; The yanked stuff is a topic:
          (let* ((prefix-len (- (match-end 1) subj-beg))
-                (subj-depth (allout-recent-depth))
+                (subj-depth allout-recent-depth)
                 (prefix-bullet (allout-recent-bullet))
                 (adjust-to-depth
                  ;; Nil if adjustment unnecessary, otherwise depth to which
@@ -3982,15 +4345,13 @@ however, are left exactly like normal, non-allout-specific yanks."
                                (beginning-of-line)
                                (not (= (point) subj-beg)))
                              (looking-at allout-regexp)
-                             (allout-prefix-data (match-beginning 0)
-						 (match-end 0)))
-                        (allout-recent-depth))))
+                             (allout-prefix-data))
+                        allout-recent-depth)))
                 (more t))
            (setq rectify-numbering allout-numbered-bullet)
            (if adjust-to-depth
                                         ; Do the adjustment:
                (progn
-                 (message "... yanking") (sit-for 0)
                  (save-restriction
                    (narrow-to-region subj-beg subj-end)
                                         ; Trim off excessive blank
@@ -4006,7 +4367,7 @@ however, are left exactly like normal, non-allout-specific yanks."
                    (while more
                      (allout-back-to-current-heading)
                                         ; go as high as we can in each bunch:
-                     (while (allout-ascend-to-depth (1- (allout-depth))))
+                     (while (allout-ascend))
                      (save-excursion
                        (allout-rebullet-topic-grunt (- adjust-to-depth
 						       subj-depth))
@@ -4015,7 +4376,6 @@ however, are left exactly like normal, non-allout-specific yanks."
                          (progn (widen)
                                 (forward-char -1)
                                 (narrow-to-region subj-beg (point))))))
-                 (message "")
                  ;; Preserve new bullet if it's a distinctive one, otherwise
                  ;; use old one:
                  (if (string-match (regexp-quote prefix-bullet)
@@ -4042,19 +4402,19 @@ however, are left exactly like normal, non-allout-specific yanks."
          (progn
            (save-excursion
                                         ; Give some preliminary feedback:
-             (message "... reconciling numbers") (sit-for 0)
+             (message "... reconciling numbers")
                                         ; ... and renumber, in case necessary:
              (goto-char subj-beg)
-             (if (allout-goto-prefix)
+             (if (allout-goto-prefix-doublechecked)
                  (allout-rebullet-heading nil            ;;; solicit
 					  (allout-depth) ;;; depth
 					  nil            ;;; number-control
 					  nil            ;;; index
 					  t))
              (message ""))))
-     (when (and (or into-bol resituate) was-collapsed)
-       (remove-text-properties subj-beg (1+ subj-beg) '(allout-was-collapsed))
-       (allout-hide-current-subtree))
+     (if (or into-bol resituate)
+         (allout-hide-by-annotation (point) (allout-mark-marker t))
+       (allout-remove-exposure-annotation (allout-mark-marker t) (point)))
      (if (not resituate)
          (exchange-point-and-mark))
      (run-hook-with-args 'allout-structure-added-hook subj-beg subj-end))))
@@ -4139,7 +4499,7 @@ by pops to non-distinctive yanks.  Bug..."
                   (error "%s not found and can't be created" file-name)))
             (condition-case failure
                 (find-file-other-window file-name)
-              ('error failure))
+              (error failure))
           (error "%s not found" file-name))
         )
       )
@@ -4198,7 +4558,7 @@ the exposure."
   (interactive)
   (save-excursion
     (let (beg end)
-      (allout-goto-prefix)
+      (allout-goto-prefix-doublechecked)
       (setq beg (if (allout-hidden-p) (1- (point)) (point)))
       (setq end (allout-pre-next-prefix))
       (allout-flag-region beg end nil)
@@ -4235,8 +4595,27 @@ point of non-opened subtree?)"
       (save-excursion
         (allout-beginning-of-current-line)
         (save-restriction
-          (let* ((chart (allout-chart-subtree (or level 1)))
-                 (to-reveal (allout-chart-to-reveal chart (or level 1))))
+          (let* (depth
+                 (chart (allout-chart-subtree (or level 1)))
+                 (to-reveal (or (allout-chart-to-reveal chart (or level 1))
+                                ;; interactive, show discontinuous children:
+                                (and chart
+                                     (interactive-p)
+                                     (save-excursion
+                                       (allout-back-to-current-heading)
+                                       (setq depth (allout-current-depth))
+                                       (and (allout-next-heading)
+                                            (> allout-recent-depth
+                                               (1+ depth))))
+                                     (message
+                                      "Discontinuous offspring; use `%s %s'%s."
+                                      (substitute-command-keys
+                                       "\\[universal-argument]")
+                                      (substitute-command-keys
+                                       "\\[allout-shift-out]")
+                                      " to elevate them.")
+                                     (allout-chart-to-reveal
+                                      chart (- allout-recent-depth depth))))))
             (goto-char start-point)
             (when (and strict (allout-hidden-p))
               ;; Concealed root would already have been taken care of,
@@ -4267,14 +4646,12 @@ Useful for coherently exposing to a random point in a hidden region."
   (save-excursion
     (let ((inhibit-field-text-motion t)
           (orig-pt (point))
-	  (orig-pref (allout-goto-prefix))
+	  (orig-pref (allout-goto-prefix-doublechecked))
 	  (last-at (point))
 	  bag-it)
       (while (or bag-it (allout-hidden-p))
         (while (allout-hidden-p)
-          ;; XXX We would use `(move-beginning-of-line 1)', but it gets
-          ;; stuck on hidden newlines at column 80, as of GNU Emacs 22.0.50.
-          (beginning-of-line)
+          (move-beginning-of-line 1)
           (if (allout-hidden-p) (forward-char -1)))
 	(if (= last-at (setq last-at (point)))
 	    ;; Oops, we're not making any progress!  Show the current
@@ -4286,9 +4663,9 @@ Useful for coherently exposing to a random point in a hidden region."
 		   (beep)
 		   (message "%s: %s"
 			    "allout-show-to-offshoot: "
-			    "Aberrant nesting encountered.")))
-	(allout-show-children)
-	(goto-char orig-pref))
+			    "Aberrant nesting encountered."))
+          (allout-show-children)
+          (goto-char orig-pref)))
       (goto-char orig-pt)))
   (if (allout-hidden-p)
       (allout-show-entry)))
@@ -4368,10 +4745,10 @@ siblings, even if the target topic is already closed."
          (current-exposed (not (allout-current-topic-collapsed-p t))))
     (cond (current-exposed (allout-flag-current-subtree t))
           (just-close nil)
-          ((allout-up-current-level 1 t) (allout-hide-current-subtree))
+          ((allout-ascend) (allout-hide-current-subtree))
           (t (goto-char 0)
              (message sibs-msg)
-             (allout-goto-prefix)
+             (allout-goto-prefix-doublechecked)
              (allout-expose-topic '(0 :))
              (message (concat sibs-msg "  Done."))))
     (goto-char from)))
@@ -4636,7 +5013,7 @@ Examples:
 	level, and expose children of subsequent topics at current
 	level *except* for the last, which should be opened completely."
   (list 'save-excursion
-	'(if (not (or (allout-goto-prefix)
+	'(if (not (or (allout-goto-prefix-doublechecked)
 		      (allout-next-heading)))
 	     (error "allout-new-exposure: Can't find any outline topics"))
 	(list 'allout-expose-topic (list 'quote spec))))
@@ -4758,20 +5135,20 @@ header and body.  The elements of that list are:
       (goto-char start)
       (beginning-of-line)
       ;; Goto initial topic, and register preceeding stuff, if any:
-      (if (> (allout-goto-prefix) start)
+      (if (> (allout-goto-prefix-doublechecked) start)
 	  ;; First topic follows beginning point - register preliminary stuff:
 	  (setq result (list (list 0 "" nil
 				   (buffer-substring start (1- (point)))))))
       (while (and (not done)
 		  (not (eobp))		; Loop until we've covered the region.
 		  (not (> (point) end)))
-	(setq depth (allout-recent-depth) 	; Current topics depth,
+	(setq depth allout-recent-depth 	; Current topics depth,
 	      bullet (allout-recent-bullet)	; ... bullet,
 	      prefix (allout-recent-prefix)
 	      beg (progn (allout-end-of-prefix t) (point))) ; and beginning.
 	(setq done			; The boundary for the current topic:
 	      (not (allout-next-visible-heading 1)))
-	(setq new-depth (allout-recent-depth))
+	(setq new-depth allout-recent-depth)
 	(setq gone-out out
 	      out (< new-depth depth))
 	(beginning-of-line)
@@ -5040,10 +5417,10 @@ environment.  Leaves point at the end of the line."
                                 ;;"\\\\\\|\\{\\|\\}\\|\\_\\|\\$\\|\\\"\\|\\&\\|\\^\\|\\-\\|\\*\\|#"
                                 end	; bounded by end-of-line
                                 1)   ; no matches, move to end & return nil
-        (goto-char (match-beginning 0))
+        (goto-char (match-beginning 2))
         (insert "\\")
         (setq end (1+ end))
-        (goto-char (1+ (match-end 0)))))))
+        (goto-char (1+ (match-end 2)))))))
 ;;;_   > allout-insert-latex-header (buffer)
 (defun allout-insert-latex-header (buffer)
   "Insert initial LaTeX commands at point in BUFFER."
@@ -5089,7 +5466,7 @@ environment.  Leaves point at the end of the line."
 		       (allout-latex-verb-quote (if allout-title
 						(condition-case nil
 						    (eval allout-title)
-						  ('error "<unnamed buffer>"))
+						  (error "<unnamed buffer>"))
 					      "Unnamed Outline"))
 		       "}\n"
 		       "\\end{center}\n\n"))
@@ -5228,7 +5605,7 @@ auto-encryption specifics.
 default to symmetric encryption - you must manually \(re)encrypt key-pair
 encrypted topics if you want them to continue to use the key-pair cipher.
 
-Level-1 topics, with prefix consisting solely of an `*' asterisk, cannot be
+Level-one topics, with prefix consisting solely of an `*' asterisk, cannot be
 encrypted.  If you want to encrypt the contents of a top-level topic, use
 \\[allout-shift-in] to increase its depth.
 
@@ -5291,12 +5668,13 @@ See `allout-toggle-current-subtree-encryption' for more details."
   (save-excursion
     (allout-end-of-prefix t)
 
-    (if (= (allout-recent-depth) 1)
+    (if (= allout-recent-depth 1)
         (error (concat "Cannot encrypt or decrypt level 1 topics -"
                        " shift it in to make it encryptable")))
 
     (let* ((allout-buffer (current-buffer))
            ;; Asses location:
+           (bullet-pos allout-recent-prefix-beginning)
            (after-bullet-pos (point))
            (was-encrypted
             (progn (if (= (point-max) after-bullet-pos)
@@ -5362,12 +5740,9 @@ See `allout-toggle-current-subtree-encryption' for more details."
                     (delete-char 1))
            ;; Add the is-encrypted bullet qualifier:
            (goto-char after-bullet-pos)
-           (insert "*"))
-         )
-       )
-      )
-    )
-  )
+           (insert "*"))))
+      (run-hook-with-args 'allout-exposure-changed-hook
+                          bullet-pos subtree-end nil))))
 ;;;_  > allout-encrypt-string (text decrypt allout-buffer key-type for-key
 ;;;                                  fetch-pass &optional retried verifying
 ;;;                                  passphrase)
@@ -5512,7 +5887,8 @@ Returns the resulting string, or nil if the transformation fails."
                      (error "decryption failed")))))
 
           (setq result-text
-                (buffer-substring 1 (- (point-max) (if decrypt 0 1))))
+                (buffer-substring-no-properties
+                 1 (- (point-max) (if decrypt 0 1))))
           )
 
         ;; validate result - non-empty
@@ -5924,17 +6300,8 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
   )
 
 ;;;_ #9 miscellaneous
-;;;_  > allout-mark-topic ()
-(defun allout-mark-topic ()
-  "Put the region around topic currently containing point."
-  (interactive)
-  (let ((inhibit-field-text-motion t))
-    (beginning-of-line))
-  (allout-goto-prefix)
-  (push-mark (point))
-  (allout-end-of-current-subtree)
-  (exchange-point-and-mark))
-;;;_  > outlineify-sticky ()
+;;;_  : Mode:
+;;;_   > outlineify-sticky ()
 ;; outlinify-sticky is correct spelling; provide this alias for sticklers:
 ;;;###autoload
 (defalias 'outlinify-sticky 'outlineify-sticky)
@@ -5958,7 +6325,7 @@ setup for auto-startup."
                       "`allout-mode' docstring: `^Hm'."))
       (allout-adjust-file-variable
        "allout-layout" (or allout-layout '(-1 : 0))))))
-;;;_  > allout-file-vars-section-data ()
+;;;_   > allout-file-vars-section-data ()
 (defun allout-file-vars-section-data ()
   "Return data identifying the file-vars section, or nil if none.
 
@@ -5986,7 +6353,7 @@ Returns list `(beginning-point prefix-string suffix-string)'."
       )
     )
   )
-;;;_  > allout-adjust-file-variable (varname value)
+;;;_   > allout-adjust-file-variable (varname value)
 (defun allout-adjust-file-variable (varname value)
   "Adjust the setting of an emacs file variable named VARNAME to VALUE.
 
@@ -6050,7 +6417,38 @@ enable-local-variables must be true for any of this to happen."
       )
     )
   )
-;;;_  > solicit-char-in-string (prompt string &optional do-defaulting)
+;;;_   > allout-get-configvar-values (varname)
+(defun allout-get-configvar-values (configvar-name)
+  "Return a list of values of the symbols in list bound to CONFIGVAR-NAME.
+
+The user is prompted for removal of symbols that are unbound, and they
+otherwise are ignored.
+
+CONFIGVAR-NAME should be the name of the configuration variable,
+not its value."
+
+  (let ((configvar-value (symbol-value configvar-name))
+        got)
+    (dolist (sym configvar-value)
+      (if (not (boundp sym))
+          (if (yes-or-no-p (format "%s entry `%s' is unbound - remove it? "
+                                   configvar-name sym))
+              (delq sym (symbol-value configvar-name)))
+        (push (symbol-value sym) got)))
+    (reverse got)))
+;;;_  : Topics:
+;;;_   > allout-mark-topic ()
+(defun allout-mark-topic ()
+  "Put the region around topic currently containing point."
+  (interactive)
+  (let ((inhibit-field-text-motion t))
+    (beginning-of-line))
+  (allout-goto-prefix-doublechecked)
+  (push-mark (point))
+  (allout-end-of-current-subtree)
+  (exchange-point-and-mark))
+;;;_  : UI:
+;;;_   > solicit-char-in-string (prompt string &optional do-defaulting)
 (defun solicit-char-in-string (prompt string &optional do-defaulting)
   "Solicit (with first arg PROMPT) choice of a character from string STRING.
 
@@ -6083,7 +6481,8 @@ Optional arg DO-DEFAULTING indicates to accept empty input (CR)."
       ;; got something out of loop - return it:
       got)
   )
-;;;_  > regexp-sans-escapes (string)
+;;;_  : Strings:
+;;;_   > regexp-sans-escapes (string)
 (defun regexp-sans-escapes (regexp &optional successive-backslashes)
   "Return a copy of REGEXP with all character escapes stripped out.
 
@@ -6106,7 +6505,7 @@ Optional arg SUCCESSIVE-BACKSLASHES is used internally for recursion."
 		(regexp-sans-escapes (substring regexp 1)))
       ;; Exclude first char, but maintain count:
       (regexp-sans-escapes (substring regexp 1) successive-backslashes))))
-;;;_  > count-trailing-whitespace-region (beg end)
+;;;_   > count-trailing-whitespace-region (beg end)
 (defun count-trailing-whitespace-region (beg end)
   "Return number of trailing whitespace chars between BEG and END.
 
@@ -6117,29 +6516,25 @@ If BEG is bigger than END we return 0."
       (goto-char beg)
       (let ((count 0))
         (while (re-search-forward "[ 	][ 	]*$" end t)
-          (goto-char (1+ (match-beginning 0)))
+          (goto-char (1+ (match-beginning 2)))
           (setq count (1+ count)))
         count))))
-;;;_  > allout-get-configvar-values (varname)
-(defun allout-get-configvar-values (configvar-name)
-  "Return a list of values of the symbols in list bound to CONFIGVAR-NAME.
-
-The user is prompted for removal of symbols that are unbound, and they
-otherwise are ignored.
-
-CONFIGVAR-NAME should be the name of the configuration variable,
-not its value."
-
-  (let ((configvar-value (symbol-value configvar-name))
-        got)
-    (dolist (sym configvar-value)
-      (if (not (boundp sym))
-          (if (yes-or-no-p (format "%s entry `%s' is unbound - remove it? "
-                                   configvar-name sym))
-              (delq sym (symbol-value configvar-name)))
-        (push (symbol-value sym) got)))
-    (reverse got)))
-;;;_  > allout-mark-marker to accommodate divergent emacsen:
+;;;_   > allout-format-quote (string)
+(defun allout-format-quote (string)
+  "Return a copy of string with all \"%\" characters doubled."
+  (apply 'concat
+         (mapcar (lambda (char) (if (= char ?%) "%%" (char-to-string char)))
+                 string)))
+;;;_  : lists
+;;;_   > allout-flatten (list)
+(defun allout-flatten (list)
+  "Return a list of all atoms in list."
+  ;; classic.
+  (cond ((null list) nil)
+        ((atom (car list)) (cons (car list) (flatten (cdr list))))
+        (t (append (flatten (car list)) (flatten (cdr list))))))
+;;;_  : Compatability:
+;;;_   > allout-mark-marker to accommodate divergent emacsen:
 (defun allout-mark-marker (&optional force buffer)
   "Accommodate the different signature for `mark-marker' across Emacsen.
 
@@ -6148,7 +6543,7 @@ so pass them along when appropriate."
   (if (featurep 'xemacs)
       (apply 'mark-marker force buffer)
     (mark-marker)))
-;;;_  > subst-char-in-string if necessary
+;;;_   > subst-char-in-string if necessary
 (if (not (fboundp 'subst-char-in-string))
     (defun subst-char-in-string (fromchar tochar string &optional inplace)
       "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
@@ -6160,10 +6555,10 @@ Unless optional argument INPLACE is non-nil, return a new string."
           (if (eq (aref newstr i) fromchar)
               (aset newstr i tochar)))
         newstr)))
-;;;_  > wholenump if necessary
+;;;_   > wholenump if necessary
 (if (not (fboundp 'wholenump))
     (defalias 'wholenump 'natnump))
-;;;_  > remove-overlays if necessary
+;;;_   > remove-overlays if necessary
 (if (not (fboundp 'remove-overlays))
     (defun remove-overlays (&optional beg end name val)
       "Clear BEG and END of overlays whose property NAME has value VAL.
@@ -6190,7 +6585,7 @@ BEG and END default respectively to the beginning and end of buffer."
                   (move-overlay o end (overlay-end o))
                 (delete-overlay o)))))))
   )
-;;;_  > copy-overlay if necessary - xemacs ~ 21.4
+;;;_   > copy-overlay if necessary - xemacs ~ 21.4
 (if (not (fboundp 'copy-overlay))
     (defun copy-overlay (o)
       "Return a copy of overlay O."
@@ -6202,7 +6597,7 @@ BEG and END default respectively to the beginning and end of buffer."
         (while props
           (overlay-put o1 (pop props) (pop props)))
         o1)))
-;;;_  > add-to-invisibility-spec if necessary - xemacs ~ 21.4
+;;;_   > add-to-invisibility-spec if necessary - xemacs ~ 21.4
 (if (not (fboundp 'add-to-invisibility-spec))
     (defun add-to-invisibility-spec (element)
       "Add ELEMENT to `buffer-invisibility-spec'.
@@ -6212,14 +6607,14 @@ that can be added."
           (setq buffer-invisibility-spec (list t)))
       (setq buffer-invisibility-spec
             (cons element buffer-invisibility-spec))))
-;;;_  > remove-from-invisibility-spec if necessary - xemacs ~ 21.4
+;;;_   > remove-from-invisibility-spec if necessary - xemacs ~ 21.4
 (if (not (fboundp 'remove-from-invisibility-spec))
     (defun remove-from-invisibility-spec (element)
       "Remove ELEMENT from `buffer-invisibility-spec'."
       (if (consp buffer-invisibility-spec)
           (setq buffer-invisibility-spec (delete element
                                                  buffer-invisibility-spec)))))
-;;;_  > move-beginning-of-line if necessary - older emacs, xemacs
+;;;_   > move-beginning-of-line if necessary - older emacs, xemacs
 (if (not (fboundp 'move-beginning-of-line))
     (defun move-beginning-of-line (arg)
       "Move point to beginning of current line as displayed.
@@ -6243,7 +6638,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
         (skip-chars-backward "^\n"))
       (vertical-motion 0))
 )
-;;;_  > move-end-of-line if necessary - older emacs, xemacs
+;;;_   > move-end-of-line if necessary - older emacs, xemacs
 (if (not (fboundp 'move-end-of-line))
     (defun move-end-of-line (arg)
       "Move point to end of current line as displayed.
@@ -6283,7 +6678,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
                   (setq arg 1)
                 (setq done t)))))))
   )
-;;;_  > line-move-invisible-p if necessary
+;;;_   > line-move-invisible-p if necessary
 (if (not (fboundp 'line-move-invisible-p))
     (defun line-move-invisible-p (pos)
       "Return non-nil if the character after POS is currently invisible."
