@@ -1,3 +1,10 @@
+2006-09-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-splash-text): Move editing instructions to
+	fancy-splash-head.
+	(fancy-splash-head): Issue editing instructions.
+	(fancy-splash-screens): Fixup whitespace.
+
 2006-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bindings.el (mode-line-buffer-identification-keymap):

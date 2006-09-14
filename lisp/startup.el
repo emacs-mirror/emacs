@@ -1113,10 +1113,7 @@ regardless of the value of this variable."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar fancy-splash-text
-  '((:face variable-pitch
-	   "You can do basic editing with the menu bar and scroll bar \
-using the mouse.\n\n"
-	   :face (variable-pitch :weight bold)
+  '((:face (variable-pitch :weight bold)
 	   "Important Help menu items:\n"
 	   :face variable-pitch
            (lambda ()
@@ -1149,14 +1146,12 @@ Read the Emacs Manual\tView the Emacs manual using Info
 Copying Conditions\tConditions for redistributing and changing Emacs
 Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
-  (:face variable-pitch
-	   "You can do basic editing with the menu bar and scroll bar \
-using the mouse.\n\n"
-	   :face (variable-pitch :weight bold)
-	   "Useful File menu items:\n"
-	   :face variable-pitch "\
+  (:face (variable-pitch :weight bold)
+	 "Useful File menu items:\n"
+	 :face variable-pitch "\
 Exit Emacs\t(Or type Control-x followed by Control-c)
 Recover Crashed Session\tRecover files you were editing before a crash
+
 
 
 
@@ -1265,6 +1260,10 @@ where FACE is a valid face specification, as it can be used with
        "GNU Emacs is one component of the GNU/Linux operating system."
      "GNU Emacs is one component of the GNU operating system."))
   (insert "\n")
+  (fancy-splash-insert
+   :face 'variable-pitch
+   "You can do basic editing with the menu bar and scroll bar \
+using the mouse.\n\n")
   (if fancy-splash-outer-buffer
       (fancy-splash-insert
        :face 'variable-pitch
@@ -1400,7 +1399,11 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
     (let (fancy-splash-outer-buffer)
       (fancy-splash-head)
       (dolist (text fancy-splash-text)
-	(apply #'fancy-splash-insert text))
+	(apply #'fancy-splash-insert text)
+	(insert "\n"))
+      (skip-chars-backward "\n")
+      (delete-region (point) (point-max))
+      (insert "\n")
       (fancy-splash-tail)
       (set-buffer-modified-p nil)
       (setq buffer-read-only t)
