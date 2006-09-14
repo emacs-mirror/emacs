@@ -1,3 +1,10 @@
+2006-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (produce_image_glyph): Automatically crop wide images at
+	right window edge so we can draw the cursor on the same row to
+	avoid confusing redisplay by placing the cursor outside the visible
+	window area.
+
 2006-09-13  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>
 
 	* xterm.c (x_initialize): Don't install Xt event timer here.
