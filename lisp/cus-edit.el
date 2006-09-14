@@ -389,7 +389,7 @@
   :link '(custom-manual "(emacs)Undo")
   :group 'editing)
 
-(defgroup modeline nil
+(defgroup mode-line nil
   "Content of the modeline."
   :group 'environment)
 
