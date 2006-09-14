@@ -19786,7 +19786,7 @@ produce_image_glyph (it)
 {
   struct image *img;
   struct face *face;
-  int glyph_ascent;
+  int glyph_ascent, crop;
   struct glyph_slice slice;
 
   xassert (it->what == IT_IMAGE);
@@ -19893,6 +19893,15 @@ produce_image_glyph (it)
     }
 
   take_vertical_position_into_account (it);
+
+  /* Automatically crop wide image glyphs at right edge so we can
+     draw the cursor on same display row.  */
+  if ((crop = it->pixel_width - (it->last_visible_x - it->current_x), crop > 0)
+      && (it->hpos == 0 || it->pixel_width > it->last_visible_x / 4))
+    {
+      it->pixel_width -= crop;
+      slice.width -= crop;
+    }
 
   if (it->glyph_row)
     {
