@@ -56,8 +56,6 @@ Windows only bug.
 
 ** david.hansen@physik.fu-berlin.de: WoMan Bug, Sep 13.
 
-** allout.el patch from Manheimer to be installed.
-
 ** regex char class matching needs a call to char-syntax.
 
 ** regex char class matching breaks if you change entries
