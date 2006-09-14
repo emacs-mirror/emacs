@@ -397,18 +397,18 @@ Defaults to the whole buffer.  END can be out of bounds."
            ;; eagerly extend the refontified region with
            ;; jit-lock-after-change-extend-region-functions.
            (when (< start orig-start)
-             (lexical-let ((start start)
-                           (orig-start orig-start)
-                           (buf (current-buffer)))
-               (run-with-timer
-                0 nil (lambda ()
-                        (with-current-buffer buf
-                          (with-buffer-prepared-for-jit-lock
-                              (put-text-property start orig-start
-                                                 'fontified t)))))))
+	     (run-with-timer 0 nil 'jit-lock-fontify-again
+			     (current-buffer) start orig-start))
 
 	   ;; Find the start of the next chunk, if any.
 	   (setq start (text-property-any next end 'fontified nil))))))))
+
+(defun jit-lock-fontify-again (buf start end)
+  "Fontify in buffer BUF from START to END."
+  (with-current-buffer buf
+    (with-buffer-prepared-for-jit-lock
+     (put-text-property start end 'fontified t))))
+
 
 
 ;;; Stealth fontification.
