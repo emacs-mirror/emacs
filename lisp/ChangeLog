@@ -1,3 +1,8 @@
+2006-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (mode-line-buffer-identification-keymap):
+	Remove duplicate line.
+
 2006-09-14  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* ido.el (ido-ignore-item-p): Allow any kind of functions in
@@ -21,7 +26,8 @@
 
 2006-09-13  Richard Stallman  <rms@gnu.org>
 
-	* thingatpt.el (thing-at-point-bounds-of-url-at-point): Delete spurious backquote.
+	* thingatpt.el (thing-at-point-bounds-of-url-at-point):
+	Delete spurious backquote.
 
 2006-09-07  Ryan Yeske  <rcyeske@gmail.com>
 
