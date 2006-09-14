@@ -1388,7 +1388,7 @@ name, or nil if there is no such user.  */)
 }
 
 DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
-       doc: /* Return the name of the machine you are running on, as a string.  */)
+       doc: /* Return the host name of the machine you are running on, as a string.  */)
      ()
 {
   return Vsystem_name;
@@ -1692,7 +1692,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 				SBYTES (format_string),
 				tm, ut);
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
-	return code_convert_string_norecord (make_string (buf, result),
+	return code_convert_string_norecord (make_unibyte_string (buf, result),
 					     Vlocale_coding_system, 0);
 
       /* If buffer was too small, make it bigger and try again.  */
@@ -3310,6 +3310,9 @@ The message also goes into the `*Messages*' buffer.
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
+Note: Use (message "%s" VALUE) to print the value of expressions and
+variables to avoid accidentally interpreting `%' as format specifiers.
+
 If the first argument is nil or the empty string, the function clears
 any existing message; this lets the minibuffer contents show.  See
 also `current-message'.
@@ -4514,7 +4517,7 @@ functions if all the text being accessed has this property.  */);
   Vbuffer_access_fontified_property = Qnil;
 
   DEFVAR_LISP ("system-name", &Vsystem_name,
-	       doc: /* The name of the machine Emacs is running on.  */);
+	       doc: /* The host name of the machine Emacs is running on.  */);
 
   DEFVAR_LISP ("user-full-name", &Vuser_full_name,
 	       doc: /* The full name of the user logged in.  */);

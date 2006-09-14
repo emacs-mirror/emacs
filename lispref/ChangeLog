@@ -1,3 +1,36 @@
+2006-09-11  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Display Table Format): Wording clarification.
+	(Glyphs): Clarifications.
+
+2006-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Active Keymaps): Mention that key-binding checks
+	local maps.
+
+2006-09-10  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Document return value of
+	function redisplay.
+
+2006-09-09  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Window Hooks): Explain limits of
+	window-scroll-functions.
+
+	* display.texi (Fringe Indicators): Update for last change in
+	indicate-buffer-boundaries.
+
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Bindat Spec): Suggest names ending in -bindat-spec.
+
+2006-09-06  Kim F. Storm  <storm@cua.dk>
+
+	* frames.texi (Display Feature Testing): display-mm-dimensions-alist.
+
+	* windows.texi (Window Start): Update pos-visible-in-window-p.
+
 2006-09-04  Richard Stallman  <rms@gnu.org>
 
 	* processes.texi (Accepting Output): Explain SECONDS=0 for

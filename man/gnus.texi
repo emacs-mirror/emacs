@@ -6348,9 +6348,9 @@ articles younger than that number of days.
 @item / n
 @kindex / n (Summary)
 @findex gnus-summary-limit-to-articles
-Limit the summary buffer to the current article
-(@code{gnus-summary-limit-to-articles}).  Uses the process/prefix
-convention (@pxref{Process/Prefix}).
+With prefix @samp{n}, limit the summary buffer to the next @samp{n}
+articles.  If not given a prefix, use the process marked articles
+instead.  (@code{gnus-summary-limit-to-articles}).
 
 @item / w
 @kindex / w (Summary)
@@ -13633,16 +13633,17 @@ and says what authentication scheme to use.  The default is
 @vindex pop3-movemail
 @vindex pop3-leave-mail-on-server
 If the @code{:program} and @code{:function} keywords aren't specified,
-@code{pop3-movemail} will be used.  If the
-@code{pop3-leave-mail-on-server} is non-@code{nil} the mail is to be
-left on the @acronym{POP} server after fetching when using
-@code{pop3-movemail}.  Note that POP servers maintain no state
-information between sessions, so what the client believes is there and
-what is actually there may not match up.  If they do not, then the whole
-thing can fall apart and leave you with a corrupt mailbox.
+@code{pop3-movemail} will be used.  If @code{pop3-leave-mail-on-server}
+is non-@code{nil} the mail is to be left on the @acronym{POP} server
+after fetching when using @code{pop3-movemail}.  Note that POP servers
+maintain no state information between sessions, so what the client
+believes is there and what is actually there may not match up.  If they
+do not, then you may get duplicate mails or the whole thing can fall
+apart and leave you with a corrupt mailbox.
 
-Here are some examples.  Fetch from the default @acronym{POP} server,
-using the default user name, and default fetcher:
+Here are some examples for getting mail from a @acronym{POP} server.
+Fetch from the default @acronym{POP} server, using the default user
+name, and default fetcher:
 
 @lisp
 (pop)
@@ -22183,7 +22184,7 @@ The variable that controls this is the
 @code{gnus-article-x-face-command} variable.  If this variable is a
 string, this string will be executed in a sub-shell.  If it is a
 function, this function will be called with the face as the argument.
-If the @code{gnus-article-x-face-too-ugly} (which is a regexp) matches
+If @code{gnus-article-x-face-too-ugly} (which is a regexp) matches
 the @code{From} header, the face will not be shown.
 
 (Note: @code{x-face} is used in the variable/function names, not

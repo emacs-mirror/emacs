@@ -1001,17 +1001,16 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
-  if (NULL_INTERVAL_P (next))
+  if (NULL_INTERVAL_P (next)
+      || (next->position
+	  >= (INTEGERP (limit)
+	      ? XFASTINT (limit)
+	      : (STRINGP (object)
+		 ? SCHARS (object)
+		 : BUF_ZV (XBUFFER (object))))))
     return limit;
-  if (NILP (limit))
-    XSETFASTINT (limit, (STRINGP (object)
-			 ? SCHARS (object)
-			 : BUF_ZV (XBUFFER (object))));
-  if (!(next->position < XFASTINT (limit)))
-    return limit;
-
-  XSETFASTINT (position, next->position);
-  return position;
+  else
+    return make_number (next->position);
 }
 
 /* Return 1 if there's a change in some property between BEG and END.  */
@@ -1083,16 +1082,16 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
-  if (NULL_INTERVAL_P (next))
+  if (NULL_INTERVAL_P (next)
+      || (next->position
+	  >= (INTEGERP (limit)
+	      ? XFASTINT (limit)
+	      : (STRINGP (object)
+		 ? SCHARS (object)
+		 : BUF_ZV (XBUFFER (object))))))
     return limit;
-  if (NILP (limit))
-    XSETFASTINT (limit, (STRINGP (object)
-			 ? SCHARS (object)
-			 : BUF_ZV (XBUFFER (object))));
-  if (!(next->position < XFASTINT (limit)))
-    return limit;
-
-  return make_number (next->position);
+  else
+    return make_number (next->position);
 }
 
 DEFUN ("previous-property-change", Fprevious_property_change,
@@ -1132,14 +1131,15 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
 	 && (NILP (limit)
 	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
-  if (NULL_INTERVAL_P (previous))
-    return limit;
-  if (NILP (limit))
-    XSETFASTINT (limit, (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))));
-  if (!(previous->position + LENGTH (previous) > XFASTINT (limit)))
-    return limit;
 
-  return make_number (previous->position + LENGTH (previous));
+  if (NULL_INTERVAL_P (previous)
+      || (previous->position + LENGTH (previous)
+	  <= (INTEGERP (limit)
+	      ? XFASTINT (limit)
+	      : (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))))))
+    return limit;
+  else
+    return make_number (previous->position + LENGTH (previous));
 }
 
 DEFUN ("previous-single-property-change", Fprevious_single_property_change,
@@ -1184,14 +1184,15 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
 	 && (NILP (limit)
 	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
-  if (NULL_INTERVAL_P (previous))
-    return limit;
-  if (NILP (limit))
-    XSETFASTINT (limit, (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))));
-  if (!(previous->position + LENGTH (previous) > XFASTINT (limit)))
-    return limit;
 
-  return make_number (previous->position + LENGTH (previous));
+  if (NULL_INTERVAL_P (previous)
+      || (previous->position + LENGTH (previous)
+	  <= (INTEGERP (limit)
+	      ? XFASTINT (limit)
+	      : (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))))))
+    return limit;
+  else
+    return make_number (previous->position + LENGTH (previous));
 }
 
 /* Callers note, this can GC when OBJECT is a buffer (or nil).  */

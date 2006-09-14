@@ -67,7 +67,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'compile)
-  (require 'comint))
+  (require 'comint)
+  (require 'hippie-exp))
 
 (autoload 'comint-mode "comint")
 
@@ -95,7 +96,9 @@
 	     "import" "in" "is" "lambda" "not" "or" "pass" "print"
 	     "raise" "return" "try" "while" "yield"
 	     ;; Future keywords
-	     "as" "None")
+	     "as" "None"
+             ;; Not real keywords, but close enough to be fontified as such
+             "self" "True" "False")
 	 symbol-end)
     ;; Definitions
     (,(rx symbol-start (group "class") (1+ space) (group (1+ (or word ?_))))
@@ -1424,11 +1427,13 @@ COMMAND should be a single statement."
   "Evaluate STRING in inferior Python process."
   (interactive "sPython command: ")
   (comint-send-string (python-proc) string)
-  (comint-send-string (python-proc)
-                      ;; If the string is single-line or if it ends with \n,
-                      ;; only add a single \n, otherwise add 2, so as to
-                      ;; make sure we terminate the multiline instruction.
-                      (if (string-match "\n.+\\'" string) "\n\n" "\n")))
+  (unless (string-match "\n\\'" string)
+    ;; Make sure the text is properly LF-terminated.
+    (comint-send-string (python-proc) "\n"))
+  (when (string-match "\n[ \t].*\n?\\'" string)
+    ;; If the string contains a final indented line, add a second newline so
+    ;; as to make sure we terminate the multiline instruction.
+    (comint-send-string (python-proc) "\n")))
 
 (defun python-send-buffer ()
   "Send the current buffer to the inferior Python process."

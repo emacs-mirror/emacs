@@ -1259,6 +1259,7 @@ SWITCHED is non-nil if the patch is already applied."
 		   (t "Hunk %s at offset %d lines"))
 	     msg line-offset)))
 
+(defvar diff-apply-hunk-to-backup-file nil)
 
 (defun diff-apply-hunk (&optional reverse)
   "Apply the current hunk to the source file and go to the next.
@@ -1275,6 +1276,17 @@ With a prefix argument, REVERSE the hunk."
     (cond
      ((null line-offset)
       (error "Can't find the text to patch"))
+     ((with-current-buffer buf
+        (and buffer-file-name
+             (backup-file-name-p buffer-file-name)
+             (not diff-apply-hunk-to-backup-file)
+             (not (set (make-local-variable 'diff-apply-hunk-to-backup-file)
+                       (yes-or-no-p (format "Really apply this hunk to %s? "
+                                            (file-name-nondirectory
+                                             buffer-file-name)))))))
+      (error (substitute-command-keys
+              (format "Use %s\\[diff-apply-hunk] to apply it to the other file"
+                      (if (not reverse) "\\[universal-argument] ")))))
      ((and switched
 	   ;; A reversed patch was detected, perhaps apply it in reverse.
 	   (not (save-window-excursion

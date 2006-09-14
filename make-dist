@@ -120,8 +120,7 @@ if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/version.el ]; then
 fi
 
 ### Find where to run Emacs.
-### (We don't accept EMACS=t as an answer, since that probably only means
-### that the shell is running in an Emacs window.)
+### (Accept only absolute file names.)
 if [ $update = yes ];
 then
   unset EMACS_UNIBYTE
@@ -129,11 +128,15 @@ then
   then
     EMACS=`pwd`/src/emacs
   else
-    if [ "x$EMACS" = "x" -o "x$EMACS" = "xt" ];
-    then
-      echo You must specify the EMACS environment variable 2>&1
-      exit 1
-    fi
+    case $EMACS in
+      /*) ;;
+      *)
+	if [ ! -f "$EMACS" ]; then
+	  echo "$0: You must specify the EMACS environment variable " \
+	       "to an absolute file name." 2>&1
+	  exit 1
+	fi;;
+    esac
   fi
 fi
 

@@ -2381,22 +2381,23 @@ If PROMPT (the prefix), prompt for a coding system to use."
 			   (error))
 			 gnus-newsgroup-ignored-charsets))
 	(inhibit-read-only t)
-	start)
-    (save-restriction
-      (article-narrow-to-head)
-      (while (not (eobp))
-	(setq start (point))
-	(if (prog1
-		(looking-at "\
+	end start)
+    (goto-char (point-min))
+    (when (search-forward "\n\n" nil 'move)
+      (forward-line -1))
+    (setq end (point))
+    (while (not (bobp))
+      (while (progn
+	       (forward-line -1)
+	       (and (not (bobp))
+		    (memq (char-after) '(?\t ? )))))
+      (setq start (point))
+      (if (looking-at "\
 \\(?:Resent-\\)?\\(?:From\\|Cc\\|To\\|Bcc\\|\\(?:In-\\)?Reply-To\\|Sender\
 \\|Mail-Followup-To\\|Mail-Copies-To\\|Approved\\):")
-	      (while (progn
-		       (forward-line)
-		       (if (eobp)
-			   nil
-			 (memq (char-after) '(?\t ? ))))))
-	    (funcall gnus-decode-address-function start (point))
-	  (funcall gnus-decode-header-function start (point)))))))
+	  (funcall gnus-decode-address-function start end)
+	(funcall gnus-decode-header-function start end))
+      (goto-char (setq end start)))))
 
 (defun article-decode-group-name ()
   "Decode group names in `Newsgroups:'."
@@ -3938,6 +3939,14 @@ commands:
   (set-syntax-table gnus-article-mode-syntax-table)
   (mm-enable-multibyte)
   (gnus-run-mode-hooks 'gnus-article-mode-hook))
+
+;; Internal variables.  Are `gnus-button-regexp' and `gnus-button-last' used
+;; at all?
+(defvar gnus-button-regexp nil)
+(defvar gnus-button-marker-list nil
+  "Regexp matching any of the regexps from `gnus-button-alist'.")
+(defvar gnus-button-last nil
+  "The value of `gnus-button-alist' when `gnus-button-regexp' was build.")
 
 (defun gnus-article-setup-buffer ()
   "Initialize the article buffer."
@@ -6709,13 +6718,6 @@ HEADER is a regexp to match a header.  For a fuller explanation, see
 		       (repeat :tag "Par"
 			       :inline t
 			       (integer :tag "Regexp group")))))
-
-(defvar gnus-button-regexp nil)
-(defvar gnus-button-marker-list nil)
-;; Regexp matching any of the regexps from `gnus-button-alist'.
-
-(defvar gnus-button-last nil)
-;; The value of `gnus-button-alist' when `gnus-button-regexp' was build.
 
 ;;; Commands:
 

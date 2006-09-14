@@ -131,14 +131,8 @@ xg_display_close (Display *dpy)
 #ifdef HAVE_GTK_MULTIDISPLAY
   GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpy);
 
-  /* GTK 2.2 has a bug that makes gdk_display_close crash (bug
-     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way
-     we can continue running, but there will be memory leaks.  */
-
-#if GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 4
-
   /* If this is the default display, we must change it before calling
-     dispose, otherwise it will crash.  */
+     dispose, otherwise it will crash on some Gtk+ versions.  */
   if (gdk_display_get_default () == gdpy)
     {
       struct x_display_info *dpyinfo;
@@ -160,10 +154,14 @@ xg_display_close (Display *dpy)
                                                gdpy_new);
     }
 
-  g_object_run_dispose (G_OBJECT (gdpy));
+  /* GTK 2.2-2.8 has a bug that makes gdk_display_close crash (bug
+     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way
+     we can continue running, but there will be memory leaks.  */
 
+#if GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 10
+  g_object_run_dispose (G_OBJECT (gdpy));
 #else
-  /* I hope this will be fixed in GTK 2.4.  It is what bug 85715 says.  */
+  /* This seems to be fixed in GTK 2.10. */
   gdk_display_close (gdpy);
 #endif
 #endif /* HAVE_GTK_MULTIDISPLAY */

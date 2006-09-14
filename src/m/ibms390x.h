@@ -159,5 +159,11 @@ NOTE-END */
 
 #define XPNTR(a) XUINT (a)
 
+#undef START_FILES
+#define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
+
+#undef LIB_STANDARD
+#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
+
 /* arch-tag: 4b87653c-6add-4663-8691-7d9dc17b5519
    (do not change this comment) */

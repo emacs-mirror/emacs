@@ -1929,8 +1929,8 @@ binding for @code{reftex-cite-format}.
 @lisp
 (add-hook 'mail-setup-hook
           (lambda () (define-key mail-mode-map "\C-c["
-                       (lambda () (interactive)
-                         (require 'reftex)
+                       (lambda ()
+                         (interactive)
                          (let ((reftex-cite-format 'locally))
                            (reftex-citation))))))
 @end lisp

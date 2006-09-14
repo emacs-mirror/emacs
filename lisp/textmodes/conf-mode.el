@@ -442,6 +442,9 @@ x.2.y.1.z.2.zz ="
   (setq imenu-generic-expression
 	'(("Parameters" "^[ \t]*\\(.+?\\)[=: \t]" 1))))
 
+(defvar conf-space-keywords-override nil
+  "Value to be put in `conf-space-keywords' after `conf-space-mode'.")
+
 ;;;###autoload
 (define-derived-mode conf-space-mode conf-unix-mode "Conf[Space]"
   "Conf Mode starter for space separated conf files.
@@ -465,26 +468,49 @@ class desktop
 add /dev/audio		desktop
 add /dev/mixer		desktop"
   (conf-mode-initialize "#" 'conf-space-font-lock-keywords)
-  (set (make-local-variable 'conf-assignment-sign)
-       nil)
-  ;; This doesn't seem right, but the next two depend on conf-space-keywords
-  ;; being set, while after-change-major-mode-hook might set up imenu, needing
-  ;; the following result:
-  (hack-local-variables-prop-line)
-  (hack-local-variables)
+  (make-local-variable 'conf-assignment-sign)
+  (setq conf-assignment-sign nil)
+  (make-local-variable 'conf-space-keywords)
+  (make-local-variable 'conf-space-keywords-override)
+  (setq conf-space-keywords-override nil)
   (cond (current-prefix-arg
-         (set (make-local-variable 'conf-space-keywords)
-              (if (> (prefix-numeric-value current-prefix-arg) 0)
-                  (read-string "Regexp to match keywords: "))))
-        (conf-space-keywords)
+	 ;; By setting conf-space-keywords-override
+	 ;; we arrange for conf-space-mode-internal
+	 ;; to override any value of conf-space-keywords
+	 ;; specified in a local variables list.
+         (setq conf-space-keywords-override
+	       (if (> (prefix-numeric-value current-prefix-arg) 0)
+		   (read-string "Regexp to match keywords: "))))
+	;; If this is already set, don't replace it with the default.
+	(conf-space-keywords)
         (buffer-file-name
-         (set (make-local-variable 'conf-space-keywords)
-              (assoc-default buffer-file-name conf-space-keywords-alist
-                             'string-match))))
-  (set (make-local-variable 'conf-assignment-regexp)
-       (if conf-space-keywords
-	   (concat "\\(?:" conf-space-keywords "\\)[ \t]+.+?\\([ \t]+\\|$\\)")
-	 ".+?\\([ \t]+\\|$\\)"))
+	 ;; By setting conf-space-keywords directly, 
+	 ;; we let a value in the local variables list take precedence.
+	 (make-local-variable 'conf-space-keywords)
+         (setq conf-space-keywords
+	       (assoc-default buffer-file-name conf-space-keywords-alist
+			      'string-match))))
+  (conf-space-mode-internal)
+  ;; In case the local variables list specifies conf-space-keywords,
+  ;; recompute other things from that afterward.
+  (push 'conf-space-mode-internal
+	hack-local-variables-hook))
+
+(defun conf-space-mode-internal ()
+  (when conf-space-keywords-override
+    (setq conf-space-keywords
+	  conf-space-keywords-override))
+  (make-local-variable 'conf-assignment-regexp)
+  (setq conf-assignment-regexp
+	(if conf-space-keywords
+	    (concat "\\(?:" conf-space-keywords "\\)[ \t]+.+?\\([ \t]+\\|$\\)")
+	  ".+?\\([ \t]+\\|$\\)"))
+  ;; If Font Lock is already enabled, reenable it with new
+  ;; conf-assignment-regexp.
+  (when (and font-lock-mode
+	     (boundp 'font-lock-keywords)) ;see `normal-mode'
+    (font-lock-add-keywords nil nil)
+    (font-lock-mode 1))
   (setq imenu-generic-expression
 	`(,@(cdr imenu-generic-expression)
 	  ("Parameters"
