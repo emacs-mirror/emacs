@@ -1,10 +1,15 @@
+2006-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* jit-lock.el (jit-lock-fontify-again): New function.
+	(jit-lock-fontify-now): Use it instead of lambda form.
+
 2006-09-13  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-word, flyspell-correct-word)
 	(flyspell-auto-correct-word): Make ispell-filter local to these
 	functions.  Check that ispell-filter has new stuff before calling
 	ispell-parse-output.
- 
+
 2006-09-13  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move-partial): Optimize.
