@@ -33,14 +33,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 These don't need to be fixed to start pretest, but we call the
 attention of Windows users to fixing them.
 
-** Markus Gritsch's report about Emacs looping on Windoze with the following
-.emacs file, and then reduce Emacs frame width to "something quite narrow":
-	(setq-default truncate-lines t)
-	(custom-set-variables
-	 '(hscroll-margin 20)
-	 '(hscroll-step 1)
-	)
-
 ** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
 Windows only bug.
 
