@@ -2051,6 +2051,21 @@ asterisk - for instance, the comment close of some languages (eg, c's "*/"
 or mathematica's "*)") - at the beginning of line are no longer are
 interpreted as level 1 topics in those modes.  (Yay!)
 
+*** Many or most commonly occuring "accidental" topics are disqualified.
+Text that looks like low-depth topics is no longer mistaken for them unless
+the depth of the first subsequent topic-seeming text greater depth is only
+one level deeper.
+
+For example, pasting some text with a bunch of leading asterisks into a
+topic that's followed by a level 3 or deeper topic will not cause the
+pasted text to be mistaken for outline structure.  Likewise for any text
+added that looks like any level 2 or 3 topics.
+
+This settles an old issue where typed or pasted text needed to be carefully
+reviewed, and sometimes doctored, to avoid accidentally disrupting the
+outline structure.  Now that should be generally unnecessary, as the most
+prone-to-occur accidents are disqualified.
+
 *** Many substantial fixes and refinements, including:
 
    - repaired regexp-quoting of custom header prefixes, so any literals
