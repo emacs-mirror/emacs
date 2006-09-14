@@ -54,8 +54,6 @@ Windows only bug.
 ** C-g fails to interrupt accept-process-output in Gnus.
   (Is that fixed?)
 
-** ispell.el: no option for no flyspell on non-ASCII
-
 ** allout.el patch from Manheimer to be installed.
 
 ** regex char class matching needs a call to char-syntax.
