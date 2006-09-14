@@ -1,3 +1,8 @@
+2006-09-14  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* ido.el (ido-ignore-item-p): Allow any kind of functions in
+	ignore lists.
+
 2006-09-14  Kim F. Storm  <storm@cua.dk>
 
 	* jit-lock.el (jit-lock-fontify-again): New function.
