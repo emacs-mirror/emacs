@@ -775,6 +775,17 @@ If the click is in the echo area, display the `*Messages*' buffer."
       (mouse-drag-track start-event t))))
 
 
+(defun mouse-posn-property (pos property)
+  "Look for a property at click position."
+  (if (consp pos)
+      (let ((w (posn-window pos)) (pt (posn-point pos))
+	    (str (posn-string pos)))
+	(or (and str
+		 (get-text-property (cdr str) property (car str)))
+	    (and pt
+		 (get-char-property pt property w))))
+    (get-char-property pos property)))
+
 (defun mouse-on-link-p (pos)
   "Return non-nil if POS is on a link in the current buffer.
 POS must be a buffer position in the current buffer or a mouse
@@ -814,24 +825,18 @@ click is the local or global binding of that event.
 
 - Otherwise, the mouse-1 event is translated into a mouse-2 event
 at the same position."
-  (let ((w (and (consp pos) (posn-window pos))))
-    (if (consp pos)
-	(setq pos (and (or mouse-1-click-in-non-selected-windows
-			   (eq (selected-window) w))
-		       (posn-point pos))))
-    (when pos
-      (with-current-buffer (window-buffer w)
-	(let ((action
-	       (or (get-char-property pos 'follow-link)
-		   (save-excursion
-		     (goto-char pos)
-		     (key-binding [follow-link] nil t)))))
-	  (cond
-	   ((eq action 'mouse-face)
-	    (and (get-char-property pos 'mouse-face) t))
-	   ((functionp action)
-	    (funcall action pos))
-	   (t action)))))))
+  (let ((action
+	 (and (or (not (consp pos))
+		  mouse-1-click-in-non-selected-windows
+		  (eq (selected-window) (posn-window pos)))
+	      (or (mouse-posn-property pos 'follow-link)
+		  (key-binding [follow-link] nil t pos)))))
+    (cond
+     ((eq action 'mouse-face)
+      (and (mouse-posn-property pos 'mouse-face) t))
+     ((functionp action)
+      (funcall action pos))
+     (t action))))
 
 (defun mouse-fixup-help-message (msg)
   "Fix help message MSG for `mouse-1-click-follows-link'."
@@ -904,7 +909,7 @@ should only be used by mouse-drag-region."
                        ;; Use start-point before the intangibility
                        ;; treatment, in case we click on a link inside an
                        ;; intangible text.
-                       (mouse-on-link-p start-point)))
+                       (mouse-on-link-p start-posn)))
 	 (click-count (1- (event-click-count start-event)))
 	 (remap-double-click (and on-link
 				  (eq mouse-1-click-follows-link 'double)

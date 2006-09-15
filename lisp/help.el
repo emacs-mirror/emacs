@@ -567,11 +567,16 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	     (menu-bar-update-yank-menu "(any string)" nil))
 	   (setq key (read-key-sequence "Describe key (or click or menu item): "))
 	   ;; If KEY is a down-event, read and discard the
-	   ;; corresponding up-event.
-	   (if (and (vectorp key)
-		    (eventp (elt key 0))
-		    (memq 'down (event-modifiers (elt key 0))))
-	       (read-event))
+	   ;; corresponding up-event.  Note that there are also
+	   ;; down-events on scroll bars and mode lines: the actual
+	   ;; event then is in the second element of the vector.
+	   (and (vectorp key)
+		(or (and (eventp (aref key 0))
+			 (memq 'down (event-modifiers (aref key 0))))
+		    (and (> (length key) 1)
+			 (eventp (aref key 1))
+			 (memq 'down (event-modifiers (aref key 1)))))
+		(read-event))
 	   (list
 	    key
 	    (if current-prefix-arg (prefix-numeric-value current-prefix-arg))
@@ -582,45 +587,40 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	 (fset 'yank-menu (cons 'keymap yank-menu))))))
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))
-  (save-excursion
-    (let ((modifiers (event-modifiers (aref key 0)))
-	  (standard-output (if insert (current-buffer) t))
-	  window position)
-      ;; For a mouse button event, go to the button it applies to
-      ;; to get the right key bindings.  And go to the right place
-      ;; in case the keymap depends on where you clicked.
-      (if (or (memq 'click modifiers) (memq 'down modifiers)
-	      (memq 'drag modifiers))
-	  (setq window (posn-window (event-start (aref key 0)))
-		position (posn-point (event-start (aref key 0)))))
-      (if (windowp window)
-	  (progn
-	    (set-buffer (window-buffer window))
-	    (goto-char position)))
-      ;; Ok, now look up the key and name the command.
-      (let ((defn (key-binding key t))
-	    key-desc)
-	;; Handle the case where we faked an entry in "Select and Paste" menu.
-	(if (and (eq defn nil)
-		 (stringp (aref key (1- (length key))))
-		 (eq (key-binding (substring key 0 -1)) 'yank-menu))
-	    (setq defn 'menu-bar-select-yank))
-	;; Don't bother user with strings from (e.g.) the select-paste menu.
-	(if (stringp (aref key (1- (length key))))
-	    (aset key (1- (length key)) "(any string)"))
-	(if (and (> (length untranslated) 0)
-		 (stringp (aref untranslated (1- (length untranslated)))))
-	    (aset untranslated (1- (length untranslated))
-		  "(any string)"))
-	;; Now describe the key, perhaps as changed.
-	(setq key-desc (help-key-description key untranslated))
-	(if (or (null defn) (integerp defn) (equal defn 'undefined))
-	    (princ (format "%s is undefined" key-desc))
-	  (princ (format (if (windowp window)
-			     "%s at that spot runs the command %s"
-			   "%s runs the command %s")
-			 key-desc
-			 (if (symbolp defn) defn (prin1-to-string defn)))))))))
+  (let* ((event (if (and (symbolp (aref key 0))
+			 (> (length key) 1)
+			 (consp (aref key 1)))
+		    (aref key 1)
+		  (aref key 0)))
+	 (modifiers (event-modifiers event))
+	 (standard-output (if insert (current-buffer) t))
+	 (mousep
+	  (or (memq 'click modifiers) (memq 'down modifiers)
+	      (memq 'drag modifiers))))
+    ;; Ok, now look up the key and name the command.
+    (let ((defn (key-binding key t))
+	  key-desc)
+      ;; Handle the case where we faked an entry in "Select and Paste" menu.
+      (if (and (eq defn nil)
+	       (stringp (aref key (1- (length key))))
+	       (eq (key-binding (substring key 0 -1)) 'yank-menu))
+	  (setq defn 'menu-bar-select-yank))
+      ;; Don't bother user with strings from (e.g.) the select-paste menu.
+      (if (stringp (aref key (1- (length key))))
+	  (aset key (1- (length key)) "(any string)"))
+      (if (and (> (length untranslated) 0)
+	       (stringp (aref untranslated (1- (length untranslated)))))
+	  (aset untranslated (1- (length untranslated))
+		"(any string)"))
+      ;; Now describe the key, perhaps as changed.
+      (setq key-desc (help-key-description key untranslated))
+      (if (or (null defn) (integerp defn) (equal defn 'undefined))
+	  (princ (format "%s is undefined" key-desc))
+	(princ (format (if mousep
+			   "%s at that spot runs the command %s"
+			 "%s runs the command %s")
+		       key-desc
+		       (if (symbolp defn) defn (prin1-to-string defn))))))))
 
 (defun describe-key (&optional key untranslated up-event)
   "Display documentation of the function invoked by KEY.
@@ -652,105 +652,104 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	    (prefix-numeric-value current-prefix-arg)
 	    ;; If KEY is a down-event, read the corresponding up-event
 	    ;; and use it as the third argument.
-	    (if (and (vectorp key)
-		     (eventp (elt key 0))
-		     (memq 'down (event-modifiers (elt key 0))))
-		(read-event))))
+	    (and (vectorp key)
+		 (or (and (eventp (aref key 0))
+			  (memq 'down (event-modifiers (aref key 0))))
+		     (and (> (length key) 1)
+			  (eventp (aref key 1))
+			  (memq 'down (event-modifiers (aref key 1)))))
+		 (read-event))))
        ;; Put yank-menu back as it was, if we changed it.
        (when saved-yank-menu
 	 (setq yank-menu (copy-sequence saved-yank-menu))
 	 (fset 'yank-menu (cons 'keymap yank-menu))))))
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))
-  (save-excursion
-    (let ((modifiers (event-modifiers (aref key 0)))
-	  window position)
-      ;; For a mouse button event, go to the button it applies to
-      ;; to get the right key bindings.  And go to the right place
-      ;; in case the keymap depends on where you clicked.
-      (if (or (memq 'click modifiers) (memq 'down modifiers)
-	      (memq 'drag modifiers))
-	  (setq window (posn-window (event-start (aref key 0)))
-		position (posn-point (event-start (aref key 0)))))
-      (when (windowp window)
-	    (set-buffer (window-buffer window))
-	(goto-char position))
-      (let ((defn (key-binding key t)))
-	;; Handle the case where we faked an entry in "Select and Paste" menu.
-	(if (and (eq defn nil)
-		 (stringp (aref key (1- (length key))))
-		 (eq (key-binding (substring key 0 -1)) 'yank-menu))
-	    (setq defn 'menu-bar-select-yank))
-	(if (or (null defn) (integerp defn) (equal defn 'undefined))
-	    (message "%s is undefined" (help-key-description key untranslated))
-	  (help-setup-xref (list #'describe-function defn) (interactive-p))
-	  ;; Don't bother user with strings from (e.g.) the select-paste menu.
-	  (if (stringp (aref key (1- (length key))))
-	      (aset key (1- (length key)) "(any string)"))
-	  (if (and untranslated
-		   (stringp (aref untranslated (1- (length untranslated)))))
-	      (aset untranslated (1- (length untranslated))
-		    "(any string)"))
-	  (with-output-to-temp-buffer (help-buffer)
-	    (princ (help-key-description key untranslated))
-	    (if (windowp window)
-		(princ " at that spot"))
-	    (princ " runs the command ")
-	    (prin1 defn)
-	    (princ "\n   which is ")
-	    (describe-function-1 defn)
-	    (when up-event
-	      (let ((type (event-basic-type up-event))
-		    (hdr "\n\n-------------- up event ---------------\n\n")
-		    defn sequence
-		    mouse-1-tricky mouse-1-remapped)
-		(setq sequence (vector up-event))
-		(when (and (eq type 'mouse-1)
-			   (windowp window)
-			   mouse-1-click-follows-link
-			   (not (eq mouse-1-click-follows-link 'double))
-			   (setq mouse-1-remapped
-				 (with-current-buffer (window-buffer window)
-				   (mouse-on-link-p (posn-point
-						     (event-start up-event))))))
-		  (setq mouse-1-tricky (and (integerp mouse-1-click-follows-link)
-					    (> mouse-1-click-follows-link 0)))
-		  (cond ((stringp mouse-1-remapped)
-			 (setq sequence mouse-1-remapped))
-			((vectorp mouse-1-remapped)
-			 (setcar up-event (elt mouse-1-remapped 0)))
-			(t (setcar up-event 'mouse-2))))
-		(setq defn (key-binding sequence))
-		(unless (or (null defn) (integerp defn) (equal defn 'undefined))
-		  (princ (if mouse-1-tricky
-			     "\n\n----------------- up-event (short click) ----------------\n\n"
-			   hdr))
-		  (setq hdr nil)
-		  (princ (symbol-name type))
-		  (if (windowp window)
+  (let* ((event (if (and (symbolp (aref key 0))
+			 (> (length key) 1)
+			 (consp (aref key 1)))
+		    (aref key 1)
+		  (aref key 0)))
+	 (modifiers (event-modifiers event))
+	 (mousep
+	  (or (memq 'click modifiers) (memq 'down modifiers)
+	      (memq 'drag modifiers))))
+    ;; Ok, now look up the key and name the command.
+
+    (let ((defn (key-binding key t)))
+      ;; Handle the case where we faked an entry in "Select and Paste" menu.
+      (if (and (eq defn nil)
+	       (stringp (aref key (1- (length key))))
+	       (eq (key-binding (substring key 0 -1)) 'yank-menu))
+	  (setq defn 'menu-bar-select-yank))
+      (if (or (null defn) (integerp defn) (equal defn 'undefined))
+	  (message "%s is undefined" (help-key-description key untranslated))
+	(help-setup-xref (list #'describe-function defn) (interactive-p))
+	;; Don't bother user with strings from (e.g.) the select-paste menu.
+	(if (stringp (aref key (1- (length key))))
+	    (aset key (1- (length key)) "(any string)"))
+	(if (and untranslated
+		 (stringp (aref untranslated (1- (length untranslated)))))
+	    (aset untranslated (1- (length untranslated))
+		  "(any string)"))
+	(with-output-to-temp-buffer (help-buffer)
+	  (princ (help-key-description key untranslated))
+	  (if mousep
+	      (princ " at that spot"))
+	  (princ " runs the command ")
+	  (prin1 defn)
+	  (princ "\n   which is ")
+	  (describe-function-1 defn)
+	  (when up-event
+	    (let ((type (event-basic-type up-event))
+		  (hdr "\n\n-------------- up event ---------------\n\n")
+		  defn sequence
+		  mouse-1-tricky mouse-1-remapped)
+	      (setq sequence (vector up-event))
+	      (when (and (eq type 'mouse-1)
+			 mouse-1-click-follows-link
+			 (not (eq mouse-1-click-follows-link 'double))
+			 (setq mouse-1-remapped
+			       (mouse-on-link-p (event-start up-event))))
+		(setq mouse-1-tricky (and (integerp mouse-1-click-follows-link)
+					  (> mouse-1-click-follows-link 0)))
+		(cond ((stringp mouse-1-remapped)
+		       (setq sequence mouse-1-remapped))
+		      ((vectorp mouse-1-remapped)
+		       (setcar up-event (elt mouse-1-remapped 0)))
+		      (t (setcar up-event 'mouse-2))))
+	      (setq defn (key-binding sequence nil nil (event-start up-event)))
+	      (unless (or (null defn) (integerp defn) (equal defn 'undefined))
+		(princ (if mouse-1-tricky
+			   "\n\n----------------- up-event (short click) ----------------\n\n"
+			 hdr))
+		(setq hdr nil)
+		(princ (symbol-name type))
+		(if mousep
+		    (princ " at that spot"))
+		(if mouse-1-remapped
+		    (princ " is remapped to <mouse-2>\n  which" ))
+		(princ " runs the command ")
+		(prin1 defn)
+		(princ "\n   which is ")
+		(describe-function-1 defn))
+	      (when mouse-1-tricky
+		(setcar up-event 'mouse-1)
+		(setq defn (key-binding (vector up-event) nil nil
+					(event-start up-event)))
+		(unless (or (null defn) (integerp defn) (eq defn 'undefined))
+		  (princ (or hdr
+			     "\n\n----------------- up-event (long click) ----------------\n\n"))
+		  (princ "Pressing mouse-1")
+		  (if mousep
 		      (princ " at that spot"))
-		  (if mouse-1-remapped
-		      (princ " is remapped to <mouse-2>\n  which" ))
+		  (princ (format " for longer than %d milli-seconds\n"
+				 mouse-1-click-follows-link))
 		  (princ " runs the command ")
 		  (prin1 defn)
 		  (princ "\n   which is ")
-		  (describe-function-1 defn))
-		(when mouse-1-tricky
-		  (setcar up-event 'mouse-1)
-		  (setq defn (key-binding (vector up-event)))
-		  (unless (or (null defn) (integerp defn) (eq defn 'undefined))
-		    (princ (or hdr
-			       "\n\n----------------- up-event (long click) ----------------\n\n"))
-		    (princ "Pressing mouse-1")
-		    (if (windowp window)
-			(princ " at that spot"))
-		    (princ (format " for longer than %d milli-seconds\n"
-				   mouse-1-click-follows-link))
-		    (princ " runs the command ")
-		    (prin1 defn)
-		    (princ "\n   which is ")
-		    (describe-function-1 defn)))))
-	    (print-help-return-message)))))))
+		  (describe-function-1 defn)))))
+	  (print-help-return-message))))))
 
 (defun describe-mode (&optional buffer)
   "Display documentation of current major mode and minor modes.

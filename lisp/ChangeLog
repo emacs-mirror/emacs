@@ -1,3 +1,21 @@
+2006-09-15  David Kastrup  <dak@gnu.org>
+
+	* mouse-sel.el (mouse-sel-follow-link-p): Use event position
+	instead of buffer position for `mouse-on-link-p'.
+
+	* mouse.el (mouse-posn-property): New function looking up the
+	properties at a click position in overlays and text properties in
+	either buffer or strings.
+	(mouse-on-link-p): Use `mouse-posn-property' to streamline lookup
+	of both `follow-link' as well as `mouse-face' properties.
+	(mouse-drag-track): Check `mouse-on-link-p' on event position, not
+	buffer position.
+
+	* help.el (describe-key-briefly): When reading a down-event on
+	mode lines or scroll bar, swallow the following up event, too.
+	Use the new mouse sensitity of `key-binding' for lookup.
+	(describe-key): The same here.
+
 2006-09-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* play/life.el (life-patterns): Add a few more interesting patterns.
