@@ -19,7 +19,6 @@
 	(Basic Char Syntax, General Escape Syntax)
 	(Ctl-Char Syntax, Meta-Char Syntax): New subnodes.
 
->>>>>>> 1.751
 2006-09-11  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Display Table Format): Wording clarification.
@@ -4881,7 +4880,7 @@
 	(info): Add target.
 	(installall): Target removed.
 
-2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* tips.texi (Coding Conventions): Fix typo.
 
