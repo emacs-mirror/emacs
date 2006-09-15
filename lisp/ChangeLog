@@ -1,3 +1,9 @@
+2006-09-15  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-partial): Use window-line-visiblity to
+	quickly check whether last line is partially visible, and only do
+	the hard (and slow) part in that case.
+
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
 	* COPYING: Replace "Library Public License" by "Lesser Public
