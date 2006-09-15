@@ -576,15 +576,12 @@ keymap, and the global keymap, in that order.  Emacs searches for each
 input key sequence in all these keymaps.  @xref{Searching Keymaps},
 for more details of this procedure.
 
-This process is somewhat modified for mouse events: the local modes and
-keymaps of the buffer corresponding to the mouse click position are
-searched instead, text properties are taken from the mouse click
-position in the buffer rather than point, and if the click happens on a
-string embedded with a @code{display}, @code{before-string}, or
-@code{after-string} text property (@pxref{Special Properties}) or
-overlay property (@pxref{Overlay Properties}), any non-@code{nil} maps
-specified with text properties of this string are searched instead of
-those of the buffer.
+  When the key sequence starts with a mouse event (optionally preceded
+by a symbolic prefix), the active keymaps are determined based on the
+position in that event.  If the event happened on a string embedded
+with a @code{display}, @code{before-string}, or @code{after-string}
+property (@pxref{Special Properties}), the non-@code{nil} map
+properties of the string override those of the buffer.
 
   The @dfn{global keymap} holds the bindings of keys that are defined
 regardless of the current buffer, such as @kbd{C-f}.  The variable
@@ -643,12 +640,10 @@ non-@code{nil} then it pays attention to them.
 @end defun
 
 @defun key-binding key &optional accept-defaults no-remap position
-This function returns the binding for @var{key} according to the current
-active keymaps.  The result is @code{nil} if @var{key} is undefined in
-the keymaps.  If @var{key} is a key sequence started with the mouse, the
-consulted maps will be changed accordingly.
+This function returns the binding for @var{key} according to the
+current active keymaps.  The result is @code{nil} if @var{key} is
+undefined in the keymaps.
 
-@c Emacs 19 feature
 The argument @var{accept-defaults} controls checking for default
 bindings, as in @code{lookup-key} (above).
 
@@ -658,10 +653,13 @@ returns the remapped command that will actually be executed.  However,
 if @var{no-remap} is non-@code{nil}, @code{key-binding} ignores
 remappings and returns the binding directly specified for @var{key}.
 
-If @var{position} is non-@code{nil}, it specifies either a buffer
-position or a position like those returned from @code{event-start}.  In
-this case, @var{position} instead of @var{key} determines the
-click-specific maps.
+If @var{key} starts with a mouse event (perhaps following a prefix
+event), the maps to be consulted are determined based on the event's
+position.  Otherwise, they are determined based on the value of point.
+However, you can override either of them by specifying @var{position}.
+If @var{position} is non-@code{nil}, it should be either a buffer
+position or an event position like the value of @code{event-start}.
+Then the maps consulted are determined based on @var{position}.
 
 An error is signaled if @var{key} is not a string or a vector.
 
@@ -697,13 +695,14 @@ them:
 @end lisp
 
 @noindent
-The @var{find-in} and @var{find-in-any} are pseudo functions that search
-in one keymap and in an alist of keymaps, respectively.  (Searching a
-single keymap for a binding is called @dfn{key lookup}; see @ref{Key
-Lookup}.)  Mouse events on strings will use text properties from the
-string if non-@code{nil} instead of the buffer.  Also, point and current
-buffer for mouse-based events are switched to correspond to the position
-of the event start while performing the lookup.
+The @var{find-in} and @var{find-in-any} are pseudo functions that
+search in one keymap and in an alist of keymaps, respectively.
+(Searching a single keymap for a binding is called @dfn{key lookup};
+see @ref{Key Lookup}.)  If the key sequence starts with a mouse event,
+or a symbolic prefix event followed by a mouse event, that event's
+position is used instead of point and the current buffer.  Mouse
+events on an embedded string use text properties from that string
+instead of the buffer.
 
 @enumerate
 @item
@@ -1466,12 +1465,12 @@ if an ordinary binding specifies @code{my-kill-line}, this keymap will
 remap it to @code{my-other-kill-line}.
 
 @defun command-remapping command &optional position
-This function returns the remapping for @var{command} (a symbol), given
-the current active keymaps.  If @var{command} is not remapped (which is
-the usual situation), or not a symbol, the function returns @code{nil}.
-@code{position} can optionally specify a buffer position or a position
-like those returned from @code{event-start}: in that case, the active
-maps are changed like they are in @code{key-binding}.
+This function returns the remapping for @var{command} (a symbol),
+given the current active keymaps.  If @var{command} is not remapped
+(which is the usual situation), or not a symbol, the function returns
+@code{nil}.  @code{position} can optionally specify a buffer position
+or an event position to determine the keymaps to use, as in
+@code{key-binding}.
 @end defun
 
 @node Translation Keymaps
