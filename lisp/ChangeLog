@@ -1,5 +1,8 @@
 2006-09-15  Kim F. Storm  <storm@cua.dk>
 
+	* help.el (describe-key): Handle C-h k in *Help* buffer; collect
+	all necessary information about the event before erasing *Help*.
+
 	* simple.el (line-move-partial): Use window-line-visiblity to
 	quickly check whether last line is partially visible, and only do
 	the hard (and slow) part in that case.

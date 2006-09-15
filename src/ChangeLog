@@ -1,3 +1,9 @@
+2006-09-15  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fwindow_line_visibility): New defun for line-move-partial.
+	(syms_of_window): Defsubr it.
+	(Fwindow_end): Use window's buffer rather than current buffer.
+
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
 	* COPYING: Replace "Library Public License" by "Lesser Public
