@@ -1137,8 +1137,8 @@ regardless of the value of this variable."
                 "\n")))
            :face variable-pitch "\
 Emacs FAQ\tFrequently asked questions and answers
-Read the Emacs Manual\tView the Emacs manual using Info
-\(Non)Warranty\tGNU Emacs comes with "
+View Emacs Manual\tView the Emacs manual using Info
+Absence of Warranty\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
 	   :face variable-pitch
@@ -1149,7 +1149,7 @@ More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
   (:face (variable-pitch :weight bold)
 	 "Useful File menu items:\n"
 	 :face variable-pitch "\
-Exit Emacs\t(Or type Control-x followed by Control-c)
+Exit Emacs\t\t(Or type Control-x followed by Control-c)
 Recover Crashed Session\tRecover files you were editing before a crash
 
 
@@ -1300,7 +1300,7 @@ using the mouse.\n\n")
 	  t)
 	 (fancy-splash-insert :face '(variable-pitch :foreground "red")
 			      "\n\nIf an Emacs session crashed recently, "
-			      "type M-x recover-session RET\nto recover"
+			      "type Meta-x recover-session RET\nto recover"
 			      " the files you were editing."))))
 
 (defun fancy-splash-screens-1 (buffer)
@@ -1345,7 +1345,6 @@ mouse."
 
 (defun fancy-splash-screens (&optional hide-on-input)
   "Display fancy splash screens when Emacs starts."
-  (setq fancy-splash-help-echo (startup-echo-area-message))
   (if hide-on-input
       (let ((old-hourglass display-hourglass)
 	    (fancy-splash-outer-buffer (current-buffer))
@@ -1357,18 +1356,17 @@ mouse."
 	(save-selected-window
 	  (select-frame frame)
 	  (switch-to-buffer "GNU Emacs")
-	  (setq tab-width 20)
 	  (setq splash-buffer (current-buffer))
 	  (catch 'stop-splashing
 	    (unwind-protect
-		(let ((map (make-sparse-keymap)))
+		(let ((map (make-sparse-keymap))
+		      (cursor-type nil))
 		  (use-local-map map)
 		  (define-key map [switch-frame] 'ignore)
 		  (define-key map [t] 'fancy-splash-default-action)
 		  (define-key map [mouse-movement] 'ignore)
 		  (define-key map [mode-line t] 'ignore)
-		  (setq cursor-type nil
-			display-hourglass nil
+		  (setq display-hourglass nil
 			minor-mode-map-alist nil
 			emulation-mode-map-alists nil
 			buffer-undo-list t
@@ -1379,12 +1377,17 @@ mouse."
 			timer (run-with-timer 0 fancy-splash-delay
 					      #'fancy-splash-screens-1
 					      splash-buffer))
+		  (message "%s" (startup-echo-area-message))
 		  (recursive-edit))
 	      (cancel-timer timer)
 	      (setq display-hourglass old-hourglass
 		    minor-mode-map-alist old-minor-mode-map-alist
 		    emulation-mode-map-alists old-emulation-mode-map-alists)
-	      (kill-buffer splash-buffer)))))
+	      (use-local-map nil)
+	      (switch-to-buffer "*scratch*")
+;;;  Comment out the next line in order to see the splash buffer exactly as it was.
+	      (kill-buffer splash-buffer)
+	      ))))
     ;; If hide-on-input is nil, don't hide the buffer on input.
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
@@ -1580,7 +1583,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
                                        auto-save-list-file-prefix)))
                 t)
                (insert "\n\nIf an Emacs session crashed recently, "
-                       "type M-x recover-session RET\nto recover"
+                       "type Meta-x recover-session RET\nto recover"
                        " the files you were editing."))
 
           ;; Display the input that we set up in the buffer.
