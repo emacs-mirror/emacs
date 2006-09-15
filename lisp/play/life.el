@@ -56,7 +56,28 @@
     "            @@   " "             @@  " "              @@ "
     "               @@")
    ("@@@@@@@@@" "@   @   @" "@ @@@@@ @" "@ @   @ @" "@@@   @@@"
-    "@ @   @ @" "@ @@@@@ @" "@   @   @" "@@@@@@@@@")]
+    "@ @   @ @" "@ @@@@@ @" "@   @   @" "@@@@@@@@@")
+   ("                        @           "
+    "                      @ @           "
+    "            @@      @@            @@"
+    "           @   @    @@            @@"
+    "@@        @     @   @@              "
+    "@@        @   @ @@    @ @           "
+    "          @     @       @           "
+    "           @   @                    "
+    "            @@                      ")
+   ("      @ "
+    "    @ @@"
+    "    @ @ "
+    "    @   "
+    "  @     "
+    "@ @     ")
+   ("@@@ @"
+    "@    "
+    "   @@"
+    " @@ @"
+    "@ @ @")
+   ("@@@@@@@@ @@@@@   @@@      @@@@@@@ @@@@@")]
   "Vector of rectangles containing some Life startup patterns.")
 
 ;; Macros are used macros for manifest constants instead of variables
@@ -128,6 +149,7 @@ generations (this defaults to 1)."
 	  mode-name "Life"
 	  major-mode 'life-mode
 	  truncate-lines t
+          show-trailing-whitespace nil
 	  life-current-generation 0
 	  life-generation-string "0"
 	  mode-line-buffer-identification '("Life: generation "
