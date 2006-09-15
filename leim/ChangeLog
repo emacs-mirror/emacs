@@ -1,3 +1,8 @@
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* COPYING: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
 2006-09-06  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* quail/uni-input.el (ucs-input-method): Don't make the action of

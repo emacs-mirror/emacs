@@ -1,3 +1,8 @@
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* gpl.texi: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
 2006-09-15  David Kastrup  <dak@gnu.org>
 
 	* keymaps.texi (Active Keymaps): Adapt description to use

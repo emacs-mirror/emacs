@@ -1,7 +1,8 @@
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi, emacs.texi, mh-e.texi: Change "Library Public License" to
-	"Lesser Public License" throughout.
+	* calc.texi, emacs.texi, mh-e.texi (GNU GENERAL PUBLIC LICENSE):
+	Change "Library Public License" to "Lesser Public License"
+	throughout.  Use "yyyy" to represent year.
 
 2006-09-15  Carsten Dominik  <dominik@science.uva.nl>
 
