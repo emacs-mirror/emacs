@@ -1,3 +1,8 @@
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change "Library Public License" to "Lesser Public
+	License" throughout.
+
 2006-09-15  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Setting tags): Typo fix.
