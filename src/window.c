@@ -390,6 +390,72 @@ row, and VPOS is the row number (0-based) containing POS.  */)
   return in_window;
 }
 
+DEFUN ("window-line-visibility", Fwindow_line_visibility,
+       Swindow_line_visibility, 0, 2, 0,
+       doc: /* Return information about visibility of last line in WINDOW.
+If optional second arg is non-nil, test first text line instead.
+Return nil if visibility of the line is not known; in that case,
+caller may use `pos-visible-in-window-p' to know for sure.
+
+Return t if window line is known to be fully visible.  Otherwise,
+return cons (VIS . INVIS), where VIS and INVIS is pixel height
+of the visible and invisible part of the line.  */)
+       (window, first)
+       Lisp_Object window, first;
+{
+  register struct window *w;
+  register struct buffer *b;
+  struct glyph_row *row, *end_row;
+  int max_y, crop;
+
+  w = decode_window (window);
+
+  if (noninteractive
+      || !FRAME_WINDOW_P (WINDOW_XFRAME (w))
+      || w->pseudo_window_p)
+    return Qt;
+
+  CHECK_BUFFER (w->buffer);
+  b = XBUFFER (w->buffer);
+
+  /* Fail if current matrix is not up-to-date.  */
+  if (NILP (w->window_end_valid)
+      || current_buffer->clip_changed
+      || current_buffer->prevent_redisplay_optimizations_p
+      || XFASTINT (w->last_modified) < BUF_MODIFF (b)
+      || XFASTINT (w->last_overlay_modified) < BUF_OVERLAY_MODIFF (b))
+    return Qnil;
+
+  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  if (!NILP (first))
+    {
+
+      if (!row->enabled_p)
+	return Qnil;
+
+      crop = WINDOW_HEADER_LINE_HEIGHT (w) - row->y;
+    }
+  else
+    {
+      int max_y = window_text_bottom_y (w);
+      struct glyph_row *end_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
+
+      while (row <= end_row && row->enabled_p
+	     && row->y + row->height < max_y)
+	row++;
+
+      if (row > end_row || !row->enabled_p)
+	return Qnil;
+
+      crop = (row->y + row->height) - max_y;
+    }
+
+  if (crop > 0)
+    return Fcons (make_number (row->height - crop),
+		  make_number (crop));
+  return Qt;
+}
+
 
 static struct window *
 decode_window (window)
@@ -1051,9 +1117,11 @@ if it isn't already recorded.  */)
   Lisp_Object value;
   struct window *w = decode_window (window);
   Lisp_Object buf;
+  struct buffer *b = XBUFFER (buf);
 
   buf = w->buffer;
   CHECK_BUFFER (buf);
+  b = XBUFFER (buf);
 
 #if 0 /* This change broke some things.  We should make it later.  */
   /* If we don't know the end position, return nil.
@@ -1066,12 +1134,20 @@ if it isn't already recorded.  */)
 
   if (! NILP (update)
       && ! (! NILP (w->window_end_valid)
-	    && XFASTINT (w->last_modified) >= MODIFF)
+	    && XFASTINT (w->last_modified) >= BUF_MODIFF (b))
       && !noninteractive)
     {
       struct text_pos startp;
       struct it it;
-      struct buffer *old_buffer = NULL, *b = XBUFFER (buf);
+      struct buffer *old_buffer = NULL;
+
+      /* Cannot use Fvertical_motion because that function doesn't
+	 cope with variable-height lines.  */
+      if (b != current_buffer)
+	{
+	  old_buffer = current_buffer;
+	  set_buffer_internal (b);
+	}
 
       /* In case W->start is out of the range, use something
          reasonable.  This situation occurred when loading a file with
@@ -1085,14 +1161,6 @@ if it isn't already recorded.  */)
       else
 	SET_TEXT_POS_FROM_MARKER (startp, w->start);
 
-      /* Cannot use Fvertical_motion because that function doesn't
-	 cope with variable-height lines.  */
-      if (b != current_buffer)
-	{
-	  old_buffer = current_buffer;
-	  set_buffer_internal (b);
-	}
-
       start_display (&it, w, startp);
       move_it_vertically (&it, window_box_height (w));
       if (it.current_y < it.last_visible_y)
@@ -1103,7 +1171,7 @@ if it isn't already recorded.  */)
 	set_buffer_internal (old_buffer);
     }
   else
-    XSETINT (value, BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
+    XSETINT (value, BUF_Z (b) - XFASTINT (w->window_end_pos));
 
   return value;
 }
@@ -7365,6 +7433,7 @@ The selected frame is the one whose configuration has changed.  */);
   defsubr (&Swindowp);
   defsubr (&Swindow_live_p);
   defsubr (&Spos_visible_in_window_p);
+  defsubr (&Swindow_line_visibility);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_height);
   defsubr (&Swindow_width);
