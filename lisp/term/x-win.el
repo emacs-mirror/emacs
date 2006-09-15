@@ -2522,8 +2522,14 @@ order until succeed.")
 (define-key special-event-map [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
 ;; Let F10 do menu bar navigation.
+(defun x-menu-bar-open (&optional frame)
+  "Open the menu bar if `menu-bar-mode' is on. otherwise call `tmm-menubar'."
+  (interactive "i")
+  (if menu-bar-mode (menu-bar-open frame)
+    (tmm-menubar)))
+		   
 (and (fboundp 'menu-bar-open)
-     (global-set-key [f10] 'menu-bar-open))
+     (global-set-key [f10] 'x-menu-bar-open))
 
 ;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here
