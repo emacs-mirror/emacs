@@ -1,3 +1,7 @@
+2006-09-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* indent.c (Fcurrent_column, Findent_to): Fix typos in docstring.
+
 2006-09-14  Andreas Schwab  <schwab@suse.de>
 
 	* print.c: Whitespace fixup.
@@ -78,12 +82,12 @@
 	* mac.c [MAC_OSX] (sys_select): Check argument `nfds' more rigidly.
 	Make variable `ofds' static.  Remove variable `maxfd'.
 
-	* macfns.c (Fx_file_dialog): Remove unused variable `f'.  Call
-	check_mac.
+	* macfns.c (Fx_file_dialog): Remove unused variable `f'.
+	Call check_mac.
 
 	* macmenu.c (Vmenu_updating_frame, syms_of_macmenu):
-	* w32menu.c (Vmenu_updating_frame, syms_of_w32menu): Apply
-	2006-09-08 change for xmenu.c.
+	* w32menu.c (Vmenu_updating_frame, syms_of_w32menu):
+	Apply 2006-09-08 change for xmenu.c.
 
 	* xfns.c (Fx_file_dialog): Call check_x.
 
@@ -343,11 +347,11 @@
 	* mac.c (create_apple_event_from_event_ref, select)
 	(Fmac_get_file_creator, Fmac_get_file_type, Fmac_set_file_creator)
 	(Fmac_set_file_type, cfstring_create_normalized)
-	(mac_get_system_locale, select_and_poll_event, sys_select): Use
-	OSStatus instead of OSErr.
+	(mac_get_system_locale, select_and_poll_event, sys_select):
+	Use OSStatus instead of OSErr.
 
-	* macfns.c [TARGET_API_MAC_CARBON] (mac_update_proxy_icon): Don't
-	use FRAME_FILE_NAME.  Use (FS)UpdateAlias.
+	* macfns.c [TARGET_API_MAC_CARBON] (mac_update_proxy_icon):
+	Don't use FRAME_FILE_NAME.  Use (FS)UpdateAlias.
 	(Fx_create_frame): Apply 2006-07-03 for xfns.c.
 
 	* macselect.c (get_scrap_from_symbol, clear_scrap, put_scrap_string)
@@ -515,7 +519,6 @@
 	of drag and drop Atoms.
 
 	* xterm.c (x_term_init): Initialize dpyinfo->x_dnd_atoms*
-
 
 2006-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -710,7 +713,7 @@
 	(FletX, Flet, grow_specpdl): Use signal_error.
 	(Feval, Ffuncall, funcall_lambda): Use xsignal1, xsignal2.
 
-	* alloc.c (buffer_memory_full, memory_full): Use xsignal. Remove loop.
+	* alloc.c (buffer_memory_full, memory_full): Use xsignal.  Remove loop.
 	(list1): New function.
 
 	* lisp.h (list1): Add EXFUN.
@@ -10266,7 +10269,6 @@
 	(xic_set_xfontset): Ditto.
 
 	* xterm.c (xim_destroy_callback): Ditto.
-
 
 2004-10-20  B. Anyos  <banyos@freemail.hu>  (tiny change)
 

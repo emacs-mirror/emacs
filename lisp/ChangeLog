@@ -1,3 +1,8 @@
+2006-09-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/life.el (life-patterns): Add a few more interesting patterns.
+	(life-setup): Force `show-trailing-whitespace' to nil.
+
 2006-09-14  Richard Stallman  <rms@gnu.org>
 
 	* startup.el (fancy-splash-text): Change text to improve alignment.
@@ -8,7 +13,8 @@
 	(fancy-splash-screens): Display echo-area message explicitly.
 	Don't set fancy-splash-help-echo.
 
-	* simple.el (line-number-mode): Group mode-line instead of editing-basics.
+	* simple.el (line-number-mode): Group mode-line instead of
+	editing-basics.
 	(column-number-mode, size-indication-mode): Likewise.
 
 	* faces.el (mode-line-faces): Group mode-line instead of modeline.
@@ -17,7 +23,7 @@
 
 	* cus-edit.el (mode-line): Renamed from modeline.  All uses changed.
 
-2006-09-005  Ken Manheimer  <address@hidden>
+2006-09-14  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-regexp, allout-line-boundary-regexp)
 	(allout-bob-regexp): Correct grouping and boundaries to fix
@@ -86,7 +92,8 @@
 	a regexp search to leap large numbers of contained topics, rather
 	than arbitrarily many one-by-one traversals.
 	(allout-next-visible-heading): Disqualify aberrant topics.
-	(allout-previous-visible-heading): Position consistently when interactive.
+	(allout-previous-visible-heading): Position consistently when
+	interactive.
 	(allout-forward-current-level): Base on allout-previous-sibling
 	rather than reimplmenting the algorithm.  Remove unused vars.
 	(allout-solicit-alternate-bullet): Present default choice stripped
