@@ -55,8 +55,6 @@ in the syntax table.
 
 ** Michael Cadilhac's line-move-partial is slow.
 
-** Handa's Sep 6 compilation font lock bug report.
-
 * LICENSES
 
 ** These need updating
