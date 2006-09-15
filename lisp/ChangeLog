@@ -1,3 +1,11 @@
+2006-09-16  Jason Rumney  <jasonr@gnu.org>
+
+	* dnd.el (dnd-open-remote-file-function): Use dnd-open-local-file
+	on ms-windows.
+	(dnd-open-unc-file): Remove.
+	(dnd-open-local-file): Mention in doc string that it also handles
+	remote files if the system natively supports unc file-names.
+
 2006-09-15  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (describe-key): Handle C-h k in *Help* buffer; collect
