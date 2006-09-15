@@ -2,7 +2,7 @@
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Disallow filenames containing " -" to avoid confusion with libtool
-	compilation messages.
+	compilation messages.  Suggested by Stefan Monnier.
 
 2006-09-15  David Kastrup  <dak@gnu.org>
 
