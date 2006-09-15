@@ -53,7 +53,63 @@ Windows only bug.
 ** regex char class matching breaks if you change entries
 in the syntax table.
 
+** Michael Cadilhac's line-move-partial is slow.
+
 ** Handa's Sep 6 compilation font lock bug report.
+
+* LICENSES
+
+** These need updating
+
+./etc/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./info/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./info/emacs-5:6335:the GNU Library General Public License instead.)  You can apply it to
+./info/emacs-5:6670:GNU Library General Public License instead of this License.
+./info/mh-e-1:6472:the GNU Library General Public License instead.)  You can apply it to
+./info/mh-e-1:6807:GNU Library General Public License instead of this License.
+./info/calc-1:103:the GNU Library General Public License instead.)  You can apply it to
+./info/calc-1:435:GNU Library General Public License instead of this License.
+./info/elisp-9:1499:the GNU Library General Public License instead.)  You can apply it to
+./info/elisp-9:1835:GNU Lesser General Public License instead of this License.
+./lisp/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./lispref/gpl.texi:26:the GNU Library General Public License instead.)  You can apply it to
+./man/calc.texi:206:the GNU Library General Public License instead.)  You can apply it to
+./man/emacs.texi:1199:the GNU Library General Public License instead.)  You can apply it to
+./man/mh-e.texi:9291:the GNU Library General Public License instead.)  You can apply it to
+./src/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./leim/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./lib-src/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./lwlib/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./mac/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./msdos/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+./nt/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
+
+** These need relicensing to the GPL.
+
+./src/gmalloc.c:13:modify it under the terms of the GNU Library General Public License as
+./src/gmalloc.c:20:Library General Public License for more details.
+./src/gmalloc.c:332:modify it under the terms of the GNU Library General Public License as
+./src/gmalloc.c:339:Library General Public License for more details.
+./src/gmalloc.c:935:modify it under the terms of the GNU Library General Public License as
+./src/gmalloc.c:942:Library General Public License for more details.
+./src/gmalloc.c:1254:modify it under the terms of the GNU Library General Public License as
+./src/gmalloc.c:1261:Library General Public License for more details.
+./src/gmalloc.c:1499:modify it under the terms of the GNU Library General Public License as
+./src/gmalloc.c:1506:Library General Public License for more details.
+./src/gmalloc.c:1596:modify it under the terms of the GNU Library General Public License as
+./src/gmalloc.c:1603:Library General Public License for more details.
+./src/gmalloc.c:1696:modify it under the terms of the GNU Library General Public License as
+./src/gmalloc.c:1703:Library General Public License for more details.
+./src/gmalloc.c:1763:modify it under the terms of the GNU Library General Public License as
+./src/gmalloc.c:1770:Library General Public License for more details.
+./src/md5.c:8:   modify it under the terms of the GNU Library General Public License as
+./src/md5.c:15:   Library General Public License for more details.
+./src/md5.h:8:   modify it under the terms of the GNU Library General Public License as
+./src/md5.h:15:   Library General Public License for more details.
+./src/strftime.c:10:   modify it under the terms of the GNU Library General Public License
+./src/strftime.c:17:   Library General Public License for more details.
+
 
 * DOCUMENTATION
 
