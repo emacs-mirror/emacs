@@ -1,3 +1,7 @@
+2006-09-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Setting tags): Typo fix.
+
 2006-09-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.texi (Visiting): Add index entry "open file".
