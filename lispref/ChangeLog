@@ -1,3 +1,8 @@
+2006-09-15  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Remapping Commands, Searching Keymaps)
+	(Active Keymaps): Clean up previous change.
+
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
 	* gpl.texi: Replace "Library Public License" by "Lesser Public
@@ -9,8 +14,8 @@
 	`get-char-property' instead `get-text-property'.  Explain how
 	mouse events change this.  Explain the new optional argument of
 	`key-binding' and its mouse-dependent lookup.
-	(Searching Keymaps): Adapt description similarly.  Explain the new
-	optional argument of `command-remapping'.
+	(Searching Keymaps): Adapt description similarly.
+	(Remapping Commands): Explain the new optional argument of `command-remapping'.
 
 2006-09-14  Richard Stallman  <rms@gnu.org>
 
