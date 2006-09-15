@@ -1,3 +1,9 @@
+2006-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Disallow filenames containing " -" to avoid confusion with libtool
+	compilation messages.
+
 2006-09-15  David Kastrup  <dak@gnu.org>
 
 	* mouse-sel.el (mouse-sel-follow-link-p): Use event position
