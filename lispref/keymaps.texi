@@ -569,35 +569,12 @@ string for the keymap.  The prompt string should be given for menu keymaps
 of them are @dfn{active}, meaning that they participate in the
 interpretation of user input.  All the active keymaps are used
 together to determine what command to execute when a key is entered.
-Emacs searches these keymaps one by one, in a standard order, until it
-finds a binding in one of the keymaps.
 
   Normally the active keymaps are the @code{keymap} property keymap,
 the keymaps of any enabled minor modes, the current buffer's local
-keymap, and the global keymap, in that order.  Therefore, Emacs
-searches for each input key sequence in all these keymaps.  Here is a
-pseudo-Lisp description of how this process works:
-
-@lisp
-(or (if overriding-terminal-local-map
-        (@var{find-in} overriding-terminal-local-map)
-      (if overriding-local-map
-          (@var{find-in} overriding-local-map)
-        (or (@var{find-in} (get-text-property (point) 'keymap))
-            (@var{find-in-any} emulation-mode-map-alists)
-            (@var{find-in-any} minor-mode-overriding-map-alist)
-            (@var{find-in-any} minor-mode-map-alist)
-            (if (get-text-property (point) 'local-map)
-                (@var{find-in} (get-text-property (point) 'local-map))
-              (@var{find-in} (current-local-map))))))
-    (@var{find-in} (current-global-map)))
-@end lisp
-
-@noindent
-Here, the pseudo-function @var{find-in} means to look up the key
-sequence in a single map, and @var{find-in-any} means to search the
-appropriate keymaps from an alist.  (Searching a single keymap for a
-binding is called @dfn{key lookup}; see @ref{Key Lookup}.)
+keymap, and the global keymap, in that order.  Emacs searches for each
+input key sequence in all these keymaps.  @xref{Searching Keymaps},
+for more details of this procedure.
 
   The @dfn{global keymap} holds the bindings of keys that are defined
 regardless of the current buffer, such as @kbd{C-f}.  The variable
@@ -687,9 +664,10 @@ An error is signaled if @var{key} is not a string or a vector.
 @node Searching Keymaps
 @section Searching the Active Keymaps
 
-  After translation of event subsequences (@pxref{Translation Keymaps})
-Emacs looks for them in the active keymaps.  Here is a pseudo-Lisp
-description of the order in which the active keymaps are searched:
+  After translation of event subsequences (@pxref{Translation
+Keymaps}) Emacs looks for them in the active keymaps.  Here is a
+pseudo-Lisp description of the order and conditions for searching
+them:
 
 @lisp
 (or (if overriding-terminal-local-map
@@ -709,6 +687,8 @@ description of the order in which the active keymaps are searched:
 @noindent
 The @var{find-in} and @var{find-in-any} are pseudo functions that
 search in one keymap and in an alist of keymaps, respectively.
+(Searching a single keymap for a binding is called @dfn{key lookup};
+see @ref{Key Lookup}.)
 
 @enumerate
 @item
