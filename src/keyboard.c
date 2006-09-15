@@ -1674,7 +1674,7 @@ command_loop_1 ()
       if (SYMBOLP (cmd))
 	{
 	  Lisp_Object cmd1;
-	  if (cmd1 = Fcommand_remapping (cmd), !NILP (cmd1))
+	  if (cmd1 = Fcommand_remapping (cmd, Qnil), !NILP (cmd1))
 	    cmd = cmd1;
 	}
 
@@ -7517,7 +7517,7 @@ parse_menu_item (item, notreal, inmenubar)
       Lisp_Object prefix;
 
       if (!NILP (tem))
-	tem = Fkey_binding (tem, Qnil, Qnil);
+	tem = Fkey_binding (tem, Qnil, Qnil, Qnil);
 
       prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (CONSP (prefix))
@@ -9134,16 +9134,19 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			  if (!EQ (map_here, orig_local_map))
 			    {
 			      orig_local_map = map_here;
-			      keybuf[t] = key;
-			      mock_input = t + 1;
-
-			      goto replay_sequence;
+			      ++localized_local_map;
 			    }
+
 			  map_here = get_local_map (XINT (pos),
 						     current_buffer, Qkeymap);
 			  if (!EQ (map_here, orig_keymap))
 			    {
 			      orig_keymap = map_here;
+			      ++localized_local_map;
+			    }
+
+			  if (localized_local_map > 1)
+			    {
 			      keybuf[t] = key;
 			      mock_input = t + 1;
 

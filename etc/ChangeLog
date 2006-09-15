@@ -1,3 +1,8 @@
+2006-09-15  David Kastrup  <dak@gnu.org>
+
+	* NEWS: explain new behavior and arguments of `key-binding' and
+	`command-remapping'.
+
 2006-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* NEWS: In terminal-oriented subshells, the EMACS environment
@@ -102,7 +107,7 @@
 
 	* PROBLEMS: Emacs now requires ws2_32.dll on Windows.
 
-2006-07-14  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2006-07-14  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* HELLO: Update Hungarian sample.
 

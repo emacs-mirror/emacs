@@ -4681,6 +4681,12 @@ over minor mode keymaps.
 text properties, according to their stickiness.  This also means that it
 works with empty overlays.  The same hold for the `local-map' property.
 
+*** `key-binding' will now look up mouse-specific bindings.  The
+keymaps consulted by `key-binding' will get adapted if the key
+sequence is started with a mouse event.  Instead of letting the click
+position be determined from the key sequence itself, it is also
+possible to specify it with an optional argument explicitly.
+
 *** Dense keymaps now handle inheritance correctly.
 
 Previously a dense keymap would hide all of the simple-char key

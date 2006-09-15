@@ -1,3 +1,25 @@
+2006-09-15  David Kastrup  <dak@gnu.org>
+
+	* Makefile.in (keymap.o): Add "keymap.h" and "window.h"
+	dependencies.
+
+	* keymap.c: include "window.h".
+	(Fcommand_remapping): New optional POSITION argument.
+	(Fkey_binding): New optional POSITION argument.  Completely rework
+	handling of mouse clicks to get the same order of keymaps as
+	`read-key-sequence' and heed POSITION.  Also temporarily switch
+	buffers to location of mouse click and back.
+
+	* keyboard.c (command_loop_1): Adjust call of `Fcommand_remapping'
+	for additional argument.
+	(parse_menu_item): Adjust call of `Fkey_binding' for additional
+	argument.
+	(read_key_sequence): If there are both `local-map' and `keymap'
+	text properties at some buffer position, heed both.
+
+	* keymap.h: Declare additional optional arguments of
+	`Fcommand_remapping' and `Fkey_binding'.
+
 2006-09-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* indent.c (Fcurrent_column, Findent_to): Fix typos in docstring.

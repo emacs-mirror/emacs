@@ -1,3 +1,12 @@
+2006-09-15  David Kastrup  <dak@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Adapt description to use
+	`get-char-property' instead `get-text-property'.  Explain how
+	mouse events change this.  Explain the new optional argument of
+	`key-binding' and its mouse-dependent lookup.
+	(Searching Keymaps): Adapt description similarly.  Explain the new
+	optional argument of `command-remapping'.
+
 2006-09-14  Richard Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Searching Keymaps): Clarification.
@@ -10,6 +19,7 @@
 	(Basic Char Syntax, General Escape Syntax)
 	(Ctl-Char Syntax, Meta-Char Syntax): New subnodes.
 
+>>>>>>> 1.751
 2006-09-11  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Display Table Format): Wording clarification.
@@ -4871,7 +4881,7 @@
 	(info): Add target.
 	(installall): Target removed.
 
-2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* tips.texi (Coding Conventions): Fix typo.
 
