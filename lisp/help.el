@@ -665,19 +665,19 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	 (fset 'yank-menu (cons 'keymap yank-menu))))))
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))
-  (let* ((event (if (and (symbolp (aref key 0))
-			 (> (length key) 1)
-			 (consp (aref key 1)))
-		    (aref key 1)
-		  (aref key 0)))
+  (let* ((event (aref key (if (and (symbolp (aref key 0))
+				   (> (length key) 1)
+				   (consp (aref key 1)))
+			      1
+			    0)))
 	 (modifiers (event-modifiers event))
-	 (mousep
-	  (or (memq 'click modifiers) (memq 'down modifiers)
-	      (memq 'drag modifiers))))
-    ;; Ok, now look up the key and name the command.
+	 (mousep (or (memq 'click modifiers) (memq 'down modifiers)
+		     (memq 'drag modifiers)))
+	 (defn (key-binding key t))
+	 defn-up defn-up-tricky ev-type
+	 mouse-1-remapped mouse-1-tricky)
 
-    (let ((defn (key-binding key t)))
-      ;; Handle the case where we faked an entry in "Select and Paste" menu.
+    ;; Handle the case where we faked an entry in "Select and Paste" menu.
       (if (and (eq defn nil)
 	       (stringp (aref key (1- (length key))))
 	       (eq (key-binding (substring key 0 -1)) 'yank-menu))
@@ -692,6 +692,28 @@ temporarily enables it to allow getting help on disabled items and buttons."
 		 (stringp (aref untranslated (1- (length untranslated)))))
 	    (aset untranslated (1- (length untranslated))
 		  "(any string)"))
+	;; Need to do this before erasing *Help* buffer in case event
+	;; is a mouse click in an existing *Help* buffer.
+	(when up-event
+	  (setq ev-type (event-basic-type up-event))
+	  (let ((sequence (vector up-event)))
+	    (when (and (eq ev-type 'mouse-1)
+		       mouse-1-click-follows-link
+		       (not (eq mouse-1-click-follows-link 'double))
+		       (setq mouse-1-remapped
+			     (mouse-on-link-p (event-start up-event))))
+	      (setq mouse-1-tricky (and (integerp mouse-1-click-follows-link)
+					(> mouse-1-click-follows-link 0)))
+	      (cond ((stringp mouse-1-remapped)
+		     (setq sequence mouse-1-remapped))
+		    ((vectorp mouse-1-remapped)
+		     (setcar up-event (elt mouse-1-remapped 0)))
+		    (t (setcar up-event 'mouse-2))))
+	    (setq defn-up (key-binding sequence nil nil (event-start up-event)))
+	    (when mouse-1-tricky
+	      (setq sequence (vector up-event))
+	      (aset sequence 0 'mouse-1)
+	      (setq defn-up-tricky (key-binding sequence nil nil (event-start up-event))))))
 	(with-output-to-temp-buffer (help-buffer)
 	  (princ (help-key-description key untranslated))
 	  (if mousep
@@ -701,30 +723,16 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	  (princ "\n   which is ")
 	  (describe-function-1 defn)
 	  (when up-event
-	    (let ((type (event-basic-type up-event))
-		  (hdr "\n\n-------------- up event ---------------\n\n")
-		  defn sequence
-		  mouse-1-tricky mouse-1-remapped)
-	      (setq sequence (vector up-event))
-	      (when (and (eq type 'mouse-1)
-			 mouse-1-click-follows-link
-			 (not (eq mouse-1-click-follows-link 'double))
-			 (setq mouse-1-remapped
-			       (mouse-on-link-p (event-start up-event))))
-		(setq mouse-1-tricky (and (integerp mouse-1-click-follows-link)
-					  (> mouse-1-click-follows-link 0)))
-		(cond ((stringp mouse-1-remapped)
-		       (setq sequence mouse-1-remapped))
-		      ((vectorp mouse-1-remapped)
-		       (setcar up-event (elt mouse-1-remapped 0)))
-		      (t (setcar up-event 'mouse-2))))
-	      (setq defn (key-binding sequence nil nil (event-start up-event)))
-	      (unless (or (null defn) (integerp defn) (equal defn 'undefined))
+	    (let ((hdr "\n\n-------------- up event ---------------\n\n"))
+	      (setq defn defn-up)
+	      (unless (or (null defn)
+			  (integerp defn)
+			  (equal defn 'undefined))
 		(princ (if mouse-1-tricky
 			   "\n\n----------------- up-event (short click) ----------------\n\n"
 			 hdr))
 		(setq hdr nil)
-		(princ (symbol-name type))
+		(princ (symbol-name ev-type))
 		(if mousep
 		    (princ " at that spot"))
 		(if mouse-1-remapped
@@ -734,10 +742,10 @@ temporarily enables it to allow getting help on disabled items and buttons."
 		(princ "\n   which is ")
 		(describe-function-1 defn))
 	      (when mouse-1-tricky
-		(setcar up-event 'mouse-1)
-		(setq defn (key-binding (vector up-event) nil nil
-					(event-start up-event)))
-		(unless (or (null defn) (integerp defn) (eq defn 'undefined))
+		(setq defn defn-up-tricky)
+		(unless (or (null defn)
+			    (integerp defn)
+			    (eq defn 'undefined))
 		  (princ (or hdr
 			     "\n\n----------------- up-event (long click) ----------------\n\n"))
 		  (princ "Pressing mouse-1")
@@ -749,7 +757,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 		  (prin1 defn)
 		  (princ "\n   which is ")
 		  (describe-function-1 defn)))))
-	  (print-help-return-message))))))
+	  (print-help-return-message)))))
 
 (defun describe-mode (&optional buffer)
   "Display documentation of current major mode and minor modes.
