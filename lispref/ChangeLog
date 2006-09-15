@@ -1,3 +1,15 @@
+2006-09-14  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Searching Keymaps): Clarification.
+	(Active Keymaps): Refer to Searching Keymaps instead of duplication.
+
+2006-09-13  Richard Stallman  <rms@gnu.org>
+
+	* objects.texi (Character Type): Node split.
+	Add xref to Describing Characters.
+	(Basic Char Syntax, General Escape Syntax)
+	(Ctl-Char Syntax, Meta-Char Syntax): New subnodes.
+
 2006-09-11  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Display Table Format): Wording clarification.

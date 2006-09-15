@@ -1,3 +1,22 @@
+2006-09-14  Richard Stallman  <rms@gnu.org>
+
+	* startup.el (fancy-splash-text): Change text to improve alignment.
+	(fancy-splash-screens): Don't set non-standard tab width.
+	Bind cursor-type temporarily, and make it easy to patch to
+	preserve the splash buffer.
+	(normal-splash-screen, fancy-splash-tail): Spell out "Meta-x".
+	(fancy-splash-screens): Display echo-area message explicitly.
+	Don't set fancy-splash-help-echo.
+
+	* simple.el (line-number-mode): Group mode-line instead of editing-basics.
+	(column-number-mode, size-indication-mode): Likewise.
+
+	* faces.el (mode-line-faces): Group mode-line instead of modeline.
+
+	* time.el (display-time): Group mode-line instead of modeline.
+
+	* cus-edit.el (mode-line): Renamed from modeline.  All uses changed.
+
 2006-09-005  Ken Manheimer  <address@hidden>
 
 	* allout.el (allout-regexp, allout-line-boundary-regexp)
