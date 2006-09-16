@@ -57,17 +57,6 @@ in the syntax table.
 
 * LICENSES
 
-** These need updating
-
-./info/emacs-5:6335:the GNU Library General Public License instead.)  You can apply it to
-./info/emacs-5:6670:GNU Library General Public License instead of this License.
-./info/mh-e-1:6472:the GNU Library General Public License instead.)  You can apply it to
-./info/mh-e-1:6807:GNU Library General Public License instead of this License.
-./info/calc-1:103:the GNU Library General Public License instead.)  You can apply it to
-./info/calc-1:435:GNU Library General Public License instead of this License.
-./info/elisp-9:1499:the GNU Library General Public License instead.)  You can apply it to
-./info/elisp-9:1835:GNU Lesser General Public License instead of this License.
-
 ** These need relicensing to the GPL.
 
 ./src/gmalloc.c:13:modify it under the terms of the GNU Library General Public License as
