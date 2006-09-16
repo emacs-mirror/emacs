@@ -1,3 +1,7 @@
+2006-09-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* variables.texi (Tips for Defining): Fix a typo.
+
 2006-09-15  Richard Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Remapping Commands, Searching Keymaps)
