@@ -1,3 +1,7 @@
+2006-09-16  Richard Stallman  <rms@gnu.org>
+
+	* regex.c (re_compile_pattern): Set gl_state.current_syntax_table.
+
 2006-09-15  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (Fwindow_line_visibility): New defun for line-move-partial.
