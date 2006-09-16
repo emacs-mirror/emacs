@@ -2442,7 +2442,8 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
   (when (re-search-forward allout-line-boundary-regexp nil 0)
     (allout-prefix-data)
     (and (<= allout-recent-depth allout-doublecheck-at-and-shallower)
-         ;; register non-aberrant or disqualifying offspring as allout-recent-*
+         ;; this will set allout-recent-* on the first non-aberrant topic,
+         ;; whether it's the current one or one that disqualifies it:
          (allout-aberrant-container-p))
     (goto-char allout-recent-prefix-beginning)))
 ;;;_   > allout-this-or-next-heading
@@ -2452,7 +2453,7 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
   ;; and usable by allout-mode.
   (if (not (allout-goto-prefix-doublechecked)) (allout-next-heading)))
 ;;;_   > allout-previous-heading ()
-(defsubst allout-previous-heading ()
+(defun allout-previous-heading ()
   "Move to the prior \(possibly invisible) heading line.
 
 Return the location of the beginning of the heading, or nil if not found.
@@ -2470,10 +2471,11 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
         (if (and (<= allout-recent-depth allout-doublecheck-at-and-shallower)
                  (allout-aberrant-container-p))
             (or (allout-previous-heading)
-                (goto-char start-point)
-                ;; recalibrate allout-recent-*:
-                (allout-depth)))
-        (point)))))
+                (and (goto-char start-point)
+                     ;; recalibrate allout-recent-*:
+                     (allout-depth)
+                     nil))
+          (point))))))
 ;;;_   > allout-get-invisibility-overlay ()
 (defun allout-get-invisibility-overlay ()
   "Return the overlay at point that dictates allout invisibility."
@@ -2721,9 +2723,9 @@ otherwise skip white space between bullet and ensuing text."
 (defun allout-current-bullet-pos ()
   "Return position of current \(visible) topic's bullet."
 
- (if (not (allout-current-depth))
+  (if (not (allout-current-depth))
       nil
-   (1- allout-recent-prefix-end)))
+    (1- allout-recent-prefix-end)))
 ;;;_   > allout-back-to-current-heading ()
 (defun allout-back-to-current-heading ()
   "Move to heading line of current topic, or beginning if already on the line.
@@ -2752,8 +2754,8 @@ in which case we return nil."
 
 Returns that character position."
 
-  (if (re-search-forward allout-line-boundary-regexp nil 'move)
-      (goto-char (1- (allout-prefix-data)))))
+  (if (allout-next-heading)
+      (goto-char (1- allout-recent-prefix-beginning))))
 ;;;_   > allout-end-of-subtree (&optional current include-trailing-blank)
 (defun allout-end-of-subtree (&optional current include-trailing-blank)
   "Put point at the end of the last leaf in the containing topic.
@@ -2863,7 +2865,7 @@ collapsed."
   "Ascend one level, returning t if successful, nil if not."
   (prog1
       (if (allout-beginning-of-level)
-	  (allout-previous-heading))
+          (allout-previous-heading))
     (if (interactive-p) (allout-end-of-prefix))))
 ;;;_   > allout-descend-to-depth (depth)
 (defun allout-descend-to-depth (depth)
@@ -2887,11 +2889,13 @@ Returning depth if successful, nil if not."
 (defun allout-up-current-level (arg)
   "Move out ARG levels from current visible topic."
   (interactive "p")
-  (allout-back-to-current-heading)
-  (if (not (allout-ascend))
-      (error "Can't ascend past outermost level")
-    (if (interactive-p) (allout-end-of-prefix))
-    allout-recent-prefix-beginning))
+  (let ((start-point (point)))
+    (allout-back-to-current-heading)
+    (if (not (allout-ascend))
+        (progn (goto-char start-point)
+               (error "Can't ascend past outermost level"))
+      (if (interactive-p) (allout-end-of-prefix))
+      allout-recent-prefix-beginning)))
 
 ;;;_  - Linear
 ;;;_   > allout-next-sibling (&optional depth backward)
@@ -6531,8 +6535,8 @@ If BEG is bigger than END we return 0."
   "Return a list of all atoms in list."
   ;; classic.
   (cond ((null list) nil)
-        ((atom (car list)) (cons (car list) (flatten (cdr list))))
-        (t (append (flatten (car list)) (flatten (cdr list))))))
+        ((atom (car list)) (cons (car list) (allout-flatten (cdr list))))
+        (t (append (allout-flatten (car list)) (allout-flatten (cdr list))))))
 ;;;_  : Compatability:
 ;;;_   > allout-mark-marker to accommodate divergent emacsen:
 (defun allout-mark-marker (&optional force buffer)
