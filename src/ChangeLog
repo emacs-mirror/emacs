@@ -1,5 +1,10 @@
 2006-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_get_file_with_chooser): Check
+	x-gtk-show-chooser-help-text before adding the help text.
+
+	* xfns.c (syms_of_xfns): New variable: x-gtk-show-chooser-help-text.
+
 	* gtkutil.c (get_utf8_string): Try harder to convert to UTF8.  Gtk+
 	will simply crash if we fail.
 
