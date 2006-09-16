@@ -1,3 +1,11 @@
+2006-09-16  Richard Stallman  <rms@gnu.org>
+
+	* obsolete/fast-lock.el (fast-lock-cache-data): Provide 2nd arg to
+	font-lock-compile-keywords.
+
+	* font-lock.el (font-lock-compile-keywords): Rename optional arg
+	to SYNTACTIC-KEYWORDS and reverse the sense.  All callers changed.
+
 2006-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add x-gtk-show-chooser-help-text.
