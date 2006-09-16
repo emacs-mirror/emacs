@@ -3645,9 +3645,6 @@ Outline mode sets this."
 	  ;; This is the value the function returns.
 	  (= arg 0))
 
-      (setq foo (list (point)
-		      (or goal-column temporary-goal-column)
-		      opoint forward))
       (cond ((> arg 0)
 	     ;; If we did not move down as far as desired,
 	     ;; at least go to end of line.
@@ -3681,7 +3678,6 @@ Outline mode sets this."
 
 	;; Move to the desired column.
 	(line-move-to-column column)
-	(push (list (point) line-beg line-end) foo)
 	(setq new (point))
 
 	;; Process intangibility within a line.
