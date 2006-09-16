@@ -59,8 +59,6 @@ in the syntax table.
 
 ** These need updating
 
-./etc/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
-./info/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
 ./info/emacs-5:6335:the GNU Library General Public License instead.)  You can apply it to
 ./info/emacs-5:6670:GNU Library General Public License instead of this License.
 ./info/mh-e-1:6472:the GNU Library General Public License instead.)  You can apply it to
@@ -69,19 +67,6 @@ in the syntax table.
 ./info/calc-1:435:GNU Library General Public License instead of this License.
 ./info/elisp-9:1499:the GNU Library General Public License instead.)  You can apply it to
 ./info/elisp-9:1835:GNU Lesser General Public License instead of this License.
-./lisp/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
-./lispref/gpl.texi:26:the GNU Library General Public License instead.)  You can apply it to
-./man/calc.texi:206:the GNU Library General Public License instead.)  You can apply it to
-./man/emacs.texi:1199:the GNU Library General Public License instead.)  You can apply it to
-./man/mh-e.texi:9291:the GNU Library General Public License instead.)  You can apply it to
-./src/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
-./COPYING:18:the GNU Library General Public License instead.)  You can apply it to
-./leim/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
-./lib-src/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
-./lwlib/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
-./mac/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
-./msdos/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
-./nt/COPYING:18:the GNU Library General Public License instead.)  You can apply it to
 
 ** These need relicensing to the GPL.
 
