@@ -3645,6 +3645,9 @@ Outline mode sets this."
 	  ;; This is the value the function returns.
 	  (= arg 0))
 
+      (setq foo (list (point)
+		      (or goal-column temporary-goal-column)
+		      opoint forward))
       (cond ((> arg 0)
 	     ;; If we did not move down as far as desired,
 	     ;; at least go to end of line.
@@ -3678,6 +3681,7 @@ Outline mode sets this."
 
 	;; Move to the desired column.
 	(line-move-to-column column)
+	(push (list (point) line-beg line-end) foo)
 	(setq new (point))
 
 	;; Process intangibility within a line.
@@ -3733,10 +3737,7 @@ because what we really need is for `move-to-column'
 and `current-column' to be able to ignore invisible text."
   (if (zerop col)
       (beginning-of-line)
-    (let ((opoint (point)))
-      (move-to-column col)
-      ;; move-to-column doesn't respect field boundaries.
-      (goto-char (constrain-to-field (point) opoint))))
+    (move-to-column col))
 
   (when (and line-move-ignore-invisible
 	     (not (bolp)) (line-move-invisible-p (1- (point))))

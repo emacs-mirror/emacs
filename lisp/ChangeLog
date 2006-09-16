@@ -1,3 +1,7 @@
+2006-09-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-to-column): Revert 2006-08-03 change.
+
 2006-09-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* help.el (describe-prefix-bindings): Use let, not let*.
