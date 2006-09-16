@@ -1,3 +1,8 @@
+2006-09-16  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>
+
+	* progmodes/python.el (python-preoutput-filter):
+	Fix arg order to string-match.
+
 2006-09-16  Richard Stallman  <rms@gnu.org>
 
 	* obsolete/fast-lock.el (fast-lock-cache-data): Provide 2nd arg to
