@@ -373,6 +373,7 @@ since it could result in memory overflow and make Emacs crash."
 				 (repeat (directory :format "%v")))
 	     (x-use-old-gtk-file-dialog menu boolean "22.1")
 	     (x-gtk-show-hidden-files menu boolean "22.1")
+	     (x-gtk-show-chooser-help-text menu boolean "22.1")
 	     (x-gtk-whole-detached-tool-bar x boolean "22.1")
 	     ;; xterm.c
 	     (x-use-underline-position-properties display boolean "22.1")

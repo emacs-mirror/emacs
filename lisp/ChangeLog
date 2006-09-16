@@ -1,5 +1,7 @@
 2006-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* cus-start.el (all): Add x-gtk-show-chooser-help-text.
+
 	* select.el (xselect-convert-to-string): If UTF8_STRING is requested
 	and the data doesn't look like UTF8, send STRING instead.
 
