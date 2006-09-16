@@ -1,3 +1,8 @@
+2006-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (get_utf8_string): Try harder to convert to UTF8.  Gtk+
+	will simply crash if we fail.
+
 2006-09-16  Richard Stallman  <rms@gnu.org>
 
 	* regex.c (re_compile_pattern): Set gl_state.current_syntax_table.

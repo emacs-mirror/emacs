@@ -507,10 +507,66 @@ get_utf8_string (str)
 {
   char *utf8_str = str;
 
+  if (!str) return NULL;
+
   /* If not UTF-8, try current locale.  */
-  if (str && !g_utf8_validate (str, -1, NULL))
+  if (!g_utf8_validate (str, -1, NULL))
     utf8_str = g_locale_to_utf8 (str, -1, 0, 0, 0);
 
+  if (!utf8_str) 
+    {
+      /* Probably some control characters in str.  Escape them. */
+      size_t nr_bad = 0;
+      gsize bytes_read;
+      gsize bytes_written;
+      unsigned char *p = (unsigned char *)str;
+      char *cp, *up;
+      GError *error = NULL;
+
+      while (! (cp = g_locale_to_utf8 (p, -1, &bytes_read,
+                                             &bytes_written, &error))
+             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+        {
+          ++nr_bad;
+          p += bytes_written+1;
+          g_error_free (error);
+          error = NULL;
+        }
+
+      if (error) 
+        {
+          g_error_free (error);
+          error = NULL;
+        }
+      if (cp) g_free (cp);
+
+      up = utf8_str = xmalloc (strlen (str) + nr_bad * 4 + 1);
+      p = str;
+
+      while (! (cp = g_locale_to_utf8 (p, -1, &bytes_read,
+                                       &bytes_written, &error))
+             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+        {
+          strncpy (up, p, bytes_written);
+          sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
+          up[bytes_written+4] = '\0';
+          up += bytes_written+4;
+          p += bytes_written+1;
+          g_error_free (error);
+          error = NULL;
+        }
+
+      if (cp) 
+        {
+          strcat (utf8_str, cp);
+          g_free (cp);
+        }
+      if (error) 
+        {
+          g_error_free (error);
+          error = NULL;
+        }
+    }
   return utf8_str;
 }
 
