@@ -2016,6 +2016,34 @@ behavior in older versions of Emacs).
 ---
 ** Changes in Allout
 
+*** Some previously rough topic-header format edge cases are reconciled.
+Level 1 topics use the mode's comment format, and lines starting with the
+asterisk - for instance, the comment close of some languages (eg, c's "*/"
+or mathematica's "*)") - at the beginning of line are no longer are
+interpreted as level 1 topics in those modes.
+
+*** Many or most commonly occuring "accidental" topics are disqualified.
+Text in item bodies that looks like a low-depth topic is no longer mistaken
+for one unless its first offspring (or that of its next sibling with
+offspring) is only one level deeper.
+
+For example, pasting some text with a bunch of leading asterisks into a
+topic that's followed by a level 3 or deeper topic will not cause the
+pasted text to be mistaken for outline structure.
+
+The same constraint is applied to any level 2 or 3 topics.
+
+This settles an old issue where typed or pasted text needed to be carefully
+reviewed, and sometimes doctored, to avoid accidentally disrupting the
+outline structure.  Now that should be generally unnecessary, as the most
+prone-to-occur accidents are disqualified.
+
+*** Allout now refuses to create "containment discontinuities", where a
+topic is shifted deeper than the offspring-depth of its container.  On the
+other hand, allout now operates gracefully with existing containment
+discontinuities, revealing excessively contained topics rather than either
+leaving them hidden or raising an error.
+
 *** Topic cryptography added, enabling easy gpg topic encryption and
 decryption.  Per-topic basis enables interspersing encrypted-text and
 clear-text within a single file to your heart's content, using symmetric
@@ -2025,71 +2053,52 @@ pending topics on save, and more, make it easy to use encryption in
 powerful ways.  Encryption behavior customization is collected in the
 allout-encryption customization group.
 
-*** `allout-view-change-hook' marked as being deprecated - use
-`allout-exposure-change-hook' instead.  Both are still invoked, but
-`allout-view-change-hook' will eventually be ignored.  The new
-`allout-exposure-change-hook' is called with args that were passed to
-`allout-flag-region', making it easier to use.
+*** Navigation within an item is easier.  Repeated beginning-of-line and
+end-of-line key commands (usually, ^A and ^E) cycle through the 
+beginning/end-of-line and then beginning/end of topic, etc.  See new
+customization vars `allout-beginning-of-line-cycles' and
+`allout-end-of-line-cycles'.
 
-*** Other allout functions which change the outline structure also have
-hooks, enabling cooperative allout enhancements.  See
-`allout-structure-added-hook', `allout-structure-deleted-hook', and
-`allout-structure-shifted-hook'.
+*** New or revised allout-mode activity hooks enable creation of
+cooperative enhancements to allout mode without changes to the mode,
+itself.
 
-*** Default command prefix changed to "\C-c " (control-c space), to avoid
-intruding on user's keybinding space.  Customize the
+See `allout-exposure-change-hook', `allout-structure-added-hook',
+`allout-structure-deleted-hook', and `allout-structure-shifted-hook'.
+
+`allout-exposure-change-hook' replaces the existing
+`allout-view-change-hook', which is being deprecated.  Both are still
+invoked, but `allout-view-change-hook' will eventually be ignored.
+`allout-exposure-change-hook' is called with explicit arguments detailing
+the specifics of each change (as are the other new hooks), making it easier
+to use than the old version.
+
+There is a new mode deactivation hook, `allout-mode-deactivate-hook', for
+coordinating with deactivation of allout-mode.  Both that and the mode
+activation hook, `allout-mode-hook' are now run after the `allout-mode'
+variable is changed, rather than before.
+
+*** Default command prefix was changed to "\C-c " (control-c space), to
+avoid intruding on user's keybinding space.  Customize the
 `allout-command-prefix' variable to your preference.
 
-*** Allout now uses text overlay's `invisible' property (and others) for
-concealed text, instead of selective-display.  This simplifies the code, in
-particular avoiding the need for kludges for isearch dynamic-display,
-discretionary handling of edits of concealed text, undo concerns, etc.
+*** Allout now uses text overlay's `invisible' property for concealed text,
+instead of selective-display.  This simplifies the code, in particular
+avoiding the need for kludges for isearch dynamic-display, discretionary
+handling of edits of concealed text, undo concerns, etc.
 
-*** Some previously rough topic-header format edge cases are reconciled.
-Level 1 topics use the mode's comment format, and lines starting with the
-asterisk - for instance, the comment close of some languages (eg, c's "*/"
-or mathematica's "*)") - at the beginning of line are no longer are
-interpreted as level 1 topics in those modes.  (Yay!)
+*** There are many other fixes and refinements, including:
 
-*** Many or most commonly occuring "accidental" topics are disqualified.
-Text that looks like low-depth topics is no longer mistaken for them unless
-the depth of the first subsequent topic-seeming text greater depth is only
-one level deeper.
-
-For example, pasting some text with a bunch of leading asterisks into a
-topic that's followed by a level 3 or deeper topic will not cause the
-pasted text to be mistaken for outline structure.  Likewise for any text
-added that looks like any level 2 or 3 topics.
-
-This settles an old issue where typed or pasted text needed to be carefully
-reviewed, and sometimes doctored, to avoid accidentally disrupting the
-outline structure.  Now that should be generally unnecessary, as the most
-prone-to-occur accidents are disqualified.
-
-*** Many substantial fixes and refinements, including:
-
-   - repaired regexp-quoting of custom header prefixes, so any literals
-     will now work (for instance, mathematica's "(*" is now properly
-     accepted).
-   - repaired inhibition of inadvertent edits to concealed text.
-   - refuse to create "containment discontinuities", where a
-     topic is shifted deeper than the offspring-depth of its' container
+   - repaired inhibition of inadvertent edits to concealed text, without
+     inhibiting undo; we now reveal undo changes within concealed text.
    - auto-fill-mode is now left inactive when allout-mode starts, if it
      already was inactive.  also, `allout-inhibit-auto-fill' custom
      configuration variable makes it easy to disable auto fill in allout
      outlines in general or on a per-buffer basis.
-   - mode hook changes: new hook `allout-mode-deactivate-hook', for
-     coordinating with deactivation of allout-mode.  `allout-mode-hook' is
-     now run after the `allout-mode' variable is changed, as is the new
-     `allout-mode-deactivate-hook'.
    - allout now tolerates fielded text in outlines without disruption.
    - hot-spot navigation now is modularized with a new function,
-     `allout-hotspot-key-handler', enabling easier articulation and
-     enhancement of the functionality by allout addons.
-   - topic body navigation is easier, where repeated beginning of line and
-     end of line key commands cycle through the actually beginning/end of
-     line and then beginning/end of topic, etc.  see new customization vars
-     `allout-beginning-of-line-cycles' and `allout-end-of-line-cycles'.
+     `allout-hotspot-key-handler', enabling easier use and enhancement of
+     the functionality in allout addons.
    - repaired retention of topic body hanging indent upon topic depth shifts
    - bulleting variation is simpler and more accommodating, both in the
      default behavior and in ability to vary when creating new topics
@@ -2100,8 +2109,7 @@ prone-to-occur accidents are disqualified.
    - included a few unit-tests for interior functionality.  developers can
      have them automatically run at the end of module load by customizing
      the option `allout-run-unit-tests-on-load'.
-   - many, many minor tweaks and fixes.  many internal fixes and
-     refinements of docstrings.
+   - many, many other, more minor tweaks, fixes, and refinements.
    - version number incremented to 2.2
 
 ** The variable `woman-topic-at-point' was renamed
