@@ -223,8 +223,11 @@ Cut buffers are considered obsolete; you should use selections instead."
 	      (setq str (encode-coding-string str coding))))
 
 	   ((eq type 'UTF8_STRING)
-	    (setq str (encode-coding-string str 'utf-8)))
-
+	    (let ((charsets (find-charset-string str)))
+	      (if (or (memq 'eight-bit-control charsets)
+		      (memq 'eight-bit-graphic charsets))
+		  (setq type 'STRING)
+		(setq str (encode-coding-string str 'utf-8)))))
 	   (t
 	    (error "Unknow selection type: %S" type))
 	   )))
