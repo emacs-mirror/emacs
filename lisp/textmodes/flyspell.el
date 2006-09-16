@@ -1460,6 +1460,22 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	    (while (re-search-forward regexp nil t)
 	      (delete-region (match-beginning 0) (match-end 0)))))))))
 
+;;* ---------------------------------------------------------------
+;;*     flyspell-check-region-doublons
+;;* ---------------------------------------------------------------
+(defun flyspell-check-region-doublons (beg end)
+  "Check for adjacent duplicated words (doublons) in the given region."
+  (save-excursion
+    (goto-char beg)
+    (flyspell-word)     ; Make sure current word is checked
+    (backward-word 1)
+    (while (and (< (point) end)
+		(re-search-forward "\\b\\([^ \n\t]+\\)[ \n\t]+\\1\\b"
+				   end 'move))
+      (flyspell-word)
+      (backward-word 1))
+    (flyspell-word)))
+
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-large-region ...                                        */
 ;;*---------------------------------------------------------------------*/
@@ -1504,7 +1520,8 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	  (progn
 	    (flyspell-process-localwords buffer)
 	    (with-current-buffer curbuf
-	      (flyspell-delete-region-overlays beg end))
+	      (flyspell-delete-region-overlays beg end)
+	      (flyspell-check-region-doublons beg end))
 	    (flyspell-external-point-words))
 	(error "Can't check region...")))))
 

@@ -1,3 +1,9 @@
+2006-09-16  Agustin Martin <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-check-region-doublons): New
+	function to detect duplicated words.
+	(flyspell-large-region): Use it.
+
 2006-09-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-to-column): Revert 2006-08-03 change.
