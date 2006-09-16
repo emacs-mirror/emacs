@@ -1350,6 +1350,8 @@ xg_get_file_with_chooser (f, prompt, default_filename,
                                  GTK_FILE_CHOOSER_ACTION_OPEN :
                                  GTK_FILE_CHOOSER_ACTION_SAVE);
   extern int x_gtk_show_hidden_files;
+  extern int x_gtk_show_chooser_help_text;
+
 
   if (only_dir_p)
     action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
@@ -1377,17 +1379,22 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   g_signal_connect (G_OBJECT (filewin), "notify",
                     G_CALLBACK (xg_toggle_notify_cb), wtoggle);
 
-  message[0] = '\0';
-  if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
-    strcat (message, "\nType C-l to display a file name text entry box.\n");
-  strcat (message, "\nIf you don't like this file selector, use the "
-          "corresponding\nkey binding or customize "
-          "use-file-dialog to turn it off.");
+  if (x_gtk_show_chooser_help_text)
+    {
+      message[0] = '\0';
+      if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
+        strcat (message, "\nType C-l to display a file name text entry box.\n");
+      strcat (message, "\nIf you don't like this file selector, use the "
+              "corresponding\nkey binding or customize "
+              "use-file-dialog to turn it off.");
     
-  wmessage = gtk_label_new (message);
-  gtk_widget_show (wmessage);
+      wmessage = gtk_label_new (message);
+      gtk_widget_show (wmessage);
+    }
+
   gtk_box_pack_start (GTK_BOX (wbox), wtoggle, FALSE, FALSE, 0);
-  gtk_box_pack_start (GTK_BOX (wbox), wmessage, FALSE, FALSE, 0);
+  if (x_gtk_show_chooser_help_text)
+    gtk_box_pack_start (GTK_BOX (wbox), wmessage, FALSE, FALSE, 0);
   gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (filewin), wbox);
 
   if (default_filename)
