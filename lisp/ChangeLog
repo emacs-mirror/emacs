@@ -1,3 +1,125 @@
+2006-09-16  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-regexp, allout-line-boundary-regexp)
+	(allout-bob-regexp): Correct grouping and boundaries to fix
+	backwards traversal.
+	(allout-depth-specific-regexp, allout-depth-one-regexp): New
+	versions that exploit \\{M\\} regexp syntax, to avoid geometric or
+	worse time in allout-ascend.
+	(allout-doublecheck-at-and-shallower): Identify depth threshold
+	below which topics are checked for and disqualified by containment
+	discontinuities.
+	(allout-hotspot-key-handler): Correctly handle multiple-key
+	strokes.  Remove some unused variables.
+	(allout-mode-leaders): Clarify that mode-specific comment-start
+	will be used.
+	(set-allout-regexp): Correctly regexp-quote allout regexps to
+	properly accept alternative header-leads and primary bullets with
+	regexp-specific characters (eg, C "/*", mathematica "(*").
+	Include new regular expressions among those configured.
+	(allout-infer-header-lead-and-primary-bullet): Rename
+	allout-infer-header-lead.
+	(allout-recent-depth): Manifest as a variable as well as a
+	function.
+	(allout-prefix-data): Simplify into an inline instead of a macro,
+	assuming current match data rather than being explicitly passed
+	it.  Establish allout-recent-depth value as well as
+	allout-recent-prefix-beginning and allout-recent-prefix-end.
+	(allout-aberrant-container-p): True when an item's immediate
+	offspring discontinuously contained.  Useful for disqualifying
+	unintended topic prefixes, likely at low depths.
+	(allout-goto-prefix-doublechecked): Elaborated version of
+	allout-goto-prefix which disqualifies aberrant pseudo-items.
+	(allout-pre-next-prefix): Layer on top of lower-level routines, to
+	get disqualification of aberrant containers.
+	(allout-end-of-prefix, allout-end-of-subtree): Disqualify aberrant
+	containers.
+	(allout-beginning-of-current-entry): Position at start of buffer
+	when in container (depth 0) entry.
+	(nullify-allout-prefix-data): Invalidate allout-recent-* prefix data.
+	(allout-current-bullet): Strip text properties.
+	(allout-get-prefix-bullet): Use right match groups.
+	(allout-beginning-of-line, allout-next-heading): Disqualify
+	aberrant containers.
+	(allout-previous-heading): Disqualify aberrant containers, and
+	change to regular (rather than inline) function, to allow
+	self-recursion.
+	(allout-get-invisibility-overlay): Increment so progress is made
+	when the first overlay is not the sought one.
+	(allout-end-of-prefix): Disqualify aberrant containers.
+	(allout-end-of-line): Cycle something like allout-beginning-of-line.
+	(allout-mode): Make allout-old-style-prefixes (ie, enabling use with
+	outline.el outlines) functional again.  Change the primary bullet
+	along with the header-lead - level 1 new-style bullets now work.
+	Engage allout-before-change-handler in mainline emacs, not just
+	xemacs, to do undo handling.
+	(allout-before-change-handler): Expose undo changes occurring in
+	hidden regions.  Use allout-get-invisibility-overlay instead of
+	reimplementing it inline.
+	(allout-chart-subtree): Use start rather than end of prefix in
+	charts.  Use allout-recent-depth variable.
+	(allout-chart-siblings): Disqualify aberrant topics.
+	(allout-beginning-of-current-entry): Position correctly.
+	(allout-ascend): Use new allout-depth-specific-regexp and
+	allout-depth-one-regexp for linear instead of O(N^2) or worse
+	behavior.
+	(allout-ascend-to-depth): Depend on allout-ascend, rather than
+	reimplementing an algorithm.
+	(allout-up-current-level): Depend on allout-ascend, rather than
+	reimplementing an algorithm.  Return to start-point if we fail.
+	(allout-descend-to-depth): Use allout-recent-depth variable
+	instead of function.
+	(allout-next-sibling): On traversal of numerous intervening
+	topics, resort to economical allout-next-sibling-leap.
+	(allout-next-sibling-leap): Specialized version of
+	allout-next-sibling that uses allout-ascend cleverly, to depend on
+	a regexp search to leap large numbers of contained topics, rather
+	than arbitrarily many one-by-one traversals.
+	(allout-next-visible-heading): Disqualify aberrant topics.
+	(allout-previous-visible-heading): Position consistently when
+	interactive.
+	(allout-forward-current-level): Base on allout-previous-sibling
+	rather than (differently) reimplmenting the algorithm.  Remove some
+	unused variables.
+	(allout-solicit-alternate-bullet): Present default choice stripped
+	of text properties.
+	(allout-rebullet-heading): Use bullet stripped of text properties.
+	Register changes using allout-exposure-change-hook.  Disregard
+	aberrant topics.
+	(allout-shift-in): With universal-argument, make topic a peer of
+	it's former offspring.  Simplify the code by separating out
+	allout-shift-out functionality.
+	(allout-shift-out): With universal-argument, make offspring peers
+	of their former container, and its siblings.  Implement the
+	functionality here, rather than inappropriately muddling the
+	implementation of allout-shift-in.
+	(allout-rebullet-topic): Respect additional argument for new
+	parent-child separation function.
+	(allout-yank-processing): Use allout-ascend directly.
+	(allout-show-entry): Disqualify aberrant topics.
+	(allout-show-children): Handle discontinuous children gracefully,
+	extending the depth being revealed to expose them and posting a
+	message indicating the situation.
+	(allout-show-to-offshoot): Remove obsolete and incorrect comment.
+	Leave cursor in correct position.
+	(allout-hide-current-subtree): Use allout-ascend directly.
+	Disqualify aberrant topics.
+	(allout-kill-line, allout-kill-topic): Preserve exposure layout in
+	a way that the yanks can restore it, as used to happen.
+	(allout-yank-processing): Restore exposure layout as recorded by
+	allout-kill-*, as used to happen.
+	(allout-annotate-hidden, allout-hide-by-annotation): New routines
+	for preseving and restoring exposure layout across kills.
+	(allout-toggle-subtree-encryption): Run allout-exposure-change-hook.
+	(allout-encrypt-string): Strip text properties.
+	Rearranged order and outline-headings for some of the
+	miscellaneous functions.
+	(allout-resolve-xref): No need to quote the error name in the
+	condition-case handler section.
+	(allout-flatten): Classic recursive (and recursively intensive,
+	without tail-recursion) list-flattener, needed by allout-shift-out
+	when confronted with discontinuous children.
+
 2006-09-16  Jason Rumney  <jasonr@gnu.org>
 
 	* dnd.el (dnd-open-remote-file-function): Use dnd-open-local-file
@@ -72,118 +194,6 @@
 	* time.el (display-time): Group mode-line instead of modeline.
 
 	* cus-edit.el (mode-line): Renamed from modeline.  All uses changed.
-
-2006-09-14  Ken Manheimer  <ken.manheimer@gmail.com>
-
-	* allout.el (allout-regexp, allout-line-boundary-regexp)
-	(allout-bob-regexp): Correct grouping and boundaries to fix
-	backwards traversal.
-	(allout-depth-specific-regexp, allout-depth-one-regexp): New
-	versions that exploit \\{M\\} regexp syntax, to avoid geometric or
-	worse time in allout-ascend.
-	(allout-doublecheck-at-and-shallower): Identify depth threshold
-	below which topics are checked for and disqualified by containment
-	discontinuities.
-	(allout-hotspot-key-handler): Correctly handle multiple-key
-	strokes.  Remove some unused variables.
-	(allout-mode-leaders): Clarify that mode-specific comment-start
-	will be used
-	(set-allout-regexp): Correctly regexp-quote allout regexps to
-	properly accept alternative header-leads and primary bullets with
-	regexp-specific characters (eg, C "/*", mathematica "(*").
-	Include new regular expressions among those configured.
-	(allout-infer-header-lead-and-primary-bullet): Rename
-	allout-infer-header-lead.
-	(allout-recent-depth): Manifest as a variable as well as a function.
-	(allout-prefix-data): Simplify into an inline instead of a macro,
-	assuming current match data rather than being explicitly passed it.
-	Establish allout-recent-depth value as well as
-	allout-recent-prefix-beginning and allout-recent-prefix-end.
-	(allout-aberrant-container-p): True when an item's immediate
-	offspring discontinuously contained.  Useful for disqualifying
-	unintended topic prefixes, likely at low depths.
-	(allout-goto-prefix-doublechecked): Elaborated version of
-	allout-goto-prefix which disqualifies aberrant pseudo-items.
-	(allout-end-of-prefix, allout-pre-next-prefix)
-	(allout-end-of-subtree): Disqualify aberrant containers.
-	(allout-beginning-of-current-entry): Position at start of buffer
-	when in container (depth 0) entry.
-	(nullify-allout-prefix-data): Invalidate allout-recent-* prefix data.
-	(allout-current-bullet): Strip text properties.
-	(allout-get-prefix-bullet): Use right match groups.
-	(allout-beginning-of-line, allout-next-heading): Disqualify
-	aberrant containers.
-	(allout-previous-heading): Disqualify aberrant containers.
-	(allout-get-invisibility-overlay): Increment so progress is made
-	when the first overlay is not the sought one.
-	(allout-end-of-prefix): Disqualify aberrant containers.
-	(allout-end-of-line): Cycle something like allout-beginning-of-line.
-	(allout-mode): Make allout-old-style-prefixes (ie, enabling use with
-	outline.el outlines) functional again.  Change the primary bullet
-	along with the header-lead - level 1 new-style bullets now work.
-	Engage allout-before-change-handler in mainline emacs, not just
-	xemacs, to do undo handling.
-	(allout-before-change-handler): Expose undo changes occurring in
-	hidden regions.  Use allout-get-invisibility-overlay instead of
-	reimplementing it inline.
-	(allout-chart-subtree): Use start rather than end of prefix in
-	charts.  Use allout-recent-depth variable.
-	(allout-chart-siblings): Disqualify aberrant topics.
-	(allout-beginning-of-current-entry): Position correctly.
-	(allout-ascend): Use new allout-depth-specific-regexp and
-	allout-depth-one-regexp for linear instead of O(N^2) or worse behavior.
-	(allout-ascend-to-depth, allout-up-current-level): Depend on
-	allout-ascend, rather than reimplementing an algorithm.
-	(allout-descend-to-depth): Use allout-recent-depth var instead of fun.
-	(allout-next-sibling): On traversal of numerous intervening
-	topics, resort to economical allout-next-sibling-leap.
-	(allout-next-sibling-leap): Specialized version of
-	allout-next-sibling that uses allout-ascend cleverly, to depend on
-	a regexp search to leap large numbers of contained topics, rather
-	than arbitrarily many one-by-one traversals.
-	(allout-next-visible-heading): Disqualify aberrant topics.
-	(allout-previous-visible-heading): Position consistently when
-	interactive.
-	(allout-forward-current-level): Base on allout-previous-sibling
-	rather than reimplmenting the algorithm.  Remove unused vars.
-	(allout-solicit-alternate-bullet): Present default choice stripped
-	of text properties.
-	(allout-rebullet-heading): Use bullet stripped of text properties.
-	Register changes using allout-exposure-change-hook.  Disregard
-	aberrant topics.
-	(allout-shift-in): With universal-argument, make topic a peer of
-	it's former offspring.  Simplify the code by separating out
-	allout-shift-out functionality.
-	(allout-shift-out): With universal-argument, make offspring peers
-	of their former container, and its siblings.  Implement the
-	functionality here, rather than inappropriately muddling the
-	implementation of allout-shift-in.
-	(allout-rebullet-topic): Respect additional argument for new
-	parent-child separation function.
-	(allout-yank-processing): Use allout-ascend directly.
-	(allout-show-entry): Disqualify aberrant topics.
-	(allout-show-children): Handle discontinuous children gracefully,
-	extending the depth being revealed to expose them and posting a
-	message indicating the situation.
-	(allout-show-to-offshoot): Remove obsolete and incorrect comment.
-	Leave cursor in correct position.
-	(allout-hide-current-subtree): Use allout-ascend directly.
-	Disqualify aberrant topics.
-	(allout-kill-line, allout-kill-topic): Preserve exposure layout in
-	a way that the yanks can restore it, as used to happen.
-	(allout-yank-processing): Restore exposure layout as recorded by
-	allout-kill-*, as used to happen.
-	(allout-annotate-hidden, allout-hide-by-annotation): New routines
-	for preseving and restoring exposure layout across kills.
-	(allout-toggle-subtree-encryption): Run allout-exposure-change-hook.
-	(allout-encrypt-string): Strip text properties.
-	Rearranged order and outline-headings for some of the
-	miscellaneous functions.
-	(allout-resolve-xref): No need to quote the error name in the
-	condition-case handler section.
-	(allout-flatten): Classic recursive (and recursively intensive,
-	without tail-recursion) list-flattener, needed by allout-shift-out
-	when confronted with discontinuous children.
 
 2006-09-14  Chong Yidong  <cyd@stupidchicken.com>
 
