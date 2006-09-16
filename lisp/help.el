@@ -309,7 +309,7 @@ If that doesn't give a function, return nil."
 The prefix described consists of all but the last event
 of the key sequence that ran this command."
   (interactive)
-  (let* ((key (this-command-keys)))
+  (let ((key (this-command-keys)))
     (describe-bindings
      (if (stringp key)
 	 (substring key 0 (1- (length key)))
