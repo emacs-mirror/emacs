@@ -1,3 +1,7 @@
+2006-09-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* help.el (describe-prefix-bindings): Use let, not let*.
+
 2006-09-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-regexp, allout-line-boundary-regexp)
