@@ -1,3 +1,8 @@
+2006-09-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (fancy-splash-screens): Don't switch to the scratch
+	buffer; it may not be the next buffer.
+
 2006-09-16  Romain Francoise  <romain@orebokech.com>
 
 	* saveplace.el (load-save-place-alist-from-file): Use expanded name

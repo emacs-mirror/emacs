@@ -1383,11 +1383,7 @@ mouse."
 	      (setq display-hourglass old-hourglass
 		    minor-mode-map-alist old-minor-mode-map-alist
 		    emulation-mode-map-alists old-emulation-mode-map-alists)
-	      (use-local-map nil)
-	      (switch-to-buffer "*scratch*")
-;;;  Comment out the next line in order to see the splash buffer exactly as it was.
-	      (kill-buffer splash-buffer)
-	      ))))
+	      (kill-buffer splash-buffer)))))
     ;; If hide-on-input is nil, don't hide the buffer on input.
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
