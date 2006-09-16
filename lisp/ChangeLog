@@ -1,3 +1,8 @@
+2006-09-16  Romain Francoise  <romain@orebokech.com>
+
+	* saveplace.el (load-save-place-alist-from-file): Use expanded name
+	in both messages.
+
 2006-09-16  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>
 
 	* progmodes/python.el (python-preoutput-filter):
