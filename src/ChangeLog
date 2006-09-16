@@ -18806,6 +18806,14 @@
 
 	* Makefile.in (fns.o): Depend on coding.h.
 
+2003-01-06  Dave Love  <fx@gnu.org>
+
+	* fns.c: Include coding.h.  Use POINTER_TYPE*, not void*.
+	(Vlocale_coding_system): Declare.
+	(Qcodeset, Qdays, Qmonths, Qpaper): New.
+	(Flanginfo): New.
+	(syms_of_fns): Initialize new stuff.
+
 2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* minibuf.c (Fread_variable): Doc fix.

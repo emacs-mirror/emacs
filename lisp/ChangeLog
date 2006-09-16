@@ -1,3 +1,16 @@
+2006-09-16  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/conf-mode.el (conf-mode-map): Use conf-space-keywords cmd.
+	(conf-space-mode): Don't handle prefix arg.
+	Delete conf-space-keywords-override code.
+	Use add-hook.
+	(conf-space-keywords): New command.
+	(conf-space-mode-internal): Be careful with imenu-generic-expression.
+	Delete conf-space-keywords-override code.
+	(conf-space-keywords-alist): Doc fix.
+	(conf-space-font-lock-keywords): Doc fix.
+	(conf-space-keywords-override): Var deleted.
+
 2006-09-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (fancy-splash-screens): Don't switch to the scratch
