@@ -1,3 +1,9 @@
+2006-09-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.c (clear_regexp_cache): New function.
+
+	* syntax.c (Fmodify_syntax_entry): Clear regexp cache.
+
 2006-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_with_chooser): Check

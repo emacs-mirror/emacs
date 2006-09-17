@@ -207,6 +207,19 @@ shrink_regexp_cache ()
     }
 }
 
+/* Clear the regexp cache.
+   There is no danger of memory leak here because re_compile_pattern
+   automagically manages the memory in each re_pattern_buffer struct,
+   based on its `allocated' and `buffer' values.  */
+void
+clear_regexp_cache ()
+{
+  int i;
+
+  for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
+    searchbufs[i].regexp = Qnil;
+}
+
 /* Compile a regexp if necessary, but first check to see if there's one in
    the cache.
    PATTERN is the pattern to compile.
