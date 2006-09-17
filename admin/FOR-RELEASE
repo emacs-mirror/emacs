@@ -48,9 +48,6 @@ Windows only bug.
 
 ** david.hansen@physik.fu-berlin.de: WoMan Bug, Sep 13.
 
-** regex char class matching breaks if you change entries
-in the syntax table.
-
 ** Michael Cadilhac's line-move-partial is slow.
 
 ** iampure@gmail.com's Sep 15 bug report about View Changes In File.
