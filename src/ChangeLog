@@ -1,3 +1,9 @@
+2006-09-17  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (update_text_area): Undo 2000-07-18 change.
+	Always redrawing whole row if line has mouse-face in it causes
+	excessive flickering of the mode line.
+
 2006-09-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.c (clear_regexp_cache): New function.
