@@ -4406,7 +4406,12 @@ update_text_area (w, vpos)
       || desired_row->phys_height != current_row->phys_height
       || desired_row->visible_height != current_row->visible_height
       || current_row->overlapped_p
+#if 0
+      /* This causes excessive flickering when mouse is moved across
+	 the mode line.  Luckily everything seems to work just fine
+	 without doing this.  KFS 2006-09-17.  */
       || current_row->mouse_face_p
+#endif
       || current_row->x != desired_row->x)
     {
       rif->cursor_to (vpos, 0, desired_row->y, desired_row->x);
