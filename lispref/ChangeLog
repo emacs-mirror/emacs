@@ -1,3 +1,7 @@
+2006-09-18  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Fields): Clarify explanation of constrain-to-field.
+
 2006-09-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* variables.texi (Tips for Defining): Fix a typo.
