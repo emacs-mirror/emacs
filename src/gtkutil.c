@@ -1350,7 +1350,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
                                  GTK_FILE_CHOOSER_ACTION_OPEN :
                                  GTK_FILE_CHOOSER_ACTION_SAVE);
   extern int x_gtk_show_hidden_files;
-  extern int x_gtk_show_chooser_help_text;
+  extern int x_gtk_file_dialog_help_text;
 
 
   if (only_dir_p)
@@ -1379,7 +1379,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   g_signal_connect (G_OBJECT (filewin), "notify",
                     G_CALLBACK (xg_toggle_notify_cb), wtoggle);
 
-  if (x_gtk_show_chooser_help_text)
+  if (x_gtk_file_dialog_help_text)
     {
       message[0] = '\0';
       if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
@@ -1393,7 +1393,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
     }
 
   gtk_box_pack_start (GTK_BOX (wbox), wtoggle, FALSE, FALSE, 0);
-  if (x_gtk_show_chooser_help_text)
+  if (x_gtk_file_dialog_help_text)
     gtk_box_pack_start (GTK_BOX (wbox), wmessage, FALSE, FALSE, 0);
   gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (filewin), wbox);
 
