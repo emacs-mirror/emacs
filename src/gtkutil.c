@@ -1212,8 +1212,8 @@ int
 xg_uses_old_file_dialog ()
 {
 #ifdef HAVE_GTK_FILE_BOTH
-  extern int x_use_old_gtk_file_dialog;
-  return x_use_old_gtk_file_dialog;
+  extern int x_gtk_use_old_file_dialog;
+  return x_gtk_use_old_file_dialog;
 #else /* ! HAVE_GTK_FILE_BOTH */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
