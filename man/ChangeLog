@@ -2,6 +2,7 @@
 
 	* frames.texi (Dialog Boxes): Rename x-use-old-gtk-file-dialog
 	to x-gtk-use-old-file-dialog.
+	(Dialog Boxes): Document x-gtk-file-dialog-help-text.
 
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
