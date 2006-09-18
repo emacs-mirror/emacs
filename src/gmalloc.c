@@ -10,17 +10,17 @@
 		  Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public License as
+modify it under the terms of the GNU General Public License as
 published by the Free Software Foundation; either version 2 of the
 License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.  If
+You should have received a copy of the GNU General Public
+License along with this library; see the file COPYING.  If
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Fifth Floor, Boston, MA 02110-1301, USA.
 
@@ -329,17 +329,17 @@ extern __ptr_t r_re_alloc PP ((__ptr_t *__handleptr, __malloc_size_t __size));
 		  Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public License as
+modify it under the terms of the GNU General Public License as
 published by the Free Software Foundation; either version 2 of the
 License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.  If
+You should have received a copy of the GNU General Public
+License along with this library; see the file COPYING.  If
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Fifth Floor, Boston, MA 02110-1301, USA.
 
@@ -932,17 +932,17 @@ _realloc (ptr, size)
 		  Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public License as
+modify it under the terms of the GNU General Public License as
 published by the Free Software Foundation; either version 2 of the
 License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.  If
+You should have received a copy of the GNU General Public
+License along with this library; see the file COPYING.  If
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Fifth Floor, Boston, MA 02110-1301, USA.
 
@@ -1251,17 +1251,17 @@ cfree (ptr)
 		     Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public License as
+modify it under the terms of the GNU General Public License as
 published by the Free Software Foundation; either version 2 of the
 License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.  If
+You should have received a copy of the GNU General Public
+License along with this library; see the file COPYING.  If
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Fifth Floor, Boston, MA 02110-1301, USA.
 
@@ -1496,17 +1496,17 @@ realloc (ptr, size)
 /* Copyright (C) 1991, 1992, 1994 Free Software Foundation, Inc.
 
 This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public License as
+modify it under the terms of the GNU General Public License as
 published by the Free Software Foundation; either version 2 of the
 License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.  If
+You should have received a copy of the GNU General Public
+License along with this library; see the file COPYING.  If
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Fifth Floor, Boston, MA 02110-1301, USA.
 
@@ -1593,17 +1593,17 @@ __default_morecore (increment)
 /* Copyright (C) 1991, 92, 93, 94, 95, 96 Free Software Foundation, Inc.
 
 This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public License as
+modify it under the terms of the GNU General Public License as
 published by the Free Software Foundation; either version 2 of the
 License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.  If
+You should have received a copy of the GNU General Public
+License along with this library; see the file COPYING.  If
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Fifth Floor, Boston, MA 02110-1301, USA.  */
 
@@ -1693,17 +1693,17 @@ memalign (alignment, size)
    Copyright (C) 1991, 92, 93, 94, 96 Free Software Foundation, Inc.
 
 This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public License as
+modify it under the terms of the GNU General Public License as
 published by the Free Software Foundation; either version 2 of the
 License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.  If
+You should have received a copy of the GNU General Public
+License along with this library; see the file COPYING.  If
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Fifth Floor, Boston, MA 02110-1301, USA.
 
@@ -1760,17 +1760,17 @@ valloc (size)
    Written May 1989 by Mike Haertel.
 
 This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Library General Public License as
+modify it under the terms of the GNU General Public License as
 published by the Free Software Foundation; either version 2 of the
 License, or (at your option) any later version.
 
 This library is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Library General Public License for more details.
+General Public License for more details.
 
-You should have received a copy of the GNU Library General Public
-License along with this library; see the file COPYING.LIB.  If
+You should have received a copy of the GNU General Public
+License along with this library; see the file COPYING.  If
 not, write to the Free Software Foundation, Inc., 51 Franklin Street,
 Fifth Floor, Boston, MA 02110-1301, USA.
 
