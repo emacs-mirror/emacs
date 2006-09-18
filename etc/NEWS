@@ -1059,7 +1059,7 @@ ESC, like they do for Gtk+, Mac and W32.
 
 +++
 *** For the Gtk+ version, you can make Emacs use the old file dialog
-by setting the variable `x-use-old-gtk-file-dialog' to t.  Default is to use
+by setting the variable `x-gtk-use-old-file-dialog' to t.  Default is to use
 the new dialog.
 
 ** Mouse changes:
