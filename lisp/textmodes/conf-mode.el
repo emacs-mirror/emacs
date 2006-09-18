@@ -446,10 +446,11 @@ x.2.y.1.z.2.zz ="
 (define-derived-mode conf-space-mode conf-unix-mode "Conf[Space]"
   "Conf Mode starter for space separated conf files.
 \"Assignments\" are with ` '.  Keywords before the parameters are
-recognized according to the variable `conf-space-keywords'.  Interactively
-with a prefix ARG of `0' no keywords will be recognized.  With
-any other prefix arg you will be prompted for a regexp to match
-the keywords.
+recognized according to the variable `conf-space-keywords-alist'.
+Alternatively, you can specify a value for the file local variable
+`conf-space-keywords'.
+Use the function `conf-space-keywords' if you want to specify keywords
+in an interactive fashion instead.
 
 For details see `conf-mode'.  Example:
 
@@ -469,9 +470,9 @@ add /dev/mixer		desktop"
   (setq conf-assignment-sign nil)
   (make-local-variable 'conf-space-keywords)
   (cond (buffer-file-name
-	 ;; By setting conf-space-keywords directly, 
-	 ;; we let a value in the local variables list take precedence.
-	 (make-local-variable 'conf-space-keywords)
+	 ;; We set conf-space-keywords directly, but a value which is
+	 ;; in the local variables list or interactively specified
+	 ;; (see the function conf-space-keywords) takes precedence.
          (setq conf-space-keywords
 	       (assoc-default buffer-file-name conf-space-keywords-alist
 			      'string-match))))
@@ -480,13 +481,14 @@ add /dev/mixer		desktop"
   ;; recompute other things from that afterward.
   (add-hook 'hack-local-variables-hook 'conf-space-mode-internal nil t))
 
+;;;###autoload
 (defun conf-space-keywords (keywords)
   "Enter Conf Space mode using regexp KEYWORDS to match the keywords.
 See `conf-space-mode'."
   (interactive "sConf Space keyword regexp: ")
   (delay-mode-hooks
     (conf-space-mode))
-  (if (string-equal keyword "")
+  (if (string-equal keywords "")
       (setq keywords nil))
   (setq conf-space-keywords keywords)
   (conf-space-mode-internal)
@@ -517,7 +519,7 @@ See `conf-space-mode'."
 		     (concat "^[ \t]*\\(?:" conf-space-keywords
 			     "\\)[ \t]+\\([^ \t\n]+\\)\\(?:[ \t]\\|$\\)")
 		   "^[ \t]*\\([^ \t\n[]+\\)\\(?:[ \t]\\|$\\)")
-		1)	
+		1)
 	      imenu-generic-expression)))
 
 ;;;###autoload
