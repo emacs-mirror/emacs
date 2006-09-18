@@ -390,30 +390,47 @@ row, and VPOS is the row number (0-based) containing POS.  */)
   return in_window;
 }
 
-DEFUN ("window-line-visibility", Fwindow_line_visibility,
-       Swindow_line_visibility, 0, 2, 0,
-       doc: /* Return information about visibility of last line in WINDOW.
-If optional second arg is non-nil, test first text line instead.
-Return nil if visibility of the line is not known; in that case,
-caller may use `pos-visible-in-window-p' to know for sure.
+DEFUN ("window-line-height", Fwindow_line_height,
+       Swindow_line_height, 1, 2, 0,
+       doc: /* Return height in pixels of text line LINE in window WINDOW.
+If WINDOW is nil or omitted, use selected window.
 
-Return t if window line is known to be fully visible.  Otherwise,
-return cons (VIS . INVIS), where VIS and INVIS is pixel height
-of the visible and invisible part of the line.  */)
-       (window, first)
-       Lisp_Object window, first;
+Normal text lines are numbered starting from 1.  Negative numbers
+counts from the end of the window.  Return height of header or mode
+line if LINE is `header-line' and `mode-line'.
+
+Value is a list (HEIGHT VPOS YPOS INVIS), where HEIGHT is the height
+in pixels of the visible part of the line, VPOS and YPOS are the
+vertical position in lines and pixels of the row, relative to the top
+of the first text line, and INVIS is the number of invisible pixels at
+the bottom of the text row.  If there are invisible pixels at the top
+of the (first) text row, YPOS is negative.
+
+Return nil if window display is not up-to-date.  In that case, use
+`pos-visible-in-window-p' to obtain the information.  */)
+     (line, window)
+     Lisp_Object line, window;
 {
   register struct window *w;
   register struct buffer *b;
   struct glyph_row *row, *end_row;
-  int max_y, crop;
+  int max_y, crop, i, n;
 
   w = decode_window (window);
 
   if (noninteractive
       || !FRAME_WINDOW_P (WINDOW_XFRAME (w))
       || w->pseudo_window_p)
-    return Qt;
+    {
+      int vpos = (!INTEGERP (line)
+		  ? 0
+		  : (n = XINT (line), n > 0)
+		  ? (n - 1)
+		  : (WINDOW_TOTAL_LINES (w) + n));
+      return list4 (make_number (1), /* fixed line height */
+		    make_number(vpos), make_number (vpos),
+		    make_number (0));
+    }
 
   CHECK_BUFFER (w->buffer);
   b = XBUFFER (w->buffer);
@@ -426,35 +443,63 @@ of the visible and invisible part of the line.  */)
       || XFASTINT (w->last_overlay_modified) < BUF_OVERLAY_MODIFF (b))
     return Qnil;
 
-  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  if (!NILP (first))
+  if (EQ (line, Qheader_line))
     {
-
+      if (!WINDOW_WANTS_HEADER_LINE_P (w))
+	return Qnil;
+      row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
       if (!row->enabled_p)
 	return Qnil;
-
-      crop = WINDOW_HEADER_LINE_HEIGHT (w) - row->y;
+      return list4 (make_number (row->height),
+		    make_number (0), make_number (0),
+		    make_number (0));
     }
-  else
+
+  if (EQ (line, Qmode_line))
     {
-      int max_y = window_text_bottom_y (w);
-      struct glyph_row *end_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
-
-      while (row <= end_row && row->enabled_p
-	     && row->y + row->height < max_y)
-	row++;
-
-      if (row > end_row || !row->enabled_p)
+      row = MATRIX_MODE_LINE_ROW (w->current_matrix);
+      if (!row->enabled_p)
 	return Qnil;
-
-      crop = (row->y + row->height) - max_y;
+      return list4 (make_number (row->height),
+		    make_number (0), /* not accurate */
+		    make_number (WINDOW_HEADER_LINE_HEIGHT (w)
+				 + window_text_bottom_y (w)),
+		    make_number (0));
     }
 
-  if (crop > 0)
-    return Fcons (make_number (row->height - crop),
-		  make_number (crop));
-  return Qt;
+  CHECK_NUMBER (line);
+
+  if ((n = XINT (line), !n))
+    return Qnil;
+
+  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  end_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
+  max_y = window_text_bottom_y (w);
+  i = 1;
+
+  while ((n < 0 || i < n)
+	 && row <= end_row && row->enabled_p
+	 && row->y + row->height < max_y)
+    row++, i++;
+
+  if (row > end_row || !row->enabled_p)
+    return Qnil;
+
+  if (n < 0)
+    {
+      if (-n > i)
+	return Qnil;
+      row += n + 1;
+      i += n + 1;
+    }
+
+  crop = max (0, (row->y + row->height) - max_y);
+  return list4 (make_number (row->height + min (0, row->y) - crop),
+		make_number (i - 1),
+		make_number (row->y),
+		make_number (crop));
 }
+
 
 
 static struct window *
@@ -7433,7 +7478,7 @@ The selected frame is the one whose configuration has changed.  */);
   defsubr (&Swindowp);
   defsubr (&Swindow_live_p);
   defsubr (&Spos_visible_in_window_p);
-  defsubr (&Swindow_line_visibility);
+  defsubr (&Swindow_line_height);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_height);
   defsubr (&Swindow_width);
