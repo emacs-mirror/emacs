@@ -1,3 +1,8 @@
+2006-09-18  Richard Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-button-click): Handle non-mouse-motion events
+	that might come in during mouse tracking.
+
 2006-09-18  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move-partial): Rework 2006-09-15 change to use
