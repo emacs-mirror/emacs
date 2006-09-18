@@ -1,5 +1,10 @@
 2006-09-18  Richard Stallman  <rms@gnu.org>
 
+	* keymaps.texi (Creating Keymaps): Explain that keymap prompt strings
+	cause keyboard menus.
+	(Menu Keymaps): Likewise.
+	(Defining Menus, Keyboard Menus): Clarify.
+
 	* text.texi (Fields): Clarify explanation of constrain-to-field.
 
 2006-09-16  Eli Zaretskii  <eliz@gnu.org>
