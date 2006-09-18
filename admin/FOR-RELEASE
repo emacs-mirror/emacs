@@ -54,34 +54,6 @@ Windows only bug.
 
 ** Peter_Dyballa@Web.DE's Sep 17 bug report about i-search and non-ASCII chars
 
-* LICENSES
-
-** These need relicensing to the GPL.
-
-./src/gmalloc.c:13:modify it under the terms of the GNU Library General Public License as
-./src/gmalloc.c:20:Library General Public License for more details.
-./src/gmalloc.c:332:modify it under the terms of the GNU Library General Public License as
-./src/gmalloc.c:339:Library General Public License for more details.
-./src/gmalloc.c:935:modify it under the terms of the GNU Library General Public License as
-./src/gmalloc.c:942:Library General Public License for more details.
-./src/gmalloc.c:1254:modify it under the terms of the GNU Library General Public License as
-./src/gmalloc.c:1261:Library General Public License for more details.
-./src/gmalloc.c:1499:modify it under the terms of the GNU Library General Public License as
-./src/gmalloc.c:1506:Library General Public License for more details.
-./src/gmalloc.c:1596:modify it under the terms of the GNU Library General Public License as
-./src/gmalloc.c:1603:Library General Public License for more details.
-./src/gmalloc.c:1696:modify it under the terms of the GNU Library General Public License as
-./src/gmalloc.c:1703:Library General Public License for more details.
-./src/gmalloc.c:1763:modify it under the terms of the GNU Library General Public License as
-./src/gmalloc.c:1770:Library General Public License for more details.
-./src/md5.c:8:   modify it under the terms of the GNU Library General Public License as
-./src/md5.c:15:   Library General Public License for more details.
-./src/md5.h:8:   modify it under the terms of the GNU Library General Public License as
-./src/md5.h:15:   Library General Public License for more details.
-./src/strftime.c:10:   modify it under the terms of the GNU Library General Public License
-./src/strftime.c:17:   Library General Public License for more details.
-
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
