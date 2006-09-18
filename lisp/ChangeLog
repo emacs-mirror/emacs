@@ -1,3 +1,9 @@
+2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Rename x-gtk-show-chooser-help-text to
+	x-gtk-file-dialog-help-text.  Rename x-use-old-gtk-file-dialog
+	to x-gtk-use-old-file-dialog
+
 2006-09-18  Richard Stallman  <rms@gnu.org>
 
 	* wid-edit.el (widget-button-click): Handle non-mouse-motion events
