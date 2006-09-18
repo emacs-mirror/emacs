@@ -27,7 +27,7 @@
 ;;
 ;; A few routines for placing an image over text that will work for any
 ;; Emacs implementation without error.  When images are not supported, then
-;; they are justnot displayed.
+;; they are just not displayed.
 ;;
 ;; The idea is that gui buffers (trees, buttons, etc) will have text
 ;; representations of the GUI elements.  These routines will replace the text
