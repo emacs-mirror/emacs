@@ -152,7 +152,7 @@ int display_hourglass_p;
 
 /* Non-zero means prompt with the old GTK file selection dialog.  */
 
-int x_use_old_gtk_file_dialog;
+int x_gtk_use_old_file_dialog;
 
 /* If non-zero, by default show hidden files in the GTK file chooser.  */
 
@@ -5805,12 +5805,12 @@ Chinese, Japanese, and Korean.  */);
   Vx_pixel_size_width_font_regexp = Qnil;
 
 /* This is not ifdef:ed, so other builds than GTK can customize it.  */
-  DEFVAR_BOOL ("x-use-old-gtk-file-dialog", &x_use_old_gtk_file_dialog,
+  DEFVAR_BOOL ("x-gtk-use-old-file-dialog", &x_gtk_use_old_file_dialog,
     doc: /* *Non-nil means prompt with the old GTK file selection dialog.
 If nil or if the file selection dialog is not available, the new GTK file
 chooser is used instead.  To turn off all file dialogs set the
 variable `use-file-dialog'.  */);
-  x_use_old_gtk_file_dialog = 0;
+  x_gtk_use_old_file_dialog = 0;
 
   DEFVAR_BOOL ("x-gtk-show-hidden-files", &x_gtk_show_hidden_files,
     doc: /* *If non-nil, the GTK file chooser will by default show hidden files.
