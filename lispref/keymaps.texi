@@ -295,9 +295,13 @@ does not bind any events.
 @end group
 @end example
 
-If you specify @var{prompt}, that becomes the overall prompt string for
-the keymap.  The prompt string should be provided for menu keymaps
-(@pxref{Defining Menus}).
+If you specify @var{prompt}, that becomes the overall prompt string
+for the keymap.  You should specify this only for menu keymaps
+(@pxref{Defining Menus}).  A keymap with an overall prompt string will
+always present a mouse menu or a keyboard menu if it is active for
+looking up the next input event.  Don't specify an overall prompt string
+for the main map of a major or minor mode, because that would cause
+the command loop to present a keyboard menu every time.
 @end defun
 
 @defun make-keymap &optional prompt
@@ -1900,15 +1904,16 @@ instead of the current buffer's.
 @section Menu Keymaps
 @cindex menu keymaps
 
-@c Emacs 19 feature
-A keymap can define a menu as well as bindings for keyboard keys and
-mouse button.  Menus are usually actuated with the mouse, but they can
-work with the keyboard also.
+A keymap can operate as a menu as well as defining bindings for
+keyboard keys and mouse buttons.  Menus are usually actuated with the
+mouse, but they can function with the keyboard also.  If a menu keymap
+is active for the next input event, that activates the keyboard menu
+feature.
 
 @menu
 * Defining Menus::		How to make a keymap that defines a menu.
 * Mouse Menus::			How users actuate the menu with the mouse.
-* Keyboard Menus::		How they actuate it with the keyboard.
+* Keyboard Menus::		How users actuate the menu with the keyboard.
 * Menu Example::		Making a simple menu.
 * Menu Bar::			How to customize the menu bar.
 * Tool Bar::                    A tool bar is a row of images.
@@ -1921,20 +1926,21 @@ work with the keyboard also.
 @cindex menu prompt string
 @cindex prompt string (of menu)
 
-A keymap is suitable for menu use if it has an @dfn{overall prompt
-string}, which is a string that appears as an element of the keymap.
+A keymap acts as a menu if it has an @dfn{overall prompt string},
+which is a string that appears as an element of the keymap.
 (@xref{Format of Keymaps}.)  The string should describe the purpose of
 the menu's commands.  Emacs displays the overall prompt string as the
 menu title in some cases, depending on the toolkit (if any) used for
 displaying menus.@footnote{It is required for menus which do not use a
-toolkit, e.g.@: under MS-DOS.}  Keyboard menus also display the overall
-prompt string.
+toolkit, e.g.@: under MS-DOS.}  Keyboard menus also display the
+overall prompt string.
 
-The easiest way to construct a keymap with a prompt string is to specify
-the string as an argument when you call @code{make-keymap},
+The easiest way to construct a keymap with a prompt string is to
+specify the string as an argument when you call @code{make-keymap},
 @code{make-sparse-keymap} (@pxref{Creating Keymaps}), or
-@code{define-prefix-command} (@pxref{Definition of define-prefix-command}).
-
+@code{define-prefix-command} (@pxref{Definition of
+define-prefix-command}).  If you do not want the keymap to operate as
+a menu, don't specify a prompt string for it.
 
 @defun keymap-prompt keymap
 This function returns the overall prompt string of @var{keymap},
@@ -2292,21 +2298,23 @@ separate panes or separate submenus.
 @node Keyboard Menus
 @subsection Menus and the Keyboard
 
-When a prefix key ending with a keyboard event (a character or function
-key) has a definition that is a menu keymap, the user can use the
-keyboard to choose a menu item.
+  When a prefix key ending with a keyboard event (a character or
+function key) has a definition that is a menu keymap, the keymap
+operates as a keyboard menu; the user specifies the next event by
+choosing a menu item with the keyboard.
 
-Emacs displays the menu's overall prompt string followed by the
-alternatives (the item strings of the bindings) in the echo area.  If
-the bindings don't all fit at once, the user can type @key{SPC} to see
-the next line of alternatives.  Successive uses of @key{SPC} eventually
-get to the end of the menu and then cycle around to the beginning.  (The
-variable @code{menu-prompt-more-char} specifies which character is used
-for this; @key{SPC} is the default.)
+  Emacs displays the keyboard menu with the map's overall prompt
+string, followed by the alternatives (the item strings of the map's
+bindings), in the echo area.  If the bindings don't all fit at once,
+the user can type @key{SPC} to see the next line of alternatives.
+Successive uses of @key{SPC} eventually get to the end of the menu and
+then cycle around to the beginning.  (The variable
+@code{menu-prompt-more-char} specifies which character is used for
+this; @key{SPC} is the default.)
 
-When the user has found the desired alternative from the menu, he or she
-should type the corresponding character---the one whose binding is that
-alternative.
+  When the user has found the desired alternative from the menu, he or
+she should type the corresponding character---the one whose binding is
+that alternative.
 
 @ignore
 In a menu intended for keyboard use, each menu item must clearly
@@ -2317,7 +2325,7 @@ the time you read this manual, keyboard menus may explicitly name the
 key for each alternative.
 @end ignore
 
-This way of using menus in an Emacs-like editor was inspired by the
+  This way of using menus in an Emacs-like editor was inspired by the
 Hierarkey system.
 
 @defvar menu-prompt-more-char
