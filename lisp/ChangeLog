@@ -1,3 +1,10 @@
+2006-09-18  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* textmodes/conf-mode.el (conf-space-mode): Doc fix.
+        Delete duplicate make-local-variable form.
+        (conf-space-keywords): Add autoload cookie.
+        Fix typo (`keywords', not `keyword').
+
 2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Rename x-gtk-show-chooser-help-text to
