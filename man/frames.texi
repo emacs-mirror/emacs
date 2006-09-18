@@ -945,9 +945,9 @@ of hidden files (files starting with a dot) in that dialog.  The
 variable @code{x-gtk-show-hidden-files} controls whether to show
 hidden files by default.
 
-@vindex x-use-old-gtk-file-dialog
-  For Gtk+ version 2.4 and 2.6, you can make Emacs use the old file dialog
-by setting the variable @code{x-use-old-gtk-file-dialog} to a non-@code{nil}
+@vindex x-gtk-use-old-file-dialog
+  For Gtk+ version 2.4 through 2.10, you can make Emacs use the old file dialog
+by setting the variable @code{x-gtk-use-old-file-dialog} to a non-@code{nil}
 value.  If Emacs is built with a Gtk+ version that has only one file dialog,
 the setting of this variable has no effect.
 

@@ -1,3 +1,8 @@
+2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Rename x-use-old-gtk-file-dialog
+	to x-gtk-use-old-file-dialog.
+
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi, emacs.texi, mh-e.texi (GNU GENERAL PUBLIC LICENSE):
