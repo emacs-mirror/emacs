@@ -1,3 +1,10 @@
+2006-09-18  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-partial): Rework 2006-09-15 change to use
+	new window-line-height function.  Further optimize by not calling
+	pos-visible-in-window-p for window-end when window-line-height
+	returns useful information.
+
 2006-09-16  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/conf-mode.el (conf-mode-map): Use conf-space-keywords cmd.

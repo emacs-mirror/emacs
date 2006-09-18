@@ -1,3 +1,9 @@
+2006-09-18  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fwindow_line_visibility): Remove.
+	(Fwindow_line_height): New defun replacing it.
+	(syms_of_window): Defsubr it.
+
 2006-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (SELECT_USE_CFSOCKET) [MAC_OSX]: Set default to 1.
