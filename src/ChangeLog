@@ -1,3 +1,8 @@
+2006-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (SELECT_USE_CFSOCKET) [MAC_OSX]: Set default to 1.
+	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]: Fix pointer type.
+
 2006-09-17  Jay Belanger  <belanger@truman.edu>
 
 	* gmalloc.c:
