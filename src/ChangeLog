@@ -1,3 +1,10 @@
+2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_uses_old_file_dialog): Rename x-use-old-gtk-file-dialog
+	to x-gtk-use-old-file-dialog.
+
+	* xfns.c (syms_of_xfns): Ditto.
+
 2006-09-18  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (Fwindow_line_visibility): Remove.
