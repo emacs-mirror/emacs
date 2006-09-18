@@ -1,3 +1,15 @@
+2006-09-18  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper.el: Bumped up version/date of update to reflect the substantial
+	changes done in August 2006.
+	
+	* viper-cmd (viper-next-line-at-bol): make sure button-at, push-button
+	are defined.
+	
+	* ediff-util.el (ediff-add-to-history): new function.
+	
+	* ediff.el: use ediff-add-to-history instead of add-to-history.
+	
 2006-09-18  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
 	* textmodes/conf-mode.el (conf-space-mode): Doc fix.

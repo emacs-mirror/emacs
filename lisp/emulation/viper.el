@@ -9,7 +9,7 @@
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.12 of February 18, 2006"
+(defconst viper-version "3.13 of September 18, 2006"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
