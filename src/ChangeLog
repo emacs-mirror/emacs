@@ -1,3 +1,9 @@
+2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c: Include alloca.h if available.
+	(Fkey_binding): Only use AREF after checking it's a vector.
+	Remove unused var `window'.
+
 2006-09-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacs.c (shut_down_emacs) [!subprocesses]: Don't set

@@ -23,6 +23,9 @@ Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 #include <stdio.h>
+#if HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
@@ -1595,15 +1598,12 @@ specified buffer position instead of point are used.
 
   GCPRO2 (key, position);
 
-  if (NILP (position))
+  if (NILP (position) && VECTORP (key))
     {
-      Lisp_Object event;
-      /* mouse events may have a symbolic prefix indicating the
-	 scrollbar or mode line */
-      if (SYMBOLP (AREF (key, 0)) && ASIZE (key) > 1)
-	event = AREF (key, 1);
-      else
-	event = AREF (key, 0);
+      Lisp_Object event
+	/* mouse events may have a symbolic prefix indicating the
+	   scrollbar or mode line */
+	= AREF (key, SYMBOLP (AREF (key, 0)) && ASIZE (key) > 1 ? 1 : 0);
 
       /* We are not interested in locations without event data */
 
@@ -1672,9 +1672,7 @@ specified buffer position instead of point are used.
 
       if (CONSP (position))
 	{
-	  Lisp_Object string, window;
-
-	  window = POSN_WINDOW (position);
+	  Lisp_Object string;
 
 	  /* For a mouse click, get the local text-property keymap
 	     of the place clicked on, rather than point.  */
