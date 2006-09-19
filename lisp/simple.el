@@ -3561,7 +3561,7 @@ Outline mode sets this."
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
 	(opoint (point))
-	(forward (> arg 0)))
+	(orig-arg arg))
     (unwind-protect
 	(progn
 	  (if (not (memq last-command '(next-line previous-line)))
@@ -3594,14 +3594,27 @@ Outline mode sets this."
 			      'end-of-buffer)
 			    nil)))
 	    ;; Move by arg lines, but ignore invisible ones.
-	    (let (done)
+	    (let (done line-end)
 	      (while (and (> arg 0) (not done))
 		;; If the following character is currently invisible,
 		;; skip all characters with that same `invisible' property value.
 		(while (and (not (eobp)) (line-move-invisible-p (point)))
 		  (goto-char (next-char-property-change (point))))
-		;; Now move a line.
-		(end-of-line)
+		;; Move a line.
+		;; We don't use `end-of-line', since we want to escape
+		;; from field boundaries ocurring exactly at point.
+		(let ((inhibit-field-text-motion t))
+		  (setq line-end (line-end-position)))
+		(goto-char (constrain-to-field line-end (point) t t))
+		;; When moving a single line, update the goal-column
+		;; if we couldn't move to the end of line due to a
+		;; field boundary.  Otherwise we'll get stuck at the
+		;; original position during the column motion in
+		;; line-move-finish.
+		(and (/= line-end (point))
+		     (= orig-arg 1)
+		     (setq temporary-goal-column
+			   (max temporary-goal-column (current-column))))
 		;; If there's no invisibility here, move over the newline.
 		(cond
 		 ((eobp)
@@ -3659,7 +3672,7 @@ Outline mode sets this."
 	     (beginning-of-line))
 	    (t
 	     (line-move-finish (or goal-column temporary-goal-column)
-			       opoint forward))))))
+			       opoint (> orig-arg 0)))))))
 
 (defun line-move-finish (column opoint forward)
   (let ((repeat t))
@@ -3721,7 +3734,7 @@ Outline mode sets this."
 	(goto-char opoint)
 	(let ((inhibit-point-motion-hooks nil))
 	  (goto-char
-	   (constrain-to-field new opoint nil t
+	   (constrain-to-field new opoint t t
 			       'inhibit-line-move-field-capture)))
 
 	;; If all this moved us to a different line,

@@ -1,3 +1,10 @@
+2006-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-1): Escape field boundaries occurring
+	exactly at point.  Update goal column if constrained to a field.
+	(line-move-finish): Escape field boundaries occurring exactly at
+	point.
+
 2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-on-link-p): Tentatively fix last change.
