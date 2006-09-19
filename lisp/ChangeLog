@@ -1,3 +1,18 @@
+2006-09-18  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-unprotected): Let inhibit-read-only only when
+	buffer-read-only isn't set.
+	(allout-annotate-hidden): Enable topic annotation during copies even
+	when the buffer is read-only, eg for topic copies.  Ensure that the loop
+	advances, even when the span extends beyond the	deletion region.
+	(allout-toggle-subtree-encryption): Use	allout-structure-added-hook
+	rather than allout-exposure-changed-hook, as a stronger assertion.
+	(allout-keybindings-list): Add bindings for
+	allout-copy-line-as-kill and allout-copy-topic-as-kill.
+	(allout-copy-line-as-kill, allout-copy-topic-as-kill): copy
+	wrappers for allout-kill-line and allout-kill-topic.
+	(allout-listify-exposed): Position correctly to accumulate lines.
+
 2006-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-1): Escape field boundaries occurring

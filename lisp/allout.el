@@ -698,9 +698,11 @@ unless optional third, non-nil element is present.")
         ("*" allout-rebullet-current-heading)
         ("#" allout-number-siblings)
         ("\C-k" allout-kill-line t)
+        ("\M-k" allout-copy-line-as-kill t)
         ("\C-y" allout-yank t)
         ("\M-y" allout-yank-pop t)
         ("\C-k" allout-kill-topic)
+        ("\M-k" allout-copy-topic-as-kill)
                                         ; Miscellaneous commands:
 	;([?\C-\ ] allout-mark-topic)
         ("@" allout-resolve-xref)
@@ -1279,7 +1281,7 @@ their settings before allout-mode was started."
 ;;;_   > allout-unprotected (expr)
 (defmacro allout-unprotected (expr)
   "Enable internal outline operations to alter invisible text."
-  `(let ((inhibit-read-only t)
+  `(let ((inhibit-read-only (if (not buffer-read-only) t))
          (inhibit-field-text-motion t))
      ,expr))
 ;;;_   = allout-mode-hook
@@ -1693,7 +1695,9 @@ The bindings are dictated by the `allout-keybindings-list' and
 	Topic-oriented Killing and Yanking:
 	----------------------------------
 \\[allout-kill-topic]	allout-kill-topic	Kill current topic, including offspring.
-\\[allout-kill-line]	allout-kill-line	Like kill-line, but reconciles numbering, etc.
+\\[allout-copy-topic-as-kill]	allout-copy-topic-as-kill Copy current topic, including offspring.
+\\[allout-kill-line]	allout-kill-line	kill-line, attending to outline structure.
+\\[allout-copy-line-as-kill]	allout-copy-line-as-kill Copy line but don't delete it.
 \\[allout-yank]	allout-yank		Yank, adjusting depth of yanked topic to
 				depth of heading if yanking into bare topic
 				heading (ie, prefix sans text).
@@ -2087,10 +2091,7 @@ internal functions use this feature cohesively bunch changes."
 (defun allout-before-change-handler (beg end)
   "Protect against changes to invisible text.
 
-See allout-overlay-interior-modification-handler for details.
-
-This before-change handler is used only where modification-hooks
-overlay property is not supported."
+See allout-overlay-interior-modification-handler for details."
 
   (if (and (allout-mode-p) undo-in-progress (allout-hidden-p))
       (allout-show-to-offshoot))
@@ -4187,6 +4188,14 @@ subtopics into siblings of the item."
                 (allout-next-heading))
             (allout-renumber-to-depth depth)))
       (run-hook-with-args 'allout-structure-deleted-hook depth (point)))))
+;;;_    > allout-copy-line-as-kill ()
+(defun allout-copy-line-as-kill ()
+  "Like allout-kill-topic, but save to kill ring instead of deleting."
+  (interactive)
+  (let ((buffer-read-only t))
+    (condition-case nil
+        (allout-kill-line)
+      (buffer-read-only nil))))
 ;;;_    > allout-kill-topic ()
 (defun allout-kill-topic ()
   "Kill topic together with subtopics.
@@ -4223,11 +4232,20 @@ allout-yank-processing for exposure recovery."
     (save-excursion
       (allout-renumber-to-depth depth))
     (run-hook-with-args 'allout-structure-deleted-hook depth (point))))
+;;;_    > allout-copy-topic-as-kill ()
+(defun allout-copy-topic-as-kill ()
+  "Like allout-kill-topic, but save to kill ring instead of deleting."
+  (interactive)
+  (let ((buffer-read-only t))
+    (condition-case nil
+        (allout-kill-topic)
+      (buffer-read-only (message "Topic copied...")))))
 ;;;_    > allout-annotate-hidden (begin end)
 (defun allout-annotate-hidden (begin end)
   "Qualify text with properties to indicate exposure status."
 
-  (let ((was-modified (buffer-modified-p)))
+  (let ((was-modified (buffer-modified-p))
+        (buffer-read-only nil))
     (allout-unprotected
      (remove-text-properties begin end '(allout-was-hidden t)))
     (save-excursion
@@ -4237,8 +4255,10 @@ allout-yank-processing for exposure recovery."
           ;; at or advance to start of next hidden region:
           (if (not (allout-hidden-p))
               (setq next
-                    (next-single-char-property-change (point)
-                                                      'invisible nil end)))
+                    (max (1+ (point))
+                         (next-single-char-property-change (point)
+                                                           'invisible
+                                                           nil end))))
           (if (or (not next) (eq prev next))
               ;; still not at start of hidden area - must not be any left.
               (setq done t)
@@ -5169,7 +5189,8 @@ header and body.  The elements of that list are:
                          (allout-back-to-visible-text)))
 		      strings))
 	  (when (< (point) next)      ; Resume from after hid text, if any.
-            (line-move 1))
+            (line-move 1)
+            (beginning-of-line))
 	  (setq beg (point)))
 	;; Accumulate list for this topic:
 	(setq strings (nreverse strings))
@@ -5745,8 +5766,8 @@ See `allout-toggle-current-subtree-encryption' for more details."
            ;; Add the is-encrypted bullet qualifier:
            (goto-char after-bullet-pos)
            (insert "*"))))
-      (run-hook-with-args 'allout-exposure-changed-hook
-                          bullet-pos subtree-end nil))))
+      (run-hook-with-args 'allout-structure-added-hook
+                          bullet-pos subtree-end))))
 ;;;_  > allout-encrypt-string (text decrypt allout-buffer key-type for-key
 ;;;                                  fetch-pass &optional retried verifying
 ;;;                                  passphrase)
