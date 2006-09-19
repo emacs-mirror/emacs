@@ -1162,7 +1162,7 @@ if it isn't already recorded.  */)
   Lisp_Object value;
   struct window *w = decode_window (window);
   Lisp_Object buf;
-  struct buffer *b = XBUFFER (buf);
+  struct buffer *b;
 
   buf = w->buffer;
   CHECK_BUFFER (buf);
