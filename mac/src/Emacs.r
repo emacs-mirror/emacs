@@ -63,8 +63,10 @@ resource 'STR ' (128) { /*help message for emacs icon*/
 };
 #endif
 
+#define M_APPLE 234		/* Menu ID for Apple Menu.  */
+
 resource 'MENU' (128, preload) {
-	128,
+	M_APPLE,
 	textMenuProc,
 	0x7FFFFFFD,
 	enabled,
