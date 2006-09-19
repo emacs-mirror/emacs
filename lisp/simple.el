@@ -3507,9 +3507,11 @@ Outline mode sets this."
 	  nil)
 	 ;; If cursor is not in the bottom scroll margin, move forward.
 	 ((and (> vpos 0)
-	       (< (setq ppos (posn-at-point)
-			py (cdr (or (posn-actual-col-row ppos)
-				    (posn-col-row ppos))))
+	       (< (setq py
+			(or (nth 1 (window-line-height))
+			    (let ((ppos (posn-at-point)))
+			      (cdr (or (posn-actual-col-row ppos)
+				       (posn-col-row ppos))))))
 		  (min (- (window-text-height) scroll-margin 1) (1- vpos))))
 	  nil)
 	 ;; When already vscrolled, we vscroll some more if we can,
