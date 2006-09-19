@@ -946,17 +946,17 @@ variable @code{x-gtk-show-hidden-files} controls whether to show
 hidden files by default.
 
 @vindex x-gtk-use-old-file-dialog
-  For Gtk+ version 2.4 through 2.10, you can make Emacs use the old file dialog
-(gtk-file-selector) by setting the variable @code{x-gtk-use-old-file-dialog}
-to a non-@code{nil} value.  Otherwise the gtk-file-chooser will be used.  
-If Emacs is built with a Gtk+ version that has only one file dialog,
-the setting of this variable has no effect.
+  For Gtk+ versions 2.4 through 2.10, you can select the old file
+dialog (@code{gtk-file-selector}) by setting the variable
+@code{x-gtk-use-old-file-dialog} to a non-@code{nil} value.  If it is
+@code{nil}, Emacs uses @code{gtk-file-chooser}.  If Emacs is built
+with a Gtk+ version that has only one file dialog, this variable has
+no effect.
 
 @vindex x-gtk-file-dialog-help-text
-  Emacs will by default add some help text to the Gtk+ file chooser dialog.
-If you don't want to see that text, you can customize the variable
-@code{x-gtk-file-dialog-help-text}.  A @code{nil} value will disable the
-help text.
+  Emacs adds help text to the Gtk+ file chooser dialog.  The variable
+@code{x-gtk-file-dialog-help-text} specifies the text to add; if it is
+@code{nil}, that disables the added text.
 
 @node Tooltips
 @section Tooltips
