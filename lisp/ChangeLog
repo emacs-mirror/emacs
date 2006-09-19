@@ -1,3 +1,8 @@
+2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-on-link-p): Tentatively fix last change.
+	(mouse-drag-vertical-line): Remove unused var `wconfig'.
+
 2006-09-19  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (describe-key-briefly, describe-key): Simplify printing
@@ -22,9 +27,9 @@
 2006-09-18  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
 
 	* textmodes/conf-mode.el (conf-space-mode): Doc fix.
-        Delete duplicate make-local-variable form.
-        (conf-space-keywords): Add autoload cookie.
-        Fix typo (`keywords', not `keyword').
+	Delete duplicate make-local-variable form.
+	(conf-space-keywords): Add autoload cookie.
+	Fix typo (`keywords', not `keyword').
 
 2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -89,8 +94,8 @@
 
 2006-09-16  Agustin Martin <agustin.martin@hispalinux.es>
 
-	* textmodes/flyspell.el (flyspell-check-region-doublons): New
-	function to detect duplicated words.
+	* textmodes/flyspell.el (flyspell-check-region-doublons):
+	New function to detect duplicated words.
 	(flyspell-large-region): Use it.
 
 2006-09-16  Chong Yidong  <cyd@stupidchicken.com>
@@ -106,8 +111,8 @@
 	* allout.el (allout-regexp, allout-line-boundary-regexp)
 	(allout-bob-regexp): Correct grouping and boundaries to fix
 	backwards traversal.
-	(allout-depth-specific-regexp, allout-depth-one-regexp): New
-	versions that exploit \\{M\\} regexp syntax, to avoid geometric or
+	(allout-depth-specific-regexp, allout-depth-one-regexp):
+	New versions that exploit \\{M\\} regexp syntax, to avoid geometric or
 	worse time in allout-ascend.
 	(allout-doublecheck-at-and-shallower): Identify depth threshold
 	below which topics are checked for and disqualified by containment
@@ -120,10 +125,9 @@
 	properly accept alternative header-leads and primary bullets with
 	regexp-specific characters (eg, C "/*", mathematica "(*").
 	Include new regular expressions among those configured.
-	(allout-infer-header-lead-and-primary-bullet): Rename
-	allout-infer-header-lead.
-	(allout-recent-depth): Manifest as a variable as well as a
-	function.
+	(allout-infer-header-lead-and-primary-bullet):
+	Rename allout-infer-header-lead.
+	(allout-recent-depth): Manifest as a variable as well as a function.
 	(allout-prefix-data): Simplify into an inline instead of a macro,
 	assuming current match data rather than being explicitly passed
 	it.  Establish allout-recent-depth value as well as
@@ -131,7 +135,7 @@
 	(allout-aberrant-container-p): True when an item's immediate
 	offspring discontinuously contained.  Useful for disqualifying
 	unintended topic prefixes, likely at low depths.
-	(allout-goto-prefix-doublechecked): Elaborated version of
+	(allout-goto-prefix-doublechecked): Elaborate version of
 	allout-goto-prefix which disqualifies aberrant pseudo-items.
 	(allout-pre-next-prefix): Layer on top of lower-level routines, to
 	get disqualification of aberrant containers.
@@ -142,8 +146,8 @@
 	(nullify-allout-prefix-data): Invalidate allout-recent-* prefix data.
 	(allout-current-bullet): Strip text properties.
 	(allout-get-prefix-bullet): Use right match groups.
-	(allout-beginning-of-line, allout-next-heading): Disqualify
-	aberrant containers.
+	(allout-beginning-of-line, allout-next-heading):
+	Disqualify aberrant containers.
 	(allout-previous-heading): Disqualify aberrant containers, and
 	change to regular (rather than inline) function, to allow
 	self-recursion.
@@ -187,8 +191,8 @@
 	(allout-solicit-alternate-bullet): Present default choice stripped
 	of text properties.
 	(allout-rebullet-heading): Use bullet stripped of text properties.
-	Register changes using allout-exposure-change-hook.  Disregard
-	aberrant topics.
+	Register changes using allout-exposure-change-hook.
+	Disregard aberrant topics.
 	(allout-shift-in): With universal-argument, make topic a peer of
 	it's former offspring.  Simplify the code by separating out
 	allout-shift-out functionality.
@@ -296,7 +300,7 @@
 
 	* time.el (display-time): Group mode-line instead of modeline.
 
-	* cus-edit.el (mode-line): Renamed from modeline.  All uses changed.
+	* cus-edit.el (mode-line): Rename from modeline.  All uses changed.
 
 2006-09-14  Chong Yidong  <cyd@stupidchicken.com>
 

@@ -556,7 +556,7 @@ resized by dragging their header-line."
 	 (echo-keystrokes 0)
 	 (start-event-frame (window-frame (car (car (cdr start-event)))))
 	 (start-event-window (car (car (cdr start-event))))
-	 event mouse x left right edges wconfig growth
+	 event mouse x left right edges growth
 	 (which-side
 	  (or (cdr (assq 'vertical-scroll-bars (frame-parameters start-event-frame)))
 	      'right)))
@@ -835,7 +835,9 @@ at the same position."
      ((eq action 'mouse-face)
       (and (mouse-posn-property pos 'mouse-face) t))
      ((functionp action)
-      (funcall action pos))
+      ;; FIXME: This is wrong if the click is in a different buffer.
+      ;; Should we instead decide that `action' takes a `posn'?
+      (funcall action (if (consp pos) (posn-point pos) pos)))
      (t action))))
 
 (defun mouse-fixup-help-message (msg)
