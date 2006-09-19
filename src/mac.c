@@ -2416,7 +2416,7 @@ sys_fopen (const char *name, const char *mode)
 extern Boolean mac_wait_next_event P_ ((EventRecord *, UInt32, Boolean));
 
 int
-select (n,  rfds, wfds, efds, timeout)
+select (nfds, rfds, wfds, efds, timeout)
      int nfds;
      SELECT_TYPE *rfds, *wfds, *efds;
      EMACS_TIME *timeout;
