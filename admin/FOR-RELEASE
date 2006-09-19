@@ -48,8 +48,6 @@ Windows only bug.
 
 ** Michael Cadilhac's line-move-partial is slow.
 
-** allout.el patch to be installed.
-
 ** run-with-idle-timer change causes problem for Semantic.
 
 ** iampure@gmail.com's Sep 15 bug report about View Changes In File.
