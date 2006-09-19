@@ -594,33 +594,26 @@ temporarily enables it to allow getting help on disabled items and buttons."
 		  (aref key 0)))
 	 (modifiers (event-modifiers event))
 	 (standard-output (if insert (current-buffer) t))
-	 (mousep
-	  (or (memq 'click modifiers) (memq 'down modifiers)
-	      (memq 'drag modifiers))))
-    ;; Ok, now look up the key and name the command.
-    (let ((defn (key-binding key t))
-	  key-desc)
-      ;; Handle the case where we faked an entry in "Select and Paste" menu.
-      (if (and (eq defn nil)
-	       (stringp (aref key (1- (length key))))
-	       (eq (key-binding (substring key 0 -1)) 'yank-menu))
-	  (setq defn 'menu-bar-select-yank))
-      ;; Don't bother user with strings from (e.g.) the select-paste menu.
-      (if (stringp (aref key (1- (length key))))
-	  (aset key (1- (length key)) "(any string)"))
-      (if (and (> (length untranslated) 0)
-	       (stringp (aref untranslated (1- (length untranslated)))))
-	  (aset untranslated (1- (length untranslated))
-		"(any string)"))
-      ;; Now describe the key, perhaps as changed.
-      (setq key-desc (help-key-description key untranslated))
-      (if (or (null defn) (integerp defn) (equal defn 'undefined))
-	  (princ (format "%s is undefined" key-desc))
-	(princ (format (if mousep
-			   "%s at that spot runs the command %s"
-			 "%s runs the command %s")
-		       key-desc
-		       (if (symbolp defn) defn (prin1-to-string defn))))))))
+	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
+			    (memq 'drag modifiers)) " at that spot" ""))
+	 (defn (key-binding key t))
+	 key-desc)
+    ;; Handle the case where we faked an entry in "Select and Paste" menu.
+    (if (and (eq defn nil)
+	     (stringp (aref key (1- (length key))))
+	     (eq (key-binding (substring key 0 -1)) 'yank-menu))
+	(setq defn 'menu-bar-select-yank))
+    ;; Don't bother user with strings from (e.g.) the select-paste menu.
+    (if (stringp (aref key (1- (length key))))
+	(aset key (1- (length key)) "(any string)"))
+    (if (and (> (length untranslated) 0)
+	     (stringp (aref untranslated (1- (length untranslated)))))
+	(aset untranslated (1- (length untranslated)) "(any string)"))
+    ;; Now describe the key, perhaps as changed.
+    (setq key-desc (help-key-description key untranslated))
+    (if (or (null defn) (integerp defn) (equal defn 'undefined))
+	(princ (format "%s%s is undefined" key-desc mouse-msg))
+      (princ (format "%s%s runs the command %S" key-desc mouse-msg defn)))))
 
 (defun describe-key (&optional key untranslated up-event)
   "Display documentation of the function invoked by KEY.
@@ -671,93 +664,88 @@ temporarily enables it to allow getting help on disabled items and buttons."
 			      1
 			    0)))
 	 (modifiers (event-modifiers event))
-	 (mousep (or (memq 'click modifiers) (memq 'down modifiers)
-		     (memq 'drag modifiers)))
+	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
+			    (memq 'drag modifiers)) " at that spot" ""))
 	 (defn (key-binding key t))
 	 defn-up defn-up-tricky ev-type
 	 mouse-1-remapped mouse-1-tricky)
 
     ;; Handle the case where we faked an entry in "Select and Paste" menu.
-      (if (and (eq defn nil)
+    (when (and (eq defn nil)
 	       (stringp (aref key (1- (length key))))
 	       (eq (key-binding (substring key 0 -1)) 'yank-menu))
-	  (setq defn 'menu-bar-select-yank))
-      (if (or (null defn) (integerp defn) (equal defn 'undefined))
-	  (message "%s is undefined" (help-key-description key untranslated))
-	(help-setup-xref (list #'describe-function defn) (interactive-p))
-	;; Don't bother user with strings from (e.g.) the select-paste menu.
-	(if (stringp (aref key (1- (length key))))
-	    (aset key (1- (length key)) "(any string)"))
-	(if (and untranslated
+      (setq defn 'menu-bar-select-yank))
+    (if (or (null defn) (integerp defn) (equal defn 'undefined))
+	(message "%s%s is undefined"
+		 (help-key-description key untranslated) mouse-msg)
+      (help-setup-xref (list #'describe-function defn) (interactive-p))
+      ;; Don't bother user with strings from (e.g.) the select-paste menu.
+      (when (stringp (aref key (1- (length key))))
+	(aset key (1- (length key)) "(any string)"))
+      (when (and untranslated
 		 (stringp (aref untranslated (1- (length untranslated)))))
-	    (aset untranslated (1- (length untranslated))
-		  "(any string)"))
-	;; Need to do this before erasing *Help* buffer in case event
-	;; is a mouse click in an existing *Help* buffer.
+	(aset untranslated (1- (length untranslated))
+	      "(any string)"))
+      ;; Need to do this before erasing *Help* buffer in case event
+      ;; is a mouse click in an existing *Help* buffer.
+      (when up-event
+	(setq ev-type (event-basic-type up-event))
+	(let ((sequence (vector up-event)))
+	  (when (and (eq ev-type 'mouse-1)
+		     mouse-1-click-follows-link
+		     (not (eq mouse-1-click-follows-link 'double))
+		     (setq mouse-1-remapped
+			   (mouse-on-link-p (event-start up-event))))
+	    (setq mouse-1-tricky (and (integerp mouse-1-click-follows-link)
+				      (> mouse-1-click-follows-link 0)))
+	    (cond ((stringp mouse-1-remapped)
+		   (setq sequence mouse-1-remapped))
+		  ((vectorp mouse-1-remapped)
+		   (setcar up-event (elt mouse-1-remapped 0)))
+		  (t (setcar up-event 'mouse-2))))
+	  (setq defn-up (key-binding sequence nil nil (event-start up-event)))
+	  (when mouse-1-tricky
+	    (setq sequence (vector up-event))
+	    (aset sequence 0 'mouse-1)
+	    (setq defn-up-tricky (key-binding sequence nil nil (event-start up-event))))))
+      (with-output-to-temp-buffer (help-buffer)
+	(princ (help-key-description key untranslated))
+	(princ (format "\
+%s runs the command %S
+  which is "
+		       mouse-msg defn))
+	(describe-function-1 defn)
 	(when up-event
-	  (setq ev-type (event-basic-type up-event))
-	  (let ((sequence (vector up-event)))
-	    (when (and (eq ev-type 'mouse-1)
-		       mouse-1-click-follows-link
-		       (not (eq mouse-1-click-follows-link 'double))
-		       (setq mouse-1-remapped
-			     (mouse-on-link-p (event-start up-event))))
-	      (setq mouse-1-tricky (and (integerp mouse-1-click-follows-link)
-					(> mouse-1-click-follows-link 0)))
-	      (cond ((stringp mouse-1-remapped)
-		     (setq sequence mouse-1-remapped))
-		    ((vectorp mouse-1-remapped)
-		     (setcar up-event (elt mouse-1-remapped 0)))
-		    (t (setcar up-event 'mouse-2))))
-	    (setq defn-up (key-binding sequence nil nil (event-start up-event)))
-	    (when mouse-1-tricky
-	      (setq sequence (vector up-event))
-	      (aset sequence 0 'mouse-1)
-	      (setq defn-up-tricky (key-binding sequence nil nil (event-start up-event))))))
-	(with-output-to-temp-buffer (help-buffer)
-	  (princ (help-key-description key untranslated))
-	  (if mousep
-	      (princ " at that spot"))
-	  (princ " runs the command ")
-	  (prin1 defn)
-	  (princ "\n   which is ")
-	  (describe-function-1 defn)
-	  (when up-event
-	    (let ((hdr "\n\n-------------- up event ---------------\n\n"))
-	      (setq defn defn-up)
-	      (unless (or (null defn)
-			  (integerp defn)
-			  (equal defn 'undefined))
-		(princ (if mouse-1-tricky
-			   "\n\n----------------- up-event (short click) ----------------\n\n"
-			 hdr))
-		(setq hdr nil)
-		(princ (symbol-name ev-type))
-		(if mousep
-		    (princ " at that spot"))
-		(if mouse-1-remapped
-		    (princ " is remapped to <mouse-2>\n  which" ))
-		(princ " runs the command ")
-		(prin1 defn)
-		(princ "\n   which is ")
-		(describe-function-1 defn))
-	      (when mouse-1-tricky
-		(setq defn defn-up-tricky)
-		(unless (or (null defn)
-			    (integerp defn)
-			    (eq defn 'undefined))
-		  (princ (or hdr
-			     "\n\n----------------- up-event (long click) ----------------\n\n"))
-		  (princ "Pressing mouse-1")
-		  (if mousep
-		      (princ " at that spot"))
-		  (princ (format " for longer than %d milli-seconds\n"
-				 mouse-1-click-follows-link))
-		  (princ " runs the command ")
-		  (prin1 defn)
-		  (princ "\n   which is ")
-		  (describe-function-1 defn)))))
-	  (print-help-return-message)))))
+	  (unless (or (null defn-up)
+		      (integerp defn-up)
+		      (equal defn-up 'undefined))
+	    (princ (format "
+
+----------------- up-event %s----------------
+
+<%S>%s%s runs the command %S
+  which is "
+			   (if mouse-1-tricky "(short click) " "")
+			   ev-type mouse-msg
+			   (if mouse-1-remapped
+			       " is remapped to <mouse-2>\nwhich" "")
+			   defn-up))
+	    (describe-function-1 defn-up))
+	  (unless (or (null defn-up-tricky)
+		      (integerp defn-up-tricky)
+		      (eq defn-up-tricky 'undefined))
+	    (princ (format "
+
+----------------- up-event (long click) ----------------
+
+Pressing <%S>%s for longer than %d milli-seconds
+runs the command %S
+  which is "
+			   ev-type mouse-msg
+			   mouse-1-click-follows-link
+			   defn-up-tricky))
+	    (describe-function-1 defn-up-tricky)))
+	(print-help-return-message)))))
 
 (defun describe-mode (&optional buffer)
   "Display documentation of current major mode and minor modes.
