@@ -1,3 +1,8 @@
+2006-09-19  Richard Stallman  <rms@gnu.org>
+
+	* frames.texi (Dialog Boxes): Clean up wording: avoid passive,
+	stick to present tense.
+
 2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Rename x-use-old-gtk-file-dialog
