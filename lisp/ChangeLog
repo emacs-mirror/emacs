@@ -1,5 +1,9 @@
 2006-09-19  Kim F. Storm  <storm@cua.dk>
 
+	* help.el (describe-key-briefly, describe-key): Simplify printing
+	of descriptions by using format and %S.  Fix "is undefined"
+	messages to say "at that spot" for mouse events.
+
 	* simple.el (line-move-partial): Optimize.  Try window-line-height
 	before posn-at-point to get vpos of current line.
 

@@ -1,3 +1,11 @@
+2006-09-19  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fset_window_hscroll, Fpos_visible_in_window_p):
+	Doc fix.  Use "off-screen" instead of "invisible".
+	(Fwindow_line_height): Make line numbers 0-based.  Make line arg
+	optional; if nil, use current cursor row.  Handle text terminals
+	properly.  Return nil if non-interactive or pseudo-window.
+
 2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c: Include alloca.h if available.
