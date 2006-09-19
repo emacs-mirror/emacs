@@ -705,8 +705,8 @@ search in one keymap and in an alist of keymaps, respectively.
 see @ref{Key Lookup}.)  If the key sequence starts with a mouse event,
 or a symbolic prefix event followed by a mouse event, that event's
 position is used instead of point and the current buffer.  Mouse
-events on an embedded string use text properties from that string
-instead of the buffer.
+events on an embedded string use non-@code{nil} text properties from
+that string instead of the buffer.
 
 @enumerate
 @item

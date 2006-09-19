@@ -1,3 +1,7 @@
+2006-09-19  David Kastrup  <dak@gnu.org>
+
+	* keymaps.texi (Searching Keymaps): Small clarification.
+
 2006-09-18  Richard Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Creating Keymaps): Explain that keymap prompt strings
@@ -28,7 +32,8 @@
 	mouse events change this.  Explain the new optional argument of
 	`key-binding' and its mouse-dependent lookup.
 	(Searching Keymaps): Adapt description similarly.
-	(Remapping Commands): Explain the new optional argument of `command-remapping'.
+	(Remapping Commands): Explain the new optional argument of
+	`command-remapping'.
 
 2006-09-14  Richard Stallman  <rms@gnu.org>
 
@@ -4903,7 +4908,7 @@
 	(info): Add target.
 	(installall): Target removed.
 
-2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* tips.texi (Coding Conventions): Fix typo.
 
