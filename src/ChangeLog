@@ -1,3 +1,26 @@
+2006-09-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (shut_down_emacs) [!subprocesses]: Don't set
+	inhibit_sentinels.
+
+	* mac.c [!MAC_OSX] (select): Fix argument name.
+
+	* macmenu.c (enum mac_menu_kind, min_menu_id): New enumerator and
+	menu ID for Apple menu.
+	(menubar_selection_callback): Remove function.
+	(find_and_call_menu_selection): New function from xmenu.c.
+	(x_activate_menubar): Use it.
+	(set_frame_menubar): Don't use f->output_data.mac->menubar_active.
+
+	* macterm.c (menubar_selection_callback): Remove extern.
+	(M_APPLE): Change to 234.
+	(do_apple_menu) [!TARGET_API_MAC_CARBON]: Make non-static.
+	(do_menu_choice): Remove function.
+
+	* macterm.h (struct mac_output): Remove member menubar_active.
+	(do_menu_choice): Remove extern.
+	(do_apple_menu) [!TARGET_API_MAC_CARBON]: Add extern.
+
 2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (syms_of_xfns): Rename x_gtk_show_chooser_help_text to

@@ -1,3 +1,12 @@
+2006-09-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* INSTALL: Remove descriptions about experimental flags.
+
+	* inc/config.h: Sync with src/config.in.
+
+	* src/Emacs.r (M_APPLE): New define.
+	(MENU): Use it.
+
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
 	* COPYING: Replace "Library Public License" by "Lesser Public
