@@ -64,7 +64,8 @@ Boston, MA 02110-1301, USA.  */
 
 enum mac_menu_kind {		/* Menu ID range  */
   MAC_MENU_APPLE,		/* 0 (Reserved by Apple) */
-  MAC_MENU_MENU_BAR,		/* 1 .. 234       */
+  MAC_MENU_MENU_BAR,		/* 1 .. 233       */
+  MAC_MENU_M_APPLE,		/* 234      (== M_APPLE) */
   MAC_MENU_POPUP,		/* 235            */
   MAC_MENU_DRIVER,		/* 236 .. 255 (Reserved) */
   MAC_MENU_MENU_BAR_SUB,	/* 256 .. 16383   */
@@ -72,7 +73,7 @@ enum mac_menu_kind {		/* Menu ID range  */
   MAC_MENU_END			/* 32768          */
 };
 
-static const int min_menu_id[] = {0, 1, 235, 236, 256, 16384, 32768};
+static const int min_menu_id[] = {0, 1, 234, 235, 236, 256, 16384, 32768};
 
 #define DIALOG_WINDOW_RESOURCE 130
 
@@ -196,6 +197,8 @@ static void single_keymap_panes P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
 
+static void find_and_call_menu_selection P_ ((FRAME_PTR, int, Lisp_Object,
+					      void *));
 static int fill_menu P_ ((MenuHandle, widget_value *, enum mac_menu_kind, int));
 static void fill_menubar P_ ((widget_value *, int));
 static void dispose_menus P_ ((enum mac_menu_kind, int));
@@ -1015,39 +1018,63 @@ x_activate_menubar (f)
      FRAME_PTR f;
 {
   SInt32 menu_choice;
+  SInt16 menu_id, menu_item;
   extern Point saved_menu_event_location;
 
   set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
 
   menu_choice = MenuSelect (saved_menu_event_location);
-  do_menu_choice (menu_choice);
+  menu_id = HiWord (menu_choice);
+  menu_item = LoWord (menu_choice);
+
+#if !TARGET_API_MAC_CARBON
+  if (menu_id == min_menu_id[MAC_MENU_M_APPLE])
+    do_apple_menu (menu_item);
+  else
+#endif
+    if (menu_id)
+      {
+        MenuHandle menu = GetMenuHandle (menu_id);
+
+        if (menu)
+          {
+            UInt32 refcon;
+
+            GetMenuItemRefCon (menu, menu_item, &refcon);
+            find_and_call_menu_selection (f, f->menu_bar_items_used,
+					  f->menu_bar_vector, (void *) refcon);
+          }
+      }
+
+  HiliteMenu (0);
 
   UNBLOCK_INPUT;
 }
 
-/* This callback is called from the menu bar pulldown menu
-   when the user makes a selection.
-   Figure out what the user chose
-   and put the appropriate events into the keyboard buffer.  */
+/* Find the menu selection and store it in the keyboard buffer.
+   F is the frame the menu is on.
+   MENU_BAR_ITEMS_USED is the length of VECTOR.
+   VECTOR is an array of menu events for the whole menu.  */
 
-void
-menubar_selection_callback (FRAME_PTR f, int client_data)
+static void
+find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
+     FRAME_PTR f;
+     int menu_bar_items_used;
+     Lisp_Object vector;
+     void *client_data;
 {
   Lisp_Object prefix, entry;
-  Lisp_Object vector;
   Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
   int i;
 
-  if (!f)
-    return;
   entry = Qnil;
-  subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * sizeof (Lisp_Object));
-  vector = f->menu_bar_vector;
+  subprefix_stack = (Lisp_Object *) alloca (menu_bar_items_used * sizeof (Lisp_Object));
   prefix = Qnil;
   i = 0;
-  while (i < f->menu_bar_items_used)
+
+  while (i < menu_bar_items_used)
     {
       if (EQ (XVECTOR (vector)->contents[i], Qnil))
 	{
@@ -1105,13 +1132,11 @@ menubar_selection_callback (FRAME_PTR f, int client_data)
 	      buf.arg = entry;
 	      kbd_buffer_store_event (&buf);
 
-	      f->output_data.mac->menubar_active = 0;
 	      return;
 	    }
 	  i += MENU_ITEMS_ITEM_LENGTH;
 	}
     }
-  f->output_data.mac->menubar_active = 0;
 }
 
 /* Allocate a widget_value, blocking input.  */
@@ -1507,10 +1532,6 @@ set_frame_menubar (f, first_time, deep_p)
   int i, last_i = 0;
   int *submenu_start, *submenu_end;
   int *submenu_top_level_items, *submenu_n_panes;
-
-  /* We must not change the menubar when actually in use.  */
-  if (f->output_data.mac->menubar_active)
-    return;
 
   XSETFRAME (Vmenu_updating_frame, f);
 
