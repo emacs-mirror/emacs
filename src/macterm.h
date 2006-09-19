@@ -226,7 +226,8 @@ struct x_output
 };
 
 /* The collection of data describing a window on the Mac.  */
-struct mac_output {
+struct mac_output
+{
   /* Placeholder for things accessed through output_data.x.  Must
      appear first.  */
   struct x_output x_compatible;
@@ -315,9 +316,6 @@ struct mac_output {
 
   /* Nonzero means tried already to make this frame visible.  */
   char asked_for_visible;
-
-  /* Nonzero means menubar is currently active.  */
-  char menubar_active;
 
   /* Relief GCs, colors etc.  */
   struct relief
@@ -629,8 +627,10 @@ extern OSStatus mac_show_hide_font_panel P_ ((void));
 extern OSStatus mac_set_font_info_for_selection P_ ((struct frame *, int, int));
 extern OSStatus install_window_handler P_ ((WindowPtr));
 extern void remove_window_handler P_ ((WindowPtr));
-extern void do_menu_choice P_ ((SInt32));
 extern OSStatus mac_post_mouse_moved_event P_ ((void));
+#if !TARGET_API_MAC_CARBON
+extern void do_apple_menu P_ ((SInt16));
+#endif
 #if USE_CG_DRAWING
 extern void mac_prepare_for_quickdraw P_ ((struct frame *));
 #endif
