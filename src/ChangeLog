@@ -1,3 +1,11 @@
+2006-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.c (struct regexp_cache): New entry syntax_table.
+	(compile_pattern_1): Set it.
+	(syms_of_search): Initialize it.
+	(compile_pattern): Require the syntax_table entry of the cache
+	element to match the current syntax table entry.
+
 2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fwindow_end): Fix recent change.
