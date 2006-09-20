@@ -1355,6 +1355,9 @@ visible unless @var{partially} is non-@code{nil}.  The argument
 @var{position} defaults to the current position of point in
 @var{window}; @var{window}, to the selected window.
 
+If @var{position} is @code{t}, the last visible position in
+@var{window} is checked.
+
 The @code{pos-visible-in-window-p} function considers only vertical
 scrolling.  If @var{position} is out of view only because @var{window}
 has been scrolled horizontally, @code{pos-visible-in-window-p} returns
@@ -1368,7 +1371,7 @@ visible, it returns a list of the form @code{(@var{x} @var{y})}, where
 corner of the window; otherwise it returns an extended list of the
 form @code{(@var{x} @var{y} @var{rtop} @var{rbot} @var{rowh}
 @var{vpos})}, where the @var{rtop} and @var{rbot} specify the number
-of invisible pixels at the top and bottom of the row at
+of off-window pixels at the top and bottom of the row at
 @var{position}, @var{rowh} specifies the visible height of that row,
 and @var{vpos} specifies the vertical position (zero-based row number)
 of that row.
@@ -1383,6 +1386,30 @@ Here is an example:
     (recenter 0))
 @end group
 @end example
+@end defun
+
+@defun window-line-height &optional line window
+This function returns information about text line @var{line} in @var{window}.
+If @var{line} is one of @code{header-line} or @code{mode-line},
+@code{window-line-height} returns information about the corresponding
+line of the window.  Otherwise, @var{line} is a text line number
+starting from 0.  A negative number counts from the end of the window.
+The argument @var{line} defaults to the current line in @var{window};
+@var{window}, to the selected window.
+
+If the display is not up-to-date, @code{window-line-height} returns
+@code{nil}.  In that case, @code{pos-visible-in-window-p} may be used
+to obtain related information.
+
+If there is no line corresponding to the specified @var{line},
+@code{window-line-height} returns @code{nil}.  Otherwise, it returns
+a list @code{(@var{height} @var{vpos} @var{ypos} @var{offbot})},
+where @var{height} is the height in pixels of the visible part of the
+line, @var{vpos} and @var{ypos} are the vertical position in lines and
+pixels of the line relative to the top of the first text line, and
+@var{offbot} is the number of off-window pixels at the bottom of the
+text line.  If there are off-window pixels at the top of the (first)
+text line, @var{ypos} is negative.
 @end defun
 
 @node Textual Scrolling
