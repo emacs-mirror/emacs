@@ -3106,8 +3106,8 @@ Usually the separator is \".\", but it can be any other string.")
 
 (defvar version-regexp-alist
   '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
-    ("^[-_+]$" . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
-    ("^[-_+ ]cvs$" . -3)	; treat "1.2.3-CVS" as alpha release
+    ("^[-_+]$"                 . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
+    ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
     ("^[-_+ ]?b\\(eta\\)?$"    . -2)
     ("^[-_+ ]?\\(pre\\|rc\\)$" . -1))
   "*Specify association between non-numeric version part and a priority.

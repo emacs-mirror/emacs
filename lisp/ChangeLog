@@ -11,6 +11,8 @@
 	* lpr.el (lpr-page-header-switches): Insert `*' at beginning of comment
 	to become an option.
 
+	* subr.el (version-regexp-alist): Adjust comment.
+
 2006-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (find-buffer-visiting): Don't get fooled by a nil inode.
