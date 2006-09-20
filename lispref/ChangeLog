@@ -1,3 +1,7 @@
+2006-09-20  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Window Start): Minor cleanups.
+
 2006-09-20  Kim F. Storm  <storm@cua.dk>
 
 	* windows.texi (Window Start): pos-visible-in-window-p allows
