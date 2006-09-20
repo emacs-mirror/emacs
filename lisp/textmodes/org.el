@@ -8660,7 +8660,7 @@ are included in the output."
 	      (push txt rtn))
 	    ;; if we are to skip sublevels, jump to end of subtree
 	    (point)
-	    (or org-tags-match-list-sublevels (org-end-of-subtree))))))
+	    (or org-tags-match-list-sublevels (org-end-of-subtree t))))))
     (when (and (eq action 'sparse-tree)
 	       (not org-sparse-tree-open-archived-trees))
       (org-hide-archived-subtrees (point-min) (point-max)))
