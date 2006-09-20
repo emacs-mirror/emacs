@@ -776,7 +776,14 @@ If the click is in the echo area, display the `*Messages*' buffer."
 
 
 (defun mouse-posn-property (pos property)
-  "Look for a property at click position."
+  "Look for a property at click position.
+POS may be either a buffer position or a click position like
+those returned from `start-event'.  If the click position is on
+a string, the text property PROPERTY is examined.
+If this is nil or the click is not on a string, then
+the corresponding buffer position is searched for PROPERTY.
+If PROPERTY is encountered in one of those places,
+its value is returned."
   (if (consp pos)
       (let ((w (posn-window pos)) (pt (posn-point pos))
 	    (str (posn-string pos)))
@@ -835,9 +842,12 @@ at the same position."
      ((eq action 'mouse-face)
       (and (mouse-posn-property pos 'mouse-face) t))
      ((functionp action)
-      ;; FIXME: This is wrong if the click is in a different buffer.
+      ;; FIXME: This seems questionable if the click is not in a buffer.
       ;; Should we instead decide that `action' takes a `posn'?
-      (funcall action (if (consp pos) (posn-point pos) pos)))
+      (if (consp pos)
+	  (with-current-buffer (window-buffer (posn-window pos))
+	    (funcall action (posn-point pos)))	
+	(funcall action pos)))
      (t action))))
 
 (defun mouse-fixup-help-message (msg)

@@ -1,5 +1,8 @@
 2006-09-20  David Kastrup  <dak@gnu.org>
 
+	* mouse.el (mouse-posn-property): Improve doc string.
+	(mouse-on-link-p): Change buffers for function calls on links.
+
 	* menu-bar.el (clipboard-yank): bomb out in interactive use if
 	buffer is read-only.
 
