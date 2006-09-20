@@ -1807,8 +1807,6 @@ Isearch mode."
    ((eq   char ?|)       (isearch-fallback t nil t)))
 
   ;; Append the char to the search string, update the message and re-search.
-  (if (char-table-p translation-table-for-input)
-      (setq char (or (aref translation-table-for-input char) char)))
   (isearch-process-search-string
    (char-to-string char)
    (if (>= char ?\200)
@@ -1993,6 +1991,36 @@ Can be changed via `isearch-search-fun-function' for special needs."
      (t
       (if isearch-forward 'search-forward 'search-backward)))))
 
+(defun isearch-search-string (string bound noerror)
+  ;; Search for the first occurance of STRING or its translation.  If
+  ;; found, move point to the end of the occurance, update
+  ;; isearch-match-beg and isearch-match-end, and return point.
+  (let ((func (isearch-search-fun))
+	(len (length string))
+	pos1 pos2)
+    (setq pos1 (save-excursion (funcall func string bound noerror)))
+    (if (and (char-table-p translation-table-for-input)
+	     (> (string-bytes string) len))
+	(let (translated match-data)
+	  (dotimes (i len)
+	    (let ((x (aref translation-table-for-input (aref string i))))
+	      (when x
+		(or translated (setq translated (copy-sequence string)))
+		(aset translated i x))))
+	  (when translated
+	    (save-match-data
+	      (save-excursion
+		(if (setq pos2 (funcall func translated bound noerror))
+		    (setq match-data (match-data t)))))
+	    (when (and pos2
+		       (or (not pos1)
+			   (if isearch-forward (< pos2 pos1) (> pos2 pos1))))
+	      (setq pos1 pos2)
+	      (set-match-data match-data)))))
+    (if pos1
+	(goto-char pos1))
+    pos1))
+
 (defun isearch-search ()
   ;; Do the search with the current search string.
   (isearch-message nil t)
@@ -2008,9 +2036,7 @@ Can be changed via `isearch-search-fun-function' for special needs."
 	(setq isearch-error nil)
 	(while retry
 	  (setq isearch-success
-		(funcall
-		 (isearch-search-fun)
-		 isearch-string nil t))
+		(isearch-search-string isearch-string nil t))
 	  ;; Clear RETRY unless we matched some invisible text
 	  ;; and we aren't supposed to do that.
 	  (if (or (eq search-invisible t)
@@ -2353,7 +2379,7 @@ Attempt to do the search exactly the way the pending isearch would."
 	(isearch-regexp isearch-lazy-highlight-regexp)
 	(search-spaces-regexp search-whitespace-regexp))
     (condition-case nil
-	(funcall (isearch-search-fun)
+	(isearch-search-string
 		 isearch-lazy-highlight-last-string
 		 (if isearch-forward
 		     (min (or isearch-lazy-highlight-end-limit (point-max))
