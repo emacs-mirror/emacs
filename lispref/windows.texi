@@ -1355,8 +1355,8 @@ visible unless @var{partially} is non-@code{nil}.  The argument
 @var{position} defaults to the current position of point in
 @var{window}; @var{window}, to the selected window.
 
-If @var{position} is @code{t}, the last visible position in
-@var{window} is checked.
+If @var{position} is @code{t}, that means to check the last visible
+position in @var{window}.
 
 The @code{pos-visible-in-window-p} function considers only vertical
 scrolling.  If @var{position} is out of view only because @var{window}
@@ -1397,7 +1397,7 @@ starting from 0.  A negative number counts from the end of the window.
 The argument @var{line} defaults to the current line in @var{window};
 @var{window}, to the selected window.
 
-If the display is not up-to-date, @code{window-line-height} returns
+If the display is not up to date, @code{window-line-height} returns
 @code{nil}.  In that case, @code{pos-visible-in-window-p} may be used
 to obtain related information.
 
