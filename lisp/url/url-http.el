@@ -1151,19 +1151,19 @@ CBARGS as the arguments."
 (defalias 'url-http-file-readable-p 'url-http-file-exists-p)
 
 (defun url-http-head-file-attributes (url &optional id-format)
-  (let ((buffer (url-http-head url))
-	(attributes nil))
+  (let ((buffer (url-http-head url)))
     (when buffer
-      (setq attributes (make-list 11 nil))
-      (setf (nth 1 attributes) 1)	; Number of links to file
-      (setf (nth 2 attributes) 0)	; file uid
-      (setf (nth 3 attributes) 0)	; file gid
-      (setf (nth 7 attributes)		; file size
-	    (url-http-symbol-value-in-buffer 'url-http-content-length
-					     buffer -1))
-      (setf (nth 8 attributes) (eval-when-compile (make-string 10 ?-)))
-      (kill-buffer buffer))
-    attributes))
+      (prog1
+          (list
+           nil                          ;dir / link / normal file
+           1                            ;number of links to file.
+           0 0                          ;uid ; gid
+           nil nil nil                  ;atime ; mtime ; ctime
+           (url-http-symbol-value-in-buffer 'url-http-content-length
+                                            buffer -1)
+           (eval-when-compile (make-string 10 ?-))
+           nil nil nil)          ;whether gid would change ; inode ; device.
+        (kill-buffer buffer)))))
 
 ;;;###autoload
 (defun url-http-file-attributes (url &optional id-format)
