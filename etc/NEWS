@@ -2054,7 +2054,7 @@ powerful ways.  Encryption behavior customization is collected in the
 allout-encryption customization group.
 
 *** Navigation within an item is easier.  Repeated beginning-of-line and
-end-of-line key commands (usually, ^A and ^E) cycle through the 
+end-of-line key commands (usually, ^A and ^E) cycle through the
 beginning/end-of-line and then beginning/end of topic, etc.  See new
 customization vars `allout-beginning-of-line-cycles' and
 `allout-end-of-line-cycles'.
@@ -4110,6 +4110,11 @@ give up and return LIMIT.
 *** Function `pos-visible-in-window-p' now returns the pixel coordinates
 and partial visibility state of the corresponding row, if the PARTIALLY
 arg is non-nil.
+
++++
+*** New function `window-line-height' is an efficient way to get
+information about a specific text line in a window provided that the
+window's display is up-to-date.
 
 +++
 *** New functions `posn-at-point' and `posn-at-x-y' return
