@@ -333,6 +333,7 @@ Return nil if that position is scrolled vertically out of view.
 If a character is only partially visible, nil is returned, unless the
 optional argument PARTIALLY is non-nil.
 If POS is only out of view because of horizontal scrolling, return non-nil.
+If POS is t, it specifies the position of the last visible glyph in WINDOW.
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
@@ -340,7 +341,7 @@ return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
 where X and Y are the pixel coordinates relative to the top left corner
 of the window.  The remaining elements are omitted if the character after
 POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
-off-screen at the top and bottom of the row, ROWH is the height of the
+off-window at the top and bottom of the row, ROWH is the height of the
 display row, and VPOS is the row number (0-based) containing POS.  */)
      (pos, window, partially)
      Lisp_Object pos, window, partially;
@@ -357,7 +358,9 @@ display row, and VPOS is the row number (0-based) containing POS.  */)
   buf = XBUFFER (w->buffer);
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
-  if (!NILP (pos))
+  if (EQ (pos, Qt))
+    posint = -1;
+  else if (!NILP (pos))
     {
       CHECK_NUMBER_COERCE_MARKER (pos);
       posint = XINT (pos);
@@ -369,8 +372,8 @@ display row, and VPOS is the row number (0-based) containing POS.  */)
 
   /* If position is above window start or outside buffer boundaries,
      or if window start is out of range, position is not visible.  */
-  if (posint >= CHARPOS (top)
-      && posint <= BUF_ZV (buf)
+  if ((EQ (pos, Qt)
+       || (posint >= CHARPOS (top) && posint <= BUF_ZV (buf)))
       && CHARPOS (top) >= BUF_BEGV (buf)
       && CHARPOS (top) <= BUF_ZV (buf)
       && pos_visible_p (w, posint, &x, &y, &rtop, &rbot, &rowh, &vpos)
@@ -403,8 +406,8 @@ counts from the end of the window.
 Value is a list (HEIGHT VPOS YPOS OFFBOT), where HEIGHT is the height
 in pixels of the visible part of the line, VPOS and YPOS are the
 vertical position in lines and pixels of the row, relative to the top
-of the first text line, and OFFBOT is the number of off-screen pixels at
-the bottom of the text row.  If there are off-screen pixels at the top
+of the first text line, and OFFBOT is the number of off-window pixels at
+the bottom of the text row.  If there are off-window pixels at the top
 of the (first) text row, YPOS is negative.
 
 Return nil if window display is not up-to-date.  In that case, use
@@ -565,7 +568,7 @@ DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
 Return NCOL.  NCOL should be zero or positive.
 
 Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
-window so that the location of point moves off-screen.  */)
+window so that the location of point moves off-window.  */)
      (window, ncol)
      Lisp_Object window, ncol;
 {
