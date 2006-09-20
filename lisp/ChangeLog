@@ -1,3 +1,11 @@
+2006-09-21  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/cl-macs.el (member*): Use memql instead of complex code.
+	Suggested by Miles Bader.
+
+	* emacs-lisp/cl.el (pushnew): Rework 2006-09-10 change.  Use memql
+	instead of add-to-list in the simple case.
+
 2006-09-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* delim-col.el : Fix X-URL comment.

@@ -1,3 +1,9 @@
+2006-09-21  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fmemq): Refill doc string.
+	(Fmemql): New defun, like memq but using eql.
+	(syms_of_fns): Defsubr it.
+
 2006-09-20  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (pos_visible_p): CHARPOS < 0 means return info for
