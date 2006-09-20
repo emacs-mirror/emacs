@@ -405,10 +405,10 @@ counts from the end of the window.
 
 Value is a list (HEIGHT VPOS YPOS OFFBOT), where HEIGHT is the height
 in pixels of the visible part of the line, VPOS and YPOS are the
-vertical position in lines and pixels of the row, relative to the top
+vertical position in lines and pixels of the line, relative to the top
 of the first text line, and OFFBOT is the number of off-window pixels at
-the bottom of the text row.  If there are off-window pixels at the top
-of the (first) text row, YPOS is negative.
+the bottom of the text line.  If there are off-window pixels at the top
+of the (first) text line, YPOS is negative.
 
 Return nil if window display is not up-to-date.  In that case, use
 `pos-visible-in-window-p' to obtain the information.  */)
