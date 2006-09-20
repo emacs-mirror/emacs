@@ -3496,11 +3496,9 @@ Outline mode sets this."
 		(>= rbot (frame-char-height))
 		(<= ypos (- (frame-char-height))))
 	(unless lh
-	  (let* ((wend (window-end nil t))
-		 (evis (or (pos-visible-in-window-p wend nil t)
-			   (pos-visible-in-window-p (1- wend) nil t))))
-	    (setq rbot (nth 3 evis)
-		  vpos (nth 5 evis))))
+	  (let ((wend (pos-visible-in-window-p t nil t)))
+	    (setq rbot (nth 3 wend)
+		  vpos (nth 5 wend))))
 	(cond
 	 ;; If last line of window is fully visible, move forward.
 	 ((or (null rbot) (= rbot 0))
