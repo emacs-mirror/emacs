@@ -1,3 +1,15 @@
+2006-09-19  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnslashdot.el (nnslashdot-request-article): Update end-of-article
+	regexp.  Articles containing quotation were cut prematurely.
+
+2006-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-cite-original-without-signature): Use nobody by
+	default for the value of From header.
+	(message-cite-original): Ditto.
+	(message-reply): Ditto.
+
 2006-09-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* pop3.el (pop3-leave-mail-on-server): Mention problem of duplicate

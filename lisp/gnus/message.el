@@ -3280,7 +3280,7 @@ prefix, and don't delete any headers."
 	    (message-narrow-to-head-1)
 	    (vector 0
 		    (or (message-fetch-field "subject") "none")
-		    (message-fetch-field "from")
+		    (or (message-fetch-field "from") "nobody")
 		    (message-fetch-field "date")
 		    (message-fetch-field "message-id" t)
 		    (message-fetch-field "references")
@@ -3329,7 +3329,7 @@ prefix, and don't delete any headers."
 	      (message-narrow-to-head-1)
 	      (vector 0
 		      (or (message-fetch-field "subject") "none")
-		      (message-fetch-field "from")
+		      (or (message-fetch-field "from") "nobody")
 		      (message-fetch-field "date")
 		      (message-fetch-field "message-id" t)
 		      (message-fetch-field "references")
@@ -5843,7 +5843,7 @@ want to get rid of this query permanently.")))
       (setq message-id (message-fetch-field "message-id" t)
 	    references (message-fetch-field "references")
 	    date (message-fetch-field "date")
-	    from (message-fetch-field "from")
+	    from (or (message-fetch-field "from") "nobody")
 	    subject (or (message-fetch-field "subject") "none"))
       (when gnus-list-identifiers
 	(setq subject (message-strip-list-identifiers subject)))
