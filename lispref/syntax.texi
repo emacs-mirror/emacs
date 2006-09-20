@@ -332,8 +332,8 @@ Emacs supports two comment styles simultaneously in any one syntax
 table.  This is for the sake of C++.  Each style of comment syntax has
 its own comment-start sequence and its own comment-end sequence.  Each
 comment must stick to one style or the other; thus, if it starts with
-the comment-start sequence of style ``b'', it must also end with the
-comment-end sequence of style ``b''.
+the comment-start sequence of style ``b,'' it must also end with the
+comment-end sequence of style ``b.''
 
 The two comment-start sequences must begin with the same character; only
 the second character may differ.  Mark the second character of the
@@ -513,7 +513,6 @@ the current buffer.
 @end defun
 
 @defmac with-syntax-table @var{table} @var{body}@dots{}
-@tindex with-syntax-table
 This macro executes @var{body} using @var{table} as the current syntax
 table.  It returns the value of the last form in @var{body}, after
 restoring the old current syntax table.
@@ -707,7 +706,7 @@ The minimum parenthesis depth encountered during this scan.
 @item
 What kind of comment is active: @code{nil} for a comment of style
 ``a'' or when not inside a comment, @code{t} for a comment of style
-``b'', and @code{syntax-table} for a comment that should be ended by a
+``b,'' and @code{syntax-table} for a comment that should be ended by a
 generic comment delimiter character.
 
 @item
@@ -799,7 +798,6 @@ before count is used up, @code{nil} is returned.
 @end defun
 
 @defvar multibyte-syntax-as-symbol
-@tindex multibyte-syntax-as-symbol
 If this variable is non-@code{nil}, @code{scan-sexps} treats all
 non-@acronym{ASCII} characters as symbol constituents regardless
 of what the syntax table says about them.  (However, text properties
@@ -1076,7 +1074,6 @@ buffer.  It returns @var{table}.
 @end defun
 
 @defun make-category-table
-@tindex make-category-table
 This creates and returns an empty category table.  In an empty category
 table, no categories have been allocated, and no characters belong to
 any categories.

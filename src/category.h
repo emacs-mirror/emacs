@@ -54,10 +54,8 @@ Boston, MA 02110-1301, USA.  */
 #define CATEGORYP(x) \
   (INTEGERP ((x)) && XFASTINT ((x)) >= 0x20 && XFASTINT ((x)) <= 0x7E)
 
-#define CHECK_CATEGORY(x)						\
-  do {									\
-    if (!CATEGORYP ((x))) x = wrong_type_argument (Qcategoryp, (x));	\
-  } while (0)
+#define CHECK_CATEGORY(x) \
+  CHECK_TYPE (CATEGORYP (x), Qcategoryp, x)
 
 #define XCATEGORY_SET XBOOL_VECTOR
 
@@ -72,10 +70,8 @@ Boston, MA 02110-1301, USA.  */
 #define SET_CATEGORY_SET(category_set, category, val) \
   (Faset (category_set, category, val))
 
-#define CHECK_CATEGORY_SET(x)					   \
-  do {									   \
-    if (!CATEGORY_SET_P ((x))) x = wrong_type_argument (Qcategorysetp, (x)); \
-  } while (0)
+#define CHECK_CATEGORY_SET(x) \
+  CHECK_TYPE (CATEGORY_SET_P (x), Qcategorysetp, x)
 
 /* Return 1 if CATEGORY_SET contains CATEGORY, else return 0.
    The faster version of `!NILP (Faref (category_set, category))'.  */

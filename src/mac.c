@@ -4625,8 +4625,7 @@ otherwise.  */)
       CHECK_CONS (key);
       for (tmp = key; CONSP (tmp); tmp = XCDR (tmp))
 	CHECK_STRING_CAR (tmp);
-      if (!NILP (tmp))
-	wrong_type_argument (Qlistp, key);
+      CHECK_LIST_END (tmp, key);
     }
   if (!NILP (application))
     CHECK_STRING (application);

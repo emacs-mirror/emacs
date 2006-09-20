@@ -1,6 +1,6 @@
 /* Process support for GNU Emacs on the Microsoft W32 API.
    Copyright (C) 1992, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006 Free Software Foundation, Inc.
+		 2005, 2006 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -280,7 +280,10 @@ reader_thread (void *arg)
     {
       int rc;
 
-      rc = _sys_read_ahead (cp->fd);
+      if (fd_info[cp->fd].flags & FILE_LISTEN)
+	rc = _sys_wait_accept (cp->fd);
+      else
+	rc = _sys_read_ahead (cp->fd);
 
       /* The name char_avail is a misnomer - it really just means the
 	 read-ahead has completed, whether successfully or not. */

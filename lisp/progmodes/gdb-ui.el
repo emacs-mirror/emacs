@@ -1019,7 +1019,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   (interactive)
   (if gdb-use-separate-io-buffer
       (gdb-display-buffer
-       (gdb-get-buffer-create 'gdb-inferior-io))))
+       (gdb-get-buffer-create 'gdb-inferior-io) t)))
 
 (defconst gdb-frame-parameters
   '((height . 14) (width . 80)
@@ -1556,7 +1556,7 @@ happens to be appropriate."
     (goto-char (point-max))
     (insert-before-markers string))
   (if (not (string-equal string ""))
-      (gdb-display-buffer (gdb-get-buffer-create 'gdb-inferior-io))))
+      (gdb-display-buffer (gdb-get-buffer-create 'gdb-inferior-io) t)))
 
 (defun gdb-clear-inferior-io ()
   (with-current-buffer (gdb-get-buffer-create 'gdb-inferior-io)
@@ -1865,7 +1865,7 @@ static char *magick[] = {
   "Display status of user-settable breakpoints."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-buffer-create 'gdb-breakpoints-buffer)))
+   (gdb-get-buffer-create 'gdb-breakpoints-buffer) t))
 
 (defun gdb-frame-breakpoints-buffer ()
   "Display status of user-settable breakpoints in a new frame."
@@ -2041,7 +2041,7 @@ static char *magick[] = {
   "Display backtrace of current stack."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-buffer-create 'gdb-stack-buffer)))
+   (gdb-get-buffer-create 'gdb-stack-buffer) t))
 
 (defun gdb-frame-stack-buffer ()
   "Display backtrace of current stack in a new frame."
@@ -2122,7 +2122,7 @@ static char *magick[] = {
   "Display IDs of currently known threads."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-buffer-create 'gdb-threads-buffer)))
+   (gdb-get-buffer-create 'gdb-threads-buffer) t))
 
 (defun gdb-frame-threads-buffer ()
   "Display IDs of currently known threads in a new frame."
@@ -2256,7 +2256,7 @@ static char *magick[] = {
   "Display integer register contents."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-buffer-create 'gdb-registers-buffer)))
+   (gdb-get-buffer-create 'gdb-registers-buffer) t))
 
 (defun gdb-frame-registers-buffer ()
   "Display integer register contents in a new frame."
@@ -2580,7 +2580,7 @@ corresponding to the mode line clicked."
   "Display memory contents."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-buffer-create 'gdb-memory-buffer)))
+   (gdb-get-buffer-create 'gdb-memory-buffer) t))
 
 (defun gdb-frame-memory-buffer ()
   "Display memory contents in a new frame."
@@ -2687,7 +2687,7 @@ corresponding to the mode line clicked."
   "Display local variables of current stack and their values."
   (interactive)
   (gdb-display-buffer
-   (gdb-get-buffer-create 'gdb-locals-buffer)))
+   (gdb-get-buffer-create 'gdb-locals-buffer) t))
 
 (defun gdb-frame-locals-buffer ()
   "Display local variables of current stack and their values in a new frame."
@@ -2698,7 +2698,7 @@ corresponding to the mode line clicked."
 
 
 ;;;; Window management
-(defun gdb-display-buffer (buf &optional size)
+(defun gdb-display-buffer (buf dedicated &optional size)
   (let ((answer (get-buffer-window buf 0))
 	(must-split nil))
     (if answer
@@ -2707,7 +2707,8 @@ corresponding to the mode line clicked."
       (pop-to-buffer gud-comint-buffer)	;Select the right frame.
       (let ((window (get-lru-window)))
 	(if (and window
-	    (not (eq window (get-buffer-window gud-comint-buffer))))
+		 (not (memq window `(,(get-buffer-window gud-comint-buffer)
+				     ,gdb-source-window))))
 	    (progn
 	      (set-window-buffer window buf)
 	      (setq answer window))
@@ -2718,7 +2719,7 @@ corresponding to the mode line clicked."
 		 (new-size (and size (< size cur-size) (- cur-size size))))
 	    (setq answer (split-window largest new-size))
 	    (set-window-buffer answer buf)
-	    (set-window-dedicated-p answer t)))
+	    (set-window-dedicated-p answer dedicated)))
       answer)))
 
 
@@ -3162,7 +3163,7 @@ BUFFER nil or omitted means use the current buffer."
   (interactive)
   (setq gdb-previous-frame nil)
   (gdb-display-buffer
-   (gdb-get-buffer-create 'gdb-assembler-buffer)))
+   (gdb-get-buffer-create 'gdb-assembler-buffer) t))
 
 (defun gdb-frame-assembler-buffer ()
   "Display disassembly view in a new frame."

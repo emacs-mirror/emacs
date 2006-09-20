@@ -2953,7 +2953,7 @@ That command is designed for interactive use only" fn))
                     ;; `cl-byte-compile-compiler-macro' but if CL isn't
                     ;; loaded, this function doesn't exist.
                     (or (not (memq handler '(cl-byte-compile-compiler-macro)))
-                        (fboundp handler))
+                        (functionp handler))
 		    (not (and (byte-compile-version-cond
                                byte-compile-compatibility)
                               (get (get fn 'byte-opcode) 'emacs19-opcode))))

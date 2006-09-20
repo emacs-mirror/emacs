@@ -990,6 +990,7 @@ alsa_configure (sd)
      struct sound_device *sd;
 {
   int val, err, dir;
+  unsigned uval;
   struct alsa_params *p = (struct alsa_params *) sd->data;
   snd_pcm_uframes_t buffer_size;
 
@@ -1017,8 +1018,8 @@ alsa_configure (sd)
   if (err < 0) 
     alsa_sound_perror ("Could not set sound format", err);
 
-  val = sd->sample_rate;
-  err = snd_pcm_hw_params_set_rate_near (p->handle, p->hwparams, &val, 0);
+  uval = sd->sample_rate;
+  err = snd_pcm_hw_params_set_rate_near (p->handle, p->hwparams, &uval, 0);
   if (err < 0)
     alsa_sound_perror ("Could not set sample rate", err);
   
@@ -1123,7 +1124,7 @@ alsa_close (sd)
         snd_pcm_sw_params_free (p->swparams);
       if (p->handle)
         {
-          snd_pcm_drain(p->handle);
+          snd_pcm_drain (p->handle);
           snd_pcm_close (p->handle);
         }
       free (p);
@@ -1269,7 +1270,8 @@ alsa_init (sd)
   err = snd_pcm_open (&handle, file, SND_PCM_STREAM_PLAYBACK, 0);
   snd_lib_error_set_handler (NULL);
   if (err < 0)
-    return 0;
+      return 0;
+  snd_pcm_close (handle);
 
   sd->fd = -1;
   sd->open = alsa_open;

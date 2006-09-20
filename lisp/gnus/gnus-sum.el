@@ -9510,7 +9510,7 @@ deleted forever, right now."
 ;; Suggested by Jack Vinson <vinson@unagi.cis.upenn.edu>.
 (defun gnus-summary-delete-article (&optional n)
   "Delete the N next (mail) articles.
-This command actually deletes articles.	 This is not a marking
+This command actually deletes articles.  This is not a marking
 command.  The article will disappear forever from your life, never to
 return.
 

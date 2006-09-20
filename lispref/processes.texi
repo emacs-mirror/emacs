@@ -23,7 +23,7 @@ subprocess, the Lisp program waits for the subprocess to terminate
 before continuing execution.  When you create an asynchronous
 subprocess, it can run in parallel with the Lisp program.  This kind of
 subprocess is represented within Emacs by a Lisp object which is also
-called a ``process''.  Lisp programs can use this object to communicate
+called a ``process.''  Lisp programs can use this object to communicate
 with the subprocess or to control it.  For example, you can send
 signals, obtain status information, receive output from the process, or
 send input to it.
@@ -840,7 +840,6 @@ The function returns @var{process}.
 @end defun
 
 @defun process-running-child-p process
-@tindex process-running-child-p process
 This function will tell you whether a subprocess has given control of
 its terminal to its own child process.  The value is @code{t} if this is
 true, or if Emacs cannot tell; it is @code{nil} if Emacs can be certain
@@ -1452,12 +1451,10 @@ non-@code{nil}, says that Emacs should ask for confirmation before
 exiting and thus killing that process.  The default for the query flag
 is @code{t}, meaning @emph{do} query.
 
-@tindex process-query-on-exit-flag
 @defun process-query-on-exit-flag process
 This returns the query flag of @var{process}.
 @end defun
 
-@tindex set-process-query-on-exit-flag
 @defun set-process-query-on-exit-flag process flag
 This function sets the query flag of @var{process} to @var{flag}.  It
 returns @var{flag}.
@@ -1727,13 +1724,13 @@ level that that of @code{open-network-stream}, using
 @code{make-network-process}.
 
 @menu
-* Make Network::             Using @code{make-network-process}.
+* Network Processes::        Using @code{make-network-process}.
 * Network Options::          Further control over network connections.
 * Network Feature Testing::  Determining which network features work on
                                the machine you are using.
 @end menu
 
-@node Make Network
+@node Network Processes
 @subsection @code{make-network-process}
 
    The basic function for creating network connections and network
@@ -2109,7 +2106,7 @@ processed, and how to pack or unpack it.
 that the field represents and, in the case of multibyte fields, how
 the bytes are ordered within the field.  The two possible orderings
 are ``big endian'' (also known as ``network byte ordering'') and
-``little endian''.  For instance, the number @code{#x23cd} (decimal
+``little endian.''  For instance, the number @code{#x23cd} (decimal
 9165) in big endian would be the two bytes @code{#x23} @code{#xcd};
 and in little endian, @code{#xcd} @code{#x23}.  Here are the possible
 type values:

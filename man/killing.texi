@@ -692,7 +692,7 @@ any direction.  Normal text you type is inserted to the left or right
 of each line in the rectangle (on the same side as the cursor).
 
   With CUA you can easily copy text and rectangles into and out of
-registers by providing a one-digit numeric prefix the the kill, copy,
+registers by providing a one-digit numeric prefix to the kill, copy,
 and yank commands, e.g. @kbd{C-1 C-c} copies the region into register
 @code{1}, and @kbd{C-2 C-v} yanks the contents of register @code{2}.
 

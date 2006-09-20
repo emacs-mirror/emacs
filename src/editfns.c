@@ -56,6 +56,7 @@ Boston, MA 02110-1301, USA.  */
 #include "coding.h"
 #include "frame.h"
 #include "window.h"
+#include "blockinput.h"
 
 #ifdef STDC_HEADERS
 #include <float.h>
@@ -315,7 +316,7 @@ region_limit (beginningp)
   if (!NILP (Vtransient_mark_mode)
       && NILP (Vmark_even_if_inactive)
       && NILP (current_buffer->mark_active))
-    Fsignal (Qmark_inactive, Qnil);
+    xsignal0 (Qmark_inactive);
 
   m = Fmarker_position (current_buffer->mark);
   if (NILP (m))
@@ -1302,7 +1303,9 @@ with that uid, or nil if there is no such user.  */)
     return Vuser_login_name;
 
   CHECK_NUMBER (uid);
+  BLOCK_INPUT;
   pw = (struct passwd *) getpwuid (XINT (uid));
+  UNBLOCK_INPUT;
   return (pw ? build_string (pw->pw_name) : Qnil);
 }
 
@@ -1356,9 +1359,17 @@ name, or nil if there is no such user.  */)
   if (NILP (uid))
     return Vuser_full_name;
   else if (NUMBERP (uid))
-    pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
+    {
+      BLOCK_INPUT;
+      pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
+      UNBLOCK_INPUT;
+    }
   else if (STRINGP (uid))
-    pw = (struct passwd *) getpwnam (SDATA (uid));
+    {
+      BLOCK_INPUT;
+      pw = (struct passwd *) getpwnam (SDATA (uid));
+      UNBLOCK_INPUT;
+    }
   else
     error ("Invalid UID specification");
 
@@ -1469,7 +1480,7 @@ systems that do not provide resolution finer than a second.  */)
 
   if (getrusage (RUSAGE_SELF, &usage) < 0)
     /* This shouldn't happen.  What action is appropriate?  */
-    Fsignal (Qerror, Qnil);
+    xsignal0 (Qerror);
 
   /* Sum up user time and system time.  */
   secs = usage.ru_utime.tv_sec + usage.ru_stime.tv_sec;
@@ -2129,7 +2140,6 @@ general_insert_function (insert_func, insert_from_string_func,
   for (argnum = 0; argnum < nargs; argnum++)
     {
       val = args[argnum];
-    retry:
       if (INTEGERP (val))
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
@@ -2154,10 +2164,7 @@ general_insert_function (insert_func, insert_from_string_func,
 				      inherit);
 	}
       else
-	{
-	  val = wrong_type_argument (Qchar_or_string_p, val);
-	  goto retry;
-	}
+	wrong_type_argument (Qchar_or_string_p, val);
     }
 }
 
@@ -3879,7 +3886,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      /* Likewise adjust the property end position.  */
 	      pos = XINT (XCAR (XCDR (item)));
 
-	      for (; bytepos < pos; bytepos++)
+	      for (; position < pos; bytepos++)
 		{
 		  if (! discarded[bytepos])
 		    position++, translated++;

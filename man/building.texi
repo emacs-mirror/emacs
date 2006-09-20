@@ -359,9 +359,17 @@ that specifies how to run @code{grep}.  Use the same arguments you
 would give @code{grep} when running it normally: a @code{grep}-style
 regexp (usually in single-quotes to quote the shell's special
 characters) followed by file names, which may use wildcards.  If you
-specify a prefix argument for @kbd{M-x grep}, it detects the tag
-(@pxref{Tags}) around point, and puts that into the default
-@code{grep} command.
+specify a prefix argument for @kbd{M-x grep}, it finds the tag
+(@pxref{Tags}) in the buffer around point, and puts that into the
+default @code{grep} command.
+
+  Your command need not simply run @code{grep}; you can use any shell
+command that produces output in the same format.  For instance, you
+can chain @code{grep} commands, like this:
+
+@example
+grep -nH -e foo *.el | grep bar | grep toto
+@end example
 
   The output from @code{grep} goes in the @samp{*grep*} buffer.  You
 can find the corresponding lines in the original files using @w{@kbd{C-x

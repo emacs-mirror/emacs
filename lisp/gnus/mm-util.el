@@ -204,19 +204,19 @@ the alias.  Else windows-NUMBER is used."
   `(
     ;; Not in XEmacs, but it's not a proper MIME charset anyhow.
     ,@(unless (mm-coding-system-p 'x-ctext)
-       '((x-ctext . ctext)))
+	'((x-ctext . ctext)))
     ;; ISO-8859-15 is very similar to ISO-8859-1.  But it's _different_!
     ,@(unless (mm-coding-system-p 'iso-8859-15)
-       '((iso-8859-15 . iso-8859-1)))
+	'((iso-8859-15 . iso-8859-1)))
     ;; BIG-5HKSCS is similar to, but different than, BIG-5.
     ,@(unless (mm-coding-system-p 'big5-hkscs)
 	'((big5-hkscs . big5)))
     ;; Windows-1252 is actually a superset of Latin-1.  See also
     ;; `gnus-article-dumbquotes-map'.
     ,@(unless (mm-coding-system-p 'windows-1252)
-       (if (mm-coding-system-p 'cp1252)
-	   '((windows-1252 . cp1252))
-	 '((windows-1252 . iso-8859-1))))
+	(if (mm-coding-system-p 'cp1252)
+	    '((windows-1252 . cp1252))
+	  '((windows-1252 . iso-8859-1))))
     ;; Windows-1250 is a variant of Latin-2 heavily used by Microsoft
     ;; Outlook users in Czech republic. Use this to allow reading of their
     ;; e-mails. cp1250 should be defined by M-x codepage-setup.
@@ -232,6 +232,10 @@ the alias.  Else windows-NUMBER is used."
 	(if (mm-coding-system-p 'cp949)
 	    '((ks_c_5601-1987 . cp949))
 	  '((ks_c_5601-1987 . euc-kr))))
+    ;; Windows-31J is Windows Codepage 932.
+    ,@(if (and (not (mm-coding-system-p 'windows-31j))
+	       (mm-coding-system-p 'cp932))
+	  '((windows-31j . cp932)))
     )
   "A mapping from unknown or invalid charset names to the real charset names.")
 

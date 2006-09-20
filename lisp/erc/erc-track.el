@@ -108,7 +108,7 @@ If this variable is set to `max', then channel names will be shortened
 to the max.  Usually, shortened channel names will remain unique for a
 given set of existing channels.  When shortening to the max, the shortened
 channel names will be unique for the set of active channels only.
-Example: If there are tow active channels #emacs and #vi, and two inactive
+Example: If there are two active channels #emacs and #vi, and two inactive
 channels #electronica and #folk, then usually the active channels are
 shortened to #em and #v.  When shortening to the max, however, #emacs is
 not compared to #electronica -- only to #vi, therefore it can be shortened

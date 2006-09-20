@@ -88,18 +88,18 @@ A cookie vector object is a vector of 7 slots:
 (defvar url-cookie-storage nil         "Where cookies are stored.")
 (defvar url-cookie-secure-storage nil  "Where secure cookies are stored.")
 (defcustom url-cookie-file nil
-  "*File where cookies are stored on disk."
+  "File where cookies are stored on disk."
   :type '(choice (const :tag "Default" :value nil) file)
   :group 'url-file
   :group 'url-cookie)
 
 (defcustom url-cookie-confirmation nil
-  "*If non-nil, confirmation by the user is required to accept HTTP cookies."
+  "If non-nil, confirmation by the user is required to accept HTTP cookies."
   :type 'boolean
   :group 'url-cookie)
 
 (defcustom url-cookie-multiple-line nil
-  "*If nil, HTTP requests put all cookies for the server on one line.
+  "If nil, HTTP requests put all cookies for the server on one line.
 Some web servers, such as http://www.hotmail.com/, only accept cookies
 when they are on one line.  This is broken behavior, but just try
 telling Microsoft that."
@@ -168,7 +168,13 @@ telling Microsoft that."
       (insert ")\n(setq url-cookie-secure-storage\n '")
       (pp url-cookie-secure-storage (current-buffer))
       (insert ")\n")
+      (insert ";; Local Variables:\n"
+              ";; version-control: never\n"
+              ";; no-byte-compile: t\n"
+              ";; End:\n")
+      (set (make-local-variable 'version-control) t)
       (write-file fname)
+      (setq url-cookies-changed-since-last-save nil)
       (kill-buffer (current-buffer))))))
 
 (defun url-cookie-store (name value &optional expires domain localpart secure)
@@ -313,18 +319,17 @@ telling Microsoft that."
 '.'s in the domain name in order to set a cookie.")
 
 (defcustom url-cookie-trusted-urls nil
-  "*A list of regular expressions matching URLs to always accept cookies from."
+  "A list of regular expressions matching URLs to always accept cookies from."
   :type '(repeat regexp)
   :group 'url-cookie)
 
 (defcustom url-cookie-untrusted-urls nil
-  "*A list of regular expressions matching URLs to never accept cookies from."
+  "A list of regular expressions matching URLs to never accept cookies from."
   :type '(repeat regexp)
   :group 'url-cookie)
 
 (defun url-cookie-host-can-set-p (host domain)
   (let ((numdots 0)
-	(tmp domain)
 	(last nil)
 	(case-fold-search t)
 	(mindots 3))
@@ -444,7 +449,7 @@ telling Microsoft that."
 (defvar url-cookie-timer nil)
 
 (defcustom url-cookie-save-interval 3600
-  "*The number of seconds between automatic saves of cookies.
+  "The number of seconds between automatic saves of cookies.
 Default is 1 hour.  Note that if you change this variable outside of
 the `customize' interface after `url-do-setup' has been run, you need
 to run the `url-cookie-setup-save-timer' function manually."
@@ -453,7 +458,7 @@ to run the `url-cookie-setup-save-timer' function manually."
 	   (if (bound-and-true-p url-setup-done)
 	       (url-cookie-setup-save-timer)))
   :type 'integer
-  :group 'url)
+  :group 'url-cookie)
 
 (defun url-cookie-setup-save-timer ()
   "Reset the cookie saver timer."

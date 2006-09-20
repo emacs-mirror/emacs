@@ -1,3 +1,14 @@
+2006-07-12  Kim F. Storm  <storm@cua.dk>
+
+	* INSTALL: More cleanup related to last change.
+
+2006-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* INSTALL: Remove descriptions about Metrowerks CodeWarrior.  Fix URL
+	for GNU-fonts.smi.bin.  USE_ATSUI is enabled by default on Mac OS X.
+
+	* README: Remove descriptions about Metrowerks CodeWarrior.
+
 2006-05-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* makefile.MPW (SOME_MACHINE_LISP): Add fringe.elc.

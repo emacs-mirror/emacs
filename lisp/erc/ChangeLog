@@ -1,3 +1,197 @@
+2006-07-12  Michael Olson  <mwolson@gnu.org>
+
+	* erc-match.el (erc-log-matches): Bind inhibit-read-only rather
+	than call toggle-read-only.
+
+	* erc.el (erc-handle-irc-url): Move here from erc-goodies.el and
+	add autoload cookie.
+
+2006-07-09  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-version-string): Release ERC 5.1.3.
+
+	* erc.texi: Update for the 5.1.3 release.
+
+	* erc-autoaway.el (erc-autoaway-set-back): Fix bug after returning
+	from being set automatically away and current buffer is not an ERC
+	buffer.
+
+	* erc-identd.el: Fix compiler error.
+
+	* erc.texi (Development): Use @subheading instead of @subsection.
+	(Advanced Usage): Add menu.
+	(Connecting): Fully document how to connect to an IRC server.
+	(Options, Tips and Tricks, Sample Configuration): New unwritten
+	sections.
+
+	* erc.el (erc-server, erc-port, erc-nick, erc-nick-uniquifier)
+	(erc-user-full-name, erc-password): Docfixes and customization
+	interface tweaks.
+	(erc-try-new-nick-p): Rename from
+	`erc-manual-set-nick-on-bad-nick-p' and invert meaning.
+	(erc-nickname-in-use): Use `erc-try-new-nick-p'.  Check the length
+	of `erc-nick-uniquifier', in case someone wants multiple
+	characters.
+	(erc-compute-server, erc-compute-nick, erc-compute-full-name)
+	(erc-compute-port): Docfixes.
+
+	* erc-log.el (log): Move all add-hook calls here, rather than
+	executing them immediately, and also cause them to be un-hooked
+	when the module is removed.
+	(erc-save-buffer-on-part): Move next to
+	`erc-save-queries-on-quit'.
+	(erc-save-buffer-on-quit, erc-save-queries-on-quit): Default to t.
+	(erc-log-write-after-send, erc-log-write-after-insert): Default to
+	nil.  This makes things fast, but reasonably failsafe, by default.
+
+2006-07-08  Michael Olson  <mwolson@gnu.org>
+
+	* erc-log.el (erc-log-insert-log-on-open): Make this nil by
+	default, since most IRC clients don't do this.
+	(erc-log-write-after-send): New option that determines whether the
+	log file will be written to after every sent message.
+	(erc-log-write-after-insert): New option that determines whether
+	the log file will be written to when new text is added to a logged
+	ERC buffer.
+	(log): Use the aforementioned options.
+
+	* erc.texi (Modules): Document the "completion" module.
+
+	* erc-pcomplete.el (pcomplete-erc-nicks): Make sure that we don't
+	have a nil element in the list when ignore-self is non-nil.
+
+2006-07-05  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-modules): Add the `page' module to the list.
+
+	* erc.texi (Modules): Add entries for `list' and `page' modules.
+	Change "spell" to "spelling".
+	(History): Use past tense throughout.
+
+2006-07-02  Michael Olson  <mwolson@gnu.org>
+
+	* erc-backend.el (erc-call-hooks): Fix (stringp nil) error that
+	can happen when doing /PART.
+
+	* erc.el (erc-quit-reason-various-alist)
+	(erc-part-reason-various-alist): In the example, use "^$" as an
+	example, since "" matches anything.
+	(erc-quit-reason-various, erc-part-reason-various): If no argument
+	is given, and no matches are found, use our default reason instead
+	of "nil".
+
+2006-06-30  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi (Modules): Mention identd.
+	(Releases): Update mailing list address and download location.
+	(Development): Refactor.  Provide updated directions for Arch.
+	Make URLs clickable.
+	(Keystroke Summary): Typo fix.  Use more Texinfo syntax.
+	(Getting Started): Give simpler example.  We do not need to
+	explicitly load every module.
+	(History): Update.
+
+	* erc.el (erc-version-modules): Remove, since we do not use this
+	function anymore.
+	(erc-latest-version, erc-ediff-latest-version): Remove, since this
+	was only useful back when ERC consisted of one file.
+	(erc-modules): Add line for identd.
+	(erc-get-channel-mode-from-keypress): Typo fix.
+
+	* erc-imenu.el: Remove unnecessary lines in header.
+
+	* erc-goodies.el (erc-handle-irc-url): Docfix.
+
+	* erc-identd.el: Define an ERC module for this.
+	(erc-identd-start): Don't create a process buffer if possible.
+	Otherwise, use conventional hidden names for process buffers.
+
+2006-06-29  Michael Olson  <mwolson@gnu.org>
+
+	* erc-backend.el (erc-coding-system-for-target): Match
+	case-insensitively.  Use a pattern match instead of `assoc', as
+	per the documentation for `erc-encoding-coding-alist'.
+
+	* erc-track.el (erc-track-shorten-aggressively): Fix typo.
+
+2006-06-27  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el: Update maintainer information and URLs.
+
+2006-06-14  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-active-buffer): If the active buffer has been
+	deleted, default to the server buffer.
+	(erc-toggle-flood-control): When the user hits C-c C-f, make flood
+	control really toggle, not unconditionally turn off.
+
+2006-06-12  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Add items since the 5.1.2 release.
+
+	* erc-autoaway.el (erc-autoaway-caused-away): New variable that
+	indicates whether the current away status was caused by this
+	module.
+	(erc-autoaway-set-back): Only set back if this module set the user
+	away.
+	(erc-autoaway-set-away): Update `erc-autoaway-caused-away'.
+	(erc-autoaway-reset-indicators): New function that resets some
+	indicators when the user is no longer away.
+	(autoaway): Add the above function to the 305 hook.
+
+2006-06-05  Romain Francoise  <romain@orebokech.com>
+
+	* erc.texi (History): Fix various typos.
+
+2006-06-04  Michael Olson  <mwolson@gnu.org>
+
+	* erc-autoaway.el (erc-autoaway-idle-method): Move after the
+	definition of the autoaway module.
+	(autoaway): Don't do anything if erc-autoaway-idle-method is
+	unbound.  This prevents an error on startup.
+
+2006-06-03  Michael Olson  <mwolson@gnu.org>
+
+	* erc-autoaway.el: Thanks to Mark Plaksin for the ideas and patch.
+	(erc-autoaway-idle-method): Renamed from
+	`erc-autoaway-use-emacs-idle'.  We have more than two choices for
+	how to do this, so it's best to make this take symbol values.
+	Improve documentation.  Remove warning against Emacs idle-time;
+	the point is moot now that we get user idle time via a different
+	method.  Make sure we disable and re-enable the module when
+	changing this value.
+	(autoaway): Conditionalize on the above option.  If using the idle
+	timer or user idle methods, don't add anything to the
+	send-completed or server-001 hooks, since it is unnecessary.
+	(erc-autoaway-reestablish-idletimer, erc-autoaway-message):
+	Docfix.
+	(erc-autoaway-idle-seconds): Use erc-autoaway-idle-method.
+	(erc-autoaway-reset-idle-irc): Renamed from
+	`erc-autoaway-reset-idle'.  Don't pass line to
+	`erc-autoaway-set-away', since it is not used.
+	(erc-autoaway-reset-idle-user): New function that resets the idle
+	state for user idle time.
+	(erc-autoaway-set-back): Remove line argument, since it is not
+	used.
+
+2006-06-01  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-buffer-filter): Make sure all buffers returned from
+	this are live.
+
+2006-05-01  Edward O'Connor  <ted@oconnor.cx>
+
+	* erc-goodies.el: (erc-handle-irc-url): New function, suitable as
+	a value for `url-irc-function'.
+
+2006-04-18  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-pcomplete.el (pcomplete-erc-nicks): Added new optional
+	argument IGNORE-SELF.  If this is non-nil, don't return the user's
+	current nickname.  Doc fix.
+	(pcomplete/erc-mode/complete-command): Don't complete the current
+	nickname.
+
 2006-04-05  Diane Murray  <disumu@x3y2z1.net>
 
 	* erc.el (erc-cmd-SV): Removed the exclamation point.  Show the

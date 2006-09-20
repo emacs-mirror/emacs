@@ -1032,7 +1032,9 @@ error message is constructed.  */)
 }
 
 /* Print an error message for the error DATA onto Lisp output stream
-   STREAM (suitable for the print functions).  */
+   STREAM (suitable for the print functions).
+   CONTEXT is a C string describing the context of the error.
+   CALLER is the Lisp function inside which the error was signaled.  */
 
 void
 print_error_message (data, stream, context, caller)

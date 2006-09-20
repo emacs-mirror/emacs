@@ -69,14 +69,15 @@
 	  (not (fboundp 'push)))
       (cc-load "cc-fix")))
 
-(eval-after-load "font-lock"
-  '(if (and (not (featurep 'cc-fix)) ; only load the file once.
+; (eval-after-load "font-lock"  ; 2006-07-09.  font-lock is now preloaded
+;   '
+(if (and (not (featurep 'cc-fix)) ; only load the file once.
 	    (featurep 'xemacs) ; There is now (2005/12) code in GNU Emacs CVS
 			       ; to make the call to f-l-c-k throw an error.
             (let (font-lock-keywords)
               (font-lock-compile-keywords '("\\<\\>"))
 	      font-lock-keywords))     ; did the previous call foul this up?
-       (load "cc-fix")))
+       (load "cc-fix")) ;)
 
 ;; The above takes care of the delayed loading, but this is necessary
 ;; to ensure correct byte compilation.
@@ -1034,35 +1035,35 @@ MODE is either a mode symbol or a list of mode symbols."
 
 
 ;; Make edebug understand the macros.
-(eval-after-load "edebug"
-  '(progn
-     (def-edebug-spec cc-eval-when-compile t)
-     (def-edebug-spec c-point t)
-     (def-edebug-spec c-set-region-active t)
-     (def-edebug-spec c-safe t)
-     (def-edebug-spec c-save-buffer-state let*)
-     (def-edebug-spec c-tentative-buffer-changes t)
-     (def-edebug-spec c-forward-syntactic-ws t)
-     (def-edebug-spec c-backward-syntactic-ws t)
-     (def-edebug-spec c-forward-sexp t)
-     (def-edebug-spec c-backward-sexp t)
-     (def-edebug-spec c-up-list-forward t)
-     (def-edebug-spec c-up-list-backward t)
-     (def-edebug-spec c-down-list-forward t)
-     (def-edebug-spec c-down-list-backward t)
-     (def-edebug-spec c-add-syntax t)
-     (def-edebug-spec c-add-class-syntax t)
-     (def-edebug-spec c-benign-error t)
-     (def-edebug-spec c-with-syntax-table t)
-     (def-edebug-spec c-skip-ws-forward t)
-     (def-edebug-spec c-skip-ws-backward t)
-     (def-edebug-spec c-major-mode-is t)
-     (def-edebug-spec c-put-char-property t)
-     (def-edebug-spec c-get-char-property t)
-     (def-edebug-spec c-clear-char-property t)
-     (def-edebug-spec c-clear-char-properties t)
-     (def-edebug-spec c-put-overlay t)
-     (def-edebug-spec c-delete-overlay t)))
+;(eval-after-load "edebug" ; 2006-07-09: def-edebug-spec is now in subr.el.
+;  '(progn
+(def-edebug-spec cc-eval-when-compile t)
+(def-edebug-spec c-point t)
+(def-edebug-spec c-set-region-active t)
+(def-edebug-spec c-safe t)
+(def-edebug-spec c-save-buffer-state let*)
+(def-edebug-spec c-tentative-buffer-changes t)
+(def-edebug-spec c-forward-syntactic-ws t)
+(def-edebug-spec c-backward-syntactic-ws t)
+(def-edebug-spec c-forward-sexp t)
+(def-edebug-spec c-backward-sexp t)
+(def-edebug-spec c-up-list-forward t)
+(def-edebug-spec c-up-list-backward t)
+(def-edebug-spec c-down-list-forward t)
+(def-edebug-spec c-down-list-backward t)
+(def-edebug-spec c-add-syntax t)
+(def-edebug-spec c-add-class-syntax t)
+(def-edebug-spec c-benign-error t)
+(def-edebug-spec c-with-syntax-table t)
+(def-edebug-spec c-skip-ws-forward t)
+(def-edebug-spec c-skip-ws-backward t)
+(def-edebug-spec c-major-mode-is t)
+(def-edebug-spec c-put-char-property t)
+(def-edebug-spec c-get-char-property t)
+(def-edebug-spec c-clear-char-property t)
+(def-edebug-spec c-clear-char-properties t)
+(def-edebug-spec c-put-overlay t)
+(def-edebug-spec c-delete-overlay t) ;))
 
 
 ;;; Functions.
@@ -1738,9 +1739,10 @@ constant.  A file is identified by its base name."
 			       ,@(and pre-files `(',pre-files))))))
 
 (put 'c-lang-defconst 'lisp-indent-function 1)
-(eval-after-load "edebug"
-  '(def-edebug-spec c-lang-defconst
-     (&define name [&optional stringp] [&rest sexp def-form])))
+;(eval-after-load "edebug" ; 2006-07-09: def-edebug-spec is now in subr.el.
+;  '
+(def-edebug-spec c-lang-defconst
+  (&define name [&optional stringp] [&rest sexp def-form]))
 
 (defun c-define-lang-constant (name bindings &optional pre-files)
   ;; Used by `c-lang-defconst'.

@@ -114,8 +114,9 @@
 
 ;; Load cc-fonts first after font-lock is loaded, since it isn't
 ;; necessary until font locking is requested.
-(eval-after-load "font-lock"
-  '(require 'cc-fonts))
+; (eval-after-load "font-lock" ; 2006-07-09: font-lock is now preloaded.
+;   '
+(require 'cc-fonts) ;)
 
 ;; cc-langs isn't loaded when we're byte compiled, so add autoload
 ;; directives for the interface functions.

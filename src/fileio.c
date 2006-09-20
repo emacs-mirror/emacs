@@ -77,6 +77,7 @@ extern int errno;
 #include "charset.h"
 #include "coding.h"
 #include "window.h"
+#include "blockinput.h"
 
 #ifdef WINDOWSNT
 #define NOMINMAX 1
@@ -279,7 +280,7 @@ report_file_error (string, data)
     switch (errorno)
       {
       case EEXIST:
-	Fsignal (Qfile_already_exists, Fcons (errstring, data));
+	xsignal (Qfile_already_exists, Fcons (errstring, data));
 	break;
       default:
 	/* System error messages are capitalized.  Downcase the initial
@@ -287,7 +288,7 @@ report_file_error (string, data)
 	if (SREF (errstring, 1) != '/')
 	  SSET (errstring, 0, DOWNCASE (SREF (errstring, 0)));
 
-	Fsignal (Qfile_error,
+	xsignal (Qfile_error,
 		 Fcons (build_string (string), Fcons (errstring, data)));
       }
 }
@@ -1386,7 +1387,9 @@ See also the function `substitute-in-file-name'.  */)
 	  bcopy ((char *) nm, o, p - nm);
 	  o [p - nm] = 0;
 
+	  BLOCK_INPUT;
 	  pw = (struct passwd *) getpwnam (o + 1);
+	  UNBLOCK_INPUT;
 	  if (pw)
 	    {
 	      newdir = (unsigned char *) pw -> pw_dir;
@@ -1917,7 +1920,9 @@ See also the function `substitute-in-file-name'.")
 	o[len] = 0;
 
 	/* Look up the user name. */
+	BLOCK_INPUT;
 	pw = (struct passwd *) getpwnam (o + 1);
+	UNBLOCK_INPUT;
 	if (!pw)
 	  error ("\"%s\" isn't a registered user", o + 1);
 
@@ -2111,10 +2116,11 @@ search_embedded_absfilename (nm, endp)
 	      /* If we have ~user and `user' exists, discard
 		 everything up to ~.  But if `user' does not exist, leave
 		 ~user alone, it might be a literal file name.  */
-	      if ((pw = getpwnam (o + 1)))
+	      BLOCK_INPUT;
+	      pw = getpwnam (o + 1);
+	      UNBLOCK_INPUT;
+	      if (pw)
 		return p;
-	      else
-		xfree (pw);
 	    }
 	  else
 	    return p;
@@ -2378,9 +2384,8 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
   if (lstat (SDATA (encoded_filename), &statbuf) >= 0)
     {
       if (! interactive)
-	Fsignal (Qfile_already_exists,
-		 Fcons (build_string ("File already exists"),
-			Fcons (absname, Qnil)));
+	xsignal2 (Qfile_already_exists,
+		  build_string ("File already exists"), absname);
       GCPRO1 (absname);
       tem = format2 ("File %s already exists; %s anyway? ",
 		     absname, build_string (querystring));
@@ -2390,9 +2395,8 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
 	tem = do_yes_or_no_p (tem);
       UNGCPRO;
       if (NILP (tem))
-	Fsignal (Qfile_already_exists,
-		 Fcons (build_string ("File already exists"),
-			Fcons (absname, Qnil)));
+	xsignal2 (Qfile_already_exists,
+		  build_string ("File already exists"), absname);
       if (statptr)
 	*statptr = statbuf;
     }
@@ -2494,9 +2498,8 @@ uid and gid of FILE to NEWNAME.  */)
 	{
 	  /* Restore original attributes.  */
 	  SetFileAttributes (filename, attributes);
-	  Fsignal (Qfile_date_error,
-		   Fcons (build_string ("Cannot set file date"),
-			  Fcons (newname, Qnil)));
+	  xsignal2 (Qfile_date_error,
+		    build_string ("Cannot set file date"), newname);
 	}
       /* Restore original attributes.  */
       SetFileAttributes (filename, attributes);
@@ -2592,9 +2595,8 @@ uid and gid of FILE to NEWNAME.  */)
 	  EMACS_SET_SECS_USECS (mtime, st.st_mtime, 0);
 	  if (set_file_times (SDATA (encoded_newname),
 			      atime, mtime))
-	    Fsignal (Qfile_date_error,
-		     Fcons (build_string ("Cannot set file date"),
-			    Fcons (newname, Qnil)));
+	    xsignal2 (Qfile_date_error,
+		      build_string ("Cannot set file date"), newname);
 	}
     }
 
@@ -2690,9 +2692,9 @@ If file has multiple names, it continues to exist with the other names.  */)
   GCPRO1 (filename);
   if (!NILP (Ffile_directory_p (filename))
       && NILP (Ffile_symlink_p (filename)))
-    Fsignal (Qfile_error,
- 	     Fcons (build_string ("Removing old name: is a directory"),
- 		    Fcons (filename, Qnil)));
+    xsignal2 (Qfile_error,
+	      build_string ("Removing old name: is a directory"),
+	      filename);
   UNGCPRO;
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -3842,9 +3844,8 @@ actually used.  */)
 	goto notfound;
 
       if (! NILP (replace) || ! NILP (beg) || ! NILP (end))
-	Fsignal (Qfile_error,
-		 Fcons (build_string ("not a regular file"),
-			Fcons (orig_filename, Qnil)));
+	xsignal2 (Qfile_error,
+		  build_string ("not a regular file"), orig_filename);
     }
 #endif
 
@@ -4717,9 +4718,8 @@ actually used.  */)
 	}
 #endif /* CLASH_DETECTION */
       if (not_regular)
-	Fsignal (Qfile_error,
-		 Fcons (build_string ("not a regular file"),
-			Fcons (orig_filename, Qnil)));
+	xsignal2 (Qfile_error,
+		  build_string ("not a regular file"), orig_filename);
     }
 
   if (set_coding_system)
@@ -5853,7 +5853,11 @@ static Lisp_Object
 do_auto_save_make_dir (dir)
      Lisp_Object dir;
 {
-  return call2 (Qmake_directory, dir, Qt);
+  Lisp_Object mode;
+
+  call2 (Qmake_directory, dir, Qt);
+  XSETFASTINT (mode, 0700);
+  return Fset_file_modes (dir, mode);
 }
 
 static Lisp_Object
@@ -6051,7 +6055,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	{
 	  /* If we are going to restore an old message,
 	     give time to read ours.  */
-	  sit_for (1, 0, 0, 0, 0);
+	  sit_for (make_number (1), 0, 0);
 	  restore_message ();
 	}
       else
@@ -6620,19 +6624,17 @@ of file names regardless of the current language environment.  */);
   staticpro (&Qcar_less_than_car);
 
   Fput (Qfile_error, Qerror_conditions,
-	Fcons (Qfile_error, Fcons (Qerror, Qnil)));
+	list2 (Qfile_error, Qerror));
   Fput (Qfile_error, Qerror_message,
 	build_string ("File error"));
 
   Fput (Qfile_already_exists, Qerror_conditions,
-	Fcons (Qfile_already_exists,
-	       Fcons (Qfile_error, Fcons (Qerror, Qnil))));
+	list3 (Qfile_already_exists, Qfile_error, Qerror));
   Fput (Qfile_already_exists, Qerror_message,
 	build_string ("File already exists"));
 
   Fput (Qfile_date_error, Qerror_conditions,
-	Fcons (Qfile_date_error,
-	       Fcons (Qfile_error, Fcons (Qerror, Qnil))));
+	list3 (Qfile_date_error, Qfile_error, Qerror));
   Fput (Qfile_date_error, Qerror_message,
 	build_string ("Cannot set file date"));
 

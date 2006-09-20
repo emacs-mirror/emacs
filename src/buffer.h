@@ -833,7 +833,7 @@ extern void set_buffer_internal P_ ((struct buffer *));
 extern void set_buffer_internal_1 P_ ((struct buffer *));
 extern void set_buffer_temp P_ ((struct buffer *));
 extern void record_buffer P_ ((Lisp_Object));
-extern void buffer_slot_type_mismatch P_ ((int));
+extern void buffer_slot_type_mismatch P_ ((int)) NO_RETURN;
 extern void fix_overlays_before P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 extern void mmap_set_vars P_ ((int));
 

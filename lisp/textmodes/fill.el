@@ -408,18 +408,19 @@ Point is moved to just past the fill prefix on the first line."
 			  "\\)?[ \t]*")
 		"[ \t]*")))
     (goto-char from)
-    (if (>= (+ (current-left-margin) (length prefix))
-	    (current-fill-column))
-	(error "fill-prefix too long for specified width"))
+    ;; Why signal an error here?  The problem needs to be caught elsewhere.
+    ;; (if (>= (+ (current-left-margin) (length prefix))
+    ;;         (current-fill-column))
+    ;;     (error "fill-prefix too long for specified width"))
     (forward-line 1)
     (while (< (point) to)
       (if (looking-at fpre)
-	  (delete-region (point) (match-end 0)))
+          (delete-region (point) (match-end 0)))
       (forward-line 1))
     (goto-char from)
     (if (looking-at fpre)
 	(goto-char (match-end 0)))
-    (setq from (point))))
+    (point)))
 
 ;; The `fill-space' property carries the string with which a newline
 ;; should be replaced when unbreaking a line (in fill-delete-newlines).
@@ -628,7 +629,12 @@ space does not end a sentence, so don't break a line there."
 	(oneleft nil))
 
     (beginning-of-line)
-    (setq from (point))
+    ;; We used to round up to whole line, but that prevents us from
+    ;; correctly handling filling of mixed code-and-comment where we do want
+    ;; to fill the comment but not the code.  So only use (point) if it's
+    ;; further than `from', which means that `from' is followed by some
+    ;; number of empty lines.
+    (setq from (max (point) from))
 
     ;; Delete all but one soft newline at end of region.
     ;; And leave TO before that one.
@@ -799,7 +805,7 @@ If `fill-paragraph-function' is nil, return the `fill-prefix' used for filling."
 If we're not in a comment, just return nil so that the caller
 can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
   (comment-normalize-vars)
-  (let (has-code-and-comment	; Non-nil if it contains code and a comment.
+  (let (has-code-and-comment ; Non-nil if it contains code and a comment.
 	comin comstart)
     ;; Figure out what kind of comment we are looking at.
     (save-excursion
@@ -857,12 +863,13 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 			 (or (comment-search-forward (line-end-position) t)
 			     (point)))
 			(looking-at comment-re))
-		      1 2))))
-	   ;; Find the beginning of the first line past the region to fill.
-	   (save-excursion
-	     (while (progn (forward-line 1)
-			   (looking-at comment-re)))
-	     (point)))
+		      (progn (setq comstart (point)) 1)
+		    (progn (setq comstart (point)) 2)))))
+	     ;; Find the beginning of the first line past the region to fill.
+	     (save-excursion
+	       (while (progn (forward-line 1)
+			     (looking-at comment-re)))
+	       (point)))
 	    ;; Obey paragraph starters and boundaries within comments.
 	    (let* ((paragraph-separate
 		    ;; Use the default values since they correspond to
@@ -874,7 +881,7 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 		    (concat paragraph-start "\\|[ \t]*\\(?:"
 			    comment-start-skip "\\)\\(?:"
 			    (default-value 'paragraph-start) "\\)"))
-		   ;; We used to reply on fill-prefix to break paragraph at
+		   ;; We used to rely on fill-prefix to break paragraph at
 		   ;; comment-starter changes, but it did not work for the
 		   ;; first line (mixed comment&code).
 		   ;; We now use comment-re instead to "manually" make sure
@@ -893,7 +900,7 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 
 	  ;; Find the fill-prefix to use.
 	  (cond
-	   (fill-prefix)		; Use the user-provided fill prefix.
+	   (fill-prefix)	  ; Use the user-provided fill prefix.
 	   ((and adaptive-fill-mode	; Try adaptive fill mode.
 		 (setq fill-prefix (fill-context-prefix beg end))
 		 (string-match comment-start-skip fill-prefix)))
@@ -903,7 +910,7 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 	  ;; Don't fill with narrowing.
 	  (or
 	   (fill-region-as-paragraph
-	    beg end justify nil
+	    (max comstart beg) end justify nil
 	    ;; Don't canonicalize spaces within the code just before
 	    ;; the comment.
 	    (save-excursion

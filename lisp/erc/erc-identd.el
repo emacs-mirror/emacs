@@ -24,15 +24,31 @@
 
 ;;; Commentary:
 
-;; You can have a local identd server (running on port 8113; I use DNAT
-;; to bind 113->8113) if you add this to .emacs.el:
+;; This module allows you to run a local identd server on port 8113.
+;; You will need to set up DNAT to bind 113->8113, or use a proxy.
 
-;;    (add-hook 'erc-connect-pre-hook 'erc-identd-start)
-;;    (add-hook 'erc-disconnected-hook 'erc-identd-stop)
+;; To use this module, add identd to `erc-modules' and run
+;; `erc-update-modules'.
+
+;; Here is an example /etc/inetd.conf rule that forwards identd
+;; traffic to port 8113.  You will need simpleproxy installed for it
+;; to work.
+
+;; 113 stream tcp nowait nobody /usr/sbin/tcpd /usr/bin/simpleproxy simpleproxy -i -R 127.0.0.1:8113
 
 ;;; Code:
 
+(require 'erc)
+
 (defvar erc-identd-process nil)
+
+;;;###autoload (autoload 'erc-identd-mode "erc-identd")
+(define-erc-module identd nil
+  "This mode launches an identd server on port 8113."
+  ((add-hook 'erc-connect-pre-hook 'erc-identd-start)
+   (add-hook 'erc-disconnected-hook 'erc-identd-stop))
+  ((remove-hook 'erc-connect-pre-hook 'erc-identd-start)
+   (remove-hook 'erc-disconnected-hook 'erc-identd-stop)))
 
 (defun erc-identd-filter (proc string)
   "This filter implements RFC1413 (identd authentication protocol)."
@@ -63,10 +79,11 @@ system."
       (delete-process erc-identd-process))
   (setq erc-identd-process
 	(make-network-process :name "identd"
-			      :buffer (generate-new-buffer "identd")
+			      :buffer nil
 			      :host 'local :service port
-			      :server t :noquery t
-			      :filter 'erc-identd-filter)))
+			      :server t :noquery t :nowait t
+			      :filter 'erc-identd-filter))
+  (set-process-query-on-exit-flag erc-identd-process nil))
 
 ;;;###autoload
 (defun erc-identd-stop (&rest ignore)
