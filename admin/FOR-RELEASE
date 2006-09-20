@@ -46,8 +46,6 @@ Windows only bug.
 
 ** david.hansen@physik.fu-berlin.de: WoMan Bug, Sep 13.
 
-** Michael Cadilhac's line-move-partial is slow.
-
 ** run-with-idle-timer change causes problem for Semantic.
 
 ** iampure@gmail.com's Sep 15 bug report about View Changes In File.
