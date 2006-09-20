@@ -1,3 +1,8 @@
+2006-09-20  David Kastrup  <dak@gnu.org>
+
+	* menu-bar.el (clipboard-yank): bomb out in interactive use if
+	buffer is read-only.
+
 2006-09-18  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-unprotected): Let inhibit-read-only only when
