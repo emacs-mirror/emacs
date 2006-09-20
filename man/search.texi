@@ -1296,7 +1296,7 @@ through multiple buffers.  It asks you to specify the buffer names one by one.
 @item M-x multi-occur-in-matching-buffers @key{RET} @var{bufregexp} @key{RET} @var{regexp} @key{RET}
 This function is similar to @code{multi-occur}, except the buffers to
 search are specified by a regular expression that matches visited
-filenames.  With a prefix argument, it uses the regular expression to match
+file names.  With a prefix argument, it uses the regular expression to match
 buffer names instead.
 
 @item M-x how-many @key{RET} @var{regexp} @key{RET}

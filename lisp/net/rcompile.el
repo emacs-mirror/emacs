@@ -115,17 +115,25 @@ nil means run no commands."
 
 ;;;; entry point
 
+;; We use the Tramp internal functions `with-parsed-tramp-file-name'
+;; and `tramp-make-tramp-file-name'.  Better would be, if there are
+;; functions to provide user, host and localname of a remote filename,
+;; independent of Tramp's implementation.  The function calls are
+;; wrapped by `funcall' in order to pacify the byte compiler.
+;; ange-ftp check removed, because it is handled also by Tramp.
 ;;;###autoload
 (defun remote-compile (host user command)
   "Compile the current buffer's directory on HOST.  Log in as USER.
 See \\[compile]."
   (interactive
-   (let ((parsed (or (and (featurep 'ange-ftp)
-                          (ange-ftp-ftp-name default-directory))))
-         host user command prompt)
+   (let ((parsed (and (featurep 'tramp)
+		      (file-remote-p default-directory)))
+         host user command prompt l l-host l-user)
      (if parsed
-         (setq host (nth 0 parsed)
-               user (nth 1 parsed))
+	 (funcall (symbol-function 'with-parsed-tramp-file-name)
+		  default-directory l
+		  (setq host l-host
+			user l-user))
        (setq prompt (if (stringp remote-compile-host)
                         (format "Compile on host (default %s): "
                                 remote-compile-host)
@@ -155,8 +163,9 @@ See \\[compile]."
          (setq remote-compile-user user))
         ((null remote-compile-user)
          (setq remote-compile-user (user-login-name))))
-  (let* ((parsed (and (featurep 'ange-ftp)
-                      (ange-ftp-ftp-name default-directory)))
+  (let* (localname ;; Pacify byte-compiler.
+	 (parsed (and (featurep 'tramp)
+		      (file-remote-p default-directory)))
          (compile-command
           (format "%s %s -l %s \"(%scd %s; %s)\""
 		  remote-shell-program
@@ -165,16 +174,25 @@ See \\[compile]."
                   (if remote-compile-run-before
                       (concat remote-compile-run-before "; ")
                     "")
-                  (if parsed (nth 2 parsed) default-directory)
+		  (if parsed
+		      (funcall (symbol-function 'with-parsed-tramp-file-name)
+			       default-directory nil localname)
+		    "")
                   compile-command)))
     (setq remote-compile-host host)
     (save-some-buffers nil nil)
     (compilation-start compile-command)
     ;; Set comint-file-name-prefix in the compilation buffer so
-    ;; compilation-parse-errors will find referenced files by ange-ftp.
+    ;; compilation-parse-errors will find referenced files by Tramp.
     (with-current-buffer compilation-last-buffer
-      (set (make-local-variable 'comint-file-name-prefix)
-	   (concat "/" host ":")))))
+      (when (featurep 'tramp)
+	(set (make-local-variable 'comint-file-name-prefix)
+	     (funcall (symbol-function 'tramp-make-tramp-file-name)
+	      nil ;; multi-method.  To be removed with Tramp 2.1.
+	      nil
+	      remote-compile-user
+	      remote-compile-host
+	      ""))))))
 
 ;;; arch-tag: 2866a132-ece4-4ce9-9f91-ec147f803f73
 ;;; rcompile.el ends here

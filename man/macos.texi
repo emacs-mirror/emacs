@@ -312,12 +312,16 @@ characters other than Chinese, Japanese, and Korean ones are drawn using
 the former by default.
 
   @acronym{ATSUI}-compatible fonts have maker name @code{apple} and
-charset @code{iso10646-1}.  For example 12-point Monaco can be specified
-by the name
-@samp{-apple-monaco-medium-r-normal--12-*-*-*-*-*-iso10646-1}.  Note
-that it must be specified in a format containing 14 @samp{-}s (i.e., not
-by @samp{-apple-monaco-medium-r-normal--12-*-iso10646-1}) because every
-@acronym{ATSUI}-compatible font is a scalable one.
+charset @code{iso10646-1}.  For example, 12-point Monaco can be specified
+by the name:
+
+@example
+-apple-monaco-medium-r-normal--12-*-*-*-*-*-iso10646-1
+@end example
+
+Note that it must be specified in a format containing 14 @samp{-}s
+(e.g., not by @samp{-apple-monaco-medium-r-normal--12-*-iso10646-1}),
+because every @acronym{ATSUI}-compatible font is a scalable one.
 
   QuickDraw Text fonts have maker name @code{apple} and various charset
 names other than @code{iso10646-1}.  Native Apple fonts in Mac Roman

@@ -566,7 +566,7 @@ window when possible.  The following snippet uses a local value for
                  8192)))
 @end example
 
-@xref{Scrolling, , Scrolling conservatively, emacs, The GNU Emacs
+@xref{Auto Scrolling, , Scrolling conservatively, emacs, The GNU Emacs
 Manual}, for details.
 
 @node Changing the time stamp format, Defining a new command, Scrolling conservatively, Hacking and Tweaking

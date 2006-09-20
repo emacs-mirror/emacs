@@ -859,10 +859,11 @@ of the default face.  Value is FACE."
 
 (defun read-face-name (prompt &optional string-describing-default multiple)
   "Read a face, defaulting to the face or faces on the char after point.
-If it has a `read-face-name' property, that overrides the `face' property.
-PROMPT describes what you will do with the face (don't end in a space).
-STRING-DESCRIBING-DEFAULT describes what default you will use
-if this function returns nil.
+If it has the property `read-face-name', that overrides the `face' property.
+PROMPT should be a string that describes what the caller will do with the face;
+it should not end in a space.
+STRING-DESCRIBING-DEFAULT should describe what default the caller will use if
+the user just types RET; you can omit it.
 If MULTIPLE is non-nil, return a list of faces (possibly only one).
 Otherwise, return a single face."
   (let ((faceprop (or (get-char-property (point) 'read-face-name)

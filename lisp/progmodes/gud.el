@@ -3366,6 +3366,12 @@ only tooltips in the buffer containing the overlay arrow."
 (defvar gud-tooltip-mouse-motions-active nil
   "Locally t in a buffer if tooltip processing of mouse motion is enabled.")
 
+;; We don't set track-mouse globally because this is a big redisplay
+;; problem in buffers having a pre-command-hook or such installed,
+;; which does a set-buffer, like the summary buffer of Gnus.  Calling
+;; set-buffer prevents redisplay optimizations, so every mouse motion
+;; would be accompanied by a full redisplay.
+
 (defun gud-tooltip-activate-mouse-motions (activatep)
   "Activate/deactivate mouse motion events for the current buffer.
 ACTIVATEP non-nil means activate mouse motion events."

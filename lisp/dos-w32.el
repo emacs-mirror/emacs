@@ -186,7 +186,7 @@ set to the appropriate coding system, and the value of
       (setq buffer-file-type (eq buffer-file-coding-system 'no-conversion)))))
 
 ;;; To set the default coding system on new files.
-(add-hook 'find-file-not-found-hooks
+(add-hook 'find-file-not-found-functions
 	  'find-file-not-found-set-buffer-file-coding-system)
 
 ;;; To accomodate filesystems that do not require CR/LF translation.

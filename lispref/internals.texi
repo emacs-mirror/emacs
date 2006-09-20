@@ -505,8 +505,8 @@ appearance.)
 @smallexample
 @group
 DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
-  doc: /* Eval args until one of them yields non-nil, then return that value.
-The remaining args are not evalled at all.
+  doc: /* Eval args until one of them yields non-nil, then return that
+value. The remaining args are not evalled at all.
 If all args return nil, return nil.
 @end group
 @group

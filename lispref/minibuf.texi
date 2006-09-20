@@ -1199,8 +1199,9 @@ Variable name? @point{}
 If the user then types @kbd{fill-p @key{RET}}, @code{read-variable}
 returns @code{fill-prefix}.
 
-This function is similar to @code{read-command}, but uses the
-predicate @code{user-variable-p} instead of @code{commandp}:
+In general, @code{read-variable} is similar to @code{read-command},
+but uses the predicate @code{user-variable-p} instead of
+@code{commandp}:
 
 @cindex @code{user-variable-p} example
 @example
@@ -1237,7 +1238,7 @@ value of @var{existing} is neither @code{nil} nor @code{t}, then
 @var{existing} is @code{nil}, then the name of a nonexistent file is
 acceptable.
 
-The function @code{read-file-name} uses
+@code{read-file-name} uses
 @code{minibuffer-local-filename-completion-map} as the keymap if
 @var{existing} is @code{nil}, and uses
 @code{minibuffer-local-must-match-filename-map} if @var{existing} is

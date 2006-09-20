@@ -29,10 +29,13 @@ here.
 @menu
 * Text and Binary::     Text files use CRLF to terminate lines.
 * Windows Files::       File-name conventions on Windows.
+* ls in Lisp::          Emulation of @code{ls} for Dired.
 * Windows HOME::        Where Emacs looks for your @file{.emacs}.
+* Windows Keyboard::    Windows-specific keyboard features.
+* Windows Mouse::       Windows-specific mouse features.
 * Windows Processes::   Running subprocesses on Windows.
 * Windows Printing::    How to specify the printer on MS-Windows.
-* Windows System Menu:: Controlling what the ALT key does.
+* Windows Misc::        Miscellaneous Windows features.
 @ifnottex
 * MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
 @end ifnottex
@@ -167,11 +170,122 @@ backslash, and also knows about drive letters in file names.
   On MS-DOS/MS-Windows, file names are case-insensitive, so Emacs by
 default ignores letter-case in file names during completion.
 
+@vindex w32-get-true-file-attributes
+  If the variable @code{w32-get-true-file-attributes} is
+non-@code{nil} (the default), Emacs tries to determine the accurate
+link counts for files.  This option is only useful on the NT family of
+Windows (2K/XP/2K3), and it considerably slows down Dired and other
+features, so use it only on fast machines.
+
+@node ls in Lisp
+@section Emulation of @code{ls} on MS-Windows
+@cindex Dired, and MS-Windows/MS-DOS
+@cindex @code{ls} emulation
+
+  Dired normally uses the external program @code{ls} (or its close
+work-alike) to produce the directory listing displayed in Dired
+buffers (@pxref{Dired}).  However, MS-Windows and MS-DOS systems don't
+come with such a program, although several ports of @sc{gnu} @code{ls}
+are available.  Therefore, Emacs on those systems @emph{emulates}
+@code{ls} in Lisp, by using the @file{ls-lisp.el} package.  While
+@file{ls-lisp.el} provides a reasonably full emulation of @code{ls},
+there are some options and features peculiar to that emulation;
+@iftex
+for more details, see the documentation of the variables whose names
+begin with @code{ls-lisp}.
+@end iftex
+@ifnottex
+they are described in this section.
+
+  The @code{ls} emulation supports many of the @code{ls} switches, but
+it doesn't support all of them.  Here's the list of the switches it
+does support: @option{-A}, @option{-a}, @option{-B}, @option{-C},
+@option{-c}, @option{-i}, @option{-G}, @option{-g}, @option{-R},
+@option{-r}, @option{-S}, @option{-s}, @option{-t}, @option{-U},
+@option{-u}, and @option{-X}.  The @option{-F} switch is partially
+supported (it appends the character that classifies the file, but does
+not prevent symlink following).
+
+@vindex ls-lisp-use-insert-directory-program
+  On MS-Windows and MS-DOS, @file{ls-lisp.el} is preloaded when Emacs
+is built, so the Lisp emulation of @code{ls} is always used on those
+platforms.  If you have a ported @code{ls}, setting
+@code{ls-lisp-use-insert-directory-program} to a non-@code{nil} value
+will revert to using an external program named by the variable
+@code{insert-directory-program}.
+
+@vindex ls-lisp-ignore-case
+  By default, @file{ls-lisp.el} uses a case-sensitive sort order for
+the directory listing it produces; this is so the listing looks the
+same as on other platforms.  If you wish that the files be sorted in
+case-insensitive order, set the variable @code{ls-lisp-ignore-case} to
+a non-@code{nil} value.
+
+@vindex ls-lisp-dirs-first
+  By default, files and subdirectories are sorted together, to emulate
+the behavior of @code{ls}.  However, native MS-Windows/MS-DOS file
+managers list the directories before the files; if you want that
+behavior, customize the option @code{ls-lisp-dirs-first} to a
+non-@code{nil} value.
+
+@vindex ls-lisp-verbosity
+  The variable @code{ls-lisp-verbosity} controls the file attributes
+that @file{ls-lisp.el} displays.  The value should be a list that
+contains one or more of the symbols @code{links}, @code{uid}, and
+@code{gid}.  @code{links} means display the count of different file
+names that are associated with (a.k.a.@: @dfn{links to}) the file's
+data.  @code{uid} means display the numerical identifier of the user
+who owns the file.  @code{gid} means display the numerical identifier
+of the file owner's group.  The default value is @code{(links uid gid)}
+i.e.@: all the 3 optional attributes are displayed.
+
+@vindex ls-lisp-emulation
+  The variable @code{ls-lisp-emulation} controls the flavour of the
+@code{ls} emulation by setting the defaults for the 3 options
+described above: @code{ls-lisp-ignore-case},
+@code{ls-lisp-dirs-first}, and @code{ls-lisp-verbosity}.  The value of
+this option can be one of the following symbols:
+
+@table @code
+@item GNU
+@itemx nil
+Emulate @sc{gnu} systems; this is the default.  This sets
+@code{ls-lisp-ignore-case} and @code{ls-lisp-dirs-first} to
+@code{nil}, and @code{ls-lisp-verbosity} to @code{(links uid gid)}.
+@item UNIX
+Emulate Unix systems.  Like @code{GNU}, but sets
+@code{ls-lisp-verbosity} to @code{(links uid)}.
+@item MacOS
+Emulate MacOS.  Sets @code{ls-lisp-ignore-case} to @code{t}, and
+@code{ls-lisp-dirs-first} and @code{ls-lisp-verbosity} to @code{nil}.
+@item MS-Windows
+Emulate MS-Windows.  Sets @code{ls-lisp-ignore-case} and
+@code{ls-lisp-dirs-first} to @code{t}, and @code{ls-lisp-verbosity} to
+@code{(links)} on Windows NT/2K/XP/2K3 and to @code{nil} on Windows 9X.
+Note that the default emulation is @emph{not} @code{MS-Windows}, even
+on Windows, since many users of Emacs on those platforms prefer the
+@sc{gnu} defaults.
+@end table
+
+@noindent
+Any other value of @code{ls-lisp-emulation} means the same as
+@code{GNU}.  Note that this option needs to be set @emph{before}
+@file{ls-lisp.el} is loaded, which means that on MS-Windows and MS-DOS
+you will have to set the value from your @file{.emacs} file and then
+restart Emacs, since @file{ls-lisp.el} is preloaded.
+
+@vindex ls-lisp-support-shell-wildcards
+  The variable @code{ls-lisp-support-shell-wildcards} controls how
+file-name patterns are supported: if it is non-@code{nil} (the
+default), they are treated as shell-style wildcards; otherwise they
+are treated as Emacs regular expressions.
+@end ifnottex
+
 @node Windows HOME
 @section HOME Directory on MS-Windows
 @cindex @code{HOME} directory on MS-Windows
 
-  The MS-Windows equivalent of the @code{HOME} directory is the
+  The Windows equivalent of the @code{HOME} directory is the
 @dfn{user-specific application data directory}.  The actual location
 depends on your Windows version and system configuration; typical values
 are @file{C:\Documents and Settings\@var{username}\Application Data} on
@@ -210,6 +324,138 @@ because older Windows systems made it hard to create files with such
 names, the Windows port of Emacs supports an alternative name
 @file{_emacs} as a fallback, if such a file exists in the home
 directory, whereas @file{.emacs} does not.
+
+@node Windows Keyboard
+@section Keyboard Usage on MS-Windows
+@cindex keyboard, MS-Windows
+
+  This section describes the Windows-specific features related to
+keyboard input in Emacs.
+
+@kindex F10 @r{(MS-Windows)}
+@cindex menu bar access using keyboard @r{(MS-Windows)}
+  The @key{F10} key on Windows activates the menu bar in a way that
+makes it possible to use the menus without a mouse.  In this mode, the
+arrow keys traverse the menus, @key{RET} selects a highlighted menu
+item, and @key{ESC} closes the menu.
+
+@ifnottex
+@vindex w32-alt-is-meta
+@cindex @code{Alt} key (MS-Windows)
+  By default, the key labeled @key{Alt} is mapped as the @key{META}
+key.  If you wish it to produce the @code{Alt} modifier instead, set
+the variable @code{w32-alt-is-meta} to a @code{nil} value.
+
+@vindex w32-capslock-is-shiftlock
+  By default, the @key{CapsLock} key only affects normal character
+keys (it converts lower-case characters to their upper-case
+variants).  However, if you set the variable
+@code{w32-capslock-is-shiftlock} to a non-@code{nil} value, the
+@key{CapsLock} key will affect non-character keys as well, as if you
+pressed the @key{Shift} key while typing the non-character key.
+
+@vindex w32-enable-caps-lock
+  If the variable @code{w32-enable-caps-lock} is set to a @code{nil}
+value, the @key{CapsLock} key produces the symbol @code{capslock}
+instead of the shifted version of they keys.  The default value is
+@code{t}.
+
+@vindex w32-enable-num-lock
+@cindex keypad keys (MS-Windows)
+  Similarly, if @code{w32-enable-num-lock} is @code{nil}, the
+@key{NumLock} key will produce the symbol @code{kp-numlock}.  The
+default is @code{t}, which causes @key{NumLock} to work as expected:
+toggle the meaning of the keys on the numeric keypad.
+@end ifnottex
+
+@vindex w32-apps-modifier
+  The variable @code{w32-apps-modifier} controls the effect of the
+@key{Apps} key (usually located between the right @key{Alt} and the
+right @key{Ctrl} keys).  Its value can be one of the symbols
+@code{hyper}, @code{super}, @code{meta}, @code{alt}, @code{control},
+or @code{shift} for the respective modifier, or @code{nil} to appear
+as the key @code{apps}.  The default is @code{nil}.
+
+@vindex w32-lwindow-modifier
+@vindex w32-rwindow-modifier
+@vindex w32-scroll-lock-modifier
+  The variable @code{w32-lwindow-modifier} determines the effect of
+the left Windows key (usually labeled with @key{start} and the Windows
+logo).  If its value is @code{nil} (the default), the key will produce
+the symbol @code{lwindow}.  Setting it to one of the symbols
+@code{hyper}, @code{super}, @code{meta}, @code{alt}, @code{control},
+or @code{shift} will produce the respective modifier.  A similar
+variable @code{w32-rwindow-modifier} controls the effect of the right
+Windows key, and @code{w32-scroll-lock-modifier} does the same for the
+@key{ScrLock} key.  If these variables are set to @code{nil}, the
+right Windows key produces the symbol @code{rwindow} and @key{ScrLock}
+produces the symbol @code{scroll}.
+
+@vindex w32-pass-alt-to-system
+@cindex Windows system menu
+@cindex @code{Alt} key invokes menu (Windows)
+  Emacs compiled as a native Windows application normally turns off
+the Windows feature that tapping the @key{ALT} key invokes the Windows
+menu.  The reason is that the @key{ALT} serves as @key{META} in Emacs.
+When using Emacs, users often press the @key{META} key temporarily and
+then change their minds; if this has the effect of bringing up the
+Windows menu, it alters the meaning of subsequent commands.  Many
+users find this frustrating.
+
+  You can re-enable Windows' default handling of tapping the @key{ALT}
+key by setting @code{w32-pass-alt-to-system} to a non-@code{nil}
+value.
+
+@ifnottex
+@vindex w32-pass-lwindow-to-system
+@vindex w32-pass-rwindow-to-system
+  The variables @code{w32-pass-lwindow-to-system} and
+@code{w32-pass-rwindow-to-system} determine whether the respective
+keys are passed to Windows or swallowed by Emacs.  If the value is
+@code{nil}, the respective key is silently swallowed by Emacs,
+otherwise it is passed to Windows.  The default is @code{t} for both
+of these variables.  Passing each of these keys to Windows produces
+its normal effect: for example, @kbd{@key{Lwindow}} opens the
+@code{Start} menu, etc.
+
+@vindex w32-recognize-altgr
+@kindex AltGr @r{(MS-Windows)}
+@cindex AltGr key (MS-Windows)
+  The variable @code{w32-recognize-altgr} controls whether the right
+@key{Alt} and left @key{Ctrl} keys are recognized as the @key{AltGr}
+key.  The default is @code{t}, which means these keys produce
+@code{AltGr}; setting them to @code{nil} causes these keys to be
+interpreted normally (as the respective modifiers).
+@end ifnottex
+
+@node Windows Mouse
+@section Mouse Usage on MS-Windows
+@cindex mouse, and MS-Windows
+
+  This section describes the Windows-specific variables related to
+mouse.
+
+@vindex w32-mouse-button-tolerance
+@cindex simulation of middle mouse button
+  The variable @code{w32-mouse-button-tolerance} specifies the
+time interval, in milliseconds, for faking middle mouse button press
+on 2-button mice.  If both mouse buttons are depressed within this
+time interval, Emacs generates a middle mouse button click event
+instead of a double click on one of the buttons.
+
+@ifnottex
+@vindex w32-pass-extra-mouse-buttons-to-system
+  If the variable @code{w32-pass-extra-mouse-buttons-to-system} is
+non-@code{nil}, Emacs passes the fourth and fifth mouse buttons to
+Windows.
+@end ifnottex
+
+@vindex w32-swap-mouse-buttons
+  The variable @code{w32-swap-mouse-buttons} controls which of the 3
+mouse buttons generates the @kbd{mouse-2} events.  When it is
+@code{nil} (the default), the middle button generates @kbd{mouse-2}
+and the right button generates @kbd{mouse-3} events.  If this variable
+is non-@code{nil}, the roles of these two buttons are reversed.
 
 @node Windows Processes
 @section Subprocesses on Windows 9X/ME and Windows NT/2K/XP
@@ -262,6 +508,16 @@ If you have to reboot Windows 9X in this situation, do not use the
 system.  Instead, type @kbd{CTL-ALT-@key{DEL}} and then choose
 @code{Shutdown}.  That usually works, although it may take a few minutes
 to do its job.
+
+@ifnottex
+@vindex w32-quote-process-args
+  The variable @code{w32-quote-process-args} controls how the process
+arguments are quoted.  If it is non-@code{nil} means they are quoted
+with the @code{"} character.  If the value is a character, that
+character will be used to escape any quote characters that appear;
+otherwise a suitable escape character will be chosen based on the type
+of the program.
+@end ifnottex
 
 @node Windows Printing
 @section Printing and MS-Windows
@@ -408,21 +664,35 @@ printer, put this in your @file{.emacs} file:
 (This assumes that Ghostscript is installed in the
 @file{D:/gs6.01} directory.)
 
-@node Windows System Menu
-@section Using the System Menu on Windows
-@cindex @code{Alt} key invokes menu (Windows)
+@node Windows Misc
+@section Miscellaneous Windows-specific features
 
-Emacs compiled as a native Windows application normally turns off the
-Windows feature that tapping the @key{ALT} key invokes the Windows
-menu.  The reason is that the @key{ALT} serves as @key{META} in Emacs.
-When using Emacs, users often press the @key{META} key temporarily and
-then change their minds; if this has the effect of bringing up the
-Windows menu, it alters the meaning of subsequent commands.  Many
-users find this frustrating.
+  This section describes miscellaneous Windows-specific features.
 
-@vindex w32-pass-alt-to-system
-You can re-enable Windows' default handling of tapping the @key{ALT} key
-by setting @code{w32-pass-alt-to-system} to a non-@code{nil} value.
+@ifnottex
+@vindex w32-grab-focus-on-raise
+@cindex frame focus policy, MS-Windows
+  The variable @code{w32-grab-focus-on-raise}, if set to a
+non-@code{nil} value causes a frame to grab focus when it is raised.
+The default is @code{t}, which fits well with the Windows default
+click-to-focus policy.
+
+@vindex w32-list-proportional-fonts
+  The variable @code{w32-list-proportional-fonts} controls whether
+proportional fonts are included in the font selection dialog.  If its
+value is non-@code{nil}, these fonts will be included.  The default is
+@code{nil}.
+@end ifnottex
+
+@vindex w32-use-visible-system-caret
+@cindex screen reader software, MS-Windows
+  The variable @code{w32-use-visible-system-caret} is a flag that
+determines whether to make the system caret visible.  The default is
+@code{nil}, which means Emacs draws its own cursor to indicate the
+position of point.  A non-@code{nil} value means Emacs will indicate
+point location by the system caret; this facilitates use of screen
+reader software.  When this variable is non-@code{nil}, other
+variables affecting the cursor display have no effect.
 
 @ifnottex
 @include msdog-xtra.texi

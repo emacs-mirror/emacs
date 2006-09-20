@@ -136,7 +136,9 @@ of the (obsolete) variables `appt-msg-window' and `appt-visible'."
   :type '(choice
           (const :tag "Separate window" window)
           (const :tag "Echo-area" echo)
-          (const :tag "No visible display" nil))
+          (const :tag "No visible display" nil)
+          (const :tag "Backwards compatibility setting - choose another value"
+                 ignore))
   :group 'appt
   :version "22.1")
 

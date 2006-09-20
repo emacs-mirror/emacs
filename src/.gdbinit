@@ -217,6 +217,15 @@ define pitx
   printf " a+d=%d+%d=%d", $it->ascent, $it->descent, $it->ascent+$it->descent
   printf " max=%d+%d=%d", $it->max_ascent, $it->max_descent, $it->max_ascent+$it->max_descent
   printf "\n"
+  set $i = 0
+  while ($i < $it->sp)
+    set $e = $it->stack[$i]
+    printf "stack[%d]: ", $i
+    output $e->method
+    printf "[%d]", $e->position.charpos
+    printf "\n"
+    set $i = $i + 1
+  end
 end
 document pitx
 Pretty print a display iterator.

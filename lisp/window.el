@@ -532,7 +532,11 @@ the height exactly, but attempts to be conservative, by allocating more
 lines than are actually needed in the case where some error may be present."
   (let ((delta (- height (window-text-height window))))
     (unless (zerop delta)
-      (let ((window-min-height 1))
+      ;; Setting window-min-height to a value like 1 can lead to very
+      ;; bizarre displays because it also allows Emacs to make *other*
+      ;; windows 1-line tall, which means that there's no more space for
+      ;; the modeline.
+      (let ((window-min-height (min 2 height))) ;One text line plus a modeline.
 	(if (and window (not (eq window (selected-window))))
 	    (save-selected-window
 	      (select-window window)

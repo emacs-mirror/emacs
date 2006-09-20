@@ -473,18 +473,21 @@ selects that window.
 See the function `mouse-select-buffer' and the variable
 `msb-menu-cond' for more information about how the menus are split."
   (interactive "e")
-  ;; If EVENT is a down-event, read and discard the
-  ;; corresponding up-event.
-  (and (eventp event)
-       (memq 'down (event-modifiers event))
-       (read-event))
   (let ((old-window (selected-window))
-	(window (posn-window (event-start event))))
+	(window (posn-window (event-start event)))
+	early-release)
     (unless (framep window) (select-window window))
+    ;; This `sit-for' magically makes the menu stay up if the mouse
+    ;; button is released within 0.1 second.
+    (setq early-release (not (sit-for 0.1 t)))
     (let ((buffer (mouse-select-buffer event)))
       (if buffer
 	  (switch-to-buffer buffer)
-	(select-window old-window))))
+	(select-window old-window)))
+    ;; If the above `sit-for' was interrupted by a mouse-up, avoid
+    ;; generating a drag event.
+    (if (and early-release (memq 'down (event-modifiers last-input-event)))
+	(discard-input)))
   nil)
 
 ;;;
@@ -995,9 +998,6 @@ variable `msb-menu-cond'."
 	;; adjust position
 	(setq posX (- posX (funcall msb-horizontal-shift-function))
 	      position (list (list posX posY) posWind))))
-    ;; This `sit-for' magically makes the menu stay up if the mouse
-    ;; button is released within 0.1 second.
-    (sit-for 0 100)
     ;; Popup the menu
     (setq choice (x-popup-menu position msb--last-buffer-menu))
     (cond

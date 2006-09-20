@@ -6504,7 +6504,7 @@ Lisp_Object
 sit_for (sec, usec, reading, display, initial_display)
      int sec, usec, reading, display, initial_display;
 {
-  int preempt = (sec >= 0) || (sec == 0 && usec >= 0);
+  int preempt = (sec > 0) || (sec == 0 && usec >= 0);
 
   swallow_events (display);
 

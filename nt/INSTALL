@@ -42,7 +42,8 @@
      (If you are building from CVS, say "make bootstrap" or "nmake
      bootstrap" instead.)
 
-  4. Generate the Info manuals (only if you are building out of CVS):
+  4. Generate the Info manuals (only if you are building out of CVS, and
+     if you have makeinfo.exe installed):
 
      make info
 
@@ -140,6 +141,7 @@
     [5] fails when building leim due to the use of cygwin style paths.
         May work if building emacs without leim.
     [6] please report if you try this combination.
+    [7] tested only on Windows XP.
 
   Other compilers may work, but specific reports from people that have
   tried suggest that the Intel C compiler (for example) may produce an
@@ -251,6 +253,9 @@
     make info
   or
     nmake info
+
+  Note that you will need makeinfo.exe (from the GNU Texinfo package)
+  in order for this command to succeed.
 
 * Installing
 

@@ -700,7 +700,11 @@ server, then the characters that have no font appear as hollow boxes.
 You can remedy the problem by installing additional fonts.
 
 The intlfonts distribution includes a full spectrum of fonts that can
-display all the characters Emacs supports.
+display all the characters Emacs supports.  The etl-unicode collection
+of fonts (available from <URL:ftp://ftp.x.org/contrib/fonts/> and
+<URL:ftp://ftp.xfree86.org/pub/mirror/X.Org/contrib/fonts/>) includes
+fonts that can display many Unicode characters; they can also be used
+by ps-print and ps-mule to print Unicode characters.
 
 Another cause of this for specific characters is fonts which have a
 missing glyph and no default character.  This is known to occur for
@@ -710,7 +714,8 @@ of this character to display a space.
 
 ** Under X11, some characters appear improperly aligned in their lines.
 
-You may have bad X11 fonts; try installing the intlfonts distribution.
+You may have bad X11 fonts; try installing the intlfonts distribution
+or the etl-unicode collection (see the previous entry).
 
 ** Certain fonts make each line take one pixel more than it "should".
 

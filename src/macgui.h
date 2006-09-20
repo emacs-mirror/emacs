@@ -112,7 +112,7 @@ typedef unsigned long Time;
 
 /* Whether to use Text Services Manager.  */
 #ifndef USE_MAC_TSM
-#ifdef MAC_OSX
+#if TARGET_API_MAC_CARBON
 #define USE_MAC_TSM 1
 #endif
 #endif

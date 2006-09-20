@@ -346,8 +346,7 @@ With argument, display info only for the selected version."
 		     (directory-files data-directory nil
 				      "^NEWS\\.[0-9][-0-9]*$" nil)))
 	      (sort (delete-dups res) (lambda (a b) (string< b a)))))
-	   (current (car all-versions))
-	   res)
+	   (current (car all-versions)))
       (setq version (completing-read
 		     (format "Read NEWS for the version (default %s): " current)
 		     all-versions nil nil nil nil current))
@@ -369,7 +368,8 @@ With argument, display info only for the selected version."
 	 (file (cond
 		((>= vn emacs-major-version) "NEWS")
 		((< vn 18) "NEWS.1-17")
-		(t (format "NEWS.%d" vn)))))
+		(t (format "NEWS.%d" vn))))
+	 res)
     (view-file (expand-file-name file data-directory))
     (widen)
     (goto-char (point-min))

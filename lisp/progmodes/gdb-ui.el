@@ -1325,6 +1325,7 @@ directives."
   (setq gdb-active-process nil)
   (setq gud-overlay-arrow-position nil)
   (setq gdb-overlay-arrow-position nil)
+  (setq gud-old-arrow nil)
   (setq gdb-inferior-status "exited")
   (gdb-force-mode-line-update gdb-inferior-status)
   (gdb-stopping ignored))
@@ -3217,8 +3218,8 @@ BUFFER nil or omitted means use the current buffer."
     (setq gdb-frame-number (match-string 1))
     (setq gdb-frame-address (match-string 2)))
   (goto-char (point-min))
-  (when (re-search-forward ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-+?\\)\
-\\(?: (\\(\\S-+?\\):[0-9]+?)\\)*;? "
+  (when (re-search-forward ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(.*?\\)\
+\\(?: (\\(\\S-+?\\):[0-9]+?)\\)*; "
      nil t)
     (setq gdb-selected-frame (match-string 2))
     (if (gdb-get-buffer 'gdb-locals-buffer)

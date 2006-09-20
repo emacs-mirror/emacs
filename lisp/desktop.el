@@ -153,8 +153,9 @@ backward compatibility.")
 (define-minor-mode desktop-save-mode
   "Toggle desktop saving mode.
 With numeric ARG, turn desktop saving on if ARG is positive, off
-otherwise.  See variable `desktop-save' for a description of when the
-desktop is saved."
+otherwise.  If desktop saving is turned on, the state of Emacs is
+saved from one session to another.  See variable `desktop-save'
+and function `desktop-read' for details."
   :global t
   :group 'desktop)
 
@@ -175,7 +176,8 @@ Possible values are:
 The desktop is never saved when `desktop-save-mode' is nil.
 The variables `desktop-dirname' and `desktop-base-file-name'
 determine where the desktop is saved."
-  :type '(choice
+  :type
+  '(choice
     (const :tag "Always save" t)
     (const :tag "Always ask" ask)
     (const :tag "Ask if desktop file is new, else do save" ask-if-new)
@@ -212,6 +214,7 @@ If nil, just print error messages in the message buffer."
 
 (defcustom desktop-no-desktop-file-hook nil
   "Normal hook run when `desktop-read' can't find a desktop file.
+Run in the directory in which the desktop file was sought.
 May be used to show a dired buffer."
   :type 'hook
   :group 'desktop
@@ -222,11 +225,14 @@ May be used to show a dired buffer."
 May be used to show a buffer list."
   :type 'hook
   :group 'desktop
+  :options '(list-buffers)
   :version "22.1")
 
 (defcustom desktop-save-hook nil
   "Normal hook run before the desktop is saved in a desktop file.
-This is useful for truncating history lists, for example."
+Run with the desktop buffer current with only the header present.
+May be used to add to the desktop code or to truncate history lists,
+for example."
   :type 'hook
   :group 'desktop)
 
@@ -282,6 +288,7 @@ these won't be deleted."
     size-indication-mode
     buffer-file-coding-system
     indent-tabs-mode
+    tab-width
     indicate-buffer-boundaries
     indicate-empty-lines
     show-trailing-whitespace)
@@ -475,6 +482,11 @@ See also `desktop-minor-mode-table'.")
 (defvar desktop-dirname nil
   "The directory in which the desktop file should be saved.")
 
+(defun desktop-full-file-name (&optional dirname)
+  "Return the full name of the desktop file in DIRNAME.
+DIRNAME omitted or nil means use `desktop-dirname'."
+  (expand-file-name desktop-base-file-name (or dirname desktop-dirname)))
+
 (defconst desktop-header
 ";; --------------------------------------------------------------------------
 ;; Desktop File for Emacs
@@ -492,6 +504,7 @@ See also `desktop-minor-mode-table'.")
 	(setcdr here nil))))
 
 ;; ----------------------------------------------------------------------------
+;;;###autoload
 (defun desktop-clear ()
   "Empty the Desktop.
 This kills all buffers except for internal ones and those with names matched by
@@ -528,29 +541,26 @@ Furthermore, it clears the variables listed in `desktop-globals-to-clear'."
   "If `desktop-save-mode' is non-nil, do what `desktop-save' says to do.
 If the desktop should be saved and `desktop-dirname'
 is nil, ask the user where to save the desktop."
-  (when
-    (and
-      desktop-save-mode
-      (let ((exists (file-exists-p (expand-file-name desktop-base-file-name desktop-dirname))))
-        (or
-          (eq desktop-save t)
-          (and exists (memq desktop-save '(ask-if-new if-exists)))
-          (and
-            (or
-              (memq desktop-save '(ask ask-if-new))
-              (and exists (eq desktop-save 'ask-if-exists)))
-            (y-or-n-p "Save desktop? ")))))
+  (when (and desktop-save-mode
+             (let ((exists (file-exists-p (desktop-full-file-name))))
+               (or (eq desktop-save t)
+                   (and exists (memq desktop-save '(ask-if-new if-exists)))
+                   (and
+                    (or (memq desktop-save '(ask ask-if-new))
+                        (and exists (eq desktop-save 'ask-if-exists)))
+                    (y-or-n-p "Save desktop? ")))))
     (unless desktop-dirname
       (setq desktop-dirname
-        (file-name-as-directory
-          (expand-file-name
-            (call-interactively
-              (lambda (dir) (interactive "DDirectory for desktop file: ") dir))))))
+            (file-name-as-directory
+             (expand-file-name
+              (call-interactively
+               (lambda (dir)
+                 (interactive "DDirectory for desktop file: ") dir))))))
     (condition-case err
-      (desktop-save desktop-dirname)
+        (desktop-save desktop-dirname)
       (file-error
-        (unless (yes-or-no-p "Error while saving the desktop.  Ignore? ")
-          (signal (car err) (cdr err)))))))
+       (unless (yes-or-no-p "Error while saving the desktop.  Ignore? ")
+         (signal (car err) (cdr err)))))))
 
 ;; ----------------------------------------------------------------------------
 (defun desktop-list* (&rest args)
@@ -715,6 +725,7 @@ DIRNAME must be the directory in which the desktop file will be saved."
     (t (expand-file-name filename))))
 
 ;; ----------------------------------------------------------------------------
+;;;###autoload
 (defun desktop-save (dirname)
   "Save the desktop in a desktop file.
 Parameter DIRNAME specifies where to save the desktop file.
@@ -723,7 +734,7 @@ See also `desktop-base-file-name'."
   (run-hooks 'desktop-save-hook)
   (setq dirname (file-name-as-directory (expand-file-name dirname)))
   (save-excursion
-    (let ((filename (expand-file-name desktop-base-file-name dirname))
+    (let ((filename (desktop-full-file-name dirname))
           (info
             (mapcar
               #'(lambda (b)
@@ -802,12 +813,13 @@ See also `desktop-base-file-name'."
   (setq desktop-dirname dirname))
 
 ;; ----------------------------------------------------------------------------
+;;;###autoload
 (defun desktop-remove ()
   "Delete desktop file in `desktop-dirname'.
 This function also sets `desktop-dirname' to nil."
   (interactive)
   (when desktop-dirname
-    (let ((filename (expand-file-name desktop-base-file-name desktop-dirname)))
+    (let ((filename (desktop-full-file-name)))
       (setq desktop-dirname nil)
       (when (file-exists-p filename)
         (delete-file filename)))))
@@ -830,32 +842,30 @@ It returns t if a desktop file was loaded, nil otherwise."
   (interactive)
   (unless noninteractive
     (setq desktop-dirname
-      (file-name-as-directory
-        (expand-file-name
-          (or
-            ;; If DIRNAME is specified, use it.
-            (and (< 0 (length dirname)) dirname)
-            ;; Otherwise search desktop file in desktop-path.
-            (let ((dirs desktop-path))
-              (while
-                (and
-                  dirs
-                  (not
-                    (file-exists-p (expand-file-name desktop-base-file-name (car dirs)))))
-                (setq dirs (cdr dirs)))
-              (and dirs (car dirs)))
-            ;; If not found and `desktop-path' is non-nil, use its first element.
-            (and desktop-path (car desktop-path))
-            ;; Default: Home directory.
-            "~"))))
-    (if (file-exists-p (expand-file-name desktop-base-file-name desktop-dirname))
+          (file-name-as-directory
+           (expand-file-name
+            (or
+             ;; If DIRNAME is specified, use it.
+             (and (< 0 (length dirname)) dirname)
+             ;; Otherwise search desktop file in desktop-path.
+             (let ((dirs desktop-path))
+               (while (and dirs
+                           (not (file-exists-p
+                                 (desktop-full-file-name (car dirs)))))
+                 (setq dirs (cdr dirs)))
+               (and dirs (car dirs)))
+             ;; If not found and `desktop-path' is non-nil, use its first element.
+             (and desktop-path (car desktop-path))
+             ;; Default: Home directory.
+             "~"))))
+    (if (file-exists-p (desktop-full-file-name))
       ;; Desktop file found, process it.
       (let ((desktop-first-buffer nil)
             (desktop-buffer-ok-count 0)
             (desktop-buffer-fail-count 0))
         (setq desktop-lazy-timer nil)
         ;; Evaluate desktop buffer.
-        (load (expand-file-name desktop-base-file-name desktop-dirname) t t t)
+        (load (desktop-full-file-name) t t t)
         ;; `desktop-create-buffer' puts buffers at end of the buffer list.
         ;; We want buffers existing prior to evaluating the desktop (and not reused)
         ;; to be placed at the end of the buffer list, so we move them here.
@@ -925,7 +935,7 @@ directory DIRNAME."
   (interactive)
   (unless desktop-dirname
     (error "Unknown desktop directory"))
-  (unless (file-exists-p (expand-file-name desktop-base-file-name desktop-dirname))
+  (unless (file-exists-p (desktop-full-file-name))
     (error "No desktop file found"))
   (desktop-clear)
   (desktop-read desktop-dirname))

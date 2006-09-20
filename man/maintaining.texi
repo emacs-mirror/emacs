@@ -119,11 +119,11 @@ between them.
   You should put a copyright notice and permission notice at the
 end of the change log file.  Here is an example:
 
-@example
+@smallexample
 Copyright 1997, 1998 Free Software Foundation, Inc.
 Copying and distribution of this file, with or without modification, are
 permitted provided the copyright notice and this notice are preserved.
-@end example
+@end smallexample
 
 @noindent
 Of course, you should substitute the proper years and copyright holder.

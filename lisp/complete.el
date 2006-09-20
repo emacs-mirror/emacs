@@ -196,7 +196,7 @@ as much as possible and `*' characters are treated likewise in file names.
 For example, M-x p-c-m expands to M-x partial-completion-mode since no other
 command begins with that sequence of characters, and
 \\[find-file] f_b.c TAB might complete to foo_bar.c if that file existed and no
-other file in that directory begin with that sequence of characters.
+other file in that directory begins with that sequence of characters.
 
 Unless `PC-disable-includes' is non-nil, the `<...>' sequence is interpreted
 specially in \\[find-file].  For example,
@@ -234,7 +234,9 @@ second TAB brings up the `*Completions*' buffer."
   (funcall
    (if partial-completion-mode 'add-hook 'remove-hook)
    'choose-completion-string-functions
-   (lambda (&rest x) (goto-char (point-max)) nil))
+   (lambda (choice buffer mini-p base-size)
+     (if mini-p (goto-char (point-max)))
+     nil))
   ;; Build the env-completion and mapping table.
   (when (and partial-completion-mode (null PC-env-vars-alist))
     (setq PC-env-vars-alist
@@ -358,13 +360,36 @@ See `PC-complete' for details."
 The function takes no arguments, and typically looks at the value
 of `minibuffer-completion-table' and the minibuffer contents.")
 
+;; Returns the sequence of non-delimiter characters that follow regexp in string.
+(defun PC-chunk-after (string regexp)
+  (if (not (string-match regexp string))
+      (let ((message (format "String %s didn't match regexp %s" string regexp)))
+	(message message)
+	(error message)))
+  (let ((result (substring string (match-end 0))))
+    ;; result may contain multiple chunks
+    (if (string-match PC-delim-regex result)
+	(setq result (substring result 0 (match-beginning 0))))
+    result))
+
+(defun test-completion-ignore-case (str table pred)
+  "Like `test-completion', but ignores case when possible."
+  ;; Binding completion-ignore-case to nil ensures, for compatibility with
+  ;; standard completion, that the return value is exactly one of the
+  ;; possibilities.  Do this binding only if pred is nil, out of paranoia;
+  ;; perhaps it is safe even if pred is non-nil.
+  (if pred
+      (test-completion str table pred)
+    (let ((completion-ignore-case nil))
+      (test-completion str table pred))))
+
 (defun PC-do-completion (&optional mode beg end)
   (or beg (setq beg (minibuffer-prompt-end)))
   (or end (setq end (point-max)))
   (let* ((table minibuffer-completion-table)
 	 (pred minibuffer-completion-predicate)
 	 (filename (funcall PC-completion-as-file-name-predicate))
-	 (dirname nil)
+	 (dirname nil)		; non-nil only if a filename is being completed
 	 (dirlength 0)
 	 (str (buffer-substring beg end))
 	 (incname (and filename (string-match "<\\([^\"<>]*\\)>?$" str)))
@@ -379,7 +404,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
     ;; Check if buffer contents can already be considered complete
     (if (and (eq mode 'exit)
-	     (test-completion str table pred))
+	     (test-completion-ignore-case str table pred))
 	'complete
 
       ;; Do substitutions in directory names
@@ -598,35 +623,38 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 	    ;; Check if next few letters are the same in all cases
 	    (if (and (not (eq mode 'help))
-		     (setq prefix (try-completion "" (mapcar 'list poss))))
+		     (setq prefix (try-completion (PC-chunk-after basestr skip) (mapcar 'list poss))))
 		(let ((first t) i)
+		  ;; Retain capitalization of user input even if
+		  ;; completion-ignore-case is set.
 		  (if (eq mode 'word)
 		      (setq prefix (PC-chop-word prefix basestr)))
 		  (goto-char (+ beg (length dirname)))
 		  (while (and (progn
-				(setq i 0)
+				(setq i 0) ; index into prefix string
 				(while (< i (length prefix))
 				  (if (and (< (point) end)
-					   (eq (aref prefix i)
-					       (following-char)))
+					   (eq (downcase (aref prefix i))
+					       (downcase (following-char))))
+				      ;; same char (modulo case); no action
 				      (forward-char 1)
 				    (if (and (< (point) end)
-					     (or (and (looking-at " ")
+					     (and (looking-at " ")
 						      (memq (aref prefix i)
-							    PC-delims-list))
-						 (eq (downcase (aref prefix i))
-						     (downcase
-						      (following-char)))))
+							PC-delims-list)))
+					;; replace " " by the actual delimiter
 					(progn
 					  (delete-char 1)
-					  (setq end (1- end)))
+					  (insert (substring prefix i (1+ i))))
+				      ;; insert a new character
+				      (progn
 				      (and filename (looking-at "\\*")
 					   (progn
 					     (delete-char 1)
 					     (setq end (1- end))))
-				      (setq improved t))
+					(setq improved t)
 				    (insert (substring prefix i (1+ i)))
-				    (setq end (1+ end)))
+					(setq end (1+ end)))))
 				  (setq i (1+ i)))
 				(or pt (setq pt (point)))
 				(looking-at PC-delim-regex))
@@ -634,7 +662,12 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 						 (regexp-quote prefix)
 						 PC-ndelims-regex)
 				    prefix (try-completion
-					    ""
+					    (PC-chunk-after
+					     ;; not basestr, because that does
+					     ;; not reflect insertions
+					     (buffer-substring
+					      (+ beg (length dirname)) end)
+					     skip)
 					    (mapcar
 					     (function
 					      (lambda (x)
@@ -666,7 +699,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 
 		  ;; We changed it... enough to be complete?
 		  (and (eq mode 'exit)
-		       (test-completion (field-string) table pred))
+		       (test-completion-ignore-case (field-string) table pred))
 
 		;; If totally ambiguous, display a list of completions
 		(if (or (eq completion-auto-help t)
@@ -950,11 +983,10 @@ absolute rather than relative to some directory on the SEARCH-PATH."
   (if (string-match "<\\([^\"<>]*\\)>?\\'" (ad-get-arg 0))
       (let* ((string (ad-get-arg 0))
              (action (ad-get-arg 2))
-             (name (match-string 1 string))
+             (name (substring string (match-beginning 1) (match-end 1)))
 	     (str2 (substring string (match-beginning 0)))
 	     (completion-table
-	      (mapcar (lambda (x)
-			(format (if (string-match "/\\'" x) "<%s" "<%s>") x))
+	      (mapcar (lambda (x) (format "<%s>" x))
 		      (PC-include-file-all-completions
 		       name (PC-include-file-path)))))
         (setq ad-return-value

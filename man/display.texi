@@ -6,12 +6,16 @@
 @chapter Controlling the Display
 
   Since only part of a large buffer fits in the window, Emacs tries to
-show a part that is likely to be interesting.  Display-control commands
-allow you to specify which part of the text you want to see, and how to
-display it.
+show a part that is likely to be interesting.  Display-control
+commands allow you to specify which part of the text you want to see,
+and how to display it.  Many variables also affect the details of
+redisplay.  Unless otherwise stated, the variables described in this
+chapter have their effect by customizing redisplay itself; therefore,
+their values only make a difference at the time of redisplay.
 
 @menu
-* Scrolling::	           Moving text up and down in a window.
+* Scrolling::	           Commands to move text up and down in a window.
+* Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::	           How to change the display style using faces.
@@ -82,7 +86,6 @@ screen is garbled (@pxref{Screen Garbled}).
 @kindex PAGEUP
 @findex scroll-up
 @findex scroll-down
-@vindex next-screen-context-lines
   To read the buffer a windowful at a time, use @kbd{C-v}
 (@code{scroll-up}) with no argument.  This scrolls forward by nearly
 the whole window height.  The effect is to take the two lines at the
@@ -91,12 +94,13 @@ whole windowful of lines that were not previously visible.  If point
 was in the text that scrolled off the top, it ends up at the new top
 of the window.
 
+@vindex next-screen-context-lines
   @kbd{M-v} (@code{scroll-down}) with no argument scrolls backward in
-a similar way, also with overlap.  The number of lines of overlap
-across a @kbd{C-v} or @kbd{M-v} is controlled by the variable
-@code{next-screen-context-lines}; by default, it is 2.  The function
-keys @key{NEXT} and @key{PRIOR}, or @key{PAGEDOWN} and @key{PAGEUP},
-are equivalent to @kbd{C-v} and @kbd{M-v}.
+a similar way, also with overlap.  The number of lines of overlap that
+the @kbd{C-v} or @kbd{M-v} commands leave is controlled by the
+variable @code{next-screen-context-lines}; by default, it is 2.  The
+function keys @key{NEXT} and @key{PRIOR}, or @key{PAGEDOWN} and
+@key{PAGEUP}, are equivalent to @kbd{C-v} and @kbd{M-v}.
 
   The commands @kbd{C-v} and @kbd{M-v} with a numeric argument scroll
 the text in the selected window up or down a few lines.  @kbd{C-v}
@@ -119,13 +123,14 @@ elsewhere; hence the strange result that @key{PAGEDOWN} runs
   Some users like the full-screen scroll commands to keep point at the
 same screen line.  To enable this behavior, set the variable
 @code{scroll-preserve-screen-position} to a non-@code{nil} value.  In
-this mode, when scrolling shifts point off the screen, or into the
-scrolling margins, Emacs moves point to keep the same vertical
-position within the window.  This mode is convenient for browsing
-through a file by scrolling by screenfuls; if you come back to the
-screen where you started, point goes back to the line where it
-started.  However, this mode is inconvenient when you move to the next
-screen in order to move point to the text there.
+this mode, when these commands would scroll the text around point off
+the screen, or within @code{scroll-margin} lines of the edge, they
+moves point to keep the same vertical position within the window.
+This mode is convenient for browsing through a file by scrolling by
+screenfuls; if you come back to the screen where you started, point
+goes back to the line where it started.  However, this mode is
+inconvenient when you move to the next screen in order to move point
+to the text there.
 
   Another way to do scrolling is with @kbd{C-l} with a numeric argument.
 @kbd{C-l} does not clear the screen when given an argument; it only scrolls
@@ -145,14 +150,21 @@ window heuristically in a way designed to get useful information onto
 the screen.  For example, in a Lisp file, this command tries to get the
 entire current defun onto the screen if possible.
 
+@node Auto Scrolling
+@section Automatic Scrolling
+
 @vindex scroll-conservatively
-  Scrolling happens automatically when point moves out of the visible
-portion of the text.  Normally, automatic scrolling centers point
-vertically within the window.  However, if you set
-@code{scroll-conservatively} to a small number @var{n}, then if you
-move point just a little off the screen---less than @var{n}
-lines---then Emacs scrolls the text just far enough to bring point
-back on screen.  By default, @code{scroll-conservatively} is 0.
+  Redisplay scrolls the buffer automatically when point moves out of
+the visible portion of the text.  The purpose of automatic scrolling
+is to make point visible, but you can customize many aspects of how
+this is done.
+
+  Normally, automatic scrolling centers point vertically within the
+window.  However, if you set @code{scroll-conservatively} to a small
+number @var{n}, then if you move point just a little off the
+screen---less than @var{n} lines---then Emacs scrolls the text just
+far enough to bring point back on screen.  By default,
+@code{scroll-conservatively} is 0.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
@@ -444,7 +456,8 @@ scrollbars.
 This face is used for the prompt strings displayed in the minibuffer.
 By default, Emacs automatically adds this face to the value of
 @code{minibuffer-prompt-properties}, which is a list of text
-properties used to display the prompt text.
+properties used to display the prompt text.  (This variable takes
+effect when you enter the minibuffer.)
 @item fringe
 @cindex @code{fringe} face
 The face for the fringes to the left and right of windows on graphic
@@ -508,6 +521,11 @@ interface (@pxref{Easy Customization}), or use the function
 @example
 (global-font-lock-mode 0)
 @end example
+
+@noindent
+This variable, like all the variables that control Font Lock mode,
+take effect whenever fontification is done; that is, potentially at
+any time.
 
 @findex turn-on-font-lock
   If you have disabled Global Font Lock mode, you can still enable Font
@@ -701,8 +719,8 @@ match, and finally use this command
 (@code{hi-lock-write-interactive-patterns}) to have Hi Lock highlight
 them.
 
-This command does nothing if the major mode is a member of the list
-@code{hi-lock-exclude-modes}.
+This command does nothing if the current major mode's symbol is a member
+of the list @code{hi-lock-exclude-modes}.
 @end table
 
 @node Fringes
@@ -1035,9 +1053,10 @@ the variable @code{blink-cursor-alist}.
 @vindex visible-cursor
   Some text terminals offer two different cursors: the normal cursor
 and the very visible cursor, where the latter may be e.g. bigger or
-blinking.  By default Emacs uses the very visible cursor.  Setting the
-variable @code{visible-cursor} to @code{nil} makes it use the
-normal cursor.
+blinking.  By default Emacs uses the very visible cursor, and switches
+to it when you start or resume Emacs.  If the variable
+@code{visible-cursor} is @code{nil} when Emacs starts or resumes, it
+doesn't switch, so it uses the normal cursor.
 
 @cindex cursor in non-selected windows
 @vindex cursor-in-non-selected-windows
@@ -1086,7 +1105,8 @@ to make the screen blink.
 @vindex echo-keystrokes
   The variable @code{echo-keystrokes} controls the echoing of multi-character
 keys; its value is the number of seconds of pause required to cause echoing
-to start, or zero, meaning don't echo at all.  @xref{Echo Area}.
+to start, or zero, meaning don't echo at all.  The value takes effect when
+there is someting to echo.  @xref{Echo Area}.
 
 @cindex truncation
 @cindex line truncation, and fringes
@@ -1190,7 +1210,7 @@ terminals with more than one page of memory, it is possible to arrange
 the termcap entry so that the @samp{ti} and @samp{te} strings (output
 to the terminal when Emacs is entered and exited, respectively) switch
 between pages of memory so as to use one page for Emacs and another
-page for other output.  Then you might want to set the variable
+page for other output.  On such terminals, you might want to set the variable
 @code{no-redraw-on-reenter} non-@code{nil}; this tells Emacs to
 assume, when resumed, that the screen page it is using still contains
 what Emacs last wrote there.

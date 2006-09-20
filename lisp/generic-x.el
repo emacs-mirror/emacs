@@ -512,10 +512,11 @@ like an INI file.  You can add this hook to `find-file-hook'."
        (1 font-lock-builtin-face)
        (2 font-lock-variable-name-face t t))))
   '("\\.[bB][aA][tT]\\'"
+    "\\.[cC][mM][dD]\\'"
     "\\`[cC][oO][nN][fF][iI][gG]\\."
     "\\`[aA][uU][tT][oO][eE][xX][eE][cC]\\.")
   '(generic-bat-mode-setup-function)
-  "Generic mode for MS-Windows BAT files.")
+  "Generic mode for MS-Windows batch files.")
 
 (defvar bat-generic-mode-syntax-table nil
   "Syntax table in use in `bat-generic-mode' buffers.")

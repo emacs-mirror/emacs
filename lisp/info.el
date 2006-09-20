@@ -844,7 +844,7 @@ a case-insensitive match is tried."
 		(goto-char (point-min))
 		(condition-case ()
 		    (if (and (re-search-forward
-			      "makeinfo version \\([0-9]+.[0-9]+\\)"
+			      "makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
 			      (line-beginning-position 3) t)
 			     (not (version< (match-string 1) "4.7")))
 			(setq found t))

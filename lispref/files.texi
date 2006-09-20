@@ -2203,7 +2203,7 @@ should compute the directory like this:
 @cindex completion, file name
 
   This section describes low-level subroutines for completing a file
-name.  For other completion functions, see @ref{Completion}.
+name.  For higher level functions, see @ref{Reading File Names}.
 
 @defun file-name-all-completions partial-filename directory
 This function returns a list of all possible completions for a file
@@ -2364,7 +2364,8 @@ the specified directory.
 
 If @var{match-regexp} is non-@code{nil}, this function returns only
 those file names that contain a match for that regular expression---the
-other file names are excluded from the list.
+other file names are excluded from the list.  On case-insensitive
+filesystems, the regular expression matching is case-insensitive.
 
 @c Emacs 19 feature
 If @var{nosort} is non-@code{nil}, @code{directory-files} does not sort

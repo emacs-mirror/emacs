@@ -2147,7 +2147,7 @@ forms in a file.  (To do this from Lisp use the function @code{load}
 instead.)
 
 The functions @code{load-library}, @code{eval-region},
-@code{eval-current-buffer}, @code{require}, and @code{autoload} are also
+@code{eval-buffer}, @code{require}, and @code{autoload} are also
 useful; see @ref{Emacs Lisp documentation}, if you want to learn more
 about them.
 
@@ -2592,7 +2592,7 @@ consult the documentation of the variables @code{ps-printer-name},
 Customize the @code{scroll-conservatively} variable with @kbd{M-x
 customize-variable @key{RET} scroll-conservatively @key{RET}} and set it
 to a large value like, say, 10000.  For an explanation of what this
-means, @inforef{Scrolling, Scrolling, emacs}.
+means, @inforef{Auto Scrolling, Auto Scrolling, emacs}.
 
 Alternatively, use the following Lisp form in your @file{.emacs}:
 
@@ -4532,7 +4532,7 @@ instead:
 @lisp
 (global-set-key "\C-h" 'delete-backward-char)
 
-;;; overrides mark-whole-buffer
+;; overrides mark-whole-buffer
 (global-set-key "\C-xh" 'help-command)
 @end lisp
 
@@ -4664,7 +4664,7 @@ under X).  For many terminals (notably DEC terminals) @key{F11}
 generates @key{ESC}.  If not, the following form can be used to bind it:
 
 @lisp
-;;; F11 is the documented ESC replacement on DEC terminals.
+;; F11 is the documented ESC replacement on DEC terminals.
 (define-key function-key-map [f11] [?\e])
 @end lisp
 
