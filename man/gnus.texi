@@ -26538,7 +26538,9 @@ versions.
 @item
 The option @code{mm-fill-flowed} can be used to disable treatment of
 ``format=flowed'' messages.  Also, flowed text is disabled when sending
-inline PGP signed messages.  (New in Gnus 5.10.7)
+inline PGP signed messages.  @xref{Flowed text, , Flowed text,
+emacs-mime, The Emacs MIME Manual}.  (New in Gnus 5.10.7)
+@c This entry is also present in the node "No Gnus".
 
 @item
 Gnus supports the generation of RFC 2298 Disposition Notification requests.

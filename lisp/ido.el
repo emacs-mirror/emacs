@@ -3618,7 +3618,7 @@ for first matching file."
 		  ((stringp nextstr)
 		   (and (>= flen (setq slen (length nextstr)))
 			(string-equal (substring name (- flen slen)) nextstr)))
-		  ((fboundp nextstr) (funcall nextstr name))
+		  ((functionp nextstr) (funcall nextstr name))
 		  (t nil))
 		 (setq ignorep t
 		       ext-list nil
@@ -3628,7 +3628,7 @@ for first matching file."
 	     (setq nextstr (car re-list))
 	     (if (cond
 		  ((stringp nextstr) (string-match nextstr name))
-		  ((fboundp nextstr) (funcall nextstr name))
+		  ((functionp nextstr) (funcall nextstr name))
 		  (t nil))
 		 (setq ignorep t
 		       re-list nil)

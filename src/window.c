@@ -340,8 +340,8 @@ return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
 where X and Y are the pixel coordinates relative to the top left corner
 of the window.  The remaining elements are omitted if the character after
 POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
-invisible at the top and bottom of the row, ROWH is the height of the display
-row, and VPOS is the row number (0-based) containing POS.  */)
+off-screen at the top and bottom of the row, ROWH is the height of the
+display row, and VPOS is the row number (0-based) containing POS.  */)
      (pos, window, partially)
      Lisp_Object pos, window, partially;
 {
@@ -389,6 +389,117 @@ row, and VPOS is the row number (0-based) containing POS.  */)
 
   return in_window;
 }
+
+DEFUN ("window-line-height", Fwindow_line_height,
+       Swindow_line_height, 0, 2, 0,
+       doc: /* Return height in pixels of text line LINE in window WINDOW.
+If WINDOW is nil or omitted, use selected window.
+
+Return height of current line if LINE is omitted or nil.  Return height of
+header or mode line if LINE is `header-line' and `mode-line'.
+Otherwise, LINE is a text line number starting from 0.  A negative number
+counts from the end of the window.
+
+Value is a list (HEIGHT VPOS YPOS OFFBOT), where HEIGHT is the height
+in pixels of the visible part of the line, VPOS and YPOS are the
+vertical position in lines and pixels of the row, relative to the top
+of the first text line, and OFFBOT is the number of off-screen pixels at
+the bottom of the text row.  If there are off-screen pixels at the top
+of the (first) text row, YPOS is negative.
+
+Return nil if window display is not up-to-date.  In that case, use
+`pos-visible-in-window-p' to obtain the information.  */)
+     (line, window)
+     Lisp_Object line, window;
+{
+  register struct window *w;
+  register struct buffer *b;
+  struct glyph_row *row, *end_row;
+  int max_y, crop, i, n;
+
+  w = decode_window (window);
+
+  if (noninteractive
+      || w->pseudo_window_p)
+    return Qnil;
+
+  CHECK_BUFFER (w->buffer);
+  b = XBUFFER (w->buffer);
+
+  /* Fail if current matrix is not up-to-date.  */
+  if (NILP (w->window_end_valid)
+      || current_buffer->clip_changed
+      || current_buffer->prevent_redisplay_optimizations_p
+      || XFASTINT (w->last_modified) < BUF_MODIFF (b)
+      || XFASTINT (w->last_overlay_modified) < BUF_OVERLAY_MODIFF (b))
+    return Qnil;
+
+  if (NILP (line))
+    {
+      i = w->cursor.vpos;
+      if (i < 0 || i >= w->current_matrix->nrows
+	  || (row = MATRIX_ROW (w->current_matrix, i), !row->enabled_p))
+	return Qnil;
+      max_y = window_text_bottom_y (w);
+      goto found_row;
+    }
+
+  if (EQ (line, Qheader_line))
+    {
+      if (!WINDOW_WANTS_HEADER_LINE_P (w))
+	return Qnil;
+      row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
+      if (!row->enabled_p)
+	return Qnil;
+      return list4 (make_number (row->height),
+		    make_number (0), make_number (0),
+		    make_number (0));
+    }
+
+  if (EQ (line, Qmode_line))
+    {
+      row = MATRIX_MODE_LINE_ROW (w->current_matrix);
+      if (!row->enabled_p)
+	return Qnil;
+      return list4 (make_number (row->height),
+		    make_number (0), /* not accurate */
+		    make_number (WINDOW_HEADER_LINE_HEIGHT (w)
+				 + window_text_bottom_y (w)),
+		    make_number (0));
+    }
+
+  CHECK_NUMBER (line);
+  n = XINT (line);
+
+  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  end_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
+  max_y = window_text_bottom_y (w);
+  i = 0;
+
+  while ((n < 0 || i < n)
+	 && row <= end_row && row->enabled_p
+	 && row->y + row->height < max_y)
+    row++, i++;
+
+  if (row > end_row || !row->enabled_p)
+    return Qnil;
+
+  if (++n < 0)
+    {
+      if (-n > i)
+	return Qnil;
+      row += n;
+      i += n;
+    }
+
+ found_row:
+  crop = max (0, (row->y + row->height) - max_y);
+  return list4 (make_number (row->height + min (0, row->y) - crop),
+		make_number (i),
+		make_number (row->y),
+		make_number (crop));
+}
+
 
 
 static struct window *
@@ -454,7 +565,7 @@ DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
 Return NCOL.  NCOL should be zero or positive.
 
 Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
-window so that the location of point becomes invisible.  */)
+window so that the location of point moves off-screen.  */)
      (window, ncol)
      Lisp_Object window, ncol;
 {
@@ -1051,9 +1162,11 @@ if it isn't already recorded.  */)
   Lisp_Object value;
   struct window *w = decode_window (window);
   Lisp_Object buf;
+  struct buffer *b;
 
   buf = w->buffer;
   CHECK_BUFFER (buf);
+  b = XBUFFER (buf);
 
 #if 0 /* This change broke some things.  We should make it later.  */
   /* If we don't know the end position, return nil.
@@ -1066,12 +1179,20 @@ if it isn't already recorded.  */)
 
   if (! NILP (update)
       && ! (! NILP (w->window_end_valid)
-	    && XFASTINT (w->last_modified) >= MODIFF)
+	    && XFASTINT (w->last_modified) >= BUF_MODIFF (b))
       && !noninteractive)
     {
       struct text_pos startp;
       struct it it;
-      struct buffer *old_buffer = NULL, *b = XBUFFER (buf);
+      struct buffer *old_buffer = NULL;
+
+      /* Cannot use Fvertical_motion because that function doesn't
+	 cope with variable-height lines.  */
+      if (b != current_buffer)
+	{
+	  old_buffer = current_buffer;
+	  set_buffer_internal (b);
+	}
 
       /* In case W->start is out of the range, use something
          reasonable.  This situation occurred when loading a file with
@@ -1085,14 +1206,6 @@ if it isn't already recorded.  */)
       else
 	SET_TEXT_POS_FROM_MARKER (startp, w->start);
 
-      /* Cannot use Fvertical_motion because that function doesn't
-	 cope with variable-height lines.  */
-      if (b != current_buffer)
-	{
-	  old_buffer = current_buffer;
-	  set_buffer_internal (b);
-	}
-
       start_display (&it, w, startp);
       move_it_vertically (&it, window_box_height (w));
       if (it.current_y < it.last_visible_y)
@@ -1103,7 +1216,7 @@ if it isn't already recorded.  */)
 	set_buffer_internal (old_buffer);
     }
   else
-    XSETINT (value, BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
+    XSETINT (value, BUF_Z (b) - XFASTINT (w->window_end_pos));
 
   return value;
 }
@@ -7365,6 +7478,7 @@ The selected frame is the one whose configuration has changed.  */);
   defsubr (&Swindowp);
   defsubr (&Swindow_live_p);
   defsubr (&Spos_visible_in_window_p);
+  defsubr (&Swindow_line_height);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_height);
   defsubr (&Swindow_width);

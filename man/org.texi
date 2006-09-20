@@ -2766,7 +2766,7 @@ groups are allowed.}
 @end example
 
 @noindent you indicate that at most one of @samp{@@WORK}, @samp{@@HOME},
-and @samp{@@SAILBOAT} should be selected.
+and @samp{@@TENNISCLUB} should be selected.
 
 @noindent Don't forget to press @kbd{C-c C-c} with the cursor in one of
 these lines to activate any changes.

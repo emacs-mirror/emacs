@@ -1,3 +1,9 @@
+2006-09-18  Michael Olson  <mwolson@gnu.org>
+
+	* url-methods.el (url-scheme-register-proxy): Handle case where
+	getenv returns an empty string for http_proxy.  This prevents an
+	error when calling `format' later on.
+
 2006-08-31  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-parse.el (url-recreate-url-attributes): New function, code

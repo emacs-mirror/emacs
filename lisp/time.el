@@ -31,7 +31,7 @@
 
 (defgroup display-time nil
   "Display time and load in mode line of Emacs."
-  :group 'modeline
+  :group 'mode-line
   :group 'mail)
 
 

@@ -238,7 +238,7 @@ may have changed\) back to `save-place-alist'."
           ;; load it if it exists:
           (if (file-readable-p file)
               (save-excursion
-                (message "Loading places from %s..." save-place-file)
+                (message "Loading places from %s..." file)
                 ;; don't want to use find-file because we have been
                 ;; adding hooks to it.
                 (set-buffer (get-buffer-create " *Saved Places*"))

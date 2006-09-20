@@ -1,3 +1,28 @@
+2006-09-19  Richard Stallman  <rms@gnu.org>
+
+	* frames.texi (Dialog Boxes): Clean up wording: avoid passive,
+	stick to present tense.
+
+2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Rename x-use-old-gtk-file-dialog
+	to x-gtk-use-old-file-dialog.
+	(Dialog Boxes): Document x-gtk-file-dialog-help-text.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi, emacs.texi, mh-e.texi (GNU GENERAL PUBLIC LICENSE):
+	Change "Library Public License" to "Lesser Public License"
+	throughout.  Use "yyyy" to represent year.
+
+2006-09-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Setting tags): Typo fix.
+
+2006-09-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Oort Gnus): Add @xref for `mm-fill-flowed'.
+
 2006-09-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.texi (Visiting): Add index entry "open file".
@@ -20,6 +45,8 @@
 
 	* gnus.texi (Mail Source Specifiers): Mention problem of duplicate
 	mails with pop3-leave-mail-on-server.  Fix wording.
+	(Limiting): Improve gnus-summary-limit-to-articles.
+	(X-Face): Fix typo.
 
 2006-09-11  Simon Josefsson  <jas@extundo.com>
 

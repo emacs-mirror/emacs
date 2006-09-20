@@ -1114,10 +1114,7 @@ regardless of the value of this variable."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar fancy-splash-text
-  '((:face variable-pitch
-	   "You can do basic editing with the menu bar and scroll bar \
-using the mouse.\n\n"
-	   :face (variable-pitch :weight bold)
+  '((:face (variable-pitch :weight bold)
 	   "Important Help menu items:\n"
 	   :face variable-pitch
            (lambda ()
@@ -1141,8 +1138,8 @@ using the mouse.\n\n"
                 "\n")))
            :face variable-pitch "\
 Emacs FAQ\tFrequently asked questions and answers
-Read the Emacs Manual\tView the Emacs manual using Info
-\(Non)Warranty\tGNU Emacs comes with "
+View Emacs Manual\tView the Emacs manual using Info
+Absence of Warranty\tGNU Emacs comes with "
 	   :face (variable-pitch :slant oblique)
 	   "ABSOLUTELY NO WARRANTY\n"
 	   :face variable-pitch
@@ -1150,14 +1147,12 @@ Read the Emacs Manual\tView the Emacs manual using Info
 Copying Conditions\tConditions for redistributing and changing Emacs
 Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
-  (:face variable-pitch
-	   "You can do basic editing with the menu bar and scroll bar \
-using the mouse.\n\n"
-	   :face (variable-pitch :weight bold)
-	   "Useful File menu items:\n"
-	   :face variable-pitch "\
-Exit Emacs\t(Or type Control-x followed by Control-c)
+  (:face (variable-pitch :weight bold)
+	 "Useful File menu items:\n"
+	 :face variable-pitch "\
+Exit Emacs\t\t(Or type Control-x followed by Control-c)
 Recover Crashed Session\tRecover files you were editing before a crash
+
 
 
 
@@ -1269,6 +1264,10 @@ where FACE is a valid face specification, as it can be used with
        "GNU Emacs is one component of the GNU/Linux operating system."
      "GNU Emacs is one component of the GNU operating system."))
   (insert "\n")
+  (fancy-splash-insert
+   :face 'variable-pitch
+   "You can do basic editing with the menu bar and scroll bar \
+using the mouse.\n\n")
   (if fancy-splash-outer-buffer
       (fancy-splash-insert
        :face 'variable-pitch
@@ -1305,7 +1304,7 @@ where FACE is a valid face specification, as it can be used with
 	  t)
 	 (fancy-splash-insert :face '(variable-pitch :foreground "red")
 			      "\n\nIf an Emacs session crashed recently, "
-			      "type M-x recover-session RET\nto recover"
+			      "type Meta-x recover-session RET\nto recover"
 			      " the files you were editing."))))
 
 (defun fancy-splash-screens-1 (buffer)
@@ -1350,7 +1349,6 @@ mouse."
 
 (defun fancy-splash-screens (&optional hide-on-input)
   "Display fancy splash screens when Emacs starts."
-  (setq fancy-splash-help-echo (startup-echo-area-message))
   (if hide-on-input
       (let ((old-hourglass display-hourglass)
 	    (fancy-splash-outer-buffer (current-buffer))
@@ -1362,18 +1360,17 @@ mouse."
 	(save-selected-window
 	  (select-frame frame)
 	  (switch-to-buffer "GNU Emacs")
-	  (setq tab-width 20)
 	  (setq splash-buffer (current-buffer))
 	  (catch 'stop-splashing
 	    (unwind-protect
-		(let ((map (make-sparse-keymap)))
+		(let ((map (make-sparse-keymap))
+		      (cursor-type nil))
 		  (use-local-map map)
 		  (define-key map [switch-frame] 'ignore)
 		  (define-key map [t] 'fancy-splash-default-action)
 		  (define-key map [mouse-movement] 'ignore)
 		  (define-key map [mode-line t] 'ignore)
-		  (setq cursor-type nil
-			display-hourglass nil
+		  (setq display-hourglass nil
 			minor-mode-map-alist nil
 			emulation-mode-map-alists nil
 			buffer-undo-list t
@@ -1384,6 +1381,7 @@ mouse."
 			timer (run-with-timer 0 fancy-splash-delay
 					      #'fancy-splash-screens-1
 					      splash-buffer))
+		  (message "%s" (startup-echo-area-message))
 		  (recursive-edit))
 	      (cancel-timer timer)
 	      (setq display-hourglass old-hourglass
@@ -1404,7 +1402,11 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
     (let (fancy-splash-outer-buffer)
       (fancy-splash-head)
       (dolist (text fancy-splash-text)
-	(apply #'fancy-splash-insert text))
+	(apply #'fancy-splash-insert text)
+	(insert "\n"))
+      (skip-chars-backward "\n")
+      (delete-region (point) (point-max))
+      (insert "\n")
       (fancy-splash-tail)
       (set-buffer-modified-p nil)
       (setq buffer-read-only t)
@@ -1581,7 +1583,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
                                        auto-save-list-file-prefix)))
                 t)
                (insert "\n\nIf an Emacs session crashed recently, "
-                       "type M-x recover-session RET\nto recover"
+                       "type Meta-x recover-session RET\nto recover"
                        " the files you were editing."))
 
           ;; Display the input that we set up in the buffer.

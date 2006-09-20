@@ -75,6 +75,11 @@
 	 (cur-proxy (assoc scheme url-proxy-services))
 	 (urlobj nil))
 
+    ;; If env-proxy is an empty string, treat it as if it were nil
+    (when (and (stringp env-proxy)
+	       (string= env-proxy ""))
+      (setq env-proxy nil))
+
     ;; Store any proxying information - this will not overwrite an old
     ;; entry, so that people can still set this information in their
     ;; .emacs file

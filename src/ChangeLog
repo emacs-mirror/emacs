@@ -1,3 +1,157 @@
+2006-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.c (struct regexp_cache): New entry syntax_table.
+	(compile_pattern_1): Set it.
+	(syms_of_search): Initialize it.
+	(compile_pattern): Require the syntax_table entry of the cache
+	element to match the current syntax table entry.
+
+2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fwindow_end): Fix recent change.
+
+2006-09-19  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fset_window_hscroll, Fpos_visible_in_window_p):
+	Doc fix.  Use "off-screen" instead of "invisible".
+	(Fwindow_line_height): Make line numbers 0-based.  Make line arg
+	optional; if nil, use current cursor row.  Handle text terminals
+	properly.  Return nil if non-interactive or pseudo-window.
+
+2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c: Include alloca.h if available.
+	(Fkey_binding): Only use AREF after checking it's a vector.
+	Remove unused var `window'.
+
+2006-09-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (shut_down_emacs) [!subprocesses]: Don't set
+	inhibit_sentinels.
+
+	* mac.c [!MAC_OSX] (select): Fix argument name.
+
+	* macmenu.c (enum mac_menu_kind, min_menu_id): New enumerator and
+	menu ID for Apple menu.
+	(menubar_selection_callback): Remove function.
+	(find_and_call_menu_selection): New function from xmenu.c.
+	(x_activate_menubar): Use it.
+	(set_frame_menubar): Don't use f->output_data.mac->menubar_active.
+
+	* macterm.c (menubar_selection_callback): Remove extern.
+	(M_APPLE): Change to 234.
+	(do_apple_menu) [!TARGET_API_MAC_CARBON]: Make non-static.
+	(do_menu_choice): Remove function.
+
+	* macterm.h (struct mac_output): Remove member menubar_active.
+	(do_menu_choice): Remove extern.
+	(do_apple_menu) [!TARGET_API_MAC_CARBON]: Add extern.
+
+2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (syms_of_xfns): Rename x_gtk_show_chooser_help_text to
+	x_gtk_file_dialog_help_text.
+
+	* gtkutil.c (xg_uses_old_file_dialog): Rename x-use-old-gtk-file-dialog
+	to x-gtk-use-old-file-dialog.
+	(xg_get_file_with_chooser): Rename x_gtk_show_chooser_help_text to
+	x_gtk_file_dialog_help_text.
+
+	* xfns.c (syms_of_xfns): Ditto.
+
+2006-09-18  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fwindow_line_visibility): Remove.
+	(Fwindow_line_height): New defun replacing it.
+	(syms_of_window): Defsubr it.
+
+2006-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (SELECT_USE_CFSOCKET) [MAC_OSX]: Set default to 1.
+	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]: Fix pointer type.
+
+2006-09-17  Jay Belanger  <belanger@truman.edu>
+
+	* gmalloc.c:
+	* md5.c:
+	* md5.h:
+	* strftime.c: Replace "GNU Library General Public License" by "GNU
+	General Public License" throughout.
+
+2006-09-17  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (update_text_area): Undo 2000-07-18 change.
+	Always redrawing whole row if line has mouse-face in it causes
+	excessive flickering of the mode line.
+
+2006-09-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.c (clear_regexp_cache): New function.
+
+	* syntax.c (Fmodify_syntax_entry): Clear regexp cache.
+
+2006-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser):
+	Check x-gtk-show-chooser-help-text before adding the help text.
+
+	* xfns.c (syms_of_xfns): New variable: x-gtk-show-chooser-help-text.
+
+	* gtkutil.c (get_utf8_string): Try harder to convert to UTF8.  Gtk+
+	will simply crash if we fail.
+
+2006-09-16  Richard Stallman  <rms@gnu.org>
+
+	* regex.c (re_compile_pattern): Set gl_state.current_syntax_table.
+
+2006-09-15  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fwindow_line_visibility): New defun for line-move-partial.
+	(syms_of_window): Defsubr it.
+	(Fwindow_end): Use window's buffer rather than current buffer.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* COPYING: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
+2006-09-15  David Kastrup  <dak@gnu.org>
+
+	* Makefile.in (keymap.o): Add "keymap.h" and "window.h"
+	dependencies.
+
+	* keymap.c: include "window.h".
+	(Fcommand_remapping): New optional POSITION argument.
+	(Fkey_binding): New optional POSITION argument.  Completely rework
+	handling of mouse clicks to get the same order of keymaps as
+	`read-key-sequence' and heed POSITION.  Also temporarily switch
+	buffers to location of mouse click and back.
+
+	* keyboard.c (command_loop_1): Adjust call of `Fcommand_remapping'
+	for additional argument.
+	(parse_menu_item): Adjust call of `Fkey_binding' for additional
+	argument.
+	(read_key_sequence): If there are both `local-map' and `keymap'
+	text properties at some buffer position, heed both.
+
+	* keymap.h: Declare additional optional arguments of
+	`Fcommand_remapping' and `Fkey_binding'.
+
+2006-09-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* indent.c (Fcurrent_column, Findent_to): Fix typos in docstring.
+
+2006-09-14  Andreas Schwab  <schwab@suse.de>
+
+	* print.c: Whitespace fixup.
+
+2006-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (produce_image_glyph): Automatically crop wide images at
+	right window edge so we can draw the cursor on the same row to
+	avoid confusing redisplay by placing the cursor outside the visible
+	window area.
+
 2006-09-13  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>
 
 	* xterm.c (x_initialize): Don't install Xt event timer here.
@@ -67,12 +221,12 @@
 	* mac.c [MAC_OSX] (sys_select): Check argument `nfds' more rigidly.
 	Make variable `ofds' static.  Remove variable `maxfd'.
 
-	* macfns.c (Fx_file_dialog): Remove unused variable `f'.  Call
-	check_mac.
+	* macfns.c (Fx_file_dialog): Remove unused variable `f'.
+	Call check_mac.
 
 	* macmenu.c (Vmenu_updating_frame, syms_of_macmenu):
-	* w32menu.c (Vmenu_updating_frame, syms_of_w32menu): Apply
-	2006-09-08 change for xmenu.c.
+	* w32menu.c (Vmenu_updating_frame, syms_of_w32menu):
+	Apply 2006-09-08 change for xmenu.c.
 
 	* xfns.c (Fx_file_dialog): Call check_x.
 
@@ -332,11 +486,11 @@
 	* mac.c (create_apple_event_from_event_ref, select)
 	(Fmac_get_file_creator, Fmac_get_file_type, Fmac_set_file_creator)
 	(Fmac_set_file_type, cfstring_create_normalized)
-	(mac_get_system_locale, select_and_poll_event, sys_select): Use
-	OSStatus instead of OSErr.
+	(mac_get_system_locale, select_and_poll_event, sys_select):
+	Use OSStatus instead of OSErr.
 
-	* macfns.c [TARGET_API_MAC_CARBON] (mac_update_proxy_icon): Don't
-	use FRAME_FILE_NAME.  Use (FS)UpdateAlias.
+	* macfns.c [TARGET_API_MAC_CARBON] (mac_update_proxy_icon):
+	Don't use FRAME_FILE_NAME.  Use (FS)UpdateAlias.
 	(Fx_create_frame): Apply 2006-07-03 for xfns.c.
 
 	* macselect.c (get_scrap_from_symbol, clear_scrap, put_scrap_string)
@@ -504,7 +658,6 @@
 	of drag and drop Atoms.
 
 	* xterm.c (x_term_init): Initialize dpyinfo->x_dnd_atoms*
-
 
 2006-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -699,7 +852,7 @@
 	(FletX, Flet, grow_specpdl): Use signal_error.
 	(Feval, Ffuncall, funcall_lambda): Use xsignal1, xsignal2.
 
-	* alloc.c (buffer_memory_full, memory_full): Use xsignal. Remove loop.
+	* alloc.c (buffer_memory_full, memory_full): Use xsignal.  Remove loop.
 	(list1): New function.
 
 	* lisp.h (list1): Add EXFUN.
@@ -10251,7 +10404,6 @@
 
 	* xterm.c (xim_destroy_callback): Ditto.
 
-
 2004-10-20  B. Anyos  <banyos@freemail.hu>  (tiny change)
 
 	* w32term.c (x_draw_glyph_string): Use overline_color for overlines.
@@ -18740,6 +18892,14 @@
 2003-01-07  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (fns.o): Depend on coding.h.
+
+2003-01-06  Dave Love  <fx@gnu.org>
+
+	* fns.c: Include coding.h.  Use POINTER_TYPE*, not void*.
+	(Vlocale_coding_system): Declare.
+	(Qcodeset, Qdays, Qmonths, Qpaper): New.
+	(Flanginfo): New.
+	(syms_of_fns): Initialize new stuff.
 
 2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
 

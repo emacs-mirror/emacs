@@ -959,15 +959,18 @@ Recommended as a parent keymap for modes using widgets.")
 				  (push event unread-command-events)
 				  (setq event oevent)
 				  (throw 'button-press-cancelled t))
-				(setq pos (widget-event-point event))
-				(if (and pos
-					 (eq (get-char-property pos 'button)
-					     button))
-				    (when face
-				      (overlay-put overlay 'face pressed-face)
-				      (overlay-put overlay 'mouse-face pressed-face))
-				  (overlay-put overlay 'face face)
-				  (overlay-put overlay 'mouse-face mouse-face)))))
+				(unless (or (integerp event)
+					    (memq (car event) '(switch-frame select-window))
+					    (eq (car event) 'scroll-bar-movement))
+				  (setq pos (widget-event-point event))
+				  (if (and pos
+					   (eq (get-char-property pos 'button)
+					       button))
+				      (when face
+					(overlay-put overlay 'face pressed-face)
+					(overlay-put overlay 'mouse-face pressed-face))
+				    (overlay-put overlay 'face face)
+				    (overlay-put overlay 'mouse-face mouse-face))))))
 
 			  ;; When mouse is released over the button, run
 			  ;; its action function.

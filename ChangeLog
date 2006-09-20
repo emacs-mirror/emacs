@@ -1,3 +1,8 @@
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* COPYING: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
 2006-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* make-dist (EMACS): Exit and fail if the EMACS environment

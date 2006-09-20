@@ -626,7 +626,7 @@ The value is a program name.
 @item @dots{}-command
 The value is a whole shell command.
 
-@item @samp{}-switches
+@item @dots{}-switches
 The value specifies options for a command.
 @end table
 
