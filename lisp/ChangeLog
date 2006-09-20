@@ -1,3 +1,8 @@
+2006-09-20  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-partial): Call pos-visible-in-window-p with
+	position t instead of trying both window-end and window-end - 1.
+
 2006-09-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-scan-tags): Find end of subtrees also in

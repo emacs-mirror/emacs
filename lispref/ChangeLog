@@ -1,3 +1,11 @@
+2006-09-20  Kim F. Storm  <storm@cua.dk>
+
+	* windows.texi (Window Start): pos-visible-in-window-p allows
+	specifying t for position to mean "end of window".
+	Add window-line-height.
+
+	* anti.texi (Antinews): Mention window-line-height.
+
 2006-09-19  David Kastrup  <dak@gnu.org>
 
 	* keymaps.texi (Searching Keymaps): Small clarification.

@@ -3,7 +3,7 @@
 	* xdisp.c (pos_visible_p): CHARPOS < 0 means return info for
 	last visible glyph in window.
 
-	* window.c (Fset_window_hscroll, Fpos_visible_in_window_p):
+	* window.c (Fset_window_hscroll, Fwindow_line_height):
 	Doc fix.  Use "off-window" instead of "off-screen".
 	(Fpos_visible_in_window_p): Likewise.
 	If POS is t, return info for last visible glyph in window.
