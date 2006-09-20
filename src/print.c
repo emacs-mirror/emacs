@@ -216,7 +216,7 @@ int print_output_debug_flag = 1;
    if (MARKERP (printcharfun))						\
      {									\
        EMACS_INT marker_pos;						\
-       if (!(XMARKER (printcharfun)->buffer))				\
+       if (! XMARKER (printcharfun)->buffer)				\
          error ("Marker does not point anywhere");			\
        if (XMARKER (printcharfun)->buffer != current_buffer)		\
          set_buffer_internal (XMARKER (printcharfun)->buffer);		\
@@ -289,7 +289,7 @@ int print_output_debug_flag = 1;
      SET_PT_BOTH (old_point + (old_point >= start_point			\
 			       ? PT - start_point : 0),			\
 		  old_point_byte + (old_point_byte >= start_point_byte	\
-			       ? PT_BYTE - start_point_byte : 0));	\
+				    ? PT_BYTE - start_point_byte : 0));	\
    if (old != current_buffer)						\
      set_buffer_internal (old);
 
@@ -956,7 +956,7 @@ debug_output_compilation_hack (x)
   print_output_debug_flag = x;
 }
 
-#if defined(GNU_LINUX)
+#if defined (GNU_LINUX)
 
 /* This functionality is not vitally important in general, so we rely on
    non-portable ability to use stderr as lvalue.  */
@@ -976,7 +976,7 @@ append to existing target file.  */)
      Lisp_Object file, append;
 {
   if (initial_stderr_stream != NULL)
-    fclose(stderr);
+    fclose (stderr);
   stderr = initial_stderr_stream;
   initial_stderr_stream = NULL;
 
@@ -984,7 +984,7 @@ append to existing target file.  */)
     {
       file = Fexpand_file_name (file, Qnil);
       initial_stderr_stream = stderr;
-      stderr = fopen(SDATA (file), NILP (append) ? "w" : "a");
+      stderr = fopen (SDATA (file), NILP (append) ? "w" : "a");
       if (stderr == NULL)
 	{
 	  stderr = initial_stderr_stream;
@@ -2052,7 +2052,7 @@ print_object (obj, printcharfun, escapeflag)
 	  /* Do you think this is necessary?  */
 	  if (XMARKER (obj)->insertion_type != 0)
 	    strout ("(moves after insertion) ", -1, -1, printcharfun, 0);
-	  if (!(XMARKER (obj)->buffer))
+	  if (! XMARKER (obj)->buffer)
 	    strout ("in no buffer", -1, -1, printcharfun, 0);
 	  else
 	    {
@@ -2066,7 +2066,7 @@ print_object (obj, printcharfun, escapeflag)
 
 	case Lisp_Misc_Overlay:
 	  strout ("#<overlay ", -1, -1, printcharfun, 0);
-	  if (!(XMARKER (OVERLAY_START (obj))->buffer))
+	  if (! XMARKER (OVERLAY_START (obj))->buffer)
 	    strout ("in no buffer", -1, -1, printcharfun, 0);
 	  else
 	    {
@@ -2113,8 +2113,8 @@ print_object (obj, printcharfun, escapeflag)
 
 	case Lisp_Misc_Kboard_Objfwd:
 	  strout ("#<kboard_objfwd to ", -1, -1, printcharfun, 0);
-	  print_object (*(Lisp_Object *)((char *) current_kboard
-					 + XKBOARD_OBJFWD (obj)->offset),
+	  print_object (*(Lisp_Object *) ((char *) current_kboard
+					  + XKBOARD_OBJFWD (obj)->offset),
 			printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
@@ -2200,7 +2200,7 @@ print_interval (interval, printcharfun)
   print_object (make_number (interval->position), printcharfun, 1);
   PRINTCHAR (' ');
   print_object (make_number (interval->position + LENGTH (interval)),
-	 printcharfun, 1);
+		printcharfun, 1);
   PRINTCHAR (' ');
   print_object (interval->plist, printcharfun, 1);
 }

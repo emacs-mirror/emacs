@@ -3487,43 +3487,53 @@ Outline mode sets this."
 	  (set-window-vscroll nil (- vs (frame-char-height)) t)))
 
     ;; Move forward (down).
-    (let* ((evis (or (pos-visible-in-window-p (window-end nil t) nil t)
-		     (pos-visible-in-window-p (1- (window-end nil t)) nil t)))
-	   (rbot (nth 3 evis))
-	   (vpos (nth 5 evis))
+    (let* ((lh (window-line-height -1))
+	   (vpos (nth 1 lh))
+	   (ypos (nth 2 lh))
+	   (rbot (nth 3 lh))
 	   ppos py vs)
-      (cond
-       ;; Last window line should be visible - fail if not.
-       ((null evis)
-	nil)
-       ;; If last line of window is fully visible, move forward.
-       ((null rbot)
-	nil)
-       ;; If cursor is not in the bottom scroll margin, move forward.
-       ((< (setq ppos (posn-at-point)
-		 py (cdr (or (posn-actual-col-row ppos)
-			     (posn-col-row ppos))))
-	   (min (- (window-text-height) scroll-margin 1) (1- vpos)))
-	nil)
-       ;; When already vscrolled, we vscroll some more if we can,
-       ;; or clear vscroll and move forward at end of tall image.
-       ((> (setq vs (window-vscroll nil t)) 0)
-	(when (> rbot 0)
-	  (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
-       ;; If cursor just entered the bottom scroll margin, move forward,
-       ;; but also vscroll one line so redisplay wont recenter.
-       ((= py (min (- (window-text-height) scroll-margin 1)
-		   (1- vpos)))
-	(set-window-vscroll nil (frame-char-height) t)
-	(line-move-1 arg noerror to-end)
-	t)
-       ;; If there are lines above the last line, scroll-up one line.
-       ((> vpos 0)
-	(scroll-up 1)
-	t)
-       ;; Finally, start vscroll.
-       (t
-	(set-window-vscroll nil (frame-char-height) t))))))
+      (when (or (null lh)
+		(>= rbot (frame-char-height))
+		(<= ypos (- (frame-char-height))))
+	(unless lh
+	  (let* ((wend (window-end nil t))
+		 (evis (or (pos-visible-in-window-p wend nil t)
+			   (pos-visible-in-window-p (1- wend) nil t))))
+	    (setq rbot (nth 3 evis)
+		  vpos (nth 5 evis))))
+	(cond
+	 ;; If last line of window is fully visible, move forward.
+	 ((or (null rbot) (= rbot 0))
+	  nil)
+	 ;; If cursor is not in the bottom scroll margin, move forward.
+	 ((and (> vpos 0)
+	       (< (setq py
+			(or (nth 1 (window-line-height))
+			    (let ((ppos (posn-at-point)))
+			      (cdr (or (posn-actual-col-row ppos)
+				       (posn-col-row ppos))))))
+		  (min (- (window-text-height) scroll-margin 1) (1- vpos))))
+	  nil)
+	 ;; When already vscrolled, we vscroll some more if we can,
+	 ;; or clear vscroll and move forward at end of tall image.
+	 ((> (setq vs (window-vscroll nil t)) 0)
+	  (when (> rbot 0)
+	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
+	 ;; If cursor just entered the bottom scroll margin, move forward,
+	 ;; but also vscroll one line so redisplay wont recenter.
+	 ((and (> vpos 0)
+	       (= py (min (- (window-text-height) scroll-margin 1)
+			  (1- vpos))))
+	  (set-window-vscroll nil (frame-char-height) t)
+	  (line-move-1 arg noerror to-end)
+	  t)
+	 ;; If there are lines above the last line, scroll-up one line.
+	 ((> vpos 0)
+	  (scroll-up 1)
+	  t)
+	 ;; Finally, start vscroll.
+	 (t
+	  (set-window-vscroll nil (frame-char-height) t)))))))
 
 
 ;; This is like line-move-1 except that it also performs
@@ -3551,7 +3561,7 @@ Outline mode sets this."
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
 	(opoint (point))
-	(forward (> arg 0)))
+	(orig-arg arg))
     (unwind-protect
 	(progn
 	  (if (not (memq last-command '(next-line previous-line)))
@@ -3584,14 +3594,27 @@ Outline mode sets this."
 			      'end-of-buffer)
 			    nil)))
 	    ;; Move by arg lines, but ignore invisible ones.
-	    (let (done)
+	    (let (done line-end)
 	      (while (and (> arg 0) (not done))
 		;; If the following character is currently invisible,
 		;; skip all characters with that same `invisible' property value.
 		(while (and (not (eobp)) (line-move-invisible-p (point)))
 		  (goto-char (next-char-property-change (point))))
-		;; Now move a line.
-		(end-of-line)
+		;; Move a line.
+		;; We don't use `end-of-line', since we want to escape
+		;; from field boundaries ocurring exactly at point.
+		(let ((inhibit-field-text-motion t))
+		  (setq line-end (line-end-position)))
+		(goto-char (constrain-to-field line-end (point) t t))
+		;; When moving a single line, update the goal-column
+		;; if we couldn't move to the end of line due to a
+		;; field boundary.  Otherwise we'll get stuck at the
+		;; original position during the column motion in
+		;; line-move-finish.
+		(and (/= line-end (point))
+		     (= orig-arg 1)
+		     (setq temporary-goal-column
+			   (max temporary-goal-column (current-column))))
 		;; If there's no invisibility here, move over the newline.
 		(cond
 		 ((eobp)
@@ -3649,7 +3672,7 @@ Outline mode sets this."
 	     (beginning-of-line))
 	    (t
 	     (line-move-finish (or goal-column temporary-goal-column)
-			       opoint forward))))))
+			       opoint (> orig-arg 0)))))))
 
 (defun line-move-finish (column opoint forward)
   (let ((repeat t))
@@ -3711,7 +3734,7 @@ Outline mode sets this."
 	(goto-char opoint)
 	(let ((inhibit-point-motion-hooks nil))
 	  (goto-char
-	   (constrain-to-field new opoint nil t
+	   (constrain-to-field new opoint t t
 			       'inhibit-line-move-field-capture)))
 
 	;; If all this moved us to a different line,
@@ -3727,10 +3750,7 @@ because what we really need is for `move-to-column'
 and `current-column' to be able to ignore invisible text."
   (if (zerop col)
       (beginning-of-line)
-    (let ((opoint (point)))
-      (move-to-column col)
-      ;; move-to-column doesn't respect field boundaries.
-      (goto-char (constrain-to-field (point) opoint))))
+    (move-to-column col))
 
   (when (and line-move-ignore-invisible
 	     (not (bolp)) (line-move-invisible-p (1- (point))))
@@ -4366,21 +4386,21 @@ in the mode line.
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
 and `line-number-display-limit-width'."
-  :init-value t :global t :group 'editing-basics)
+  :init-value t :global t :group 'mode-line)
 
 (define-minor-mode column-number-mode
   "Toggle Column Number mode.
 With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
-  :global t :group 'editing-basics)
+  :global t :group 'mode-line)
 
 (define-minor-mode size-indication-mode
   "Toggle Size Indication mode.
 With arg, turn Size Indication mode on iff arg is positive.  When
 Size Indication mode is enabled, the size of the accessible part
 of the buffer appears in the mode line."
-  :global t :group 'editing-basics)
+  :global t :group 'mode-line)
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."

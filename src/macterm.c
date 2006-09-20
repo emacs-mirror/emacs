@@ -261,9 +261,6 @@ static int is_emacs_window P_ ((WindowPtr));
 static XCharStruct *mac_per_char_metric P_ ((XFontStruct *, XChar2b *, int));
 static void XSetFont P_ ((Display *, GC, XFontStruct *));
 
-/* Defined in macmenu.h.  */
-extern void menubar_selection_callback (FRAME_PTR, int);
-
 #define GC_FORE_COLOR(gc)	(&(gc)->fore_color)
 #define GC_BACK_COLOR(gc)	(&(gc)->back_color)
 #define GC_FONT(gc)		((gc)->xgcv.font)
@@ -8492,7 +8489,7 @@ mac_set_font_info_for_selection (f, face_id, c)
 #endif
 #endif /* ! TARGET_API_MAC_CARBON */
 
-#define M_APPLE 128
+#define M_APPLE 234
 #define I_ABOUT 1
 
 #define WINDOW_RESOURCE 128
@@ -9082,10 +9079,10 @@ mac_tsm_suspend ()
 }
 #endif
 
-static void
+#if !TARGET_API_MAC_CARBON
+void
 do_apple_menu (SInt16 menu_item)
 {
-#if !TARGET_API_MAC_CARBON
   Str255 item_name;
   SInt16 da_driver_refnum;
 
@@ -9096,43 +9093,8 @@ do_apple_menu (SInt16 menu_item)
       GetMenuItemText (GetMenuHandle (M_APPLE), menu_item, item_name);
       da_driver_refnum = OpenDeskAcc (item_name);
     }
+}
 #endif /* !TARGET_API_MAC_CARBON */
-}
-
-void
-do_menu_choice (SInt32 menu_choice)
-{
-  SInt16 menu_id, menu_item;
-
-  menu_id = HiWord (menu_choice);
-  menu_item = LoWord (menu_choice);
-
-  switch (menu_id)
-    {
-    case 0:
-      break;
-
-    case M_APPLE:
-      do_apple_menu (menu_item);
-      break;
-
-    default:
-      {
-        struct frame *f = mac_focus_frame (&one_mac_display_info);
-        MenuHandle menu = GetMenuHandle (menu_id);
-        if (menu)
-          {
-            UInt32 refcon;
-
-            GetMenuItemRefCon (menu, menu_item, &refcon);
-            menubar_selection_callback (f, refcon);
-          }
-      }
-    }
-
-  HiliteMenu (0);
-}
-
 
 /* Handle drags in size box.  Based on code contributed by Ben
    Mesander and IM - Window Manager A.  */

@@ -623,9 +623,9 @@ See `fast-lock-cache-directory'."
   ;; Compile all keywords in case some are and some aren't.
   (when font-lock-syntactic-keywords
     (setq font-lock-syntactic-keywords (font-lock-compile-keywords
-					font-lock-syntactic-keywords)))
+					font-lock-syntactic-keywords t)))
   (when syntactic-keywords
-    (setq syntactic-keywords (font-lock-compile-keywords syntactic-keywords)))
+    (setq syntactic-keywords (font-lock-compile-keywords syntactic-keywords t)))
   (setq font-lock-keywords (font-lock-compile-keywords font-lock-keywords)
 	keywords (font-lock-compile-keywords keywords))
   ;; Use the Font Lock cache SYNTACTIC-PROPERTIES and FACE-PROPERTIES if we're

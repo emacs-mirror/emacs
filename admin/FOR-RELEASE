@@ -33,14 +33,6 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 These don't need to be fixed to start pretest, but we call the
 attention of Windows users to fixing them.
 
-** Markus Gritsch's report about Emacs looping on Windoze with the following
-.emacs file, and then reduce Emacs frame width to "something quite narrow":
-	(setq-default truncate-lines t)
-	(custom-set-variables
-	 '(hscroll-margin 20)
-	 '(hscroll-step 1)
-	)
-
 ** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
 Windows only bug.
 
@@ -49,21 +41,18 @@ Windows only bug.
 
 * BUGS
 
-** Field handling in C-n.
-
 ** C-g fails to interrupt accept-process-output in Gnus.
   (Is that fixed?)
 
-** allout.el patch from Manheimer to be installed.
+** david.hansen@physik.fu-berlin.de: WoMan Bug, Sep 13.
 
-** regex char class matching needs a call to char-syntax.
+** Michael Cadilhac's line-move-partial is slow.
 
-** regex char class matching breaks if you change entries
-in the syntax table.
+** run-with-idle-timer change causes problem for Semantic.
 
-** Handa's Sep 6 compilation font lock bug report.
+** iampure@gmail.com's Sep 15 bug report about View Changes In File.
 
-** Michael Cadilhac's Sep 7 bug report about set-input-method.
+** Peter_Dyballa@Web.DE's Sep 17 bug report about i-search and non-ASCII chars
 
 * DOCUMENTATION
 

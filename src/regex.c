@@ -6197,6 +6197,10 @@ re_compile_pattern (pattern, length, bufp)
 {
   reg_errcode_t ret;
 
+#ifdef emacs
+  gl_state.current_syntax_table = current_buffer->syntax_table;
+#endif
+
   /* GNU code is written to assume at least RE_NREGS registers will be set
      (and at least one extra will be -1).  */
   bufp->regs_allocated = REGS_UNALLOCATED;

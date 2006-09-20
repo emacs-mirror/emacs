@@ -3098,7 +3098,7 @@ If point is on a widget or a button, simulate clicking on that widget/button."
                (and (consp widget)
                     (get (widget-type widget) 'widget-type))))
         (widget-button-press (point))
-      (if (button-at (point))
+      (if (and (fboundp 'button-at) (fboundp 'push-button) (button-at (point)))
           (push-button)
 	;; not a widget or a button
         (viper-leave-region-active)
