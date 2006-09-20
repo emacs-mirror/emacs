@@ -416,7 +416,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 	    (goto-char (point-min))
 	    (incf i 100)
 	    (if (or (not (re-search-forward
-			  "<a href=\"\n\\([^>\" \n\t]+\\)[^<]*<img src=[^>]+next"
+			  "<a [^>]+href=\"\n?\\([^>\" \n\t]+\\)[^<]*<img[^>]+src=[^>]+next"
 			  nil t))
 		    (>= i nnweb-max-hits))
 		(setq more nil)

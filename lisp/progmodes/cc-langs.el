@@ -134,12 +134,18 @@
 
 (eval-and-compile
   ;; These are used to collect the init forms from the subsequent
-  ;; `c-lang-defvar'.  They are used to build the lambda in
-  ;; `c-make-init-lang-vars-fun' below.
+  ;; `c-lang-defvar' and `c-lang-setvar'.  They are used to build the
+  ;;  lambda in `c-make-init-lang-vars-fun' below, and to build `defvar's
+  ;;  and `make-variable-buffer-local's in cc-engine and
+  ;;  `make-local-variable's in `c-init-language-vars-for'.
   (defvar c-lang-variable-inits nil)
   (defvar c-lang-variable-inits-tail nil)
   (setq c-lang-variable-inits (list nil)
-	c-lang-variable-inits-tail c-lang-variable-inits))
+	c-lang-variable-inits-tail c-lang-variable-inits)
+  (defvar c-emacs-variable-inits nil)
+  (defvar c-emacs-variable-inits-tail nil)
+  (setq c-emacs-variable-inits (list nil)
+	c-emacs-variable-inits-tail c-emacs-variable-inits))
 
 (defmacro c-lang-defvar (var val &optional doc)
   "Declares the buffer local variable VAR to get the value VAL.  VAL is
@@ -168,6 +174,25 @@ the evaluated constant value at compile time."
 	(setcdr elem (list val doc))
       (setcdr c-lang-variable-inits-tail (list (list var val doc)))
       (setq c-lang-variable-inits-tail (cdr c-lang-variable-inits-tail))))
+
+  ;; Return the symbol, like the other def* forms.
+  `',var)
+
+(defmacro c-lang-setvar (var val)
+  "Causes the variable VAR to be made buffer local and to get set to the
+value VAL.  VAL is evaluated and assigned at mode initialization.  More
+precisely, VAL is evaluated and bound to VAR when the result from the
+macro `c-init-language-vars' is evaluated.  VAR is typically a standard
+Emacs variable like `comment-start'.
+
+`c-lang-const' is typically used in VAL to get the right value for the
+language being initialized, and such calls will be macro expanded to
+the evaluated constant value at compile time."
+  (let ((elem (assq var (cdr c-emacs-variable-inits))))
+    (if elem
+	(setcdr elem (list val)) ; Maybe remove "list", sometime. 2006-07-19
+      (setcdr c-emacs-variable-inits-tail (list (list var val)))
+      (setq c-emacs-variable-inits-tail (cdr c-emacs-variable-inits-tail))))
 
   ;; Return the symbol, like the other def* forms.
   `',var)
@@ -1103,8 +1128,7 @@ properly."
   ;; In C we still default to the block comment style since line
   ;; comments aren't entirely portable.
   c "/* ")
-(c-lang-defvar comment-start (c-lang-const comment-start)
-  'dont-doc)
+(c-lang-setvar comment-start (c-lang-const comment-start))
 
 (c-lang-defconst comment-end
   "String that ends comments inserted with M-; etc.
@@ -1117,8 +1141,7 @@ properly."
 		      (c-lang-const comment-start))
 	(concat " " (c-lang-const c-block-comment-ender))
       ""))
-(c-lang-defvar comment-end (c-lang-const comment-end)
-  'dont-doc)
+(c-lang-setvar comment-end (c-lang-const comment-end))
 
 (c-lang-defconst comment-start-skip
   "Regexp to match the start of a comment plus everything up to its body.
@@ -1134,8 +1157,7 @@ properly."
 			   (c-lang-const c-block-comment-starter)))
 	     "\\|")
 	    "\\)\\s *"))
-(c-lang-defvar comment-start-skip (c-lang-const comment-start-skip)
-  'dont-doc)
+(c-lang-setvar comment-start-skip (c-lang-const comment-start-skip))
 
 (c-lang-defconst c-syntactic-ws-start
   ;; Regexp matching any sequence that can start syntactic whitespace.
@@ -2806,9 +2828,10 @@ way."
 ;;; Wrap up the `c-lang-defvar' system.
 
 ;; Compile in the list of language variables that has been collected
-;; with the `c-lang-defvar' macro.  Note that the first element is
-;; nil.
+;; with the `c-lang-defvar' and `c-lang-setvar' macros.  Note that the
+;; first element of each is nil.
 (defconst c-lang-variable-inits (cc-eval-when-compile c-lang-variable-inits))
+(defconst c-emacs-variable-inits (cc-eval-when-compile c-emacs-variable-inits))
 
 (defun c-make-init-lang-vars-fun (mode)
   "Create a function that initializes all the language dependent variables
@@ -2841,12 +2864,16 @@ accomplish that conveniently."
 			     ;; `c-lang-const' will expand to the evaluated
 			     ;; constant immediately in `cl-macroexpand-all'
 			     ;; below.
-			     (mapcan
-			      (lambda (init)
-				`(current-var ',(car init)
-				  ,(car init) ,(cl-macroexpand-all
-						(elt init 1))))
-			      (cdr c-lang-variable-inits))))
+			      (mapcan
+			       (lambda (init)
+				 `(current-var ',(car init)
+				   ,(car init) ,(cl-macroexpand-all
+						 (elt init 1))))
+			       ;; Note: The following `append' copies the
+			       ;; first argument.  That list is small, so
+			       ;; this doesn't matter too much.
+			      (append (cdr c-emacs-variable-inits)
+				      (cdr c-lang-variable-inits)))))
 
 		 ;; This diagnostic message isn't useful for end
 		 ;; users, so it's disabled.
@@ -2859,7 +2886,8 @@ accomplish that conveniently."
 
 		 (require 'cc-langs)
 		 (setq source-eval t)
-		 (let ((init (cdr c-lang-variable-inits)))
+		 (let ((init (append (cdr c-emacs-variable-inits)
+				     (cdr c-lang-variable-inits))))
 		   (while init
 		     (setq current-var (caar init))
 		     (set (caar init) (eval (cadar init)))
@@ -2867,7 +2895,7 @@ accomplish that conveniently."
 
 	     (error
 	      (if current-var
-		  (message "Eval error in the `c-lang-defvar' for `%s'%s: %S"
+		  (message "Eval error in the `c-lang-defvar' or `c-lang-setvar' for `%s'%s: %S"
 			   current-var
 			   (if source-eval
 			       (format "\
@@ -2883,7 +2911,8 @@ accomplish that conveniently."
     `(lambda ()
        (require 'cc-langs)
        (let ((c-buffer-is-cc-mode ',mode)
-	     (init (cdr c-lang-variable-inits))
+	     (init (append (cdr c-emacs-variable-inits)
+			   (cdr c-lang-variable-inits)))
 	     current-var)
 	 (condition-case err
 
@@ -2895,7 +2924,7 @@ accomplish that conveniently."
 	   (error
 	    (if current-var
 		(message
-		 "Eval error in the `c-lang-defvar' for `%s' (source eval): %S"
+		 "Eval error in the `c-lang-defvar' or `c-lang-setver' for `%s' (source eval): %S"
 		 current-var err)
 	      (signal (car err) (cdr err)))))))
     ))

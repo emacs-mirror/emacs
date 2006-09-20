@@ -226,14 +226,19 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; I have no idea what this first line is supposed to match, but it
      ;; makes things ambiguous with output such as "foo:344:50:blabla" since
      ;; the "foo" part can match this first line (in which case the file
-     ;; name as "344").  To avoid this, we disallow filenames exclusively
-     ;; composed of digits.  --Stef
+     ;; name as "344").  To avoid this, the second line disallows filenames
+     ;; exclusively composed of digits.  --Stef
+     ;; Similarly, we get lots of false positives with messages including
+     ;; times of the form "HH:MM:SS" where MM is taken as a line number, so
+     ;; the last line tries to rule out message where the info after the
+     ;; line number starts with "SS".  --Stef
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\)?\
 \\([0-9]*[^0-9\n].*?\\): ?\
 \\([0-9]+\\)\\(?:\\([.:]\\)\\([0-9]+\\)\\)?\
 \\(?:-\\([0-9]+\\)?\\(?:\\3\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
- *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|instantiated from\\)\\)?"
+ *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|instantiated from\\)\\|\
+\[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
      1 (2 . 5) (4 . 6) (7 . 8))
 
     (lcc
@@ -405,12 +410,7 @@ you may also want to change `compilation-page-delimiter'.")
   "Value of `page-delimiter' in Compilation mode.")
 
 (defvar compilation-mode-font-lock-keywords
-   '(;; Don't highlight this as a compilation message.
-     ("^Compilation started at.*"
-      (0 '(face nil message nil help-echo nil mouse-face nil) t))
-     ("^Compiling file .*"
-      (0 '(face nil message nil help-echo nil mouse-face nil) t))
-     ;; configure output lines.
+   '(;; configure output lines.
      ("^[Cc]hecking \\(?:[Ff]or \\|[Ii]f \\|[Ww]hether \\(?:to \\)?\\)?\\(.+\\)\\.\\.\\. *\\(?:(cached) *\\)?\\(\\(yes\\(?: .+\\)?\\)\\|no\\|\\(.*\\)\\)$"
       (1 font-lock-variable-name-face)
       (2 (compilation-face '(4 . 3))))
@@ -421,7 +421,7 @@ you may also want to change `compilation-page-delimiter'.")
      ("^Compilation \\(finished\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face))
-     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
+     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\|segmentation fault\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-error-face)
       (2 compilation-error-face nil t)))

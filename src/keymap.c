@@ -1149,6 +1149,20 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
   meta_bit = VECTORP (key) ? meta_modifier : 0x80;
 
+  if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, make_number (0))))
+    { /* DEF is apparently an XEmacs-style keyboard macro.  */
+      Lisp_Object tmp = Fmake_vector (make_number (ASIZE (def)), Qnil);
+      int i = ASIZE (def);
+      while (--i >= 0)
+	{
+	  Lisp_Object c = AREF (def, i);
+	  if (CONSP (c) && lucid_event_type_list_p (c))
+	    c = Fevent_convert_list (c);
+	  ASET (tmp, i, c);
+	}
+      def = tmp;
+    }
+
   idx = 0;
   while (1)
     {

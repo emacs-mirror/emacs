@@ -3697,7 +3697,10 @@ because what we really need is for `move-to-column'
 and `current-column' to be able to ignore invisible text."
   (if (zerop col)
       (beginning-of-line)
-    (move-to-column col))
+    (let ((opoint (point)))
+      (move-to-column col)
+      ;; move-to-column doesn't respect field boundaries.
+      (goto-char (constrain-to-field (point) opoint))))
 
   (when (and line-move-ignore-invisible
 	     (not (bolp)) (line-move-invisible-p (1- (point))))

@@ -513,8 +513,8 @@ Functions}, @code{concat} in @ref{Creating Strings}, and @code{append}
 in @ref{Building Lists}.
 @end defun
 
-  The @code{append} function provides a way to convert a vector into a
-list with the same elements (@pxref{Building Lists}):
+  The @code{append} function also provides a way to convert a vector into a
+list with the same elements:
 
 @example
 @group

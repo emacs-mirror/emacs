@@ -1,3 +1,99 @@
+2006-07-31  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Clickable Text): Mention `help-echo' text property.
+	Update intro, examples and associated explanations.
+
+2006-07-31  Richard Stallman  <rms@gnu.org>
+
+	* commands.texi: Update xrefs.
+	(Event Mod): New node, cut out from old Translating Input.
+
+	* maps.texi: Update xrefs.
+
+	* keymaps.texi (Translation Keymaps): New node.
+	Update xrefs from Translating Input to Translation Keymaps.
+
+	* elisp.texi (Top): Update subnode menu.
+
+	* display.texi (Face Functions): Fix explanations of FRAME=t or nil.
+
+	* os.texi (System Interface): Fix menu descriptions of some nodes.
+	(Translating Input): Node deleted.
+
+2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* modes.texi (Minor Mode Conventions): Update link for add-to-list.
+
+	* lists.texi (Sets And Lists): Likewise.
+
+2006-07-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Fields): Mention POS
+	requirement when narrowing is in effect.
+
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Face Attributes): Simplify wording.
+	(Attribute Functions): Clarify meaning of new-frame default
+	attribute settings.
+
+	* customize.texi (Common Keywords): Document how to use
+	:package-version in a package not in Emacs.
+
+2006-07-28  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Reading One Event): Fix last change.
+
+2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Reading One Event): Document SECONDS argument for
+	read-event, read-char, and read-char-exclusive.
+
+2006-07-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Multiline Font Lock): Can't use jit-lock-defer-multiline
+	to ensure correct identification.
+
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Clickable Text): Clarify.
+
+	* sequences.texi (Vector Functions): Delete duplicate xref.
+
+	* objects.texi (Function Type): Clarify.
+
+	* modes.texi (Keymaps and Minor Modes): List punct chars for minor
+	modes.
+
+	* lists.texi (List Variables): New node.
+	Material moved from other nodes.
+
+	* variables.texi (Setting Variables): add-to-list and
+	add-to-ordered-list moved to List Variables node.
+
+2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Links and Mouse-1):
+	For mouse-on-link-p, expand on arg POS.
+
+2006-07-21  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Don't mention systems which
+	don't support sub-second timers for redisplay-preemption-period.
+
+	* os.texi (Terminal Output): Clarify text vs graphical terminal.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Input Focus): Document that focus-follows-mouse has
+	no effect on MS-Windows.
+
+2006-07-18  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Forcing Redisplay): Cleanups in previous change.
+
+	* processes.texi (Low-Level Network): Make menu more convenient.
+
 2006-07-18  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Forcing Redisplay): redisplay-preemption-period
@@ -194,7 +290,7 @@
 
 	* anti.texi, customize.texi, display.texi, internals.texi:
 	* minibuf.texi, modes.texi, tips.texi:
-        Fix overfull/underfull boxes.
+	Fix overfull/underfull boxes.
 
 2006-07-05  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -271,7 +367,7 @@
 
 2006-06-09  Aidan Kehoe  <kehoea@parhasard.net>
 
-	* objects.texi (Character Type): Describe the\uABCD and \U00ABCDEF
+	* objects.texi (Character Type): Describe the \uABCD and \U00ABCDEF
 	syntax.
 
 2006-06-07  Eli Zaretskii  <eliz@gnu.org>
@@ -583,7 +679,7 @@
 2006-04-13  Bill Wohler  <wohler@newt.com>
 
 	* customize.texi (Common Keywords): Use dotted notation for
-	:package-version value. Specify its values. Improve documentation
+	:package-version value.  Specify its values.  Improve documentation
 	for customize-package-emacs-version-alist.
 
 2006-04-12  Bill Wohler  <wohler@newt.com>
@@ -1628,7 +1724,7 @@
 	(Jumping): Clarify description of `h' command.
 	Eliminate redundant @ref.
 	(Breaks): New node.
-	(Breakpoints): is now a subsubsection.
+	(Breakpoints): Is now a subsubsection.
 	(Global Break Condition): Mention `C-x X X'.
 	(Edebug Views): Clarify `v' and `p'.  Mention `C-x X w'.
 	(Trace Buffer): Clarify STRING arg of `edebug-tracing'.
@@ -2878,7 +2974,7 @@
 
 2004-10-24  Jason Rumney  <jasonr@gnu.org>
 
-	* commands.texi (Misc Events): Remove mouse-wheel. Add wheel-up
+	* commands.texi (Misc Events): Remove mouse-wheel.  Add wheel-up
 	and wheel-down.
 
 2004-10-24  Kai Grossjohann  <kai.grossjohann@gmx.net>
@@ -3107,7 +3203,7 @@
 	except while processing `frame-title-format' or `icon-title-format'.
 	(Deleting Frames): Correct description of `delete-frame'.
 	Non-nil return values of `frame-live-p' are like those of `framep'.
-	(Frames and Windows): mention return value of
+	(Frames and Windows): Mention return value of
 	`set-frame-selected-window'.
 	(Visibility of Frames): Mention `force' argument to
 	`make-frame-invisible'.  `frame-visible-p' returns t for all
@@ -3434,7 +3530,7 @@
 
 2004-03-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* customize.texi: Fix typo. Remove eol whitespace.
+	* customize.texi: Fix typo.  Remove eol whitespace.
 
 2004-03-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -3470,7 +3566,7 @@
 	* text.texi: Various small changes in addition to the following:
 	(User-Level Deletion): Mention optional BACKWARD-ONLY argument
 	to delete-horizontal-space.
-	(Kill Functions, Yanking, Low-Level Kill Ring): clarify and correct
+	(Kill Functions, Yanking, Low-Level Kill Ring): Clarify and correct
 	description of yank-handler text property at various places.
 
 	* frames.texi (Window System Selections): Add anchor.
@@ -4497,7 +4593,7 @@
 	* loading.texi (Unloading): Fix recent change for load-history.
 
 	* customize.texi (Simple Types): Clarify description of custom
-	type 'number. Describe new custom type 'float.
+	type 'number.  Describe new custom type 'float.
 
 2002-12-04  Markus Rost  <rost@math.ohio-state.edu>
 
@@ -5027,7 +5123,7 @@ Mon Apr 17 18:56:50 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 	* Applied Karl Berry's patches to *.texinfo files, but not to
-	texinfo.tex; those diffs are in `berry-texinfo-tex-diffs'. (Karl's
+	texinfo.tex; those diffs are in `berry-texinfo-tex-diffs'.  (Karl's
 	new title page format is also not applied, since it requires
 	texinfo.tex changes.)
 

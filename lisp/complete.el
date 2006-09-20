@@ -811,6 +811,12 @@ or properties are considered."
 (defun PC-expand-many-files (name)
   (with-current-buffer (generate-new-buffer " *Glob Output*")
     (erase-buffer)
+    (when (and (file-name-absolute-p name)
+               (not (file-directory-p default-directory)))
+      ;; If the current working directory doesn't exist `shell-command'
+      ;; signals an error.  So if the file names we're looking for don't
+      ;; depend on the working directory, switch to a valid directory first.
+      (setq default-directory "/"))
     (shell-command (concat "echo " name) t)
     (goto-char (point-min))
     ;; CSH-style shells were known to output "No match", whereas

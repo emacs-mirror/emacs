@@ -42,7 +42,7 @@ Contains canonical charset names that don't correspond to coding systems.")
 
 (defun po-find-charset (filename)
   "Return PO charset value for FILENAME.
-If FILENAME is a cons, the cdr part is a buffer that already contains
+If FILENAME is a cons cell, its CDR is a buffer that already contains
 the PO file (but not yet decoded)."
   (let ((charset-regexp
 	 "^\"Content-Type:[ \t]*text/plain;[ \t]*charset=\\(.*\\)\\\\n\"")

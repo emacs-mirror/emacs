@@ -1994,6 +1994,9 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	    }
 	}
     }
+  else if (!for_click)
+    /* Make "Cancel" equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
 
   return Qnil;
 }
@@ -2186,6 +2189,9 @@ w32_dialog_show (f, keymaps, title, header, error)
 	    }
 	}
     }
+  else
+    /* Make "Cancel" equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
 
   return Qnil;
 }

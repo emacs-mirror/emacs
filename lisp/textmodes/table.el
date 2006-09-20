@@ -6,7 +6,7 @@
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Tue May 30 2006 10:01:43 (PDT)
+;; Revised: Thu Jul 20 2006 17:30:09 (PDT)
 
 ;; This file is part of GNU Emacs.
 
@@ -1394,7 +1394,9 @@ the last cache point coordinate."
      (setq table-command-remap-alist
 	   (cons (cons command func-symbol)
 		 table-command-remap-alist))))
- '(beginning-of-line
+ '(move-beginning-of-line
+   beginning-of-line
+   move-end-of-line
    end-of-line
    beginning-of-buffer
    end-of-buffer

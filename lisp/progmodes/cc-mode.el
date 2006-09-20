@@ -153,12 +153,21 @@
 (defun c-leave-cc-mode-mode ()
   (setq c-buffer-is-cc-mode nil))
 
+;; Make the `c-lang-setvar' variables buffer local in the current buffer.
+;; These are typically standard emacs variables such as `comment-start'.
+(defmacro c-make-emacs-variables-local ()
+  `(progn
+     ,@(mapcan (lambda (init)
+		 `((make-local-variable ',(car init))))
+	       (cdr c-emacs-variable-inits))))
+
 (defun c-init-language-vars-for (mode)
   "Initialize the language variables for one of the language modes
 directly supported by CC Mode.  This can be used instead of the
 `c-init-language-vars' macro if the language you want to use is one of
 those, rather than a derived language defined through the language
 variable system (see \"cc-langs.el\")."
+  (c-make-emacs-variables-local)
   (cond ((eq mode 'c-mode)    (c-init-language-vars c-mode))
 	((eq mode 'c++-mode)  (c-init-language-vars c++-mode))
 	((eq mode 'objc-mode) (c-init-language-vars objc-mode))

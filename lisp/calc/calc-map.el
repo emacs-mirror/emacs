@@ -498,6 +498,9 @@
 
 
 ;;; Return a list of the form (nargs func name)
+(defvar calc-get-operator-history nil
+  "History for calc-get-operator.")
+
 (defun calc-get-operator (msg &optional nargs)
   (setq calc-aborted-prefix nil)
   (let ((inv nil) (hyp nil) (prefix nil) (forcenargs nil)
@@ -583,7 +586,8 @@
 			    (let* ((calc-dollar-values calc-arg-values)
 				   (calc-dollar-used 0)
 				   (calc-hashes-used 0)
-				   (func (calc-do-alg-entry "" "Function: ")))
+				   (func (calc-do-alg-entry "" "Function: " nil
+                                                      'calc-get-operator-history)))
 			      (setq record-entry t)
 			      (or (= (length func) 1)
 				  (error "Bad format"))

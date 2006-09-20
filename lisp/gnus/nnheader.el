@@ -586,17 +586,27 @@ the line could be found."
     (if (eq nnheader-max-head-length t)
 	;; Just read the entire file.
 	(nnheader-insert-file-contents file)
-      ;; Read 1K blocks until we find a separator.
+      ;; Read blocks of the size specified by `nnheader-head-chop-length'
+      ;; until we find a separator.
       (let ((beg 0)
-	    format-alist)
+	    (start (point))
+	    ;; Use `binary' to prevent the contents from being decoded,
+	    ;; or it will change the number of characters that
+	    ;; `insert-file-contents' returns.
+	    (coding-system-for-read 'binary))
 	(while (and (eq nnheader-head-chop-length
-			(nth 1 (nnheader-insert-file-contents
+			(nth 1 (mm-insert-file-contents
 				file nil beg
 				(incf beg nnheader-head-chop-length))))
-		    (prog1 (not (search-forward "\n\n" nil t))
+		    ;; CRLF of CR might be used for the line-break code.
+		    (prog1 (not (re-search-forward "\n\r?\n\\|\r\r" nil t))
 		      (goto-char (point-max)))
 		    (or (null nnheader-max-head-length)
-			(< beg nnheader-max-head-length))))))
+			(< beg nnheader-max-head-length))))
+	;; Finally decode the contents.
+	(when (mm-coding-system-p nnheader-file-coding-system)
+	  (mm-decode-coding-region start (point-max)
+				   nnheader-file-coding-system))))
     t))
 
 (defun nnheader-article-p ()

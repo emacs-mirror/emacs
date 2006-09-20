@@ -87,7 +87,7 @@ Whether the passphrase is cached at all is controlled by
   "If t, inform the recipient that the input is text.")
 
 (defmacro pgg-truncate-key-identifier (key)
-  `(if (> (length ,key) 8) (substring ,key 8) ,key))
+  `(if (> (length ,key) 8) (substring ,key -8) ,key))
 
 (provide 'pgg-def)
 

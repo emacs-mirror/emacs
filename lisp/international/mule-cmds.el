@@ -831,7 +831,7 @@ re-visited and edited.)
 Optional 3rd arg DEFAULT-CODING-SYSTEM specifies a coding system or a
 list of coding systems to be prepended to the default coding system
 list.  However, if DEFAULT-CODING-SYSTEM is a list and the first
-element is t, the cdr part is used as the defualt coding system list,
+element is t, the cdr part is used as the default coding system list,
 i.e. `buffer-file-coding-system', `default-buffer-file-coding-system',
 and the most preferred coding system are not used.
 
@@ -898,9 +898,6 @@ It is highly recommended to fix it before writing to a file."
 	      (rassq base default-coding-system)
 	      (push (cons auto-cs base) default-coding-system))))
 
-    ;; From now on, the list of defaults is reversed.
-    (setq default-coding-system (nreverse default-coding-system))
-
     (unless no-other-defaults
       ;; If buffer-file-coding-system is not nil nor undecided, append it
       ;; to the defaults.
@@ -908,8 +905,9 @@ It is highly recommended to fix it before writing to a file."
 	  (let ((base (coding-system-base buffer-file-coding-system)))
 	    (or (eq base 'undecided)
 		(rassq base default-coding-system)
-		(push (cons buffer-file-coding-system base)
-		      default-coding-system))))
+		(setq default-coding-system
+		      (append default-coding-system
+			      (list (cons buffer-file-coding-system base)))))))
 
       ;; If default-buffer-file-coding-system is not nil nor undecided,
       ;; append it to the defaults.
@@ -917,8 +915,10 @@ It is highly recommended to fix it before writing to a file."
 	  (let ((base (coding-system-base default-buffer-file-coding-system)))
 	    (or (eq base 'undecided)
 		(rassq base default-coding-system)
-		(push (cons default-buffer-file-coding-system base)
-		      default-coding-system))))
+		(setq default-coding-system
+		      (append default-coding-system
+			      (list (cons default-buffer-file-coding-system 
+					  base)))))))
 
       ;; If the most preferred coding system has the property mime-charset,
       ;; append it to the defaults.
@@ -930,18 +930,40 @@ It is highly recommended to fix it before writing to a file."
 	     (setq base (coding-system-base preferred))
 	     (coding-system-get preferred 'mime-charset)
 	     (not (rassq base default-coding-system))
-	     (push (cons preferred base)
-		   default-coding-system))))
+	     (setq default-coding-system
+		   (append default-coding-system
+			   (list (cons preferred base)))))))
 
     (if select-safe-coding-system-accept-default-p
 	(setq accept-default-p select-safe-coding-system-accept-default-p))
+
+    ;; Decide the eol-type from the top of the default codings,
+    ;; buffer-file-coding-system, or
+    ;; default-buffer-file-coding-system.
+    (if default-coding-system
+	(let ((default-eol-type (coding-system-eol-type
+				 (caar default-coding-system))))
+	  (if (and (vectorp default-eol-type) buffer-file-coding-system)
+	      (setq default-eol-type (coding-system-eol-type 
+				      buffer-file-coding-system)))
+	  (if (and (vectorp default-eol-type) default-buffer-file-coding-system)
+	      (setq default-eol-type (coding-system-eol-type 
+				      default-buffer-file-coding-system)))
+	  (if (and default-eol-type (not (vectorp default-eol-type)))
+	      (dolist (elt default-coding-system)
+		(setcar elt (coding-system-change-eol-conversion
+			     (car elt) default-eol-type))))))
 
     (let ((codings (find-coding-systems-region from to))
 	  (coding-system nil)
 	  safe rejected unsafe)
       (if (eq (car codings) 'undecided)
 	  ;; Any coding system is ok.
-	  (setq coding-system t)
+	  (setq coding-system (caar default-coding-system))
+	;; Reverse the list so that elements are accumulated in safe,
+	;; rejected, and unsafe in the correct order.
+	(setq default-coding-system (nreverse default-coding-system))
+
 	;; Classify the defaults into safe, rejected, and unsafe.
 	(dolist (elt default-coding-system)
 	  (if (memq (cdr elt) codings)
@@ -958,14 +980,6 @@ It is highly recommended to fix it before writing to a file."
 	(setq coding-system (select-safe-coding-system-interactively
 			     from to codings unsafe rejected (car codings))))
 
-      (if (vectorp (coding-system-eol-type coding-system))
-	  (let ((eol (coding-system-eol-type buffer-file-coding-system)))
-	    (if (numberp eol)
-		(setq coding-system
-		      (coding-system-change-eol-conversion coding-system eol)))))
-
-      (if (eq coding-system t)
-	  (setq coding-system buffer-file-coding-system))
       ;; Check we're not inconsistent with what `coding:' spec &c would
       ;; give when file is re-read.
       ;; But don't do this if we explicitly ignored the cookie

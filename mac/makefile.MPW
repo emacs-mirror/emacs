@@ -370,7 +370,8 @@ buildobj.lst Ä
 	"{Src}charset.h" ¶
 	"{Src}coding.h" ¶
 		"{Src}ccl.h" ¶
-	"{Src}regex.h"
+	"{Src}regex.h" ¶
+	"{Src}blockinput.h"
 
 {Src}dispnew.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -422,7 +423,8 @@ buildobj.lst Ä
 	"{Src}ccl.h" ¶
 	{WINDOW_H_GROUP} ¶
 	"{Src}systime.h" ¶
-		"{Includes}sys:time.h"
+		"{Includes}sys:time.h" ¶
+	"{Src}blockinput.h"
 
 {Src}emacs.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
@@ -465,7 +467,8 @@ buildobj.lst Ä
 	{WINDOW_H_GROUP} ¶
 	"{Src}systime.h" ¶
 		"{Includes}sys:time.h" ¶
-	"{Src}commands.h"
+	"{Src}commands.h" ¶
+	"{Src}blockinput.h"
 
 {Src}filemode.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶

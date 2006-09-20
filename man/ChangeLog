@@ -1,3 +1,90 @@
+2006-08-03  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update for ERC 5.1.4.
+
+2006-08-01  Richard Stallman  <rms@gnu.org>
+
+	* help.texi (Name Help): Add index entries for describe-variable.
+
+2006-08-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Shorten node names.
+	(GDB-UI Layout): Use GDB-related.
+	(Stack Buffer): Simplify English.
+
+2006-07-31  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Query Replace): Add xref for Dired's Q command.
+
+2006-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Oort Gnus): Mention that the Lisp files are now installed
+	in .../site-lisp/gnus/ by default.
+	[ From gnus-news.texi in the trunk. ]
+
+2006-07-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (MIME Commands): Additions for yEnc.
+
+2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB commands in Fringe): Rename to...
+	(Source Buffers): ..this and move forward.  Describe hollow arrow and
+	new option gdb-find-source-frame.
+	
+2006-07-29  Richard Stallman  <rms@gnu.org>
+
+	* dired.texi (Operating on Files): Simplify previous change
+	and fix Texinfo usage.
+
+2006-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.texi (Operating on Files): Add cross-references.  State the
+	Unix commands that do similar things.
+
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* mark.texi (Transient Mark): Clarify that region never disappears
+	when Transient Mark mode is off, and not when it is on.	
+
+2006-07-27  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Non-ASCII Isearch): Clarify.  Mention C-q.
+
+2006-07-24  Richard Stallman  <rms@gnu.org>
+
+	* xresources.texi (GTK styles): Fix texinfo usage.
+
+	* pgg.texi, org.texi, info.texi, forms.texi, flymake.texi: 
+	* faq.texi: Move periods and commas inside quotes.
+
+	* commands.texi (User Input): Explain why we teach keyboard cmds.
+	
+	* xresources.texi, xresmini.texi, search.texi, programs.texi: 
+	* misc.texi, kmacro.texi, killing.texi, glossary.texi: 
+	* fortran-xtra.texi, files.texi, emacs.texi, emacs-xtra.texi: 
+	* doclicense.texi, display.texi, dired.texi, basic.texi: 
+	* anti.texi, ack.texi: Move periods and commas inside quotes.
+
+2006-07-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (General Variables): Document EMAIL.
+
+2006-07-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Frame Commands): Mention that focus-follows-mouse
+	doesn't have effect on MS-Windows.
+
+2006-07-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Error forms):  Mention M-+ keybinding for
+	`calc-plus-minus'.
+
+2006-07-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faq.texi (Security risks with Emacs): Document Emacs 22
+	file-local-variable mechanism.
+
 2006-07-17  Richard Stallman  <rms@gnu.org>
 
 	* building.texi (Grep Searching): Explain about chaining grep commands.

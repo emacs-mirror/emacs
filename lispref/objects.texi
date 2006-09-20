@@ -1195,18 +1195,19 @@ Hash tables have no read syntax, and print using hash notation.
 @node Function Type
 @subsection Function Type
 
-  Just as functions in other programming languages are executable,
-@dfn{Lisp function} objects are pieces of executable code.  However,
-functions in Lisp are primarily Lisp objects, and only secondarily the
-text which represents them.  These Lisp objects are lambda expressions:
-lists whose first element is the symbol @code{lambda} (@pxref{Lambda
-Expressions}).
+  Lisp functions are executable code, just like functions in other
+programming languages.  In Lisp, unlike most languages, functions are
+also Lisp objects.  A non-compiled function in Lisp is a lambda
+expression: that is, a list whose first element is the symbol
+@code{lambda} (@pxref{Lambda Expressions}).
 
   In most programming languages, it is impossible to have a function
 without a name.  In Lisp, a function has no intrinsic name.  A lambda
-expression is also called an @dfn{anonymous function} (@pxref{Anonymous
-Functions}).  A named function in Lisp is actually a symbol with a valid
-function in its function cell (@pxref{Defining Functions}).
+expression can be called as a function even though it has no name; to
+emphasize this, we also call it an @dfn{anonymous function}
+(@pxref{Anonymous Functions}).  A named function in Lisp is just a
+symbol with a valid function in its function cell (@pxref{Defining
+Functions}).
 
   Most of the time, functions are called when their names are written in
 Lisp expressions in Lisp programs.  However, you can construct or obtain

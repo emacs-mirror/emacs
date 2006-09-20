@@ -5717,6 +5717,8 @@ lookup_named_face (f, symbol, c, signal_p)
       if (!realize_basic_faces (f))
 	return -1;
       default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+      if (default_face == NULL)
+	abort ();  /* realize_basic_faces must have set it up  */
     }
 
   if (!get_lface_attributes (f, symbol, symbol_attrs, signal_p))
@@ -6221,6 +6223,8 @@ face for italic.  */)
       if (! realize_basic_faces (f))
 	error ("Cannot realize default face");
       def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+      if (def_face == NULL)
+	abort ();  /* realize_basic_faces must have set it up  */
     }
 
   /* Dispatch to the appropriate handler.  */

@@ -2160,7 +2160,7 @@ If you define many keywords, you can use in-buffer completion (see
 
 The second possibility is to use TODO keywords to indicate different
 types of action items.  For example, you might want to indicate that
-items are for ``work'' or ``home''.  If you are into David Allen's
+items are for ``work'' or ``home.''  If you are into David Allen's
 @emph{Getting Things DONE}, you might want to use todo types
 @samp{NEXTACTION}, @samp{WAITING}, @samp{MAYBE}.  Or, when you work
 with several people on a single project, you might want to assign

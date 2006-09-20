@@ -4240,8 +4240,10 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
   EMACS_TIME timeout, end_time;
   int wait_channel = -1;
   int got_some_input = 0;
-  /* Either nil or a cons cell, the car of which is of interest and
-     may be changed outside of this routine.  */
+  /* We can't record_unwind_protect here because after the
+     set_waiting_for_input call, C-g (interrupt_signal) would run
+     throw_to_read_char instead of Fsignal, which means unbind_to
+     doesn't get called.  */
   int saved_waiting_for_user_input_p = waiting_for_user_input_p;
 
   FD_ZERO (&Available);

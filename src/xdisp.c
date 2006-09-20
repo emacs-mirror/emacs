@@ -900,7 +900,7 @@ static void redisplay_window P_ ((Lisp_Object, int));
 static Lisp_Object redisplay_window_error ();
 static Lisp_Object redisplay_window_0 P_ ((Lisp_Object));
 static Lisp_Object redisplay_window_1 P_ ((Lisp_Object));
-static void update_menu_bar P_ ((struct frame *, int));
+static int update_menu_bar P_ ((struct frame *, int, int));
 static int try_window_reusing_current_matrix P_ ((struct window *));
 static int try_window_id P_ ((struct window *));
 static int display_line P_ ((struct it *));
@@ -9036,6 +9036,9 @@ prepare_menu_bars ()
     {
       Lisp_Object tail, frame;
       int count = SPECPDL_INDEX ();
+      /* 1 means that update_menu_bar has run its hooks
+	 so any further calls to update_menu_bar shouldn't do so again.  */
+      int menu_bar_hooks_run = 0;
 
       record_unwind_save_match_data ();
 
@@ -9067,7 +9070,7 @@ prepare_menu_bars ()
 	    }
 
 	  GCPRO1 (tail);
-	  update_menu_bar (f, 0);
+	  menu_bar_hooks_run = update_menu_bar (f, 0, menu_bar_hooks_run);
 #ifdef HAVE_WINDOW_SYSTEM
 	  update_tool_bar (f, 0);
 #ifdef MAC_OS
@@ -9082,7 +9085,7 @@ prepare_menu_bars ()
   else
     {
       struct frame *sf = SELECTED_FRAME ();
-      update_menu_bar (sf, 1);
+      update_menu_bar (sf, 1, 0);
 #ifdef HAVE_WINDOW_SYSTEM
       update_tool_bar (sf, 1);
 #ifdef MAC_OS
@@ -9103,12 +9106,18 @@ prepare_menu_bars ()
    before we start to fill in any display lines, because it can call
    eval.
 
-   If SAVE_MATCH_DATA is non-zero, we must save and restore it here.  */
+   If SAVE_MATCH_DATA is non-zero, we must save and restore it here.
 
-static void
-update_menu_bar (f, save_match_data)
+   If HOOKS_RUN is 1, that means a previous call to update_menu_bar
+   already ran the menu bar hooks for this redisplay, so there
+   is no need to run them again.  The return value is the
+   updated value of this flag, to pass to the next call.  */
+
+static int
+update_menu_bar (f, save_match_data, hooks_run)
      struct frame *f;
      int save_match_data;
+     int hooks_run;
 {
   Lisp_Object window;
   register struct window *w;
@@ -9173,15 +9182,21 @@ update_menu_bar (f, save_match_data)
 	      specbind (Qoverriding_local_map, Qnil);
 	    }
 
-	  /* Run the Lucid hook.  */
-	  safe_run_hooks (Qactivate_menubar_hook);
+	  if (!hooks_run)
+	    {
+	      /* Run the Lucid hook.  */
+	      safe_run_hooks (Qactivate_menubar_hook);
 
-	  /* If it has changed current-menubar from previous value,
-	     really recompute the menu-bar from the value.  */
-	  if (! NILP (Vlucid_menu_bar_dirty_flag))
-	    call0 (Qrecompute_lucid_menubar);
+	      /* If it has changed current-menubar from previous value,
+		 really recompute the menu-bar from the value.  */
+	      if (! NILP (Vlucid_menu_bar_dirty_flag))
+		call0 (Qrecompute_lucid_menubar);
 
-	  safe_run_hooks (Qmenu_bar_update_hook);
+	      safe_run_hooks (Qmenu_bar_update_hook);
+
+	      hooks_run = 1;
+	    }
+
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
 	  /* Redisplay the menu bar in case we changed it.  */
@@ -9210,6 +9225,8 @@ update_menu_bar (f, save_match_data)
 	  set_buffer_internal_1 (prev);
 	}
     }
+
+  return hooks_run;
 }
 
 

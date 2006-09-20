@@ -1107,7 +1107,8 @@ their settings before allout-mode was started."
 ;;;_   > allout-unprotected (expr)
 (defmacro allout-unprotected (expr)
   "Enable internal outline operations to alter invisible text."
-  `(let ((inhibit-read-only t))
+  `(let ((inhibit-read-only t)
+         (inhibit-field-text-motion t))
      ,expr))
 ;;;_   = allout-mode-hook
 (defvar allout-mode-hook nil
@@ -1920,7 +1921,8 @@ Actually, returns prefix beginning point."
 ;;;_    > allout-e-o-prefix-p ()
 (defun allout-e-o-prefix-p ()
   "True if point is located where current topic prefix ends, heading begins."
-  (and (save-excursion (beginning-of-line)
+  (and (save-excursion (let ((inhibit-field-text-motion t))
+                         (beginning-of-line))
 		       (looking-at allout-regexp))
        (= (point)(save-excursion (allout-end-of-prefix)(point)))))
 ;;;_   : Location attributes
@@ -2024,22 +2026,24 @@ Outermost is first."
 
   ;; This combination of move-beginning-of-line and beginning-of-line is
   ;; deliberate, but the (beginning-of-line) may now be superfluous.
-  (move-beginning-of-line 1)
-  (beginning-of-line)
-  (while (and (not (bobp)) (or (not (bolp)) (allout-hidden-p)))
+  (let ((inhibit-field-text-motion t))
+    (move-beginning-of-line 1)
     (beginning-of-line)
-    (if (or (allout-hidden-p) (not (bolp)))
-        (forward-char -1))))
+    (while (and (not (bobp)) (or (not (bolp)) (allout-hidden-p)))
+      (beginning-of-line)
+      (if (or (allout-hidden-p) (not (bolp)))
+          (forward-char -1)))))
 ;;;_   > allout-end-of-current-line ()
 (defun allout-end-of-current-line ()
   "Move to the end of line, past concealed text if any."
   ;; XXX This is for symmetry with `allout-beginning-of-current-line' -
   ;; `move-end-of-line' doesn't suffer the same problem as
   ;; `move-beginning-of-line'.
-  (end-of-line)
-  (while (allout-hidden-p)
+  (let ((inhibit-field-text-motion t))
     (end-of-line)
-    (if (allout-hidden-p) (forward-char 1))))
+    (while (allout-hidden-p)
+      (end-of-line)
+      (if (allout-hidden-p) (forward-char 1)))))
 ;;;_   > allout-next-heading ()
 (defsubst allout-next-heading ()
   "Move to the heading for the topic \(possibly invisible) after this one.
@@ -2577,7 +2581,8 @@ Presumes point is at the start of a topic prefix."
 Move to buffer limit in indicated direction if headings are exhausted."
 
   (interactive "p")
-  (let* ((backward (if (< arg 0) (setq arg (* -1 arg))))
+  (let* ((inhibit-field-text-motion t)
+         (backward (if (< arg 0) (setq arg (* -1 arg))))
 	 (step (if backward -1 1))
 	 prev got)
 
@@ -3008,7 +3013,8 @@ Nuances:
   from there."
 
   (allout-beginning-of-current-line)
-  (let* ((depth (+ (allout-current-depth) relative-depth))
+  (let* ((inhibit-field-text-motion t)
+         (depth (+ (allout-current-depth) relative-depth))
          (opening-on-blank (if (looking-at "^\$")
                                (not (setq before nil))))
          ;; bunch o vars set while computing ref-topic
@@ -3626,7 +3632,8 @@ when yank with allout-yank into an outline as a heading."
   ;; a lag *after* a kill has been performed.
 
   (interactive)
-  (let* ((collapsed (allout-current-topic-collapsed-p))
+  (let* ((inhibit-field-text-motion t)
+         (collapsed (allout-current-topic-collapsed-p))
          (beg (prog1 (allout-back-to-current-heading) (beginning-of-line)))
          (depth (allout-recent-depth)))
     (allout-end-of-current-subtree)
@@ -3676,7 +3683,8 @@ however, are left exactly like normal, non-allout-specific yanks."
 					; region around subject:
   (if (< (allout-mark-marker t) (point))
       (exchange-point-and-mark))
-  (let* ((subj-beg (point))
+  (let* ((inhibit-field-text-motion t)
+         (subj-beg (point))
          (into-bol (bolp))
 	 (subj-end (allout-mark-marker t))
          (was-collapsed (get-text-property subj-beg 'allout-was-collapsed))
@@ -3845,7 +3853,8 @@ by pops to non-distinctive yanks.  Bug..."
     (if (not (string= (allout-current-bullet) allout-file-xref-bullet))
         (error "Current heading lacks cross-reference bullet `%s'"
                allout-file-xref-bullet)
-      (let (file-name)
+      (let ((inhibit-field-text-motion t)
+            file-name)
         (save-excursion
           (let* ((text-start allout-recent-prefix-end)
                  (heading-end (progn (end-of-line) (point))))
@@ -3893,7 +3902,8 @@ Text is shown if flag is nil and hidden otherwise."
 
   (save-excursion
     (allout-back-to-current-heading)
-    (end-of-line)
+    (let ((inhibit-field-text-motion t))
+      (end-of-line))
     (allout-flag-region (point)
                         ;; Exposing must not leave trailing blanks hidden,
                         ;; but can leave them exposed when hiding, so we
@@ -3982,7 +3992,8 @@ point of non-opened subtree?)"
 Useful for coherently exposing to a random point in a hidden region."
   (interactive)
   (save-excursion
-    (let ((orig-pt (point))
+    (let ((inhibit-field-text-motion t)
+          (orig-pt (point))
 	  (orig-pref (allout-goto-prefix))
 	  (last-at (point))
 	  bag-it)
@@ -4014,7 +4025,8 @@ Useful for coherently exposing to a random point in a hidden region."
   (interactive)
   (allout-back-to-current-heading)
   (save-excursion
-    (end-of-line)
+    (let ((inhibit-field-text-motion t))
+      (end-of-line))
     (allout-flag-region (point)
                         (progn (allout-end-of-entry) (point))
                         t)))
@@ -4092,7 +4104,8 @@ siblings, even if the target topic is already closed."
 (defun allout-show-current-branches ()
   "Show all subheadings of this heading, but not their bodies."
   (interactive)
-  (beginning-of-line)
+  (let ((inhibit-field-text-motion t))
+    (beginning-of-line))
   (allout-show-children t))
 ;;;_   > allout-hide-current-leaves ()
 (defun allout-hide-current-leaves ()
@@ -4122,13 +4135,14 @@ siblings, even if the target topic is already closed."
     (save-restriction
       (narrow-to-region start end)
       (goto-char (point-min))
-      (while (not (eobp))
-        (end-of-line)
-	(allout-flag-region (point) (allout-end-of-entry) t)
-	(if (not (eobp))
-	    (forward-char
-	     (if (looking-at "\n\n")
-		 2 1)))))))
+      (let ((inhibit-field-text-motion t))
+        (while (not (eobp))
+          (end-of-line)
+          (allout-flag-region (point) (allout-end-of-entry) t)
+          (if (not (eobp))
+              (forward-char
+               (if (looking-at "\n\n")
+                   2 1))))))))
 
 ;;;_   > allout-expose-topic (spec)
 (defun allout-expose-topic (spec)
@@ -4281,7 +4295,8 @@ for the corresponding offspring of the topic.
 Optional FOLLOWERS arguments dictate exposure for succeeding siblings."
 
   (interactive "xExposure spec: ")
-  (let ((depth (allout-current-depth))
+  (let ((inhibit-field-text-motion t)
+        (depth (allout-current-depth))
 	max-pos)
     (cond ((null spec) nil)
 	  ((symbolp spec)
@@ -4460,8 +4475,9 @@ header and body.  The elements of that list are:
   (interactive "r")
   (save-excursion
     (let*
-	;; state vars:
-	(strings prefix result depth new-depth out gone-out bullet beg
+        ((inhibit-field-text-motion t)
+         ;; state vars:
+         strings prefix result depth new-depth out gone-out bullet beg
 		 next done)
 
       (goto-char start)
@@ -4740,18 +4756,19 @@ string across LaTeX processing."
 Adjust line contents so it is unaltered \(from the original line)
 across LaTeX processing, within the context of a `verbatim'
 environment.  Leaves point at the end of the line."
-  (beginning-of-line)
-  (let ((beg (point))
-	(end (progn (end-of-line)(point))))
-    (goto-char beg)
-    (while (re-search-forward "\\\\"
-	    ;;"\\\\\\|\\{\\|\\}\\|\\_\\|\\$\\|\\\"\\|\\&\\|\\^\\|\\-\\|\\*\\|#"
-			      end	; bounded by end-of-line
-			      1)	; no matches, move to end & return nil
-      (goto-char (match-beginning 0))
-      (insert "\\")
-      (setq end (1+ end))
-      (goto-char (1+ (match-end 0))))))
+  (let ((inhibit-field-text-motion t))
+    (beginning-of-line)
+    (let ((beg (point))
+          (end (progn (end-of-line)(point))))
+      (goto-char beg)
+      (while (re-search-forward "\\\\"
+                                ;;"\\\\\\|\\{\\|\\}\\|\\_\\|\\$\\|\\\"\\|\\&\\|\\^\\|\\-\\|\\*\\|#"
+                                end	; bounded by end-of-line
+                                1)   ; no matches, move to end & return nil
+        (goto-char (match-beginning 0))
+        (insert "\\")
+        (setq end (1+ end))
+        (goto-char (1+ (match-end 0)))))))
 ;;;_   > allout-insert-latex-header (buffer)
 (defun allout-insert-latex-header (buffer)
   "Insert initial LaTeX commands at point in BUFFER."
@@ -5599,7 +5616,8 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
 (defun allout-mark-topic ()
   "Put the region around topic currently containing point."
   (interactive)
-  (beginning-of-line)
+  (let ((inhibit-field-text-motion t))
+    (beginning-of-line))
   (allout-goto-prefix)
   (push-mark (point))
   (allout-end-of-current-subtree)
@@ -5674,7 +5692,8 @@ enable-local-variables must be true for any of this to happen."
                 allout-enable-file-variable-adjustment))
       nil
     (save-excursion
-      (let ((section-data (allout-file-vars-section-data))
+      (let ((inhibit-field-text-motion t)
+            (section-data (allout-file-vars-section-data))
             beg prefix suffix)
         (if section-data
             (setq beg (car section-data)
