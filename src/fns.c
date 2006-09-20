@@ -1464,11 +1464,10 @@ The value is actually the tail of LIST whose car is ELT.  */)
 }
 
 DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
-       doc: /* Return non-nil if ELT is an element of LIST.
-Comparison done with `eq'.  The value is actually the tail of LIST
-whose car is ELT.  */)
+doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
+The value is actually the tail of LIST whose car is ELT.  */)
      (elt, list)
-     Lisp_Object elt, list;
+     register Lisp_Object elt, list;
 {
   while (1)
     {
@@ -1489,6 +1488,30 @@ whose car is ELT.  */)
 
   CHECK_LIST (list);
   return list;
+}
+
+DEFUN ("memql", Fmemql, Smemql, 2, 2, 0,
+doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
+The value is actually the tail of LIST whose car is ELT.  */)
+     (elt, list)
+     register Lisp_Object elt;
+     Lisp_Object list;
+{
+  register Lisp_Object tail;
+
+  if (!FLOATP (elt))
+    return Fmemq (elt, list);
+
+  for (tail = list; !NILP (tail); tail = XCDR (tail))
+    {
+      register Lisp_Object tem;
+      CHECK_LIST_CONS (tail, list);
+      tem = XCAR (tail);
+      if (FLOATP (tem) && internal_equal (elt, tem, 0, 0))
+	return tail;
+      QUIT;
+    }
+  return Qnil;
 }
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
@@ -5833,6 +5856,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Selt);
   defsubr (&Smember);
   defsubr (&Smemq);
+  defsubr (&Smemql);
   defsubr (&Sassq);
   defsubr (&Sassoc);
   defsubr (&Srassq);
