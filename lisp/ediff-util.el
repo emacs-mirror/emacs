@@ -4281,6 +4281,11 @@ Mail anyway? (y or n) ")
       (setq lis1 (cdr lis1)))
     (cdr result)))
 
+(defun ediff-add-to-history (history-var newelt)
+  (if (fboundp 'add-to-history)
+      (add-to-history history-var newelt)
+    (set history-var (cons newelt (symbol-value history-var)))))
+
 (if (fboundp 'copy-sequence)
     (defalias 'ediff-copy-list 'copy-sequence)
   (defun ediff-copy-list (list)

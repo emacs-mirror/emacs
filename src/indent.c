@@ -335,8 +335,8 @@ DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
        doc: /* Return the horizontal position of point.  Beginning of line is column 0.
 This is calculated by adding together the widths of all the displayed
 representations of the character between the start of the previous line
-and point.  (eg control characters will have a width of 2 or 4, tabs
-will have a variable width)
+and point (eg. control characters will have a width of 2 or 4, tabs
+will have a variable width).
 Ignores finite width of frame, which means that this function may return
 values greater than (frame-width).
 Whether the line is visible (if `selective-display' is t) has no effect;
@@ -734,8 +734,8 @@ string_display_width (string, beg, end)
 
 DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
        doc: /* Indent from point with tabs and spaces until COLUMN is reached.
-Optional second argument MININUM says always do at least MININUM spaces
-even if that goes past COLUMN; by default, MININUM is zero.  */)
+Optional second argument MINIMUM says always do at least MINIMUM spaces
+even if that goes past COLUMN; by default, MINIMUM is zero.  */)
      (column, minimum)
      Lisp_Object column, minimum;
 {

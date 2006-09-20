@@ -1029,6 +1029,11 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE) */)
     SET_RAW_SYNTAX_ENTRY_RANGE (syntax_table, c, newentry);
   else
     SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), newentry);
+
+  /* We clear the regexp cache, since character classes can now have
+     different values from those in the compiled regexps.*/
+  clear_regexp_cache ();
+
   return Qnil;
 }
 

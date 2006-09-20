@@ -1,3 +1,52 @@
+2006-09-19  David Kastrup  <dak@gnu.org>
+
+	* keymaps.texi (Searching Keymaps): Small clarification.
+
+2006-09-18  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Creating Keymaps): Explain that keymap prompt strings
+	cause keyboard menus.
+	(Menu Keymaps): Likewise.
+	(Defining Menus, Keyboard Menus): Clarify.
+
+	* text.texi (Fields): Clarify explanation of constrain-to-field.
+
+2006-09-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* variables.texi (Tips for Defining): Fix a typo.
+
+2006-09-15  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Remapping Commands, Searching Keymaps)
+	(Active Keymaps): Clean up previous change.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* gpl.texi: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
+2006-09-15  David Kastrup  <dak@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Adapt description to use
+	`get-char-property' instead `get-text-property'.  Explain how
+	mouse events change this.  Explain the new optional argument of
+	`key-binding' and its mouse-dependent lookup.
+	(Searching Keymaps): Adapt description similarly.
+	(Remapping Commands): Explain the new optional argument of
+	`command-remapping'.
+
+2006-09-14  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Searching Keymaps): Clarification.
+	(Active Keymaps): Refer to Searching Keymaps instead of duplication.
+
+2006-09-13  Richard Stallman  <rms@gnu.org>
+
+	* objects.texi (Character Type): Node split.
+	Add xref to Describing Characters.
+	(Basic Char Syntax, General Escape Syntax)
+	(Ctl-Char Syntax, Meta-Char Syntax): New subnodes.
+
 2006-09-11  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Display Table Format): Wording clarification.
@@ -4859,7 +4908,7 @@
 	(info): Add target.
 	(installall): Target removed.
 
-2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* tips.texi (Coding Conventions): Fix typo.
 

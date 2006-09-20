@@ -1289,7 +1289,7 @@ Don't save anything for STR matching `inferior-python-filter-regexp'."
                     ;; Maybe we could be more selective here.
                     (if (zerop (length res))
                         (not (bolp))
-                      (string-match res ".\\'"))))
+                      (string-match ".\\'" res))))
            ;; The need for this seems to be system-dependent:
            ;; What is this all about, exactly?  --Stef
            ;; (if (and (eq ?. (aref s 0)))

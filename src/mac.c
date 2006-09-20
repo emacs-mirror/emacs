@@ -2416,7 +2416,7 @@ sys_fopen (const char *name, const char *mode)
 extern Boolean mac_wait_next_event P_ ((EventRecord *, UInt32, Boolean));
 
 int
-select (n,  rfds, wfds, efds, timeout)
+select (nfds, rfds, wfds, efds, timeout)
      int nfds;
      SELECT_TYPE *rfds, *wfds, *efds;
      EMACS_TIME *timeout;
@@ -4975,6 +4975,10 @@ extern int noninteractive;
          executing `select' with a short timeout
          (SELECT_POLLING_PERIOD_USEC microseconds).  */
 
+#ifndef SELECT_USE_CFSOCKET
+#define SELECT_USE_CFSOCKET 1
+#endif
+
 #define SELECT_POLLING_PERIOD_USEC 100000
 #if SELECT_USE_CFSOCKET
 #define SELECT_TIMEOUT_THRESHOLD_RUNLOOP 0.2
@@ -5115,7 +5119,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	  int minfd, fd;
 	  CFRunLoopRef runloop =
 	    (CFRunLoopRef) GetCFRunLoopFromEventLoop (GetCurrentEventLoop ());
-	  static CFSocketContext context = {0, &ofds, NULL, NULL, NULL};
+	  static CFSocketContext context = {0, ofds, NULL, NULL, NULL};
 	  static CFMutableDictionaryRef sources;
 
 	  if (sources == NULL)

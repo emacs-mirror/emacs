@@ -507,10 +507,66 @@ get_utf8_string (str)
 {
   char *utf8_str = str;
 
+  if (!str) return NULL;
+
   /* If not UTF-8, try current locale.  */
-  if (str && !g_utf8_validate (str, -1, NULL))
+  if (!g_utf8_validate (str, -1, NULL))
     utf8_str = g_locale_to_utf8 (str, -1, 0, 0, 0);
 
+  if (!utf8_str) 
+    {
+      /* Probably some control characters in str.  Escape them. */
+      size_t nr_bad = 0;
+      gsize bytes_read;
+      gsize bytes_written;
+      unsigned char *p = (unsigned char *)str;
+      char *cp, *up;
+      GError *error = NULL;
+
+      while (! (cp = g_locale_to_utf8 (p, -1, &bytes_read,
+                                             &bytes_written, &error))
+             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+        {
+          ++nr_bad;
+          p += bytes_written+1;
+          g_error_free (error);
+          error = NULL;
+        }
+
+      if (error) 
+        {
+          g_error_free (error);
+          error = NULL;
+        }
+      if (cp) g_free (cp);
+
+      up = utf8_str = xmalloc (strlen (str) + nr_bad * 4 + 1);
+      p = str;
+
+      while (! (cp = g_locale_to_utf8 (p, -1, &bytes_read,
+                                       &bytes_written, &error))
+             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+        {
+          strncpy (up, p, bytes_written);
+          sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
+          up[bytes_written+4] = '\0';
+          up += bytes_written+4;
+          p += bytes_written+1;
+          g_error_free (error);
+          error = NULL;
+        }
+
+      if (cp) 
+        {
+          strcat (utf8_str, cp);
+          g_free (cp);
+        }
+      if (error) 
+        {
+          g_error_free (error);
+          error = NULL;
+        }
+    }
   return utf8_str;
 }
 
@@ -1156,8 +1212,8 @@ int
 xg_uses_old_file_dialog ()
 {
 #ifdef HAVE_GTK_FILE_BOTH
-  extern int x_use_old_gtk_file_dialog;
-  return x_use_old_gtk_file_dialog;
+  extern int x_gtk_use_old_file_dialog;
+  return x_gtk_use_old_file_dialog;
 #else /* ! HAVE_GTK_FILE_BOTH */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
@@ -1294,6 +1350,8 @@ xg_get_file_with_chooser (f, prompt, default_filename,
                                  GTK_FILE_CHOOSER_ACTION_OPEN :
                                  GTK_FILE_CHOOSER_ACTION_SAVE);
   extern int x_gtk_show_hidden_files;
+  extern int x_gtk_file_dialog_help_text;
+
 
   if (only_dir_p)
     action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
@@ -1321,17 +1379,22 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   g_signal_connect (G_OBJECT (filewin), "notify",
                     G_CALLBACK (xg_toggle_notify_cb), wtoggle);
 
-  message[0] = '\0';
-  if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
-    strcat (message, "\nType C-l to display a file name text entry box.\n");
-  strcat (message, "\nIf you don't like this file selector, use the "
-          "corresponding\nkey binding or customize "
-          "use-file-dialog to turn it off.");
+  if (x_gtk_file_dialog_help_text)
+    {
+      message[0] = '\0';
+      if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
+        strcat (message, "\nType C-l to display a file name text entry box.\n");
+      strcat (message, "\nIf you don't like this file selector, use the "
+              "corresponding\nkey binding or customize "
+              "use-file-dialog to turn it off.");
     
-  wmessage = gtk_label_new (message);
-  gtk_widget_show (wmessage);
+      wmessage = gtk_label_new (message);
+      gtk_widget_show (wmessage);
+    }
+
   gtk_box_pack_start (GTK_BOX (wbox), wtoggle, FALSE, FALSE, 0);
-  gtk_box_pack_start (GTK_BOX (wbox), wmessage, FALSE, FALSE, 0);
+  if (x_gtk_file_dialog_help_text)
+    gtk_box_pack_start (GTK_BOX (wbox), wmessage, FALSE, FALSE, 0);
   gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (filewin), wbox);
 
   if (default_filename)

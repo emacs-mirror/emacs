@@ -702,7 +702,7 @@ Sel mode does not support using a `double' value to follow links
 using double-clicks."
   (and initial final mouse-1-click-follows-link
        (eq (car initial) 'down-mouse-1)
-       (mouse-on-link-p	(posn-point (event-start initial)))
+       (mouse-on-link-p (event-start initial))
        (= (posn-point (event-start initial))
 	  (posn-point (event-end final)))
        (= (event-click-count initial) 1)

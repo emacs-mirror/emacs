@@ -42,6 +42,9 @@ struct regexp_cache
 {
   struct regexp_cache *next;
   Lisp_Object regexp, whitespace_regexp;
+  /* Syntax table for which the regexp applies.  We need this because
+     of character classes.  */
+  Lisp_Object syntax_table;
   struct re_pattern_buffer buf;
   char fastmap[0400];
   /* Nonzero means regexp was compiled to do full POSIX backtracking.  */
@@ -134,6 +137,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->buf.multibyte = STRING_MULTIBYTE (pattern);
   cp->buf.target_multibyte = multibyte;
   cp->whitespace_regexp = Vsearch_spaces_regexp;
+  cp->syntax_table = current_buffer->syntax_table;
   /* Doing BLOCK_INPUT here has the effect that
      the debugger won't run if an error occurs.
      Why is BLOCK_INPUT needed here?  */
@@ -173,6 +177,19 @@ shrink_regexp_cache ()
     }
 }
 
+/* Clear the regexp cache.
+   There is no danger of memory leak here because re_compile_pattern
+   automagically manages the memory in each re_pattern_buffer struct,
+   based on its `allocated' and `buffer' values.  */
+void
+clear_regexp_cache ()
+{
+  int i;
+
+  for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
+    searchbufs[i].regexp = Qnil;
+}
+
 /* Compile a regexp if necessary, but first check to see if there's one in
    the cache.
    PATTERN is the pattern to compile.
@@ -209,6 +226,10 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
 	  && cp->buf.target_multibyte == multibyte
+	  /* TODO: Strictly speaking, we only need to match syntax
+	     tables when a character class like [[:space:]] occurs in
+	     the pattern. -- cyd*/
+	  && EQ (cp->syntax_table, current_buffer->syntax_table)
 	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp)))
 	break;
 
@@ -3077,8 +3098,10 @@ syms_of_search ()
       searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
       searchbufs[i].regexp = Qnil;
       searchbufs[i].whitespace_regexp = Qnil;
+      searchbufs[i].syntax_table = Qnil;
       staticpro (&searchbufs[i].regexp);
       staticpro (&searchbufs[i].whitespace_regexp);
+      staticpro (&searchbufs[i].syntax_table);
       searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
   searchbuf_head = &searchbufs[0];
