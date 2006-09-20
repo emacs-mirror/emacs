@@ -2067,59 +2067,61 @@ Display a list of all the defined colors (@code{list-colors-display}).
 @subsection Faces in Formatted Text
 
   The Faces submenu lists various Emacs faces including @code{bold},
-@code{italic}, and @code{underline}.  Selecting one of these adds the
-chosen face to the region.  @xref{Faces}.  You can also specify a face
-with these keyboard commands:
+@code{italic}, and @code{underline} (@pxref{Faces}).  These menu items
+operate on the region if it is active and nonempty.  Otherwise, they
+specify to use that face for an immediately following self-inserting
+character.  Instead of the menu, you can use these keyboard commands:
 
 @table @kbd
 @kindex M-o d @r{(Enriched mode)}
 @findex facemenu-set-default
 @item M-o d
-Set the region, or the next inserted character, to the @code{default} face
-(@code{facemenu-set-default}).
+Remove all @code{face} properties from the region (which includes
+specified colors), or force the following inserted character to have no
+@code{face} property (@code{facemenu-set-default}).
 @kindex M-o b @r{(Enriched mode)}
 @findex facemenu-set-bold
 @item M-o b
-Set the region, or the next inserted character, to the @code{bold} face
-(@code{facemenu-set-bold}).
+Add the face @code{bold} to the region or to the following inserted
+character (@code{facemenu-set-bold}).
 @kindex M-o i @r{(Enriched mode)}
 @findex facemenu-set-italic
 @item M-o i
-Set the region, or the next inserted character, to the @code{italic} face
-(@code{facemenu-set-italic}).
+Add the face @code{italic} to the region or to the following inserted
+character (@code{facemenu-set-italic}).
 @kindex M-o l @r{(Enriched mode)}
 @findex facemenu-set-bold-italic
 @item M-o l
-Set the region, or the next inserted character, to the @code{bold-italic} face
-(@code{facemenu-set-bold-italic}).
+Add the face @code{bold-italic} to the region or to the following
+inserted character (@code{facemenu-set-bold-italic}).
 @kindex M-o u @r{(Enriched mode)}
 @findex facemenu-set-underline
 @item M-o u
-Set the region, or the next inserted character, to the @code{underline} face
-(@code{facemenu-set-underline}).
+Add the face @code{underline} to the region or to the following inserted
+character (@code{facemenu-set-underline}).
 @kindex M-o o @r{(Enriched mode)}
 @findex facemenu-set-face
 @item M-o o @var{face} @key{RET}
-Set the region, or the next inserted character, to the face @var{face}
-(@code{facemenu-set-face}).
+Add the face @var{face} to the region or to the following inserted
+character (@code{facemenu-set-face}).
 @end table
 
-  If you use these commands with a prefix argument---or, in Transient Mark
-mode, if the region is not active---then these commands specify a face
-to use for any immediately following self-inserting input.
-@xref{Transient Mark}.  This applies to both the keyboard commands and
-the menu commands.
+   With a prefix argument, all these commands apply to an immediately
+following self-inserting character, disregarding the region.
 
-  Specifying the @code{default} face also resets foreground and
-background color to their defaults.(@pxref{Format Colors}).
+  A self-inserting character normally inherits the @code{face}
+property (and most other text properties) from the preceding character
+in the buffer.  If you use the above commands to specify face for the
+next self-inserting character, or the next section's commands to
+specify a foreground or background color for it, then it does not
+inherit the @code{face} property from the preceding character; instead
+it uses whatever you specified.  It will still inherit other text
+properties, though.
 
-  Any self-inserting character you type inherits, by default, the face
-properties (as well as most other text properties) of the preceding
-character.  Specifying any face property, including foreground or
-background color, for your next self-inserting character will prevent
-it from inheriting any face properties from the preceding character,
-although it will still inherit other text properties.  Characters
-inserted by yanking do not inherit text properties.
+  Strictly speaking, these commands apply only to the first following
+self-inserting character that you type.  But if you insert additional
+characters after it, they will inherit from the first one.  So it
+appears that these commands apply to all of them.
 
   Enriched mode defines two additional faces: @code{excerpt} and
 @code{fixed}.  These correspond to codes used in the text/enriched file
@@ -2157,8 +2159,8 @@ colors that you have used in Enriched mode in the current Emacs session.
 
   If you specify a color with a prefix argument---or, in Transient
 Mark mode, if the region is not active---then it applies to any
-immediately following self-inserting input.  @xref{Transient Mark}.
-Otherwise, the command applies to the region.
+immediately following self-inserting input.  Otherwise, the command
+applies to the region.
 
   Each color menu contains one additional item: @samp{Other}.  You can use
 this item to specify a color that is not listed in the menu; it reads

@@ -146,6 +146,9 @@ Lisp_Object Vinhibit_read_only;
 Lisp_Object Vkill_buffer_query_functions;
 Lisp_Object Qkill_buffer_query_functions;
 
+/* Hook run before changing a major mode.  */
+Lisp_Object Vchange_major_mode_hook, Qchange_major_mode_hook;
+
 /* List of functions to call before changing an unmodified buffer.  */
 Lisp_Object Vfirst_change_hook;
 
@@ -2386,7 +2389,7 @@ the normal hook `change-major-mode-hook'.  */)
   Lisp_Object oalist;
 
   if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, intern ("change-major-mode-hook"));
+    call1 (Vrun_hooks, Qchange_major_mode_hook);
   oalist = current_buffer->local_var_alist;
 
   /* Make sure none of the bindings in oalist
@@ -5997,6 +6000,13 @@ t means to use hollow box cursor.  See `cursor-type' for other values.  */);
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.  */);
   Vkill_buffer_query_functions = Qnil;
+
+  DEFVAR_LISP ("change-major-mode-hook", &Vchange_major_mode_hook,
+	       doc: /* Normal hook run before changing the major mode of a buffer.
+The function `kill-all-local-variables' runs this before doing anything else.  */);
+  Vchange_major_mode_hook = Qnil;
+  Qchange_major_mode_hook = intern ("change-major-mode-hook");
+  staticpro (&Qchange_major_mode_hook);
 
   defsubr (&Sbuffer_live_p);
   defsubr (&Sbuffer_list);

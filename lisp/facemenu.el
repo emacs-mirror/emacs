@@ -134,18 +134,24 @@ just before \"Other\" at the end."
 
 (defcustom facemenu-listed-faces nil
   "*List of faces to include in the Face menu.
-Each element should be a symbol, which is the name of a face.
+Each element should be a symbol, the name of a face.
 The \"basic \" faces in `facemenu-keybindings' are automatically
-added to the Face menu, and are not included in this list.
+added to the Face menu, and need not be in this list.
 
-You can set this list before loading facemenu.el, or add a face to it before
-creating that face if you want it to be listed.  If you change the
-variable so as to eliminate faces that have already been added to the menu,
-call `facemenu-update' to recalculate the menu contents.
+This value takes effect when you load facemenu.el.  If the
+list includes symbols which are not defined as faces, they
+are ignored; however, subsequently defining or creating
+those faces adds them to the menu then.  You can call
+`facemenu-update' to recalculate the menu contents, such as
+if you change the value of this variable,
 
-If this variable is t, all faces will be added to the menu.  This
-is useful for setting temporarily if you want to add faces to the
-menu when they are created."
+If this variable is t, all faces that you apply to text
+using the face menu commands (even by name), and all faces
+that you define or create, are added to the menu.  You may
+find it useful to set this variable to t temporarily while
+you define some faces, so that they will be added.  However,
+if the value is no longer t and you call `facemenu-update',
+it will remove any faces not explicitly in the list."
   :type '(choice (const :tag "List all faces" t)
 		 (const :tag "None" nil)
 		 (repeat symbol))
@@ -320,19 +326,24 @@ variables."
 
 ;;;###autoload
 (defun facemenu-set-face (face &optional start end)
-  "Add FACE to the region or next character typed.
-This adds FACE to the top of the face list; any faces lower on the list that
-will not show through at all will be removed.
+  "Apply FACE to the region or next character typed.
 
-Interactively, reads the face name with the minibuffer.
+If the region is active (normally true except in Transient
+Mark mode) and nonempty, and there is no prefix argument,
+this command applies FACE to the region.  Otherwise, it applies FACE
+to the faces to use for the next character
+inserted.  (Moving point or switching buffers before typing
+a character to insert cancels the specification.)
 
-If the region is active (normally true except in Transient Mark mode)
-and there is no prefix argument, this command sets the region to the
-requested face.
+If FACE is `default', to \"apply\" it means clearing
+the list of faces to be used.  For any other value of FACE,
+to \"apply\" it means putting FACE at the front of the list
+of faces to be used, and removing any faces further
+along in the list that would be completely overridden by
+preceding faces (including FACE).
 
-Otherwise, this command specifies the face for the next character
-inserted.  Moving point or switching buffers before
-typing a character to insert cancels the specification."
+This command can also add FACE to the menu of faces,
+if `facemenu-listed-faces' says to do that."
   (interactive (list (progn
 		       (barf-if-buffer-read-only)
 		       (read-face-name "Use face"))
@@ -612,7 +623,12 @@ effect.  See `facemenu-remove-face-function'."
 				      (cons face
 					    (if (listp prev)
 						prev
-					      (list prev)))))))
+					      (list prev)))
+				      ;; Specify the selected frame
+				      ;; because nil would mean to use
+				      ;; the new-frame default settings,
+				      ;; and those are usually nil.
+				      (selected-frame)))))
 	      (setq part-start part-end)))
 	(setq self-insert-face (if (eq last-command self-insert-face-command)
 				   (cons face (if (listp self-insert-face)
@@ -655,9 +671,8 @@ use the selected frame.  If t, then the global, non-frame faces are used."
     (nreverse active-list)))
 
 (defun facemenu-add-new-face (face)
-  "Add FACE (a face) to the Face menu.
-
-This is called whenever you create a new face."
+  "Add FACE (a face) to the Face menu if `facemenu-listed-faces' says so.
+This is called whenever you create a new face, and at other times."
   (let* (name
 	 symbol
 	 menu docstring

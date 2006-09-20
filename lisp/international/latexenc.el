@@ -138,8 +138,14 @@ coding system names is determined from `latex-inputenc-coding-alist'."
                ((and (require 'code-pages nil t) (coding-system-p sym)) sym)
                (t 'undecided)))
           ;; else try to find it in the master/main file
-          (let ((default-directory (file-name-directory (nth 1 arg-list)))
-                latexenc-main-file)
+
+	  ;; Fixme: If the current file is in an archive (e.g. tar,
+	  ;; zip), we should find the master file in that archive.
+	  ;; But, that is not yet implemented.   -- K.Handa
+          (let ((default-directory (if (stringp (nth 1 arg-list))
+				       (file-name-directory (nth 1 arg-list))
+				     default-directory))
+		latexenc-main-file)
             ;; Is there a TeX-master or tex-main-file in the local variables
             ;; section?
             (unless latexenc-dont-use-TeX-master-flag

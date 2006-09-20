@@ -976,7 +976,7 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; multi-line strings and comments; regexps are not appropriate for the job.)
 
 (defvar font-lock-extend-after-change-region-function nil
-  "A function that determines the region to fontify after a change.
+  "A function that determines the region to refontify after a change.
 
 This variable is either nil, or is a function that determines the
 region to refontify after a change.
@@ -985,7 +985,7 @@ Font-lock calls this function after each buffer change.
 
 The function is given three parameters, the standard BEG, END, and OLD-LEN
 from `after-change-functions'.  It should return either a cons of the beginning
-and end buffer positions \(in that order) of the region to fontify, or nil
+and end buffer positions \(in that order) of the region to refontify, or nil
 \(which directs the caller to fontify a default region).
 This function should preserve the match-data.
 The region it returns may start or end in the middle of a line.")
@@ -1044,6 +1044,12 @@ a very meaningful entity to highlight.")
 (defvar font-lock-beg) (defvar font-lock-end)
 (defvar font-lock-extend-region-functions
   '(font-lock-extend-region-wholelines
+    ;; This use of font-lock-multiline property is unreliable but is just
+    ;; a handy heuristic: in case you don't have a function that does
+    ;; /identification/ of multiline elements, you may still occasionally
+    ;; discover them by accident (or you may /identify/ them but not in all
+    ;; cases), in which case the font-lock-multiline property can help make
+    ;; sure you will properly *re*identify them during refontification.
     font-lock-extend-region-multiline)
   "Special hook run just before proceeding to fontify a region.
 This is used to allow major modes to help font-lock find safe buffer positions
@@ -1167,6 +1173,13 @@ what properties to clear before refontifying a region.")
 
 (defvar jit-lock-start) (defvar jit-lock-end)
 (defun font-lock-extend-jit-lock-region-after-change (beg end old-len)
+  "Function meant for `jit-lock-after-change-extend-region-functions'.
+This function does 2 things:
+- extend the region so that it not only includes the part that was modified
+  but also the surrounding text whose highlighting may change as a consequence.
+- anticipate (part of) the region extension that will happen later in
+  `font-lock-default-fontify-region', in order to avoid the need for
+  double-redisplay in `jit-lock-fontify-now'."
   (save-excursion
     ;; First extend the region as font-lock-after-change-function would.
     (let ((region (if font-lock-extend-after-change-region-function
@@ -1177,6 +1190,16 @@ what properties to clear before refontifying a region.")
                 end (max jit-lock-end (cdr region))))
       ;; Then extend the region obeying font-lock-multiline properties,
       ;; indicating which part of the buffer needs to be refontified.
+      ;; !!! This is the *main* user of font-lock-multiline property !!!
+      ;; font-lock-after-change-function could/should also do that, but it
+      ;; doesn't need to because font-lock-default-fontify-region does
+      ;; it anyway.  Here OTOH we have no guarantee that
+      ;; font-lock-default-fontify-region will be executed on this region
+      ;; any time soon.
+      ;; Note: contrary to font-lock-default-fontify-region, we do not do
+      ;; any loop here because we are not looking for a safe spot: we just
+      ;; mark the text whose appearance may need to change as a result of
+      ;; the buffer modification.
       (when (and (> beg (point-min))
                  (get-text-property (1- beg) 'font-lock-multiline))
         (setq beg (or (previous-single-property-change
@@ -1186,8 +1209,11 @@ what properties to clear before refontifying a region.")
                                        'font-lock-multiline nil)
                     (point-max)))
       ;; Finally, pre-enlarge the region to a whole number of lines, to try
-      ;; and predict what font-lock-default-fontify-region will do, so as to
+      ;; and anticipate what font-lock-default-fontify-region will do, so as to
       ;; avoid double-redisplay.
+      ;; We could just run `font-lock-extend-region-functions', but since
+      ;; the only purpose is to avoid the double-redisplay, we prefer to
+      ;; do here only the part that is cheap and most likely to be useful.
       (when (memq 'font-lock-extend-region-wholelines
                   font-lock-extend-region-functions)
         (goto-char beg)

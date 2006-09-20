@@ -1429,7 +1429,8 @@ The functions are run with one arg, the frame to be deleted.  */)
 DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
        doc: /* Return a list (FRAME X . Y) giving the current mouse frame and position.
 The position is given in character cells, where (0, 0) is the
-upper-left corner.
+upper-left corner of the frame, X is the horizontal offset, and Y is
+the vertical offset.
 If Emacs is running on a mouseless terminal or hasn't been programmed
 to read the mouse position, it returns the selected frame for FRAME
 and nil for X and Y.
@@ -1477,7 +1478,8 @@ DEFUN ("mouse-pixel-position", Fmouse_pixel_position,
        Smouse_pixel_position, 0, 0, 0,
        doc: /* Return a list (FRAME X . Y) giving the current mouse frame and position.
 The position is given in pixel units, where (0, 0) is the
-upper-left corner.
+upper-left corner of the frame, X is the horizontal offset, and Y is
+the vertical offset.
 If Emacs is running on a mouseless terminal or hasn't been programmed
 to read the mouse position, it returns the selected frame for FRAME
 and nil for X and Y.  */)
@@ -1509,6 +1511,10 @@ DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
 Coordinates are relative to the frame, not a window,
 so the coordinates of the top left character in the frame
 may be nonzero due to left-hand scroll bars or the menu bar.
+
+The position is given in character cells, where (0, 0) is the
+upper-left corner of the frame, X is the horizontal offset, and Y is
+the vertical offset.
 
 This function is a no-op for an X frame that is not visible.
 If you have just created a frame, you must wait for it to become visible
@@ -1542,6 +1548,9 @@ before calling this function on it, like this.
 DEFUN ("set-mouse-pixel-position", Fset_mouse_pixel_position,
        Sset_mouse_pixel_position, 3, 3, 0,
        doc: /* Move the mouse pointer to pixel position (X,Y) in FRAME.
+The position is given in pixels, where (0, 0) is the upper-left corner
+of the frame, X is the horizontal offset, and Y is the vertical offset.
+
 Note, this is a no-op for an X frame that is not visible.
 If you have just created a frame, you must wait for it to become visible
 before calling this function on it, like this.

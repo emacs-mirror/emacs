@@ -3770,7 +3770,8 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "p")
   (or arg (setq arg 1))
 
-  (let ((orig (point)))
+  (let ((orig (point))
+	start first-vis first-vis-field-value)
 
     ;; Move by lines, if ARG is not 1 (the default).
     (if (/= arg 1)
@@ -3781,10 +3782,24 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
       (goto-char (previous-char-property-change (point)))
       (skip-chars-backward "^\n"))
+    (setq start (point))
 
-    ;; Take care of fields.
-    (goto-char (constrain-to-field (point) orig
-				   (/= arg 1) t nil))))
+    ;; Now find first visible char in the line
+    (while (and (not (eobp)) (line-move-invisible-p (point)))
+      (goto-char (next-char-property-change (point))))
+    (setq first-vis (point))
+
+    ;; See if fields would stop us from reaching FIRST-VIS.
+    (setq first-vis-field-value
+	  (constrain-to-field first-vis orig (/= arg 1) t nil))
+
+    (goto-char (if (/= first-vis-field-value first-vis)
+		   ;; If yes, obey them.
+		   first-vis-field-value
+		 ;; Otherwise, move to START with attention to fields.
+		 ;; (It is possible that fields never matter in this case.)
+		 (constrain-to-field (point) orig
+				     (/= arg 1) t nil)))))
 
 
 ;;; Many people have said they rarely use this feature, and often type

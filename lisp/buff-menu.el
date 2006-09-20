@@ -117,6 +117,7 @@ file buffers.  It affects both manual reverting and reverting by
 Auto Revert Mode.")
 
 (defvar Info-current-file) ;; from info.el
+(defvar Info-current-node) ;; from info.el
 
 (make-variable-buffer-local 'Buffer-menu-files-only)
 
@@ -786,7 +787,12 @@ For more information, see the function `buffer-menu'."
 			  ((eq file 'toc)
 			   (setq file "*Info TOC*"))
 			  ((not (stringp file))  ;; avoid errors
-			   (setq file nil))))))
+			   (setq file nil))
+			  (t
+			   (setq file (concat "("
+					      (file-name-nondirectory file)
+					      ")"
+					      Info-current-node)))))))
 		(push (list buffer bits name (buffer-size) mode file)
 		      list))))))
       ;; Preserve the original buffer-list ordering, just in case.

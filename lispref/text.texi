@@ -103,9 +103,9 @@ This function returns the character following point in the current
 buffer.  This is similar to @code{(char-after (point))}.  However, if
 point is at the end of the buffer, then @code{following-char} returns 0.
 
-Remember that point is always between characters, and the terminal
-cursor normally appears over the character following point.  Therefore,
-the character returned by @code{following-char} is the character the
+Remember that point is always between characters, and the cursor
+normally appears over the character following point.  Therefore, the
+character returned by @code{following-char} is the character the
 cursor is over.
 
 In this example, point is between the @samp{a} and the @samp{c}.
@@ -524,16 +524,6 @@ This command indents to the left margin if that is not zero.
 
 The value returned is @code{nil}.  In an interactive call, @var{count}
 is the numeric prefix argument.
-@end deffn
-
-@deffn Command split-line
-This command splits the current line, moving the portion of the line
-after point down vertically so that it is on the next line directly
-below where it was before.  Whitespace is inserted as needed at the
-beginning of the lower line, using the @code{indent-to} function.
-@code{split-line} returns the position of point.
-
-Programs hardly ever use this function.
 @end deffn
 
 @defvar overwrite-mode
@@ -978,8 +968,11 @@ the @var{undo} value.
 @comment  node-name,  next,  previous,  up
 @subsection Functions for Yanking
 
-  @dfn{Yanking} means reinserting an entry of previously killed text
-from the kill ring.  The text properties are copied too.
+  This section describes higher-level commands for yanking, which are
+intended primarily for the user but useful also in Lisp programs.
+Both @code{yank} and @code{yank-pop} honor the
+@code{yank-excluded-properties} variable and @code{yank-handler} text
+property (@pxref{Yanking}).
 
 @deffn Command yank &optional arg
 @cindex inserting killed text
@@ -1213,7 +1206,7 @@ value for @code{kill-ring-max} is 60.
 to the buffer's text so that they can be undone.  (The buffers that
 don't have one are usually special-purpose buffers for which Emacs
 assumes that undoing is not useful.  In particular, any buffer whose
-name begins with a space has its undo recording off by default,
+name begins with a space has its undo recording off by default;
 see @ref{Buffer Names}.)  All the primitives that modify the
 text in the buffer automatically add elements to the front of the undo
 list, which is in the variable @code{buffer-undo-list}.
@@ -1318,8 +1311,7 @@ they're being called for the sake of undoing.
 @defun primitive-undo count list
 This is the basic function for undoing elements of an undo list.
 It undoes the first @var{count} elements of @var{list}, returning
-the rest of @var{list}.  You could write this function in Lisp,
-but it is convenient to have it in C.
+the rest of @var{list}.
 
 @code{primitive-undo} adds elements to the buffer's undo list when it
 changes the buffer.  Undo commands avoid confusion by saving the undo
@@ -1372,7 +1364,9 @@ them back to size limits you can set.  (For this purpose, the ``size''
 of an undo list measures the cons cells that make up the list, plus the
 strings of deleted text.)  Three variables control the range of acceptable
 sizes: @code{undo-limit}, @code{undo-strong-limit} and
-@code{undo-outer-limit}.
+@code{undo-outer-limit}.  In these variables, size is counted as the
+number of bytes occupied, which includes both saved text and other
+data.
 
 @defopt undo-limit
 This is the soft limit for the acceptable size of an undo list.  The
@@ -1390,6 +1384,17 @@ change group is only discarded if it exceeds @code{undo-outer-limit}.
 If at garbage collection time the undo info for the current command
 exceeds this limit, Emacs discards the info and displays a warning.
 This is a last ditch limit to prevent memory overflow.
+@end defopt
+
+@defopt undo-ask-before-discard
+If this variable is non-@code{nil}, when the undo info exceeds
+@code{undo-outer-limit}, Emacs asks in the echo area whether to
+discard the info.  The default value is @code{nil}, which means to
+discard it automatically.
+
+This option is mainly intended for debugging.  Garbage collection is
+inhibited while the question is asked, which means that Emacs might
+leak memory if the user waits too long before answering the question.
 @end defopt
 
 @node Filling
@@ -1481,8 +1486,6 @@ it.  If the region was made up of many paragraphs, the blank lines
 between paragraphs are removed.  This function justifies as well as
 filling when @var{justify} is non-@code{nil}.
 
-In an interactive call, any prefix argument requests justification.
-
 If @var{nosqueeze} is non-@code{nil}, that means to leave whitespace
 other than line breaks untouched.  If @var{squeeze-after} is
 non-@code{nil}, it specifies a position in the region, and means don't
@@ -1522,6 +1525,11 @@ values are @code{left}, @code{right}, @code{full}, @code{center}, or
 @defun current-justification
 This function returns the proper justification style to use for filling
 the text around point.
+
+This returns the value of the @code{justification} text property at
+point, or the variable @var{default-justification} if there is no such
+text property.  However, it returns @code{nil} rather than @code{none}
+to mean ``don't justify''.
 @end defun
 
 @defopt sentence-end-double-space
@@ -1569,14 +1577,14 @@ newlines'' act as paragraph separators.
 @section Margins for Filling
 
 @defopt fill-prefix
-This buffer-local variable specifies a string of text that appears at
-the beginning
-of normal text lines and should be disregarded when filling them.  Any
-line that fails to start with the fill prefix is considered the start of
-a paragraph; so is any line that starts with the fill prefix followed by
-additional whitespace.  Lines that start with the fill prefix but no
-additional whitespace are ordinary text lines that can be filled
-together.  The resulting filled lines also start with the fill prefix.
+This buffer-local variable, if non-@code{nil}, specifies a string of
+text that appears at the beginning of normal text lines and should be
+disregarded when filling them.  Any line that fails to start with the
+fill prefix is considered the start of a paragraph; so is any line
+that starts with the fill prefix followed by additional whitespace.
+Lines that start with the fill prefix but no additional whitespace are
+ordinary text lines that can be filled together.  The resulting filled
+lines also start with the fill prefix.
 
 The fill prefix follows the left margin whitespace, if any.
 @end defopt
@@ -1661,12 +1669,11 @@ becomes buffer-local when set in any fashion.
 
 @defvar fill-nobreak-predicate
 This variable gives major modes a way to specify not to break a line
-at certain places.  Its value should be a list of functions, but a
-single function is also supported for compatibility.  Whenever filling
-considers breaking the line at a certain place in the buffer, it calls
-each of these functions with no arguments and with point located at
-that place.  If any of the functions returns non-@code{nil}, then the
-line won't be broken there.
+at certain places.  Its value should be a list of functions.  Whenever
+filling considers breaking the line at a certain place in the buffer,
+it calls each of these functions with no arguments and with point
+located at that place.  If any of the functions returns
+non-@code{nil}, then the line won't be broken there.
 @end defvar
 
 @node Adaptive Fill
@@ -1733,7 +1740,7 @@ Adaptive Fill mode matches this regular expression against the text
 starting after the left margin whitespace (if any) on a line; the
 characters it matches are that line's candidate for the fill prefix.
 
-@w{@code{"[ \t]*\\([-|#;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}} is the
+@w{@code{"[ \t]*\\([-!|#%;>*·•‣⁃◦]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}} is the
 default value.  This matches a number enclosed in parentheses or
 followed by a period, or certain punctuation characters, or any
 sequence of these intermingled with whitespace.  In particular, it
@@ -1898,7 +1905,8 @@ the sort order."
     (save-restriction
       (narrow-to-region beg end)
       (goto-char (point-min))
-      (sort-subr reverse 'forward-line 'end-of-line))))
+      (let ((inhibit-field-text-motion t))
+        (sort-subr reverse 'forward-line 'end-of-line)))))
 @end group
 @end example
 
@@ -2054,9 +2062,12 @@ One unusual thing about this command is that the entire line
 containing position @var{beg}, and the entire line containing position
 @var{end}, are included in the region sorted.
 
-Note that @code{sort-columns} uses the @code{sort} utility program,
-and so cannot work properly on text containing tab characters.  Use
-@kbd{M-x untabify} to convert tabs to spaces before sorting.
+Note that @code{sort-columns} rejects text that contains tabs, because
+tabs could be split across the specified columns.  Use @kbd{M-x
+untabify} to convert tabs to spaces before sorting.
+
+When possible, this command actually works by calling the @code{sort}
+utility program.
 @end deffn
 
 @node Columns
@@ -2391,6 +2402,7 @@ spaces and tab characters to reach the next tab stop column; it does not
 affect the display of tab characters in the buffer (@pxref{Usual
 Display}).  Note that the @key{TAB} character as input uses this tab
 stop feature only in a few major modes, such as Text mode.
+@xref{Tab Stops,,, emacs, The GNU Emacs Manual}.
 
 @deffn Command tab-to-tab-stop
 This command inserts spaces or tabs before point, up to the next tab
@@ -3079,22 +3091,23 @@ This feature is used in the mode line and for other active text.
 @cindex keymap of character
 @kindex keymap @r{(text property)}
 The @code{keymap} property specifies an additional keymap for
-commands.  The property's value for the character before point applies
-if it is non-@code{nil} and rear-sticky, and the property's value for
-the character after point applies if it is non-@code{nil} and
-front-sticky.  (For mouse clicks, the position of the click is used
-instead of the position of point.)  If the property value is a symbol,
-the symbol's function definition is used as the keymap.
+commands.  When this keymap applies, it is used for key lookup before
+the minor mode keymaps and before the buffer's local map.
+@xref{Active Keymaps}.  If the property value is a symbol, the
+symbol's function definition is used as the keymap.
 
-When this keymap applies, it is used for key lookup before the minor
-mode keymaps and before the buffer's local map.  @xref{Active
-Keymaps}.
+The property's value for the character before point applies if it is
+non-@code{nil} and rear-sticky, and the property's value for the
+character after point applies if it is non-@code{nil} and
+front-sticky.  (For mouse clicks, the position of the click is used
+instead of the position of point.)
 
 @item local-map
 @kindex local-map @r{(text property)}
 This property works like @code{keymap} except that it specifies a
 keymap to use @emph{instead of} the buffer's local map.  For most
-purposes (perhaps all purposes), the @code{keymap} is superior.
+purposes (perhaps all purposes), it is better to use the @code{keymap}
+property.
 
 @item syntax-table
 The @code{syntax-table} property overrides what the syntax table says
@@ -3479,9 +3492,16 @@ being called over and over for the same text.
 @subsection Defining Clickable Text
 @cindex clickable text
 
-  There are two parts of setting up @dfn{clickable text} in a buffer:
-(1) to indicate clickability when the mouse moves over the text, and (2)
-to make a mouse button do something when you click on that text.
+  @dfn{Clickable text} is text that can be clicked, with either the
+the mouse or via keyboard commands, to produce some result.  Many
+major modes use clickable text to implement features such as
+hyper-links.  The @code{button} package provides an easy way to insert
+and manipulate clickable text.  @xref{Buttons}.
+
+  In this section, we will explain how to manually set up clickable
+text in a buffer using text properties.  This involves two things: (1)
+indicating clickability when the mouse moves over the text, and (2)
+making @kbd{RET} or a mouse click on that text do something.
 
   Indicating clickability usually involves highlighting the text, and
 often involves displaying helpful information about the action, such

@@ -566,7 +566,7 @@ deactivate/activate match logging in the latter. See
       (unless buffer-already
 	(insert " == Type \"q\" to dismiss messages ==\n")
 	(erc-view-mode-enter nil (lambda (buffer)
-				   (when (y-or-n-p "Discard messages?")
+				   (when (y-or-n-p "Discard messages? ")
 				     (kill-buffer buffer)))))
       buffer)))
 
