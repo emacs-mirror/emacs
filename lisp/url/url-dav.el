@@ -621,59 +621,56 @@ Returns t iff the lock was successfully released."
 (autoload 'url-http-head-file-attributes "url-http")
 
 (defun url-dav-file-attributes (url &optional id-format)
-  (let ((properties (cdar (url-dav-get-properties url)))
-	(attributes nil))
+  (let ((properties (cdar (url-dav-get-properties url))))
     (if (and properties
 	     (url-dav-http-success-p (plist-get properties 'DAV:status)))
 	;; We got a good DAV response back..
-	(setq attributes
-	      (list
-	       ;; t for directory, string for symbolic link, or nil
-	       ;; Need to support DAV Bindings to figure out the
-	       ;; symbolic link issues.
-	       (if (memq 'DAV:collection (plist-get properties 'DAV:resourcetype)) t nil)
+        (list
+         ;; t for directory, string for symbolic link, or nil
+         ;; Need to support DAV Bindings to figure out the
+         ;; symbolic link issues.
+         (if (memq 'DAV:collection (plist-get properties 'DAV:resourcetype)) t nil)
 
-	       ;; Number of links to file... Needs DAV Bindings.
-	       1
+         ;; Number of links to file... Needs DAV Bindings.
+         1
 
-	       ;; File uid - no way to figure out?
-	       0
+         ;; File uid - no way to figure out?
+         0
 
-	       ;; File gid - no way to figure out?
-	       0
+         ;; File gid - no way to figure out?
+         0
 
-	       ;; Last access time - ???
-	       nil
+         ;; Last access time - ???
+         nil
 
-	       ;; Last modification time
-	       (plist-get properties 'DAV:getlastmodified)
+         ;; Last modification time
+         (plist-get properties 'DAV:getlastmodified)
 
-	       ;; Last status change time... just reuse last-modified
-	       ;; for now.
-	       (plist-get properties 'DAV:getlastmodified)
+         ;; Last status change time... just reuse last-modified
+         ;; for now.
+         (plist-get properties 'DAV:getlastmodified)
 
-	       ;; size in bytes
-	       (or (plist-get properties 'DAV:getcontentlength) 0)
+         ;; size in bytes
+         (or (plist-get properties 'DAV:getcontentlength) 0)
 
-	       ;; file modes as a string like `ls -l'
-	       ;; 
-	       ;; Should be able to build this up from the
-	       ;; DAV:supportedlock attribute pretty easily.  Getting
-	       ;; the group info could be impossible though.
-	       (url-dav-file-attributes-mode-string properties)
+         ;; file modes as a string like `ls -l'
+         ;; 
+         ;; Should be able to build this up from the
+         ;; DAV:supportedlock attribute pretty easily.  Getting
+         ;; the group info could be impossible though.
+         (url-dav-file-attributes-mode-string properties)
 
-	       ;; t iff file's gid would change if it were deleted &
-	       ;; recreated.  No way for us to know that thru DAV.
-	       nil
+         ;; t iff file's gid would change if it were deleted &
+         ;; recreated.  No way for us to know that thru DAV.
+         nil
 
-	       ;; inode number - meaningless
-	       nil
+         ;; inode number - meaningless
+         nil
 
-	       ;; device number - meaningless
-	       nil))
+         ;; device number - meaningless
+         nil)
       ;; Fall back to just the normal http way of doing things.
-      (setq attributes (url-http-head-file-attributes url id-format)))
-    attributes))
+      (url-http-head-file-attributes url id-format))))
 
 (defun url-dav-save-resource (url obj &optional content-type lock-token)
   "Save OBJ as URL using WebDAV.
