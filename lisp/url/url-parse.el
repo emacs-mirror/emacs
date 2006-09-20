@@ -100,17 +100,20 @@
 		   (not (equal (url-port urlobj)
 			       (url-scheme-get-property (url-type urlobj) 'default-port))))
 	      (format ":%d" (url-port urlobj)))
-	  (or (url-filename urlobj) "/")
+	  (or (url-filename urlobj) "/")          
+	  (url-recreate-url-attributes urlobj)
 	  (if (url-target urlobj)
-	      (concat "#" (url-target urlobj)))
-	  (if (url-attributes urlobj)
-	      (concat ";"
-		      (mapconcat
-		       (function
-			(lambda (x)
-			  (if (cdr x)
-			      (concat (car x) "=" (cdr x))
-			    (car x)))) (url-attributes urlobj) ";")))))
+	      (concat "#" (url-target urlobj)))))
+
+(defun url-recreate-url-attributes (urlobj)
+  "Recreate the attributes of an URL string from the parsed URLOBJ."
+  (when (url-attributes urlobj)
+    (concat ";"
+	    (mapconcat (lambda (x)
+                         (if (cdr x)
+                             (concat (car x) "=" (cdr x))
+                           (car x)))
+                       (url-attributes urlobj) ";"))))
 
 ;;;###autoload
 (defun url-generic-parse-url (url)

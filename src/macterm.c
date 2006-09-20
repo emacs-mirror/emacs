@@ -902,7 +902,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 #if USE_ATSUI
   if (GC_FONT (gc)->mac_style)
     {
-      OSErr err;
+      OSStatus err;
       ATSUTextLayout text_layout;
 
       xassert (bytes_per_char == 2);
@@ -1129,7 +1129,7 @@ mac_draw_image_string_16 (f, gc, x, y, buf, nchars, bg_width)
    the font of the current graphics port.  If CG_GLYPH is not NULL,
    *CG_GLYPH is set to the glyph ID or 0 if it cannot be obtained.  */
 
-static OSErr
+static OSStatus
 mac_query_char_extents (style, c,
 			font_ascent_return, font_descent_return,
 			overall_return, cg_glyph)
@@ -1147,7 +1147,7 @@ mac_query_char_extents (style, c,
      void *cg_glyph;
 #endif
 {
-  OSErr err = noErr;
+  OSStatus err = noErr;
   int width;
   Rect char_bounds;
 
@@ -1193,7 +1193,7 @@ mac_query_char_extents (style, c,
 #if USE_CG_TEXT_DRAWING
 	  if (err == noErr && cg_glyph)
 	    {
-	      OSErr err1;
+	      OSStatus err1;
 	      ATSUGlyphInfoArray glyph_info_array;
 	      ByteCount count = sizeof (ATSUGlyphInfoArray);
 
@@ -3583,7 +3583,9 @@ x_draw_stretch_glyph_string (s)
       int background_width = s->background_width;
       int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
 
-      if (x < left_x)
+      /* Don't draw into left margin, fringe or scrollbar area
+         except for header line and mode line.  */
+      if (x < left_x && !s->row->mode_line_p)
 	{
 	  background_width -= left_x - x;
 	  x = left_x;
@@ -3677,14 +3679,14 @@ x_draw_glyph_string (s)
 
 	  if (s->face->underline_defaulted_p)
 	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-				s->width, h);
+				s->background_width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->underline_color);
 	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-				  s->width, h);
+				  s->background_width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -3696,14 +3698,14 @@ x_draw_glyph_string (s)
 
 	  if (s->face->overline_color_defaulted_p)
 	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-				s->width, h);
+				s->background_width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->overline_color);
 	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
-				  s->width, h);
+				  s->background_width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -5803,6 +5805,57 @@ mac_get_window_bounds (f, inner, outer)
 #endif /* not TARGET_API_MAC_CARBON */
 }
 
+static void
+mac_handle_origin_change (f)
+     struct frame *f;
+{
+  x_real_positions (f, &f->left_pos, &f->top_pos);
+}
+
+static void
+mac_handle_size_change (f, pixelwidth, pixelheight)
+     struct frame *f;
+     int pixelwidth, pixelheight;
+{
+  int cols, rows;
+
+  cols = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, pixelwidth);
+  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, pixelheight);
+
+  if (cols != FRAME_COLS (f)
+      || rows != FRAME_LINES (f)
+      || pixelwidth != FRAME_PIXEL_WIDTH (f)
+      || pixelheight != FRAME_PIXEL_HEIGHT (f))
+    {
+      /* We pass 1 for DELAY since we can't run Lisp code inside of
+	 a BLOCK_INPUT.  */
+      change_frame_size (f, rows, cols, 0, 1, 0);
+      FRAME_PIXEL_WIDTH (f) = pixelwidth;
+      FRAME_PIXEL_HEIGHT (f) = pixelheight;
+      SET_FRAME_GARBAGED (f);
+
+      /* If cursor was outside the new size, mark it as off.  */
+      mark_window_cursors_off (XWINDOW (f->root_window));
+
+      /* Clear out any recollection of where the mouse highlighting
+	 was, since it might be in a place that's outside the new
+	 frame size.  Actually checking whether it is outside is a
+	 pain in the neck, so don't try--just let the highlighting be
+	 done afresh with new size.  */
+      cancel_mouse_face (f);
+
+#if TARGET_API_MAC_CARBON
+      if (f->output_data.mac->hourglass_control)
+	{
+#if USE_CG_DRAWING
+	  mac_prepare_for_quickdraw (f);
+#endif
+	  MoveControl (f->output_data.mac->hourglass_control,
+		       pixelwidth - HOURGLASS_WIDTH, 0);
+	}
+#endif
+    }
+}
 
 
 /* Calculate the absolute position in frame F
@@ -5883,7 +5936,10 @@ x_set_offset (f, xoff, yoff, change_gravity)
   ConstrainWindowToScreen (FRAME_MAC_WINDOW (f), kWindowTitleBarRgn,
 			   kWindowConstrainMoveRegardlessOfFit
 			   | kWindowConstrainAllowPartial, NULL, NULL);
-  x_real_positions (f, &f->left_pos, &f->top_pos);
+#if USE_CARBON_EVENTS
+  if (!NILP (tip_frame) && XFRAME (tip_frame) == f)
+#endif
+    mac_handle_origin_change (f);
 #else
   {
     Rect inner, outer, screen_rect, dummy;
@@ -5957,50 +6013,11 @@ x_set_window_size (f, change_gravity, cols, rows)
   x_wm_set_size_hint (f, (long) 0, 0);
 
   SizeWindow (FRAME_MAC_WINDOW (f), pixelwidth, pixelheight, 0);
-#if TARGET_API_MAC_CARBON
-  if (f->output_data.mac->hourglass_control)
-    {
-#if USE_CG_DRAWING
-      mac_prepare_for_quickdraw (f);
+
+#if USE_CARBON_EVENTS
+  if (!NILP (tip_frame) && f == XFRAME (tip_frame))
 #endif
-      MoveControl (f->output_data.mac->hourglass_control,
-		   pixelwidth - HOURGLASS_WIDTH, 0);
-    }
-#endif
-
-  /* Now, strictly speaking, we can't be sure that this is accurate,
-     but the window manager will get around to dealing with the size
-     change request eventually, and we'll hear how it went when the
-     ConfigureNotify event gets here.
-
-     We could just not bother storing any of this information here,
-     and let the ConfigureNotify event set everything up, but that
-     might be kind of confusing to the Lisp code, since size changes
-     wouldn't be reported in the frame parameters until some random
-     point in the future when the ConfigureNotify event arrives.
-
-     We pass 1 for DELAY since we can't run Lisp code inside of
-     a BLOCK_INPUT.  */
-  change_frame_size (f, rows, cols, 0, 1, 0);
-  FRAME_PIXEL_WIDTH (f) = pixelwidth;
-  FRAME_PIXEL_HEIGHT (f) = pixelheight;
-
-  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
-     receive in the ConfigureNotify event; if we get what we asked
-     for, then the event won't cause the screen to become garbaged, so
-     we have to make sure to do it here.  */
-  SET_FRAME_GARBAGED (f);
-
-  XFlush (FRAME_X_DISPLAY (f));
-
-  /* If cursor was outside the new size, mark it as off.  */
-  mark_window_cursors_off (XWINDOW (f->root_window));
-
-  /* Clear out any recollection of where the mouse highlighting was,
-     since it might be in a place that's outside the new frame size.
-     Actually checking whether it is outside is a pain in the neck,
-     so don't try--just let the highlighting be done afresh with new size.  */
-  cancel_mouse_face (f);
+    mac_handle_size_change (f, pixelwidth, pixelheight);
 
   UNBLOCK_INPUT;
 }
@@ -6211,7 +6228,10 @@ x_make_frame_visible (f)
 				  kWindowCascadeOnParentWindowScreen
 #endif
 				  );
-	      x_real_positions (f, &f->left_pos, &f->top_pos);
+#if USE_CARBON_EVENTS
+	      if (!NILP (tip_frame) && f == XFRAME (tip_frame))
+#endif
+		mac_handle_origin_change (f);
 	    }
 	  else
 #endif
@@ -6312,7 +6332,7 @@ void
 x_iconify_frame (f)
      struct frame *f;
 {
-  OSErr err;
+  OSStatus err;
 
   /* A deactivate event does not occur when the last visible frame is
      iconified.  So if we clear the highlight here, it will not be
@@ -6375,11 +6395,6 @@ x_free_frame_resources (f)
 
   if (FRAME_SIZE_HINTS (f))
     xfree (FRAME_SIZE_HINTS (f));
-
-#if TARGET_API_MAC_CARBON
-  if (FRAME_FILE_NAME (f))
-    xfree (FRAME_FILE_NAME (f));
-#endif
 
   xfree (f->output_data.mac);
   f->output_data.mac = NULL;
@@ -7198,7 +7213,7 @@ init_font_name_table ()
   if (!NILP (assq_no_quit (make_number (kTextEncodingMacUnicode),
 			   text_encoding_info_alist)))
     {
-      OSErr err;
+      OSStatus err;
       struct Lisp_Hash_Table *h;
       unsigned hash_code;
       ItemCount nfonts, i;
@@ -7780,7 +7795,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
 #if USE_ATSUI
   if (strcmp (charset, "iso10646-1") == 0) /* XXX */
     {
-      OSErr err;
+      OSStatus err;
       ATSUAttributeTag tags[] = {kATSUFontTag, kATSUSizeTag,
 				 kATSUQDBoldfaceTag, kATSUQDItalicTag};
       ByteCount sizes[] = {sizeof (ATSUFontID), sizeof (Fixed),
@@ -7863,7 +7878,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
 #if USE_ATSUI
   if (font->mac_style)
     {
-      OSErr err;
+      OSStatus err;
       UniChar c;
 
       font->min_byte1 = 0;
@@ -8342,8 +8357,8 @@ x_query_font (f, fontname)
 
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name
-	&& (!strcmp (dpyinfo->font_table[i].name, fontname)
-	    || !strcmp (dpyinfo->font_table[i].full_name, fontname)))
+	&& (!xstricmp (dpyinfo->font_table[i].name, fontname)
+	    || !xstricmp (dpyinfo->font_table[i].full_name, fontname)))
       return (dpyinfo->font_table + i);
   return NULL;
 }
@@ -8537,7 +8552,7 @@ Point saved_menu_event_location;
 
 /* Apple Events */
 #if USE_CARBON_EVENTS
-static Lisp_Object Qhicommand;
+static Lisp_Object Qhi_command;
 #ifdef MAC_OSX
 extern Lisp_Object Qwindow;
 static Lisp_Object Qtoolbar_switch_mode;
@@ -8579,7 +8594,7 @@ static Lisp_Object Qservice, Qpaste, Qperform;
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
 						EventRef, void *);
 #endif
-OSErr install_window_handler (WindowPtr);
+OSStatus install_window_handler (WindowPtr);
 
 extern void init_emacs_passwd_dir ();
 extern int emacs_main (int, char **, char **);
@@ -9168,6 +9183,32 @@ do_grow_window (WindowPtr w, EventRecord *e)
 }
 
 
+#if TARGET_API_MAC_CARBON
+static Point
+mac_get_ideal_size (f)
+     struct frame *f;
+{
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
+  WindowPtr w = FRAME_MAC_WINDOW (f);
+  Point ideal_size;
+  Rect standard_rect;
+  int height, width, columns, rows;
+
+  ideal_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
+  ideal_size.v = dpyinfo->height;
+  IsWindowInStandardState (w, &ideal_size, &standard_rect);
+  /* Adjust the standard size according to character boundaries.  */
+  width = standard_rect.right - standard_rect.left;
+  height = standard_rect.bottom - standard_rect.top;
+  columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
+  rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
+  ideal_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, columns);
+  ideal_size.v = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+
+  return ideal_size;
+}
+#endif
+
 /* Handle clicks in zoom box.  Calculation of "standard state" based
    on code in IM - Window Manager A and code contributed by Ben
    Mesander.  The standard state of an Emacs window is 80-characters
@@ -9177,39 +9218,28 @@ static void
 do_zoom_window (WindowPtr w, int zoom_in_or_out)
 {
   Rect zoom_rect, port_rect;
-  int columns, rows, width, height;
+  int width, height;
   struct frame *f = mac_window_to_frame (w);
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
 #if TARGET_API_MAC_CARBON
-  Point standard_size;
+  Point ideal_size = mac_get_ideal_size (f);
 
-  standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
-  standard_size.v = dpyinfo->height;
-
-  if (IsWindowInStandardState (w, &standard_size, &zoom_rect))
+  GetWindowBounds (w, kWindowContentRgn, &port_rect);
+  if (IsWindowInStandardState (w, &ideal_size, &zoom_rect)
+      && port_rect.left == zoom_rect.left
+      && port_rect.top == zoom_rect.top)
     zoom_in_or_out = inZoomIn;
   else
-    {
-      /* Adjust the standard size according to character boundaries.  */
+    zoom_in_or_out = inZoomOut;
 
-      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, zoom_rect.right - zoom_rect.left);
-      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, zoom_rect.bottom - zoom_rect.top);
-      standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, columns);
-      standard_size.v = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
-      GetWindowBounds (w, kWindowContentRgn, &port_rect);
-      if (IsWindowInStandardState (w, &standard_size, &zoom_rect)
-	  && port_rect.left == zoom_rect.left
-	  && port_rect.top == zoom_rect.top)
-	zoom_in_or_out = inZoomIn;
-      else
-	zoom_in_or_out = inZoomOut;
-    }
-
-  ZoomWindowIdeal (w, zoom_in_or_out, &standard_size);
+#ifdef MAC_OS8
+  mac_clear_window (f);
+#endif
+  ZoomWindowIdeal (w, zoom_in_or_out, &ideal_size);
 #else /* not TARGET_API_MAC_CARBON */
   GrafPtr save_port;
   Point top_left;
-  int w_title_height;
+  int w_title_height, rows;
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
 
   GetPort (&save_port);
 
@@ -9248,6 +9278,7 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   SetPort (save_port);
 #endif /* not TARGET_API_MAC_CARBON */
 
+#if !USE_CARBON_EVENTS
   /* retrieve window size and update application values */
 #if TARGET_API_MAC_CARBON
   GetWindowPortBounds (w, &port_rect);
@@ -9257,20 +9288,9 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   height = port_rect.bottom - port_rect.top;
   width = port_rect.right - port_rect.left;
 
-  if (width != FRAME_PIXEL_WIDTH (f)
-      || height != FRAME_PIXEL_HEIGHT (f))
-    {
-      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, height);
-      columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, width);
-
-      change_frame_size (f, rows, columns, 0, 1, 0);
-      SET_FRAME_GARBAGED (f);
-      cancel_mouse_face (f);
-
-      FRAME_PIXEL_WIDTH (f) = width;
-      FRAME_PIXEL_HEIGHT (f) = height;
-    }
-  x_real_positions (f, &f->left_pos, &f->top_pos);
+  mac_handle_size_change (f, width, height);
+  mac_handle_origin_change (f);
+#endif
 }
 
 void
@@ -9380,15 +9400,15 @@ mac_handle_command_event (next_handler, event, data)
   if (err != noErr || command.commandID == 0)
     return eventNotHandledErr;
 
-  /* A HICommand event is mapped to an Apple event whose event class
-     symbol is `hicommand' and event ID is its command ID.  */
+  /* A HI command event is mapped to an Apple event whose event class
+     symbol is `hi-command' and event ID is its command ID.  */
   err = mac_store_event_ref_as_apple_event (0, command.commandID,
-					    Qhicommand, Qnil,
+					    Qhi_command, Qnil,
 					    event, num_params, names, types);
   return err == noErr ? noErr : eventNotHandledErr;
 }
 
-static OSErr
+static OSStatus
 init_command_handler ()
 {
   EventTypeSpec specs[] = {{kEventClassCommand, kEventCommandProcess}};
@@ -9409,6 +9429,7 @@ mac_handle_window_event (next_handler, event, data)
 {
   WindowPtr wp;
   OSStatus result, err;
+  struct frame *f;
   UInt32 attributes;
   XSizeHints *size_hints;
 
@@ -9417,6 +9438,7 @@ mac_handle_window_event (next_handler, event, data)
   if (err != noErr)
     return eventNotHandledErr;
 
+  f = mac_window_to_frame (wp);
   switch (GetEventKind (event))
     {
     case kEventWindowUpdate:
@@ -9426,6 +9448,21 @@ mac_handle_window_event (next_handler, event, data)
 
       do_window_update (wp);
       return noErr;
+
+    case kEventWindowGetIdealSize:
+      result = CallNextEventHandler (next_handler, event);
+      if (result != eventNotHandledErr)
+	return result;
+
+      {
+	Point ideal_size = mac_get_ideal_size (f);
+
+	err = SetEventParameter (event, kEventParamDimensions,
+				 typeQDPoint, sizeof (Point), &ideal_size);
+	if (err == noErr)
+	  return noErr;
+      }
+      break;
 
     case kEventWindowBoundsChanging:
       result = CallNextEventHandler (next_handler, event);
@@ -9437,7 +9474,7 @@ mac_handle_window_event (next_handler, event, data)
       if (err != noErr)
 	break;
 
-      size_hints = FRAME_SIZE_HINTS (mac_window_to_frame (wp));
+      size_hints = FRAME_SIZE_HINTS (f);
       if ((attributes & kWindowBoundsChangeUserResize)
 	  && ((size_hints->flags & (PResizeInc | PBaseSize | PMinSize))
 	      == (PResizeInc | PBaseSize | PMinSize)))
@@ -9478,16 +9515,57 @@ mac_handle_window_event (next_handler, event, data)
 	}
       break;
 
+    case kEventWindowBoundsChanged:
+      err = GetEventParameter (event, kEventParamAttributes, typeUInt32,
+			       NULL, sizeof (UInt32), NULL, &attributes);
+      if (err != noErr)
+	break;
+
+      if (attributes & kWindowBoundsChangeSizeChanged)
+	{
+	  Rect bounds;
+
+	  err = GetEventParameter (event, kEventParamCurrentBounds,
+				   typeQDRectangle, NULL, sizeof (Rect),
+				   NULL, &bounds);
+	  if (err == noErr)
+	    {
+	      int width, height;
+
+	      width = bounds.right - bounds.left;
+	      height = bounds.bottom - bounds.top;
+	      mac_handle_size_change (f, width, height);
+	    }
+	}
+
+      if (attributes & kWindowBoundsChangeOriginChanged)
+	mac_handle_origin_change (f);
+
+      return noErr;
+
     case kEventWindowShown:
     case kEventWindowHidden:
     case kEventWindowExpanded:
     case kEventWindowCollapsed:
       result = CallNextEventHandler (next_handler, event);
 
-      mac_handle_visibility_change (mac_window_to_frame (wp));
+      mac_handle_visibility_change (f);
       return noErr;
 
       break;
+
+    case kEventWindowClose:
+      result = CallNextEventHandler (next_handler, event);
+      {
+	struct input_event buf;
+
+	EVENT_INIT (buf);
+	buf.kind = DELETE_WINDOW_EVENT;
+	XSETFRAME (buf.frame_or_window, f);
+	buf.arg = Qnil;
+	kbd_buffer_store_event (&buf);
+      }
+      return noErr;
 
 #ifdef MAC_OSX
     case kEventWindowToolbarSwitchMode:
@@ -9778,6 +9856,8 @@ mac_handle_text_input_event (next_handler, event, data)
 			read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
 			read_socket_inev->code = code;
 			read_socket_inev->modifiers =
+			  mac_to_emacs_modifiers (modifiers);
+			read_socket_inev->modifiers |=
 			  (extra_keyboard_modifiers
 			   & (meta_modifier | alt_modifier
 			      | hyper_modifier | super_modifier));
@@ -9889,19 +9969,22 @@ mac_store_service_event (event)
 #endif	/* USE_CARBON_EVENTS */
 
 
-OSErr
+OSStatus
 install_window_handler (window)
      WindowPtr window;
 {
-  OSErr err = noErr;
+  OSStatus err = noErr;
 #if USE_CARBON_EVENTS
   EventTypeSpec specs_window[] =
     {{kEventClassWindow, kEventWindowUpdate},
+     {kEventClassWindow, kEventWindowGetIdealSize},
      {kEventClassWindow, kEventWindowBoundsChanging},
+     {kEventClassWindow, kEventWindowBoundsChanged},
      {kEventClassWindow, kEventWindowShown},
      {kEventClassWindow, kEventWindowHidden},
      {kEventClassWindow, kEventWindowExpanded},
      {kEventClassWindow, kEventWindowCollapsed},
+     {kEventClassWindow, kEventWindowClose},
 #ifdef MAC_OSX
      {kEventClassWindow, kEventWindowToolbarSwitchMode},
 #endif
@@ -10460,12 +10543,14 @@ XTread_socket (sd, expected, hold_quit)
 		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
 #endif /* not TARGET_API_MAC_CARBON */
 		/* Update the frame parameters.  */
+#if !USE_CARBON_EVENTS
 		{
 		  struct frame *f = mac_window_to_frame (window_ptr);
 
 		  if (f && !f->async_iconified)
-		    x_real_positions (f, &f->left_pos, &f->top_pos);
+		    mac_handle_origin_change (f);
 		}
+#endif
 		break;
 
 	      case inGoAway:
@@ -10564,7 +10649,7 @@ XTread_socket (sd, expected, hold_quit)
 		  else
 		    {
 		      /* Generate SELECT_WINDOW_EVENTs when needed.  */
-		      if (mouse_autoselect_window)
+		      if (!NILP (Vmouse_autoselect_window))
 			{
 			  Lisp_Object window;
 
@@ -11327,7 +11412,7 @@ static void
 init_menu_bar ()
 {
 #ifdef MAC_OSX
-  OSErr err;
+  OSStatus err;
   MenuRef menu;
   MenuItemIndex menu_index;
 
@@ -11510,7 +11595,7 @@ syms_of_macterm ()
   Fput (Qsuper,   Qmodifier_value, make_number (super_modifier));
 
 #if USE_CARBON_EVENTS
-  Qhicommand   = intern ("hicommand");    staticpro (&Qhicommand);
+  Qhi_command   = intern ("hi-command");    staticpro (&Qhi_command);
 #ifdef MAC_OSX
   Qtoolbar_switch_mode = intern ("toolbar-switch-mode");
   staticpro (&Qtoolbar_switch_mode);

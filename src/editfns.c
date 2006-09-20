@@ -1390,7 +1390,7 @@ name, or nil if there is no such user.  */)
 }
 
 DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
-       doc: /* Return the name of the machine you are running on, as a string.  */)
+       doc: /* Return the host name of the machine you are running on, as a string.  */)
      ()
 {
   return Vsystem_name;
@@ -1435,14 +1435,11 @@ resolution finer than a second.  */)
      ()
 {
   EMACS_TIME t;
-  Lisp_Object result[3];
 
   EMACS_GET_TIME (t);
-  XSETINT (result[0], (EMACS_SECS (t) >> 16) & 0xffff);
-  XSETINT (result[1], (EMACS_SECS (t) >> 0)  & 0xffff);
-  XSETINT (result[2], EMACS_USECS (t));
-
-  return Flist (3, result);
+  return list3 (make_number ((EMACS_SECS (t) >> 16) & 0xffff),
+		make_number ((EMACS_SECS (t) >> 0)  & 0xffff),
+		make_number (EMACS_USECS (t)));
 }
 
 DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
@@ -1460,7 +1457,6 @@ systems that do not provide resolution finer than a second.  */)
 {
 #ifdef HAVE_GETRUSAGE
   struct rusage usage;
-  Lisp_Object result[3];
   int secs, usecs;
 
   if (getrusage (RUSAGE_SELF, &usage) < 0)
@@ -1476,11 +1472,9 @@ systems that do not provide resolution finer than a second.  */)
       secs++;
     }
 
-  XSETINT (result[0], (secs >> 16) & 0xffff);
-  XSETINT (result[1], (secs >> 0)  & 0xffff);
-  XSETINT (result[2], usecs);
-
-  return Flist (3, result);
+  return list3 (make_number ((secs >> 16) & 0xffff),
+		make_number ((secs >> 0)  & 0xffff),
+		make_number (usecs));
 #else
   return Fcurrent_time ();
 #endif
@@ -1700,7 +1694,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 				SBYTES (format_string),
 				tm, ut);
       if ((result > 0 && result < size) || (result == 0 && buf[0] == '\0'))
-	return code_convert_string_norecord (make_string (buf, result),
+	return code_convert_string_norecord (make_unibyte_string (buf, result),
 					     Vlocale_coding_system, 0);
 
       /* If buffer was too small, make it bigger and try again.  */
@@ -2787,7 +2781,7 @@ Both characters must have the same length of multi-byte form.  */)
 	  else if (!changed)
 	    {
 	      changed = -1;
-	      modify_region (current_buffer, pos, XINT (end));
+	      modify_region (current_buffer, pos, XINT (end), 0);
 
 	      if (! NILP (noundo))
 		{
@@ -2903,7 +2897,7 @@ It returns the number of characters changed.  */)
   pos = XINT (start);
   pos_byte = CHAR_TO_BYTE (pos);
   end_pos = XINT (end);
-  modify_region (current_buffer, pos, XINT (end));
+  modify_region (current_buffer, pos, XINT (end), 0);
 
   cnt = 0;
   for (; pos < end_pos; )
@@ -3183,6 +3177,9 @@ The message also goes into the `*Messages*' buffer.
 
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
+
+Note: Use (message "%s" VALUE) to print the value of expressions and
+variables to avoid accidentally interpreting `%' as format specifiers.
 
 If the first argument is nil or the empty string, the function clears
 any existing message; this lets the minibuffer contents show.  See
@@ -3764,7 +3761,13 @@ usage: (format STRING &rest OBJECTS)  */)
 	      this_format[format - this_format_start] = 0;
 
 	      if (INTEGERP (args[n]))
-		sprintf (p, this_format, XINT (args[n]));
+		{
+		  if (format[-1] == 'd')
+		    sprintf (p, this_format, XINT (args[n]));
+		  /* Don't sign-extend for octal or hex printing.  */
+		  else
+		    sprintf (p, this_format, XUINT (args[n]));
+		}
 	      else
 		sprintf (p, this_format, XFLOAT_DATA (args[n]));
 
@@ -4168,7 +4171,7 @@ Transposing beyond buffer boundaries is an error.  */)
 
   if (end1 == start2)		/* adjacent regions */
     {
-      modify_region (current_buffer, start1, end2);
+      modify_region (current_buffer, start1, end2, 0);
       record_change (start1, len1 + len2);
 
       tmp_interval1 = copy_intervals (cur_intv, start1, len1);
@@ -4224,8 +4227,8 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-          modify_region (current_buffer, start1, end1);
-          modify_region (current_buffer, start2, end2);
+          modify_region (current_buffer, start1, end1, 0);
+          modify_region (current_buffer, start2, end2, 0);
           record_change (start1, len1);
           record_change (start2, len2);
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
@@ -4254,7 +4257,7 @@ Transposing beyond buffer boundaries is an error.  */)
         {
 	  USE_SAFE_ALLOCA;
 
-          modify_region (current_buffer, start1, end2);
+          modify_region (current_buffer, start1, end2, 0);
           record_change (start1, (end2 - start1));
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
@@ -4285,7 +4288,7 @@ Transposing beyond buffer boundaries is an error.  */)
 	  USE_SAFE_ALLOCA;
 
           record_change (start1, (end2 - start1));
-          modify_region (current_buffer, start1, end2);
+          modify_region (current_buffer, start1, end2, 0);
 
           tmp_interval1 = copy_intervals (cur_intv, start1, len1);
           tmp_interval_mid = copy_intervals (cur_intv, end1, len_mid);
@@ -4370,7 +4373,7 @@ functions if all the text being accessed has this property.  */);
   Vbuffer_access_fontified_property = Qnil;
 
   DEFVAR_LISP ("system-name", &Vsystem_name,
-	       doc: /* The name of the machine Emacs is running on.  */);
+	       doc: /* The host name of the machine Emacs is running on.  */);
 
   DEFVAR_LISP ("user-full-name", &Vuser_full_name,
 	       doc: /* The full name of the user logged in.  */);

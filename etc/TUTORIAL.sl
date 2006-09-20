@@ -222,7 +222,7 @@ To bi moralo zaslon premakniti navzgor za osem vrstic. Èe bi ga radi
 premaknili nazaj, poskusite M-v z istim argumentom.
 
 Èe uporabljate grafièni vmesnik, denimo X11 ali MS Windows, imate
-verjetno ob levem robu Emacsovega okna navpièno pravokotno ploskev,
+verjetno ob robu Emacsovega okna navpièno pravokotno ploskev,
 imenovano drsnik. Pogled na besedilo lahko premikate tudi tako, da z
 mi¹ko kliknete na drsnik.
 

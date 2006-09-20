@@ -181,12 +181,9 @@ the function is called."
 
 ;; this one is untouched --dv
 (defun spaces-string (n)
+  "Returns a string with N spaces."
   (if (<= n 8) (aref spaces-strings n)
-    (let ((val ""))
-      (while (> n 8)
-	(setq val (concat "        " val)
-	      n (- n 8)))
-      (concat val (aref spaces-strings n)))))
+    (make-string n ? )))
 
 ;;;###autoload
 (defun delete-rectangle (start end &optional fill)

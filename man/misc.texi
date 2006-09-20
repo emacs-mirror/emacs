@@ -488,7 +488,8 @@ Coding}.
 
 @cindex @env{EMACS} environment variable
   Unless the environment variable @env{EMACS} is already defined,
-Emacs defines it in the subshell, with value @code{t}.  A shell script
+Emacs defines it in the subshell, with value equal to Emacs's absolute
+file name.  A shell script
 can check this variable to determine whether it has been run from an
 Emacs subshell.
 

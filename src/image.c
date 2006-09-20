@@ -2396,7 +2396,7 @@ image_load_qt_1 (f, img, type, fss, dh)
      FSSpec *fss;
      Handle dh;
 {
-  OSErr err;
+  ComponentResult err;
   GraphicsImportComponent gi;
   Rect rect;
   int width, height;

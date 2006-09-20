@@ -3475,14 +3475,9 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (x_defined_color (f, SDATA (color), &foo, 0))
-    {
-      Lisp_Object rgb[3];
-
-      rgb[0] = make_number (foo.red);
-      rgb[1] = make_number (foo.green);
-      rgb[2] = make_number (foo.blue);
-      return Flist (3, rgb);
-    }
+    return list3 (make_number (foo.red),
+		  make_number (foo.green),
+		  make_number (foo.blue));
   else
     return Qnil;
 }
@@ -4072,11 +4067,15 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
   x_destroy_all_bitmaps (dpyinfo);
   XSetCloseDownMode (dpyinfo->display, DestroyAll);
 
+#ifdef USE_GTK
+  xg_display_close (dpyinfo->display);
+#else
 #ifdef USE_X_TOOLKIT
   XtCloseDisplay (dpyinfo->display);
 #else
   XCloseDisplay (dpyinfo->display);
 #endif
+#endif /* ! USE_GTK */
 
   x_delete_display (dpyinfo);
   UNBLOCK_INPUT;
@@ -5333,6 +5332,8 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
 
+  check_x ();
+
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 
   if (popup_activated ())
@@ -5499,6 +5500,8 @@ directories.  */)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char *cdef_file;
+
+  check_x ();
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
 

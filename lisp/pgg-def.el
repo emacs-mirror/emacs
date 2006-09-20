@@ -71,6 +71,13 @@ Whether the passphrase is cached at all is controlled by
   :group 'pgg
   :type 'integer)
 
+(defcustom pgg-passphrase-coding-system
+  (if (boundp 'locale-coding-system)
+      locale-coding-system)
+  "Coding system to encode passphrase."
+  :group 'pgg
+  :type 'coding-system)
+
 (defvar pgg-messages-coding-system nil
   "Coding system used when reading from a PGP external process.")
 

@@ -3043,6 +3043,10 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
 	       (insert "\f\n")))))))
 
 (defun dired-log-summary (string failures)
+  "State a summary of a command's failures, in echo area and log buffer.
+STRING is an overall summary of the failures.
+FAILURES is a list of file names that we failed to operate on,
+or nil if file names are not applicable."
   (if (= (length failures) 1)
       (message "%s"
 	       (with-current-buffer dired-log-buffer

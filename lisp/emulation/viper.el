@@ -534,10 +534,6 @@ If Viper is enabled, turn it off.  Otherwise, turn it on."
 (defun viper-mode ()
   "Turn on Viper emulation of Vi in Emacs. See Info node `(viper)Viper'."
   (interactive)
-  (if (null viper-vi-state-cursor-color)
-      (modify-frame-parameters
-	(selected-frame)
-	(list (cons 'viper-vi-state-cursor-color (viper-get-cursor-color)))))
   (if (not noninteractive)
       (progn
 	;; if the user requested viper-mode explicitly
@@ -618,7 +614,8 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 
 	(or (memq major-mode viper-emacs-state-mode-list) ; don't switch to Vi
 	    (memq major-mode viper-insert-state-mode-list) ; don't switch
-	    (viper-change-state-to-vi)))))
+	    (viper-change-state-to-vi))
+	)))
 
 
 ;; Apply a little heuristic to invoke vi state on major-modes
@@ -862,8 +859,11 @@ It also can't undo some Viper settings."
   ;; info about the display and windows until emacs initialization is complete
   ;; So do it via the window-setup-hook
   (add-hook 'window-setup-hook
-	    '(lambda ()
-	       (setq viper-vi-state-cursor-color (viper-get-cursor-color))))
+  	    '(lambda ()
+	       (modify-frame-parameters
+		(selected-frame)
+		(list (cons 'viper-vi-state-cursor-color
+			    (viper-get-cursor-color))))))
 
   ;; Tell vc-diff to put *vc* in Vi mode
   (if (featurep 'vc)
@@ -903,7 +903,6 @@ It also can't undo some Viper settings."
 
   (defadvice set-cursor-color (after viper-set-cursor-color-ad activate)
     "Change cursor color in VI state."
-    ;;(setq viper-vi-state-cursor-color (ad-get-arg 0))
     (modify-frame-parameters
 	(selected-frame)
 	(list (cons 'viper-vi-state-cursor-color (ad-get-arg 0))))
@@ -1008,8 +1007,8 @@ It also can't undo some Viper settings."
 ;; these are primarily advices and Vi-ish variable settings
 (defun viper-non-hook-settings ()
 
-  ;; Viper changes the default mode-line-buffer-identification
-  (setq-default mode-line-buffer-identification '(" %b"))
+  ;;;; Viper changes the default mode-line-buffer-identification
+  ;;(setq-default mode-line-buffer-identification '(" %b"))
 
   ;; setup emacs-supported vi-style feel
   (setq next-line-add-newlines nil

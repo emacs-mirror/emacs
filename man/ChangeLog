@@ -1,3 +1,94 @@
+2006-09-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.texi (Visiting): Add index entry "open file".
+
+	* reftex.texi (Citations Outside LaTeX): Simplify lisp example.
+
+2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* faq.texi (Escape sequences in shell output): EMACS is now set
+	to Emacs's absolute file name, not to "t".
+	(^M in the shell buffer): Likewise.
+	* misc.texi (Interactive Shell): Likewise.
+
+2006-09-11  Richard Stallman  <rms@gnu.org>
+
+	* building.texi (Compilation Mode): Clarification.
+	(Grep Searching): Add xref to Compilation Mode.
+
+2006-09-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Specifiers): Mention problem of duplicate
+	mails with pop3-leave-mail-on-server.  Fix wording.
+
+2006-09-11  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Explain TLS and SSL better, based on
+	suggested by Phillip Lord <phillip.lord@newcastle.ac.uk>.
+
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Search): Ref multi-file search commands here.
+	(Other Repeating Search): Not here.
+
+2006-09-06  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Mention SSL.
+
+2006-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* rcirc.texi (Internet Relay Chat, Useful IRC commands): Don't use
+	@indicateurl.
+
+	* cc-mode.texi (Subword Movement): Don't use @headitem.
+	(Custom Braces, Clean-ups): Don't use @tie.
+
+2006-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.54.
+
+	* tramp.texi (Bug Reports): The Tramp mailing list is moderated
+	now.  Suggested by Adrian Phillips <a.phillips@met.no>.
+
+2006-08-28  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Split Window): Update xref.
+
+	* basic.texi (Continuation Lines): Update xref.
+
+	* indent.texi (Tab Stops): Update xref.
+
+	* emacs.texi (Top): Update subnode menu.
+
+	* display.texi (Line Truncation, Displaying Boundaries): New nodes,
+	split out of Display Custom.
+
+2006-08-25  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Display Custom): Add variables overline-margin
+	and x-underline-at-descent-line.
+
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* entering.texi (Exiting): Rewrite to give graphical displays
+	priority over text terminals.
+
+	* search.texi (Incremental Search): Move index entries.
+
+2006-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Init File): Reference Find Init to avoid "home
+	directory" confusion.
+
+2006-08-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Other GDB-UI Buffers): Describe how to edit
+	a value in the locals buffer.
+
+2006-08-21  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Basic Isearch): Add `isearch' index entry.
+
 2006-08-16  Richard Stallman  <rms@gnu.org>
 
 	* misc.texi (Saving Emacs Sessions): Clean up wording.
@@ -11,7 +102,7 @@
 2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Installation, Activation): Split from Installation and
-	Activation. 
+	Activation.
 	(Clocking work time): Documented new features.
 
 2006-08-15  Nick Roberts  <nickrob@snap.net.nz>

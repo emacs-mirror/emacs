@@ -200,7 +200,8 @@ Use the command `%s' to change this variable." pretty-name mode))
 See the command `%s' for a description of this minor-mode."
                          (if body "
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `%s'."))))
+either customize it (see the info node `Easy Customization')
+or call the function `%s'."))))
 	    `(defcustom ,mode ,init-value
 	       ,(format base-doc-string pretty-name mode mode)
 	       ,@set

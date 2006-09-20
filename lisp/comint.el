@@ -765,7 +765,8 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 		    (format "COLUMNS=%d" (window-width)))
 	    (list "TERM=emacs"
 		  (format "TERMCAP=emacs:co#%d:tc=unknown:" (window-width))))
-	  (if (getenv "EMACS") nil (list "EMACS=t"))
+	  (unless (getenv "EMACS")
+	    (list (concat "EMACS=" invocation-directory invocation-name)))
 	  process-environment))
 	(default-directory
 	  (if (file-accessible-directory-p default-directory)

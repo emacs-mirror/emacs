@@ -227,9 +227,9 @@ number whose value is 1500.  They are all equivalent.
 other words, characters are represented by their character codes.  For
 example, the character @kbd{A} is represented as the @w{integer 65}.
 
-  Individual characters are not often used in programs.  It is far more
-common to work with @emph{strings}, which are sequences composed of
-characters.  @xref{String Type}.
+  Individual characters are used occasionally in programs, but it is
+more common to work with @emph{strings}, which are sequences composed
+of characters.  @xref{String Type}.
 
   Characters in strings, buffers, and files are currently limited to
 the range of 0 to 524287---nineteen bits.  But not all values in that
@@ -239,17 +239,32 @@ range are valid character codes.  Codes 0 through 127 are
 input have a much wider range, to encode modifier keys such as
 Control, Meta and Shift.
 
+  There are special functions for producing a human-readable textual
+description of a character for the sake of messages.  @xref{Describing
+Characters}.
+
+@menu
+* Basic Char Syntax::
+* General Escape Syntax::
+* Ctl-Char Syntax::
+* Meta-Char Syntax::
+* Other Char Bits::
+@end menu
+
+@node Basic Char Syntax
+@subsubsection Basic Char Syntax
 @cindex read syntax for characters
 @cindex printed representation for characters
 @cindex syntax for characters
 @cindex @samp{?} in character constant
 @cindex question mark in character constant
-  Since characters are really integers, the printed representation of a
-character is a decimal number.  This is also a possible read syntax for
-a character, but writing characters that way in Lisp programs is a very
-bad idea.  You should @emph{always} use the special read syntax formats
-that Emacs Lisp provides for characters.  These syntax formats start
-with a question mark.
+
+  Since characters are really integers, the printed representation of
+a character is a decimal number.  This is also a possible read syntax
+for a character, but writing characters that way in Lisp programs is
+not clear programming.  You should @emph{always} use the special read
+syntax formats that Emacs Lisp provides for characters.  These syntax
+formats start with a question mark.
 
   The usual read syntax for alphanumeric characters is a question mark
 followed by the character; thus, @samp{?A} for the character
@@ -315,8 +330,76 @@ the ``super'' modifier to the following character.)  Thus,
 character @key{ESC}.  @samp{\s} is meant for use in character
 constants; in string constants, just write the space.
 
+  A backslash is allowed, and harmless, preceding any character without
+a special escape meaning; thus, @samp{?\+} is equivalent to @samp{?+}.
+There is no reason to add a backslash before most characters.  However,
+you should add a backslash before any of the characters
+@samp{()\|;'`"#.,} to avoid confusing the Emacs commands for editing
+Lisp code.  You can also add a backslash before whitespace characters such as
+space, tab, newline and formfeed.  However, it is cleaner to use one of
+the easily readable escape sequences, such as @samp{\t} or @samp{\s},
+instead of an actual whitespace character such as a tab or a space.
+(If you do write backslash followed by a space, you should write
+an extra space after the character constant to separate it from the
+following text.)
+
+@node General Escape Syntax
+@subsubsection General Escape Syntax
+
+  In addition to the specific excape sequences for special important
+control characters, Emacs provides general categories of escape syntax
+that you can use to specify non-ASCII text characters.
+
+@cindex unicode character escape
+  For instance, you can specify characters by their Unicode values.
+@code{?\u@var{nnnn}} represents a character that maps to the Unicode
+code point @samp{U+@var{nnnn}}.  There is a slightly different syntax
+for specifying characters with code points above @code{#xFFFF};
+@code{\U00@var{nnnnnn}} represents the character whose Unicode code
+point is @samp{U+@var{nnnnnn}}, if such a character is supported by
+Emacs.  If the corresponding character is not supported, Emacs signals
+an error.
+
+  This peculiar and inconvenient syntax was adopted for compatibility
+with other programming languages.  Unlike some other languages, Emacs
+Lisp supports this syntax in only character literals and strings.
+
+@cindex @samp{\} in character constant
+@cindex backslash in character constant
+@cindex octal character code
+  The most general read syntax for a character represents the
+character code in either octal or hex.  To use octal, write a question
+mark followed by a backslash and the octal character code (up to three
+octal digits); thus, @samp{?\101} for the character @kbd{A},
+@samp{?\001} for the character @kbd{C-a}, and @code{?\002} for the
+character @kbd{C-b}.  Although this syntax can represent any
+@acronym{ASCII} character, it is preferred only when the precise octal
+value is more important than the @acronym{ASCII} representation.
+
+@example
+@group
+?\012 @result{} 10         ?\n @result{} 10         ?\C-j @result{} 10
+?\101 @result{} 65         ?A @result{} 65
+@end group
+@end example
+
+  To use hex, write a question mark followed by a backslash, @samp{x},
+and the hexadecimal character code.  You can use any number of hex
+digits, so you can represent any character code in this way.
+Thus, @samp{?\x41} for the character @kbd{A}, @samp{?\x1} for the
+character @kbd{C-a}, and @code{?\x8e0} for the Latin-1 character
+@iftex
+@samp{@`a}.
+@end iftex
+@ifnottex
+@samp{a} with grave accent.
+@end ifnottex
+
+@node Ctl-Char Syntax
+@subsubsection Control-Character Syntax
+
 @cindex control characters
-  Control characters may be represented using yet another read syntax.
+  Control characters can be represented using yet another read syntax.
 This consists of a question mark followed by a backslash, caret, and the
 corresponding non-control character, in either upper or lower case.  For
 example, both @samp{?\^I} and @samp{?\^i} are valid read syntax for the
@@ -363,6 +446,9 @@ input, we prefer the @samp{C-} syntax.  Which one you use does not
 affect the meaning of the program, but may guide the understanding of
 people who read it.
 
+@node Meta-Char Syntax
+@subsubsection Meta-Character Syntax
+
 @cindex meta characters
   A @dfn{meta character} is a character typed with the @key{META}
 modifier key.  The integer that represents such a character has the
@@ -394,6 +480,9 @@ octal character codes (see below), with @samp{\C-}, or with any other
 syntax for a character.  Thus, you can write @kbd{M-A} as @samp{?\M-A},
 or as @samp{?\M-\101}.  Likewise, you can write @kbd{C-M-b} as
 @samp{?\M-\C-b}, @samp{?\C-\M-b}, or @samp{?\M-\002}.
+
+@node Other Char Bits
+@subsubsection Other Character Modifier Bits
 
   The case of a graphic character is indicated by its character code;
 for example, @acronym{ASCII} distinguishes between the characters @samp{a}
@@ -430,64 +519,6 @@ for super and @math{2^{24}} for hyper.
 Numerically, the
 bit values are 2**22 for alt, 2**23 for super and 2**24 for hyper.
 @end ifnottex
-
-@cindex unicode character escape
-  Emacs provides a syntax for specifying characters by their Unicode
-code points.  @code{?\u@var{nnnn}} represents a character that maps to
-the Unicode code point @samp{U+@var{nnnn}}.  There is a slightly
-different syntax for specifying characters with code points above
-@code{#xFFFF}; @code{\U00@var{nnnnnn}} represents the character whose
-Unicode code point is @samp{U+@var{nnnnnn}}, if such a character
-is supported by Emacs.  If the corresponding character is not
-supported, Emacs signals an error.
-
-  This peculiar and inconvenient syntax was adopted for compatibility
-with other programming languages.  Unlike some other languages, Emacs
-Lisp supports this syntax in only character literals and strings.
-
-@cindex @samp{\} in character constant
-@cindex backslash in character constant
-@cindex octal character code
-  Finally, the most general read syntax for a character represents the
-character code in either octal or hex.  To use octal, write a question
-mark followed by a backslash and the octal character code (up to three
-octal digits); thus, @samp{?\101} for the character @kbd{A},
-@samp{?\001} for the character @kbd{C-a}, and @code{?\002} for the
-character @kbd{C-b}.  Although this syntax can represent any @acronym{ASCII}
-character, it is preferred only when the precise octal value is more
-important than the @acronym{ASCII} representation.
-
-@example
-@group
-?\012 @result{} 10         ?\n @result{} 10         ?\C-j @result{} 10
-?\101 @result{} 65         ?A @result{} 65
-@end group
-@end example
-
-  To use hex, write a question mark followed by a backslash, @samp{x},
-and the hexadecimal character code.  You can use any number of hex
-digits, so you can represent any character code in this way.
-Thus, @samp{?\x41} for the character @kbd{A}, @samp{?\x1} for the
-character @kbd{C-a}, and @code{?\x8e0} for the Latin-1 character
-@iftex
-@samp{@`a}.
-@end iftex
-@ifnottex
-@samp{a} with grave accent.
-@end ifnottex
-
-  A backslash is allowed, and harmless, preceding any character without
-a special escape meaning; thus, @samp{?\+} is equivalent to @samp{?+}.
-There is no reason to add a backslash before most characters.  However,
-you should add a backslash before any of the characters
-@samp{()\|;'`"#.,} to avoid confusing the Emacs commands for editing
-Lisp code.  You can also add a backslash before whitespace characters such as
-space, tab, newline and formfeed.  However, it is cleaner to use one of
-the easily readable escape sequences, such as @samp{\t} or @samp{\s},
-instead of an actual whitespace character such as a tab or a space.
-(If you do write backslash followed by a space, you should write
-an extra space after the character constant to separate it from the
-following text.)
 
 @node Symbol Type
 @subsection Symbol Type

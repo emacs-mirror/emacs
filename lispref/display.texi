@@ -119,6 +119,8 @@ pending input events.  This is equivalent to @code{(sit-for 0)}.
 
 If the optional argument @var{force} is non-@code{nil}, it forces an
 immediate and complete redisplay even if input is available.
+
+Returns @code{t} if redisplay was performed, or @code{nil} otherwise.
 @end defun
 
 @node Truncation
@@ -2816,26 +2818,32 @@ In addition, Emacs can display an up-arrow in the fringe to show
 that there is text above the screen, and a down-arrow to show
 there is text below the screen.
 
-There are four kinds of basic values:
+There are three kinds of basic values:
 
 @table @asis
 @item @code{nil}
-Don't display the icons.
+Don't display any of these fringe icons.
 @item @code{left}
-Display them in the left fringe.
+Display the angle icons and arrows in the left fringe.
 @item @code{right}
-Display them in the right fringe.
-@item @var{anything-else}
-Display the icon at the top of the window top in the left fringe, and other
-in the right fringe.
+Display the angle icons and arrows in the right fringe.
+@item any non-alist
+Display the angle icons in the left fringe
+and don't display the arrows.
 @end table
 
-If value is a cons @code{(@var{angles} . @var{arrows})}, @var{angles}
-controls the angle icons, and @var{arrows} controls the arrows.  Both
-@var{angles} and @var{arrows} work according to the table above.
-Thus, @code{(t .  right)} places the top angle icon in the left
-fringe, the bottom angle icon in the right fringe, and both arrows in
-the right fringe.
+Otherwise the value should be an alist that specifies which fringe
+indicators to display and where.  Each element of the alist should
+have the form @code{(@var{indicator} . @var{position})}.  Here,
+@var{indicator} is one of @code{top}, @code{bottom}, @code{up},
+@code{down}, and @code{t} (which covers all the icons not yet
+specified), while @var{position} is one of @code{left}, @code{right}
+and @code{nil}.
+
+For example, @code{((top . left) (t . right))} places the top angle
+bitmap in left fringe, and the bottom angle bitmap as well as both
+arrow bitmaps in right fringe.  To show the angle bitmaps in the left
+fringe, and no arrow bitmaps, use @code{((top .  left) (bottom . left))}.
 @end defvar
 
 @defvar default-indicate-buffer-boundaries
@@ -3563,6 +3571,13 @@ If @var{window} is @code{nil}, the selected window is used.
   To display an image in an Emacs buffer, you must first create an image
 descriptor, then use it as a display specifier in the @code{display}
 property of text that is displayed (@pxref{Display Property}).
+
+  Emacs is usually able to display images when it is run on a
+graphical terminal.  Images cannot be displayed in a text terminal, on
+certain graphical terminals that lack the support for this, or if
+Emacs is compiled without image support.  You can use the function
+@code{display-images-p} to determine if images can in principle be
+displayed (@pxref{Display Feature Testing}).
 
   Emacs can display a number of different image formats; some of them
 are supported only if particular support libraries are installed on
@@ -5103,13 +5118,14 @@ This creates and returns a display table.  The table initially has
 
   The ordinary elements of the display table are indexed by character
 codes; the element at index @var{c} says how to display the character
-code @var{c}.  The value should be @code{nil} or a vector of glyph
-values (@pxref{Glyphs}).  If an element is @code{nil}, it says to
-display that character according to the usual display conventions
+code @var{c}.  The value should be @code{nil} or a vector of the
+glyphs to be output (@pxref{Glyphs}).  @code{nil} says to display the
+character @var{c} according to the usual display conventions
 (@pxref{Usual Display}).
 
-  If you use the display table to change the display of newline
-characters, the whole buffer will be displayed as one long ``line.''
+  @strong{Warning:} if you use the display table to change the display
+of newline characters, the whole buffer will be displayed as one long
+``line.''
 
   The display table also has six ``extra slots'' which serve special
 purposes.  Here is a table of their meanings; @code{nil} in any slot
@@ -5236,14 +5252,14 @@ are defined in the library @file{disp-table}.
   A @dfn{glyph} is a generalization of a character; it stands for an
 image that takes up a single character position on the screen.  Glyphs
 are represented in Lisp as integers, just as characters are.  Normally
-Emacs finds glyphs in the display table (@pxref{Display Tables}).
+glyph come from vectors in the display table (@pxref{Display Tables}).
 
-  A glyph can be @dfn{simple} or it can be defined by the @dfn{glyph
-table}.  A simple glyph is just a way of specifying a character and a
-face to output it in.  The glyph code for a simple glyph, mod 524288,
-is the character to output, and the glyph code divided by 524288
-specifies the face number (@pxref{Face Functions}) to use while
-outputting it.  (524288 is
+  A glyph code can be @dfn{simple} or it can be defined by the
+@dfn{glyph table}.  A simple glyph code is just a way of specifying a
+character and a face to output it in.  When a glyph code is simple,
+the code, mod 524288, is the character to output, and the code divided
+by 524288 specifies the face number (@pxref{Face Functions}) to use
+while outputting it.  (524288 is
 @ifnottex
 2**19.)
 @end ifnottex
@@ -5253,35 +5269,35 @@ $2^{19}$.)
 @xref{Faces}.
 
   On character terminals, you can set up a @dfn{glyph table} to define
-the meaning of glyph codes.  The glyph codes is the value of the
-variable @code{glyph-table}.
+the meaning of glyph codes.
 
 @defvar glyph-table
-The value of this variable is the current glyph table.  It should be a
-vector; the @var{g}th element defines glyph code @var{g}.
+The value of this variable is the current glyph table.  It should be
+@code{nil} or a vector whose @var{g}th element defines glyph code
+@var{g}.
 
 If a glyph code is greater than or equal to the length of the glyph
-table, that code is automatically simple.  If the value of
-@code{glyph-table} is @code{nil} instead of a vector, then all glyphs
-are simple.  The glyph table is not used on graphical displays, only
-on character terminals.  On graphical displays, all glyphs are simple.
+table, that code is automatically simple.  If @code{glyph-table} is
+@code{nil} then all glyph codes are simple.
+
+The glyph table is used only on character terminals.  On graphical
+displays, all glyph codes are simple.
 @end defvar
 
-  Here are the possible types of elements in the glyph table:
+  Here are the meaningful types of elements in the glyph table:
 
 @table @asis
 @item @var{string}
 Send the characters in @var{string} to the terminal to output
-this glyph.  This alternative is available on character terminals,
-but not on graphical displays.
+this glyph code.
 
 @item @var{integer}
 Define this glyph code as an alias for glyph code @var{integer}.  You
-can use an alias to specify a face code for the glyph and use a small
-number as its code.
+can use such an alias to define a small-numbered glyph code which
+specifies a face.
 
 @item @code{nil}
-This glyph is simple.
+This glyph code is simple.
 @end table
 
 @defun create-glyph string

@@ -208,12 +208,12 @@
 
 ;; If this is a one-letter magic command, splice in args.
 (defun ex-splice-args-in-1-letr-cmd (key list)
-  (let ((onelet (ex-cmd-is-one-letter (assoc (substring key 0 1) list))))
-    (if onelet
+  (let ((oneletter (ex-cmd-is-one-letter (assoc (substring key 0 1) list))))
+    (if oneletter
 	(list key
-	      (append (cadr onelet)
+	      (append (cadr oneletter)
 		      (if (< 1 (length key)) (list (substring key 1))))
-	      (caddr onelet)))
+	      (car (cdr (cdr oneletter))) ))
 	))
 
 

@@ -256,9 +256,9 @@ Lisp_Object list_of_error;
 Lisp_Object Vfontification_functions;
 Lisp_Object Qfontification_functions;
 
-/* Non-zero means automatically select any window when the mouse
+/* Non-nil means automatically select any window when the mouse
    cursor moves into it.  */
-int mouse_autoselect_window;
+Lisp_Object Vmouse_autoselect_window;
 
 /* Non-zero means draw tool bar buttons raised when the mouse moves
    over them.  */
@@ -615,6 +615,11 @@ int message_buf_print;
 Lisp_Object Qinhibit_menubar_update;
 int inhibit_menubar_update;
 
+/* When evaluating expressions from menu bar items (enable conditions,
+   for instance), this is the frame they are being processed for.  */
+
+Lisp_Object Vmenu_updating_frame;
+
 /* Maximum height for resizing mini-windows.  Either a float
    specifying a fraction of the available height, or an integer
    specifying a number of lines.  */
@@ -709,6 +714,10 @@ Lisp_Object Vresize_mini_windows;
 /* Buffer being redisplayed -- for redisplay_window_error.  */
 
 struct buffer *displayed_buffer;
+
+/* Space between overline and text. */
+
+EMACS_INT overline_margin;
 
 /* Value returned from text property handlers (see below).  */
 
@@ -1268,13 +1277,12 @@ line_bottom_y (it)
 /* Return 1 if position CHARPOS is visible in window W.
    If visible, set *X and *Y to pixel coordinates of top left corner.
    Set *RTOP and *RBOT to pixel height of an invisible area of glyph at POS.
-   EXACT_MODE_LINE_HEIGHTS_P non-zero means compute exact mode-line
-   and header-lines heights.  */
+   Set *ROWH and *VPOS to row's visible height and VPOS (row number).  */
 
 int
-pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
+pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
      struct window *w;
-     int charpos, *x, *y, *rtop, *rbot, exact_mode_line_heights_p;
+     int charpos, *x, *y, *rtop, *rbot, *rowh, *vpos;
 {
   struct it it;
   struct text_pos top;
@@ -1292,22 +1300,19 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
-  /* Compute exact mode line heights, if requested.  */
-  if (exact_mode_line_heights_p)
-    {
-      if (WINDOW_WANTS_MODELINE_P (w))
-	current_mode_line_height
-	  = display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
-			       current_buffer->mode_line_format);
+  /* Compute exact mode line heights.  */
+  if (WINDOW_WANTS_MODELINE_P (w))
+    current_mode_line_height
+      = display_mode_line (w, CURRENT_MODE_LINE_FACE_ID (w),
+			   current_buffer->mode_line_format);
 
-      if (WINDOW_WANTS_HEADER_LINE_P (w))
-	current_header_line_height
-	  = display_mode_line (w, HEADER_LINE_FACE_ID,
+  if (WINDOW_WANTS_HEADER_LINE_P (w))
+    current_header_line_height
+      = display_mode_line (w, HEADER_LINE_FACE_ID,
 			       current_buffer->header_line_format);
-    }
 
   start_display (&it, w, top);
-  move_it_to (&it, charpos, -1, it.last_visible_y, -1,
+  move_it_to (&it, charpos, -1, it.last_visible_y-1, -1,
 	      MOVE_TO_POS | MOVE_TO_Y);
 
   /* Note that we may overshoot because of invisible text.  */
@@ -1328,6 +1333,9 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 	  *y = max (top_y + max (0, it.max_ascent - it.ascent), window_top_y);
 	  *rtop = max (0, window_top_y - top_y);
 	  *rbot = max (0, bottom_y - it.last_visible_y);
+	  *rowh = max (0, (min (bottom_y, it.last_visible_y)
+			   - max (top_y, window_top_y)));
+	  *vpos = it.vpos;
 	}
     }
   else
@@ -1346,6 +1354,11 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 	  *rtop = max (0, -it2.current_y);
 	  *rbot = max (0, ((it2.current_y + it2.max_ascent + it2.max_descent)
 			   - it.last_visible_y));
+	  *rowh = max (0, (min (it2.current_y + it2.max_ascent + it2.max_descent,
+				it.last_visible_y)
+			   - max (it2.current_y,
+				  WINDOW_HEADER_LINE_HEIGHT (w))));
+	  *vpos = it2.vpos;
 	}
     }
 
@@ -1356,6 +1369,15 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 
   if (visible_p && XFASTINT (w->hscroll) > 0)
     *x -= XFASTINT (w->hscroll) * WINDOW_FRAME_COLUMN_WIDTH (w);
+
+#if 0
+  /* Debugging code.  */
+  if (visible_p)
+    fprintf (stderr, "+pv pt=%d vs=%d --> x=%d y=%d rt=%d rb=%d rh=%d vp=%d\n",
+	     charpos, w->vscroll, *x, *y, *rtop, *rbot, *rowh, *vpos);
+  else
+    fprintf (stderr, "-pv pt=%d vs=%d\n", charpos, w->vscroll);
+#endif
 
   return visible_p;
 }
@@ -9126,7 +9148,7 @@ update_menu_bar (f, save_match_data, hooks_run)
      happen when, for instance, an activate-menubar-hook causes a
      redisplay.  */
   if (inhibit_menubar_update)
-    return;
+    return hooks_run;
 
   window = FRAME_SELECTED_WINDOW (f);
   w = XWINDOW (window);
@@ -9197,6 +9219,7 @@ update_menu_bar (f, save_match_data, hooks_run)
 	      hooks_run = 1;
 	    }
 
+	  XSETFRAME (Vmenu_updating_frame, f);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
 	  /* Redisplay the menu bar in case we changed it.  */
@@ -9391,7 +9414,8 @@ update_tool_bar (f, save_match_data)
                                          &new_n_tool_bar);
 
 	  /* Redisplay the tool-bar if we changed it.  */
-	  if (NILP (Fequal (new_tool_bar, f->tool_bar_items)))
+	  if (new_n_tool_bar != f->n_tool_bar_items
+	      || NILP (Fequal (new_tool_bar, f->tool_bar_items)))
             {
               /* Redisplay that happens asynchronously due to an expose event
                  may access f->tool_bar_items.  Make sure we update both
@@ -10777,13 +10801,13 @@ redisplay_internal (preserve_echo_area)
      int preserve_echo_area;
 {
   struct window *w = XWINDOW (selected_window);
-  struct frame *f = XFRAME (w->frame);
+  struct frame *f;
   int pause;
   int must_finish = 0;
   struct text_pos tlbufpos, tlendpos;
   int number_of_visible_frames;
   int count;
-  struct frame *sf = SELECTED_FRAME ();
+  struct frame *sf;
   int polling_stopped_here = 0;
 
   /* Non-zero means redisplay has to consider all windows on all
@@ -10796,8 +10820,16 @@ redisplay_internal (preserve_echo_area)
      initialized, or redisplay is explicitly turned off by setting
      Vinhibit_redisplay.  */
   if (noninteractive
-      || !NILP (Vinhibit_redisplay)
-      || !f->glyphs_initialized_p)
+      || !NILP (Vinhibit_redisplay))
+    return;
+
+  /* Don't examine these until after testing Vinhibit_redisplay.
+     When Emacs is shutting down, perhaps because its connection to
+     X has dropped, we should not look at them at all.  */
+  f = XFRAME (w->frame);
+  sf = SELECTED_FRAME ();
+
+  if (!f->glyphs_initialized_p)
     return;
 
   /* The flag redisplay_performed_directly_p is set by
@@ -12018,7 +12050,8 @@ cursor_row_fully_visible_p (w, force_p, current_matrix_p)
   window_height = window_box_height (w);
   if (row->height >= window_height)
     {
-      if (!force_p || MINI_WINDOW_P (w) || w->vscroll)
+      if (!force_p || MINI_WINDOW_P (w)
+	  || w->vscroll || w->cursor.vpos == 0)
 	return 1;
     }
   return 0;
@@ -13502,7 +13535,8 @@ try_window (window, pos, check_margins)
       this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
       this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
 
-      if ((w->cursor.y < this_scroll_margin
+      if ((w->cursor.y >= 0	/* not vscrolled */
+	   && w->cursor.y < this_scroll_margin
 	   && CHARPOS (pos) > BEGV
 	   && IT_CHARPOS (it) < ZV)
 	  /* rms: considering make_cursor_line_fully_visible_p here
@@ -19752,7 +19786,7 @@ produce_image_glyph (it)
 {
   struct image *img;
   struct face *face;
-  int glyph_ascent;
+  int glyph_ascent, crop;
   struct glyph_slice slice;
 
   xassert (it->what == IT_IMAGE);
@@ -19859,6 +19893,15 @@ produce_image_glyph (it)
     }
 
   take_vertical_position_into_account (it);
+
+  /* Automatically crop wide image glyphs at right edge so we can
+     draw the cursor on same display row.  */
+  if ((crop = it->pixel_width - (it->last_visible_x - it->current_x), crop > 0)
+      && (it->hpos == 0 || it->pixel_width > it->last_visible_x / 4))
+    {
+      it->pixel_width -= crop;
+      slice.width -= crop;
+    }
 
   if (it->glyph_row)
     {
@@ -20356,7 +20399,7 @@ x_produce_glyphs (it)
 	  /* If face has an overline, add the height of the overline
 	     (1 pixel) and a 1 pixel margin to the character height.  */
 	  if (face->overline_p)
-	    it->ascent += 2;
+	    it->ascent += overline_margin;
 
 	  if (it->constrain_row_ascent_descent_p)
 	    {
@@ -20558,7 +20601,7 @@ x_produce_glyphs (it)
 	  /* If face has an overline, add the height of the overline
 	     (1 pixel) and a 1 pixel margin to the character height.  */
 	  if (face->overline_p)
-	    it->ascent += 2;
+	    it->ascent += overline_margin;
 
 	  take_vertical_position_into_account (it);
 
@@ -20833,7 +20876,7 @@ x_produce_glyphs (it)
       /* If face has an overline, add the height of the overline
 	 (1 pixel) and a 1 pixel margin to the character height.  */
       if (face->overline_p)
-	it->ascent += 2;
+	it->ascent += overline_margin;
 
       take_vertical_position_into_account (it);
 
@@ -21208,10 +21251,35 @@ get_window_cursor_type (w, glyph, width, active_cursor)
   /* Use normal cursor if not blinked off.  */
   if (!w->cursor_off_p)
     {
-      if (glyph != NULL && glyph->type == IMAGE_GLYPH) {
-	if (cursor_type == FILLED_BOX_CURSOR)
-	  cursor_type = HOLLOW_BOX_CURSOR;
+#ifdef HAVE_WINDOW_SYSTEM
+      if (glyph != NULL && glyph->type == IMAGE_GLYPH)
+	{
+	  if (cursor_type == FILLED_BOX_CURSOR)
+	    {
+	      /* Using a block cursor on large images can be very annoying.
+		 So use a hollow cursor for "large" images.
+		 If image is not transparent (no mask), also use hollow cursor.  */
+	      struct image *img = IMAGE_FROM_ID (f, glyph->u.img_id);
+	      if (img != NULL && IMAGEP (img->spec))
+		{
+		  /* Arbitrarily, interpret "Large" as >32x32 and >NxN
+		     where N = size of default frame font size.
+		     This should cover most of the "tiny" icons people may use.  */
+		  if (!img->mask
+		      || img->width > max (32, WINDOW_FRAME_COLUMN_WIDTH (w))
+		      || img->height > max (32, WINDOW_FRAME_LINE_HEIGHT (w)))
+		    cursor_type = HOLLOW_BOX_CURSOR;
+		}
+	    }
+	  else if (cursor_type != NO_CURSOR)
+	    {
+	      /* Display current only supports BOX and HOLLOW cursors for images.
+		 So for now, unconditionally use a HOLLOW cursor when cursor is
+		 not a solid box cursor.  */
+	      cursor_type = HOLLOW_BOX_CURSOR;
+	    }
       }
+#endif
       return cursor_type;
     }
 
@@ -23962,9 +24030,22 @@ Each function is called with two arguments, the window and the end trigger value
 See `set-window-redisplay-end-trigger'.  */);
   Vredisplay_end_trigger_functions = Qnil;
 
-  DEFVAR_BOOL ("mouse-autoselect-window", &mouse_autoselect_window,
-    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  mouse_autoselect_window = 0;
+  DEFVAR_LISP ("mouse-autoselect-window", &Vmouse_autoselect_window,
+     doc: /* *Non-nil means autoselect window with mouse pointer.
+If nil, do not autoselect windows.
+A positive number means delay autoselection by that many seconds: a
+window is autoselected only after the mouse has remained in that
+window for the duration of the delay.
+A negative number has a similar effect, but causes windows to be
+autoselected only after the mouse has stopped moving.  \(Because of
+the way Emacs compares mouse events, you will occasionally wait twice
+that time before the window gets selected.\)
+Any other value means to autoselect window instantaneously when the
+mouse pointer enters it.
+
+Autoselection selects the minibuffer only if it is active, and never
+unselects the minibuffer if it is active.  */);
+  Vmouse_autoselect_window = Qnil;
 
   DEFVAR_BOOL ("auto-resize-tool-bars", &auto_resize_tool_bars_p,
     doc: /* *Non-nil means automatically resize tool-bars.
@@ -24084,6 +24165,11 @@ This is used to update submenus such as Buffers,
 whose contents depend on various data.  */);
   Vmenu_bar_update_hook = Qnil;
 
+  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
+	       doc: /* Frame for which we are updating a menu.
+The enable predicate for a menu binding should check this variable.  */);
+  Vmenu_updating_frame = Qnil;
+
   DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,
     doc: /* Non-nil means don't update menu bars.  Internal use only.  */);
   inhibit_menubar_update = 0;
@@ -24109,6 +24195,12 @@ whose contents depend on various data.  */);
 	       doc: /* Inhibit try_cursor_movement display optimization.  */);
   inhibit_try_cursor_movement = 0;
 #endif /* GLYPH_DEBUG */
+
+  DEFVAR_INT ("overline-margin", &overline_margin,
+	       doc: /* *Space between overline and text, in pixels.
+The default value is 2: the height of the overline (1 pixel) plus 1 pixel
+margin to the caracter height.  */);
+  overline_margin = 2;
 }
 
 

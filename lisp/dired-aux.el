@@ -39,6 +39,11 @@
 ;; We need macros in dired.el to compile properly.
 (eval-when-compile (require 'dired))
 
+(defvar dired-create-files-failures nil
+  "Variable where `dired-create-files' records failing file names.
+Functions that operate recursively can store additional names
+into this list; they also should call `dired-log' to log the errors.")
+
 ;;; 15K
 ;;;###begin dired-cmd.el
 ;; Diffing and compressing
@@ -1145,37 +1150,59 @@ Special value `always' suppresses confirmation."
 ;;;###autoload
 (defun dired-copy-file (from to ok-flag)
   (dired-handle-overwrite to)
-  (condition-case ()
-      (dired-copy-file-recursive from to ok-flag dired-copy-preserve-time t
-				 dired-recursive-copies)
-    (file-date-error (message "Can't set date")
-		     (sit-for 1))))
+  (dired-copy-file-recursive from to ok-flag dired-copy-preserve-time t
+			     dired-recursive-copies))
 
 (defun dired-copy-file-recursive (from to ok-flag &optional
 				       preserve-time top recursive)
-  (let ((attrs (file-attributes from)))
+  (let ((attrs (file-attributes from))
+	dirfailed)
     (if (and recursive
 	     (eq t (car attrs))
 	     (or (eq recursive 'always)
 		 (yes-or-no-p (format "Recursive copies of %s? " from))))
 	;; This is a directory.
-	(let ((files (directory-files from nil dired-re-no-dot)))
+	(let ((files
+	       (condition-case err
+		   (directory-files from nil dired-re-no-dot)
+		 (file-error
+		  (push (dired-make-relative from)
+			dired-create-files-failures)
+		  (dired-log "Copying error for %s:\n%s\n" from err)
+		  (setq dirfailed t)
+		  nil))))
 	  (if (eq recursive 'top) (setq recursive 'always)) ; Don't ask any more.
-	  (if (file-exists-p to)
-	      (or top (dired-handle-overwrite to))
-	    (make-directory to))
+	  (unless dirfailed
+	    (if (file-exists-p to)
+		(or top (dired-handle-overwrite to))
+	      (condition-case err
+		  (make-directory to)
+		(file-error
+		 (push (dired-make-relative from)
+		       dired-create-files-failures)
+		 (setq files nil)
+		 (dired-log "Copying error for %s:\n%s\n" from err)))))
 	  (while files
 	    (dired-copy-file-recursive
 	     (expand-file-name (car files) from)
 	     (expand-file-name (car files) to)
 	     ok-flag preserve-time nil recursive)
-	    (setq files (cdr files))))
+	    (pop files)))
       ;; Not a directory.
       (or top (dired-handle-overwrite to))
-      (if (stringp (car attrs))
-	  ;; It is a symlink
-	  (make-symbolic-link (car attrs) to ok-flag)
-	(copy-file from to ok-flag dired-copy-preserve-time)))))
+      (condition-case err
+	  (if (stringp (car attrs))
+	      ;; It is a symlink
+	      (make-symbolic-link (car attrs) to ok-flag)
+	    (copy-file from to ok-flag dired-copy-preserve-time))
+	(file-date-error 
+	 (push (dired-make-relative from)
+	       dired-create-files-failures)
+	 (dired-log "Can't set date on %s:\n%s\n" from err))
+	(file-error
+	 (push (dired-make-relative from)
+	       dired-create-files-failures)
+	 (dired-log "Copying error for %s:\n%s\n" from err))))))
 
 ;;;###autoload
 (defun dired-rename-file (file newname ok-if-already-exists)
@@ -1297,7 +1324,8 @@ Special value `always' suppresses confirmation."
 ;; newfile's entry, or t to use the current marker character if the
 ;; oldfile was marked.
 
-  (let (failures skipped (success-count 0) (total (length fn-list)))
+  (let (dired-create-files-failures failures
+	skipped (success-count 0) (total (length fn-list)))
     (let (to overwrite-query
 	     overwrite-backup-query)	; for dired-handle-overwrite
       (mapcar
@@ -1340,16 +1368,25 @@ ESC or `q' to not overwrite any of the remaining files,
 		    (dired-add-file to actual-marker-char))
 		(file-error		; FILE-CREATOR aborted
 		 (progn
-		   (setq failures (cons (dired-make-relative from) failures))
+		   (push (dired-make-relative from)
+			 failures)
 		   (dired-log "%s `%s' to `%s' failed:\n%s\n"
 			      operation from to err))))))))
        fn-list))
     (cond
+     (dired-create-files-failures
+      (setq failures (nconc failures dired-create-files-failures))
+      (dired-log-summary
+       (format "%s failed for %d file%s in %d requests"
+		operation (length failures)
+		(dired-plural-s (length failures))
+		total)
+       failures))
      (failures
       (dired-log-summary
        (format "%s failed for %d of %d file%s"
-		operation (length failures) total
-		(dired-plural-s total))
+		operation (length failures)
+		total (dired-plural-s total))
        failures))
      (skipped
       (dired-log-summary

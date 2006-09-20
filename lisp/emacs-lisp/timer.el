@@ -32,9 +32,11 @@
 ;; Layout of a timer vector:
 ;; [triggered-p high-seconds low-seconds usecs repeat-delay
 ;;  function args idle-delay]
+;; triggered-p is nil if the timer is active (waiting to be triggered),
+;;  t if it is inactive ("already triggered", in theory)
 
 (defun timer-create ()
-  "Create a timer object."
+  "Create a timer object which can be passed to `timer-activate'."
   (let ((timer (make-vector 8 nil)))
     (aset timer 0 t)
     timer))
@@ -60,14 +62,22 @@ fire repeatedly that many seconds apart."
 
 (defun timer-set-idle-time (timer secs &optional repeat)
   "Set the trigger idle time of TIMER to SECS.
+SECS may be an integer, floating point number, or the internal
+time format (HIGH LOW USECS) returned by, e.g., `current-idle-time'.
 If optional third argument REPEAT is non-nil, make the timer
 fire each time Emacs is idle for that many seconds."
   (or (timerp timer)
       (error "Invalid timer"))
-  (aset timer 1 0)
-  (aset timer 2 0)
-  (aset timer 3 0)
-  (timer-inc-time timer secs)
+  (if (consp secs)
+      (progn (aset timer 1 (car secs))
+	     (aset timer 2 (if (consp (cdr secs)) (car (cdr secs)) (cdr secs)))
+	     (aset timer 3 (or (and (consp (cdr secs)) (consp (cdr (cdr secs)))
+				    (nth 2 secs))
+			       0)))
+    (aset timer 1 0)
+    (aset timer 2 0)
+    (aset timer 3 0)
+    (timer-inc-time timer secs))
   (aset timer 4 repeat)
   timer)
 
@@ -104,7 +114,7 @@ of SECS seconds since the epoch.  SECS may be a fraction."
 
 (defun timer-relative-time (time secs &optional usecs)
   "Advance TIME by SECS seconds and optionally USECS microseconds.
-SECS may be a fraction."
+SECS may be either an integer or a floating point number."
   (let ((high (car time))
 	(low (if (consp (cdr time)) (nth 1 time) (cdr time)))
 	(micro (if (numberp (car-safe (cdr-safe (cdr time))))
@@ -164,6 +174,10 @@ fire repeatedly that many seconds apart."
 
 (defun timer-activate (timer &optional triggered-p reuse-cell)
   "Put TIMER on the list of active timers.
+
+If TRIGGERED-P is t, that means to make the timer inactive
+\(put it on the list, but mark it as already triggered).
+To remove from the list, use `cancel-timer'.
 
 REUSE-CELL, if non-nil, is a cons cell to reuse instead
 of allocating a new one."
@@ -248,10 +262,10 @@ of allocating a new one."
   (setq timer-idle-list (delq timer timer-idle-list))
   nil)
 
-;; Remove TIMER from the list of active timers or idle timers.
-;; Only to be used in this file.  It returns the cons cell
-;; that was removed from the list.
 (defun cancel-timer-internal (timer)
+  "Remove TIMER from the list of active timers or idle timers.
+Only to be used in this file.  It returns the cons cell
+that was removed from the timer list."
   (let ((cell1 (memq timer timer-list))
 	(cell2 (memq timer timer-idle-list)))
     (if cell1
@@ -262,7 +276,9 @@ of allocating a new one."
 
 ;;;###autoload
 (defun cancel-function-timers (function)
-  "Cancel all timers scheduled by `run-at-time' which would run FUNCTION."
+  "Cancel all timers which would run FUNCTION.
+This affects ordinary timers such as are scheduled by `run-at-time',
+and idle timers such as are scheduled by `run-with-idle-timer'."
   (interactive "aCancel timers of function: ")
   (let ((tail timer-list))
     (while tail
@@ -276,9 +292,12 @@ of allocating a new one."
       (setq tail (cdr tail)))))
 
 ;; Record the last few events, for debugging.
-(defvar timer-event-last-2 nil)
-(defvar timer-event-last-1 nil)
-(defvar timer-event-last nil)
+(defvar timer-event-last nil
+  "Last timer that was run.")
+(defvar timer-event-last-1 nil
+  "Next-to-last timer that was run.")
+(defvar timer-event-last-2 nil
+  "Third-to-last timer that was run.")
 
 (defvar timer-max-repeats 10
   "*Maximum number of times to repeat a timer, if real time jumps.")
@@ -412,7 +431,10 @@ This function is for compatibility; see also `run-with-timer'."
 (defun run-with-idle-timer (secs repeat function &rest args)
   "Perform an action the next time Emacs is idle for SECS seconds.
 The action is to call FUNCTION with arguments ARGS.
-SECS may be an integer or a floating point number.
+SECS may be an integer, a floating point number, or the internal
+time format (HIGH LOW USECS) returned by, e.g., `current-idle-time'.
+If Emacs is currently idle, and has been idle for N seconds (N < SECS),
+then it will call FUNCTION in SECS - N seconds from now.
 
 If REPEAT is non-nil, do the action each time Emacs has been idle for
 exactly SECS seconds (that is, only once for each time Emacs becomes idle).
@@ -425,10 +447,11 @@ This function returns a timer object which you can use in `cancel-timer'."
   (let ((timer (timer-create)))
     (timer-set-function timer function args)
     (timer-set-idle-time timer secs repeat)
-    (timer-activate-when-idle timer)
+    (timer-activate-when-idle timer t)
     timer))
 
 (defun with-timeout-handler (tag)
+  "This is the timer function used for the timer made by `with-timeout'."
   (throw tag 'timeout))
 
 ;;;###autoload (put 'with-timeout 'lisp-indent-function 1)

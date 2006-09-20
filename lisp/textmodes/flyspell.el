@@ -992,7 +992,7 @@ Mostly we check word delimiters."
     (flyspell-accept-buffer-local-defs)
     (let* ((cursor-location (point))
            (flyspell-word (flyspell-get-word following))
-           start end poss word)
+           start end poss word ispell-filter)
       (if (or (eq flyspell-word nil)
  	      (and (fboundp flyspell-generic-check-word-predicate)
  		   (not (funcall flyspell-generic-check-word-predicate))))
@@ -1050,7 +1050,12 @@ Mostly we check word delimiters."
 		       (not (string= "" (car ispell-filter))))))
 	    ;; (ispell-send-string "!\n")
 	    ;; back to terse mode.
+	    ;; Remove leading empty element
 	    (setq ispell-filter (cdr ispell-filter))
+	    ;; ispell process should return something after word is sent.
+	    ;; Tag word as valid (i.e., skip) otherwise
+	    (or ispell-filter
+		(setq ispell-filter '(*)))
 	    (if (consp ispell-filter)
 		(setq poss (ispell-parse-output (car ispell-filter))))
 	    (let ((res (cond ((eq poss t)
@@ -1830,7 +1835,7 @@ This command proposes various successive corrections for the current word."
 	    (let ((start (car (cdr word)))
 		  (end (car (cdr (cdr word))))
 		  (word (car word))
-		  poss)
+		  poss ispell-filter)
 	      (setq flyspell-auto-correct-word word)
 	      ;; now check spelling of word.
 	      (ispell-send-string "%\n") ;put in verbose mode
@@ -1839,7 +1844,12 @@ This command proposes various successive corrections for the current word."
               (while (progn
                        (accept-process-output ispell-process)
                        (not (string= "" (car ispell-filter)))))
+	      ;; Remove leading empty element
 	      (setq ispell-filter (cdr ispell-filter))
+	      ;; ispell process should return something after word is sent.
+	      ;; Tag word as valid (i.e., skip) otherwise
+	      (or ispell-filter
+		  (setq ispell-filter '(*)))
 	      (if (consp ispell-filter)
 		  (setq poss (ispell-parse-output (car ispell-filter))))
 	      (cond
@@ -1980,7 +1990,7 @@ The word checked is the word at the mouse position."
 	  (let ((start (car (cdr word)))
 		(end (car (cdr (cdr word))))
 		(word (car word))
-		poss)
+		poss ispell-filter)
 	    ;; now check spelling of word.
 	    (ispell-send-string "%\n") ;put in verbose mode
 	    (ispell-send-string (concat "^" word "\n"))
@@ -1988,7 +1998,12 @@ The word checked is the word at the mouse position."
             (while (progn
                      (accept-process-output ispell-process)
                      (not (string= "" (car ispell-filter)))))
+	    ;; Remove leading empty element
 	    (setq ispell-filter (cdr ispell-filter))
+	    ;; ispell process should return something after word is sent.
+	    ;; Tag word as valid (i.e., skip) otherwise
+	    (or ispell-filter
+		(setq ispell-filter '(*)))
 	    (if (consp ispell-filter)
 		(setq poss (ispell-parse-output (car ispell-filter))))
 	    (cond

@@ -1840,6 +1840,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 		       (and d (cdr d)))))))
 	(if (member ido-default-item ido-ignore-item-temp-list)
 	    (setq ido-default-item nil))
+	(ido-trace "new default" ido-default-item)
 	(setq ido-set-default-item nil))
 
       (if ido-process-ignore-lists-inhibit
@@ -2111,7 +2112,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 (defun ido-edit-input ()
   "Edit absolute file name entered so far with ido; terminate by RET."
   (interactive)
-  (setq ido-text-init (if ido-matches (car ido-matches) ido-text))
+  (setq ido-text-init (if ido-matches (ido-name (car ido-matches)) ido-text))
   (setq ido-exit 'edit)
   (exit-minibuffer))
 
@@ -2425,13 +2426,13 @@ If INITIAL is non-nil, it specifies the initial input string."
      ((and (= 1 (length ido-matches))
 	   (not (and ido-enable-tramp-completion
 		     (string-equal ido-current-directory "/")
-		     (string-match "..[@:]\\'" (car ido-matches)))))
+		     (string-match "..[@:]\\'" (ido-name (car ido-matches))))))
       ;; only one choice, so select it.
       (if (not ido-confirm-unique-completion)
 	  (exit-minibuffer)
 	(setq ido-rescan (not ido-enable-prefix))
 	(delete-region (minibuffer-prompt-end) (point))
-	(insert (car ido-matches))))
+	(insert (ido-name (car ido-matches)))))
 
      (t ;; else there could be some completions
       (setq res ido-common-match-string)
@@ -2813,7 +2814,7 @@ If input stack is non-empty, delete current directory component."
   "Use first matching item as input text."
   (interactive)
   (when ido-matches
-    (setq ido-text-init (car ido-matches))
+    (setq ido-text-init (ido-name (car ido-matches)))
     (setq ido-exit 'refresh)
     (exit-minibuffer)))
 
@@ -2827,7 +2828,7 @@ If input stack is non-empty, delete current directory component."
   "Move to previous directory in file name, push first match on stack."
   (interactive)
   (if ido-matches
-      (setq ido-text (car ido-matches)))
+      (setq ido-text (ido-name (car ido-matches))))
   (setq ido-exit 'push)
   (exit-minibuffer))
 
@@ -3528,37 +3529,40 @@ for first matching file."
   (let* ((case-fold-search  ido-case-fold)
 	 (slash (and (not ido-enable-prefix) (ido-final-slash ido-text)))
 	 (text (if slash (substring ido-text 0 -1) ido-text))
-	 (rexq (concat (if ido-enable-regexp text (regexp-quote text)) (if slash ".*/" "")))
+	 (rex0 (if ido-enable-regexp text (regexp-quote text)))
+	 (rexq (concat rex0 (if slash ".*/" "")))
 	 (re (if ido-enable-prefix (concat "\\`" rexq) rexq))
-	 (full-re (and do-full (not ido-enable-regexp) (not (string-match "\$\\'" re))
-		       (concat "\\`" re "\\'")))
+	 (full-re (and do-full (not ido-enable-regexp) (not (string-match "\$\\'" rex0))
+		       (concat "\\`" rex0 (if slash "/" "") "\\'")))
+	 (suffix-re (and do-full slash
+			 (not ido-enable-regexp) (not (string-match "\$\\'" rex0))
+			 (concat rex0 "/\\'")))
 	 (prefix-re (and full-re (not ido-enable-prefix)
 			 (concat "\\`" rexq)))
 	 (non-prefix-dot (or (not ido-enable-dot-prefix)
 			     (not ido-process-ignore-lists)
 			     ido-enable-prefix
 			     (= (length ido-text) 0)))
-
-	 full-matches
-	 prefix-matches
-	 matches)
+	 full-matches suffix-matches prefix-matches matches)
     (setq ido-incomplete-regexp nil)
     (condition-case error
         (mapcar
          (lambda (item)
            (let ((name (ido-name item)))
-             (if (and (or non-prefix-dot
-                          (if (= (aref ido-text 0) ?.)
-                              (= (aref name 0) ?.)
-                            (/= (aref name 0) ?.)))
-                      (string-match re name))
-                 (cond
-                  ((and full-re (string-match full-re name))
-                   (setq full-matches (cons item full-matches)))
-                  ((and prefix-re (string-match prefix-re name))
-                   (setq prefix-matches (cons item prefix-matches)))
-                  (t (setq matches (cons item matches))))))
-           t)
+	     (if (and (or non-prefix-dot
+			  (if (= (aref ido-text 0) ?.)
+			      (= (aref name 0) ?.)
+			    (/= (aref name 0) ?.)))
+		      (string-match re name))
+		 (cond
+		  ((and full-re (string-match full-re name))
+		   (setq full-matches (cons item full-matches)))
+		  ((and suffix-re (string-match suffix-re name))
+		   (setq suffix-matches (cons item suffix-matches)))
+		  ((and prefix-re (string-match prefix-re name))
+		   (setq prefix-matches (cons item prefix-matches)))
+		  (t (setq matches (cons item matches))))))
+	   t)
          items)
       (invalid-regexp
        (setq ido-incomplete-regexp t
@@ -3566,10 +3570,15 @@ for first matching file."
              ;; special-case single match, and handle appropriately
              ;; elsewhere.
              matches (cdr error))))
-    (if prefix-matches
-	(setq matches (nconc prefix-matches matches)))
-    (if full-matches
-	(setq matches (nconc full-matches matches)))
+    (when prefix-matches
+      (ido-trace "prefix match" prefix-matches)
+      (setq matches (nconc prefix-matches matches)))
+    (when suffix-matches
+      (ido-trace "suffix match" (list text suffix-re suffix-matches))
+      (setq matches (nconc suffix-matches matches)))
+    (when full-matches
+      (ido-trace "full match" (list text full-re full-matches))
+      (setq matches (nconc full-matches matches)))
     (when (and (null matches)
 	       ido-enable-flex-matching
 	       (> (length ido-text) 1)
@@ -3736,7 +3745,7 @@ for first matching file."
   "Kill the buffer at the head of `ido-matches'."
   (interactive)
   (let ((enable-recursive-minibuffers t)
-	(buf (car ido-matches)))
+	(buf (ido-name (car ido-matches))))
     (when buf
       (kill-buffer buf)
       ;; Check if buffer still exists.
@@ -3751,7 +3760,7 @@ for first matching file."
   "Delete the file at the head of `ido-matches'."
   (interactive)
   (let ((enable-recursive-minibuffers t)
-	(file (car ido-matches)))
+	(file (ido-name (car ido-matches))))
     (if file
 	(setq file (concat ido-current-directory file)))
     (when (and file
@@ -3772,7 +3781,8 @@ for first matching file."
 (defun ido-visit-buffer (buffer method &optional record)
   "Switch to BUFFER according to METHOD.
 Record command in `command-history' if optional RECORD is non-nil."
-
+  (if (bufferp buffer)
+      (setq buffer (buffer-name buffer)))
   (let (win newframe)
     (cond
      ((eq method 'kill)
@@ -4096,12 +4106,13 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	  try-single-dir-match
 	  refresh)
 
-      (ido-trace "\nexhibit" this-command)
-      (ido-trace "dir" ido-current-directory)
-      (ido-trace "contents" contents)
-      (ido-trace "list" ido-cur-list)
-      (ido-trace "matches" ido-matches)
-      (ido-trace "rescan" ido-rescan)
+      (when ido-trace-enable
+	(ido-trace "\nexhibit" this-command)
+	(ido-trace "dir" ido-current-directory)
+	(ido-trace "contents" contents)
+	(ido-trace "list" ido-cur-list)
+	(ido-trace "matches" ido-matches)
+	(ido-trace "rescan" ido-rescan))
 
       (save-excursion
 	(goto-char (point-max))
@@ -4191,7 +4202,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	    ((= (length contents) 2)
 	     "/")
 	    (ido-matches
-	     (concat ido-current-directory (car ido-matches)))
+	     (concat ido-current-directory (ido-name (car ido-matches))))
 	    (t
 	     (concat ido-current-directory (substring contents 0 -1)))))
 	  (setq ido-text-init (substring contents -1))
@@ -4227,12 +4238,12 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 		   ido-matches
 		   (or (eq ido-enter-matching-directory 'first)
 		       (null (cdr ido-matches)))
-		   (ido-final-slash (car ido-matches))
+		   (ido-final-slash (ido-name (car ido-matches)))
 		   (or try-single-dir-match
 		       (eq ido-enter-matching-directory t)))
 	  (ido-trace "single match" (car ido-matches))
 	  (ido-set-current-directory
-	   (concat ido-current-directory (car ido-matches)))
+	   (concat ido-current-directory (ido-name (car ido-matches))))
 	  (setq ido-exit 'refresh)
 	  (exit-minibuffer))
 

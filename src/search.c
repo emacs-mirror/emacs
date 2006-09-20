@@ -167,6 +167,9 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
   cp->whitespace_regexp = Vsearch_spaces_regexp;
+  /* Doing BLOCK_INPUT here has the effect that
+     the debugger won't run if an error occurs.
+     Why is BLOCK_INPUT needed here?  */
   BLOCK_INPUT;
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
@@ -284,6 +287,10 @@ looking_at_1 (string, posix)
   if (running_asynch_code)
     save_search_regs ();
 
+  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
+    = current_buffer->case_eqv_table;
+
   CHECK_STRING (string);
   bufp = compile_pattern (string, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
@@ -390,6 +397,10 @@ string_match_1 (regexp, string, start, posix)
 	args_out_of_range (string, start);
       pos_byte = string_char_to_byte (string, pos);
     }
+
+  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
+    = current_buffer->case_eqv_table;
 
   bufp = compile_pattern (regexp, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
@@ -929,6 +940,10 @@ search_command (string, bound, noerror, count, direction, RE, posix)
       else
 	lim_byte = CHAR_TO_BYTE (lim);
     }
+
+  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
+    = current_buffer->case_eqv_table;
 
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
 		      (!NILP (current_buffer->case_fold_search)

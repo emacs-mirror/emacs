@@ -6204,15 +6204,15 @@ the returned times will be formatted strings."
     (while (setq p (next-single-property-change (point) :org-clock-minutes))
       (goto-char p)
       (when (setq time (get-text-property p :org-clock-minutes))
-	(beginning-of-line 1)
-	(when (and (looking-at "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[0-9a-zA-Z_@:]+:\\)?[ \t]*$")
-		   (setq level (- (match-end 1) (match-beginning 1)))
-		   (<= level maxlevel))
-	  (setq hlc (if emph (or (cdr (assoc level hlchars)) "") "")
-		hdl (match-string 2)
-		h (/ time 60)
-		m (- time (* 60 h)))
-	  (save-excursion
+	(save-excursion
+	  (beginning-of-line 1)
+	  (when (and (looking-at "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[0-9a-zA-Z_@:]+:\\)?[ \t]*$")
+		     (setq level (- (match-end 1) (match-beginning 1)))
+		     (<= level maxlevel))
+	    (setq hlc (if emph (or (cdr (assoc level hlchars)) "") "")
+		  hdl (match-string 2)
+		  h (/ time 60)
+		  m (- time (* 60 h)))
 	    (goto-char ins)
 	    (if (= level 1) (insert-before-markers "|-\n"))
 	    (insert-before-markers
@@ -9467,6 +9467,7 @@ onto the ring."
   "Follow a Gnus link to GROUP and ARTICLE."
   (require 'gnus)
   (funcall (cdr (assq 'gnus org-link-frame-setup)))
+  (if gnus-other-frame-object (select-frame gnus-other-frame-object))
   (if group (gnus-fetch-group group))
   (if article
       (or (gnus-summary-goto-article article nil 'force)

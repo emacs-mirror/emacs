@@ -318,6 +318,12 @@ static int read_process_output P_ ((Lisp_Object, int));
 #define POLL_FOR_INPUT
 #endif
 
+static Lisp_Object get_process ();
+static void exec_sentinel ();
+
+extern EMACS_TIME timer_check ();
+extern int timers_run;
+
 /* Mask of bits indicating the descriptors that we wait for input on.  */
 
 static SELECT_TYPE input_wait_mask;
@@ -386,14 +392,12 @@ struct sockaddr_and_len {
 #define DATAGRAM_CONN_P(proc)	(0)
 #endif
 
-static Lisp_Object get_process ();
-static void exec_sentinel ();
-
-extern EMACS_TIME timer_check ();
-extern int timers_run;
-
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
+
+/* Nonzero means don't run process sentinels.  This is used
+   when exiting.  */
+int inhibit_sentinels;
 
 #ifdef HAVE_PTYS
 #ifdef HAVE_PTY_H
@@ -6559,6 +6563,9 @@ exec_sentinel (proc, reason)
   int outer_running_asynch_code = running_asynch_code;
   int waiting = waiting_for_user_input_p;
 
+  if (inhibit_sentinels)
+    return;
+
   /* No need to gcpro these, because all we do with them later
      is test them for EQness, and none of them should be a string.  */
   odeactivate = Vdeactivate_mark;
@@ -6887,6 +6894,8 @@ void
 init_process ()
 {
   register int i;
+
+  inhibit_sentinels = 0;
 
 #ifdef SIGCHLD
 #ifndef CANNOT_DUMP

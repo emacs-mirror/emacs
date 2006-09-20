@@ -82,6 +82,9 @@ Boston, MA 02110-1301, USA.  */
 /* Modification count.  */
 #define MODIFF (current_buffer->text->modiff)
 
+/* Character modification count.  */
+#define CHARS_MODIFF (current_buffer->text->chars_modiff)
+
 /* Overlay modification count.  */
 #define OVERLAY_MODIFF (current_buffer->text->overlay_modiff)
 
@@ -146,6 +149,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Modification count.  */
 #define BUF_MODIFF(buf) ((buf)->text->modiff)
+
+/* Character modification count.  */
+#define BUF_CHARS_MODIFF(buf) ((buf)->text->chars_modiff)
 
 /* Modification count as of last visit or save.  */
 #define BUF_SAVE_MODIFF(buf) ((buf)->text->save_modiff)
@@ -406,6 +412,10 @@ struct buffer_text
 				   for this buffer.  It is incremented for
 				   each such event, and never otherwise
 				   changed.  */
+    int chars_modiff;           /* This is modified with character change
+				   events for this buffer.  It is set to
+				   modiff for each such event, and never
+				   otherwise changed.  */
     int save_modiff;		/* Previous value of modiff, as of last
 				   time buffer visited or saved a file.  */
 

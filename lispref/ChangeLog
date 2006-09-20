@@ -1,3 +1,102 @@
+2006-09-11  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Display Table Format): Wording clarification.
+	(Glyphs): Clarifications.
+
+2006-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Active Keymaps): Mention that key-binding checks
+	local maps.
+
+2006-09-10  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Document return value of
+	function redisplay.
+
+2006-09-09  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Window Hooks): Explain limits of
+	window-scroll-functions.
+
+	* display.texi (Fringe Indicators): Update for last change in
+	indicate-buffer-boundaries.
+
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Bindat Spec): Suggest names ending in -bindat-spec.
+
+2006-09-06  Kim F. Storm  <storm@cua.dk>
+
+	* frames.texi (Display Feature Testing): display-mm-dimensions-alist.
+
+	* windows.texi (Window Start): Update pos-visible-in-window-p.
+
+2006-09-04  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Accepting Output): Explain SECONDS=0 for
+	accept-process-output.
+
+	* os.texi (Idle Timers): Explain why timer functions should not
+	loop until (input-pending-p).
+
+2006-09-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (usermanualdir): New variable.
+	(elisp.dvi): Use it.
+
+2006-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffers.texi (Buffer Modification): Fix last change.
+
+2006-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffers.texi (Buffer Modification): Document
+	buffer-chars-modified-tick.
+
+2006-08-31  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Syntactic Font Lock): Mention specific faces once again.
+
+2006-08-31  Richard Bielawski  <RBielawski@moneygram.com>  (tiny change)
+
+	* modes.texi (Syntactic Font Lock):
+	Mention font-lock-syntactic-face-function
+	instead of specific faces.
+
+2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Images): Add xrref to display-images-p.
+
+2006-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (Lisp and Coding Systems): Fix description of
+	detect-coding-region.
+
+2006-08-27  Michael Olson  <mwolson@gnu.org>
+
+	* processes.texi (Transaction Queues): Remove stray quote
+	character.
+
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Idle Timers): run-with-idle-timer allows Lisp time value.
+	Add xref.
+
+2006-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Timers): Avoid waiting inside timers.
+
+2006-08-21  Lute Kamstra  <lute@gnu.org>
+
+	* Makefile.in: Use ../man/texinfo.tex to build elisp.dvi.
+
+2006-08-20  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Idle Timers): New node, split out from Timers.
+	Document current-idle-time.
+	* commands.texi (Reading One Event): Update xref.
+	* elisp.texi (Top): Update subnode menu.
+
 2006-08-16  Richard Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Extended Menu Items): Show format of cached

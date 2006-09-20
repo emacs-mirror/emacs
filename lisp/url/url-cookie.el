@@ -168,11 +168,11 @@ telling Microsoft that."
       (insert ")\n(setq url-cookie-secure-storage\n '")
       (pp url-cookie-secure-storage (current-buffer))
       (insert ")\n")
-      (insert ";; Local Variables:\n"
+      (insert "\n;; Local Variables:\n"
               ";; version-control: never\n"
               ";; no-byte-compile: t\n"
               ";; End:\n")
-      (set (make-local-variable 'version-control) t)
+      (set (make-local-variable 'version-control) 'never)
       (write-file fname)
       (setq url-cookies-changed-since-last-save nil)
       (kill-buffer (current-buffer))))))

@@ -212,7 +212,7 @@ To install changes, type C-c C-c
 are present just to help you see where the colons are and know what to do.
 
   Note that the tab stops that control @code{tab-to-tab-stop} have nothing
-to do with displaying tab characters in the buffer.  @xref{Display Custom},
+to do with displaying tab characters in the buffer.  @xref{Text Display},
 for more information on that.
 
 @node Just Spaces,, Tab Stops, Indentation

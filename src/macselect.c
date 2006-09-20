@@ -31,15 +31,15 @@ typedef int ScrapRef;
 typedef ResType ScrapFlavorType;
 #endif /* !TARGET_API_MAC_CARBON */
 
-static OSErr get_scrap_from_symbol P_ ((Lisp_Object, int, ScrapRef *));
+static OSStatus get_scrap_from_symbol P_ ((Lisp_Object, int, ScrapRef *));
 static ScrapFlavorType get_flavor_type_from_symbol P_ ((Lisp_Object));
 static int valid_scrap_target_type_p P_ ((Lisp_Object));
-static OSErr clear_scrap P_ ((ScrapRef *));
-static OSErr put_scrap_string P_ ((ScrapRef, Lisp_Object, Lisp_Object));
-static OSErr put_scrap_private_timestamp P_ ((ScrapRef, unsigned long));
+static OSStatus clear_scrap P_ ((ScrapRef *));
+static OSStatus put_scrap_string P_ ((ScrapRef, Lisp_Object, Lisp_Object));
+static OSStatus put_scrap_private_timestamp P_ ((ScrapRef, unsigned long));
 static ScrapFlavorType scrap_has_target_type P_ ((ScrapRef, Lisp_Object));
 static Lisp_Object get_scrap_string P_ ((ScrapRef, Lisp_Object));
-static OSErr get_scrap_private_timestamp P_ ((ScrapRef, unsigned long *));
+static OSStatus get_scrap_private_timestamp P_ ((ScrapRef, unsigned long *));
 static Lisp_Object get_scrap_target_type_list P_ ((ScrapRef));
 static void x_own_selection P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object x_get_local_selection P_ ((Lisp_Object, Lisp_Object, int));
@@ -108,13 +108,13 @@ static Lisp_Object Vmac_service_selection;
    reference is set to *SCRAP, and it becomes NULL if there's no
    corresponding scrap.  Clear the scrap if CLEAR_P is non-zero.  */
 
-static OSErr
+static OSStatus
 get_scrap_from_symbol (sym, clear_p, scrap)
      Lisp_Object sym;
      int clear_p;
      ScrapRef *scrap;
 {
-  OSErr err = noErr;
+  OSStatus err = noErr;
   Lisp_Object str = Fget (sym, Qmac_scrap_name);
 
   if (!STRINGP (str))
@@ -172,7 +172,7 @@ valid_scrap_target_type_p (sym)
 
 /* Clear the scrap whose reference is *SCRAP. */
 
-static INLINE OSErr
+static INLINE OSStatus
 clear_scrap (scrap)
      ScrapRef *scrap;
 {
@@ -190,7 +190,7 @@ clear_scrap (scrap)
 /* Put Lisp String STR to the scrap SCRAP.  The target type is
    specified by TYPE. */
 
-static OSErr
+static OSStatus
 put_scrap_string (scrap, type, str)
      ScrapRef scrap;
      Lisp_Object type, str;
@@ -211,7 +211,7 @@ put_scrap_string (scrap, type, str)
 /* Put TIMESTAMP to the scrap SCRAP.  The timestamp is used for
    checking if the scrap is owned by the process.  */
 
-static INLINE OSErr
+static INLINE OSStatus
 put_scrap_private_timestamp (scrap, timestamp)
      ScrapRef scrap;
      unsigned long timestamp;
@@ -233,7 +233,7 @@ scrap_has_target_type (scrap, type)
      ScrapRef scrap;
      Lisp_Object type;
 {
-  OSErr err;
+  OSStatus err;
   ScrapFlavorType flavor_type = get_flavor_type_from_symbol (type);
 
   if (flavor_type)
@@ -264,7 +264,7 @@ get_scrap_string (scrap, type)
      ScrapRef scrap;
      Lisp_Object type;
 {
-  OSErr err;
+  OSStatus err;
   Lisp_Object result = Qnil;
   ScrapFlavorType flavor_type = get_flavor_type_from_symbol (type);
 #if TARGET_API_MAC_CARBON
@@ -310,12 +310,12 @@ get_scrap_string (scrap, type)
 
 /* Get timestamp from the scrap SCRAP and set to *TIMPSTAMP.  */
 
-static OSErr
+static OSStatus
 get_scrap_private_timestamp (scrap, timestamp)
      ScrapRef scrap;
      unsigned long *timestamp;
 {
-  OSErr err = noErr;
+  OSStatus err = noErr;
 #if TARGET_API_MAC_CARBON
   ScrapFlavorFlags flags;
 
@@ -365,7 +365,7 @@ get_scrap_target_type_list (scrap)
 {
   Lisp_Object result = Qnil, rest, target_type;
 #if TARGET_API_MAC_CARBON
-  OSErr err;
+  OSStatus err;
   UInt32 count, i, type;
   ScrapFlavorInfo *flavor_info = NULL;
   Lisp_Object strings = Qnil;
@@ -425,7 +425,7 @@ static void
 x_own_selection (selection_name, selection_value)
      Lisp_Object selection_name, selection_value;
 {
-  OSErr err;
+  OSStatus err;
   ScrapRef scrap;
   struct gcpro gcpro1, gcpro2;
   Lisp_Object rest, handler_fn, value, type;
@@ -671,7 +671,7 @@ static Lisp_Object
 x_get_foreign_selection (selection_symbol, target_type, time_stamp)
      Lisp_Object selection_symbol, target_type, time_stamp;
 {
-  OSErr err;
+  OSStatus err;
   ScrapRef scrap;
   Lisp_Object result = Qnil;
 
@@ -765,7 +765,7 @@ Disowning it means there is no such selection.  */)
      Lisp_Object selection;
      Lisp_Object time;
 {
-  OSErr err;
+  OSStatus err;
   ScrapRef scrap;
   Lisp_Object local_selection_data;
 
@@ -828,7 +828,7 @@ and t is the same as `SECONDARY'.  */)
      (selection)
      Lisp_Object selection;
 {
-  OSErr err;
+  OSStatus err;
   ScrapRef scrap;
   Lisp_Object result = Qnil, local_selection_data;
 
@@ -873,7 +873,7 @@ and t is the same as `SECONDARY'.  */)
      (selection)
      Lisp_Object selection;
 {
-  OSErr err;
+  OSStatus err;
   ScrapRef scrap;
   Lisp_Object result = Qnil, rest;
 
@@ -931,7 +931,7 @@ struct suspended_ae_info
   struct suspended_ae_info *next;
 };
 
-/* List of deferred apple events at the startup time.  */
+/* List of apple events deferred at the startup time.  */
 static struct suspended_ae_info *deferred_apple_events = NULL;
 
 /* List of suspended apple events, in order of expiration_tick.  */

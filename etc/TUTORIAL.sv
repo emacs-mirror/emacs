@@ -224,7 +224,7 @@ Detta borde ha flyttat skärmbilden 8 rader uppåt. Om du önskar flytta
 tillbaka igen är det bara att ge samma argument till M-v.
 
 Om du använder Emacs under ett fönstersystem, som X11 eller
-MS-Windows, finns det troligen ett rektangulärt område på vänster sida
+MS-Windows, finns det troligen ett rektangulärt område på sidan
 av Emacs-fönstret, en så kallad rullningslist. Genom att klicka i den
 med musen kan du rulla texten.
 

@@ -409,7 +409,7 @@ Optional arg EMPTY is message to print if no macros are defined."
 
 
 (defun kmacro-repeat-on-last-key (keys)
-  "Process kmacro commands keys immidiately after cycling the ring."
+  "Process kmacro commands keys immediately after cycling the ring."
   (setq keys (vconcat keys))
   (let ((n (1- (length keys)))
 	cmd done repeat)

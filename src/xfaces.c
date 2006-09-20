@@ -1189,7 +1189,7 @@ load_pixmap (f, name, w_ptr, h_ptr)
 
   if (bitmap_id < 0)
     {
-      add_to_log ("Invalid or undefined bitmap %s", name, Qnil);
+      add_to_log ("Invalid or undefined bitmap `%s'", name, Qnil);
       bitmap_id = 0;
 
       if (w_ptr)

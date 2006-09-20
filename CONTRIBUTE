@@ -147,13 +147,13 @@ giving you write access to the CVS repository.
 
 Discussion about Emacs development takes place on emacs-devel@gnu.org.
 
-Bug reports for released versions are sent to emacs-bugs@gnu.org.
+Bug reports for released versions are sent to bug-gnu-emacs@gnu.org.
 
 Bug reports for development versions are sent to emacs-pretest-bug@gnu.org.
 
 You can subscribe to the mailing lists at savannah.gnu.org/projects/emacs.
 
-You can find the mailing lists archives at mail.gnu.org or gmane.org.
+You can find the mailing lists archives at lists.gnu.org or gmane.org.
 
 
 ** Document your changes.
@@ -189,7 +189,7 @@ need to check whether *that file* was changed in those years.
 It's sufficient that *Emacs* was changed in those years (and it was!).
 
 ** For those files that have been added since then, we should add
-the year it was added to Emacs, and all subsequent years."
+the year it was added to Emacs, and all subsequent years.
 
 ** For the refcards under etc/, it's ok to simply use the latest year
 (typically in a `\def\year{YEAR}' expression) for the rendered copyright

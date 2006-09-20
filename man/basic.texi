@@ -480,7 +480,7 @@ does not appear at all.  @samp{$} in the last column or a small
 straight arrow in the window's right fringe indicates a truncated
 line.
 
-  @xref{Display Custom}, for more about line truncation,
+  @xref{Line Truncation}, for more about line truncation,
 and other variables that control how text is displayed.
 
 @node Position Info

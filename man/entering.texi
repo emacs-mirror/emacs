@@ -69,20 +69,19 @@ already running Emacs.  @xref{Emacs Server}.
 @cindex leaving Emacs
 @cindex quitting Emacs
 
-  There are two commands for exiting Emacs, and three kinds of exiting:
-@dfn{suspending} Emacs, @dfn{Iconifying} Emacs, and @dfn{killing}
-Emacs.
+  There are two commands for exiting Emacs, and three kinds of
+exiting: @dfn{iconifying} Emacs, @dfn{suspending} Emacs, and
+@dfn{killing} Emacs.
+
+  @dfn{Iconifying} means replacing the Emacs frame with a small box or
+``icon'' on the screen.  This is the usual way to exit Emacs when
+you're using a graphical display---if you bother to ``exit'' at all.
+(Just switching to another application is usually sufficient.)
 
   @dfn{Suspending} means stopping Emacs temporarily and returning
-control to its parent process (usually a shell), allowing you to resume
-editing later in the same Emacs job, with the same buffers, same kill
-ring, same undo history, and so on.  This is the usual way to exit Emacs
-when running on a text terminal.
-
-  @dfn{Iconifying} means replacing the Emacs frame with a small box
-somewhere on the screen.  This is the usual way to exit Emacs when you're
-using a graphics terminal---if you bother to ``exit'' at all.  (Just switching
-to another application is usually sufficient.)
+control to its parent process (usually a shell), allowing you to
+resume editing later in the same Emacs job.  This is the usual way to
+exit Emacs when running it on a text terminal.
 
   @dfn{Killing} Emacs means destroying the Emacs job.  You can run Emacs
 again later, but you will get a fresh Emacs; there is no way to resume
@@ -97,12 +96,18 @@ Kill Emacs (@code{save-buffers-kill-emacs}).
 @end table
 
 @kindex C-z
-@findex suspend-emacs
-  To suspend or iconify Emacs, type @kbd{C-z} (@code{suspend-emacs}).
-On text terminals, this suspends Emacs.  On graphical displays,
-it iconifies the Emacs frame.
+@findex iconify-or-deiconify-frame
+  On graphical displays, @kbd{C-z} runs the command
+@code{iconify-or-deiconify-frame}, which temporarily iconifies (or
+``minimizes'') the selected Emacs frame (@pxref{Frames}).  You can
+then use the window manager to select some other application.  (You
+could select another application without iconifying Emacs first, but
+getting the Emacs frame out of the way can make it more convenient to
+find the other application.)
 
-  Suspending Emacs takes you back to the shell from which you invoked
+@findex suspend-emacs
+  On a text terminal, @kbd{C-z} runs the command @code{suspend-emacs}.
+Suspending Emacs takes you back to the shell from which you invoked
 Emacs.  You can resume Emacs with the shell command @command{%emacs}
 in most common shells.  On systems that don't support suspending
 programs, @kbd{C-z} starts an inferior shell that communicates
@@ -112,19 +117,12 @@ subshell.  (The way to do that is probably with @kbd{C-d} or
 systems, you can only get back to the shell from which Emacs was run
 (to log out, for example) when you kill Emacs.
 
+@vindex cannot-suspend
   Suspending can fail if you run Emacs under a shell that doesn't
-support suspending programs, even if the system itself does support
-it.  In such a case, you can set the variable @code{cannot-suspend} to
-a non-@code{nil} value to force @kbd{C-z} to start an inferior shell.
-(One might also describe Emacs's parent shell as ``inferior'' for
-failing to support job control properly, but that is a matter of
-taste.)
-
-  On graphical displays, @kbd{C-z} has a different meaning: it runs
-the command @code{iconify-or-deiconify-frame}, which temporarily
-iconifies (or ``minimizes'') the selected Emacs frame
-(@pxref{Frames}).  Then you can use the window manager to get back to
-a shell window.
+support suspendion of its subjobs, even if the system itself does
+support it.  In such a case, you can set the variable
+@code{cannot-suspend} to a non-@code{nil} value to force @kbd{C-z} to
+start an inferior shell.
 
 @kindex C-x C-c
 @findex save-buffers-kill-emacs

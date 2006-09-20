@@ -336,6 +336,10 @@ by whitespace.  This means you can now use them as shell wildcards
 too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
+
+** Adaptive filling misfeature removed.
+It no longer treats `NNN.' or `(NNN)' as a prefix.
+
 
 * Editing Changes in Emacs 22.1
 
@@ -839,6 +843,13 @@ The variable `automatic-hscrolling' was renamed to
 the window now works sensibly, by automatically adjusting the window's
 vscroll property.
 
+*** New customize option `overline-margin' controls the space between
+overline and text.
+
+*** New variable `x-underline-at-descent-line' controls the relative
+position of the underline.  When set, it overrides the
+`x-use-underline-position-properties' variables.
+
 +++
 *** The new face `mode-line-inactive' is used to display the mode line
 of non-selected windows.  The `mode-line' face is now used to display
@@ -962,11 +973,12 @@ fontification in Info, remove `turn-on-font-lock' from
 `Info-mode-hook'.
 
 +++
-*** font-lock: in modes like C and Lisp where the fontification assumes that
-an open-paren in column 0 is always outside of any string or comment,
-font-lock now highlights any such open-paren-in-column-zero in bold-red
-if it is inside a string or a comment, to indicate that it can cause
-trouble with fontification and/or indentation.
+*** Font-Lock mode: in major modes such as Lisp mode, where some Emacs
+features assume that an open-paren in column 0 is always outside of
+any string or comment, Font-Lock now highlights any such open-paren in
+bold-red if it is inside a string or a comment, to indicate that it
+can cause trouble.  You should rewrite the string or comment so that
+the open-paren is not in column 0.
 
 +++
 *** New standard font-lock face `font-lock-preprocessor-face'.
@@ -1422,6 +1434,10 @@ otherwise behaves quite similarly to the bash version.
 `comint-use-prompt-regexp'.  The old name has been kept as an alias,
 but declared obsolete.
 
++++
+*** The EMACS environment variable now defaults to Emacs's absolute
+file name, instead of to "t".
+
 ** M-x Compile changes:
 
 ---
@@ -1477,6 +1493,10 @@ context before the current message.  If nil and the left fringe is displayed,
 it doesn't scroll the compilation output window.  If there is no left fringe,
 no arrow is displayed and a value of nil means display the message at the top
 of the window.
+
++++
+*** The EMACS environment variable now defaults to Emacs's absolute
+file name, instead of to "t".
 
 ** Occur mode changes:
 
@@ -4076,6 +4096,13 @@ position or for a given window pixel coordinate.
 ** Text modification:
 
 +++
+*** The new function `buffer-chars-modified-tick' returns a buffer's
+tick counter for changes to characters.  Each time text in that buffer
+is inserted or deleted, the character-change counter is updated to the
+tick counter (`buffer-modified-tick').  Text property changes leave it
+unchanged.
+
++++
 *** The new function `insert-for-yank' normally works like `insert', but
 removes the text properties in the `yank-excluded-properties' list
 and handles the `yank-handler' text property.
@@ -4665,6 +4692,7 @@ keymap alist to this list.
 
 *** The definition of a key-binding passed to define-key can use XEmacs-style
 key-sequences, such as [(control a)].
+
 ** Abbrev changes:
 
 +++
@@ -4890,9 +4918,6 @@ be used in different windows showing different buffers.
 
 *** New function `define-fringe-bitmap' can now be used to create new
 fringe bitmaps, as well as change the built-in fringe bitmaps.
-
-To change a built-in bitmap, do (require 'fringe) and use the symbol
-identifying the bitmap such as `left-truncation' or `continued-line'.
 
 *** New function `destroy-fringe-bitmap' deletes a fringe bitmap
 or restores a built-in one to its default value.
@@ -5181,6 +5206,11 @@ external packages to save users from having to update
 +++
 *** The new variable `max-image-size' defines the maximum size of
 images that Emacs will load and display.
+
++++
+*** The new variable `display-mm-dimensions-alist' can be used to
+override incorrect graphical display dimensions returned by functions
+`display-mm-height' and `display-mm-width'.
 
 ** Mouse pointer features:
 
@@ -5492,6 +5522,9 @@ been renamed to `disabled-command-function'.  The variable
 +++
 *** `emacsserver' now runs `pre-command-hook' and `post-command-hook'
 when it receives a request from emacsclient.
+
++++
+*** `current-idle-time' reports how long Emacs has been idle.
 
 ** Lisp file loading changes:
 

@@ -853,6 +853,9 @@ be displayed by the first non-nil matching CONTENT face."
 (defvar gnus-decode-header-function 'mail-decode-encoded-word-region
   "Function used to decode headers.")
 
+(defvar gnus-decode-address-function 'mail-decode-encoded-address-region
+  "Function used to decode addresses.")
+
 (defvar gnus-article-dumbquotes-map
   '(("\200" "EUR")
     ("\202" ",")
@@ -2377,10 +2380,24 @@ If PROMPT (the prefix), prompt for a coding system to use."
 			     (set-buffer gnus-summary-buffer)
 			   (error))
 			 gnus-newsgroup-ignored-charsets))
-	(inhibit-read-only t))
-    (save-restriction
-      (article-narrow-to-head)
-      (funcall gnus-decode-header-function (point-min) (point-max)))))
+	(inhibit-read-only t)
+	end start)
+    (goto-char (point-min))
+    (when (search-forward "\n\n" nil 'move)
+      (forward-line -1))
+    (setq end (point))
+    (while (not (bobp))
+      (while (progn
+	       (forward-line -1)
+	       (and (not (bobp))
+		    (memq (char-after) '(?\t ? )))))
+      (setq start (point))
+      (if (looking-at "\
+\\(?:Resent-\\)?\\(?:From\\|Cc\\|To\\|Bcc\\|\\(?:In-\\)?Reply-To\\|Sender\
+\\|Mail-Followup-To\\|Mail-Copies-To\\|Approved\\):")
+	  (funcall gnus-decode-address-function start end)
+	(funcall gnus-decode-header-function start end))
+      (goto-char (setq end start)))))
 
 (defun article-decode-group-name ()
   "Decode group names in `Newsgroups:'."
@@ -3923,6 +3940,14 @@ commands:
   (mm-enable-multibyte)
   (gnus-run-mode-hooks 'gnus-article-mode-hook))
 
+;; Internal variables.  Are `gnus-button-regexp' and `gnus-button-last' used
+;; at all?
+(defvar gnus-button-regexp nil)
+(defvar gnus-button-marker-list nil
+  "Regexp matching any of the regexps from `gnus-button-alist'.")
+(defvar gnus-button-last nil
+  "The value of `gnus-button-alist' when `gnus-button-regexp' was build.")
+
 (defun gnus-article-setup-buffer ()
   "Initialize the article buffer."
   (let* ((name (if gnus-single-article-buffer "*Article*"
@@ -4324,9 +4349,8 @@ Deleting parts may malfunction or destroy the article; continue? ")
 	   (handles gnus-article-mime-handles)
 	   (none "(none)")
 	   (description
-	    (or
-	     (mail-decode-encoded-word-string (or (mm-handle-description data)
-						  none))))
+	    (mail-decode-encoded-word-string (or (mm-handle-description data)
+						 none)))
 	   (filename
 	    (or (mail-content-type-get (mm-handle-disposition data) 'filename)
 		none))
@@ -6694,13 +6718,6 @@ HEADER is a regexp to match a header.  For a fuller explanation, see
 		       (repeat :tag "Par"
 			       :inline t
 			       (integer :tag "Regexp group")))))
-
-(defvar gnus-button-regexp nil)
-(defvar gnus-button-marker-list nil)
-;; Regexp matching any of the regexps from `gnus-button-alist'.
-
-(defvar gnus-button-last nil)
-;; The value of `gnus-button-alist' when `gnus-button-regexp' was build.
 
 ;;; Commands:
 

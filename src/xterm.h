@@ -1001,6 +1001,7 @@ extern XtAppContext Xt_app_con;
 extern int x_alloc_lighter_color_for_widget __P ((Widget, Display*, Colormap,
 						  unsigned long *,
 						  double, int));
+extern void x_activate_timeout_atimer P_ ((void));
 #endif
 extern void x_query_colors P_ ((struct frame *f, XColor *, int));
 extern void x_query_color P_ ((struct frame *f, XColor *));

@@ -329,11 +329,14 @@ Controlling the Display
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Interactively:: Tell Emacs what text to highlight.
 * Fringes::                Enabling or disabling window fringes.
+* Displaying Boundaries::  Displaying top and bottom of the buffer.
 * Useless Whitespace::     Showing possibly-spurious trailing whitespace.
 * Selective Display::      Hiding lines with lots of indentation.
 * Optional Mode Line::     Optional mode line display features.
 * Text Display::           How text characters are normally displayed.
 * Cursor Display::         Features for displaying the cursor.
+* Line Truncation::        Truncating lines to fit the screen width instead
+                             of continuing them to multiple screen lines.
 * Display Custom::         Information on variables for customizing display.
 
 Searching and Replacement

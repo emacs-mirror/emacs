@@ -266,6 +266,7 @@ Defaults to nil on DOS and Windows, and t on other systems."
 ;; Functions to add files to the cache
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;###autoload
 (defun file-cache-add-directory (directory &optional regexp)
   "Add DIRECTORY to the file cache.
 If the optional REGEXP argument is non-nil, only files which match it will
@@ -291,6 +292,7 @@ be added to the cache."
        dir-files)
       (file-cache-add-file-list dir-files))))
 
+;;;###autoload
 (defun file-cache-add-directory-list (directory-list &optional regexp)
   "Add DIRECTORY-LIST (a list of directory names) to the file cache.
 If the optional REGEXP argument is non-nil, only files which match it
@@ -307,6 +309,8 @@ in each directory, not to the directory list itself."
   (mapcar 'file-cache-add-file file-list))
 
 ;; Workhorse function
+
+;;;###autoload
 (defun file-cache-add-file (file)
   "Add FILE to the file cache."
   (interactive "fAdd File: ")
@@ -333,6 +337,7 @@ in each directory, not to the directory list itself."
 		    file-cache-alist)))
       )))
 
+;;;###autoload
 (defun file-cache-add-directory-using-find (directory)
   "Use the `find' command to add files to the file cache.
 Find is run in DIRECTORY."
@@ -355,6 +360,7 @@ Find is run in DIRECTORY."
 		  "-print")
     (file-cache-add-from-file-cache-buffer)))
 
+;;;###autoload
 (defun file-cache-add-directory-using-locate (string)
   "Use the `locate' command to add files to the file cache.
 STRING is passed as an argument to the locate command."
@@ -366,6 +372,7 @@ STRING is passed as an argument to the locate command."
 		string)
   (file-cache-add-from-file-cache-buffer))
 
+;;;###autoload
 (defun file-cache-add-directory-recursively  (dir &optional regexp)
   "Adds DIR and any subdirectories to the file-cache.
 This function does not use any external programs

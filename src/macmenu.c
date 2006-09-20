@@ -158,9 +158,9 @@ typedef struct _widget_value
 #define FALSE 0
 #endif /* no TRUE */
 
-Lisp_Object Vmenu_updating_frame;
-
 Lisp_Object Qdebug_on_next_call;
+
+extern Lisp_Object Vmenu_updating_frame;
 
 extern Lisp_Object Qmenu_bar, Qmac_apple_event;
 
@@ -2629,11 +2629,6 @@ syms_of_macmenu ()
 
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
-
-  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
-	       doc: /* Frame for which we are updating a menu.
-The enable predicate for a menu command should check this variable.  */);
-  Vmenu_updating_frame = Qnil;
 
   defsubr (&Sx_popup_menu);
 #ifdef HAVE_MENUS

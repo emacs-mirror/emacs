@@ -131,14 +131,8 @@ xg_display_close (Display *dpy)
 #ifdef HAVE_GTK_MULTIDISPLAY
   GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpy);
 
-  /* GTK 2.2 has a bug that makes gdk_display_close crash (bug
-     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way
-     we can continue running, but there will be memory leaks.  */
-
-#if GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 4
-
   /* If this is the default display, we must change it before calling
-     dispose, otherwise it will crash.  */
+     dispose, otherwise it will crash on some Gtk+ versions.  */
   if (gdk_display_get_default () == gdpy)
     {
       struct x_display_info *dpyinfo;
@@ -160,10 +154,14 @@ xg_display_close (Display *dpy)
                                                gdpy_new);
     }
 
-  g_object_run_dispose (G_OBJECT (gdpy));
+  /* GTK 2.2-2.8 has a bug that makes gdk_display_close crash (bug
+     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way
+     we can continue running, but there will be memory leaks.  */
 
+#if GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 10
+  g_object_run_dispose (G_OBJECT (gdpy));
 #else
-  /* I hope this will be fixed in GTK 2.4.  It is what bug 85715 says.  */
+  /* This seems to be fixed in GTK 2.10. */
   gdk_display_close (gdpy);
 #endif
 #endif /* HAVE_GTK_MULTIDISPLAY */
@@ -1326,9 +1324,10 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   message[0] = '\0';
   if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
     strcat (message, "\nType C-l to display a file name text entry box.\n");
-  strcat (message, "\nIf you don't like this file selector, customize "
-          "use-file-dialog\nto turn it off, or type C-x C-f to visit files.");
-
+  strcat (message, "\nIf you don't like this file selector, use the "
+          "corresponding\nkey binding or customize "
+          "use-file-dialog to turn it off.");
+    
   wmessage = gtk_label_new (message);
   gtk_widget_show (wmessage);
   gtk_box_pack_start (GTK_BOX (wbox), wtoggle, FALSE, FALSE, 0);
@@ -1340,6 +1339,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
       Lisp_Object file;
       struct gcpro gcpro1;
       GCPRO1 (file);
+      char *utf8_filename;
 
       file = build_string (default_filename);
 
@@ -1347,14 +1347,23 @@ xg_get_file_with_chooser (f, prompt, default_filename,
          an absolute name starting with /.  */
       if (default_filename[0] != '/')
         file = Fexpand_file_name (file, Qnil);
-
-      default_filename = SSDATA (file);
-      if (Ffile_directory_p (file))
+      
+      utf8_filename = SSDATA (ENCODE_UTF_8 (file));
+      if (! NILP (Ffile_directory_p (file)))
         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filewin),
-                                             default_filename);
+                                             utf8_filename);
       else
-        gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
-                                       default_filename);
+        {
+          gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
+                                         utf8_filename);
+          if (action == GTK_FILE_CHOOSER_ACTION_SAVE)
+            {
+              char *cp = strrchr (utf8_filename, '/');
+              if (cp) ++cp;
+              else cp = utf8_filename;
+              gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (filewin), cp);
+            }
+        }
 
       UNGCPRO;
     }

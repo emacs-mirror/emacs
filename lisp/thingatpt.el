@@ -240,7 +240,7 @@ This may contain whitespace (including newlines) .")
   (let ((strip (thing-at-point-looking-at
 			 thing-at-point-markedup-url-regexp))) ;; (url "") short
     (if (or strip
-`	    (thing-at-point-looking-at thing-at-point-url-regexp)
+	    (thing-at-point-looking-at thing-at-point-url-regexp)
 	    ;; Access scheme omitted?
 	    ;; (setq short (thing-at-point-looking-at
 	    ;;     	 thing-at-point-short-url-regexp))

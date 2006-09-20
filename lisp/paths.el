@@ -159,16 +159,6 @@ The `ORGANIZATION' environment variable is used instead if defined.")
   "Name of directory used by system mailer for delivering new mail.
 Its name should end with a slash.")
 
-(defcustom sendmail-program
-  (cond
-    ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
-    ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
-    ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
-    (t "fakemail"))			;In ../etc, to interface to /bin/mail.
-  "Program used to send messages."
-  :group 'mail
-  :type 'file)
-
 (defcustom remote-shell-program
   (cond
    ;; Some systems use rsh for the remote shell; others use that name for the

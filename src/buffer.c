@@ -374,6 +374,7 @@ The value is never nil.  */)
   BUF_ZV_BYTE (b) = BEG_BYTE;
   BUF_Z_BYTE (b) = BEG_BYTE;
   BUF_MODIFF (b) = 1;
+  BUF_CHARS_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
   BUF_INTERVALS (b) = 0;
@@ -1148,6 +1149,31 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 
   return make_number (BUF_MODIFF (buf));
 }
+
+DEFUN ("buffer-chars-modified-tick", Fbuffer_chars_modified_tick,
+       Sbuffer_chars_modified_tick, 0, 1, 0,
+       doc: /* Return BUFFER's character-change tick counter.
+Each buffer has a character-change tick counter, which is set to the
+value of the buffer's tick counter \(see `buffer-modified-tick'), each
+time text in that buffer is inserted or deleted.  By comparing the
+values returned by two individual calls of `buffer-chars-modified-tick',
+you can tell whether a character change occurred in that buffer in
+between these calls.  No argument or nil as argument means use current
+buffer as BUFFER.  */)
+     (buffer)
+     register Lisp_Object buffer;
+{
+  register struct buffer *buf;
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer);
+      buf = XBUFFER (buffer);
+    }
+
+  return make_number (BUF_CHARS_MODIFF (buf));
+}
 
 DEFUN ("rename-buffer", Frename_buffer, Srename_buffer, 1, 2,
        "sRename buffer (to new name): \nP",
@@ -1684,9 +1710,18 @@ the window-buffer correspondences.  */)
   char *err;
 
   if (EQ (buffer, Fwindow_buffer (selected_window)))
-    /* Basically a NOP.  Avoid signalling an error if the selected window
-       is dedicated, or a minibuffer, ...  */
-    return Fset_buffer (buffer);
+    {
+      /* Basically a NOP.  Avoid signalling an error in the case where
+	 the selected window is dedicated, or a minibuffer.  */
+
+      /* But do put this buffer at the front of the buffer list,
+	 unless that has been inhibited.  Note that even if
+	 BUFFER is at the front of the main buffer-list already,
+	 we still want to move it to the front of the frame's buffer list.  */
+      if (NILP (norecord))
+	record_buffer (buffer);
+      return Fset_buffer (buffer);
+    }
 
   err = no_switch_window (selected_window);
   if (err) error (err);
@@ -2115,10 +2150,11 @@ current buffer is cleared.  */)
 {
   struct Lisp_Marker *tail, *markers;
   struct buffer *other;
-  int undo_enabled_p = !EQ (current_buffer->undo_list, Qt);
   int begv, zv;
   int narrowed = (BEG != BEGV || Z != ZV);
   int modified_p = !NILP (Fbuffer_modified_p (Qnil));
+  Lisp_Object old_undo = current_buffer->undo_list;
+  struct gcpro gcpro1;
 
   if (current_buffer->base_buffer)
     error ("Cannot do `set-buffer-multibyte' on an indirect buffer");
@@ -2127,10 +2163,11 @@ current buffer is cleared.  */)
   if (NILP (flag) == NILP (current_buffer->enable_multibyte_characters))
     return flag;
 
-  /* It would be better to update the list,
-     but this is good enough for now.  */
-  if (undo_enabled_p)
-    current_buffer->undo_list = Qt;
+  GCPRO1 (old_undo);
+
+  /* Don't record these buffer changes.  We will put a special undo entry
+     instead.  */
+  current_buffer->undo_list = Qt;
 
   /* If the cached position is for this buffer, clear it out.  */
   clear_charpos_cache (current_buffer);
@@ -2330,8 +2367,17 @@ current buffer is cleared.  */)
       set_intervals_multibyte (1);
     }
 
-  if (undo_enabled_p)
-    current_buffer->undo_list = Qnil;
+  if (!EQ (old_undo, Qt))
+    {
+      /* Represent all the above changes by a special undo entry.  */
+      extern Lisp_Object Qapply;
+      current_buffer->undo_list = Fcons (list3 (Qapply,
+						intern ("set-buffer-multibyte"),
+						NILP (flag) ? Qt : Qnil),
+					 old_undo);
+    }
+
+  UNGCPRO;
 
   /* Changing the multibyteness of a buffer means that all windows
      showing that buffer must be updated thoroughly.  */
@@ -6024,6 +6070,7 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
   defsubr (&Sbuffer_modified_p);
   defsubr (&Sset_buffer_modified_p);
   defsubr (&Sbuffer_modified_tick);
+  defsubr (&Sbuffer_chars_modified_tick);
   defsubr (&Srename_buffer);
   defsubr (&Sother_buffer);
   defsubr (&Sbuffer_enable_undo);

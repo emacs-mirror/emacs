@@ -29,7 +29,9 @@ Reminders sent out on 2006-06-08.
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
-* BUGS
+* WINDOWS SUPPORT BUGS.
+These don't need to be fixed to start pretest, but we call the
+attention of Windows users to fixing them.
 
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
@@ -39,13 +41,29 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 	 '(hscroll-step 1)
 	)
 
-** Jorgen Schaefer <forcer@forcix.cx>'s June 18 bug report about
-  fields and invisible overlays needs attention from a field expert.
+** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
+Windows only bug.
 
-** Implement buffer-chars-modified-tick.
+** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
+  (Did we decide that is unreproducible?)
 
-** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem.
+* BUGS
 
+** Field handling in C-n.
+
+** C-g fails to interrupt accept-process-output in Gnus.
+  (Is that fixed?)
+
+** allout.el patch from Manheimer to be installed.
+
+** regex char class matching needs a call to char-syntax.
+
+** regex char class matching breaks if you change entries
+in the syntax table.
+
+** Handa's Sep 6 compilation font lock bug report.
+
+** Michael Cadilhac's Sep 7 bug report about set-input-method.
 
 * DOCUMENTATION
 

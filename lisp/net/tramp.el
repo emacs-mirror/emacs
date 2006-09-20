@@ -3888,37 +3888,50 @@ This will break if COMMAND prints a newline, followed by the value of
 (defun tramp-handle-make-auto-save-file-name ()
   "Like `make-auto-save-file-name' for tramp files.
 Returns a file name in `tramp-auto-save-directory' for autosaving this file."
-  (when tramp-auto-save-directory
-    (unless (file-exists-p tramp-auto-save-directory)
-      (make-directory tramp-auto-save-directory t)))
-  ;; jka-compr doesn't like auto-saving, so by appending "~" to the
-  ;; file name we make sure that jka-compr isn't used for the
-  ;; auto-save file.
-  (let ((buffer-file-name
-	 (if tramp-auto-save-directory
-	     (expand-file-name
-	      (tramp-subst-strs-in-string
-	       '(("_" . "|")
-		 ("/" . "_a")
-		 (":" . "_b")
-		 ("|" . "__")
-		 ("[" . "_l")
-		 ("]" . "_r"))
-	       (buffer-file-name))
-	      tramp-auto-save-directory)
-	   (buffer-file-name))))
-    ;; Run plain `make-auto-save-file-name'.  There might be an advice when
-    ;; it is not a magic file name operation (since Emacs 22).
-    ;; We must deactivate it temporarily.
-    (if (not (ad-is-active 'make-auto-save-file-name))
-	(tramp-run-real-handler
-	 'make-auto-save-file-name nil)
-      ;; else
-      (ad-deactivate 'make-auto-save-file-name)
-      (prog1
-       (tramp-run-real-handler
-	'make-auto-save-file-name nil)
-       (ad-activate 'make-auto-save-file-name)))))
+  (let ((tramp-auto-save-directory tramp-auto-save-directory))
+    ;; File name must be unique.  This is ensured with Emacs 22 (see
+    ;; UNIQUIFY element of `auto-save-file-name-transforms'); but for
+    ;; all other cases we must do it ourselves.
+    (when (boundp 'auto-save-file-name-transforms)
+      (mapcar
+       '(lambda (x)
+	  (when (and (string-match (car x) buffer-file-name)
+		     (not (car (cddr x))))
+	    (setq tramp-auto-save-directory
+		  (or tramp-auto-save-directory temporary-file-directory))))
+       (symbol-value 'auto-save-file-name-transforms)))
+    ;; Create directory.
+    (when tramp-auto-save-directory
+      (unless (file-exists-p tramp-auto-save-directory)
+	(make-directory tramp-auto-save-directory t)))
+    ;; jka-compr doesn't like auto-saving, so by appending "~" to the
+    ;; file name we make sure that jka-compr isn't used for the
+    ;; auto-save file.
+    (let ((buffer-file-name
+	   (if tramp-auto-save-directory
+	       (expand-file-name
+		(tramp-subst-strs-in-string
+		 '(("_" . "|")
+		   ("/" . "_a")
+		   (":" . "_b")
+		   ("|" . "__")
+		   ("[" . "_l")
+		   ("]" . "_r"))
+		 (buffer-file-name))
+		tramp-auto-save-directory)
+	     (buffer-file-name))))
+      ;; Run plain `make-auto-save-file-name'.  There might be an advice when
+      ;; it is not a magic file name operation (since Emacs 22).
+      ;; We must deactivate it temporarily.
+      (if (not (ad-is-active 'make-auto-save-file-name))
+	  (tramp-run-real-handler
+	   'make-auto-save-file-name nil)
+	;; else
+	(ad-deactivate 'make-auto-save-file-name)
+	(prog1
+	    (tramp-run-real-handler
+	     'make-auto-save-file-name nil)
+	  (ad-activate 'make-auto-save-file-name))))))
 
 
 ;; CCC grok APPEND, LOCKNAME, CONFIRM
@@ -4333,7 +4346,12 @@ Falls back to normal file name handler if no tramp file name handler exists."
   "Add tramp file name handlers to `file-name-handler-alist'."
   (add-to-list 'file-name-handler-alist
 	       (cons tramp-file-name-regexp 'tramp-file-name-handler))
-  (when (or partial-completion-mode (featurep 'ido))
+  ;; `partial-completion-mode' is unknown in XEmacs.  So we should
+  ;; load it unconditionally there.  In the GNU Emacs case, method/
+  ;; user/host name completion shall be bound to `partial-completion-mode'.
+  (when (or (not (boundp 'partial-completion-mode))
+	    (symbol-value 'partial-completion-mode)
+	    (featurep 'ido))
     (add-to-list 'file-name-handler-alist
 		 (cons tramp-completion-file-name-regexp
 		       'tramp-completion-file-name-handler))
@@ -6749,8 +6767,8 @@ Return ATTR."
   ;; Set file's gid change bit.  Possible only when id-format is 'integer.
   (when (numberp (nth 3 attr))
     (setcar (nthcdr 9 attr)
-	    (not (= (nth 3 attr)
-		    (tramp-get-remote-gid multi-method method user host)))))
+	    (not (eql (nth 3 attr)
+		      (tramp-get-remote-gid multi-method method user host)))))
   ;; Set virtual device number.
   (setcar (nthcdr 11 attr)
           (tramp-get-device multi-method method user host))
@@ -7200,10 +7218,7 @@ Invokes `password-read' if available, `read-passwd' else."
 
 (defun tramp-time-diff (t1 t2)
   "Return the difference between the two times, in seconds.
-T1 and T2 are time values (as returned by `current-time' for example).
-
-NOTE: This function will fail if the time difference is too large to
-fit in an integer."
+T1 and T2 are time values (as returned by `current-time' for example)."
   ;; Pacify byte-compiler with `symbol-function'.
   (cond ((and (fboundp 'subtract-time)
 	      (fboundp 'float-time))
@@ -7214,10 +7229,9 @@ fit in an integer."
          (funcall (symbol-function 'time-to-seconds)
 		  (funcall (symbol-function 'subtract-time) t1 t2)))
         ((fboundp 'itimer-time-difference)
-         (floor (funcall
-		 (symbol-function 'itimer-time-difference)
-		 (if (< (length t1) 3) (append t1 '(0)) t1)
-		 (if (< (length t2) 3) (append t2 '(0)) t2))))
+	 (funcall (symbol-function 'itimer-time-difference)
+		  (if (< (length t1) 3) (append t1 '(0)) t1)
+		  (if (< (length t2) 3) (append t2 '(0)) t2)))
         (t
          ;; snarfed from Emacs 21 time-date.el; combining
 	 ;; time-to-seconds and subtract-time

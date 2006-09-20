@@ -2648,7 +2648,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 #else
   if (mkdir (dir, 0777) != 0)
 #endif
-    report_file_error ("Creating directory", Flist (1, &directory));
+    report_file_error ("Creating directory", list1 (directory));
 
   return Qnil;
 }
@@ -2674,7 +2674,7 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
   dir = SDATA (encoded_dir);
 
   if (rmdir (dir) != 0)
-    report_file_error ("Removing directory", Flist (1, &directory));
+    report_file_error ("Removing directory", list1 (directory));
 
   return Qnil;
 }
@@ -2705,7 +2705,7 @@ If file has multiple names, it continues to exist with the other names.  */)
   encoded_file = ENCODE_FILE (filename);
 
   if (0 > unlink (SDATA (encoded_file)))
-    report_file_error ("Removing old name", Flist (1, &filename));
+    report_file_error ("Removing old name", list1 (filename));
   return Qnil;
 }
 
@@ -2739,9 +2739,6 @@ This is what happens in interactive use with M-x.  */)
      (file, newname, ok_if_already_exists)
      Lisp_Object file, newname, ok_if_already_exists;
 {
-#ifdef NO_ARG_ARRAY
-  Lisp_Object args[2];
-#endif
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object encoded_file, encoded_newname, symlink_target;
@@ -2810,15 +2807,7 @@ This is what happens in interactive use with M-x.  */)
 	  Fdelete_file (file);
 	}
       else
-#ifdef NO_ARG_ARRAY
-	{
-	  args[0] = file;
-	  args[1] = newname;
-	  report_file_error ("Renaming", Flist (2, args));
-	}
-#else
-	report_file_error ("Renaming", Flist (2, &file));
-#endif
+	report_file_error ("Renaming", list2 (file, newname));
     }
   UNGCPRO;
   return Qnil;
@@ -2834,9 +2823,6 @@ This is what happens in interactive use with M-x.  */)
      (file, newname, ok_if_already_exists)
      Lisp_Object file, newname, ok_if_already_exists;
 {
-#ifdef NO_ARG_ARRAY
-  Lisp_Object args[2];
-#endif
   Lisp_Object handler;
   Lisp_Object encoded_file, encoded_newname;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -2876,15 +2862,7 @@ This is what happens in interactive use with M-x.  */)
 
   unlink (SDATA (newname));
   if (0 > link (SDATA (encoded_file), SDATA (encoded_newname)))
-    {
-#ifdef NO_ARG_ARRAY
-      args[0] = file;
-      args[1] = newname;
-      report_file_error ("Adding new name", Flist (2, args));
-#else
-      report_file_error ("Adding new name", Flist (2, &file));
-#endif
-    }
+    report_file_error ("Adding new name", list2 (file, newname));
 
   UNGCPRO;
   return Qnil;
@@ -2902,9 +2880,6 @@ This happens for interactive use with M-x.  */)
      (filename, linkname, ok_if_already_exists)
      Lisp_Object filename, linkname, ok_if_already_exists;
 {
-#ifdef NO_ARG_ARRAY
-  Lisp_Object args[2];
-#endif
   Lisp_Object handler;
   Lisp_Object encoded_filename, encoded_linkname;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -2960,13 +2935,7 @@ This happens for interactive use with M-x.  */)
 	    }
 	}
 
-#ifdef NO_ARG_ARRAY
-      args[0] = filename;
-      args[1] = linkname;
-      report_file_error ("Making symbolic link", Flist (2, args));
-#else
-      report_file_error ("Making symbolic link", Flist (2, &filename));
-#endif
+      report_file_error ("Making symbolic link", list2 (filename, linkname));
     }
   UNGCPRO;
   return Qnil;

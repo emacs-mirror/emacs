@@ -299,7 +299,7 @@ the variables are properly set."
 		   (substring comment-start 1)))
       ;; Hasn't been necessary yet.
       ;; (unless (string-match comment-start-skip comment-continue)
-      ;; 	(kill-local-variable 'comment-continue))
+      ;;	(kill-local-variable 'comment-continue))
       )
     ;; comment-skip regexps
     (unless (and comment-start-skip
@@ -602,7 +602,7 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	;; Update INDENT to leave at least one space
 	;; after other nonwhite text on the line.
 	(save-excursion
-	  (skip-chars-backward " \t") 
+	  (skip-chars-backward " \t")
 	  (unless (bolp)
 	    (setq indent (max indent (1+ (current-column))))))
 	;; If that's different from comment's current position, change it.
@@ -769,7 +769,7 @@ comment markers."
 	    (box-equal nil))	   ;Whether we might be using `=' for boxes.
 	(save-restriction
 	  (narrow-to-region spt ept)
-		
+
 	  ;; Remove the comment-start.
 	  (goto-char ipt)
 	  (skip-syntax-backward " ")
@@ -798,7 +798,7 @@ comment markers."
 	      ;; If there's something left but it doesn't look like
 	      ;; a comment-start any more, just remove it.
 	      (delete-region (point-min) (point))))
-		
+
 	  ;; Remove the end-comment (and leading padding and such).
 	  (goto-char (point-max)) (comment-enter-backward)
 	  ;; Check for special `=' used sometimes in comment-box.
@@ -1062,11 +1062,13 @@ The strings used as comment starts are built from
        lines
        (nth 3 style))))))
 
+;;;###autoload
 (defun comment-box (beg end &optional arg)
   "Comment out the BEG .. END region, putting it inside a box.
 The numeric prefix ARG specifies how many characters to add to begin- and
 end- comment markers additionally to what `comment-add' already specifies."
   (interactive "*r\np")
+  (comment-normalize-vars)
   (let ((comment-style (if (cadr (assoc comment-style comment-styles))
 			   'box-multi 'box)))
     (comment-region beg end (+ comment-add arg))))
