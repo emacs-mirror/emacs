@@ -1365,7 +1365,7 @@ If there is no such live buffer, return nil."
                (number (nthcdr 10 attributes))
                (list (buffer-list)) found)
           (and buffer-file-numbers-unique
-               number
+               (car-safe number)       ;Make sure the inode is not just nil.
                (while (and (not found) list)
                  (with-current-buffer (car list)
                    (if (and buffer-file-name

@@ -1,3 +1,7 @@
+2006-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-buffer-visiting): Don't get fooled by a nil inode.
+
 2006-09-20  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move-partial): Call pos-visible-in-window-p with
@@ -13,7 +17,7 @@
 	* mouse.el (mouse-posn-property): Improve doc string.
 	(mouse-on-link-p): Change buffers for function calls on links.
 
-	* menu-bar.el (clipboard-yank): bomb out in interactive use if
+	* menu-bar.el (clipboard-yank): Bomb out in interactive use if
 	buffer is read-only.
 
 2006-09-18  Ken Manheimer  <ken.manheimer@gmail.com>
@@ -27,16 +31,15 @@
 	rather than allout-exposure-changed-hook, as a stronger assertion.
 	(allout-keybindings-list): Add bindings for
 	allout-copy-line-as-kill and allout-copy-topic-as-kill.
-	(allout-copy-line-as-kill, allout-copy-topic-as-kill): copy
-	wrappers for allout-kill-line and allout-kill-topic.
+	(allout-copy-line-as-kill, allout-copy-topic-as-kill):
+	Copy wrappers for allout-kill-line and allout-kill-topic.
 	(allout-listify-exposed): Position correctly to accumulate lines.
 
 2006-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-1): Escape field boundaries occurring
 	exactly at point.  Update goal column if constrained to a field.
-	(line-move-finish): Escape field boundaries occurring exactly at
-	point.
+	(line-move-finish): Escape field boundaries occurring exactly at point.
 
 2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
