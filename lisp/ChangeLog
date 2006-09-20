@@ -1,3 +1,16 @@
+2006-09-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* delim-col.el : Fix X-URL comment.
+
+	* printing.el : Fix X-URL comment.
+
+	* ps-print.el : Fix X-URL comment.
+
+	* progmodes/ebnf2ps.el : Fix X-URL comment.
+
+	* lpr.el (lpr-page-header-switches): Insert `*' at beginning of comment
+	to become an option.
+
 2006-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (find-buffer-visiting): Don't get fooled by a nil inode.

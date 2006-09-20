@@ -5,10 +5,10 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2005-09-18 07:27:20 deego>
+;; Time-stamp: <2006/09/15 18:58:18 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.2
-;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
+;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
 
