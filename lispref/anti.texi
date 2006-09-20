@@ -325,7 +325,8 @@ The functions @code{window-pixel-edges} and
 think in terms of lines and columns, not pixel coordinates.  (Sometime
 in the distant past, we will do away with graphical terminals
 entirely, in favor of text terminals.)  For similar reasons, the
-functions @code{posn-at-point} and @code{posn-at-x-y} have been removed, and
+functions @code{posn-at-point}, @code{posn-at-x-y}, and
+@code{window-line-height} have been removed, and
 @code{pos-visible-in-window-p} no longer worries about partially
 visible rows.
 
