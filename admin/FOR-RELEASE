@@ -52,6 +52,12 @@ Windows only bug.
 
 ** Peter_Dyballa@Web.DE's Sep 17 bug report about i-search and non-ASCII chars
 
+** kitty@dre.vanderbilt.edu Sep 20 says make-frame ignores left and top.
+
+** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
+
+** end-of-line doc doesn't match field behavior; which one to change?
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
