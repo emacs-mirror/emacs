@@ -39,6 +39,8 @@ Windows only bug.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
+** kitty@dre.vanderbilt.edu Sep 20 says make-frame ignores left and top.
+
 * BUGS
 
 ** C-g fails to interrupt accept-process-output in Gnus.
@@ -51,8 +53,6 @@ Windows only bug.
 ** iampure@gmail.com's Sep 15 bug report about View Changes In File.
 
 ** Peter_Dyballa@Web.DE's Sep 17 bug report about i-search and non-ASCII chars
-
-** kitty@dre.vanderbilt.edu Sep 20 says make-frame ignores left and top.
 
 ** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
 
