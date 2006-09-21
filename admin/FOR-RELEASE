@@ -48,8 +48,6 @@ Windows only bug.
 
 ** david.hansen@physik.fu-berlin.de: WoMan Bug, Sep 13.
 
-** run-with-idle-timer change causes problem for Semantic.
-
 ** iampure@gmail.com's Sep 15 bug report about View Changes In File.
 
 ** Peter_Dyballa@Web.DE's Sep 17 bug report about i-search and non-ASCII chars
@@ -57,6 +55,8 @@ Windows only bug.
 ** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
 
 ** end-of-line doc doesn't match field behavior; which one to change?
+
+** Drew Adams Sep 21: single-key-description no good for Japanese and Chinese
 
 * DOCUMENTATION
 

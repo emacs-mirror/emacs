@@ -27,18 +27,8 @@
 
 2006-09-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* delim-col.el : Fix X-URL comment.
-
-	* printing.el : Fix X-URL comment.
-
-	* ps-print.el : Fix X-URL comment.
-
-	* progmodes/ebnf2ps.el : Fix X-URL comment.
-
 	* lpr.el (lpr-page-header-switches): Insert `*' at beginning of comment
 	to become an option.
-
-	* subr.el (version-regexp-alist): Adjust comment.
 
 2006-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -62,7 +52,7 @@
 	* menu-bar.el (clipboard-yank): Bomb out in interactive use if
 	buffer is read-only.
 
-2006-09-18  Ken Manheimer  <ken.manheimer@gmail.com>
+2006-09-20  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-unprotected): Let inhibit-read-only only when
 	buffer-read-only isn't set.
