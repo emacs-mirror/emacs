@@ -1,3 +1,9 @@
+2006-09-21  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el ("Latin-1"): Add windows-1252 to
+	coding-priority.
+	("German"): Likewise.
+
 2006-09-21  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/cl-macs.el (member*): Use memql instead of complex code.
