@@ -62,7 +62,6 @@
 	* menu-bar.el (clipboard-yank): Bomb out in interactive use if
 	buffer is read-only.
 
->>>>>>> 1.10102
 2006-09-18  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-unprotected): Let inhibit-read-only only when
