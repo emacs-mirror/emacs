@@ -1,3 +1,8 @@
+2006-09-21  Kenichi Handa  <handa@m17n.org>
+
+	* dnd.el (dnd-get-local-file-name): Give a unibyte string to
+	replace-regexp-in-string as replacement.
+
 2006-08-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (otf-script-alist): Add byzm, math,
