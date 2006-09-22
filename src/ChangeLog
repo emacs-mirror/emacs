@@ -1,6 +1,6 @@
 2006-09-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (xg_get_file_with_chooser): Only chow C-l help for
+	* gtkutil.c (xg_get_file_with_chooser): Only show C-l help for
 	Gtk+ versions < 2.10.
 
 	* xfns.c (syms_of_xfns): Fix typo in help text for
