@@ -48,8 +48,6 @@ Windows only bug.
 
 ** david.hansen@physik.fu-berlin.de: WoMan Bug, Sep 13.
 
-** herberteuler@hotmail.com Sep 21, C++ name and add-log-current-defun
-
 ** raman@users.sf.net Sep 21 reports subprocesses stop after a minute.
 
 ** Peter_Dyballa@Web.DE's Sep 17 bug report about i-search and non-ASCII chars
