@@ -1,3 +1,8 @@
+2006-09-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-lang.el: Add Greek letters to math-variable-table
+	property of tex.
+
 2006-09-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (save-some-buffers-action-alist): Display diff in
