@@ -2777,7 +2777,8 @@ optimize_sub_char_table (table, chars)
   else
     from = 32, to = 128;
 
-  if (!SUB_CHAR_TABLE_P (*table))
+  if (!SUB_CHAR_TABLE_P (*table)
+      || ! NILP (XCHAR_TABLE (*table)->defalt))
     return;
   elt = XCHAR_TABLE (*table)->contents[from++];
   for (; from < to; from++)
@@ -2792,7 +2793,7 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
      Lisp_Object table;
 {
   Lisp_Object elt;
-  int dim;
+  int dim, chars;
   int i, j;
 
   CHECK_CHAR_TABLE (table);
@@ -2803,10 +2804,11 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
       if (!SUB_CHAR_TABLE_P (elt))
 	continue;
       dim = CHARSET_DIMENSION (i - 128);
+      chars = CHARSET_CHARS (i - 128);
       if (dim == 2)
 	for (j = 32; j < SUB_CHAR_TABLE_ORDINARY_SLOTS; j++)
-	  optimize_sub_char_table (XCHAR_TABLE (elt)->contents + j, dim);
-      optimize_sub_char_table (XCHAR_TABLE (table)->contents + i, dim);
+	  optimize_sub_char_table (XCHAR_TABLE (elt)->contents + j, chars);
+      optimize_sub_char_table (XCHAR_TABLE (table)->contents + i, chars);
     }
   return Qnil;
 }
