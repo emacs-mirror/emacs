@@ -3877,11 +3877,13 @@ analyse_first (p, pend, fastmap, multibyte)
 	  if (fastmap)
 	    {
 	      int c = RE_STRING_CHAR (p + 1, pend - p);
-
+	      /* When fast-scanning, the fastmap can be indexed either with
+		 a char (smaller than 256) or with the first byte of
+		 a char's byte sequence.  So we have to conservatively add
+		 both to the table.  */
 	      if (SINGLE_BYTE_CHAR_P (c))
 		fastmap[c] = 1;
-	      else
-		fastmap[p[1]] = 1;
+	      fastmap[p[1]] = 1;
 	    }
 	  break;
 
@@ -3899,6 +3901,10 @@ analyse_first (p, pend, fastmap, multibyte)
 	     So any that are not listed in the charset
 	     are possible matches, even in multibyte buffers.  */
 	  if (!fastmap) break;
+	  /* We don't need to mark LEADING_CODE_8_BIT_CONTROL specially
+	     because it will automatically be set when needed by virtue of
+	     being larger than the highest char of its charset (0xbf) but
+	     smaller than (1<<BYTEWIDTH).  */
 	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH;
 	       j < (1 << BYTEWIDTH); j++)
 	    fastmap[j] = 1;
@@ -3909,7 +3915,13 @@ analyse_first (p, pend, fastmap, multibyte)
 	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH - 1, p++;
 	       j >= 0; j--)
 	    if (!!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))) ^ not)
-	      fastmap[j] = 1;
+	      {
+		fastmap[j] = 1;
+#ifdef emacs
+		if (j >= 0x80 && j < 0xa0)
+		  fastmap[LEADING_CODE_8_BIT_CONTROL] = 1;
+#endif
+	      }
 
 	  if ((not && multibyte)
 	      /* Any character set can possibly contain a character
@@ -4352,11 +4364,33 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 		    }
 		}
 	      else
-		while (range > lim && !fastmap[*d])
+		do
 		  {
-		    d++;
-		    range--;
-		  }
+		    re_char *d_start = d;
+		    while (range > lim && !fastmap[*d])
+		      {
+			d++;
+			range--;
+		      }
+#ifdef emacs
+		    if (multibyte && range > lim)
+		      {
+			/* Check that we are at the beginning of a char.  */
+			int at_boundary;
+			AT_CHAR_BOUNDARY_P (at_boundary, d, d_start);
+			if (at_boundary)
+			  break;
+			else
+			  { /* We have matched an internal byte of a char
+			       rather than the leading byte, so it's a false
+			       positive: we should keep scanning.  */
+			    d++; range--;
+			  }
+		      }
+		    else
+#endif
+		      break;
+		  } while (1);
 
 	      startpos += irange - range;
 	    }

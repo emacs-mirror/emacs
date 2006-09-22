@@ -1,3 +1,14 @@
+2006-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (analyse_first): For eight-bit-control chars, mark both the
+	char's value and its leading byte in the fastmap.
+	(re_search_2): When fast-scanning without translation, be careful to
+	check that we only match the leading byte of a multibyte char.
+
+	* charset.h (PREV_CHAR_BOUNDARY): Make it work from within a char's
+	byte sequence.
+	(AT_CHAR_BOUNDARY): New macro.
+
 2006-09-22  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (optimize_sub_char_table): Don't optimize a sub-char-table
@@ -271,7 +282,7 @@
 
 2006-08-27  Martin Rudalics  <rudalics@gmx.at>
 
-	* xdisp.c (mouse_autoselect_window): Removed.
+	* xdisp.c (mouse_autoselect_window): Remove.
 	(Vmouse_autoselect_window): New variable.  DEFVAR_LISP it.
 
 	* dispextern.h (mouse_autoselect_window): Remove extern.
