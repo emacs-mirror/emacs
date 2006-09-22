@@ -1,3 +1,8 @@
+2006-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* woman.el (woman0-so): Use `let*', not `let'.
+	(woman-horizontal-line): Remove unbalanced parenthesis.
+
 2006-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* woman.el: Make sure all the end-of-region markers we use have
