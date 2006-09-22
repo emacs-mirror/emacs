@@ -1,3 +1,8 @@
+2006-09-22  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (optimize_sub_char_table): Don't optimize a sub-char-table
+	whose default value is non-nil.
+
 2006-09-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_with_chooser): Only show C-l help for
