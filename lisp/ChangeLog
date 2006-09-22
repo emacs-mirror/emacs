@@ -1,3 +1,9 @@
+2006-09-22  Masatake YAMATO  <jet@gyve.org>
+
+	* add-log.el (add-log-current-defun): Use `forward-sexp'
+	instead of `forward-word' to pick c++::symbol.
+	Reported by Herbert Euler <herberteuler@hotmail.com>.
+
 2006-09-22  Kenichi Handa  <handa@m17n.org>
 
 	* bindings.el: Fix setting self-insert-command for multibyte
