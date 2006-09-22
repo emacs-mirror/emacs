@@ -1,3 +1,13 @@
+2006-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* woman.el: Make sure all the end-of-region markers we use have
+	a non-nil insertion-type.
+	(woman0-so): Move things around so we can use copy-marker.
+	(woman0-roff-buffer, woman2-process-escapes-to-eol, woman2-roff-buffer):
+	Adjust marker type.
+	(woman2-process-escapes): Check marker type.
+	(woman-horizontal-line): Dispense with the use of a marker.
+
 2006-09-22  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-lang.el: Add Greek letters to math-variable-table

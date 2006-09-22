@@ -438,6 +438,7 @@
 
 (eval-when-compile			; to avoid compiler warnings
   (require 'dired)
+  (require 'cl)
   (require 'apropos))
 
 (defun woman-mapcan (fn x)
@@ -2467,6 +2468,7 @@ Start at FROM and re-scan new text as appropriate."
 	(woman0-search-regex
 	 (concat woman0-search-regex-start woman0-search-regex-end))
 	woman0-rename-alist)
+    (set-marker-insertion-type woman0-if-to t)
     (while (re-search-forward woman0-search-regex nil t)
       (setq request (match-string 1))
       (cond ((string= request "ig") (woman0-ig))
@@ -2540,7 +2542,7 @@ REQUEST is the invoking directive without the leading dot."
 	;; String delimiter can be any non-numeric character,
 	;; including a special character escape:
 	(looking-at "\\(\\\\(..\\|[^0-9]\\)\\(.*\\)\\1\\(.*\\)\\1\\'"))
-      (let ((end1 (copy-marker (match-end 2))))	; end of first string
+      (let ((end1 (copy-marker (match-end 2) t))) ; End of first string.
 	;; Delete 2nd and 3rd delimiters to avoid processing them:
 	(delete-region (match-end 3) woman0-if-to)
 	(delete-region (match-end 2) (match-beginning 3))
@@ -2656,9 +2658,8 @@ If DELETE is non-nil then delete from point."
     (beginning-of-line)
     (woman-delete-line 1)
     (let ((from (point))
-	  (to (make-marker))
-	  (length (woman-insert-file-contents filename 0)))
-      (set-marker to (+ from length))
+	  (length (woman-insert-file-contents filename 0))
+	  (to (copy-marker (+ from length) t)))
       (woman-pre-process-region from to)
       (set-marker to nil)
       (goto-char from)
@@ -3442,9 +3443,7 @@ Also bound locally in `woman2-roff-buffer'.")
 (defsubst woman2-process-escapes-to-eol (&optional numeric)
   "Process remaining escape sequences up to eol.
 Handle numeric arguments specially if optional argument NUMERIC is non-nil."
-  (woman2-process-escapes
-   (save-excursion (end-of-line) (point-marker))
-   numeric))
+  (woman2-process-escapes (copy-marker (line-end-position) t) numeric))
 
 (defun woman2-nr (to)
   ".nr R +/-N M -- Assign +/-N (wrt to previous value, if any) to register R.
@@ -3645,6 +3644,7 @@ expression in parentheses.  Leaves point after the value."
 	(woman-registers woman-registers)
 	fn request translations
 	tab-stop-list)
+    (set-marker-insertion-type to t)
     ;; ?roff does not squeeze multiple spaces, but does fill, so...
     (fset 'canonically-space-region 'ignore)
     ;; Try to avoid spaces inheriting underlines from preceding text!
@@ -3687,7 +3687,8 @@ expression in parentheses.  Leaves point after the value."
 	    ;; Call the appropriate function:
 	    (funcall fn to)))
       (if (not (eobp))			; This should not happen, but ...
-	  (woman2-format-paragraphs (point-max-marker) woman-left-margin))
+	  (woman2-format-paragraphs (copy-marker (point-max) t)
+                                    woman-left-margin))
       (fset 'canonically-space-region canonically-space-region)
       (fset 'set-text-properties set-text-properties)
       (fset 'insert-and-inherit insert-and-inherit)
@@ -3899,6 +3900,7 @@ Leave 1 blank line.  Format paragraphs upto TO."
 (defun woman2-process-escapes (to &optional numeric)
   "Process remaining escape sequences up to marker TO, preserving point.
 Optional argument NUMERIC, if non-nil, means the argument is numeric."
+  (assert (and (markerp to) (marker-insertion-type to)))
   ;; The first two cases below could be merged (maybe)!
   (let ((from (point)))
     ;; Discard zero width filler character used to hide leading dots
@@ -3968,15 +3970,13 @@ Optional argument NUMERIC, if non-nil, means the argument is numeric."
   (delete-char -1)
   (delete-char 1)
   (looking-at "\\(.\\)\\(.*\\)\\1")
-  (let ((to (make-marker)) from N c)
-    (set-marker to (match-end 2))
-    (delete-char 1)
-    (setq from (point)
-	  N (woman-parse-numeric-arg))
-    (setq c (if (< (point) to) (following-char) ?_))
+  (forward-char 1)
+  (let* ((to (match-end 2)))
+         (from (match-beginning 0))
+         (N (woman-parse-numeric-arg))
+         (c (if (< (point) to) (following-char) ?_)))
     (delete-region from to)
     (delete-char 1)
-    (set-marker to nil)
     (insert (make-string N c))
     ))
 
