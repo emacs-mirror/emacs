@@ -1521,13 +1521,18 @@ Otherwise use brackets."
 	    (widget-insert description))
 	(widget-insert (format ".
 %s buttons; type RET or click mouse-1 to actuate one.
-Editing a setting changes only the text in the buffer.
-Use the setting's State button to set it or save changes in it.
-Saving a change normally works by editing your Emacs init file.
-See "
+Editing a setting changes only the text in the buffer."
 			       (if custom-raised-buttons
 				   "`Raised' text indicates"
 				 "Square brackets indicate")))
+	(if init-file-user
+	    (widget-insert "
+Use the setting's State button to set it or save changes in it.
+Saving a change normally works by editing your Emacs init file.")
+	    (widget-insert "
+\nSince you started Emacs with `-q', which inhibits use of the
+Emacs init file, you cannot save settings into the Emacs init file."))
+	(widget-insert "\nSee ")
 	(widget-create 'custom-manual
 		       :tag "Custom file"
 		       "(emacs)Saving Customizations")
