@@ -1,3 +1,8 @@
+2006-09-22  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-buffer-create-internal): In `emacs -q',
+	explain why Save is not available.
+
 2006-09-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* woman.el (woman0-so): Use `let*', not `let'.
