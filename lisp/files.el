@@ -3729,7 +3729,13 @@ This requires the external program `diff' to be in your `exec-path'."
        ;; Return nil to ask about BUF again.
        nil)
      "view this file")
-    (?d diff-buffer-with-file
+    (?d (lambda (buf)
+	  (save-window-excursion
+	    (diff-buffer-with-file buf))
+	  (view-buffer (get-buffer-create "*Diff*")
+		       (lambda (ignore) (exit-recursive-edit)))
+	  (recursive-edit)
+	  nil)
 	"view changes in file"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 
