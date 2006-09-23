@@ -60,6 +60,9 @@ Windows only bug.
 
 ** Drew Adams Sep 21: single-key-description no good for Japanese and Chinese
 
+** (single-key-description 20866) and (single-key-description 20865)
+return the same value.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
