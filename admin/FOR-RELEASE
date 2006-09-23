@@ -63,6 +63,8 @@ Windows only bug.
 ** (single-key-description 20866) and (single-key-description 20865)
 return the same value.
 
+** XIM hotkey doesn't work in Emacs.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
