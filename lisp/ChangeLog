@@ -1,3 +1,10 @@
+2006-09-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (focus-follows-mouse): Set default to nil on Mac.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	`focus-follows-mouse'.
+
 2006-09-22  Richard Stallman  <rms@gnu.org>
 
 	* cus-edit.el (custom-buffer-create-internal): In `emacs -q',
