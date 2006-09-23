@@ -779,6 +779,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'mouse-wheel-up-event)
   (custom-reevaluate-setting 'file-name-shadow-mode)
   (custom-reevaluate-setting 'send-mail-function)
+  (custom-reevaluate-setting 'focus-follows-mouse)
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
