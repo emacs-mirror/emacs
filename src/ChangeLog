@@ -1,11 +1,15 @@
+2006-09-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Finternal_complete_buffer, Fread_minibuffer)
+	(Fdisplay_completion_list): Fix typos in docstrings.
+
 2006-09-23  Romain Francoise  <romain@orebokech.com>
 
 	* s/gnu-linux.h (MAIL_USE_FLOCK): Check for HAVE_LIBLOCKFILE too.
 
 2006-09-23  Kenichi Handa  <handa@m17n.org>
 
-	* keymap.c (Fmap_keymap): Docstring mentions about generic
-	character.
+	* keymap.c (Fmap_keymap): Docstring mentions about generic character.
 
 2006-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
