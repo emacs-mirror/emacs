@@ -572,7 +572,12 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	   ;; event then is in the second element of the vector.
 	   (and (vectorp key)
 		(or (and (eventp (aref key 0))
-			 (memq 'down (event-modifiers (aref key 0))))
+			 (memq 'down (event-modifiers (aref key 0)))
+			 ;; However, for the C-down-mouse-2 popup
+			 ;; menu, there is no subsequent up-event.  In
+			 ;; this case, the up-event is the next
+			 ;; element in the supplied vector.
+			 (= (length key) 1))
 		    (and (> (length key) 1)
 			 (eventp (aref key 1))
 			 (memq 'down (event-modifiers (aref key 1)))))
@@ -647,7 +652,12 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	    ;; and use it as the third argument.
 	    (and (vectorp key)
 		 (or (and (eventp (aref key 0))
-			  (memq 'down (event-modifiers (aref key 0))))
+			  (memq 'down (event-modifiers (aref key 0)))
+			  ;; However, for the C-down-mouse-2 popup
+			  ;; menu, there is no subsequent up-event.  In
+			  ;; this case, the up-event is the next
+			  ;; element in the supplied vector.
+			  (= (length key) 1))
 		     (and (> (length key) 1)
 			  (eventp (aref key 1))
 			  (memq 'down (event-modifiers (aref key 1)))))
