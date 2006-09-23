@@ -394,8 +394,8 @@ displayed in a window:
 		(if (and (< appt-comp-time appt-message-warning-time)
 			 (> (+ cur-comp-time appt-message-warning-time)
 			    appt-max-time))
-		    (setq min-to-app (+ (- (1+ appt-max-time) cur-comp-time))
-			  appt-comp-time))
+		    (setq min-to-app (+ (- (1+ appt-max-time) cur-comp-time)
+			  appt-comp-time)))
 
 		;; issue warning if the appointment time is
 		;; within appt-message-warning time
