@@ -1,3 +1,8 @@
+2006-09-23  Michal Nazarewicz  <mnazarewicz@gmail.com> (tiny change)
+
+	* textmodes/ispell.el (ispell-change-dictionary): Don't check the
+	local dictionary when changing the global dictionary.
+
 2006-09-23  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* icomplete.el (icomplete-with-completion-tables): List of
