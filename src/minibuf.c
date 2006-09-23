@@ -1021,7 +1021,7 @@ DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
 Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
 \(INITIAL-CONTENTS can also be a cons of a string and an integer.  Such
-arguments are used as in `read-from-minibuffer')  */)
+arguments are used as in `read-from-minibuffer'.)  */)
      (prompt, initial_contents)
      Lisp_Object prompt, initial_contents;
 {
@@ -1910,7 +1910,7 @@ DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete
 If the argument FLAG is nil, invoke `try-completion', if it's t, invoke
 `all-completions', otherwise invoke `test-completion'.
 
-The arguments STRING and PREDICATE are as in  `try-completion',
+The arguments STRING and PREDICATE are as in `try-completion',
 `all-completions', and `test-completion'. */)
      (string, predicate, flag)
      Lisp_Object string, predicate, flag;
@@ -2411,7 +2411,7 @@ The optional second arg COMMON-SUBSTRING is a string.
 It is used to put faces, `completions-first-difference' and
 `completions-common-part' on the completion buffer. The
 `completions-common-part' face is put on the common substring
-specified by COMMON-SUBSTRING. If COMMON-SUBSTRING is nil
+specified by COMMON-SUBSTRING.  If COMMON-SUBSTRING is nil
 and the current buffer is not the minibuffer, the faces are not put.
 Internally, COMMON-SUBSTRING is bound to `completion-common-substring'
 during running `completion-setup-hook'. */)
