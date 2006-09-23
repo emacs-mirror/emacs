@@ -1,3 +1,12 @@
+2006-09-23  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* icomplete.el (icomplete-with-completion-tables): List of
+	specialized completion tables with which icomplete should
+	operate.  Include the new `internal-complete-buffer', so icomplete
+	works with interactive buffer-selection.
+	(icomplete-simple-completing-p): Add acceptance of specialized
+	completion tables listed in icomplete-with-completion-tables.
+
 2006-09-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.el (focus-follows-mouse): Set default to nil on Mac.
