@@ -1784,17 +1784,31 @@ and overlay is highlighted between MK and END-MK."
 				(current-buffer)))
 	      (move-overlay compilation-highlight-overlay
 			    (point) end (current-buffer)))
-	    (if (numberp next-error-highlight)
-		(setq next-error-highlight-timer
-		      (run-at-time next-error-highlight nil 'delete-overlay
-				   compilation-highlight-overlay)))
-	    (if (not (or (eq next-error-highlight t)
-			 (numberp next-error-highlight)))
-		(delete-overlay compilation-highlight-overlay))))))
+	    (if (or (eq next-error-highlight t)
+		    (numberp next-error-highlight))
+		;; We want highlighting: delete overlay on next input.
+		(add-hook 'pre-command-hook
+			  'compilation-goto-locus-delete-o)
+	      ;; We don't want highlighting: delete overlay now.
+	      (delete-overlay compilation-highlight-overlay))
+	    ;; We want highlighting for a limited time:
+	    ;; set up a timer to delete it.
+	    (when (numberp next-error-highlight)
+	      (setq next-error-highlight-timer
+		    (run-at-time next-error-highlight nil
+				 'compilation-goto-locus-delete-o)))))))
     (when (and (eq next-error-highlight 'fringe-arrow))
+      ;; We want a fringe arrow (instead of highlighting).
       (setq next-error-overlay-arrow-position
 	    (copy-marker (line-beginning-position))))))
 
+(defun compilation-goto-locus-delete-o ()
+  (delete-overlay compilation-highlight-overlay)
+  ;; Get rid of timer and hook that would try to do this again.
+  (if (timerp next-error-highlight-timer)
+      (cancel-timer next-error-highlight-timer))
+  (remove-hook 'pre-command-hook
+	       'compilation-goto-locus-delete-o))
 
 (defun compilation-find-file (marker filename directory &rest formats)
   "Find a buffer for file FILENAME.
