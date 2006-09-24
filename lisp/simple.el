@@ -3604,15 +3604,6 @@ Outline mode sets this."
 		(let ((inhibit-field-text-motion t))
 		  (setq line-end (line-end-position)))
 		(goto-char (constrain-to-field line-end (point) t t))
-		;; When moving a single line, update the goal-column
-		;; if we couldn't move to the end of line due to a
-		;; field boundary.  Otherwise we'll get stuck at the
-		;; original position during the column motion in
-		;; line-move-finish.
-		(and (/= line-end (point))
-		     (= orig-arg 1)
-		     (setq temporary-goal-column
-			   (max temporary-goal-column (current-column))))
 		;; If there's no invisibility here, move over the newline.
 		(cond
 		 ((eobp)
@@ -3679,6 +3670,7 @@ Outline mode sets this."
       (setq repeat nil)
 
       (let (new
+	    (old (point))
 	    (line-beg (save-excursion (beginning-of-line) (point)))
 	    (line-end
 	     ;; Compute the end of the line
@@ -3693,6 +3685,17 @@ Outline mode sets this."
 
 	;; Move to the desired column.
 	(line-move-to-column column)
+
+	;; Corner case: suppose we start out in a field boundary in
+	;; the middle of a continued line.  When we get to
+	;; line-move-finish, point is at the start of a new *screen*
+	;; line but the same text line; then line-move-to-column would
+	;; move us backwards. Test using C-n with point on the "x" in
+	;;   (insert "a" (propertize "x" 'field t) (make-string 89 ?y))
+	(and forward
+	     (< (point) old)
+	     (goto-char old))
+
 	(setq new (point))
 
 	;; Process intangibility within a line.

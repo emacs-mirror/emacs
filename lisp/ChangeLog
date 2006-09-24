@@ -1,3 +1,9 @@
+2006-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-finish): Handle corner case for fields in
+	continued lines.
+	(line-move-1): Remove flawed test for that case.
+
 2006-09-24  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* icomplete.el (icomplete-simple-completing-p): Use the correct
