@@ -128,7 +128,7 @@ If no other buffer exists, the buffer `*scratch*' is returned."
   :group 'next-error
   :version "22.1")
 
-(defcustom next-error-highlight 0.1
+(defcustom next-error-highlight 0.5
   "*Highlighting of locations in selected source buffers.
 If number, highlight the locus in `next-error' face for given time in seconds.
 If t, highlight the locus indefinitely until some other locus replaces it.
@@ -141,8 +141,8 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
   :group 'next-error
   :version "22.1")
 
-(defcustom next-error-highlight-no-select 0.1
-  "*Highlighting of locations in non-selected source buffers.
+(defcustom next-error-highlight-no-select 0.5
+  "*Highlighting of locations in `next-error-no-select'.
 If number, highlight the locus in `next-error' face for given time in seconds.
 If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
@@ -2659,7 +2659,7 @@ The argument is used for internal purposes; do not supply one."
 ;; This is actually used in subr.el but defcustom does not work there.
 (defcustom yank-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
-    yank-handler follow-link)
+    yank-handler follow-link fontified)
   "*Text properties to discard when yanking.
 The value should be a list of text properties to discard or t,
 which means to discard all text properties."
