@@ -62,7 +62,7 @@ because of properties that are preserved.  May be fixed now?
 
 ** Should end-of-line get stuck at end of a field?
 
-** Drew Adams Sep 21: single-key-description no good for Japanese and Chinese
+** Drew Adams Sep 21: single-key-description no good for generic chars.
 
 ** XIM hotkey doesn't work in Emacs.
 

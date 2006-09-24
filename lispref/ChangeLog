@@ -1,8 +1,17 @@
+2006-09-24  Richard Stallman  <rms@gnu.org>
+
+	* searching.texi (Searching and Matching): Mention property search.
+
+	* commands.texi (Command Loop Info): Explain how read-event affects
+	this-command-keys.
+
 2006-09-21  Kim F. Storm  <storm@cua.dk>
 
 	* lists.texi (Sets And Lists): Add memql.
 
 2006-09-20  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Clarify about REPEAT when timer is delayed.
 
 	* windows.texi (Window Start): Minor cleanups.
 
