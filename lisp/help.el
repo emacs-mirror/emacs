@@ -571,16 +571,9 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	   ;; down-events on scroll bars and mode lines: the actual
 	   ;; event then is in the second element of the vector.
 	   (and (vectorp key)
-		(or (and (eventp (aref key 0))
-			 (memq 'down (event-modifiers (aref key 0)))
-			 ;; However, for the C-down-mouse-2 popup
-			 ;; menu, there is no subsequent up-event.  In
-			 ;; this case, the up-event is the next
-			 ;; element in the supplied vector.
-			 (= (length key) 1))
-		    (and (> (length key) 1)
-			 (eventp (aref key 1))
-			 (memq 'down (event-modifiers (aref key 1)))))
+		(let ((last-idx (1- (length key))))
+		  (and (eventp (aref key last-idx))
+		       (memq 'down (event-modifiers (aref key last-idx)))))
 		(read-event))
 	   (list
 	    key
@@ -648,9 +641,14 @@ temporarily enables it to allow getting help on disabled items and buttons."
 	   (list
 	    key
 	    (prefix-numeric-value current-prefix-arg)
-	    ;; If KEY is a down-event, read the corresponding up-event
-	    ;; and use it as the third argument.
+	    ;; If KEY is a down-event, read and discard the
+	    ;; corresponding up-event.  Note that there are also
+	    ;; down-events on scroll bars and mode lines: the actual
+	    ;; event then is in the second element of the vector.
 	    (and (vectorp key)
+		 (let ((last-idx (1- (length key))))
+		   (and (eventp (aref key last-idx))
+			(memq 'down (event-modifiers (aref key last-idx)))))
 		 (or (and (eventp (aref key 0))
 			  (memq 'down (event-modifiers (aref key 0)))
 			  ;; However, for the C-down-mouse-2 popup
