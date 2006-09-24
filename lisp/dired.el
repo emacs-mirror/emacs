@@ -2204,40 +2204,40 @@ instead of `dired-actual-switches'."
 		 (concat "\\`" (match-string 1 default-directory)))))
       (goto-char (point-min))
       (setq dired-subdir-alist nil)
-      (while (and (re-search-forward dired-subdir-regexp nil t)
-		  ;; Avoid taking a file name ending in a colon
-		  ;; as a subdir name.
-		  (not (save-excursion
-			 (goto-char (match-beginning 0))
-			 (beginning-of-line)
-			 (forward-char 2)
-			 (save-match-data (looking-at dired-re-perms)))))
-	(save-excursion
-	  (goto-char (match-beginning 1))
-	  (setq new-dir-name
-		(buffer-substring-no-properties (point) (match-end 1))
-		new-dir-name
-		(save-match-data
-		  (if (and R-ftp-base-dir-regex
-			   (not (string= new-dir-name default-directory))
-			   (string-match R-ftp-base-dir-regex new-dir-name))
-		      (concat default-directory
-			      (substring new-dir-name (match-end 0)))
-		    (expand-file-name new-dir-name))))
-	  (delete-region (point) (match-end 1))
-	  (insert new-dir-name))
+      (while (re-search-forward dired-subdir-regexp nil t)
+	;; Avoid taking a file name ending in a colon
+	;; as a subdir name.
+	(unless (save-excursion
+		  (goto-char (match-beginning 0))
+		  (beginning-of-line)
+		  (forward-char 2)
+		  (save-match-data (looking-at dired-re-perms)))
+	  (save-excursion
+	    (goto-char (match-beginning 1))
+	    (setq new-dir-name
+		  (buffer-substring-no-properties (point) (match-end 1))
+		  new-dir-name
+		  (save-match-data
+		    (if (and R-ftp-base-dir-regex
+			     (not (string= new-dir-name default-directory))
+			     (string-match R-ftp-base-dir-regex new-dir-name))
+			(concat default-directory
+				(substring new-dir-name (match-end 0)))
+		      (expand-file-name new-dir-name))))
+	    (delete-region (point) (match-end 1))
+	    (insert new-dir-name)))
 	(setq count (1+ count))
 	(dired-alist-add-1 new-dir-name
-			   ;; Place a sub directory boundary between lines.
-			   (save-excursion
-			     (goto-char (match-beginning 0))
-			     (beginning-of-line)
-			     (point-marker))))
+			 ;; Place a sub directory boundary between lines.
+			 (save-excursion
+			   (goto-char (match-beginning 0))
+			   (beginning-of-line)
+			   (point-marker))))
       (if (and (> count 1) (interactive-p))
-	  (message "Buffer includes %d directories" count))
-      ;; We don't need to sort it because it is in buffer order per
-      ;; constructionem.  Return new alist:
-      dired-subdir-alist)))
+	  (message "Buffer includes %d directories" count)))
+    ;; We don't need to sort it because it is in buffer order per
+    ;; constructionem.  Return new alist:
+    dired-subdir-alist))
 
 (defun dired-alist-add-1 (dir new-marker)
   ;; Add new DIR at NEW-MARKER.  Don't sort.
