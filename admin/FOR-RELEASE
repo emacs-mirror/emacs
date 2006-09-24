@@ -60,7 +60,7 @@ because of properties that are preserved.  May be fixed now?
 
 ** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
 
-** end-of-line doc doesn't match field behavior; which one to change?
+** Should end-of-line get stuck at end of a field?
 
 ** Drew Adams Sep 21: single-key-description no good for Japanese and Chinese
 
