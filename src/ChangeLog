@@ -1,5 +1,10 @@
 2006-09-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in ($(BLD)/fns.$(O), $(BLD)/w32proc.$(O)): Depend
+	on nt/inc/langinfo.h and nt/inc/nl_types.h.
+
+	* w32proc.c (nl_langinfo): New function.
+
 	* w32fns.c (w32-pass-alt-to-system, w32-alt-is-meta)
 	(w32-pass-lwindow-to-system, w32-enable-num-lock)
 	(w32-enable-caps-lock, w32-scroll-lock-modifier)
