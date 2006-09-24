@@ -59,3 +59,6 @@ enum {
 extern char *nl_langinfo (nl_item);
 
 #endif /* _LANGINFO_H */
+
+/* arch-tag: a8917b7c-fb2c-4685-902b-742d0f67661b
+   (do not change this comment) */

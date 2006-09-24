@@ -24,3 +24,6 @@ Boston, MA 02110-1301, USA.  */
 typedef int nl_item;
 
 #endif	/* _NL_TYPES_H */
+
+/* arch-tag: 518aa765-b846-4a7a-a862-95fd022928a1
+   (do not change this comment) */
