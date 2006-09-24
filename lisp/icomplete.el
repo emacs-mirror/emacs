@@ -192,7 +192,7 @@ Conditions are:
        minibuffer-completion-table
        (or (not (functionp minibuffer-completion-table))
            (member minibuffer-completion-table
-                   icomplete-for-completion-tables))))
+                   icomplete-with-completion-tables))))
 
 ;;;_ > icomplete-minibuffer-setup ()
 (defun icomplete-minibuffer-setup ()
@@ -333,7 +333,6 @@ are exhibited within the square braces.)"
 ;;;_* Local emacs vars.
 ;;;Local variables:
 ;;;allout-layout: (-2 :)
-;;;allout-widgets-mode-inhibit: t
 ;;;End:
 
 ;; arch-tag: 339ec25a-0741-4eb6-be63-997532e89b0f

@@ -1,3 +1,9 @@
+2006-09-24  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* icomplete.el (icomplete-simple-completing-p): Use the correct
+	name for the new variable, `icomplete-with-completion-tables'.
+	(file local variables): Remove superfluous setting.
+
 2006-09-23  Jeff Miller  <jmiller@cablespeed.com>  (tiny change)
 
 	* calendar/appt.el (appt-check): Fix typo for appointments just
