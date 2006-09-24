@@ -1389,7 +1389,7 @@ mouse."
     (if (or (window-minibuffer-p)
 	    (window-dedicated-p (selected-window)))
 	(pop-to-buffer (current-buffer))
-      (switch-to-buffer "GNU Emacs"))
+      (switch-to-buffer "*About GNU Emacs*"))
     (setq buffer-read-only nil)
     (erase-buffer)
     (if pure-space-overflow
@@ -1605,7 +1605,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
             (error (pop-to-buffer (current-buffer))))))
       ;; Unwind ... ensure splash buffer is killed
       (if hide-on-input
-	  (kill-buffer "GNU Emacs")))))
+	  (kill-buffer "GNU Emacs")
+	(switch-to-buffer "GNU Emacs")
+	(rename-buffer "*About GNU Emacs*" t)))))
 
 
 (defun startup-echo-area-message ()
