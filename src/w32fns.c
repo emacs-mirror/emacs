@@ -8609,14 +8609,15 @@ syms_of_w32fns ()
   Vw32_color_map = Qnil;
 
   DEFVAR_LISP ("w32-pass-alt-to-system", &Vw32_pass_alt_to_system,
-	       doc: /* Non-nil if alt key presses are passed on to Windows.
-When non-nil, for example, alt pressed and released and then space will
-open the System menu.  When nil, Emacs silently swallows alt key events.  */);
+	       doc: /* Non-nil if Alt key presses are passed on to Windows.
+When non-nil, for example, Alt pressed and released and then space will
+open the System menu.  When nil, Emacs processes the Alt key events, and
+then silently swallows them.  */);
   Vw32_pass_alt_to_system = Qnil;
 
   DEFVAR_LISP ("w32-alt-is-meta", &Vw32_alt_is_meta,
-	       doc: /* Non-nil if the alt key is to be considered the same as the meta key.
-When nil, Emacs will translate the alt key to the Alt modifier, and not Meta.  */);
+	       doc: /* Non-nil if the Alt key is to be considered the same as the META key.
+When nil, Emacs will translate the Alt key to the ALT modifier, not to META.  */);
   Vw32_alt_is_meta = Qt;
 
   DEFVAR_INT ("w32-quit-key", &w32_quit_key,
@@ -8625,14 +8626,32 @@ When nil, Emacs will translate the alt key to the Alt modifier, and not Meta.  *
 
   DEFVAR_LISP ("w32-pass-lwindow-to-system",
 	       &Vw32_pass_lwindow_to_system,
-	       doc: /* Non-nil if the left \"Windows\" key is passed on to Windows.
-When non-nil, the Start menu is opened by tapping the key.  */);
+	       doc: /* If non-nil, the left \"Windows\" key is passed on to Windows.
+
+When non-nil, the Start menu is opened by tapping the key.
+If you set this to nil, the left \"Windows\" key is processed by Emacs
+according to the value of `w32-lwindow-modifier', which see.
+
+Note that some combinations of the left \"Windows\" key with other keys are
+caught by Windows at low level, and so binding them in Emacs will have no
+effect.  For example, <lwindow>-r always pops up the Windows Run dialog,
+<lwindow>-<Pause> pops up the "System Properties" dialog, etc.  However, see
+the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_lwindow_to_system = Qt;
 
   DEFVAR_LISP ("w32-pass-rwindow-to-system",
 	       &Vw32_pass_rwindow_to_system,
-	       doc: /* Non-nil if the right \"Windows\" key is passed on to Windows.
-When non-nil, the Start menu is opened by tapping the key.  */);
+	       doc: /* If non-nil, the right \"Windows\" key is passed on to Windows.
+
+When non-nil, the Start menu is opened by tapping the key.
+If you set this to nil, the right \"Windows\" key is processed by Emacs
+according to the value of `w32-rwindow-modifier', which see.
+
+Note that some combinations of the right \"Windows\" key with other keys are
+caught by Windows at low level, and so binding them in Emacs will have no
+effect.  For example, <rwindow>-r always pops up the Windows Run dialog,
+<rwindow>-<Pause> pops up the "System Properties" dialog, etc.  However, see
+the doc string of `w32-phantom-key-code'.  */);
   Vw32_pass_rwindow_to_system = Qt;
 
   DEFVAR_LISP ("w32-phantom-key-code",
@@ -8649,29 +8668,29 @@ acting on \"Windows\" key events when `w32-pass-lwindow-to-system' or
 
   DEFVAR_LISP ("w32-enable-num-lock",
 	       &Vw32_enable_num_lock,
-	       doc: /* Non-nil if Num Lock should act normally.
-Set to nil to see Num Lock as the key `kp-numlock'.  */);
+	       doc: /* If non-nil, the Num Lock key acts normally.
+Set to nil to handle Num Lock as the `kp-numlock' key.  */);
   Vw32_enable_num_lock = Qt;
 
   DEFVAR_LISP ("w32-enable-caps-lock",
 	       &Vw32_enable_caps_lock,
-	       doc: /* Non-nil if Caps Lock should act normally.
-Set to nil to see Caps Lock as the key `capslock'.  */);
+	       doc: /* If non-nil, the Caps Lock key acts normally.
+Set to nil to handle Caps Lock as the `capslock' key.  */);
   Vw32_enable_caps_lock = Qt;
 
   DEFVAR_LISP ("w32-scroll-lock-modifier",
 	       &Vw32_scroll_lock_modifier,
-	       doc: /* Modifier to use for the Scroll Lock on state.
+	       doc: /* Modifier to use for the Scroll Lock ON state.
 The value can be hyper, super, meta, alt, control or shift for the
-respective modifier, or nil to see Scroll Lock as the key `scroll'.
-Any other value will cause the key to be ignored.  */);
+respective modifier, or nil to handle Scroll Lock as the `scroll' key.
+Any other value will cause the Scroll Lock key to be ignored.  */);
   Vw32_scroll_lock_modifier = Qt;
 
   DEFVAR_LISP ("w32-lwindow-modifier",
 	       &Vw32_lwindow_modifier,
 	       doc: /* Modifier to use for the left \"Windows\" key.
 The value can be hyper, super, meta, alt, control or shift for the
-respective modifier, or nil to appear as the key `lwindow'.
+respective modifier, or nil to appear as the `lwindow' key.
 Any other value will cause the key to be ignored.  */);
   Vw32_lwindow_modifier = Qnil;
 
@@ -8679,7 +8698,7 @@ Any other value will cause the key to be ignored.  */);
 	       &Vw32_rwindow_modifier,
 	       doc: /* Modifier to use for the right \"Windows\" key.
 The value can be hyper, super, meta, alt, control or shift for the
-respective modifier, or nil to appear as the key `rwindow'.
+respective modifier, or nil to appear as the `rwindow' key.
 Any other value will cause the key to be ignored.  */);
   Vw32_rwindow_modifier = Qnil;
 
@@ -8687,7 +8706,7 @@ Any other value will cause the key to be ignored.  */);
 	       &Vw32_apps_modifier,
 	       doc: /* Modifier to use for the \"Apps\" key.
 The value can be hyper, super, meta, alt, control or shift for the
-respective modifier, or nil to appear as the key `apps'.
+respective modifier, or nil to appear as the `apps' key.
 Any other value will cause the key to be ignored.  */);
   Vw32_apps_modifier = Qnil;
 
@@ -8703,7 +8722,7 @@ Any other value will cause the key to be ignored.  */);
 	      &w32_mouse_button_tolerance,
 	      doc: /* Analogue of double click interval for faking middle mouse events.
 The value is the minimum time in milliseconds that must elapse between
-left/right button down events before they are considered distinct events.
+left and right button down events before they are considered distinct events.
 If both mouse buttons are depressed within this interval, a middle mouse
 button down event is generated instead.  */);
   w32_mouse_button_tolerance = GetDoubleClickTime () / 2;
@@ -8718,7 +8737,7 @@ reported as lisp events.  */);
 
   DEFVAR_BOOL ("w32-pass-extra-mouse-buttons-to-system",
 	       &w32_pass_extra_mouse_buttons_to_system,
-	       doc: /* Non-nil if the fourth and fifth mouse buttons are passed to Windows.
+	       doc: /* If non-nil, the fourth and fifth mouse buttons are passed to Windows.
 Recent versions of Windows support mice with up to five buttons.
 Since most applications don't support these extra buttons, most mouse
 drivers will allow you to map them to functions at the system level.
