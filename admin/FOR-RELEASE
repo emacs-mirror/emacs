@@ -46,8 +46,15 @@ Windows only bug.
 ** C-g fails to interrupt accept-process-output in Gnus.
   (Is that fixed?)
 
+** Manheimer's new icomplete patch.
+
+** C-p works properly with fields within the line, but C-n does not.
+(ken.manheimer@gmail.com, Sep 24.)
+
+** timer-max-repeats is obeyed with an offset of 2?
+
 ** Text copied between font-lock buffers doesn't refontify
-because of properties that are preserved.
+because of properties that are preserved.  May be fixed now?
 
 ** Peter_Dyballa@Web.DE's Sep 17 bug report about i-search and non-ASCII chars
 
@@ -56,9 +63,6 @@ because of properties that are preserved.
 ** end-of-line doc doesn't match field behavior; which one to change?
 
 ** Drew Adams Sep 21: single-key-description no good for Japanese and Chinese
-
-** (single-key-description 20866) and (single-key-description 20865)
-return the same value.
 
 ** XIM hotkey doesn't work in Emacs.
 
