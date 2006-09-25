@@ -1,3 +1,7 @@
+2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Timers): Mention with-local-quit.
+
 2006-09-24  Richard Stallman  <rms@gnu.org>
 
 	* searching.texi (Searching and Matching): Mention property search.

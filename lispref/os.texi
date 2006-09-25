@@ -1386,7 +1386,12 @@ function, because quitting out of many timer functions can leave
 things in an inconsistent state.  This is normally unproblematical
 because most timer functions don't do a lot of work.  Indeed, for a
 timer to call a function that takes substantial time to run is likely
-to be annoying.
+to be annoying.  If a timer function needs to allow quitting, it
+should use @code{with-local-quit} (@pxref{Quitting}).  For example, if
+a timer function calls @code{accept-process-output} to receive output
+from an external process, that call should be wrapped inside
+@code{with-local-quit}, to ensure that @kbd{C-g} works if the external
+process hangs.
 
   It is usually a bad idea for timer functions to alter buffer
 contents.  When they do, they usually should call @code{undo-boundary}
