@@ -1474,6 +1474,12 @@ between them).  If you want a timer to run again no less than @var{n}
 seconds after the last invocation, don't use the @var{repeat} argument.
 Instead, the timer function should explicitly reschedule the timer.
 
+@defvar timer-max-repeats
+This variable's value specifies the maximum number of times to repeat
+calling a timer function in a row, when many previously scheduled
+calls were unavoidably delayed.
+@end defvar
+
 @defmac with-timeout (seconds timeout-forms@dots{}) body@dots{}
 Execute @var{body}, but give up after @var{seconds} seconds.  If
 @var{body} finishes before the time is up, @code{with-timeout} returns
