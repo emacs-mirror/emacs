@@ -1,3 +1,7 @@
+2006-09-25  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Describe timer-max-repeats.
+
 2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* os.texi (Timers): Mention with-local-quit.
