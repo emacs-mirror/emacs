@@ -43,10 +43,15 @@ Windows only bug.
 
 * BUGS
 
+** drew.adams@oracle.com, Sep 24: bug in read-kbd-macro
+
+** seltenreich@gmx.de, Sep 24: fontification loop
+caused by Monnier's 08-01 change.
+
+** yamane@green.ocn.ne.jp: smtpmail.el bug involving base64 encoding.
+
 ** C-p works properly with fields within the line, but C-n does not.
 (ken.manheimer@gmail.com, Sep 24.)
-
-** timer-max-repeats is obeyed with an offset of 2?
 
 ** Text copied between font-lock buffers doesn't refontify
 because of properties that are preserved.  May be fixed now?
