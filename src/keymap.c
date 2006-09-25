@@ -2386,15 +2386,22 @@ around function keys and event symbols.  */)
 	SPLIT_CHAR (without_bits, charset, c1, c2);
 
       if (charset
-	  && CHARSET_DEFINED_P (charset)
-	  && ((c1 >= 0 && c1 < 32)
-	      || (c2 >= 0 && c2 < 32)))
+	  && CHAR_VALID_P (charset, 1)
+	  && (c1 == 0 || c2 == 0))
 	{
 	  /* Handle a generic character.  */
 	  Lisp_Object name;
-	  name = CHARSET_TABLE_INFO (charset, CHARSET_LONG_NAME_IDX);
+	  char buf[256];
+
+	  name = CHARSET_TABLE_INFO (charset, CHARSET_SHORT_NAME_IDX);
 	  CHECK_STRING (name);
-	  return concat2 (build_string ("Character set "), name);
+	  if (c1 == 0)
+	    /* Only a charset is specified.   */
+	    sprintf (buf, "Generic char %d: all of ", without_bits);
+	  else
+	    /* 1st code-point of 2-dimensional charset is specified.   */
+	    sprintf (buf, "Generic char %d: row %d of ", without_bits, c1);
+	  return concat2 (build_string (buf), name);
 	}
       else
 	{
