@@ -1,3 +1,10 @@
+2006-09-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_underline_at_descent_line): New variable.
+	(syms_of_macterm): DEFVAR_BOOL it.
+	(x_draw_glyph_string): Use it.
+	(XLoadQueryFont): Calculate min_bounds.descent and max_bounds.descent.
+
 2006-09-25  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (Fsingle_key_description): Return unique names for
