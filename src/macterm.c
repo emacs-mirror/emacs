@@ -108,6 +108,10 @@ static Lisp_Object last_window;
    (Not yet supported.)  */
 int x_use_underline_position_properties;
 
+/* Non-zero means to draw the underline at the same place as the descent line.  */
+
+int x_underline_at_descent_line;
+
 /* This is a chain of structures for all the X displays currently in
    use.  */
 
@@ -3671,18 +3675,45 @@ x_draw_glyph_string (s)
       /* Draw underline.  */
       if (s->face->underline_p)
 	{
-          unsigned long h = 1;
-          unsigned long dy = s->height - h;
+	  unsigned long tem, h;
+	  int y;
+
+#if 0
+	  /* Get the underline thickness.  Default is 1 pixel.  */
+	  if (!XGetFontProperty (s->font, XA_UNDERLINE_THICKNESS, &h))
+#endif
+	    h = 1;
+
+	  y = s->y + s->height - h;
+	  if (!x_underline_at_descent_line)
+            {
+	      /* Get the underline position.  This is the recommended
+                 vertical offset in pixels from the baseline to the top of
+                 the underline.  This is a signed value according to the
+                 specs, and its default is
+
+	         ROUND ((maximum descent) / 2), with
+	         ROUND(x) = floor (x + 0.5)  */
+
+#if 0
+              if (x_use_underline_position_properties
+                  && XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &tem))
+                y = s->ybase + (long) tem;
+              else
+#endif
+	      if (s->face->font)
+                y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
+            }
 
 	  if (s->face->underline_defaulted_p)
-	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+	    mac_fill_rectangle (s->f, s->gc, s->x, y,
 				s->background_width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->underline_color);
-	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+	      mac_fill_rectangle (s->f, s->gc, s->x, y,
 				  s->background_width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
@@ -8085,6 +8116,8 @@ XLoadQueryFont (Display *dpy, char *fontname)
 					     pcm->width);
 	    font->min_bounds.ascent   = min (font->min_bounds.ascent,
 					     pcm->ascent);
+	    font->min_bounds.descent  = min (font->min_bounds.descent,
+					     pcm->descent);
 
 	    font->max_bounds.lbearing = max (font->max_bounds.lbearing,
 					     pcm->lbearing);
@@ -8094,6 +8127,8 @@ XLoadQueryFont (Display *dpy, char *fontname)
 					     pcm->width);
 	    font->max_bounds.ascent   = max (font->max_bounds.ascent,
 					     pcm->ascent);
+	    font->max_bounds.descent  = max (font->max_bounds.descent,
+					     pcm->descent);
 	  }
       if (
 #if USE_ATSUI
@@ -11619,6 +11654,14 @@ to 4.1, set this to nil.
 
 NOTE: Not supported on Mac yet.  */);
   x_use_underline_position_properties = 0;
+
+  DEFVAR_BOOL ("x-underline-at-descent-line",
+	       &x_underline_at_descent_line,
+     doc: /* *Non-nil means to draw the underline at the same place as the descent line.
+nil means to draw the underline according to the value of the variable
+`x-use-underline-position-properties', which is usually at the baseline
+level.  The default value is nil.  */);
+  x_underline_at_descent_line = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
     doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
