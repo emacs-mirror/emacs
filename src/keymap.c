@@ -2387,7 +2387,7 @@ around function keys and event symbols.  */)
 
       if (charset
 	  && CHAR_VALID_P (charset, 1)
-	  && (c1 == 0 || c2 == 0))
+	  && ((c1 == 0 && c2 == -1) || c2 == 0))
 	{
 	  /* Handle a generic character.  */
 	  Lisp_Object name;
