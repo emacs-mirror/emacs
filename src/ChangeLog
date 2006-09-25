@@ -1,3 +1,8 @@
+2006-09-25  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (Fsingle_key_description): Return unique names for
+	generic characters.
+
 2006-09-24  Richard Stallman  <rms@gnu.org>
 
 	* search.c (compile_pattern_1): Don't BLOCK_INPUT.
