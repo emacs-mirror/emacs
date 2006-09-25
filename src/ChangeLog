@@ -1,3 +1,7 @@
+2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callint.c (Fcall_interactively): Doc fix.
+
 2006-09-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_underline_at_descent_line): New variable.
