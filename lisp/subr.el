@@ -2053,7 +2053,8 @@ a system-dependent default device name is used."
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
-  (if (eq system-type 'ms-dos)
+  (if (or (eq system-type 'ms-dos)
+          (and (eq system-type 'windows-nt) (w32-shell-dos-semantics)))
       ;; Quote using double quotes, but escape any existing quotes in
       ;; the argument with backslashes.
       (let ((result "")
@@ -2067,19 +2068,17 @@ a system-dependent default device name is used."
 				   "\\" (substring argument end (1+ end)))
 		    start (1+ end))))
 	(concat "\"" result (substring argument start) "\""))
-    (if (eq system-type 'windows-nt)
-	(concat "\"" argument "\"")
-      (if (equal argument "")
-	  "''"
-	;; Quote everything except POSIX filename characters.
-	;; This should be safe enough even for really weird shells.
-	(let ((result "") (start 0) end)
-	  (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-	    (setq end (match-beginning 0)
-		  result (concat result (substring argument start end)
-				 "\\" (substring argument end (1+ end)))
-		  start (1+ end)))
-	  (concat result (substring argument start)))))))
+    (if (equal argument "")
+        "''"
+      ;; Quote everything except POSIX filename characters.
+      ;; This should be safe enough even for really weird shells.
+      (let ((result "") (start 0) end)
+        (while (string-match "[^-0-9a-zA-Z_./]" argument start)
+          (setq end (match-beginning 0)
+                result (concat result (substring argument start end)
+                               "\\" (substring argument end (1+ end)))
+                start (1+ end)))
+        (concat result (substring argument start))))))
 
 (defun string-or-null-p (object)
   "Return t if OBJECT is a string or nil.
