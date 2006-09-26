@@ -1,5 +1,8 @@
 2006-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* jit-lock.el (jit-lock-force-redisplay): Rename from
+	jit-lock-fontify-again, and undo the mistaken change I've just done.
+
 	* jit-lock.el (jit-lock-fontify-now): Don't fontify the empty text.
 	(jit-lock-fontify-again): Don't refontify text that's not displayed.
 
