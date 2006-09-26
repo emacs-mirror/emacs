@@ -349,7 +349,7 @@ Defaults to the whole buffer.  END can be out of bounds."
 	 ;; Fontify chunks beginning at START.  The end of a
 	 ;; chunk is either `end', or the start of a region
 	 ;; before `end' that has already been fontified.
-	 (while start
+	 (while (and start (< start end))
 	   ;; Determine the end of this chunk.
 	   (setq next (or (text-property-any start end 'fontified t)
 			  end))
@@ -405,9 +405,11 @@ Defaults to the whole buffer.  END can be out of bounds."
 
 (defun jit-lock-fontify-again (buf start end)
   "Fontify in buffer BUF from START to END."
-  (with-current-buffer buf
-    (with-buffer-prepared-for-jit-lock
-     (put-text-property start end 'fontified t))))
+  ;; Don't bother refontifying text that's not even displayed.
+  (when (setq start (text-property-not-all start end 'fontified nil buf))
+    (with-current-buffer buf
+      (with-buffer-prepared-for-jit-lock
+       (put-text-property start end 'fontified nil)))))
 
 
 
