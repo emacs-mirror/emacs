@@ -1,3 +1,12 @@
+2006-09-25  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* mh-junk.el (mh-spamassassin-whitelist): Add two missing
+	quotation marks, so that the last two arguments of sa-learn 
+	are separated properly (closes SF #1565460).
+	
+	* (mh-spamassassin-blacklist): In example .procmailrc, add
+	PATH element to find mhparam on Debian.
+	
 2006-09-24  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* mh-comp.el (mh-send-args): Initialize to "" instead of nil 
