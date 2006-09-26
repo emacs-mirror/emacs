@@ -2634,6 +2634,11 @@ mac_compute_glyph_string_overhangs (s)
       Rect r;
       MacFontStruct *font = s->font;
 
+#if USE_CG_DRAWING
+      mac_prepare_for_quickdraw (s->f);
+#endif
+      SetPortWindowPort (FRAME_MAC_WINDOW (s->f));
+
       TextFont (font->mac_fontnum);
       TextSize (font->mac_fontsize);
       TextFace (font->mac_fontface);
@@ -8001,6 +8006,9 @@ XLoadQueryFont (Display *dpy, char *fontname)
       FontInfo the_fontinfo;
       int is_two_byte_font;
 
+#if USE_CG_DRAWING
+      mac_prepare_for_quickdraw (NULL);
+#endif
       /* Save the current font number used.  */
       GetPort (&port);
 #if TARGET_API_MAC_CARBON
