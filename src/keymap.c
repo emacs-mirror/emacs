@@ -2385,9 +2385,15 @@ around function keys and event symbols.  */)
       else
 	SPLIT_CHAR (without_bits, charset, c1, c2);
 
-      if (charset
-	  && CHAR_VALID_P (charset, 1)
-	  && ((c1 == 0 && c2 == -1) || c2 == 0))
+      if (! CHAR_VALID_P (without_bits, 1))
+	{
+	  char buf[256];
+
+	  sprintf (buf, "Invalid char code %d", XINT (key));
+	  return build_string (buf);
+	}
+      else if (charset
+	       && ((c1 == 0 && c2 == -1) || c2 == 0))
 	{
 	  /* Handle a generic character.  */
 	  Lisp_Object name;
