@@ -409,7 +409,7 @@ Defaults to the whole buffer.  END can be out of bounds."
     (with-buffer-prepared-for-jit-lock
      ;; Don't cause refontification (it's already been done), but just do
      ;; some random buffer change, so as to force redisplay.
-     (put-text-property start end 'fontified t)))))
+     (put-text-property start end 'fontified t))))
 
 
 
