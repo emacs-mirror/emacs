@@ -218,7 +218,7 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
 		   (< idle gnus-demon-idle-time)) ; Idle timed out.
 		  (t (< 0 gnus-demon-idle-time)))) ; Or just need to be idle.
 	       ;; So we call the handler.
-	       (progn
+	       (with-local-quit
 		 (ignore-errors (funcall (car handler)))
 		 ;; And reset the timer.
 		 (setcar (nthcdr 1 handler)
@@ -232,14 +232,15 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
 	       (gnus-demon-is-idle-p))
 	  ;; We want to call this handler each and every time that
 	  ;; Emacs is idle.
-	  (ignore-errors (funcall (car handler))))
+	  (with-local-quit
+	    (ignore-errors (funcall (car handler)))))
 	 (t
 	  ;; We want to call this handler only if Emacs has been idle
 	  ;; for a specified number of timesteps.
 	  (and (not (memq (car handler) gnus-demon-idle-has-been-called))
 	       (< idle gnus-demon-idle-time)
 	       (gnus-demon-is-idle-p)
-	       (progn
+	       (with-local-quit
 		 (ignore-errors (funcall (car handler)))
 		 ;; Make sure the handler won't be called once more in
 		 ;; this idle-cycle.
