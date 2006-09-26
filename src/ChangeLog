@@ -1,3 +1,8 @@
+2006-09-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Do move back if the Lisp string
+	being displayed contains newlines.
+
 2006-09-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_compute_glyph_string_overhangs, XLoadQueryFont)
