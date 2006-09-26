@@ -1,3 +1,7 @@
+2006-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* startup.el (display-splash-screen): Allow a prefix argument.
+
 2006-09-25  Jason Rumney  <jasonr@gnu.org>
 
 	* subr.el (shell-quote-argument): Use DOS logic for Windows
