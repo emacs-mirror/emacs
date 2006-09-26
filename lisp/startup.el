@@ -1626,8 +1626,9 @@ Type \\[describe-distribution] for information on getting the latest version."))
 (defun display-splash-screen (&optional hide-on-input)
   "Display splash screen according to display.
 Fancy splash screens are used on graphic displays,
-normal otherwise."
-  (interactive)
+normal otherwise.
+With a prefix argument, any user input hides the splash screen."
+  (interactive "P")
   (if (use-fancy-splash-screens-p)
       (fancy-splash-screens hide-on-input)
     (normal-splash-screen hide-on-input)))
