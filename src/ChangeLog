@@ -1,3 +1,8 @@
+2006-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (Fsingle_key_description): For an invalid char, return
+	"Invalid char code NNNNN".
+
 2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* callint.c (Fcall_interactively): Doc fix.
