@@ -1,3 +1,7 @@
+2006-09-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* refcard.ps: Regenerate.
+
 2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* NEWS: Rename x-use-old-gtk-file-dialog to x-gtk-use-old-file-dialog.
