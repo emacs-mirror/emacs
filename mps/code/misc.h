@@ -137,13 +137,14 @@ typedef const struct SrcIdStruct {
 /* PARENT -- parent structure
  *
  * Given a pointer to a field of a structure this returns a pointer to
- * the main structure.  PARENT(foo_t, x, foo->x) == foo.
+ * the main structure.  PARENT(foo_t, x, &(foo->x)) == foo.
  *
  * This macro is thread-safe, see design.mps.misc.parent.thread-safe.
  *
  * That intermediate (void *) is required to stop some compilers complaining
  * about alignment of 'type *' being greater than that of 'char *'.  Which
- * is true, but not a bug, since p really is a pointer into a 'type' struct.
+ * is true, but not a bug, since the result really is a pointer to a 'type'
+ * struct.
  */
 
 #define PARENT(type, field, p) \
