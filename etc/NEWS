@@ -957,6 +957,19 @@ so package-specific faces can inherit from it.
 +++
 *** `vertical-border' face is used for the vertical divider between windows.
 
+** ebnf2ps changes:
+
++++
+*** New option `ebnf-arrow-extra-width' which specify extra width for arrow
+shape drawing.
+The extra width is used to avoid that the arrowhead and the terminal border
+overlap.  It depens on `ebnf-arrow-shape' and `ebnf-line-width'.
+
++++
+*** New option `ebnf-arrow-scale' which specify the arrow scale.
+Values lower than 1.0, shrink the arrow.
+Values greater than 1.0, expand the arrow.
+
 ** Font-Lock changes:
 
 +++
