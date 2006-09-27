@@ -1,3 +1,12 @@
+2006-09-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmode/ebnf2ps.el: Doc fix. Implement arrow spacing and scaling.
+	(ebnf-version): New version 4.3.
+	(ebnf-arrow-extra-width, ebnf-arrow-scale): New options.
+	(ebnf-prologue): Adjust PostScript programming.
+	(ebnf-begin-file, ebnf-insert-ebnf-prologue, ebnf-terminal-dimension1)
+	(ebnf-repeat-dimension, ebnf-except-dimension): Adjust code.
+
 2006-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el (jit-lock-force-redisplay): Rename from

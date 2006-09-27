@@ -5,9 +5,9 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2006/09/15 18:58:18 vinicius>
+;; Time-stamp: <2006/09/26 21:49:46 vinicius>
 ;; Keywords: wp, ebnf, PostScript
-;; Version: 4.2
+;; Version: 4.3
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -27,8 +27,8 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(defconst ebnf-version "4.2"
-  "ebnf2ps.el, v 4.2 <2004/04/04 vinicius>
+(defconst ebnf-version "4.3"
+  "ebnf2ps.el, v 4.3 <2006/09/26 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -73,18 +73,18 @@ Please send all bug fixes and enhancements to
 ;; ebnf2ps provides the following commands for generating PostScript syntactic
 ;; chart images of Emacs buffers:
 ;;
-;;	ebnf-print-directory
-;;	ebnf-print-file
-;;	ebnf-print-buffer
-;;	ebnf-print-region
-;;	ebnf-spool-directory
-;;	ebnf-spool-file
-;;	ebnf-spool-buffer
-;;	ebnf-spool-region
-;;	ebnf-eps-directory
-;;	ebnf-eps-file
-;;	ebnf-eps-buffer
-;;	ebnf-eps-region
+;;    ebnf-print-directory
+;;    ebnf-print-file
+;;    ebnf-print-buffer
+;;    ebnf-print-region
+;;    ebnf-spool-directory
+;;    ebnf-spool-file
+;;    ebnf-spool-buffer
+;;    ebnf-spool-region
+;;    ebnf-eps-directory
+;;    ebnf-eps-file
+;;    ebnf-eps-buffer
+;;    ebnf-eps-region
 ;;
 ;; These commands all perform essentially the same function: they generate
 ;; PostScript syntactic chart images suitable for printing on a PostScript
@@ -94,14 +94,14 @@ Please send all bug fixes and enhancements to
 ;; The word "print", "spool" and "eps" in the command name determines when the
 ;; PostScript image is sent to the printer (or file):
 ;;
-;;	print  - The PostScript image is immediately sent to the printer;
+;;    print  - The PostScript image is immediately sent to the printer;
 ;;
-;;	spool  - The PostScript image is saved temporarily in an Emacs buffer.
-;;		 Many images may be spooled locally before printing them.  To
-;;		 send the spooled images to the printer, use the command
-;;		 `ebnf-despool'.
+;;    spool  - The PostScript image is saved temporarily in an Emacs buffer.
+;;             Many images may be spooled locally before printing them.  To
+;;             send the spooled images to the printer, use the command
+;;             `ebnf-despool'.
 ;;
-;;	eps    - The PostScript image is immediately sent to a EPS file.
+;;    eps    - The PostScript image is immediately sent to a EPS file.
 ;;
 ;; The spooling mechanism is the same as used by ps-print and was designed for
 ;; printing lots of small files to save paper that would otherwise be wasted on
@@ -120,22 +120,22 @@ Please send all bug fixes and enhancements to
 ;; The word "directory", "file", "buffer" or "region" in the command name
 ;; determines how much of the buffer is printed:
 ;;
-;;	directory  - Read files in the directory and print them.
+;;    directory  - Read files in the directory and print them.
 ;;
-;;	file       - Read file and print it.
+;;    file       - Read file and print it.
 ;;
-;;	buffer     - Print the entire buffer.
+;;    buffer     - Print the entire buffer.
 ;;
-;;	region     - Print just the current region.
+;;    region     - Print just the current region.
 ;;
 ;; Two ebnf- command examples:
 ;;
-;;	ebnf-print-buffer  - translate and print the entire buffer, and send it
-;;			     immediately to the printer.
+;;    ebnf-print-buffer  - translate and print the entire buffer, and send it
+;;                         immediately to the printer.
 ;;
-;;	ebnf-spool-region  - translate and print just the current region, and
-;;			     spool the image in Emacs to send to the printer
-;;			     later.
+;;    ebnf-spool-region  - translate and print just the current region, and
+;;                         spool the image in Emacs to send to the printer
+;;                         later.
 ;;
 ;; Note that `ebnf-eps-directory', `ebnf-eps-file', `ebnf-eps-buffer' and
 ;; `ebnf-eps-region' never spool the EPS image, so they don't use the ps-print
@@ -148,13 +148,13 @@ Please send all bug fixes and enhancements to
 ;;
 ;; To translate and print your buffer, type
 ;;
-;;        M-x ebnf-print-buffer
+;;    M-x ebnf-print-buffer
 ;;
 ;; or substitute one of the other four ebnf- commands.  The command will
 ;; generate the PostScript image and print or spool it as specified.  By giving
 ;; the command a prefix argument
 ;;
-;;        C-u M-x ebnf-print-buffer
+;;    C-u M-x ebnf-print-buffer
 ;;
 ;; it will save the PostScript image to a file instead of sending it to the
 ;; printer; you will be prompted for the name of the file to save the image to.
@@ -162,7 +162,7 @@ Please send all bug fixes and enhancements to
 ;; you may save the spooled images to a file by giving a prefix argument to
 ;; `ebnf-despool':
 ;;
-;;        C-u M-x ebnf-despool
+;;    C-u M-x ebnf-despool
 ;;
 ;; When invoked this way, `ebnf-despool' will prompt you for the name of the
 ;; file to save to.
@@ -172,9 +172,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Any of the `ebnf-' commands can be bound to keys.  Here are some examples:
 ;;
-;;   (global-set-key 'f22 'ebnf-print-buffer) ;f22 is prsc
-;;   (global-set-key '(shift f22) 'ebnf-print-region)
-;;   (global-set-key '(control f22) 'ebnf-despool)
+;;    (global-set-key 'f22 'ebnf-print-buffer) ;f22 is prsc
+;;    (global-set-key '(shift f22) 'ebnf-print-region)
+;;    (global-set-key '(control f22) 'ebnf-despool)
 ;;
 ;;
 ;; Invoking Ebnf2ps in Batch
@@ -523,14 +523,14 @@ Please send all bug fixes and enhancements to
 ;;
 ;; The following table summarizes the results:
 ;;
-;; EPS FILE NAME    NO SORT    ASCENDING SORT    DESCENDING SORT
-;; ebnf--AA.eps     A C        A C               C A
-;; ebnf--BB.eps     C B        B C               C B
-;; ebnf--CC.eps     A C B F    A B C F           F C B A
-;; ebnf--D.eps      D          D                 D
-;; ebnf--E.eps      E          E                 E
-;; ebnf--G.eps      G          G                 G
-;; ebnf--Z.eps      Z          Z                 Z
+;;    EPS FILE NAME    NO SORT    ASCENDING SORT    DESCENDING SORT
+;;    ebnf--AA.eps     A C        A C               C A
+;;    ebnf--BB.eps     C B        B C               C B
+;;    ebnf--CC.eps     A C B F    A B C F           F C B A
+;;    ebnf--D.eps      D          D                 D
+;;    ebnf--E.eps      E          E                 E
+;;    ebnf--G.eps      G          G                 G
+;;    ebnf--Z.eps      Z          Z                 Z
 ;;
 ;; As you can see if EPS actions is not used, each single production is
 ;; generated per EPS file.  To avoid overriding EPS files, use names in ;[ that
@@ -692,6 +692,11 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-line-color'			Specify flow line color.
 ;;
+;; `ebnf-arrow-extra-width'		Specify extra width for arrow shape
+;;					drawing.
+;;
+;; `ebnf-arrow-scale'			Specify the arrow scale.
+;;
 ;; `ebnf-user-arrow'			Specify a sexp for user arrow shape (a
 ;;					PostScript code).
 ;;
@@ -824,6 +829,8 @@ Please send all bug fixes and enhancements to
 ;;    entry		is the vertical position used to know where it should
 ;;			be drawn the flow line in the current element.
 ;;
+;;    extra		is given by `ebnf-arrow-extra-width'.
+;;
 ;;
 ;;    * SPECIAL, TERMINAL and NON-TERMINAL
 ;;
@@ -835,17 +842,17 @@ Please send all bug fixes and enhancements to
 ;;       :   |   :      :   |   :  } font height / 2           }
 ;;       :   +==============+...:...............................
 ;;       :   :   :      :   :   :
-;;       :   :   :      :   :   :......................
-;;       :   :   :      :   :      } font height      }
-;;       :   :   :      :   :.......                  }
-;;       :   :   :      :          } font height / 2  }
-;;       :   :   :      :...........                  }
-;;       :   :   :                 } text width       } width
-;;       :   :   :..................                  }
-;;       :   :                     } font height / 2  }
-;;       :   :......................                  }
-;;       :                         } font height      }
-;;       :.............................................
+;;       :   :   :      :   :   :.........................
+;;       :   :   :      :   :      } font height          }
+;;       :   :   :      :   :.......                      }
+;;       :   :   :      :          } font height / 2      }
+;;       :   :   :      :...........                      }
+;;       :   :   :                 } text width           } width
+;;       :   :   :..................                      }
+;;       :   :                     } font height / 2      }
+;;       :   :......................                      }
+;;       :                         } font height + extra  }
+;;       :.................................................
 ;;
 ;;
 ;;    * OPTIONAL
@@ -976,21 +983,21 @@ Please send all bug fixes and enhancements to
 ;;       :   |  :  :  :   :   |   :  } font height / 2           }
 ;;       :   +================+...:...............................
 ;;       :   :  :  :  :   :   :   :
-;;       :   :  :  :  :   :   :   :......................
-;;       :   :  :  :  :   :   :      } font height      }
-;;       :   :  :  :  :   :   :.......                  }
-;;       :   :  :  :  :   :          } font height / 2  }
-;;       :   :  :  :  :   :...........                  }
-;;       :   :  :  :  :              } X width          }
-;;       :   :  :  :  :...............                  }
-;;       :   :  :  :                 } font height / 2  } width
-;;       :   :  :  :..................                  }
-;;       :   :  :                    } text width       }
-;;       :   :  :.....................                  }
-;;       :   :                       } font height / 2  }
-;;       :   :........................                  }
-;;       :                           } font height      }
-;;       :...............................................
+;;       :   :  :  :  :   :   :   :..........................
+;;       :   :  :  :  :   :   :      } font height          }
+;;       :   :  :  :  :   :   :.......                      }
+;;       :   :  :  :  :   :          } font height / 2      }
+;;       :   :  :  :  :   :...........                      }
+;;       :   :  :  :  :              } X width              }
+;;       :   :  :  :  :...............                      }
+;;       :   :  :  :                 } font height / 2      } width
+;;       :   :  :  :..................                      }
+;;       :   :  :                    } text width           }
+;;       :   :  :.....................                      }
+;;       :   :                       } font height / 2      }
+;;       :   :........................                      }
+;;       :                           } font height + extra  }
+;;       :...................................................
 ;;
 ;;
 ;;    * EXCEPT
@@ -1003,21 +1010,21 @@ Please send all bug fixes and enhancements to
 ;;       :   |  :   :   :   :   |   :  } font height / 2           }
 ;;       :   +==================+...:...............................
 ;;       :   :  :   :   :   :   :   :
-;;       :   :  :   :   :   :   :   :......................
-;;       :   :  :   :   :   :   :      } font height      }
-;;       :   :  :   :   :   :   :.......                  }
-;;       :   :  :   :   :   :          } font height / 2  }
-;;       :   :  :   :   :   :...........                  }
-;;       :   :  :   :   :              } Y width          }
-;;       :   :  :   :   :...............                  }
-;;       :   :  :   :                  } font height      } width
-;;       :   :  :   :...................                  }
-;;       :   :  :                      } X width          }
-;;       :   :  :.......................                  }
-;;       :   :                         } font height / 2  }
-;;       :   :..........................                  }
-;;       :                             } font height      }
-;;       :.................................................
+;;       :   :  :   :   :   :   :   :..........................
+;;       :   :  :   :   :   :   :      } font height          }
+;;       :   :  :   :   :   :   :.......                      }
+;;       :   :  :   :   :   :          } font height / 2      }
+;;       :   :  :   :   :   :...........                      }
+;;       :   :  :   :   :              } Y width              }
+;;       :   :  :   :   :...............                      }
+;;       :   :  :   :                  } font height          } width
+;;       :   :  :   :...................                      }
+;;       :   :  :                      } X width              }
+;;       :   :  :.......................                      }
+;;       :   :                         } font height / 2      }
+;;       :   :..........................                      }
+;;       :                             } font height + extra  }
+;;       :.....................................................
 ;;
 ;;       NOTE: If Y element is empty, it's draw nothing at Y place.
 ;;
@@ -1089,7 +1096,8 @@ Please send all bug fixes and enhancements to
 ;; ----------------
 ;;
 ;; Thanks to Drew Adams <drew.adams@oracle.com> for suggestions:
-;;    - `ebnf-production-name-p', `ebnf-stop-on-error',
+;;    - `ebnf-arrow-extra-width', `ebnf-arrow-scale',
+;;	`ebnf-production-name-p', `ebnf-stop-on-error',
 ;;	`ebnf-file-suffix-regexp'and `ebnf-special-show-delimiter' variables.
 ;;    - `ebnf-delete-style', `ebnf-eps-file' and `ebnf-eps-directory'
 ;;	commands.
@@ -1909,6 +1917,29 @@ special."
   :type 'string
   :version "20"
   :group 'ebnf2ps)
+
+
+(defcustom ebnf-arrow-extra-width
+  (if (eq ebnf-arrow-shape 'none)
+      0.0
+    (* (sqrt 5.0) 0.65 ebnf-line-width))
+  "*Specify extra width for arrow shape drawing.
+
+The extra width is used to avoid that the arrowhead and the terminal border
+overlap.  It depens on `ebnf-arrow-shape' and `ebnf-line-width'."
+  :type 'number
+  :version "22"
+  :group 'ebnf-shape)
+
+
+(defcustom ebnf-arrow-scale 1.0
+  "*Specify the arrow scale.
+
+Values lower than 1.0, shrink the arrow.
+Values greater than 1.0, expand the arrow."
+  :type 'number
+  :version "22"
+  :group 'ebnf-shape)
 
 
 (defcustom ebnf-debug-ps nil
@@ -2859,9 +2890,9 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 /HeightNT FontHeight FontHeight add def
 
 /T HeightT HeightNT add 0.5 mul def
-/hT T 0.5 mul def
-/hT2 hT 0.5 mul def
-/hT4 hT 0.25 mul def
+/hT   T 0.5  mul def
+/hT2 hT 0.5  mul ArrowScale mul def
+/hT4 hT 0.25 mul ArrowScale mul def
 
 /Er 0.1 def	% Error factor
 
@@ -2947,6 +2978,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
  RA-vector ArrowShape get exec
  Gstroke
  moveto
+ ExtraWidth 0 rmoveto
 }def
 
 % rotation DrawArrow
@@ -3245,7 +3277,7 @@ See documentation for `ebnf-terminal-shape', `ebnf-non-terminal-shape' and
 % string width prepare-width |- string
 /prepare-width
 {/width exch def
- dup stringwidth pop space add space add width exch sub 0.5 mul
+ dup stringwidth pop space add space add width exch sub ExtraWidth sub 0.5 mul
  /w exch def
 }def
 
@@ -4877,7 +4909,6 @@ killed after process termination."
 	 (progn
 	   ;; adjust creator comment
 	   (end-of-line)
-	   (backward-char)
 	   (insert " & ebnf2ps v" ebnf-version)
 	   ;; insert ebnf settings & engine
 	   (goto-char (point-max))
@@ -5066,6 +5097,10 @@ killed after process termination."
 	      (format "/ShadowR       %s def\n"
 		      (ebnf-boolean ebnf-repeat-shadow))
 	      ;; miscellaneous
+	      (format "/ExtraWidth    %s def\n"
+		      (ebnf-format-float ebnf-arrow-extra-width))
+	      (format "/ArrowScale    %s def\n"
+		      (ebnf-format-float ebnf-arrow-scale))
 	      (format "/DefaultWidth  %s def\n"
 		      (ebnf-format-float ebnf-default-width))
 	      (format "/LineWidth     %s def\n"
@@ -5152,7 +5187,7 @@ killed after process termination."
 	(len    (length (ebnf-node-name node))))
     (ebnf-node-entry  node (* height 0.5))
     (ebnf-node-height node height)
-    (ebnf-node-width  node (+ ebnf-basic-width space
+    (ebnf-node-width  node (+ ebnf-basic-width ebnf-arrow-extra-width space
 			      (* len font-width)
 			      space ebnf-basic-width))))
 
@@ -5173,6 +5208,7 @@ killed after process termination."
 				     ebnf-font-height-S)
 				ebnf-space-R ebnf-space-R))
     (ebnf-node-width  repeat (+ (ebnf-node-width element)
+				ebnf-arrow-extra-width
 				ebnf-space-R ebnf-space-R ebnf-space-R
 				ebnf-horizontal-space
 				(* (length times) ebnf-font-width-R)))))
@@ -5194,6 +5230,7 @@ killed after process termination."
 				ebnf-space-E ebnf-space-E))
     (ebnf-node-width  except (+ (ebnf-node-width factor)
 				(ebnf-node-width element)
+				ebnf-arrow-extra-width
 				ebnf-space-E ebnf-space-E
 				ebnf-space-E ebnf-space-E
 				ebnf-font-width-E
