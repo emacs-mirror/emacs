@@ -1168,7 +1168,12 @@ what properties to clear before refontifying a region.")
           ;; number of lines.
 	  ;; (setq beg (progn (goto-char beg) (line-beginning-position))
 	  ;;       end (progn (goto-char end) (line-beginning-position 2)))
-          )
+	  (unless (eq end (point-max))
+	    ;; Rounding up to a whole number of lines should include the
+	    ;; line right after `end'.  Typical case: the first char of
+	    ;; the line was deleted.  Or a \n was inserted in the middle
+	    ;; of a line.
+	    (setq end (1+ end))))
 	(font-lock-fontify-region beg end)))))
 
 (defvar jit-lock-start) (defvar jit-lock-end)
@@ -1205,9 +1210,17 @@ This function does 2 things:
         (setq beg (or (previous-single-property-change
                        beg 'font-lock-multiline)
                       (point-min))))
-      (setq end (or (text-property-any end (point-max)
-                                       'font-lock-multiline nil)
-                    (point-max)))
+      (when (< end (point-max))
+        (setq end
+              (if (get-text-property end 'font-lock-multiline)
+                  (or (text-property-any end (point-max)
+                                         'font-lock-multiline nil)
+                      (point-max))
+                ;; Rounding up to a whole number of lines should include the
+                ;; line right after `end'.  Typical case: the first char of
+                ;; the line was deleted.  Or a \n was inserted in the middle
+                ;; of a line.
+                (1+ end))))
       ;; Finally, pre-enlarge the region to a whole number of lines, to try
       ;; and anticipate what font-lock-default-fontify-region will do, so as to
       ;; avoid double-redisplay.
@@ -1217,11 +1230,11 @@ This function does 2 things:
       (when (memq 'font-lock-extend-region-wholelines
                   font-lock-extend-region-functions)
         (goto-char beg)
-        (forward-line 0)
-        (setq jit-lock-start (min jit-lock-start (point)))
+        (setq jit-lock-start (min jit-lock-start (line-beginning-position)))
         (goto-char end)
-        (forward-line 1)
-        (setq jit-lock-end (max jit-lock-end (point)))))))
+        (setq jit-lock-end
+              (max jit-lock-end
+                   (if (bolp) (point) (line-beginning-position 2))))))))
 
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.
