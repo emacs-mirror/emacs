@@ -2167,11 +2167,32 @@ If UNDO is present and non-nil, it is a function that will be called
   (let* ((handler (and (stringp string)
 		       (get-text-property 0 'yank-handler string)))
 	 (param (or (nth 1 handler) string))
-	 (opoint (point)))
+	 (opoint (point))
+	 end)
+
     (setq yank-undo-function t)
     (if (nth 0 handler) ;; FUNCTION
 	(funcall (car handler) param)
       (insert param))
+    (setq end (point))
+
+    ;; What should we do with `font-lock-face' properties?
+    (if font-lock-defaults
+	;; No, just wipe them.
+	(remove-list-of-text-properties opoint end '(font-lock-face))
+      ;; Convert them to `face'.
+      (save-excursion
+	(goto-char opoint)
+	(while (< (point) end)
+	  (let ((face (get-text-property (point) 'font-lock-face))
+		run-end)
+	    (setq run-end
+		  (next-single-property-change (point) 'font-lock-face nil end))
+	    (when face
+	      (remove-text-properties (point) run-end '(font-lock-face nil))
+	      (put-text-property (point) run-end 'face face))
+	    (goto-char run-end)))))
+
     (unless (nth 2 handler) ;; NOEXCLUDE
       (remove-yank-excluded-properties opoint (point)))
     (if (eq yank-undo-function t)  ;; not set by FUNCTION
