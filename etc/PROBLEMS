@@ -833,6 +833,11 @@ feature (in the font part of the configuration window).
 
 * Internationalization problems
 
+** M-{ does not work on a Spanish PC keyboard.
+
+Many Spanish keyboards seem to ignore that combination.  Emacs can't
+do anything about it.
+
 ** Characters from the mule-unicode charsets aren't displayed under X.
 
 XFree86 4 contains many fonts in iso10646-1 encoding which have

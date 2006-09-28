@@ -49,6 +49,8 @@ Windows only bug.
 
 ** hukeli@gmail.com and pumcma@yahoo.com.cn Chinese input method problem. 
 
+** jidanni Sep 28 "makefile comment colors permanent".
+
 ** C-p works properly with fields within the line, but C-n does not.
 (ken.manheimer@gmail.com, Sep 24.)
 

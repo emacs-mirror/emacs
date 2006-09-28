@@ -1,3 +1,12 @@
+2006-09-28  Richard Stallman  <rms@gnu.org>
+
+	* comint.el (comint-mode): Bind font-lock-defaults non-nil.
+
+	* subr.el (insert-for-yank-1): Handle `font-lock-face' specially.
+
+	* international/mule.el (after-insert-file-set-coding): 
+	If VISIT, don't let set-buffer-multibyte make undo info.
+	
 2006-09-28  Osamu Yamane  <yamane@green.ocn.ne.jp> (tiny change)
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Do not break long
@@ -29,12 +38,36 @@
 	* subr.el (shell-quote-argument): Use DOS logic for Windows
 	shells with DOS semantics.
 
+2006-09-24  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-goto-locus-delete-o): New fn.
+	(compilation-goto-locus): Use compilation-goto-locus-delete-o
+	to delete the overlay.  Put it on pre-command-hook.
+
+	* emacs-lisp/timer.el (timer-max-repeats): Doc fix.
+
+	* startup.el (fancy-splash-screens, normal-splash-screen): 
+	Call the splash buffer *About GNU Emacs*.
+
+	* simple.el (next-error-highlight, next-error-highlight-no-select): 
+	Default to 0.5.
+	(yank-excluded-properties): Add `fontified'.
+
+	* font-lock.el (font-lock-compile-keywords): Allow value of
+	syntax-begin-function to enable paren-column-0 highlighting.
+
+2006-09-24  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* dired.el (dired-build-subdir-alist): When file ends in colon,
+	don't exit the loop, just disregard that file.
+
 2006-09-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-finish): Handle corner case for fields in
 	continued lines.
 	(line-move-1): Remove flawed test for that case.
 
+>>>>>>> 1.10122
 2006-09-24  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* icomplete.el (icomplete-simple-completing-p): Use the correct
