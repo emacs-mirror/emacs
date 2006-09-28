@@ -1864,7 +1864,13 @@ The optional second arg VISIT non-nil means that we are visiting a file."
 	      (let ((pos-marker (copy-marker (+ (point) inserted)))
 		    ;; Prevent locking.
 		    (buffer-file-name nil))
-		(set-buffer-multibyte nil)
+		(if visit
+		    ;; If we're doing this for find-file,
+		    ;; don't record undo info; this counts as
+		    ;; part of producing the buffer's initial contents.
+		    (let ((buffer-undo-list t))
+		      (set-buffer-multibyte nil))
+		  (set-buffer-multibyte nil))
 		(setq inserted (- pos-marker (point)))))
 	  (set-buffer-modified-p modified-p))))
   inserted)
