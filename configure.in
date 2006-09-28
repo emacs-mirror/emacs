@@ -33,8 +33,8 @@ AC_ARG_PROGRAM
 
 lispdir='${datadir}/emacs/${version}/lisp'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
-'${datadir}/emacs/site-lisp:${datadir}/emacs/${version}/leim'
-lisppath='${locallisppath}:${lispdir}'
+'${datadir}/emacs/site-lisp'
+lisppath='${locallisppath}:${lispdir}:${datadir}/emacs/${version}/leim'
 etcdir='${datadir}/emacs/${version}/etc'
 archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
