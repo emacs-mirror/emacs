@@ -1,4 +1,4 @@
-2006-09-28  Chong Yidong  <cyd@stupidchicken.com>
+2006-09-28  Osamu Yamane  <yamane@green.ocn.ne.jp> (tiny change)
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Do not break long
 	lines in base64-encoded authentication response.
