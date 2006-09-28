@@ -43,7 +43,13 @@ Windows only bug.
 
 * BUGS
 
+** Juri's Sep 26 cperl-mode fix.
+
 ** yamane@green.ocn.ne.jp: smtpmail.el bug involving base64 encoding.
+
+** chenggao@gmail.com  Gnus registry bug.
+
+** hukeli@gmail.com and pumcma@yahoo.com.cn Chinese input method problem. 
 
 ** C-p works properly with fields within the line, but C-n does not.
 (ken.manheimer@gmail.com, Sep 24.)
