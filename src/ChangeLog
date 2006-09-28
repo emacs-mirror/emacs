@@ -1,3 +1,7 @@
+2006-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key): Yet another int/Lisp_Object mixup (YAILOM).
+
 2006-09-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* indent.c (Fvertical_motion): Do move back if the Lisp string
