@@ -1,5 +1,7 @@
 2006-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/make-mode.el (makefile-mode): Don't disable jit-lock.
+
 	* font-lock.el (font-lock-after-change-function): Refontify next line
 	as well if end is at BOL.
 	(font-lock-extend-jit-lock-region-after-change): Be more careful to
