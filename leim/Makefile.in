@@ -217,8 +217,12 @@ leim-list.el: ${SUBDIRS} ${NON-TIT-MISC} changed.tit changed.misc ${srcdir}/leim
 
 install: all
 	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
-	  rm -rf ${INSTALLDIR}/leim-list.el; \
-	  rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/ja-dic ; \
+	  if [ -d ${INSTALLDIR} ] ; then \
+	    rm -rf ${INSTALLDIR}/leim-list.el; \
+	    rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/ja-dic ; \
+	  else \
+	    ${srcdir}/mkinstalldirs ${INSTALLDIR}; \
+	  fi; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
 	  if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
 	    tar -chf - leim-list.el quail ja-dic \
