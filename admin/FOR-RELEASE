@@ -49,13 +49,8 @@ Windows only bug.
 
 ** hukeli@gmail.com and pumcma@yahoo.com.cn Chinese input method problem. 
 
-** jidanni Sep 28 "makefile comment colors permanent".
-
 ** C-p works properly with fields within the line, but C-n does not.
 (ken.manheimer@gmail.com, Sep 24.)
-
-** Text copied between font-lock buffers doesn't refontify
-because of properties that are preserved.  May be fixed now?
 
 ** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
 
