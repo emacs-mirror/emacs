@@ -1,3 +1,8 @@
+2006-09-28  Kenichi Handa  <handa@m17n.org>
+
+	* configure.in (locallisppath): Don't include leim dir.
+	(lisppath): Include leim dir.
+
 2006-09-15  Jay Belanger  <belanger@truman.edu>
 
 	* COPYING: Replace "Library Public License" by "Lesser Public
