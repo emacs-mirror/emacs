@@ -1,3 +1,8 @@
+2006-09-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-file-remote-p): Get regexp from list.
+	(org-archive-subtree): remove erraneous `]' from character list.
+
 2006-09-28  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.el (ses-in-print-area, ses-goto-data, ses-load)
