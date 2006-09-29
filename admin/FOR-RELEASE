@@ -47,9 +47,11 @@ Windows only bug.
 
 ** hukeli@gmail.com and pumcma@yahoo.com.cn Chinese input method problem. 
 
-** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
+** Martin Rudalics Sep 28: widget-move-and-invoke scrolls spuriously.
 
-** Should end-of-line get stuck at end of a field?
+** ottomaddox@fastmail.fm Sep 28: european-calendar-style customize bug
+
+** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
 
 ** XIM hotkey doesn't work in Emacs.
 
