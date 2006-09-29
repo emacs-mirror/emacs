@@ -82,7 +82,6 @@
 	continued lines.
 	(line-move-1): Remove flawed test for that case.
 
->>>>>>> 1.10122
 2006-09-24  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* icomplete.el (icomplete-simple-completing-p): Use the correct
