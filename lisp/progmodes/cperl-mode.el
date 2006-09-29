@@ -3914,12 +3914,14 @@ CHARS is a string that contains good characters to have before us (however,
 	(if (get-text-property (point) 'here-doc-group)
 	    (progn
 	      (goto-char
-	       (previous-single-property-change (point) 'here-doc-group))
+	       (or (previous-single-property-change (point) 'here-doc-group)
+		   (point)))
 	      (beginning-of-line 0)))
 	(if (get-text-property (point) 'in-pod)
 	    (progn
 	      (goto-char
-	       (previous-single-property-change (point) 'in-pod))
+	       (or (previous-single-property-change (point) 'in-pod)
+		   (point)))
 	      (beginning-of-line 0)))
 	(if (looking-at "^[ \t]*\\(#\\|$\\)") nil ; Only comment, skip
 	  ;; Else: last iteration, or a label
