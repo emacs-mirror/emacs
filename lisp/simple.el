@@ -3735,8 +3735,15 @@ Outline mode sets this."
 	(goto-char opoint)
 	(let ((inhibit-point-motion-hooks nil))
 	  (goto-char
-	   (constrain-to-field new opoint t t
-			       'inhibit-line-move-field-capture)))
+	   ;; Ignore field boundaries if the initial and final
+	   ;; positions have the same `field' property, even if the
+	   ;; fields are non-contiguous.  This seems to be "nicer"
+	   ;; behavior in many situations.
+	   (if (eq (get-char-property new 'field)
+	   	   (get-char-property opoint 'field))
+	       new
+	     (constrain-to-field new opoint t t
+				 'inhibit-line-move-field-capture))))
 
 	;; If all this moved us to a different line,
 	;; retry everything within that new line.

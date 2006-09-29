@@ -1,3 +1,8 @@
+2006-09-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-finish): Ignore field boundaries if the
+	initial and final points have the same `field' property.
+
 2006-09-29  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-file-internal): Only bind minibuffer-completing-file-name
