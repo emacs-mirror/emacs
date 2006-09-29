@@ -43,8 +43,6 @@ Windows only bug.
 
 * BUGS
 
-** Juri's Sep 26 cperl-mode fix.
-
 ** hukeli@gmail.com and pumcma@yahoo.com.cn Chinese input method problem. 
 
 ** Martin Rudalics Sep 28: widget-move-and-invoke scrolls spuriously.
