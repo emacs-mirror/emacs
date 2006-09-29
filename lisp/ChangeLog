@@ -1,3 +1,8 @@
+2006-09-29  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/cperl-mode.el (cperl-after-expr-p): Don't move point
+	to nil if there is no previous property change.
+
 2006-09-26  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* cus-edit.el (custom-save-all): Switch to emacs-lisp mode before

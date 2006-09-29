@@ -1,3 +1,8 @@
+2006-09-29  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (syms_of_buffer): Reorder coding systems in the
+	docstring of %z to the real order displayed in the modeline.
+
 2006-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fdefine_key): Yet another int/Lisp_Object mixup (YAILOM).
