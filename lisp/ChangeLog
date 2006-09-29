@@ -1,3 +1,9 @@
+2006-09-28  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (ses-in-print-area, ses-goto-data, ses-load)
+	(ses-reconstruct-all): Make undo of "insert row" work by keeping
+	markers for data-area and parameters-area.
+
 2006-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/make-mode.el (makefile-mode): Don't disable jit-lock.
