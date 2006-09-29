@@ -1,3 +1,8 @@
+2006-09-29  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-file-internal): Only bind minibuffer-completing-file-name
+	to t while calling ido-read-internal.
+
 2006-09-29  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-file-remote-p): Get regexp from list.
@@ -66,10 +71,10 @@
 
 	* emacs-lisp/timer.el (timer-max-repeats): Doc fix.
 
-	* startup.el (fancy-splash-screens, normal-splash-screen): 
+	* startup.el (fancy-splash-screens, normal-splash-screen):
 	Call the splash buffer *About GNU Emacs*.
 
-	* simple.el (next-error-highlight, next-error-highlight-no-select): 
+	* simple.el (next-error-highlight, next-error-highlight-no-select):
 	Default to 0.5.
 	(yank-excluded-properties): Add `fontified'.
 
