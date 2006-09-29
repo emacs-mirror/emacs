@@ -5491,7 +5491,7 @@ A string is printed verbatim in the mode line except for %-constructs:
         or print Bottom or All.
   %n -- print Narrow if appropriate.
   %t -- visited file is text or binary (if OS supports this distinction).
-  %z -- print mnemonics of buffer, terminal, and keyboard coding systems.
+  %z -- print mnemonics of keyboard, terminal, and buffer coding systems.
   %Z -- like %z, but including the end-of-line format.
   %e -- print error message about full memory.
   %[ -- print one [ for each recursive editing level.  %] similar.
