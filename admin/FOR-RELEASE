@@ -47,8 +47,6 @@ Windows only bug.
 
 ** Martin Rudalics Sep 28: widget-move-and-invoke scrolls spuriously.
 
-** ottomaddox@fastmail.fm Sep 28: european-calendar-style customize bug
-
 ** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
 
 ** XIM hotkey doesn't work in Emacs.

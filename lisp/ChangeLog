@@ -1,3 +1,10 @@
+2006-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (european-calendar-style): Call
+	european-calendar or american-calendar as needed when set.
+	(diary-view-entries, list-calendar-holidays): Move autoloads
+	before use.
+
 2006-09-29  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/cperl-mode.el (cperl-after-expr-p): Don't move point
