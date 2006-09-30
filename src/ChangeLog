@@ -1,3 +1,7 @@
+2006-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.in Regenerated.
+
 2006-09-29  Juri Linkov  <juri@jurta.org>
 
 	* buffer.c (syms_of_buffer): Reorder coding systems in the

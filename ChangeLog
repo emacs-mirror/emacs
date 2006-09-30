@@ -1,3 +1,7 @@
+2006-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: Regenerated.
+
 2006-09-28  Kenichi Handa  <handa@m17n.org>
 
 	* configure.in (locallisppath): Don't include leim dir.
