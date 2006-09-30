@@ -1,3 +1,8 @@
+2006-09-30  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* simple.el (undo-more): When undo information for the region is
+	exhausted, say "No further undo information FOR REGION".
+
 2006-09-30  Michael Welsh Duggan  <md5i@cs.cmu.edu>
 
 	* progmodes/sh-script.el (sh-prev-thing): Take
