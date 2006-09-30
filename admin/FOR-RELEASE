@@ -43,20 +43,24 @@ Windows only bug.
 
 * BUGS
 
-** hukeli@gmail.com and pumcma@yahoo.com.cn Chinese input method problem. 
+** Enrico Schwass, Sep 13 help-gnu-emacs: display japanese outputdoesnt work quite right
 
 ** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
 
-** XIM hotkey doesn't work in Emacs.
+** XIM hotkey doesn't work in Emacs with gnome-settings-demon.
+
+** jpff@codemist.co.uk, Sep 29: rmail g gets Wrong type argument error.
+
+** M.P.Hodges@rl.ac.uk Sep 30: list-processes and process sentinels not run.
 
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
 
-The first line of every tutorial must begin with text ending in a period
-(".", ASCII 0x2E) saying "Emacs Tutorial" in the respective language.
-This should be followed by "See end for copying conditions", likewise
-in the respective language.
+The first line of every tutorial must begin with text ending in a
+period (".", ASCII 0x2E) saying "Emacs Tutorial" in the respective
+language.  This should be followed by "See end for copying
+conditions", likewise in the respective language.
 
 After each file name, on the same line or the following line, come the
 names of the people who have checked it.
