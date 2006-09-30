@@ -45,8 +45,6 @@ Windows only bug.
 
 ** hukeli@gmail.com and pumcma@yahoo.com.cn Chinese input method problem. 
 
-** Martin Rudalics Sep 28: widget-move-and-invoke scrolls spuriously.
-
 ** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
 
 ** XIM hotkey doesn't work in Emacs.
