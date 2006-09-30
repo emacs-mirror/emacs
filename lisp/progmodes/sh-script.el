@@ -2473,33 +2473,42 @@ we go to the end of the previous line and do not check for continuations."
 	(skip-chars-backward " \t;")
 	(unless (looking-at "\\s-*;;")
 	(skip-chars-backward "^)}];\"'`({[")
-	(setq c (char-before))))
-      (sh-debug "stopping at %d c is %s  start=%d min-point=%d"
-		(point) c start min-point)
-      (if (< (point) min-point)
-	  (error "point %d < min-point %d" (point) min-point))
-      (cond
-       ((looking-at "\\s-*;;")
-	;; (message "Found ;; !")
-       ";;")
-       ((or (eq c ?\n)
-	    (eq c nil)
-	    (eq c ?\;))
-       (save-excursion
-	 ;; skip forward over white space newline and \ at eol
-	 (skip-chars-forward " \t\n\\\\")
-	 (sh-debug "Now at %d   start=%d" (point) start)
-	 (if (>= (point) start)
-	     (progn
-	       (sh-debug "point: %d >= start: %d" (point) start)
-	       nil)
-	   (sh-get-word))
-	 ))
-       (t
-	;; c	-- return a string
-       (char-to-string c)
-       ))
-      )))
+	(setq c (char-before))
+	(sh-debug "stopping at %d c is %s  start=%d min-point=%d"
+		  (point) c start min-point)
+	(if (< (point) min-point)
+	    (error "point %d < min-point %d" (point) min-point))
+	(cond
+	 ((looking-at "\\s-*;;")
+	  ;; (message "Found ;; !")
+	  ";;")
+	 ((or (eq c ?\n)
+	      (eq c nil)
+	      (eq c ?\;))
+	 (let (done kwd next
+	       (boundary (point)))
+	   (skip-chars-forward " \t\n\\\\")
+	   (while (and (not done) (not (eobp)))
+	     (if next (setq boundary next))
+	     ;; skip forward over white space newline and \ at eol
+	     (sh-debug "Now at %d   start=%d" (point) start)
+	     (if (>= (point) start)
+		 (progn
+		   (sh-debug "point: %d >= start: %d" (point) start)
+		   nil)
+	       (setq kwd (sh-get-word))
+	       (unless (eobp) (forward-char 1))
+	       (if (member kwd (sh-feature sh-leading-keywords))
+		   (setq next (point))
+		 (setq done t)))
+	     (skip-chars-forward " \t\n\\\\"))
+	   (goto-char boundary)
+	   kwd))
+	 (t
+	  ;; c	-- return a string
+	  (char-to-string c)
+	  ))
+	)))))
 
 
 (defun sh-this-is-a-continuation ()
