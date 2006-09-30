@@ -1,3 +1,11 @@
+2006-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-button-click-moves-point): New variable.
+	(widget-button-click): If widget-button-click-moves-point is
+	non-nil, set point after performing the button action
+
+	* cus-edit.el (custom-mode): Set widget-button-click-moves-point.
+
 2006-09-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* files.el (find-file-existing): Modified to not allow wildcards.

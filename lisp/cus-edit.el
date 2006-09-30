@@ -4555,6 +4555,13 @@ if that value is non-nil."
   (setq widget-documentation-face 'custom-documentation)
   (make-local-variable 'widget-button-face)
   (setq widget-button-face custom-button)
+
+  ;; We need this because of the "More" button on docstrings.
+  ;; Otherwise clicking on "More" can push point offscreen, which
+  ;; causes the window to recenter on point, which pushes the
+  ;; newly-revealed docstring offscreen; which is annoying.  -- cyd.
+  (set (make-local-variable 'widget-button-click-moves-point) t)
+
   (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
   (set (make-local-variable 'widget-mouse-face) custom-button-mouse)
 

@@ -912,6 +912,10 @@ Recommended as a parent keymap for modes using widgets.")
 ;; backward-compatibility alias
 (put 'widget-button-pressed-face 'face-alias 'widget-button-pressed)
 
+(defvar widget-button-click-moves-point nil
+  "If non-nil, `widget-button-click' moves point to a button after invoking it.
+If nil, point returns to its original position after invoking a button.")
+
 (defun widget-button-click (event)
   "Invoke the button that the mouse is pointing at."
   (interactive "e")
@@ -922,7 +926,8 @@ Recommended as a parent keymap for modes using widgets.")
 	     (start (event-start event))
 	     (button (get-char-property
 		      pos 'button (and (windowp (posn-window start))
-				       (window-buffer (posn-window start))))))
+				       (window-buffer (posn-window start)))))
+	     newpoint)
 	(when (or (null button)
 		  (catch 'button-press-cancelled
 	      ;; Mouse click on a widget button.  Do the following
@@ -974,12 +979,15 @@ Recommended as a parent keymap for modes using widgets.")
 
 			  ;; When mouse is released over the button, run
 			  ;; its action function.
-			  (when (and pos
-				     (eq (get-char-property pos 'button) button))
-			    (widget-apply-action button event)))
+			  (when (and pos (eq (get-char-property pos 'button) button))
+			    (goto-char pos)
+			    (widget-apply-action button event)
+			    (if widget-button-click-moves-point
+				(setq newpoint (point)))))
 		      (overlay-put overlay 'face face)
 		      (overlay-put overlay 'mouse-face mouse-face))))
 
+		(if newpoint (goto-char newpoint))
 		;; This loses if the widget action switches windows. -- cyd
 		;; (unless (pos-visible-in-window-p (widget-event-point event))
 		;;   (mouse-set-point event)
