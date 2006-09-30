@@ -1091,6 +1091,15 @@ into Meta.  This is because of the great importance of Meta in Emacs.
 
 ** Window-manager and toolkit-related problems
 
+*** Gnome: Emacs receives input directly from the keyboard, bypassing XIM.
+
+This seems to happen when gnome-settings-daemon version 2.12 or later
+is running.  If gnome-settings-daemon is not running, Emacs receives
+input through XIM without any problem.  Furthermore, this seems only
+to happen in *.UTF-8 locales; zh_CN.GB2312 and zh_CN.GBK locales, for
+example, work fine.  A bug report has been filed in the Gnome
+bugzilla: http://bugzilla.gnome.org/show_bug.cgi?id=357032
+
 *** Gnome: Emacs' xterm-mouse-mode doesn't work on the Gnome terminal.
 
 A symptom of this bug is that double-clicks insert a control sequence

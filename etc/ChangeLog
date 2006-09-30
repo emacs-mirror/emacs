@@ -1,3 +1,7 @@
+2006-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* PROBLEMS: Document Emacs/XIM/gnome-settings-terminal clash.
+
 2006-09-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* NEWS: ebnf2ps changes.
