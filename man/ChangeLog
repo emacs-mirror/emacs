@@ -1,3 +1,8 @@
+2006-09-30  Karl Berry  <karl@gnu.org>
+
+	* programs.texi (Basic Indent): @need to improve page break.
+	* text.texi: rewording to improve page breaks, and use @LaTeX{}.
+
 2006-09-29  Glenn Morris  <rgm@gnu.org>
 
 	* calendar.texi (Date Formats): Doc fix for european-calendar-style.

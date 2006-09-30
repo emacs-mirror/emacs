@@ -34,10 +34,10 @@ structure.
 @end iftex
 
   For text which contains embedded commands for text formatters, Emacs
-has other major modes, each for a particular text formatter.  Thus, for
+has other major modes, each for a particular formatter.  Thus, for
 input to @TeX{}, you would use @TeX{}
 @iftex
-mode (@pxref{TeX Mode}).
+mode (@pxref{TeX Mode,,@TeX{} Mode}).
 @end iftex
 @ifnottex
 mode.
@@ -106,7 +106,7 @@ Kill back to the beginning of a word (@code{backward-kill-word}).
 @item M-@@
 Mark the end of the next word (@code{mark-word}).
 @item M-t
-Transpose two words or drag a word across other words
+Transpose two words or drag a word across others
 (@code{transpose-words}).
 @end table
 
@@ -156,7 +156,7 @@ of @kbd{M-@key{DEL}}.
 containing point with the following word.  The delimiter characters between
 the words do not move.  For example, @w{@samp{FOO, BAR}} transposes into
 @w{@samp{BAR, FOO}} rather than @samp{@w{BAR FOO,}}.  @xref{Transpose}, for
-more on transposition and on arguments to transposition commands.
+more on transposition.
 
 @kindex M-@@
 @findex mark-word
@@ -230,7 +230,7 @@ A sentence also begins or ends wherever a paragraph begins or ends.
 It is useful to follow this convention, because it makes a distinction
 between periods that end a sentence and periods that indicate
 abbreviations; that enables the Emacs sentence commands to distinguish,
-too.  These commands to not stop for periods that indicate abbreviations.
+too.  These commands do not stop for periods that indicate abbreviations.
 
 @vindex sentence-end-double-space
   If you want to use just one space between sentences, you can set the
@@ -253,10 +253,10 @@ a detailed explanation of one of the regular expressions Emacs uses
 for this purpose.
 
 @vindex sentence-end-without-period
-  Some languages do not use period to indicate end of sentence.  For
-example, a sentence in Thai text ends with double space but without a
+  Some languages do not use periods to indicate the end of a sentence.
+For example, sentences in Thai end with a double space but without a
 period.  Set the variable @code{sentence-end-without-period} to
-@code{t} to tell the sentence commands that a period is not necessary.
+@code{t} in such cases.
 
 @node Paragraphs
 @section Paragraphs
@@ -267,7 +267,7 @@ period.  Set the variable @code{sentence-end-without-period} to
 @findex backward-paragraph
 @findex forward-paragraph
 
-  The Emacs commands for manipulating paragraphs are also Meta keys.
+  The Emacs commands for manipulating paragraphs are also on Meta keys.
 
 @table @kbd
 @item M-@{
@@ -938,7 +938,7 @@ which of these modes is actually being entered.  @xref{Hooks}.
   Emacs provides two other modes for editing text that is to be passed
 through a text formatter to produce fancy formatted printed output.
 @xref{Nroff Mode}, for editing input to the formatter nroff.
-@xref{TeX Mode}, for editing input to the formatter TeX.
+@xref{TeX Mode,,@TeX{} Mode}, for editing input to the formatter TeX.
 
   Another mode is used for editing outlines.  It allows you to view the
 text at various levels of detail.  You can view either the outline
@@ -1370,26 +1370,26 @@ automatically by putting this in your @file{.emacs} file:
 @findex doctex-mode
 
   @TeX{} is a powerful text formatter written by Donald Knuth; it is
-also free software, like GNU Emacs.  La@TeX{} is a simplified input
+also free software, like GNU Emacs.  @LaTeX{} is a simplified input
 format for @TeX{}, implemented by @TeX{} macros; it comes with @TeX{}.
-Sli@TeX{} is a special form of La@TeX{}.@footnote{Sli@TeX{} is
-obsoleted by the @samp{slides} document class in recent La@TeX{}
-versions.}  Doc@TeX{} (@file{.dtx}) is a special file format in which
-the La@TeX{} sources are written, combining sources with
-documentation.
+Sli@TeX{} is a special form of @LaTeX{}.@footnote{Sli@TeX{} is
+obsoleted by the @samp{slides} document class and other alternative
+packages in recent @LaTeX{} versions.}  Doc@TeX{} (@file{.dtx}) is a
+special file format in which the La@TeX{} sources are written,
+combining sources with documentation.
 
   Emacs has a special @TeX{} mode for editing @TeX{} input files.
 It provides facilities for checking the balance of delimiters and for
 invoking @TeX{} on all or part of the file.
 
 @vindex tex-default-mode
-  @TeX{} mode has four variants: Plain @TeX{} mode, La@TeX{} mode,
+  @TeX{} mode has four variants: Plain @TeX{} mode, @LaTeX{} mode,
 Sli@TeX{} mode, and Doc@TeX{} mode (these distinct major modes differ
 only slightly).  They are designed for editing the four different
 formats.  The command @kbd{M-x tex-mode} looks at the contents of the
-buffer to determine whether the contents appear to be either La@TeX{}
+buffer to determine whether the contents appear to be either @LaTeX{}
 input, Sli@TeX{}, or Doc@TeX{} input; if so, it selects the
-appropriate mode.  If the file contents do not appear to be La@TeX{},
+appropriate mode.  If the file contents do not appear to be @LaTeX{},
 Sli@TeX{} or Doc@TeX{}, it selects Plain @TeX{} mode.  If the contents
 are insufficient to determine this, the variable
 @code{tex-default-mode} controls which mode is used.
@@ -1487,22 +1487,22 @@ work with them.
 @node LaTeX Editing
 @subsection La@TeX{} Editing Commands
 
-  La@TeX{} mode, and its variant, Sli@TeX{} mode, provide a few extra
+  @LaTeX{} mode, and its variant, Sli@TeX{} mode, provide a few extra
 features not applicable to plain @TeX{}.
 
 @table @kbd
 @item C-c C-o
-Insert @samp{\begin} and @samp{\end} for La@TeX{} block and position
+Insert @samp{\begin} and @samp{\end} for @LaTeX{} block and position
 point on a line between them (@code{tex-latex-block}).
 @item C-c C-e
-Close the innermost La@TeX{} block not yet closed
+Close the innermost @LaTeX{} block not yet closed
 (@code{tex-close-latex-block}).
 @end table
 
 @findex tex-latex-block
-@kindex C-c C-o @r{(La@TeX{} mode)}
+@kindex C-c C-o @r{(@LaTeX{} mode)}
 @vindex latex-block-names
-  In La@TeX{} input, @samp{\begin} and @samp{\end} commands are used to
+  In @LaTeX{} input, @samp{\begin} and @samp{\end} commands are used to
 group blocks of text.  To insert a @samp{\begin} and a matching
 @samp{\end} (on a new line following the @samp{\begin}), use @kbd{C-c
 C-o} (@code{tex-latex-block}).  A blank line is inserted between the
@@ -1516,8 +1516,8 @@ how to add @samp{theorem}, @samp{corollary}, and @samp{proof}:
 @end example
 
 @findex tex-close-latex-block
-@kindex C-c C-e @r{(La@TeX{} mode)}
-  In La@TeX{} input, @samp{\begin} and @samp{\end} commands must
+@kindex C-c C-e @r{(@LaTeX{} mode)}
+  In @LaTeX{} input, @samp{\begin} and @samp{\end} commands must
 balance.  You can use @kbd{C-c C-e} (@code{tex-close-latex-block}) to
 insert automatically a matching @samp{\end} to match the last unmatched
 @samp{\begin}.  It indents the @samp{\end} to match the corresponding
@@ -1645,9 +1645,9 @@ after.  The lines containing the two strings are included in the header.
 If @samp{%**start of header} does not appear within the first 100 lines of
 the buffer, @kbd{C-c C-r} assumes that there is no header.
 
-  In La@TeX{} mode, the header begins with @samp{\documentclass} or
+  In @LaTeX{} mode, the header begins with @samp{\documentclass} or
 @samp{\documentstyle} and ends with @samp{\begin@{document@}}.  These
-are commands that La@TeX{} requires you to use in any case, so nothing
+are commands that @LaTeX{} requires you to use in any case, so nothing
 special needs to be done to identify the header.
 
 @findex tex-file
@@ -1689,7 +1689,7 @@ Variables}.
 @findex tex-bibtex-file
 @kindex C-c TAB @r{(@TeX{} mode)}
 @vindex tex-bibtex-command
-  For La@TeX{} files, you can use Bib@TeX{} to process the auxiliary
+  For @LaTeX{} files, you can use Bib@TeX{} to process the auxiliary
 file for the current buffer's file.  Bib@TeX{} looks up bibliographic
 citations in a data base and prepares the cited references for the
 bibliography section.  The command @kbd{C-c @key{TAB}}
@@ -1751,9 +1751,9 @@ required.  This is set up for Czech---customize the group
 @end ignore
 
 @cindex Ref@TeX{} package
-@cindex references, La@TeX{}
-@cindex La@TeX{} references
-  For managing all kinds of references for La@TeX{}, you can use
+@cindex references, @LaTeX{}
+@cindex @LaTeX{} references
+  For managing all kinds of references for @LaTeX{}, you can use
 Ref@TeX{}.  @inforef{Top,, reftex}.
 
 @node HTML Mode
@@ -2356,8 +2356,8 @@ format, so other editors may not respect it.
 
   Normally, Emacs knows when you are editing formatted text because it
 recognizes the special annotations used in the file that you visited.
-However, there are situations in which you must take special actions
-to convert file contents or turn on Enriched mode:
+However, sometimes you must take special actions to convert file
+contents or turn on Enriched mode:
 
 @itemize @bullet
 @item
@@ -2398,6 +2398,7 @@ appropriate, use @code{format-find-file} with suitable arguments.
 text-based tables.  Here is an example of such a table:
 
 @smallexample
+@group
 +-----------------+--------------------------------+-----------------+
 |     Command     |          Description           |   Key Binding   |
 +-----------------+--------------------------------+-----------------+
@@ -2414,6 +2415,7 @@ text-based tables.  Here is an example of such a table:
 |                 |end of buffer, stop and signal  |                 |
 |                 |error.                          |                 |
 +-----------------+--------------------------------+-----------------+
+@end group
 @end smallexample
 
   Table mode allows the contents of the table such as this one to be
@@ -2800,6 +2802,7 @@ following one.
 @c sticks out to accommodate for the removal of @samp in the
 @c produced output!!
 @smallexample
+@group
 +-----------------------------------------------------------------+
 |@samp{table-capture} is a powerful command, but mastering its         |
 |power requires some practice.  Here are some things it can do:   |
@@ -2816,6 +2819,7 @@ following one.
 |                      the specified region is placed in that     |
 |                      cell.                                      |
 +-----------------------------------------------------------------+
+@end group
 @end smallexample
 
 @noindent
