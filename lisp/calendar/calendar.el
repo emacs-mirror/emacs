@@ -578,11 +578,10 @@ calendar package is already loaded).  Rather, use either
   ;; Without :initialize (require 'calendar) throws an error because
   ;; american-calendar is undefined at this point.
   :initialize 'custom-initialize-default
-  :set #'(lambda (symbol value)
-           (if value
-               (european-calendar)
-             (american-calendar)))
-  :require 'calendar
+  :set (lambda (symbol value)
+         (if value
+             (european-calendar)
+           (american-calendar)))
   :group 'diary)
 
 ;;;###autoload
