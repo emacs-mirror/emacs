@@ -1,3 +1,7 @@
+2006-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Date Formats): Doc fix for european-calendar-style.
+
 2006-09-29  Karl Berry  <karl@gnu.org>
 
 	* windows.texi (Basic Window): remove forced @break, no longer

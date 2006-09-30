@@ -1,5 +1,7 @@
 2006-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* custom.el (defcustom): Doc fix.
+
 	* calendar/calendar.el (european-calendar-style): Call
 	european-calendar or american-calendar as needed when set.
 	(diary-view-entries, list-calendar-holidays): Move autoloads
