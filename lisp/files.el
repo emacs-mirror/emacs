@@ -1117,13 +1117,15 @@ expand wildcards (if any) and visit multiple files."
 		(mapcar 'switch-to-buffer (cdr value))))
       (switch-to-buffer-other-frame value))))
 
-(defun find-file-existing (filename &optional wildcards)
-  "Edit the existing file FILENAME.
-Like \\[find-file] but only allow a file that exists."
-  (interactive (find-file-read-args "Find existing file: " t))
-  (unless (file-exists-p filename) (error "%s does not exist" filename))
-  (find-file filename wildcards)
-  (current-buffer))
+(defun find-file-existing (filename)
+   "Edit the existing file FILENAME.
+Like \\[find-file] but only allow a file that exists, and do not allow
+file names with wildcards."
+   (interactive (nbutlast (find-file-read-args "Find existing file: " t)))
+   (if (and (not (interactive-p)) (not (file-exists-p filename)))
+       (error "%s does not exist" filename)
+     (find-file filename)
+     (current-buffer)))
 
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
