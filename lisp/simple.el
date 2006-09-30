@@ -1501,8 +1501,7 @@ Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or (listp pending-undo-list)
       (error (concat "No further undo information"
-                     (and transient-mark-mode mark-active
-                          " for region"))))
+		     (and undo-in-region " for region"))))
   (let ((undo-in-progress t))
     (setq pending-undo-list (primitive-undo n pending-undo-list))
     (if (null pending-undo-list)
