@@ -1,3 +1,8 @@
+2006-09-30  Michael Welsh Duggan  <md5i@cs.cmu.edu>
+
+	* progmodes/sh-script.el (sh-prev-thing): Take
+	`sh-leading-keywords' into account.
+
 2006-09-29  Glenn Morris  <rgm@gnu.org>
 
 	* custom.el (defcustom): Doc fix.
