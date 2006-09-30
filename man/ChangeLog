@@ -1,3 +1,11 @@
+2006-09-29  Karl Berry  <karl@gnu.org>
+
+	* windows.texi (Basic Window): remove forced @break, no longer
+	desirable.
+	* frames.texi (Frame Commands),
+	* mark.texi (Marking Objects): reword to avoid bad page break.
+	* display.texi (Auto Scrolling): use @tie{} to avoid bad line break.
+
 2006-09-19  Richard Stallman  <rms@gnu.org>
 
 	* frames.texi (Dialog Boxes): Clean up wording: avoid passive,
