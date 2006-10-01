@@ -1,3 +1,27 @@
+2006-10-01  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* allout.el (allout-expose-topic): Rectify implementation of "+"
+	spec, so that bodies are not exposed with headlines.
+
+2006-10-01  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-current-depth): Do aberrent check only at or
+	below doublecheck depth.
+	(allout-chart-subtree): Make it explicit that LEVELS being nil
+	means unlimited depth.  Drop undocumented support for LEVELS value
+	t meaning unlimited depth.  (This is consistent with
+	allout-chart-to-reveal, but contrary to allout-show-children,
+	which needs to use nil to default to depth of 1.)
+	(allout-goto-prefix-doublechecked): Wrap long docstring line.
+	(allout-chart-to-reveal): Be explicit in docstring about meaning
+	of nil LEVELS, and drop support for LEVELS value t.
+	(allout-show-children): Translate the level spec used by this
+	routine to that used by allout-chart-subtree and
+	allout-chart-to-reveal.
+	(allout-show-to-offshoot): Retry once when stuck, after opening
+	subtree - improvements in discontinuity handling likely will
+	enable progress.
+
 2006-09-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* wid-edit.el (widget-button-click-moves-point): New variable.
