@@ -1370,11 +1370,11 @@ automatically by putting this in your @file{.emacs} file:
 @findex doctex-mode
 
   @TeX{} is a powerful text formatter written by Donald Knuth; it is
-also free software, like GNU Emacs.  @LaTeX{} is a simplified input
+also free software, like GNU Emacs.  La@TeX{} is a simplified input
 format for @TeX{}, implemented by @TeX{} macros; it comes with @TeX{}.
-Sli@TeX{} is a special form of @LaTeX{}.@footnote{Sli@TeX{} is
+Sli@TeX{} is a special form of La@TeX{}.@footnote{Sli@TeX{} is
 obsoleted by the @samp{slides} document class and other alternative
-packages in recent @LaTeX{} versions.}  Doc@TeX{} (@file{.dtx}) is a
+packages in recent La@TeX{} versions.}  Doc@TeX{} (@file{.dtx}) is a
 special file format in which the La@TeX{} sources are written,
 combining sources with documentation.
 
@@ -1383,13 +1383,13 @@ It provides facilities for checking the balance of delimiters and for
 invoking @TeX{} on all or part of the file.
 
 @vindex tex-default-mode
-  @TeX{} mode has four variants: Plain @TeX{} mode, @LaTeX{} mode,
+  @TeX{} mode has four variants: Plain @TeX{} mode, La@TeX{} mode,
 Sli@TeX{} mode, and Doc@TeX{} mode (these distinct major modes differ
 only slightly).  They are designed for editing the four different
 formats.  The command @kbd{M-x tex-mode} looks at the contents of the
-buffer to determine whether the contents appear to be either @LaTeX{}
+buffer to determine whether the contents appear to be either La@TeX{}
 input, Sli@TeX{}, or Doc@TeX{} input; if so, it selects the
-appropriate mode.  If the file contents do not appear to be @LaTeX{},
+appropriate mode.  If the file contents do not appear to be La@TeX{},
 Sli@TeX{} or Doc@TeX{}, it selects Plain @TeX{} mode.  If the contents
 are insufficient to determine this, the variable
 @code{tex-default-mode} controls which mode is used.
@@ -1487,22 +1487,22 @@ work with them.
 @node LaTeX Editing
 @subsection La@TeX{} Editing Commands
 
-  @LaTeX{} mode, and its variant, Sli@TeX{} mode, provide a few extra
+  La@TeX{} mode, and its variant, Sli@TeX{} mode, provide a few extra
 features not applicable to plain @TeX{}.
 
 @table @kbd
 @item C-c C-o
-Insert @samp{\begin} and @samp{\end} for @LaTeX{} block and position
+Insert @samp{\begin} and @samp{\end} for La@TeX{} block and position
 point on a line between them (@code{tex-latex-block}).
 @item C-c C-e
-Close the innermost @LaTeX{} block not yet closed
+Close the innermost La@TeX{} block not yet closed
 (@code{tex-close-latex-block}).
 @end table
 
 @findex tex-latex-block
-@kindex C-c C-o @r{(@LaTeX{} mode)}
+@kindex C-c C-o @r{(La@TeX{} mode)}
 @vindex latex-block-names
-  In @LaTeX{} input, @samp{\begin} and @samp{\end} commands are used to
+  In La@TeX{} input, @samp{\begin} and @samp{\end} commands are used to
 group blocks of text.  To insert a @samp{\begin} and a matching
 @samp{\end} (on a new line following the @samp{\begin}), use @kbd{C-c
 C-o} (@code{tex-latex-block}).  A blank line is inserted between the
@@ -1516,8 +1516,8 @@ how to add @samp{theorem}, @samp{corollary}, and @samp{proof}:
 @end example
 
 @findex tex-close-latex-block
-@kindex C-c C-e @r{(@LaTeX{} mode)}
-  In @LaTeX{} input, @samp{\begin} and @samp{\end} commands must
+@kindex C-c C-e @r{(La@TeX{} mode)}
+  In La@TeX{} input, @samp{\begin} and @samp{\end} commands must
 balance.  You can use @kbd{C-c C-e} (@code{tex-close-latex-block}) to
 insert automatically a matching @samp{\end} to match the last unmatched
 @samp{\begin}.  It indents the @samp{\end} to match the corresponding
@@ -1645,9 +1645,9 @@ after.  The lines containing the two strings are included in the header.
 If @samp{%**start of header} does not appear within the first 100 lines of
 the buffer, @kbd{C-c C-r} assumes that there is no header.
 
-  In @LaTeX{} mode, the header begins with @samp{\documentclass} or
+  In La@TeX{} mode, the header begins with @samp{\documentclass} or
 @samp{\documentstyle} and ends with @samp{\begin@{document@}}.  These
-are commands that @LaTeX{} requires you to use in any case, so nothing
+are commands that La@TeX{} requires you to use in any case, so nothing
 special needs to be done to identify the header.
 
 @findex tex-file
@@ -1689,7 +1689,7 @@ Variables}.
 @findex tex-bibtex-file
 @kindex C-c TAB @r{(@TeX{} mode)}
 @vindex tex-bibtex-command
-  For @LaTeX{} files, you can use Bib@TeX{} to process the auxiliary
+  For La@TeX{} files, you can use Bib@TeX{} to process the auxiliary
 file for the current buffer's file.  Bib@TeX{} looks up bibliographic
 citations in a data base and prepares the cited references for the
 bibliography section.  The command @kbd{C-c @key{TAB}}
@@ -1751,9 +1751,9 @@ required.  This is set up for Czech---customize the group
 @end ignore
 
 @cindex Ref@TeX{} package
-@cindex references, @LaTeX{}
-@cindex @LaTeX{} references
-  For managing all kinds of references for @LaTeX{}, you can use
+@cindex references, La@TeX{}
+@cindex La@TeX{} references
+  For managing all kinds of references for La@TeX{}, you can use
 Ref@TeX{}.  @inforef{Top,, reftex}.
 
 @node HTML Mode
