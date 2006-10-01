@@ -3246,7 +3246,9 @@ handle_fontified_prop (it)
       && !NILP (Vrun_hooks)
       && (pos = make_number (IT_CHARPOS (*it)),
 	  prop = Fget_char_property (pos, Qfontified, Qnil),
-	  NILP (prop)))
+	  /* Ignore the special cased nil value always present at EOB since
+	     no amount of fontifying will be able to change it.  */
+	  NILP (prop) && IT_CHARPOS (*it) < Z))
     {
       int count = SPECPDL_INDEX ();
       Lisp_Object val;
