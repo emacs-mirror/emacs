@@ -1,3 +1,9 @@
+2006-10-01  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* ffap.el (ffap-rfc-path): Change the address of the RFC
+	repository to ftp.rfc-editor.org, as ds.internic.net seems to be
+	gone.
+
 2006-10-01  Stephen Berman  <Stephen.Berman@gmx.net>
 
 	* allout.el (allout-expose-topic): Rectify implementation of "+"
