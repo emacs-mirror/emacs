@@ -250,8 +250,8 @@
 
 2006-09-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* lpr.el (lpr-page-header-switches): Insert `*' at beginning of comment
-	to become an option.
+	* lpr.el (lpr-page-header-switches): Insert `*' at beginning of doc
+	string to become an option.
 
 2006-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
