@@ -1,3 +1,8 @@
+2006-10-01  Karl Berry  <karl@gnu.org>
+
+	* custom.texi (Customization Groups): page break to keep example buffer
+	on one page.
+
 2006-09-30  Karl Berry  <karl@gnu.org>
 
 	* programs.texi (Basic Indent): @need to improve page break.
