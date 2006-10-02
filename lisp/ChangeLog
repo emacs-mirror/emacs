@@ -1,3 +1,7 @@
+2006-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el (iso-8859-6): Table fixed.
+
 2006-10-01  Chris Moore <christopher.ian.moore@gmail.com>  (tiny change)
 
 	* dired.el (dired-build-subdir-alist): Fix previous change.
