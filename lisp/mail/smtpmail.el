@@ -554,7 +554,7 @@ This is relative to `smtpmail-queue-dir'.")
 		(>= (car ret) 400))
 	    (throw 'done nil))
 	(smtpmail-send-command
-	 process (base64-encode-string (smtpmail-cred-user cred t)))
+	 process (base64-encode-string (smtpmail-cred-user cred) t))
 	(if (or (null (car (setq ret (smtpmail-read-response process))))
 		(not (integerp (car ret)))
 		(>= (car ret) 400))

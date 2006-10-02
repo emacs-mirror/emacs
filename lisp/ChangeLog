@@ -1,3 +1,8 @@
+2006-10-02  MIYOSHI Masanori <miyoshi@meadowy.org>  (tiny change)
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Fix typo in
+	2006-09-28 commit.
+
 2006-10-02  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el (iso-8859-6): Table fixed.
