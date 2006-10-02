@@ -1,3 +1,8 @@
+2006-10-03  Denis St,A|(Bnkel  <dstuenkel@googlemail.com>  (tiny change)
+
+	* ibuf-ext.el (eval, view-and-eval) <define-ibuffer-op>:
+	Use the interactive spec of `eval-expression'.
+
 2006-10-02  Michael Welsh Duggan  <md5i@cs.cmu.edu>
 
 	* progmodes/sh-script.el (sh-prev-thing): Fix last change.
