@@ -45,8 +45,6 @@ Windows only bug.
 
 ** Enrico Schwass, Sep 13 help-gnu-emacs: display japanese outputdoesnt work quite right
 
-** Peter_Dyballa@Web.DE, Sep 21: An iso-8859-6 cannot be saved
-
 ** XIM hotkey doesn't work in Emacs with gnome-settings-demon.
 
 ** jpff@codemist.co.uk, Sep 29: rmail g gets Wrong type argument error.
