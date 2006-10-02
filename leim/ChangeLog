@@ -1,3 +1,7 @@
+2006-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (install): Fix previous change.
+
 2006-09-28  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (install): Be sure to make ${INSTALLDIR}.
