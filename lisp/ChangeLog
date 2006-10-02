@@ -1,3 +1,7 @@
+2006-10-02  Michael Welsh Duggan  <md5i@cs.cmu.edu>
+
+	* progmodes/sh-script.el (sh-prev-thing): Fix last change.
+
 2006-10-02  MIYOSHI Masanori <miyoshi@meadowy.org>  (tiny change)
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Fix typo in
