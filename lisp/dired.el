@@ -2225,14 +2225,14 @@ instead of `dired-actual-switches'."
 				(substring new-dir-name (match-end 0)))
 		      (expand-file-name new-dir-name))))
 	    (delete-region (point) (match-end 1))
-	    (insert new-dir-name)))
-	(setq count (1+ count))
-	(dired-alist-add-1 new-dir-name
-			 ;; Place a sub directory boundary between lines.
-			 (save-excursion
-			   (goto-char (match-beginning 0))
-			   (beginning-of-line)
-			   (point-marker))))
+	    (insert new-dir-name))
+	  (setq count (1+ count))
+	  (dired-alist-add-1 new-dir-name
+			     ;; Place a sub directory boundary between lines.
+			     (save-excursion
+			       (goto-char (match-beginning 0))
+			       (beginning-of-line)
+			       (point-marker)))))
       (if (and (> count 1) (interactive-p))
 	  (message "Buffer includes %d directories" count)))
     ;; We don't need to sort it because it is in buffer order per
