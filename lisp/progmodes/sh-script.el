@@ -2472,8 +2472,8 @@ we go to the end of the previous line and do not check for continuations."
 	(point))
 	(skip-chars-backward " \t;")
 	(unless (looking-at "\\s-*;;")
-	(skip-chars-backward "^)}];\"'`({[")
-	(setq c (char-before))
+	  (skip-chars-backward "^)}];\"'`({[")
+	  (setq c (char-before)))
 	(sh-debug "stopping at %d c is %s  start=%d min-point=%d"
 		  (point) c start min-point)
 	(if (< (point) min-point)
@@ -2508,7 +2508,7 @@ we go to the end of the previous line and do not check for continuations."
 	  ;; c	-- return a string
 	  (char-to-string c)
 	  ))
-	)))))
+	))))
 
 
 (defun sh-this-is-a-continuation ()
