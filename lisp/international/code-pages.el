@@ -3936,62 +3936,92 @@ Return an updated `non-iso-charset-alist'."
 (cp-make-coding-system
  ;; The base system uses arabic-iso-8bit, but that's not a MIME charset.
  iso-8859-6
- [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+ [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
+  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   ?\ 
-  ?\¤
-  ?\،
-  ?\­
-  ?\؛
-  ?\؟
-  ?\ء
-  ?\آ
-  ?\أ
-  ?\ؤ
-  ?\إ
-  ?\ئ
-  ?\ا
-  ?\ب
-  ?\ة
-  ?\ت
-  ?\ث
-  ?\ج
-  ?\ح
-  ?\خ
-  ?\د
-  ?\ذ
-  ?\ر
-  ?\ز
-  ?\س
-  ?\ش
-  ?\ص
-  ?\ض
-  ?\ط
-  ?\ظ
-  ?\ع
-  ?\غ
-  ?\ـ
-  ?\ف
-  ?\ق
-  ?\ك
-  ?\ل
-  ?\م
-  ?\ن
-  ?\ه
-  ?\و
-  ?\ى
-  ?\ي
-  ?\ً
-  ?\ٌ
-  ?\ٍ
-  ?\َ
-  ?\ُ
-  ?\ِ
-  ?\ّ
-  ?\ْ
-  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-  nil nil nil nil nil nil nil nil nil nil nil]
+  nil
+  nil
+  nil
+  ?¤
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  ?،
+  ?­
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  nil
+  ?؛
+  nil
+  nil
+  nil
+  ?؟
+  nil
+  ?ء
+  ?آ
+  ?أ
+  ?ؤ
+  ?إ
+  ?ئ
+  ?ا
+  ?ب
+  ?ة
+  ?ت
+  ?ث
+  ?ج
+  ?ح
+  ?خ
+  ?د
+  ?ذ
+  ?ر
+  ?ز
+  ?س
+  ?ش
+  ?ص
+  ?ض
+  ?ط
+  ?ظ
+  ?ع
+  ?غ
+  nil
+  nil
+  nil
+  nil
+  nil
+  ?ـ
+  ?ف
+  ?ق
+  ?ك
+  ?ل
+  ?م
+  ?ن
+  ?ه
+  ?و
+  ?ى
+  ?ي
+  ?ً
+  ?ٌ
+  ?ٍ
+  ?َ
+  ?ُ
+  ?ِ
+  ?ّ
+  ?ْ
+  nil nil nil nil nil nil nil nil nil nil nil nil nil]
  "Unicode-based Arabic ISO/IEC 8859-6 (MIME: ISO-8859-6)"
  ?6)
 (define-coding-system-alias 'arabic-iso-8bit 'iso-8859-6)
