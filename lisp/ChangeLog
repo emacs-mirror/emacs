@@ -1,3 +1,7 @@
+2006-10-01  Chris Moore <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* dired.el (dired-build-subdir-alist): Fix previous change.
+
 2006-10-01  Johan Bockg,Ae(Brd  <bojohan+mail@dd.chalmers.se>
 
 	* simple.el (undo-elt-crosses-region): Fix the inequalities.
