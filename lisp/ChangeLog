@@ -1,3 +1,7 @@
+2006-10-01  Johan Bockg,Ae(Brd  <bojohan+mail@dd.chalmers.se>
+
+	* simple.el (undo-elt-crosses-region): Fix the inequalities.
+
 2006-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/find-func.el (find-function-regexp): Don't match
