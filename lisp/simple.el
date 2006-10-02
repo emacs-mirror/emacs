@@ -1648,12 +1648,12 @@ is not *inside* the region START...END."
 	((null (car undo-elt))
 	 ;; (nil PROPERTY VALUE BEG . END)
 	 (let ((tail (nthcdr 3 undo-elt)))
-	   (not (or (< (car tail) end)
-		    (> (cdr tail) start)))))
+	   (and (< (car tail) end)
+		(> (cdr tail) start))))
 	((integerp (car undo-elt))
 	 ;; (BEGIN . END)
-	 (not (or (< (car undo-elt) end)
-		  (> (cdr undo-elt) start))))))
+	 (and (< (car undo-elt) end)
+	      (> (cdr undo-elt) start)))))
 
 ;; Return the first affected buffer position and the delta for an undo element
 ;; delta is defined as the change in subsequent buffer positions if we *did*
