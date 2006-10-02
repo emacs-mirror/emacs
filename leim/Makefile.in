@@ -221,7 +221,7 @@ install: all
 	    rm -rf ${INSTALLDIR}/leim-list.el; \
 	    rm -rf ${INSTALLDIR}/quail ${INSTALLDIR}/ja-dic ; \
 	  else \
-	    ${srcdir}/mkinstalldirs ${INSTALLDIR}; \
+	    ${srcdir}/${dot}${dot}/mkinstalldirs ${INSTALLDIR}; \
 	  fi; \
 	  echo "Copying leim files to ${INSTALLDIR} ..." ; \
 	  if [ x`(cd ${srcdir} && /bin/pwd)` = x`(/bin/pwd)` ] ; then \
