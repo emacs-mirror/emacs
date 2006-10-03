@@ -4,8 +4,8 @@
 @settitle GNU Emacs Manual
 
 @c The edition number appears in several places in this file
-@set EDITION   Fourteenth
-@set EMACSVER  22.0.50
+@set EDITION   Sixteenth
+@set EMACSVER  22.1
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
