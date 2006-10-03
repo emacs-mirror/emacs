@@ -1,3 +1,12 @@
+2006-09-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gmm-utils.el (gmm): Adjust custom version.
+
+	* mm-util.el (mm-charset-override-alist, mm-charset-eval-alist): Adjust
+	custom version.
+
+	* gnus-draft.el (gnus-draft-mode): Don't call `mml-mode'.
+
 2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* gnus-demon.el (gnus-demon): Use with-local-quit to avoid hangs.
