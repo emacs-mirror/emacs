@@ -2530,6 +2530,7 @@ regex_compile (pattern, size, syntax, bufp)
   bufp->syntax = syntax;
   bufp->fastmap_accurate = 0;
   bufp->not_bol = bufp->not_eol = 0;
+  bufp->used_syntax = 0;
 
   /* Set `used' to zero, so that if we return an error, the pattern
      printer (for debugging) will think there's no pattern.  We reset it
@@ -2941,6 +2942,14 @@ regex_compile (pattern, size, syntax, bufp)
 			    if (re_iswctype (btowc (ch), cc))
 			      SET_LIST_BIT (translated);
 			  }
+
+			/* In most cases the matching rule for char classes
+			   only uses the syntax table for multibyte chars,
+			   so that the content of the syntax-table it is not
+			   hardcoded in the range_table.  SPACE and WORD are
+			   the two exceptions.  */
+			if ((1 << cc) & ((1 << RECC_SPACE) | (1 << RECC_WORD)))
+			  bufp->used_syntax = 1;
 
 			/* Repeat the loop. */
 			continue;
