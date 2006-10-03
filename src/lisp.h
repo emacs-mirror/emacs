@@ -2920,6 +2920,7 @@ extern int find_next_newline P_ ((int, int));
 extern int find_next_newline_no_quit P_ ((int, int));
 extern int find_before_next_newline P_ ((int, int, int));
 extern void syms_of_search P_ ((void));
+extern void clear_regexp_cache P_ ((void));
 
 /* defined in minibuf.c */
 
