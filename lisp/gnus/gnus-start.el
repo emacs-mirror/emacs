@@ -2803,7 +2803,7 @@ If FORCE is non-nil, the .newsrc file is read."
 
 (defun gnus-gnus-to-quick-newsrc-format (&optional minimal name &rest specific-variables)
   "Print Gnus variables such as `gnus-newsrc-alist' in Lisp format."
-    (princ (format ";; -*- emacs-lisp; coding: %s;-*-\n"
+    (princ (format ";; -*- mode:emacs-lisp; coding: %s; -*-\n"
 		   gnus-ding-file-coding-system))
     (if name
 	(princ (format ";; %s\n" name))
