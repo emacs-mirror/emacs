@@ -515,7 +515,7 @@ and what they mean:
 
 @table @samp
 @item [:ascii:]
-This matches any @acronym{ASCII} (unibyte) character.
+This matches any @acronym{ASCII} character (codes 0--127).
 @item [:alnum:]
 This matches any letter or digit.  (At present, for multibyte
 characters, it matches anything that has word syntax.)
@@ -535,8 +535,10 @@ characters, space, and the delete character.
 @item [:lower:]
 This matches any lower-case letter, as determined by
 the current case table (@pxref{Case Tables}).
+@item [:multibyte:]
+This matches any multibyte character (@pxref{Text Representations}).
 @item [:nonascii:]
-This matches any non-@acronym{ASCII} (multibyte) character.
+This matches any non-@acronym{ASCII} character.
 @item [:print:]
 This matches printing characters---everything except @acronym{ASCII} control
 characters and the delete character.
@@ -546,6 +548,8 @@ characters, it matches anything that has non-word syntax.)
 @item [:space:]
 This matches any character that has whitespace syntax
 (@pxref{Syntax Class Table}).
+@item [:unibyte:]
+This matches any unibyte character (@pxref{Text Representations}).
 @item [:upper:]
 This matches any upper-case letter, as determined by
 the current case table (@pxref{Case Tables}).
