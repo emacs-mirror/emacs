@@ -257,9 +257,11 @@ See `interactive'.
 Optional second arg RECORD-FLAG non-nil
 means unconditionally put this command in the command-history.
 Otherwise, this is done only if an arg is read using the minibuffer.
+
 Optional third arg KEYS, if given, specifies the sequence of events to
-supply if the command inquires which events were used to invoke it.
-If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
+supply, as a vector, if the command inquires which events were used to
+invoke it.  If KEYS is omitted or nil, the return value of
+`this-command-keys-vector' is used.  */)
      (function, record_flag, keys)
      Lisp_Object function, record_flag, keys;
 {

@@ -788,11 +788,13 @@ was specified to run but remapped into another command.
 @anchor{Definition of this-command-keys}
 This function returns a string or vector containing the key sequence
 that invoked the present command, plus any previous commands that
-generated the prefix argument for this command.  However, if the
-command has called @code{read-key-sequence}, it returns the last read
-key sequence.  @xref{Key Sequence Input}.  The value is a string if
-all events in the sequence were characters that fit in a string.
-@xref{Input Events}.
+generated the prefix argument for this command.  Any events read by the
+command using @code{read-event} without a timeout get tacked on to the end.
+
+However, if the command has called @code{read-key-sequence}, it
+returns the last read key sequence.  @xref{Key Sequence Input}.  The
+value is a string if all events in the sequence were characters that
+fit in a string.  @xref{Input Events}.
 
 @example
 @group

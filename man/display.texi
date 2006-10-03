@@ -167,7 +167,7 @@ window.  However, if you set @code{scroll-conservatively} to a small
 number @var{n}, then if you move point just a little off the
 screen---less than @var{n} lines---then Emacs scrolls the text just
 far enough to bring point back on screen.  By default,
-@code{scroll-conservatively} is 0.
+@code{scroll-conservatively} is@tie{}0.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively

@@ -2495,6 +2495,10 @@ special-purpose groups.  All these commands insert the newly created
 groups under point---@code{gnus-subscribe-newsgroup-method} is not
 consulted.
 
+Changes from the group editing commands are stored in
+@file{~/.newsrc.eld} (@code{gnus-startup-file}).  An alternative is the
+variable @code{gnus-parameters}, @xref{Group Parameters}.
+
 @table @kbd
 
 @item G m

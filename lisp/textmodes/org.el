@@ -4569,7 +4569,7 @@ this heading. "
 		;; Make the subtree visible
 		(show-subtree)
 		(org-end-of-subtree t)
-		(skip-chars-backward " \t\r\n]")
+		(skip-chars-backward " \t\r\n")
 		(and (looking-at "[ \t\r\n]*")
 		     (replace-match "\n\n")))
 	    ;; No specific heading, just go to end of file.
@@ -8660,7 +8660,7 @@ are included in the output."
 	      (push txt rtn))
 	    ;; if we are to skip sublevels, jump to end of subtree
 	    (point)
-	    (or org-tags-match-list-sublevels (org-end-of-subtree))))))
+	    (or org-tags-match-list-sublevels (org-end-of-subtree t))))))
     (when (and (eq action 'sparse-tree)
 	       (not org-sparse-tree-open-archived-trees))
       (org-hide-archived-subtrees (point-min) (point-max)))
@@ -9816,7 +9816,7 @@ on the system \"/user@host:\"."
         ((fboundp 'tramp-handle-file-remote-p)
          (tramp-handle-file-remote-p file))
         ((and (boundp 'ange-ftp-name-format)
-              (string-match ange-ftp-name-format file))
+              (string-match (car ange-ftp-name-format) file))
          t)
         (t nil)))
 

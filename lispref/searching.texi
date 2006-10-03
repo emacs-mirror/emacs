@@ -27,7 +27,8 @@ portions of it.
 @end menu
 
   The @samp{skip-chars@dots{}} functions also perform a kind of searching.
-@xref{Skipping Characters}.
+@xref{Skipping Characters}.  To search for changes in character
+properties, see @ref{Property Search}.
 
 @node String Search
 @section Searching for Strings

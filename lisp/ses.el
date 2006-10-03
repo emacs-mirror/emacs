@@ -237,13 +237,6 @@ Each function is called with ARG=1."
 	  ses-initial-file-trailer)
   "The initial contents of an empty spreadsheet.")
 
-(defconst ses-paramlines-plist
-  '(ses--col-widths  2 ses--col-printers  3 ses--default-printer  4
-    ses--header-row  5 ses--file-format   8 ses--numrows          9
-    ses--numcols    10)
-  "Offsets from last cell line to various parameter lines in the data area
-of a spreadsheet.")
-
 (defconst ses-box-prop '(:box (:line-width 2 :style released-button))
   "Display properties to create a raised box for cells in the header line.")
 
@@ -255,13 +248,19 @@ functions.  None of these standard-printer functions is suitable for use as a
 column printer or a global-default printer because they invoke the column or
 default printer and then modify its output.")
 
+
+;;----------------------------------------------------------------------------
+;; Local variables and constants
+;;----------------------------------------------------------------------------
+
 (eval-and-compile
   (defconst ses-localvars
     '(ses--blank-line ses--cells ses--col-printers ses--col-widths ses--curcell
       ses--curcell-overlay ses--default-printer ses--deferred-narrow
       ses--deferred-recalc ses--deferred-write ses--file-format
       ses--header-hscroll ses--header-row ses--header-string ses--linewidth
-      ses--numcols ses--numrows ses--symbolic-formulas
+      ses--numcols ses--numrows ses--symbolic-formulas ses--data-marker
+      ses--params-marker
       ;;Global variables that we override
       mode-line-process next-line-add-newlines transient-mark-mode)
     "Buffer-local variables used by SES."))
@@ -271,6 +270,13 @@ default printer and then modify its output.")
   (dolist (x ses-localvars)
     (make-local-variable x)
     (set x nil)))
+
+(defconst ses-paramlines-plist
+  '(ses--col-widths  -5 ses--col-printers -4 ses--default-printer -3
+    ses--header-row  -2 ses--file-format   1 ses--numrows          2
+    ses--numcols      3)
+  "Offsets from 'Global parameters' line to various parameter lines in the
+data area of a spreadsheet.")
 
 
 ;;
@@ -408,6 +414,7 @@ for safety.  This is a macro to prevent propagate-on-load viruses."
   "Execute BODY repeatedly, with the variables `row' and `col' set to each
 cell in the range specified by CURCELL.  The range is available in the
 variables `minrow', `maxrow', `mincol', and `maxcol'."
+  (declare (indent defun) (debug (form body)))
   (let ((cur (make-symbol "cur"))
 	(min (make-symbol "min"))
 	(max (make-symbol "max"))
@@ -428,9 +435,6 @@ variables `minrow', `maxrow', `mincol', and `maxcol'."
 	   (dotimes (,c (- maxcol mincol -1))
 	     (setq col (+ ,c mincol))
 	     ,@body))))))
-
-(put 'ses-dorange 'lisp-indent-function 'defun)
-(def-edebug-spec ses-dorange (form body))
 
 ;;Support for coverage testing.
 (defmacro 1value (form)
@@ -650,7 +654,7 @@ the old and FORCE is nil."
 (defun ses-update-cells (list &optional force)
   "Recalculate cells in LIST, checking for dependency loops.  Prints
 progress messages every second.  Dependent cells are not recalculated
-if the cell's value is unchanged if FORCE is nil."
+if the cell's value is unchanged and FORCE is nil."
   (let ((ses--deferred-recalc list)
 	(nextlist             list)
 	(pos		      (point))
@@ -709,7 +713,7 @@ if the cell's value is unchanged if FORCE is nil."
 
 (defun ses-in-print-area ()
   "Returns t if point is in print area of spreadsheet."
-  (eq (get-text-property (point) 'keymap) 'ses-mode-print-map))
+  (<= (point) ses--data-marker))
 
 ;;We turn off point-motion-hooks and explicitly position the cursor, in case
 ;;the intangible properties have gotten screwed up (e.g., when
@@ -953,14 +957,16 @@ is one of the symbols ses--col-widths, ses--col-printers,
 ses--default-printer, ses--numrows, or ses--numcols."
   (ses-widen)
   (let ((inhibit-point-motion-hooks t)) ;In case intangible attrs are wrong
-    (goto-char (point-min))
     (if col
-      ;;It's a cell
-      (forward-line (+ ses--numrows 2 (* def (1+ ses--numcols)) col))
-    ;;Convert def-symbol to offset
-    (setq def (plist-get ses-paramlines-plist def))
-    (or def (signal 'args-out-of-range nil))
-    (forward-line (+ (* ses--numrows (+ ses--numcols 2)) def)))))
+	;;It's a cell
+	(progn
+	  (goto-char ses--data-marker)
+	  (forward-line (+ 1 (* def (1+ ses--numcols)) col)))
+      ;;Convert def-symbol to offset
+      (setq def (plist-get ses-paramlines-plist def))
+      (or def (signal 'args-out-of-range nil))
+      (goto-char ses--params-marker)
+      (forward-line def))))
 
 (defun ses-set-parameter (def value &optional elem)
   "Set parameter DEF to VALUE (with undo) and write the value to the data area.
@@ -1070,6 +1076,23 @@ or t to get a wrong-type-argument error when the first reference is found."
 	))))
   result-so-far)
 
+(defsubst ses-relocate-symbol (sym rowcol startrow startcol rowincr colincr)
+  "Relocate one symbol SYM, whichs corresponds to ROWCOL (a cons of ROW and
+COL).  Cells starting at (STARTROW,STARTCOL) are being shifted
+by (ROWINCR,COLINCR)."
+  (let ((row (car rowcol))
+	(col (cdr rowcol)))
+    (if (or (< row startrow) (< col startcol))
+	sym
+      (setq row (+ row rowincr)
+	    col (+ col colincr))
+      (if (and (>= row startrow) (>= col startcol)
+	       (< row ses--numrows) (< col ses--numcols))
+	  ;;Relocate this variable
+	  (ses-create-cell-symbol row col)
+	;;Delete reference to a deleted cell
+	nil))))
+
 (defun ses-relocate-formula (formula startrow startcol rowincr colincr)
   "Produce a copy of FORMULA where all symbols that refer to cells in row
 STARTROW or above and col STARTCOL or above are altered by adding ROWINCR
@@ -1113,23 +1136,6 @@ Sets `ses-relocate-return' to 'delete if cell-references were removed."
 						   rowincr colincr)
 		result))))
       (nreverse result))))
-
-(defun ses-relocate-symbol (sym rowcol startrow startcol rowincr colincr)
-  "Relocate one symbol SYM, whichs corresponds to ROWCOL (a cons of ROW and
-COL).  Cells starting at (STARTROW,STARTCOL) are being shifted
-by (ROWINCR,COLINCR)."
-  (let ((row (car rowcol))
-	(col (cdr rowcol)))
-    (if (or (< row startrow) (< col startcol))
-	sym
-      (setq row (+ row rowincr)
-	    col (+ col colincr))
-      (if (and (>= row startrow) (>= col startcol)
-	       (< row ses--numrows) (< col ses--numcols))
-	  ;;Relocate this variable
-	  (ses-create-cell-symbol row col)
-	;;Delete reference to a deleted cell
-	nil))))
 
 (defun ses-relocate-range (range startrow startcol rowincr colincr)
   "Relocate one RANGE, of the form '(ses-range min max).  Cells starting
@@ -1337,6 +1343,7 @@ execute cell formulas or print functions."
   (goto-char (point-max))
   (search-backward ";; Local Variables:\n" nil t)
   (backward-list 1)
+  (setq ses--params-marker (point-marker))
   (let ((params (condition-case nil (read (current-buffer)) (error nil))))
     (or (and (= (safe-length params) 3)
 	     (numberp (car params))
@@ -1366,7 +1373,9 @@ execute cell formulas or print functions."
   (forward-line ses--numrows)
   (or (looking-at ses-print-data-boundary)
       (error "Missing marker between print and data areas"))
-  (forward-char (length ses-print-data-boundary))
+  (forward-char 1)
+  (setq ses--data-marker (point-marker))
+  (forward-char (1- (length ses-print-data-boundary)))
   ;;Initialize printer and symbol lists
   (mapc 'ses-printer-record ses-standard-printer-functions)
   (setq ses--symbolic-formulas nil)
@@ -1573,10 +1582,7 @@ narrows the buffer now."
 	  ;;We're not allowed to narrow the buffer until after-find-file has
 	  ;;read the local variables at the end of the file.  Now it's safe to
 	  ;;do the narrowing.
-	  (save-excursion
-	    (goto-char (point-min))
-	    (forward-line ses--numrows)
-	    (narrow-to-region (point-min) (point)))
+	  (narrow-to-region (point-min) ses--data-marker)
 	  (setq ses--deferred-narrow nil))
 	;;Update the modeline
 	(let ((oldcell ses--curcell))
@@ -1803,11 +1809,17 @@ cells."
     (dotimes (row ses--numrows)
       (insert ses--blank-line))
     (insert ses-print-data-boundary)
+    (backward-char (1- (length ses-print-data-boundary)))
+    (setq ses--data-marker (point-marker))
+    (forward-char (1- (length ses-print-data-boundary)))
     ;;Placeholders for cell data
     (insert (make-string (* ses--numrows (1+ ses--numcols)) ?\n))
     ;;Placeholders for col-widths, col-printers, default-printer, header-row
     (insert "\n\n\n\n")
-    (insert ses-initial-global-parameters))
+    (insert ses-initial-global-parameters)
+    (backward-char (1- (length ses-initial-global-parameters)))
+    (setq ses--params-marker (point-marker))
+    (forward-char (1- (length ses-initial-global-parameters))))
   (ses-set-parameter 'ses--col-widths ses--col-widths)
   (ses-set-parameter 'ses--col-printers ses--col-printers)
   (ses-set-parameter 'ses--default-printer ses--default-printer)
@@ -2880,7 +2892,8 @@ TEST is evaluated."
     (cons 'list result)))
 
 ;;All standard formulas are safe
-(dolist (x '(ses-range ses-delete-blanks ses+ ses-average ses-select))
+(dolist (x '(ses-cell-value ses-range ses-delete-blanks ses+ ses-average
+	     ses-select))
   (put x 'side-effect-free t))
 
 

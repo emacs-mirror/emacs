@@ -49,6 +49,11 @@ Boston, MA 02110-1301, USA.
 extern BOOL WINAPI IsValidLocale(LCID, DWORD);
 #endif
 
+#ifdef HAVE_LANGINFO_CODESET
+#include <nl_types.h>
+#include <langinfo.h>
+#endif
+
 #include "lisp.h"
 #include "w32.h"
 #include "w32heap.h"
@@ -1817,6 +1822,69 @@ If successful, the return value is t, otherwise nil.  */)
   return result;
 }
 
+#ifdef HAVE_LANGINFO_CODESET
+/* Emulation of nl_langinfo.  Used in fns.c:Flocale_info.  */
+char *nl_langinfo (nl_item item)
+{
+  /* Conversion of Posix item numbers to their Windows equivalents.  */
+  static const LCTYPE w32item[] = {
+    LOCALE_IDEFAULTANSICODEPAGE,
+    LOCALE_SDAYNAME1, LOCALE_SDAYNAME2, LOCALE_SDAYNAME3,
+    LOCALE_SDAYNAME4, LOCALE_SDAYNAME5, LOCALE_SDAYNAME6, LOCALE_SDAYNAME7,
+    LOCALE_SMONTHNAME1, LOCALE_SMONTHNAME2, LOCALE_SMONTHNAME3,
+    LOCALE_SMONTHNAME4, LOCALE_SMONTHNAME5, LOCALE_SMONTHNAME6,
+    LOCALE_SMONTHNAME7, LOCALE_SMONTHNAME8, LOCALE_SMONTHNAME9,
+    LOCALE_SMONTHNAME10, LOCALE_SMONTHNAME11, LOCALE_SMONTHNAME12
+  };
+
+  static char *nl_langinfo_buf = NULL;
+  static int   nl_langinfo_len = 0;
+
+  if (nl_langinfo_len <= 0)
+    nl_langinfo_buf = xmalloc (nl_langinfo_len = 1);
+
+  if (item < 0 || item >= _NL_NUM)
+    nl_langinfo_buf[0] = 0;
+  else
+    {
+      LCID cloc = GetThreadLocale ();
+      int need_len = GetLocaleInfo (cloc, w32item[item] | LOCALE_USE_CP_ACP,
+				    NULL, 0);
+
+      if (need_len <= 0)
+	nl_langinfo_buf[0] = 0;
+      else
+	{
+	  if (item == CODESET)
+	    {
+	      need_len += 2;	/* for the "cp" prefix */
+	      if (need_len < 8)	/* for the case we call GetACP */
+		need_len = 8;
+	    }
+	  if (nl_langinfo_len <= need_len)
+	    nl_langinfo_buf = xrealloc (nl_langinfo_buf,
+					nl_langinfo_len = need_len);
+	  if (!GetLocaleInfo (cloc, w32item[item] | LOCALE_USE_CP_ACP,
+			      nl_langinfo_buf, nl_langinfo_len))
+	    nl_langinfo_buf[0] = 0;
+	  else if (item == CODESET)
+	    {
+	      if (strcmp (nl_langinfo_buf, "0") == 0 /* CP_ACP */
+		  || strcmp (nl_langinfo_buf, "1") == 0) /* CP_OEMCP */
+		sprintf (nl_langinfo_buf, "cp%u", GetACP ());
+	      else
+		{
+		  memmove (nl_langinfo_buf + 2, nl_langinfo_buf,
+			   strlen (nl_langinfo_buf) + 1);
+		  nl_langinfo_buf[0] = 'c';
+		  nl_langinfo_buf[1] = 'p';
+		}
+	    }
+	}
+    }
+  return nl_langinfo_buf;
+}
+#endif	/* HAVE_LANGINFO_CODESET */
 
 DEFUN ("w32-get-locale-info", Fw32_get_locale_info,
        Sw32_get_locale_info, 1, 2, 0,

@@ -370,7 +370,11 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
   "Evaluate FORM in each of the buffers.
 Does not display the buffer during evaluation. See
 `ibuffer-do-view-and-eval' for that."
-  (:interactive "xEval in buffers (form): "
+  (:interactive
+   (list
+    (read-from-minibuffer
+     "Eval in buffers (form): "
+     nil read-expression-map t 'read-expression-history))
    :opstring "evaluated in"
    :modifier-p :maybe)
   (eval form))
@@ -379,7 +383,11 @@ Does not display the buffer during evaluation. See
 (define-ibuffer-op view-and-eval (form)
   "Evaluate FORM while displaying each of the marked buffers.
 To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
-  (:interactive "xEval viewing buffers (form): "
+  (:interactive
+   (list
+    (read-from-minibuffer
+     "Eval viewing in buffers (form): "
+     nil read-expression-map t 'read-expression-history))
    :opstring "evaluated in"
    :complex t
    :modifier-p :maybe)

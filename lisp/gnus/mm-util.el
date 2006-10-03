@@ -253,7 +253,7 @@ superset of iso-8859-1."
 		       :tag "Other options"
 		       (cons (symbol :tag "From charset")
 			     (symbol :tag "To charset"))))
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :group 'mime)
 
 (defcustom mm-charset-eval-alist
@@ -270,7 +270,7 @@ If an article is encoded in an unknown CHARSET, FORM is
 evaluated.  This allows to load additional libraries providing
 charsets on demand.  If supported by your Emacs version, you
 could use `autoload-coding-system' here."
-  :version "23.0" ;; No Gnus
+  :version "22.1" ;; Gnus 5.10.9
   :type '(list (set :inline t
 		    (const (windows-1250 . (mm-codepage-setup 1250 t)))
 		    (const (windows-1251 . (mm-codepage-setup 1251 t)))

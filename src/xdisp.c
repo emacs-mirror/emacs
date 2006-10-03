@@ -1284,6 +1284,7 @@ line_bottom_y (it)
 
 
 /* Return 1 if position CHARPOS is visible in window W.
+   CHARPOS < 0 means return info about WINDOW_END position.
    If visible, set *X and *Y to pixel coordinates of top left corner.
    Set *RTOP and *RBOT to pixel height of an invisible area of glyph at POS.
    Set *ROWH and *VPOS to row's visible height and VPOS (row number).  */
@@ -1322,10 +1323,10 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 
   start_display (&it, w, top);
   move_it_to (&it, charpos, -1, it.last_visible_y-1, -1,
-	      MOVE_TO_POS | MOVE_TO_Y);
+	      (charpos >= 0 ? MOVE_TO_POS : 0) | MOVE_TO_Y);
 
   /* Note that we may overshoot because of invisible text.  */
-  if (IT_CHARPOS (it) >= charpos)
+  if (charpos >= 0 && IT_CHARPOS (it) >= charpos)
     {
       int top_x = it.current_x;
       int top_y = it.current_y;
@@ -3254,7 +3255,9 @@ handle_fontified_prop (it)
       && !NILP (Vrun_hooks)
       && (pos = make_number (IT_CHARPOS (*it)),
 	  prop = Fget_char_property (pos, Qfontified, Qnil),
-	  NILP (prop)))
+	  /* Ignore the special cased nil value always present at EOB since
+	     no amount of fontifying will be able to change it.  */
+	  NILP (prop) && IT_CHARPOS (*it) < Z))
     {
       int count = SPECPDL_INDEX ();
       Lisp_Object val;
