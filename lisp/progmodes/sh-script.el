@@ -2460,55 +2460,49 @@ we go to the end of the previous line and do not check for continuations."
   ;;
   (if (bolp)
       nil
-    (let (c min-point
-	  (start (point)))
-      (save-restriction
-	(narrow-to-region
-	(if (sh-this-is-a-continuation)
-	    (setq min-point (sh-prev-line nil))
-	  (save-excursion
-	    (beginning-of-line)
-	    (setq min-point (point))))
-	(point))
-	(skip-chars-backward " \t;")
-	(unless (looking-at "\\s-*;;")
-	  (skip-chars-backward "^)}];\"'`({[")
-	  (setq c (char-before)))
-	(sh-debug "stopping at %d c is %s  start=%d min-point=%d"
-		  (point) c start min-point)
-	(if (< (point) min-point)
-	    (error "point %d < min-point %d" (point) min-point))
-	(cond
-	 ((looking-at "\\s-*;;")
-	  ;; (message "Found ;; !")
-	  ";;")
-	 ((or (eq c ?\n)
-	      (eq c nil)
-	      (eq c ?\;))
-	 (let (done kwd next
-	       (boundary (point)))
-	   (skip-chars-forward " \t\n\\\\")
-	   (while (and (not done) (not (eobp)))
-	     (if next (setq boundary next))
-	     ;; skip forward over white space newline and \ at eol
-	     (sh-debug "Now at %d   start=%d" (point) start)
-	     (if (>= (point) start)
-		 (progn
-		   (sh-debug "point: %d >= start: %d" (point) start)
-		   nil)
-	       (setq kwd (sh-get-word))
-	       (unless (eobp) (forward-char 1))
-	       (if (member kwd (sh-feature sh-leading-keywords))
-		   (setq next (point))
-		 (setq done t)))
-	     (skip-chars-forward " \t\n\\\\"))
-	   (goto-char boundary)
-	   kwd))
-	 (t
-	  ;; c	-- return a string
-	  (char-to-string c)
-	  ))
-	))))
+    (let ((start (point))
+          (min-point (if (sh-this-is-a-continuation)
+                         (sh-prev-line nil)
+                       (line-beginning-position))))
+      (skip-chars-backward " \t;" min-point)
+      (if (looking-at "\\s-*;;")
+          ;; (message "Found ;; !")
+          ";;"
+        (skip-chars-backward "^)}];\"'`({[" min-point)
+        (let ((c (if (> (point) min-point) (char-before))))
+          (sh-debug "stopping at %d c is %s  start=%d min-point=%d"
+                    (point) c start min-point)
+          (if (not (memq c '(?\n nil ?\;)))
+              ;; c	-- return a string
+              (char-to-string c)
+            ;; Return the leading keyword of the "command" we supposedly
+            ;; skipped over.  Maybe we skipped too far (e.g. past a `do' or
+            ;; `then' that precedes the actual command), so check whether
+            ;; we're looking at such a keyword and if so, move back forward.
+            (let ((boundary (point))
+                  kwd next)
+              (while
+                  (progn
+                    ;; Skip forward over white space newline and \ at eol.
+                    (skip-chars-forward " \t\n\\\\" start)
+                    (if (>= (point) start)
+                        (progn
+                          (sh-debug "point: %d >= start: %d" (point) start)
+                          nil)
+                      (if next (setq boundary next))
+                      (sh-debug "Now at %d   start=%d" (point) start)
+                      (setq kwd (sh-get-word))
+                      ;; The reason for this next line is unclear.
+                      ;; <md5i@cs.cmu.edu> says "the need for this was
+                      ;; expermientally determined".  --Stef
+                      (when (< (point) start) (forward-char 1))
+                      (if (member kwd (sh-feature sh-leading-keywords))
+                          (progn
+                            (setq next (point))
+                            t)
+                        nil))))
+              (goto-char boundary)
+              kwd)))))))
 
 
 (defun sh-this-is-a-continuation ()
