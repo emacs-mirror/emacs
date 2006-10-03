@@ -1,3 +1,8 @@
+2006-10-03  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (list_processes_1): Run sentinels before removing dead
+	processes.  Also remove `closed' network connections.
+
 2006-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (handle_fontified_prop): Don't fontify at EOB.

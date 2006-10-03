@@ -1,3 +1,8 @@
+2006-10-03  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/cl.el (pushnew-internal): Remove defvar.
+	(pushnew): Fix last change.
+
 2006-10-03  Denis St,A|(Bnkel  <dstuenkel@googlemail.com>  (tiny change)
 
 	* ibuf-ext.el (eval, view-and-eval) <define-ibuffer-op>:
@@ -283,11 +288,6 @@
 
 	* mouse.el (mouse-posn-property): Fix typo for `event-start' in
 	doc string.
-
-2006-09-21  Kim F. Storm  <storm@cua.dk>
-
-	* emacs-lisp/cl.el (pushnew-internal): Remove defvar.
-	(pushnew): Fix last change.
 
 2006-09-21  Kenichi Handa  <handa@m17n.org>
 
