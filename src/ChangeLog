@@ -1,3 +1,17 @@
+2006-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (clear_regexp_cache): Declare.
+
+	* search.c (compile_pattern): Only check `cp->syntax_table' if needed.
+	(compile_pattern_1): Remember `used_syntax' in `cp->syntax_table'.
+	(clear_regexp_cache): Only flush those regexps which depend on
+	a syntax-table.
+
+	* regex.c (regex_compile): Set the new `used_syntax' bit.
+
+	* regex.h: Remove file local variables.
+	(struct re_pattern_buffer): New field `used_syntax'.
+
 2006-10-03  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (list_processes_1): Run sentinels before removing dead

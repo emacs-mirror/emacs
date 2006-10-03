@@ -216,7 +216,8 @@ shrink_regexp_cache ()
     }
 }
 
-/* Clear the regexp cache.
+/* Clear the regexp cache w.r.t. a particular syntax table,
+   because it was changed.
    There is no danger of memory leak here because re_compile_pattern
    automagically manages the memory in each re_pattern_buffer struct,
    based on its `allocated' and `buffer' values.  */
@@ -226,7 +227,11 @@ clear_regexp_cache ()
   int i;
 
   for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
-    searchbufs[i].regexp = Qnil;
+    /* It's tempting to compare with the syntax-table we've actually changd,
+       but it's not sufficient because char-table inheritance mewans that
+       modifying one syntax-table can change others at the same time.  */
+    if (!EQ (searchbufs[i].syntax_table, Qt))
+      searchbufs[i].regexp = Qnil;
 }
 
 /* Compile a regexp if necessary, but first check to see if there's one in
