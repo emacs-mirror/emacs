@@ -1293,22 +1293,17 @@ If search string is empty, just beep."
 (defun isearch-mouse-2 (click)
   "Handle mouse-2 in Isearch mode.
 For a click in the echo area, invoke `isearch-yank-x-selection'.
-Otherwise invoke whatever mouse-2 is bound to outside of Isearch."
+Otherwise invoke whatever the calling mouse-2 command sequence
+is bound to outside of Isearch."
   (interactive "e")
   (let* ((w (posn-window (event-start click)))
 	 (overriding-terminal-local-map nil)
-	 (key (vector (event-basic-type click)))
-	 ;; FIXME: `key-binding' should accept an event as argument
-	 ;; and do all the overlay/text-properties lookup etc...
-	 (binding (with-current-buffer
-		      (if (window-live-p w) (window-buffer w) (current-buffer))
-		    (key-binding key))))
+	 (binding (key-binding (this-command-keys-vector) t)))
     (if (and (window-minibuffer-p w)
 	     (not (minibuffer-window-active-p w))) ; in echo area
 	(isearch-yank-x-selection)
       (when (functionp binding)
 	(call-interactively binding)))))
-
 
 (defun isearch-yank-internal (jumpform)
   "Pull the text from point to the point reached by JUMPFORM.

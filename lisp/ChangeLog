@@ -1,3 +1,13 @@
+2006-10-03  David Kastrup  <dak@gnu.org>
+
+	* help.el (describe-mode): For clicks on mode-line, use "@"
+	interactive argument to get the major mode of the click instead of
+	the current buffer.
+
+	* isearch.el (isearch-mouse-2): Use new semantics of `key-binding'
+	in order to better redirect mouse-2 clicks.  Also allow default
+	bindings to apply.
+
 2006-10-03  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/cl.el (pushnew-internal): Remove defvar.
