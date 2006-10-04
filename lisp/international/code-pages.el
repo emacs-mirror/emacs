@@ -3574,11 +3574,11 @@ Return an updated `non-iso-charset-alist'."
   ?\ƒ
   ?\§
   ?\¤
-  nil
+  ?\’
   ?\“
   ?\«
-  nil
-  nil
+  ?\‹
+  ?\›
   ?\ﬁ
   ?\ﬂ
   ?\®
@@ -3589,8 +3589,8 @@ Return an updated `non-iso-charset-alist'."
   ?\¦
   ?\¶
   ?\•
-  nil
-  nil
+  ?\‚
+  ?\„
   ?\”
   ?\»
   ?\…
