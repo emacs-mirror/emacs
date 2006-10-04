@@ -3989,13 +3989,7 @@ analyse_first (p, pend, fastmap, multibyte)
 	  for (j = CHARSET_BITMAP_SIZE (&p[-1]) * BYTEWIDTH - 1, p++;
 	       j >= 0; j--)
 	    if (!!(p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH))) ^ not)
-	      {
-		fastmap[j] = 1;
-#ifdef emacs
-		if (j >= 0x80 && j < 0xa0)
-		  fastmap[LEADING_CODE_8_BIT_CONTROL] = 1;
-#endif
-	      }
+	      fastmap[j] = 1;
 
 	  if ((not && multibyte)
 	      /* Any leading code can possibly start a character
