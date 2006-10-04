@@ -1,3 +1,12 @@
+2006-10-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-rm-props, org-activate-plain-links) 
+	(org-activate-angle-links, org-activate-dates) 
+	(org-activate-target-links, org-activate-camels) 
+	(org-activate-tags): Add `rear-nonsticky' text property to avoid
+	textproperty keymaps from being active beyond the end of a line.
+	(org-unfontify-region): Also remove `rear-nonsticky' property.
+
 2006-10-04  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el (next): Table fixed.
