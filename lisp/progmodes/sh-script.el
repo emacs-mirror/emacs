@@ -2492,10 +2492,6 @@ we go to the end of the previous line and do not check for continuations."
                       (if next (setq boundary next))
                       (sh-debug "Now at %d   start=%d" (point) start)
                       (setq kwd (sh-get-word))
-                      ;; The reason for this next line is unclear.
-                      ;; <md5i@cs.cmu.edu> says "the need for this was
-                      ;; expermientally determined".  --Stef
-                      (when (< (point) start) (forward-char 1))
                       (if (member kwd (sh-feature sh-leading-keywords))
                           (progn
                             (setq next (point))

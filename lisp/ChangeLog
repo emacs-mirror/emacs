@@ -1,3 +1,8 @@
+2006-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-prev-thing): Remove (forward-char 1) now
+	that it's been made unnecessary by removing narrowing.
+
 2006-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-prev-thing): Massage to untangle the
@@ -285,8 +290,7 @@
 
 2006-09-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* files.el (save-some-buffers-action-alist): Display diff in
-	view-mode.
+	* files.el (save-some-buffers-action-alist): Display diff in view-mode.
 
 2006-09-22  Masatake YAMATO  <jet@gyve.org>
 
@@ -320,8 +324,7 @@
 
 2006-09-20  Kenichi Handa  <handa@m17n.org>
 
-	* isearch.el (isearch-process-search-char): Cancel the previous
-	change.
+	* isearch.el (isearch-process-search-char): Cancel the previous change.
 	(isearch-search-string): New function.
 	(isearch-search): Use isearch-search-string.
 	(isearch-lazy-highlight-search): Likewise.
