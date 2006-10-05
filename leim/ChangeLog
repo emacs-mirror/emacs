@@ -1,3 +1,7 @@
+2006-10-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* quail/latin-ltx.el: Fix typo in previous change.
+
 2006-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el: Remove rules that start with { since they are
