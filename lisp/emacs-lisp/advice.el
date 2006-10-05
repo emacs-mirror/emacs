@@ -2409,7 +2409,7 @@ If such an advice was found it will be removed from the list of advices
 in that CLASS."
   (interactive (ad-read-advice-specification "Remove advice of"))
   (if (ad-is-advised function)
-      (let* ((advice-to-remove (ad-find-advice function class name)))
+      (let ((advice-to-remove (ad-find-advice function class name)))
 	(if advice-to-remove
 	    (ad-set-advice-info-field
 	     function class
@@ -2747,7 +2747,7 @@ For that it has to be fbound with a non-autoload definition."
 A three-element list is returned, where the 1st element is the list of
 required arguments, the 2nd is the list of optional arguments, and the 3rd
 is the name of an optional rest parameter (or nil)."
-  (let* (required optional rest)
+  (let (required optional rest)
     (setq rest (car (cdr (memq '&rest arglist))))
     (if rest (setq arglist (reverse (cdr (memq '&rest (reverse arglist))))))
     (setq optional (cdr (memq '&optional arglist)))
@@ -2958,7 +2958,7 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 
 (defun ad-make-mapped-call (source-arglist target-arglist target-function)
   "Make form to call TARGET-FUNCTION with args from SOURCE-ARGLIST."
-  (let* ((mapped-form (ad-map-arglists source-arglist target-arglist)))
+  (let ((mapped-form (ad-map-arglists source-arglist target-arglist)))
     (if (eq (car mapped-form) 'funcall)
 	(cons target-function (cdr (cdr mapped-form)))
       (prog1 mapped-form
