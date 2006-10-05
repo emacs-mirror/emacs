@@ -1,3 +1,8 @@
+2006-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Remove rules that start with { since they are
+	redundant and hence impact the { key for no good reason.
+
 2006-10-02  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (install): Fix previous change.
