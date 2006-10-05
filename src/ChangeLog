@@ -1,3 +1,10 @@
+2006-10-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qinhibit_face_set_after_frame_default): New var.
+	(syms_of_frame): Initialize it.
+	(x_set_frame_parameters): Avoid resetting :font attributes to the
+	new-frame defaults.
+
 2006-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (clear_regexp_cache): Declare.
