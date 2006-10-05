@@ -1,3 +1,9 @@
+2006-10-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/mule-cmds.el (coding-system-change-eol-conversion):
+	Ensure the coding system is initialized before calling
+	coding-system-eol-type.
+
 2006-10-04  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-rm-props, org-activate-plain-links) 

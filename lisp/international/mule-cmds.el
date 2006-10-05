@@ -216,19 +216,21 @@ They means `unix', `dos', and `mac' respectively."
 			   ((eq eol-type 'dos) 1)
 			   ((eq eol-type 'mac) 2)
 			   (t eol-type))))
-  (let ((orig-eol-type (coding-system-eol-type coding-system)))
-    (if (vectorp orig-eol-type)
-	(if (not eol-type)
-	    coding-system
-	  (aref orig-eol-type eol-type))
-      (let ((base (coding-system-base coding-system)))
-	(if (not eol-type)
-	    base
-	  (if (= eol-type orig-eol-type)
-	      coding-system
-	    (setq orig-eol-type (coding-system-eol-type base))
-	    (if (vectorp orig-eol-type)
-		(aref orig-eol-type eol-type))))))))
+  ;; We call `coding-system-base' before `coding-system-eol-type',
+  ;; because the coding-system may not be initialized until then.
+  (let* ((base (coding-system-base coding-system))
+	 (orig-eol-type (coding-system-eol-type coding-system)))
+    (cond ((vectorp orig-eol-type)
+	   (if (not eol-type)
+	       coding-system
+	     (aref orig-eol-type eol-type)))
+	  ((not eol-type)
+	   base)
+	  ((= eol-type orig-eol-type)
+	   coding-system)
+	  ((progn (setq orig-eol-type (coding-system-eol-type base))
+		  (vectorp orig-eol-type))
+	   (aref orig-eol-type eol-type)))))
 
 (defun coding-system-change-text-conversion (coding-system coding)
   "Return a coding system which differs from CODING-SYSTEM in text conversion.
