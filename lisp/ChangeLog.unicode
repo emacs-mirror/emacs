@@ -1,3 +1,9 @@
+2006-10-05  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-composition-after-change): Remove
+	`auto-composed' property instead of put nil to it.
+	(toggle-auto-composition): Likewise.
+
 2006-10-02  Kenichi Handa  <handa@m17n.org>
 
 	* language/misc-lang.el (iso-8859-6): New coding system.
