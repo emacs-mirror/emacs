@@ -1,3 +1,7 @@
+2006-10-06  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): Fix value when EOB is visible.
+
 2006-10-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (Qinhibit_face_set_after_frame_default): New var.

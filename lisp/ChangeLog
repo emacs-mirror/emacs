@@ -1,3 +1,7 @@
+2006-10-06  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-wide-find-dirs-or-files): Use shell-quote-argument.
+
 2006-10-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/advice.el (ad-remove-advice, ad-parse-arglist)
