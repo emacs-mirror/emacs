@@ -5,6 +5,8 @@ Tasks needed before the next release.
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
+** Check for text in manuals that assumes current version is 21.
+
 ** Update AUTHORS.
 [Done 2006-10-03]
 
@@ -45,9 +47,6 @@ Windows only bug.
 ** Enrico Schwass, Sep 13 help-gnu-emacs: display japanese outputdoesnt work quite right
 
 ** Peter_Dyballa@Web.DE, Oct 4: Coding system of file not recognised correctly
-
-** ottomaddox@fastmail.fm, Oct 4:
-  mouse-set-font conflicts with customize-face
 
 ** michael@cadilhac.name, Oct 5: 
   pos-visible-in-window-p and extreme conditions.
