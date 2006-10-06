@@ -3136,7 +3136,12 @@ for first matching file."
   (let ((filenames
 	 (split-string
 	  (shell-command-to-string
-	   (concat "find " dir " -name \"" (if prefix "" "*") file "*\" -type " (if finddir "d" "f") " -print"))))
+	   (concat "find "
+		   (shell-quote-argument dir)
+		   " -name "
+		   (shell-quote-argument
+		    (concat (if prefix "" "*") file "*"))
+		   " -type " (if finddir "d" "f") " -print"))))
 	filename d f
 	res)
     (while filenames
