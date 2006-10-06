@@ -1346,7 +1346,8 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
       it2 = it;
       if (IT_CHARPOS (it) < ZV && FETCH_BYTE (IT_BYTEPOS (it)) != '\n')
 	move_it_by_lines (&it, 1, 0);
-      if (charpos < IT_CHARPOS (it))
+      if (charpos < IT_CHARPOS (it)
+	  || (it.what == IT_EOB && charpos == IT_CHARPOS (it)))
 	{
 	  visible_p = 1;
 	  move_it_to (&it2, charpos, -1, -1, -1, MOVE_TO_POS);
