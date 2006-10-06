@@ -3848,8 +3848,8 @@ Java code.  It is distributed with Emacs, but has
 Or send reports to @email{bug-vm@@wonderworks.com}
 @end table
 
-VM 7 works well with Emacs 21. Older versions of VM suitable for use
-with older versions of Emacs are available from
+VM 7 works well with Emacs 21 and Emacs 22. Older versions of VM
+suitable for use with older versions of Emacs are available from
 @uref{ftp://ftp.wonderworks.com/pub/vm/, the same FTP site}.
 
 
