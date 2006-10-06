@@ -1,3 +1,7 @@
+2006-10-07  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-file-extension-aux): Fix comparison.
+
 2006-10-06  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-wide-find-dirs-or-files): Use shell-quote-argument.
