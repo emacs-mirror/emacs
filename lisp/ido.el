@@ -3084,12 +3084,14 @@ for first matching file."
   (let ((oa (ido-file-extension-order a n))
 	(ob (ido-file-extension-order b n)))
     (cond
-     ((= oa ob)
-      lessp)
      ((and oa ob)
-      (if lessp
-	  (> oa ob)
-	(< oa ob)))
+      (cond
+       ((= oa ob)
+	lessp)
+       (lessp
+	(> oa ob))
+       (t
+	(< oa ob))))
      (oa
       (not lessp))
      (ob
