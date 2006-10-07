@@ -9508,6 +9508,20 @@ to your @file{~/.gnus.el} file.
 @section Charsets
 @cindex charsets
 
+@c ;; v9d5mxqhga.fsf@marauder.physik.uni-ulm.de
+@c (add-to-list 'gnus-newsgroup-variables 'mm-coding-system-priorities)
+@c (setq gnus-parameters
+@c       '(("^de\\." ;; German language
+@c 	 (mm-coding-system-priorities '(iso-8859-1 iso-8859-15 utf-8)))
+@c 	("^fr\\." ;; French
+@c 	 (mm-coding-system-priorities '(iso-8859-15 iso-8859-1 utf-8)))
+@c 	("^fj\\." ;; Japanese
+@c 	 (mm-coding-system-priorities
+@c 	  '(iso-8859-1 iso-2022-jp iso-2022-jp-2 shift_jis utf-8)))
+@c 	("^cz\\." ;; Czech
+@c 	 (mm-coding-system-priorities '(iso-8859-2 utf-8)))))
+
+
 People use different charsets, and we have @acronym{MIME} to let us know what
 charsets they use.  Or rather, we wish we had.  Many people use
 newsreaders and mailers that do not understand or use @acronym{MIME}, and
@@ -22137,8 +22151,8 @@ It takes the group name as a parameter.
 @section Image Enhancements
 
 XEmacs, as well as Emacs 21@footnote{Emacs 21 on MS Windows doesn't
-support images yet.}, is able to display pictures and stuff, so Gnus has
-taken advantage of that.
+support images, Emacs 22 does.} and up, are able to display pictures and
+stuff, so Gnus has taken advantage of that.
 
 @menu
 * X-Face::                      Display a funky, teensy black-and-white image.

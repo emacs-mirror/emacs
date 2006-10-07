@@ -1,3 +1,36 @@
+2006-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Clarify
+	gnus-summary-limit-to-articles.
+
+2006-10-04  Romain Francoise  <romain@orebokech.com>
+
+	* gnus-util.el (gnus-alist-to-hashtable, gnus-hashtable-to-alist):
+	Moved here (and renamed) from gnus-registry.el.
+
+	* gnus-registry.el: Require gnus-util.
+	Use `gnus-alist-to-hashtable' and `gnus-hashtable-to-alist'.
+
+2006-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pop3.el (pop3-authentication-scheme): Clarify doc.
+	(pop3-movemail): Warn about pop3-leave-mail-on-server.
+
+2006-10-04  Dave Love  <fx@gnu.org>
+
+	* pop3.el (pop3-authentication-scheme): Add custom version.
+
+2006-10-04  Jesper Harder  <harder@ifa.au.dk>
+
+	* pop3.el (pop3-leave-mail-on-server): Don't quote nil in
+	doc string.  Improve doc string.
+
+2006-10-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-with-local-quit): New macro.
+
+	* gnus-demon.el (gnus-demon): Replace with-local-quit with it.
+
 2006-09-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gmm-utils.el (gmm): Adjust custom version.
@@ -1273,7 +1306,7 @@
 	as a buffer-local variable.  This avoids creating truncated
 	dribble files as a result of a hang up, eg.
 
-2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+2005-11-04  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
@@ -4017,7 +4050,7 @@
 
 	* gnus-sum.el (gnus-summary-insert-subject): Remove list identifiers.
 
-2004-09-03  Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>  (tiny change)
+2004-09-03  Hiroshi Fujishima  <pooh@nature.tsukuba.ac.jp>  (tiny change)
 
 	* spam-stat.el (spam-stat-reduce-size): Set spam-stat-dirty.
 	(spam-stat-save): Accept prefix argument.
@@ -4164,17 +4197,17 @@
 
 	* gnus-sum.el (gnus-newsgroup-variables): Doc fix.
 
-2004-08-26  YAGI Tatsuya <ynyaaa@ybb.ne.jp>  (tiny change)
+2004-08-26  YAGI Tatsuya  <ynyaaa@ybb.ne.jp>  (tiny change)
 
 	* gnus-art.el (gnus-article-next-page): Fix the way to find a real
 	end-of-buffer.
 
-2004-08-26  Stefan Wiens <s.wi@gmx.net>  (tiny change)
+2004-08-26  Stefan Wiens  <s.wi@gmx.net>  (tiny change)
 
 	* gnus-sum.el (gnus-read-header): Don't remove a header for the
 	parent article of a sparse article in the thread hashtb.
 
-2004-08-26  David Hedbor <dhedbor@real.com>  (tiny change)
+2004-08-26  David Hedbor  <dhedbor@real.com>  (tiny change)
 
 	* nnmail.el (nnmail-split-lowercase-expanded): New user option.
 	(nnmail-expand-newtext): Lowercase expanded entries if
@@ -4370,7 +4403,7 @@
 	* gnus-msg.el (gnus-summary-followup-with-original):
 	Document yanking of region when active.
 
-2004-04-13 Kevin Greiner  <kgreiner@xpediantsolutions.com>
+2004-04-13  Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
 	* gnus-agent.el: Merged 7.3 through 7.7 updates into branch.
 	Revision 7.2 changes excluded to maintain compatibility with all
