@@ -1,3 +1,9 @@
+2006-10-08  Kim F. Storm  <storm@cua.dk>
+
+	* ack.texi (Acknowledgments): Update.
+
+	* emacs.texi (Acknowledgments): Fix bad @/ form.
+
 2006-10-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Image Enhancements): Update for Emacs 22.
@@ -11,7 +17,7 @@
 
 2006-10-06  Romain Francoise  <romain@orebokech.com>
 
-	* faq.texi (VM): VM works with Emacs 22 too. 
+	* faq.texi (VM): VM works with Emacs 22 too.
 
 2006-10-06  Richard Stallman  <rms@gnu.org>
 
