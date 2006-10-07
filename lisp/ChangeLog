@@ -1,3 +1,10 @@
+2006-10-07  Kevin Ryde  <user42@zip.com.au>
+
+	* textmodes/reftex-vars.el (defgroup reftex): Update home page
+	url-link.
+
+	* strokes.el (defgroup strokes): Remove invalid url-link.
+
 2006-10-07  Magnus Henoch  <mange@freemail.hu>
 
 	* autoinsert.el (auto-insert-alist): Doc fix.
