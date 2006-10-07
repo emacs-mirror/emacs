@@ -40,8 +40,6 @@ Windows only bug.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
-** kitty@dre.vanderbilt.edu Sep 20 says make-frame ignores left and top.
-
 * BUGS
 
 ** Peter_Dyballa@Web.DE, Oct 4: Coding system of file not recognised correctly
