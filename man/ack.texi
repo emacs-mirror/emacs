@@ -382,8 +382,9 @@ taking the file name from the buffer.
 Odd Gripenstam wrote @file{dcl-mode.el} for editing DCL command files.
 
 @item
-Kai Gro@ss{}johann wrote the Tramp package, which provides transparent
-remote file editing using rcp, ssh, and other network protocols.
+Kai Gro@ss{}johann and Michael Albinus wrote the Tramp package, which
+provides transparent remote file editing using rcp, ssh, ftp, and other
+network protocols.
 
 @item
 Michael Gschwind wrote @file{iso-cvt.el}, a package to convert between
