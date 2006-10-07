@@ -48,6 +48,8 @@ Windows only bug.
 
 ** hashiz@tomba.meridiani.jp, Oct 6: bootstrap failure
 
+** jpff@codemist.co.uk, Oct 6: rmail get new mail still fails
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
