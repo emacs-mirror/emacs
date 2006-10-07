@@ -34,6 +34,11 @@ Jay K.@: Adams wrote @file{jka-compr.el}, providing automatic
 decompression and recompression for compressed files.
 
 @item
+Ralf Angeli wrote @file{scroll-lock.el}, a minor mode which keeps the
+point vertically fixed by scrolling the window when moving up and down
+in the buffer.
+
+@item
 Joe Arceneaux wrote the original text property implementation, and
 implemented support for X11.
 
@@ -60,6 +65,11 @@ Steven L.@: Baur wrote
 @file{footnote.el} which lets you include
 footnotes in email messages, and @file{gnus-audio.el} which provides
 sound effects for Gnus.
+
+@item
+Alexander L. Belikoff, Sergey Berezin, David Edmondson, Andreas
+Fuchs, Mario Lang, Gergely Nagy, Michael Olson, and Alex Schroeder
+contributed ERC, an advanced Internet Relay Chat client.
 
 @item
 Boaz Ben-Zvi wrote @file{profile.el}, to time Emacs Lisp functions.
@@ -171,6 +181,10 @@ Andrew Csillag wrote M4 mode (@file{m4-mode.el}).
 @item
 Doug Cutting and Jamie Zawinski wrote @file{disass.el}, a disassembler
 for compiled Emacs Lisp code.
+
+@item
+Mathias Dahl wrote @file{tumme.el}, a package for viewing image files
+as ``thumbnails.''
 
 @item
 Michael DeCorte wrote @file{emacs.csh}, a C-shell script that starts a
@@ -398,6 +412,9 @@ Chris Hanson wrote @file{netuname.el}, a package to use HP-UX's Remote
 File Access facility from Emacs.
 
 @item
+Jesper Harder wrote @file{yenc.el}, for decoding yenc encoded messages.
+
+@item
 K. Shane Hartman wrote:
 
 @itemize @minus
@@ -447,6 +464,8 @@ Tom Houlder wrote @file{mantemp.el}, which generates manual C@t{++}
 template instantiations.
 
 @item
+Joakim Hove wrote @file{html2text.el}, a html to plain text converter.
+@item
 Denis Howe wrote @file{browse-url.el}, a package for invoking a WWW
 browser to display a URL.
 
@@ -462,7 +481,8 @@ Seiichiro Inoue improved Emacs's XIM support.
 
 @item
 Ulf Jasper wrote @file{icalendar.el}, a package for converting Emacs
-diary entries to and from the iCalendar format.
+diary entries to and from the iCalendar format, and
+@file{newsticker.el}, an RSS and Atom based Newsticker.
 
 @item
 Kyle Jones wrote @file{life.el}, a package to play Conway's ``life'' game,
@@ -491,6 +511,10 @@ in messages,
 @item
 @file{rfc2104.el}, a hashed message authentication facility.
 @end itemize
+
+@item
+Arne J@/orgensen wrote @file{latexenc.el}, a package to
+automatically guess the correct coding system in LaTeX files.
 
 @item
 Tomoji Kagatani implemented @file{smtpmail.el}, used for sending out
@@ -545,7 +569,7 @@ David M.@: Koppelman wrote @file{hi-lock.el}, a minor mode for
 interactive automatic highlighting of parts of the buffer text.
 
 @item
-Koseki Yoshinori wrote @file{iinline.el}, a minor mode for displaying
+Koseki Yoshinori wrote @file{iimage.el}, a minor mode for displaying
 inline images.
 
 @item
@@ -666,8 +690,16 @@ typical word processors,
 @end itemize
 
 @item
-Eric Ludlam wrote the Speedbar package and @file{checkdoc.el}, a package
-for checking doc strings in Emacs Lisp programs.
+Eric Ludlam wrote the Speedbar package and the following packages:
+
+@itemize @minus
+@item
+@file{checkdoc.el}, for checking doc strings in Emacs Lisp programs,
+@item
+@file{dframe.el}, providing dedicatd frame support modes, and
+@item
+@file{ezimage.el}, a generalized way to place images over text.
+@end itemize
 
 @item
 Alan Mackenzie wrote the integrated AWK support in CC Mode.
@@ -841,6 +873,10 @@ text, and @file{iris-ansi.el}, support for running Emacs on SGI's
 Jurgen Nickelsen wrote @file{ws-mode.el}, providing WordStar emulation.
 
 @item
+Hrvoje Niksic wrote @file{savehist.el}, for saving the minibuffer
+history between Emacs sessions.
+
+@item
 Jeff Norden wrote @file{kermit.el}, a package to help the Kermit
 dialup communications program run comfortably in an Emacs shell buffer.
 
@@ -932,10 +968,18 @@ Christian Plaunt wrote @file{soundex.el}, an implementation of the
 Soundex algorithm for comparing English words by their pronunciation.
 
 @item
-David Ponce wrote @file{recentf.el}, a package that puts a menu of
-recently visited files in the Emacs menu bar, and
+David Ponce wrote:
+
+@itemize @minus
+@item
+@file{recentf.el}, a package that puts a menu of recently visited
+files in the Emacs menu bar,
+@item
 @file{ruler-mode.el}, a minor mode for displaying a ruler in the
-header line.
+header line, and
+@item
+@file{tree-widget.el}, a package to display hierarchical data structures.
+@end itemize
 
 @item
 Francesco A.@: Potorti wrote @file{cmacexp.el}, providing a command which
@@ -999,6 +1043,10 @@ Dershowitz, Paul Eggert, Steve Fisk, Michael Kifer, and Lara Rios.  Andy
 Oram contributed to its documentation.  Reingold has also contributed to
 @file{tex-mode.el}, a mode for editing @TeX{} files, as have William
 F.@: Schelter, Dick King, Stephen Gildea, Michael Prange, and Jacob Gore.
+
+@item
+David Reitter wrote @file{mailclient.el} which can send mail via the
+system's designated mail client.
 
 @item
 Alex Rezinsky contributed @file{which-func.el}, a mode that shows the
@@ -1239,6 +1287,10 @@ Naoto Takahashi wrote @file{utf-8.el}, support for encoding and
 decoding UTF-8 data.
 
 @item
+Luc Teirlinck wrote @file{help-at-pt.el}, providing local help through
+the keyboard.
+
+@item
 Jean-Philippe Theberge wrote @file{thumbs.el}, a package for viewing
 image files as ``thumbnails.''
 
@@ -1262,8 +1314,10 @@ editing Tcl/Tk source files and running a Tcl interpreter as an Emacs
 subprocess.
 
 @item
+Eli Tziperman wrote @file{rmail-spam-filter.el}, a spam filter for RMAIL.
+@item
 Daiki Ueno wrote @file{starttls.el}, support for Transport Layer
-Security protocol.
+Security protocol, and the PGG package adding GnuPG and PGP support.
 
 @item
 Masanobu Umeda wrote:
@@ -1422,13 +1476,15 @@ to exit with valuable buffers unsaved.
 
 @item
 Masatake Yamato wrote @file{ld-script.el}, an editing mode for GNU
-linker scripts.
+linker scripts, and contributed subword handling in CC mode.
 
 @item
 Jonathan Yavner wrote @file{testcover.el}, a package for keeping track
 of the testing status of Emacs Lisp code, and the SES spreadsheet
 package.
 
+@item
+Ryan Yeske wrote @file{rcirc.el} a simple Internet Relay Chat client.
 @item
 Ilya Zakharevich and Bob Olson contributed @file{cperl-mode.el}, a major
 mode for editing Perl code.  Ilya Zakharevich also wrote @file{tmm.el},
