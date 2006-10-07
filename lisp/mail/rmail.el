@@ -2875,6 +2875,12 @@ iso-8859, koi8-r, etc."
 			  (coding-system-change-eol-conversion
 			   coding
 			   (coding-system-eol-type old-coding)))
+		    ;; If old-coding is `undecided', encode-coding-region
+		    ;; will not encode the text at all.  Find a proper
+		    ;; non-trivial encoding to use.
+		    (if (memq (coding-system-base old-coding) '(nil undecided))
+			(setq old-coding
+			      (car (find-coding-systems-region msgbeg msgend))))
 		    (setq x-coding-header (point-marker))
 		    (narrow-to-region msgbeg msgend)
 		    (encode-coding-region (point) msgend old-coding)
