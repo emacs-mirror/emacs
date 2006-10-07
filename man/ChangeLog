@@ -1,3 +1,8 @@
+2006-10-06  Richard Stallman  <rms@gnu.org>
+
+	* faq.texi (Displaying the current line or column): Delete "As of Emacs
+	20".
+
 2006-10-06  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (VM): VM works with Emacs 22 too. 
