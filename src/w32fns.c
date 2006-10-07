@@ -2108,7 +2108,12 @@ w32_createwindow (f)
 	}
     }
 
-  if (EQ (left, Qunbound) && EQ (top, Qunbound))
+  if (f->size_hint_flags & USPosition || f->size_hint_flags & PPosition)
+    {
+      XSETINT (left, f->left_pos);
+      XSETINT (top, f->top_pos);
+    }
+  else if (EQ (left, Qunbound) && EQ (top, Qunbound))
     {
       /* When called with RES_TYPE_NUMBER, w32_get_arg will return zero
 	 for anything that is not a number and is not Qunbound.  */
