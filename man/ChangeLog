@@ -12,8 +12,8 @@
 
 2006-10-06  Richard Stallman  <rms@gnu.org>
 
-	* faq.texi (Displaying the current line or column): Delete "As of Emacs
-	20".
+	* faq.texi (Displaying the current line or column):
+	Delete "As of Emacs 20".
 
 2006-10-06  Romain Francoise  <romain@orebokech.com>
 
@@ -38,13 +38,13 @@
 
 2006-10-01  Karl Berry  <karl@gnu.org>
 
-	* custom.texi (Customization Groups): page break to keep example buffer
+	* custom.texi (Customization Groups): Page break to keep example buffer
 	on one page.
 
 2006-09-30  Karl Berry  <karl@gnu.org>
 
 	* programs.texi (Basic Indent): @need to improve page break.
-	* text.texi: rewording to improve page breaks, and use @LaTeX{}.
+	* text.texi: Rewording to improve page breaks, and use @LaTeX{}.
 
 2006-09-29  Glenn Morris  <rgm@gnu.org>
 
@@ -52,11 +52,11 @@
 
 2006-09-29  Karl Berry  <karl@gnu.org>
 
-	* windows.texi (Basic Window): remove forced @break, no longer
+	* windows.texi (Basic Window): Remove forced @break, no longer
 	desirable.
 	* frames.texi (Frame Commands),
-	* mark.texi (Marking Objects): reword to avoid bad page break.
-	* display.texi (Auto Scrolling): use @tie{} to avoid bad line break.
+	* mark.texi (Marking Objects): Reword to avoid bad page break.
+	* display.texi (Auto Scrolling): Use @tie{} to avoid bad line break.
 
 2006-09-19  Richard Stallman  <rms@gnu.org>
 
@@ -124,8 +124,8 @@
 
 2006-09-01  Eli Zaretskii  <eliz@gnu.org>
 
-	* rcirc.texi (Internet Relay Chat, Useful IRC commands): Don't use
-	@indicateurl.
+	* rcirc.texi (Internet Relay Chat, Useful IRC commands):
+	Don't use @indicateurl.
 
 	* cc-mode.texi (Subword Movement): Don't use @headitem.
 	(Custom Braces, Clean-ups): Don't use @tie.
@@ -134,8 +134,8 @@
 
 	Sync with Tramp 2.0.54.
 
-	* tramp.texi (Bug Reports): The Tramp mailing list is moderated
-	now.  Suggested by Adrian Phillips <a.phillips@met.no>.
+	* tramp.texi (Bug Reports): The Tramp mailing list is moderated now.
+	Suggested by Adrian Phillips <a.phillips@met.no>.
 
 2006-08-28  Richard Stallman  <rms@gnu.org>
 
