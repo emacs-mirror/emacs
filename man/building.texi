@@ -964,8 +964,8 @@ for example, when re-setting a breakpoint.
 @node Breakpoints Buffer
 @subsubsection Breakpoints Buffer
 
-  The breakpoints buffer shows the existing breakpoints and
-watchpoints (@pxref{Breakpoints,,, gdb, The GNU debugger}).  It has
+  The breakpoints buffer shows the existing breakpoints, watchpoints and
+catchpoints (@pxref{Breakpoints,,, gdb, The GNU debugger}).  It has
 these special commands, which mostly apply to the @dfn{current
 breakpoint}, the breakpoint which point is on.
 
