@@ -44,8 +44,6 @@ Windows only bug.
 
 * BUGS
 
-** Enrico Schwass, Sep 13 help-gnu-emacs: display japanese outputdoesnt work quite right
-
 ** Peter_Dyballa@Web.DE, Oct 4: Coding system of file not recognised correctly
 
 ** hashiz@tomba.meridiani.jp, Oct 6: bootstrap failure
