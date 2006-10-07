@@ -3,6 +3,8 @@
 	* mail/rmail.el (rmail-redecode-body): If the old encoding is
 	`undecided', call find-coding-systems-region to find a proper
 	non-trivial encoding.
+	(rmail-mime-charset-pattern): Allow a TAB between "Content-Type"
+	and "text/plain".
 
 2006-10-07  Kevin Ryde  <user42@zip.com.au>
 
