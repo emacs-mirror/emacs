@@ -1382,7 +1382,7 @@ initialization disables it.) Note that Emacs will not display the line
 number if the buffer's size in bytes is larger than the value of the
 variable @code{line-number-display-limit}.
 
-As of Emacs 20, you can similarly display the current column with
+You can similarly display the current column with
 @kbd{M-x column-number-mode}, or by putting the form
 
 @lisp
