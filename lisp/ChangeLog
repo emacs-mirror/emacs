@@ -1,3 +1,9 @@
+2006-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* completion.el (add-completions-from-c-buffer):
+	Don't presume an error's second element is a string.
+	Use looking-at rather than buffer-substring + member.
+
 2006-10-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-redecode-body): If the old encoding is
@@ -19,8 +25,8 @@
 
 2006-10-07  Johan Bockg,be(Brd  <bojohan@dd.chalmers.se>
 
-	* mouse-sel.el (mouse-insert-selection-internal): Use
-	insert-for-yank, so that yank handlers are run.
+	* mouse-sel.el (mouse-insert-selection-internal):
+	Use insert-for-yank, so that yank handlers are run.
 
 2006-10-07  Kim F. Storm  <storm@cua.dk>
 
