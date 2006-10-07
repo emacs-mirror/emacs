@@ -1,3 +1,9 @@
+2006-10-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-redecode-body): If the old encoding is
+	`undecided', call find-coding-systems-region to find a proper
+	non-trivial encoding.
+
 2006-10-07  Kevin Ryde  <user42@zip.com.au>
 
 	* textmodes/reftex-vars.el (defgroup reftex): Update home page
