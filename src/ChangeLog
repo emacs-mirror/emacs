@@ -1,3 +1,16 @@
+2006-10-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_draw_image_string, mac_draw_image_string_16): Add
+	argument OVERSTRIKE_P.
+	(mac_draw_string_common, mac_draw_image_string_cg): Likewise.
+	Support overstrike.
+	(mac_draw_string, mac_draw_string_16): Remove functions.
+	(x_draw_glyph_string_foreground): Use overstrike when needed.
+	(x_draw_composite_glyph_string_foreground): Likewise.  Use
+	mac_draw_image_string_16 instead of mac_draw_string_16.
+	(mac_load_query_font): Rename from XLoadQueryFont.  Take argument F
+	instead of DPY.  All uses changed.  Don't save/restore font.
+
 2006-10-07  Ralf Angeli  <angeli@caeruleus.net>
 
 	* w32fns.c (w32_createwindow): Honour left and top positions if
