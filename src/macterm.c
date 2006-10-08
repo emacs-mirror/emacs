@@ -891,12 +891,13 @@ mac_invert_rectangle (f, x, y, width, height)
 
 
 static void
-mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
+mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width,
+			overstrike_p, bytes_per_char)
      struct frame *f;
      GC gc;
      int x, y;
      char *buf;
-     int nchars, bg_width, bytes_per_char;
+     int nchars, bg_width, overstrike_p, bytes_per_char;
 {
   SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
@@ -946,6 +947,13 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 	  ATSUDrawText (text_layout,
 			kATSUFromTextBeginning, kATSUToTextEnd,
 			kATSUUseGrafPortPenLoc, kATSUUseGrafPortPenLoc);
+	  if (overstrike_p)
+	    {
+	      MoveTo (x + 1, y);
+	      ATSUDrawText (text_layout,
+			    kATSUFromTextBeginning, kATSUToTextEnd,
+			    kATSUUseGrafPortPenLoc, kATSUUseGrafPortPenLoc);
+	    }
 	  mac_end_clip (gc);
 #ifdef MAC_OSX
 	}
@@ -989,9 +997,15 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 				       sizeof (tags) / sizeof (tags[0]),
 				       tags, sizes, values);
 	  if (err == noErr)
-	    ATSUDrawText (text_layout,
-			  kATSUFromTextBeginning, kATSUToTextEnd,
-			  Long2Fix (x), Long2Fix (port_height - y));
+	    {
+	      ATSUDrawText (text_layout,
+			    kATSUFromTextBeginning, kATSUToTextEnd,
+			    Long2Fix (x), Long2Fix (port_height - y));
+	      if (overstrike_p)
+		ATSUDrawText (text_layout,
+			      kATSUFromTextBeginning, kATSUToTextEnd,
+			      Long2Fix (x + 1), Long2Fix (port_height - y));
+	    }
 #if USE_CG_DRAWING
 	  mac_end_cg_clip (f);
 	  context = NULL;
@@ -1057,6 +1071,12 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
       TextFace (GC_FONT (gc)->mac_fontface);
       MoveTo (x, y);
       DrawText (buf, 0, nchars * bytes_per_char);
+      if (overstrike_p)
+	{
+	  TextMode (srcOr);
+	  MoveTo (x + 1, y);
+	  DrawText (buf, 0, nchars * bytes_per_char);
+	}
       if (bg_width)
 	RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
       mac_end_clip (gc);
@@ -1069,59 +1089,33 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, bytes_per_char)
 }
 
 
-/* Mac replacement for XDrawString.  */
-
-static void
-mac_draw_string (f, gc, x, y, buf, nchars)
-     struct frame *f;
-     GC gc;
-     int x, y;
-     char *buf;
-     int nchars;
-{
-  mac_draw_string_common (f, gc, x, y, buf, nchars, 0, 1);
-}
-
-
-/* Mac replacement for XDrawString16. */
-
-static void
-mac_draw_string_16 (f, gc, x, y, buf, nchars)
-     struct frame *f;
-     GC gc;
-     int x, y;
-     XChar2b *buf;
-     int nchars;
-{
-  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, 0, 2);
-}
-
-
 /* Mac replacement for XDrawImageString.  */
 
 static void
-mac_draw_image_string (f, gc, x, y, buf, nchars, bg_width)
+mac_draw_image_string (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
      struct frame *f;
      GC gc;
      int x, y;
      char *buf;
-     int nchars, bg_width;
+     int nchars, bg_width, overstrike_p;
 {
-  mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width, 1);
+  mac_draw_string_common (f, gc, x, y, buf, nchars, bg_width,
+			  overstrike_p, 1);
 }
 
 
-/* Mac replacement for XDrawString16.  */
+/* Mac replacement for XDrawImageString16.  */
 
 static void
-mac_draw_image_string_16 (f, gc, x, y, buf, nchars, bg_width)
+mac_draw_image_string_16 (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
      struct frame *f;
      GC gc;
      int x, y;
      XChar2b *buf;
-     int nchars, bg_width;
+     int nchars, bg_width, overstrike_p;
 {
-  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, bg_width, 2);
+  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, bg_width,
+			  overstrike_p, 2);
 }
 
 
@@ -1295,12 +1289,12 @@ init_cg_text_anti_aliasing_threshold ()
 }
 
 static int
-mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width)
+mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width, overstrike_p)
      struct frame *f;
      GC gc;
      int x, y;
      XChar2b *buf;
-     int nchars, bg_width;
+     int nchars, bg_width, overstrike_p;
 {
   CGrafPtr port;
   float port_height, gx, gy;
@@ -1362,10 +1356,17 @@ mac_draw_image_string_cg (f, gc, x, y, buf, nchars, bg_width)
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
   CGContextSetTextPosition (context, gx, gy);
   CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
+  if (overstrike_p)
+    {
+      CGContextSetTextPosition (context, gx + 1.0f, gy);
+      CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
+    }
 #else
   for (i = 0; i < nchars; i++)
     {
       CGContextShowGlyphsAtPoint (context, gx, gy, glyphs + i, 1);
+      if (overstrike_p)
+	CGContextShowGlyphsAtPoint (context, gx + 1.0f, gy, glyphs + i, 1);
       gx += advances[i].width;
     }
 #endif
@@ -2771,15 +2772,18 @@ x_draw_glyph_string_foreground (s)
 #if USE_CG_TEXT_DRAWING
 	if (!s->two_byte_p
 	    && mac_draw_image_string_cg (s->f, s->gc, x, s->ybase - boff,
-					 s->char2b, s->nchars, bg_width))
+					 s->char2b, s->nchars, bg_width,
+					 s->face->overstrike))
 	  ;
 	else
 #endif
 	  mac_draw_image_string_16 (s->f, s->gc, x, s->ybase - boff,
-				    s->char2b, s->nchars, bg_width);
+				    s->char2b, s->nchars, bg_width,
+				    s->face->overstrike);
       else
 	mac_draw_image_string (s->f, s->gc, x, s->ybase - boff,
-			       char1b, s->nchars, bg_width);
+			       char1b, s->nchars, bg_width,
+			       s->face->overstrike);
     }
 }
 
@@ -2815,10 +2819,10 @@ x_draw_composite_glyph_string_foreground (s)
   else
     {
       for (i = 0; i < s->nchars; i++, ++s->gidx)
-	mac_draw_string_16 (s->f, s->gc,
-			    x + s->cmp->offsets[s->gidx * 2],
-			    s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			    s->char2b + i, 1);
+	mac_draw_image_string_16 (s->f, s->gc,
+				  x + s->cmp->offsets[s->gidx * 2],
+				  s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+				  s->char2b + i, 1, 0, s->face->overstrike);
     }
 }
 
@@ -7782,14 +7786,16 @@ is_fully_specified_xlfd (char *p)
 }
 
 
-/* XLoadQueryFont creates and returns an internal representation for a
-   font in a MacFontStruct struct.  There is really no concept
+/* mac_load_query_font creates and returns an internal representation
+   for a font in a MacFontStruct struct.  There is really no concept
    corresponding to "loading" a font on the Mac.  But we check its
    existence and find the font number and all other information for it
    and store them in the returned MacFontStruct.  */
 
 static MacFontStruct *
-XLoadQueryFont (Display *dpy, char *fontname)
+mac_load_query_font (f, fontname)
+     struct frame *f;
+     char *fontname;
 {
   int size;
   char *name;
@@ -8000,26 +8006,13 @@ XLoadQueryFont (Display *dpy, char *fontname)
   else
 #endif
     {
-      GrafPtr port;
-      SInt16 old_fontnum, old_fontsize;
-      Style old_fontface;
       FontInfo the_fontinfo;
       int is_two_byte_font;
 
 #if USE_CG_DRAWING
-      mac_prepare_for_quickdraw (NULL);
+      mac_prepare_for_quickdraw (f);
 #endif
-      /* Save the current font number used.  */
-      GetPort (&port);
-#if TARGET_API_MAC_CARBON
-      old_fontnum = GetPortTextFont (port);
-      old_fontsize = GetPortTextSize (port);
-      old_fontface = GetPortTextFace (port);
-#else
-      old_fontnum = port->txFont;
-      old_fontsize = port->txSize;
-      old_fontface = port->txFace;
-#endif
+      SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
       TextFont (fontnum);
       TextSize (size);
@@ -8101,11 +8094,6 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	  for (c = 0x21, pcm = space_bounds + 1; c <= 0xff; c++, pcm++)
 	    mac_query_char_extents (NULL, c, NULL, NULL, pcm, NULL);
 	}
-
-      /* Restore previous font number, size and face.  */
-      TextFont (old_fontnum);
-      TextSize (old_fontsize);
-      TextFace (old_fontface);
     }
 
   if (space_bounds)
@@ -8245,7 +8233,7 @@ x_load_font (f, fontname, size)
     fontname = (char *) SDATA (XCAR (font_names));
 
     BLOCK_INPUT;
-    font = (MacFontStruct *) XLoadQueryFont (FRAME_MAC_DISPLAY (f), fontname);
+    font = mac_load_query_font (f, fontname);
     UNBLOCK_INPUT;
     if (!font)
       return NULL;
