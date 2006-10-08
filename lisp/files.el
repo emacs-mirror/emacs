@@ -2397,10 +2397,10 @@ asking you for confirmation."
 ;;
 ;; For variables defined in the C source code the declaration should go here:
 
-;; FIXME: Some variables should be moved according to the rules above.
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((fill-column                     . integerp) ;; C source code
+      '((buffer-read-only                . booleanp) ;; C source code
+	(fill-column                     . integerp) ;; C source code
 	(indent-tabs-mode                . booleanp) ;; C source code
 	(left-margin                     . integerp) ;; C source code
 	(no-update-autoloads             . booleanp)
