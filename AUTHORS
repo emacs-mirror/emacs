@@ -1759,8 +1759,8 @@ Mikio Nakajima: changed ring.el viper-util.el
 Milan Zamazal: wrote czech.el glasses.el tildify.el
 and changed slovak.el abbrev.el compile.el filecache.el files.el
 
-Miles Bader: wrote button.el image-file.el macroexp.el mb-depth.el
-  minibuf-eldef.el rfn-eshadow.el
+Miles Bader: wrote button.el image-file.el macroexp.el minibuf-eldef.el
+  rfn-eshadow.el
 and changed comint.el faces.el simple.el editfns.c xfaces.c info.el
   xdisp.c minibuf.c wid-edit.el xterm.c subr.el window.el cus-edit.el
   diff-mode.el dispextern.h xfns.c help.el lisp.h quick-install-emacs
