@@ -288,11 +288,12 @@ Value is a list of strings, which may be nil."
 ;; Note: There are no explicit references to the variable `explicit-bash-args'.
 ;; It is used implicitly by M-x shell when the interactive shell is `bash'.
 (defcustom explicit-bash-args
-  ;; Tell bash not to use readline, except for bash 1.x which doesn't grook --noediting.
-  ;; Bash 1.x has -nolineediting, but process-send-eof cannot terminate bash if we use it.
   (let* ((prog (or (and (boundp 'explicit-shell-file-name) explicit-shell-file-name)
 		   (getenv "ESHELL") shell-file-name))
 	 (name (file-name-nondirectory prog)))
+    ;; Tell bash not to use readline, except for bash 1.x which
+    ;; doesn't grook --noediting.  Bash 1.x has -nolineediting, but
+    ;; process-send-eof cannot terminate bash if we use it.
     (if (and (not purify-flag)
 	     (equal name "bash")
 	     (file-executable-p prog)
