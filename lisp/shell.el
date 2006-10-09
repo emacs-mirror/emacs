@@ -272,6 +272,8 @@ This is effective only if directory tracking is enabled."
   :type '(choice (const :tag "None" nil) file)
   :group 'shell)
 
+;; Note: There are no explicit references to the variable `explicit-csh-args'.
+;; It is used implicitly by M-x shell when the shell is `csh'.
 (defcustom explicit-csh-args
   (if (eq system-type 'hpux)
       ;; -T persuades HP's csh not to think it is smarter
@@ -283,6 +285,8 @@ Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
+;; Note: There are no explicit references to the variable `explicit-bash-args'.
+;; It is used implicitly by M-x shell when the interactive shell is `bash'.
 (defcustom explicit-bash-args
   ;; Tell bash not to use readline, except for bash 1.x which doesn't grook --noediting.
   ;; Bash 1.x has -nolineediting, but process-send-eof cannot terminate bash if we use it.
