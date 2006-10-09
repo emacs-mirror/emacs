@@ -108,7 +108,7 @@
 (defun url-recreate-url-attributes (urlobj)
   "Recreate the attributes of an URL string from the parsed URLOBJ."
   (when (url-attributes urlobj)
-    (concat ";"
+    (concat "?"
 	    (mapconcat (lambda (x)
                          (if (cdr x)
                              (concat (car x) "=" (cdr x))
@@ -120,11 +120,16 @@
   "Return a vector of the parts of URL.
 Format is:
 \[TYPE USER PASSWORD HOST PORT FILE TARGET ATTRIBUTES FULL\]"
+  ;; See RFC 3986.
   (cond
    ((null url)
     (make-vector 9 nil))
    ((or (not (string-match url-nonrelative-link url))
 	(= ?/ (string-to-char url)))
+    ;; This isn't correct, as a relative URL can be a fragment link
+    ;; (e.g. "#foo") and many other things (see section 4.2).
+    ;; However, let's not fix something that isn't broken, especially
+    ;; when close to a release.
     (let ((retval (make-vector 9 nil)))
       (url-set-filename retval url)
       (url-set-full retval nil)
@@ -148,6 +153,8 @@ Format is:
 	(insert url)
 	(goto-char (point-min))
 	(setq save-pos (point))
+
+	;; 3.1. Scheme
 	(if (not (looking-at "//"))
 	    (progn
 	      (skip-chars-forward "a-zA-Z+.\\-")
@@ -156,13 +163,13 @@ Format is:
 	      (skip-chars-forward ":")
 	      (setq save-pos (point))))
 
-	;; We are doing a fully specified URL, with hostname and all
+	;; 3.2. Authority
 	(if (looking-at "//")
 	    (progn
 	      (setq full t)
 	      (forward-char 2)
 	      (setq save-pos (point))
-	      (skip-chars-forward "^/")
+	      (skip-chars-forward "^/\\?#")
 	      (setq host (buffer-substring save-pos (point)))
 	      (if (string-match "^\\([^@]+\\)@" host)
 		  (setq user (match-string 1 host)
@@ -170,6 +177,7 @@ Format is:
 	      (if (and user (string-match "\\([^:]+\\):\\(.*\\)" user))
 		  (setq pass (match-string 2 user)
 			user (match-string 1 user)))
+	      ;; This gives wrong results for IPv6 literal addresses.
 	      (if (string-match ":\\([0-9+]+\\)" host)
 		  (setq port (string-to-number (match-string 1 host))
 			host (substring host 0 (match-beginning 0))))
@@ -181,29 +189,26 @@ Format is:
 	(if (not port)
 	    (setq port (url-scheme-get-property prot 'default-port)))
 
-	;; Gross hack to preserve ';' in data URLs
-
+	;; 3.3. Path
 	(setq save-pos (point))
-
-	(if (string= "data" prot)
-	    (goto-char (point-max))
-	  ;; Now check for references
-	  (skip-chars-forward "^#")
-	  (if (eobp)
-	      nil
-	    (delete-region
-	     (point)
-	     (progn
-	       (skip-chars-forward "#")
-	       (setq refs (buffer-substring (point) (point-max)))
-	       (point-max))))
-	  (goto-char save-pos)
-	  (skip-chars-forward "^;")
-	  (if (not (eobp))
-	      (setq attr (url-parse-args (buffer-substring (point) (point-max)) t)
-		    attr (nreverse attr))))
-
+	(skip-chars-forward "^#?")
 	(setq file (buffer-substring save-pos (point)))
+
+	;; 3.4. Query
+	(when (looking-at "\\?")
+	  (forward-char 1)
+	  (setq save-pos (point))
+	  (skip-chars-forward "^#")
+	  ;; RFC 3986 specifies no general way of parsing the query
+	  ;; string, but `url-parse-args' seems universal enough.
+	  (setq attr (url-parse-args (buffer-substring save-pos (point)) t)
+		attr (nreverse attr)))
+
+	;; 3.5. Fragment
+	(when (looking-at "#")
+	  (forward-char 1)
+	  (setq refs (buffer-substring (point) (point-max))))
+
 	(if (and host (string-match "%[0-9][0-9]" host))
 	    (setq host (url-unhex-string host)))
 	(vector prot user pass host port file refs attr full))))))
