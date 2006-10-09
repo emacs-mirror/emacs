@@ -341,8 +341,8 @@ The appearance of the screen can be customized by the variables
 (defun 2C-two-columns (&optional buffer)
   "Split current window vertically for two-column editing.
 \\<global-map>When called the first time, associates a buffer with the current
-buffer in two-column minor mode (see  \\[describe-mode] ).
-Runs `2C-other-buffer-hook' in the new buffer.
+buffer in two-column minor mode (use \\[describe-mode] once in the mode,
+for details.).  It runs `2C-other-buffer-hook' in the new buffer.
 When called again, restores the screen layout with the current buffer
 first and the associated buffer to its right."
   (interactive "P")
