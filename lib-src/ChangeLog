@@ -1,3 +1,7 @@
+2006-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (../src/config.h): Fix error message.
+
 2006-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* .cvsignore: Add blessmail.
