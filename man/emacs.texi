@@ -1027,7 +1027,7 @@ Contributors to GNU Emacs include Jari Aalto, Per Abrahamsen, Tomas
 Abrahamsson, Jay K.@: Adams, Michael Albinus, Nagy Andras, Ralf
 Angeli, Joe Arceneaux, Miles Bader, David Bakhash, Juanma Barranquero,
 Eli Barzilay, Steven L.@: Baur, Jay Belanger, Alexander L.@: Belikoff,
-Boaz Ben-Zvi, Karl Berry, Ray Blaak, Jim Blandy, Johan Bocka@aa{}rd,
+Boaz Ben-Zvi, Karl Berry, Ray Blaak, Jim Blandy, Johan Bockg@aa{}rd,
 Per Bothner, Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel
 Briot, Kevin Broadey, Vincent Broman, David M.@: Brown, Georges
 Brun-Cottan, Joe Buehler, W@l{}odek Bzyl, Bill Carpenter, Per
