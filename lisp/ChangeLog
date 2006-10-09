@@ -1,3 +1,8 @@
+2006-10-09  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-back-to-current-heading): Base on lower-level
+	routines to get proper disqualification of aberrant topics.
+
 2006-10-09  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/two-column.el (2C-two-columns): Doc fix.
