@@ -1041,7 +1041,7 @@ Hans Henrik Eriksen, Michael Ernst, Ata Etemadi, Frederick Farnbach,
 Oscar Figueiredo, Fred Fish, Karl Fogel, Gary Foster, Romain
 Francoise, Noah Friedman, Andreas Fuchs, Hallvard Furuseth, Keith
 Gabryelski, Peter S.@: Galbraith, Kevin Gallagher, Kevin Gallo, Juan
-Le@'{o}n Lahoz Garc@'{i}a, Howard Gayle, Stephen Gildea, Julien
+Le@'{o}n Lahoz Garc@'{@dotless{i}}a, Howard Gayle, Stephen Gildea, Julien
 Gilles, David Gillespie, Bob Glickstein, Deepak Goel, Boris Goldowsky,
 Michelangelo Grigni, Odd Gripenstam, Kai Gro@ss{}johann, Michael
 Gschwind, Henry Guillaume, Doug Gwyn, Ken'ichi Handa, Lars Hansen,
