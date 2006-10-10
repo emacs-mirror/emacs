@@ -1,5 +1,11 @@
 2006-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dispnew.c (sit_for): Sit forever if TIMEOUT is t.
+
+	* keyboard.c (command_loop_1): Handle non-number values of
+	`minibuffer-message-timeout'.
+	(Fexecute_extended_command): Fix typo.
+
 	* minibuf.c (temp_echo_area_glyphs): Sit for
 	`minibuffer-message-timeout' seconds.
 

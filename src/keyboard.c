@@ -1546,15 +1546,17 @@ command_loop_1 ()
 
       if (minibuf_level
 	  && !NILP (echo_area_buffer[0])
-	  && EQ (minibuf_window, echo_area_window)
-	  && NUMBERP (Vminibuffer_message_timeout))
+	  && EQ (minibuf_window, echo_area_window))
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
 	     rather than quitting back to the minibuffer.  */
 	  int count = SPECPDL_INDEX ();
 	  specbind (Qinhibit_quit, Qt);
 
-	  sit_for (Vminibuffer_message_timeout, 0, 2);
+	  if (NUMBERP (Vminibuffer_message_timeout))
+	    sit_for (Vminibuffer_message_timeout, 0, 2);
+	  else
+	    sit_for (Qt, 0, 2);
 
 	  /* Clear the echo area.  */
 	  message2 (0, 0, 0);
@@ -9982,7 +9984,7 @@ give to the command you invoke, if it asks for an argument.  */)
       if (NILP (echo_area_buffer[0]))
 	waited = sit_for (make_number (0), 0, 2);
       else if (NUMBERP (Vsuggest_key_bindings))
-	waited = sit_for (Vminibuffer_message_timeout, 0, 2);
+	waited = sit_for (Vsuggest_key_bindings, 0, 2);
       else
 	waited = sit_for (make_number (2), 0, 2);
 

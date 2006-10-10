@@ -2714,12 +2714,9 @@ temp_echo_area_glyphs (string)
   Vinhibit_quit = Qt;
 
   if (NUMBERP (Vminibuffer_message_timeout))
-    {
-      if (Fgtr (Vminibuffer_message_timeout, make_number (0)))
-	sit_for (Vminibuffer_message_timeout, 0, 2);
-    }
+    sit_for (Vminibuffer_message_timeout, 0, 2);
   else
-    sit_for (make_number (-1), 0, 2);
+    sit_for (Qt, 0, 2);
 
   del_range_both (osize, osize_byte, ZV, ZV_BYTE, 1);
   SET_PT_BOTH (opoint, opoint_byte);
