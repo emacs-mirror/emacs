@@ -7,7 +7,7 @@
 
 PFM = xci3gc
 
-MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmxc.c \
+MPMPF = lockan.c than.c vmxc.c \
         protan.c prmcan.c span.c ssan.c
 SWPF = than.c vmxc.c protsw.c prmcan.c ssan.c
 
