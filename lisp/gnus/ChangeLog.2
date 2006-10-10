@@ -8174,10 +8174,10 @@
 
 	* message.el (message-completion-alist): Add Reply-To, From, etc.
 
-2002-09-18  Simon Josefsson  <jas@extundo.com>
+2002-09-18  Nevin Kapur  <nevin@jhu.edu>
 
 	* nnimap.el (nnimap-request-expire-articles): Make flag setting
-	conditional.  From Nevin Kapur <nevin@jhu.edu>.
+	conditional.
 
 2002-09-17  Simon Josefsson  <jas@extundo.com>
 
@@ -8605,8 +8605,7 @@
 	correct typo.
 	(gnus-emphasis-strikethru): New face.
 
-2002-07-20  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
-	From Jason Merrill <jason@redhat.com>.
+2002-07-20  Jason Merrill  <jason@redhat.com>.
 
 	* nnfolder.el (nnfolder-retrieve-headers): Avoid searching the
 	entire file for each of a sequence of missing articles.
@@ -8617,8 +8616,7 @@
 	* gnus-sum.el (gnus-summary-insert-new-articles): Count down to
 	avoid nreverse.
 
-2002-07-14  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
-	From Ted Zlatanov <teodor.zlatanov@divine.com>.
+2002-07-14  Ted Zlatanov  <teodor.zlatanov@divine.com>
 
 	* gnus-sum.el (gnus-auto-expirable-marks): Remove `spam'.
 	(gnus-summary-mode-line-format-alist): Add %h for number of
@@ -8633,25 +8631,24 @@
 	(gnus-mark-article-as-read, gnus-mark-article-as-unread)
 	(gnus-mark-article-as-unread, gnus-summary-catchup): Grok spam.
 
-2002-07-10  Simon Josefsson  <jas@extundo.com>
+2002-07-10  KANEMATSU Daiji  <kdaiji@bea.com>
 
 	* nnimap.el (nnimap-split-to-groups): Allow group string to be a
-	function.  From KANEMATSU Daiji <kdaiji@bea.com>.
+	function.
 
 2002-07-09  Nevin Kapur  <nevin@jhu.edu>
 
 	* gnus-sum.el (gnus-summary-delete-article): Respect group
 	parameters while expiring.
 
-2002-07-08  Simon Josefsson  <jas@extundo.com>
+2002-07-08  Henrik Enberg  <henrik@enberg.org>
 
-	* gnus-art.el (article-make-date-line): Fix string.  From Henrik
-	Enberg.
+	* gnus-art.el (article-make-date-line): Fix string.
 
-2002-07-08  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-08  Niklas Morberg  <niklas.morberg@axis.com>
 
 	* gnus-art.el (article-unsplit-urls): Only display MIME when this
-	function is called interactively.  From Niklas Morberg.
+	function is called interactively.
 
 2002-07-06  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -8673,10 +8670,10 @@
 
 	* nnmail.el (nnmail-split-methods): fix custom type.
 
-2002-07-02  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-02  Niklas Morberg  <niklas.morberg@axis.com>
 
 	* gnus-art.el (article-unsplit-urls): Keep URL buttonized after
-	unsplitting.  From Niklas Morberg <niklas.morberg@axis.com>.
+	unsplitting.
 
 2002-07-01  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
@@ -8688,13 +8685,12 @@
 	* nntp.el (nntp-via-rlogin-command-switches): New variable.
 	(nntp-open-via-rlogin-and-telnet): Re-revert; use the var above.
 
-2002-06-28  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-font-lock-keywords): Don't fontify
 	headers in the message body, only in the header.
 	(message-font-lock-make-header-matcher): New function, used by
 	message-font-lock-keywords.
-	From Katsumi Yamaoka <yamaoka@jpl.org>.
 
 2002-06-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -8747,24 +8743,22 @@
 	(last, coerce, subseq): Remove compiler macros for those built-in
 	or unused functions.
 
-2002-06-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-17  Simon Josefsson  <jas@extundo.com>
 
 	* gnus-start.el (gnus-clear-system, gnus-read-newsrc-file): Make
 	sure to write byte-compiled versions of gnus-*-format-alist to
-	.newsrc.eld.  From Simon Josefsson.
+	.newsrc.eld.
 
-2002-06-16  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-16  Bj,Ax(Brn Mork  <bmork@dod.no>
 
 	* gnus-agent.el (gnus-agent-read-servers)
 	(gnus-agent-write-servers): Put server name (string like
 	"nnchoke:frumple") in the file instead of a server specification
 	(Lisp expression like (nnchoke "frumple" ...parameters...)).
-	From Bj,Ax(Brn Mork <bmork@dod.no>.
 
-2002-06-16  Simon Josefsson  <jas@extundo.com>
+2002-06-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-cache.el (gnus-cache-remove-article): n is &optional.  From
-	Reiner Steib <4uce.02.r.steib@gmx.net>.
+	* gnus-cache.el (gnus-cache-remove-article): n is &optional.
 
 2002-06-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -8800,8 +8794,10 @@
 	* gnus-int.el (gnus-request-move-article): Agent expire article if
 	successfuly moved.
 
+2002-06-11  Niklas Morberg  <niklas.morberg@axis.com>
+
 	* nnweb.el (nnweb-google-create-mapping): Honors the value of
-	nnweb-max-hits.  From Niklas Morberg <niklas.morberg@axis.com>.
+	nnweb-max-hits.
 
 2002-06-10  Simon Josefsson  <jas@extundo.com>
 
@@ -8850,11 +8846,10 @@
 	* nnmail.el (nnmail-mail-splitting-decodes): New variable.
 	(nnmail-article-group): Use it.
 
-2002-05-30  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-05-30  Jesper Harder  <harder@ifa.au.dk>
 
 	* gnus-msg.el (gnus-inews-yank-articles): Merge split header lines
-	so that code reading them won't be surprised.  From Jesper Harder
-	<harder@ifa.au.dk>.
+	so that code reading them won't be surprised.
 
 2002-05-29  Simon Josefsson  <jas@extundo.com>
 
@@ -8871,11 +8866,10 @@
 
 	* gnus-group.el (gnus-group-line-format): Doc fix.
 
-2002-05-28  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-05-28  Jesper Harder  <harder@ifa.au.dk>
 
 	* gnus-msg.el (gnus-inews-yank-articles): Unfold headers of
-	original article before yanking.  From Jesper Harder
-	<harder@ifa.au.dk>.
+	original article before yanking.
 
 2002-05-26  Simon Josefsson  <jas@extundo.com>
 
@@ -8901,22 +8895,23 @@
 	(gnus-summary-prepare-threads): Avoid simplifying every Subject
 	twice by saving the simplified subject string in simp-subject.
 
-2002-05-23  Simon Josefsson  <jas@extundo.com>
+2002-05-23  Benjamin Rutt  <rutt+news@cis.ohio-state.edu>  (tiny change)
 
-	* gnus-msg.el (gnus-confirm-mail-reply-to-news): Typo.  Trivial
-	change from Benjamin Rutt <rutt+news@cis.ohio-state.edu>.
+	* gnus-msg.el (gnus-confirm-mail-reply-to-news): Typo.
 
-	* nnweb.el (nnweb-type): Remove dejanewsold.  Trivial change from
-	Niklas Morberg <niklas.morberg@axis.com>.
+2002-05-23  Niklas Morberg  <niklas.morberg@axis.com>  (tiny change)
+
+	* nnweb.el (nnweb-type): Remove dejanewsold.
 
 2002-05-22  Simon Josefsson  <jas@extundo.com>
 
 	* sieve.el (sieve-change-region): Define it before it is used.
 
+2002-05-22  Benjamin Rutt  <rutt+news@cis.ohio-state.edu>
+
 	* gnus-msg.el (gnus-confirm-mail-reply-to-news)
 	(gnus-summary-reply): Ask for confirmation when replying to news.
-	Defaults to not ask.  From Benjamin Rutt
-	<rutt+news@cis.ohio-state.edu>.
+	Defaults to not ask.
 
 	* nnimap.el (nnimap-nov-is-evil): Improve doc.
 
@@ -8971,10 +8966,13 @@
 	* nnmail.el (nnmail-cache-insert): Change group to required,
 	removed code which tried to figure out the group.
 
-2002-05-13  Josh Huber  <huber@alum.wpi.edu>
+2002-05-13  Hans de Graaff  <hans@degraaff.org>
 
 	* mml.el (mml-generate-mime-1): Fix mml generation for signed only
-	messages. From Hans de Graaff <hans@degraaff.org>.
+	messages.
+
+2002-05-13  Josh Huber  <huber@alum.wpi.edu>
+
 	* nnml.el (nnml-request-accept-article): Pass in the group name to
 	nnmail-cache-insert, since it's available.
 
@@ -8982,8 +8980,7 @@
 
 	* nndoc.el (nndoc-mime-digest-type-p): Set proper file-end.
 
-2002-05-08  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
-	From Florian Weimer <fw@deneb.enyo.de>.
+2002-05-08  Florian Weimer  <fw@deneb.enyo.de>
 
 	* gnus.el (subscribed): New group parameter.
 	(gnus-find-subscribed-addresses): Use it.
@@ -9003,16 +9000,15 @@
 	parenthesis for "<" and ">".  Suggested by Andreas Schwab
 	<schwab@suse.de>.
 
-2002-05-07  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-05-07  Josh Huber  <huber@alum.wpi.edu>
 
 	* nnmail.el (nnmail-cache-insert): Prefer group-art over group
-	when intuiting the group the message is written to.  From Josh
-	Huber <huber@alum.wpi.edu>.
+	when intuiting the group the message is written to.
 
-2002-05-06  Simon Josefsson  <jas@extundo.com>
+2002-05-06  Matt Armstrong  <matt@lickey.com>
 
 	* gnus-topic.el (gnus-group-topic-parameters): Work when group
-	buffer doesn't show group.  From Matt Armstrong <matt@lickey.com>.
+	buffer doesn't show group.
 
 2002-05-06  Josh Huber  <huber@alum.wpi.edu>
 
@@ -9169,8 +9165,7 @@
 
 	* gnus-art.el (article-unsplit-urls): Allow trailing SPC.
 
-2002-04-24  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
-	From Dan Christensen <jdc+news@uwo.ca>.
+2002-04-24  Dan Christensen  <jdc+news@uwo.ca>
 
 	* nndoc.el (nndoc-type-alist, nndoc-lanl-gov-announce-type-p)
 	(nndoc-transform-lanl-gov-announce, nndoc-generate-lanl-gov-head):
@@ -9192,11 +9187,10 @@
 	(gnus-netrc-get, gnus-netrc-machine, gnus-parse-netrc): Aliased to
 	new code in netrc.el.
 
-2002-04-23  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-04-23  Matthieu Moy  <Matthieu.Moy@imag.fr>
 
 	* gnus-msg.el (gnus-summary-resend-message-edit): Remove
-	message-ignored-resent-headers, too.  From Matthieu Moy
-	<Matthieu.Moy@imag.fr>.
+	message-ignored-resent-headers, too.
 
 2002-04-22  Bj,Av(Brn Torkelsson  <torkel@acc.umu.se>
 
@@ -9261,8 +9255,7 @@
 	* message.el (message-gen-unsubscribed-mft): accept a prefix
 	argument so CC can be included with C-u C-c C-f C-a
 
-2002-04-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
-	From Ted Zlatanov <teodor.zlatanov@divine.com>.
+2002-04-17  Ted Zlatanov  <teodor.zlatanov@divine.com>
 
 	* spam.el (spam-whitelist, spam-blacklist, spam-enter-whitelist):
 	Improve docstring.
@@ -9299,11 +9292,10 @@
 	* nnml.el (nnml-save-nov, nnml-generate-nov-file):
 	* pop3.el (pop3-md5): Don't hardcode point-min == 1.
 
-2002-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+2002-04-12  Daiki Ueno  <ueno@unixuser.org>
 
 	* gnus-srvr.el (gnus-server-set-info): Clear
 	`gnus-server-method-cache' when `gnus-server-alist' is changed.
-	From Daiki Ueno <ueno@unixuser.org>.
 
 2002-04-11  Simon Josefsson  <jas@extundo.com>
 
@@ -9457,20 +9449,18 @@
 
 	* message.el (message-mode): Fix doc.
 
-2002-03-25  Simon Josefsson  <jas@extundo.com>
+2002-03-25  Matthieu Moy  <Matthieu.Moy@imag.fr>
 
-	* message.el (message-subject-re-regexp): Skip Re[42]: junk.  From
-	Matthieu Moy <Matthieu.Moy@imag.fr>.
+	* message.el (message-subject-re-regexp): Skip Re[42]: junk.
 
 2002-03-24  Jesper Harder  <harder@ifa.au.dk>
 
 	* mml-sec.el (mml-unsecure-message): Add docstring.
 
-2002-03-23  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2002-03-23  Andre Srinivasan  <andre@slamdunknetworks.com>  (tiny change)
 
 	* nnmail.el (nnmail-large-newsgroup): Fix doc, allow non-numeric
 	value.
-	Trivial change from andre@slamdunknetworks.com
 
 2002-03-22  Josh Huber  <huber@alum.wpi.edu>
 
@@ -9567,13 +9557,12 @@
 	* nnslashdot.el (nnslashdot-request-article): Remove javascript
 	too.
 
-2002-03-09  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2002-03-09  Andre Srinivasan  <andre@slamdunknetworks.com>  (tiny change)
 
 	* gnus-sum.el (gnus-summary-save-parts-default-mime): Remove
 	duplication.
 	(gnus-summary-save-parts-type-history): Ditto.
 	(gnus-summary-save-parts-last-directory): Ditto.
-	Trivial change from andre@slamdunknetworks.com
 
 2002-03-09  Paul Jarc  <prj@po.cwru.edu>
 
@@ -9786,17 +9775,19 @@
 
 	* gnus-art.el (gnus-article-edit-done): Widen the buffer.
 
+	* message.el (message-send-mail): Be talkative.
+
+2002-02-20  TSUCHIYA Masatoshi  <tsuchiya@pine.kuee.kyoto-u.ac.jp>
+
 	* gnus-group.el (gnus-group-name-decode): Don't test
 	multibyte-string, because it breaks XEmacs.
-	From: TSUCHIYA Masatoshi <tsuchiya@pine.kuee.kyoto-u.ac.jp>
 
-	* message.el (message-send-mail): Be talkative.
+2002-02-20  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-decode.el (mm-inlined-types): Add application/x-emacs-lisp.
 	(mm-automatic-display): Ditto.
 
 	* mailcap.el (mailcap-mime-data): Ditto.
-	From: Reiner Steib <4uce.02.r.steib@gmx.net>
 
 2002-02-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -9838,10 +9829,10 @@
 
 	* nnultimate.el (nnultimate-retrieve-headers): Clean up.
 
-2002-02-18  Paul Jarc  <prj@po.cwru.edu>
+2002-02-18  Mark Thomas  <mthomas@cmu.edu>
 
 	* gnus-util.el (gnus-parent-id): Ignore trailing whitespace in the
-	References header field.  From Mark Thomas <mthomas@cmu.edu>.
+	References header field.
 
 2002-02-18  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -9955,8 +9946,9 @@
 
 	* message-utils.el: Adopt the file.
 
+2002-02-15  Holger Schauer  <Holger.Schauer@gmx.de>
+
 	* message-utils.el: New file.
-	From Holger Schauer <Holger.Schauer@gmx.de>
 
 2002-02-14  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -10064,9 +10056,6 @@
 	gnus-decoration property.
 	* gnus-msg.el (gnus-copy-article-buffer): Remove gnus-decoration.
 
-	* message.el (message-mode): Set local-abbrev-table.
-	From Matt Armstrong <matt@lickey.com>.
-
 	* gnus-art.el (gnus-article-treat-unfold-headers): Don't remove
 	too many spaces.
 
@@ -10074,8 +10063,13 @@
 	(rfc2047-decode-region): Don't unfold. Let
 	gnus-article-treat-unfold-headers do it.
 
+2002-02-07  Matt Armstrong  <matt@lickey.com>.
+
+	* message.el (message-mode): Set local-abbrev-table.
+
+2002-02-07  Jesper Harder  <harder@ifa.au.dk>
+
 	* gnus-sum.el (gnus-dependencies-add-header): Fix typo.
-	From: Jesper Harder <harder@ifa.au.dk>
 
 2002-02-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -10102,16 +10096,18 @@
 
 	* nnweb.el (nnweb-google-parse-1): Use a correct format of date.
 
-	* gnus-agent.el (gnus-agent-summary-make-menu-bar): Fix typo.
-	From Stefan Reich,Av(Br <xsteve@riic.at>.
-
 	* nnagent.el (nnagent-request-expire-articles): Don't delete
 	files.
 
-2002-02-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2002-02-06  Stefan Reich,Av(Br  <xsteve@riic.at>
+
+	* gnus-agent.el (gnus-agent-summary-make-menu-bar): Fix typo.
+
+2002-02-05  Sriram Karra  <karra@cs.utah.edu>
 
 	* message.el (message-gen-unsubscribed-mft): New function.
-	From Sriram Karra <karra@cs.utah.edu>.
+
+2002-02-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus.el (gnus-article-unpropagated-mark-lists): Backslash the
 	open parenthesis.
@@ -10153,17 +10149,17 @@
 	* gnus-art.el (gnus-treatment-function-alist): Move hide-citation,
 	highlight-citation after emphasize.
 
-2002-02-04  Simon Josefsson  <jas@extundo.com>
+2002-02-04  David Edmondson  <dme@sun.com>
 
-	* nnfolder.el (nnfolder-open-marks):
+	* nnfolder.el (nnfolder-open-marks): Message when done.
 
-	* nnml.el (nnml-open-marks): Message when done.  From David
-	Edmondson <dme@sun.com>.
+	* nnml.el (nnml-open-marks): Ditto.
 
-2002-02-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2002-02-03  Steinar Bang  <sb@dod.no>
 
 	* imap.el (imap-anonymous-auth): Fix typo.
-	From: Steinar Bang <sb@dod.no>
+
+2002-02-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-cache.el (gnus-cache-braid-nov): Use set-buffer instead of
 	save-excursion.
@@ -10217,13 +10213,14 @@
 
 	* gnus.el (gnus-agent): Make it customizable.
 
-	* gnus-dired.el: New file.
-	From Benjamin Rutt <brutt@bloomington.in.us>
-
 	* gnus-cache.el (gnus-cache-articles-in-group): Remove from active
 	if no article.
 	(gnus-cache-possibly-remove-article): Ditto.
 	(gnus-cache-possibly-enter-article): Use gnus-add-to-sorted-list.
+
+2002-02-02  Benjamin Rutt  <brutt@bloomington.in.us>
+
+	* gnus-dired.el: New file.
 
 2002-02-01  Simon Josefsson  <jas@extundo.com>
 
@@ -10959,8 +10956,9 @@
 	* message.el (message-newline-and-reformat): Use `newline' instead
 	of inserting \n, so that the newline is marked as hard.
 
+2002-01-13  Jesper Harder  <harder@ifa.au.dk>
+
 	* gnus-spec.el (gnus-pad-form): Don't evaluate EL multiple times.
-	From Jesper Harder <harder@ifa.au.dk>.
 
 2002-01-12  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -13690,8 +13688,7 @@
 	* gnus-agent.el (gnus-agent-fetch-group): If online, actually
 	fetch group.
 
-2001-09-08  Simon Josefsson  <jas@extundo.com>
-	From Daniel Pittman <daniel@rimspace.net>
+2001-09-08  Daniel Pittman  <daniel@rimspace.net>
 
 	* gnus-spec.el (gnus-correct-pad-form): New function.
 	(gnus-parse-simple-format): Use it.
@@ -13725,10 +13722,9 @@
 	* gnus-sum.el (gnus-summary-toggle-smiley): New function. Toggles
 	display of graphical smilies.
 
-2001-09-07 02:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2001-09-07 02:00:00  Bill White  <billw@wolfram.com>
 
 	* gnus-start.el (gnus-setup-news): A typo.
-	From Bill White <billw@wolfram.com>.
 
 2001-09-06  Simon Josefsson  <jas@extundo.com>
 
@@ -13839,8 +13835,7 @@
 	* nnfolder.el (nnfolder-save-marks): Don't create directory named
 	after group in ~/.
 
-2001-08-25  Simon Josefsson  <jas@extundo.com>
-	From Andreas Jaeger  <aj@suse.de>
+2001-08-25  Andreas Jaeger  <aj@suse.de>
 
 	* nnfolder.el (nnfolder-open-marks): Fix typo.
 	* nnml.el (nnml-open-marks): Likewise.
@@ -13894,11 +13889,12 @@
 
 	* mml.el (mml-generate-mime-1): Force as multibyte string.
 
-2001-08-24 12:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2001-08-24 12:00:00  Martin Kretzschmar  <Martin.Kretzschmar@inf.tu-dresden.de>
 
 	* gnus-sum.el (gnus-summary-insert-line)
 	(gnus-summary-prepare-threads): gnus-tmp-lines should be a string.
-	From Martin Kretzschmar <Martin.Kretzschmar@inf.tu-dresden.de>
+
+2001-08-24 12:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-spec.el (gnus-correct-substring): Take optional END.
 
@@ -13920,8 +13916,7 @@
 	* gnus-util.el (gnus-create-info-command): Return an interactive
 	function.
 
-2001-08-23 19:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Katsumi Yamaoka <yamaoka@jpl.org>
+2001-08-23 19:00:00  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-spec.el (gnus-parse-complex-format): Use equal.
 
@@ -14075,8 +14070,7 @@
 
 	* gnus.el (gnus-server-visual): Add defgroup.
 
-2001-08-19  Simon Josefsson  <jas@extundo.com>
-	From Joe Casadonte <jcasadonte@northbound-train.com>
+2001-08-19  Joe Casadonte  <jcasadonte@northbound-train.com>
 
 	* gnus-srvr.el (gnus-server-opened-face, gnus-server-closed-face,
 	gnus-server-denied-face): New.
@@ -14236,8 +14230,7 @@
 	* gnus-delay.el (gnus-delay-article): Allow "01:23" time spec,
 	which specifies a time today or tomorrow.
 
-2001-08-15  Simon Josefsson  <jas@extundo.com>
-	From Pavel@Janik.cz (Pavel Jan,Am(Bk)
+2001-08-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* gnus-agent.el (gnus-agent-make-mode-line-string)
 	(gnus-agent-toggle-plugged): Use new API.
@@ -14283,7 +14276,6 @@
 	* gnus-spec.el (gnus-format-specs): %n is 23 chars.
 
 2001-08-11 09:40:00  Karl Kleinpaste  <karl@charcoal.com>
-	Committed by Kai Gro,b_(Bjohann.
 
 	* gnus-score.el (gnus-score-string): Fix `match' regexp
 	for `extra' header case.
@@ -14364,22 +14356,22 @@
 	* imap.el (imap-gssapi-auth-p, imap-kerberos4-auth-p): Also check
 	whether `imtest' is installed.
 
-2001-08-04  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	Trivial patch from Nuutti Kotivuori  <nuutti.kotivuori@smarttrust.com>
+2001-08-04  Nuutti Kotivuori  <nuutti.kotivuori@smarttrust.com>
 
 	* gnus-sum.el (gnus-summary-show-article): Call
 	gnus-summary-update-secondary-secondary-mark.
 	* gnus-sum.el (gnus-summary-edit-article-done): Ditto.
 	* gnus-sum.el (gnus-summary-reparent-thread): Ditto.
 
+2001-08-07 16:00:00  Gerd M,Av(Bllmann  <gerd@gnu.org>
+
+	* mm-uu.el (mm-uu-dissect): Autoload.
+
 2001-08-07 16:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-sum.el (gnus-summary-make-menu-bar): Misc -> Gnus.
 
 	* gnus-group.el (gnus-group-make-menu-bar): Ditto.
-
-	* mm-uu.el (mm-uu-dissect): Autoload. From Gerd M,Av(Bllmann
-	<gerd@gnu.org>.
 
 	* gnus-art.el (gnus-output-to-file): Bind file-name-coding-system.
 
@@ -14502,8 +14494,7 @@
 	(mm-pkcs7-enveloped-magic): Ditto.
 	(mm-view-pkcs7-get-type): Don't regexp quote.
 
-2001-08-01 14:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Andreas Fuchs <asf@void.at>
+2001-08-01 14:00:00  Andreas Fuchs  <asf@void.at>
 
 	* mml2015.el (mml2015-trust-boundaries-alist): Typo.
 
@@ -14598,13 +14589,11 @@
 	(smime-dns-server): Fix customize group.
 	(smime-call-openssl-region): Use `smime-extra-arguments'.
 
-2001-07-29  Simon Josefsson  <jas@extundo.com>
-	From Vladimir Volovich <vvv@vsu.ru>
+2001-07-29  Vladimir Volovich  <vvv@vsu.ru>
 
 	* smime.el (smime-call-openssl-region): Ignore stderr.
 
-2001-07-29  Simon Josefsson  <jas@extundo.com>
-	From Christoph Conrad <christoph.conrad@gmx.de>
+2001-07-29  Christoph Conrad  <christoph.conrad@gmx.de>
 
 	* gnus-agent.el (gnus-agent-save-group-info): Don't destroy active
 	file.
@@ -14725,8 +14714,7 @@
 
 	* nnimap.el (nnimap-version): Bump version number.
 
-2001-07-26 10:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Steven E. Harris <seh@speakeasy.org>
+2001-07-26 10:00:00  Steven E. Harris  <seh@speakeasy.org>
 
 	* nnheader.el (nnheader-translate-file-chars): cygwin32 is running
 	in M$Windows too.
@@ -14748,8 +14736,7 @@
 	* gnus-sum.el (gnus-summary-prepare-threads): Shouldn't do tree
 	display (%B) for threads if threading is off.
 
-2001-07-25 14:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Henrik Enberg <henrik@enberg.org>
+2001-07-25 14:00:00  Henrik Enberg  <henrik@enberg.org>
 
 	* gnus-msg.el: Customization patch.
 
@@ -14819,8 +14806,7 @@
 	* gnus-delay.el (gnus-delay-default-hour): New variable.
 	(gnus-delay-article): Allow specific date in YYYY-MM-DD format.
 
-2001-07-23 22:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Karl Kleinpaste <karl@charcoal.com>
+2001-07-23 22:00:00  Karl Kleinpaste  <karl@charcoal.com>
 
 	* gnus-sum.el (gnus-summary-line-format-alist): Add %B.
 	(gnus-summary-prepare-threads): Ditto.
@@ -14977,11 +14963,11 @@
 	* nnrss.el (nnrss-read-group-data): Nuke emacs-lisp-mode-hook.
 	(nnrss-read-server-data): Ditto.
 
-2001-07-13 12:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2001-07-13 12:00:00  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* gnus-setup.el (gnus-use-installed-gnus): Typo.
 	* Cleanup files.
-	From Pavel@Janik.cz (Pavel Jan,Am(Bk).
+
 
 2001-07-13 08:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -15104,8 +15090,7 @@
 	* nntp.el (nntp-send-command, nntp-send-command-nodelete):
 	(nntp-send-command-and-decode): Use gnus-point-at-bol.
 
-2001-07-09 13:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From  Paul Jarc <prj@po.cwru.edu>
+2001-07-09 13:00:00  Paul Jarc  <prj@po.cwru.edu>
 
 	* message.el (message-use-mail-followup-to): New variable.
 	(message-get-reply-headers): Use it.
@@ -15193,8 +15178,7 @@
 	* gnus-start.el (gnus-check-first-time-used): Use `if' instead of
 	`when'.
 
-2001-07-03  Simon Josefsson  <jas@extundo.com>
-	From Nuutti Kotivuori <nuutti.kotivuori@smarttrust.com>
+2001-07-03  Nuutti Kotivuori  <nuutti.kotivuori@smarttrust.com>
 
 	* flow-fill.el (fill-flowed): Use (1+ (point-at-eol)) instead.
 
@@ -15242,8 +15226,7 @@
 	(rfc2047-encode-message-header): Fold lines even if
 	no QP encoding is done.
 
-2001-06-23  Simon Josefsson  <jas@extundo.com>
-	From Samuel Tardieu <sam@inf.enst.fr>
+2001-06-23  Samuel Tardieu  <sam@inf.enst.fr>
 
 	* smime.el (smime-keys): Support additional certificates.
 	(smime-make-certfiles): New function.
@@ -15277,8 +15260,7 @@
 
 	* message.el (message-goto-body): Return nil if not found. (revert!)
 
-2001-06-21 10:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Fremlin <chief@bandits.org>
+2001-06-21 10:00:00  John Fremlin  <chief@bandits.org>  (tiny change)
 
 	* message.el (message-goto-body): Some messages have no header.
 
@@ -15387,17 +15369,20 @@
 
 	* nnrss.el (nnrss-group-alist): Use |fr| instead of [fr].
 
-2001-06-12 11:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2001-06-12 11:00:00  Marc Lefranc  <Marc.Lefranc@univ-lille1.fr>
 
 	* gnus-art.el (gnus-plain-save-name): Use file-relative-name.
-	From Marc Lefranc <Marc.Lefranc@univ-lille1.fr>.
+
+2001-06-12 11:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnrss.el (nnrss-node-text): Node might be nil.
 
-2001-06-11 10:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2001-06-11 10:00:00  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-uu.el (gnus-uu-save-article): Use mml tag instead of
-	part. From Katsumi Yamaoka <yamaoka@jpl.org>.
+	part.
+
+2001-06-11 10:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* nnrss.el (nnrss-group-alist): More items.
 
@@ -15411,14 +15396,11 @@
 	* gnus-mlspl.el (gnus-group-split-fancy): Fix generation of split
 	restrict clauses.
 
-2001-06-07 16:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	From Benjamin Rutt <brutt+news@bloomington.in.us>
+2001-06-07 16:00:00  Benjamin Rutt  <brutt+news@bloomington.in.us>
 
 	* message.el (message-wide-reply-confirm-recipients): New variable.
 
-2001-06-06  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	Trivial patch from Mark Thomas  <mthomas@edrc.cmu.edu>
+2001-06-06  Mark Thomas  <mthomas@edrc.cmu.edu>  (tiny change)
 
 	* nnmail.el (nnmail-fix-eudora-headers): Change the In-Reply-To
 	fix so it works with XEmacs.
@@ -15432,10 +15414,10 @@
 
 	* nnrss.el: Fix a few bugs.
 
-2001-06-05  Simon Josefsson  <jas@extundo.com>
+2001-06-05  Alex Schroeder  <alex@gnu.org>
 
 	* mm-decode.el (mm-handle-set-external-undisplayer): Don't
-	generate compiler warnings.  From Alex Schroeder <alex@gnu.org>.
+	generate compiler warnings.
 
 2001-06-04  Hrvoje Niksic  <hniksic@arsdigita.com>
 
@@ -15474,20 +15456,17 @@
 	it is not possible to insert a character after a glyph which is at
 	the end of a buffer.  Patch by Lloyd Zusman <ljz@asfast.com>.
 
-2001-05-28  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
-
-	From Jaap-Henk Hoepman (jhh@xs4all.nl).
+2001-05-28  Jaap-Henk Hoepman  <jhh@xs4all.nl>
 
 	* mm-decode.el (mm-keep-viewer-alive-types): New variable.
 	(mm-keep-viewer-alive-p, mm-handle-set-external-undisplayer,
 	mm-destroy-postponed-undisplay-list): New functions.
 	(mm-display-external): Use them.
 
-2001-05-27  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2001-05-27  Raja R. Harinath  <harinath@cs.umn.edu>
 
 	* gnus-salt.el (gnus-tree-highlight-node): Bind `default-high' and
 	`default-low' when evaluating `gnus-summary-highlight'.
-	From Raja R Harinath <harinath@cs.umn.edu>.
 
 2001-05-27  Simon Josefsson  <simon@josefsson.org>
 
@@ -15498,8 +15477,7 @@
 	as details.
 	(mml2015-mailcrypt-clear-verify): Ditto.
 
-2001-05-24  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
-	From Nevin Kapur <nevin@jhu.edu>.
+2001-05-24  Nevin Kapur  <nevin@jhu.edu>
 
 	* gnus-sum.el (gnus-summary-default-high-score,
 	gnus-summary-default-low-score): New variables.
@@ -15510,8 +15488,7 @@
 	* message.el (message-mail): pass the 'send-actions argument to
 	`message-setup'.
 
-2001-05-16  Simon Josefsson  <simon@josefsson.org>
-	From Raymond Scholz <ray-2001@zonix.de>
+2001-05-16  Raymond Scholz  <ray-2001@zonix.de>
 
 	* gnus-art.el (gnus-mime-view-part-as-charset):
 	(gnus-mime-internalize-part): Doc fixes.
@@ -15647,7 +15624,6 @@
 	(smime-decrypt-region): Ditto.
 
 2001-04-12  Jason Merrill  <jason_merrill@redhat.com>
-	Committed by Simon Josefsson  <simon@josefsson.org>
 
 	* imap.el (imap-shell-open): Erase the buffer *after* copying it into
 	the log.
@@ -15680,13 +15656,11 @@
 
 	* nnmail.el (nnmail-split-fancy-with-parent): Add docstring.
 
-2001-04-12 19:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Jason Merrill <jason_merrill@redhat.com>
+2001-04-12 19:00:00  Jason Merrill  <jason_merrill@redhat.com>
 
 	* gnus-sum.el (gnus-summary-insert-new-articles): Reverse the articles.
 
 2001-04-10 08:01:15  Katsumi Yamaoka  <yamaoka@jpl.org>
-	Committed by ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-msg.el (gnus-post-news): Fill the Newsgroups header by the
 	newsgroup names when the original article is a news message.
@@ -15697,7 +15671,6 @@
 	supported. Suggest by Jim Meyering <jim@meyering.net>.
 
 2001-04-02  Nevin Kapur  <nevin@jhu.edu>
-	Committed by Kai Gro,b_(Bjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>.
 
 	* nnmail.el (nnmail-split-it): Added check for .* at the end of
 	regexp in nnmail-split-fancy.
@@ -15765,13 +15738,11 @@
 	* qp.el (quoted-printable-decode-region): Just message
 	malformation; don't quit.
 
-2001-03-31 21:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Gerd Moellmann <gerd@gnu.org>.
+2001-03-31 21:00:00  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus.el (gnus-interactive): A typo.
 
 2001-03-26  Juanma Barranquero  <lektu@uol.com.br>
-	Committed by ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-util.el (gnus-delete-alist): Declare it as an alias of
 	`assq-delete-all', if that function exists; otherwise use the old
@@ -15889,8 +15860,7 @@
 
 	* mml2015.el (mml2015-gpg-extract-from): No error.
 
-2001-03-18 23:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Bj,Ax(Brn Mork <bmork@dod.no>.
+2001-03-18 23:00:00  Bj,Ax(Brn Mork  <bmork@dod.no>
 
 	* mml2015.el (mml2015-gpg-extract-from): New function.
 	(mml2015-gpg-verify): Use it.
@@ -15932,8 +15902,7 @@
 	* mailcap.el (mailcap-mime-data): Add application/sieve.
 	(mailcap-mime-extensions): Add .siv, .xls.
 
-2001-03-14 20:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Christoph Conrad <christoph.conrad@gmx.de>
+2001-03-14 20:00:00  Christoph Conrad  <christoph.conrad@gmx.de>
 
 	* gnus-score.el (gnus-summary-lower-thread): Typo.
 
@@ -15978,7 +15947,6 @@
 	* nnrss.el: New file.
 
 2001-03-08 02:41:36  Katsumi Yamaoka  <yamaoka@jpl.org>
-	Committed by ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* rfc2047.el (rfc2047-unfold-region): Fix arg of
 	`skip-chars-forward'.
@@ -16002,9 +15970,10 @@
 	directory part.
 	(gnus-score-search-global-directories): Use file-directory-p.
 
+2001-03-06 13:00:00  Adrian Aichner  <adrian@xemacs.org>
+
 	* gnus-score.el (gnus-score-score-files-1): Use
 	gnus-kill-files-directory.
-	From Adrian Aichner <adrian@xemacs.org>.
 
 2001-03-05 08:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -16029,8 +15998,7 @@
 
 	* gnus-sum.el (gnus-summary-limit-include-expunged): Fix.
 
-2001-03-01 22:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Katsumi Yamaoka <yamaoka@jpl.org>.
+2001-03-01 22:00:00  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* dgnushack.el (coerce, merge, subseq): defmacro.
 
@@ -16041,7 +16009,6 @@
 	uncompiled versions.
 
 2001-02-26 11:27:27  Paul Jarc  <prj@po.cwru.edu>
-	Committed by ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-util.el (gnus-split-references): Handle malformed References:.
 
@@ -16049,8 +16016,7 @@
 
 	* gnus-art.el (gnus-article-mime-part-status): 1 part.
 
-2001-02-25 10:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From NAGY Andras <nagya@inf.elte.hu>.
+2001-02-25 10:00:00  NAGY Andras  <nagya@inf.elte.hu>
 
 	* gnus.el (gnus-parameters): Typo.
 
@@ -16158,13 +16124,11 @@
 	(gnus-article-sort-functions): Doc fix.  Refer to
 	gnus-thread-sort-functions.
 
-2001-02-18 20:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	From Paul Jarc <prj@po.cwru.edu>.
+2001-02-18 20:00:00  Paul Jarc  <prj@po.cwru.edu>
 
 	* message.el (message-get-reply-headers): More fixes.
 
 2001-02-17  Paul Jarc  <prj@po.cwru.edu>
-	Committed by ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* message.el (message-get-reply-headers): Fix bug with
 	Mail-Followup-To/to-address interaction.
@@ -16209,7 +16173,6 @@
 	(nnml-request-regenerate): Use it. Change to deffoo.
 
 2001-02-14  Katsumi Yamaoka  <yamaoka@jpl.org>
-	Committed by ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus.el (gnus-define-group-parameter): Fix.
 
