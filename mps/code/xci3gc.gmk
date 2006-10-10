@@ -19,17 +19,6 @@ include gc.gmk
 
 CC = cc
 
-# Suppress some warnings (last checked in DP3).
-#   .cabs: -Wstrict-prototypes cannot be used because the math.h header has a
-#   traditional declaration of cabs.
-#   .sputc: -Wno-unused is needed, because stdio.h declares __sputc as an
-#   inline function.
-#   .types: sys/types.h uses 'long long' even under -ansi.
-CFLAGSCOMPILER := $(subst -Wstrict-prototypes,,$(CFLAGSCOMPILER)) \
-                  -Wno-unused -Wno-long-long -no-cpp-precomp
-CFLAGSDEBUG := $(subst -g -ggdb3,-g3,$(CFLAGSDEBUG))
-CFLAGSOPT := $(subst -g -ggdb3,-g3,$(CFLAGSOPT))
-
 include comm.gmk
 
 
