@@ -1,3 +1,7 @@
+2006-10-11  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.texi (Acknowledgments): Use @dotless{i}.
+
 2006-10-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Breakpoints Buffer): Mention catchpoints.
