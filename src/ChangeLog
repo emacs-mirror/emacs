@@ -1,3 +1,8 @@
+2006-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (temp_echo_area_glyphs): Sit for
+	`minibuffer-message-timeout' seconds.
+
 2006-10-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_draw_image_string, mac_draw_image_string_16): Add

@@ -2692,6 +2692,8 @@ If no minibuffer is active, return nil.  */)
    that has no possible completions, and other quick, unobtrusive
    messages.  */
 
+extern Lisp_Object Vminibuffer_message_timeout;
+
 void
 temp_echo_area_glyphs (string)
      Lisp_Object string;
@@ -2710,7 +2712,15 @@ temp_echo_area_glyphs (string)
   insert_from_string (string, 0, 0, SCHARS (string), SBYTES (string), 0);
   SET_PT_BOTH (opoint, opoint_byte);
   Vinhibit_quit = Qt;
-  sit_for (make_number (2), 0, 2);
+
+  if (NUMBERP (Vminibuffer_message_timeout))
+    {
+      if (Fgtr (Vminibuffer_message_timeout, make_number (0)))
+	sit_for (Vminibuffer_message_timeout, 0, 2);
+    }
+  else
+    sit_for (make_number (-1), 0, 2);
+
   del_range_both (osize, osize_byte, ZV, ZV_BYTE, 1);
   SET_PT_BOTH (opoint, opoint_byte);
   if (!NILP (Vquit_flag))
