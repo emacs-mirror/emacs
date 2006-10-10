@@ -1,3 +1,9 @@
+2006-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-valid-prefix-p): Make the check
+	more thorough.  From an idea by Martin Rudalics <rudalics@gmx.at>.
+	(comment-indent-new-line): Adjust call.
+
 2006-10-09  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-back-to-current-heading): Base on lower-level
