@@ -1,5 +1,11 @@
 2006-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* eval.c: Include xterm.h for x_fully_uncatch_errors and friends.
+
+	* dispextern.h: Declare x_create_bitmap_from_xpm_data.
+
+	* xterm.c (x_check_expected_move): Remove unused var `count'.
+
 	* xmenu.c (syms_of_xmenu): Use Ffset rather than Fdefalias, since
 	Fdefalias is not declared in any *.h file.
 
@@ -1540,7 +1546,7 @@
 	(x_set_offset, x_check_fullscreen): Extensive changes to make
 	frame positioning deterministic under X.
 
-	* xterm.h (x_output): Added members left_before_move and
+	* xterm.h (x_output): Add members left_before_move and
 	top_before_move.  Removed members expected_left and expected_top.
 
 2006-06-16  Kim F. Storm  <storm@cua.dk>
