@@ -48,6 +48,14 @@ workarounds to get a clean compile.  These workarounds have now been
 removed from master sources.  RHSK.
 See <http://www.ravenbrook.com/project/mps/issue/job000602/>
 
+2006-10-10
+Intel Macs.  It's now possible to use xci3gc.gmk to build on Intel
+architectures, but not all targets build properly yet.  EG:
+make -f xci3gc.gmk amcss
+works fine, but
+make -f xci3gc.gmk
+fails when linking libcbt
+
 
 3. WINDOWS
 
