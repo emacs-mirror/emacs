@@ -8340,7 +8340,7 @@ x_check_expected_move (f, expected_left, expected_top)
      int expected_left;
      int expected_top;
 {
-  int count = 0, current_left = 0, current_top = 0;
+  int current_left = 0, current_top = 0;
 
   /* x_real_positions returns the left and top offsets of the outermost
      window manager window around the frame.  */
