@@ -2517,7 +2517,7 @@ If AND-MOVE is non-nil then move to end of word."
 	(goto-char where))
     (prog1
 	(buffer-substring (point)
-			  (progn (skip-chars-forward "^ \t\n;&")(point)))
+			  (progn (skip-chars-forward "^ \t\n;&|()")(point)))
       (unless and-move
 	(goto-char start)))))
 
