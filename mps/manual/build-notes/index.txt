@@ -50,11 +50,7 @@ See <http://www.ravenbrook.com/project/mps/issue/job000602/>
 
 2006-10-10
 Intel Macs.  It's now possible to use xci3gc.gmk to build on Intel
-architectures, but not all targets build properly yet.  EG:
-make -f xci3gc.gmk amcss
-works fine, but
-make -f xci3gc.gmk
-fails when linking libcbt
+architectures.  Protection and threads not supported.
 
 
 3. WINDOWS
@@ -74,11 +70,12 @@ A. REFERENCES
 B. DOCUMENT HISTORY
 
 2005-02-02  RHSK  Created based on mps kit readme.txt.
+2006-10-10  DRJ   Note re Intel Macs.
 
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2005 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright (C) 2005,2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved.  This is an open source license.  Contact
 Ravenbrook for commercial licensing options.
 
