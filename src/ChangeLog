@@ -1,3 +1,8 @@
+2006-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xmenu.c (syms_of_xmenu): Use Ffset rather than Fdefalias, since
+	Fdefalias is not declared in any *.h file.
+
 2006-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispnew.c (sit_for): Sit forever if TIMEOUT is t.
@@ -11,14 +16,14 @@
 
 2006-10-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macterm.c (mac_draw_image_string, mac_draw_image_string_16): Add
-	argument OVERSTRIKE_P.
+	* macterm.c (mac_draw_image_string, mac_draw_image_string_16):
+	Add argument OVERSTRIKE_P.
 	(mac_draw_string_common, mac_draw_image_string_cg): Likewise.
 	Support overstrike.
 	(mac_draw_string, mac_draw_string_16): Remove functions.
 	(x_draw_glyph_string_foreground): Use overstrike when needed.
-	(x_draw_composite_glyph_string_foreground): Likewise.  Use
-	mac_draw_image_string_16 instead of mac_draw_string_16.
+	(x_draw_composite_glyph_string_foreground): Likewise.
+	Use mac_draw_image_string_16 instead of mac_draw_string_16.
 	(mac_load_query_font): Rename from XLoadQueryFont.  Take argument F
 	instead of DPY.  All uses changed.  Don't save/restore font.
 
@@ -111,8 +116,8 @@
 
 2006-09-24  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in ($(BLD)/fns.$(O), $(BLD)/w32proc.$(O)): Depend
-	on nt/inc/langinfo.h and nt/inc/nl_types.h.
+	* makefile.w32-in ($(BLD)/fns.$(O), $(BLD)/w32proc.$(O)):
+	Depend on nt/inc/langinfo.h and nt/inc/nl_types.h.
 
 	* w32proc.c (nl_langinfo): New function.
 
@@ -294,8 +299,7 @@
 
 2006-09-15  David Kastrup  <dak@gnu.org>
 
-	* Makefile.in (keymap.o): Add "keymap.h" and "window.h"
-	dependencies.
+	* Makefile.in (keymap.o): Add "keymap.h" and "window.h" dependencies.
 
 	* keymap.c: include "window.h".
 	(Fcommand_remapping): New optional POSITION argument.
