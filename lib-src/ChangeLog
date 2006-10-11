@@ -23,7 +23,7 @@
 	
 2006-08-07  Masatake YAMATO  <jet@gyve.org>
 
-	* etags.c (TEX_mode): Check getc retruns EOF.
+	* etags.c (TEX_mode): Check getc returns EOF.
 	File ended without newline causes infinite loop.
 
 2002-07-30  Adrian Aichner  <adrian@xemacs.org>  (tiny change)
