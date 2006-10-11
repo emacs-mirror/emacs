@@ -1,3 +1,9 @@
+2006-10-11  Magnus Henoch  <mange@freemail.hu>
+
+	* url-https.el: Remove (clashes with url-http on 8+3 systems).
+
+	* url-http.el: Move contents of url-https.el here.  Add autoloads.
+
 2006-10-09  Magnus Henoch  <mange@freemail.hu>
 
 	* url-parse.el (url-generic-parse-url): Handle URLs with empty

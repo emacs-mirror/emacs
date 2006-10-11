@@ -1245,6 +1245,35 @@ p3p
     (if buffer (kill-buffer buffer))
     options))
 
+;; HTTPS.  This used to be in url-https.el, but that file collides
+;; with url-http.el on systems with 8-character file names.
+(require 'tls)
+
+;;;###autoload
+(defconst url-https-default-port 443 "Default HTTPS port.")
+;;;###autoload
+(defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
+;;;###autoload
+(defalias 'url-https-expand-file-name 'url-http-expand-file-name)
+
+(defmacro url-https-create-secure-wrapper (method args)
+  `(defun ,(intern (format (if method "url-https-%s" "url-https") method)) ,args
+    ,(format "HTTPS wrapper around `%s' call." (or method "url-http"))
+    (let ((url-gateway-method (condition-case ()
+				  (require 'ssl)
+				(error 'tls))))
+      (,(intern (format (if method "url-http-%s" "url-http") method))
+       ,@(remove '&rest (remove '&optional args))))))
+
+;;;###autoload (autoload 'url-https "url-http")
+(url-https-create-secure-wrapper nil (url callback cbargs))
+;;;###autoload (autoload 'url-https-file-exists-p "url-http")
+(url-https-create-secure-wrapper file-exists-p (url))
+;;;###autoload (autoload 'url-https-file-readable-p "url-http")
+(url-https-create-secure-wrapper file-readable-p (url))
+;;;###autoload (autoload 'url-https-file-attributes "url-http")
+(url-https-create-secure-wrapper file-attributes (url &optional id-format))
+
 (provide 'url-http)
 
 ;; arch-tag: ba7c59ae-c0f4-4a31-9617-d85f221732ee
