@@ -1873,7 +1873,7 @@ If END is omitted, it defaults to the length of LIST."
   "History of field minibuffer edits.")
 
 (defun widget-field-prompt-internal (widget prompt initial history)
-  "Read string for WIDGET promptinhg with PROMPT.
+  "Read string for WIDGET prompting with PROMPT.
 INITIAL is the initial input and HISTORY is a symbol containing
 the earlier input."
   (read-string prompt initial history))
@@ -2864,7 +2864,7 @@ The first group should be the link itself."
 
 (defcustom widget-documentation-link-p 'intern-soft
   "Predicate used to test if a string is useful as a link.
-The value should be a function.  The function will be called one
+The value should be a function.  The function will be called with one
 argument, a string, and should return non-nil if there should be a
 link for that string."
   :type 'function

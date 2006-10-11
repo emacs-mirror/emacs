@@ -1,3 +1,12 @@
+2006-10-11  Martin Rudalics <rudalics@gmx.at>
+
+	* dnd.el (dnd-handle-one-url): Fix typo in doc-string.
+	* help-at-pt.el (scan-buf-move-to-region): Likewise.
+	* longlines.el (longlines-window-change-function): Likewise.
+	* simple.el (undo-ask-before-discard): Likewise.
+	* wid-edit.el (widget-field-prompt-internal)
+	(widget-documentation-link-p): Likewise
+
 2006-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-get-kw): | is not among the allowed chars

@@ -1675,7 +1675,7 @@ is not *inside* the region START...END."
 Normally, Emacs discards the undo info for the current command if
 it exceeds `undo-outer-limit'.  But if you set this option
 non-nil, it asks in the echo area whether to discard the info.
-If you answer no, there a slight risk that Emacs might crash, so
+If you answer no, there is a slight risk that Emacs might crash, so
 only do it if you really want to undo the command.
 
 This option is mainly intended for debugging.  You have to be

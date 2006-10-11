@@ -246,7 +246,7 @@ properties, to enable buffer local values."
 (defun scan-buf-move-to-region (prop &optional arg hook)
   "Go to the start of the next region with non-nil PROP property.
 Then run HOOK, which should be a quoted symbol that is a normal
-hook.variable, or an expression evaluating to such a symbol.
+hook variable, or an expression evaluating to such a symbol.
 Adjacent areas with different non-nil PROP properties are
 considered different regions.
 
