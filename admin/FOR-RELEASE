@@ -45,6 +45,10 @@ Windows only bug.
 ** hashiz@tomba.meridiani.jp, Oct 6: bootstrap failure on FreeBSD 6.2
 Can't be reproduced on GNU/Linux.
 
+** rudalics@gmx.at, Oct 7: adaptive-fill-mode and auto-fill-mode
+
+** id.brep@gmail.com, Oct 11: Crash after setting frame-title-format.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
