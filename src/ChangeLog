@@ -1,3 +1,7 @@
+2006-10-12  Romain Francoise  <romain@orebokech.com>
+
+	* image.c (xbm_read_bitmap_data): Delete extra semicolon.
+
 2006-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c: Include xterm.h for x_fully_uncatch_errors and friends.
