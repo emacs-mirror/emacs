@@ -1,3 +1,8 @@
+2006-10-12  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (auto-mode-alist): Match change log file name also with
+	a dash before a numeric extension.
+
 2006-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cperl-mode.el: Merge from upstream, upto version 5.22.
