@@ -123,8 +123,10 @@ request.")
            ;; like authentication.  But we use another buffer afterwards.
            (unwind-protect
                (let ((proc (url-open-stream host buf host port)))
-                 ;; Drop the temp buffer link before killing the buffer.
-                 (set-process-buffer proc nil)
+		 ;; url-open-stream might return nil.
+		 (when (processp proc)
+		   ;; Drop the temp buffer link before killing the buffer.
+		   (set-process-buffer proc nil))
                  proc)
              (kill-buffer buf)))))))
 
