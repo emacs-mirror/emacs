@@ -1,3 +1,8 @@
+2006-10-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex-global.el (reftex-create-tags-file): Quote file
+	arguments.
+
 2006-10-12  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (auto-mode-alist): Match change log file name also with
