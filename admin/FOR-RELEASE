@@ -47,8 +47,6 @@ Windows only bug.
 ** hashiz@tomba.meridiani.jp, Oct 6: bootstrap failure on FreeBSD 6.2
 Can't be reproduced on GNU/Linux.
 
-** rudalics@gmx.at, Oct 7: adaptive-fill-mode and auto-fill-mode
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
