@@ -1,3 +1,7 @@
+2006-10-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>
+
+	* widget.texi: Fix typos (tiny change)
+
 2006-10-11  Kim F. Storm  <storm@cua.dk>
 
 	* emacs.texi (Acknowledgments): Use @dotless{i}.
