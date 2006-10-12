@@ -514,6 +514,9 @@ using \\[toggle-read-only]."
   :type 'boolean
   :group 'view)
 
+(defvar file-name-history nil
+  "History list of file names entered in the minibuffer.")
+
 (put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)
   "Provides support for ange-ftp host name completion.
@@ -3730,7 +3733,7 @@ This requires the external program `diff' to be in your `exec-path'."
        (recursive-edit)
        ;; Return nil to ask about BUF again.
        nil)
-     "view this file")
+     "view this buffer")
     (?d (lambda (buf)
 	  (save-window-excursion
 	    (diff-buffer-with-file buf))
@@ -3738,7 +3741,7 @@ This requires the external program `diff' to be in your `exec-path'."
 		       (lambda (ignore) (exit-recursive-edit)))
 	  (recursive-edit)
 	  nil)
-	"view changes in file"))
+	"view changes in this buffer"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 
 (defvar buffer-save-without-query nil
