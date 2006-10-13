@@ -1,3 +1,8 @@
+2006-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fkey_binding): Check Lisp_Object types before doing
+	XCAR and XINT.
+
 2006-10-12  Romain Francoise  <romain@orebokech.com>
 
 	* image.c (xbm_read_bitmap_data): Delete extra semicolon.

@@ -1610,13 +1610,12 @@ specified buffer position instead of point are used.
 
       /* We are not interested in locations without event data */
 
-      if (EVENT_HAS_PARAMETERS (event)) {
-	Lisp_Object kind;
-
-	kind = EVENT_HEAD_KIND (EVENT_HEAD (event));
-	if (EQ (kind, Qmouse_click))
-	  position = EVENT_START (event);
-      }
+      if (EVENT_HAS_PARAMETERS (event))
+	{
+	  Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (event));
+	  if (CONSP (XCDR (event)) && EQ (kind, Qmouse_click))
+	    position = EVENT_START (event);
+	}
     }
 
   /* Key sequences beginning with mouse clicks
@@ -1709,7 +1708,8 @@ specified buffer position instead of point are used.
 	      
 	      pos = XCDR (string);
 	      string = XCAR (string);
-	      if (XINT (pos) >= 0
+	      if (INTEGERP (pos)
+		  && XINT (pos) >= 0
 		  && XINT (pos) < SCHARS (string))
 		{
 		  map = Fget_text_property (pos, Qlocal_map, string);
