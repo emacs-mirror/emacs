@@ -1,3 +1,8 @@
+2006-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Frame Titles): %c and %l are ignored in
+	frame-title-format.
+
 2006-10-11  Richard Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Key Sequences): Clarify use of kbd.
