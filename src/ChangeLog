@@ -1,3 +1,8 @@
+2006-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (decode_mode_spec): Ignore %c and %l constructs in frame
+	title.
+
 2006-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymap.c (Fkey_binding): Check Lisp_Object types before doing

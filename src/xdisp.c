@@ -17680,12 +17680,20 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
       break;
 
     case 'c':
-      {
-	int col = (int) current_column (); /* iftc */
-	w->column_number_displayed = make_number (col);
-	pint2str (decode_mode_spec_buf, field_width, col);
-	return decode_mode_spec_buf;
-      }
+      /* %c and %l are ignored in `frame-title-format'.
+         (In redisplay_internal, the frame title is drawn _before_ the
+         windows are updated, so the stuff which depends on actual
+         window contents (such as %l) may fail to render properly, or
+         even crash emacs.)  */
+      if (mode_line_target == MODE_LINE_TITLE)
+	return "";
+      else
+	{
+	  int col = (int) current_column (); /* iftc */
+	  w->column_number_displayed = make_number (col);
+	  pint2str (decode_mode_spec_buf, field_width, col);
+	  return decode_mode_spec_buf;
+	}
 
     case 'e':
 #ifndef SYSTEM_MALLOC
@@ -17727,11 +17735,16 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 
     case 'l':
       {
-	int startpos = XMARKER (w->start)->charpos;
-	int startpos_byte = marker_byte_position (w->start);
-	int line, linepos, linepos_byte, topline;
-	int nlines, junk;
-	int height = WINDOW_TOTAL_LINES (w);
+	int startpos, startpos_byte, line, linepos, linepos_byte;
+	int topline, nlines, junk, height;
+
+	/* %c and %l are ignored in `frame-title-format'.  */
+	if (mode_line_target == MODE_LINE_TITLE)
+	  return "";
+
+	startpos = XMARKER (w->start)->charpos;
+	startpos_byte = marker_byte_position (w->start);
+	height = WINDOW_TOTAL_LINES (w);
 
 	/* If we decided that this buffer isn't suitable for line numbers,
 	   don't forget that too fast.  */
@@ -23986,9 +23999,10 @@ This variable is not guaranteed to be accurate except while processing
   DEFVAR_LISP ("frame-title-format", &Vframe_title_format,
     doc: /* Template for displaying the title bar of visible frames.
 \(Assuming the window manager supports this feature.)
-This variable has the same structure as `mode-line-format' (which see),
-and is used only on frames for which no explicit name has been set
-\(see `modify-frame-parameters').  */);
+
+This variable has the same structure as `mode-line-format', except that
+the %c and %l constructs are ignored.  It is used only on frames for
+which no explicit name has been set \(see `modify-frame-parameters').  */);
 
   DEFVAR_LISP ("icon-title-format", &Vicon_title_format,
     doc: /* Template for displaying the title bar of an iconified frame.
