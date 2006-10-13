@@ -1,3 +1,8 @@
+2006-10-13  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* apropos.el (apropos-pattern-quoted): Fix a typo in a doc
+	string.
+
 2006-10-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (start-process-shell-command): Doc fix.
