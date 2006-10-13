@@ -2235,7 +2235,9 @@ BUFFER is the buffer (or buffer name) to associate with the process.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
 COMMAND is the name of a shell command.
-Remaining arguments are the arguments for the command.
+Remaining arguments are the arguments for the command; they are all
+spliced together with blanks separating between each two of them, before
+passing the command to the shell.
 Wildcards and redirection are handled as usual in the shell.
 
 \(fn NAME BUFFER COMMAND &rest COMMAND-ARGS)"
