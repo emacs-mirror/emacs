@@ -908,6 +908,12 @@ Such individual settings are now preserved when windows are split
 horizontally or vertically, a saved window configuration is restored,
 or when the frame is resized.
 
++++
+*** The %c and %l constructs are now ignored in frame-title-format.
+Due to technical limitations in how Emacs interacts with windowing
+systems, these constructs often failed to render properly, and could
+even cause Emacs to crash.
+
 ** Cursor display changes:
 
 +++
