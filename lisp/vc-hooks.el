@@ -52,11 +52,13 @@ BACKEND, use `vc-handled-backends'.")
 (defvar vc-header-alist ())
 (make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
-(defvar vc-ignore-dir-regexp "\\`\\([\\/][\\/]\\|/net/\\|/afs/\\)\\'"
- "Regexp matching directory names that are not under VC's control.
+(defcustom vc-ignore-dir-regexp "\\`\\([\\/][\\/]\\|/net/\\|/afs/\\)\\'"
+  "Regexp matching directory names that are not under VC's control.
 The default regexp prevents fruitless and time-consuming attempts
 to determine the VC status in directories in which filenames are
-interpreted as hostnames.")
+interpreted as hostnames."
+  :type 'regexp
+  :group 'vc)
 
 (defcustom vc-handled-backends '(RCS CVS SVN SCCS Arch MCVS)
   ;; Arch and MCVS come last because they are per-tree rather than per-dir.
@@ -308,6 +310,9 @@ non-nil if FILE exists and its contents were successfully inserted."
   "Find the root of a checked out project.
 The function walks up the directory tree from FILE looking for WITNESS.
 If WITNESS if not found, return nil, otherwise return the root."
+  ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
+  ;; witnesses in /home or in /.
+  (setq file (abbreviate-file-name file))
   (let ((root nil))
     (while (not (or root
                    (equal file (setq file (file-name-directory file)))

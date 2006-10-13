@@ -1,7 +1,12 @@
+2006-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-ignore-dir-regexp): Make it into a defcustom.
+	(vc-find-root): Don't walk higher up than ~.
+
 2006-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
-	* international/utf-8.el (utf-translate-cjk-load-tables): Avoid
-	clobbering last-coding-system-used during load.
+	* international/utf-8.el (utf-translate-cjk-load-tables):
+	Avoid clobbering last-coding-system-used during load.
 
 2006-10-12  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -13,364 +18,358 @@
 	* files.el (auto-mode-alist): Match change log file name also with
 	a dash before a numeric extension.
 
-2006-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+2006-10-11  Ilya Zakharevich  <ilyaz@cpan.org>
 
 	* progmodes/cperl-mode.el: Merge from upstream, upto version 5.22.
 	After 5.0:
-	 `cperl-add-tags-recurse-noxs-fullpath': new function (for -batch mode)
+	(cperl-add-tags-recurse-noxs-fullpath): New function (for -batch mode).
 
-	After 5.1:
-	;; Major edit.  Summary of most visible changes:
+	After 5.1: Major edit.  Summary of most visible changes:
 
-	;; a) Multiple <<HERE per line allowed.
-	;; b) Handles multiline subroutine declaration headers (with comments).
-	;;    (The exception is `cperl-etags' - but it is not used in the rest
-	;;    of the mode.)
-	;; c) Fontifies multiline my/our declarations (even with comments,
-	;;    and with legacy `font-lock').
-	;; d) Major speedup of syntaxification, both immediate and postponed
-	;;    (3.5x to 15x [for different CPUs and versions of Emacs] on the
-	;;    huge real-life document I tested).
-	;; e) New bindings, edits to imenu.
-	;; f) "_" is made into word-char during fontification/syntaxification;
-	;;    some attempts to recognize non-word "_" during other operations too.
-	;; g) Detect bug in Emacs with `looking-at' inside `narrow' and bulk out.
-	;; h) autoload some more perldoc-related stuff
-	;; i) Some new convenience features: ISpell POD/HEREDOCs, narrow-to-HEREDOC
-	;; j) Attempt to incorporate XEmacs edits which reached me
+	- Multiple <<HERE per line allowed.
+	- Handles multiline subroutine declaration headers (with comments).
+	  (The exception is `cperl-etags' - but it is not used in the rest
+	  of the mode.)
+	- Fontifies multiline my/our declarations (even with comments,
+	  and with legacy `font-lock').
+	- Major speedup of syntaxification, both immediate and postponed
+	  (3.5x to 15x [for different CPUs and versions of Emacs] on the
+	  huge real-life document I tested).
+	- New bindings, edits to imenu.
+	- "_" is made into word-char during fontification/syntaxification;
+	  some attempts to recognize non-word "_" during other operations too.
+	- Detect bug in Emacs with `looking-at' inside `narrow' and bulk out.
+	- autoload some more perldoc-related stuff
+	- New convenience features: ISpell POD/HEREDOCs, narrow-to-HEREDOC.
+	- Attempt to incorporate XEmacs edits which reached me.
 
-	 Fine-grained changelog:
-	`cperl-hook-after-change':	New configuration variable
-	`cperl-vc-sccs-header':	Likewise.
-	`cperl-vc-sccs-header':	Likewise.
-	`cperl-vc-header-alist':	Default via two preceding variables
-	`cperl-invalid-face':	Remove double quoting under XEmacs
-					(still needed under 21.2)
-	`cperl-tips':		Update URLs for resources
-	`cperl-problems':		Likewise.
-	`cperl-praise':		Mention new features
-	New C-c key bindings:	for `cperl-find-bad-style',
+	Fine-grained changelog:
+	(cperl-hook-after-change): New configuration variable.
+	(cperl-vc-sccs-header): Likewise.
+	(cperl-vc-sccs-header): Likewise.
+	(cperl-vc-header-alist): Default via two preceding variables.
+	(cperl-invalid-face): Remove double quoting under XEmacs
+		(still needed under 21.2).
+	(cperl-tips): Update URLs for resources.
+	(cperl-problems): Likewise.
+	(cperl-praise): Mention new features.
+	New C-c key bindings: for `cperl-find-bad-style',
 	`cperl-pod-spell', `cperl-here-doc-spell', `cperl-narrow-to-here-doc',
-	`cperl-perdoc', `cperl-perldoc-at-point'
+	`cperl-perdoc', and `cperl-perldoc-at-point'.
 	CPerl Mode menu changes:	"Fix style by spaces", "Imenu on Perl Info"
 	moved, new submenu of Tools with Ispell entries and narrowing.
-	`cperl-after-sub-regexp':	New defsubst
-	`cperl-imenu--function-name-regexp-perl': Use `cperl-after-sub-regexp',
-				Allows heads up to head4
-				Allow "package;"
-	`defun-prompt-regexp':	Use `cperl-after-sub-regexp',
-	`paren-backwards-message':	??? Something for XEmacs???
-	`cperl-mode':		Never auto-switch abbrev-mode off
-				Try to allow '_' be non-word char
-				Do not use `font-lock-unfontify-region-function' on XEmacs
-				Reset syntax cache on mode start
-				Support multiline facification (even
-				        on legacy `font-lock')
-	`cperl-facemenu-add-face-function':	??? Some contributed code ???
-	`cperl-after-change-function':	Since `font-lock' and `lazy-lock'
-	        refuse to inform us whether the fontification is due to lazy
-	        calling or due to edit to a buffer, install our own hook
-	        (controlled by `cperl-hook-after-change')
-	`cperl-electric-pod':	=cut may have been recognized as start
-	`cperl-block-p':		Moved, updated for attributes
-	`cperl-calculate-indent':	Try to allow '_' be non-word char
-				Support subs with attributes
-	`cperl-where-am-i':		Queit (?) a warning
-	`cperl-cached-syntax-table'	New function
-	`cperl-forward-re':		Use `cperl-cached-syntax-table'
-	`cperl-unwind-to-safe':	Recognize `syntax-type' property
-					changing in a middle of line
-	`cperl-find-sub-attrs':	New function
-	`cperl-find-pods-heres':	Allow many <<EOP per line
-				Allow subs with attributes
-				Major speedups (3.5x..15x on a real-life
-				        test file nph-proxy.pl)
-				Recognize "extproc " (OS/2)
-				        case-folded and only at start
-				/x on s///x with empty replacement was
-				        not recognized
-				Better comments
-	`cperl-after-block-p':	Remarks on diff with `cperl-block-p'
-				Allow subs with attributes, labels
-				Do not confuse "else::foo" with "else"
-				Minor optimizations...
-	`cperl-after-expr-p':	Try to allow '_' be non-word char
-	`cperl-fill-paragraph':	Try to detect a major bug in Emacs
-	        with `looking-at' inside `narrow' and bulk out if found
-	`cperl-imenu--create-perl-index':	Updates for new
-	        `cperl-imenu--function-name-regexp-perl'
-	`cperl-outline-level':	Likewise
-	`cperl-init-faces':		Allow multiline subroutine headers
-	        and my/our declarations, and ones with comments
-				Allow subroutine attributes
-	`cperl-imenu-on-info':	Better docstring.
-	`cperl-etags'		Rudimentary support for attributes
-				Support for packages and "package;"
-	`cperl-add-tags-recurse-noxs':	Better (?) docstring
-	`cperl-add-tags-recurse-noxs-fullpath': Likewise
-	`cperl-tags-hier-init':	Misprint for `fboundp' fixed
-	`cperl-not-bad-style-regexp':	Try to allow '_' be non-word char
-	`cperl-perldoc':		Add autoload
-	`cperl-perldoc-at-point':	Likewise
-	`cperl-here-doc-spell':	New function
-	`cperl-pod-spell':		Likewise
-	`cperl-map-pods-heres':	Likewise
-	`cperl-get-here-doc-region':	Likewise
-	`cperl-font-lock-fontify-region-function': Likewise (backward compatibility
-					        for legacy `font-lock')
-	`cperl-font-lock-unfontify-region-function': Fix style
-	`cperl-fontify-syntaxically':	Recognize and optimize away
-	        deferred calls with no-change.  Governed by `cperl-hook-after-change'
-	`cperl-fontify-update':	Recognize that syntaxification region
-	        can be larger than fontification one.
-	        XXXX we leave `cperl-postpone' property, so this is quadratic...
-	`cperl-fontify-update-bad':	Temporary placeholder until
+	(cperl-after-sub-regexp): New defsubst.
+	(cperl-imenu--function-name-regexp-perl): Use `cperl-after-sub-regexp'.
+		Allows heads up to head4.
+		Allow "package;".
+	(defun-prompt-regexp): Use `cperl-after-sub-regexp'.
+	(paren-backwards-message): ??? Something for XEmacs???
+	(cperl-mode): Never auto-switch abbrev-mode off.
+		Try to allow '_' be non-word char.
+		Do not use `font-lock-unfontify-region-function' on XEmacs.
+		Reset syntax cache on mode start.
+		Support multiline facification (even on legacy `font-lock').
+	(cperl-facemenu-add-face-function): ??? Some contributed code ???
+	(cperl-after-change-function): Since `font-lock' and `lazy-lock'
+		refuse to inform us whether the fontification is due to lazy
+		calling or due to edit to a buffer, install our own hook
+		(controlled by `cperl-hook-after-change').
+	(cperl-electric-pod): =cut may have been recognized as start.
+	(cperl-block-p): Move, updatedfor attributes.
+	(cperl-calculate-indent): Try to allow '_' be non-word char
+		Support subs with attributes.
+	(cperl-where-am-i): Queit (?) a warning.
+	(cperl-cached-syntax-table)	New function.
+	(cperl-forward-re): Use `cperl-cached-syntax-table'.
+	(cperl-unwind-to-safe): Recognize `syntax-type' property
+		changing in a middle of line.
+	(cperl-find-sub-attrs): New function.
+	(cperl-find-pods-heres): Allow many <<EOP per line.
+		Allow subs with attributes.
+		Major speedups (3.5x..15x on a real-life test file nph-proxy.pl).
+		Recognize "extproc " (OS/2) case-folded and only at start.
+		/x on s///x with empty replacement was not recognized.
+		Better comments.
+	(cperl-after-block-p): Remarks on diff with `cperl-block-p'.
+		Allow subs with attributes, labels.
+		Do not confuse "else::foo" with "else".
+		Minor optimizations...
+	(cperl-after-expr-p): Try to allow '_' be non-word char.
+	(cperl-fill-paragraph): Try to detect a major bug in Emacs
+	        with `looking-at' inside `narrow' and bulk out if found.
+	(cperl-imenu--create-perl-index): Updates for new
+	        `cperl-imenu--function-name-regexp-perl'.
+	(cperl-outline-level): Likewise.
+	(cperl-init-faces): Allow multiline subroutine headers
+	        and my/our declarations, and ones with comments.
+		Allow subroutine attributes.
+	(cperl-imenu-on-info): Better docstring.
+	(cperl-etags): Rudimentary support for attributes.
+		Support for packages and "package;".
+	(cperl-add-tags-recurse-noxs): Better (?) docstring.
+	(cperl-add-tags-recurse-noxs-fullpath): Likewise.
+	(cperl-tags-hier-init): Misprint for `fboundp' fixed.
+	(cperl-not-bad-style-regexp): Try to allow '_' be non-word char.
+	(cperl-perldoc): Add autoload.
+	(cperl-perldoc-at-point): Likewise.
+	(cperl-here-doc-spell): New function.
+	(cperl-pod-spell): Likewise.
+	(cperl-map-pods-heres): Likewise.
+	(cperl-get-here-doc-region): Likewise.
+	(cperl-font-lock-fontify-region-function): Likewise (backward
+		compatibility for legacy `font-lock').
+	(cperl-font-lock-unfontify-region-function): Fix style.
+	(cperl-fontify-syntaxically): Recognize and optimize away deferred
+		calls with no-change.  Governed by `cperl-hook-after-change'.
+	(cperl-fontify-update): Recognize that syntaxification region
+		can be larger than fontification one.
+		XXXX we leave `cperl-postpone' property, so this is quadratic...
+	(cperl-fontify-update-bad): Temporary placeholder until
 	        it is clear how to implement `cperl-fontify-update'.
-	`cperl-time-fontification':	New function
-	`attrib-group':		New text attribute
-	`multiline':		New value: `syntax-type' text attribute
+	(cperl-time-fontification): New function.
+	(attrib-group): New text attribute.
+	(multiline): New value: `syntax-type' text attribute.
 
 	After 5.2:
-	`cperl-emulate-lazy-lock':	New function
-	`cperl-fontify-syntaxically': Would skip large regions
-	Add `cperl-time-fontification', `cperl-emulate-lazy-lock' to menu
-	Some globals were declared, but uninitialized
+	(cperl-emulate-lazy-lock): New function.
+	(cperl-fontify-syntaxically): Would skip large regions.
+	Add `cperl-time-fontification', `cperl-emulate-lazy-lock' to menu.
+	Some globals were declared, but uninitialized.
 
 	After 5.3, 5.4:
-	`cperl-facemenu-add-face-function':	Add docs, fix U<>
+	(cperl-facemenu-add-face-function): Add docs, fix U<>.
 	Copyright message updated.
-	`cperl-init-faces':		Work around a bug in `font-lock'. May slow
-					facification down a bit.
-				Misprint for my|our|local for old `font-lock'
-				"our" was not fontified same as "my|local"
-				Highlight variables after "my" etc even in
-					a middle of an expression
-				Do not facify multiple variables after my etc
-					unless parentheses are present
+	(cperl-init-faces): Work around a bug in `font-lock'. May slow
+			facification down a bit.
+		Misprint for my|our|local for old `font-lock'
+			"our" was not fontified same as "my|local".
+		Highlight variables after "my" etc even in
+			a middle of an expression.
+		Do not facify multiple variables after my etc
+			unless parentheses are present.
 
 	After 5.5, 5.6
-	`cperl-fontify-syntaxically': after-change hook could reset
-	`cperl-syntax-done-to' to a middle of line; unwind to BOL.
+	(cperl-fontify-syntaxically): after-change hook could reset.
+	(cperl-syntax-done-to) to a middle of line; unwind to BOL.
 
 	After 5.7:
-	`cperl-init-faces':		Allow highlighting of local ($/)
-	`cperl-problems-old-emaxen': New variable (for the purpose of DOCSTRING).
-	`cperl-problems':		Remove fixed problems.
-	`cperl-find-pods-heres':	Recognize #-comments in m##x too
-				Recognize charclasses (unless delimiter is \).
-	`cperl-fontify-syntaxically': Unwinding to safe was done in wrong order
-	`cperl-regexp-scan':	Update docs
-	`cperl-beautify-regexp-piece': use information got from regexp scan
+	(cperl-init-faces): Allow highlighting of local ($/).
+	(cperl-problems-old-emaxen): New variable (for the use of DOCSTRING).
+	(cperl-problems): Remove fixed problems.
+	(cperl-find-pods-heres): Recognize #-comments in m##x too.
+		Recognize charclasses (unless delimiter is \).
+	(cperl-fontify-syntaxically): Unwinding to safe was done in wrong order.
+	(cperl-regexp-scan): Update docs.
+	(cperl-beautify-regexp-piece): Use information got from regexp scan.
 
 	After 5.8:
 	Major user visible changes:
 	Recognition and fontification of character classes in RExen.
-	Variable indentation of RExen according to groups
+	Variable indentation of RExen according to groups.
 
-	`cperl-find-pods-heres':	Recognize POSIX classes in REx charclasses
-				Fontify REx charclasses in variable-name face
-				Fontify POSIX charclasses in "type" face
-				Fontify unmatched "]" in function-name face
-				Mark first-char of HERE-doc as `front-sticky'
-				Reset `front-sticky' property when needed
-	`cperl-calculate-indent':	Indents //x -RExen accordning to parens level
-	`cperl-to-comment-or-eol':	Recognize ends of `syntax-type' constructs
-	`cperl-backward-to-noncomment': Recognize stringy `syntax-type' constructs
-				Support `narrow'ed buffers.
-	`cperl-praise':		Remove a reservation
-	`cperl-make-indent':	New function
-	`cperl-indent-for-comment':	Use `cperl-make-indent'
-	`cperl-indent-line':	Likewise
-	`cperl-lineup':		Likewise
-	`cperl-beautify-regexp-piece': Likewise
-	`cperl-contract-level':	Likewise
-	`cperl-toggle-set-debug-unwind': New function
-				New menu entry for this
-	`fill-paragraph-function':	Use when `boundp'
-	`cperl-calculate-indent':	Take into account groups when indenting RExen
-	`cperl-to-comment-or-eol':	Recognize # which end a string
-	`cperl-modify-syntax-type':	Make only syntax-table property non-sticky
-	`cperl-fill-paragraph':	Return t: needed for `fill-paragraph-function'
-	`cperl-fontify-syntaxically': More clear debugging message
-	`cperl-pod2man-build-command': XEmacs portability: check `Man-filter-list'
-	`cperl-init-faces':		More complicated highlight even on XEmacs (new)
-	Merge cosmetic changes from XEmacs
+	(cperl-find-pods-heres): Recognize POSIX classes in REx charclasses.
+		Fontify REx charclasses in variable-name face.
+		Fontify POSIX charclasses in "type" face.
+		Fontify unmatched "]" in function-name face.
+		Mark first-char of HERE-doc as `front-sticky'.
+		Reset `front-sticky' property when needed.
+	(cperl-calculate-indent): Indents //x -RExen accordning to parens level.
+	(cperl-to-comment-or-eol): Recognize ends of `syntax-type' constructs.
+	(cperl-backward-to-noncomment): Recognize stringy `syntax-type'
+		constructs.  Support `narrow'ed buffers.
+	(cperl-praise): Remove a reservation.
+	(cperl-make-indent): New function.
+	(cperl-indent-for-comment): Use `cperl-make-indent'.
+	(cperl-indent-line): Likewise.
+	(cperl-lineup): Likewise.
+	(cperl-beautify-regexp-piece): Likewise.
+	(cperl-contract-level): Likewise.
+	(cperl-toggle-set-debug-unwind): New function.
+		New menu entry for this.
+	(fill-paragraph-function): Use when `boundp'.
+	(cperl-calculate-indent): Take into account groups when indenting RExen.
+	(cperl-to-comment-or-eol): Recognize # which end a string.
+	(cperl-modify-syntax-type): Make only syntax-table property non-sticky.
+	(cperl-fill-paragraph): Return t: needed for `fill-paragraph-function'.
+	(cperl-fontify-syntaxically): More clear debugging message.
+	(cperl-pod2man-build-command): Check (XEmacs) `Man-filter-list'.
+	(cperl-init-faces): More complicated highlight even on XEmacs (new).
+	Merge cosmetic changes from XEmacs.
 
 	After 5.9:
-	`cperl-1+':			Moved to before the first use
-	`cperl-1-':			Likewise
+	(cperl-1+): Move to before the first use.
+	(cperl-1-): Likewise.
 
 	After 5.10:
 
 	This code may lock Emacs hard!!!  Use on your own risk!
 
-	`cperl-font-locking':	New internal variable
-	`cperl-beginning-of-property': New function
-	`cperl-calculate-indent':	Use `cperl-beginning-of-property'
-	instead of `previous-single-property-change'
-	`cperl-unwind-to-safe':	Likewise
-	`cperl-after-expr-p':	Likewise
-	`cperl-get-here-doc-region': Likewise
-	`cperl-font-lock-fontify-region-function': Likewise
-	`cperl-to-comment-or-eol':	Do not call `cperl-update-syntaxification'
-					recursively
-				Bound `next-single-property-change'
-					via `point-max'
-	`cperl-unwind-to-safe':	Bound likewise
-	`cperl-font-lock-fontify-region-function': Likewise
-	`cperl-find-pods-heres':	Mark as recursive for `cperl-to-comment-or-eol'
-				Initialization of
-	`cperl-font-lock-multiline-start' could be missed if the "main"
-	fontification did not run due to the keyword being already fontified.
-	`cperl-pod-spell':		Return t from do-one-chunk function
-	`cperl-map-pods-heres':	Stop when the worker returns nil
-				Call `cperl-update-syntaxification'
-	`cperl-get-here-doc-region': Call `cperl-update-syntaxification'
-	`cperl-get-here-doc-delim':	Remove unused function
+	(cperl-font-locking): New internal variable.
+	(cperl-beginning-of-property): New function.
+	(cperl-calculate-indent): Use `cperl-beginning-of-property'
+	instead of `previous-single-property-change'.
+	(cperl-unwind-to-safe): Likewise.
+	(cperl-after-expr-p): Likewise.
+	(cperl-get-here-doc-region): Likewise.
+	(cperl-font-lock-fontify-region-function): Likewise.
+	(cperl-to-comment-or-eol): Do not call `cperl-update-syntaxification'
+			recursively.
+		Bound `next-single-property-change' via `point-max'.
+	(cperl-unwind-to-safe): Bound likewise
+	(cperl-font-lock-fontify-region-function): Likewise
+	(cperl-find-pods-heres): Mark as recursive for `cperl-to-comment-or-eol'
+		Initialization of `cperl-font-lock-multiline-start' could be
+		missed if the "main" fontification did not run due to the
+		keyword being already fontified.
+	(cperl-pod-spell): Return t from do-one-chunk function.
+	(cperl-map-pods-heres): Stop when the worker returns nil.
+		Call `cperl-update-syntaxification'.
+	(cperl-get-here-doc-region): Call `cperl-update-syntaxification'.
+	(cperl-get-here-doc-delim): Remove unused function.
 
 	After 5.11:
 
-	 The possible lockup of Emacs (introduced in 5.10) fixed
+	The possible lockup of Emacs (introduced in 5.10) fixed.
 
-	`cperl-unwind-to-safe':	`cperl-beginning-of-property' won't return nil
-	`cperl-syntaxify-for-menu':	New customization variable
-	`cperl-select-this-pod-or-here-doc': New function
-	`cperl-get-here-doc-region': Extra argument
-				Do not adjust pos by 1
+	(cperl-unwind-to-safe): `cperl-beginning-of-property' won't return nil.
+	(cperl-syntaxify-for-menu): New customization variable.
+	(cperl-select-this-pod-or-here-doc): New function.
+	(cperl-get-here-doc-region): Extra argument.
+		Do not adjust pos by 1.
 
-	New menu entries (Perl/Tools): selection of current POD or HERE-DOC section
-				(Debugging CPerl:) backtrace on fontification
+	New menu entries
+		(Perl/Tools): Selection of current POD or HERE-DOC section.
+		(Debugging CPerl:) backtrace on fontification.
 
 	After 5.12:
-	`cperl-cached-syntax-table': use `car-safe'
-	`cperl-forward-re':		Remove spurious argument SET-ST
-				Add documentation
-	`cperl-forward-group-in-re': New function
-	`cperl-find-pods-heres':	Find and highlight (?{}) blocks in RExen
-	(XXXX Temporary (?) hack is to syntax-mark them as comment)
+	(cperl-cached-syntax-table): Use `car-safe'.
+	(cperl-forward-re): Remove spurious argument SET-ST.
+		Add documentation.
+	(cperl-forward-group-in-re): New function.
+	(cperl-find-pods-heres): Find and highlight (?{}) blocks in RExen
+	(XXXX Temporary (?) hack is to syntax-mark them as comment).
 
 	After 5.13:
-	`cperl-string-syntax-table': Make { and } not-grouping
+	(cperl-string-syntax-table): Make { and } not-grouping
 	  (Sometimes they ARE grouping in RExen, but matching them would only
 	   confuse in many situations when they are not)
-	`beginning-of-buffer':	Replaced two occurences with goto-char...
-	`cperl-calculate-indent':	`char-after' could be nil...
-	`cperl-find-pods-heres':	REx can start after "[" too
-				Hightlight (??{}) in RExen too 
-	`cperl-maybe-white-and-comment-rex': New constant
-	`cperl-white-and-comment-rex': Likewise
-				XXXX Not very efficient, but hard to make
-				better while keeping 1 group
+	(beginning-of-buffer): Replace two occurences with goto-char...
+	(cperl-calculate-indent): `char-after' could be nil...
+	(cperl-find-pods-heres): REx can start after "[" too.
+		Hightlight (??{}) in RExen too.
+	(cperl-maybe-white-and-comment-rex): New constant
+	(cperl-white-and-comment-rex): Likewise.
+		XXXX Not very efficient, but hard to make
+		better while keeping 1 group.
 
 	After 5.13:
-	`cperl-find-pods-heres':	$foo << identifier() is not a HERE-DOC
-				Likewise for 1 << identifier
+	(cperl-find-pods-heres): $foo << identifier() is not a HERE-DOC.
+		Likewise for 1 << identifier.
 
 	After 5.14:
-	`cperl-find-pods-heres':	Different logic for $foo .= <<EOF etc
-				Error-less condition-case could fail
-	`cperl-font-lock-fontify-region-function': Likewise
-	`cperl-init-faces':		Likewise
+	(cperl-find-pods-heres): Different logic for $foo .= <<EOF etc.
+		Error-less condition-case could fail.
+	(cperl-font-lock-fontify-region-function): Likewise.
+	(cperl-init-faces): Likewise.
 
 	After 5.15:
-	`cperl-find-pods-heres':	Support property REx-part2
-	`cperl-calculate-indent':	Likewise
-				Don't special-case REx with non-empty 1st line
-	`cperl-find-pods-heres':	In RExen, highlight non-literal backslashes
-				Invert highlighting of charclasses: 
-					now the envelop is highlighted
-				Highlight many others 0-length builtins
-	`cperl-praise':		Mention indenting and highlight in RExen
+	(cperl-find-pods-heres): Support property REx-part2.
+	(cperl-calculate-indent): Likewise.
+		Don't special-case REx with non-empty 1st line.
+	(cperl-find-pods-heres): In RExen, highlight non-literal backslashes.
+		Invert highlighting of charclasses:
+			now the envelop is highlighted.
+		Highlight many others 0-length builtins.
+	(cperl-praise): Mention indenting and highlight in RExen.
 
 	After 5.15:
-	`cperl-find-pods-heres':	Highlight capturing parens in REx
+	(cperl-find-pods-heres): Highlight capturing parens in REx.
 
 	After 5.16:
-	`cperl-find-pods-heres':	Highlight '|' for alternation
-	Initialize `font-lock-warning-face' if not present
-	`cperl-find-pods-heres':	Use `font-lock-warning-face' instead of
-					 `font-lock-function-name-face'
-	`cperl-look-at-leading-count': Likewise
-	`cperl-find-pods-heres':	localize `font-lock-variable-name-face'
-					`font-lock-keyword-face' (needed for
-					batch processing) etc
-				Use `font-lock-builtin-face' for builtin in REx
-					Now `font-lock-variable-name-face'
-					is used for interpolated variables
-				Use "talking aliases" for faces inside REx
-				Highlight parts of REx (except in charclasses)
-					according to the syntax and/or semantic
-				Syntax-mark a {}-part of (?{}) as "comment"
-					(it was the ()-part)
-				Better logic to distinguish what is what in REx
-	`cperl-tips-faces':		Document REx highlighting
-	`cperl-praise':		Mention REx syntax highlight etc.
+	(cperl-find-pods-heres): Highlight '|' for alternation
+	Initialize `font-lock-warning-face' if not present.
+	(cperl-find-pods-heres): Use `font-lock-warning-face' instead of
+			 `font-lock-function-name-face'.
+	(cperl-look-at-leading-count): Likewise.
+	(cperl-find-pods-heres): Localize `font-lock-variable-name-face',
+			`font-lock-keyword-face' (needed for
+			batch processing), etc...
+		Use `font-lock-builtin-face' for builtin in REx
+			Now `font-lock-variable-name-face'
+			is used for interpolated variables
+		Use "talking aliases" for faces inside REx
+		Highlight parts of REx (except in charclasses)
+			according to the syntax and/or semantic
+		Syntax-mark a {}-part of (?{}) as "comment"
+			(it was the ()-part)
+		Better logic to distinguish what is what in REx
+	(cperl-tips-faces): Document REx highlighting
+	(cperl-praise): Mention REx syntax highlight etc.
 
 	After 5.17:
-	`cperl-find-sub-attrs':	Would not always manage to print error message
-	`cperl-find-pods-heres':	localize `font-lock-constant-face'
+	(cperl-find-sub-attrs): Would not always manage to print error message.
+	(cperl-find-pods-heres): Localize `font-lock-constant-face'.
 
 	After 5.18:
-	`cperl-find-pods-heres':	Misprint in REx for parsing REx
-				Very minor optimization
-				`my-cperl-REx-modifiers-face' got quoted
-				Recognize "print $foo <<END" as HERE-doc
-				Put `REx-interpolated' text attribute if needed
-	`cperl-invert-if-unless-modifiers':	New function
-	`cperl-backward-to-start-of-expr': Likewise
-	`cperl-forward-to-end-of-expr': Likewise
-	`cperl-invert-if-unless':	Works in "the opposite way" too
-				Cursor position on return is on the switch-word
-				Indents comments better
-	`REx-interpolated':		New text attribute
-	`cperl-next-interpolated-REx': New function
-	`cperl-next-interpolated-REx-0': Likewise
-	`cperl-next-interpolated-REx-1': Likewise
-	"\C-c\C-x", "\C-c\C-y", "\C-c\C-v":	New keybinding for these functions
-	Perl/Regexp menu:		3 new entries for `cperl-next-interpolated-REx'
-	`cperl-praise':		Mention finded interpolated RExen
+	(cperl-find-pods-heres): Misprint in REx for parsing REx.
+		Very minor optimization.
+		`my-cperl-REx-modifiers-face' got quoted.
+		Recognize "print $foo <<END" as HERE-doc.
+		Put `REx-interpolated' text attribute if needed.
+	(cperl-invert-if-unless-modifiers): New function.
+	(cperl-backward-to-start-of-expr): Likewise.
+	(cperl-forward-to-end-of-expr): Likewise.
+	(cperl-invert-if-unless): Works in "the opposite way" too.
+		Cursor position on return is on the switch-word.
+		Indents comments better.
+	(REx-interpolated): New text attribute.
+	(cperl-next-interpolated-REx): New function.
+	(cperl-next-interpolated-REx-0): Likewise.
+	(cperl-next-interpolated-REx-1): Likewise.
+	"\C-c\C-x", "\C-c\C-y", "\C-c\C-v":	New keybinding for these functions.
+	Perl/Regexp menu: 3 new entries for `cperl-next-interpolated-REx'.
+	(cperl-praise): Mention finded interpolated RExen.
 
 	After 5.19:
-	`cperl-init-faces':		Highlight %$foo, @$foo too
-	`cperl-short-docs':		Better docs for system, exec
-	`cperl-find-pods-heres':	Better detect << after print {FH} <<EOF etc.
-				Would not find HERE-doc ended by EOF without NL
-	`cperl-short-docs':		Correct not-doubled \-escapes
-	start block:		Put some `defvar' for stuff gone from XEmacs
+	(cperl-init-faces): Highlight %$foo, @$foo too.
+	(cperl-short-docs): Better docs for system, exec.
+	(cperl-find-pods-heres): Better detect << after print {FH} <<EOF etc.
+		Would not find HERE-doc ended by EOF without NL.
+	(cperl-short-docs): Correct not-doubled \-escapes.
+	start block: Put some `defvar' for stuff gone from XEmacs.
 
 	After 5.20:
-	initial comment:		Extend copyright, fix email address
-	`cperl-indent-comment-at-column-0': New customization variable
-	`cperl-comment-indent':	Indentation after $#a would increasy by 1
-	`cperl-mode':		Make `defun-prompt-regexp' grok BEGIN/END etc
-	`cperl-find-pods-heres':	Mark CODE of s///e as `syntax-type' `multiline'
-	`cperl-at-end-of-expr':	Would fail if @BAR=12 follows after ";"
-	`cperl-init-faces':		If `cperl-highlight-variables-indiscriminately'
-					highlight $ in $foo too (UNTESTED)
-	`cperl-set-style':		Docstring missed some available styles
-	toplevel:			Menubar/Perl/Indent-Styles had FSF, now K&R
-				Change "Current" to "Memorize Current"
-	`cperl-indent-wrt-brace':	New customization variable; the default is
-				as for pre-5.2 version
-	`cperl-styles-entries':	Keep `cperl-extra-newline-before-brace-multiline'
-	`cperl-style-alist':	Likewise
-	`cperl-fix-line-spacing':	Support `cperl-merge-trailing-else' being nil,
-				and `cperl-extra-newline-before-brace' etc
-				being t
-	`cperl-indent-exp':		Plans B and C to find continuation blocks even
-				if `cperl-extra-newline-before-brace' is t
+	initial comment: Extend copyright, fix email address.
+	(cperl-indent-comment-at-column-0): New customization variable.
+	(cperl-comment-indent): Indentation after $#a would increasy by 1.
+	(cperl-mode): Make `defun-prompt-regexp' grok BEGIN/END etc.
+	(cperl-find-pods-heres): Mark CODE of s///e as `syntax-type' `multiline'
+	(cperl-at-end-of-expr): Would fail if @BAR=12 follows after ";".
+	(cperl-init-faces): If `cperl-highlight-variables-indiscriminately'
+			highlight $ in $foo too (UNTESTED).
+	(cperl-set-style): Docstring missed some available styles.
+	toplevel: Menubar/Perl/Indent-Styles had FSF, now K&R.
+		Change "Current" to "Memorize Current".
+	(cperl-indent-wrt-brace): New customization variable; the default is
+		as for pre-5.2 version.
+	(cperl-styles-entries): Keep `cperl-extra-newline-before-brace-multiline'.
+	(cperl-style-alist): Likewise.
+	(cperl-fix-line-spacing): Support `cperl-merge-trailing-else' being nil,
+		and `cperl-extra-newline-before-brace' etc
+		being t
+	(cperl-indent-exp): Plans B and C to find continuation blocks even
+		if `cperl-extra-newline-before-brace' is t.
 
 	After 5.21:
 	Improve some docstrings concerning indentation.
-	`cperl-indent-rules-alist':	New variable
-	`cperl-sniff-for-indent':	New function name
-				(separated from `cperl-calculate-indent')
-	`cperl-calculate-indent':	Separated the sniffer and the indenter;
-				uses `cperl-sniff-for-indent' now
-	`cperl-comment-indent':	Test for `cperl-indent-comment-at-column-0'
-				was inverted;
-				Support `comment-column' = 0
-
+	(cperl-indent-rules-alist): New variable.
+	(cperl-sniff-for-indent): New function name
+		(separated from `cperl-calculate-indent').
+	(cperl-calculate-indent): Separate the sniffer and the indenter;
+		uses `cperl-sniff-for-indent' now.
+	(cperl-comment-indent): Test for `cperl-indent-comment-at-column-0'
+		was inverted;
+		Support `comment-column' = 0.
 
 2006-10-11  Martin Rudalics <rudalics@gmx.at>
 
@@ -379,7 +378,7 @@
 	* longlines.el (longlines-window-change-function): Likewise.
 	* simple.el (undo-ask-before-discard): Likewise.
 	* wid-edit.el (widget-field-prompt-internal)
-	(widget-documentation-link-p): Likewise
+	(widget-documentation-link-p): Likewise.
 
 2006-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -4693,7 +4692,7 @@
 	compatibility function (Emacs 18/19).
 	(idlwave-is-continuation-line): Always return point at start of
 	previous non-blank continuation line.
-	`keyword-parameters': Fix continued comment font-lock matcher.
+	(keyword-parameters): Fix continued comment font-lock matcher.
 	(idlwave-font-lock-fontify-region): Written, use as
 	font-lock-fontify-region-function, to fix continued keyword
 	fontification issues.
@@ -4946,7 +4945,7 @@
 	(mac-TIFF-to-string): New functions.
 	(x-get-selection, x-selection-value)
 	(mac-select-convert-to-string): Use them.
-	(mac-text-encoding-mac-japanese-basic-variant):	New constant.
+	(mac-text-encoding-mac-japanese-basic-variant): New constant.
 	(mac-dnd-types-alist): New customization variable.
 	(mac-dnd-handle-furl, mac-dnd-handle-hfs, mac-dnd-insert-utxt)
 	(mac-dnd-insert-TEXT, mac-dnd-insert-TIFF, mac-dnd-drop-data)
