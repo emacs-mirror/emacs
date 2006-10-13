@@ -40,8 +40,6 @@ Windows only bug.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
-** id.brep@gmail.com, Oct 11: Crash after setting frame-title-format.
-
 * BUGS
 
 ** hashiz@tomba.meridiani.jp, Oct 6: bootstrap failure on FreeBSD 6.2
