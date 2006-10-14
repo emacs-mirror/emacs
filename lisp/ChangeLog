@@ -22,6 +22,11 @@
 	* textmodes/reftex-global.el (reftex-create-tags-file): Quote file
 	arguments.
 
+2006-10-12  Richard Stallman  <rms@gnu.org>
+
+	* files.el (file-name-history): Add defvar.
+	(save-some-buffers-action-alist): Improve description strings.
+
 2006-10-12  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (auto-mode-alist): Match change log file name also with

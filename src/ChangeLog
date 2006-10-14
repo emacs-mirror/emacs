@@ -1,3 +1,7 @@
+2006-10-14  Richard Stallman  <rms@gnu.org>
+
+	* sysdep.c (init_sys_modes): Delete DEFVAR_LISP in the wrong place.
+
 2006-10-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (decode_mode_spec): Ignore %c and %l constructs in frame
