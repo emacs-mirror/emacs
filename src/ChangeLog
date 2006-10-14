@@ -1,3 +1,672 @@
+2006-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (decode_mode_spec): Ignore %c and %l constructs in frame
+	title.
+
+2006-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fkey_binding): Check Lisp_Object types before doing
+	XCAR and XINT.
+
+2006-10-12  Romain Francoise  <romain@orebokech.com>
+
+	* image.c (xbm_read_bitmap_data): Delete extra semicolon.
+
+2006-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c: Include xterm.h for x_fully_uncatch_errors and friends.
+
+	* dispextern.h: Declare x_create_bitmap_from_xpm_data.
+
+	* xterm.c (x_check_expected_move): Remove unused var `count'.
+
+	* xmenu.c (syms_of_xmenu): Use Ffset rather than Fdefalias, since
+	Fdefalias is not declared in any *.h file.
+
+2006-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispnew.c (sit_for): Sit forever if TIMEOUT is t.
+
+	* keyboard.c (command_loop_1): Handle non-number values of
+	`minibuffer-message-timeout'.
+	(Fexecute_extended_command): Fix typo.
+
+	* minibuf.c (temp_echo_area_glyphs): Sit for
+	`minibuffer-message-timeout' seconds.
+
+2006-10-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_draw_image_string, mac_draw_image_string_16):
+	Add argument OVERSTRIKE_P.
+	(mac_draw_string_common, mac_draw_image_string_cg): Likewise.
+	Support overstrike.
+	(mac_draw_string, mac_draw_string_16): Remove functions.
+	(x_draw_glyph_string_foreground): Use overstrike when needed.
+	(x_draw_composite_glyph_string_foreground): Likewise.
+	Use mac_draw_image_string_16 instead of mac_draw_string_16.
+	(mac_load_query_font): Rename from XLoadQueryFont.  Take argument F
+	instead of DPY.  All uses changed.  Don't save/restore font.
+
+2006-10-07  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32fns.c (w32_createwindow): Honour left and top positions if
+	supplied explicitly.
+
+2006-10-06  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): Fix value when EOB is visible.
+
+2006-10-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qinhibit_face_set_after_frame_default): New var.
+	(syms_of_frame): Initialize it.
+	(x_set_frame_parameters): Avoid resetting :font attributes to the
+	new-frame defaults.
+
+2006-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (clear_regexp_cache): Declare.
+
+	* search.c (compile_pattern): Only check `cp->syntax_table' if needed.
+	(compile_pattern_1): Remember `used_syntax' in `cp->syntax_table'.
+	(clear_regexp_cache): Only flush those regexps which depend on
+	a syntax-table.
+
+	* regex.c (regex_compile): Set the new `used_syntax' bit.
+
+	* regex.h: Remove file local variables.
+	(struct re_pattern_buffer): New field `used_syntax'.
+
+2006-10-03  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (list_processes_1): Run sentinels before removing dead
+	processes.  Also remove `closed' network connections.
+
+2006-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (handle_fontified_prop): Don't fontify at EOB.
+
+2006-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.in Regenerated.
+
+2006-09-29  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (syms_of_buffer): Reorder coding systems in the
+	docstring of %z to the real order displayed in the modeline.
+
+2006-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key): Yet another int/Lisp_Object mixup (YAILOM).
+
+2006-09-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Do move back if the Lisp string
+	being displayed contains newlines.
+
+2006-09-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_compute_glyph_string_overhangs, XLoadQueryFont)
+	[USE_CG_DRAWING]: Call mac_prepare_for_quickdraw before QDTextBounds.
+
+2006-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (Fsingle_key_description): For an invalid char, return
+	"Invalid char code NNNNN".
+
+2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callint.c (Fcall_interactively): Doc fix.
+
+2006-09-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_underline_at_descent_line): New variable.
+	(syms_of_macterm): DEFVAR_BOOL it.
+	(x_draw_glyph_string): Use it.
+	(XLoadQueryFont): Calculate min_bounds.descent and max_bounds.descent.
+
+2006-09-25  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (Fsingle_key_description): Return unique names for
+	generic characters.
+
+2006-09-24  Richard Stallman  <rms@gnu.org>
+
+	* search.c (compile_pattern_1): Don't BLOCK_INPUT.
+
+2006-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/fns.$(O), $(BLD)/w32proc.$(O)):
+	Depend on nt/inc/langinfo.h and nt/inc/nl_types.h.
+
+	* w32proc.c (nl_langinfo): New function.
+
+	* w32fns.c (w32-pass-alt-to-system, w32-alt-is-meta)
+	(w32-pass-lwindow-to-system, w32-enable-num-lock)
+	(w32-enable-caps-lock, w32-scroll-lock-modifier)
+	(w32-lwindow-modifier, w32-rwindow-modifier)
+	(w32-apps-modifier, w32-mouse-button-tolerance): Doc fix.
+
+2006-09-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Finternal_complete_buffer, Fread_minibuffer)
+	(Fdisplay_completion_list): Fix typos in docstrings.
+
+2006-09-23  Romain Francoise  <romain@orebokech.com>
+
+	* s/gnu-linux.h (MAIL_USE_FLOCK): Check for HAVE_LIBLOCKFILE too.
+
+2006-09-23  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (Fmap_keymap): Docstring mentions about generic character.
+
+2006-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (analyse_first): For eight-bit-control chars, mark both the
+	char's value and its leading byte in the fastmap.
+	(re_search_2): When fast-scanning without translation, be careful to
+	check that we only match the leading byte of a multibyte char.
+
+	* charset.h (PREV_CHAR_BOUNDARY): Make it work from within a char's
+	byte sequence.
+	(AT_CHAR_BOUNDARY): New macro.
+
+2006-09-22  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (optimize_sub_char_table): Don't optimize a sub-char-table
+	whose default value is non-nil.
+
+2006-09-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Only show C-l help for
+	Gtk+ versions < 2.10.
+
+	* xfns.c (syms_of_xfns): Fix typo in help text for
+	x-gtk-file-dialog-help-text.
+
+2006-09-21  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fmemq): Refill doc string.
+	(Fmemql): New defun, like memq but using eql.
+	(syms_of_fns): Defsubr it.
+
+2006-09-20  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): CHARPOS < 0 means return info for
+	last visible glyph in window.
+
+	* window.c (Fset_window_hscroll, Fwindow_line_height):
+	Doc fix.  Use "off-window" instead of "off-screen".
+	(Fpos_visible_in_window_p): Likewise.
+	If POS is t, return info for last visible glyph in window.
+
+2006-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.c (struct regexp_cache): New entry syntax_table.
+	(compile_pattern_1): Set it.
+	(syms_of_search): Initialize it.
+	(compile_pattern): Require the syntax_table entry of the cache
+	element to match the current syntax table entry.
+
+2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fwindow_end): Fix recent change.
+
+2006-09-19  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fset_window_hscroll, Fpos_visible_in_window_p):
+	Doc fix.  Use "off-screen" instead of "invisible".
+	(Fwindow_line_height): Make line numbers 0-based.  Make line arg
+	optional; if nil, use current cursor row.  Handle text terminals
+	properly.  Return nil if non-interactive or pseudo-window.
+
+2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c: Include alloca.h if available.
+	(Fkey_binding): Only use AREF after checking it's a vector.
+	Remove unused var `window'.
+
+2006-09-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (shut_down_emacs) [!subprocesses]: Don't set
+	inhibit_sentinels.
+
+	* mac.c [!MAC_OSX] (select): Fix argument name.
+
+	* macmenu.c (enum mac_menu_kind, min_menu_id): New enumerator and
+	menu ID for Apple menu.
+	(menubar_selection_callback): Remove function.
+	(find_and_call_menu_selection): New function from xmenu.c.
+	(x_activate_menubar): Use it.
+	(set_frame_menubar): Don't use f->output_data.mac->menubar_active.
+
+	* macterm.c (menubar_selection_callback): Remove extern.
+	(M_APPLE): Change to 234.
+	(do_apple_menu) [!TARGET_API_MAC_CARBON]: Make non-static.
+	(do_menu_choice): Remove function.
+
+	* macterm.h (struct mac_output): Remove member menubar_active.
+	(do_menu_choice): Remove extern.
+	(do_apple_menu) [!TARGET_API_MAC_CARBON]: Add extern.
+
+2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (syms_of_xfns): Rename x_gtk_show_chooser_help_text to
+	x_gtk_file_dialog_help_text.
+
+	* gtkutil.c (xg_uses_old_file_dialog): Rename x-use-old-gtk-file-dialog
+	to x-gtk-use-old-file-dialog.
+	(xg_get_file_with_chooser): Rename x_gtk_show_chooser_help_text to
+	x_gtk_file_dialog_help_text.
+
+	* xfns.c (syms_of_xfns): Ditto.
+
+2006-09-18  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fwindow_line_visibility): Remove.
+	(Fwindow_line_height): New defun replacing it.
+	(syms_of_window): Defsubr it.
+
+2006-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (SELECT_USE_CFSOCKET) [MAC_OSX]: Set default to 1.
+	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]: Fix pointer type.
+
+2006-09-17  Jay Belanger  <belanger@truman.edu>
+
+	* gmalloc.c:
+	* md5.c:
+	* md5.h:
+	* strftime.c: Replace "GNU Library General Public License" by "GNU
+	General Public License" throughout.
+
+2006-09-17  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (update_text_area): Undo 2000-07-18 change.
+	Always redrawing whole row if line has mouse-face in it causes
+	excessive flickering of the mode line.
+
+2006-09-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* search.c (clear_regexp_cache): New function.
+
+	* syntax.c (Fmodify_syntax_entry): Clear regexp cache.
+
+2006-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser):
+	Check x-gtk-show-chooser-help-text before adding the help text.
+
+	* xfns.c (syms_of_xfns): New variable: x-gtk-show-chooser-help-text.
+
+	* gtkutil.c (get_utf8_string): Try harder to convert to UTF8.  Gtk+
+	will simply crash if we fail.
+
+2006-09-16  Richard Stallman  <rms@gnu.org>
+
+	* regex.c (re_compile_pattern): Set gl_state.current_syntax_table.
+
+2006-09-15  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fwindow_line_visibility): New defun for line-move-partial.
+	(syms_of_window): Defsubr it.
+	(Fwindow_end): Use window's buffer rather than current buffer.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* COPYING: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
+2006-09-15  David Kastrup  <dak@gnu.org>
+
+	* Makefile.in (keymap.o): Add "keymap.h" and "window.h" dependencies.
+
+	* keymap.c: include "window.h".
+	(Fcommand_remapping): New optional POSITION argument.
+	(Fkey_binding): New optional POSITION argument.  Completely rework
+	handling of mouse clicks to get the same order of keymaps as
+	`read-key-sequence' and heed POSITION.  Also temporarily switch
+	buffers to location of mouse click and back.
+
+	* keyboard.c (command_loop_1): Adjust call of `Fcommand_remapping'
+	for additional argument.
+	(parse_menu_item): Adjust call of `Fkey_binding' for additional
+	argument.
+	(read_key_sequence): If there are both `local-map' and `keymap'
+	text properties at some buffer position, heed both.
+
+	* keymap.h: Declare additional optional arguments of
+	`Fcommand_remapping' and `Fkey_binding'.
+
+2006-09-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* indent.c (Fcurrent_column, Findent_to): Fix typos in docstring.
+
+2006-09-14  Andreas Schwab  <schwab@suse.de>
+
+	* print.c: Whitespace fixup.
+
+2006-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (produce_image_glyph): Automatically crop wide images at
+	right window edge so we can draw the cursor on the same row to
+	avoid confusing redisplay by placing the cursor outside the visible
+	window area.
+
+2006-09-13  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c (x_initialize): Don't install Xt event timer here.
+	(x_timeout_atimer_activated_flag): New var.
+	(x_activate_timeout_atimer): New function to install Xt timer.
+	(x_send_scroll_bar_event, x_process_timeouts): Use it.
+
+	* xmenu.c (x_menu_set_in_use, popup_activate_callback)
+	(create_and_show_popup_menu, create_and_show_dialog): Use it.
+
+	* xterm.h (x_activate_timeout_atimer): Add prototype.
+
+2006-09-13  Richard Stallman  <rms@gnu.org>
+
+	* print.c (print_string): When printcharfun is t,
+	copy string contents and call strout on the copy.
+
+	* keyboard.c (read_char): If end_time specified, don't put the
+	event into this_command_keys.
+	(read_key_sequence): If Voverriding_terminal_local_map is specified,
+	don't check Voverriding_local_map at all.
+
+2006-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textprop.c (Fnext_property_change, Fnext_single_property_change)
+	(Fprevious_property_change, Fprevious_single_property_change):
+	Avoid changing limit, so we can correctly catch the case where the
+	property is constant up to limit.
+
+2006-09-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_window) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	* macterm.c (XTread_socket) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Undo 2006-09-08 change.
+
+2006-09-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fkey_binding): Use string position for string objects.
+
+2006-09-11  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (Fkey_binding): Fix last change.
+
+	* editfns.c (Fmessage): Recommend using (message "%s" ...).
+
+2006-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fkey_binding): Check for local keymap for mouse click
+	events.
+
+2006-09-10  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (Finput_pending_p): Check Vunread_input_method_events
+	and Vunread_post_input_method_events.
+
+	* dispnew.c (Fredisplay): Document return value.
+
+2006-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_close_connection): Call xg_display_close when USE_GTK.
+
+	* gtkutil.c (xg_display_close): Always change default display if needed,
+	check for < Gtk+ version 2.10 before calling gdk_display_close.
+
+2006-09-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [MAC_OSX] (sys_select): Check argument `nfds' more rigidly.
+	Make variable `ofds' static.  Remove variable `maxfd'.
+
+	* macfns.c (Fx_file_dialog): Remove unused variable `f'.
+	Call check_mac.
+
+	* macmenu.c (Vmenu_updating_frame, syms_of_macmenu):
+	* w32menu.c (Vmenu_updating_frame, syms_of_w32menu):
+	Apply 2006-09-08 change for xmenu.c.
+
+	* xfns.c (Fx_file_dialog): Call check_x.
+
+2006-09-10  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_window_cursor_type): Use hollow cursor on
+	non-transparent images.
+
+2006-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Fsystem_name): Mention "host" in the doc string.
+	(syms_of_editfns) <system-name>: Likewise.
+
+2006-08-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* xdisp.c (mouse_autoselect_window): Remove.
+	(Vmouse_autoselect_window): New variable.  DEFVAR_LISP it.
+
+	* dispextern.h (mouse_autoselect_window): Remove extern.
+	(Vmouse_autoselect_window): Add extern.
+
+	* macterm.c (XTread_socket): Test Vmouse_autoselect_window
+	instead of mouse_autoselect_window.
+
+	* msdos.c (dos_rawgetc): Likewise.
+
+	* w32term.c (w32_read_socket): Likewise.
+
+	* xterm.c (handle_one_xevent): Likewise.
+
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (Vmenu_updating_frame): Define here.
+	(syms_of_xdisp): DEFVAR it here.
+	(update_menu_bar): Always return hooks_run.
+	Set Vmenu_updating_frame.
+
+	* xdisp.c (redisplay_internal): Test Vinhibit_redisplay
+	before calculating SELECTED_FRAME.
+
+	* xmenu.c (Vmenu_updating_frame): Don't define here.
+	(syms_of_xmenu): Don't DEFVAR it here.
+
+	* xterm.c (x_error_quitter): For BadName error, just return.
+
+	* eval.c (find_handler_clause): Give up on debugger if INPUT_BLOCKED_P.
+
+	* casetab.c (init_casetab_once): Call set_case_table.
+
+	* emacs.c (shut_down_emacs): Set inhibit_sentinels.
+
+	* process.c (inhibit_sentinels): New variable.
+	(exec_sentinel): Test inhibit_sentinels.
+	(init_process): Initialize it.
+
+	* process.h (inhibit_sentinels): Add decl.
+
+	* search.c (looking_at_1, string_match_1, search_command):
+	Make syntax table's canon table point to eqv table.
+
+2006-09-08  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (strout): Fix whitespace.
+
+2006-09-08  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (x_draw_glyph_string): Fix 2006-08-24 change.
+
+2006-09-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [!MAC_OSX]: Don't include keyboard.h.
+	[!MAC_OSX] (select): Try detect_input_pending before ReceiveNextEvent
+	in the same BLOCK_INPUT block, in case that some input has already
+	been read asynchronously.  Pretend to be interrupted by a signal
+	if some input is available.
+	[MAC_OSX] (select_and_poll_event, sys_select): Likewise.
+	(SELECT_POLLING_PERIOD_USEC) [SELECT_USE_CFSOCKET]: Change to 100000.
+	Now used for ReceiveNextEvent timeout instead of select timeout.
+	(EVENT_CLASS_SOCK) [SELECT_USE_CFSOCKET]: Remove macro.
+	[SELECT_USE_CFSOCKET] (socket_callback): Add non-blocking connect
+	support.  Quit event loop.
+	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]: Add non-blocking
+	connect support.  Reuse previously allocated CFRunLoopSource.
+	(Fmac_process_hi_command) [TARGET_API_MAC_CARBON]: New function.
+	(syms_of_mac) [TARGET_API_MAC_CARBON]: Defsubr it.
+
+	* macfns.c (mac_window) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Specify kWindowAsyncDragAttribute.
+
+	* macterm.c (mac_handle_origin_change, mac_handle_size_change)
+	(mac_get_ideal_size): New functions.
+	(x_set_offset, x_set_window_size, x_make_frame_visible)
+	(do_zoom_window, mac_handle_window_event, XTread_socket): Use them.
+	(install_window_handler, mac_handle_window_event)
+	[USE_CARBON_EVENTS]: Handle kEventWindowGetIdealSize and
+	kEventWindowBoundsChanged.
+	(XTread_socket) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]: Don't call
+	DragWindow.
+
+2006-09-07  Andreas Schwab  <schwab@suse.de>
+
+	* m/ibms390x.h (START_FILES, LIB_STANDARD): Override to
+	use lib64 instead of lib.
+
+2006-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in: Avoid double quotes when possible.
+
+2006-09-06  Kenichi Handa  <handa@m17n.org>
+
+	* editfns.c (Fformat_time_string): Use make_unibyte_string to make
+	a Lisp string from the result of emacs_memftimeu call.
+
+2006-09-06  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): Remove exact_mode_line_heights_p arg;
+	so calculate heights even when pos-visible-in-window-p is called
+	with partially = t.  Don't overshoot last_visible_y in move_it_to.
+	Return row height and row number in new rowh and vpos args.
+	(cursor_row_fully_visible_p): First line is always "fully visible".
+	(try_window): Don't clear matrix if vscrolled.
+
+	* lisp.h (pos_visible_p): Update prototype.
+
+	* window.c (Fpos_visible_in_window_p): Adapt to new pos_visible_p.
+	Return row height and row number for partially visible rows.
+	Modify return value to a 2 element list for fully visible rows and
+	6 for partially visible row.
+	(window_scroll_pixel_based): Use pos_visible_p directly instead of
+	Fpos_visible_in_window_p.  Fix auto vscrolling for partially
+	visible lines.  Only vscroll backwards if already vscrolled
+	forwards.  Unconditionally vscroll forwards if PT is first (and
+	only) line.  Set new window start instead of scrolling at
+	start/end of tall line.
+
+2006-09-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (install_window_handler, mac_handle_window_event)
+	[USE_CARBON_EVENTS]: Handle kEventWindowClose.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Set modifiers for
+	ASCII keystroke event.
+
+2006-09-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Don't mention specific keys in
+	the file chooser message.  Only call gtk_file_chooser_set_current_name
+	when action is SAVE.
+
+2006-09-04  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in: Double all single and back quotes in C-style
+	comments to help fontifier.
+
+2006-09-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (shutdown_handler): New function to exit cleanly on shutdown.
+	(globals_of_w32): Register it as a signal handler.
+
+2006-09-02  Juri Linkov  <juri@jurta.org>
+
+	* marker.c (Fmarker_position): Doc fix.
+
+2006-09-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (syms_of_window) <split-height-threshold>:
+	<window-min-height, window-min-width>: Doc fix.
+
+2006-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Change file chooser message
+	for writing files.  Call gtk_file_chooser_set_current_name to keep
+	default filename.
+
+	* minibuf.c (Finternal_complete_buffer): Move after DEFUN:s it calls
+
+2006-09-02  Jindrich Makovicka  <makovick@gmail.com>  (tiny change)
+
+	* fns.c (concat) [__GNUC__]: Declare with
+	`__attribute__((noinline))'.
+
+	* eval.c (apply1, call2) [__GNUC__]: Declare with
+	`__attribute__((noinline))'.
+
+2006-09-02  Stuart D. Herring  <herring@lanl.gov>
+
+	* minibuf.c (Finternal_complete_buffer): New function.
+	(syms_of_minibuf): Defsubr it.
+	(Fread_buffer): Use it, instead of Vbuffer_alist.
+
+2006-09-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.h (struct buffer_text): New field chars_modiff.
+	(CHARS_MODIFF, BUF_CHARS_MODIFF): New macros.
+	* buffer.c (Fbuffer_chars_modified_tick): New function returning
+	value of BUF_CHARS_MODIFF.
+	(syms_of_buffer): Defsubr it.
+	(Fget_buffer_create): Initialize BUF_CHARS_MODIFF.
+	* insdel.c (modify_region): New argument preserve_chars_modiff.
+	Set CHARS_MODIFF to MODIFF provided preserve_chars_modiff is zero.
+	(insert_1_both, insert_from_string_1, insert_from_buffer_1)
+	(adjust_after_replace, adjust_after_replace_noundo)
+	(replace_range, replace_range_2, del_range_2): Reset CHARS_MODIFF.
+	* lisp.h (modify_region): Add fourth argument in extern.
+	* casefiddle.c (casify_region): Call modify_region with fourth
+	argument zero to assert that CHARS_MODIFF is updated.
+	* editfns.c (Fsubst_char_in_region, Ftranslate_region_internal)
+	(Ftranspose_regions): Likewise.
+	* textprop.c (Fadd_text_properties, Fset_text_properties)
+	(Fremove_text_properties, Fremove_list_of_text_properties):
+	Call modify_region with fourth argument 1 to avoid that
+	CHARS_MODIFF is updated.
+
+2006-08-31  Richard Stallman  <rms@gnu.org>
+
+	* editfns.c (Fformat): Don't sign-extend for %o or %x.
+
+2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Don't move back if we were
+	displaying a Lisp string, either.
+
+2006-08-28  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_window_cursor_type) [!HAVE_WINDOW_SYSTEM]:
+	Don't attempt to replace cursor on image glyphs.
+
+2006-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (Fdetect_coding_region, Fdetect_coding_string): Fix
+	docstring about ISO-2022 control characters.
+
+2006-08-28  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_window_cursor_type): Replace BOX cursor on images
+	with a hollow box cursor if image is larger than 32x32 (or the default
+	frame font if that is bigger).  Replace any other cursor on images
+	with hollow box cursor, as redisplay doesn't support bar and hbar
+	cursors on images.
+
 2006-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Undo previous
@@ -18,11 +687,11 @@
 	* mac.c (create_apple_event_from_event_ref, select)
 	(Fmac_get_file_creator, Fmac_get_file_type, Fmac_set_file_creator)
 	(Fmac_set_file_type, cfstring_create_normalized)
-	(mac_get_system_locale, select_and_poll_event, sys_select): Use
-	OSStatus instead of OSErr.
+	(mac_get_system_locale, select_and_poll_event, sys_select):
+	Use OSStatus instead of OSErr.
 
-	* macfns.c [TARGET_API_MAC_CARBON] (mac_update_proxy_icon): Don't
-	use FRAME_FILE_NAME.  Use (FS)UpdateAlias.
+	* macfns.c [TARGET_API_MAC_CARBON] (mac_update_proxy_icon):
+	Don't use FRAME_FILE_NAME.  Use (FS)UpdateAlias.
 	(Fx_create_frame): Apply 2006-07-03 for xfns.c.
 
 	* macselect.c (get_scrap_from_symbol, clear_scrap, put_scrap_string)
@@ -59,6 +728,10 @@
 	(Fdelete_file): Simplify; use list1.
 	(Frename_file, Fadd_name_to_file, Fmake_symbolic_link):
 	Simplify; remove NO_ARG_ARRAY stuff, use list2.
+
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* buffer.c (Fswitch_to_buffer): Fix previous change.
 
 2006-08-25  Kim F. Storm  <storm@cua.dk>
 
@@ -186,7 +859,6 @@
 	of drag and drop Atoms.
 
 	* xterm.c (x_term_init): Initialize dpyinfo->x_dnd_atoms*
-
 
 2006-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -381,7 +1053,7 @@
 	(FletX, Flet, grow_specpdl): Use signal_error.
 	(Feval, Ffuncall, funcall_lambda): Use xsignal1, xsignal2.
 
-	* alloc.c (buffer_memory_full, memory_full): Use xsignal. Remove loop.
+	* alloc.c (buffer_memory_full, memory_full): Use xsignal.  Remove loop.
 	(list1): New function.
 
 	* lisp.h (list1): Add EXFUN.
@@ -888,7 +1560,7 @@
 	(x_set_offset, x_check_fullscreen): Extensive changes to make
 	frame positioning deterministic under X.
 
-	* xterm.h (x_output): Added members left_before_move and
+	* xterm.h (x_output): Add members left_before_move and
 	top_before_move.  Removed members expected_left and expected_top.
 
 2006-06-16  Kim F. Storm  <storm@cua.dk>
@@ -1423,13 +2095,13 @@
 
 2006-05-18  Kim F. Storm  <storm@cua.dk>
 
-	* xdisp.c (display_tool_bar_line): Restore entire tool-bar geometry when
-	backtracking in case last image doesn't fit on line.
+	* xdisp.c (display_tool_bar_line): Restore entire tool-bar
+	geometry when backtracking in case last image doesn't fit on line.
 
 2006-05-18  MIYOSHI Masanori <miyoshi@meadowy.org>  (tiny change)
 
-	* xdisp.c (display_tool_bar_line): Don't adjust tool-bar height by more than
-	height of one frame default line.
+	* xdisp.c (display_tool_bar_line): Don't adjust tool-bar height by
+	more than height of one frame default line.
 
 2006-05-17  Richard Stallman  <rms@gnu.org>
 
@@ -2229,10 +2901,11 @@
 	* term.c: Define aliases for append_glyph and produce_stretch_glyph
 	when `static' is defined to avoid name clash with those in xdisp.c.
 
-	* process.c (Faccept_process_output): Fix to comply with lisp reference.
-	Change arg "timeout" to "seconds" and allow both integer and float value.
-	Change arg "timeout-msec" to "millisec" and interpret" as milliseconds
-	rather than microseconds.  Fix doc string accordingly.
+	* process.c (Faccept_process_output): Fix to comply with lisp
+	reference.  Change arg "timeout" to "seconds" and allow both
+	integer and float value.  Change arg "timeout-msec" to "millisec"
+	and interpret" as milliseconds rather than microseconds.  Fix doc
+	string accordingly.
 
 2006-03-21  Ken Raeburn  <raeburn@raeburn.org>
 
@@ -4442,7 +5115,8 @@
 	* xdisp.c (pos_visible_p): Convert w->hscroll to pixels before use.
 	(remember_mouse_glyph): Clear RECT if mouse is over an image glyph.
 
-	* keyboard.c (make_lispy_position): Adjust wx for left margin if ON_TEXT.
+	* keyboard.c (make_lispy_position): Adjust wx for left margin if
+	ON_TEXT.
 	(Fposn_at_x_y): Fix calculation of x coordinate.
 	(Fposn_at_point): Return nil if point is hscrolled out of view.
 
@@ -9936,7 +10610,6 @@
 
 	* xterm.c (xim_destroy_callback): Ditto.
 
-
 2004-10-20  B. Anyos  <banyos@freemail.hu>  (tiny change)
 
 	* w32term.c (x_draw_glyph_string): Use overline_color for overlines.
@@ -10940,7 +11613,8 @@
 
 	* search.c (match_limit, Fmatch_data, Fset_match_data): YAILOM.
 
-	* fontset.c (Fset_fontset_font): Remove unused vars `family' and `registry'.
+	* fontset.c (Fset_fontset_font): Remove unused vars `family' and
+	`registry'.
 
 	* Makefile.in (${etc}DOC): Fix file name of make-docfile.
 
@@ -13914,11 +14588,11 @@
 	pointer types.
 	(Qrelative_width, Qalign_to): Remove unused variables.
 	(Vvoid_text_area_pointer): Replace Vshow_text_cursor_in_void.
-	(QCmap, QCpointer, Qrect, Qcircle, Qpoly): New variables for
-	image maps.
-	(x_y_to_hpos_vpos): Return glyph relative coordinates through
-	new dx and dy args.
-	Remove buffer_only_p arg (always 0).  Simplify code accordingly.
+	(QCmap, QCpointer, Qrect, Qcircle, Qpoly): New variables for image
+	maps.
+	(x_y_to_hpos_vpos): Return glyph relative coordinates through new
+	dx and dy args.  Remove buffer_only_p arg (always 0).  Simplify
+	code accordingly.
 	(get_glyph_string_clip_rect): Draw cursor using glyph's rather
 	than row's ascent and height, to get sensible height on tall rows.
 	(build_desired_tool_bar_string): Remove Qimage extern.
@@ -13931,14 +14605,16 @@
 	rectangular, circular, or polygon-shaped image hot-spot,
 	(find_hot_spot): New function to search for image hot-spot.
 	(Flookup_image_map): New defun to search for image hot-spot.
-	(define_frame_cursor1): New aux function to determine frame pointer.
-	(note_mode_line_or_margin_highlight, note_mouse_highlight):
-	Handle `pointer' text property and :pointer image property to
-	control frame pointer shape.  Detect image hot-spots for pointer
-	and help_echo properties.  Use define_frame_cursor1.
-	(note_mouse_highlight):	Use Vvoid_text_area_pointer.
-	(syms_of_xdisp): Defsubr new defun.  Intern and staticpro new variables.
-	DEFVAR_LISP Vvoid_text_area_pointer instead of Vshow_text_cursor_in_void.
+	(define_frame_cursor1): New aux function to determine frame
+	pointer.
+	(note_mode_line_or_margin_highlight, note_mouse_highlight): Handle
+	`pointer' text property and :pointer image property to control
+	frame pointer shape.  Detect image hot-spots for pointer and
+	help_echo properties.  Use define_frame_cursor1.
+	(note_mouse_highlight): Use Vvoid_text_area_pointer.
+	(syms_of_xdisp): Defsubr new defun.  Intern and staticpro new
+	variables.  DEFVAR_LISP Vvoid_text_area_pointer instead of
+	Vshow_text_cursor_in_void.
 
 	* xfaces.c (cache_face): Abort if c->size exceeds MAX_FACE_ID.
 
@@ -14422,8 +15098,8 @@
 	* alloc.c (lisp_align_malloc): If BASE is 0, call memory_full.
 
 	* window.c (Fset_window_margins): Allow only integers as args.
-	(syms_of_window) <special-display-buffer-names, special-display-regexps>:
-	Doc fixes.
+	(syms_of_window) <special-display-buffer-names,
+	special-display-regexps>: Doc fixes.
 
 2003-10-13  Lute Kamstra  <lute@gnu.org>
 
@@ -18423,6 +19099,14 @@
 
 	* Makefile.in (fns.o): Depend on coding.h.
 
+2003-01-06  Dave Love  <fx@gnu.org>
+
+	* fns.c: Include coding.h.  Use POINTER_TYPE*, not void*.
+	(Vlocale_coding_system): Declare.
+	(Qcodeset, Qdays, Qmonths, Qpaper): New.
+	(Flanginfo): New.
+	(syms_of_fns): Initialize new stuff.
+
 2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* minibuf.c (Fread_variable): Doc fix.
@@ -22226,15 +22910,15 @@
 
 	* process.c (Qlocal, QCname, QCbuffer, QChost, QCservice, QCfamily)
 	(QClocal, QCremote, QCserver, QCdatagram, QCnowait, QCnoquery, QCstop)
-	(QCcoding, QCoptions, QCfilter, QCsentinel, QClog, QCfeature):
-	New variables.
+	(QCcoding, QCoptions, QCfilter, QCsentinel, QClog, QCfeature): New
+	variables.
 	(NETCONN1_P): New macro.
 	(DATAGRAM_SOCKETS): New conditional symbol.
 	(datagram_address): New array.
 	(DATAGRAM_CONN_P, DATAGRAM_CHAN_P): New macros.
 	(status_message): Use concat3.
-	(Fprocess_status): Add `listen' status to doc string.  Return `stop'
-	for a stopped network process.
+	(Fprocess_status): Add `listen' status to doc string.  Return
+	`stop' for a stopped network process.
 	(Fset_process_buffer): Update contact plist for network process.
 	(Fset_process_filter): Ditto.  Don't enable input for stopped
 	network processes.  Server must listen, even if filter is t.
@@ -22244,26 +22928,29 @@
 	(Fprocess_contact): Added KEY argument.  Handle datagrams.
 	(list_processes_1): Optionally show only processes with the query
 	on exit flag set.  Dynamically adjust column widths.  Omit tty
-	column if not needed.  Report stopped network processes.
-	Identify server and datagram network processes.
+	column if not needed.  Report stopped network processes.  Identify
+	server and datagram network processes.
 	(Flist_processes): New optional arg `query-only'.
 	(conv_sockaddr_to_lisp, get_lisp_to_sockaddr_size)
 	(conv_lisp_to_sockaddr, set_socket_options)
-	(network_process_featurep, unwind_request_sigio): New helper functions.
+	(network_process_featurep, unwind_request_sigio): New helper
+	functions.
 	(Fprocess_datagram_address, Fset_process_datagram_address):
 	(Fset_network_process_options): New lisp functions.
 	(Fopen_network_stream): Removed.  Now defined in simple.el.
-	(Fmake_network_process): New lisp function.  Code is based on previous
-	Fopen_network_stream, but heavily reworked with new property list based
-	argument list, support for datagrams, server processes, and local
-	sockets in addition to old client-only functionality.
+	(Fmake_network_process): New lisp function.  Code is based on
+	previous Fopen_network_stream, but heavily reworked with new
+	property list based argument list, support for datagrams, server
+	processes, and local sockets in addition to old client-only
+	functionality.
 	(server_accept_connection): New function.
 	(wait_reading_process_input): Use it to handle incoming connects.
 	Do not enable input on a new connection if process is stopped.
-	(read_process_output): Handle datagram sockets.  Use 2k buffer for them.
+	(read_process_output): Handle datagram sockets.  Use 2k buffer for
+	them.
 	(send_process): Handle datagram sockets.
-	(Fstop_process, Fcontinue_process): Apply to network processes.  A stopped
-	network process is indicated by setting command field to t .
+	(Fstop_process, Fcontinue_process): Apply to network processes.  A
+	stopped network process is indicated by setting command field to t.
 	(Fprocess_send_eof): No-op if datagram connection.
 	(Fstatus_notify): Don't read input for a stream server socket or a
 	stopped network process.

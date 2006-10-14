@@ -67,7 +67,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'compile)
-  (require 'comint))
+  (require 'comint)
+  (require 'hippie-exp))
 
 (autoload 'comint-mode "comint")
 
@@ -95,7 +96,9 @@
 	     "import" "in" "is" "lambda" "not" "or" "pass" "print"
 	     "raise" "return" "try" "while" "yield"
 	     ;; Future keywords
-	     "as" "None")
+	     "as" "None"
+             ;; Not real keywords, but close enough to be fontified as such
+             "self" "True" "False")
 	 symbol-end)
     ;; Definitions
     (,(rx symbol-start (group "class") (1+ space) (group (1+ (or word ?_))))
@@ -1286,7 +1289,7 @@ Don't save anything for STR matching `inferior-python-filter-regexp'."
                     ;; Maybe we could be more selective here.
                     (if (zerop (length res))
                         (not (bolp))
-                      (string-match res ".\\'"))))
+                      (string-match ".\\'" res))))
            ;; The need for this seems to be system-dependent:
            ;; What is this all about, exactly?  --Stef
            ;; (if (and (eq ?. (aref s 0)))
@@ -1330,30 +1333,30 @@ buffer for a list of commands.)"
   ;; (not a name) in Python buffers from which `run-python' &c is
   ;; invoked.  Would support multiple processes better.
   (when (or new (not (comint-check-proc python-buffer)))
-    (save-current-buffer
-      (let* ((cmdlist (append (python-args-to-list cmd) '("-i")))
-	     (path (getenv "PYTHONPATH"))
-	     (process-environment	; to import emacs.py
-	      (cons (concat "PYTHONPATH=" data-directory
-			    (if path (concat ":" path)))
-		    process-environment)))
-	(set-buffer (apply 'make-comint-in-buffer "Python"
-			   (generate-new-buffer "*Python*")
-			   (car cmdlist) nil (cdr cmdlist)))
-	(setq-default python-buffer (current-buffer))
-	(setq python-buffer (current-buffer)))
+    (with-current-buffer
+        (let* ((cmdlist (append (python-args-to-list cmd) '("-i")))
+               (path (getenv "PYTHONPATH"))
+               (process-environment	; to import emacs.py
+                (cons (concat "PYTHONPATH=" data-directory
+                              (if path (concat ":" path)))
+                      process-environment)))
+          (apply 'make-comint-in-buffer "Python"
+                 (if new (generate-new-buffer "*Python*") "*Python*")
+                 (car cmdlist) nil (cdr cmdlist)))
+      (setq-default python-buffer (current-buffer))
+      (setq python-buffer (current-buffer))
       (accept-process-output (get-buffer-process python-buffer) 5)
-      (inferior-python-mode)))
+      (inferior-python-mode)
+      ;; Load function definitions we need.
+      ;; Before the preoutput function was used, this was done via -c in
+      ;; cmdlist, but that loses the banner and doesn't run the startup
+      ;; file.  The code might be inline here, but there's enough that it
+      ;; seems worth putting in a separate file, and it's probably cleaner
+      ;; to put it in a module.
+      ;; Ensure we're at a prompt before doing anything else.
+      (python-send-receive "import emacs; print '_emacs_out ()'")))
   (if (derived-mode-p 'python-mode)
       (setq python-buffer (default-value 'python-buffer))) ; buffer-local
-  ;; Load function definitions we need.
-  ;; Before the preoutput function was used, this was done via -c in
-  ;; cmdlist, but that loses the banner and doesn't run the startup
-  ;; file.  The code might be inline here, but there's enough that it
-  ;; seems worth putting in a separate file, and it's probably cleaner
-  ;; to put it in a module.
-  ;; Ensure we're at a prompt before doing anything else.
-  (python-send-receive "import emacs; print '_emacs_out ()'")
   ;; Without this, help output goes into the inferior python buffer if
   ;; the process isn't already running.
   (sit-for 1 t)        ;Should we use accept-process-output instead?  --Stef
@@ -1369,15 +1372,20 @@ buffer for a list of commands.)"
 (defun python-send-command (command)
   "Like `python-send-string' but resets `compilation-shell-minor-mode'.
 COMMAND should be a single statement."
-  (assert (not (string-match "\n" command)))
-  (let ((end (marker-position (process-mark (python-proc)))))
+  ;; (assert (not (string-match "\n" command)))
+  ;; (let ((end (marker-position (process-mark (python-proc)))))
     (with-current-buffer python-buffer (goto-char (point-max)))
     (compilation-forget-errors)
-    ;; Must wait until this has completed before re-setting variables below.
-    (python-send-receive (concat command "; print '_emacs_out ()'"))
+    (python-send-string command)
     (with-current-buffer python-buffer
-      (set-marker compilation-parsing-end end)
-      (setq compilation-last-buffer (current-buffer)))))
+      (setq compilation-last-buffer (current-buffer)))
+    ;; No idea what this is for but it breaks the call to
+    ;; compilation-fake-loc in python-send-region.  -- Stef
+    ;; Must wait until this has completed before re-setting variables below.
+    ;; (python-send-receive "print '_emacs_out ()'")
+    ;; (with-current-buffer python-buffer
+    ;;   (set-marker compilation-parsing-end end))
+    ) ;;)
 
 (defun python-send-region (start end)
   "Send the region to the inferior Python process."
@@ -1419,11 +1427,13 @@ COMMAND should be a single statement."
   "Evaluate STRING in inferior Python process."
   (interactive "sPython command: ")
   (comint-send-string (python-proc) string)
-  (comint-send-string (python-proc)
-                      ;; If the string is single-line or if it ends with \n,
-                      ;; only add a single \n, otherwise add 2, so as to
-                      ;; make sure we terminate the multiline instruction.
-                      (if (string-match "\n.+\\'" string) "\n\n" "\n")))
+  (unless (string-match "\n\\'" string)
+    ;; Make sure the text is properly LF-terminated.
+    (comint-send-string (python-proc) "\n"))
+  (when (string-match "\n[ \t].*\n?\\'" string)
+    ;; If the string contains a final indented line, add a second newline so
+    ;; as to make sure we terminate the multiline instruction.
+    (comint-send-string (python-proc) "\n")))
 
 (defun python-send-buffer ()
   "Send the current buffer to the inferior Python process."
@@ -1594,24 +1604,26 @@ Only works when point is in a function name, not its arg list, for
 instance.  Assumes an inferior Python is running."
   (let ((symbol (with-syntax-table python-dotty-syntax-table
 		  (current-word))))
-    ;; First try the symbol we're on.
-    (or (and symbol
-	     (python-send-receive (format "emacs.eargs(%S, %s)"
-					  symbol python-imports)))
-	;; Try moving to symbol before enclosing parens.
-	(let ((s (syntax-ppss)))
-	  (unless (zerop (car s))
-	    (when (eq ?\( (char-after (nth 1 s)))
-	      (save-excursion
-		(goto-char (nth 1 s))
-		(skip-syntax-backward "-")
-		(let ((point (point)))
-		  (skip-chars-backward "a-zA-Z._")
-		  (if (< (point) point)
-		      (python-send-receive
-		       (format "emacs.eargs(%S, %s)"
-			       (buffer-substring-no-properties (point) point)
-			       python-imports)))))))))))
+    ;; This is run from timers, so inhibit-quit tends to be set.
+    (with-local-quit
+      ;; First try the symbol we're on.
+      (or (and symbol
+               (python-send-receive (format "emacs.eargs(%S, %s)"
+                                            symbol python-imports)))
+          ;; Try moving to symbol before enclosing parens.
+          (let ((s (syntax-ppss)))
+            (unless (zerop (car s))
+              (when (eq ?\( (char-after (nth 1 s)))
+                (save-excursion
+                  (goto-char (nth 1 s))
+                  (skip-syntax-backward "-")
+                  (let ((point (point)))
+                    (skip-chars-backward "a-zA-Z._")
+                    (if (< (point) point)
+                        (python-send-receive
+                         (format "emacs.eargs(%S, %s)"
+                                 (buffer-substring-no-properties (point) point)
+                                 python-imports))))))))))))
 
 ;;;; Info-look functionality.
 

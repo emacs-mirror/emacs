@@ -6654,7 +6654,8 @@ sequence containing the bytes in the region between START and END when
 the coding system `undecided' is specified.  The list is ordered by
 priority decided in the current language environment.
 
-If only ASCII characters are found, it returns a list of single element
+If only ASCII characters are found (except for such ISO-2022 control
+characters ISO-2022 as ESC), it returns a list of single element
 `undecided' or its subsidiary coding system according to a detected
 end-of-line format.
 
@@ -6701,7 +6702,8 @@ sequence containing the bytes in STRING when the coding system
 `undecided' is specified.  The list is ordered by priority decided in
 the current language environment.
 
-If only ASCII characters are found, it returns a list of single element
+If only ASCII characters are found (except for such ISO-2022 control
+characters ISO-2022 as ESC), it returns a list of single element
 `undecided' or its subsidiary coding system according to a detected
 end-of-line format.
 

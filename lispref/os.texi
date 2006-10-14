@@ -1386,7 +1386,12 @@ function, because quitting out of many timer functions can leave
 things in an inconsistent state.  This is normally unproblematical
 because most timer functions don't do a lot of work.  Indeed, for a
 timer to call a function that takes substantial time to run is likely
-to be annoying.
+to be annoying.  If a timer function needs to allow quitting, it
+should use @code{with-local-quit} (@pxref{Quitting}).  For example, if
+a timer function calls @code{accept-process-output} to receive output
+from an external process, that call should be wrapped inside
+@code{with-local-quit}, to ensure that @kbd{C-g} works if the external
+process hangs.
 
   It is usually a bad idea for timer functions to alter buffer
 contents.  When they do, they usually should call @code{undo-boundary}
@@ -1407,9 +1412,9 @@ it should save and restore the match data.  @xref{Saving Match Data}.
 @deffn Command run-at-time time repeat function &rest args
 This sets up a timer that calls the function @var{function} with
 arguments @var{args} at time @var{time}.  If @var{repeat} is a number
-(integer or floating point), the timer also runs every @var{repeat}
-seconds after that.  If @var{repeat} is @code{nil}, the timer runs
-only once.
+(integer or floating point), the timer is scheduled to run again every
+@var{repeat} seconds after @var{time}.  If @var{repeat} is @code{nil},
+the timer runs only once.
 
 @var{time} may specify an absolute or a relative time.
 
@@ -1457,6 +1462,23 @@ The function @code{run-at-time} returns a timer value that identifies
 the particular scheduled future action.  You can use this value to call
 @code{cancel-timer} (see below).
 @end deffn
+
+  A repeating timer nominally ought to run every @var{repeat} seconds,
+but remember that any invocation of a timer can be late.  Lateness of
+one repetition has no effect on the scheduled time of the next
+repetition.  For instance, if Emacs is busy computing for long enough
+to cover three scheduled repetitions of the timer, and then starts to
+wait, it will immediately call the timer function three times in
+immediate succession (presuming no other timers trigger before or
+between them).  If you want a timer to run again no less than @var{n}
+seconds after the last invocation, don't use the @var{repeat} argument.
+Instead, the timer function should explicitly reschedule the timer.
+
+@defvar timer-max-repeats
+This variable's value specifies the maximum number of times to repeat
+calling a timer function in a row, when many previously scheduled
+calls were unavoidably delayed.
+@end defvar
 
 @defmac with-timeout (seconds timeout-forms@dots{}) body@dots{}
 Execute @var{body}, but give up after @var{seconds} seconds.  If
@@ -1577,6 +1599,25 @@ Here's an example:
             'timer-function))))
 @end smallexample
 @end defun
+
+  Some idle timer functions in user Lisp packages have a loop that
+does a certain amount of processing each time around, and exits when
+@code{(input-pending-p)} is non-@code{nil}.  That approach seems very
+natural but has two problems:
+
+@itemize
+@item
+It blocks out all process output (since Emacs accepts process output
+only while waiting).
+
+@item
+It blocks out any idle timers that ought to run during that time.
+@end itemize
+
+@noindent
+To avoid these problems, don't use that technique.  Instead, write
+such idle timers to reschedule themselves after a brief pause, using
+the method in the @code{timer-function} example above.
 
 @node Terminal Input
 @section Terminal Input

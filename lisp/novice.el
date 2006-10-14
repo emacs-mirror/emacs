@@ -44,6 +44,8 @@ If nil, the feature is disabled, i.e., all commands work normally.")
 ;;;###autoload
 (define-obsolete-variable-alias 'disabled-command-hook 'disabled-command-function "22.1")
 
+;; It is ok here to assume that this-command is a symbol
+;; because we won't get called otherwise.
 ;;;###autoload
 (defun disabled-command-function (&rest ignore)
   (let (char)

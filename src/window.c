@@ -335,13 +335,16 @@ Return nil if that position is scrolled vertically out of view.
 If a character is only partially visible, nil is returned, unless the
 optional argument PARTIALLY is non-nil.
 If POS is only out of view because of horizontal scrolling, return non-nil.
+If POS is t, it specifies the position of the last visible glyph in WINDOW.
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
-return value is a list (X Y PARTIAL) where X and Y are the pixel coordinates
-relative to the top left corner of the window. PARTIAL is nil if the character
-after POS is fully visible; otherwise it is a cons (RTOP . RBOT) where RTOP
-and RBOT are the number of pixels invisible at the top and bottom of the row.  */)
+return value is a list of 2 or 6 elements (X Y [RTOP RBOT ROWH VPOS]),
+where X and Y are the pixel coordinates relative to the top left corner
+of the window.  The remaining elements are omitted if the character after
+POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
+off-window at the top and bottom of the row, ROWH is the height of the
+display row, and VPOS is the row number (0-based) containing POS.  */)
      (pos, window, partially)
      Lisp_Object pos, window, partially;
 {
@@ -350,14 +353,16 @@ and RBOT are the number of pixels invisible at the top and bottom of the row.  *
   register struct buffer *buf;
   struct text_pos top;
   Lisp_Object in_window = Qnil;
-  int rtop, rbot, fully_p = 1;
+  int rtop, rbot, rowh, vpos, fully_p = 1;
   int x, y;
 
   w = decode_window (window);
   buf = XBUFFER (w->buffer);
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
-  if (!NILP (pos))
+  if (EQ (pos, Qt))
+    posint = -1;
+  else if (!NILP (pos))
     {
       CHECK_NUMBER_COERCE_MARKER (pos);
       posint = XINT (pos);
@@ -369,23 +374,137 @@ and RBOT are the number of pixels invisible at the top and bottom of the row.  *
 
   /* If position is above window start or outside buffer boundaries,
      or if window start is out of range, position is not visible.  */
-  if (posint >= CHARPOS (top)
-      && posint <= BUF_ZV (buf)
+  if ((EQ (pos, Qt)
+       || (posint >= CHARPOS (top) && posint <= BUF_ZV (buf)))
       && CHARPOS (top) >= BUF_BEGV (buf)
       && CHARPOS (top) <= BUF_ZV (buf)
-      && pos_visible_p (w, posint, &x, &y, &rtop, &rbot, NILP (partially))
+      && pos_visible_p (w, posint, &x, &y, &rtop, &rbot, &rowh, &vpos)
       && (fully_p = !rtop && !rbot, (!NILP (partially) || fully_p)))
     in_window = Qt;
 
   if (!NILP (in_window) && !NILP (partially))
-    in_window = Fcons (make_number (x),
-		       Fcons (make_number (y),
-			      Fcons ((fully_p ? Qnil
-				     : Fcons (make_number (rtop),
-					      make_number (rbot))),
-				     Qnil)));
+    {
+      Lisp_Object part = Qnil;
+      if (!fully_p)
+	part = list4 (make_number (rtop), make_number (rbot),
+			make_number (rowh), make_number (vpos));
+      in_window = Fcons (make_number (x),
+			 Fcons (make_number (y), part));
+    }
+
   return in_window;
 }
+
+DEFUN ("window-line-height", Fwindow_line_height,
+       Swindow_line_height, 0, 2, 0,
+       doc: /* Return height in pixels of text line LINE in window WINDOW.
+If WINDOW is nil or omitted, use selected window.
+
+Return height of current line if LINE is omitted or nil.  Return height of
+header or mode line if LINE is `header-line' and `mode-line'.
+Otherwise, LINE is a text line number starting from 0.  A negative number
+counts from the end of the window.
+
+Value is a list (HEIGHT VPOS YPOS OFFBOT), where HEIGHT is the height
+in pixels of the visible part of the line, VPOS and YPOS are the
+vertical position in lines and pixels of the line, relative to the top
+of the first text line, and OFFBOT is the number of off-window pixels at
+the bottom of the text line.  If there are off-window pixels at the top
+of the (first) text line, YPOS is negative.
+
+Return nil if window display is not up-to-date.  In that case, use
+`pos-visible-in-window-p' to obtain the information.  */)
+     (line, window)
+     Lisp_Object line, window;
+{
+  register struct window *w;
+  register struct buffer *b;
+  struct glyph_row *row, *end_row;
+  int max_y, crop, i, n;
+
+  w = decode_window (window);
+
+  if (noninteractive
+      || w->pseudo_window_p)
+    return Qnil;
+
+  CHECK_BUFFER (w->buffer);
+  b = XBUFFER (w->buffer);
+
+  /* Fail if current matrix is not up-to-date.  */
+  if (NILP (w->window_end_valid)
+      || current_buffer->clip_changed
+      || current_buffer->prevent_redisplay_optimizations_p
+      || XFASTINT (w->last_modified) < BUF_MODIFF (b)
+      || XFASTINT (w->last_overlay_modified) < BUF_OVERLAY_MODIFF (b))
+    return Qnil;
+
+  if (NILP (line))
+    {
+      i = w->cursor.vpos;
+      if (i < 0 || i >= w->current_matrix->nrows
+	  || (row = MATRIX_ROW (w->current_matrix, i), !row->enabled_p))
+	return Qnil;
+      max_y = window_text_bottom_y (w);
+      goto found_row;
+    }
+
+  if (EQ (line, Qheader_line))
+    {
+      if (!WINDOW_WANTS_HEADER_LINE_P (w))
+	return Qnil;
+      row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
+      if (!row->enabled_p)
+	return Qnil;
+      return list4 (make_number (row->height),
+		    make_number (0), make_number (0),
+		    make_number (0));
+    }
+
+  if (EQ (line, Qmode_line))
+    {
+      row = MATRIX_MODE_LINE_ROW (w->current_matrix);
+      if (!row->enabled_p)
+	return Qnil;
+      return list4 (make_number (row->height),
+		    make_number (0), /* not accurate */
+		    make_number (WINDOW_HEADER_LINE_HEIGHT (w)
+				 + window_text_bottom_y (w)),
+		    make_number (0));
+    }
+
+  CHECK_NUMBER (line);
+  n = XINT (line);
+
+  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  end_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
+  max_y = window_text_bottom_y (w);
+  i = 0;
+
+  while ((n < 0 || i < n)
+	 && row <= end_row && row->enabled_p
+	 && row->y + row->height < max_y)
+    row++, i++;
+
+  if (row > end_row || !row->enabled_p)
+    return Qnil;
+
+  if (++n < 0)
+    {
+      if (-n > i)
+	return Qnil;
+      row += n;
+      i += n;
+    }
+
+ found_row:
+  crop = max (0, (row->y + row->height) - max_y);
+  return list4 (make_number (row->height + min (0, row->y) - crop),
+		make_number (i),
+		make_number (row->y),
+		make_number (crop));
+}
+
 
 
 static struct window *
@@ -451,7 +570,7 @@ DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
 Return NCOL.  NCOL should be zero or positive.
 
 Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
-window so that the location of point becomes invisible.  */)
+window so that the location of point moves off-window.  */)
      (window, ncol)
      Lisp_Object window, ncol;
 {
@@ -1048,9 +1167,11 @@ if it isn't already recorded.  */)
   Lisp_Object value;
   struct window *w = decode_window (window);
   Lisp_Object buf;
+  struct buffer *b;
 
   buf = w->buffer;
   CHECK_BUFFER (buf);
+  b = XBUFFER (buf);
 
 #if 0 /* This change broke some things.  We should make it later.  */
   /* If we don't know the end position, return nil.
@@ -1063,12 +1184,20 @@ if it isn't already recorded.  */)
 
   if (! NILP (update)
       && ! (! NILP (w->window_end_valid)
-	    && XFASTINT (w->last_modified) >= MODIFF)
+	    && XFASTINT (w->last_modified) >= BUF_MODIFF (b))
       && !noninteractive)
     {
       struct text_pos startp;
       struct it it;
-      struct buffer *old_buffer = NULL, *b = XBUFFER (buf);
+      struct buffer *old_buffer = NULL;
+
+      /* Cannot use Fvertical_motion because that function doesn't
+	 cope with variable-height lines.  */
+      if (b != current_buffer)
+	{
+	  old_buffer = current_buffer;
+	  set_buffer_internal (b);
+	}
 
       /* In case W->start is out of the range, use something
          reasonable.  This situation occurred when loading a file with
@@ -1082,14 +1211,6 @@ if it isn't already recorded.  */)
       else
 	SET_TEXT_POS_FROM_MARKER (startp, w->start);
 
-      /* Cannot use Fvertical_motion because that function doesn't
-	 cope with variable-height lines.  */
-      if (b != current_buffer)
-	{
-	  old_buffer = current_buffer;
-	  set_buffer_internal (b);
-	}
-
       start_display (&it, w, startp);
       move_it_vertically (&it, window_box_height (w));
       if (it.current_y < it.last_visible_y)
@@ -1100,7 +1221,7 @@ if it isn't already recorded.  */)
 	set_buffer_internal (old_buffer);
     }
   else
-    XSETINT (value, BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
+    XSETINT (value, BUF_Z (b) - XFASTINT (w->window_end_pos));
 
   return value;
 }
@@ -4820,10 +4941,10 @@ window_scroll_pixel_based (window, n, whole, noerror)
   struct it it;
   struct window *w = XWINDOW (window);
   struct text_pos start;
-  Lisp_Object tem;
   int this_scroll_margin;
   /* True if we fiddled the window vscroll field without really scrolling.   */
   int vscrolled = 0;
+  int x, y, rtop, rbot, rowh, vpos;
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
 
@@ -4831,8 +4952,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
      the screen.  Allow PT to be partially visible, otherwise
      something like (scroll-down 1) with PT in the line before
      the partially visible one would recenter. */
-  tem = Fpos_visible_in_window_p (make_number (PT), window, Qt);
-  if (NILP (tem))
+
+  if (!pos_visible_p (w, PT, &x, &y, &rtop, &rbot, &rowh, &vpos))
     {
       /* Move backward half the height of the window.  Performance note:
 	 vmotion used here is about 10% faster, but would give wrong
@@ -4857,7 +4978,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
     }
   else if (auto_window_vscroll_p)
     {
-      if (tem = XCAR (XCDR (XCDR (tem))), CONSP (tem))
+      if (rtop || rbot)		/* partially visible */
 	{
 	  int px;
 	  int dy = WINDOW_FRAME_LINE_HEIGHT (w);
@@ -4867,19 +4988,52 @@ window_scroll_pixel_based (window, n, whole, noerror)
 		      dy);
 	  dy *= n;
 
-	  if (n < 0 && (px = XINT (XCAR (tem))) > 0)
+	  if (n < 0)
 	    {
-	      px = max (0, -w->vscroll - min (px, -dy));
-	      Fset_window_vscroll (window, make_number (px), Qt);
-	      return;
+	      /* Only vscroll backwards if already vscrolled forwards.  */
+	      if (w->vscroll < 0 && rtop > 0)
+		{
+		  px = max (0, -w->vscroll - min (rtop, -dy));
+		  Fset_window_vscroll (window, make_number (px), Qt);
+		  return;
+		}
 	    }
-	  if (n > 0 && (px = XINT (XCDR (tem))) > 0)
+	  if (n > 0)
 	    {
-	      px = max (0, -w->vscroll + min (px, dy));
-	      Fset_window_vscroll (window, make_number (px), Qt);
-	      return;
+	      /* Do vscroll if already vscrolled or only display line.  */
+	      if (rbot > 0 && (w->vscroll < 0 || vpos == 0))
+		{
+		  px = max (0, -w->vscroll + min (rbot, dy));
+		  Fset_window_vscroll (window, make_number (px), Qt);
+		  return;
+		}
+
+	      /* Maybe modify window start instead of scrolling.  */
+	      if (rbot > 0 || w->vscroll < 0)
+		{
+		  int spos;
+
+		  Fset_window_vscroll (window, make_number (0), Qt);
+		  /* If there are other text lines above the current row,
+		     move window start to current row.  Else to next row. */
+		  if (rbot > 0)
+		    spos = XINT (Fline_beginning_position (Qnil));
+		  else
+		    spos = min (XINT (Fline_end_position (Qnil)) + 1, ZV);
+		  set_marker_restricted (w->start, make_number (spos),
+					 w->buffer);
+		  w->start_at_line_beg = Qt;
+		  w->update_mode_line = Qt;
+		  XSETFASTINT (w->last_modified, 0);
+		  XSETFASTINT (w->last_overlay_modified, 0);
+		  /* Set force_start so that redisplay_window will run the
+		     window-scroll-functions.  */
+		  w->force_start = Qt;
+		  return;
+		}
 	    }
 	}
+      /* Cancel previous vscroll.  */
       Fset_window_vscroll (window, make_number (0), Qt);
     }
 
@@ -4920,7 +5074,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
       if (dy <= 0)
 	{
 	  move_it_vertically_backward (&it, -dy);
-	  /* Ensure we actually does move, e.g. in case we are currently
+	  /* Ensure we actually do move, e.g. in case we are currently
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
 		 && start_pos > BEGV)
@@ -4930,7 +5084,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	{
 	  move_it_to (&it, ZV, -1, it.current_y + dy, -1,
 		      MOVE_TO_POS | MOVE_TO_Y);
-	  /* Ensure we actually does move, e.g. in case we are currently
+	  /* Ensure we actually do move, e.g. in case we are currently
 	     looking at an image that is taller that the window height.  */
 	  while (start_pos == IT_CHARPOS (it)
 		 && start_pos < ZV)
@@ -6658,7 +6812,7 @@ display marginal areas and the text area.  */)
     CHECK_NATNUM (left_width);
   if (!NILP (right_width))
     CHECK_NATNUM (right_width);
- 
+
   /* Do nothing on a tty.  */
   if (FRAME_WINDOW_P (WINDOW_XFRAME (w))
       && (!EQ (w->left_fringe_width, left_width)
@@ -7292,16 +7446,18 @@ See also `same-window-buffer-names'.  */);
   next_screen_context_lines = 2;
 
   DEFVAR_INT ("split-height-threshold", &split_height_threshold,
-	      doc: /* *A window must be at least this tall to be eligible for splitting by `display-buffer'.
+	      doc: /* *A window must be at least this tall to be eligible for splitting
+by `display-buffer'.  The value is in line units.
 If there is only one window, it is split regardless of this value.  */);
   split_height_threshold = 500;
 
   DEFVAR_INT ("window-min-height", &window_min_height,
-	      doc: /* *Delete any window less than this tall (including its mode line).  */);
+	      doc: /* *Delete any window less than this tall (including its mode line).
+The value is in line units. */);
   window_min_height = 4;
 
   DEFVAR_INT ("window-min-width", &window_min_width,
-	      doc: /* *Delete any window less than this wide.  */);
+	      doc: /* *Delete any window less than this wide (measured in characters).  */);
   window_min_width = 10;
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
@@ -7327,6 +7483,7 @@ The selected frame is the one whose configuration has changed.  */);
   defsubr (&Swindowp);
   defsubr (&Swindow_live_p);
   defsubr (&Spos_visible_in_window_p);
+  defsubr (&Swindow_line_height);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_height);
   defsubr (&Swindow_width);

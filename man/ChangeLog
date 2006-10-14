@@ -1,3 +1,167 @@
+2006-10-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>
+
+	* widget.texi: Fix typos (tiny change)
+
+2006-10-11  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.texi (Acknowledgments): Use @dotless{i}.
+
+2006-10-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Breakpoints Buffer): Mention catchpoints.
+
+2006-10-08  Kim F. Storm  <storm@cua.dk>
+
+	* ack.texi (Acknowledgments): Update.
+
+	* emacs.texi (Acknowledgments): Fix bad @/ form.
+
+2006-10-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Image Enhancements): Update for Emacs 22.
+
+	* gnus-faq.texi ([1.3]): Update.
+
+2006-10-06  Richard Stallman  <rms@gnu.org>
+
+	* faq.texi (Displaying the current line or column):
+	Delete "As of Emacs 20".
+
+2006-10-06  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (VM): VM works with Emacs 22 too.
+
+2006-10-06  Richard Stallman  <rms@gnu.org>
+
+	* ebrowse.texi: Remove Emacs version "21" from title.
+
+2006-10-05  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.texi (Acknowledgments): Add more contributors.
+
+2006-10-03  Richard Stallman  <rms@gnu.org>
+
+	* emacs.texi (Acknowledgments): Update version and edition.
+
+2006-10-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Foreign Groups): Say where change of editing commands are
+	stored.  Add reference to `gnus-parameters'.
+
+2006-10-01  Karl Berry  <karl@gnu.org>
+
+	* custom.texi (Customization Groups): Page break to keep example buffer
+	on one page.
+
+2006-09-30  Karl Berry  <karl@gnu.org>
+
+	* programs.texi (Basic Indent): @need to improve page break.
+	* text.texi: Rewording to improve page breaks, and use @LaTeX{}.
+
+2006-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Date Formats): Doc fix for european-calendar-style.
+
+2006-09-29  Karl Berry  <karl@gnu.org>
+
+	* windows.texi (Basic Window): Remove forced @break, no longer
+	desirable.
+	* frames.texi (Frame Commands),
+	* mark.texi (Marking Objects): Reword to avoid bad page break.
+	* display.texi (Auto Scrolling): Use @tie{} to avoid bad line break.
+
+2006-09-19  Richard Stallman  <rms@gnu.org>
+
+	* frames.texi (Dialog Boxes): Clean up wording: avoid passive,
+	stick to present tense.
+
+2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Dialog Boxes): Rename x-use-old-gtk-file-dialog
+	to x-gtk-use-old-file-dialog.
+	(Dialog Boxes): Document x-gtk-file-dialog-help-text.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi, emacs.texi, mh-e.texi (GNU GENERAL PUBLIC LICENSE):
+	Change "Library Public License" to "Lesser Public License"
+	throughout.  Use "yyyy" to represent year.
+
+2006-09-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Setting tags): Typo fix.
+
+2006-09-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Oort Gnus): Add @xref for `mm-fill-flowed'.
+
+2006-09-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* files.texi (Visiting): Add index entry "open file".
+
+	* reftex.texi (Citations Outside LaTeX): Simplify lisp example.
+
+2006-09-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* faq.texi (Escape sequences in shell output): EMACS is now set
+	to Emacs's absolute file name, not to "t".
+	(^M in the shell buffer): Likewise.
+	* misc.texi (Interactive Shell): Likewise.
+
+2006-09-11  Richard Stallman  <rms@gnu.org>
+
+	* building.texi (Compilation Mode): Clarification.
+	(Grep Searching): Add xref to Compilation Mode.
+
+2006-09-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Specifiers): Mention problem of duplicate
+	mails with pop3-leave-mail-on-server.  Fix wording.
+	(Limiting): Improve gnus-summary-limit-to-articles.
+	(X-Face): Fix typo.
+
+2006-09-11  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Explain TLS and SSL better, based on
+	suggested by Phillip Lord <phillip.lord@newcastle.ac.uk>.
+
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Search): Ref multi-file search commands here.
+	(Other Repeating Search): Not here.
+
+2006-09-06  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi (Authentication): Mention SSL.
+
+2006-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* rcirc.texi (Internet Relay Chat, Useful IRC commands):
+	Don't use @indicateurl.
+
+	* cc-mode.texi (Subword Movement): Don't use @headitem.
+	(Custom Braces, Clean-ups): Don't use @tie.
+
+2006-08-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.54.
+
+	* tramp.texi (Bug Reports): The Tramp mailing list is moderated now.
+	Suggested by Adrian Phillips <a.phillips@met.no>.
+
+2006-08-28  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Split Window): Update xref.
+
+	* basic.texi (Continuation Lines): Update xref.
+
+	* indent.texi (Tab Stops): Update xref.
+
+	* emacs.texi (Top): Update subnode menu.
+
+	* display.texi (Line Truncation, Displaying Boundaries): New nodes,
+	split out of Display Custom.
+
 2006-08-25  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Display Custom): Add variables overline-margin

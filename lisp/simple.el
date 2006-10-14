@@ -116,29 +116,29 @@ If no other buffer exists, the buffer `*scratch*' is returned."
   :group 'next-error
   :version "22.1")
 
-(defcustom next-error-highlight 0.1
+(defcustom next-error-highlight 0.5
   "*Highlighting of locations in selected source buffers.
 If number, highlight the locus in `next-error' face for given time in seconds.
-If t, use persistent overlays fontified in `next-error' face.
+If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
-  :type '(choice (number :tag "Delay")
-                 (const :tag "Persistent overlay" t)
+  :type '(choice (number :tag "Highlight for specified time")
+                 (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
-                 (const :tag "Fringe arrow" 'fringe-arrow))
+                 (const :tag "Fringe arrow" fringe-arrow))
   :group 'next-error
   :version "22.1")
 
-(defcustom next-error-highlight-no-select 0.1
-  "*Highlighting of locations in non-selected source buffers.
+(defcustom next-error-highlight-no-select 0.5
+  "*Highlighting of locations in `next-error-no-select'.
 If number, highlight the locus in `next-error' face for given time in seconds.
-If t, use persistent overlays fontified in `next-error' face.
+If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
-  :type '(choice (number :tag "Delay")
-                 (const :tag "Persistent overlay" t)
+  :type '(choice (number :tag "Highlight for specified time")
+                 (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
-                 (const :tag "Fringe arrow" 'fringe-arrow))
+                 (const :tag "Fringe arrow" fringe-arrow))
   :group 'next-error
   :version "22.1")
 
@@ -1489,8 +1489,7 @@ Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or (listp pending-undo-list)
       (error (concat "No further undo information"
-                     (and transient-mark-mode mark-active
-                          " for region"))))
+		     (and undo-in-region " for region"))))
   (let ((undo-in-progress t))
     (setq pending-undo-list (primitive-undo n pending-undo-list))
     (if (null pending-undo-list)
@@ -1637,12 +1636,12 @@ is not *inside* the region START...END."
 	((null (car undo-elt))
 	 ;; (nil PROPERTY VALUE BEG . END)
 	 (let ((tail (nthcdr 3 undo-elt)))
-	   (not (or (< (car tail) end)
-		    (> (cdr tail) start)))))
+	   (and (< (car tail) end)
+		(> (cdr tail) start))))
 	((integerp (car undo-elt))
 	 ;; (BEGIN . END)
-	 (not (or (< (car undo-elt) end)
-		  (> (cdr undo-elt) start))))))
+	 (and (< (car undo-elt) end)
+	      (> (cdr undo-elt) start)))))
 
 ;; Return the first affected buffer position and the delta for an undo element
 ;; delta is defined as the change in subsequent buffer positions if we *did*
@@ -1664,7 +1663,7 @@ is not *inside* the region START...END."
 Normally, Emacs discards the undo info for the current command if
 it exceeds `undo-outer-limit'.  But if you set this option
 non-nil, it asks in the echo area whether to discard the info.
-If you answer no, there a slight risk that Emacs might crash, so
+If you answer no, there is a slight risk that Emacs might crash, so
 only do it if you really want to undo the command.
 
 This option is mainly intended for debugging.  You have to be
@@ -2546,6 +2545,8 @@ text.  See `insert-for-yank'."
   ;; Pass point first, then mark, because the order matters
   ;; when calling kill-append.
   (interactive (list (point) (mark)))
+  (unless (and beg end)
+    (error "The mark is not set now, so there is no region"))
   (condition-case nil
       (let ((string (filter-buffer-substring beg end t)))
 	(when string			;STRING is nil if BEG = END
@@ -2649,7 +2650,7 @@ The argument is used for internal purposes; do not supply one."
 ;; This is actually used in subr.el but defcustom does not work there.
 (defcustom yank-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
-    yank-handler follow-link)
+    yank-handler follow-link fontified)
   "*Text properties to discard when yanking.
 The value should be a list of text properties to discard or t,
 which means to discard all text properties."
@@ -3467,6 +3468,63 @@ Outline mode sets this."
       (or (memq prop buffer-invisibility-spec)
 	  (assq prop buffer-invisibility-spec)))))
 
+;; Returns non-nil if partial move was done.
+(defun line-move-partial (arg noerror to-end)
+  (if (< arg 0)
+      ;; Move backward (up).
+      ;; If already vscrolled, reduce vscroll
+      (let ((vs (window-vscroll nil t)))
+	(when (> vs (frame-char-height))
+	  (set-window-vscroll nil (- vs (frame-char-height)) t)))
+
+    ;; Move forward (down).
+    (let* ((lh (window-line-height -1))
+	   (vpos (nth 1 lh))
+	   (ypos (nth 2 lh))
+	   (rbot (nth 3 lh))
+	   ppos py vs)
+      (when (or (null lh)
+		(>= rbot (frame-char-height))
+		(<= ypos (- (frame-char-height))))
+	(unless lh
+	  (let ((wend (pos-visible-in-window-p t nil t)))
+	    (setq rbot (nth 3 wend)
+		  vpos (nth 5 wend))))
+	(cond
+	 ;; If last line of window is fully visible, move forward.
+	 ((or (null rbot) (= rbot 0))
+	  nil)
+	 ;; If cursor is not in the bottom scroll margin, move forward.
+	 ((and (> vpos 0)
+	       (< (setq py
+			(or (nth 1 (window-line-height))
+			    (let ((ppos (posn-at-point)))
+			      (cdr (or (posn-actual-col-row ppos)
+				       (posn-col-row ppos))))))
+		  (min (- (window-text-height) scroll-margin 1) (1- vpos))))
+	  nil)
+	 ;; When already vscrolled, we vscroll some more if we can,
+	 ;; or clear vscroll and move forward at end of tall image.
+	 ((> (setq vs (window-vscroll nil t)) 0)
+	  (when (> rbot 0)
+	    (set-window-vscroll nil (+ vs (min rbot (frame-char-height))) t)))
+	 ;; If cursor just entered the bottom scroll margin, move forward,
+	 ;; but also vscroll one line so redisplay wont recenter.
+	 ((and (> vpos 0)
+	       (= py (min (- (window-text-height) scroll-margin 1)
+			  (1- vpos))))
+	  (set-window-vscroll nil (frame-char-height) t)
+	  (line-move-1 arg noerror to-end)
+	  t)
+	 ;; If there are lines above the last line, scroll-up one line.
+	 ((> vpos 0)
+	  (scroll-up 1)
+	  t)
+	 ;; Finally, start vscroll.
+	 (t
+	  (set-window-vscroll nil (frame-char-height) t)))))))
+
+
 ;; This is like line-move-1 except that it also performs
 ;; vertical scrolling of tall images if appropriate.
 ;; That is not really a clean thing to do, since it mixes
@@ -3474,37 +3532,14 @@ Outline mode sets this."
 ;; a cleaner solution to the problem of making C-n do something
 ;; useful given a tall image.
 (defun line-move (arg &optional noerror to-end try-vscroll)
-  (if (and auto-window-vscroll try-vscroll
-	   ;; But don't vscroll in a keyboard macro.
-	   (not defining-kbd-macro)
-	   (not executing-kbd-macro))
-      (let ((forward (> arg 0))
-	    (part (nth 2 (pos-visible-in-window-p (point) nil t))))
-	(if (and (consp part)
-		 (> (if forward (cdr part) (car part)) 0))
-	    (set-window-vscroll nil
-				(if forward
-				    (+ (window-vscroll nil t)
-				       (min (cdr part)
-					    (* (frame-char-height) arg)))
-				  (max 0
-				       (- (window-vscroll nil t)
-					  (min (car part)
-					       (* (frame-char-height) (- arg))))))
-				t)
-	  (set-window-vscroll nil 0)
-	  (when (line-move-1 arg noerror to-end)
-	    (when (not forward)
-	      ;; Update display before calling pos-visible-in-window-p,
-	      ;; because it depends on window-start being up-to-date.
-	      (sit-for 0)
-	      ;; If the current line is partly hidden at the bottom,
-	      ;; scroll it partially up so as to unhide the bottom.
-	      (if (and (setq part (nth 2 (pos-visible-in-window-p
-					  (line-beginning-position) nil t)))
-		       (> (cdr part) 0))
-		  (set-window-vscroll nil (cdr part) t)))
-	    t)))
+  (unless (and auto-window-vscroll try-vscroll
+	       ;; Only vscroll for single line moves
+	       (= (abs arg) 1)
+	       ;; But don't vscroll in a keyboard macro.
+	       (not defining-kbd-macro)
+	       (not executing-kbd-macro)
+	       (line-move-partial arg noerror to-end))
+    (set-window-vscroll nil 0 t)
     (line-move-1 arg noerror to-end)))
 
 ;; This is the guts of next-line and previous-line.
@@ -3515,7 +3550,7 @@ Outline mode sets this."
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
 	(opoint (point))
-	(forward (> arg 0)))
+	(orig-arg arg))
     (unwind-protect
 	(progn
 	  (if (not (memq last-command '(next-line previous-line)))
@@ -3548,14 +3583,18 @@ Outline mode sets this."
 			      'end-of-buffer)
 			    nil)))
 	    ;; Move by arg lines, but ignore invisible ones.
-	    (let (done)
+	    (let (done line-end)
 	      (while (and (> arg 0) (not done))
 		;; If the following character is currently invisible,
 		;; skip all characters with that same `invisible' property value.
 		(while (and (not (eobp)) (line-move-invisible-p (point)))
 		  (goto-char (next-char-property-change (point))))
-		;; Now move a line.
-		(end-of-line)
+		;; Move a line.
+		;; We don't use `end-of-line', since we want to escape
+		;; from field boundaries ocurring exactly at point.
+		(let ((inhibit-field-text-motion t))
+		  (setq line-end (line-end-position)))
+		(goto-char (constrain-to-field line-end (point) t t))
 		;; If there's no invisibility here, move over the newline.
 		(cond
 		 ((eobp)
@@ -3613,7 +3652,7 @@ Outline mode sets this."
 	     (beginning-of-line))
 	    (t
 	     (line-move-finish (or goal-column temporary-goal-column)
-			       opoint forward))))))
+			       opoint (> orig-arg 0)))))))
 
 (defun line-move-finish (column opoint forward)
   (let ((repeat t))
@@ -3622,6 +3661,7 @@ Outline mode sets this."
       (setq repeat nil)
 
       (let (new
+	    (old (point))
 	    (line-beg (save-excursion (beginning-of-line) (point)))
 	    (line-end
 	     ;; Compute the end of the line
@@ -3636,6 +3676,17 @@ Outline mode sets this."
 
 	;; Move to the desired column.
 	(line-move-to-column column)
+
+	;; Corner case: suppose we start out in a field boundary in
+	;; the middle of a continued line.  When we get to
+	;; line-move-finish, point is at the start of a new *screen*
+	;; line but the same text line; then line-move-to-column would
+	;; move us backwards. Test using C-n with point on the "x" in
+	;;   (insert "a" (propertize "x" 'field t) (make-string 89 ?y))
+	(and forward
+	     (< (point) old)
+	     (goto-char old))
+
 	(setq new (point))
 
 	;; Process intangibility within a line.
@@ -3675,8 +3726,15 @@ Outline mode sets this."
 	(goto-char opoint)
 	(let ((inhibit-point-motion-hooks nil))
 	  (goto-char
-	   (constrain-to-field new opoint nil t
-			       'inhibit-line-move-field-capture)))
+	   ;; Ignore field boundaries if the initial and final
+	   ;; positions have the same `field' property, even if the
+	   ;; fields are non-contiguous.  This seems to be "nicer"
+	   ;; behavior in many situations.
+	   (if (eq (get-char-property new 'field)
+	   	   (get-char-property opoint 'field))
+	       new
+	     (constrain-to-field new opoint t t
+				 'inhibit-line-move-field-capture))))
 
 	;; If all this moved us to a different line,
 	;; retry everything within that new line.
@@ -3691,10 +3749,7 @@ because what we really need is for `move-to-column'
 and `current-column' to be able to ignore invisible text."
   (if (zerop col)
       (beginning-of-line)
-    (let ((opoint (point)))
-      (move-to-column col)
-      ;; move-to-column doesn't respect field boundaries.
-      (goto-char (constrain-to-field (point) opoint))))
+    (move-to-column col))
 
   (when (and line-move-ignore-invisible
 	     (not (bolp)) (line-move-invisible-p (1- (point))))
@@ -4330,21 +4385,21 @@ in the mode line.
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
 and `line-number-display-limit-width'."
-  :init-value t :global t :group 'editing-basics)
+  :init-value t :global t :group 'mode-line)
 
 (define-minor-mode column-number-mode
   "Toggle Column Number mode.
 With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
-  :global t :group 'editing-basics)
+  :global t :group 'mode-line)
 
 (define-minor-mode size-indication-mode
   "Toggle Size Indication mode.
 With arg, turn Size Indication mode on iff arg is positive.  When
 Size Indication mode is enabled, the size of the accessible part
 of the buffer appears in the mode line."
-  :global t :group 'editing-basics)
+  :global t :group 'mode-line)
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
@@ -4974,6 +5029,12 @@ value of `completion-common-substring'. See also `display-completion-list'.")
 
 ;; Variables and faces used in `completion-setup-function'.
 
+(defcustom completion-show-help t
+  "Non-nil means show help message in *Completions* buffer."
+  :type 'boolean
+  :version "22.1"
+  :group 'completion)
+
 (defface completions-first-difference
   '((t (:inherit bold)))
   "Face put on the first uncommon character in completions in *Completions* buffer."
@@ -5060,14 +5121,15 @@ of the minibuffer before point is always the common substring.)")
 	      (if (get-char-property element-common-end 'mouse-face)
 		  (put-text-property element-common-end (1+ element-common-end)
 				     'font-lock-face 'completions-first-difference))))))
-      ;; Insert help string.
-      (goto-char (point-min))
-      (if (display-mouse-p)
-	  (insert (substitute-command-keys
-		   "Click \\[mouse-choose-completion] on a completion to select it.\n")))
-      (insert (substitute-command-keys
-	       "In this buffer, type \\[choose-completion] to \
-select the completion near point.\n\n")))))
+      ;; Maybe insert help string.
+      (when completion-show-help
+	(goto-char (point-min))
+	(if (display-mouse-p)
+	    (insert (substitute-command-keys
+		     "Click \\[mouse-choose-completion] on a completion to select it.\n")))
+	(insert (substitute-command-keys
+		 "In this buffer, type \\[choose-completion] to \
+select the completion near point.\n\n"))))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
 

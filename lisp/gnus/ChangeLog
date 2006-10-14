@@ -1,3 +1,122 @@
+2006-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Clarify
+	gnus-summary-limit-to-articles.
+
+2006-10-04  Romain Francoise  <romain@orebokech.com>
+
+	* gnus-util.el (gnus-alist-to-hashtable, gnus-hashtable-to-alist):
+	Moved here (and renamed) from gnus-registry.el.
+
+	* gnus-registry.el: Require gnus-util.
+	Use `gnus-alist-to-hashtable' and `gnus-hashtable-to-alist'.
+
+2006-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pop3.el (pop3-authentication-scheme): Clarify doc.
+	(pop3-movemail): Warn about pop3-leave-mail-on-server.
+
+2006-10-04  Dave Love  <fx@gnu.org>
+
+	* pop3.el (pop3-authentication-scheme): Add custom version.
+
+2006-10-04  Jesper Harder  <harder@ifa.au.dk>
+
+	* pop3.el (pop3-leave-mail-on-server): Don't quote nil in
+	doc string.  Improve doc string.
+
+2006-10-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-with-local-quit): New macro.
+
+	* gnus-demon.el (gnus-demon): Replace with-local-quit with it.
+
+2006-09-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gmm-utils.el (gmm): Adjust custom version.
+
+	* mm-util.el (mm-charset-override-alist, mm-charset-eval-alist): Adjust
+	custom version.
+
+	* gnus-draft.el (gnus-draft-mode): Don't call `mml-mode'.
+
+2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-demon.el (gnus-demon): Use with-local-quit to avoid hangs.
+
+2006-09-19  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnslashdot.el (nnslashdot-request-article): Update end-of-article
+	regexp.  Articles containing quotation were cut prematurely.
+
+2006-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-cite-original-without-signature): Use nobody by
+	default for the value of From header.
+	(message-cite-original): Ditto.
+	(message-reply): Ditto.
+
+2006-09-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pop3.el (pop3-leave-mail-on-server): Mention problem of duplicate
+	mails in the doc string.  Add some URLs in comment.
+
+2006-09-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-quote-special-characters-in-quoted-strings): Fix
+	backslashes handling and the way to find boundaries of quoted strings.
+
+2006-09-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-regexp, gnus-button-marker-list)
+	(gnus-button-last): Move up.  Convert comments into doc strings.
+
+2006-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-send-mail-with-sendmail): Look for sendmail in
+	several common directories.
+
+2006-09-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-decode-encoded-words): Make it fast.
+
+2006-09-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-decode-encoded-words): Don't infloop in XEmacs.
+
+	* rfc2047.el (rfc2047-strip-backslashes-in-quoted-strings): Decode `\\'
+	in quoted string into `\'.
+
+2006-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-quote-special-characters-in-quoted-strings):
+	Use standard-syntax-table.
+
+2006-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-decode-address-function): New variable.
+	(article-decode-encoded-words): Use it to decode headers which are
+	assumed to contain addresses.
+	(gnus-mime-delete-part): Remove useless `or'.
+
+	* gnus-sum.el (gnus-decode-encoded-address-function): New variable.
+	(gnus-summary-from-or-to-or-newsgroups): Use it to decode To header.
+	(gnus-nov-parse-line): Use it to decode From header.
+	(gnus-get-newsgroup-headers): Ditto.
+	(gnus-summary-enter-digest-group): Use it to decode `to-address'.
+
+	* mail-parse.el (mail-decode-encoded-address-region): New alias.
+	(mail-decode-encoded-address-string): New alias.
+
+	* rfc2047.el (rfc2047-quote-special-characters-in-quoted-strings):
+	New function.
+	(rfc2047-encode-message-header, rfc2047-encode-region): Use it.
+	(rfc2047-strip-backslashes-in-quoted-strings): New fnction.
+	(rfc2047-decode-region): Use it; add optional argument `address-mime'.
+	(rfc2047-decode-string): Ditto.
+	(rfc2047-decode-address-region): New function.
+	(rfc2047-decode-address-string): New function.
+
 2006-08-23  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	[ Backported bug fix from No Gnus. ]
@@ -388,10 +507,6 @@
 
 	* gnus-sum.el (gnus-get-newsgroup-headers-xover): Group is an
 	optional parameter.
-
-2006-04-07  Reiner Steib  <Reiner.Steib@gmx.de>
-
-	* pgg-gpg.el: Revert to revision 7.15 to allow the use of gpg-agent.
 
 2006-04-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -1191,7 +1306,7 @@
 	as a buffer-local variable.  This avoids creating truncated
 	dribble files as a result of a hang up, eg.
 
-2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+2005-11-04  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
@@ -2826,7 +2941,7 @@
 
 	* gnus.el (gnus-group-startup-message): Search for gnus images in
 	etc/images/gnus.
-	* mm-util.el (mm-find-charset-region): Likewise.
+	* mm-util.el (mm-image-load-path): Likewise.
 	* smiley.el (smiley-data-directory): Search for smilies in
 	etc/images/smilies.
 
@@ -3935,7 +4050,7 @@
 
 	* gnus-sum.el (gnus-summary-insert-subject): Remove list identifiers.
 
-2004-09-03  Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>  (tiny change)
+2004-09-03  Hiroshi Fujishima  <pooh@nature.tsukuba.ac.jp>  (tiny change)
 
 	* spam-stat.el (spam-stat-reduce-size): Set spam-stat-dirty.
 	(spam-stat-save): Accept prefix argument.
@@ -4082,17 +4197,17 @@
 
 	* gnus-sum.el (gnus-newsgroup-variables): Doc fix.
 
-2004-08-26  YAGI Tatsuya <ynyaaa@ybb.ne.jp>  (tiny change)
+2004-08-26  YAGI Tatsuya  <ynyaaa@ybb.ne.jp>  (tiny change)
 
 	* gnus-art.el (gnus-article-next-page): Fix the way to find a real
 	end-of-buffer.
 
-2004-08-26  Stefan Wiens <s.wi@gmx.net>  (tiny change)
+2004-08-26  Stefan Wiens  <s.wi@gmx.net>  (tiny change)
 
 	* gnus-sum.el (gnus-read-header): Don't remove a header for the
 	parent article of a sparse article in the thread hashtb.
 
-2004-08-26  David Hedbor <dhedbor@real.com>  (tiny change)
+2004-08-26  David Hedbor  <dhedbor@real.com>  (tiny change)
 
 	* nnmail.el (nnmail-split-lowercase-expanded): New user option.
 	(nnmail-expand-newtext): Lowercase expanded entries if
@@ -4288,7 +4403,7 @@
 	* gnus-msg.el (gnus-summary-followup-with-original):
 	Document yanking of region when active.
 
-2004-04-13 Kevin Greiner  <kgreiner@xpediantsolutions.com>
+2004-04-13  Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
 	* gnus-agent.el: Merged 7.3 through 7.7 updates into branch.
 	Revision 7.2 changes excluded to maintain compatibility with all

@@ -218,10 +218,6 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      nil 1 nil 2 0
      (2 (compilation-face '(3))))
 
-    (gcc-include
-     "^\\(?:In file included\\|                \\) from \
-\\(.+\\):\\([0-9]+\\)\\(?:\\(:\\)\\|\\(,\\)\\)?" 1 2 nil (3 . 4))
-
     (gnu
      ;; I have no idea what this first line is supposed to match, but it
      ;; makes things ambiguous with output such as "foo:344:50:blabla" since
@@ -233,13 +229,19 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; the last line tries to rule out message where the info after the
      ;; line number starts with "SS".  --Stef
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\)?\
-\\([0-9]*[^0-9\n].*?\\): ?\
+\\([0-9]*[^0-9\n]\\(?:[^\n ]\\| [^-\n]\\)*?\\): ?\
 \\([0-9]+\\)\\(?:\\([.:]\\)\\([0-9]+\\)\\)?\
 \\(?:-\\([0-9]+\\)?\\(?:\\3\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
  *\\([Ii]nfo\\(?:\\>\\|rmationa?l?\\)\\|I:\\|instantiated from\\)\\|\
 \[0-9]?\\(?:[^0-9\n]\\|$\\)\\|[0-9][0-9][0-9]\\)"
      1 (2 . 5) (4 . 6) (7 . 8))
+
+    ;; The `gnu' style above can incorrectly match gcc's "In file
+    ;; included from" message, so we process that first. -- cyd
+    (gcc-include
+     "^\\(?:In file included\\|                \\) from \
+\\(.+\\):\\([0-9]+\\)\\(?:\\(:\\)\\|\\(,\\)\\)?" 1 2 nil (3 . 4))
 
     (lcc
      "^\\(?:E\\|\\(W\\)\\), \\([^(\n]+\\)(\\([0-9]+\\),[ \t]*\\([0-9]+\\)"
@@ -623,7 +625,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 		   (cons (match-string-no-properties idx) dir))
       mouse-face highlight
       keymap compilation-button-map
-      help-echo "mouse-2: visit current directory")))
+      help-echo "mouse-2: visit this directory")))
 
 ;; Data type `reverse-ordered-alist' retriever.	 This function retrieves the
 ;; KEY element from the ALIST, creating it in the right position if not already
@@ -1066,7 +1068,8 @@ Returns the compilation buffer created."
 			      (window-width))))
 	      ;; Set the EMACS variable, but
 	      ;; don't override users' setting of $EMACS.
-	      (unless (getenv "EMACS") '("EMACS=t"))
+	      (unless (getenv "EMACS")
+		(list (concat "EMACS=" invocation-directory invocation-name)))
 	      (copy-sequence process-environment))))
 	(set (make-local-variable 'compilation-arguments)
 	     (list command mode name-function highlight-regexp))
@@ -1781,17 +1784,31 @@ and overlay is highlighted between MK and END-MK."
 				(current-buffer)))
 	      (move-overlay compilation-highlight-overlay
 			    (point) end (current-buffer)))
-	    (if (numberp next-error-highlight)
-		(setq next-error-highlight-timer
-		      (run-at-time next-error-highlight nil 'delete-overlay
-				   compilation-highlight-overlay)))
-	    (if (not (or (eq next-error-highlight t)
-			 (numberp next-error-highlight)))
-		(delete-overlay compilation-highlight-overlay))))))
+	    (if (or (eq next-error-highlight t)
+		    (numberp next-error-highlight))
+		;; We want highlighting: delete overlay on next input.
+		(add-hook 'pre-command-hook
+			  'compilation-goto-locus-delete-o)
+	      ;; We don't want highlighting: delete overlay now.
+	      (delete-overlay compilation-highlight-overlay))
+	    ;; We want highlighting for a limited time:
+	    ;; set up a timer to delete it.
+	    (when (numberp next-error-highlight)
+	      (setq next-error-highlight-timer
+		    (run-at-time next-error-highlight nil
+				 'compilation-goto-locus-delete-o)))))))
     (when (and (eq next-error-highlight 'fringe-arrow))
+      ;; We want a fringe arrow (instead of highlighting).
       (setq next-error-overlay-arrow-position
 	    (copy-marker (line-beginning-position))))))
 
+(defun compilation-goto-locus-delete-o ()
+  (delete-overlay compilation-highlight-overlay)
+  ;; Get rid of timer and hook that would try to do this again.
+  (if (timerp next-error-highlight-timer)
+      (cancel-timer next-error-highlight-timer))
+  (remove-hook 'pre-command-hook
+	       'compilation-goto-locus-delete-o))
 
 (defun compilation-find-file (marker filename directory &rest formats)
   "Find a buffer for file FILENAME.

@@ -309,7 +309,10 @@ use either \\[customize] or the function
     ;; Here we bind coding-system-for-read to nil so that coding tags
     ;; in the files are respected even if the files are not yet
     ;; byte-compiled
-    (let ((coding-system-for-read nil))
+    (let ((coding-system-for-read nil)
+	  ;; We must avoid clobbering this variable, in case the load
+	  ;; files below use different coding systems.
+	  (last-coding-system-used last-coding-system-used))
       (cond ((string= "Korean" current-language-environment)
 	     (load "subst-jis")
 	     (load "subst-big5")

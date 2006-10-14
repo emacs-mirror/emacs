@@ -131,14 +131,8 @@ xg_display_close (Display *dpy)
 #ifdef HAVE_GTK_MULTIDISPLAY
   GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpy);
 
-  /* GTK 2.2 has a bug that makes gdk_display_close crash (bug
-     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way
-     we can continue running, but there will be memory leaks.  */
-
-#if GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 4
-
   /* If this is the default display, we must change it before calling
-     dispose, otherwise it will crash.  */
+     dispose, otherwise it will crash on some Gtk+ versions.  */
   if (gdk_display_get_default () == gdpy)
     {
       struct x_display_info *dpyinfo;
@@ -160,10 +154,14 @@ xg_display_close (Display *dpy)
                                                gdpy_new);
     }
 
-  g_object_run_dispose (G_OBJECT (gdpy));
+  /* GTK 2.2-2.8 has a bug that makes gdk_display_close crash (bug
+     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way
+     we can continue running, but there will be memory leaks.  */
 
+#if GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 10
+  g_object_run_dispose (G_OBJECT (gdpy));
 #else
-  /* I hope this will be fixed in GTK 2.4.  It is what bug 85715 says.  */
+  /* This seems to be fixed in GTK 2.10. */
   gdk_display_close (gdpy);
 #endif
 #endif /* HAVE_GTK_MULTIDISPLAY */
@@ -509,10 +507,66 @@ get_utf8_string (str)
 {
   char *utf8_str = str;
 
+  if (!str) return NULL;
+
   /* If not UTF-8, try current locale.  */
-  if (str && !g_utf8_validate (str, -1, NULL))
+  if (!g_utf8_validate (str, -1, NULL))
     utf8_str = g_locale_to_utf8 (str, -1, 0, 0, 0);
 
+  if (!utf8_str) 
+    {
+      /* Probably some control characters in str.  Escape them. */
+      size_t nr_bad = 0;
+      gsize bytes_read;
+      gsize bytes_written;
+      unsigned char *p = (unsigned char *)str;
+      char *cp, *up;
+      GError *error = NULL;
+
+      while (! (cp = g_locale_to_utf8 (p, -1, &bytes_read,
+                                             &bytes_written, &error))
+             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+        {
+          ++nr_bad;
+          p += bytes_written+1;
+          g_error_free (error);
+          error = NULL;
+        }
+
+      if (error) 
+        {
+          g_error_free (error);
+          error = NULL;
+        }
+      if (cp) g_free (cp);
+
+      up = utf8_str = xmalloc (strlen (str) + nr_bad * 4 + 1);
+      p = str;
+
+      while (! (cp = g_locale_to_utf8 (p, -1, &bytes_read,
+                                       &bytes_written, &error))
+             && error->code == G_CONVERT_ERROR_ILLEGAL_SEQUENCE)
+        {
+          strncpy (up, p, bytes_written);
+          sprintf (up + bytes_written, "\\%03o", p[bytes_written]);
+          up[bytes_written+4] = '\0';
+          up += bytes_written+4;
+          p += bytes_written+1;
+          g_error_free (error);
+          error = NULL;
+        }
+
+      if (cp) 
+        {
+          strcat (utf8_str, cp);
+          g_free (cp);
+        }
+      if (error) 
+        {
+          g_error_free (error);
+          error = NULL;
+        }
+    }
   return utf8_str;
 }
 
@@ -1158,8 +1212,8 @@ int
 xg_uses_old_file_dialog ()
 {
 #ifdef HAVE_GTK_FILE_BOTH
-  extern int x_use_old_gtk_file_dialog;
-  return x_use_old_gtk_file_dialog;
+  extern int x_gtk_use_old_file_dialog;
+  return x_gtk_use_old_file_dialog;
 #else /* ! HAVE_GTK_FILE_BOTH */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
@@ -1296,6 +1350,8 @@ xg_get_file_with_chooser (f, prompt, default_filename,
                                  GTK_FILE_CHOOSER_ACTION_OPEN :
                                  GTK_FILE_CHOOSER_ACTION_SAVE);
   extern int x_gtk_show_hidden_files;
+  extern int x_gtk_file_dialog_help_text;
+
 
   if (only_dir_p)
     action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
@@ -1323,16 +1379,24 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   g_signal_connect (G_OBJECT (filewin), "notify",
                     G_CALLBACK (xg_toggle_notify_cb), wtoggle);
 
-  message[0] = '\0';
-  if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
-    strcat (message, "\nType C-l to display a file name text entry box.\n");
-  strcat (message, "\nIf you don't like this file selector, customize "
-          "use-file-dialog\nto turn it off, or type C-x C-f to visit files.");
+  if (x_gtk_file_dialog_help_text)
+    {
+      message[0] = '\0';
+      /* Gtk+ 2.10 has the file name text entry box integrated in the dialog.
+         Show the C-l help text only for versions < 2.10.  */
+      if (gtk_check_version (2, 10, 0) && action != GTK_FILE_CHOOSER_ACTION_SAVE)
+        strcat (message, "\nType C-l to display a file name text entry box.\n");
+      strcat (message, "\nIf you don't like this file selector, use the "
+              "corresponding\nkey binding or customize "
+              "use-file-dialog to turn it off.");
+    
+      wmessage = gtk_label_new (message);
+      gtk_widget_show (wmessage);
+    }
 
-  wmessage = gtk_label_new (message);
-  gtk_widget_show (wmessage);
   gtk_box_pack_start (GTK_BOX (wbox), wtoggle, FALSE, FALSE, 0);
-  gtk_box_pack_start (GTK_BOX (wbox), wmessage, FALSE, FALSE, 0);
+  if (x_gtk_file_dialog_help_text)
+    gtk_box_pack_start (GTK_BOX (wbox), wmessage, FALSE, FALSE, 0);
   gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (filewin), wbox);
 
   if (default_filename)
@@ -1340,6 +1404,7 @@ xg_get_file_with_chooser (f, prompt, default_filename,
       Lisp_Object file;
       struct gcpro gcpro1;
       GCPRO1 (file);
+      char *utf8_filename;
 
       file = build_string (default_filename);
 
@@ -1347,14 +1412,23 @@ xg_get_file_with_chooser (f, prompt, default_filename,
          an absolute name starting with /.  */
       if (default_filename[0] != '/')
         file = Fexpand_file_name (file, Qnil);
-
-      default_filename = SSDATA (file);
-      if (Ffile_directory_p (file))
+      
+      utf8_filename = SSDATA (ENCODE_UTF_8 (file));
+      if (! NILP (Ffile_directory_p (file)))
         gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (filewin),
-                                             default_filename);
+                                             utf8_filename);
       else
-        gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
-                                       default_filename);
+        {
+          gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
+                                         utf8_filename);
+          if (action == GTK_FILE_CHOOSER_ACTION_SAVE)
+            {
+              char *cp = strrchr (utf8_filename, '/');
+              if (cp) ++cp;
+              else cp = utf8_filename;
+              gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (filewin), cp);
+            }
+        }
 
       UNGCPRO;
     }

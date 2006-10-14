@@ -134,12 +134,11 @@ spam, as one of the fields of `rsf-definitions-alist'"
   :group 'rmail-spam-filter )
 
 (defcustom rsf-min-region-to-spam-list 7
-  "*User may highlight a region in an incomming message and use
-  the menubar to add this region to the spam definitions.  This
-  variable specifies the minimum size of region that may be added
-  to spam list, to avoid accidentally adding a too short region
-  which would result in false positive identification of spam
-  messages."
+  "*Minimum size of region that you can add to the spam list.
+This is a size limit on text that you can specify as
+indicating a message is spam.  The aim is to avoid
+accidentally adding a too short region, which would result
+in false positive identification of spam."
   :type 'integer
   :group 'rmail-spam-filter )
 
@@ -212,8 +211,8 @@ specify 'this\\&that' in the appropriate spam definition field."
   :group 'rmail-spam-filter)
 
 (defvar rsf-scanning-messages-now nil
-  "Non nil when rmail-spam-filter scans messages,
-for interaction with `rsf-bbdb-auto-delete-spam-entries'")
+  "Non nil when `rmail-spam-filter' scans messages.
+This is for interaction with `rsf-bbdb-auto-delete-spam-entries'.")
 
 ;; the advantage over the automatic filter definitions is the AND conjunction
 ;; of in-one-definition-elements
@@ -596,8 +595,8 @@ Added to spam definitions as a contents field."
 (define-key rmail-mode-map "\C-cSt" 'rsf-add-subject-to-spam-list)
 
 (defun rsf-add-content-type-field ()
-  "Maintain backward compatibility with previous versions of rmail-spam-filter.
-The most recent version of rmai-spam-filter checks the contents
+  "Maintain backward compatibility for `rmail-spam-filter'.
+The most recent version of `rmail-spam-filter' checks the contents
 field of the incoming mail to see if it spam.  The format of
 `rsf-definitions-alist' has therefore changed.  This function
 checks to see if old format is used, and if it is, it converts

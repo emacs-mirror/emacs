@@ -3280,7 +3280,7 @@ prefix, and don't delete any headers."
 	    (message-narrow-to-head-1)
 	    (vector 0
 		    (or (message-fetch-field "subject") "none")
-		    (message-fetch-field "from")
+		    (or (message-fetch-field "from") "nobody")
 		    (message-fetch-field "date")
 		    (message-fetch-field "message-id" t)
 		    (message-fetch-field "references")
@@ -3329,7 +3329,7 @@ prefix, and don't delete any headers."
 	      (message-narrow-to-head-1)
 	      (vector 0
 		      (or (message-fetch-field "subject") "none")
-		      (message-fetch-field "from")
+		      (or (message-fetch-field "from") "nobody")
 		      (message-fetch-field "date")
 		      (message-fetch-field "message-id" t)
 		      (message-fetch-field "references")
@@ -3897,9 +3897,15 @@ If you always want Gnus to send messages in one piece, set
 		       'call-process-region
 		       (append
 			(list (point-min) (point-max)
-			      (if (boundp 'sendmail-program)
-				  sendmail-program
-				"/usr/lib/sendmail")
+			      (cond ((boundp 'sendmail-program)
+				     sendmail-program)
+				    ((file-exists-p "/usr/sbin/sendmail")
+				     "/usr/sbin/sendmail")
+				    ((file-exists-p "/usr/lib/sendmail")
+				     "/usr/lib/sendmail")
+				    ((file-exists-p "/usr/ucblib/sendmail")
+				     "/usr/ucblib/sendmail")
+				    (t "fakemail"))
 			      nil errbuf nil "-oi")
 			;; Always specify who from,
 			;; since some systems have broken sendmails.
@@ -5837,7 +5843,7 @@ want to get rid of this query permanently.")))
       (setq message-id (message-fetch-field "message-id" t)
 	    references (message-fetch-field "references")
 	    date (message-fetch-field "date")
-	    from (message-fetch-field "from")
+	    from (or (message-fetch-field "from") "nobody")
 	    subject (or (message-fetch-field "subject") "none"))
       (when gnus-list-identifiers
 	(setq subject (message-strip-list-identifiers subject)))

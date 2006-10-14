@@ -1,3 +1,7 @@
+2006-10-03  Kenichi Handa  <handa@m17n.org>
+
+	* FOR-RELEASE (BUGS): "An iso-8859-6 cannot be saved" fixed.
+
 2006-08-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* FOR-RELEASE: Elisp manual checking completed.

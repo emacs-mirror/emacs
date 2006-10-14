@@ -1,3 +1,30 @@
+2006-10-03  Kim F. Storm  <storm@cua.dk>
+
+	* AUTHORS: Regenerate.
+
+2006-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: Regenerated.
+
+2006-09-28  Kenichi Handa  <handa@m17n.org>
+
+	* configure.in (locallisppath): Don't include leim dir.
+	(lisppath): Include leim dir.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* COPYING: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
+2006-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* make-dist (EMACS): Exit and fail if the EMACS environment
+	variable is set to something other than an absolute file name.
+
+2006-09-07  Kim F. Storm  <storm@cua.dk>
+
+	* AUTHORS: Regenerate.
+
 2006-08-16  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in (PKG_CHECK_MODULES): Use AS_MESSAGE_LOG_FD instead

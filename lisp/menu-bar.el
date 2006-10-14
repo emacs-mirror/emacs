@@ -510,7 +510,7 @@ A large number or nil slows down menu responsiveness."
 
 (defun clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
-  (interactive)
+  (interactive "*")
   (let ((x-select-enable-clipboard t))
     (yank)))
 

@@ -176,7 +176,12 @@ looks like `user@realm'."
 (defcustom smtpmail-starttls-credentials '(("" 25 "" ""))
   "Specify STARTTLS keys and certificates for servers.
 This is a list of four-element list with `servername' (a string),
-`port' (an integer), `key' (a filename) and `certificate' (a filename)."
+`port' (an integer), `key' (a filename) and `certificate' (a
+filename).
+If you do not have a certificate/key pair, leave the `key' and
+`certificate' fields as `nil'.  A key/certificate pair is only
+needed if you want to use X.509 client authenticated
+connections."
   :type '(repeat (list (string  :tag "Server")
 		       (integer :tag "Port")
 		       (file    :tag "Key")
@@ -536,7 +541,7 @@ This is relative to `smtpmail-queue-dir'.")
 		 (decoded (base64-decode-string challenge))
 		 (hash (rfc2104-hash 'md5 64 16 passwd decoded))
 		 (response (concat (smtpmail-cred-user cred) " " hash))
-		 (encoded (base64-encode-string response)))
+		 (encoded (base64-encode-string response t)))
 	    (smtpmail-send-command process (format "%s" encoded))
 	    (if (or (null (car (setq ret (smtpmail-read-response process))))
 		    (not (integerp (car ret)))
@@ -549,12 +554,12 @@ This is relative to `smtpmail-queue-dir'.")
 		(>= (car ret) 400))
 	    (throw 'done nil))
 	(smtpmail-send-command
-	 process (base64-encode-string (smtpmail-cred-user cred)))
+	 process (base64-encode-string (smtpmail-cred-user cred) t))
 	(if (or (null (car (setq ret (smtpmail-read-response process))))
 		(not (integerp (car ret)))
 		(>= (car ret) 400))
 	    (throw 'done nil))
-	(smtpmail-send-command process (base64-encode-string passwd))
+	(smtpmail-send-command process (base64-encode-string passwd t))
 	(if (or (null (car (setq ret (smtpmail-read-response process))))
 		(not (integerp (car ret)))
 		(>= (car ret) 400))
@@ -571,7 +576,7 @@ This is relative to `smtpmail-queue-dir'.")
 					(concat "\0"
 						(smtpmail-cred-user cred)
 						"\0"
-						passwd))))
+						passwd) t)))
 	(if (or (null (car (setq ret (smtpmail-read-response process))))
 		(not (integerp (car ret)))
 		(not (equal (car ret) 235)))

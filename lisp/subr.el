@@ -1085,9 +1085,10 @@ the hook's buffer-local value rather than its default value."
 	    (kill-local-variable hook)
 	  (set hook hook-value))))))
 
-(defun add-to-list (list-var element &optional append)
+(defun add-to-list (list-var element &optional append compare-fn)
   "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
-The test for presence of ELEMENT is done with `equal'.
+The test for presence of ELEMENT is done with `equal',
+or with COMPARE-FN if that's non-nil.
 If ELEMENT is added, it is added at the beginning of the list,
 unless the optional argument APPEND is non-nil, in which case
 ELEMENT is added at the end.
@@ -1099,7 +1100,13 @@ until a certain package is loaded, you should put the call to `add-to-list'
 into a hook function that will be run only after loading the package.
 `eval-after-load' provides one way to do this.  In some cases
 other hooks, such as major mode hooks, can do the job."
-  (if (member element (symbol-value list-var))
+  (if (if compare-fn
+	  (let (present)
+	    (dolist (elt (symbol-value list-var))
+	      (if (funcall compare-fn element elt)
+		  (setq present t)))
+	    present)
+	(member element (symbol-value list-var)))
       (symbol-value list-var)
     (set list-var
 	 (if append
@@ -1733,13 +1740,20 @@ floating point support.
   (when (or obsolete (numberp nodisp))
     (setq seconds (+ seconds (* 1e-3 nodisp)))
     (setq nodisp obsolete))
-  (if noninteractive
-      (progn (sleep-for seconds) t)
-    (unless nodisp (redisplay))
-    (or (<= seconds 0)
-	(let ((read (read-event nil nil seconds)))
-	  (or (null read)
-	      (progn (push read unread-command-events) nil))))))
+  (cond
+   (noninteractive
+    (sleep-for seconds)
+    t)
+   ((input-pending-p)
+    nil)
+   ((<= seconds 0)
+    (or nodisp (redisplay)))
+   (t
+    (or nodisp (redisplay))
+    (let ((read (read-event nil nil seconds)))
+      (or (null read)
+	  (progn (push read unread-command-events)
+		 nil))))))
 
 ;;; Atomic change groups.
 
@@ -2039,7 +2053,8 @@ a system-dependent default device name is used."
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
-  (if (eq system-type 'ms-dos)
+  (if (or (eq system-type 'ms-dos)
+          (and (eq system-type 'windows-nt) (w32-shell-dos-semantics)))
       ;; Quote using double quotes, but escape any existing quotes in
       ;; the argument with backslashes.
       (let ((result "")
@@ -2053,19 +2068,17 @@ a system-dependent default device name is used."
 				   "\\" (substring argument end (1+ end)))
 		    start (1+ end))))
 	(concat "\"" result (substring argument start) "\""))
-    (if (eq system-type 'windows-nt)
-	(concat "\"" argument "\"")
-      (if (equal argument "")
-	  "''"
-	;; Quote everything except POSIX filename characters.
-	;; This should be safe enough even for really weird shells.
-	(let ((result "") (start 0) end)
-	  (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-	    (setq end (match-beginning 0)
-		  result (concat result (substring argument start end)
-				 "\\" (substring argument end (1+ end)))
-		  start (1+ end)))
-	  (concat result (substring argument start)))))))
+    (if (equal argument "")
+        "''"
+      ;; Quote everything except POSIX filename characters.
+      ;; This should be safe enough even for really weird shells.
+      (let ((result "") (start 0) end)
+        (while (string-match "[^-0-9a-zA-Z_./]" argument start)
+          (setq end (match-beginning 0)
+                result (concat result (substring argument start end)
+                               "\\" (substring argument end (1+ end)))
+                start (1+ end)))
+        (concat result (substring argument start))))))
 
 (defun string-or-null-p (object)
   "Return t if OBJECT is a string or nil.
@@ -2154,11 +2167,32 @@ If UNDO is present and non-nil, it is a function that will be called
   (let* ((handler (and (stringp string)
 		       (get-text-property 0 'yank-handler string)))
 	 (param (or (nth 1 handler) string))
-	 (opoint (point)))
+	 (opoint (point))
+	 end)
+
     (setq yank-undo-function t)
     (if (nth 0 handler) ;; FUNCTION
 	(funcall (car handler) param)
       (insert param))
+    (setq end (point))
+
+    ;; What should we do with `font-lock-face' properties?
+    (if font-lock-defaults
+	;; No, just wipe them.
+	(remove-list-of-text-properties opoint end '(font-lock-face))
+      ;; Convert them to `face'.
+      (save-excursion
+	(goto-char opoint)
+	(while (< (point) end)
+	  (let ((face (get-text-property (point) 'font-lock-face))
+		run-end)
+	    (setq run-end
+		  (next-single-property-change (point) 'font-lock-face nil end))
+	    (when face
+	      (remove-text-properties (point) run-end '(font-lock-face nil))
+	      (put-text-property (point) run-end 'face face))
+	    (goto-char run-end)))))
+
     (unless (nth 2 handler) ;; NOEXCLUDE
       (remove-yank-excluded-properties opoint (point)))
     (if (eq yank-undo-function t)  ;; not set by FUNCTION
@@ -2201,7 +2235,9 @@ BUFFER is the buffer (or buffer name) to associate with the process.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
 COMMAND is the name of a shell command.
-Remaining arguments are the arguments for the command.
+Remaining arguments are the arguments for the command; they are all
+spliced together with blanks separating between each two of them, before
+passing the command to the shell.
 Wildcards and redirection are handled as usual in the shell.
 
 \(fn NAME BUFFER COMMAND &rest COMMAND-ARGS)"
@@ -2404,8 +2440,8 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
     `(with-local-quit
        (catch ',catch-sym
 	 (let ((throw-on-input ',catch-sym))
-	   (or (not (sit-for 0 0 t))
-	     ,@body))))))
+	   (or (input-pending-p)
+	       ,@body))))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
@@ -3109,8 +3145,8 @@ Usually the separator is \".\", but it can be any other string.")
 
 (defvar version-regexp-alist
   '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
-    ("^[-_+]$" . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
-    ("^[-_+ ]cvs$" . -3)	; treat "1.2.3-CVS" as alpha release
+    ("^[-_+]$"                 . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
+    ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
     ("^[-_+ ]?b\\(eta\\)?$"    . -2)
     ("^[-_+ ]?\\(pre\\|rc\\)$" . -1))
   "*Specify association between non-numeric version part and a priority.

@@ -1,3 +1,178 @@
+2006-10-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Frame Titles): %c and %l are ignored in
+	frame-title-format.
+
+2006-10-11  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Key Sequences): Clarify use of kbd.
+
+2006-10-10  Kim F. Storm  <storm@cua.dk>
+
+	* lists.texi (Sets And Lists): Add memql.
+
+2006-10-03  Richard Stallman  <rms@gnu.org>
+
+	* searching.texi (Char Classes): Document :multibyte: and :unibyte:.
+	Clarify :ascii: and :nonascii:.
+
+2006-09-29  Juri Linkov  <juri@jurta.org>
+
+	* modes.texi (%-Constructs): Reorder coding systems in the
+	documentation of %z to the real order displayed in the modeline.
+
+2006-09-25  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Describe timer-max-repeats.
+
+2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Timers): Mention with-local-quit.
+
+2006-09-24  Richard Stallman  <rms@gnu.org>
+
+	* searching.texi (Searching and Matching): Mention property search.
+
+	* commands.texi (Command Loop Info): Explain how read-event affects
+	this-command-keys.
+
+2006-09-20  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Clarify about REPEAT when timer is delayed.
+
+	* windows.texi (Window Start): Minor cleanups.
+
+2006-09-20  Kim F. Storm  <storm@cua.dk>
+
+	* windows.texi (Window Start): pos-visible-in-window-p allows
+	specifying t for position to mean "end of window".
+	Add window-line-height.
+
+	* anti.texi (Antinews): Mention window-line-height.
+
+2006-09-19  David Kastrup  <dak@gnu.org>
+
+	* keymaps.texi (Searching Keymaps): Small clarification.
+
+2006-09-18  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Creating Keymaps): Explain that keymap prompt strings
+	cause keyboard menus.
+	(Menu Keymaps): Likewise.
+	(Defining Menus, Keyboard Menus): Clarify.
+
+	* text.texi (Fields): Clarify explanation of constrain-to-field.
+
+2006-09-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* variables.texi (Tips for Defining): Fix a typo.
+
+2006-09-15  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Remapping Commands, Searching Keymaps)
+	(Active Keymaps): Clean up previous change.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* gpl.texi: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
+2006-09-15  David Kastrup  <dak@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Adapt description to use
+	`get-char-property' instead `get-text-property'.  Explain how
+	mouse events change this.  Explain the new optional argument of
+	`key-binding' and its mouse-dependent lookup.
+	(Searching Keymaps): Adapt description similarly.
+	(Remapping Commands): Explain the new optional argument of
+	`command-remapping'.
+
+2006-09-14  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Searching Keymaps): Clarification.
+	(Active Keymaps): Refer to Searching Keymaps instead of duplication.
+
+2006-09-13  Richard Stallman  <rms@gnu.org>
+
+	* objects.texi (Character Type): Node split.
+	Add xref to Describing Characters.
+	(Basic Char Syntax, General Escape Syntax)
+	(Ctl-Char Syntax, Meta-Char Syntax): New subnodes.
+
+2006-09-11  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Display Table Format): Wording clarification.
+	(Glyphs): Clarifications.
+
+2006-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Active Keymaps): Mention that key-binding checks
+	local maps.
+
+2006-09-10  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Forcing Redisplay): Document return value of
+	function redisplay.
+
+2006-09-09  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Window Hooks): Explain limits of
+	window-scroll-functions.
+
+	* display.texi (Fringe Indicators): Update for last change in
+	indicate-buffer-boundaries.
+
+2006-09-08  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Bindat Spec): Suggest names ending in -bindat-spec.
+
+2006-09-06  Kim F. Storm  <storm@cua.dk>
+
+	* frames.texi (Display Feature Testing): display-mm-dimensions-alist.
+
+	* windows.texi (Window Start): Update pos-visible-in-window-p.
+
+2006-09-04  Richard Stallman  <rms@gnu.org>
+
+	* processes.texi (Accepting Output): Explain SECONDS=0 for
+	accept-process-output.
+
+	* os.texi (Idle Timers): Explain why timer functions should not
+	loop until (input-pending-p).
+
+2006-09-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (usermanualdir): New variable.
+	(elisp.dvi): Use it.
+
+2006-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffers.texi (Buffer Modification): Fix last change.
+
+2006-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffers.texi (Buffer Modification): Document
+	buffer-chars-modified-tick.
+
+2006-08-31  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi (Syntactic Font Lock): Mention specific faces once again.
+
+2006-08-31  Richard Bielawski  <RBielawski@moneygram.com>  (tiny change)
+
+	* modes.texi (Syntactic Font Lock):
+	Mention font-lock-syntactic-face-function
+	instead of specific faces.
+
+2006-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Images): Add xrref to display-images-p.
+
+2006-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* nonascii.texi (Lisp and Coding Systems): Fix description of
+	detect-coding-region.
+
 2006-08-27  Michael Olson  <mwolson@gnu.org>
 
 	* processes.texi (Transaction Queues): Remove stray quote
@@ -4785,7 +4960,7 @@
 	(info): Add target.
 	(installall): Target removed.
 
-2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* tips.texi (Coding Conventions): Fix typo.
 

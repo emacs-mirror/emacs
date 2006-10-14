@@ -1,3 +1,49 @@
+2006-10-12  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-find-free-connection): Handle
+	url-open-stream returning nil.
+
+2006-10-11  Magnus Henoch  <mange@freemail.hu>
+
+	* url-https.el: Remove (clashes with url-http on 8+3 systems).
+
+	* url-http.el: Move contents of url-https.el here.  Add autoloads.
+
+2006-10-09  Magnus Henoch  <mange@freemail.hu>
+
+	* url-parse.el (url-generic-parse-url): Handle URLs with empty
+	path component and non-empty query component.  Untangle path,
+	query and fragment parsing code.  Add references to RFC 3986 in
+	comments.
+	(url-recreate-url-attributes): Start query string with "?", not	";".
+
+2006-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-dav.el (url-dav-file-attributes): Simplify.
+
+	* url-http.el (url-http-head-file-attributes): Add device "info".
+
+2006-09-18  Michael Olson  <mwolson@gnu.org>
+
+	* url-methods.el (url-scheme-register-proxy): Handle case where
+	getenv returns an empty string for http_proxy.  This prevents an
+	error when calling `format' later on.
+
+2006-08-31  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-parse.el (url-recreate-url-attributes): New function, code
+	simply moved from `url-recreate-url'.
+	(url-recreate-url): Use it.
+	Put the `url-target' at the end of the URL after the attributes.
+
+	* url-http.el (url-http-create-request):
+	Use `url-recreate-url-attributes' when setting real-fname.
+
+2006-08-29  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-cookie.el (url-cookie-write-file): Really don't use versioned
+	backups.
+
 2006-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-file-local-copy): Tell url-copy-file that the
@@ -393,32 +439,19 @@
 
 2004-10-10  Lars Hansen  <larsh@math.ku.dk>
 
-	* url-auth.el: Update header and footer.
-
-	* url-cache.el: Update header and footer.
-
-	* url-cid.el: Update header and footer.
-
-	* url-dired.el: Update header and footer.
-
-	* url-expand.el: Update header and footer.
-
-	* url-ftp.el: Update header and footer.
-
-	* url-gw.el: Update header and footer.
-
-	* url-imap.el: Update header and footer.
-
-	* url-irc.el: Update header and footer.
-
-	* url-misc.el: Update header and footer.
-
-	* url-news.el: Update header and footer.
-
-	* url-ns.el: Update header and footer.
-
-	* url-privacy.el: Update header and footer.
-
+	* url-auth.el:
+	* url-cache.el:
+	* url-cid.el:
+	* url-dired.el:
+	* url-expand.el:
+	* url-ftp.el:
+	* url-gw.el:
+	* url-imap.el:
+	* url-irc.el:
+	* url-misc.el:
+	* url-news.el:
+	* url-ns.el:
+	* url-privacy.el:
 	* url-proxy.el: Update header and footer.
 
 	* url-vars.el: Update header.
@@ -463,42 +496,24 @@
 
 2004-10-10  Lars Hansen  <larsh@math.ku.dk>
 
-	* url-auth.el: Fix copyright notice.
-
-	* url-cache.el: Fix copyright notice.
-
-	* url-cookie.el: Fix copyright notice.
-
-	* url-dired.el: Fix copyright notice.
-
-	* url-file.el: Fix copyright notice.
-
-	* url-ftp.el: Fix copyright notice.
-
-	* url-handlers.el: Fix copyright notice.
-
-	* url-history.el: Fix copyright notice.
-
-	* url-irc.el: Fix copyright notice.
-
-	* url-mailto.el: Fix copyright notice.
-
-	* url-methods.el: Fix copyright notice.
-
-	* url-misc.el: Fix copyright notice.
-
-	* url-news.el: Fix copyright notice.
-
-	* url-nfs.el: Fix copyright notice.
-
-	* url-parse.el: Fix copyright notice.
-
-	* url-privacy.el: Fix copyright notice.
-
-	* url-vars.el: Fix copyright notice.
-
-	* url.el: Fix copyright notice.
-
+	* url-auth.el:
+	* url-cache.el:
+	* url-cookie.el:
+	* url-dired.el:
+	* url-file.el:
+	* url-ftp.el:
+	* url-handlers.el:
+	* url-history.el:
+	* url-irc.el:
+	* url-mailto.el:
+	* url-methods.el:
+	* url-misc.el:
+	* url-news.el:
+	* url-nfs.el:
+	* url-parse.el:
+	* url-privacy.el:
+	* url-vars.el:
+	* url.el:
 	* url-util.el: Fix copyright notice.
 
 2004-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>

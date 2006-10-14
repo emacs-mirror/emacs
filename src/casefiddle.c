@@ -187,7 +187,7 @@ casify_region (flag, b, e)
   validate_region (&b, &e);
   start = XFASTINT (b);
   end = XFASTINT (e);
-  modify_region (current_buffer, start, end);
+  modify_region (current_buffer, start, end, 0);
   record_change (start, end - start);
   start_byte = CHAR_TO_BYTE (start);
   end_byte = CHAR_TO_BYTE (end);

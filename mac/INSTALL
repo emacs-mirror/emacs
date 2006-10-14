@@ -213,16 +213,4 @@ architectures.  In addition, Rosetta doesn't appear to work correctly
 with PowerPC builds of Emacs; you will have to recompile for Intel.
 Therefore, builds of Emacs are architecture specific.
 
-There are some compile-time flags that enable experimental features.
-Please use them at your own risk after reading the corresponding
-threads in the emacs-devel@gnu.org archive.
-
-  SELECT_USE_CFSOCKET (on Mac OS X): Avoid polling in sys_select (in
-  src/mac.c).
-  http://lists.gnu.org/archive/html/emacs-devel/2004-12/msg00789.html
-
-  USE_ATSUI (on Mac OS 9/Carbon): Enable ATSUI (Apple Type Services
-  for Unicode Imaging) support.
-  http://lists.gnu.org/archive/html/emacs-devel/2005-10/msg00005.html
-
 Enjoy!

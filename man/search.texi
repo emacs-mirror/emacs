@@ -16,7 +16,14 @@ those of other editors.
   Besides the usual @code{replace-string} command that finds all
 occurrences of one string and replaces them with another, Emacs has a
 more flexible replacement command called @code{query-replace}, which
-asks interactively which occurrences to replace.
+asks interactively which occurrences to replace.  There are also
+commands to find and operate on all matches for a pattern.
+
+  You can also search multiple files under control of a tags
+table (@pxref{Tags Search}) or through the Dired @kbd{A} command
+(@pxref{Operating on Files}), or ask the @code{grep} program to do it
+(@pxref{Grep Searching}).
+
 
 @menu
 * Incremental Search::		Search happens as you type the string.
@@ -1331,11 +1338,6 @@ the region (a newline that ends a line counts as part of that line).
 
 If a match is split across lines, this command keeps all those lines.
 @end table
-
-  You can also search multiple files under control of a tags table
-(@pxref{Tags Search}) or through the Dired @kbd{A} command
-(@pxref{Operating on Files}), or ask the @code{grep} program to do it
-(@pxref{Grep Searching}).
 
 @ignore
    arch-tag: fd9d8e77-66af-491c-b212-d80999613e3e

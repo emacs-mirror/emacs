@@ -97,9 +97,9 @@ Boston, MA 02110-1301, USA.  */
 #define FALSE 0
 #endif /* no TRUE */
 
-Lisp_Object Vmenu_updating_frame;
-
 Lisp_Object Qdebug_on_next_call;
+
+extern Lisp_Object Vmenu_updating_frame;
 
 extern Lisp_Object Qmenu_bar;
 
@@ -1191,6 +1191,10 @@ x_menu_set_in_use (in_use)
 {
   menu_items_inuse = in_use ? Qt : Qnil;
   popup_activated_flag = in_use;
+#ifdef USE_X_TOOLKIT
+  if (popup_activated_flag)
+    x_activate_timeout_atimer ();
+#endif
 }
 
 /* Wait for an X event to arrive or for a timer to expire.  */
@@ -1310,7 +1314,7 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers)
     }
 }
 
-DEFUN ("x-menu-bar-open", Fx_menu_bar_open, Sx_menu_bar_open, 0, 1, "i",
+DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_internal, 0, 1, "i",
        doc: /* Start key navigation of the menu bar in FRAME.
 This initially opens the first menu bar item and you can then navigate with the
 arrow keys, select a menu entry with the return key or cancel with the
@@ -1389,7 +1393,7 @@ If FRAME is nil or not given, use the selected frame.  */)
 
 
 #ifdef USE_GTK
-DEFUN ("x-menu-bar-open", Fx_menu_bar_open, Sx_menu_bar_open, 0, 1, "i",
+DEFUN ("x-menu-bar-open-internal", Fx_menu_bar_open_internal, Sx_menu_bar_open_internal, 0, 1, "i",
        doc: /* Start key navigation of the menu bar in FRAME.
 This initially opens the first menu bar item and you can then navigate with the
 arrow keys, select a menu entry with the return key or cancel with the
@@ -1510,6 +1514,9 @@ popup_activate_callback (widget, id, client_data)
      XtPointer client_data;
 {
   popup_activated_flag = 1;
+#ifdef USE_X_TOOLKIT
+  x_activate_timeout_atimer ();
+#endif
 }
 #endif
 
@@ -2828,6 +2835,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   /* Display the menu.  */
   lw_popup_menu (menu, (XEvent *) &dummy);
   popup_activated_flag = 1;
+  x_activate_timeout_atimer ();
 
   {
     int fact = 4 * sizeof (LWLIB_ID);
@@ -3214,6 +3222,7 @@ create_and_show_dialog (f, first_wv)
   /* Display the dialog box.  */
   lw_pop_up_all_widgets (dialog_id);
   popup_activated_flag = 1;
+  x_activate_timeout_atimer ();
 
   /* Process events that apply to the dialog box.
      Also handle timers.  */
@@ -3803,11 +3812,6 @@ syms_of_xmenu ()
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
 
-  DEFVAR_LISP ("menu-updating-frame", &Vmenu_updating_frame,
-	       doc: /* Frame for which we are updating a menu.
-The enable predicate for a menu command should check this variable.  */);
-  Vmenu_updating_frame = Qnil;
-
 #ifdef USE_X_TOOLKIT
   widget_id_tick = (1<<16);
   next_menubar_widget_id = 1;
@@ -3816,10 +3820,9 @@ The enable predicate for a menu command should check this variable.  */);
   defsubr (&Sx_popup_menu);
 
 #if defined (USE_GTK) || defined (USE_X_TOOLKIT)
-  defsubr (&Sx_menu_bar_open);
-  Fdefalias (intern ("accelerate-menu"),
-	     intern (Sx_menu_bar_open.symbol_name),
-	     Qnil);
+  defsubr (&Sx_menu_bar_open_internal);
+  Ffset (intern ("accelerate-menu"),
+	 intern (Sx_menu_bar_open_internal.symbol_name));
 #endif
 
 #ifdef HAVE_MENUS

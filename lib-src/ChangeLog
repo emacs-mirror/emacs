@@ -1,3 +1,16 @@
+2006-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (../src/config.h): Fix error message.
+
+2006-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* .cvsignore: Add blessmail.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* COPYING: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
 2006-08-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* etags.c (readline): expect sscanf returns >= 1.
@@ -10,7 +23,7 @@
 	
 2006-08-07  Masatake YAMATO  <jet@gyve.org>
 
-	* etags.c (TEX_mode): Check getc retruns EOF.
+	* etags.c (TEX_mode): Check getc returns EOF.
 	File ended without newline causes infinite loop.
 
 2002-07-30  Adrian Aichner  <adrian@xemacs.org>  (tiny change)

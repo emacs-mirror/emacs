@@ -2261,7 +2261,8 @@ Code:, and others referenced in the style guide."
 		    (re-search-forward "^;;; Code" nil t)
 		    (re-search-forward "^(require" nil t)
 		    (re-search-forward "^(" nil t))
-		(beginning-of-line)))
+		(beginning-of-line))
+	       (t (re-search-forward ";;; .* --- .*\n")))
 	      (if (checkdoc-y-or-n-p
 		   "You should have a \";;; Commentary:\", add one? ")
 		  (insert "\n;;; Commentary:\n;; \n\n")

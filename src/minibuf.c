@@ -1027,7 +1027,7 @@ DEFUN ("read-minibuffer", Fread_minibuffer, Sread_minibuffer, 1, 2, 0,
 Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
 \(INITIAL-CONTENTS can also be a cons of a string and an integer.  Such
-arguments are used as in `read-from-minibuffer')  */)
+arguments are used as in `read-from-minibuffer'.)  */)
      (prompt, initial_contents)
      Lisp_Object prompt, initial_contents;
 {
@@ -1201,8 +1201,8 @@ The argument PROMPT should be a string ending with a colon and a space.  */)
 	  prompt = Fformat (3, args);
 	}
 
-      return Fcompleting_read (prompt, Vbuffer_alist, Qnil,
-			       require_match, Qnil, Qbuffer_name_history,
+      return Fcompleting_read (prompt, intern ("internal-complete-buffer"),
+			       Qnil, require_match, Qnil, Qbuffer_name_history,
 			       def, Qnil);
     }
   else
@@ -1911,6 +1911,24 @@ the values STRING, PREDICATE and `lambda'.  */)
     return Qt;
 }
 
+DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete_buffer, 3, 3, 0,
+       doc: /* Perform completion on buffer names.
+If the argument FLAG is nil, invoke `try-completion', if it's t, invoke
+`all-completions', otherwise invoke `test-completion'.
+
+The arguments STRING and PREDICATE are as in `try-completion',
+`all-completions', and `test-completion'. */)
+     (string, predicate, flag)
+     Lisp_Object string, predicate, flag;
+{
+  if (NILP (flag))
+    return Ftry_completion (string, Vbuffer_alist, predicate);
+  else if (EQ (flag, Qt))
+    return Fall_completions (string, Vbuffer_alist, predicate, Qt);
+  else				/* assume `lambda' */
+    return Ftest_completion (string, Vbuffer_alist, predicate);
+}
+
 /* returns:
  * 0 no possible completion
  * 1 was already an exact and unique completion
@@ -2399,7 +2417,7 @@ The optional second arg COMMON-SUBSTRING is a string.
 It is used to put faces, `completions-first-difference' and
 `completions-common-part' on the completion buffer. The
 `completions-common-part' face is put on the common substring
-specified by COMMON-SUBSTRING. If COMMON-SUBSTRING is nil
+specified by COMMON-SUBSTRING.  If COMMON-SUBSTRING is nil
 and the current buffer is not the minibuffer, the faces are not put.
 Internally, COMMON-SUBSTRING is bound to `completion-common-substring'
 during running `completion-setup-hook'. */)
@@ -2680,6 +2698,8 @@ If no minibuffer is active, return nil.  */)
    that has no possible completions, and other quick, unobtrusive
    messages.  */
 
+extern Lisp_Object Vminibuffer_message_timeout;
+
 void
 temp_echo_area_glyphs (string)
      Lisp_Object string;
@@ -2698,7 +2718,12 @@ temp_echo_area_glyphs (string)
   insert_from_string (string, 0, 0, SCHARS (string), SBYTES (string), 0);
   SET_PT_BOTH (opoint, opoint_byte);
   Vinhibit_quit = Qt;
-  sit_for (make_number (2), 0, 2);
+
+  if (NUMBERP (Vminibuffer_message_timeout))
+    sit_for (Vminibuffer_message_timeout, 0, 2);
+  else
+    sit_for (Qt, 0, 2);
+
   del_range_both (osize, osize_byte, ZV, ZV_BYTE, 1);
   SET_PT_BOTH (opoint, opoint_byte);
   if (!NILP (Vquit_flag))
@@ -2921,6 +2946,7 @@ properties.  */);
   defsubr (&Sread_string);
   defsubr (&Sread_command);
   defsubr (&Sread_variable);
+  defsubr (&Sinternal_complete_buffer);
   defsubr (&Sread_buffer);
   defsubr (&Sread_no_blanks_input);
   defsubr (&Sminibuffer_depth);

@@ -1,3 +1,36 @@
+2006-10-12  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (install): Be sure to make ${INSTALLDIR} before `cd'
+	to it.
+
+2006-10-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* quail/latin-ltx.el: Fix typo in previous change.
+
+2006-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Remove rules that start with { since they are
+	redundant and hence impact the { key for no good reason.
+
+2006-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (install): Fix previous change.
+
+2006-09-28  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (install): Be sure to make ${INSTALLDIR}.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* COPYING: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
+2006-09-06  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* quail/uni-input.el (ucs-input-method): Don't make the action of
+	a key not in [0-9a-zA-Z] when it was expected to be.  Let the Emacs
+	mechanism do it.
+
 2006-07-12  David Kastrup  <dak@gnu.org>
 
 	* quail/greek.el: Change iota subscriptum transliteration in

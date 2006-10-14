@@ -1619,15 +1619,17 @@ command_loop_1 ()
 
       if (minibuf_level
 	  && !NILP (echo_area_buffer[0])
-	  && EQ (minibuf_window, echo_area_window)
-	  && NUMBERP (Vminibuffer_message_timeout))
+	  && EQ (minibuf_window, echo_area_window))
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
 	     rather than quitting back to the minibuffer.  */
 	  int count = SPECPDL_INDEX ();
 	  specbind (Qinhibit_quit, Qt);
 
-	  sit_for (Vminibuffer_message_timeout, 0, 2);
+	  if (NUMBERP (Vminibuffer_message_timeout))
+	    sit_for (Vminibuffer_message_timeout, 0, 2);
+	  else
+	    sit_for (Qt, 0, 2);
 
 	  /* Clear the echo area.  */
 	  message2 (0, 0, 0);
@@ -1747,7 +1749,7 @@ command_loop_1 ()
       if (SYMBOLP (cmd))
 	{
 	  Lisp_Object cmd1;
-	  if (cmd1 = Fcommand_remapping (cmd), !NILP (cmd1))
+	  if (cmd1 = Fcommand_remapping (cmd, Qnil), !NILP (cmd1))
 	    cmd = cmd1;
 	}
 
@@ -3365,8 +3367,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       goto retry;
     }
 
-  if (! reread || this_command_key_count == 0
-      || this_command_key_count_reset)
+  if ((! reread || this_command_key_count == 0
+       || this_command_key_count_reset)
+      && !end_time)
     {
 
       /* Don't echo mouse motion events.  */
@@ -7700,7 +7703,7 @@ parse_menu_item (item, notreal, inmenubar)
       Lisp_Object prefix;
 
       if (!NILP (tem))
-	tem = Fkey_binding (tem, Qnil, Qnil);
+	tem = Fkey_binding (tem, Qnil, Qnil, Qnil);
 
       prefix = AREF (item_properties, ITEM_PROPERTY_KEYEQ);
       if (CONSP (prefix))
@@ -8954,17 +8957,25 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      the initial keymaps from the current buffer.  */
   nmaps = 0;
 
-  if (!NILP (current_kboard->Voverriding_terminal_local_map)
-      || !NILP (Voverriding_local_map))
+  if (!NILP (current_kboard->Voverriding_terminal_local_map))
     {
-      if (3 > nmaps_allocated)
+      if (2 > nmaps_allocated)
 	{
-	  submaps = (Lisp_Object *) alloca (3 * sizeof (submaps[0]));
-	  defs    = (Lisp_Object *) alloca (3 * sizeof (defs[0]));
-	  nmaps_allocated = 3;
+	  submaps = (Lisp_Object *) alloca (2 * sizeof (submaps[0]));
+	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
+	  nmaps_allocated = 2;
 	}
       if (!NILP (current_kboard->Voverriding_terminal_local_map))
 	submaps[nmaps++] = current_kboard->Voverriding_terminal_local_map;
+    }
+  else if (!NILP (Voverriding_local_map))
+    {
+      if (2 > nmaps_allocated)
+	{
+	  submaps = (Lisp_Object *) alloca (2 * sizeof (submaps[0]));
+	  defs    = (Lisp_Object *) alloca (2 * sizeof (defs[0]));
+	  nmaps_allocated = 2;
+	}
       if (!NILP (Voverriding_local_map))
 	submaps[nmaps++] = Voverriding_local_map;
     }
@@ -9332,16 +9343,19 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			  if (!EQ (map_here, orig_local_map))
 			    {
 			      orig_local_map = map_here;
-			      keybuf[t] = key;
-			      mock_input = t + 1;
-
-			      goto replay_sequence;
+			      ++localized_local_map;
 			    }
+
 			  map_here = get_local_map (XINT (pos),
 						     current_buffer, Qkeymap);
 			  if (!EQ (map_here, orig_keymap))
 			    {
 			      orig_keymap = map_here;
+			      ++localized_local_map;
+			    }
+
+			  if (localized_local_map > 1)
+			    {
 			      keybuf[t] = key;
 			      mock_input = t + 1;
 
@@ -10177,7 +10191,7 @@ give to the command you invoke, if it asks for an argument.  */)
       if (NILP (echo_area_buffer[0]))
 	waited = sit_for (make_number (0), 0, 2);
       else if (NUMBERP (Vsuggest_key_bindings))
-	waited = sit_for (Vminibuffer_message_timeout, 0, 2);
+	waited = sit_for (Vsuggest_key_bindings, 0, 2);
       else
 	waited = sit_for (make_number (2), 0, 2);
 
@@ -10299,7 +10313,9 @@ Actually, the value is nil only if we can be sure that no input is available;
 if there is a doubt, the value is t.  */)
      ()
 {
-  if (!NILP (Vunread_command_events) || unread_command_char != -1)
+  if (!NILP (Vunread_command_events) || unread_command_char != -1
+      || !NILP (Vunread_post_input_method_events)
+      || !NILP (Vunread_input_method_events))
     return (Qt);
 
   get_input_pending (&input_pending,

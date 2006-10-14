@@ -155,7 +155,11 @@ Like (push X PLACE), except that the list is unmodified if X is `eql' to
 an element already on the list.
 \nKeywords supported:  :test :test-not :key
 \n(fn X PLACE [KEYWORD VALUE]...)"
-  (if (symbolp place) (list 'setq place (list* 'adjoin x place keys))
+  (if (symbolp place)
+      (if (null keys)
+ 	  `(let ((x ,x))
+	     (if (memql x ,place) ,place (setq ,place (cons x ,place))))
+	(list 'setq place (list* 'adjoin x place keys)))
     (list* 'callf2 'adjoin x place keys)))
 
 (defun cl-set-elt (seq n val)

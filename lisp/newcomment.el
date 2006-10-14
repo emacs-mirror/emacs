@@ -238,7 +238,7 @@ behavior for explicit filling, you might as well use \\[newline-and-indent]."
 (defcustom comment-empty-lines nil
   "If nil, `comment-region' does not comment out empty lines.
 If t, it always comments out empty lines.
-if `eol' it only comments out empty lines if comments are
+If `eol' it only comments out empty lines if comments are
 terminated by the end of line (i.e. `comment-end' is empty)."
   :type '(choice (const :tag "Never" nil)
 	  (const :tag "Always" t)
@@ -1124,12 +1124,44 @@ This has no effect in modes that do not define a comment syntax."
   :group 'comment)
 
 (defun comment-valid-prefix-p (prefix compos)
-  (or
-   ;; Accept any prefix if the current comment is not EOL-terminated.
-   (save-excursion (goto-char compos) (comment-forward) (not (bolp)))
-   ;; Accept any prefix that starts with a comment-start marker.
-   (string-match (concat "\\`[ \t]*\\(?:" comment-start-skip "\\)")
-		 prefix)))
+    "Check that the adaptive-fill-prefix is consistent with the context.
+PREFIX is the prefix (presumably guessed by `adaptive-fill-mode').
+COMPOS is the position of the beginning of the comment we're in, or nil
+if we're not inside a comment."
+  ;; This consistency checking is mostly needed to workaround the limitation
+  ;; of auto-fill-mode whose paragraph-determination doesn't pay attention
+  ;; to comment boundaries.
+  (if (null compos)
+      ;; We're not inside a comment: the prefix shouldn't match
+      ;; a comment-starter.
+      (not (and comment-start comment-start-skip
+                (string-match comment-start-skip prefix)))
+    (or
+     ;; Accept any prefix if the current comment is not EOL-terminated.
+     (save-excursion (goto-char compos) (comment-forward) (not (bolp)))
+     ;; Accept any prefix that starts with the same comment-start marker
+     ;; as the current one.
+     (when (string-match (concat "\\`[ \t]*\\(?:" comment-start-skip "\\)")
+                         prefix)
+       (let ((prefix-com (comment-string-strip (match-string 0 prefix) nil t)))
+         (string-match "\\`[ \t]*" prefix-com)
+         (let* ((prefix-space (match-string 0 prefix-com))
+                (prefix-indent (string-width prefix-space))
+                (prefix-comstart (substring prefix-com (match-end 0))))
+           (save-excursion
+             (goto-char compos)
+             ;; The comstart marker is the same.
+             (and (looking-at (regexp-quote prefix-comstart))
+                  ;; The indentation as well.
+                  (or (= prefix-indent
+                         (- (current-column) (current-left-margin)))
+                      ;; Check the indentation in two different ways, just
+                      ;; to try and avoid most of the potential funny cases.
+                      (equal prefix-space
+                             (buffer-substring (point)
+                                               (progn (move-to-left-margin)
+                                                      (point)))))))))))))
+                    
 
 ;;;###autoload
 (defun comment-indent-new-line (&optional soft)
@@ -1182,8 +1214,7 @@ unless optional argument SOFT is non-nil."
 	 ;; If there's an adaptive prefix, use it unless we're inside
 	 ;; a comment and the prefix is not a comment starter.
 	 ((and fill-prefix
-	       (or (not compos)
-		   (comment-valid-prefix-p fill-prefix compos)))
+               (comment-valid-prefix-p fill-prefix compos))
 	  (indent-to-left-margin)
 	  (insert-and-inherit fill-prefix))
 	 ;; If we're not inside a comment, just try to indent.

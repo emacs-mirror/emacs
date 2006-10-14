@@ -41,7 +41,7 @@ license to the document, as described in section 6 of the license.
 @titlepage
 @title Ebrowse User's Manual
 @sp 4
-@subtitle Ebrowse/Emacs 21
+@subtitle Ebrowse/Emacs
 @sp 1
 @subtitle May 2000
 @sp 5
@@ -59,7 +59,7 @@ Ebrowse.
 @end ifnottex
 
 @menu
-* Overview::			What is it and now does it work?
+* Overview::			What is it and how does it work?
 * Generating browser files::	How to process C++ source files
 * Loading a Tree::		How to start browsing
 * Tree Buffers::		Traversing class hierarchies

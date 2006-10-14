@@ -387,7 +387,12 @@ Symbols are also allowed; their print names are used instead. */)
   return i1 < SCHARS (s2) ? Qt : Qnil;
 }
 
-static Lisp_Object concat ();
+#if __GNUC__
+/* "gcc -O3" enables automatic function inlining, which optimizes out
+   the arguments for the invocations of this function, whereas it
+   expects these values on the stack.  */
+static Lisp_Object concat () __attribute__((noinline));
+#endif
 
 /* ARGSUSED */
 Lisp_Object
@@ -1459,11 +1464,10 @@ The value is actually the tail of LIST whose car is ELT.  */)
 }
 
 DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
-       doc: /* Return non-nil if ELT is an element of LIST.
-Comparison done with `eq'.  The value is actually the tail of LIST
-whose car is ELT.  */)
+doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
+The value is actually the tail of LIST whose car is ELT.  */)
      (elt, list)
-     Lisp_Object elt, list;
+     register Lisp_Object elt, list;
 {
   while (1)
     {
@@ -1484,6 +1488,30 @@ whose car is ELT.  */)
 
   CHECK_LIST (list);
   return list;
+}
+
+DEFUN ("memql", Fmemql, Smemql, 2, 2, 0,
+doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
+The value is actually the tail of LIST whose car is ELT.  */)
+     (elt, list)
+     register Lisp_Object elt;
+     Lisp_Object list;
+{
+  register Lisp_Object tail;
+
+  if (!FLOATP (elt))
+    return Fmemq (elt, list);
+
+  for (tail = list; !NILP (tail); tail = XCDR (tail))
+    {
+      register Lisp_Object tem;
+      CHECK_LIST_CONS (tail, list);
+      tem = XCAR (tail);
+      if (FLOATP (tem) && internal_equal (elt, tem, 0, 0))
+	return tail;
+      QUIT;
+    }
+  return Qnil;
 }
 
 DEFUN ("assq", Fassq, Sassq, 2, 2, 0,
@@ -2749,7 +2777,8 @@ optimize_sub_char_table (table, chars)
   else
     from = 32, to = 128;
 
-  if (!SUB_CHAR_TABLE_P (*table))
+  if (!SUB_CHAR_TABLE_P (*table)
+      || ! NILP (XCHAR_TABLE (*table)->defalt))
     return;
   elt = XCHAR_TABLE (*table)->contents[from++];
   for (; from < to; from++)
@@ -2764,7 +2793,7 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
      Lisp_Object table;
 {
   Lisp_Object elt;
-  int dim;
+  int dim, chars;
   int i, j;
 
   CHECK_CHAR_TABLE (table);
@@ -2775,10 +2804,11 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
       if (!SUB_CHAR_TABLE_P (elt))
 	continue;
       dim = CHARSET_DIMENSION (i - 128);
+      chars = CHARSET_CHARS (i - 128);
       if (dim == 2)
 	for (j = 32; j < SUB_CHAR_TABLE_ORDINARY_SLOTS; j++)
-	  optimize_sub_char_table (XCHAR_TABLE (elt)->contents + j, dim);
-      optimize_sub_char_table (XCHAR_TABLE (table)->contents + i, dim);
+	  optimize_sub_char_table (XCHAR_TABLE (elt)->contents + j, chars);
+      optimize_sub_char_table (XCHAR_TABLE (table)->contents + i, chars);
     }
   return Qnil;
 }
@@ -5831,6 +5861,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Selt);
   defsubr (&Smember);
   defsubr (&Smemq);
+  defsubr (&Smemql);
   defsubr (&Sassq);
   defsubr (&Sassoc);
   defsubr (&Srassq);

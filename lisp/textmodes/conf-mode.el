@@ -75,8 +75,8 @@ not align (only setting space according to `conf-assignment-space')."
     (define-key map "\C-c\C-u" 'conf-unix-mode)
     (define-key map "\C-c\C-w" 'conf-windows-mode)
     (define-key map "\C-c\C-j" 'conf-javaprop-mode)
-    (define-key map "\C-c\C-s" 'conf-space-mode)
-    (define-key map "\C-c " 'conf-space-mode)
+    (define-key map "\C-c\C-s" 'conf-space-keywords)
+    (define-key map "\C-c " 'conf-space-keywords)
     (define-key map "\C-c\C-c" 'conf-colon-mode)
     (define-key map "\C-c:" 'conf-colon-mode)
     (define-key map "\C-c\C-x" 'conf-xdefaults-mode)
@@ -168,7 +168,7 @@ not align (only setting space according to `conf-assignment-space')."
     ("/resmgr\\.conf" . "class\\|add\\|allow\\|deny")
     ("/dictionary\\.lst\\'" . "DICT\\|HYPH\\|THES")
     ("/tuxracer/options" . "set"))
-  "File name based settings for `conf-space-keywords'.")
+  "File-name-based settings for the variable `conf-space-keywords'.")
 
 (defvar conf-space-keywords nil
   "Regexps for functions that may come before a space assignment.
@@ -188,7 +188,7 @@ This variable is best set in the file local variables, or through
 		'(1 'font-lock-keyword-face)
 		'(2 'font-lock-variable-name-face))
 	  '("^[ \t]*\\([^\000- ]+\\)" 1 'font-lock-variable-name-face)))
-  "Keywords to hilight in Conf Space mode.")
+  "Keywords to highlight in Conf Space mode.")
 
 (defvar conf-colon-font-lock-keywords
   `(;; [section] (do this first because it may look like a parameter)
@@ -446,10 +446,11 @@ x.2.y.1.z.2.zz ="
 (define-derived-mode conf-space-mode conf-unix-mode "Conf[Space]"
   "Conf Mode starter for space separated conf files.
 \"Assignments\" are with ` '.  Keywords before the parameters are
-recognized according to `conf-space-keywords'.  Interactively
-with a prefix ARG of `0' no keywords will be recognized.  With
-any other prefix arg you will be prompted for a regexp to match
-the keywords.
+recognized according to the variable `conf-space-keywords-alist'.
+Alternatively, you can specify a value for the file local variable
+`conf-space-keywords'.
+Use the function `conf-space-keywords' if you want to specify keywords
+in an interactive fashion instead.
 
 For details see `conf-mode'.  Example:
 
@@ -465,34 +466,61 @@ class desktop
 add /dev/audio		desktop
 add /dev/mixer		desktop"
   (conf-mode-initialize "#" 'conf-space-font-lock-keywords)
-  (set (make-local-variable 'conf-assignment-sign)
-       nil)
-  ;; This doesn't seem right, but the next two depend on conf-space-keywords
-  ;; being set, while after-change-major-mode-hook might set up imenu, needing
-  ;; the following result:
-  (hack-local-variables-prop-line)
-  (hack-local-variables)
-  (cond (current-prefix-arg
-         (set (make-local-variable 'conf-space-keywords)
-              (if (> (prefix-numeric-value current-prefix-arg) 0)
-                  (read-string "Regexp to match keywords: "))))
-        (conf-space-keywords)
-        (buffer-file-name
-         (set (make-local-variable 'conf-space-keywords)
-              (assoc-default buffer-file-name conf-space-keywords-alist
-                             'string-match))))
-  (set (make-local-variable 'conf-assignment-regexp)
-       (if conf-space-keywords
-	   (concat "\\(?:" conf-space-keywords "\\)[ \t]+.+?\\([ \t]+\\|$\\)")
-	 ".+?\\([ \t]+\\|$\\)"))
+  (make-local-variable 'conf-assignment-sign)
+  (setq conf-assignment-sign nil)
+  (make-local-variable 'conf-space-keywords)
+  (cond (buffer-file-name
+	 ;; We set conf-space-keywords directly, but a value which is
+	 ;; in the local variables list or interactively specified
+	 ;; (see the function conf-space-keywords) takes precedence.
+         (setq conf-space-keywords
+	       (assoc-default buffer-file-name conf-space-keywords-alist
+			      'string-match))))
+  (conf-space-mode-internal)
+  ;; In case the local variables list specifies conf-space-keywords,
+  ;; recompute other things from that afterward.
+  (add-hook 'hack-local-variables-hook 'conf-space-mode-internal nil t))
+
+;;;###autoload
+(defun conf-space-keywords (keywords)
+  "Enter Conf Space mode using regexp KEYWORDS to match the keywords.
+See `conf-space-mode'."
+  (interactive "sConf Space keyword regexp: ")
+  (delay-mode-hooks
+    (conf-space-mode))
+  (if (string-equal keywords "")
+      (setq keywords nil))
+  (setq conf-space-keywords keywords)
+  (conf-space-mode-internal)
+  (run-mode-hooks))
+
+(defun conf-space-mode-internal ()
+  (make-local-variable 'conf-assignment-regexp)
+  (setq conf-assignment-regexp
+	(if conf-space-keywords
+	    (concat "\\(?:" conf-space-keywords "\\)[ \t]+.+?\\([ \t]+\\|$\\)")
+	  ".+?\\([ \t]+\\|$\\)"))
+  ;; If Font Lock is already enabled, reenable it with new
+  ;; conf-assignment-regexp.
+  (when (and font-lock-mode
+	     (boundp 'font-lock-keywords)) ;see `normal-mode'
+    (font-lock-add-keywords nil nil)
+    (font-lock-mode 1))
+  ;; Copy so that we don't destroy shared structure.
+  (setq imenu-generic-expression (copy-sequence imenu-generic-expression))
+  ;; Get rid of any existing Parameters element.
   (setq imenu-generic-expression
-	`(,@(cdr imenu-generic-expression)
-	  ("Parameters"
-	   ,(if conf-space-keywords
-		(concat "^[ \t]*\\(?:" conf-space-keywords
-			"\\)[ \t]+\\([^ \t\n]+\\)\\(?:[ \t]\\|$\\)")
-	      "^[ \t]*\\([^ \t\n[]+\\)\\(?:[ \t]\\|$\\)")
-	   1))))
+	(delq (assoc "Parameters" imenu-generic-expression)
+	      imenu-generic-expression))
+  ;; Add a new one based on conf-space-keywords.
+  (setq imenu-generic-expression
+	(cons `("Parameters"
+		,(if conf-space-keywords
+		     (concat "^[ \t]*\\(?:" conf-space-keywords
+			     "\\)[ \t]+\\([^ \t\n]+\\)\\(?:[ \t]\\|$\\)")
+		   "^[ \t]*\\([^ \t\n[]+\\)\\(?:[ \t]\\|$\\)")
+		1)
+	      imenu-generic-expression)))
 
 ;;;###autoload
 (define-derived-mode conf-colon-mode conf-unix-mode "Conf[Colon]"

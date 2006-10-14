@@ -349,7 +349,7 @@ Defaults to the whole buffer.  END can be out of bounds."
 	 ;; Fontify chunks beginning at START.  The end of a
 	 ;; chunk is either `end', or the start of a region
 	 ;; before `end' that has already been fontified.
-	 (while start
+	 (while (and start (< start end))
 	   ;; Determine the end of this chunk.
 	   (setq next (or (text-property-any start end 'fontified t)
 			  end))
@@ -397,18 +397,20 @@ Defaults to the whole buffer.  END can be out of bounds."
            ;; eagerly extend the refontified region with
            ;; jit-lock-after-change-extend-region-functions.
            (when (< start orig-start)
-             (lexical-let ((start start)
-                           (orig-start orig-start)
-                           (buf (current-buffer)))
-               (run-with-timer
-                0 nil (lambda ()
-                        (with-current-buffer buf
-                          (with-buffer-prepared-for-jit-lock
-                              (put-text-property start orig-start
-                                                 'fontified t)))))))
+	     (run-with-timer 0 nil 'jit-lock-force-redisplay
+			     (current-buffer) start orig-start))
 
 	   ;; Find the start of the next chunk, if any.
 	   (setq start (text-property-any next end 'fontified nil))))))))
+
+(defun jit-lock-force-redisplay (buf start end)
+  "Force the display engine to re-render buffer BUF from START to END."
+  (with-current-buffer buf
+    (with-buffer-prepared-for-jit-lock
+     ;; Don't cause refontification (it's already been done), but just do
+     ;; some random buffer change, so as to force redisplay.
+     (put-text-property start end 'fontified t))))
+
 
 
 ;;; Stealth fontification.

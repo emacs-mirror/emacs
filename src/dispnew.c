@@ -4409,7 +4409,12 @@ update_text_area (w, vpos)
       || desired_row->phys_height != current_row->phys_height
       || desired_row->visible_height != current_row->visible_height
       || current_row->overlapped_p
+#if 0
+      /* This causes excessive flickering when mouse is moved across
+	 the mode line.  Luckily everything seems to work just fine
+	 without doing this.  KFS 2006-09-17.  */
       || current_row->mouse_face_p
+#endif
       || current_row->x != desired_row->x)
     {
       rif->cursor_to (vpos, 0, desired_row->y, desired_row->x);
@@ -6529,7 +6534,8 @@ Emacs was built without floating point support.
 /* This is just like wait_reading_process_output, except that
    it does redisplay.
 
-   TIMEOUT is number of seconds to wait (float or integer).
+   TIMEOUT is number of seconds to wait (float or integer),
+   or t to wait forever.
    READING is 1 if reading input.
    If DO_DISPLAY is >0 display process output while waiting.
    If DO_DISPLAY is >1 perform an initial redisplay before waiting.
@@ -6562,10 +6568,15 @@ sit_for (timeout, reading, do_display)
       sec = (int) seconds;
       usec = (int) ((seconds - sec) * 1000000);
     }
+  else if (EQ (timeout, Qt))
+    {
+      sec = 0;
+      usec = 0;
+    }
   else
     wrong_type_argument (Qnumberp, timeout);
 
-  if (sec == 0 && usec == 0)
+  if (sec == 0 && usec == 0 && !EQ (timeout, Qt))
     return Qt;
 
 #ifdef SIGIO
@@ -6582,7 +6593,8 @@ sit_for (timeout, reading, do_display)
 DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
        doc: /* Perform redisplay if no input is available.
 If optional arg FORCE is non-nil or `redisplay-dont-pause' is non-nil,
-perform a full redisplay even if input is available.  */)
+perform a full redisplay even if input is available.
+Return t if redisplay was performed, nil otherwise.  */)
      (force)
   Lisp_Object force;
 {

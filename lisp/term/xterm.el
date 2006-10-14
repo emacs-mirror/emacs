@@ -162,17 +162,20 @@
 ;; These keys are available in xterm starting from version 216
 ;; if the modifyOtherKeys resource is set to 1.
 
+(define-key xterm-function-map "\e[27;5;9~"   [C-tab])
+(define-key xterm-function-map "\e[27;5;13~"  [C-return])
 (define-key xterm-function-map "\e[27;5;39~"  [?\C-\'])
+(define-key xterm-function-map "\e[27;5;44~"  [?\C-,])
 (define-key xterm-function-map "\e[27;5;45~"  [?\C--])
-
+(define-key xterm-function-map "\e[27;5;46~"  [?\C-.])
+(define-key xterm-function-map "\e[27;5;47~"  [?\C-/])
 (define-key xterm-function-map "\e[27;5;48~"  [?\C-0])
 (define-key xterm-function-map "\e[27;5;49~"  [?\C-1])
 ;; Not all C-DIGIT keys have a distinct binding.
 (define-key xterm-function-map "\e[27;5;57~"  [?\C-9])
-
-(define-key xterm-function-map "\e[27;5;59~"  [?\C-\;])
+(define-key xterm-function-map "\e[27;5;59~"  [(C-\;)])
 (define-key xterm-function-map "\e[27;5;61~"  [?\C-=])
-
+(define-key xterm-function-map "\e[27;5;92~"  [?\C-\\])
 
 (define-key xterm-function-map "\e[27;6;33~"  [?\C-!])
 (define-key xterm-function-map "\e[27;6;34~"  [?\C-\"])
@@ -184,26 +187,93 @@
 (define-key xterm-function-map "\e[27;6;41~"  [?\C-)])
 (define-key xterm-function-map "\e[27;6;42~"  [?\C-*])
 (define-key xterm-function-map "\e[27;6;43~"  [?\C-+])
-
 (define-key xterm-function-map "\e[27;6;58~"  [?\C-:])
 (define-key xterm-function-map "\e[27;6;60~"  [?\C-<])
 (define-key xterm-function-map "\e[27;6;62~"  [?\C->])
 (define-key xterm-function-map "\e[27;6;63~"  [(C-\?)])
 
-(define-key xterm-function-map "\e[27;5;9~"  [C-tab])
-(define-key xterm-function-map "\e[27;5;13~" [C-return])
-(define-key xterm-function-map "\e[27;5;44~" [?\C-,])
-(define-key xterm-function-map "\e[27;5;46~" [?\C-.])
-(define-key xterm-function-map "\e[27;5;47~" [?\C-/])
-(define-key xterm-function-map "\e[27;5;92~" [?\C-\\])
+;; These are the strings emitted for various C-M- combinations
+;; for keyboards that the Meta and Alt modifiers are on the same
+;; key (usually labeled "Alt").
+(define-key xterm-function-map "\e[27;13;9~"  [(C-M-tab)])
+(define-key xterm-function-map "\e[27;13;13~" [(C-M-return)])
 
-(define-key xterm-function-map "\e[27;2;9~" [S-tab])
-(define-key xterm-function-map "\e[27;2;13~" [S-return])
-
-(define-key xterm-function-map "\e[27;6;9~" [(C-S-tab)])
-
+(define-key xterm-function-map "\e[27;13;39~" [?\C-\M-\'])
+(define-key xterm-function-map "\e[27;13;44~" [?\C-\M-,])
+(define-key xterm-function-map "\e[27;13;45~" [?\C-\M--])
 (define-key xterm-function-map "\e[27;13;46~" [?\C-\M-.])
+(define-key xterm-function-map "\e[27;13;47~" [?\C-\M-/])
+(define-key xterm-function-map "\e[27;13;48~" [?\C-\M-0])
+(define-key xterm-function-map "\e[27;13;49~" [?\C-\M-1])
+(define-key xterm-function-map "\e[27;13;50~" [?\C-\M-2])
+(define-key xterm-function-map "\e[27;13;51~" [?\C-\M-3])
+(define-key xterm-function-map "\e[27;13;52~" [?\C-\M-4])
+(define-key xterm-function-map "\e[27;13;53~" [?\C-\M-5])
+(define-key xterm-function-map "\e[27;13;54~" [?\C-\M-6])
+(define-key xterm-function-map "\e[27;13;55~" [?\C-\M-7])
+(define-key xterm-function-map "\e[27;13;56~" [?\C-\M-8])
+(define-key xterm-function-map "\e[27;13;57~" [?\C-\M-9])
+(define-key xterm-function-map "\e[27;13;59~" [?\C-\M-\;])
+(define-key xterm-function-map "\e[27;13;61~" [?\C-\M-=])
+(define-key xterm-function-map "\e[27;13;92~" [?\C-\M-\\])
 
+(define-key xterm-function-map "\e[27;14;33~"  [?\C-\M-!])
+(define-key xterm-function-map "\e[27;14;34~"  [?\C-\M-\"])
+(define-key xterm-function-map "\e[27;14;35~"  [?\C-\M-#])
+(define-key xterm-function-map "\e[27;14;36~"  [?\C-\M-$])
+(define-key xterm-function-map "\e[27;14;37~"  [?\C-\M-%])
+(define-key xterm-function-map "\e[27;14;38~"  [(C-M-&)])
+(define-key xterm-function-map "\e[27;14;40~"  [?\C-\M-(])
+(define-key xterm-function-map "\e[27;14;41~"  [?\C-\M-)])
+(define-key xterm-function-map "\e[27;14;42~"  [?\C-\M-*])
+(define-key xterm-function-map "\e[27;14;43~"  [?\C-\M-+])
+(define-key xterm-function-map "\e[27;14;58~"  [?\C-\M-:])
+(define-key xterm-function-map "\e[27;14;60~"  [?\C-\M-<])
+(define-key xterm-function-map "\e[27;14;62~"  [?\C-\M->])
+(define-key xterm-function-map "\e[27;14;63~"  [(C-M-\?)])
+
+(define-key xterm-function-map "\e[27;7;9~"  [(C-M-tab)])
+(define-key xterm-function-map "\e[27;7;13~" [(C-M-return)])
+
+(define-key xterm-function-map "\e[27;7;39~" [?\C-\M-\'])
+(define-key xterm-function-map "\e[27;7;44~" [?\C-\M-,])
+(define-key xterm-function-map "\e[27;7;45~" [?\C-\M--])
+(define-key xterm-function-map "\e[27;7;46~" [?\C-\M-.])
+(define-key xterm-function-map "\e[27;7;47~" [?\C-\M-/])
+(define-key xterm-function-map "\e[27;7;48~" [?\C-\M-0])
+(define-key xterm-function-map "\e[27;7;49~" [?\C-\M-1])
+(define-key xterm-function-map "\e[27;7;50~" [?\C-\M-2])
+(define-key xterm-function-map "\e[27;7;51~" [?\C-\M-3])
+(define-key xterm-function-map "\e[27;7;52~" [?\C-\M-4])
+(define-key xterm-function-map "\e[27;7;53~" [?\C-\M-5])
+(define-key xterm-function-map "\e[27;7;54~" [?\C-\M-6])
+(define-key xterm-function-map "\e[27;7;55~" [?\C-\M-7])
+(define-key xterm-function-map "\e[27;7;56~" [?\C-\M-8])
+(define-key xterm-function-map "\e[27;7;57~" [?\C-\M-9])
+(define-key xterm-function-map "\e[27;7;59~" [?\C-\M-\;])
+(define-key xterm-function-map "\e[27;7;61~" [?\C-\M-=])
+(define-key xterm-function-map "\e[27;7;92~" [?\C-\M-\\])
+
+(define-key xterm-function-map "\e[27;8;33~"  [?\C-\M-!])
+(define-key xterm-function-map "\e[27;8;34~"  [?\C-\M-\"])
+(define-key xterm-function-map "\e[27;8;35~"  [?\C-\M-#])
+(define-key xterm-function-map "\e[27;8;36~"  [?\C-\M-$])
+(define-key xterm-function-map "\e[27;8;37~"  [?\C-\M-%])
+(define-key xterm-function-map "\e[27;8;38~"  [(C-M-&)])
+(define-key xterm-function-map "\e[27;8;40~"  [?\C-\M-(])
+(define-key xterm-function-map "\e[27;8;41~"  [?\C-\M-)])
+(define-key xterm-function-map "\e[27;8;42~"  [?\C-\M-*])
+(define-key xterm-function-map "\e[27;8;43~"  [?\C-\M-+])
+(define-key xterm-function-map "\e[27;8;58~"  [?\C-\M-:])
+(define-key xterm-function-map "\e[27;8;60~"  [?\C-\M-<])
+(define-key xterm-function-map "\e[27;8;62~"  [?\C-\M->])
+(define-key xterm-function-map "\e[27;8;63~"  [(C-M-\?)])
+
+(define-key xterm-function-map "\e[27;2;9~"   [S-tab])
+(define-key xterm-function-map "\e[27;2;13~"  [S-return])
+
+(define-key xterm-function-map "\e[27;6;9~"   [(C-S-tab)])
+(define-key xterm-function-map "\e[27;6;13~"  [(C-S-return)])
 
 ;; Other versions of xterm might emit these.
 (define-key xterm-function-map "\e[A" [up])

@@ -202,6 +202,11 @@ necessary but missing, please report it via M-x report-emacs-bug.
 On platforms such as Solaris, you can also work around this problem by
 configuring your compiler to use the native linker instead of GNU ld.
 
+** Emacs compiled with Gtk+ crashes when closing a display (x-close-connection).
+
+This happens because of bugs in Gtk+.  Gtk+ 2.10 seems to be OK.  See bug
+http://bugzilla.gnome.org/show_bug.cgi?id=85715.
+
 * General runtime problems
 
 ** Lisp problems
@@ -535,7 +540,7 @@ on the flag to output ^M at the end of each line.  You can fix the
 problem by adding this to your .cshrc file:
 
     if ($?EMACS) then
-        if ($EMACS == "t") then
+        if ("$EMACS" =~ /*) then
             unset edit
             stty  -icrnl -onlcr -echo susp ^Z
         endif
@@ -828,6 +833,11 @@ feature (in the font part of the configuration window).
 
 * Internationalization problems
 
+** M-{ does not work on a Spanish PC keyboard.
+
+Many Spanish keyboards seem to ignore that combination.  Emacs can't
+do anything about it.
+
 ** Characters from the mule-unicode charsets aren't displayed under X.
 
 XFree86 4 contains many fonts in iso10646-1 encoding which have
@@ -1080,6 +1090,15 @@ Note that if you have Alt keys but no Meta keys, Emacs translates Alt
 into Meta.  This is because of the great importance of Meta in Emacs.
 
 ** Window-manager and toolkit-related problems
+
+*** Gnome: Emacs receives input directly from the keyboard, bypassing XIM.
+
+This seems to happen when gnome-settings-daemon version 2.12 or later
+is running.  If gnome-settings-daemon is not running, Emacs receives
+input through XIM without any problem.  Furthermore, this seems only
+to happen in *.UTF-8 locales; zh_CN.GB2312 and zh_CN.GBK locales, for
+example, work fine.  A bug report has been filed in the Gnome
+bugzilla: http://bugzilla.gnome.org/show_bug.cgi?id=357032
 
 *** Gnome: Emacs' xterm-mouse-mode doesn't work on the Gnome terminal.
 

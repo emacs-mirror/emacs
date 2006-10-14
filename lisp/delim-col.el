@@ -5,10 +5,10 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2006-02-06 13:37:10 ttn>
+;; Time-stamp: <2006/09/15 17:35:06 vinicius>
 ;; Version: 2.1
 ;; Keywords: internal
-;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
+;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
 

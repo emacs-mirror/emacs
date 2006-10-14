@@ -392,6 +392,10 @@ struct re_pattern_buffer
         /* Similarly for an end-of-line anchor.  */
   unsigned not_eol : 1;
 
+  /* If true, the compilation of the pattern had to look up the syntax table,
+     so the compiled pattern is only valid for the current syntax table.  */
+  unsigned used_syntax : 1;
+
 #ifdef emacs
   /* If true, multi-byte form in the `buffer' should be recognized as a
      multibyte character. */
@@ -614,13 +618,5 @@ extern void re_set_whitespace_regexp (const char *regexp);
 
 #endif /* regex.h */
 
-/*
-Local variables:
-make-backup-files: t
-version-control: t
-trim-versions-without-asking: nil
-End:
-*/
-
 /* arch-tag: bda6e3ec-3c02-4237-a55a-01ad2e120083
    (do not change this comment) */

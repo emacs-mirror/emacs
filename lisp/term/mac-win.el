@@ -1287,14 +1287,19 @@ correspoinding TextEncodingBase value."
 		     (find-coding-systems-string string)))
       (setq coding-system
 	    (coding-system-change-eol-conversion coding-system 'mac))
-      (when (and (eq system-type 'darwin)
-		 (eq coding-system 'japanese-shift-jis-mac))
-	(setq encoding mac-text-encoding-mac-japanese-basic-variant)
-	(setq string (subst-char-in-string ?\\ ?\x80 string))
-	(subst-char-in-string ?\(J\(B ?\x5c string t))
-      (setq data (mac-code-convert-string
-		  (encode-coding-string string coding-system)
-		  (or encoding coding-system) nil)))
+      (let ((str string))
+	(when (and (eq system-type 'darwin)
+		   (eq coding-system 'japanese-shift-jis-mac))
+	  (setq encoding mac-text-encoding-mac-japanese-basic-variant)
+	  (setq str (subst-char-in-string ?\\ ?\x80 str))
+	  (subst-char-in-string ?\(J\(B ?\x5c str t)
+	  ;; ASCII-only?
+	  (if (string-match "\\`[\x00-\x7f]*\\'" str)
+	      (setq str nil)))
+	(and str
+	     (setq data (mac-code-convert-string
+			 (encode-coding-string str coding-system)
+			 (or encoding coding-system) nil)))))
     (or data (encode-coding-string string (if (eq (byteorder) ?B)
 					      'utf-16be-mac
 					    'utf-16le-mac)))))
@@ -1528,19 +1533,20 @@ in `selection-converter-alist', which see."
 
 ;;; Event IDs
 ;; kCoreEventClass
-(put 'open-application   'mac-apple-event-id "oapp") ; kAEOpenApplication
-(put 'reopen-application 'mac-apple-event-id "rapp") ; kAEReopenApplication
-(put 'open-documents     'mac-apple-event-id "odoc") ; kAEOpenDocuments
-(put 'print-documents    'mac-apple-event-id "pdoc") ; kAEPrintDocuments
-(put 'open-contents      'mac-apple-event-id "ocon") ; kAEOpenContents
-(put 'quit-application   'mac-apple-event-id "quit") ; kAEQuitApplication
-(put 'application-died   'mac-apple-event-id "obit") ; kAEApplicationDied
-(put 'show-preferences   'mac-apple-event-id "pref") ; kAEShowPreferences
-(put 'autosave-now       'mac-apple-event-id "asav") ; kAEAutosaveNow
+(put 'open-application     'mac-apple-event-id "oapp") ; kAEOpenApplication
+(put 'reopen-application   'mac-apple-event-id "rapp") ; kAEReopenApplication
+(put 'open-documents       'mac-apple-event-id "odoc") ; kAEOpenDocuments
+(put 'print-documents      'mac-apple-event-id "pdoc") ; kAEPrintDocuments
+(put 'open-contents        'mac-apple-event-id "ocon") ; kAEOpenContents
+(put 'quit-application     'mac-apple-event-id "quit") ; kAEQuitApplication
+(put 'application-died     'mac-apple-event-id "obit") ; kAEApplicationDied
+(put 'show-preferences     'mac-apple-event-id "pref") ; kAEShowPreferences
+(put 'autosave-now         'mac-apple-event-id "asav") ; kAEAutosaveNow
 ;; kAEInternetEventClass
-(put 'get-url            'mac-apple-event-id "GURL") ; kAEGetURL
+(put 'get-url              'mac-apple-event-id "GURL") ; kAEGetURL
 ;; Converted HI command events
-(put 'about              'mac-apple-event-id "abou") ; kHICommandAbout
+(put 'about                'mac-apple-event-id "abou") ; kHICommandAbout
+(put 'show-hide-font-panel 'mac-apple-event-id "shfp") ; kHICommandShowHideFontPanel
 
 (defmacro mac-event-spec (event)
   `(nth 1 ,event))
@@ -1796,6 +1802,8 @@ With numeric ARG, display the font panel if and only if ARG is positive."
   'mac-handle-font-panel-closed)
 ;; kEventClassFont/kEventFontSelection
 (define-key mac-apple-event-map [font selection] 'mac-handle-font-selection)
+(define-key mac-apple-event-map [hi-command show-hide-font-panel]
+  'mac-font-panel-mode)
 
 (define-key-after menu-bar-showhide-menu [mac-font-panel-mode]
   (menu-bar-make-mm-toggle mac-font-panel-mode

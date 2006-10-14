@@ -389,7 +389,7 @@
   :link '(custom-manual "(emacs)Undo")
   :group 'editing)
 
-(defgroup modeline nil
+(defgroup mode-line nil
   "Content of the modeline."
   :group 'environment)
 
@@ -1521,13 +1521,18 @@ Otherwise use brackets."
 	    (widget-insert description))
 	(widget-insert (format ".
 %s buttons; type RET or click mouse-1 to actuate one.
-Editing a setting changes only the text in the buffer.
-Use the setting's State button to set it or save changes in it.
-Saving a change normally works by editing your Emacs init file.
-See "
+Editing a setting changes only the text in the buffer."
 			       (if custom-raised-buttons
 				   "`Raised' text indicates"
 				 "Square brackets indicate")))
+	(if init-file-user
+	    (widget-insert "
+Use the setting's State button to set it or save changes in it.
+Saving a change normally works by editing your Emacs init file.")
+	    (widget-insert "
+\nSince you started Emacs with `-q', which inhibits use of the
+Emacs init file, you cannot save settings into the Emacs init file."))
+	(widget-insert "\nSee ")
 	(widget-create 'custom-manual
 		       :tag "Custom file"
 		       "(emacs)Saving Customizations")
@@ -4152,6 +4157,8 @@ if only the first line of the docstring is shown."))
 				    recentf-exclude)))
 	 (old-buffer (find-buffer-visiting filename)))
     (with-current-buffer (or old-buffer (find-file-noselect filename))
+      (unless (eq major-mode 'emacs-lisp-mode)
+	(emacs-lisp-mode))
       (let ((inhibit-read-only t))
 	(custom-save-variables)
 	(custom-save-faces))
@@ -4255,19 +4262,31 @@ This function does not save the buffer."
 	(let ((spec (car-safe (get symbol 'theme-value)))
 	      (value (get symbol 'saved-value))
 	      (requests (get symbol 'custom-requests))
-	      (now (not (or (custom-variable-p symbol)
-			    (and (not (boundp symbol))
-				 (not (eq (get symbol 'force-value)
-					  'rogue))))))
+	      (now (and (not (custom-variable-p symbol))
+			(or (boundp symbol)
+			    (eq (get symbol 'force-value)
+				'rogue))))
 	      (comment (get symbol 'saved-variable-comment)))
-	  ;; Check `requests'.
+	  ;; Check REQUESTS for validity. 
 	  (dolist (request requests)
 	    (when (and (symbolp request) (not (featurep request)))
 	      (message "Unknown requested feature: %s" request)
 	      (setq requests (delq request requests))))
+	  ;; Is there anything customized about this variable?
 	  (when (or (and spec (eq (car spec) 'user))
 		    comment
 		    (and (null spec) (get symbol 'saved-value)))
+	    ;; Output an element for this variable.
+	    ;; It has the form (SYMBOL VALUE-FORM NOW REQUESTS COMMENT).
+	    ;; SYMBOL is the variable name.
+	    ;; VALUE-FORM is an expression to return the customized value.
+	    ;; NOW if non-nil means always set the variable immediately
+	    ;; when the customizations are reloaded.  This is used
+	    ;; for rogue variables
+	    ;; REQUESTS is a list of packages to load before setting the
+	    ;; variable.  Each element of it will be passed to `require'.
+	    ;; COMMENT is whatever comment the user has specified
+	    ;; with the customize facility.
 	    (unless (bolp)
 	      (princ "\n"))
 	    (princ " '(")
@@ -4383,14 +4402,15 @@ This function does not save the buffer."
   "Ignoring WIDGET, create a menu entry for customization group SYMBOL."
   `( ,(custom-unlispify-menu-entry symbol t)
      :filter (lambda (&rest junk)
-	       (let ((menu (custom-menu-create ',symbol)))
+	       (let* ((menu (custom-menu-create ',symbol)))
 		 (if (consp menu) (cdr menu) menu)))))
 
 ;;;###autoload
 (defun custom-menu-create (symbol)
   "Create menu for customization group SYMBOL.
 The menu is in a format applicable to `easy-menu-define'."
-  (let* ((item (vector (custom-unlispify-menu-entry symbol)
+  (let* ((deactivate-mark nil)
+	 (item (vector (custom-unlispify-menu-entry symbol)
 		       `(customize-group ',symbol)
 		       t)))
     (if (and (or (not (boundp 'custom-menu-nesting))
@@ -4435,8 +4455,8 @@ The format is suitable for use with `easy-menu-define'."
   ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
   (let ((map (make-keymap)))
     (set-keymap-parent map widget-keymap)
-    (define-key map [remap self-insert-command] 'custom-no-edit)
-    (define-key map "\^m" 'custom-newline)
+    (define-key map [remap self-insert-command] 'Custom-no-edit)
+    (define-key map "\^m" 'Custom-newline)
     (define-key map " " 'scroll-up)
     (define-key map "\177" 'scroll-down)
     (define-key map "\C-c\C-c" 'Custom-set)
@@ -4448,12 +4468,12 @@ The format is suitable for use with `easy-menu-define'."
     map)
   "Keymap for `custom-mode'.")
 
-(defun custom-no-edit (pos &optional event)
+(defun Custom-no-edit (pos &optional event)
   "Invoke button at POS, or refuse to allow editing of Custom buffer."
   (interactive "@d")
   (error "You can't edit this part of the Custom buffer"))
 
-(defun custom-newline (pos &optional event)
+(defun Custom-newline (pos &optional event)
   "Invoke button at POS, or refuse to allow editing of Custom buffer."
   (interactive "@d")
   (let ((button (get-char-property pos 'button)))
@@ -4535,6 +4555,13 @@ if that value is non-nil."
   (setq widget-documentation-face 'custom-documentation)
   (make-local-variable 'widget-button-face)
   (setq widget-button-face custom-button)
+
+  ;; We need this because of the "More" button on docstrings.
+  ;; Otherwise clicking on "More" can push point offscreen, which
+  ;; causes the window to recenter on point, which pushes the
+  ;; newly-revealed docstring offscreen; which is annoying.  -- cyd.
+  (set (make-local-variable 'widget-button-click-moves-point) t)
+
   (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
   (set (make-local-variable 'widget-mouse-face) custom-button-mouse)
 

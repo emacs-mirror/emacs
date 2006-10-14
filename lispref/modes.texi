@@ -1966,7 +1966,7 @@ meaningful distinction only on certain operating systems (@pxref{MS-DOS
 File Types}).
 
 @item %z
-The mnemonics of buffer, terminal, and keyboard coding systems.
+The mnemonics of keyboard, terminal, and buffer coding systems.
 
 @item %Z
 Like @samp{%z}, but including the end-of-line format.
@@ -2897,9 +2897,10 @@ directives in C.
 Syntactic fontification uses the syntax table to find comments and
 string constants (@pxref{Syntax Tables}).  It highlights them using
 @code{font-lock-comment-face} and @code{font-lock-string-face}
-(@pxref{Faces for Font Lock}).  There are several variables that
-affect syntactic fontification; you should set them by means of
-@code{font-lock-defaults} (@pxref{Font Lock Basics}).
+(@pxref{Faces for Font Lock}), or whatever
+@code{font-lock-syntactic-face-function} chooses.  There are several
+variables that affect syntactic fontification; you should set them by
+means of @code{font-lock-defaults} (@pxref{Font Lock Basics}).
 
 @defvar font-lock-keywords-only
 Non-@code{nil} means Font Lock should not do syntactic fontification;

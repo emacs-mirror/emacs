@@ -1355,6 +1355,9 @@ visible unless @var{partially} is non-@code{nil}.  The argument
 @var{position} defaults to the current position of point in
 @var{window}; @var{window}, to the selected window.
 
+If @var{position} is @code{t}, that means to check the last visible
+position in @var{window}.
+
 The @code{pos-visible-in-window-p} function considers only vertical
 scrolling.  If @var{position} is out of view only because @var{window}
 has been scrolled horizontally, @code{pos-visible-in-window-p} returns
@@ -1362,13 +1365,16 @@ non-@code{nil} anyway.  @xref{Horizontal Scrolling}.
 
 If @var{position} is visible, @code{pos-visible-in-window-p} returns
 @code{t} if @var{partially} is @code{nil}; if @var{partially} is
-non-@code{nil}, it returns a list of the form @code{(@var{x} @var{y}
-@var{partial})}, where @var{x} and @var{y} are the pixel coordinates
-relative to the top left corner of the window, and @var{partial} is
-@code{nil} if the character after @var{position} is fully visible;
-otherwise it is a cons @code{(@var{rtop} . @var{rbot})} where the
-@var{rtop} and @var{rbot} specify the number of invisible pixels at
-the top and bottom of the row at @var{position}.
+non-@code{nil}, and the character after @var{position} is fully
+visible, it returns a list of the form @code{(@var{x} @var{y})}, where
+@var{x} and @var{y} are the pixel coordinates relative to the top left
+corner of the window; otherwise it returns an extended list of the
+form @code{(@var{x} @var{y} @var{rtop} @var{rbot} @var{rowh}
+@var{vpos})}, where the @var{rtop} and @var{rbot} specify the number
+of off-window pixels at the top and bottom of the row at
+@var{position}, @var{rowh} specifies the visible height of that row,
+and @var{vpos} specifies the vertical position (zero-based row number)
+of that row.
 
 Here is an example:
 
@@ -1380,6 +1386,30 @@ Here is an example:
     (recenter 0))
 @end group
 @end example
+@end defun
+
+@defun window-line-height &optional line window
+This function returns information about text line @var{line} in @var{window}.
+If @var{line} is one of @code{header-line} or @code{mode-line},
+@code{window-line-height} returns information about the corresponding
+line of the window.  Otherwise, @var{line} is a text line number
+starting from 0.  A negative number counts from the end of the window.
+The argument @var{line} defaults to the current line in @var{window};
+@var{window}, to the selected window.
+
+If the display is not up to date, @code{window-line-height} returns
+@code{nil}.  In that case, @code{pos-visible-in-window-p} may be used
+to obtain related information.
+
+If there is no line corresponding to the specified @var{line},
+@code{window-line-height} returns @code{nil}.  Otherwise, it returns
+a list @code{(@var{height} @var{vpos} @var{ypos} @var{offbot})},
+where @var{height} is the height in pixels of the visible part of the
+line, @var{vpos} and @var{ypos} are the vertical position in lines and
+pixels of the line relative to the top of the first text line, and
+@var{offbot} is the number of off-window pixels at the bottom of the
+text line.  If there are off-window pixels at the top of the (first)
+text line, @var{ypos} is negative.
 @end defun
 
 @node Textual Scrolling
@@ -2344,6 +2374,10 @@ Displaying a different buffer in the window also runs these functions.
 These functions must be careful in using @code{window-end}
 (@pxref{Window Start}); if you need an up-to-date value, you must use
 the @var{update} argument to ensure you get it.
+
+@strong{Warning:} don't use this feature to alter the way the window
+is scrolled.  It's not designed for that, and such use probably won't
+work.
 @end defvar
 
 @defvar window-size-change-functions

@@ -210,11 +210,11 @@ The following keywords are meaningful:
 	`custom-initialize-reset'.
 :set	VALUE should be a function to set the value of the symbol.
 	It takes two arguments, the symbol to set and the value to
-	give it.  The default choice of function is `custom-set-default'.
+	give it.  The default choice of function is `set-default'.
 :get	VALUE should be a function to extract the value of symbol.
 	The function takes one argument, a symbol, and should return
 	the current value for that symbol.  The default choice of function
-	is `custom-default-value'.
+	is `default-value'.
 :require
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your `.emacs' file loads the value,
@@ -874,6 +874,18 @@ COMMENT is a comment string about SYMBOL.
 EXP itself is saved unevaluated as SYMBOL property `saved-value' and
 in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
   (custom-check-theme theme)
+ 
+  ;; Process all the needed autoloads before anything else, so that the
+  ;; subsequent code has all the info it needs (e.g. which var corresponds
+  ;; to a minor mode), regardless of the ordering of the variables.
+  (dolist (entry args)
+    (let* ((symbol (indirect-variable (nth 0 entry))))
+      (unless (or (get symbol 'standard-value)
+                  (memq (get symbol 'custom-autoload) '(nil noset)))
+        ;; This symbol needs to be autoloaded, even just for a `set'.
+        (custom-load-symbol symbol))))
+ 
+  ;; Move minor modes and variables with explicit requires to the end.
   (setq args
 	(sort args
 	      (lambda (a1 a2)
@@ -904,10 +916,6 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 	    (when requests
 	      (put symbol 'custom-requests requests)
 	      (mapc 'require requests))
-            (unless (or (get symbol 'standard-value)
-                        (memq (get symbol 'custom-autoload) '(nil noset)))
-              ;; This symbol needs to be autoloaded, even just for a `set'.
-              (custom-load-symbol symbol))
 	    (setq set (or (get symbol 'custom-set) 'custom-set-default))
 	    (put symbol 'saved-value (list value))
 	    (put symbol 'saved-variable-comment comment)

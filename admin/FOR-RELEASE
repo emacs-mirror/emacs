@@ -2,12 +2,13 @@ Tasks needed before the next release.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 
-** Update release dates of manuals.
-
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
+** Check for text in manuals that assumes current version is 21.
+
 ** Update AUTHORS.
+[Done 2006-10-03]
 
 ** Regenerate the postscript files of the reference cards in etc.
 
@@ -33,38 +34,26 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 These don't need to be fixed to start pretest, but we call the
 attention of Windows users to fixing them.
 
-** Markus Gritsch's report about Emacs looping on Windoze with the following
-.emacs file, and then reduce Emacs frame width to "something quite narrow":
-	(setq-default truncate-lines t)
-	(custom-set-variables
-	 '(hscroll-margin 20)
-	 '(hscroll-step 1)
-	)
-
 ** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
-Windows only bug.
+Windows only bug. Bug appears only when Cleartype enabled, probably related
+to the hack introduced on 2005-07-01 to fix some other Cleartype problem. 
+
+** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
+  (Did we decide that is unreproducible?)
 
 * BUGS
 
-** Milan Zamazal's Aug 23 bug report about crashes with certain fonts.
-
-** C-g fails to interrupt accept-process-output in Gnus.
-
-** Implement buffer-chars-modified-tick.
-
-** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem.
-
-** Make key-binding use the maps specified by positions given in the events.
-
+** hashiz@tomba.meridiani.jp, Oct 6: bootstrap failure on FreeBSD 6.2
+Can't be reproduced on GNU/Linux.
 
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
 
-The first line of every tutorial must begin with text ending in a period
-(".", ASCII 0x2E) saying "Emacs Tutorial" in the respective language.
-This should be followed by "See end for copying conditions", likewise
-in the respective language.
+The first line of every tutorial must begin with text ending in a
+period (".", ASCII 0x2E) saying "Emacs Tutorial" in the respective
+language.  This should be followed by "See end for copying
+conditions", likewise in the respective language.
 
 After each file name, on the same line or the following line, come the
 names of the people who have checked it.

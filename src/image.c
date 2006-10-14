@@ -3153,7 +3153,7 @@ xbm_read_bitmap_data (f, contents, end, width, height, data)
       expect_ident ("define");
       expect (XBM_TK_IDENT);
 
-      if (LA1 == XBM_TK_NUMBER);
+      if (LA1 == XBM_TK_NUMBER)
 	{
           char *p = strrchr (buffer, '_');
 	  p = p ? p + 1 : buffer;

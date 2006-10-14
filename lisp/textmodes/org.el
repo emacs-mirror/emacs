@@ -2690,7 +2690,7 @@ Also put tags into group 4 if tags are present.")
 (make-variable-buffer-local 'org-keyword-time-regexp)
 
 (defconst org-rm-props '(invisible t face t keymap t intangible t mouse-face t
-                                   mouse-map t)
+                                   rear-nonsticky t mouse-map t)
   "Properties to remove when a string without properties is wanted.")
 
 (defsubst org-match-string-no-properties (num &optional string)
@@ -3140,6 +3140,7 @@ that will be added to PLIST.  Returns the string that was modified."
       (progn
 	(add-text-properties (match-beginning 0) (match-end 0)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map
 				   ))
 	t)))
@@ -3150,6 +3151,7 @@ that will be added to PLIST.  Returns the string that was modified."
       (progn
 	(add-text-properties (match-beginning 0) (match-end 0)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map
 				   ))
 	t)))
@@ -3188,6 +3190,7 @@ that will be added to PLIST.  Returns the string that was modified."
       (progn
 	(add-text-properties (match-beginning 0) (match-end 0)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map))
 	t)))
 
@@ -3206,6 +3209,7 @@ that will be added to PLIST.  Returns the string that was modified."
 	  (progn
 	    (add-text-properties (match-beginning 0) (match-end 0)
 				 (list 'mouse-face 'highlight
+				       'rear-nonsticky t
 				       'keymap org-mouse-map
 				       'help-echo "Radio target link"
 				       'org-linked-text t))
@@ -3271,6 +3275,7 @@ between words."
       (progn
 	(add-text-properties (match-beginning 0) (match-end 0)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map))
 	t)))
 
@@ -3279,6 +3284,7 @@ between words."
       (progn
 	(add-text-properties (match-beginning 1) (match-end 1)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map))
 	t)))
 
@@ -3380,6 +3386,7 @@ between words."
 	 deactivate-mark buffer-file-name buffer-file-truename)
     (remove-text-properties beg end
 			    '(mouse-face nil keymap nil org-linked-text nil
+					 rear-nonsticky nil
 					 invisible nil intangible nil))))
 ;;; Visibility cycling
 
@@ -4569,7 +4576,7 @@ this heading. "
 		;; Make the subtree visible
 		(show-subtree)
 		(org-end-of-subtree t)
-		(skip-chars-backward " \t\r\n]")
+		(skip-chars-backward " \t\r\n")
 		(and (looking-at "[ \t\r\n]*")
 		     (replace-match "\n\n")))
 	    ;; No specific heading, just go to end of file.
@@ -6204,15 +6211,15 @@ the returned times will be formatted strings."
     (while (setq p (next-single-property-change (point) :org-clock-minutes))
       (goto-char p)
       (when (setq time (get-text-property p :org-clock-minutes))
-	(beginning-of-line 1)
-	(when (and (looking-at "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[0-9a-zA-Z_@:]+:\\)?[ \t]*$")
-		   (setq level (- (match-end 1) (match-beginning 1)))
-		   (<= level maxlevel))
-	  (setq hlc (if emph (or (cdr (assoc level hlchars)) "") "")
-		hdl (match-string 2)
-		h (/ time 60)
-		m (- time (* 60 h)))
-	  (save-excursion
+	(save-excursion
+	  (beginning-of-line 1)
+	  (when (and (looking-at "\\(\\*+\\)[ \t]+\\(.*?\\)\\([ \t]+:[0-9a-zA-Z_@:]+:\\)?[ \t]*$")
+		     (setq level (- (match-end 1) (match-beginning 1)))
+		     (<= level maxlevel))
+	    (setq hlc (if emph (or (cdr (assoc level hlchars)) "") "")
+		  hdl (match-string 2)
+		  h (/ time 60)
+		  m (- time (* 60 h)))
 	    (goto-char ins)
 	    (if (= level 1) (insert-before-markers "|-\n"))
 	    (insert-before-markers
@@ -8660,7 +8667,7 @@ are included in the output."
 	      (push txt rtn))
 	    ;; if we are to skip sublevels, jump to end of subtree
 	    (point)
-	    (or org-tags-match-list-sublevels (org-end-of-subtree))))))
+	    (or org-tags-match-list-sublevels (org-end-of-subtree t))))))
     (when (and (eq action 'sparse-tree)
 	       (not org-sparse-tree-open-archived-trees))
       (org-hide-archived-subtrees (point-min) (point-max)))
@@ -9816,7 +9823,7 @@ on the system \"/user@host:\"."
         ((fboundp 'tramp-handle-file-remote-p)
          (tramp-handle-file-remote-p file))
         ((and (boundp 'ange-ftp-name-format)
-              (string-match ange-ftp-name-format file))
+              (string-match (car ange-ftp-name-format) file))
          t)
         (t nil)))
 

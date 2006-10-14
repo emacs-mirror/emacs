@@ -516,12 +516,12 @@ Here's a similar example for specifying a foreground color:
 @kindex C-z @r{(X windows)}
 @findex iconify-or-deiconify-frame
 Iconify the selected Emacs frame (@code{iconify-or-deiconify-frame}).
+When typed on an Emacs frame's icon, deiconify instead.
+
 The normal meaning of @kbd{C-z}, to suspend Emacs, is not useful under
 a graphical display that allows multiple applications to operate
 simultaneously in their own windows, so Emacs gives @kbd{C-z} a
 different binding in that case.
-
-If you type this command on an Emacs frame's icon, it deiconifies the frame.
 
 @item C-x 5 0
 @kindex C-x 5 0
@@ -945,11 +945,18 @@ of hidden files (files starting with a dot) in that dialog.  The
 variable @code{x-gtk-show-hidden-files} controls whether to show
 hidden files by default.
 
-@vindex x-use-old-gtk-file-dialog
-  For Gtk+ version 2.4 and 2.6, you can make Emacs use the old file dialog
-by setting the variable @code{x-use-old-gtk-file-dialog} to a non-@code{nil}
-value.  If Emacs is built with a Gtk+ version that has only one file dialog,
-the setting of this variable has no effect.
+@vindex x-gtk-use-old-file-dialog
+  For Gtk+ versions 2.4 through 2.10, you can select the old file
+dialog (@code{gtk-file-selector}) by setting the variable
+@code{x-gtk-use-old-file-dialog} to a non-@code{nil} value.  If it is
+@code{nil}, Emacs uses @code{gtk-file-chooser}.  If Emacs is built
+with a Gtk+ version that has only one file dialog, this variable has
+no effect.
+
+@vindex x-gtk-file-dialog-help-text
+  Emacs adds help text to the Gtk+ file chooser dialog.  The variable
+@code{x-gtk-file-dialog-help-text} specifies the text to add; if it is
+@code{nil}, that disables the added text.
 
 @node Tooltips
 @section Tooltips

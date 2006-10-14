@@ -272,6 +272,8 @@ This is effective only if directory tracking is enabled."
   :type '(choice (const :tag "None" nil) file)
   :group 'shell)
 
+;; Note: There are no explicit references to the variable `explicit-csh-args'.
+;; It is used implicitly by M-x shell when the shell is `csh'.
 (defcustom explicit-csh-args
   (if (eq system-type 'hpux)
       ;; -T persuades HP's csh not to think it is smarter
@@ -283,12 +285,15 @@ Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
 
+;; Note: There are no explicit references to the variable `explicit-bash-args'.
+;; It is used implicitly by M-x shell when the interactive shell is `bash'.
 (defcustom explicit-bash-args
-  ;; Tell bash not to use readline, except for bash 1.x which doesn't grook --noediting.
-  ;; Bash 1.x has -nolineediting, but process-send-eof cannot terminate bash if we use it.
   (let* ((prog (or (and (boundp 'explicit-shell-file-name) explicit-shell-file-name)
 		   (getenv "ESHELL") shell-file-name))
 	 (name (file-name-nondirectory prog)))
+    ;; Tell bash not to use readline, except for bash 1.x which
+    ;; doesn't grook --noediting.  Bash 1.x has -nolineediting, but
+    ;; process-send-eof cannot terminate bash if we use it.
     (if (and (not purify-flag)
 	     (equal name "bash")
 	     (file-executable-p prog)
@@ -483,7 +488,9 @@ This function can be put on `comint-output-filter-functions'.
 The argument STRING is ignored."
   (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
     (save-excursion
-      (goto-char (or comint-last-output-start (point-min)))
+      (goto-char (or (and (markerp comint-last-output-start)
+			  (marker-position comint-last-output-start))
+		     (point-min)))
       (while (re-search-forward "[\C-a\C-b]" pmark t)
         (replace-match "")))))
 

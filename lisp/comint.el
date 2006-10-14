@@ -650,7 +650,10 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-process-echoes)
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
-  (set (make-local-variable 'comint-accum-marker) (make-marker))
+  (make-local-variable 'comint-accum-marker)
+  (setq comint-accum-marker (make-marker))
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(nil))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
@@ -765,7 +768,8 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 		    (format "COLUMNS=%d" (window-width)))
 	    (list "TERM=emacs"
 		  (format "TERMCAP=emacs:co#%d:tc=unknown:" (window-width))))
-	  (if (getenv "EMACS") nil (list "EMACS=t"))
+	  (unless (getenv "EMACS")
+	    (list (concat "EMACS=" invocation-directory invocation-name)))
 	  process-environment))
 	(default-directory
 	  (if (file-accessible-directory-p default-directory)

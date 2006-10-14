@@ -2471,7 +2471,7 @@ extern Lisp_Object del_range_1 P_ ((int, int, int, int));
 extern void del_range_byte P_ ((int, int, int));
 extern void del_range_both P_ ((int, int, int, int, int));
 extern Lisp_Object del_range_2 P_ ((int, int, int, int, int));
-extern void modify_region P_ ((struct buffer *, int, int));
+extern void modify_region P_ ((struct buffer *, int, int, int));
 extern void prepare_to_modify_buffer P_ ((int, int, int *));
 extern void signal_before_change P_ ((int, int, int *));
 extern void signal_after_change P_ ((int, int, int));
@@ -2538,7 +2538,7 @@ extern void syms_of_xdisp P_ ((void));
 extern void init_xdisp P_ ((void));
 extern Lisp_Object safe_eval P_ ((Lisp_Object));
 extern int pos_visible_p P_ ((struct window *, int, int *,
-			      int *, int *, int *, int));
+			      int *, int *, int *, int *, int *));
 
 /* Defined in vm-limit.c.  */
 extern void memory_warnings P_ ((POINTER_TYPE *, void (*warnfun) ()));
@@ -2920,6 +2920,7 @@ extern int find_next_newline P_ ((int, int));
 extern int find_next_newline_no_quit P_ ((int, int));
 extern int find_before_next_newline P_ ((int, int, int));
 extern void syms_of_search P_ ((void));
+extern void clear_regexp_cache P_ ((void));
 
 /* defined in minibuf.c */
 

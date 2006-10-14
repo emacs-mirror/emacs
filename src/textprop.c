@@ -1001,17 +1001,16 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
-  if (NULL_INTERVAL_P (next))
+  if (NULL_INTERVAL_P (next)
+      || (next->position
+	  >= (INTEGERP (limit)
+	      ? XFASTINT (limit)
+	      : (STRINGP (object)
+		 ? SCHARS (object)
+		 : BUF_ZV (XBUFFER (object))))))
     return limit;
-  if (NILP (limit))
-    XSETFASTINT (limit, (STRINGP (object)
-			 ? SCHARS (object)
-			 : BUF_ZV (XBUFFER (object))));
-  if (!(next->position < XFASTINT (limit)))
-    return limit;
-
-  XSETFASTINT (position, next->position);
-  return position;
+  else
+    return make_number (next->position);
 }
 
 /* Return 1 if there's a change in some property between BEG and END.  */
@@ -1083,16 +1082,16 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 	 && (NILP (limit) || next->position < XFASTINT (limit)))
     next = next_interval (next);
 
-  if (NULL_INTERVAL_P (next))
+  if (NULL_INTERVAL_P (next)
+      || (next->position
+	  >= (INTEGERP (limit)
+	      ? XFASTINT (limit)
+	      : (STRINGP (object)
+		 ? SCHARS (object)
+		 : BUF_ZV (XBUFFER (object))))))
     return limit;
-  if (NILP (limit))
-    XSETFASTINT (limit, (STRINGP (object)
-			 ? SCHARS (object)
-			 : BUF_ZV (XBUFFER (object))));
-  if (!(next->position < XFASTINT (limit)))
-    return limit;
-
-  return make_number (next->position);
+  else
+    return make_number (next->position);
 }
 
 DEFUN ("previous-property-change", Fprevious_property_change,
@@ -1132,14 +1131,15 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
 	 && (NILP (limit)
 	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
-  if (NULL_INTERVAL_P (previous))
-    return limit;
-  if (NILP (limit))
-    XSETFASTINT (limit, (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))));
-  if (!(previous->position + LENGTH (previous) > XFASTINT (limit)))
-    return limit;
 
-  return make_number (previous->position + LENGTH (previous));
+  if (NULL_INTERVAL_P (previous)
+      || (previous->position + LENGTH (previous)
+	  <= (INTEGERP (limit)
+	      ? XFASTINT (limit)
+	      : (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))))))
+    return limit;
+  else
+    return make_number (previous->position + LENGTH (previous));
 }
 
 DEFUN ("previous-single-property-change", Fprevious_single_property_change,
@@ -1184,14 +1184,15 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
 	 && (NILP (limit)
 	     || (previous->position + LENGTH (previous) > XFASTINT (limit))))
     previous = previous_interval (previous);
-  if (NULL_INTERVAL_P (previous))
-    return limit;
-  if (NILP (limit))
-    XSETFASTINT (limit, (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))));
-  if (!(previous->position + LENGTH (previous) > XFASTINT (limit)))
-    return limit;
 
-  return make_number (previous->position + LENGTH (previous));
+  if (NULL_INTERVAL_P (previous)
+      || (previous->position + LENGTH (previous)
+	  <= (INTEGERP (limit)
+	      ? XFASTINT (limit)
+	      : (STRINGP (object) ? 0 : BUF_BEGV (XBUFFER (object))))))
+    return limit;
+  else
+    return make_number (previous->position + LENGTH (previous));
 }
 
 /* Callers note, this can GC when OBJECT is a buffer (or nil).  */
@@ -1253,7 +1254,7 @@ Return t if any property value actually changed, nil otherwise.  */)
     }
 
   if (BUFFERP (object))
-    modify_region (XBUFFER (object), XINT (start), XINT (end));
+    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 
   /* We are at the beginning of interval I, with LEN chars to scan.  */
   for (;;)
@@ -1393,7 +1394,7 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
     }
 
   if (BUFFERP (object))
-    modify_region (XBUFFER (object), XINT (start), XINT (end));
+    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 
   set_text_properties_1 (start, end, properties, object, i);
 
@@ -1541,7 +1542,7 @@ Use set-text-properties if you want to remove all text properties.  */)
     }
 
   if (BUFFERP (object))
-    modify_region (XBUFFER (object), XINT (start), XINT (end));
+    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 
   /* We are at the beginning of an interval, with len to scan */
   for (;;)
@@ -1655,7 +1656,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 	  if (LENGTH (i) == len)
 	    {
 	      if (!modified && BUFFERP (object))
-		modify_region (XBUFFER (object), XINT (start), XINT (end));
+		modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 	      remove_properties (Qnil, properties, i, object);
 	      if (BUFFERP (object))
 		signal_after_change (XINT (start), XINT (end) - XINT (start),
@@ -1668,7 +1669,7 @@ Return t if any property was actually removed, nil otherwise.  */)
 	  i = split_interval_left (i, len);
 	  copy_properties (unchanged, i);
 	  if (!modified && BUFFERP (object))
-	    modify_region (XBUFFER (object), XINT (start), XINT (end));
+	    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 	  remove_properties (Qnil, properties, i, object);
 	  if (BUFFERP (object))
 	    signal_after_change (XINT (start), XINT (end) - XINT (start),
@@ -1679,7 +1680,7 @@ Return t if any property was actually removed, nil otherwise.  */)
       if (interval_has_some_properties_list (properties, i))
 	{
 	  if (!modified && BUFFERP (object))
-	    modify_region (XBUFFER (object), XINT (start), XINT (end));
+	    modify_region (XBUFFER (object), XINT (start), XINT (end), 1);
 	  remove_properties (Qnil, properties, i, object);
 	  modified = 1;
 	}

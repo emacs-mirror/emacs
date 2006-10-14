@@ -1,3 +1,63 @@
+2006-10-09  David Kastrup  <dak@gnu.org>
+
+	* DEVEL.HUMOR: Add the topic line for last entry since that was
+	what the joke was about.
+
+2006-10-07  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>
+
+	* TUTORIAL.bg: Synchronize with TUTORIAL.
+
+2006-10-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* DEVEL.HUMOR: New file.
+
+2006-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* PROBLEMS: Document Emacs/XIM/gnome-settings-terminal clash.
+
+2006-09-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* NEWS: ebnf2ps changes.
+
+2006-09-26  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* refcard.ps: Regenerate.
+
+2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* NEWS: Rename x-use-old-gtk-file-dialog to x-gtk-use-old-file-dialog.
+
+2006-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* COPYING: Replace "Library Public License" by "Lesser Public
+	License" throughout.
+
+2006-09-15  Richard Stallman  <rms@gnu.org>
+
+	* THE-GNU-PROJECT: Update with the latest footnotes
+	from www.gnu.org/gnu/the-gnu-project.html
+
+2006-09-15  David Kastrup  <dak@gnu.org>
+
+	* NEWS: Explain new behavior and arguments of `key-binding' and
+	`command-remapping'.
+
+2006-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: In terminal-oriented subshells, the EMACS environment
+	variable now defaults to Emacs's absolute file name, instead of
+	to "t".
+	* PROBLEMS: Adjust tcsh advice for this.
+
+2006-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS (are): Emacs compiled with Gtk+ crashes when closing a
+	display (x-close-connection).
+
+2006-09-02  Juri Linkov  <juri@jurta.org>
+
+	* HELLO: Regroup Europe Non-ASCII examples by similar scripts.
+
 2006-08-25  Richard Stallman  <rms@gnu.org>
 
 	* TUTORIAL: Give priority to graphical terminals over text terminals
@@ -86,7 +146,7 @@
 
 	* PROBLEMS: Emacs now requires ws2_32.dll on Windows.
 
-2006-07-14  K,Aa(Broly L,Bu(Brentey  <lorentey@elte.hu>
+2006-07-14  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* HELLO: Update Hungarian sample.
 
@@ -169,8 +229,7 @@
 
 2006-06-19  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex (section{Clocking Time}): Add new clocking
-	commands.
+	* orgcard.tex (section{Clocking Time}): Add new clocking commands.
 	(section{Structure Editing}): Add global archiving command.
 
 2006-06-14  Thien-Thi Nguyen  <ttn@gnu.org>
@@ -257,8 +316,7 @@
 
 2006-05-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex: (section{Motion}): Added the item navigation
-	commands.
+	* orgcard.tex (section{Motion}): Added the item navigation commands.
 	(section{Publishing}): New section.
 	(section{Links}): Documented elisp and shell links.
 
@@ -270,8 +328,7 @@
 
 	* pl-refcard.tex (Local variables): Add compile-command.
 
-	* ru-refcard.tex (Local variables): Add compile-command and
-	coding.
+	* ru-refcard.tex (Local variables): Add compile-command and coding.
 
 	* pt-br-refcard.tex: Don't \input psfig.
 
@@ -285,7 +342,7 @@
 	* pl-refcard.tex (section{Info}): Ditto.  Translation suggested by
 	Slawomir Nowaczyk <slawomir.nowaczyk.847@student.lu.se>.
 
-	* cs-refcard.tex (section{Info}): Use `s' instead of `M-s'. Entry
+	* cs-refcard.tex (section{Info}): Use `s' instead of `M-s'.  Entry
 	for `i' is not translated yet.
 
 	* pt-br-refcard.tex (section{Info}): Ditto.
@@ -366,7 +423,7 @@
 
 2006-04-11  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex: (section{Tables}): Document column narrowing.
+	* orgcard.tex (section{Tables}): Document column narrowing.
 	(section{Links}): Document bracket links.
 
 2006-04-11  Kenichi Handa  <handa@m17n.org>
@@ -395,11 +452,11 @@
 	New bitmaps for new images.
 
 	* images/refresh.xpm, images/sort-ascending.xpm,
-	* images/sort-descending.xpm: Update with GTK 2.x images. Note
+	* images/sort-descending.xpm: Update with GTK 2.x images.  Note
 	that the default GTK icons are not overridden by the GNOME theme
-	due to a bug which was fixed in GNOME 2.15. Once GNOME 2.16 is in
+	due to a bug which was fixed in GNOME 2.15.  Once GNOME 2.16 is in
 	wide circulation, then the GTK icons should be replaced with the
-	equivalent GNOME icons. Until then, we should be consistent with
+	equivalent GNOME icons.  Until then, we should be consistent with
 	GTK first, then GNOME.
 
 	* images/mail/repack.xpm, images/mail/reply-from.xpm:
@@ -457,9 +514,9 @@
 
 2006-03-11  Bill Wohler  <wohler@newt.com>
 
-	* NEWS: Document `image-load-path-for-library'. Note that all
+	* NEWS: Document `image-load-path-for-library'.  Note that all
 	images have been moved from lisp into etc/images in `find-image'
-	item. Fix typo in `copy-tree'.
+	item.  Fix typo in `copy-tree'.
 
 2006-03-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -481,7 +538,7 @@
 
 2006-02-22  Carsten Dominik  <dominik@science.uva.nl>
 
-	* orgcard.tex: (section{Links}): Rewritten to cover the modified
+	* orgcard.tex (section{Links}): Rewritten to cover the modified
 	link system.
 
 2006-02-18  Bill Wohler  <wohler@newt.com>
@@ -555,11 +612,11 @@
 
 2006-01-23  Michael Albinus  <michael.albinus@gmx.de>
 
-	* NEWS: tramp can be removed by M-x tramp-unload-tramp.
+	* NEWS: Tramp can be removed by M-x tramp-unload-tramp.
 
 2006-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* e/eterm-color.ti: Re-enable the ri entry. Add kich1.
+	* e/eterm-color.ti: Re-enable the ri entry.  Add kich1.
 
 2006-01-13  Richard M. Stallman  <rms@gnu.org>
 
@@ -664,7 +721,7 @@
 2005-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm-color.ti (el1): Undo 2005-10-23 change.
-	Add some comments on how to update this file. Add ri
+	Add some comments on how to update this file.  Add ri
 	capability that has long been supported by term.el.
 
 2005-10-25  Nick Roberts  <nickrob@snap.net.nz>
@@ -691,7 +748,7 @@
 
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
-	Moved all remaining images from lisp/toolbar to etc/images. The
+	Moved all remaining images from lisp/toolbar to etc/images.  The
 	low resolution images were placed in their own directory (low-color).
 
 	* images/attach.*, images/cancel.*, images/close.*:
@@ -838,7 +895,7 @@
 
 	* GNUS-NEWS: Fix IDNA notes.
 
-2005-09-27  Jay Belanger <belanger@truman.edu>
+2005-09-27  Jay Belanger  <belanger@truman.edu>
 
 	* calccard.tex: Update `versionnumber', remove `versiondate'.
 	(Error Recovery): Refer to "initial state" rather than "default state".
@@ -1245,7 +1302,7 @@
 
 2004-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* e/eterm.ti: Comment out smcup, rmcup. Add kbs, kdch1, rc, sc.
+	* e/eterm.ti: Comment out smcup, rmcup.  Add kbs, kdch1, rc, sc.
 	Reformat.
 	* e/eterm: Regenerate.
 
@@ -1356,7 +1413,7 @@
 
 2004-06-10  Lars Hansen  <larsh@math.ku.dk>
 
-	* NEWS: Describe dired-omit-mode. Describe desktop package changes.
+	* NEWS: Describe dired-omit-mode.  Describe desktop package changes.
 
 2004-05-29  Steven Tamm  <steventamm@mac.com>
 
@@ -1379,7 +1436,7 @@
 
 2004-04-13  Marcelo Toledo  <marcelo@gnu.org>
 
-	* TUTORIAL.pt_BR: initial check-in.
+	* TUTORIAL.pt_BR: Initial check-in.
 
 2004-05-06  Dave Love  <fx@gnu.org>
 
@@ -1743,7 +1800,7 @@
 
 2001-08-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* TUTORIAL.cs, TUTORIAL.sk, cs-refcard.tex, sk-refcard.tex: e-mail
+	* TUTORIAL.cs, TUTORIAL.sk, cs-refcard.tex, sk-refcard.tex: E-mail
 	address of Milan Zamazal changed.
 
 2001-08-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
@@ -1857,7 +1914,7 @@
 2001-01-08  Kevin Gallagher  <kevingal@onramp.net>
 
 	* edt-user.doc: Updated to reflect EDT Emulation version 4.0
-        enhancements.
+	enhancements.
 
 2000-12-29  Gerd Moellmann  <gerd@gnu.org>
 
@@ -2182,7 +2239,7 @@
 
 1995-06-28  Eric S. Raymond  <esr@spiff.gnu.ai.mit.edu>
 
-	* termcap.dat, termcap.ucb: deleted and replaced.
+	* termcap.dat, termcap.ucb: Deleted and replaced.
 
 	* termcap: New termcap file from the ncurses project; bigger,
 	better, brighter, does away with waxy yellow buildup.  Email
@@ -2275,7 +2332,7 @@
 
 1993-06-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-        Bring mumbleclean targets into conformance with GNU coding standards.
+	Bring mumbleclean targets into conformance with GNU coding standards.
 	* Makefile (distclean): Don't remove backup and autosave files.
 	These are easy to get rid of in other ways, and a pain to lose.
 	(mostlyclean, realclean): New targets.
@@ -2298,7 +2355,7 @@
 
 1993-05-22  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-        * Version 19.7 released.
+	* Version 19.7 released.
 
 1993-05-19  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -2319,7 +2376,7 @@
 	out of date.  This file referenced LNEWS when it should have
 	said news.texi; fixed.
 
-	news.texi: invocation-name now exists.
+	* news.texi: invocation-name now exists.
 
 1993-03-27  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
@@ -2339,7 +2396,7 @@
 
 1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
-	* MACHINES: Deleted some VMS caveats. If the src and lisp
+	* MACHINES: Deleted some VMS caveats.  If the src and lisp
 	ChangeLogs are correct,	dired and mail and process control are now
 	fully supported.
 
@@ -2361,7 +2418,7 @@
 	I nuked it.  Let the file mod date serve.  Merged in APOLLO and
 	SUNBUG files.  Changed references to 18.* to past tense.
 
-	* emacs.names: merged into JOKES.  I faked a mail header from the
+	* emacs.names: Merged into JOKES.  I faked a mail header from the
 	Unknown User to delimit the first (unheaded) bit.
 
 	* Makefile (relock, unlock): New productions.
@@ -2373,30 +2430,30 @@
 	the Emacs distribution, I have the following changes in the etc
 	directory:
 
-	* CHARACTERS: merged into TO-DO file under the heading "Long Range:"
+	* CHARACTERS: Merged into TO-DO file under the heading "Long Range:"
 
-	* DIFF, CCADIFF and GOSDIFF: merged into a new outline file titled
+	* DIFF, CCADIFF, GOSDIFF: Merged into a new outline file titled
 	OTHER.EMACSES.  The present names don't really convey anything.
 	Various key bindings and feature descriptions have been updated.
 
-	* NICKLES.WORTH.  Nuked.  This is copyrighted material that could land
+	* NICKLES.WORTH: Nuked.  This is copyrighted material that could land
 	FSF in hot water.
 
-	* INTERVAL.IDEAS:  Nuked.  RMS's thinking, and indeed the
+	* INTERVAL.IDEAS: Nuked.  RMS's thinking, and indeed the
 	implementation of intervals, have progressed way beyond this.
 
-	* RCP:  Nuked.  It no longer said anything but "Ooops, sorry!"
+	* RCP: Nuked.  It no longer said anything but "Ooops, sorry!"
 
-	* ED.WORSHIP, GNU.JOKES: merged into a mailbox called JOKES.
+	* ED.WORSHIP, GNU.JOKES: Merged into a mailbox called JOKES.
 	Future jokes can accumulate there.
 
-	* DISTRIB: the actual domestic order form is now ORDERS.USA.
+	* DISTRIB: The actual domestic order form is now ORDERS.USA.
 	The DISTRIB text now mentions 19.
 
-	* ORDERS.USA: created.  This is just the order form.  DISTRIB
+	* ORDERS.USA: Created.  This is just the order form.  DISTRIB
 	has a pointer to it at the beginning.
 
-	* EUROPE: renamed to ORDERS.EUROPE.  DISTRIB now has a pointer
+	* EUROPE: Renamed to ORDERS.EUROPE.  DISTRIB now has a pointer
 	to it at the beginning.
 
 	* OOOONEWS, OOOONEWS: Nuked.  It's version  19 --- nobody needs the
@@ -2408,7 +2465,7 @@
 
 1993-03-17  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* XENIX: nuked (moved to =XENIX).  The hackery it describes is
+	* XENIX: Nuked (moved to =XENIX).  The hackery it describes is
 	no longer necessary in the presence of 19's function-key-map
 	feature; I've added an explanation to the beginning of the file.
 
@@ -2513,7 +2570,7 @@
 
 1992-03-31  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-    	* lib-src/Makefile, etc/MACHINES, etc/NEWS: Changed references to
+	* lib-src/Makefile, etc/MACHINES, etc/NEWS: Changed references to
 	`config.emacs' to `configure'.
 
 	* lib-src/Makefile: Adjusted for renaming of share-lib to etc.
@@ -2609,7 +2666,7 @@
 	* etags.c (C_entries): Process token before handling end of line.
 	When inner loops reach end of line, just back up.
 	Let the real end of line processing happen in just one place.
-	(consider_token):  Likewise.
+	(consider_token): Likewise.
 
 1991-04-11  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
@@ -2680,7 +2737,7 @@
 
 1990-08-30  David Lawrence  (tale@pogo.ai.mit.edu)
 
-	* emacs.1:  Add break before -nw option.
+	* emacs.1: Add break before -nw option.
 
 1990-08-19  David J. MacKenzie  (djm@apple-gunkies)
 
@@ -2722,7 +2779,7 @@
 
 1990-03-14  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* etags.c (getit):  Recognize '$' as beginning identifiers.
+	* etags.c (getit): Recognize '$' as beginning identifiers.
 
 1990-02-22  David Lawrence  (tale@pogo.ai.mit.edu)
 
@@ -2844,15 +2901,15 @@
 
 1989-04-18  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* loadst.c: on bsd4.3, use gettimeofday instead of CPUSTATES.
+	* loadst.c: On bsd4.3, use gettimeofday instead of CPUSTATES.
 
 1989-03-15  Jeff Peck  (rms@sugar-bombs.ai.mit.edu)
 
 	* emacstool.c: setenv IN_EMACSTOOL=t, TERM=sun, TERMCAP=.
 
-	* emacsstool.1: update to document environment variables.
+	* emacsstool.1: Update to document environment variables.
 
-1989-02-21  Mosur Mohan (email@notavailable)
+1989-02-21  Mosur Mohan  (email@notavailable)
 
 	* etags.c (PAS_funcs): New function.
 
@@ -2866,7 +2923,7 @@
 
 1989-02-15  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* etags.c: Prolog support from Sunichirou Sugou
+	* etags.c: Prolog support from Sunichirou Sugou.
 
 1989-02-03  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -2879,7 +2936,7 @@
 1989-01-19  Sam Kendall  (email@notavailable)
 
 	* etags.c: Greatly rewritten for C++ support and for multiple tags
-        per line.
+	per line.
 
 1989-01-03  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -2889,8 +2946,8 @@
 
 1988-12-31  Richard Mlynarik  (mly@rice-chex.ai.mit.edu)
 
-        * env.c:  Add decl for my-index
-        * etags.c (file-entries): .oak => scheme
+	* env.c: Add decl for my-index.
+	* etags.c (file-entries): .oak => scheme
 
 1988-12-30  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -2934,8 +2991,8 @@
 
 1988-11-29  Richard Mlynarik  (mly@pickled-brain.ai.mit.edu)
 
-        * movemail.c:  Better error message when can't create tempname.
-        This file needs a great deal of extra error-checking and lucid reporting...
+	* movemail.c: Better error message when can't create tempname.
+	This file needs a great deal of extra error-checking and lucid reporting...
 
 1988-11-16  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -2953,7 +3010,7 @@
 
 1988-09-24  Richard Stallman  (rms@gluteus.ai.mit.edu)
 
-	* etags.c (main): default setting of eflag was backwards.
+	* etags.c (main): Default setting of eflag was backwards.
 
 1988-09-23  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
@@ -3018,8 +3075,8 @@
 
 1988-05-13  Chris Hanson  (cph@kleph)
 
-	* emacsclient.c: Delete references to unused variable `out'.  This
-	caused a bus error when used under hp-ux.
+	* emacsclient.c: Delete references to unused variable `out'.
+	This caused a bus error when used under hp-ux.
 
 1988-05-06  Richard Stallman  (rms@frosted-flakes.ai.mit.edu)
 
@@ -3036,7 +3093,7 @@
 1988-04-28  Richard Stallman  (rms@frosted-flakes.ai.mit.edu)
 
 	* movemail.c: #undef close, since config can #define it on V.3.
-	* emacsclient.c, fakemail.c, loadst.c, server.c: likewise.
+	* emacsclient.c, fakemail.c, loadst.c, server.c: Likewise.
 
 1988-04-26  Richard Stallman  (rms@lucky-charms.ai.mit.edu)
 
@@ -3047,9 +3104,9 @@
 
 1988-03-20  Richard M. Stallman  (rms@wilson)
 
-	* server.c [not BSD and not HAVE_SYSVIPC]: fix error message.
+	* server.c [not BSD and not HAVE_SYSVIPC]: Fix error message.
 
-	* loadst.c (main) [XENIX]: use /usr/spool/mail, not /usr/mail.
+	* loadst.c (main) [XENIX]: Use /usr/spool/mail, not /usr/mail.
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit

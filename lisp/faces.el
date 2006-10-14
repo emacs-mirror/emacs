@@ -2089,7 +2089,7 @@ terminal type to a different value."
 
 (defgroup mode-line-faces nil
   "Faces used in the mode line."
-  :group 'modeline
+  :group 'mode-line
   :group 'faces
   :version "22.1")
 

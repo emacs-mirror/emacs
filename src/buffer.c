@@ -387,6 +387,7 @@ The value is never nil.  */)
   BUF_ZV_BYTE (b) = BEG_BYTE;
   BUF_Z_BYTE (b) = BEG_BYTE;
   BUF_MODIFF (b) = 1;
+  BUF_CHARS_MODIFF (b) = 1;
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
   BUF_INTERVALS (b) = 0;
@@ -1160,6 +1161,31 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
     }
 
   return make_number (BUF_MODIFF (buf));
+}
+
+DEFUN ("buffer-chars-modified-tick", Fbuffer_chars_modified_tick,
+       Sbuffer_chars_modified_tick, 0, 1, 0,
+       doc: /* Return BUFFER's character-change tick counter.
+Each buffer has a character-change tick counter, which is set to the
+value of the buffer's tick counter \(see `buffer-modified-tick'), each
+time text in that buffer is inserted or deleted.  By comparing the
+values returned by two individual calls of `buffer-chars-modified-tick',
+you can tell whether a character change occurred in that buffer in
+between these calls.  No argument or nil as argument means use current
+buffer as BUFFER.  */)
+     (buffer)
+     register Lisp_Object buffer;
+{
+  register struct buffer *buf;
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer);
+      buf = XBUFFER (buffer);
+    }
+
+  return make_number (BUF_CHARS_MODIFF (buf));
 }
 
 DEFUN ("rename-buffer", Frename_buffer, Srename_buffer, 1, 2,
@@ -5495,7 +5521,7 @@ A string is printed verbatim in the mode line except for %-constructs:
         or print Bottom or All.
   %n -- print Narrow if appropriate.
   %t -- visited file is text or binary (if OS supports this distinction).
-  %z -- print mnemonics of buffer, terminal, and keyboard coding systems.
+  %z -- print mnemonics of keyboard, terminal, and buffer coding systems.
   %Z -- like %z, but including the end-of-line format.
   %e -- print error message about full memory.
   %[ -- print one [ for each recursive editing level.  %] similar.
@@ -6074,6 +6100,7 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
   defsubr (&Sbuffer_modified_p);
   defsubr (&Sset_buffer_modified_p);
   defsubr (&Sbuffer_modified_tick);
+  defsubr (&Sbuffer_chars_modified_tick);
   defsubr (&Srename_buffer);
   defsubr (&Sother_buffer);
   defsubr (&Sbuffer_enable_undo);

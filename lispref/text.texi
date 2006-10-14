@@ -3783,20 +3783,25 @@ This function ``constrains'' @var{new-pos} to the field that
 closest to @var{new-pos} that is in the same field as @var{old-pos}.
 
 If @var{new-pos} is @code{nil}, then @code{constrain-to-field} uses
-the value of point instead, and moves point to the resulting position.
+the value of point instead, and moves point to the resulting position
+as well as returning it.
 
 If @var{old-pos} is at the boundary of two fields, then the acceptable
-positions for @var{new-pos} depend on the value of the optional argument
-@var{escape-from-edge}.  If @var{escape-from-edge} is @code{nil}, then
-@var{new-pos} is constrained to the field that has the same @code{field}
-property (either a text-property or an overlay property) that new
-characters inserted at @var{old-pos} would get.  (This depends on the
+final positions depend on the argument @var{escape-from-edge}.  If
+@var{escape-from-edge} is @code{nil}, then @var{new-pos} must be in
+the field whose @code{field} property equals what new characters
+inserted at @var{old-pos} would inherit.  (This depends on the
 stickiness of the @code{field} property for the characters before and
 after @var{old-pos}.)  If @var{escape-from-edge} is non-@code{nil},
-@var{new-pos} is constrained to the union of the two adjacent fields.
+@var{new-pos} can be anywhere in the two adjacent fields.
 Additionally, if two fields are separated by another field with the
-special value @code{boundary}, then any point within this special field
-is also considered to be ``on the boundary.''
+special value @code{boundary}, then any point within this special
+field is also considered to be ``on the boundary.''
+
+Commands like @kbd{C-a} with no argumemt, that normally move backward
+to a specific kind of location and stay there once there, probably
+should specify @code{nil} for @var{escape-from-edge}.  Other motion
+commands that check fields should probably pass @code{t}.
 
 If the optional argument @var{only-in-line} is non-@code{nil}, and
 constraining @var{new-pos} in the usual way would move it to a different

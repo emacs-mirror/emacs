@@ -63,7 +63,7 @@
     ("cp437" . cp437) ; IBM code page 437: 225 is \beta
     ("cp850" . cp850) ; IBM code page 850
     ("cp852" . cp852) ; IBM code page 852
-    ;; ("cp858" . undecided) ; IBM code page 850 but with a euro symbol
+    ("cp858" . cp858) ; IBM code page 850 but with a euro symbol
     ("cp865" . cp865) ; IBM code page 865
     ;; The DECMultinational charaterset used by the OpenVMS system
     ;; ("decmulti" . undecided)

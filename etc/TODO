@@ -48,6 +48,9 @@ current buffer.
   It should not generate :require.  Or :require in defcustom
   should not be recorded in the user's custom-set-variables call.
 
+** Feature to change cursor shape when Emacs is idle (for more than
+  a specified time).
+
 ** The buttons at the top of a custom buffer should not omit
   variables whose values are currently hidden.
 

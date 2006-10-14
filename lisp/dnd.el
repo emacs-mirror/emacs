@@ -37,11 +37,11 @@
 
 ;;;###autoload
 (defcustom dnd-protocol-alist
-  '(
-    ("^file:///" . dnd-open-local-file)	; XDND format.
-    ("^file://"  . dnd-open-file)	; URL with host
-    ("^file:"    . dnd-open-local-file)	; Old KDE, Motif, Sun
-    )
+  '(("^file:///"  . dnd-open-local-file)	; XDND format.
+    ("^file://"   . dnd-open-file)		; URL with host
+    ("^file:"     . dnd-open-local-file)	; Old KDE, Motif, Sun
+    ("^\\(https?\\|ftp\\|file\\|nfs\\)://" . dnd-open-file)
+   )
 
   "The functions to call for different protocols when a drop is made.
 This variable is used by `dnd-handle-one-url' and `dnd-handle-file-name'.
@@ -59,6 +59,22 @@ if some action was made, or nil if the URL is ignored."
   :group 'dnd)
 
 
+(defcustom dnd-open-remote-file-function
+  (if (eq system-type 'windows-nt)
+      'dnd-open-local-file
+    'dnd-open-remote-url)
+  "The function to call when opening a file on a remote machine.
+The function will be called with two arguments; URI and ACTION. See
+`dnd-open-file' for details.
+If nil, then dragging remote files into Emacs will result in an error.
+Predefined functions are `dnd-open-local-file' and `dnd-open-remote-url'.
+`dnd-open-local-file' attempts to open a remote file using its UNC name and
+is the  default on MS-Windows.  `dnd-open-remote-url' uses `url-handler-mode'
+and is the default except for MS-Windows."
+  :version "22.1"
+  :type 'function
+  :group 'dnd)
+
 
 (defcustom dnd-open-file-other-window nil
   "If non-nil, always use find-file-other-window to open dropped files."
@@ -75,7 +91,7 @@ The handler is first located by looking at `dnd-protocol-alist'.
 If no match is found here, and the value of `browse-url-browser-function'
 is a pair of (REGEXP . FUNCTION), those regexps are tried for a match.
 If no match is found, just call `dnd-insert-text'.
-WINDOW is where the drop happend, ACTION is the action for the drop,
+WINDOW is where the drop happened, ACTION is the action for the drop,
 URL is what has been dropped.
 Returns ACTION."
   (require 'browse-url)
@@ -147,7 +163,11 @@ Return nil if URI is not a local file."
 The file is opened in the current window, or a new window if
 `dnd-open-file-other-window' is set.  URI is the url for the file,
 and must have the format file:file-name or file:///file-name.
-The last / in file:/// is part of the file name.  ACTION is ignored."
+The last / in file:/// is part of the file name.  If the system
+natively supports unc file names, then remote urls of the form
+file://server-name/file-name will also be handled by this function.
+An alternative for systems that do not support unc file names is
+`dnd-open-remote-url'. ACTION is ignored."
 
   (let* ((f (dnd-get-local-file-name uri t)))
     (if (and f (file-readable-p f))
@@ -157,6 +177,20 @@ The last / in file:/// is part of the file name.  ACTION is ignored."
 	    (find-file f))
 	  'private)
       (error "Can not read %s" uri))))
+
+(defun dnd-open-remote-url (uri action)
+  "Open a remote file with `find-file' and `url-handler-mode'.
+Turns `url-handler-mode' on if not on before.  The file is opened in the
+current window, or a new window if `dnd-open-file-other-window' is set.
+URI is the url for the file.  ACTION is ignored."
+  (progn
+    (require 'url-handlers)
+    (or url-handler-mode (url-handler-mode))
+    (if dnd-open-file-other-window
+	(find-file-other-window uri)
+      (find-file uri))
+    'private))
+
 
 (defun dnd-open-file (uri action)
   "Open a local or remote file.
@@ -169,7 +203,9 @@ The last / in file://hostname/ is part of the file name."
   ;; file.  Otherwise return nil.
   (let ((local-file (dnd-get-local-file-uri uri)))
     (if local-file (dnd-open-local-file local-file action)
-      (error "Remote files not supported"))))
+      (if dnd-open-remote-file-function
+	  (funcall dnd-open-remote-file-function uri action)
+	(error "Remote files not supported")))))
 
 
 (defun dnd-insert-text (window action text)

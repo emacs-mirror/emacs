@@ -28,6 +28,10 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include <setjmp.h>
 
+#if HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+
 /* This definition is duplicated in alloc.c and keyboard.c */
 /* Putting it in lisp.h makes cc bomb out! */
 
@@ -199,6 +203,14 @@ extern Lisp_Object Qrisky_local_variable;
 
 static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object*));
 static void unwind_to_catch P_ ((struct catchtag *, Lisp_Object)) NO_RETURN;
+
+#if __GNUC__
+/* "gcc -O3" enables automatic function inlining, which optimizes out
+   the arguments for the invocations of these functions, whereas they
+   expect these values on the stack.  */
+Lisp_Object apply1 () __attribute__((noinline));
+Lisp_Object call2 () __attribute__((noinline));
+#endif
 
 void
 init_eval_once ()
@@ -1906,6 +1918,9 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 	  max_specpdl_size--;
 	}
       if (! no_debugger
+	  /* Don't try to run the debugger with interrupts blocked.
+	     The editing loop would return anyway.  */
+	  && ! INPUT_BLOCKED_P
 	  && (EQ (sig_symbol, Qquit)
 	      ? debug_on_quit
 	      : wants_debugger (Vdebug_on_error, conditions))

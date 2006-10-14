@@ -23,6 +23,9 @@ Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 #include <stdio.h>
+#if HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
@@ -34,6 +37,7 @@ Boston, MA 02110-1301, USA.  */
 #include "puresize.h"
 #include "intervals.h"
 #include "keymap.h"
+#include "window.h"
 
 /* The number of elements in keymap vectors.  */
 #define DENSE_TABLE_SIZE (0200)
@@ -739,7 +743,10 @@ map_keymap_call (key, val, fun, dummy)
 DEFUN ("map-keymap", Fmap_keymap, Smap_keymap, 2, 3, 0,
        doc: /* Call FUNCTION once for each event binding in KEYMAP.
 FUNCTION is called with two arguments: the event that is bound, and
-the definition it is bound to.
+the definition it is bound to.  If the event is an integer, it may be
+a generic character (see Info node `(elisp)Splitting Characters'), and
+that means that all actual character events belonging to that generic
+character are bound to the definition.
 
 If KEYMAP has a parent, the parent's bindings are included as well.
 This works recursively: if the parent has itself a parent, then the
@@ -1142,7 +1149,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
   meta_bit = VECTORP (key) ? meta_modifier : 0x80;
 
-  if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, make_number (0))))
+  if (VECTORP (def) && ASIZE (def) > 0 && CONSP (AREF (def, 0)))
     { /* DEF is apparently an XEmacs-style keyboard macro.  */
       Lisp_Object tmp = Fmake_vector (make_number (ASIZE (def)), Qnil);
       int i = ASIZE (def);
@@ -1209,17 +1216,23 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
 /* This function may GC (it calls Fkey_binding).  */
 
-DEFUN ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 1, 0,
+DEFUN ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 2, 0,
        doc: /* Return the remapping for command COMMAND in current keymaps.
-Returns nil if COMMAND is not remapped (or not a symbol).  */)
-     (command)
-     Lisp_Object command;
+Returns nil if COMMAND is not remapped (or not a symbol).
+
+If the optional argument POSITION is non-nil, it specifies a mouse
+position as returned by `event-start' and `event-end', and the
+remapping occurs in the keymaps associated with it.  It can also be a
+number or marker, in which case the keymap properties at the specified
+buffer position instead of point are used. */)
+     (command, position)
+     Lisp_Object command, position;
 {
   if (!SYMBOLP (command))
     return Qnil;
 
   ASET (command_remapping_vector, 1, command);
-  return Fkey_binding (command_remapping_vector, Qnil, Qt);
+  return Fkey_binding (command_remapping_vector, Qnil, Qt, position);
 }
 
 /* Value is number if KEY is too long; nil if valid but has no definition. */
@@ -1545,7 +1558,7 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
 
 /* GC is possible in this function if it autoloads a keymap.  */
 
-DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 3, 0,
+DEFUN ("key-binding", Fkey_binding, Skey_binding, 1, 4, 0,
        doc: /* Return the binding for command KEY in current keymaps.
 KEY is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
@@ -1559,24 +1572,82 @@ recognize the default bindings, just as `read-key-sequence' does.
 Like the normal command loop, `key-binding' will remap the command
 resulting from looking up KEY by looking up the command in the
 current keymaps.  However, if the optional third argument NO-REMAP
-is non-nil, `key-binding' returns the unmapped command.  */)
-     (key, accept_default, no_remap)
-     Lisp_Object key, accept_default, no_remap;
+is non-nil, `key-binding' returns the unmapped command.
+
+If KEY is a key sequence initiated with the mouse, the used keymaps
+will depend on the clicked mouse position with regard to the buffer
+and possible local keymaps on strings.
+
+If the optional argument POSITION is non-nil, it specifies a mouse
+position as returned by `event-start' and `event-end', and the lookup
+occurs in the keymaps associated with it instead of KEY.  It can also
+be a number or marker, in which case the keymap properties at the
+specified buffer position instead of point are used.
+  */)
+    (key, accept_default, no_remap, position)
+    Lisp_Object key, accept_default, no_remap, position;
 {
   Lisp_Object *maps, value;
   int nmaps, i;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
+  int count = SPECPDL_INDEX ();
 
-  GCPRO1 (key);
+  GCPRO2 (key, position);
 
-  if (!NILP (current_kboard->Voverriding_terminal_local_map))
+  if (NILP (position) && VECTORP (key))
+    {
+      Lisp_Object event
+	/* mouse events may have a symbolic prefix indicating the
+	   scrollbar or mode line */
+	= AREF (key, SYMBOLP (AREF (key, 0)) && ASIZE (key) > 1 ? 1 : 0);
+
+      /* We are not interested in locations without event data */
+
+      if (EVENT_HAS_PARAMETERS (event))
+	{
+	  Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (event));
+	  if (CONSP (XCDR (event)) && EQ (kind, Qmouse_click))
+	    position = EVENT_START (event);
+	}
+    }
+
+  /* Key sequences beginning with mouse clicks
+     are read using the keymaps of the buffer clicked on, not
+     the current buffer.  So we may have to switch the buffer
+     here. */
+  
+  if (CONSP (position))
+    {
+      Lisp_Object window;
+      
+      window = POSN_WINDOW (position);
+	  
+      if (WINDOWP (window)
+	  && BUFFERP (XWINDOW (window)->buffer)
+	  && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+	{
+	  /* Arrange to go back to the original buffer once we're done
+	     processing the key sequence.  We don't use
+	     save_excursion_{save,restore} here, in analogy to
+	     `read-key-sequence' to avoid saving point.  Maybe this
+	     would not be a problem here, but it is easier to keep
+	     things the same.
+	  */
+	      
+	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+	  
+	  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+	}
+    }
+  
+  if (! NILP (current_kboard->Voverriding_terminal_local_map))
     {
       value = Flookup_key (current_kboard->Voverriding_terminal_local_map,
 			   key, accept_default);
       if (! NILP (value) && !INTEGERP (value))
 	goto done;
     }
-  else if (!NILP (Voverriding_local_map))
+  else if (! NILP (Voverriding_local_map))
     {
       value = Flookup_key (Voverriding_local_map, key, accept_default);
       if (! NILP (value) && !INTEGERP (value))
@@ -1584,12 +1655,71 @@ is non-nil, `key-binding' returns the unmapped command.  */)
     }
   else
     {
-      Lisp_Object local;
+      Lisp_Object keymap, local_map;
+      EMACS_INT pt;
 
-      local = get_local_map (PT, current_buffer, Qkeymap);
-      if (! NILP (local))
+      pt = INTEGERP (position) ? XINT (position)
+	: MARKERP (position) ? marker_position (position)
+	: PT;
+
+      local_map = get_local_map (pt, current_buffer, Qlocal_map); 
+      keymap = get_local_map (pt, current_buffer, Qkeymap); 
+
+      if (CONSP (position))
 	{
-	  value = Flookup_key (local, key, accept_default);
+	  Lisp_Object string;
+
+	  /* For a mouse click, get the local text-property keymap
+	     of the place clicked on, rather than point.  */
+	  
+	  if (POSN_INBUFFER_P (position))
+	    {
+	      Lisp_Object pos;
+
+	      pos = POSN_BUFFER_POSN (position);
+	      if (INTEGERP (pos)
+		  && XINT (pos) >= BEG && XINT (pos) <= Z)
+		{
+		  local_map = get_local_map (XINT (pos),
+					     current_buffer, Qlocal_map);
+		  
+		  keymap = get_local_map (XINT (pos),
+					  current_buffer, Qkeymap);
+		}
+	    }
+
+	  /* If on a mode line string with a local keymap,
+	     or for a click on a string, i.e. overlay string or a
+	     string displayed via the `display' property,
+	     consider `local-map' and `keymap' properties of
+	     that string.  */
+	  
+	  if (string = POSN_STRING (position),
+	      (CONSP (string) && STRINGP (XCAR (string))))
+	    {
+	      Lisp_Object pos, map;
+	      
+	      pos = XCDR (string);
+	      string = XCAR (string);
+	      if (INTEGERP (pos)
+		  && XINT (pos) >= 0
+		  && XINT (pos) < SCHARS (string))
+		{
+		  map = Fget_text_property (pos, Qlocal_map, string);
+		  if (!NILP (map))
+		    local_map = map;
+
+		  map = Fget_text_property (pos, Qkeymap, string);
+		  if (!NILP (map))
+		    keymap = map;
+		}
+	    }
+	  
+	}
+
+      if (! NILP (keymap))
+	{
+	  value = Flookup_key (keymap, key, accept_default);
 	  if (! NILP (value) && !INTEGERP (value))
 	    goto done;
 	}
@@ -1606,10 +1736,9 @@ is non-nil, `key-binding' returns the unmapped command.  */)
 	      goto done;
 	  }
 
-      local = get_local_map (PT, current_buffer, Qlocal_map);
-      if (! NILP (local))
+      if (! NILP (local_map))
 	{
-	  value = Flookup_key (local, key, accept_default);
+	  value = Flookup_key (local_map, key, accept_default);
 	  if (! NILP (value) && !INTEGERP (value))
 	    goto done;
 	}
@@ -1618,6 +1747,8 @@ is non-nil, `key-binding' returns the unmapped command.  */)
   value = Flookup_key (current_global_map, key, accept_default);
 
  done:
+  unbind_to (count, Qnil);
+
   UNGCPRO;
   if (NILP (value) || INTEGERP (value))
     return Qnil;
@@ -1628,7 +1759,7 @@ is non-nil, `key-binding' returns the unmapped command.  */)
   if (NILP (no_remap) && SYMBOLP (value))
     {
       Lisp_Object value1;
-      if (value1 = Fcommand_remapping (value), !NILP (value1))
+      if (value1 = Fcommand_remapping (value, position), !NILP (value1))
 	value = value1;
     }
 
@@ -2247,16 +2378,29 @@ around function keys and event symbols.  */)
       else
 	SPLIT_CHAR (without_bits, charset, c1, c2);
 
-      if (charset
-	  && CHARSET_DEFINED_P (charset)
-	  && ((c1 >= 0 && c1 < 32)
-	      || (c2 >= 0 && c2 < 32)))
+      if (! CHAR_VALID_P (without_bits, 1))
+	{
+	  char buf[256];
+
+	  sprintf (buf, "Invalid char code %d", XINT (key));
+	  return build_string (buf);
+	}
+      else if (charset
+	       && ((c1 == 0 && c2 == -1) || c2 == 0))
 	{
 	  /* Handle a generic character.  */
 	  Lisp_Object name;
-	  name = CHARSET_TABLE_INFO (charset, CHARSET_LONG_NAME_IDX);
+	  char buf[256];
+
+	  name = CHARSET_TABLE_INFO (charset, CHARSET_SHORT_NAME_IDX);
 	  CHECK_STRING (name);
-	  return concat2 (build_string ("Character set "), name);
+	  if (c1 == 0)
+	    /* Only a charset is specified.   */
+	    sprintf (buf, "Generic char %d: all of ", without_bits);
+	  else
+	    /* 1st code-point of 2-dimensional charset is specified.   */
+	    sprintf (buf, "Generic char %d: row %d of ", without_bits, c1);
+	  return concat2 (build_string (buf), name);
 	}
       else
 	{
@@ -2429,7 +2573,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   if (NILP (no_remap) && SYMBOLP (definition))
     {
       Lisp_Object tem;
-      if (tem = Fcommand_remapping (definition), !NILP (tem))
+      if (tem = Fcommand_remapping (definition, Qnil), !NILP (tem))
 	return Qnil;
     }
 

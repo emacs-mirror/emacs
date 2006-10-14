@@ -623,7 +623,7 @@ the variable `rmail-mime-feature'.")
 
 ;;;###autoload
 (defvar rmail-mime-charset-pattern
-  (concat "^content-type:[ ]*text/plain;"
+  (concat "^content-type:[ \t]*text/plain;"
 	  "\\(?:[ \t\n]*\\(?:format\\|delsp\\)=\"?[-a-z0-9]+\"?;\\)*"
 	  "[ \t\n]*charset=\"?\\([^ \t\n\";]+\\)\"?")
   "Regexp to match MIME-charset specification in a header of message.
@@ -1677,12 +1677,15 @@ It returns t if it got any new messages."
 			 (if (and (featurep 'rmail-spam-filter)
 				  rmail-use-spam-filter
 				  (> rsf-number-of-spam 0))
-			     (if (= 1 new-messages)
-				 ", and found to be a spam message"
-			       (if (> rsf-number-of-spam 1)
-				   (format ", %d of which found to be spam messages"
-					   rsf-number-of-spam)
-				 ", one of which found to be a spam message"))
+			     (cond ((= 1 new-messages)
+				    ", and appears to be spam")
+				   ((= rsf-number-of-spam new-messages)
+				    ", and all appear to be spam")
+				   ((> rsf-number-of-spam 1)
+				    (format ", and %d appear to be spam"
+					    rsf-number-of-spam))
+				   (t
+				    ", and 1 appears to be spam"))
 			   ""))
 		(if (and (featurep 'rmail-spam-filter)
 			 rmail-use-spam-filter
@@ -1900,6 +1903,7 @@ is non-nil if the user has supplied the password interactively.
 (defun rmail-convert-to-babyl-format ()
   (let ((count 0) start
 	(case-fold-search nil)
+	(buffer-undo-list t)
 	(invalid-input-resync
 	 (function (lambda ()
 		     (message "Invalid Babyl format in inbox!")
@@ -2173,6 +2177,7 @@ is non-nil if the user has supplied the password interactively.
 	      ;; may still be in use.  -- rms, 7 May 1993.
 	      ((eolp) (delete-char 1))
 	      (t (error "Cannot convert to babyl format")))))
+    (setq buffer-undo-list nil)
     count))
 
 ;; Delete the "From ..." line, creating various other headers with
@@ -2870,6 +2875,12 @@ iso-8859, koi8-r, etc."
 			  (coding-system-change-eol-conversion
 			   coding
 			   (coding-system-eol-type old-coding)))
+		    ;; If old-coding is `undecided', encode-coding-region
+		    ;; will not encode the text at all.  Find a proper
+		    ;; non-trivial encoding to use.
+		    (if (memq (coding-system-base old-coding) '(nil undecided))
+			(setq old-coding
+			      (car (find-coding-systems-region msgbeg msgend))))
 		    (setq x-coding-header (point-marker))
 		    (narrow-to-region msgbeg msgend)
 		    (encode-coding-region (point) msgend old-coding)

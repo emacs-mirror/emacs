@@ -388,6 +388,8 @@ Otherwise, the value is whatever the function
 /\e\\[[0-9][0-9]*m/ s///g"
   "Script for berkeley-like sed to nuke backspaces and ANSI codes from manpages.")
 
+(defvar Man-topic-history nil "Topic read history.")
+
 (defvar man-mode-syntax-table
   (let ((table (copy-syntax-table (standard-syntax-table))))
     (modify-syntax-entry ?. "w" table)
@@ -686,7 +688,7 @@ all sections related to a subject, put something appropriate into the
 				(if (string= default-entry "")
 				    ": "
 				  (format " (default %s): " default-entry)))
-			nil nil default-entry)))
+			nil 'Man-topic-history default-entry)))
 	   (if (string= input "")
 	       (error "No man args given")
 	     input))))

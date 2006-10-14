@@ -792,7 +792,7 @@ The following commands are accepted by the client:
 			;; This looks scary because `fancy-splash-screens'
 			;; will call `recursive-edit' from a process filter.
 			;; However, that should be safe to do now.
-			(display-splash-screen)
+			(display-splash-screen t)
 		      ;; `recursive-edit' will throw an error if Emacs is
 		      ;; already doing a recursive edit elsewhere.  Catch it
 		      ;; here so that we can finish normally.

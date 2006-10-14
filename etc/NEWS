@@ -336,6 +336,10 @@ by whitespace.  This means you can now use them as shell wildcards
 too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
+
+** Adaptive filling misfeature removed.
+It no longer treats `NNN.' or `(NNN)' as a prefix.
+
 
 * Editing Changes in Emacs 22.1
 
@@ -904,6 +908,12 @@ Such individual settings are now preserved when windows are split
 horizontally or vertically, a saved window configuration is restored,
 or when the frame is resized.
 
++++
+*** The %c and %l constructs are now ignored in frame-title-format.
+Due to technical limitations in how Emacs interacts with windowing
+systems, these constructs often failed to render properly, and could
+even cause Emacs to crash.
+
 ** Cursor display changes:
 
 +++
@@ -953,6 +963,19 @@ so package-specific faces can inherit from it.
 +++
 *** `vertical-border' face is used for the vertical divider between windows.
 
+** ebnf2ps changes:
+
++++
+*** New option `ebnf-arrow-extra-width' which specify extra width for arrow
+shape drawing.
+The extra width is used to avoid that the arrowhead and the terminal border
+overlap.  It depens on `ebnf-arrow-shape' and `ebnf-line-width'.
+
++++
+*** New option `ebnf-arrow-scale' which specify the arrow scale.
+Values lower than 1.0, shrink the arrow.
+Values greater than 1.0, expand the arrow.
+
 ** Font-Lock changes:
 
 +++
@@ -969,11 +992,12 @@ fontification in Info, remove `turn-on-font-lock' from
 `Info-mode-hook'.
 
 +++
-*** font-lock: in modes like C and Lisp where the fontification assumes that
-an open-paren in column 0 is always outside of any string or comment,
-font-lock now highlights any such open-paren-in-column-zero in bold-red
-if it is inside a string or a comment, to indicate that it can cause
-trouble with fontification and/or indentation.
+*** Font-Lock mode: in major modes such as Lisp mode, where some Emacs
+features assume that an open-paren in column 0 is always outside of
+any string or comment, Font-Lock now highlights any such open-paren in
+bold-red if it is inside a string or a comment, to indicate that it
+can cause trouble.  You should rewrite the string or comment so that
+the open-paren is not in column 0.
 
 +++
 *** New standard font-lock face `font-lock-preprocessor-face'.
@@ -1054,7 +1078,7 @@ ESC, like they do for Gtk+, Mac and W32.
 
 +++
 *** For the Gtk+ version, you can make Emacs use the old file dialog
-by setting the variable `x-use-old-gtk-file-dialog' to t.  Default is to use
+by setting the variable `x-gtk-use-old-file-dialog' to t.  Default is to use
 the new dialog.
 
 ** Mouse changes:
@@ -1429,6 +1453,10 @@ otherwise behaves quite similarly to the bash version.
 `comint-use-prompt-regexp'.  The old name has been kept as an alias,
 but declared obsolete.
 
++++
+*** The EMACS environment variable now defaults to Emacs's absolute
+file name, instead of to "t".
+
 ** M-x Compile changes:
 
 ---
@@ -1484,6 +1512,10 @@ context before the current message.  If nil and the left fringe is displayed,
 it doesn't scroll the compilation output window.  If there is no left fringe,
 no arrow is displayed and a value of nil means display the message at the top
 of the window.
+
++++
+*** The EMACS environment variable now defaults to Emacs's absolute
+file name, instead of to "t".
 
 ** Occur mode changes:
 
@@ -2003,6 +2035,34 @@ behavior in older versions of Emacs).
 ---
 ** Changes in Allout
 
+*** Some previously rough topic-header format edge cases are reconciled.
+Level 1 topics use the mode's comment format, and lines starting with the
+asterisk - for instance, the comment close of some languages (eg, c's "*/"
+or mathematica's "*)") - at the beginning of line are no longer are
+interpreted as level 1 topics in those modes.
+
+*** Many or most commonly occuring "accidental" topics are disqualified.
+Text in item bodies that looks like a low-depth topic is no longer mistaken
+for one unless its first offspring (or that of its next sibling with
+offspring) is only one level deeper.
+
+For example, pasting some text with a bunch of leading asterisks into a
+topic that's followed by a level 3 or deeper topic will not cause the
+pasted text to be mistaken for outline structure.
+
+The same constraint is applied to any level 2 or 3 topics.
+
+This settles an old issue where typed or pasted text needed to be carefully
+reviewed, and sometimes doctored, to avoid accidentally disrupting the
+outline structure.  Now that should be generally unnecessary, as the most
+prone-to-occur accidents are disqualified.
+
+*** Allout now refuses to create "containment discontinuities", where a
+topic is shifted deeper than the offspring-depth of its container.  On the
+other hand, allout now operates gracefully with existing containment
+discontinuities, revealing excessively contained topics rather than either
+leaving them hidden or raising an error.
+
 *** Topic cryptography added, enabling easy gpg topic encryption and
 decryption.  Per-topic basis enables interspersing encrypted-text and
 clear-text within a single file to your heart's content, using symmetric
@@ -2012,56 +2072,52 @@ pending topics on save, and more, make it easy to use encryption in
 powerful ways.  Encryption behavior customization is collected in the
 allout-encryption customization group.
 
-*** `allout-view-change-hook' marked as being deprecated - use
-`allout-exposure-change-hook' instead.  Both are still invoked, but
-`allout-view-change-hook' will eventually be ignored.  The new
-`allout-exposure-change-hook' is called with args that were passed to
-`allout-flag-region', making it easier to use.
+*** Navigation within an item is easier.  Repeated beginning-of-line and
+end-of-line key commands (usually, ^A and ^E) cycle through the
+beginning/end-of-line and then beginning/end of topic, etc.  See new
+customization vars `allout-beginning-of-line-cycles' and
+`allout-end-of-line-cycles'.
 
-*** Other allout functions which change the outline structure also have
-hooks, enabling cooperative allout enhancements.  See
-`allout-structure-added-hook', `allout-structure-deleted-hook', and
-`allout-structure-shifted-hook'.
+*** New or revised allout-mode activity hooks enable creation of
+cooperative enhancements to allout mode without changes to the mode,
+itself.
 
-*** Default command prefix changed to "\C-c " (control-c space), to avoid
-intruding on user's keybinding space.  Customize the
+See `allout-exposure-change-hook', `allout-structure-added-hook',
+`allout-structure-deleted-hook', and `allout-structure-shifted-hook'.
+
+`allout-exposure-change-hook' replaces the existing
+`allout-view-change-hook', which is being deprecated.  Both are still
+invoked, but `allout-view-change-hook' will eventually be ignored.
+`allout-exposure-change-hook' is called with explicit arguments detailing
+the specifics of each change (as are the other new hooks), making it easier
+to use than the old version.
+
+There is a new mode deactivation hook, `allout-mode-deactivate-hook', for
+coordinating with deactivation of allout-mode.  Both that and the mode
+activation hook, `allout-mode-hook' are now run after the `allout-mode'
+variable is changed, rather than before.
+
+*** Default command prefix was changed to "\C-c " (control-c space), to
+avoid intruding on user's keybinding space.  Customize the
 `allout-command-prefix' variable to your preference.
 
-*** Allout now uses text overlay's `invisible' property (and others) for
-concealed text, instead of selective-display.  This simplifies the code, in
-particular avoiding the need for kludges for isearch dynamic-display,
-discretionary handling of edits of concealed text, undo concerns, etc.
+*** Allout now uses text overlay's `invisible' property for concealed text,
+instead of selective-display.  This simplifies the code, in particular
+avoiding the need for kludges for isearch dynamic-display, discretionary
+handling of edits of concealed text, undo concerns, etc.
 
-*** Some previously rough topic-header format edge cases are reconciled.
-Level 1 topics use the mode's comment format, and lines starting with the
-asterisk - for instance, the comment close of some languages (eg, c's "*/"
-or mathematica's "*)") - at the beginning of line are no longer are
-interpreted as level 1 topics in those modes.  (Yay!)
+*** There are many other fixes and refinements, including:
 
-*** Many substantial fixes and refinements, including:
-
-   - repaired regexp-quoting of custom header prefixes, so any literals
-     will now work (for instance, mathematica's "(*" is now properly
-     accepted).
-   - repaired inhibition of inadvertent edits to concealed text.
-   - refuse to create "containment discontinuities", where a
-     topic is shifted deeper than the offspring-depth of its' container
+   - repaired inhibition of inadvertent edits to concealed text, without
+     inhibiting undo; we now reveal undo changes within concealed text.
    - auto-fill-mode is now left inactive when allout-mode starts, if it
      already was inactive.  also, `allout-inhibit-auto-fill' custom
      configuration variable makes it easy to disable auto fill in allout
      outlines in general or on a per-buffer basis.
-   - mode hook changes: new hook `allout-mode-deactivate-hook', for
-     coordinating with deactivation of allout-mode.  `allout-mode-hook' is
-     now run after the `allout-mode' variable is changed, as is the new
-     `allout-mode-deactivate-hook'.
    - allout now tolerates fielded text in outlines without disruption.
    - hot-spot navigation now is modularized with a new function,
-     `allout-hotspot-key-handler', enabling easier articulation and
-     enhancement of the functionality by allout addons.
-   - topic body navigation is easier, where repeated beginning of line and
-     end of line key commands cycle through the actually beginning/end of
-     line and then beginning/end of topic, etc.  see new customization vars
-     `allout-beginning-of-line-cycles' and `allout-end-of-line-cycles'.
+     `allout-hotspot-key-handler', enabling easier use and enhancement of
+     the functionality in allout addons.
    - repaired retention of topic body hanging indent upon topic depth shifts
    - bulleting variation is simpler and more accommodating, both in the
      default behavior and in ability to vary when creating new topics
@@ -2072,8 +2128,7 @@ interpreted as level 1 topics in those modes.  (Yay!)
    - included a few unit-tests for interior functionality.  developers can
      have them automatically run at the end of module load by customizing
      the option `allout-run-unit-tests-on-load'.
-   - many, many minor tweaks and fixes.  many internal fixes and
-     refinements of docstrings.
+   - many, many other, more minor tweaks, fixes, and refinements.
    - version number incremented to 2.2
 
 ** The variable `woman-topic-at-point' was renamed
@@ -3750,6 +3805,10 @@ negative, is now a float.  For example: (expt 2 -2) => 0.25.
 *** The function `eql' is now available without requiring the CL package.
 
 +++
+*** The new function `memql' is like `memq', but uses `eql' for comparison,
+that is, floats are compared by value and other elements with `eq'.
+
++++
 *** `makehash' is now obsolete.  Use `make-hash-table' instead.
 
 +++
@@ -4076,11 +4135,23 @@ and partial visibility state of the corresponding row, if the PARTIALLY
 arg is non-nil.
 
 +++
+*** New function `window-line-height' is an efficient way to get
+information about a specific text line in a window provided that the
+window's display is up-to-date.
+
++++
 *** New functions `posn-at-point' and `posn-at-x-y' return
 click-event-style position information for a given visible buffer
 position or for a given window pixel coordinate.
 
 ** Text modification:
+
++++
+*** The new function `buffer-chars-modified-tick' returns a buffer's
+tick counter for changes to characters.  Each time text in that buffer
+is inserted or deleted, the character-change counter is updated to the
+tick counter (`buffer-modified-tick').  Text property changes leave it
+unchanged.
 
 +++
 *** The new function `insert-for-yank' normally works like `insert', but
@@ -4646,6 +4717,12 @@ over minor mode keymaps.
 text properties, according to their stickiness.  This also means that it
 works with empty overlays.  The same hold for the `local-map' property.
 
+*** `key-binding' will now look up mouse-specific bindings.  The
+keymaps consulted by `key-binding' will get adapted if the key
+sequence is started with a mouse event.  Instead of letting the click
+position be determined from the key sequence itself, it is also
+possible to specify it with an optional argument explicitly.
+
 *** Dense keymaps now handle inheritance correctly.
 
 Previously a dense keymap would hide all of the simple-char key
@@ -4898,9 +4975,6 @@ be used in different windows showing different buffers.
 
 *** New function `define-fringe-bitmap' can now be used to create new
 fringe bitmaps, as well as change the built-in fringe bitmaps.
-
-To change a built-in bitmap, do (require 'fringe) and use the symbol
-identifying the bitmap such as `left-truncation' or `continued-line'.
 
 *** New function `destroy-fringe-bitmap' deletes a fringe bitmap
 or restores a built-in one to its default value.
@@ -5189,6 +5263,11 @@ external packages to save users from having to update
 +++
 *** The new variable `max-image-size' defines the maximum size of
 images that Emacs will load and display.
+
++++
+*** The new variable `display-mm-dimensions-alist' can be used to
+override incorrect graphical display dimensions returned by functions
+`display-mm-height' and `display-mm-width'.
 
 ** Mouse pointer features:
 

@@ -2393,6 +2393,12 @@ order until succeed.")
 	(kill-new clipboard-text))
     (yank)))
 
+(defun x-menu-bar-open (&optional frame)
+  "Open the menu bar if `menu-bar-mode' is on. otherwise call `tmm-menubar'."
+  (interactive "i")
+  (if menu-bar-mode (menu-bar-open frame)
+    (tmm-menubar)))
+
 
 ;;; Window system initialization.
 

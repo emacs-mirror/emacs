@@ -718,7 +718,7 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	   ;; If the keywords were compiled before, compile them again.
 	   (if was-compiled
 	       (setq font-lock-keywords
-                     (font-lock-compile-keywords font-lock-keywords t)))))))
+                     (font-lock-compile-keywords font-lock-keywords)))))))
 
 (defun font-lock-update-removed-keyword-alist (mode keywords how)
   "Update `font-lock-removed-keywords-alist' when adding new KEYWORDS to MODE."
@@ -825,7 +825,7 @@ happens, so the major mode can be corrected."
 	   ;; If the keywords were compiled before, compile them again.
 	   (if was-compiled
 	       (setq font-lock-keywords
-                     (font-lock-compile-keywords font-lock-keywords t)))))))
+                     (font-lock-compile-keywords font-lock-keywords)))))))
 
 ;;; Font Lock Support mode.
 
@@ -1168,7 +1168,12 @@ what properties to clear before refontifying a region.")
           ;; number of lines.
 	  ;; (setq beg (progn (goto-char beg) (line-beginning-position))
 	  ;;       end (progn (goto-char end) (line-beginning-position 2)))
-          )
+	  (unless (eq end (point-max))
+	    ;; Rounding up to a whole number of lines should include the
+	    ;; line right after `end'.  Typical case: the first char of
+	    ;; the line was deleted.  Or a \n was inserted in the middle
+	    ;; of a line.
+	    (setq end (1+ end))))
 	(font-lock-fontify-region beg end)))))
 
 (defvar jit-lock-start) (defvar jit-lock-end)
@@ -1205,9 +1210,17 @@ This function does 2 things:
         (setq beg (or (previous-single-property-change
                        beg 'font-lock-multiline)
                       (point-min))))
-      (setq end (or (text-property-any end (point-max)
-                                       'font-lock-multiline nil)
-                    (point-max)))
+      (when (< end (point-max))
+        (setq end
+              (if (get-text-property end 'font-lock-multiline)
+                  (or (text-property-any end (point-max)
+                                         'font-lock-multiline nil)
+                      (point-max))
+                ;; Rounding up to a whole number of lines should include the
+                ;; line right after `end'.  Typical case: the first char of
+                ;; the line was deleted.  Or a \n was inserted in the middle
+                ;; of a line.
+                (1+ end))))
       ;; Finally, pre-enlarge the region to a whole number of lines, to try
       ;; and anticipate what font-lock-default-fontify-region will do, so as to
       ;; avoid double-redisplay.
@@ -1217,11 +1230,11 @@ This function does 2 things:
       (when (memq 'font-lock-extend-region-wholelines
                   font-lock-extend-region-functions)
         (goto-char beg)
-        (forward-line 0)
-        (setq jit-lock-start (min jit-lock-start (point)))
+        (setq jit-lock-start (min jit-lock-start (line-beginning-position)))
         (goto-char end)
-        (forward-line 1)
-        (setq jit-lock-end (max jit-lock-end (point)))))))
+        (setq jit-lock-end
+              (max jit-lock-end
+                   (if (bolp) (point) (line-beginning-position 2))))))))
 
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.
@@ -1414,7 +1427,8 @@ START should be at the beginning of a line."
   ;; If `font-lock-syntactic-keywords' is not compiled, compile it.
   (unless (eq (car font-lock-syntactic-keywords) t)
     (setq font-lock-syntactic-keywords (font-lock-compile-keywords
-					font-lock-syntactic-keywords)))
+					font-lock-syntactic-keywords
+					t)))
   ;; Get down to business.
   (let ((case-fold-search font-lock-keywords-case-fold-search)
 	(keywords (cddr font-lock-syntactic-keywords))
@@ -1570,7 +1584,7 @@ START should be at the beginning of a line.
 LOUDLY, if non-nil, allows progress-meter bar."
   (unless (eq (car font-lock-keywords) t)
     (setq font-lock-keywords
-	  (font-lock-compile-keywords font-lock-keywords t)))
+	  (font-lock-compile-keywords font-lock-keywords)))
   (let ((case-fold-search font-lock-keywords-case-fold-search)
 	(keywords (cddr font-lock-keywords))
 	(bufname (buffer-name)) (count 0)
@@ -1626,12 +1640,12 @@ LOUDLY, if non-nil, allows progress-meter bar."
 
 ;; Various functions.
 
-(defun font-lock-compile-keywords (keywords &optional regexp)
+(defun font-lock-compile-keywords (keywords &optional syntactic-keywords)
   "Compile KEYWORDS into the form (t KEYWORDS COMPILED...)
 Here each COMPILED is of the form (MATCHER HIGHLIGHT ...) as shown in the
 `font-lock-keywords' doc string.
-If REGEXP is non-nil, it means these keywords are used for
-`font-lock-keywords' rather than for `font-lock-syntactic-keywords'."
+If SYNTACTIC-KEYWORDS is non-nil, it means these keywords are used for
+`font-lock-syntactic-keywords' rather than for `font-lock-keywords'."
   (if (not font-lock-set-defaults)
       ;; This should never happen.  But some external packages sometimes
       ;; call font-lock in unexpected and incorrect ways.  It's important to
@@ -1644,10 +1658,12 @@ If REGEXP is non-nil, it means these keywords are used for
     (setq keywords
 	  (cons t (cons keywords
 			(mapcar 'font-lock-compile-keyword keywords))))
-    (if (and regexp
-	     (eq (or syntax-begin-function
-		     font-lock-beginning-of-syntax-function)
-		 'beginning-of-defun)
+    (if (and (not syntactic-keywords)
+	     (let ((beg-function
+		    (or font-lock-beginning-of-syntax-function
+			syntax-begin-function)))
+	       (or (eq beg-function 'beginning-of-defun)
+		   (get beg-function 'font-lock-syntax-paren-check)))
 	     (not beginning-of-defun-function))
 	;; Try to detect when a string or comment contains something that
 	;; looks like a defun and would thus confuse font-lock.
@@ -1774,7 +1790,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
       ;; Now compile the keywords.
       (unless (eq (car font-lock-keywords) t)
 	(setq font-lock-keywords
-              (font-lock-compile-keywords font-lock-keywords t))))))
+              (font-lock-compile-keywords font-lock-keywords))))))
 
 ;;; Colour etc. support.
 

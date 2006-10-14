@@ -98,6 +98,9 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_ALLOCA_H 1
 #endif
 
+/* Define to 1 if ALSA is available. */
+/* #undef HAVE_ALSA */
+
 /* Define to 1 if you have the `bcmp' function. */
 /* #define HAVE_BCMP */
 
@@ -961,6 +964,9 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_SOUND 1
 #endif
 #ifdef HAVE_SOUNDCARD_H
+#define HAVE_SOUND 1
+#endif
+#ifdef HAVE_ALSA
 #define HAVE_SOUND 1
 #endif
 #endif /* __FreeBSD__ || __NetBSD__ || __linux__  */

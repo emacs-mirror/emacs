@@ -1382,7 +1382,7 @@ initialization disables it.) Note that Emacs will not display the line
 number if the buffer's size in bytes is larger than the value of the
 variable @code{line-number-display-limit}.
 
-As of Emacs 20, you can similarly display the current column with
+You can similarly display the current column with
 @kbd{M-x column-number-mode}, or by putting the form
 
 @lisp
@@ -2683,7 +2683,8 @@ shell init file.  You have two alternatives to solve this:
 @item
 Make the alias conditioned on the @code{EMACS} variable in the
 environment.  When Emacs runs a subsidiary shell, it exports the
-@code{EMACS} variable with the value @code{t} to that shell.  You can
+@code{EMACS} variable to that shell, with value equal to the absolute
+file name of Emacs.  You can
 unalias @code{ls} when that happens, thus limiting the alias to your
 interactive sessions.
 
@@ -2753,7 +2754,7 @@ file:
 
 @example
 if ($?EMACS) then
-    if ("$EMACS" == t) then
+    if ("$EMACS" =~ /*) then
         if ($?tcsh) unset edit
         stty nl
     endif
@@ -3847,8 +3848,8 @@ Java code.  It is distributed with Emacs, but has
 Or send reports to @email{bug-vm@@wonderworks.com}
 @end table
 
-VM 7 works well with Emacs 21. Older versions of VM suitable for use
-with older versions of Emacs are available from
+VM 7 works well with Emacs 21 and Emacs 22. Older versions of VM
+suitable for use with older versions of Emacs are available from
 @uref{ftp://ftp.wonderworks.com/pub/vm/, the same FTP site}.
 
 

@@ -232,7 +232,7 @@ distribution.  Mixed-case symbols are convenience aliases.")
   "LaTeX label and citation support."
   :tag "RefTeX"
   :link '(url-link :tag "Home Page" 
-                   "http://zon.astro.uva.nl/~dominik/Tools/")
+                   "http://staff.science.uva.nl/~dominik/Tools/reftex/")
   :link '(emacs-commentary-link :tag "Commentary in reftex.el" "reftex.el")
   :link '(custom-manual "(reftex)Top")
   :prefix "reftex-"

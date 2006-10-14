@@ -56,7 +56,28 @@
     "            @@   " "             @@  " "              @@ "
     "               @@")
    ("@@@@@@@@@" "@   @   @" "@ @@@@@ @" "@ @   @ @" "@@@   @@@"
-    "@ @   @ @" "@ @@@@@ @" "@   @   @" "@@@@@@@@@")]
+    "@ @   @ @" "@ @@@@@ @" "@   @   @" "@@@@@@@@@")
+   ("                        @           "
+    "                      @ @           "
+    "            @@      @@            @@"
+    "           @   @    @@            @@"
+    "@@        @     @   @@              "
+    "@@        @   @ @@    @ @           "
+    "          @     @       @           "
+    "           @   @                    "
+    "            @@                      ")
+   ("      @ "
+    "    @ @@"
+    "    @ @ "
+    "    @   "
+    "  @     "
+    "@ @     ")
+   ("@@@ @"
+    "@    "
+    "   @@"
+    " @@ @"
+    "@ @ @")
+   ("@@@@@@@@ @@@@@   @@@      @@@@@@@ @@@@@")]
   "Vector of rectangles containing some Life startup patterns.")
 
 ;; Macros are used macros for manifest constants instead of variables
@@ -128,6 +149,7 @@ generations (this defaults to 1)."
 	  mode-name "Life"
 	  major-mode 'life-mode
 	  truncate-lines t
+          show-trailing-whitespace nil
 	  life-current-generation 0
 	  life-generation-string "0"
 	  mode-line-buffer-identification '("Life: generation "
@@ -269,7 +291,8 @@ generations (this defaults to 1)."
   (recenter 0)
 
   ;; Redisplay; if the user has hit a key, exit the loop.
-  (or (eq t (sit-for sleeptime))
+  (or (and (sit-for sleeptime) (< 0 sleeptime))
+      (not (input-pending-p))
       (throw 'life-exit nil)))
 
 (defun life-extinct-quit ()

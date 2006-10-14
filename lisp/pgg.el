@@ -148,6 +148,11 @@ regulate cache behavior."
                            #'pgg-remove-passphrase-from-cache
                            key notruncate))))
 
+(if (fboundp 'clear-string)
+    (defalias 'pgg-clear-string 'clear-string)
+  (defun pgg-clear-string (string)
+    (fillarray string ?_)))
+
 (defun pgg-remove-passphrase-from-cache (key &optional notruncate)
   "Omit passphrase associated with KEY in time-limited passphrase cache.
 
@@ -166,7 +171,7 @@ regulate cache behavior."
          (interned-timer-key (intern-soft key pgg-pending-timers))
          (old-timer (symbol-value interned-timer-key)))
     (when passphrase
-      (fillarray passphrase ?_)
+      (pgg-clear-string passphrase)
       (unintern key pgg-passphrase-cache))
     (when old-timer
       (pgg-cancel-timer old-timer)

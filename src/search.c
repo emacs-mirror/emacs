@@ -42,6 +42,10 @@ struct regexp_cache
 {
   struct regexp_cache *next;
   Lisp_Object regexp, whitespace_regexp;
+  /* Syntax table for which the regexp applies.  We need this because
+     of character classes.  If this is t, then the compiled pattern is valid
+     for any syntax-table.  */
+  Lisp_Object syntax_table;
   struct re_pattern_buffer buf;
   char fastmap[0400];
   /* Nonzero means regexp was compiled to do full POSIX backtracking.  */
@@ -167,7 +171,11 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
   cp->whitespace_regexp = Vsearch_spaces_regexp;
-  BLOCK_INPUT;
+  /* rms: I think BLOCK_INPUT is not needed here any more,
+     because regex.c defines malloc to call xmalloc.
+     Using BLOCK_INPUT here means the debugger won't run if an error occurs.
+     So let's turn it off.  */
+  /*  BLOCK_INPUT;  */
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
 
@@ -177,10 +185,14 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   val = (char *) re_compile_pattern ((char *)raw_pattern,
 				     raw_pattern_size, &cp->buf);
 
+  /* If the compiled pattern hard codes some of the contents of the
+     syntax-table, it can only be reused with *this* syntax table.  */
+  cp->syntax_table = cp->buf.used_syntax ? current_buffer->syntax_table : Qt;
+
   re_set_whitespace_regexp (NULL);
 
   re_set_syntax (old);
-  UNBLOCK_INPUT;
+  /* UNBLOCK_INPUT;  */
   if (val)
     xsignal1 (Qinvalid_regexp, build_string (val));
 
@@ -202,6 +214,24 @@ shrink_regexp_cache ()
       cp->buf.buffer
 	= (unsigned char *) xrealloc (cp->buf.buffer, cp->buf.used);
     }
+}
+
+/* Clear the regexp cache w.r.t. a particular syntax table,
+   because it was changed.
+   There is no danger of memory leak here because re_compile_pattern
+   automagically manages the memory in each re_pattern_buffer struct,
+   based on its `allocated' and `buffer' values.  */
+void
+clear_regexp_cache ()
+{
+  int i;
+
+  for (i = 0; i < REGEXP_CACHE_SIZE; ++i)
+    /* It's tempting to compare with the syntax-table we've actually changd,
+       but it's not sufficient because char-table inheritance mewans that
+       modifying one syntax-table can change others at the same time.  */
+    if (!EQ (searchbufs[i].syntax_table, Qt))
+      searchbufs[i].regexp = Qnil;
 }
 
 /* Compile a regexp if necessary, but first check to see if there's one in
@@ -240,6 +270,8 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
 	  && cp->buf.multibyte == multibyte
+	  && (EQ (cp->syntax_table, Qt)
+	      || EQ (cp->syntax_table, current_buffer->syntax_table))
 	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp)))
 	break;
 
@@ -283,6 +315,10 @@ looking_at_1 (string, posix)
 
   if (running_asynch_code)
     save_search_regs ();
+
+  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
+    = current_buffer->case_eqv_table;
 
   CHECK_STRING (string);
   bufp = compile_pattern (string, &search_regs,
@@ -390,6 +426,10 @@ string_match_1 (regexp, string, start, posix)
 	args_out_of_range (string, start);
       pos_byte = string_char_to_byte (string, pos);
     }
+
+  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
+    = current_buffer->case_eqv_table;
 
   bufp = compile_pattern (regexp, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
@@ -929,6 +969,10 @@ search_command (string, bound, noerror, count, direction, RE, posix)
       else
 	lim_byte = CHAR_TO_BYTE (lim);
     }
+
+  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
+    = current_buffer->case_eqv_table;
 
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
 		      (!NILP (current_buffer->case_fold_search)
@@ -3086,8 +3130,10 @@ syms_of_search ()
       searchbufs[i].buf.fastmap = searchbufs[i].fastmap;
       searchbufs[i].regexp = Qnil;
       searchbufs[i].whitespace_regexp = Qnil;
+      searchbufs[i].syntax_table = Qnil;
       staticpro (&searchbufs[i].regexp);
       staticpro (&searchbufs[i].whitespace_regexp);
+      staticpro (&searchbufs[i].syntax_table);
       searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
   searchbuf_head = &searchbufs[0];

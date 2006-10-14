@@ -843,12 +843,13 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'maxima-mode
  :ignore-case t
- :regexp "[a-zA-Z_%]+"
+ :regexp "[a-zA-Z0-9_%]+"
  :doc-spec '( ("(maxima)Function and Variable Index" nil
 	       "^ -+ [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)))
 
 (info-lookup-maybe-add-help
  :mode 'inferior-maxima-mode
+ :regexp "[a-zA-Z0-9_%]+"
  :other-modes '(maxima-mode))
 
 ;; coreutils and bash builtins overlap in places, eg. printf, so there's a

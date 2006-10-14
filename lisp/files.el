@@ -514,6 +514,9 @@ using \\[toggle-read-only]."
   :type 'boolean
   :group 'view)
 
+(defvar file-name-history nil
+  "History list of file names entered in the minibuffer.")
+
 (put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)
   "Provides support for ange-ftp host name completion.
@@ -1117,13 +1120,15 @@ expand wildcards (if any) and visit multiple files."
 		(mapcar 'switch-to-buffer (cdr value))))
       (switch-to-buffer-other-frame value))))
 
-(defun find-file-existing (filename &optional wildcards)
-  "Edit the existing file FILENAME.
-Like \\[find-file] but only allow a file that exists."
-  (interactive (find-file-read-args "Find existing file: " t))
-  (unless (file-exists-p filename) (error "%s does not exist" filename))
-  (find-file filename wildcards)
-  (current-buffer))
+(defun find-file-existing (filename)
+   "Edit the existing file FILENAME.
+Like \\[find-file] but only allow a file that exists, and do not allow
+file names with wildcards."
+   (interactive (nbutlast (find-file-read-args "Find existing file: " t)))
+   (if (and (not (interactive-p)) (not (file-exists-p filename)))
+       (error "%s does not exist" filename)
+     (find-file filename)
+     (current-buffer)))
 
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
@@ -1310,7 +1315,7 @@ removes automounter prefixes (see the variable `automount-dir-prefix')."
 	  (setq abbreviated-home-dir
 		(let ((abbreviated-home-dir "$foo"))
 		  (concat "^" (abbreviate-file-name (expand-file-name "~"))
-			  "\\(/\\|$\\)"))))
+			  "\\(/\\|\\'\\)"))))
 
       ;; If FILENAME starts with the abbreviated homedir,
       ;; make it start with `~' instead.
@@ -1365,7 +1370,7 @@ If there is no such live buffer, return nil."
                (number (nthcdr 10 attributes))
                (list (buffer-list)) found)
           (and buffer-file-numbers-unique
-               number
+               (car-safe number)       ;Make sure the inode is not just nil.
                (while (and (not found) list)
                  (with-current-buffer (car list)
                    (if (and buffer-file-name
@@ -1904,7 +1909,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.[sS]\\'" . asm-mode)
      ("\\.asm\\'" . asm-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
-     ("[cC]hange[lL]og\\.[0-9]+\\'" . change-log-mode)
+     ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
@@ -2396,10 +2401,10 @@ asking you for confirmation."
 ;;
 ;; For variables defined in the C source code the declaration should go here:
 
-;; FIXME: Some variables should be moved according to the rules above.
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((fill-column                     . integerp) ;; C source code
+      '((buffer-read-only                . booleanp) ;; C source code
+	(fill-column                     . integerp) ;; C source code
 	(indent-tabs-mode                . booleanp) ;; C source code
 	(left-margin                     . integerp) ;; C source code
 	(no-update-autoloads             . booleanp)
@@ -2697,8 +2702,8 @@ It is dangerous if either of these conditions are met:
 
  * Its name ends with \"hook(s)\", \"function(s)\", \"form(s)\", \"map\",
    \"program\", \"command(s)\", \"predicate(s)\", \"frame-alist\",
-   \"mode-alist\", \"font-lock-(syntactic-)keyword*\", or
-   \"map-alist\"."
+   \"mode-alist\", \"font-lock-(syntactic-)keyword*\",
+   \"map-alist\", or \"bindat-spec\"."
   ;; If this is an alias, check the base name.
   (condition-case nil
       (setq sym (indirect-variable sym))
@@ -2707,7 +2712,7 @@ It is dangerous if either of these conditions are met:
       (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|\
 -commands?$\\|-predicates?$\\|font-lock-keywords$\\|font-lock-keywords\
 -[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|\
--map$\\|-map-alist$" (symbol-name sym))))
+-map$\\|-map-alist$\\|-bindat-spec$" (symbol-name sym))))
 
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
@@ -3729,9 +3734,15 @@ This requires the external program `diff' to be in your `exec-path'."
        (recursive-edit)
        ;; Return nil to ask about BUF again.
        nil)
-     "view this file")
-    (?d diff-buffer-with-file
-	"view changes in file"))
+     "view this buffer")
+    (?d (lambda (buf)
+	  (save-window-excursion
+	    (diff-buffer-with-file buf))
+	  (view-buffer (get-buffer-create "*Diff*")
+		       (lambda (ignore) (exit-recursive-edit)))
+	  (recursive-edit)
+	  nil)
+	"view changes in this buffer"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 
 (defvar buffer-save-without-query nil

@@ -914,7 +914,7 @@ Has a preference of looking backwards."
 			       ;; Include certain keywords if they
 			       ;; precede the name.
 			       (setq middle (point))
-			       (forward-word -1)
+			       (forward-sexp -1)
 			       ;; Is this C++ method?
 			       (when (and (< 2 middle)
 					  (string= (buffer-substring (- middle 2)
