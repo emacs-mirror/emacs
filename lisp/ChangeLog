@@ -1,3 +1,8 @@
+2006-10-14  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* filesets.el (filesets-cmd-shell-command): Quote buffer-file-name
+	to protect whitespace and metacharacters from the shell.
+
 2006-10-13  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* apropos.el (apropos-pattern-quoted): Fix a typo in a doc
