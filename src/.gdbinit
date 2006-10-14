@@ -164,6 +164,10 @@ define pitx
   if ($it->current.pos.charpos != $it->current.pos.bytepos)
     printf "[%d]", $it->current.pos.bytepos
   end
+  printf " pos=%d", $it->position.charpos
+  if ($it->position.charpos != $it->position.bytepos)
+    printf "[%d]", $it->position.bytepos
+  end
   printf " start=%d", $it->start.pos.charpos
   if ($it->start.pos.charpos != $it->start.pos.bytepos)
     printf "[%d]", $it->start.pos.bytepos
@@ -218,7 +222,7 @@ define pitx
   printf " max=%d+%d=%d", $it->max_ascent, $it->max_descent, $it->max_ascent+$it->max_descent
   printf "\n"
   set $i = 0
-  while ($i < $it->sp)
+  while ($i < $it->sp && $i < 4)
     set $e = $it->stack[$i]
     printf "stack[%d]: ", $i
     output $e->method

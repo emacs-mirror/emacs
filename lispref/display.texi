@@ -1857,9 +1857,9 @@ as if they had a light background.
 
   The effect of using a face is determined by a fixed set of @dfn{face
 attributes}.  This table lists all the face attributes, and what they
-mean.  Note that in general, more than one face can be specified for a
-given piece of text; when that happens, the attributes of all the faces
-are merged to specify how to display the text.  @xref{Displaying Faces}.
+mean.  You can specify more than one face for a given piece of text;
+Emacs merges the attributes of all the faces to determine how to
+display the text.  @xref{Displaying Faces}.
 
   Any attribute in a face can have the value @code{unspecified}.  This
 means the face doesn't specify that attribute.  In face merging, when
@@ -2048,15 +2048,13 @@ suitable for use with @code{:stipple} (see above).  It returns
 @node Attribute Functions
 @subsection Face Attribute Functions
 
-  You can modify the attributes of an existing face with the following
-functions.  If you specify @var{frame}, they affect just that frame;
-otherwise, they affect all frames as well as the defaults that apply to
-new frames.
+  This section describes the functions for accessing and modifying the
+attributes of an existing face.
 
 @defun set-face-attribute face frame &rest arguments
-This function sets one or more attributes of face @var{face}
-for frame @var{frame}.  If @var{frame} is @code{nil}, it sets
-the attribute for all frames, and the defaults for new frames.
+This function sets one or more attributes of face @var{face} for frame
+@var{frame}.  The attributes you specify this way override whatever
+the @code{defface} says.
 
 The extra arguments @var{arguments} specify the attributes to set, and
 the values for them.  They should consist of alternating attribute names
@@ -2073,6 +2071,13 @@ Thus,
 @noindent
 sets the attributes @code{:width}, @code{:weight} and @code{:underline}
 to the corresponding values.
+
+If @var{frame} is @code{t}, this function sets the default attributes
+for new frames.  Default attribute values specified this way override
+the @code{defface} for newly created frames.
+
+If @var{frame} is @code{nil}, this function sets the attributes for
+all existing frames, and the default for new frames.
 @end defun
 
 @defun face-attribute face attribute &optional frame inherit
@@ -2080,8 +2085,10 @@ This returns the value of the @var{attribute} attribute of face
 @var{face} on @var{frame}.  If @var{frame} is @code{nil},
 that means the selected frame (@pxref{Input Focus}).
 
-If @var{frame} is @code{t}, the value is the default for
-@var{face} for new frames.
+If @var{frame} is @code{t}, this returns whatever new-frames default
+value you previously specified with @code{set-face-attribute} for the
+@var{attribute} attribute of @var{face}.  If you have not specified
+one, it returns @code{nil}.
 
 If @var{inherit} is @code{nil}, only attributes directly defined by
 @var{face} are considered, so the return value may be
@@ -2135,6 +2142,8 @@ face attribute @var{attribute}, returns @var{value1} unchanged.
   The functions above did not exist before Emacs 21.  For compatibility
 with older Emacs versions, you can use the following functions to set
 and examine the face attributes which existed in those versions.
+They use values of @code{t} and @code{nil} for @var{frame}
+just like @code{set-face-attribute} and @code{face-attribute}.
 
 @defun set-face-foreground face color &optional frame
 @defunx set-face-background face color &optional frame
@@ -2191,9 +2200,10 @@ This function swaps the foreground and background colors of face
 @end defun
 
   These functions examine the attributes of a face.  If you don't
-specify @var{frame}, they refer to the default data for new frames.
-They return the symbol @code{unspecified} if the face doesn't define any
-value for that attribute.
+specify @var{frame}, they refer to the selected frame; @code{t} refers
+to the default data for new frames.  They return the symbol
+@code{unspecified} if the face doesn't define any value for that
+attribute.
 
 @defun face-foreground face &optional frame inherit
 @defunx face-background face &optional frame inherit

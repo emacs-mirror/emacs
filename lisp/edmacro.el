@@ -670,6 +670,7 @@ This function assumes that the events can be stored in a string."
 	  (cond ((atom ev)
 		 (push ev result))
 		((eq (car ev) 'help-echo))
+		((eq (car ev) 'switch-frame))
 		((equal ev '(menu-bar))
 		 (push 'menu-bar result))
 		((equal (cadadr ev) '(menu-bar))

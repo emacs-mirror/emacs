@@ -1458,6 +1458,72 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
   return Qnil;
 }
 
+#ifdef HAVE_MOUSE
+
+/* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
+   of this function.  */
+
+static Lisp_Object
+tracking_off (old_value)
+     Lisp_Object old_value;
+{
+  do_mouse_tracking = old_value;
+  if (NILP (old_value))
+    {
+      /* Redisplay may have been preempted because there was input
+	 available, and it assumes it will be called again after the
+	 input has been processed.  If the only input available was
+	 the sort that we have just disabled, then we need to call
+	 redisplay.  */
+      if (!readable_events (READABLE_EVENTS_DO_TIMERS_NOW))
+	{
+	  redisplay_preserve_echo_area (6);
+	  get_input_pending (&input_pending,
+			     READABLE_EVENTS_DO_TIMERS_NOW);
+	}
+    }
+  return Qnil;
+}
+
+DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
+       doc: /* Evaluate BODY with mouse movement events enabled.
+Within a `track-mouse' form, mouse motion generates input events that
+you can read with `read-event'.
+Normally, mouse motion is ignored.
+usage: (track-mouse BODY ...)  */)
+     (args)
+     Lisp_Object args;
+{
+  int count = SPECPDL_INDEX ();
+  Lisp_Object val;
+
+  record_unwind_protect (tracking_off, do_mouse_tracking);
+
+  do_mouse_tracking = Qt;
+
+  val = Fprogn (args);
+  return unbind_to (count, val);
+}
+
+/* If mouse has moved on some frame, return one of those frames.
+   Return 0 otherwise.  */
+
+static FRAME_PTR
+some_mouse_moved ()
+{
+  Lisp_Object tail, frame;
+
+  FOR_EACH_FRAME (tail, frame)
+    {
+      if (XFRAME (frame)->mouse_moved)
+	return XFRAME (frame);
+    }
+
+  return 0;
+}
+
+#endif	/* HAVE_MOUSE */
+
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
@@ -2106,6 +2172,8 @@ static Lisp_Object
 safe_run_hooks_1 (hook)
      Lisp_Object hook;
 {
+  if (NILP (Vrun_hooks))
+    return Qnil;
   return call1 (Vrun_hooks, Vinhibit_quit);
 }
 
@@ -2388,7 +2456,17 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 
 #ifdef HAVE_MOUSE
   if (!noninteractive && STRINGP (help))
-    help = call1 (Qmouse_fixup_help_message, help);
+    {
+      /* The mouse-fixup-help-message Lisp function can call
+	 mouse_position_hook, which resets the mouse_moved flags.
+	 This causes trouble if we are trying to read a mouse motion
+	 event (i.e., if we are inside a `track-mouse' form), so we
+	 restore the mouse_moved flag.  */
+      FRAME_PTR f = NILP (do_mouse_tracking) ? NULL : some_mouse_moved ();
+      help = call1 (Qmouse_fixup_help_message, help);
+      if (f)
+      	f->mouse_moved = 1;
+    }
 #endif
 
   if (STRINGP (help) || NILP (help))
@@ -2483,7 +2561,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
      EMACS_TIME *end_time;
 {
   volatile Lisp_Object c;
-  int count;
+  int count, jmpcount;
   jmp_buf local_getcjmp;
   jmp_buf save_jump;
   volatile int key_already_recorded = 0;
@@ -2714,12 +2792,14 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
      around any call to sit_for or kbd_buffer_get_event;
      it *must not* be in effect when we call redisplay.  */
 
+  jmpcount = SPECPDL_INDEX ();
   if (_setjmp (local_getcjmp))
     {
       /* Handle quits while reading the keyboard.  */
       /* We must have saved the outer value of getcjmp here,
 	 so restore it now.  */
       restore_getcjmp (save_jump);
+      unbind_to (jmpcount, Qnil);
       XSETINT (c, quit_char);
       internal_last_event_frame = selected_frame;
       Vlast_event_frame = internal_last_event_frame;
@@ -2760,7 +2840,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       goto non_reread;
     }
 
-  timer_start_idle ();
+  /* Start idle timers if no time limit is supplied.  We don't do it
+     if a time limit is supplied to avoid an infinite recursion in the
+     situation where an idle timer calls `sit-for'.  */
+
+  if (!end_time)
+    timer_start_idle ();
 
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
@@ -2830,7 +2915,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       c = read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
 
       /* Now that we have read an event, Emacs is not idle.  */
-      timer_stop_idle ();
+      if (!end_time)
+	timer_stop_idle ();
 
       goto exit;
     }
@@ -2973,7 +3059,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       /* Actually read a character, waiting if necessary.  */
       save_getcjmp (save_jump);
       restore_getcjmp (local_getcjmp);
-      timer_start_idle ();
+      if (!end_time)
+	timer_start_idle ();
       c = kbd_buffer_get_event (&kb, used_mouse_menu, end_time);
       restore_getcjmp (save_jump);
 
@@ -3025,7 +3112,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 
  non_reread:
 
-  timer_stop_idle ();
+  if (!end_time)
+    timer_stop_idle ();
   RESUME_POLLING;
 
   if (NILP (c))
@@ -3063,7 +3151,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       last_input_char = c;
       Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
 
-      if (CONSP (c) && EQ (XCAR (c), Qselect_window))
+      if (CONSP (c) && EQ (XCAR (c), Qselect_window) && !end_time)
 	/* We stopped being idle for this event; undo that.  This
 	   prevents automatic window selection (under
 	   mouse_autoselect_window from acting as a real input event, for
@@ -3272,7 +3360,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       show_help_echo (help, window, object, position, 0);
 
       /* We stopped being idle for this event; undo that.  */
-      timer_resume_idle ();
+      if (!end_time)
+	timer_resume_idle ();
       goto retry;
     }
 
@@ -3555,72 +3644,6 @@ restore_getcjmp (temp)
 {
   bcopy (temp, getcjmp, sizeof getcjmp);
 }
-
-#ifdef HAVE_MOUSE
-
-/* Restore mouse tracking enablement.  See Ftrack_mouse for the only use
-   of this function.  */
-
-static Lisp_Object
-tracking_off (old_value)
-     Lisp_Object old_value;
-{
-  do_mouse_tracking = old_value;
-  if (NILP (old_value))
-    {
-      /* Redisplay may have been preempted because there was input
-	 available, and it assumes it will be called again after the
-	 input has been processed.  If the only input available was
-	 the sort that we have just disabled, then we need to call
-	 redisplay.  */
-      if (!readable_events (READABLE_EVENTS_DO_TIMERS_NOW))
-	{
-	  redisplay_preserve_echo_area (6);
-	  get_input_pending (&input_pending,
-			     READABLE_EVENTS_DO_TIMERS_NOW);
-	}
-    }
-  return Qnil;
-}
-
-DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
-       doc: /* Evaluate BODY with mouse movement events enabled.
-Within a `track-mouse' form, mouse motion generates input events that
-you can read with `read-event'.
-Normally, mouse motion is ignored.
-usage: (track-mouse BODY ...)  */)
-     (args)
-     Lisp_Object args;
-{
-  int count = SPECPDL_INDEX ();
-  Lisp_Object val;
-
-  record_unwind_protect (tracking_off, do_mouse_tracking);
-
-  do_mouse_tracking = Qt;
-
-  val = Fprogn (args);
-  return unbind_to (count, val);
-}
-
-/* If mouse has moved on some frame, return one of those frames.
-   Return 0 otherwise.  */
-
-static FRAME_PTR
-some_mouse_moved ()
-{
-  Lisp_Object tail, frame;
-
-  FOR_EACH_FRAME (tail, frame)
-    {
-      if (XFRAME (frame)->mouse_moved)
-	return XFRAME (frame);
-    }
-
-  return 0;
-}
-
-#endif	/* HAVE_MOUSE */
 
 /* Low level keyboard/mouse input.
    kbd_buffer_store_event places events in kbd_buffer, and
@@ -4056,13 +4079,15 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	{
 	  EMACS_TIME duration;
 	  EMACS_GET_TIME (duration);
-	  EMACS_SUB_TIME (duration, *end_time, duration);
-	  if (EMACS_TIME_NEG_P (duration))
-	    return Qnil;
+	  if (EMACS_TIME_GE (duration, *end_time))
+	    return Qnil;	/* finished waiting */
 	  else
-	    wait_reading_process_output (EMACS_SECS (duration),
-					 EMACS_USECS (duration), 
-					 -1, 1, Qnil, NULL, 0);
+	    {
+	      EMACS_SUB_TIME (duration, *end_time, duration);
+	      wait_reading_process_output (EMACS_SECS (duration),
+					   EMACS_USECS (duration),
+					   -1, 1, Qnil, NULL, 0);
+	    }
 	}
       else
 	wait_reading_process_output (0, 0, -1, 1, Qnil, NULL, 0);
@@ -4634,6 +4659,32 @@ timer_check (do_it_now)
   /* Return 0 if we generated an event, and -1 if not.  */
   UNGCPRO;
   return nexttime;
+}
+
+DEFUN ("current-idle-time", Fcurrent_idle_time, Scurrent_idle_time, 0, 0, 0,
+       doc: /* Return the current length of Emacs idleness.
+The value is returned as a list of three integers.  The first has the
+most significant 16 bits of the seconds, while the second has the
+least significant 16 bits.  The third integer gives the microsecond
+count.
+
+The microsecond count is zero on systems that do not provide
+resolution finer than a second.  */)
+  ()
+{
+  if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
+    {
+      EMACS_TIME now, idleness_now;
+
+      EMACS_GET_TIME (now);
+      EMACS_SUB_TIME (idleness_now, now, timer_idleness_start_time);
+
+      return list3 (make_number ((EMACS_SECS (idleness_now) >> 16) & 0xffff),
+		    make_number ((EMACS_SECS (idleness_now) >> 0)  & 0xffff),
+		    make_number (EMACS_USECS (idleness_now)));
+    }
+
+  return Qnil;
 }
 
 /* Caches for modify_event_symbol.  */
@@ -8565,7 +8616,15 @@ follow_key (key, nmaps, current, defs, next)
    such as Vfunction_key_map and Vkey_translation_map.  */
 typedef struct keyremap
 {
-  Lisp_Object map, parent;
+  /* This is the map originally specified for this use.  */
+  Lisp_Object parent;
+  /* This is a submap reached by looking up, in PARENT,
+     the events from START to END.  */
+  Lisp_Object map;
+  /* Positions [START, END) in the key sequence buffer
+     are the key that we have scanned so far.
+     Those events are the ones that we will replace
+     if PAREHT maps them into a key sequence.  */
   int start, end;
 } keyremap;
 
@@ -8638,7 +8697,11 @@ keyremap_step (keybuf, bufsize, fkey, input, doit, diff, prompt)
   Lisp_Object next, key;
 
   key = keybuf[fkey->end++];
-  next = access_keymap_keyremap (fkey->map, key, prompt, doit);
+
+  if (KEYMAPP (fkey->parent))
+    next = access_keymap_keyremap (fkey->map, key, prompt, doit);
+  else
+    next = Qnil;
 
   /* If keybuf[fkey->start..fkey->end] is bound in the
      map and we're in a position to do the key remapping, replace it with
@@ -8878,9 +8941,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      reinitialize fkey and keytran before each replay.  */
   fkey.map = fkey.parent = current_kboard->Vlocal_function_key_map;
   keytran.map = keytran.parent = current_kboard->Vlocal_key_translation_map;
-  /* If there is no translation map, turn off scanning.  */
-  fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
-  keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
+  fkey.start = fkey.end = 0;
+  keytran.start = keytran.end = 0;
 
   starting_buffer = current_buffer;
   first_unbound = bufsize + 1;
@@ -9687,8 +9749,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	      keybuf[t - 1] = new_key;
 	      mock_input = max (t, mock_input);
-	      fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
-	      keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
+	      fkey.start = fkey.end = 0;
+	      keytran.start = keytran.end = 0;
 
 	      goto replay_sequence;
 	    }
@@ -11494,6 +11556,7 @@ syms_of_keyboard ()
   menu_bar_items_vector = Qnil;
   staticpro (&menu_bar_items_vector);
 
+  defsubr (&Scurrent_idle_time);
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
   defsubr (&Sread_key_sequence_vector);
@@ -11555,14 +11618,16 @@ These events are processed first, before actual keyboard input.  */);
 
   DEFVAR_LISP ("unread-post-input-method-events", &Vunread_post_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
-These events are processed after `unread-command-events', but
-before actual keyboard input.  */);
+These events are processed before `unread-command-events'
+and actual keyboard input without given to `input-method-function'.  */);
   Vunread_post_input_method_events = Qnil;
 
   DEFVAR_LISP ("unread-input-method-events", &Vunread_input_method_events,
 	       doc: /* List of events to be processed as input by input methods.
 These events are processed after `unread-command-events', but
-before actual keyboard input.  */);
+before actual keyboard input.
+If there's an active input method, the events are given to
+`input-method-function'.  */);
   Vunread_input_method_events = Qnil;
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,

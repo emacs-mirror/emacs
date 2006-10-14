@@ -1,3 +1,308 @@
+2006-08-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* alloc.c (BLOCK_INPUT_ALLOC, UNBLOCK_INPUT_ALLOC): Undo previous
+	change.  Move mutex lock/unlock operations inside BLOCK_INPUT.
+
+	* dired.c (directory_files_internal_unwind, directory_files_internal)
+	(file_name_completion): Add BLOCK_INPUT around opendir/closedir.
+
+	* image.c [MAC_OS] (image_load_qt_1): Use ComponentResult instead
+	of OSErr.
+
+	* keyboard.c (in_sighandler): Remove variable.
+	(Fcurrent_idle_time): Add missing `doc:'.
+	(input_available_signal, init_keyboard): Undo previous change.
+
+	* keyboard.h (in_sighandler): Remove extern.
+
+	* mac.c (create_apple_event_from_event_ref, select)
+	(Fmac_get_file_creator, Fmac_get_file_type, Fmac_set_file_creator)
+	(Fmac_set_file_type, cfstring_create_normalized)
+	(mac_get_system_locale, select_and_poll_event, sys_select): Use
+	OSStatus instead of OSErr.
+
+	* macfns.c [TARGET_API_MAC_CARBON] (mac_update_proxy_icon): Don't
+	use FRAME_FILE_NAME.  Use (FS)UpdateAlias.
+	(Fx_create_frame): Apply 2006-07-03 for xfns.c.
+
+	* macselect.c (get_scrap_from_symbol, clear_scrap, put_scrap_string)
+	(put_scrap_private_timestamp, scrap_has_target_type, get_scrap_string)
+	(get_scrap_private_timestamp, get_scrap_target_type_list)
+	(x_own_selection, x_get_foreign_selection)
+	(Fx_disown_selection_internal, Fx_selection_owner_p)
+	(Fx_selection_exists_p): Use OSStatus instead of OSErr.
+
+	* macterm.c (mac_draw_string_common, mac_query_char_extents)
+	(x_iconify_frame, XLoadQueryFont, install_window_handler)
+	(mac_handle_command_event, init_command_handler, init_menu_bar):
+	Use OSStatus instead of OSErr.
+	(x_free_frame_resources) [TARGET_API_MAC_CARBON]: Don't use
+	FRAME_FILE_NAME.
+	(x_query_font): Apply 2006-08-04 change for xterm.c.
+	(Qhi_command): Rename from Qhicommand.  All uses changed.
+
+	* macterm.h (struct mac_output) [TARGET_API_MAC_CARBON]: Remove member
+	file_name.
+	(FRAME_FILE_NAME): Remove macro.
+	(install_window_handler, create_apple_event_from_event_ref):
+	Return OSStatus instead of OSErr.
+
+2006-08-26  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (Fset_buffer_multibyte):
+	* editfns.c (Fcurrent_time, Fget_internal_run_time):
+	* macfns.c (Fxw_color_values):
+	* w32fns.c (Fxw_color_values):
+	* xfns.c (Fxw_color_values): Simplify; use list3.
+
+	* fileio.c (Fmake_directory_internal, Fdelete_directory)
+	(Fdelete_file): Simplify; use list1.
+	(Frename_file, Fadd_name_to_file, Fmake_symbolic_link):
+	Simplify; remove NO_ARG_ARRAY stuff, use list2.
+
+2006-08-25  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (Fcurrent_idle_time): Simplify.
+
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* fns.c (sxhash_string): Rotate properly; don't lose bits.
+
+2006-08-24  Francesc Rocher  <francesc.rocher@gmail.com>
+
+	* xdisp.c (overline_margin): New variable.
+	(x_produce_glyphs): Use it.
+	(syms_of_xdisp): DEFVAR_INT it.
+
+	* xterm.c (x_underline_at_descent_line): New variable.
+	(syms_of_xterm): DEFVAR_BOOL it.
+	(x_draw_glyph_string): Use it.
+	Draw underline and overline up to the end of line if the face
+	extends to the end of line.
+
+	* macterm.c: Likewise.
+
+	* w32term.c: Likewise.
+
+2006-08-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* buffer.c (Fswitch_to_buffer): Move buffer to front of
+	buffer-alist if necessary.
+
+2006-08-22  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (update_tool_bar): Redisplay toolbar also when only
+	number of items changes.
+
+2006-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fset_buffer_multibyte): Record proper undo entry.
+
+2006-08-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c: Clarify difference between in_sighandler and
+	handling_signal.
+
+2006-08-21  Kim F. Storm  <storm@cua.dk>
+
+	* macterm.c (x_draw_stretch_glyph_string):
+	* w32term.c (x_draw_stretch_glyph_string):
+	* xterm.c (x_draw_stretch_glyph_string): It is ok to draw a
+	stretch	glyph in left marginal areas on	header and mode lines.
+
+2006-08-21  Kenichi Handa  <handa@m17n.org>
+
+	* keyboard.c (syms_of_keyboard): Docstring of
+	Vunread_post_input_method_events and Vunread_input_method_events
+	fixed.
+
+2006-08-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (show_help_echo): Preserve mouse movement flag if
+	tracking mouse.
+
+2006-08-20  Richard Stallman  <rms@gnu.org>
+
+	* xfaces.c (load_pixmap): Add quotes in error message.
+
+	* keyboard.c (Fcurrent_idle_time): New function.
+	(syms_of_keyboard): defsubr it.
+
+2006-08-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* window.c (Fset_window_fringes): Do nothing on a tty.
+	(Fwindow_fringes): Put ? operator after the line break.
+
+2006-08-16  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (debug_output_compilation_hack): Fix return type.
+
+2006-08-16  Richard Stallman  <rms@gnu.org>
+
+	* print.c (debug_output_compilation_hack): New function.
+
+2006-08-16  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (choose_write_coding_system): Use LF for end-of-line
+	in auto-saving.
+
+2006-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): Don't change idle timer state at all if
+	end_time is supplied.
+
+2006-08-15  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (ONE_MORE_BYTE_CHECK_MULTIBYTE): New arg RET.  If SRC
+	is exhausted, return with RET.
+	(detect_coding_emacs_mule, detect_coding_iso2022)
+	(detect_coding_sjis, detect_coding_big5, detect_coding_utf_8)
+	(detect_coding_utf_16, detect_coding_ccl): Adjusted for the above
+	change.
+
+2006-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): Don't reset idle timers if a time limit
+	is supplied.
+
+2006-08-14  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (pitx): Print iterator position.
+	Limit stack dump in case iterator is not initialized.
+
+2006-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (Fmouse_position, Fmouse_pixel_position)
+	(Fset_mouse_position, Fset_mouse_pixel_position): Doc fix.
+
+2006-08-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (Fx_register_dnd_atom): New function.
+	(syms_of_xselect): Defsubr it.
+	(x_handle_dnd_message): Check that message_type is in
+	dpyinfo->x_dnd_atoms before generating lisp event.
+
+	* xterm.h (struct x_display_info): Add x_dnd_atoms* to keep track
+	of drag and drop Atoms.
+
+	* xterm.c (x_term_init): Initialize dpyinfo->x_dnd_atoms*
+
+
+2006-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c: Define in_sighandler.
+	(input_available_signal): Set in_sighandler.
+	(init_keyboard): Initialize in_sighandler.
+
+	* keyboard.h: Declare in_sighandler.
+
+	* alloc.c (UNBLOCK_INPUT_ALLOC, BLOCK_INPUT_ALLOC): Use in_sighandler
+	to check if mutex should be locked or not.
+
+2006-08-09  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (keyremap_step): No-op if fkey->parent = nil.
+	(read_key_sequence): Always start fkey.start and fkey.end at 0,
+	and likewise for keytran.
+
+2006-08-09  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (syms_of_coding): Improve the docstring
+	file-coding-system-alist.
+
+2006-08-07  Andreas Schwab  <schwab@suse.de>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1120000.
+
+2006-08-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (Vchange_major_mode_hook, Qchange_major_mode_hook): New vars.
+	(Fkill_all_local_variables): Use it.
+	(syms_of_buffer): Defvar it.
+
+2006-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (w32_valid_pointer_p): New function.
+
+	* w32.h: Add prototype for w32_valid_pointer_p.
+
+	* alloc.c: Include w32.h.
+	(valid_lisp_object_p) [WINDOWSNT]: Call w32_valid_pointer_p to do
+	the job.
+
+	* keyboard.c (kbd_buffer_get_event): Return Qnil when current time
+	is exactly equal to end_time, not only when it is past that.
+
+2006-08-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (read_char): Rebalance specpdl after receiving jump.
+
+	* process.c: Reapply 2006-08-01 change.
+
+2006-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_query_font): Fix last change: use stricmp.
+
+2006-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (Fsubst_char_in_region): Redo the setup work after running
+	the before-change-functions since they may have altered the buffer.
+
+2006-08-04  Ralf Angeli  <angeli@caeruleus.net>
+
+	* w32fns.c (w32_createwindow): Handle -geometry command line option
+	and the geometry settings in the Registry.
+
+2006-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* w32fns.c (w32_query_font): Compare names by ignoring case.
+
+	* xterm.c (x_query_font): Compare names by ignoring case.
+
+2006-08-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (w32_menu_show, w32_dialog_show): Call Fsignal to quit
+	when no option selected.
+
+2006-08-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c: Revert last change.
+
+2006-08-01  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (wait_reading_process_output_unwind): New function.
+	Restores waiting_for_user_input_p to saved value.
+	(wait_reading_process_output): Unwind protect waiting_for_user_input_p
+	instead of save/restore old value on stack.
+
+2006-07-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* editfns.c: Undo 2006-06-27 change.
+
+2006-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* coding.c (Ffind_operation_coding_system): Revert the change from
+	2006-05-29.
+
+	* alloc.c [WINDOWSNT]: Include fcntl.h, to fix last change.
+
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* xfaces.c (lookup_named_face, Fdisplay_supports_face_attributes_p):
+	Add conditional aborts for clarity.
+
+	* xdisp.c (update_menu_bar): New arg HOOKS_RUN.  Callers changed.
+	Used to avoid running the hooks over and over for each frame.
+	(prepare_menu_bars): Pass value from update_menu_bar
+	as HOOKS_RUN of next call.
+
+	* keyboard.c (safe_run_hooks_1): Don't crash if Vrun_hooks is nil.
+
+2006-07-28  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (valid_pointer_p): New function (from valid_lisp_object_p).
+	(valid_lisp_object_p): Use it to check for valid SUBRP obj.
+
 2006-07-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (read_char): New arg END_TIME specifying timeout.
@@ -176,6 +481,14 @@
 	(XTread_socket): Use character codes to construct keypad key events.
 	(mac_initialize_display_info) [MAC_OSX]: Use CGDisplaySamplesPerPixel.
 	(x_delete_display): Apply 2006-07-04 change for xterm.c.
+
+2006-07-17  Richard Stallman  <rms@gnu.org>
+
+	* keyboard.c (Vcommand_error_function): New variable.
+	(syms_of_keyboard): Defvar it.
+	(cmd_error_internal): Simplify, and handle Vcommand_error_function.
+
+	* dispnew.c (init_display): Mention DISPLAY as well as TERM in err msg.
 
 2006-07-17  Kim F. Storm  <storm@cua.dk>
 
@@ -617,8 +930,8 @@
 
 2006-06-14  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xdisp.c (back_to_previous_visible_line_start): Reset
-	it->continuation_lines_width.
+	* xdisp.c (back_to_previous_visible_line_start):
+	Reset it->continuation_lines_width.
 
 2006-06-14  Richard Stallman  <rms@gnu.org>
 
@@ -689,8 +1002,8 @@
 
 2006-06-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event): Exclude
-	0x7f from ASCII range.
+	* macterm.c [USE_MAC_TSM] (mac_handle_text_input_event):
+	Exclude 0x7f from ASCII range.
 
 2006-06-05  Jason Rumney  <jasonr@gnu.org>
 

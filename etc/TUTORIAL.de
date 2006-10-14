@@ -285,8 +285,8 @@ sein.  Wollen Sie ihn nach unten verschieben, dann geben Sie M-v mit
 einem numerischen Argument ein.
 
 Wenn Sie eine graphische Oberfläche wie X oder MS-Windows verwenden,
-dann befindet sich ein schmaler, langgezogener rechteckiger Bereich im
-Regelfall auf der linken Seite des Emacs-Fensters.  Dieser Bereich
+dann befindet sich ein schmaler, langgezogener rechteckiger Bereich auf
+der linken oder rechten Seite des Emacs-Fensters.  Dieser Bereich
 wird Scrollbar genannt (`Verschiebungsbalken').  Sie können Text
 verschieben, indem Sie mit der Maus auf den Scrollbar klicken.
 

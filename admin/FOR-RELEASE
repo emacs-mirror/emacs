@@ -29,7 +29,9 @@ Reminders sent out on 2006-06-08.
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
-* BUGS
+* WINDOWS SUPPORT BUGS.
+These don't need to be fixed to start pretest, but we call the
+attention of Windows users to fixing them.
 
 ** Markus Gritsch's report about Emacs looping on Windoze with the following
 .emacs file, and then reduce Emacs frame width to "something quite narrow":
@@ -39,73 +41,23 @@ and KDE projects, to use the new Emacs icons in etc/images/icons.
 	 '(hscroll-step 1)
 	)
 
-** David Kastrup's report on strange scrolling of large images.
+** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
+Windows only bug.
 
-** Jorgen Schaefer <forcer@forcix.cx>'s June 18 bug report about
-  fields and invisible overlays needs attention from a field expert.
+* BUGS
+
+** Milan Zamazal's Aug 23 bug report about crashes with certain fonts.
+
+** C-g fails to interrupt accept-process-output in Gnus.
 
 ** Implement buffer-chars-modified-tick.
 
+** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem.
+
+** Make key-binding use the maps specified by positions given in the events.
+
+
 * DOCUMENTATION
-
-** Check the Emacs Lisp manual.
-
-Each manual section should be checked for factual correctness
-regarding recent changes by at least two people.  After each file
-name, on the same line or the following line, come the names of the
-people who have checked it.
-
-SECTION                  READERS
-----------------------------------
-lispref/abbrevs.texi     "Luc Teirlinck"   Chong Yidong
-lispref/advice.texi      Joakim Verona     Chong Yidong
-lispref/anti.texi        Chong Yidong      Kim F. Storm
-lispref/backups.texi     "Luc Teirlinck"   Chong Yidong
-lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
-lispref/calendar.texi    Joakim Verona     Chong Yidong
-lispref/commands.texi    "Luc Teirlinck"   Chong Yidong
-lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
-lispref/control.texi     "Luc Teirlinck"   Chong Yidong
-lispref/customize.texi   Chong Yidong      "Luc Teirlinck"
-lispref/debugging.texi   Joakim Verona     Lute Kamstra
-lispref/display.texi     Chong Yidong      Jason Rumney
-lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
-lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
-lispref/errors.texi      "Luc Teirlinck"   Chong Yidong
-lispref/eval.texi        "Luc Teirlinck"   Chong Yidong
-lispref/files.texi       "Luc Teirlinck"   Chong Yidong
-lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
-lispref/functions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/hash.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/help.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/hooks.texi	 Lute Kamstra      Chong Yidong
-lispref/internals.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/intro.texi	 "Luc Teirlinck"   Josh Varner
-lispref/keymaps.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
-lispref/locals.texi      Chong Yidong      Nick Roberts
-lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
-lispref/maps.texi        Chong Yidong	   Kim F. Storm
-lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
-lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
-lispref/modes.texi	 Chong Yidong
-lispref/nonascii.texi    "Luc Teirlinck"   Chong Yidong
-lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
-lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/processes.texi   Chong Yidong	   ttn
-lispref/searching.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/strings.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/symbols.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/syntax.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/text.texi        Chong Yidong
-lispref/tips.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/variables.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/windows.texi     "Luc Teirlinck"   Chong Yidong
 
 ** Check the Emacs Tutorial.
 

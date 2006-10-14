@@ -1539,7 +1539,7 @@ in `selection-converter-alist', which see."
 (put 'autosave-now       'mac-apple-event-id "asav") ; kAEAutosaveNow
 ;; kAEInternetEventClass
 (put 'get-url            'mac-apple-event-id "GURL") ; kAEGetURL
-;; Converted HICommand events
+;; Converted HI command events
 (put 'about              'mac-apple-event-id "abou") ; kHICommandAbout
 
 (defmacro mac-event-spec (event)
@@ -1739,7 +1739,7 @@ Currently the `mailto' scheme is supported."
 
 (define-key mac-apple-event-map [internet-event get-url] 'mac-ae-get-url)
 
-(define-key mac-apple-event-map [hicommand about] 'display-splash-screen)
+(define-key mac-apple-event-map [hi-command about] 'display-splash-screen)
 
 ;;; Converted Carbon Events
 (defun mac-handle-toolbar-switch-mode (event)
@@ -2208,7 +2208,8 @@ See also `mac-dnd-known-types'."
 	  ;; If dropping in an ordinary window which we could use,
 	  ;; let dnd-open-file-other-window specify what to do.
 	  (progn
-	    (goto-char (posn-point (event-start event)))
+	    (when (not mouse-yank-at-point)
+	      (goto-char (posn-point (event-start event))))
 	    (funcall handler window action data))
 	;; If we can't display the file here,
 	;; make a new window for it.
@@ -2561,8 +2562,8 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 
 ;; Initiate drag and drop
 
-(global-set-key [drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
-(global-set-key [M-drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
+(define-key special-event-map [drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
+(define-key special-event-map [M-drag-n-drop] 'mac-dnd-handle-drag-n-drop-event)
 
 
 ;;;; Non-toolkit Scroll bars

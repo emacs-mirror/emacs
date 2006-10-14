@@ -1798,7 +1798,7 @@ User will be queried, if no fileset name is provided."
 		      filesets-data nil)))
          (entry  (or (assoc name filesets-data)
                      (when (y-or-n-p
-                            (format "Fileset %s does not exist. Create it?"
+                            (format "Fileset %s does not exist. Create it? "
                                     name))
                        (progn
       (add-to-list 'filesets-data (list name '(:files)))

@@ -95,7 +95,7 @@
   :group 'timeclock)
 
 (defcustom timeclock-relative t
-  "*Whether to maken reported time relative to `timeclock-workday'.
+  "*Whether to make reported time relative to `timeclock-workday'.
 For example, if the length of a normal workday is eight hours, and you
 work four hours on Monday, then the amount of time \"remaining\" on
 Tuesday is twelve hours -- relative to an averaged work period of
@@ -251,7 +251,10 @@ each day.")
 This value is not accurate enough to be useful by itself.  Rather,
 call `timeclock-workday-elapsed', to determine how much time has been
 worked so far today.  Also, if `timeclock-relative' is nil, this value
-will be the same as `timeclock-discrepancy'.") ; ? gm
+will be the same as `timeclock-discrepancy'.")
+
+(defvar timeclock-use-elapsed nil
+  "Non-nil if the modeline should display time elapsed, not remaining.")
 
 (defvar timeclock-last-period nil
   "Integer representing the number of seconds in the last period.
@@ -424,7 +427,9 @@ If SHOW-SECONDS is non-nil, display second resolution.
 If TODAY-ONLY is non-nil, the display will be relative only to time
 worked today, ignoring the time worked on previous days."
   (interactive "P")
-  (let ((remainder (timeclock-workday-remaining)) ; today-only?
+  (let ((remainder (timeclock-workday-remaining
+		    (or today-only
+			(not timeclock-relative))))
         (last-in (equal (car timeclock-last-event) "i"))
         status)
     (setq status
@@ -619,7 +624,10 @@ relative only to the time worked today, and not to past time."
 The value of `timeclock-relative' affects the display as described in
 that variable's documentation."
   (interactive)
-  (let ((remainder (timeclock-workday-remaining (not timeclock-relative)))
+  (let ((remainder
+	 (if timeclock-use-elapsed
+	     (timeclock-workday-elapsed)
+	   (timeclock-workday-remaining (not timeclock-relative))))
         (last-in (equal (car timeclock-last-event) "i")))
     (when (and (< remainder 0)
 	       (not (and timeclock-day-over

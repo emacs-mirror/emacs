@@ -1,3 +1,29 @@
+2006-08-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* etags.c (readline): expect sscanf returns >= 1.
+	(readline): Change position on %n and \" in sscanf.
+
+2006-08-07  Masatake YAMATO  <jet@gyve.org>
+
+	* etags.c (readline): expect sscanf returns 2, 
+	not 1.
+	
+2006-08-07  Masatake YAMATO  <jet@gyve.org>
+
+	* etags.c (TEX_mode): Check getc retruns EOF.
+	File ended without newline causes infinite loop.
+
+2002-07-30  Adrian Aichner  <adrian@xemacs.org>  (tiny change)
+
+	* etags.c: It's XEmacs, not Xemacs: change all the occurences.
+
+2006-07-30  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c [ETAGS_REGEXPS]: Now is unconditionally defined.
+	[LONG_OPTIONS]: Changed to NO_LONG_OPTIONS, which is undefined.
+	(Objc_suffixes): Suggest using --lang=c for full help.
+	(C_entries): Initialise savetoken to 0 to shut up the compiler.
+
 2006-07-20  Andreas Schwab  <schwab@suse.de>
 
 	* fakemail.c (fatal): Drop second parameter and treat first

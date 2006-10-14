@@ -117,17 +117,17 @@ DOC-STR should be a single line providing more information about the
 
 REGEXP  is a regular expression to match against the beginning of the file;
         it should match only files in that format.  Use nil to avoid
-        matching at all for formats for which this isn't appropriate to
+        matching at all for formats for which it isn't appropriate to
         require explicit encoding/decoding.
 
-FROM-FN is called to decode files in that format; it gets two args, BEGIN
+FROM-FN is called to decode files in that format; it takes two args, BEGIN
         and END, and can make any modifications it likes, returning the new
         end.  It must make sure that the beginning of the file no longer
         matches REGEXP, or else it will get called again.
 	Alternatively, FROM-FN can be a string, which specifies a shell command
 	(including options) to be used as a filter to perform the conversion.
 
-TO-FN   is called to encode a region into that format; it is passed three
+TO-FN   is called to encode a region into that format; it takes three
         arguments: BEGIN, END, and BUFFER.  BUFFER is the original buffer that
         the data being written came from, which the function could use, for
         example, to find the values of local variables.  TO-FN should either
@@ -142,7 +142,7 @@ MODIFY, if non-nil, means the TO-FN wants to modify the region.  If nil,
 
 MODE-FN, if specified, is called when visiting a file with that format.
          It is called with a single positive argument, on the assumption
-         that it turns on some Emacs mode.
+         that this would turn on some minor mode.
 
 PRESERVE, if non-nil, means that `format-write-file' should not remove
           this format from `buffer-file-formats'.")
@@ -150,8 +150,8 @@ PRESERVE, if non-nil, means that `format-write-file' should not remove
 ;;; Basic Functions (called from Lisp)
 
 (defun format-encode-run-method (method from to &optional buffer)
-  "Translate using function or shell script METHOD the text from FROM to TO.
-If METHOD is a string, it is a shell command;
+  "Translate using METHOD the text from FROM to TO.
+If METHOD is a string, it is a shell command (including options);
 otherwise, it should be a Lisp function.
 BUFFER should be the buffer that the output originally came from."
   (if (stringp method)
@@ -173,9 +173,9 @@ BUFFER should be the buffer that the output originally came from."
     (funcall method from to buffer)))
 
 (defun format-decode-run-method (method from to &optional buffer)
-  "Decode using function or shell script METHOD the text from FROM to TO.
-If METHOD is a string, it is a shell command; otherwise, it should be
-a Lisp function.  Decoding is done for the given BUFFER."
+  "Decode using METHOD the text from FROM to TO.
+If METHOD is a string, it is a shell command (including options); otherwise,
+it should be a Lisp function.  Decoding is done for the given BUFFER."
   (if (stringp method)
       (let ((error-buff (get-buffer-create "*Format Errors*"))
 	    (coding-system-for-write 'no-conversion)
@@ -200,15 +200,15 @@ a Lisp function.  Decoding is done for the given BUFFER."
 
 (defun format-annotate-function (format from to orig-buf format-count)
   "Return annotations for writing region as FORMAT.
-FORMAT is a symbol naming one of the formats defined in `format-alist',
-it must be a single symbol, not a list like `buffer-file-format'.
+FORMAT is a symbol naming one of the formats defined in `format-alist'.
+It must be a single symbol, not a list like `buffer-file-format'.
 FROM and TO delimit the region to be operated on in the current buffer.
 ORIG-BUF is the original buffer that the data came from.
 
 FORMAT-COUNT is an integer specifying how many times this function has
 been called in the process of decoding ORIG-BUF.
 
-This function works like a function on `write-region-annotate-functions':
+This function works like a function in `write-region-annotate-functions':
 it either returns a list of annotations, or returns with a different buffer
 current, which contains the modified text to write.  In the latter case,
 this function's value is nil.
@@ -253,7 +253,7 @@ If optional third arg VISIT-FLAG is true, set `buffer-file-format'
 to the reverted list of formats used, and call any mode functions defined
 for those formats.
 
-Returns the new length of the decoded region.
+Return the new length of the decoded region.
 
 For most purposes, consider using `format-decode-region' instead."
   (let ((mod (buffer-modified-p))
@@ -312,9 +312,9 @@ For most purposes, consider using `format-decode-region' instead."
 
 (defun format-decode-buffer (&optional format)
   "Translate the buffer from some FORMAT.
-If the format is not specified, this function attempts to guess.
-`buffer-file-format' is set to the format used, and any mode-functions
-for the format are called."
+If the format is not specified, attempt a regexp-based guess.
+Set `buffer-file-format' to the format used, and call any
+format-specific mode functions."
   (interactive
    (list (format-read "Translate buffer from format (default guess): ")))
   (save-excursion
@@ -343,7 +343,7 @@ formats defined in `format-alist', or a list of such symbols."
 
 (defun format-encode-region (beg end &optional format)
   "Translate the region into some FORMAT.
-FORMAT defaults to `buffer-file-format', it is a symbol naming
+FORMAT defaults to `buffer-file-format'.  It is a symbol naming
 one of the formats defined in `format-alist', or a list of such symbols."
   (interactive
    (list (region-beginning) (region-end)
@@ -374,9 +374,9 @@ Make buffer visit that file and set the format as the default for future
 saves.  If the buffer is already visiting a file, you can specify a directory
 name as FILENAME, to write a file of the same old name in that directory.
 
-If optional third arg CONFIRM is non-nil, this function asks for
-confirmation before overwriting an existing file.  Interactively,
-confirmation is required unless you supply a prefix argument."
+If optional third arg CONFIRM is non-nil, ask for confirmation before
+overwriting an existing file.  Interactively, confirmation is required
+unless you supply a prefix argument."
   (interactive
    ;; Same interactive spec as write-file, plus format question.
    (let* ((file (if buffer-file-name
@@ -419,7 +419,7 @@ If FORMAT is nil then do not do any format conversion."
   "Insert the contents of file FILENAME using data format FORMAT.
 If FORMAT is nil then do not do any format conversion.
 The optional third and fourth arguments BEG and END specify
-the part of the file to read.
+the part (in bytes) of the file to read.
 
 The return value is like the value of `insert-file-contents':
 a list (ABSOLUTE-FILE-NAME SIZE)."
@@ -456,10 +456,10 @@ Formats are defined in `format-alist'.  Optional arg is the PROMPT to use."
 (defun format-replace-strings (alist &optional reverse beg end)
   "Do multiple replacements on the buffer.
 ALIST is a list of (FROM . TO) pairs, which should be proper arguments to
-`search-forward' and `replace-match' respectively.
-Optional 2nd arg REVERSE, if non-nil, means the pairs are (TO . FROM), so that
-you can use the same list in both directions if it contains only literal
-strings.
+`search-forward' and `replace-match', respectively.
+Optional second arg REVERSE, if non-nil, means the pairs are (TO . FROM),
+so that you can use the same list in both directions if it contains only
+literal strings.
 Optional args BEG and END specify a region of the buffer on which to operate."
   (save-excursion
     (save-restriction
@@ -497,7 +497,7 @@ the value of `foo'."
 
 (defun format-make-relatively-unique (a b)
   "Delete common elements of lists A and B, return as pair.
-Compares using `equal'."
+Compare using `equal'."
   (let* ((acopy (copy-sequence a))
 	 (bcopy (copy-sequence b))
 	 (tail acopy))
@@ -511,9 +511,9 @@ Compares using `equal'."
 
 (defun format-common-tail (a b)
   "Given two lists that have a common tail, return it.
-Compares with `equal', and returns the part of A that is equal to the
+Compare with `equal', and return the part of A that is equal to the
 equivalent part of B.  If even the last items of the two are not equal,
-returns nil."
+return nil."
   (let ((la (length a))
 	(lb (length b)))
     ;; Make sure they are the same length
@@ -534,9 +534,9 @@ A proper list is a list ending with a nil cdr, not with an atom "
     (null list)))
 
 (defun format-reorder (items order)
-  "Arrange ITEMS to following partial ORDER.
-Elements of ITEMS equal to elements of ORDER will be rearranged to follow the
-ORDER.  Unmatched items will go last."
+  "Arrange ITEMS to follow partial ORDER.
+Elements of ITEMS equal to elements of ORDER will be rearranged
+to follow the ORDER.  Unmatched items will go last."
   (if order
       (let ((item (member (car order) items)))
 	(if item
@@ -793,7 +793,7 @@ yet known.
 ;; next-single-property-change instead of text-property-not-all, but then
 ;; we have to see if we passed TO.
 (defun format-property-increment-region (from to prop delta default)
-  "Over the region between FROM and TO increment property PROP by amount DELTA.
+  "In the region from FROM to TO increment property PROP by amount DELTA.
 DELTA may be negative.  If property PROP is nil anywhere
 in the region, it is treated as though it were DEFAULT."
   (let ((cur from) val newval next)
@@ -810,7 +810,7 @@ in the region, it is treated as though it were DEFAULT."
 
 (defun format-insert-annotations (list &optional offset)
   "Apply list of annotations to buffer as `write-region' would.
-Inserts each element of the given LIST of buffer annotations at its
+Insert each element of the given LIST of buffer annotations at its
 appropriate place.  Use second arg OFFSET if the annotations' locations are
 not relative to the beginning of the buffer: annotations will be inserted
 at their location-OFFSET+1 \(ie, the offset is treated as the position of
@@ -834,7 +834,7 @@ property is the name of the annotation that you want to use, as it is for the
 
 (defun format-annotate-region (from to translations format-fn ignore)
   "Generate annotations for text properties in the region.
-Searches for changes between FROM and TO, and describes them with a list of
+Search for changes between FROM and TO, and describe them with a list of
 annotations as defined by alist TRANSLATIONS and FORMAT-FN.  IGNORE lists text
 properties not to consider; any text properties that are neither ignored nor
 listed in TRANSLATIONS are warned about.
@@ -975,9 +975,9 @@ either strings, or lists of the form (PARAMETER VALUE)."
   "Return annotations for property PROP changing from OLD to NEW.
 These are searched for in the translations alist TRANSLATIONS
  (see `format-annotate-region' for the format).
-If NEW does not appear in the list, but there is a default function, then that
-function is called.
-Returns a cons of the form (CLOSE . OPEN)
+If NEW does not appear in the list, but there is a default function,
+then call that function.
+Return a cons of the form (CLOSE . OPEN)
 where CLOSE is a list of annotations to close
 and OPEN is a list of annotations to open.
 
@@ -1016,7 +1016,7 @@ either strings, or lists of the form (PARAMETER VALUE)."
 	(format-annotate-atomic-property-change prop-alist old new)))))
 
 (defun format-annotate-atomic-property-change (prop-alist old new)
-  "Internal function annotate a single property change.
+  "Internal function to annotate a single property change.
 PROP-ALIST is the relevant element of a TRANSLATIONS list.
 OLD and NEW are the values."
   (let (num-ann)

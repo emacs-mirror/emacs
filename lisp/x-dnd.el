@@ -122,6 +122,12 @@ any protocol specific data.")
 (defun x-dnd-init-frame (&optional frame)
   "Setup drag and drop for FRAME (i.e. create appropriate properties)."
   (when (eq 'x (window-system frame))
+    (x-register-dnd-atom "DndProtocol" frame)
+    (x-register-dnd-atom "_MOTIF_DRAG_AND_DROP_MESSAGE" frame)
+    (x-register-dnd-atom "XdndEnter" frame)
+    (x-register-dnd-atom "XdndPosition" frame)
+    (x-register-dnd-atom "XdndLeave" frame)
+    (x-register-dnd-atom "XdndDrop" frame)
     (x-dnd-init-xdnd-for-frame frame)
     (x-dnd-init-motif-for-frame frame)))
 
@@ -320,7 +326,8 @@ nil if not."
 	  ;; If dropping in an ordinary window which we could use,
 	  ;; let dnd-open-file-other-window specify what to do.
 	  (progn
-	    (goto-char (posn-point (event-start event)))
+	    (when (not mouse-yank-at-point)
+	      (goto-char (posn-point (event-start event))))
 	    (funcall handler window action data))
 	;; If we can't display the file here,
 	;; make a new window for it.

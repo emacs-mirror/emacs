@@ -1,3 +1,79 @@
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* TUTORIAL: Give priority to graphical terminals over text terminals
+	regarding C-z.
+
+2006-08-21  Sun Yijiang  <sunyijiang@gmail.com>
+
+	* TUTORIAL.cn: Sync with the latest TUTORIAL.
+
+2006-08-20  Dave Love  <fx@gnu.org>
+
+	* emacs.py: Update to Dave Love's latest version.
+	(__all__): Fix args -> eargs.  Add new `modpath' fun.
+	(eargs): Add `imports' arg.
+	(all_names): New fun.
+	(complete): Rewrite without using rlcompleter.
+	Remove `namespace' arg, add `imports' arg.
+	(ehelp): Replace g and l args with `imports'.
+	(eimport): Use __main__ rather than `emacs' namespace.
+	(modpath): New fun.
+
+2006-08-20  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se>  (tiny change)
+
+	* emacs.py (eexecfile): Use the __main__ rather than `emacs' namespace.
+
+2006-08-18  Primoz PETERLIN  <primoz.peterlin@mf.uni-lj.si>
+
+	* TUTORIAL.sl: Synchronize with TUTORIAL.
+
+2006-08-18  Mats Lidell  <matsl@contactor.se>
+
+	* TUTORIAL.sv: Synchronize with TUTORIAL.
+
+2006-08-18  Alfredo Finelli  <alfredofnl@tiscali.it>
+
+	* TUTORIAL.it: Synchronize with TUTORIAL.
+
+2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex: Version number change.
+
+2006-08-12  Werner Lemberg  <wl@gnu.org>
+
+	* TUTORIAL.de: Synchronize with TUTORIAL.
+
+2006-08-10  Romain Francoise  <romain@orebokech.com>
+
+	* NEWS: Mention that zone-mode.el is now obsolete.
+
+2006-08-09  Richard Stallman  <rms@gnu.org>
+
+	* TUTORIAL: Don't say which side scroll bar is on.
+
+2006-08-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* DEBUG (Note): Add note about following a longjmp call.
+	Add local variables list for outline mode.
+
+2006-08-03  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for ERC 5.1.4.
+
+2006-08-01  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS (find-operation-coding-system): Describe the more detail of
+	the change.
+
+2006-07-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* GNUS-NEWS: Regenerate from Oort Gnus node in texi/gnus.texi using
+	texi/gnus-news.el of the trunk.
+
+2006-07-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* NEWS: Fix typo.
+
 2006-07-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* ru-refcard.ps: Regenerate.
@@ -168,7 +244,7 @@
 
 2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* NEWS: Mention F10 for Gtk+/Leddtif/Lucid menus.
+	* NEWS: Mention F10 for Gtk+/Lesstif/Lucid menus.
 
 2006-05-26  Eli Zaretskii  <eliz@gnu.org>
 

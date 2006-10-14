@@ -31,6 +31,8 @@
 
 
 (eval-when-compile
+  (require 'cl)
+
   (defmacro with-buffer-unmodified (&rest body)
     "Eval BODY, preserving the current buffer's modified state."
     (declare (debug t))
@@ -169,6 +171,8 @@ If nil, contextual fontification is disabled.")
 
 (defvar jit-lock-stealth-timer nil
   "Timer for stealth fontification in Just-in-time Lock mode.")
+(defvar jit-lock-stealth-repeat-timer nil
+  "Timer for repeated stealth fontification in Just-in-time Lock mode.")
 (defvar jit-lock-context-timer nil
   "Timer for context fontification in Just-in-time Lock mode.")
 (defvar jit-lock-defer-timer nil
@@ -176,6 +180,8 @@ If nil, contextual fontification is disabled.")
 
 (defvar jit-lock-defer-buffers nil
   "List of buffers with pending deferred fontification.")
+(defvar jit-lock-stealth-buffers nil
+  "List of buffers that are being fontified stealthily.")
 
 ;;; JIT lock mode
 
@@ -222,6 +228,13 @@ the variable `jit-lock-stealth-nice'."
 	   (setq jit-lock-stealth-timer
 		 (run-with-idle-timer jit-lock-stealth-time t
 				      'jit-lock-stealth-fontify)))
+
+	 ;; Create, but do not activate, the idle timer for repeated
+	 ;; stealth fontification.
+	 (when (and jit-lock-stealth-time (null jit-lock-stealth-repeat-timer))
+	   (setq jit-lock-stealth-repeat-timer (timer-create))
+	   (timer-set-function jit-lock-stealth-repeat-timer
+			       'jit-lock-stealth-fontify '(t)))
 
 	 ;; Init deferred fontification timer.
 	 (when (and jit-lock-defer-time (null jit-lock-defer-timer))
@@ -331,7 +344,7 @@ Defaults to the whole buffer.  END can be out of bounds."
      ;; from the end of a buffer to its start, can do repeated
      ;; `parse-partial-sexp' starting from `point-min', which can
      ;; take a long time in a large buffer.
-     (let (next)
+     (let ((orig-start start) next)
        (save-match-data
 	 ;; Fontify chunks beginning at START.  The end of a
 	 ;; chunk is either `end', or the start of a region
@@ -373,6 +386,26 @@ Defaults to the whole buffer.  END can be out of bounds."
 	     ;; before displaying the block again.
 	     (quit (put-text-property start next 'fontified nil)
 		   (funcall 'signal (car err) (cdr err))))
+
+           ;; The redisplay engine has already rendered the buffer up-to
+           ;; `orig-start' and won't notice if the above jit-lock-functions
+           ;; changed the appearance of any part of the buffer prior
+           ;; to that.  So if `start' is before `orig-start', we need to
+           ;; cause a new redisplay cycle after this one so that any changes
+           ;; are properly reflected on screen.
+           ;; To make such repeated redisplay happen less often, we can
+           ;; eagerly extend the refontified region with
+           ;; jit-lock-after-change-extend-region-functions.
+           (when (< start orig-start)
+             (lexical-let ((start start)
+                           (orig-start orig-start)
+                           (buf (current-buffer)))
+               (run-with-timer
+                0 nil (lambda ()
+                        (with-current-buffer buf
+                          (with-buffer-prepared-for-jit-lock
+                              (put-text-property start orig-start
+                                                 'fontified t)))))))
 
 	   ;; Find the start of the next chunk, if any.
 	   (setq start (text-property-any next end 'fontified nil))))))))
@@ -421,71 +454,55 @@ Value is nil if there is nothing more to fontify."
 			   (t next))))
 	result))))
 
-
-(defun jit-lock-stealth-fontify ()
+(defun jit-lock-stealth-fontify (&optional repeat)
   "Fontify buffers stealthily.
-This functions is called after Emacs has been idle for
-`jit-lock-stealth-time' seconds."
-  ;; I used to check `inhibit-read-only' here, but I can't remember why.  -stef
+This function is called repeatedly after Emacs has become idle for
+`jit-lock-stealth-time' seconds.  Optional argument REPEAT is expected
+non-nil in a repeated invocation of this function."
+  ;; Cancel timer for repeated invocations.
+  (unless repeat
+    (cancel-timer jit-lock-stealth-repeat-timer))
   (unless (or executing-kbd-macro
 	      memory-full
-	      (window-minibuffer-p (selected-window)))
-    (let ((buffers (buffer-list))
-	  (outer-buffer (current-buffer))
+	      (window-minibuffer-p (selected-window))
+	      ;; For first invocation set up `jit-lock-stealth-buffers'.
+	      ;; In repeated invocations it's already been set up.
+	      (null (if repeat
+			jit-lock-stealth-buffers
+		      (setq jit-lock-stealth-buffers (buffer-list)))))
+    (let ((buffer (car jit-lock-stealth-buffers))
+	  (delay 0)
 	  minibuffer-auto-raise
-	  message-log-max)
-      (with-local-quit
-	(while (and buffers (not (input-pending-p)))
-	  (with-current-buffer (pop buffers)
-	    (when jit-lock-mode
-	      ;; This is funny.  Calling sit-for with 3rd arg non-nil
-	      ;; so that it doesn't redisplay, internally calls
-	      ;; wait_reading_process_input also with a parameter
-	      ;; saying "don't redisplay."  Since this function here
-	      ;; is called periodically, this effectively leads to
-	      ;; process output not being redisplayed at all because
-	      ;; redisplay_internal is never called.  (That didn't
-	      ;; work in the old redisplay either.)  So, we learn that
-	      ;; we mustn't call sit-for that way here.  But then, we
-	      ;; have to be cautious not to call sit-for in a widened
-	      ;; buffer, since this could display hidden parts of that
-	      ;; buffer.  This explains the seemingly weird use of
-	      ;; save-restriction/widen here.
-
-	      (with-temp-message (if jit-lock-stealth-verbose
-				     (concat "JIT stealth lock "
-					     (buffer-name)))
-
-		;; In the following code, the `sit-for' calls cause a
-		;; redisplay, so it's required that the
-		;; buffer-modified flag of a buffer that is displayed
-		;; has the right value---otherwise the mode line of
-		;; an unmodified buffer would show a `*'.
-		(let (start
-		      (nice (or jit-lock-stealth-nice 0))
-		      (point (point-min)))
-		  (while (and (setq start
-				    (jit-lock-stealth-chunk-start point))
-			      ;; In case sit-for runs any timers,
-			      ;; give them the expected current buffer.
-			      (with-current-buffer outer-buffer
-				(sit-for nice)))
-
-		    ;; fontify a block.
-		    (jit-lock-fontify-now start (+ start jit-lock-chunk-size))
-		    ;; If stealth jit-locking is done backwards, this leads to
-		    ;; excessive O(n^2) refontification.   -stef
-		    ;; (when (>= jit-lock-context-unfontify-pos start)
-		    ;;   (setq jit-lock-context-unfontify-pos end))
-
-		    ;; Wait a little if load is too high.
-		    (when (and jit-lock-stealth-load
-			       (> (car (load-average)) jit-lock-stealth-load))
-		      ;; In case sit-for runs any timers,
-		      ;; give them the expected current buffer.
-		      (with-current-buffer outer-buffer
-			(sit-for (or jit-lock-stealth-time 30))))))))))))))
-
+	  message-log-max
+	  start)
+      (if (and jit-lock-stealth-load
+	       (> (car (load-average)) jit-lock-stealth-load))
+	  ;; Wait a little if load is too high.
+	  (setq delay jit-lock-stealth-time)
+	(if (buffer-live-p buffer)
+	    (with-current-buffer buffer
+	      (if (and jit-lock-mode
+		       (setq start (jit-lock-stealth-chunk-start (point))))
+		  ;; Fontify one block of at most `jit-lock-chunk-size'
+		  ;; characters.
+		  (with-temp-message (if jit-lock-stealth-verbose
+					 (concat "JIT stealth lock "
+						 (buffer-name)))
+		    (jit-lock-fontify-now start
+					  (+ start jit-lock-chunk-size))
+		    ;; Run again after `jit-lock-stealth-nice' seconds.
+		    (setq delay (or jit-lock-stealth-nice 0)))
+		;; Nothing to fontify here.  Remove this buffer from
+		;; `jit-lock-stealth-buffers' and run again immediately.
+		(setq jit-lock-stealth-buffers (cdr jit-lock-stealth-buffers))))
+	  ;; Buffer is no longer live.  Remove it from
+	  ;; `jit-lock-stealth-buffers' and run again immediately.
+	  (setq jit-lock-stealth-buffers (cdr jit-lock-stealth-buffers))))
+      ;; Call us again.
+      (when jit-lock-stealth-buffers
+	(timer-set-idle-time jit-lock-stealth-repeat-timer (current-idle-time))
+	(timer-inc-time jit-lock-stealth-repeat-timer delay)
+	(timer-activate-when-idle jit-lock-stealth-repeat-timer t)))))
 
 
 ;;; Deferred fontification.
@@ -548,6 +565,19 @@ This functions is called after Emacs has been idle for
 		'(fontified nil jit-lock-defer-multiline nil)))
 	      (setq jit-lock-context-unfontify-pos (point-max)))))))))
 
+(defvar jit-lock-start) (defvar jit-lock-end) ; Dynamically scoped variables.
+(defvar jit-lock-after-change-extend-region-functions nil
+  "Hook that can extend the text to refontify after a change.
+This is run after every buffer change.  The functions are called with
+the three arguments of `after-change-functions': START END OLD-LEN.
+The extended region to refontify is returned indirectly by modifying
+the variables `jit-lock-start' and `jit-lock-end'.
+
+Note that extending the region this way is not strictly necessary, except
+that the nature of the redisplay code tends to otherwise leave some of
+the rehighlighted text displayed with the old highlight until the next
+redisplay (see comment about repeated redisplay in `jit-lock-fontify-now').")
+
 (defun jit-lock-after-change (start end old-len)
   "Mark the rest of the buffer as not fontified after a change.
 Installed on `after-change-functions'.
@@ -557,44 +587,24 @@ This function ensures that lines following the change will be refontified
 in case the syntax of those lines has changed.  Refontification
 will take place when text is fontified stealthily."
   (when (and jit-lock-mode (not memory-full))
-    (let ((region (font-lock-extend-region start end old-len)))
-      (save-excursion
-	(with-buffer-prepared-for-jit-lock
-	 ;; It's important that the `fontified' property be set from the
-	 ;; beginning of the line, else font-lock will properly change the
-	 ;; text's face, but the display will have been done already and will
-	 ;; be inconsistent with the buffer's content.
-	 ;; 
-	 ;; FIXME!!! (Alan Mackenzie, 2006-03-14): If start isn't at a BOL,
-	 ;; expanding the region to BOL might mis-fontify, should the BOL not
-	 ;; be at a "safe" position.
-	 (setq start (if region
-			 (car region)
-		       (goto-char start)
-		       (line-beginning-position)))
-
-	 ;; If we're in text that matches a multi-line font-lock pattern,
-	 ;; make sure the whole text will be redisplayed.
-	 ;; I'm not sure this is ever necessary and/or sufficient.  -stef
-	 (when (get-text-property start 'font-lock-multiline)
-	   (setq start (or (previous-single-property-change
-			    start 'font-lock-multiline)
-			   (point-min))))
-
-	 (if region (setq end (cdr region)))
-	 ;; Make sure we change at least one char (in case of deletions).
-	 (setq end (min (max end (1+ start)) (point-max)))
-	 ;; Request refontification.
-	 (put-text-property start end 'fontified nil))
-	;; Mark the change for deferred contextual refontification.
-	(when jit-lock-context-unfontify-pos
-	  (setq jit-lock-context-unfontify-pos
-		;; Here we use `start' because nothing guarantees that the
-		;; text between start and end will be otherwise refontified:
-		;; usually it will be refontified by virtue of being
-		;; displayed, but if it's outside of any displayed area in the
-		;; buffer, only jit-lock-context-* will re-fontify it.
-		(min jit-lock-context-unfontify-pos start)))))))
+    (let ((jit-lock-start start)
+          (jit-lock-end end))
+      (with-buffer-prepared-for-jit-lock
+          (run-hook-with-args 'jit-lock-after-change-extend-region-functions
+                              start end old-len)
+          ;; Make sure we change at least one char (in case of deletions).
+          (setq jit-lock-end (min (max jit-lock-end (1+ start)) (point-max)))
+          ;; Request refontification.
+          (put-text-property jit-lock-start jit-lock-end 'fontified nil))
+      ;; Mark the change for deferred contextual refontification.
+      (when jit-lock-context-unfontify-pos
+        (setq jit-lock-context-unfontify-pos
+              ;; Here we use `start' because nothing guarantees that the
+              ;; text between start and end will be otherwise refontified:
+              ;; usually it will be refontified by virtue of being
+              ;; displayed, but if it's outside of any displayed area in the
+              ;; buffer, only jit-lock-context-* will re-fontify it.
+              (min jit-lock-context-unfontify-pos jit-lock-start))))))
 
 (provide 'jit-lock)
 

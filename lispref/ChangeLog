@@ -1,3 +1,129 @@
+2006-08-27  Michael Olson  <mwolson@gnu.org>
+
+	* processes.texi (Transaction Queues): Remove stray quote
+	character.
+
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Idle Timers): run-with-idle-timer allows Lisp time value.
+	Add xref.
+
+2006-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Timers): Avoid waiting inside timers.
+
+2006-08-21  Lute Kamstra  <lute@gnu.org>
+
+	* Makefile.in: Use ../man/texinfo.tex to build elisp.dvi.
+
+2006-08-20  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Idle Timers): New node, split out from Timers.
+	Document current-idle-time.
+	* commands.texi (Reading One Event): Update xref.
+	* elisp.texi (Top): Update subnode menu.
+
+2006-08-16  Richard Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Extended Menu Items): Show format of cached
+	bindings in extended menu items.
+
+	* customize.texi (Variable Definitions): Explain when the
+	standard value expression is evaluated.
+
+2006-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* commands.texi (Reading One Event): Explain idleness in
+	`read-event'.
+
+2006-08-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Near Point): Say "cursor" not "terminal cursor".
+	(Commands for Insertion): Removed split-line since it's not
+	relevant for Lisp programming.
+	(Yank Commands): Rewrite introduction.
+	(Undo): Clarify.
+	(Maintaining Undo): Clarify.  Document undo-ask-before-discard.
+	(Filling): Remove redundant comment.  Clarify return value of
+	current-justification.
+	(Margins): Minor clarifications.
+	(Adaptive Fill): Update default value of adaptive-fill-regexp.
+	(Sorting): Update definition of sort-lines.
+	(Columns): Clarify behavior of sort-columns.
+	(Indent Tabs): Link to Tab Stops in Emacs manual.
+	(Special Properties): Clarify.
+	(Clickable Text): Mention Buttons package.
+
+2006-08-12  Kevin Ryde  <user42@zip.com.au>
+
+	* os.texi (Time Parsing): Add %z to description of
+	format-time-string, as per docstring.  Add cross reference to
+	glibc manual for strftime.
+
+2006-08-08  Richard Stallman  <rms@gnu.org>
+
+	* modes.texi: Clean up wording in previous change.
+
+2006-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Hooks): Clarify.
+	(Major Mode Basics): Mention define-derived-mode explicitly.
+	(Major Mode Conventions): Rebinding RET is OK for some modes.
+	Mention change-major-mode-hook and after-change-major-mode-hook.
+	(Example Major Modes): Moved to end of Modes section.
+	(Mode Line Basics): Clarify.
+	(Mode Line Data): Mention help-echo and local-map in strings.
+	Explain reason for treatment of non-risky variables.
+	(Properties in Mode): Clarify.
+	(Faces for Font Lock): Add font-lock-negation-char-face.
+
+2006-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* strings.texi (Formatting Strings): Warn against arbitrary
+	strings as first arg to `format'.
+
+2006-07-31  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Clickable Text): Mention `help-echo' text property.
+	Update intro, examples and associated explanations.
+
+2006-07-31  Richard Stallman  <rms@gnu.org>
+
+	* commands.texi: Update xrefs.
+	(Event Mod): New node, cut out from old Translating Input.
+
+	* maps.texi: Update xrefs.
+
+	* keymaps.texi (Translation Keymaps): New node.
+	Update xrefs from Translating Input to Translation Keymaps.
+
+	* elisp.texi (Top): Update subnode menu.
+
+	* display.texi (Face Functions): Fix explanations of FRAME=t or nil.
+
+	* os.texi (System Interface): Fix menu descriptions of some nodes.
+	(Translating Input): Node deleted.
+
+2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* modes.texi (Minor Mode Conventions): Update link for add-to-list.
+
+	* lists.texi (Sets And Lists): Likewise.
+
+2006-07-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Fields): Mention POS
+	requirement when narrowing is in effect.
+
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Face Attributes): Simplify wording.
+	(Attribute Functions): Clarify meaning of new-frame default
+	attribute settings.
+
+	* customize.texi (Common Keywords): Document how to use
+	:package-version in a package not in Emacs.
+
 2006-07-28  Kim F. Storm  <storm@cua.dk>
 
 	* commands.texi (Reading One Event): Fix last change.
@@ -248,7 +374,7 @@
 
 	* anti.texi, customize.texi, display.texi, internals.texi:
 	* minibuf.texi, modes.texi, tips.texi:
-        Fix overfull/underfull boxes.
+	Fix overfull/underfull boxes.
 
 2006-07-05  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -325,7 +451,7 @@
 
 2006-06-09  Aidan Kehoe  <kehoea@parhasard.net>
 
-	* objects.texi (Character Type): Describe the\uABCD and \U00ABCDEF
+	* objects.texi (Character Type): Describe the \uABCD and \U00ABCDEF
 	syntax.
 
 2006-06-07  Eli Zaretskii  <eliz@gnu.org>
@@ -637,7 +763,7 @@
 2006-04-13  Bill Wohler  <wohler@newt.com>
 
 	* customize.texi (Common Keywords): Use dotted notation for
-	:package-version value. Specify its values. Improve documentation
+	:package-version value.  Specify its values.  Improve documentation
 	for customize-package-emacs-version-alist.
 
 2006-04-12  Bill Wohler  <wohler@newt.com>
@@ -1682,7 +1808,7 @@
 	(Jumping): Clarify description of `h' command.
 	Eliminate redundant @ref.
 	(Breaks): New node.
-	(Breakpoints): is now a subsubsection.
+	(Breakpoints): Is now a subsubsection.
 	(Global Break Condition): Mention `C-x X X'.
 	(Edebug Views): Clarify `v' and `p'.  Mention `C-x X w'.
 	(Trace Buffer): Clarify STRING arg of `edebug-tracing'.
@@ -2932,7 +3058,7 @@
 
 2004-10-24  Jason Rumney  <jasonr@gnu.org>
 
-	* commands.texi (Misc Events): Remove mouse-wheel. Add wheel-up
+	* commands.texi (Misc Events): Remove mouse-wheel.  Add wheel-up
 	and wheel-down.
 
 2004-10-24  Kai Grossjohann  <kai.grossjohann@gmx.net>
@@ -3161,7 +3287,7 @@
 	except while processing `frame-title-format' or `icon-title-format'.
 	(Deleting Frames): Correct description of `delete-frame'.
 	Non-nil return values of `frame-live-p' are like those of `framep'.
-	(Frames and Windows): mention return value of
+	(Frames and Windows): Mention return value of
 	`set-frame-selected-window'.
 	(Visibility of Frames): Mention `force' argument to
 	`make-frame-invisible'.  `frame-visible-p' returns t for all
@@ -3488,7 +3614,7 @@
 
 2004-03-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* customize.texi: Fix typo. Remove eol whitespace.
+	* customize.texi: Fix typo.  Remove eol whitespace.
 
 2004-03-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -3524,7 +3650,7 @@
 	* text.texi: Various small changes in addition to the following:
 	(User-Level Deletion): Mention optional BACKWARD-ONLY argument
 	to delete-horizontal-space.
-	(Kill Functions, Yanking, Low-Level Kill Ring): clarify and correct
+	(Kill Functions, Yanking, Low-Level Kill Ring): Clarify and correct
 	description of yank-handler text property at various places.
 
 	* frames.texi (Window System Selections): Add anchor.
@@ -4551,7 +4677,7 @@
 	* loading.texi (Unloading): Fix recent change for load-history.
 
 	* customize.texi (Simple Types): Clarify description of custom
-	type 'number. Describe new custom type 'float.
+	type 'number.  Describe new custom type 'float.
 
 2002-12-04  Markus Rost  <rost@math.ohio-state.edu>
 
@@ -5081,7 +5207,7 @@ Mon Apr 17 18:56:50 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 	* Applied Karl Berry's patches to *.texinfo files, but not to
-	texinfo.tex; those diffs are in `berry-texinfo-tex-diffs'. (Karl's
+	texinfo.tex; those diffs are in `berry-texinfo-tex-diffs'.  (Karl's
 	new title page format is also not applied, since it requires
 	texinfo.tex changes.)
 

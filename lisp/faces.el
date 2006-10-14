@@ -2075,7 +2075,7 @@ terminal type to a different value."
     ;; red4 is too dark, but some say blue is too loud.
     ;; brown seems to work ok. -- rms.
     (t :foreground "brown"))
-  "Face for characters displayed as ^-sequences or \-sequences."
+  "Face for characters displayed as sequences using `^' or `\\'."
   :group 'basic-faces
   :version "22.1")
 

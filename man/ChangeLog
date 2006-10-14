@@ -1,3 +1,138 @@
+2006-08-25  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Display Custom): Add variables overline-margin
+	and x-underline-at-descent-line.
+
+2006-08-25  Richard Stallman  <rms@gnu.org>
+
+	* entering.texi (Exiting): Rewrite to give graphical displays
+	priority over text terminals.
+
+	* search.texi (Incremental Search): Move index entries.
+
+2006-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Init File): Reference Find Init to avoid "home
+	directory" confusion.
+
+2006-08-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Other GDB-UI Buffers): Describe how to edit
+	a value in the locals buffer.
+
+2006-08-21  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Basic Isearch): Add `isearch' index entry.
+
+2006-08-16  Richard Stallman  <rms@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Clean up wording.
+
+	* mark.texi (Marking Objects): Mention term "select all".
+
+	* emacs.texi (Top): Update subnode menu.
+
+	* help.texi (Help Mode): Move node up in file.
+
+2006-08-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Installation, Activation): Split from Installation and
+	Activation.
+	(Clocking work time): Documented new features.
+
+2006-08-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Stack Buffer): Explain fringe arrow.
+
+2006-08-13  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi (Configuration): Use correct variable in rcirc-authinfo
+	example.
+
+2006-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* faq.texi (How to add fonts): New node.
+
+	* misc.texi (Saving Emacs Sessions): Clarify when desktop is restored
+	on startup.
+
+2006-08-11  Romain Francoise  <romain@orebokech.com>
+
+	* ack.texi (Acknowledgments): Delete mention to zone-mode.el.
+
+2006-08-10  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* mule.texi (Recognize Coding, Text Coding): Fix typos.
+
+2006-08-10  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Format Faces): Substantial rewrites to deal
+	with face merging.  Empty regions don't count.  Clarify
+	face property inheritance.
+
+2006-08-08  Romain Francoise  <romain@orebokech.com>
+
+	* dired.texi (Marks vs Flags): Fix typo reported by Ari Roponen
+	<arjuropo@cc.jyu.fi>.
+
+2006-08-05  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (New in Emacs 22): Expand.
+
+2006-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmdargs.texi (Window Size X) <--geometry>: Only width and height
+	apply to all frames.
+
+2006-08-03  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update for ERC 5.1.4.
+
+2006-08-01  Richard Stallman  <rms@gnu.org>
+
+	* help.texi (Name Help): Add index entries for describe-variable.
+
+2006-08-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Shorten node names.
+	(GDB-UI Layout): Use GDB-related.
+	(Other GDB-UI Buffers): Simplify English.
+
+2006-07-31  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Query Replace): Add xref for Dired's Q command.
+
+2006-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Oort Gnus): Mention that the Lisp files are now installed
+	in .../site-lisp/gnus/ by default.
+	[ From gnus-news.texi in the trunk. ]
+
+2006-07-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (MIME Commands): Additions for yEnc.
+
+2006-07-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB commands in Fringe): Rename to...
+	(Source Buffers): ..this and move forward.  Describe hollow arrow and
+	new option gdb-find-source-frame.
+
+2006-07-29  Richard Stallman  <rms@gnu.org>
+
+	* dired.texi (Operating on Files): Simplify previous change
+	and fix Texinfo usage.
+
+2006-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* dired.texi (Operating on Files): Add cross-references.  State the
+	Unix commands that do similar things.
+
+2006-07-28  Richard Stallman  <rms@gnu.org>
+
+	* mark.texi (Transient Mark): Clarify that region never disappears
+	when Transient Mark mode is off, and not when it is on.
+
 2006-07-27  Richard Stallman  <rms@gnu.org>
 
 	* search.texi (Non-ASCII Isearch): Clarify.  Mention C-q.
@@ -6,15 +141,15 @@
 
 	* xresources.texi (GTK styles): Fix texinfo usage.
 
-	* pgg.texi, org.texi, info.texi, forms.texi, flymake.texi: 
+	* pgg.texi, org.texi, info.texi, forms.texi, flymake.texi:
 	* faq.texi: Move periods and commas inside quotes.
 
 	* commands.texi (User Input): Explain why we teach keyboard cmds.
-	
-	* xresources.texi, xresmini.texi, search.texi, programs.texi: 
-	* misc.texi, kmacro.texi, killing.texi, glossary.texi: 
-	* fortran-xtra.texi, files.texi, emacs.texi, emacs-xtra.texi: 
-	* doclicense.texi, display.texi, dired.texi, basic.texi: 
+
+	* xresources.texi, xresmini.texi, search.texi, programs.texi:
+	* misc.texi, kmacro.texi, killing.texi, glossary.texi:
+	* fortran-xtra.texi, files.texi, emacs.texi, emacs-xtra.texi:
+	* doclicense.texi, display.texi, dired.texi, basic.texi:
 	* anti.texi, ack.texi: Move periods and commas inside quotes.
 
 2006-07-22  Eli Zaretskii  <eliz@gnu.org>

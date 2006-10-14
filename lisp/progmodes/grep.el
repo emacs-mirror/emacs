@@ -335,7 +335,7 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defvar grep-find-use-xargs nil
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
-If nil, it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';
+If `exec', it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';
 if not nil and not `gnu', it uses `find -print' and `xargs'.
 
 This variable's value takes effect when `grep-compute-defaults' is called.")
@@ -419,21 +419,29 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	      (format "%s <C> %s <R> <F>" grep-program grep-options)))
       (unless grep-find-use-xargs
 	(setq grep-find-use-xargs
-	      (if (and
-		   (grep-probe find-program `(nil nil nil ,null-device "-print0"))
-		   (grep-probe "xargs" `(nil nil nil "-0" "-e" "echo")))
-		  'gnu)))
+	      (cond
+	       ((and
+		 (grep-probe find-program `(nil nil nil ,null-device "-print0"))
+		 (grep-probe "xargs" `(nil nil nil "-0" "-e" "echo")))
+		'gnu)
+	       (t
+		'exec))))
       (unless grep-find-command
 	(setq grep-find-command
 	      (cond ((eq grep-find-use-xargs 'gnu)
 		     (format "%s . -type f -print0 | xargs -0 -e %s"
 			     find-program grep-command))
-		    (grep-find-use-xargs
+		    ((eq grep-find-use-xargs 'exec)
+		     (let ((cmd0 (format "%s . -type f -exec %s"
+					 find-program grep-command)))
+		       (cons
+			(format "%s {} %s %s"
+				cmd0 null-device
+				(shell-quote-argument ";"))
+			(1+ (length cmd0)))))
+		    (t
 		     (format "%s . -type f -print | xargs %s"
-			     find-program grep-command))
-		    (t (cons (format "%s . -type f -exec %s {} %s \\;"
-				     find-program grep-command null-device)
-			     (+ 22 (length grep-command)))))))
+			     find-program grep-command)))))
       (unless grep-find-template
 	(setq grep-find-template
 	      (let ((gcmd (format "%s <C> %s <R>"
@@ -441,11 +449,13 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		(cond ((eq grep-find-use-xargs 'gnu)
 		       (format "%s . <X> -type f <F> -print0 | xargs -0 -e %s"
 			       find-program gcmd))
-		      (grep-find-use-xargs
+		      ((eq grep-find-use-xargs 'exec)
+		       (format "%s . <X> -type f <F> -exec %s {} %s %s"
+			       find-program gcmd null-device
+			       (shell-quote-argument ";")))
+		      (t
 		       (format "%s . <X> -type f <F> -print | xargs %s"
-			       find-program gcmd))
-		      (t (format "%s . <X> -type f <F> -exec %s {} %s \\;"
-				 find-program gcmd null-device))))))))
+			       find-program gcmd))))))))
   (unless (or (not grep-highlight-matches) (eq grep-highlight-matches t))
     (setq grep-highlight-matches
 	  (with-temp-buffer
@@ -455,34 +465,48 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 		   (search-forward "--color" nil t))
 		 t)))))
 
+(defun grep-tag-default ()
+  (or (and transient-mark-mode mark-active
+	   (/= (point) (mark))
+	   (buffer-substring-no-properties (point) (mark)))
+      (funcall (or find-tag-default-function
+		   (get major-mode 'find-tag-default-function)
+		   'find-tag-default))
+      ""))
+
 (defun grep-default-command ()
-  (let ((tag-default
-         (shell-quote-argument
-          (or (funcall (or find-tag-default-function
-                           (get major-mode 'find-tag-default-function)
-                           'find-tag-default))
-              "")))
+  "Compute the default grep command for C-u M-x grep to offer."
+  (let ((tag-default (shell-quote-argument (grep-tag-default)))
+	;; This a regexp to match single shell arguments.
+	;; Could someone please add comments explaining it?
 	(sh-arg-re "\\(\\(?:\"\\(?:[^\"]\\|\\\\\"\\)+\"\\|'[^']+'\\|[^\"' \t\n]\\)+\\)")
 	(grep-default (or (car grep-history) grep-command)))
-    ;; Replace the thing matching for with that around cursor.
+    ;; In the default command, find the arg that specifies the pattern.
     (when (or (string-match
 	       (concat "[^ ]+\\s +\\(?:-[^ ]+\\s +\\)*"
 		       sh-arg-re "\\(\\s +\\(\\S +\\)\\)?")
 	       grep-default)
 	      ;; If the string is not yet complete.
 	      (string-match "\\(\\)\\'" grep-default))
-      (unless (or (not (stringp buffer-file-name))
-		  (when (match-beginning 2)
-		    (save-match-data
-		      (string-match
-		       (wildcard-to-regexp
-			(file-name-nondirectory
-			 (match-string 3 grep-default)))
-		       (file-name-nondirectory buffer-file-name)))))
-	(setq grep-default (concat (substring grep-default
-					      0 (match-beginning 2))
-				   " *."
-				   (file-name-extension buffer-file-name))))
+      ;; Maybe we will replace the pattern with the default tag.
+      ;; But first, maybe replace the file name pattern.
+      (condition-case nil
+	  (unless (or (not (stringp buffer-file-name))
+		      (when (match-beginning 2)
+			(save-match-data
+			  (string-match
+			   (wildcard-to-regexp
+			    (file-name-nondirectory
+			     (match-string 3 grep-default)))
+			   (file-name-nondirectory buffer-file-name)))))
+	    (setq grep-default (concat (substring grep-default
+						  0 (match-beginning 2))
+				       " *."
+				       (file-name-extension buffer-file-name))))
+	;; In case wildcard-to-regexp gets an error
+	;; from invalid data.
+	(error nil))
+      ;; Now replace the pattern with the default tag.
       (replace-match tag-default t t grep-default 1))))
 
 
@@ -590,15 +614,11 @@ substitution string.  Note dynamic scoping of variables.")
 
 (defun grep-read-regexp ()
   "Read regexp arg for interactive grep."
-  (let ((default
-	  (or (funcall (or find-tag-default-function
-			   (get major-mode 'find-tag-default-function)
-			   'find-tag-default))
-	      "")))
+  (let ((default (grep-tag-default)))
     (read-string
      (concat "Search for"
 	     (if (and default (> (length default) 0))
-		 (format " (default %s): " default) ": "))
+		 (format " (default \"%s\"): " default) ": "))
      nil 'grep-regexp-history default)))
 
 (defun grep-read-files (regexp)
@@ -620,7 +640,9 @@ substitution string.  Note dynamic scoping of variables.")
 		      (cdr alias)))
 	       (and fn
 		    (let ((ext (file-name-extension fn)))
-		      (and ext (concat "*." ext))))))
+		      (and ext (concat "*." ext))))
+	       (car grep-files-history)
+	       (car (car grep-files-aliases))))
 	 (files (read-string
 		 (concat "Search for \"" regexp
 			 "\" in files"
@@ -724,18 +746,26 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
       (let ((command (grep-expand-template
 		      grep-find-template
 		      regexp
-		      (concat "\\( -name "
+		      (concat (shell-quote-argument "(")
+			      " -name "
 			      (mapconcat #'shell-quote-argument
 					 (split-string files)
 					 " -o -name ")
-			      " \\)")
+			      " "
+			      (shell-quote-argument ")"))
 		       dir
 		       (and grep-find-ignored-directories
-			    (concat "\\( -path '*/"
-				    (mapconcat #'identity
+			    (concat (shell-quote-argument "(")
+				    ;; we should use shell-quote-argument here
+				    " -path "
+				    (mapconcat #'(lambda (dir)
+						   (shell-quote-argument
+						    (concat "*/" dir)))
 					       grep-find-ignored-directories
-					       "' -o -path '*/")
-				    "' \\) -prune -o ")))))
+					       " -o -path ")
+				    " "
+				    (shell-quote-argument ")")
+				    " -prune -o ")))))
 	(when command
 	  (if current-prefix-arg
 	      (setq command

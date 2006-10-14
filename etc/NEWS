@@ -95,7 +95,6 @@ doesn't automatically select the right one.
 Its name is `pt-br-refcard.tex'.  The corresponding PostScript file is
 also included.
 
-
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
 
@@ -202,6 +201,13 @@ an interactively callable function.
 all frames you create.  A position specified with --geometry only
 affects the initial frame.
 
+---
+** Emacs built for MS-Windows now behaves like Emacs on X does,
+wrt its frame position: if you don't specify a position (in your
+.emacs init file, in the Registry, or with the --geometry command-line
+option), Emacs leaves the frame position to the Windows' window
+manager.
+
 +++
 ** Emacs can now be invoked in full-screen mode on a windowed display.
 When Emacs is invoked on a window system, the new command-line options
@@ -241,8 +247,9 @@ according to the value of `save-abbrevs'.
 
 +++
 ** If the environment variable EMAIL is defined, Emacs now uses its value
-to compute the default value of `use-mail-address', in preference to
+to compute the default value of `user-mail-address', in preference to
 concatenation of `user-login-name' with the name of your host machine.
+
 
 * Incompatible Editing Changes in Emacs 22.1
 
@@ -831,6 +838,13 @@ The variable `automatic-hscrolling' was renamed to
 *** Moving or scrolling through images (and other lines) taller than
 the window now works sensibly, by automatically adjusting the window's
 vscroll property.
+
+*** New customize option `overline-margin' controls the space between
+overline and text.
+
+*** New variable `x-underline-at-descent-line' controls the relative
+position of the underline.  When set, it overrides the
+`x-use-underline-position-properties' variables.
 
 +++
 *** The new face `mode-line-inactive' is used to display the mode line
@@ -1764,9 +1778,8 @@ type "C-h i m org RET" to read that manual.  A reference card is
 available in `etc/orgcard.tex' and `etc/orgcard.ps'.
 
 +++
-** The new package dns-mode.el add syntax highlight of DNS master files.
-The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
-to increment the SOA serial.
+** The new package dns-mode.el adds syntax highlighting of DNS master files.
+It is a modern replacement for zone-mode.el, which is now obsolete.
 
 ---
 ** The new global minor mode `file-name-shadow-mode' modifies the way
@@ -1987,6 +2000,7 @@ using hi-lock-mode in an initialization file will turn on Hi Lock in all
 buffers and no warning will be issued (for compatibility with the
 behavior in older versions of Emacs).
 
+---
 ** Changes in Allout
 
 *** Topic cryptography added, enabling easy gpg topic encryption and
@@ -1995,11 +2009,19 @@ clear-text within a single file to your heart's content, using symmetric
 and/or public key modes.  Time-limited key caching, user-provided
 symmetric key hinting and consistency verification, auto-encryption of
 pending topics on save, and more, make it easy to use encryption in
-powerful ways.
+powerful ways.  Encryption behavior customization is collected in the
+allout-encryption customization group.
 
 *** `allout-view-change-hook' marked as being deprecated - use
-`allout-exposure-change-hook' instead.  Both are currently being used, but
-`allout-view-change-hook' will be ignored in a subsequent allout version.
+`allout-exposure-change-hook' instead.  Both are still invoked, but
+`allout-view-change-hook' will eventually be ignored.  The new
+`allout-exposure-change-hook' is called with args that were passed to
+`allout-flag-region', making it easier to use.
+
+*** Other allout functions which change the outline structure also have
+hooks, enabling cooperative allout enhancements.  See
+`allout-structure-added-hook', `allout-structure-deleted-hook', and
+`allout-structure-shifted-hook'.
 
 *** Default command prefix changed to "\C-c " (control-c space), to avoid
 intruding on user's keybinding space.  Customize the
@@ -2010,23 +2032,43 @@ concealed text, instead of selective-display.  This simplifies the code, in
 particular avoiding the need for kludges for isearch dynamic-display,
 discretionary handling of edits of concealed text, undo concerns, etc.
 
+*** Some previously rough topic-header format edge cases are reconciled.
+Level 1 topics use the mode's comment format, and lines starting with the
+asterisk - for instance, the comment close of some languages (eg, c's "*/"
+or mathematica's "*)") - at the beginning of line are no longer are
+interpreted as level 1 topics in those modes.  (Yay!)
+
 *** Many substantial fixes and refinements, including:
 
-   - repaired inhibition of inadvertent edits to concealed text
-   - repaired retention of topic body hanging indent upon topic depth shifts
+   - repaired regexp-quoting of custom header prefixes, so any literals
+     will now work (for instance, mathematica's "(*" is now properly
+     accepted).
+   - repaired inhibition of inadvertent edits to concealed text.
    - refuse to create "containment discontinuities", where a
      topic is shifted deeper than the offspring-depth of its' container
    - auto-fill-mode is now left inactive when allout-mode starts, if it
      already was inactive.  also, `allout-inhibit-auto-fill' custom
      configuration variable makes it easy to disable auto fill in allout
      outlines in general or on a per-buffer basis.
-   - new hook `allout-mode-deactivate-hook', for coordinating with
-     deactivation of allout-mode.
+   - mode hook changes: new hook `allout-mode-deactivate-hook', for
+     coordinating with deactivation of allout-mode.  `allout-mode-hook' is
+     now run after the `allout-mode' variable is changed, as is the new
+     `allout-mode-deactivate-hook'.
+   - allout now tolerates fielded text in outlines without disruption.
+   - hot-spot navigation now is modularized with a new function,
+     `allout-hotspot-key-handler', enabling easier articulation and
+     enhancement of the functionality by allout addons.
+   - topic body navigation is easier, where repeated beginning of line and
+     end of line key commands cycle through the actually beginning/end of
+     line and then beginning/end of topic, etc.  see new customization vars
+     `allout-beginning-of-line-cycles' and `allout-end-of-line-cycles'.
+   - repaired retention of topic body hanging indent upon topic depth shifts
    - bulleting variation is simpler and more accommodating, both in the
      default behavior and in ability to vary when creating new topics
    - mode deactivation now does cleans up effectively, more properly
      restoring affected variables and hooks to former state, removing
-     overlays, etc.
+     overlays, etc.  see `allout-add-resumptions' and
+     `allout-do-resumptions', which replace the old `allout-resumptions'.
    - included a few unit-tests for interior functionality.  developers can
      have them automatically run at the end of module load by customizing
      the option `allout-run-unit-tests-on-load'.
@@ -3506,6 +3548,9 @@ variable `calculator-radix-grouping-mode'.
 ** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
 
 ---
+** zone-mode.el is now obsolete.  Use dns-mode.el instead.
+
+---
 ** cplus-md.el has been deleted.
 
 ** Ewoc changes
@@ -3654,8 +3699,10 @@ w32-use-full-screen-buffer to t.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
-** The function find-operation-coding-system accepts a cons (FILENAME
-. BUFFER) in an argument correponding to the target.
+** The function find-operation-coding-system may be called with a cons
+(FILENAME . BUFFER) in the second argument if the first argument
+OPERATION is `insert-file-contents', and thus a function registered in
+`file-coding-system-alist' is also called with such an argument.
 
 ---
 ** The variables post-command-idle-hook and post-command-idle-delay have
@@ -4625,6 +4672,7 @@ keymap alist to this list.
 
 *** The definition of a key-binding passed to define-key can use XEmacs-style
 key-sequences, such as [(control a)].
+
 ** Abbrev changes:
 
 +++
@@ -5354,6 +5402,11 @@ text to being a piece of code, so you'd put a `jit-lock-defer-multiline'
 property over the second half of the command to force (deferred)
 refontification of `bar' whenever the `e' is added/removed.
 
+*** `font-lock-extend-region-functions' makes it possible to alter the way
+the fontification region is chosen.  This can be used to prevent rounding
+up to whole lines, or to extend the region to include all related lines
+of multiline constructs so that such constructs get properly recognized.
+
 ** Major mode mechanism changes:
 
 +++
@@ -5447,6 +5500,9 @@ been renamed to `disabled-command-function'.  The variable
 +++
 *** `emacsserver' now runs `pre-command-hook' and `post-command-hook'
 when it receives a request from emacsclient.
+
++++
+*** `current-idle-time' reports how long Emacs has been idle.
 
 ** Lisp file loading changes:
 

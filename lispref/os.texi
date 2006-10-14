@@ -28,8 +28,10 @@ pertaining to the terminal and the screen.
 * Processor Run Time::  Getting the run time used by Emacs.
 * Time Calculations::   Adding, subtracting, comparing times, etc.
 * Timers::		Setting a timer to call a function at a certain time.
-* Terminal Input::      Recording terminal input for debugging.
-* Terminal Output::     Recording terminal output for debugging.
+* Idle Timers::         Setting a timer to call a function when Emacs has
+                          been idle for a certain length of time.
+* Terminal Input::      Accessing and recording terminal input.
+* Terminal Output::     Controlling and recording terminal output.
 * Sound Output::        Playing sounds on the computer's speaker.
 * X11 Keysyms::         Operating on key symbols for X Windows
 * Batch Mode::          Running Emacs without terminal interaction.
@@ -1256,7 +1258,9 @@ This stands for the year without century (00-99).
 @item %Y
 This stands for the year with century.
 @item %Z
-This stands for the time zone abbreviation.
+This stands for the time zone abbreviation (e.g., @samp{EST}).
+@item %z
+This stands for the time zone numerical offset (e.g., @samp{-0500}).
 @end table
 
 You can also specify the field width and type of padding for any of
@@ -1286,12 +1290,14 @@ If @var{universal} is non-@code{nil}, that means to describe the time as
 Universal Time; @code{nil} means describe it using what Emacs believes
 is the local time zone (see @code{current-time-zone}).
 
-This function uses the C library function @code{strftime} to do most of
-the work.  In order to communicate with that function, it first encodes
-its argument using the coding system specified by
-@code{locale-coding-system} (@pxref{Locales}); after @code{strftime}
-returns the resulting string, @code{format-time-string} decodes the
-string using that same coding system.
+This function uses the C library function @code{strftime}
+(@pxref{Formatting Calendar Time,,, libc, The GNU C Library Reference
+Manual}) to do most of the work.  In order to communicate with that
+function, it first encodes its argument using the coding system
+specified by @code{locale-coding-system} (@pxref{Locales}); after
+@code{strftime} returns the resulting string,
+@code{format-time-string} decodes the string using that same coding
+system.
 @end defun
 
 @defun seconds-to-time seconds
@@ -1388,6 +1394,13 @@ both before and after changing the buffer, to separate the timer's
 changes from user commands' changes and prevent a single undo entry
 from growing to be quite large.
 
+  Timer functions should also avoid calling functions that cause Emacs
+to wait, such as @code{sit-for} (@pxref{Waiting}).  This can lead to
+unpredictable effects, since other timers (or even the same timer) can
+run while waiting.  If a timer function needs to perform an action
+after a certain time has elapsed, it can do this by scheduling a new
+timer.
+
   If a timer function calls functions that can change the match data,
 it should save and restore the match data.  @xref{Saving Match Data}.
 
@@ -1469,10 +1482,26 @@ calls one of those primitives.  So use @code{with-timeout} only with a
 a timer to avoid waiting too long for an answer.  @xref{Yes-or-No
 Queries}.
 
+@defun cancel-timer timer
+This cancels the requested action for @var{timer}, which should be a
+timer---usually, one previously returned by @code{run-at-time} or
+@code{run-with-idle-timer}.  This cancels the effect of that call to
+one of these functions; the arrival of the specified time will not
+cause anything special to happen.
+@end defun
+
+@node Idle Timers
+@section Idle Timers
+
+  Here is how to set up a timer that runs when Emacs is idle for a
+certain length of time.  Aside from how to set them up, idle timers
+work just like ordinary timers.
+
 @deffn Command run-with-idle-timer secs repeat function &rest args
 Set up a timer which runs when Emacs has been idle for @var{secs}
 seconds.  The value of @var{secs} may be an integer or a floating point
-number.
+number; a value of the type returned by @code{current-idle-time}
+is also allowed.
 
 If @var{repeat} is @code{nil}, the timer runs just once, the first time
 Emacs remains idle for a long enough time.  More often @var{repeat} is
@@ -1480,7 +1509,7 @@ non-@code{nil}, which means to run the timer @emph{each time} Emacs
 remains idle for @var{secs} seconds.
 
 The function @code{run-with-idle-timer} returns a timer value which you
-can use in calling @code{cancel-timer} (see below).
+can use in calling @code{cancel-timer} (@pxref{Timers}).
 @end deffn
 
 @cindex idleness
@@ -1504,11 +1533,49 @@ minutes, and even if there have been garbage collections and autosaves.
 input.  Then it becomes idle again, and all the idle timers that are
 set up to repeat will subsequently run another time, one by one.
 
-@defun cancel-timer timer
-Cancel the requested action for @var{timer}, which should be a value
-previously returned by @code{run-at-time} or @code{run-with-idle-timer}.
-This cancels the effect of that call to one of these functions; the
-arrival of the specified time will not cause anything special to happen.
+@c Emacs 19 feature
+@defun current-idle-time
+This function returns the length of time Emacs has been idle, as a
+list of three integers: @code{(@var{high} @var{low} @var{microsec})}.
+The integers @var{high} and @var{low} combine to give the number of
+seconds of idleness, which is
+@ifnottex
+@var{high} * 2**16 + @var{low}.
+@end ifnottex
+@tex
+$high*2^{16}+low$.
+@end tex
+
+The third element, @var{microsec}, gives the microseconds since the
+start of the current second (or 0 for systems that return time with
+the resolution of only one second).
+
+The main use of this function is when an idle timer function wants to
+``take a break'' for a while.  It can set up another idle timer to
+call the same function again, after a few seconds more idleness.
+Here's an example:
+
+@smallexample
+(defvar resume-timer nil
+  "Timer that `timer-function' used to reschedule itself, or nil.")
+
+(defun timer-function ()
+  ;; @r{If the user types a command while @code{resume-timer}}
+  ;; @r{is active, the next time this function is called from}
+  ;; @r{its main idle timer, deactivate @code{resume-timer}.}
+  (when resume-timer
+    (cancel-timer resume-timer))
+  ...@var{do the work for a while}...
+  (when @var{taking-a-break}
+    (setq resume-timer
+          (run-with-idle-timer
+            ;; Compute an idle time @var{break-length}
+            ;; more than the current value.
+            (time-add (current-idle-time)
+                      (seconds-to-time @var{break-length}))
+            nil
+            'timer-function))))
+@end smallexample
 @end defun
 
 @node Terminal Input
@@ -1521,8 +1588,6 @@ functions.
 
 @menu
 * Input Modes::		Options for how input is processed.
-* Translating Input::   Low level conversion of some characters or events
-			  into others.
 * Recording Input::	Saving histories of recent or all input events.
 @end menu
 
@@ -1586,204 +1651,6 @@ basic character code.
 is the character Emacs currently uses for quitting, usually @kbd{C-g}.
 @end table
 @end defun
-
-@node Translating Input
-@subsection Translating Input Events
-@cindex translating input events
-
-  This section describes features for translating input events into
-other input events before they become part of key sequences.  These
-features apply to each event in the order they are described here: each
-event is first modified according to @code{extra-keyboard-modifiers},
-then translated through @code{keyboard-translate-table} (if applicable),
-and finally decoded with the specified keyboard coding system.  If it is
-being read as part of a key sequence, it is then added to the sequence
-being read; then subsequences containing it are checked first with
-@code{function-key-map} and then with @code{key-translation-map}.
-
-@c Emacs 19 feature
-@defvar extra-keyboard-modifiers
-This variable lets Lisp programs ``press'' the modifier keys on the
-keyboard.  The value is a character.  Only the modifiers of the
-character matter.  Each time the user types a keyboard key, it is
-altered as if those modifier keys were held down.  For instance, if
-you bind @code{extra-keyboard-modifiers} to @code{?\C-\M-a}, then all
-keyboard input characters typed during the scope of the binding will
-have the control and meta modifiers applied to them.  The character
-@code{?\C-@@}, equivalent to the integer 0, does not count as a control
-character for this purpose, but as a character with no modifiers.
-Thus, setting @code{extra-keyboard-modifiers} to zero cancels any
-modification.
-
-When using a window system, the program can ``press'' any of the
-modifier keys in this way.  Otherwise, only the @key{CTL} and @key{META}
-keys can be virtually pressed.
-
-Note that this variable applies only to events that really come from
-the keyboard, and has no effect on mouse events or any other events.
-@end defvar
-
-@defvar keyboard-translate-table
-This variable is the translate table for keyboard characters.  It lets
-you reshuffle the keys on the keyboard without changing any command
-bindings.  Its value is normally a char-table, or else @code{nil}.
-(It can also be a string or vector, but this is considered obsolete.)
-
-If @code{keyboard-translate-table} is a char-table
-(@pxref{Char-Tables}), then each character read from the keyboard is
-looked up in this char-table.  If the value found there is
-non-@code{nil}, then it is used instead of the actual input character.
-
-Note that this translation is the first thing that happens to a
-character after it is read from the terminal.  Record-keeping features
-such as @code{recent-keys} and dribble files record the characters after
-translation.
-
-Note also that this translation is done before the characters are
-supplied to input methods (@pxref{Input Methods}).  Use
-@code{translation-table-for-input} (@pxref{Translation of Characters}),
-if you want to translate characters after input methods operate.
-@end defvar
-
-@defun keyboard-translate from to
-This function modifies @code{keyboard-translate-table} to translate
-character code @var{from} into character code @var{to}.  It creates
-the keyboard translate table if necessary.
-@end defun
-
-  Here's an example of using the @code{keyboard-translate-table} to
-make @kbd{C-x}, @kbd{C-c} and @kbd{C-v} perform the cut, copy and paste
-operations:
-
-@example
-(keyboard-translate ?\C-x 'control-x)
-(keyboard-translate ?\C-c 'control-c)
-(keyboard-translate ?\C-v 'control-v)
-(global-set-key [control-x] 'kill-region)
-(global-set-key [control-c] 'kill-ring-save)
-(global-set-key [control-v] 'yank)
-@end example
-
-@noindent
-On a graphical terminal that supports extended @acronym{ASCII} input,
-you can still get the standard Emacs meanings of one of those
-characters by typing it with the shift key.  That makes it a different
-character as far as keyboard translation is concerned, but it has the
-same usual meaning.
-
-  The remaining translation features translate subsequences of key
-sequences being read.  They are implemented in @code{read-key-sequence}
-and have no effect on input read with @code{read-event}.
-
-@defvar function-key-map
-This variable holds a keymap that describes the character sequences sent
-by function keys on an ordinary character terminal.  This keymap has the
-same structure as other keymaps, but is used differently: it specifies
-translations to make while reading key sequences, rather than bindings
-for key sequences.
-
-If @code{function-key-map} ``binds'' a key sequence @var{k} to a vector
-@var{v}, then when @var{k} appears as a subsequence @emph{anywhere} in a
-key sequence, it is replaced with the events in @var{v}.
-
-For example, VT100 terminals send @kbd{@key{ESC} O P} when the
-keypad @key{PF1} key is pressed.  Therefore, we want Emacs to translate
-that sequence of events into the single event @code{pf1}.  We accomplish
-this by ``binding'' @kbd{@key{ESC} O P} to @code{[pf1]} in
-@code{function-key-map}, when using a VT100.
-
-Thus, typing @kbd{C-c @key{PF1}} sends the character sequence @kbd{C-c
-@key{ESC} O P}; later the function @code{read-key-sequence} translates
-this back into @kbd{C-c @key{PF1}}, which it returns as the vector
-@code{[?\C-c pf1]}.
-
-Entries in @code{function-key-map} are ignored if they conflict with
-bindings made in the minor mode, local, or global keymaps.  The intent
-is that the character sequences that function keys send should not have
-command bindings in their own right---but if they do, the ordinary
-bindings take priority.
-
-The value of @code{function-key-map} is usually set up automatically
-according to the terminal's Terminfo or Termcap entry, but sometimes
-those need help from terminal-specific Lisp files.  Emacs comes with
-terminal-specific files for many common terminals; their main purpose is
-to make entries in @code{function-key-map} beyond those that can be
-deduced from Termcap and Terminfo.  @xref{Terminal-Specific}.
-@end defvar
-
-@defvar key-translation-map
-This variable is another keymap used just like @code{function-key-map}
-to translate input events into other events.  It differs from
-@code{function-key-map} in two ways:
-
-@itemize @bullet
-@item
-@code{key-translation-map} goes to work after @code{function-key-map} is
-finished; it receives the results of translation by
-@code{function-key-map}.
-
-@item
-Non-prefix bindings in @code{key-translation-map} override actual key
-bindings.  For example, if @kbd{C-x f} has a non-prefix binding in
-@code{key-translation-map}, that translation takes effect even though
-@kbd{C-x f} also has a key binding in the global map.
-@end itemize
-
-Note however that actual key bindings can have an effect on
-@code{key-translation-map}, even though they are overridden by it.
-Indeed, actual key bindings override @code{function-key-map} and thus
-may alter the key sequence that @code{key-translation-map} receives.
-Clearly, it is better to avoid this type of situation.
-
-The intent of @code{key-translation-map} is for users to map one
-character set to another, including ordinary characters normally bound
-to @code{self-insert-command}.
-@end defvar
-
-@cindex key translation function
-You can use @code{function-key-map} or @code{key-translation-map} for
-more than simple aliases, by using a function, instead of a key
-sequence, as the ``translation'' of a key.  Then this function is called
-to compute the translation of that key.
-
-The key translation function receives one argument, which is the prompt
-that was specified in @code{read-key-sequence}---or @code{nil} if the
-key sequence is being read by the editor command loop.  In most cases
-you can ignore the prompt value.
-
-If the function reads input itself, it can have the effect of altering
-the event that follows.  For example, here's how to define @kbd{C-c h}
-to turn the character that follows into a Hyper character:
-
-@example
-@group
-(defun hyperify (prompt)
-  (let ((e (read-event)))
-    (vector (if (numberp e)
-                (logior (lsh 1 24) e)
-              (if (memq 'hyper (event-modifiers e))
-                  e
-                (add-event-modifier "H-" e))))))
-
-(defun add-event-modifier (string e)
-  (let ((symbol (if (symbolp e) e (car e))))
-    (setq symbol (intern (concat string
-                                 (symbol-name symbol))))
-@end group
-@group
-    (if (symbolp e)
-        symbol
-      (cons symbol (cdr e)))))
-
-(define-key function-key-map "\C-ch" 'hyperify)
-@end group
-@end example
-
-Finally, if you have enabled keyboard character set decoding using
-@code{set-keyboard-coding-system}, decoding is done after the
-translations listed above.  @xref{Terminal I/O Encoding}.  In future
-Emacs versions, character set decoding may be done before the other
-translations.
 
 @node Recording Input
 @subsection Recording Input

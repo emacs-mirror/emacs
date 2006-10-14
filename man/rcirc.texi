@@ -501,7 +501,7 @@ by the arguments this method requires.
 Here is an example to illustrate how you would set it:
 
 @example
-(setq rcirc-startup-channels-alist
+(setq rcirc-authinfo
       '(("freenode" nickserv "bob" "p455w0rd")
         ("freenode" chanserv "bob" "#bobland" "passwd99")
         ("bitlbee" bitlbee "robert" "sekrit")))

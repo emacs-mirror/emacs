@@ -215,14 +215,6 @@ mnemonics of the following coding systems:
 
 (make-variable-buffer-local 'mode-line-mule-info)
 
-(defvar mode-line-buffer-identification (purecopy '("%12b")) "\
-Mode-line control for identifying the buffer being displayed.
-Its default value is (\"%12b\").
-Major modes that edit things other than ordinary files may change this
-\(e.g. Info, Dired,...)")
-
-(make-variable-buffer-local 'mode-line-buffer-identification)
-
 (defvar mode-line-frame-identification '(window-system "  " "-%F  ")
   "Mode-line control to describe the current frame.")
 
@@ -294,55 +286,101 @@ Keymap to display on minor modes.")
 	;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
 	;; drag-mouse-1: resize, C-mouse-2: split horizontally"
 	"mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete this")
-       (dashes (propertize "--" 'help-echo help-echo)))
-  (setq-default mode-line-format
-    (list
-     "%e"
-     (propertize "-" 'help-echo help-echo)
-     'mode-line-mule-info
-     'mode-line-client
-     'mode-line-modified
-     'mode-line-frame-identification
-     'mode-line-buffer-identification
-     (propertize "   " 'help-echo help-echo)
-     'mode-line-position
-     `(vc-mode ("" vc-mode ,(propertize "   " 'help-echo help-echo)))
-     'mode-line-modes
-     `(which-func-mode ("" which-func-format ,dashes))
-     `(global-mode-string (,dashes global-mode-string))
-     (propertize "-%-" 'help-echo help-echo)))
+       (dashes (propertize "--" 'help-echo help-echo))
+       (standard-mode-line-format
+	(list
+	 "%e"
+	 (propertize "-" 'help-echo help-echo)
+	 'mode-line-mule-info
+	 'mode-line-client
+	 'mode-line-modified
+	 'mode-line-frame-identification
+	 'mode-line-buffer-identification
+	 (propertize "   " 'help-echo help-echo)
+	 'mode-line-position
+	 '(vc-mode vc-mode)
+	 (propertize "  " 'help-echo help-echo)
+	 'mode-line-modes
+	 `(which-func-mode ("" which-func-format ,dashes))
+	 `(global-mode-string (,dashes global-mode-string))
+	 (propertize "-%-" 'help-echo help-echo)))
+       (standard-mode-line-modes
+	(list
+	 (propertize "%[(" 'help-echo help-echo)
+	 `(:propertize ("" mode-name)
+		       help-echo "mouse-1: major mode, mouse-2: major mode help, mouse-3: toggle minor modes"
+		       mouse-face mode-line-highlight
+		       local-map ,mode-line-major-mode-keymap)
+	 '("" mode-line-process)
+	 `(:propertize ("" minor-mode-alist)
+		       mouse-face mode-line-highlight
+		       help-echo "mouse-2: minor mode help, mouse-3: toggle minor modes"
+		       local-map ,mode-line-minor-mode-keymap)
+	 (propertize "%n" 'help-echo "mouse-2: widen"
+		     'mouse-face 'mode-line-highlight
+		     'local-map (make-mode-line-mouse-map
+				 'mouse-2 #'mode-line-widen))
+	 (propertize ")%]--" 'help-echo help-echo)))
 
-  (setq-default mode-line-modes
-    (list
-     (propertize "%[(" 'help-echo help-echo)
-     `(:propertize ("" mode-name)
-		   help-echo "mouse-1: major mode, mouse-2: major mode help, mouse-3: toggle minor modes"
-		   mouse-face mode-line-highlight
-		   local-map ,mode-line-major-mode-keymap)
-     '("" mode-line-process)
-     `(:propertize ("" minor-mode-alist)
-		   mouse-face mode-line-highlight
-		   help-echo "mouse-2: minor mode help, mouse-3: toggle minor modes"
-		   local-map ,mode-line-minor-mode-keymap)
-     (propertize "%n" 'help-echo "mouse-2: widen"
-		 'mouse-face 'mode-line-highlight
-		 'local-map (make-mode-line-mouse-map
-			     'mouse-2 #'mode-line-widen))
-     (propertize ")%]--" 'help-echo help-echo)))
+       (standard-mode-line-position
+	`((-3 ,(propertize "%p" 'help-echo help-echo))
+	  (size-indication-mode
+	   (8 ,(propertize " of %I" 'help-echo help-echo)))
+	  (line-number-mode
+	   ((column-number-mode
+	     (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
+	     (6 ,(propertize " L%l" 'help-echo help-echo))))
+	   ((column-number-mode
+	     (5 ,(propertize " C%c" 'help-echo help-echo))))))))
 
-  (setq-default mode-line-position
-    `((-3 ,(propertize "%p" 'help-echo help-echo))
-      (size-indication-mode
-       (8 ,(propertize " of %I" 'help-echo help-echo)))
-      (line-number-mode
-       ((column-number-mode
-	 (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
-	 (6 ,(propertize " L%l" 'help-echo help-echo))))
-       ((column-number-mode
-	 (5 ,(propertize " C%c" 'help-echo help-echo))))))))
+  (setq-default mode-line-format standard-mode-line-format)
+  (put 'mode-line-format 'standard-value
+       (list `(quote ,standard-mode-line-format)))
+
+  (setq-default mode-line-modes standard-mode-line-modes)
+  (put 'mode-line-modes 'standard-value
+       (list `(quote ,standard-mode-line-modes)))
+
+  (setq-default mode-line-position standard-mode-line-position)
+  (put 'mode-line-position 'standard-value
+       (list `(quote ,standard-mode-line-position))))
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
+
+;; Add menu of buffer operations to the buffer identification part
+;; of the mode line.or header line.
+;
+(let ((map (make-sparse-keymap)))
+  ;; Bind down- events so that the global keymap won't ``shine
+  ;; through''.
+  (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
+  (define-key map [header-line down-mouse-1] 'ignore)
+  (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
+  (define-key map [header-line down-mouse-3] 'ignore)
+  (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
+  (define-key map [header-line down-mouse-3] 'ignore)
+  (define-key map [header-line mouse-3] 'mode-line-next-buffer)
+  (setq mode-line-buffer-identification-keymap map))
+
+(defun propertized-buffer-identification (fmt)
+  "Return a list suitable for `mode-line-buffer-identification'.
+FMT is a format specifier such as \"%12b\".  This function adds
+text properties for face, help-echo, and local-map to it."
+  (list (propertize fmt
+		    'face 'mode-line-buffer-id
+		    'help-echo
+		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
+		    'mouse-face 'mode-line-highlight
+		    'local-map mode-line-buffer-identification-keymap)))
+
+(defvar mode-line-buffer-identification (propertized-buffer-identification "%12b") "\
+Mode-line control for identifying the buffer being displayed.
+Its default value is (\"%12b\") with some text properties added.
+Major modes that edit things other than ordinary files may change this
+\(e.g. Info, Dired,...)")
+
+(make-variable-buffer-local 'mode-line-buffer-identification)
 
 (defun unbury-buffer () "\
 Switch to the last buffer in the buffer list."
@@ -448,35 +486,6 @@ Menu of mode operations in the mode line.")
   (interactive "@e")
   (let ((indicator (car (nth 4 (car (cdr event))))))
     (describe-minor-mode-from-indicator indicator)))
-
-;; Add menu of buffer operations to the buffer identification part
-;; of the mode line.or header line.
-;
-(let ((map (make-sparse-keymap)))
-  ;; Bind down- events so that the global keymap won't ``shine
-  ;; through''.
-  (define-key map [mode-line mouse-1] 'mode-line-previous-buffer)
-  (define-key map [header-line down-mouse-1] 'ignore)
-  (define-key map [header-line mouse-1] 'mode-line-previous-buffer)
-  (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [mode-line mouse-3] 'mode-line-next-buffer)
-  (define-key map [header-line down-mouse-3] 'ignore)
-  (define-key map [header-line mouse-3] 'mode-line-next-buffer)
-  (setq mode-line-buffer-identification-keymap map))
-
-(defun propertized-buffer-identification (fmt)
-  "Return a list suitable for `mode-line-buffer-identification'.
-FMT is a format specifier such as \"%12b\".  This function adds
-text properties for face, help-echo, and local-map to it."
-  (list (propertize fmt
-		    'face 'mode-line-buffer-id
-		    'help-echo
-		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
-		    'mouse-face 'mode-line-highlight
-		    'local-map mode-line-buffer-identification-keymap)))
-
-(setq-default mode-line-buffer-identification
-	      (propertized-buffer-identification "%12b"))
 
 (defvar minor-mode-alist nil "\
 Alist saying how to show minor modes in the mode line.

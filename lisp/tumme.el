@@ -172,12 +172,12 @@
   :group 'multimedia)
 
 (defcustom tumme-dir "~/.emacs.d/tumme/"
-  "*Directory where thumbnail images are stored."
+  "Directory where thumbnail images are stored."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-thumbnail-storage 'use-tumme-dir
-  "*How to store tumme's thumbnail files.
+  "How to store tumme's thumbnail files.
 Tumme can store thumbnail files in one of two ways and this is
 controlled by this variable.  \"Use tumme dir\" means that the
 thumbnails are stored in a central directory.  \"Per directory\"
@@ -193,17 +193,17 @@ that allows sharing of thumbnails across different programs."
   :group 'tumme)
 
 (defcustom tumme-db-file "~/.emacs.d/tumme/.tumme_db"
-  "*Database file where file names and their associated tags are stored."
+  "Database file where file names and their associated tags are stored."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-temp-image-file "~/.emacs.d/tumme/.tumme_temp"
-  "*Name of temporary image file used by various commands."
+  "Name of temporary image file used by various commands."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-gallery-dir "~/.emacs.d/tumme/.tumme_gallery"
-  "*Directory to store generated gallery html pages.
+  "Directory to store generated gallery html pages.
 This path needs to be \"shared\" to the public so that it can access
 the index.html page that tumme creates."
   :type 'string
@@ -211,7 +211,7 @@ the index.html page that tumme creates."
 
 (defcustom tumme-gallery-image-root-url
 "http://your.own.server/tummepics"
-  "*URL where the full size images are to be found.
+  "URL where the full size images are to be found.
 Note that this path has to be configured in your web server.  Tumme
 expects to find pictures in this directory."
   :type 'string
@@ -219,7 +219,7 @@ expects to find pictures in this directory."
 
 (defcustom tumme-gallery-thumb-image-root-url
 "http://your.own.server/tummethumbs"
-  "*URL where the thumbnail images are to be found.
+  "URL where the thumbnail images are to be found.
 Note that this path has to be configured in your web server.  Tumme
 expects to find pictures in this directory."
   :type 'string
@@ -227,14 +227,14 @@ expects to find pictures in this directory."
 
 (defcustom tumme-cmd-create-thumbnail-program
   "convert"
-  "*Executable used to create thumbnail.
+  "Executable used to create thumbnail.
 Used together with `tumme-cmd-create-thumbnail-options'."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-cmd-create-thumbnail-options
   "%p -size %wx%h \"%f\" -resize %wx%h +profile \"*\" jpeg:\"%t\""
-  "*Format of command used to create thumbnail image.
+  "Format of command used to create thumbnail image.
 Available options are %p which is replaced by
 `tumme-cmd-create-thumbnail-program', %w which is replaced by
 `tumme-thumb-width', %h which is replaced by `tumme-thumb-height',
@@ -245,14 +245,14 @@ which is replaced by the file name of the thumbnail file."
 
 (defcustom tumme-cmd-create-temp-image-program
   "convert"
-  "*Executable used to create temporary image.
+  "Executable used to create temporary image.
 Used together with `tumme-cmd-create-temp-image-options'."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-cmd-create-temp-image-options
   "%p -size %wx%h \"%f\" -resize %wx%h +profile \"*\" jpeg:\"%t\""
-  "*Format of command used to create temporary image for display window.
+  "Format of command used to create temporary image for display window.
 Available options are %p which is replaced by
 `tumme-cmd-create-temp-image-program', %w and %h which is replaced by
 the calculated max size for width and height in the image display window,
@@ -262,13 +262,13 @@ is replaced by the file name of the temporary file."
   :group 'tumme)
 
 (defcustom tumme-cmd-pngnq-program (executable-find "pngnq")
-  "*The file name of the `pngnq' program.
+  "The file name of the `pngnq' program.
 It quantizes colors of PNG images down to 256 colors."
   :type '(choice (const :tag "Not Set" nil) string)
   :group 'tumme)
 
 (defcustom tumme-cmd-pngcrush-program (executable-find "pngcrush")
-  "*The file name of the `pngcrush' program.
+  "The file name of the `pngcrush' program.
 It optimizes the compression of PNG images.  Also it adds PNG textual chunks
 with the information required by the Thumbnail Managing Standard."
   :type '(choice (const :tag "Not Set" nil) string)
@@ -305,20 +305,20 @@ with the information required by the Thumbnail Managing Standard."
         "-text b \"Thumb::URI\" \"file://%f\" "
         "%q %t"
         " ; rm %q")))
-  "*Command to create thumbnails according to the Thumbnail Managing Standard."
+  "Command to create thumbnails according to the Thumbnail Managing Standard."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-cmd-rotate-thumbnail-program
   "mogrify"
-  "*Executable used to rotate thumbnail.
+  "Executable used to rotate thumbnail.
 Used together with `tumme-cmd-rotate-thumbnail-options'."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-cmd-rotate-thumbnail-options
   "%p -rotate %d \"%t\""
-  "*Format of command used to rotate thumbnail image.
+  "Format of command used to rotate thumbnail image.
 Available options are %p which is replaced by
 `tumme-cmd-rotate-thumbnail-program', %d which is replaced by the
 number of (positive) degrees to rotate the image, normally 90 or 270
@@ -329,14 +329,14 @@ of the thumbnail file."
 
 (defcustom tumme-cmd-rotate-original-program
   "jpegtran"
-  "*Executable used to rotate original image.
+  "Executable used to rotate original image.
 Used together with `tumme-cmd-rotate-original-options'."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-cmd-rotate-original-options
   "%p -rotate %d -copy all \"%o\" > %t"
-  "*Format of command used to rotate original image.
+  "Format of command used to rotate original image.
 Available options are %p which is replaced by
 `tumme-cmd-rotate-original-program', %d which is replaced by the
 number of (positive) degrees to rotate the image, normally 90 or
@@ -348,7 +348,7 @@ original image file name and %t which is replaced by
 
 (defcustom tumme-temp-rotate-image-file
   "~/.emacs.d/tumme/.tumme_rotate_temp"
-  "*Temporary file for rotate operations."
+  "Temporary file for rotate operations."
   :type 'string
   :group 'tumme)
 
@@ -361,14 +361,14 @@ original file with `tumme-temp-rotate-image-file'."
 
 (defcustom tumme-cmd-write-exif-data-program
   "exiftool"
-  "*Program used to write EXIF data to image.
+  "Program used to write EXIF data to image.
 Used together with `tumme-cmd-write-exif-data-options'."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-cmd-write-exif-data-options
   "%p -%t=\"%v\" \"%f\""
-  "*Format of command used to write EXIF data.
+  "Format of command used to write EXIF data.
 Available options are %p which is replaced by
 `tumme-cmd-write-exif-data-program', %f which is replaced by the
 image file name, %t which is replaced by the tag name and %v
@@ -378,14 +378,14 @@ which is replaced by the tag value."
 
 (defcustom tumme-cmd-read-exif-data-program
   "exiftool"
-  "*Program used to read EXIF data to image.
+  "Program used to read EXIF data to image.
 Used together with `tumme-cmd-read-exif-data-program-options'."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-cmd-read-exif-data-options
   "%p -s -s -s -%t \"%f\""
-  "*Format of command used to read EXIF data.
+  "Format of command used to read EXIF data.
 Available options are %p which is replaced by
 `tumme-cmd-write-exif-data-options', %f which is replaced
 by the image file name and %t which is replaced by the tag name."
@@ -394,7 +394,7 @@ by the image file name and %t which is replaced by the tag name."
 
 (defcustom tumme-gallery-hidden-tags
   (list "private" "hidden" "pending")
-  "*List of \"hidden\" tags.
+  "List of \"hidden\" tags.
 Used by `tumme-gallery-generate' to leave out \"hidden\" images."
   :type '(repeat string)
   :group 'tumme)
@@ -416,18 +416,18 @@ This is the default size for both `tumme-thumb-width' and `tumme-thumb-height'."
   :group 'tumme)
 
 (defcustom tumme-thumb-relief 2
-  "*Size of button-like border around thumbnails."
+  "Size of button-like border around thumbnails."
   :type 'integer
   :group 'tumme)
 
 (defcustom tumme-thumb-margin 2
-  "*Size of the margin around thumbnails.
+  "Size of the margin around thumbnails.
 This is where you see the cursor."
   :type 'integer
   :group 'tumme)
 
 (defcustom tumme-line-up-method 'dynamic
-  "*Default method for line-up of thumbnails in thumbnail buffer.
+  "Default method for line-up of thumbnails in thumbnail buffer.
 Used by `tumme-display-thumbs' and other functions that needs to
 line-up thumbnails.  Dynamic means to use the available width of the
 window containing the thumbnail buffer, Fixed means to use
@@ -441,19 +441,19 @@ line-up means that no automatic line-up will be done."
   :group 'tumme)
 
 (defcustom tumme-thumbs-per-row 3
-  "*Number of thumbnails to display per row in thumb buffer."
+  "Number of thumbnails to display per row in thumb buffer."
   :type 'integer
   :group 'tumme)
 
 (defcustom tumme-display-window-width-correction 1
-  "*Number to be used to correct image display window width.
+  "Number to be used to correct image display window width.
 Change if the default (1) does not work (i.e. if the image does not
 completely fit)."
   :type 'integer
   :group 'tumme)
 
 (defcustom tumme-display-window-height-correction 0
-  "*Number to be used to correct image display window height.
+  "Number to be used to correct image display window height.
 Change if the default (0) does not work (i.e. if the image does not
 completely fit)."
   :type 'integer
@@ -487,7 +487,7 @@ dired and you might want to turn it off."
   :group 'tumme)
 
 (defcustom tumme-display-properties-format "%b: %f (%t): %c"
-  "*Display format for thumbnail properties.
+  "Display format for thumbnail properties.
 %b is replaced with associated dired buffer name, %f with file name
 \(without path) of original image file, %t with the list of tags and %c
 with the comment."
@@ -500,20 +500,20 @@ with the comment."
   (cond ((executable-find "display"))
         ((executable-find "xli"))
         ((executable-find "qiv") "qiv -t"))
-  "*Name of external viewer.
+  "Name of external viewer.
 Including parameters.  Used when displaying original image from
 `tumme-thumbnail-mode'."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-main-image-directory "~/pics/"
-  "*Name of main image directory, if any.
+  "Name of main image directory, if any.
 Used by `tumme-copy-with-exif-file-name'."
   :type 'string
   :group 'tumme)
 
 (defcustom tumme-show-all-from-dir-max-files 50
-  "*Maximum number of files to show using `tumme-show-all-from-dir'.
+  "Maximum number of files to show using `tumme-show-all-from-dir'.
 before warning the user."
   :type 'integer
   :group 'tumme)

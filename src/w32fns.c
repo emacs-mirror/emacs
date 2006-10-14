@@ -2066,7 +2066,8 @@ w32_createwindow (f)
 {
   HWND hwnd;
   RECT rect;
-  Lisp_Object top, left;
+  Lisp_Object top = Qunbound;
+  Lisp_Object left = Qunbound;
 
   rect.left = rect.top = 0;
   rect.right = FRAME_PIXEL_WIDTH (f);
@@ -2079,13 +2080,41 @@ w32_createwindow (f)
 
   if (!hprevinst)
     {
+      Lisp_Object ifa;
+
       w32_init_class (hinst);
+
+      /* Handle the -geometry command line option and the geometry
+	 settings in the registry.  They are decoded and put into
+	 initial-frame-alist by w32-win.el:x-handle-geometry.  */
+      ifa = Fsymbol_value (intern ("initial-frame-alist"));
+      if (CONSP (ifa))
+	{
+	  Lisp_Object lt = Fassq (Qleft, ifa);
+	  Lisp_Object tp = Fassq (Qtop,  ifa);
+
+	  if (!NILP (lt))
+	    {
+	      lt = XCDR (lt);
+	      if (INTEGERP (lt))
+		left = lt;
+	    }
+	  if (!NILP (tp))
+	    {
+	      tp = XCDR (tp);
+	      if (INTEGERP (tp))
+		top = tp;
+	    }
+	}
     }
 
-  /* When called with RES_TYPE_NUMBER, w32_get_arg will return zero
-     for anything that is not a number and is not Qunbound.  */
-  left = w32_get_arg (Qnil, Qleft, "left", "Left", RES_TYPE_NUMBER);
-  top = w32_get_arg (Qnil, Qtop, "top", "Top", RES_TYPE_NUMBER);
+  if (EQ (left, Qunbound) && EQ (top, Qunbound))
+    {
+      /* When called with RES_TYPE_NUMBER, w32_get_arg will return zero
+	 for anything that is not a number and is not Qunbound.  */
+      left = w32_get_arg (Qnil, Qleft, "left", "Left", RES_TYPE_NUMBER);
+      top = w32_get_arg (Qnil, Qtop, "top", "Top", RES_TYPE_NUMBER);
+    }
 
   FRAME_W32_WINDOW (f) = hwnd
     = CreateWindow (EMACS_CLASS,
@@ -6207,7 +6236,7 @@ w32_query_font (struct frame *f, char *fontname)
 
   for (i = 0; i < one_w32_display_info.n_fonts ;i++, pfi++)
     {
-      if (strcmp(pfi->name, fontname) == 0) return pfi;
+      if (stricmp(pfi->name, fontname) == 0) return pfi;
     }
 
   return NULL;
@@ -6326,17 +6355,12 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
   CHECK_STRING (color);
 
   if (w32_defined_color (f, SDATA (color), &foo, 0))
-    {
-      Lisp_Object rgb[3];
-
-      rgb[0] = make_number ((GetRValue (foo.pixel) << 8)
-                            | GetRValue (foo.pixel));
-      rgb[1] = make_number ((GetGValue (foo.pixel) << 8)
-                            | GetGValue (foo.pixel));
-      rgb[2] = make_number ((GetBValue (foo.pixel) << 8)
-                            | GetBValue (foo.pixel));
-      return Flist (3, rgb);
-    }
+    return list3 (make_number ((GetRValue (foo.pixel) << 8)
+			       | GetRValue (foo.pixel)),
+		  make_number ((GetGValue (foo.pixel) << 8)
+			       | GetGValue (foo.pixel)),
+		  make_number ((GetBValue (foo.pixel) << 8)
+			       | GetBValue (foo.pixel)));
   else
     return Qnil;
 }

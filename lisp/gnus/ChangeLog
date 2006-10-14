@@ -1,3 +1,47 @@
+2006-08-23  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	[ Backported bug fix from No Gnus. ]
+
+	* gnus.el (gnus-find-method-for-group): On killed/unknown groups, try
+	looking up the method using GROUP's prefix before inventing a new one.
+	It is used on killed/unknown groups in various places where returning
+	an all-new method isn't expected by the caller.
+
+	* gnus-util.el (gnus-group-server): Copy required macro from No Gnus.
+
+2006-08-13  Romain Francoise  <romain@orebokech.com>
+
+	* mm-extern.el (mm-extern-mail-server): End `y-or-n-p' prompt with a
+	space.
+
+2006-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* compface.el (uncompface): Use binary rather than raw-text-unix.
+
+2006-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* compface.el (uncompface): Make sure the eol conversion doesn't take
+	place when communicating with the external programs.  Reported by
+	ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+
+2006-07-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnheader.el (nnheader-insert-head): Fix typo in comment.
+
+2006-07-31  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* nnweb.el (nnweb-google-parse-1): Update regexp for author and date.
+	Make it more robust by parsing author and date independently.
+
+2006-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnheader.el (nnheader-insert-head): Make it work with Mac as well.
+
+2006-07-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnheader.el (nnheader-insert-head): Make it work even if the file
+	uses CRLF for the line-break code.
+
 2006-07-19  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* mm-url.el (mm-url-insert-file-contents): Inhibit Connection: close

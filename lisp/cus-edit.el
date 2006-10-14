@@ -4435,9 +4435,8 @@ The format is suitable for use with `easy-menu-define'."
   ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
   (let ((map (make-keymap)))
     (set-keymap-parent map widget-keymap)
-    (define-key map [remap self-insert-command]
-      'custom-no-edit)
-    (define-key map "\^m" 'custom-no-edit)
+    (define-key map [remap self-insert-command] 'custom-no-edit)
+    (define-key map "\^m" 'custom-newline)
     (define-key map " " 'scroll-up)
     (define-key map "\177" 'scroll-down)
     (define-key map "\C-c\C-c" 'Custom-set)
@@ -4450,6 +4449,11 @@ The format is suitable for use with `easy-menu-define'."
   "Keymap for `custom-mode'.")
 
 (defun custom-no-edit (pos &optional event)
+  "Invoke button at POS, or refuse to allow editing of Custom buffer."
+  (interactive "@d")
+  (error "You can't edit this part of the Custom buffer"))
+
+(defun custom-newline (pos &optional event)
   "Invoke button at POS, or refuse to allow editing of Custom buffer."
   (interactive "@d")
   (let ((button (get-char-property pos 'button)))

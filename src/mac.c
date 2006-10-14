@@ -831,7 +831,7 @@ create_apple_event (class, id, result)
   return err;
 }
 
-OSErr
+OSStatus
 create_apple_event_from_event_ref (event, num_params, names, types, result)
      EventRef event;
      UInt32 num_params;
@@ -839,7 +839,7 @@ create_apple_event_from_event_ref (event, num_params, names, types, result)
      EventParamType *types;
      AppleEvent *result;
 {
-  OSErr err;
+  OSStatus err;
   UInt32 i, size;
   CFStringRef string;
   CFDataRef data;
@@ -2424,7 +2424,7 @@ select (n,  rfds, wfds, efds, timeout)
   SELECT_TYPE *efds;
   struct timeval *timeout;
 {
-  OSErr err;
+  OSStatus err;
 #if TARGET_API_MAC_CARBON
   EventTimeout timeout_sec =
     (timeout
@@ -4192,7 +4192,7 @@ DEFUN ("mac-get-file-creator", Fmac_get_file_creator, Smac_get_file_creator, 1, 
      (filename)
      Lisp_Object filename;
 {
-  OSErr	status;
+  OSStatus status;
 #ifdef MAC_OSX
   FSRef fref;
 #else
@@ -4246,7 +4246,7 @@ DEFUN ("mac-get-file-type", Fmac_get_file_type, Smac_get_file_type, 1, 1, 0,
      (filename)
      Lisp_Object filename;
 {
-  OSErr	status;
+  OSStatus status;
 #ifdef MAC_OSX
   FSRef fref;
 #else
@@ -4302,7 +4302,7 @@ assumed. Return non-nil if successful.  */)
      (filename, code)
      Lisp_Object filename, code;
 {
-  OSErr	status;
+  OSStatus status;
 #ifdef MAC_OSX
   FSRef fref;
 #else
@@ -4362,7 +4362,7 @@ CODE must be a 4-character string.  Return non-nil if successful.  */)
      (filename, code)
      Lisp_Object filename, code;
 {
-  OSErr	status;
+  OSStatus status;
 #ifdef MAC_OSX
   FSRef fref;
 #else
@@ -4775,7 +4775,7 @@ cfstring_create_normalized (str, symbol)
       UnicodeMapping map;
       CFIndex length;
       UniChar *in_text, *buffer = NULL, *out_buf = NULL;
-      OSErr err = noErr;
+      OSStatus err = noErr;
       ByteCount out_read, out_size, out_len;
 
       map.unicodeEncoding = CreateTextEncoding (kTextEncodingUnicodeDefault,
@@ -4910,7 +4910,7 @@ On successful conversion, return the result string, else return nil.  */)
 static Lisp_Object
 mac_get_system_locale ()
 {
-  OSErr err;
+  OSStatus err;
   LangCode lang;
   RegionCode region;
   LocaleRef locale;
@@ -4987,7 +4987,7 @@ select_and_poll_event (n, rfds, wfds, efds, timeout)
      struct timeval *timeout;
 {
   int r;
-  OSErr err;
+  OSStatus err;
 
   r = select (n, rfds, wfds, efds, timeout);
   if (r != -1)
@@ -5017,7 +5017,7 @@ sys_select (n, rfds, wfds, efds, timeout)
      SELECT_TYPE *efds;
      struct timeval *timeout;
 {
-  OSErr err;
+  OSStatus err;
   int i, r;
   EMACS_TIME select_timeout;
 

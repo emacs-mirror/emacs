@@ -887,7 +887,9 @@ and the greater of them is not at the start of a line."
 
 (defun line-number-at-pos (&optional pos)
   "Return (narrowed) buffer line number at position POS.
-If POS is nil, use current buffer location."
+If POS is nil, use current buffer location.
+Counting starts at (point-min), so the value refers
+to the contents of the accessible portion of the buffer."
   (let ((opoint (or pos (point))) start)
     (save-excursion
       (goto-char (point-min))
@@ -3689,7 +3691,10 @@ because what we really need is for `move-to-column'
 and `current-column' to be able to ignore invisible text."
   (if (zerop col)
       (beginning-of-line)
-    (move-to-column col))
+    (let ((opoint (point)))
+      (move-to-column col)
+      ;; move-to-column doesn't respect field boundaries.
+      (goto-char (constrain-to-field (point) opoint))))
 
   (when (and line-move-ignore-invisible
 	     (not (bolp)) (line-move-invisible-p (1- (point))))
@@ -3759,7 +3764,8 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "p")
   (or arg (setq arg 1))
 
-  (let ((orig (point)))
+  (let ((orig (point))
+	start first-vis first-vis-field-value)
 
     ;; Move by lines, if ARG is not 1 (the default).
     (if (/= arg 1)
@@ -3770,10 +3776,24 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
     (while (and (not (bobp)) (line-move-invisible-p (1- (point))))
       (goto-char (previous-char-property-change (point)))
       (skip-chars-backward "^\n"))
+    (setq start (point))
 
-    ;; Take care of fields.
-    (goto-char (constrain-to-field (point) orig
-				   (/= arg 1) t nil))))
+    ;; Now find first visible char in the line
+    (while (and (not (eobp)) (line-move-invisible-p (point)))
+      (goto-char (next-char-property-change (point))))
+    (setq first-vis (point))
+
+    ;; See if fields would stop us from reaching FIRST-VIS.
+    (setq first-vis-field-value
+	  (constrain-to-field first-vis orig (/= arg 1) t nil))
+
+    (goto-char (if (/= first-vis-field-value first-vis)
+		   ;; If yes, obey them.
+		   first-vis-field-value
+		 ;; Otherwise, move to START with attention to fields.
+		 ;; (It is possible that fields never matter in this case.)
+		 (constrain-to-field (point) orig
+				     (/= arg 1) t nil)))))
 
 
 ;;; Many people have said they rarely use this feature, and often type

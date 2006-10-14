@@ -97,7 +97,7 @@
 	 (subject (or (cdr (assq 'subject params)) "none"))
 	 (buf (current-buffer))
 	 info)
-    (if (y-or-n-p (format "Send a request message to %s?" server))
+    (if (y-or-n-p (format "Send a request message to %s? " server))
 	(save-window-excursion
 	  (message-mail server subject)
 	  (message-goto-body)

@@ -193,8 +193,14 @@
 (defvar compilation-error-regexp-alist)
 (defvar compilation-mode-font-lock-keywords)
 
+(defgroup checkdoc nil
+  "Support for doc string checking in Emacs Lisp."
+  :prefix "checkdoc"
+  :group 'lisp
+  :version "20.3")
+
 (defcustom checkdoc-autofix-flag 'semiautomatic
-  "*Non-nil means attempt auto-fixing of doc strings.
+  "Non-nil means attempt auto-fixing of doc strings.
 If this value is the symbol `query', then the user is queried before
 any change is made.  If the value is `automatic', then all changes are
 made without asking unless the change is very-complex.  If the value
@@ -208,37 +214,39 @@ The value `never' is the same as nil, never ask or change anything."
 		 (other :tag "semiautomatic" semiautomatic)))
 
 (defcustom checkdoc-bouncy-flag t
-  "*Non-nil means to \"bounce\" to auto-fix locations.
+  "Non-nil means to \"bounce\" to auto-fix locations.
 Setting this to nil will silently make fixes that require no user
 interaction.  See `checkdoc-autofix-flag' for auto-fixing details."
   :group 'checkdoc
   :type 'boolean)
 
 (defcustom checkdoc-force-docstrings-flag t
-  "*Non-nil means that all checkable definitions should have documentation.
+  "Non-nil means that all checkable definitions should have documentation.
 Style guide dictates that interactive functions MUST have documentation,
 and that it's good but not required practice to make non user visible items
 have doc strings."
   :group 'checkdoc
   :type 'boolean)
+(put 'checkdoc-force-docstrings-flag 'safe-local-variable 'booleanp)
 
 (defcustom checkdoc-force-history-flag t
-  "*Non-nil means that files should have a History section or ChangeLog file.
+  "Non-nil means that files should have a History section or ChangeLog file.
 This helps document the evolution of, and recent changes to, the package."
   :group 'checkdoc
   :type 'boolean)
 
 (defcustom checkdoc-permit-comma-termination-flag nil
-  "*Non-nil means the first line of a docstring may end with a comma.
+  "Non-nil means the first line of a docstring may end with a comma.
 Ordinarily, a full sentence is required.  This may be misleading when
 there is a substantial caveat to the one-line description -- the comma
 should be used when the first part could stand alone as a sentence, but
 it indicates that a modifying clause follows."
   :group 'checkdoc
   :type 'boolean)
+(put 'checkdoc-permit-comma-termination-flag 'safe-local-variable 'booleanp)
 
 (defcustom checkdoc-spellcheck-documentation-flag nil
-  "*Non-nil means run Ispell on text based on value.
+  "Non-nil means run Ispell on text based on value.
 This is automatically set to nil if Ispell does not exist on your
 system.  Possible values are:
 
@@ -259,14 +267,14 @@ system.  Possible values are:
   "List of words that are correct when spell-checking Lisp documentation.")
 
 (defcustom checkdoc-max-keyref-before-warn 10
-  "*The number of \\ [command-to-keystroke] tokens allowed in a doc string.
+  "The number of \\ [command-to-keystroke] tokens allowed in a doc string.
 Any more than this and a warning is generated suggesting that the construct
 \\ {keymap} be used instead."
   :group 'checkdoc
   :type 'integer)
 
 (defcustom checkdoc-arguments-in-order-flag t
-  "*Non-nil means warn if arguments appear out of order.
+  "Non-nil means warn if arguments appear out of order.
 Setting this to nil will mean only checking that all the arguments
 appear in the proper form in the documentation, not that they are in
 the same order as they appear in the argument list.  No mention is
@@ -298,7 +306,7 @@ problem discovered.  This is useful for adding additional checks.")
 A search leaves the cursor in front of the parameter list.")
 
 (defcustom checkdoc-verb-check-experimental-flag t
-  "*Non-nil means to attempt to check the voice of the doc string.
+  "Non-nil means to attempt to check the voice of the doc string.
 This check keys off some words which are commonly misused.  See the
 variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
   :group 'checkdoc
@@ -2633,12 +2641,6 @@ function called to create the messages."
 	(setq checkdoc-pending-errors nil)
 	nil)))
 
-(defgroup checkdoc nil
-  "Support for doc string checking in Emacs Lisp."
-  :prefix "checkdoc"
-  :group 'lisp
-  :version "20.3")
-
 (custom-add-option 'emacs-lisp-mode-hook
 		   (lambda () (checkdoc-minor-mode 1)))
 
@@ -2650,5 +2652,5 @@ function called to create the messages."
 
 (provide 'checkdoc)
 
-;;; arch-tag: c49a7ec8-3bb7-46f2-bfbc-d5f26e033b26
+;; arch-tag: c49a7ec8-3bb7-46f2-bfbc-d5f26e033b26
 ;;; checkdoc.el ends here

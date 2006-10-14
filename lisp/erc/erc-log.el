@@ -71,8 +71,6 @@
 ;; markers.
 
 ;;; TODO:
-;; * Erc needs a generalised make-safe-file-name function, so that
-;;   generated file names don't contain any invalid file characters.
 ;;
 ;; * Really, we need to lock the logfiles somehow, so that if a user
 ;;   is running multiple emacsen and/or on the same channel as more
@@ -218,7 +216,10 @@ also be a predicate function. To only log when you are not set away, use:
    (add-hook 'erc-quit-hook 'erc-conditional-save-queries)
    (add-hook 'erc-part-hook 'erc-conditional-save-buffer)
    ;; append, so that 'erc-initialize-log-marker runs first
-   (add-hook 'erc-connect-pre-hook 'erc-log-setup-logging 'append))
+   (add-hook 'erc-connect-pre-hook 'erc-log-setup-logging 'append)
+   (dolist (buffer (erc-buffer-list))
+     (when (buffer-live-p buffer)
+       (with-current-buffer buffer (erc-log-setup-logging)))))
   ;; disable
   ((remove-hook 'erc-insert-post-hook 'erc-save-buffer-in-logs)
    (remove-hook 'erc-send-post-hook 'erc-save-buffer-in-logs)
@@ -226,7 +227,10 @@ also be a predicate function. To only log when you are not set away, use:
    (remove-hook 'erc-kill-channel-hook 'erc-save-buffer-in-logs)
    (remove-hook 'erc-quit-hook 'erc-conditional-save-queries)
    (remove-hook 'erc-part-hook 'erc-conditional-save-buffer)
-   (remove-hook 'erc-connect-pre-hook 'erc-log-setup-logging)))
+   (remove-hook 'erc-connect-pre-hook 'erc-log-setup-logging)
+   (dolist (buffer (erc-buffer-list))
+     (when (buffer-live-p buffer)
+       (with-current-buffer buffer (erc-log-disable-logging))))))
 
 (define-key erc-mode-map "\C-c\C-l" 'erc-save-buffer-in-logs)
 
@@ -236,14 +240,19 @@ also be a predicate function. To only log when you are not set away, use:
 This function is destined to be run from `erc-connect-pre-hook'."
   (when (erc-logging-enabled)
     (auto-save-mode -1)
-    (setq buffer-offer-save t
-	  buffer-file-name "")
+    (setq buffer-file-name nil)
     (set (make-local-variable 'write-file-functions)
 	 '(erc-save-buffer-in-logs))
     (when erc-log-insert-log-on-open
       (ignore-errors (insert-file-contents (erc-current-logfile))
 		     (move-marker erc-last-saved-position
 				  (1- (point-max)))))))
+
+(defun erc-log-disable-logging ()
+  "Disable logging in the current buffer."
+  (when (erc-logging-enabled)
+    (setq buffer-offer-save nil
+	  erc-enable-logging nil)))
 
 (defun erc-log-all-but-server-buffers (buffer)
   "Returns t if logging should be enabled in BUFFER.
@@ -282,17 +291,27 @@ is writeable (it will be created as necessary) and
 	   (funcall erc-enable-logging (or buffer (current-buffer)))
 	 erc-enable-logging)))
 
+(defun erc-log-standardize-name (filename)
+  "Make FILENAME safe to use as the name of an ERC log.
+This will not work with full paths, only names.
+
+Any unsafe characters in the name are replaced with \"!\".  The
+filename is downcased."
+  (downcase (erc-replace-regexp-in-string
+	     "[/\\]" "!" (convert-standard-filename filename))))
+
 (defun erc-current-logfile (&optional buffer)
   "Return the logfile to use for BUFFER.
 If BUFFER is nil, the value of `current-buffer' is used.
 This is determined by `erc-generate-log-file-name-function'.
 The result is converted to lowercase, as IRC is case-insensitive"
   (expand-file-name
-   (downcase (funcall erc-generate-log-file-name-function
-		      (or buffer (current-buffer))
-		      (or (erc-default-target) (buffer-name buffer))
-		      (erc-current-nick)
-		      erc-session-server erc-session-port))
+   (erc-log-standardize-name
+    (funcall erc-generate-log-file-name-function
+	     (or buffer (current-buffer))
+	     (or (erc-default-target) (buffer-name buffer))
+	     (erc-current-nick)
+	     erc-session-server erc-session-port))
    erc-log-channels-directory))
 
 (defun erc-generate-log-file-name-with-date (buffer &rest ignore)

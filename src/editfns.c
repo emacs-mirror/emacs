@@ -629,10 +629,7 @@ find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
 DEFUN ("delete-field", Fdelete_field, Sdelete_field, 0, 1, 0,
        doc: /* Delete the field surrounding POS.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS.
-
-An `args-out-of-range' error is signaled if POS is outside the
-buffer's accessible portion.  */)
+If POS is nil, the value of point is used for POS.  */)
      (pos)
      Lisp_Object pos;
 {
@@ -646,10 +643,7 @@ buffer's accessible portion.  */)
 DEFUN ("field-string", Ffield_string, Sfield_string, 0, 1, 0,
        doc: /* Return the contents of the field surrounding POS as a string.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS.
-
-An `args-out-of-range' error is signaled if POS is outside the
-buffer's accessible portion.  */)
+If POS is nil, the value of point is used for POS.  */)
      (pos)
      Lisp_Object pos;
 {
@@ -661,10 +655,7 @@ buffer's accessible portion.  */)
 DEFUN ("field-string-no-properties", Ffield_string_no_properties, Sfield_string_no_properties, 0, 1, 0,
        doc: /* Return the contents of the field around POS, without text-properties.
 A field is a region of text with the same `field' property.
-If POS is nil, the value of point is used for POS.
-
-An `args-out-of-range' error is signaled if POS is outside the
-buffer's accessible portion.  */)
+If POS is nil, the value of point is used for POS.  */)
      (pos)
      Lisp_Object pos;
 {
@@ -680,10 +671,7 @@ If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the beginning of its
 field, then the beginning of the *previous* field is returned.
 If LIMIT is non-nil, it is a buffer position; if the beginning of the field
-is before LIMIT, then LIMIT will be returned instead.
-
-An `args-out-of-range' error is signaled if POS is outside the
-buffer's accessible portion.  */)
+is before LIMIT, then LIMIT will be returned instead.  */)
      (pos, escape_from_edge, limit)
      Lisp_Object pos, escape_from_edge, limit;
 {
@@ -699,10 +687,7 @@ If POS is nil, the value of point is used for POS.
 If ESCAPE-FROM-EDGE is non-nil and POS is at the end of its field,
 then the end of the *following* field is returned.
 If LIMIT is non-nil, it is a buffer position; if the end of the field
-is after LIMIT, then LIMIT will be returned instead.
-
-An `args-out-of-range' error is signaled if POS is outside the
-buffer's accessible portion.  */)
+is after LIMIT, then LIMIT will be returned instead.  */)
      (pos, escape_from_edge, limit)
      Lisp_Object pos, escape_from_edge, limit;
 {
@@ -1450,14 +1435,11 @@ resolution finer than a second.  */)
      ()
 {
   EMACS_TIME t;
-  Lisp_Object result[3];
 
   EMACS_GET_TIME (t);
-  XSETINT (result[0], (EMACS_SECS (t) >> 16) & 0xffff);
-  XSETINT (result[1], (EMACS_SECS (t) >> 0)  & 0xffff);
-  XSETINT (result[2], EMACS_USECS (t));
-
-  return Flist (3, result);
+  return list3 (make_number ((EMACS_SECS (t) >> 16) & 0xffff),
+		make_number ((EMACS_SECS (t) >> 0)  & 0xffff),
+		make_number (EMACS_USECS (t)));
 }
 
 DEFUN ("get-internal-run-time", Fget_internal_run_time, Sget_internal_run_time,
@@ -1475,7 +1457,6 @@ systems that do not provide resolution finer than a second.  */)
 {
 #ifdef HAVE_GETRUSAGE
   struct rusage usage;
-  Lisp_Object result[3];
   int secs, usecs;
 
   if (getrusage (RUSAGE_SELF, &usage) < 0)
@@ -1491,11 +1472,9 @@ systems that do not provide resolution finer than a second.  */)
       secs++;
     }
 
-  XSETINT (result[0], (secs >> 16) & 0xffff);
-  XSETINT (result[1], (secs >> 0)  & 0xffff);
-  XSETINT (result[2], usecs);
-
-  return Flist (3, result);
+  return list3 (make_number ((secs >> 16) & 0xffff),
+		make_number ((secs >> 0)  & 0xffff),
+		make_number (usecs));
 #else
   return Fcurrent_time ();
 #endif
@@ -2706,6 +2685,10 @@ Both characters must have the same length of multi-byte form.  */)
      Lisp_Object start, end, fromchar, tochar, noundo;
 {
   register int pos, pos_byte, stop, i, len, end_byte;
+  /* Keep track of the first change in the buffer:
+     if 0 we haven't found it yet.
+     if < 0 we've found it and we've run the before-change-function.
+     if > 0 we've actually performed it and the value is its position.  */
   int changed = 0;
   unsigned char fromstr[MAX_MULTIBYTE_LENGTH], tostr[MAX_MULTIBYTE_LENGTH];
   unsigned char *p;
@@ -2717,6 +2700,8 @@ Both characters must have the same length of multi-byte form.  */)
   int maybe_byte_combining = COMBINING_NO;
   int last_changed = 0;
   int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
+
+ restart:
 
   validate_region (&start, &end);
   CHECK_NUMBER (fromchar);
@@ -2755,7 +2740,7 @@ Both characters must have the same length of multi-byte form.  */)
      That's faster than getting rid of things,
      and it prevents even the entry for a first change.
      Also inhibit locking the file.  */
-  if (!NILP (noundo))
+  if (!changed && !NILP (noundo))
     {
       record_unwind_protect (subst_char_in_region_unwind,
 			     current_buffer->undo_list);
@@ -2789,10 +2774,14 @@ Both characters must have the same length of multi-byte form.  */)
 		  && (len == 2 || (p[2] == fromstr[2]
 				 && (len == 3 || p[3] == fromstr[3]))))))
 	{
-	  if (! changed)
+	  if (changed < 0)
+	    /* We've already seen this and run the before-change-function;
+	       this time we only need to record the actual position. */
+	    changed = pos;
+	  else if (!changed)
 	    {
-	      changed = pos;
-	      modify_region (current_buffer, changed, XINT (end));
+	      changed = -1;
+	      modify_region (current_buffer, pos, XINT (end));
 
 	      if (! NILP (noundo))
 		{
@@ -2801,6 +2790,10 @@ Both characters must have the same length of multi-byte form.  */)
 		  if (MODIFF - 1 == current_buffer->auto_save_modified)
 		    current_buffer->auto_save_modified++;
 		}
+
+	      /* The before-change-function may have moved the gap
+		 or even modified the buffer so we should start over. */
+	      goto restart;
 	    }
 
 	  /* Take care of the case where the new character
@@ -2853,7 +2846,7 @@ Both characters must have the same length of multi-byte form.  */)
       pos++;
     }
 
-  if (changed)
+  if (changed > 0)
     {
       signal_after_change (changed,
 			   last_changed - changed, last_changed - changed);
