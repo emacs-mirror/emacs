@@ -1603,7 +1603,7 @@ Replace <file-name> or <<file-name>> with filename."
 		      ((equal arg "<file-name>")
 		       (buffer-file-name))
 		      ((equal arg "<<file-name>>")
-		       (filesets-quote (buffer-file-name)))
+		       (shell-quote-argument (buffer-file-name)))
 		      (t
 		       arg))))
 
