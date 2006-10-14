@@ -1,3 +1,7 @@
+2006-10-15  Kim F. Storm  <storm@cua.dk>
+
+	* filesets.el (filesets-run-cmd--repl-fn): Use shell-quote-argument.
+
 2006-10-14  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* filesets.el (filesets-cmd-shell-command): Quote buffer-file-name
