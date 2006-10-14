@@ -7,6 +7,11 @@
 
 	* subr.el (start-process-shell-command): Doc fix.
 
+2006-10-13  Andrea Russo  <rastandy@salug.it>  (tiny change)
+
+	* info-look.el <maxima-mode, inferior-maxima-mode>: Allow [0-9] in
+	the regexp for Maxima symbols.
+
 2006-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-ignore-dir-regexp): Make it into a defcustom.
