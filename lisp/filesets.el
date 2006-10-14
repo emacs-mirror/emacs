@@ -1701,7 +1701,7 @@ Replace <file-name> or <<file-name>> with filename."
 		  ok)
 	      t)))
     (when ok
-      (let ((cmd (format txt (buffer-file-name))))
+      (let ((cmd (format txt (shell-quote-argument (buffer-file-name)))))
 	(message "Filesets: %s" cmd)
 	(filesets-cmd-show-result cmd
 				  (shell-command-to-string cmd))))))
