@@ -1238,7 +1238,8 @@ emacs_blocked_malloc (size, ptr)
   BLOCK_INPUT_ALLOC;
   __malloc_hook = old_malloc_hook;
 #ifdef DOUG_LEA_MALLOC
-    mallopt (M_TOP_PAD, malloc_hysteresis * 4096);
+  /* Segfaults on my system.  --lorentey */
+  /* mallopt (M_TOP_PAD, malloc_hysteresis * 4096); */
 #else
     __malloc_extra_blocks = malloc_hysteresis;
 #endif

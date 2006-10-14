@@ -2524,9 +2524,10 @@ order until succeed.")
 
   ;; Override Paste so it looks at CLIPBOARD first.
   (define-key menu-bar-edit-menu [paste]
-    '(menu-item "Paste" x-clipboard-yank
-		:enable (not buffer-read-only)
-		:help "Paste (yank) text most recently cut/copied"))
+    (append '(menu-item "Paste" x-clipboard-yank
+			:enable (not buffer-read-only)
+			:help "Paste (yank) text most recently cut/copied")
+	    nil))
 
   (setq x-initialized t))
 
