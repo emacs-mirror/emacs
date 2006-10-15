@@ -4168,7 +4168,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	    (setq refresh t))
 	   ((string-equal contents "./")
 	    (setq refresh t))
-	   ((string-match "\\`~[a-zA-Z0-9]+/\\'" contents)
+	   ((string-match "\\`~[-_a-zA-Z0-9]+[$]?/\\'" contents)
 	    (ido-trace "new home" contents)
 	    (ido-set-current-home contents)
 	    (setq refresh t))
