@@ -1,3 +1,7 @@
+2006-10-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* admin.el (set-version): Set version numbers in "mac" subdirectory.
+
 2006-10-03  Kenichi Handa  <handa@m17n.org>
 
 	* FOR-RELEASE (BUGS): "An iso-8859-6 cannot be saved" fixed.
