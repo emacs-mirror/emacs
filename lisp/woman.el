@@ -4121,7 +4121,11 @@ If `woman-nofill' is non-nil then indent without filling or adjusting."
 	       (eolp)
 	       (skip-syntax-forward " ")
 	       (setq woman-leave-blank-lines 1))
-	  (beginning-of-line)
+	  ;; This shouldn't happen, but in case it does (e.g. for
+	  ;; badly-formatted manfiles with no terminating newline),
+	  ;; avoid an infinite loop.
+	  (unless (and (eolp) (eobp))
+	    (beginning-of-line))
 	  ;; If a single short line then just leave it.
 	  ;; This is necessary to preserve some table layouts.
 	  ;; PROBABLY NOT NECESSARY WITH SQUEEZE MODIFICATION !!!!!
