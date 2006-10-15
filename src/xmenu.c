@@ -3776,8 +3776,7 @@ syms_of_xmenu ()
 
 #if defined (USE_GTK) || defined (USE_X_TOOLKIT)
   defsubr (&Smenu_bar_open);
-  Fdefalias (intern ("accelerate-menu"), intern (Smenu_bar_open.symbol_name),
-             Qnil);
+  Ffset (intern ("accelerate-menu"), intern (Smenu_bar_open.symbol_name));
 #endif
 
 #ifdef HAVE_MENUS

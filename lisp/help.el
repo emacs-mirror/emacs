@@ -764,7 +764,7 @@ descriptions of the minor modes, each on a separate page.
 For this to work correctly for a minor mode, the mode's indicator
 variable \(listed in `minor-mode-alist') must also be a function
 whose documentation describes the minor mode."
-  (interactive)
+  (interactive "@")
   (unless buffer (setq buffer (current-buffer)))
   (help-setup-xref (list #'describe-mode buffer)
 		   (interactive-p))

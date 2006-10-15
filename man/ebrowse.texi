@@ -41,7 +41,7 @@ license to the document, as described in section 6 of the license.
 @titlepage
 @title Ebrowse User's Manual
 @sp 4
-@subtitle Ebrowse/Emacs 21
+@subtitle Ebrowse/Emacs
 @sp 1
 @subtitle May 2000
 @sp 5

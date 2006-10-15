@@ -123,8 +123,10 @@ request.")
            ;; like authentication.  But we use another buffer afterwards.
            (unwind-protect
                (let ((proc (url-open-stream host buf host port)))
-                 ;; Drop the temp buffer link before killing the buffer.
-                 (set-process-buffer proc nil)
+		 ;; url-open-stream might return nil.
+		 (when (processp proc)
+		   ;; Drop the temp buffer link before killing the buffer.
+		   (set-process-buffer proc nil))
                  proc)
              (kill-buffer buf)))))))
 
@@ -1244,6 +1246,35 @@ p3p
 	    ))))
     (if buffer (kill-buffer buffer))
     options))
+
+;; HTTPS.  This used to be in url-https.el, but that file collides
+;; with url-http.el on systems with 8-character file names.
+(require 'tls)
+
+;;;###autoload
+(defconst url-https-default-port 443 "Default HTTPS port.")
+;;;###autoload
+(defconst url-https-asynchronous-p t "HTTPS retrievals are asynchronous.")
+;;;###autoload
+(defalias 'url-https-expand-file-name 'url-http-expand-file-name)
+
+(defmacro url-https-create-secure-wrapper (method args)
+  `(defun ,(intern (format (if method "url-https-%s" "url-https") method)) ,args
+    ,(format "HTTPS wrapper around `%s' call." (or method "url-http"))
+    (let ((url-gateway-method (condition-case ()
+				  (require 'ssl)
+				(error 'tls))))
+      (,(intern (format (if method "url-http-%s" "url-http") method))
+       ,@(remove '&rest (remove '&optional args))))))
+
+;;;###autoload (autoload 'url-https "url-http")
+(url-https-create-secure-wrapper nil (url callback cbargs))
+;;;###autoload (autoload 'url-https-file-exists-p "url-http")
+(url-https-create-secure-wrapper file-exists-p (url))
+;;;###autoload (autoload 'url-https-file-readable-p "url-http")
+(url-https-create-secure-wrapper file-readable-p (url))
+;;;###autoload (autoload 'url-https-file-attributes "url-http")
+(url-https-create-secure-wrapper file-attributes (url &optional id-format))
 
 (provide 'url-http)
 

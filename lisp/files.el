@@ -514,6 +514,9 @@ using \\[toggle-read-only]."
   :type 'boolean
   :group 'view)
 
+(defvar file-name-history nil
+  "History list of file names entered in the minibuffer.")
+
 (put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)
   "Provides support for ange-ftp host name completion.
@@ -1906,7 +1909,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.[sS]\\'" . asm-mode)
      ("\\.asm\\'" . asm-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
-     ("[cC]hange[lL]og\\.[0-9]+\\'" . change-log-mode)
+     ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
@@ -2397,10 +2400,10 @@ asking you for confirmation."
 ;;
 ;; For variables defined in the C source code the declaration should go here:
 
-;; FIXME: Some variables should be moved according to the rules above.
 (mapc (lambda (pair)
 	(put (car pair) 'safe-local-variable (cdr pair)))
-      '((fill-column                     . integerp) ;; C source code
+      '((buffer-read-only                . booleanp) ;; C source code
+	(fill-column                     . integerp) ;; C source code
 	(indent-tabs-mode                . booleanp) ;; C source code
 	(left-margin                     . integerp) ;; C source code
 	(no-update-autoloads             . booleanp)
@@ -3730,7 +3733,7 @@ This requires the external program `diff' to be in your `exec-path'."
        (recursive-edit)
        ;; Return nil to ask about BUF again.
        nil)
-     "view this file")
+     "view this buffer")
     (?d (lambda (buf)
 	  (save-window-excursion
 	    (diff-buffer-with-file buf))
@@ -3738,7 +3741,7 @@ This requires the external program `diff' to be in your `exec-path'."
 		       (lambda (ignore) (exit-recursive-edit)))
 	  (recursive-edit)
 	  nil)
-	"view changes in file"))
+	"view changes in this buffer"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 
 (defvar buffer-save-without-query nil
