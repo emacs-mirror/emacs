@@ -464,7 +464,7 @@ xftfont_text_extents (font, code, nglyphs, metrics)
       metrics->rbearing = - extents.x + extents.width;
       metrics->width = extents.xOff;
       metrics->ascent = extents.y;
-      metrics->descent = extents.y - extents.height;
+      metrics->descent = extents.height - extents.y;
     }
   return extents.xOff;
 }
