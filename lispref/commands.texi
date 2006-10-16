@@ -575,10 +575,11 @@ arguments are unconditionally added to the list @code{command-history}.
 Otherwise, the command is added only if it uses the minibuffer to read
 an argument.  @xref{Command History}.
 
-The argument @var{keys}, if given, specifies the sequence of events to
-supply if the command inquires which events were used to invoke it.
-If @var{keys} is omitted or @code{nil}, the return value of
-@code{this-command-keys} is used.  @xref{Definition of this-command-keys}.
+The argument @var{keys}, if given, should be a vector which specifies
+the sequence of events to supply if the command inquires which events
+were used to invoke it.  If @var{keys} is omitted or @code{nil}, the
+default is the return value of @code{this-command-keys-vector}.
+@xref{Definition of this-command-keys-vector}.
 @end defun
 
 @defun command-execute command &optional record-flag keys special
@@ -785,7 +786,6 @@ was specified to run but remapped into another command.
 @end defvar
 
 @defun this-command-keys
-@anchor{Definition of this-command-keys}
 This function returns a string or vector containing the key sequence
 that invoked the present command, plus any previous commands that
 generated the prefix argument for this command.  Any events read by the
@@ -806,6 +806,7 @@ fit in a string.  @xref{Input Events}.
 @end defun
 
 @defun this-command-keys-vector
+@anchor{Definition of this-command-keys-vector}
 Like @code{this-command-keys}, except that it always returns the events
 in a vector, so you don't need to deal with the complexities of storing
 input events in a string (@pxref{Strings of Events}).
@@ -3021,7 +3022,12 @@ automatically by the initialization of Emacs, to let the user begin
 editing.  When called from a Lisp program, it enters a recursive editing
 level.
 
-  In the following example, the function @code{simple-rec} first
+If the current buffer is not the same as the selected window's buffer,
+@code{recursive-edit} saves and restores the current buffer.  Otherwise,
+if you switch buffers, the buffer you switched to is current after
+@code{recursive-edit} returns.
+
+In the following example, the function @code{simple-rec} first
 advances point one word, then enters a recursive edit, printing out a
 message in the echo area.  The user can then do any editing desired, and
 then type @kbd{C-M-c} to exit and continue executing @code{simple-rec}.
