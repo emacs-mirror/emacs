@@ -2611,7 +2611,7 @@ C-x C-f ... C-d  enter dired on current directory."
 May be useful if cached version is no longer valid, but directory
 timestamp has not changed (e.g. with ftp or on Windows)."
   (interactive)
-  (if (and ido-mode (eq ido-cur-item 'file))
+  (if (and ido-mode (memq ido-cur-item '(file dir)))
       (progn
 	(if (ido-is-unc-root)
 	    (setq ido-unc-hosts-cache t)
