@@ -1,3 +1,27 @@
+2006-10-16  Richard Stallman  <rms@gnu.org>
+
+	* edebug.texi (Edebug Recursive Edit): Minor cleanup.
+
+	* keymaps.texi (Format of Keymaps): Show all the keymap element
+	patterns that result from menu items.
+	(Key Lookup): Minor cleanups.
+
+	* modes.texi (Precalculated Fontification): Don't say that
+	not setting font-lock-defaults avoids loading font-lock.
+
+	* help.texi (Documentation): Move xref to Emacs Manual here.
+	(Documentation Basics): From here.
+	Also doc emacs-lisp-docstring-fill-column.
+
+	* elisp.texi: Update version and ISBN.
+
+	* commands.texi (Interactive Call): Clarify KEYS arg to
+	call-interactively is a vector.
+	(Command Loop Info): Delete anchor in this-command-keys.
+	Add anchor in this-command-keys-vector.
+	(Recursive Editing): Document how recursive-edit
+	handles the current buffer.
+
 2006-10-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Frame Titles): %c and %l are ignored in
