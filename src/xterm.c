@@ -1498,14 +1498,15 @@ x_draw_composite_glyph_string_foreground (s)
       else
 	{
 	  for (i = 0; i < s->nchars; i++, ++s->gidx)
-	    {
-	      int xx = x + s->cmp->offsets[s->gidx * 2];
-	      int yy = y - s->cmp->offsets[s->gidx * 2 + 1];
+	    if (COMPOSITION_GLYPH (s->cmp, s->gidx) != '\t')
+	      {
+		int xx = x + s->cmp->offsets[s->gidx * 2];
+		int yy = y - s->cmp->offsets[s->gidx * 2 + 1];
 
-	      font->driver->draw (s, i, i + 1, xx, yy, 0);
-	      if (s->face->overstrike)
-		font->driver->draw (s, i, i + 1, xx + 1, yy, 0);
-	    }
+		font->driver->draw (s, s->gidx, s->gidx + 1, xx, yy, 0);
+		if (s->face->overstrike)
+		  font->driver->draw (s, s->gidx, s->gidx + 1, xx + 1, yy, 0);
+	      }
 	}
     }
 #endif	/* USE_FONT_BACKEND */
@@ -1517,12 +1518,12 @@ x_draw_composite_glyph_string_foreground (s)
 	    XDrawString16 (s->display, s->window, s->gc,
 			   x + s->cmp->offsets[s->gidx * 2],
 			   s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			   s->char2b + i, 1);
+			   s->char2b + s->gidx, 1);
 	    if (s->face->overstrike)
 	      XDrawString16 (s->display, s->window, s->gc,
 			     x + s->cmp->offsets[s->gidx * 2] + 1,
 			     s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			     s->char2b + i, 1);
+			     s->char2b + s->gidx, 1);
 	  }
     }
 }
