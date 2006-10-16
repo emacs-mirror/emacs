@@ -4655,24 +4655,29 @@ handle_composition_prop (it)
 	  it->method = GET_FROM_COMPOSITION;
 	  it->cmp_id = id;
 	  it->cmp_len = COMPOSITION_LENGTH (prop);
+	  /* For a terminal, draw only the first (non-TAB) character
+	     of the components.  */
 #ifdef USE_FONT_BACKEND
 	  if (composition_table[id]->method == COMPOSITION_WITH_GLYPH_STRING)
 	    {
 	      Lisp_Object lgstring = AREF (XHASH_TABLE (composition_hash_table)
 					   ->key_and_value,
 					   cmp->hash_index * 2);
-	      Lisp_Object font_object = LGSTRING_FONT (lgstring);
-	      struct font *font = XSAVE_VALUE (font_object)->pointer;
-	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
 
-	      it->face_id = face_for_font (it->f, font, face);
-	      it->c = ' ';
+	      it->c = XINT (LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 0)));
 	    }
 	  else
 #endif /* USE_FONT_BACKEND */
-	  /* For a terminal, draw only the first character of the
-             components.  */
-	  it->c = COMPOSITION_GLYPH (composition_table[id], 0);
+	    {
+	      int i;
+
+	      for (i = 0; i < cmp->glyph_len; i++)
+		if ((it->c = COMPOSITION_GLYPH (composition_table[id], i))
+		    != '\t')
+		  break;
+	    }
+	  if (it->c == '\t')
+	    it->c = ' ';
 	  it->len = (STRINGP (it->string)
 		     ? string_char_to_byte (it->string, end)
 		     : CHAR_TO_BYTE (end)) - pos_byte;
@@ -18898,6 +18903,80 @@ append_glyph_string (head, tail, s)
 }
 
 
+/* Get face and two-byte form of character C in face FACE_ID on frame
+   F.  The encoding of C is returned in *CHAR2B.  MULTIBYTE_P non-zero
+   means we want to display multibyte text.  DISPLAY_P non-zero means
+   make sure that X resources for the face returned are allocated.
+   Value is a pointer to a realized face that is ready for display if
+   DISPLAY_P is non-zero.  */
+
+static INLINE struct face *
+get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
+     struct frame *f;
+     int c, face_id;
+     XChar2b *char2b;
+     int multibyte_p, display_p;
+{
+  struct face *face = FACE_FROM_ID (f, face_id);
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      struct font *font = (struct font *) face->font_info;
+
+      if (font)
+	{
+	  unsigned code = font->driver->encode_char (font, c);
+
+	  if (code != FONT_INVALID_CODE)
+	    STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+	  else
+	    STORE_XCHAR2B (char2b, 0, 0);
+	}
+    }
+  else
+#endif	/* USE_FONT_BACKEND */
+  if (!multibyte_p)
+    {
+      /* Unibyte case.  We don't have to encode, but we have to make
+	 sure to use a face suitable for unibyte.  */
+      STORE_XCHAR2B (char2b, 0, c);
+      face_id = FACE_FOR_CHAR (f, face, c, -1, Qnil);
+      face = FACE_FROM_ID (f, face_id);
+    }
+  else if (c < 128)
+    {
+      /* Case of ASCII in a face known to fit ASCII.  */
+      STORE_XCHAR2B (char2b, 0, c);
+    }
+  else if (face->font != NULL)
+    {
+      struct font_info *font_info
+	= FONT_INFO_FROM_ID (f, face->font_info_id);
+      struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+      unsigned code = ENCODE_CHAR (charset, c);
+
+      if (CHARSET_DIMENSION (charset) == 1)
+	STORE_XCHAR2B (char2b, 0, code);
+      else
+	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+       /* Maybe encode the character in *CHAR2B.  */
+      rif->encode_char (c, char2b, font_info, charset, NULL);
+    }
+
+  /* Make sure X resources of the face are allocated.  */
+#ifdef HAVE_X_WINDOWS
+  if (display_p)
+#endif
+    {
+      xassert (face != NULL);
+      PREPARE_FACE_FOR_DISPLAY (f, face);
+    }
+
+  return face;
+}
+
+
 /* Get face and two-byte form of character glyph GLYPH on frame F.
    The encoding of GLYPH->u.ch is returned in *CHAR2B.  Value is
    a pointer to a realized face that is ready for display.  */
@@ -18978,7 +19057,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
 
 /* Fill glyph string S with composition components specified by S->cmp.
 
-   FACES is an array of faces for all components of this composition.
+   BASE_FACE is the base face of the composition.
    S->gidx is the index of the first component for S.
 
    OVERLAPS non-zero means S should draw the foreground only, and use
@@ -18987,9 +19066,9 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
    Value is the index of a component not in S.  */
 
 static int
-fill_composite_glyph_string (s, faces, overlaps)
+fill_composite_glyph_string (s, base_face, overlaps)
      struct glyph_string *s;
-     struct face **faces;
+     struct face *base_face;
      int overlaps;
 {
   int i;
@@ -18998,18 +19077,6 @@ fill_composite_glyph_string (s, faces, overlaps)
 
   s->for_overlaps = overlaps;
 
-  s->face = faces[s->gidx];
-  if (s->face == NULL)
-    {
-      s->font = NULL;
-      s->font_info = NULL;
-    }
-  else
-    {
-      s->font = s->face->font;
-      s->font_info = FONT_INFO_FROM_FACE (s->f, s->face);
-    }
-
 #ifdef USE_FONT_BACKEND
   if (enable_font_backend && s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
     {
@@ -19017,6 +19084,9 @@ fill_composite_glyph_string (s, faces, overlaps)
 	= AREF (XHASH_TABLE (composition_hash_table)->key_and_value,
 		s->cmp->hash_index * 2);
 
+      s->face = base_face;
+      s->font_info = s->cmp->font;
+      s->font = s->font_info->font;
       for (i = 0, s->nchars = 0; i < s->cmp->glyph_len; i++, s->nchars++)
 	{
 	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
@@ -19030,24 +19100,45 @@ fill_composite_glyph_string (s, faces, overlaps)
       s->width = s->cmp->pixel_width;
     }
   else
+#endif	/* USE_FONT_BACKEND */
     {
-#endif	/* USE_FONT_BACKEND */
-  /* For all glyphs of this composition, starting at the offset
-     S->gidx, until we reach the end of the definition or encounter a
-     glyph that requires the different face, add it to S.  */
-  ++s->nchars;
-  for (i = s->gidx + 1;
-       i < s->cmp->glyph_len && (faces[i] == s->face || ! faces[i] || ! s->face);
-       ++i)
-    ++s->nchars;
+      /* For all glyphs of this composition, starting at the offset
+	 S->gidx, until we reach the end of the definition or encounter a
+	 glyph that requires the different face, add it to S.  */
+      struct face *face;
 
-  /* All glyph strings for the same composition has the same width,
-     i.e. the width set for the first component of the composition.  */
+      s->face = NULL;
+      s->font = NULL;
+      s->font_info = NULL;
+      for (i = s->gidx; i < s->cmp->glyph_len; i++)
+	{
+	  int c = COMPOSITION_GLYPH (s->cmp, i);
 
-  s->width = s->first_glyph->pixel_width;
-#ifdef USE_FONT_BACKEND
+	  if (c != '\t')
+	    {
+	      int face_id = FACE_FOR_CHAR (s->f, base_face, c, -1, Qnil);
+
+	      face = get_char_face_and_encoding (s->f, c, face_id,
+						 s->char2b + i, 1, 1);
+	      if (face)
+		{
+		  if (! s->face)
+		    {
+		      s->face = face;
+		      s->font = s->face->font;
+		      s->font_info = FONT_INFO_FROM_FACE (s->f, s->face);
+		    }
+		  else if (s->face != face)
+		    break;
+		}
+	    }
+	  ++s->nchars;
+	}
+
+      /* All glyph strings for the same composition has the same width,
+	 i.e. the width set for the first component of the composition.  */
+      s->width = s->first_glyph->pixel_width;
     }
-#endif	/* USE_FONT_BACKEND */
 
   /* If the specified font could not be loaded, use the frame's
      default font, but record the fact that we couldn't load it in
@@ -19388,80 +19479,6 @@ right_overwriting (s)
 }
 
 
-/* Get face and two-byte form of character C in face FACE_ID on frame
-   F.  The encoding of C is returned in *CHAR2B.  MULTIBYTE_P non-zero
-   means we want to display multibyte text.  DISPLAY_P non-zero means
-   make sure that X resources for the face returned are allocated.
-   Value is a pointer to a realized face that is ready for display if
-   DISPLAY_P is non-zero.  */
-
-static INLINE struct face *
-get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
-     struct frame *f;
-     int c, face_id;
-     XChar2b *char2b;
-     int multibyte_p, display_p;
-{
-  struct face *face = FACE_FROM_ID (f, face_id);
-
-#ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    {
-      struct font *font = (struct font *) face->font_info;
-
-      if (font)
-	{
-	  unsigned code = font->driver->encode_char (font, c);
-
-	  if (code != FONT_INVALID_CODE)
-	    STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
-	  else
-	    STORE_XCHAR2B (char2b, 0, 0);
-	}
-    }
-  else
-#endif	/* USE_FONT_BACKEND */
-  if (!multibyte_p)
-    {
-      /* Unibyte case.  We don't have to encode, but we have to make
-	 sure to use a face suitable for unibyte.  */
-      STORE_XCHAR2B (char2b, 0, c);
-      face_id = FACE_FOR_CHAR (f, face, c, -1, Qnil);
-      face = FACE_FROM_ID (f, face_id);
-    }
-  else if (c < 128)
-    {
-      /* Case of ASCII in a face known to fit ASCII.  */
-      STORE_XCHAR2B (char2b, 0, c);
-    }
-  else if (face->font != NULL)
-    {
-      struct font_info *font_info
-	= FONT_INFO_FROM_ID (f, face->font_info_id);
-      struct charset *charset = CHARSET_FROM_ID (font_info->charset);
-      unsigned code = ENCODE_CHAR (charset, c);
-
-      if (CHARSET_DIMENSION (charset) == 1)
-	STORE_XCHAR2B (char2b, 0, code);
-      else
-	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
-       /* Maybe encode the character in *CHAR2B.  */
-      rif->encode_char (c, char2b, font_info, charset, NULL);
-    }
-
-  /* Make sure X resources of the face are allocated.  */
-#ifdef HAVE_X_WINDOWS
-  if (display_p)
-#endif
-    {
-      xassert (face != NULL);
-      PREPARE_FACE_FOR_DISPLAY (f, face);
-    }
-
-  return face;
-}
-
-
 /* Set background width of glyph string S.  START is the index of the
    first glyph following S.  LAST_X is the right-most x-position + 1
    in the drawing area.  */
@@ -19626,64 +19643,35 @@ compute_overhangs_and_x (s, x, backward_p)
    x-position of the drawing area.  */
 
 #define BUILD_COMPOSITE_GLYPH_STRING(START, END, HEAD, TAIL, HL, X, LAST_X) \
-  do {									  \
-    int cmp_id = (row)->glyphs[area][START].u.cmp_id;			  \
-    int face_id = (row)->glyphs[area][START].face_id;			  \
-    struct face *base_face = FACE_FROM_ID (f, face_id);			  \
-    struct composition *cmp = composition_table[cmp_id];		  \
-    int glyph_len = cmp->glyph_len;					  \
-    XChar2b *char2b;							  \
-    struct face **faces;						  \
-    struct glyph_string *first_s = NULL;				  \
-    int n;								  \
-    									  \
-    if (cmp->method > COMPOSITION_WITH_RULE_ALTCHARS)			  \
-      {									  \
-	/* This happens only when USE_FONT_BACKEND is defined.  */	  \
-	char2b = (XChar2b *) alloca ((sizeof *char2b) * glyph_len);	  \
-	faces = &base_face;						  \
-      }									  \
-    else								  \
-      {									  \
-    base_face = base_face->ascii_face;					  \
-    char2b = (XChar2b *) alloca ((sizeof *char2b) * glyph_len);		  \
-    faces = (struct face **) alloca ((sizeof *faces) * glyph_len);	  \
-    /* At first, fill in `char2b' and `faces'.  */			  \
-    for (n = 0; n < glyph_len; n++)					  \
-      {									  \
-	int c = COMPOSITION_GLYPH (cmp, n);				  \
-									  \
-	if (c == '\t')							  \
-	  faces[n] = NULL;						  \
-	else								  \
-	  {								  \
-	    int this_face_id = FACE_FOR_CHAR (f, base_face, c, -1, Qnil); \
-	    faces[n] = FACE_FROM_ID (f, this_face_id);			  \
-	    get_char_face_and_encoding (f, c, this_face_id,		  \
-				    char2b + n, 1, 1);			  \
-	  }								  \
-      }									  \
-    }									  \
-    									  \
-    /* Make glyph_strings for each glyph sequence that is drawable by	  \
-       the same face, and append them to HEAD/TAIL.  */			  \
-    for (n = 0; n < cmp->glyph_len;)					  \
-      {									  \
-	s = (struct glyph_string *) alloca (sizeof *s);			  \
-	INIT_GLYPH_STRING (s, char2b + n, w, row, area, START, HL);	  \
-	append_glyph_string (&(HEAD), &(TAIL), s);			  \
-	s->cmp = cmp;							  \
-	s->gidx = n;							  \
-	s->x = (X);							  \
-									  \
-	if (n == 0)							  \
-	  first_s = s;							  \
-									  \
-	n = fill_composite_glyph_string (s, faces, overlaps);		  \
-      }									  \
-    									  \
-    ++START;								  \
-    s = first_s;							  \
+  do {									    \
+    int face_id = (row)->glyphs[area][START].face_id;			    \
+    struct face *base_face = FACE_FROM_ID (f, face_id);			    \
+    int cmp_id = (row)->glyphs[area][START].u.cmp_id;			    \
+    struct composition *cmp = composition_table[cmp_id];		    \
+    XChar2b *char2b;							    \
+    struct glyph_string *first_s;					    \
+    int n;								    \
+    									    \
+    char2b = (XChar2b *) alloca ((sizeof *char2b) * cmp->glyph_len);	    \
+    base_face = base_face->ascii_face;					    \
+    									    \
+    /* Make glyph_strings for each glyph sequence that is drawable by	    \
+       the same face, and append them to HEAD/TAIL.  */			    \
+    for (n = 0; n < cmp->glyph_len;)					    \
+      {									    \
+	s = (struct glyph_string *) alloca (sizeof *s);			    \
+	INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);		    \
+	append_glyph_string (&(HEAD), &(TAIL), s);			    \
+	s->cmp = cmp;							    \
+	s->gidx = n;							    \
+	s->x = (X);							    \
+	if (n == 0)							    \
+	  first_s = s;							    \
+	n = fill_composite_glyph_string (s, base_face, overlaps);	    \
+      }									    \
+    									    \
+    ++START;								    \
+    s = first_s;							    \
   } while (0)
 
 
@@ -20557,7 +20545,7 @@ x_produce_glyphs (it)
 	  if (SINGLE_BYTE_CHAR_P (it->c)
 	      && unibyte_display_via_language_environment)
 	    it->char_to_display = unibyte_char_to_multibyte (it->c);
-	  if (! SINGLE_BYTE_CHAR_P (it->c))
+	  if (! SINGLE_BYTE_CHAR_P (it->char_to_display))
 	    {
 	      it->multibyte_p = 1;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display,
@@ -20883,63 +20871,25 @@ x_produce_glyphs (it)
   else if (it->what == IT_COMPOSITION)
     {
       /* Note: A composition is represented as one glyph in the
-	 glyph matrix.  There are no padding glyphs.  */
-      XChar2b char2b;
-      XFontStruct *font;
+	 glyph matrix.  There are no padding glyphs.
+
+	 Important is that pixel_width, ascent, and descent are the
+	 values of what is drawn by draw_glyphs (i.e. the values of
+	 the overall glyphs composed).  */
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
-      XCharStruct *pcm;
-      int font_not_found_p;
-      struct font_info *font_info;
       int boff;			/* baseline offset */
       struct composition *cmp = composition_table[it->cmp_id];
-      int pos;
 
-      /* Maybe translate single-byte characters to multibyte.  */
-      it->char_to_display = it->c;
-      if (unibyte_display_via_language_environment
-	  && it->c >= 0200)
-	{
-	  it->char_to_display = unibyte_char_to_multibyte (it->c);
-	}
-
-#ifdef USE_FONT_BACKEND
-      if (cmp->method != COMPOSITION_WITH_GLYPH_STRING)
-	{
-#endif	/* USE_FONT_BACKEND */
-      /* Get face and font to use.  Encode IT->char_to_display.  */
-      pos = STRINGP (it->string) ? IT_STRING_CHARPOS (*it) : IT_CHARPOS (*it);
-      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display,
-				   pos, it->string);
-      face = FACE_FROM_ID (it->f, it->face_id);
-      get_char_face_and_encoding (it->f, it->char_to_display, it->face_id,
-				  &char2b, it->multibyte_p, 0);
-      font = face->font;
-
-      /* When no suitable font found, use the default font.  */
-      font_not_found_p = font == NULL;
-      if (font_not_found_p)
-	{
-	  font = FRAME_FONT (it->f);
-	  boff = FRAME_BASELINE_OFFSET (it->f);
-	  font_info = NULL;
-	}
-      else
-	{
-	  font_info = FONT_INFO_FROM_FACE (it->f, face);
-	  boff = font_info->baseline_offset;
-	  if (font_info->vertical_centering)
-	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
-	}
-#ifdef USE_FONT_BACKEND
-	}
-#endif
-
-      /* There are no padding glyphs, so there is only one glyph to
-	 produce for the composition.  Important is that pixel_width,
-	 ascent and descent are the values of what is drawn by
-	 draw_glyphs (i.e. the values of the overall glyphs composed).  */
       it->nglyphs = 1;
 
+#ifdef USE_FONT_BACKEND
+      if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+	{
+	  if (! cmp->font)
+	    font_prepare_composition (cmp);
+	}
+      else
+#endif	/* USE_FONT_BACKEND */
       /* If we have not yet calculated pixel size data of glyphs of
 	 the composition for the current face font, calculate them
 	 now.  Theoretically, we have to check all fonts for the
@@ -20947,49 +20897,79 @@ x_produce_glyphs (it)
 	 here we check only the font of the first glyph.  This leads
 	 to incorrect display, but it's very rare, and C-l (recenter)
 	 can correct the display anyway.  */
-      if (cmp->glyph_len == 0)
+      if (! cmp->font)
 	{
-	  cmp->lbearing = cmp->rbearing = 0;
-	  cmp->pixel_width = cmp->ascent = cmp->descent = 0;
-	}
-#ifdef USE_FONT_BACKEND
-      else if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
-	{
-	  if (! cmp->font)
-	    font_prepare_composition (cmp);
-	}
-#endif	/* USE_FONT_BACKEND */
-      else if (cmp->font != (void *) font)
-	{
-	  /* Ascent and descent of the font of the first character of
-	     this composition (adjusted by baseline offset).  Ascent
-	     and descent of overall glyphs should not be less than
-	     them respectively.  */
-	  int font_ascent = FONT_BASE (font) + boff;
-	  int font_descent = FONT_DESCENT (font) - boff;
-	  int font_height = FONT_HEIGHT (font);
+	  /* Ascent and descent of the font of the first character
+	     of this composition (adjusted by baseline offset).
+	     Ascent and descent of overall glyphs should not be less
+	     than them respectively.  */
+	  int font_ascent, font_descent, font_height;
 	  /* Bounding box of the overall glyphs.  */
 	  int leftmost, rightmost, lowest, highest;
 	  int lbearing, rbearing;
 	  int i, width, ascent, descent;
-	  int fully_padded = 0;
+	  int left_padded = 0, right_padded = 0;
+	  int glyph_len = cmp->glyph_len;
+	  int face_id;
+	  int c;
+	  XChar2b char2b;
+	  XFontStruct *font;
+	  XCharStruct *pcm;
+	  int font_not_found_p;
+	  struct font_info *font_info;
+	  int pos;
+
+	  for (glyph_len = cmp->glyph_len; glyph_len > 0; glyph_len--)
+	    if ((c = COMPOSITION_GLYPH (cmp, glyph_len - 1)) != '\t')
+	      break;
+	  if (glyph_len < cmp->glyph_len)
+	    right_padded = 1;
+	  for (i = 0; i < glyph_len; i++)
+	    {
+	      if ((c = COMPOSITION_GLYPH (cmp, i)) != '\t')
+		break;
+	      cmp->offsets[i * 2] = cmp->offsets[i * 2 + 1] = 0;
+	    }
+	  if (i > 0)
+	    left_padded = 1;
+
+	  /* Get the font of the first non-TAB component.  */
+	  pos = (STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
+		 : IT_CHARPOS (*it));
+	  face_id = FACE_FOR_CHAR (it->f, face, c, pos, it->string);
+	  font = FACE_FROM_ID (it->f, face_id)->font;
+	  /* When no suitable font found, use the default font.  */
+	  font_not_found_p = font == NULL;
+	  if (font_not_found_p)
+	    font = FACE_FROM_ID (it->f, it->face_id)->font;
+	  font_info
+	    = FONT_INFO_FROM_FACE (it->f, FACE_FROM_ID (it->f, face_id));
+	  boff = font_info->baseline_offset;
+	  if (font_info->vertical_centering)
+	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+	  font_ascent = FONT_BASE (font) + boff;
+	  font_descent = FONT_DESCENT (font) - boff;
+	  font_height = FONT_HEIGHT (font);
 
 	  cmp->font = (void *) font;
 
+	  pcm = NULL;
+	  if (! font_not_found_p)
+	    {
+	      get_char_face_and_encoding (it->f, c, face_id,
+					  &char2b, it->multibyte_p, 0);
+	      pcm = get_per_char_metric (font, font_info, &char2b,
+					 FONT_TYPE_FOR_MULTIBYTE (font, c));
+	    }
+
 	  /* Initialize the bounding box.  */
-	  if (font_info
-	      && (pcm = get_per_char_metric (font, font_info, &char2b,
-					      FONT_TYPE_FOR_MULTIBYTE (font, it->c))))
+	  if (pcm)
 	    {
 	      width = pcm->width;
 	      ascent = pcm->ascent;
 	      descent = pcm->descent;
 	      lbearing = pcm->lbearing;
-	      if (lbearing > 0)
-		lbearing = 0;
 	      rbearing = pcm->rbearing;
-	      if (rbearing < width)
-		rbearing = width;
 	    }
 	  else
 	    {
@@ -21001,11 +20981,11 @@ x_produce_glyphs (it)
 	    }
 
 	  rightmost = width;
+	  leftmost = 0;
 	  lowest = - descent + boff;
 	  highest = ascent + boff;
-	  leftmost = 0;
 
-	  if (font_info
+	  if (! font_not_found_p
 	      && font_info->default_ascent
 	      && CHAR_TABLE_P (Vuse_default_ascent)
 	      && !NILP (Faref (Vuse_default_ascent,
@@ -21013,157 +20993,138 @@ x_produce_glyphs (it)
 	    highest = font_info->default_ascent + boff;
 
 	  /* Draw the first glyph at the normal position.  It may be
-	     shifted to right later if some other glyphs are drawn at
-	     the left.  */
-	  cmp->offsets[0] = 0;
-	  cmp->offsets[1] = boff;
+	     shifted to right later if some other glyphs are drawn
+	     at the left.  */
+	  cmp->offsets[i * 2] = 0;
+	  cmp->offsets[i * 2 + 1] = boff;
 	  cmp->lbearing = lbearing;
 	  cmp->rbearing = rbearing;
 
 	  /* Set cmp->offsets for the remaining glyphs.  */
-	  for (i = 1; i < cmp->glyph_len; i++)
+	  for (i++; i < glyph_len; i++)
 	    {
 	      int left, right, btm, top;
 	      int ch = COMPOSITION_GLYPH (cmp, i);
 	      int face_id;
+	      struct face *this_face;
+	      int this_boff;
 
 	      if (ch == '\t')
-		{
-		  fully_padded = 1;
-		  cmp->offsets[i * 2] = 0;
-		  cmp->offsets[i * 2 + 1] = boff;
-		  continue;
-		}
-
+		ch = ' ';
 	      face_id = FACE_FOR_CHAR (it->f, face, ch, pos, it->string);
-	      face = FACE_FROM_ID (it->f, face_id);
-	      get_char_face_and_encoding (it->f, ch, face->id,
-					  &char2b, it->multibyte_p, 0);
-	      font = face->font;
+	      this_face = FACE_FROM_ID (it->f, face_id);
+	      font = this_face->font;
+
 	      if (font == NULL)
-		{
-		  font = FRAME_FONT (it->f);
-		  boff = FRAME_BASELINE_OFFSET (it->f);
-		  font_info = NULL;
-		}
+		pcm = NULL;
 	      else
 		{
-		  font_info
-		    = FONT_INFO_FROM_FACE (it->f, face);
-		  boff = font_info->baseline_offset;
+		  font_info = FONT_INFO_FROM_FACE (it->f, this_face);
+		  this_boff = font_info->baseline_offset;
 		  if (font_info->vertical_centering)
-		    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+		    this_boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+		  get_char_face_and_encoding (it->f, ch, face_id,
+					      &char2b, it->multibyte_p, 0);
+		  pcm = get_per_char_metric (font, font_info, &char2b,
+					     FONT_TYPE_FOR_MULTIBYTE (font,
+								      ch));
 		}
-
-	      if (font_info
-		  && (pcm = get_per_char_metric (font, font_info, &char2b,
-						  FONT_TYPE_FOR_MULTIBYTE (font, ch))))
+	      if (! pcm)
+		cmp->offsets[i * 2] = cmp->offsets[i * 2 + 1] = 0;
+	      else
 		{
 		  width = pcm->width;
 		  ascent = pcm->ascent;
 		  descent = pcm->descent;
 		  lbearing = pcm->lbearing;
-		  if (lbearing > 0)
-		    lbearing = 0;
 		  rbearing = pcm->rbearing;
-		  if (rbearing < width)
-		    rbearing = width;
-		}
-	      else
-		{
-		  width = FONT_WIDTH (font);
-		  ascent = 1;
-		  descent = 0;
-		  lbearing = 0;
-		  rbearing = width;
-		}
-
-	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
-		{
-		  /* Relative composition with or without
-		     alternate chars.  */
-		  left = (leftmost + rightmost - width) / 2;
-		  btm = - descent + boff;
-		  if (font_info && font_info->relative_compose
-		      && (! CHAR_TABLE_P (Vignore_relative_composition)
-			  || NILP (Faref (Vignore_relative_composition,
-					  make_number (ch)))))
+		  if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
 		    {
+		      /* Relative composition with or without
+			 alternate chars.  */
+		      left = (leftmost + rightmost - width) / 2;
+		      btm = - descent + boff;
+		      if (font_info->relative_compose
+			  && (! CHAR_TABLE_P (Vignore_relative_composition)
+			      || NILP (Faref (Vignore_relative_composition,
+					      make_number (ch)))))
+			{
 
-		      if (- descent >= font_info->relative_compose)
-			/* One extra pixel between two glyphs.  */
-			btm = highest + 1;
-		      else if (ascent <= 0)
-			/* One extra pixel between two glyphs.  */
-			btm = lowest - 1 - ascent - descent;
+			  if (- descent >= font_info->relative_compose)
+			    /* One extra pixel between two glyphs.  */
+			    btm = highest + 1;
+			  else if (ascent <= 0)
+			    /* One extra pixel between two glyphs.  */
+			    btm = lowest - 1 - ascent - descent;
+			}
 		    }
-		}
-	      else
-		{
-		  /* A composition rule is specified by an integer
-		     value that encodes global and new reference
-		     points (GREF and NREF).  GREF and NREF are
-		     specified by numbers as below:
+		  else
+		    {
+		      /* A composition rule is specified by an integer
+			 value that encodes global and new reference
+			 points (GREF and NREF).  GREF and NREF are
+			 specified by numbers as below:
 
-			0---1---2 -- ascent
-			|       |
-			|       |
-			|       |
-			9--10--11 -- center
-			|       |
-		     ---3---4---5--- baseline
-			|       |
-			6---7---8 -- descent
-		  */
-		  int rule = COMPOSITION_RULE (cmp, i);
-		  int gref, nref, grefx, grefy, nrefx, nrefy, xoff, yoff;
+			 0---1---2 -- ascent
+			 |       |
+			 |       |
+			 |       |
+			 9--10--11 -- center
+			 |       |
+			 ---3---4---5--- baseline
+			 |       |
+			 6---7---8 -- descent
+		      */
+		      int rule = COMPOSITION_RULE (cmp, i);
+		      int gref, nref, grefx, grefy, nrefx, nrefy, xoff, yoff;
 
-		  COMPOSITION_DECODE_RULE (rule, gref, nref, xoff, yoff);
-		  grefx = gref % 3, nrefx = nref % 3;
-		  grefy = gref / 3, nrefy = nref / 3;
-		  if (xoff)
-		    xoff = font_height * (xoff - 128) / 256;
-		  if (yoff)
-		    yoff = font_height * (yoff - 128) / 256;
+		      COMPOSITION_DECODE_RULE (rule, gref, nref, xoff, yoff);
+		      grefx = gref % 3, nrefx = nref % 3;
+		      grefy = gref / 3, nrefy = nref / 3;
+		      if (xoff)
+			xoff = font_height * (xoff - 128) / 256;
+		      if (yoff)
+			yoff = font_height * (yoff - 128) / 256;
 
-		  left = (leftmost
-			  + grefx * (rightmost - leftmost) / 2
-			  - nrefx * width / 2
-			  + xoff);
+		      left = (leftmost
+			      + grefx * (rightmost - leftmost) / 2
+			      - nrefx * width / 2
+			      + xoff);
 		  
-		  btm = ((grefy == 0 ? highest
-			  : grefy == 1 ? 0
-			  : grefy == 2 ? lowest
-			  : (highest + lowest) / 2)
-			 - (nrefy == 0 ? ascent + descent
-			    : nrefy == 1 ? descent - boff
-			    : nrefy == 2 ? 0
-			    : (ascent + descent) / 2)
-			 + yoff);
+		      btm = ((grefy == 0 ? highest
+			      : grefy == 1 ? 0
+			      : grefy == 2 ? lowest
+			      : (highest + lowest) / 2)
+			     - (nrefy == 0 ? ascent + descent
+				: nrefy == 1 ? descent - boff
+				: nrefy == 2 ? 0
+				: (ascent + descent) / 2)
+			     + yoff);
+		    }
+
+		  cmp->offsets[i * 2] = left;
+		  cmp->offsets[i * 2 + 1] = btm + descent;
+
+		  /* Update the bounding box of the overall glyphs. */
+		  if (width > 0)
+		    {
+		      right = left + width;
+		      if (left < leftmost)
+			leftmost = left;
+		      if (right > rightmost)
+			rightmost = right;
+		    }
+		  top = btm + descent + ascent;
+		  if (top > highest)
+		    highest = top;
+		  if (btm < lowest)
+		    lowest = btm;
+
+		  if (cmp->lbearing > left + lbearing)
+		    cmp->lbearing = left + lbearing;
+		  if (cmp->rbearing < left + rbearing)
+		    cmp->rbearing = left + rbearing;
 		}
-
-	      cmp->offsets[i * 2] = left;
-	      cmp->offsets[i * 2 + 1] = btm + descent;
-
-	      /* Update the bounding box of the overall glyphs. */
-	      if (width > 0)
-		{
-		  right = left + width;
-		  if (left < leftmost)
-		    leftmost = left;
-		  if (right > rightmost)
-		    rightmost = right;
-		}
-	      top = btm + descent + ascent;
-	      if (top > highest)
-		highest = top;
-	      if (btm < lowest)
-		lowest = btm;
-
-	      if (cmp->lbearing > left + lbearing)
-		cmp->lbearing = left + lbearing;
-	      if (cmp->rbearing < left + rbearing)
-		cmp->rbearing = left + rbearing;
 	    }
 
 	  /* If there are glyphs whose x-offsets are negative,
@@ -21178,13 +21139,17 @@ x_produce_glyphs (it)
 	      cmp->rbearing -= leftmost;
 	    }
 
-	  if (fully_padded)
+	  if (left_padded && cmp->lbearing < 0)
 	    {
 	      for (i = 0; i < cmp->glyph_len; i++)
 		cmp->offsets[i * 2] -= cmp->lbearing;
-	      rightmost = cmp->rbearing - cmp->lbearing;
+	      rightmost -= cmp->lbearing;
+	      cmp->rbearing -= cmp->lbearing;
 	      cmp->lbearing = 0;
-	      cmp->rbearing = rightmost; 
+	    }
+	  if (right_padded && rightmost < cmp->rbearing)
+	    {
+	      rightmost = cmp->rbearing;
 	    }
 
 	  cmp->pixel_width = rightmost;
