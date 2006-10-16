@@ -1261,9 +1261,7 @@ p3p
 (defmacro url-https-create-secure-wrapper (method args)
   `(defun ,(intern (format (if method "url-https-%s" "url-https") method)) ,args
     ,(format "HTTPS wrapper around `%s' call." (or method "url-http"))
-    (let ((url-gateway-method (condition-case ()
-				  (require 'ssl)
-				(error 'tls))))
+    (let ((url-gateway-method 'tls))
       (,(intern (format (if method "url-http-%s" "url-http") method))
        ,@(remove '&rest (remove '&optional args))))))
 
