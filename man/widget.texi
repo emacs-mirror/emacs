@@ -480,11 +480,11 @@ when not on a button.  By default this is @code{global-map}.
 @comment  node-name,  next,  previous,  up
 @section Basic Types
 
-The syntax of a type specification is given below:
+This is the general syntax of a type specification:
 
 @example
-NAME ::= (NAME [KEYWORD ARGUMENT]... ARGS)
-     |   NAME
+@var{name} ::= (@var{name} [@var{keyword} @var{argument}]... @var{args})
+     |   @var{name}
 @end example
 
 Where, @var{name} is a widget name, @var{keyword} is the name of a
@@ -724,7 +724,7 @@ If non-@code{nil}, allow glyphs to appear on displays where they are supported.
 Syntax:
 
 @example
-TYPE ::= (link [KEYWORD ARGUMENT]...  [ VALUE ])
+@var{type} ::= (link [@var{keyword} @var{argument}]...  [ @var{value} ])
 @end example
 
 The @var{value}, if present, is used to initialize the @code{:value}
@@ -749,7 +749,7 @@ String to suffix links.
 Syntax:
 
 @example
-TYPE ::= (url-link [KEYWORD ARGUMENT]...  URL)
+@var{type} ::= (url-link [@var{keyword} @var{argument}]...  @var{url})
 @end example
 
 @findex browse-url-browser-function@r{, and @code{url-link} widget}
@@ -764,7 +764,7 @@ When this link is invoked, the @acronym{WWW} browser specified by
 Syntax:
 
 @example
-TYPE ::= (info-link [KEYWORD ARGUMENT]...  ADDRESS)
+@var{type} ::= (info-link [@var{keyword} @var{argument}]...  @var{address})
 @end example
 
 When this link is invoked, the built-in Info reader is started on
@@ -778,7 +778,7 @@ When this link is invoked, the built-in Info reader is started on
 Syntax:
 
 @example
-TYPE ::= (push-button [KEYWORD ARGUMENT]...  [ VALUE ])
+@var{type} ::= (push-button [@var{keyword} @var{argument}]...  [ @var{value} ])
 @end example
 
 The @var{value}, if present, is used to initialize the @code{:value}
@@ -803,7 +803,7 @@ String to suffix push buttons.
 Syntax:
 
 @example
-TYPE ::= (editable-field [KEYWORD ARGUMENT]... [ VALUE ])
+@var{type} ::= (editable-field [@var{keyword} @var{argument}]... [ @var{value} ])
 @end example
 
 The @var{value}, if present, is used to initialize the @code{:value}
@@ -863,7 +863,7 @@ does not rebind the @key{RET} key.
 Syntax:
 
 @example
-TYPE ::= (menu-choice [KEYWORD ARGUMENT]... TYPE ... )
+@var{type} ::= (menu-choice [@var{keyword} @var{argument}]... @var{type} ... )
 @end example
 
 The @var{type} argument represents each possible choice.  The widget's
@@ -904,13 +904,13 @@ The list of types.
 Syntax:
 
 @example
-TYPE ::= (radio-button-choice [KEYWORD ARGUMENT]...  TYPE ... )
+@var{type} ::= (radio-button-choice [@var{keyword} @var{argument}]...  @var{type} ... )
 @end example
 
-The @var{type} argument represents each possible choice.  The widget's
-value will be that of the chosen @var{type} argument.  This widget will
-match any value matching at least one of the specified @var{type}
-arguments.
+The component types specify the choices, with one radio button for
+each.  The widget's value will be that of the chosen @var{type}
+argument.  This widget matches any value that matching at least one of
+the specified @var{type} arguments.
 
 The following extra properties are recognized.
 
@@ -971,7 +971,7 @@ you call @code{widget-delete}.
 Syntax:
 
 @example
-ITEM ::= (item [KEYWORD ARGUMENT]... VALUE)
+@var{item} ::= (item [@var{keyword} @var{argument}]... @var{value})
 @end example
 
 The @var{value}, if present, is used to initialize the @code{:value}
@@ -986,7 +986,7 @@ buffer.  This widget will only match the specified value.
 Syntax:
 
 @example
-ITEM ::= (choice-item [KEYWORD ARGUMENT]... VALUE)
+@var{item} ::= (choice-item [@var{keyword} @var{argument}]... @var{value})
 @end example
 
 The @var{value}, if present, is used to initialize the @code{:value}
@@ -1003,7 +1003,7 @@ the specified value.
 Syntax:
 
 @example
-TYPE ::= (toggle [KEYWORD ARGUMENT]...)
+@var{type} ::= (toggle [@var{keyword} @var{argument}]...)
 @end example
 
 The widget has two possible states, @samp{on} and @samp{off}, which
@@ -1039,7 +1039,7 @@ This widget has two possible states, @samp{selected} and
 Syntax:
 
 @example
-TYPE ::= (checkbox [KEYWORD ARGUMENT]...)
+@var{type} ::= (checkbox [@var{keyword} @var{argument}]...)
 @end example
 
 @node checklist, editable-list, checkbox, Basic Types
@@ -1050,7 +1050,7 @@ TYPE ::= (checkbox [KEYWORD ARGUMENT]...)
 Syntax:
 
 @example
-TYPE ::= (checklist [KEYWORD ARGUMENT]...  TYPE ... )
+@var{type} ::= (checklist [@var{keyword} @var{argument}]...  @var{type} ... )
 @end example
 
 The @var{type} arguments represent each checklist item.  The widget's
@@ -1108,7 +1108,7 @@ The list of types.
 Syntax:
 
 @example
-TYPE ::= (editable-list [KEYWORD ARGUMENT]... TYPE)
+@var{type} ::= (editable-list [@var{keyword} @var{argument}]... @var{type})
 @end example
 
 The value is a list, where each member represents one widget of type
@@ -1168,7 +1168,7 @@ This widget simply group other widgets together.
 Syntax:
 
 @example
-TYPE ::= (group [KEYWORD ARGUMENT]... TYPE...)
+@var{type} ::= (group [@var{keyword} @var{argument}]... @var{type}...)
 @end example
 
 The value is a list, with one member for each @var{type}.
@@ -1201,7 +1201,7 @@ of the composite widgets.
 The syntax for the @code{const} widget is:
 
 @example
-TYPE ::= (const [KEYWORD ARGUMENT]...  [ VALUE ])
+@var{type} ::= (const [@var{keyword} @var{argument}]...  [ @var{value} ])
 @end example
 
 The @var{value}, if present, is used to initialize the @code{:value}
@@ -1237,7 +1237,7 @@ user to edit it inline in the buffer.
 The syntax for the @code{sexp} widget is:
 
 @example
-TYPE ::= (sexp [KEYWORD ARGUMENT]...  [ VALUE ])
+@var{type} ::= (sexp [@var{keyword} @var{argument}]...  [ @var{value} ])
 @end example
 
 @deffn Widget sexp
@@ -1261,7 +1261,7 @@ following widgets.
 The syntax for all the atoms are:
 
 @example
-TYPE ::= (NAME [KEYWORD ARGUMENT]...  [ VALUE ])
+@var{type} ::= (@var{construct} [@var{keyword} @var{argument}]...  [ @var{value} ])
 @end example
 
 The @var{value}, if present, is used to initialize the @code{:value}
@@ -1331,10 +1331,10 @@ either @code{nil} meaning false, or non-@code{nil} meaning true.
 @subsection Composite Sexp Widgets
 @cindex composite sexp widgets
 
-The syntax for the composite widget is:
+The syntax for the composite widget construct is:
 
 @example
-TYPE ::= (NAME [KEYWORD ARGUMENT]...  COMPONENT...)
+@var{type} ::= (@var{construct} [@var{keyword} @var{argument}]...  @var{component}...)
 @end example
 
 @noindent
@@ -1342,19 +1342,43 @@ where each @var{component} must be a widget type.  Each component widget
 will be displayed in the buffer, and will be editable by the user.
 
 @deffn Widget cons
-The value of a @code{cons} widget is a cons-cell where the @sc{car} is
-the value of the first component and the @sc{cdr} is the value of the
-second component.  There must be exactly two components.
+The value of a @code{cons} widget must be a cons-cell whose @sc{car} 
+and @sc{cdr} have two specified types.  It uses this syntax:
+
+@example
+@var{type} ::= (cons [@var{keyword} @var{argument}]...  @var{car-type} @var{cdr-type})
+@end example
+@end deffn
+
+@deffn Widget choice
+The @code{choice} widget specifies a set of values that match any one
+of a fixed set of types.  Its syntax is as follows:
+
+@example
+@var{type} ::= (choice [@var{keyword} @var{argument}]...  @var{type} ... )
+@end example
+
+The value of a @code{choice} widget can be anything that matches any of the
+@var{types}.
 @end deffn
 
 @deffn Widget list
-The value of a @code{list} widget is a list containing the value of
-each of its components.
+The value of a @code{list} widget must be a list whose element types
+match the specified component types:
+
+@example
+@var{type} ::= (list [@var{keyword} @var{argument}]...  @var{component-type}...)
+@end example
+
+Thus, @code{(list string number)} matches lists of two elements,
+the first being a string and the second being a number.
 @end deffn
 
 @deffn Widget vector
-The value of a @code{vector} widget is a vector containing the value of
-each of its component.
+The @code{vector} widget is like the @code{list} widget but matches
+vectors instead of lists.  Thus, @code{(vector string number)} matches
+vectors of two elements, the first being a string and the second being
+a number.
 @end deffn
 
 The above suffice for specifying fixed size lists and vectors.  To get
@@ -1363,7 +1387,7 @@ variable length lists and vectors, you can use a @code{choice},
 keyword.  If any component of a composite widget has the @code{:inline}
 keyword set, its value must be a list which will then be spliced into
 the composite.  For example, to specify a list whose first element must
-be a file name, and whose remaining arguments should either be the
+be a file name, and whose remaining elements should either be the
 symbol @code{t} or two files, you can use the following widget
 specification:
 
@@ -1376,29 +1400,32 @@ specification:
 @end example
 
 The value of a widget of this type will either have the form
-@code{(file t)} or @code{(file string string)}.
+@code{(file t)} or @code{(file @var{string} @var{string})}.
 
-This concept of inline is probably hard to understand.  It was certainly
-hard to implement, so instead of confusing you more by trying to explain
-it here, I'll just suggest you meditate over it for a while.
-
-@deffn Widget choice
-Allows you to edit a sexp which may have one of a fixed set of types.
-It is currently implemented with the @code{choice-menu} basic widget,
-and has a similar syntax.
-@end deffn
+This concept of @code{:inline} may be hard to understand.  It was
+certainly hard to implement, so instead of confusing you more by
+trying to explain it here, I'll just suggest you meditate over it for
+a while.
 
 @deffn Widget set
-Allows you to specify a type which must be a list whose elements all
-belong to the given set.  The elements of the list are not significant.
-This is implemented on top of the @code{checklist} basic widget, and has
-a similar syntax.
+Specifies a type whose values are the lists whose elements all belong
+to a given set.  The order of elements of the list is not significant.
+Here's the syntax:
+
+@example
+@var{type} ::= (set [@var{keyword} @var{argument}]...  @var{permitted-element} ... )
+@end example
+
+Use @code{const} to specify each permitted element, like this:
+@code{(set (const a) (const b))}.
 @end deffn
 
 @deffn Widget repeat
-Allows you to specify a variable length list whose members are all of
-the same type.  Implemented on top of the @code{editable-list} basic
-widget, and has a similar syntax.
+Specifies a list of any number of elements that fit a certain type.
+
+@example
+@var{type} ::= (repeat [@var{keyword} @var{argument}]...  @var{type})
+@end example
 @end deffn
 
 @node Widget Properties, Defining New Widgets, Sexp Types, Top
