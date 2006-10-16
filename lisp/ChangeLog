@@ -1,3 +1,7 @@
+2006-10-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-reread-directory): Work in `dir' mode too.
+
 2006-10-15  Martin Rudalics <rudalics@gmx.at>
 
 	* textmodes/table.el: Require 'regexp-opt.
