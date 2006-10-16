@@ -68,7 +68,7 @@ rearranges the key bindings.  (@xref{Keys in Documentation}.)
 
 @vindex emacs-lisp-docstring-fill-column
   Emacs Lisp mode fills documentation strings to the width
-controlled by @code{emacs-lisp-docstring-fill-column}.
+specified by @code{emacs-lisp-docstring-fill-column}.
 
   In Emacs Lisp, a documentation string is accessible through the
 function or variable that it describes:
