@@ -1,3 +1,21 @@
+2006-10-16  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (get_composition_id): Pay attention to TAB
+	component.
+
+	* xterm.c (x_draw_composite_glyph_string_foreground): Don't draw
+	TAB.  Adjusted for the change of s->char2b which always points to
+	the first elememnt of allocated memory.
+
+	* xftfont.c (xftfont_text_extents): Fix calculation of descent
+	value.
+
+	* xdisp.c (handle_composition_prop): Set it->c to the first
+	non-TAB component.
+	(fill_composite_glyph_string): Argument changed.
+	(BUILD_COMPOSITE_GLYPH_STRING): Adjusted for the above change.
+	(x_produce_glyphs): Fix handling of left/right padding.
+
 2006-10-04  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (analyse_first): Cancel the change for synching with
