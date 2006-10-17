@@ -1,3 +1,12 @@
+2006-10-17  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_list): Allow registry "unicode-sip".
+
+	* font.c (Qunicode_sip): New variable.
+	(syms_of_font): Declare it as a Lisp symbol.
+
+	* font.h (Qunicode_sip): Extern it.
+
 2006-10-16  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (get_composition_id): Pay attention to TAB
