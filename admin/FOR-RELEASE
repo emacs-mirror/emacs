@@ -56,6 +56,8 @@ This should at least be diagnosed.
 
 ** id.brep@gmail.com, Oct 17: `.newsrc.eld' saves chinese group name in wrong coding
 
+** bojohan+mail@dd.chalmers.se, Oct 17: Formatting `interactive' strings.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
