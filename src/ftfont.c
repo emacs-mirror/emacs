@@ -350,7 +350,9 @@ ftfont_list (frame, spec)
 	    return Qnil;
 	  charset = cs_iso8859_1;
 	}
-      else if (! EQ (registry, Qiso10646_1) && ! EQ (registry, Qunicode_bmp))
+      else if (! EQ (registry, Qiso10646_1)
+	       && ! EQ (registry, Qunicode_bmp)
+	       && ! EQ (registry, Qunicode_sip))
 	return val;
     }
 
