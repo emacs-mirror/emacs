@@ -53,7 +53,7 @@ int enable_font_backend;
 Lisp_Object Qfontp;
 
 /* Important character set symbols.  */
-Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp;
+Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
 /* Like CHECK_FONT_SPEC but also validate properties of the font-spec,
    and set X to the validated result.  */
@@ -3747,6 +3747,7 @@ syms_of_font ()
   DEFSYM (Qiso8859_1, "iso8859-1");
   DEFSYM (Qiso10646_1, "iso10646-1");
   DEFSYM (Qunicode_bmp, "unicode-bmp");
+  DEFSYM (Qunicode_sip, "unicode-sip");
 
   DEFSYM (QCotf, ":otf");
   DEFSYM (QClanguage, ":language");
