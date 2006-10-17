@@ -2407,8 +2407,8 @@ adjust_frame_glyphs_for_window_redisplay (f)
     XSETFASTINT (w->total_cols, FRAME_TOTAL_COLS (f));
     allocate_matrices_for_window_redisplay (w);
   }
-#endif /* not USE_X_TOOLKIT */
-#endif /* not HAVE_X_WINDOWS */
+#endif /* not USE_X_TOOLKIT && not USE_GTK */
+#endif /* HAVE_X_WINDOWS */
 
 #ifndef USE_GTK
   /* Allocate/ reallocate matrices of the tool bar window.  If we
