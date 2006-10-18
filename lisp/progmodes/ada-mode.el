@@ -218,8 +218,8 @@ These files should contain one word per line, that gives the casing
 to be used for that word in Ada files.  If the line starts with the
 character *, then the exception will be used for substrings that either
 start at the beginning of a word or after a _ character, and end either
-at the end of the word or at a _ character.  Each line can be terminated by
-a comment."
+at the end of the word or at a _ character.  Each line can be terminated
+by a comment."
   :type '(repeat (file))
   :group 'ada)
 
@@ -439,10 +439,10 @@ An example is:
 (defcustom ada-which-compiler 'gnat
   "*Name of the compiler to use.
 This will determine what features are made available through the Ada mode.
-The possible choices are :
+The possible choices are:
 `gnat': Use Ada Core Technologies' Gnat compiler.  Add some cross-referencing
-    features
-`generic': Use a generic compiler"
+    features.
+`generic': Use a generic compiler."
   :type '(choice (const gnat)
                  (const generic))
   :group 'ada)
@@ -485,7 +485,7 @@ The extensions should include a `.' if needed.")
       "reverse" "select" "separate" "subtype" "task" "terminate" "then"
       "type" "use" "when" "while" "with" "xor")
     "List of Ada keywords.
-This variable is used to define `ada-83-keywords' and `ada-95-keywords'"))
+This variable is used to define `ada-83-keywords' and `ada-95-keywords'."))
 
 (defvar ada-ret-binding nil
   "Variable to save key binding of RET when casing is activated.")
@@ -532,7 +532,7 @@ See `align-mode-alist' for more information.")
      (valid   . (lambda() (not (ada-in-comment-p))))
      (modes   . '(ada-mode)))
     )
-  "Ada support for align.el >= 2.8
+  "Ada support for align.el >= 2.8.
 This variable defines several rules to use to align different lines.")
 
 (defconst ada-align-region-separate
@@ -1439,7 +1439,7 @@ The standard casing rules will no longer apply to this word."
           ((listp ada-case-exception-file)
            (setq file-name (car ada-case-exception-file)))
           (t
-           (error (concat "No exception file specified. "
+           (error (concat "No exception file specified.  "
 			  "See variable ada-case-exception-file"))))
 
     (set-syntax-table ada-mode-symbol-syntax-table)
@@ -1478,7 +1478,7 @@ word itself has a special casing."
 	       ((listp ada-case-exception-file)
 		(car ada-case-exception-file))
 	       (t
-		(error (concat "No exception file specified. "
+		(error (concat "No exception file specified.  "
 			       "See variable ada-case-exception-file"))))))
 
     ;;  Find the substring to define as an exception. Order is: the parameter,
@@ -1593,8 +1593,8 @@ word itself has a special casing."
 
 (defun ada-adjust-case-identifier ()
   "Adjust case of the previous identifier.
-The auto-casing is done according to the value of `ada-case-identifier' and
-the exceptions defined in `ada-case-exception-file'."
+The auto-casing is done according to the value of `ada-case-identifier'
+and the exceptions defined in `ada-case-exception-file'."
   (interactive)
   (if (or (equal ada-case-exception '())
           (equal (char-after) ?_))
@@ -1743,7 +1743,7 @@ ARG is ignored, and is there for compatibility with `capitalize-word' only."
 (defun ada-no-auto-case (&optional arg)
   "Do nothing.
 This function can be used for the auto-casing variables in the Ada mode, to
-adapt to unusal auto-casing schemes. Since it does nothing, you can for
+adapt to unusal auto-casing schemes.  Since it does nothing, you can for
 instance use it for `ada-case-identifier' if you don't want any special
 auto-casing for identifiers, whereas keywords have to be lower-cased.
 See also `ada-auto-case' to disable auto casing altogether."
@@ -1806,7 +1806,7 @@ Attention: This function might take very long for big regions!"
       (set-syntax-table previous-syntax-table))))
 
 (defun ada-adjust-case-buffer ()
-  "Adjusts the case of all words in the whole buffer.
+  "Adjust the case of all words in the whole buffer.
 ATTENTION: This function might take very long for big buffers!"
   (interactive "*")
   (ada-adjust-case-region (point-min) (point-max)))
@@ -2138,7 +2138,7 @@ Return the equivalent internal parameter list."
         (ada-indent-current))
       (forward-line 1)
       (setq block-done      (1+ block-done)))
-    (message "indenting ... done")))
+    (message "Indenting ... done")))
 
 (defun ada-indent-newline-indent ()
   "Indent the current line, insert a newline and then indent the new line."
@@ -3841,7 +3841,7 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
 (defun ada-goto-matching-end (&optional nest-level noerror)
   "Move point to the end of a block.
 Which block depends on the value of NEST-LEVEL, which defaults to zero.
-If NOERROR is non-nil, it only returns nil if found no matching start."
+If NOERROR is non-nil, it only returns nil if no matching start found."
   (let ((nest-count (or nest-level 0))
 	(regex (eval-when-compile
 		 (concat "\\<"
@@ -4058,7 +4058,7 @@ Assumes point to be at the end of a statement."
 
 (defun ada-looking-at-semi-private ()
   "Return t if looking at the start of a private section in a package.
-Returns nil if the private is part of the package name, as in
+Return nil if the private is part of the package name, as in
 'private package A is...' (this can only happen at top level)."
   (save-excursion
     (and (looking-at "\\<private\\>")
@@ -4968,7 +4968,7 @@ Redefines the function `ff-which-function-are-we-in'."
 
 
 (defvar ada-last-which-function-line -1
-  "Last on which `ada-which-function' was called.")
+  "Last line on which `ada-which-function' was called.")
 (defvar ada-last-which-function-subprog 0
   "Last subprogram name returned by `ada-which-function'.")
 (make-variable-buffer-local 'ada-last-which-function-subprog)
@@ -5062,7 +5062,7 @@ Since the search can be long, the results are cached."
 (defun ada-get-body-name (&optional spec-name)
   "Return the file name for the body of SPEC-NAME.
 If SPEC-NAME is nil, return the body for the current package.
-Returns nil if no body was found."
+Return nil if no body was found."
   (interactive)
 
   (unless spec-name (setq spec-name (buffer-file-name)))
@@ -5223,7 +5223,7 @@ Returns nil if no body was found."
   "Make text outside current subprogram invisible.
 The subprogram visible is the one that contains or follow point.
 Optional ARG is ignored.
-Use `M-x widen' to go back to the full visibility for the buffer."
+Use \\[widen] to go back to the full visibility for the buffer."
 
   (interactive)
   (save-excursion
