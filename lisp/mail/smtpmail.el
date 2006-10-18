@@ -541,6 +541,17 @@ This is relative to `smtpmail-queue-dir'.")
 		 (decoded (base64-decode-string challenge))
 		 (hash (rfc2104-hash 'md5 64 16 passwd decoded))
 		 (response (concat (smtpmail-cred-user cred) " " hash))
+		 ;; Osamu Yamane <yamane@green.ocn.ne.jp>:
+		 ;; SMTP auth fails because the SMTP server identifies
+		 ;; only the first part of the string (delimited by
+		 ;; new line characters) as a response from the
+		 ;; client, and the rest as distinct commands.
+
+		 ;; In my case, the response string is 80 characters
+		 ;; long.  Without the no-line-break option for
+		 ;; base64-encode-sting, only the first 76 characters
+		 ;; are taken as a response to the server, and the
+		 ;; authentication fails.
 		 (encoded (base64-encode-string response t)))
 	    (smtpmail-send-command process (format "%s" encoded))
 	    (if (or (null (car (setq ret (smtpmail-read-response process))))
