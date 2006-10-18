@@ -23,7 +23,7 @@
 
 2006-10-18  Chong Yidong  <cyd@stupidchicken.com>
 
-	* simple.el (line-move-1): During fields during motion to the
+	* simple.el (line-move-1): Ignore fields when moving to the
 	beginning of line to avoid getting point stuck.
 
 2006-10-18  Martin Rudalics  <rudalics@gmx.at>
