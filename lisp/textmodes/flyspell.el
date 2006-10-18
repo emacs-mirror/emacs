@@ -959,6 +959,7 @@ Mostly we check word delimiters."
 (defun flyspell-word-search-backward (word bound)
   (save-excursion
     (let ((r '())
+	  (inhibit-point-motion-hooks t)
 	  p)
       (while (and (not r) (setq p (search-backward word bound t)))
 	(let ((lw (flyspell-get-word '())))
@@ -973,6 +974,7 @@ Mostly we check word delimiters."
 (defun flyspell-word-search-forward (word bound)
   (save-excursion
     (let ((r '())
+	  (inhibit-point-motion-hooks t)
 	  p)
       (while (and (not r) (setq p (search-forward word bound t)))
 	(let ((lw (flyspell-get-word '())))

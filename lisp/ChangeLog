@@ -1,3 +1,9 @@
+2006-10-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/flyspell.el (flyspell-word-search-backward): Set
+	inhibit-point-motion-hooks to avoid looping due to intangibile
+	text.
+
 2006-10-16  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-reread-directory): Work in `dir' mode too.
