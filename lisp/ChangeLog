@@ -1,14 +1,25 @@
+2006-10-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-mode.el (ada-83-string-keywords)
+	(ada-last-which-function-line ada-no-auto-case, ada-indent-region)
+	(ada-which-compiler, ada-align-modes, ada-adjust-case-buffer)
+	(ada-looking-at-semi-private, ada-get-body-name):
+	Fix typos in docstrings.
+	(ada-create-case-exception, ada-create-case-exception-substring):
+	Fix typos in error messages.
+	(ada-goto-matching-end, ada-narrow-to-defun): Doc fixes.
+
 2006-10-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (res-geometry): Don't set geometry from Xresources
 	to default-frame-alist if default-frame-alist already contains
-	widht/height.
+	width/height.
 
 2006-10-18  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/pp.el (pp-eval-expression): Use `X' to read value.
 	Non-interactive arg is the value, not the expression.
-	
+
 	* simple.el (read-expression-map): Just set it, no defvar.
 
 	* subr.el (insert-for-yank-1): If last inserted char has
@@ -41,7 +52,7 @@
 
 	* ido.el (ido-reread-directory): Work in `dir' mode too.
 
-2006-10-15  Martin Rudalics <rudalics@gmx.at>
+2006-10-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/table.el: Require 'regexp-opt.
 
@@ -70,8 +81,7 @@
 
 2006-10-13  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
-	* apropos.el (apropos-pattern-quoted): Fix a typo in a doc
-	string.
+	* apropos.el (apropos-pattern-quoted): Fix a typo in a doc string.
 
 2006-10-13  Eli Zaretskii  <eliz@gnu.org>
 
@@ -94,8 +104,8 @@
 
 2006-10-12  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/reftex-global.el (reftex-create-tags-file): Quote file
-	arguments.
+	* textmodes/reftex-global.el (reftex-create-tags-file):
+	Quote file arguments.
 
 2006-10-12  Richard Stallman  <rms@gnu.org>
 
@@ -460,7 +470,7 @@
 		was inverted;
 		Support `comment-column' = 0.
 
-2006-10-11  Martin Rudalics <rudalics@gmx.at>
+2006-10-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* dnd.el (dnd-handle-one-url): Fix typo in doc-string.
 	* help-at-pt.el (scan-buf-move-to-region): Likewise.
@@ -504,8 +514,8 @@
 
 2006-10-08  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-speedbar-expand-node): Burp if
-	GUD buffer has been killed.
+	* progmodes/gdb-ui.el (gdb-speedbar-expand-node):
+	Burp if GUD buffer has been killed.
 
 2006-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
