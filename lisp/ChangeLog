@@ -1,12 +1,344 @@
+2006-10-03  Denis St,A|(Bnkel  <dstuenkel@googlemail.com>  (tiny change)
+
+	* ibuf-ext.el (eval, view-and-eval) <define-ibuffer-op>:
+	Use the interactive spec of `eval-expression'.
+
+2006-10-02  Michael Welsh Duggan  <md5i@cs.cmu.edu>
+
+	* progmodes/sh-script.el (sh-prev-thing): Fix last change.
+
+2006-10-02  MIYOSHI Masanori <miyoshi@meadowy.org>  (tiny change)
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Fix typo in
+	2006-09-28 commit.
+
+2006-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el (iso-8859-6): Table fixed.
+
+2006-10-01  Chris Moore <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* dired.el (dired-build-subdir-alist): Fix previous change.
+
+2006-10-01  Johan Bockg,Ae(Brd  <bojohan+mail@dd.chalmers.se>
+
+	* simple.el (undo-elt-crosses-region): Fix the inequalities.
+
+2006-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/find-func.el (find-function-regexp): Don't match
+	"define-button-type".
+
+	* pcvs.el (cvs-update-header): Fix handling of extra newlines so that
+	they don't keep accumulating.
+
+2006-10-01  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* ffap.el (ffap-rfc-path): Change the address of the RFC
+	repository to ftp.rfc-editor.org, as ds.internic.net seems to be gone.
+
+2006-10-01  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* allout.el (allout-expose-topic): Rectify implementation of "+"
+	spec, so that bodies are not exposed with headlines.
+
+2006-10-01  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-current-depth): Do aberrent check only at or
+	below doublecheck depth.
+	(allout-chart-subtree): Make it explicit that LEVELS being nil
+	means unlimited depth.  Drop undocumented support for LEVELS value
+	t meaning unlimited depth.  (This is consistent with
+	allout-chart-to-reveal, but contrary to allout-show-children,
+	which needs to use nil to default to depth of 1.)
+	(allout-goto-prefix-doublechecked): Wrap long docstring line.
+	(allout-chart-to-reveal): Be explicit in docstring about meaning
+	of nil LEVELS, and drop support for LEVELS value t.
+	(allout-show-children): Translate the level spec used by this
+	routine to that used by allout-chart-subtree and
+	allout-chart-to-reveal.
+	(allout-show-to-offshoot): Retry once when stuck, after opening
+	subtree - improvements in discontinuity handling likely will
+	enable progress.
+
+2006-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* wid-edit.el (widget-button-click-moves-point): New variable.
+	(widget-button-click): If widget-button-click-moves-point is
+	non-nil, set point after performing the button action
+
+	* cus-edit.el (custom-mode): Set widget-button-click-moves-point.
+
+2006-09-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (find-file-existing): Modify to not allow wildcards.
+
+2006-09-30  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* simple.el (undo-more): When undo information for the region is
+	exhausted, say "No further undo information FOR REGION".
+
+2006-09-30  Michael Welsh Duggan  <md5i@cs.cmu.edu>
+
+	* progmodes/sh-script.el (sh-prev-thing):
+	Take `sh-leading-keywords' into account.
+
+2006-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* custom.el (defcustom): Doc fix.
+
+	* calendar/calendar.el (european-calendar-style):
+	Call european-calendar or american-calendar as needed when set.
+	(diary-view-entries, list-calendar-holidays): Move autoloads
+	before use.
+
+2006-09-29  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/cperl-mode.el (cperl-after-expr-p): Don't move point
+	to nil if there is no previous property change.
+
+2006-09-26  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* cus-edit.el (custom-save-all): Switch to emacs-lisp mode before
+	saving anything to be sure that `forward-sexp' behaves correctly.
+
+2006-09-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-finish): Ignore field boundaries if the
+	initial and final points have the same `field' property.
+
+2006-09-29  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-file-internal): Only bind minibuffer-completing-file-name
+	to t while calling ido-read-internal.
+
+2006-09-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-file-remote-p): Get regexp from list.
+	(org-archive-subtree): Remove erraneous `]' from character list.
+
+2006-09-28  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (ses-in-print-area, ses-goto-data, ses-load)
+	(ses-reconstruct-all): Make undo of "insert row" work by keeping
+	markers for data-area and parameters-area.
+
+2006-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-mode): Don't disable jit-lock.
+
+	* font-lock.el (font-lock-after-change-function): Refontify next line
+	as well if end is at BOL.
+	(font-lock-extend-jit-lock-region-after-change): Be more careful to
+	only extend the region as much as needed.
+
+2006-09-28  Richard Stallman  <rms@gnu.org>
+
+	* comint.el (comint-mode): Bind font-lock-defaults non-nil.
+
+	* subr.el (insert-for-yank-1): Handle `font-lock-face' specially.
+
+	* international/mule.el (after-insert-file-set-coding):
+	If VISIT, don't let set-buffer-multibyte make undo info.
+
+2006-09-28  Osamu Yamane  <yamane@green.ocn.ne.jp> (tiny change)
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Do not break long
+	lines in base64-encoded authentication response.
+
+2006-09-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmode/ebnf2ps.el: Doc fix. Implement arrow spacing and scaling.
+	(ebnf-version): New version 4.3.
+	(ebnf-arrow-extra-width, ebnf-arrow-scale): New options.
+	(ebnf-prologue): Adjust PostScript programming.
+	(ebnf-begin-file, ebnf-insert-ebnf-prologue, ebnf-terminal-dimension1)
+	(ebnf-repeat-dimension, ebnf-except-dimension): Adjust code.
+
+2006-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el (jit-lock-force-redisplay): Rename from
+	jit-lock-fontify-again, and undo the mistaken change I've just done.
+
+	* jit-lock.el (jit-lock-fontify-now): Don't fontify the empty text.
+	(jit-lock-fontify-again): Don't refontify text that's not displayed.
+
+2006-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* startup.el (display-splash-screen): Allow a prefix argument.
+
+2006-09-25  Jason Rumney  <jasonr@gnu.org>
+
+	* subr.el (shell-quote-argument): Use DOS logic for Windows
+	shells with DOS semantics.
+
+2006-09-24  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-goto-locus-delete-o): New fn.
+	(compilation-goto-locus): Use compilation-goto-locus-delete-o
+	to delete the overlay.  Put it on pre-command-hook.
+
+	* emacs-lisp/timer.el (timer-max-repeats): Doc fix.
+
+	* startup.el (fancy-splash-screens, normal-splash-screen):
+	Call the splash buffer *About GNU Emacs*.
+
+	* simple.el (next-error-highlight, next-error-highlight-no-select):
+	Default to 0.5.
+	(yank-excluded-properties): Add `fontified'.
+
+	* font-lock.el (font-lock-compile-keywords): Allow value of
+	syntax-begin-function to enable paren-column-0 highlighting.
+
+2006-09-24  Chris Moore  <christopher.ian.moore@gmail.com>  (tiny change)
+
+	* dired.el (dired-build-subdir-alist): When file ends in colon,
+	don't exit the loop, just disregard that file.
+
+2006-09-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (line-move-finish): Handle corner case for fields in
+	continued lines.
+	(line-move-1): Remove flawed test for that case.
+
+2006-09-24  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* icomplete.el (icomplete-simple-completing-p): Use the correct
+	name for the new variable, `icomplete-with-completion-tables'.
+	(file local variables): Remove superfluous setting.
+
+2006-09-23  Jeff Miller  <jmiller@cablespeed.com>  (tiny change)
+
+	* calendar/appt.el (appt-check): Fix typo for appointments just
+	after midnight.
+
+2006-09-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (describe-key-briefly, describe-key): Don't expect an
+	extra up event if a down-event is generated by a popup menu.
+
+2006-09-23  Michal Nazarewicz  <mnazarewicz@gmail.com> (tiny change)
+
+	* textmodes/ispell.el (ispell-change-dictionary): Don't check the
+	local dictionary when changing the global dictionary.
+
+2006-09-23  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* icomplete.el (icomplete-with-completion-tables): List of
+	specialized completion tables with which icomplete should
+	operate.  Include the new `internal-complete-buffer', so icomplete
+	works with interactive buffer-selection.
+	(icomplete-simple-completing-p): Add acceptance of specialized
+	completion tables listed in icomplete-with-completion-tables.
+
+2006-09-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.el (focus-follows-mouse): Set default to nil on Mac.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	`focus-follows-mouse'.
+
+2006-09-22  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-buffer-create-internal): In `emacs -q',
+	explain why Save is not available.
+
+2006-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* woman.el (woman0-so): Use `let*', not `let'.
+	(woman-horizontal-line): Remove unbalanced parenthesis.
+
+2006-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* woman.el: Make sure all the end-of-region markers we use have
+	a non-nil insertion-type.
+	(woman0-so): Move things around so we can use copy-marker.
+	(woman0-roff-buffer, woman2-process-escapes-to-eol, woman2-roff-buffer):
+	Adjust marker type.
+	(woman2-process-escapes): Check marker type.
+	(woman-horizontal-line): Dispense with the use of a marker.
+
+2006-09-22  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-lang.el: Add Greek letters to math-variable-table
+	property of tex.
+
+2006-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (save-some-buffers-action-alist): Display diff in
+	view-mode.
+
+2006-09-22  Masatake YAMATO  <jet@gyve.org>
+
+	* add-log.el (add-log-current-defun): Use `forward-sexp'
+	instead of `forward-word' to pick c++::symbol.
+	Reported by Herbert Euler <herberteuler@hotmail.com>.
+
+2006-09-22  Kenichi Handa  <handa@m17n.org>
+
+	* bindings.el: Fix setting self-insert-command for multibyte
+	characters in global-map.
+
+2006-09-21  David Kastrup  <dak@gnu.org>
+
+	* mouse.el (mouse-posn-property): Fix typo for `event-start' in
+	doc string.
+
+2006-09-21  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/cl.el (pushnew-internal): Remove defvar.
+	(pushnew): Fix last change.
+
+2006-09-21  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el ("Latin-1"): Add windows-1252 to
+	coding-priority.
+	("German"): Likewise.
+
+2006-09-21  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/cl-macs.el (member*): Use memql instead of complex code.
+	Suggested by Miles Bader.
+
+	* emacs-lisp/cl.el (pushnew): Rework 2006-09-10 change.  Use memql
+	instead of add-to-list in the simple case.
+
+2006-09-20  Kenichi Handa  <handa@m17n.org>
+
+	* isearch.el (isearch-process-search-char): Cancel the previous
+	change.
+	(isearch-search-string): New function.
+	(isearch-search): Use isearch-search-string.
+	(isearch-lazy-highlight-search): Likewise.
+
+2006-09-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* lpr.el (lpr-page-header-switches): Insert `*' at beginning of doc
+	string to become an option.
+
+2006-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-buffer-visiting): Don't get fooled by a nil inode.
+
+2006-09-20  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-partial): Call pos-visible-in-window-p with
+	position t instead of trying both window-end and window-end - 1.
+
+2006-09-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-scan-tags): Find end of subtrees also in
+	hidden trees.
+
 2006-09-20  David Kastrup  <dak@gnu.org>
 
 	* mouse.el (mouse-posn-property): Improve doc string.
 	(mouse-on-link-p): Change buffers for function calls on links.
 
-	* menu-bar.el (clipboard-yank): bomb out in interactive use if
+	* menu-bar.el (clipboard-yank): Bomb out in interactive use if
 	buffer is read-only.
 
-2006-09-18  Ken Manheimer  <ken.manheimer@gmail.com>
+2006-09-20  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-unprotected): Let inhibit-read-only only when
 	buffer-read-only isn't set.
@@ -17,16 +349,15 @@
 	rather than allout-exposure-changed-hook, as a stronger assertion.
 	(allout-keybindings-list): Add bindings for
 	allout-copy-line-as-kill and allout-copy-topic-as-kill.
-	(allout-copy-line-as-kill, allout-copy-topic-as-kill): copy
-	wrappers for allout-kill-line and allout-kill-topic.
+	(allout-copy-line-as-kill, allout-copy-topic-as-kill):
+	Copy wrappers for allout-kill-line and allout-kill-topic.
 	(allout-listify-exposed): Position correctly to accumulate lines.
 
 2006-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (line-move-1): Escape field boundaries occurring
 	exactly at point.  Update goal column if constrained to a field.
-	(line-move-finish): Escape field boundaries occurring exactly at
-	point.
+	(line-move-finish): Escape field boundaries occurring exactly at point.
 
 2006-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 

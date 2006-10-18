@@ -2053,7 +2053,8 @@ a system-dependent default device name is used."
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
-  (if (eq system-type 'ms-dos)
+  (if (or (eq system-type 'ms-dos)
+          (and (eq system-type 'windows-nt) (w32-shell-dos-semantics)))
       ;; Quote using double quotes, but escape any existing quotes in
       ;; the argument with backslashes.
       (let ((result "")
@@ -2067,19 +2068,17 @@ a system-dependent default device name is used."
 				   "\\" (substring argument end (1+ end)))
 		    start (1+ end))))
 	(concat "\"" result (substring argument start) "\""))
-    (if (eq system-type 'windows-nt)
-	(concat "\"" argument "\"")
-      (if (equal argument "")
-	  "''"
-	;; Quote everything except POSIX filename characters.
-	;; This should be safe enough even for really weird shells.
-	(let ((result "") (start 0) end)
-	  (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-	    (setq end (match-beginning 0)
-		  result (concat result (substring argument start end)
-				 "\\" (substring argument end (1+ end)))
-		  start (1+ end)))
-	  (concat result (substring argument start)))))))
+    (if (equal argument "")
+        "''"
+      ;; Quote everything except POSIX filename characters.
+      ;; This should be safe enough even for really weird shells.
+      (let ((result "") (start 0) end)
+        (while (string-match "[^-0-9a-zA-Z_./]" argument start)
+          (setq end (match-beginning 0)
+                result (concat result (substring argument start end)
+                               "\\" (substring argument end (1+ end)))
+                start (1+ end)))
+        (concat result (substring argument start))))))
 
 (defun string-or-null-p (object)
   "Return t if OBJECT is a string or nil.
@@ -2168,11 +2167,32 @@ If UNDO is present and non-nil, it is a function that will be called
   (let* ((handler (and (stringp string)
 		       (get-text-property 0 'yank-handler string)))
 	 (param (or (nth 1 handler) string))
-	 (opoint (point)))
+	 (opoint (point))
+	 end)
+
     (setq yank-undo-function t)
     (if (nth 0 handler) ;; FUNCTION
 	(funcall (car handler) param)
       (insert param))
+    (setq end (point))
+
+    ;; What should we do with `font-lock-face' properties?
+    (if font-lock-defaults
+	;; No, just wipe them.
+	(remove-list-of-text-properties opoint end '(font-lock-face))
+      ;; Convert them to `face'.
+      (save-excursion
+	(goto-char opoint)
+	(while (< (point) end)
+	  (let ((face (get-text-property (point) 'font-lock-face))
+		run-end)
+	    (setq run-end
+		  (next-single-property-change (point) 'font-lock-face nil end))
+	    (when face
+	      (remove-text-properties (point) run-end '(font-lock-face nil))
+	      (put-text-property (point) run-end 'face face))
+	    (goto-char run-end)))))
+
     (unless (nth 2 handler) ;; NOEXCLUDE
       (remove-yank-excluded-properties opoint (point)))
     (if (eq yank-undo-function t)  ;; not set by FUNCTION
@@ -3106,8 +3126,8 @@ Usually the separator is \".\", but it can be any other string.")
 
 (defvar version-regexp-alist
   '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
-    ("^[-_+]$" . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
-    ("^[-_+ ]cvs$" . -3)	; treat "1.2.3-CVS" as alpha release
+    ("^[-_+]$"                 . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
+    ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
     ("^[-_+ ]?b\\(eta\\)?$"    . -2)
     ("^[-_+ ]?\\(pre\\|rc\\)$" . -1))
   "*Specify association between non-numeric version part and a priority.

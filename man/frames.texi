@@ -516,12 +516,12 @@ Here's a similar example for specifying a foreground color:
 @kindex C-z @r{(X windows)}
 @findex iconify-or-deiconify-frame
 Iconify the selected Emacs frame (@code{iconify-or-deiconify-frame}).
+When typed on an Emacs frame's icon, deiconify instead.
+
 The normal meaning of @kbd{C-z}, to suspend Emacs, is not useful under
 a graphical display that allows multiple applications to operate
 simultaneously in their own windows, so Emacs gives @kbd{C-z} a
 different binding in that case.
-
-If you type this command on an Emacs frame's icon, it deiconifies the frame.
 
 @item C-x 5 0
 @kindex C-x 5 0

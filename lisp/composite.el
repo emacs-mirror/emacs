@@ -543,7 +543,7 @@ Auto Composition mode in all buffers (this is the default)."
 		      end (1+ end))
 	      (setq func2 nil))))
 	(if (< start end)
-	    (put-text-property start end 'auto-composed nil))))))
+	    (remove-text-properties start end '(auto-composed nil)))))))
 
 (defun turn-on-auto-composition-if-enabled ()
   (if enable-multibyte-characters
@@ -576,7 +576,8 @@ With arg, enable it iff arg is positive."
     (save-buffer-state nil
       (save-restriction
 	(widen)
-	(put-text-property (point-min) (point-max) 'auto-composed nil)))))
+	(remove-text-properties (point-min) (point-max)
+				'(auto-composed nil))))))
 
 (defun auto-compose-region (from to)
   "Force automatic character composition on the region FROM and TO."

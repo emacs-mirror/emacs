@@ -115,6 +115,9 @@ http://spamassassin.org/.
 To use SpamAssassin, add the following recipes to
 \".procmailrc\":
 
+    # Append to $PATH the location of mhparam in some distros.
+    PATH=$PATH:/usr/bin/mh
+
     MAILDIR=$HOME/`mhparam Path`
 
     # Fight spam with SpamAssassin.
@@ -244,7 +247,7 @@ See `mh-spamassassin-blacklist' for more information."
       (when mh-sa-learn-executable
         (message "Recategorizing this message as ham...")
         (call-process mh-sa-learn-executable msg-file mh-temp-buffer nil
-                      "--single" "--ham" "--local --no-rebuild"))
+                      "--single" "--ham" "--local" "--no-rebuild"))
       (message "Whitelisting message %d..." msg)
       (setq from
             (car (mh-funcall-if-exists

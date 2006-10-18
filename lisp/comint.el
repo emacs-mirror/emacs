@@ -650,7 +650,10 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-process-echoes)
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
-  (set (make-local-variable 'comint-accum-marker) (make-marker))
+  (make-local-variable 'comint-accum-marker)
+  (setq comint-accum-marker (make-marker))
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(nil))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))

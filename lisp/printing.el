@@ -5,10 +5,10 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2006-02-06 15:06:40 ttn>
+;; Time-stamp: <2006/09/15 18:53:14 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8.4
-;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
+;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 (defconst pr-version "6.8.4"
   "printing.el, v 6.8.4 <2005/06/11 vinicius>
@@ -2799,7 +2799,7 @@ See `pr-ps-printer-alist'.")
 
 
 (defalias 'pr-get-symbol
-  (if (fboundp 'easy-menu-intern)
+  (if (fboundp 'easy-menu-intern)	; hacked from easymenu.el
       'easy-menu-intern
     (lambda (s) (if (stringp s) (intern s) s))))
 

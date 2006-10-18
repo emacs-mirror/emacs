@@ -1,3 +1,9 @@
+2006-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-dav.el (url-dav-file-attributes): Simplify.
+
+	* url-http.el (url-http-head-file-attributes): Add device "info".
+
 2006-09-18  Michael Olson  <mwolson@gnu.org>
 
 	* url-methods.el (url-scheme-register-proxy): Handle case where

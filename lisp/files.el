@@ -1117,13 +1117,15 @@ expand wildcards (if any) and visit multiple files."
 		(mapcar 'switch-to-buffer (cdr value))))
       (switch-to-buffer-other-frame value))))
 
-(defun find-file-existing (filename &optional wildcards)
-  "Edit the existing file FILENAME.
-Like \\[find-file] but only allow a file that exists."
-  (interactive (find-file-read-args "Find existing file: " t))
-  (unless (file-exists-p filename) (error "%s does not exist" filename))
-  (find-file filename wildcards)
-  (current-buffer))
+(defun find-file-existing (filename)
+   "Edit the existing file FILENAME.
+Like \\[find-file] but only allow a file that exists, and do not allow
+file names with wildcards."
+   (interactive (nbutlast (find-file-read-args "Find existing file: " t)))
+   (if (and (not (interactive-p)) (not (file-exists-p filename)))
+       (error "%s does not exist" filename)
+     (find-file filename)
+     (current-buffer)))
 
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
@@ -1365,7 +1367,7 @@ If there is no such live buffer, return nil."
                (number (nthcdr 10 attributes))
                (list (buffer-list)) found)
           (and buffer-file-numbers-unique
-               number
+               (car-safe number)       ;Make sure the inode is not just nil.
                (while (and (not found) list)
                  (with-current-buffer (car list)
                    (if (and buffer-file-name
@@ -3729,7 +3731,13 @@ This requires the external program `diff' to be in your `exec-path'."
        ;; Return nil to ask about BUF again.
        nil)
      "view this file")
-    (?d diff-buffer-with-file
+    (?d (lambda (buf)
+	  (save-window-excursion
+	    (diff-buffer-with-file buf))
+	  (view-buffer (get-buffer-create "*Diff*")
+		       (lambda (ignore) (exit-recursive-edit)))
+	  (recursive-edit)
+	  nil)
 	"view changes in file"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 

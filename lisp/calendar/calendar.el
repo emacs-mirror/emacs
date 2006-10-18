@@ -568,11 +568,20 @@ are
 
 Names can be capitalized or not, written in full (as specified by the
 variable `calendar-day-name-array'), or abbreviated (as specified by
-`calendar-day-abbrev-array') with or without a period.  To take effect,
-this variable should be set before the calendar package and its associates
-are loaded.  Otherwise, use one of the functions `european-calendar' or
-`american-calendar' to force the appropriate update."
+`calendar-day-abbrev-array') with or without a period.
+
+Setting this variable directly does not take effect (if the
+calendar package is already loaded).  Rather, use either
+\\[customize] or the functions `european-calendar' and
+`american-calendar'."
   :type 'boolean
+  ;; Without :initialize (require 'calendar) throws an error because
+  ;; american-calendar is undefined at this point.
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+         (if value
+             (european-calendar)
+           (american-calendar)))
   :group 'diary)
 
 ;;;###autoload
@@ -1582,6 +1591,19 @@ See the documentation of that function for more information."
          (calendar-only-one-frame-setup arg))
         (t (calendar-basic-setup arg))))
 
+(autoload 'diary-view-entries "diary-lib"
+  "Prepare and display a buffer with diary entries.
+Searches your diary file for entries that match ARG days starting with
+the date indicated by the cursor position in the displayed three-month
+calendar."
+  t)
+
+(autoload 'list-calendar-holidays "holidays"
+  "Create a buffer containing the holidays for the current calendar window.
+The holidays are those in the list `calendar-notable-days'.  Returns t if any
+holidays are found, nil if not."
+  t)
+
 (defun calendar-basic-setup (&optional arg)
   "Display a three-month calendar in another window.
 The three months appear side by side, with the current month in the middle
@@ -1648,13 +1670,6 @@ to be replaced by asterisks to highlight it whenever it is in the window."
     (if view-calendar-holidays-initially
         (list-calendar-holidays)))
   (run-hooks 'initial-calendar-window-hook))
-
-(autoload 'diary-view-entries "diary-lib"
-  "Prepare and display a buffer with diary entries.
-Searches your diary file for entries that match ARG days starting with
-the date indicated by the cursor position in the displayed three-month
-calendar."
-  t)
 
 (autoload 'view-other-diary-entries "diary-lib"
   "Prepare and display buffer of diary entries from an alternative diary file.
@@ -1928,12 +1943,6 @@ to the date indicated by point."
 (autoload 'insert-yearly-bahai-diary-entry "cal-bahai"
   "Insert an annual diary entry for the day of the Baha'i year corresponding
 to the date indicated by point."
-  t)
-
-(autoload 'list-calendar-holidays "holidays"
-  "Create a buffer containing the holidays for the current calendar window.
-The holidays are those in the list `calendar-notable-days'.  Returns t if any
-holidays are found, nil if not."
   t)
 
 (autoload 'cal-tex-cursor-month "cal-tex"

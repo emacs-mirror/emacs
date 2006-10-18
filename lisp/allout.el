@@ -2202,8 +2202,9 @@ Actually, returns prefix beginning point."
   (save-excursion
     (allout-beginning-of-current-line)
     (and (looking-at allout-regexp)
-         (not (allout-aberrant-container-p))
-	 (allout-prefix-data))))
+         (allout-prefix-data)
+         (or (> allout-recent-depth allout-doublecheck-at-and-shallower)
+             (not (allout-aberrant-container-p))))))
 ;;;_    > allout-on-heading-p ()
 (defalias 'allout-on-heading-p 'allout-on-current-heading-p)
 ;;;_    > allout-e-o-prefix-p ()
@@ -2329,7 +2330,7 @@ If less than this depth, ascend to that depth and count..."
 
   (save-excursion
     (cond ((and depth (<= depth 0) 0))
-          ((or (not depth) (= depth (allout-depth)))
+          ((or (null depth) (= depth (allout-depth)))
            (let ((index 1))
              (while (allout-previous-sibling allout-recent-depth nil)
 	       (setq index (1+ index)))
@@ -2505,13 +2506,13 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
 (defun allout-chart-subtree (&optional levels visible orig-depth prev-depth)
   "Produce a location \"chart\" of subtopics of the containing topic.
 
-Optional argument LEVELS specifies the depth \(relative to start
-depth) for the chart.
+Optional argument LEVELS specifies a depth limit \(relative to start
+depth) for the chart.  Null LEVELS means no limit.
 
 When optional argument VISIBLE is non-nil, the chart includes
 only the visible subelements of the charted subjects.
 
-The remaining optional args are not for internal use by the function.
+The remaining optional args are for internal use by the function.
 
 Point is left at the end of the subtree.
 
@@ -2618,16 +2619,19 @@ for an explanation of charts."
 
   "Return a flat list of hidden points in subtree CHART, up to DEPTH.
 
+If DEPTH is nil, include hidden points at any depth.
+
 Note that point can be left at any of the points on chart, or at the
 start point."
 
   (let (result here)
-    (while (and (or (eq depth t) (> depth 0))
+    (while (and (or (null depth) (> depth 0))
 		chart)
       (setq here (car chart))
       (if (listp here)
-	  (let ((further (allout-chart-to-reveal here (or (eq depth t)
-							   (1- depth)))))
+	  (let ((further (allout-chart-to-reveal here (if (null depth)
+                                                          depth
+                                                        (1- depth)))))
 	    ;; We're on the start of a subtree - recurse with it, if there's
 	    ;; more depth to go:
 	    (if further (setq result (append further result)))
@@ -2697,7 +2701,10 @@ Returns the point at the beginning of the prefix, or nil if none."
 (defun allout-goto-prefix-doublechecked ()
   "Put point at beginning of immediately containing outline topic.
 
-Like `allout-goto-prefix', but shallow topics \(according to `allout-doublecheck-at-and-shallower') are checked and disqualified for child containment discontinuity, according to `allout-aberrant-container-p'."
+Like `allout-goto-prefix', but shallow topics \(according to
+`allout-doublecheck-at-and-shallower') are checked and
+disqualified for child containment discontinuity, according to
+`allout-aberrant-container-p'."
   (allout-goto-prefix)
   (if (and (<= allout-recent-depth allout-doublecheck-at-and-shallower)
            (allout-aberrant-container-p))
@@ -4620,8 +4627,13 @@ point of non-opened subtree?)"
         (allout-beginning-of-current-line)
         (save-restriction
           (let* (depth
-                 (chart (allout-chart-subtree (or level 1)))
-                 (to-reveal (or (allout-chart-to-reveal chart (or level 1))
+                 ;; translate the level spec for this routine to the ones
+                 ;; used by -chart-subtree and -chart-to-reveal:
+                 (chart-level (cond ((not level) 1)
+                                    ((eq level t) nil)
+                                    (t level)))
+                 (chart (allout-chart-subtree chart-level))
+                 (to-reveal (or (allout-chart-to-reveal chart chart-level)
                                 ;; interactive, show discontinuous children:
                                 (and chart
                                      (interactive-p)
@@ -4672,22 +4684,22 @@ Useful for coherently exposing to a random point in a hidden region."
           (orig-pt (point))
 	  (orig-pref (allout-goto-prefix-doublechecked))
 	  (last-at (point))
-	  bag-it)
-      (while (or bag-it (allout-hidden-p))
+	  (bag-it 0))
+      (while (or (> bag-it 1) (allout-hidden-p))
         (while (allout-hidden-p)
           (move-beginning-of-line 1)
           (if (allout-hidden-p) (forward-char -1)))
 	(if (= last-at (setq last-at (point)))
-	    ;; Oops, we're not making any progress!  Show the current
-	    ;; topic completely, and bag this try.
+	    ;; Oops, we're not making any progress!  Show the current topic
+	    ;; completely, and try one more time here, if we haven't already.
 	    (progn (beginning-of-line)
 		   (allout-show-current-subtree)
 		   (goto-char orig-pt)
-		   (setq bag-it t)
-		   (beep)
-		   (message "%s: %s"
-			    "allout-show-to-offshoot: "
-			    "Aberrant nesting encountered."))
+		   (setq bag-it (1+ bag-it))
+                   (if (> bag-it 1)
+                       (error "allout-show-to-offshoot: %s"
+                              "Stumped by aberrant nesting.")))
+          (if (> bag-it 0) (setq bag-it 0))
           (allout-show-children)
           (goto-char orig-pref)))
       (goto-char orig-pt)))
@@ -4895,7 +4907,10 @@ Examples:
 	  (cond ((eq curr-elem '*) (allout-show-current-subtree)
 		 (if (> allout-recent-end-of-subtree max-pos)
 		     (setq max-pos allout-recent-end-of-subtree)))
-		((eq curr-elem '+) (allout-show-current-branches)
+                ((eq curr-elem '+)
+                 (if (not (allout-hidden-p))
+                     (save-excursion (allout-hide-current-subtree t)))
+                 (allout-show-current-branches)
 		 (if (> allout-recent-end-of-subtree max-pos)
 		     (setq max-pos allout-recent-end-of-subtree)))
 		((eq curr-elem '-) (allout-show-current-entry))

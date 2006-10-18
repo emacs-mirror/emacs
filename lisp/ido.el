@@ -2224,7 +2224,6 @@ If INITIAL is non-nil, it specifies the initial input string."
   (let ((ido-current-directory (ido-expand-directory default))
 	(ido-context-switch-command switch-cmd)
 	ido-directory-nonreadable ido-directory-too-big
-	(minibuffer-completing-file-name t)
 	filename)
 
     (if (or (not ido-mode) (ido-is-slow-ftp-host))
@@ -2268,9 +2267,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 
       (unless filename
 	(setq ido-saved-vc-hb vc-handled-backends)
-	(setq filename (ido-read-internal item
-					  (or prompt "Find file: ")
-					  'ido-file-history nil nil initial)))
+	(let ((minibuffer-completing-file-name t))
+	  (setq filename (ido-read-internal item
+					    (or prompt "Find file: ")
+					    'ido-file-history nil nil initial))))
 
       ;; Choose the file name: either the text typed in, or the head
       ;; of the list of matches

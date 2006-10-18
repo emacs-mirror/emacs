@@ -159,9 +159,7 @@ an element already on the list.
 \n(fn X PLACE [KEYWORD VALUE]...)"
   (if (symbolp place)
       (if (null keys)
-	  `(let ((pushnew-internal ,place))
-	     (add-to-list 'pushnew-internal ,x nil 'eql)
-	     (setq ,place pushnew-internal))
+ 	  `(if (memql ,x ,place) ,place (setq ,place (cons ,x ,place)))
 	(list 'setq place (list* 'adjoin x place keys)))
     (list* 'callf2 'adjoin x place keys)))
 

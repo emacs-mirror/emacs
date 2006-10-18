@@ -1,3 +1,41 @@
+2006-09-29  Juri Linkov  <juri@jurta.org>
+
+	* modes.texi (%-Constructs): Reorder coding systems in the
+	documentation of %z to the real order displayed in the modeline.
+
+2006-09-25  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Describe timer-max-repeats.
+
+2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Timers): Mention with-local-quit.
+
+2006-09-24  Richard Stallman  <rms@gnu.org>
+
+	* searching.texi (Searching and Matching): Mention property search.
+
+	* commands.texi (Command Loop Info): Explain how read-event affects
+	this-command-keys.
+
+2006-09-21  Kim F. Storm  <storm@cua.dk>
+
+	* lists.texi (Sets And Lists): Add memql.
+
+2006-09-20  Richard Stallman  <rms@gnu.org>
+
+	* os.texi (Timers): Clarify about REPEAT when timer is delayed.
+
+	* windows.texi (Window Start): Minor cleanups.
+
+2006-09-20  Kim F. Storm  <storm@cua.dk>
+
+	* windows.texi (Window Start): pos-visible-in-window-p allows
+	specifying t for position to mean "end of window".
+	Add window-line-height.
+
+	* anti.texi (Antinews): Mention window-line-height.
+
 2006-09-19  David Kastrup  <dak@gnu.org>
 
 	* keymaps.texi (Searching Keymaps): Small clarification.

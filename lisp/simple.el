@@ -128,7 +128,7 @@ If no other buffer exists, the buffer `*scratch*' is returned."
   :group 'next-error
   :version "22.1")
 
-(defcustom next-error-highlight 0.1
+(defcustom next-error-highlight 0.5
   "*Highlighting of locations in selected source buffers.
 If number, highlight the locus in `next-error' face for given time in seconds.
 If t, highlight the locus indefinitely until some other locus replaces it.
@@ -141,8 +141,8 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
   :group 'next-error
   :version "22.1")
 
-(defcustom next-error-highlight-no-select 0.1
-  "*Highlighting of locations in non-selected source buffers.
+(defcustom next-error-highlight-no-select 0.5
+  "*Highlighting of locations in `next-error-no-select'.
 If number, highlight the locus in `next-error' face for given time in seconds.
 If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
@@ -1501,8 +1501,7 @@ Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or (listp pending-undo-list)
       (error (concat "No further undo information"
-                     (and transient-mark-mode mark-active
-                          " for region"))))
+		     (and undo-in-region " for region"))))
   (let ((undo-in-progress t))
     (setq pending-undo-list (primitive-undo n pending-undo-list))
     (if (null pending-undo-list)
@@ -1649,12 +1648,12 @@ is not *inside* the region START...END."
 	((null (car undo-elt))
 	 ;; (nil PROPERTY VALUE BEG . END)
 	 (let ((tail (nthcdr 3 undo-elt)))
-	   (not (or (< (car tail) end)
-		    (> (cdr tail) start)))))
+	   (and (< (car tail) end)
+		(> (cdr tail) start))))
 	((integerp (car undo-elt))
 	 ;; (BEGIN . END)
-	 (not (or (< (car undo-elt) end)
-		  (> (cdr undo-elt) start))))))
+	 (and (< (car undo-elt) end)
+	      (> (cdr undo-elt) start)))))
 
 ;; Return the first affected buffer position and the delta for an undo element
 ;; delta is defined as the change in subsequent buffer positions if we *did*
@@ -2659,7 +2658,7 @@ The argument is used for internal purposes; do not supply one."
 ;; This is actually used in subr.el but defcustom does not work there.
 (defcustom yank-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
-    yank-handler follow-link)
+    yank-handler follow-link fontified)
   "*Text properties to discard when yanking.
 The value should be a list of text properties to discard or t,
 which means to discard all text properties."
@@ -3496,11 +3495,9 @@ Outline mode sets this."
 		(>= rbot (frame-char-height))
 		(<= ypos (- (frame-char-height))))
 	(unless lh
-	  (let* ((wend (window-end nil t))
-		 (evis (or (pos-visible-in-window-p wend nil t)
-			   (pos-visible-in-window-p (1- wend) nil t))))
-	    (setq rbot (nth 3 evis)
-		  vpos (nth 5 evis))))
+	  (let ((wend (pos-visible-in-window-p t nil t)))
+	    (setq rbot (nth 3 wend)
+		  vpos (nth 5 wend))))
 	(cond
 	 ;; If last line of window is fully visible, move forward.
 	 ((or (null rbot) (= rbot 0))
@@ -3606,15 +3603,6 @@ Outline mode sets this."
 		(let ((inhibit-field-text-motion t))
 		  (setq line-end (line-end-position)))
 		(goto-char (constrain-to-field line-end (point) t t))
-		;; When moving a single line, update the goal-column
-		;; if we couldn't move to the end of line due to a
-		;; field boundary.  Otherwise we'll get stuck at the
-		;; original position during the column motion in
-		;; line-move-finish.
-		(and (/= line-end (point))
-		     (= orig-arg 1)
-		     (setq temporary-goal-column
-			   (max temporary-goal-column (current-column))))
 		;; If there's no invisibility here, move over the newline.
 		(cond
 		 ((eobp)
@@ -3681,6 +3669,7 @@ Outline mode sets this."
       (setq repeat nil)
 
       (let (new
+	    (old (point))
 	    (line-beg (save-excursion (beginning-of-line) (point)))
 	    (line-end
 	     ;; Compute the end of the line
@@ -3695,6 +3684,17 @@ Outline mode sets this."
 
 	;; Move to the desired column.
 	(line-move-to-column column)
+
+	;; Corner case: suppose we start out in a field boundary in
+	;; the middle of a continued line.  When we get to
+	;; line-move-finish, point is at the start of a new *screen*
+	;; line but the same text line; then line-move-to-column would
+	;; move us backwards. Test using C-n with point on the "x" in
+	;;   (insert "a" (propertize "x" 'field t) (make-string 89 ?y))
+	(and forward
+	     (< (point) old)
+	     (goto-char old))
+
 	(setq new (point))
 
 	;; Process intangibility within a line.
@@ -3734,8 +3734,15 @@ Outline mode sets this."
 	(goto-char opoint)
 	(let ((inhibit-point-motion-hooks nil))
 	  (goto-char
-	   (constrain-to-field new opoint t t
-			       'inhibit-line-move-field-capture)))
+	   ;; Ignore field boundaries if the initial and final
+	   ;; positions have the same `field' property, even if the
+	   ;; fields are non-contiguous.  This seems to be "nicer"
+	   ;; behavior in many situations.
+	   (if (eq (get-char-property new 'field)
+	   	   (get-char-property opoint 'field))
+	       new
+	     (constrain-to-field new opoint t t
+				 'inhibit-line-move-field-capture))))
 
 	;; If all this moved us to a different line,
 	;; retry everything within that new line.

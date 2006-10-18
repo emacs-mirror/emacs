@@ -1,3 +1,121 @@
+2006-10-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (handle_fontified_prop): Don't fontify at EOB.
+
+2006-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.in Regenerated.
+
+2006-09-29  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (syms_of_buffer): Reorder coding systems in the
+	docstring of %z to the real order displayed in the modeline.
+
+2006-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key): Yet another int/Lisp_Object mixup (YAILOM).
+
+2006-09-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* indent.c (Fvertical_motion): Do move back if the Lisp string
+	being displayed contains newlines.
+
+2006-09-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_compute_glyph_string_overhangs, XLoadQueryFont)
+	[USE_CG_DRAWING]: Call mac_prepare_for_quickdraw before QDTextBounds.
+
+2006-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (Fsingle_key_description): For an invalid char, return
+	"Invalid char code NNNNN".
+
+2006-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callint.c (Fcall_interactively): Doc fix.
+
+2006-09-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_underline_at_descent_line): New variable.
+	(syms_of_macterm): DEFVAR_BOOL it.
+	(x_draw_glyph_string): Use it.
+	(XLoadQueryFont): Calculate min_bounds.descent and max_bounds.descent.
+
+2006-09-25  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (Fsingle_key_description): Return unique names for
+	generic characters.
+
+2006-09-24  Richard Stallman  <rms@gnu.org>
+
+	* search.c (compile_pattern_1): Don't BLOCK_INPUT.
+
+2006-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/fns.$(O), $(BLD)/w32proc.$(O)): Depend
+	on nt/inc/langinfo.h and nt/inc/nl_types.h.
+
+	* w32proc.c (nl_langinfo): New function.
+
+	* w32fns.c (w32-pass-alt-to-system, w32-alt-is-meta)
+	(w32-pass-lwindow-to-system, w32-enable-num-lock)
+	(w32-enable-caps-lock, w32-scroll-lock-modifier)
+	(w32-lwindow-modifier, w32-rwindow-modifier)
+	(w32-apps-modifier, w32-mouse-button-tolerance): Doc fix.
+
+2006-09-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Finternal_complete_buffer, Fread_minibuffer)
+	(Fdisplay_completion_list): Fix typos in docstrings.
+
+2006-09-23  Romain Francoise  <romain@orebokech.com>
+
+	* s/gnu-linux.h (MAIL_USE_FLOCK): Check for HAVE_LIBLOCKFILE too.
+
+2006-09-23  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (Fmap_keymap): Docstring mentions about generic character.
+
+2006-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.c (analyse_first): For eight-bit-control chars, mark both the
+	char's value and its leading byte in the fastmap.
+	(re_search_2): When fast-scanning without translation, be careful to
+	check that we only match the leading byte of a multibyte char.
+
+	* charset.h (PREV_CHAR_BOUNDARY): Make it work from within a char's
+	byte sequence.
+	(AT_CHAR_BOUNDARY): New macro.
+
+2006-09-22  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (optimize_sub_char_table): Don't optimize a sub-char-table
+	whose default value is non-nil.
+
+2006-09-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Only show C-l help for
+	Gtk+ versions < 2.10.
+
+	* xfns.c (syms_of_xfns): Fix typo in help text for
+	x-gtk-file-dialog-help-text.
+
+2006-09-21  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fmemq): Refill doc string.
+	(Fmemql): New defun, like memq but using eql.
+	(syms_of_fns): Defsubr it.
+
+2006-09-20  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): CHARPOS < 0 means return info for
+	last visible glyph in window.
+
+	* window.c (Fset_window_hscroll, Fwindow_line_height):
+	Doc fix.  Use "off-window" instead of "off-screen".
+	(Fpos_visible_in_window_p): Likewise.
+	If POS is t, return info for last visible glyph in window.
+
 2006-09-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* search.c (struct regexp_cache): New entry syntax_table.
@@ -242,7 +360,7 @@
 
 2006-08-27  Martin Rudalics  <rudalics@gmx.at>
 
-	* xdisp.c (mouse_autoselect_window): Removed.
+	* xdisp.c (mouse_autoselect_window): Remove.
 	(Vmouse_autoselect_window): New variable.  DEFVAR_LISP it.
 
 	* dispextern.h (mouse_autoselect_window): Remove extern.

@@ -59,7 +59,7 @@ Ebrowse.
 @end ifnottex
 
 @menu
-* Overview::			What is it and now does it work?
+* Overview::			What is it and how does it work?
 * Generating browser files::	How to process C++ source files
 * Loading a Tree::		How to start browsing
 * Tree Buffers::		Traversing class hierarchies

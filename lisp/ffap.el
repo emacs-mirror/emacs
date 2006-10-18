@@ -954,7 +954,7 @@ If t, `ffap-tex-init' will initialize this when needed.")
     (substring name 2))))
 
 (defvar ffap-rfc-path
-  (concat (ffap-host-to-filename "ds.internic.net") "/rfc/rfc%s.txt"))
+  (concat (ffap-host-to-filename "ftp.rfc-editor.org") "/in-notes/rfc%s.txt"))
 
 (defun ffap-rfc (name)
   (format ffap-rfc-path

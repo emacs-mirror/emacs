@@ -1032,6 +1032,19 @@ so package-specific faces can inherit from it.
 +++
 *** `vertical-border' face is used for the vertical divider between windows.
 
+** ebnf2ps changes:
+
++++
+*** New option `ebnf-arrow-extra-width' which specify extra width for arrow
+shape drawing.
+The extra width is used to avoid that the arrowhead and the terminal border
+overlap.  It depens on `ebnf-arrow-shape' and `ebnf-line-width'.
+
++++
+*** New option `ebnf-arrow-scale' which specify the arrow scale.
+Values lower than 1.0, shrink the arrow.
+Values greater than 1.0, expand the arrow.
+
 ** Font-Lock changes:
 
 +++
@@ -2129,7 +2142,7 @@ powerful ways.  Encryption behavior customization is collected in the
 allout-encryption customization group.
 
 *** Navigation within an item is easier.  Repeated beginning-of-line and
-end-of-line key commands (usually, ^A and ^E) cycle through the 
+end-of-line key commands (usually, ^A and ^E) cycle through the
 beginning/end-of-line and then beginning/end of topic, etc.  See new
 customization vars `allout-beginning-of-line-cycles' and
 `allout-end-of-line-cycles'.
@@ -3861,6 +3874,10 @@ negative, is now a float.  For example: (expt 2 -2) => 0.25.
 *** The function `eql' is now available without requiring the CL package.
 
 +++
+*** The new function `memql' is like `memq', but uses `eql' for comparison,
+that is, floats are compared by value and other elements with `eq'.
+
++++
 *** `makehash' is now obsolete.  Use `make-hash-table' instead.
 
 +++
@@ -4185,6 +4202,11 @@ give up and return LIMIT.
 *** Function `pos-visible-in-window-p' now returns the pixel coordinates
 and partial visibility state of the corresponding row, if the PARTIALLY
 arg is non-nil.
+
++++
+*** New function `window-line-height' is an efficient way to get
+information about a specific text line in a window provided that the
+window's display is up-to-date.
 
 +++
 *** New functions `posn-at-point' and `posn-at-x-y' return
