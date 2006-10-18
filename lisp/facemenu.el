@@ -690,6 +690,9 @@ This is called whenever you create a new face, and at other times."
     (cond ((facemenu-iterate ; check if equivalent face is already in the menu
 	    (lambda (m) (and (listp m)
 			     (symbolp (car m))
+			     ;; Avoid error in face-equal
+			     ;; when a non-face is erroneously present.
+			     (facep (car m))
 			     (face-equal (car m) symbol)))
 	    (cdr (symbol-function menu))))
 	  ;; Faces with a keyboard equivalent.  These go at the front.
