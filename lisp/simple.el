@@ -3625,7 +3625,14 @@ Outline mode sets this."
 	      ;; The logic of this is the same as the loop above,
 	      ;; it just goes in the other direction.
 	      (while (and (< arg 0) (not done))
-		(beginning-of-line)
+		;; For completely consistency with the forward-motion
+		;; case, we should call beginning-of-line here.
+		;; However, if point is inside a field and on a
+		;; continued line, the call to (vertical-motion -1)
+		;; below won't move us back far enough; then we return
+		;; to the same column in line-move-finish, and point
+		;; gets stuck -- cyd
+		(forward-line 0)
 		(cond
 		 ((bobp)
 		  (if (not noerror)
