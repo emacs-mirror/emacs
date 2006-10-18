@@ -997,12 +997,11 @@ in *Help* buffer.  See also the command `describe-char'."
 		     (single-key-description char))
 		   encoding-msg pos total percent col hscroll))))))
 
-(defvar read-expression-map
-  (let ((m (make-sparse-keymap)))
-    (define-key m "\M-\t" 'lisp-complete-symbol)
-    (set-keymap-parent m minibuffer-local-map)
-    m)
-  "Minibuffer keymap used for reading Lisp expressions.")
+;; Initialize read-expression-map.  It is defined at C level.
+(let ((m (make-sparse-keymap)))
+  (define-key m "\M-\t" 'lisp-complete-symbol)
+  (set-keymap-parent m minibuffer-local-map)
+  (setq read-expression-map m))
 
 (defvar read-expression-history nil)
 
