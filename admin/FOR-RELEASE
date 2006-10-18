@@ -49,9 +49,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** david.reitter@gmail.com, Oct 16: url-retrieve may cause hang  
 
-** raman@users.sf.net, Oct 9: shell-mode: cursor Point loses on long prompts:
-This should at least be diagnosed.
-
 ** id.brep@gmail.com, Oct 17: `.newsrc.eld' saves chinese group name in wrong coding
 
 ** bojohan+mail@dd.chalmers.se, Oct 17: Formatting `interactive' strings.
