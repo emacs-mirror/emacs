@@ -1,3 +1,9 @@
+2006-10-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (res-geometry): Don't set geometry from Xresources
+	to default-frame-alist if default-frame-alist already contains
+	widht/height.
+
 2006-10-18  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/pp.el (pp-eval-expression): Use `X' to read value.
