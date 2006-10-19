@@ -1,5 +1,9 @@
 2006-10-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
+	* xdisp.c (display_mode_line): Clear enabled_p flag on mode-line row.
+
+2006-10-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
 	* macfns.c (Vmac_carbon_version_string) [TARGET_API_MAC_CARBON]:
 	New variable.
 	(syms_of_macfns) [TARGET_API_MAC_CARBON]: Defvar it.
