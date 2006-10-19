@@ -1,3 +1,9 @@
+2006-10-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* version.el (emacs-version): Use mac-carbon-version-string.
+
+	* term/macterm.el (res-geometry): Apply 2006-10-18 change for x-win.el.
+
 2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* select.el (ccl-check-utf-8, string-utf-8-p): New functions
