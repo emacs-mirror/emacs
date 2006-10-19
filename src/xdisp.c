@@ -16591,6 +16591,9 @@ display_mode_line (w, face_id, format)
   int count = SPECPDL_INDEX ();
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
+  /* Don't extend on a previously drawn mode-line.
+     This may happen if called from pos_visible_p.  */
+  it.glyph_row->enabled_p = 0;
   prepare_desired_row (it.glyph_row);
 
   it.glyph_row->mode_line_p = 1;
