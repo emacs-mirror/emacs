@@ -1,3 +1,8 @@
+2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (x_handle_selection_request): If the converted_selection
+	is NIL or XCDR (converted_selection) is NIL, decline the request.
+
 2006-10-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (get_utf8_string): Remove warnings with casts.
