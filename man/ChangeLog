@@ -1,3 +1,7 @@
+2006-10-19  Stuart D. Herring  <herring@lanl.gov>
+
+	* widget.texi: Fix typos.
+
 2006-10-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Remove questions marked with
