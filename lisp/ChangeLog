@@ -1,3 +1,10 @@
+2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* select.el (ccl-check-utf-8, string-utf-8-p): New functions
+	(by Kenichi Handa).
+	(xselect-convert-to-string): Decline requests for UTF8_STRING if
+	the selection is not UTF-8.
+
 2006-10-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ada-mode.el (ada-83-string-keywords)
