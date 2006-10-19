@@ -1,3 +1,9 @@
+2006-10-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Remove questions marked with
+	"???".  There have been no complaints for years, so the information
+	must be appropriate.
+
 2006-10-16  Richard Stallman  <rms@gnu.org>
 
 	* widget.texi: Use @var instead of capitalization.

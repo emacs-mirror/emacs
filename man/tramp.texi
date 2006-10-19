@@ -2009,11 +2009,6 @@ Web page with instructions:
 @uref{http://www4.ncsu.edu/~tlroche/plinkTramp.html}
 @end ignore
 
-??? Is the XEmacs info correct?
-
-??? Can somebody provide some information for getting it to work on NT
-Emacs?  I think there was some issue with @command{ssh}?
-
 
 @item
 @value{tramp} does not connect to the remote host
