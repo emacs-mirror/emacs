@@ -1,3 +1,9 @@
+2006-10-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/kkc.el (kkc-region): When a key sequence is not
+	defined, append (this-single-command-raw-keys) to
+	unread-input-method-events.
+
 2006-10-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ada-mode.el (ada-in-string-p): Doc fix.
