@@ -1,3 +1,7 @@
+2006-10-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-mode.el (ada-in-string-p): Doc fix.
+
 2006-10-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* version.el (emacs-version): Use mac-carbon-version-string.
