@@ -1,5 +1,8 @@
 2006-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el (vc-switch-backend): Try to be more careful with unwanted
+	side-effect due to mixing various backends's file properties.
+
 	* vc-svn.el (vc-svn-parse-status): Remove unused arg `localp'.
 	Add arg `filename' instead.  Don't set vc-backend if `filename' is set.
 	Return `filename's status if applicable.  Update callers.
