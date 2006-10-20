@@ -1,3 +1,9 @@
+2006-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-parse-status): Remove unused arg `localp'.
+	Add arg `filename' instead.  Don't set vc-backend if `filename' is set.
+	Return `filename's status if applicable.  Update callers.
+
 2006-10-19  Kenichi Handa  <handa@m17n.org>
 
 	* international/kkc.el (kkc-region): When a key sequence is not
@@ -62,8 +68,8 @@
 
 2006-10-18  Martin Rudalics  <rudalics@gmx.at>
 
-	* textmodes/flyspell.el (flyspell-word-search-backward): Set
-	inhibit-point-motion-hooks to avoid looping due to intangibile
+	* textmodes/flyspell.el (flyspell-word-search-backward):
+	Set inhibit-point-motion-hooks to avoid looping due to intangibile
 	text.
 
 2006-10-16  Richard Stallman  <rms@gnu.org>
@@ -324,7 +330,7 @@
 
 	After 5.10:
 
-	This code may lock Emacs hard!!!  Use on your own risk!
+	This code may lock Emacs hard!!!  Use at your own risk!
 
 	(cperl-font-locking): New internal variable.
 	(cperl-beginning-of-property): New function.
@@ -338,7 +344,7 @@
 			recursively.
 		Bound `next-single-property-change' via `point-max'.
 	(cperl-unwind-to-safe): Bound likewise
-	(cperl-font-lock-fontify-region-function): Likewise
+	(cperl-font-lock-fontify-region-function): Likewise.
 	(cperl-find-pods-heres): Mark as recursive for `cperl-to-comment-or-eol'
 		Initialization of `cperl-font-lock-multiline-start' could be
 		missed if the "main" fontification did not run due to the
