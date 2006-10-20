@@ -1,3 +1,8 @@
+2006-10-20  Masatake YAMATO  <jet@gyve.org>
+
+	* cc-mode.texi (Sample .emacs File): Added missing `)' in 
+	sample code `my-c-initialization-hook'.
+
 2006-10-19  Stuart D. Herring  <herring@lanl.gov>
 
 	* widget.texi: Fix typos.
