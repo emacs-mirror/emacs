@@ -1,3 +1,8 @@
+2006-10-20  David Kastrup  <dak@gnu.org>
+
+	* window.el (kill-buffer-and-window): Fix a bug where an aborted
+	operation would still cause some window to collapse later.
+
 2006-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-switch-backend): Try to be more careful with unwanted
@@ -574,7 +579,7 @@
 
 	* autoinsert.el (auto-insert-alist): Doc fix.
 
-2006-10-07  Johan Bockg,be(Brd  <bojohan@dd.chalmers.se>
+2006-10-07  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* mouse-sel.el (mouse-insert-selection-internal):
 	Use insert-for-yank, so that yank handlers are run.
