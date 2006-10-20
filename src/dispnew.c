@@ -6488,7 +6488,8 @@ Emacs was built without floating point support.
 /* This is just like wait_reading_process_output, except that
    it does redisplay.
 
-   TIMEOUT is number of seconds to wait (float or integer).
+   TIMEOUT is number of seconds to wait (float or integer),
+   or t to wait forever.
    READING is 1 if reading input.
    If DO_DISPLAY is >0 display process output while waiting.
    If DO_DISPLAY is >1 perform an initial redisplay before waiting.
@@ -6521,10 +6522,15 @@ sit_for (timeout, reading, do_display)
       sec = (int) seconds;
       usec = (int) ((seconds - sec) * 1000000);
     }
+  else if (EQ (timeout, Qt))
+    {
+      sec = 0;
+      usec = 0;
+    }
   else
     wrong_type_argument (Qnumberp, timeout);
 
-  if (sec == 0 && usec == 0)
+  if (sec == 0 && usec == 0 && !EQ (timeout, Qt))
     return Qt;
 
 #ifdef SIGIO

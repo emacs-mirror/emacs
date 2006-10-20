@@ -910,20 +910,13 @@ If optional arg BASE-ONLY is non-nil, only base coding systems are
 listed.  The value doesn't include subsidiary coding systems which are
 made from bases and aliases automatically for various end-of-line
 formats (e.g. iso-latin-1-unix, koi8-r-dos)."
-  (let* ((codings (copy-sequence coding-system-list))
-	 (tail (cons nil codings)))
-    ;; Remove subsidiary coding systems (eol variants) and alias
-    ;; coding systems (if necessary).
-    (while (cdr tail)
-      (let* ((coding (car (cdr tail)))
-	     (aliases (coding-system-aliases coding)))
-	(if (or
-	     ;; CODING is an eol variant if not in ALIASES.
-	     (not (memq coding aliases))
-	     ;; CODING is an alias if it is not car of ALIASES.
-	     (and base-only (not (eq coding (car aliases)))))
-	    (setcdr tail (cdr (cdr tail)))
-	  (setq tail (cdr tail)))))
+  (let ((codings nil))
+    (dolist (coding coding-system-list)
+      (if (eq (coding-system-base coding) coding)
+	  (if base-only
+	      (setq codings (cons coding codings))
+	    (dolist (alias (coding-system-aliases coding))
+	      (setq codings (cons alias codings))))))
     codings))
 
 (defconst char-coding-system-table nil

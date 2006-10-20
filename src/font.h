@@ -131,7 +131,7 @@ enum font_property_index
 extern Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClanguage, QCscript;
 
 /* Important character set symbols.  */
-extern Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp;
+extern Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
 extern Lisp_Object null_string;
 extern Lisp_Object null_vector;

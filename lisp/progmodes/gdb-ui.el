@@ -902,20 +902,23 @@ Changed values are highlighted with the face `font-lock-warning-face'."
 TEXT is the text of the button we clicked on, a + or - item.
 TOKEN is data related to this node.
 INDENT is the current indentation depth."
-  (cond ((string-match "+" text)        ;expand this node
-	 (if (and
-	      (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
-	      (string-equal gdb-version "pre-6.4"))
-	     (gdb-var-list-children token)
-	   (gdb-var-list-children-1 token)))
-	((string-match "-" text)	;contract this node
-	 (dolist (var gdb-var-list)
-	   (if (string-match (concat token "\\.") (car var))
-	       (setq gdb-var-list (delq var gdb-var-list))))
-	 (speedbar-change-expand-button-char ?+)
-	 (speedbar-delete-subblock indent))
-	(t (error "Ooops...  not sure what to do")))
-  (speedbar-center-buffer-smartly))
+  (if (and gud-comint-buffer (buffer-name gud-comint-buffer))
+      (progn
+	(cond ((string-match "+" text)	;expand this node
+	       (if (and (eq (buffer-local-value
+			     'gud-minor-mode gud-comint-buffer) 'gdba)
+			(string-equal gdb-version "pre-6.4"))
+		   (gdb-var-list-children token)
+		 (gdb-var-list-children-1 token)))
+	      ((string-match "-" text)	;contract this node
+	       (dolist (var gdb-var-list)
+		 (if (string-match (concat token "\\.") (car var))
+		     (setq gdb-var-list (delq var gdb-var-list))))
+	       (speedbar-change-expand-button-char ?+)
+	       (speedbar-delete-subblock indent))
+	      (t (error "Ooops...  not sure what to do")))
+	(speedbar-center-buffer-smartly))
+    (message-box "GUD session has been killed")))
 
 (defun gdb-get-target-string ()
   (with-current-buffer gud-comint-buffer
@@ -1132,7 +1135,7 @@ This filter may simply queue input for a later time."
       (if gdb-prompting
 	  (progn
 	    (gdb-send-item item)
-	(setq gdb-prompting nil))
+	    (setq gdb-prompting nil))
 	(push item gdb-input-queue))))
 
 (defun gdb-dequeue-input ()

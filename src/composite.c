@@ -366,7 +366,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
       float leftmost = 0.0, rightmost;
 
       ch = XINT (key_contents[0]);
-      rightmost = CHAR_WIDTH (ch);
+      rightmost = ch != '\t' ? CHAR_WIDTH (ch) : 1;
 
       for (i = 1; i < glyph_len; i += 2)
 	{
@@ -376,7 +376,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 
 	  rule = XINT (key_contents[i]);
 	  ch = XINT (key_contents[i + 1]);
-	  this_width = CHAR_WIDTH (ch);
+	  this_width = ch != '\t' ? CHAR_WIDTH (ch) : 1;
 
 	  /* A composition rule is specified by an integer value
 	     that encodes global and new reference points (GREF and

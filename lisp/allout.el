@@ -2736,24 +2736,22 @@ otherwise skip white space between bullet and ensuing text."
     (1- allout-recent-prefix-end)))
 ;;;_   > allout-back-to-current-heading ()
 (defun allout-back-to-current-heading ()
-  "Move to heading line of current topic, or beginning if already on the line.
+  "Move to heading line of current topic, or beginning if not in a topic.
 
-Return value of point, unless we started outside of (before any) topics,
-in which case we return nil."
+If interactive, we position at the end of the prefix.
+
+Return value of resulting point, unless we started outside
+of (before any) topics, in which case we return nil."
 
   (allout-beginning-of-current-line)
-  (if (or (allout-on-current-heading-p)
-          (and (re-search-backward (concat "^\\(" allout-regexp "\\)")
-                                   nil 'move)
-               (progn (while (allout-hidden-p)
-                        (allout-beginning-of-current-line)
-                        (if (not (looking-at allout-regexp))
-                            (re-search-backward allout-regexp
-                                                nil 'move)))
-                      (allout-prefix-data))))
-      (if (interactive-p)
-          (allout-end-of-prefix)
-        (point))))
+  (let ((bol-point (point)))
+    (allout-goto-prefix-doublechecked)
+    (if (<= (point) bol-point)
+        (if (interactive-p)
+            (allout-end-of-prefix)
+          (point))
+      (goto-char (point-min))
+      nil)))
 ;;;_   > allout-back-to-heading ()
 (defalias 'allout-back-to-heading 'allout-back-to-current-heading)
 ;;;_   > allout-pre-next-prefix ()

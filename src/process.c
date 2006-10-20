@@ -1313,6 +1313,7 @@ list_processes_1 (query_only)
   register struct Lisp_Process *p;
   char tembuf[300];
   int w_proc, w_buffer, w_tty;
+  int exited = 0;
   Lisp_Object i_status, i_buffer, i_tty, i_command;
 
   w_proc = 4;    /* Proc   */
@@ -1439,8 +1440,8 @@ list_processes_1 (query_only)
 	    }
 	}
 
-      if (EQ (symbol, Qsignal) || EQ (symbol, Qexit))
-	remove_process (proc);
+      if (EQ (symbol, Qsignal) || EQ (symbol, Qexit) || EQ (symbol, Qclosed))
+	exited++;
 
       Findent_to (i_buffer, minspace);
       if (NILP (p->buffer))
@@ -1504,6 +1505,8 @@ list_processes_1 (query_only)
 	  insert_string ("\n");
        }
     }
+  if (exited)
+    status_notify (NULL);
   return Qnil;
 }
 

@@ -2,12 +2,13 @@ Tasks needed before the next release.
 
 * TO BE DONE SHORTLY BEFORE RELEASE
 
-** Update release dates of manuals.
-
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
+** Check for text in manuals that assumes current version is 21.
+
 ** Update AUTHORS.
+[Done 2006-10-03]
 
 ** Regenerate the postscript files of the reference cards in etc.
 
@@ -34,22 +35,16 @@ These don't need to be fixed to start pretest, but we call the
 attention of Windows users to fixing them.
 
 ** Drew Adams 12 Aug bug rpt: overlay  display artifact: trace left behind
-Windows only bug.
+Windows only bug. Bug appears only when Cleartype enabled, probably related
+to the hack introduced on 2005-07-01 to fix some other Cleartype problem. 
 
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
-** kitty@dre.vanderbilt.edu Sep 20 says make-frame ignores left and top.
-
 * BUGS
 
-** Enrico Schwass, Sep 13 help-gnu-emacs: display japanese outputdoesnt work quite right
-
-** XIM hotkey doesn't work in Emacs with gnome-settings-demon.
-
-** jpff@codemist.co.uk, Sep 29: rmail g gets Wrong type argument error.
-
-** M.P.Hodges@rl.ac.uk Sep 30: list-processes and process sentinels not run.
+** hashiz@tomba.meridiani.jp, Oct 6: bootstrap failure on FreeBSD 6.2
+Can't be reproduced on GNU/Linux.
 
 * DOCUMENTATION
 

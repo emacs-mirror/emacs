@@ -1885,7 +1885,7 @@ Prefix args ::
     (save-excursion
       (goto-char (point-min))
       (catch 'finish-add-completions
-	(with-syntax-table completion-c-def-syntax-table
+        (with-syntax-table completion-c-def-syntax-table
           (while t
             ;; we loop here only when scan-sexps fails
             ;; (i.e. unbalance exps.)
@@ -1895,8 +1895,7 @@ Prefix args ::
                   (cond
                    ((= (preceding-char) ?#)
                     ;; preprocessor macro, see if it's one we handle
-                    (setq string (buffer-substring (point) (+ (point) 6)))
-                    (cond ((member string '("define" "ifdef "))
+                    (cond ((looking-at "\\(define\\|ifdef\\)\\>")
                            ;; skip forward over definition symbol
                            ;; and add it to database
                            (and (forward-word 2)
@@ -1944,9 +1943,9 @@ Prefix args ::
                (throw 'finish-add-completions t))
               (error
                ;; Check for failure in scan-sexps
-               (if (or (string-equal (nth 1 e)
-                                     "Containing expression ends prematurely")
-                       (string-equal (nth 1 e) "Unbalanced parentheses"))
+               (if (member (nth 1 e)
+                           '("Containing expression ends prematurely"
+                             "Unbalanced parentheses"))
                    ;; unbalanced paren., keep going
                    ;;(ding)
                    (forward-line 1)

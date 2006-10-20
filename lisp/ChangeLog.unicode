@@ -1,3 +1,8 @@
+2006-10-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (coding-system-list): Be sure to exclude
+	subsidiary coding systems.
+
 2006-10-05  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (auto-composition-after-change): Remove

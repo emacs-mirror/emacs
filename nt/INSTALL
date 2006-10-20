@@ -103,7 +103,7 @@
   If you use the MinGW port of GCC and GNU Make to build Emacs, there
   are some compatibility issues wrt Make and the shell that is run by
   Make, either the standard COMMAND.COM/CMD.EXE supplied with Windows
-  or sh.exe., a port of a Unixy shell.  For reference, here is a list
+  or sh.exe., a port of a Unixy shell.  For reference, below is a list
   of which builds of GNU Make are known to work or not, and whether
   they work in the presence and/or absence of sh.exe, the Cygwin port
   of Bash. Note that any version of Make that is compiled with Cygwin
@@ -129,6 +129,8 @@
     cygwin compiled gmake 3.77:          fails[1, 5]   fails[2, 5]
     cygwin compiled make 3.78.1:         fails[5]      fails[2, 5]
     cygwin compiled make 3.79.1:         fails[3, 5]   fails[2?, 5]
+    cygwin compiled make 3.80:           fails?[6]     fails?[6]
+    cygwin compiled make 3.81:           fails         fails?[6]
     mingw32 compiled make 3.79.1:        okay          okay
     mingw32 compiled make 3.80:          okay          unknown[6]
     mingw32 compiled make 3.81:          okay          okay[7]

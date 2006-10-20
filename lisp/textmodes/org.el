@@ -2690,7 +2690,7 @@ Also put tags into group 4 if tags are present.")
 (make-variable-buffer-local 'org-keyword-time-regexp)
 
 (defconst org-rm-props '(invisible t face t keymap t intangible t mouse-face t
-                                   mouse-map t)
+                                   rear-nonsticky t mouse-map t)
   "Properties to remove when a string without properties is wanted.")
 
 (defsubst org-match-string-no-properties (num &optional string)
@@ -3140,6 +3140,7 @@ that will be added to PLIST.  Returns the string that was modified."
       (progn
 	(add-text-properties (match-beginning 0) (match-end 0)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map
 				   ))
 	t)))
@@ -3150,6 +3151,7 @@ that will be added to PLIST.  Returns the string that was modified."
       (progn
 	(add-text-properties (match-beginning 0) (match-end 0)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map
 				   ))
 	t)))
@@ -3188,6 +3190,7 @@ that will be added to PLIST.  Returns the string that was modified."
       (progn
 	(add-text-properties (match-beginning 0) (match-end 0)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map))
 	t)))
 
@@ -3206,6 +3209,7 @@ that will be added to PLIST.  Returns the string that was modified."
 	  (progn
 	    (add-text-properties (match-beginning 0) (match-end 0)
 				 (list 'mouse-face 'highlight
+				       'rear-nonsticky t
 				       'keymap org-mouse-map
 				       'help-echo "Radio target link"
 				       'org-linked-text t))
@@ -3271,6 +3275,7 @@ between words."
       (progn
 	(add-text-properties (match-beginning 0) (match-end 0)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map))
 	t)))
 
@@ -3279,6 +3284,7 @@ between words."
       (progn
 	(add-text-properties (match-beginning 1) (match-end 1)
 			     (list 'mouse-face 'highlight
+				   'rear-nonsticky t
 				   'keymap org-mouse-map))
 	t)))
 
@@ -3380,6 +3386,7 @@ between words."
 	 deactivate-mark buffer-file-name buffer-file-truename)
     (remove-text-properties beg end
 			    '(mouse-face nil keymap nil org-linked-text nil
+					 rear-nonsticky nil
 					 invisible nil intangible nil))))
 ;;; Visibility cycling
 

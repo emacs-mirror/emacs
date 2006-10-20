@@ -75,22 +75,22 @@
 
 (defcustom pop3-authentication-scheme 'pass
   "*POP3 authentication scheme.
-Defaults to 'pass, for the standard USER/PASS authentication.  Other valid
-values are 'apop."
-  :version "22.1" ;; Oort Gnus
-  :type '(choice (const :tag "USER/PASS" pass)
+Defaults to `pass', for the standard USER/PASS authentication.  The other
+valid value is 'apop'."
+  :type '(choice (const :tag "Normal user/password" pass)
 		 (const :tag "APOP" apop))
+  :version "22.1" ;; Oort Gnus
   :group 'pop3)
 
 (defcustom pop3-leave-mail-on-server nil
   "*Non-nil if the mail is to be left on the POP server after fetching.
 
-If the `pop3-leave-mail-on-server' is non-`nil' the mail is to be
-left on the POP server after fetching.  Note that POP servers
-maintain no state information between sessions, so what the
-client believes is there and what is actually there may not match
-up.  If they do not, then you may get duplicate mails or the
-whole thing can fall apart and leave you with a corrupt mailbox."
+If `pop3-leave-mail-on-server' is non-nil the mail is to be left
+on the POP server after fetching.  Note that POP servers maintain
+no state information between sessions, so what the client
+believes is there and what is actually there may not match up.
+If they do not, then you may get duplicate mails or the whole
+thing can fall apart and leave you with a corrupt mailbox."
   ;; We can't use the UILD support from XEmacs mail-lib or cvs.m17n.org:
   ;; http://thread.gmane.org/v9lld8fml4.fsf@marauder.physik.uni-ulm.de
   ;; http://thread.gmane.org/b9yy8hzy9ej.fsf@jpl.org
@@ -170,11 +170,14 @@ Shorter values mean quicker response, but are more CPU intensive.")
           (unless pop3-leave-mail-on-server
             (pop3-dele process n))
 	  (setq n (+ 1 n))
-	  (if pop3-debug (sit-for 1) (sit-for 0.1))
-	  )
+	  (if pop3-debug (sit-for 1) (sit-for 0.1))) ; why?
+      (when (and pop3-leave-mail-on-server
+		 (> n 1))
+	(message "pop3.el doesn't support UIDL.  Setting `pop3-leave-mail-on-server'
+to %s might not give the result you'd expect." pop3-leave-mail-on-server)
+	(sit-for 1))
       (pop3-quit process))
-    (kill-buffer crashbuf)
-    )
+    (kill-buffer crashbuf))
   t)
 
 (defun pop3-get-message-count ()
@@ -316,6 +319,8 @@ If NOW, use that time instead."
 	    ;; Date: 08 Jul 1996 23:22:24 -0400
 	    ;; should be
 	    ;; Tue Jul 9 09:04:21 1996
+
+	    ;; Fixme: This should use timezone on the date field contents.
 	    (setq date
 		  (cond ((not date)
 			 "Tue Jan 1 00:00:0 1900")

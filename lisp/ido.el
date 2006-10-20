@@ -3084,12 +3084,14 @@ for first matching file."
   (let ((oa (ido-file-extension-order a n))
 	(ob (ido-file-extension-order b n)))
     (cond
-     ((= oa ob)
-      lessp)
      ((and oa ob)
-      (if lessp
-	  (> oa ob)
-	(< oa ob)))
+      (cond
+       ((= oa ob)
+	lessp)
+       (lessp
+	(> oa ob))
+       (t
+	(< oa ob))))
      (oa
       (not lessp))
      (ob
@@ -3136,7 +3138,12 @@ for first matching file."
   (let ((filenames
 	 (split-string
 	  (shell-command-to-string
-	   (concat "find " dir " -name \"" (if prefix "" "*") file "*\" -type " (if finddir "d" "f") " -print"))))
+	   (concat "find "
+		   (shell-quote-argument dir)
+		   " -name "
+		   (shell-quote-argument
+		    (concat (if prefix "" "*") file "*"))
+		   " -type " (if finddir "d" "f") " -print"))))
 	filename d f
 	res)
     (while filenames
