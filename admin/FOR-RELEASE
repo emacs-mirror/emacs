@@ -47,8 +47,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** david.reitter@gmail.com, Oct 16: url-retrieve may cause hang
 
-** id.brep@gmail.com, Oct 17: `.newsrc.eld' saves chinese group name in wrong coding
-
 ** kzeitler@lucent.com, Oct 19: cperl + isearch + font-lock-multiline sometimes very slow
   Why do the text properties affect isearch?
 
