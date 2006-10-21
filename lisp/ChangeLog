@@ -1,3 +1,8 @@
+2006-10-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-mode-menu): Disable auto-revert-tail-mode
+	indicator if not visiting a file.
+
 2006-10-20  David Kastrup  <dak@gnu.org>
 
 	* window.el (kill-buffer-and-window): Fix a bug where an aborted
