@@ -1,3 +1,10 @@
+2006-10-21  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (xic_create_fontsetname): If ADSTYLE field is not a wild
+	card, change it to "*".
+	(xic_create_xfontset): Call XCreateFontSet for each single
+	fontname in fontsetname.
+
 2006-10-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* callint.c (callint_message): Convert to a Lisp string.
