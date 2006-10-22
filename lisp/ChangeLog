@@ -1,5 +1,8 @@
 2006-10-22  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/gdb-ui.el (gdb-info-stack-custom): Don't try to give
+	gdb-stack-position a value when there is no fringe.
+
 	* bindings.el (mode-line-mode-menu): Disable auto-revert-tail-mode
 	indicator if not visiting a file.
 
