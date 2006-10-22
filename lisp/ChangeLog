@@ -1,3 +1,11 @@
+2006-10-22  John Wiegley  <johnw@newartisans.com>
+
+	* progmodes/python.el (python-use-skeletons): python-mode was
+	auto-inserting templates (for those with abbrev-mode on), not only
+	by default -- *but without a configuration variable to disable
+	it*.  This rendered python-mode completely useless for me, so I
+	have added `python-use-skeletons', which is now off by default.
+
 2006-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/cperl-mode.el (cperl-mode): Don't assume
