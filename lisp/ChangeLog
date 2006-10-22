@@ -1,3 +1,10 @@
+2006-10-23  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-list): Optimize if compare-fn is `eq' or `eql'.
+	(sit-for): If last command was a prefix arg, add the read-ahead
+	event to unread-command-events as (t . EVENT) so it will be added
+	to this-command-keys by read-key-sequence.
+
 2006-10-22  martin rudalics  <rudalics@gmx.at>
 
 	* textmodes/flyspell.el (flyspell-word): Skip past all previous
