@@ -1101,18 +1101,18 @@ into a hook function that will be run only after loading the package.
 `eval-after-load' provides one way to do this.  In some cases
 other hooks, such as major mode hooks, can do the job."
   (if (cond
+       ((null compare-fn)
+	(member element (symbol-value list-var)))
        ((eq compare-fn 'eq)
 	(memq element (symbol-value list-var)))
        ((eq compare-fn 'eql)
 	(memql element (symbol-value list-var)))
-       (compare-fn
+       (t
 	(let (present)
 	  (dolist (elt (symbol-value list-var))
 	    (if (funcall compare-fn element elt)
 		(setq present t)))
-	  present))
-       (t
-	(member element (symbol-value list-var))))
+	  present)))
       (symbol-value list-var)
     (set list-var
 	 (if append
