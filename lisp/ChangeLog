@@ -1,3 +1,10 @@
+2006-10-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cperl-mode.el (cperl-mode): Don't assume
+	font-lock-multiline is auto-local (it's not).
+	(cperl-windowed-init): Ensure that cperl-font-lock-multiline is
+	initialized before calling cperl-init-faces.
+
 2006-10-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-stack-custom): Don't try to give
