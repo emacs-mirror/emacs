@@ -1,5 +1,11 @@
 2006-10-22  martin rudalics  <rudalics@gmx.at>
 
+	* textmodes/flyspell.el (flyspell-word): Skip past all previous
+	whitespace when checking doublons.
+	(flyspell-check-region-doublons): Fix doublon regexp.
+	(flyspell-highlight-incorrect-region): Highlight doublons using
+	flyspell-duplicate face.
+
 	* progmodes/cperl-mode.el (cperl-invalid-face): Fix defcustom.
 
 2006-10-22  John Wiegley  <johnw@newartisans.com>
