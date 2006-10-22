@@ -59,13 +59,16 @@ def eargs (name, imports):
 	    return
 	if inspect.ismethod (func):
 	    func = func.im_func
-	if not inspect.isfunction (func): return
+	if not inspect.isfunction (func):
+            print '_emacs_out '
+            return
 	(args, varargs, varkw, defaults) = inspect.getargspec (func)
 	# No space between name and arglist for consistency with builtins.
 	print '_emacs_out', \
 	    func.__name__ + inspect.formatargspec (args, varargs, varkw,
 						   defaults)
-    except: pass
+    except:
+	print "_emacs_out "
 
 def all_names (object):
     """Return (an approximation to) a list of all possible attribute
