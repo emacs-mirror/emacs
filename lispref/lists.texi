@@ -1396,7 +1396,7 @@ destructively.  See @ref{Sets And Lists}.
 @end defun
 
 @defun memql object list
-The function @code{member} tests to see whether @var{object} is a member
+The function @code{memql} tests to see whether @var{object} is a member
 of @var{list}, comparing members with @var{object} using @code{eql},
 so floating point elements are compared by value.
 If @var{object} is a member, @code{memql} returns a list starting with
@@ -1406,11 +1406,11 @@ Compare this with @code{memq}:
 
 @example
 @group
-(memql 1.2 '(1.1 1.2 1.3)  ; @r{@code{1.2} and @code{1.2} are @code{eql}.}
+(memql 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} are @code{eql}.}
      @result{} (1.2 1.3)
 @end group
 @group
-(memq 1.2 '(1.1 1.2 1.3)  ; @r{@code{1.2} and @code{1.2} are not @code{eq}.}
+(memq 1.2 '(1.1 1.2 1.3))  ; @r{@code{1.2} and @code{1.2} are not @code{eq}.}
      @result{} nil
 @end group
 @end example
