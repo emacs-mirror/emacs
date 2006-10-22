@@ -1,3 +1,7 @@
+2006-10-22  martin rudalics  <rudalics@gmx.at>
+
+	* progmodes/cperl-mode.el (cperl-invalid-face): Fix defcustom.
+
 2006-10-22  John Wiegley  <johnw@newartisans.com>
 
 	* progmodes/python.el (python-use-skeletons): python-mode was

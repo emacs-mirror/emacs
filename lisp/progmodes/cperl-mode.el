@@ -445,12 +445,8 @@ Font for POD headers."
 ;;; Some double-evaluation happened with font-locks...  Needed with 21.2...
 (defvar cperl-singly-quote-face cperl-xemacs-p)
 
-(defcustom cperl-invalid-face		; Does not customize with '' on XEmacs
-  (if cperl-singly-quote-face
-      'underline ''underline) ; On older Emacsen was evaluated by `font-lock'
-  (if cperl-singly-quote-face
-      "*This face is used for highlighting trailing whitespace."
-    "*Face for highlighting trailing whitespace.")
+(defcustom cperl-invalid-face 'underline
+  "*Face for highlighting trailing whitespace."
   :type 'face
   :version "21.1"
   :group 'cperl-faces)
