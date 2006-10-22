@@ -43,8 +43,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** Monnier, Oct 15: Strange behavior of C-u in the presence of sit-for in p-c-h
-
 ** david.reitter@gmail.com, Oct 16: url-retrieve may cause hang
 
 * DOCUMENTATION
