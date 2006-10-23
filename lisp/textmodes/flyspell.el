@@ -1475,7 +1475,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
     (flyspell-word)     ; Make sure current word is checked
     (backward-word 1)
     (while (and (< (point) end)
-		(re-search-forward "\\(\\w+\\)\\s-+\\1\\>"
+		(re-search-forward "\\<\\(\\w+\\)\\>[ \n\t\f]+\\1\\>"
 				   end 'move))
       (flyspell-word)
       (backward-word 1))
