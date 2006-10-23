@@ -2503,6 +2503,13 @@ put them in @code{unread-command-events} is to use
 
 Normally you add events to the front of this list, so that the events
 most recently unread will be reread first.
+
+Events read from this list are not normally added to the current
+command's key sequence (as returned by e.g. @code{this-command-keys}),
+as the events will already have been added once as they were read for
+the first time.  An element of the form @code{(@code{t} . @var{event})}
+forces @var{event} to be added to the current command's key sequence.
+
 @end defvar
 
 @defun listify-key-sequence key
