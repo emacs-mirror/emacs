@@ -1,5 +1,8 @@
 2006-10-23  Kenichi Handa  <handa@m17n.org>
 
+	* fileio.c (Finsert_file_contents): On replacing, temporarily bind
+	buffer-file-name to Qnil before calling insert_from_buffer.
+
 	* font.c (font_unparse_fcname): Pay attention to the case that
 	foundry is a null string.
 
