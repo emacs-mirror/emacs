@@ -4360,6 +4360,10 @@ actually used.  */)
 	= (buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
 				   same_at_start + inserted)
 	   - same_at_start_charpos);
+      /* This binding is to avoid ask-user-about-supersession-threat
+	 being called in insert_from_buffer (via in
+	 prepare_to_modify_buffer).  */
+      specbind (intern ("buffer-file-name"), Qnil);
       insert_from_buffer (XBUFFER (conversion_buffer),
 			  same_at_start_charpos, inserted_chars, 0);
       /* Set `inserted' to the number of inserted characters.  */
