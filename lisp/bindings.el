@@ -432,9 +432,6 @@ Menu of mode operations in the mode line.")
 (define-key mode-line-mode-menu [outline-minor-mode]
   `(menu-item ,(purecopy "Outline (Outl)") outline-minor-mode
 	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
-(define-key mode-line-mode-menu [line-number-mode]
-  `(menu-item ,(purecopy "Line number") line-number-mode
-	      :button (:toggle . line-number-mode)))
 (define-key mode-line-mode-menu [highlight-changes-mode]
   `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
 	      :button (:toggle . (bound-and-true-p highlight-changes-mode))))
@@ -450,9 +447,6 @@ Menu of mode operations in the mode line.")
 (define-key mode-line-mode-menu [flyspell-mode]
   `(menu-item ,(purecopy "Flyspell (Fly)") flyspell-mode
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
-(define-key mode-line-mode-menu [column-number-mode]
-  `(menu-item ,(purecopy "Column number") column-number-mode
-	      :button (:toggle . column-number-mode)))
 (define-key mode-line-mode-menu [auto-revert-tail-mode]
   `(menu-item ,(purecopy "Auto revert tail (Tail)") auto-revert-tail-mode
 	      :enable (buffer-file-name)
@@ -466,6 +460,14 @@ Menu of mode operations in the mode line.")
 (define-key mode-line-mode-menu [abbrev-mode]
   `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
 	      :button (:toggle . abbrev-mode)))
+(define-key mode-line-mode-menu [globals-locals-separator]
+  '(menu-item "--"))
+(define-key mode-line-mode-menu [column-number-mode]
+  `(menu-item ,(purecopy "Column number") column-number-mode
+	      :button (:toggle . column-number-mode)))
+(define-key mode-line-mode-menu [line-number-mode]
+  `(menu-item ,(purecopy "Line number") line-number-mode
+	      :button (:toggle . line-number-mode)))
 
 (defun mode-line-mode-menu (event)
   (interactive "@e")
