@@ -1253,7 +1253,7 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
     }
 
   val = AREF (font, FONT_FOUNDRY_INDEX);
-  if (! NILP (val))
+  if (SYMBOLP (val) && ! NILP (val))
     /* ":foundry=NAME" */
     len += 9 + SBYTES (SYMBOL_NAME (val));
 
