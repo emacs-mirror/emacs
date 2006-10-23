@@ -1,5 +1,7 @@
 2006-10-23  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (remember_mouse_glyph): Do nothing if glyphs are not initialized.
+
 	* keyboard.c (read_char): Make an element (t . EVENT) in
 	unread-command-events add EVENT to the current command's key sequence.
 	(syms_of_keyboard) <unread-command-events>: Update doc.
