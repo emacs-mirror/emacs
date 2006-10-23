@@ -1624,8 +1624,9 @@ reversed."
 	(progn
 	  (setq command
 		;; replace # and % with the previous/current file
-		(ex-expand-filsyms (concat ex-file ex-cmdfile-args)
-				   (current-buffer)))
+		(ex-expand-filsyms
+		 (concat (shell-quote-argument ex-file) ex-cmdfile-args)
+		 (current-buffer)))
 	  (shell-command command t))
       (insert-file-contents ex-file)))
   (ex-fixup-history viper-last-ex-prompt ex-file ex-cmdfile-args))
