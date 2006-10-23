@@ -1,3 +1,8 @@
+2006-10-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-mode-menu): List global minor modes
+	before local ones.
+
 2006-10-23  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (add-to-list): Optimize if compare-fn is `eq' or `eql'.
@@ -2120,7 +2125,7 @@
 	(python-symbol-completions): Use python-imports.
 	(python-module-path, ffap-alist): Add support for ffap.
 	(python-skeletons, python-mode-abbrev-table, def-python-skeleton)
-	(pythin-insert-*, python-default-template, python-expand-template):
+	(python-insert-*, python-default-template, python-expand-template):
 	Add templates/skeletons.
 	(python-setup-brm): Support for Bicycle Repair Man.
 	(python-abbrev-syntax-table): New var.
