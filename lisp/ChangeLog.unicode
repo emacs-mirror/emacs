@@ -1,5 +1,8 @@
 2006-10-23  Kenichi Handa  <handa@m17n.org>
 
+	* composite.el (global-auto-composition-mode): Make the initial
+	value not depend on emacs-basic-display.
+
 	* textmodes/fill.el: Don't use charset property
 	`fill-find-break-point-function'.
 	(fill-find-break-point-function-table): New variable.
