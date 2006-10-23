@@ -2081,7 +2081,7 @@ remember_mouse_glyph (f, gx, gy, rect)
      int gx, gy;
      NativeRectangle *rect;
 {
-  Lisp_Object window;
+  Lisp_Object window = Qnil;
   struct window *w;
   struct glyph_row *r, *gr, *end_row;
   enum window_part part;
@@ -2091,7 +2091,9 @@ remember_mouse_glyph (f, gx, gy, rect)
   /* Try to determine frame pixel position and size of the glyph under
      frame pixel coordinates X/Y on frame F.  */
 
-  window = window_from_coordinates (f, gx, gy, &part, &x, &y, 0);
+  if (f->glyphs_initialized_p)
+    window = window_from_coordinates (f, gx, gy, &part, &x, &y, 0);
+
   if (NILP (window))
     {
       width = FRAME_SMALLEST_CHAR_WIDTH (f);
