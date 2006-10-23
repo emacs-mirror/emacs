@@ -1,3 +1,11 @@
+2006-10-23  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/fill.el: Don't use charset property
+	`fill-find-break-point-function'.
+	(fill-find-break-point-function-table): New variable.
+	(fill-find-break-point): Lookup
+	fill-find-break-point-function-table.
+
 2006-10-17  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (coding-system-list): Be sure to exclude
