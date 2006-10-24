@@ -5208,13 +5208,13 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	  (when (equal major-mode 'gnus-summary-mode)
 	    (gnus-kill-buffer (current-buffer)))
 	  (error "Couldn't activate group %s: %s"
-		 group (gnus-status-message group))))
+		 (gnus-group-decoded-name group) (gnus-status-message group))))
 
     (unless (gnus-request-group group t)
       (when (equal major-mode 'gnus-summary-mode)
 	(gnus-kill-buffer (current-buffer)))
       (error "Couldn't request group %s: %s"
-	     group (gnus-status-message group)))
+	     (gnus-group-decoded-name group) (gnus-status-message group)))
 
     (when gnus-agent
       (gnus-agent-possibly-alter-active group (gnus-active group) info)
