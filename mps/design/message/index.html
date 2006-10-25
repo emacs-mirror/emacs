@@ -28,6 +28,72 @@
 
 </div>
 
+<p>This document contains a <a href="#guide">guide</a> to the MPS Client Message Protocol, followed by the <a href="#initial-design">initial design document</a>.</p>
+
+<hr />
+
+<h1> <a id="guide">Guide</a> </h1>
+
+<p> Readership: any MPS Developer. </p>
+
+<h2> Introduction </h2>
+
+<p> Messages are used when the MPS needs to asynchronously send information to the client.  Currently, messages are used to signal:</p>
+<ul>
+  <li> Finalization </li>
+  <li> GC-Start </li>
+  <li> GC-Complete </li>
+</ul>
+
+<p>The Originator of the message is some part of the MPS.  For example, the finalization system (see poolmrg.c) calls MessagePost() to send a finalization message to the client when an object is no longer referenced.</p>
+
+<p>The MPS's Message-system (message.c) keeps messages that have been posted and are awaiting collection by the client in an arena-wide queue -- these are "queued messages".</p>
+
+<p>The Client:</p>
+<ol>
+  <li> periodically calls mps_message_poll() and/or mps_message_get() to get a message from the MPS Message queue; </li>
+  <li> calls accessor functions (eg. mps_message_finalization_ref()) to read data out of the message; </li>
+  <li> calls mps_message_discard() when it has finished using the message.</li>
+</ol>
+
+<h2> Using the Internal Interface </h2>
+
+<p>Any part of the MPS can be a message Originator.</p>
+
+<p>Any struct can be a message, as long as it:</p>
+<ul>
+  <li> contains an embedded MessageStruct (used by the Message-system for housekeeping); </li>
+  <li> gets appropriate MessageInit() and MessageFinish() calls (for its embedded MessageStruct); </li>
+  <li> has a Delete() function, to be called when the Client calls mps_message_discard(); </li>
+  <li> has appropriate accessor functions. </li>
+</ul>
+
+<p>Here's an example:</p>
+<blockquote><pre><code>typedef struct TraceStartMessageStruct {
+  Sig sig;
+  char why[TRACE_START_MESSAGE_WHY_LEN];
+  MessageStruct messageStruct;
+} TraceStartMessageStruct;
+</code></pre></blockquote>
+
+<p>There is no 'copy' method: MessagePost() links this struct into the message queue, and mps_message_get() unlinks it from the queue.  The lifecycle is:</p>
+
+<blockquote><p> (alloc Init)  <strong>unsent</strong>  (Post)  <strong>queued</strong>  (Get)  <strong>received</strong>  (Discard Delete Finish free)</p></blockquote>
+  
+<p>The struct is a message between Init and Finish.  The message system does not distinguish between "unsent" and "received" states, but the Originator may do.</p>
+
+<p>The message remains "in use" by the client until its Delete() method is called.  The Originator cannot free the struct; and if it re-uses the struct it may overwrite fields of a message the Client is looking at.</p>
+
+<p>The two common allocation strategies for message structs are:</p>
+<ul>
+  <li><p> Pre-allocate the message struct when allocating the subject it will refer to.  Note that this means you can only have one message in use per subject.  (Used for finalization messages).</p></li>
+  <li><p> Allocate the message struct (from control pool) immediately before posting, and free it in the Delete method.  (Used for GC-Complete messages).</p></li>
+</ul>
+  
+<hr />
+
+<h1> <a id="initial-design">Initial Design Document</a> </h1>
+
 <pre>
                      MPS TO CLIENT MESSAGE PROTOCOL
                            design.mps.message
