@@ -1,7 +1,12 @@
+2006-10-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* midnight.el (midnight-buffer-display-time): Doc fix.
+	(clean-buffer-list-kill-never-buffer-names): Add "*server*".
+
 2006-10-22  martin rudalics  <rudalics@gmx.at>
 
-	* textmodes/flyspell.el (flyspell-check-region-doublons): Fix last
-	fix.
+	* textmodes/flyspell.el (flyspell-check-region-doublons):
+	Fix last fix.
 
 2006-10-23  Nick Roberts  <nickrob@snap.net.nz>
 
