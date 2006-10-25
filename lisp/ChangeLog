@@ -1,5 +1,8 @@
 2006-10-25  Juanma Barranquero  <lekktu@gmail.com>
 
+	* term/w32-win.el (x-handle-name-switch): Doc fix.
+	(w32-standard-fontset-spec): Fix typo in docstring.
+
 	* midnight.el (midnight-buffer-display-time): Doc fix.
 	(clean-buffer-list-kill-never-buffer-names): Add "*server*".
 
@@ -27024,7 +27027,7 @@
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
 	Add ;;;###autoload to `outline-regexp'.  Suggested by Stefan Monnier
-	<monnier@iro.umontreal.ca>
+	<monnier@iro.umontreal.ca>.
 	(lisp-outline-level): Improve efficiency.  Suggested by David
 	Kastrup <dak@gnu.org>.
 
@@ -27436,7 +27439,7 @@
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
 	(gdb-goto-breakpoint): Make breakpoint handling work on template
-	functions in C++.  Reported by Martin Reed <mjreed@essex.ac.uk>
+	functions in C++.  Reported by Martin Reed <mjreed@essex.ac.uk>.
 	(gdb-assembler-custom): Update to recognize breakpoint information
 	added on 2005-01-19.
 
@@ -27709,10 +27712,10 @@
 	(tramp-do-copy-or-rename-file-directly): Mask `cp -p' error.
 	Call `set-file-modes' when appropriate.
 	(tramp-action-out-of-band): Mask `scp -p' error.  Reported by Isak
-	Johnsson <isak@hypergene.com>
+	Johnsson <isak@hypergene.com>.
 	(tramp-get-buffer, tramp-get-debug-buffer): Discard the undo list
 	of both Tramp buffer and debug buffer.  Reported by Joakim Verona
-	<joakim@verona.se>
+	<joakim@verona.se>.
 	(tramp-file-name-for-operation): Mark `shell-command' as magic for
 	Emacs only.
 
@@ -27758,7 +27761,7 @@
 	* simple.el (eval-expression-print-format): Avoid warning
 	about edebug-active.
 
-2005-01-15  James R. Van Zandt  <jrvz@comcast.net>  (Tiny change)
+2005-01-15  James R. Van Zandt  <jrvz@comcast.net>  (tiny change)
 
 	* progmodes/sh-script.el: Code copied from make-mode.el
 	with small changes,
