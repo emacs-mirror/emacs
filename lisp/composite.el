@@ -554,7 +554,7 @@ Auto Composition mode in all buffers (this is the default)."
   auto-composition-mode turn-on-auto-composition-if-enabled
   :extra-args (dummy)
   :initialize 'custom-initialize-safe-default
-  :init-value (not (or noninteractive emacs-basic-display))
+  :init-value (not noninteractive)
   :group 'auto-composition
   :version "23.1")
 

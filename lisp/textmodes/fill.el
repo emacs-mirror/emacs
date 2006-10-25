@@ -368,15 +368,18 @@ and `fill-nobreak-invisible'."
 	      (looking-at paragraph-start))))
      (run-hook-with-args-until-success 'fill-nobreak-predicate)))))
 
-;; Put `fill-find-break-point-function' property to charsets which
-;; require special functions to find line breaking point.
-(dolist (pair '((katakana-jisx0201 . kinsoku)
-		(chinese-gb2312 . kinsoku)
-		(japanese-jisx0208 . kinsoku)
-		(japanese-jisx0212 . kinsoku)
-		(chinese-big5-1 . kinsoku)
-		(chinese-big5-2 . kinsoku)))
-  (put-charset-property (car pair) 'fill-find-break-point-function (cdr pair)))
+(defvar fill-find-break-point-function-table
+  (let ((table (make-char-table nil)))
+    ;; Register `kinsoku' for scripts HAN, KANA, BOPOMPFO, and CJK-MISS.
+    (map-char-table #'(lambda (key val)
+			(if (memq val '(han kana bopomofo cjk-misc))
+			    (set-char-table-range table key 'kinsoku)))
+		    char-script-table)
+    ;; Register `kinsoku" also for full width characters.
+    (set-char-table-range table '(#xFF01 . #xFF61) 'kinsoku)
+    (set-char-table-range table '(#xFFE0 . #xFFE6) 'kinsoku)
+    table)
+  "Char-table of special functions to find line breaking point.")
 
 (defun fill-find-break-point (limit)
   "Move point to a proper line breaking position of the current line.
@@ -387,15 +390,9 @@ after or before a non-ASCII character.  If the charset of the
 character has the property `fill-find-break-point-function', this
 function calls the property value as a function with one arg LINEBEG.
 If the charset has no such property, do nothing."
-  (let* ((ch (following-char))
-	 (charset (char-charset ch))
-	 func)
-    (if (eq charset 'ascii)
-	(setq ch (preceding-char)
-	      charset (char-charset ch)))
-    (if (charsetp charset)
-	(setq func
-	      (get-charset-property charset 'fill-find-break-point-function)))
+  (let ((func (or
+	       (aref fill-find-break-point-function-table (following-char))
+	       (aref fill-find-break-point-function-table (preceding-char)))))
     (if (and func (fboundp func))
 	(funcall func limit))))
 
