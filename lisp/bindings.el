@@ -426,6 +426,8 @@ Menu of mode operations in the mode line.")
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
 
+;; Use mode-line-mode-menu for local minor-modes only.
+;; Global ones can go on the menubar (Options --> Show/Hide).
 (define-key mode-line-mode-menu [overwrite-mode]
   `(menu-item ,(purecopy "Overwrite (Ovwrt)") overwrite-mode
 	      :button (:toggle . overwrite-mode)))
@@ -460,14 +462,6 @@ Menu of mode operations in the mode line.")
 (define-key mode-line-mode-menu [abbrev-mode]
   `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
 	      :button (:toggle . abbrev-mode)))
-(define-key mode-line-mode-menu [globals-locals-separator]
-  '(menu-item "--"))
-(define-key mode-line-mode-menu [column-number-mode]
-  `(menu-item ,(purecopy "Column number") column-number-mode
-	      :button (:toggle . column-number-mode)))
-(define-key mode-line-mode-menu [line-number-mode]
-  `(menu-item ,(purecopy "Line number") line-number-mode
-	      :button (:toggle . line-number-mode)))
 
 (defun mode-line-mode-menu (event)
   (interactive "@e")
