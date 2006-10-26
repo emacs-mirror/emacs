@@ -368,18 +368,29 @@ and `fill-nobreak-invisible'."
 	      (looking-at paragraph-start))))
      (run-hook-with-args-until-success 'fill-nobreak-predicate)))))
 
-(defvar fill-find-break-point-function-table
-  (let ((table (make-char-table nil)))
-    ;; Register `kinsoku' for scripts HAN, KANA, BOPOMPFO, and CJK-MISS.
-    (map-char-table #'(lambda (key val)
-			(if (memq val '(han kana bopomofo cjk-misc))
-			    (set-char-table-range table key 'kinsoku)))
-		    char-script-table)
-    ;; Register `kinsoku" also for full width characters.
-    (set-char-table-range table '(#xFF01 . #xFF61) 'kinsoku)
-    (set-char-table-range table '(#xFFE0 . #xFFE6) 'kinsoku)
-    table)
+(defvar fill-find-break-point-function-table (make-char-table nil)
   "Char-table of special functions to find line breaking point.")
+
+(defvar fill-nospace-between-words-table (make-char-table nil)
+  "Char-table of characters that don't use space between words.")
+
+(progn
+  ;; Register `kinsoku' for scripts HAN, KANA, BOPOMPFO, and CJK-MISS.
+  ;; Also tell that they don't use space between words.
+  (map-char-table
+   #'(lambda (key val)
+       (when (memq val '(han kana bopomofo cjk-misc))
+	 (set-char-table-range fill-find-break-point-function-table
+			       key 'kinsoku)
+	 (set-char-table-range fill-nospace-between-words-table
+			       key t)))
+   char-script-table)
+  ;; Do the same thing also for full width characters and half
+  ;; width kana variants.
+  (set-char-table-range fill-find-break-point-function-table
+			'(#xFF01 . #xFFE6) 'kinsoku)
+  (set-char-table-range fill-nospace-between-words-table
+			'(#xFF01 . #xFFE6) 'kinsoku))
 
 (defun fill-find-break-point (limit)
   "Move point to a proper line breaking position of the current line.
@@ -451,14 +462,13 @@ Point is moved to just past the fill prefix on the first line."
   (goto-char from)
   (if enable-multibyte-characters
       ;; Delete unnecessay newlines surrounded by words.  The
-      ;; character category `|' means that we can break a line
-      ;; at the character.  And, charset property
-      ;; `nospace-between-words' tells how to concatenate
-      ;; words.  If the value is non-nil, never put spaces
-      ;; between words, thus delete a newline between them.
-      ;; If the value is nil, delete a newline only when a
-      ;; character preceding a newline has text property
-      ;; `nospace-between-words'.
+      ;; character category `|' means that we can break a line at the
+      ;; character.  And, char-table
+      ;; `fill-nospace-between-words-table' tells how to concatenate
+      ;; words.  If a character has non-nil value in the table, never
+      ;; put spaces between words, thus delete a newline between them.
+      ;; Otherwise, delete a newline only when a character preceding a
+      ;; newline has non-nil value in that table.
       (while (search-forward "\n" to t)
 	(if (get-text-property (match-beginning 0) 'fill-space)
 	    (replace-match (get-text-property (match-beginning 0) 'fill-space))
@@ -466,10 +476,8 @@ Point is moved to just past the fill prefix on the first line."
 		(next (following-char)))
 	    (if (and (or (aref (char-category-set next) ?|)
 			 (aref (char-category-set prev) ?|))
-		     (or (get-charset-property (char-charset prev)
-					       'nospace-between-words)
-			 (get-text-property (1- (match-beginning 0))
-					    'nospace-between-words)))
+		     (or (aref fill-nospace-between-words-table next)
+			 (aref fill-nospace-between-words-table prev)))
 		(delete-char -1))))))
 
   (goto-char from)
