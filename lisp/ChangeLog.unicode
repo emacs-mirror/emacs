@@ -1,3 +1,15 @@
+2006-10-26  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Delete codes for setting up charset
+	property nospace-between-words.  Fix setting up of
+	char-width-table.  Don't make ethiopic and tibetan double column.
+
+	* textmodes/fill.el (fill-find-break-point-function-table): Don't
+	setup it in defvar.
+	(fill-nospace-between-words-table): New variable.
+	(fill-delete-newlines): Check fill-nospace-between-words-table
+	instead of charset property nospcae-between-words.
+
 2006-10-23  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (global-auto-composition-mode): Make the initial
