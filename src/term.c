@@ -33,6 +33,7 @@ Boston, MA 02110-1301, USA.  */
 #include "character.h"
 #include "charset.h"
 #include "coding.h"
+#include "composite.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "disptab.h"
@@ -835,7 +836,8 @@ encode_terminal_code (src, src_len, coding)
 
   /* Allocate sufficient size of buffer to store all characters in
      multibyte-form.  But, it may be enlarged on demand if
-     Vglyph_table contains a string.  */
+     Vglyph_table contains a string or a composite glyph is
+     encountered.  */
   required = MAX_MULTIBYTE_LENGTH * src_len;
   if (encode_terminal_src_size < required)
     {
@@ -852,8 +854,40 @@ encode_terminal_code (src, src_len, coding)
   nchars = 0;
   while (src < src_end)
     {
+      if (src->type == COMPOSITE_GLYPH)
+	{
+	  struct composition *cmp = composition_table[src->u.cmp_id];
+	  int i;
+
+	  nbytes = buf - encode_terminal_src;
+	  required = MAX_MULTIBYTE_LENGTH * cmp->glyph_len;
+
+	  if (encode_terminal_src_size < nbytes + required)
+	    {
+	      encode_terminal_src_size = nbytes + required;
+	      encode_terminal_src = xrealloc (encode_terminal_src,
+					      encode_terminal_src_size);
+	      buf = encode_terminal_src + nbytes;
+	    }
+
+	  for (i = 0; i < cmp->glyph_len; i++)
+	    {
+	      int c = COMPOSITION_GLYPH (cmp, i);
+	      
+	      if (! char_charset (c, charset_list, NULL))
+		break;
+	      buf += CHAR_STRING (c, buf);
+	      nchars++;
+	    }
+	  if (i == 0)
+	    {
+	      /* The first character of the composition is not encodable.  */
+	      *buf++ = '?';
+	      nchars++;
+	    }
+	}
       /* We must skip glyphs to be padded for a wide character.  */
-      if (! CHAR_GLYPH_PADDING_P (*src))
+      else if (! CHAR_GLYPH_PADDING_P (*src))
 	{
 	  int c;
 	  Lisp_Object string;
@@ -883,6 +917,14 @@ encode_terminal_code (src, src_len, coding)
 
 	  if (NILP (string))
 	    {
+	      nbytes = buf - encode_terminal_src;
+	      if (encode_terminal_src_size < nbytes + MAX_MULTIBYTE_LENGTH)
+		{
+		  encode_terminal_src_size = nbytes + MAX_MULTIBYTE_LENGTH;
+		  encode_terminal_src = xrealloc (encode_terminal_src,
+						  encode_terminal_src_size);
+		  buf = encode_terminal_src + nbytes;
+		}
 	      if (char_charset (c, charset_list, NULL))
 		{
 		  /* Store the multibyte form of C at BUF.  */
@@ -1658,11 +1700,14 @@ term_get_fkeys_1 ()
 #ifdef static
 #define append_glyph append_glyph_term
 #define produce_stretch_glyph produce_stretch_glyph_term
+#define append_composite_glyph append_composite_glyph_term
+#define produce_composite_glyph produce_composite_glyph_term
 #endif
 
 static void append_glyph P_ ((struct it *));
 static void produce_stretch_glyph P_ ((struct it *));
-
+static void append_composite_glyph P_ ((struct it *));
+static void produce_composite_glyph P_ ((struct it *));
 
 /* Append glyphs to IT's glyph_row.  Called from produce_glyphs for
    terminal frames if IT->glyph_row != NULL.  IT->char_to_display is
@@ -1723,6 +1768,8 @@ produce_glyphs (it)
      struct it *it;
 {
   /* If a hook is installed, let it do the work.  */
+
+  /* Nothing but characters are supported on terminal frames.  */
   xassert (it->what == IT_CHARACTER
 	   || it->what == IT_COMPOSITION
 	   || it->what == IT_STRETCH);
@@ -1733,11 +1780,11 @@ produce_glyphs (it)
       goto done;
     }
 
-  /* Nothing but characters are supported on terminal frames.  For a
-     composition sequence, it->c is the first character of the
-     sequence.  */
-  xassert (it->what == IT_CHARACTER
-	   || it->what == IT_COMPOSITION);
+  if (it->what == IT_COMPOSITION)
+    {
+      produce_composite_glyph (it);
+      goto done;
+    }
 
   /* Maybe translate single-byte characters to multibyte.  */
   it->char_to_display = it->c;
@@ -1893,6 +1940,57 @@ produce_stretch_glyph (it)
     }
   it->pixel_width = width;
   it->nglyphs = width;
+}
+
+
+/* Append glyphs to IT's glyph_row for the composition IT->cmp_id.
+   Called from produce_composite_glyph for terminal frames if
+   IT->glyph_row != NULL.  IT->face_id contains the character's
+   face.  */
+
+static void
+append_composite_glyph (it)
+     struct it *it;
+{
+  struct glyph *glyph;
+
+  xassert (it->glyph_row);
+  glyph = it->glyph_row->glyphs[it->area] + it->glyph_row->used[it->area];
+  if (glyph < it->glyph_row->glyphs[1 + it->area])
+    {
+      glyph->type = COMPOSITE_GLYPH;
+      glyph->pixel_width = it->pixel_width;
+      glyph->u.cmp_id = it->cmp_id;
+      glyph->face_id = it->face_id;
+      glyph->padding_p = 0;
+      glyph->charpos = CHARPOS (it->position);
+      glyph->object = it->object;
+
+      ++it->glyph_row->used[it->area];
+      ++glyph;
+    }
+}
+
+
+/* Produce a composite glyph for iterator IT.  IT->cmp_id is the ID of
+   the composition.  We simply produces components of the composition
+   assuming that that the terminal has a capability to layout/render
+   it correctly.  */
+
+static void
+produce_composite_glyph (it)
+     struct it *it;
+{
+  struct composition *cmp = composition_table[it->cmp_id];
+  int c;
+
+  xassert (cmp->glyph_len > 0);
+  c = COMPOSITION_GLYPH (cmp, 0);
+  it->pixel_width = CHAR_WIDTH (it->c);
+  it->nglyphs = 1;
+
+  if (it->glyph_row)
+    append_composite_glyph (it);
 }
 
 
