@@ -427,6 +427,41 @@ See also the command `toggle-auto-composition'.")
 
 (put 'save-buffer-state 'lisp-indent-function 1)
 
+(defun terminal-composition-function (pos &optional string)
+  "General composition function used on terminal.
+Non-spacing characters are composed with the preceding spacing
+character.  All non-spacing characters has this function in
+`terminal-composition-function-table'."
+  (let ((from (1- pos))
+	ch)
+    (if string
+	(length string)
+      (setq pos (1+ pos))
+      (while (and (< pos (point-max))
+		  (= (aref char-width-table (char-after pos)) 0))
+	(setq pos (1+ pos)))
+      (if (and (>= from (point-min))
+	       (= (aref (symbol-name (get-char-code-property (char-after from)
+							     'general-category))
+			0)
+		  ?L))
+	  (compose-region from pos (buffer-substring from pos))
+	(compose-region (1+ from) pos
+			(concat " " (buffer-substring (1+ from) pos))))
+      pos)))
+
+(defvar terminal-composition-function-table
+  (let ((table (make-char-table nil)))
+    (map-char-table
+     #'(lambda (key val)
+	 (if (= val 0) (set-char-table-range table key
+					     'terminal-composition-function)))
+     char-width-table)
+    table)
+  "Char table of functions for automatic character composition on terminal.
+This is like `composition-function-table' but used when Emacs is running
+on a terminal.")
+
 (defvar auto-compose-current-font nil
   "The current font-object used for characters being composed automatically.")
 
@@ -444,6 +479,9 @@ This function is the default value of `auto-composition-function' (which see)."
 	    (let ((start pos)
 		  (limit (if string (length string) (point-max)))
 		  (auto-compose-current-font font-object)
+		  (table (if (display-graphic-p)
+			     composition-function-table
+			   terminal-composition-function-table))
 		  ch func newpos)
 	      (setq limit
 		    (or (text-property-any pos limit 'auto-composed t string)
@@ -455,7 +493,7 @@ This function is the default value of `auto-composition-function' (which see)."
 			    (setq ch (aref string pos))
 			    (if (= ch ?\n)
 				(throw 'tag (1+ pos)))
-			    (setq func (aref composition-function-table ch))
+			    (setq func (aref table ch))
 			    (if (and (functionp func)
 				     (setq newpos (funcall func pos string))
 				     (> newpos pos))
@@ -465,7 +503,7 @@ This function is the default value of `auto-composition-function' (which see)."
 			  (setq ch (char-after pos))
 			  (if (= ch ?\n)
 			      (throw 'tag (1+ pos)))
-			  (setq func (aref composition-function-table ch))
+			  (setq func (aref table ch))
 			  (if (and (functionp func)
 				   (setq newpos (funcall func pos string))
 				   (> newpos pos))
