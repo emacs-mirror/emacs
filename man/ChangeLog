@@ -1,4 +1,4 @@
-2006-10-26  "Roberto Rodr,Am(Bguez"  <lanubeblanca@googlemail.com> (tiny change)
+2006-10-26  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
 
 	* ada-mode.texi (Project files, Identifier completion)
 	(Automatic Casing, Debugging, Using non-standard file names)
@@ -11,7 +11,7 @@
 
 2006-10-20  Masatake YAMATO  <jet@gyve.org>
 
-	* cc-mode.texi (Sample .emacs File): Added missing `)' in 
+	* cc-mode.texi (Sample .emacs File): Added missing `)' in
 	sample code `my-c-initialization-hook'.
 
 2006-10-19  Stuart D. Herring  <herring@lanl.gov>
@@ -37,9 +37,9 @@
 	gnus-dired-attach.
 	(Selecting a Group): Fix typo.
 
-2006-10-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>
+2006-10-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
 
-	* widget.texi: Fix typos (tiny change)
+	* widget.texi: Fix typos.
 
 2006-10-11  Kim F. Storm  <storm@cua.dk>
 
