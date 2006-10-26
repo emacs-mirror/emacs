@@ -20941,9 +20941,15 @@ x_produce_glyphs (it)
 	  /* When no suitable font found, use the default font.  */
 	  font_not_found_p = font == NULL;
 	  if (font_not_found_p)
-	    font = FACE_FROM_ID (it->f, it->face_id)->font;
-	  font_info
-	    = FONT_INFO_FROM_FACE (it->f, FACE_FROM_ID (it->f, face_id));
+	    {
+	      font = FACE_FROM_ID (it->f, it->face_id)->font;
+	      font_info
+		= FONT_INFO_FROM_FACE (it->f,
+				       FACE_FROM_ID (it->f, it->face_id));
+	    }
+	  else
+	    font_info
+	      = FONT_INFO_FROM_FACE (it->f, FACE_FROM_ID (it->f, face_id));
 	  boff = font_info->baseline_offset;
 	  if (font_info->vertical_centering)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;

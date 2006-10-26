@@ -1,5 +1,12 @@
 2006-10-26  Kenichi Handa  <handa@m17n.org>
 
+	* composite.el (terminal-composition-function): New function.
+	(terminal-composition-function-table): New variable.
+	(auto-compose-chars): If running on a terminal, use
+	terminal-composition-function-table.
+
+	* loadup.el: Load "composite" after "international/characters".
+
 	* international/characters.el: Delete codes for setting up charset
 	property nospace-between-words.  Fix setting up of
 	char-width-table.  Don't make ethiopic and tibetan double column.
