@@ -869,8 +869,7 @@
 
 
 ;; Setup auto-fill-chars for charsets that should invoke auto-filling.
-;; SPACE and NEWLINE are already set.  Also put `nospace-between-words'
-;; property on the charsets.
+;; SPACE and NEWLINE are already set.
 
 (set-char-table-range auto-fill-chars '(#x3041 . #x30FF) t)
 (set-char-table-range auto-fill-chars '(#x3400 . #x4DB5) t)
@@ -879,58 +878,160 @@
 (set-char-table-range auto-fill-chars '(#xFF00 . #xFF9F) t)
 (set-char-table-range auto-fill-chars '(#x20000 . #x2FFFF) t)
 
-(let ((l '(katakana-jisx0201
-	   japanese-jisx0208 japanese-jisx0212
-	   japanese-jisx0213-1 japanese-jisx0213-2
-	   chinese-gb2312 chinese-gbk chinese-big5-1 chinese-big5-2
-	   chinese-cns11643-1 chinese-cns11643-2 chinese-cns11643-3
-	   chinese-cns11643-4 chinese-cns11643-5 chinese-cns11643-6
-	   chinese-cns11643-7)))
-  (while l
-    (put-charset-property (car l) 'nospace-between-words t)
-    (setq l (cdr l))))
-
 
-;; CJK double width characters.
-(let ((l '((#x1100 . #x11FF)
-	   (#x2E80 . #x9FAF)
-	   (#xAC00 . #xD7AF)
-	   (#xF900 . #xFAFF)
-	   (#xFE30 . #xFE4F)
-	   (#xFF00 . #xFF5F)
-	   (#xFFE0 . #xFFEF)
-	   (#x20000 . #x2AFFF)
-	   (#x2F800 . #x2FFFF))))
+;;; Setting char-width-table.  The default is 1.
+
+;; 0: non-spacing, enclosing combining, formatting, Hangul Jamo medial
+;;    and final characters.
+(let ((l '((#x00AD . #x00AD)
+	   (#x0300 . #x036F)
+	   (#x0483 . #x0489)
+	   (#x0591 . #x05BD)
+	   (#x05BF . #x05BF)
+	   (#x05C1 . #x05C2)
+	   (#x05C4 . #x05C5)
+	   (#x05C7 . #x05C7)
+	   (#x0600 . #x0603)
+	   (#x0610 . #x0615)
+	   (#x064B . #x065E)
+	   (#x0670 . #x0670)
+	   (#x06D6 . #x06E4)
+	   (#x06E7 . #x06E8)
+	   (#x06EA . #x06ED)
+	   (#x070F . #x070F)
+	   (#x0711 . #x0711)
+	   (#x0730 . #x074A)
+	   (#x07A6 . #x07B0)
+	   (#x07EB . #x07F3)
+	   (#x0901 . #x0902)
+	   (#x093C . #x093C)
+	   (#x0941 . #x0948)
+	   (#x094D . #x094D)
+	   (#x0951 . #x0954)
+	   (#x0962 . #x0963)
+	   (#x0981 . #x0981)
+	   (#x09BC . #x09BC)
+	   (#x09C1 . #x09C4)
+	   (#x09CD . #x09CD)
+	   (#x09E2 . #x09E3)
+	   (#x0A01 . #x0A02)
+	   (#x0A3C . #x0A3C)
+	   (#x0A41 . #x0A4D)
+	   (#x0A70 . #x0A71)
+	   (#x0A81 . #x0A82)
+	   (#x0ABC . #x0ABC)
+	   (#x0AC1 . #x0AC8)
+	   (#x0ACD . #x0ACD)
+	   (#x0AE2 . #x0AE3)
+	   (#x0B01 . #x0B01)
+	   (#x0B3C . #x0B3C)
+	   (#x0B3F . #x0B3F)
+	   (#x0B41 . #x0B43)
+	   (#x0B4D . #x0B56)
+	   (#x0B82 . #x0B82)
+	   (#x0BC0 . #x0BC0)
+	   (#x0BCD . #x0BCD)
+	   (#x0C3E . #x0C40)
+	   (#x0C46 . #x0C56)
+	   (#x0CBC . #x0CBC)
+	   (#x0CBF . #x0CBF)
+	   (#x0CC6 . #x0CC6)
+	   (#x0CCC . #x0CCD)
+	   (#x0CE2 . #x0CE3)
+	   (#x0D41 . #x0D43)
+	   (#x0D4D . #x0D4D)
+	   (#x0DCA . #x0DCA)
+	   (#x0DD2 . #x0DD6)
+	   (#x0E31 . #x0E31)
+	   (#x0E34 . #x0E3A)
+	   (#x0E47 . #x0E4E)
+	   (#x0EB1 . #x0EB1)
+	   (#x0EB4 . #x0EBC)
+	   (#x0EC8 . #x0ECD)
+	   (#x0F18 . #x0F19)
+	   (#x0F35 . #x0F35)
+	   (#x0F37 . #x0F37)
+	   (#x0F39 . #x0F39)
+	   (#x0F71 . #x0F7E)
+	   (#x0F80 . #x0F84)
+	   (#x0F86 . #x0F87)
+	   (#x0F90 . #x0FBC)
+	   (#x0FC6 . #x0FC6)
+	   (#x102D . #x1030)
+	   (#x1032 . #x1037)
+	   (#x1039 . #x1039)
+	   (#x1058 . #x1059)
+	   (#x1160 . #x11FF)
+	   (#x135F . #x135F)
+	   (#x1712 . #x1714)
+	   (#x1732 . #x1734)
+	   (#x1752 . #x1753)
+	   (#x1772 . #x1773)
+	   (#x17B4 . #x17B5)
+	   (#x17B7 . #x17BD)
+	   (#x17C6 . #x17C6)
+	   (#x17C9 . #x17D3)
+	   (#x17DD . #x17DD)
+	   (#x180B . #x180D)
+	   (#x18A9 . #x18A9)
+	   (#x1920 . #x1922)
+	   (#x1927 . #x1928)
+	   (#x1932 . #x1932)
+	   (#x1939 . #x193B)
+	   (#x1A17 . #x1A18)
+	   (#x1B00 . #x1B03)
+	   (#x1B34 . #x1B34)
+	   (#x1B36 . #x1B3A)
+	   (#x1B3C . #x1B3C)
+	   (#x1B42 . #x1B42)
+	   (#x1B6B . #x1B73)
+	   (#x1DC0 . #x1DFF)
+	   (#x200B . #x200F)
+	   (#x202A . #x202E)
+	   (#x2060 . #x206F)
+	   (#x20D0 . #x20EF)
+	   (#x302A . #x302F)
+	   (#x3099 . #x309A)
+	   (#xA806 . #xA806)
+	   (#xA80B . #xA80B)
+	   (#xA825 . #xA826)
+	   (#xFB1E . #xFB1E)
+	   (#xFE00 . #xFE0F)
+	   (#xFE20 . #xFE23)
+	   (#xFEFF . #xFEFF)
+	   (#xFFF9 . #xFFFB)
+	   (#x10A01 . #x10A0F)
+	   (#x10A38 . #x10A3F)
+	   (#x1D167 . #x1D169)
+	   (#x1D173 . #x1D182)
+	   (#x1D185 . #x1D18B)
+	   (#x1D1AA . #x1D1AD)
+	   (#x1D242 . #x1D244)
+	   (#xE0001 . #xE01EF))))
   (dolist (elt l)
-    (set-char-table-range char-width-table
-			  (cons (car elt) (cdr elt))
-			  2)))
-;; Fixme: Doing this affects non-CJK characters through unification,
-;; but presumably CJK users expect those characters to be
-;; double-width when using these charsets.
-;; (map-charset-chars
-;;  #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
-;;  'japanese-jisx0208)
-;; (map-charset-chars
-;;  #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
-;;  'japanese-jisx0212)
-;; (map-charset-chars
-;;  #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
-;;  'japanese-jisx0213-1)
-;; (map-charset-chars
-;;  #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
-;;  'japanese-jisx0213-2)
-;; (map-charset-chars
-;;  (lambda (range ignore) (set-char-table-range char-width-table range 2))
-;;  'korean-ksc5601)
+    (set-char-table-range char-width-table elt 0)))
+
+;; 2: East Asian Wide and Full-width characters.
+(let ((l '((#x1100 . #x115F)
+	   (#x2329 . #x232A)
+	   (#x2E80 . #x303E)
+	   (#x3040 . #xA4CF)
+	   (#xAC00 . #xD7A3)
+	   (#xF900 . #xFAFF)
+	   (#xFE30 . #xFE6F)
+	   (#xFFE0 . #xFFE6)
+	   (#x20000 . #x2FFFF)
+	   (#x30000 . #x3FFFF))))
+  (dolist (elt l)
+    (set-char-table-range char-width-table elt 2)))
 
 ;; Other double width
-(map-charset-chars
- (lambda (range ignore) (set-char-table-range char-width-table range 2))
- 'ethiopic)
-(map-charset-chars
- (lambda (range ignore) (set-char-table-range char-width-table range 2))
- 'tibetan)
+;;(map-charset-chars
+;; (lambda (range ignore) (set-char-table-range char-width-table range 2))
+;; 'ethiopic)
+;; (map-charset-chars
+;;  (lambda (range ignore) (set-char-table-range char-width-table range 2))
+;; 'tibetan)
 (map-charset-chars
  (lambda (range ignore) (set-char-table-range char-width-table range 2))
  'indian-2-column)
@@ -939,7 +1040,6 @@
  'arabic-2-column)
 
 (optimize-char-table (standard-case-table))
-(optimize-char-table char-width-table)
 (optimize-char-table (standard-category-table))
 (optimize-char-table (standard-syntax-table))
 
