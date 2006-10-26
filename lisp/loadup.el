@@ -88,8 +88,8 @@
 ;; multilingual text.
 (load "international/mule-cmds")
 (load "case-table")
-(load "composite")
 (load "international/characters")
+(load "composite")
 ;; This file doesn't exist when building Emacs from CVS.  It is
 ;; generated just after temacs is build.
 (load "international/charprop.el" t)
