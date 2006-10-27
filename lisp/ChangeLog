@@ -1,3 +1,16 @@
+2006-10-26  John W. Eaton  <jwe@octave.org>
+
+	* progmodes/octave-inf.el (inferior-octave-has-built-in-variables):
+	New defvar.
+	(inferior-octave-resync-dirs): Check to see whether Octave has
+	built-in variables and set inferior-octave-has-built-in-variables.
+	Check inferior-octave-has-built-in-variables to decide whether to
+	send commands that set built-in variables or call functions to
+	change Octave's behavior.
+	Send "disp (pwd ())" to Octave instead of just "pwd".
+	(inferior-octave-startup): Send "more off" to Octave instead of
+	"page_screen_output = 0".
+
 2006-10-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/cl-indent.el (lisp-indent-259): Indent nil's in the
