@@ -373,7 +373,9 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
                      ;; Too few elements in pattern.
                      (throw 'exit normal-indent)))
                 ((eq tem 'nil)
-                 (throw 'exit normal-indent))
+		 (throw 'exit (if (consp normal-indent)
+				  normal-indent
+				(list normal-indent containing-form-start))))
 		((eq tem '&lambda)
 		 (throw 'exit
 			(cond ((null p)
