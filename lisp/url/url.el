@@ -128,10 +128,10 @@ URL is either a string or a parsed URL.
 
 CALLBACK is called when the object has been completely retrieved, with
 the current buffer containing the object, and any MIME headers associated
-with it.  It is called as (apply CALLBACK STATUS CBARGS), where STATUS
-is a list with an even number of elements representing what happened
-during the request, with most recent events first.  Each pair is one
-of:
+with it.  It is called as (apply CALLBACK STATUS CBARGS).
+STATUS is a list with an even number of elements representing
+what happened during the request, with most recent events first,
+or an empty list if no events have occurred.  Each pair is one of:
 
 \(:redirect REDIRECTED-TO) - the request was redirected to this URL
 \(:error (ERROR-SYMBOL . DATA)) - an error occurred.  The error can be
