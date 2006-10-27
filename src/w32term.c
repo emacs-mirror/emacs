@@ -1591,7 +1591,10 @@ x_draw_glyph_string_foreground (s)
 	{
 	  /* For overstriking (to simulate bold-face), draw the
 	     characters again shifted to the right by one pixel.  */
+	  int old_BkMode = SetBkMode (s->hdc, TRANSPARENT);
 	  w32_text_out (s, x + 1, s->ybase - boff, s->char2b, s->nchars);
+	  if (old_BkMode && old_BkMode != TRANSPARENT)
+	    SetBkMode (s->hdc, old_BkMode);
 	}
     }
   if (s->font && s->font->hfont)
