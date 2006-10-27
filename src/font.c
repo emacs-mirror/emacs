@@ -1324,7 +1324,7 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
     p += sprintf (p, ":foundry=%s",
 		  SDATA (SYMBOL_NAME (AREF (font, FONT_FOUNDRY_INDEX))));
   for (i = 0; i < 3; i++)
-    if (! NILP (styles [i]))
+    if (SYMBOLP (styles[i]) && ! NILP (styles [i]))
       p += sprintf (p, ":%s=%s", style_names[i],
 		    SDATA (SYMBOL_NAME (styles [i])));
   if (dpi >= 0)
