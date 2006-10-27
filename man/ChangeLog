@@ -1,3 +1,9 @@
+2006-10-27  Richard Stallman  <rms@gnu.org>
+
+	* woman.texi: Downcase nroff/troff/roff.
+	(Installation): Chapter deleted.  Some xrefs deleted.
+	(Background): woman doesn't advise man ;-).
+
 2006-10-26  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
 
 	* ada-mode.texi (Project files, Identifier completion)
