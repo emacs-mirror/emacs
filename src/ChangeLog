@@ -1,6 +1,15 @@
+2006-10-27  Ben North  <ben@redfrontdoor.org>  (tiny change)
+
+	* w32term.c (x_draw_glyph_string_foreground): Set background mode
+	to TRANSPARENT before using overstrike to simulate bold faces.
+
+	* xfaces.c (best_matching_font): Fix logic to decide whether to
+	use overstriking to simulate bold-face (it was reversed).
+
 2006-10-23  Kim F. Storm  <storm@cua.dk>
 
-	* xdisp.c (remember_mouse_glyph): Do nothing if glyphs are not initialized.
+	* xdisp.c (remember_mouse_glyph): Do nothing if glyphs are not
+	initialized.
 
 	* keyboard.c (read_char): Make an element (t . EVENT) in
 	unread-command-events add EVENT to the current command's key sequence.
@@ -113,8 +122,8 @@
 	(x_draw_glyph_string_foreground): Use overstrike when needed.
 	(x_draw_composite_glyph_string_foreground): Likewise.
 	Use mac_draw_image_string_16 instead of mac_draw_string_16.
-	(mac_load_query_font): Rename from XLoadQueryFont.  Take argument F
-	instead of DPY.  All uses changed.  Don't save/restore font.
+	(mac_load_query_font): Rename from XLoadQueryFont.  Take argument
+	F instead of DPY.  All uses changed.  Don't save/restore font.
 
 2006-10-07  Ralf Angeli  <angeli@caeruleus.net>
 
@@ -157,7 +166,7 @@
 
 2006-09-30  Eli Zaretskii  <eliz@gnu.org>
 
-	* config.in Regenerated.
+	* config.in: Regenerated.
 
 2006-09-29  Juri Linkov  <juri@jurta.org>
 
