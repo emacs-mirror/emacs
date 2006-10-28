@@ -75,6 +75,9 @@ contributed ERC, an advanced Internet Relay Chat client.
 Boaz Ben-Zvi wrote @file{profile.el}, to time Emacs Lisp functions.
 
 @item
+Anna M. Bigatti wrote @file{cal-html.el}, which produces HTML calendars.
+
+@item
 Ray Blaak wrote @file{delphi.el}, a major mode for editing Delphi
 (Object Pascal) source code.
 
