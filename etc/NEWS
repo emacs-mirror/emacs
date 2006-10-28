@@ -3293,6 +3293,10 @@ the calendar left or right.  (The old key bindings still work too.)
 convert Emacs diary entries to/from the iCalendar format.
 
 +++
+*** The new package cal-html.el writes HTML files with calendar and
+diary entries.
+
++++
 *** Diary sexp entries can have custom marking in the calendar.
 Diary sexp functions which only apply to certain days (such as
 `diary-block' or `diary-cyclic') now take an optional parameter MARK,
