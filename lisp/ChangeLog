@@ -1,3 +1,14 @@
+2006-10-28  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (cal-html-cursor-month)
+	(cal-html-cursor-year): Add autoloads for this new package.
+	(calendar-mode-map): Bind cal-html-cursor-month,
+	cal-html-cursor-year.
+
+2006-10-28  Anna Bigatti  <bigatti@dima.unige.it>
+
+	* calendar/cal-html.el: New file.
+
 2006-10-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/authors.el (authors-aliases): Update.
