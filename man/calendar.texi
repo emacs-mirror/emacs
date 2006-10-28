@@ -35,7 +35,7 @@ about more specialized features.
 * Scroll Calendar::     Bringing earlier or later months onto the screen.
 * Counting Days::       How many days are there between two dates?
 * General Calendar::    Exiting or recomputing the calendar.
-* LaTeX Calendar::      Print a calendar using LaTeX.
+* Writing Calendar Files:: Writing calendars to files of various formats.
 * Holidays::            Displaying dates of holidays.
 * Sunrise/Sunset::      Displaying local times of sunrise and sunset.
 * Lunar Phases::        Displaying phases of the moon.
@@ -341,11 +341,47 @@ buries all buffers related to the calendar, selecting other buffers.
 (If a frame contains a dedicated calendar window, exiting from the
 calendar iconifies that frame.)
 
-@node LaTeX Calendar
-@section LaTeX Calendar
-@cindex calendar and La@TeX{}
+@node Writing Calendar Files
+@section Writing Calendar Files
 
-   The Calendar La@TeX{} commands produce a buffer of La@TeX{} code that
+  These packages produce files of various formats containing calendar
+and diary entries, for display purposes.
+
+@cindex calendar and HTML
+  The Calendar HTML commands produce files of HTML code that contain
+calendar and diary entries.  Each file applies to one month, and has a
+name of the format @file{@var{yyyy}-@var{mm}.html}, where @var{yyyy} and
+@var{mm} are the four-digit year and two-digit month, respectively.  The
+variable @code{cal-html-directory} specifies the default output
+directory for the HTML files.
+
+@vindex cal-html-css-default
+  Diary entries enclosed by @code{<} and @code{>} are interpreted as
+HTML tags (for example: this is a diary entry with <font
+color=''red''>some red text</font>).  You can change the overall
+appearance of the displayed HTML pages (for example, the color of
+various page elements, header styles) via a stylesheet @file{cal.css} in
+the directory containing the HTML files (see the value of the variable
+@code{cal-html-css-default} for relevant style settings).
+
+@kindex t @r{(Calendar mode)}
+@table @kbd
+@item H m
+Generate a one-month calendar (@code{cal-html-cursor-month}).
+@item H y
+Generate a calendar file for each month of a year, as well as an index
+page (@code{cal-html-cursor-year}).  By default, this command writes
+files to a @var{yyyy} subdirectory - if this is altered some hyperlinks
+between years will not work.
+@end table
+
+  If the variable @code{cal-html-print-day-number-flag} is
+non-@code{nil}, then the monthly calendars show the day-of-the-year
+number. The variable @code{cal-html-year-index-cols} specifies the
+number of columns in the yearly index page.
+
+@cindex calendar and La@TeX{}
+  The Calendar La@TeX{} commands produce a buffer of La@TeX{} code that
 prints as a calendar.  Depending on the command you use, the printed
 calendar covers the day, week, month or year that point is in.
 
@@ -401,7 +437,7 @@ If the variable @code{cal-tex-diary} is non-@code{nil} (the default is
 calendars only).  If the variable @code{cal-tex-rules} is non-@code{nil}
 (the default is @code{nil}), the calendar displays ruled pages
 in styles that have sufficient room.  You can use the variable
-@code{cal-tex-preamble-extra} to insert extra LaTeX commands in the
+@code{cal-tex-preamble-extra} to insert extra La@TeX{} commands in the
 preamble of the generated document if you need to.
 
 @node Holidays
