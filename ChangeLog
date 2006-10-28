@@ -1,3 +1,8 @@
+2006-10-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* make-dist: Make links to mac/make-package and
+	mac/Emacs.app/Contents/Resources/Emacs.icns.
+
 2006-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* README: Bump version number to 22.0.90.
