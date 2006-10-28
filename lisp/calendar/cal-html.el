@@ -441,4 +441,5 @@ existing output files are overwritten."
 (provide 'cal-html)
 
 
+;; arch-tag: 4e73377d-d2c1-46ea-a103-02c111da5f57
 ;;; cal-html.el ends here
