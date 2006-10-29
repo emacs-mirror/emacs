@@ -1,3 +1,7 @@
+2006-10-29  Jeramey Crawford  <jeramey@jeramey.com>
+
+	* m/amdx86-64.h: Add defines for OpenBSD x86-64.
+
 2006-10-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.c (Fdisplay_buffer): Fix typo in docstring.
