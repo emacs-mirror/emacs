@@ -275,6 +275,7 @@ dnl see the `changequote' comment above.
     case "${canonical}" in
       alpha*-*-openbsd*)	machine=alpha ;;
       i386-*-openbsd*)	machine=intel386 ;;
+      x86_64-*-openbsd*)    machine=amdx86-64 ;;
       m68k-*-openbsd*)  machine=hp9000s300 ;;
       mipsel-*-openbsd*) machine=pmax ;;
       ns32k-*-openbsd*)	machine=ns32000 ;;
