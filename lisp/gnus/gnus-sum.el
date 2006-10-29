@@ -5711,8 +5711,9 @@ If WHERE is `summary', the summary mode line format will be used."
 	(let* ((mformat (symbol-value
 			 (intern
 			  (format "gnus-%s-mode-line-format-spec" where))))
-	       (gnus-tmp-group-name (gnus-group-decoded-name
-				     gnus-newsgroup-name))
+	       (gnus-tmp-group-name (gnus-mode-string-quote
+				     (gnus-group-decoded-name
+				      gnus-newsgroup-name)))
 	       (gnus-tmp-article-number (or gnus-current-article 0))
 	       (gnus-tmp-unread gnus-newsgroup-unreads)
 	       (gnus-tmp-unread-and-unticked (length gnus-newsgroup-unreads))
@@ -9153,7 +9154,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	     (gnus-request-article-this-buffer article gnus-newsgroup-name)
 	     (when (consp (setq art-group
 				(gnus-request-accept-article
-				 to-newsgroup select-method (not articles))))
+				 to-newsgroup select-method (not articles) t)))
 	       (setq new-xref (concat new-xref " " (car art-group)
 				      ":"
 				      (number-to-string (cdr art-group))))
@@ -9161,7 +9162,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	       ;; it and replace the new article.
 	       (nnheader-replace-header "Xref" new-xref)
 	       (gnus-request-replace-article
-		(cdr art-group) to-newsgroup (current-buffer))
+		(cdr art-group) to-newsgroup (current-buffer) t)
 	       art-group))))))
       (cond
        ((not art-group)
@@ -9259,7 +9260,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	      (gnus-request-article-this-buffer article gnus-newsgroup-name)
 	      (nnheader-replace-header "Xref" new-xref)
 	      (gnus-request-replace-article
-	       article gnus-newsgroup-name (current-buffer))))
+	       article gnus-newsgroup-name (current-buffer) t)))
 
 	  ;; run the move/copy/crosspost/respool hook
 	  (run-hook-with-args 'gnus-summary-article-move-hook
