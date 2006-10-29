@@ -1,6 +1,15 @@
+2006-10-29  Stephen Leake  <stephen_leake@stephe_leake.org>
+
+	* progmodes/ada-mode.el: Change maintainer, apply
+	whitespace-clean, checkdoc.  Minor improvements to many doc
+	strings.
+	(ada-mode-version): New function.
+	(ada-create-menu): Menu operations are available for all supported
+	compilers.
+
 2006-10-29  Lars Hansen  <larsh@soem.dk>
 	* net/tramp.el (with-parsed-tramp-file-name): Correct debug
-	spec. Highlight as keyword.
+	spec.  Highlight as keyword.
 	(tramp-do-copy-or-rename-file): Correct data for 'file-already-exists.
 	Don't call tramp-method-out-of-band-p for local files.
 	(tramp-touch): Quote file name.
