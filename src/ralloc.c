@@ -330,7 +330,7 @@ static void
 relinquish ()
 {
   register heap_ptr h;
-  int excess = 0;
+  long excess = 0;
 
   /* Add the amount of space beyond break_value
      in all heaps which have extend beyond break_value at all.  */
