@@ -1,3 +1,7 @@
+2006-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure: Regenerate using autoconf 2.59.
+
 2006-10-29  Jeramey Crawford  <jeramey@jeramey.com>
 
 	* configure.in: Enable x86-64 OpenBSD compilation.
