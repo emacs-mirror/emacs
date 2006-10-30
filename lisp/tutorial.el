@@ -47,6 +47,161 @@
   "Tutorial language.")
 (make-variable-buffer-local 'tutorial--lang)
 
+(defun tutorial--describe-nonstandard-key (value)
+  "Give more information about a changed key binding.
+This is used in `help-with-tutorial'.  The information includes
+the key sequence that no longer has a default binding, the
+default binding and the current binding.  It also tells in what
+keymap the new binding has been done and how to access the
+function in the default binding from the keyboard.
+
+For `cua-mode' key bindings that try to combine CUA key bindings
+with default Emacs bindings information about this is shown.
+
+VALUE should have either of these formats:
+
+  \(cua-mode)
+  \(current-binding KEY-FUN DEF-FUN KEY WHERE)
+
+Where
+  KEY         is a key sequence whose standard binding has been changed
+  KEY-FUN     is the actual binding for KEY
+  DEF-FUN     is the standard binding of KEY
+  WHERE       is a text describing the key sequences to which DEF-FUN is
+              bound now (or, if it is remapped, a key sequence
+              for the function it is remapped to)"
+  (with-output-to-temp-buffer (help-buffer)
+    (help-setup-xref (list #'tutorial--describe-nonstandard-key value)
+                     (interactive-p))
+    (with-current-buffer (help-buffer)
+      (insert
+       "Your Emacs customizations override the default binding for this key:"
+       "\n\n")
+      (let ((inhibit-read-only t))
+        (cond
+         ((eq (car value) 'cua-mode)
+          (insert
+           "CUA mode is enabled.
+
+When CUA mode is enabled, you can use C-z, C-x, C-c, and C-v to
+undo, cut, copy, and paste in addition to the normal Emacs
+bindings.  The C-x and C-c keys only do cut and copy when the
+region is active, so in most cases, they do not conflict with the
+normal function of these prefix keys.
+
+If you really need to perform a command which starts with one of
+the prefix keys even when the region is active, you have three
+options:
+- press the prefix key twice very quickly (within 0.2 seconds),
+- press the prefix key and the following key within 0.2 seconds, or
+- use the SHIFT key with the prefix key, i.e. C-S-x or C-S-c."))
+         ((eq (car value) 'current-binding)
+          (let ((cb    (nth 1 value))
+                (db    (nth 2 value))
+                (key   (nth 3 value))
+                (where (nth 4 value))
+                map
+                (maps (current-active-maps))
+                mapsym)
+            ;; Look at the currently active keymaps and try to find
+            ;; first the keymap where the current binding occurs:
+            (while maps
+              (let* ((m (car maps))
+                     (mb (lookup-key m key t)))
+                (setq maps (cdr maps))
+                (when (eq mb cb)
+                  (setq map m)
+                  (setq maps nil))))
+            ;; Now, if a keymap was found we must found the symbol
+            ;; name for it to display to the user.  This can not
+            ;; always be found since all keymaps does not have a
+            ;; symbol pointing to them, but here they should have
+            ;; that:
+            (when map
+              (mapatoms (lambda (s)
+                          (and
+                           ;; If not already found
+                           (not mapsym)
+                           ;; and if s is a keymap
+                           (and (boundp s)
+                                (keymapp (symbol-value s)))
+                           ;; and not the local symbol map
+                           (not (eq s 'map))
+                           ;; and the value of s is map
+                           (eq map (symbol-value s))
+                           ;; then save this value in mapsym
+                           (setq mapsym s)))))
+            (insert "The default Emacs binding for the key "
+                    (key-description key)
+                    " is the command `")
+            (insert (format "%s" db))
+            (insert "'.  "
+                    "However, your customizations have rebound it to the command `")
+            (insert (format "%s" cb))
+            (insert "'.")
+            (when mapsym
+              (insert "  (For the more advanced user:"
+                      " This binding is in the keymap `"
+                      (format "%s" mapsym)
+                      "'.)"))
+            (if (string= where "")
+                (unless (keymapp db)
+                  (insert "\n\nYou can use M-x "
+                          (format "%s" db)
+                          " RET instead."))
+              (insert "\n\nWith you current key bindings"
+                      " you can use the key "
+                      where
+                      " to get the function `"
+                      (format "%s" db)
+                      "'."))
+            )
+          (fill-region (point-min) (point)))))
+      (print-help-return-message))))
+
+(defun tutorial--sort-keys (left right)
+  "Sort predicate for use with `tutorial--default-keys'.
+This is a predicate function to `sort'.
+
+The sorting is for presentation purpose only and is done on the
+key sequence.
+
+LEFT and RIGHT are the elements to compare."
+  (let ((x (append (cadr left)  nil))
+        (y (append (cadr right) nil)))
+    ;; Skip the front part of the key sequences if they are equal:
+    (while (and x y
+                (listp x) (listp y)
+                (equal (car x) (car y)))
+      (setq x (cdr x))
+      (setq y (cdr y)))
+    ;; Try to make a comparision that is useful for presentation (this
+    ;; could be made nicer perhaps):
+    (let ((cx (car x))
+          (cy (car y)))
+      ;;(message "x=%s, y=%s;;;; cx=%s, cy=%s" x y cx cy)
+      (cond
+       ;; Lists? Then call this again
+       ((and cx cy
+             (listp cx)
+             (listp cy))
+        (tutorial--sort-keys cx cy))
+       ;; Are both numbers? Then just compare them
+       ((and (wholenump cx)
+             (wholenump cy))
+        (> cx cy))
+       ;; Is one of them a number? Let that be bigger then.
+       ((wholenump cx)
+        t)
+       ((wholenump cy)
+        nil)
+       ;; Are both symbols? Compare the names then.
+       ((and (symbolp cx)
+             (symbolp cy))
+        (string< (symbol-name cy)
+                 (symbol-name cx)))
+       ))))
+
 (defconst tutorial--default-keys
   (let* (
          ;; On window system suspend Emacs is replaced in the
@@ -271,161 +426,6 @@ correspond to what the tutorial says.  (See also " )
                        'follow-link t)
         (insert ".)\n\n")
         (print-help-return-message)))))
-
-(defun tutorial--describe-nonstandard-key (value)
-  "Give more information about a changed key binding.
-This is used in `help-with-tutorial'.  The information includes
-the key sequence that no longer has a default binding, the
-default binding and the current binding.  It also tells in what
-keymap the new binding has been done and how to access the
-function in the default binding from the keyboard.
-
-For `cua-mode' key bindings that try to combine CUA key bindings
-with default Emacs bindings information about this is shown.
-
-VALUE should have either of these formats:
-
-  \(cua-mode)
-  \(current-binding KEY-FUN DEF-FUN KEY WHERE)
-
-Where
-  KEY         is a key sequence whose standard binding has been changed
-  KEY-FUN     is the actual binding for KEY
-  DEF-FUN     is the standard binding of KEY
-  WHERE       is a text describing the key sequences to which DEF-FUN is
-              bound now (or, if it is remapped, a key sequence
-              for the function it is remapped to)"
-  (with-output-to-temp-buffer (help-buffer)
-    (help-setup-xref (list #'tutorial--describe-nonstandard-key value)
-                     (interactive-p))
-    (with-current-buffer (help-buffer)
-      (insert
-       "Your Emacs customizations override the default binding for this key:"
-       "\n\n")
-      (let ((inhibit-read-only t))
-        (cond
-         ((eq (car value) 'cua-mode)
-          (insert
-           "CUA mode is enabled.
-
-When CUA mode is enabled, you can use C-z, C-x, C-c, and C-v to
-undo, cut, copy, and paste in addition to the normal Emacs
-bindings.  The C-x and C-c keys only do cut and copy when the
-region is active, so in most cases, they do not conflict with the
-normal function of these prefix keys.
-
-If you really need to perform a command which starts with one of
-the prefix keys even when the region is active, you have three
-options:
-- press the prefix key twice very quickly (within 0.2 seconds),
-- press the prefix key and the following key within 0.2 seconds, or
-- use the SHIFT key with the prefix key, i.e. C-S-x or C-S-c."))
-         ((eq (car value) 'current-binding)
-          (let ((cb    (nth 1 value))
-                (db    (nth 2 value))
-                (key   (nth 3 value))
-                (where (nth 4 value))
-                map
-                (maps (current-active-maps))
-                mapsym)
-            ;; Look at the currently active keymaps and try to find
-            ;; first the keymap where the current binding occurs:
-            (while maps
-              (let* ((m (car maps))
-                     (mb (lookup-key m key t)))
-                (setq maps (cdr maps))
-                (when (eq mb cb)
-                  (setq map m)
-                  (setq maps nil))))
-            ;; Now, if a keymap was found we must found the symbol
-            ;; name for it to display to the user.  This can not
-            ;; always be found since all keymaps does not have a
-            ;; symbol pointing to them, but here they should have
-            ;; that:
-            (when map
-              (mapatoms (lambda (s)
-                          (and
-                           ;; If not already found
-                           (not mapsym)
-                           ;; and if s is a keymap
-                           (and (boundp s)
-                                (keymapp (symbol-value s)))
-                           ;; and not the local symbol map
-                           (not (eq s 'map))
-                           ;; and the value of s is map
-                           (eq map (symbol-value s))
-                           ;; then save this value in mapsym
-                           (setq mapsym s)))))
-            (insert "The default Emacs binding for the key "
-                    (key-description key)
-                    " is the command `")
-            (insert (format "%s" db))
-            (insert "'.  "
-                    "However, your customizations have rebound it to the command `")
-            (insert (format "%s" cb))
-            (insert "'.")
-            (when mapsym
-              (insert "  (For the more advanced user:"
-                      " This binding is in the keymap `"
-                      (format "%s" mapsym)
-                      "'.)"))
-            (if (string= where "")
-                (unless (keymapp db)
-                  (insert "\n\nYou can use M-x "
-                          (format "%s" db)
-                          " RET instead."))
-              (insert "\n\nWith you current key bindings"
-                      " you can use the key "
-                      where
-                      " to get the function `"
-                      (format "%s" db)
-                      "'."))
-            )
-          (fill-region (point-min) (point)))))
-      (print-help-return-message))))
-
-(defun tutorial--sort-keys (left right)
-  "Sort predicate for use with `tutorial--default-keys'.
-This is a predicate function to `sort'.
-
-The sorting is for presentation purpose only and is done on the
-key sequence.
-
-LEFT and RIGHT are the elements to compare."
-  (let ((x (append (cadr left)  nil))
-        (y (append (cadr right) nil)))
-    ;; Skip the front part of the key sequences if they are equal:
-    (while (and x y
-                (listp x) (listp y)
-                (equal (car x) (car y)))
-      (setq x (cdr x))
-      (setq y (cdr y)))
-    ;; Try to make a comparision that is useful for presentation (this
-    ;; could be made nicer perhaps):
-    (let ((cx (car x))
-          (cy (car y)))
-      ;;(message "x=%s, y=%s;;;; cx=%s, cy=%s" x y cx cy)
-      (cond
-       ;; Lists? Then call this again
-       ((and cx cy
-             (listp cx)
-             (listp cy))
-        (tutorial--sort-keys cx cy))
-       ;; Are both numbers? Then just compare them
-       ((and (wholenump cx)
-             (wholenump cy))
-        (> cx cy))
-       ;; Is one of them a number? Let that be bigger then.
-       ((wholenump cx)
-        t)
-       ((wholenump cy)
-        nil)
-       ;; Are both symbols? Compare the names then.
-       ((and (symbolp cx)
-             (symbolp cy))
-        (string< (symbol-name cy)
-                 (symbol-name cx)))
-       ))))
 
 (defun tutorial--find-changed-keys (default-keys)
   "Find the key bindings that have changed.
