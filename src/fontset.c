@@ -202,6 +202,7 @@ extern Lisp_Object Qfont;
 static Lisp_Object Qfontset;
 static Lisp_Object Qfontset_info;
 static Lisp_Object Qprepend, Qappend;
+static Lisp_Object Qlatin;
 
 /* Vector containing all fontsets.  */
 static Lisp_Object Vfontset_table;
@@ -1669,6 +1670,15 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	  map_char_table (accumulate_script_ranges, Qnil, Vchar_script_table,
 			  val);
 	  range_list = XCDR (val);
+	  if (EQ (target, Qlatin))
+	    {
+	      if (VECTORP (font_spec))
+		val = generate_ascii_font_name (FONTSET_NAME (fontset),
+						font_spec);
+	      else
+		val = font_spec;
+	      FONTSET_ASCII (fontset) = val;
+	    }
 	}
       if (CHARSETP (target))
 	{
@@ -2388,6 +2398,7 @@ syms_of_fontset ()
 
   DEFSYM (Qprepend, "prepend");
   DEFSYM (Qappend, "append");
+  DEFSYM (Qlatin, "latin");
 
   Vcached_fontset_data = Qnil;
   staticpro (&Vcached_fontset_data);
