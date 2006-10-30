@@ -1,8 +1,14 @@
+2006-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-select-display): Use a dummy buffer to detect when
+	the frame is later used.
+	(server-select-display): New function.
+	(server-process-filter): Use it to detect unused temp frames.
+
 2006-10-29  Stephen Leake  <stephen_leake@stephe_leake.org>
 
 	* progmodes/ada-mode.el: Change maintainer, apply
-	whitespace-clean, checkdoc.  Minor improvements to many doc
-	strings.
+	whitespace-clean, checkdoc.  Minor improvements to many doc strings.
 	(ada-mode-version): New function.
 	(ada-create-menu): Menu operations are available for all supported
 	compilers.
@@ -18,8 +24,7 @@
 
 	* calendar/calendar.el (cal-html-cursor-month)
 	(cal-html-cursor-year): Add autoloads for this new package.
-	(calendar-mode-map): Bind cal-html-cursor-month,
-	cal-html-cursor-year.
+	(calendar-mode-map): Bind cal-html-cursor-month, cal-html-cursor-year.
 
 2006-10-28  Anna Bigatti  <bigatti@dima.unige.it>
 

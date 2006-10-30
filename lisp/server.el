@@ -205,12 +205,34 @@ are done with it in the server.")
 	(select-frame frame)))
     ;; If there's no frame on that display yet, create and select one.
     (unless (equal (frame-parameter (selected-frame) 'display) display)
-      (select-frame
-       (make-frame-on-display
-	display
-	;; This frame may be deleted later (see server-process-filter)
-	;; so we want it to be as unobtrusive as possible.
-	'((visibility . nil)))))))
+      (let* ((buffer (generate-new-buffer " *server-dummy*"))
+             (frame (make-frame-on-display
+                     display
+                     ;; Make it display (and remember) some dummy buffer, so
+                     ;; we can detect later if the frame is in use or not.
+                     `((server-dummmy-buffer . ,buffer)
+                       ;; This frame may be deleted later (see
+                       ;; server-unselect-display) so we want it to be as
+                       ;; unobtrusive as possible.
+                       (visibility . nil)))))
+        (select-frame frame)
+        (set-window-buffer (selected-window) buffer)))))
+
+(defun server-unselect-display (frame)
+  ;; If the temporary frame is in use (displays something real), make it
+  ;; visible.  If not (which can happen if the user's customizations call
+  ;; pop-to-buffer etc.), delete it to avoid preserving the connection after
+  ;; the last real frame is deleted.
+  (if (and (eq (frame-first-window frame)
+               (next-window (frame-first-window frame) 'nomini))
+           (eq (window-buffer (frame-first-window frame))
+               (frame-parameter frame 'server-dummy-buffer)))
+      ;; The temp frame still only shows one buffer, and that is the
+      ;; internal temp buffer.
+      (delete-frame frame)
+    (set-frame-parameter frame 'visibility t))
+  (kill-buffer (frame-parameter frame 'server-dummy-buffer))
+  (set-frame-parameter frame 'server-dummy-buffer nil))
 
 (defun server-unquote-arg (arg)
   (replace-regexp-in-string
@@ -379,14 +401,10 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (unless nowait
 	    (message "%s" (substitute-command-keys
 		      "When done with a buffer, type \\[server-edit]")))))
-      ;; If the temporary frame is still the selected frame, make it
-      ;; real.  If not (which can happen if the user's customizations
-      ;; call pop-to-buffer etc.), delete it to avoid preserving the
-      ;; connection after the last real frame is deleted.
-      (if tmp-frame
-	  (if (eq (selected-frame) tmp-frame)
-	      (set-frame-parameter tmp-frame 'visibility t)
-	    (delete-frame tmp-frame)))))
+      (when (frame-live-p tmp-frame)
+        ;; Delete tmp-frame or make it visible depending on whether it's
+        ;; been used or not.
+        (server-unselect-display tmp-frame))))
   ;; Save for later any partial line that remains.
   (when (> (length string) 0)
     (process-put proc 'previous-string string)))
