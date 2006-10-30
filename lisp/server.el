@@ -82,6 +82,40 @@
   "Emacs running as a server process."
   :group 'external)
 
+(defcustom server-use-tcp nil
+  "If non-nil, use TCP sockets instead of local sockets."
+  :set #'(lambda (sym val)
+           (unless (featurep 'make-network-process '(:family local))
+             (setq val t)
+             (unless load-in-progress
+               (message "Local sockets unsupported, using TCP sockets")))
+           (when val (random t))
+           (set-default sym val))
+  :group 'server
+  :type 'boolean
+  :version "22.1")
+
+(defcustom server-host nil
+  "The name or IP address to use as host address of the server process.
+If set, the server accepts remote connections; otherwise it is local."
+  :group 'server
+  :type '(choice
+          (string :tag "Name or IP address")
+          (const :tag "Local" nil))
+  :version "22.1")
+(put 'server-host 'risky-local-variable t)
+
+(defcustom server-auth-dir "~/.emacs.d/server/"
+  "Directory for server authentication files."
+  :group 'server
+  :type 'directory
+  :version "22.1")
+(put 'server-auth-dir 'risky-local-variable t)
+
+(defvar server-auth-key nil
+  "The current server authentication key.")
+(put 'server-auth-key 'risky-local-variable t)
+
 (defcustom server-visit-hook nil
   "*Hook run when visiting a file for the Emacs server."
   :group 'server
@@ -166,13 +200,13 @@ are done with it in the server.")
 
 (defun server-log (string &optional client)
   "If a *server* buffer exists, write STRING to it for logging purposes."
-  (if (get-buffer "*server*")
-      (with-current-buffer "*server*"
-	(goto-char (point-max))
-	(insert (current-time-string)
-		(if client (format " %s:" client) " ")
-		string)
-	(or (bolp) (newline)))))
+  (when (get-buffer "*server*")
+    (with-current-buffer "*server*"
+      (goto-char (point-max))
+      (insert (current-time-string)
+	      (if client (format " %s:" client) " ")
+	      string)
+      (or (bolp) (newline)))))
 
 (defun server-sentinel (proc msg)
   (let ((client (assq proc server-clients)))
@@ -253,11 +287,12 @@ Creates the directory if necessary and makes sure:
   (setq dir (directory-file-name dir))
   (let ((attrs (file-attributes dir)))
     (unless attrs
-      (letf (((default-file-modes) ?\700)) (make-directory dir))
+      (letf (((default-file-modes) ?\700)) (make-directory dir t))
       (setq attrs (file-attributes dir)))
     ;; Check that it's safe for use.
     (unless (and (eq t (car attrs)) (eq (nth 2 attrs) (user-uid))
-		 (zerop (logand ?\077 (file-modes dir))))
+                 (or (eq system-type 'windows-nt)
+                     (zerop (logand ?\077 (file-modes dir)))))
       (error "The directory %s is unsafe" dir))))
 
 ;;;###autoload
@@ -270,13 +305,15 @@ Emacs distribution as your standard \"editor\".
 
 Prefix arg means just kill any existing server communications subprocess."
   (interactive "P")
+  (when server-process
   ;; kill it dead!
-  (if server-process
-      (condition-case () (delete-process server-process) (error nil)))
-  ;; Delete the socket files made by previous server invocations.
-  (condition-case ()
+    (ignore-errors (delete-process server-process))
+    (ignore-errors
+      ;; Delete the socket or authentication files made by previous server invocations.
+      (if (eq (process-contact server-process :family) 'local)
       (delete-file (expand-file-name server-name server-socket-dir))
-    (error nil))
+        (setq server-auth-key nil)
+        (delete-file (expand-file-name server-name server-auth-dir)))))
   ;; If this Emacs already had a server, clear out associated status.
   (while server-clients
     (let ((buffer (nth 1 (car server-clients))))
@@ -284,19 +321,43 @@ Prefix arg means just kill any existing server communications subprocess."
   ;; Now any previous server is properly stopped.
   (unless leave-dead
     ;; Make sure there is a safe directory in which to place the socket.
-    (server-ensure-safe-dir server-socket-dir)
-    (if server-process
+    (server-ensure-safe-dir (if server-use-tcp server-auth-dir server-socket-dir))
+    (when server-process
 	(server-log (message "Restarting server")))
     (letf (((default-file-modes) ?\700))
       (setq server-process
-	    (make-network-process
-	     :name "server" :family 'local :server t :noquery t
-	     :service (expand-file-name server-name server-socket-dir)
-	     :sentinel 'server-sentinel :filter 'server-process-filter
+            (apply #'make-network-process
+                   :name server-name
+                   :server t
+                   :noquery t
+                   :sentinel 'server-sentinel
+                   :filter 'server-process-filter
 	     ;; We must receive file names without being decoded.
 	     ;; Those are decoded by server-process-filter according
 	     ;; to file-name-coding-system.
-	     :coding 'raw-text)))))
+                   :coding 'raw-text
+                   ;; The rest of the arguments depend on the kind of socket used
+                   (if server-use-tcp
+                       (list :family nil
+                             :service t
+                             :host (or server-host 'local)
+                             :plist '(:authenticated nil))
+                     (list :family 'local
+                           :service (expand-file-name server-name server-socket-dir)
+                           :plist '(:authenticated t))))))
+    (unless server-process (error "Could not start server process"))
+    (when server-use-tcp
+      (setq server-auth-key
+	    (loop
+               ;; The auth key is a 64-byte string of random chars in the range `!'..`~'.
+	       for i below 64
+	       collect (+ 33 (random 94)) into auth
+	       finally return (concat auth)))
+      (with-temp-file (expand-file-name server-name server-auth-dir)
+        (set-buffer-multibyte nil)
+        (setq buffer-file-coding-system 'no-conversion)
+        (insert (format-network-address (process-contact server-process :local))
+                "\n" server-auth-key)))))
 
 ;;;###autoload
 (define-minor-mode server-mode
@@ -311,14 +372,26 @@ Server mode runs a process that accepts commands from the
   ;; nothing if there is one (for multiple Emacs sessions)?
   (server-start (not server-mode)))
 
-(defun server-process-filter (proc string)
+(defun* server-process-filter (proc string)
   "Process a request from the server to edit some files.
 PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
+  ;; First things first: let's check the authentication
+  (unless (process-get proc :authenticated)
+    (if (and (string-match "-auth \\(.*?\\)\n" string)
+             (string= (match-string 1 string) server-auth-key))
+        (progn
+          (setq string (substring string (match-end 0)))
+          (process-put proc :authenticated t)
+          (server-log "Authentication successful" proc))
+      (server-log "Authentication failed" proc)
+      (delete-process proc)
+      ;; We return immediately
+      (return-from server-process-filter)))
   (server-log string proc)
-  (let ((prev (process-get proc 'previous-string)))
+  (let ((prev (process-get proc :previous-string)))
     (when prev
       (setq string (concat prev string))
-      (process-put proc 'previous-string nil)))
+      (process-put proc :previous-string nil)))
   ;; If the input is multiple lines,
   ;; process each line individually.
   (while (string-match "\n" string)
@@ -329,7 +402,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  client nowait eval
 	  (files nil)
 	  (lineno 1)
-	  (tmp-frame nil) ; Sometimes used to embody the selected display.
+	  (tmp-frame nil) ;; Sometimes used to embody the selected display.
 	  (columnno 0))
       ;; Remove this line from STRING.
       (setq string (substring string (match-end 0)))
@@ -359,8 +432,8 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	    ;; for certain special characters.
 	    (setq arg (server-unquote-arg arg))
 	    ;; Now decode the file name if necessary.
-	    (if coding-system
-		(setq arg (decode-coding-string arg coding-system)))
+	    (when coding-system
+	      (setq arg (decode-coding-string arg coding-system)))
 	    (if eval
 		(let* (errorp
 		       (v (condition-case errobj
@@ -407,13 +480,13 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
         (server-unselect-display tmp-frame))))
   ;; Save for later any partial line that remains.
   (when (> (length string) 0)
-    (process-put proc 'previous-string string)))
+    (process-put proc :previous-string string)))
 
 (defun server-goto-line-column (file-line-col)
   (goto-line (nth 1 file-line-col))
   (let ((column-number (nth 2 file-line-col)))
-    (if (> column-number 0)
-	(move-to-column (1- column-number)))))
+    (when (> column-number 0)
+      (move-to-column (1- column-number)))))
 
 (defun server-visit-files (files client &optional nowait)
   "Find FILES and return the list CLIENT with the buffers nconc'd.
@@ -485,33 +558,33 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 	  (server-log "Close" (car client))
 	  (setq server-clients (delq client server-clients))))
       (setq old-clients (cdr old-clients)))
-    (if (and (bufferp buffer) (buffer-name buffer))
-	;; We may or may not kill this buffer;
-	;; if we do, do not call server-buffer-done recursively
-	;; from kill-buffer-hook.
-	(let ((server-kill-buffer-running t))
-	  (with-current-buffer buffer
-	    (setq server-buffer-clients nil)
-	    (run-hooks 'server-done-hook))
-	  ;; Notice whether server-done-hook killed the buffer.
-	  (if (null (buffer-name buffer))
+    (when (and (bufferp buffer) (buffer-name buffer))
+      ;; We may or may not kill this buffer;
+      ;; if we do, do not call server-buffer-done recursively
+      ;; from kill-buffer-hook.
+      (let ((server-kill-buffer-running t))
+	(with-current-buffer buffer
+	  (setq server-buffer-clients nil)
+	  (run-hooks 'server-done-hook))
+	;; Notice whether server-done-hook killed the buffer.
+	(if (null (buffer-name buffer))
+	    (setq killed t)
+	  ;; Don't bother killing or burying the buffer
+	  ;; when we are called from kill-buffer.
+	  (unless for-killing
+	    (when (and (not killed)
+		       server-kill-new-buffers
+		       (with-current-buffer buffer
+			 (not server-existing-buffer)))
 	      (setq killed t)
-	    ;; Don't bother killing or burying the buffer
-	    ;; when we are called from kill-buffer.
-	    (unless for-killing
-	      (when (and (not killed)
-			 server-kill-new-buffers
-			 (with-current-buffer buffer
-			   (not server-existing-buffer)))
-		(setq killed t)
-		(bury-buffer buffer)
-		(kill-buffer buffer))
-	      (unless killed
-		(if (server-temp-file-p buffer)
-		    (progn
-		      (kill-buffer buffer)
-		      (setq killed t))
-		  (bury-buffer buffer)))))))
+	      (bury-buffer buffer)
+	      (kill-buffer buffer))
+	    (unless killed
+	      (if (server-temp-file-p buffer)
+		  (progn
+		    (kill-buffer buffer)
+		    (setq killed t))
+		(bury-buffer buffer)))))))
     (list next-buffer killed)))
 
 (defun server-temp-file-p (&optional buffer)
@@ -538,10 +611,10 @@ specifically for the clients and did not exist before their request for it."
 	(let ((version-control nil)
 	      (buffer-backed-up nil))
 	  (save-buffer))
-      (if (and (buffer-modified-p)
-	       buffer-file-name
-	       (y-or-n-p (concat "Save file " buffer-file-name "? ")))
-	  (save-buffer)))
+      (when (and (buffer-modified-p)
+		 buffer-file-name
+		 (y-or-n-p (concat "Save file " buffer-file-name "? ")))
+	(save-buffer)))
     (server-buffer-done (current-buffer))))
 
 ;; Ask before killing a server buffer.
@@ -561,8 +634,8 @@ specifically for the clients and did not exist before their request for it."
 	(tail server-clients))
     ;; See if any clients have any buffers that are still alive.
     (while tail
-      (if (memq t (mapcar 'stringp (mapcar 'buffer-name (cdr (car tail)))))
-	  (setq live-client t))
+      (when (memq t (mapcar 'stringp (mapcar 'buffer-name (cdr (car tail)))))
+	(setq live-client t))
       (setq tail (cdr tail)))
     (or (not live-client)
 	(yes-or-no-p "Server buffers still have clients; exit anyway? "))))
@@ -628,8 +701,8 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	  (if (and win (not server-window))
 	      ;; The buffer is already displayed: just reuse the window.
 	      (let ((frame (window-frame win)))
-		(if (eq (frame-visible-p frame) 'icon)
-		    (raise-frame frame))
+		(when (eq (frame-visible-p frame) 'icon)
+		  (raise-frame frame))
 		(select-window win)
 		(set-buffer next-buffer))
 	    ;; Otherwise, let's find an appropriate window.
@@ -637,11 +710,11 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 			(window-live-p server-window))
 		   (select-window server-window))
 		  ((framep server-window)
-		   (if (not (frame-live-p server-window))
-		       (setq server-window (make-frame)))
+		   (unless (frame-live-p server-window)
+		     (setq server-window (make-frame)))
 		   (select-window (frame-selected-window server-window))))
-	    (if (window-minibuffer-p (selected-window))
-		(select-window (next-window nil 'nomini 0)))
+	    (when (window-minibuffer-p (selected-window))
+	      (select-window (next-window nil 'nomini 0)))
 	    ;; Move to a non-dedicated window, if we have one.
 	    (when (window-dedicated-p (selected-window))
 	      (select-window
