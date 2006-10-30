@@ -1,3 +1,13 @@
+2006-10-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-util.el (mm-codepage-iso-8859-list, mm-codepage-ibm-list): New
+	variables.
+	(mm-setup-codepage-iso-8859, mm-setup-codepage-ibm): New functions.
+	(mm-charset-synonym-alist): Move some entries to
+	mm-codepage-iso-8859-list.
+	(mm-charset-synonym-alist, mm-charset-override-alist): Add
+	iso-8859-8/windows-1255 and iso-8859-9/windows-1254.
+
 2006-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-set-mode-line): Quote % in group name.

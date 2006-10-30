@@ -205,39 +205,140 @@ the alias.  Else windows-NUMBER is used."
     ;; Not in XEmacs, but it's not a proper MIME charset anyhow.
     ,@(unless (mm-coding-system-p 'x-ctext)
 	'((x-ctext . ctext)))
-    ;; ISO-8859-15 is very similar to ISO-8859-1.  But it's _different_!
+    ;; ISO-8859-15 is very similar to ISO-8859-1.  But it's _different_ in 8
+    ;; positions!
     ,@(unless (mm-coding-system-p 'iso-8859-15)
 	'((iso-8859-15 . iso-8859-1)))
     ;; BIG-5HKSCS is similar to, but different than, BIG-5.
     ,@(unless (mm-coding-system-p 'big5-hkscs)
 	'((big5-hkscs . big5)))
-    ;; Windows-1252 is actually a superset of Latin-1.  See also
-    ;; `gnus-article-dumbquotes-map'.
-    ,@(unless (mm-coding-system-p 'windows-1252)
-	(if (mm-coding-system-p 'cp1252)
-	    '((windows-1252 . cp1252))
-	  '((windows-1252 . iso-8859-1))))
-    ;; Windows-1250 is a variant of Latin-2 heavily used by Microsoft
-    ;; Outlook users in Czech republic. Use this to allow reading of their
-    ;; e-mails. cp1250 should be defined by M-x codepage-setup.
-    ,@(if (and (not (mm-coding-system-p 'windows-1250))
-	       (mm-coding-system-p 'cp1250))
-	  '((windows-1250 . cp1250)))
     ;; A Microsoft misunderstanding.
-    ,@(if (and (not (mm-coding-system-p 'unicode))
-	       (mm-coding-system-p 'utf-16-le))
-	  '((unicode . utf-16-le)))
+    ,@(when (and (not (mm-coding-system-p 'unicode))
+		 (mm-coding-system-p 'utf-16-le))
+	'((unicode . utf-16-le)))
     ;; A Microsoft misunderstanding.
     ,@(unless (mm-coding-system-p 'ks_c_5601-1987)
 	(if (mm-coding-system-p 'cp949)
 	    '((ks_c_5601-1987 . cp949))
 	  '((ks_c_5601-1987 . euc-kr))))
     ;; Windows-31J is Windows Codepage 932.
-    ,@(if (and (not (mm-coding-system-p 'windows-31j))
-	       (mm-coding-system-p 'cp932))
-	  '((windows-31j . cp932)))
+    ,@(when (and (not (mm-coding-system-p 'windows-31j))
+		 (mm-coding-system-p 'cp932))
+	'((windows-31j . cp932)))
     )
-  "A mapping from unknown or invalid charset names to the real charset names.")
+  "A mapping from unknown or invalid charset names to the real charset names.
+
+See `mm-codepage-iso-8859-list' and `mm-codepage-ibm-list'.")
+
+(defcustom mm-codepage-iso-8859-list
+  (list 1250 ;; Windows-1250 is a variant of Latin-2 heavily used by Microsoft
+	;; Outlook users in Czech republic.  Use this to allow reading of
+	;; their e-mails.  cp1250 should be defined by M-x codepage-setup
+	;; (Emacs 21).
+	'(1252 . 1) ;; Windows-1252 is a superset of iso-8859-1 (West
+	            ;; Europe).  See also `gnus-article-dumbquotes-map'.
+	'(1254 . 9) ;; Windows-1254 is a superset of iso-8859-9 (Turkish).
+	'(1255 . 8));; Windows-1255 is a superset of iso-8859-8 (Hebrew).
+  "A list of Windows codepage numbers and iso-8859 charset numbers.
+
+If an element is a number corresponding to a supported windows
+codepage, appropriate entries to `mm-charset-synonym-alist' are
+added by `mm-setup-codepage-iso-8859'.  An element may also be a
+cons cell where the car is a codepage number and the cdr is the
+corresponding number of an iso-8859 charset."
+  :type '(list (set :inline t
+		    (const 1250 :tag "Central and East European")
+		    (const (1252 . 1) :tag "West European")
+		    (const (1254 . 9) :tag "Turkish")
+		    (const (1255 . 8) :tag "Hebrew"))
+	       (repeat :inline t
+		       :tag "Other options"
+		       (choice
+			(integer :tag "Windows codepage number")
+			(cons (integer :tag "Windows codepage number")
+			      (integer :tag "iso-8859 charset  number")))))
+  :version "22.1" ;; Gnus 5.10.9
+  :group 'mime)
+
+(defcustom mm-codepage-ibm-list
+  (list 437 ;; (US etc.)
+	860 ;; (Portugal)
+	861 ;; (Iceland)
+	862 ;; (Israel)
+	863 ;; (Canadian French)
+	865 ;; (Nordic)
+	852 ;;
+	850 ;; (Latin 1)
+	855 ;; (Cyrillic)
+	866 ;; (Cyrillic - Russian)
+	857 ;; (Turkish)
+	864 ;; (Arabic)
+	869 ;; (Greek)
+	874);; (Thai)
+  ;; In Emacs 23 (unicode), cp... and ibm... are aliases.
+  ;; Cf. http://thread.gmane.org/v9lkng5nwy.fsf@marauder.physik.uni-ulm.de
+  "List of IBM codepage numbers.
+
+The codepage mappings slighly differ between IBM and other vendors.
+See \"ftp://ftp.unicode.org/Public/MAPPINGS/VENDORS/IBM/README.TXT\".
+
+If an element is a number corresponding to a supported windows
+codepage, appropriate entries to `mm-charset-synonym-alist' are
+added by `mm-setup-codepage-ibm'."
+  :type '(list (set :inline t
+		    (const 437 :tag "US etc.")
+		    (const 860 :tag "Portugal")
+		    (const 861 :tag "Iceland")
+		    (const 862 :tag "Israel")
+		    (const 863 :tag "Canadian French")
+		    (const 865 :tag "Nordic")
+		    (const 852)
+		    (const 850 :tag "Latin 1")
+		    (const 855 :tag "Cyrillic")
+		    (const 866 :tag "Cyrillic - Russian")
+		    (const 857 :tag "Turkish")
+		    (const 864 :tag "Arabic")
+		    (const 869 :tag "Greek")
+		    (const 874 :tag "Thai"))
+	       (repeat :inline t
+		       :tag "Other options"
+		       (integer :tag "Codepage number")))
+  :version "22.1" ;; Gnus 5.10.9
+  :group 'mime)
+
+(defun mm-setup-codepage-iso-8859 (&optional list)
+  "Add appropriate entries to `mm-charset-synonym-alist'.
+Unless LIST is given, `mm-codepage-iso-8859-list' is used."
+  (unless list
+    (setq list mm-codepage-iso-8859-list))
+  (dolist (i list)
+    (let (cp windows iso)
+      (if (consp i)
+	  (setq cp (intern (format "cp%d" (car i)))
+		windows (intern (format "windows-%d" (car i)))
+		iso (intern (format "iso-8859-%d" (cdr i))))
+	(setq cp (intern (format "cp%d" i))
+	      windows (intern (format "windows-%d" i))))
+      (unless (mm-coding-system-p windows)
+	(if (mm-coding-system-p cp)
+	    (add-to-list 'mm-charset-synonym-alist (cons windows cp))
+	  (add-to-list 'mm-charset-synonym-alist (cons windows iso)))))))
+
+(defun mm-setup-codepage-ibm (&optional list)
+  "Add appropriate entries to `mm-charset-synonym-alist'.
+Unless LIST is given, `mm-codepage-ibm-list' is used."
+  (unless list
+    (setq list mm-codepage-ibm-list))
+  (dolist (number list)
+    (let ((ibm (intern (format "ibm%d" number)))
+	  (cp  (intern (format "cp%d" number))))
+      (when (and (not (mm-coding-system-p ibm))
+		 (mm-coding-system-p cp))
+	(add-to-list 'mm-charset-synonym-alist (cons ibm cp))))))
+
+;; Initialize:
+(mm-setup-codepage-iso-8859)
+(mm-setup-codepage-ibm)
 
 (defcustom mm-charset-override-alist
   `((iso-8859-1 . windows-1252))
