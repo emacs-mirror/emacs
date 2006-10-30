@@ -35,72 +35,6 @@
 
 (require 'help-mode)
 
-
-;;;###autoload
-(defun help-with-tutorial (&optional arg)
-  "Select the Emacs learn-by-doing tutorial.
-If there is a tutorial version written in the language
-of the selected language environment, that version is used.
-If there's no tutorial in that language, `TUTORIAL' is selected.
-With ARG, you are asked to choose which language."
-  (interactive "P")
-  (let ((lang (if arg
-                  (let ((minibuffer-setup-hook minibuffer-setup-hook))
-                    (add-hook 'minibuffer-setup-hook
-                              'minibuffer-completion-help)
-                    (read-language-name 'tutorial "Language: " "English"))
-		(if (get-language-info current-language-environment 'tutorial)
-		    current-language-environment
-		  "English")))
-	file filename)
-    (setq filename (get-language-info lang 'tutorial))
-    (setq file (expand-file-name (concat "~/" filename)))
-    (delete-other-windows)
-    (if (get-file-buffer file)
-	(switch-to-buffer (get-file-buffer file))
-      (switch-to-buffer (create-file-buffer file))
-      (setq buffer-file-name file)
-      (setq default-directory (expand-file-name "~/"))
-      (setq buffer-auto-save-file-name nil)
-      (insert-file-contents (expand-file-name filename data-directory))
-      (hack-local-variables)
-      (goto-char (point-min))
-      (search-forward "\n<<")
-      (beginning-of-line)
-      ;; Convert the <<...>> line to the proper [...] line,
-      ;; or just delete the <<...>> line if a [...] line follows.
-      (cond ((save-excursion
-	       (forward-line 1)
-	       (looking-at "\\["))
-	     (delete-region (point) (progn (forward-line 1) (point))))
-	    ((looking-at "<<Blank lines inserted.*>>")
-	     (replace-match "[Middle of page left blank for didactic purposes.   Text continues below]"))
-	    (t
-	     (looking-at "<<")
-	     (replace-match "[")
-	     (search-forward ">>")
-	     (replace-match "]")))
-      (beginning-of-line)
-      (let ((n (- (window-height (selected-window))
-		  (count-lines (point-min) (point))
-		  6)))
-	(if (< n 8)
-	    (progn
-	      ;; For a short gap, we don't need the [...] line,
-	      ;; so delete it.
-	      (delete-region (point) (progn (end-of-line) (point)))
-	      (newline n))
-	  ;; Some people get confused by the large gap.
-	  (newline (/ n 2))
-
-	  ;; Skip the [...] line (don't delete it).
-	  (forward-line 1)
-	  (newline (- n (/ n 2)))))
-      (goto-char (point-min))
-      (setq buffer-undo-list nil)
-      (set-buffer-modified-p nil))))
-
-
 ;; Functions
 
 ;;;###autoload

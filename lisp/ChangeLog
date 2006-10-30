@@ -1,3 +1,16 @@
+2006-10-30  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* help-fns.el (help-with-tutorial): Moved to tutorial.el.
+
+	* tutorial.el: New file.
+	(help-with-tutorial): Moved here from help-fns.el. Added help for
+	rebound keys.  Fixed resume of tutorial.
+	(tutorial--describe-nonstandard-key, tutorial--sort-keys)
+	(tutorial--find-changed-keys, tutorial--display-changes)
+	(tutorial--saved-dir, tutorial--saved-file)
+	(tutorial--save-tutorial): New functions to support the changes in
+	help-with-tutorial.
+
 2006-10-30  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (revert-buffer): If a unibyte buffer is being reverted
