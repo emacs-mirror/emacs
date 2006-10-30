@@ -1,3 +1,9 @@
+2006-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (revert-buffer): If a unibyte buffer is being reverted
+	with a coding system for multibyte, set buffer multibyte before
+	calling insert-file-contents.
+
 2006-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-select-display): Use a dummy buffer to detect when
