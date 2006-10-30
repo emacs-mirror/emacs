@@ -1,3 +1,11 @@
+2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tutorial.el: Move defvars to avoid bytecomp warnings.
+	(tutorial--find-changed-keys): Check if viper-current-state is
+	bound before using it.
+	(help-with-tutorial): Check if viper-tutorial is defined before
+	using it.
+
 2006-10-30  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* help-fns.el (help-with-tutorial): Moved to tutorial.el.
