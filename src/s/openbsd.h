@@ -23,7 +23,7 @@
 
 /*  Han Boetes <han@mijncomputer.nl> says this
     is necessary,  otherwise Emacs dumps core on elf systems.  */
-#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp -Z
+#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp -Z -L/usr/pkg/lib -L/usr/local/lib
 
 #else
 

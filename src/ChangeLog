@@ -1,3 +1,8 @@
+2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* s/openbsd.h (LD_SWITCH_SYSTEM): Add /usr/pkg/lib and
+	/usr/pkg/lib to library search path.
+
 2006-10-29  Mark Davies  <mark@mcs.vuw.ac.nz> (tiny change)
 
 	* ralloc.c (relinquish): Use a long for excess space counter to
