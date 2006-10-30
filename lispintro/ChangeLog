@@ -1,3 +1,10 @@
+2006-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in: Use relative paths to avoid advertising filesystem
+	contents during compilation.
+
+	* makefile.w32-in: Likewise.
+
 2006-08-21  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi: deleted in directory copy of texinfo.tex

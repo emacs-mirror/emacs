@@ -445,12 +445,8 @@ Font for POD headers."
 ;;; Some double-evaluation happened with font-locks...  Needed with 21.2...
 (defvar cperl-singly-quote-face cperl-xemacs-p)
 
-(defcustom cperl-invalid-face		; Does not customize with '' on XEmacs
-  (if cperl-singly-quote-face
-      'underline ''underline) ; On older Emacsen was evaluated by `font-lock'
-  (if cperl-singly-quote-face
-      "*This face is used for highlighting trailing whitespace."
-    "*Face for highlighting trailing whitespace.")
+(defcustom cperl-invalid-face 'underline
+  "*Face for highlighting trailing whitespace."
   :type 'face
   :version "21.1"
   :group 'cperl-faces)
@@ -1835,7 +1831,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (if (boundp 'font-lock-multiline)	; Newer font-lock; use its facilities
       (progn
 	(setq cperl-font-lock-multiline t) ; Not localized...
-	(set 'font-lock-multiline t)) ; not present with old Emacs; auto-local
+	(set (make-local-variable 'font-lock-multiline) t))
     (make-local-variable 'font-lock-fontify-region-function)
     (set 'font-lock-fontify-region-function ; not present with old Emacs
 	 'cperl-font-lock-fontify-region-function))
@@ -5708,19 +5704,22 @@ indentation and initial hashes.  Behaves usually outside of comment."
 
 (defun cperl-windowed-init ()
   "Initialization under windowed version."
-  (if (or (featurep 'ps-print) cperl-faces-init)
-      ;; Need to init anyway:
-      (or cperl-faces-init (cperl-init-faces))
-    (add-hook 'font-lock-mode-hook
-	      (function
-	       (lambda ()
-		 (if (memq major-mode '(perl-mode cperl-mode))
-		     (progn
-		       (or cperl-faces-init (cperl-init-faces)))))))
-    (if (fboundp 'eval-after-load)
-	(eval-after-load
-	    "ps-print"
-	  '(or cperl-faces-init (cperl-init-faces))))))
+  (cond ((featurep 'ps-print)
+	 (unless cperl-faces-init
+	   (if (boundp 'font-lock-multiline)
+	       (setq cperl-font-lock-multiline t))
+	   (cperl-init-faces)))
+	((not cperl-faces-init)
+	 (add-hook 'font-lock-mode-hook
+		   (function
+		    (lambda ()
+		      (if (memq major-mode '(perl-mode cperl-mode))
+			  (progn
+			    (or cperl-faces-init (cperl-init-faces)))))))
+	 (if (fboundp 'eval-after-load)
+	     (eval-after-load
+		 "ps-print"
+	       '(or cperl-faces-init (cperl-init-faces)))))))
 
 (defvar cperl-font-lock-keywords-1 nil
   "Additional expressions to highlight in Perl mode.  Minimal set.")

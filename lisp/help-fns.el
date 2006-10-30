@@ -383,35 +383,40 @@ face (according to `face-differs-from-default-p')."
     (princ ".")
     (terpri)
     (when (commandp function)
-      (let* ((remapped (command-remapping function))
-	     (keys (where-is-internal
-		    (or remapped function) overriding-local-map nil nil))
-	     non-modified-keys)
-	;; Which non-control non-meta keys run this command?
-	(dolist (key keys)
-	  (if (member (event-modifiers (aref key 0)) '(nil (shift)))
-	      (push key non-modified-keys)))
-	(when remapped
-	  (princ "It is remapped to `")
-	  (princ (symbol-name remapped))
-	  (princ "'"))
+      (if (and (eq function 'self-insert-command)
+	       (eq (key-binding "a") 'self-insert-command)
+	       (eq (key-binding "b") 'self-insert-command)
+	       (eq (key-binding "c") 'self-insert-command))
+	  (princ "It is bound to many ordinary text characters.\n")
+	(let* ((remapped (command-remapping function))
+	       (keys (where-is-internal
+		      (or remapped function) overriding-local-map nil nil))
+	       non-modified-keys)
+	  ;; Which non-control non-meta keys run this command?
+	  (dolist (key keys)
+	    (if (member (event-modifiers (aref key 0)) '(nil (shift)))
+		(push key non-modified-keys)))
+	  (when remapped
+	    (princ "It is remapped to `")
+	    (princ (symbol-name remapped))
+	    (princ "'"))
 
-	(when keys
-	  (princ (if remapped " which is bound to " "It is bound to "))
-	  ;; FIXME: This list can be very long (f.ex. for self-insert-command).
-	  ;; If there are many, remove them from KEYS.
-	  (if (< (length non-modified-keys) 10)
-	      (princ (mapconcat 'key-description keys ", "))
-	    (dolist (key non-modified-keys)
-	      (setq keys (delq key keys)))
-	    (if keys
-		(progn
-		  (princ (mapconcat 'key-description keys ", "))
-		  (princ ", and many ordinary text characters"))
-	      (princ "many ordinary text characters"))))
-	(when (or remapped keys non-modified-keys)
-	  (princ ".")
-	  (terpri))))
+	  (when keys
+	    (princ (if remapped " which is bound to " "It is bound to "))
+	    ;; If lots of ordinary text characters run this command,
+	    ;; don't mention them one by one.
+	    (if (< (length non-modified-keys) 10)
+		(princ (mapconcat 'key-description keys ", "))
+	      (dolist (key non-modified-keys)
+		(setq keys (delq key keys)))
+	      (if keys
+		  (progn
+		    (princ (mapconcat 'key-description keys ", "))
+		    (princ ", and many ordinary text characters"))
+		(princ "many ordinary text characters"))))
+	  (when (or remapped keys non-modified-keys)
+	    (princ ".")
+	    (terpri)))))
     (let* ((arglist (help-function-arglist def))
 	   (doc (documentation function))
 	   (usage (help-split-fundoc doc function)))

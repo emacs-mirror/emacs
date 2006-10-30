@@ -1,3 +1,34 @@
+2006-10-29  Magnus Henoch  <mange@freemail.hu>
+
+	* url-gw.el (url-open-stream): Really use asynchronous
+	connections (accidentally disabled during debugging).
+
+2006-10-28  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-parse-headers): Fix misplaced paren.
+
+2006-10-27  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-mark-connection-as-free): Verify that
+	connection is open before saving it.
+	(url-http-handle-authentication): Use url-retrieve-internal
+	instead of url-retrieve.
+	(url-http-parse-headers): Adapt to new callback interface.
+	(url-http): Handle non-blocking connections.
+	(url-http-async-sentinel): Create.
+
+	* url.el (url-retrieve): Update docstring for new callback interface.
+	Remove all code.
+	(url-retrieve-internal): Move code from url-retrieve here.
+
+	* url-gw.el (url-open-stream): Use a non-blocking socket for
+	`native' gateway method, if available.
+
+2006-10-16  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-https-create-secure-wrapper): Always use tls
+	gateway method.
+
 2006-10-12  Magnus Henoch  <mange@freemail.hu>
 
 	* url-http.el (url-http-find-free-connection): Handle

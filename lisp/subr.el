@@ -1100,13 +1100,19 @@ until a certain package is loaded, you should put the call to `add-to-list'
 into a hook function that will be run only after loading the package.
 `eval-after-load' provides one way to do this.  In some cases
 other hooks, such as major mode hooks, can do the job."
-  (if (if compare-fn
-	  (let (present)
-	    (dolist (elt (symbol-value list-var))
-	      (if (funcall compare-fn element elt)
-		  (setq present t)))
-	    present)
+  (if (cond
+       ((null compare-fn)
 	(member element (symbol-value list-var)))
+       ((eq compare-fn 'eq)
+	(memq element (symbol-value list-var)))
+       ((eq compare-fn 'eql)
+	(memql element (symbol-value list-var)))
+       (t
+	(let (present)
+	  (dolist (elt (symbol-value list-var))
+	    (if (funcall compare-fn element elt)
+		(setq present t)))
+	  present)))
       (symbol-value list-var)
     (set list-var
 	 (if append
@@ -1752,8 +1758,14 @@ floating point support.
     (or nodisp (redisplay))
     (let ((read (read-event nil nil seconds)))
       (or (null read)
-	  (progn (push read unread-command-events)
-		 nil))))))
+	  (progn
+	    ;; If last command was a prefix arg, e.g. C-u, push this event onto
+	    ;; unread-command-events as (t . EVENT) so it will be added to
+	    ;; this-command-keys by read-key-sequence.
+	    (if (eq overriding-terminal-local-map universal-argument-map)
+		(setq read (cons t read)))
+	    (push read unread-command-events)
+	    nil))))))
 
 ;;; Atomic change groups.
 
@@ -2195,6 +2207,12 @@ If UNDO is present and non-nil, it is a function that will be called
 
     (unless (nth 2 handler) ;; NOEXCLUDE
       (remove-yank-excluded-properties opoint (point)))
+
+    ;; If last inserted char has properties, mark them as rear-nonsticky.
+    (if (and (> end opoint)
+	     (text-properties-at (1- end)))
+	(put-text-property (1- end) end 'rear-nonsticky t))
+
     (if (eq yank-undo-function t)  ;; not set by FUNCTION
 	(setq yank-undo-function (nth 3 handler))) ;; UNDO
     (if (nth 4 handler) ;; COMMAND

@@ -6560,7 +6560,7 @@ anchoring position to indent the line in that case.
 (defun my-c-initialization-hook ()
   (define-key c-mode-base-map "\C-m" 'c-context-line-break)
   (define-key c-mode-base-map [?\C-\M-a] 'c-beginning-of-defun)
-  (define-key c-mode-base-map [?\C-\M-e] 'c-end-of-defun)
+  (define-key c-mode-base-map [?\C-\M-e] 'c-end-of-defun))
 (add-hook 'c-initialization-hook 'my-c-initialization-hook)
 
 ;; offset customizations not in my-c-style

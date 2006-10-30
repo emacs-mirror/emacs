@@ -97,12 +97,12 @@ Root must be the root of an Emacs source tree."
 	 (comma-version
 	  (concat (car version-components) ","
 		  (cadr version-components) ","
-		  (cadr (cdr version-components)) "," 
+		  (cadr (cdr version-components)) ","
 		  (cadr (cdr (cdr version-components)))))
 	 (comma-space-version
 	  (concat (car version-components) ", "
 		  (cadr version-components) ", "
-		  (cadr (cdr version-components)) ", " 
+		  (cadr (cdr version-components)) ", "
 		  (cadr (cdr (cdr version-components))))))
     (set-version-in-file root "nt/emacs.rc" comma-version
 			 (rx (and "FILEVERSION" (1+ space)
@@ -116,7 +116,43 @@ Root must be the root of an Emacs source tree."
     (set-version-in-file root "nt/emacs.rc" comma-space-version
 			 (rx (and "\"ProductVersion\"" (0+ space) ?,
 				  (0+ space) ?\" (submatch (1+ (in "0-9, ")))
-				  "\\0\"")))))
+				  "\\0\"")))
+    ;; Some files in the "mac" subdirectory also contain the version
+    ;; number.
+    (set-version-in-file
+     root "mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings"
+     version (rx (and "CFBundleShortVersionString" (0+ space) ?= (0+ space) ?\"
+		      (submatch (1+ (in "0-9."))))))
+    (set-version-in-file
+     root "mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings"
+     version (rx (and "CFBundleGetInfoString" (0+ space) ?= (0+ space) ?\"
+		      (submatch (1+ (in "0-9."))))))
+    (set-version-in-file root "mac/src/Emacs.r" (car version-components)
+			 (rx (and "GNU Emacs " (submatch (1+ (in "0-9")))
+				  " for Mac OS")))
+    (set-version-in-file root "mac/src/Emacs.r" (car version-components)
+			 (rx (and (submatch (1+ (in "0-9"))) (0+ space) ?\,
+				  (0+ space) "/* Major revision in BCD */")))
+    (set-version-in-file root "mac/src/Emacs.r" (cadr version-components)
+			 (rx (and (submatch (1+ (in "0-9"))) (0+ space) ?\,
+				  (0+ space) "/* Minor revision in BCD */")))
+    (set-version-in-file root "mac/src/Emacs.r" (cadr (cdr version-components))
+			 (rx (and (submatch (1+ (in "0-9"))) (0+ space) ?\,
+				  (0+ space) "/* Non-final release # */")))
+    (set-version-in-file root "mac/src/Emacs.r" version
+			 (rx (and (submatch (1+ (in "0-9."))) (0+ space) ?\" ?\,
+				  (0+ space) "/* Short version number */")))
+    (set-version-in-file root "mac/src/Emacs.r" version
+			 (rx (and "/* Short version number */" (0+ space) ?\"
+				  (submatch (1+ (in "0-9."))))))
+    (let* ((third-component (string-to-number (cadr (cdr version-components))))
+	   (release (cond ((>= third-component 90) "alpha")
+			  ((>= third-component 50) "development")
+			  (t "final"))))
+      (set-version-in-file
+       root "mac/src/Emacs.r" release
+       (rx (and (submatch (1+ (in "a-z"))) (0+ space) ?\, (0+ space)
+		"/* development, alpha, beta, or final (release) */"))))))
 
 ;;; arch-tag: 4ea83636-2293-408b-884e-ad64f22a3bf5
 ;; admin.el ends here.

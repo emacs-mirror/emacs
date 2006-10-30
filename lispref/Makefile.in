@@ -26,7 +26,7 @@ srcdir = @srcdir@
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
-infodir = $(srcdir)/../info
+infodir = ../info
 usermanualdir = $(srcdir)/../man
 
 TEXI2DVI = texi2dvi
@@ -101,7 +101,7 @@ srcs = \
 info: $(infodir)/elisp
 
 $(infodir)/elisp: $(srcs)
-	$(MAKEINFO) -I. -I$(srcdir) $(srcdir)/elisp.texi -o $(infodir)/elisp
+	cd $(srcdir); $(MAKEINFO) -I. -I$(infodir) elisp.texi -o $(infodir)/elisp
 
 elisp.dvi: $(srcs)
 	$(TEXI2DVI) -I $(srcdir) -I $(usermanualdir) $(srcdir)/elisp.texi

@@ -1450,7 +1450,9 @@ arguments to `skip-chars-forward'."
       (condition-case nil
 	  (let ((res
 		 (apply 'call-process ediff-cmp-program nil nil nil
-			(append ediff-cmp-options (list f1 f2)))))
+			(append ediff-cmp-options (list (expand-file-name f1)
+							(expand-file-name f2))))
+		 ))
 	    (and (numberp res) (eq res 0)))
 	(error (format "Cannot execute program %S." ediff-cmp-program)))
     ))

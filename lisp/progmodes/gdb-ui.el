@@ -2048,7 +2048,6 @@ static char *magick[] = {
 		      (or gdb-stack-position
 			  (setq gdb-stack-position (make-marker)))
 		      (set-marker gdb-stack-position (point)))
-		  (set-marker gdb-stack-position nil)
 		  (put-text-property bl (+ bl 4)
 				     'face '(:inverse-video t))))
 	      (when (re-search-forward

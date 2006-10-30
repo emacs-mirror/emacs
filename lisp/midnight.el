@@ -75,9 +75,9 @@ call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
     (list 1st (floor (- num (* (float div) 1st)))
           (round (* 10000000 (mod num 1))))))
 
-(defun midnight-buffer-display-time (&optional buf)
-  "Return the time-stamp of the given buffer, or current buffer, as float."
-  (with-current-buffer (or buf (current-buffer))
+(defun midnight-buffer-display-time (&optional buffer)
+  "Return the time-stamp of BUFFER, or current buffer, as float."
+  (with-current-buffer (or buffer (current-buffer))
     (when buffer-display-time (float-time buffer-display-time))))
 
 ;;; clean-buffer-list stuff
@@ -128,7 +128,7 @@ See also `clean-buffer-list-kill-regexps',
   :group 'midnight)
 
 (defcustom clean-buffer-list-kill-never-buffer-names
-    '("*scratch*" "*Messages*")
+    '("*scratch*" "*Messages*" "*server*")
   "*List of buffer names which will never be killed by `clean-buffer-list'.
 See also `clean-buffer-list-kill-never-regexps'.
 Note that this does override `clean-buffer-list-kill-regexps' and
@@ -136,7 +136,6 @@ Note that this does override `clean-buffer-list-kill-regexps' and
 two lists will NOT be killed if it is also present in this list."
   :type '(repeat (string :tag "Buffer Name"))
   :group 'midnight)
-
 
 (defcustom clean-buffer-list-kill-never-regexps '("^ \\*Minibuf-.*\\*$")
   "*List of regexp saying which buffers will never be killed at midnight.

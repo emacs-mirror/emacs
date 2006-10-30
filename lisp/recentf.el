@@ -1318,9 +1318,7 @@ With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled.
 
 When recentf mode is enabled, it maintains a menu for visiting files
-that were operated on recently.
-
-\\{recentf-mode-map}"
+that were operated on recently."
   :global t
   :group 'recentf
   :keymap recentf-mode-map
