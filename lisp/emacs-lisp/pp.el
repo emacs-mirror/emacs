@@ -97,13 +97,16 @@ Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
 
 ;;;###autoload
-(defun pp-eval-expression (expression)
-  "Evaluate EXPRESSION and pretty-print value into a new display buffer.
-If the pretty-printed value fits on one line, the message line is used
-instead.  The value is also consed onto the front of the list
-in the variable `values'."
-  (interactive "xPp-eval: ")
-  (setq values (cons (eval expression) values))
+(defun pp-eval-expression (expval)
+  "Evaluate an expression, then pretty-print value EXPVAL into a new buffer.
+If pretty-printed EXPVAL fits on one line, display it in the echo
+area instead.  Also add EXPVAL to the front of the list
+in the variable `values'.
+
+Non-interactively, the argument is the value, EXPVAL, not the expression
+to evaluate."
+  (interactive "XPp-eval: ")
+  (setq values (cons expval values))
   (let* ((old-show-function temp-buffer-show-function)
 	 ;; Use this function to display the buffer.
 	 ;; This function either decides not to display it at all

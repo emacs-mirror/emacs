@@ -113,6 +113,9 @@ the regular expression `comint-prompt-regexp', a buffer local variable."
 (defvar inferior-octave-complete-impossible nil
   "Non-nil means that `inferior-octave-complete' is impossible.")
 
+(defvar inferior-octave-has-built-in-variables nil
+  "Non-nil means that Octave has built-in variables.")
+
 (defvar inferior-octave-dynamic-complete-functions
   '(inferior-octave-complete comint-dynamic-complete-filename)
   "List of functions called to perform completion for inferior Octave.
@@ -218,11 +221,20 @@ startup file, `~/.emacs-octave'."
 		   'identity inferior-octave-output-list "\n")
 		  "\n"))))
 
+     ;; Find out whether Octave has built-in variables.
+     (inferior-octave-send-list-and-digest
+      (list "exist \"LOADPATH\"\n"))
+     (setq inferior-octave-has-built-in-variables
+ 	  (string-match "101$" (car inferior-octave-output-list)))
+
     ;; An empty secondary prompt, as e.g. obtained by '--braindead',
     ;; means trouble.
     (inferior-octave-send-list-and-digest (list "PS2\n"))
-    (if (string-match "^PS2 = *$" (car inferior-octave-output-list))
-	(inferior-octave-send-list-and-digest (list "PS2 = \"> \"\n")))
+    (if (string-match "\\(PS2\\|ans\\) = *$" (car inferior-octave-output-list))
+ 	(inferior-octave-send-list-and-digest
+ 	 (list (if inferior-octave-has-built-in-variables
+ 		   "PS2 = \"> \"\n"
+ 		 "PS2 (\"> \");\n"))))
 
     ;; O.k., now we are ready for the Inferior Octave startup commands.
     (let* (commands
@@ -230,10 +242,12 @@ startup file, `~/.emacs-octave'."
 	   (file (or inferior-octave-startup-file
 			  (concat "~/.emacs-" program))))
       (setq commands
-	    (list "page_screen_output = 0;\n"
+	    (list "more off;\n"
 		  (if (not (string-equal
 			    inferior-octave-output-string ">> "))
-		      "PS1=\"\\\\s> \";\n")
+		      (if inferior-octave-has-built-in-variables
+			  "PS1=\"\\\\s> \";\n"
+			"PS1 (\"\\\\s> \");\n"))
 		  (if (file-exists-p file)
 		      (format "source (\"%s\");\n" file))))
       (inferior-octave-send-list-and-digest commands))
@@ -383,7 +397,7 @@ Use \\[inferior-octave-resync-dirs] to resync if Emacs gets confused."
 This command queries the inferior Octave process about its current
 directory and makes this the current buffer's default directory."
   (interactive)
-  (inferior-octave-send-list-and-digest '("pwd\n"))
+  (inferior-octave-send-list-and-digest '("disp (pwd ())\n"))
   (cd (car inferior-octave-output-list)))
 
 ;;; provide ourself

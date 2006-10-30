@@ -408,7 +408,6 @@
   )
 
 
-
 (defun viper-adjust-keys-for (state)
   "Make necessary adjustments to keymaps before entering STATE."
   (cond ((memq state '(insert-state replace-state))
@@ -1263,65 +1262,69 @@ as a Meta key and any number of multiple escapes is allowed."
 	       (setq com char)
 	       (setq char (read-char))))))
 
-  (if (atom com)
-      ;; `com' is a single char, so we construct the command argument
-      ;; and if `char' is `?', we describe the arg; otherwise
-      ;; we prepare the command that will be executed at the end.
-      (progn
-	(setq cmd-info (cons value com))
-	(while (viper= char ?U)
-	  (viper-describe-arg cmd-info)
-	  (setq char (read-char)))
-	;; `char' is a movement cmd, a digit arg cmd, or a register cmd---so we
-	;; execute it at the very end
-	(or (viper-movement-command-p char)
-	    (viper-digit-command-p char)
-	    (viper-regsuffix-command-p char)
-	    (viper= char ?!) ; bang command
-	    (error ""))
-	(setq cmd-to-exec-at-end
-	      (viper-exec-form-in-vi
-	       `(key-binding (char-to-string ,char)))))
+    (if (atom com)
+	;; `com' is a single char, so we construct the command argument
+	;; and if `char' is `?', we describe the arg; otherwise
+	;; we prepare the command that will be executed at the end.
+	(progn
+	  (setq cmd-info (cons value com))
+	  (while (viper= char ?U)
+	    (viper-describe-arg cmd-info)
+	    (setq char (read-char)))
+	  ;; `char' is a movement cmd, a digit arg cmd, or a register cmd---so
+	  ;; we execute it at the very end
+	  (or (viper-movement-command-p char)
+	      (viper-digit-command-p char)
+	      (viper-regsuffix-command-p char)
+	      (viper= char ?!) ; bang command
+	      (viper= char ?g) ; the gg command (like G0)
+	      (error ""))
+	  (setq cmd-to-exec-at-end
+		(viper-exec-form-in-vi
+		 `(key-binding (char-to-string ,char)))))
 
-    ;; as com is non-nil, this means that we have a command to execute
-    (if (viper-memq-char (car com) '(?r ?R))
-	;; execute apropriate region command.
-	(let ((char (car com)) (com (cdr com)))
-	  (setq prefix-arg (cons value com))
-	  (if (viper= char ?r)
-	      (viper-region prefix-arg)
-	    (viper-Region prefix-arg))
-	  ;; reset prefix-arg
-	  (setq prefix-arg nil))
-      ;; otherwise, reset prefix arg and call appropriate command
-      (setq value (if (null value) 1 value))
-      (setq prefix-arg nil)
-      (cond
-       ;; If we change ?C to ?c here, then cc will enter replacement mode
-       ;; rather than deleting lines.  However, it will affect 1 less line than
-       ;; normal.  We decided to not use replacement mode here and follow Vi,
-       ;; since replacement mode on n full lines can be achieved with nC.
-       ((equal com '(?c . ?c)) (viper-line (cons value ?C)))
-       ((equal com '(?d . ?d)) (viper-line (cons value ?D)))
-       ((equal com '(?d . ?y)) (viper-yank-defun))
-       ((equal com '(?y . ?y)) (viper-line (cons value ?Y)))
-       ((equal com '(?< . ?<)) (viper-line (cons value ?<)))
-       ((equal com '(?> . ?>)) (viper-line (cons value ?>)))
-       ((equal com '(?! . ?!)) (viper-line (cons value ?!)))
-       ((equal com '(?= . ?=)) (viper-line (cons value ?=)))
-       (t (error "")))))
-
-  (if cmd-to-exec-at-end
-      (progn
-	(setq last-command-char char)
-	(setq last-command-event
-	      (viper-copy-event
-	       (if viper-xemacs-p (character-to-event char) char)))
-	(condition-case nil
-	    (funcall cmd-to-exec-at-end cmd-info)
-	  (error
-	   (error "")))))
-  ))
+      ;; as com is non-nil, this means that we have a command to execute
+      (if (viper-memq-char (car com) '(?r ?R))
+	  ;; execute apropriate region command.
+	  (let ((char (car com)) (com (cdr com)))
+	    (setq prefix-arg (cons value com))
+	    (if (viper= char ?r)
+		(viper-region prefix-arg)
+	      (viper-Region prefix-arg))
+	    ;; reset prefix-arg
+	    (setq prefix-arg nil))
+	;; otherwise, reset prefix arg and call appropriate command
+	(setq value (if (null value) 1 value))
+	(setq prefix-arg nil)
+	(cond
+	 ;; If we change ?C to ?c here, then cc will enter replacement mode
+	 ;; rather than deleting lines.  However, it will affect 1 less line
+	 ;; than normal.  We decided to not use replacement mode here and
+	 ;; follow Vi, since replacement mode on n full lines can be achieved
+	 ;; with nC.
+	 ((equal com '(?c . ?c)) (viper-line (cons value ?C)))
+	 ((equal com '(?d . ?d)) (viper-line (cons value ?D)))
+	 ((equal com '(?d . ?y)) (viper-yank-defun))
+	 ((equal com '(?y . ?y)) (viper-line (cons value ?Y)))
+	 ((equal com '(?< . ?<)) (viper-line (cons value ?<)))
+	 ((equal com '(?> . ?>)) (viper-line (cons value ?>)))
+	 ((equal com '(?! . ?!)) (viper-line (cons value ?!)))
+	 ((equal com '(?= . ?=)) (viper-line (cons value ?=)))
+	 ;; gg  acts as G0
+	 ((equal (car com) ?g)   (viper-goto-line 0))
+	 (t (error "")))))
+    
+    (if cmd-to-exec-at-end
+	(progn
+	  (setq last-command-char char)
+	  (setq last-command-event
+		(viper-copy-event
+		 (if viper-xemacs-p (character-to-event char) char)))
+	  (condition-case nil
+	      (funcall cmd-to-exec-at-end cmd-info)
+	    (error
+	     (error "")))))
+    ))
 
 (defun viper-describe-arg (arg)
   (let (val com)
@@ -1733,6 +1736,7 @@ invokes the command before that, etc."
 			(max viper-com-point (point))))
 	((viper= char ?g)
 	 (push-mark viper-com-point t)
+	 ;; execute the last emacs kbd macro on each line of the region
 	 (viper-global-execute))
 	((viper= char ?q)
 	 (push-mark viper-com-point t)
@@ -3996,6 +4000,7 @@ Null string will repeat previous search."
 (defun viper-buffer-search-enable (&optional c)
   (cond (c (setq viper-buffer-search-char c))
 	((null viper-buffer-search-char)
+	 ;; ?g acts as a default value for viper-buffer-search-char
 	 (setq viper-buffer-search-char ?g)))
   (define-key viper-vi-basic-map
     (cond ((viper-characterp viper-buffer-search-char)

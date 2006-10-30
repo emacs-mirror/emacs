@@ -208,7 +208,7 @@ the last file dropped is selected."
     (setq x-invocation-args (cdr x-invocation-args))))
 
 (defun x-handle-name-switch (switch)
-  "Handle a \"-name\" SWITCH."
+  "Handle the \"-name\" SWITCH."
 ;; Handle the -name option.  Set the variable x-resource-name
 ;; to the option's operand; set the name of the initial frame, too.
   (or (consp x-invocation-args)
@@ -1091,7 +1091,7 @@ This defines a fontset consisting of the Courier New variations for
 European languages which are distributed with Windows as
 \"Multilanguage Support\".
 
-See the documentation of `create-fontset-from-fontset-spec for the format.")
+See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)

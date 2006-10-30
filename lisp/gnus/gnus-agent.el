@@ -577,7 +577,17 @@ manipulated as follows:
 	   (fboundp 'make-mode-line-mouse-map))
       (propertize string 'local-map
 		  (make-mode-line-mouse-map mouse-button mouse-func)
-		  'mouse-face 'mode-line-highlight)
+		  'mouse-face
+		  (cond ((and (featurep 'xemacs)
+			      ;; XEmacs' `facep' only checks for a face
+			      ;; object, not for a face name, so it's useless
+			      ;; to check with `facep'.
+			      (find-face 'modeline))
+			 'modeline)
+			((facep 'mode-line-highlight) ;; Emacs 22
+			 'mode-line-highlight)
+			((facep 'mode-line) ;; Emacs 21
+			 'mode-line)) )
     string))
 
 (defun gnus-agent-toggle-plugged (set-to)

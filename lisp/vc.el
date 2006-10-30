@@ -2682,25 +2682,32 @@ To get a prompt, use a prefix argument."
         (error "There is no version-controlled file in this buffer"))
     (let ((backend (vc-backend buffer-file-name))
 	  (backends nil))
-      (unless backend
-        (error "File %s is not under version control" buffer-file-name))
-      ;; Find the registered backends.
-      (dolist (backend vc-handled-backends)
-	(when (vc-call-backend backend 'registered buffer-file-name)
-	  (push backend backends)))
-      ;; Find the next backend.
-      (let ((def (car (delq backend (append (memq backend backends) backends))))
-	    (others (delete backend backends)))
-	(cond
-	 ((null others) (error "No other backend to switch to"))
-	 (current-prefix-arg
-	  (intern
-	   (upcase
-	    (completing-read
-	     (format "Switch to backend [%s]: " def)
-	     (mapcar (lambda (b) (list (downcase (symbol-name b)))) backends)
-	     nil t nil nil (downcase (symbol-name def))))))
-       (t def))))))
+      (unwind-protect
+	  (progn
+	    (unless backend
+	      (error "File %s is not under version control" buffer-file-name))
+	    ;; Find the registered backends.
+	    (dolist (backend vc-handled-backends)
+	      (when (vc-call-backend backend 'registered buffer-file-name)
+		(push backend backends)))
+	    ;; Find the next backend.
+	    (let ((def (car (delq backend
+				  (append (memq backend backends) backends))))
+		  (others (delete backend backends)))
+	      (cond
+	       ((null others) (error "No other backend to switch to"))
+	       (current-prefix-arg
+		(intern
+		 (upcase
+		  (completing-read
+		   (format "Switch to backend [%s]: " def)
+		   (mapcar (lambda (b) (list (downcase (symbol-name b)))) backends)
+		   nil t nil nil (downcase (symbol-name def))))))
+	       (t def))))
+	;; Calling the `registered' method can mess up the file
+	;; properties, so we want to revert them to what they were.
+	(if (and backend (delete backend backends))
+	    (vc-call-backend backend 'registered buffer-file-name))))))
   (unless (eq backend (vc-backend file))
     (vc-file-clearprops file)
     (vc-file-setprop file 'vc-backend backend)

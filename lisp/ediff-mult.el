@@ -1637,11 +1637,15 @@ Useful commands:
 	     (set-buffer (setq tmp-buf (get-buffer-create ediff-tmp-buffer)))
 	     (erase-buffer)
 	     (shell-command
-	      (format "%s %s %s %s"
-		      ediff-custom-diff-program ediff-custom-diff-options
-		      (ediff-get-session-objA-name session)
-		      (ediff-get-session-objB-name session))
-	      t))
+	      (format
+	       "%s %s %s %s"
+	       (shell-quote-argument ediff-custom-diff-program)
+	       ediff-custom-diff-options
+	       (shell-quote-argument (ediff-get-session-objA-name session))
+	       (shell-quote-argument (ediff-get-session-objB-name session))
+	       )
+	      t)
+	     )
 	   (save-excursion
 	     (set-buffer meta-diff-buff)
 	     (goto-char (point-max))

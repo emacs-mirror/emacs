@@ -36,7 +36,7 @@
   (autoload 'vcard-parse-string "vcard")
   (autoload 'vcard-format-string "vcard")
   (autoload 'fill-flowed "flow-fill")
-  (autoload 'html2text "html2text")
+  (autoload 'html2text "html2text" nil t)
   (unless (fboundp 'diff-mode)
     (autoload 'diff-mode "diff-mode" "" t nil)))
 

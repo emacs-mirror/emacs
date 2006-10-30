@@ -522,7 +522,7 @@ echo "Making links to \`nt/icons'"
 
 echo "Making links to \`mac'"
 (cd mac
- ln ChangeLog INSTALL README *.xml *.MPW ../${tempdir}/mac)
+ ln ChangeLog INSTALL README make-package *.xml *.MPW ../${tempdir}/mac)
 
 echo "Making links to \`mac/inc'"
 (cd mac/inc
@@ -539,6 +539,10 @@ echo "Making links to \`mac/src'"
 echo "Making links to \`mac/Emacs.app/Contents'"
 (cd mac/Emacs.app/Contents
  ln Info.plist PkgInfo ../../../${tempdir}/mac/Emacs.app/Contents)
+
+echo "Making links to \`mac/Emacs.app/Contents/Resources'"
+(cd mac/Emacs.app/Contents/Resources
+ ln Emacs.icns ../../../../${tempdir}/mac/Emacs.app/Contents/Resources)
 
 echo "Making links to \`mac/Emacs.app/Contents/Resources/English.lproj'"
 (cd mac/Emacs.app/Contents/Resources/English.lproj

@@ -125,8 +125,7 @@ This is only meaningful if you don't use the implicit checkout model
                ;; an `error' by vc-do-command.
                (error nil))))
         (when (eq 0 status)
-          (vc-svn-parse-status t)
-          (eq 'SVN (vc-file-getprop file 'vc-backend)))))))
+          (vc-svn-parse-status file))))))
 
 (defun vc-svn-state (file &optional localp)
   "SVN-specific version of `vc-state'."
@@ -134,8 +133,7 @@ This is only meaningful if you don't use the implicit checkout model
   (with-temp-buffer
     (cd (file-name-directory file))
     (vc-svn-command t 0 file "status" (if localp "-v" "-u"))
-    (vc-svn-parse-status localp)
-    (vc-file-getprop file 'vc-state)))
+    (vc-svn-parse-status file)))
 
 (defun vc-svn-state-heuristic (file)
   "SVN-specific state heuristic."
@@ -149,7 +147,7 @@ This is only meaningful if you don't use the implicit checkout model
     ;; enough.  Otherwise it might fail with remote repositories.
     (with-temp-buffer
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
-      (vc-svn-parse-status localp))))
+      (vc-svn-parse-status))))
 
 (defun vc-svn-workfile-version (file)
   "SVN-specific version of `vc-workfile-version'."
@@ -488,10 +486,10 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
       ;; behavior for different modules on the same server.
       (match-string 1))))
 
-(defun vc-svn-parse-status (localp)
+(defun vc-svn-parse-status (&optional filename)
   "Parse output of \"svn status\" command in the current buffer.
-Set file properties accordingly.  Unless FULL is t, parse only
-essential information."
+Set file properties accordingly.  Unless FILENAME is non-nil, parse only
+information about FILENAME and return its status."
   (let (file status)
     (goto-char (point-min))
     (while (re-search-forward
@@ -500,7 +498,9 @@ essential information."
 		  (buffer-substring (point) (line-end-position))))
       (setq status (char-after (line-beginning-position)))
       (unless (eq status ??)
-	(vc-file-setprop file 'vc-backend 'SVN)
+	;; `vc-BACKEND-registered' must not set vc-backend,
+	;; which is instead set in vc-registered.
+	(unless filename (vc-file-setprop file 'vc-backend 'SVN))
 	;; Use the last-modified revision, so that searching in vc-print-log
 	;; output works.
 	(vc-file-setprop file 'vc-workfile-version (match-string 3))
@@ -522,7 +522,8 @@ essential information."
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))
-	  (t 'edited)))))))
+	  (t 'edited)))))
+    (if filename (vc-file-getprop filename 'vc-state))))
 
 (defun vc-svn-dir-state-heuristic (dir)
   "Find the SVN state of all files in DIR, using only local information."
