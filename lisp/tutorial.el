@@ -35,6 +35,166 @@
 (require 'help-mode) ;; for function help-buffer
 (eval-when-compile (require 'cl))
 
+(defvar tutorial--point-before-chkeys 0
+  "Point before display of key changes.")
+(make-variable-buffer-local 'tutorial--point-before-chkeys)
+
+(defvar tutorial--point-after-chkeys 0
+  "Point after display of key changes.")
+(make-variable-buffer-local 'tutorial--point-after-chkeys)
+
+(defvar tutorial--lang nil
+  "Tutorial language.")
+(make-variable-buffer-local 'tutorial--lang)
+
+(defconst tutorial--default-keys
+  (let* (
+         ;; On window system suspend Emacs is replaced in the
+         ;; default keymap so honor this here.
+         (suspend-emacs (if window-system
+                            'iconify-or-deiconify-frame
+                          'suspend-emacs))
+         (default-keys
+           `(
+             ;; These are not mentioned but are basic:
+             (ESC-prefix [27])
+             (Control-X-prefix [?\C-x])
+             (mode-specific-command-prefix [?\C-c])
+
+             (save-buffers-kill-emacs [?\C-x ?\C-c])
+
+
+             ;; * SUMMARY
+             (scroll-up [?\C-v])
+             (scroll-down [?\M-v])
+             (recenter [?\C-l])
+
+
+             ;; * BASIC CURSOR CONTROL
+             (forward-char [?\C-f])
+             (backward-char [?\C-b])
+
+             (forward-word [?\M-f])
+             (backward-word [?\M-b])
+
+             (next-line [?\C-n])
+             (previous-line [?\C-p])
+
+             (move-beginning-of-line [?\C-a])
+             (move-end-of-line [?\C-e])
+
+             (backward-sentence [?\M-a])
+             (forward-sentence [?\M-e])
+
+
+             (beginning-of-buffer [?\M-<])
+             (end-of-buffer [?\M->])
+
+             (universal-argument [?\C-u])
+
+
+             ;; * WHEN EMACS IS HUNG
+             (keyboard-quit [?\C-g])
+
+
+             ;; * DISABLED COMMANDS
+             (downcase-region [?\C-x ?\C-l])
+
+
+             ;; * WINDOWS
+             (delete-other-windows [?\C-x ?1])
+             ;; C-u 0 C-l
+             ;; Type CONTROL-h k CONTROL-f.
+
+
+             ;; * INSERTING AND DELETING
+             ;; C-u 8 * to insert ********.
+
+             (delete-backward-char [backspace])
+             (delete-char [?\C-d])
+
+             (backward-kill-word [(meta backspace)])
+             (kill-word [?\M-d])
+
+             (kill-line [?\C-k])
+             (kill-sentence [?\M-k])
+
+             (set-mark-command [?\C-@])
+             (set-mark-command [?\C- ])
+             (kill-region [?\C-w])
+             (yank [?\C-y])
+             (yank-pop [?\M-y])
+
+
+             ;; * UNDO
+             (advertised-undo [?\C-x ?u])
+             (advertised-undo [?\C-x ?u])
+
+
+             ;; * FILES
+             (find-file [?\C-x ?\C-f])
+             (save-buffer [?\C-x ?\C-s])
+
+
+             ;; * BUFFERS
+             (list-buffers [?\C-x ?\C-b])
+             (switch-to-buffer [?\C-x ?b])
+             (save-some-buffers [?\C-x ?s])
+
+
+             ;; * EXTENDING THE COMMAND SET
+             ;; C-x	Character eXtend.  Followed by one character.
+             (execute-extended-command [?\M-x])
+
+             ;; C-x C-f		Find file
+             ;; C-x C-s		Save file
+             ;; C-x s		Save some buffers
+             ;; C-x C-b		List buffers
+             ;; C-x b		Switch buffer
+             ;; C-x C-c		Quit Emacs
+             ;; C-x 1		Delete all but one window
+             ;; C-x u		Undo
+
+
+             ;; * MODE LINE
+             (describe-mode [?\C-h ?m])
+
+             (set-fill-column [?\C-x ?f])
+             (fill-paragraph [?\M-q])
+
+
+             ;; * SEARCHING
+             (isearch-forward [?\C-s])
+             (isearch-backward [?\C-r])
+
+
+             ;; * MULTIPLE WINDOWS
+             (split-window-vertically [?\C-x ?2])
+             (scroll-other-window [?\C-\M-v])
+             (other-window [?\C-x ?o])
+             (find-file-other-window [?\C-x ?4 ?\C-f])
+
+
+             ;; * RECURSIVE EDITING LEVELS
+             (keyboard-escape-quit [27 27 27])
+
+
+             ;; * GETTING MORE HELP
+             ;; The most basic HELP feature is C-h c
+             (describe-key-briefly [?\C-h ?c])
+             (describe-key [?\C-h ?k])
+
+
+             ;; * MORE FEATURES
+             ;; F10
+
+
+             ;; * CONCLUSION
+             ;;(iconify-or-deiconify-frame [?\C-z])
+             (,suspend-emacs [?\C-z])
+             )))
+    (sort default-keys 'tutorial--sort-keys))
+  "Default Emacs key bindings that the tutorial depends on.")
 
 (defun tutorial--detailed-help (button)
   "Give detailed help about changed keys."
@@ -267,155 +427,6 @@ LEFT and RIGHT are the elements to compare."
                  (symbol-name cx)))
        ))))
 
-(defconst tutorial--default-keys
-  (let* (
-         ;; On window system suspend Emacs is replaced in the
-         ;; default keymap so honor this here.
-         (suspend-emacs (if window-system
-                            'iconify-or-deiconify-frame
-                          'suspend-emacs))
-         (default-keys
-           `(
-             ;; These are not mentioned but are basic:
-             (ESC-prefix [27])
-             (Control-X-prefix [?\C-x])
-             (mode-specific-command-prefix [?\C-c])
-
-             (save-buffers-kill-emacs [?\C-x ?\C-c])
-
-
-             ;; * SUMMARY
-             (scroll-up [?\C-v])
-             (scroll-down [?\M-v])
-             (recenter [?\C-l])
-
-
-             ;; * BASIC CURSOR CONTROL
-             (forward-char [?\C-f])
-             (backward-char [?\C-b])
-
-             (forward-word [?\M-f])
-             (backward-word [?\M-b])
-
-             (next-line [?\C-n])
-             (previous-line [?\C-p])
-
-             (move-beginning-of-line [?\C-a])
-             (move-end-of-line [?\C-e])
-
-             (backward-sentence [?\M-a])
-             (forward-sentence [?\M-e])
-
-
-             (beginning-of-buffer [?\M-<])
-             (end-of-buffer [?\M->])
-
-             (universal-argument [?\C-u])
-
-
-             ;; * WHEN EMACS IS HUNG
-             (keyboard-quit [?\C-g])
-
-
-             ;; * DISABLED COMMANDS
-             (downcase-region [?\C-x ?\C-l])
-
-
-             ;; * WINDOWS
-             (delete-other-windows [?\C-x ?1])
-             ;; C-u 0 C-l
-             ;; Type CONTROL-h k CONTROL-f.
-
-
-             ;; * INSERTING AND DELETING
-             ;; C-u 8 * to insert ********.
-
-             (delete-backward-char [backspace])
-             (delete-char [?\C-d])
-
-             (backward-kill-word [(meta backspace)])
-             (kill-word [?\M-d])
-
-             (kill-line [?\C-k])
-             (kill-sentence [?\M-k])
-
-             (set-mark-command [?\C-@])
-             (set-mark-command [?\C- ])
-             (kill-region [?\C-w])
-             (yank [?\C-y])
-             (yank-pop [?\M-y])
-
-
-             ;; * UNDO
-             (advertised-undo [?\C-x ?u])
-             (advertised-undo [?\C-x ?u])
-
-
-             ;; * FILES
-             (find-file [?\C-x ?\C-f])
-             (save-buffer [?\C-x ?\C-s])
-
-
-             ;; * BUFFERS
-             (list-buffers [?\C-x ?\C-b])
-             (switch-to-buffer [?\C-x ?b])
-             (save-some-buffers [?\C-x ?s])
-
-
-             ;; * EXTENDING THE COMMAND SET
-             ;; C-x	Character eXtend.  Followed by one character.
-             (execute-extended-command [?\M-x])
-
-             ;; C-x C-f		Find file
-             ;; C-x C-s		Save file
-             ;; C-x s		Save some buffers
-             ;; C-x C-b		List buffers
-             ;; C-x b		Switch buffer
-             ;; C-x C-c		Quit Emacs
-             ;; C-x 1		Delete all but one window
-             ;; C-x u		Undo
-
-
-             ;; * MODE LINE
-             (describe-mode [?\C-h ?m])
-
-             (set-fill-column [?\C-x ?f])
-             (fill-paragraph [?\M-q])
-
-
-             ;; * SEARCHING
-             (isearch-forward [?\C-s])
-             (isearch-backward [?\C-r])
-
-
-             ;; * MULTIPLE WINDOWS
-             (split-window-vertically [?\C-x ?2])
-             (scroll-other-window [?\C-\M-v])
-             (other-window [?\C-x ?o])
-             (find-file-other-window [?\C-x ?4 ?\C-f])
-
-
-             ;; * RECURSIVE EDITING LEVELS
-             (keyboard-escape-quit [27 27 27])
-
-
-             ;; * GETTING MORE HELP
-             ;; The most basic HELP feature is C-h c
-             (describe-key-briefly [?\C-h ?c])
-             (describe-key [?\C-h ?k])
-
-
-             ;; * MORE FEATURES
-             ;; F10
-
-
-             ;; * CONCLUSION
-             ;;(iconify-or-deiconify-frame [?\C-z])
-             (,suspend-emacs [?\C-z])
-             )))
-    (sort default-keys 'tutorial--sort-keys))
-  "Default Emacs key bindings that the tutorial depends on.")
-
 (defun tutorial--find-changed-keys (default-keys)
   "Find the key bindings that have changed.
 Check if the default Emacs key bindings that the tutorial depends
@@ -444,7 +455,7 @@ Where
               the user clicks the link.
 
               KEY-FUN is the actual binding for KEY."
-  (let (changed-keys)
+  (let (changed-keys remark)
     ;; (default-keys tutorial--default-keys))
     (dolist (kdf default-keys)
       ;; The variables below corresponds to those with the same names
@@ -508,6 +519,7 @@ Where
                    nil)
                   ;; viper-mode specials:
                   ((and (boundp 'viper-mode-string)
+			(boundp 'viper-current-state)
                         (eq viper-current-state 'vi-state)
                         (or (and (eq def-fun 'isearch-forward)
                                  (eq key-fun 'viper-isearch-forward))
@@ -645,17 +657,6 @@ CHANGED-KEYS should be a list in the format returned by
         ;; Make this area read-only:
         (put-text-property start end 'read-only t)))))
 
-(defvar tutorial--point-before-chkeys 0
-  "Point before display of key changes.")
-(make-variable-buffer-local 'tutorial--point-before-chkeys)
-(defvar tutorial--point-after-chkeys 0
-  "Point after display of key changes.")
-(make-variable-buffer-local 'tutorial--point-after-chkeys)
-
-(defvar tutorial--lang nil
-  "Tutorial language.")
-(make-variable-buffer-local 'tutorial--lang)
-
 (defun tutorial--saved-dir ()
   "Directory where to save tutorials."
   (expand-file-name ".emacstut" "~/"))
@@ -787,20 +788,17 @@ position in the buffer is saved so that the tutorial may be
 resumed later."
   (interactive "P")
   (if (boundp 'viper-current-state)
-      (let ((prompt
-             "
-  You can not run the Emacs tutorial directly because you have
-  enabled Viper.  There is however a Viper tutorial you can run
-  instead. From this you can also run a slightly modified version
-  of the Emacs tutorial.
-
-  Do you want to run the Viper tutorial instead? "))
-      (if (y-or-n-p prompt)
-          (progn
-            (message "")
-            (viper-tutorial 0))
-        (message "Tutorial aborted by user")))
-
+      (let ((prompt1
+             "You can not run the Emacs tutorial directly because you have \
+enabled Viper.")
+	    (prompt2 "\nThere is however a Viper tutorial you can run instead.
+Run the Viper tutorial? "))
+	(if (fboundp 'viper-tutorial)
+	    (if (y-or-n-p (concat prompt1 prompt2))
+		(progn (message "")
+		       (funcall 'viper-tutorial 0))
+	      (message "Tutorial aborted by user"))
+	  (message prompt1)))
     (let* ((lang (if arg
                      (let ((minibuffer-setup-hook minibuffer-setup-hook))
                        (add-hook 'minibuffer-setup-hook
