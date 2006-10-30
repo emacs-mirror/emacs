@@ -1,3 +1,16 @@
+2006-10-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el: Add support for TCP sockets.
+	(server-use-tcp, server-host, server-auth-dir): New options.
+	(server-auth-key): New variable.
+	(server-ensure-safe-dir): Create nonexistent parent dirs.  Ignore
+	Unix-style file modes on Windows.
+	(server-start): Crete a TCP or Unix socket according to the value
+	of `server-use-tcp'.  For TCP sockets, create the id/auth file in
+	`server-auth-dir' directory.
+	(server-process-filter): Delete process if authentication
+	fails (which never happens for Unix sockets).
+
 2006-10-30  David Kastrup  <dak@gnu.org>
 
 	* subr.el (add-to-list): Don't continue checking if a match has
