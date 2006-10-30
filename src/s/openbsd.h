@@ -27,7 +27,7 @@
 
 #else
 
-#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp
+#define LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_tmp -L/usr/pkg/lib -L/usr/local/lib
 
 #endif
 
