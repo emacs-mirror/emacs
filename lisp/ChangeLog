@@ -1,3 +1,8 @@
+2006-10-30  David Kastrup  <dak@gnu.org>
+
+	* subr.el (add-to-list): Don't continue checking if a match has
+	been found.
+
 2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tutorial.el: Move defvars to avoid bytecomp warnings.
