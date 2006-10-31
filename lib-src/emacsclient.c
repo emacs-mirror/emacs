@@ -38,6 +38,9 @@ Boston, MA 02110-1301, USA.  */
 # define INITIALIZE() (initialize_sockets ())
 typedef unsigned long IOCTL_BOOL_ARG;
 #else
+#ifdef HAVE_FCNTL_H
+# include <fcntl.h>
+#endif
 # include <netinet/in.h>
 # include <sys/ioctl.h>
 # define INVALID_SOCKET -1
@@ -486,7 +489,15 @@ set_tcp_socket ()
       return INVALID_SOCKET;
     }
 
+#ifdef O_NONBLOCK
+  IOCTL (s, O_NONBLOCK, &c_arg);
+#else
+#ifdef O_NDELAY
+  IOCTL (s, O_NDELAY, &c_arg);
+#else
   IOCTL (s, FIONBIO, &c_arg);
+#endif
+#endif 
   setsockopt (s, SOL_SOCKET, SO_LINGER, (char *) &l_arg, sizeof l_arg);
 
   /*
