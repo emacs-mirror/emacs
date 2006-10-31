@@ -10,7 +10,7 @@ END-INFO-DIR-ENTRY
 This is an `Introduction to Programming in Emacs Lisp', for people who
 are not programmers.
 
-Edition 3.00, 2006 Oct 31
+Edition 3.01, 2006 Oct 31
 
 Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001,    2002,
 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
@@ -47,7 +47,7 @@ An Introduction to Programming in Emacs Lisp
 This is an `Introduction to Programming in Emacs Lisp', for people who
 are not programmers.
 
-Edition 3.00, 2006 Oct 31
+Edition 3.01, 2006 Oct 31
 
 Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001,    2002,
 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
@@ -501,7 +501,7 @@ Your `.emacs' File
 * Loading Files::               Load (i.e., evaluate) files automatically.
 * Autoload::                    Make functions available.
 * Simple Extension::            Define a function; bind it to a key.
-* X11 Colors::                  Colors in version 19 in X.
+* X11 Colors::                  Colors in X.
 * Miscellaneous::
 * Mode Line::                   How to customize your mode line.
 
@@ -3673,6 +3673,10 @@ similar functions that have not been mentioned yet.
      second and `>=' tests whether the first argument is greater than
      or equal to the second.  In all cases, both arguments must be
      numbers or markers (markers indicate positions in buffers).
+
+`='
+     The `=' function tests whether two arguments, , both numbers or
+     markers, are equal.
 
 `string<'
 `string-lessp'
@@ -7270,44 +7274,4 @@ Variables with `defcustom': defcustom.)
 
 * See variable current value::
 * defvar and asterisk::
-
-
-File: eintr,  Node: See variable current value,  Next: defvar and asterisk,  Prev: defvar,  Up: defvar
-
-Seeing the Current Value of a Variable
---------------------------------------
-
-You can see the current value of a variable, any variable, by using the
-`describe-variable' function, which is usually invoked by typing `C-h
-v'.  If you type `C-h v' and then `kill-ring' (followed by <RET>) when
-prompted, you will see what is in your current kill ring--this may be
-quite a lot!  Conversely, if you have been doing nothing this Emacs
-session except read this document, you may have nothing in it.  Also,
-you will see the documentation for `kill-ring':
-
-     Documentation:
-     List of killed text sequences.
-     Since the kill ring is supposed to interact nicely with cut-and-paste
-     facilities offered by window systems, use of this variable should
-     interact nicely with `interprogram-cut-function' and
-     `interprogram-paste-function'.  The functions `kill-new',
-     `kill-append', and `current-kill' are supposed to implement this
-     interaction; you may want to use them instead of manipulating the kill
-     ring directly.
-
-The kill ring is defined by a `defvar' in the following way:
-
-     (defvar kill-ring nil
-       "List of killed text sequences.
-     ...")
-
-In this variable definition, the variable is given an initial value of
-`nil', which makes sense, since if you have saved nothing, you want
-nothing back if you give a `yank' command.  The documentation string is
-written just like the documentation string of a `defun'.  As with the
-documentation string of the `defun', the first line of the
-documentation should be a complete sentence, since some commands, like
-`apropos', print only the first line of documentation.  Succeeding
-lines should not be indented; otherwise they look odd when you use `C-h
-v' (`describe-variable').
 
