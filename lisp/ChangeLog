@@ -1,3 +1,20 @@
+2006-10-31  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-stmt.el: Change maintainer, apply
+	whitespace-cleanup, checkdoc.
+	(ada-func-or-proc-name): Add doc string.
+
+	* progmodes/ada-prj.el (ada-prj-new): Change maintainer, apply
+	whitespace-cleanup, checkdoc.  Minor improvements to many doc
+	strings and comments.
+	(ada-prj-display-page): Change buffer name to more accurately
+	reflect function.
+
+	* progmodes/ada-xref.el: Change maintainer, apply
+	whitespace-cleanup, checkdoc.  Minor improvements to many doc
+	strings and comments.  Don't look for `gvd' or `ddd' debuggers.
+	(ada-compile-current): Don't add newlines to commands.
+
 2006-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el: Add support for TCP sockets.
@@ -50,7 +67,7 @@
 	(server-select-display): New function.
 	(server-process-filter): Use it to detect unused temp frames.
 
-2006-10-29  Stephen Leake  <stephen_leake@stephe_leake.org>
+2006-10-29  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-mode.el: Change maintainer, apply
 	whitespace-clean, checkdoc.  Minor improvements to many doc strings.
