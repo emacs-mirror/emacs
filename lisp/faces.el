@@ -32,6 +32,9 @@
   ;; Warning suppression -- can't require x-win in batch:
   (autoload 'xw-defined-colors "x-win"))
 
+(defvar faces-sample-overlay nil  
+  "Overlay for showing an example of a face.")
+
 (defvar help-xref-stack-item)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1252,6 +1255,16 @@ arg, prompt for a regular expression."
 	    (copy-face (car faces) (car faces) frame disp-frame)
 	    (setq faces (cdr faces)))))))
 
+(defun faces-sample-overlay (face)
+  "Insert sample text with FACE.
+
+If FACE is not a face or nil, use the default face."
+  (let ((f (if (facep face) face 'default))
+     (start (+ (point) 2))) ;; skip face and paren
+   (insert " (sample)")
+   (setq faces-sample-overlay (make-overlay start (1- (point))))
+   (overlay-put faces-sample-overlay 'face f)))
+
 
 (defun describe-face (face &optional frame)
   "Display the properties of face FACE on FRAME.
@@ -1293,6 +1306,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      (insert "   undefined face.\n")
 	    (let ((customize-label "customize this face")
 		  file-name)
+	      (faces-sample-overlay f)
 	      (princ (concat " (" customize-label ")\n"))
 	      (insert "Documentation: "
 		      (or (face-documentation f)
