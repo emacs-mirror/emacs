@@ -1,3 +1,9 @@
+2006-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* emacsclient.c [!WINDOWSNT]: Include <fcntl.h> if available.
+	(set_tcp_socket): Prefer O_NONBLOCK, then O_NDELAY, then FIONBIO
+	to set the socket in non-blocking mode.
+
 2006-10-31  Tim Van Holder  <tim.vanholder@gmail.com>  (tiny change)
 
 	* emacsclient.c [!WINDOWSNT]: Include <netinet/in.h> and <sys/ioctl.h>.
