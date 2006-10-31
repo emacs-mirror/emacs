@@ -38,6 +38,9 @@ Boston, MA 02110-1301, USA.  */
 # define INITIALIZE() (initialize_sockets ())
 typedef unsigned long IOCTL_BOOL_ARG;
 #else
+# include <netinet/in.h>
+# include <sys/ioctl.h>
+# define INVALID_SOCKET -1
 # define HSOCKET int
 # define CLOSE_SOCKET close
 # define IOCTL ioctl
@@ -390,8 +393,8 @@ void initialize_sockets ()
     }
 
   atexit (close_winsock);
-#endif /* WINDOWSNT */
 }
+#endif /* WINDOWSNT */
 
 /*
  * Read the information needed to set up a TCP comm channel with
@@ -618,7 +621,7 @@ set_local_socket ()
            we are root. */
         if (0 != geteuid ())
           {
-            fprintf (stderr, "%s: Invalid socket owner\n", argv[0]);
+            fprintf (stderr, "%s: Invalid socket owner\n", progname);
 	    return INVALID_SOCKET;
           }
         break;
