@@ -1500,7 +1500,8 @@ install_menu_quit_handler (kind, menu_handle)
      MenuHandle menu_handle;
 {
 #ifdef HAVE_CANCELMENUTRACKING
-  EventTypeSpec typesList[] = { { kEventClassKeyboard, kEventRawKeyDown } };
+  static const EventTypeSpec typesList[] =
+    {{kEventClassKeyboard, kEventRawKeyDown}};
   int id;
 
   for (id = min_menu_id[kind]; id < min_menu_id[kind + 1]; id++)
@@ -2428,9 +2429,9 @@ mac_dialog_show (f, keymaps, title, header, error_name)
 /* Is this item a separator? */
 static int
 name_is_separator (name)
-     char *name;
+     const char *name;
 {
-  char *start = name;
+  const char *start = name;
 
   /* Check if name string consists of only dashes ('-').  */
   while (*name == '-') name++;
