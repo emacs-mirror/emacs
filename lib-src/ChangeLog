@@ -1,3 +1,12 @@
+2006-10-31  Tim Van Holder  <tim.vanholder@gmail.com>  (tiny change)
+
+	Fixes to emacsclient.c for GNU/Linux.
+	* emacsclient.c [!WINDOWSNT] <top level>: Include <netinet/in.h> and
+	<sys/ioctl.h>.
+	(INVALID_SOCKET): Define.
+	(initialize_sockets): Put #endif at the right place.
+	(set_local_socket): Use progname, not argv[0].
+
 2006-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (ALL): Add emacsclient.
@@ -31,6 +40,7 @@
 	(main): Use SEND_STRING and SEND_QUOTED.  Most code moved to
 	set_local_socket.  Use set_socket.  Get answers from server.el with
 	recv(), not file stream functions.
+
 
 2006-10-09  Eli Zaretskii  <eliz@gnu.org>
 
