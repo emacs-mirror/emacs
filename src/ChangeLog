@@ -1,3 +1,7 @@
+2006-10-31  Kenichi Handa  <handa@m17n.org>
+
+	* xfns.c (xic_create_xfontset): Fix previous change.
+
 2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* s/openbsd.h (LD_SWITCH_SYSTEM): Add /usr/pkg/lib and
