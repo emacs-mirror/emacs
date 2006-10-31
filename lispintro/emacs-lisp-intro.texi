@@ -24,7 +24,7 @@
 
 @comment %**end of header
 
-@set edition-number 3.00
+@set edition-number 3.01
 @set update-date 2006 Oct 31
 
 @ignore
@@ -731,7 +731,7 @@ Your @file{.emacs} File
 * Loading Files::               Load (i.e., evaluate) files automatically.
 * Autoload::                    Make functions available.
 * Simple Extension::            Define a function; bind it to a key.
-* X11 Colors::                  Colors in version 19 in X.
+* X11 Colors::                  Colors in X.
 * Miscellaneous::
 * Mode Line::                   How to customize your mode line.
 
@@ -4525,6 +4525,10 @@ tests whether the first argument is less than or equal to the second and
 @code{>=} tests whether the first argument is greater than or equal to
 the second.  In all cases, both arguments must be numbers or markers
 (markers indicate positions in buffers).
+
+@item =
+The @code{=} function tests whether two arguments, , both numbers or
+markers, are equal.
 
 @item string<
 @itemx string-lessp
@@ -15730,15 +15734,6 @@ nil
 @end group
 @end smallexample
 
-@ignore
-(directory-files-and-attributes "/usr/local/src/emacs/lisp/mail/")  -->
-(("." t 3 1000 100 (17733 1296) (17718 8756) (17718 8756) 4096 "drwxr-xr-x" nil 1273504 773))
-
-(directory-files-and-attributes "/usr/local/src/emacs/lisp/") -->
-(... ("mail" t 3 1000 100 (17733 1296) (17718 8756) (17718 8756) 4096
-"drwxr-xr-x" nil 1273504 773) ...)
-@end ignore
-
 @need 1200
 On the other hand, @file{mail/} is a directory within the @file{lisp/}
 directory.  The beginning of its listing looks like this:
@@ -17172,8 +17167,8 @@ initialization file, which is usually called @file{.emacs}.
 I myself use @code{customize} for hardly anything.  Mostly, I write
 expressions myself.
 
-@findex defsubst 
-@findex defconst 
+@findex defsubst
+@findex defconst
 Incidentally, @code{defsubst} defines an inline function.  The syntax
 is just like that of @code{defun}.  @code{defconst} defines a symbol
 as a constant.  The intent is that neither programs nor users should
@@ -18308,13 +18303,12 @@ this number.  (Buffer names can and often should be longer than 12
 characters; this length works well in a typical 80 column wide
 window.)
 
-@code{:eval} was a new feature in GNU Emacs version 21.  It says to
-evaluate the following form and use the result as a string to display.
-In this case, the expression displays the first component of the full
-system name.  The end of the first component is a @samp{.} (`period'),
-so I use the @code{string-match} function to tell me the length of the
-first component.  The substring from the zeroth character to that
-length is the name of the machine.
+@code{:eval} says to evaluate the following form and use the result as
+a string to display.  In this case, the expression displays the first
+component of the full system name.  The end of the first component is
+a @samp{.} (`period'), so I use the @code{string-match} function to
+tell me the length of the first component.  The substring from the
+zeroth character to that length is the name of the machine.
 
 @need 1250
 This is the expression:
@@ -19491,7 +19485,7 @@ element.
 Incidentally, both @code{kill-ring} and @code{kill-ring-yank-pointer}
 are @dfn{global variables}.  That means that any expression in Emacs
 Lisp can access them.  They are not like the local variables set by
-@code{let} or like the symbols in an argument list. 
+@code{let} or like the symbols in an argument list.
 Local variables can only be accessed
 within the @code{let} that defines them or the function that specifies
 them in an argument list (and within expressions called by them).

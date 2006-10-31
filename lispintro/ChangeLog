@@ -7,7 +7,11 @@
 	now irrelevant.  Updated Info file in ../info.  Changed numbering
 	so is now Revised Third Edition and this instance's edition-number
 	is 3.00.  Did not update ISBN number.
-
+	
+	* emacs-lisp-intro.texi: Remove version reference for X colors.
+	Document `='.  Remove mention that :eval was new in 21. Updated
+	instance's edition-number to 3.01.
+	
 2006-10-30  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi:  Many changes since it turned out that
