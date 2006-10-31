@@ -10,7 +10,7 @@ END-INFO-DIR-ENTRY
 This is an `Introduction to Programming in Emacs Lisp', for people who
 are not programmers.
 
-Edition 3.00, 2006 Oct 31
+Edition 3.01, 2006 Oct 31
 
 Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2001,    2002,
 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
@@ -37,6 +37,46 @@ License".
 (a) The FSF's Back-Cover Text is: "You have freedom to copy and modify
 this GNU Manual, like GNU software.  Copies published by the Free
 Software Foundation raise funds for GNU development."
+
+
+File: eintr,  Node: See variable current value,  Next: defvar and asterisk,  Prev: defvar,  Up: defvar
+
+Seeing the Current Value of a Variable
+--------------------------------------
+
+You can see the current value of a variable, any variable, by using the
+`describe-variable' function, which is usually invoked by typing `C-h
+v'.  If you type `C-h v' and then `kill-ring' (followed by <RET>) when
+prompted, you will see what is in your current kill ring--this may be
+quite a lot!  Conversely, if you have been doing nothing this Emacs
+session except read this document, you may have nothing in it.  Also,
+you will see the documentation for `kill-ring':
+
+     Documentation:
+     List of killed text sequences.
+     Since the kill ring is supposed to interact nicely with cut-and-paste
+     facilities offered by window systems, use of this variable should
+     interact nicely with `interprogram-cut-function' and
+     `interprogram-paste-function'.  The functions `kill-new',
+     `kill-append', and `current-kill' are supposed to implement this
+     interaction; you may want to use them instead of manipulating the kill
+     ring directly.
+
+The kill ring is defined by a `defvar' in the following way:
+
+     (defvar kill-ring nil
+       "List of killed text sequences.
+     ...")
+
+In this variable definition, the variable is given an initial value of
+`nil', which makes sense, since if you have saved nothing, you want
+nothing back if you give a `yank' command.  The documentation string is
+written just like the documentation string of a `defun'.  As with the
+documentation string of the `defun', the first line of the
+documentation should be a complete sentence, since some commands, like
+`apropos', print only the first line of documentation.  Succeeding
+lines should not be indented; otherwise they look odd when you use `C-h
+v' (`describe-variable').
 
 
 File: eintr,  Node: defvar and asterisk,  Prev: See variable current value,  Up: defvar
@@ -6795,13 +6835,12 @@ characters, whitespace is added to fill out to this number.  (Buffer
 names can and often should be longer than 12 characters; this length
 works well in a typical 80 column wide window.)
 
-`:eval' was a new feature in GNU Emacs version 21.  It says to evaluate
-the following form and use the result as a string to display.  In this
-case, the expression displays the first component of the full system
-name.  The end of the first component is a `.' (`period'), so I use the
-`string-match' function to tell me the length of the first component.
-The substring from the zeroth character to that length is the name of
-the machine.
+`:eval' says to evaluate the following form and use the result as a
+string to display.  In this case, the expression displays the first
+component of the full system name.  The end of the first component is a
+`.' (`period'), so I use the `string-match' function to tell me the
+length of the first component.  The substring from the zeroth character
+to that length is the name of the machine.
 
 This is the expression:
 
@@ -7444,59 +7483,4 @@ To return to the old value for the length of the kill ring, evaluate:
 * yank::
 * yank-pop::
 * ring file::
-
-
-File: eintr,  Node: current-kill,  Next: yank,  Prev: Kill Ring,  Up: Kill Ring
-
-B.1 The `current-kill' Function
-===============================
-
-The `current-kill' function changes the element in the kill ring to
-which `kill-ring-yank-pointer' points.  (Also, the `kill-new' function
-sets `kill-ring-yank-pointer' to point to the latest element of the the
-kill ring.)
-
-The `current-kill' function is used by `yank' and by `yank-pop'.  Here
-is the code for `current-kill':
-
-     (defun current-kill (n &optional do-not-move)
-       "Rotate the yanking point by N places, and then return that kill.
-     If N is zero, `interprogram-paste-function' is set, and calling it
-     returns a string, then that string is added to the front of the
-     kill ring and returned as the latest kill.
-     If optional arg DO-NOT-MOVE is non-nil, then don't actually move the
-     yanking point; just return the Nth kill forward."
-       (let ((interprogram-paste (and (= n 0)
-     				 interprogram-paste-function
-     				 (funcall interprogram-paste-function))))
-         (if interprogram-paste
-     	(progn
-     	  ;; Disable the interprogram cut function when we add the new
-     	  ;; text to the kill ring, so Emacs doesn't try to own the
-     	  ;; selection, with identical text.
-     	  (let ((interprogram-cut-function nil))
-     	    (kill-new interprogram-paste))
-     	  interprogram-paste)
-           (or kill-ring (error "Kill ring is empty"))
-           (let ((ARGth-kill-element
-     	     (nthcdr (mod (- n (length kill-ring-yank-pointer))
-     			  (length kill-ring))
-     		     kill-ring)))
-     	(or do-not-move
-     	    (setq kill-ring-yank-pointer ARGth-kill-element))
-     	(car ARGth-kill-element)))))
-
-In addition, the `kill-new' function sets `kill-ring-yank-pointer' to
-the latest element of the the kill ring.  And indirectly so does
-`kill-append', since it calls `kill-new'.  In addition, `kill-region'
-and `kill-line' call the `kill-new' function.
-
-Here is the line in `kill-new', which is explained in *Note The
-`kill-new' function: kill-new function.
-
-     (setq kill-ring-yank-pointer kill-ring)
-
-* Menu:
-
-* Understanding current-kill::
 
