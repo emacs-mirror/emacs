@@ -1,7 +1,8 @@
-2006-10-31 Ramprasad B <ramprasad@gnu.org>
+2006-10-31 Yoni Rabkin Katzenell <yoni-r@actcom.com>  (tiny change)
 
-	* lisp/faces.el: Installed describe-face sample text of
-	`yoni-r@actcom.com: etc/TODO item: describe-face sample text'.
+	* lisp/faces.el (faces-sample-overlay): New defvar.
+	(faces-sample-overlay): New function to show face sample text.
+	(describe-face): Use it.
 
 2006-10-31  Stephen Leake  <stephen_leake@stephe-leake.org>
 
@@ -25,8 +26,8 @@
 	* server.el: Add support for TCP sockets.
 	(server-use-tcp, server-host, server-auth-dir): New options.
 	(server-auth-key): New variable.
-	(server-ensure-safe-dir): Create nonexistent parent dirs.  Ignore
-	Unix-style file modes on Windows.
+	(server-ensure-safe-dir): Create nonexistent parent dirs.
+	Ignore Unix-style file modes on Windows.
 	(server-start): Crete a TCP or Unix socket according to the value
 	of `server-use-tcp'.  For TCP sockets, create the id/auth file in
 	`server-auth-dir' directory.
@@ -81,8 +82,9 @@
 	compilers.
 
 2006-10-29  Lars Hansen  <larsh@soem.dk>
-	* net/tramp.el (with-parsed-tramp-file-name): Correct debug
-	spec.  Highlight as keyword.
+
+	* net/tramp.el (with-parsed-tramp-file-name): Correct debug spec.
+	Highlight as keyword.
 	(tramp-do-copy-or-rename-file): Correct data for 'file-already-exists.
 	Don't call tramp-method-out-of-band-p for local files.
 	(tramp-touch): Quote file name.
