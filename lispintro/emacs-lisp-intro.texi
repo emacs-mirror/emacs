@@ -24,8 +24,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.15
-@set update-date 2006 Oct 30
+@set edition-number 3.00
+@set update-date 2006 Oct 31
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -34,15 +34,16 @@
     ## pushd /u/intro/
 
     ## Info output
-    makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
+    # makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
+    makeinfo --paragraph-indent=0 --verbose emacs-lisp-intro.texi
 
     ## ;; (progn (when (bufferp (get-buffer "*info*")) (kill-buffer "*info*")) (info "/u/intro/emacs-lisp-intro.info"))
 
     ## DVI output
-    texi2dvi /u/intro/emacs-lisp-intro.texi
+    texi2dvi emacs-lisp-intro.texi
 
       ## View DVI output; see below also
-       # xdvi -margins 24pt -topmargin 4pt -offsets 24pt -geometry 760x1140 -s 5 -useTeXpages -mousemode 1 /u/intro/emacs-lisp-intro.dvi &
+       # xdvi -margins 24pt -topmargin 4pt -offsets 24pt -geometry 760x1140 -s 5 -useTeXpages -mousemode 1 emacs-lisp-intro.dvi &
 
     ## HTML output
     makeinfo --html --no-split --verbose emacs-lisp-intro.texi
@@ -72,12 +73,7 @@
       ## View Info output with standalone reader
       info emacs-lisp-intro.info
 
-    ## popd
-
-Need to explain defcustom  see (elisp)Customization  (elisp)Variable Definitions
-                defsubst
-                defconst
-
+      ## popd
 
 
 # as user `root'
@@ -96,7 +92,6 @@ Need to explain defcustom  see (elisp)Customization  (elisp)Variable Definitions
 @c (This is not relevant to Info, since Info only handles ASCII.)
 @c Your site may require editing changes to print PostScript; in this
 @c case, search for `print-postscript-figures' and make appropriate changes.
-
 
 @c ================ How to Create an Info file ================
 
@@ -265,7 +260,7 @@ Free Software Foundation raise funds for GNU development.''
 @sp 2
 @center @titlefont{Programming in Emacs Lisp}
 @sp 2
-@center Revised Second Edition
+@center Revised Third Edition
 @sp 4
 @center by Robert J. Chassell
 
@@ -372,7 +367,7 @@ Lisp Lists
 
 * Numbers Lists::               List have numbers, other lists, in them.
 * Lisp Atoms::                  Elemental entities.
-* Whitespace in Lists::         Formating lists to be readable.
+* Whitespace in Lists::         Formatting lists to be readable.
 * Typing Lists::                How GNU Emacs helps you type lists.
 
 The Lisp Interpreter
@@ -1747,7 +1742,7 @@ Another way to think about this is to imagine a symbol as being a chest
 of drawers.  The function definition is put in one drawer, the value in
 another, and so on.  What is put in the drawer holding the value can be
 changed without affecting the contents of the drawer holding the
-function definition, and vice-versa.
+function definition, and vice-verse.
 
 @menu
 * fill-column Example::
@@ -2712,7 +2707,7 @@ functions; without the parentheses, the interpreter would attempt to
 evaluate the symbols as variables.  @xref{Variables}.)
 
 In spite of the distinction between files and buffers, you will often
-find that people refer to a file when they mean a buffer and vice-versa.
+find that people refer to a file when they mean a buffer and vice-verse.
 Indeed, most people say, ``I am editing a file,'' rather than saying,
 ``I am editing a buffer which I will soon save to a file.''  It is
 almost always clear from context what people mean.  When dealing with
@@ -3276,7 +3271,6 @@ Emacs.  To reload code automatically whenever you start Emacs, see
 @ifnottex
 @unnumberedsubsec The effect of installation
 @end ifnottex
-
 
 You can see the effect of installing @code{multiply-by-seven} by
 evaluating the following sample.  Place the cursor after the following
@@ -5610,7 +5604,7 @@ the buffer you are in (and you have not seen the computer shift its
 attention, so you don't know that that buffer is now called
 @code{oldbuf}).
 
-Incidently, this is what is meant by `replacement'.  To replace text,
+Incidentally, this is what is meant by `replacement'.  To replace text,
 Emacs erases the previous text and then inserts new text.
 
 @need 1250
@@ -5850,7 +5844,7 @@ so the true-or-false-test looks like this:
 @noindent
 @code{not} is a function that returns true if its argument is false
 and false if its argument is true.  So if @code{(bufferp buffer)}
-returns true, the @code{not} expression returns false and vice-versa:
+returns true, the @code{not} expression returns false and vice-verse:
 what is ``not true'' is false and what is ``not false'' is true.
 
 Using this test, the @code{if} expression works as follows: when the
@@ -7433,7 +7427,7 @@ If you are reading this in Info inside of GNU Emacs, you can evaluate
 this expression in the usual fashion, by positioning the cursor after
 the expression and typing @kbd{C-x C-e}.  (I'm doing this right here
 as I write this.  This is one of the advantages of having the
-interpreter built into the computing environment.  Incidently, when
+interpreter built into the computing environment.  Incidentally, when
 there is nothing on the line after the final parentheses, such as a
 comment, point can be on the next line.  Thus, if your cursor is in
 the first column of the next line, you do not need to move it.
@@ -7773,7 +7767,7 @@ are of the right type, and give the user a prompt.
 
 In a read-only buffer, the @code{zap-to-char} function copies the text
 to the kill ring, but does not remove it.  The echo area displays a
-message saying that the buffer is read-ly.  Also, the terminal may
+message saying that the buffer is read-only.  Also, the terminal may
 beep or blink at you.
 
 Let us continue with the interactive specification.
@@ -7835,7 +7829,6 @@ character as a string.)  If the search is backwards,
 @code{search-forward} leaves point just before the first character in
 the target.  Also, @code{search-forward} returns @code{t} for true.
 (Moving point is therefore a `side effect'.)
-
 
 @need 1250
 In @code{zap-to-char}, the @code{search-forward} function looks like this:
@@ -8027,64 +8020,6 @@ text.  See `insert-for-yank'."
        (barf-if-buffer-read-only)
        ;; If the buffer isn't read-only, the text is.
        (signal 'text-read-only (list (current-buffer)))))))
-
-
-kfstorm  18-Jan-03): (defun kill-region (beg end &optional yank-handler)
-rms      11-Mar-06):   "Kill (\"cut\") text between point and mark.
-rms      11-Mar-06): This deletes the text from the buffer and saves it in the kill ring.
-jimb     21-Dec-91): The command \\[yank] can retrieve it from there.
-eliz     16-Feb-01): \(If you want to kill and then yank immediately, use \\[kill-ring-save].)
-eliz     16-Feb-01):
-eliz     16-Feb-01): If you want to append the killed region to the last killed text,
-eliz     16-Feb-01): use \\[append-next-kill] before \\[kill-region].
-eliz     16-Feb-01):
-jimb     01-Feb-93): If the buffer is read-only, Emacs will beep and refrain from deleting
-jimb     01-Feb-93): the text, but put the text in the kill ring anyway.  This means that
-jimb     01-Feb-93): you can use the killing commands to copy text from a read-only buffer.
-jimb     21-Dec-91):
-jimb     21-Dec-91): This is the primitive for programs to kill text (as opposed to deleting it).
-lektu    07-Jun-04): Supply two arguments, character positions indicating the stretch of text
-jimb     21-Dec-91):  to be killed.
-jimb     21-Dec-91): Any command that calls this function is a \"kill command\".
-jimb     21-Dec-91): If the previous command was also a kill command,
-jimb     21-Dec-91): the text killed this time appends to the text killed last time
-kfstorm  18-Jan-03): to make one entry in the kill ring.
-kfstorm  18-Jan-03):
-uid68472 18-Feb-04): In Lisp code, optional third arg YANK-HANDLER, if non-nil,
-uid68472 18-Feb-04): specifies the yank-handler text property to be set on the killed
-uid68472 18-Feb-04): text.  See `insert-for-yank'."
-rms      21-May-06):   ;; Pass point first, then mark, because the order matters
-rms      21-May-06):   ;; when calling kill-append.
-rms      21-May-06):   (interactive (list (point) (mark)))
-rms      04-Sep-06):   (unless (and beg end)
-rms      04-Sep-06):     (error "The mark is not set now, so there is no region"))
-kwzh     19-Nov-97):   (condition-case nil
-rms      29-Mar-05):       (let ((string (filter-buffer-substring beg end t)))
-monnier  07-Dec-99): 	(when string			;STRING is nil if BEG = END
-monnier  07-Dec-99): 	  ;; Add that string to the kill ring, one way or another.
-monnier  07-Dec-99): 	  (if (eq last-command 'kill-region)
-kfstorm  18-Jan-03): 	      (kill-append string (< end beg) yank-handler)
-kfstorm  18-Jan-03): 	    (kill-new string nil yank-handler)))
-kai      28-May-03): 	(when (or string (eq last-command 'kill-region))
-uid68472 18-Feb-04): 	  (setq this-command 'kill-region))
-uid68472 18-Feb-04): 	nil)
-kwzh     19-Nov-97):     ((buffer-read-only text-read-only)
-kwzh     19-Nov-97):      ;; The code above failed because the buffer, or some of the characters
-kwzh     19-Nov-97):      ;; in the region, are read-only.
-kwzh     19-Nov-97):      ;; We should beep, in case the user just isn't aware of this.
-kwzh     19-Nov-97):      ;; However, there's no harm in putting
-kwzh     19-Nov-97):      ;; the region's text in the kill ring, anyway.
-kwzh     19-Nov-97):      (copy-region-as-kill beg end)
-rms      19-May-98):      ;; Set this-command now, so it will be set even if we get an error.
-rms      19-May-98):      (setq this-command 'kill-region)
-rms      19-May-98):      ;; This should barf, if appropriate, and give us the correct error.
-kwzh     19-Nov-97):      (if kill-read-only-ok
-uid68472 18-Feb-04): 	 (progn (message "Read only text copied to kill ring") nil)
-kwzh     19-Nov-97):        ;; Signal an error if the buffer is read-only.
-kwzh     19-Nov-97):        (barf-if-buffer-read-only)
-kwzh     19-Nov-97):        ;; If the buffer isn't read-only, the text is.
-kwzh     19-Nov-97):        (signal 'text-read-only (list (current-buffer)))))))
-
 @end ignore
 
 The Emacs 22 version of that function uses @code{condition-case} and
@@ -8198,7 +8133,7 @@ The command \\[yank] can retrieve it from there. @dots{} "
 @group
     ;;    The first part of the third argument is the following:
     ((buffer-read-only text-read-only) ;; the if-part
-     ;; then @dots{}
+     ;; @dots{}  the then-part
      (copy-region-as-kill beg end)
 @end group
 @group
@@ -8363,7 +8298,6 @@ In brief, in the @code{kill-region} function, the code
     @var{but}, @var{if errors}, @var{run this other code}.
 @end group
 @end smallexample
-
 
 @ignore
 2006 Oct 24
@@ -8936,7 +8870,6 @@ The @code{push} line of the else-part sets the new value of the kill
 ring to what results from adding the string being killed to the old
 kill ring.
 
-
 We can see how this works with an example.
 
 @need 800
@@ -9149,7 +9082,6 @@ bringing back text that has been cut out of the buffer---the yank
 commands.  However, before discussing the yank commands, it is better
 to learn how lists are implemented in a computer.  This will make
 clear such mysteries as the use of the term `pointer'.
-
 
 @ignore
 @c is this true in Emacs 22?   Does not seems to be
@@ -10037,7 +9969,7 @@ In an earlier section, I suggested that you might imagine a symbol as
 being a chest of drawers.  The function definition is put in one
 drawer, the value in another, and so on.  What is put in the drawer
 holding the value can be changed without affecting the contents of the
-drawer holding the function definition, and vice-versa.
+drawer holding the function definition, and vice-verse.
 
 Actually, what is put in each drawer is the address of the value or
 function definition.  It is as if you found an old chest in the attic,
@@ -10312,7 +10244,6 @@ been cut out of the Emacs buffers.  The @code{kill-ring-yank-pointer}
 on the other hand, serves to indicate---that is, to `point to'---that part
 of the kill ring of which the first element (the @sc{car}) will be
 inserted.
-
 
 @ignore
 In GNU Emacs 22, the @code{kill-new} function calls
@@ -12537,7 +12468,7 @@ that a sentence may end without a period, such as text in Thai.)
 (Note that here the @key{TAB}, two spaces, and  @key{RET} are shown
 literally in the pattern.)
 
-This regular expression can be decyphered as follows:
+This regular expression can be deciphered as follows:
 
 @table @code
 @item [.?!]
@@ -13329,7 +13260,6 @@ forward one paragraph.
                   (not (looking-at parsep))
                   (looking-at fill-prefix-regexp))
         (forward-line 1))
-
 
     (while (and (re-search-forward sp-parstart nil 1)
                 (progn (setq start (match-beginning 0))
@@ -15331,20 +15261,6 @@ C-e} (@code{eval-last-sexp}).
  "/usr/local/share/emacs/22.0.100/lisp/emacs-lisp/debug.el")
 @end smallexample
 
-@c was: (lengths-list-file "../lisp/debug.el")
-@ignore
-2006 Oct 29
-For Bob, as root,
-    gunzip /usr/local/share/emacs/22.0.50/lisp/emacs-lisp/debug.el.gz
-In GNU Emacs 22, in *info* eval
-  count-words-in-defun
-in      The `count-words-in-defun' Function
-  count-words-in-defun
-in      `lengths-list-file' in Detail
-then eval
- (lengths-list-file "/usr/local/share/emacs/22.0.50/lisp/emacs-lisp/debug.el")
-@end ignore
-
 @noindent
 (You may need to change the pathname of the file; the one here is for
 GNU Emacs version 22.0.100.  To change the expression, copy it to
@@ -15365,7 +15281,7 @@ Then evaluate the @code{lengths-list-file} expression.)
 
 @need 1200
 The lengths' list for @file{debug.el} takes less than a second to
-produce and looks like this in GNY Emacs 22:
+produce and looks like this in GNU Emacs 22:
 
 @smallexample
 (83 113 105 144 289 22 30 97 48 89 25 52 52 88 28 29 77 49 43 290 232 587)
@@ -15475,14 +15391,6 @@ These considerations lead us directly to the function itself:
 name to the absolute, long, path name form of the directory in which
 the function is called.
 
-@ignore
-2006 Oct 29
-For Bob, as root,
-    gunzip /usr/local/share/emacs/22.0.50/lisp/emacs-lisp/debug.el.gz
-In GNU Emacs 22,  eval
-(expand-file-name "/usr/local/share/emacs/22.0.50/lisp/emacs-lisp/debug.el")
-@end ignore
-
 @c !!! 22.0.100 lisp sources location here
 @need 1500
 Thus, if @code{expand-file-name} is called on @code{debug.el} when
@@ -15591,14 +15499,6 @@ The results are shown after the @samp{@result{}}.  (These results are
 for files from Emacs Version 22.0.100; files from other versions of
 Emacs may produce different results.)
 
-@ignore
-2006 Oct 29
-For Bob, as root,
-    gunzip /usr/local/share/emacs/22.0.50/lisp/macros.el.gz
-In GNU Emacs 22,  eval
-    (lengths-list-file "/usr/local/share/emacs/22.0.50/lisp/macros.el")
-@end ignore
-
 @c !!! 22.0.100 lisp sources location here
 @smallexample
 @group
@@ -15608,42 +15508,15 @@ In GNU Emacs 22,  eval
      @result{} (283 263 480 90)
 @end group
 
-@ignore
-2006 Oct 29
-For Bob, as root,
-    gunzip /usr/local/share/emacs/22.0.50/lisp/mail/mailalias.el.gz
-In GNU Emacs 22,  eval
-    (lengths-list-file "/usr/local/share/emacs/22.0.50/lisp/mail/mailalias.el")
-@end ignore
-
 @group
 (lengths-list-file "./lisp/mail/mailalias.el")
      @result{} (38 32 29 95 178 180 321 218 324)
 @end group
 
-@ignore
-2006 Oct 29
-For Bob, as root,
-    gunzip /usr/local/share/emacs/22.0.50/lisp/makesum.el
-In GNU Emacs 22,  eval
-    (lengths-list-file "/usr/local/share/emacs/22.0.50/lisp/makesum.el")
-@end ignore
-
 @group
 (lengths-list-file "./lisp/makesum.el")
      @result{} (85 181)
 @end group
-
-@ignore
-2006 Oct 29
-In GNU Emacs 22,  eval
-(progn
-  (cd "/usr/local/share/emacs/22.0.50/")
-  (recursive-lengths-list-many-files
-   '("./lisp/macros.el"
-     "./lisp/mail/mailalias.el"
-     "./lisp/makesum.el")))
-@end ignore
 
 @group
   (recursive-lengths-list-many-files
@@ -15826,13 +15699,6 @@ say, a file with the special attributes of a directory.  The second
 element of the list is @code{t} for a directory, a string
 for symbolic link (the string is the name linked to), or @code{nil}.
 
-@ignore
-(directory-files-and-attributes "/usr/local/src/emacs") -->
-(... ("lisp" t 21 1000 100 (17733 259) (17732 36064) (17732 36064) 12288
-"drwxr-xr-x" nil 2971606 773))
-@end ignore
-
-
 For example, the first @samp{.el} file in the @file{lisp/} directory
 is @file{abbrev.el}.  Its name is
 @file{/usr/local/share/emacs/22.0.100/lisp/abbrev.el} and it is not a
@@ -15841,12 +15707,6 @@ directory or a symbolic link.
 @need 1000
 This is how @code{directory-files-and-attributes} lists that file and
 its attributes:
-
-@ignore
-(directory-files-and-attributes "/usr/local/src/emacs/lisp") -->
-(... ("abbrev.el" nil 1 1000 100 (17733 259) (17491 28834) (17596 62124)
-13157 "-rw-r--r--" nil 2971624 773) ...)
-@end ignore
 
 @smallexample
 @group
@@ -17312,6 +17172,13 @@ initialization file, which is usually called @file{.emacs}.
 I myself use @code{customize} for hardly anything.  Mostly, I write
 expressions myself.
 
+@findex defsubst 
+@findex defconst 
+Incidentally, @code{defsubst} defines an inline function.  The syntax
+is just like that of @code{defun}.  @code{defconst} defines a symbol
+as a constant.  The intent is that neither programs nor users should
+ever change a value set by @code{defconst}
+
 @node Beginning a .emacs File, Text and Auto-fill, defcustom, Emacs Initialization
 @section Beginning a @file{.emacs} File
 @cindex @file{.emacs} file, beginning of
@@ -17621,7 +17488,7 @@ control key and the @kbd{c} key at the same time'.  The @code{w} means
 `press the @kbd{w} key'.  The keybinding is surrounded by double
 quotation marks.  In documentation, you would write this as @kbd{C-c
 w}.  (If you were binding a @key{META} key, such as @kbd{M-c}, rather
-than a @key{CTL} key, you would write @code{\M-c}.  @xref{Init
+than a @key{CTRL} key, you would write @code{\M-c}.  @xref{Init
 Rebinding, , Rebinding Keys in Your Init File, emacs, The GNU Emacs
 Manual}, for details.)
 
@@ -18188,8 +18055,8 @@ this:
 @end smallexample
 
 @item
-Convert @kbd{@key{CTL}-h} into @key{DEL} and @key{DEL}
-into @kbd{@key{CTL}-h}.@*
+Convert @kbd{@key{CTRL}-h} into @key{DEL} and @key{DEL}
+into @kbd{@key{CTRL}-h}.@*
 (Some older keyboards needed this, although I have not seen the
 problem recently.)
 
@@ -18268,7 +18135,7 @@ If you want to write with Chinese `GB' characters, set this instead:
 @cindex Bindings, key, fixing unpleasant
 
 Some systems bind keys unpleasantly.  Sometimes, for example, the
-@key{CTL} key appears in an awkward spot rather than at the far left
+@key{CTRL} key appears in an awkward spot rather than at the far left
 of the home row.
 
 Usually, when people fix these sorts of keybindings, they do not
@@ -18643,7 +18510,7 @@ presented you with an error message.  You had to start the debugger
 manually.
 @end ignore
 
-Incidently, you can start the debugger manually for all versions of
+Incidentally, you can start the debugger manually for all versions of
 Emacs; the advantage is that the debugger runs even if you do not have
 a bug in your code.  Sometimes your code will be free of bugs!
 
@@ -18966,7 +18833,7 @@ completes without problems.
 @item
 While running Edebug, type @kbd{?} to see a list of all the Edebug commands.
 (The @code{global-edebug-prefix} is usually @kbd{C-x X}, i.e.@:
-@kbd{@key{CTL}-x} followed by an upper case @kbd{X}; use this prefix
+@kbd{@key{CTRL}-x} followed by an upper case @kbd{X}; use this prefix
 for commands made outside of the Edebug debugging buffer.)
 
 @item
@@ -19205,105 +19072,6 @@ five six seven
 You can substitute the other regular expressions shown above in the
 function definition and try each of them on this list.
 
-@c done til here 2006 Oct 29
-
-@ignore
-
-
-
-@end ignore
-
-
-@ignore
-as of GNU Emacs 22, this no longer seems to be the case
-with  yank  yank-pop
-
-guts of rotate-yank-pointer moved to current-kill
-in simple.el
-
-(defun current-kill (n &optional do-not-move)
-  "Rotate the yanking point by N places, and then return that kill.
-
-critical part is:
-
-      (let ((ARGth-kill-element
-	     (nthcdr (mod (- n (length kill-ring-yank-pointer))
-			  (length kill-ring))
-		     kill-ring)))
-	(or do-not-move
-	    (setq kill-ring-yank-pointer ARGth-kill-element))
-	(car ARGth-kill-element))
-
-
-
-    (mod X Y)
-    Return X modulo Y.
-
-    (% X Y)
-    Return remainder of X divided by Y.
-
-    (mod 12 3)  0 (#o0, #x0, ?\C-@)
-    (mod 4 3)   1
-    (mod 13 3)  1
-
-    (% 12 3)    0
-    (% 4 3)     1
-    (% 13 3)    1
-
-         mod   returns the value of DIVIDEND modulo DIVISOR; in
-         other words, the remainder after division of DIVIDEND by DIVISOR,
-         but with the same sign as DIVISOR.  The arguments must be numbers
-         or markers.
-
-         Unlike `%', `mod' returns a well-defined result for negative
-         arguments.  It also permits floating point arguments; it rounds the
-         quotient downward (towards minus infinity) to an integer, and uses
-         that quotient to compute the remainder.
-
-         % returns the integer remainder after division of
-         DIVIDEND by DIVISOR.  The arguments must be integers or markers.
-
-         For negative arguments, the remainder is in principle
-         machine-dependent since the quotient is; but in practice, all
-         known machines behave alike.
-
-
-
-rotate-yank-pointer has
-
-reformatted:
-    (let ((length (length kill-ring)))
-      ...
-      (setq kill-ring-yank-pointer
-            (nthcdr (% (+ arg
-                          (- length (length kill-ring-yank-pointer)))
-                       length)
-                    kill-ring)))))
-
-originally
-      (setq kill-ring-yank-pointer
-            (nthcdr (% (+ arg
-                          (- length
-                             (length
-                              kill-ring-yank-pointer)))
-                       length)
-                    kill-ring)))))
-
-
-
-
-
-
-/usr/local/src/emacs/lisp/ChangeLog.3
-1992-05-21  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
-simple.el
-	(yank-pop): Use current-kill, rather than assuming that
-	kill-ring-yank-pointer points to the text you should use.
-	(yank): Use current-kill, instead of calling rotate-yank-pointer
-	and then fetching through the kill-ring-yank-pointer.
-
-@end ignore
-
 @node Kill Ring, Full Graph, the-the, Top
 @appendix Handling the Kill Ring
 @cindex Kill ring handling
@@ -19339,10 +19107,18 @@ it with @kbd{M-w}.
 (In a read-only buffer, such as the @file{*info*} buffer, the kill
 command, @kbd{C-k} (@code{kill-line}), will not remove the text,
 merely copy it to the kill ring.  However, your machine may beep at
-you.  Alternatively, for silence, you may copy the region of each line
-with the @kbd{M-w} (@code{kill-ring-save}) command.  You must mark
-each line for this command to succeed, but it does not matter at which
-end you put point or mark.)
+you.  (@code{kill-line} calls @code{kill-region}.)  Alternatively, for
+silence, you may copy the region of each line with the @kbd{M-w}
+(@code{kill-ring-save}) command.  You must mark each line for this
+command to succeed, but it does not matter at which end you put point
+or mark.)
+
+@ignore
+@c texi2dvi fails when the name of the section is within ifnottex ...
+For a discussion of how @code{condition-case} deals with error, see
+@ref{Complete kill-region, , The Complete @code{kill-region}
+Definition}.
+@end ignore
 
 @need 1250
 @noindent
@@ -19494,7 +19270,7 @@ within the bounds of this function.  This variable is called
 is not for copying within this instance of GNU Emacs.  Most window
 systems provide a facility for interprogram pasting.  Sadly, that
 facility usually provides only for the lasted element.  Most windowing
-systems have not adopted a ring of many possiblities, even though
+systems have not adopted a ring of many possibilities, even though
 Emacs has provided it for decades.
 
 The @code{if} expression has two parts, one if there exists
@@ -19561,7 +19337,6 @@ Next, either the optional @code{do-not-move} argument is true or the
 current value of @code{kill-ring-yank-pointer} is set to point to the
 list, the first element of which is returned even if the
 @code{do-not-move} argument is true.
-
 
 @menu
 * Digression concerning error::
@@ -19673,7 +19448,7 @@ That is fine.
 @end smallexample
 
 We can guess what the @code{-} function does.  It is like @code{+} but
-substracts instead of adds; the @code{-} function subtracts its second
+subtracts instead of adds; the @code{-} function subtracts its second
 argument from its first.  Also, we already know what the @code{length}
 function does (@pxref{length}).  It returns the length of a list.
 
@@ -19713,14 +19488,19 @@ element.
 
 @cindex @samp{global variable} defined
 @cindex @samp{variable, global}, defined
-Incidently, both @code{kill-ring} and @code{kill-ring-yank-pointer}
+Incidentally, both @code{kill-ring} and @code{kill-ring-yank-pointer}
 are @dfn{global variables}.  That means that any expression in Emacs
 Lisp can access them.  They are not like the local variables set by
-@code{let} (@pxref{Prevent confusion}) or like the symbols in an
-argument list (@pxref{defun, , The @code{defun} Special Form}).  Local
-variables can only be accessed within the @code{let} that defines them
-or the function that specifies them in an argument list (and within
-expressions called by them).
+@code{let} or like the symbols in an argument list. 
+Local variables can only be accessed
+within the @code{let} that defines them or the function that specifies
+them in an argument list (and within expressions called by them).
+
+@ignore
+@c texi2dvi fails when the name of the section is within ifnottex ...
+(@xref{Prevent confusion, , @code{let} Prevents Confusion}, and
+@ref{defun, , The @code{defun} Special Form}.)
+@end ignore
 
 @node yank, yank-pop, current-kill, Kill Ring
 @comment  node-name,  next,  previous,  up
@@ -19801,8 +19581,6 @@ typing @kbd{C-h f} (@code{describe-function}) followed by a @kbd{RET};
 the default is the function.)
 
 The last part of the function tells what to do when it succeeds.
-
-
 
 @node yank-pop, ring file, yank, Kill Ring
 @comment  node-name,  next,  previous,  up
@@ -22321,7 +22099,6 @@ copylefted manuals to non-copylefted ones.
 Note: The Free Software Foundation maintains a page on its Web site
 that lists free books available from other publishers:@*
 @uref{http://www.gnu.org/doc/other-free-books.html}
-
 
 @node GNU Free Documentation License, Index, Free Software and Free Manuals, Top
 @appendix GNU Free Documentation License
