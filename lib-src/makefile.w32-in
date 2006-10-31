@@ -20,7 +20,7 @@
 #  Boston, MA 02110-1301, USA.
 #
 
-ALL = make-docfile hexl ctags etags movemail ebrowse sorted-doc digest-doc
+ALL = make-docfile hexl ctags etags movemail ebrowse sorted-doc digest-doc emacsclient
 
 .PHONY: $(ALL)
 
@@ -32,7 +32,6 @@ LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 \
 #
 #		$(BLD)/server.exe	\
 #		$(BLD)/emacstool.exe	\
-#		$(BLD)/emacsclient.exe	\
 #		$(BLD)/cvtmail.exe	\
 
 LIBS	      = $(BASE_LIBS) $(ADVAPI32)
@@ -59,6 +58,7 @@ movemail:	$(BLD) $(BLD)/movemail.exe
 fakemail:	$(BLD) $(BLD)/fakemail.exe
 sorted-doc:	$(BLD) $(BLD)/sorted-doc.exe
 digest-doc:	$(BLD) $(BLD)/digest-doc.exe
+emacsclient:	$(BLD) $(BLD)/emacsclient.exe
 
 test-distrib:	$(BLD) $(BLD)/test-distrib.exe
 	"$(BLD)/test-distrib.exe" "$(SRC)/testfile"
@@ -73,6 +73,19 @@ MOVEMAILOBJS =  $(BLD)/movemail.$(O) \
 $(BLD)/movemail.exe:	$(MOVEMAILOBJS) getopt.h
 # put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(MOVEMAILOBJS) $(WSOCK32) $(LIBS)
+
+ECLIENT_CFLAGS = -DWINDOWSNT -DHAVE_GETCWD -DHAVE_STRERROR -c
+ECLIENTOBJS =	$(BLD)/emacsclient.$(O) \
+		$(BLD)/getopt.$(O) \
+		$(BLD)/getopt1.$(O) \
+		$(BLD)/ntlib.$(O)
+
+$(BLD)/emacsclient.exe:		$(ECLIENTOBJS)
+# put wsock32.lib before $(LIBS) to ensure we don't link to ws2_32.lib
+		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(LIBS)
+
+$(BLD)/emacsclient.$(O):	emacsclient.c
+		$(CC) $(ECLIENT_CFLAGS) $(CC_OUT)$@ emacsclient.c
 
 ETAGSOBJ      = $(BLD)/etags.$(O) \
 		$(BLD)/getopt.$(O) \
@@ -296,6 +309,7 @@ install:	$(INSTALL_FILES)
 		$(CP) $(BLD)/movemail.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/sorted-doc.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/digest-doc.exe $(INSTALL_DIR)/bin
+		$(CP) $(BLD)/emacsclient.exe $(INSTALL_DIR)/bin
 		- mkdir "$(INSTALL_DIR)/etc"
 		$(CP) $(DOC) $(INSTALL_DIR)/etc
 
