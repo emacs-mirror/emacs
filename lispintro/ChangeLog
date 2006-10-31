@@ -1,3 +1,13 @@
+2006-10-31  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* emacs-lisp-intro.texi: Revised text for kill-region,
+	copy-region-as-kill, kill-append, kill-new, forward-sentence,
+	forward-paragraph, find-file, current-kill, yank, and yank-pop.
+	Removed INSTALL MANIFEST from the directory since those files are
+	now irrelevant.  Updated Info file in ../info.  Changed numbering
+	so is now Revised Third Edition and this instance's edition-number
+	is 3.00.  Did not update ISBN number.
+
 2006-10-30  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi:  Many changes since it turned out that
