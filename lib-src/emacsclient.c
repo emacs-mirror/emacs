@@ -27,29 +27,35 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #ifdef WINDOWSNT
-#define HAVE_SOCKETS
-#define NO_SOCKETS_IN_FILE_SYSTEM
-#endif
 
-#ifdef WINDOWSNT
+# include <malloc.h>
+# include <stdlib.h>
+
+# define HAVE_SOCKETS
+# define NO_SOCKETS_IN_FILE_SYSTEM
+
 # define HSOCKET SOCKET
 # define CLOSE_SOCKET closesocket
 # define IOCTL ioctlsocket
 # define INITIALIZE() (initialize_sockets ())
 typedef unsigned long IOCTL_BOOL_ARG;
-#else
+
+#else /* !WINDOWSNT */
+
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
 # include <netinet/in.h>
 # include <sys/ioctl.h>
+
 # define INVALID_SOCKET -1
 # define HSOCKET int
 # define CLOSE_SOCKET close
 # define IOCTL ioctl
 # define INITIALIZE()
 typedef int IOCTL_BOOL_ARG;
-#endif
+
+#endif /* !WINDOWSNT */
 
 #undef signal
 
@@ -379,7 +385,7 @@ quote_file_name (s, name)
 
 #ifdef WINDOWSNT
 /* Wrapper to make WSACleanup a cdecl, as required by atexit().	 */
-void close_winsock ()
+void __cdecl close_winsock ()
 {
   WSACleanup ();
 }
@@ -497,7 +503,7 @@ set_tcp_socket ()
 #else
   IOCTL (s, FIONBIO, &c_arg);
 #endif
-#endif 
+#endif
   setsockopt (s, SOL_SOCKET, SO_LINGER, (char *) &l_arg, sizeof l_arg);
 
   /*
