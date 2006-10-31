@@ -1,3 +1,58 @@
+2006-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OS] (image_load_qt_1, xpm_scan, xpm_make_color_table_v)
+	(xpm_put_color_table_v,	xpm_get_color_table_v, xpm_make_color_table_h)
+	(xpm_put_color_table_h, xpm_get_color_table_h, xpm_str_to_color_key)
+	(xpm_load_image): Add const qualifier to arguments.
+	[MAC_OS] (xpm_color_key_strings): Make static const.
+
+	* mac.c (create_apple_event_from_event_ref)
+	(create_apple_event_from_drag_ref, skip_white_space, parse_comment)
+	(parse_include_file, parse_binding, parse_component)
+	(parse_resource_name, parse_value, parse_resource_line)
+	(xrm_merge_string_database, xrm_get_resource)
+	(xrm_get_preference_database): Add const qualifier to arguments.
+	[MAC_OSX] (sys_select): Make variable `context' static const.
+
+	* macfns.c (mac_color_map): Make static const.
+	(mac_color_map_lookup): Add const qualifier to arguments.
+
+	* macmenu.c (install_menu_quit_handler): Make variable `typesList'
+	static const.
+	(name_is_separator): Add const qualifier to arguments.
+
+	* macselect.c (init_service_handler): Make variable `specs' static
+	const.
+
+	* macterm.c (mac_create_bitmap_from_bitmap_data): Make variable
+	`swap_nibbles' static const.
+	(atsu_get_text_layout_with_text_ptr): Make variables `lengths',
+	`tags', `sizes', `values' static const.
+	(mac_draw_string_common): Make variables `context' static.  Make
+	variables `tags', `sizes', and `values' static const.
+	(pcm_get_status, x_detect_focus_change, x_scroll_bar_handle_click)
+	(xlfdpat_create, xlfdpat_block_match_1, xlfdpat_match)
+	(mac_to_x_fontname, parse_x_font_name, add_mac_font_name)
+	(mac_do_list_fonts, is_fully_specified_xlfd, do_grow_window)
+	(mac_store_event_ref_as_apple_event, mac_make_rdb): Add const
+	qualifier to arguments.
+	(xlfd_scalable_fields, keycode_to_xkeysym_table)
+	(fn_keycode_to_keycode_table): Make static const.
+	(mac_load_query_font): Make variables `tags', `sizes', `values',
+	`types', and `selectors' static const.
+	(mac_handle_command_event, mac_handle_window_event): Make
+	variables `names' and `types' static const.
+	(init_command_handler, install_window_handler): Make variables
+	`specs*' static const.
+	(mac_handle_font_event, mac_handle_text_input_event)
+	(mac_store_service_event): Make variables `names' and `types'
+	const.  Make variables `names_*' and `types_*' static const.
+
+	* macterm.h (create_apple_event_from_event_ref)
+	(create_apple_event_from_drag_ref, xrm_merge_string_database)
+	(xrm_get_resource, xrm_get_preference_database): Add const
+	qualifier to arguments in externs.
+
 2006-10-31  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (xic_create_xfontset): Fix previous change.
