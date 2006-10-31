@@ -1,3 +1,8 @@
+2006-10-31 Ramprasad B <ramprasad@gnu.org>
+
+	* lisp/faces.el: Installed describe-face sample text of
+	`yoni-r@actcom.com: etc/TODO item: describe-face sample text'.
+
 2006-10-31  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-stmt.el: Change maintainer, apply
