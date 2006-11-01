@@ -19246,7 +19246,7 @@ skeletal form:
 @smallexample
 @group
 (defun current-kill (n &optional do-not-move)
-  "Rotate the yanking point by N places, and then return that kill.
+  "Rotate the yanking point by N places, and then return that kill."
   (let @var{varlist}
     @var{body}@dots{})
 @end group
