@@ -1,3 +1,7 @@
+2006-11-01  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp-intro.texi: Fix unbalanced quotes.
+
 2006-10-31  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi: Revised text for kill-region,

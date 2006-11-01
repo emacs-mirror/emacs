@@ -1,3 +1,7 @@
+2006-11-01  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (yank): Doc fix.
+
 2006-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el: Try and fit within 80 columns.
