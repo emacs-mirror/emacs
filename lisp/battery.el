@@ -408,6 +408,7 @@ The following %-sequences are provided:
 			    (format "%d:%02d" hours (- minutes (* 60 hours))))
 		       "N/A"))
 	  (cons ?p (or (and full-capacity capacity
+			    (> full-capacity 0)
 			    (number-to-string
 			     (floor (/ capacity
 				       (/ (float full-capacity) 100)))))

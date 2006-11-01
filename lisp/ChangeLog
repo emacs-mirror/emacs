@@ -1,3 +1,8 @@
+2006-10-31  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* battery.el (battery-linux-proc-acpi): Prevent range error when
+	`full-capacity' is 0.
+
 2006-10-31 Yoni Rabkin Katzenell <yoni-r@actcom.com>  (tiny change)
 
 	* lisp/faces.el (faces-sample-overlay): New defvar.
