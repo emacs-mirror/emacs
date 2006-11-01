@@ -1,3 +1,8 @@
+2006-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el: Try and fit within 80 columns.
+	(server-start): Make the auth file unreadable by other users.
+
 2006-10-31  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
 
 	* battery.el (battery-linux-proc-acpi): Prevent range error when

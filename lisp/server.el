@@ -185,7 +185,7 @@ this way."
   :version "21.1")
 
 (or (assq 'server-buffer-clients minor-mode-alist)
-    (setq minor-mode-alist (cons '(server-buffer-clients " Server") minor-mode-alist)))
+    (push '(server-buffer-clients " Server") minor-mode-alist))
 
 (defvar server-existing-buffer nil
   "Non-nil means the buffer existed before the server was asked to visit it.
@@ -306,10 +306,11 @@ Emacs distribution as your standard \"editor\".
 Prefix arg means just kill any existing server communications subprocess."
   (interactive "P")
   (when server-process
-  ;; kill it dead!
+    ;; kill it dead!
     (ignore-errors (delete-process server-process))
     (ignore-errors
-      ;; Delete the socket or authentication files made by previous server invocations.
+      ;; Delete the socket or authentication files made by previous
+      ;; server invocations.
       (if (eq (process-contact server-process :family) 'local)
       (delete-file (expand-file-name server-name server-socket-dir))
         (setq server-auth-key nil)
@@ -321,7 +322,8 @@ Prefix arg means just kill any existing server communications subprocess."
   ;; Now any previous server is properly stopped.
   (unless leave-dead
     ;; Make sure there is a safe directory in which to place the socket.
-    (server-ensure-safe-dir (if server-use-tcp server-auth-dir server-socket-dir))
+    (server-ensure-safe-dir
+     (if server-use-tcp server-auth-dir server-socket-dir))
     (when server-process
 	(server-log (message "Restarting server")))
     (letf (((default-file-modes) ?\700))
@@ -332,11 +334,11 @@ Prefix arg means just kill any existing server communications subprocess."
                    :noquery t
                    :sentinel 'server-sentinel
                    :filter 'server-process-filter
-	     ;; We must receive file names without being decoded.
-	     ;; Those are decoded by server-process-filter according
-	     ;; to file-name-coding-system.
+                   ;; We must receive file names without being decoded.
+                   ;; Those are decoded by server-process-filter according
+                   ;; to file-name-coding-system.
                    :coding 'raw-text
-                   ;; The rest of the arguments depend on the kind of socket used
+                   ;; The rest of the args depends on the kind of socket used.
                    (if server-use-tcp
                        (list :family nil
                              :service t
@@ -344,20 +346,22 @@ Prefix arg means just kill any existing server communications subprocess."
                              :plist '(:authenticated nil))
                      (list :family 'local
                            :service (expand-file-name server-name server-socket-dir)
-                           :plist '(:authenticated t))))))
-    (unless server-process (error "Could not start server process"))
-    (when server-use-tcp
-      (setq server-auth-key
-	    (loop
-               ;; The auth key is a 64-byte string of random chars in the range `!'..`~'.
-	       for i below 64
-	       collect (+ 33 (random 94)) into auth
-	       finally return (concat auth)))
-      (with-temp-file (expand-file-name server-name server-auth-dir)
-        (set-buffer-multibyte nil)
-        (setq buffer-file-coding-system 'no-conversion)
-        (insert (format-network-address (process-contact server-process :local))
-                "\n" server-auth-key)))))
+                           :plist '(:authenticated t)))))
+      (unless server-process (error "Could not start server process"))
+      (when server-use-tcp
+        (setq server-auth-key
+              (loop
+                 ;; The auth key is a 64-byte string of random chars in the
+                 ;; range `!'..`~'.
+	         for i below 64
+                 collect (+ 33 (random 94)) into auth
+                 finally return (concat auth)))
+        (with-temp-file (expand-file-name server-name server-auth-dir)
+          (set-buffer-multibyte nil)
+          (setq buffer-file-coding-system 'no-conversion)
+          (insert (format-network-address
+                   (process-contact server-process :local))
+                  "\n" server-auth-key))))))
 
 ;;;###autoload
 (define-minor-mode server-mode
@@ -444,7 +448,8 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		      (let ((standard-output (current-buffer)))
 			(if errorp (princ "error: "))
 			(pp v)
-			;; Suppress the error rose when the pipe to PROC is closed.
+			;; Suppress the error signalled when the pipe to
+			;; PROC is closed.
 			(condition-case err
 			    (process-send-region proc (point-min) (point-max))
 			  (file-error nil)
