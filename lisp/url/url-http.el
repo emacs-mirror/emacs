@@ -151,13 +151,15 @@ request.")
 
 (defun url-http-create-request (url &optional ref-url)
   "Create an HTTP request for URL, referred to by REF-URL."
-  (declare (special proxy-object proxy-info))
+  (declare (special proxy-object proxy-info 
+		    url-http-method url-http-data
+		    url-http-extra-headers))
   (let* ((extra-headers)
 	 (request nil)
-	 (no-cache (cdr-safe (assoc "Pragma" url-request-extra-headers)))
+	 (no-cache (cdr-safe (assoc "Pragma" url-http-extra-headers)))
 	 (proxy-obj (and (boundp 'proxy-object) proxy-object))
 	 (proxy-auth (if (or (cdr-safe (assoc "Proxy-Authorization"
-					      url-request-extra-headers))
+					      url-http-extra-headers))
 			     (not proxy-obj))
 			 nil
 		       (let ((url-basic-auth-storage
@@ -166,7 +168,7 @@ request.")
 	 (real-fname (concat (url-filename (or proxy-obj url))
 			     (url-recreate-url-attributes (or proxy-obj url))))
 	 (host (url-host (or proxy-obj url)))
-	 (auth (if (cdr-safe (assoc "Authorization" url-request-extra-headers))
+	 (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))
 		   nil
 		 (url-get-authentication (or
 					  (and (boundp 'proxy-info)
@@ -191,12 +193,12 @@ request.")
 		 (memq 'lastloc url-privacy-level)))
 	(setq ref-url nil))
 
-    ;; url-request-extra-headers contains an assoc-list of
+    ;; url-http-extra-headers contains an assoc-list of
     ;; header/value pairs that we need to put into the request.
     (setq extra-headers (mapconcat
 			 (lambda (x)
 			   (concat (car x) ": " (cdr x)))
-			 url-request-extra-headers "\r\n"))
+			 url-http-extra-headers "\r\n"))
     (if (not (equal extra-headers ""))
 	(setq extra-headers (concat extra-headers "\r\n")))
 
@@ -219,7 +221,7 @@ request.")
            (delq nil
             (list
              ;; The request
-             (or url-request-method "GET") " "
+             (or url-http-method "GET") " "
              (if proxy-obj (url-recreate-url proxy-obj) real-fname)
              " HTTP/" url-http-version "\r\n"
              ;; Version of MIME we speak
@@ -267,7 +269,7 @@ request.")
                                                (equal "https" (url-type url)))
              ;; If-modified-since
              (if (and (not no-cache)
-                      (member url-request-method '("GET" nil)))
+                      (member url-http-method '("GET" nil)))
                  (let ((tm (url-is-cached (or proxy-obj url))))
                    (if tm
                        (concat "If-modified-since: "
@@ -277,15 +279,15 @@ request.")
                           "Referer: " ref-url "\r\n"))
              extra-headers
              ;; Length of data
-             (if url-request-data
+             (if url-http-data
                  (concat
                   "Content-length: " (number-to-string
-                                      (length url-request-data))
+                                      (length url-http-data))
                   "\r\n"))
              ;; End request
              "\r\n"
              ;; Any data
-             url-request-data))
+             url-http-data))
            ""))
     (url-http-debug "Request is: \n%s" request)
     request))

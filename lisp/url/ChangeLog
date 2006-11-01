@@ -1,3 +1,8 @@
+2006-11-01  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-create-request): Use buffer-local
+	equivalents of dynamically bound variables.
+
 2006-10-29  Magnus Henoch  <mange@freemail.hu>
 
 	* url-gw.el (url-open-stream): Really use asynchronous
