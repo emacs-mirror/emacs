@@ -250,6 +250,9 @@ fail (argc, argv)
   if (alternate_editor)
     {
       int i = optind - 1;
+#ifdef WINDOWSNT
+      argv[i] = (char *)alternate_editor;
+#endif
       execvp (alternate_editor, argv + i);
       fprintf (stderr, "%s: error executing alternate editor \"%s\"\n",
                progname, alternate_editor);
