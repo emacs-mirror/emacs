@@ -9230,7 +9230,7 @@ written like this:
 @smallexample
 @group
   "Set point to POSITION, a number or marker.\n\
-Beginning of buffer is position (point-min), end is (point-max).
+Beginning of buffer is position (point-min), end is (point-max)."
 @end group
 @end smallexample
 @end itemize
@@ -10194,7 +10194,7 @@ kill-ring     kill-ring-yank-pointer
             |              |            |
             |              |             --> "yet more text"
             |              |
-            |               --> "a different piece of text
+            |               --> "a different piece of text"
             |
              --> "some text"
 @end group
