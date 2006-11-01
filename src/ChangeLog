@@ -1,3 +1,7 @@
+2006-11-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fcatch): Doc fix.
+
 2006-10-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c [MAC_OS] (image_load_qt_1, xpm_scan, xpm_make_color_table_v)
@@ -62,7 +66,7 @@
 	* s/openbsd.h (LD_SWITCH_SYSTEM): Add /usr/pkg/lib and
 	/usr/pkg/lib to library search path.
 
-2006-10-29  Mark Davies  <mark@mcs.vuw.ac.nz> (tiny change)
+2006-10-29  Mark Davies  <mark@mcs.vuw.ac.nz>  (tiny change)
 
 	* ralloc.c (relinquish): Use a long for excess space counter to
 	handle 64-bit case correctly.
