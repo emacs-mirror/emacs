@@ -1,3 +1,13 @@
+2006-11-01  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (article-hide-boring-headers): Fetch date from
+	gnus-original-article-buffer to avoid problems with localized date
+	strings.
+
+2006-10-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* html2text.el (html2text-format-tags): Avoid infloop on open tags.
+
 2006-10-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-util.el (mm-codepage-iso-8859-list, mm-codepage-ibm-list): New
