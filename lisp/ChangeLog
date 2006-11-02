@@ -1,3 +1,10 @@
+2006-11-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-visit-files): Use `when'.
+	(server-process-filter): When authentication fails, send error
+	message to client.  Wrap `process-send-region' in `ignore-errors'
+	instead of `condition-case', and remove misleading comment.
+
 2006-11-01  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (yank): Doc fix.
@@ -12,7 +19,7 @@
 	* battery.el (battery-linux-proc-acpi): Prevent range error when
 	`full-capacity' is 0.
 
-2006-10-31 Yoni Rabkin Katzenell <yoni-r@actcom.com>  (tiny change)
+2006-10-31 Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
 
 	* lisp/faces.el (faces-sample-overlay): New defvar.
 	(faces-sample-overlay): New function to show face sample text.
