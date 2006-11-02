@@ -24,8 +24,8 @@
 
 @comment %**end of header
 
-@set edition-number 3.01
-@set update-date 2006 Oct 31
+@set edition-number 3.02
+@set update-date 2006 November 2
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -10255,7 +10255,7 @@ In GNU Emacs 22, the @code{kill-new} function calls
 @code{(setq kill-ring-yank-pointer kill-ring)}
 
 (defun rotate-yank-pointer (arg)
-  "Rotate the yanking point in the kill ring."
+  "Rotate the yanking point in the kill ring.
 With argument, rotate that many kills forward (or backward, if negative)."
   (interactive "p")
   (current-kill arg))
