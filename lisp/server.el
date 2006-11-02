@@ -312,7 +312,7 @@ Prefix arg means just kill any existing server communications subprocess."
       ;; Delete the socket or authentication files made by previous
       ;; server invocations.
       (if (eq (process-contact server-process :family) 'local)
-      (delete-file (expand-file-name server-name server-socket-dir))
+          (delete-file (expand-file-name server-name server-socket-dir))
         (setq server-auth-key nil)
         (delete-file (expand-file-name server-name server-auth-dir)))))
   ;; If this Emacs already had a server, clear out associated status.
@@ -325,7 +325,7 @@ Prefix arg means just kill any existing server communications subprocess."
     (server-ensure-safe-dir
      (if server-use-tcp server-auth-dir server-socket-dir))
     (when server-process
-	(server-log (message "Restarting server")))
+      (server-log (message "Restarting server")))
     (letf (((default-file-modes) ?\700))
       (setq server-process
             (apply #'make-network-process
@@ -388,6 +388,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
           (process-put proc :authenticated t)
           (server-log "Authentication successful" proc))
       (server-log "Authentication failed" proc)
+      (process-send-string proc "Authentication failed")
       (delete-process proc)
       ;; We return immediately
       (return-from server-process-filter)))
@@ -415,52 +416,48 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	(let ((arg (substring request (match-beginning 0) (1- (match-end 0)))))
 	  (setq request (substring request (match-end 0)))
 	  (cond
-	   ((equal "-nowait" arg) (setq nowait t))
-	   ((equal "-eval" arg) (setq eval t))
-	   ((and (equal "-display" arg) (string-match "\\([^ ]*\\) " request))
-	    (let ((display (server-unquote-arg (match-string 1 request))))
-	      (setq request (substring request (match-end 0)))
-	      (condition-case err
-		  (setq tmp-frame (server-select-display display))
-		(error (process-send-string proc (nth 1 err))
-		       (setq request "")))))
-	   ;; ARG is a line number option.
-	   ((string-match "\\`\\+[0-9]+\\'" arg)
-	    (setq lineno (string-to-number (substring arg 1))))
-	   ;; ARG is line number:column option.
-	   ((string-match "\\`+\\([0-9]+\\):\\([0-9]+\\)\\'" arg)
-	    (setq lineno (string-to-number (match-string 1 arg))
-		  columnno (string-to-number (match-string 2 arg))))
-	   (t
-	    ;; Undo the quoting that emacsclient does
-	    ;; for certain special characters.
-	    (setq arg (server-unquote-arg arg))
-	    ;; Now decode the file name if necessary.
-	    (when coding-system
-	      (setq arg (decode-coding-string arg coding-system)))
-	    (if eval
-		(let* (errorp
-		       (v (condition-case errobj
-			     (eval (car (read-from-string arg)))
-			   (error (setq errorp t) errobj))))
-		  (when v
-		    (with-temp-buffer
-		      (let ((standard-output (current-buffer)))
-			(if errorp (princ "error: "))
-			(pp v)
-			;; Suppress the error signalled when the pipe to
-			;; PROC is closed.
-			(condition-case err
-			    (process-send-region proc (point-min) (point-max))
-			  (file-error nil)
-			  (error nil))
-			))))
-	      ;; ARG is a file name.
-	      ;; Collapse multiple slashes to single slashes.
-	      (setq arg (command-line-normalize-file-name arg))
-	      (push (list arg lineno columnno) files))
-	    (setq lineno 1)
-	    (setq columnno 0)))))
+            ((equal "-nowait" arg) (setq nowait t))
+            ((equal "-eval" arg) (setq eval t))
+            ((and (equal "-display" arg) (string-match "\\([^ ]*\\) " request))
+             (let ((display (server-unquote-arg (match-string 1 request))))
+               (setq request (substring request (match-end 0)))
+               (condition-case err
+                   (setq tmp-frame (server-select-display display))
+                 (error (process-send-string proc (nth 1 err))
+                        (setq request "")))))
+            ;; ARG is a line number option.
+            ((string-match "\\`\\+[0-9]+\\'" arg)
+             (setq lineno (string-to-number (substring arg 1))))
+            ;; ARG is line number:column option.
+            ((string-match "\\`+\\([0-9]+\\):\\([0-9]+\\)\\'" arg)
+             (setq lineno (string-to-number (match-string 1 arg))
+                   columnno (string-to-number (match-string 2 arg))))
+            (t
+             ;; Undo the quoting that emacsclient does
+             ;; for certain special characters.
+             (setq arg (server-unquote-arg arg))
+             ;; Now decode the file name if necessary.
+             (when coding-system
+               (setq arg (decode-coding-string arg coding-system)))
+             (if eval
+                 (let* (errorp
+                        (v (condition-case errobj
+                               (eval (car (read-from-string arg)))
+                             (error (setq errorp t) errobj))))
+                   (when v
+                     (with-temp-buffer
+                       (let ((standard-output (current-buffer)))
+                         (when errorp (princ "error: "))
+                         (pp v)
+                         (ignore-errors
+                           (process-send-region proc (point-min) (point-max)))
+                         ))))
+               ;; ARG is a file name.
+               ;; Collapse multiple slashes to single slashes.
+               (setq arg (command-line-normalize-file-name arg))
+               (push (list arg lineno columnno) files))
+             (setq lineno 1)
+             (setq columnno 0)))))
       (when files
 	(run-hooks 'pre-command-hook)
 	(server-visit-files files client nowait)
@@ -478,7 +475,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (run-hooks 'server-switch-hook)
 	  (unless nowait
 	    (message "%s" (substitute-command-keys
-		      "When done with a buffer, type \\[server-edit]")))))
+                           "When done with a buffer, type \\[server-edit]")))))
       (when (frame-live-p tmp-frame)
         ;; Delete tmp-frame or make it visible depending on whether it's
         ;; been used or not.
@@ -514,14 +511,14 @@ so don't mark these buffers specially, just visit them normally."
 	  (if (and obuf (set-buffer obuf))
 	      (progn
 		(cond ((file-exists-p filen)
-		       (if (not (verify-visited-file-modtime obuf))
-			   (revert-buffer t nil)))
+		       (when (not (verify-visited-file-modtime obuf))
+                         (revert-buffer t nil)))
 		      (t
-		       (if (y-or-n-p
-			    (concat "File no longer exists: "
-				    filen
-				    ", write buffer to file? "))
-			   (write-file filen))))
+		       (when (y-or-n-p
+                              (concat "File no longer exists: "
+                                      filen
+                                      ", write buffer to file? "))
+                         (write-file filen))))
 		(setq server-existing-buffer t)
 		(server-goto-line-column file))
 	    (set-buffer (find-file-noselect filen))
@@ -675,12 +672,12 @@ If invoked with a prefix argument, or if there is no server process running,
 starts server process and that is all.  Invoked by \\[server-edit]."
   (interactive "P")
   (cond
-   ((or arg
-	(not server-process)
-	(memq (process-status server-process) '(signal exit)))
-    (server-mode 1))
-   (server-clients (apply 'server-switch-buffer (server-done)))
-   (t (message "No server editing buffers exist"))))
+    ((or arg
+         (not server-process)
+         (memq (process-status server-process) '(signal exit)))
+     (server-mode 1))
+    (server-clients (apply 'server-switch-buffer (server-done)))
+    (t (message "No server editing buffers exist"))))
 
 (defun server-switch-buffer (&optional next-buffer killed-one)
   "Switch to another buffer, preferably one that has a client.
