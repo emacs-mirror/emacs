@@ -112,6 +112,20 @@ Boston, MA 02110-1301, USA.  */
 
 #include <assert.h>
 
+#ifdef _LP64
+#define mach_header			mach_header_64
+#define segment_command			segment_command_64
+#undef  VM_REGION_BASIC_INFO_COUNT
+#define VM_REGION_BASIC_INFO_COUNT	VM_REGION_BASIC_INFO_COUNT_64
+#undef  VM_REGION_BASIC_INFO
+#define VM_REGION_BASIC_INFO		VM_REGION_BASIC_INFO_64
+#undef  LC_SEGMENT
+#define LC_SEGMENT			LC_SEGMENT_64
+#define vm_region			vm_region_64
+#define section				section_64
+#undef MH_MAGIC
+#define MH_MAGIC			MH_MAGIC_64
+#endif
 
 #define VERBOSE 1
 
@@ -164,9 +178,11 @@ struct mach_header mh;
 /* Offset at which the next load command should be written.  */
 unsigned long curr_header_offset = sizeof (struct mach_header);
 
-/* Current adjustment that needs to be made to offset values because
-   of additional data segments.  */
-unsigned long delta = 0;
+/* Offset at which the next segment should be written.  */
+static unsigned long curr_file_offset = 0;
+
+static unsigned long pagesize;
+#define ROUNDUP_TO_PAGE_BOUNDARY(x)	(((x) + pagesize - 1) & ~(pagesize - 1))
 
 int infd, outfd;
 
@@ -175,7 +191,7 @@ int in_dumped_exec = 0;
 malloc_zone_t *emacs_zone;
 
 /* file offset of input file's data segment */
-off_t data_segment_old_fileoff;
+off_t data_segment_old_fileoff = 0;
 
 struct segment_command *data_segment_scp;
 
@@ -286,7 +302,7 @@ static void
 print_region (vm_address_t address, vm_size_t size, vm_prot_t prot,
 	      vm_prot_t max_prot)
 {
-  printf ("%#10x %#8x ", address, size);
+  printf ("%#10lx %#8lx ", (long) address, (long) size);
   print_prot (prot);
   putchar (' ');
   print_prot (max_prot);
@@ -412,7 +428,7 @@ build_region_list ()
 }
 
 
-#define MAX_UNEXEC_REGIONS 200
+#define MAX_UNEXEC_REGIONS 400
 
 int num_unexec_regions;
 vm_range_t unexec_regions[MAX_UNEXEC_REGIONS];
@@ -424,11 +440,10 @@ unexec_regions_recorder (task_t task, void *rr, unsigned type,
   while (num && num_unexec_regions < MAX_UNEXEC_REGIONS)
     {
       unexec_regions[num_unexec_regions++] = *ranges;
-      printf ("%#8x (sz: %#8x)\n", ranges->address, ranges->size);
+      printf ("%#8lx (sz: %#8lx)\n",
+	      (long) (ranges->address), (long) (ranges->size));
       ranges++; num--;
     }
-  if (num_unexec_regions == MAX_UNEXEC_REGIONS)
-    fprintf (stderr, "malloc_freezedry_recorder: too many regions\n");
 }
 
 static kern_return_t
@@ -449,6 +464,9 @@ find_emacs_zone_regions ()
 				      (vm_address_t) emacs_zone,
 				      unexec_reader,
 				      unexec_regions_recorder);
+
+  if (num_unexec_regions == MAX_UNEXEC_REGIONS)
+    unexec_error ("find_emacs_zone_regions: too many regions");
 }
 
 static int
@@ -500,7 +518,11 @@ print_load_command_name (int lc)
   switch (lc)
     {
     case LC_SEGMENT:
+#ifndef _LP64
       printf ("LC_SEGMENT       ");
+#else
+      printf ("LC_SEGMENT_64    ");
+#endif
       break;
     case LC_LOAD_DYLINKER:
       printf ("LC_LOAD_DYLINKER ");
@@ -541,14 +563,14 @@ print_load_command (struct load_command *lc)
       int j;
 
       scp = (struct segment_command *) lc;
-      printf (" %-16.16s %#10x %#8x\n",
-	      scp->segname, scp->vmaddr, scp->vmsize);
+      printf (" %-16.16s %#10lx %#8lx\n",
+	      scp->segname, (long) (scp->vmaddr), (long) (scp->vmsize));
 
       sectp = (struct section *) (scp + 1);
       for (j = 0; j < scp->nsects; j++)
 	{
-	  printf ("                           %-16.16s %#10x %#8x\n",
-		  sectp->sectname, sectp->addr, sectp->size);
+	  printf ("                           %-16.16s %#10lx %#8lx\n",
+		  sectp->sectname, (long) (sectp->addr), (long) (sectp->size));
 	  sectp++;
 	}
     }
@@ -644,21 +666,23 @@ copy_segment (struct load_command *lc)
   struct section *sectp;
   int j;
 
-  scp->fileoff += delta;
+  scp->fileoff = curr_file_offset;
 
   sectp = (struct section *) (scp + 1);
   for (j = 0; j < scp->nsects; j++)
     {
-      sectp->offset += delta;
+      sectp->offset += curr_file_offset - old_fileoff;
       sectp++;
     }
 
-  printf ("Writing segment %-16.16s at %#8x - %#8x (sz: %#8x)\n",
-	  scp->segname, scp->fileoff, scp->fileoff + scp->filesize,
-	  scp->filesize);
+  printf ("Writing segment %-16.16s @ %#8lx (%#8lx @ %#8lx)\n",
+	  scp->segname, (long) (scp->fileoff), (long) (scp->vmsize),
+	  (long) (scp->vmaddr));
 
   if (!unexec_copy (scp->fileoff, old_fileoff, scp->filesize))
     unexec_error ("cannot copy segment from input to output file");
+  curr_file_offset += ROUNDUP_TO_PAGE_BOUNDARY (scp->filesize);
+
   if (!unexec_write (curr_header_offset, lc, lc->cmdsize))
     unexec_error ("cannot write load command to header");
 
@@ -685,12 +709,9 @@ copy_data_segment (struct load_command *lc)
   int j;
   unsigned long header_offset, file_offset, old_file_offset;
 
-  printf ("Writing segment %-16.16s at %#8x - %#8x (sz: %#8x)\n",
-	  scp->segname, scp->fileoff, scp->fileoff + scp->filesize,
-	  scp->filesize);
-
-  if (delta != 0)
-    unexec_error ("cannot handle multiple DATA segments in input file");
+  printf ("Writing segment %-16.16s @ %#8lx (%#8lx @ %#8lx)\n",
+	  scp->segname, curr_file_offset, (long)(scp->vmsize),
+	  (long) (scp->vmaddr));
 
   /* Offsets in the output file for writing the next section structure
      and segment data block, respectively.  */
@@ -700,7 +721,7 @@ copy_data_segment (struct load_command *lc)
   for (j = 0; j < scp->nsects; j++)
     {
       old_file_offset = sectp->offset;
-      sectp->offset = sectp->addr - scp->vmaddr + scp->fileoff;
+      sectp->offset = sectp->addr - scp->vmaddr + curr_file_offset;
       /* The __data section is dumped from memory.  The __bss and
 	 __common sections are also dumped from memory but their flag
 	 fields require changing (from S_ZEROFILL to S_REGULAR).  The
@@ -762,9 +783,9 @@ copy_data_segment (struct load_command *lc)
       else
 	unexec_error ("unrecognized section name in __DATA segment");
 
-      printf ("        section %-16.16s at %#8x - %#8x (sz: %#8x)\n",
-	      sectp->sectname, sectp->offset, sectp->offset + sectp->size,
-	      sectp->size);
+      printf ("        section %-16.16s at %#8lx - %#8lx (sz: %#8lx)\n",
+	      sectp->sectname, (long) (sectp->offset),
+	      (long) (sectp->offset + sectp->size), (long) (sectp->size));
 
       header_offset += sizeof (struct section);
       sectp++;
@@ -775,17 +796,16 @@ copy_data_segment (struct load_command *lc)
      this may leave unused locations at the end of the segment data
      block because the total of the sizes of all sections in the
      segment is generally smaller than vmsize.  */
-  delta = scp->vmsize - scp->filesize;
   scp->filesize = scp->vmsize;
   if (!unexec_write (curr_header_offset, scp, sizeof (struct segment_command)))
     unexec_error ("cannot write header of __DATA segment");
   curr_header_offset += lc->cmdsize;
+  curr_file_offset += ROUNDUP_TO_PAGE_BOUNDARY (scp->filesize);
 
   /* Create new __DATA segment load commands for regions on the region
      list that do not corresponding to any segment load commands in
      the input file.
-     */
-  file_offset = scp->fileoff + scp->filesize;
+  */
   for (j = 0; j < num_unexec_regions; j++)
     {
       struct segment_command sc;
@@ -795,21 +815,20 @@ copy_data_segment (struct load_command *lc)
       strncpy (sc.segname, SEG_DATA, 16);
       sc.vmaddr = unexec_regions[j].address;
       sc.vmsize = unexec_regions[j].size;
-      sc.fileoff = file_offset;
+      sc.fileoff = curr_file_offset;
       sc.filesize = unexec_regions[j].size;
       sc.maxprot = VM_PROT_READ | VM_PROT_WRITE;
       sc.initprot = VM_PROT_READ | VM_PROT_WRITE;
       sc.nsects = 0;
       sc.flags = 0;
 
-      printf ("Writing segment %-16.16s at %#8x - %#8x (sz: %#8x)\n",
-	      sc.segname, sc.fileoff, sc.fileoff + sc.filesize,
-	      sc.filesize);
+      printf ("Writing segment %-16.16s @ %#8lx (%#8lx @ %#8lx)\n",
+	      sc.segname, (long) (sc.fileoff), (long) (sc.vmsize),
+	      (long) (sc.vmaddr));
 
       if (!unexec_write (sc.fileoff, (void *) sc.vmaddr, sc.vmsize))
 	unexec_error ("cannot write new __DATA segment");
-      delta += sc.filesize;
-      file_offset += sc.filesize;
+      curr_file_offset += ROUNDUP_TO_PAGE_BOUNDARY (sc.filesize);
 
       if (!unexec_write (curr_header_offset, &sc, sc.cmdsize))
 	unexec_error ("cannot write new __DATA segment's header");
@@ -821,7 +840,7 @@ copy_data_segment (struct load_command *lc)
 /* Copy a LC_SYMTAB load command from the input file to the output
    file, adjusting the file offset fields.  */
 static void
-copy_symtab (struct load_command *lc)
+copy_symtab (struct load_command *lc, long delta)
 {
   struct symtab_command *stp = (struct symtab_command *) lc;
 
@@ -898,7 +917,7 @@ unrelocate (const char *name, off_t reloff, int nrel)
 /* Copy a LC_DYSYMTAB load command from the input file to the output
    file, adjusting the file offset fields.  */
 static void
-copy_dysymtab (struct load_command *lc)
+copy_dysymtab (struct load_command *lc, long delta)
 {
   struct dysymtab_command *dstp = (struct dysymtab_command *) lc;
 
@@ -927,7 +946,7 @@ copy_dysymtab (struct load_command *lc)
 /* Copy a LC_TWOLEVEL_HINTS load command from the input file to the output
    file, adjusting the file offset fields.  */
 static void
-copy_twolevelhints (struct load_command *lc)
+copy_twolevelhints (struct load_command *lc, long delta)
 {
   struct twolevel_hints_command *tlhp = (struct twolevel_hints_command *) lc;
 
@@ -964,6 +983,7 @@ static void
 dump_it ()
 {
   int i;
+  long linkedit_delta = 0;
 
   printf ("--- Load Commands written to Output File ---\n");
 
@@ -977,6 +997,9 @@ dump_it ()
 	    {
 	      /* save data segment file offset and segment_command for
 		 unrelocate */
+	      if (data_segment_old_fileoff)
+		unexec_error ("cannot handle multiple DATA segments"
+			      " in input file");
 	      data_segment_old_fileoff = scp->fileoff;
 	      data_segment_scp = scp;
 
@@ -984,18 +1007,26 @@ dump_it ()
 	    }
 	  else
 	    {
+	      if (strncmp (scp->segname, SEG_LINKEDIT, 16) == 0)
+		{
+		  if (linkedit_delta)
+		    unexec_error ("cannot handle multiple LINKEDIT segments"
+				  " in input file");
+		  linkedit_delta = curr_file_offset - scp->fileoff;
+		}
+
 	      copy_segment (lca[i]);
 	    }
 	}
 	break;
       case LC_SYMTAB:
-	copy_symtab (lca[i]);
+	copy_symtab (lca[i], linkedit_delta);
 	break;
       case LC_DYSYMTAB:
-	copy_dysymtab (lca[i]);
+	copy_dysymtab (lca[i], linkedit_delta);
 	break;
       case LC_TWOLEVEL_HINTS:
-	copy_twolevelhints (lca[i]);
+	copy_twolevelhints (lca[i], linkedit_delta);
 	break;
       default:
 	copy_other (lca[i]);
@@ -1024,6 +1055,7 @@ unexec (char *outfile, char *infile, void *start_data, void *start_bss,
   if (in_dumped_exec)
     unexec_error ("Unexec from a dumped executable is not supported.");
 
+  pagesize = getpagesize ();
   infd = open (infile, O_RDONLY, 0);
   if (infd < 0)
     {
