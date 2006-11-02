@@ -1,3 +1,9 @@
+2006-11-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* grep-changelog: When called with no arguments (not even a
+	filter), show help instead of blindingly dumping every single
+	ChangeLog available.  Doc fix.  Update version.
+
 2006-11-02  Tim Van Holder  <tim.vanholder@gmail.com>  (tiny change)
 
 	* emacsclient.c [WINDOWSNT]: Define HAVE_INET_SOCKETS.
