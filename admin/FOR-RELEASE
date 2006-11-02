@@ -43,8 +43,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
-** david.reitter@gmail.com, Oct 16: url-retrieve may cause hang
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
