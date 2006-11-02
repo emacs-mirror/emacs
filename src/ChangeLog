@@ -1,3 +1,26 @@
+2006-11-02  Nozomu Ando  <nand@mac.com>
+
+	* unexmacosx.c (mach_header, segment_command, vm_region, section)
+	[_LP64]: New defines.
+	(VM_REGION_BASIC_INFO_COUNT, VM_REGION_BASIC_INFO, LC_SEGMENT)
+	(MH_MAGIC) [_LP64]: Redefine.
+	(delta): Remove variable.
+	(curr_file_offset, pagesize): New variables.
+	(ROUNDUP_TO_PAGE_BOUNDARY): New macro.
+	(data_segment_old_fileoff): Initialize explicitly.
+	(print_region, unexec_regions_recorder, print_load_command_name)
+	(copy_segment, copy_data_segment): Use long format in printf.
+	(MAX_UNEXEC_REGIONS): Increase to 400.
+	(unexec_regions_recorder): Don't warn too many regions here.
+	(find_emacs_zone_regions): Warn too many regions here.
+	(print_load_command_name) [_LP64]: Show correct load command name.
+	(copy_segment, copy_data_segment): Use variable `curr_file_offset'.
+	Show starting virtual memory address.  Don't show ending file offset.
+	(copy_symtab, copy_dysymtab, copy_twolevelhints): New argument DELTA.
+	(dump_it): Use new local variable `linkedit_delta' and pass to them.
+	Error if trying to handle multiple DATA segments.
+	(unexec): Initialize variable `pagesize'.
+
 2006-11-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (Fcatch): Doc fix.
