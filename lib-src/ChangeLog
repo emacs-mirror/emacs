@@ -1,3 +1,12 @@
+2006-11-02  Tim Van Holder  <tim.vanholder@gmail.com>  (tiny change)
+
+	* emacsclient.c [WINDOWSNT]: Define HAVE_INET_SOCKETS.
+	[!WINDOWSNT]: Include <netinet/in.h> if available.
+	[HAVE_SOCKETS]: Also require HAVE_INET_SOCKETS.
+	(IOCTL, IOCTL_BOOL_ARG): Remove.
+	(set_tcp_socket): Don't set the socket in blocking mode.
+	Remove c_arg.
+
 2006-11-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (fail) [WINDOWSNT]: Force the first argv passed to
