@@ -112,10 +112,6 @@ If set, the server accepts remote connections; otherwise it is local."
   :version "22.1")
 (put 'server-auth-dir 'risky-local-variable t)
 
-(defvar server-auth-key nil
-  "The current server authentication key.")
-(put 'server-auth-key 'risky-local-variable t)
-
 (defcustom server-visit-hook nil
   "*Hook run when visiting a file for the Emacs server."
   :group 'server
@@ -228,6 +224,12 @@ are done with it in the server.")
   (when (and (eq (process-status proc) 'open)
 	     (process-query-on-exit-flag proc))
     (set-process-query-on-exit-flag proc nil))
+  ;; Delete the associated connection file, if applicable.
+  ;; This is actually problematic: the file may have been overwritten by
+  ;; another Emacs server in the mean time, so it's not ours any more.
+  ;; (and (process-contact proc :server)
+  ;;      (eq (process-status proc) 'closed)
+  ;;      (ignore-errors (delete-file (process-get proc :server-file))))
   (server-log (format "Status changed to %s" (process-status proc)) proc))
 
 (defun server-select-display (display)
@@ -307,61 +309,58 @@ Prefix arg means just kill any existing server communications subprocess."
   (interactive "P")
   (when server-process
     ;; kill it dead!
-    (ignore-errors (delete-process server-process))
-    (ignore-errors
-      ;; Delete the socket or authentication files made by previous
-      ;; server invocations.
-      (if (eq (process-contact server-process :family) 'local)
-          (delete-file (expand-file-name server-name server-socket-dir))
-        (setq server-auth-key nil)
-        (delete-file (expand-file-name server-name server-auth-dir)))))
+    (ignore-errors (delete-process server-process)))
   ;; If this Emacs already had a server, clear out associated status.
   (while server-clients
     (let ((buffer (nth 1 (car server-clients))))
       (server-buffer-done buffer)))
   ;; Now any previous server is properly stopped.
   (unless leave-dead
-    ;; Make sure there is a safe directory in which to place the socket.
-    (server-ensure-safe-dir
-     (if server-use-tcp server-auth-dir server-socket-dir))
-    (when server-process
-      (server-log (message "Restarting server")))
-    (letf (((default-file-modes) ?\700))
-      (setq server-process
-            (apply #'make-network-process
-                   :name server-name
-                   :server t
-                   :noquery t
-                   :sentinel 'server-sentinel
-                   :filter 'server-process-filter
-                   ;; We must receive file names without being decoded.
-                   ;; Those are decoded by server-process-filter according
-                   ;; to file-name-coding-system.
-                   :coding 'raw-text
-                   ;; The rest of the args depends on the kind of socket used.
-                   (if server-use-tcp
-                       (list :family nil
-                             :service t
-                             :host (or server-host 'local)
-                             :plist '(:authenticated nil))
-                     (list :family 'local
-                           :service (expand-file-name server-name server-socket-dir)
-                           :plist '(:authenticated t)))))
+    (let* ((server-dir (if server-use-tcp server-auth-dir server-socket-dir))
+           (server-file (expand-file-name server-name server-dir)))
+      ;; Make sure there is a safe directory in which to place the socket.
+      (server-ensure-safe-dir server-dir)
+      ;; Remove any leftover socket or authentication file.
+      (ignore-errors (delete-file server-file))
+      (when server-process
+        (server-log (message "Restarting server")))
+      (letf (((default-file-modes) ?\700))
+        (setq server-process
+              (apply #'make-network-process
+                     :name server-name
+                     :server t
+                     :noquery t
+                     :sentinel 'server-sentinel
+                     :filter 'server-process-filter
+                     ;; We must receive file names without being decoded.
+                     ;; Those are decoded by server-process-filter according
+                     ;; to file-name-coding-system.
+                     :coding 'raw-text
+                     ;; The rest of the args depends on the kind of socket used.
+                     (if server-use-tcp
+                         (list :family nil
+                               :service t
+                               :host (or server-host 'local)
+                               :plist '(:authenticated nil))
+                       (list :family 'local
+                             :service server-file
+                             :plist '(:authenticated t)))))
       (unless server-process (error "Could not start server process"))
       (when server-use-tcp
-        (setq server-auth-key
-              (loop
-                 ;; The auth key is a 64-byte string of random chars in the
-                 ;; range `!'..`~'.
-	         for i below 64
-                 collect (+ 33 (random 94)) into auth
-                 finally return (concat auth)))
-        (with-temp-file (expand-file-name server-name server-auth-dir)
-          (set-buffer-multibyte nil)
-          (setq buffer-file-coding-system 'no-conversion)
-          (insert (format-network-address
-                   (process-contact server-process :local))
-                  "\n" server-auth-key))))))
+        (let ((auth-key
+               (loop
+                  ;; The auth key is a 64-byte string of random chars in the
+                  ;; range `!'..`~'.
+                  for i below 64
+                  collect (+ 33 (random 94)) into auth
+                  finally return (concat auth))))
+          (process-put server-process :auth-key auth-key)
+          (with-temp-file server-file
+            (set-buffer-multibyte nil)
+            (setq buffer-file-coding-system 'no-conversion)
+            (insert (format-network-address
+                     (process-contact server-process :local))
+                    "\n" auth-key))))))))
 
 ;;;###autoload
 (define-minor-mode server-mode
@@ -382,7 +381,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
   ;; First things first: let's check the authentication
   (unless (process-get proc :authenticated)
     (if (and (string-match "-auth \\(.*?\\)\n" string)
-             (string= (match-string 1 string) server-auth-key))
+             (equal (match-string 1 string) (process-get proc :auth-key)))
         (progn
           (setq string (substring string (match-end 0)))
           (process-put proc :authenticated t)
