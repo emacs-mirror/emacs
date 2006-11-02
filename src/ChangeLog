@@ -1,3 +1,7 @@
+2006-11-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Fkill_emacs): Fix typo in docstring.
+
 2006-11-02  Nozomu Ando  <nand@mac.com>
 
 	* unexmacosx.c (mach_header, segment_command, vm_region, section)
