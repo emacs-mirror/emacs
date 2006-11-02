@@ -1,3 +1,10 @@
+2006-10-31  Kenichi Handa  <handa@m17n.org>
+
+	(get_next_display_element): Set it->face_id for the
+	first component of a composition.
+	(x_produce_glyphs): Check if the font is changed or not for
+	composition.
+
 2006-10-30  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Qlatin): New variable.
