@@ -1,3 +1,9 @@
+2006-11-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-mode-map): No longer copy
+	`outline-mode-map' explicitly - this is already done by
+	`define-derived-mode'.
+
 2006-11-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-visit-files): Use `when'.
