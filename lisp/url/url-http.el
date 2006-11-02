@@ -305,21 +305,29 @@ This allows us to use `mail-fetch-field', etc."
   (declare (special status success url-http-method url-http-data
 		    url-callback-function url-callback-arguments))
   (url-http-debug "Handling %s authentication" (if proxy "proxy" "normal"))
-  (let ((auth (or (mail-fetch-field (if proxy "proxy-authenticate" "www-authenticate"))
-		  "basic"))
+  (let ((auths (or (nreverse
+		    (mail-fetch-field
+		     (if proxy "proxy-authenticate" "www-authenticate")
+		     nil nil t))
+		  '("basic")))
 	(type nil)
 	(url (url-recreate-url url-current-object))
 	(url-basic-auth-storage 'url-http-real-basic-auth-storage)
-	)
-
+	auth)
     ;; Cheating, but who cares? :)
     (if proxy
 	(setq url-basic-auth-storage 'url-http-proxy-basic-auth-storage))
 
-    (setq auth (url-eat-trailing-space (url-strip-leading-spaces auth)))
-    (if (string-match "[ \t]" auth)
-	(setq type (downcase (substring auth 0 (match-beginning 0))))
-      (setq type (downcase auth)))
+    ;; find first supported auth
+    (while auths
+      (setq auth (url-eat-trailing-space (url-strip-leading-spaces (car auths))))
+      (if (string-match "[ \t]" auth)
+	  (setq type (downcase (substring auth 0 (match-beginning 0))))
+	(setq type (downcase auth)))
+      (if (url-auth-registered type)
+	  (setq auths nil)		; no more check
+	(setq auth nil
+	      auths (cdr auths))))
 
     (if (not (url-auth-registered type))
 	(progn

@@ -1,3 +1,9 @@
+2006-11-03  Shun-ichi GOTO  <gotoh@taiyo.co.jp> (tiny change)
+
+	* url-http.el (url-http-handle-authentication): If there are
+	several authentication headers, use the first with a supported
+	method.
+
 2006-11-01  Magnus Henoch  <mange@freemail.hu>
 
 	* url-http.el (url-http-create-request): Use buffer-local
