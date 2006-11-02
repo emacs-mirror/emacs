@@ -2897,11 +2897,8 @@ Also put tags into group 4 if tags are present.")
 
 ;;; Define the mode
 
-(defvar org-mode-map
-  (if (and (not (keymapp outline-mode-map)) (featurep 'allout))
-      (error "Conflict with outdated version of allout.el.  Load org.el before allout.el, or ugrade to newer allout, for example by switching to Emacs 22.")
-    (copy-keymap outline-mode-map))
-  "Keymap for Org-mode.")
+(if (and (not (keymapp outline-mode-map)) (featurep 'allout))
+    (error "Conflict with outdated version of allout.el.  Load org.el before allout.el, or ugrade to newer allout, for example by switching to Emacs 22."))
 
 (defvar org-struct-menu) ; defined later in this file
 (defvar org-org-menu) ; defined later in this file
@@ -2913,6 +2910,7 @@ Also put tags into group 4 if tags are present.")
   "Indicates that a table might need an update.
 This variable is set by `org-before-change-function'.
 `org-table-align' sets it back to nil.")
+(defvar org-mode-map)
 (defvar org-mode-hook nil)
 (defvar org-inhibit-startup nil)        ; Dynamically-scoped param.
 (defvar org-agenda-keep-modes nil)      ; Dynamically-scoped param.
