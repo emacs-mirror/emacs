@@ -4027,7 +4027,7 @@ This is a short-hand for marking the subtree and then cutting it."
 (defun org-copy-subtree (&optional cut)
   "Cut the current subtree into the clipboard.
 This is a short-hand for marking the subtree and then copying it.
-If CUT is non nil, actually cut the subtree."
+If CUT is non-nil, actually cut the subtree."
   (interactive)
   (let (beg end folded)
     (org-back-to-heading)
