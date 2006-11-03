@@ -1,14 +1,31 @@
-2006-11-03 Mark Davies <mark@mcs.vuw.ac.nz>
+2006-11-03  Juanma Barranquero  <lekktu@gmail.com>
 
-	* lisp/sort.el: Set the field separator to tab
+	* bs.el (bs--show-all, bs--redisplay):
+	* cus-edit.el (custom-unlispify-menu-entries)
+	(custom-unlispify-tag-names, custom-prompt-variable):
+	* expand.el (expand-pos):
+	* speedbar.el (speedbar-generic-list-tag-p):
+	* wid-edit.el (widget-image-enable):
+	* emacs-lisp/checkdoc.el (checkdoc-rogue-space-check-engine):
+	* emacs-lisp/find-func.el (find-function-noselect)
+	(find-function, find-variable-noselect, find-variable)
+	(find-definition-noselect, find-face-definition):
+	* mail/rmail-spam-filter.el (rsf-scanning-messages-now):
+	* net/eudc-vars.el (eudc-expansion-overwrites-query):
+	* progmodes/ada-xref.el (ada-find-in-ali):
+	* textmodes/flyspell.el (flyspell-check-tex-math-command):
+	* textmodes/org.el (org-copy-subtree):
+	* textmodes/table.el (table--row-column-insertion-point-p):
+	Use "non-nil" in docstrings.
 
-2006-11-03 Mark Davies <mark@mcs.vuw.ac.nz> 
+2006-11-03  Mark Davies  <mark@mcs.vuw.ac.nz>
 
-	* lib-src/Makefile.in: Replace INSTALL_PROGRAM with INSTALL_SCRIPT
+	* sort.el (sort-columns): Set the field separator to tab; on
+	NetBSD, sort complains if "\n" is used as field separator.
 
-2006-11-03  NIIMI Satoshi <sa2c@sa2c.net>
+2006-11-03  NIIMI Satoshi  <sa2c@sa2c.net>
 
-	* lisp/emacs-lisp/pp.el (pp-eval-expression): Evaluate target sexp
+	* emacs-lisp/pp.el (pp-eval-last-sexp): Evaluate target sexp.
 
 2006-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1326,7 +1343,7 @@
 	* select.el (xselect-convert-to-string): If UTF8_STRING is requested
 	and the data doesn't look like UTF8, send STRING instead.
 
-2006-09-16  Agustin Martin <agustin.martin@hispalinux.es>
+2006-09-16  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-check-region-doublons):
 	New function to detect duplicated words.
@@ -1392,8 +1409,8 @@
 	(allout-mode): Make allout-old-style-prefixes (ie, enabling use with
 	outline.el outlines) functional again.  Change the primary bullet
 	along with the header-lead - level 1 new-style bullets now work.
-	Engage allout-before-change-handler in mainline emacs, not just
-	xemacs, to do undo handling.
+	Engage allout-before-change-handler in mainline Emacs, not just
+	XEmacs, to do undo handling.
 	(allout-before-change-handler): Expose undo changes occurring in
 	hidden regions.  Use allout-get-invisibility-overlay instead of
 	reimplementing it inline.
@@ -1787,7 +1804,7 @@
 
 	* net/ldap.el (ldap-search-internal): Handle `auth' key.
 
-2006-09-07  Magnus Henoch <mange@freemail.hu>
+2006-09-07  Magnus Henoch  <mange@freemail.hu>
 
 	* net/rcirc.el (rcirc-activity-string): Don't quote value in case
 	clause.
@@ -12369,7 +12386,7 @@
 	Add fset of allout-real-isearch-abort during compile to fix
 	byte-compilation warnings.
 	(allout-mode-p): Move definition of this macro above all uses, or
-	byte compilation in barren emacs (eg, during emacs build) will
+	byte compilation in barren Emacs (eg, during Emacs build) will
 	lack the definition.
 	(allout-mode): Move this variable above any uses, or byte
 	compilation will fail.
@@ -14014,7 +14031,7 @@
 
 2005-11-02  Mark A. Hershberger  <mah@everybody.org>
 
-	* xml.el (xml-syntax-table): Allow xml.el to compile in xemacs.
+	* xml.el (xml-syntax-table): Allow xml.el to compile in XEmacs.
 	(xml-parse-tag): Join strings separated by a comment properly.
 
 2005-11-02  Andreas Schwab  <schwab@suse.de>
@@ -18763,7 +18780,7 @@
 2005-07-21  Kim F. Storm  <storm@cua.dk>
 
 	* mail/emacsbug.el (report-emacs-bug): Request that backtraces are
-	included when reporting an emacs crash, and tell about the DEBUG file.
+	included when reporting an Emacs crash, and tell about the DEBUG file.
 
 	* image-file.el (insert-image-file): Add yank-handler.
 	(image-file-yank-handler): Yank handler to make unique copies of
@@ -19733,7 +19750,7 @@
 2005-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/flymake.el (flymake-float-time): Instead of
-	with-no-warnings, test for xemacs.
+	with-no-warnings, test for XEmacs.
 	(flymake-replace-regexp-in-string): Test fboundp of replace-in-string
 	to avoid warning.
 
