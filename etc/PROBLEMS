@@ -1280,6 +1280,11 @@ be carried out at the same time:
    For more about lbxproxy, see:
    http://www.xfree86.org/4.3.0/lbxproxy.1.html
 
+5) If copying and killing is slow, try to disable the interaction with the
+   native system's clipboard by adding these lines to your .emacs file:
+     (setq interprogram-cut-function nil)
+     (setq interprogram-paste-function nil)
+
 *** Emacs gives the error, Couldn't find per display information.
 
 This can result if the X server runs out of memory because Emacs uses
