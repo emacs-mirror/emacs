@@ -1802,7 +1802,7 @@ This function is disabled for operators, and only works for identifiers."
 
 (defun ada-find-in-ali (identlist &optional other-frame)
   "Look in the .ali file for the definition of the identifier in IDENTLIST.
-If OTHER-FRAME is non nil, and `ada-xref-other-buffer' is non nil,
+If OTHER-FRAME is non-nil, and `ada-xref-other-buffer' is non-nil,
 opens a new window to show the declaration."
 
   (ada-get-all-references identlist)
