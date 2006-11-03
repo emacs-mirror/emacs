@@ -390,7 +390,10 @@ void __cdecl close_winsock ()
 
 void initialize_sockets ()
 {
+  static done = FALSE;
   WSADATA wsaData;
+
+  if (done) return;
 
   /* Initialize the WinSock2 library.  */
   if (WSAStartup (MAKEWORD (2, 0), &wsaData))
@@ -400,6 +403,7 @@ void initialize_sockets ()
     }
 
   atexit (close_winsock);
+  done = TRUE;
 }
 #endif /* WINDOWSNT */
 
