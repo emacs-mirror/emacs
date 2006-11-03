@@ -1,3 +1,7 @@
+2006-11-03  NIIMI Satoshi <sa2c@sa2c.net>
+
+	* pp.el (pp-eval-expression): Evaluate target sexp
+
 2006-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-auth-key): Remove.  Replace by a process-property.
