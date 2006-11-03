@@ -1,6 +1,10 @@
+2006-11-03 Mark Davies <mark@mcs.vuw.ac.nz>
+
+	* lisp/sort.el: Set the field separator to tab
+
 2006-11-03 Mark Davies <mark@mcs.vuw.ac.nz> 
 
-	* lib-src/Makefile.in : Replace INSTALL_PROGRAM with INSTALL_SCRIPT
+	* lib-src/Makefile.in: Replace INSTALL_PROGRAM with INSTALL_SCRIPT
 
 2006-11-03  NIIMI Satoshi <sa2c@sa2c.net>
 
