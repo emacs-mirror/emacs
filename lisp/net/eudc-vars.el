@@ -165,7 +165,7 @@ must be set in a protocol/server-local fashion, see `eudc-server-set' and
   :group 'eudc)
 
 (defcustom eudc-expansion-overwrites-query t
-  "*If non nil, expanding a query overwrites the query string."
+  "*If non-nil, expanding a query overwrites the query string."
   :type  'boolean
   :group 'eudc)
 
