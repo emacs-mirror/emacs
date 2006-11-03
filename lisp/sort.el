@@ -506,7 +506,10 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	  ;; Do not use it if there are any non-font-lock properties
 	  ;; in the region, since the sort utility would lose the
 	  ;; properties.
-	  (let ((sort-args (list (if reverse "-rt\n" "-t\n")
+	  ;; Set the field separator to tab to have the same effect as 
+	  ;; sort-columns which makes sure there are no tabs in the region
+	  ;; worked.
+	  (let ((sort-args (list (if reverse "-rt\t" "-t\t")
 				 (format "-k1.%d,1.%d"
 					 (1+ col-start)
 					 (1+ col-end)))))
