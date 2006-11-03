@@ -1,6 +1,10 @@
+2006-11-03 Mark Davies <mark@mcs.vuw.ac.nz> 
+
+	* lib-src/Makefile.in : Replace INSTALL_PROGRAM with INSTALL_SCRIPT
+
 2006-11-03  NIIMI Satoshi <sa2c@sa2c.net>
 
-	* pp.el (pp-eval-expression): Evaluate target sexp
+	* lisp/emacs-lisp/pp.el (pp-eval-expression): Evaluate target sexp
 
 2006-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
