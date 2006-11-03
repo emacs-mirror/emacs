@@ -1,3 +1,8 @@
+2006-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_raise_frame): Send _NET_ACTIVE_WINDOW when raising the
+	window.
+
 2006-11-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs.c (Fkill_emacs): Fix typo in docstring.

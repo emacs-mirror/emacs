@@ -8607,13 +8607,25 @@ void
 x_raise_frame (f)
      struct frame *f;
 {
+  Lisp_Object frame;
+  const char *atom = "_NET_ACTIVE_WINDOW";
+
+  BLOCK_INPUT;
   if (f->async_visible)
-    {
-      BLOCK_INPUT;
-      XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
-      XFlush (FRAME_X_DISPLAY (f));
-      UNBLOCK_INPUT;
-    }
+    XRaiseWindow (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f));
+
+  XSETFRAME (frame, f);
+  /* See Window Manager Specification/Extended Window Manager Hints at
+     http://freedesktop.org/wiki/Standards_2fwm_2dspec */
+
+  Fx_send_client_event (frame, make_number (0), frame,
+                        make_unibyte_string (atom, strlen (atom)),
+                        make_number (32),
+                        Fcons (make_number (1),
+                               Fcons (make_number (time (NULL) * 1000),
+                                      Qnil)));
+  XFlush (FRAME_X_DISPLAY (f));
+  UNBLOCK_INPUT;
 }
 
 /* Lower frame F.  */
