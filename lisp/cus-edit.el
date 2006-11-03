@@ -521,7 +521,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
   "List of prefixes that should be ignored by `custom-unlispify'.")
 
 (defcustom custom-unlispify-menu-entries t
-  "Display menu entries as words instead of symbols if non nil."
+  "Display menu entries as words instead of symbols if non-nil."
   :group 'custom-menu
   :type 'boolean)
 
@@ -568,7 +568,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
 	   (buffer-string)))))
 
 (defcustom custom-unlispify-tag-names t
-  "Display tag names as words instead of symbols if non nil."
+  "Display tag names as words instead of symbols if non-nil."
   :group 'custom-buffer
   :type 'boolean)
 
@@ -846,7 +846,7 @@ it were the arg to `interactive' (which see) to interactively read the value.
 If the variable has a `custom-type' property, it must be a widget and the
 `:prompt-value' property of that widget will be used for reading the value.
 
-If optional COMMENT argument is non nil, also prompt for a comment and return
+If optional COMMENT argument is non-nil, also prompt for a comment and return
 it as the third element in the list."
   (let* ((var (read-variable prompt-var))
 	 (minibuffer-help-form '(describe-variable var))
