@@ -189,7 +189,7 @@ Ispell's ultimate default dictionary."
   :type 'string)
 
 (defcustom flyspell-check-tex-math-command nil
-  "Non nil means check even inside TeX math environment.
+  "Non-nil means check even inside TeX math environment.
 TeX math environments are discovered by the TEXMATHP that implemented
 inside the texmathp.el Emacs package.  That package may be found at:
 http://strw.leidenuniv.nl/~dominik/Tools"
