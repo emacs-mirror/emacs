@@ -2155,7 +2155,7 @@ before using the Ispell engine on it."
 (defun checkdoc-rogue-space-check-engine (&optional start end interact)
   "Return a message list if there is a line with white space at the end.
 If `checkdoc-autofix-flag' permits, delete that whitespace instead.
-If optional arguments START and END are non nil, bound the check to
+If optional arguments START and END are non-nil, bound the check to
 this region.
 Optional argument INTERACT may permit the user to fix problems on the fly."
   (let ((p (point))
