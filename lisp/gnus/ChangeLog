@@ -1,3 +1,9 @@
+2006-11-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-diary.el (gnus-diary-delay-format-function):
+	* nndiary.el (nndiary-reminders):
+	* nnsoup.el (nnsoup-always-save): Use "non-nil" in docstrings.
+
 2006-11-01  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-art.el (article-hide-boring-headers): Fetch date from
@@ -10,8 +16,8 @@
 
 2006-10-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* mm-util.el (mm-codepage-iso-8859-list, mm-codepage-ibm-list): New
-	variables.
+	* mm-util.el (mm-codepage-iso-8859-list, mm-codepage-ibm-list):
+	New variables.
 	(mm-setup-codepage-iso-8859, mm-setup-codepage-ibm): New functions.
 	(mm-charset-synonym-alist): Move some entries to
 	mm-codepage-iso-8859-list.
@@ -620,7 +626,7 @@
 	(rfc2231-encode-string): Be sure to work on multibyte buffer at
 	first, and after mm-encode-body, change the buffer to unibyte.
 
-2006-03-21  Daniel Pittman <daniel@rimspace.net>
+2006-03-21  Daniel Pittman  <daniel@rimspace.net>
 
 	* nnimap.el (nnimap-request-update-info-internal): Optimize.
 	Don't `gnus-uncompress-range' to avoid excessive memory usage.
