@@ -486,7 +486,8 @@ sys_wait (int *status)
     {
       for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
 	/* some child_procs might be sockets; ignore them */
-	if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess)
+	if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
+	    && (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0))
 	  {
 	    wait_hnd[nh] = cp->procinfo.hProcess;
 	    cps[nh] = cp;
