@@ -280,7 +280,7 @@ epaths-force: FRC
 	  -e 's;/[*] *arch-tag:.*;/*;') &&		\
 	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
-# For parallel make, src should be build before leim.
+# For parallel make, src should be built before leim.
 # "export PARALLEL=0" is for SGI's Make, to prevent it from
 # running more than 1 process in the leim directory, especially for
 # the $TIT files there.

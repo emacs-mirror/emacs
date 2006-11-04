@@ -2,6 +2,7 @@
 
 	* Makefile.in (bootstrap-clean-before): Use new target `bootstrap-clean'
 	in the leim subdirectory.
+	Fix typo.
 
 2006-11-03  Giorgos Keramidas  <keramida@ceid.upatras.gr> (tiny change)
 
