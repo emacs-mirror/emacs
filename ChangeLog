@@ -1,3 +1,8 @@
+2006-11-04  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (bootstrap-clean-before): Use new target `bootstrap-clean'
+	in the leim subdirectory.
+
 2006-11-03  Giorgos Keramidas  <keramida@ceid.upatras.gr> (tiny change)
 
 	* configure.in: Enable sparc64/ia64/powerpc FreeBSD builds.

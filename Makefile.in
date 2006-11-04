@@ -790,6 +790,7 @@ bootstrap-build: FRC
 ### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
 bootstrap-clean-before: bootstrap-clean-before-fast FRC
 	(cd lisp;     $(MAKE) $(MFLAGS) bootstrap-clean)
+	(cd leim;     $(MAKE) $(MFLAGS) bootstrap-clean)
 
 ### Used for `bootfast' to avoid deleting existing dumped Emacs executables
 ### and compiled .elc files.
