@@ -43,6 +43,15 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 * BUGS
 
+** gotoh@taiyo.co.jp, Nov 1: url-http-handle-authentication does not
+  handle multiple WWW-Authenticate: lines correctly.
+
+** ken.manheimer@gmail.com, Nov 1: allout.el patch to install.
+
+** Icicles, Printing and Easy Menu.
+
+** raman@users.sf.net, Nov 2: w3 broken again
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
