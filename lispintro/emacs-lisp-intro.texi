@@ -24,8 +24,8 @@
 
 @comment %**end of header
 
-@set edition-number 3.02
-@set update-date 2006 November 2
+@set edition-number 3.03
+@set update-date 4 November 2006
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -2981,7 +2981,9 @@ buffer.  If you evaluate point in this spot, the number will be larger:
 
 @noindent
 For me, the value of point in this location is 66043, which means that
-there are 319 characters (including spaces) between the two expressions.
+there are 319 characters (including spaces) between the two
+expressions.  (Doubtless, you will see different numbers, since I will
+have edited this since I first evaluated point.)
 
 @cindex @samp{narrowing} defined
 The function @code{point-min} is somewhat similar to @code{point}, but
@@ -4526,8 +4528,9 @@ tests whether the first argument is less than or equal to the second and
 the second.  In all cases, both arguments must be numbers or markers
 (markers indicate positions in buffers).
 
+@need 800
 @item =
-The @code{=} function tests whether two arguments, , both numbers or
+The @code{=} function tests whether two arguments, both numbers or
 markers, are equal.
 
 @item string<
@@ -4660,9 +4663,9 @@ variable by typing @kbd{C-h v} and then the name of the variable (and
 then @key{RET}).
 
 @cindex Find source of function
-@c In version 22
-When a function is written in Emacs Lisp, @code{describe-function}
-will also tell you the location of the function definition.
+@c In version 22, tells location both of C and of Emacs Lisp
+Also, @code{describe-function} will tell you the location of the
+function definition.
 
 Put point into the name of the file that contains the function and
 press the @key{RET} key.  In this case, @key{RET} means
@@ -4684,7 +4687,6 @@ file, you can use the @code{find-tags} function to jump to it.
 Lisp, and C, and it works with non-programming text as well.  For
 example, @code{find-tags} will jump to the various nodes in the
 Texinfo source file of this document.
-
 The @code{find-tags} function depends on `tags tables' that record
 the locations of the functions, variables, and other items to which
 @code{find-tags} jumps.
@@ -4699,7 +4701,7 @@ screen.  To switch back to your current buffer, type @kbd{C-x b
 @key{RET}}.  (On some keyboards, the @key{META} key is labelled
 @key{ALT}.)
 
-@c !!! 22.0.100 tags table location in this paragraph
+@c !!! 22.1.100 tags table location in this paragraph
 @cindex TAGS table, specifying
 @findex find-tags
 Depending on how the initial default values of your copy of Emacs are
@@ -4709,7 +4711,7 @@ interested in Emacs sources, the tags table you will most likely want,
 if it has already been created for you, will be in a subdirectory of
 the @file{/usr/local/share/emacs/} directory; thus you would use the
 @code{M-x visit-tags-table} command and specify a pathname such as
-@file{/usr/local/share/emacs/22.0.100/lisp/TAGS}.  If the tags table
+@file{/usr/local/share/emacs/22.1.100/lisp/TAGS}.  If the tags table
 has not already been created, you will have to create it yourself.  It
 will in a file such as @file{/usr/local/src/emacs/src/TAGS}.
 
@@ -15259,15 +15261,15 @@ You can try this function by installing it in the usual fashion.  Then
 place your cursor after the following expression and type @kbd{C-x
 C-e} (@code{eval-last-sexp}).
 
-@c !!! 22.0.100 lisp sources location here
+@c !!! 22.1.100 lisp sources location here
 @smallexample
 (lengths-list-file
- "/usr/local/share/emacs/22.0.100/lisp/emacs-lisp/debug.el")
+ "/usr/local/share/emacs/22.1.100/lisp/emacs-lisp/debug.el")
 @end smallexample
 
 @noindent
 (You may need to change the pathname of the file; the one here is for
-GNU Emacs version 22.0.100.  To change the expression, copy it to
+GNU Emacs version 22.1.100.  To change the expression, copy it to
 the @file{*scratch*} buffer and edit it.
 
 @need 1200
@@ -15395,11 +15397,11 @@ These considerations lead us directly to the function itself:
 name to the absolute, long, path name form of the directory in which
 the function is called.
 
-@c !!! 22.0.100 lisp sources location here
+@c !!! 22.1.100 lisp sources location here
 @need 1500
 Thus, if @code{expand-file-name} is called on @code{debug.el} when
 Emacs is visiting the
-@file{/usr/local/share/emacs/22.0.100/lisp/emacs-lisp/} directory,
+@file{/usr/local/share/emacs/22.1.100/lisp/emacs-lisp/} directory,
 
 @smallexample
 debug.el
@@ -15409,9 +15411,9 @@ debug.el
 @noindent
 becomes
 
-@c !!! 22.0.100 lisp sources location here
+@c !!! 22.1.100 lisp sources location here
 @smallexample
-/usr/local/share/emacs/22.0.100/lisp/emacs-lisp/debug.el
+/usr/local/share/emacs/22.1.100/lisp/emacs-lisp/debug.el
 @end smallexample
 
 The only other new element of this function definition is the as yet
@@ -15500,13 +15502,13 @@ in their customary places.  To change the expressions, copy them to
 the @file{*scratch*} buffer, edit them, and then evaluate them.
 
 The results are shown after the @samp{@result{}}.  (These results are
-for files from Emacs Version 22.0.100; files from other versions of
+for files from Emacs Version 22.1.100; files from other versions of
 Emacs may produce different results.)
 
-@c !!! 22.0.100 lisp sources location here
+@c !!! 22.1.100 lisp sources location here
 @smallexample
 @group
-(cd "/usr/local/share/emacs/22.0.100/")
+(cd "/usr/local/share/emacs/22.1.100/")
 
 (lengths-list-file "./lisp/macros.el")
      @result{} (283 263 480 90)
@@ -15705,7 +15707,7 @@ for symbolic link (the string is the name linked to), or @code{nil}.
 
 For example, the first @samp{.el} file in the @file{lisp/} directory
 is @file{abbrev.el}.  Its name is
-@file{/usr/local/share/emacs/22.0.100/lisp/abbrev.el} and it is not a
+@file{/usr/local/share/emacs/22.1.100/lisp/abbrev.el} and it is not a
 directory or a symbolic link.
 
 @need 1000
@@ -15805,11 +15807,11 @@ using @code{append} as the combiner.
 (directory-files "/usr/local/src/emacs/lisp/" t "\\.el$")
 (shell-command "find /usr/local/src/emacs/lisp/ -name '*.el'")
 
-(directory-files "/usr/local/share/emacs/22.0.100/lisp/" t "\\.el$")
-(shell-command "find /usr/local/share/emacs/22.0.100/lisp/ -name '*.el'")
+(directory-files "/usr/local/share/emacs/22.1.100/lisp/" t "\\.el$")
+(shell-command "find /usr/local/share/emacs/22.1.100/lisp/ -name '*.el'")
 @end ignore
 
-@c  /usr/local/share/emacs/22.0.100/lisp/
+@c  /usr/local/share/emacs/22.1.100/lisp/
 
 @need 800
 Here is the function:
@@ -15821,7 +15823,7 @@ Here is the function:
   ;; Although the function will be used non-interactively,
   ;; it will be easier to test if we make it interactive.
   ;; The directory will have a name such as
-  ;;  "/usr/local/share/emacs/22.0.100/lisp/"
+  ;;  "/usr/local/share/emacs/22.1.100/lisp/"
   (interactive "DDirectory name: ")
 @end group
 @group
@@ -15866,7 +15868,7 @@ Here is the function:
 @end smallexample
 
 @c (files-in-below-directory "/usr/local/src/emacs/lisp/")
-@c (files-in-below-directory "/usr/local/share/emacs/22.0.100/lisp/")
+@c (files-in-below-directory "/usr/local/share/emacs/22.1.100/lisp/")
 
 The @code{files-in-below-directory} @code{directory-files} function
 takes one argument, the name of a directory.
@@ -15876,11 +15878,11 @@ Thus, on my system,
 
 @c (length (files-in-below-directory "/usr/local/src/emacs/lisp/"))
 
-@c !!! 22.0.100 lisp sources location here
+@c !!! 22.1.100 lisp sources location here
 @smallexample
 @group
 (length
- (files-in-below-directory "/usr/local/share/emacs/22.0.100/lisp/"))
+ (files-in-below-directory "/usr/local/share/emacs/22.1.100/lisp/"))
 @end group
 @end smallexample
 
@@ -15895,7 +15897,7 @@ like this:
 @smallexample
 @group
 (sort
- (files-in-below-directory "/usr/local/share/emacs/22.0.100/lisp/")
+ (files-in-below-directory "/usr/local/share/emacs/22.1.100/lisp/")
  'string-lessp)
 @end group
 @end smallexample
@@ -17172,7 +17174,8 @@ expressions myself.
 Incidentally, @code{defsubst} defines an inline function.  The syntax
 is just like that of @code{defun}.  @code{defconst} defines a symbol
 as a constant.  The intent is that neither programs nor users should
-ever change a value set by @code{defconst}
+ever change a value set by @code{defconst}.  (You can change it; the
+value set is a variable; but please do not.)
 
 @node Beginning a .emacs File, Text and Auto-fill, defcustom, Emacs Initialization
 @section Beginning a @file{.emacs} File
@@ -22616,3 +22619,4 @@ airplane.
 @ignore
    arch-tag: da1a2154-531f-43a8-8e33-fc7faad10acf
 @end ignore
+

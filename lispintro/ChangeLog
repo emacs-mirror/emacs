@@ -1,3 +1,10 @@
+2006-11-04  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* emacs-lisp-intro.texi: Replace 22.0.100 with	22.1.100.
+	(defcustom): Note that the value set by defconst is a variable.
+	(Buffer Size & Locations): Parenthetical remark about evaluation.
+	(Finding More): Change text to include C sources by inference.
+
 2006-11-02  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi (kill-ring-yank-pointer): Revert addition
@@ -16,11 +23,11 @@
 	now irrelevant.  Updated Info file in ../info.  Changed numbering
 	so is now Revised Third Edition and this instance's edition-number
 	is 3.00.  Did not update ISBN number.
-	
+
 	* emacs-lisp-intro.texi: Remove version reference for X colors.
 	Document `='.  Remove mention that :eval was new in 21. Updated
 	instance's edition-number to 3.01.
-	
+
 2006-10-30  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* emacs-lisp-intro.texi:  Many changes since it turned out that
