@@ -1,3 +1,10 @@
+2006-11-04 Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
+
+	* faces.el (faces-sample-overlay, describe-face): Revert last
+	changes.
+	(faces-sample-overlay): Remove variable.
+	(describe-face): Insert sample text in the face being described.
+
 2006-11-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* whitespace.el (whitespace-indent-regexp): Make this match any
