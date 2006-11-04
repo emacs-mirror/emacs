@@ -1,3 +1,8 @@
+2006-11-03  Giorgos Keramidas  <keramida@ceid.upatras.gr> (tiny change)
+
+	* xmenu.c (Fmenu_bar_open): Declare variable before BLOCK_INPUT to
+	avoid gcc 2.95 error.
+
 2006-11-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* gtkutil.c (update_frame_tool_bar): If icon image is invalid and

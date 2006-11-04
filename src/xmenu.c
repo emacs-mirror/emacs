@@ -1395,8 +1395,10 @@ If FRAME is nil or not given, use the selected frame.  */)
      Lisp_Object frame;
 {
   GtkWidget *menubar;
+  FRAME_PTR f;
+
   BLOCK_INPUT;
-  FRAME_PTR f = check_x_frame (frame);
+  f = check_x_frame (frame);
 
   if (FRAME_EXTERNAL_MENU_BAR (f))
     set_frame_menubar (f, 0, 1);
