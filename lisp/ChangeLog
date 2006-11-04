@@ -1,3 +1,38 @@
+2006-11-03  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-during-yank-processing): Cue for inhibiting
+	aberrance processing during yanks.
+	(allout-doublecheck-at-and-shallower): Reduce the limit to reduce
+	the amount of yanked topics that can be aberrant.
+	(allout-do-doublecheck): Encapsulate this multiply-used recipe in
+	a function, and supplement with inihibition of doublechecking
+	during yanks.
+	(allout-beginning-of-line, allout-next-heading)
+	(allout-previous-heading, allout-goto-prefix-doublechecked)
+	(allout-back-to-current-heading, allout-next-visible-heading)
+	(allout-next-sibling): Use new allout-do-doublecheck function.
+	(allout-next-sibling): Ensure we made progress when returning
+	other than nil.
+	(allout-rebullet-heading): Preserve text property annotations
+	indicating the text was hidden, if it was.
+	(allout-kill-line): Remove any added was-hidden annotations.
+	(allout-kill-topic): Remove any added was-hidden annotations.
+	(allout-annotate-hidden): Inhibit adding was-hidden text
+	properties to the undo list.
+	(allout-deannotate-hidden): New function to remove was-hidden
+	annotation.
+	(allout-hide-by-annotation): Use new allout-deannotate-hidden.
+	(allout-remove-exposure-annotation): Replaced by
+	allout-deannotate-hidden.
+	(allout-yank-processing): Signal that yank processing is happening
+	with allout-during-yank-processing.  Also, wrap
+	allout-unprotected's closer to the text changes, for easier
+	debugging.  We need to inhibit-field-text-motion explicitly, in
+	lieu of the encompassing allout-unprotected.
+	(outlineify-sticky): Adjust criteria for triggering new outline
+	decorations to presence or absence of any topics, not just a topic
+	at the beginning of the buffer.
+
 2006-11-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--show-all, bs--redisplay):
