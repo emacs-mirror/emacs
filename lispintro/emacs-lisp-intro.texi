@@ -183,7 +183,11 @@
 @c in the Texinfo version 4.6 of the 2003 Jun 13 distribution.
 
 @tex
-\global\def\xrefprintnodename#1{\unskip, ``#1''}
+\if \xrefprintnodename
+ \global\def\xrefprintnodename#1{\unskip, ``#1''}
+ \else
+ \global\def\xrefprintnodename#1{ ``#1''}
+\fi
 % \global\def\xrefprintnodename#1{, ``#1''}
 @end tex
 
@@ -192,7 +196,7 @@
 @dircategory Emacs
 @direntry
 * Emacs Lisp Intro: (eintr).
-  			A simple introduction to Emacs Lisp programming.
+                          A simple introduction to Emacs Lisp programming.
 @end direntry
 
 @copying
@@ -5067,21 +5071,21 @@ START and END specify the portion of the current buffer to be copied."
   (interactive
    (list (read-buffer "Append to buffer: " (other-buffer
                                             (current-buffer) t))
-	 (region-beginning) (region-end)))
+         (region-beginning) (region-end)))
 @end group
 @group
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (let* ((append-to (get-buffer-create buffer))
-	     (windows (get-buffer-window-list append-to t t))
-	     point)
-	(set-buffer append-to)
-	(setq point (point))
-	(barf-if-buffer-read-only)
-	(insert-buffer-substring oldbuf start end)
-	(dolist (window windows)
-	  (when (= (window-point window) point)
-	    (set-window-point window (point))))))))
+             (windows (get-buffer-window-list append-to t t))
+             point)
+        (set-buffer append-to)
+        (setq point (point))
+        (barf-if-buffer-read-only)
+        (insert-buffer-substring oldbuf start end)
+        (dolist (window windows)
+          (when (= (window-point window) point)
+            (set-window-point window (point))))))))
 @end group
 @end smallexample
 
@@ -5123,12 +5127,14 @@ review of @code{interactive}, see @ref{Interactive, , Making a
 Function Interactive}.)  The expression reads as follows:
 
 @smallexample
+@group
 (interactive
-   (list (read-buffer
-          "Append to buffer: "
-          (other-buffer (current-buffer) t))
-	 (region-beginning)
-         (region-end)))
+ (list (read-buffer
+        "Append to buffer: "
+        (other-buffer (current-buffer) t))
+       (region-beginning)
+       (region-end)))
+@end group
 @end smallexample
 
 @noindent
@@ -5196,19 +5202,19 @@ BUFFER (or buffer name), START and END.
 START and END specify the portion of the current buffer to be copied."
   (interactive
    (list (read-buffer "Append to buffer: " (other-buffer (current-buffer) t))
-	 (region-beginning) (region-end)))
+         (region-beginning) (region-end)))
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (let* ((append-to (get-buffer-create buffer))
-	     (windows (get-buffer-window-list append-to t t))
-	     point)
-	(set-buffer append-to)
-	(setq point (point))
-	(barf-if-buffer-read-only)
-	(insert-buffer-substring oldbuf start end)
-	(dolist (window windows)
-	  (when (= (window-point window) point)
-	    (set-window-point window (point))))))))
+             (windows (get-buffer-window-list append-to t t))
+             point)
+        (set-buffer append-to)
+        (setq point (point))
+        (barf-if-buffer-read-only)
+        (insert-buffer-substring oldbuf start end)
+        (dolist (window windows)
+          (when (= (window-point window) point)
+            (set-window-point window (point))))))))
 @end ignore
 
 The body of the @code{append-to-buffer} function begins with @code{let}.
@@ -5391,15 +5397,15 @@ in GNU Emacs 22
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (let* ((append-to (get-buffer-create buffer))
-	     (windows (get-buffer-window-list append-to t t))
-	     point)
-	(set-buffer append-to)
-	(setq point (point))
-	(barf-if-buffer-read-only)
-	(insert-buffer-substring oldbuf start end)
-	(dolist (window windows)
-	  (when (= (window-point window) point)
-	    (set-window-point window (point))))))))
+             (windows (get-buffer-window-list append-to t t))
+             point)
+        (set-buffer append-to)
+        (setq point (point))
+        (barf-if-buffer-read-only)
+        (insert-buffer-substring oldbuf start end)
+        (dolist (window windows)
+          (when (= (window-point window) point)
+            (set-window-point window (point))))))))
 @end ignore
 
 The @code{append-to-buffer} function definition inserts text from the
@@ -5640,7 +5646,7 @@ copy a region of text @emph{from} the current buffer to another buffer.
 Here is a discussion based on the original code.  The code was
 simplified in 2003 and is harder to understand.
 
-@xref{New insert-buffer, , New Body for @code{insert-buffer}}, to see
+(@xref{New insert-buffer, , New Body for @code{insert-buffer}}, to see
 a discussion of the new body.)
 
 In addition, this code illustrates the use of @code{interactive} with a
@@ -6078,17 +6084,17 @@ This section describes the complex part of the definition.
 
 As previously described, when invoked without an argument,
 @code{beginning-of-buffer} moves the cursor to the beginning of the
-buffer (in truth, the accessible portion of the buffer), leaving the
-mark at the previous position.  However, when the command is invoked
-with a number between one and ten, the function considers that number
-to be a fraction of the length of the buffer, measured in tenths, and
-Emacs moves the cursor that fraction of the way from the beginning of
-the buffer.  Thus, you can either call this function with the key
-command @kbd{M-<}, which will move the cursor to the beginning of the
-buffer, or with a key command such as @kbd{C-u 7 M-<} which will move
-the cursor to a point 70% of the way through the buffer.  If a number
-bigger than ten is used for the argument, it moves to the end of the
-buffer.
+buffer (in truth, the beginning of the accessible portion of the
+buffer), leaving the mark at the previous position.  However, when the
+command is invoked with a number between one and ten, the function
+considers that number to be a fraction of the length of the buffer,
+measured in tenths, and Emacs moves the cursor that fraction of the
+way from the beginning of the buffer.  Thus, you can either call this
+function with the key command @kbd{M-<}, which will move the cursor to
+the beginning of the buffer, or with a key command such as @kbd{C-u 7
+M-<} which will move the cursor to a point 70% of the way through the
+buffer.  If a number bigger than ten is used for the argument, it
+moves to the end of the buffer.
 
 The @code{beginning-of-buffer} function can be called with or without an
 argument.  The use of the argument is optional.
@@ -6195,8 +6201,8 @@ like this:
 @group
 (if (> (buffer-size) 10000)
     ;; @r{Avoid overflow for large buffer sizes!}
-			  (* (prefix-numeric-value arg)
-			     (/ size 10))
+                          (* (prefix-numeric-value arg)
+                             (/ size 10))
   (/
    (+ 10
       (*
@@ -6418,13 +6424,13 @@ and avoids clobbering the mark."
 @group
   (let ((size (- (point-max) (point-min))))
     (goto-char (if (and arg (not (consp arg)))
-		   (+ (point-min)
-		      (if (> size 10000)
-			  ;; Avoid overflow for large buffer sizes!
-			  (* (prefix-numeric-value arg)
-			     (/ size 10))
-			(/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
-		 (point-min))))
+                   (+ (point-min)
+                      (if (> size 10000)
+                          ;; Avoid overflow for large buffer sizes!
+                          (* (prefix-numeric-value arg)
+                             (/ size 10))
+                        (/ (+ 10 (* size (prefix-numeric-value arg))) 10)))
+                 (point-min))))
   (if arg (forward-line 1)))
 @end group
 @end smallexample
@@ -6689,14 +6695,14 @@ Emacs 22
   "Print the current buffer line number and narrowed line number of point."
   (interactive)
   (let ((start (point-min))
-	(n (line-number-at-pos)))
+        (n (line-number-at-pos)))
     (if (= start 1)
-	(message "Line %d" n)
+        (message "Line %d" n)
       (save-excursion
-	(save-restriction
-	  (widen)
-	  (message "line %d (narrowed line %d)"
-		   (+ n (line-number-at-pos start) -1) n))))))
+        (save-restriction
+          (widen)
+          (message "line %d (narrowed line %d)"
+                   (+ n (line-number-at-pos start) -1) n))))))
 
 (defun line-number-at-pos (&optional pos)
   "Return (narrowed) buffer line number at position POS.
@@ -6721,18 +6727,18 @@ and the greater of them is not at the start of a line."
       (narrow-to-region start end)
       (goto-char (point-min))
       (if (eq selective-display t)
-	  (save-match-data
-	    (let ((done 0))
-	      (while (re-search-forward "[\n\C-m]" nil t 40)
-		(setq done (+ 40 done)))
-	      (while (re-search-forward "[\n\C-m]" nil t 1)
-		(setq done (+ 1 done)))
-	      (goto-char (point-max))
-	      (if (and (/= start end)
-		       (not (bolp)))
-		  (1+ done)
-		done)))
-	(- (buffer-size) (forward-line (buffer-size)))))))
+          (save-match-data
+            (let ((done 0))
+              (while (re-search-forward "[\n\C-m]" nil t 40)
+                (setq done (+ 40 done)))
+              (while (re-search-forward "[\n\C-m]" nil t 1)
+                (setq done (+ 1 done)))
+              (goto-char (point-max))
+              (if (and (/= start end)
+                       (not (bolp)))
+                  (1+ done)
+                done)))
+        (- (buffer-size) (forward-line (buffer-size)))))))
 @end ignore
 
 @node what-line, narrow Exercise, save-restriction, Narrowing & Widening
@@ -6842,18 +6848,18 @@ and the greater of them is not at the start of a line."
       (narrow-to-region start end)
       (goto-char (point-min))
       (if (eq selective-display t)
-	  (save-match-data
-	    (let ((done 0))
-	      (while (re-search-forward "[\n\C-m]" nil t 40)
-		(setq done (+ 40 done)))
-	      (while (re-search-forward "[\n\C-m]" nil t 1)
-		(setq done (+ 1 done)))
-	      (goto-char (point-max))
-	      (if (and (/= start end)
-		       (not (bolp)))
-		  (1+ done)
-		done)))
-	(- (buffer-size) (forward-line (buffer-size)))))))
+          (save-match-data
+            (let ((done 0))
+              (while (re-search-forward "[\n\C-m]" nil t 40)
+                (setq done (+ 40 done)))
+              (while (re-search-forward "[\n\C-m]" nil t 1)
+                (setq done (+ 1 done)))
+              (goto-char (point-max))
+              (if (and (/= start end)
+                       (not (bolp)))
+                  (1+ done)
+                done)))
+        (- (buffer-size) (forward-line (buffer-size)))))))
 @end ignore
 
 @noindent
@@ -6887,10 +6893,10 @@ have to investigate yourself; or perhaps you will have to use
 @code{filter-buffer-substring} @dots{}, yet other functions.  Text
 properties are a feature otherwise not discussed here.  @xref{Text
 Properties, , Text Properties, elisp, The GNU Emacs Lisp Reference
-Manual}.
+Manual}.)
 
 Additionally, do you really need @code{goto-char} or @code{point-min}?
-Or can you write the function without them?)
+Or can you write the function without them?
 
 @node car cdr & cons, Cutting & Storing Text, Narrowing & Widening, Top
 @comment  node-name,  next,  previous,  up
@@ -7658,7 +7664,7 @@ retrieved.  @xref{Yanking, , Yanking Text Back}.
 @section @code{zap-to-char}
 @findex zap-to-char
 
-The @code{zap-to-char} function changed a little between GNU Emacs
+The @code{zap-to-char} function changed little between GNU Emacs
 version 19 and GNU Emacs version 22.  However, @code{zap-to-char}
 calls another function, @code{kill-region}, which enjoyed a major
 rewrite.
@@ -7686,18 +7692,16 @@ But first, let us look at the interactive @code{zap-to-char} function.
 @unnumberedsubsec The Complete @code{zap-to-char} Implementation
 @end ifnottex
 
-The GNU Emacs version 19 and version 21 implementations of the
-@code{zap-to-char} function are nearly identical in form, and they
-work alike.  The function removes the text in the region between the
-location of the cursor (i.e., of point) up to and including the next
-occurrence of a specified character.  The text that @code{zap-to-char}
-removes is put in the kill ring; and it can be retrieved from the kill
-ring by typing @kbd{C-y} (@code{yank}).  If the command is given an
-argument, it removes text through that number of occurrences.  Thus,
-if the cursor were at the beginning of this sentence and the character
-were @samp{s}, @samp{Thus} would be removed.  If the argument were
-two, @samp{Thus, if the curs} would be removed, up to and including
-the @samp{s} in @samp{cursor}.
+The @code{zap-to-char} function removes the text in the region between
+the location of the cursor (i.e., of point) up to and including the
+next occurrence of a specified character.  The text that
+@code{zap-to-char} removes is put in the kill ring; and it can be
+retrieved from the kill ring by typing @kbd{C-y} (@code{yank}).  If
+the command is given an argument, it removes text through that number
+of occurrences.  Thus, if the cursor were at the beginning of this
+sentence and the character were @samp{s}, @samp{Thus} would be
+removed.  If the argument were two, @samp{Thus, if the curs} would be
+removed, up to and including the @samp{s} in @samp{cursor}.
 
 If the specified character is not found, @code{zap-to-char} will say
 ``Search failed'', tell you the character you typed, and not remove
@@ -7735,10 +7739,13 @@ Goes backward if ARG is negative; error if CHAR not found."
   (if (char-table-p translation-table-for-input)
       (setq char (or (aref translation-table-for-input char) char)))
   (kill-region (point) (progn
-			 (search-forward (char-to-string char) nil nil arg)
-			 (point))))
+                         (search-forward (char-to-string char) nil nil arg)
+                         (point))))
 @end group
 @end smallexample
+
+The documentation is thorough.  You do need to know the jargon meaning
+of the word `kill'.
 
 @node zap-to-char interactive, zap-to-char body, Complete zap-to-char, zap-to-char
 @comment  node-name,  next,  previous,  up
@@ -7776,8 +7783,6 @@ to the kill ring, but does not remove it.  The echo area displays a
 message saying that the buffer is read-only.  Also, the terminal may
 beep or blink at you.
 
-Let us continue with the interactive specification.
-
 @node zap-to-char body, search-forward, zap-to-char interactive, zap-to-char
 @comment  node-name,  next,  previous,  up
 @subsection The Body of @code{zap-to-char}
@@ -7785,9 +7790,6 @@ Let us continue with the interactive specification.
 The body of the @code{zap-to-char} function contains the code that
 kills (that is, removes) the text in the region from the current
 position of the cursor up to and including the specified character.
-
-The documentation is thorough.  You do need to know the jargon meaning
-of the word `kill'.
 
 The first part of the code looks like this:
 
@@ -8002,14 +8004,14 @@ text.  See `insert-for-yank'."
     (error "The mark is not set now, so there is no region"))
   (condition-case nil
       (let ((string (filter-buffer-substring beg end t)))
-	(when string			;STRING is nil if BEG = END
-	  ;; Add that string to the kill ring, one way or another.
-	  (if (eq last-command 'kill-region)
-	      (kill-append string (< end beg) yank-handler)
-	    (kill-new string nil yank-handler)))
-	(when (or string (eq last-command 'kill-region))
-	  (setq this-command 'kill-region))
-	nil)
+        (when string                        ;STRING is nil if BEG = END
+          ;; Add that string to the kill ring, one way or another.
+          (if (eq last-command 'kill-region)
+              (kill-append string (< end beg) yank-handler)
+            (kill-new string nil yank-handler)))
+        (when (or string (eq last-command 'kill-region))
+          (setq this-command 'kill-region))
+        nil)
     ((buffer-read-only text-read-only)
      ;; The code above failed because the buffer, or some of the characters
      ;; in the region, are read-only.
@@ -8021,7 +8023,7 @@ text.  See `insert-for-yank'."
      (setq this-command 'kill-region)
      ;; This should barf, if appropriate, and give us the correct error.
      (if kill-read-only-ok
-	 (progn (message "Read only text copied to kill ring") nil)
+         (progn (message "Read only text copied to kill ring") nil)
        ;; Signal an error if the buffer is read-only.
        (barf-if-buffer-read-only)
        ;; If the buffer isn't read-only, the text is.
@@ -8067,6 +8069,7 @@ The command \\[yank] can retrieve it from there. @dots{} "
   ;; @bullet{} Since order matters, pass point first.
   (interactive (list (point) (mark)))
   ;; @bullet{} And tell us if we cannot cut the text.
+  ;; `unless' is an `if' without a then-part.
   (unless (and beg end)
     (error "The mark is not set now, so there is no region"))
 @end group
@@ -8110,7 +8113,7 @@ The command \\[yank] can retrieve it from there. @dots{} "
 @end group
 @group
       (let ((string (filter-buffer-substring beg end t)))
-        (when string			;STRING is nil if BEG = END
+        (when string                    ;STRING is nil if BEG = END
           ;; Add that string to the kill ring, one way or another.
           (if (eq last-command 'kill-region)
 @end group
@@ -8120,10 +8123,10 @@ The command \\[yank] can retrieve it from there. @dots{} "
               ;;    `kill-new' functions how deal with properties
               ;;    added to the text, such as `bold' or `italics'.
               (kill-append string (< end beg) yank-handler)
-	    (kill-new string nil yank-handler)))
-	(when (or string (eq last-command 'kill-region))
-	  (setq this-command 'kill-region))
-	nil)
+            (kill-new string nil yank-handler)))
+        (when (or string (eq last-command 'kill-region))
+          (setq this-command 'kill-region))
+        nil)
 @end group
 
 @group
@@ -8338,10 +8341,15 @@ Technically speaking, @code{when} is a Lisp macro.  A Lisp @dfn{macro}
 enables you to define new control constructs and other language
 features.  It tells the interpreter how to compute another Lisp
 expression which will in turn compute the value.  In this case, the
-`other expression' is an @code{if} expression.  For more about Lisp
-macros, see @ref{Macros, , Macros, elisp, The GNU Emacs Lisp Reference
-Manual}.  The C programming language also provides macros.  These are
-different, but also useful.
+`other expression' is an @code{if} expression.
+
+The @code{kill-region} function definition also has an @code{unless}
+macro; it is the converse of @code{when}.  The @code{unless} macro is
+an @code{if} without a then clause
+
+For more about Lisp macros, see @ref{Macros, , Macros, elisp, The GNU
+Emacs Lisp Reference Manual}.  The C programming language also
+provides macros.  These are different, but also useful.
 
 @ignore
 We will briefly look at C macros in
@@ -8349,8 +8357,10 @@ We will briefly look at C macros in
 @end ignore
 
 @need 1200
-If the string has content, then another conditional expression is
-executed.  This is an @code{if} with both a then-part and an else-part.
+Regarding the @code{when} macro, in the @code{condition-case}
+expression, when the string has content, then another conditional
+expression is executed.  This is an @code{if} with both a then-part
+and an else-part.
 
 @smallexample
 @group
@@ -8531,8 +8541,7 @@ attaches a new element to the kill ring using the @code{kill-new}
 function.
 
 @need 1250
-The @code{if} expression reads as follows; it uses @code{eq}, which is
-a function we have not yet seen:
+The @code{if} expression reads as follows; it uses @code{eq}:
 
 @smallexample
 @group
@@ -8581,9 +8590,10 @@ If BEFORE-P is non-nil, prepend STRING to the kill.
 @dots{} "
   (let* ((cur (car kill-ring)))
     (kill-new (if before-p (concat string cur) (concat cur string))
-	      (or (= (length cur) 0)
-		  (equal yank-handler (get-text-property 0 'yank-handler cur)))
-	      yank-handler)))
+              (or (= (length cur) 0)
+                  (equal yank-handler
+                         (get-text-property 0 'yank-handler cur)))
+              yank-handler)))
 @end group
 @end smallexample
 
@@ -8729,11 +8739,11 @@ the front of the kill ring, rather than being added to the list.
 @group
   (if (> (length string) 0)
       (if yank-handler
-	  (put-text-property 0 (length string)
-			     'yank-handler yank-handler string))
+          (put-text-property 0 (length string)
+                             'yank-handler yank-handler string))
     (if yank-handler
-	(signal 'args-out-of-range
-		(list string "yank-handler specified for empty string"))))
+        (signal 'args-out-of-range
+                (list string "yank-handler specified for empty string"))))
 @end group
 @group
   (if (fboundp 'menu-bar-update-yank-menu)
@@ -8744,7 +8754,7 @@ the front of the kill ring, rather than being added to the list.
       (setcar kill-ring string)
     (push string kill-ring)
     (if (> (length kill-ring) kill-ring-max)
-	(setcdr (nthcdr (1- kill-ring-max) kill-ring) nil)))
+        (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil)))
 @end group
 @group
   (setq kill-ring-yank-pointer kill-ring)
@@ -8772,7 +8782,6 @@ the front of the kill ring, rather than being added to the list."
       (funcall interprogram-cut-function string (not replace))))
 @end ignore
 
-@noindent
 (Notice that the function is not interactive.)
 
 As usual, we can look at this function in parts.
@@ -8848,8 +8857,8 @@ else-part of the condition is executed:
 
 @noindent
 @need 1250
-@code{push} puts its first argument onto the second.  It is the same
-as the older
+@code{push} puts its first argument onto the second.  It is similar to
+the older
 
 @smallexample
 (setq kill-ring (cons string kill-ring))
@@ -8957,7 +8966,7 @@ list---it takes the @sc{cdr} of the @sc{cdr} of the @sc{cdr}
 @findex setcdr, @r{example}
 Thus, if we had a four element list that was supposed to be three
 elements long, we could set the @sc{cdr} of the next to last element
-to @code{nil}, and thereby shorten the list.  (If you sent the last
+to @code{nil}, and thereby shorten the list.  (If you set the last
 element to some other value than @code{nil}, which you could do, then
 you would not have shortened the list.  @xref{setcdr, ,
 @code{setcdr}}.)
@@ -9005,8 +9014,6 @@ the @code{kill-ring}.
 Even though the @code{kill-ring-yank-pointer} is called a
 @samp{pointer}, it is a variable just like the kill ring.  However, the
 name has been chosen to help humans understand how the variable is used.
-The variable is used in functions such as @code{yank} and
-@code{yank-pop} (@pxref{Yanking, , Yanking Text Back}).
 
 @need 1200
 Now, to return to an early expression in the body of the function:
@@ -9087,7 +9094,8 @@ an existing element or as a new element, leads us to the code for
 bringing back text that has been cut out of the buffer---the yank
 commands.  However, before discussing the yank commands, it is better
 to learn how lists are implemented in a computer.  This will make
-clear such mysteries as the use of the term `pointer'.
+clear such mysteries as the use of the term `pointer'.  But before
+that, we will digress into C.
 
 @ignore
 @c is this true in Emacs 22?   Does not seems to be
@@ -10270,24 +10278,24 @@ kill ring and returned as the latest kill.
 If optional arg DO-NOT-MOVE is non-nil, then don't actually move the
 yanking point; just return the Nth kill forward."
   (let ((interprogram-paste (and (= n 0)
-				 interprogram-paste-function
-				 (funcall interprogram-paste-function))))
+                                 interprogram-paste-function
+                                 (funcall interprogram-paste-function))))
     (if interprogram-paste
-	(progn
-	  ;; Disable the interprogram cut function when we add the new
-	  ;; text to the kill ring, so Emacs doesn't try to own the
-	  ;; selection, with identical text.
-	  (let ((interprogram-cut-function nil))
-	    (kill-new interprogram-paste))
-	  interprogram-paste)
+        (progn
+          ;; Disable the interprogram cut function when we add the new
+          ;; text to the kill ring, so Emacs doesn't try to own the
+          ;; selection, with identical text.
+          (let ((interprogram-cut-function nil))
+            (kill-new interprogram-paste))
+          interprogram-paste)
       (or kill-ring (error "Kill ring is empty"))
       (let ((ARGth-kill-element
-	     (nthcdr (mod (- n (length kill-ring-yank-pointer))
-			  (length kill-ring))
-		     kill-ring)))
-	(or do-not-move
-	    (setq kill-ring-yank-pointer ARGth-kill-element))
-	(car ARGth-kill-element)))))
+             (nthcdr (mod (- n (length kill-ring-yank-pointer))
+                          (length kill-ring))
+                     kill-ring)))
+        (or do-not-move
+            (setq kill-ring-yank-pointer ARGth-kill-element))
+        (car ARGth-kill-element)))))
 
 @end ignore
 
@@ -12630,20 +12638,20 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
         (sentence-end (sentence-end)))
     (while (< arg 0)
       (let ((pos (point))
-	    (par-beg (save-excursion (start-of-paragraph-text) (point))))
+            (par-beg (save-excursion (start-of-paragraph-text) (point))))
        (if (and (re-search-backward sentence-end par-beg t)
-		(or (< (match-end 0) pos)
-		    (re-search-backward sentence-end par-beg t)))
-	   (goto-char (match-end 0))
-	 (goto-char par-beg)))
+                (or (< (match-end 0) pos)
+                    (re-search-backward sentence-end par-beg t)))
+           (goto-char (match-end 0))
+         (goto-char par-beg)))
       (setq arg (1+ arg)))
 @end group
 @group
     (while (> arg 0)
       (let ((par-end (save-excursion (end-of-paragraph-text) (point))))
        (if (re-search-forward sentence-end par-end t)
-	   (skip-chars-backward " \t\n")
-	 (goto-char par-end)))
+           (skip-chars-backward " \t\n")
+         (goto-char par-end)))
       (setq arg (1- arg)))
     (constrain-to-field nil opoint t)))
 @end group
@@ -12695,7 +12703,7 @@ look at the expressions that start in the left-most columns:
   (let ((opoint (point)) (sentence-end (sentence-end)))
     (while (< arg 0)
       (let ((pos (point))
-	    (par-beg (save-excursion (start-of-paragraph-text) (point))))
+            (par-beg (save-excursion (start-of-paragraph-text) (point))))
        @var{rest-of-body-of-while-loop-when-going-backwards}
     (while (> arg 0)
       (let ((par-end (save-excursion (end-of-paragraph-text) (point))))
@@ -12901,131 +12909,131 @@ Returns the count of paragraphs left to move."
   (interactive "p")
   (or arg (setq arg 1))
   (let* ((opoint (point))
-	 (fill-prefix-regexp
-	  (and fill-prefix (not (equal fill-prefix ""))
-	       (not paragraph-ignore-fill-prefix)
-	       (regexp-quote fill-prefix)))
-	 ;; Remove ^ from paragraph-start and paragraph-sep if they are there.
-	 ;; These regexps shouldn't be anchored, because we look for them
-	 ;; starting at the left-margin.  This allows paragraph commands to
-	 ;; work normally with indented text.
-	 ;; This hack will not find problem cases like "whatever\\|^something".
-	 (parstart (if (and (not (equal "" paragraph-start))
-			    (equal ?^ (aref paragraph-start 0)))
-		       (substring paragraph-start 1)
-		     paragraph-start))
-	 (parsep (if (and (not (equal "" paragraph-separate))
-			  (equal ?^ (aref paragraph-separate 0)))
-		     (substring paragraph-separate 1)
-		   paragraph-separate))
-	 (parsep
-	  (if fill-prefix-regexp
-	      (concat parsep "\\|"
-		      fill-prefix-regexp "[ \t]*$")
-	    parsep))
-	 ;; This is used for searching.
-	 (sp-parstart (concat "^[ \t]*\\(?:" parstart "\\|" parsep "\\)"))
-	 start found-start)
+         (fill-prefix-regexp
+          (and fill-prefix (not (equal fill-prefix ""))
+               (not paragraph-ignore-fill-prefix)
+               (regexp-quote fill-prefix)))
+         ;; Remove ^ from paragraph-start and paragraph-sep if they are there.
+         ;; These regexps shouldn't be anchored, because we look for them
+         ;; starting at the left-margin.  This allows paragraph commands to
+         ;; work normally with indented text.
+         ;; This hack will not find problem cases like "whatever\\|^something".
+         (parstart (if (and (not (equal "" paragraph-start))
+                            (equal ?^ (aref paragraph-start 0)))
+                       (substring paragraph-start 1)
+                     paragraph-start))
+         (parsep (if (and (not (equal "" paragraph-separate))
+                          (equal ?^ (aref paragraph-separate 0)))
+                     (substring paragraph-separate 1)
+                   paragraph-separate))
+         (parsep
+          (if fill-prefix-regexp
+              (concat parsep "\\|"
+                      fill-prefix-regexp "[ \t]*$")
+            parsep))
+         ;; This is used for searching.
+         (sp-parstart (concat "^[ \t]*\\(?:" parstart "\\|" parsep "\\)"))
+         start found-start)
     (while (and (< arg 0) (not (bobp)))
       (if (and (not (looking-at parsep))
-	       (re-search-backward "^\n" (max (1- (point)) (point-min)) t)
-	       (looking-at parsep))
-	  (setq arg (1+ arg))
-	(setq start (point))
-	;; Move back over paragraph-separating lines.
-	(forward-char -1) (beginning-of-line)
-	(while (and (not (bobp))
-		    (progn (move-to-left-margin)
-			   (looking-at parsep)))
-	  (forward-line -1))
-	(if (bobp)
-	    nil
-	  (setq arg (1+ arg))
-	  ;; Go to end of the previous (non-separating) line.
-	  (end-of-line)
-	  ;; Search back for line that starts or separates paragraphs.
-	  (if (if fill-prefix-regexp
-		  ;; There is a fill prefix; it overrides parstart.
-		  (let (multiple-lines)
-		    (while (and (progn (beginning-of-line) (not (bobp)))
-				(progn (move-to-left-margin)
-				       (not (looking-at parsep)))
-				(looking-at fill-prefix-regexp))
-		      (unless (= (point) start)
-			(setq multiple-lines t))
-		      (forward-line -1))
-		    (move-to-left-margin)
-		    ;; This deleted code caused a long hanging-indent line
-		    ;; not to be filled together with the following lines.
-		    ;; ;; Don't move back over a line before the paragraph
-		    ;; ;; which doesn't start with fill-prefix
-		    ;; ;; unless that is the only line we've moved over.
-		    ;; (and (not (looking-at fill-prefix-regexp))
-		    ;;      multiple-lines
-		    ;;      (forward-line 1))
-		    (not (bobp)))
-		(while (and (re-search-backward sp-parstart nil 1)
-			    (setq found-start t)
-			    ;; Found a candidate, but need to check if it is a
-			    ;; REAL parstart.
-			    (progn (setq start (point))
-				   (move-to-left-margin)
-				   (not (looking-at parsep)))
-			    (not (and (looking-at parstart)
-				      (or (not use-hard-newlines)
-					  (bobp)
-					  (get-text-property
-					   (1- start) 'hard)))))
-		  (setq found-start nil)
-		  (goto-char start))
-		found-start)
-	      ;; Found one.
-	      (progn
-		;; Move forward over paragraph separators.
-		;; We know this cannot reach the place we started
-		;; because we know we moved back over a non-separator.
-		(while (and (not (eobp))
-			    (progn (move-to-left-margin)
-				   (looking-at parsep)))
-		  (forward-line 1))
-		;; If line before paragraph is just margin, back up to there.
-		(end-of-line 0)
-		(if (> (current-column) (current-left-margin))
-		    (forward-char 1)
-		  (skip-chars-backward " \t")
-		  (if (not (bolp))
-		      (forward-line 1))))
-	    ;; No starter or separator line => use buffer beg.
-	    (goto-char (point-min))))))
+               (re-search-backward "^\n" (max (1- (point)) (point-min)) t)
+               (looking-at parsep))
+          (setq arg (1+ arg))
+        (setq start (point))
+        ;; Move back over paragraph-separating lines.
+        (forward-char -1) (beginning-of-line)
+        (while (and (not (bobp))
+                    (progn (move-to-left-margin)
+                           (looking-at parsep)))
+          (forward-line -1))
+        (if (bobp)
+            nil
+          (setq arg (1+ arg))
+          ;; Go to end of the previous (non-separating) line.
+          (end-of-line)
+          ;; Search back for line that starts or separates paragraphs.
+          (if (if fill-prefix-regexp
+                  ;; There is a fill prefix; it overrides parstart.
+                  (let (multiple-lines)
+                    (while (and (progn (beginning-of-line) (not (bobp)))
+                                (progn (move-to-left-margin)
+                                       (not (looking-at parsep)))
+                                (looking-at fill-prefix-regexp))
+                      (unless (= (point) start)
+                        (setq multiple-lines t))
+                      (forward-line -1))
+                    (move-to-left-margin)
+                    ;; This deleted code caused a long hanging-indent line
+                    ;; not to be filled together with the following lines.
+                    ;; ;; Don't move back over a line before the paragraph
+                    ;; ;; which doesn't start with fill-prefix
+                    ;; ;; unless that is the only line we've moved over.
+                    ;; (and (not (looking-at fill-prefix-regexp))
+                    ;;      multiple-lines
+                    ;;      (forward-line 1))
+                    (not (bobp)))
+                (while (and (re-search-backward sp-parstart nil 1)
+                            (setq found-start t)
+                            ;; Found a candidate, but need to check if it is a
+                            ;; REAL parstart.
+                            (progn (setq start (point))
+                                   (move-to-left-margin)
+                                   (not (looking-at parsep)))
+                            (not (and (looking-at parstart)
+                                      (or (not use-hard-newlines)
+                                          (bobp)
+                                          (get-text-property
+                                           (1- start) 'hard)))))
+                  (setq found-start nil)
+                  (goto-char start))
+                found-start)
+              ;; Found one.
+              (progn
+                ;; Move forward over paragraph separators.
+                ;; We know this cannot reach the place we started
+                ;; because we know we moved back over a non-separator.
+                (while (and (not (eobp))
+                            (progn (move-to-left-margin)
+                                   (looking-at parsep)))
+                  (forward-line 1))
+                ;; If line before paragraph is just margin, back up to there.
+                (end-of-line 0)
+                (if (> (current-column) (current-left-margin))
+                    (forward-char 1)
+                  (skip-chars-backward " \t")
+                  (if (not (bolp))
+                      (forward-line 1))))
+            ;; No starter or separator line => use buffer beg.
+            (goto-char (point-min))))))
 
     (while (and (> arg 0) (not (eobp)))
       ;; Move forward over separator lines...
       (while (and (not (eobp))
-		  (progn (move-to-left-margin) (not (eobp)))
-		  (looking-at parsep))
-	(forward-line 1))
+                  (progn (move-to-left-margin) (not (eobp)))
+                  (looking-at parsep))
+        (forward-line 1))
       (unless (eobp) (setq arg (1- arg)))
       ;; ... and one more line.
       (forward-line 1)
       (if fill-prefix-regexp
-	  ;; There is a fill prefix; it overrides parstart.
-	  (while (and (not (eobp))
-		      (progn (move-to-left-margin) (not (eobp)))
-		      (not (looking-at parsep))
-		      (looking-at fill-prefix-regexp))
-	    (forward-line 1))
-	(while (and (re-search-forward sp-parstart nil 1)
-		    (progn (setq start (match-beginning 0))
-			   (goto-char start)
-			   (not (eobp)))
-		    (progn (move-to-left-margin)
-			   (not (looking-at parsep)))
-		    (or (not (looking-at parstart))
-			(and use-hard-newlines
-			     (not (get-text-property (1- start) 'hard)))))
-	  (forward-char 1))
-	(if (< (point) (point-max))
-	    (goto-char start))))
+          ;; There is a fill prefix; it overrides parstart.
+          (while (and (not (eobp))
+                      (progn (move-to-left-margin) (not (eobp)))
+                      (not (looking-at parsep))
+                      (looking-at fill-prefix-regexp))
+            (forward-line 1))
+        (while (and (re-search-forward sp-parstart nil 1)
+                    (progn (setq start (match-beginning 0))
+                           (goto-char start)
+                           (not (eobp)))
+                    (progn (move-to-left-margin)
+                           (not (looking-at parsep)))
+                    (or (not (looking-at parstart))
+                        (and use-hard-newlines
+                             (not (get-text-property (1- start) 'hard)))))
+          (forward-char 1))
+        (if (< (point) (point-max))
+            (goto-char start))))
     (constrain-to-field nil opoint t)
     ;; Return the number of steps that could not be done.
     arg))
@@ -15131,7 +15139,7 @@ automatically choosing a major mode, use \\[find-file-literally]."
   (interactive (find-file-read-args "Find file: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
-	(mapcar 'switch-to-buffer (nreverse value))
+        (mapcar 'switch-to-buffer (nreverse value))
       (switch-to-buffer value))))
 @end ignore
 
@@ -17711,8 +17719,8 @@ Incidentally, @code{load-library} is an interactive interface to the
 This is an interface to the function `load'."
   (interactive
    (list (completing-read "Load library: "
-			  'locate-file-completion
-			  (cons load-path (get-load-suffixes)))))
+                          'locate-file-completion
+                          (cons load-path (get-load-suffixes)))))
   (load library))
 @end group
 @end smallexample
@@ -19194,28 +19202,28 @@ kill ring and returned as the latest kill.
 If optional arg DO-NOT-MOVE is non-nil, then don't actually move the
 yanking point; just return the Nth kill forward."
   (let ((interprogram-paste (and (= n 0)
-				 interprogram-paste-function
-				 (funcall interprogram-paste-function))))
+                                 interprogram-paste-function
+                                 (funcall interprogram-paste-function))))
 @end group
 @group
     (if interprogram-paste
-	(progn
-	  ;; Disable the interprogram cut function when we add the new
-	  ;; text to the kill ring, so Emacs doesn't try to own the
-	  ;; selection, with identical text.
-	  (let ((interprogram-cut-function nil))
-	    (kill-new interprogram-paste))
-	  interprogram-paste)
+        (progn
+          ;; Disable the interprogram cut function when we add the new
+          ;; text to the kill ring, so Emacs doesn't try to own the
+          ;; selection, with identical text.
+          (let ((interprogram-cut-function nil))
+            (kill-new interprogram-paste))
+          interprogram-paste)
 @end group
 @group
       (or kill-ring (error "Kill ring is empty"))
       (let ((ARGth-kill-element
-	     (nthcdr (mod (- n (length kill-ring-yank-pointer))
-			  (length kill-ring))
-		     kill-ring)))
-	(or do-not-move
-	    (setq kill-ring-yank-pointer ARGth-kill-element))
-	(car ARGth-kill-element)))))
+             (nthcdr (mod (- n (length kill-ring-yank-pointer))
+                          (length kill-ring))
+                     kill-ring)))
+        (or do-not-move
+            (setq kill-ring-yank-pointer ARGth-kill-element))
+        (car ARGth-kill-element)))))
 @end group
 @end smallexample
 
@@ -19538,16 +19546,16 @@ See also the command \\[yank-pop]."
 @end group
 @group
   (insert-for-yank (current-kill (cond
-				  ((listp arg) 0)
-				  ((eq arg '-) -2)
-				  (t (1- arg)))))
+                                  ((listp arg) 0)
+                                  ((eq arg '-) -2)
+                                  (t (1- arg)))))
   (if (consp arg)
       ;; This is like exchange-point-and-mark,
       ;;     but doesn't activate the mark.
       ;; It is cleaner to avoid activation, even though the command
       ;; loop would deactivate the mark because we inserted text.
       (goto-char (prog1 (mark t)
-		   (set-marker (mark-marker) (point) (current-buffer)))))
+                   (set-marker (mark-marker) (point) (current-buffer)))))
 @end group
 @group
   ;; If we do get all the way thru, make this-command indicate that.
@@ -19601,11 +19609,11 @@ to save space, it looks like this:
   (setq this-command 'yank)
   (unless arg (setq arg 1))
   (let ((inhibit-read-only t)
-	(before (< (point) (mark t))))
+        (before (< (point) (mark t))))
 @end group
 @group
     (if before
-	(funcall (or yank-undo-function 'delete-region) (point) (mark t))
+        (funcall (or yank-undo-function 'delete-region) (point) (mark t))
       (funcall (or yank-undo-function 'delete-region) (mark t) (point)))
     (setq yank-undo-function nil)
 @end group
@@ -19618,12 +19626,12 @@ to save space, it looks like this:
 @end group
 @group
     (if before
-	;; This is like exchange-point-and-mark,
+        ;; This is like exchange-point-and-mark,
         ;;     but doesn't activate the mark.
-	;; It is cleaner to avoid activation, even though the command
-	;; loop would deactivate the mark because we inserted text.
-	(goto-char (prog1 (mark t)
-		     (set-marker (mark-marker)
+        ;; It is cleaner to avoid activation, even though the command
+        ;; loop would deactivate the mark because we inserted text.
+        (goto-char (prog1 (mark t)
+                     (set-marker (mark-marker)
                                  (point)
                                  (current-buffer))))))
   nil)
