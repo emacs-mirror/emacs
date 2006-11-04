@@ -276,6 +276,15 @@ lisp2 = \
 	$(lispsource)window.elc \
 	$(lispsource)version.el
 
+# This is needed the first time we build the tree, since temacs.exe
+# does not exist yet, and the DOC rule needs it to rebuild DOC whenever
+# Emacs is rebuilt.
+../src/$(BLD)/temacs.exe:
+	- mkdir "../src/$(OBJDIR)"
+	- mkdir "../src/$(BLD)"
+	@echo temacs > temacs.exe
+	$(CP) temacs.exe ../src/$(BLD)
+	- $(DEL) temacs.exe
 
 DOC	      = DOC
 $(DOC):		$(BLD) $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(lisp2)
