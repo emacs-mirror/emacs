@@ -237,6 +237,9 @@ case "${canonical}" in
     opsys=freebsd
     case "${canonical}" in
       alpha*-*-freebsd*)	machine=alpha ;;
+      ia64-*-freebsd*)		machine=ia64 ;;
+      sparc64-*-freebsd*)	machine=sparc ;;
+      powerpc-*-freebsd*)	machine=macppc ;;
       i[3456]86-*-freebsd*)	machine=intel386 ;;
       amd64-*-freebsd*|x86_64-*-freebsd*) machine=amdx86-64 ;;
     esac

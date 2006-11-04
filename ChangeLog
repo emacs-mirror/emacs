@@ -1,3 +1,7 @@
+2006-11-03  Giorgos Keramidas  <keramida@ceid.upatras.gr> (tiny change)
+
+	* configure.in: Enable sparc64/ia64/powerpc FreeBSD builds.
+
 2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* make-dist: Add makefile.w32-in to the man, lispref and lispintro
