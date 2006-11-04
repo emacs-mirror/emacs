@@ -2080,32 +2080,7 @@ w32_createwindow (f)
 
   if (!hprevinst)
     {
-      Lisp_Object ifa;
-
       w32_init_class (hinst);
-
-      /* Handle the -geometry command line option and the geometry
-	 settings in the registry.  They are decoded and put into
-	 initial-frame-alist by w32-win.el:x-handle-geometry.  */
-      ifa = Fsymbol_value (intern ("initial-frame-alist"));
-      if (CONSP (ifa))
-	{
-	  Lisp_Object lt = Fassq (Qleft, ifa);
-	  Lisp_Object tp = Fassq (Qtop,  ifa);
-
-	  if (!NILP (lt))
-	    {
-	      lt = XCDR (lt);
-	      if (INTEGERP (lt))
-		left = lt;
-	    }
-	  if (!NILP (tp))
-	    {
-	      tp = XCDR (tp);
-	      if (INTEGERP (tp))
-		top = tp;
-	    }
-	}
     }
 
   if (f->size_hint_flags & USPosition || f->size_hint_flags & PPosition)
