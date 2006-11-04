@@ -1,4 +1,4 @@
-2006-11-04 Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
+2006-11-04  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
 
 	* faces.el (faces-sample-overlay, describe-face): Revert last
 	changes.
@@ -9,7 +9,7 @@
 
 	* whitespace.el (whitespace-indent-regexp): Make this match any
 	multiples of eight spaces near the beginning of a line.
-	(whitespace-buffer): Use `remove-overlays' instead of	
+	(whitespace-buffer): Use `remove-overlays' instead of
 	`whitespace-unhighlight-the-space' and `overlay-recenter' to
 	speed up overlay handling.
 	(whitespace-buffer-leading, whitespace-buffer-trailing): Make
@@ -123,7 +123,7 @@
 	* battery.el (battery-linux-proc-acpi): Prevent range error when
 	`full-capacity' is 0.
 
-2006-10-31 Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
+2006-10-31  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
 
 	* faces.el (faces-sample-overlay): New defvar.
 	(faces-sample-overlay): New function to show face sample text.
