@@ -4,13 +4,13 @@
 	command line option and `initial-frame-alist' which is superfluous
 	after the last change to `w32_createwindow'.
 
-2006-11-04  Slawomir Nowaczyk  <slawek@cs.lth.se> (tiny change)
+2006-11-04  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
 
-	* w32proc.c: (sys_wait) Only wait for processes with fd<0.
-	  Others should be handled by sys_select instead. Fixes problems
-	  with (progn (start-process "" nil "ls") (call-process "ls"))
+	* w32proc.c (sys_wait): Only wait for processes with fd<0.
+	Others should be handled by sys_select instead.  Fixes problems
+	with (progn (start-process "" nil "ls") (call-process "ls")).
 
-2006-11-04  Giorgos Keramidas  <keramida@ceid.upatras.gr> (tiny change)
+2006-11-04  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* xmenu.c (Fmenu_bar_open): Declare variable before BLOCK_INPUT to
 	avoid gcc 2.95 error.
