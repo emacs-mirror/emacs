@@ -1,9 +1,30 @@
 2006-11-04  Robert J. Chassell  <bob@rattlesnake.com>
 
-	* emacs-lisp-intro.texi: Replace 22.0.100 with	22.1.100.
+	* emacs-lisp-intro.texi: Replace 22.0.100 with 22.1.100.
 	(defcustom): Note that the value set by defconst is a variable.
 	(Buffer Size & Locations): Parenthetical remark about evaluation.
 	(Finding More): Change text to include C sources by inference.
+
+	* emacs-lisp-intro.texi: Minor fixes.
+	Replace all tabs with eight spaces each so printed text looks correct.
+	Remove extraneous comma in a printed node name produced by `ref'.
+	(insert-buffer): Add a missing beginning parenthesis.
+	(beginning-of-buffer): Add `beginning of' to note about accessible
+	portion.
+	(narrow Exercise): Write closing parenthesis at end of correct
+	paragraph.
+	(zap-to-char): Remove extraneous `a' from first sentence.
+	(Complete zap-to-char): Remove two extraneous sentences.
+	(zap-to-char body): Move sentences on documentation two nodes earlier.
+	(Lisp macro): Add definition of `unless' macro.
+	(last-command & this-command): Remove comment that `we have not yet
+	seen' the @code{eq} function.
+	(kill-append function): Reformat `kill-append' function definition so
+	it prints well.
+	(kill-new function): Indent the sentence beginning `notice'.  Replace
+	`the same as' with `similar to'.  Repair typo.  Remove obsolete
+	references to `yank' and `yank-pop.  End section with a note that `we
+	will digress into C.'
 
 2006-11-02  Robert J. Chassell  <bob@rattlesnake.com>
 
