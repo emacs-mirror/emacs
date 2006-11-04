@@ -125,7 +125,7 @@
 
 2006-10-31 Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
 
-	* lisp/faces.el (faces-sample-overlay): New defvar.
+	* faces.el (faces-sample-overlay): New defvar.
 	(faces-sample-overlay): New function to show face sample text.
 	(describe-face): Use it.
 
