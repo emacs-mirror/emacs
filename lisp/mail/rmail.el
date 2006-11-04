@@ -2828,7 +2828,7 @@ If summary buffer is currently displayed, update current message there also."
 	(if blurb
 	    (message blurb))))))
 
-(defun rmail-redecode-body (coding)
+(defun rmail-redecode-body (coding &optional raw)
   "Decode the body of the current message using coding system CODING.
 This is useful with mail messages that have malformed or missing
 charset= headers.
@@ -2837,6 +2837,16 @@ This function assumes that the current message is already decoded
 and displayed in the RMAIL buffer, but the coding system used to
 decode it was incorrect.  It then encodes the message back to its
 original form, and decodes it again, using the coding system CODING.
+
+Optional argument RAW, if non-nil, means don't encode the message
+before decoding it with the new CODING.  This is useful if the current
+message text was produced by some function which invokes `insert',
+since `insert' leaves unibyte character codes 128 through 255 unconverted
+to multibyte.  One example of such a situation is when the text was
+produced by `base64-decode-region'.
+
+Interactively, invoke the function with a prefix argument to set RAW
+non-nil.
 
 Note that if Emacs erroneously auto-detected one of the iso-2022
 encodings in the message, this function might fail because the escape
@@ -2849,7 +2859,8 @@ iso-8859, koi8-r, etc."
     (or (eq major-mode 'rmail-mode)
 	(switch-to-buffer rmail-buffer))
     (save-excursion
-      (let ((pruned (rmail-msg-is-pruned)))
+      (let ((pruned (rmail-msg-is-pruned))
+	    (raw (or raw current-prefix-arg)))
 	(unwind-protect
 	    (let ((msgbeg (rmail-msgbeg rmail-current-message))
 		  (msgend (rmail-msgend rmail-current-message))
@@ -2883,7 +2894,22 @@ iso-8859, koi8-r, etc."
 			      (car (find-coding-systems-region msgbeg msgend))))
 		    (setq x-coding-header (point-marker))
 		    (narrow-to-region msgbeg msgend)
-		    (encode-coding-region (point) msgend old-coding)
+		    (and (null raw)
+			 ;; If old and new encoding are the same, it
+			 ;; clearly doesn't make sense to encode.
+			 (not (coding-system-equal
+			       (coding-system-base old-coding)
+			       (coding-system-base coding)))
+			 ;; If the body includes only eight-bit-*
+			 ;; characters, encoding might fail, e.g. with
+			 ;; UTF-8, and isn't needed anyway.
+			 (> (length (delq 'ascii
+					  (delq 'eight-bit-graphic
+						(delq 'eight-bit-control
+						      (find-charset-region
+						       msgbeg msgend)))))
+			    0)
+			 (encode-coding-region (point) msgend old-coding))
 		    (decode-coding-region (point) msgend coding)
 		    (setq last-coding-system-used coding)
 		    ;; Rewrite the coding-system header according
