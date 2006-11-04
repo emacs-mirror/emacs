@@ -1,3 +1,22 @@
+2006-11-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* whitespace.el (whitespace-indent-regexp): Make this match any
+	multiples of eight spaces near the beginning of a line.
+	(whitespace-buffer): Use `remove-overlays' instead of	
+	`whitespace-unhighlight-the-space' and `overlay-recenter' to
+	speed up overlay handling.
+	(whitespace-buffer-leading, whitespace-buffer-trailing): Make
+	these functions highlight the text removed by
+	`whitespace-buffer-leading-cleanup' and
+	`whitespace-buffer-trailing-cleanup' respectively.
+	(whitespace-buffer-search): Use `with-local-quit'.  Move
+	`format' out of loop to speed up scanning larger buffers.
+	(whitespace-unhighlight-the-space): Remove `remove-hook' since
+	that function is never added to a hook.
+	(whitespace-spacetab-regexp, whitespace-ateol-regexp)
+	(whitespace-buffer-leading-cleanup)
+	(whitespace-refresh-rescan-list): Fix docstrings.
+
 2006-11-03  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-during-yank-processing): Cue for inhibiting
@@ -237,7 +256,7 @@
 	* midnight.el (midnight-buffer-display-time): Doc fix.
 	(clean-buffer-list-kill-never-buffer-names): Add "*server*".
 
-2006-10-22  martin rudalics  <rudalics@gmx.at>
+2006-10-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/flyspell.el (flyspell-check-region-doublons):
 	Fix last fix.
@@ -254,7 +273,7 @@
 	event to unread-command-events as (t . EVENT) so it will be added
 	to this-command-keys by read-key-sequence.
 
-2006-10-22  martin rudalics  <rudalics@gmx.at>
+2006-10-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/flyspell.el (flyspell-word): Skip past all previous
 	whitespace when checking doublons.
