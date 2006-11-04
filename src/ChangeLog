@@ -1,3 +1,8 @@
+2006-11-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gtkutil.c (update_frame_tool_bar): If icon image is invalid and
+	wicon is null, insert an empty button.
+
 2006-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_raise_frame): Send _NET_ACTIVE_WINDOW when raising the
