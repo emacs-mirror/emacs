@@ -1,3 +1,8 @@
+2006-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (../src/$(BLD)/temacs.exe): Create as temporary
+	file if it doesn't already exist.
+
 2006-11-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (initialize_sockets): Don't initialize Winsock
