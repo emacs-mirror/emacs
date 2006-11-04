@@ -1,3 +1,10 @@
+2006-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-redecode-body): New optional argument RAW.
+	Don't encode body if RAW is non-nil, or if the old encoding is
+	identical to the new encoding, or if the body contains only
+	eight-bit-* characters.
+
 2006-11-04  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
 
 	* faces.el (faces-sample-overlay, describe-face): Revert last
