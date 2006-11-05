@@ -1,3 +1,7 @@
+2006-11-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* add-log.el (add-log-time-zone-rule): Mark as safe-local-variable.
+
 2006-11-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line-1): Kill emacs if the last frame is
