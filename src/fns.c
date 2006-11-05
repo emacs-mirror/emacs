@@ -3461,7 +3461,7 @@ DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
        doc: /* Returns t if FEATURE is present in this Emacs.
 
 Use this to conditionalize execution of lisp code based on the
-presence or absence of emacs or environment extensions.
+presence or absence of Emacs or environment extensions.
 Use `provide' to declare that a feature is available.  This function
 looks at the value of the variable `features'.  The optional argument
 SUBFEATURE can be used to check a specific subfeature of FEATURE.  */)
@@ -5803,7 +5803,7 @@ syms_of_fns ()
   Fset (Qyes_or_no_p_history, Qnil);
 
   DEFVAR_LISP ("features", &Vfeatures,
-    doc: /* A list of symbols which are the features of the executing emacs.
+    doc: /* A list of symbols which are the features of the executing Emacs.
 Used by `featurep' and `require', and altered by `provide'.  */);
   Vfeatures = Fcons (intern ("emacs"), Qnil);
   Qsubfeatures = intern ("subfeatures");
