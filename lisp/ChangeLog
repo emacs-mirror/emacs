@@ -1,3 +1,15 @@
+2006-11-05  Richard Stallman  <rms@gnu.org>
+
+	* startup.el (init-file-had-error): Add doc string.
+	(fancy-splash-text, fancy-splash-head, fancy-splash-tail): 
+	Use fixed-width font for keyboard key descriptions.
+
+	* cus-edit.el (custom-save-all): Error if saving in .emacs
+	and it had an error when loaded.
+
+	* dired-aux.el (dired-copy-file-recursive): Catch errors
+	from recursive copies in the loop, around the recursive call.
+
 2006-11-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* battery.el (battery-linux-proc-acpi): Search an ac_adapter in
