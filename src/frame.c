@@ -2598,7 +2598,7 @@ extern Lisp_Object Qbox;
 extern Lisp_Object Qtop;
 
 /* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
-   wanted positions of the WM window (not emacs window).
+   wanted positions of the WM window (not Emacs window).
    Return in *WIDTH and *HEIGHT the wanted width and height of Emacs
    window (FRAME_X_WINDOW).
  */
@@ -4107,7 +4107,7 @@ Setting this variable does not affect existing frames, only new ones.  */);
 	       doc: /* The initial frame-object, which represents Emacs's stdout.  */);
 
   DEFVAR_LISP ("emacs-iconified", &Vemacs_iconified,
-	       doc: /* Non-nil if all of emacs is iconified and frame updates are not needed.  */);
+	       doc: /* Non-nil if all of Emacs is iconified and frame updates are not needed.  */);
   Vemacs_iconified = Qnil;
 
   DEFVAR_LISP ("mouse-position-function", &Vmouse_position_function,
