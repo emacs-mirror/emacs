@@ -1,3 +1,8 @@
+2006-11-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line-1): Kill emacs if the last frame is
+	deleted while evaluating the command-line arguments.
+
 2006-11-05  Richard Stallman  <rms@gnu.org>
 
 	* startup.el (init-file-had-error): Add doc string.
