@@ -1,3 +1,11 @@
+2006-11-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dosfns.c (Finsert_startup_screen):
+	* fns.c (Ffeaturep, syms_of_fns):
+	* frame.c (syms_of_frame): Fix typos in docstrings.
+
+	* unexcw.c (unexec): Fix typo in output message.
+
 2006-11-04  Ralf Angeli  <angeli@caeruleus.net>
 
 	* w32fns.c (w32_createwindow): Remove code for handling -geometry
