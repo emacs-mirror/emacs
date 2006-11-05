@@ -1,3 +1,23 @@
+2006-11-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (malloc_cookie): Remove unused variable.
+	(region_list_head, region_list_tail, lca, nlc, infile_lc_highest_addr)
+	(text_seg_lowest_offset, mh, curr_header_offset, infd, outfd)
+	(emacs_zone, data_segment_old_fileoff, data_segment_scp)
+	(num_unexec_regions, unexec_regions): Make variables static.
+	(print_regions, find_emacs_zone_regions): Make static.
+	(unexec_region_info): New typedef.
+	(unexec_regions): Change type from vm_range_t[] to unexec_region_info[].
+	All uses changed.
+	(unexec_regions_recorder): Subtract size of trailing null pages from
+	filesize.  Show filesize.
+	(unexec_regions_merge): Don't merge if null pages of preceding region
+	is not too small.  Use long format in printf.
+	(copy_segment, copy_data_segment): Show filesize.
+	(copy_data_segment): Write filesize bytes of region data.  Adjust
+	filesize in segment command accordingly.
+	(dump_it): Use long format in printf.
+
 2006-11-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dosfns.c (Finsert_startup_screen):
