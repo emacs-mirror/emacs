@@ -1893,7 +1893,12 @@ With a prefix argument, any user input hides the splash screen."
                          (setq line 0)
                          (unless (< column 1)
                            (move-to-column (1- column)))
-                         (setq column 0))))))))
+                         (setq column 0))))))
+	  ;; In unusual circumstances, the execution of Lisp code due
+	  ;; to command-line options can cause the last visible frame
+	  ;; to be deleted.  In this case, kill emacs to avoid an
+	  ;; abort later.
+	  (unless (frame-live-p (selected-frame)) (kill-emacs nil))))
 
       ;; If 3 or more files visited, and not all visible,
       ;; show user what they all are.  But leave the last one current.
