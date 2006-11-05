@@ -24,7 +24,7 @@
 
 @comment %**end of header
 
-@set edition-number 3.04
+@set edition-number 3.05
 @set update-date 5 November 2006
 
 @ignore
@@ -17082,7 +17082,7 @@ The @code{:type} keyword tells Emacs the kind of data to which
 Customization buffer.
 
 The @code{:options} keyword specifies a suggested list of values for
-the variable.  Currently, you can use @code{:options} only for a hook.
+the variable.  Usually, @code{:options} applies to a hook.
 The list is only a suggestion; it is not exclusive; a person who sets
 the variable may set it to other values; the list shown following the
 @code{:options} keyword is intended to offer convenient choices to a
@@ -17092,6 +17092,7 @@ Finally, the @code{:group} keyword tells the Emacs Customization
 command in which group the variable is located.  This tells where to
 find it.
 
+The @code{defcustom} function recognizes more than a dozen keywords.
 For more information, see @ref{Customization, , Writing Customization
 Definitions, elisp, The GNU Emacs Lisp Reference Manual}.
 
@@ -17135,8 +17136,7 @@ It will look like this:
 @noindent
 (The @code{text-mode-hook-identify} function tells
 @code{toggle-text-mode-auto-fill} which buffers are in Text mode.
-It comes on automatically.
-)
+It comes on automatically.)
 
 The @code{custom-set-variables} function works somewhat differently
 than a @code{setq}.  While I have never learned the differences, I
@@ -17187,11 +17187,12 @@ expressions myself.
 
 @findex defsubst
 @findex defconst
-Incidentally, @code{defsubst} defines an inline function.  The syntax
-is just like that of @code{defun}.  @code{defconst} defines a symbol
-as a constant.  The intent is that neither programs nor users should
-ever change a value set by @code{defconst}.  (You can change it; the
-value set is a variable; but please do not.)
+Incidentally, to be more complete concerning defines:  @code{defsubst}
+defines an inline function.  The syntax is just like that of
+@code{defun}.  @code{defconst} defines a symbol as a constant.  The
+intent is that neither programs nor users should ever change a value
+set by @code{defconst}.  (You can change it; the value set is a
+variable; but please do not.)
 
 @node Beginning a .emacs File, Text and Auto-fill, defcustom, Emacs Initialization
 @section Beginning a @file{.emacs} File
@@ -17240,9 +17241,9 @@ adding to it ever since.
 @noindent
 This describes the usual conventions for comments in Emacs Lisp.
 Everything on a line that follows a semicolon is a comment.  Two,
-three, and four semicolons are used as section and subsection
-markers.  (@xref{Comments, ,, elisp, The GNU Emacs Lisp Reference
-Manual}, for more about comments.)
+three, and four semicolons are used as subsection and section markers.
+(@xref{Comments, ,, elisp, The GNU Emacs Lisp Reference Manual}, for
+more about comments.)
 
 @smallexample
 @group
@@ -17288,7 +17289,6 @@ Auto Fill mode.
 ; The next two lines put Emacs into Text mode
 ; and Auto Fill mode, and are for writers who
 ; want to start writing prose rather than code.
-
 (setq default-major-mode 'text-mode)
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
 @end group
@@ -17411,7 +17411,6 @@ reminders.
 ; To enter mail mode, type `C-x m'
 ; To enter RMAIL (for reading mail),
 ; type `M-x rmail'
-
 (setq mail-aliases t)
 @end group
 @end smallexample
@@ -17471,6 +17470,7 @@ See sections ``Tabs vs.@: Spaces'' and ``Local Variables in
 Files'' in @cite{The GNU Emacs Manual}.
 @end iftex
 
+@need 1700
 @node Keybindings, Keymaps, Indent Tabs Mode, Emacs Initialization
 @section Some Keybindings
 
@@ -17498,13 +17498,14 @@ This also shows how to set a key globally, for all modes.
 The command is @code{global-set-key}.  It is followed by the
 keybinding.  In a @file{.emacs} file, the keybinding is written as
 shown: @code{\C-c} stands for `control-c', which means `press the
-control key and the @kbd{c} key at the same time'.  The @code{w} means
-`press the @kbd{w} key'.  The keybinding is surrounded by double
-quotation marks.  In documentation, you would write this as @kbd{C-c
-w}.  (If you were binding a @key{META} key, such as @kbd{M-c}, rather
-than a @key{CTRL} key, you would write @code{\M-c}.  @xref{Init
-Rebinding, , Rebinding Keys in Your Init File, emacs, The GNU Emacs
-Manual}, for details.)
+control key and the @key{c} key at the same time'.  The @code{w} means
+`press the @key{w} key'.  The keybinding is surrounded by double
+quotation marks.  In documentation, you would write this as
+@w{@kbd{C-c w}}.  (If you were binding a @key{META} key, such as
+@kbd{M-c}, rather than a @key{CTRL} key, you would write
+@w{@code{\M-c}} in your @file{.emacs} file.  @xref{Init Rebinding, ,
+Rebinding Keys in Your Init File, emacs, The GNU Emacs Manual}, for
+details.)
 
 The command invoked by the keys is @code{compare-windows}.  Note that
 @code{compare-windows} is preceded by a single quote; otherwise, Emacs
@@ -17793,8 +17794,8 @@ Here is a typical example:
 @end smallexample
 
 @noindent
-(@code{html-helper-mode} is an alternative to @code{html-mode}, which
-is a standard part of the distribution).
+(@code{html-helper-mode} is an older alternative to @code{html-mode},
+which is a standard part of the distribution.)
 
 @noindent
 This expression autoloads the @code{html-helper-mode} function.  It
@@ -17866,18 +17867,18 @@ the following conditional:
 @smallexample
 @group
 (cond
- ((string-equal (number-to-string 21) (substring (emacs-version) 10 12))
+ (= 21 emacs-major-version)
   ;; evaluate version 21 code
   ( @dots{} ))
- ((string-equal (number-to-string 22) (substring (emacs-version) 10 12))
+ (= 22 emacs-major-version)
   ;; evaluate version 22 code
   ( @dots{} )))
 @end group
 @end smallexample
 
-For example, in contrast to version 20, version 21 blinks its cursor
-by default.  I hate such blinking, as well as some other features in
-version 21, so I placed the following in my @file{.emacs}
+For example, in contrast to version 20, more recent versions blink
+their cursors by default.  I hate such blinking, as well as other
+features, so I placed the following in my @file{.emacs}
 file@footnote{When I start instances of Emacs that do not load my
 @file{.emacs} file or any site file, I also turn off blinking:
 
@@ -17892,8 +17893,8 @@ emacs -Q - D
 
 @smallexample
 @group
-(if (string-equal "21" (substring (emacs-version) 10 12))
-    (progn
+(when (or (= 21 emacs-major-version)
+          (= 22 emacs-major-version))
       (blink-cursor-mode 0)
       ;; Insert newline when you press `C-n' (next-line)
       ;; at the end of the buffer
@@ -17919,19 +17920,10 @@ emacs -Q - D
       ;; (Use numeric argument to turn on)
       (tooltip-mode nil)
       ;; If tooltips turned on, make tips appear promptly
-      (setq tooltip-delay 0.1)  ; default is one second
-       ))
+      (setq tooltip-delay 0.1)  ; default is 0.7 second
+       )
 @end group
 @end smallexample
-
-@noindent
-(You will note that instead of typing @code{(number-to-string 21)}, I
-decided to save typing and wrote `21' as a string, @code{"21"}, rather
-than convert it from an integer to a string.  In this instance, this
-expression is better than the longer, but more general
-@code{(number-to-string 21)}.  However, if you do not know ahead of
-time what type of information will be returned, then the
-@code{number-to-string} function will be needed.)
 
 @node X11 Colors, Miscellaneous, Simple Extension, Emacs Initialization
 @section X11 Colors
@@ -18010,9 +18002,11 @@ in those cases, I often specify an image rather than a plain color.}:
 xsetroot -solid Navy -fg white &
 @end smallexample
 
+@need 1700
 @node Miscellaneous, Mode Line, X11 Colors, Emacs Initialization
 @section Miscellaneous Settings for a @file{.emacs} File
 
+@need 1250
 Here are a few miscellaneous settings:
 @sp 1
 
@@ -18096,13 +18090,15 @@ problem recently.)
 @noindent
 or start GNU Emacs with the command @code{emacs -nbc}.
 
-@item  Ignore case when using `grep'@*
-@samp{-n}@w{  }   Prefix each line of output with line number@*
+@need 1250
+@item When using `grep'@*
 @samp{-i}@w{  }   Ignore case distinctions@*
+@samp{-n}@w{  }   Prefix each line of output with line number@*
+@samp{-H}@w{  }   Print the filename for each match.@*
 @samp{-e}@w{  }   Protect patterns beginning with a hyphen character, @samp{-}
 
 @smallexample
-(setq grep-command "grep  -n -i -e ")
+(setq grep-command "grep -i -nH -e ")
 @end smallexample
 
 @ignore
@@ -18165,9 +18161,7 @@ For a boot script:
 @smallexample
 @group
 loadkeys /usr/share/keymaps/i386/qwerty/emacs2.kmap.gz
-
 @exdent or
-
 install-keymap emacs2
 @end group
 @end smallexample
@@ -18200,6 +18194,7 @@ xmodmap -e "keysym Alt_L = Meta_L Alt_L"
 @end group
 @end smallexample
 
+@need 1700
 @node Mode Line,  , Miscellaneous, Emacs Initialization
 @section A Modified Mode Line
 @vindex default-mode-line-format
@@ -18422,8 +18417,8 @@ argument of 4:
 @end smallexample
 
 @noindent
-In GNU Emacs version 21, you will create and enter a
-@file{*Backtrace*} buffer that says:
+In a recent GNU Emacs, you will create and enter a @file{*Backtrace*}
+buffer that says:
 
 @noindent
 @smallexample
@@ -18472,9 +18467,9 @@ version 21.
 However, suppose you are not quite certain what is going on?
 You can read the complete backtrace.
 
-In this case, you need to run GNU Emacs 22, which automatically starts
-the debugger that puts you in the @file{*Backtrace*} buffer; or else,
-you need to start the debugger manually as described below.
+In this case, you need to run a recent GNU Emacs, which automatically
+starts the debugger that puts you in the @file{*Backtrace*} buffer; or
+else, you need to start the debugger manually as described below.
 
 Read the @file{*Backtrace*} buffer from the bottom up; it tells you
 what Emacs did that led to the error.  Emacs made an interactive call
@@ -18514,8 +18509,8 @@ then run your test again.
 @section @code{debug-on-entry}
 @findex debug-on-entry
 
-GNU Emacs 22 starts the debugger automatically when your function has
-an error.
+A recent GNU Emacs starts the debugger automatically when your
+function has an error.
 
 @ignore
 GNU Emacs version 20 and before did not; it simply
@@ -18725,7 +18720,8 @@ Interactive mode.)
 @need 1500
 However, to prepare this function definition for Edebug, you must
 first @dfn{instrument} the code using a different command.  You can do
-this by positioning your cursor within the definition and typing
+this by positioning your cursor within or just after the definition
+and typing
 
 @smallexample
 M-x edebug-defun RET
@@ -22635,4 +22631,3 @@ airplane.
 @ignore
    arch-tag: da1a2154-531f-43a8-8e33-fc7faad10acf
 @end ignore
-
