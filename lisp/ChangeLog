@@ -1,3 +1,11 @@
+2006-11-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* battery.el (battery-linux-proc-acpi): Search an ac_adapter in
+	`/proc/acpi/ac_adapter/*'.  Ditto for the thermometers in
+	`/proc/acpi/thermal_zone/*'.
+	(battery-search-for-one-match-in-files): New.  Search a regexp in
+	the content of some files.
+
 2006-11-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (mouse-autoselect-window-now): Remove variable.
