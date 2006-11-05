@@ -1,3 +1,13 @@
+2006-11-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* info-look.el (info-lookup-guess-custom-symbol): New function
+	for retrieving symbol at point in custom buffers.
+	(top level) <info-lookup-maybe-add-help>: Add backquote and
+	comma to ignored characters in regexps of help specifications
+	for emacs-lisp-mode and lisp-interaction-mode.  This permits
+	looking up symbols in `...' and after a comma.  Add help
+	specifications for custom-mode and help-mode.
+
 2006-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-redecode-body): New optional argument RAW.
