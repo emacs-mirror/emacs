@@ -1,5 +1,12 @@
 2006-11-05  Martin Rudalics  <rudalics@gmx.at>
 
+	* window.el (mouse-autoselect-window-now): Remove variable.
+	(mouse-autoselect-window-state): New variable.
+	(mouse-autoselect-window-start, mouse-autoselect-window-cancel)
+	(mouse-autoselect-window-select, handle-select-window):
+	Rewritten to make mouse-autoselect-window-timer a one-shot timer.
+	Suspend delayed autoselection during menu or popup dialog.
+
 	* info-look.el (info-lookup-guess-custom-symbol): New function
 	for retrieving symbol at point in custom buffers.
 	(top level) <info-lookup-maybe-add-help>: Add backquote and

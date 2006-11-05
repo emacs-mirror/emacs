@@ -1,3 +1,18 @@
+2006-11-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* macmenu.c (Fmenu_or_popup_active_p): New function.
+	(syms_of_macmenu): Defsubr it.
+
+	* w32menu.c (Fmenu_or_popup_active_p): New function.
+	(syms_of_w32menu): Defsubr it.
+	(popup_activated_flag, popup_activated): Remove.
+
+	* xdisp.c (note_mouse_highlight) [HAVE_NTGUI]: Don't bother to
+	check popup_activated.
+
+	* xmenu.c (Fmenu_or_popup_active_p): New function.
+	(syms_of_xmenu): Defsubr it.
+
 2006-11-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* unexmacosx.c (malloc_cookie): Remove unused variable.
