@@ -1,5 +1,25 @@
 2006-11-05  Robert J. Chassell  <bob@rattlesnake.com>
 
+	* emacs-lisp-intro.texi: Yet more minor changes:
+	(defcustom): Said that `:options' is usually for a hook.  Remove
+	extraneous space in parenthetical remark concerning
+	`text-mode-hook-identify'.  At end, mention other defines, too.
+	(Beginning a .emacs File): Reverse words about comments so they
+	parallel numbers of listed semi-colons.
+	(Text and Auto-fill): Remove extraneous blank line in example.
+	(Mail Aliases): Remove extraneous blank line in example.
+	(Keybindings): Reformat as needed with `key' rather than `kbd'.
+	(Keybindings, Miscellaneous, Mode Line): For small book format, start
+	section name on top of new page.
+	(Simple Extension): Replace longer expression with
+	`emacs-major-version'.  Remove comment about `number-to-string'
+	function.
+	(Miscellaneous): Add filename option, `-H', to `grep' example
+	(debug, debug-on-entry):  Replace `GNU Emacs 22' with `a recent
+	GNU Emacs'.
+        (edebug): More properly state where to place point for 'M-x
+	edebug-defun'.
+
 	* emacs-lisp-intro.texi: More minor changes.
 	Center images for TeX output.
 	(kill-new function):  Remove indentation for sentence talking about
