@@ -1,3 +1,8 @@
+2006-11-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (read-feature): Don't complete features not loaded
+	from a file (which make `unload-feature' to fail).
+
 2006-11-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* add-log.el (add-log-time-zone-rule): Mark as safe-local-variable.
@@ -10,7 +15,7 @@
 2006-11-05  Richard Stallman  <rms@gnu.org>
 
 	* startup.el (init-file-had-error): Add doc string.
-	(fancy-splash-text, fancy-splash-head, fancy-splash-tail): 
+	(fancy-splash-text, fancy-splash-head, fancy-splash-tail):
 	Use fixed-width font for keyboard key descriptions.
 
 	* cus-edit.el (custom-save-all): Error if saving in .emacs
