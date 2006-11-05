@@ -1397,6 +1397,9 @@ If FRAME is nil or not given, use the selected frame.  */)
   GtkWidget *menubar;
   FRAME_PTR f;
 
+  /* gcc 2.95 doesn't accept the FRAME_PTR declaration after
+     BLOCK_INPUT.  */
+
   BLOCK_INPUT;
   f = check_x_frame (frame);
 
