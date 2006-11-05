@@ -4149,6 +4149,8 @@ if only the first line of the docstring is shown."))
 ;;;###autoload
 (defun custom-save-all ()
   "Save all customizations in `custom-file'."
+  (when (and (null custom-file) init-file-had-error)
+    (error "Cannot save customizations; init file was not fully loaded"))
   (let* ((filename (custom-file))
 	 (recentf-exclude (if recentf-mode
 			      (cons (concat "\\`"
