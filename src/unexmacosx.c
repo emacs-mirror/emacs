@@ -69,10 +69,10 @@ Boston, MA 02110-1301, USA.  */
    fact, the earliest one starts a few hundred bytes beyond the end of
    the last load command.  The linker option -headerpad controls the
    minimum size of this padding.  Its setting can be changed in
-   s/darwin.h.  A value of 0x300, e.g., leaves room for about 15
-   additional load commands for the newly created __DATA segments (at
-   56 bytes each).  Unexec fails if there is not enough room for these
-   new segments.
+   s/darwin.h.  A value of 0x690, e.g., leaves room for 30 additional
+   load commands for the newly created __DATA segments (at 56 bytes
+   each).  Unexec fails if there is not enough room for these new
+   segments.
 
    The __TEXT segment contains the sections __text, __cstring,
    __picsymbol_stub, and __const and the __DATA segment contains the
@@ -137,9 +137,6 @@ Boston, MA 02110-1301, USA.  */
    mapped to dynamically loaded libraries and will not be dumped.  */
 #define VM_DATA_TOP (20 * 1024 * 1024)
 
-/* Used by malloc_freezedry and malloc_jumpstart.  */
-int malloc_cookie;
-
 /* Type of an element on the list of regions to be dumped.  */
 struct region_t {
   vm_address_t address;
@@ -151,32 +148,32 @@ struct region_t {
 };
 
 /* Head and tail of the list of regions to be dumped.  */
-struct region_t *region_list_head = 0;
-struct region_t *region_list_tail = 0;
+static struct region_t *region_list_head = 0;
+static struct region_t *region_list_tail = 0;
 
 /* Pointer to array of load commands.  */
-struct load_command **lca;
+static struct load_command **lca;
 
 /* Number of load commands.  */
-int nlc;
+static int nlc;
 
 /* The highest VM address of segments loaded by the input file.
    Regions with addresses beyond this are assumed to be allocated
    dynamically and thus require dumping.  */
-vm_address_t infile_lc_highest_addr = 0;
+static vm_address_t infile_lc_highest_addr = 0;
 
 /* The lowest file offset used by the all sections in the __TEXT
    segments.  This leaves room at the beginning of the file to store
    the Mach-O header.  Check this value against header size to ensure
    the added load commands for the new __DATA segments did not
    overwrite any of the sections in the __TEXT segment.  */
-unsigned long text_seg_lowest_offset = 0x10000000;
+static unsigned long text_seg_lowest_offset = 0x10000000;
 
 /* Mach header.  */
-struct mach_header mh;
+static struct mach_header mh;
 
 /* Offset at which the next load command should be written.  */
-unsigned long curr_header_offset = sizeof (struct mach_header);
+static unsigned long curr_header_offset = sizeof (struct mach_header);
 
 /* Offset at which the next segment should be written.  */
 static unsigned long curr_file_offset = 0;
@@ -184,16 +181,16 @@ static unsigned long curr_file_offset = 0;
 static unsigned long pagesize;
 #define ROUNDUP_TO_PAGE_BOUNDARY(x)	(((x) + pagesize - 1) & ~(pagesize - 1))
 
-int infd, outfd;
+static int infd, outfd;
 
-int in_dumped_exec = 0;
+static int in_dumped_exec = 0;
 
-malloc_zone_t *emacs_zone;
+static malloc_zone_t *emacs_zone;
 
 /* file offset of input file's data segment */
-off_t data_segment_old_fileoff = 0;
+static off_t data_segment_old_fileoff = 0;
 
-struct segment_command *data_segment_scp;
+static struct segment_command *data_segment_scp;
 
 /* Read N bytes from infd into memory starting at address DEST.
    Return true if successful, false otherwise.  */
@@ -320,7 +317,7 @@ print_region_list ()
     print_region (r->address, r->size, r->protection, r->max_protection);
 }
 
-void
+static void
 print_regions ()
 {
   task_t target_task = mach_task_self ();
@@ -430,18 +427,36 @@ build_region_list ()
 
 #define MAX_UNEXEC_REGIONS 400
 
-int num_unexec_regions;
-vm_range_t unexec_regions[MAX_UNEXEC_REGIONS];
+static int num_unexec_regions;
+typedef struct {
+  vm_range_t range;
+  vm_size_t filesize;
+} unexec_region_info;
+static unexec_region_info unexec_regions[MAX_UNEXEC_REGIONS];
 
 static void
 unexec_regions_recorder (task_t task, void *rr, unsigned type,
 			 vm_range_t *ranges, unsigned num)
 {
+  vm_address_t p;
+  vm_size_t filesize;
+
   while (num && num_unexec_regions < MAX_UNEXEC_REGIONS)
     {
-      unexec_regions[num_unexec_regions++] = *ranges;
-      printf ("%#8lx (sz: %#8lx)\n",
-	      (long) (ranges->address), (long) (ranges->size));
+      /* Subtract the size of trailing null pages from filesize.  It
+	 can be smaller than vmsize in segment commands.  In such a
+	 case, trailing pages are initialized with zeros.  */
+      for (p = ranges->address + ranges->size; p > ranges->address;
+	   p -= sizeof (int))
+	if (*(((int *) p)-1))
+	  break;
+      filesize = ROUNDUP_TO_PAGE_BOUNDARY (p - ranges->address);
+      assert (filesize <= ranges->size);
+
+      unexec_regions[num_unexec_regions].filesize = filesize;
+      unexec_regions[num_unexec_regions++].range = *ranges;
+      printf ("%#10lx (sz: %#8lx/%#8lx)\n", (long) (ranges->address),
+	      (long) filesize, (long) (ranges->size));
       ranges++; num--;
     }
 }
@@ -453,7 +468,7 @@ unexec_reader (task_t task, vm_address_t address, vm_size_t size, void **ptr)
   return KERN_SUCCESS;
 }
 
-void
+static void
 find_emacs_zone_regions ()
 {
   num_unexec_regions = 0;
@@ -472,8 +487,8 @@ find_emacs_zone_regions ()
 static int
 unexec_regions_sort_compare (const void *a, const void *b)
 {
-  vm_address_t aa = ((vm_range_t *) a)->address;
-  vm_address_t bb = ((vm_range_t *) b)->address;
+  vm_address_t aa = ((unexec_region_info *) a)->range.address;
+  vm_address_t bb = ((unexec_region_info *) b)->range.address;
 
   if (aa < bb)
     return -1;
@@ -487,7 +502,7 @@ static void
 unexec_regions_merge ()
 {
   int i, n;
-  vm_range_t r;
+  unexec_region_info r;
 
   qsort (unexec_regions, num_unexec_regions, sizeof (unexec_regions[0]),
 	 &unexec_regions_sort_compare);
@@ -495,9 +510,11 @@ unexec_regions_merge ()
   r = unexec_regions[0];
   for (i = 1; i < num_unexec_regions; i++)
     {
-      if (r.address + r.size == unexec_regions[i].address)
+      if (r.range.address + r.range.size == unexec_regions[i].range.address
+	  && r.range.size - r.filesize < 2 * pagesize)
 	{
-	  r.size += unexec_regions[i].size;
+	  r.filesize = r.range.size + unexec_regions[i].filesize;
+	  r.range.size += unexec_regions[i].range.size;
 	}
       else
 	{
@@ -642,7 +659,7 @@ read_load_commands ()
   printf ("Highest address of load commands in input file: %#8x\n",
 	  infile_lc_highest_addr);
 
-  printf ("Lowest offset of all sections in __TEXT segment: %#8x\n",
+  printf ("Lowest offset of all sections in __TEXT segment: %#8lx\n",
 	  text_seg_lowest_offset);
 
   printf ("--- List of Load Commands in Input File ---\n");
@@ -675,9 +692,9 @@ copy_segment (struct load_command *lc)
       sectp++;
     }
 
-  printf ("Writing segment %-16.16s @ %#8lx (%#8lx @ %#8lx)\n",
-	  scp->segname, (long) (scp->fileoff), (long) (scp->vmsize),
-	  (long) (scp->vmaddr));
+  printf ("Writing segment %-16.16s @ %#8lx (%#8lx/%#8lx @ %#10lx)\n",
+	  scp->segname, (long) (scp->fileoff), (long) (scp->filesize),
+	  (long) (scp->vmsize), (long) (scp->vmaddr));
 
   if (!unexec_copy (scp->fileoff, old_fileoff, scp->filesize))
     unexec_error ("cannot copy segment from input to output file");
@@ -707,11 +724,18 @@ copy_data_segment (struct load_command *lc)
   struct segment_command *scp = (struct segment_command *) lc;
   struct section *sectp;
   int j;
-  unsigned long header_offset, file_offset, old_file_offset;
+  unsigned long header_offset, old_file_offset;
 
-  printf ("Writing segment %-16.16s @ %#8lx (%#8lx @ %#8lx)\n",
-	  scp->segname, curr_file_offset, (long)(scp->vmsize),
-	  (long) (scp->vmaddr));
+  /* The new filesize of the segment is set to its vmsize because data
+     blocks for segments must start at region boundaries.  Note that
+     this may leave unused locations at the end of the segment data
+     block because the total of the sizes of all sections in the
+     segment is generally smaller than vmsize.  */
+  scp->filesize = scp->vmsize;
+
+  printf ("Writing segment %-16.16s @ %#8lx (%#8lx/%#8lx @ %#10lx)\n",
+	  scp->segname, curr_file_offset, (long)(scp->filesize),
+	  (long)(scp->vmsize), (long) (scp->vmaddr));
 
   /* Offsets in the output file for writing the next section structure
      and segment data block, respectively.  */
@@ -791,16 +815,11 @@ copy_data_segment (struct load_command *lc)
       sectp++;
     }
 
-  /* The new filesize of the segment is set to its vmsize because data
-     blocks for segments must start at region boundaries.  Note that
-     this may leave unused locations at the end of the segment data
-     block because the total of the sizes of all sections in the
-     segment is generally smaller than vmsize.  */
-  scp->filesize = scp->vmsize;
+  curr_file_offset += ROUNDUP_TO_PAGE_BOUNDARY (scp->filesize);
+
   if (!unexec_write (curr_header_offset, scp, sizeof (struct segment_command)))
     unexec_error ("cannot write header of __DATA segment");
   curr_header_offset += lc->cmdsize;
-  curr_file_offset += ROUNDUP_TO_PAGE_BOUNDARY (scp->filesize);
 
   /* Create new __DATA segment load commands for regions on the region
      list that do not corresponding to any segment load commands in
@@ -813,20 +832,20 @@ copy_data_segment (struct load_command *lc)
       sc.cmd = LC_SEGMENT;
       sc.cmdsize = sizeof (struct segment_command);
       strncpy (sc.segname, SEG_DATA, 16);
-      sc.vmaddr = unexec_regions[j].address;
-      sc.vmsize = unexec_regions[j].size;
+      sc.vmaddr = unexec_regions[j].range.address;
+      sc.vmsize = unexec_regions[j].range.size;
       sc.fileoff = curr_file_offset;
-      sc.filesize = unexec_regions[j].size;
+      sc.filesize = unexec_regions[j].filesize;
       sc.maxprot = VM_PROT_READ | VM_PROT_WRITE;
       sc.initprot = VM_PROT_READ | VM_PROT_WRITE;
       sc.nsects = 0;
       sc.flags = 0;
 
-      printf ("Writing segment %-16.16s @ %#8lx (%#8lx @ %#8lx)\n",
-	      sc.segname, (long) (sc.fileoff), (long) (sc.vmsize),
-	      (long) (sc.vmaddr));
+      printf ("Writing segment %-16.16s @ %#8lx (%#8lx/%#8lx @ %#10lx)\n",
+	      sc.segname, (long) (sc.fileoff), (long) (sc.filesize),
+	      (long) (sc.vmsize), (long) (sc.vmaddr));
 
-      if (!unexec_write (sc.fileoff, (void *) sc.vmaddr, sc.vmsize))
+      if (!unexec_write (sc.fileoff, (void *) sc.vmaddr, sc.filesize))
 	unexec_error ("cannot write new __DATA segment");
       curr_file_offset += ROUNDUP_TO_PAGE_BOUNDARY (sc.filesize);
 
@@ -1036,7 +1055,7 @@ dump_it ()
   if (curr_header_offset > text_seg_lowest_offset)
     unexec_error ("not enough room for load commands for new __DATA segments");
 
-  printf ("%d unused bytes follow Mach-O header\n",
+  printf ("%ld unused bytes follow Mach-O header\n",
 	  text_seg_lowest_offset - curr_header_offset);
 
   mh.sizeofcmds = curr_header_offset - sizeof (struct mach_header);
@@ -1113,8 +1132,8 @@ ptr_in_unexec_regions (void *ptr)
   int i;
 
   for (i = 0; i < num_unexec_regions; i++)
-    if ((vm_address_t) ptr - unexec_regions[i].address
-	< unexec_regions[i].size)
+    if ((vm_address_t) ptr - unexec_regions[i].range.address
+	< unexec_regions[i].range.size)
       return 1;
 
   return 0;
