@@ -1493,6 +1493,15 @@ popup_activated ()
   return popup_activated_flag;
 }
 
+/* The following is used by delayed window autoselection.  */
+
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* Return t if a menu or popup dialog is active.  */)
+     ()
+{
+  return (popup_activated ()) ? Qt : Qnil;
+}
+
 /* This callback is invoked when the user selects a menubar cascade
    pushbutton, but before the pulldown menu is posted.  */
 
@@ -3775,6 +3784,7 @@ syms_of_xmenu ()
 #endif
 
   defsubr (&Sx_popup_menu);
+  defsubr (&Smenu_or_popup_active_p);
 
 #if defined (USE_GTK) || defined (USE_X_TOOLKIT)
   defsubr (&Smenu_bar_open);
