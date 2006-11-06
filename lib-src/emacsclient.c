@@ -115,7 +115,7 @@ char *display = NULL;
 
 /* If non-NULL, the name of an editor to fallback to if the server
    is not running.  --alternate-editor.   */
-const char * alternate_editor = NULL;
+const char *alternate_editor = NULL;
 
 /* If non-NULL, the filename of the UNIX socket.  */
 char *socket_name = NULL;
@@ -132,7 +132,9 @@ struct option longopts[] =
   { "help",	no_argument,	   NULL, 'H' },
   { "version",	no_argument,	   NULL, 'V' },
   { "alternate-editor", required_argument, NULL, 'a' },
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
   { "socket-name",	required_argument, NULL, 's' },
+#endif
   { "server-file",	required_argument, NULL, 'f' },
   { "display",	required_argument, NULL, 'd' },
   { 0, 0, 0, 0 }
@@ -147,12 +149,16 @@ decode_options (argc, argv)
      char **argv;
 {
   alternate_editor = getenv ("ALTERNATE_EDITOR");
-  server_file = getenv ("EMACS_SERVER_FILE");
 
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "VHnea:s:f:d:", longopts, 0);
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+			     "VHnea:s:f:d:",
+#else
+                             "VHnea:f:d:",
+#endif
+                             longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -168,9 +174,11 @@ decode_options (argc, argv)
 	  alternate_editor = optarg;
 	  break;
 
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
 	case 's':
 	  socket_name = optarg;
 	  break;
+#endif
 
 	case 'f':
 	  server_file = optarg;
@@ -252,16 +260,6 @@ fail (argc, argv)
       fprintf (stderr, "%s: error executing alternate editor \"%s\"\n",
                progname, alternate_editor);
     }
-  else
-    {
-      fprintf (stderr, "%s: No socket or alternate editor.  Please use:\n\n"
-#if !defined (NO_SOCKETS_IN_FILE_SYSTEM)
-"\t--socket-name\n"
-#endif
-"\t--server-file      (or environment variable EMACS_SERVER_FILE)\n\
-\t--alternate-editor (or environment variable ALTERNATE_EDITOR)\n",
-               progname);
-    }
   exit (EXIT_FAILURE);
 }
 
@@ -306,7 +304,8 @@ int sblen = 0;	/* Fill pointer for the send buffer.  */
    - the data ends in "\n", or
    - the buffer is full (but this shouldn't happen)
    Otherwise, we just accumulate it.  */
-void send_to_emacs (s, data)
+void
+send_to_emacs (s, data)
      HSOCKET s;
      char *data;
 {
@@ -381,21 +380,46 @@ quote_file_name (s, name)
   free (copy);
 }
 
+int
+file_name_absolute_p (filename)
+     const unsigned char *filename;
+{
+  /* Sanity check, it shouldn't happen.  */
+  if (! filename) return FALSE;
+
+  /* /xxx is always an absolute path.  */
+  if (filename[0] == '/') return TRUE;
+
+  /* Empty filenames (which shouldn't happen) are relative.  */
+  if (filename[0] == '\0') return FALSE;
+
+#ifdef WINDOWSNT
+  /* X:\xxx is always absolute; X:xxx is an error and will fail.  */
+  if (islower (tolower (filename[0]))
+      && filename[1] == ':' && filename[2] == '\\')
+    return TRUE;
+
+  /* Both \xxx and \\xxx\yyy are absolute.  */
+  if (filename[0] == '\\') return TRUE;
+#endif
+
+  return FALSE;
+}
+
 #ifdef WINDOWSNT
 /* Wrapper to make WSACleanup a cdecl, as required by atexit().	 */
-void __cdecl close_winsock ()
+void
+__cdecl close_winsock ()
 {
   WSACleanup ();
 }
 
-void initialize_sockets ()
+/* Initialize the WinSock2 library.  */
+void
+initialize_sockets ()
 {
-  static done = FALSE;
   WSADATA wsaData;
 
-  if (done) return;
-
-  /* Initialize the WinSock2 library.  */
   if (WSAStartup (MAKEWORD (2, 0), &wsaData))
     {
       fprintf (stderr, "%s: error initializing WinSock2", progname);
@@ -403,7 +427,6 @@ void initialize_sockets ()
     }
 
   atexit (close_winsock);
-  done = TRUE;
 }
 #endif /* WINDOWSNT */
 
@@ -411,15 +434,18 @@ void initialize_sockets ()
  * Read the information needed to set up a TCP comm channel with
  * the Emacs server: host, port and authentication string.
 */
-int get_server_config (server, authentication)
+int
+get_server_config (server, authentication)
      struct sockaddr_in *server;
      char *authentication;
 {
-  FILE *config;
   char dotted[32];
   char *port;
+  FILE *config = NULL;
 
-  if (! (config = fopen (server_file, "rb")))
+  if (file_name_absolute_p (server_file))
+    config = fopen (server_file, "rb");
+  else
     {
       char *home = getenv ("HOME");
 #ifdef WINDOWSNT
@@ -471,10 +497,12 @@ set_tcp_socket ()
   struct linger l_arg = {1, 1};
   char auth_string[AUTH_KEY_LENGTH + 1];
 
-  INITIALIZE ();
-
   if (! get_server_config (&server, auth_string))
     return INVALID_SOCKET;
+
+  if (server.sin_addr.s_addr != inet_addr ("127.0.0.1"))
+    fprintf (stderr, "%s: connected to remote socket at %s\n",
+             progname, inet_ntoa (server.sin_addr));
 
   /*
    * Open up an AF_INET socket
@@ -645,7 +673,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
         else
           fprintf (stderr, "%s: can't stat %s: %s\n",
 		   progname, server.sun_path, strerror (saved_errno));
-	return INVALID_SOCKET;
+        return INVALID_SOCKET;
       }
   }
 
@@ -664,17 +692,61 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 HSOCKET
 set_socket ()
 {
-  if (server_file)
-    return set_tcp_socket ();
-  else
+  HSOCKET s;
+
+  INITIALIZE ();
+
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
-    return set_local_socket ();
-#else
+  /* Explicit --socket-name argument.  */
+  if (socket_name)
     {
-      server_file = "server";
-      return set_tcp_socket ();
+      s = set_local_socket ();
+      if ((s != INVALID_SOCKET) || alternate_editor)
+        return s;
+
+      fprintf (stderr, "%s: error accessing socket \"%s\"",
+               progname, socket_name);
+      exit (EXIT_FAILURE);
     }
 #endif
+
+  /* Explicit --server-file arg or EMACS_SERVER_FILE variable.  */
+  if (!server_file)
+    server_file = getenv ("EMACS_SERVER_FILE");
+
+  if (server_file)
+    {
+      s = set_tcp_socket ();
+      if ((s != INVALID_SOCKET) || alternate_editor)
+        return s;
+
+      fprintf (stderr, "%s: error accessing server file \"%s\"",
+               progname, server_file);
+      exit (EXIT_FAILURE);
+    }
+
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+  /* Implicit local socket.  */
+  s = set_local_socket ();
+  if (s != INVALID_SOCKET)
+    return s;
+#endif
+
+  /* Implicit server file.  */
+  server_file = "server";
+  s = set_tcp_socket ();
+  if ((s != INVALID_SOCKET) || alternate_editor)
+    return s;
+
+  /* No implicit or explicit socket, and no alternate editor.  */
+  fprintf (stderr, "%s: No socket or alternate editor.  Please use:\n\n"
+#ifndef NO_SOCKETS_IN_FILE_SYSTEM
+"\t--socket-name\n"
+#endif
+"\t--server-file      (or environment variable EMACS_SERVER_FILE)\n\
+\t--alternate-editor (or environment variable ALTERNATE_EDITOR)\n",
+           progname);
+  exit (EXIT_FAILURE);
 }
 
 int
@@ -748,16 +820,7 @@ main (argc, argv)
 		  SEND_STRING ("/");
 		}
 	    }
-#ifndef WINDOWSNT
-	  else if (*argv[i] != '/')
-#else
-	  else if ((*argv[i] != '/')
-		   /* Absolute paths can also start with backslash
-		      or drive letters.	 */
-		   && (*argv[i] != '\\')
-		   && (!islower (tolower (*argv[i]))
-		       || (argv[i][1] != ':')))
-#endif
+          else if (! file_name_absolute_p (argv[i]))
 	    {
 	      SEND_QUOTED (cwd);
 	      SEND_STRING ("/");
