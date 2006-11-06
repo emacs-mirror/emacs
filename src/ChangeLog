@@ -1,3 +1,13 @@
+2006-11-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* macmenu.c (Fmenu_or_popup_active_p): Define outside HAVE_MENUS.
+
+	* w32menu.c (Fmenu_or_popup_active_p): Define outside HAVE_MENUS.
+	Return nil if building without menus.
+
+	* xmenu.c (Fmenu_or_popup_active_p): Define outside HAVE_MENUS.
+	Return nil if building without menus.
+
 2006-11-05  Mark Davies  <mark@mcs.vuw.ac.nz>  (tiny change)
 
 	* s/netbsd.h (POSIX_SIGNALS): Defined.
