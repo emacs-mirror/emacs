@@ -466,6 +466,37 @@
   :version "22.1"
   :prefix "mac-")
 
+;;; Custom mode keymaps
+
+(defvar custom-mode-map
+  ;; This keymap should be dense, but a dense keymap would prevent inheriting
+  ;; "\r" bindings from the parent map.
+  ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
+  (let ((map (make-keymap)))
+    (set-keymap-parent map widget-keymap)
+    (define-key map [remap self-insert-command] 'Custom-no-edit)
+    (define-key map "\^m" 'Custom-newline)
+    (define-key map " " 'scroll-up)
+    (define-key map "\177" 'scroll-down)
+    (define-key map "\C-c\C-c" 'Custom-set)
+    (define-key map "\C-x\C-s" 'Custom-save)
+    (define-key map "q" 'Custom-buffer-done)
+    (define-key map "u" 'Custom-goto-parent)
+    (define-key map "n" 'widget-forward)
+    (define-key map "p" 'widget-backward)
+    map)
+  "Keymap for `custom-mode'.")
+
+(defvar custom-mode-link-map
+  (let ((map (make-keymap)))
+    (set-keymap-parent map custom-mode-map)
+    (define-key map [down-mouse-2] nil)
+    (define-key map [down-mouse-1] 'mouse-drag-region)
+    (define-key map [mouse-2] 'widget-move-and-invoke)
+    map)
+  "Local keymap for links in `custom-mode'.")
+
+
 ;;; Utilities.
 
 (defun custom-split-regexp-maybe (regexp)
@@ -1781,6 +1812,8 @@ item in another window.\n\n"))
 (define-widget 'custom-manual 'info-link
   "Link to the manual entry for this customization option."
   :help-echo "Read the manual entry for this option."
+  :keymap custom-mode-link-map
+  :follow-link 'mouse-face
   :button-face 'custom-link
   :mouse-face 'highlight
   :pressed-face 'highlight
@@ -3673,6 +3706,8 @@ restoring it to the state of a face that has never been customized."
   :mouse-face 'highlight
   :pressed-face 'highlight
   :help-echo "Create customization buffer for this group."
+  :keymap custom-mode-link-map
+  :follow-link 'mouse-face
   :action 'custom-group-link-action)
 
 (defun custom-group-link-action (widget &rest ignore)
@@ -4450,25 +4485,6 @@ The format is suitable for use with `easy-menu-define'."
 		(if (consp menu) (cdr menu) menu)))))
 
 ;;; The Custom Mode.
-
-(defvar custom-mode-map
-  ;; This keymap should be dense, but a dense keymap would prevent inheriting
-  ;; "\r" bindings from the parent map.
-  ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
-  (let ((map (make-keymap)))
-    (set-keymap-parent map widget-keymap)
-    (define-key map [remap self-insert-command] 'Custom-no-edit)
-    (define-key map "\^m" 'Custom-newline)
-    (define-key map " " 'scroll-up)
-    (define-key map "\177" 'scroll-down)
-    (define-key map "\C-c\C-c" 'Custom-set)
-    (define-key map "\C-x\C-s" 'Custom-save)
-    (define-key map "q" 'Custom-buffer-done)
-    (define-key map "u" 'Custom-goto-parent)
-    (define-key map "n" 'widget-forward)
-    (define-key map "p" 'widget-backward)
-    map)
-  "Keymap for `custom-mode'.")
 
 (defun Custom-no-edit (pos &optional event)
   "Invoke button at POS, or refuse to allow editing of Custom buffer."
