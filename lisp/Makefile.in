@@ -74,6 +74,8 @@ setwins=subdirs=`(cd $$wd; find . -type d -print)`; \
 	   esac; \
         done
 
+# Find all subdirectories except `obsolete'.
+
 setwins_almost=subdirs=`(cd $$wd; find . -type d -print)`; \
 	for file in $$subdirs; do \
 	   case $$file in */Old | */RCS | */CVS | */CVS/* | */.* | */.*/* | */=* | */obsolete | */term ) ;; \
@@ -106,7 +108,7 @@ $(lisp)/loaddefs.el:
 	echo ";; End:" >> $@
 	echo ";;; loaddefs.el ends here" >> $@
 autoloads: $(lisp)/loaddefs.el doit
-	wd=$(lisp); $(setwins); \
+	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(EMACS) $(EMACSOPT) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
