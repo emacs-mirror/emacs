@@ -66,7 +66,7 @@
 ;;
 ;; The outline menubar additions provide quick reference to many of
 ;; the features, and see the docstring of the variable `allout-init'
-;; for instructions on priming your emacs session for automatic
+;; for instructions on priming your Emacs session for automatic
 ;; activation of allout-mode.
 ;;
 ;; See the docstring of the variables `allout-layout' and
@@ -1385,7 +1385,7 @@ are random binary characters to avoid exposing greater susceptibility to
 search attacks.
 
 The verifier string is retained as an Emacs file variable, as well as in
-the emacs buffer state, if file variable adjustments are enabled.  See
+the Emacs buffer state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-verifier-string)
 ;;;###autoload
@@ -1397,7 +1397,7 @@ the emacs buffer state, if file variable adjustments are enabled.  See
 See the description of `allout-passphrase-hint-handling' for details about how
 the reminder is deployed.
 
-The hint is retained as an Emacs file variable, as well as in the emacs buffer
+The hint is retained as an Emacs file variable, as well as in the Emacs buffer
 state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
 (make-variable-buffer-local 'allout-passphrase-hint-string)
@@ -5717,7 +5717,7 @@ If allout customization var `allout-passphrase-verifier-handling' is
 non-nil, an entry for `allout-passphrase-verifier-string' and its value is
 added to an Emacs 'local variables' section at the end of the file, which
 is created if necessary.  That setting is for retention of the passphrase
-verifier across emacs sessions.
+verifier across Emacs sessions.
 
 Similarly, `allout-passphrase-hint-string' stores a user-provided reminder
 about their passphrase, and `allout-passphrase-hint-handling' specifies
@@ -6439,7 +6439,7 @@ Returns list `(beginning-point prefix-string suffix-string)'."
   )
 ;;;_   > allout-adjust-file-variable (varname value)
 (defun allout-adjust-file-variable (varname value)
-  "Adjust the setting of an emacs file variable named VARNAME to VALUE.
+  "Adjust the setting of an Emacs file variable named VARNAME to VALUE.
 
 This activity is inhibited if either `enable-local-variables'
 `allout-enable-file-variable-adjustment' are nil.
@@ -6450,7 +6450,7 @@ variables, itself, is created if not already present.  When created, the
 section lines \(including the section line) exist as second-level topics in
 a top-level topic at the end of the file.
 
-enable-local-variables must be true for any of this to happen."
+`enable-local-variables' must be true for any of this to happen."
   (if (not (and enable-local-variables
                 allout-enable-file-variable-adjustment))
       nil
