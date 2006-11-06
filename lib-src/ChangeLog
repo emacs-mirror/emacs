@@ -1,3 +1,23 @@
+2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (longopts) [! NO_SOCKETS_IN_FILE_SYSTEM]: Don't show
+	option --socket-name.
+	(decode_options): Don't get EMACS_SERVER_FILE here, it could override
+	command line options.
+	(decode_options) [! NO_SOCKETS_IN_FILE_SYSTEM]: Don't parse "-s" option.
+	(fail): Don't check for missing arguments, it is now done in set_socket.
+	(file_name_absolute_p): New function (loosely based on the one in
+	fileio.c).
+	(initialize_sockets): Don't check for duplicate loading of Winsock.
+	(get_server_config): Only try relative paths in the default
+	directory locations.
+	(set_tcp_socket): Don't call INITIALIZE().  Warn when connecting to
+	a remote server.
+	(set_socket): Call INITIALIZE().  Search explicit command-line
+	arguments, then environment variable EMACS_SERVER_FILE, then implicit
+	socket paths, before trying the alternate editor.
+	(main): Use file_name_absolute_p.
+
 2006-11-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (../src/$(BLD)/temacs.exe): Create as temporary
