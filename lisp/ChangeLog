@@ -1,3 +1,8 @@
+2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/ja-dic-cnv.el (skkdic-convert):
+	* cus-edit.el (hook): Fix typo in docstring.
+
 2006-11-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-mode-map): Move defvar above code using it.
