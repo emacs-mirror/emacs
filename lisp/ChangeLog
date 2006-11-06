@@ -1,3 +1,10 @@
+2006-11-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* printing.el (pr-alist-custom-set, pr-ps-utility-custom-set)
+	(pr-ps-name-custom-set, pr-txt-name-custom-set): Don't update the
+	Printing menu if it's not initialized.
+	(pr-menu-bind): Act on menu-bar-file-menu directly.
+
 2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help.el (view-emacs-news): Fix typo in error message.
