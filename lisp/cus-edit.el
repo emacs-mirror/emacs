@@ -3664,7 +3664,7 @@ restoring it to the state of a face that has never been customized."
 ;;; The `hook' Widget.
 
 (define-widget 'hook 'list
-  "An emacs lisp hook."
+  "An Emacs Lisp hook."
   :value-to-internal (lambda (widget value)
 		       (if (and value (symbolp value))
 			   (list value)
@@ -4304,7 +4304,7 @@ This function does not save the buffer."
 			    (eq (get symbol 'force-value)
 				'rogue))))
 	      (comment (get symbol 'saved-variable-comment)))
-	  ;; Check REQUESTS for validity. 
+	  ;; Check REQUESTS for validity.
 	  (dolist (request requests)
 	    (when (and (symbolp request) (not (featurep request)))
 	      (message "Unknown requested feature: %s" request)
