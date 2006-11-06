@@ -990,17 +990,6 @@ x_activate_menubar (f)
   complete_deferred_msg (FRAME_W32_WINDOW (f), WM_INITMENU, 0);
 }
 
-/* The following is used by delayed window autoselection.  */
-
-DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
-       doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
-     ()
-{
-  FRAME_PTR f;
-  f = SELECTED_FRAME ();
-  return (f->output_data.w32->menubar_active > 0) ? Qt : Qnil;
-}
-
 /* This callback is called from the menu bar pulldown menu
    when the user makes a selection.
    Figure out what the user chose
@@ -2535,6 +2524,21 @@ w32_free_menu_strings (hwnd)
 }
 
 #endif /* HAVE_MENUS */
+
+/* The following is used by delayed window autoselection.  */
+
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
+     ()
+{
+#ifdef HAVE_MENUS
+  FRAME_PTR f;
+  f = SELECTED_FRAME ();
+  return (f->output_data.w32->menubar_active > 0) ? Qt : Qnil;
+#else
+  return Qnil;
+#endif /* HAVE_MENUS */
+}
 
 void syms_of_w32menu ()
 {

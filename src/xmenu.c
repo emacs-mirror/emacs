@@ -1414,7 +1414,7 @@ If FRAME is nil or not given, use the selected frame.  */)
 
       gtk_menu_shell_select_item (GTK_MENU_SHELL (menubar),
                                   GTK_WIDGET (children->data));
-      
+
       popup_activated_flag = 1;
       g_list_free (children);
     }
@@ -1494,15 +1494,6 @@ int
 popup_activated ()
 {
   return popup_activated_flag;
-}
-
-/* The following is used by delayed window autoselection.  */
-
-DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
-       doc: /* Return t if a menu or popup dialog is active.  */)
-     ()
-{
-  return (popup_activated ()) ? Qt : Qnil;
 }
 
 /* This callback is invoked when the user selects a menubar cascade
@@ -3770,6 +3761,20 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #endif /* not USE_X_TOOLKIT */
 
 #endif /* HAVE_MENUS */
+
+
+/* The following is used by delayed window autoselection.  */
+
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* Return t if a menu or popup dialog is active.  */)
+     ()
+{
+#ifdef HAVE_MENUS
+  return (popup_activated ()) ? Qt : Qnil;
+#else
+  return Qnil;
+#endif /* HAVE_MENUS */
+}
 
 void
 syms_of_xmenu ()
