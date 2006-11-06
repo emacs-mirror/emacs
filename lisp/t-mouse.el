@@ -38,7 +38,7 @@
 ;; now position sensitive.
 
 (defvar t-mouse-process nil
-  "Embeds the process which passes mouse events to emacs.
+  "Embeds the process which passes mouse events to Emacs.
 It is used by the program t-mouse.")
 
 (defvar t-mouse-filter-accumulator ""
@@ -123,7 +123,7 @@ For example, \"2\" for /dev/tty2."
   (if (null l1) l2
     (append (mapcar (function (lambda (x) (append (nth 0 l1) x))) l2)
             (t-mouse-cartesian (cdr l1) l2))))
-      
+
 (let* ((modifier-sets (t-mouse-powerset '(control meta shift)))
        (typed-sets (t-mouse-cartesian '((down) (drag))
                                       '((mouse-1) (mouse-2) (mouse-3))))
@@ -178,9 +178,9 @@ Also trim the accumulator by all the data used to build the event."
                 ((event-name-string (symbol-name event-type))
                  end-of-root-event-name
                  new-event-name-string)
- 
+
               (if (string-match "-\\(21\\|\\12\\)$" event-name-string)
- 
+
                   ;;Transform the name to what it should have been.
                   (progn
                     (setq end-of-root-event-name (match-beginning 0))
@@ -188,12 +188,12 @@ Also trim the accumulator by all the data used to build the event."
                           (concat (substring
                                    event-name-string 0
                                    end-of-root-event-name) "-3"))
- 	      
+
                     ;;Change the event to the symbol that corresponds to the
                     ;;name we made. The proper symbol already exists.
                     (setq event-type
                           (intern new-event-name-string))))))
- 	
+
         ;;store current position for mouse-position
 
         (setq t-mouse-current-xy (nth 0 current-xy-avec-time))
@@ -269,7 +269,7 @@ The (secret) scrollbar interface is not implemented yet."
   "Toggle t-mouse mode.
 With prefix arg, turn t-mouse mode on iff arg is positive.
 
-Turn it on to use emacs mouse commands, and off to use t-mouse commands."
+Turn it on to use Emacs mouse commands, and off to use t-mouse commands."
   nil " Mouse" nil :global t
   (if t-mouse-mode
       ;; Turn it on
