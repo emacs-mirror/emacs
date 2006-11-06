@@ -8,12 +8,12 @@
 @chapter Keymaps
 @cindex keymap
 
-  The bindings between input events and commands are recorded in data
-structures called @dfn{keymaps}.  Each binding in a keymap associates
-(or @dfn{binds}) an individual event type, either to another keymap or to
-a command.  When an event type is bound to a keymap, that keymap is used
-to look up the next input event; this continues until a command is
-found.  The whole process is called @dfn{key lookup}.
+  The command bindings of input events are recorded in data structures
+called @dfn{keymaps}.  Each entry in a keymap associates (or
+@dfn{binds}) an individual event type, either to another keymap or to
+a command.  When an event type is bound to a keymap, that keymap is
+used to look up the next input event; this continues until a command
+is found.  The whole process is called @dfn{key lookup}.
 
 @menu
 * Key Sequences::        	Key sequences as Lisp objects.
@@ -32,7 +32,7 @@ found.  The whole process is called @dfn{key lookup}.
 * Key Lookup::                  Finding a key's binding in one keymap.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
-* Remapping Commands::          Bindings that translate one command to another.
+* Remapping Commands::          A keymap can translate one command to another.
 * Translation Keymaps::         Keymaps for translating sequences of events.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
@@ -382,19 +382,21 @@ definition is a keymap; the same symbol appears in the new copy.
 @dfn{parent keymap}.  Such a keymap looks like this:
 
 @example
-(keymap @var{bindings}@dots{} . @var{parent-keymap})
+(keymap @var{elements}@dots{} . @var{parent-keymap})
 @end example
 
 @noindent
 The effect is that this keymap inherits all the bindings of
 @var{parent-keymap}, whatever they may be at the time a key is looked up,
-but can add to them or override them with @var{bindings}.
+but can add to them or override them with @var{elements}.
 
-If you change the bindings in @var{parent-keymap} using @code{define-key}
-or other key-binding functions, these changes are visible in the
-inheriting keymap unless shadowed by @var{bindings}.  The converse is
-not true: if you use @code{define-key} to change the inheriting keymap,
-that affects @var{bindings}, but has no effect on @var{parent-keymap}.
+If you change the bindings in @var{parent-keymap} using
+@code{define-key} or other key-binding functions, these changed
+bindings are visible in the inheriting keymap, unless shadowed by the
+bindings made by @var{elements}.  The converse is not true: if you use
+@code{define-key} to change bindings in the inheriting keymap, these
+changes are recorded in @var{elements}, but have no effect on
+@var{parent-keymap}.
 
 The proper way to construct a keymap with a parent is to use
 @code{set-keymap-parent}; if you have code that directly constructs a
