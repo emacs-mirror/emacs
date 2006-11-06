@@ -133,7 +133,7 @@ Repent before ring 31 moves."
 ;;;###autoload
 (defun hanoi-unix-64 ()
   "Like hanoi-unix, but pretend to have a 64-bit clock.
-This is, necessarily (as of emacs 20.3), a crock.  When the
+This is, necessarily (as of Emacs 20.3), a crock.  When the
 current-time interface is made s2G-compliant, hanoi.el will need
 to be updated."
   (interactive)
@@ -152,7 +152,7 @@ BITS must be of length nrings.  Start at START-TIME."
   (buffer-disable-undo (current-buffer))
   (unwind-protect
       (let*
-	  (;; These lines can cause emacs to crash if you ask for too
+	  (;; These lines can cause Emacs to crash if you ask for too
 	   ;; many rings.  If you uncomment them, on most systems you
 	   ;; can get 10,000+ rings.
 	   ;;(max-specpdl-size (max max-specpdl-size (* nrings 15)))
