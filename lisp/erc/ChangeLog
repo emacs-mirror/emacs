@@ -1,3 +1,11 @@
+2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc-dcc.el (erc-dcc-send-file): Fix typo in error message.
+
+	* erc.el (read-passwd):
+	* erc-autoaway.el (erc-autoaway-reestablish-idletimer):
+	* erc-truncate.el (truncate): Fix typo in docstring.
+
 2006-08-13  Romain Francoise  <romain@orebokech.com>
 
 	* erc-match.el (erc-log-matches-make-buffer): End `y-or-n-p'
@@ -256,7 +264,7 @@
 
 2006-05-01  Edward O'Connor  <ted@oconnor.cx>
 
-	* erc-goodies.el: (erc-handle-irc-url): New function, suitable as
+	* erc-goodies.el (erc-handle-irc-url): New function, suitable as
 	a value for `url-irc-function'.
 
 2006-04-18  Diane Murray  <disumu@x3y2z1.net>
@@ -360,14 +368,14 @@
 
 2006-02-12  Michael Olson  <mwolson@gnu.org>
 
-	* erc-autoaway.el, erc-dcc.el, erc-ezbounce.el, erc-fill.el,
-	erc-goodies.el, erc-hecomplete.el, erc-ibuffer.el, erc-identd.el,
-	erc-imenu.el, erc-join.el, erc-lang.el, erc-list.el, erc-log.el,
-	erc-match.el, erc-menu.el, erc-netsplit.el, erc-networks.el,
-	erc-notify.el, erc-page.el, erc-pcomplete.el, erc-replace.el,
-	erc-ring.el, erc-services.el, erc-sound.el, erc-speedbar.el,
-	erc-spelling.el, erc-track.el, erc-truncate.el, erc-xdcc.el: Add
-	2006 to copyright years, to comply with the changed guidelines.
+	* erc-autoaway.el, erc-dcc.el, erc-ezbounce.el, erc-fill.el
+	* erc-goodies.el, erc-hecomplete.el, erc-ibuffer.el, erc-identd.el
+	* erc-imenu.el, erc-join.el, erc-lang.el, erc-list.el, erc-log.el
+	* erc-match.el, erc-menu.el, erc-netsplit.el, erc-networks.el
+	* erc-notify.el, erc-page.el, erc-pcomplete.el, erc-replace.el
+	* erc-ring.el, erc-services.el, erc-sound.el, erc-speedbar.el
+	* erc-spelling.el, erc-track.el, erc-truncate.el, erc-xdcc.el:
+	Add 2006 to copyright years, to comply with the changed guidelines.
 
 2006-02-11  Michael Olson  <mwolson@gnu.org>
 
@@ -528,7 +536,7 @@
 
 2006-01-29  Edward O'Connor  <ted@oconnor.cx>
 
-	* erc-viper.el: Remove. Now that ERC is included in Emacs, these
+	* erc-viper.el: Remove.  Now that ERC is included in Emacs, these
 	work-arounds live in Viper itself.
 
 2006-01-28  Michael Olson  <mwolson@gnu.org>
@@ -669,10 +677,10 @@
 2006-01-22  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* erc-track.el: Use `(eval-when-compile (require 'cl))' (for
-	`case'). Doc fixes.
+	`case').  Doc fixes.
 	(erc-find-parsed-property): Simplify.
-	(erc-track-get-active-buffer): Fix logic. Simplify.
-	(erc-track-switch-buffer): Remove unused variable `dir'. Simplify.
+	(erc-track-get-active-buffer): Fix logic.  Simplify.
+	(erc-track-switch-buffer): Remove unused variable `dir'.  Simplify.
 
 	* erc-speak.el: Doc fixes.
 	(erc-speak-region): `propertize' --> `erc-propertize'.

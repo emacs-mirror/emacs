@@ -1,3 +1,105 @@
+2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (view-emacs-news): Fix typo in error message.
+
+	* menu-bar.el (menu-bar-update-buffers): Fix typo in menu entry.
+
+	* shadowfile.el (shadow-define-regexp-group)
+	(shadow-literal-groups, shadow-insert-var): Doc fixes.
+	(shadow-read-files): Fix typo in message.
+	(shadow-inhibit-overload, shadow-find, shadow-suffix)
+	(shadow-site-match, shadow-write-todo-file, shadow-insert-var)
+	(shadow-suffix, shadow-site-match, shadow-expand-file-name)
+	(shadow-file-match): Fix typos in docstrings.
+
+	* terminal.el (terminal-emulator): Fix typo in message.
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Fix typo.
+
+	* emacs-lisp/lselect.el (x-kill-primary-selection)
+	(x-delete-primary-selection, x-copy-primary-selection):
+	Fix typos in error messages.
+
+	* emulation/edt-mapper.el: Fix typo in interactive message.
+
+	* mail/emacsbug.el (report-emacs-bug): Fix typos in output message.
+
+	* textmodes/ispell.el (ispell, ispell-local-dictionary-alist)
+	(ispell-help): Fix typos in docstrings.
+	(ispell-help): Fix typo in output message.
+
+	* allout.el (allout-adjust-file-variable)
+	(allout-passphrase-verifier-string)
+	(allout-passphrase-hint-string)
+	(allout-toggle-current-subtree-encryption):
+	* apropos.el (apropos-synonyms):
+	* cus-edit.el (hook):
+	* emacs-lock.el (emacs-lock-from-exiting):
+	* follow.el (follow-avoid-tail-recenter-p):
+	* hexl.el (hexl-mode):
+	* mouse-copy.el (mouse-copy-work-around-drag-bug):
+	* mouse.el (mouse-set-font):
+	* resume.el (resume-emacs-args-file):
+	* rfn-eshadow.el (file-name-shadow-tty-properties):
+	* t-mouse.el (t-mouse-process, t-mouse-mode):
+	* emacs-lisp/cust-print.el (custom-print-install)
+	(custom-print-uninstall, custom-format):
+	* emacs-lisp/shadow.el (list-load-path-shadows):
+	* emulation/tpu-edt.el (tpu-help-text)
+	(tpu-save-all-buffers-kill-emacs, tpu-emacs-replace)
+	(tpu-reset-control-keys):
+	* emulation/vip.el (vip-emacs-local-map)
+	(vip-change-mode-to-emacs):
+	* emulation/viper.el (viper-mode, viper-set-hooks)
+	(viper-major-mode-modifier-list):
+	* emulation/viper-init.el (viper-emacs-state-cursor-color):
+	* emulation/viper-keym.el (viper-emacs-kbd-map)
+	(viper-toggle-key):
+	* mail/feedmail.el (feedmail-queue-reminder)
+	(feedmail-queue-reminder-alist, feedmail-confirm-outgoing)
+	(feedmail-confirm-outgoing-timeout, feedmail-nuke-bcc)
+	(feedmail-nuke-resent-bcc, feedmail-fill-to-cc-fill-column)
+	(feedmail-sender-line, feedmail-force-binary-write)
+	(feedmail-from-line, feedmail-deduce-envelope-from)
+	(feedmail-x-mailer-line, feedmail-message-id-generator)
+	(feedmail-date-generator, feedmail-fiddle-plex-user-list)
+	(feedmail-enable-spray, feedmail-spray-this-address)
+	(feedmail-spray-address-fiddle-plex-list, feedmail-enable-queue)
+	(feedmail-queue-runner-confirm-global)
+	(feedmail-ask-before-queue-prompt)
+	(feedmail-ask-before-queue-reprompt)
+	(feedmail-prompt-before-queue-standard-alist)
+	(feedmail-prompt-before-queue-user-alist)
+	(feedmail-prompt-before-queue-help-supplement)
+	(feedmail-queue-use-send-time-for-message-id)
+	(feedmail-queue-default-file-slug, feedmail-queue-fqm-suffix)
+	(feedmail-mail-send-hook-splitter, feedmail-mail-send-hook)
+	(feedmail-mail-send-hook-queued)
+	(feedmail-confirm-addresses-hook-example)
+	(feedmail-last-chance-hook, feedmail-before-fcc-hook)
+	(feedmail-queue-runner-mode-setter)
+	(feedmail-queue-alternative-mail-header-separator)
+	(feedmail-queue-runner-message-sender)
+	(feedmail-buffer-eating-function, feedmail-binmail-template)
+	(feedmail-run-the-queue-no-prompts)
+	(feedmail-run-the-queue-global-prompt)
+	(feedmail-queue-subject-slug-maker, feedmail-fiddle-header)
+	(feedmail-envelope-deducer, feedmail-fiddle-date)
+	(feedmail-default-message-id-generator)
+	(feedmail-fiddle-message-id, feedmail-fiddle-x-mailer)
+	(feedmail-fiddle-spray-address, feedmail-deduce-address-list):
+	* mail/vms-pmail.el (vms-pmail-save-and-exit, vms-pmail-abort)
+	(vms-pmail-setup):
+	* play/dunnet.el (dun-help):
+	* play/handwrite.el (handwrite):
+	* play/hanoi.el (hanoi-unix-64):
+	* progmodes/idlwave.el (idlwave-rescan-asynchronously):
+	* textmodes/enriched.el (fixed):
+	* textmodes/org.el (org-file-apps)
+	(org-emphasis-regexp-components, org-emphasis-alist):
+	* textmodes/texinfmt.el (batch-texinfo-format):
+	Fix typos in docstrings.
+
 2006-11-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* loadhist.el (read-feature): Don't complete features not loaded
