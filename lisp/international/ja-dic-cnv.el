@@ -344,7 +344,7 @@
     (insert ")\n\n")))
 
 (defun skkdic-convert (filename &optional dirname)
-  "Generate Emacs lisp file form Japanese dictionary file FILENAME.
+  "Generate Emacs Lisp file form Japanese dictionary file FILENAME.
 The format of the dictionary file should be the same as SKK dictionaries.
 Optional argument DIRNAME if specified is the directory name under which
 the generated Emacs Lisp is saved.
