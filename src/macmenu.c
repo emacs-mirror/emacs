@@ -1052,17 +1052,6 @@ x_activate_menubar (f)
   UNBLOCK_INPUT;
 }
 
-/* The following is used by delayed window autoselection.  */
-
-DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
-       doc: /* Return t if a menu or popup dialog is active.  */)
-     ()
-{
-  /* Always return Qnil since menu selection functions do not return
-     until a selection has been made or cancelled.  */
-  return Qnil;
-}
-
 /* Find the menu selection and store it in the keyboard buffer.
    F is the frame the menu is on.
    MENU_BAR_ITEMS_USED is the length of VECTOR.
@@ -2653,6 +2642,17 @@ dispose_menus (kind, id)
 }
 
 #endif /* HAVE_MENUS */
+
+/* The following is used by delayed window autoselection.  */
+
+DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
+       doc: /* Return t if a menu or popup dialog is active.  */)
+     ()
+{
+  /* Always return Qnil since menu selection functions do not return
+     until a selection has been made or cancelled.  */
+  return Qnil;
+}
 
 void
 syms_of_macmenu ()
