@@ -359,7 +359,7 @@ user decide when to invoke Viper in a major mode."
 (defcustom viper-mode (cond (noninteractive nil)
 			    (t 'ask))
   "To Viperize or not to Viperize.
-If t, viperize emacs.  If nil -- don't.  If `ask', ask the user.
+If t, viperize Emacs.  If nil -- don't.  If `ask', ask the user.
 This variable is used primatily when Viper is being loaded.
 
 Must be set in `~/.emacs' before Viper is loaded.
@@ -502,10 +502,10 @@ unless it is coming up in a wrong Viper state."
 The list has the structure: ((mode viper-state keymap) (mode viper-state
 keymap) ...).  If `mode' is on the list, the `kemap' will be made active (on
 the minor-mode-map-alist) in the specified viper state.
-If you change this list, have to restart emacs for the change to take effect.
-However, if you did the change through the customization widget, then emacs
+If you change this list, have to restart Emacs for the change to take effect.
+However, if you did the change through the customization widget, then Emacs
 needs to be restarted only if you deleted a triple mode-state-keymap from the
-list.  No need to restart emacs in case of insertion or modification of an
+list.  No need to restart Emacs in case of insertion or modification of an
 existing triple."
   :type '(repeat
 	  (list symbol
@@ -891,7 +891,7 @@ It also can't undo some Viper settings."
   (eval-after-load
    "passwd"
    '(defadvice read-passwd-1 (before viper-passwd-ad activate)
-      "Switch to emacs state while reading password."
+      "Switch to Emacs state while reading password."
       (viper-change-state-to-emacs)))
 
   (defadvice self-insert-command (around viper-self-insert-ad activate)
@@ -939,7 +939,7 @@ It also can't undo some Viper settings."
   (eval-after-load
    "rmailedit"
    '(defadvice rmail-cease-edit (after viper-rmail-advice activate)
-      "Switch to emacs state when done editing message."
+      "Switch to Emacs state when done editing message."
       (viper-change-state-to-emacs)))
   ;; In case RMAIL was loaded before Viper.
   (defadvice rmail-cease-edit (after viper-rmail-advice activate)
@@ -1121,7 +1121,7 @@ It also can't undo some Viper settings."
        (save-window-excursion
 	 (with-output-to-temp-buffer " *viper-info*"
 	   (princ "
-You have loaded Viper, and are about to Viperize your emacs!
+You have loaded Viper, and are about to Viperize your Emacs!
 
 Viper is a Package for Emacs Rebels and a venomous VI PERil,
 
