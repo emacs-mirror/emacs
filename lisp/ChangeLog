@@ -1,5 +1,8 @@
 2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
 
+	* international/mule.el (make-char): Fix typo in docstring.
+	(load-with-code-conversion, charsetp): Doc fixes.
+
 	* international/ja-dic-cnv.el (skkdic-convert):
 	* cus-edit.el (hook): Fix typo in docstring.
 
