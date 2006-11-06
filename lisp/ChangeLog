@@ -1,3 +1,9 @@
+2006-11-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-mode-map): Move defvar above code using it.
+	(custom-mode-link-map): New variable.
+	(custom-group-link, custom-manual): Use follow-link.
+
 2006-11-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el: Fix typo in name of author of bibtex.el,
