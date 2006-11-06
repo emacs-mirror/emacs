@@ -45,8 +45,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** triska@gmx.at, Nov 2: EMACS environment variable.
 
-** ich@frank-schmitt.net, Oct 30: Build failure under Suse 10.0
-
 ** offby1@blarg.net, Nov 5: calendar gets wrong end for Daylight Savings Time
 
 ** Slowness of remove-overlays.
