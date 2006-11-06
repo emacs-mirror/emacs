@@ -176,7 +176,7 @@ listed.")
 Changes to files in this list are not listed.")
 
 (defconst authors-fixed-entries
-  '(("Richard M. Stallman" :wrote "[The original GNU emacs and numerous files]")
+  '(("Richard M. Stallman" :wrote "[The original GNU Emacs and numerous files]")
     ("Joseph Arceneaux" :wrote "xrdb.c")
     ("Blitz Product Development Corporation" :wrote "ispell.el")
     ("Frank Bresz" :wrote "diff.el")
