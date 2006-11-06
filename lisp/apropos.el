@@ -171,7 +171,7 @@ If value is `verbose', the computed score is shown for each match."
   ("yank" "paste")
   ("region" "selection"))
   "List of synonyms known by apropos.
-Each element is a list of words where the first word is the standard emacs
+Each element is a list of words where the first word is the standard Emacs
 term, and the rest of the words are alternative terms.")
 
 
