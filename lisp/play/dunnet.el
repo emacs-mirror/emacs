@@ -935,7 +935,7 @@ or more clues in here):
 - If you go down a hole in the floor without an aid such as a ladder,
   you probably won't be able to get back up the way you came, if at all.
 
-- To run this game in batch mode (no emacs window), use:
+- To run this game in batch mode (no Emacs window), use:
      emacs -batch -l dunnet
 NOTE: This game *should* be run in batch mode!
 
