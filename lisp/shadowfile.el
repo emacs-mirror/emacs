@@ -97,12 +97,12 @@ is no buffer currently visiting the file."
   :group 'shadow)
 
 (defcustom shadow-inhibit-message nil
-  "*If nonnil, do not display a message when a file needs copying."
+  "*If non-nil, do not display a message when a file needs copying."
   :type 'boolean
   :group 'shadow)
 
 (defcustom shadow-inhibit-overload nil
-  "If nonnil, shadowfile won't redefine \\[save-buffers-kill-emacs].
+  "If non-nil, shadowfile won't redefine \\[save-buffers-kill-emacs].
 Normally it overloads the function `save-buffers-kill-emacs' to check
 for files have been changed and need to be copied to other systems."
   :type 'boolean
@@ -146,7 +146,7 @@ Default: ~/.shadow_todo"
 (defvar shadow-literal-groups nil
   "List of files that are shared between hosts.
 This list contains shadow structures with literal filenames, created by
-shadow-define-group.")
+`shadow-define-literal-group'.")
 
 (defvar shadow-regexp-groups nil
   "List of file types that are shared between hosts.
@@ -178,7 +178,7 @@ created by `shadow-define-regexp-group'.")
       (shadow-union (cdr a) (cons (car a) b)))))
 
 (defun shadow-find (func list)
-  "If FUNC applied to some element of LIST is nonnil, return first such element."
+  "If FUNC applied to some element of LIST is non-nil, return first such element."
   (while (and list (not (funcall func (car list))))
     (setq list (cdr list)))
   (car list))
@@ -205,7 +205,7 @@ This makes sure regexp matches nothing but STRING."
 
 (defun shadow-suffix (prefix string)
   "If PREFIX begins STRING, return the rest.
-Return value is nonnil if PREFIX and STRING are string= up to the length of
+Return value is non-nil if PREFIX and STRING are `string=' up to the length of
 PREFIX."
   (let ((lp (length prefix))
 	(ls (length string)))
@@ -285,9 +285,9 @@ information defining the cluster.  For interactive use, call
       ans)))
 
 (defun shadow-site-match (site1 site2)
-  "Nonnil iff SITE1 is or includes SITE2.
-Each may be a host or cluster name; if they are clusters, regexp of site1 will
-be matched against the primary of site2."
+  "Non-nil iff SITE1 is or includes SITE2.
+Each may be a host or cluster name; if they are clusters, regexp of SITE1 will
+be matched against the primary of SITE2."
   (or (string-equal site1 site2) ; quick check
       (let* ((cluster1 (shadow-get-cluster site1))
 	     (primary2 (shadow-site-primary site2)))
@@ -355,7 +355,7 @@ Will return the name bare if it is a local file."
 				 (nth 2 hup))))))
 
 (defun shadow-expand-file-name (file &optional default)
-  "Expand file name and get file's true name."
+  "Expand file name and get FILE's true name."
   (file-truename (expand-file-name file default)))
 
 (defun shadow-contract-file-name (file)
@@ -398,7 +398,7 @@ local filename."
  "Return t if PATTERN matches FILE.
 If REGEXP is supplied and non-nil, the file part of the pattern is a regular
 expression, otherwise it must match exactly.  The sites and usernames must
-match---see shadow-same-site.  The pattern must be in full ange-ftp format, but
+match---see `shadow-same-site'.  The pattern must be in full ange-ftp format, but
 the file can be any valid filename.  This function does not do any filename
 expansion or contraction, you must do that yourself first."
  (let* ((pattern-sup (shadow-parse-fullname pattern))
@@ -475,7 +475,7 @@ specific hostnames, or names of clusters \(see `shadow-define-cluster')."
   "Make each of a group of files be shared between hosts.
 Prompts for regular expression; files matching this are shared between a list
 of sites, which are also prompted for.  The filenames must be identical on all
-hosts \(if they aren't, use shadow-define-group instead of this function).
+hosts \(if they aren't, use `shadow-define-literal-group' instead of this function).
 Each site can be either a hostname or the name of a cluster \(see
 `shadow-define-cluster')."
   (interactive)
@@ -661,7 +661,7 @@ Returns t unless files were locked; then returns nil."
 	   (or (stringp (file-locked-p shadow-info-file))
 	       (stringp (file-locked-p shadow-todo-file))))
       (progn
-	(message "Shadowfile is running in another emacs; can't have two.")
+	(message "Shadowfile is running in another Emacs; can't have two.")
 	(beep)
 	(sit-for 3)
 	nil)
@@ -707,8 +707,8 @@ defined, the old hashtable info is invalid."
 	(shadow-insert-var 'shadow-regexp-groups))))
 
 (defun shadow-write-todo-file (&optional save)
-  "Write out information to shadow-todo-file.
-With nonnil argument also saves the buffer."
+  "Write out information to `shadow-todo-file'.
+With non-nil argument also saves the buffer."
   (save-excursion
     (if (not shadow-todo-buffer)
 	(setq shadow-todo-buffer (find-file-noselect shadow-todo-file)))
@@ -731,9 +731,9 @@ With nonnil argument also saves the buffer."
   (setq shadow-hashtable (make-vector 37 0)))
 
 (defun shadow-insert-var (variable)
-  "Prettily insert a setq command for VARIABLE.
+  "Prettily insert a `setq' command for VARIABLE,
 which, when later evaluated, will restore it to its current setting.
-SYMBOL must be the name of a variable whose value is a list."
+VARIABLE must be the name of a variable whose value is a list."
   (let ((standard-output (current-buffer)))
     (insert (format "(setq %s" variable))
     (cond ((consp (eval variable))
