@@ -3631,7 +3631,7 @@ restoring it to the state of a face that has never been customized."
 ;;; The `hook' Widget.
 
 (define-widget 'hook 'list
-  "A emacs lisp hook"
+  "An emacs lisp hook."
   :value-to-internal (lambda (widget value)
 		       (if (and value (symbolp value))
 			   (list value)
