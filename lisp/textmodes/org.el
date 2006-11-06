@@ -1103,7 +1103,7 @@ for some files for which the OS does not have a good default.
 See `org-file-apps'.")
 
 (defconst org-file-apps-defaults-windowsnt
-  (list 
+  (list
    '(remote . emacs)
    (cons t
 	 (list (if (featurep 'xemacs)
@@ -1132,7 +1132,7 @@ file identifier are
  \"ext\"         A string identifying an extension
  `directory'   Matches a directory
  `remote'      Matches a remote file, accessible through tramp or efs.
-               Remote files most likely should be visited through emacs
+               Remote files most likely should be visited through Emacs
                because external applications cannot handle such paths.
  t             Default for all remaining files
 
@@ -2342,7 +2342,7 @@ stacked      Non-nil means, allow stacked styles.  This works only in HTML
              export.  When this is set, all marker characters (as given in
              `org-emphasis-alist') will be allowed as pre/post, aiding
              inside-out matching.
-Use customize to modify this, or restart emacs after changing it."
+Use customize to modify this, or restart Emacs after changing it."
   :group 'org-font-lock
   :set 'org-set-emph-re
   :type '(list
@@ -2360,12 +2360,12 @@ Use customize to modify this, or restart emacs after changing it."
     ("=" shadow "<code>" "</code>")
     ("+" (:strike-through t) "<del>" "</del>")
 )
-"Special syntax for emphasised text.
+"Special syntax for emphasized text.
 Text starting and ending with a special character will be emphasized, for
 example *bold*, _underlined_ and /italic/.  This variable sets the marker
 characters, the face to bbe used by font-lock for highlighting in Org-mode
-emacs buffers, and the HTML tags to be used for this.
-Use customize to modify this, or restart emacs after changing it."
+Emacs buffers, and the HTML tags to be used for this.
+Use customize to modify this, or restart Emacs after changing it."
   :group 'org-font-lock
   :set 'org-set-emph-re
   :type '(repeat
@@ -3451,7 +3451,7 @@ between words."
 	      (call-interactively 'org-table-next-field)))))
 
      ((eq arg t) ;; Global cycling
-      
+
       (cond
        ((and (eq last-command this-command)
 	     (eq org-cycle-global-status 'overview))
@@ -3951,7 +3951,7 @@ would end up with no indentation after the change, nothing at all is done."
     (let ((end (save-excursion (outline-next-heading)
 			       (point-marker)))
 	  (prohibit (if (> diff 0)
-			"^\\S-" 
+			"^\\S-"
 		      (concat "^ \\{0," (int-to-string (- diff)) "\\}\\S-")))
 	  col)
       (unless (save-excursion (re-search-forward prohibit end t))
@@ -4215,7 +4215,7 @@ If optional TXT is given, check this string instead of the current kill."
 	    (setq status (equal (match-string 0) "[X]"))
 	    (when (eq firstnew 'unknown)
 	      (setq firstnew (not status)))
-	    (replace-match 
+	    (replace-match
 	     (if (if arg (not status) firstnew) "[X]" "[ ]") t t))
 	  (beginning-of-line 2))))))
 
@@ -4511,7 +4511,7 @@ this heading. "
   (if find-done
       (org-archive-all-done)
     ;; Save all relevant TODO keyword-relatex variables
-    
+
     (let ((tr-org-todo-line-regexp org-todo-line-regexp) ; keep despite compiler
 	  (tr-org-todo-keywords org-todo-keywords)
 	  (tr-org-todo-interpretation org-todo-interpretation)
@@ -4618,7 +4618,7 @@ When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
     (if (org-on-heading-p)
 	(progn
 	  (setq re1 (concat "^" (regexp-quote
-				 (make-string 
+				 (make-string
 				  (1+ (- (match-end 0) (match-beginning 0)))
 				  ?*))
 			    " "))
@@ -4749,7 +4749,7 @@ the children that do not contain any open TODO items."
 	 (org-end-of-subtree)
 	 (throw :skip t))
     (if (equal (char-after p) ?#) (throw :skip t))))
-  
+
 (defun org-agenda-toggle-archive-tag ()
   "Toggle the archive tag for the current entry."
   (interactive)
@@ -6190,12 +6190,12 @@ the returned times will be formatted strings."
 		     (apply 'encode-time (org-parse-time-string te)))))
     (move-marker ins (point))
     (setq ipos (point))
-    (insert-before-markers "Clock summary at [" 
+    (insert-before-markers "Clock summary at ["
 			   (substring
 			    (format-time-string (cdr org-time-stamp-formats))
 			    1 -1)
 			   "]."
-			   (if block 
+			   (if block
 			       (format "  Considered range is /%s/." block)
 			     "")
 			   "\n\n|L|Headline|Time|\n")
@@ -6221,7 +6221,7 @@ the returned times will be formatted strings."
 	    (goto-char ins)
 	    (if (= level 1) (insert-before-markers "|-\n"))
 	    (insert-before-markers
-	     "| " (int-to-string level) "|" hlc hdl hlc " |" 
+	     "| " (int-to-string level) "|" hlc hdl hlc " |"
 	     (make-string (1- level) ?|)
 	     hlc
 	     (format "%d:%02d" h m)
@@ -8816,7 +8816,7 @@ With prefix ARG, realign all tags in headings in the current buffer."
 				   nil nil current 'org-tags-history))))
 	(while (string-match "[-+&]+" tags)
 	  (setq tags (replace-match ":" t t tags))))
-      
+
       (unless (setq empty (string-match "\\`[\t ]*\\'" tags))
 	(unless (string-match ":$" tags) (setq tags (concat tags ":")))
 	(unless (string-match "^:" tags) (setq tags (concat ":" tags))))
@@ -9969,7 +9969,7 @@ For file links, arg negates `org-context-in-file-links'."
      ((eq major-mode 'image-mode)
       (setq cpltxt (concat "file:"
 			   (abbreviate-file-name buffer-file-name))
-	    link (org-make-link cpltxt)))      
+	    link (org-make-link cpltxt)))
 
      ((org-mode-p)
       ;; Just link to current headline
@@ -13352,7 +13352,7 @@ translations.  There is currently no way for users to extend this.")
 
       ;; Convert LaTeX fragments to images
       (when (memq :LaTeX-fragments parameters)
-	(org-format-latex 
+	(org-format-latex
 	 (concat "ltxpng/" (file-name-sans-extension
 			    (file-name-nondirectory
 			     org-current-export-file)))
@@ -13871,7 +13871,7 @@ org-mode's default settings, but still inferior to file-local settings."
          (all_lines
           (org-skip-comments (org-split-string
 			      (org-cleaned-string-for-export
-			       region :emph-multiline 
+			       region :emph-multiline
 			       (if (plist-get opt-plist :LaTeX-fragments)
 				   :LaTeX-fragments))
 			      "[\r\n]")))
@@ -14135,7 +14135,7 @@ lang=\"%s\" xml:lang=\"%s\">
 		  (setq valid
 			(if (functionp link-validate)
 			    (funcall link-validate filename current-dir)
-			  t))		    
+			  t))
 		  (setq file-is-image-p
 			(string-match (org-image-file-name-regexp) filename))
 		  (setq thefile (if abs-p (expand-file-name filename) filename))
@@ -14991,7 +14991,7 @@ a time), or the day by one (if it does not contain a time)."
 (defvar org-cdlatex-texmathp-advice-is-done nil
   "Flag remembering if we have applied the advice to texmathp already.")
 
-(define-minor-mode org-cdlatex-mode 
+(define-minor-mode org-cdlatex-mode
   "Toggle the minor `org-cdlatex-mode'.
 This mode supports entering LaTeX environment and math in LaTeX fragments
 in Org-mode.
@@ -15119,7 +15119,7 @@ Revert to the normal definition outside of these fragments."
 If the cursor is in a LaTeX fragment, create the image and overlay
 it over the source code.  If there is no fragment at point, display
 all fragments in the current text, from one headline to the next.  With
-prefix SUBTREE, display all fragments in the current subtree.  With a 
+prefix SUBTREE, display all fragments in the current subtree.  With a
 double prefix `C-u C-u', or when the cursor is before the first headline,
 display all fragments in the buffer.
 The images can be removed again with \\[org-ctrl-c-ctrl-c]."
@@ -15207,16 +15207,16 @@ The images can be removed again with \\[org-ctrl-c-ctrl-c]."
 		      (progn
 			(org-overlay-put ov 'invisible t)
 			(org-overlay-put
-			 ov 'end-glyph 
+			 ov 'end-glyph
 			 (make-glyph (vector 'png :file movefile))))
-		    (org-overlay-put 
-		     ov 'display 
+		    (org-overlay-put
+		     ov 'display
 		     (list 'image :type 'png :file movefile :ascent 'center)))
 		  (push ov org-latex-fragment-image-overlays)
 		  (goto-char end))
 	      (delete-region beg end)
 	      (insert link))))))))
-    
+
 ;; This function borrows from Ganesh Swami's latex2png.el
 (defun org-create-formula-image (string tofile options)
   (let* ((tmpdir (if (featurep 'xemacs)
@@ -15868,7 +15868,7 @@ See the individual commands for more information."
       :style toggle :selected (not org-agenda-skip-archived-trees)]
      "--"
      ["Move Subtree to Archive" org-archive-subtree t]
-     ["Check and Move Children" (org-archive-subtree '(4)) 
+     ["Check and Move Children" (org-archive-subtree '(4))
       :active t :keys "C-u C-c $"])
     "--"
     ("TODO Lists"
@@ -15938,14 +15938,14 @@ See the individual commands for more information."
     "--"
     ["Export/Publish" org-export t]
     ("LaTeX"
-     ["Org CDLaTeX mode" org-cdlatex-mode :style toggle 
+     ["Org CDLaTeX mode" org-cdlatex-mode :style toggle
       :selected org-cdlatex-mode]
      ["Insert Environment" cdlatex-environment (fboundp 'cdlatex-environment)]
      ["Insert math symbol" cdlatex-math-symbol (fboundp 'cdlatex-math-symbol)]
      ["Modify math symbol" org-cdlatex-math-modify
       (org-inside-LaTeX-fragment-p)]
      ["Export LaTeX fragments as images"
-      (setq org-export-with-LaTeX-fragments (not org-export-with-LaTeX-fragments)) 
+      (setq org-export-with-LaTeX-fragments (not org-export-with-LaTeX-fragments))
       :style toggle :selected org-export-with-LaTeX-fragments])
     "--"
     ("Documentation"
@@ -16095,13 +16095,13 @@ and :keyword."
 	  (push (org-point-in-group p 0 :radio-target) clist))
       (goto-char p))
      ((setq o (car (delq nil
-			 (mapcar 
+			 (mapcar
 			  (lambda (x)
 			    (if (memq x org-latex-fragment-image-overlays) x))
 			  (org-overlays-at (point))))))
-      (push (list :latex-fragment 
+      (push (list :latex-fragment
 		  (org-overlay-start o) (org-overlay-end o)) clist)
-      (push (list :latex-preview 
+      (push (list :latex-preview
 		  (org-overlay-start o) (org-overlay-end o)) clist))
      ((org-inside-LaTeX-fragment-p)
       ;; FIXME: positions wring.
@@ -16411,7 +16411,7 @@ Show the heading too, if it is currently invisible."
 
 
 ;;; Finish up
-	
+
 (provide 'org)
 
 (run-hooks 'org-load-hook)
