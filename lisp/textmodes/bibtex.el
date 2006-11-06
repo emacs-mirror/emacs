@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Schoef <schoef@offis.uni-oldenburg.de>
 ;;      Bengt Martensson <bengt@mathematik.uni-Bremen.de>
-;;      Mark Shapiro <shapiro@corto.inria.fr>
+;;      Marc Shapiro <marc.shapiro@acm.org>
 ;;      Mike Newton <newton@gumby.cs.caltech.edu>
 ;;      Aaron Larson <alarson@src.honeywell.com>
 ;;      Dirk Herrmann <D.Herrmann@tu-bs.de>
