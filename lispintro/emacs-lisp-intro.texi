@@ -24,8 +24,8 @@
 
 @comment %**end of header
 
-@set edition-number 3.05
-@set update-date 5 November 2006
+@set edition-number 3.06
+@set update-date 6 November 2006
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -37,7 +37,7 @@
     # makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
     makeinfo --paragraph-indent=0 --verbose emacs-lisp-intro.texi
 
-    ## ;; (progn (when (bufferp (get-buffer "*info*")) (kill-buffer "*info*")) (info "/u/intro/emacs-lisp-intro.info"))
+    ## ;; (progn (when (bufferp (get-buffer "*info*")) (kill-buffer "*info*")) (info "../info/eintr"))
 
     ## DVI output
     texi2dvi emacs-lisp-intro.texi
@@ -4705,7 +4705,7 @@ screen.  To switch back to your current buffer, type @kbd{C-x b
 @key{RET}}.  (On some keyboards, the @key{META} key is labelled
 @key{ALT}.)
 
-@c !!! 22.1.100 tags table location in this paragraph
+@c !!! 22.1.1 tags table location in this paragraph
 @cindex TAGS table, specifying
 @findex find-tags
 Depending on how the initial default values of your copy of Emacs are
@@ -4715,7 +4715,7 @@ interested in Emacs sources, the tags table you will most likely want,
 if it has already been created for you, will be in a subdirectory of
 the @file{/usr/local/share/emacs/} directory; thus you would use the
 @code{M-x visit-tags-table} command and specify a pathname such as
-@file{/usr/local/share/emacs/22.1.100/lisp/TAGS}.  If the tags table
+@file{/usr/local/share/emacs/22.1.1/lisp/TAGS}.  If the tags table
 has not already been created, you will have to create it yourself.  It
 will in a file such as @file{/usr/local/src/emacs/src/TAGS}.
 
@@ -10095,7 +10095,6 @@ What does the @code{more-flowers} list now contain?
 @comment  node-name,  next,  previous,  up
 @chapter Yanking Text Back
 @findex yank
-@findex rotate-yank-pointer
 @cindex Text retrieval
 @cindex Retrieving text
 @cindex Pasting text
@@ -10166,8 +10165,7 @@ like @code{insert}.  We will stick with plain @code{insert} since it
 is easier to understand.)
 
 To begin to understand how @code{yank} and @code{yank-pop} work, it is
-first necessary to look at the @code{kill-ring-yank-pointer} variable
-and the @code{rotate-yank-pointer} function.
+first necessary to look at the @code{kill-ring-yank-pointer} variable.
 
 @node kill-ring-yank-pointer, yank nthcdr Exercises, Kill Ring Overview, Yanking
 @comment  node-name,  next,  previous,  up
@@ -15278,15 +15276,15 @@ You can try this function by installing it in the usual fashion.  Then
 place your cursor after the following expression and type @kbd{C-x
 C-e} (@code{eval-last-sexp}).
 
-@c !!! 22.1.100 lisp sources location here
+@c !!! 22.1.1 lisp sources location here
 @smallexample
 (lengths-list-file
- "/usr/local/share/emacs/22.1.100/lisp/emacs-lisp/debug.el")
+ "/usr/local/share/emacs/22.1.1/lisp/emacs-lisp/debug.el")
 @end smallexample
 
 @noindent
 (You may need to change the pathname of the file; the one here is for
-GNU Emacs version 22.1.100.  To change the expression, copy it to
+GNU Emacs version 22.1.1.  To change the expression, copy it to
 the @file{*scratch*} buffer and edit it.
 
 @need 1200
@@ -15414,11 +15412,11 @@ These considerations lead us directly to the function itself:
 name to the absolute, long, path name form.  The function employs the
 name of the directory in which the function is called.
 
-@c !!! 22.1.100 lisp sources location here
+@c !!! 22.1.1 lisp sources location here
 @need 1500
 Thus, if @code{expand-file-name} is called on @code{debug.el} when
 Emacs is visiting the
-@file{/usr/local/share/emacs/22.1.100/lisp/emacs-lisp/} directory,
+@file{/usr/local/share/emacs/22.1.1/lisp/emacs-lisp/} directory,
 
 @smallexample
 debug.el
@@ -15428,9 +15426,9 @@ debug.el
 @noindent
 becomes
 
-@c !!! 22.1.100 lisp sources location here
+@c !!! 22.1.1 lisp sources location here
 @smallexample
-/usr/local/share/emacs/22.1.100/lisp/emacs-lisp/debug.el
+/usr/local/share/emacs/22.1.1/lisp/emacs-lisp/debug.el
 @end smallexample
 
 The only other new element of this function definition is the as yet
@@ -15519,13 +15517,13 @@ in their customary places.  To change the expressions, copy them to
 the @file{*scratch*} buffer, edit them, and then evaluate them.
 
 The results are shown after the @samp{@result{}}.  (These results are
-for files from Emacs Version 22.1.100; files from other versions of
+for files from Emacs Version 22.1.1; files from other versions of
 Emacs may produce different results.)
 
-@c !!! 22.1.100 lisp sources location here
+@c !!! 22.1.1 lisp sources location here
 @smallexample
 @group
-(cd "/usr/local/share/emacs/22.1.100/")
+(cd "/usr/local/share/emacs/22.1.1/")
 
 (lengths-list-file "./lisp/macros.el")
      @result{} (283 263 480 90)
@@ -15724,7 +15722,7 @@ for symbolic link (the string is the name linked to), or @code{nil}.
 
 For example, the first @samp{.el} file in the @file{lisp/} directory
 is @file{abbrev.el}.  Its name is
-@file{/usr/local/share/emacs/22.1.100/lisp/abbrev.el} and it is not a
+@file{/usr/local/share/emacs/22.1.1/lisp/abbrev.el} and it is not a
 directory or a symbolic link.
 
 @need 1000
@@ -15824,11 +15822,11 @@ using @code{append} as the combiner.
 (directory-files "/usr/local/src/emacs/lisp/" t "\\.el$")
 (shell-command "find /usr/local/src/emacs/lisp/ -name '*.el'")
 
-(directory-files "/usr/local/share/emacs/22.1.100/lisp/" t "\\.el$")
-(shell-command "find /usr/local/share/emacs/22.1.100/lisp/ -name '*.el'")
+(directory-files "/usr/local/share/emacs/22.1.1/lisp/" t "\\.el$")
+(shell-command "find /usr/local/share/emacs/22.1.1/lisp/ -name '*.el'")
 @end ignore
 
-@c  /usr/local/share/emacs/22.1.100/lisp/
+@c  /usr/local/share/emacs/22.1.1/lisp/
 
 @need 800
 Here is the function:
@@ -15840,7 +15838,7 @@ Here is the function:
   ;; Although the function will be used non-interactively,
   ;; it will be easier to test if we make it interactive.
   ;; The directory will have a name such as
-  ;;  "/usr/local/share/emacs/22.1.100/lisp/"
+  ;;  "/usr/local/share/emacs/22.1.1/lisp/"
   (interactive "DDirectory name: ")
 @end group
 @group
@@ -15885,7 +15883,7 @@ Here is the function:
 @end smallexample
 
 @c (files-in-below-directory "/usr/local/src/emacs/lisp/")
-@c (files-in-below-directory "/usr/local/share/emacs/22.1.100/lisp/")
+@c (files-in-below-directory "/usr/local/share/emacs/22.1.1/lisp/")
 
 The @code{files-in-below-directory} @code{directory-files} function
 takes one argument, the name of a directory.
@@ -15895,11 +15893,11 @@ Thus, on my system,
 
 @c (length (files-in-below-directory "/usr/local/src/emacs/lisp/"))
 
-@c !!! 22.1.100 lisp sources location here
+@c !!! 22.1.1 lisp sources location here
 @smallexample
 @group
 (length
- (files-in-below-directory "/usr/local/share/emacs/22.1.100/lisp/"))
+ (files-in-below-directory "/usr/local/share/emacs/22.1.1/lisp/"))
 @end group
 @end smallexample
 
@@ -15914,7 +15912,7 @@ like this:
 @smallexample
 @group
 (sort
- (files-in-below-directory "/usr/local/share/emacs/22.1.100/lisp/")
+ (files-in-below-directory "/usr/local/share/emacs/22.1.1/lisp/")
  'string-lessp)
 @end group
 @end smallexample
@@ -19116,18 +19114,10 @@ it with @kbd{M-w}.
 (In a read-only buffer, such as the @file{*info*} buffer, the kill
 command, @kbd{C-k} (@code{kill-line}), will not remove the text,
 merely copy it to the kill ring.  However, your machine may beep at
-you.  (@code{kill-line} calls @code{kill-region}.)  Alternatively, for
-silence, you may copy the region of each line with the @kbd{M-w}
-(@code{kill-ring-save}) command.  You must mark each line for this
-command to succeed, but it does not matter at which end you put point
-or mark.)
-
-@ignore
-@c texi2dvi fails when the name of the section is within ifnottex ...
-For a discussion of how @code{condition-case} deals with error, see
-@ref{Complete kill-region, , The Complete @code{kill-region}
-Definition}.
-@end ignore
+you.  Alternatively, for silence, you may copy the region of each line
+with the @kbd{M-w} (@code{kill-ring-save}) command.  You must mark
+each line for this command to succeed, but it does not matter at which
+end you put point or mark.)
 
 @need 1250
 @noindent
@@ -19188,7 +19178,10 @@ To return to the old value for the length of the kill ring, evaluate:
 The @code{current-kill} function changes the element in the kill ring
 to which @code{kill-ring-yank-pointer} points.  (Also, the
 @code{kill-new} function sets @code{kill-ring-yank-pointer} to point
-to the latest element of the the kill ring.)
+to the latest element of the the kill ring.  The @code{kill-new}
+function is used directly or indirectly by @code{kill-append},
+@code{copy-region-as-kill}, @code{kill-ring-save}, @code{kill-line},
+and @code{kill-region}.)
 
 @need 1500
 The @code{current-kill} function is used by @code{yank} and by
@@ -19231,11 +19224,11 @@ yanking point; just return the Nth kill forward."
 @end group
 @end smallexample
 
-In addition, the @code{kill-new} function sets
+Remember also that the @code{kill-new} function sets
 @code{kill-ring-yank-pointer} to the latest element of the the kill
-ring.  And indirectly so does @code{kill-append}, since it calls
-@code{kill-new}.  In addition, @code{kill-region} and @code{kill-line}
-call the @code{kill-new} function.
+ring, which means that all the functions that call it set the value
+indirectly: @code{kill-append}, @code{copy-region-as-kill},
+@code{kill-ring-save}, @code{kill-line}, and @code{kill-region}.
 
 @need 1500
 Here is the line in @code{kill-new}, which is explained in
@@ -19278,7 +19271,7 @@ within the bounds of this function.  This variable is called
 @code{interprogram-paste} and is for copying to another program.  It
 is not for copying within this instance of GNU Emacs.  Most window
 systems provide a facility for interprogram pasting.  Sadly, that
-facility usually provides only for the lasted element.  Most windowing
+facility usually provides only for the last element.  Most windowing
 systems have not adopted a ring of many possibilities, even though
 Emacs has provided it for decades.
 
@@ -19288,7 +19281,7 @@ The @code{if} expression has two parts, one if there exists
 @need 2000
 Let us consider the `if not' or else-part of the @code{current-kill}
 function.  (The then-part uses the the @code{kill-new} function, which
-we have already described.  (@xref{kill-new function, , The
+we have already described.  @xref{kill-new function, , The
 @code{kill-new} function}.)
 
 @smallexample
@@ -19309,7 +19302,8 @@ The code first checks whether the kill ring has content; otherwise it
 signals an error.
 
 @need 1000
-Note that the @code{or} expression is very similar to writing
+Note that the @code{or} expression is very similar to testing length
+with an @code{if}:
 
 @findex zerop
 @findex error
@@ -19332,7 +19326,7 @@ true if the value it is testing is zero.  When @code{zerop} tests
 true, the then-part of the @code{if} is evaluated.  The then-part is a
 list starting with the function @code{error}, which is a function that
 is similar to the @code{message} function
-(@pxref{message, , The @code{message} Function}), in that
+(@pxref{message, , The @code{message} Function}) in that
 it prints a one-line message in the echo area.  However, in addition
 to printing a message, @code{error} also stops evaluation of the
 function within which it is embedded.  This means that the rest of the
@@ -19344,8 +19338,8 @@ rotates and on where @code{kill-ring-yank-pointer} points.
 
 Next, either the optional @code{do-not-move} argument is true or the
 current value of @code{kill-ring-yank-pointer} is set to point to the
-list, the first element of which is returned even if the
-@code{do-not-move} argument is true.
+list.  Finally, another expression returns the first element of the
+list even if the @code{do-not-move} argument is true.
 
 @menu
 * Digression concerning error::
@@ -19472,7 +19466,8 @@ following:
 @smallexample
 @group
 ;; kill-ring-yank-pointer @r{and} kill-ring @r{have a length of four}
-(nthcdr (mod (- 0 4) 4)        ; (mod -4 4) @result{} 0
+;; @r{and} (mod (- 0 4) 4) @result{} 0
+(nthcdr (mod (- 0 4) 4)
         '("fourth line of text"
           "third line"
           "second piece of text"
@@ -19517,8 +19512,12 @@ them in an argument list (and within expressions called by them).
 @findex yank
 
 After learning about @code{current-kill}, the code for the
-@code{yank} function is almost easy.  It has only one tricky part, which is
-the computation of the argument to be passed to @code{rotate-yank-pointer}.
+@code{yank} function is almost easy.
+
+The @code{yank} function does not use the
+@code{kill-ring-yank-pointer} variable directly.  It calls
+@code{insert-for-yank} which calls @code{current-kill} which sets the
+@code{kill-ring-yank-pointer} variable.
 
 @need 1250
 The code looks like this:
@@ -19573,21 +19572,23 @@ The key expression is @code{insert-for-yank}, which inserts the string
 returned by @code{current-kill}, but removes some text properties from
 it.
 
-However, before getting to that expression, the function set the value
+However, before getting to that expression, the function sets the value
 of @code{yank-window-start} to the position returned by the
 @code{(window-start)} expression, the position at which the display
-currently starts.  It also set @code{this-command} and pushed the
-mark.
+currently starts.  The @code{yank} function also sets
+@code{this-command} and pushes the mark.
 
 After it yanks the appropriate element, if the optional argument is a
-@sc{cons} rather than a number or nothing, put point at beginning of
-the yanked text and mark at its end.  (The @code{prog1} function is
-like @code{progn} but returns the value of its first argument rather
-than the value of its last argument.  Its first argument is forced to
-return the buffer's mark as an integer.  You can see the documentation
-for these functions by placing point over them in this buffer and then
-typing @kbd{C-h f} (@code{describe-function}) followed by a @kbd{RET};
-the default is the function.)
+@sc{cons} rather than a number or nothing, it puts point at beginning
+of the yanked text and mark at its end.
+
+(The @code{prog1} function is like @code{progn} but returns the value
+of its first argument rather than the value of its last argument.  Its
+first argument is forced to return the buffer's mark as an integer.
+You can see the documentation for these functions by placing point
+over them in this buffer and then typing @kbd{C-h f}
+(@code{describe-function}) followed by a @kbd{RET}; the default is the
+function.)
 
 The last part of the function tells what to do when it succeeds.
 
@@ -19597,8 +19598,8 @@ The last part of the function tells what to do when it succeeds.
 @findex yank-pop
 
 After understanding @code{yank} and @code{current-kill}, you know how
-to approach the @code{yank-pop} function Leaving out the documentation
-to save space, it looks like this:
+to approach the @code{yank-pop} function.  Leaving out the
+documentation to save space, it looks like this:
 
 @c GNU Emacs 22
 @smallexample
@@ -19645,8 +19646,9 @@ to save space, it looks like this:
 The function is interactive with a small @samp{p} so the prefix
 argument is processed and passed to the function.  The command can
 only be used after a previous yank; otherwise an error message is
-sent.  This check uses the variable @code{last-command} which is
-set by @code{yank} and is discussed elsewhere.  (@xref{copy-region-as-kill}.)
+sent.  This check uses the variable @code{last-command} which is set
+by @code{yank} and is discussed elsewhere.
+(@xref{copy-region-as-kill}.)
 
 The @code{let} clause sets the variable @code{before} to true or false
 depending whether point is before or after mark and then the region
@@ -20138,7 +20140,8 @@ will be and the second is a symbol for the character to insert, in a
 special format.  The format is a question mark followed by a blank
 space, like this, @samp{? }.  @xref{Character Type, , Character Type,
 elisp, The GNU Emacs Lisp Reference Manual}, for a description of the
-syntax for characters.
+syntax for characters.  (Of course, you might want to replace the
+blank space by some other character @dots{}  You know what to do.)
 
 The @code{number-to-string} function is used in the concatenation
 expression, to convert the number to a string that is concatenated
@@ -20261,10 +20264,10 @@ with @kbd{C-y} (@code{yank)}.
 Press @key{RET} to evaluate the expression.
 @end enumerate
 
-Emacs will print labels vertically, the top one being
-@w{@samp{10 -@w{ }}}.  (The @code{print-graph} function
-will pass the value of @code{height-of-top-line}, which
-in this case would end up as 15.)
+Emacs will print labels vertically, the top one being @w{@samp{10 -@w{
+}}}.  (The @code{print-graph} function will pass the value of
+@code{height-of-top-line}, which in this case will end up as 15,
+thereby getting rid of what might appear as a bug.)
 
 @need 2000
 @node print-X-axis, Print Whole Graph, print-Y-axis, Full Graph
@@ -20347,11 +20350,11 @@ the tic marks themselves and their spacing:
 @noindent
 (Note that the value of @code{graph-blank} is set by another
 @code{defvar}.  The @code{boundp} predicate checks whether it has
-already been set; @code{boundp} returns @code{nil} if it has not.
-If @code{graph-blank} were unbound and we did not use this conditional
-construction, in GNU Emacs 21, we would enter the debugger and see an
-error message saying
-@samp{@w{Debugger entered--Lisp error:} @w{(void-variable graph-blank)}}.)
+already been set; @code{boundp} returns @code{nil} if it has not.  If
+@code{graph-blank} were unbound and we did not use this conditional
+construction, in a recent GNU Emacs, we would enter the debugger and
+see an error message saying @samp{@w{Debugger entered--Lisp error:}
+@w{(void-variable graph-blank)}}.)
 
 @need 1200
 Here is the @code{defvar} for @code{X-axis-tic-symbol}:
