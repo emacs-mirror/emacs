@@ -1,3 +1,23 @@
+2006-11-06  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-correct-word-before-point):
+	New function broken out of flyspell-correct-word.
+	(flyspell-mode-map): Bind it to M-RET.
+	(flyspell-correct-word): Call it.
+
+	* textmodes/fill.el (fill-minibuffer-function): New function.
+	(fill-paragraph): Bind fill-paragraph-function to
+	fill-minibuffer-function.
+
+	* ruler-mode.el (ruler-mode-map): Add bindings for up-events
+	so that they aren't undefined.
+
+	* dired.el (dired-readin): Locally bind file-name-coding-system.
+
+	* bindings.el: Shorten and clarify usual mode line mouse help string.
+
+	* Makefile.in (autoloads): Don't include `obsolete'.
+
 2006-11-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* printing.el (pr-alist-custom-set, pr-ps-utility-custom-set)

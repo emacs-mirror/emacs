@@ -1,3 +1,15 @@
+2006-11-06  Richard Stallman  <rms@gnu.org>
+
+	* lists.texi (List Variables): Document COMPARE-FN.
+
+	* keymaps.texi: Avoid use of "binding" to mean a relation;
+	use it only to refer to the meaning associated with a key. 
+	(Keymaps): Change menu node description.
+	
+	* elisp.texi (Top): Change menu node description.
+
+	* display.texi (Managing Overlays): Document overlay-recenter.
+
 2006-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Makefile.in: Use relative paths to avoid advertising filesystem
