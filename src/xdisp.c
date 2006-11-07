@@ -5899,20 +5899,21 @@ get_next_display_element (it)
 	      goto get_next;
 	    }
 	}
+    }
 
-      /* Adjust face id for a multibyte character.  There are no
-         multibyte character in unibyte text.  */
-      if (it->multibyte_p
-	  && success_p
-	  && FRAME_WINDOW_P (it->f))
-	{
-	  struct face *face = FACE_FROM_ID (it->f, it->face_id);
-	  int pos = (it->s ? -1
-		     : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
-		     : IT_CHARPOS (*it));
+  /* Adjust face id for a multibyte character.  There are no multibyte
+     character in unibyte text.  */
+  if ((it->what == IT_CHARACTER || it->what == IT_COMPOSITION)
+      && it->multibyte_p
+      && success_p
+      && FRAME_WINDOW_P (it->f))
+    {
+      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+      int pos = (it->s ? -1
+		 : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
+		 : IT_CHARPOS (*it));
 	  
-	  it->face_id = FACE_FOR_CHAR (it->f, face, it->c, pos, it->string);
-	}
+      it->face_id = FACE_FOR_CHAR (it->f, face, it->c, pos, it->string);
     }
 
   /* Is this character the last one of a run of characters with
@@ -20883,13 +20884,15 @@ x_produce_glyphs (it)
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
       int boff;			/* baseline offset */
       struct composition *cmp = composition_table[it->cmp_id];
+      int glyph_len = cmp->glyph_len;
+      XFontStruct *font = face->font;
 
       it->nglyphs = 1;
 
 #ifdef USE_FONT_BACKEND
       if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
 	{
-	  if (! cmp->font)
+	  if (! cmp->font || cmp->font != font)
 	    font_prepare_composition (cmp);
 	}
       else
@@ -20901,7 +20904,7 @@ x_produce_glyphs (it)
 	 here we check only the font of the first glyph.  This leads
 	 to incorrect display, but it's very rare, and C-l (recenter)
 	 can correct the display anyway.  */
-      if (! cmp->font)
+      if (! cmp->font || cmp->font != font)
 	{
 	  /* Ascent and descent of the font of the first character
 	     of this composition (adjusted by baseline offset).
@@ -20913,11 +20916,9 @@ x_produce_glyphs (it)
 	  int lbearing, rbearing;
 	  int i, width, ascent, descent;
 	  int left_padded = 0, right_padded = 0;
-	  int glyph_len = cmp->glyph_len;
 	  int face_id;
 	  int c;
 	  XChar2b char2b;
-	  XFontStruct *font;
 	  XCharStruct *pcm;
 	  int font_not_found_p;
 	  struct font_info *font_info;
@@ -20937,23 +20938,16 @@ x_produce_glyphs (it)
 	  if (i > 0)
 	    left_padded = 1;
 
-	  /* Get the font of the first non-TAB component.  */
 	  pos = (STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
 		 : IT_CHARPOS (*it));
-	  face_id = FACE_FOR_CHAR (it->f, face, c, pos, it->string);
-	  font = FACE_FROM_ID (it->f, face_id)->font;
 	  /* When no suitable font found, use the default font.  */
 	  font_not_found_p = font == NULL;
 	  if (font_not_found_p)
 	    {
-	      font = FACE_FROM_ID (it->f, it->face_id)->font;
-	      font_info
-		= FONT_INFO_FROM_FACE (it->f,
-				       FACE_FROM_ID (it->f, it->face_id));
+	      face = face->ascii_face;
+	      font = face->font;
 	    }
-	  else
-	    font_info
-	      = FONT_INFO_FROM_FACE (it->f, FACE_FROM_ID (it->f, face_id));
+	  font_info = FONT_INFO_FROM_FACE (it->f, face);
 	  boff = font_info->baseline_offset;
 	  if (font_info->vertical_centering)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
@@ -20966,7 +20960,7 @@ x_produce_glyphs (it)
 	  pcm = NULL;
 	  if (! font_not_found_p)
 	    {
-	      get_char_face_and_encoding (it->f, c, face_id,
+	      get_char_face_and_encoding (it->f, c, it->face_id,
 					  &char2b, it->multibyte_p, 0);
 	      pcm = get_per_char_metric (font, font_info, &char2b,
 					 FONT_TYPE_FOR_MULTIBYTE (font, c));

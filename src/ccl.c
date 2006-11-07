@@ -1782,7 +1782,10 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
   ccl->stack_idx = stack_idx;
   ccl->prog = ccl_prog;
   ccl->consumed = src - source;
-  ccl->produced = dst - destination;
+  if (dst != NULL)
+    ccl->produced = dst - destination;
+  else
+    ccl->produced = 0;
 }
 
 /* Resolve symbols in the specified CCL code (Lisp vector).  This
