@@ -449,16 +449,21 @@ get_server_config (server, authentication)
   else
     {
       char *home = getenv ("HOME");
-#ifdef WINDOWSNT
-      if (! home)
-          home = getenv ("APPDATA");
-#endif
+
       if (home)
         {
           char *path = alloca (32 + strlen (home) + strlen (server_file));
           sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
           config = fopen (path, "rb");
         }
+#ifdef WINDOWSNT
+      if (!config && (home = getenv ("APPDATA")))
+        {
+          char *path = alloca (32 + strlen (home) + strlen (server_file));
+          sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
+          config = fopen (path, "rb");
+        }
+#endif
     }
 
   if (! config)
