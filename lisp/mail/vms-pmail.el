@@ -40,9 +40,9 @@
 ;;;     then execute them as though emacs were just starting up.
 ;;;
 (defun vms-pmail-save-and-exit ()
-  "Save current buffer and exit emacs.
-If this emacs cannot be suspended, you will be prompted about modified
-buffers other than the mail buffer.  BEWARE --- suspending emacs without
+  "Save current buffer and exit Emacs.
+If this Emacs cannot be suspended, you will be prompted about modified
+buffers other than the mail buffer.  BEWARE --- suspending Emacs without
 saving your mail buffer causes mail to abort the send (potentially useful
 since the mail buffer is still here)."
   (interactive)
@@ -55,7 +55,7 @@ since the mail buffer is still here)."
     (suspend-emacs)))
 
 (defun vms-pmail-abort ()
-  "Mark buffer as unmodified and exit emacs.
+  "Mark buffer as unmodified and exit Emacs.
 When the editor is exited without saving its buffer, VMS mail does not
 send a message.  If you have other modified buffers you will be
 prompted for what to do with them."
@@ -78,7 +78,7 @@ following bindings are established.
 \\[vms-pmail-save-and-exit]	vms-pmail-save-and-exit
 \\[vms-pmail-abort]	vms-pmail-abort
 
-All other emacs commands are still available."
+All other Emacs commands are still available."
   (interactive)
   (auto-save-mode -1)
   (text-mode)

@@ -184,17 +184,17 @@ and that each of these directories contains a file called XXX.el.  Then
 XXX.el in the site-lisp directory is referred to by all of:
 \(require 'XXX\), \(autoload .... \"XXX\"\), \(load-library \"XXX\"\) etc.
 
-The first XXX.el file prevents emacs from seeing the second \(unless
-the second is loaded explicitly via load-file\).
+The first XXX.el file prevents Emacs from seeing the second \(unless
+the second is loaded explicitly via `load-file'\).
 
 When not intended, such shadowings can be the source of subtle
 problems.  For example, the above situation may have arisen because the
-XXX package was not distributed with versions of emacs prior to
-19.30.  An emacs maintainer downloaded XXX from elsewhere and installed
-it.  Later, XXX was updated and included in the emacs distribution.
-Unless the emacs maintainer checks for this, the new version of XXX
+XXX package was not distributed with versions of Emacs prior to
+19.30.  An Emacs maintainer downloaded XXX from elsewhere and installed
+it.  Later, XXX was updated and included in the Emacs distribution.
+Unless the Emacs maintainer checks for this, the new version of XXX
 will be hidden behind the old \(which may no longer work with the new
-emacs version\).
+Emacs version\).
 
 This function performs these checks and flags all possible
 shadowings.  Because a .el file may exist without a corresponding .elc

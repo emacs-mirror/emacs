@@ -296,10 +296,10 @@ attribute."
 (defun load-with-code-conversion (fullname file &optional noerror nomessage)
   "Execute a file of Lisp code named FILE whose absolute name is FULLNAME.
 The file contents are decoded before evaluation if necessary.
-If optional second arg NOERROR is non-nil,
+If optional third arg NOERROR is non-nil,
  report no error if FILE doesn't exist.
 Print messages at start and end of loading unless
- optional third arg NOMESSAGE is non-nil.
+ optional fourth arg NOMESSAGE is non-nil.
 Return t if file exists."
   (if (null (file-readable-p fullname))
       (and (null noerror)
@@ -358,7 +358,7 @@ Return t if file exists."
 	  (kill-buffer buffer)))
       (unless purify-flag
  	(do-after-load-evaluation fullname))
-      
+
       (unless (or nomessage noninteractive)
 	(if source
 	    (message "Loading %s (source)...done" file)
@@ -1665,8 +1665,7 @@ cons (CODING . SOURCE), where CODING is the specified coding
 system and SOURCE is a symbol `auto-coding-alist',
 `auto-coding-regexp-alist', `coding:', or `auto-coding-functions'
 indicating by what CODING is specified.  Note that the validity
-of CODING is not checked; it's callers responsibility to check
-it.
+of CODING is not checked; it's callers responsibility to check it.
 
 If nothing is specified, the return value is nil."
   (or (let ((coding-system (auto-coding-alist-lookup filename)))
@@ -1687,7 +1686,7 @@ If nothing is specified, the return value is nil."
 	;; and for "unibyte:" at the head and tail of SIZE bytes.
 	(setq head-found (or (search-forward "coding:" head-end t)
 			     (search-forward "unibyte:" head-end t)
-			     (search-forward "enable-character-translation:" 
+			     (search-forward "enable-character-translation:"
 					     head-end t)))
 	(if (and head-found (> head-found tail-start))
 	    ;; Head and tail are overlapped.

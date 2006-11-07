@@ -151,13 +151,15 @@ request.")
 
 (defun url-http-create-request (url &optional ref-url)
   "Create an HTTP request for URL, referred to by REF-URL."
-  (declare (special proxy-object proxy-info))
+  (declare (special proxy-object proxy-info 
+		    url-http-method url-http-data
+		    url-http-extra-headers))
   (let* ((extra-headers)
 	 (request nil)
-	 (no-cache (cdr-safe (assoc "Pragma" url-request-extra-headers)))
+	 (no-cache (cdr-safe (assoc "Pragma" url-http-extra-headers)))
 	 (proxy-obj (and (boundp 'proxy-object) proxy-object))
 	 (proxy-auth (if (or (cdr-safe (assoc "Proxy-Authorization"
-					      url-request-extra-headers))
+					      url-http-extra-headers))
 			     (not proxy-obj))
 			 nil
 		       (let ((url-basic-auth-storage
@@ -166,7 +168,7 @@ request.")
 	 (real-fname (concat (url-filename (or proxy-obj url))
 			     (url-recreate-url-attributes (or proxy-obj url))))
 	 (host (url-host (or proxy-obj url)))
-	 (auth (if (cdr-safe (assoc "Authorization" url-request-extra-headers))
+	 (auth (if (cdr-safe (assoc "Authorization" url-http-extra-headers))
 		   nil
 		 (url-get-authentication (or
 					  (and (boundp 'proxy-info)
@@ -191,12 +193,12 @@ request.")
 		 (memq 'lastloc url-privacy-level)))
 	(setq ref-url nil))
 
-    ;; url-request-extra-headers contains an assoc-list of
+    ;; url-http-extra-headers contains an assoc-list of
     ;; header/value pairs that we need to put into the request.
     (setq extra-headers (mapconcat
 			 (lambda (x)
 			   (concat (car x) ": " (cdr x)))
-			 url-request-extra-headers "\r\n"))
+			 url-http-extra-headers "\r\n"))
     (if (not (equal extra-headers ""))
 	(setq extra-headers (concat extra-headers "\r\n")))
 
@@ -219,7 +221,7 @@ request.")
            (delq nil
             (list
              ;; The request
-             (or url-request-method "GET") " "
+             (or url-http-method "GET") " "
              (if proxy-obj (url-recreate-url proxy-obj) real-fname)
              " HTTP/" url-http-version "\r\n"
              ;; Version of MIME we speak
@@ -267,7 +269,7 @@ request.")
                                                (equal "https" (url-type url)))
              ;; If-modified-since
              (if (and (not no-cache)
-                      (member url-request-method '("GET" nil)))
+                      (member url-http-method '("GET" nil)))
                  (let ((tm (url-is-cached (or proxy-obj url))))
                    (if tm
                        (concat "If-modified-since: "
@@ -277,15 +279,15 @@ request.")
                           "Referer: " ref-url "\r\n"))
              extra-headers
              ;; Length of data
-             (if url-request-data
+             (if url-http-data
                  (concat
                   "Content-length: " (number-to-string
-                                      (length url-request-data))
+                                      (length url-http-data))
                   "\r\n"))
              ;; End request
              "\r\n"
              ;; Any data
-             url-request-data))
+             url-http-data))
            ""))
     (url-http-debug "Request is: \n%s" request)
     request))
@@ -303,21 +305,29 @@ This allows us to use `mail-fetch-field', etc."
   (declare (special status success url-http-method url-http-data
 		    url-callback-function url-callback-arguments))
   (url-http-debug "Handling %s authentication" (if proxy "proxy" "normal"))
-  (let ((auth (or (mail-fetch-field (if proxy "proxy-authenticate" "www-authenticate"))
-		  "basic"))
+  (let ((auths (or (nreverse
+		    (mail-fetch-field
+		     (if proxy "proxy-authenticate" "www-authenticate")
+		     nil nil t))
+		  '("basic")))
 	(type nil)
 	(url (url-recreate-url url-current-object))
 	(url-basic-auth-storage 'url-http-real-basic-auth-storage)
-	)
-
+	auth)
     ;; Cheating, but who cares? :)
     (if proxy
 	(setq url-basic-auth-storage 'url-http-proxy-basic-auth-storage))
 
-    (setq auth (url-eat-trailing-space (url-strip-leading-spaces auth)))
-    (if (string-match "[ \t]" auth)
-	(setq type (downcase (substring auth 0 (match-beginning 0))))
-      (setq type (downcase auth)))
+    ;; find first supported auth
+    (while auths
+      (setq auth (url-eat-trailing-space (url-strip-leading-spaces (car auths))))
+      (if (string-match "[ \t]" auth)
+	  (setq type (downcase (substring auth 0 (match-beginning 0))))
+	(setq type (downcase auth)))
+      (if (url-auth-registered type)
+	  (setq auths nil)		; no more check
+	(setq auth nil
+	      auths (cdr auths))))
 
     (if (not (url-auth-registered type))
 	(progn

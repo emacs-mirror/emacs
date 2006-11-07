@@ -111,9 +111,9 @@
 See `mouse-copy-work-around-drag-bug' for details.")
 
 (defun mouse-copy-work-around-drag-bug (start-event end-event)
-  "Code to work around a bug in post-19.29 emacs:  it drops mouse-drag events.
+  "Code to work around a bug in post-19.29 Emacs: it drops mouse-drag events.
 The problem occurs under XFree86-3.1.1 (X11R6pl11) but not under X11R5,
-and under post-19.29 but not early versions of emacs.
+and under post-19.29 but not early versions of Emacs.
 
 19.29 and 19.30 seems to drop mouse drag events
 sometimes. (Reproducible under XFree86-3.1.1 (X11R6pl11) and

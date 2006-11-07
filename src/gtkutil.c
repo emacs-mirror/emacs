@@ -3720,7 +3720,12 @@ update_frame_tool_bar (f)
 
       if (img->load_failed_p || img->pixmap == None)
         {
-          if (wicon) gtk_widget_hide (wicon);
+          if (wicon)
+	    gtk_widget_hide (wicon);
+	  else
+	    gtk_toolbar_insert (GTK_TOOLBAR (x->toolbar_widget),
+				gtk_tool_button_new (NULL, ""),
+				i);
           continue;
         }
 

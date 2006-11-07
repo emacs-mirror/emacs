@@ -6,9 +6,8 @@
 ;; This file is part of GNU Emacs.
 
 ;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>
-;; Maintainer: Emmanuel Briot <briot@gnat.com>
+;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages, ada
-;; Rolf Ebert's version: 2.26
 
 ;;; Commentary:
 ;; This file is now automatically loaded from ada-mode.el, and creates a submenu
@@ -64,7 +63,7 @@
 (require 'ada-mode)
 
 (defun ada-func-or-proc-name ()
-  ;; Get the name of the current function or procedure."
+  "Return the name of the current function or procedure."
   (save-excursion
     (let ((case-fold-search t))
       (if (re-search-backward ada-procedure-start-regexp nil t)
@@ -305,7 +304,7 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
 	(backward-char 1)
 	(forward-sexp 1)))
     (if (looking-at ";")
-        (delete-char 1)))
+	(delete-char 1)))
   " is" \n
    _ \n
    < "begin" \n

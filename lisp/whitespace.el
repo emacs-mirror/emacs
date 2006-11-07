@@ -194,7 +194,7 @@ It can be overriden by setting a buffer local variable
   :group 'whitespace)
 
 (defcustom whitespace-spacetab-regexp "[ ]+\t"
-  "Regexp to match a space followed by a TAB."
+  "Regexp to match one or more spaces followed by a TAB."
   :type 'regexp
   :group 'whitespace)
 
@@ -205,8 +205,9 @@ It can be overriden by setting a buffer local variable
   :type 'boolean
   :group 'whitespace)
 
-(defcustom whitespace-indent-regexp (concat "^\\(\t*\\)    " "    ")
-  "Regexp to match (any TABS followed by) 8/more whitespaces at start of line."
+(defcustom whitespace-indent-regexp "^\t*\\(        \\)+"
+  "Regexp to match multiples of eight spaces near line beginnings.
+The default value ignores leading TABs."
   :type 'regexp
   :group 'whitespace)
 
@@ -217,9 +218,8 @@ It can be overriden by setting a buffer local variable
   :type 'boolean
   :group 'whitespace)
 
-;; (defcustom whitespace-ateol-regexp "[ \t]$"
 (defcustom whitespace-ateol-regexp "[ \t]+$"
-  "Regexp to match a TAB or a space at the EOL."
+  "Regexp to match one or more TABs or spaces at line ends."
   :type 'regexp
   :group 'whitespace)
 
@@ -425,7 +425,8 @@ and:
 	(progn
 	  (whitespace-check-buffer-list (buffer-name) buffer-file-name)
 	  (whitespace-tickle-timer)
-	  (whitespace-unhighlight-the-space)
+	  (overlay-recenter (point-max))
+	  (remove-overlays nil nil 'face 'whitespace-highlight)
 	  (if whitespace-auto-cleanup
 	      (if buffer-read-only
 		  (if (not quiet)
@@ -591,74 +592,53 @@ See `whitespace-buffer' docstring for a summary of the problems."
     (whitespace-buffer t)))
 
 (defun whitespace-buffer-leading ()
-  "Check to see if there are any empty lines at the top of the file."
+  "Return t if the current buffer has leading newline characters.
+If highlighting is enabled, highlight these characters."
   (save-excursion
-    (let ((pmin nil)
-	  (pmax nil))
-      (goto-char (point-min))
-      (beginning-of-line)
-      (setq pmin (point))
-      (end-of-line)
-      (setq pmax (point))
-      (if (equal pmin pmax)
-	  (progn
-	    (whitespace-highlight-the-space pmin (1+ pmax))
-	    t)
-	nil))))
+    (goto-char (point-min))
+    (skip-chars-forward "\n")
+    (unless (bobp)
+      (whitespace-highlight-the-space (point-min) (point))
+      t)))
 
 (defun whitespace-buffer-leading-cleanup ()
-  "Remove any empty lines at the top of the file."
+  "Remove any leading newline characters from current buffer."
   (save-excursion
     (goto-char (point-min))
     (skip-chars-forward "\n")
     (delete-region (point-min) (point))))
 
 (defun whitespace-buffer-trailing ()
-  "Check to see if are is more than one empty line at the bottom."
-  (save-excursion
-    (let ((pmin nil)
-	  (pmax nil))
-      (goto-char (point-max))
-      (beginning-of-line)
-      (setq pmin (point))
-      (end-of-line)
-      (setq pmax (point))
-      (if (equal pmin pmax)
-	  (progn
-	    (goto-char (- (point) 1))
-	    (beginning-of-line)
-	    (setq pmin (point))
-	    (end-of-line)
-	    (setq pmax (point))
-	    (if (equal pmin pmax)
-		(progn
-		  (whitespace-highlight-the-space (- pmin 1) pmax)
-		  t)
-	      nil))
-	nil))))
-
-(defun whitespace-buffer-trailing-cleanup ()
-  "Delete all the empty lines at the bottom."
+  "Return t if the current buffer has extra trailing newline characters.
+If highlighting is enabled, highlight these characters."
   (save-excursion
     (goto-char (point-max))
     (skip-chars-backward "\n")
-    (if (not (bolp))
-	(forward-char 1))
-    (delete-region (point) (point-max))))
+    (forward-line)
+    (unless (eobp)
+      (whitespace-highlight-the-space (point) (point-max))
+      t)))
+
+(defun whitespace-buffer-trailing-cleanup ()
+  "Remove extra trailing newline characters from current buffer."
+  (save-excursion
+    (goto-char (point-max))
+    (skip-chars-backward "\n")
+    (unless (eobp)
+      (forward-line)
+      (delete-region (point) (point-max)))))
 
 (defun whitespace-buffer-search (regexp)
   "Search for any given whitespace REGEXP."
-  (let ((whitespace-retval ""))
-    (save-excursion
-      (goto-char (point-min))
-      (while (re-search-forward regexp nil t)
-	(progn
-	  (setq whitespace-retval (format "%s %s" whitespace-retval
-					(match-beginning 0)))
-	(whitespace-highlight-the-space (match-beginning 0) (match-end 0))))
-      (if (equal "" whitespace-retval)
-	  nil
-	whitespace-retval))))
+  (with-local-quit
+    (let (whitespace-retval)
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward regexp nil t)
+	  (whitespace-highlight-the-space (match-beginning 0) (match-end 0))
+	  (push (match-beginning 0) whitespace-retval)))
+      (when whitespace-retval
+	(format " %s" (nreverse whitespace-retval))))))
 
 (defun whitespace-buffer-cleanup (regexp newregexp)
   "Search for any given whitespace REGEXP and replace it with the NEWREGEXP."
@@ -713,17 +693,14 @@ Also with whitespaces whose testing has been turned off."
   "Highlight the current line, unhighlighting a previously jumped to line."
   (if whitespace-display-spaces-in-color
       (let ((ol (whitespace-make-overlay b e)))
-	(push ol whitespace-highlighted-space)
 	(whitespace-overlay-put ol 'face 'whitespace-highlight))))
-;;  (add-hook 'pre-command-hook 'whitespace-unhighlight-the-space))
 
 (defun whitespace-unhighlight-the-space()
   "Unhighlight the currently highlight line."
   (if (and whitespace-display-spaces-in-color whitespace-highlighted-space)
       (progn
 	(mapc 'whitespace-delete-overlay whitespace-highlighted-space)
-	(setq whitespace-highlighted-space nil))
-    (remove-hook 'pre-command-hook 'whitespace-unhighlight-the-space)))
+	(setq whitespace-highlighted-space nil))))
 
 (defun whitespace-check-buffer-list (buf-name buf-file)
   "Add a buffer and its file to the whitespace monitor list.
@@ -780,7 +757,7 @@ If timer is not set, then set it to scan the files in
 	  (whitespace-refresh-rescan-list buffile bufname))))))
 
 (defun whitespace-refresh-rescan-list (buffile bufname)
-  "Refresh the list of files to be rescaned for whitespace creep."
+  "Refresh the list of files to be rescanned for whitespace creep."
   (if whitespace-all-buffer-files
       (setq whitespace-all-buffer-files
 	    (delete (list buffile bufname) whitespace-all-buffer-files))

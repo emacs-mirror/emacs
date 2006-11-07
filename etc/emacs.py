@@ -50,11 +50,11 @@ def eargs (name, imports):
 	if len (parts) > 1:
 	    exec 'import ' + parts[0] # might fail
 	func = eval (name)
-	if inspect.isbuiltin (func):
+	if inspect.isbuiltin (func) or type(func) is type:
 	    doc = func.__doc__
 	    if doc.find (' ->') != -1:
 		print '_emacs_out', doc.split (' ->')[0]
-	    elif doc.find ('\n') != -1:
+	    else:
 		print '_emacs_out', doc.split ('\n')[0]
 	    return
 	if inspect.ismethod (func):

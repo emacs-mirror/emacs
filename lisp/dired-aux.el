@@ -1182,12 +1182,20 @@ Special value `always' suppresses confirmation."
 		       dired-create-files-failures)
 		 (setq files nil)
 		 (dired-log "Copying error for %s:\n%s\n" from err)))))
-	  (while files
-	    (dired-copy-file-recursive
-	     (expand-file-name (car files) from)
-	     (expand-file-name (car files) to)
-	     ok-flag preserve-time nil recursive)
-	    (pop files)))
+	  (dolist (file files)
+	    (let ((thisfrom (expand-file-name file from))
+		  (thisto (expand-file-name file to)))
+	      ;; Catch errors copying within a directory,
+	      ;; and report them through the dired log mechanism
+	      ;; just as our caller will do for the top level files.
+	      (condition-case err
+		  (dired-copy-file-recursive
+		   thisfrom thisto
+		   ok-flag preserve-time nil recursive)
+		(file-error
+		 (push (dired-make-relative thisfrom)
+		       dired-create-files-failures)
+		 (dired-log "Copying error for %s:\n%s\n" thisfrom err))))))
       ;; Not a directory.
       (or top (dired-handle-overwrite to))
       (condition-case err
@@ -1198,11 +1206,7 @@ Special value `always' suppresses confirmation."
 	(file-date-error 
 	 (push (dired-make-relative from)
 	       dired-create-files-failures)
-	 (dired-log "Can't set date on %s:\n%s\n" from err))
-	(file-error
-	 (push (dired-make-relative from)
-	       dired-create-files-failures)
-	 (dired-log "Copying error for %s:\n%s\n" from err))))))
+	 (dired-log "Can't set date on %s:\n%s\n" from err))))))
 
 ;;;###autoload
 (defun dired-rename-file (file newname ok-if-already-exists)

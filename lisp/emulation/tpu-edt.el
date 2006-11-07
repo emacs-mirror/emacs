@@ -432,7 +432,7 @@ CSI is DEC's name for the sequence <ESC>[.")
   (let ((map (make-keymap)))
     (define-key map "\e[" GOLD-CSI-map)                  ; GOLD-CSI map
     (define-key map "\eO" GOLD-SS3-map)                  ; GOLD-SS3 map
-    ;; 
+    ;;
     (define-key map "\C-A" 'tpu-toggle-overwrite-mode)   ; ^A
     (define-key map "\C-B" 'nil)                         ; ^B
     (define-key map "\C-C" 'nil)                         ; ^C
@@ -557,7 +557,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 (defvar SS3-map
   (let ((map (make-sparse-keymap)))
     (define-key map "P" GOLD-map)                         ; GOLD map
-    ;; 
+    ;;
     (define-key map "A" 'tpu-previous-line)               ; up
     (define-key map "B" 'tpu-next-line)                   ; down
     (define-key map "C" 'tpu-forward-char)                ; right
@@ -1141,7 +1141,7 @@ This is useful for inserting control characters."
        R     Toggle rectangular mode for remove and insert
        S     Search and substitute - line mode REPLACE command
 
-      ^T     Toggle control key bindings between TPU and emacs
+      ^T     Toggle control key bindings between TPU and Emacs
        U     Undo - undo the last edit
        W     Write - save current buffer
        X     Exit - save all modified buffers and exit
@@ -1292,7 +1292,7 @@ kills modified buffers without asking."
   (kill-buffer (current-buffer)))
 
 (defun tpu-save-all-buffers-kill-emacs nil
-  "Save all buffers and exit emacs."
+  "Save all buffers and exit Emacs."
   (interactive)
   (let ((delete-old-versions t))
     (save-buffers-kill-emacs t)))
@@ -1852,8 +1852,8 @@ A negative argument means replace all occurrences of the search string."
     (message "Replaced %s occurrence%s." strings (if (not (= 1 strings)) "s" ""))))
 
 (defun tpu-emacs-replace (&optional dont-ask)
-  "A TPU-edt interface to the emacs replace functions.  If TPU-edt is
-currently in regular expression mode, the emacs regular expression
+  "A TPU-edt interface to the Emacs replace functions.  If TPU-edt is
+currently in regular expression mode, the Emacs regular expression
 replace functions are used.  If an argument is supplied, replacements
 are performed without asking.  Only works in forward direction."
   (interactive "P")
@@ -2285,7 +2285,7 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
   (setq tpu-control-keys t))
 
 (defun tpu-reset-control-keys (tpu-style)
-  "Set control keys to TPU or emacs style functions."
+  "Set control keys to TPU or Emacs style functions."
   (let* ((tpu   (and tpu-style (not tpu-control-keys)))
 	 (emacs (and (not tpu-style) tpu-control-keys))
 	 (doit  (or tpu emacs)))

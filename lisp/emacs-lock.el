@@ -38,7 +38,7 @@
 ;;; Code:
 
 (defvar emacs-lock-from-exiting nil
-  "Whether emacs is locked to prevent exiting.  See `check-emacs-lock'.")
+  "Whether Emacs is locked to prevent exiting.  See `check-emacs-lock'.")
 (make-variable-buffer-local 'emacs-lock-from-exiting)
 
 (defvar emacs-lock-buffer-locked nil

@@ -1669,7 +1669,7 @@ Buffers menu is regenerated."
 			     'menu-item
 			     "List All Buffers"
 			     'list-buffers
-			     :help "Pop up a window listing all emacs buffers"
+			     :help "Pop up a window listing all Emacs buffers"
 			     ))))
 	 (setq buffers-menu
 	       (nconc buffers-menu menu-bar-buffers-menu-command-entries))

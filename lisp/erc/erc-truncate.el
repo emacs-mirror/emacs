@@ -48,7 +48,7 @@ Used only when auto-truncation is enabled.
 (define-erc-module truncate nil
   "Truncate a query buffer if it gets too large.
 This prevents the query buffer from getting too large, which can
-bring any grown emacs to its knees after a few days worth of
+bring any grown Emacs to its knees after a few days worth of
 tracking heavy-traffic channels."
   ;;enable
   ((add-hook 'erc-insert-post-hook 'erc-truncate-buffer))

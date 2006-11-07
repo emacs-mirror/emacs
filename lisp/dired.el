@@ -791,6 +791,9 @@ wildcards, erases the buffer, and builds the subdir-alist anew
       (run-hooks 'dired-before-readin-hook)
       (if (consp buffer-undo-list)
 	  (setq buffer-undo-list nil))
+      (make-local-variable 'file-name-coding-system)
+      (setq file-name-coding-system
+	    (or coding-system-for-read file-name-coding-system))
       (let (buffer-read-only
 	    ;; Don't make undo entries for readin.
 	    (buffer-undo-list t))

@@ -417,7 +417,7 @@ Search for @var{words}, ignoring details of punctuation.
 Search backward for @var{words}, ignoring details of punctuation.
 @end table
 
-  Word search is a special case of nonincremental search and is invoked
+  Word search as a special case of nonincremental search is invoked
 with @kbd{C-s @key{RET} C-w}.  This is followed by the search string,
 which must always be terminated with @key{RET}.  Being nonincremental,
 this search does not start until the argument is terminated.  It works
@@ -425,6 +425,13 @@ by constructing a regular expression and searching for that; see
 @ref{Regexp Search}.
 
   Use @kbd{C-r @key{RET} C-w} to do backward word search.
+
+  You can also invoke word search with @kbd{C-s M-e C-w} or @kbd{C-r
+M-e C-w} followed by the search string and terminated with @key{RET},
+@kbd{C-s} or @kbd{C-r}.  This puts word search into incremental mode
+where you can use all keys available for incremental search.  However,
+when you type more words in incremental word search, it will fail
+until you type complete words.
 
 @findex word-search-forward
 @findex word-search-backward
