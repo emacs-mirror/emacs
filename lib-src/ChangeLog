@@ -1,5 +1,8 @@
 2006-11-07  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacsclient.c (get_server_config) [WINDOWSNT]: Look for the server
+	file on APPDATA if it doesn't exist on HOME, even if HOME is defined.
+
 	* emacsclient.c (get_server_config): Extract also the Emacs pid
 	from the server file.  On Windows, try to force the Emacs frame to
 	the foreground.
