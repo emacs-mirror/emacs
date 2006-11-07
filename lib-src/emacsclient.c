@@ -432,7 +432,7 @@ initialize_sockets ()
 
 /*
  * Read the information needed to set up a TCP comm channel with
- * the Emacs server: host, port and authentication string.
+ * the Emacs server: host, port, pid and authentication string.
 */
 int
 get_server_config (server, authentication)
@@ -441,6 +441,7 @@ get_server_config (server, authentication)
 {
   char dotted[32];
   char *port;
+  char *pid;
   FILE *config = NULL;
 
   if (file_name_absolute_p (server_file))
@@ -464,9 +465,11 @@ get_server_config (server, authentication)
     return FALSE;
 
   if (fgets (dotted, sizeof dotted, config)
-      && (port = strchr (dotted, ':')))
+      && (port = strchr (dotted, ':'))
+      && (pid = strchr (port, ' ')))
     {
       *port++ = '\0';
+      *pid++  = '\0';
     }
   else
     {
@@ -485,6 +488,30 @@ get_server_config (server, authentication)
     }
 
   fclose (config);
+
+#ifdef WINDOWSNT
+  /*
+    Modern Windows restrict which processes can set the foreground window.
+    So, for emacsclient to be able to force Emacs into the foreground, we
+    have to call AllowSetForegroundWindow().  Unfortunately, older Windows
+    (W95, W98 and NT) don't have this function, so we have to check first.
+
+    We're doing this here because it has to be done before sending info
+    to Emacs, and otherwise we'll need a global variable just to pass around
+    the pid, which is also inelegant.
+   */
+  {
+    HMODULE hUser32;
+
+    if (hUser32 = LoadLibrary ("user32.dll"))
+      {
+        void (*set_fg)(DWORD);
+        if (set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
+          set_fg (atoi (pid));
+        FreeLibrary (hUser32);
+      }
+  }
+#endif
 
   return TRUE;
 }
