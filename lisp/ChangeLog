@@ -1,3 +1,7 @@
+2006-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method): scp is the default method.
+
 2006-11-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-start): Save also the Emacs pid in the server file.
