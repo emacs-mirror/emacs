@@ -360,6 +360,7 @@ Prefix arg means just kill any existing server communications subprocess."
               (setq buffer-file-coding-system 'no-conversion)
               (insert (format-network-address
                        (process-contact server-process :local))
+                      " " (int-to-string (emacs-pid))
                       "\n" auth-key))))))))
 
 ;;;###autoload
