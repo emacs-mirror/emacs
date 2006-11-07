@@ -425,8 +425,8 @@ and:
 	(progn
 	  (whitespace-check-buffer-list (buffer-name) buffer-file-name)
 	  (whitespace-tickle-timer)
-	  (remove-overlays nil nil 'face 'whitespace-highlight)
 	  (overlay-recenter (point-max))
+	  (remove-overlays nil nil 'face 'whitespace-highlight)
 	  (if whitespace-auto-cleanup
 	      (if buffer-read-only
 		  (if (not quiet)
