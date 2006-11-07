@@ -835,8 +835,8 @@ OSStatus
 create_apple_event_from_event_ref (event, num_params, names, types, result)
      EventRef event;
      UInt32 num_params;
-     EventParamName *names;
-     EventParamType *types;
+     const EventParamName *names;
+     const EventParamType *types;
      AppleEvent *result;
 {
   OSStatus err;
@@ -891,7 +891,7 @@ OSErr
 create_apple_event_from_drag_ref (drag, num_types, types, result)
      DragRef drag;
      UInt32 num_types;
-     FlavorType *types;
+     const FlavorType *types;
      AppleEvent *result;
 {
   OSErr err;
@@ -1315,7 +1315,7 @@ cfproperty_list_to_lisp (plist, with_tag, hash_bound)
 
 static void
 skip_white_space (p)
-     char **p;
+     const char **p;
 {
   /* WhiteSpace = {<space> | <horizontal tab>} */
   while (*P == ' ' || *P == '\t')
@@ -1324,7 +1324,7 @@ skip_white_space (p)
 
 static int
 parse_comment (p)
-     char **p;
+     const char **p;
 {
   /* Comment = "!" {<any character except null or newline>} */
   if (*P == '!')
@@ -1342,7 +1342,7 @@ parse_comment (p)
 /* Don't interpret filename.  Just skip until the newline.  */
 static int
 parse_include_file (p)
-     char **p;
+     const char **p;
 {
   /* IncludeFile = "#" WhiteSpace "include" WhiteSpace FileName WhiteSpace */
   if (*P == '#')
@@ -1359,7 +1359,7 @@ parse_include_file (p)
 
 static char
 parse_binding (p)
-     char **p;
+     const char **p;
 {
   /* Binding = "." | "*"  */
   if (*P == '.' || *P == '*')
@@ -1377,7 +1377,7 @@ parse_binding (p)
 
 static Lisp_Object
 parse_component (p)
-     char **p;
+     const char **p;
 {
   /*  Component = "?" | ComponentName
       ComponentName = NameChar {NameChar}
@@ -1389,7 +1389,7 @@ parse_component (p)
     }
   else if (isalnum (*P) || *P == '_' || *P == '-')
     {
-      char *start = P++;
+      const char *start = P++;
 
       while (isalnum (*P) || *P == '_' || *P == '-')
 	P++;
@@ -1402,7 +1402,7 @@ parse_component (p)
 
 static Lisp_Object
 parse_resource_name (p)
-     char **p;
+     const char **p;
 {
   Lisp_Object result = Qnil, component;
   char binding;
@@ -1436,7 +1436,7 @@ parse_resource_name (p)
 
 static Lisp_Object
 parse_value (p)
-     char **p;
+     const char **p;
 {
   char *q, *buf;
   Lisp_Object seq = Qnil, result;
@@ -1526,7 +1526,7 @@ parse_value (p)
 
 static Lisp_Object
 parse_resource_line (p)
-     char **p;
+     const char **p;
 {
   Lisp_Object quarks, value;
 
@@ -1629,7 +1629,7 @@ xrm_q_put_resource (database, quarks, value)
 void
 xrm_merge_string_database (database, data)
      XrmDatabase database;
-     char *data;
+     const char *data;
 {
   Lisp_Object quarks_value;
 
@@ -1705,7 +1705,7 @@ xrm_q_get_resource (database, quark_name, quark_class)
 Lisp_Object
 xrm_get_resource (database, name, class)
      XrmDatabase database;
-     char *name, *class;
+     const char *name, *class;
 {
   Lisp_Object key, query_cache, quark_name, quark_class, tmp;
   int i, nn, nc;
@@ -1794,7 +1794,7 @@ xrm_cfproperty_list_to_value (plist)
 
 XrmDatabase
 xrm_get_preference_database (application)
-     char *application;
+     const char *application;
 {
 #if TARGET_API_MAC_CARBON
   CFStringRef app_id, *keys, user_doms[2], host_doms[2];
@@ -5129,7 +5129,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	  int minfd, fd;
 	  CFRunLoopRef runloop =
 	    (CFRunLoopRef) GetCFRunLoopFromEventLoop (GetCurrentEventLoop ());
-	  static CFSocketContext context = {0, ofds, NULL, NULL, NULL};
+	  static const CFSocketContext context = {0, ofds, NULL, NULL, NULL};
 	  static CFMutableDictionaryRef sources;
 
 	  if (sources == NULL)

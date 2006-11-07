@@ -361,7 +361,7 @@ With argument, display info only for the selected version."
 	  ((<= version 18)
 	   (setq version (format "%d" version)))
 	  ((> version emacs-major-version)
-	   (error "No news about emacs %d (yet)" version))))
+	   (error "No news about Emacs %d (yet)" version))))
   (let* ((vn (if (stringp version)
 		 (string-to-number version)
 	       version))

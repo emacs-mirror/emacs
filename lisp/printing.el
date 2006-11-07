@@ -1144,6 +1144,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
   "Set the value of custom variables for printer & utility selection."
   (set symbol value)
   (and (featurep 'printing)		; update only after printing is loaded
+       (not pr-menu-print-item)
        (pr-update-menus t)))
 
 
@@ -1151,6 +1152,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
   "Update utility menu entry."
   (set symbol value)
   (and (featurep 'printing)		; update only after printing is loaded
+       (not pr-menu-print-item)
        (pr-menu-set-utility-title value)))
 
 
@@ -1158,6 +1160,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
   "Update `PostScript Printer:' menu entry."
   (set symbol value)
   (and (featurep 'printing)		; update only after printing is loaded
+       (not pr-menu-print-item)
        (pr-menu-set-ps-title value)))
 
 
@@ -1165,6 +1168,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
   "Update `Text Printer:' menu entry."
   (set symbol value)
   (and (featurep 'printing)		; update only after printing is loaded
+       (not pr-menu-print-item)
        (pr-menu-set-txt-title value)))
 
 
@@ -3096,23 +3100,21 @@ Calls `pr-update-menus' to adjust menus."
 				  (pr-get-symbol "Printing")))))
      ;; Emacs 21 & 22
      (t
-      (let* ((has-file  (lookup-key global-map (vector 'menu-bar 'file)))
-	     (item-file (if has-file '("file") '("files"))))
-	(cond
-	 (pr-menu-print-item
-	  (easy-menu-change item-file "Print" pr-menu-spec "print-buffer")
-	  (let ((items '("print-buffer"          "print-region"
-			 "ps-print-buffer-faces" "ps-print-region-faces"
-			 "ps-print-buffer"       "ps-print-region")))
-	    (while items
-	      (easy-menu-remove-item nil item-file (car items))
-	      (setq items (cdr items)))
-	    (setq pr-menu-print-item nil
-		  pr-menu-bar (vector 'menu-bar
-				      (if has-file 'file 'files)
-				      (pr-get-symbol "Print")))))
-	 (t
-	  (easy-menu-change item-file "Print" pr-menu-spec))))))))
+      (cond
+       (pr-menu-print-item
+	(easy-menu-add-item menu-bar-file-menu nil
+			    (easy-menu-create-menu "Print" pr-menu-spec)
+			    "print-buffer")
+	(dolist (item '("print-buffer"          "print-region"
+			"ps-print-buffer-faces" "ps-print-region-faces"
+			"ps-print-buffer"       "ps-print-region"))
+	  (easy-menu-remove-item menu-bar-file-menu nil item))
+	(setq pr-menu-print-item nil
+	      pr-menu-bar (vector 'menu-bar
+				  'file
+				  (pr-get-symbol "Print"))))
+       (t
+	(easy-menu-change '("file") "Print" pr-menu-spec)))))))
   (pr-update-menus t))
 
 

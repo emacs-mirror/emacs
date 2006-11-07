@@ -1174,7 +1174,7 @@ DEFUN ("catch", Fcatch, Scatch, 1, UNEVALLED, 0,
 TAG is evalled to get the tag to use; it must not be nil.
 
 Then the BODY is executed.
-Within BODY, (throw TAG) with same tag exits BODY and exits this `catch'.
+Within BODY, a call to `throw' with the same TAG exits BODY and this `catch'.
 If no throw happens, `catch' returns the value of the last BODY form.
 If a throw happens, it specifies the value to return from `catch'.
 usage: (catch TAG BODY...)  */)

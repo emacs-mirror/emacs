@@ -49,8 +49,8 @@
 	      (file-directory-p "/proc/acpi/battery"))
 	 'battery-linux-proc-acpi)
 	((and (eq system-type 'darwin)
-	      (condition-case nil  
-		  (with-temp-buffer 
+	      (condition-case nil
+		  (with-temp-buffer
 		    (and (eq (call-process "pmset" nil t nil "-g" "ps") 0)
 			 (> (buffer-size) 0)))
 		(error nil)))
@@ -355,45 +355,19 @@ The following %-sequences are provided:
 				   60)))
 	       hours (/ minutes 60)))
     (list (cons ?c (or (and capacity (number-to-string capacity)) "N/A"))
-	  (cons ?L (or (when (file-exists-p "/proc/acpi/ac_adapter/AC/state")
-			 (with-temp-buffer
-			   (insert-file-contents
-			    "/proc/acpi/ac_adapter/AC/state")
-			   (when (re-search-forward "state: +\\(.*\\)$" nil t)
-			     (match-string 1))))
+	  (cons ?L (or (battery-search-for-one-match-in-files
+			(mapcar (lambda (e) (concat e "/state"))
+				(directory-files "/proc/acpi/ac_adapter/"
+						 t "\\`[^.]"))
+			"state: +\\(.*\\)$" 1)
+
 		       "N/A"))
-	  (cons ?d (or (when (file-exists-p
-			      "/proc/acpi/thermal_zone/THRM/temperature")
-			 (with-temp-buffer
-			   (insert-file-contents
-			    "/proc/acpi/thermal_zone/THRM/temperature")
-			   (when (re-search-forward
-				  "temperature: +\\([0-9]+\\) C$" nil t)
-			     (match-string 1))))
-		       (when (file-exists-p
-			      "/proc/acpi/thermal_zone/THM/temperature")
-			 (with-temp-buffer
-			   (insert-file-contents
-			    "/proc/acpi/thermal_zone/THM/temperature")
-			   (when (re-search-forward
-				  "temperature: +\\([0-9]+\\) C$" nil t)
-			     (match-string 1))))
-		       (when (file-exists-p
-			      "/proc/acpi/thermal_zone/THM0/temperature")
-			 (with-temp-buffer
-			   (insert-file-contents
-			    "/proc/acpi/thermal_zone/THM0/temperature")
-			   (when (re-search-forward
-				  "temperature: +\\([0-9]+\\) C$" nil t)
-			     (match-string 1))))
-		       (when (file-exists-p
-			      "/proc/acpi/thermal_zone/THR2/temperature")
-			 (with-temp-buffer
-			   (insert-file-contents
-			    "/proc/acpi/thermal_zone/THR2/temperature")
-			   (when (re-search-forward
-				  "temperature: +\\([0-9]+\\) C$" nil t)
-			     (match-string 1))))
+	  (cons ?d (or (battery-search-for-one-match-in-files
+			(mapcar (lambda (e) (concat e "/temperature"))
+				(directory-files "/proc/acpi/thermal_zone/"
+						 t "\\`[^.]"))
+			"temperature: +\\([0-9]+\\) C$" 1)
+
 		       "N/A"))
 	  (cons ?r (or (and rate (concat (number-to-string rate) " "
 					 rate-type)) "N/A"))
@@ -408,6 +382,7 @@ The following %-sequences are provided:
 			    (format "%d:%02d" hours (- minutes (* 60 hours))))
 		       "N/A"))
 	  (cons ?p (or (and full-capacity capacity
+			    (> full-capacity 0)
 			    (number-to-string
 			     (floor (/ capacity
 				       (/ (float full-capacity) 100)))))
@@ -477,6 +452,17 @@ The following %-sequences are provided:
        (if (eq char ?%) "%"
 	 (or (cdr (assoc char alist)) ""))))
    format t t))
+
+(defun battery-search-for-one-match-in-files (files regexp match-num)
+  "Search REGEXP in the content of the files listed in FILES.
+If a match occured, return the parenthesized expression numbered by
+MATCH-NUM in the match.  Otherwise, return nil."
+  (with-temp-buffer
+    (catch 'found
+      (dolist (file files)
+	(and (ignore-errors (insert-file-contents file nil nil nil 'replace))
+	     (re-search-forward regexp nil t)
+	     (throw 'found (match-string match-num)))))))
 
 
 (provide 'battery)

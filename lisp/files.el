@@ -4094,6 +4094,15 @@ non-nil, it is called instead of rereading visited file contents."
 			  (if auto-save-p 'auto-save-coding
 			    (or coding-system-for-read
 				buffer-file-coding-system-explicit))))
+		     (if (and (not enable-multibyte-characters)
+			      (not (memq (coding-system-base
+					  coding-system-for-read)
+					 '(no-conversion raw-text))))
+			 ;; As a coding system suitable for multibyte
+			 ;; buffer is specified, make the current
+			 ;; buffer multibyte.
+			 (set-buffer-multibyte t))
+
 		     ;; This force after-insert-file-set-coding
 		     ;; (called from insert-file-contents) to set
 		     ;; buffer-file-coding-system to a proper value.

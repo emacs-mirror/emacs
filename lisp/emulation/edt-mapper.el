@@ -202,7 +202,7 @@
 
     Sometimes, edt-mapper will ignore a key you press, and just continue to
     prompt for the same key.  This can happen when your window manager sucks
-    up the key and doesn't pass it on to emacs, or it could be an emacs bug.
+    up the key and doesn't pass it on to Emacs, or it could be an Emacs bug.
     Either way, there's nothing that edt-mapper can do about it.  You must
     press RETURN, to skip the current key and continue.  Later, you and/or
     your local system guru can try to figure out why the key is being ignored.

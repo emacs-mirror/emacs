@@ -94,6 +94,7 @@ gameuser=@gameuser@
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
 
@@ -319,7 +320,7 @@ $(DESTDIR)${archlibdir}: all
         if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` \
              != `(cd ${srcdir} && /bin/pwd)` ]; then \
 	  for file in ${SCRIPTS}; do \
-	    $(INSTALL_PROGRAM) ${srcdir}/$$file $(DESTDIR)${archlibdir}/$$file; \
+	    $(INSTALL_SCRIPT) ${srcdir}/$$file $(DESTDIR)${archlibdir}/$$file; \
 	  done ; \
 	fi
 
@@ -331,7 +332,7 @@ install: $(DESTDIR)${archlibdir}
 	  chmod a+rx $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
 	done
 	for file in ${INSTALLABLE_SCRIPTS} ; do \
-	  $(INSTALL_PROGRAM) ${srcdir}/$${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`  ; \
+	  $(INSTALL_SCRIPT) ${srcdir}/$${file} $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`  ; \
 	  chmod a+rx $(DESTDIR)${bindir}/`echo $${file} | sed '$(TRANSFORM)'`; \
 	done
 

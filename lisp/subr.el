@@ -1108,11 +1108,11 @@ other hooks, such as major mode hooks, can do the job."
        ((eq compare-fn 'eql)
 	(memql element (symbol-value list-var)))
        (t
-	(let (present)
-	  (dolist (elt (symbol-value list-var))
-	    (if (funcall compare-fn element elt)
-		(setq present t)))
-	  present)))
+	(let ((lst (symbol-value list-var)))
+	  (while (and lst
+		      (not (funcall compare-fn element (car lst))))
+	    (setq lst (cdr lst)))
+          lst)))
       (symbol-value list-var)
     (set list-var
 	 (if append

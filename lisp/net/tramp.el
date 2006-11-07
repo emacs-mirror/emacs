@@ -676,7 +676,7 @@ various functions for details."
   (if (and (fboundp 'executable-find)
 	   (executable-find "plink"))
       "plink"
-    "ssh")
+    "scp")
   "*Default method to use for transferring files.
 See `tramp-methods' for possibilities.
 Also see `tramp-default-method-alist'."

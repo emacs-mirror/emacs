@@ -125,7 +125,7 @@
   ;; If MARK-TO-KILL is non-nil, mark new buffer to kill.
   ;; If HIGHLIGHT is non-nil, highlight the match.
   ;; If ITEM in non-nil, search for bibitem instead of database entry.
-  ;; If RETURN is non-nil, just return the entry.
+  ;; If RETURN is non-nil, just return the entry and restore point.
 
   (let* ((re
           (if item 
@@ -133,7 +133,7 @@
             (concat "@[a-zA-Z]+[ \t\n\r]*[{(][ \t\n\r]*" (regexp-quote key)
                     "[, \t\r\n}]")))
          (buffer-conf (current-buffer))
-         file buf pos)
+         file buf pos oldpos)
 
     (catch 'exit
       (while file-list
@@ -142,9 +142,11 @@
         (unless (setq buf (reftex-get-file-buffer-force file mark-to-kill))
           (error "No such file %s" file))
         (set-buffer buf)
+	(setq oldpos (point))
         (widen)
         (goto-char (point-min))
-        (when (re-search-forward re nil t)
+        (if (not (re-search-forward re nil t))
+	    (goto-char oldpos) ;; restore previous position of point
           (goto-char (match-beginning 0))
           (setq pos (point))
           (when return
@@ -152,6 +154,7 @@
             (if item (goto-char (match-end 0)))
             (setq return (buffer-substring 
                           (point) (reftex-end-of-bib-entry item)))
+	    (goto-char oldpos) ;; restore point.
             (set-buffer buffer-conf)
             (throw 'exit return))
           (switch-to-buffer-other-window buf)

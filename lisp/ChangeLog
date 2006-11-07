@@ -1,15 +1,439 @@
-2006-10-29  Stephen Leake  <stephen_leake@stephe_leake.org>
+2006-11-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* whitespace.el (whitespace-buffer): Call remove-overlays after
+	overlay-recenter for performance.  Suggested by Martin Rudalics.
+
+2006-11-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-default-method): scp is the default method.
+
+2006-11-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): Save also the Emacs pid in the server file.
+
+2006-11-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex-cite.el (reftex-pop-to-bibtex-entry): Preserve
+	point when displaying a bibtex cross reference in the echo area.
+
+2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule.el (make-char): Fix typo in docstring.
+	(load-with-code-conversion, charsetp): Doc fixes.
+
+	* international/ja-dic-cnv.el (skkdic-convert):
+	* cus-edit.el (hook): Fix typo in docstring.
+
+2006-11-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-mode-map): Move defvar above code using it.
+	(custom-mode-link-map): New variable.
+	(custom-group-link, custom-manual): Use follow-link.
+
+2006-11-06  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el: Fix typo in name of author of bibtex.el,
+	"Mark Shapiro" -> "Marc Shapiro".  Update his email address.
+
+2006-11-06  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-correct-word-before-point):
+	New function broken out of flyspell-correct-word.
+	(flyspell-mode-map): Bind it to M-RET.
+	(flyspell-correct-word): Call it.
+
+	* textmodes/fill.el (fill-minibuffer-function): New function.
+	(fill-paragraph): Bind fill-paragraph-function to
+	fill-minibuffer-function.
+
+	* ruler-mode.el (ruler-mode-map): Add bindings for up-events
+	so that they aren't undefined.
+
+	* dired.el (dired-readin): Locally bind file-name-coding-system.
+
+	* bindings.el: Shorten and clarify usual mode line mouse help string.
+
+	* Makefile.in (autoloads): Don't include `obsolete'.
+
+2006-11-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* printing.el (pr-alist-custom-set, pr-ps-utility-custom-set)
+	(pr-ps-name-custom-set, pr-txt-name-custom-set): Don't update the
+	Printing menu if it's not initialized.
+	(pr-menu-bind): Act on menu-bar-file-menu directly.
+
+2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help.el (view-emacs-news): Fix typo in error message.
+
+	* menu-bar.el (menu-bar-update-buffers): Fix typo in menu entry.
+
+	* shadowfile.el (shadow-define-regexp-group)
+	(shadow-literal-groups, shadow-insert-var): Doc fixes.
+	(shadow-read-files): Fix typo in message.
+	(shadow-inhibit-overload, shadow-find, shadow-suffix)
+	(shadow-site-match, shadow-write-todo-file, shadow-insert-var)
+	(shadow-suffix, shadow-site-match, shadow-expand-file-name)
+	(shadow-file-match): Fix typos in docstrings.
+
+	* terminal.el (terminal-emulator): Fix typo in message.
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Fix typo.
+
+	* emacs-lisp/lselect.el (x-kill-primary-selection)
+	(x-delete-primary-selection, x-copy-primary-selection):
+	Fix typos in error messages.
+
+	* emulation/edt-mapper.el: Fix typo in interactive message.
+
+	* mail/emacsbug.el (report-emacs-bug): Fix typos in output message.
+
+	* textmodes/ispell.el (ispell, ispell-local-dictionary-alist)
+	(ispell-help): Fix typos in docstrings.
+	(ispell-help): Fix typo in output message.
+
+	* allout.el (allout-adjust-file-variable)
+	(allout-passphrase-verifier-string)
+	(allout-passphrase-hint-string)
+	(allout-toggle-current-subtree-encryption):
+	* apropos.el (apropos-synonyms):
+	* cus-edit.el (hook):
+	* emacs-lock.el (emacs-lock-from-exiting):
+	* follow.el (follow-avoid-tail-recenter-p):
+	* hexl.el (hexl-mode):
+	* mouse-copy.el (mouse-copy-work-around-drag-bug):
+	* mouse.el (mouse-set-font):
+	* resume.el (resume-emacs-args-file):
+	* rfn-eshadow.el (file-name-shadow-tty-properties):
+	* t-mouse.el (t-mouse-process, t-mouse-mode):
+	* emacs-lisp/cust-print.el (custom-print-install)
+	(custom-print-uninstall, custom-format):
+	* emacs-lisp/shadow.el (list-load-path-shadows):
+	* emulation/tpu-edt.el (tpu-help-text)
+	(tpu-save-all-buffers-kill-emacs, tpu-emacs-replace)
+	(tpu-reset-control-keys):
+	* emulation/vip.el (vip-emacs-local-map)
+	(vip-change-mode-to-emacs):
+	* emulation/viper.el (viper-mode, viper-set-hooks)
+	(viper-major-mode-modifier-list):
+	* emulation/viper-init.el (viper-emacs-state-cursor-color):
+	* emulation/viper-keym.el (viper-emacs-kbd-map)
+	(viper-toggle-key):
+	* mail/feedmail.el (feedmail-queue-reminder)
+	(feedmail-queue-reminder-alist, feedmail-confirm-outgoing)
+	(feedmail-confirm-outgoing-timeout, feedmail-nuke-bcc)
+	(feedmail-nuke-resent-bcc, feedmail-fill-to-cc-fill-column)
+	(feedmail-sender-line, feedmail-force-binary-write)
+	(feedmail-from-line, feedmail-deduce-envelope-from)
+	(feedmail-x-mailer-line, feedmail-message-id-generator)
+	(feedmail-date-generator, feedmail-fiddle-plex-user-list)
+	(feedmail-enable-spray, feedmail-spray-this-address)
+	(feedmail-spray-address-fiddle-plex-list, feedmail-enable-queue)
+	(feedmail-queue-runner-confirm-global)
+	(feedmail-ask-before-queue-prompt)
+	(feedmail-ask-before-queue-reprompt)
+	(feedmail-prompt-before-queue-standard-alist)
+	(feedmail-prompt-before-queue-user-alist)
+	(feedmail-prompt-before-queue-help-supplement)
+	(feedmail-queue-use-send-time-for-message-id)
+	(feedmail-queue-default-file-slug, feedmail-queue-fqm-suffix)
+	(feedmail-mail-send-hook-splitter, feedmail-mail-send-hook)
+	(feedmail-mail-send-hook-queued)
+	(feedmail-confirm-addresses-hook-example)
+	(feedmail-last-chance-hook, feedmail-before-fcc-hook)
+	(feedmail-queue-runner-mode-setter)
+	(feedmail-queue-alternative-mail-header-separator)
+	(feedmail-queue-runner-message-sender)
+	(feedmail-buffer-eating-function, feedmail-binmail-template)
+	(feedmail-run-the-queue-no-prompts)
+	(feedmail-run-the-queue-global-prompt)
+	(feedmail-queue-subject-slug-maker, feedmail-fiddle-header)
+	(feedmail-envelope-deducer, feedmail-fiddle-date)
+	(feedmail-default-message-id-generator)
+	(feedmail-fiddle-message-id, feedmail-fiddle-x-mailer)
+	(feedmail-fiddle-spray-address, feedmail-deduce-address-list):
+	* mail/vms-pmail.el (vms-pmail-save-and-exit, vms-pmail-abort)
+	(vms-pmail-setup):
+	* play/dunnet.el (dun-help):
+	* play/handwrite.el (handwrite):
+	* play/hanoi.el (hanoi-unix-64):
+	* progmodes/idlwave.el (idlwave-rescan-asynchronously):
+	* textmodes/enriched.el (fixed):
+	* textmodes/org.el (org-file-apps)
+	(org-emphasis-regexp-components, org-emphasis-alist):
+	* textmodes/texinfmt.el (batch-texinfo-format):
+	Fix typos in docstrings.
+
+2006-11-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (read-feature): Don't complete features not loaded
+	from a file (which make `unload-feature' to fail).
+
+2006-11-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* add-log.el (add-log-time-zone-rule): Mark as safe-local-variable.
+
+2006-11-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line-1): Kill emacs if the last frame is
+	deleted while evaluating the command-line arguments.
+
+2006-11-05  Richard Stallman  <rms@gnu.org>
+
+	* startup.el (init-file-had-error): Add doc string.
+	(fancy-splash-text, fancy-splash-head, fancy-splash-tail):
+	Use fixed-width font for keyboard key descriptions.
+
+	* cus-edit.el (custom-save-all): Error if saving in .emacs
+	and it had an error when loaded.
+
+	* dired-aux.el (dired-copy-file-recursive): Catch errors
+	from recursive copies in the loop, around the recursive call.
+
+2006-11-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* battery.el (battery-linux-proc-acpi): Search an ac_adapter in
+	`/proc/acpi/ac_adapter/*'.  Ditto for the thermometers in
+	`/proc/acpi/thermal_zone/*'.
+	(battery-search-for-one-match-in-files): New.  Search a regexp in
+	the content of some files.
+
+2006-11-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (mouse-autoselect-window-now): Remove variable.
+	(mouse-autoselect-window-state): New variable.
+	(mouse-autoselect-window-start, mouse-autoselect-window-cancel)
+	(mouse-autoselect-window-select, handle-select-window):
+	Rewritten to make mouse-autoselect-window-timer a one-shot timer.
+	Suspend delayed autoselection during menu or popup dialog.
+
+	* info-look.el (info-lookup-guess-custom-symbol): New function
+	for retrieving symbol at point in custom buffers.
+	(top level) <info-lookup-maybe-add-help>: Add backquote and
+	comma to ignored characters in regexps of help specifications
+	for emacs-lisp-mode and lisp-interaction-mode.  This permits
+	looking up symbols in `...' and after a comma.  Add help
+	specifications for custom-mode and help-mode.
+
+2006-11-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-redecode-body): New optional argument RAW.
+	Don't encode body if RAW is non-nil, or if the old encoding is
+	identical to the new encoding, or if the body contains only
+	eight-bit-* characters.
+
+2006-11-04  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
+
+	* faces.el (faces-sample-overlay, describe-face): Revert last
+	changes.
+	(faces-sample-overlay): Remove variable.
+	(describe-face): Insert sample text in the face being described.
+
+2006-11-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* whitespace.el (whitespace-indent-regexp): Make this match any
+	multiples of eight spaces near the beginning of a line.
+	(whitespace-buffer): Use `remove-overlays' instead of
+	`whitespace-unhighlight-the-space' and `overlay-recenter' to
+	speed up overlay handling.
+	(whitespace-buffer-leading, whitespace-buffer-trailing): Make
+	these functions highlight the text removed by
+	`whitespace-buffer-leading-cleanup' and
+	`whitespace-buffer-trailing-cleanup' respectively.
+	(whitespace-buffer-search): Use `with-local-quit'.  Move
+	`format' out of loop to speed up scanning larger buffers.
+	(whitespace-unhighlight-the-space): Remove `remove-hook' since
+	that function is never added to a hook.
+	(whitespace-spacetab-regexp, whitespace-ateol-regexp)
+	(whitespace-buffer-leading-cleanup)
+	(whitespace-refresh-rescan-list): Fix docstrings.
+
+2006-11-03  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-during-yank-processing): Cue for inhibiting
+	aberrance processing during yanks.
+	(allout-doublecheck-at-and-shallower): Reduce the limit to reduce
+	the amount of yanked topics that can be aberrant.
+	(allout-do-doublecheck): Encapsulate this multiply-used recipe in
+	a function, and supplement with inihibition of doublechecking
+	during yanks.
+	(allout-beginning-of-line, allout-next-heading)
+	(allout-previous-heading, allout-goto-prefix-doublechecked)
+	(allout-back-to-current-heading, allout-next-visible-heading)
+	(allout-next-sibling): Use new allout-do-doublecheck function.
+	(allout-next-sibling): Ensure we made progress when returning
+	other than nil.
+	(allout-rebullet-heading): Preserve text property annotations
+	indicating the text was hidden, if it was.
+	(allout-kill-line): Remove any added was-hidden annotations.
+	(allout-kill-topic): Remove any added was-hidden annotations.
+	(allout-annotate-hidden): Inhibit adding was-hidden text
+	properties to the undo list.
+	(allout-deannotate-hidden): New function to remove was-hidden
+	annotation.
+	(allout-hide-by-annotation): Use new allout-deannotate-hidden.
+	(allout-remove-exposure-annotation): Replaced by
+	allout-deannotate-hidden.
+	(allout-yank-processing): Signal that yank processing is happening
+	with allout-during-yank-processing.  Also, wrap
+	allout-unprotected's closer to the text changes, for easier
+	debugging.  We need to inhibit-field-text-motion explicitly, in
+	lieu of the encompassing allout-unprotected.
+	(outlineify-sticky): Adjust criteria for triggering new outline
+	decorations to presence or absence of any topics, not just a topic
+	at the beginning of the buffer.
+
+2006-11-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--show-all, bs--redisplay):
+	* cus-edit.el (custom-unlispify-menu-entries)
+	(custom-unlispify-tag-names, custom-prompt-variable):
+	* expand.el (expand-pos):
+	* speedbar.el (speedbar-generic-list-tag-p):
+	* wid-edit.el (widget-image-enable):
+	* emacs-lisp/checkdoc.el (checkdoc-rogue-space-check-engine):
+	* emacs-lisp/find-func.el (find-function-noselect)
+	(find-function, find-variable-noselect, find-variable)
+	(find-definition-noselect, find-face-definition):
+	* mail/rmail-spam-filter.el (rsf-scanning-messages-now):
+	* net/eudc-vars.el (eudc-expansion-overwrites-query):
+	* progmodes/ada-xref.el (ada-find-in-ali):
+	* textmodes/flyspell.el (flyspell-check-tex-math-command):
+	* textmodes/org.el (org-copy-subtree):
+	* textmodes/table.el (table--row-column-insertion-point-p):
+	Use "non-nil" in docstrings.
+
+2006-11-03  Mark Davies  <mark@mcs.vuw.ac.nz>
+
+	* sort.el (sort-columns): Set the field separator to tab; on
+	NetBSD, sort complains if "\n" is used as field separator.
+
+2006-11-03  NIIMI Satoshi  <sa2c@sa2c.net>
+
+	* emacs-lisp/pp.el (pp-eval-last-sexp): Evaluate target sexp.
+
+2006-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-auth-key): Remove.  Replace by a process-property.
+	(server-start): Don't remove the file of the previous process, but
+	instead clear out the place for the new file.
+	(server-start): Set the :auth-key property.
+	(server-process-filter): Use the :auth-key property.
+
+2006-11-02  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-mode-map): No longer copy
+	`outline-mode-map' explicitly - this is already done by
+	`define-derived-mode'.
+
+2006-11-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-visit-files): Use `when'.
+	(server-process-filter): When authentication fails, send error
+	message to client.  Wrap `process-send-region' in `ignore-errors'
+	instead of `condition-case', and remove misleading comment.
+
+2006-11-01  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (yank): Doc fix.
+
+2006-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el: Try and fit within 80 columns.
+	(server-start): Make the auth file unreadable by other users.
+
+2006-10-31  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* battery.el (battery-linux-proc-acpi): Prevent range error when
+	`full-capacity' is 0.
+
+2006-10-31  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
+
+	* faces.el (faces-sample-overlay): New defvar.
+	(faces-sample-overlay): New function to show face sample text.
+	(describe-face): Use it.
+
+2006-10-31  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-stmt.el: Change maintainer, apply
+	whitespace-cleanup, checkdoc.
+	(ada-func-or-proc-name): Add doc string.
+
+	* progmodes/ada-prj.el (ada-prj-new): Change maintainer, apply
+	whitespace-cleanup, checkdoc.  Minor improvements to many doc
+	strings and comments.
+	(ada-prj-display-page): Change buffer name to more accurately
+	reflect function.
+
+	* progmodes/ada-xref.el: Change maintainer, apply
+	whitespace-cleanup, checkdoc.  Minor improvements to many doc
+	strings and comments.  Don't look for `gvd' or `ddd' debuggers.
+	(ada-compile-current): Don't add newlines to commands.
+
+2006-10-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el: Add support for TCP sockets.
+	(server-use-tcp, server-host, server-auth-dir): New options.
+	(server-auth-key): New variable.
+	(server-ensure-safe-dir): Create nonexistent parent dirs.
+	Ignore Unix-style file modes on Windows.
+	(server-start): Crete a TCP or Unix socket according to the value
+	of `server-use-tcp'.  For TCP sockets, create the id/auth file in
+	`server-auth-dir' directory.
+	(server-process-filter): Delete process if authentication
+	fails (which never happens for Unix sockets).
+
+2006-10-30  David Kastrup  <dak@gnu.org>
+
+	* subr.el (add-to-list): Don't continue checking if a match has
+	been found.
+
+2006-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tutorial.el: Move defvars to avoid bytecomp warnings.
+	(tutorial--find-changed-keys): Check if viper-current-state is
+	bound before using it.
+	(help-with-tutorial): Check if viper-tutorial is defined before
+	using it.
+
+2006-10-30  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* help-fns.el (help-with-tutorial): Moved to tutorial.el.
+
+	* tutorial.el: New file.
+	(help-with-tutorial): Moved here from help-fns.el. Added help for
+	rebound keys.  Fixed resume of tutorial.
+	(tutorial--describe-nonstandard-key, tutorial--sort-keys)
+	(tutorial--find-changed-keys, tutorial--display-changes)
+	(tutorial--saved-dir, tutorial--saved-file)
+	(tutorial--save-tutorial): New functions to support the changes in
+	help-with-tutorial.
+
+2006-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (revert-buffer): If a unibyte buffer is being reverted
+	with a coding system for multibyte, set buffer multibyte before
+	calling insert-file-contents.
+
+2006-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-select-display): Use a dummy buffer to detect when
+	the frame is later used.
+	(server-select-display): New function.
+	(server-process-filter): Use it to detect unused temp frames.
+
+2006-10-29  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-mode.el: Change maintainer, apply
-	whitespace-clean, checkdoc.  Minor improvements to many doc
-	strings.
+	whitespace-clean, checkdoc.  Minor improvements to many doc strings.
 	(ada-mode-version): New function.
 	(ada-create-menu): Menu operations are available for all supported
 	compilers.
 
 2006-10-29  Lars Hansen  <larsh@soem.dk>
-	* net/tramp.el (with-parsed-tramp-file-name): Correct debug
-	spec.  Highlight as keyword.
+
+	* net/tramp.el (with-parsed-tramp-file-name): Correct debug spec.
+	Highlight as keyword.
 	(tramp-do-copy-or-rename-file): Correct data for 'file-already-exists.
 	Don't call tramp-method-out-of-band-p for local files.
 	(tramp-touch): Quote file name.
@@ -18,8 +442,7 @@
 
 	* calendar/calendar.el (cal-html-cursor-month)
 	(cal-html-cursor-year): Add autoloads for this new package.
-	(calendar-mode-map): Bind cal-html-cursor-month,
-	cal-html-cursor-year.
+	(calendar-mode-map): Bind cal-html-cursor-month, cal-html-cursor-year.
 
 2006-10-28  Anna Bigatti  <bigatti@dima.unige.it>
 
@@ -64,7 +487,7 @@
 	* midnight.el (midnight-buffer-display-time): Doc fix.
 	(clean-buffer-list-kill-never-buffer-names): Add "*server*".
 
-2006-10-22  martin rudalics  <rudalics@gmx.at>
+2006-10-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/flyspell.el (flyspell-check-region-doublons):
 	Fix last fix.
@@ -81,7 +504,7 @@
 	event to unread-command-events as (t . EVENT) so it will be added
 	to this-command-keys by read-key-sequence.
 
-2006-10-22  martin rudalics  <rudalics@gmx.at>
+2006-10-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/flyspell.el (flyspell-word): Skip past all previous
 	whitespace when checking doublons.
@@ -1205,7 +1628,7 @@
 	* select.el (xselect-convert-to-string): If UTF8_STRING is requested
 	and the data doesn't look like UTF8, send STRING instead.
 
-2006-09-16  Agustin Martin <agustin.martin@hispalinux.es>
+2006-09-16  Agustin Martin  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-check-region-doublons):
 	New function to detect duplicated words.
@@ -1271,8 +1694,8 @@
 	(allout-mode): Make allout-old-style-prefixes (ie, enabling use with
 	outline.el outlines) functional again.  Change the primary bullet
 	along with the header-lead - level 1 new-style bullets now work.
-	Engage allout-before-change-handler in mainline emacs, not just
-	xemacs, to do undo handling.
+	Engage allout-before-change-handler in mainline Emacs, not just
+	XEmacs, to do undo handling.
 	(allout-before-change-handler): Expose undo changes occurring in
 	hidden regions.  Use allout-get-invisibility-overlay instead of
 	reimplementing it inline.
@@ -1666,7 +2089,7 @@
 
 	* net/ldap.el (ldap-search-internal): Handle `auth' key.
 
-2006-09-07  Magnus Henoch <mange@freemail.hu>
+2006-09-07  Magnus Henoch  <mange@freemail.hu>
 
 	* net/rcirc.el (rcirc-activity-string): Don't quote value in case
 	clause.
@@ -12248,7 +12671,7 @@
 	Add fset of allout-real-isearch-abort during compile to fix
 	byte-compilation warnings.
 	(allout-mode-p): Move definition of this macro above all uses, or
-	byte compilation in barren emacs (eg, during emacs build) will
+	byte compilation in barren Emacs (eg, during Emacs build) will
 	lack the definition.
 	(allout-mode): Move this variable above any uses, or byte
 	compilation will fail.
@@ -13893,7 +14316,7 @@
 
 2005-11-02  Mark A. Hershberger  <mah@everybody.org>
 
-	* xml.el (xml-syntax-table): Allow xml.el to compile in xemacs.
+	* xml.el (xml-syntax-table): Allow xml.el to compile in XEmacs.
 	(xml-parse-tag): Join strings separated by a comment properly.
 
 2005-11-02  Andreas Schwab  <schwab@suse.de>
@@ -18642,7 +19065,7 @@
 2005-07-21  Kim F. Storm  <storm@cua.dk>
 
 	* mail/emacsbug.el (report-emacs-bug): Request that backtraces are
-	included when reporting an emacs crash, and tell about the DEBUG file.
+	included when reporting an Emacs crash, and tell about the DEBUG file.
 
 	* image-file.el (insert-image-file): Add yank-handler.
 	(image-file-yank-handler): Yank handler to make unique copies of
@@ -19597,7 +20020,7 @@
 2005-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/flymake.el (flymake-float-time): Instead of
-	with-no-warnings, test for xemacs.
+	with-no-warnings, test for XEmacs.
 	(flymake-replace-regexp-in-string): Test fboundp of replace-in-string
 	to avoid warning.
 

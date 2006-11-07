@@ -1,16 +1,17 @@
-This directory contains the source of the "Introduction to programming
+This directory contains the source of the "Introduction to Programming
 in Emacs Lisp" written by Robert J. Chassell, bob@gnu.org.  This
 manual is an elementary introduction to programming in Emacs Lisp for
 people who are not programmers, and who are not necessarily interested
 in programming, but who do want to customize or extend their computing
 environment.
 
-This second edition of 2001 Nov 20 updates the previous editions to
-GNU Emacs 21.
+This third edition of 2006 Oct 31 updates the previous editions to GNU
+Emacs 22.
 
 The Texinfo source file `emacs-lisp-intro.texi', formats without
-error using TeX version 3.14159, `kpathsea' version 3.3.1,
-`texinfo.tex' version 2001-05-24.08, and `makeinfo' version 4.0b.
+reported error using `pdfeTeXk', Version 3.141592-1.21a-2.2 (Web2C
+7.5.4) and texinfo.tex version 2006-08-26.17 started by `texi2dvi'
+version 4.8, and with `makeinfo' version 4.8.
 
 Also, this tar file contains the following optional Encapsulated Post
 Script figures.
@@ -56,5 +57,5 @@ This will prevent TeX from attempting to load the last few .eps files.
 You will find additional instructions on formatting in the beginning
 of the Texinfo file 'emacs-lisp-intro.texi'.  Best Wishes!
 
-2001 Nov  20
+2006 Oct 31
 Robert J. Chassell, bob@gnu.org

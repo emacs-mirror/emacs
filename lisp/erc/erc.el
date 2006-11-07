@@ -2002,7 +2002,7 @@ If no buffer matches, return nil."
 
 (if (not (fboundp 'read-passwd))
     (defun read-passwd (prompt)
-      "Substitute for read-passwd in early emacsen"
+      "Substitute for `read-passwd' in early emacsen."
       (read-from-minibuffer prompt)))
 
 (defcustom erc-before-connect nil
