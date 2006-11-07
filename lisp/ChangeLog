@@ -1,3 +1,7 @@
+2006-11-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): Save also the Emacs pid in the server file.
+
 2006-11-07  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex-cite.el (reftex-pop-to-bibtex-entry): Preserve

@@ -1,3 +1,9 @@
+2006-11-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (get_server_config): Extract also the Emacs pid
+	from the server file.  On Windows, try to force the Emacs frame to
+	the foreground.
+
 2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (longopts) [! NO_SOCKETS_IN_FILE_SYSTEM]: Don't show
