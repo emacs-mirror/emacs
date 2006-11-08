@@ -1,3 +1,8 @@
+2006-11-08  Magnus Henoch  <mange@freemail.hu>
+
+	* url.el (url-retrieve-synchronously): Allow quitting when
+	inhibit-quit is t.
+
 2006-11-03  Shun-ichi GOTO  <gotoh@taiyo.co.jp> (tiny change)
 
 	* url-http.el (url-http-handle-authentication): If there are
