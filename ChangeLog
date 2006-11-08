@@ -1,3 +1,10 @@
+2006-11-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in: Prefer X11 to Carbon only when some X-specific
+	option is specified (Thanks to Jan Dj,Ad(Brv and Andreas Schwab).
+
+	* configure: Regenerate.
+
 2006-11-04  Romain Francoise  <romain@orebokech.com>
 
 	* Makefile.in (bootstrap-clean-before): Use new target `bootstrap-clean'

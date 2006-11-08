@@ -1,3 +1,8 @@
+2006-11-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* INSTALL: Remove descriptions about --without-x.  Remove
+	--without-carbon from configure options for X11 build.
+
 2006-09-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* INSTALL: Remove descriptions about experimental flags.
