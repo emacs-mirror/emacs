@@ -1,3 +1,7 @@
+2006-11-08  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (remove-overlays): Call overlay-recenter.
+
 2006-11-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el (pr-alist-custom-set, pr-ps-utility-custom-set)
