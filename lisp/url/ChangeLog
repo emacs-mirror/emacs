@@ -1,5 +1,9 @@
 2006-11-08  Magnus Henoch  <mange@freemail.hu>
 
+	* url-http.el (url-http-handle-authentication): If there are
+	several authentication headers, use the strongest available
+	method.
+
 	* url.el (url-retrieve-synchronously): Allow quitting when
 	inhibit-quit is t.
 
