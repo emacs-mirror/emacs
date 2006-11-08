@@ -56,6 +56,8 @@ Is it correct?
 
 ** jmarant@free.fr, Nov 8: Problem with non-bmp unicode
 
+** gotoh@taiyo.co.jp, Nov 8: url-gw.el: Cannot use proxy with url-gw.el 1.15
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
