@@ -1,3 +1,11 @@
+2006-11-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el (pr-alist-custom-set, pr-ps-utility-custom-set)
+	(pr-ps-name-custom-set, pr-txt-name-custom-set): Return back the old
+	behaviour.
+	(pr-menu-bind): Act on global-map instead of menu-bar-file-menu
+	directly.
+
 2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-ignore-extensions, ido-show-dot-for-dired)
