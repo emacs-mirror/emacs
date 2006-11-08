@@ -1,3 +1,15 @@
+2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-ignore-extensions, ido-show-dot-for-dired)
+	(ido-max-dir-file-cache, ido-decorations)
+	(ido-rewrite-file-prompt-functions, ido-use-mycompletion-depth)
+	(ido-magic-backward-char, ido-enter-dired)
+	(ido-enter-insert-buffer, ido-enter-insert-file, ido-dired)
+	(ido-list-directory, ido-first-match, ido-only-match)
+	(ido-subdir, ido-indicator): Fix typos in docstrings.
+	(ido-buffer-internal, ido-completion-help): Fix typos in messages.
+	(ido-read-internal): Fix typo in error message.
+
 2006-11-08  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (set-default-coding-systems): Always
