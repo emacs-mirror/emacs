@@ -3,7 +3,7 @@
 	* coding.c (detect_coding_charset): Fix detection of multi-byte
 	charset.
 
-2006-11-07  Bob Halley  <halley@play-bow.org>
+2006-11-07  Bob Halley  <halley@play-bow.org>  (tiny change)
 
 	* ccl.c (ccl_driver): If DST is NULL, set ccl->produced to 0.
 
