@@ -1779,7 +1779,13 @@ fi
 if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
   if test "${with_carbon+set}" != set \
      && test "${carbon_appdir_x+set}" != set; then
-    HAVE_CARBON=no
+    for var in with_x with_x_toolkit with_gtk with_xim \
+               with_xpm with_jpeg with_tiff with_gif with_png; do
+      if eval test \"\${$var+set}\" = set; then
+        HAVE_CARBON=no
+        break
+      fi
+    done
   fi
 fi
 if test "${HAVE_CARBON}" = yes; then
