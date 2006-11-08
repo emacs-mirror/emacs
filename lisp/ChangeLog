@@ -1,3 +1,8 @@
+2006-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-default-coding-systems): Always
+	set default-file-name-coding-system to utf-8 for Mac Darwin.
+
 2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (setwins): Remove.
