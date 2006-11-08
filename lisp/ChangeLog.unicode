@@ -1,3 +1,13 @@
+2006-11-08  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* international/characters.el: Add more full-width characters in
+	char-width-table.
+
+2006-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (create-fontset-from-fontset-spec): Fix
+	script name handling.
+
 2006-10-26  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (terminal-composition-function): New function.

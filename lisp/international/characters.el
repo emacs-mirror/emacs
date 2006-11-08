@@ -1019,6 +1019,7 @@
 	   (#xAC00 . #xD7A3)
 	   (#xF900 . #xFAFF)
 	   (#xFE30 . #xFE6F)
+	   (#xFF01 . #xFF60)
 	   (#xFFE0 . #xFFE6)
 	   (#x20000 . #x2FFFF)
 	   (#x30000 . #x3FFFF))))
