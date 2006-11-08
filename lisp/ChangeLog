@@ -1,3 +1,7 @@
+2006-11-08  Romain Francoise  <romain@orebokech.com>
+
+	* subr.el (remove-overlays): Fix typo in last change.
+
 2006-11-08  Richard Stallman  <rms@gnu.org>
 
 	* subr.el (remove-overlays): Call overlay-recenter.
