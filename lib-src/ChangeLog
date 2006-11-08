@@ -1,3 +1,8 @@
+2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (get_server_config): Declare set_fg as FARPROC to
+	avoid a compiler warning.
+
 2006-11-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (get_server_config) [WINDOWSNT]: Look for the server
