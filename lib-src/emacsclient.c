@@ -510,7 +510,7 @@ get_server_config (server, authentication)
 
     if (hUser32 = LoadLibrary ("user32.dll"))
       {
-        void (*set_fg)(DWORD);
+        FARPROC set_fg;
         if (set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
           set_fg (atoi (pid));
         FreeLibrary (hUser32);
