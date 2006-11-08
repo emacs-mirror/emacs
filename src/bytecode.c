@@ -597,7 +597,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	    if (SYMBOLP (sym)
 		&& !EQ (val, Qunbound)
 		&& !XSYMBOL (sym)->indirect_variable
-		&& !XSYMBOL (sym)->constant
+		&& !SYMBOL_CONSTANT_P (sym)
 		&& !MISCP (XSYMBOL (sym)->value))
 	      XSYMBOL (sym)->value = val;
 	    else
