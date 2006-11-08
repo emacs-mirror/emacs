@@ -606,7 +606,7 @@ Return SYMBOL.  */)
      register Lisp_Object symbol;
 {
   CHECK_SYMBOL (symbol);
-  if (XSYMBOL (symbol)->constant)
+  if (SYMBOL_CONSTANT_P (symbol))
     xsignal1 (Qsetting_constant, symbol);
   Fset (symbol, Qunbound);
   return symbol;
