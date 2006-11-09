@@ -1,3 +1,7 @@
+2006-11-08  "Łukasz Demianiuk"  <ldemianiuk@gmail.com> (tiny change)
+
+	* erc.el (erc-header-line): Fix typo.
+
 2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* erc-dcc.el (erc-dcc-send-file): Fix typo in error message.
