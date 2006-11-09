@@ -24,8 +24,8 @@
 
 @comment %**end of header
 
-@set edition-number 3.06
-@set update-date 6 November 2006
+@set edition-number 3.07
+@set update-date 9 November 2006
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -34,47 +34,25 @@
     ## pushd /u/intro/
 
     ## Info output
-    # makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
     makeinfo --paragraph-indent=0 --verbose emacs-lisp-intro.texi
 
-    ## ;; (progn (when (bufferp (get-buffer "*info*")) (kill-buffer "*info*")) (info "../info/eintr"))
+      ## ;; (progn (when (bufferp (get-buffer "*info*")) (kill-buffer "*info*")) (info "/usr/local/src/emacs/info/eintr"))
 
     ## DVI output
     texi2dvi emacs-lisp-intro.texi
 
-      ## View DVI output; see below also
-       # xdvi -margins 24pt -topmargin 4pt -offsets 24pt -geometry 760x1140 -s 5 -useTeXpages -mousemode 1 emacs-lisp-intro.dvi &
+      ## xdvi -margins 24pt -topmargin 4pt -offsets 24pt -geometry 760x1140 -s 5 -useTeXpages -mousemode 1 emacs-lisp-intro.dvi &
 
     ## HTML output
     makeinfo --html --no-split --verbose emacs-lisp-intro.texi
+
+      ## galeon emacs-lisp-intro.html
 
     ## Plain text output
     makeinfo --fill-column=70 --no-split --paragraph-indent=0 \
     --verbose --no-headers --output=emacs-lisp-intro.txt emacs-lisp-intro.texi
 
-    ## DocBook output
-    makeinfo --docbook --no-split --paragraph-indent=0 \
-    --verbose emacs-lisp-intro.texi
-
-    ## XML output
-    makeinfo --xml --no-split --paragraph-indent=0 \
-    --verbose emacs-lisp-intro.texi
-
     popd
-
-    #### (You must be in the same directory as the viewed file.)
-
-      ## View DVI output
-      xdvi emacs-lisp-intro.dvi &
-
-      ## View HTML output
-      galeon emacs-lisp-intro.html
-
-      ## View Info output with standalone reader
-      info emacs-lisp-intro.info
-
-      ## popd
-
 
 # as user `root'
 # insert thumbdrive
@@ -82,6 +60,40 @@
   cp -v /u/intro/emacs-lisp-intro.texi /mnt/backup/intro/emacs-lisp-intro.texi
   umtusb      #   umount -v /mnt
 # remove thumbdrive
+
+    ## Other shell commands
+
+    pushd /usr/local/src/emacs/lispintro/
+    ## pushd /u/intro/
+
+    ## PDF
+    texi2dvi --pdf emacs-lisp-intro.texi
+       # xpdf emacs-lisp-intro.pdf &
+
+    ## DocBook                    -- note file extension
+    makeinfo --docbook --no-split --paragraph-indent=0 \
+    --verbose --output=emacs-lisp-intro.docbook emacs-lisp-intro.texi
+
+    ## XML with a Texinfo DTD     -- note file extension
+    makeinfo --xml --no-split --paragraph-indent=0 \
+    --verbose --output=emacs-lisp-intro.texinfoxml emacs-lisp-intro.texi
+
+    ## PostScript (needs DVI)
+        #     gv emacs-lisp-intro.ps &
+        # Create DVI if we lack it
+        # texi2dvi emacs-lisp-intro.texi
+    dvips emacs-lisp-intro.dvi -o emacs-lisp-intro.ps
+
+    ## RTF (needs HTML)
+        # Use OpenOffice to view RTF
+        # Create HTML if we lack it
+        # makeinfo --no-split --html emacs-lisp-intro.texi
+    /usr/local/src/html2rtf.pl emacs-lisp-intro.html
+
+    ## LaTeX (needs RTF)
+    /usr/bin/rtf2latex emacs-lisp-intro.rtf
+
+    popd
 
 @end ignore
 
@@ -381,6 +393,7 @@ The Lisp Interpreter
 
 Evaluation
 
+* How the Interpreter Acts::    Returns and Side Effects...
 * Evaluating Inner Lists::      Lists within lists...
 
 Variables
@@ -614,9 +627,10 @@ Loops and Recursion
 * Loop Example::                A @code{while} loop that uses a list.
 * print-elements-of-list::      Uses @code{while}, @code{car}, @code{cdr}.
 * Incrementing Loop::           A loop with an incrementing counter.
+* Incrementing Loop Details::
 * Decrementing Loop::           A loop with a decrementing counter.
 
-A Loop with an Incrementing Counter
+Details of an Incrementing Loop
 
 * Incrementing Example::        Counting pebbles in a triangle.
 * Inc Example parts::           The parts of the function definition.
@@ -709,6 +723,7 @@ Count Words in @code{defuns} in Different Files
 
 Prepare the Data for Display in a Graph
 
+* Data for Display in Detail::
 * Sorting::                     Sorting lists.
 * Files List::                  Making a list of files.
 * Counting function definitions::
@@ -749,6 +764,7 @@ Debugging
 
 Handling the Kill Ring
 
+* What the Kill Ring Does::
 * current-kill::
 * yank::                        Paste a copy of a clipped element.
 * yank-pop::                    Insert element pointed to.
@@ -760,6 +776,7 @@ The @code{current-kill} Function
 
 @code{current-kill} in Outline
 
+* Body of current-kill::
 * Digression concerning error::  How to mislead humans, but not computers.
 * Determining the Element::
 
@@ -773,6 +790,7 @@ A Graph with Labelled Axes
 
 The @code{print-Y-axis} Function
 
+* print-Y-axis in Detail::
 * Height of label::             What height for the Y axis?
 * Compute a Remainder::         How to compute the remainder of a division.
 * Y Axis Element::              Construct a line for the Y axis.
@@ -1626,6 +1644,17 @@ The word comes from its use in everyday language, `to ascertain the
 value or amount of; to appraise', according to @cite{Webster's New
 Collegiate Dictionary}.
 
+@menu
+* How the Interpreter Acts::
+* Evaluating Inner Lists::
+@end menu
+
+@node How the Interpreter Acts, Evaluating Inner Lists, Evaluation, Evaluation
+@ifnottex
+@unnumberedsubsec How the Lisp Interpreter Acts
+@end ifnottex
+
+@cindex @samp{returned value} explained
 After evaluating an expression, the Lisp interpreter will most likely
 @dfn{return} the value that the computer produces by carrying out the
 instructions it found in the function definition, or perhaps it will
@@ -1647,11 +1676,7 @@ In summary, evaluating a symbolic expression most commonly causes the
 Lisp interpreter to return a value and perhaps carry out a side effect;
 or else produce an error.
 
-@menu
-* Evaluating Inner Lists::
-@end menu
-
-@node Evaluating Inner Lists,  , Evaluation, Evaluation
+@node Evaluating Inner Lists,  , How the Interpreter Acts, Evaluation
 @comment  node-name,  next,  previous,  up
 @subsection Evaluating Inner Lists
 @cindex Inner list evaluation
@@ -4501,23 +4526,11 @@ For example,
 
 @smallexample
 @group
-(if (string-equal
-     (number-to-string 22)
-     (substring (emacs-version) 10 12))
+(if (= 22 emacs-major-version)
     (message "This is version 22 Emacs")
   (message "This is not version 22 Emacs"))
 @end group
 @end smallexample
-
-@item equal
-@itemx eq
-Test whether two objects are the same.  @code{equal} uses one meaning
-of the word `same' and @code{eq} uses another:  @code{equal} returns
-true if the two objects have a similar structure and contents, such as
-two copies of the same book.  On the other hand, @code{eq}, returns
-true if both arguments are actually the same object.
-@findex equal
-@findex eq
 
 @need 1250
 @item <
@@ -4537,6 +4550,18 @@ the second.  In all cases, both arguments must be numbers or markers
 The @code{=} function tests whether two arguments, both numbers or
 markers, are equal.
 
+@need 1250
+@item equal
+@itemx eq
+Test whether two objects are the same.  @code{equal} uses one meaning
+of the word `same' and @code{eq} uses another:  @code{equal} returns
+true if the two objects have a similar structure and contents, such as
+two copies of the same book.  On the other hand, @code{eq}, returns
+true if both arguments are actually the same object.
+@findex equal
+@findex eq
+
+@need 1250
 @item string<
 @itemx string-lessp
 @itemx string=
@@ -5660,7 +5685,7 @@ between the name of an object and the object actually referred to.
 * if & or::
 * Insert or::
 * Insert let::
-* New insert-buffer ::
+* New insert-buffer::
 @end menu
 
 @node insert-buffer code, insert-buffer interactive, insert-buffer, insert-buffer
@@ -5934,7 +5959,7 @@ written like this:
 (or (holding-on-to-guest) (find-and-take-arm-of-guest))
 @end smallexample
 
-@node Insert let, New insert-buffer , Insert or, insert-buffer
+@node Insert let, New insert-buffer, Insert or, insert-buffer
 @comment  node-name,  next,  previous,  up
 @subsection The @code{let} Expression in @code{insert-buffer}
 
@@ -6033,7 +6058,7 @@ function uses @code{let}, @code{save-excursion}, and
 use @code{or}.  All these functions are building blocks that we will
 find and use again and again.
 
-@node New insert-buffer ,  , Insert let, insert-buffer
+@node New insert-buffer,  , Insert let, insert-buffer
 @comment  node-name,  next,  previous,  up
 @subsection New Body for @code{insert-buffer}
 @findex insert-buffer, new version body
@@ -6235,14 +6260,14 @@ expression.  In skeletal form, the expression looks like this:
 @end smallexample
 
 The true-or-false-test of this inner @code{if} expression checks the
-size of the buffer.  The reason for this is that the old Version 18
-Emacs used numbers that are no bigger than eight million or so
-and in the computation that followed, the programmer feared that Emacs
-might try to use over-large numbers if the buffer were large.  The
-term `overflow', mentioned in the comment, means numbers that are over
-large.  Version 21 Emacs uses larger numbers, but this code has not
-been touched, if only because people now look at buffers that are far,
-far larger than ever before.
+size of the buffer.  The reason for this is that the old version 18
+Emacs used numbers that are no bigger than eight million or so and in
+the computation that followed, the programmer feared that Emacs might
+try to use over-large numbers if the buffer were large.  The term
+`overflow', mentioned in the comment, means numbers that are over
+large.  More recent versions of Emacs use larger numbers, but this
+code has not been touched, if only because people now look at buffers
+that are far, far larger than ever before.
 
 There are two cases:  if the buffer is large and if it is not.
 
@@ -10396,6 +10421,7 @@ The template for a @code{while} expression looks like this:
 * Loop Example::
 * print-elements-of-list::
 * Incrementing Loop::
+* Incrementing Loop Details::
 * Decrementing Loop::
 @end menu
 
@@ -10617,7 +10643,7 @@ function is printed.  Since the last expression in the function is the
 @code{while} loop, and since @code{while} loops always return
 @code{nil}, a @code{nil} is printed after the last element of the list.
 
-@node Incrementing Loop, Decrementing Loop, print-elements-of-list, while
+@node Incrementing Loop, Incrementing Loop Details, print-elements-of-list, while
 @comment  node-name,  next,  previous,  up
 @subsection A Loop with an Incrementing Counter
 
@@ -10628,15 +10654,21 @@ number of repetitions are complete.  This means that the loop must
 have a counter---an expression that counts how many times the loop
 repeats itself.
 
-The test can be an expression such as @code{(< count desired-number)}
-which returns @code{t} for true if the value of @code{count} is less
-than the @code{desired-number} of repetitions and @code{nil} for false if
-the value of @code{count} is equal to or is greater than the
-@code{desired-number}.  The expression that increments the count can be
-a simple @code{setq} such as @code{(setq count (1+ count))}, where
+@node Incrementing Loop Details, Decrementing Loop, Incrementing Loop, while
+@ifnottex
+@unnumberedsubsec Details of an Incrementing Loop
+@end ifnottex
+
+The test for a loop with an incrementing counter can be an expression
+such as @code{(< count desired-number)} which returns @code{t} for
+true if the value of @code{count} is less than the
+@code{desired-number} of repetitions and @code{nil} for false if the
+value of @code{count} is equal to or is greater than the
+@code{desired-number}.  The expression that increments the count can
+be a simple @code{setq} such as @code{(setq count (1+ count))}, where
 @code{1+} is a built-in function in Emacs Lisp that adds 1 to its
-argument.  (The expression @w{@code{(1+ count)}} has the same result as
-@w{@code{(+ count 1)}}, but is easier for a human to read.)
+argument.  (The expression @w{@code{(1+ count)}} has the same result
+as @w{@code{(+ count 1)}}, but is easier for a human to read.)
 
 @need 1250
 The template for a @code{while} loop controlled by an incrementing
@@ -10661,7 +10693,7 @@ is set to 1.
 * Inc Example altogether::
 @end menu
 
-@node Incrementing Example, Inc Example parts, Incrementing Loop, Incrementing Loop
+@node Incrementing Example, Inc Example parts, Incrementing Loop Details, Incrementing Loop Details
 @unnumberedsubsubsec  Example with incrementing counter
 
 Suppose you are playing on the beach and decide to make a triangle of
@@ -10728,7 +10760,7 @@ row has been added to the total of all the preceding rows.  In a more
 complex loop the repetitive action might not be so simple, but it will
 be simpler than doing everything all at once.
 
-@node Inc Example parts, Inc Example altogether, Incrementing Example, Incrementing Loop
+@node Inc Example parts, Inc Example altogether, Incrementing Example, Incrementing Loop Details
 @unnumberedsubsubsec The parts of the function definition
 
 The preceding analysis gives us the bones of our function definition:
@@ -10822,7 +10854,7 @@ The built-in Emacs Lisp function @code{1+} adds 1 to a number, so the
 (setq row-number (1+ row-number))
 @end smallexample
 
-@node Inc Example altogether,  , Inc Example parts, Incrementing Loop
+@node Inc Example altogether,  , Inc Example parts, Incrementing Loop Details
 @unnumberedsubsubsec Putting the function definition together
 
 We have created the parts for the function definition; now we need to
@@ -10932,7 +10964,7 @@ can try it out.  Here are two examples:
 The sum of the first four numbers is 10 and the sum of the first seven
 numbers is 28.
 
-@node Decrementing Loop,  , Incrementing Loop, while
+@node Decrementing Loop,  , Incrementing Loop Details, while
 @comment  node-name,  next,  previous,  up
 @subsection Loop with a Decrementing Counter
 
@@ -15517,7 +15549,7 @@ in their customary places.  To change the expressions, copy them to
 the @file{*scratch*} buffer, edit them, and then evaluate them.
 
 The results are shown after the @samp{@result{}}.  (These results are
-for files from Emacs Version 22.1.1; files from other versions of
+for files from Emacs version 22.1.1; files from other versions of
 Emacs may produce different results.)
 
 @c !!! 22.1.1 lisp sources location here
@@ -15569,6 +15601,18 @@ In brief, we need to go through the lengths' list produced by the
 of defuns within each range of lengths, and produce a list of those
 numbers.
 
+@menu
+* Data for Display in Detail::
+* Sorting::
+* Files List::
+* Counting function definitions::
+@end menu
+
+@node Data for Display in Detail, Sorting, Prepare the data, Prepare the data
+@ifnottex
+@unnumberedsubsec The Data for Display in Detail
+@end ifnottex
+
 Based on what we have done before, we can readily foresee that it
 should not be too hard to write a function that `@sc{cdr}s' down the
 lengths' list, looks at each element, determines which length range it
@@ -15583,13 +15627,7 @@ inspecting a sorted list, we can discover the highest and lowest
 number, and thereby determine the largest and smallest length range
 that we will need.
 
-@menu
-* Sorting::
-* Files List::
-* Counting function definitions::
-@end menu
-
-@node Sorting, Files List, Prepare the data, Prepare the data
+@node Sorting, Files List, Data for Display in Detail, Prepare the data
 @subsection Sorting Lists
 @findex sort
 
@@ -17764,12 +17802,12 @@ come to use a `rare' function frequently.  When you do, you should
 load that function's file with a @code{load} expression in your
 @file{.emacs} file.
 
-In my @file{.emacs} file for Emacs version 22, I load 14 libraries
-that contain functions that would otherwise be autoloaded.  (Actually,
-it would have been better to include these files in my `dumped' Emacs,
-but I forgot.  @xref{Building Emacs, , Building Emacs, elisp, The GNU
-Emacs Lisp Reference Manual}, and the @file{INSTALL} file for more
-about dumping.)
+In my @file{.emacs} file, I load 14 libraries that contain functions
+that would otherwise be autoloaded.  (Actually, it would have been
+better to include these files in my `dumped' Emacs, but I forgot.
+@xref{Building Emacs, , Building Emacs, elisp, The GNU Emacs Lisp
+Reference Manual}, and the @file{INSTALL} file for more about
+dumping.)
 
 You may also want to include autoloaded expressions in your @file{.emacs}
 file.  @code{autoload} is a built-in function that takes up to five
@@ -17922,6 +17960,21 @@ emacs -Q - D
        )
 @end group
 @end smallexample
+
+@need 1250
+Alternatively, since @code{blink-cursor-mode} has existed since Emacs
+version 21 and is likely to continue, you could write
+
+@smallexample
+@group
+(when (>= emacs-major-version 21)
+  (blink-cursor-mode 0)
+@end group
+@end smallexample
+
+@noindent
+and add other expressions, too. 
+
 
 @node X11 Colors, Miscellaneous, Simple Extension, Emacs Initialization
 @section X11 Colors
@@ -19093,6 +19146,19 @@ This appendix describes the @code{current-kill} function as well as
 both the @code{yank} and the @code{yank-pop} commands, but first,
 consider the workings of the kill ring.
 
+@menu
+* What the Kill Ring Does::
+* current-kill::
+* yank::
+* yank-pop::
+* ring file::
+@end menu
+
+@node What the Kill Ring Does, current-kill, Kill Ring, Kill Ring
+@ifnottex
+@unnumberedsec What the Kill Ring Does
+@end ifnottex
+
 @need 1250
 The kill ring has a default maximum length of sixty items; this number
 is too large for an explanation.  Instead, set it to four.  Please
@@ -19163,14 +19229,7 @@ To return to the old value for the length of the kill ring, evaluate:
 (setq kill-ring-max old-kill-ring-max)
 @end smallexample
 
-@menu
-* current-kill::
-* yank::
-* yank-pop::
-* ring file::
-@end menu
-
-@node current-kill, yank, Kill Ring, Kill Ring
+@node current-kill, yank, What the Kill Ring Does, Kill Ring
 @comment  node-name,  next,  previous,  up
 @appendixsec The @code{current-kill} Function
 @findex current-kill
@@ -19182,6 +19241,17 @@ to the latest element of the the kill ring.  The @code{kill-new}
 function is used directly or indirectly by @code{kill-append},
 @code{copy-region-as-kill}, @code{kill-ring-save}, @code{kill-line},
 and @code{kill-region}.)
+
+@menu
+* Code for current-kill::
+* Understanding current-kill::
+@end menu
+
+@node Code for current-kill, Understanding current-kill, current-kill, current-kill
+@ifnottex
+@unnumberedsubsec The code for @code{current-kill}
+@end ifnottex
+
 
 @need 1500
 The @code{current-kill} function is used by @code{yank} and by
@@ -19238,11 +19308,7 @@ Here is the line in @code{kill-new}, which is explained in
 (setq kill-ring-yank-pointer kill-ring)
 @end smallexample
 
-@menu
-* Understanding current-kill::
-@end menu
-
-@node Understanding current-kill,  , current-kill, current-kill
+@node Understanding current-kill,  , Code for current-kill, current-kill
 @ifnottex
 @unnumberedsubsec @code{current-kill} in Outline
 @end ifnottex
@@ -19262,6 +19328,17 @@ skeletal form:
 
 This function takes two arguments, one of which is optional.  It has a
 documentation string.  It is @emph{not} interactive.
+
+@menu
+* Body of current-kill::
+* Digression concerning error::
+* Determining the Element::
+@end menu
+
+@node Body of current-kill, Digression concerning error, Understanding current-kill, Understanding current-kill
+@ifnottex
+@unnumberedsubsubsec The Body of @code{current-kill}
+@end ifnottex
 
 The body of the function definition is a @code{let} expression, which
 itself has a body as well as a @var{varlist}.
@@ -19341,12 +19418,7 @@ current value of @code{kill-ring-yank-pointer} is set to point to the
 list.  Finally, another expression returns the first element of the
 list even if the @code{do-not-move} argument is true.
 
-@menu
-* Digression concerning error::
-* Determining the Element ::
-@end menu
-
-@node Digression concerning error, Determining the Element , Understanding current-kill, Understanding current-kill
+@node Digression concerning error, Determining the Element, Body of current-kill, Understanding current-kill
 @ifnottex
 @unnumberedsubsubsec Digression about the word `error'
 @end ifnottex
@@ -19368,7 +19440,7 @@ environment, is making an error.  This is bad.  Even though the computer
 takes the same steps as it does when there is an `error', a term such as
 `cancel' would have a clearer connotation.
 
-@node Determining the Element ,  , Digression concerning error, Understanding current-kill
+@node Determining the Element,  , Digression concerning error, Understanding current-kill
 @ifnottex
 @unnumberedsubsubsec Determining the Element
 @end ifnottex
@@ -19850,6 +19922,20 @@ the vertical axis that looks like this:
 The function should be passed the height of the graph, and then should
 construct and insert the appropriate numbers and marks.
 
+@menu
+* print-Y-axis in Detail::
+* Height of label::
+* Compute a Remainder::
+* Y Axis Element::
+* Y-axis-column::
+* print-Y-axis Penultimate::
+@end menu
+
+@node print-Y-axis in Detail, Height of label, print-Y-axis, print-Y-axis
+@ifnottex
+@unnumberedsubsec The @code{print-Y-axis} Function in Detail
+@end ifnottex
+
 It is easy enough to see in the figure what the Y axis label should
 look like; but to say in words, and then to write a function
 definition to do the job is another matter.  It is not quite true to
@@ -19861,15 +19947,7 @@ the base line (number 1) and then that we want a number and a tic on
 the fifth line from the bottom and on every line that is a multiple of
 five.
 
-@menu
-* Height of label::
-* Compute a Remainder::
-* Y Axis Element::
-* Y-axis-column::
-* print-Y-axis Penultimate::
-@end menu
-
-@node Height of label, Compute a Remainder, print-Y-axis, print-Y-axis
+@node Height of label, Compute a Remainder, print-Y-axis in Detail, print-Y-axis
 @ifnottex
 @unnumberedsubsec What height should the label be?
 @end ifnottex
