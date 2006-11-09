@@ -1,5 +1,8 @@
 2006-11-09  Robert J. Chassell  <bob@rattlesnake.com>
 
+	* emacs-lisp-intro.texi: Copy descriptions from detailed master
+	menu to menus within body.
+
 	* emacs-lisp-intro.texi (at the beginning):  Add `other shell
 	commands' to produce additional output formats; total is now ten.
 	(A Loop with an Incrementing Counter, and others): Ensure Info
@@ -8,6 +11,7 @@
 	recent versions'.
 	(Simple Extension): Show how to handle multiple versions by adding
 	an alternative with a test of `>= 21'
+
 
 2006-11-06  Robert J. Chassell  <bob@rattlesnake.com>
 
