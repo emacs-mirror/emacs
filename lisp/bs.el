@@ -446,6 +446,7 @@ defined by current configuration `bs-current-configuration'.")
 
 (defvar bs--window-config-coming-from nil
   "Window configuration before starting Buffer Selection Menu.")
+(make-variable-frame-local 'bs--window-config-coming-from)
 
 (defvar bs--intern-show-never "^ \\|\\*buffer-selection\\*"
   "Regular expression specifying which buffers never to show.
@@ -584,7 +585,7 @@ a special function.  SORT-DESCRIPTION is an element of `bs-sort-functions'."
 (defun bs--redisplay (&optional keep-line-p sort-description)
   "Redisplay whole Buffer Selection Menu.
 If KEEP-LINE-P is non-nil the point will stay on current line.
-SORT-DESCRIPTION is an element of `bs-sort-functions'"
+SORT-DESCRIPTION is an element of `bs-sort-functions'."
   (let ((line (1+ (count-lines 1 (point)))))
     (bs-show-in-buffer (bs-buffer-list nil sort-description))
     (if keep-line-p
@@ -661,11 +662,17 @@ to show always.
 	font-lock-verbose nil)
   (run-mode-hooks 'bs-mode-hook))
 
+(defun bs--restore-window-config ()
+  "Restore window configuration on the current frame."
+  (when bs--window-config-coming-from
+    (set-window-configuration bs--window-config-coming-from)
+    (setq bs--window-config-coming-from nil)))
+
 (defun bs-kill ()
   "Let buffer disappear and reset window-configuration."
   (interactive)
   (bury-buffer (current-buffer))
-  (set-window-configuration bs--window-config-coming-from))
+  (bs--restore-window-config))
 
 (defun bs-abort ()
   "Ding and leave Buffer Selection Menu without a selection."
@@ -689,12 +696,12 @@ Refresh whole Buffer Selection Menu."
   "Return a window showing a buffer with name BUFFER-NAME.
 Take only windows of current frame into account.
 Return nil if there is no such buffer."
-  (let ((window nil))
-    (walk-windows (lambda (wind)
-		    (if (string= (buffer-name (window-buffer wind))
-				 buffer-name)
-			(setq window wind))))
-    window))
+  (catch 'window
+    (walk-windows (lambda (w)
+		    (when (string= (buffer-name (window-buffer w))
+                                   buffer-name)
+                      (throw 'window w))))
+    nil))
 
 (defun bs--set-window-height ()
   "Change the height of the selected window to suit the current buffer list."
@@ -736,7 +743,7 @@ Leave Buffer Selection Menu."
   (interactive)
   (let ((buffer (bs--current-buffer)))
     (bury-buffer (current-buffer))
-    (set-window-configuration bs--window-config-coming-from)
+    (bs--restore-window-config)
     (switch-to-buffer buffer)
     (if bs--marked-buffers
 	;; Some marked buffers for selection
@@ -760,7 +767,7 @@ Leave Buffer Selection Menu."
   (interactive)
   (let ((buffer (bs--current-buffer)))
     (bury-buffer (current-buffer))
-    (set-window-configuration bs--window-config-coming-from)
+    (bs--restore-window-config)
     (switch-to-buffer-other-window buffer)))
 
 (defun bs-tmp-select-other-window ()
@@ -776,7 +783,7 @@ Leave Buffer Selection Menu."
   (interactive)
   (let ((buffer (bs--current-buffer)))
     (bury-buffer (current-buffer))
-    (set-window-configuration bs--window-config-coming-from)
+    (bs--restore-window-config)
     (switch-to-buffer-other-frame buffer)))
 
 (defun bs-mouse-select-other-frame (event)
@@ -1426,17 +1433,17 @@ for buffer selection."
     (unless (string= "*buffer-selection*" (buffer-name))
       ;; Only when not in buffer *buffer-selection*
       ;; we have to set the buffer we started the command
-      (progn
-	(setq bs--buffer-coming-from (current-buffer))
-	(setq bs--window-config-coming-from (current-window-configuration))))
+      (setq bs--buffer-coming-from (current-buffer)))
     (let ((liste (bs-buffer-list))
 	  (active-window (bs--window-for-buffer "*buffer-selection*")))
       (if active-window
 	  (select-window active-window)
-	(if (> (window-height (selected-window)) 7)
-	    (progn
-	      (split-window-vertically)
-	      (other-window 1))))
+        (modify-frame-parameters nil
+                                 (list (cons 'bs--window-config-coming-from
+                                             (current-window-configuration))))
+	(when (> (window-height (selected-window)) 7)
+          (split-window-vertically)
+          (other-window 1)))
       (bs-show-in-buffer liste)
       (bs-message-without-log "%s" (bs--current-config-message)))))
 
