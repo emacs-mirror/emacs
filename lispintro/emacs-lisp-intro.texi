@@ -455,7 +455,7 @@ Install a Function Definition
 Make a Function Interactive
 
 * Interactive multiply-by-seven::  An overview.
-* multiply-by-seven in detail::  The interactive version.
+* multiply-by-seven in detail::    The interactive version.
 
 @code{let}
 
@@ -589,7 +589,7 @@ Cutting and Storing Text
 @code{copy-region-as-kill}
 
 * Complete copy-region-as-kill::  The complete function definition.
-* copy-region-as-kill body::    The body of @code{copy-region-as-kill}.
+* copy-region-as-kill body::      The body of @code{copy-region-as-kill}.
 
 The Body of @code{copy-region-as-kill}
 
@@ -836,11 +836,11 @@ files, read letters, write books---all these activities are kinds of
 editing in the most general sense of the word.)
 
 @menu
-* Why::
-* On Reading this Text::
-* Who You Are::
+* Why::                         Why learn Emacs Lisp?
+* On Reading this Text::        Read, gain familiarity, pick up habits....
+* Who You Are::                 For whom this is written.
 * Lisp History::
-* Note for Novices::
+* Note for Novices::            You can read this as a novice.
 * Thank You::
 @end menu
 
@@ -1093,16 +1093,16 @@ think about functions now; functions are defined in @ref{Making
 Errors, , Generate an Error Message}.}  Lists are the basis of Lisp.
 
 @menu
-* Lisp Lists::
-* Run a Program::
-* Making Errors::
-* Names & Definitions::
-* Lisp Interpreter::
-* Evaluation::
-* Variables::
-* Arguments::
-* set & setq::
-* Summary::
+* Lisp Lists::                  What are lists?
+* Run a Program::               Any list in Lisp is a program ready to run.
+* Making Errors::               Generating an error message.
+* Names & Definitions::         Names of symbols and function definitions.
+* Lisp Interpreter::            What the Lisp interpreter does.
+* Evaluation::                  Running a program.
+* Variables::                   Returning a value from a variable.
+* Arguments::                   Passing information to a function.
+* set & setq::                  Setting the value of a variable.
+* Summary::                     The major points.
 * Error Message Exercises::
 @end menu
 
@@ -1132,10 +1132,10 @@ like flowers in a field with a stone wall around them.
 @cindex Flowers in a field
 
 @menu
-* Numbers Lists::
-* Lisp Atoms::
-* Whitespace in Lists::
-* Typing Lists::
+* Numbers Lists::               List have numbers, other lists, in them.
+* Lisp Atoms::                  Elemental entities.
+* Whitespace in Lists::         Formatting lists to be readable.
+* Typing Lists::                How GNU Emacs helps you type lists.
 @end menu
 
 @node Numbers Lists, Lisp Atoms, Lisp Lists, Lisp Lists
@@ -1573,8 +1573,8 @@ and attach them to names, and how to do this without confusing either
 yourself or the computer.
 
 @menu
-* Complications::
-* Byte Compiling::
+* Complications::               Variables, Special forms, Lists within.
+* Byte Compiling::              Specially processing code for speed.
 @end menu
 
 @node Complications, Byte Compiling, Lisp Interpreter, Lisp Interpreter
@@ -1645,8 +1645,8 @@ value or amount of; to appraise', according to @cite{Webster's New
 Collegiate Dictionary}.
 
 @menu
-* How the Interpreter Acts::
-* Evaluating Inner Lists::
+* How the Interpreter Acts::    Returns and Side Effects...
+* Evaluating Inner Lists::      Lists within lists...
 @end menu
 
 @node How the Interpreter Acts, Evaluating Inner Lists, Evaluation, Evaluation
@@ -1775,8 +1775,9 @@ function definition, and vice-verse.
 
 @menu
 * fill-column Example::
-* Void Function::
-* Void Variable::
+* Void Function::               The error message for a symbol
+                                  without a function.
+* Void Variable::               The error message for a symbol without a value.
 @end menu
 
 @node fill-column Example, Void Function, Variables, Variables
@@ -1982,11 +1983,14 @@ to it at the same time.  By contrast, in Emacs Lisp, a symbol cannot
 have two different function definitions at the same time.)}
 
 @menu
-* Data types::
-* Args as Variable or List::
-* Variable Number of Arguments::
-* Wrong Type of Argument::
-* message::
+* Data types::                  Types of data passed to a function.
+* Args as Variable or List::    An argument can be the value
+                                  of a variable or list.
+* Variable Number of Arguments::  Some functions may take a
+                                  variable number of arguments.
+* Wrong Type of Argument::      Passing an argument of the wrong type
+                                  to a function.
+* message::                     A useful function for sending messages.
 @end menu
 
 @node Data types, Args as Variable or List, Arguments, Arguments
@@ -2356,9 +2360,9 @@ The following sections not only describe how @code{set} and @code{setq}
 work but also illustrate how arguments are passed.
 
 @menu
-* Using set::
-* Using setq::
-* Counting::
+* Using set::                  Setting values.
+* Using setq::                 Setting a quoted value.
+* Counting::                   Using @code{setq} to count.
 @end menu
 
 @node Using set, Using setq, set & setq, set & setq
@@ -2628,11 +2632,13 @@ these.  In another section, we will study the code of several other
 buffer-related functions, to see how they were written.
 
 @menu
-* How to Evaluate::
-* Buffer Names::
-* Getting Buffers::
-* Switching Buffers::
-* Buffer Size & Locations::
+* How to Evaluate::            Typing editing commands or @kbd{C-x C-e}
+                                 causes evaluation.
+* Buffer Names::               Buffers and files are different.
+* Getting Buffers::            Getting a buffer itself, not merely its name.
+* Switching Buffers::          How to change to another buffer.
+* Buffer Size & Locations::    Where point is located and the size of
+                               the buffer.
 * Evaluation Exercise::
 @end menu
 
@@ -3047,16 +3053,16 @@ symbol refers to it.)
 
 @menu
 * Primitive Functions::
-* defun::
-* Install::
-* Interactive::
-* Interactive Options::
-* Permanent Installation::
-* let::
-* if::
-* else::
-* Truth & Falsehood::
-* save-excursion::
+* defun::                        The @code{defun} special form.
+* Install::                      Install a function definition.
+* Interactive::                  Making a function interactive.
+* Interactive Options::          Different options for @code{interactive}.
+* Permanent Installation::       Installing code permanently.
+* let::                          Creating and initializing local variables.
+* if::                           What if?
+* else::                         If--then--else expressions.
+* Truth & Falsehood::            What Lisp considers false and true.
+* save-excursion::               Keeping track of point, mark, and buffer.
 * Review::
 * defun Exercises::
 @end menu
@@ -3295,7 +3301,7 @@ Emacs.  To reload code automatically whenever you start Emacs, see
 
 @menu
 * Effect of installation::
-* Change a defun::
+* Change a defun::              How to change a function definition.
 @end menu
 
 @node Effect of installation, Change a defun, Install, Install
@@ -3396,8 +3402,8 @@ value returned.  If the returned value were displayed in the echo area
 each time you typed a key, it would be very distracting.
 
 @menu
-* Interactive multiply-by-seven::
-* multiply-by-seven in detail::
+* Interactive multiply-by-seven::  An overview.
+* multiply-by-seven in detail::    The interactive version.
 @end menu
 
 @node Interactive multiply-by-seven, multiply-by-seven in detail, Interactive, Interactive
@@ -3895,7 +3901,7 @@ such as, ``if it is warm and sunny, then go to the beach!''
 
 @menu
 * if in more detail::
-* type-of-animal in detail::
+* type-of-animal in detail::    An example of an @code{if} expression.
 @end menu
 
 @node if in more detail, type-of-animal in detail, if, if
@@ -4187,7 +4193,7 @@ symbol (other than @code{nil}) such as @code{flowers}, or a list (so
 long as it is not empty), or even a buffer!
 
 @menu
-* nil explained::
+* nil explained::               @code{nil} has two meanings.
 @end menu
 
 @node nil explained,  , Truth & Falsehood, Truth & Falsehood
@@ -4275,7 +4281,7 @@ purpose is to keep the user from being surprised and disturbed by
 unexpected movement of point or mark.
 
 @menu
-* Point and mark::
+* Point and mark::              A review of various locations.
 * Template for save-excursion::
 @end menu
 
@@ -4670,11 +4676,13 @@ these definitions.  The functions described here are all related to
 buffers.  Later, we will study other functions.
 
 @menu
-* Finding More::
-* simplified-beginning-of-buffer::
-* mark-whole-buffer::
-* append-to-buffer::
-* Buffer Related Review::
+* Finding More::                How to find more information.
+* simplified-beginning-of-buffer::  Shows @code{goto-char},
+                                @code{point-min}, and @code{push-mark}.
+* mark-whole-buffer::           Almost the same as @code{beginning-of-buffer}.
+* append-to-buffer::            Uses @code{save-excursion} and
+                                @code{insert-buffer-substring}.
+* Buffer Related Review::       Review.
 * Buffer Exercises::
 @end menu
 
@@ -4920,7 +4928,7 @@ h}.
 
 @menu
 * mark-whole-buffer overview::
-* Body of mark-whole-buffer::
+* Body of mark-whole-buffer::   Only three lines of code.
 @end menu
 
 @node mark-whole-buffer overview, Body of mark-whole-buffer, mark-whole-buffer, mark-whole-buffer
@@ -5056,9 +5064,9 @@ current buffer to a specified buffer.
 
 @menu
 * append-to-buffer overview::
-* append interactive::
-* append-to-buffer body::
-* append save-excursion::
+* append interactive::          A two part interactive expression.
+* append-to-buffer body::       Incorporates a @code{let} expression.
+* append save-excursion::       How the @code{save-excursion} works.
 @end menu
 
 @node append-to-buffer overview, append interactive, append-to-buffer, append-to-buffer
@@ -5572,9 +5580,10 @@ use of an asterisk in an @code{interactive} expression, use of
 to which the name refers.
 
 @menu
-* copy-to-buffer::
-* insert-buffer::
-* beginning-of-buffer::
+* copy-to-buffer::              With @code{set-buffer}, @code{get-buffer-create}.
+* insert-buffer::               Read-only, and with @code{or}.
+* beginning-of-buffer::         Shows @code{goto-char},
+                                @code{point-min}, and @code{push-mark}.
 * Second Buffer Related Review::
 * optional Exercise::
 @end menu
@@ -5680,11 +5689,11 @@ between the name of an object and the object actually referred to.
 
 @menu
 * insert-buffer code::
-* insert-buffer interactive::
-* insert-buffer body::
-* if & or::
-* Insert or::
-* Insert let::
+* insert-buffer interactive::   When you can read, but not write.
+* insert-buffer body::          The body has an @code{or} and a @code{let}.
+* if & or::                     Using an @code{if} instead of an @code{or}.
+* Insert or::                   How the @code{or} expression works.
+* Insert let::                  Two @code{save-excursion} expressions.
 * New insert-buffer::
 @end menu
 
@@ -5743,8 +5752,8 @@ declaration has two parts, an asterisk, @samp{*}, and @samp{bInsert
 buffer:@: }.
 
 @menu
-* Read-only buffer::
-* b for interactive::
+* Read-only buffer::            When a buffer cannot be modified.
+* b for interactive::           An existing buffer or else its name.
 @end menu
 
 @node Read-only buffer, b for interactive, insert-buffer interactive, insert-buffer interactive
@@ -6126,7 +6135,7 @@ argument.  The use of the argument is optional.
 
 @menu
 * Optional Arguments::
-* beginning-of-buffer opt arg::
+* beginning-of-buffer opt arg::  Example with optional argument.
 * beginning-of-buffer complete::
 @end menu
 
@@ -6607,9 +6616,9 @@ other parts.  Narrowing is normally disabled since it can confuse
 novices.
 
 @menu
-* Narrowing advantages::
-* save-restriction::
-* what-line::
+* Narrowing advantages::        The advantages of narrowing
+* save-restriction::            The @code{save-restriction} special form.
+* what-line::                   The number of the line that point is on.
 * narrow Exercise::
 @end menu
 
@@ -6938,13 +6947,13 @@ will see @code{cons} as well as two variants on @code{cdr},
 namely, @code{setcdr} and @code{nthcdr}.  (@xref{copy-region-as-kill}.)
 
 @menu
-* Strange Names::
-* car & cdr::
-* cons::
-* nthcdr::
+* Strange Names::               An historical aside: why the strange names?
+* car & cdr::                   Functions for extracting part of a list.
+* cons::                        Constructing a list.
+* nthcdr::                      Calling @code{cdr} repeatedly.
 * nth::
-* setcar::
-* setcdr::
+* setcar::                      Changing the first element of a list.
+* setcdr::                      Changing the rest of a list.
 * cons Exercise::
 @end menu
 
@@ -7126,7 +7135,7 @@ Like @code{car} and @code{cdr}, @code{cons} is non-destructive.
 
 @menu
 * Build a list::
-* length::
+* length::                      How to find the length of a list.
 @end menu
 
 @node Build a list, length, cons, cons
@@ -7607,12 +7616,12 @@ been tempted to replace globally all occurrences of `kill' in the Emacs
 sources with `clip' and all occurrences of `killed' with `clipped'.)
 
 @menu
-* Storing Text::
-* zap-to-char::
-* kill-region::
-* copy-region-as-kill::
-* Digression into C::
-* defvar::
+* Storing Text::                Text is stored in a list.
+* zap-to-char::                 Cutting out text up to a character.
+* kill-region::                 Cutting text out of a region.
+* copy-region-as-kill::         A definition for copying text.
+* Digression into C::           Minor note on C programming language macros.
+* defvar::                      How to give a variable an initial value.
 * cons & search-fwd Review::
 * search Exercises::
 @end menu
@@ -7704,12 +7713,12 @@ that of error handling.  We will walk through the function.
 But first, let us look at the interactive @code{zap-to-char} function.
 
 @menu
-* Complete zap-to-char::
-* zap-to-char interactive::
-* zap-to-char body::
-* search-forward::
-* progn::
-* Summing up zap-to-char::
+* Complete zap-to-char::        The complete implementation.
+* zap-to-char interactive::     A three part interactive expression.
+* zap-to-char body::            A short overview.
+* search-forward::              How to search for a string.
+* progn::                       The @code{progn} special form.
+* Summing up zap-to-char::      Using @code{point} and @code{search-forward}.
 @end menu
 
 @node Complete zap-to-char, zap-to-char interactive, zap-to-char, zap-to-char
@@ -8066,8 +8075,8 @@ code that does the work when all goes well.  The third argument
 contains the code that is called in the event of an error.
 
 @menu
-* Complete kill-region::
-* condition-case::
+* Complete kill-region::        The function definition.
+* condition-case::              Dealing with a problem.
 * Lisp macro::
 @end menu
 
@@ -8436,8 +8445,8 @@ hand, if some other command precedes the @code{copy-region-as-kill},
 the function copies the text into a separate entry in the kill ring.
 
 @menu
-* Complete copy-region-as-kill::
-* copy-region-as-kill body::
+* Complete copy-region-as-kill::  The complete function definition.
+* copy-region-as-kill body::      The body of @code{copy-region-as-kill}.
 @end menu
 
 @node Complete copy-region-as-kill, copy-region-as-kill body, copy-region-as-kill, copy-region-as-kill
@@ -9663,7 +9672,7 @@ pointed to.  Hence, a list is kept as a series of electronic addresses.
 
 @menu
 * Lists diagrammed::
-* Symbols as Chest::
+* Symbols as Chest::            Exploring a powerful metaphor.
 * List Exercise::
 @end menu
 
@@ -10144,8 +10153,8 @@ list is handled as a ring.)
 
 @menu
 * Kill Ring Overview::
-* kill-ring-yank-pointer::
-* yank nthcdr Exercises::
+* kill-ring-yank-pointer::      The kill ring is a list.
+* yank nthcdr Exercises::       The @code{kill-ring-yank-pointer} variable.
 @end menu
 
 @node Kill Ring Overview, kill-ring-yank-pointer, Yanking, Yanking
@@ -10380,9 +10389,9 @@ increase the values of @code{max-specpdl-size} and
 15 and 30 times their default value.}.
 
 @menu
-* while::
+* while::                       Causing a stretch of code to repeat.
 * dolist dotimes::
-* Recursion::
+* Recursion::                   Causing a function to call itself.
 * Looping exercise::
 @end menu
 
@@ -10417,12 +10426,12 @@ The template for a @code{while} expression looks like this:
 @end smallexample
 
 @menu
-* Looping with while::
-* Loop Example::
-* print-elements-of-list::
-* Incrementing Loop::
+* Looping with while::          Repeat so long as test returns true.
+* Loop Example::                A @code{while} loop that uses a list.
+* print-elements-of-list::      Uses @code{while}, @code{car}, @code{cdr}.
+* Incrementing Loop::           A loop with an incrementing counter.
 * Incrementing Loop Details::
-* Decrementing Loop::
+* Decrementing Loop::           A loop with a decrementing counter.
 @end menu
 
 @node Looping with while, Loop Example, while, while
@@ -10688,9 +10697,9 @@ Note that you need to set the initial value of @code{count}; usually it
 is set to 1.
 
 @menu
-* Incrementing Example::
-* Inc Example parts::
-* Inc Example altogether::
+* Incrementing Example::        Counting pebbles in a triangle.
+* Inc Example parts::           The parts of the function definition.
+* Inc Example altogether::      Putting the function definition together.
 @end menu
 
 @node Incrementing Example, Inc Example parts, Incrementing Loop Details, Incrementing Loop Details
@@ -10996,9 +11005,9 @@ The template for a decrementing @code{while} loop looks like this:
 @end smallexample
 
 @menu
-* Decrementing Example::
-* Dec Example parts::
-* Dec Example altogether::
+* Decrementing Example::        More pebbles on the beach.
+* Dec Example parts::           The parts of the function definition.
+* Dec Example altogether::      Putting the function definition together.
 @end menu
 
 @node Decrementing Example, Dec Example parts, Decrementing Loop, Decrementing Loop
@@ -11353,13 +11362,13 @@ different arguments' will become sufficiently different from the first
 arguments that the final instance will stop.
 
 @menu
-* Building Robots::
-* Recursive Definition Parts::
-* Recursion with list::
+* Building Robots::             Same model, different serial number ...
+* Recursive Definition Parts::  Walk until you stop ...
+* Recursion with list::         Using a list as the test whether to recurse.
 * Recursive triangle function::
 * Recursion with cond::
-* Recursive Patterns::
-* No Deferment::
+* Recursive Patterns::          Often used templates.
+* No Deferment::                Don't store up work ...
 * No deferment solution::
 @end menu
 
@@ -12399,11 +12408,11 @@ this chapter.  @code{forward-paragraph} is a complex function that
 introduces several new features.
 
 @menu
-* sentence-end::
-* re-search-forward::
-* forward-sentence::
-* forward-paragraph::
-* etags::
+* sentence-end::                The regular expression for @code{sentence-end}.
+* re-search-forward::           Very similar to @code{search-forward}.
+* forward-sentence::            A straightforward example of regexp search.
+* forward-paragraph::           A somewhat complex example.
+* etags::                       How to create your own @file{TAGS} table.
 * Regexp Review::
 * re-search Exercises::
 @end menu
@@ -12649,8 +12658,8 @@ bound to the key command @kbd{M-e}.
 
 @menu
 * Complete forward-sentence::
-* fwd-sentence while loops::
-* fwd-sentence re-search::
+* fwd-sentence while loops::    Two @code{while} loops.
+* fwd-sentence re-search::      A regular expression search.
 @end menu
 
 @node Complete forward-sentence, fwd-sentence while loops, forward-sentence, forward-sentence
@@ -13108,9 +13117,9 @@ exists, especially when blank lines separate paragraphs.
 This is an added complication.
 
 @menu
-* forward-paragraph in brief::
-* fwd-para let::
-* fwd-para while::
+* forward-paragraph in brief::  Key parts of the function definition.
+* fwd-para let::                The @code{let*} expression.
+* fwd-para while::              The forward motion @code{while} loop.
 @end menu
 
 @node forward-paragraph in brief, fwd-para let, forward-paragraph, forward-paragraph
@@ -13804,8 +13813,8 @@ word count commands using @code{while} loops and recursion.
 
 @menu
 * Why Count Words::
-* count-words-region::
-* recursive-count-words::
+* count-words-region::          Use a regexp, but find a problem.
+* recursive-count-words::       Start with case of no words in region.
 * Counting Exercise::
 @end menu
 
@@ -13851,8 +13860,8 @@ region.  This means that word counting is ideally suited to recursion
 or to a @code{while} loop.
 
 @menu
-* Design count-words-region::
-* Whitespace Bug::
+* Design count-words-region::   The definition using a @code{while} loop.
+* Whitespace Bug::              The Whitespace Bug in @code{count-words-region}.
 @end menu
 
 @node Design count-words-region, Whitespace Bug, count-words-region, count-words-region
@@ -14692,15 +14701,15 @@ and this will tell.
 
 @menu
 * Divide and Conquer::
-* Words and Symbols::
-* Syntax::
-* count-words-in-defun::
-* Several defuns::
-* Find a File::
-* lengths-list-file::
-* Several files::
-* Several files recursively::
-* Prepare the data::
+* Words and Symbols::           What to count?
+* Syntax::                      What constitutes a word or symbol?
+* count-words-in-defun::        Very like @code{count-words}.
+* Several defuns::              Counting several defuns in a file.
+* Find a File::                 Do you want to look at a file?
+* lengths-list-file::           A list of the lengths of many definitions.
+* Several files::               Counting in definitions in different files.
+* Several files recursively::   Recursively counting in different files.
+* Prepare the data::            Prepare the data for display in a graph.
 @end menu
 
 @node Divide and Conquer, Words and Symbols, Words in a defun, Words in a defun
@@ -15366,8 +15375,8 @@ Working on each of a list of files is a repetitious act, so we can use
 either a @code{while} loop or recursion.
 
 @menu
-* lengths-list-many-files::
-* append::
+* lengths-list-many-files::     Return a list of the lengths of defuns.
+* append::                      Attach one list to another.
 @end menu
 
 @node lengths-list-many-files, append, Several files, Several files
@@ -15603,8 +15612,8 @@ numbers.
 
 @menu
 * Data for Display in Detail::
-* Sorting::
-* Files List::
+* Sorting::                     Sorting lists.
+* Files List::                  Making a list of files.
 * Counting function definitions::
 @end menu
 
@@ -16297,7 +16306,7 @@ the function to label the axes automatically.
 
 @menu
 * Columns of a graph::
-* graph-body-print::
+* graph-body-print::            How to print the body of a graph.
 * recursive-graph-body-print::
 * Printed Axes::
 * Line Graph Exercise::
@@ -16956,20 +16965,20 @@ expressions in Emacs Lisp you can change or extend Emacs.
 
 @menu
 * Default Configuration::
-* Site-wide Init::
-* defcustom::
-* Beginning a .emacs File::
-* Text and Auto-fill::
-* Mail Aliases::
-* Indent Tabs Mode::
-* Keybindings::
-* Keymaps::
-* Loading Files::
-* Autoload::
-* Simple Extension::
-* X11 Colors::
+* Site-wide Init::              You can write site-wide init files.
+* defcustom::                   Emacs will write code for you.
+* Beginning a .emacs File::     How to write a @code{.emacs file}.
+* Text and Auto-fill::          Automatically wrap lines.
+* Mail Aliases::                Use abbreviations for email addresses.
+* Indent Tabs Mode::            Don't use tabs with @TeX{}
+* Keybindings::                 Create some personal keybindings.
+* Keymaps::                     More about key binding.
+* Loading Files::               Load (i.e., evaluate) files automatically.
+* Autoload::                    Make functions available.
+* Simple Extension::            Define a function; bind it to a key.
+* X11 Colors::                  Colors in X.
 * Miscellaneous::
-* Mode Line::
+* Mode Line::                   How to customize your mode line.
 @end menu
 
 @node Default Configuration, Site-wide Init, Emacs Initialization, Emacs Initialization
@@ -18422,10 +18431,10 @@ Debugging Lisp Programs, elisp, The GNU Emacs Lisp Reference Manual}.
 In this chapter, I will walk through a short example of each.
 
 @menu
-* debug::
-* debug-on-entry::
-* debug-on-quit::
-* edebug::
+* debug::                       How to use the built-in debugger.
+* debug-on-entry::              Start debugging when you call a function.
+* debug-on-quit::               Start debugging when you quit with @kbd{C-g}.
+* edebug::                      How to use Edebug, a source level debugger.
 * Debugging Exercises::
 @end menu
 
@@ -19149,8 +19158,8 @@ consider the workings of the kill ring.
 @menu
 * What the Kill Ring Does::
 * current-kill::
-* yank::
-* yank-pop::
+* yank::                        Paste a copy of a clipped element.
+* yank-pop::                    Insert element pointed to.
 * ring file::
 @end menu
 
@@ -19331,7 +19340,7 @@ documentation string.  It is @emph{not} interactive.
 
 @menu
 * Body of current-kill::
-* Digression concerning error::
+* Digression concerning error::  How to mislead humans, but not computers.
 * Determining the Element::
 @end menu
 
@@ -19756,10 +19765,10 @@ body itself.
 
 @menu
 * Labelled Example::
-* print-graph Varlist::
-* print-Y-axis::
-* print-X-axis::
-* Print Whole Graph::
+* print-graph Varlist::         @code{let} expression in @code{print-graph}.
+* print-Y-axis::                Print a label for the vertical axis.
+* print-X-axis::                Print a horizontal label.
+* Print Whole Graph::           The function to print a complete graph.
 @end menu
 
 @node Labelled Example, print-graph Varlist, Full Graph, Full Graph
@@ -19924,11 +19933,11 @@ construct and insert the appropriate numbers and marks.
 
 @menu
 * print-Y-axis in Detail::
-* Height of label::
-* Compute a Remainder::
-* Y Axis Element::
-* Y-axis-column::
-* print-Y-axis Penultimate::
+* Height of label::             What height for the Y axis?
+* Compute a Remainder::         How to compute the remainder of a division.
+* Y Axis Element::              Construct a line for the Y axis.
+* Y-axis-column::               Generate a list of Y axis labels.
+* print-Y-axis Penultimate::    A not quite final version.
 @end menu
 
 @node print-Y-axis in Detail, Height of label, print-Y-axis, print-Y-axis
@@ -20380,8 +20389,8 @@ the width of the symbols that you are using to print the body of the
 graph without changing the ways the graph is labelled.
 
 @menu
-* Similarities differences::
-* X Axis Tic Marks::
+* Similarities differences::    Much like @code{print-Y-axis}, but not exactly.
+* X Axis Tic Marks::            Create tic marks for the horizontal axis.
 @end menu
 
 @node Similarities differences, X Axis Tic Marks, print-X-axis, print-X-axis
@@ -20729,13 +20738,13 @@ Here is the outline:
 @end smallexample
 
 @menu
-* The final version::
-* Test print-graph::
-* Graphing words in defuns::
-* lambda::
-* mapcar::
-* Another Bug::
-* Final printed graph::
+* The final version::           A few changes.
+* Test print-graph::            Run a short test.
+* Graphing words in defuns::    Executing the final code.
+* lambda::                      How to write an anonymous function.
+* mapcar::                      Apply a function to elements of a list.
+* Another Bug::                 Yet another bug @dots{} most insidious.
+* Final printed graph::         The graph itself!
 @end menu
 
 @node The final version, Test print-graph, Print Whole Graph, Print Whole Graph
