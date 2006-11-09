@@ -1,3 +1,10 @@
+2006-11-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc-svn.el (vc-svn-admin-directory): New var.
+	(vc-svn-registered, vc-svn-responsible-p)
+	(vc-svn-repository-hostname): Use it.
+	Suggested by arit93@yahoo.com.
+
 2006-11-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ldefs-boot.el: Regenerate.
