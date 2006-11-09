@@ -1,8 +1,12 @@
+2006-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ldefs-boot.el: Regenerate.
+
 2006-11-08  Alan Mackenzie  <acm@muc.de>
 
-	* emacs-lisp/lisp.el (beginning-of-defun-raw): Code up the case
-	(eq open-paren-in-column-0-is-defun-start nil) by searching for
-	least nested open-paren.
+	* emacs-lisp/lisp.el (beginning-of-defun-raw): Code up the
+	case (eq open-paren-in-column-0-is-defun-start nil) by searching
+	for least nested open-paren.
 
 2006-11-08  Romain Francoise  <romain@orebokech.com>
 
