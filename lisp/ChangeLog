@@ -1,3 +1,15 @@
+2006-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--redisplay): Fix typo in docstring.
+	(bs--window-config-coming-from): Make frame-local.
+	(bs--restore-window-config): New function.
+	(bs-kill, bs-select, bs-select-other-window)
+	(bs-select-other-frame): Use it.
+	(bs--window-for-buffer): Return as soon as a matching buffer is found.
+	(bs--show-with-configuration): Save the window configuration as a
+	frame local var, and only if *buffer-selection* is not already
+	visible on this frame.
+
 2006-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc-svn.el (vc-svn-admin-directory): New var.
@@ -5,7 +17,7 @@
 	(vc-svn-repository-hostname): Use it.
 	Suggested by arit93@yahoo.com.
 
-2006-11-09  Juanma Barranquero  <lekktu@gmail.com>
+2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ldefs-boot.el: Regenerate.
 
