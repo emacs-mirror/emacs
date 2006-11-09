@@ -5779,7 +5779,7 @@ if `erc-away' is non-nil."
 		      ((functionp erc-header-line-face-method)
 		       (funcall erc-header-line-face-method))
 		      (t
-		       erc-header-line))))
+		       'erc-header-line))))
       (cond ((featurep 'xemacs)
 	     (setq modeline-buffer-identification
 		   (list (format-spec erc-mode-line-format spec)))
