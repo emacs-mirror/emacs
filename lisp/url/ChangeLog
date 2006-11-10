@@ -1,3 +1,10 @@
+2006-11-10  Shun-ichi GOTO  <gotoh@taiyo.co.jp> (tiny change)
+
+	* url-http.el (url-http-mark-connection-as-free)
+	(url-http-find-free-connection): Don't treat process with status
+	`connect' as free.
+	(url-http-async-sentinel): Request correct url.
+
 2006-11-08  Magnus Henoch  <mange@freemail.hu>
 
 	* url-http.el (url-http-handle-authentication): If there are
