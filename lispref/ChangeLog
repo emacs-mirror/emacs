@@ -3,9 +3,9 @@
 	* lists.texi (List Variables): Document COMPARE-FN.
 
 	* keymaps.texi: Avoid use of "binding" to mean a relation;
-	use it only to refer to the meaning associated with a key. 
+	use it only to refer to the meaning associated with a key.
 	(Keymaps): Change menu node description.
-	
+
 	* elisp.texi (Top): Change menu node description.
 
 	* display.texi (Managing Overlays): Document overlay-recenter.
@@ -5445,6 +5445,7 @@ Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob@rice-chex.ai.mit.edu)
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,

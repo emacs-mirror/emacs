@@ -1,15 +1,15 @@
 2006-09-25  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* mh-junk.el (mh-spamassassin-whitelist): Add two missing
-	quotation marks, so that the last two arguments of sa-learn 
+	quotation marks, so that the last two arguments of sa-learn
 	are separated properly (closes SF #1565460).
-	
+
 	* (mh-spamassassin-blacklist): In example .procmailrc, add
 	PATH element to find mhparam on Debian.
-	
+
 2006-09-24  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
-	* mh-comp.el (mh-send-args): Initialize to "" instead of nil 
+	* mh-comp.el (mh-send-args): Initialize to "" instead of nil
 	so that we always have a valid string for split-string even if
 	nothing is added in mh-send-letter (closes SF #1564742).
 
@@ -41,7 +41,7 @@
 	* mh-search.el (mh-search, mh-index-group-by-folder): Add "the" in
 	loop construct to be consistent with other loops, and because
 	edebug doesn't work without it.
-	
+
 2006-06-29  Ted Phelps  <phelps@gnusto.com>  (tiny change)
 
 	* mh-search.el (mh-folder-exists-p): Strip + from folder to avoid
@@ -63,7 +63,7 @@
 	* mh-search.el (mh-index-new-folder): Use -2 suffix instead of <2>
 	suffix for folder names, as <> are illegal filenakme characters on
 	Windows	(closes SF #1507002).
-	
+
 2006-06-05  Jacob Morzinski  <morzinski@MIT.EDU>  (tiny change)
 
 	* mh-comp.el (mh-send-uses-spost): New variable.
@@ -71,7 +71,7 @@
 	mh-send-uses-spost is t (closes SF #1486726).
 
 2006-06-02  Bill Wohler  <wohler@newt.com>
-	
+
 	(mh-folder-exists-p): Change test from an empty buffer, to one
 	that contains the actual folder, since GNU mailutils' folder
 	command displays output if the folder doesn't exist (closes SF
@@ -250,10 +250,10 @@
 	* mh-xface.el (default-enable-multibyte-characters): Ditto.
 
 	* mh-compat.el (mh-font-lock-add-keywords): New alias for
-	font-lock-add-keywords. Returns nil on XEmacs.	
+	font-lock-add-keywords. Returns nil on XEmacs.
 
 	* mh-e.el: Add MH-E function and variable keywords such as
-	mh-defun-compat and mh-defcustom to font-lock-keywords.	
+	mh-defun-compat and mh-defcustom to font-lock-keywords.
 
 2006-04-13  Bill Wohler  <wohler@newt.com>
 
@@ -443,7 +443,7 @@
 	mail/flag-for-followup instead of highlight, contact instead of
 	mail/alias, open instead of fld-open, zoom-out instead of widen.
 
-	* mh-folder.el (mh-execute-commands, mh-rescan-folder): 
+	* mh-folder.el (mh-execute-commands, mh-rescan-folder):
 	* mh-funcs.el (mh-pack-folder): Sync docstrings with manual.
 
 2006-03-27  Eric Ding  <ericding@alum.mit.edu>
@@ -499,12 +499,12 @@
 	directory comes first.
 
 	* mh-e.el (image-load-path): Define on those Emacsen that lack it
-	to avoid compile and run-time errors.	
+	to avoid compile and run-time errors.
 
 	* mh-folder.el (mh-folder-mode): Use new idiom for setting
 	image-load-path.
 
-	* mh-letter.el (mh-letter-mode): Ditto. 
+	* mh-letter.el (mh-letter-mode): Ditto.
 
 	* mh-utils.el (mh-logo-display): Ditto.
 
@@ -540,7 +540,7 @@
 	Release MH-E version 7.93.
 
 	* mh-e.el (Version, mh-version): Update for release 7.93.
-	
+
 2006-03-05  Bill Wohler  <wohler@newt.com>
 
 	* mh-folder.el (mh-folder-mode): Drop 'load-path argument when
@@ -555,7 +555,7 @@
 	* mh-compat.el (mh-image-load-path-for-library): Move here from
 	mh-utils.el and wrap with mh-defun-compat since this function will
 	be soon added to image.el.
-	
+
 	* mh-utils.el (mh-image-load-path-for-library): Move to
 	mh-compat.el.
 	(mh-normalize-folder-name): Add return-nil-if-folder-empty
@@ -794,7 +794,7 @@
 2006-02-03  Peter S Galbraith  <psg@debian.org>
 
 	* mh-utils.el (mh-image-load-path): New variable to optionally
-	hold the directory where MH-E images are stored.  If nil, then 
+	hold the directory where MH-E images are stored.  If nil, then
 	the function `mh-image-load-path' will find it.  This variable
 	will be used for Debian packaging.
 	(mh-image-load-path function): Use variable `mh-image-load-path'
@@ -844,7 +844,7 @@
 	(mh-require, mh-cancel-timer, mh-display-color-cells)
 	(mh-line-beginning-position, mh-line-end-position)
 	(mh-match-string-no-properties, mh-replace-regexp-in-string)
-	(mh-view-mode-enter): Move definition here from mh-xemacs.el and 
+	(mh-view-mode-enter): Move definition here from mh-xemacs.el and
 	add mh- prefix since compatibility functions should have our
 	package prefix (mh-) by Emacs convention and to avoid messing up
 	checks for the same functions in other packages.
@@ -1031,7 +1031,7 @@
 	mh-letter.el.
 
 	* mh-utils.el (mh-get-header-field)
-	(mh-letter-hide-all-skipped-fields) 
+	(mh-letter-hide-all-skipped-fields)
 	(mh-letter-skipped-header-field-p, mh-hidden-header-keymap)
 	(mh-letter-toggle-header-field-display)
 	(mh-letter-skip-leading-whitespace-in-header-field)
@@ -1086,7 +1086,7 @@
 	mh-utils.el.
 	(mh-folder-line-matches-show-buffer-p): Move here from mh-e.el.
 
-	* mh-buffers.el: Update descriptive text.	
+	* mh-buffers.el: Update descriptive text.
 
 	* mh-comp.el (mh-note-repl, mh-note-forw, mh-note-dist): Move to
 	new file mh-scan.el.
@@ -1126,7 +1126,7 @@
 	(mh-display-completion-list): Move here from mh-comp.el.
 
 	* mh-customize.el: Move content into mh-e.el and remove.
-	
+
 	* mh-e.el (mh-folder-mode-map, mh-folder-seq-tool-bar-map)
 	(mh-folder-tool-bar-map, mh-inc-spool-map, mh-letter-mode-map)
 	(mh-letter-tool-bar-map, mh-search-mode-map, mh-show-mode-map)
@@ -1292,7 +1292,7 @@
 	deprecated file mh-customize.el.
 
 	* mh-exec.el: Move content into mh-e.el and remove.
-	
+
 	* mh-folder.el: New file. Contains mh-folder-mode from mh-e.el
 
 	* mh-funcs.el (mh-note-copied, mh-note-printed): Move to new file
@@ -1321,7 +1321,7 @@
 	(mh-inc-spool-list-set): Simplify update of mh-inc-spool-map-help.
 
 	* mh-init.el: Move content into mh-e.el and remove.
-	
+
 	* mh-junk.el: Update requires, untabify, and add mh-autoload
 	cookies.
 
@@ -1559,18 +1559,18 @@
 	file mh-exec.el so that mh-init.el doesn't have to depend on
 	mh-utils.el, breaking circular dependency.
 
-	* mh-alias.el: 
-	* mh-customize.el: 
-	* mh-e.el: 
-	* mh-funcs.el: 
-	* mh-gnus.el: 
-	* mh-identity.el: 
-	* mh-inc.el: 
-	* mh-junk.el: 
-	* mh-mime.el: 
-	* mh-print.el: 
-	* mh-search.el: 
-	* mh-seq.el: 
+	* mh-alias.el:
+	* mh-customize.el:
+	* mh-e.el:
+	* mh-funcs.el:
+	* mh-gnus.el:
+	* mh-identity.el:
+	* mh-inc.el:
+	* mh-junk.el:
+	* mh-mime.el:
+	* mh-print.el:
+	* mh-search.el:
+	* mh-seq.el:
 	* mh-speed.el: Added debugging statements (commented out) around
 	requires to help find dependency loops. Will remove them when
 	issues are resolved.
@@ -1634,7 +1634,7 @@
 	(mh-pick-next-result): Handle new output.
 
 	* mh-utils.el: (mh-collect-folder-names): Fix docstring.
-	(mh-children-p, mh-folder-list): New functions.	
+	(mh-children-p, mh-folder-list): New functions.
 
 2006-01-12  Bill Wohler  <wohler@newt.com>
 
@@ -1704,12 +1704,12 @@
 	* mh-buffers.el: New file. Contains constants and code from
 	mh-index.el and mh-utils.el.
 
-	* mh-alias.el: 
-	* mh-comp.el: 
-	* mh-e.el: 
-	* mh-funcs.el: 
+	* mh-alias.el:
+	* mh-comp.el:
+	* mh-e.el:
+	* mh-funcs.el:
 	* mh-init.el:
-	* mh-junk.el: 
+	* mh-junk.el:
 	* mh-mime.el:
 	* mh-print.el:
 	* mh-seq.el: Require new file mh-buffers.el.
@@ -1777,7 +1777,7 @@
 	mh-utils.el.
 	(mh-no-install, mh-install): Delete.
 
-	* mh-customize.el (mh-folder-msg-number): 
+	* mh-customize.el (mh-folder-msg-number):
 	* mh-mime.el (mh-file-mime-type): Removed trailing whitespace.
 
 2006-01-09  Bill Wohler  <wohler@newt.com>
@@ -1808,11 +1808,11 @@
 	Comment declaration to remind programmer to update forward
 	definition if default changes.
 
-	* mh-funcs.el: 
-	* mh-inc.el: 
-	* mh-init.el: 
-	* mh-mime.el: 
-	* mh-seq.el: 
+	* mh-funcs.el:
+	* mh-inc.el:
+	* mh-init.el:
+	* mh-mime.el:
+	* mh-seq.el:
 	* mh-utils.el: Use ";; Shush compiler." comment consistently per
 	Mark's suggestion.
 
@@ -1824,7 +1824,7 @@
 	peculiarities that you find. Wrapped code for shushing compiler
 	with (eval-when-compile), sometimes moving the defvars closer to
 	where they were used.
-	
+
 	* mh-alias.el (mh-alias-gecos-name): Use replace-regexp-in-string
 	instead of mh-replace-in-string as mh-replace-in-string was
 	replaced by a more appropriate defsubst in mh-xemacs.el.
@@ -1874,7 +1874,7 @@
 	(mh-clean-msg-header): Don't set after-change-functions to nil.
 	(mh-replace-in-string): Remove. Create defsubst in mh-xemacs.el
 	instead.
-	
+
 2006-01-07  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el: Updated Faces documentation in header.
@@ -1897,7 +1897,7 @@
 	Don't end message with punctuation. Don't need format with
 	message. Quote messages as in docstrings: use `' around symbols,
 	\" for option choices. Don't use quotes around %s.
-	
+
 	* mh-comp.el (mh-complete-word): Ditto.
 
 	* mh-customize.el (mh-adaptive-cmd-note-flag-check)
@@ -2413,7 +2413,7 @@
 	(mh-ps-print-msg, mh-ps-print-msg-file)
 	(mh-ps-print-toggle-faces, mh-ps-print-toggle-color): Sync
 	docstrings with manual.
-	
+
 	* mh-utils.el (mh-show-ps-print-msg-show)
 	mh-show-ps-print-toggle-mime): Delete.
 	(mh-show-ps-print-map): Update accordingly.
@@ -2863,6 +2863,7 @@
 
 ;; Local Variables:
 ;; sentence-end-double-space: nil
+;; add-log-time-zone-rule: t
 ;; End:
 
 ;;; arch-tag: 87324964-69b6-4925-a3c2-9c1df53d7d51

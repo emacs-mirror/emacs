@@ -26377,6 +26377,7 @@ See ChangeLog.9 for earlier changes.
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005,
