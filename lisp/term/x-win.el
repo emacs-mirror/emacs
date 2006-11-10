@@ -2164,8 +2164,8 @@ in the clipboard."
 	(t
 	 (setq x-last-selected-text-cut text
 	       x-last-selected-text-cut-encoded
-	       (encode-coding-string text (or locale-coding-system
-					      'iso-latin-1)))
+	       ;; ICCCM says cut buffer always contain ISO-Latin-1
+	       (encode-coding-string text 'iso-latin-1))
 	 (x-set-cut-buffer x-last-selected-text-cut-encoded push)))
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text-primary text)
@@ -2346,8 +2346,8 @@ order until succeed.")
 	   (t
 	    (setq x-last-selected-text-cut-encoded cut-text
 		  x-last-selected-text-cut
-		  (decode-coding-string cut-text (or locale-coding-system
-						     'iso-latin-1))))))
+		  ;; ICCCM says cut buffer always contain ISO-Latin-1
+		  (decode-coding-string cut-text 'iso-latin-1)))))
 
     ;; As we have done one selection, clear this now.
     (setq next-selection-coding-system nil)

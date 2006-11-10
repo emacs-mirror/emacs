@@ -1,3 +1,8 @@
+2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value): 
+	Encode/decode text to/from cut buffers to/from iso-latin-1 only.
+
 2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--window-for-buffer): Remove.
