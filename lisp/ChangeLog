@@ -124,6 +124,19 @@
 
 	* progmodes/f90.el (f90-indent-region): Bind case-fold-search to t.
 
+	* ido.el (ido-enable-prefix)
+	* ses.el (ses-call-printer-return)
+	* net/tramp.el (tramp-unified-filenames)
+	* progmodes/cc-align.el (c-lineup-string-cont)
+	* progmodes/compile.el (compilation-directory-matcher)
+	* progmodes/ebnf2ps.el (ebnf-stop-on-error)
+	* progmodes/gdb-ui.el (gdb-many-windows)
+	* progmodes/vhdl-mode.el (vhdl-reset-active-high)
+	(vhdl-clock-rising-edge)
+	* textmodes/org.el (org-export-with-timestamps)
+	(org-export-remove-timestamps-from-toc, org-export-with-tags)
+	(org-read-date): Doc fix (Nil -> nil).
+
 2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
