@@ -41,6 +41,8 @@ Boston, MA 02110-1301, USA.  */
 
 #else /* !WINDOWSNT */
 
+# include <sys/types.h>
+
 # ifdef HAVE_INET_SOCKETS
 #  include <netinet/in.h>
 # endif
