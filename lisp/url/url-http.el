@@ -92,7 +92,7 @@ request.")
 
 (defun url-http-mark-connection-as-free (host port proc)
   (url-http-debug "Marking connection as free: %s:%d %S" host port proc)
-  (when (memq (process-status proc) '(open run))
+  (when (memq (process-status proc) '(open run connect))
     (set-process-buffer proc nil)
     (set-process-sentinel proc 'url-http-idle-sentinel)
     (puthash (cons host port)
@@ -104,7 +104,7 @@ request.")
   (let ((conns (gethash (cons host port) url-http-open-connections))
 	(found nil))
     (while (and conns (not found))
-      (if (not (memq (process-status (car conns)) '(run open)))
+      (if (not (memq (process-status (car conns)) '(run open connect)))
 	  (progn
 	    (url-http-debug "Cleaning up dead process: %s:%d %S"
 			    host port (car conns))
@@ -1144,7 +1144,7 @@ CBARGS as the arguments."
     (cond
      ((string= (substring why 0 4) "open")
       (set-process-sentinel proc 'url-http-end-of-document-sentinel)
-      (process-send-string proc (url-http-create-request url-current-object)))
+      (process-send-string proc (url-http-create-request url-http-target-url)))
      (t
       (setf (car url-callback-arguments)
 	    (nconc (list :error (list 'error 'connection-failed why
