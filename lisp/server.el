@@ -112,6 +112,12 @@ If set, the server accepts remote connections; otherwise it is local."
   :version "22.1")
 (put 'server-auth-dir 'risky-local-variable t)
 
+(defcustom server-raise-frame t
+  "*If non-nil, raise frame when switching to a buffer."
+  :group 'server
+  :type 'boolean
+  :version "22.1")
+
 (defcustom server-visit-hook nil
   "*Hook run when visiting a file for the Emacs server."
   :group 'server
@@ -702,11 +708,9 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	(let ((win (get-buffer-window next-buffer 0)))
 	  (if (and win (not server-window))
 	      ;; The buffer is already displayed: just reuse the window.
-	      (let ((frame (window-frame win)))
-		(when (eq (frame-visible-p frame) 'icon)
-		  (raise-frame frame))
-		(select-window win)
-		(set-buffer next-buffer))
+              (progn
+                (select-window win)
+                (set-buffer next-buffer))
 	    ;; Otherwise, let's find an appropriate window.
 	    (cond ((and (windowp server-window)
 			(window-live-p server-window))
@@ -730,7 +734,9 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 		(switch-to-buffer next-buffer)
 	      ;; After all the above, we might still have ended up with
 	      ;; a minibuffer/dedicated-window (if there's no other).
-	      (error (pop-to-buffer next-buffer)))))))))
+	      (error (pop-to-buffer next-buffer)))))))
+    (when server-raise-frame
+      (select-frame-set-input-focus (window-frame (selected-window))))))
 
 (define-key ctl-x-map "#" 'server-edit)
 
