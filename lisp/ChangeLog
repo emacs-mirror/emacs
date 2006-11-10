@@ -1,3 +1,8 @@
+2006-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-many-windows): Start doc string
+	with a capital.
+
 2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* textmodes/org.el: (org-scan-tags): Make the search

@@ -45,16 +45,6 @@
 
 	* configure: Regenerate.
 
-2006-10-23  Michael Kifer  <kifer@cs.stonybrook.edu>
-
-	* viper-cmd.el (viper-prefix-arg-com): define gg as G0
-
-	* viper-ex.el (ex-read): quote file argument.
-
-	* ediff-diff.el (ediff-same-file-contents): expand file names.
-
-	* ediff-mult.el (ediff-append-custom-diff): quote shell file arguments.
-
 2006-10-23  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Make sure x_default_search_path is always set even
