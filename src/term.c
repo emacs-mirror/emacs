@@ -190,6 +190,11 @@ void (*frame_rehighlight_hook) P_ ((FRAME_PTR f));
 
 void (*frame_raise_lower_hook) P_ ((FRAME_PTR f, int raise));
 
+/* If the value of the frame parameter changed, whis hook is called.
+   For example, if going from fullscreen to not fullscreen this hook
+   may do something OS dependent, like extended window manager hints on X11.  */
+void (*fullscreen_hook) P_ ((struct frame *f));
+
 /* Set the vertical scroll bar for WINDOW to have its upper left corner
    at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
    indicate that we are displaying PORTION characters out of a total
@@ -2762,6 +2767,8 @@ bigger, or it may make it blink, or it may do nothing at all.  */);
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
   defsubr (&Stty_no_underline);
+
+  fullscreen_hook = NULL;
 }
 
 /* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193
