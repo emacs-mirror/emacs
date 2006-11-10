@@ -45,8 +45,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** triska@gmx.at, Nov 2: EMACS environment variable.
 
-** offby1@blarg.net, Nov 5: calendar gets wrong end for Daylight Savings Time
-
 ** CC mode defun-finding issues.
 
 ** tim.vanholder@gmail.com, Nov 7: segfault
