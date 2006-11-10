@@ -710,6 +710,16 @@
 	* midnight.el (midnight-buffer-display-time): Doc fix.
 	(clean-buffer-list-kill-never-buffer-names): Add "*server*".
 
+2006-10-23  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-cmd.el (viper-prefix-arg-com): Define gg as G0.
+
+	* viper-ex.el (ex-read): Quote file argument.
+
+	* ediff-diff.el (ediff-same-file-contents): Expand file names.
+
+	* ediff-mult.el (ediff-append-custom-diff): Quote shell file arguments.
+
 2006-10-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/flyspell.el (flyspell-check-region-doublons):
