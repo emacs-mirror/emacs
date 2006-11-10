@@ -1,13 +1,17 @@
+2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* DEVEL.HUMOR: Two more entries.
+
 2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* orgcard.tex (section{Archiving}): Document C-TAB.
 	(section{TODO Items and Checkboxes}): Checkbox keys moved to this
 	section, added documentation for the key `C-c #'.
 
-2006-11-05  Slawomir Nowaczyk  <slawek@cs.lth.se> (tiny change)
+2006-11-05  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
 
 	* emacs.py (eargs): Provide eldoc message for builtin types.
-	  Make sure eargs always outputs sentinel, to avoid emacs freeze.
+	  Make sure eargs always outputs sentinel, to avoid Emacs freeze.
 
 2006-10-22  Chong Yidong  <cyd@stupidchicken.com>
 
