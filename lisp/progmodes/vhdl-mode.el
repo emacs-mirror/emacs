@@ -1023,13 +1023,13 @@ NOTE: Activate the new setting in a VHDL buffer by using the menu entry
 
 (defcustom vhdl-reset-active-high nil
   "*Non-nil means reset in sequential processes is active high.
-Nil means active low."
+nil means active low."
   :type 'boolean
   :group 'vhdl-sequential-process)
 
 (defcustom vhdl-clock-rising-edge t
   "*Non-nil means rising edge of clock triggers sequential processes.
-Nil means falling edge."
+nil means falling edge."
   :type 'boolean
   :group 'vhdl-sequential-process)
 
