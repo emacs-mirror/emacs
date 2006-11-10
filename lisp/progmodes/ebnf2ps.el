@@ -1968,7 +1968,7 @@ when executing ebnf2ps, set `ebnf-use-float-format' to nil."
 
 
 (defcustom ebnf-stop-on-error nil
-  "*Non-nil means signal error and stop. Nil means signal error and continue."
+  "*Non-nil means signal error and stop. nil means signal error and continue."
   :type 'boolean
   :version "20"
   :group 'ebnf2ps)
