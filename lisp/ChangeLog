@@ -1,3 +1,9 @@
+2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--window-for-buffer): Remove.
+	(bs--show-with-configuration): Use `get-window-with-predicate'
+	instead of `bs--window-for-buffer'.
+
 2006-11-10  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (revert-buffer): Fix previous change.
