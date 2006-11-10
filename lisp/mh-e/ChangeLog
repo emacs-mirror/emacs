@@ -1,3 +1,7 @@
+2006-11-10  Andreas Schwab  <schwab@suse.de>
+
+	* mh-e.el (mh-draft-folder): Avoid starting sentence with "nil".
+
 2006-11-10  Glenn Morris  <rgm@gnu.org>
 
 	* mh-e.el (mh-draft-folder): Doc fix (Nil -> nil).
