@@ -692,17 +692,6 @@ Refresh whole Buffer Selection Menu."
   (interactive)
   (bs--redisplay t))
 
-(defun bs--window-for-buffer (buffer-name)
-  "Return a window showing a buffer with name BUFFER-NAME.
-Take only windows of current frame into account.
-Return nil if there is no such buffer."
-  (catch 'window
-    (walk-windows (lambda (w)
-		    (when (string= (buffer-name (window-buffer w))
-                                   buffer-name)
-                      (throw 'window w))))
-    nil))
-
 (defun bs--set-window-height ()
   "Change the height of the selected window to suit the current buffer list."
   (unless (one-window-p t)
@@ -1241,7 +1230,6 @@ by buffer configuration `bs-cycle-configuration-name'."
 				(or (cdr bs--cycle-list)
 				    "this buffer"))))))
 
-
 ;;;###autoload
 (defun bs-cycle-previous ()
   "Select previous buffer defined by buffer cycling.
@@ -1435,7 +1423,10 @@ for buffer selection."
       ;; we have to set the buffer we started the command
       (setq bs--buffer-coming-from (current-buffer)))
     (let ((liste (bs-buffer-list))
-	  (active-window (bs--window-for-buffer "*buffer-selection*")))
+	  (active-window (get-window-with-predicate
+                          (lambda (w)
+                            (string= (buffer-name (window-buffer w))
+                                     "*buffer-selection*")))))
       (if active-window
 	  (select-window active-window)
         (modify-frame-parameters nil
