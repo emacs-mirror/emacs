@@ -44,7 +44,7 @@
 
 (defcustom calendar-dst-check-each-year-flag t
   "Non-nil means to check each year for DST transitions as needed.
-nil means to assume the next two transitions found after the
+Otherwise assume the next two transitions found after the
 current date apply to all years.  This is faster, but not always
 correct, since the dates of Daylight Saving transitions sometimes
 change."
