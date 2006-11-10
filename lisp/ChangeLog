@@ -1,3 +1,8 @@
+2006-11-10  Simon Marshall  <simon@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Don't overwrite
+	fontification for "case" and "default" keywords.
+
 2006-11-10  Andreas Schwab  <schwab@suse.de>
 
 	* calendar/cal-dst.el (calendar-dst-check-each-year-flag): Avoid
