@@ -2147,17 +2147,17 @@ headline  Only export the headline, but skip the tree below it."
 	  (const :tag "entirely" t)))
 
 (defcustom org-export-with-timestamps t
-  "Nil means, do not export time stamps and associated keywords."
+  "nil means, do not export time stamps and associated keywords."
   :group 'org-export-general
   :type 'boolean)
 
 (defcustom org-export-remove-timestamps-from-toc t
-  "Nil means, remove timestamps from the table of contents entries."
+  "nil means, remove timestamps from the table of contents entries."
   :group 'org-export-general
   :type 'boolean)
 
 (defcustom org-export-with-tags 'not-in-toc
-  "Nil means, do not export tags, just remove them from headlines.
+  "nil means, do not export tags, just remove them from headlines.
 If this is the sysmbol `not-in-toc', tags will be removed from table of
 contents entries, but still be shown in the headlines of the document."
   :group 'org-export-general
@@ -5960,7 +5960,7 @@ While prompting, a calendar is popped up - you can also select the
 date with the mouse (button 1).  The calendar shows a period of three
 months.  To scroll it to other months, use the keys `>' and `<'.
 If you don't like the calendar, turn it off with
-       \(setq org-popup-calendar-for-date-prompt Nil)
+       \(setq org-popup-calendar-for-date-prompt nil)
 
 With optional argument TO-TIME, the date will immediately be converted
 to an internal time.
