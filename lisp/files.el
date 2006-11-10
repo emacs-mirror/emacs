@@ -4095,6 +4095,7 @@ non-nil, it is called instead of rereading visited file contents."
 			    (or coding-system-for-read
 				buffer-file-coding-system-explicit))))
 		     (if (and (not enable-multibyte-characters)
+			      coding-system-for-read
 			      (not (memq (coding-system-base
 					  coding-system-for-read)
 					 '(no-conversion raw-text))))
