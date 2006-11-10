@@ -1,3 +1,23 @@
+2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (ARCHIVE tag): Document C-TAB for forcing cycling of
+	archived trees.
+	(Checkboxes): Section moved to chapter 5, and extended.
+	(The date/time prompt): New section.
+	(Link abbreviations): New section.
+	(Presentation and sorting): New section.
+	(Custom agenda views): Section completely rewritten.
+	(Summary): Compare with Planner.
+	(Feedback): More info about creating backtraces.
+	(Plain lists): Modified example.
+	(Breaking down tasks): New section.
+	(Custom time format): New section.
+	(Time stamps): Document inactive timestamps.
+	(Setting tags): More details about fast tag selection.
+	(Block agenda): New section.
+	(Custom agenda views): Section rewritten.
+	(Block agenda): New section.
+
 2006-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Configuration): scp is the default method.
