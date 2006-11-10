@@ -109,11 +109,24 @@
 
 2006-11-10  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-dst.el: Do not assume DST starts/ends on the same
+	date in every year.
+	(calendar-dst-check-each-year-flag): New customizable variable.
+	(calendar-dst-find-data): New function, extracted from
+	calendar-current-time-zone.
+	(calendar-current-time-zone): Use calendar-dst-find-data.
+	(calendar-dst-transition-cache): New variable.
+	(calendar-dst-find-startend, calendar-dst-starts)
+	(calendar-dst-ends): New functions.
+	(calendar-daylight-savings-starts)
+	(calendar-daylight-savings-ends): Change value to use
+	calendar-dst-starts, calendar-dst-ends; respectively.
+
 	* progmodes/f90.el (f90-indent-region): Bind case-fold-search to t.
 
 2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value): 
+	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
 	Encode/decode text to/from cut buffers to/from iso-latin-1 only.
 
 2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
