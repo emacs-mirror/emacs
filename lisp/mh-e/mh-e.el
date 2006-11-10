@@ -188,7 +188,7 @@ This directory contains, among other things, the mhl program.")
 (defvar mh-draft-folder nil
   "Cached value of the \"Draft-Folder:\" MH profile component.
 Name of folder containing draft messages.
-nil means do not use a draft folder.")
+Do not use a draft folder if nil.")
 
 (defvar mh-inbox nil
   "Cached value of the \"Inbox:\" MH profile component.
