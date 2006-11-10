@@ -1,3 +1,18 @@
+2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_display_info): Fix indentation.
+
+	* xterm.c (do_ewmh_fullscreen, XTfullscreen_hook): New functions.
+	(x_check_fullscreen): Call do_ewmh_fullscreen.
+	(x_initialize): Set fullscreen_hook to XTfullscreen_hook.
+
+	* frame.c (x_set_fullscreen): Call fullscreen_hook if set.
+
+	* term.c: Define fullscreen_hook.
+	(syms_of_term): Initialize fullscreen_hook to NULL.
+
+	* termhooks.h: Add fullscreen_hook.
+
 2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bytecode.c (Fbyte_code):
