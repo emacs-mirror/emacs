@@ -8296,6 +8296,118 @@ x_set_offset (f, xoff, yoff, change_gravity)
   UNBLOCK_INPUT;
 }
 
+/* Do fullscreen as specified in extended window manager hints */
+static int
+do_ewmh_fullscreen (f)
+     struct frame *f;
+{
+  int have_net_atom = FRAME_X_DISPLAY_INFO (f)->have_net_atoms;
+
+  if (!have_net_atom)
+    {
+      int num;
+      Atom *atoms = XListProperties (FRAME_X_DISPLAY (f),
+                                     FRAME_X_DISPLAY_INFO (f)->root_window,
+                                     &num);
+      if (atoms && num > 0) 
+        {
+          char **names = (char **) xmalloc (num * sizeof(*names));
+          if (XGetAtomNames (FRAME_X_DISPLAY (f), atoms, num, names)) 
+            {
+              int i;
+              for (i = 0; i < num; ++i) 
+                {
+                  if (!have_net_atom) 
+                    have_net_atom = strncmp (names[i], "_NET_", 5) == 0;
+                  XFree (names[i]);
+                }
+            }
+          xfree (names);
+        }
+      if (atoms)
+        XFree (atoms);
+
+      FRAME_X_DISPLAY_INFO (f)->have_net_atoms = have_net_atom;
+    }
+
+  if (have_net_atom) 
+    {
+      Lisp_Object frame;
+      XSETFRAME (frame, f);
+      const char *atom = "_NET_WM_STATE";
+      const char *fs = "_NET_WM_STATE_FULLSCREEN";
+      const char *fw = "_NET_WM_STATE_MAXIMIZED_HORZ";
+      const char *fh = "_NET_WM_STATE_MAXIMIZED_VERT";
+      const char *what = NULL;
+
+      /* If there are _NET_ atoms we assume we have extended window manager
+         hints.  */
+      switch (f->want_fullscreen) 
+        {
+        case FULLSCREEN_BOTH:
+          what = fs;
+          break;
+        case FULLSCREEN_WIDTH:
+          what = fw;
+          break;
+        case FULLSCREEN_HEIGHT:
+          what = fh;
+          break;
+        }
+
+      Fx_send_client_event (frame, make_number (0), frame,
+                            make_unibyte_string (atom, strlen (atom)),
+                            make_number (32),
+                            Fcons (make_number (0), /* Remove */
+                                   Fcons
+                                   (make_unibyte_string (fs,
+                                                         strlen (fs)),
+                                    Qnil)));
+      Fx_send_client_event (frame, make_number (0), frame,
+                            make_unibyte_string (atom, strlen (atom)),
+                            make_number (32),
+                            Fcons (make_number (0), /* Remove */
+                                   Fcons
+                                   (make_unibyte_string (fh,
+                                                         strlen (fh)),
+                                    Qnil)));
+      Fx_send_client_event (frame, make_number (0), frame,
+                            make_unibyte_string (atom, strlen (atom)),
+                            make_number (32),
+                            Fcons (make_number (0), /* Remove */
+                                   Fcons
+                                   (make_unibyte_string (fw,
+                                                         strlen (fw)),
+                                    Qnil)));
+      f->want_fullscreen = FULLSCREEN_NONE;
+      if (what != NULL)
+        Fx_send_client_event (frame, make_number (0), frame,
+                              make_unibyte_string (atom, strlen (atom)),
+                              make_number (32),
+                              Fcons (make_number (1), /* Add */
+                                     Fcons
+                                     (make_unibyte_string (what,
+                                                           strlen (what)),
+                                      Qnil)));
+    }
+
+  return have_net_atom;
+}
+
+static void
+XTfullscreen_hook (f)
+     FRAME_PTR f;
+{
+  if (f->async_visible) 
+    {
+      BLOCK_INPUT;
+      do_ewmh_fullscreen (f);
+      x_sync (f);
+      UNBLOCK_INPUT;
+    }
+}
+
+
 /* Check if we need to resize the frame due to a fullscreen request.
    If so needed, resize the frame. */
 static void
@@ -8305,6 +8417,9 @@ x_check_fullscreen (f)
   if (f->want_fullscreen & FULLSCREEN_BOTH)
     {
       int width, height, ign;
+
+      if (do_ewmh_fullscreen (f)) 
+        return;
 
       x_real_positions (f, &f->left_pos, &f->top_pos);
 
@@ -10935,6 +11050,7 @@ x_initialize ()
   condemn_scroll_bars_hook = XTcondemn_scroll_bars;
   redeem_scroll_bar_hook = XTredeem_scroll_bar;
   judge_scroll_bars_hook = XTjudge_scroll_bars;
+  fullscreen_hook = XTfullscreen_hook;
 
   scroll_region_ok = 1;		/* we'll scroll partial frames */
   char_ins_del_ok = 1;
