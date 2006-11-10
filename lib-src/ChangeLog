@@ -1,7 +1,11 @@
+2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c [!WINDOWSNT]: Include <sys/types.h>.
+
 2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
 
-	* emacsclient.c (get_server_config): Declare set_fg as FARPROC to
-	avoid a compiler warning.
+	* emacsclient.c (get_server_config) [WINDOWSNT]: Declare set_fg as
+	FARPROC to avoid a compiler warning.
 
 2006-11-07  Juanma Barranquero  <lekktu@gmail.com>
 
