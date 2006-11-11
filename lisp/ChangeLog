@@ -1,3 +1,17 @@
+2006-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* ido.el (ido-enable-prefix)
+	* ses.el (ses-call-printer-return)
+	* net/tramp.el (tramp-unified-filenames)
+	* progmodes/cc-align.el (c-lineup-string-cont)
+	* progmodes/compile.el (compilation-directory-matcher)
+	* progmodes/ebnf2ps.el (ebnf-stop-on-error)
+	* progmodes/vhdl-mode.el (vhdl-reset-active-high)
+	(vhdl-clock-rising-edge)
+	* textmodes/org.el (org-export-with-timestamps)
+	(org-export-remove-timestamps-from-toc)
+	(org-export-with-tags): Improve previous doc fixes.
+
 2006-11-11  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mode-map):
