@@ -2147,18 +2147,18 @@ headline  Only export the headline, but skip the tree below it."
 	  (const :tag "entirely" t)))
 
 (defcustom org-export-with-timestamps t
-  "nil means, do not export time stamps and associated keywords."
+  "If nil, do not export time stamps and associated keywords."
   :group 'org-export-general
   :type 'boolean)
 
 (defcustom org-export-remove-timestamps-from-toc t
-  "nil means, remove timestamps from the table of contents entries."
+  "If nil, remove timestamps from the table of contents entries."
   :group 'org-export-general
   :type 'boolean)
 
 (defcustom org-export-with-tags 'not-in-toc
-  "nil means, do not export tags, just remove them from headlines.
-If this is the sysmbol `not-in-toc', tags will be removed from table of
+  "If nil, do not export tags, just remove them from headlines.
+If this is the symbol `not-in-toc', tags will be removed from table of
 contents entries, but still be shown in the headlines of the document."
   :group 'org-export-general
   :type '(choice
