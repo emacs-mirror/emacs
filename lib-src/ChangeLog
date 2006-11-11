@@ -1,4 +1,4 @@
-2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
+2006-11-10  David Reitter  <david.reitter@gmail.com>
 
 	* emacsclient.c [!WINDOWSNT]: Include <sys/types.h>.
 
@@ -18,11 +18,11 @@
 
 2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
 
-	* emacsclient.c (longopts) [! NO_SOCKETS_IN_FILE_SYSTEM]: Don't show
+	* emacsclient.c (longopts) [!NO_SOCKETS_IN_FILE_SYSTEM]: Don't show
 	option --socket-name.
 	(decode_options): Don't get EMACS_SERVER_FILE here, it could override
 	command line options.
-	(decode_options) [! NO_SOCKETS_IN_FILE_SYSTEM]: Don't parse "-s" option.
+	(decode_options) [!NO_SOCKETS_IN_FILE_SYSTEM]: Don't parse "-s" option.
 	(fail): Don't check for missing arguments, it is now done in set_socket.
 	(file_name_absolute_p): New function (loosely based on the one in
 	fileio.c).
