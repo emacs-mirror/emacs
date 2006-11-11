@@ -113,7 +113,7 @@
 ;;;###autoload
 (defvar tramp-unified-filenames (not (featurep 'xemacs))
   "Non-nil means to use unified Ange-FTP/Tramp filename syntax.
-nil means to use a separate filename syntax for Tramp.")
+Otherwise, use a separate filename syntax for Tramp.")
 
 ;; Load foreign methods.  Because they do require Tramp internally, this
 ;; must be done with the `eval-after-load' trick.
