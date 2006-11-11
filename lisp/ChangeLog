@@ -1,3 +1,8 @@
+2006-11-11  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode-map):
+	Bind C-c $ instead of M-RET.
+
 2006-11-10  Simon Marshall  <simon@gnu.org>
 
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Don't overwrite
