@@ -511,7 +511,8 @@ so don't mark these buffers specially, just visit them normally."
 	;; If there is an existing buffer modified or the file is
 	;; modified, revert it.  If there is an existing buffer with
 	;; deleted file, offer to write it.
-	(let* ((filen (car file))
+	(let* ((minibuffer-auto-raise server-raise-frame)
+	       (filen (car file))
 	       (obuf (get-file-buffer filen)))
 	  (add-to-history 'file-name-history filen)
 	  (if (and obuf (set-buffer obuf))
