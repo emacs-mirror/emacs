@@ -1,3 +1,8 @@
+2006-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-visit-files): Bind `minibuffer-auto-raise'
+	to the value of `server-raise-frame'.
+
 2006-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* ido.el (ido-enable-prefix)
@@ -24,8 +29,8 @@
 
 2006-11-10  Andreas Schwab  <schwab@suse.de>
 
-	* calendar/cal-dst.el (calendar-dst-check-each-year-flag): Avoid
-	starting sentence with "nil".
+	* calendar/cal-dst.el (calendar-dst-check-each-year-flag):
+	Avoid starting sentence with "nil".
 
 2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
 
