@@ -397,7 +397,7 @@ be added."
 (defvar compilation-directory-matcher
   '("\\(?:Entering\\|Leavin\\(g\\)\\) directory `\\(.+\\)'$" (2 . 1))
   "A list for tracking when directories are entered or left.
-nil means not to track directories, e.g. if all file names are absolute.  The
+If nil, do not track directories, e.g. if all file names are absolute.  The
 first element is the REGEXP matching these messages.  It can match any number
 of variants, e.g. different languages.  The remaining elements are all of the
 form (DIR .  LEAVE).  If for any one of these the DIR'th subexpression
