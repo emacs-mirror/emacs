@@ -1,3 +1,21 @@
+2006-11-11  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-mode.el: Delete `eval-and-compile' around `require'.
+	Delete commented out code for old Emacs versions.  Autoloading of
+	"ada-xref", "ada-prj" is useful even if compiler is not GNAT.
+	(ada-mode-version): Bump version number.
+	(ada-95-string-keywords, ada-2005-string-keywords)
+	(ada-2005-keywords, ada-name-regexp): New constant.
+	(ada-language-version, ada-procedure-start-regexp, ada-mode)
+	(ada-font-lock-keywords): Add support for Ada 2005 keywords.
+	(ada-package-start-regexp): Support private packages, include package
+	name (for ada-set-point-accordingly).
+	(ada-next-procedure, ada-previous-procedure)
+	(ada-which-function-are-we-in): Match changes to
+	ada-procedure-start-regexp.
+	(ada-make-body): Make non-interactive; not a user function.
+	(ada-make-subprogram-body): Improve doc string.
+
 2006-11-11  Romain Francoise  <romain@orebokech.com>
 
 	* progmodes/cperl-mode.el (cperl-mode): Before adding to it, make
