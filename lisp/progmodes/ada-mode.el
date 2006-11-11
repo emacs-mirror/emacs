@@ -125,12 +125,15 @@
 ;;;   `abbrev-mode': Provides the capability to define abbreviations, which
 ;;;      are automatically expanded when you type them. See the Emacs manual.
 
-(eval-when-compile
-  (require 'ispell nil t)
-  (require 'find-file nil t)
-  (require 'align nil t)
-  (require 'which-func nil t)
-  (require 'compile nil t))
+(condition-case nil
+    ;; ispell searches for the ispell executable when loaded; may not exist on some systems
+    (require 'ispell nil t)
+  (error nil))
+
+(require 'find-file nil t)
+(require 'align nil t)
+(require 'which-func nil t)
+(require 'compile nil t)
 
 (defvar compile-auto-highlight)
 (defvar skeleton-further-elements)
@@ -148,16 +151,10 @@ If IS-XEMACS is non-nil, check for XEmacs instead of Emacs."
 	       (and (= emacs-major-version major)
 		    (>= emacs-minor-version minor)))))))
 
-
-;;  This call should not be made in the release that is done for the
-;;  official Emacs, since it does nothing useful for the latest version
-;;(if (not (ada-check-emacs-version 21 1))
-;;    (require 'ada-support))
-
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "3.5"))
+  (let ((version-string "3.6w"))
     (if (interactive-p)
 	(message version-string)
       version-string)))
@@ -366,8 +363,8 @@ This is also used for <<..>> labels"
   :type 'integer :group 'ada)
 
 (defcustom ada-language-version 'ada95
-  "*Do we program in `ada83' or `ada95'?"
-  :type '(choice (const ada83) (const ada95)) :group 'ada)
+  "*Ada language version; one of `ada83', `ada95', `ada05'."
+  :type '(choice (const ada83) (const ada95) (const ada05)) :group 'ada)
 
 (defcustom ada-move-to-declaration nil
   "*Non-nil means `ada-move-to-start' moves to the subprogram declaration, not to 'begin'."
@@ -489,8 +486,20 @@ The extensions should include a `.' if needed.")
       "procedure" "raise" "range" "record" "rem" "renames" "return"
       "reverse" "select" "separate" "subtype" "task" "terminate" "then"
       "type" "use" "when" "while" "with" "xor")
-    "List of Ada keywords.
-This variable is used to define `ada-83-keywords' and `ada-95-keywords'."))
+    "List of Ada 83 keywords.
+Used to define `ada-*-keywords'."))
+
+(eval-when-compile
+  (defconst ada-95-string-keywords
+    '("abstract" "aliased" "protected" "requeue" "tagged" "until")
+    "List of keywords new in Ada 95.
+Used to define `ada-*-keywords'."))
+
+(eval-when-compile
+  (defconst ada-2005-string-keywords
+    '("interface" "overriding" "synchronized")
+    "List of keywords new in Ada 2005.
+Used to define `ada-*-keywords.'"))
 
 (defvar ada-ret-binding nil
   "Variable to save key binding of RET when casing is activated.")
@@ -566,29 +575,38 @@ This variable defines several rules to use to align different lines.")
 (defconst ada-83-keywords
   (eval-when-compile
     (concat "\\<" (regexp-opt ada-83-string-keywords t) "\\>"))
-  "Regular expression for looking at Ada83 keywords.")
+  "Regular expression matching Ada83 keywords.")
 
 (defconst ada-95-keywords
   (eval-when-compile
     (concat "\\<" (regexp-opt
 		   (append
-		    '("abstract" "aliased" "protected" "requeue"
-		      "tagged" "until")
+		    ada-95-string-keywords
 		    ada-83-string-keywords) t) "\\>"))
-  "Regular expression for looking at Ada95 keywords.")
+  "Regular expression matching Ada95 keywords.")
 
-(defvar ada-keywords ada-95-keywords
-  "Regular expression for looking at Ada keywords.")
+(defconst ada-2005-keywords
+  (eval-when-compile
+    (concat "\\<" (regexp-opt
+		   (append
+		    ada-2005-string-keywords
+		    ada-83-string-keywords
+		    ada-95-string-keywords) t) "\\>"))
+  "Regular expression matching Ada2005 keywords.")
+
+(defvar ada-keywords ada-2005-keywords
+  "Regular expression matching Ada keywords.")
+;; FIXME: make this customizable
 
 (defconst ada-ident-re
   "\\(\\sw\\|[_.]\\)+"
   "Regexp matching Ada (qualified) identifiers.")
 
-;;  "with" needs to be included in the regexp, so that we can insert new lines
-;;  after the declaration of the parameter for a generic.
+;;  "with" needs to be included in the regexp, to match generic subprogram parameters
+;;  Similarly, we put '[not] overriding' on the same line with 'procedure' etc.
 (defvar ada-procedure-start-regexp
   (concat
-   "^[ \t]*\\(with[ \t]+\\)?\\(procedure\\|function\\|task\\)[ \t\n]+"
+   "^[ \t]*\\(with[ \t]+\\)?\\(\\(not[ \t]+\\)?overriding[ \t]+\\)?\\(procedure\\|function\\|task\\)[ \t\n]+"
 
    ;;  subprogram name: operator ("[+/=*]")
    "\\("
@@ -598,12 +616,17 @@ This variable defines several rules to use to align different lines.")
    "\\|"
    "\\(\\(\\sw\\|[_.]\\)+\\)"
    "\\)")
-  "Regexp used to find Ada procedures/functions.")
+  "Regexp matching Ada subprogram start.
+The actual start is at (match-beginning 4). The name is in (match-string 5).")
 
-(defvar ada-package-start-regexp
-  "^[ \t]*\\(package\\)"
-  "Regexp used to find Ada packages.")
+(defconst ada-name-regexp
+  "\\([a-zA-Z][a-zA-Z0-9_\\.\\']*[a-zA-Z0-9]\\)"
+  "Regexp matching a fully qualified name (including attribute).")
 
+(defconst ada-package-start-regexp
+  (concat "^[ \t]*\\(private[ \t]+\\)?\\(package\\)[ \t\n]+\\(body[ \t]*\\)?" ada-name-regexp)
+  "Regexp matching start of package.
+The package name is in (match-string 4).")
 
 ;;; ---- regexps for indentation functions
 
@@ -1379,7 +1402,9 @@ If you use ada-xref.el:
   (cond ((eq ada-language-version 'ada83)
 	 (setq ada-keywords ada-83-keywords))
 	((eq ada-language-version 'ada95)
-	 (setq ada-keywords ada-95-keywords)))
+	 (setq ada-keywords ada-95-keywords))
+	((eq ada-language-version 'ada05)
+	 (setq ada-keywords ada-2005-keywords)))
 
   (if ada-auto-case
       (ada-activate-keys-for-case)))
@@ -4430,7 +4455,7 @@ Moves to 'begin' if in a declarative part."
   (interactive)
   (end-of-line)
   (if (re-search-forward ada-procedure-start-regexp nil t)
-      (goto-char (match-beginning 2))
+      (goto-char (match-beginning 4))
     (error "No more functions/procedures/tasks")))
 
 (defun ada-previous-procedure ()
@@ -4438,7 +4463,7 @@ Moves to 'begin' if in a declarative part."
   (interactive)
   (beginning-of-line)
   (if (re-search-backward ada-procedure-start-regexp nil t)
-      (goto-char (match-beginning 2))
+      (goto-char (match-beginning 4))
     (error "No more functions/procedures/tasks")))
 
 (defun ada-next-package ()
@@ -4958,13 +4983,14 @@ or the spec otherwise."
 
 (defun ada-which-function-are-we-in ()
   "Return the name of the function whose definition/declaration point is in.
-Redefines the function `ff-which-function-are-we-in'."
+Used in `ff-pre-load-hook'."
   (setq ff-function-name nil)
   (save-excursion
     (end-of-line);;  make sure we get the complete name
-    (if (or (re-search-backward ada-procedure-start-regexp nil t)
-	    (re-search-backward ada-package-start-regexp nil t))
-	(setq ff-function-name (match-string 0)))
+    (or (if (re-search-backward ada-procedure-start-regexp nil t)
+            (setq ff-function-name (match-string 5)))
+        (if (re-search-backward ada-package-start-regexp nil t)
+            (setq ff-function-name (match-string 4))))
     ))
 
 
@@ -5162,11 +5188,11 @@ Return nil if no body was found."
 	      '("abort" "abs" "abstract" "accept" "access" "aliased" "all"
 		"and" "array" "at" "begin" "case" "declare" "delay" "delta"
 		"digits" "do" "else" "elsif" "entry" "exception" "exit" "for"
-		"generic" "if" "in" "is" "limited" "loop" "mod" "not"
-		"null" "or" "others" "private" "protected" "raise"
+		"generic" "if" "in" "interface" "is" "limited" "loop" "mod" "not"
+		"null" "or" "others" "overriding" "private" "protected" "raise"
 		"range" "record" "rem" "renames" "requeue" "return" "reverse"
-		"select" "separate" "tagged" "task" "terminate" "then" "until"
-		"when" "while" "with" "xor") t)
+		"select" "separate" "synchronized" "tagged" "task" "terminate"
+                "then" "until" "when" "while" "with" "xor") t)
 	     "\\>")
      ;;
      ;; Anything following end and not already fontified is a body name.
@@ -5324,10 +5350,8 @@ for `ada-procedure-start-regexp'."
 
 (defun ada-make-body ()
   "Create an Ada package body in the current buffer.
-The potential old buffer contents is deleted first, then we copy the
-spec buffer in here and modify it to make it a body.
+The spec must be the previously visited buffer.
 This function typically is to be hooked into `ff-file-created-hooks'."
-  (interactive)
   (delete-region (point-min) (point-max))
   (insert-buffer-substring (car (cdr (buffer-list))))
   (goto-char (point-min))
@@ -5358,7 +5382,7 @@ This function typically is to be hooked into `ff-file-created-hooks'."
 
 
 (defun ada-make-subprogram-body ()
-  "Make one dummy subprogram body from spec surrounding point."
+  "Create a dummy subprogram body in package body file from spec surrounding point."
   (interactive)
   (let* ((found (re-search-backward ada-procedure-start-regexp nil t))
 	 (spec  (match-beginning 0))
@@ -5417,35 +5441,32 @@ This function typically is to be hooked into `ff-file-created-hooks'."
 (ada-case-read-exceptions)
 
 ;;  Setup auto-loading of the other Ada mode files.
-(if (equal ada-which-compiler 'gnat)
-    (progn
-      (autoload 'ada-change-prj                   "ada-xref" nil t)
-      (autoload 'ada-check-current                "ada-xref" nil t)
-      (autoload 'ada-compile-application          "ada-xref" nil t)
-      (autoload 'ada-compile-current              "ada-xref" nil t)
-      (autoload 'ada-complete-identifier          "ada-xref" nil t)
-      (autoload 'ada-find-file                    "ada-xref" nil t)
-      (autoload 'ada-find-any-references          "ada-xref" nil t)
-      (autoload 'ada-find-src-file-in-dir         "ada-xref" nil t)
-      (autoload 'ada-find-local-references        "ada-xref" nil t)
-      (autoload 'ada-find-references              "ada-xref" nil t)
-      (autoload 'ada-gdb-application              "ada-xref" nil t)
-      (autoload 'ada-goto-declaration             "ada-xref" nil t)
-      (autoload 'ada-goto-declaration-other-frame "ada-xref" nil t)
-      (autoload 'ada-goto-parent                  "ada-xref" nil t)
-      (autoload 'ada-make-body-gnatstub           "ada-xref" nil t)
-      (autoload 'ada-point-and-xref               "ada-xref" nil t)
-      (autoload 'ada-reread-prj-file              "ada-xref" nil t)
-      (autoload 'ada-run-application              "ada-xref" nil t)
-      (autoload 'ada-set-default-project-file     "ada-xref" nil nil)
-      (autoload 'ada-set-default-project-file     "ada-xref" nil t)
-      (autoload 'ada-xref-goto-previous-reference "ada-xref" nil t)
+(autoload 'ada-change-prj                   "ada-xref" nil t)
+(autoload 'ada-check-current                "ada-xref" nil t)
+(autoload 'ada-compile-application          "ada-xref" nil t)
+(autoload 'ada-compile-current              "ada-xref" nil t)
+(autoload 'ada-complete-identifier          "ada-xref" nil t)
+(autoload 'ada-find-file                    "ada-xref" nil t)
+(autoload 'ada-find-any-references          "ada-xref" nil t)
+(autoload 'ada-find-src-file-in-dir         "ada-xref" nil t)
+(autoload 'ada-find-local-references        "ada-xref" nil t)
+(autoload 'ada-find-references              "ada-xref" nil t)
+(autoload 'ada-gdb-application              "ada-xref" nil t)
+(autoload 'ada-goto-declaration             "ada-xref" nil t)
+(autoload 'ada-goto-declaration-other-frame "ada-xref" nil t)
+(autoload 'ada-goto-parent                  "ada-xref" nil t)
+(autoload 'ada-make-body-gnatstub           "ada-xref" nil t)
+(autoload 'ada-point-and-xref               "ada-xref" nil t)
+(autoload 'ada-reread-prj-file              "ada-xref" nil t)
+(autoload 'ada-run-application              "ada-xref" nil t)
+(autoload 'ada-set-default-project-file     "ada-xref" nil nil)
+(autoload 'ada-set-default-project-file     "ada-xref" nil t)
+(autoload 'ada-xref-goto-previous-reference "ada-xref" nil t)
 
-      (autoload 'ada-customize                    "ada-prj"  nil t)
-      (autoload 'ada-prj-edit                     "ada-prj"  nil t)
-      (autoload 'ada-prj-new                      "ada-prj"  nil t)
-      (autoload 'ada-prj-save                     "ada-prj"  nil t)
-      ))
+(autoload 'ada-customize                    "ada-prj"  nil t)
+(autoload 'ada-prj-edit                     "ada-prj"  nil t)
+(autoload 'ada-prj-new                      "ada-prj"  nil t)
+(autoload 'ada-prj-save                     "ada-prj"  nil t)
 
 (autoload 'ada-array           "ada-stmt" nil t)
 (autoload 'ada-case            "ada-stmt" nil t)
