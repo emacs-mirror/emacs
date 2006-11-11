@@ -503,7 +503,7 @@ Value can be toggled within `ido' using `ido-toggle-regexp'."
 (defcustom ido-enable-prefix nil
   "*Non-nil means only match if the entered text is a prefix of file name.
 This behavior is like the standard emacs-completion.
-nil means to match if the entered text is an arbitrary substring.
+If nil, match if the entered text is an arbitrary substring.
 Value can be toggled within `ido' using `ido-toggle-prefix'."
   :type 'boolean
   :group 'ido)
