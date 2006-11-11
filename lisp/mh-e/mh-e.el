@@ -1690,7 +1690,9 @@ The function is always called with SYMBOL bound to
 By default, the programs are run in the foreground, but this can
 be slow when junking large numbers of messages. If you have
 enough memory or don't junk that many messages at the same time,
-you might try turning on this option."
+you might try turning on this option (that is, setting its value to 0).
+If the value is t, the programs' output is saved in the MH-E log buffer;
+this may be useful for debugging."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "On" 0))
   :group 'mh-junk
