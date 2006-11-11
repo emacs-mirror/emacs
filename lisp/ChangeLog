@@ -1,3 +1,9 @@
+2006-11-11  Romain Francoise  <romain@orebokech.com>
+
+	* progmodes/cperl-mode.el (cperl-mode): Before adding to it, make
+	`compilation-error-regexp-alist' buffer-local, since we changed
+	`compilation-error-regexp-alist-alist' locally.
+
 2006-11-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-visit-files): Bind `minibuffer-auto-raise'
