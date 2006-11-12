@@ -1,3 +1,7 @@
+2006-11-12  Romain Francoise  <romain@orebokech.com>
+
+	* xselect.c (selection-coding-system): Fix docstring.
+
 2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* category.c (Fchar_category_set): Improve arg/docstring consistency.
