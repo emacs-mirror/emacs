@@ -1,3 +1,49 @@
+2006-11-12  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-xref.el (ada-prj-default-check-cmd): New variable,
+	replacing deleted variable `ada-check-switch'.
+	(ada-project-file-extension): Rename to `ada-prj-file-extension'.
+	(ada-xref-project-files): Improve doc string.
+	(ada-find-executable): New function.
+	(ada-initialize-runtime-library): Use `ada-find-executable'.
+	(ada-xref-set-default-prj-values): In compile commands, don't need
+	`ada-cd-command'; `compile' does that more portably.
+	Use ada-prj-default-check-cmd.
+	(ada-parse-prj-file): Don't set 'debug_post_cmd, 'debug_pre_cmd
+	properties if not specified in project file.
+	(ada-goto-declaration): Display useful message for new error
+	'error-file-not-found.
+	(ada-get-ada-file-name, ada-find-in-src-path): Signal new error
+	'error-file-not-found.
+	(ada-get-all-references): Match latest ali syntax.  Signal new
+	error 'error-file-not-found.
+	(ada-find-in-ali): Match latest ali syntax.
+	(ada-make-filename-from-adaname): Handle different semantics of
+	gnatkr in GNAT 3.15p vs later.
+
+	* progmodes/ada-stmt.el (ada-func-or-proc-name): Match changes to
+	ada-procedure-start-regexp.
+	(ada-or-accept, ada-or-delay, ada-or-terminate): Improve doc string.
+
+	* progmodes/ada-mode.el: Replace conditional (require 'ispell)
+	with defvar.
+	(ada-language-version): Rename ada05 -> ada2005.
+	(ada-align-region-separate): Add `eval-when-compile'.
+	(ada-name-regexp): Remove unneeded escapes in regexp character
+	alternative.
+	(ada-compile-goto-error-file-linenr-re): New constant.
+	(ada-matching-start-re): Handle additional cases `declare',
+	`procedure', `function'.
+	(ada-compile-goto-error): Handle "... at line nn".
+	(ada-mode): Clearer syntax, comments for ff-special-constructs.
+	Delete support for old versions of `align'.
+	(ada-search-prev-end-stmt): Handle additional keyword `private'.
+	(ada-check-defun-name): Simplify handling of `declare'.
+	(ada-goto-matching-start): Handle nested `begin ... end'. Handle
+	`declare', `protected', `procedure', `function'.
+	(ada-create-menu): Presence of arm95 is not conditional on using
+	GNAT compiler.
+
 2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/re-builder.el (reb-mode): Set `blink-matching-paren' to
