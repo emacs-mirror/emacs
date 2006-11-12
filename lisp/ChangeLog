@@ -1,3 +1,17 @@
+2006-11-12  Richard Stallman  <rms@gnu.org>
+
+	* language/european.el (turkish-case-conversion-enable)
+	(turkish-case-conversion-disable): New functions.
+	("Turkish" lang env): Use them.
+
+	* international/characters.el (case table):
+	Do nothing special for i and I.
+
+	* subr.el (remove-overlays): Fix last change.
+
+	* cus-edit.el (custom-save-all): Use find-file-visit-truename
+	for visiting the custom file.
+
 2006-11-12  Markus Triska  <triska@gmx.at>
 
 	* play/handwrite.el (handwrite): Also process lines not ending

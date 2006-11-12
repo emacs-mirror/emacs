@@ -1,3 +1,11 @@
+2006-11-12  Richard Stallman  <rms@gnu.org>
+
+	* woman.texi: Update author address but say he no longer maintains it.
+
+2006-11-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
+
+	* glossary.texi: Fix typos.
+
 2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org.texi (ARCHIVE tag): Document C-TAB for forcing cycling of

@@ -47,6 +47,8 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** tim.vanholder@gmail.com, Nov 7: segfault
 
+** simon.marshall@misys.com: proposed cc-fonts patch.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
