@@ -7274,7 +7274,7 @@ Return the corresponding character.  */)
 }
 
 DEFUN ("encode-sjis-char", Fencode_sjis_char, Sencode_sjis_char, 1, 1, 0,
-       doc: /* Encode a Japanese character CHAR to shift_jis encoding.
+       doc: /* Encode a Japanese character CH to shift_jis encoding.
 Return the corresponding code in SJIS.  */)
      (ch)
      Lisp_Object ch;
@@ -7334,7 +7334,7 @@ Return the corresponding character.  */)
 }
 
 DEFUN ("encode-big5-char", Fencode_big5_char, Sencode_big5_char, 1, 1, 0,
-       doc: /* Encode the Big5 character CHAR to BIG5 coding system.
+       doc: /* Encode the Big5 character CH to BIG5 coding system.
 Return the corresponding character code in Big5.  */)
      (ch)
      Lisp_Object ch;
