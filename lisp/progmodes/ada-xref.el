@@ -104,6 +104,14 @@ The command `gnatfind' is used every time you choose the menu
 \"Show all references\"."
   :type 'string :group 'ada)
 
+(defcustom ada-prj-default-check-cmd
+  (concat "${cross_prefix}gnatmake -u -c -gnatc ${gnatmake_opt} ${full_current}"
+	  " -cargs ${comp_opt}")
+  "*Default command to be used to compile a single file.
+Emacs will substitute the current filename for ${full_current}, or add
+the filename at the end.  This is the same syntax as in the project file."
+  :type 'string :group 'ada)
+
 (defcustom ada-prj-default-comp-cmd
   (concat "${cross_prefix}gnatmake -u -c ${gnatmake_opt} ${full_current} -cargs"
 	  " ${comp_opt}")
@@ -171,10 +179,7 @@ file.")
 (defvar ada-last-prj-file ""
   "Name of the last project file entered by the user.")
 
-(defvar ada-check-switch "-gnats"
-  "Switch added to the command line to check the current file.")
-
-(defconst ada-project-file-extension ".adp"
+(defconst ada-prj-file-extension ".adp"
   "The extension used for project files.")
 
 (defvar ada-xref-runtime-library-specs-path '()
@@ -210,10 +215,15 @@ we need to use `/d' or the drive is never changed.")
   "Regexp to match for operators.")
 
 (defvar ada-xref-project-files '()
-  "Associative list of project files.
-It has the following format:
-\((project_name . value) (project_name . value) ...)
-As always, the values of the project file are defined through properties.")
+  "Associative list of project files with properties.
+It has the format: (project project ...)
+A project has the format: (project-file . project-plist)
+\(See 'apropos plist' for operations on property lists).  See
+ada-xref-set-default-prj-values for the list of valid properties.  The
+current project is retrieved with ada-xref-current-project.  Properties
+are retrieved with ada-xref-get-project-field, set with
+ada-xref-set-project-field.  If project properties are accessed with no
+project file, a (nil . default-properties) entry is created.")
 
 
 ;; ----- Identlist manipulation -------------------------------------------
@@ -250,6 +260,13 @@ As always, the values of the project file are defined through properties.")
   "Duplicate all \\ characters in CMD so that it can be passed to `compile'."
   (mapconcat 'identity (split-string cmd "\\\\") "\\\\"))
 
+(defun ada-find-executable (exec-name)
+  "Find the full path to the executable file EXEC-NAME.
+On Windows systems, this will properly handle .exe extension as well"
+  (or (ada-find-file-in-dir exec-name exec-path)
+      (ada-find-file-in-dir (concat exec-name ".exe") exec-path)
+      exec-name))
+
 (defun ada-initialize-runtime-library (cross-prefix)
   "Initialize the variables for the runtime library location.
 CROSS-PREFIX is the prefix to use for the `gnatls' command."
@@ -264,8 +281,9 @@ CROSS-PREFIX is the prefix to use for the `gnatls' command."
 	;;  Even if we get an error, delete the *gnatls* buffer
 	(unwind-protect
 	    (progn
-	      (apply 'call-process (concat cross-prefix "gnatls")
-		     (append '(nil t nil) ada-gnatls-args))
+	      (let ((gnatls
+		     (ada-find-executable (concat cross-prefix "gnatls"))))
+		 (apply 'call-process gnatls (append '(nil t nil) ada-gnatls-args)))
 	      (goto-char (point-min))
 
 	      ;;  Source path
@@ -384,20 +402,13 @@ replaced by the name including the extension."
 				    "")
 		 'cross_prefix    ""
 		 'remote_machine  ""
-		 'comp_cmd        (list (concat ada-cd-command " ${build_dir}")
-					ada-prj-default-comp-cmd)
-		 'check_cmd       (list (concat ada-prj-default-comp-cmd " "
-						ada-check-switch))
-		 'make_cmd        (list (concat ada-cd-command " ${build_dir}")
-					ada-prj-default-make-cmd)
-		 'run_cmd         (list (concat ada-cd-command " ${build_dir}")
-					(concat "${main}"
-						(if is-windows ".exe")))
-		 'debug_pre_cmd   (list (concat ada-cd-command
-						" ${build_dir}"))
+		 'comp_cmd        (list ada-prj-default-comp-cmd)
+		 'check_cmd       (list ada-prj-default-check-cmd)
+		 'make_cmd        (list ada-prj-default-make-cmd)
+		 'run_cmd         (list (concat "./${main}" (if is-windows ".exe")))
+		 'debug_pre_cmd   (list (concat ada-cd-command " ${build_dir}"))
 		 'debug_cmd       (concat ada-prj-default-debugger
-					  (if is-windows " ${main}.exe"
-					    " ${main}"))
+					  " ${main}" (if is-windows ".exe"))
 		 'debug_post_cmd  (list nil)))
       )
     (set symbol plist)))
@@ -494,7 +505,7 @@ All the directories are returned as absolute directories."
 				  (ada-xref-update-project-menu))))
 		  (vector
 		   (if (string= (file-name-extension name)
-				ada-project-file-extension)
+				ada-prj-file-extension)
 		       (file-name-sans-extension
 			(file-name-nondirectory name))
 		     (file-name-nondirectory name))
@@ -628,7 +639,7 @@ file.  If none is set, return nil."
       (let* ((current-file (or file (buffer-file-name)))
 	     (first-choice (concat
 			    (file-name-sans-extension current-file)
-			    ada-project-file-extension))
+			    ada-prj-file-extension))
 	     (dir          (file-name-directory current-file))
 
 	     ;; on Emacs 20.2, directory-files does not work if
@@ -637,7 +648,7 @@ file.  If none is set, return nil."
 	     (prj-files    (directory-files
 			    dir t
 			    (concat ".*" (regexp-quote
-					  ada-project-file-extension) "$")))
+					  ada-prj-file-extension) "$")))
 	     (choice       nil))
 
 	(cond
@@ -775,10 +786,10 @@ file.  If none is set, return nil."
 						     (reverse check_cmd))))
 	      (if run_cmd (set 'project (plist-put project 'run_cmd
 						   (reverse run_cmd))))
-	      (set 'project (plist-put project 'debug_post_cmd
-				       (reverse debug_post_cmd)))
-	      (set 'project (plist-put project 'debug_pre_cmd
-				       (reverse debug_pre_cmd)))
+	      (if debug_post_cmd (set 'project (plist-put project 'debug_post_cmd
+                                                          (reverse debug_post_cmd))))
+	      (if debug_pre_cmd (set 'project (plist-put project 'debug_pre_cmd
+                                                         (reverse debug_pre_cmd))))
 
 	      ;; Kill the project buffer
 	      (kill-buffer nil)
@@ -1017,8 +1028,13 @@ If OTHER-FRAME is non-nil, display the cross-reference in another frame."
   ;;  that file was too old or even did not exist, try to look in the whole
   ;;  object path for a possible location.
   (let ((identlist (ada-read-identifier pos)))
-    (condition-case nil
+    (condition-case err
 	(ada-find-in-ali identlist other-frame)
+      ;; File not found: print explicit error message
+      (error-file-not-found
+       (message (concat (error-message-string err)
+			(nthcdr 1 err))))
+
       (error
        (let ((ali-file (ada-get-ali-file-name (ada-file-of identlist))))
 
@@ -1507,10 +1523,7 @@ file for possible paths."
     (let ((filename (ada-find-src-file-in-dir file)))
       (if filename
 	  (expand-file-name filename)
-	(error (concat
-		(file-name-nondirectory file)
-		" not found in src_dir; please check your project file")))
-
+	(signal 'error-file-not-found (file-name-nondirectory file)))
       )))
 
 (defun ada-find-file-number-in-ali (file)
@@ -1603,7 +1616,7 @@ Information is extracted from the ali file."
 		(concat "^"    (ada-line-of identlist)
 			"."    (ada-column-of identlist)
 			"[ *]" (ada-name-of identlist)
-			"[{\(<= ]?\\(.*\\)$") bound t))
+			"[{\[\(<= ]?\\(.*\\)$") bound t))
 	  (if declaration-found
 	      (ada-set-on-declaration identlist t))
 	  ))
@@ -1635,7 +1648,7 @@ Information is extracted from the ali file."
 		   (concat
 		    "^[0-9]+.[0-9]+[ *]"
 		    (ada-name-of identlist)
-		    "[ <{=\(]\\(.\\|\n\\.\\)*\\<"
+		    "[ <{=\(\[]\\(.\\|\n\\.\\)*\\<"
 		    (ada-line-of identlist)
 		    "[^0-9]"
 		    (ada-column-of identlist) "\\>")
@@ -1655,9 +1668,10 @@ Information is extracted from the ali file."
 	    (beginning-of-line)
 	    ;; while we have a continuation line, go up one line
 	    (while (looking-at "^\\.")
-	      (previous-line 1))
+	      (previous-line 1)
+	      (beginning-of-line))
 	    (unless (looking-at (concat "[0-9]+.[0-9]+[ *]"
-					(ada-name-of identlist) "[ <{=\(]"))
+					(ada-name-of identlist) "[ <{=\(\[]"))
 	      (set 'declaration-found nil))))
 
       ;; Still no success ! The ali file must be too old, and we need to
@@ -1700,6 +1714,8 @@ Information is extracted from the ali file."
 					  (ada-file-of identlist)))
 
 		;;  Else clean up the ali file
+		(error-file-not-found
+		 (signal (car err) (cdr err)))
 		(error
 		 (kill-buffer ali-buffer)
 		 (error (error-message-string err)))
@@ -1817,7 +1833,7 @@ opens a new window to show the declaration."
     ;; In that case, we simply go to each one in turn.
 
     ;; Get all the possible locations
-    (string-match "^\\([0-9]+\\)[a-zA-Z+]\\([0-9]+\\)[ *]" ali-line)
+    (string-match "^\\([0-9]+\\)[a-zA-Z+*]\\([0-9]+\\)[ *]" ali-line)
     (set 'locations (list (list (match-string 1 ali-line) ;; line
 				(match-string 2 ali-line) ;; column
 				(ada-declare-file-of identlist))))
@@ -1828,7 +1844,10 @@ opens a new window to show the declaration."
 	    start (match-end 3))
 
       ;;  it there was a file number in the same line
-      (if (string-match (concat "[^{(<]\\([0-9]+\\)|\\([^|bc]+\\)?"
+      ;;  Make sure we correctly handle the case where the first file reference
+      ;;  on the line is the type reference.
+      ;;    1U2 T(2|2r3) 34r23
+      (if (string-match (concat "[^{(<0-9]\\([0-9]+\\)|\\([^|bc]+\\)?"
 				(match-string 0 ali-line))
 			ali-line)
 	  (let ((file-number (match-string 1 ali-line)))
@@ -1997,7 +2016,7 @@ is using."
 				  (string-to-number (nth 2 (nth choice list)))
 				  identlist
 				  other-frame)
-	(error (concat (car (nth choice list)) " not found in src_dir")))
+	(signal 'error-file-not-found (car (nth choice list))))
       (message "This is only a (good) guess at the cross-reference.")
       ))))
 
@@ -2137,8 +2156,12 @@ This is a GNAT specific function that uses gnatkrunch."
     (save-excursion
       (set-buffer krunch-buf)
       ;; send adaname to external process `gnatkr'.
+      ;; Add a dummy extension, since gnatkr versions have two different
+      ;; behaviors depending on the version:
+      ;;   Up to 3.15:   "AA.BB.CC"  =>  aa-bb-cc
+      ;;   After:        "AA.BB.CC"  =>  aa-bb.cc
       (call-process "gnatkr" nil krunch-buf nil
-		    adaname ada-krunch-args)
+		    (concat adaname ".adb") ada-krunch-args)
       ;; fetch output of that process
       (setq adaname (buffer-substring
 		     (point-min)
@@ -2146,6 +2169,9 @@ This is a GNAT specific function that uses gnatkrunch."
 		       (goto-char (point-min))
 		       (end-of-line)
 		       (point))))
+      ;;  Remove the extra extension we added above
+      (setq adaname (substring adaname 0 -4))
+
       (kill-buffer krunch-buf)))
   adaname
   )
@@ -2233,6 +2259,14 @@ find-file...."
 
 ;;  This must be done before initializing the Ada menu.
 (add-hook 'ada-mode-hook 'ada-xref-initialize)
+
+;;  Define a new error type
+(put 'error-file-not-found
+     'error-conditions
+     '(error ada-mode-errors error-file-not-found))
+(put 'error-file-not-found
+     'error-message
+     "File not found in src-dir (check project file): ")
 
 ;;  Initializes the cross references to the runtime library
 (ada-initialize-runtime-library "")
