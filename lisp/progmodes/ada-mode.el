@@ -471,27 +471,28 @@ The extensions should include a `.' if needed.")
 (defvar ada-mode-symbol-syntax-table nil
   "Syntax table for Ada, where `_' is a word constituent.")
 
-(defconst ada-83-string-keywords
-  '("abort" "abs" "accept" "access" "all" "and" "array" "at" "begin"
-    "body" "case" "constant" "declare" "delay" "delta" "digits" "do"
-    "else" "elsif" "end" "entry" "exception" "exit" "for" "function"
-    "generic" "goto" "if" "in" "is" "limited" "loop" "mod" "new"
-    "not" "null" "of" "or" "others" "out" "package" "pragma" "private"
-    "procedure" "raise" "range" "record" "rem" "renames" "return"
-    "reverse" "select" "separate" "subtype" "task" "terminate" "then"
-    "type" "use" "when" "while" "with" "xor")
-  "List of Ada 83 keywords.
+(eval-when-compile
+  (defconst ada-83-string-keywords
+    '("abort" "abs" "accept" "access" "all" "and" "array" "at" "begin"
+      "body" "case" "constant" "declare" "delay" "delta" "digits" "do"
+      "else" "elsif" "end" "entry" "exception" "exit" "for" "function"
+      "generic" "goto" "if" "in" "is" "limited" "loop" "mod" "new"
+      "not" "null" "of" "or" "others" "out" "package" "pragma" "private"
+      "procedure" "raise" "range" "record" "rem" "renames" "return"
+      "reverse" "select" "separate" "subtype" "task" "terminate" "then"
+      "type" "use" "when" "while" "with" "xor")
+    "List of Ada 83 keywords.
 Used to define `ada-*-keywords'.")
 
-(defconst ada-95-string-keywords
-  '("abstract" "aliased" "protected" "requeue" "tagged" "until")
-  "List of keywords new in Ada 95.
+  (defconst ada-95-string-keywords
+    '("abstract" "aliased" "protected" "requeue" "tagged" "until")
+    "List of keywords new in Ada 95.
 Used to define `ada-*-keywords'.")
 
-(defconst ada-2005-string-keywords
-  '("interface" "overriding" "synchronized")
-  "List of keywords new in Ada 2005.
-Used to define `ada-*-keywords.'")
+  (defconst ada-2005-string-keywords
+    '("interface" "overriding" "synchronized")
+    "List of keywords new in Ada 2005.
+Used to define `ada-*-keywords.'"))
 
 (defvar ada-ret-binding nil
   "Variable to save key binding of RET when casing is activated.")
