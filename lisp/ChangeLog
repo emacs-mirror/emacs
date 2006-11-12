@@ -1,3 +1,11 @@
+2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/re-builder.el (reb-mode): Set `blink-matching-paren' to
+	nil in the *RE-Builder* buffer (it causes spurious error messages).
+
+	* server.el (server-visit-files): If `minibuffer-auto-raise' has
+	been set to t, respect it.
+
 2006-11-11  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-mode.el: Delete `eval-and-compile' around `require'.

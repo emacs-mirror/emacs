@@ -1,3 +1,12 @@
+2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* category.c (Fchar_category_set): Improve arg/docstring consistency.
+
+	* data.c (Flogxor):
+	* fns.c (Frandom, Flength, Fsafe_length, Fstring_bytes)
+	(Fstring_equal, Fcompare_strings, Fstring_lessp, Fcopy_sequence)
+	(Fstring_make_unibyte): Fix typos in docstrings.
+
 2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_display_info): Fix indentation.
