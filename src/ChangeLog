@@ -1,3 +1,7 @@
+2006-11-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xmenu.c (popup_activated): Define outside HAVE_MENUS.
+
 2006-11-12  Romain Francoise  <romain@orebokech.com>
 
 	* xselect.c (selection-coding-system): Fix docstring.
