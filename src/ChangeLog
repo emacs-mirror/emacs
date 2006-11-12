@@ -1,3 +1,12 @@
+2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (Fencode_sjis_char, Fencode_big5_char):
+	Improve argument/docstring consistency.
+
+	* editfns.c (Fmessage): Doc fixes.
+
+	* process.c (syms_of_process) <delete-exited-processes>: Doc fix.
+
 2006-11-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xmenu.c (popup_activated): Define outside HAVE_MENUS.
