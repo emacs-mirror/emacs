@@ -1488,14 +1488,6 @@ x_activate_menubar (f)
   f->output_data.x->saved_menu_event->type = 0;
 }
 
-/* Detect if a dialog or menu has been posted.  */
-
-int
-popup_activated ()
-{
-  return popup_activated_flag;
-}
-
 /* This callback is invoked when the user selects a menubar cascade
    pushbutton, but before the pulldown menu is posted.  */
 
@@ -3762,6 +3754,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
 #endif /* HAVE_MENUS */
 
+/* Detect if a dialog or menu has been posted.  */
+
+int
+popup_activated ()
+{
+  return popup_activated_flag;
+}
 
 /* The following is used by delayed window autoselection.  */
 
