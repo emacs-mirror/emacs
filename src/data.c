@@ -2827,7 +2827,7 @@ usage: (logior &rest INTS-OR-MARKERS)  */)
 DEFUN ("logxor", Flogxor, Slogxor, 0, MANY, 0,
        doc: /* Return bitwise-exclusive-or of all the arguments.
 Arguments may be integers, or markers converted to integers.
-usage: (logxor &rest INTS-OR-MARKERS) */)
+usage: (logxor &rest INTS-OR-MARKERS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
