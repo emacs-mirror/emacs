@@ -103,7 +103,7 @@ DEFUN ("random", Frandom, Srandom, 0, 1, 0,
 All integers representable in Lisp are equally likely.
   On most systems, this is 29 bits' worth.
 With positive integer argument N, return random number in interval [0,N).
-With argument t, set the random number seed from the current time and pid. */)
+With argument t, set the random number seed from the current time and pid.  */)
      (n)
      Lisp_Object n;
 {
@@ -140,7 +140,7 @@ DEFUN ("length", Flength, Slength, 1, 1, 0,
 A byte-code function object is also allowed.
 If the string contains multibyte characters, this is not necessarily
 the number of bytes in the string; it is the number of characters.
-To get the number of bytes, use `string-bytes'. */)
+To get the number of bytes, use `string-bytes'.  */)
      (sequence)
      register Lisp_Object sequence;
 {
@@ -193,7 +193,7 @@ DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
        doc: /* Return the length of a list, but avoid error or infinite loop.
 This function never gets an error.  If LIST is not really a list,
 it returns 0.  If LIST is circular, it returns a finite value
-which is at least the number of distinct elements. */)
+which is at least the number of distinct elements.  */)
      (list)
      Lisp_Object list;
 {
@@ -217,7 +217,7 @@ which is at least the number of distinct elements. */)
 
 DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0,
        doc: /* Return the number of bytes in STRING.
-If STRING is a multibyte string, this is greater than the length of STRING. */)
+If STRING is a multibyte string, this is greater than the length of STRING.  */)
      (string)
      Lisp_Object string;
 {
@@ -228,7 +228,7 @@ If STRING is a multibyte string, this is greater than the length of STRING. */)
 DEFUN ("string-equal", Fstring_equal, Sstring_equal, 2, 2, 0,
        doc: /* Return t if two strings have identical contents.
 Case is significant, but text properties are ignored.
-Symbols are also allowed; their print names are used instead. */)
+Symbols are also allowed; their print names are used instead.  */)
      (s1, s2)
      register Lisp_Object s1, s2;
 {
@@ -260,7 +260,7 @@ The value is t if the strings (or specified portions) match.
 If string STR1 is less, the value is a negative number N;
   - 1 - N is the number of characters that match at the beginning.
 If string STR1 is greater, the value is a positive number N;
-  N - 1 is the number of characters that match at the beginning. */)
+  N - 1 is the number of characters that match at the beginning.  */)
      (str1, start1, end1, str2, start2, end2, ignore_case)
      Lisp_Object str1, start1, end1, start2, str2, end2, ignore_case;
 {
@@ -352,7 +352,7 @@ If string STR1 is greater, the value is a positive number N;
 DEFUN ("string-lessp", Fstring_lessp, Sstring_lessp, 2, 2, 0,
        doc: /* Return t if first arg string is less than second in lexicographic order.
 Case is significant.
-Symbols are also allowed; their print names are used instead. */)
+Symbols are also allowed; their print names are used instead.  */)
      (s1, s2)
      register Lisp_Object s1, s2;
 {
@@ -488,7 +488,7 @@ copy_sub_char_table (arg)
 DEFUN ("copy-sequence", Fcopy_sequence, Scopy_sequence, 1, 1, 0,
        doc: /* Return a copy of a list, vector, string or char-table.
 The elements of a list or vector are not copied; they are shared
-with the original. */)
+with the original.  */)
      (arg)
      Lisp_Object arg;
 {
@@ -1109,7 +1109,7 @@ DEFUN ("string-make-unibyte", Fstring_make_unibyte, Sstring_make_unibyte,
 Multibyte character codes are converted to unibyte according to
 `nonascii-translation-table' or, if that is nil, `nonascii-insert-offset'.
 If the lookup in the translation table fails, this function takes just
-the low 8 bits of each character. */)
+the low 8 bits of each character.  */)
      (string)
      Lisp_Object string;
 {
