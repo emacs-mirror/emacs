@@ -3171,9 +3171,10 @@ static char *message_text;
 static int message_length;
 
 DEFUN ("message", Fmessage, Smessage, 1, MANY, 0,
-       doc: /* Print a one-line message at the bottom of the screen.
+       doc: /* Display a message at the bottom of the screen.
 The message also goes into the `*Messages*' buffer.
 \(In keyboard macros, that's all it does.)
+Return the message.
 
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
