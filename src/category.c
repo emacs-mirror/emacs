@@ -284,7 +284,8 @@ Return TABLE.  */)
 
 
 DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,
-       doc: /* Return the category set of CHAR.  */)
+       doc: /* Return the category set of CHAR.
+usage: (char-category-set CHAR)  */)
      (ch)
      Lisp_Object ch;
 {
