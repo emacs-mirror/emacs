@@ -1,3 +1,9 @@
+2006-11-12  Markus Triska  <triska@gmx.at>
+
+	* play/handwrite.el (handwrite): Also process lines not ending
+	with newline.  Replace some position-fiddling with different
+	logic.  Improve performance.
+
 2006-11-12  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-xref.el (ada-prj-default-check-cmd): New variable,
