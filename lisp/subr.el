@@ -1961,9 +1961,9 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 Overlays might be moved and/or split.
 BEG and END default respectively to the beginning and end of buffer."
   ;; This speeds up the loops over overlays.
-  (overlay-recenter (point-max))
   (unless beg (setq beg (point-min)))
   (unless end (setq end (point-max)))
+  (overlay-recenter end)
   (if (< end beg)
       (setq beg (prog1 end (setq end beg))))
   (save-excursion
