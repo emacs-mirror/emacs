@@ -115,9 +115,7 @@ http://spamassassin.org/.
 To use SpamAssassin, add the following recipes to
 \".procmailrc\":
 
-    # Append to $PATH the location of mhparam in some distros.
     PATH=$PATH:/usr/bin/mh
-
     MAILDIR=$HOME/`mhparam Path`
 
     # Fight spam with SpamAssassin.
@@ -352,6 +350,7 @@ type of message to start doing a good job.
 
 To use bogofilter, add the following recipes to \".procmailrc\":
 
+    PATH=$PATH:/usr/bin/mh
     MAILDIR=$HOME/`mhparam Path`
 
     # Fight spam with bogofilter.
@@ -418,6 +417,7 @@ distribution or from http://spamprobe.sourceforge.net.
 
 To use SpamProbe, add the following recipes to \".procmailrc\":
 
+    PATH=$PATH:/usr/bin/mh
     MAILDIR=$HOME/`mhparam Path`
 
     # Fight spam with SpamProbe.
