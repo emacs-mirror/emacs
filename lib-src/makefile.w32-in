@@ -85,7 +85,7 @@ $(BLD)/emacsclient.exe:		$(ECLIENTOBJS)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(ECLIENTOBJS) $(WSOCK32) $(LIBS)
 
 $(BLD)/emacsclient.$(O):	emacsclient.c
-		$(CC) $(ECLIENT_CFLAGS) $(CC_OUT)$@ emacsclient.c
+		$(CC) $(CFLAGS) $(ECLIENT_CFLAGS) $(CC_OUT)$@ emacsclient.c
 
 ETAGSOBJ      = $(BLD)/etags.$(O) \
 		$(BLD)/getopt.$(O) \
