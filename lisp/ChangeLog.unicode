@@ -1,3 +1,7 @@
+2006-11-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (ucs-insert): Re-implement.
+
 2006-11-09  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (terminal-composition-modification): New function.
