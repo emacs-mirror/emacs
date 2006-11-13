@@ -1,3 +1,13 @@
+2006-11-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-metaleft): Call `org-outdent-item' on
+	bullets.
+	(org-metaright): Call `org-indent-item' on bullets.
+	(org-timestamp-change): Set `org-last-changed-timestamp'.
+	(org-current-line): Make sure (bolp) returns correct result.
+	(org-agenda-change-all-lines): Make sure highlighting TODO always
+	works.
+
 2006-11-12  Richard Stallman  <rms@gnu.org>
 
 	* language/european.el (turkish-case-conversion-enable)
@@ -142,9 +152,21 @@
 
 2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
+<<<<<<< ChangeLog
+	* textmodes/org.el (org-show-hierarchy-above) 
+	(org-show-following-heading): Fixed typo in default value.
+
+2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* textmodes/org.el (org-scan-tags): Make the search
+	case-sensitive.
+	(org-tags-sparse-tree): Don't overrule
+	`org-show-following-heading' and `org-show-hierarchy-above'.
+=======
 	* textmodes/org.el (org-scan-tags): Make the search case-sensitive.
 	(org-tags-sparse-tree): Don't overrule `org-show-following-heading'
 	and `org-show-hierarchy-above'.
+>>>>>>> 1.10303
 	(org-reveal): New command.
 	(org-show-context): Renamed from `org-show-hierarchy-above'.
 	(org-fast-tag-selection-single-key): New option.
