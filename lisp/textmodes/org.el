@@ -3397,7 +3397,7 @@ that will be added to PLIST.  Returns the string that was modified."
   "Regular expression matching a time stamp or time stamp range.
 The time stamps may be either active or inactive.")
 
-(defvar org-Åßemph-face nil)
+(defvar org-emph-face nil)
 
 (defun org-do-emphasis-faces (limit)
   "Run through the buffer and add overlays to links."
