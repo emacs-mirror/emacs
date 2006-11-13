@@ -279,7 +279,7 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_STRFTIME 1
 
 #define LOCALTIME_CACHE
-#undef  HAVE_INET_SOCKETS
+#define HAVE_INET_SOCKETS 1
 
 #undef  HAVE_AIX_SMT_EXP
 
