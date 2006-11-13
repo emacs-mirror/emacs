@@ -1,3 +1,14 @@
+2006-11-13  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Incorporating Mail): Use output of "mhparam Path" to set
+	MAILDIR.
+	(Reading Mail): Document the customization of read-mail-command for
+	MH-E.
+	(Viewing Attachments): Document mm-discouraged-alternatives.
+	(Tool Bar): Fix Texinfo for mh-xemacs-use-tool-bar-flag.
+	(Junk): Add more information about the settings of mh-junk-background
+	in a program. Add /usr/bin/mh to PATH in examples.
+
 2006-11-12  Richard Stallman  <rms@gnu.org>
 
 	* woman.texi: Update author address but say he no longer maintains it.
