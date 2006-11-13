@@ -1,12 +1,17 @@
+2006-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff.el (ediff-revision):
+	* files.el (set-visited-file-name):
+	* mail/rmailout.el (rmail-output-body-to-file):
+	Use `format', not `message', in `y-or-n-p' call.
+
 2006-11-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-metaleft): Call `org-outdent-item' on
-	bullets.
+	* textmodes/org.el (org-metaleft): Call `org-outdent-item' on bullets.
 	(org-metaright): Call `org-indent-item' on bullets.
 	(org-timestamp-change): Set `org-last-changed-timestamp'.
 	(org-current-line): Make sure (bolp) returns correct result.
-	(org-agenda-change-all-lines): Make sure highlighting TODO always
-	works.
+	(org-agenda-change-all-lines): Make sure highlighting TODO always works.
 
 2006-11-12  Richard Stallman  <rms@gnu.org>
 

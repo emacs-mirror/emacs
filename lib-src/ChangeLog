@@ -1,3 +1,13 @@
+2006-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (emacsclient): Depend also on emacsclientw.exe.
+	($(BLD)/emacsclientw.exe): New target.
+	(install): Install emacsclientw.exe.
+	($(BLD)/cvtmail.$(O), $(BLD)/emacstool.$(O)): Remove obsolete targets.
+	(ECLIENT_CFLAGS): Remove redundant flags.
+
+	* emacsclient.c [WINDOWSNT]: Undef _WINSOCKAPI_ and _WINSOCK_H.
+
 2006-11-13  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in ($(BLD)/emacsclient.$(O)): Use CFLAGS.
