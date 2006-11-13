@@ -28,10 +28,17 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef WINDOWSNT
 
+/* config.h defines these, which disables sockets altogether! */
+# undef _WINSOCKAPI_
+# undef _WINSOCK_H
+
 # include <malloc.h>
 # include <stdlib.h>
 
-# define HAVE_SOCKETS
+# ifndef HAVE_SOCKETS
+#  define HAVE_SOCKETS
+# endif
+
 # define HAVE_INET_SOCKETS
 # define NO_SOCKETS_IN_FILE_SYSTEM
 
