@@ -1,5 +1,10 @@
 2006-11-13  Bill Wohler  <wohler@newt.com>
 
+	Release MH-E manual version 8.0.3.
+
+	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
+	release 8.0.3.
+
 	* mh-e.texi (Incorporating Mail): Use output of "mhparam Path" to set
 	MAILDIR.
 	(Reading Mail): Document the customization of read-mail-command for

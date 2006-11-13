@@ -1,5 +1,9 @@
 2006-11-13  Bill Wohler  <wohler@newt.com>
 
+	Release MH-E version 8.0.3.
+
+	* mh-e.el (Version, mh-version): Update for release 8.0.3.
+
 	* mh-e.el (mh-alias-local-users): Boolean docstrings should start
 	with "Non-nil means". Perhaps this option should have a -flag
 	appended.
