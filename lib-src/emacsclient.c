@@ -35,11 +35,6 @@ Boston, MA 02110-1301, USA.  */
 # include <malloc.h>
 # include <stdlib.h>
 
-# ifndef HAVE_SOCKETS
-#  define HAVE_SOCKETS
-# endif
-
-# define HAVE_INET_SOCKETS
 # define NO_SOCKETS_IN_FILE_SYSTEM
 
 # define HSOCKET SOCKET
