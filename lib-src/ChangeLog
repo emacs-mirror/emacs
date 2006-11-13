@@ -1,3 +1,7 @@
+2006-11-13  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in ($(BLD)/emacsclient.$(O)): Use CFLAGS.
+
 2006-11-10  David Reitter  <david.reitter@gmail.com>
 
 	* emacsclient.c [!WINDOWSNT]: Include <sys/types.h>.
