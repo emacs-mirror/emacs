@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.54
+@set VERSION 4.55
 @set DATE November 2006
 
 @dircategory Emacs
@@ -303,28 +303,28 @@ Org-mode is a mode for keeping notes, maintaining ToDo lists, and doing
 project planning with a fast and effective plain-text system.
 
 Org-mode develops organizational tasks around NOTES files that contain
-information about projects as plain text.  Org-mode is implemented on
-top of outline-mode, which makes it possible to keep the content of
-large files well structured.  Visibility cycling and structure editing
-help to work with the tree.  Tables are easily created with a built-in
-table editor.  Org-mode supports ToDo items, deadlines, time stamps,
-and scheduling.  It dynamically compiles entries into an agenda that
-utilizes and smoothly integrates much of the Emacs calendar and diary.
-Plain text URL-like links connect to websites, emails, Usenet
-messages, BBDB entries, and any files related to the projects.  For
-printing and sharing of notes, an Org-mode file can be exported as a
+lists or information about projects as plain text.  Org-mode is
+implemented on top of outline-mode, which makes it possible to keep the
+content of large files well structured.  Visibility cycling and
+structure editing help to work with the tree.  Tables are easily created
+with a built-in table editor.  Org-mode supports ToDo items, deadlines,
+time stamps, and scheduling.  It dynamically compiles entries into an
+agenda that utilizes and smoothly integrates much of the Emacs calendar
+and diary.  Plain text URL-like links connect to websites, emails,
+Usenet messages, BBDB entries, and any files related to the projects.
+For printing and sharing of notes, an Org-mode file can be exported as a
 structured ASCII file, as HTML, or (todo and agenda items only) as an
 iCalendar file.  It can also serve as a publishing tool for a set of
 linked webpages.
 
-An important design aspect that distinguishes Org-mode from other
-packages like Planner/Muse is that it encougages to store every piece of
-information only once.  In Planner, you have project pages, day pages
-and possibly other files, duplicating some information such as tasks.
-In Org-mode, you only have notes files.  In your notes you mark entries
-as tasks, label them with tags and timestamps.  All necessary lists like
-a schedule for the day, the agenda for a meeting, tasks lists selected
-by tags etc are created dynamically when you need them.
+An important design aspect that distinguishes Org-mode from for example
+Planner/Muse is that it encougages to store every piece of information
+only once.  In Planner, you have project pages, day pages and possibly
+other files, duplicating some information such as tasks.  In Org-mode,
+you only have notes files.  In your notes you mark entries as tasks,
+label them with tags and timestamps.  All necessary lists like a
+schedule for the day, the agenda for a meeting, tasks lists selected by
+tags etc are created dynamically when you need them.
 
 Org-mode keeps simple things simple.  When first fired up, it should
 feel like a straightforward, easy to use outliner.  Complexity is not
@@ -495,12 +495,12 @@ emacs -l /path/to/org.el
 Go to the @code{Options} menu and select @code{Enter Debugger on Error}
 (XEmacs has this option in the @code{Troubleshooting} sub-menu).
 @item
-Do whatever you have to do to hit the error.  Don't forget to to
+Do whatever you have to do to hit the error.  Don't forget to
 document the steps you take.
 @item
 When you hit the error, a @file{*Backtrace*} buffer will appear on the
-screen.  Safe this buffer to a file (for example using @kbd{C-x C-w} and
-attach) it to your bug report.
+screen.  Save this buffer to a file (for example using @kbd{C-x C-w}) and
+attach it to your bug report.
 @end enumerate
 
 @node Document structure, Tables, Introduction, Top
@@ -5200,7 +5200,7 @@ With stars hidden, the tree becomes:
 @noindent
 Note that the leading stars are not truly replaced by whitespace, they
 are only fontified with the face @code{org-hide} that uses the
-background color as font color.  If are are not using either white or
+background color as font color.  If you are not using either white or
 black background, you may have to customize this face to get the wanted
 effect.  Another possibility is to set this font such that the extra
 stars are @i{almost} invisible, for example using the color
@@ -5550,6 +5550,7 @@ be complete, if I have forgotten someone, please accept my apologies and
 let me know.
 
 @itemize @bullet
+
 @item
 @i{Thomas Baumann} contributed the code for links to the MH-E email
 system.
