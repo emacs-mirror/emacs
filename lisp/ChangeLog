@@ -1,3 +1,7 @@
+2006-11-13  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-copy-current-word): C-o copies region if active.
+
 2006-11-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-emph-face): Fix typo in variable name.
