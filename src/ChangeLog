@@ -1,3 +1,7 @@
+2006-11-13  Jason Rumney  <jasonr@gnu.org>
+
+	* s/ms-w32.h: Define HAVE_INET_SOCKETS.
+
 2006-11-13  Nozomu Ando  <nand@mac.com>
 
 	* alloc.c (mark_memory): New argument OFFSET.  All uses changed.
