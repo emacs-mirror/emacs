@@ -1,3 +1,9 @@
+2006-11-13  Nozomu Ando  <nand@mac.com>
+
+	* alloc.c (mark_memory): New argument OFFSET.  All uses changed.
+	Fix address calculations for case END < START.
+	(mark_stack): Impose Lisp_Object alignment on jmp_buf.
+
 2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* coding.c (Fencode_sjis_char, Fencode_big5_char):
