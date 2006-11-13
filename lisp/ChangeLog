@@ -157,54 +157,49 @@
 
 2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
-<<<<<<< ChangeLog
-	* textmodes/org.el (org-show-hierarchy-above) 
+	* textmodes/org.el (org-show-hierarchy-above)
 	(org-show-following-heading): Fixed typo in default value.
-
-2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
-
-	* textmodes/org.el (org-scan-tags): Make the search
-	case-sensitive.
+	(org-scan-tags): Make the search case-sensitive.
 	(org-tags-sparse-tree): Don't overrule
 	`org-show-following-heading' and `org-show-hierarchy-above'.
-=======
-	* textmodes/org.el (org-scan-tags): Make the search case-sensitive.
-	(org-tags-sparse-tree): Don't overrule `org-show-following-heading'
-	and `org-show-hierarchy-above'.
->>>>>>> 1.10303
 	(org-reveal): New command.
 	(org-show-context): Renamed from `org-show-hierarchy-above'.
 	(org-fast-tag-selection-single-key): New option.
-	(org-fast-tag-show-exit, org-set-current-tags-overlay): New functions.
+	(org-fast-tag-show-exit, org-set-current-tags-overlay): New
+	functions.
 	(org-tags-overlay): New variable.
 	(org-agenda-todo-ignore-deadlines): New option.
-	("session"): Add circular data structure `org-mark-ring' to exceptions
-	list in session.el.
+	("session"): Add circular data structure `org-mark-ring' to
+	exceptions list in session.el.
 	(org-agenda-window-setup, org-agenda-restore-windows-after-quit):
 	New options.
 	(org-agenda-quit): Use `org-agenda-restore-windows-after-quit'.
-	(org-prepare-agenda, org-agenda-quit): Use `org-agenda-window-setup'.
-	(org-pre-agenda-window-conf, org-blank-before-new-entry): New variables.
+	(org-prepare-agenda, org-agenda-quit): Use
+	`org-agenda-window-setup'.
+	(org-pre-agenda-window-conf, org-blank-before-new-entry): New
+	variables.
 	(org-finalize-agenda): Activate bracket links in agenda.
 	(org-at-timestamp-p, org-at-date-range-p): Additional argument
 	INACTIVE-OK.
-	(org-show-hierarchy-above, org-show-following-heading):
-	List values allowed for fine-tuned configuration.
-	(org-show-hierarchy-above): New argument CONTEXT, use the fine-tuned
-	settings in `org-show-hierarchy-above' and `org-show-following-heading'.
+	(org-show-hierarchy-above, org-show-following-heading): List
+	values allowed for fine-tuned configuration.
+	(org-show-hierarchy-above): New argument CONTEXT, use the
+	fine-tuned settings in `org-show-hierarchy-above' and
+	`org-show-following-heading'.
 	(org-display-custom-time): New function.
-	(org-toggle-time-stamp-overlays, org-insert-time-stamp): New function.
+	(org-toggle-time-stamp-overlays, org-insert-time-stamp): New
+	function.
 	(org-display-custom-times, org-time-stamp-custom-formats):
 	(org-maybe-intangible): New macro.
-	(org-activate-bracket-links, org-hide-wide-columns):
-	Use `org-maybe-intangible'.
+	(org-activate-bracket-links, org-hide-wide-columns): Use
+	`org-maybe-intangible'.
 	(org-open-file): Use `shell-quote-argument'.
 	(org-display-internal-link-with-indirect-buffer): New option.
 	(org-file-remote-p): Get regexp from list.
 	(org-link-expand-abbrev): New function.
 	(org-link-abbrev-alist): New option.
-	(org-open-at-point, org-cleaned-string-for-export):
-	Call `org-link-expand-abbrev'.
+	(org-open-at-point, org-cleaned-string-for-export): Call
+	`org-link-expand-abbrev'.
 	(org-timeline, org-agenda-list, org-todo-list)
 	(org-tags-view): Remove the KEEP-MODES argument.
 	(org-finalize-agenda-hook): New hook.
@@ -213,8 +208,8 @@
 	(org-open-at-point): Call `org-follow-timestamp-link'.
 	(org-log-note-marker, org-log-note-purpose)
 	(org-log-note-window-configuration): New variables.
-	(org-add-log-maybe, org-add-log-note, org-store-log-note):
-	New functions.
+	(org-add-log-maybe, org-add-log-note, org-store-log-note): New
+	functions.
 	(org-log-note-headings): New option.
 	(org-dblock-write:clocktable): Bug fix, removed infinite loop.
 	(org-store-link): Support for dired-mode.
@@ -229,25 +224,26 @@
 	the text property inticating the agenda type.
 	(org-agenda-post-command-hook): Get agenda type from text property
 	at point.
-	(org-agenda): Handle command sets.  Set `org-agenda-last-arguments'
-	and obey `org-agenda-overriding-arguments'.
-	(org-agenda-overriding-arguments, org-agenda-last-arguments):
-	New variables.
+	(org-agenda): Handle command sets.  Set
+	`org-agenda-last-arguments' and obey
+	`org-agenda-overriding-arguments'.
+	(org-agenda-overriding-arguments, org-agenda-last-arguments): New
+	variables.
 	(org-agenda-goto-today, org-agenda-later, org-agenda-earlier)
-	(org-agenda-week-view, org-agenda-day-view):
-	Use `org-agenda-overriding-arguments' to make updating work with
+	(org-agenda-week-view, org-agenda-day-view): Use
+	`org-agenda-overriding-arguments' to make updating work with
 	multi-block agendas.
 	(org-agenda-prefix-format): Allow different formats for the
 	different agenda entry types.
-	(org-timeline-prefix-format): Option removed,
-	use `org-agenda-prefix-format' instead.
+	(org-timeline-prefix-format): Option removed, use
+	`org-agenda-prefix-format' instead.
 	(org-prepare-agenda): New function.
-	(org-select-timeline-window): Option removed,
-	use `org-select-agenda-window' instead.
+	(org-select-timeline-window): Option removed, use
+	`org-select-agenda-window' instead.
 	(org-respect-restriction): Variable removed.
 	(org-cmp-tag): New function.
-	(org-agenda-sorting-strategy, org-entries-lessp):
-	Implement sorting by last tag.
+	(org-agenda-sorting-strategy, org-entries-lessp): Implement
+	sorting by last tag.
 	(org-complete): Better completion in in-buffer option lines.
 	(org-in-item-p): New function.
 	(org-org-menu): Added entries for checkboxes.
@@ -258,16 +254,16 @@
 	(org-update-checkbox-count-maybe)
 	(org-get-checkbox-statistics-face): New functions.
 	(org-update-checkbox-count): New command.
-	(org-insert-item, org-toggle-checkbox):
-	Call `org-update-checkbox-count-maybe'.
+	(org-insert-item, org-toggle-checkbox): Call
+	`org-update-checkbox-count-maybe'.
 	(org-export-as-html): XEmacs compatibility for coding system.
 	(org-force-cycle-archived): New command.
 	(org-cycle-hide-archived-subtrees): Display message when ARCHIVE
 	overrules cycling.
 	(org-fix-position-after-promote): If the line contains only a todo
 	keyword, add a final space.
-	(org-promote-subtree, org-demote-subtree):
-	Call `org-fix-position-after-promote'.
+	(org-promote-subtree, org-demote-subtree): Call
+	`org-fix-position-after-promote'.
 
 2006-11-10  Glenn Morris  <rgm@gnu.org>
 
