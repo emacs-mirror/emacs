@@ -1401,8 +1401,8 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
 				'no-dirs)))
   (find-file file)
   (if (and (buffer-modified-p)
-	   (y-or-n-p (message "Buffer %s is modified. Save buffer? "
-			      (buffer-name))))
+	   (y-or-n-p (format "Buffer %s is modified. Save buffer? "
+                             (buffer-name))))
       (save-buffer (current-buffer)))
   (let (rev1 rev2)
     (setq rev1
