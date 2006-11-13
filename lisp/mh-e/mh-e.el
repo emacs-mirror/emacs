@@ -1218,7 +1218,7 @@ or \"Bottom\" of your alias file might be more appropriate."
   :package-version '(MH-E . "7.1"))
 
 (defcustom-mh mh-alias-local-users t
-  "*If on, local users are added to alias completion.
+  "*Non-nil means local users are added to alias completion.
 
 Aliases are created from \"/etc/passwd\" entries with a user ID
 larger than a magical number, typically 200. This can be a handy
@@ -1690,9 +1690,13 @@ The function is always called with SYMBOL bound to
 By default, the programs are run in the foreground, but this can
 be slow when junking large numbers of messages. If you have
 enough memory or don't junk that many messages at the same time,
-you might try turning on this option (that is, setting its value to 0).
-If the value is t, the programs' output is saved in the MH-E log buffer;
-this may be useful for debugging."
+you might try turning on this option.
+
+Note that this option is used as the \"display\" argument in the
+call to `call-process'. Therefore, turning on this option means
+setting its value to \"0\". You can also set its value to t to
+direct the programs' output to the \"*MH-E Log*\" buffer; this
+may be useful for debugging."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "On" 0))
   :group 'mh-junk
