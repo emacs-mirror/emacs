@@ -1,14 +1,24 @@
+2006-11-13  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-alias-local-users): Boolean docstrings should start
+	with "Non-nil means". Perhaps this option should have a -flag
+	appended.
+	(mh-junk-background): Sync docstring with manual.
+
+	* mh-junk.el (mh-spamassassin-blacklist, mh-bogofilter-blacklist)
+	(mh-spamprobe-blacklist): Sync docstring with manual.
+
 2006-11-11  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* mh-junk.el (mh-spamassassin-blacklist, mh-spamassassin-whitelist): 
-	use mh-junk-background consistently in call-process calls.
+	Use mh-junk-background consistently in call-process calls.
 
 	* (mh-bogofilter-blacklist, mh-bogofilter-whitelist,
-	mh-spamprobe-blacklist, mh-spamprobe-whitelist): use
+	mh-spamprobe-blacklist, mh-spamprobe-whitelist): Use
 	with-current-buffer so the right thing happens if
-	mh-junk-background is t.  (closes SF #1594802).
+	mh-junk-background is t (closes SF #1594802).
 
-	* mh-e.el (mh-junk-background): document that On value is 0;
+	* mh-e.el (mh-junk-background): Document that On value is 0;
 	t may be used for debugging.
 	
 2006-11-10  Andreas Schwab  <schwab@suse.de>
@@ -82,7 +92,7 @@
 2006-06-15  Bill Wohler  <wohler@newt.com>
 
 	* mh-search.el (mh-index-new-folder): Use -2 suffix instead of <2>
-	suffix for folder names, as <> are illegal filenakme characters on
+	suffix for folder names, as <> are illegal filename characters on
 	Windows	(closes SF #1507002).
 
 2006-06-05  Jacob Morzinski  <morzinski@MIT.EDU>  (tiny change)
