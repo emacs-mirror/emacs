@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.54
+;; Version: 4.55
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -61,6 +61,9 @@
 ;;
 ;; Recent changes
 ;; --------------
+;; Version 4.55
+;;    - Bug fixes.
+;;
 ;; Version 4.54
 ;;    - Improvements to fast tag selection
 ;;      + show status also in target line.
@@ -164,7 +167,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.54"
+(defvar org-version "4.55"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -467,7 +470,7 @@ The highlights created by `org-preview-latex-fragment' always need
   :group 'org-time
   :type 'boolean)
 
-(defcustom org-show-hierarchy-above '((default t))
+(defcustom org-show-hierarchy-above '((default . t))
   "Non-nil means, show full hierarchy when showing a spot in the tree.
 Turning this off makes sparse trees more compact, but also less clear.
 Instead of t, this can also be an alist specifying this option for different
@@ -497,7 +500,7 @@ contexts.  Valid contexts are
 		    (const default))
 		   (boolean)))))
 
-(defcustom org-show-following-heading '((default t))
+(defcustom org-show-following-heading '((default . t))
   "Non-nil means, show heading following match in `org-occur'.
 When doing an `org-occur' it is useful to show the headline which
 follows the match, even if they do not match the regexp.  This makes it
@@ -3275,7 +3278,9 @@ The following commands are available:
   (let ((current-prefix-arg arg)) (call-interactively command)))
 
 (defsubst org-current-line (&optional pos)
-  (+ (if (bolp) 1 0) (count-lines (point-min) (or pos (point)))))
+  (save-excursion
+    (and pos (goto-char pos))
+    (+ (if (bolp) 1 0) (count-lines (point-min) (point)))))
 
 (defun org-current-time ()
   "Current time, possibly rounded to `org-time-stamp-rounding-minutes'."
@@ -6412,7 +6417,8 @@ in the timestamp determines what will be changed."
 	  (setcar (nthcdr 1 time0) (or (nth 1 time0) 0))
 	  (setcar (nthcdr 2 time0) (or (nth 1 time0) 0))
 	  (setq time (apply 'encode-time time0))))
-    (org-insert-time-stamp time with-hm inactive)
+    (setq org-last-changed-timestamp
+	  (org-insert-time-stamp time with-hm inactive))
     (org-clock-update-time-maybe)
     (goto-char pos)
     ;; Try to recenter the calendar window, if any
@@ -6774,7 +6780,7 @@ the returned times will be formatted strings."
 		     (apply 'encode-time (org-parse-time-string te)))))
     (move-marker ins (point))
     (setq ipos (point))
-    ;; FIXME: does not yet use org-insert-time-stamp or custom format
+    ;; FIXME: does not yet use org-insert-time-stamp
     (insert-before-markers "Clock summary at ["
 			   (substring
 			    (format-time-string (cdr org-time-stamp-formats))
@@ -7472,7 +7478,7 @@ NDAYS defaults to `org-agenda-ndays'."
 			 (d (- nt n1)))
 		    (- sd (+ (if (< d 0) 7 0) d)))))
 	 (day-numbers (list start))
-;FIXME	 (inhibit-redisplay t)
+	 (inhibit-redisplay t)
 	 s e rtn rtnall file date d start-pos end-pos todayp nd)
     (setq org-agenda-redo-command
 	  (list 'org-agenda-list (list 'quote include-all) start-day ndays))
@@ -7575,6 +7581,7 @@ the list to these.  When using \\[universal-argument], you will be prompted
 for a keyword.  A numeric prefix directly selects the Nth keyword in
 `org-todo-keywords'."
   (interactive "P")
+  (require 'calendar)
   (org-compile-prefix-format 'todo)
   (org-set-sorting-strategy 'todo)
   (let* ((today (time-to-days (current-time)))
@@ -8249,7 +8256,7 @@ the documentation of `org-diary'."
 			 "[^\n\r]*\\)"))
 	 (deadline-re (concat ".*\\(\n[^*].*\\)?" org-deadline-time-regexp))
 	 (sched-re (concat ".*\\(\n[^*].*\\)?" org-scheduled-time-regexp))
-; FIXME why was this wriong?	 (sched-re (concat ".*\n?.*?" org-scheduled-time-regexp))
+; FIXME why was this wrong?	 (sched-re (concat ".*\n?.*?" org-scheduled-time-regexp))
 	 marker priority category tags
 	 ee txt)
     (goto-char (point-min))
@@ -8990,7 +8997,6 @@ The new content of the line will be NEWHEAD (as modified by
 If FIXFACE is non-nil, the face of each item is modified acording to
 the new TODO state."
   (let* (props m pl undone-face done-face finish new dotime cat tags)
-;    (setq newhead (org-format-agenda-item "x" newhead "x" nil 'noprefix))
     (save-excursion
       (goto-char (point-max))
       (beginning-of-line 1)
@@ -9017,9 +9023,8 @@ the new TODO state."
 		   (point-at-bol) (point-at-eol)
 		   (list 'face
 			 (if org-last-todo-state-is-todo
-			     undone-face done-face)))
-		  (org-agenda-highlight-todo 'line))
-		;; (org-agenda-align-tags 'line) ;; done below by finalize
+			     undone-face done-face))))
+		(org-agenda-highlight-todo 'line)
 		(beginning-of-line 1))
 	    (error "Line update did not work")))
 	(beginning-of-line 0)))
@@ -9439,37 +9444,6 @@ MATCH can contain positive and negative selection of tags, like
 \"+WORK+URGENT-WITHBOSS\"."
   (interactive "P")
   (org-scan-tags 'sparse-tree (cdr (org-make-tags-matcher match))))
-
-;; FIXME: remove this function.
-(defun org-make-tags-matcher-old (match)
-  "Create the TAGS matcher form for the tags-selecting string MATCH."
-  (unless match
-    ;; Get a new match request, with completion
-    (setq org-last-tags-completion-table
-	  (or org-tag-alist
-	      org-last-tags-completion-table))
-    (setq match (completing-read
-		 "Tags: " 'org-tags-completion-function nil nil nil
-		 'org-tags-history)))
-  ;; parse the string and create a lisp form
-  (let ((match0 match) minus tag mm matcher orterms term orlist)
-    (setq orterms (org-split-string match "|"))
-    (while (setq term (pop orterms))
-      (while (string-match "^&?\\([-+:]\\)?\\([A-Za-z_@0-9]+\\)" term)
-	(setq minus (and (match-end 1)
-			 (equal (match-string 1 term) "-"))
-	      tag (match-string 2 term)
-	      term (substring term (match-end 0))
-	      mm (list 'member (downcase tag) 'tags-list)
-	      mm (if minus (list 'not mm) mm))
-	(push mm matcher))
-      (push (if (> (length matcher) 1) (cons 'and matcher) (car matcher))
-	    orlist)
-      (setq matcher nil))
-    (setq matcher (if (> (length orlist) 1) (cons 'or orlist) (car orlist)))
-    ;; Return the string and lisp forms of the matcher
-    (cons match0 matcher)))
-
 
 (defun org-make-tags-matcher (match)
   "Create the TAGS//TODO matcher form for the selection string MATCH."
@@ -16599,6 +16573,7 @@ See the individual commands for more information."
    ((org-at-table-p) (org-call-with-arg 'org-table-move-column 'left))
    ((or (org-on-heading-p) (org-region-active-p))
     (call-interactively 'org-do-promote))
+   ((org-at-item-p) (call-interactively 'org-outdent-item))
    (t (call-interactively 'backward-word))))
 
 (defun org-metaright (&optional arg)
@@ -16611,6 +16586,7 @@ See the individual commands for more information."
    ((org-at-table-p) (call-interactively 'org-table-move-column))
    ((or (org-on-heading-p) (org-region-active-p))
     (call-interactively 'org-do-demote))
+   ((org-at-item-p) (call-interactively 'org-indent-item))
    (t (call-interactively 'forward-word))))
 
 (defun org-metaup (&optional arg)
