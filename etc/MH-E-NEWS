@@ -6,6 +6,33 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 8.0.3
+
+Version 8.0.3 fixes errors in sending messages and in running spam
+filter commands in certain circumstances.
+
+** Bug Fixes in MH-E 8.0.3
+
+*** mh-send-args Cannot Be nil
+
+If `mh-send-uses-spost-flag' was set, an error would prevent the
+sending of messages. This has been fixed (closes SF #1564742).
+
+*** Missing Quotes in sa-learn Command Line
+
+This has been fixed (closes SF #1565460).
+
+*** Errors Associated with mh-junk-background
+
+The Spamassassin filter commands were used inconsistently and
+incorrectly; if `mh-junk-background' were nil, not all of the updating
+would happen correctly. In the other back-ends such as bogofilter and
+SpamProbe, a value of t for `mh-junk-background' would cause the
+commands associated with these filters to fail. These problems have
+been fixed (closes SF #1594802).
+
+
+
 * Changes in MH-E 8.0.2
 
 Version 8.0.2 fixes the tool bar and `F n' on XEmacs, and `K a' on GNU
