@@ -421,24 +421,10 @@ Note that for src_dir and obj_dir, you should rather use
 `ada-xref-get-src-dir-field' or `ada-xref-get-obj-dir-field' which will in
 addition return the default paths."
 
-  (let ((file-name ada-prj-default-project-file)
-	file value)
+  (let* ((project-plist (cdr (ada-xref-current-project)))
+	 value)
 
-    ;;  Get the project file (either the current one, or a default one)
-    (setq file (or (assoc file-name ada-xref-project-files)
-		   (assoc nil ada-xref-project-files)))
-
-    ;;  If the file was not found, use the default values
-    (if file
-	;;  Get the value from the file
-	(set 'value (plist-get (cdr file) field))
-
-      ;; Create a default nil file that contains the default values
-      (ada-xref-set-default-prj-values 'value (current-buffer))
-      (add-to-list 'ada-xref-project-files (cons nil value))
-      (ada-xref-update-project-menu)
-      (set 'value (plist-get value field))
-      )
+    (set 'value (plist-get project-plist field))
 
     ;;  Substitute the ${...} constructs in all the strings, including
     ;;  inside lists
@@ -483,6 +469,15 @@ All the directories are returned as absolute directories."
 
      ;; Add the standard runtime at the end
      ada-xref-runtime-library-ali-path)))
+
+(defun ada-xref-set-project-field (field value)
+  "Set FIELD to VALUE in current project.  Assumes project exists."
+  ;; same algorithm to find project-plist as ada-xref-current-project
+  (let* ((file-name (ada-xref-current-project-file))
+	 (project-plist (cdr (assoc file-name ada-xref-project-files))))
+
+    (setq project-plist (plist-put project-plist field value))
+    (setcdr (assoc file-name ada-xref-project-files) project-plist)))
 
 (defun ada-xref-update-project-menu ()
   "Update the menu Ada->Project, with the list of available project files."
@@ -571,11 +566,35 @@ Completion is available."
 ;; ----- Utilities -------------------------------------------------
 
 (defun ada-require-project-file ()
-  "If no project file is currently active, load a default one."
-  (if (or (not ada-prj-default-project-file)
-	  (not ada-xref-project-files)
-	  (string= ada-prj-default-project-file ""))
+  "If the current project does not exist, load or create a default one.
+Should only be called from interactive functions."
+  (if (not (ada-xref-current-project t))
       (ada-reread-prj-file)))
+
+(defun ada-xref-current-project-file (&optional no-user-question)
+  "Return the current project file name; never nil unless NO-USER-QUESTION.
+If NO-USER-QUESTION, don't prompt user for file.  Call
+`ada-require-project-file' first if a project must exist."
+  (if (not (string= "" ada-prj-default-project-file))
+      ada-prj-default-project-file
+    (ada-prj-find-prj-file nil no-user-question)))
+
+(defun ada-xref-current-project (&optional no-user-question)
+  "Return the current project; nil if none.
+If NO-USER-QUESTION, don't prompt user for file.  Call
+`ada-require-project-file' first if a project must exist."
+  (let* ((file-name (ada-xref-current-project-file no-user-question)))
+    (assoc file-name ada-xref-project-files)))
+
+(defun ada-show-current-project ()
+  "Display current project file name in message buffer."
+  (interactive)
+  (message (ada-xref-current-project-file)))
+
+(defun ada-show-current-main ()
+  "Display current main unit name in message buffer."
+  (interactive)
+  (message "ada-mode main_unit: %s" (ada-xref-get-project-field 'main_unit)))
 
 (defun ada-xref-push-pos (filename position)
   "Push (FILENAME, POSITION) on the position ring for cross-references."
@@ -614,20 +633,22 @@ a project file unless the user has already loaded one."
 ;; ------ Handling the project file -----------------------------
 
 (defun ada-prj-find-prj-file (&optional file no-user-question)
-  "Find the prj file associated with FILE (or the current buffer if nil).
-If NO-USER-QUESTION is non-nil, use a default file if not project file was
-found, and do not ask the user.
-If the buffer is not an Ada buffer, associate it with the default project
-file.  If none is set, return nil."
+  "Find the project file associated with FILE (or the current buffer if nil).
+If the buffer is not in Ada mode, or not associated with a file,
+return `ada-prj-default-project-file'.  Otherwise, search for a file with
+the same base name as the Ada file, but extension given by
+`ada-prj-file-extension' (default .adp).  If not found, search for *.adp
+in the current directory; if several are found, and NO-USER-QUESTION
+is non-nil, prompt the user to select one.  If none are found, return
+'default.adp'."
 
   (let (selected)
 
-    ;;  Use the active project file if there is one.
-    ;;  This is also valid if we don't currently have an Ada buffer, or if
-    ;;  the current buffer is not a real file (for instance an emerge buffer)
-
     (if (or (not (string= mode-name "Ada"))
 	    (not (buffer-file-name)))
+
+	;;  Not in an Ada buffer, or current buffer not associated
+	;;  with a file (for instance an emerge buffer)
 
 	(if (and ada-prj-default-project-file
 		 (not (string= ada-prj-default-project-file "")))
@@ -653,17 +674,16 @@ file.  If none is set, return nil."
 
 	(cond
 
-	 ;;  Else if there is a project file with the same name as the Ada
-	 ;;  file, but not the same extension.
 	 ((file-exists-p first-choice)
+	  ;; filename.adp
 	  (set 'selected first-choice))
 
-	 ;;  Else if only one project file was found in the current directory
 	 ((= (length prj-files) 1)
+	  ;; Exactly one project file was found in the current directory
 	  (set 'selected (car prj-files)))
 
-	 ;;  Else if there are multiple files, ask the user
 	 ((and (> (length prj-files) 1) (not no-user-question))
+	  ;;  multiple project files in current directory, ask the user
 	  (save-window-excursion
 	    (with-output-to-temp-buffer "*choice list*"
 	      (princ "There are more than one possible project file.\n")
@@ -688,10 +708,8 @@ file.  If none is set, return nil."
 			    (read-from-minibuffer "Enter No. of your choice: "))))
 	    (set 'selected (nth (1- choice) prj-files))))
 
-	 ;; Else if no project file was found in the directory, ask a name
-	 ;; to the user, using as a default value the last one entered by
-	 ;; the user
 	 ((= (length prj-files) 0)
+	  ;; No project file in the current directory; ask user
 	  (unless (or no-user-question (not ada-always-ask-project))
 	    (setq ada-last-prj-file
 		  (read-file-name
@@ -791,8 +809,6 @@ file.  If none is set, return nil."
 	      (if debug_pre_cmd (set 'project (plist-put project 'debug_pre_cmd
                                                          (reverse debug_pre_cmd))))
 
-	      ;; Kill the project buffer
-	      (kill-buffer nil)
 	      (set-buffer ada-buffer)
 	      )
 
@@ -1128,6 +1144,24 @@ If ARG is not nil, ask for user confirmation."
 
     (compile (ada-quote-cmd cmd))))
 
+(defun ada-set-main-compile-application ()
+  "Set main_unit and main project variables to current buffer, build main."
+  (interactive)
+  (ada-require-project-file)
+  (let* ((file (buffer-file-name (current-buffer)))
+	 main)
+    (if (not file)
+	(error "No file for current buffer")
+
+      (setq main
+	    (if file
+		(file-name-nondirectory
+		 (file-name-sans-extension file))
+	      ""))
+      (ada-xref-set-project-field 'main main)
+      (ada-xref-set-project-field 'main_unit main)
+      (ada-compile-application))))
+
 (defun ada-compile-current (&optional arg prj-field)
   "Recompile the current file.
 If ARG is not nil, ask for user confirmation of the command.
@@ -1214,9 +1248,9 @@ If ARG is non-nil, ask the user to confirm the command.
 EXECUTABLE-NAME, if non-nil, is debugged instead of the file specified in the
 project file."
   (interactive "P")
+  (ada-require-project-file)
   (let ((buffer (current-buffer))
 	cmd pre-cmd post-cmd)
-    (ada-require-project-file)
     (setq cmd   (if executable-name
 		    (concat ada-prj-default-debugger " " executable-name)
 		  (ada-xref-get-project-field 'debug_cmd))
@@ -1515,8 +1549,7 @@ file for possible paths."
     (let ((buffer (get-file-buffer original-file)))
       (if buffer
 	  (set-buffer buffer)
-	(find-file original-file)
-	(ada-require-project-file)))
+	(find-file original-file)))
 
     ;; we choose the first possible completion and we
     ;; return the absolute file name
@@ -2181,6 +2214,7 @@ This is a GNAT specific function that uses gnatkrunch."
 This function uses the `gnatstub' program to create the body.
 This function typically is to be hooked into `ff-file-created-hooks'."
   (interactive "p")
+  (ada-require-project-file)
 
   (save-some-buffers nil nil)
 
@@ -2197,11 +2231,6 @@ This function typically is to be hooked into `ff-file-created-hooks'."
 
   (unless (buffer-file-name (car (buffer-list)))
     (set-buffer (cadr (buffer-list))))
-
-  ;;  Make sure we have a project file (for parameters to gnatstub).  Note that
-  ;;  this might have already been done if we have been called from the hook,
-  ;;  but this is not an expensive call)
-  (ada-require-project-file)
 
   ;; Call the external process gnatstub
   (let* ((gnatstub-opts (ada-treat-cmd-string ada-gnatstub-opts))
