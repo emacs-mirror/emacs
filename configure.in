@@ -2416,15 +2416,6 @@ if test "${HAVE_CARBON}" = "yes"; then
   fi
   # We also have mouse menus.
   HAVE_MENUS=yes
-
-  tmp_CFLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -framework Carbon"
-  AC_CHECK_FUNC(CancelMenuTracking, have_cmt=yes, have_cmt=no)
-  if test "$have_cmt" = yes; then
-    AC_DEFINE(HAVE_CANCELMENUTRACKING, 1,
-              [Define to 1 if CancelMenuTracking is available (Mac OSX).])
-  fi
-  CFLAGS="$tmp_CFLAGS"
 fi
 
 ### Use session management (-lSM -lICE) if available
