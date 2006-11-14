@@ -1,3 +1,24 @@
+2006-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* config.in: Regenerate.
+
+	* macfns.c (Fx_display_mm_height, Fx_display_mm_width)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+	&& MAC_OS_X_VERSION_MIN_REQUIRED == 1020]: Check if
+	CGDisplayScreenSize is available.
+
+	* macmenu.c (menu_quit_handler, install_menu_quit_handler):
+	Replace `#ifdef HAVE_CANCELMENUTRACKING' with
+	`#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030'.
+	(install_menu_quit_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+	&& MAC_OS_X_VERSION_MIN_REQUIRED == 1020]: Check if
+	CancelMenuTracking is available.
+
+	* macterm.c [USE_CG_TEXT_DRAWING] (mac_draw_image_string_cg)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+	&& MAC_OS_X_VERSION_MIN_REQUIRED == 1020]: Check if
+	CGContextShowGlyphsWithAdvances is available.
+
 2006-11-13  Jason Rumney  <jasonr@gnu.org>
 
 	* s/ms-w32.h: Define HAVE_INET_SOCKETS.

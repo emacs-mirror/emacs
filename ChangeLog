@@ -1,3 +1,9 @@
+2006-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in (HAVE_CANCELMENUTRACKING): Remove test.
+
+	* configure: Regenerate.
+
 2006-11-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.in: Prefer X11 to Carbon only when some X-specific
