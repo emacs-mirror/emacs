@@ -5581,6 +5581,8 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       inhibit_modification_hooks = saved_inhibit_modification_hooks;
     }
 
+  coding->heading_ascii = 0;
+
   if (! encodep && CODING_REQUIRE_DETECTION (coding))
     {
       /* We must detect encoding of text and eol format.  */
@@ -6225,6 +6227,8 @@ decode_coding_string (str, coding, nocopy)
   saved_coding_symbol = coding->symbol;
   coding->src_multibyte = STRING_MULTIBYTE (str);
   coding->dst_multibyte = 1;
+  coding->heading_ascii = 0;
+
   if (CODING_REQUIRE_DETECTION (coding))
     {
       /* See the comments in code_convert_region.  */
@@ -6437,6 +6441,7 @@ encode_coding_string (str, coding, nocopy)
   /* Try to skip the heading and tailing ASCIIs.  We can't skip them
      if we must run CCL program or there are compositions to
      encode.  */
+  coding->heading_ascii = 0;
   if (coding->type != coding_type_ccl
       && (! coding->cmp_data || coding->cmp_data->used == 0))
     {
