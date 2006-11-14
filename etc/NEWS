@@ -299,7 +299,8 @@ have been moved to C-h F, C-h K and C-h S.
 See below under "incremental search changes".
 
 ---
-** C-x C-f RET, typing nothing in the minibuffer, is no longer a special case.
+** C-x C-f RET (find-file), typing nothing in the minibuffer, is no longer
+a special case.
 
 Since the default input is the current directory, this has the effect
 of specifying the current directory.  Normally that means to visit the
