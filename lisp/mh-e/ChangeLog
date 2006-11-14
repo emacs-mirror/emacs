@@ -1,3 +1,8 @@
+2006-11-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-xface.el (mh-x-image-url-cache-canonicalize): Add `*' to
+	reserved Windows filename characters (closes SF #1396499).
+
 2006-11-13  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.0.3.
