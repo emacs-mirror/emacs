@@ -1,3 +1,7 @@
+2006-11-14  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* ada-mode.texi: Total rewrite.
+
 2006-11-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Minor typo fixes.
@@ -9,14 +13,14 @@
 	* mh-e.texi (VERSION, EDITION, UPDATED, UPDATE-MONTH): Update for
 	release 8.0.3.
 
-	* mh-e.texi (Incorporating Mail): Use output of "mhparam Path" to set
-	MAILDIR.
-	(Reading Mail): Document the customization of read-mail-command for
-	MH-E.
+	* mh-e.texi (Incorporating Mail): Use output of "mhparam Path"
+	to set MAILDIR.
+	(Reading Mail): Document the customization of read-mail-command
+	for MH-E.
 	(Viewing Attachments): Document mm-discouraged-alternatives.
 	(Tool Bar): Fix Texinfo for mh-xemacs-use-tool-bar-flag.
 	(Junk): Add more information about the settings of mh-junk-background
-	in a program. Add /usr/bin/mh to PATH in examples.
+	in a program.  Add /usr/bin/mh to PATH in examples.
 
 2006-11-12  Richard Stallman  <rms@gnu.org>
 

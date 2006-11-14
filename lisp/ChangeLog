@@ -1,3 +1,21 @@
+2006-11-14  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-xref.el (ada-parse-prj-file):
+	Don't delete project buffer; user may want to edit it.
+	(ada-xref-set-project-field, ada-xref-current-project-file)
+	(ada-xref-current-project, ada-show-current-project)
+	(ada-set-main-compile-application): New functions.
+	(ada-xref-get-project-field, ada-require-project-file):
+	Normalize use of ada-prj-default-project-file.
+	(ada-gdb-application, ada-get-ada-file-name, ada-make-body-gnatstub):
+	Normalize use of ada-require-project-file.
+	(ada-prj-find-prj-file): Improve doc string, comments.
+
+	* progmodes/ada-mode.el (ada-mode-version): Bump version.
+	(ada-create-keymap): Add \C-c\C-m 'ada-set-main-compile-application.
+	(ada-create-menu): Add ada-set-main-compile-application,
+	ada-show-current-main, ada-show-current-project.
+
 2006-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (inferior-python-mode-syntax-table): New var.
