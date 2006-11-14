@@ -1194,6 +1194,15 @@ local value.")
     ;; (define-key map "\C-c\C-f" 'python-describe-symbol)
     map))
 
+(defvar inferior-python-mode-syntax-table
+  (let ((st (make-syntax-table python-mode-syntax-table)))
+    ;; Don't get confused by apostrophes in the process's output (e.g. if
+    ;; you execute "help(os)").
+    (modify-syntax-entry ?\' "." st)
+    ;; Maybe we should do the same for double quotes?
+    ;; (modify-syntax-entry ?\" "." st)
+    st))
+
 ;; Fixme: This should inherit some stuff from `python-mode', but I'm
 ;; not sure how much: at least some keybindings, like C-c C-f;
 ;; syntax?; font-locking, e.g. for triple-quoted strings?
@@ -1216,7 +1225,6 @@ For running multiple processes in multiple buffers, see `run-python' and
 
 \\{inferior-python-mode-map}"
   :group 'python
-  (set-syntax-table python-mode-syntax-table)
   (setq mode-line-process '(":%s"))
   (set (make-local-variable 'comint-input-filter) 'python-input-filter)
   (add-hook 'comint-preoutput-filter-functions #'python-preoutput-filter
