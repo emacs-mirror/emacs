@@ -1,3 +1,8 @@
+2006-11-15  Shun-ichi GOTO  <gotoh@taiyo.co.jp> (tiny change)
+
+	* url-http.el (url-http-wait-for-headers-change-function): Defer
+	detection of HTTP 0.9 until we have at least one line.
+
 2006-11-10  Shun-ichi GOTO  <gotoh@taiyo.co.jp> (tiny change)
 
 	* url-http.el (url-http-mark-connection-as-free)
