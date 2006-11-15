@@ -897,7 +897,11 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     "[;,]\\|\\s)\\|\\'\\|\\(=\\|\\s(\\)" limit t t))
 
       (setq next-pos (match-beginning 0)
-	    id-face (if (eq (char-after next-pos) ?\()
+	    id-face (if (and (eq (char-after next-pos) ?\()
+			     (let (c-last-identifier-range)
+			       (save-excursion
+				 (goto-char next-pos)
+				 (c-at-toplevel-p))))
 			'font-lock-function-name-face
 		      'font-lock-variable-name-face)
 	    got-init (and (match-beginning 1)
