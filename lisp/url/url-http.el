@@ -1071,7 +1071,8 @@ CBARGS as the arguments."
 		    url-http-chunked-length
 		    url-http-chunked-start
 		    url-http-chunked-counter
-		    url-http-process))
+		    url-http-process
+		    proxy-object))
   (let ((connection (url-http-find-free-connection (url-host url)
 						   (url-port url)))
 	(buffer (generate-new-buffer (format " *http %s:%d*"
@@ -1106,6 +1107,7 @@ CBARGS as the arguments."
 		       url-http-data
 		       url-http-target-url))
 	  (set (make-local-variable var) nil))
+	(make-local-variable 'proxy-object)
 
 	(setq url-http-method (or url-request-method "GET")
 	      url-http-extra-headers url-request-extra-headers
