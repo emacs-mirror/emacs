@@ -1,5 +1,8 @@
 2006-11-15  Magnus Henoch  <mange@freemail.hu>
 
+	* url-http.el (url-http): Make proxy-object buffer-local, to
+	handle proxied asynchronous connections correctly.
+
 	* url-parse.el (url-generic-parse-url): Use with-temp-buffer.
 
 2006-11-15  Shun-ichi GOTO  <gotoh@taiyo.co.jp> (tiny change)
