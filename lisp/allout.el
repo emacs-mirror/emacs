@@ -895,14 +895,9 @@ This is properly set by `set-allout-regexp'.")
   "Validate apparent topics of this depth and shallower as being non-aberrant.
 
 Verified with `allout-aberrant-container-p'.  This check's usefulness is
-limited to shallow prospects, because the determination of aberrance
-depends on the mistaken item being followed by a legitimate item of
-excessively greater depth.
-
-A level of 2 is safest, so that yanks, which must ignore
-aberrance while rectifying the yanked text to their new location,
-is least likely to be fooled by aberrant topics in the yanked
-text.")
+limited to shallow depths, because the determination of aberrance
+is according to the mistaken item being followed by a legitimate item of
+excessively greater depth.")
 ;;;_   X allout-reset-header-lead (header-lead)
 (defun allout-reset-header-lead (header-lead)
   "*Reset the leading string used to identify topic headers."
@@ -1511,13 +1506,18 @@ and the place for the cursor after the decryption is done."
     (goto-char (cadr allout-after-save-decrypt))
     (setq allout-after-save-decrypt nil))
   )
-;;;_   = allout-during-yank-processing nil
-;; XXX allout yanks adjust the level of the topic being pasted to that of
-;; their target location.  aberrance must be inhibited to allow that
-;; reconciliation.  (this means that actually aberrant topics won't be
-;; treated specially while being pasted.)
-(defvar allout-during-yank-processing nil
-  "Internal state, inhibits aberrance doublecheck while adjusting yanks.")
+;;;_   = allout-inhibit-aberrance-doublecheck nil
+;; In some exceptional moments, disparate topic depths need to be allowed
+;; momentarily, eg when one topic is being yanked into another and they're
+;; about to be reconciled.  let-binding allout-inhibit-aberrance-doublecheck
+;; prevents the aberrance doublecheck to allow, eg, the reconciliation
+;; processing to happen in the presence of such discrepancies.  It should
+;; almost never be needed, however.
+(defvar allout-inhibit-aberrance-doublecheck nil
+  "Internal state, for momentarily inhibits aberrance doublecheck.
+
+This should only be momentarily let-bound non-nil, not set
+non-nil in a lasting way.")
 
 ;;;_ #2 Mode activation
 ;;;_  = allout-explicitly-deactivated
@@ -2212,7 +2212,7 @@ to return the current depth of the most recently matched topic."
   (and
    ;; presume integrity of outline and yanked content during yank - necessary,
    ;; to allow for level disparity of yank location and yanked text:
-   (not allout-during-yank-processing)
+   (not allout-inhibit-aberrance-doublecheck)
    ;; allout-doublecheck-at-and-shallower is ceiling for doublecheck:
    (<= allout-recent-depth allout-doublecheck-at-and-shallower)))
 ;;;_     > allout-aberrant-container-p ()
@@ -2891,7 +2891,15 @@ collapsed."
   "Ascend one level, returning t if successful, nil if not."
   (prog1
       (if (allout-beginning-of-level)
-          (allout-previous-heading))
+          (let ((bolevel (point))
+                (bolevel-depth allout-recent-depth))
+            (allout-previous-heading)
+            (if (< allout-recent-depth bolevel-depth)
+                allout-recent-depth
+              ;; some topic after file's first is at lower depth than first:
+              (goto-char bolevel)
+              (allout-depth)
+              nil)))
     (if (interactive-p) (allout-end-of-prefix))))
 ;;;_   > allout-descend-to-depth (depth)
 (defun allout-descend-to-depth (depth)
@@ -3501,8 +3509,6 @@ are hidden.  \(The intervening offspring will be exposed in the latter
 case.)
 
 If OFFER-RECENT-BULLET is true, offer to use the bullet of the prior sibling.
-
-Runs
 
 Nuances:
 
@@ -4145,7 +4151,10 @@ the file can be adjusted to any positive depth, however."
                      (> (1+ current-depth)
                         (1+ predecessor-depth)))
                 (error (concat "Disallowed shift deeper than"
-                               " containing topic's children."))))))
+                               " containing topic's children."))
+              (allout-back-to-current-heading)
+              (if (< allout-recent-depth (1+ current-depth))
+                  (allout-show-children))))))
     (let ((where (point)))
       (allout-rebullet-topic 1 (and (> arg 1) 'sans-offspring))
       (run-hook-with-args 'allout-structure-shifted-hook arg where))))
@@ -4382,13 +4391,12 @@ however, are left exactly like normal, non-allout-specific yanks."
 					; region around subject:
   (if (< (allout-mark-marker t) (point))
       (exchange-point-and-mark))
-  (let* ( ;; inhibit aberrance doublecheck while reconciling disparate pastes:
-         (allout-during-yank-processing t)
-         (subj-beg (point))
+  (let* ((subj-beg (point))
          (into-bol (bolp))
          (subj-end (allout-mark-marker t))
          ;; 'resituate' if yanking an entire topic into topic header:
-         (resituate (and (allout-e-o-prefix-p)
+         (resituate (and (let ((allout-inhibit-aberrance-doublecheck t))
+                           (allout-e-o-prefix-p))
                          (looking-at allout-regexp)
                          (allout-prefix-data)))
          ;; `rectify-numbering' if resituating (where several topics may
@@ -4396,7 +4404,7 @@ however, are left exactly like normal, non-allout-specific yanks."
          (rectify-numbering (or resituate
                                 (and into-bol (looking-at allout-regexp)))))
     (if resituate
-                                        ; The yanked stuff is a topic:
+        ;; Yanking a topic into the start of a topic - reconcile to fit:
         (let* ((inhibit-field-text-motion t)
                (prefix-len (if (not (match-end 1))
                                1
@@ -4466,7 +4474,8 @@ however, are left exactly like normal, non-allout-specific yanks."
                    (progn
                      (delete-region (point) (+ (point)
                                                prefix-len
-                                               (- adjust-to-depth subj-depth)))
+                                               (- adjust-to-depth
+                                                  subj-depth)))
                                         ; and delete residual subj
                                         ; prefix digits and space:
                      (while (looking-at "[0-9]") (delete-char 1))
@@ -5757,7 +5766,7 @@ See `allout-toggle-current-subtree-encryption' for more details."
                        " shift it in to make it encryptable")))
 
     (let* ((allout-buffer (current-buffer))
-           ;; Asses location:
+           ;; Assess location:
            (bullet-pos allout-recent-prefix-beginning)
            (after-bullet-pos (point))
            (was-encrypted
@@ -5791,7 +5800,29 @@ See `allout-toggle-current-subtree-encryption' for more details."
                       '(symmetric nil)))
            (for-key-type (car key-info))
            (for-key-identity (cadr key-info))
-           (fetch-pass (and fetch-pass (member fetch-pass '(16 (16))))))
+           (fetch-pass (and fetch-pass (member fetch-pass '(16 (16)))))
+           (was-coding-system buffer-file-coding-system))
+
+      (when (not was-encrypted)
+        ;; ensure that non-ascii chars pending encryption are noticed before
+        ;; they're encrypted, so the coding system is set to accomodate
+        ;; them.
+        (setq buffer-file-coding-system
+              (select-safe-coding-system subtree-beg subtree-end))
+        ;; if the coding system for the text being encrypted is different
+        ;; than that prevailing, then there a real risk that the coding
+        ;; system can't be noticed by emacs when the file is visited.  to
+        ;; mitigate that, offer to preserve the coding system using a file
+        ;; local variable.
+        (if (and (not (equal buffer-file-coding-system
+                             was-coding-system))
+                 (yes-or-no-p
+                  (format (concat "Register coding system %s as file local"
+                                  " var?  Necessary when only encrypted text"
+                                  " is in that coding system. ")
+                          buffer-file-coding-system)))
+            (allout-adjust-file-variable "buffer-file-coding-system"
+                                         buffer-file-coding-system)))
 
       (setq result-text
             (allout-encrypt-string subject-text was-encrypted
@@ -5880,6 +5911,10 @@ Returns the resulting string, or nil if the transformation fails."
                                       target-prompt-id
                                     (or (buffer-file-name allout-buffer)
                                         target-prompt-id))))
+         (encoding (with-current-buffer allout-buffer
+                     buffer-file-coding-system))
+         (multibyte (with-current-buffer allout-buffer
+                     enable-multibyte-characters))
          (strip-plaintext-regexps
           (if (not decrypt)
               (allout-get-configvar-values
@@ -5915,6 +5950,13 @@ Returns the resulting string, or nil if the transformation fails."
         (with-temp-buffer
 
           (insert text)
+
+          ;; convey the text characteristics of the original buffer:
+          (set-buffer-multibyte multibyte)
+          (when encoding
+            (set-buffer-file-coding-system encoding)
+            (if (not decrypt)
+                (encode-coding-region (point-min) (point-max) encoding)))
 
           (when (and strip-plaintext-regexps (not decrypt))
             (dolist (re strip-plaintext-regexps)
