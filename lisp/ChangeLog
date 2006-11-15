@@ -1,3 +1,18 @@
+2006-13-05  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-doublecheck-at-and-shallower): Clarify docstring.
+	(allout-inhibit-aberrance-doublecheck): Rename from
+	allout-during-yank-processing.  All callers changed.
+	(allout-ascend): Provide for unusual case where some topic after
+	the first in file is at lower depth than the first.
+	(allout-shift-in): Ensure the offspring of the new containing
+	topic are exposed.
+	(allout-encrypt-string): Preserve the coding-system of the text,
+	according to that of the containing buffer.
+	(allout-toggle-subtree-encryption): When the text being encrypted
+	requires a different coding system, offer to preserve the coding
+	system using a file local var.
+
 2006-11-15  Simon Marshall  <simon@gnu.org>
 
 	* progmodes/cc-fonts.el (c-font-lock-declarators): Iff at the
