@@ -1,3 +1,10 @@
+2006-11-15  Simon Marshall  <simon@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarators): Iff at the
+	top-level or inside a class declaration, use c-at-toplevel-p
+	rather than a variable instantiation to recognise a function
+	declaration.  Suggested by Feng Li <fengli@gmail.com>.
+
 2006-11-14  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-xref.el (ada-parse-prj-file):
