@@ -933,7 +933,8 @@ the end of the document."
 	    (old-http nil)
 	    (content-length nil))
 	(goto-char (point-min))
-	(if (not (looking-at "^HTTP/[1-9]\\.[0-9]"))
+	(if (and (looking-at ".*\n")	; have one line at least
+		 (not (looking-at "^HTTP/[1-9]\\.[0-9]")))
 	    ;; Not HTTP/x.y data, must be 0.9
 	    ;; God, I wish this could die.
 	    (setq end-of-headers t
