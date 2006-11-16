@@ -665,7 +665,8 @@ Optional argument PROPS specifies other text properties to apply."
          ;; Create an "clean" ruler.
          (ruler
           (propertize
-           (make-string w ruler-mode-basic-graduation-char)
+           (string-to-multibyte 
+	    (make-string w ruler-mode-basic-graduation-char))
            'face 'ruler-mode-default
            'local-map ruler-mode-map
            'help-echo (cond
