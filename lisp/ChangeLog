@@ -1,4 +1,9 @@
-2006-13-05  Ken Manheimer  <ken.manheimer@gmail.com>
+2006-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-file-internal): Use current buffer's file name as	default
+	choice for ido-find-alternate-file.  Suggested by Matt Hodges.
+
+2006-11-15  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-doublecheck-at-and-shallower): Clarify docstring.
 	(allout-inhibit-aberrance-doublecheck): Rename from
