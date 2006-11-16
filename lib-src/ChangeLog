@@ -1,4 +1,5 @@
 2006-11-13  Jason Rumney  <jasonr@gnu.org>
+
 	* emacsclient.c [WINDOWSNT]: Let config.h define HAVE_SOCKETS and
 	HAVE_INET_SOCKETS.
 
