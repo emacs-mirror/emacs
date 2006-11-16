@@ -2270,7 +2270,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(let ((minibuffer-completing-file-name t))
 	  (setq filename (ido-read-internal item
 					    (or prompt "Find file: ")
-					    'ido-file-history nil nil initial))))
+					    'ido-file-history
+					    (and (eq method 'alt-file) buffer-file-name)
+					    nil initial))))
 
       ;; Choose the file name: either the text typed in, or the head
       ;; of the list of matches
