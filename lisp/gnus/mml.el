@@ -501,9 +501,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	    (mm-with-unibyte-buffer
 	      (cond
 	       ((cdr (assq 'buffer cont))
-		(insert (with-current-buffer (cdr (assq 'buffer cont))
-			  (mm-with-unibyte-current-buffer
-			    (buffer-string)))))
+		(insert (mm-string-as-unibyte
+			 (with-current-buffer (cdr (assq 'buffer cont))
+			   (buffer-string)))))
 	       ((and filename
 		     (not (equal (cdr (assq 'nofile cont)) "yes")))
 		(let ((coding-system-for-read mm-binary-coding-system))

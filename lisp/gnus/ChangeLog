@@ -1,3 +1,44 @@
+2006-11-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-extract-address-components): Improve comment.
+
+2006-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-extract-address-components): Work with address in
+	which the name portion contains @.
+
+2006-11-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el (gnus-start): Move custom group up.
+	(gnus-select-method): Don't autoload, but make it available for
+	`customize-variable'.
+	(gnus-getenv-nntpserver): Don't autoload.
+
+2006-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime-1): Use mm-string-as-unibyte instead of
+	mm-with-unibyte-current-buffer to make string unibyte.
+
+	* mm-decode.el (mm-insert-part): Use mm-string-to-multibyte instead of
+	mm-string-as-multibyte.
+
+2006-11-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el: Merge from the trunk to fix the bug WRT double encoded
+	subjects.
+	(message-replacement-char): New variable.
+	(message-fix-before-sending): Use it.
+	(message-simplify-subject): New function to remove duplicate code.
+	(message-reply, message-followup): Use it.
+	(message-simplify-subject-functions): New variable.
+	(message-strip-subject-encoded-words): New function
+
+2006-11-08  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-catchup): Use gnus-sorted-intersection
+	instead of gnus-intersection because arguments of gnus-sorted-nunion
+	must be sorted.  This avoids corruption of gnus-newsgroup-unreads.
+
 2006-11-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-diary.el (gnus-diary-delay-format-function):
