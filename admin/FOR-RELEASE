@@ -47,6 +47,11 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** kzeitler@lucent.com: mouse-yank-at-click (with mouse-2) in fringe
 
+** Document use of gpg-agent
+
+** Prevent byte compiler from causing spurious string sharing
+when it optimizes away calls to functions such as concat.
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
