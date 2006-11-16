@@ -1,3 +1,9 @@
+2006-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (global-map): Change 2006-08-16 fix to call
+	mouse-yank-at-click explicitly, since mouse events are not carried
+	over into keyboard macros.
+
 2006-11-16  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-file-internal): Use current buffer's file name as	default
