@@ -45,8 +45,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Fix problems introduced by changing EMACS=t to EMACS=/you/know/where
 
-** kzeitler@lucent.com: mouse-yank-at-click (with mouse-2) in fringe
-
 ** Document use of gpg-agent
 
 ** Prevent byte compiler from causing spurious string sharing
