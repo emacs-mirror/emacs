@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.55
+;; Version: 4.56
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -61,6 +61,12 @@
 ;;
 ;; Recent changes
 ;; --------------
+;; Version 4.56
+;;    - `C-k' in agenda kills current line and corresponding subtree in file.
+;;    - XEmacs compatibility issues fixed, in particular tag alignment.
+;;    - M-left/right now in/outdents plain list items, no Shift needed.
+;;    - Bug fixes.
+;;
 ;; Version 4.55
 ;;    - Bug fixes.
 ;;
@@ -91,66 +97,6 @@
 ;;      `org-agenda-window-setup', `org-agenda-restore-windows-after-quit'.
 ;;    - Bug fixes.
 ;;
-;; Version 4.50
-;;    - Closing a TODO item can record an additional note.
-;;      See variables `org-log-done' and `org-log-note-headings'.
-;;    - Inserting headlines and bullets can leave an extra blank line.
-;;      See variable `org-blank-before-new-entry'. (Ed Hirgelt patch)
-;;    - [[bracket links]] in the agenda are active just as in org-mode buffers.
-;;    - C-c C-o on a date range displays the agenda for exactly this range.
-;;    - The default for `org-cycle-include-plain-lists' is back to nil.
-;;    - Calls to `org-occur' can be stacked by using a prefix argument.
-;;    - The options `org-show-hierarchy-above' and `org-show-following-heading'
-;;      now always default to `t', but can be customized differently for
-;;      different types of sparse trees or jump commands.
-;;    - Bug fixes.
-;;
-;; Version 4.49
-;;    - Agenda views can be made in batch mode from the command line.
-;;    - `org-store-link' does the right thing in dired-mode.
-;;    - File links can contain environment variables.
-;;    - Full Emacs 21 compatibility has been restored.
-;;    - Bug fixes.
-;;
-;; Version 4.47
-;;    - Custom commands may produce an agenda which contains several blocks,
-;;      each block created by a different agenda command.
-;;    - Agenda commands can be restricted to the current file, region, subtree.
-;;    - The timeline command must now be called through the agenda
-;;      dispatcher (C-c a L).  `C-c C-r' no longer works.
-;;    - Agenda items can be sorted by tag.  The *last* tag is used for this.
-;;    - The prefix and the sorting strategy for agenda items can depend
-;;      upon the agenda type.
-;;    - The handling of `mailto:' links can be customized, see the new
-;;      variable `org-link-mailto-program'.
-;;    - `mailto' links can specify a subject after a double colon,
-;;      like [[mailto:carsten@orgmode.org::Org-mode is buggy]].
-;;    - In the #+STARTUP line, M-TAB completes valid keywords.
-;;    - In the #+TAGS: line, M-TAB after ":" inserts all currently used tags.
-;;    - Again full Emacs 21 support:  Checkboxes and publishing are fixed.
-;;    - More minor bug fixes.
-;;
-;; Version 4.45
-;;    - Checkbox lists can show statistics about checked items.
-;;    - C-TAB will cycle the visibility of archived subtrees.
-;;;   - Documentation about checkboxes has been moved to chapter 5.
-;;    - Bux fixes.
-;;
-;; Version 4.44
-;;    - Clock table can be done for a limited time interval.
-;;    - Obsolete support for the old outline mode has been removed.
-;;    - Bug fixes and code cleaning.
-;;
-;; Version 4.43
-;;    - Bug fixes
-;;    - `s' key in the agenda saves all org-mode buffers.
-;;
-;; Version 4.41
-;;    - Shift-curser keys can modify inactive time stamps (inactive time
-;;      stamps are the ones in [...] brackets.
-;;    - Toggle all checkboxes in a region/below a headline.
-;;    - Bug fixes.
-;;
 ;;; Code:
 
 (eval-when-compile
@@ -167,7 +113,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.55"
+(defvar org-version "4.56"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -1699,6 +1645,17 @@ N days, just insert a special line indicating the size of the gap."
 	  (const :tag "All" t)
 	  (number :tag "at most")))
 
+(defcustom org-agenda-confirm-kill 1
+  "When set, remote killing from the agenda buffer needs confirmation.
+When t, a confirmation is always needed.  When a number N, confirmation is
+only needed when the text to be killed contains more than N non-white lines."
+  :group 'org-agenda ;; FIXME
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "Always" t)
+	  (number :tag "When more than N lines")))
+
+;; FIXME: This variable could be removed
 (defcustom org-agenda-include-all-todo nil
   "Set  means weekly/daily agenda will always contain all TODO entries.
 The TODO entries will be listed at the top of the agenda, before
@@ -4229,7 +4186,7 @@ in the region."
   (let* ((level (save-match-data (funcall outline-level)))
 	 (up-head (make-string (org-get-legal-level level -1) ?*))
 	 (diff (abs (- level (length up-head)))))
-    (if (= level 1) (error "Cannot promote to level 0. UNDO to recover"))
+    (if (= level 1) (error "Cannot promote to level 0. UNDO to recover if necessary"))
     (replace-match up-head nil t)
     ;; Fixup tag positioning
     (and org-auto-align-tags (org-set-tags nil t))
@@ -5769,7 +5726,7 @@ look like when opend with successive calls to `org-cycle'."
     (make-overlay beg end buffer)))
 (defun org-delete-overlay (ovl)
   (if (featurep 'xemacs) (delete-extent ovl) (delete-overlay ovl)))
-(defun org-detatch-overlay (ovl)
+(defun org-detach-overlay (ovl)
   (if (featurep 'xemacs) (detach-extent ovl) (delete-overlay ovl)))
 (defun org-move-overlay (ovl beg end &optional buffer)
   (if (featurep 'xemacs)
@@ -5941,7 +5898,7 @@ So these are more for recording a certain time/date."
 
 (defvar org-date-ovl (org-make-overlay 1 1))
 (org-overlay-put org-date-ovl 'face 'org-warning)
-(org-detatch-overlay org-date-ovl)
+(org-detach-overlay org-date-ovl)
 
 (defun org-read-date (&optional with-time to-time from-string)
   "Read a date and make things smooth for the user.
@@ -6050,7 +6007,7 @@ used to insert the time stamp into the buffer to include the time."
 	      (use-local-map old-map))))))
      (t ; Naked prompt only
       (setq ans (read-string prompt "" nil timestr))))
-    (org-detatch-overlay org-date-ovl)
+    (org-detach-overlay org-date-ovl)
 
     (if (string-match
 	 "^ *\\(\\([0-9]+\\)-\\)?\\([0-1]?[0-9]\\)-\\([0-3]?[0-9]\\)\\([^-0-9]\\|$\\)" ans)
@@ -6915,6 +6872,7 @@ The following commands are available:
 (define-key org-agenda-mode-map "\C-i"     'org-agenda-goto)
 (define-key org-agenda-mode-map [(tab)]    'org-agenda-goto)
 (define-key org-agenda-mode-map "\C-m"     'org-agenda-switch-to)
+(define-key org-agenda-mode-map "\C-k"     'org-agenda-kill)
 (define-key org-agenda-mode-map " "        'org-agenda-show)
 (define-key org-agenda-mode-map "\C-c\C-t" 'org-agenda-todo)
 (define-key org-agenda-mode-map "o"        'delete-other-windows)
@@ -8901,6 +8859,40 @@ and by additional input from the age of a schedules or deadline entry."
 	     (org-flag-heading nil)))) ; show the next heading
     (and highlight (org-highlight (point-at-bol) (point-at-eol)))))
 
+(defun org-agenda-kill ()
+  "Kill the entry or subtree belonging to the current agenda entry."
+  (interactive)
+  (let* ((marker (or (get-text-property (point) 'org-marker)
+		     (org-agenda-error)))
+	 (hdmarker (get-text-property (point) 'org-hd-marker))
+	 (buffer (marker-buffer marker))
+	 (pos (marker-position marker))
+	 dbeg dend txt n conf)
+    (with-current-buffer buffer
+      (save-excursion
+	(goto-char pos)
+	(if (org-mode-p)
+	    (setq dbeg (progn (org-back-to-heading t) (point))
+		  dend (org-end-of-subtree t))
+	  (setq dbeg (point-at-bol)
+		dend (min (point-max) (1+ (point-at-eol)))))
+	(setq txt (buffer-substring dbeg dend))))
+    (while (string-match "^[ \t]*\n" txt) (setq txt (replace-match "" t t txt)))
+    (setq n (length (split-string txt "\n"))
+	  conf (or (eq t org-agenda-confirm-kill)
+		   (and (numberp org-agenda-confirm-kill)
+			(> n org-agenda-confirm-kill))))
+    (and conf
+	 (not (y-or-n-p
+	       (format "Delete entry with %d lines in buffer \"%s\"? "
+		       n (buffer-name buffer))))
+	 (error "Abort"))
+    ;; FIXME: if we kill an entire subtree, should we not find all
+    ;; lines coming from the subtree?
+    (save-excursion (org-agenda-change-all-lines "" hdmarker))
+    (with-current-buffer buffer (delete-region dbeg dend))
+    (message "Agenda item and source killed")))
+
 (defun org-agenda-switch-to (&optional delete-other-windows)
   "Go to the Org-mode file which contains the item at point."
   (interactive)
@@ -8996,7 +8988,8 @@ The new content of the line will be NEWHEAD (as modified by
 `equal' against all `org-hd-marker' text properties in the file.
 If FIXFACE is non-nil, the face of each item is modified acording to
 the new TODO state."
-  (let* (props m pl undone-face done-face finish new dotime cat tags)
+  (let* ((buffer-read-only nil)
+	 props m pl undone-face done-face finish new dotime cat tags)
     (save-excursion
       (goto-char (point-max))
       (beginning-of-line 1)
@@ -9013,20 +9006,23 @@ the new TODO state."
 		undone-face (get-text-property (point) 'undone-face)
 		done-face (get-text-property (point) 'done-face))
 	  (move-to-column pl)
-	  (if (looking-at ".*")
-	      (progn
-		(replace-match new t t)
-		(beginning-of-line 1)
-		(add-text-properties (point-at-bol) (point-at-eol) props)
-		(when fixface
-		  (add-text-properties
-		   (point-at-bol) (point-at-eol)
-		   (list 'face
-			 (if org-last-todo-state-is-todo
-			     undone-face done-face))))
-		(org-agenda-highlight-todo 'line)
-		(beginning-of-line 1))
-	    (error "Line update did not work")))
+	  (cond
+	   ((equal new "")
+	    (beginning-of-line 1)
+	    (and (looking-at ".*\n?") (replace-match "")))
+	   ((looking-at ".*")
+	    (replace-match new t t)
+	    (beginning-of-line 1)
+	    (add-text-properties (point-at-bol) (point-at-eol) props)
+	    (when fixface
+	      (add-text-properties
+	       (point-at-bol) (point-at-eol)
+	       (list 'face
+		     (if org-last-todo-state-is-todo
+			 undone-face done-face))))
+	    (org-agenda-highlight-todo 'line)
+	    (beginning-of-line 1))
+	   (t (error "Line update did not work"))))
 	(beginning-of-line 0)))
     (org-finalize-agenda)))
 
@@ -9102,6 +9098,7 @@ the tags of the current headline come last."
 	  (error nil))))
     tags))
 
+;; FIXME: should fix the tags property of the agenda line.
 (defun org-agenda-set-tags ()
   "Set tags for the current headline."
   (interactive)
@@ -9370,7 +9367,7 @@ are included in the output."
 		     (mapconcat 'regexp-quote
 				(nreverse (cdr (reverse org-todo-keywords)))
 				"\\|")
-		     "\\>\\)\\)? *\\(.*?\\)\\(:[A-Za-z_@0-9:]+:\\)?[ \t]*$")) ;;FIXME: was [\n\r] instead of $
+		     "\\>\\)\\)? *\\(.*?\\)\\(:[A-Za-z_@0-9:]+:\\)?[ \t]*$"))
 	 (props (list 'face nil
 		      'done-face 'org-done
 		      'undone-face nil
@@ -9579,27 +9576,27 @@ The prefix arg TODO-ONLY limits the search to TODO entries."
 
 (defvar org-add-colon-after-tag-completion nil)  ;; dynamically skoped param
 (defvar org-tags-overlay (org-make-overlay 1 1))
-;(org-overlay-put org-tags-overlay 'face 'org-warning)
-(org-detatch-overlay org-tags-overlay)
+(org-detach-overlay org-tags-overlay)
 
 (defun org-set-tags (&optional arg just-align)
   "Set the tags for the current headline.
 With prefix ARG, realign all tags in headings in the current buffer."
   (interactive "P")
   (let* ((re (concat "^" outline-regexp))
-	 (col (current-column))
 	 (current (org-get-tags))
 	 table current-tags inherited-tags ; computed below when needed
-	 tags empty invis)
+	 tags p0 c0 c1 rpl)
     (if arg
 	(save-excursion
 	  (goto-char (point-min))
 	  (let (buffer-invisibility-spec)  ; Emacs 21 compatibility
 	    (while (re-search-forward re nil t)
-	      (org-set-tags nil t)))
+	      (org-set-tags nil t)
+	      (end-of-line 1)))
 	  (message "All tags realigned to column %d" org-tags-column))
       (if just-align
 	  (setq tags current)
+	;; Get a new set of tags from the user
 	(setq table (or org-tag-alist (org-get-buffer-tags))
 	      org-last-tags-completion-table table
 	      current-tags (org-split-string current ":")
@@ -9612,40 +9609,35 @@ With prefix ARG, realign all tags in headings in the current buffer."
 			   (delq nil (mapcar 'cdr table))))
 		  (org-fast-tag-selection current-tags inherited-tags table)
 		(let ((org-add-colon-after-tag-completion t))
-		  (completing-read "Tags: " 'org-tags-completion-function
-				   nil nil current 'org-tags-history))))
+		  (org-trim
+		   (completing-read "Tags: " 'org-tags-completion-function
+				    nil nil current 'org-tags-history)))))
 	(while (string-match "[-+&]+" tags)
+	  ;; No boolean logic, just a list
 	  (setq tags (replace-match ":" t t tags))))
-      (unless (setq empty (string-match "\\`[\t ]*\\'" tags))
+      (if (string-match "\\`[\t ]*\\'" tags)
+          (setq tags "")
 	(unless (string-match ":$" tags) (setq tags (concat tags ":")))
 	(unless (string-match "^:" tags) (setq tags (concat ":" tags))))
-      (if (equal current "")
+
+      ;; Insert new tags at the correct column
+      (beginning-of-line 1)
+      (if (re-search-forward
+	   (concat "\\([ \t]*" (regexp-quote current) "\\)[ \t]*$")
+	   (point-at-eol) t)
 	  (progn
-	    (end-of-line 1)
-	    (or empty (insert " ")))
-	(beginning-of-line 1)
-	(setq invis (org-invisible-p))
-	(looking-at (concat ".*?\\([ \t]*" (regexp-quote current) "\\)[ \t]*"))
-	(delete-region (match-beginning 1) (match-end 1))
-	(goto-char (match-beginning 1))
-	(insert (if empty "" " ")))
-      (if (equal tags "")
-	  (save-excursion
-	    (beginning-of-line 1)
-	    (skip-chars-forward "*")
-	    (if (= (char-after) ?\ ) (forward-char 1))
-	    (and (re-search-forward "[ \t]+$" (point-at-eol) t)
-		 (replace-match "")))
-	(let (buffer-invisibility-spec) ; Emacs 21 compatibility
-	  (move-to-column (max (current-column)
-			       (if (> org-tags-column 0)
-				   org-tags-column
-				 (- (- org-tags-column) (length tags))))
-			  t))
-	(insert tags)
-	(if (and (not invis) (org-invisible-p))
-	    (outline-flag-region (point) (point-at-bol) nil))) ; show
-      (move-to-column col))))
+	    (if (equal tags "")
+		(setq rpl "")
+	      (goto-char (match-beginning 0))
+	      (setq c0 (current-column) p0 (point)
+		    c1 (max (1+ c0) (if (> org-tags-column 0)
+					org-tags-column
+				      (- (- org-tags-column) (length tags))))
+		    rpl (concat (make-string (max 0 (- c1 c0)) ?\ ) tags)))
+	    (replace-match rpl)
+	    (and (not (featurep 'xemacs)) c0 (tabify p0 (point)))
+	    tags)
+	(error "Tags alignment failed")))))
 
 (defun org-tags-completion-function (string predicate &optional flag)
   (let (s1 s2 rtn (ctable org-last-tags-completion-table)
@@ -9804,7 +9796,7 @@ Returns the new tags string, or nil to not change the current settings."
 		   (setq exit-after-next (not exit-after-next))))
 		 ((or (= c ?\C-g)
 		      (and (= c ?q) (not (rassoc c ntable))))
-		  (org-detatch-overlay org-tags-overlay)
+		  (org-detach-overlay org-tags-overlay)
 		  (setq quit-flag t))
 		 ((= c ?\ )
 		  (setq current nil)
@@ -9854,7 +9846,7 @@ Returns the new tags string, or nil to not change the current settings."
 					      ((member tg inherited) i-face)
 					      (t nil)))))
 		(goto-char (point-min)))))
-      (org-detatch-overlay org-tags-overlay)
+      (org-detach-overlay org-tags-overlay)
       (if rtn
 	  (mapconcat 'identity current ":")
 	nil))))
@@ -11553,7 +11545,7 @@ separate columns (default: just one space)."
 		       (max 1 (prefix-numeric-value nspace)))))
     (goto-char beg)
     (while (re-search-forward re end t)
-      (replace-match "|" t t))
+      (replace-match "| " t t))
     (goto-char beg)
     (insert " ")
     (org-table-align)))
