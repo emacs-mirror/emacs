@@ -8333,12 +8333,13 @@ do_ewmh_fullscreen (f)
   if (have_net_atom) 
     {
       Lisp_Object frame;
-      XSETFRAME (frame, f);
       const char *atom = "_NET_WM_STATE";
       const char *fs = "_NET_WM_STATE_FULLSCREEN";
       const char *fw = "_NET_WM_STATE_MAXIMIZED_HORZ";
       const char *fh = "_NET_WM_STATE_MAXIMIZED_VERT";
       const char *what = NULL;
+
+      XSETFRAME (frame, f);
 
       /* If there are _NET_ atoms we assume we have extended window manager
          hints.  */
