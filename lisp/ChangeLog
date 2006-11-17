@@ -1,3 +1,7 @@
+2006-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-retrieve-revision): Set buffer-file-coding-system.
+
 2006-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (global-map): Change 2006-08-16 fix to call
