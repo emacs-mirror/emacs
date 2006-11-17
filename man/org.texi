@@ -3,7 +3,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.55
+@set VERSION 4.56
 @set DATE November 2006
 
 @dircategory Emacs
@@ -175,7 +175,7 @@ Timestamps
 
 Creating timestamps
 
-* The date/time prompt::        How org-mode helps you entring date and time
+* The date/time prompt::        How org-mode helps you entering date and time
 
 Progress Logging
 
@@ -939,7 +939,7 @@ less.  For example:
 Org-mode supports these lists by tuning filling and wrapping commands to
 deal with them correctly@footnote{Org-mode only changes the filling
 settings for Emacs.  For XEmacs, you should use Kyle E. Jones'
-@file{filladapt.el}.  To turn is on,  put into @file{.emacs}:
+@file{filladapt.el}.  To turn this on,  put into @file{.emacs}:
 @example
 (require 'filladapt)
 @end example
@@ -2404,7 +2404,7 @@ subtasks.  You can do this by creating an outline tree below a TODO
 item, with detailed subtasks on the tree@footnote{To keep subtasks out
 of the global TODO list, see the
 @code{org-agenda-todo-list-sublevels}.}.  Another possibility is the use
-of checkboxes to ideantify (a hierarchy of) a large number of subtasks
+of checkboxes to identify (a hierarchy of) a large number of subtasks
 (@pxref{Checkboxes}).
 
 
@@ -2464,7 +2464,7 @@ argument.
 If the cursor is in a headline, toggle checkboxes in the region between
 this headline and the next (so @emph{not} the entire subtree).
 @item
-If no active region, just toggle the checkbox at point.
+If there is no active region, just toggle the checkbox at point.
 @end itemize
 @kindex M-S-@key{RET}
 @item M-S-@key{RET}
@@ -2530,7 +2530,7 @@ associated with a plain time stamp will be shown exactly on that date.
 @cindex timestamp, inactive
 @cindex inactive timestamp
 Just like a plain time stamp, but with square brackets instead of
-angular ones.  These time stamps are inactive in the sense that thay do
+angular ones.  These time stamps are inactive in the sense that they do
 @emph{not} trigger an entry to show up in the agenda.
 
 @example
@@ -2684,7 +2684,7 @@ into the following column).
 
 
 @menu
-* The date/time prompt::        How org-mode helps you entring date and time
+* The date/time prompt::        How org-mode helps you entering date and time
 @end menu
 
 @node The date/time prompt,  , Creating timestamps, Creating timestamps
@@ -2852,7 +2852,7 @@ Stop the clock (clock-out).  The inserts another timestamp at the same
 location where the clock was last started.  It also directly computes
 the resulting time in inserts it after the time range as @samp{=>
 HH:MM}.  See the variable @code{org-log-done} for the possibility to
-record an additional note together with a the clock-out time stamp.
+record an additional note together with the clock-out time stamp.
 @kindex C-c C-y
 @item C-c C-y
 Recompute the time interval after changing one of the time stamps.  This
@@ -3069,7 +3069,7 @@ Abort without installing changes.
 @item q
 If @kbd{q} is not assigned to a tag, it aborts like @kbd{C-g}.
 @item !
-Turn of groups of mutually exclusive tags.  Use this to (as an
+Turn off groups of mutually exclusive tags.  Use this to (as an
 exception) assign several tags from such a group.
 @item C-c
 Toggle auto-exit after the next change (see below).
@@ -3678,6 +3678,13 @@ Digit argument.
 @item t
 Change the TODO state of the item, both in the agenda and in the
 original org file.
+
+@kindex C-k
+@item C-k
+Delete the current agenda item along with the entire subtree belonging
+to it in the original Org-mode file.  If the text to be deleted remotely
+is longer than one line, the kill needs to be confirmed by the user.  See
+variable @code{org-agenda-confirm-kill}.
 
 @kindex T
 @item T
@@ -5069,7 +5076,7 @@ showstars  @r{show all stars starting a headline}
 odd        @r{allow only odd outline levels (1,3,...)}
 oddeven    @r{allow all outline levels}
 @end example
-To turn on custom format overlayes over time stamps (variables
+To turn on custom format overlays over time stamps (variables
 @code{org-put-time-stamp-overlays} and
 @code{org-time-stamp-overlay-formats}), use
 @example
@@ -5612,7 +5619,7 @@ control.
 @i{Frank Ruell} solved the mystery of the @code{keymapp nil} bug, a
 conflict with @file{allout.el}.
 @item
-@i{Jason Riedy} sent a patch to fix a bug with export of TODO keywerds.
+@i{Jason Riedy} sent a patch to fix a bug with export of TODO keywords.
 @item
 @i{Philip Rooke} created the Org-mode reference card and provided lots
 of feedback.
@@ -5653,7 +5660,7 @@ linking to GNUS.
 @i{Roland Winkler} requested additional keybindings to make Org-mode
 work on a tty.
 @item
-@i{Piotr Zielinski} wrote @file{org-mouse.el}, proposed angenda blocks
+@i{Piotr Zielinski} wrote @file{org-mouse.el}, proposed agenda blocks
 and contributed various ideas and code snippets.
 @end itemize
 
