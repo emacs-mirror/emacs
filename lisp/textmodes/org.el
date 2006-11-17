@@ -6112,6 +6112,7 @@ The command returns the inserted time stamp."
 	 (with-hm (and (nth 1 t1) (nth 2 t1)))
 	 (inactive (= (char-before (1- beg)) ?\[))
 	 (tf (funcall (if with-hm 'cdr 'car) org-time-stamp-custom-formats))
+	 (time (org-fix-decoded-time t1))
 	 (time (mapcar (lambda (x) (or x 0)) t1))
 	 (str (org-add-props
 		  (format-time-string
@@ -6126,6 +6127,12 @@ The command returns the inserted time stamp."
 	  (put-text-property beg end 'invisible t)
 	  (put-text-property beg end 'end-glyph (make-glyph str)))
       (put-text-property beg end 'display str))))
+
+(defun org-fix-decoded-time (time)
+  "Set 0 instead of nil for the first 6 elements of time.
+Don't touch the rest."
+  (let ((n 0))
+    (mapcar (lambda (x) (if (< (setq n (1+ n)) 7) (or x 0) x)) time)))
 
 (defun org-days-to-time (timestamp-string)
   "Difference between TIMESTAMP-STRING and now in days."
