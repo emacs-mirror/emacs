@@ -1,3 +1,7 @@
+2006-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-games-menu): Remove yow.
+
 2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-scan-tags): Re-align code fixed.
