@@ -1,3 +1,8 @@
+2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-fix-decoded-time): New function.
+	(org-display-custom-time): Use `org-fix-decoded-time'.
+
 2006-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* menu-bar.el (menu-bar-games-menu): Remove yow.
