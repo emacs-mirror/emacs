@@ -1,3 +1,15 @@
+2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-scan-tags): Re-align code fixed.
+	(org-detach-overlay): Renamed from `org-detatch-overlay'.
+	(org-table-convert-region): Insert space after column separator.
+	(org-agenda-kill): New command.
+	(org-metaleft): Call `org-outdent-item' on bullets.
+	(org-metaright): Call `org-indent-item' on bullets.
+	(org-timestamp-change): Set `org-last-changed-timestamp'.
+	(org-current-line): Make sure (bolp) returns correct result.
+	(org-agenda-change-all-lines): Make sure TODO are highlighted.
+
 2006-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-retrieve-revision): Set buffer-file-coding-system.
