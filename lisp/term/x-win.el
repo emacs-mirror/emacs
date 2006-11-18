@@ -2334,20 +2334,17 @@ order until succeed.")
 	  (cond;; check cut buffer
 	   ((or (not cut-text) (string= cut-text ""))
 	    (setq x-last-selected-text-cut nil))
-	   ;; This short cut doesn't work because x-get-cut-buffer
-	   ;; always returns a newly created string.
-	   ;; ((eq      cut-text x-last-selected-text-cut) nil)
-	   ((string= cut-text x-last-selected-text-cut-encoded)
-	    ;; See the comment above.  No need of this recording.
-	    ;; Record the newer string,
-	    ;; so subsequent calls can use the `eq' test.
-	    ;; (setq x-last-selected-text-cut cut-text)
-	    nil)
 	   (t
+	    ;; We can not compare  x-last-selected-text-cut-encoded with
+	    ;; cut-text because the next-selection-coding-system may have changed
+	    ;; so we need to re-decode anyway.
 	    (setq x-last-selected-text-cut-encoded cut-text
 		  x-last-selected-text-cut
-		  ;; ICCCM says cut buffer always contain ISO-Latin-1
-		  (decode-coding-string cut-text 'iso-latin-1)))))
+		  ;; ICCCM says cut buffer always contain ISO-Latin-1, but
+		  ;; use next-selection-coding-system if not nil.
+		  (decode-coding-string 
+		   cut-text 
+		   (or next-selection-coding-system 'iso-latin-1))))))
 
     ;; As we have done one selection, clear this now.
     (setq next-selection-coding-system nil)
