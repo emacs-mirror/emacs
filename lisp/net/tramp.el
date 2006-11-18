@@ -149,12 +149,11 @@ Otherwise, use a separate filename syntax for Tramp.")
 		    (when (featurep 'tramp-smb)
 		      (unload-feature 'tramp-smb 'force)))))))
 
-(eval-when-compile
-  (require 'cl)
-  (require 'custom)
-  ;; Emacs 19.34 compatibility hack -- is this needed?
-  (or (>= emacs-major-version 20)
-      (load "cl-seq")))
+(require 'cl)
+(require 'custom)
+;; Emacs 19.34 compatibility hack -- is this needed?
+(or (>= emacs-major-version 20)
+    (load "cl-seq"))
 
 (unless (boundp 'custom-print-functions)
   (defvar custom-print-functions nil))	; not autoloaded before Emacs 20.4

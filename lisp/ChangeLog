@@ -1,3 +1,7 @@
+2006-11-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): cl and custom are always required.
+
 2006-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-cut-buffer-or-selection-value): Decode text from
