@@ -1069,7 +1069,8 @@ Returns the compilation buffer created."
 	      ;; Set the EMACS variable, but
 	      ;; don't override users' setting of $EMACS.
 	      (unless (getenv "EMACS")
-		(list (concat "EMACS=" invocation-directory invocation-name)))
+		(list "EMACS=t"))
+	      (list "INSIDE_EMACS=t")
 	      (copy-sequence process-environment))))
 	(set (make-local-variable 'compilation-arguments)
 	     (list command mode name-function highlight-regexp))
