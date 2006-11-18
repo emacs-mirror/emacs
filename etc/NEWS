@@ -1455,8 +1455,11 @@ otherwise behaves quite similarly to the bash version.
 but declared obsolete.
 
 +++
-*** The EMACS environment variable now defaults to Emacs's absolute
-file name, instead of to "t".
+*** The new INSIDE_EMACS environment variable is set to "t" in
+subshells running inside Emacs.  This supersedes the EMACS environment
+variable, which will be removed in a future Emacs release.  Programs
+that need to know whether they are started inside Emacs should check
+INSIDE_EMACS instead of EMACS.
 
 ** M-x Compile changes:
 
