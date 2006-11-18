@@ -1586,12 +1586,7 @@ Public License instead of this License.
 
 @include doclicense.texi
 @include cmdargs.texi
-@iftex
-@include xresmini.texi
-@end iftex
-@ifnottex
 @include xresources.texi
-@end ifnottex
 
 @include anti.texi
 @include macos.texi
