@@ -1,5 +1,8 @@
 2006-11-18  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded): Check `and'
+	conditions for function or variable bindings.
+
 	* comint.el (comint-exec-1): Set EMACS and INSIDE_EMACS to t.
 
 	* progmodes/compile.el (compilation-start): Ditto.
