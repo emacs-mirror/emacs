@@ -1,3 +1,9 @@
+2006-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint.el (comint-exec-1): Set EMACS and INSIDE_EMACS to t.
+
+	* progmodes/compile.el (compilation-start): Ditto.
+
 2006-11-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): cl and custom are always required.
