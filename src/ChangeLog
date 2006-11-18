@@ -1,3 +1,8 @@
+2006-11-18  Andreas Schwab  <schwab@suse.de>
+
+	* s/gnu-linux.h (GC_MARK_SECONDARY_STACK): Update call to
+	mark_memory.
+
 2006-11-17  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
 
 	* xterm.c (do_ewmh_fullscreen): Declare variable before XSETFRAME
