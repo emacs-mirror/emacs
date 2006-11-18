@@ -1,3 +1,11 @@
+2006-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (emacs.dvi): Remove xresmini.texi
+
+	* emacs: Include xresources.texi both for info and dvi.
+
+	* xresources.texi: Merge text from xresmini.texi
+
 2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Fix typos.
