@@ -877,7 +877,7 @@ and `event-end' functions."
 
 (defsubst posn-image (position)
   "Return the image object of POSITION.
-Value is an list (image ...), or nil if not an image.
+Value is a list (image ...), or nil if not an image.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 7 position))
