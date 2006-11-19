@@ -2212,14 +2212,14 @@ This is a GNAT specific function that uses gnatkrunch."
 (defun ada-make-body-gnatstub (&optional interactive)
   "Create an Ada package body in the current buffer.
 This function uses the `gnatstub' program to create the body.
-This function typically is to be hooked into `ff-file-created-hooks'."
+This function typically is to be hooked into `ff-file-created-hook'."
   (interactive "p")
   (ada-require-project-file)
 
   (save-some-buffers nil nil)
 
   ;; If the current buffer is the body (as is the case when calling this
-  ;; function from ff-file-created-hooks), then kill this temporary buffer
+  ;; function from ff-file-created-hook), then kill this temporary buffer
   (unless interactive
     (progn
       (set-buffer-modified-p nil)
@@ -2274,9 +2274,10 @@ This function typically is to be hooked into `ff-file-created-hooks'."
 (defun ada-xref-initialize ()
   "Function called by `ada-mode-hook' to initialize the ada-xref.el package.
 For instance, it creates the gnat-specific menus, sets some hooks for
-find-file...."
-  ;; This should really be an `add-hook'.  -stef
-  (setq ff-file-created-hook 'ada-make-body-gnatstub)
+`find-file'..."
+  (remove-hook 'ff-file-created-hook 'ada-make-body) ; from global hook
+  (remove-hook 'ff-file-created-hook 'ada-make-body t) ; from local hook
+  (add-hook 'ff-file-created-hook 'ada-make-body-gnatstub nil t)
 
   ;; Completion for file names in the mini buffer should ignore .ali files
   (add-to-list 'completion-ignored-extensions ".ali")
