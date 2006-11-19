@@ -1,3 +1,10 @@
+2006-11-19  Andreas Schwab  <schwab@gnu.org>
+
+	* xfaces.c (Fdisplay_supports_face_attributes_p): Initialize
+	supports.
+
+	* xmenu.c (Fx_popup_menu): Initialize selection.
+
 2006-11-18  Andreas Schwab  <schwab@suse.de>
 
 	* s/gnu-linux.h (GC_MARK_SECONDARY_STACK): Update call to
