@@ -822,7 +822,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
   int xpos = 0, ypos = 0;
   Lisp_Object title;
   char *error_name = NULL;
-  Lisp_Object selection;
+  Lisp_Object selection = Qnil;
   FRAME_PTR f = NULL;
   Lisp_Object x, y, window;
   int keymaps = 0;
