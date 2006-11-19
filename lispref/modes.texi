@@ -3043,16 +3043,19 @@ constructs:
 
 @itemize
 @item
-Place a @code{font-lock-multiline}
-property on the construct when it is added to the buffer.
-@item
-Use @code{font-lock-fontify-region-function} hook to extend the scan
-so that the scanned text never starts or ends in the middle of a
-multiline construct.
-@item
 Add a function to @code{font-lock-extend-region-functions} that does
 the @emph{identification} and extends the scan so that the scanned
 text never starts or ends in the middle of a multiline construct.
+@item
+Use the @code{font-lock-fontify-region-function} hook similarly to
+extend the scan so that the scanned text never starts or ends in the
+middle of a multiline construct.
+@item
+Somehow identify the multiline construct right when it gets inserted
+into the buffer (or at any point after that but before font-lock
+tries to highlight it), and mark it with a @code{font-lock-multiline}
+which will instruct font-lock not to start or end the scan in the
+middle of the construct.
 @end itemize
 
   There are three ways to do rehighlighting of multiline constructs:
@@ -3062,9 +3065,9 @@ text never starts or ends in the middle of a multiline construct.
 Place a @code{font-lock-multiline} property on the construct.  This
 will rehighlight the whole construct if any part of it is changed.  In
 some cases you can do this automatically by setting the
-@code{font-lock-multiline} variable.
+@code{font-lock-multiline} variable, which see.
 @item
-Use @code{jit-lock-contextually}.  This will only rehighlight the part
+Rely on @code{jit-lock-contextually}.  This will only rehighlight the part
 of the construct that follows the actual change, and will do it after
 a short delay.  This only works if the highlighting of the various
 parts of your multiline construct never depends on text in subsequent
