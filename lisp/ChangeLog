@@ -1,3 +1,10 @@
+2006-11-19  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-mode.el (ada-make-body): Fix typo.
+
+	* progmodes/ada-xref.el (ada-make-body-gnatstub): Fix typo.
+	(ada-xref-initialize): Fix typo.  Use add-hook and remove-hook.
+
 2006-11-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded): Check `and'
