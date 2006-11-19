@@ -6178,7 +6178,7 @@ face for italic.  */)
   (attributes, display)
      Lisp_Object attributes, display;
 {
-  int supports, i;
+  int supports = 0, i;
   Lisp_Object frame;
   struct frame *f;
   struct face *def_face;
