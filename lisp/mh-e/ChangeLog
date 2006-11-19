@@ -19,7 +19,7 @@
 
 2006-11-11  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
-	* mh-junk.el (mh-spamassassin-blacklist, mh-spamassassin-whitelist): 
+	* mh-junk.el (mh-spamassassin-blacklist, mh-spamassassin-whitelist):
 	Use mh-junk-background consistently in call-process calls.
 
 	* (mh-bogofilter-blacklist, mh-bogofilter-whitelist,
@@ -29,7 +29,7 @@
 
 	* mh-e.el (mh-junk-background): Document that On value is 0;
 	t may be used for debugging.
-	
+
 2006-11-10  Andreas Schwab  <schwab@suse.de>
 
 	* mh-e.el (mh-draft-folder): Avoid starting sentence with "nil".

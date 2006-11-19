@@ -447,7 +447,7 @@
 	GetScrapFlavorFlags.
 
 	* src/macfns.c: Synchronize with changes in w32fns.c.
- 	[MAC_OSX]: Include Carbon headers.
+	[MAC_OSX]: Include Carbon headers.
 	(x_real_positions): Use Carbon routine GetWindowPortBounds.
 	(x_set_scroll_bar_width): Set width of scroll bar to 16.
 	(x_make_gc): Remove static qualifier.

@@ -6512,7 +6512,7 @@
 
 2003-02-01  Kevin Ryde  <user42@zip.com.au>
 
-        * glossary.texi (Glossary): Correction to cl cross reference.
+	* glossary.texi (Glossary): Correction to cl cross reference.
 
 2003-01-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -6945,7 +6945,7 @@
 	`info' file.
 
 	* frames.texi (Creating Frames): Mention `C-x 5' instead of `C-x
-  	4' where appropriate.
+	4' where appropriate.
 
 1993-10-20  Brian Fox  (bfox@ai.mit.edu)
 
