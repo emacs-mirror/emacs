@@ -1,3 +1,7 @@
+2006-11-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt): Doc fix.
+
 2006-11-19  Micha,bk(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* progmodes/glasses.el (glasses-separate-parentheses-exceptions): New.
