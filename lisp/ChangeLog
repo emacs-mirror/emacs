@@ -1,3 +1,7 @@
+2006-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-if): Revert last change.
+
 2006-11-19  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-mode.el (ada-make-body): Fix typo.
