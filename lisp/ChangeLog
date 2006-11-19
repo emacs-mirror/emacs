@@ -1,3 +1,14 @@
+2006-11-19  Micha,bk(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* progmodes/glasses.el (glasses-separate-parentheses-exceptions): New.
+	Exceptions to the rule "add a space between an identifier and an
+	opening parenthesis".  Defaulted to the `#define' problem of cpp.
+	(glasses-parenthesis-exception-p): New.	 Check if the region is an
+	exception regarding to that.
+	(glasses-make-readable): Use it.
+	(glasses-convert-to-unreadable): Ditto.	 Modify the file also if
+	`glasses-convert-on-write-p' and `glasses-separate-parentheses-p' are t.
+
 2006-11-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-if): Revert last change.
