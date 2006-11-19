@@ -5421,7 +5421,7 @@ for `ada-procedure-start-regexp'."
 (defun ada-make-body ()
   "Create an Ada package body in the current buffer.
 The spec must be the previously visited buffer.
-This function typically is to be hooked into `ff-file-created-hooks'."
+This function typically is to be hooked into `ff-file-created-hook'."
   (delete-region (point-min) (point-max))
   (insert-buffer-substring (car (cdr (buffer-list))))
   (goto-char (point-min))
