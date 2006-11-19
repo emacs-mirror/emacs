@@ -3398,42 +3398,35 @@ being undefined will be suppressed.
 If CONDITION's value is (not (featurep 'emacs)) or (featurep 'xemacs),
 that suppresses all warnings during execution of BODY."
   (declare (indent 1) (debug t))
-  `(let* ((byte-compile-warnings
-	   ;; Suppress all warnings, for code not used in Emacs.
+  `(let* ((fbound
+	   (if (eq 'fboundp (car-safe ,condition))
+	       (and (eq 'quote (car-safe (nth 1 ,condition)))
+		    ;; Ignore if the symbol is already on the
+		    ;; unresolved list.
+		    (not (assq (nth 1 (nth 1 ,condition)) ; the relevant symbol
+			       byte-compile-unresolved-functions))
+		    (nth 1 (nth 1 ,condition)))))
+	  (bound (if (or (eq 'boundp (car-safe ,condition))
+			 (eq 'default-boundp (car-safe ,condition)))
+		     (and (eq 'quote (car-safe (nth 1 ,condition)))
+			  (nth 1 (nth 1 ,condition)))))
+	  ;; Maybe add to the bound list.
+	  (byte-compile-bound-variables
+	   (if bound
+	       (cons bound byte-compile-bound-variables)
+	     byte-compile-bound-variables))
+	  ;; Suppress all warnings, for code not used in Emacs.
+	  (byte-compile-warnings
 	   (if (member ,condition '((featurep 'xemacs)
 				    (not (featurep 'emacs))))
-	       nil
-	     byte-compile-warnings))
-	  (byte-compile-bound-variables byte-compile-bound-variables)
-	  binding fbound-list)
-     (mapc (lambda (subcondition)
-	     (cond ((eq 'fboundp (car-safe subcondition))
-		    (setq binding (and (eq 'quote (car-safe (nth 1 subcondition)))
-				       ;; Ignore if the symbol is already on the
-				       ;; unresolved list.
-				       (not (assq (nth 1 (nth 1 subcondition))
-						  byte-compile-unresolved-functions))
-				       (nth 1 (nth 1 subcondition))))
-		    (if binding (setq fbound-list (cons binding fbound-list))))
-		   ((or (eq 'boundp (car-safe subcondition))
-			(eq 'default-boundp (car-safe subcondition)))
-		    (setq binding (and (eq 'quote (car-safe (nth 1 subcondition)))
-				       (nth 1 (nth 1 subcondition))))
-		    (if binding (setq byte-compile-bound-variables
-				      (cons binding byte-compile-bound-variables))))))
-	   ;; Inspect each element in an `and' condition; otherwise,
-	   ;; inspect the condition itself.
-	   (if (eq 'and (car-safe ,condition))
-	       (cdr ,condition)
-	     (list ,condition)))
+	       nil byte-compile-warnings)))
      (unwind-protect
 	 (progn ,@body)
        ;; Maybe remove the function symbol from the unresolved list.
-       (mapc (lambda (fun)
-	       (setq byte-compile-unresolved-functions
-		     (delq (assq fun byte-compile-unresolved-functions)
-			   byte-compile-unresolved-functions)))
-	     fbound-list))))
+       (if fbound
+	   (setq byte-compile-unresolved-functions
+		 (delq (assq fbound byte-compile-unresolved-functions)
+		       byte-compile-unresolved-functions))))))
 
 (defun byte-compile-if (form)
   (byte-compile-form (car (cdr form)))
