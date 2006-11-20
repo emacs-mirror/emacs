@@ -1,3 +1,10 @@
+2006-11-18  Andreas Seltenreich  <uwi7@rz.uni-karlsruhe.de>
+
+	* mm-uu.el (mm-uu-pgp-signed-extract-1): Make last fix more thorough
+	and comment it.
+
+	* nnslashdot.el (nnslashdot-retrieve-headers-1): Update regexp.
+
 2006-11-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-util.el (gnus-extract-address-components): Improve comment.
