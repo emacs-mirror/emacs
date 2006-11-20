@@ -1,3 +1,10 @@
+2006-11-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-last-cut-buffer-coding): New variable.
+	(x-select-text): Set it.
+	(x-cut-buffer-or-selection-value): Check also x-last-cut-buffer-coding
+	when checking for newness.
+
 2006-11-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (posn-image):
