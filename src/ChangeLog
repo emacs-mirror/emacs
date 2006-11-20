@@ -1,3 +1,8 @@
+2006-11-20  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+
+	* indent.c (Fvertical_motion): Include composition in the case of
+	overshoot expected.
+
 2006-11-19  Andreas Schwab  <schwab@gnu.org>
 
 	* xfaces.c (Fdisplay_supports_face_attributes_p): Initialize
