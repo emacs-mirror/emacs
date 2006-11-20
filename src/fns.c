@@ -392,6 +392,8 @@ Symbols are also allowed; their print names are used instead.  */)
    the arguments for the invocations of this function, whereas it
    expects these values on the stack.  */
 static Lisp_Object concat () __attribute__((noinline));
+#else  /* !__GNUC__ */
+static Lisp_Object concat ();
 #endif
 
 /* ARGSUSED */
