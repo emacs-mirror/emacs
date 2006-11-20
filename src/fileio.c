@@ -6202,7 +6202,7 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 	      Lisp_Object tem = XCAR (all);
 	      int len;
 	      if (STRINGP (tem) &&
-		  (len = SCHARS (tem), len > 0) &&
+		  (len = SBYTES (tem), len > 0) &&
 		  IS_DIRECTORY_SEP (SREF (tem, len-1)))
 		comp = Fcons (tem, comp);
 	    }
