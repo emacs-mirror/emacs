@@ -1,3 +1,21 @@
+2006-11-20  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-help.el (idlwave-html-help-location): Fail
+	gracefully for missing help packages.
+	(idlwave-help-assistant-open-link): Open full links.
+	(idlwave-help-assistant-help-with-topic): Direct help link.
+
+	* progmodes/idlwave.el (idlwave-mode): Set
+	add-log-current-defun-function.
+	(idlwave-current-routine-fullname): Added, to support add-log.
+	(idlwave-convert-xml-system-routine-info): Simplify XML parsing
+	to reflect improvements to xml-parse-file.
+	(idlwave-mode-menu-def): New binding for help-with-topic.
+
+	* progmodes/idlw-shell.el (idlwave-shell-filter-directory):
+	Handle extra newlines and spaces.
+	(idlwave-shell-mode-map): Add help-with-topic.
+
 2006-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tutorial.el (tutorial-warning-face): New face.
