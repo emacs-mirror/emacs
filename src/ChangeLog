@@ -1,3 +1,8 @@
+2006-11-20  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Fread_file_name_internal): Use SBYTES (not SCHARS) to
+	check the tailing slash of a filename.
+
 2006-11-20  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
 
 	* indent.c (Fvertical_motion): Include composition in the case of
