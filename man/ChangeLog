@@ -1,3 +1,7 @@
+2006-11-20  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Call this the 5.2 stable pre-release of ERC.
+
 2006-11-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (Interactive Shell): INSIDE_EMACS is set to t,

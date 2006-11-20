@@ -35,7 +35,9 @@
 ;; rewritten to support the way how ERC operates.  Server socket support
 ;; was added for DCC CHAT and SEND afterwards.  Thanks
 ;; to the original authors for their work.
-;;
+
+;;; Usage:
+
 ;; To use this file, put
 ;;  (require 'erc-dcc)
 ;; in your .emacs.
@@ -49,7 +51,7 @@
 ;;  /dcc send nick file - Offer DCC SEND to nick
 ;;
 ;; Please note that offering DCC connections (offering chats and sending
-;; files) is only supported with Emacs 21.3.50 (CVS).
+;; files) is only supported with Emacs 22.
 
 ;;; Code:
 

@@ -1,3 +1,7 @@
+2006-11-20  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Change M-x erc-select to M-x erc.
+
 2006-11-20  Sun Yijiang  <sunyijiang@gmail.com>
 
 	* TUTORIAL.cn: Updated.
@@ -91,6 +95,11 @@
 
 	* PROBLEMS (are): Emacs compiled with Gtk+ crashes when closing a
 	display (x-close-connection).
+
+2006-09-03  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.texi (Getting Started, Connecting): Changed erc-select to
+	erc.
 
 2006-09-02  Juri Linkov  <juri@jurta.org>
 

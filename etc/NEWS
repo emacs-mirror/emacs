@@ -1690,8 +1690,8 @@ ERC is a powerful, modular, and extensible IRC client for Emacs.
 To see what modules are available, type
 M-x customize-option erc-modules RET.
 
-To start an IRC session, type M-x erc-select, and follow the prompts
-for server, port, and nick.
+To start an IRC session, type M-x erc, and follow the prompts for
+server, port, and nick.
 
 ---
 ** Rcirc is now part of the Emacs distribution.

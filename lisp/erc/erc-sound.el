@@ -21,9 +21,26 @@
 
 ;;; Commentary:
 
-;; This used to be in erc.el, I (Jorgen) just extracted it from there
-;; and put it in this file.  Bugs and features are those of the
-;; original author.
+;; Play sounds when users send you CTCP SOUND messages.
+
+;; This file also defines the command /sound so that you can send
+;; sound requests to other users.
+
+;;; Usage:
+
+;; Add the following to your .emacs if you want to play sounds.
+;;
+;; (require 'erc-soud)
+;; (erc-sound-enable)
+;;
+;; To send requests to other users from within query buffers, type the
+;; following:
+;;
+;; /sound filename optional-message-text
+;;
+;; You can also type the following:
+;;
+;; /ctcp nickname sound filename optional-message
 
 ;;; Code:
 
@@ -34,9 +51,11 @@
   "In ERC sound mode, the client will respond to CTCP SOUND requests
 and play sound files as requested."
   ;; Enable:
-  ((define-key erc-mode-map "\C-c\C-s" 'erc-toggle-sound))
+  ((add-hook 'erc-ctcp-query-SOUND-hook 'erc-ctcp-query-SOUND)
+   (define-key erc-mode-map "\C-c\C-s" 'erc-toggle-sound))
   ;; Disable:
-  ((define-key erc-mode-map "\C-c\C-s" 'undefined)))
+  ((remove-hook 'erc-ctcp-query-SOUND-hook 'erc-ctcp-query-SOUND)
+   (define-key erc-mode-map "\C-c\C-s" 'undefined)))
 
 (erc-define-catalog-entry 'english 'CTCP-SOUND "%n (%u@%h) plays %s:%m")
 
@@ -45,7 +64,7 @@ and play sound files as requested."
   :group 'erc)
 
 (defcustom erc-play-sound t
-  "*Play sound on SOUND ctcp requests (used in ICQ chat)."
+  "*Play sounds when you receive CTCP SOUND requests."
   :group 'erc-sound
   :type 'boolean)
 
@@ -55,18 +74,22 @@ and play sound files as requested."
   :type '(repeat directory))
 
 (defcustom erc-default-sound nil
-  "Play this sound if the requested file was not found."
+  "Play this sound if the requested file was not found.
+If this is set to nil or the file doesn't exist a beep will sound."
   :group 'erc-sound
   :type '(choice (const nil)
 		 file))
 
-(defcustom erc-play-command "play"
-  "Command for playing sound samples."
-  :group 'erc-sound
-  :type 'string)
+(defvar erc-ctcp-query-SOUND-hook nil
+  "Hook to run after receiving a CTCP SOUND request.")
 
 (defun erc-cmd-SOUND (line &optional force)
-  "Play the sound given in LINE."
+  "Send a CTCP SOUND message to the default target.
+If `erc-play-sound' is non-nil, play the sound as well.
+
+/sound filename optional-message-text
+
+LINE is the text entered, including the command."
   (cond
    ((string-match "^\\s-*\\(\\S-+\\)\\(\\s-.*\\)?$" line)
     (let ((file (match-string 1 line))
@@ -84,8 +107,8 @@ and play sound files as requested."
       t))
    (t nil)))
 
-(defvar erc-ctcp-query-SOUND-hook '(erc-ctcp-query-SOUND))
 (defun erc-ctcp-query-SOUND (proc nick login host to msg)
+  "Display a CTCP SOUND message and play sound if `erc-play-sound' is non-nil."
   (when (string-match "^SOUND\\s-+\\(\\S-+\\)\\(\\(\\s-+.*\\)\\|\\(\\s-*\\)\\)$" msg)
     (let ((sound (match-string 1 msg))
 	  (comment (match-string 2 msg)))
@@ -96,41 +119,15 @@ and play sound files as requested."
   nil)
 
 (defun erc-play-sound (file)
-  "Plays a sound file located in one of the directories in `erc-sound-path'
-with a command `erc-play-command'."
+  "Play a sound file located in one of the directories in `erc-sound-path'.
+See also `play-sound-file'."
   (let ((filepath (erc-find-file file erc-sound-path)))
     (if (and (not filepath) erc-default-sound)
 	(setq filepath erc-default-sound))
     (cond ((and filepath (file-exists-p filepath))
-	   (if (and (fboundp 'device-sound-enabled-p)
-		    (device-sound-enabled-p))
-	       ; For XEmacs
-	       (play-sound-file filepath)
-;	     (start-process "erc-sound" nil erc-play-command filepath)
-	     (start-process "erc-sound" nil "/bin/tcsh"  "-c"
-			    (concat erc-play-command " " filepath))))
+           (play-sound-file filepath))
 	  (t (beep)))
     (erc-log (format "Playing sound file %S" filepath))))
-
-;(defun erc-play-sound (file)
-;  "Plays a sound file located in one of the directories in `erc-sound-path'
-;   with a command `erc-play-command'."
-;  (let ((filepath nil)
-;	(paths erc-sound-path))
-;    (while (and paths
-;		(progn (setq filepath (expand-file-name file (car paths)))
-;		       (not (file-exists-p filepath))))
-;      (setq paths (cdr paths)))
-;    (if (and (not (and filepath (file-exists-p filepath)))
-;	     erc-default-sound)
-;	(setq filepath erc-default-sound))
-;    (cond ((and filepath (file-exists-p filepath))
-;;	   (start-process "erc-sound" nil erc-play-command filepath)
-;	   (start-process "erc-sound" nil "/bin/tcsh"  "-c"
-;			  (concat erc-play-command " " filepath))
-;	   )
-;	  (t (beep)))
-;    (erc-log (format "Playing sound file %S" filepath))))
 
 (defun erc-toggle-sound (&optional arg)
   "Toggles playing sounds on and off.  With positive argument,
