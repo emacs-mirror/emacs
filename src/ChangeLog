@@ -1,3 +1,7 @@
+2006-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* fns.c (concat) [!__GNUC__]: Add prototype.
+
 2006-11-20  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Fread_file_name_internal): Use SBYTES (not SCHARS) to
