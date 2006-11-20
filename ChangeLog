@@ -13,11 +13,10 @@
 
 2006-11-04  Romain Francoise  <romain@orebokech.com>
 
-	* Makefile.in (bootstrap-clean-before): Use new target `bootstrap-clean'
-	in the leim subdirectory.
-	Fix typo.
+	* Makefile.in (bootstrap-clean-before): Fix typo.
+	Use new target `bootstrap-clean' in the leim subdirectory.
 
-2006-11-03  Giorgos Keramidas  <keramida@ceid.upatras.gr> (tiny change)
+2006-11-03  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* configure.in: Enable sparc64/ia64/powerpc FreeBSD builds.
 
@@ -65,7 +64,7 @@
 
 2006-09-30  Eli Zaretskii  <eliz@gnu.org>
 
-	* configure: Regenerated.
+	* configure: Regenerate.
 
 2006-09-28  Kenichi Handa  <handa@m17n.org>
 
@@ -99,7 +98,7 @@
 
 	* configure.in (PKG_CHECK_MODULES): Redirect the output of
 	$PKG_CONFIG --exists "$2" to config.log.
-	* configure: Regenerated.
+	* configure: Regenerate.
 
 2006-07-14  Kim F. Storm  <storm@cua.dk>
 
@@ -124,8 +123,8 @@
 
 2006-07-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* CONTRIBUTE: Slight formatting changes and typo fixes.  Add
-	description of NEWS markings.
+	* CONTRIBUTE: Slight formatting changes and typo fixes.
+	Add description of NEWS markings.
 
 2006-07-07  Kim F. Storm  <storm@cua.dk>
 
@@ -166,7 +165,7 @@
 
 	* info/dir: Remove the Emacs-Xtra entry.
 
-2006-04-20 Ramprasad B <ramprasad_i82@yahoo.com>
+2006-04-20  Ramprasad B  <ramprasad_i82@yahoo.com>
 
 	* Copyright (sources/emacs): Update copyright year(s).
 
@@ -317,12 +316,12 @@
 	Remove the MAXPATHLEN limitations:
 
 	* configure.in (AC_CHECK_FUNCS): Check for get_current_dir_name.
-	* configure: Regenerated.
+	* configure: Regenerate.
 
 2005-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.in <lynxsos*>: Support for LynxOS on PPC.
-	* configure: Regenerated.
+	* configure: Regenerate.
 
 2005-09-05  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -859,7 +858,7 @@
 
 2003-01-29  Kim F. Storm  <storm@cua.dk>
 
-	* AUTHORS: Regenerated using new format (after fixing numerous
+	* AUTHORS: Regenerate using new format (after fixing numerous
 	formatting errors in the ChangeLog files).
 
 2003-01-22  Andreas Schwab  <schwab@suse.de>

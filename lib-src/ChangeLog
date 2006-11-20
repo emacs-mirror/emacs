@@ -483,7 +483,7 @@
 
 2004-09-08  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* etags.c [LONG_OPTIONS]: make it TRUE (ifdef) or FALSE (ifndef)
+	* etags.c [LONG_OPTIONS]: Make it TRUE (ifdef) or FALSE (ifndef)
 	for ease of use.
 
 2004-07-17  Richard M. Stallman  <rms@gnu.org>
@@ -2693,7 +2693,7 @@
 
 	* movemail.c (rindex): Add declaration.
 
-Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
+1997-07-01  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* makefile.nt (GETOPTOBJS, GETOPTDEFS, MOVEMAILOBJS): Define.
 	(movemail.exe): Depend upon and link with getopt files.
@@ -3942,7 +3942,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* profile.c (TV1, TV2): Use EMACS_TIME as type.
 	(get_time): Use EMACS_SUB_TIME.
 
-1994-10-30  voelker  <voelker@cs.washington.edu>
+1994-10-30  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* ntlib.c: New file.
 	* makefile.nt: New file.

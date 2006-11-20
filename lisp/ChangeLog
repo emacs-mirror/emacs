@@ -1,5 +1,8 @@
 2006-11-19  Juanma Barranquero  <lekktu@gmail.com>
 
+	* subr.el (posn-image):
+	* progmodes/ebnf2ps.el (ebnf-stop-on-error): Fix typos in docstrings.
+
 	* emacs-lisp/regexp-opt.el (regexp-opt): Doc fix.
 
 2006-11-19  Micha,bk(Bl Cadilhac  <michael.cadilhac@lrde.org>
@@ -962,7 +965,7 @@
 	(cal-html-cursor-year): Add autoloads for this new package.
 	(calendar-mode-map): Bind cal-html-cursor-month, cal-html-cursor-year.
 
-2006-10-28  Anna Bigatti  <bigatti@dima.unige.it>
+2006-10-28  Anna M. Bigatti  <bigatti@dima.unige.it>
 
 	* calendar/cal-html.el: New file.
 
@@ -3726,7 +3729,7 @@
 
 	* replace.el (replace-match-string-symbols): Handle dotted lists.
 
-2006-07-24  mathias  <mathias@mattis>
+2006-07-24  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-write-tags): Add.
 	(tumme-write-comments): Add.
@@ -3741,7 +3744,7 @@
 	(tumme-display-previous-thumbnail-original): Remove empty line.
 	(tumme-widget-list): Add punctuation.
 
-2006-07-24  mathias  <mathias.dahl@gmail.com>
+2006-07-24  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-line-up): Add an extra check for end of buffer.
 

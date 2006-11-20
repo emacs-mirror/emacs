@@ -1,4 +1,4 @@
-2006-11-08  "Łukasz Demianiuk"  <ldemianiuk@gmail.com> (tiny change)
+2006-11-08  Łukasz Demianiuk  <ldemianiuk@gmail.com>  (tiny change)
 
 	* erc.el (erc-header-line): Fix typo.
 
