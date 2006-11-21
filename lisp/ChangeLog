@@ -1,3 +1,8 @@
+2006-11-21  Romain Francoise  <romain@orebokech.com>
+
+	* emacs-lisp/find-func.el (find-library-name): Don't strip ".el"
+	from library name (reverts change of 2005-10-25).
+
 2006-11-21  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* tutorial.el (tutorial--default-keys): Add newline and
