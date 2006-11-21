@@ -255,6 +255,7 @@ LEFT and RIGHT are the elements to compare."
              (backward-sentence [?\M-a])
              (forward-sentence [?\M-e])
 
+             (newline "\r")
 
              (beginning-of-buffer [?\M-<])
              (end-of-buffer [?\M->])
@@ -280,6 +281,7 @@ LEFT and RIGHT are the elements to compare."
              ;; C-u 8 * to insert ********.
 
              (delete-backward-char [backspace])
+             (delete-backward-char "\d")
              (delete-char [?\C-d])
 
              (backward-kill-word [(meta backspace)])
@@ -375,7 +377,10 @@ LEFT and RIGHT are the elements to compare."
              ;;(tutorial-arg     (button-get button 'tutorial-arg))
              (explain-key-desc (button-get button 'explain-key-desc))
              (changed-keys (with-current-buffer tutorial-buffer
-                             (tutorial--find-changed-keys tutorial--default-keys))))
+                             (save-excursion
+                               (goto-char (point-min))
+                               (tutorial--find-changed-keys
+				tutorial--default-keys)))))
         (when changed-keys
           (insert
            "The following key bindings used in the tutorial had been changed
@@ -416,7 +421,10 @@ from Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
                 (when (listp where)
                   (setq where "list"))
                 ;; Tell where the old binding is now:
-                (insert (format " %-11s " where))
+                (insert (format " %-11s "
+                                (if (string= "" where)
+                                    (format "M-x %s" def-fun-txt)
+                                  where)))
                 ;; Insert a link with more information, for example
                 ;; current binding and keymap or information about
                 ;; cua-mode replacements:
@@ -616,14 +624,21 @@ CHANGED-KEYS should be a list in the format returned by
                   (let ((here (point))
 			(case-fold-search nil)
                         (key-desc (key-description key)))
+                    (cond ((string= "ESC" key-desc)
+			   (setq key-desc "<ESC>"))
+			  ((string= "RET" key-desc)
+			   (setq key-desc "<Return>"))
+			  ((string= "DEL" key-desc)
+			   (setq key-desc "<Delback>")))
                     (while (re-search-forward
-			    (concat (regexp-quote key-desc)
-				    "[[:space:]]") nil t)
-                      (put-text-property (match-beginning 0)
-                                         (match-end 0)
+			    (concat "[[:space:]]\\("
+                                    (regexp-quote key-desc)
+				    "\\)[[:space:]]") nil t)
+                      (put-text-property (match-beginning 1)
+                                         (match-end 1)
                                          'tutorial-remark 'only-colored)
-                      (put-text-property (match-beginning 0)
-                                         (match-end 0)
+                      (put-text-property (match-beginning 1)
+                                         (match-end 1)
                                          'face 'tutorial-warning-face)
                       (forward-line)
                       (let ((s  (get-lang-string tutorial--lang 'tut-chgdkey))
