@@ -1,3 +1,12 @@
+2006-11-21  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* tutorial.el (tutorial--default-keys): Add newline and
+	delete-backward-char bindings.
+	(tutorial--detailed-help): Save excursion when finding keys.
+	Correct warning string for M-x FOO case.
+	(tutorial--display-changes): Print special keys in tutorial style.
+	Tweak search regexp for changed keys.
+
 2006-11-21  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
 	* thingatpt.el (thing-at-point-url-at-point):  Don't add a
