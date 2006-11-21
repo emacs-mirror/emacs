@@ -1,3 +1,7 @@
+2006-11-21  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c: Break line before &&, not after.
+
 2006-11-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* fns.c (concat) [!__GNUC__]: Add prototype.
