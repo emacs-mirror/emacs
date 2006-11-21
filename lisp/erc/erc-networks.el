@@ -809,7 +809,7 @@ As an example:
 		    (erc-ports-list (nth 3 srv))
 		  (list (nth 3 srv))))
 	 (port (nth (random (length ports)) ports)))
-    (erc host port erc-nick erc-user-full-name t)))
+    (erc :server host :port port)))
 
 ;;; The following experimental
 ;; It does not work yet, help me with it if you

@@ -487,6 +487,10 @@ but which can also be used as a modifier).
    <http://lists.gnu.org/archive/html/emacs-devel/2006-02/msg01034.html>.
    [rgm@gnu.org will look at this after 22.1]
 
+** Possibly make cal-dst use the system timezone database directly.
+   See thread
+   <http://lists.gnu.org/archive/html/emacs-pretest-bug/2006-11/msg00060.html>
+
 * Internal changes
 
 ** Replace gmalloc.c with the modified Doug Lea code from the current

@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 8.0.2
+;; Version: 8.0.3
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -133,7 +133,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "8.0.2" "Version number of MH-E.")
+(defconst mh-version "8.0.3" "Version number of MH-E.")
 
 ;; Variants
 
@@ -188,7 +188,7 @@ This directory contains, among other things, the mhl program.")
 (defvar mh-draft-folder nil
   "Cached value of the \"Draft-Folder:\" MH profile component.
 Name of folder containing draft messages.
-Nil means do not use a draft folder.")
+Do not use a draft folder if nil.")
 
 (defvar mh-inbox nil
   "Cached value of the \"Inbox:\" MH profile component.
@@ -1218,7 +1218,7 @@ or \"Bottom\" of your alias file might be more appropriate."
   :package-version '(MH-E . "7.1"))
 
 (defcustom-mh mh-alias-local-users t
-  "*If on, local users are added to alias completion.
+  "*Non-nil means local users are added to alias completion.
 
 Aliases are created from \"/etc/passwd\" entries with a user ID
 larger than a magical number, typically 200. This can be a handy
@@ -1690,7 +1690,13 @@ The function is always called with SYMBOL bound to
 By default, the programs are run in the foreground, but this can
 be slow when junking large numbers of messages. If you have
 enough memory or don't junk that many messages at the same time,
-you might try turning on this option."
+you might try turning on this option.
+
+Note that this option is used as the \"display\" argument in the
+call to `call-process'. Therefore, turning on this option means
+setting its value to \"0\". You can also set its value to t to
+direct the programs' output to the \"*MH-E Log*\" buffer; this
+may be useful for debugging."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "On" 0))
   :group 'mh-junk

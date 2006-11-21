@@ -412,7 +412,7 @@ property of the major mode name.")
     (define-key map flyspell-auto-correct-binding 'flyspell-auto-correct-previous-word)
     (define-key map [(control ?\,)] 'flyspell-goto-next-error)
     (define-key map [(control ?\.)] 'flyspell-auto-correct-word)
-    (define-key map [(meta ?\^m)] 'flyspell-correct-word-before-point)
+    (define-key map [?\C-c ?$] 'flyspell-correct-word-before-point)
     map)
   "Minor mode keymap for Flyspell mode--for the whole buffer.")
 

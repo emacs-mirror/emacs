@@ -51,6 +51,10 @@
   :group 'news
   :group 'mail)
 
+(defgroup gnus-start nil
+  "Starting your favorite newsreader."
+  :group 'gnus)
+
 (defgroup gnus-format nil
   "Dealing with formatting issues."
   :group 'gnus)
@@ -68,10 +72,6 @@
 
 (defgroup gnus-registry nil
   "Article Registry."
-  :group 'gnus)
-
-(defgroup gnus-start nil
-  "Starting your favorite newsreader."
   :group 'gnus)
 
 (defgroup gnus-start-server nil
@@ -1239,7 +1239,6 @@ used to 899, you would say something along these lines:
   :group 'gnus-server
   :type 'file)
 
-;;;###autoload
 (defun gnus-getenv-nntpserver ()
   "Find default nntp server.
 Check the NNTPSERVER environment variable and the
@@ -1251,7 +1250,11 @@ Check the NNTPSERVER environment variable and the
 	     (when (re-search-forward "[^ \t\n\r]+" nil t)
 	       (match-string 0))))))
 
-;;;###autoload
+;; `M-x customize-variable RET gnus-select-method RET' should work without
+;; starting or even loading Gnus.
+;;;###autoload(when (fboundp 'custom-autoload)
+;;;###autoload  (custom-autoload 'gnus-select-method "gnus"))
+
 (defcustom gnus-select-method
   (condition-case nil
       (nconc
@@ -1285,6 +1288,8 @@ If you use this variable, you must set `gnus-nntp-server' to nil.
 There is a lot more to know about select methods and virtual servers -
 see the manual for details."
   :group 'gnus-server
+  :group 'gnus-start
+  :initialize 'custom-initialize-default
   :type 'gnus-select-method)
 
 (defcustom gnus-message-archive-method "archive"

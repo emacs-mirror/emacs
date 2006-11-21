@@ -35,6 +35,20 @@
 (require 'help-mode) ;; for function help-buffer
 (eval-when-compile (require 'cl))
 
+(defface tutorial-warning-face
+  '((((class color) (min-colors 88) (background light))
+     (:foreground "Red1" :weight bold))
+    (((class color) (min-colors 88) (background dark))
+     (:foreground "Pink" :weight bold))
+    (((class color) (min-colors 16) (background light))
+     (:foreground "Red1" :weight bold))
+    (((class color) (min-colors 16) (background dark))
+     (:foreground "Pink" :weight bold))
+    (((class color) (min-colors 8)) (:foreground "red"))
+    (t (:inverse-video t :weight bold)))
+  "Face used to highlight warnings in the tutorial."
+  :group 'font-lock-faces)
+
 (defvar tutorial--point-before-chkeys 0
   "Point before display of key changes.")
 (make-variable-buffer-local 'tutorial--point-before-chkeys)
@@ -381,7 +395,8 @@ from Emacs default in the " (buffer-name tutorial-buffer) " buffer:\n\n" )
               (unless (eq def-fun key-fun)
                 ;; Insert key binding description:
                 (when (string= key-txt explain-key-desc)
-                  (put-text-property 0 (length key-txt) 'face '(:background "yellow") key-txt))
+                  (put-text-property 0 (length key-txt)
+				     'face 'tutorial-warning-face key-txt))
                 (insert "   " key-txt " ")
                 (setq tot-len (length key-txt))
                 (when (> 9 tot-len)
@@ -464,17 +479,17 @@ Where
              (def-fun (nth 0 kdf))
              (def-fun-txt (format "%s" def-fun))
              (rem-fun (command-remapping def-fun))
-             (key-fun (key-binding key))
+             (key-fun (if (eq def-fun 'ESC-prefix)
+			  (lookup-key global-map [27])
+			(key-binding key)))
              (where (where-is-internal (if rem-fun rem-fun def-fun))))
-        (when (eq key-fun 'ESC-prefix)
-          (message "ESC-prefix!!!!"))
         (if where
             (progn
               (setq where (key-description (car where)))
               (when (and (< 10 (length where))
                          (string= (substring where 0 (length "<menu-bar>"))
                                   "<menu-bar>"))
-                (setq where "The menus")))
+                (setq where "the menus")))
           (setq where ""))
         (setq remark nil)
         (unless
@@ -582,7 +597,7 @@ CHANGED-KEYS should be a list in the format returned by
                        'action
                        'tutorial--detailed-help
                        'follow-link t
-                       'face '(:inherit link :background "yellow"))
+                       'face 'link)
         (insert "]\n\n" )
         (when changed-keys
           (dolist (tk changed-keys)
@@ -599,20 +614,22 @@ CHANGED-KEYS should be a list in the format returned by
                 ;; Mark the key in the tutorial text
                 (unless (string= "Same key" where)
                   (let ((here (point))
+			(case-fold-search nil)
                         (key-desc (key-description key)))
-                    (while (search-forward key-desc nil t)
+                    (while (re-search-forward
+			    (concat (regexp-quote key-desc)
+				    "[[:space:]]") nil t)
                       (put-text-property (match-beginning 0)
                                          (match-end 0)
                                          'tutorial-remark 'only-colored)
                       (put-text-property (match-beginning 0)
                                          (match-end 0)
-                                         'face '(:background "yellow"))
+                                         'face 'tutorial-warning-face)
                       (forward-line)
                       (let ((s  (get-lang-string tutorial--lang 'tut-chgdkey))
                             (s2 (get-lang-string tutorial--lang 'tut-chgdkey2))
                             (start (point))
                             end)
-                        ;;(concat "** The key " key-desc " has been rebound, but you can use " where " instead ["))
                         (when (and s s2)
                           (setq s (format s key-desc where s2))
                           (insert s)
@@ -624,7 +641,7 @@ CHANGED-KEYS should be a list in the format returned by
                                          'tutorial--detailed-help
                                          'explain-key-desc key-desc
                                          'follow-link t
-                                         'face '(:inherit link :background "yellow"))
+                                         'face 'link)
                           (insert "] **")
                           (insert "\n")
                           (setq end (point))
@@ -632,7 +649,7 @@ CHANGED-KEYS should be a list in the format returned by
                           ;; Add a property so we can remove the remark:
                           (put-text-property start end 'tutorial-remark t)
                           (put-text-property start end
-                                             'face '(:background "yellow" :foreground "#c00"))
+                                             'face 'tutorial-warning-face)
                           (put-text-property start end 'read-only t))))
                     (goto-char here)))))))
 
@@ -642,14 +659,7 @@ CHANGED-KEYS should be a list in the format returned by
         ;; bindings stand out:
         (put-text-property start end 'tutorial-remark t)
         (put-text-property start end
-                           'face
-                           ;; The default warning face does not
-                           ;;look good in this situation. Instead
-                           ;;try something that could be
-                           ;;recognized from warnings in normal
-                           ;;life:
-                           ;; 'font-lock-warning-face
-                           (list :background "yellow" :foreground "#c00"))
+                           'face 'tutorial-warning-face)
         ;; Make it possible to use Tab/S-Tab between fields in
         ;; this area:
         (put-text-property start end 'local-map tutorial--tab-map)

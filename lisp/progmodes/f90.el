@@ -1470,6 +1470,7 @@ If run in the middle of a line, the line is not broken."
   (interactive "*r")
   (let ((end-region-mark (copy-marker end-region))
         (save-point (point-marker))
+        (case-fold-search t)
 	block-list ind-lev ind-curr ind-b cont struct beg-struct end-struct)
     (goto-char beg-region)
     ;; First find a line which is not a continuation line or comment.

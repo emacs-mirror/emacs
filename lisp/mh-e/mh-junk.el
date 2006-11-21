@@ -115,9 +115,7 @@ http://spamassassin.org/.
 To use SpamAssassin, add the following recipes to
 \".procmailrc\":
 
-    # Append to $PATH the location of mhparam in some distros.
     PATH=$PATH:/usr/bin/mh
-
     MAILDIR=$HOME/`mhparam Path`
 
     # Fight spam with SpamAssassin.
@@ -195,30 +193,33 @@ done by adding the following to your crontab:
   (let ((current-folder mh-current-folder)
         (msg-file (mh-msg-filename msg mh-current-folder))
         (sender))
-    (save-excursion
-      (message "Reporting message %d..." msg)
-      (mh-truncate-log-buffer)
-      (call-process mh-spamassassin-executable msg-file mh-log-buffer nil
+    (message "Reporting message %d..." msg)
+    (mh-truncate-log-buffer)
+    ;; Put call-process output in log buffer if we are saving it
+    ;; (this happens if mh-junk-background is t).
+    (with-current-buffer mh-log-buffer
+      (call-process mh-spamassassin-executable msg-file mh-junk-background nil
                     ;;"--report" "--remove-from-whitelist"
                     "-r" "-R")          ; spamassassin V2.20
-      (when mh-sa-learn-executable
-          (message "Recategorizing this message as spam...")
-          (call-process mh-sa-learn-executable msg-file mh-log-buffer nil
-                        "--single" "--spam" "--local" "--no-rebuild"))
-      (message "Blacklisting message %d..." msg)
-      (set-buffer (get-buffer-create mh-temp-buffer))
+    (when mh-sa-learn-executable
+      (message "Recategorizing message %d as spam..." msg)
+      (mh-truncate-log-buffer)
+      (call-process mh-sa-learn-executable msg-file mh-junk-background nil
+                    "--single" "--spam" "--local" "--no-rebuild")))
+    (message "Blacklisting sender of message %d..." msg)
+    (with-current-buffer (get-buffer-create mh-temp-buffer)
       (erase-buffer)
       (call-process (expand-file-name mh-scan-prog mh-progs)
-                    nil mh-junk-background nil
-                    (format "%s" msg) current-folder
+                    nil t nil
+                    (format "%d" msg) current-folder
                     "-format" "%<(mymbox{from})%|%(addr{from})%>")
       (goto-char (point-min))
       (if (search-forward-regexp "^\\(.+\\)$" nil t)
           (progn
             (setq sender (match-string 0))
             (mh-spamassassin-add-rule "blacklist_from" sender)
-            (message "Blacklisting message %d...done" msg))
-        (message "Blacklisting message %d...not done (from my address)" msg)))))
+            (message "Blacklisting sender of message %d...done" msg))
+        (message "Blacklisting sender of message %d...not done (from my address)" msg)))))
 
 ;;;###mh-autoload
 (defun mh-spamassassin-whitelist (msg)
@@ -234,28 +235,31 @@ See `mh-spamassassin-blacklist' for more information."
   (let ((msg-file (mh-msg-filename msg mh-current-folder))
         (show-buffer (get-buffer mh-show-buffer))
         from)
-    (save-excursion
-      (set-buffer (get-buffer-create mh-temp-buffer))
+    (with-current-buffer (get-buffer-create mh-temp-buffer)
       (erase-buffer)
-      (message "Removing spamassassin markup from message...")
-      (call-process mh-spamassassin-executable msg-file mh-temp-buffer nil
+      (message "Removing spamassassin markup from message %d..." msg)
+      (call-process mh-spamassassin-executable msg-file t nil
                     ;; "--remove-markup"
                     "-d")               ; spamassassin V2.20
       (if show-buffer
           (kill-buffer show-buffer))
       (write-file msg-file)
       (when mh-sa-learn-executable
-        (message "Recategorizing this message as ham...")
-        (call-process mh-sa-learn-executable msg-file mh-temp-buffer nil
-                      "--single" "--ham" "--local" "--no-rebuild"))
-      (message "Whitelisting message %d..." msg)
+        (message "Recategorizing message %d as ham..." msg)
+        (mh-truncate-log-buffer)
+        ;; Put call-process output in log buffer if we are saving it
+        ;; (this happens if mh-junk-background is t).
+        (with-current-buffer mh-log-buffer
+          (call-process mh-sa-learn-executable msg-file mh-junk-background nil
+                        "--single" "--ham" "--local" "--no-rebuild")))
+      (message "Whitelisting sender of message %d..." msg)
       (setq from
             (car (mh-funcall-if-exists
                   ietf-drums-parse-address (mh-get-header-field "From:"))))
       (kill-buffer nil)
       (unless (or (null from) (equal from ""))
         (mh-spamassassin-add-rule "whitelist_from" from))
-      (message "Whitelisting message %d...done" msg))))
+      (message "Whitelisting sender of message %d...done" msg))))
 
 (defun mh-spamassassin-add-rule (rule body)
   "Add a new rule to \"~/.spamassassin/user_prefs\".
@@ -346,6 +350,7 @@ type of message to start doing a good job.
 
 To use bogofilter, add the following recipes to \".procmailrc\":
 
+    PATH=$PATH:/usr/bin/mh
     MAILDIR=$HOME/`mhparam Path`
 
     # Fight spam with bogofilter.
@@ -375,8 +380,12 @@ The \"Bogofilter tuning HOWTO\" describes how you can fine-tune Bogofilter."
   (unless mh-bogofilter-executable
     (error "Unable to find the bogofilter executable"))
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
-    (call-process mh-bogofilter-executable msg-file mh-junk-background
-                  nil "-s")))
+    (mh-truncate-log-buffer)
+    ;; Put call-process output in log buffer if we are saving it
+    ;; (this happens if mh-junk-background is t).
+    (with-current-buffer mh-log-buffer
+      (call-process mh-bogofilter-executable msg-file mh-junk-background
+                    nil "-s"))))
 
 ;;;###mh-autoload
 (defun mh-bogofilter-whitelist (msg)
@@ -386,8 +395,12 @@ See `mh-bogofilter-blacklist' for more information."
   (unless mh-bogofilter-executable
     (error "Unable to find the bogofilter executable"))
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
-    (call-process mh-bogofilter-executable msg-file mh-junk-background
-                  nil "-n")))
+    (mh-truncate-log-buffer)
+    ;; Put call-process output in log buffer if we are saving it
+    ;; (this happens if mh-junk-background is t).
+    (with-current-buffer mh-log-buffer
+      (call-process mh-bogofilter-executable msg-file mh-junk-background
+                    nil "-n"))))
 
 
 
@@ -404,6 +417,7 @@ distribution or from http://spamprobe.sourceforge.net.
 
 To use SpamProbe, add the following recipes to \".procmailrc\":
 
+    PATH=$PATH:/usr/bin/mh
     MAILDIR=$HOME/`mhparam Path`
 
     # Fight spam with SpamProbe.
@@ -423,8 +437,12 @@ update SpamProbe's training."
   (unless mh-spamprobe-executable
     (error "Unable to find the spamprobe executable"))
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
-    (call-process mh-spamprobe-executable msg-file mh-junk-background
-                  nil "spam")))
+    (mh-truncate-log-buffer)
+    ;; Put call-process output in log buffer if we are saving it
+    ;; (this happens if mh-junk-background is t).
+    (with-current-buffer mh-log-buffer
+      (call-process mh-spamprobe-executable msg-file mh-junk-background
+                    nil "spam"))))
 
 ;;;###mh-autoload
 (defun mh-spamprobe-whitelist (msg)
@@ -434,8 +452,12 @@ See `mh-spamprobe-blacklist' for more information."
   (unless mh-spamprobe-executable
     (error "Unable to find the spamprobe executable"))
   (let ((msg-file (mh-msg-filename msg mh-current-folder)))
-    (call-process mh-spamprobe-executable msg-file mh-junk-background
-                  nil "good")))
+    (mh-truncate-log-buffer)
+    ;; Put call-process output in log buffer if we are saving it
+    ;; (this happens if mh-junk-background is t).
+    (with-current-buffer mh-log-buffer
+      (call-process mh-spamprobe-executable msg-file mh-junk-background
+                    nil "good"))))
 
 (provide 'mh-junk)
 

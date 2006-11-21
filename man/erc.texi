@@ -12,7 +12,7 @@
 @syncodeindex fn cp
 
 @copying
-This manual is for ERC version 5.1.4.
+This manual is for ERC version 5.2 stable pre-release.
 
 Copyright @copyright{} 2005, 2006 Free Software Foundation, Inc.
 
@@ -271,7 +271,7 @@ itself.  An example follows.
 (require 'erc)
 @end lisp
 
-Once ERC is loaded, the command @kbd{M-x erc-select} will start ERC and
+Once ERC is loaded, the command @kbd{M-x erc} will start ERC and
 prompt for the server to connect to.
 
 @c PRE5_2: Sample session, including:
@@ -520,11 +520,11 @@ Translate morse code in messages
 @section Connecting to an IRC Server
 @cindex connecting
 
-The easiest way to connect to an IRC server is to call
-@kbd{M-x erc-select}.  If you want to assign this function to a
-keystroke, the following will help you figure out its parameters.
+The easiest way to connect to an IRC server is to call @kbd{M-x erc}.
+If you want to assign this function to a keystroke, the following will
+help you figure out its parameters.
 
-@defun erc-select
+@defun erc
 Select connection parameters and run ERC.
 Non-interactively, it takes the following keyword arguments.
 
@@ -543,7 +543,7 @@ That is, if called with the following arguments, @var{server} and
 parameters.
 
 @example
-(erc-select :server "irc.freenode.net" :full-name "Harry S Truman")
+(erc :server "irc.freenode.net" :full-name "Harry S Truman")
 @end example
 @end defun
 

@@ -135,8 +135,7 @@ Format is:
       (url-set-full retval nil)
       retval))
    (t
-    (save-excursion
-      (set-buffer (get-buffer-create " *urlparse*"))
+    (with-temp-buffer
       (set-syntax-table url-parse-syntax-table)
       (let ((save-pos nil)
 	    (prot nil)

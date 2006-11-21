@@ -246,10 +246,16 @@ no further processing).  URL is either a string or a parsed URL."
             ;; interrupt it before it got a chance to handle process input.
             ;; `sleep-for' was tried but it lead to other forms of
             ;; hanging.  --Stef
-            (unless (or (accept-process-output proc) (null proc))
+            (unless (or (with-local-quit 
+			  (accept-process-output proc))
+			(null proc))
               ;; accept-process-output returned nil, maybe because the process
-              ;; exited (and may have been replaced with another).
-              (setq proc (get-buffer-process asynch-buffer))))))
+              ;; exited (and may have been replaced with another).  If we got
+	      ;; a quit, just stop.
+	      (when quit-flag
+		(delete-process proc))
+              (setq proc (and (not quit-flag)
+			      (get-buffer-process asynch-buffer)))))))
       asynch-buffer)))
 
 (defun url-mm-callback (&rest ignored)

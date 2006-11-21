@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.0.90
+@set EMACSVER  22.0.91
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
@@ -1586,12 +1586,7 @@ Public License instead of this License.
 
 @include doclicense.texi
 @include cmdargs.texi
-@iftex
-@include xresmini.texi
-@end iftex
-@ifnottex
 @include xresources.texi
-@end ifnottex
 
 @include anti.texi
 @include macos.texi

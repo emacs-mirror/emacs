@@ -377,7 +377,7 @@ Boston, MA 02110-1301, USA.  */
     extern void *__libc_ia64_register_backing_store_base;	\
     __builtin_ia64_flushrs ();					\
     mark_memory (__libc_ia64_register_backing_store_base,	\
-		 __builtin_ia64_bsp ());			\
+		 __builtin_ia64_bsp (), 0);			\
   } while (0)
 #endif
 #endif

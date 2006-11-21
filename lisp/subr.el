@@ -877,7 +877,7 @@ and `event-end' functions."
 
 (defsubst posn-image (position)
   "Return the image object of POSITION.
-Value is an list (image ...), or nil if not an image.
+Value is a list (image ...), or nil if not an image.
 POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions."
   (nth 7 position))
@@ -1960,8 +1960,10 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
   "Clear BEG and END of overlays whose property NAME has value VAL.
 Overlays might be moved and/or split.
 BEG and END default respectively to the beginning and end of buffer."
+  ;; This speeds up the loops over overlays.
   (unless beg (setq beg (point-min)))
   (unless end (setq end (point-max)))
+  (overlay-recenter end)
   (if (< end beg)
       (setq beg (prog1 end (setq end beg))))
   (save-excursion

@@ -253,6 +253,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (kill-all-local-variables)
   (setq major-mode 'reb-mode
         mode-name "RE Builder")
+  (set (make-local-variable 'blink-matching-paren) nil)
   (use-local-map reb-mode-map)
   (reb-mode-common)
   (run-mode-hooks 'reb-mode-hook))

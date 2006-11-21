@@ -113,7 +113,7 @@
 ;;;###autoload
 (defvar tramp-unified-filenames (not (featurep 'xemacs))
   "Non-nil means to use unified Ange-FTP/Tramp filename syntax.
-Nil means to use a separate filename syntax for Tramp.")
+Otherwise, use a separate filename syntax for Tramp.")
 
 ;; Load foreign methods.  Because they do require Tramp internally, this
 ;; must be done with the `eval-after-load' trick.
@@ -149,12 +149,11 @@ Nil means to use a separate filename syntax for Tramp.")
 		    (when (featurep 'tramp-smb)
 		      (unload-feature 'tramp-smb 'force)))))))
 
-(eval-when-compile
-  (require 'cl)
-  (require 'custom)
-  ;; Emacs 19.34 compatibility hack -- is this needed?
-  (or (>= emacs-major-version 20)
-      (load "cl-seq")))
+(require 'cl)
+(require 'custom)
+;; Emacs 19.34 compatibility hack -- is this needed?
+(or (>= emacs-major-version 20)
+    (load "cl-seq"))
 
 (unless (boundp 'custom-print-functions)
   (defvar custom-print-functions nil))	; not autoloaded before Emacs 20.4

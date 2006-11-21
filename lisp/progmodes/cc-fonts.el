@@ -897,7 +897,11 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	     "[;,]\\|\\s)\\|\\'\\|\\(=\\|\\s(\\)" limit t t))
 
       (setq next-pos (match-beginning 0)
-	    id-face (if (eq (char-after next-pos) ?\()
+	    id-face (if (and (eq (char-after next-pos) ?\()
+			     (let (c-last-identifier-range)
+			       (save-excursion
+				 (goto-char next-pos)
+				 (c-at-toplevel-p))))
 			'font-lock-function-name-face
 		      'font-lock-variable-name-face)
 	    got-init (and (match-beginning 1)
@@ -1170,21 +1174,39 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      (c-fontify-recorded-types-and-refs)
 	      nil))
 
-	  ;; It was a false alarm.  Check if we're in a label instead.
+	  ;; It was a false alarm.
 	  (goto-char start-pos)
-	  (when (c-forward-label t match-pos nil)
-	    ;; Can't use `c-fontify-types-and-refs' here since we
-	    ;; should use the label face.
-	    (let (elem)
-	      (while c-record-ref-identifiers
-		(setq elem (car c-record-ref-identifiers)
-		      c-record-ref-identifiers (cdr c-record-ref-identifiers))
-		(c-put-font-lock-face (car elem) (cdr elem)
-				      c-label-face-name)))
-	    ;; `c-forward-label' probably has added a `c-decl-end'
-	    ;; marker, so return t to `c-find-decl-spots' to signal
-	    ;; that.
-	    t))))
+	  ;; The below code attempts to fontify the case constants in
+	  ;; c-label-face-name, but it cannot catch every case [sic].
+	  ;; And do we want to fontify case constants anyway?
+	  nil
+;;;	  (when (c-forward-label t match-pos nil)
+;;;	    ;; Can't use `c-fontify-types-and-refs' here since we
+;;;	    ;; should use the label face.
+;;;	    (save-excursion
+;;;	      (while c-record-ref-identifiers
+;;;		(let ((elem (car c-record-ref-identifiers))
+;;;		      c-record-type-identifiers)
+;;;		  (goto-char (cdr elem))
+;;;		  ;; Find the end of any label.
+;;;		  (while (and (re-search-forward "\\sw\\|:" nil t)
+;;;			      (progn (backward-char 1) t)
+;;;			      (or (re-search-forward
+;;;				   "\\=0[Xx][0-9A-Fa-f]+\\|\\([0-9]+\\)" nil t)
+;;;				  (c-forward-name)))
+;;;		    (c-backward-syntactic-ws)
+;;;		    (let ((end (point)))
+;;;		      ;; Now find the start of the bit we regard as the label.
+;;;		      (when (and (c-simple-skip-symbol-backward)
+;;;				 (not (c-get-char-property (point) 'face)))
+;;;			(c-put-font-lock-face (point) end c-label-face-name))
+;;;		      (goto-char end))))
+;;;		(setq c-record-ref-identifiers (cdr c-record-ref-identifiers))))
+;;;	    ;; `c-forward-label' probably has added a `c-decl-end'
+;;;	    ;; marker, so return t to `c-find-decl-spots' to signal
+;;;	    ;; that.
+;;;	    t)
+	  )))
 
       nil)))
 

@@ -580,6 +580,11 @@ ARGS are ignored."
       (erc-modified-channels-display)
       (force-mode-line-update t))))
 
+(defvar erc-track-mouse-face (if (featurep 'xemacs)
+				 'modeline-mousable
+			       'mode-line-highlight)
+  "The face to use when mouse is over channel names in the mode line.")
+
 (defun erc-make-mode-line-buffer-name (string buffer &optional faces count)
   "Return STRING as a button that switches to BUFFER when clicked.
 If FACES are provided, color STRING with them."
@@ -609,6 +614,12 @@ If FACES are provided, color STRING with them."
 	    (posn-window (event-start e)))
 	   (switch-to-buffer-other-window ,buffer))))
     (put-text-property 0 (length name) 'local-map map name)
+    (put-text-property
+     0 (length name)
+     'help-echo (concat "mouse-2: switch to buffer, "
+			"mouse-3: switch to buffer in other window")
+     name)
+    (put-text-property 0 (length name) 'mouse-face erc-track-mouse-face name)
     (when (and faces erc-track-use-faces)
       (put-text-property 0 (length name) 'face faces name))
     name))

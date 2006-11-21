@@ -373,8 +373,16 @@ Return that buffer."
 	   mm-security-handle 'gnus-details
 	   (format "Clear verification not supported by `%s'.\n" mml2015-use))))
       (goto-char (point-min))
-      (if (re-search-forward "\n[\t ]*\n" nil t)
-	  (delete-region (point-min) (point)))
+      (forward-line)
+      ;; We need to be careful not to strip beyond the armor headers.
+      ;; Previously, an attacker could replace the text inside our
+      ;; markup with trailing garbage by injecting whitespace into the
+      ;; message.
+      (while (looking-at "Hash:") ; The only header allowed in cleartext
+	(forward-line))		  ; signatures according to RFC2440.
+      (when (looking-at "[\t ]*$")
+	(forward-line))
+      (delete-region (point-min) (point))
       (if (re-search-forward mm-uu-pgp-beginning-signature nil t)
 	  (delete-region (match-beginning 0) (point-max)))
       (goto-char (point-min))

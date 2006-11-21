@@ -1,3 +1,566 @@
+2006-11-21  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* thingatpt.el (thing-at-point-url-at-point):  Don't add a
+	redundant scheme.
+
+2006-11-21  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
+
+	* thingatpt.el (thing-at-point-uri-schemes): Added schemes that
+	are new to the list at IANA.  Also added irc, mms, mmsh.
+
+2006-11-20  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlw-help.el (idlwave-html-help-location): Fail
+	gracefully for missing help packages.
+	(idlwave-help-assistant-open-link): Open full links.
+	(idlwave-help-assistant-help-with-topic): Direct help link.
+
+	* progmodes/idlwave.el (idlwave-mode): Set
+	add-log-current-defun-function.
+	(idlwave-current-routine-fullname): Added, to support add-log.
+	(idlwave-convert-xml-system-routine-info): Simplify XML parsing
+	to reflect improvements to xml-parse-file.
+	(idlwave-mode-menu-def): New binding for help-with-topic.
+
+	* progmodes/idlw-shell.el (idlwave-shell-filter-directory):
+	Handle extra newlines and spaces.
+	(idlwave-shell-mode-map): Add help-with-topic.
+
+2006-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tutorial.el (tutorial-warning-face): New face.
+	(tutorial--detailed-help, tutorial--display-changes): Use it.
+	(tutorial--find-changed-keys): Check ESC-prefix binding specially.
+	Improve search pattern for occurrences of changed keys.
+
+2006-11-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-last-cut-buffer-coding): New variable.
+	(x-select-text): Set it.
+	(x-cut-buffer-or-selection-value): Check also x-last-cut-buffer-coding
+	when checking for newness.
+
+2006-11-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (posn-image):
+	* progmodes/ebnf2ps.el (ebnf-stop-on-error): Fix typos in docstrings.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt): Doc fix.
+
+2006-11-19  Micha,bk(Bl Cadilhac  <michael.cadilhac@lrde.org>
+
+	* progmodes/glasses.el (glasses-separate-parentheses-exceptions): New.
+	Exceptions to the rule "add a space between an identifier and an
+	opening parenthesis".  Defaulted to the `#define' problem of cpp.
+	(glasses-parenthesis-exception-p): New.	 Check if the region is an
+	exception regarding to that.
+	(glasses-make-readable): Use it.
+	(glasses-convert-to-unreadable): Ditto.	 Modify the file also if
+	`glasses-convert-on-write-p' and `glasses-separate-parentheses-p' are t.
+
+2006-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-if): Revert last change.
+
+2006-11-19  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-mode.el (ada-make-body): Fix typo.
+
+	* progmodes/ada-xref.el (ada-make-body-gnatstub): Fix typo.
+	(ada-xref-initialize): Fix typo.  Use add-hook and remove-hook.
+
+2006-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded): Check `and'
+	conditions for function or variable bindings.
+
+	* comint.el (comint-exec-1): Set EMACS and INSIDE_EMACS to t.
+
+	* progmodes/compile.el (compilation-start): Ditto.
+
+2006-11-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): cl and custom are always required.
+
+2006-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-cut-buffer-or-selection-value): Decode text from
+	cut-buffers with next-selection-coding-system if not nil.
+
+2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-fix-decoded-time): New function.
+	(org-display-custom-time): Use `org-fix-decoded-time'.
+
+2006-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-games-menu): Remove yow.
+
+2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-scan-tags): Re-align code fixed.
+	(org-detach-overlay): Renamed from `org-detatch-overlay'.
+	(org-table-convert-region): Insert space after column separator.
+	(org-agenda-kill): New command.
+	(org-metaleft): Call `org-outdent-item' on bullets.
+	(org-metaright): Call `org-indent-item' on bullets.
+	(org-timestamp-change): Set `org-last-changed-timestamp'.
+	(org-current-line): Make sure (bolp) returns correct result.
+	(org-agenda-change-all-lines): Make sure TODO are highlighted.
+
+2006-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-retrieve-revision): Set buffer-file-coding-system.
+
+2006-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (global-map): Change 2006-08-16 fix to call
+	mouse-yank-at-click explicitly, since mouse events are not carried
+	over into keyboard macros.
+
+2006-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-file-internal): Use current buffer's file name as	default
+	choice for ido-find-alternate-file.  Suggested by Matt Hodges.
+
+2006-11-15  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-doublecheck-at-and-shallower): Clarify docstring.
+	(allout-inhibit-aberrance-doublecheck): Rename from
+	allout-during-yank-processing.  All callers changed.
+	(allout-ascend): Provide for unusual case where some topic after
+	the first in file is at lower depth than the first.
+	(allout-shift-in): Ensure the offspring of the new containing
+	topic are exposed.
+	(allout-encrypt-string): Preserve the coding-system of the text,
+	according to that of the containing buffer.
+	(allout-toggle-subtree-encryption): When the text being encrypted
+	requires a different coding system, offer to preserve the coding
+	system using a file local var.
+
+2006-11-15  Simon Marshall  <simon@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarators): Use c-at-toplevel-p
+	to recognise "T t()" as a function declaration, rather than a
+	variable instantiation, iff at the top-level or inside a class
+	declaration.  Suggested by Feng Li <fengli@gmail.com>.
+
+2006-11-14  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-xref.el (ada-parse-prj-file):
+	Don't delete project buffer; user may want to edit it.
+	(ada-xref-set-project-field, ada-xref-current-project-file)
+	(ada-xref-current-project, ada-show-current-project)
+	(ada-set-main-compile-application): New functions.
+	(ada-xref-get-project-field, ada-require-project-file):
+	Normalize use of ada-prj-default-project-file.
+	(ada-gdb-application, ada-get-ada-file-name, ada-make-body-gnatstub):
+	Normalize use of ada-require-project-file.
+	(ada-prj-find-prj-file): Improve doc string, comments.
+
+	* progmodes/ada-mode.el (ada-mode-version): Bump version.
+	(ada-create-keymap): Add \C-c\C-m 'ada-set-main-compile-application.
+	(ada-create-menu): Add ada-set-main-compile-application,
+	ada-show-current-main, ada-show-current-project.
+
+2006-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (inferior-python-mode-syntax-table): New var.
+	(inferior-python-mode): Use it.
+
+2006-11-14  Andreas Schwab  <schwab@suse.de>
+
+	* term/xterm.el (terminal-init-xterm): Add more key bindings.
+
+2006-11-13  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-copy-current-word): C-o copies region if active.
+
+2006-11-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-emph-face): Fix typo in variable name.
+
+2006-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ediff.el (ediff-revision):
+	* files.el (set-visited-file-name):
+	* mail/rmailout.el (rmail-output-body-to-file):
+	Use `format', not `message', in `y-or-n-p' call.
+
+2006-11-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-metaleft): Call `org-outdent-item' on bullets.
+	(org-metaright): Call `org-indent-item' on bullets.
+	(org-timestamp-change): Set `org-last-changed-timestamp'.
+	(org-current-line): Make sure (bolp) returns correct result.
+	(org-agenda-change-all-lines): Make sure highlighting TODO always works.
+
+2006-11-12  Richard Stallman  <rms@gnu.org>
+
+	* language/european.el (turkish-case-conversion-enable)
+	(turkish-case-conversion-disable): New functions.
+	("Turkish" lang env): Use them.
+
+	* international/characters.el (case table):
+	Do nothing special for i and I.
+
+	* subr.el (remove-overlays): Fix last change.
+
+	* cus-edit.el (custom-save-all): Use find-file-visit-truename
+	for visiting the custom file.
+
+2006-11-12  Markus Triska  <triska@gmx.at>
+
+	* play/handwrite.el (handwrite): Also process lines not ending
+	with newline.  Replace some position-fiddling with different
+	logic.  Improve performance.
+
+2006-11-12  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-xref.el (ada-prj-default-check-cmd): New variable,
+	replacing deleted variable `ada-check-switch'.
+	(ada-project-file-extension): Rename to `ada-prj-file-extension'.
+	(ada-xref-project-files): Improve doc string.
+	(ada-find-executable): New function.
+	(ada-initialize-runtime-library): Use `ada-find-executable'.
+	(ada-xref-set-default-prj-values): In compile commands, don't need
+	`ada-cd-command'; `compile' does that more portably.
+	Use ada-prj-default-check-cmd.
+	(ada-parse-prj-file): Don't set 'debug_post_cmd, 'debug_pre_cmd
+	properties if not specified in project file.
+	(ada-goto-declaration): Display useful message for new error
+	'error-file-not-found.
+	(ada-get-ada-file-name, ada-find-in-src-path): Signal new error
+	'error-file-not-found.
+	(ada-get-all-references): Match latest ali syntax.  Signal new
+	error 'error-file-not-found.
+	(ada-find-in-ali): Match latest ali syntax.
+	(ada-make-filename-from-adaname): Handle different semantics of
+	gnatkr in GNAT 3.15p vs later.
+
+	* progmodes/ada-stmt.el (ada-func-or-proc-name): Match changes to
+	ada-procedure-start-regexp.
+	(ada-or-accept, ada-or-delay, ada-or-terminate): Improve doc string.
+
+	* progmodes/ada-mode.el: Replace conditional (require 'ispell)
+	with defvar.
+	(ada-language-version): Rename ada05 -> ada2005.
+	(ada-align-region-separate): Add `eval-when-compile'.
+	(ada-name-regexp): Remove unneeded escapes in regexp character
+	alternative.
+	(ada-compile-goto-error-file-linenr-re): New constant.
+	(ada-matching-start-re): Handle additional cases `declare',
+	`procedure', `function'.
+	(ada-compile-goto-error): Handle "... at line nn".
+	(ada-mode): Clearer syntax, comments for ff-special-constructs.
+	Delete support for old versions of `align'.
+	(ada-search-prev-end-stmt): Handle additional keyword `private'.
+	(ada-check-defun-name): Simplify handling of `declare'.
+	(ada-goto-matching-start): Handle nested `begin ... end'. Handle
+	`declare', `protected', `procedure', `function'.
+	(ada-create-menu): Presence of arm95 is not conditional on using
+	GNAT compiler.
+
+2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/re-builder.el (reb-mode): Set `blink-matching-paren' to
+	nil in the *RE-Builder* buffer (it causes spurious error messages).
+
+	* server.el (server-visit-files): If `minibuffer-auto-raise' has
+	been set to t, respect it.
+
+2006-11-11  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-mode.el: Delete `eval-and-compile' around `require'.
+	Delete commented out code for old Emacs versions.  Autoloading of
+	"ada-xref", "ada-prj" is useful even if compiler is not GNAT.
+	(ada-mode-version): Bump version number.
+	(ada-95-string-keywords, ada-2005-string-keywords)
+	(ada-2005-keywords, ada-name-regexp): New constant.
+	(ada-language-version, ada-procedure-start-regexp, ada-mode)
+	(ada-font-lock-keywords): Add support for Ada 2005 keywords.
+	(ada-package-start-regexp): Support private packages, include package
+	name (for ada-set-point-accordingly).
+	(ada-next-procedure, ada-previous-procedure)
+	(ada-which-function-are-we-in): Match changes to
+	ada-procedure-start-regexp.
+	(ada-make-body): Make non-interactive; not a user function.
+	(ada-make-subprogram-body): Improve doc string.
+
+2006-11-11  Romain Francoise  <romain@orebokech.com>
+
+	* progmodes/cperl-mode.el (cperl-mode): Before adding to it, make
+	`compilation-error-regexp-alist' buffer-local, since we changed
+	`compilation-error-regexp-alist-alist' locally.
+
+2006-11-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-visit-files): Bind `minibuffer-auto-raise'
+	to the value of `server-raise-frame'.
+
+2006-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* ido.el (ido-enable-prefix)
+	* ses.el (ses-call-printer-return)
+	* net/tramp.el (tramp-unified-filenames)
+	* progmodes/cc-align.el (c-lineup-string-cont)
+	* progmodes/compile.el (compilation-directory-matcher)
+	* progmodes/ebnf2ps.el (ebnf-stop-on-error)
+	* progmodes/vhdl-mode.el (vhdl-reset-active-high)
+	(vhdl-clock-rising-edge)
+	* textmodes/org.el (org-export-with-timestamps)
+	(org-export-remove-timestamps-from-toc)
+	(org-export-with-tags): Improve previous doc fixes.
+
+2006-11-11  Richard Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode-map):
+	Bind C-c $ instead of M-RET.
+
+2006-11-10  Simon Marshall  <simon@gnu.org>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Don't overwrite
+	fontification for "case" and "default" keywords.
+
+2006-11-10  Andreas Schwab  <schwab@suse.de>
+
+	* calendar/cal-dst.el (calendar-dst-check-each-year-flag):
+	Avoid starting sentence with "nil".
+
+2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-raise-frame): New option.
+	(server-switch-buffer): Use it.
+
+2006-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-many-windows): Start doc string
+	with a capital.
+
+2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* textmodes/org.el (org-show-hierarchy-above)
+	(org-show-following-heading): Fixed typo in default value.
+	(org-scan-tags): Make the search case-sensitive.
+	(org-tags-sparse-tree): Don't overrule
+	`org-show-following-heading' and `org-show-hierarchy-above'.
+	(org-reveal): New command.
+	(org-show-context): Renamed from `org-show-hierarchy-above'.
+	(org-fast-tag-selection-single-key): New option.
+	(org-fast-tag-show-exit, org-set-current-tags-overlay): New
+	functions.
+	(org-tags-overlay): New variable.
+	(org-agenda-todo-ignore-deadlines): New option.
+	("session"): Add circular data structure `org-mark-ring' to
+	exceptions list in session.el.
+	(org-agenda-window-setup, org-agenda-restore-windows-after-quit):
+	New options.
+	(org-agenda-quit): Use `org-agenda-restore-windows-after-quit'.
+	(org-prepare-agenda, org-agenda-quit): Use
+	`org-agenda-window-setup'.
+	(org-pre-agenda-window-conf, org-blank-before-new-entry): New
+	variables.
+	(org-finalize-agenda): Activate bracket links in agenda.
+	(org-at-timestamp-p, org-at-date-range-p): Additional argument
+	INACTIVE-OK.
+	(org-show-hierarchy-above, org-show-following-heading): List
+	values allowed for fine-tuned configuration.
+	(org-show-hierarchy-above): New argument CONTEXT, use the
+	fine-tuned settings in `org-show-hierarchy-above' and
+	`org-show-following-heading'.
+	(org-display-custom-time): New function.
+	(org-toggle-time-stamp-overlays, org-insert-time-stamp): New
+	function.
+	(org-display-custom-times, org-time-stamp-custom-formats):
+	(org-maybe-intangible): New macro.
+	(org-activate-bracket-links, org-hide-wide-columns): Use
+	`org-maybe-intangible'.
+	(org-open-file): Use `shell-quote-argument'.
+	(org-display-internal-link-with-indirect-buffer): New option.
+	(org-file-remote-p): Get regexp from list.
+	(org-link-expand-abbrev): New function.
+	(org-link-abbrev-alist): New option.
+	(org-open-at-point, org-cleaned-string-for-export): Call
+	`org-link-expand-abbrev'.
+	(org-timeline, org-agenda-list, org-todo-list)
+	(org-tags-view): Remove the KEEP-MODES argument.
+	(org-finalize-agenda-hook): New hook.
+	(org-get-alist-option): New function.
+	(org-follow-timestamp-link): New function.
+	(org-open-at-point): Call `org-follow-timestamp-link'.
+	(org-log-note-marker, org-log-note-purpose)
+	(org-log-note-window-configuration): New variables.
+	(org-add-log-maybe, org-add-log-note, org-store-log-note): New
+	functions.
+	(org-log-note-headings): New option.
+	(org-dblock-write:clocktable): Bug fix, removed infinite loop.
+	(org-store-link): Support for dired-mode.
+	(org-open-file): Substitute environment variables into filename.
+	(org-last): New defsubst.
+	(org-agenda-re-align-tags): New function.
+	(org-agenda-align-tags-to-column): New option.
+	(org-agenda-timeline): Group removed.
+	(org-prepare-agenda, org-prepare-agenda-buffers)
+	(org-run-agenda-series, org-timeline, org-agenda-list)
+	(org-todo-list, org-tags-view): Call `org-agenda-prepare' and set
+	the text property inticating the agenda type.
+	(org-agenda-post-command-hook): Get agenda type from text property
+	at point.
+	(org-agenda): Handle command sets.  Set
+	`org-agenda-last-arguments' and obey
+	`org-agenda-overriding-arguments'.
+	(org-agenda-overriding-arguments, org-agenda-last-arguments): New
+	variables.
+	(org-agenda-goto-today, org-agenda-later, org-agenda-earlier)
+	(org-agenda-week-view, org-agenda-day-view): Use
+	`org-agenda-overriding-arguments' to make updating work with
+	multi-block agendas.
+	(org-agenda-prefix-format): Allow different formats for the
+	different agenda entry types.
+	(org-timeline-prefix-format): Option removed, use
+	`org-agenda-prefix-format' instead.
+	(org-prepare-agenda): New function.
+	(org-select-timeline-window): Option removed, use
+	`org-select-agenda-window' instead.
+	(org-respect-restriction): Variable removed.
+	(org-cmp-tag): New function.
+	(org-agenda-sorting-strategy, org-entries-lessp): Implement
+	sorting by last tag.
+	(org-complete): Better completion in in-buffer option lines.
+	(org-in-item-p): New function.
+	(org-org-menu): Added entries for checkboxes.
+	(org-cycle): Extra brouping in outline-regexp, because it is used
+	in a search with "^" prepended.
+	(org-provide-checkbox-statistics): New option.
+	(org-set-font-lock-defaults): Highlight checkbox statistics.
+	(org-update-checkbox-count-maybe)
+	(org-get-checkbox-statistics-face): New functions.
+	(org-update-checkbox-count): New command.
+	(org-insert-item, org-toggle-checkbox): Call
+	`org-update-checkbox-count-maybe'.
+	(org-export-as-html): XEmacs compatibility for coding system.
+	(org-force-cycle-archived): New command.
+	(org-cycle-hide-archived-subtrees): Display message when ARCHIVE
+	overrules cycling.
+	(org-fix-position-after-promote): If the line contains only a todo
+	keyword, add a final space.
+	(org-promote-subtree, org-demote-subtree): Call
+	`org-fix-position-after-promote'.
+
+2006-11-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-dst.el: Do not assume DST starts/ends on the same
+	date in every year.
+	(calendar-dst-check-each-year-flag): New customizable variable.
+	(calendar-dst-find-data): New function, extracted from
+	calendar-current-time-zone.
+	(calendar-current-time-zone): Use calendar-dst-find-data.
+	(calendar-dst-transition-cache): New variable.
+	(calendar-dst-find-startend, calendar-dst-starts)
+	(calendar-dst-ends): New functions.
+	(calendar-daylight-savings-starts)
+	(calendar-daylight-savings-ends): Change value to use
+	calendar-dst-starts, calendar-dst-ends; respectively.
+
+	* progmodes/f90.el (f90-indent-region): Bind case-fold-search to t.
+
+	* ido.el (ido-enable-prefix)
+	* ses.el (ses-call-printer-return)
+	* net/tramp.el (tramp-unified-filenames)
+	* progmodes/cc-align.el (c-lineup-string-cont)
+	* progmodes/compile.el (compilation-directory-matcher)
+	* progmodes/ebnf2ps.el (ebnf-stop-on-error)
+	* progmodes/gdb-ui.el (gdb-many-windows)
+	* progmodes/vhdl-mode.el (vhdl-reset-active-high)
+	(vhdl-clock-rising-edge)
+	* textmodes/org.el (org-export-with-timestamps)
+	(org-export-remove-timestamps-from-toc, org-export-with-tags)
+	(org-read-date): Doc fix (Nil -> nil).
+
+2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
+	Encode/decode text to/from cut buffers to/from iso-latin-1 only.
+
+2006-11-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--window-for-buffer): Remove.
+	(bs--show-with-configuration): Use `get-window-with-predicate'
+	instead of `bs--window-for-buffer'.
+
+2006-11-10  Kenichi Handa  <handa@m17n.org>
+
+	* files.el (revert-buffer): Fix previous change.
+
+2006-11-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--redisplay): Fix typo in docstring.
+	(bs--window-config-coming-from): Make frame-local.
+	(bs--restore-window-config): New function.
+	(bs-kill, bs-select, bs-select-other-window)
+	(bs-select-other-frame): Use it.
+	(bs--window-for-buffer): Return as soon as a matching buffer is found.
+	(bs--show-with-configuration): Save the window configuration as a
+	frame local var, and only if *buffer-selection* is not already
+	visible on this frame.
+
+2006-11-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc-svn.el (vc-svn-admin-directory): New var.
+	(vc-svn-registered, vc-svn-responsible-p)
+	(vc-svn-repository-hostname): Use it.
+	Suggested by arit93@yahoo.com.
+
+2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ldefs-boot.el: Regenerate.
+
+2006-11-08  Alan Mackenzie  <acm@muc.de>
+
+	* emacs-lisp/lisp.el (beginning-of-defun-raw): Code up the
+	case (eq open-paren-in-column-0-is-defun-start nil) by searching
+	for least nested open-paren.
+
+2006-11-08  Romain Francoise  <romain@orebokech.com>
+
+	* subr.el (remove-overlays): Fix typo in last change.
+
+2006-11-08  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (remove-overlays): Call overlay-recenter.
+
+2006-11-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el (pr-alist-custom-set, pr-ps-utility-custom-set)
+	(pr-ps-name-custom-set, pr-txt-name-custom-set): Return back the old
+	behaviour.
+	(pr-menu-bind): Act on global-map instead of menu-bar-file-menu
+	directly.
+
+2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-ignore-extensions, ido-show-dot-for-dired)
+	(ido-max-dir-file-cache, ido-decorations)
+	(ido-rewrite-file-prompt-functions, ido-use-mycompletion-depth)
+	(ido-magic-backward-char, ido-enter-dired)
+	(ido-enter-insert-buffer, ido-enter-insert-file, ido-dired)
+	(ido-list-directory, ido-first-match, ido-only-match)
+	(ido-subdir, ido-indicator): Fix typos in docstrings.
+	(ido-buffer-internal, ido-completion-help): Fix typos in messages.
+	(ido-read-internal): Fix typo in error message.
+
+2006-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-default-coding-systems): Always
+	set default-file-name-coding-system to utf-8 for Mac Darwin.
+
+2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (setwins): Remove.
+	(WINS_ALMOST): New macro.
+	(WINS): Use it.
+	(autoloads): Don't extract autoloads from files in obsolete/.
+
 2006-11-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* whitespace.el (whitespace-buffer): Call remove-overlays after
@@ -444,7 +1007,7 @@
 	(cal-html-cursor-year): Add autoloads for this new package.
 	(calendar-mode-map): Bind cal-html-cursor-month, cal-html-cursor-year.
 
-2006-10-28  Anna Bigatti  <bigatti@dima.unige.it>
+2006-10-28  Anna M. Bigatti  <bigatti@dima.unige.it>
 
 	* calendar/cal-html.el: New file.
 
@@ -486,6 +1049,16 @@
 
 	* midnight.el (midnight-buffer-display-time): Doc fix.
 	(clean-buffer-list-kill-never-buffer-names): Add "*server*".
+
+2006-10-23  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-cmd.el (viper-prefix-arg-com): Define gg as G0.
+
+	* viper-ex.el (ex-read): Quote file argument.
+
+	* ediff-diff.el (ediff-same-file-contents): Expand file names.
+
+	* ediff-mult.el (ediff-append-custom-diff): Quote shell file arguments.
 
 2006-10-22  Martin Rudalics  <rudalics@gmx.at>
 
@@ -1279,7 +1852,7 @@
 	* progmodes/cperl-mode.el (cperl-after-expr-p): Don't move point
 	to nil if there is no previous property change.
 
-2006-09-26  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-09-29  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
 
 	* cus-edit.el (custom-save-all): Switch to emacs-lisp mode before
 	saving anything to be sure that `forward-sexp' behaves correctly.
@@ -3198,7 +3771,7 @@
 
 	* replace.el (replace-match-string-symbols): Handle dotted lists.
 
-2006-07-24  mathias  <mathias@mattis>
+2006-07-24  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-write-tags): Add.
 	(tumme-write-comments): Add.
@@ -3213,7 +3786,7 @@
 	(tumme-display-previous-thumbnail-original): Remove empty line.
 	(tumme-widget-list): Add punctuation.
 
-2006-07-24  mathias  <mathias.dahl@gmail.com>
+2006-07-24  Mathias Dahl  <mathias.dahl@gmail.com>
 
 	* tumme.el (tumme-line-up): Add an extra check for end of buffer.
 
@@ -28794,6 +29367,7 @@ See ChangeLog.11 for earlier changes.
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 2005, 2006 Free Software Foundation, Inc.

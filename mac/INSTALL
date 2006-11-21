@@ -33,10 +33,6 @@ The --enable-carbon-app specifies that the carbon GUI application
 should be installed into /Application.  If you want it to install in a
 different location, specify --enable-carbon-app=<mydir>
 
-If you have X Window installed on your Mac and you are building Emacs
-to run under Carbon and not X Window, you need to type `./configure
---without-x' instead of `./configure'.
-
 You can type `make bootstrap' instead of `make' to rebuild everything,
 including byte-compiling the Lisp files.
 
@@ -59,10 +55,10 @@ must be typed to the shell to enable Emacs to locate its resources
 correctly.  You may want to create a symlink or alias to this path to
 quickly access both the terminal and GUI versions.
 
-If you are building Emacs to run on Mac OS X and X Window,
+If you are building Emacs to run on Mac OS X and X Window System,
 instead of typing `./configure' above, type
 
-  ./configure --without-carbon --with-x
+  ./configure --with-x
 
 
 To use colors in a terminal, put the following lines in the file

@@ -884,12 +884,12 @@
 1998-04-23  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* ddeclient.c: New file.  (Support program for performing limited
- 	interprocess communication on Windows.)
+	interprocess communication on Windows.)
 
 	* makefile.nt: Build ddeclient.
 
 	* cmdproxy.c (main): Only set environment size for real shell, and
- 	provide extra directory argument, when running on Windows 95.
+	provide extra directory argument, when running on Windows 95.
 
 1998-04-17  Geoff Voelker  <voelker@cs.washington.edu>
 
@@ -943,7 +943,7 @@
 	(CFLAGS) [!MSVCNT11]: Define _CRTAPI1.
 
 	* runemacs.c (WinMain): Allow Emacs process to be started with
- 	high or low priority.
+	high or low priority.
 
 	* emacs.bat.in: Remove OS dependent operations.
 
@@ -1018,12 +1018,12 @@
 
 1996-06-03  Kim F. Storm  <kfs@olicom.dk>
 
-        * runemacs.c (CHOOSE_NEWEST_EXE): New parameter macro.
+	* runemacs.c (CHOOSE_NEWEST_EXE): New parameter macro.
 	Not defined by default.
 	(WinMain): Add conditional testing CHOOSE_NEWEST_EXE.
 	(WinMain): Convert backslashes to slashes in env var values.
 
-        * addpm.c (env_vars): Use slashes, not backslashes.
+	* addpm.c (env_vars): Use slashes, not backslashes.
 
 1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
@@ -1037,7 +1037,7 @@
 1996-05-08  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* addpm.c (env_vars): Set SHELL registry entry to value of COMSPEC
- 	environment variable.
+	environment variable.
 
 1996-05-03  Andrew Innes  <andrewi@harlequin.co.uk>
 
@@ -1198,12 +1198,12 @@
 
 	* ebuild.cmd, emacs.cmd, install.cmd: Changed extension to .bat.
 
-1994-12-13  voelker  <voelker@cs.washington.edu>
+1994-12-13  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* makefile.def (CC): In configuration section.
 	(COMPAT_LIB): Defined.
 
-1994-11-01  voelker  <voelker@cs.washington.edu>
+1994-11-01  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* src/paths.h: New file.
 
@@ -1225,13 +1225,13 @@
 
 	* makefile.nt: New file.
 
-        * makefile.def: New file.
+	* makefile.def: New file.
 
-        * install.cmd: New file.
+	* install.cmd: New file.
 
-        * INSTALL: New file.
+	* INSTALL: New file.
 
-        * fast-install.cmd: New file.
+	* fast-install.cmd: New file.
 
 	* emacs.cmd: New file.
 
@@ -1241,6 +1241,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,

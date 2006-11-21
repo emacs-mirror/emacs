@@ -1,3 +1,130 @@
+2006-11-21  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c: Break line before &&, not after.
+
+2006-11-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* fns.c (concat) [!__GNUC__]: Add prototype.
+
+2006-11-20  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Fread_file_name_internal): Use SBYTES (not SCHARS) to
+	check the tailing slash of a filename.
+
+2006-11-20  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+
+	* indent.c (Fvertical_motion): Include composition in the case of
+	overshoot expected.
+
+2006-11-19  Andreas Schwab  <schwab@gnu.org>
+
+	* xfaces.c (Fdisplay_supports_face_attributes_p): Initialize
+	supports.
+
+	* xmenu.c (Fx_popup_menu): Initialize selection.
+
+2006-11-18  Andreas Schwab  <schwab@suse.de>
+
+	* s/gnu-linux.h (GC_MARK_SECONDARY_STACK): Update call to
+	mark_memory.
+
+2006-11-17  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+
+	* xterm.c (do_ewmh_fullscreen): Declare variable before XSETFRAME
+	to avoid gcc 2.96 error.
+
+2006-11-17  NIIMI Satoshi  <sa2c@sa2c.net>  (tiny change)
+
+	* search.c (simple_search): In the loop of backward searching,
+	check also the byte position against the limit.
+
+2006-11-14  Romain Francoise  <romain@orebokech.com>
+
+	* minibuf.c (Fcompleting_read): Fix typo in docstring.
+
+2006-11-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region): Initialize
+	coding->heading_ascii.
+	(decode_coding_string, code_convert_region): Likewise.
+
+2006-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* config.in: Regenerate.
+
+	* macfns.c (Fx_display_mm_height, Fx_display_mm_width)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+	&& MAC_OS_X_VERSION_MIN_REQUIRED == 1020]: Check if
+	CGDisplayScreenSize is available.
+
+	* macmenu.c (menu_quit_handler, install_menu_quit_handler):
+	Replace `#ifdef HAVE_CANCELMENUTRACKING' with
+	`#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030'.
+	(install_menu_quit_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+	&& MAC_OS_X_VERSION_MIN_REQUIRED == 1020]: Check if
+	CancelMenuTracking is available.
+
+	* macterm.c [USE_CG_TEXT_DRAWING] (mac_draw_image_string_cg)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+	&& MAC_OS_X_VERSION_MIN_REQUIRED == 1020]: Check if
+	CGContextShowGlyphsWithAdvances is available.
+
+2006-11-13  Jason Rumney  <jasonr@gnu.org>
+
+	* s/ms-w32.h: Define HAVE_INET_SOCKETS.
+
+2006-11-13  Nozomu Ando  <nand@mac.com>
+
+	* alloc.c (mark_memory): New argument OFFSET.  All uses changed.
+	Fix address calculations for case END < START.
+	(mark_stack): Impose Lisp_Object alignment on jmp_buf.
+
+2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (Fencode_sjis_char, Fencode_big5_char):
+	Improve argument/docstring consistency.
+
+	* editfns.c (Fmessage): Doc fixes.
+
+	* process.c (syms_of_process) <delete-exited-processes>: Doc fix.
+
+2006-11-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xmenu.c (popup_activated): Define outside HAVE_MENUS.
+
+2006-11-12  Romain Francoise  <romain@orebokech.com>
+
+	* xselect.c (selection-coding-system): Fix docstring.
+
+2006-11-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* category.c (Fchar_category_set): Improve arg/docstring consistency.
+
+	* data.c (Flogxor):
+	* fns.c (Frandom, Flength, Fsafe_length, Fstring_bytes)
+	(Fstring_equal, Fcompare_strings, Fstring_lessp, Fcopy_sequence)
+	(Fstring_make_unibyte): Fix typos in docstrings.
+
+2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_display_info): Fix indentation.
+
+	* xterm.c (do_ewmh_fullscreen, XTfullscreen_hook): New functions.
+	(x_check_fullscreen): Call do_ewmh_fullscreen.
+	(x_initialize): Set fullscreen_hook to XTfullscreen_hook.
+
+	* frame.c (x_set_fullscreen): Call fullscreen_hook if set.
+
+	* term.c: Define fullscreen_hook.
+	(syms_of_term): Initialize fullscreen_hook to NULL.
+
+	* termhooks.h: Add fullscreen_hook.
+
+2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bytecode.c (Fbyte_code):
+	* data.c (Fmakunbound): Use SYMBOL_CONSTANT_P macro.
+
 2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lread.c (syms_of_lread):
@@ -716,7 +843,7 @@
 	* editfns.c (Fsystem_name): Mention "host" in the doc string.
 	(syms_of_editfns) <system-name>: Likewise.
 
-2006-08-27  Martin Rudalics  <rudalics@gmx.at>
+2006-09-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* xdisp.c (mouse_autoselect_window): Remove.
 	(Vmouse_autoselect_window): New variable.  DEFVAR_LISP it.
@@ -26367,6 +26494,7 @@ See ChangeLog.9 for earlier changes.
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005,

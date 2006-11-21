@@ -1788,7 +1788,13 @@ fi
 if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
   if test "${with_carbon+set}" != set \
      && test "${carbon_appdir_x+set}" != set; then
-    HAVE_CARBON=no
+    for var in with_x with_x_toolkit with_gtk with_xim \
+               with_xpm with_jpeg with_tiff with_gif with_png; do
+      if eval test \"\${$var+set}\" = set; then
+        HAVE_CARBON=no
+        break
+      fi
+    done
   fi
 fi
 if test "${HAVE_CARBON}" = yes; then
@@ -2503,15 +2509,6 @@ if test "${HAVE_CARBON}" = "yes"; then
   fi
   # We also have mouse menus.
   HAVE_MENUS=yes
-
-  tmp_CFLAGS="$CFLAGS"
-  CFLAGS="$CFLAGS -framework Carbon"
-  AC_CHECK_FUNC(CancelMenuTracking, have_cmt=yes, have_cmt=no)
-  if test "$have_cmt" = yes; then
-    AC_DEFINE(HAVE_CANCELMENUTRACKING, 1,
-              [Define to 1 if CancelMenuTracking is available (Mac OSX).])
-  fi
-  CFLAGS="$tmp_CFLAGS"
 fi
 
 ### Use session management (-lSM -lICE) if available
