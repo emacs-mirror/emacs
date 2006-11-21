@@ -1248,9 +1248,9 @@ See also the function `substitute-in-file-name'.  */)
 	      }
 	    else
 #endif /* NO_HYPHENS_IN_FILENAMES */
-	      if (lbrack > rbrack &&
-		  ((p[-1] == '.' || p[-1] == '[' || p[-1] == '<') &&
-		   (p[1] == '.' || p[1] == ']' || p[1] == '>')))
+	      if (lbrack > rbrack
+		  && ((p[-1] == '.' || p[-1] == '[' || p[-1] == '<')
+		      && (p[1] == '.' || p[1] == ']' || p[1] == '>')))
 		lose = 1;
 #ifdef NO_HYPHENS_IN_FILENAMES
 	      else
@@ -1619,8 +1619,8 @@ See also the function `substitute-in-file-name'.  */)
 	  else if (*p == '-' && *o != '.')
 	    *--p = '.';
 	}
-      else if (p[0] == '-' && o[-1] == '.' &&
-	       (p[1] == '.' || p[1] == ']' || p[1] == '>'))
+      else if (p[0] == '-' && o[-1] == '.'
+	       && (p[1] == '.' || p[1] == ']' || p[1] == '>'))
 	/* flush .foo.- ; leave - if stopped by '[' or '<' */
 	{
 	  do
@@ -1635,9 +1635,9 @@ See also the function `substitute-in-file-name'.  */)
       else
 	{
 #ifdef NO_HYPHENS_IN_FILENAMES
-	  if (*p == '-' &&
-	      o[-1] != '[' && o[-1] != '<' && o[-1] != '.' &&
-	      p[1] != ']' && p[1] != '>' && p[1] != '.')
+	  if (*p == '-'
+	      && o[-1] != '[' && o[-1] != '<' && o[-1] != '.'
+	      && p[1] != ']' && p[1] != '>' && p[1] != '.')
 	    *p = '_';
 #endif /* NO_HYPHENS_IN_FILENAMES */
 	  *o++ = *p++;
@@ -1820,9 +1820,9 @@ See also the function `substitute-in-file-name'.")
 	      }
 	    else
 #endif /* VMS4_4 */
-	      if (lbrack > rbrack &&
-		  ((p[-1] == '.' || p[-1] == '[' || p[-1] == '<') &&
-		   (p[1] == '.' || p[1] == ']' || p[1] == '>')))
+	      if (lbrack > rbrack
+		  && ((p[-1] == '.' || p[-1] == '[' || p[-1] == '<')
+		      && (p[1] == '.' || p[1] == ']' || p[1] == '>')))
 		lose = 1;
 #ifndef VMS4_4
 	      else
@@ -1991,8 +1991,8 @@ See also the function `substitute-in-file-name'.")
 	  else if (*p == '-' && *o != '.')
 	    *--p = '.';
 	}
-      else if (p[0] == '-' && o[-1] == '.' &&
-	       (p[1] == '.' || p[1] == ']' || p[1] == '>'))
+      else if (p[0] == '-' && o[-1] == '.'
+	       && (p[1] == '.' || p[1] == ']' || p[1] == '>'))
 	/* flush .foo.- ; leave - if stopped by '[' or '<' */
 	{
 	  do
@@ -2007,9 +2007,9 @@ See also the function `substitute-in-file-name'.")
       else
 	{
 #ifndef VMS4_4
-	  if (*p == '-' &&
-	      o[-1] != '[' && o[-1] != '<' && o[-1] != '.' &&
-	      p[1] != ']' && p[1] != '>' && p[1] != '.')
+	  if (*p == '-'
+	      && o[-1] != '[' && o[-1] != '<' && o[-1] != '.'
+	      && p[1] != ']' && p[1] != '>' && p[1] != '.')
 	    *p = '_';
 #endif /* VMS4_4 */
 	  *o++ = *p++;
@@ -2029,8 +2029,8 @@ See also the function `substitute-in-file-name'.")
 	  o = target;
 	  p++;
 	}
-      else if (p[0] == '/' && p[1] == '.' &&
-	       (p[2] == '/' || p[2] == 0))
+      else if (p[0] == '/' && p[1] == '.'
+	       && (p[2] == '/' || p[2] == 0))
 	p += 2;
       else if (!strncmp (p, "/..", 3)
 	       /* `/../' is the "superroot" on certain file systems.  */
@@ -6201,9 +6201,9 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 	    {
 	      Lisp_Object tem = XCAR (all);
 	      int len;
-	      if (STRINGP (tem) &&
-		  (len = SBYTES (tem), len > 0) &&
-		  IS_DIRECTORY_SEP (SREF (tem, len-1)))
+	      if (STRINGP (tem)
+		  && (len = SBYTES (tem), len > 0)
+		  && IS_DIRECTORY_SEP (SREF (tem, len-1)))
 		comp = Fcons (tem, comp);
 	    }
 	}
