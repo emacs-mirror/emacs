@@ -798,7 +798,9 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	(if translation
 	    (progn
 	      (if (consp translation)
-		  (setq translation (aref (cdr translation) 0)))
+		  (if (> (length (cdr translation)) 0)
+		      (setq translation (aref (cdr translation) 0))
+		    (setq translation " ")))
 	      (setq done-list (cons translation done-list)))
 	  (setq translation ch))
 	(aset layout i translation))
@@ -1583,7 +1585,10 @@ with more keys."
   "Return string to be shown as current translation of key sequence.
 LEN is the length of the sequence.  DEF is a definition part of the
 Quail map for the sequence."
-  (or (and (consp def) (aref (cdr def) (car (car def))))
+  (or (and (consp def)
+	   (if (> (length (cdr def)) (car (car def)))
+	       (aref (cdr def) (car (car def)))
+	     ""))
       def
       (and (> len 1)
 	   (let* ((str (quail-get-current-str
