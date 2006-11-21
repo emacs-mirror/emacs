@@ -1,3 +1,9 @@
+2006-11-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-insert-kbd-layout): Check the
+	length of (cdr translation).
+	(quail-get-current-str): Check the length of (cdr def).
+
 2006-11-16  Kenichi Handa  <handa@m17n.org>
 
 	* ruler-mode.el (ruler-mode-ruler): Make the string `ruler'
