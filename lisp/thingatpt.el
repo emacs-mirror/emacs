@@ -214,15 +214,18 @@ Hostname matching is stricter in this case than for
 ``thing-at-point-url-regexp''.")
 
 (defvar thing-at-point-uri-schemes
-  ;; Officials from http://www.iana.org/assignments/uri-schemes
+  ;; Officials from http://www.iana.org/assignments/uri-schemes.html
   '("ftp://" "http://" "gopher://" "mailto:" "news:" "nntp:"
     "telnet://" "wais://" "file:/" "prospero:" "z39.50s:" "z39.50r:"
     "cid:" "mid:" "vemmi:" "service:" "imap:" "nfs:" "acap:" "rtsp:"
     "tip:" "pop:" "data:" "dav:" "opaquelocktoken:" "sip:" "tel:" "fax:"
     "modem:" "ldap:" "https://" "soap.beep:" "soap.beeps:" "urn:" "go:"
     "afs:" "tn3270:" "mailserver:"
+    "crid:" "dict:" "dns:" "dtn:" "h323:" "im:" "info:" "ipp:"
+    "iris.beep:" "mtqp:" "mupdate:" "pres:" "sips:" "snmp:" "tag:"
+    "tftp:" "xmlrpc.beep:" "xmlrpc.beeps:" "xmpp:"
   ;; Compatibility
-    "snews:")
+    "snews:" "irc:" "mms://" "mmsh://")
   "Uniform Resource Identifier (URI) Schemes.")
 
 (defvar thing-at-point-url-regexp
@@ -275,7 +278,10 @@ starts with \"ftp\" and not \"ftp:/\", or \"http://\" by default."
 	  ;; strip whitespace
 	  (while (string-match "[ \t\n\r]+" url)
 	    (setq url (replace-match "" t t url)))
-	  (and short (setq url (concat (cond ((string-match "@" url)
+	  (and short (setq url (concat (cond ((string-match "^[a-zA-Z]+:" url)
+					       ;; already has a URL scheme.
+					       "")
+					     ((string-match "@" url)
                                               "mailto:")
 					     ;; e.g. ftp.swiss... or ftp-swiss...
                                              ((string-match "^ftp" url)
