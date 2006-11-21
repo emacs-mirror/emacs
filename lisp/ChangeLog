@@ -1,3 +1,13 @@
+2006-11-20  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* thingatpt.el (thing-at-point-url-at-point):  Don't add a
+	redundant scheme.
+
+2006-11-20  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
+
+	* thingatpt.el (thing-at-point-uri-schemes): Added schemes that
+	are new to the list at IANA.  Also added irc, mms, mmsh.
+
 2006-11-20  J.D. Smith  <jdsmith@as.arizona.edu>
 
 	* progmodes/idlw-help.el (idlwave-html-help-location): Fail
