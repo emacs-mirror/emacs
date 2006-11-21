@@ -95,22 +95,38 @@ This is only meaningful if you don't use the implicit checkout model
   ;; :group 'vc
   )
 
+(defvar vc-svn-admin-directory
+  (cond ((and (eq system-type 'windows-nt)
+	      (getenv "SVN_ASP_DOT_NET_HACK"))
+	 "_svn")
+	(t ".svn"))
+  "The name of the \".svn\" subdirectory or its equivalent.")
+
 ;;;
 ;;; State-querying functions
 ;;;
 
+;;; vc-svn-admin-directory is generally not defined when the
+;;; autoloaded function is called.
+
 ;;;###autoload (defun vc-svn-registered (f)
-;;;###autoload   (when (file-readable-p (expand-file-name
-;;;###autoload 			  ".svn/entries" (file-name-directory f)))
+;;;###autoload   (let ((admin-dir (cond ((and (eq system-type 'windows-nt)
+;;;###autoload 			       (getenv "SVN_ASP_DOT_NET_HACK"))
+;;;###autoload 			  "_svn")
+;;;###autoload 			 (t ".svn"))))
+;;;###autoload     (when (file-readable-p (expand-file-name
+;;;###autoload 			    (concat admin-dir "/entries")
+;;;###autoload 			    (file-name-directory f)))
 ;;;###autoload       (load "vc-svn")
-;;;###autoload       (vc-svn-registered f)))
+;;;###autoload       (vc-svn-registered f))))
 
 ;;;###autoload
 (add-to-list 'completion-ignored-extensions ".svn/")
 
 (defun vc-svn-registered (file)
   "Check if FILE is SVN registered."
-  (when (file-readable-p (expand-file-name ".svn/entries"
+  (when (file-readable-p (expand-file-name (concat vc-svn-admin-directory
+						   "/entries")
 					   (file-name-directory file)))
     (with-temp-buffer
       (cd (file-name-directory file))
@@ -206,7 +222,7 @@ the SVN command (in that order)."
 
 (defun vc-svn-responsible-p (file)
   "Return non-nil if SVN thinks it is responsible for FILE."
-  (file-directory-p (expand-file-name ".svn"
+  (file-directory-p (expand-file-name vc-svn-admin-directory
 				      (if (file-directory-p file)
 					  file
 					(file-name-directory file)))))
@@ -474,7 +490,9 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
     (let ((coding-system-for-read
 	   (or file-name-coding-system
 	       default-file-name-coding-system)))
-      (vc-insert-file (expand-file-name ".svn/entries" dirname)))
+      (vc-insert-file (expand-file-name (concat vc-svn-admin-directory
+						"/entries")
+					dirname)))
     (goto-char (point-min))
     (when (re-search-forward
 	   ;; Old `svn' used name="svn:dir", newer use just name="".

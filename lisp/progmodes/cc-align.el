@@ -822,7 +822,7 @@ directly after another one.  E.g:
 result = prefix + \"A message \"
                   \"string.\";      <- c-lineup-string-cont
 
-Nil is returned in other situations, to allow stacking with other
+In other situations, returns nil, to allow stacking with other
 line-up functions.
 
 Works with: topmost-intro-cont, statement-cont, arglist-cont,

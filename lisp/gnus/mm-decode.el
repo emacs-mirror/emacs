@@ -1135,7 +1135,7 @@ are ignored."
 	    (with-current-buffer (mm-handle-buffer handle)
 	      (buffer-string)))
 	   ((mm-multibyte-p)
-	    (mm-string-as-multibyte (mm-get-part handle no-cache)))
+	    (mm-string-to-multibyte (mm-get-part handle no-cache)))
 	   (t
 	    (mm-get-part handle no-cache))))))
 

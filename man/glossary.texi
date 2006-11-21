@@ -453,7 +453,7 @@ or absolute; the meaning of a relative file name depends on the current
 directory, but an absolute file name refers to the same file regardless
 of which directory is current.  On GNU and Unix systems, an absolute
 file name starts with a slash (the root directory) or with @samp{~/} or
-@samp{~@var{user}/} (a home directory).  On MS-Windows/MS-DOS, and
+@samp{~@var{user}/} (a home directory).  On MS-Windows/MS-DOS, an
 absolute file name can also start with a drive letter and a colon
 @samp{@var{d}:}.
 
@@ -848,8 +848,8 @@ has never been saved).  @xref{Saving}.
 
 @item Moving Text
 Moving text means erasing it from one place and inserting it in
-another.  The usual way to move text by killing (q.v.@:) and then
-yanking (q.v.@:).  @xref{Killing}.
+another.  The usual way to move text is by killing (q.v.@:) it and then
+yanking (q.v.@:) it.  @xref{Killing}.
 
 @item MULE
 MULE refers to the Emacs features for editing multilingual non-@acronym{ASCII} text

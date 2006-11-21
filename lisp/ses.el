@@ -297,7 +297,7 @@ need to be recalculated.")
 (defvar ses-call-printer-return nil
   "Set to t if last cell printer invoked by `ses-call-printer' requested
 left-justification of the result.  Set to error-signal if ses-call-printer
-encountered an error during printing.  Nil otherwise.")
+encountered an error during printing.  Otherwise nil.")
 
 (defvar ses-start-time nil
   "Time when current operation started.  Used by `ses-time-check' to decide

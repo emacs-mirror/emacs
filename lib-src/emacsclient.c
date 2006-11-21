@@ -28,11 +28,13 @@ Boston, MA 02110-1301, USA.  */
 
 #ifdef WINDOWSNT
 
+/* config.h defines these, which disables sockets altogether! */
+# undef _WINSOCKAPI_
+# undef _WINSOCK_H
+
 # include <malloc.h>
 # include <stdlib.h>
 
-# define HAVE_SOCKETS
-# define HAVE_INET_SOCKETS
 # define NO_SOCKETS_IN_FILE_SYSTEM
 
 # define HSOCKET SOCKET
@@ -40,6 +42,8 @@ Boston, MA 02110-1301, USA.  */
 # define INITIALIZE() (initialize_sockets ())
 
 #else /* !WINDOWSNT */
+
+# include <sys/types.h>
 
 # ifdef HAVE_INET_SOCKETS
 #  include <netinet/in.h>
@@ -510,7 +514,7 @@ get_server_config (server, authentication)
 
     if (hUser32 = LoadLibrary ("user32.dll"))
       {
-        void (*set_fg)(DWORD);
+        FARPROC set_fg;
         if (set_fg = GetProcAddress (hUser32, "AllowSetForegroundWindow"))
           set_fg (atoi (pid));
         FreeLibrary (hUser32);

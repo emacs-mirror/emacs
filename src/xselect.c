@@ -123,8 +123,8 @@ Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
 
 static Lisp_Object Vx_lost_selection_functions;
 static Lisp_Object Vx_sent_selection_functions;
-/* Coding system for communicating with other X clients via cutbuffer,
-   selection, and clipboard.  */
+/* Coding system for communicating with other X clients via selection
+   and clipboard.  */
 static Lisp_Object Vselection_coding_system;
 
 /* Coding system for the next communicating with other X clients.  */
@@ -2975,8 +2975,8 @@ it merely informs you that they have happened.  */);
 
   DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
 	       doc: /* Coding system for communicating with other X clients.
-When sending or receiving text via cut_buffer, selection, and clipboard,
-the text is encoded or decoded by this coding system.
+When sending or receiving text via selection and clipboard, the text is
+encoded or decoded by this coding system.
 The default value is `compound-text-with-extensions'.  */);
   Vselection_coding_system = intern ("compound-text-with-extensions");
 

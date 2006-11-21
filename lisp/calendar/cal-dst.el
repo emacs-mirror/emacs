@@ -42,6 +42,16 @@
 (require 'calendar)
 (require 'cal-persia)
 
+(defcustom calendar-dst-check-each-year-flag t
+  "Non-nil means to check each year for DST transitions as needed.
+Otherwise assume the next two transitions found after the
+current date apply to all years.  This is faster, but not always
+correct, since the dates of Daylight Saving transitions sometimes
+change."
+  :type 'boolean
+  :version "22.1"
+  :group 'calendar)
+
 (defvar calendar-current-time-zone-cache nil
   "Cache for result of calendar-current-time-zone.")
 
@@ -199,6 +209,74 @@ The result has the proper form for calendar-daylight-savings-starts'."
 	  (cdr candidate-rules)))
     (car candidate-rules)))
 
+;; TODO it might be better to extract this information directly from
+;; the system timezone database. But cross-platform...?
+;; See thread
+;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2006-11/msg00060.html
+(defun calendar-dst-find-data (&optional time)
+  "Find data on the first Daylight Saving Time transitions after TIME.
+TIME defaults to `current-time'.  Return value is as described
+for `calendar-current-time-zone'."
+  (let* ((t0 (or time (current-time)))
+         (t0-zone (current-time-zone t0))
+         (t0-utc-diff (car t0-zone))
+         (t0-name (car (cdr t0-zone))))
+    (if (not t0-utc-diff)
+        ;; Little or no time zone information is available.
+        (list nil nil t0-name t0-name nil nil nil nil)
+      (let* ((t1 (calendar-next-time-zone-transition t0))
+             (t2 (and t1 (calendar-next-time-zone-transition t1))))
+        (if (not t2)
+            ;; This locale does not have daylight savings time.
+            (list (/ t0-utc-diff 60) 0 t0-name t0-name nil nil 0 0)
+          ;; Use heuristics to find daylight savings parameters.
+          (let* ((t1-zone (current-time-zone t1))
+                 (t1-utc-diff (car t1-zone))
+                 (t1-name (car (cdr t1-zone)))
+                 (t1-date-sec (calendar-absolute-from-time t1 t0-utc-diff))
+                 (t2-date-sec (calendar-absolute-from-time t2 t1-utc-diff))
+                 ;; TODO When calendar-dst-check-each-year-flag is non-nil,
+                 ;; the rules can be simpler than they currently are.
+                 (t1-rules (calendar-time-zone-daylight-rules
+                            (car t1-date-sec) t0-utc-diff))
+                 (t2-rules (calendar-time-zone-daylight-rules
+                            (car t2-date-sec) t1-utc-diff))
+                 (t1-time (/ (cdr t1-date-sec) 60))
+                 (t2-time (/ (cdr t2-date-sec) 60)))
+            (cons
+             (/ (min t0-utc-diff t1-utc-diff) 60)
+             (cons
+              (/ (abs (- t0-utc-diff t1-utc-diff)) 60)
+              (if (< t0-utc-diff t1-utc-diff)
+                  (list t0-name t1-name t1-rules t2-rules t1-time t2-time)
+                (list t1-name t0-name t2-rules t1-rules t2-time t1-time)
+                )))))))))
+
+(defvar calendar-dst-transition-cache nil
+  "Internal cal-dst variable storing date of Daylight Saving Time transitions.
+Value is a list with elements of the form (YEAR START END), where
+START and END are expressions that when evaluated return the
+start and end dates (respectively) for DST in YEAR. Used by the
+function `calendar-dst-find-startend'.")
+
+(defun calendar-dst-find-startend (year)
+  "Find the dates in YEAR on which Daylight Saving Time starts and ends.
+Returns a list (YEAR START END), where START and END are
+expressions that when evaluated return the start and end dates,
+respectively. This function first attempts to use pre-calculated
+data from `calendar-dst-transition-cache', otherwise it calls
+`calendar-dst-find-data' (and adds the results to the cache)."
+  (let ((e (assoc year calendar-dst-transition-cache))
+        f)
+    (or e
+        (progn
+          (setq e (calendar-dst-find-data (encode-time 1 0 0 1 1 year))
+                f (nth 4 e)
+                e (list year f (nth 5 e))
+                calendar-dst-transition-cache
+                (append calendar-dst-transition-cache (list e)))
+          e))))
+
 (defun calendar-current-time-zone ()
   "Return UTC difference, dst offset, names and rules for current time zone.
 
@@ -226,42 +304,8 @@ DST-ZONE are equal, and all the DST-* integer variables are 0.
 Some operating systems cannot provide all this information to Emacs; in this
 case, `calendar-current-time-zone' returns a list containing nil for the data
 it can't find."
-  (or
-   calendar-current-time-zone-cache
-   (setq
-    calendar-current-time-zone-cache
-    (let* ((t0 (current-time))
-	   (t0-zone (current-time-zone t0))
-	   (t0-utc-diff (car t0-zone))
-	   (t0-name (car (cdr t0-zone))))
-      (if (not t0-utc-diff)
-	  ;; Little or no time zone information is available.
-	  (list nil nil t0-name t0-name nil nil nil nil)
-	(let* ((t1 (calendar-next-time-zone-transition t0))
-	       (t2 (and t1 (calendar-next-time-zone-transition t1))))
-	  (if (not t2)
-	      ;; This locale does not have daylight savings time.
-	      (list (/ t0-utc-diff 60) 0 t0-name t0-name nil nil 0 0)
-	    ;; Use heuristics to find daylight savings parameters.
-	    (let* ((t1-zone (current-time-zone t1))
-		   (t1-utc-diff (car t1-zone))
-		   (t1-name (car (cdr t1-zone)))
-		   (t1-date-sec (calendar-absolute-from-time t1 t0-utc-diff))
-		   (t2-date-sec (calendar-absolute-from-time t2 t1-utc-diff))
-		   (t1-rules (calendar-time-zone-daylight-rules
-			      (car t1-date-sec) t0-utc-diff))
-		   (t2-rules (calendar-time-zone-daylight-rules
-			      (car t2-date-sec) t1-utc-diff))
-		   (t1-time (/ (cdr t1-date-sec) 60))
-		   (t2-time (/ (cdr t2-date-sec) 60)))
-	      (cons
-	       (/ (min t0-utc-diff t1-utc-diff) 60)
-	       (cons
-		(/ (abs (- t0-utc-diff t1-utc-diff)) 60)
-		(if (< t0-utc-diff t1-utc-diff)
-		    (list t0-name t1-name t1-rules t2-rules t1-time t2-time)
-		    (list t1-name t0-name t2-rules t1-rules t2-time t1-time)
-		    )))))))))))
+  (unless calendar-current-time-zone-cache
+    (setq calendar-current-time-zone-cache (calendar-dst-find-data))))
 
 ;;; The following eight defvars relating to daylight savings time should NOT be
 ;;; marked to go into loaddefs.el where they would be evaluated when Emacs is
@@ -293,12 +337,32 @@ For example, \"EST\" in New York City, \"PST\" for Los Angeles.")
   "*Abbreviated name of daylight-savings time zone at `calendar-location-name'.
 For example, \"EDT\" in New York City, \"PDT\" for Los Angeles.")
 
+
+(defun calendar-dst-starts (year)
+  "Return the date of YEAR on which Daylight Saving Time starts.
+This function respects the value of `calendar-dst-check-each-year-flag'."
+  (or (let ((expr (if calendar-dst-check-each-year-flag
+                      (cadr (calendar-dst-find-startend year))
+                    (nth 4 calendar-current-time-zone-cache))))
+        (if expr (eval expr)))
+      (and (not (zerop calendar-daylight-time-offset))
+           (calendar-nth-named-day 1 0 4 year))))
+
+(defun calendar-dst-ends (year)
+  "Return the date of YEAR on which Daylight Saving Time ends.
+This function respects the value of `calendar-dst-check-each-year-flag'."
+  (or (let ((expr (if calendar-dst-check-each-year-flag
+                      (nth 2 (calendar-dst-find-startend year))
+                    (nth 5 calendar-current-time-zone-cache))))
+        (if expr (eval expr)))
+      (and (not (zerop calendar-daylight-time-offset))
+           (calendar-nth-named-day -1 0 10 year))))
+
+
 ;;;###autoload
 (put 'calendar-daylight-savings-starts 'risky-local-variable t)
 (defvar calendar-daylight-savings-starts
-  (or (car (nthcdr 4 calendar-current-time-zone-cache))
-      (and (not (zerop calendar-daylight-time-offset))
-	   '(calendar-nth-named-day 1 0 4 year)))
+  '(calendar-dst-starts year)
   "*Sexp giving the date on which daylight savings time starts.
 This is an expression in the variable `year' whose value gives the Gregorian
 date in the form (month day year) on which daylight savings time starts.  It is
@@ -319,9 +383,7 @@ If the locale never uses daylight savings time, set this to nil.")
 ;;;###autoload
 (put 'calendar-daylight-savings-ends 'risky-local-variable t)
 (defvar calendar-daylight-savings-ends
-  (or (car (nthcdr 5 calendar-current-time-zone-cache))
-      (and (not (zerop calendar-daylight-time-offset))
-	   '(calendar-nth-named-day -1 0 10 year)))
+  '(calendar-dst-ends year)
   "*Sexp giving the date on which daylight savings time ends.
 This is an expression in the variable `year' whose value gives the Gregorian
 date in the form (month day year) on which daylight savings time ends.  It is

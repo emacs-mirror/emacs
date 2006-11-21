@@ -1786,6 +1786,96 @@ see `message-narrow-to-headers-or-head'."
       (substring subject (match-end 0))
     subject))
 
+(defcustom message-replacement-char "."
+  "Replacement character used instead of unprintable or not decodable chars."
+  :group 'message-various
+  :version "22.1" ;; Gnus 5.10.9
+  :type '(choice string
+		 (const ".")
+		 (const "?")))
+
+;; FIXME: We also should call `message-strip-subject-encoded-words'
+;; when forwarding.  Probably in `message-make-forward-subject' and
+;; `message-forward-make-body'.
+
+(defun message-strip-subject-encoded-words (subject)
+  "Fix non-decodable words in SUBJECT."
+  ;; Cf. `gnus-simplify-subject-fully'.
+  (let* ((case-fold-search t)
+	 (replacement-chars (format "[%s%s%s]"
+				    message-replacement-char
+				    message-replacement-char
+				    message-replacement-char))
+	 (enc-word-re "=\\?\\([^?]+\\)\\?\\([QB]\\)\\?\\([^?]+\\)\\(\\?=\\)")
+	 cs-string
+	 (have-marker
+	  (with-temp-buffer
+	    (insert subject)
+	    (goto-char (point-min))
+	    (when (re-search-forward enc-word-re nil t)
+	      (setq cs-string (match-string 1)))))
+	 cs-coding q-or-b word-beg word-end)
+    (if (or (not have-marker) ;; No encoded word found...
+	    ;; ... or double encoding was correct:
+	    (and (stringp cs-string)
+		 (setq cs-string (downcase cs-string))
+		 (mm-coding-system-p (intern cs-string))
+		 (not (prog1
+			  (y-or-n-p
+			   (format "\
+Decoded Subject \"%s\"
+contains a valid encoded word.  Decode again? "
+				   subject))
+			(setq cs-coding (intern cs-string))))))
+	subject
+      (with-temp-buffer
+	(insert subject)
+	(goto-char (point-min))
+	(while (re-search-forward enc-word-re nil t)
+	  (setq cs-string (downcase (match-string 1))
+		q-or-b    (match-string 2)
+		word-beg (match-beginning 0)
+		word-end (match-end 0))
+	  (setq cs-coding
+		(if (mm-coding-system-p (intern cs-string))
+		    (setq cs-coding (intern cs-string))
+		  nil))
+	  ;; No double encoded subject? => bogus charset.
+	  (unless cs-coding
+	    (setq cs-coding
+		  (mm-read-coding-system
+		   (format "\
+Decoded Subject \"%s\"
+contains an encoded word.  The charset `%s' is unknown or invalid.
+Hit RET to replace non-decodable characters with \"%s\" or enter replacement
+charset: "
+			   subject cs-string message-replacement-char)))
+	    (if cs-coding
+		(replace-match (concat "=?" (symbol-name cs-coding)
+				       "?\\2?\\3\\4\\5"))
+	      (save-excursion
+		(goto-char word-beg)
+		(re-search-forward "=\\?\\([^?]+\\)\\?\\([QB]\\)\\?" word-end t)
+		(replace-match "")
+		;; QP or base64
+		(if (string-match "\\`Q\\'" q-or-b)
+		    ;; QP
+		    (progn
+		      (message "Replacing non-decodable characters with \"%s\"."
+			       message-replacement-char)
+		      (while (re-search-forward "\\(=[A-F0-9][A-F0-9]\\)+"
+						word-end t)
+			(replace-match message-replacement-char)))
+		  ;; base64
+		  (message "Replacing non-decodable characters with \"%s\"."
+			   replacement-chars)
+		  (re-search-forward "[^?]+" word-end t)
+		  (replace-match replacement-chars))
+		(re-search-forward "\\?=")
+		(replace-match "")))))
+	(rfc2047-decode-region (point-min) (point-max))
+	(buffer-string)))))
+
 ;;; Start of functions adopted from `message-utils.el'.
 
 (defun message-strip-subject-trailing-was (subject)
@@ -3614,8 +3704,10 @@ It should typically alter the sending method in some way or other."
 	(setq choice
 	      (gnus-multiple-choice
 	       "Non-printable characters found.  Continue sending?"
-	       '((?d "Remove non-printable characters and send")
-		 (?r "Replace non-printable characters with dots and send")
+	       `((?d "Remove non-printable characters and send")
+		 (?r ,(format
+		       "Replace non-printable characters with \"%s\" and send"
+		       message-replacement-char))
 		 (?i "Ignore non-printable characters and send")
 		 (?e "Continue editing"))))
 	(if (eq choice ?e)
@@ -3638,7 +3730,7 @@ It should typically alter the sending method in some way or other."
 		(message-kill-all-overlays)
 	      (delete-char 1)
 	      (when (eq choice ?r)
-		(insert "."))))
+		(insert message-replacement-char))))
 	  (forward-char)
 	  (skip-chars-forward mm-7bit-chars))))))
 
@@ -5816,6 +5908,39 @@ want to get rid of this query permanently.")))
 	(push (cons 'Cc recipients) follow-to)))
     follow-to))
 
+(defcustom message-simplify-subject-functions
+  '(message-strip-list-identifiers
+    message-strip-subject-re
+    message-strip-subject-trailing-was
+    message-strip-subject-encoded-words)
+  "List of functions taking a string argument that simplify subjects.
+The functions are applied when replying to a message.
+
+Useful functions to put in this list include:
+`message-strip-list-identifiers', `message-strip-subject-re',
+`message-strip-subject-trailing-was', and
+`message-strip-subject-encoded-words'."
+  :version "22.1" ;; Gnus 5.10.9
+  :group 'message-various
+  :type '(repeat function))
+
+(defun message-simplify-subject (subject &optional functions)
+  "Return simplified SUBJECT."
+  (unless functions
+    ;; Simplify fully:
+    (setq functions message-simplify-subject-functions))
+  (when (and (memq 'message-strip-list-identifiers functions)
+	     gnus-list-identifiers)
+    (setq subject (message-strip-list-identifiers subject)))
+  (when (memq 'message-strip-subject-re functions)
+    (setq subject (concat "Re: " (message-strip-subject-re subject))))
+  (when (and (memq 'message-strip-subject-trailing-was functions)
+	     message-subject-trailing-was-query)
+    (setq subject (message-strip-subject-trailing-was subject)))
+  (when (memq 'message-strip-subject-encoded-words functions)
+    (setq subject (message-strip-subject-encoded-words subject)))
+  subject)
+
 ;;;###autoload
 (defun message-reply (&optional to-address wide)
   "Start editing a reply to the article in the current buffer."
@@ -5845,11 +5970,9 @@ want to get rid of this query permanently.")))
 	    date (message-fetch-field "date")
 	    from (or (message-fetch-field "from") "nobody")
 	    subject (or (message-fetch-field "subject") "none"))
-      (when gnus-list-identifiers
-	(setq subject (message-strip-list-identifiers subject)))
-      (setq subject (concat "Re: " (message-strip-subject-re subject)))
-      (when message-subject-trailing-was-query
-	(setq subject (message-strip-subject-trailing-was subject)))
+
+      ;; Strip list identifiers, "Re: ", and "was:"
+      (setq subject (message-simplify-subject subject))
 
       (when (and (setq gnus-warning (message-fetch-field "gnus-warning"))
 		 (string-match "<[^>]+>" gnus-warning))
@@ -5919,11 +6042,8 @@ If TO-NEWSGROUPS, use that as the new Newsgroups line."
 		 (let ((case-fold-search t))
 		   (string-match "world" distribution)))
 	(setq distribution nil))
-      (if gnus-list-identifiers
-	  (setq subject (message-strip-list-identifiers subject)))
-      (setq subject (concat "Re: " (message-strip-subject-re subject)))
-      (when message-subject-trailing-was-query
-	(setq subject (message-strip-subject-trailing-was subject)))
+      ;; Strip list identifiers, "Re: ", and "was:"
+      (setq subject (message-simplify-subject subject))
       (widen))
 
     (message-pop-to-buffer (message-buffer-name "followup" from newsgroups))

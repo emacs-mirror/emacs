@@ -374,7 +374,8 @@ have been moved to C-h F, C-h K and C-h S.
 See below under "incremental search changes".
 
 ---
-** C-x C-f RET, typing nothing in the minibuffer, is no longer a special case.
+** C-x C-f RET (find-file), typing nothing in the minibuffer, is no longer
+a special case.
 
 Since the default input is the current directory, this has the effect
 of specifying the current directory.  Normally that means to visit the
@@ -1529,8 +1530,11 @@ otherwise behaves quite similarly to the bash version.
 but declared obsolete.
 
 +++
-*** The EMACS environment variable now defaults to Emacs's absolute
-file name, instead of to "t".
+*** The new INSIDE_EMACS environment variable is set to "t" in
+subshells running inside Emacs.  This supersedes the EMACS environment
+variable, which will be removed in a future Emacs release.  Programs
+that need to know whether they are started inside Emacs should check
+INSIDE_EMACS instead of EMACS.
 
 ** M-x Compile changes:
 
@@ -1761,8 +1765,8 @@ ERC is a powerful, modular, and extensible IRC client for Emacs.
 To see what modules are available, type
 M-x customize-option erc-modules RET.
 
-To start an IRC session, type M-x erc-select, and follow the prompts
-for server, port, and nick.
+To start an IRC session, type M-x erc, and follow the prompts for
+server, port, and nick.
 
 ---
 ** Rcirc is now part of the Emacs distribution.
@@ -3354,7 +3358,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 8.0.2.  There have been major changes since
+Upgraded to MH-E version 8.0.3.  There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:

@@ -275,7 +275,7 @@ Please send all bug fixes and enhancements to
 ;;    ;; 8-bit accentuated characters) except `"', as `"' is used to delimit a
 ;;    ;; terminal.  Also, accepts escaped characters, that is, a character
 ;;    ;; pair starting with `\' followed by a printable character, for
-;;    ;; example: \", \\. 
+;;    ;; example: \", \\.
 ;;
 ;;    special = "[^?\\000-\\010\\012-\\037\\177-\\237]*".
 ;;    ;; that is, a valid special accepts any printable character (including
@@ -800,7 +800,7 @@ Please send all bug fixes and enhancements to
 ;; `ebnf-reset-style'	Reset current style.
 ;;
 ;; `ebnf-push-style'	Push the current style and set STYLE as the current
-;;			style. 
+;;			style.
 ;;
 ;; `ebnf-pop-style'	Pop a style and set it as the current style.
 ;;
@@ -1968,7 +1968,7 @@ when executing ebnf2ps, set `ebnf-use-float-format' to nil."
 
 
 (defcustom ebnf-stop-on-error nil
-  "*Non-nil means signal error and stop. Nil means signal error and continue."
+  "*Non-nil means signal error and stop.  Otherwise, signal error and continue."
   :type 'boolean
   :version "20"
   :group 'ebnf2ps)

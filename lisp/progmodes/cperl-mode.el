@@ -1783,6 +1783,7 @@ or as help on variables `cperl-tips', `cperl-problems',
          (if (fboundp 'compilation-build-compilation-error-regexp-alist)
              (let ((f 'compilation-build-compilation-error-regexp-alist))
                (funcall f))
+           (make-local-variable 'compilation-error-regexp-alist)
            (push 'cperl compilation-error-regexp-alist)))
 	((boundp 'compilation-error-regexp-alist);; xmeacs 19.x
 	 (make-local-variable 'compilation-error-regexp-alist)

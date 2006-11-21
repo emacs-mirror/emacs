@@ -239,7 +239,7 @@
 
 1993-06-16  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-        Bring mumbleclean targets into conformance with GNU coding standards.
+	Bring mumbleclean targets into conformance with GNU coding standards.
 	* Makefile.in (mostlyclean, realclean): New targets.
 
 1993-06-08  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
@@ -296,7 +296,7 @@
 
 1993-05-22  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
-        * Version 19.7 released.
+	* Version 19.7 released.
 
 1993-05-15  Jim Blandy  (jimb@geech.gnu.ai.mit.edu)
 
@@ -419,9 +419,9 @@
 
 1991-11-16  Noah Friedman  (friedman@nutrimat)
 
-        * copyright.h: New file (copied from X11R4 distribution)
-        * All files: Replaced occurrences of #include <X11/copyright.h>
-          with #include "copyright.h"
+	* copyright.h: New file (copied from X11R4 distribution)
+	* All files: Replaced occurrences of #include <X11/copyright.h>
+	with #include "copyright.h"
 
 1991-10-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -441,6 +441,7 @@
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit-unix
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001,

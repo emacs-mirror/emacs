@@ -1,3 +1,31 @@
+2006-11-13  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.c [WINDOWSNT]: Let config.h define HAVE_SOCKETS and
+	HAVE_INET_SOCKETS.
+
+2006-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (emacsclient): Depend also on emacsclientw.exe.
+	($(BLD)/emacsclientw.exe): New target.
+	(install): Install emacsclientw.exe.
+	($(BLD)/cvtmail.$(O), $(BLD)/emacstool.$(O)): Remove obsolete targets.
+	(ECLIENT_CFLAGS): Remove redundant flags.
+
+	* emacsclient.c [WINDOWSNT]: Undef _WINSOCKAPI_ and _WINSOCK_H.
+
+2006-11-13  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in ($(BLD)/emacsclient.$(O)): Use CFLAGS.
+
+2006-11-10  David Reitter  <david.reitter@gmail.com>
+
+	* emacsclient.c [!WINDOWSNT]: Include <sys/types.h>.
+
+2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (get_server_config) [WINDOWSNT]: Declare set_fg as
+	FARPROC to avoid a compiler warning.
+
 2006-11-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (get_server_config) [WINDOWSNT]: Look for the server
@@ -9,11 +37,11 @@
 
 2006-11-06  Juanma Barranquero  <lekktu@gmail.com>
 
-	* emacsclient.c (longopts) [! NO_SOCKETS_IN_FILE_SYSTEM]: Don't show
+	* emacsclient.c (longopts) [!NO_SOCKETS_IN_FILE_SYSTEM]: Don't show
 	option --socket-name.
 	(decode_options): Don't get EMACS_SERVER_FILE here, it could override
 	command line options.
-	(decode_options) [! NO_SOCKETS_IN_FILE_SYSTEM]: Don't parse "-s" option.
+	(decode_options) [!NO_SOCKETS_IN_FILE_SYSTEM]: Don't parse "-s" option.
 	(fail): Don't check for missing arguments, it is now done in set_socket.
 	(file_name_absolute_p): New function (loosely based on the one in
 	fileio.c).
@@ -455,7 +483,7 @@
 
 2004-09-08  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* etags.c [LONG_OPTIONS]: make it TRUE (ifdef) or FALSE (ifndef)
+	* etags.c [LONG_OPTIONS]: Make it TRUE (ifdef) or FALSE (ifndef)
 	for ease of use.
 
 2004-07-17  Richard M. Stallman  <rms@gnu.org>
@@ -2665,7 +2693,7 @@
 
 	* movemail.c (rindex): Add declaration.
 
-Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
+1997-07-01  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* makefile.nt (GETOPTOBJS, GETOPTDEFS, MOVEMAILOBJS): Define.
 	(movemail.exe): Depend upon and link with getopt files.
@@ -3914,7 +3942,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 	* profile.c (TV1, TV2): Use EMACS_TIME as type.
 	(get_time): Use EMACS_SUB_TIME.
 
-1994-10-30  voelker  <voelker@cs.washington.edu>
+1994-10-30  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* ntlib.c: New file.
 	* makefile.nt: New file.
@@ -6047,6 +6075,7 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
+;; add-log-time-zone-rule: t
 ;; End:
 
     Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995,

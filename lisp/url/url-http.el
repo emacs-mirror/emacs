@@ -92,7 +92,7 @@ request.")
 
 (defun url-http-mark-connection-as-free (host port proc)
   (url-http-debug "Marking connection as free: %s:%d %S" host port proc)
-  (when (memq (process-status proc) '(open run))
+  (when (memq (process-status proc) '(open run connect))
     (set-process-buffer proc nil)
     (set-process-sentinel proc 'url-http-idle-sentinel)
     (puthash (cons host port)
@@ -104,7 +104,7 @@ request.")
   (let ((conns (gethash (cons host port) url-http-open-connections))
 	(found nil))
     (while (and conns (not found))
-      (if (not (memq (process-status (car conns)) '(run open)))
+      (if (not (memq (process-status (car conns)) '(run open connect)))
 	  (progn
 	    (url-http-debug "Cleaning up dead process: %s:%d %S"
 			    host port (car conns))
@@ -313,21 +313,27 @@ This allows us to use `mail-fetch-field', etc."
 	(type nil)
 	(url (url-recreate-url url-current-object))
 	(url-basic-auth-storage 'url-http-real-basic-auth-storage)
-	auth)
+	auth
+	(strength 0))
     ;; Cheating, but who cares? :)
     (if proxy
 	(setq url-basic-auth-storage 'url-http-proxy-basic-auth-storage))
 
-    ;; find first supported auth
-    (while auths
-      (setq auth (url-eat-trailing-space (url-strip-leading-spaces (car auths))))
-      (if (string-match "[ \t]" auth)
-	  (setq type (downcase (substring auth 0 (match-beginning 0))))
-	(setq type (downcase auth)))
-      (if (url-auth-registered type)
-	  (setq auths nil)		; no more check
-	(setq auth nil
-	      auths (cdr auths))))
+    ;; find strongest supported auth
+    (dolist (this-auth auths)
+      (setq this-auth (url-eat-trailing-space 
+		       (url-strip-leading-spaces 
+			this-auth)))
+      (let* ((this-type 
+	      (if (string-match "[ \t]" this-auth)
+		  (downcase (substring this-auth 0 (match-beginning 0)))
+		(downcase this-auth)))
+	     (registered (url-auth-registered this-type))
+	     (this-strength (cddr registered)))
+	(when (and registered (> this-strength strength))
+	  (setq auth this-auth
+		type this-type
+		strength this-strength))))
 
     (if (not (url-auth-registered type))
 	(progn
@@ -927,7 +933,8 @@ the end of the document."
 	    (old-http nil)
 	    (content-length nil))
 	(goto-char (point-min))
-	(if (not (looking-at "^HTTP/[1-9]\\.[0-9]"))
+	(if (and (looking-at ".*\n")	; have one line at least
+		 (not (looking-at "^HTTP/[1-9]\\.[0-9]")))
 	    ;; Not HTTP/x.y data, must be 0.9
 	    ;; God, I wish this could die.
 	    (setq end-of-headers t
@@ -1064,7 +1071,8 @@ CBARGS as the arguments."
 		    url-http-chunked-length
 		    url-http-chunked-start
 		    url-http-chunked-counter
-		    url-http-process))
+		    url-http-process
+		    proxy-object))
   (let ((connection (url-http-find-free-connection (url-host url)
 						   (url-port url)))
 	(buffer (generate-new-buffer (format " *http %s:%d*"
@@ -1099,6 +1107,7 @@ CBARGS as the arguments."
 		       url-http-data
 		       url-http-target-url))
 	  (set (make-local-variable var) nil))
+	(make-local-variable 'proxy-object)
 
 	(setq url-http-method (or url-request-method "GET")
 	      url-http-extra-headers url-request-extra-headers
@@ -1138,7 +1147,7 @@ CBARGS as the arguments."
     (cond
      ((string= (substring why 0 4) "open")
       (set-process-sentinel proc 'url-http-end-of-document-sentinel)
-      (process-send-string proc (url-http-create-request url-current-object)))
+      (process-send-string proc (url-http-create-request url-http-target-url)))
      (t
       (setf (car url-callback-arguments)
 	    (nconc (list :error (list 'error 'connection-failed why
