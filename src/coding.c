@@ -4731,6 +4731,7 @@ detect_coding_charset (coding, detect_info)
   int consumed_chars = 0;
   Lisp_Object attrs, valids;
   int found = 0;
+  int head_ascii = coding->head_ascii;
 
   detect_info->checked |= CATEGORY_MASK_CHARSET;
 
@@ -4739,21 +4740,68 @@ detect_coding_charset (coding, detect_info)
   valids = AREF (attrs, coding_attr_charset_valids);
 
   if (! NILP (CODING_ATTR_ASCII_COMPAT (attrs)))
-    src += coding->head_ascii;
+    src += head_ascii;
 
   while (1)
     {
       int c;
+      Lisp_Object val;
+      struct charset *charset;
+      int dim, idx;
 
       src_base = src;
       ONE_MORE_BYTE (c);
       if (c < 0)
 	continue;
-      if (NILP (AREF (valids, c)))
+      val = AREF (valids, c);
+      if (NILP (val))
 	break;
       if (c >= 0x80)
 	found = CATEGORY_MASK_CHARSET;
+      if (INTEGERP (val))
+	{
+	  charset = CHARSET_FROM_ID (XFASTINT (val));
+	  dim = CHARSET_DIMENSION (charset);
+	  for (idx = 1; idx < dim; idx++)
+	    {
+	      if (src == src_end)
+		goto too_short;
+	      ONE_MORE_BYTE (c);
+	      if (c < charset->code_space[(dim - 1 - idx) * 2] 
+		  || c > charset->code_space[(dim - 1 - idx) * 2 + 1])
+		break;
+	    }
+	  if (idx < dim)
+	    break;
+	}
+      else
+	{
+	  idx = 1;
+	  for (; CONSP (val); val = XCDR (val))
+	    {
+	      charset = CHARSET_FROM_ID (XFASTINT (XCAR (val)));
+	      dim = CHARSET_DIMENSION (charset);
+	      while (idx < dim)
+		{
+		  if (src == src_end)
+		    goto too_short;
+		  ONE_MORE_BYTE (c);
+		  if (c < charset->code_space[(dim - 1 - idx) * 4]
+		      || c > charset->code_space[(dim - 1 - idx) * 4 + 1])
+		    break;
+		  idx++;
+		}
+	      if (idx == dim)
+		{
+		  val = Qnil;
+		  break;
+		}
+	    }
+	  if (CONSP (val))
+	    break;
+	}
     }
+ too_short:
   detect_info->rejected |= CATEGORY_MASK_CHARSET;
   return 0;
 

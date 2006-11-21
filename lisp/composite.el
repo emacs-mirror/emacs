@@ -427,6 +427,11 @@ See also the command `toggle-auto-composition'.")
 
 (put 'save-buffer-state 'lisp-indent-function 1)
 
+;; This function is called when a composition created by
+;; terminal-composition-function is partially modified.
+(defun terminal-composition-modification (from to)
+  (terminal-composition-function from))
+
 (defun terminal-composition-function (pos &optional string)
   "General composition function used on terminal.
 Non-spacing characters are composed with the preceding spacing
@@ -441,13 +446,13 @@ character.  All non-spacing characters has this function in
 		  (= (aref char-width-table (char-after pos)) 0))
 	(setq pos (1+ pos)))
       (if (and (>= from (point-min))
-	       (= (aref (symbol-name (get-char-code-property (char-after from)
-							     'general-category))
-			0)
-		  ?L))
+	       (= (aref (symbol-name (get-char-code-property
+				      (char-after from)
+				      'general-category)) 0) ?L))
 	  (compose-region from pos (buffer-substring from pos))
 	(compose-region (1+ from) pos
-			(concat " " (buffer-substring (1+ from) pos))))
+			(concat " " (buffer-substring (1+ from) pos))
+			'terminal-composition-modification))
       pos)))
 
 (defvar terminal-composition-function-table

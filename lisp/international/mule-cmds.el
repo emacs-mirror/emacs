@@ -2784,6 +2784,16 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
 (defvar nonascii-insert-offset 0 "This variable is obsolete.")
 (defvar nonascii-translation-table nil "This variable is obsolete.")
 
+(defun ucs-insert (arg)
+  "Insert a character of the given Unicode code point.
+Interactively, prompts for a hex string giving the code."
+  (interactive "sUnicode (hex): ")
+  (or (integerp arg)
+      (setq arg (string-to-number arg 16)))
+  (if (or (< arg 0) (> arg #x10FFFF))
+      (error "Not a Unicode character code: 0x%X" arg))
+  (insert arg))
+
 
 ;; arch-tag: b382c432-4b36-460e-bf4c-05efd0bb18dc
 ;;; mule-cmds.el ends here

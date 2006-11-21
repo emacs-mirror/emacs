@@ -2151,6 +2151,17 @@ xic_create_xfontset (f, base_fontname)
 	    }
 	}
       xfree (fontsetname);
+      if (! xfs && base_fontname != xic_defaut_fontset)
+	{
+	  /* Try the default fontset name at a last resort.  */
+	  fontsetname = xic_create_fontsetname (xic_defaut_fontset, False);
+	  xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
+				fontsetname, &missing_list,
+				&missing_count, &def_string);
+	  if (missing_list)
+	    XFreeStringList (missing_list);
+	  xfree (fontsetname);
+	}
     }
 
   if (FRAME_XIC_BASE_FONTNAME (f))

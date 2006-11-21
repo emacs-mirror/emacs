@@ -1,3 +1,34 @@
+2006-11-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-insert-kbd-layout): Check the
+	length of (cdr translation).
+	(quail-get-current-str): Check the length of (cdr def).
+
+2006-11-16  Kenichi Handa  <handa@m17n.org>
+
+	* ruler-mode.el (ruler-mode-ruler): Make the string `ruler'
+	mulitbyte.
+
+2006-11-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (ucs-insert): Re-implement.
+
+2006-11-09  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (terminal-composition-modification): New function.
+	(terminal-composition-function): Create composition with the above
+	modification function.
+
+2006-11-08  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* international/characters.el: Add more full-width characters in
+	char-width-table.
+
+2006-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (create-fontset-from-fontset-spec): Fix
+	script name handling.
+
 2006-10-26  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (terminal-composition-function): New function.
