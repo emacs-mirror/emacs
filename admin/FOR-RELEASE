@@ -45,8 +45,6 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 
 ** Document use of gpg-agent
 
-** seltenreich@gmx.de, Nov 19: Failed assertion on make-frame-on-display
-
 ** jbuehler@spirentcom.com, Nov 20: AIX 5.2 loadup failure
 
 * DOCUMENTATION
