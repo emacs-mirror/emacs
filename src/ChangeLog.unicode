@@ -1,3 +1,7 @@
+2006-11-22  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (simple_search): Fix sync with HEAD.
+
 2006-11-17  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (xic_create_xfontset): Try the default fontset name as a

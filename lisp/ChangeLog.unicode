@@ -1,3 +1,12 @@
+2006-11-22  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el ("Turkish"): Sync with HEAD.
+
+	* international/characters.el: Sync with HEAD.
+
+	* international/mule-cmds.el (set-default-coding-systems): Sync
+	with HEAD.
+
 2006-11-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-insert-kbd-layout): Check the
