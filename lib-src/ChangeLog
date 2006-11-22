@@ -1,3 +1,13 @@
+2006-11-22  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* emacsclient.c: Include <stdarg.h>.
+	[WINDOWSNT]: Include <windows.h>.
+	(w32_check_console_app): New function.
+	(message): New function.
+	(decode_options, print_help_and_exit, fail, main)
+	(initialize_sockets, get_server_config, set_tcp_socket)
+	(set_local_socket, set_socket): Use message().
+
 2006-11-13  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.c [WINDOWSNT]: Let config.h define HAVE_SOCKETS and
