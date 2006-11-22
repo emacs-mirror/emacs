@@ -34,6 +34,7 @@ Boston, MA 02110-1301, USA.  */
 
 # include <malloc.h>
 # include <stdlib.h>
+# include <windows.h>
 
 # define NO_SOCKETS_IN_FILE_SYSTEM
 
@@ -58,6 +59,7 @@ Boston, MA 02110-1301, USA.  */
 
 #undef signal
 
+#include <stdarg.h>
 #include <ctype.h>
 #include <stdio.h>
 #include "getopt.h"
@@ -144,6 +146,56 @@ struct option longopts[] =
   { 0, 0, 0, 0 }
 };
 
+/* Message functions. */
+
+#ifdef WINDOWSNT
+/* I first tried to check for STDOUT.  The check did not work,
+   I get a valid handle also in nonconsole apps.
+   Instead I test for console title, which seems to work.  */
+int
+w32_window_app()
+{
+  static int window_app = -1;
+  char szTitle[MAX_PATH];
+
+  if (window_app < 0)
+    window_app = (GetConsoleTitleA (szTitle, MAX_PATH) == 0);
+
+  return window_app;
+}
+#endif
+
+void
+message (int is_error, char *message, ...)
+{
+  char buf [2048];
+  char *msg = buf;
+  va_list args;
+
+  va_start (args, message);
+
+  if (is_error)
+    {
+      sprintf (buf, "%s: ", progname);
+      msg = strchr (buf, '\0');
+    }
+
+  vsprintf (msg, message, args);
+  va_end (args);
+
+#ifdef WINDOWSNT
+  if (w32_window_app ())
+    {
+      if (is_error)
+	MessageBox (NULL, msg, "Emacsclient ERROR", MB_ICONERROR);
+      else
+	MessageBox (NULL, msg, "Emacsclient", MB_ICONINFORMATION);
+    }
+  else
+#endif
+    fprintf (is_error ? stderr : stdout, msg);
+}
+
 /* Decode the options from argv and argc.
    The global variable `optind' will say how many arguments we used up.  */
 
@@ -201,7 +253,7 @@ decode_options (argc, argv)
 	  break;
 
 	case 'V':
-	  printf ("emacsclient %s\n", VERSION);
+	  message (FALSE, "emacsclient %s\n", VERSION);
 	  exit (EXIT_SUCCESS);
 	  break;
 
@@ -210,7 +262,7 @@ decode_options (argc, argv)
 	  break;
 
 	default:
-	  fprintf (stderr, "Try `%s --help' for more information\n", progname);
+	  message (TRUE, "Try `%s --help' for more information\n", progname);
 	  exit (EXIT_FAILURE);
 	  break;
 	}
@@ -220,7 +272,7 @@ decode_options (argc, argv)
 void
 print_help_and_exit ()
 {
-  printf (
+  message (FALSE,
 	  "Usage: %s [OPTIONS] FILE...\n\
 Tell the Emacs server to visit the specified files.\n\
 Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
@@ -261,7 +313,7 @@ fail (argc, argv)
       argv[i] = (char *)alternate_editor;
 #endif
       execvp (alternate_editor, argv + i);
-      fprintf (stderr, "%s: error executing alternate editor \"%s\"\n",
+      message (TRUE, "%s: error executing alternate editor \"%s\"\n",
                progname, alternate_editor);
     }
   exit (EXIT_FAILURE);
@@ -275,9 +327,8 @@ main (argc, argv)
      int argc;
      char **argv;
 {
-  fprintf (stderr, "%s: Sorry, the Emacs server is supported only\n",
+  message (TRUE, "%s: Sorry, the Emacs server is supported only\non systems with Berkely sockets.\n",
 	   argv[0]);
-  fprintf (stderr, "on systems with Berkeley sockets.\n");
 
   fail (argc, argv);
 }
@@ -426,7 +477,7 @@ initialize_sockets ()
 
   if (WSAStartup (MAKEWORD (2, 0), &wsaData))
     {
-      fprintf (stderr, "%s: error initializing WinSock2", progname);
+      message (TRUE, "%s: error initializing WinSock2", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -482,7 +533,7 @@ get_server_config (server, authentication)
     }
   else
     {
-      fprintf (stderr, "%s: invalid configuration info", progname);
+      message (TRUE, "%s: invalid configuration info", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -492,7 +543,7 @@ get_server_config (server, authentication)
 
   if (! fread (authentication, AUTH_KEY_LENGTH, 1, config))
     {
-      fprintf (stderr, "%s: cannot read authentication info", progname);
+      message (TRUE, "%s: cannot read authentication info", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -537,7 +588,7 @@ set_tcp_socket ()
     return INVALID_SOCKET;
 
   if (server.sin_addr.s_addr != inet_addr ("127.0.0.1"))
-    fprintf (stderr, "%s: connected to remote socket at %s\n",
+    message (TRUE, "%s: connected to remote socket at %s\n",
              progname, inet_ntoa (server.sin_addr));
 
   /*
@@ -545,8 +596,7 @@ set_tcp_socket ()
    */
   if ((s = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
     {
-      fprintf (stderr, "%s: ", progname);
-      perror ("socket");
+      message (TRUE, "%s: socket: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -555,8 +605,7 @@ set_tcp_socket ()
    */
   if (connect (s, (struct sockaddr *) &server, sizeof server) < 0)
     {
-      fprintf (stderr, "%s: ", progname);
-      perror ("connect");
+      message (TRUE, "%s: connect: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -608,8 +657,7 @@ set_local_socket ()
 
   if ((s = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
     {
-      fprintf (stderr, "%s: ", progname);
-      perror ("socket");
+      message (TRUE, "%s: socket: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -639,7 +687,7 @@ set_local_socket ()
       strcpy (server.sun_path, socket_name);
     else
       {
-	fprintf (stderr, "%s: socket-name %s too long",
+	message (TRUE, "%s: socket-name %s too long",
 		 progname, socket_name);
 	exit (EXIT_FAILURE);
       }
@@ -674,7 +722,7 @@ set_local_socket ()
 		  strcpy (server.sun_path, socket_name);
 		else
 		  {
-		    fprintf (stderr, "%s: socket-name %s too long",
+		    message (TRUE, "%s: socket-name %s too long",
 			     progname, socket_name);
 		    exit (EXIT_FAILURE);
 		  }
@@ -694,7 +742,7 @@ set_local_socket ()
            we are root. */
         if (0 != geteuid ())
           {
-            fprintf (stderr, "%s: Invalid socket owner\n", progname);
+            message (TRUE, "%s: Invalid socket owner\n", progname);
 	    return INVALID_SOCKET;
           }
         break;
@@ -702,12 +750,12 @@ set_local_socket ()
       case 2:
         /* `stat' failed */
         if (saved_errno == ENOENT)
-          fprintf (stderr,
+          message (TRUE,
                    "%s: can't find socket; have you started the server?\n\
 To start the server in Emacs, type \"M-x server-start\".\n",
 		   progname);
         else
-          fprintf (stderr, "%s: can't stat %s: %s\n",
+          message (TRUE, "%s: can't stat %s: %s\n",
 		   progname, server.sun_path, strerror (saved_errno));
         return INVALID_SOCKET;
       }
@@ -716,8 +764,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   if (connect (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2)
       < 0)
     {
-      fprintf (stderr, "%s: ", progname);
-      perror ("connect");
+      message (TRUE, "%s: connect: %s\n", progname, strerror (errno));
       return INVALID_SOCKET;
     }
 
@@ -740,7 +787,7 @@ set_socket ()
       if ((s != INVALID_SOCKET) || alternate_editor)
         return s;
 
-      fprintf (stderr, "%s: error accessing socket \"%s\"",
+      message (TRUE, "%s: error accessing socket \"%s\"",
                progname, socket_name);
       exit (EXIT_FAILURE);
     }
@@ -756,7 +803,7 @@ set_socket ()
       if ((s != INVALID_SOCKET) || alternate_editor)
         return s;
 
-      fprintf (stderr, "%s: error accessing server file \"%s\"",
+      message (TRUE, "%s: error accessing server file \"%s\"",
                progname, server_file);
       exit (EXIT_FAILURE);
     }
@@ -775,7 +822,7 @@ set_socket ()
     return s;
 
   /* No implicit or explicit socket, and no alternate editor.  */
-  fprintf (stderr, "%s: No socket or alternate editor.  Please use:\n\n"
+  message (TRUE, "%s: No socket or alternate editor.  Please use:\n\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "\t--socket-name\n"
 #endif
@@ -802,8 +849,8 @@ main (argc, argv)
 
   if ((argc - optind < 1) && !eval)
     {
-      fprintf (stderr, "%s: file name or argument required\n", progname);
-      fprintf (stderr, "Try `%s --help' for more information\n", progname);
+      message (TRUE, "%s: file name or argument required\nTry `%s --help' for more information\n",
+              progname, progname);
       exit (EXIT_FAILURE);
     }
 
@@ -819,10 +866,10 @@ main (argc, argv)
     {
       /* getwd puts message in STRING if it fails.  */
 #ifdef HAVE_GETCWD
-      fprintf (stderr, "%s: %s (%s)\n", progname,
+      message (TRUE, "%s: %s (%s)\n", progname,
 	       "Cannot get current working directory", strerror (errno));
 #else
-      fprintf (stderr, "%s: %s (%s)\n", progname, string, strerror (errno));
+      message (TRUE, "%s: %s (%s)\n", progname, string, strerror (errno));
 #endif
       fail (argc, argv);
     }
