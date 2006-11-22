@@ -486,18 +486,24 @@ and it selects the Spanish tutorial."))
 	     (unibyte-display . iso-latin-5)
 	     (input-method . "turkish-postfix")
 	     (sample-text . "Turkish (Türkçe)	Merhaba")
-	     (setup-function
-	      . (lambda ()
-		  (set-case-syntax-pair ?I ?ı (standard-case-table))
-		  (set-case-syntax-pair ?İ ?i (standard-case-table))))
-	     (exit-function
-	      . (lambda ()
-		  (set-case-syntax-pair ?I ?i (standard-case-table))
-		  (set-case-syntax ?ı "w" (standard-case-table))
-		  (set-case-syntax ?İ "w" (standard-case-table))))
+	     (setup-function . turkish-case-conversion-enable)
+	     (setup-function . turkish-case-conversion-disable)
 	     (documentation . "Support for Turkish.
 Differs from the Latin-5 environment in using the `turkish-postfix' input
 method and applying Turkish case rules for the characters i, I, ı, İ.")))
+
+(defun turkish-case-conversion-enable ()
+  "Set up Turkish case conversion of `i' and `I' into `İ' and `ı'."
+  (let ((table (standard-case-table)))
+    (set-case-syntax-pair ?İ ?i table)
+    (set-case-syntax-pair ?I ?ı table)))
+
+(defun turkish-case-conversion-disable ()
+  "Set up normal (non-Turkish) case conversion of `i' into `I'."
+  (let ((table (standard-case-table)))
+    (set-case-syntax-pair ?I ?i table)
+    (set-case-syntax ?İ "w" table)
+    (set-case-syntax ?ı "w" table)))
 
 ;; Polish ISO 8859-2 environment.
 ;; Maintainer: Wlodek Bzyl <matwb@univ.gda.pl>
