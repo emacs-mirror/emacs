@@ -212,8 +212,9 @@ only be one Emacs server running at a time.  The @code{server-mode}
 command and @code{server-name} user option have been eliminated.
 
 @item
-The @file{emacsclient} program no longer accepts the @samp{--eval} and
-@samp{--display} command line options.
+The @file{emacsclient} program no longer accepts the @samp{--eval},
+@samp{--display} and @samp{--server-file} command line options, and
+can only establish local connections using Unix domain sockets.
 
 @item
 The command @code{quail-show-key}, for showing how to input a
