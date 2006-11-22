@@ -1,3 +1,8 @@
+2006-11-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.1 (DESCRIPTION): Suggest also `server-mode'.
+	(OPTIONS): Document `-f', `--server-file' and EMACS_SERVER_FILE.
+
 2006-11-20  Michael Olson  <mwolson@gnu.org>
 
 	* NEWS: Change M-x erc-select to M-x erc.

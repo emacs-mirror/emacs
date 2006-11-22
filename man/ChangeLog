@@ -1,3 +1,7 @@
+2006-11-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* anti.texi (Antinews): Mention --server-file and TCP sockets.
+
 2006-11-20  Michael Olson  <mwolson@gnu.org>
 
 	* erc.texi: Call this the 5.2 stable pre-release of ERC.
