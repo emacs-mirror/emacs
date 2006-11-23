@@ -1,6 +1,6 @@
 2006-11-23  William Smith  <William.Smith@global360.com>  (tiny change)
 
-	* strftime.c (mbrlen): Fix typo.
+	* strftime.c (HAVE_SYS__MBSTATE_T_H): Fix typo.
 
 2006-11-02  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
 
