@@ -1274,9 +1274,7 @@ delimiter regions"))
 		;; Similarly for Windows-*
 		;; In DOS, must synchronize because DOS doesn't have
 		;; asynchronous processes.
-		(condition-case nil
-		    (apply 'call-process program nil buffer nil args)
-		  (error (format "Cannot execute program %S." program)))
+		(apply 'call-process program nil buffer nil args)
 	      ;; On other systems, do it asynchronously.
 	      (setq proc (get-buffer-process buffer))
 	      (if proc (kill-process proc))
@@ -1447,14 +1445,12 @@ arguments to `skip-chars-forward'."
   "Return t if files F1 and F2 have identical contents."
   (if (and (not (file-directory-p f1))
            (not (file-directory-p f2)))
-      (condition-case nil
-	  (let ((res
-		 (apply 'call-process ediff-cmp-program nil nil nil
-			(append ediff-cmp-options (list (expand-file-name f1)
-							(expand-file-name f2))))
-		 ))
-	    (and (numberp res) (eq res 0)))
-	(error (format "Cannot execute program %S." ediff-cmp-program)))
+      (let ((res
+	     (apply 'call-process ediff-cmp-program nil nil nil
+		    (append ediff-cmp-options (list (expand-file-name f1)
+						    (expand-file-name f2))))
+	     ))
+	(and (numberp res) (eq res 0)))
     ))
 
 
