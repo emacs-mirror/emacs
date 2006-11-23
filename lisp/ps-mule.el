@@ -3,10 +3,10 @@
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006 Free Software Foundation, Inc.
 
-;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
-;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript, multibyte, mule
 ;; Time-stamp: <2003/05/14 22:19:41 vinicius>
 

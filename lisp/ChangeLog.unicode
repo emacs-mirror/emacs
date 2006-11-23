@@ -1,3 +1,7 @@
+2006-11-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>  (tiny change)
+
+	* ps-mule.el: Fix maintainer email.
+
 2006-11-22  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el ("Turkish"): Sync with HEAD.
