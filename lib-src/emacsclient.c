@@ -278,19 +278,20 @@ Tell the Emacs server to visit the specified files.\n\
 Every FILE can be either just a FILENAME or [+LINE[:COLUMN]] FILENAME.\n\
 \n\
 The following OPTIONS are accepted:\n\
--V, --version           Just print a version info and return\n\
--H, --help              Print this usage information message\n\
--n, --no-wait           Don't wait for the server to return\n\
--e, --eval              Evaluate the FILE arguments as ELisp expressions\n\
--d, --display=DISPLAY   Visit the file in the given display\n"
+\n\
+-V, --version		Just print version info and return\n\
+-H, --help   		Print this usage information message\n\
+-e, --eval   		Evaluate FILE arguments as Lisp expressions\n\
+-n, --no-wait		Don't wait for the server to return\n\
+-d, --display=DISPLAY	Visit the file in the given display\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s, --socket-name=FILENAME\n\
-                        Set the filename of the UNIX socket for communication\n"
+			Set filename of the UNIX socket for communication\n"
 #endif
 "-f, --server-file=FILENAME\n\
-			Set the filename of the TCP configuration file\n\
+			Set filename of the TCP authentication file\n\
 -a, --alternate-editor=EDITOR\n\
-                        Editor to fallback to if the server is not running\n\
+			Editor to fallback to if server is not running\n\
 \n\
 Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (EXIT_SUCCESS);
