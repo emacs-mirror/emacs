@@ -1,8 +1,8 @@
 2006-11-23  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff-diff.el (ediff-exec-process, ediff-same-file-contents): remove
 	condition-case.
-	
+
 2006-11-23  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-comment-indent): Do not move point in
@@ -24,7 +24,7 @@
 
 2006-11-21  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
-	* thingatpt.el (thing-at-point-url-at-point):  Don't add a
+	* thingatpt.el (thing-at-point-url-at-point): Don't add a
 	redundant scheme.
 
 2006-11-21  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
@@ -76,10 +76,10 @@
 	* progmodes/glasses.el (glasses-separate-parentheses-exceptions): New.
 	Exceptions to the rule "add a space between an identifier and an
 	opening parenthesis".  Defaulted to the `#define' problem of cpp.
-	(glasses-parenthesis-exception-p): New.	 Check if the region is an
+	(glasses-parenthesis-exception-p): New.  Check if the region is an
 	exception regarding to that.
 	(glasses-make-readable): Use it.
-	(glasses-convert-to-unreadable): Ditto.	 Modify the file also if
+	(glasses-convert-to-unreadable): Ditto.  Modify the file also if
 	`glasses-convert-on-write-p' and `glasses-separate-parentheses-p' are t.
 
 2006-11-19  Chong Yidong  <cyd@stupidchicken.com>
@@ -144,7 +144,7 @@
 
 2006-11-16  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-file-internal): Use current buffer's file name as	default
+	* ido.el (ido-file-internal): Use current buffer's file name as default
 	choice for ido-find-alternate-file.  Suggested by Matt Hodges.
 
 2006-11-15  Ken Manheimer  <ken.manheimer@gmail.com>
