@@ -819,7 +819,7 @@ the callback to be triggered."
       (progn
 	;; Found the end of the document!  Wheee!
 	(url-display-percentage nil nil)
-	(message "Reading... done.")
+	(url-lazy-message "Reading... done.")
 	(if (url-http-parse-headers)
 	    (url-http-activate-callback)))))
 
