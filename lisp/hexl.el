@@ -207,31 +207,27 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
   (unless (eq major-mode 'hexl-mode)
     (let ((modified (buffer-modified-p))
 	  (inhibit-read-only t)
-	  (original-point (- (point) (point-min)))
-	  max-address)
+	  (original-point (- (point) (point-min))))
       (and (eobp) (not (bobp))
 	   (setq original-point (1- original-point)))
-      (if (not (or (eq arg 1) (not arg)))
-	  ;; if no argument then we guess at hexl-max-address
-          (setq max-address (+ (* (/ (1- (buffer-size)) 68) 16) 15))
-        (setq max-address (1- (buffer-size)))
+      ;; If `hexl-mode' is invoked with an argument the buffer is assumed to
+      ;; be in hexl format.
+      (when (memq arg '(1 nil))
 	;; If the buffer's EOL type is -dos, we need to account for
 	;; extra CR characters added when hexlify-buffer writes the
 	;; buffer to a file.
+        ;; FIXME: This doesn't take into account multibyte coding systems.
 	(when (eq (coding-system-eol-type buffer-file-coding-system) 1)
-	  (setq max-address (+ (count-lines (point-min) (point-max))
-			       max-address))
-	  ;; But if there's no newline at the last line, we are off by
-	  ;; one; adjust.
-	  (or (eq (char-before (point-max)) ?\n)
-	      (setq max-address (1- max-address)))
-	  (setq original-point (+ (count-lines (point-min) (point))
+          (setq original-point (+ (count-lines (point-min) (point))
 				  original-point))
 	  (or (bolp) (setq original-point (1- original-point))))
         (hexlify-buffer)
         (restore-buffer-modified-p modified))
-      (make-local-variable 'hexl-max-address)
-      (setq hexl-max-address max-address)
+      (set (make-local-variable 'hexl-max-address)
+           (let* ((full-lines (/ (buffer-size) 68))
+                  (last-line (% (buffer-size) 68))
+                  (last-line-bytes (% last-line 52)))
+             (+ last-line-bytes (* full-lines 16) -1)))
       (condition-case nil
 	  (hexl-goto-address original-point)
 	(error nil)))
@@ -709,7 +705,9 @@ This discards the buffer's undo information."
            ;; Manually encode the args, otherwise they're encoded using
            ;; coding-system-for-write (i.e. buffer-file-coding-system) which
            ;; may not be what we want (e.g. utf-16 on a non-utf-16 system).
-           (mapcar (lambda (s) (encode-coding-string s locale-coding-system))
+           (mapcar (lambda (s)
+                     (if (not (multibyte-string-p s)) s
+                       (encode-coding-string s locale-coding-system)))
                    (split-string hexl-options)))
     (if (> (point) (hexl-address-to-marker hexl-max-address))
 	(hexl-goto-address hexl-max-address))))

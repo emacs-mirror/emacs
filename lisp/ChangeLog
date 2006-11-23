@@ -1,7 +1,13 @@
+2006-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hexl.el (hexl-mode): Don't try to guess the max-address: get it from
+	the horse's mouth.
+	(hexlify-buffer): Don't re-encode an arg that's already encoded.
+
 2006-11-23  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-diff.el (ediff-exec-process, ediff-same-file-contents): remove
-	condition-case.
+	* ediff-diff.el (ediff-exec-process, ediff-same-file-contents):
+	Remove condition-case.
 
 2006-11-23  Glenn Morris  <rgm@gnu.org>
 
@@ -29,19 +35,19 @@
 
 2006-11-21  Diane Murray  <disumu@x3y2z1.net>  (tiny change)
 
-	* thingatpt.el (thing-at-point-uri-schemes): Added schemes that
+	* thingatpt.el (thing-at-point-uri-schemes): Add schemes that
 	are new to the list at IANA.  Also added irc, mms, mmsh.
 
 2006-11-20  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* progmodes/idlw-help.el (idlwave-html-help-location): Fail
-	gracefully for missing help packages.
+	* progmodes/idlw-help.el (idlwave-html-help-location):
+	Fail gracefully for missing help packages.
 	(idlwave-help-assistant-open-link): Open full links.
 	(idlwave-help-assistant-help-with-topic): Direct help link.
 
-	* progmodes/idlwave.el (idlwave-mode): Set
-	add-log-current-defun-function.
-	(idlwave-current-routine-fullname): Added, to support add-log.
+	* progmodes/idlwave.el (idlwave-mode):
+	Set add-log-current-defun-function.
+	(idlwave-current-routine-fullname): Add, to support add-log.
 	(idlwave-convert-xml-system-routine-info): Simplify XML parsing
 	to reflect improvements to xml-parse-file.
 	(idlwave-mode-menu-def): New binding for help-with-topic.
@@ -123,7 +129,7 @@
 2006-11-17  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-scan-tags): Re-align code fixed.
-	(org-detach-overlay): Renamed from `org-detatch-overlay'.
+	(org-detach-overlay): Rename from `org-detatch-overlay'.
 	(org-table-convert-region): Insert space after column separator.
 	(org-agenda-kill): New command.
 	(org-metaleft): Call `org-outdent-item' on bullets.
@@ -280,8 +286,8 @@
 	Delete support for old versions of `align'.
 	(ada-search-prev-end-stmt): Handle additional keyword `private'.
 	(ada-check-defun-name): Simplify handling of `declare'.
-	(ada-goto-matching-start): Handle nested `begin ... end'. Handle
-	`declare', `protected', `procedure', `function'.
+	(ada-goto-matching-start): Handle nested `begin ... end'.
+	Handle `declare', `protected', `procedure', `function'.
 	(ada-create-menu): Presence of arm95 is not conditional on using
 	GNAT compiler.
 
@@ -364,15 +370,14 @@
 2006-11-10  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* textmodes/org.el (org-show-hierarchy-above)
-	(org-show-following-heading): Fixed typo in default value.
+	(org-show-following-heading): Fix typo in default value.
 	(org-scan-tags): Make the search case-sensitive.
 	(org-tags-sparse-tree): Don't overrule
 	`org-show-following-heading' and `org-show-hierarchy-above'.
 	(org-reveal): New command.
-	(org-show-context): Renamed from `org-show-hierarchy-above'.
+	(org-show-context): Rename from `org-show-hierarchy-above'.
 	(org-fast-tag-selection-single-key): New option.
-	(org-fast-tag-show-exit, org-set-current-tags-overlay): New
-	functions.
+	(org-fast-tag-show-exit, org-set-current-tags-overlay): New functions.
 	(org-tags-overlay): New variable.
 	(org-agenda-todo-ignore-deadlines): New option.
 	("session"): Add circular data structure `org-mark-ring' to
@@ -380,32 +385,29 @@
 	(org-agenda-window-setup, org-agenda-restore-windows-after-quit):
 	New options.
 	(org-agenda-quit): Use `org-agenda-restore-windows-after-quit'.
-	(org-prepare-agenda, org-agenda-quit): Use
-	`org-agenda-window-setup'.
-	(org-pre-agenda-window-conf, org-blank-before-new-entry): New
-	variables.
+	(org-prepare-agenda, org-agenda-quit): Use `org-agenda-window-setup'.
+	(org-pre-agenda-window-conf, org-blank-before-new-entry): New vars.
 	(org-finalize-agenda): Activate bracket links in agenda.
 	(org-at-timestamp-p, org-at-date-range-p): Additional argument
 	INACTIVE-OK.
-	(org-show-hierarchy-above, org-show-following-heading): List
-	values allowed for fine-tuned configuration.
+	(org-show-hierarchy-above, org-show-following-heading):
+	List values allowed for fine-tuned configuration.
 	(org-show-hierarchy-above): New argument CONTEXT, use the
 	fine-tuned settings in `org-show-hierarchy-above' and
 	`org-show-following-heading'.
 	(org-display-custom-time): New function.
-	(org-toggle-time-stamp-overlays, org-insert-time-stamp): New
-	function.
+	(org-toggle-time-stamp-overlays, org-insert-time-stamp): New function.
 	(org-display-custom-times, org-time-stamp-custom-formats):
 	(org-maybe-intangible): New macro.
-	(org-activate-bracket-links, org-hide-wide-columns): Use
-	`org-maybe-intangible'.
+	(org-activate-bracket-links, org-hide-wide-columns):
+	Use `org-maybe-intangible'.
 	(org-open-file): Use `shell-quote-argument'.
 	(org-display-internal-link-with-indirect-buffer): New option.
 	(org-file-remote-p): Get regexp from list.
 	(org-link-expand-abbrev): New function.
 	(org-link-abbrev-alist): New option.
-	(org-open-at-point, org-cleaned-string-for-export): Call
-	`org-link-expand-abbrev'.
+	(org-open-at-point, org-cleaned-string-for-export):
+	Call `org-link-expand-abbrev'.
 	(org-timeline, org-agenda-list, org-todo-list)
 	(org-tags-view): Remove the KEEP-MODES argument.
 	(org-finalize-agenda-hook): New hook.
@@ -414,8 +416,7 @@
 	(org-open-at-point): Call `org-follow-timestamp-link'.
 	(org-log-note-marker, org-log-note-purpose)
 	(org-log-note-window-configuration): New variables.
-	(org-add-log-maybe, org-add-log-note, org-store-log-note): New
-	functions.
+	(org-add-log-maybe, org-add-log-note, org-store-log-note): New funs.
 	(org-log-note-headings): New option.
 	(org-dblock-write:clocktable): Bug fix, removed infinite loop.
 	(org-store-link): Support for dired-mode.
@@ -430,14 +431,12 @@
 	the text property inticating the agenda type.
 	(org-agenda-post-command-hook): Get agenda type from text property
 	at point.
-	(org-agenda): Handle command sets.  Set
-	`org-agenda-last-arguments' and obey
-	`org-agenda-overriding-arguments'.
-	(org-agenda-overriding-arguments, org-agenda-last-arguments): New
-	variables.
+	(org-agenda): Handle command sets.  Set `org-agenda-last-arguments'
+	and obey `org-agenda-overriding-arguments'.
+	(org-agenda-overriding-arguments, org-agenda-last-arguments): New vars.
 	(org-agenda-goto-today, org-agenda-later, org-agenda-earlier)
-	(org-agenda-week-view, org-agenda-day-view): Use
-	`org-agenda-overriding-arguments' to make updating work with
+	(org-agenda-week-view, org-agenda-day-view):
+	Use `org-agenda-overriding-arguments' to make updating work with
 	multi-block agendas.
 	(org-agenda-prefix-format): Allow different formats for the
 	different agenda entry types.
@@ -448,11 +447,11 @@
 	`org-select-agenda-window' instead.
 	(org-respect-restriction): Variable removed.
 	(org-cmp-tag): New function.
-	(org-agenda-sorting-strategy, org-entries-lessp): Implement
-	sorting by last tag.
+	(org-agenda-sorting-strategy, org-entries-lessp):
+	Implement sorting by last tag.
 	(org-complete): Better completion in in-buffer option lines.
 	(org-in-item-p): New function.
-	(org-org-menu): Added entries for checkboxes.
+	(org-org-menu): Add entries for checkboxes.
 	(org-cycle): Extra brouping in outline-regexp, because it is used
 	in a search with "^" prepended.
 	(org-provide-checkbox-statistics): New option.
@@ -460,16 +459,16 @@
 	(org-update-checkbox-count-maybe)
 	(org-get-checkbox-statistics-face): New functions.
 	(org-update-checkbox-count): New command.
-	(org-insert-item, org-toggle-checkbox): Call
-	`org-update-checkbox-count-maybe'.
+	(org-insert-item, org-toggle-checkbox):
+	Call `org-update-checkbox-count-maybe'.
 	(org-export-as-html): XEmacs compatibility for coding system.
 	(org-force-cycle-archived): New command.
 	(org-cycle-hide-archived-subtrees): Display message when ARCHIVE
 	overrules cycling.
 	(org-fix-position-after-promote): If the line contains only a todo
 	keyword, add a final space.
-	(org-promote-subtree, org-demote-subtree): Call
-	`org-fix-position-after-promote'.
+	(org-promote-subtree, org-demote-subtree):
+	Call `org-fix-position-after-promote'.
 
 2006-11-10  Glenn Morris  <rgm@gnu.org>
 
@@ -575,8 +574,8 @@
 
 2006-11-08  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-default-coding-systems): Always
-	set default-file-name-coding-system to utf-8 for Mac Darwin.
+	* international/mule-cmds.el (set-default-coding-systems):
+	Always set default-file-name-coding-system to utf-8 for Mac Darwin.
 
 2006-11-08  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -811,8 +810,7 @@
 
 2006-11-04  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
 
-	* faces.el (faces-sample-overlay, describe-face): Revert last
-	changes.
+	* faces.el (faces-sample-overlay, describe-face): Revert last changes.
 	(faces-sample-overlay): Remove variable.
 	(describe-face): Insert sample text in the face being described.
 
@@ -823,12 +821,12 @@
 	(whitespace-buffer): Use `remove-overlays' instead of
 	`whitespace-unhighlight-the-space' and `overlay-recenter' to
 	speed up overlay handling.
-	(whitespace-buffer-leading, whitespace-buffer-trailing): Make
-	these functions highlight the text removed by
+	(whitespace-buffer-leading, whitespace-buffer-trailing):
+	Make these functions highlight the text removed by
 	`whitespace-buffer-leading-cleanup' and
 	`whitespace-buffer-trailing-cleanup' respectively.
-	(whitespace-buffer-search): Use `with-local-quit'.  Move
-	`format' out of loop to speed up scanning larger buffers.
+	(whitespace-buffer-search): Use `with-local-quit'.
+	Move `format' out of loop to speed up scanning larger buffers.
 	(whitespace-unhighlight-the-space): Remove `remove-hook' since
 	that function is never added to a hook.
 	(whitespace-spacetab-regexp, whitespace-ateol-regexp)
@@ -859,7 +857,7 @@
 	(allout-deannotate-hidden): New function to remove was-hidden
 	annotation.
 	(allout-hide-by-annotation): Use new allout-deannotate-hidden.
-	(allout-remove-exposure-annotation): Replaced by
+	(allout-remove-exposure-annotation): Replace by
 	allout-deannotate-hidden.
 	(allout-yank-processing): Signal that yank processing is happening
 	with allout-during-yank-processing.  Also, wrap
@@ -985,10 +983,10 @@
 
 2006-10-30  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
-	* help-fns.el (help-with-tutorial): Moved to tutorial.el.
+	* help-fns.el (help-with-tutorial): Move to tutorial.el.
 
 	* tutorial.el: New file.
-	(help-with-tutorial): Moved here from help-fns.el. Added help for
+	(help-with-tutorial): Move here from help-fns.el. Added help for
 	rebound keys.  Fixed resume of tutorial.
 	(tutorial--describe-nonstandard-key, tutorial--sort-keys)
 	(tutorial--find-changed-keys, tutorial--display-changes)
