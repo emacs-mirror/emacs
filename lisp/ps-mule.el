@@ -4,8 +4,8 @@
 ;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
+;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
+;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, print, PostScript, multibyte, mule
 ;; Time-stamp: <2003/05/14 22:19:41 vinicius>
