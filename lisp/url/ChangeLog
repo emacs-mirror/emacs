@@ -1,3 +1,11 @@
+2006-11-23  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-http.el (url-http-content-length-after-change-function): Use
+	`url-lazy-message'.
+
+	* url-util.el (url-display-percentage): Only show a message if
+	`url-show-status' is non-nil.
+
 2006-11-15  Magnus Henoch  <mange@freemail.hu>
 
 	* url-http.el (url-http): Make proxy-object buffer-local, to
