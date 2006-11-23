@@ -1007,8 +1007,9 @@ All others return `comment-column', leaving at least one space after code."
 		(skip-chars-backward " \t")
 		(bolp)))
 	 (f90-calculate-indent))
-	(t (skip-chars-backward " \t")
-	   (max (if (bolp) 0 (1+ (current-column))) comment-column))))
+	(t (save-excursion
+             (skip-chars-backward " \t")
+             (max (if (bolp) 0 (1+ (current-column))) comment-column)))))
 
 (defsubst f90-present-statement-cont ()
   "Return continuation properties of present statement.
