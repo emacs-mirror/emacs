@@ -1397,7 +1397,7 @@ substring_both (string, from, from_byte, to, to_byte)
 			    string, make_number (0), res, Qnil);
     }
   else
-    res = Fvector (to - from, AREF (string, from));
+    res = Fvector (to - from, &AREF (string, from));
 
   return res;
 }
