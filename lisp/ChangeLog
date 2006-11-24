@@ -1,5 +1,11 @@
 2006-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pgg-pgp.el (pgg-pgp-process-region): Change `args' from a list of
+	strings to a single string.  Quote `errors-file-name'.
+	(pgg-pgp-encrypt-region, pgg-pgp-decrypt-region, pgg-pgp-sign-region)
+	(pgg-pgp-verify-region, pgg-pgp-insert-key, pgg-pgp-snarf-keys-region):
+	Adjust calls.  Use `shell-quote-argument'.
+
 	* international/mule.el (load-with-code-conversion)
 	(with-category-table): Use with-current-buffer.
 	(after-insert-file-set-coding): Use restore-buffer-modified-p.
