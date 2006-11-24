@@ -1,3 +1,13 @@
+2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/rcirc.el (rcirc-buffer-maximum-lines):
+	* progmodes/gud.el (jdb): Fix space/tab mixup in docstrings.
+
+	* play/gomoku.el (gomoku-terminate-game, gomoku-human-takes-back)
+	(gomoku-prompt-for-move, gomoku-human-plays, gomoku-offer-a-draw):
+	Fix typos in output messages.
+	(gomoku-vector-length, gomoku-init-board): Fix typos in docstrings.
+
 2006-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hexl.el (hexl-mode): Don't try to guess the max-address: get it from

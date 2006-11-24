@@ -1,3 +1,9 @@
+2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-after-connect, erc-open-ssl-stream)
+	(erc-display-line-1, erc-display-line):
+	* erc-backend.el (005): Fix space/tab mixup in docstrings.
+
 2006-11-20  Michael Olson  <mwolson@gnu.org>
 
 	* erc.el (erc-version-string): Call this Version 5.2 stable
