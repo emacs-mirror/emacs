@@ -624,7 +624,7 @@ required by the caller."
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
-    ;; gud-marker-acc until we receive the rest of it.	Since we
+    ;; gud-marker-acc until we receive the rest of it.  Since we
     ;; know the full marker regexp above failed, it's pretty simple to
     ;; test for marker starts.
     (if (string-match "\n\\(\032.*\\)?\\'" gud-marker-acc)
@@ -1457,7 +1457,7 @@ into one that invokes an Emacs-enabled debugging session.
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
-    ;; gud-marker-acc until we receive the rest of it.	Since we
+    ;; gud-marker-acc until we receive the rest of it.  Since we
     ;; know the full marker regexp above failed, it's pretty simple to
     ;; test for marker starts.
     (if (string-match "\032.*\\'" gud-marker-acc)
@@ -1562,7 +1562,7 @@ and source-file directory for your debugger."
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
-    ;; gud-marker-acc until we receive the rest of it.	Since we
+    ;; gud-marker-acc until we receive the rest of it.  Since we
     ;; know the full marker regexp above failed, it's pretty simple to
     ;; test for marker starts.
     (if (string-match gud-pdb-marker-regexp-start gud-marker-acc)
@@ -1861,7 +1861,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
     (forward-char))
   (forward-char))
 
-;; Move point past the following block.	 There may be (legal) cruft before
+;; Move point past the following block.  There may be (legal) cruft before
 ;; the block's opening brace.  There must be a block or it's the end of life
 ;; in petticoat junction.
 (defun gud-jdb-skip-block ()
@@ -2049,7 +2049,7 @@ extension EXTN.  Normally EXTN is given as the regular expression
 	massaged-args)))
 
 ;; Search for an association with P, a fully qualified class name, in
-;; gud-jdb-class-source-alist.	The asssociation gives the fully
+;; gud-jdb-class-source-alist.  The asssociation gives the fully
 ;; qualified file name of the source file which produced the class.
 (defun gud-jdb-find-source-file (p)
   (cdr (assoc p gud-jdb-class-source-alist)))
@@ -2217,7 +2217,7 @@ nil)
 (defun jdb (command-line)
   "Run jdb with command line COMMAND-LINE in a buffer.
 The buffer is named \"*gud*\" if no initial class is given or
-\"*gud-<initial-class-basename>*\" if there is.	 If the \"-classpath\"
+\"*gud-<initial-class-basename>*\" if there is.  If the \"-classpath\"
 switch is given, omit all whitespace between it and its value.
 
 See `gud-jdb-use-classpath' and `gud-jdb-classpath' documentation for
@@ -2794,7 +2794,7 @@ Obeying it means displaying in another window the specified file and line."
 	    (cond ((or (< pos (point-min)) (> pos (point-max)))
 		   (widen)
 		   (goto-char pos))))
-	  (when window 
+	  (when window
 	    (set-window-point window gud-overlay-arrow-position)
 	    (if (memq gud-minor-mode '(gdbmi gdba))
 		(setq gdb-source-window window)))))))
