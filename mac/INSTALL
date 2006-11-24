@@ -29,7 +29,7 @@ you try to install into /usr (with ./configure --prefix=/usr), then you
 must install as root using the sudo command.  However, it is not
 recommended; see the notes section below for more details.
 
-The --enable-carbon-app specifies that the carbon GUI application
+The --enable-carbon-app specifies that the Carbon GUI application
 should be installed into /Application.  If you want it to install in a
 different location, specify --enable-carbon-app=<mydir>
 
@@ -43,23 +43,31 @@ GNU texinfo package are given below.  Alternatively, you can type `make
 -k' instead of `make' and safely ignore the error messages and use the
 existing info files.
 
-After Emacs is installed, you can run it by typing `emacs -nw' from a
-terminal (make sure your path contains /usr/local/bin) or by
-double-clicking on /Applications/Emacs.app in the Finder.  To start
-Emacs as a GUI application from the terminal, the pathname to the
-executable in the bundle, i.e.,
+After Emacs is installed, you can run a text-only terminal version by
+typing `emacs' from a terminal (make sure your path contains
+/usr/local/bin) or a GUI application by double-clicking on
+/Applications/Emacs.app in the Finder.  Even in the terminal version,
+some Carbon-specific functions such as `mac-set-file-creator' are
+still meaningful.
+
+To start Emacs as a GUI application from the terminal, the pathname to
+the executable in the bundle, i.e.,
 
   /Application/Emacs.app/Contents/MacOS/Emacs
 
 must be typed to the shell to enable Emacs to locate its resources
-correctly.  You may want to create a symlink or alias to this path to
-quickly access both the terminal and GUI versions.
+correctly.  You may want to create an alias to this path to quickly
+access both the terminal and GUI versions.  You can specify some
+standard Emacs options when invoking Emacs in this way.
 
-If you are building Emacs to run on Mac OS X and X Window System,
-instead of typing `./configure' above, type
+Emacs on Mac OS X is not configured to use X11 unless either it is
+requested or the use of Carbon is disabled explicitly.  So, if you are
+building Emacs to run on X Window System, you need to specify like:
 
   ./configure --with-x
 
+Note that the Carbon-specific functions mentioned above are not
+available on the X11-enabled build.
 
 To use colors in a terminal, put the following lines in the file
 ~/.termcap and log in again.
@@ -130,7 +138,7 @@ If you are intending to build a binary distribution of Emacs, there is
 a script that will greatly simplify the process.  It is called
 make-package and it is contained in this directory.  It will generate
 a disc image containing a installer bundle.  By default the installer
-will place the emacs common files in /usr/local/* and the carbon
+will place the emacs common files in /usr/local/* and the Carbon
 application in /Applications.  Typical usage would be
 
 ./make-package
