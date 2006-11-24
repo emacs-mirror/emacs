@@ -73,6 +73,7 @@ static Lisp_Object ftfont_pattern_entity P_ ((FcPattern *,
 					      Lisp_Object, Lisp_Object));
 static Lisp_Object ftfont_list_generic_family P_ ((Lisp_Object, Lisp_Object,
 						   Lisp_Object));
+Lisp_Object ftfont_font_format P_ ((FcPattern *));
 
 #define SYMBOL_FcChar8(SYM) (FcChar8 *) SDATA (SYMBOL_NAME (SYM))
 
@@ -102,7 +103,7 @@ ftfont_pattern_entity (p, frame, registry)
      Lisp_Object frame, registry;
 {
   Lisp_Object entity;
-  FcChar8 *file;
+  FcChar8 *file, *fontformat;
   FcCharSet *charset;
   char *str;
   int numeric;
@@ -112,6 +113,8 @@ ftfont_pattern_entity (p, frame, registry)
     return Qnil;
   if (FcPatternGetCharSet (p, FC_CHARSET, 0, &charset) != FcResultMatch)
     charset = NULL;
+  if (FcPatternGetString (p, FC_FONTFORMAT, 0, &fontformat) != FcResultMatch)
+    fontformat = NULL;
 
   entity = Fmake_vector (make_number (FONT_ENTITY_MAX), null_string);
 
@@ -150,7 +153,10 @@ ftfont_pattern_entity (p, frame, registry)
     return Qnil;
 
   if (FcPatternAddString (p, FC_FILE, file) == FcFalse
-      || (charset && FcPatternAddCharSet (p, FC_CHARSET, charset) == FcFalse)
+      || (charset
+	  && FcPatternAddCharSet (p, FC_CHARSET, charset) == FcFalse)
+      || (fontformat
+	  && FcPatternAddString (p, FC_FONTFORMAT, fontformat) == FcFalse)
       || (numeric >= 0
 	  && FcPatternAddInteger (p, FC_SPACING, numeric) == FcFalse))
     {
@@ -189,7 +195,7 @@ ftfont_list_generic_family (spec, frame, registry)
 
       objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
 				 FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING,
-				 FC_CHARSET, FC_FILE, NULL);
+				 FC_CHARSET, FC_FILE, FC_FONTFORMAT, NULL);
       if (! objset)
 	goto err;
       pattern = FcPatternBuild (NULL, FC_FAMILY, FcTypeString,
@@ -459,7 +465,7 @@ ftfont_list (frame, spec)
 
   objset = FcObjectSetBuild (FC_FOUNDRY, FC_FAMILY, FC_WEIGHT, FC_SLANT,
 			     FC_WIDTH, FC_PIXEL_SIZE, FC_SPACING,
-			     FC_CHARSET, FC_FILE, NULL);
+			     FC_CHARSET, FC_FILE, FC_FONTFORMAT, NULL);
   if (! objset)
     goto err;
   if (otf_script[0])
@@ -708,6 +714,7 @@ ftfont_open (f, entity, pixel_size)
   ftfont_info->ft_size = ft_size;
 
   font = (struct font *) ftfont_info;
+  font->format = ftfont_font_format (pattern);
   font->entity = entity;
   font->pixel_size = size;
   font->driver = &ftfont_driver;
@@ -928,6 +935,24 @@ ftfont_anchor_point (font, code, index, x, y)
   *x = ft_face->glyph->outline.points[index].x;
   *y = ft_face->glyph->outline.points[index].y;
   return 0;
+}
+
+Lisp_Object
+ftfont_font_format (FcPattern *pattern)
+{
+  FcChar8 *fmt;
+
+  if (FcPatternGetString (pattern, FC_FONTFORMAT, 0, &fmt) != FcResultMatch)
+    return Qnil;
+  if (strcmp ((char *) fmt, "TrueType") == 0)
+    return intern ("truetype");
+  if (strcmp ((char *) fmt, "Tyep 1") == 0)
+    return intern ("type1");
+  if (strcmp ((char *) fmt, "PCF") == 0)  
+    return intern ("pcf");
+  if (strcmp ((char *) fmt, "BDF") == 0)  
+    return intern ("bdf");
+  return intern ("unknown");
 }
 
 
