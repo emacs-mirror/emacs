@@ -15,7 +15,7 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -352,7 +352,7 @@ be subscribed using `gnus-subscribe-options-newsgroup-method'."
 
 (defcustom gnus-options-subscribe nil
   "*All new groups matching this regexp will be subscribed unconditionally.
-Note that this variable deals only with new newsgroups.	 This variable
+Note that this variable deals only with new newsgroups.  This variable
 does not affect old newsgroups.
 
 New groups that match this regexp will not be handled by
@@ -364,7 +364,7 @@ be subscribed using `gnus-subscribe-options-newsgroup-method'."
 
 (defcustom gnus-options-not-subscribe nil
   "*All new groups matching this regexp will be ignored.
-Note that this variable deals only with new newsgroups.	 This variable
+Note that this variable deals only with new newsgroups.  This variable
 does not affect old (already subscribed) newsgroups."
   :group 'gnus-group-new
   :type '(choice regexp
@@ -620,7 +620,7 @@ it is killed."
 
 (defun gnus-subscribe-newsgroup (newsgroup &optional next)
   "Subscribe new NEWSGROUP.
-If NEXT is non-nil, it is inserted before NEXT.	 Otherwise it is made
+If NEXT is non-nil, it is inserted before NEXT.  Otherwise it is made
 the first newsgroup."
   (save-excursion
     (goto-char (point-min))
@@ -732,7 +732,7 @@ will not connect to the local server."
 (defun gnus-1 (&optional arg dont-connect slave)
   "Read network news.
 If ARG is non-nil and a positive number, Gnus will use that as the
-startup level.	If ARG is non-nil and not a positive number, Gnus will
+startup level.  If ARG is non-nil and not a positive number, Gnus will
 prompt the user for the name of an NNTP server to use."
   (interactive "P")
 
