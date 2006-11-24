@@ -244,6 +244,11 @@ This is relative to `smtpmail-queue-dir'.")
 	(save-excursion
 	  (set-buffer tembuf)
 	  (erase-buffer)
+	  ;; Use the same buffer-file-coding-system as in the mail
+	  ;; buffer, otherwise any write-region invocations (e.g., in
+	  ;; mail-do-fcc below) will annoy with asking for a suitable
+	  ;; encoding.
+	  (set-buffer-file-coding-system smtpmail-code-conv-from nil t)
 	  (insert-buffer-substring mailbuf)
 	  (goto-char (point-max))
 	  ;; require one newline at the end.
@@ -326,6 +331,22 @@ This is relative to `smtpmail-queue-dir'.")
 	    (goto-char (point-min))
 	    (unless (re-search-forward "^Date:" delimline t)
 	      (insert "Date: " (message-make-date) "\n"))
+	    ;; Possibly add a MIME header for the current coding system
+	    (let (charset)
+	      (goto-char (point-min))
+	      (and (eq mail-send-nonascii 'mime)
+		   (not (re-search-forward "^MIME-version:" delimline t))
+		   (progn (skip-chars-forward "\0-\177")
+			  (/= (point) (point-max)))
+		   smtpmail-code-conv-from
+		   (setq charset
+			 (coding-system-get smtpmail-code-conv-from
+					    'mime-charset))
+		   (goto-char delimline)
+		   (insert "MIME-version: 1.0\n"
+			   "Content-type: text/plain; charset="
+			   (symbol-name charset)
+			   "\nContent-Transfer-Encoding: 8bit\n")))
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
@@ -334,7 +355,10 @@ This is relative to `smtpmail-queue-dir'.")
 	    ;; Find and handle any FCC fields.
 	    (goto-char (point-min))
 	    (if (re-search-forward "^FCC:" delimline t)
-		(mail-do-fcc delimline))
+		;; Force mail-do-fcc to use the encoding of the mail
+		;; buffer to encode outgoing messages on FCC files.
+		(let ((coding-system-for-write smtpmail-code-conv-from))
+		  (mail-do-fcc delimline)))
 	    (if mail-interactive
 		(with-current-buffer errbuf
 		  (erase-buffer))))
@@ -370,6 +394,7 @@ This is relative to `smtpmail-queue-dir'.")
 		(make-directory smtpmail-queue-dir t))
 	      (with-current-buffer buffer-data
 		(erase-buffer)
+		(set-buffer-file-coding-system smtpmail-code-conv-from nil t)
 		(insert-buffer-substring tembuf)
 		(write-file file-data)
 		(set-buffer buffer-elisp)
