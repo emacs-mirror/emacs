@@ -1,9 +1,10 @@
 2006-11-24  Lars Hansen  <larsh@soem.dk>
+
 	* net/tramp.el (tramp-default-method): Under Windows, change from
 	plink to pscp.
 	(tramp-copy-failed-regexp, tramp-action-copy-failed): Add.
-	(tramp-actions-copy-out-of-band): Add pair (tramp-copy-failed-regexp
-	tramp-action-copy-failed).
+	(tramp-actions-copy-out-of-band):
+	Add pair (tramp-copy-failed-regexp tramp-action-copy-failed).
 	(tramp-action-out-of-band): Move "Permission denied" handling to
 	tramp-action-copy-failed.
 	(tramp-do-copy-or-rename-file-out-of-band): unwind-protect killing of
