@@ -150,7 +150,7 @@ To get the number of bytes, use `string-bytes'.  */)
   if (STRINGP (sequence))
     XSETFASTINT (val, SCHARS (sequence));
   else if (VECTORP (sequence))
-    XSETFASTINT (val, XVECTOR (sequence)->size);
+    XSETFASTINT (val, ASIZE (sequence));
   else if (SUB_CHAR_TABLE_P (sequence))
     XSETFASTINT (val, SUB_CHAR_TABLE_ORDINARY_SLOTS);
   else if (CHAR_TABLE_P (sequence))
@@ -158,7 +158,7 @@ To get the number of bytes, use `string-bytes'.  */)
   else if (BOOL_VECTOR_P (sequence))
     XSETFASTINT (val, XBOOL_VECTOR (sequence)->size);
   else if (COMPILEDP (sequence))
-    XSETFASTINT (val, XVECTOR (sequence)->size & PSEUDOVECTOR_SIZE_MASK);
+    XSETFASTINT (val, ASIZE (sequence) & PSEUDOVECTOR_SIZE_MASK);
   else if (CONSP (sequence))
     {
       i = 0;
@@ -391,9 +391,9 @@ Symbols are also allowed; their print names are used instead.  */)
 /* "gcc -O3" enables automatic function inlining, which optimizes out
    the arguments for the invocations of this function, whereas it
    expects these values on the stack.  */
-static Lisp_Object concat () __attribute__((noinline));
+static Lisp_Object concat P_ ((int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_special)) __attribute__((noinline));
 #else  /* !__GNUC__ */
-static Lisp_Object concat ();
+static Lisp_Object concat P_ ((int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_special));
 #endif
 
 /* ARGSUSED */
@@ -617,7 +617,7 @@ concat (nargs, args, target_type, last_special)
 	  if (VECTORP (this))
 	    for (i = 0; i < len; i++)
 	      {
-		ch = XVECTOR (this)->contents[i];
+		ch = AREF (this, i);
 		CHECK_NUMBER (ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
@@ -770,7 +770,7 @@ concat (nargs, args, target_type, last_special)
 		thisindex++;
 	      }
 	    else
-	      elt = XVECTOR (this)->contents[thisindex++];
+	      elt = AREF (this, thisindex++);
 
 	    /* Store this element into the result.  */
 	    if (toindex < 0)
@@ -780,7 +780,7 @@ concat (nargs, args, target_type, last_special)
 		tail = XCDR (tail);
 	      }
 	    else if (VECTORP (val))
-	      XVECTOR (val)->contents[toindex++] = elt;
+	      AREF (val, toindex++) = elt;
 	    else
 	      {
 		CHECK_NUMBER (elt);
@@ -1261,7 +1261,7 @@ This function allows vectors as well as strings.  */)
       size_byte = SBYTES (string);
     }
   else
-    size = XVECTOR (string)->size;
+    size = ASIZE (string);
 
   if (NILP (to))
     {
@@ -1299,8 +1299,7 @@ This function allows vectors as well as strings.  */)
 			    string, make_number (0), res, Qnil);
     }
   else
-    res = Fvector (to_char - from_char,
-		   XVECTOR (string)->contents + from_char);
+    res = Fvector (to_char - from_char, &AREF (string, from_char));
 
   return res;
 }
@@ -1384,7 +1383,7 @@ substring_both (string, from, from_byte, to, to_byte)
       size_byte = SBYTES (string);
     }
   else
-    size = XVECTOR (string)->size;
+    size = ASIZE (string);
 
   if (!(0 <= from && from <= to && to <= size))
     args_out_of_range_3 (string, make_number (from), make_number (to));
@@ -1398,8 +1397,7 @@ substring_both (string, from, from_byte, to, to_byte)
 			    string, make_number (0), res, Qnil);
     }
   else
-    res = Fvector (to - from,
-		   XVECTOR (string)->contents + from);
+    res = Fvector (to - from, AREF (string, from));
 
   return res;
 }
@@ -2245,11 +2243,11 @@ internal_equal (o1, o2, depth, props)
     case Lisp_Vectorlike:
       {
 	register int i;
-	EMACS_INT size = XVECTOR (o1)->size;
+	EMACS_INT size = ASIZE (o1);
 	/* Pseudovectors have the type encoded in the size field, so this test
 	   actually checks that the objects have the same type as well as the
 	   same size.  */
-	if (XVECTOR (o2)->size != size)
+	if (ASIZE (o2) != size)
 	  return 0;
 	/* Boolvectors are compared much like strings.  */
 	if (BOOL_VECTOR_P (o1))
@@ -2279,8 +2277,8 @@ internal_equal (o1, o2, depth, props)
 	for (i = 0; i < size; i++)
 	  {
 	    Lisp_Object v1, v2;
-	    v1 = XVECTOR (o1)->contents [i];
-	    v2 = XVECTOR (o2)->contents [i];
+	    v1 = AREF (o1, i);
+	    v2 = AREF (o2, i);
 	    if (!internal_equal (v1, v2, depth + 1, props))
 	      return 0;
 	  }
@@ -2321,7 +2319,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   if (VECTORP (array))
     {
       register Lisp_Object *p = XVECTOR (array)->contents;
-      size = XVECTOR (array)->size;
+      size = ASIZE (array);
       for (index = 0; index < size; index++)
 	p[index] = item;
     }
@@ -2549,7 +2547,7 @@ Note that this function doesn't check the parent of CHAR-TABLE.  */)
 
       charset_info = Fget (range, Qcharset);
       CHECK_VECTOR (charset_info);
-      charset_id = XINT (XVECTOR (charset_info)->contents[0]);
+      charset_id = XINT (AREF (charset_info, 0));
       ch = Fmake_char_internal (make_number (charset_id),
 				make_number (0), make_number (0));
     }
@@ -2675,7 +2673,7 @@ character set, or a character code.  Return VALUE.  */)
     Faset (char_table, range, value);
   else if (VECTORP (range))
     {
-      int size = XVECTOR (range)->size;
+      int size = ASIZE (range);
       Lisp_Object *val = XVECTOR (range)->contents;
       Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
 					    size <= 1 ? Qnil : val[1],
@@ -3061,14 +3059,14 @@ mapcar1 (leni, vals, fn, seq)
   else
     GCPRO2 (fn, seq);
   /* We need not explicitly protect `tail' because it is used only on lists, and
-    1) lists are not relocated and 2) the list is marked via `seq' so will not be freed */
+    1) lists are not relocated and 2) the list is marked via `seq' so will not
+    be freed */
 
   if (VECTORP (seq))
     {
       for (i = 0; i < leni; i++)
 	{
-	  dummy = XVECTOR (seq)->contents[i];
-	  dummy = call1 (fn, dummy);
+	  dummy = call1 (fn, AREF (seq, i));
 	  if (vals)
 	    vals[i] = dummy;
 	}
@@ -3079,11 +3077,7 @@ mapcar1 (leni, vals, fn, seq)
 	{
 	  int byte;
 	  byte = XBOOL_VECTOR (seq)->data[i / BOOL_VECTOR_BITS_PER_CHAR];
-	  if (byte & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR)))
-	    dummy = Qt;
-	  else
-	    dummy = Qnil;
-
+	  dummy = (byte & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR))) ? Qt : Qnil;
 	  dummy = call1 (fn, dummy);
 	  if (vals)
 	    vals[i] = dummy;
@@ -4384,7 +4378,7 @@ larger_vector (vec, new_size, init)
   int i, old_size;
 
   xassert (VECTORP (vec));
-  old_size = XVECTOR (vec)->size;
+  old_size = ASIZE (vec);
   xassert (new_size >= old_size);
 
   v = allocate_vector (new_size);
@@ -4716,7 +4710,7 @@ maybe_resize_hash_table (h)
 	if (!NILP (HASH_HASH (h, i)))
 	  {
 	    unsigned hash_code = XUINT (HASH_HASH (h, i));
-	    int start_of_bucket = hash_code % XVECTOR (h->index)->size;
+	    int start_of_bucket = hash_code % ASIZE (h->index);
 	    HASH_NEXT (h, i) = HASH_INDEX (h, start_of_bucket);
 	    HASH_INDEX (h, start_of_bucket) = make_number (i);
 	  }
@@ -4742,7 +4736,7 @@ hash_lookup (h, key, hash)
   if (hash)
     *hash = hash_code;
 
-  start_of_bucket = hash_code % XVECTOR (h->index)->size;
+  start_of_bucket = hash_code % ASIZE (h->index);
   idx = HASH_INDEX (h, start_of_bucket);
 
   /* We need not gcpro idx since it's either an integer or nil.  */
@@ -4789,7 +4783,7 @@ hash_put (h, key, value, hash)
   HASH_HASH (h, i) = make_number (hash);
 
   /* Add new entry to its collision chain.  */
-  start_of_bucket = hash % XVECTOR (h->index)->size;
+  start_of_bucket = hash % ASIZE (h->index);
   HASH_NEXT (h, i) = HASH_INDEX (h, start_of_bucket);
   HASH_INDEX (h, start_of_bucket) = make_number (i);
   return i;
@@ -4808,7 +4802,7 @@ hash_remove (h, key)
   Lisp_Object idx, prev;
 
   hash_code = h->hashfn (h, key);
-  start_of_bucket = hash_code % XVECTOR (h->index)->size;
+  start_of_bucket = hash_code % ASIZE (h->index);
   idx = HASH_INDEX (h, start_of_bucket);
   prev = Qnil;
 
@@ -4864,8 +4858,8 @@ hash_clear (h)
 	  HASH_HASH (h, i) = Qnil;
 	}
 
-      for (i = 0; i < XVECTOR (h->index)->size; ++i)
-	XVECTOR (h->index)->contents[i] = Qnil;
+      for (i = 0; i < ASIZE (h->index); ++i)
+	AREF (h->index, i) = Qnil;
 
       h->next_free = make_number (0);
       h->count = make_number (0);
@@ -4890,7 +4884,7 @@ sweep_weak_table (h, remove_entries_p)
 {
   int bucket, n, marked;
 
-  n = XVECTOR (h->index)->size & ~ARRAY_MARK_FLAG;
+  n = ASIZE (h->index) & ~ARRAY_MARK_FLAG;
   marked = 0;
 
   for (bucket = 0; bucket < n; ++bucket)
@@ -5104,13 +5098,13 @@ sxhash_vector (vec, depth)
      Lisp_Object vec;
      int depth;
 {
-  unsigned hash = XVECTOR (vec)->size;
+  unsigned hash = ASIZE (vec);
   int i, n;
 
-  n = min (SXHASH_MAX_LEN, XVECTOR (vec)->size);
+  n = min (SXHASH_MAX_LEN, ASIZE (vec));
   for (i = 0; i < n; ++i)
     {
-      unsigned hash2 = sxhash (XVECTOR (vec)->contents[i], depth + 1);
+      unsigned hash2 = sxhash (AREF (vec, i), depth + 1);
       hash = SXHASH_COMBINE (hash, hash2);
     }
 

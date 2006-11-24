@@ -1,3 +1,8 @@
+2006-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c: Use AREF/ASIZE macros.
+	(concat): Provide the full ANSI prototype.
+
 2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <buffer-undo-list>: Doc fix.
@@ -42,15 +47,13 @@
 
 2006-11-19  Andreas Schwab  <schwab@gnu.org>
 
-	* xfaces.c (Fdisplay_supports_face_attributes_p): Initialize
-	supports.
+	* xfaces.c (Fdisplay_supports_face_attributes_p): Initialize supports.
 
 	* xmenu.c (Fx_popup_menu): Initialize selection.
 
 2006-11-18  Andreas Schwab  <schwab@suse.de>
 
-	* s/gnu-linux.h (GC_MARK_SECONDARY_STACK): Update call to
-	mark_memory.
+	* s/gnu-linux.h (GC_MARK_SECONDARY_STACK): Update call to mark_memory.
 
 2006-11-17  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
 
@@ -68,8 +71,7 @@
 
 2006-11-14  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (code_convert_region): Initialize
-	coding->heading_ascii.
+	* coding.c (code_convert_region): Initialize coding->heading_ascii.
 	(decode_coding_string, code_convert_region): Likewise.
 
 2006-11-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -166,7 +168,7 @@
 
 2006-11-05  Mark Davies  <mark@mcs.vuw.ac.nz>  (tiny change)
 
-	* s/netbsd.h (POSIX_SIGNALS): Defined.
+	* s/netbsd.h (POSIX_SIGNALS): Define.
 
 2006-11-05  Martin Rudalics  <rudalics@gmx.at>
 
@@ -199,8 +201,8 @@
 	(unexec_regions_merge): Don't merge if null pages of preceding region
 	is not too small.  Use long format in printf.
 	(copy_segment, copy_data_segment): Show filesize.
-	(copy_data_segment): Write filesize bytes of region data.  Adjust
-	filesize in segment command accordingly.
+	(copy_data_segment): Write filesize bytes of region data.
+	Adjust filesize in segment command accordingly.
 	(dump_it): Use long format in printf.
 
 2006-11-05  Juanma Barranquero  <lekktu@gmail.com>
@@ -299,8 +301,8 @@
 	`swap_nibbles' static const.
 	(atsu_get_text_layout_with_text_ptr): Make variables `lengths',
 	`tags', `sizes', `values' static const.
-	(mac_draw_string_common): Make variables `context' static.  Make
-	variables `tags', `sizes', and `values' static const.
+	(mac_draw_string_common): Make variables `context' static.
+	Make variables `tags', `sizes', and `values' static const.
 	(pcm_get_status, x_detect_focus_change, x_scroll_bar_handle_click)
 	(xlfdpat_create, xlfdpat_block_match_1, xlfdpat_match)
 	(mac_to_x_fontname, parse_x_font_name, add_mac_font_name)
@@ -311,8 +313,8 @@
 	(fn_keycode_to_keycode_table): Make static const.
 	(mac_load_query_font): Make variables `tags', `sizes', `values',
 	`types', and `selectors' static const.
-	(mac_handle_command_event, mac_handle_window_event): Make
-	variables `names' and `types' static const.
+	(mac_handle_command_event, mac_handle_window_event):
+	Make variables `names' and `types' static const.
 	(init_command_handler, install_window_handler): Make variables
 	`specs*' static const.
 	(mac_handle_font_event, mac_handle_text_input_event)
@@ -404,7 +406,7 @@
 2006-10-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (get_utf8_string): Remove warnings with casts.
-	(xg_tool_bar_button_cb): Ditto
+	(xg_tool_bar_button_cb): Ditto.
 	(xg_tool_bar_callback): Ditto.
 
 2006-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
