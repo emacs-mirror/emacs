@@ -259,6 +259,7 @@ xftfont_open (f, entity, pixel_size)
   xftfont_info->ft_face = XftLockFace (xftfont);
 
   font = (struct font *) xftfont_info;
+  font->format = ftfont_font_format (xftfont->pattern);
   font->entity = entity;
   font->pixel_size = size;
   font->driver = &xftfont_driver;
