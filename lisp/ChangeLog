@@ -1,3 +1,11 @@
+2006-11-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Copy
+	buffer-file-coding-system from the mail buffer.  Possibly add a
+	MIME header for the message encoding.  Bind
+	coding-system-for-write around the call to mail-do-fcc.  Use
+	smtpmail-code-conv-from to encode queued mail messages.
+
 2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/rcirc.el (rcirc-buffer-maximum-lines):
