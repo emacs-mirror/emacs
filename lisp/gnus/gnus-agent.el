@@ -13,7 +13,7 @@
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -1167,7 +1167,7 @@ downloadable."
             ;; For each article that I processed that is no longer
             ;; undownloaded, remove its processable mark.
 
-	    (mapc #'gnus-summary-remove-process-mark 
+	    (mapc #'gnus-summary-remove-process-mark
 		  (gnus-sorted-ndifference gnus-newsgroup-processable gnus-newsgroup-undownloaded))
 
             ;; The preceeding call to (gnus-agent-summary-fetch-group)
@@ -1972,11 +1972,11 @@ doesn't exist, to valid the overview buffer."
 		   ;; First, we'll fix the sort.
 		   (sort-numeric-fields 1 (point-min) (point-max))
 
-		   ;; but now we have to consider that we may have duplicate rows...	  
+		   ;; but now we have to consider that we may have duplicate rows...
 		   ;; so reset to beginning of file
 		   (goto-char (point-min))
 		   (setq last -134217728)
-	  
+
 		   ;; and throw a code that restarts this scan
 		   (throw 'problems t))
 		 nil))))))
@@ -3470,7 +3470,7 @@ articles in every agentized group? "))
                    (or gnus-expert-user
                        (gnus-y-or-n-p
                         "gnus-agent-expire has identified local directories that are\
- not currently required by any agentized group.	 Do you wish to consider\
+ not currently required by any agentized group.  Do you wish to consider\
  deleting them?")))
           (while to-remove
             (let ((dir (pop to-remove)))
@@ -3756,7 +3756,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
              (dir (file-name-directory file))
              point
              (downloaded (if (file-exists-p dir)
-			   (sort (delq nil (mapcar (lambda (name) 
+			   (sort (delq nil (mapcar (lambda (name)
 						     (and (not (file-directory-p (nnheader-concat dir name)))
 							  (string-to-number name)))
 						   (directory-files dir nil "^[0-9]+$" t)))
@@ -3802,7 +3802,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
                                ((= l1 l2)
                                 (forward-line -1)
                                 (gnus-message 4 "gnus-agent-regenerate-group: NOV\
- entries contained duplicate of article %s.	 Duplicate deleted." l1)
+ entries contained duplicate of article %s.  Duplicate deleted." l1)
                                 (gnus-delete-line)
                                 (setq nov-arts (cdr nov-arts))))))
                       (t
@@ -3923,7 +3923,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
                 (gnus-agent-possibly-alter-active group group-active)))))
 
         (when (and reread gnus-agent-article-alist)
-	(gnus-agent-synchronize-group-flags 
+	(gnus-agent-synchronize-group-flags
            group
 	 (list (list
            (if (listp reread)
