@@ -15,7 +15,7 @@
 
 ;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
@@ -137,7 +137,7 @@ Used as the first arg to `format-time-string'."
 (defcustom rcirc-buffer-maximum-lines nil
   "*The maximum size in lines for rcirc buffers.
 Channel buffers are truncated from the top to be no greater than this
-number.	 If zero or nil, no truncating is done."
+number.  If zero or nil, no truncating is done."
   :type '(choice (const :tag "No truncation" nil)
 		 (integer :tag "Number of lines"))
   :group 'rcirc)
@@ -341,12 +341,12 @@ If ARG is non-nil, prompt for a server to connect to."
 	(when (string= rcirc-default-server (process-name p))
 	  (setq connected p)))
       (if (not connected)
-	  (rcirc-connect rcirc-default-server rcirc-default-port 
+	  (rcirc-connect rcirc-default-server rcirc-default-port
 			 rcirc-default-nick rcirc-default-user-name
 			 rcirc-default-user-full-name
 			 (rcirc-startup-channels rcirc-default-server))
 	(switch-to-buffer (process-buffer connected))
-	(message "Connected to %s" 
+	(message "Connected to %s"
 		 (process-contact (get-buffer-process (current-buffer))
 				  :host))))))
 ;;;###autoload
@@ -569,7 +569,7 @@ With no argument or nil as argument, use the current buffer."
 
 (defun rcirc-nick (process)
   "Return PROCESS nick."
-  (with-rcirc-process-buffer process 
+  (with-rcirc-process-buffer process
     (or rcirc-nick rcirc-default-nick)))
 
 (defun rcirc-buffer-nick (&optional buffer)
@@ -970,7 +970,7 @@ Create the buffer if it doesn't exist."
 
 (defvar rcirc-multiline-minor-mode-map (make-sparse-keymap)
   "Keymap for multiline mode in rcirc.")
-(define-key rcirc-multiline-minor-mode-map 
+(define-key rcirc-multiline-minor-mode-map
   (kbd "C-c C-c") 'rcirc-multiline-minor-submit)
 (define-key rcirc-multiline-minor-mode-map
   (kbd "C-x C-s") 'rcirc-multiline-minor-submit)
@@ -1079,7 +1079,7 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 		   "%")
 		  ((or (eq key ?n) (eq key ?N))
 		   ;; %n/%N -- nick
-		   (let ((nick (concat (if (string= (with-rcirc-process-buffer 
+		   (let ((nick (concat (if (string= (with-rcirc-process-buffer
 							process
 						      rcirc-server)
 						    sender)
@@ -1092,7 +1092,7 @@ is found by looking up RESPONSE in `rcirc-response-formats'."
 				     (cond ((string= sender (rcirc-nick process))
 					    'rcirc-my-nick)
 					   ((and rcirc-bright-nicks
-						 (string-match 
+						 (string-match
 						  (regexp-opt rcirc-bright-nicks)
 						  sender))
 					    'rcirc-bright-nick)
@@ -1206,7 +1206,7 @@ record activity."
 
 	    (let ((text-start (make-marker)))
 	      (set-marker text-start
-			  (or (next-single-property-change fill-start 
+			  (or (next-single-property-change fill-start
 							   'rcirc-text)
 			      rcirc-prompt-end-marker))
 	      ;; squeeze spaces out of text before rcirc-text
@@ -1402,7 +1402,7 @@ if NICK is also on `rcirc-ignore-list-automatic'."
 		   (append global-mode-string '(rcirc-activity-string))))
 	(add-hook 'window-configuration-change-hook
 		  'rcirc-window-configuration-change))
-    (setq global-mode-string 
+    (setq global-mode-string
 	  (delete 'rcirc-activity-string global-mode-string))
     (remove-hook 'window-configuration-change-hook
 		 'rcirc-window-configuration-change)))
@@ -1461,7 +1461,7 @@ show the buffer."
   (interactive "P")
   (let* ((pair (rcirc-split-activity rcirc-activity))
 	 (lopri (car pair))
-	 (hipri (cdr pair)))		
+	 (hipri (cdr pair)))
     (if (or (and (not arg) hipri)
 	    (and arg lopri))
 	(progn
@@ -1476,10 +1476,10 @@ show the buffer."
 	    (message "No more IRC activity.  Go back to work.")
 	    (funcall rcirc-switch-to-buffer-function rcirc-last-non-irc-buffer)
 	    (setq rcirc-last-non-irc-buffer nil))
-	(message (concat 
+	(message (concat
 		  "No IRC activity."
 		  (when lopri
-		    (concat 
+		    (concat
 		     "  Type C-u "
 		     (key-description (this-command-keys))
 		     " for low priority activity."))))))))
@@ -1669,7 +1669,7 @@ Also, clear the overlay arrow if the current buffer is now hidden."
   (if (null message)
       (progn
         (setq target (completing-read "Message nick: "
-                                      (with-rcirc-server-buffer 
+                                      (with-rcirc-server-buffer
 					rcirc-nick-table)))
         (when (> (length target) 0)
           (setq message (read-string (format "Message %s: " target)))
@@ -1775,7 +1775,7 @@ With a prefix arg, prompt for new topic."
   "Kick NICK from current channel."
   (interactive (list
                 (concat (completing-read "Kick nick: "
-                                         (rcirc-channel-nicks 
+                                         (rcirc-channel-nicks
 					  (rcirc-buffer-process)
 					  rcirc-target))
                         (read-from-minibuffer "Kick reason: "))))
@@ -1812,7 +1812,7 @@ nicks when no NICK is given.  When listing ignored nicks, the
 ones added to the list automatically are marked with an asterisk."
   (interactive "sToggle ignoring of nick: ")
   (setq rcirc-ignore-list (rcirc-add-or-remove rcirc-ignore-list nick))
-  (rcirc-print process nil "IGNORE" target 
+  (rcirc-print process nil "IGNORE" target
 	       (mapconcat
 		(lambda (nick)
 		  (concat nick
@@ -1824,14 +1824,14 @@ ones added to the list automatically are marked with an asterisk."
   "Manage the bright nick list."
   (interactive "sToggle emphasis of nick: ")
   (setq rcirc-bright-nicks (rcirc-add-or-remove rcirc-bright-nicks nick))
-  (rcirc-print process nil "BRIGHT" target 
+  (rcirc-print process nil "BRIGHT" target
 	       (mapconcat 'identity rcirc-bright-nicks " ")))
 
 (defun-rcirc-command dim (nick)
   "Manage the dim nick list."
   (interactive "sToggle deemphasis of nick: ")
   (setq rcirc-dim-nicks (rcirc-add-or-remove rcirc-dim-nicks nick))
-  (rcirc-print process nil "DIM" target 
+  (rcirc-print process nil "DIM" target
 	       (mapconcat 'identity rcirc-dim-nicks " ")))
 
 (defun-rcirc-command keyword (keyword)
@@ -1840,7 +1840,7 @@ Mark KEYWORD, unmark KEYWORD if already marked, or list marked
 keywords when no KEYWORD is given."
   (interactive "sToggle highlighting of keyword: ")
   (setq rcirc-keywords (rcirc-add-or-remove rcirc-keywords keyword))
-  (rcirc-print process nil "KEYWORD" target 
+  (rcirc-print process nil "KEYWORD" target
 	       (mapconcat 'identity rcirc-keywords " ")))
 
 
@@ -1865,8 +1865,8 @@ keywords when no KEYWORD is given."
 (defvar rcirc-url-regexp
   (rx-to-string
    `(and word-boundary
-	 (or (and 
-	      (or (and (or "http" "https" "ftp" "file" "gopher" "news" 
+	 (or (and
+	      (or (and (or "http" "https" "ftp" "file" "gopher" "news"
 			   "telnet" "wais" "mailto")
 		       "://")
 		  "www.")
@@ -1876,7 +1876,7 @@ keywords when no KEYWORD is given."
 	     (and (1+ (char "-a-zA-Z0-9_."))
 		  (or ".com" ".net" ".org")
 		  word-boundary))
-	 (optional 
+	 (optional
 	  (and "/"
 	       (1+ (char "-a-zA-Z0-9_=!?#$\@~`%&*+|\\/:;.,{}[]()"))
 	       (char "-a-zA-Z0-9_=#$\@~`%&*+|\\/:;{}[]()")))))
@@ -1957,11 +1957,11 @@ in this buffer.")
 
 (defun rcirc-markup-my-nick (process sender response channel-buffer)
   (with-syntax-table rcirc-nick-syntax-table
-    (while (re-search-forward (concat "\\b" 
+    (while (re-search-forward (concat "\\b"
 				      (regexp-quote (rcirc-nick process))
 				      "\\b")
 			      nil t)
-      (rcirc-add-face (match-beginning 0) (match-end 0) 
+      (rcirc-add-face (match-beginning 0) (match-end 0)
 		      'rcirc-nick-in-message)
       (when (string= response "PRIVMSG")
 	(rcirc-add-face (point-min) (point-max) 'rcirc-nick-in-message-full-line)
@@ -2409,7 +2409,7 @@ Passwords are stored in `rcirc-authinfo' (which see)."
 (defface rcirc-nick-in-message-full-line
   '((t (:bold t)))
   "The face used emphasize the entire message when your nick is mentioned."
-  :group 'rcirc-faces)  
+  :group 'rcirc-faces)
 
 (defface rcirc-prompt			; comint-highlight-prompt
   '((((min-colors 88) (background dark)) (:foreground "cyan1"))
