@@ -463,7 +463,7 @@ file_name_absolute_p (filename)
 }
 
 #ifdef WINDOWSNT
-/* Wrapper to make WSACleanup a cdecl, as required by atexit().	 */
+/* Wrapper to make WSACleanup a cdecl, as required by atexit().  */
 void
 __cdecl close_winsock ()
 {

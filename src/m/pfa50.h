@@ -50,7 +50,7 @@ Boston, MA 02110-1301, USA.  */
 #define NO_REMAP
 
 /* Define TEXT_START_ADDR if your linker don't set execute point to _start.
-   If it needed, temacs always CORE-DUMP.	*/
+   If it needed, temacs always CORE-DUMP.  */
 
 #define TEXT_START_ADDR __start
 

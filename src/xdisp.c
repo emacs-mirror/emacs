@@ -17384,7 +17384,7 @@ pint2str (buf, width, d)
 
 /* Write a null-terminated, right justified decimal and "human
    readable" representation of the nonnegative integer D to BUF using
-   a minimal field width WIDTH.	 D should be smaller than 999.5e24. */
+   a minimal field width WIDTH.  D should be smaller than 999.5e24. */
 
 static const char power_letter[] =
   {

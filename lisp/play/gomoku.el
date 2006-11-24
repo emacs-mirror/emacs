@@ -29,7 +29,7 @@
 
 ;; RULES:
 ;;
-;; Gomoku is a game played between two players on a rectangular board.	Each
+;; Gomoku is a game played between two players on a rectangular board.  Each
 ;; player, in turn, marks a free square of its choice. The winner is the first
 ;; one to mark five contiguous squares in any direction (horizontally,
 ;; vertically or diagonally).
@@ -212,9 +212,9 @@ is non-nil."
 ;;;
 
 ;; The board is a rectangular grid. We code empty squares with 0, X's with 1
-;; and O's with 6. The rectangle is recorded in a one dimensional vector
-;; containing padding squares (coded with -1). These squares allow us to
-;; detect when we are trying to move out of the board.	We denote a square by
+;; and O's with 6.  The rectangle is recorded in a one dimensional vector
+;; containing padding squares (coded with -1).  These squares allow us to
+;; detect when we are trying to move out of the board.  We denote a square by
 ;; its (X,Y) coords, or by the INDEX corresponding to them in the vector.  The
 ;; leftmost topmost square has coords (1,1) and index gomoku-board-width + 2.
 ;; Similarly, vectors between squares may be given by two DX, DY coords or by

@@ -2639,7 +2639,7 @@ check_x (void)
 #define Ctrl	0x0200	/* ctrl scan-code */
 #define Shift	0x0400	/* shift scan-code */
 
-static int extended_kbd; /* 101 (102) keyboard present.	*/
+static int extended_kbd; /* 101 (102) keyboard present. */
 
 struct kbd_translate {
   unsigned char  sc;

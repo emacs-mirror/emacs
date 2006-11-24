@@ -3756,7 +3756,7 @@ set_file_times (filename, atime, mtime)
  *					sdcsvax!rmr or rmr@uscd
  *
  * Severely hacked over by John Gilmore to make a 4.2BSD compatible
- * subroutine.	11Mar86; hoptoad!gnu
+ * subroutine.  11Mar86; hoptoad!gnu
  *
  * Modified by rmtodd@uokmax 6-28-87 -- when making an already existing dir,
  * subroutine didn't return EEXIST.  It does now.
