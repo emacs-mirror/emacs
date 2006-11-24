@@ -8,6 +8,8 @@
 
 2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
 
+	* tabify.el (tabify-regexp): Doc fix.
+
 	* net/rcirc.el (rcirc-buffer-maximum-lines):
 	* progmodes/gud.el (jdb): Fix space/tab mixup in docstrings.
 

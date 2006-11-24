@@ -1,3 +1,7 @@
+2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <buffer-undo-list>: Doc fix.
+
 2006-11-23  William Smith  <William.Smith@global360.com>  (tiny change)
 
 	* strftime.c (HAVE_SYS__MBSTATE_T_H): Fix typo.
