@@ -152,6 +152,9 @@ struct font
   /* Font-driver for the font.  */
   struct font_driver *driver;
 
+  /* Symbol of font font; x, ttf, pcf, etc,   */
+  Lisp_Object format;
+
   /* File name of the font, or NULL if the font is not associated with
      a file.  */
   char *file_name;
