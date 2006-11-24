@@ -1,3 +1,21 @@
+2006-11-24  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Set font->format.
+
+	* xftfont.c (xftfont_open): Set font->format.
+
+	* ftfont.c (ftfont_pattern_entity): Add fontformat in a pattern.
+	(ftfont_list): Include FC_FONTFORMAT in FcObject.
+	(ftfont_open): Set font->format.
+	(ftfont_font_format): New function.
+
+	* font.h (struct font): New memeber format.
+
+	* font.c (Qopentype): New variable.
+	(syms_of_font): Defsym it.
+	(Fquery_font): Change the format of the last element of the return
+	value.
+
 2006-11-22  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (simple_search): Fix sync with HEAD.

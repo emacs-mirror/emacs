@@ -592,6 +592,7 @@ xfont_open (f, entity, pixel_size)
   if (! xfont)
     return NULL;
   font = malloc (sizeof (struct font));
+  font->format = Qx;
   font->font.font = xfont;
   font->entity = entity;
   font->pixel_size = pixel_size;
