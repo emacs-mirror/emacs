@@ -1,3 +1,7 @@
+2006-11-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (substring_both): Add missing address operator.
+
 2006-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c: Use AREF/ASIZE macros.
