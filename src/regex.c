@@ -4958,7 +4958,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
   /* We use this to map every character in the string.  */
   RE_TRANSLATE_TYPE translate = bufp->translate;
 
-  /* Nonzero if we have to concern multibyte character.*/
+  /* Nonzero if we have to concern multibyte character.  */
   const boolean multibyte = RE_MULTIBYTE_P (bufp);
 
   /* Failure point stack.  Each place that can handle a failure further
