@@ -2022,7 +2022,7 @@ parameters, SERVER, PORT and NICK."
 
 (defcustom erc-after-connect nil
   "Hook called after connecting to a server.
-This hook gets executed when an end of MOTD has been received.	All
+This hook gets executed when an end of MOTD has been received.  All
 functions in here get called with the parameters SERVER and NICK."
   :group 'erc-hooks
   :type 'hook)
@@ -2119,7 +2119,7 @@ Arguments are the same as for `erc'."
 (defun erc-open-ssl-stream (name buffer host port)
   "Open an SSL stream to an IRC server.
 The process will be given the name NAME, its target buffer will be
-BUFFER.	 HOST and PORT specify the connection target."
+BUFFER.  HOST and PORT specify the connection target."
   (when (require 'tls)
     (let ((proc (open-tls-stream name buffer host port)))
       ;; Ugly hack, but it works for now. Problem is it is
@@ -2236,7 +2236,7 @@ I.e. any char in it has the `invisible' property set."
 
 (defun erc-display-line-1 (string buffer)
   "Display STRING in `erc-mode' BUFFER.
-Auxiliary function used in `erc-display-line'.	The line gets filtered to
+Auxiliary function used in `erc-display-line'.  The line gets filtered to
 interpret the control characters.  Then, `erc-insert-pre-hook' gets called.
 If `erc-insert-this' is still t, STRING gets inserted into the buffer.
 Afterwards, `erc-insert-modify' and `erc-insert-post-hook' get called.
@@ -2320,8 +2320,8 @@ or omitted, the default ERC buffer for the `erc-session-server' is used.
 The BUFFER can be an actual buffer, a list of buffers, 'all or 'active.
 If BUFFER = 'all, the string is displayed in all the ERC buffers for the
 current session.  'active means the current active buffer
-\(`erc-active-buffer').	 If the buffer can't be resolved, the current
-buffer is used.	 `erc-display-line-1' is used to display STRING.
+\(`erc-active-buffer').  If the buffer can't be resolved, the current
+buffer is used.  `erc-display-line-1' is used to display STRING.
 
 If STRING is nil, the function does nothing."
   (let ((inhibit-point-motion-hooks t)
