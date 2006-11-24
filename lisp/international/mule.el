@@ -71,8 +71,7 @@ Return t if file exists."
 	  (let ((load-file-name fullname)
 		(set-auto-coding-for-load t)
 		(inhibit-file-name-operation nil))
-	    (save-excursion
-	      (set-buffer buffer)
+	    (with-current-buffer buffer
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
 		(insert-file-contents fullname))
@@ -1871,7 +1870,7 @@ The optional second arg VISIT non-nil means that we are visiting a file."
 		      (set-buffer-multibyte nil))
 		  (set-buffer-multibyte nil))
 		(setq inserted (- pos-marker (point)))))
-	  (set-buffer-modified-p modified-p))))
+	  (restore-buffer-modified-p modified-p))))
   inserted)
 
 ;; The coding-spec and eol-type of coding-system returned is decided
@@ -2223,8 +2222,7 @@ Value is what BODY returns."
 	   (progn
 	     (set-category-table ,table)
 	     ,@body)
-	 (save-current-buffer
-	   (set-buffer ,old-buffer)
+	 (with-current-buffer ,old-buffer
 	   (set-category-table ,old-table))))))
 
 (defun define-translation-hash-table (symbol table)
