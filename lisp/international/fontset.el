@@ -518,11 +518,10 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 					 &optional style-variant noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
-	FONTSET-NAME,CHARSET-NAME0:FONT-NAME0,CHARSET-NAME1:FONT-NAME1, ...
+	FONTSET-NAME,CHARSET0:FONT0,CHARSET1:FONT1, ...
 Any number of SPACE, TAB, and NEWLINE can be put before and after commas.
 
-Optional 2nd argument is ignored.  It exists just for backward
-compatibility.
+Optional 2nd arg exists just for backward compatibility, and is ignored.
 
 If this function attempts to create already existing fontset, error is
 signaled unless the optional 3rd argument NOERROR is non-nil.
