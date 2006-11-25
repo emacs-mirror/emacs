@@ -1,3 +1,8 @@
+2006-11-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* w16select.c (Fw16_set_clipboard_data): Fix the call to sit_for
+	as per the calling sequence change on 2006-07-11.
+
 2006-11-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.c (set_window_buffer): Use BLOCK_INPUT.
