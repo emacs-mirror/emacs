@@ -1,3 +1,9 @@
+2006-11-25  Pavel Kobiakov  <pk_at_work@yahoo.com>
+
+	* progmodes/flymake.el (flymake-posn-at-point-as-event): New
+	function.
+	(flymake-popup-menu): Use it instead of posn-at-point.
+
 2006-11-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* progmodes/cc-vars.el (c-backslash-column): Mention
