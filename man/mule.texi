@@ -1302,7 +1302,7 @@ menus cannot handle fontsets.
 The resource value should have this form:
 
 @smallexample
-@var{fontpattern}, @r{[}@var{charsetname}:@var{fontname}@r{]@dots{}}
+@var{fontpattern}, @r{[}@var{charset}:@var{font}@r{]@dots{}}
 @end smallexample
 
 @noindent
