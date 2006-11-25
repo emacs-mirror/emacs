@@ -1,3 +1,7 @@
+2006-11-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mule.texi (Defining Fontsets): Fix use of `charset' and `font'.
+
 2006-11-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* anti.texi (Antinews): Mention --server-file and TCP sockets.
