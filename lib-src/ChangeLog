@@ -1,8 +1,8 @@
-2006-11-25    <Jason Rumney@JASON-ME2B>
+2006-11-25  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.c (file_name_absolute_p) [WINDOWSNT]: Use isalpha().
 
-2006-11-24  Michael Mauger <mmaug@yahoo.com>
+2006-11-24  Michael Mauger  <mmaug@yahoo.com>
 
 	* emacsclient.c (file_name_absolute_p) [WINDOWSNT]: Support
 	absolute file names with forward slashes.
