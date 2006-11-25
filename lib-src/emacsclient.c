@@ -451,7 +451,7 @@ file_name_absolute_p (filename)
 
 #ifdef WINDOWSNT
   /* X:\xxx is always absolute; X:xxx is an error and will fail.  */
-  if (islower (tolower (filename[0]))
+  if (isalpha (filename[0])
       && filename[1] == ':' && (filename[2] == '\\' || filename[2] == '/'))
     return TRUE;
 
