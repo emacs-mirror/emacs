@@ -680,15 +680,19 @@ directory and source-file directory for your debugger.  By
 default this command starts GDB using a graphical interface.  See
 `gdba' for more information.
 
-To run GDB in text command mode, set `gud-gdb-command-name' to
-\"gdb --fullname\" and include the pathname, if necessary."
+To run GDB in text command mode, replace the GDB \"--annotate=3\"
+option with \"--fullname\" either in the minibuffer for the
+current Emacs session, or the custom variable
+`gud-gdb-command-name' for all future sessions.  You need to use
+text command mode to debug multiple programs within one Emacs
+session."
   (interactive (list (gud-query-cmdline 'gdb)))
 
   (if (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
 	   (get-buffer-process gud-comint-buffer)
 	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
-      (error "Multiple debugging is only supported with \"gdb --fullname\""))
+      (error "Multiple debugging requires restarting in text command mode"))
 
   (gud-common-init command-line nil 'gud-gdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdb)
