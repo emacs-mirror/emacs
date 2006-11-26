@@ -1,3 +1,8 @@
+2006-11-26  Magnus Henoch  <mange@freemail.hu>
+
+	* url-http.el (url-http-wait-for-headers-change-function): Use
+	`when' instead of `if' when possible.
+
 2006-11-23  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-http.el (url-http-content-length-after-change-function): Use
