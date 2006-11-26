@@ -27,13 +27,13 @@
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
-;;; This mode is a major mode for editing Ada83 and Ada95 source code.
-;;; This is a major rewrite of the file packaged with Emacs-20.  The
-;;; ada-mode is composed of four Lisp files, ada-mode.el, ada-xref.el,
-;;; ada-prj.el and ada-stmt.el. Only this file (ada-mode.el) is
-;;; completely independent from the GNU Ada compiler Gnat, distributed
-;;; by Ada Core Technologies. All the other files rely heavily on
-;;; features provided only by Gnat.
+;;; This mode is a major mode for editing Ada code.  This is a major
+;;; rewrite of the file packaged with Emacs-20.  The Ada mode is
+;;; composed of four Lisp files: ada-mode.el, ada-xref.el, ada-prj.el
+;;; and ada-stmt.el.  Only this file (ada-mode.el) is completely
+;;; independent from the GNU Ada compiler GNAT, distributed by Ada
+;;; Core Technologies.  All the other files rely heavily on features
+;;; provided only by GNAT.
 ;;;
 ;;; Note: this mode will not work with Emacs 19. If you are on a VMS
 ;;; system, where the latest version of Emacs is 19.28, you will need
@@ -77,7 +77,7 @@
 ;;; (yet) been recoded in this new mode.  Perhaps you prefer sticking
 ;;; to his version.
 ;;;
-;;; A complete rewrite for Emacs-20 / Gnat-3.11 has been done by Ada Core
+;;; A complete rewrite for Emacs-20 / GNAT-3.11 has been done by Ada Core
 ;;; Technologies.
 
 ;;; Credits:
@@ -437,7 +437,7 @@ An example is:
   "*Name of the compiler to use.
 This will determine what features are made available through the Ada mode.
 The possible choices are:
-`gnat': Use Ada Core Technologies' Gnat compiler.  Add some cross-referencing
+`gnat': Use Ada Core Technologies' GNAT compiler.  Add some cross-referencing
     features.
 `generic': Use a generic compiler."
   :type '(choice (const gnat)
@@ -794,33 +794,24 @@ the 4 file locations can be clicked on and jumped to."
 				  (match-string 1))))
 	  (error-pos (point-marker))
 	  source)
+
+      ;; set source marker
       (save-excursion
-	(save-restriction
-	  (widen)
-	  ;;  Use funcall so as to prevent byte-compiler warnings
-	  ;;  `ada-find-file' is not defined if ada-xref wasn't loaded. But
-	  ;;  if we can find it, we should use it instead of
-	  ;;  `compilation-find-file', since the latter doesn't know anything
-	  ;;  about source path.
+        (compilation-find-file (point-marker) (match-string 1) "./")
+        (set-buffer file)
 
-	  (if (functionp 'ada-find-file)
-	      (setq file (funcall (symbol-function 'ada-find-file)
-				  (match-string 1)))
-	    (setq file (funcall (symbol-function 'compilation-find-file)
-				(point-marker) (match-string 1)
-				"./")))
-	  (set-buffer file)
+        (if (stringp line)
+            (goto-line (string-to-number line)))
 
-	  (if (stringp line)
-	      (goto-line (string-to-number line)))
-	  (setq source (point-marker))))
-      (funcall (symbol-function 'compilation-goto-locus)
-	       (cons source error-pos))
+        (setq source (point-marker)))
+
+      (compilation-goto-locus error-pos source nil)
+
       ))
 
    ;; otherwise, default behavior
    (t
-    (funcall (symbol-function 'compile-goto-error)))
+    (compile-goto-error))
    )
   (recenter))
 
