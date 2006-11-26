@@ -1,3 +1,7 @@
+2006-11-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* progmodes/cc-vars.el (c-backslash-column): Add . at end of sentence.
+
 2006-11-26  Stephen Leake  <stephen_leake@stephe-leake.org>
 
 	* progmodes/ada-mode.el (ada-which-compiler): Fix typo in docstring.
