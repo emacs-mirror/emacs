@@ -1,3 +1,10 @@
+2006-11-26  Stephen Leake  <stephen_leake@stephe-leake.org>
+
+	* progmodes/ada-mode.el (ada-which-compiler): Fix typo in docstring.
+	(ada-compile-goto-error): Adapt to new argument profile of
+	compilation-goto-locus in Emacs 22.  Don't check if the various
+	compile functions are defined; we already do "(require 'compile)".
+
 2006-11-26  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el: Fix commentary.
